@@ -83,7 +83,7 @@ public:
      * \param [in/out] aParentNode          pugi::xml_node
     **********************************************************************************/
     void call(const XMLGen::Scenario& aScenarioMetaData,
-              const XMLGen::Output& aOutputMetaData,
+              const std::vector<XMLGen::Output>& aOutputMetaData,
               pugi::xml_node &aParentNode) const;
 };
 // struct XMLGeneratorAnalyzePhysicsFunctionInterface

@@ -521,7 +521,7 @@ void append_physics_to_plato_analyze_input_deck
  pugi::xml_node& aParentNode)
 {
     XMLGen::AnalyzePhysicsFunctionInterface tPhysicsInterface;
-    tPhysicsInterface.call(aXMLMetaData.scenario(0u), aXMLMetaData.mOutputMetaData[0], aParentNode);
+    tPhysicsInterface.call(aXMLMetaData.scenario(0u), aXMLMetaData.mOutputMetaData, aParentNode);
 }
 // function append_physics_to_plato_analyze_input_deck
 /**********************************************************************************/

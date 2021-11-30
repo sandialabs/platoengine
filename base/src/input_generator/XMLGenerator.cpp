@@ -412,7 +412,7 @@ namespace XMLGen
                                       const std::string &aServiceID)
     /******************************************************************************/
     {
-        for(auto &tOutput : m_InputData.mOutputMetaData)
+        for(auto &tOutput : aOriginalInputData.mOutputMetaData)
         {
             if(tOutput.serviceID() == aServiceID)
             {

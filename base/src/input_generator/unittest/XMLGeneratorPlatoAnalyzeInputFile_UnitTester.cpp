@@ -4,6 +4,7 @@
  *  Created on: Jun 8, 2020
  */
 
+#include <algorithm>
 #include <gtest/gtest.h>
 
 #include "XMLGenerator_UnitTester_Tools.hpp"
@@ -26,7 +27,7 @@ namespace PlatoTestXMLGenerator
 
 TEST(PlatoTestXMLGenerator, AppendPhysics_IncompressibleFluids)
 {
-    XMLGen::Output tOutput;
+    std::vector<XMLGen::Output> tOutput;
     XMLGen::Scenario tScenario;
     tScenario.physics("steady_state_incompressible_fluids");
     tScenario.append("output_frequency","1");
@@ -150,9 +151,11 @@ TEST(PlatoTestXMLGenerator, AppendPhysics_IncompressibleFluids)
 
 TEST(PlatoTestXMLGenerator, AppendPhysicsMechanical)
 {
+    std::vector<XMLGen::Output> tOutputs;
     XMLGen::Output tOutput;
     tOutput.appendDeterminsiticQoI("stress", "element field");
     tOutput.appendDeterminsiticQoI("vonmises", "element field");
+    tOutputs.push_back(tOutput);
     XMLGen::Scenario tScenario;
     tScenario.physics("steady_state_mechanics");
     tScenario.additiveContinuation("");
@@ -160,7 +163,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsMechanical)
     tScenario.minErsatzMaterialConstant("1e-9");
     pugi::xml_document tDocument;
     XMLGen::AnalyzePhysicsFunctionInterface tPhysics;
-    tPhysics.call(tScenario, tOutput, tDocument);
+    tPhysics.call(tScenario, tOutputs, tDocument);
 
     // TEST RESULTS
     auto tElliptic = tDocument.child("ParameterList");
@@ -199,9 +202,11 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsMechanical)
 
 TEST(PlatoTestXMLGenerator, AppendPhysicsThermal)
 {
+    std::vector<XMLGen::Output> tOutputs;
     XMLGen::Output tOutput;
     tOutput.appendDeterminsiticQoI("vonmises", "element field");
     tOutput.appendDeterminsiticQoI("temperature", "nodal field");
+    tOutputs.push_back(tOutput);
     XMLGen::Scenario tScenario;
     tScenario.physics("steady_state_thermal");
     tScenario.additiveContinuation("");
@@ -209,7 +214,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsThermal)
     tScenario.minErsatzMaterialConstant("1e-9");
     pugi::xml_document tDocument;
     XMLGen::AnalyzePhysicsFunctionInterface tPhysics;
-    tPhysics.call(tScenario, tOutput, tDocument);
+    tPhysics.call(tScenario, tOutputs, tDocument);
 
     // TEST RESULTS
     auto tElliptic = tDocument.child("ParameterList");
@@ -248,7 +253,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsThermal)
 
 TEST(PlatoTestXMLGenerator, AppendPhysicsThermoMechanical)
 {
-    XMLGen::Output tOutput;
+    std::vector<XMLGen::Output> tOutput;
     XMLGen::Scenario tScenario;
     tScenario.physics("steady_state_thermomechanics");
     tScenario.additiveContinuation("");
@@ -264,7 +269,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsThermoMechanical)
     ASSERT_STREQ("ParameterList", tElliptic.name());
     PlatoTestXMLGenerator::test_attributes({"name"}, {"Elliptic"}, tElliptic);
     auto tParameter = tElliptic.child("Parameter");
-    ASSERT_FALSE(tParameter.empty());
+    ASSERT_TRUE(tParameter.empty());
 
     auto tPenaltyFunction = tElliptic.child("ParameterList");
     ASSERT_FALSE(tPenaltyFunction.empty());
@@ -289,7 +294,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsThermoMechanical)
 
 TEST(PlatoTestXMLGenerator, AppendPhysicsElectroMechanical)
 {
-    XMLGen::Output tOutput;
+    std::vector<XMLGen::Output> tOutput;
     XMLGen::Scenario tScenario;
     tScenario.physics("steady_state_electromechanics");
     tScenario.additiveContinuation("");
@@ -305,7 +310,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsElectroMechanical)
     ASSERT_STREQ("ParameterList", tElliptic.name());
     PlatoTestXMLGenerator::test_attributes({"name"}, {"Elliptic"}, tElliptic);
     auto tParameter = tElliptic.child("Parameter");
-    ASSERT_FALSE(tParameter.empty());
+    ASSERT_TRUE(tParameter.empty());
 
     auto tPenaltyFunction = tElliptic.child("ParameterList");
     ASSERT_FALSE(tPenaltyFunction.empty());
@@ -330,7 +335,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsElectroMechanical)
 
 TEST(PlatoTestXMLGenerator, AppendPhysicsHeatConduction)
 {
-    XMLGen::Output tOutput;
+    std::vector<XMLGen::Output> tOutput;
     XMLGen::Scenario tScenario;
     tScenario.physics("transient_thermal");
     tScenario.timeStep("1.0");
@@ -347,7 +352,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsHeatConduction)
     ASSERT_STREQ("ParameterList", tParabolic.name());
     PlatoTestXMLGenerator::test_attributes({"name"}, {"Parabolic"}, tParabolic);
     auto tParameter = tParabolic.child("Parameter");
-    ASSERT_FALSE(tParameter.empty());
+    ASSERT_TRUE(tParameter.empty());
 
     auto tPenaltyFunction = tParabolic.child("ParameterList");
     ASSERT_FALSE(tPenaltyFunction.empty());
@@ -387,7 +392,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsHeatConduction)
 
 TEST(PlatoTestXMLGenerator, AppendPhysicsTransientThermoMechanics)
 {
-    XMLGen::Output tOutput;
+    std::vector<XMLGen::Output> tOutput;
     XMLGen::Scenario tScenario;
     tScenario.physics("transient_thermomechanics");
     tScenario.timeStep("2.0");
@@ -404,7 +409,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsTransientThermoMechanics)
     ASSERT_STREQ("ParameterList", tParabolic.name());
     PlatoTestXMLGenerator::test_attributes({"name"}, {"Parabolic"}, tParabolic);
     auto tParameter = tParabolic.child("Parameter");
-    ASSERT_FALSE(tParameter.empty());
+    ASSERT_TRUE(tParameter.empty());
 
     auto tPenaltyFunction = tParabolic.child("ParameterList");
     ASSERT_FALSE(tPenaltyFunction.empty());
@@ -444,7 +449,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsTransientThermoMechanics)
 
 TEST(PlatoTestXMLGenerator, AppendPhysicsTransientMechanics)
 {
-    XMLGen::Output tOutput;
+    std::vector<XMLGen::Output> tOutput;
     XMLGen::Scenario tScenario;
     tScenario.physics("transient_mechanics");
     tScenario.timeStep("2.0");
@@ -463,7 +468,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsTransientMechanics)
     ASSERT_STREQ("ParameterList", tParabolic.name());
     PlatoTestXMLGenerator::test_attributes({"name"}, {"Hyperbolic"}, tParabolic);
     auto tParameter = tParabolic.child("Parameter");
-    ASSERT_FALSE(tParameter.empty());
+    ASSERT_TRUE(tParameter.empty());
 
     auto tPenaltyFunction = tParabolic.child("ParameterList");
     ASSERT_FALSE(tPenaltyFunction.empty());
@@ -511,7 +516,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsTransientMechanics)
 
 TEST(PlatoTestXMLGenerator, AppendPhysicsStabilizedMechanics)
 {
-    XMLGen::Output tOutput;
+    std::vector<XMLGen::Output> tOutput;
     XMLGen::Scenario tScenario;
     tScenario.physics("stabilized_mechanics");
     tScenario.timeStep("2.0");
@@ -528,7 +533,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsStabilizedMechanics)
     ASSERT_STREQ("ParameterList", tElliptic.name());
     PlatoTestXMLGenerator::test_attributes({"name"}, {"Elliptic"}, tElliptic);
     auto tParameter = tElliptic.child("Parameter");
-    ASSERT_FALSE(tParameter.empty());
+    ASSERT_TRUE(tParameter.empty());
 
     auto tPenaltyFunction = tElliptic.child("ParameterList");
     ASSERT_FALSE(tPenaltyFunction.empty());
@@ -568,7 +573,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsStabilizedMechanics)
 
 TEST(PlatoTestXMLGenerator, AppendPhysicsPlasticity)
 {
-    XMLGen::Output tOutput;
+    std::vector<XMLGen::Output> tOutput;
     XMLGen::Scenario tScenario;
     tScenario.physics("plasticity");
     tScenario.timeStep("2.0");
@@ -593,7 +598,7 @@ TEST(PlatoTestXMLGenerator, AppendPhysicsPlasticity)
     ASSERT_STREQ("ParameterList", tElliptic.name());
     PlatoTestXMLGenerator::test_attributes({"name"}, {"Elliptic"}, tElliptic);
     auto tParameter = tElliptic.child("Parameter");
-    ASSERT_FALSE(tParameter.empty());
+    ASSERT_TRUE(tParameter.empty());
 
     auto tPenaltyFunction = tElliptic.child("ParameterList");
     ASSERT_FALSE(tPenaltyFunction.empty());
