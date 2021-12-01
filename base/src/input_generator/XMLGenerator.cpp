@@ -422,7 +422,6 @@ namespace XMLGen
         }
     }
     
-
     /******************************************************************************/
     void XMLGenerator::createCopiesForMultiPerformerCase(XMLGen::InputData &aInputData,
                                                          std::set<std::tuple<std::string, std::string, std::string>> &aObjectiveScenarioServiceTuples)

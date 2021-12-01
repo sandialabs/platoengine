@@ -8,6 +8,7 @@
 #include "XMLGeneratorUtilities.hpp"
 #include "XMLGeneratorValidInputKeys.hpp"
 #include "XMLGeneratorAnalyzePhysicsFunctionInterface.hpp"
+#include <string>
 
 namespace XMLGen
 {
@@ -357,8 +358,11 @@ inline void append_plottable_option
 {
     if (aOutput.size() > 0)
     {
-        auto tOutputQoIs = aOutput[0].outputIDs();
+        if (aOutput.size() > 1)
+            THROWERR( std::string("In append_plottable_option: expected vector aOutput to have size 1, but size is ") 
+                + std::to_string(aOutput.size()) )
 
+        auto tOutputQoIs = aOutput[0].outputIDs();
         auto tValidAnalyzeOutputKeywords = XMLGen::Private::transform_analyze_output_keywords(tOutputQoIs);
         auto tTransformQoIIDs = XMLGen::transform_tokens(tValidAnalyzeOutputKeywords);
         tTransformQoIIDs.insert(0u, "{");
