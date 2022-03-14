@@ -278,7 +278,7 @@ namespace XMLGen
             bool need_to_decompose = num_procs.compare("1") != 0;
             if(need_to_decompose)
             {
-                if(hasBeenDecompedForThisNumberOfProcessors[num_procs]++ == 0)
+                if(hasBeenDecompedForThisNumberOfProcessors[num_procs]++ == 0) {
                   if (aInputData.optimization_parameters().optimizationType() == OT_DAKOTA)
                   {
                     auto tMeshName = aInputData.optimization_parameters().csm_exodus_file();
@@ -287,6 +287,7 @@ namespace XMLGen
                   }
                   else
                     XMLGen::append_decomp_line(fp, num_procs, aInputData.mesh.run_name);
+                }
 
                 if(tCriterion.value("ref_data_file").length() > 0)
                   XMLGen::append_decomp_line(fp, num_procs, tCriterion.value("ref_data_file"));
