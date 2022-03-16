@@ -917,8 +917,7 @@ void append_tet10_conversion_operation_to_plato_main_operation
     if(aXMLMetaData.optimization_parameters().optimizationType() == OT_SHAPE || aXMLMetaData.optimization_parameters().optimizationType() == OT_DAKOTA)
     {
         
-        std::string tOptions = "-batch -nographics -nogui -noecho -nobanner -information off";
-        //std::string tOptions = "-batch -nographics -nogui -noecho -nojournal -nobanner -information off";
+        std::string tOptions = "-batch -nographics -nogui -noecho -nojournal -nobanner -information off";
 
         if(aXMLMetaData.optimization_parameters().optimizationType() == OT_SHAPE)
         {
@@ -939,7 +938,6 @@ void append_tet10_conversion_operation_to_plato_main_operation
                 const std::string exodusFile = XMLGen::append_concurrent_tag_to_file_string(aXMLMetaData.optimization_parameters().csm_exodus_file(),tTag);
                 const std::vector<XMLGen::Block> blockList(aXMLMetaData.blocks);
                 
-                ///THIS does not work on first execution of XMLGenerator because the "evaluations_*" folders don't exist yet...
                 writeCubitJournalFile("evaluations" + tTag + "/toTet10.jou", exodusFile, blockList);
                 std::string tName = std::string("convert_to_tet10") + tTag;
                 std::string tCommand = std::string("cd evaluations") + tTag + std::string("; cubit -input toTet10.jou ") + tOptions;
@@ -962,7 +960,6 @@ void append_tet10_conversion_operation_commands(pugi::xml_document& aDocument,co
     XMLGen::append_children({"ArgumentName"}, {"Parameters"}, tInputNode);
 
 }
-
 
 void append_mesh_join_operation_to_plato_main_operation
 (const XMLGen::InputData& aXMLMetaData,

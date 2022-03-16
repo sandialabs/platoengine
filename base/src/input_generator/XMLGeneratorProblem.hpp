@@ -302,6 +302,7 @@ inline void write_dakota_problem
 (XMLGen::InputData& aMetaData,
  const std::vector<XMLGen::InputData>& aPreProcessedMetaData)
 {
+    create_concurrent_evaluation_subdirectories(aMetaData);
     XMLGen::write_define_xml_file(aMetaData);
     XMLGen::write_dakota_interface_xml_file(aMetaData);
     XMLGen::generate_launch_script(aMetaData);
@@ -312,7 +313,6 @@ inline void write_dakota_problem
     XMLGen::write_xtk_input_deck_file(aMetaData);
     XMLGen::write_xtk_operations_file(aMetaData);
 
-    create_concurrent_evaluation_subdirectories(aMetaData);
     write_plato_services_performer_input_deck_files(aMetaData);
     for(auto tCurMetaData : aPreProcessedMetaData)
     {
