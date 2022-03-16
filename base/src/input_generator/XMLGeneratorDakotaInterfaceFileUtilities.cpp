@@ -269,7 +269,7 @@ void append_objective_criterion_value_stages
         auto tIdentifierString = XMLGen::get_concretized_criterion_identifier_string(tConcretizedCriterion);
         XMLGen::Service tService = aMetaData.service(tServiceID); 
 
-        XMLGen::append_concurrent_criterion_value_operation(tStageNode,tService,tIdentifierString,aCriterionNumber);
+        XMLGen::append_concurrent_criterion_value_operation(tStageNode, tService, tIdentifierString);
         aCriterionNumber++;
     }
 }
@@ -278,8 +278,7 @@ void append_objective_criterion_value_stages
 void append_concurrent_criterion_value_operation
 (pugi::xml_node& aParentNode,
  XMLGen::Service& aService,
- const std::string& aIdentifierString,
- int aCriterionNumber)
+ const std::string& aIdentifierString)
  {
     auto tOperationNode = aParentNode.append_child("Operation");
     auto tForNode = tOperationNode.append_child("For");
@@ -289,7 +288,7 @@ void append_concurrent_criterion_value_operation
     auto tPerformerName = (aService.code() == "platomain") ? std::string("plato_services") : aService.performer();
     XMLGen::append_children({"Name", "PerformerName"}, {tInnerOperationName, tPerformerName + std::string("_{I}")}, tOperationNode);
     auto tOutputNode = tOperationNode.append_child("Output");
-    auto tArgumentName = std::string("Criterion ") + std::to_string(aCriterionNumber) + std::string(" Value");
+    auto tArgumentName = aIdentifierString + std::string(" value");
     XMLGen::append_children({"SharedDataName", "ArgumentName"}, {aIdentifierString + std::string("_{I}"), tArgumentName}, tOutputNode);
 
     tForNode = aParentNode.append_child("For");
@@ -318,7 +317,7 @@ void append_constraint_criterion_value_stages
         auto tIdentifierString = XMLGen::get_concretized_criterion_identifier_string(tConcretizedCriterion);
         XMLGen::Service tService = aMetaData.service(tServiceID); 
 
-        XMLGen::append_concurrent_criterion_value_operation(tStageNode,tService,tIdentifierString,aCriterionNumber);
+        XMLGen::append_concurrent_criterion_value_operation(tStageNode, tService, tIdentifierString);
         aCriterionNumber++;
     }
 }

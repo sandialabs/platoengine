@@ -969,7 +969,7 @@ TEST(PlatoTestXMLGenerator, AppendComputeCriteriaStagesToInterfaceFile_SingleObj
     PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
     auto tOpOutputs = tOperation.child("Output");
     ASSERT_FALSE(tOpOutputs.empty());
-    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"Criterion 0 Value", "criterion_3_service_2_scenario_14_{I}"}, tOpOutputs);
+    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"criterion_3_service_2_scenario_14 value", "criterion_3_service_2_scenario_14_{I}"}, tOpOutputs);
 
     tOperation = tOperation.next_sibling("Operation");
     ASSERT_TRUE(tOperation.empty());
@@ -1054,7 +1054,7 @@ TEST(PlatoTestXMLGenerator, AppendComputeCriteriaStagesToInterfaceFile_MultiObje
     PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
     auto tOpOutputs = tOperation.child("Output");
     ASSERT_FALSE(tOpOutputs.empty());
-    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"Criterion 0 Value", "criterion_3_service_2_scenario_14_{I}"}, tOpOutputs);
+    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"criterion_3_service_2_scenario_14 value", "criterion_3_service_2_scenario_14_{I}"}, tOpOutputs);
 
     tOperation = tOperation.next_sibling("Operation");
     ASSERT_TRUE(tOperation.empty());
@@ -1090,7 +1090,7 @@ TEST(PlatoTestXMLGenerator, AppendComputeCriteriaStagesToInterfaceFile_MultiObje
     PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
     tOpOutputs = tOperation.child("Output");
     ASSERT_FALSE(tOpOutputs.empty());
-    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"Criterion 1 Value", "criterion_7_service_1_scenario_14_{I}"}, tOpOutputs);
+    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"criterion_7_service_1_scenario_14 value", "criterion_7_service_1_scenario_14_{I}"}, tOpOutputs);
 
     tOperation = tOperation.next_sibling("Operation");
     ASSERT_TRUE(tOperation.empty());
@@ -1184,7 +1184,7 @@ TEST(PlatoTestXMLGenerator, AppendComputeCriteriaStagesToInterfaceFile_SingleObj
     PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
     auto tOpOutputs = tOperation.child("Output");
     ASSERT_FALSE(tOpOutputs.empty());
-    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"Criterion 0 Value", "criterion_3_service_2_scenario_14_{I}"}, tOpOutputs);
+    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"criterion_3_service_2_scenario_14 value", "criterion_3_service_2_scenario_14_{I}"}, tOpOutputs);
 
     tOperation = tOperation.next_sibling("Operation");
     ASSERT_TRUE(tOperation.empty());
@@ -1220,7 +1220,7 @@ TEST(PlatoTestXMLGenerator, AppendComputeCriteriaStagesToInterfaceFile_SingleObj
     PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
     tOpOutputs = tOperation.child("Output");
     ASSERT_FALSE(tOpOutputs.empty());
-    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"Criterion 1 Value", "criterion_7_service_5_scenario_3_{I}"}, tOpOutputs);
+    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"criterion_7_service_5_scenario_3 value", "criterion_7_service_5_scenario_3_{I}"}, tOpOutputs);
 
     tOperation = tOperation.next_sibling("Operation");
     ASSERT_TRUE(tOperation.empty());
@@ -1704,7 +1704,7 @@ TEST(PlatoTestXMLGenerator, AppendComputeCriterionValueToPlatoMainOperationsFile
     auto tOutput = tOperation.child("Output");
     ASSERT_FALSE(tOutput.empty());
     tKeys = {"ArgumentName"};
-    tValues = {"Criterion 0 Value"};
+    tValues = {"criterion_13_service_2_scenario_14 value"};
     PlatoTestXMLGenerator::test_children(tKeys, tValues, tOutput);
 
     tOutput = tOutput.next_sibling("Output");
@@ -2142,11 +2142,11 @@ TEST(PlatoTestXMLGenerator, WritePlatoAnalyzeOperationsXmlFileForDakotaDriver_Mu
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_3_service_2_scenario_14</Name>") + 
         std::string("<Criterion>my_mechanical_compliance_criterion_id_3</Criterion>") + 
-        std::string("<Output><Argument>Value</Argument><ArgumentName>Criterion0Value</ArgumentName></Output></Operation>") + 
+        std::string("<Output><Argument>Value</Argument><ArgumentName>criterion_3_service_2_scenario_14value</ArgumentName></Output></Operation>") + 
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_7_service_2_scenario_14</Name>") + 
         std::string("<Criterion>my_volume_criterion_id_7</Criterion>") + 
-        std::string("<Output><Argument>Value</Argument><ArgumentName>Criterion1Value</ArgumentName></Output></Operation>"); 
+        std::string("<Output><Argument>Value</Argument><ArgumentName>criterion_7_service_2_scenario_14value</ArgumentName></Output></Operation>"); 
 
     ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
     Plato::system("rm -f plato_analyze_2_operations.xml");
@@ -2217,7 +2217,7 @@ TEST(PlatoTestXMLGenerator, WriteOnlyFirstOfMultiPlatoAnalyzeServiceOperationsXm
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_3_service_2_scenario_14</Name>") + 
         std::string("<Criterion>my_mechanical_compliance_criterion_id_3</Criterion>") + 
-        std::string("<Output><Argument>Value</Argument><ArgumentName>Criterion0Value</ArgumentName></Output></Operation>");
+        std::string("<Output><Argument>Value</Argument><ArgumentName>criterion_3_service_2_scenario_14value</ArgumentName></Output></Operation>");
 
     ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
     Plato::system("rm -f plato_analyze_2_operations.xml");
@@ -2288,11 +2288,11 @@ TEST(PlatoTestXMLGenerator, WritePlatoAnalyzeOperationsXmlFileForDakotaDriver_Si
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_3_service_2_scenario_14</Name>") + 
         std::string("<Criterion>my_mechanical_compliance_criterion_id_3</Criterion>") + 
-        std::string("<Output><Argument>Value</Argument><ArgumentName>Criterion0Value</ArgumentName></Output></Operation>") + 
+        std::string("<Output><Argument>Value</Argument><ArgumentName>criterion_3_service_2_scenario_14value</ArgumentName></Output></Operation>") + 
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_7_service_2_scenario_14</Name>") + 
         std::string("<Criterion>my_volume_criterion_id_7</Criterion>") + 
-        std::string("<Output><Argument>Value</Argument><ArgumentName>Criterion1Value</ArgumentName></Output></Operation>"); 
+        std::string("<Output><Argument>Value</Argument><ArgumentName>criterion_7_service_2_scenario_14value</ArgumentName></Output></Operation>"); 
 
     ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
     Plato::system("rm -f plato_analyze_2_operations.xml");
@@ -2378,11 +2378,11 @@ TEST(PlatoTestXMLGenerator, WriteOnlyFirstOfMultiPlatoAnalyzeServiceOperationsXm
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_3_service_2_scenario_14</Name>") + 
         std::string("<Criterion>my_mechanical_compliance_criterion_id_3</Criterion>") + 
-        std::string("<Output><Argument>Value</Argument><ArgumentName>Criterion0Value</ArgumentName></Output></Operation>") + 
+        std::string("<Output><Argument>Value</Argument><ArgumentName>criterion_3_service_2_scenario_14value</ArgumentName></Output></Operation>") + 
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_5_service_2_scenario_1</Name>") + 
         std::string("<Criterion>my_stress_p-norm_criterion_id_5</Criterion>") + 
-        std::string("<Output><Argument>Value</Argument><ArgumentName>Criterion1Value</ArgumentName></Output></Operation>"); 
+        std::string("<Output><Argument>Value</Argument><ArgumentName>criterion_5_service_2_scenario_1value</ArgumentName></Output></Operation>"); 
 
     ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
     Plato::system("rm -f plato_analyze_2_operations.xml");
@@ -2440,7 +2440,7 @@ TEST(PlatoTestXMLGenerator, WriteSierraSDOperationsXmlFileForDakotaDriver_Single
         std::string("<Function>Reinitialize</Function></Operation>") + 
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_13_service_2_scenario_14</Name>") + 
-        std::string("<OutputValue><Name>Criterion0Value</Name></OutputValue></Operation>"); 
+        std::string("<OutputValue><Name>criterion_13_service_2_scenario_14value</Name></OutputValue></Operation>"); 
 
     ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
     Plato::system("rm -f sierra_sd_2_operations.xml");
@@ -2448,55 +2448,64 @@ TEST(PlatoTestXMLGenerator, WriteSierraSDOperationsXmlFileForDakotaDriver_Single
 
 TEST(PlatoTestXMLGenerator, WriteSierraSDOperationsXmlFileForDakotaDriver_MultiObjective)
 {
-    XMLGen::InputData tMetaData;
+    XMLGen::InputData tMetaData1;
+    XMLGen::InputData tMetaData2;
 
-    // Create a service
+    // Create services
     XMLGen::Service tService;
     tService.id("5");
     tService.code("sierra_sd");
-    tMetaData.append(tService);
-    tMetaData.mPerformerServices.push_back(tService);
+    tMetaData1.append(tService);
+    tMetaData1.mPerformerServices.push_back(tService);
+    tService.id("15");
+    tService.code("sierra_sd");
+    tMetaData2.append(tService);
+    tMetaData2.mPerformerServices.push_back(tService);
 
     // Create criteria
     XMLGen::Criterion tCriterion;
     tCriterion.id("6");
     tCriterion.type("mechanical_compliance");
-    tMetaData.append(tCriterion);
+    tMetaData1.append(tCriterion);
+    tMetaData2.append(tCriterion);
 
     // Create a scenario
     XMLGen::Scenario tScenario;
     tScenario.id("14");
     tScenario.physics("steady_state_mechanics");
-    tMetaData.append(tScenario);
+    tMetaData1.append(tScenario);
     tScenario.id("7");
     tScenario.physics("steady_state_mechanics");
-    tMetaData.append(tScenario);
+    tMetaData1.append(tScenario);
     
     // Create an objective
     XMLGen::Objective tObjective;
     tObjective.type = "multi_objective";
     tObjective.serviceIDs.push_back("5");
-    tObjective.serviceIDs.push_back("5");
+    tObjective.serviceIDs.push_back("15");
     tObjective.criteriaIDs.push_back("6");
     tObjective.criteriaIDs.push_back("6");
     tObjective.scenarioIDs.push_back("14");
     tObjective.scenarioIDs.push_back("7");
     tObjective.weights.push_back("1");
     tObjective.weights.push_back("4");
-    tMetaData.objective = tObjective;
+    tMetaData1.objective = tObjective;
+    tMetaData2.objective = tObjective;
 
     // Create optimization parameters
     XMLGen::OptimizationParameters tOptimizationParameters;
     tOptimizationParameters.optimizationType(XMLGen::OT_DAKOTA);
-    tMetaData.set(tOptimizationParameters);
+    tMetaData1.set(tOptimizationParameters);
+    tMetaData2.set(tOptimizationParameters);
 
     // Create output
     XMLGen::Output tOutputMetadata;
     tOutputMetadata.disableOutput();
     tOutputMetadata.appendParam("native_service_output", "false");
-    tMetaData.mOutputMetaData.push_back(tOutputMetadata);
+    tMetaData1.mOutputMetaData.push_back(tOutputMetadata);
+    tMetaData2.mOutputMetaData.push_back(tOutputMetadata);
 
-    ASSERT_NO_THROW(XMLGen::write_sierra_sd_operation_xml_file(tMetaData));
+    ASSERT_NO_THROW(XMLGen::write_sierra_sd_operation_xml_file(tMetaData1));
 
     auto tReadData = XMLGen::read_data_from_file("sierra_sd_5_operations.xml");
     auto tGold = std::string("<?xmlversion=\"1.0\"?>") + 
@@ -2506,13 +2515,26 @@ TEST(PlatoTestXMLGenerator, WriteSierraSDOperationsXmlFileForDakotaDriver_MultiO
         std::string("<Function>Reinitialize</Function></Operation>") + 
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_6_service_5_scenario_14</Name>") + 
-        std::string("<OutputValue><Name>Criterion0Value</Name></OutputValue></Operation>") + 
-        std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
-        std::string("<Name>ComputeCriterionValue-criterion_6_service_5_scenario_7</Name>") + 
-        std::string("<OutputValue><Name>Criterion1Value</Name></OutputValue></Operation>"); 
+        std::string("<OutputValue><Name>criterion_6_service_5_scenario_14value</Name></OutputValue></Operation>");
 
     ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
+
+    ASSERT_NO_THROW(XMLGen::write_sierra_sd_operation_xml_file(tMetaData2));
+
+    tReadData = XMLGen::read_data_from_file("sierra_sd_15_operations.xml");
+    tGold = std::string("<?xmlversion=\"1.0\"?>") + 
+        std::string("<includefilename=\"defines.xml\"/>") + 
+        std::string("<?xmlversion=\"1.0\"?>") + 
+        std::string("<Operation><Name>reinitialize_on_change_sierra_sd_15</Name>") + 
+        std::string("<Function>Reinitialize</Function></Operation>") + 
+        std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
+        std::string("<Name>ComputeCriterionValue-criterion_6_service_15_scenario_7</Name>") + 
+        std::string("<OutputValue><Name>criterion_6_service_15_scenario_7value</Name></OutputValue></Operation>"); 
+
+    ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
+
     Plato::system("rm -f sierra_sd_5_operations.xml");
+    Plato::system("rm -f sierra_sd_15_operations.xml");
 }
 
 TEST(PlatoTestXMLGenerator, WriteSierraSDOperationsXmlFileForDakotaDriver_SingleObjectiveSingleConstraint)
@@ -2579,10 +2601,10 @@ TEST(PlatoTestXMLGenerator, WriteSierraSDOperationsXmlFileForDakotaDriver_Single
         std::string("<Function>Reinitialize</Function></Operation>") + 
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_3_service_2_scenario_14</Name>") + 
-        std::string("<OutputValue><Name>Criterion0Value</Name></OutputValue></Operation>") + 
+        std::string("<OutputValue><Name>criterion_3_service_2_scenario_14value</Name></OutputValue></Operation>") + 
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_3_service_2_scenario_9</Name>") + 
-        std::string("<OutputValue><Name>Criterion1Value</Name></OutputValue></Operation>"); 
+        std::string("<OutputValue><Name>criterion_3_service_2_scenario_9value</Name></OutputValue></Operation>"); 
 
     ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
     Plato::system("rm -f sierra_sd_2_operations.xml");
@@ -2652,7 +2674,7 @@ TEST(PlatoTestXMLGenerator, WriteOnlyFirstOfMultiSierraSDServiceOperationsXmlFil
         std::string("<Function>Reinitialize</Function></Operation>") + 
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_6_service_5_scenario_14</Name>") + 
-        std::string("<OutputValue><Name>Criterion0Value</Name></OutputValue></Operation>");  
+        std::string("<OutputValue><Name>criterion_6_service_5_scenario_14value</Name></OutputValue></Operation>");  
 
     ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
     Plato::system("rm -f sierra_sd_5_operations.xml");
@@ -2734,10 +2756,10 @@ TEST(PlatoTestXMLGenerator, WriteOnlyFirstOfMultiSierraSDServiceOperationsXmlFil
         std::string("<Function>Reinitialize</Function></Operation>") + 
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_3_service_2_scenario_14</Name>") + 
-        std::string("<OutputValue><Name>Criterion0Value</Name></OutputValue></Operation>") + 
+        std::string("<OutputValue><Name>criterion_3_service_2_scenario_14value</Name></OutputValue></Operation>") + 
         std::string("<Operation><Function>ComputeCriterionValue</Function>") + 
         std::string("<Name>ComputeCriterionValue-criterion_3_service_2_scenario_4</Name>") + 
-        std::string("<OutputValue><Name>Criterion1Value</Name></OutputValue></Operation>");  
+        std::string("<OutputValue><Name>criterion_3_service_2_scenario_4value</Name></OutputValue></Operation>");  
 
     ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
     Plato::system("rm -f sierra_sd_2_operations.xml");
@@ -3853,6 +3875,72 @@ TEST(PlatoTestXMLGenerator, ParseCsmFileForDakotaDriverInputFile)
     {
         ASSERT_STREQ(tVariablesStrings[iString].c_str(), tGoldStrings[iString].c_str());
     }
+}
+
+TEST(PlatoTestXMLGenerator, AppendParametersToDakotaDriverInputFile_ErrorNumberDesignVariablesDontMatchCsm)
+{
+    // Create test csm file
+    FILE* fp1=fopen("rocker.csm", "w");
+    fprintf(fp1, "%s", "# Constant, Design, and Output Parameters:\n");
+    fprintf(fp1, "%s", "despmtr Py 2.0 lbound 2.0 ubound 3.0 initial 2.0\n");
+    fprintf(fp1, "%s", "despmtr Px 2.0 lbound 1.6 ubound 2.4 initial 2.0\n");
+    fprintf(fp1, "%s", "conpmtr Boffset 0.25 # lbound 0.05 ubound 0.38 initial 0.25\n");
+    fprintf(fp1, "%s", "conpmtr Lx 6.5 # lbound 5.0 ubound 8.0 initial 6.5\n");
+    fclose(fp1);
+
+    // create metadata
+    XMLGen::InputData tMetaData;
+    XMLGen::OptimizationParameters tOptimizationParameters;
+    tOptimizationParameters.append("dakota_workflow", "sbgo");
+    tOptimizationParameters.append("concurrent_evaluations", "6");
+    tOptimizationParameters.append("csm_file", "rocker.csm");
+    tOptimizationParameters.append("num_shape_design_variables", "3");
+    tMetaData.set(tOptimizationParameters);
+
+    FILE* fp2=fopen("appendParameters.txt", "w");
+    ASSERT_THROW(XMLGen::append_dakota_driver_variables_block(tMetaData, fp2), std::runtime_error);
+    fclose(fp2);
+
+    Plato::system("rm -rf appendParameters.txt");
+    Plato::system("rm -rf rocker.csm");
+}
+
+TEST(PlatoTestXMLGenerator, AppendParametersToDakotaDriverInputFile)
+{
+    // Create test csm file
+    FILE* fp1=fopen("rocker.csm", "w");
+    fprintf(fp1, "%s", "# Constant, Design, and Output Parameters:\n");
+    fprintf(fp1, "%s", "despmtr Py 2.0 lbound 2.0 ubound 3.0 initial 2.0\n");
+    fprintf(fp1, "%s", "despmtr Px 2.0 lbound 1.6 ubound 2.4 initial 2.0\n");
+    fprintf(fp1, "%s", "conpmtr Boffset 0.25 # lbound 0.05 ubound 0.38 initial 0.25\n");
+    fprintf(fp1, "%s", "conpmtr Lx 6.5 # lbound 5.0 ubound 8.0 initial 6.5\n");
+    fclose(fp1);
+
+    // create metadata
+    XMLGen::InputData tMetaData;
+    XMLGen::OptimizationParameters tOptimizationParameters;
+    tOptimizationParameters.append("dakota_workflow", "sbgo");
+    tOptimizationParameters.append("concurrent_evaluations", "6");
+    tOptimizationParameters.append("csm_file", "rocker.csm");
+    tOptimizationParameters.append("num_shape_design_variables", "2");
+    tMetaData.set(tOptimizationParameters);
+
+    FILE* fp2=fopen("appendParameters.txt", "w");
+    ASSERT_NO_THROW(XMLGen::append_dakota_driver_variables_block(tMetaData, fp2));
+    fclose(fp2);
+
+    auto tReadData = XMLGen::read_data_from_file("appendParameters.txt");
+    auto tGold = std::string("variables") + 
+        std::string("continuous_design=2") + 
+        std::string("descriptors'py''px'") +
+        std::string("lower_bounds2.01.6") +
+        std::string("upper_bounds3.02.4") +
+        std::string("initial_point2.02.0");
+
+    EXPECT_STREQ(tReadData.str().c_str(),tGold.c_str());
+
+    Plato::system("rm -rf appendParameters.txt");
+    Plato::system("rm -rf rocker.csm");
 }
 
 TEST(PlatoTestXMLGenerator, AppendInterfaceToDakotaDriverInputFile_MDPS)

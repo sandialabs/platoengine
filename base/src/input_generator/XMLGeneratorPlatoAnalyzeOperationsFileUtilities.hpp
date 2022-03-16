@@ -154,8 +154,7 @@ void append_compute_criterion_value_operations_for_dakota_problem
 **********************************************************************************/
 void append_compute_objective_criterion_value_operations_for_dakota_problem
 (const XMLGen::InputData& aMetaData,
- pugi::xml_document& aDocument,
- int& aCriterionNumber);
+ pugi::xml_document& aDocument);
 
 /******************************************************************************//**
  * \fn append_compute_criterion_value_operation_for_dakota_problem
@@ -167,8 +166,7 @@ void append_compute_criterion_value_operation_for_dakota_problem
 (const XMLGen::InputData& aMetaData,
  pugi::xml_document& aDocument,
  const std::string& aCriterionId,
- const std::string& aIdentifierString,
- int aCriterionNumber);
+ const std::string& aIdentifierString);
 
 /******************************************************************************//**
  * \fn append_compute_constraint_criterion_value_operations_for_dakota_problem
@@ -178,8 +176,7 @@ void append_compute_criterion_value_operation_for_dakota_problem
 **********************************************************************************/
 void append_compute_constraint_criterion_value_operations_for_dakota_problem
 (const XMLGen::InputData& aMetaData,
- pugi::xml_document& aDocument,
- int& aCriterionNumber);
+ pugi::xml_document& aDocument);
 
 /******************************************************************************//**
  * \fn append_compute_constraint_value_to_plato_analyze_operation

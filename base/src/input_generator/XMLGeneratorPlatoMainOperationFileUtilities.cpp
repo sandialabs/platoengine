@@ -135,8 +135,7 @@ bool is_volume_constraint_defined_and_computed_by_platomain
 /******************************************************************************/
 bool get_volume_criterion_defined_and_computed_by_platomain
 (const XMLGen::InputData& aXMLMetaData,
- std::string& aIdentifierString,
- int& aCriterionNumber)
+ std::string& aIdentifierString)
 {
     auto tIsVolumeDefinedAndComputedByPlatoMain = false;
 
@@ -159,7 +158,6 @@ bool get_volume_criterion_defined_and_computed_by_platomain
             aIdentifierString = XMLGen::get_concretized_criterion_identifier_string(tConcretizedCriterion);
             return tIsVolumeDefinedAndComputedByPlatoMain;
         }
-        aCriterionNumber++;
     }
 
     for(auto& tConstraint : aXMLMetaData.constraints)
@@ -180,7 +178,6 @@ bool get_volume_criterion_defined_and_computed_by_platomain
             aIdentifierString = XMLGen::get_concretized_criterion_identifier_string(tConcretizedCriterion);
             return tIsVolumeDefinedAndComputedByPlatoMain;
         }
-        aCriterionNumber++;
     }
     return tIsVolumeDefinedAndComputedByPlatoMain;
 }
@@ -1432,16 +1429,14 @@ void append_compute_volume_criterion_value_operation_to_plato_main_operation
  pugi::xml_document& aDocument)
 {
     std::string tIdentifierString = "";
-    int tCriterionNumber = 0;
-    if (get_volume_criterion_defined_and_computed_by_platomain(aXMLMetaData, tIdentifierString, tCriterionNumber))
+    if (get_volume_criterion_defined_and_computed_by_platomain(aXMLMetaData, tIdentifierString))
     {
         auto tOperation = aDocument.append_child("Operation");
         std::vector<std::string> tKeys = {"Function", "Name"};
         std::vector<std::string> tValues = {"DesignVolume", std::string("Compute Criterion Value - ") + tIdentifierString};
         XMLGen::append_children(tKeys, tValues, tOperation);
 
-        auto tArgumentName = std::string("Criterion ") + std::to_string(tCriterionNumber) + std::string(" Value");
-        tKeys = {"ArgumentName"}; tValues = {tArgumentName};
+        tKeys = {"ArgumentName"}; tValues = {tIdentifierString + std::string(" value")};
         auto tOutput = tOperation.append_child("Output");
         XMLGen::append_children(tKeys, tValues, tOutput);
     }

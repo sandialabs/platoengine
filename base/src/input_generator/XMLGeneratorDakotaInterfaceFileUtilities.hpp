@@ -168,13 +168,11 @@ void append_objective_criterion_value_stages
  * \param [in/out] aParentNode       parent xml node
  * \param [in]     aService          Service computing criterion
  * \param [in]     aIdentifierString criterion identifier string
- * \param [in]     aCriterionNumber  criterion ordering number
 **********************************************************************************/
 void append_concurrent_criterion_value_operation
 (pugi::xml_node    & aParentNode,
  XMLGen::Service   & aService,
- const std::string & aIdentifierString,
- int                 aCriterionNumber);
+ const std::string & aIdentifierString);
 
 /******************************************************************************//**
  * \fn append_constraint_criterion_value_stages

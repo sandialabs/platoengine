@@ -213,8 +213,7 @@ void append_criterion_value_operation
 (const XMLGen::InputData& aMetaData,
  pugi::xml_document& aDocument,
  const std::string& aCriterionId,
- const std::string& aIdentifierString,
- int aCriterionNumber)
+ const std::string& aIdentifierString)
 {
     auto& tCriterion = aMetaData.criterion(aCriterionId);
     auto tCriterionType = Plato::tolower(tCriterion.type());
@@ -223,13 +222,12 @@ void append_criterion_value_operation
     auto tOperationName = std::string("Compute Criterion Value - ") + aIdentifierString;
     XMLGen::append_children({"Function", "Name"}, {"Compute Criterion Value", tOperationName}, tOperation);
     auto tOutput = tOperation.append_child("OutputValue");
-    XMLGen::append_children({"Name"}, {std::string("Criterion ") + std::to_string(aCriterionNumber) + std::string(" Value")}, tOutput);
+    XMLGen::append_children({"Name"}, {aIdentifierString + std::string(" value")}, tOutput);
 }
 /**************************************************************************/
 void append_objective_criterion_value_operations
 (const XMLGen::InputData& aMetaData,
- pugi::xml_document& aDocument,
- int& aCriterionNumber)
+ pugi::xml_document& aDocument)
 {
     XMLGen::Objective tObjective = aMetaData.objective;
     for (size_t i=0; i<tObjective.criteriaIDs.size(); ++i)
@@ -242,16 +240,14 @@ void append_objective_criterion_value_operations
         {
             ConcretizedCriterion tConcretizedCriterion(tCriterionID,tServiceID,tScenarioID);
             auto tIdentifierString = XMLGen::get_concretized_criterion_identifier_string(tConcretizedCriterion);
-            XMLGen::append_criterion_value_operation(aMetaData,aDocument,tCriterionID,tIdentifierString,aCriterionNumber);
-            aCriterionNumber++;
+            XMLGen::append_criterion_value_operation(aMetaData,aDocument,tCriterionID,tIdentifierString);
         }
     }
 }
 /**************************************************************************/
 void append_constraint_criterion_value_operations
 (const XMLGen::InputData& aMetaData,
- pugi::xml_document& aDocument,
- int& aCriterionNumber)
+ pugi::xml_document& aDocument)
 {
     for (auto &tConstraint : aMetaData.constraints)
     {
@@ -263,8 +259,7 @@ void append_constraint_criterion_value_operations
         {
             ConcretizedCriterion tConcretizedCriterion(tCriterionID,tServiceID,tScenarioID);
             auto tIdentifierString = XMLGen::get_concretized_criterion_identifier_string(tConcretizedCriterion);
-            XMLGen::append_criterion_value_operation(aMetaData,aDocument,tCriterionID,tIdentifierString,aCriterionNumber);
-            aCriterionNumber++;
+            XMLGen::append_criterion_value_operation(aMetaData,aDocument,tCriterionID,tIdentifierString);
         }
     }
 }
@@ -273,9 +268,8 @@ void append_criteria_operations
 (const XMLGen::InputData& aMetaData,
  pugi::xml_document& aDocument)
 {
-    int tCriteriaCounter = 0;
-    append_objective_criterion_value_operations(aMetaData,aDocument,tCriteriaCounter);
-    append_constraint_criterion_value_operations(aMetaData,aDocument,tCriteriaCounter);
+    append_objective_criterion_value_operations(aMetaData,aDocument);
+    append_constraint_criterion_value_operations(aMetaData,aDocument);
 }
 /**************************************************************************/
 void add_operations_gradient_based_problem

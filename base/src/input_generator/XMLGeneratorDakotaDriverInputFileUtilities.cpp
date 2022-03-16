@@ -219,6 +219,9 @@ void append_dakota_driver_variables_block
     XMLGen::parse_csm_file_for_design_variable_data(tCsmFile,tVariablesStrings,tNumParameters);
     tCsmFile.close();
 
+    if (tNumParameters != std::stoi(aMetaData.optimization_parameters().num_shape_design_variables()))
+        THROWERR("Number of design variables specified in input deck does not match number in csm file.")
+
     fprintf(fp, "\n variables\n");
     fprintf(fp, "   continuous_design = %d\n", tNumParameters);
     for (auto& tString : tVariablesStrings)

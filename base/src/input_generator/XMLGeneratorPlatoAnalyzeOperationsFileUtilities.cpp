@@ -299,15 +299,13 @@ namespace XMLGen
     void append_compute_criterion_value_operations_for_dakota_problem(const XMLGen::InputData &aMetaData,
                                                                       pugi::xml_document &aDocument)
     {
-        int tCriteriaCounter = 0;
-        XMLGen::append_compute_objective_criterion_value_operations_for_dakota_problem(aMetaData,aDocument,tCriteriaCounter);
-        XMLGen::append_compute_constraint_criterion_value_operations_for_dakota_problem(aMetaData,aDocument,tCriteriaCounter);
+        XMLGen::append_compute_objective_criterion_value_operations_for_dakota_problem(aMetaData,aDocument);
+        XMLGen::append_compute_constraint_criterion_value_operations_for_dakota_problem(aMetaData,aDocument);
     }
 
     /******************************************************************************/
     void append_compute_objective_criterion_value_operations_for_dakota_problem(const XMLGen::InputData &aMetaData,
-                                                                                pugi::xml_document &aDocument,
-                                                                                int& aCriterionNumber)
+                                                                                pugi::xml_document &aDocument)
     {
         XMLGen::Objective tObjective = aMetaData.objective;
         for (size_t i=0; i<tObjective.criteriaIDs.size(); ++i)
@@ -320,8 +318,7 @@ namespace XMLGen
             {
                 ConcretizedCriterion tConcretizedCriterion(tCriterionID,tServiceID,tScenarioID);
                 auto tIdentifierString = XMLGen::get_concretized_criterion_identifier_string(tConcretizedCriterion);
-                XMLGen::append_compute_criterion_value_operation_for_dakota_problem(aMetaData,aDocument,tCriterionID,tIdentifierString,aCriterionNumber);
-                aCriterionNumber++;
+                XMLGen::append_compute_criterion_value_operation_for_dakota_problem(aMetaData,aDocument,tCriterionID,tIdentifierString);
             }
         }
     }
@@ -331,8 +328,7 @@ namespace XMLGen
     void append_compute_criterion_value_operation_for_dakota_problem(const XMLGen::InputData &aMetaData,
                                                                      pugi::xml_document &aDocument,
                                                                      const std::string& aCriterionId,
-                                                                     const std::string& aIdentifierString,
-                                                                     int aCriterionNumber)
+                                                                     const std::string& aIdentifierString)
     {
         auto& tCriterion = aMetaData.criterion(aCriterionId);
         auto tCriterionType = Plato::tolower(tCriterion.type());
@@ -343,15 +339,13 @@ namespace XMLGen
         XMLGen::append_children({"Function", "Name", "Criterion"}, {"ComputeCriterionValue", tOperationName, tToken}, tOperation);
         auto tOutput = tOperation.append_child("Output");
         XMLGen::append_children({"Argument"}, {"Value"}, tOutput);
-        auto tArgumentName = std::string("Criterion ") + std::to_string(aCriterionNumber) + std::string(" Value");
-        XMLGen::append_children({"ArgumentName"}, {tArgumentName}, tOutput);
+        XMLGen::append_children({"ArgumentName"}, {aIdentifierString + std::string(" value")}, tOutput);
     }
     /******************************************************************************/
 
     /******************************************************************************/
     void append_compute_constraint_criterion_value_operations_for_dakota_problem(const XMLGen::InputData &aMetaData,
-                                                                                pugi::xml_document &aDocument,
-                                                                                int& aCriterionNumber)
+                                                                                pugi::xml_document &aDocument)
     {
         for (auto &tConstraint : aMetaData.constraints)
         {
@@ -363,8 +357,7 @@ namespace XMLGen
             {
                 ConcretizedCriterion tConcretizedCriterion(tCriterionID,tServiceID,tScenarioID);
                 auto tIdentifierString = XMLGen::get_concretized_criterion_identifier_string(tConcretizedCriterion);
-                XMLGen::append_compute_criterion_value_operation_for_dakota_problem(aMetaData,aDocument,tCriterionID,tIdentifierString,aCriterionNumber);
-                aCriterionNumber++;
+                XMLGen::append_compute_criterion_value_operation_for_dakota_problem(aMetaData,aDocument,tCriterionID,tIdentifierString);
             }
         }
     }

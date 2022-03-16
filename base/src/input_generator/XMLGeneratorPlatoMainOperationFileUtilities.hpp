@@ -54,13 +54,11 @@ bool is_volume_constraint_defined_and_computed_by_platomain
  *  for its calculation.
  * \param [in] aXMLMetaData Plato problem input data
  * \param [in] aIdentifierString Identifier string for criterion
- * \param [in] aCriterionNumber Criterion number
  * \return flag
 **********************************************************************************/
 bool get_volume_criterion_defined_and_computed_by_platomain
 (const XMLGen::InputData& aXMLMetaData,
- std::string& aIdentifierString,
- int& aCriterionNumber);
+ std::string& aIdentifierString);
 
 /******************************************************************************//**
  * \fn get_platomain_volume_constraint_id
