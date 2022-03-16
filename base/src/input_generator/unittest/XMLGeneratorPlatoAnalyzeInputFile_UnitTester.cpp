@@ -3695,12 +3695,12 @@ TEST(PlatoTestXMLGenerator, AppendObjectivePressureMisfitCriteriaToCriteriaList)
     XMLGen::Criterion tCriterion1;
     tCriterion1.type("mean_surface_pressure");
     tCriterion1.id("2");
-    tCriterion1.append("location_names", "inlet");
+    tCriterion1.append("location_name", "inlet");
     tXMLMetaData.append(tCriterion1);
     XMLGen::Criterion tCriterion2;
     tCriterion2.type("mean_surface_pressure");
     tCriterion2.id("3");
-    tCriterion2.append("location_names", "outlet");
+    tCriterion2.append("location_name", "outlet");
     tXMLMetaData.append(tCriterion2);
 
     XMLGen::Service tService;
@@ -3790,12 +3790,12 @@ TEST(PlatoTestXMLGenerator, AppendObjectiveTemperatureMisfitCriteriaToCriteriaLi
     XMLGen::Criterion tCriterion1;
     tCriterion1.type("mean_surface_temperature");
     tCriterion1.id("2");
-    tCriterion1.append("location_names", "inlet");
+    tCriterion1.append("location_name", "inlet");
     tXMLMetaData.append(tCriterion1);
     XMLGen::Criterion tCriterion2;
     tCriterion2.type("mean_surface_temperature");
     tCriterion2.id("3");
-    tCriterion2.append("location_names", "outlet");
+    tCriterion2.append("location_name", "outlet");
     tXMLMetaData.append(tCriterion2);
 
     XMLGen::Service tService;
@@ -3878,7 +3878,7 @@ TEST(PlatoTestXMLGenerator, AppendObjectiveThermalFluxCriteriaToCriteriaList_Err
     XMLGen::Criterion tCriterion1;
     tCriterion1.type("maximize_fluid_thermal_flux");
     tCriterion1.id("1");
-    tCriterion1.append("location_names", "flux");
+    tCriterion1.append("location_name", "flux");
     tXMLMetaData.append(tCriterion1);
 
     XMLGen::Service tService;
@@ -3907,7 +3907,7 @@ TEST(PlatoTestXMLGenerator, AppendObjectiveThermalFluxCriteriaToCriteriaList_Def
     XMLGen::Criterion tCriterion1;
     tCriterion1.type("maximize_fluid_thermal_flux");
     tCriterion1.id("1");
-    tCriterion1.append("location_names", "flux");
+    tCriterion1.append("location_name", "flux");
     tCriterion1.append("conductivity_ratios", ""); // use default value of 1.0
     tXMLMetaData.append(tCriterion1);
 
@@ -3969,7 +3969,7 @@ TEST(PlatoTestXMLGenerator, AppendObjectiveThermalFluxCriteriaToCriteriaList)
     XMLGen::Criterion tCriterion1;
     tCriterion1.type("maximize_fluid_thermal_flux");
     tCriterion1.id("1");
-    tCriterion1.append("location_names", "flux");
+    tCriterion1.append("location_name", "flux");
     tCriterion1.append("conductivity_ratios", "40.0");
     tXMLMetaData.append(tCriterion1);
 
@@ -4098,8 +4098,8 @@ TEST(PlatoTestXMLGenerator, AppendObjectiveVolumeCriteriaToCriteriaList_DefaultC
     XMLGen::Criterion tCriterion1;
     tCriterion1.type("volume");
     tCriterion1.id("1");
-    tCriterion1.append("location_types", "element_block");
-    tCriterion1.append("location_names", "block_1");
+    tCriterion1.append("location_type", "element_block");
+    tCriterion1.append("location_name", "block_1");
     tCriterion1.append("material_penalty_exponent", "3.0");
     tXMLMetaData.append(tCriterion1);
 
@@ -4876,8 +4876,8 @@ TEST(PlatoTestXMLGenerator, WritePlatoAnalyzeInputXmlFileForDisplacementCriterio
     tCriterion.id("3");
     tCriterion.displacementDirection({"-1.0", "0.0", "0.0"});
     tCriterion.append("measure_magnitude", "false");
-    tCriterion.append("location_types", "sideset");
-    tCriterion.append("location_names", "ss4");
+    tCriterion.append("location_type", "sideset");
+    tCriterion.append("location_name", "ss4");
 
     ASSERT_NO_THROW(XMLGen::Private::append_displacement_criterion(tCriterion, tDocument));
     tDocument.save_file("plato_analyze_input_deck.xml");

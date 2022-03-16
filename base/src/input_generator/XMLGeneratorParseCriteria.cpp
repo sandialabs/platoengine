@@ -91,8 +91,8 @@ void ParseCriteria::allocate()
     insertTag("minimum_ersatz_material_value");
     insertTag("criterion_ids");
     insertTag("criterion_weights");
-    insertTag("location_names");
-    insertTag("location_types");
+    insertTag("location_name");
+    insertTag("location_type");
     insertTag("conductivity_ratios");
     insertTag("displacement_direction");
     insertTag("measure_magnitude", "false");
@@ -258,13 +258,13 @@ void ParseCriteria::errorCheckDisplacementCriterion(XMLGen::Criterion &aMetadata
 {
     if(aMetadata.type() == "displacement")
     {
-        if(aMetadata.location_types().empty())
+        if(aMetadata.location_type().empty())
         {
-            THROWERR("Displacement criterion must have 'location_types' option set.");
+            THROWERR("Displacement criterion must have 'location_type' option set.");
         }
-        if(aMetadata.location_names().empty())
+        if(aMetadata.location_name().empty())
         {
-            THROWERR("Displacement criterion must have 'location_names' option set.");
+            THROWERR("Displacement criterion must have 'location_name' option set.");
         }
         if(aMetadata.displacementDirection().size() == 0)
         {

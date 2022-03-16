@@ -553,8 +553,8 @@ public:
     std::string volume_penalty_divisor() const { return this->value("volume_penalty_divisor"); }
     std::string volume_penalty_bias() const { return this->value("volume_penalty_bias"); }
     std::string surface_area_sideset_id() const { return this->value("surface_area_sideset_id"); }
-    std::string location_names() const { return this->value("location_names"); }
-    std::string location_types() const { return this->value("location_types"); }
+    std::string location_name() const { return this->value("location_name"); }
+    std::string location_type() const { return this->value("location_type"); }
     std::string measure_magnitude() const { return this->value("measure_magnitude"); }
 
     // Sierra/SD modal objectives

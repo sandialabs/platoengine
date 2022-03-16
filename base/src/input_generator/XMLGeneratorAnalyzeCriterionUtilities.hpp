@@ -125,7 +125,7 @@ std::vector<std::string> set_conductivity_ratios(const CriterionT& aCriterion)
 
     if( tConductivityRatios.size() <= 1 && tConductivityRatios[0].empty() )
     {
-        auto tLocationNames = aCriterion.values("location_names");
+        auto tLocationNames = aCriterion.values("location_name");
         tConductivityRatios.resize(tLocationNames.size());
         std::fill(tConductivityRatios.begin(), tConductivityRatios.end(), "1.0");
     }
@@ -134,16 +134,16 @@ std::vector<std::string> set_conductivity_ratios(const CriterionT& aCriterion)
 }
 
 /******************************************************************************//**
- * \fn check_criterion_location_names_list
+ * \fn check_criterion_location_name_list
  * \tparam CriterionT criterion metadata
- * \brief Check if 'location_names' keyword is defined, if not, thorw error to console.
+ * \brief Check if 'location_name' keyword is defined, if not, thorw error to console.
  * \param [in]  aCriterion   criterion metadata
  **********************************************************************************/
 template<typename CriterionT>
-void check_criterion_location_names_list
+void check_criterion_location_name_list
 (const CriterionT& aCriterion)
 {
-    auto tEntitySetNames = aCriterion.values("location_names");
+    auto tEntitySetNames = aCriterion.values("location_name");
     if (!tEntitySetNames.empty())
     {
         if (tEntitySetNames.size() <= 1 && tEntitySetNames[0].empty())
@@ -151,7 +151,7 @@ void check_criterion_location_names_list
             std::cout << "\n" << std::flush;
             THROWERR(std::string("Surface scalar function of type '") + aCriterion.type() + "' with criterion id '" + aCriterion.id() 
                 + "' was requested but the location name (i.e. sideset name where the criterion will be evaluated) is not define in the "
-                + "criterion block. User must defined the location name by setting the 'location_names' keyword.")
+                + "criterion block. User must defined the location name by setting the 'location_name' keyword.")
         }
     }
     else
@@ -159,7 +159,7 @@ void check_criterion_location_names_list
             std::cout << "\n" << std::flush;
             THROWERR(std::string("Surface scalar function of type '") + aCriterion.type() + "' with criterion id '" + aCriterion.id() 
                 + "' was requested but the location name (i.e. sideset name where the criterion will be evaluated) is not define in the "
-                + "criterion block. User must defined the location name by setting the 'location_names' keyword.")
+                + "criterion block. User must defined the location name by setting the 'location_name' keyword.")
     }
 }
 
@@ -171,7 +171,7 @@ void append_conductivity_ratios
     auto tLowerType = Plato::tolower(aCriterion.type());
     if( tLowerType == "maximize_fluid_thermal_flux" )
     {
-        XMLGen::Private::check_criterion_location_names_list(aCriterion);
+        XMLGen::Private::check_criterion_location_name_list(aCriterion);
         auto tConductivityRatios = XMLGen::Private::set_conductivity_ratios(aCriterion);
         XMLGen::negate_scalar_values(tConductivityRatios);
         auto tConductivityRatiosList = XMLGen::transform_tokens_for_plato_analyze_input_deck(tConductivityRatios);
@@ -205,8 +205,8 @@ pugi::xml_node append_surface_scalar_function_criterion
     tValues = {"Scalar Function Type", "string", tDesignCriterionName};
     XMLGen::append_parameter_plus_attributes(tKeys, tValues, tCriterionNode);
 
-    XMLGen::Private::check_criterion_location_names_list(aCriterion);
-    auto tEntitySetNames = aCriterion.values("location_names");
+    XMLGen::Private::check_criterion_location_name_list(aCriterion);
+    auto tEntitySetNames = aCriterion.values("location_name");
     auto tEntitySetList = XMLGen::transform_tokens_for_plato_analyze_input_deck(tEntitySetNames);
     tValues = {"Sides", "Array(string)", tEntitySetList};
     XMLGen::append_parameter_plus_attributes(tKeys, tValues, tCriterionNode);
@@ -552,7 +552,7 @@ pugi::xml_node append_displacement_criterion
     std::vector<std::string> tDir = aCriterion.displacementDirection();
     tValues = {"Normal", "Array(double)", "{" + tDir[0] + "," + tDir[1] + "," + tDir[2] + "}"};
     XMLGen::append_parameter_plus_attributes(tKeys, tValues, tObjective);
-    tValues = {"Domain", "string", aCriterion.location_names()};
+    tValues = {"Domain", "string", aCriterion.location_name()};
     XMLGen::append_parameter_plus_attributes(tKeys, tValues, tObjective);
     tValues = {"Magnitude", "bool", aCriterion.measure_magnitude()};
     XMLGen::append_parameter_plus_attributes(tKeys, tValues, tObjective);
@@ -604,7 +604,7 @@ void append_block_list(const CriterionT& aCriterion, pugi::xml_node& aParentNode
     auto tLowerType = Plato::tolower(aCriterion.type());
     if( tLowerType == "volume" )
     {
-        auto tElemBlockList = aCriterion.values("location_names");
+        auto tElemBlockList = aCriterion.values("location_name");
         if( !tElemBlockList.empty() )
         {
             std::vector<std::string> tKeys = {"name", "type", "value"};
