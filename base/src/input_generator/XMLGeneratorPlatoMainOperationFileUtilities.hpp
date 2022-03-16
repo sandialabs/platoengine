@@ -319,6 +319,18 @@ void append_tet10_conversion_operation_to_plato_main_operation
  pugi::xml_document& aDocument);
 
 /******************************************************************************//**
+ * \fn append_tet10_conversion_operation_commands
+ * \brief Helper function for appending operation commands for converting to tet10 
+ * \param [in/out] aDocument  pugi::xml_document
+ * \param [in]     aName Name of operation
+ * \param [in]     aCommand System call command of operation
+**********************************************************************************/
+void append_tet10_conversion_operation_commands
+(pugi::xml_document& aDocument,
+const std::string &aName,
+const std::string &aCommand );
+
+/******************************************************************************//**
  * \fn append_mesh_join_operation_to_plato_main_operation
  * \brief Append operation for joining two meshes
  * \param [in]     aXMLMetaData Plato problem input data

@@ -84,6 +84,8 @@ void write_dakota_plato_main_operations_xml_file
     append_reinitialize_operation_to_plato_main_operation(aMetaData, tDocument);
     append_compute_volume_criterion_value_operation_to_plato_main_operation(aMetaData, tDocument);
     append_decomp_operations_for_physics_performers_to_plato_main_operation(aMetaData, tDocument);
+    if (XMLGen::do_tet10_conversion(aMetaData))
+        XMLGen::append_tet10_conversion_operation_to_plato_main_operation(aMetaData, tDocument);
     tDocument.save_file("plato_main_operations.xml", "  ");
 }
 
@@ -912,23 +914,52 @@ void append_tet10_conversion_operation_to_plato_main_operation
 (const XMLGen::InputData& aXMLMetaData,
  pugi::xml_document& aDocument)
 {
-    if(aXMLMetaData.optimization_parameters().optimizationType() == OT_SHAPE)
+    if(aXMLMetaData.optimization_parameters().optimizationType() == OT_SHAPE || aXMLMetaData.optimization_parameters().optimizationType() == OT_DAKOTA)
     {
         const std::string exodusFile(aXMLMetaData.optimization_parameters().csm_exodus_file());
         const std::vector<XMLGen::Block> blockList(aXMLMetaData.blocks);
 
         writeCubitJournalFile("toTet10.jou", exodusFile, blockList);
+        std::string tOptions = "-batch -nographics -nogui -noecho -nojournal -nobanner -information off";
 
-        pugi::xml_node operationNode = aDocument.append_child("Operation");
-        addChild(operationNode, "Function", "SystemCall");
-        addChild(operationNode, "Name", "ToTet10 On Change");
-        addChild(operationNode, "Command", "cubit -input toTet10.jou -batch -nographics -nogui -noecho -nojournal -nobanner -information off");
-        addChild(operationNode, "OnChange", "true");
-        addChild(operationNode, "AppendInput", "false");
-        auto tInputNode = operationNode.append_child("Input");
-        XMLGen::append_children({"ArgumentName"}, {"Parameters"}, tInputNode);
+        if(aXMLMetaData.optimization_parameters().optimizationType() == OT_SHAPE)
+        {
+            std::string tName = "ToTet10 On Change";  
+            std::string tCommand =  std::string("cubit -input toTet10.jou ") + tOptions;
+            append_tet10_conversion_operation_commands(aDocument,tName,tCommand);
+        }
+        else if(aXMLMetaData.optimization_parameters().optimizationType() == OT_DAKOTA)
+        {
+            auto tEvaluations = std::stoi(aXMLMetaData.optimization_parameters().concurrent_evaluations());
+            for (int iEvaluation = 0; iEvaluation < tEvaluations; iEvaluation++)
+            {
+                std::string tTag = std::string("_") + std::to_string(iEvaluation);
+                std::string tExodusBase= aXMLMetaData.optimization_parameters().csm_exodus_file();
+                tExodusBase = tExodusBase.substr(0,tExodusBase.size()-4);
+                const std::string exodusFile = tExodusBase + tTag + ".exo";
+                writeCubitJournalFile("evaluations" + tTag + "/toTet10.jou", exodusFile, blockList);
+                std::string tName = std::string("ToTet10 On Change") + tTag;
+                std::string tCommand = std::string("cd evaluations") + tTag + std::string("; cubit -input toTet10.jou ") + tOptions;
+                
+                append_tet10_conversion_operation_commands(aDocument,tName,tCommand);
+            }
+        }
     }
 }
+
+void append_tet10_conversion_operation_commands(pugi::xml_document& aDocument,const std::string &aName,const std::string &aCommand )
+{
+    pugi::xml_node operationNode = aDocument.append_child("Operation");
+    addChild(operationNode, "Function", "SystemCall");
+    addChild(operationNode, "Name", aName);
+    addChild(operationNode, "Command", aCommand);
+    addChild(operationNode, "OnChange", "true");
+    addChild(operationNode, "AppendInput", "false");
+    auto tInputNode = operationNode.append_child("Input");
+    XMLGen::append_children({"ArgumentName"}, {"Parameters"}, tInputNode);
+
+}
+
 
 void append_mesh_join_operation_to_plato_main_operation
 (const XMLGen::InputData& aXMLMetaData,
