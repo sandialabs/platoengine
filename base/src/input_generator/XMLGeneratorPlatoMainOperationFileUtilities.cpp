@@ -896,7 +896,7 @@ void append_initialize_geometry_operation_to_plato_main_operation
 // function append_initialize_geometry_operation_to_plato_main_operation
 /******************************************************************************/
 
-void writeCubitJournalFile(std::string fileName, std::string meshName, std::vector<XMLGen::Block> blockList) {
+void writeCubitJournalFileTet10Conversion(std::string fileName, std::string meshName, std::vector<XMLGen::Block> blockList) {
     std::ofstream outfile(fileName);
 
     outfile << "import mesh \"" << meshName << "\" no_geom" << std::endl;
@@ -909,6 +909,21 @@ void writeCubitJournalFile(std::string fileName, std::string meshName, std::vect
 
     outfile.close();
 }
+/*
+void writeCubitJournalFileSubBlockFromBoundingBox(std::string fileName, std::string meshName, std::vector<XMLGen::Block> blockList) {
+    std::ofstream outfile(fileName);
+
+    outfile << "import mesh \"" << meshName << "\" no_geom" << std::endl;
+    outfile << "delete block all" << std::endl;
+    block 1 tet with x_coord<1.1 and x_coord > -1.1
+    block 2 tet all
+    outfile << "set exodus netcdf4 off" << std::endl;
+    outfile << "set large exodus file on" << std::endl;
+    outfile << "export mesh \"" << meshName << "\" overwrite" << std::endl;
+
+    outfile.close();
+}
+*/
 
 void append_tet10_conversion_operation_to_plato_main_operation
 (const XMLGen::InputData& aXMLMetaData,
@@ -920,7 +935,7 @@ void append_tet10_conversion_operation_to_plato_main_operation
     {
         const std::string exodusFile(aXMLMetaData.optimization_parameters().csm_exodus_file());
         
-        writeCubitJournalFile("toTet10.jou", exodusFile, aXMLMetaData.blocks);
+        writeCubitJournalFileTet10Conversion("toTet10.jou", exodusFile, aXMLMetaData.blocks);
         std::string tName = "ToTet10 On Change";  
         std::string tCommand =  std::string("cubit -input toTet10.jou ") + tOptions;
         append_tet10_conversion_operation_commands(aDocument,tName,tCommand);
@@ -933,7 +948,7 @@ void append_tet10_conversion_operation_to_plato_main_operation
             std::string tTag = std::string("_") + std::to_string(iEvaluation);
             const std::string exodusFile = XMLGen::append_concurrent_tag_to_file_string(aXMLMetaData.optimization_parameters().csm_exodus_file(),tTag);
             
-            writeCubitJournalFile("evaluations" + tTag + "/toTet10.jou", exodusFile, aXMLMetaData.blocks);
+            writeCubitJournalFileTet10Conversion("evaluations" + tTag + "/toTet10.jou", exodusFile, aXMLMetaData.blocks);
             std::string tName = std::string("convert_to_tet10") + tTag;
             std::string tCommand = std::string("cd evaluations") + tTag + std::string("; cubit -input toTet10.jou ") + tOptions;
             append_tet10_conversion_operation_commands(aDocument,tName,tCommand);

@@ -1076,6 +1076,15 @@ namespace XMLGen
                                 }
                                 new_block.element_type = tStringValue;
                             }
+                            else if (parseSingleValue(tokens, tInputStringList = {"sub_block"}, tStringValue))
+                            {
+                                if (tStringValue == "")
+                                {
+                                    std::cout << "ERROR:XMLGenerator:parseBlocks: No value specified after \"sub block\" keywords.\n";
+                                    return false;
+                                }
+                                new_block.bounding_box = tStringValue;
+                            }
                             else if (parseSingleValue(tokens, tInputStringList = {"name"}, tStringValue))
                             {
                                 new_block.name = tStringValue;

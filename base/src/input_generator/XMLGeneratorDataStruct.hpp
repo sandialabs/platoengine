@@ -59,6 +59,7 @@ struct Block
     std::string name;
     std::string material_id;
     std::string element_type;
+    std::string bounding_box;
 };
 
 struct Mesh

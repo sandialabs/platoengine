@@ -1407,21 +1407,36 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
     iss.seekg (0);
     tester.clearInputData();
     EXPECT_EQ(tester.publicParseBlocks(iss), false);
-    stringInput = "begin block 44\n"
-            "material 89\n"
+    stringInput = "begin block 42\n"
+            "material 890\n"
             "end block\n"
-            "begin block 33\n"
-            "material 34\n"
+            "begin block 31\n"
+            "material 4\n"
             "end block\n";
     iss.str(stringInput);
     iss.clear();
     iss.seekg (0);
     tester.clearInputData();
     EXPECT_EQ(tester.publicParseBlocks(iss), true);
-    EXPECT_EQ(tester.getBlockID(0), "44");
-    EXPECT_EQ(tester.getBlockMaterialID(0), "89");
-    EXPECT_EQ(tester.getBlockID(1), "33");
-    EXPECT_EQ(tester.getBlockMaterialID(1), "34");
+    EXPECT_EQ(tester.getBlockID(0), "42");
+    EXPECT_EQ(tester.getBlockMaterialID(0), "890");
+    EXPECT_EQ(tester.getBlockID(1), "31");
+    EXPECT_EQ(tester.getBlockMaterialID(1), "4");
+
+    stringInput = "begin block 1\n"
+            "material 1\n"
+            "sub_block -1 -2 -3 1 2 3\n"
+            "end block\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_EQ(tester.publicParseBlocks(iss), true);
+    EXPECT_EQ(tester.getBlockID(0), "1");
+    EXPECT_EQ(tester.getBlockMaterialID(0), "1");
+    EXPECT_EQ(tester.getBoundingBox(0), "-1 -2 -3 1 2 3");
+    
+
 }
 
 TEST(PlatoTestXMLGenerator, SROM_SolveSromProblem_ReadSampleProbPairsFromFile)
