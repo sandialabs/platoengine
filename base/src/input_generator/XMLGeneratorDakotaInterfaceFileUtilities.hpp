@@ -119,8 +119,19 @@ void append_design_parameters_input(pugi::xml_node & aParentNode);
 void append_concurrent_update_geometry_on_change_operation(pugi::xml_node & aParentNode);
 
 /******************************************************************************//**
+ * \fn append_concurrent_physics_performer_tet10_conversion_operation
+ * \brief Append convert to tet10 on change operation for all physics performers with
+  concurrent design parameters.
+ * \param [in]     aMetaData Plato problem input metadata
+ * \param [in/out] aParentNode    parent xml node
+**********************************************************************************/
+void append_concurrent_physics_performer_tet10_conversion_operation
+(const XMLGen::InputData& aMetaData,
+ pugi::xml_node& aParentNode);
+
+/******************************************************************************//**
  * \fn append_concurrent_physics_performer_decomp_operation
- * \brief Append reinitialize on change operation for all physics performers with
+ * \brief Append decomp on change operation for all physics performers with
   concurrent design parameters.
  * \param [in]     aMetaData Plato problem input metadata
  * \param [in/out] aParentNode    parent xml node

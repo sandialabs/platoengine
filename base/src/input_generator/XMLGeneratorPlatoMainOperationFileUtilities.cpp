@@ -913,37 +913,30 @@ void writeCubitJournalFile(std::string fileName, std::string meshName, std::vect
 void append_tet10_conversion_operation_to_plato_main_operation
 (const XMLGen::InputData& aXMLMetaData,
  pugi::xml_document& aDocument)
-{
-    if(aXMLMetaData.optimization_parameters().optimizationType() == OT_SHAPE || aXMLMetaData.optimization_parameters().optimizationType() == OT_DAKOTA)
+{   
+    std::string tOptions = "-batch -nographics -nogui -noecho -nojournal -nobanner -information off";
+
+    if(aXMLMetaData.optimization_parameters().optimizationType() == OT_SHAPE)
     {
+        const std::string exodusFile(aXMLMetaData.optimization_parameters().csm_exodus_file());
         
-        std::string tOptions = "-batch -nographics -nogui -noecho -nojournal -nobanner -information off";
-
-        if(aXMLMetaData.optimization_parameters().optimizationType() == OT_SHAPE)
+        writeCubitJournalFile("toTet10.jou", exodusFile, aXMLMetaData.blocks);
+        std::string tName = "ToTet10 On Change";  
+        std::string tCommand =  std::string("cubit -input toTet10.jou ") + tOptions;
+        append_tet10_conversion_operation_commands(aDocument,tName,tCommand);
+    }
+    else if(aXMLMetaData.optimization_parameters().optimizationType() == OT_DAKOTA)
+    {
+        auto tEvaluations = std::stoi(aXMLMetaData.optimization_parameters().concurrent_evaluations());
+        for (int iEvaluation = 0; iEvaluation < tEvaluations; iEvaluation++)
         {
-            const std::string exodusFile(aXMLMetaData.optimization_parameters().csm_exodus_file());
-            const std::vector<XMLGen::Block> blockList(aXMLMetaData.blocks);
-
-            writeCubitJournalFile("toTet10.jou", exodusFile, blockList);
-            std::string tName = "ToTet10 On Change";  
-            std::string tCommand =  std::string("cubit -input toTet10.jou ") + tOptions;
+            std::string tTag = std::string("_") + std::to_string(iEvaluation);
+            const std::string exodusFile = XMLGen::append_concurrent_tag_to_file_string(aXMLMetaData.optimization_parameters().csm_exodus_file(),tTag);
+            
+            writeCubitJournalFile("evaluations" + tTag + "/toTet10.jou", exodusFile, aXMLMetaData.blocks);
+            std::string tName = std::string("convert_to_tet10") + tTag;
+            std::string tCommand = std::string("cd evaluations") + tTag + std::string("; cubit -input toTet10.jou ") + tOptions;
             append_tet10_conversion_operation_commands(aDocument,tName,tCommand);
-        }
-        else if(aXMLMetaData.optimization_parameters().optimizationType() == OT_DAKOTA)
-        {
-            auto tEvaluations = std::stoi(aXMLMetaData.optimization_parameters().concurrent_evaluations());
-            for (int iEvaluation = 0; iEvaluation < tEvaluations; iEvaluation++)
-            {
-                std::string tTag = std::string("_") + std::to_string(iEvaluation);
-                const std::string exodusFile = XMLGen::append_concurrent_tag_to_file_string(aXMLMetaData.optimization_parameters().csm_exodus_file(),tTag);
-                const std::vector<XMLGen::Block> blockList(aXMLMetaData.blocks);
-                
-                writeCubitJournalFile("evaluations" + tTag + "/toTet10.jou", exodusFile, blockList);
-                std::string tName = std::string("convert_to_tet10") + tTag;
-                std::string tCommand = std::string("cd evaluations") + tTag + std::string("; cubit -input toTet10.jou ") + tOptions;
-                
-                append_tet10_conversion_operation_commands(aDocument,tName,tCommand);
-            }
         }
     }
 }
