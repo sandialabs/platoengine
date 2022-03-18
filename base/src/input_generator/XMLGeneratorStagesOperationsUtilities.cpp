@@ -205,6 +205,20 @@ void append_tet10_conversion_operation
 /******************************************************************************/
 
 /******************************************************************************/
+void append_subblock_conversion_operation
+(const std::string &aFirstPlatoMainPerformer, 
+ pugi::xml_node& aParentNode)
+{
+    auto tOperationNode = aParentNode.append_child("Operation");
+    XMLGen::append_children({"Name", "PerformerName"}, {"Sub Block On Change", aFirstPlatoMainPerformer}, tOperationNode);
+    auto tInputNode = tOperationNode.append_child("Input");
+    XMLGen::append_children({"SharedDataName", "ArgumentName"}, {"Design Parameters", "Parameters"}, tInputNode);
+}
+// function append_subblock_conversion_operation
+/******************************************************************************/
+
+
+/******************************************************************************/
 void append_generate_xtk_model_operation
 (const XMLGen::InputData& aMetaData,
  bool aInput,
