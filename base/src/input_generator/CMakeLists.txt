@@ -12,6 +12,7 @@ SET(XMLGenerator_SRCS XMLGenerator_Main.cpp
                       XMLGeneratorParseCriteria.cpp
                       XMLGeneratorOutputMetadata.cpp 
                       XMLGeneratorParseObjective.cpp
+                      XMLGeneratorParseBlock.cpp
                       XMLGeneratorOutputUtilities.cpp
                       XMLGeneratorStagesUtilities.cpp
                       XMLGeneratorParseConstraint.cpp
@@ -126,6 +127,7 @@ SET(XMLGenerator_HDRS XMLGenerator.hpp
                       XMLGeneratorParseEssentialBoundaryCondition.hpp 
                       XMLGeneratorParseCriteria.hpp 
                       XMLGeneratorParseObjective.hpp 
+                      XMLGeneratorParseBlock.hpp
                       # XMLGeneratorParseMetadata.hpp 
                       XMLGeneratorParseScenario.hpp 
                       XMLGeneratorParseOptimizationParameters.hpp 

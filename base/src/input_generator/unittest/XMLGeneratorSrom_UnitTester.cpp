@@ -1073,7 +1073,6 @@ TEST(PlatoTestXMLGenerator, PreprocessNondeterministicLoadInputs_Error)
     tInputSS.seekg(0);
     ASSERT_NO_THROW(tTester.publicParseScenarios(tInputSS));
 
-    EXPECT_TRUE(tTester.publicParseBlocks(tInputSS));
     auto tInputData = tTester.getInputData();
 
     Plato::srom::InputMetaData tSromInputs;
@@ -1601,7 +1600,6 @@ TEST(PlatoTestXMLGenerator, PreprocessSromProblemInputs_Materials)
     tInputSS.clear();
     tInputSS.seekg(0);
     ASSERT_NO_THROW(tTester.publicParseScenarios(tInputSS));
-    EXPECT_TRUE(tTester.publicParseBlocks(tInputSS));
 
     // CALL FUNCTION
     Plato::srom::InputMetaData tSromInputs;

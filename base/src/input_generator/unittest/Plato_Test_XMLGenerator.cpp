@@ -1383,7 +1383,7 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
     iss.clear();
     iss.seekg (0);
     tester.clearInputData();
-    EXPECT_EQ(tester.publicParseBlocks(iss), false);
+    EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
     stringInput = "begin block 1\n"
             "bad_keywordl\n"
             "end block\n";
@@ -1391,14 +1391,14 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
     iss.clear();
     iss.seekg (0);
     tester.clearInputData();
-    EXPECT_EQ(tester.publicParseBlocks(iss), false);
+    EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
     stringInput = "begin block 1\n"
             "end block\n";
     iss.str(stringInput);
     iss.clear();
     iss.seekg (0);
     tester.clearInputData();
-    EXPECT_EQ(tester.publicParseBlocks(iss), true);
+    EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
     stringInput = "begin block\n"
             "material 1\n"
             "end block\n";
@@ -1422,7 +1422,6 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
     EXPECT_EQ(tester.getBlockMaterialID(0), "890");
     EXPECT_EQ(tester.getBlockID(1), "31");
     EXPECT_EQ(tester.getBlockMaterialID(1), "4");
-
     stringInput = "begin block 1\n"
             "material 1\n"
             "sub_block -1 -2 -3 1 2 3\n"
@@ -1434,9 +1433,10 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
     EXPECT_EQ(tester.publicParseBlocks(iss), true);
     EXPECT_EQ(tester.getBlockID(0), "1");
     EXPECT_EQ(tester.getBlockMaterialID(0), "1");
-    EXPECT_EQ(tester.getBoundingBox(0), "-1 -2 -3 1 2 3");
-    
-
+    auto tBoundingBox = tester.getBoundingBox(0);
+    std::vector<std::string> tGoldBoundingBox = {"-1", "-2", "-3", "1", "2", "3"};
+    for (int iIndex = 0; iIndex < tBoundingBox.size(); iIndex++)
+        EXPECT_EQ(tBoundingBox[iIndex], tGoldBoundingBox[iIndex]);
 }
 
 TEST(PlatoTestXMLGenerator, SROM_SolveSromProblem_ReadSampleProbPairsFromFile)

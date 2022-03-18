@@ -86,7 +86,7 @@ public:
 
     std::string getBlockID(const int &aIndex) {return m_InputData.blocks[aIndex].block_id;}
     std::string getBlockMaterialID(const int &aIndex) {return m_InputData.blocks[aIndex].material_id;}
-    std::string getBoundingBox(const int &aIndex) {return m_InputData.blocks[aIndex].bounding_box;}
+    std::vector<std::string> getBoundingBox(const int &aIndex) {return m_InputData.blocks[aIndex].bounding_box;}
     std::string getBCApplicationType(const std::string &aBCID);
     std::string getBCApplicationID(const std::string &aBCID);
     std::string getBCApplicationDOF(const std::string &aBCID);
