@@ -162,6 +162,34 @@ public:
 };
 // struct ValidBoolKeys
 
+struct ValidBlockKeys
+{
+    /*!<
+     * \brief Valid plato input deck block keywords.
+     **/
+    std::vector<std::string> mKeys = {"block_id", "name","material","element_type","sub_block"};
+
+    /******************************************************************************//**
+     * \fn value
+     * \brief Return supported categories for block vectors.
+     * \param [in] aKey input file keyword
+     * \return supported categories for block keyword. If key is not supported, return an empty string.
+    **********************************************************************************/
+    std::string value(const std::string& aKey) const
+    {
+        return (XMLGen::return_supported_value(aKey, mKeys));
+    }
+    /******************************************************************************//**
+     * \fn size
+     * \brief Return const reference to criteria list.
+     * \return criteria list
+    **********************************************************************************/
+    const decltype(mKeys)& list() const
+    { return mKeys; }
+};
+// struct ValidRandomCategoryKeys
+
+
 struct ValidPlatoInputFileMetaDataBlockKeys
 {
     /*!<

@@ -70,6 +70,20 @@ private:
     **********************************************************************************/
     void checkUniqueIDs();
 
+    /******************************************************************************//**
+     * \fn setTags
+     * \brief Set criterion metadata.
+     * \param [in] aCriterion criterion metadata
+    **********************************************************************************/
+    void setTags(XMLGen::Block& aMetadata);
+    
+    /******************************************************************************//**
+     * \fn insertTag
+     * \brief Insert a tag, possibly with a default value
+     * \param [in] aCriterion criterion metadata
+    **********************************************************************************/
+    void insertTag(std::string keyword, std::string defaultValue = "");
+
 public:
     /******************************************************************************//**
      * \fn data

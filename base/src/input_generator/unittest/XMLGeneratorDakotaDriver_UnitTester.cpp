@@ -1738,6 +1738,95 @@ TEST(PlatoTestXMLGenerator, AppendConvertToTet10ToPlatoMainOperationsFile)
     Plato::system("rm -rf toTet10.jou");
 }
 
+TEST(PlatoTestXMLGenerator, AppendCubitSubBlockToPlatoMainOperationsFile)
+{
+    XMLGen::InputData tXMLMetaData;
+    XMLGen::OptimizationParameters tOptimizationParameters;
+    tOptimizationParameters.optimizationType(XMLGen::OT_DAKOTA);
+    tOptimizationParameters.append("concurrent_evaluations", "2");
+    tOptimizationParameters.append("csm_exodus_file", "rocker.exo");
+    tXMLMetaData.set(tOptimizationParameters);
+
+    // Create services
+    XMLGen::Service tService;
+    tService.id("33");
+    tService.code("sierra_sd");
+    tService.numberProcessors("10");
+    tXMLMetaData.append(tService);
+    tXMLMetaData.mPerformerServices.push_back(tService);
+    
+    // Create criteria
+    XMLGen::Criterion tCriterion;
+    tCriterion.id("3");
+    tCriterion.type("mechanical_compliance");
+    tXMLMetaData.append(tCriterion);
+
+    // Create a scenario
+    XMLGen::Scenario tScenario;
+    tScenario.id("14");
+    tScenario.physics("steady_state_mechanics");
+    tXMLMetaData.append(tScenario);
+    
+    // Create an objective
+    XMLGen::Objective tObjective;
+    tObjective.type = "single_criterion";
+    tObjective.serviceIDs.push_back("33");
+    tObjective.criteriaIDs.push_back("3");
+    tObjective.scenarioIDs.push_back("14");
+    tXMLMetaData.objective = tObjective;
+    
+    // Create Blocks
+    XMLGen::Block tBlock;
+    tBlock.block_id="1";
+    tBlock.bounding_box = {"-1" , "-1", "-2" , "1","1","2"};
+    tXMLMetaData.blocks.push_back(tBlock);
+    
+    tBlock.block_id="2";
+    tBlock.bounding_box = {};
+    tXMLMetaData.blocks.push_back(tBlock);
+
+    pugi::xml_document tDocument;
+    ASSERT_NO_THROW(XMLGen::append_subblock_conversion_operation_to_plato_main_operation(tXMLMetaData, tDocument));
+    ASSERT_FALSE(tDocument.empty());
+
+    // TEST RESULTS AGAINST GOLD VALUES
+    auto tOperation = tDocument.child("Operation");
+    ASSERT_FALSE(tOperation.empty());
+    ASSERT_STREQ("Operation", tOperation.name());
+    std::vector<std::string> tKeys = {"Function", "Name", 
+        "Command", "OnChange", 
+        "AppendInput", "Input"};
+    std::vector<std::string> tValues = {"SystemCall", "generate_sub_block_0", 
+        "cd evaluations_0; cubit -input subBlock.jou -batch -nographics -nogui -noecho -nojournal -nobanner -information off", "true", 
+        "false", ""};
+    PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
+    auto tInput = tOperation.child("Input");
+    ASSERT_FALSE(tInput.empty());
+    tKeys = {"ArgumentName"};
+    tValues = {"Parameters"};
+    PlatoTestXMLGenerator::test_children(tKeys, tValues, tInput);
+
+    tOperation = tOperation.next_sibling("Operation");
+    ASSERT_FALSE(tOperation.empty());
+    ASSERT_STREQ("Operation", tOperation.name());
+    tKeys = {"Function", "Name", 
+        "Command", "OnChange", 
+        "AppendInput", "Input"};
+    tValues = {"SystemCall", "generate_sub_block_1", 
+        "cd evaluations_1; cubit -input subBlock.jou -batch -nographics -nogui -noecho -nojournal -nobanner -information off", "true", 
+        "false", ""};
+    PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
+    tInput = tOperation.child("Input");
+    ASSERT_FALSE(tInput.empty());
+    tKeys = {"ArgumentName"};
+    tValues = {"Parameters"};
+    PlatoTestXMLGenerator::test_children(tKeys, tValues, tInput);
+
+    tOperation = tOperation.next_sibling("Operation");
+    ASSERT_TRUE(tOperation.empty());
+    Plato::system("rm -rf subBlock.jou");
+}
+
 TEST(PlatoTestXMLGenerator, AppendReinitializeToPlatoMainOperationsFile)
 {
     XMLGen::InputData tXMLMetaData;

@@ -63,9 +63,13 @@ void write_plato_main_operations_xml_file
     XMLGen::append_initialize_geometry_operation_to_plato_main_operation(aMetaData, tDocument);
     XMLGen::append_update_geometry_on_change_operation_to_plato_main_operation(aMetaData, tDocument);
     XMLGen::append_enforce_bounds_operation_to_plato_main_operation(aMetaData, tDocument);
-    if (XMLGen::do_tet10_conversion(aMetaData)) {
+    
+    if (XMLGen::do_subblock_conversion(aMetaData))
+        XMLGen::append_subblock_conversion_operation_to_plato_main_operation(aMetaData, tDocument);
+    
+    if (XMLGen::do_tet10_conversion(aMetaData)) 
         XMLGen::append_tet10_conversion_operation_to_plato_main_operation(aMetaData, tDocument);
-    }
+    
     if (XMLGen::have_auxiliary_mesh(aMetaData)) {
         XMLGen::append_mesh_join_operation_to_plato_main_operation(aMetaData, tDocument);
         XMLGen::append_mesh_rename_operation_to_plato_main_operation(aMetaData, tDocument);
@@ -84,8 +88,13 @@ void write_dakota_plato_main_operations_xml_file
     append_reinitialize_operation_to_plato_main_operation(aMetaData, tDocument);
     append_compute_volume_criterion_value_operation_to_plato_main_operation(aMetaData, tDocument);
     append_decomp_operations_for_physics_performers_to_plato_main_operation(aMetaData, tDocument);
+    if (XMLGen::do_subblock_conversion(aMetaData)) 
+        XMLGen::append_subblock_conversion_operation_to_plato_main_operation(aMetaData, tDocument);
     if (XMLGen::do_tet10_conversion(aMetaData))
         XMLGen::append_tet10_conversion_operation_to_plato_main_operation(aMetaData, tDocument);
+
+    //TODO: If subblock conversion, need to also check for fixed block?    XMLGen::append_fixed_blocks_identification_numbers_to_operation(aMetaData, tOperation);
+        
     tDocument.save_file("plato_main_operations.xml", "  ");
 }
 
@@ -909,21 +918,54 @@ void writeCubitJournalFileTet10Conversion(std::string fileName, std::string mesh
 
     outfile.close();
 }
-/*
-void writeCubitJournalFileSubBlockFromBoundingBox(std::string fileName, std::string meshName, std::vector<XMLGen::Block> blockList) {
-    std::ofstream outfile(fileName);
 
-    outfile << "import mesh \"" << meshName << "\" no_geom" << std::endl;
-    outfile << "delete block all" << std::endl;
-    block 1 tet with x_coord<1.1 and x_coord > -1.1
-    block 2 tet all
-    outfile << "set exodus netcdf4 off" << std::endl;
-    outfile << "set large exodus file on" << std::endl;
-    outfile << "export mesh \"" << meshName << "\" overwrite" << std::endl;
-
-    outfile.close();
+std::vector<double> getBoundingBoxEntries(const std::vector<std::string> &aBoundingBox)
+{
+    if(aBoundingBox.size() != 6 )
+        THROWERR(std::string("getBoundingBoxEntries: In sufficient or too many entries in specifying the bounding box."))
+    
+    std::vector<double> tBoundingBoxEntries(6,0);
+    for(unsigned int lBoundingBoxEntry = 0; lBoundingBoxEntry < aBoundingBox.size(); ++lBoundingBoxEntry )
+        tBoundingBoxEntries[lBoundingBoxEntry]=std::stod(aBoundingBox[lBoundingBoxEntry]);
+    
+    if(tBoundingBoxEntries[0]>=tBoundingBoxEntries[3] || tBoundingBoxEntries[1]>=tBoundingBoxEntries[4] || tBoundingBoxEntries[2]>=tBoundingBoxEntries[5] )
+        THROWERR(std::string("getBoundingBoxEntries: Bounding box entries must be ordered as: xmin ymin zmin xmax ymax zmax. Min and max values cannot be equal."))
+    return tBoundingBoxEntries;
 }
-*/
+
+void writeCubitJournalFileSubBlockFromBoundingBox(std::string fileName, std::string meshName, std::vector<XMLGen::Block> blockList) 
+{    
+    
+    if(blockList.size()>2)
+     THROWERR(std::string("writeCubitJournalFileSubBlockFromBoundingBox: ")
+            + "The sub_block capability only works to take a single block 1 and make it block 1 and sub_block 2. ")
+    else
+    {
+        std::vector<double> tBoundingBox = getBoundingBoxEntries(blockList[0].bounding_box);
+        std::ofstream outfile(fileName);
+        outfile << "import mesh \"" << meshName << "\" no_geom" << std::endl;
+        outfile << "delete block all" << std::endl;
+        outfile << "block 1 tet with ";
+        outfile << "x_coord >= " << tBoundingBox[0] << " and ";
+        outfile << "y_coord >= " << tBoundingBox[1] << " and ";
+        outfile << "z_coord >= " << tBoundingBox[2] << " and ";
+        outfile << "x_coord <= " << tBoundingBox[3] << " and ";
+        outfile << "y_coord <= " << tBoundingBox[4] << " and ";
+        outfile << "z_coord <= " << tBoundingBox[5] << std::endl;
+        outfile << "block 2 tet all" << std::endl;
+        outfile << "set exodus netcdf4 off" << std::endl;
+        outfile << "set large exodus file on" << std::endl;
+        outfile << "export mesh \"" << meshName << "\" overwrite" << std::endl;
+        outfile.close();
+    }
+}
+bool do_subblock_conversion(const XMLGen::InputData& aMetaData)
+{
+    if(aMetaData.blocks.size()>0)
+        return aMetaData.blocks[0].bounding_box.size()!=0;
+    else
+        return false;
+}
 
 void append_tet10_conversion_operation_to_plato_main_operation
 (const XMLGen::InputData& aXMLMetaData,
@@ -938,7 +980,7 @@ void append_tet10_conversion_operation_to_plato_main_operation
         writeCubitJournalFileTet10Conversion("toTet10.jou", exodusFile, aXMLMetaData.blocks);
         std::string tName = "ToTet10 On Change";  
         std::string tCommand =  std::string("cubit -input toTet10.jou ") + tOptions;
-        append_tet10_conversion_operation_commands(aDocument,tName,tCommand);
+        append_cubit_conversion_operation_commands(aDocument,tName,tCommand);
     }
     else if(aXMLMetaData.optimization_parameters().optimizationType() == OT_DAKOTA)
     {
@@ -951,12 +993,43 @@ void append_tet10_conversion_operation_to_plato_main_operation
             writeCubitJournalFileTet10Conversion("evaluations" + tTag + "/toTet10.jou", exodusFile, aXMLMetaData.blocks);
             std::string tName = std::string("convert_to_tet10") + tTag;
             std::string tCommand = std::string("cd evaluations") + tTag + std::string("; cubit -input toTet10.jou ") + tOptions;
-            append_tet10_conversion_operation_commands(aDocument,tName,tCommand);
+            append_cubit_conversion_operation_commands(aDocument,tName,tCommand);
+        }
+    }
+}
+void append_subblock_conversion_operation_to_plato_main_operation
+(const XMLGen::InputData& aXMLMetaData,
+ pugi::xml_document& aDocument)
+{   
+    std::string tOptions = "-batch -nographics -nogui -noecho -nojournal -nobanner -information off";
+
+    if(aXMLMetaData.optimization_parameters().optimizationType() == OT_SHAPE)
+    {
+        const std::string exodusFile(aXMLMetaData.optimization_parameters().csm_exodus_file());
+        
+        writeCubitJournalFileSubBlockFromBoundingBox("subBlock.jou", exodusFile, aXMLMetaData.blocks);
+        std::string tName = "Sub Block On Change";  
+        std::string tCommand =  std::string("cubit -input subBlock.jou ") + tOptions;
+        append_cubit_conversion_operation_commands(aDocument,tName,tCommand);
+    }
+    else if(aXMLMetaData.optimization_parameters().optimizationType() == OT_DAKOTA)
+    {
+        auto tEvaluations = std::stoi(aXMLMetaData.optimization_parameters().concurrent_evaluations());
+        for (int iEvaluation = 0; iEvaluation < tEvaluations; iEvaluation++)
+        {
+            std::string tTag = std::string("_") + std::to_string(iEvaluation);
+            const std::string exodusFile = XMLGen::append_concurrent_tag_to_file_string(aXMLMetaData.optimization_parameters().csm_exodus_file(),tTag);
+            
+            writeCubitJournalFileSubBlockFromBoundingBox("evaluations" + tTag + "/subBlock.jou", exodusFile, aXMLMetaData.blocks);
+            std::string tName = std::string("generate_sub_block") + tTag;
+            std::string tCommand = std::string("cd evaluations") + tTag + std::string("; cubit -input subBlock.jou ") + tOptions;
+            append_cubit_conversion_operation_commands(aDocument,tName,tCommand);
         }
     }
 }
 
-void append_tet10_conversion_operation_commands(pugi::xml_document& aDocument,const std::string &aName,const std::string &aCommand )
+
+void append_cubit_conversion_operation_commands(pugi::xml_document& aDocument,const std::string &aName,const std::string &aCommand )
 {
     pugi::xml_node operationNode = aDocument.append_child("Operation");
     addChild(operationNode, "Function", "SystemCall");
@@ -1590,7 +1663,7 @@ void append_set_lower_bounds_to_plato_main_operation
 (const XMLGen::InputData& aXMLMetaData,
  pugi::xml_document& aDocument)
 {
-    if(aXMLMetaData.optimization_parameters().optimizationType() == OT_TOPOLOGY)
+    if(aXMLMetaData.optimization_parameters().optimizationType() == OT_TOPOLOGY )
     {
         // TODO: THIS CODE ASSUMES THAT ONLY ONE SCENARIO BLOCK IS DEFINED AND WILL NOT WORK 
         // IF MULTIPLE ANALYZE SCENARIO BLOCKS ARE DEFINED. THIS CODE WILL NEED REFACTORING 

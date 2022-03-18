@@ -142,6 +142,17 @@ namespace XMLGen
     fprintf(aFile, "cubit -input toTet10.jou -batch -nographics -nogui -noecho -nojournal -nobanner -information off; \n");
   }
 
+  void append_subblock_conversion_operation_lines_for_dakota_workflow(FILE* aFile,const std::string &aEvaluations)
+  {
+    for (int iEvaluation = 0; iEvaluation < std::stoi(aEvaluations); iEvaluation++)
+      fprintf(aFile, "cd evaluations_%d; cubit -input subBlock.jou -batch -nographics -nogui -noecho -nojournal -nobanner -information off; cd ..\n", iEvaluation);
+  }
+
+  void append_subblock_conversion_operation_line(FILE* aFile)
+  {
+    fprintf(aFile, "cubit -input subBlock.jou -batch -nographics -nogui -noecho -nojournal -nobanner -information off; \n");
+  }
+
   void append_decomp_lines_for_prune_and_refine(const XMLGen::InputData& aInputData, FILE*& fp)
   {
     if(aInputData.optimization_parameters().isARestartRun())
