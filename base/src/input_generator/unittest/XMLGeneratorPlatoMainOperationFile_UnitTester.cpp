@@ -2174,5 +2174,89 @@ TEST(PlatoTestXMLGenerator, AppendFilterControlToPlatoMainOperationForProjection
     PlatoTestXMLGenerator::test_children({"ArgumentName"}, {"Filtered Field"}, tOutput);
 }
 
+TEST(PlatoTestXMLGenerator, WriteCubitJournalFileTet10Conversion)
+{
+    // Create a block
+    XMLGen::InputData tMetaData;
+    XMLGen::Block tBlock;
+    tBlock.block_id = "1";
+    tMetaData.blocks.push_back(tBlock);
+    tBlock.block_id = "4";
+    tMetaData.blocks.push_back(tBlock);
+
+    ASSERT_NO_THROW(write_cubit_journal_file_tet10_conversion("toTet10.jou", "tester.exo", tMetaData.blocks));
+
+    auto tReadData = XMLGen::read_data_from_file("toTet10.jou");
+    auto tGold = std::string("importmesh\"tester.exo\"no_geom") + 
+        std::string("block1elementtypetetra10") + 
+        std::string("block4elementtypetetra10") + 
+        std::string("setexodusnetcdf4off") + 
+        std::string("setlargeexodusfileon") + 
+        std::string("exportmesh\"tester.exo\"overwrite");
+
+    ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
+    Plato::system("rm -rf toTet10.jou");
+}
+
+TEST(PlatoTestXMLGenerator, WriteCubitJournalFileSubBlockFromBoundingBox_ErrorTooManyBlocks)
+{
+    // Create a block
+    XMLGen::InputData tMetaData;
+    XMLGen::Block tBlock;
+    tBlock.block_id = "1";
+    tBlock.bounding_box = {-1, -1, -2, 1, 1, 2};
+    tMetaData.blocks.push_back(tBlock);
+    tBlock.block_id = "4";
+    tMetaData.blocks.push_back(tBlock);
+    tBlock.block_id = "2";
+    tMetaData.blocks.push_back(tBlock);
+
+    ASSERT_THROW(write_cubit_journal_file_subblock_from_bounding_box("subBlock.jou", "tester.exo", tMetaData.blocks), std::runtime_error);
+}
+
+TEST(PlatoTestXMLGenerator, WriteCubitJournalFileSubBlockFromBoundingBox_ErrorTooFewBlocks)
+{
+    // Create a block
+    XMLGen::InputData tMetaData;
+    XMLGen::Block tBlock;
+    tBlock.block_id = "1";
+    tBlock.bounding_box = {-1, -1, -2, 1, 1, 2};
+    tMetaData.blocks.push_back(tBlock);
+
+    ASSERT_THROW(write_cubit_journal_file_subblock_from_bounding_box("subBlock.jou", "tester.exo", tMetaData.blocks), std::runtime_error);
+}
+
+TEST(PlatoTestXMLGenerator, WriteCubitJournalFileSubBlockFromBoundingBox)
+{
+    // Create a block
+    XMLGen::InputData tMetaData;
+    XMLGen::Block tBlock;
+    tBlock.block_id = "1";
+    tBlock.bounding_box = {-1, -1, -2, 1, 1, 2};
+    tMetaData.blocks.push_back(tBlock);
+    tBlock.block_id = "2";
+    tMetaData.blocks.push_back(tBlock);
+
+    ASSERT_NO_THROW(write_cubit_journal_file_subblock_from_bounding_box("subBlock.jou", "tester.exo", tMetaData.blocks));
+
+    auto tReadData = XMLGen::read_data_from_file("subBlock.jou");
+    auto tGold = std::string("importmesh\"tester.exo\"no_geom") + 
+        std::string("deleteblockall") + 
+        std::string("block2tetwith") + 
+        std::string("x_coord>=-1and") + 
+        std::string("y_coord>=-1and") + 
+        std::string("z_coord>=-2and") + 
+        std::string("x_coord<=1and") + 
+        std::string("y_coord<=1and") + 
+        std::string("z_coord<=2") + 
+        std::string("block1tetall") + 
+        std::string("setexodusnetcdf4off") + 
+        std::string("setlargeexodusfileon") + 
+        std::string("exportmesh\"tester.exo\"overwrite");
+
+    ASSERT_STREQ(tGold.c_str(), tReadData.str().c_str());
+    Plato::system("rm -rf subBlock.jou");
+}
+
 }
 // namespace PlatoTestXMLGenerator

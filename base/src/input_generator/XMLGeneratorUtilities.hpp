@@ -277,6 +277,13 @@ void negate_scalar_values(std::vector<std::string>& aInputs);
 bool have_auxiliary_mesh(const XMLGen::InputData& aMetaData);
 
 /******************************************************************************//**
+ * \fn create_subblock
+ * \brief determine whether we are generating a sub-block
+ * \param [in]     aMetaData Plato problem input data
+**********************************************************************************/
+bool create_subblock(const XMLGen::InputData& aMetaData);
+
+/******************************************************************************//**
  * \fn get_design_variable_name
  * \brief Return design variable name for topology optimization problems.
  * \param [in] aMetaData  Plato problem input metadata

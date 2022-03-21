@@ -6,10 +6,11 @@
 
 #include <tuple>
 
+#include "XMLGeneratorDakotaInterfaceFileUtilities.hpp"
 #include "XMLGeneratorUtilities.hpp"
+#include "XMLGeneratorSierraSDUtilities.hpp"
 #include "XMLGeneratorParserUtilities.hpp"
 #include "XMLGeneratorInterfaceFileUtilities.hpp"
-#include "XMLGeneratorDakotaInterfaceFileUtilities.hpp"
 #include "XMLGeneratorPerformersUtilities.hpp"
 
 namespace XMLGen
@@ -171,6 +172,8 @@ void append_initialize_stage
     XMLGen::append_design_parameters_input(tStageNode);
 
     XMLGen::append_concurrent_update_geometry_on_change_operation(tStageNode);
+    XMLGen::append_concurrent_physics_performer_subblock_creation_operation(aMetaData,tStageNode);
+    XMLGen::append_concurrent_physics_performer_tet10_conversion_operation(aMetaData,tStageNode);
     XMLGen::append_concurrent_physics_performer_decomp_operation(aMetaData,tStageNode);
     XMLGen::append_concurrent_reinitialize_on_change_operation(aMetaData,tStageNode);
 }
@@ -196,6 +199,43 @@ void append_concurrent_update_geometry_on_change_operation
     XMLGen::append_children({"Name", "PerformerName"}, {"update_geometry_on_change_{I}", "plato_services_{I}"}, tOperationNode);
     auto tInputNode = tOperationNode.append_child("Input");
     XMLGen::append_children({"SharedDataName", "ArgumentName"}, {"design_parameters_{I}", "Parameters"}, tInputNode);
+}
+
+/******************************************************************************/
+void append_concurrent_physics_performer_subblock_creation_operation
+(const XMLGen::InputData& aMetaData,
+ pugi::xml_node& aParentNode)
+{
+    if (XMLGen::create_subblock(aMetaData))
+    {
+        auto tOuterOperationNode = aParentNode.append_child("Operation");
+        auto tForNode = tOuterOperationNode.append_child("For");
+        XMLGen::append_attributes({"var", "in"}, {"I", "Parameters"}, tForNode);
+        auto tOperationNode = tForNode.append_child("Operation");
+
+        XMLGen::append_children({"Name", "PerformerName"}, {"create_sub_block_{I}", "plato_services_{I}"}, tOperationNode);
+        auto tInputNode = tOperationNode.append_child("Input");
+        XMLGen::append_children({"SharedDataName", "ArgumentName"}, {"design_parameters_{I}", "Parameters"}, tInputNode);
+    }
+}
+
+/******************************************************************************/
+
+void append_concurrent_physics_performer_tet10_conversion_operation
+(const XMLGen::InputData& aMetaData,
+ pugi::xml_node& aParentNode)
+{
+    if (XMLGen::do_tet10_conversion(aMetaData))
+    {
+        auto tOuterOperationNode = aParentNode.append_child("Operation");
+        auto tForNode = tOuterOperationNode.append_child("For");
+        XMLGen::append_attributes({"var", "in"}, {"I", "Parameters"}, tForNode);
+        auto tOperationNode = tForNode.append_child("Operation");
+
+        XMLGen::append_children({"Name", "PerformerName"}, {"convert_to_tet10_{I}", "plato_services_{I}"}, tOperationNode);
+        auto tInputNode = tOperationNode.append_child("Input");
+        XMLGen::append_children({"SharedDataName", "ArgumentName"}, {"design_parameters_{I}", "Parameters"}, tInputNode);
+    }
 }
 
 /******************************************************************************/
