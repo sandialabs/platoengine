@@ -126,6 +126,8 @@ bool DakotaDataMap::isCriterionTag(const std::vector<std::string> &aTokens) cons
       if (aTokens[1] == "value" || aTokens[1] == "gradient") 
         tReturn = true;
     }
+
+    return tReturn;
 }
 
 void DakotaDataMap::checkValidCriterionId(const std::vector<std::string> &aTokens, const std::string &aTag) const
