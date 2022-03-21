@@ -14,57 +14,15 @@
 namespace XMLGen
 {
 
-void ParseBlock::setTags(XMLGen::Block& aMetadata)
-{
-    XMLGen::ValidBlockKeys tValidKeys;
-    for(auto& tTag : mTags)
-    {
-        auto tLowerKey = XMLGen::to_lower(tTag.first);
-        auto tItr = std::find(tValidKeys.mKeys.begin(), tValidKeys.mKeys.end(), tLowerKey);
-        if(tItr == tValidKeys.mKeys.end())
-        {
-            THROWERR(std::string("Check Keyword: keyword '") + tTag.first + std::string("' is not supported"))
-        }
-/*
-        if(tTag.second.first.second.empty())
-        {
-            auto tDefaultValue = tTag.second.second;
-            //aMetadata.append(tTag.first, tDefaultValue);
-            if (tTag.first.empty())
-            {
-                THROWERR(std::string("XML Generator Block Metadata: Parameter with tag '") + tTag.first + "' is empty.")
-            }
-            auto tTag2 = Plato::tolower(tTag.first);
-            aMetaData[tTag2].push_back(tDefaultValue);
-        }
-        else
-        {
-            auto tInputValue = tTag.second.first.second;
-            //aMetadata.append(tTag.first, tInputValue);
-            if (tTag.first.empty())
-            {
-                THROWERR(std::string("XML Generator Block Metadata: Parameter with tag '") + tTag.first + "' is empty.")
-            }
-            auto tTag2 = Plato::tolower(tTag.first);
-            aMetaData[tTag2].push_back(tInputValue);
-        }*/
-    }
-}
-
-void ParseBlock::insertTag(std::string keyword, std::string defaultValue)
-{
-    mTags.insert({keyword, { { {keyword}, ""}, defaultValue } });
-}
-
 void ParseBlock::allocate()
 {
     mTags.clear();
 
-    insertTag("block_id");
-    insertTag("name");
-    insertTag("material");
-    insertTag("element_type");
-    insertTag("sub_block", "");
+    mTags.insert({"block_id", { { {"block_id"}, ""}, "" } });
+    mTags.insert({"name", { { {"name"}, ""}, "" } });
+    mTags.insert({"material", { { {"material"}, ""}, "" } });
+    mTags.insert({"element_type", { { {"element_type"}, ""}, "" } });
+    mTags.insert({"sub_block", { { {"sub_block"}, ""}, "" } });
 }
 
 void ParseBlock::setName(XMLGen::Block& aMetadata)
@@ -111,8 +69,25 @@ void ParseBlock::setBoundingBox(XMLGen::Block& aMetadata)
         char tValuesBuffer[10000];
         strcpy(tValuesBuffer, tValues.c_str());
         XMLGen::parse_tokens(tValuesBuffer, tCoordinates);
-        aMetadata.bounding_box = tCoordinates;
+        aMetadata.bounding_box = this->getBoundingBoxCoordinates(tCoordinates);
     }
+}
+
+std::vector<double> ParseBlock::getBoundingBoxCoordinates(const std::vector<std::string> &aCoordinates)
+{
+    if(aCoordinates.size() != 6 )
+        THROWERR(std::string("Parse Block: Number of coordinate entries specifying bounding box for sub-block creation is not equal to 6."))
+    
+    std::vector<double> tBoundingBox(6, 0);
+    for(unsigned int lBoundingBoxEntry = 0; lBoundingBoxEntry < aCoordinates.size(); ++lBoundingBoxEntry )
+        tBoundingBox[lBoundingBoxEntry] = std::stod(aCoordinates[lBoundingBoxEntry]);
+    
+    if(tBoundingBox[0] >= tBoundingBox[3] || 
+       tBoundingBox[1] >= tBoundingBox[4] || 
+       tBoundingBox[2] >= tBoundingBox[5] )
+        THROWERR(std::string("Parse Block: Bounding box coordinates must be ordered as: xmin ymin zmin xmax ymax zmax. Min and max values cannot be equal."))
+
+    return tBoundingBox;
 }
 
 void ParseBlock::setMetaData(XMLGen::Block& aMetadata)
@@ -121,7 +96,6 @@ void ParseBlock::setMetaData(XMLGen::Block& aMetadata)
     this->setMaterialID(aMetadata);
     this->setElementType(aMetadata);
     this->setBoundingBox(aMetadata);
-    this->setTags(aMetadata);
 }
 
 void ParseBlock::checkUniqueIDs()

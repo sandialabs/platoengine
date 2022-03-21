@@ -1424,6 +1424,51 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
     EXPECT_EQ(tester.getBlockMaterialID(1), "4");
     stringInput = "begin block 1\n"
             "material 1\n"
+            "sub_block -1 -3 1 2 3\n"
+            "end block\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
+    stringInput = "begin block 1\n"
+            "material 1\n"
+            "sub_block -1 -2 -3 1 1 2 3\n"
+            "end block\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
+    stringInput = "begin block 1\n"
+            "material 1\n"
+            "sub_block 1 -2 -3 1 2 3\n"
+            "end block\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
+    stringInput = "begin block 1\n"
+            "material 1\n"
+            "sub_block -1 -2 -3 1 -12 3\n"
+            "end block\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
+    stringInput = "begin block 1\n"
+            "material 1\n"
+            "sub_block -1 -2 -3 1 2 -3\n"
+            "end block\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
+    stringInput = "begin block 1\n"
+            "material 1\n"
             "sub_block -1 -2 -3 1 2 3\n"
             "end block\n";
     iss.str(stringInput);
@@ -1434,7 +1479,7 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
     EXPECT_EQ(tester.getBlockID(0), "1");
     EXPECT_EQ(tester.getBlockMaterialID(0), "1");
     auto tBoundingBox = tester.getBoundingBox(0);
-    std::vector<std::string> tGoldBoundingBox = {"-1", "-2", "-3", "1", "2", "3"};
+    std::vector<double> tGoldBoundingBox = {-1, -2, -3, 1, 2, 3};
     for (int iIndex = 0; iIndex < tBoundingBox.size(); iIndex++)
         EXPECT_EQ(tBoundingBox[iIndex], tGoldBoundingBox[iIndex]);
 }

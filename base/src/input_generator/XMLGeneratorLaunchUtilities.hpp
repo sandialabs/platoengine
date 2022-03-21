@@ -16,8 +16,7 @@ namespace XMLGen
   void append_join_mesh_operation_line(const XMLGen::InputData& aInputData, FILE *aFile);
   void append_tet10_conversion_operation_lines_for_dakota_workflow(FILE* aFile,const std::string &aEvaluations);
   void append_tet10_conversion_operation_line(FILE* aFile);
-  void append_subblock_conversion_operation_lines_for_dakota_workflow(FILE* aFile,const std::string &aEvaluations);
-  void append_subblock_conversion_operation_line(FILE* aFile);
+  void append_subblock_creation_operation_lines_for_dakota_workflow(FILE* aFile,const std::string &aEvaluations);
   void append_decomp_lines_for_prune_and_refine(const XMLGen::InputData& aInputData, FILE*& fp);
   void append_decomp_line(FILE*& fp, const std::string& num_processors, const std::string& mesh_file_name);
   void append_decomp_line(FILE*& fp, const int& num_processors, const std::string& mesh_file_name);

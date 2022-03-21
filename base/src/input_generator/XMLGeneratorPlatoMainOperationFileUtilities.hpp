@@ -309,42 +309,26 @@ void append_initialize_geometry_operation_to_plato_main_operation
  pugi::xml_document& aDocument);
 
 /******************************************************************************//**
- * \fn writeCubitJournalFileTet10Conversion
+ * \fn write_cubit_journal_file_tet10_conversion
  * \brief Write a cubit journal file that converts the tet4s to tet10s
  * \param [in]     fileName the file name of the journal file to write
  * \param [in]     meshName the exodus file name to be used in the journal file
  * \param [in]    blockList the list of exodus blocks to convert (all)
 **********************************************************************************/
-void writeCubitJournalFileTet10Conversion(std::string fileName, 
-std::string meshName, 
+void write_cubit_journal_file_tet10_conversion(std::string fileName, 
+const std::string& meshName, 
 std::vector<XMLGen::Block> blockList);
 
 /******************************************************************************//**
- * \fn getBoundingBoxEntries
- * \brief Take the string bounding box entries and convert them to double vector. 
- * Errors are thrown if there are not exactly 6 entries, or the entries do not specify a valid bounding box.
- * \param [in]     aBoundingBox string bounding box entries 
- * \param [out]    vector<double> double vector of the entries
-**********************************************************************************/
-std::vector<double> getBoundingBoxEntries(const std::vector<std::string> &aBoundingBox);
-
-/******************************************************************************//**
- * \fn writeCubitJournalFileSubBlockFromBoundingBox
+ * \fn write_cubit_journal_file_subblock_from_bounding_box
  * \brief Write a cubit journal file that creates a sub block from the bounding box 
  * \param [in]     fileName the file name of the journal file to write
  * \param [in]     meshName the exodus file name to be used in the journal file
  * \param [in]    blockList the list of exodus blocks to operate over (blockList must be of length 2 or an error will be thrown)
 **********************************************************************************/
-void writeCubitJournalFileSubBlockFromBoundingBox(std::string fileName, 
-std::string meshName, 
+void write_cubit_journal_file_subblock_from_bounding_box(std::string fileName, 
+const std::string& meshName, 
 std::vector<XMLGen::Block> blockList);
-
-/******************************************************************************//**
- * \fn do_subblock_conversion
- * \brief determine whether we are using subblock conversion
- * \param [in]     aMetaData Plato problem input data
-**********************************************************************************/
-bool do_subblock_conversion(const XMLGen::InputData& aMetaData);
 
 /******************************************************************************//**
  * \fn append_tet10_conversion_operation_to_plato_main_operation
@@ -357,26 +341,26 @@ void append_tet10_conversion_operation_to_plato_main_operation
  pugi::xml_document& aDocument);
 
 /******************************************************************************//**
- * \fn append_subblock_conversion_operation_to_plato_main_operation
+ * \fn append_subblock_creation_operation_to_plato_main_operation
  * \brief Append operation for splitting block 1 into 1 and 2 by bounding box
  * \param [in]     aXMLMetaData Plato problem input data
  * \param [in/out] aDocument  pugi::xml_document
 **********************************************************************************/
-void append_subblock_conversion_operation_to_plato_main_operation
+void append_subblock_creation_operation_to_plato_main_operation
 (const XMLGen::InputData& aXMLMetaData,
  pugi::xml_document& aDocument);
 
 /******************************************************************************//**
- * \fn append_cubit_conversion_operation_commands
+ * \fn append_cubit_systemcall_operation_commands
  * \brief Helper function for appending operation commands for any cubit conversions
  * \param [in/out] aDocument  pugi::xml_document
  * \param [in]     aName Name of operation
  * \param [in]     aCommand System call command of operation
 **********************************************************************************/
-void append_cubit_conversion_operation_commands
+void append_cubit_systemcall_operation_commands
 (pugi::xml_document& aDocument,
 const std::string &aName,
-const std::string &aCommand );
+const std::string &aCommand);
 
 /******************************************************************************//**
  * \fn append_mesh_join_operation_to_plato_main_operation

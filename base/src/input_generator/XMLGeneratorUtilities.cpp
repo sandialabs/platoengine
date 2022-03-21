@@ -501,6 +501,17 @@ bool have_auxiliary_mesh(const XMLGen::InputData& aMetaData)
 /******************************************************************************/
 
 /******************************************************************************/
+bool create_subblock(const XMLGen::InputData& aMetaData)
+{
+    if(aMetaData.blocks.size() > 0)
+        return aMetaData.blocks[0].bounding_box.size() != 0;
+    else
+        return false;
+}
+// function create_subblock
+/******************************************************************************/
+
+/******************************************************************************/
 std::string get_design_variable_name
 (const XMLGen::InputData& aMetaData)
 {

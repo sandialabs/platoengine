@@ -10,7 +10,6 @@
 #include "XMLGeneratorInterfaceFileUtilities.hpp"
 #include "XMLGeneratorSierraSDInputDeckUtilities.hpp"
 #include "XMLGeneratorLaunchScriptUtilities.hpp"
-#include "XMLGeneratorPlatoMainOperationFileUtilities.hpp"
 
 namespace XMLGen
 {
@@ -56,11 +55,10 @@ void generate_mpirun_launch_script(const XMLGen::InputData& aInputData)
     }
     else if(aInputData.optimization_parameters().optimizationType() == XMLGen::OT_DAKOTA)
     {
-        if(XMLGen::do_subblock_conversion(aInputData))
-            XMLGen::append_subblock_conversion_operation_lines_for_dakota_workflow(fp,aInputData.optimization_parameters().concurrent_evaluations());
+        if(XMLGen::create_subblock(aInputData))
+            XMLGen::append_subblock_creation_operation_lines_for_dakota_workflow(fp,aInputData.optimization_parameters().concurrent_evaluations());
         if (XMLGen::do_tet10_conversion(aInputData))
             XMLGen::append_tet10_conversion_operation_lines_for_dakota_workflow(fp,aInputData.optimization_parameters().concurrent_evaluations());
-
     }
     XMLGen::append_decomp_lines_for_prune_and_refine(aInputData, fp);
     XMLGen::append_prune_and_refine_lines_to_mpirun_launch_script(aInputData, fp);

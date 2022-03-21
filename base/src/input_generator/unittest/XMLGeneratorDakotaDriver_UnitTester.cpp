@@ -762,6 +762,14 @@ TEST(PlatoTestXMLGenerator, AppendInitializeMeshesStageToInterfaceFile_SinglePhy
     tCriterion.type("mechanical_compliance");
     tMetaData.append(tCriterion);
 
+    // Create blocks
+    XMLGen::Block tBlock;
+    tBlock.block_id = "1";
+    tBlock.bounding_box = {-1, -1, -2, 1, 1, 2};
+    tMetaData.blocks.push_back(tBlock);
+    tBlock.block_id = "2";
+    tMetaData.blocks.push_back(tBlock);
+
     // Create an objective
     XMLGen::Objective tObjective;
     tObjective.type = "single_criterion";
@@ -797,6 +805,21 @@ TEST(PlatoTestXMLGenerator, AppendInitializeMeshesStageToInterfaceFile_SinglePhy
     std::vector<std::string> tValues = {"update_geometry_on_change_{I}", "plato_services_{I}", ""};
     PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
     auto tOpInputs = tOperation.child("Input");
+    ASSERT_FALSE(tOpInputs.empty());
+    PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"Parameters", "design_parameters_{I}"}, tOpInputs);
+
+    // CREATE SUBBLOCK OPERATION
+    tOuterOperation = tOuterOperation.next_sibling("Operation");
+    ASSERT_FALSE(tOuterOperation.empty());
+    tForNode = tOuterOperation.child("For");
+    ASSERT_FALSE(tForNode.empty());
+    PlatoTestXMLGenerator::test_attributes({"var", "in"}, {"I", "Parameters"}, tForNode);
+    tOperation = tForNode.child("Operation");
+    ASSERT_FALSE(tOperation.empty());
+    tKeys = {"Name", "PerformerName", "Input"};
+    tValues = {"create_sub_block_{I}", "plato_services_{I}", ""};
+    PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
+    tOpInputs = tOperation.child("Input");
     ASSERT_FALSE(tOpInputs.empty());
     PlatoTestXMLGenerator::test_children({"ArgumentName", "SharedDataName"}, {"Parameters", "design_parameters_{I}"}, tOpInputs);
 
@@ -1657,7 +1680,7 @@ TEST(PlatoTestXMLGenerator, AppendUpdateGeometryOnChangeToPlatoMainOperationsFil
     tOperation = tOperation.next_sibling("Operation");
     ASSERT_TRUE(tOperation.empty());
 }
-//***********************************************//
+
 TEST(PlatoTestXMLGenerator, AppendConvertToTet10ToPlatoMainOperationsFile)
 {
     XMLGen::InputData tXMLMetaData;
@@ -1738,7 +1761,7 @@ TEST(PlatoTestXMLGenerator, AppendConvertToTet10ToPlatoMainOperationsFile)
     Plato::system("rm -rf toTet10.jou");
 }
 
-TEST(PlatoTestXMLGenerator, AppendCubitSubBlockToPlatoMainOperationsFile)
+TEST(PlatoTestXMLGenerator, AppendCreateSubBlockToPlatoMainOperationsFile)
 {
     XMLGen::InputData tXMLMetaData;
     XMLGen::OptimizationParameters tOptimizationParameters;
@@ -1777,16 +1800,15 @@ TEST(PlatoTestXMLGenerator, AppendCubitSubBlockToPlatoMainOperationsFile)
     
     // Create Blocks
     XMLGen::Block tBlock;
-    tBlock.block_id="1";
-    tBlock.bounding_box = {"-1" , "-1", "-2" , "1","1","2"};
+    tBlock.block_id = "1";
+    tBlock.bounding_box = {-1, -1, -2, 1, 1, 2};
     tXMLMetaData.blocks.push_back(tBlock);
     
-    tBlock.block_id="2";
-    tBlock.bounding_box = {};
+    tBlock.block_id = "2";
     tXMLMetaData.blocks.push_back(tBlock);
 
     pugi::xml_document tDocument;
-    ASSERT_NO_THROW(XMLGen::append_subblock_conversion_operation_to_plato_main_operation(tXMLMetaData, tDocument));
+    ASSERT_NO_THROW(XMLGen::append_subblock_creation_operation_to_plato_main_operation(tXMLMetaData, tDocument));
     ASSERT_FALSE(tDocument.empty());
 
     // TEST RESULTS AGAINST GOLD VALUES
@@ -1796,7 +1818,7 @@ TEST(PlatoTestXMLGenerator, AppendCubitSubBlockToPlatoMainOperationsFile)
     std::vector<std::string> tKeys = {"Function", "Name", 
         "Command", "OnChange", 
         "AppendInput", "Input"};
-    std::vector<std::string> tValues = {"SystemCall", "generate_sub_block_0", 
+    std::vector<std::string> tValues = {"SystemCall", "create_sub_block_0", 
         "cd evaluations_0; cubit -input subBlock.jou -batch -nographics -nogui -noecho -nojournal -nobanner -information off", "true", 
         "false", ""};
     PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
@@ -1812,7 +1834,7 @@ TEST(PlatoTestXMLGenerator, AppendCubitSubBlockToPlatoMainOperationsFile)
     tKeys = {"Function", "Name", 
         "Command", "OnChange", 
         "AppendInput", "Input"};
-    tValues = {"SystemCall", "generate_sub_block_1", 
+    tValues = {"SystemCall", "create_sub_block_1", 
         "cd evaluations_1; cubit -input subBlock.jou -batch -nographics -nogui -noecho -nojournal -nobanner -information off", "true", 
         "false", ""};
     PlatoTestXMLGenerator::test_children(tKeys, tValues, tOperation);
@@ -2279,8 +2301,8 @@ TEST(PlatoTestXMLGenerator, AppendMPIRunLinesToLaunchScript_SDPerformer)
     EXPECT_STREQ(tReadData.str().c_str(),tGold.c_str());
     Plato::system("rm -rf mpirun.source");
 }
-////**************************************
-TEST(PlatoTestXMLGenerator, AppendMPIRunLinesToLaunchScript_SDPerformerDecompTet10)
+
+TEST(PlatoTestXMLGenerator, AppendMPIRunLinesToLaunchScript_SDPerformer_Decomp_Tet10_SubBlock)
 {
     XMLGen::InputData tInputData;
     tInputData.m_UseLaunch = false;
@@ -2323,6 +2345,15 @@ TEST(PlatoTestXMLGenerator, AppendMPIRunLinesToLaunchScript_SDPerformerDecompTet
     tObjective.scenarioIDs.push_back("14");
     tInputData.objective = tObjective;
 
+    // Create blocks
+    XMLGen::Block tBlock;
+    tBlock.block_id = "1";
+    tBlock.bounding_box = {-1, -1, -2, 1, 1, 2};
+    tInputData.blocks.push_back(tBlock);
+    tBlock.block_id = "2";
+    tInputData.blocks.push_back(tBlock);
+
+    // Create optimization parameters
     XMLGen::OptimizationParameters tOptimizationParameters;
     tOptimizationParameters.optimizationType(XMLGen::OT_DAKOTA);
     tOptimizationParameters.append("concurrent_evaluations", "2");
@@ -2335,7 +2366,9 @@ TEST(PlatoTestXMLGenerator, AppendMPIRunLinesToLaunchScript_SDPerformerDecompTet
     ASSERT_NO_THROW(XMLGen::generate_mpirun_launch_script(tInputData));
 
     auto tReadData = XMLGen::read_data_from_file("mpirun.source");
-    auto tGold = std::string("cdevaluations_0;cubit-inputtoTet10.jou-batch-nographics-nogui-noecho-nojournal-nobanner-informationoff;cd..") +
+    auto tGold = std::string("cdevaluations_0;cubit-inputsubBlock.jou-batch-nographics-nogui-noecho-nojournal-nobanner-informationoff;cd..") +
+        std::string("cdevaluations_1;cubit-inputsubBlock.jou-batch-nographics-nogui-noecho-nojournal-nobanner-informationoff;cd..") +
+        std::string("cdevaluations_0;cubit-inputtoTet10.jou-batch-nographics-nogui-noecho-nojournal-nobanner-informationoff;cd..") +
         std::string("cdevaluations_1;cubit-inputtoTet10.jou-batch-nographics-nogui-noecho-nojournal-nobanner-informationoff;cd..") +
         std::string("cdevaluations_0;decomp-p2rocker_0.exo;cd..") +
         std::string("cdevaluations_1;decomp-p2rocker_1.exo;cd..") +
