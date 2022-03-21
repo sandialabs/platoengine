@@ -168,4 +168,13 @@ int system_with_status(const char* aString)
 }
 /**********************************************************************************/
 
+/**********************************************************************************/
+void fread(void* aBuffer, std::size_t aSize, std::size_t aCount, std::FILE* aFile)
+{
+  size_t return_val = std::fread(aBuffer, aSize, aCount, aFile);
+  size_t temp = return_val;
+  return_val = temp;
+}
+/**********************************************************************************/
+
 } // end namespace Plato

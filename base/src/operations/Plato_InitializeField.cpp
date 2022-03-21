@@ -121,7 +121,7 @@ InitializeField::InitializeField(PlatoApp* aPlatoApp, Plato::InputData & aNode) 
             tOutFile = fopen(tOutFilename, "wb");
             if(tInFile && tOutFile)
             {
-                while((tNumRead = fread(tBuffer, 1, tBufferSize, tInFile)) != 0)
+                while((tNumRead = std::fread(tBuffer, 1, tBufferSize, tInFile)) != 0)
                 {
                     fwrite(tBuffer, 1, tNumRead, tOutFile);
                 }

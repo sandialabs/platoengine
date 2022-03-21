@@ -138,4 +138,6 @@ void system_with_throw(const char* aString);
 
 int system_with_status(const char* aString);
 
+void fread(void* aBuffer, std::size_t aSize, std::size_t aCount, std::FILE* aFile);
+
 } // end namespace Plato

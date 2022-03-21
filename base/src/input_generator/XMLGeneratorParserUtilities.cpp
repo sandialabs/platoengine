@@ -15,9 +15,6 @@
 #include "XMLGeneratorValidInputKeys.hpp"
 #include "XMLGeneratorParserUtilities.hpp"
 
-const int MAX_TOKENS_PER_LINE = 5000;
-const char* const DELIMITER = " \t";
-
 namespace XMLGen
 {
 

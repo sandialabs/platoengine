@@ -13,7 +13,7 @@ set(extract_iso_headers main/IsoVolumeExtractionTool.hpp
 INCLUDE_DIRECTORIES(${PLATO_INCLUDES})
 add_executable(extract_iso ${extract_iso_sources} ${extract_iso_headers})
 
-target_link_libraries(extract_iso ${Trilinos_LIBRARIES} IsoExtract)
+target_link_libraries(extract_iso ${Trilinos_LIBRARIES} IsoExtract ${PLATO_LIBRARIES})
 
 install( TARGETS extract_iso EXPORT extract_iso
          RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
