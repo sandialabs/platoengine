@@ -55,7 +55,7 @@ void ParseBlock::setElementType(XMLGen::Block& aMetadata)
     auto tItr = mTags.find("element_type");
     if (tItr != mTags.end() && !tItr->second.first.second.empty())
     {
-        aMetadata.name = tItr->second.first.second;
+        aMetadata.element_type = tItr->second.first.second;
     }
 }
 

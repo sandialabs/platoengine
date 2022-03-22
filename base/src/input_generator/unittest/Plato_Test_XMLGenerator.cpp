@@ -1408,10 +1408,12 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
     tester.clearInputData();
     EXPECT_EQ(tester.publicParseBlocks(iss), false);
     stringInput = "begin block 42\n"
+            "name blocky\n"
             "material 890\n"
             "end block\n"
             "begin block 31\n"
             "material 4\n"
+            "element_type tet10\n"
             "end block\n";
     iss.str(stringInput);
     iss.clear();
@@ -1419,9 +1421,12 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
     tester.clearInputData();
     EXPECT_EQ(tester.publicParseBlocks(iss), true);
     EXPECT_EQ(tester.getBlockID(0), "42");
+    EXPECT_EQ(tester.getBlockName(0), "blocky");
     EXPECT_EQ(tester.getBlockMaterialID(0), "890");
     EXPECT_EQ(tester.getBlockID(1), "31");
+    EXPECT_EQ(tester.getBlockName(1), "block_31");
     EXPECT_EQ(tester.getBlockMaterialID(1), "4");
+    EXPECT_EQ(tester.getBlockElementType(1), "tet10");
     stringInput = "begin block 1\n"
             "material 1\n"
             "sub_block -1 -3 1 2 3\n"
