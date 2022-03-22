@@ -729,6 +729,8 @@ void append_case
     {
         append_case_dakota_problem(aCriterion, outfile);
     }
+    if (!aCriterion.block().empty())
+        outfile << "  criterion_block = " << aCriterion.block() << std::endl;
 }
 /**************************************************************************/
 void append_normalization_parameter

@@ -3657,9 +3657,10 @@ TEST(PlatoTestXMLGenerator, WriteSierraSDInputXmlFilesForDakotaDriver)
     // Create criteria
     XMLGen::Criterion tCriterion;
     tCriterion.id("3");
-    tCriterion.type("mechanical_compliance");
+    tCriterion.type("volume_average_von_mises");
     tCriterion.materialPenaltyExponent("3.0");
     tCriterion.minErsatzMaterialConstant("1e-8");
+    tCriterion.block("1");
     tMetaData.append(tCriterion);
 
     // create mesh
@@ -3711,7 +3712,7 @@ TEST(PlatoTestXMLGenerator, WriteSierraSDInputXmlFilesForDakotaDriver)
                  std::string("OUTPUTStopologyENDECHOtopologyEND") + 
                  std::string("MATERIAL1isotropicE=1e9nu=0.3material_penalty_model=simpEND") + 
                  std::string("BLOCK1material1tet10END") + 
-                 std::string("TOPOLOGY-OPTIMIZATIONalgorithm=plato_enginecase=compute_criterioncriterion=mechanical_compliancevolume_fraction=.314objective_normalizationfalseEND") + 
+                 std::string("TOPOLOGY-OPTIMIZATIONalgorithm=plato_enginecase=compute_criterioncriterion=volume_average_von_misescriterion_block=1volume_fraction=.314objective_normalizationfalseEND") + 
                  std::string("FILEgeometry_file'evaluations_0/rocker_0.exo'END") +
                  std::string("LOADSENDBOUNDARYEND");
 
@@ -3723,7 +3724,7 @@ TEST(PlatoTestXMLGenerator, WriteSierraSDInputXmlFilesForDakotaDriver)
                  std::string("OUTPUTStopologyENDECHOtopologyEND") + 
                  std::string("MATERIAL1isotropicE=1e9nu=0.3material_penalty_model=simpEND") + 
                  std::string("BLOCK1material1tet10END") + 
-                 std::string("TOPOLOGY-OPTIMIZATIONalgorithm=plato_enginecase=compute_criterioncriterion=mechanical_compliancevolume_fraction=.314objective_normalizationfalseEND") + 
+                 std::string("TOPOLOGY-OPTIMIZATIONalgorithm=plato_enginecase=compute_criterioncriterion=volume_average_von_misescriterion_block=1volume_fraction=.314objective_normalizationfalseEND") + 
                  std::string("FILEgeometry_file'evaluations_1/rocker_1.exo'END") +
                  std::string("LOADSENDBOUNDARYEND");
 

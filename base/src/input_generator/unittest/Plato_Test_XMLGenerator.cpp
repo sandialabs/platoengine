@@ -1489,6 +1489,101 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
         EXPECT_EQ(tBoundingBox[iIndex], tGoldBoundingBox[iIndex]);
 }
 
+TEST(PlatoTestXMLGenerator, parseCriteria)
+{
+    XMLGenerator_UnitTester tester;
+    std::istringstream iss;
+    std::string stringInput;
+
+    stringInput = "begin criterion\n"
+            "end criterion\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseCriteria(iss), std::runtime_error);
+    stringInput = "begin criterion 1\n"
+            "end criterion\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseCriteria(iss), std::runtime_error);
+    stringInput = "begin criterion\n"
+            "bad_keyword\n"
+            "end criterion\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseCriteria(iss), std::runtime_error);
+    stringInput = "begin criterion 1\n"
+            "type\n"
+            "end criterion\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseCriteria(iss), std::runtime_error);
+    stringInput = "begin criterion 1\n"
+            "type not_a_type\n"
+            "end criterion\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseCriteria(iss), std::runtime_error);
+    stringInput = "begin criterion 1\n"
+            "type mechanical_compliance\n"
+            "end criterion\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_NO_THROW(tester.publicParseCriteria(iss));
+    EXPECT_EQ(tester.getCriterionID("1"), "1");
+    EXPECT_EQ(tester.getCriterionType("1"), "mechanical_compliance");
+    stringInput = "begin criterion 7\n"
+            "type mechanical_compliance\n"
+            "block 2\n"
+            "end criterion\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseCriteria(iss), std::runtime_error);
+    stringInput = "begin criterion 7\n"
+            "type volume_average_von_mises\n"
+            "block\n"
+            "end criterion\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseCriteria(iss), std::runtime_error);
+    stringInput = "begin criterion 7\n"
+            "type volume_average_von_mises\n"
+            "block 2 3\n"
+            "end criterion\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_THROW(tester.publicParseCriteria(iss), std::runtime_error);
+    stringInput = "begin criterion 7\n"
+            "type volume_average_von_mises\n"
+            "block 31\n"
+            "end criterion\n";
+    iss.str(stringInput);
+    iss.clear();
+    iss.seekg (0);
+    tester.clearInputData();
+    EXPECT_NO_THROW(tester.publicParseCriteria(iss));
+    EXPECT_EQ(tester.getCriterionID("7"), "7");
+    EXPECT_EQ(tester.getCriterionType("7"), "volume_average_von_mises");
+    EXPECT_EQ(tester.getCriterionBlock("7"), "31");
+}
+
 TEST(PlatoTestXMLGenerator, SROM_SolveSromProblem_ReadSampleProbPairsFromFile)
 {
     // POSE PROBLEM
