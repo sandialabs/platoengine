@@ -97,6 +97,7 @@ struct ValidCriterionParameterKeys
         "target_solution_vector",
         "target_magnitude",
         "target_solution",
+        "block",
         /* These are all related to stress-constrained mass minimization problems with Sierra/SD */
         "volume_misfit_target",
         "limit_power_min",

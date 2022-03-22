@@ -101,6 +101,8 @@ void ParseCriteria::allocate()
     insertTag("target_magnitude");
     insertTag("target_solution");
 
+    insertTag("block");
+
     insertTag("mass");
     insertTag("cgx");
     insertTag("cgy");
@@ -216,6 +218,27 @@ void ParseCriteria::setCriterionIDs(XMLGen::Criterion &aMetadata)
     }
 }
 
+void ParseCriteria::setVolumeBasedCriterionBlock(XMLGen::Criterion &aMetadata)
+{
+    auto tItr = mTags.find("block");
+    std::string tValues = tItr->second.first.second;
+    if (tItr != mTags.end() && !tValues.empty())
+    {
+        if(aMetadata.type() != "volume_average_von_mises")
+            THROWERR("ParseCriteria: Criterion computation in block is only supported for volume_average_von_mises type");
+
+        std::vector<std::string> tBlocks;
+        char tValuesBuffer[10000];
+        strcpy(tValuesBuffer, tValues.c_str());
+        XMLGen::parse_tokens(tValuesBuffer, tBlocks);
+
+        if(tBlocks.size() > 1)
+            THROWERR("ParseCriteria: Only one block may be specified for criterion computation in block");
+
+        aMetadata.block(tBlocks[0]);
+    }
+}
+
 void ParseCriteria::setTargetSolutionVector(XMLGen::Criterion &aMetadata)
 {
     if(aMetadata.type() == "displacement")
@@ -291,6 +314,7 @@ void ParseCriteria::setMetadata(XMLGen::Criterion& aMetadata)
 {
     this->setCriterionType(aMetadata);
     this->setCriterionIDs(aMetadata);
+    this->setVolumeBasedCriterionBlock(aMetadata);
     this->setCriterionWeights(aMetadata);
     this->setMassProperties(aMetadata);
     this->checkVolumePenaltyExponent(aMetadata);

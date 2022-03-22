@@ -503,8 +503,31 @@ public:
         return (this->value("shape_sideset"));
     }
 
+    /******************************************************************************//**
+     * \fn ref_data_file
+     * \brief Return string value ref_data_file
+     * \return value
+    **********************************************************************************/
     std::string ref_data_file() const {
         return this->value("ref_data_file");
+    }
+
+    /******************************************************************************//**
+     * \fn block
+     * \brief Set string value for block where criterion is computed
+     * \param [in] aInput string value
+    **********************************************************************************/
+    void block(const std::string& aInput) {
+        this->append("block", aInput);
+    }
+
+    /******************************************************************************//**
+     * \fn block
+     * \brief Return string value for block where criterion is computed
+     * \return value
+    **********************************************************************************/
+    std::string block() const {
+        return (this->value("block"));
     }
 
     /******************************************************************************//**
