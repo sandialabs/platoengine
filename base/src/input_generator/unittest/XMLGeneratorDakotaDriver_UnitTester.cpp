@@ -2218,7 +2218,10 @@ TEST(PlatoTestXMLGenerator, AppendMPIRunLinesToLaunchScript_PAPerformer)
     ASSERT_NO_THROW(XMLGen::generate_mpirun_launch_script(tInputData));
 
     auto tReadData = XMLGen::read_data_from_file("mpirun.source");
-    auto tGold = std::string("mpiexec--oversubscribe-np1-xPLATO_PERFORMER_ID=0\\") + 
+    auto tGold = std::string("plato-cligeometryesp--inputrocker.csm--output-modelrocker_opt.csm--output-meshrocker.exo--tesselationrocker.eto;\\") + 
+        std::string("cprocker.exoevaluations_0/rocker_0.exo") + 
+        std::string("cprocker.exoevaluations_1/rocker_1.exo") + 
+        std::string("mpiexec--oversubscribe-np1-xPLATO_PERFORMER_ID=0\\") + 
         std::string("-xPLATO_INTERFACE_FILE=interface.xml\\") + 
         std::string("-xPLATO_APP_FILE=plato_main_operations.xml\\") + 
         std::string("/home/path/to/PlatoMainplato_main_input_deck.xml\\") + 
@@ -2277,7 +2280,10 @@ TEST(PlatoTestXMLGenerator, AppendMPIRunLinesToLaunchScript_SDPerformer)
     ASSERT_NO_THROW(XMLGen::generate_mpirun_launch_script(tInputData));
 
     auto tReadData = XMLGen::read_data_from_file("mpirun.source");
-    auto tGold = std::string("mpiexec--oversubscribe-np1-xPLATO_PERFORMER_ID=0\\") + 
+    auto tGold = std::string("plato-cligeometryesp--inputrocker.csm--output-modelrocker_opt.csm--output-meshrocker.exo--tesselationrocker.eto;\\") + 
+        std::string("cprocker.exoevaluations_0/rocker_0.exo") + 
+        std::string("cprocker.exoevaluations_1/rocker_1.exo") + 
+        std::string("mpiexec--oversubscribe-np1-xPLATO_PERFORMER_ID=0\\") + 
         std::string("-xPLATO_INTERFACE_FILE=interface.xml\\") + 
         std::string("-xPLATO_APP_FILE=plato_main_operations.xml\\") + 
         std::string("/home/path/to/PlatoMainplato_main_input_deck.xml\\") + 
@@ -2366,7 +2372,10 @@ TEST(PlatoTestXMLGenerator, AppendMPIRunLinesToLaunchScript_SDPerformer_Decomp_T
     ASSERT_NO_THROW(XMLGen::generate_mpirun_launch_script(tInputData));
 
     auto tReadData = XMLGen::read_data_from_file("mpirun.source");
-    auto tGold = std::string("cdevaluations_0;cubit-inputsubBlock.jou-batch-nographics-nogui-noecho-nojournal-nobanner-informationoff;cd..") +
+    auto tGold = std::string("plato-cligeometryesp--inputrocker.csm--output-modelrocker_opt.csm--output-meshrocker.exo--tesselationrocker.eto;\\") + 
+        std::string("cprocker.exoevaluations_0/rocker_0.exo") + 
+        std::string("cprocker.exoevaluations_1/rocker_1.exo") + 
+        std::string("cdevaluations_0;cubit-inputsubBlock.jou-batch-nographics-nogui-noecho-nojournal-nobanner-informationoff;cd..") +
         std::string("cdevaluations_1;cubit-inputsubBlock.jou-batch-nographics-nogui-noecho-nojournal-nobanner-informationoff;cd..") +
         std::string("cdevaluations_0;cubit-inputtoTet10.jou-batch-nographics-nogui-noecho-nojournal-nobanner-informationoff;cd..") +
         std::string("cdevaluations_1;cubit-inputtoTet10.jou-batch-nographics-nogui-noecho-nojournal-nobanner-informationoff;cd..") +

@@ -74,21 +74,17 @@ inline bool subdirectory_exists
  * \param [in] aEvaluation evaluation ID
 **********************************************************************************/
 inline void create_subdirectory_for_evaluation
-(const std::string& aMeshFileName,
- const std::string& aCsmFileName,
+(const std::string& aCsmFileName,
  int aEvaluation)
 {
     std::string tDirectoryName = std::string("evaluations_") + std::to_string(aEvaluation) + std::string("/");
 
     std::string tTag = std::string("_") + std::to_string(aEvaluation);
     auto tAppendedCsmFileName = XMLGen::append_concurrent_tag_to_file_string(aCsmFileName,tTag);
-    auto tAppendedMeshFileName = XMLGen::append_concurrent_tag_to_file_string(aMeshFileName,tTag);
 
     std::string tCommand = std::string("mkdir ") + tDirectoryName;
     Plato::system_with_throw(tCommand.c_str());
     tCommand = std::string("cp ") + aCsmFileName + std::string(" ") + tDirectoryName + tAppendedCsmFileName;
-    Plato::system_with_throw(tCommand.c_str());
-    tCommand = std::string("cp ") + aMeshFileName + std::string(" ") + tDirectoryName + tAppendedMeshFileName;
     Plato::system_with_throw(tCommand.c_str());
 }
 
@@ -100,13 +96,12 @@ inline void create_subdirectory_for_evaluation
 inline void create_concurrent_evaluation_subdirectories
 (const XMLGen::InputData& aMetaData)
 {
-    std::string tMeshName = aMetaData.mesh.run_name;
     std::string tCsmFileName = aMetaData.optimization_parameters().csm_file();
     auto tEvaluations = std::stoi(aMetaData.optimization_parameters().concurrent_evaluations());
     for (int iEvaluation = 0; iEvaluation < tEvaluations; iEvaluation++)
     {
         if (!subdirectory_exists(std::string("evaluations_") + std::to_string(iEvaluation)))
-            create_subdirectory_for_evaluation(tMeshName,tCsmFileName,iEvaluation);
+            create_subdirectory_for_evaluation(tCsmFileName,iEvaluation);
     }
 }
 
