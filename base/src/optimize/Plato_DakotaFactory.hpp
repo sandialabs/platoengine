@@ -94,12 +94,12 @@ public:
     {
 #ifndef DAKOTADRIVER
         // Wanted Dakota but it is not present.
-        std::stringstream tStringStream;
-        tStringStream
+        std::stringstream tDakotaNotBuiltStream;
+        tDakotaNotBuiltStream
           << "Plato::DakotaFactory: "
           << "Plato was not compiled with Dakota";
-        Plato::ParsingException tParsingException(tStringStream.str());
-        aInterface->registerException(tParsingException);
+        Plato::ParsingException tDakotaNotBuiltException(tDakotaNotBuiltStream.str());
+        aInterface->registerException(tDakotaNotBuiltException);
 #endif
 
         int nBlocks = aInterface->getInputData().size<Plato::InputData>("DakotaDriver");
