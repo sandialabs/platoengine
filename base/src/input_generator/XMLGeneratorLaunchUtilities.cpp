@@ -92,6 +92,19 @@ namespace XMLGen
     }
   }
 
+  void append_copy_mesh_lines_for_dakota_workflow(FILE* aFile, const XMLGen::InputData& aInputData)
+  {
+    auto tMeshName = aInputData.optimization_parameters().csm_exodus_file();
+    auto tEvaluations = std::stoi(aInputData.optimization_parameters().concurrent_evaluations());
+    for (int iEvaluation = 0; iEvaluation < tEvaluations; iEvaluation++)
+    {
+      std::string tTag = std::string("_") + std::to_string(iEvaluation);
+      auto tAppendedMeshName = XMLGen::append_concurrent_tag_to_file_string(tMeshName,tTag);
+      std::string tMoveName = "evaluations" + tTag + "/" + tAppendedMeshName;
+      fprintf(aFile, "cp %s %s\n", tMeshName.c_str(), tMoveName.c_str());
+    }
+  }
+
   void determine_mpi_env_and_separation_strings(std::string& envString, std::string& separationString)
   {
 #ifndef USING_OPEN_MPI

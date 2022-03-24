@@ -55,6 +55,8 @@ void generate_mpirun_launch_script(const XMLGen::InputData& aInputData)
     }
     else if(aInputData.optimization_parameters().optimizationType() == XMLGen::OT_DAKOTA)
     {
+        XMLGen::append_esp_initialization_line(aInputData, fp);
+        XMLGen::append_copy_mesh_lines_for_dakota_workflow(fp,aInputData);
         if(XMLGen::create_subblock(aInputData))
             XMLGen::append_subblock_creation_operation_lines_for_dakota_workflow(fp,aInputData.optimization_parameters().concurrent_evaluations());
         if (XMLGen::do_tet10_conversion(aInputData))

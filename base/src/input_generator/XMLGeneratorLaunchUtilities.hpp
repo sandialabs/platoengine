@@ -11,6 +11,7 @@ namespace XMLGen
   void generate_jsrun_script(const size_t& aNumPerformers, const std::string& performerName);
   void generate_batch_script(const size_t& aNumPerformers,const size_t& aNumProcessorsPerNode = 6/*num gpus per node on summit*/);
   void append_esp_initialization_line(const XMLGen::InputData& aInputData, FILE* aFile);
+  void append_copy_mesh_lines_for_dakota_workflow(FILE* aFile, const XMLGen::InputData& aInputData);
   void determine_mpi_env_and_separation_strings(std::string& envString, std::string& separationString);
   void determine_mpi_launch_strings(const XMLGen::InputData& aInputData, std::string& aLaunchString, std::string& aNumProcsString);
   void append_join_mesh_operation_line(const XMLGen::InputData& aInputData, FILE *aFile);
