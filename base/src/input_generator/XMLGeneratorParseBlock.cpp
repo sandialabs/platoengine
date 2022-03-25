@@ -43,11 +43,6 @@ void ParseBlock::setMaterialID(XMLGen::Block& aMetadata)
     {
         aMetadata.material_id = tItr->second.first.second;
     }
-    else
-    {
-        THROWERR(std::string("Parse Block: block 'material' keyword is empty. ")
-            + "At least one material ID must be defined for a block.")
-    }
 }
 
 void ParseBlock::setElementType(XMLGen::Block& aMetadata)
