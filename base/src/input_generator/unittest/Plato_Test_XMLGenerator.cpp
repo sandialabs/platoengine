@@ -1384,21 +1384,6 @@ TEST(PlatoTestXMLGenerator, parseBlocks)
     iss.seekg (0);
     tester.clearInputData();
     EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
-    stringInput = "begin block 1\n"
-            "bad_keywordl\n"
-            "end block\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
-    stringInput = "begin block 1\n"
-            "end block\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    EXPECT_THROW(tester.publicParseBlocks(iss), std::runtime_error);
     stringInput = "begin block\n"
             "material 1\n"
             "end block\n";
