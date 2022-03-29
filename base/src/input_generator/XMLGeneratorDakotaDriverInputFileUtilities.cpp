@@ -99,7 +99,12 @@ void append_multidim_parameter_study_method_block
 
     fprintf(fp, "\n method\n");
     fprintf(fp, "   multidim_parameter_study\n");
-    fprintf(fp, "       partitions = %s %s\n", tPartitions.c_str(), tPartitions.c_str());
+
+    auto tNumParameters = std::stoi(aMetaData.optimization_parameters().num_shape_design_variables());
+    fprintf(fp, "       partitions =");
+    for (int iParameter = 0; iParameter < tNumParameters; iParameter++)
+        fprintf(fp, " %s ", tPartitions.c_str());
+    fprintf(fp, "\n");
 }
 
 /******************************************************************************/
@@ -175,20 +180,29 @@ void append_dakota_driver_model_blocks
     auto tWorkflow = aMetaData.optimization_parameters().dakota_workflow();
     if (tWorkflow == "sbgo")
     {
-        XMLGen::append_surrogate_model_block(fp);
+        XMLGen::append_surrogate_model_block(aMetaData, fp);
         XMLGen::append_single_model_block(fp);
     }
 }
 
 /******************************************************************************/
 void append_surrogate_model_block
-(FILE*& fp)
+(const XMLGen::InputData& aMetaData,
+ FILE*& fp)
 {
     fprintf(fp, "\n model\n");
     fprintf(fp, "   id_model = 'SURROGATE'\n");
     fprintf(fp, "   surrogate global\n");
     fprintf(fp, "       dace_method_pointer = 'SAMPLING'\n");
     fprintf(fp, "       gaussian_process surfpack\n");
+
+    auto tSurrogateModelName = aMetaData.optimization_parameters().sbgo_surrogate_output_name();
+    if (!tSurrogateModelName.empty())
+    {
+        fprintf(fp, "       export_model\n");
+        fprintf(fp, "           filename_prefix = '%s'\n", tSurrogateModelName.c_str());
+        fprintf(fp, "           formats binary_archive\n");
+    }
 }
 
 /******************************************************************************/

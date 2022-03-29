@@ -173,6 +173,7 @@ void insert_dakota_moga_input_options(XMLGen::MetaDataTags &aTags)
     aTags.insert({ "moga_niching_distance", { { {"moga_niching_distance"}, ""}, "0.2" } });
     aTags.insert({ "num_sampling_method_samples", { { {"num_sampling_method_samples"}, ""}, "15" } }); 
     aTags.insert({ "moga_max_function_evaluations", { { {"moga_max_function_evaluations"}, ""}, "20000" } });
+    aTags.insert({ "sbgo_surrogate_output_name", { { {"sbgo_surrogate_output_name"}, ""}, "" } });
 }
 // function insert_dakota_moga_input_options
 /******************************************************************************/

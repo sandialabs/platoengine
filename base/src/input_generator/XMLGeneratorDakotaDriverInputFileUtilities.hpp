@@ -114,7 +114,8 @@ void append_dakota_driver_model_blocks
  * \param [in/out] fp pointer to dakota driver input file
 **********************************************************************************/
 void append_surrogate_model_block
-(FILE*                   & fp);
+(const XMLGen::InputData & aMetaData,
+ FILE*                   & fp);
 
 /******************************************************************************//**
  * \fn append_single_model_block

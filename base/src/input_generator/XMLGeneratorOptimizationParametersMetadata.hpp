@@ -403,6 +403,7 @@ public:
     std::string moga_niching_distance() const {return value("moga_niching_distance");}
     std::string num_sampling_method_samples() const {return value("num_sampling_method_samples");}
     std::string moga_max_function_evaluations() const {return value("moga_max_function_evaluations");}
+    std::string sbgo_surrogate_output_name() const {return value("sbgo_surrogate_output_name");}
     std::string amgx_solver_tolerance() const {return value("amgx_solver_tolerance");}
     std::string amgx_max_iterations() const {return value("amgx_max_iterations");}
     std::string amgx_print_solver_stats() const {return value("amgx_print_solver_stats");}
