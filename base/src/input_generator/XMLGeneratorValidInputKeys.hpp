@@ -1618,6 +1618,7 @@ struct ValidOptimizationParameterKeys
      "moga_population_size",
      "moga_niching_distance",
      "moga_max_function_evaluations",
+     "sbgo_surrogate_output_name",
      "num_sampling_method_samples",
     };
 };

@@ -27,10 +27,10 @@ TEST(PlatoTestXMLGenerator, InsertMogaInputs)
 {
     XMLGen::MetaDataTags tTags;
     XMLGen::insert_dakota_moga_input_options(tTags);
-    EXPECT_EQ(5u, tTags.size());
+    EXPECT_EQ(6u, tTags.size());
 
     std::unordered_map<std::string, std::string> tGoldValues = { {"num_sampling_method_samples","15"}, {"sbgo_max_iterations","10"}, {"moga_population_size", "300"}, 
-        {"moga_niching_distance", "0.2"}, {"moga_max_function_evaluations", "20000"} };
+        {"moga_niching_distance", "0.2"}, {"moga_max_function_evaluations", "20000"}, {"sbgo_surrogate_output_name", ""} };
     for(auto& tPair : tTags)
     {
         // TEST INPUT KEYWORDS
@@ -68,11 +68,11 @@ TEST(PlatoTestXMLGenerator, InsertDakotaInputs)
     XMLGen::insert_general_dakota_input_options(tTags);
     XMLGen::insert_dakota_moga_input_options(tTags);
     XMLGen::insert_dakota_multidim_param_study_input_options(tTags);
-    EXPECT_EQ(9u, tTags.size());
+    EXPECT_EQ(10u, tTags.size());
 
     std::unordered_map<std::string, std::string> tGoldValues = { {"dakota_workflow",""}, {"concurrent_evaluations",""}, {"mdps_partitions",""}, {"mdps_response_functions",""},
         {"num_sampling_method_samples","15"}, {"sbgo_max_iterations","10"}, {"moga_population_size","300"}, {"moga_niching_distance","0.2"}, 
-        {"moga_max_function_evaluations","20000"} };
+        {"moga_max_function_evaluations","20000"}, {"sbgo_surrogate_output_name", ""} };
     for(auto& tPair : tTags)
     {
         // TEST INPUT KEYWORDS
@@ -4073,6 +4073,7 @@ TEST(PlatoTestXMLGenerator, AppendMethodsToDakotaDriverInputFile_MDPS)
     XMLGen::OptimizationParameters tOptimizationParameters;
     tOptimizationParameters.append("dakota_workflow", "mdps");
     tOptimizationParameters.append("mdps_partitions", "6");
+    tOptimizationParameters.append("num_shape_design_variables", "3");
     tMetaData.set(tOptimizationParameters);
 
     FILE* fp=fopen("appendMethods.txt", "w");
@@ -4082,7 +4083,7 @@ TEST(PlatoTestXMLGenerator, AppendMethodsToDakotaDriverInputFile_MDPS)
     auto tReadData = XMLGen::read_data_from_file("appendMethods.txt");
     auto tGold = std::string("method") + 
         std::string("multidim_parameter_study") + 
-        std::string("partitions=66");
+        std::string("partitions=666");
 
     EXPECT_STREQ(tReadData.str().c_str(),tGold.c_str());
     Plato::system("rm -rf appendMethods.txt");
@@ -4160,6 +4161,37 @@ TEST(PlatoTestXMLGenerator, AppendModelsToDakotaDriverInputFile_SBGO)
         std::string("surrogateglobal") +
         std::string("dace_method_pointer='SAMPLING'") +
         std::string("gaussian_processsurfpack") +
+
+        std::string("model") + 
+        std::string("id_model='TRUTH'") +
+        std::string("single") +
+        std::string("interface_pointer='TRUE_FN'");
+
+    EXPECT_STREQ(tReadData.str().c_str(),tGold.c_str());
+    Plato::system("rm -rf appendModels.txt");
+}
+
+TEST(PlatoTestXMLGenerator, AppendModelsToDakotaDriverInputFile_SBGO_OutputSurrogate)
+{
+    XMLGen::InputData tMetaData;
+    XMLGen::OptimizationParameters tOptimizationParameters;
+    tOptimizationParameters.append("dakota_workflow", "sbgo");
+    tOptimizationParameters.append("sbgo_surrogate_output_name", "my_model");
+    tMetaData.set(tOptimizationParameters);
+
+    FILE* fp=fopen("appendModels.txt", "w");
+    ASSERT_NO_THROW(XMLGen::append_dakota_driver_model_blocks(tMetaData, fp));
+    fclose(fp);
+
+    auto tReadData = XMLGen::read_data_from_file("appendModels.txt");
+    auto tGold = std::string("model") + 
+        std::string("id_model='SURROGATE'") +
+        std::string("surrogateglobal") +
+        std::string("dace_method_pointer='SAMPLING'") +
+        std::string("gaussian_processsurfpack") +
+        std::string("export_model") +
+        std::string("filename_prefix='my_model'") +
+        std::string("formatsbinary_archive") +
 
         std::string("model") + 
         std::string("id_model='TRUTH'") +
