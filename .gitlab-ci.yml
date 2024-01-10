@@ -1,0 +1,18 @@
+stages: [plato-build-test]
+
+trigger-super:
+  stage: plato-build-test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        PARENT_BRANCH: ${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}
+    - if: $CI_PIPELINE_SOURCE == "web"
+      variables:
+        PARENT_BRANCH: ${CI_COMMIT_BRANCH}
+  variables:
+    PARENT_SOURCE: ${CI_PIPELINE_SOURCE}
+  trigger:
+    project: 1540-compsim/plato/plato
+    strategy: depend
+  needs: []
+
