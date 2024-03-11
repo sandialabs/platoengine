@@ -143,13 +143,6 @@ private:
     void updateUpperBoundsBasedOnFixedEntitiesForDBTOP(double* aToData);
 
     /******************************************************************************//**
-     * \brief Update upper bound vector based on fixed entities for Levelset Topology 
-     *        Optimization Problems (LSTOP).
-     * \param [in,out] aToData vector to upper bound vector
-    **********************************************************************************/
-    void updateUpperBoundsBasedOnFixedEntitiesForLSTOP(double* aToData);
-
-    /******************************************************************************//**
      * \brief Set upper bound vector for density-based topology optimization problems.
      * \param [in] aMetadata fixed blocks metadata
      * \param [in,out] aToData lower bound vector
@@ -163,7 +156,7 @@ private:
 
     std::string mInputArgumentName = "Upper Bound Value"; /*!< input argument name */
     std::string mOutputArgumentName = "Upper Bound Vector"; /*!< output argument name */
-    std::string mDiscretization = "density"; /*!< topology/design representation, levelset or density , default = 'density' */
+    std::string mDiscretization = "density"; /*!< topology/design representation */
     std::string mMaterialUseCase = "solid"; /*!< main material state use case for the problem, default = 'solid' */
     
     Plato::data::layout_t mOutputLayout = Plato::data::layout_t::SCALAR; /*!< output field data layout */

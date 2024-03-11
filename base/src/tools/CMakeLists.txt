@@ -55,7 +55,7 @@ add_library(PlatoUtilities INTERFACE ${Utilities_HEADERS})
 
 add_library(PlatoParser ${Parser_SOURCES} ${Parser_HEADERS}     )
 target_include_directories(PlatoParser PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
-target_link_libraries(PlatoParser PRIVATE PlatoDataLayer PlatoExceptions PlatoUtilities Boost::serialization)
+target_link_libraries(PlatoParser PUBLIC PlatoDataLayer PlatoExceptions PlatoUtilities Boost::serialization)
 
 
 install( TARGETS PlatoParser PlatoExceptions PlatoConsole PlatoUtilities EXPORT PlatoEngine

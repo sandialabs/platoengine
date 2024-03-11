@@ -78,7 +78,6 @@ void append_shared_data
     XMLGen::append_lower_bounds_shared_data(aMetaData, aDocument);
     XMLGen::append_upper_bounds_shared_data(aMetaData, aDocument);
     XMLGen::append_design_volume_shared_data(aMetaData, aDocument);
-    XMLGen::append_initial_control_shared_data(aMetaData, aDocument);
     XMLGen::append_parameter_sensitivity_shared_data(aMetaData, aDocument);
     XMLGen::append_gradient_based_criterion_shared_data(aMetaData, aDocument);
     XMLGen::append_gradient_based_constraint_shared_data(aMetaData, aDocument);

@@ -53,6 +53,10 @@
 #include "Plato_Exceptions.hpp"
 #include "Plato_SharedData.hpp"
 #include "Plato_OperationsUtilities.hpp"
+#ifdef STK_ENABLED
+#include <stk_io/StkMeshIoBroker.hpp>
+#include "Ioss_NodeBlock.h"
+#endif
 
 namespace Plato
 {
@@ -169,78 +173,60 @@ void split(const std::string & aInput, std::vector<std::string> & aOutput)
     }
 }
 
-bool parse_tokens(char *aBuffer, std::vector<std::string> &aTokens)
+std::string findFirstStringParameter(const std::vector<std::string>& aPathStrings, 
+                                     const Plato::InputData& aNode)
 {
-    const std::string tDELIMITER = " \t";
-    constexpr int tMAX_TOKENS_PER_LINE = 5000;
-    const char* tToken[tMAX_TOKENS_PER_LINE] = {}; // initialize to 0
-
-    // parse the line
-    tToken[0] = std::strtok(aBuffer, tDELIMITER.c_str()); // first token
-
-    // If there is a comment...
-    if(tToken[0] && std::strlen(tToken[0]) > 1 && tToken[0][0] == '/' && tToken[0][1] == '/')
+    if(aPathStrings.size() == 0)
     {
-        aTokens.clear();
-        return true;
+        std::stringstream tError;
+        tError << std::endl << "ERROR: Empty path in findFirstStringParameter()." << std::endl;
+        Plato::ParsingException tParsingException(tError.str());
+        throw tParsingException;
     }
 
-    int tN = 0;
-    if (tToken[0]) // zero if line is blank
+    size_t tNumInPath = aPathStrings.size();
+    Plato::InputData tCurParent = aNode;
+    for(size_t i=0; i<tNumInPath-1; ++i)
     {
-        for (tN = 1; tN < tMAX_TOKENS_PER_LINE; tN++)
+        auto tCurNode = tCurParent.getByName<Plato::InputData>(aPathStrings[i]);
+        if(tCurNode.size() == 0)
         {
-            tToken[tN] = std::strtok(0, tDELIMITER.c_str()); // subsequent tokens
-            if (!tToken[tN])
-            {
-                break; // no more tokens
-            }
+            std::stringstream tError;
+            tError << std::endl << "ERROR: Incorrect path in findFirstStringParameter()." << std::endl;
+            Plato::ParsingException tParsingException(tError.str());
+            throw tParsingException;
         }
+        tCurParent = tCurNode[0];
     }
-    for(int tIndex=0; tIndex<tN; ++tIndex)
-    {
-        aTokens.push_back(tToken[tIndex]);
-    }
-
-    return true;
+    return Plato::Get::String(tCurParent, aPathStrings[aPathStrings.size()-1]); 
 }
-// function parse_tokens
 
-void read_table(const std::string& aFileName, std::vector<std::vector<double>>& aTable)
+std::vector<unsigned int> extractGlobalNodeIDs(const MPI_Comm &aComm,
+                                               const std::string &aFilename)
 {
-    constexpr int MAX_CHARS_PER_LINE = 10000;
-    std::vector<char> tBuffer(MAX_CHARS_PER_LINE);
-    std::ifstream tFile(aFileName); //taking file as inputstream
-    while (!tFile.eof())
-    {
-        std::vector<std::string> tTokens;
-        tFile.getline(tBuffer.data(), MAX_CHARS_PER_LINE);
-        Plato::parse_tokens(tBuffer.data(), tTokens);
-        
-        bool tPushBack = false;
-        std::vector<double> tRow(tTokens.size(), 0.0);
-        for(auto& tToken : tTokens)
-        {
-            auto tIndex = &tToken - &tTokens[0];
-            try
-            {
-                tRow[tIndex] = std::stod(tToken);
-                tPushBack = true;
-            }
-            catch (std::exception& e)
-            {
-                std::cout << "Token: '" << tTokens[tIndex] << "' is not a number. String to double conversion will be skipped.\n";
-                continue;
-            }
-        }
+   std::vector<unsigned int> tNodeIDs;
+#ifdef STK_ENABLED
+   stk::io::StkMeshIoBroker tIoBroker(aComm);
+   tIoBroker.add_mesh_database(aFilename, "exodus", stk::io::READ_MESH);
+   tIoBroker.create_input_mesh();
+   tIoBroker.populate_bulk_data();
 
-        if(tPushBack)
-        {
-            aTable.push_back(tRow);
-        }
-    }
+   const Ioss::NodeBlockContainer& tNodeBlocks = tIoBroker.get_input_ioss_region()->get_node_blocks();
+   if(tNodeBlocks.size() != 1)
+   {
+       throw Plato::ParsingException("ERROR: Wrong number of node blocks found in exodus file in extractGlobalNodeIDs.\n");
+   }
+   const Ioss::NodeBlock * const tNB = tNodeBlocks[0];
+   tNB->get_field_data("ids", tNodeIDs);
+#else
+   std::stringstream tError;
+   tError << std::endl << "ERROR: Plato was not compiled with STK_ENABLED so you cannot call extractGlobalNodeIDs." << std::endl;
+   Plato::ParsingException tParsingException(tError.str());
+   throw tParsingException;
+#endif
+   return tNodeIDs;
 }
-// function read_table
+
 
 }
 // namespace Plato

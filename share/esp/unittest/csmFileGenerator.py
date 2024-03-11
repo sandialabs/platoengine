@@ -25,7 +25,6 @@ class csmFileGenerator:
             "attribute capsAIM $aflr2AIM;platoAIM \n",
             "attribute capsMeshLength 1.0 \n",
             "attribute capsGroup   $solid_group \n",
-            "attribute capsMesh   $solid_group \n",
             "select edge \n",
             "attribute capsGroup $remaining_surface_sideset\n",
             "end"]
@@ -124,7 +123,10 @@ class csmFileGenerator:
             "box -length/2   -length/2   0   length length 0 \n",
             "set cyl_len 1 \n",
             "cylinder 0   0   -cyl_len/2   0   0   cyl_len/2   radius \n",
-            "subtract \n"] +
+            "subtract \n",
+            "select    body   3 \n",
+            "select    edge   5 \n",
+            "attribute capsMesh $circumference \n"] +
             self.appendAflr2AIMData()
         )
 

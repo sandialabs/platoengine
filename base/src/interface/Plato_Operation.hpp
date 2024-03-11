@@ -126,6 +126,7 @@ public:
         void transmitData() override {}
         void setData(const std::vector<double> & aData) override {m_value = aData[0];}
         void getData(std::vector<double> & aData) const override {aData[0] = m_value;}
+        bool isDynamic() const override {return false;}
 
         template<class Archive>
         void serialize(Archive & aArchive, const unsigned int /*version*/)

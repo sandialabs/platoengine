@@ -41,7 +41,6 @@ private:
     bool mIsARestartRun = false;
     std::unordered_map<std::string, ValueData> mMetaData; /*!< OptimizationParameters metadata, map< tag, value > */
     //std::unordered_map<std::string, std::string> mMetaData; /*!< OptimizationParameters metadata, map< tag, value > */
-    std::vector<std::string> mLevelsetNodesets;
     std::vector<std::string> mFixedBlockIDs;
     std::vector<std::string> mFixedSidesetIDs;
     std::vector<std::string> mFixedNodesetIDs;
@@ -352,13 +351,6 @@ public:
     void setFixedBlockMaterialStates(const std::vector<std::string> &aFixedBlockMaterialStates) { mFixedBlockMaterialStates = aFixedBlockMaterialStates; }
 
     /******************************************************************************//**
-     * \fn setLevelsetNodesets
-     * \brief Set the levelset nodeset ids
-     * \param [in] aLevelsetNodesets vector of strings with levelset nodeset ids
-    **********************************************************************************/
-    void setLevelsetNodesets(const std::vector<std::string> &aLevelsetNodesets) { mLevelsetNodesets = aLevelsetNodesets; }
-
-    /******************************************************************************//**
      * \fn addFixedBlockID
      * \brief Add a fixed block id to the fixed block id list
      * \param [in] aFixedBlockID string with the fixed block id
@@ -378,13 +370,6 @@ public:
      * \param [in] aFixedSidesetID string with the fixed sideset id
     **********************************************************************************/
     void addFixedSidesetID(const std::string &aFixedSidesetID) { mFixedSidesetIDs.push_back(aFixedSidesetID); }
-
-    /******************************************************************************//**
-     * \fn addLevelsetNodeset
-     * \brief Add a levelset nodeset id to the levelset nodeset id list
-     * \param [in] aLevelsetNodesetID string with the levelset nodeset id
-    **********************************************************************************/
-    void addLevelsetNodeset(const std::string &aLevelsetNodesetID) { mLevelsetNodesets.push_back(aLevelsetNodesetID); }
 
     /******************************************************************************//**
      * \fn needsMeshMap 
@@ -416,13 +401,6 @@ public:
     std::string discretization() const {return value("discretization");}
     std::string initial_density_value() const {return value("initial_density_value");}
     std::string restart_iteration() const {return value("restart_iteration");}
-    std::string create_levelset_spheres() const {return value("create_levelset_spheres");}
-    std::string levelset_initialization_method() const {return value("levelset_initialization_method");}
-    std::string levelset_material_box_min() const {return value("levelset_material_box_min");}
-    std::string levelset_material_box_max() const {return value("levelset_material_box_max");}
-    std::string levelset_sphere_radius() const {return value("levelset_sphere_radius");}
-    std::string levelset_sphere_packing_factor() const {return value("levelset_sphere_packing_factor");}
-    std::vector<std::string> levelset_nodesets() const {return mLevelsetNodesets;}
     std::vector<std::string> fixed_block_ids() const {return mFixedBlockIDs;}
     std::vector<std::string> fixed_nodeset_ids() const {return mFixedNodesetIDs;}
     std::vector<std::string> fixed_sideset_ids() const {return mFixedSidesetIDs;}

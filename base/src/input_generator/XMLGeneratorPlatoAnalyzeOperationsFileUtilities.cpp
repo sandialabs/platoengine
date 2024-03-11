@@ -116,18 +116,6 @@ namespace XMLGen
     /******************************************************************************/
 
     /******************************************************************************/
-    void append_compute_objective_gradient_operation_for_topology_levelset_problem(const XMLGen::InputData &/*aMetaData*/,
-                                                                                   pugi::xml_document &aDocument)
-    {
-
-        // Use ComputeCriterionGradientX instead of ComputeCriterionGradient for levelset methods
-        auto tOperation = aDocument.append_child("Operation");
-        XMLGen::append_children({"Function", "Name", "Criterion"}, {"ComputeCriterionX", "Compute Objective Gradient", "My Objective"}, tOperation);
-        XMLGen::append_children({"OutputFile"}, {"./Objective_Gradx.hdf"}, tOperation);
-    }
-    /******************************************************************************/
-
-    /******************************************************************************/
     void append_compute_objective_gradient_operation_for_shape_problem(const XMLGen::InputData &aMetaData,
                                                                        pugi::xml_document &aDocument)
     {
@@ -214,34 +202,6 @@ namespace XMLGen
             auto tOutput = tOperation.append_child("Output");
             XMLGen::append_children({"Argument"}, {"Gradient"}, tOutput);
             XMLGen::append_children({"ArgumentName"}, {"Constraint Gradient " + tConstraint.id()}, tOutput);
-
-            if (XMLGen::is_robust_optimization_problem(aMetaData))
-            {
-                XMLGen::append_random_traction_vector_to_plato_analyze_operation(aMetaData, tOperation);
-                XMLGen::append_random_material_properties_to_plato_analyze_operation(aMetaData, tOperation);
-            }
-        }
-    }
-    /******************************************************************************/
-
-    /******************************************************************************/
-    void append_compute_constraint_gradient_operation_for_topology_levelset_problem(
-        const XMLGen::InputData &aMetaData,
-        pugi::xml_document &aDocument)
-    {
-
-        for (auto &tConstraint : aMetaData.constraints)
-        {
-            auto &tCriterion = aMetaData.criterion(tConstraint.criterion());
-            auto tCriterionType = Plato::tolower(tCriterion.type());
-            auto tToken = std::string("my_") + tCriterionType + "_criterion_id_" + tCriterion.id();
-
-            auto tOperation = aDocument.append_child("Operation");
-
-            std::string tFileName = "./Constraint_Gradx_id_" + tConstraint.id() + ".hdf";
-
-            XMLGen::append_children({"Function", "Name", "Criterion", "OutputFile"}, 
-            {"ComputeCriterionX",  "Compute Constraint Gradient " + tConstraint.id(),tToken, tFileName }, tOperation);
 
             if (XMLGen::is_robust_optimization_problem(aMetaData))
             {
@@ -422,10 +382,6 @@ namespace XMLGen
             {
                 append_compute_objective_gradient_operation_for_shape_problem(aMetaData, aDocument);
             }
-            else if (aMetaData.optimization_parameters().optimization_type() == "topology" && aMetaData.optimization_parameters().discretization() == "levelset")
-            {
-                append_compute_objective_gradient_operation_for_topology_levelset_problem(aMetaData, aDocument);
-            }
             else
             {
                 THROWERR("Append Compute Objective Gradient to Plato Analyze Operation: Unknown optimization type.")
@@ -473,10 +429,6 @@ namespace XMLGen
             {
                 append_compute_constraint_gradient_operation_for_shape_problem(aXMLMetaData, aDocument);
             }
-            else if (aXMLMetaData.optimization_parameters().optimization_type() == "topology" && aXMLMetaData.optimization_parameters().discretization() == "levelset")
-            {
-                append_compute_constraint_gradient_operation_for_topology_levelset_problem(aXMLMetaData, aDocument);
-            }
             else
             {
                 THROWERR("Append Compute Constraint Gradient to Plato Analyze Operation: Unknown optimization type.")
@@ -489,11 +441,6 @@ namespace XMLGen
     void append_update_problem_to_plato_analyze_operation(const XMLGen::InputData &aMetaData,
                                                           pugi::xml_document &aDocument)
     {
-        if (aMetaData.optimization_parameters().optimizationType() == OT_TOPOLOGY && aMetaData.optimization_parameters().discretization() == "levelset")
-        {
-            auto tOperation = aDocument.append_child("Operation");
-            XMLGen::append_children({"Function", "Name","ReloadFile"}, {"Reinitialize", "Reload Mesh",aMetaData.mesh.run_name}, tOperation);
-        }
         bool tNeedUpdate = false;
         for (auto &tService : aMetaData.services())
         {
@@ -652,10 +599,6 @@ namespace XMLGen
         }
         const XMLGen::Output &tOutputMetadata = aMetaData.mOutputMetaData[0];
         if (tOutputMetadata.isOutputDisabled())
-        {
-            return;
-        }
-        if (aMetaData.optimization_parameters().optimizationType() == OT_SHAPE || aMetaData.optimization_parameters().discretization() == "levelset")
         {
             return;
         }

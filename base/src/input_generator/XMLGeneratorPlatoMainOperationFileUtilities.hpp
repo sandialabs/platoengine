@@ -441,46 +441,6 @@ void append_initialize_field_from_file_operation
  pugi::xml_document& aDocument);
 
 /******************************************************************************//**
- * \fn append_levelset_material_box
- * \brief Append levelset material box operation to PUGI XML document.
- * \param [in]     aXMLMetaData Plato problem input data
- * \param [in/out] aDocument    pugi::xml_document
-**********************************************************************************/
-void append_levelset_material_box
-(const XMLGen::InputData& aXMLMetaData,
- pugi::xml_node& aParentNode);
-
-/******************************************************************************//**
- * \fn append_initialize_levelset_primitives_operation
- * \brief Append initialize levelset primitives operation to PUGI XML document.
- * \param [in]     aXMLMetaData Plato problem input data
- * \param [in/out] aDocument    pugi::xml_document
-**********************************************************************************/
-void append_initialize_levelset_primitives_operation
-(const XMLGen::InputData& aXMLMetaData,
- pugi::xml_document& aDocument);
-
-/******************************************************************************//**
- * \fn append_initialize_levelset_swiss_cheese_operation
- * \brief Append initialize levelset swiss cheese operation to PUGI XML document.
- * \param [in]     aXMLMetaData Plato problem input data
- * \param [in/out] aDocument    pugi::xml_document
-**********************************************************************************/
-void append_initialize_levelset_swiss_cheese_operation
-(const XMLGen::InputData& aXMLMetaData,
- pugi::xml_document& aDocument);
-
-/******************************************************************************//**
- * \fn append_initialize_levelset_operation
- * \brief Append initialize levelset operation to PUGI XML document.
- * \param [in]     aXMLMetaData Plato problem input data
- * \param [in/out] aDocument    pugi::xml_document
-**********************************************************************************/
-void append_initialize_levelset_operation
-(const XMLGen::InputData& aXMLMetaData,
- pugi::xml_document& aDocument);
-
-/******************************************************************************//**
  * \fn append_initialize_field_operation
  * \brief Append initialize control field operation to PUGI XML document.
  * \param [in]     aXMLMetaData Plato problem input data

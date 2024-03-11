@@ -133,7 +133,7 @@ private:
     int mOutputFrequency = 1000; /*!< output frequency */
     int mMaxIterations = 1; /*!< max iterations */
     int mOutputMethod = 0; /*!< epu output data - distributed or serial */
-    std::string mDiscretization = "density"; /*!< topology representation, density or levelset */
+    std::string mDiscretization = "density"; /*!< topology representation */
     bool mWriteRestart = false; /*!< flag - write restart file */
     std::string mRestartFieldName; /*!< name of field to put in restart file */
     std::string mBaseName; /*!< output file base name */

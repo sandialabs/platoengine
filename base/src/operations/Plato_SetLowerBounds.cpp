@@ -125,8 +125,7 @@ void SetLowerBounds::operator()()
 
 void SetLowerBounds::updateLowerBoundsBasedOnFixedEntitiesForDBTOP(double* aToData)
 {
-    bool tDensOrLevelSet = mDiscretization == "density" || mDiscretization == "levelset";
-    if(tDensOrLevelSet && mOutputLayout == Plato::data::layout_t::SCALAR_FIELD)
+    if(mOutputLayout == Plato::data::layout_t::SCALAR_FIELD)
     {
         if( mMaterialUseCase == "solid" )
         {

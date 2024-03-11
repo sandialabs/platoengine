@@ -49,7 +49,7 @@
 #include <cfenv>
 #endif
 
-static void safeExit(){
+inline void safeExit(){
     MPI_Finalize();
     exit(0);
 }

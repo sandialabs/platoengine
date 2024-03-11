@@ -74,16 +74,6 @@ void append_design_volume_shared_data
  pugi::xml_document& aDocument);
 
 /******************************************************************************//**
- * \fn append_initial_control_shared_data
- * \brief Append initial control shared data - used in levelset topology optimization use cases.
- * \param [in]  aMetaData Plato problem input metadata
- * \param [out] aDocument parent xml node
-**********************************************************************************/
- void append_initial_control_shared_data
- (const XMLGen::InputData &aMetaData,
-  pugi::xml_document &aDocument);
-
-/******************************************************************************//**
  * \fn append_parameter_sensitivity_shared_data
  * \brief Append parameters sensitivity shared data for shape optimization problems.
  * \param [in]  aMetaData Plato problem input metadata

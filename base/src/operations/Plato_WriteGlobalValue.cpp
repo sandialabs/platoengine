@@ -56,10 +56,6 @@
 #include "Plato_Exceptions.hpp"
 #include "Plato_WriteGlobalValue.hpp"
 
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-BOOST_CLASS_EXPORT_IMPLEMENT(Plato::WriteGlobalValue)
-
 namespace Plato
 {
 
@@ -93,7 +89,10 @@ void WriteGlobalValue::operator()()
     if(tMyRank == 0)
     {
         std::fstream tOutfile;
-        tOutfile.open(mFilename, std::ios::app);
+        std::string tTempFilename = mInputName;
+        tTempFilename += std::to_string(mIndex++);
+        tTempFilename += ".txt";
+        tOutfile.open(tTempFilename, std::ios::app);
         std::vector<double>& tFromData = *(mPlatoApp->getValue(mInputName));
 
         for(unsigned int i = 0; i < tFromData.size(); i++)

@@ -143,16 +143,6 @@ void append_constraint_gradient_stage_for_shape_problem
 (const XMLGen::InputData& aMetaData,
  pugi::xml_document& aDocument);
 
- /******************************************************************************//**
- * \fn append_constraint_gradient_stage_for_topology_levelset_problem
- * \brief Append constaint gradient stage for topology levelset optimization problems.
- * \param [in]  aMetaData Plato problem input metadata
- * \param [out] aDocument parent xml node
-**********************************************************************************/
-void append_constraint_gradient_stage_for_topology_levelset_problem
-(const XMLGen::InputData& aMetaData,
- pugi::xml_document& aDocument);
-
 /******************************************************************************//**
  * \fn append_objective_value_stage
  * \brief Append objective value stage to interface xml file.
@@ -210,16 +200,6 @@ void append_objective_gradient_stage_for_topology_problem
  * \param [out] aDocument parent xml node
 **********************************************************************************/
 void append_objective_gradient_stage_for_shape_problem
-(const XMLGen::InputData& aMetaData,
- pugi::xml_document& aDocument);
-
-/******************************************************************************//**
- * \fn append_objective_gradient_stage_for_topology_problem
- * \brief Append objective gradient stage for topology optimization problem with levelset discretization.
- * \param [in]  aMetaData Plato problem input metadata
- * \param [out] aDocument parent xml node
-**********************************************************************************/
-void append_objective_gradient_stage_for_topology_levelset_problem
 (const XMLGen::InputData& aMetaData,
  pugi::xml_document& aDocument);
 

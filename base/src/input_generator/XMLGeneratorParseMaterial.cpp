@@ -98,11 +98,6 @@ void ParseMaterial::insertIncompressibleFluidFlowProperties()
     mTags.insert({ "kinematic_viscocity", { { {"kinematic_viscocity"}, ""}, "1.5111e-5" } });
 }
 
-void ParseMaterial::insertElectromagneticsProperties()
-{
-    mTags.insert({ "conductivity", { { {"conductivity"}, ""}, "" } });
-}
-
 void ParseMaterial::allocate()
 {
     mTags.clear();
@@ -113,7 +108,6 @@ void ParseMaterial::allocate()
     this->insertPlasticProperties();
     this->insertElectricProperties();
     this->insertElasticOrthoProperties();
-    this->insertElectromagneticsProperties();
     this->insertIncompressibleFluidFlowProperties();
 }
 

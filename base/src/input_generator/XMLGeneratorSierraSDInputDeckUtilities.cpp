@@ -118,76 +118,13 @@ void writeOptimizationBlock(std::ostream &outfile)
     outfile << "END" << std::endl;
 }
 
-void writeDummyFRFFiles(const XMLGen::Scenario &aScenario, const XMLGen::Criterion &aCriterion, std::ostream &outfile) {
-    std::string tTruthTableFile = "dummy_ttable_";
-    tTruthTableFile += aScenario.id();
-    tTruthTableFile += ".txt";
-    std::string tRealDataFile = "dummy_data_";
-    tRealDataFile += aScenario.id();
-    tRealDataFile += ".txt";
-    std::string tImagDataFile = "dummy_data_im_";
-    tImagDataFile += aScenario.id();
-    tImagDataFile += ".txt";
-    // For levelset frf we will be generating the experimental data
-    // files at each iteration corresponding to the new computational
-    // mesh node ids.  Therefore, we will start things off with 3
-    // dummy files that just have generic data in them.
-    outfile << "  data_truth_table " << tTruthTableFile << std::endl;
-    outfile << "  real_data_file " << tRealDataFile << std::endl;
-    outfile << "  imaginary_data_file " << tImagDataFile << std::endl;
-    // Create the 3 generic files.
-    double tFreqMin, tFreqMax, tFreqStep;
-    sscanf(aScenario.frequency_min().c_str(), "%lf", &tFreqMin);
-    sscanf(aScenario.frequency_max().c_str(), "%lf", &tFreqMax);
-    sscanf(aScenario.frequency_step().c_str(), "%lf", &tFreqStep);
-    // This is the formula sierra_sd uses to get the number of frequencies
-    int tNumFreqs = (int)(((tFreqMax - tFreqMin) / tFreqStep) + 0.5) + 1;
-    int tNumMatchNodes = aCriterion.matchNodesetIDs().size();
-    FILE *tTmpFP = fopen(tTruthTableFile.c_str(), "w");
-    if (tTmpFP) {
-        fprintf(tTmpFP, "%d\n", tNumMatchNodes);
-        for (int tIndex = 0; tIndex < tNumMatchNodes; ++tIndex) {
-            fprintf(tTmpFP, "%d 1 1 1\n", tIndex + 1);
-        }
-        fclose(tTmpFP);
-    }
-    tTmpFP = fopen(tRealDataFile.c_str(), "w");
-    if (tTmpFP) {
-        fprintf(tTmpFP, "%d %d\n", 3 * tNumMatchNodes, tNumFreqs);
-        for (int tIndex = 0; tIndex < 3 * tNumMatchNodes; ++tIndex) {
-            for (int tIndex2 = 0; tIndex2 < tNumFreqs; ++tIndex2) {
-                fprintf(tTmpFP, "0 ");
-            }
-            fprintf(tTmpFP, "\n");
-        }
-        fclose(tTmpFP);
-    }
-    tTmpFP = fopen(tImagDataFile.c_str(), "w");
-    if (tTmpFP) {
-        fprintf(tTmpFP, "%d %d\n", 3 * tNumMatchNodes, tNumFreqs);
-        for (int tIndex = 0; tIndex < 3 * tNumMatchNodes; ++tIndex) {
-            for (int tIndex2 = 0; tIndex2 < tNumFreqs; ++tIndex2) {
-                fprintf(tTmpFP, "0 ");
-            }
-            fprintf(tTmpFP, "\n");
-        }
-        fclose(tTmpFP);
-    }
-}
-
-void writeFRFInverseBlocks(const XMLGen::InputData &aMetaData,
-                           const XMLGen::Criterion &aCriterion,
-                           const XMLGen::Scenario &aScenario,
+void writeFRFInverseBlocks(const XMLGen::Scenario &aScenario,
                            std::ostream &outfile)
 {
     outfile << "INVERSE-PROBLEM" << std::endl;
-    if (aMetaData.optimization_parameters().discretization().compare("levelset") == 0) {
-        writeDummyFRFFiles(aScenario, aCriterion, outfile);
-    } else {
-        outfile << "  data_truth_table ttable.txt" << std::endl;
-        outfile << "  real_data_file data.txt" << std::endl;
-        outfile << "  imaginary_data_file data_im.txt" << std::endl;
-    }
+    outfile << "  data_truth_table ttable.txt" << std::endl;
+    outfile << "  real_data_file data.txt" << std::endl;
+    outfile << "  imaginary_data_file data_im.txt" << std::endl;
     outfile << "END" << std::endl;
 
     writeOptimizationBlock(outfile);
@@ -273,8 +210,7 @@ void writeDummyModalFiles(const XMLGen::Scenario &aScenario, const XMLGen::Crite
     dummy.close();
 }
 
-void writeModalInverseBlocks(const XMLGen::InputData &/*aMetaData*/,
-                             const XMLGen::Criterion &aCriterion,
+void writeModalInverseBlocks(const XMLGen::Criterion &aCriterion,
                              const XMLGen::Scenario &aScenario,
                              std::ostream &outfile)
 {
@@ -289,6 +225,7 @@ void writeModalInverseBlocks(const XMLGen::InputData &/*aMetaData*/,
         outfile << "  eigen_objective mpe" << std::endl;
     }
     outfile << "  design_variable shape" << std::endl;
+    outfile << "  shape_sideset all" << std::endl;
     outfile << "END" << std::endl;
 
     writeOptimizationBlock(outfile);
@@ -296,18 +233,17 @@ void writeModalInverseBlocks(const XMLGen::InputData &/*aMetaData*/,
 
 /**************************************************************************/
 void append_inverse_problem_blocks
-(const XMLGen::InputData& aMetaData,
- const XMLGen::Criterion &aCriterion,
+(const XMLGen::Criterion &aCriterion,
  const XMLGen::Scenario &aScenario,
  std::ostream &outfile)
 {
     if(isFrfMismatch(aCriterion))
     {
-        writeFRFInverseBlocks(aMetaData, aCriterion, aScenario, outfile);
+        writeFRFInverseBlocks(aScenario, outfile);
     }
     else if (isModalCriterion(aCriterion))
     {
-        writeModalInverseBlocks(aMetaData, aCriterion, aScenario, outfile);
+        writeModalInverseBlocks(aCriterion, aScenario, outfile);
     }
 }
 /**************************************************************************/
@@ -992,7 +928,7 @@ void add_input_deck_blocks
     append_solution_block(aMetaData, tCriterion, outfile);
     append_parameters_block(tScenario, tCriterion, outfile);
     append_camp_block(tScenario, tCriterion, outfile);
-    append_inverse_problem_blocks(aMetaData, tCriterion, tScenario, outfile);
+    append_inverse_problem_blocks(tCriterion, tScenario, outfile);
     append_gdsw_block(tCriterion, tScenario, outfile);
     append_outputs_block(tCriterion, outfile);
     append_echo_block(tCriterion, outfile);

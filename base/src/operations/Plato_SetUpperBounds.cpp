@@ -112,7 +112,6 @@ void SetUpperBounds::operator()()
     if( !mFixedBlockMetadata.mBlockIDs.empty() )
     {
         this->updateUpperBoundsBasedOnFixedEntitiesForDBTOP(tToData);
-        this->updateUpperBoundsBasedOnFixedEntitiesForLSTOP(tToData);
     }
 }
 
@@ -127,18 +126,6 @@ void SetUpperBounds::updateUpperBoundsBasedOnFixedEntitiesForDBTOP(double* aToDa
         {
             this->updateUpperBoundsForDensityProblems(tSolidFixedBlocksMetadata, aToData);
         }
-    }
-}
-
-void SetUpperBounds::updateUpperBoundsBasedOnFixedEntitiesForLSTOP(double* aToData)
-{
-    auto tIsLevelsetTopologyOptimizationProblem = mDiscretization == "levelset" && mOutputLayout == Plato::data::layout_t::SCALAR_FIELD;
-    if (tIsLevelsetTopologyOptimizationProblem)
-    {
-        double tValue = -0.001;
-        mPlatoApp->getMeshServices()->updateBoundsForFixedBlocks(aToData, mFixedBlockMetadata.mBlockIDs, tValue);
-        mPlatoApp->getMeshServices()->updateBoundsForFixedSidesets(aToData, mFixedBlockMetadata.mSidesetIDs, tValue);
-        mPlatoApp->getMeshServices()->updateBoundsForFixedNodesets(aToData, mFixedBlockMetadata.mNodesetIDs, tValue);
     }
 }
 

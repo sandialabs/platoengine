@@ -104,14 +104,6 @@ void append_lower_bounds_shared_data
         tSharedDataNode = aDocument.append_child("SharedData");
         XMLGen::append_children(tKeys, tValues, tSharedDataNode);
     }
-    else if(aMetaData.optimization_parameters().discretization() == "levelset")
-    {
-        std::string tFirstXTKMainPerformer = aMetaData.getFirstXTKMainPerformer();
-        tKeys.push_back("UserName");
-        tValues = {"Lower Bound Vector", "Scalar", "Nodal Field", "IGNORE",tFirstXTKMainPerformer, tFirstPlatoMainPerformer, tFirstXTKMainPerformer};
-        tSharedDataNode = aDocument.append_child("SharedData");
-        XMLGen::append_children(tKeys, tValues, tSharedDataNode);
-    }
 }
 // function append_lower_bounds_shared_data
 /******************************************************************************/
@@ -141,17 +133,9 @@ void append_upper_bounds_shared_data
         tSharedDataNode = aDocument.append_child("SharedData");
         XMLGen::append_children(tKeys, tValues, tSharedDataNode);
     }
-    else if(aMetaData.optimization_parameters().optimizationType() == OT_TOPOLOGY  && aMetaData.optimization_parameters().discretization() == "levelset")
-    {
-        std::string tFirstXTKMainPerformer = aMetaData.getFirstXTKMainPerformer();
-        tKeys.push_back("UserName");
-        tValues = {"Upper Bound Vector", "Scalar", "Nodal Field", "IGNORE",tFirstXTKMainPerformer, tFirstPlatoMainPerformer, tFirstXTKMainPerformer};
-        tSharedDataNode = aDocument.append_child("SharedData");
-        XMLGen::append_children(tKeys, tValues, tSharedDataNode);
-    }
     else
     {
-        THROWERR(std::string("Invalid optimization and discretization combination. Supported types are topology+ density, topology+levelset, shape." 
+        THROWERR(std::string("Invalid optimization and discretization combination. Supported types are topology+ density, shape." 
             + aMetaData.optimization_parameters().optimization_type() + aMetaData.optimization_parameters().discretization() +"is not supported."));
     }
 }
@@ -173,24 +157,6 @@ void append_design_volume_shared_data
     }
 }
 // function append_design_volume_shared_data
-/******************************************************************************/
-
-/******************************************************************************/
-void append_initial_control_shared_data
-(const XMLGen::InputData &aMetaData,
- pugi::xml_document &aDocument)
-{
-    if (aMetaData.optimization_parameters().optimizationType() == OT_TOPOLOGY && aMetaData.optimization_parameters().discretization() == "levelset")
-    {
-        std::string tFirstPlatoMainPerformer = aMetaData.getFirstPlatoMainPerformer();
-        std::string tFirstXTKPerformer = aMetaData.getFirstXTKMainPerformer();
-        std::vector<std::string> tKeys = {"Name", "Type", "Layout", "Size", "OwnerName", "UserName", "UserName"};
-        std::vector<std::string> tValues = {"Initial Control", "Scalar", "Nodal Field", "IGNORE", tFirstXTKPerformer, tFirstPlatoMainPerformer, tFirstXTKPerformer};
-        auto tSharedDataNode = aDocument.append_child("SharedData");
-        XMLGen::append_children(tKeys, tValues, tSharedDataNode);
-    }
-}
-// function append_initial_control_shared_data
 /******************************************************************************/
 
 /******************************************************************************/
@@ -229,7 +195,6 @@ void append_gradient_based_criterion_shared_data
  pugi::xml_document& aDocument)
 {
     std::string tFirstPlatoMainPerformer = aMetaData.getFirstPlatoMainPerformer();
-    std::string tFirstXTKPerformer = aMetaData.getFirstXTKMainPerformer();
 
     auto tConcretizedCriteria = aMetaData.getConcretizedCriteria();
 
@@ -289,15 +254,6 @@ void append_gradient_based_criterion_shared_data
                         XMLGen::append_children(tKeys, tValues, tSharedDataNode);
                     }
                 }
-            }
-            else if(aMetaData.optimization_parameters().discretization() == "levelset")
-            {
-                tOwnerName = tFirstXTKPerformer;
-                tKeys = { "Name", "Type", "Layout", "Size", "OwnerName", "UserName","UserName" };
-                tTag = std::string("Criterion Gradient - ") + tIdentifierString;
-                tValues = { tTag, "Scalar", "Nodal Field", "IGNORE", tOwnerName, tFirstPlatoMainPerformer,tFirstXTKPerformer };
-                tSharedDataNode = aDocument.append_child("SharedData");
-                XMLGen::append_children(tKeys, tValues, tSharedDataNode);
             }
         }
         else if(aMetaData.optimization_parameters().optimizationType() == OT_SHAPE)

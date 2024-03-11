@@ -247,20 +247,6 @@ public:
         return tReturnValue;
     }
 
-    std::string getFirstXTKMainPerformer() const
-    {
-        std::string tReturnValue = "";
-        for(auto& tService : mServices)
-        {
-            if(tService.code() == "xtk")
-            {
-                tReturnValue = tService.performer();
-                break;
-            }
-        }
-        return tReturnValue;
-    }
-
     const XMLGen::OptimizationParameters& optimization_parameters() const 
     {
         return mOptimizationParameters;

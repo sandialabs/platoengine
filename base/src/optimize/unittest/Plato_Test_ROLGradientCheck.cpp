@@ -43,6 +43,12 @@ public:
         for (size_t i=0; i<x.size(); i++)
             g[i] = 2*x[i];
     }
+protected:
+    // To supress warning about this class hiding the value() and
+    // gradient() functions in ROL::Objective since we are
+    // using std:vectors as arguments here rather than ROL vectors.
+    using ROL::Objective<Real>::value;
+    using ROL::Objective<Real>::gradient;
 };
 
 class PlatoTestROLGradientCheck : public Plato::InterfaceTestFixture

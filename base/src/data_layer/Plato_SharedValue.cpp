@@ -232,4 +232,11 @@ void SharedValue::initializeMPI(const Plato::CommunicationData& aCommData)
     mInterComm = aCommData.mInterComm;
 }
 
+/*****************************************************************************/
+bool SharedValue::isDynamic() const
+/*****************************************************************************/
+{
+    return mIsDynamic;
+}
+
 } // End namespace Plato

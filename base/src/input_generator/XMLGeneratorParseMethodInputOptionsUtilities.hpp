@@ -140,15 +140,6 @@ void insert_plato_symmetry_filter_input_options(XMLGen::MetaDataTags &aTags);
 void insert_plato_projection_filter_input_options(XMLGen::MetaDataTags &aTags);
 
 /******************************************************************************//**
- * \fn insert_plato_levelset_input_options
- * \brief Insert input options and corresponding default values for levelset based \n 
-          topology optimization problems into the map from the plato input deck \n
-          keyword to the input value and default value pairs.
- * \param [in] aTags Plato input deck key-value map
-**********************************************************************************/
-void insert_plato_levelset_input_options(XMLGen::MetaDataTags &aTags);
-
-/******************************************************************************//**
  * \fn insert_amgx_input_options
  * \brief Insert input options and corresponding default values for AMGX solver \n
           into the map from the plato input deck keyword to the input value and \n

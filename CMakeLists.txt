@@ -59,6 +59,8 @@ endif()
 
 project(PlatoEngine LANGUAGES CXX C)
 
+find_package(MPI REQUIRED COMPONENTS CXX)
+
 ############################  Trilinos Setup  #################################
 ###############################################################################
 IF (DEFINED TRILINOS_INSTALL_DIR)
@@ -79,6 +81,11 @@ set(CMAKE_CXX_COMPILER     ${Trilinos_CXX_COMPILER})
 set(CMAKE_C_COMPILER       ${Trilinos_C_COMPILER})
 set(CMAKE_Fortran_COMPILER ${Trilinos_Fortran_COMPILER})
 
+if(PLATOENGINE_ENABLE_CUDA)
+  message(STATUS "Enabling CUDA")
+  enable_language(CUDA)
+endif()
+
 ###############################################################################
 ###############################################################################
 
@@ -86,7 +93,7 @@ set(CMAKE_Fortran_COMPILER ${Trilinos_Fortran_COMPILER})
 if( DAKOTADRIVER )
   find_package(Dakota REQUIRED)
 endif()
-find_package(Boost REQUIRED COMPONENTS serialization filesystem system program_options regex)
+find_package(Boost REQUIRED COMPONENTS serialization filesystem system program_options regex mpi)
 
 ###########################  Compiler setup ###################################
 ####################### (post 'project()' command) ############################
@@ -164,6 +171,7 @@ endif()
 
 add_subdirectory(base)
 add_subdirectory(apps)
+add_subdirectory(functional)
 
 include(CMakePackageConfigHelpers)
 install(EXPORT PlatoEngine NAMESPACE PlatoEngine FILE PlatoEngineTargets.cmake DESTINATION cmake)

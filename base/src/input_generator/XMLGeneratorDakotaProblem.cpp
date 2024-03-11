@@ -10,8 +10,6 @@
 #include "XMLGeneratorProblemUtilities.hpp"
 #include "XMLGeneratorServiceUtilities.hpp"
 #include "XMLGeneratorSierraSDUtilities.hpp"
-#include "Operation.hpp"
-#include "GemmaProblem.hpp"
 #include "XMLGeneratorDefinesFileUtilities.hpp"
 #include "XMLGeneratorLaunchScriptUtilities.hpp"
 #include "XMLGeneratorPlatoESPInputFileUtilities.hpp"
@@ -107,43 +105,12 @@ void plato_esp_problem
 }
 // function plato_esp_problem
 
-void plato_gemma_problem
-(XMLGen::InputData& aMetaData,
- const std::vector<XMLGen::InputData>& /*aPreProcessedMetaData*/)
-{
-
-    director::GemmaProblem tGemmaProblem(aMetaData);
-
-    tGemmaProblem.create_evaluation_subdirectories_and_gemma_input(aMetaData);
-    
-    pugi::xml_document tDocument;
-    tGemmaProblem.write_plato_main_operations(tDocument);
-    tDocument.save_file("plato_main_operations.xml", "  ");
-
-    pugi::xml_document tInterfaceDocument;
-    tGemmaProblem.write_interface(tInterfaceDocument);
-    tInterfaceDocument.save_file("interface.xml", "  ");
-
-    pugi::xml_document tPlatoMainDocument;
-    tGemmaProblem.write_plato_main_input(tPlatoMainDocument);
-    tPlatoMainDocument.save_file("plato_main_input_deck.xml", "  ");
-
-    tGemmaProblem.write_mpirun("mpirun.source");
-    tGemmaProblem.write_defines();
-
-    XMLGen::write_dakota_driver_input_deck(aMetaData);
-}
-// function plato_gemma_problem
-
 void write_problem
 (XMLGen::InputData& aMetaData,
  const std::vector<XMLGen::InputData>& aPreProcessedMetaData)
 {
     auto tScenario = aMetaData.scenarios();
     for(unsigned int iScenario = 0 ; iScenario < tScenario.size(); iScenario++)
-    if(tScenario[iScenario].physics() == "electromagnetics")
-        XMLGen::dakota::plato_gemma_problem(aMetaData, aPreProcessedMetaData);
-    else
         XMLGen::dakota::plato_esp_problem(aMetaData, aPreProcessedMetaData);
 }
 // function write_problem

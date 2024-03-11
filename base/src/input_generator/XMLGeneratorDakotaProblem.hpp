@@ -41,17 +41,6 @@ void plato_esp_problem
 (XMLGen::InputData& aMetaData,
  const std::vector<XMLGen::InputData>& aPreProcessedMetaData);
 
- /******************************************************************************//**
- * \fn plato_gemma_problem
- * \brief Write input files needed to solve problems with dakota and gemma.
- * \param [in] aInputData input metadata
- * \param [in] aPreProcessedMetaData pre process metadata for problems with \n 
- *    concurrent app evaluations
-**********************************************************************************/
-void plato_gemma_problem
-(XMLGen::InputData& aMetaData,
- const std::vector<XMLGen::InputData>& aPreProcessedMetaData);
-
 /******************************************************************************//**
  * \fn write_problem
  * \brief Write input files needed to solve problems with dakota.

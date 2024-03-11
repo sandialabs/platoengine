@@ -48,6 +48,7 @@
 
 #pragma once
 
+#include "mpi.h"
 #include "Plato_SharedData.hpp"
 
 namespace Plato
@@ -100,21 +101,21 @@ void split(const std::string & aInput, std::vector<std::string> & aOutput);
 void zero(const size_t& aLength, double* aData);
 
 /******************************************************************************//**
- * \fn parse_tokens
- * \brief Parse tokens from buffer.
- * \param [in]  aBuffer token buffer
- * \param [out] aTokens parsed tokens
- * \return boolean flag (true=passed, false=failed)
+ * \brief Find the first occurance of a string param given the path
+ * \param [in] aPathStrings vector of strings defining path to parameter
+ * \param [in] aNode Node to start searching from
 **********************************************************************************/
-bool parse_tokens(char *aBuffer, std::vector<std::string> &aTokens);
+std::string findFirstStringParameter(const std::vector<std::string>& aPathStrings, 
+                                     const Plato::InputData& aNode);
 
 /******************************************************************************//**
- * \fn read_table
- * \brief Read data from text file on disk..
- * \param [in]  aFileName name of file on disk to be read
- * \param [out] aTable    data
+ * \brief Given a filename extract the global node ids in the mesh.
+ * \param [in] aComm Parallel communicator
+ * \param [in] aFilename Name of file containing Exodus mesh
 **********************************************************************************/
-void read_table(const std::string& aFileName, std::vector<std::vector<double>>& aTable);
+std::vector<unsigned int> extractGlobalNodeIDs(const MPI_Comm &aComm,
+                                               const std::string &aFilename);
+
 
 }
 // namespace Plato

@@ -14,9 +14,7 @@
 #include "XMLGeneratorDataStruct.hpp"
 #include "XMLGeneratorServiceUtilities.hpp"
 #include "XMLGeneratorSierraSDUtilities.hpp"
-#include "XMLGeneratorPlatoXTKInputFile.hpp"
 #include "XMLGeneratorDefinesFileUtilities.hpp"
-#include "XMLGeneratorPlatoXTKOperationFile.hpp"
 #include "XMLGeneratorLaunchScriptUtilities.hpp"
 #include "XMLGeneratorInterfaceFileUtilities.hpp"
 #include "XMLGeneratorPlatoESPInputFileUtilities.hpp"
@@ -105,8 +103,6 @@ void write_optimization_problem
     XMLGen::write_amgx_input_file(aMetaData);
     XMLGen::write_plato_esp_input_deck_file(aMetaData);
     XMLGen::write_plato_esp_operations_file(aMetaData);
-    XMLGen::write_xtk_input_deck_file(aMetaData);
-    XMLGen::write_xtk_operations_file(aMetaData);
 
     for(auto tCurMetaData : aPreProcessedMetaData)
     {

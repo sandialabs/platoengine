@@ -88,6 +88,8 @@ public:
     void setData(const std::vector<double> & aData) override;
     void getData(std::vector<double> & aData) const override;
 
+    bool isDynamic() const override;
+
     template<class Archive>
     void serialize(Archive & aArchive, const unsigned int /*version*/)
     {

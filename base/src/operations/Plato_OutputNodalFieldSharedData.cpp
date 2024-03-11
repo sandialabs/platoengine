@@ -105,7 +105,7 @@ void OutputNodalFieldSharedData::operator()()
                 const int tLength = tInfield->MyLength();
                 for(int j=0; j<tLength; ++j)
                 {
-                    fprintf(fp, "%lf\n", tInputField[j]);
+                    fprintf(fp, "%.16lf\n", tInputField[j]);
                 }
                 fclose(fp);
             }

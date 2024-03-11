@@ -344,7 +344,11 @@ public:
             mSharedDataNames[aArgumentName] = aExportData.myName();
 
             std::vector<double>* tLocalData = getValue(aArgumentName);
-            if(int(tLocalData->size()) == aExportData.size())
+            if(aExportData.isDynamic())
+            {
+                aExportData.setData(*tLocalData);
+            }
+            else if(int(tLocalData->size()) == aExportData.size())
             {
                 aExportData.setData(*tLocalData);
             }

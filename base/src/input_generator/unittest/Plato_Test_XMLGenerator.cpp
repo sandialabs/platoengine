@@ -535,53 +535,6 @@ TEST(PlatoTestXMLGenerator, parseOptimizationParameters)
     std::istringstream iss;
     std::string stringInput;
 
-    // material_box
-    stringInput = "begin optimization_parameters\n"
-            "levelset_material_box_min 0 0 0\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_THROW(tester.publicParseOptimizationParameters(iss), std::runtime_error);
-    stringInput = "begin optimization_parameters\n"
-            "levelset_material_box_max 0 0 0\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_THROW(tester.publicParseOptimizationParameters(iss), std::runtime_error);
-    stringInput = "begin optimization_parameters\n"
-            "levelset_material_box_min 0 0 1\n"
-            "levelset_material_box_max 0 0\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_THROW(tester.publicParseOptimizationParameters(iss), std::runtime_error);
-    stringInput = "begin optimization_parameters\n"
-            "levelset_material_box_min 0 0\n"
-            "levelset_material_box_max 0 0 1\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_THROW(tester.publicParseOptimizationParameters(iss), std::runtime_error);
-    stringInput = "begin optimization_parameters\n"
-            "levelset_material_box_min 1 2 3\n"
-            "levelset_material_box_max 4 5 6\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_NO_THROW(tester.publicParseOptimizationParameters(iss));
-    EXPECT_EQ(tester.getMatBoxMinCoords(), "1 2 3");
-    EXPECT_EQ(tester.getMatBoxMaxCoords(), "4 5 6");
-
     // initial_density_value
     stringInput = "begin optimization_parameters\n"
             "initial_density_value\n"
@@ -600,44 +553,6 @@ TEST(PlatoTestXMLGenerator, parseOptimizationParameters)
     tester.clearInputData();
     EXPECT_EQ(tester.publicParseOptimizationParameters(iss), true);
     EXPECT_EQ(tester.getInitDensityValue(), ".1");
-
-    // create levelset spheres
-    stringInput = "begin optimization_parameters\n"
-            "create_levelset_spheres\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_THROW(tester.publicParseOptimizationParameters(iss), std::runtime_error);
-    stringInput = "begin optimization_parameters\n"
-            "create_levelset_spheres true\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    EXPECT_EQ(tester.publicParseOptimizationParameters(iss), true);
-    EXPECT_EQ(tester.getCreateLevelsetSpheres(), "true");
-
-    // levelset initialization method
-    stringInput = "begin optimization_parameters\n"
-            "levelset_initialization_method\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_THROW(tester.publicParseOptimizationParameters(iss), std::runtime_error);
-    stringInput = "begin optimization_parameters\n"
-            "levelset_initialization_method primitives\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    EXPECT_EQ(tester.publicParseOptimizationParameters(iss), true);
-    EXPECT_EQ(tester.getLevelsetInitMethod(), "primitives");
 
     // max iterations
     stringInput = "begin optimization_parameters\n"
@@ -702,65 +617,6 @@ TEST(PlatoTestXMLGenerator, parseOptimizationParameters)
     EXPECT_EQ(tester.getRestartIteration(), "22");
     EXPECT_EQ(tester.getRestartFieldName(), "topology");
     EXPECT_EQ(tester.getRestartMeshFilename(), "file.gen");
-
-    // levelset sphere packing factor
-    stringInput = "begin optimization_parameters\n"
-            "levelset_sphere_packing_factor\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_THROW(tester.publicParseOptimizationParameters(iss), std::runtime_error);
-    stringInput = "begin optimization_parameters\n"
-            "levelset_sphere_packing_factor .2\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    EXPECT_EQ(tester.publicParseOptimizationParameters(iss), true);
-    EXPECT_EQ(tester.getLevelsetSpherePackingFactor(), ".2");
-
-    // levelset sphere radius
-    stringInput = "begin optimization_parameters\n"
-            "levelset_sphere_radius\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_THROW(tester.publicParseOptimizationParameters(iss), std::runtime_error);
-    stringInput = "begin optimization_parameters\n"
-            "levelset_sphere_radius .33\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    EXPECT_EQ(tester.publicParseOptimizationParameters(iss), true);
-    EXPECT_EQ(tester.getLevelsetSphereRadius(), ".33");
-
-    // levelset nodesets
-    stringInput = "begin optimization_parameters\n"
-            "levelset_nodesets\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_THROW(tester.publicParseOptimizationParameters(iss), std::runtime_error);
-    stringInput = "begin optimization_parameters\n"
-            "levelset_nodesets 4 10 22\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    EXPECT_EQ(tester.publicParseOptimizationParameters(iss), true);
-    EXPECT_EQ(tester.getLevelsetNodeset(0), "4");
-    EXPECT_EQ(tester.getLevelsetNodeset(1), "10");
-    EXPECT_EQ(tester.getLevelsetNodeset(2), "22");
 
     // fixed blocks
     stringInput = "begin optimization_parameters\n"
@@ -1071,25 +927,6 @@ TEST(PlatoTestXMLGenerator, parseOptimizationParameters)
     tester.clearInputData();
     EXPECT_EQ(tester.publicParseOptimizationParameters(iss), true);
     EXPECT_EQ(tester.getAlgorithm(), "rol_bound_constrained");
-
-    // discretization
-    stringInput = "begin optimization_parameters\n"
-            "discretization\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    ASSERT_THROW(tester.publicParseOptimizationParameters(iss), std::runtime_error);
-    stringInput = "begin optimization_parameters\n"
-            "discretization levelset\n"
-            "end optimization_parameters\n";
-    iss.str(stringInput);
-    iss.clear();
-    iss.seekg (0);
-    tester.clearInputData();
-    EXPECT_EQ(tester.publicParseOptimizationParameters(iss), true);
-    EXPECT_EQ(tester.getDiscretization(), "levelset");
 
     // check gradient
     stringInput = "begin optimization_parameters\n"

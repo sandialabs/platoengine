@@ -49,7 +49,6 @@ void ParseOptimizationParameters::allocate()
     XMLGen::insert_plato_filter_input_options(mTags);
     XMLGen::insert_fixed_blocks_input_options(mTags);
     XMLGen::insert_general_dakota_input_options(mTags);
-    XMLGen::insert_plato_levelset_input_options(mTags);
     XMLGen::insert_prune_and_refine_input_options(mTags);
     XMLGen::insert_shape_optimization_input_options(mTags);
     XMLGen::insert_derivative_checker_input_options(mTags);
@@ -174,8 +173,6 @@ void ParseOptimizationParameters::setMetaData(XMLGen::OptimizationParameters &aM
     XMLGen::FixedBlock::check_fixed_block_metadata(aMetadata);
 
     this->setEnforceBounds(aMetadata); // this needs to be called after the fixed blocks processing to get correct defaults.
-    this->setLevelsetNodesetIDs(aMetadata);
-    this->setMaterialBoxExtents(aMetadata);
     this->setDakotaDescriptorsAndBounds(aMetadata);
     this->checkHeavisideFilterParams(aMetadata);
     this->setMeshMapData(aMetadata);
@@ -400,36 +397,6 @@ void ParseOptimizationParameters::checkHeavisideFilterParams(XMLGen::Optimizatio
     }
 }
 
-void ParseOptimizationParameters::setMaterialBoxExtents(XMLGen::OptimizationParameters &/*aMetadata*/)
-{
-    auto tMinItr = mTags.find("levelset_material_box_min");
-    auto tMaxItr = mTags.find("levelset_material_box_max");
-    if(tMinItr != mTags.end() && tMaxItr != mTags.end())
-    {
-        auto tMinValString = tMinItr->second.first.second.empty() ? tMinItr->second.second : tMinItr->second.first.second;
-        auto tMaxValString = tMaxItr->second.first.second.empty() ? tMaxItr->second.second : tMaxItr->second.first.second;
-        if(tMinValString.empty() && tMaxValString.empty()) 
-        {
-            return;
-        }
-        if(tMinValString.empty() || tMaxValString.empty())
-        {
-            THROWERR("Parse Optimization Parameters: Levelset material box min or max is not defined.");
-        }
-        std::vector<std::string> tMinValues;
-        std::vector<std::string> tMaxValues;
-        char tValuesBuffer[10000];
-        strcpy(tValuesBuffer, tMinValString.c_str());
-        XMLGen::parse_tokens(tValuesBuffer, tMinValues);
-        strcpy(tValuesBuffer, tMaxValString.c_str());
-        XMLGen::parse_tokens(tValuesBuffer, tMaxValues);
-        if(tMinValues.size() != 3 || tMaxValues.size() != 3)
-        {
-            THROWERR("Parse Optimization Parameters: Levelset material box min or max is not fully defined.");
-        }
-    }
-}
-
 void ParseOptimizationParameters::setDakotaDescriptorsAndBounds(XMLGen::OptimizationParameters& aMetadata)
 {
     auto tItr = mTags.find("descriptors");
@@ -549,20 +516,6 @@ void ParseOptimizationParameters::setSymmetryPlaneLocationNames(XMLGen::Optimiza
         strcpy(tValuesBuffer, tValues.c_str());
         XMLGen::parse_tokens(tValuesBuffer, tNames);
         aMetadata.symmetryPlaneLocationNames(tNames);
-    }
-}
-
-void ParseOptimizationParameters::setLevelsetNodesetIDs(XMLGen::OptimizationParameters &aMetadata)
-{
-    auto tItr = mTags.find("levelset_nodesets");
-    std::string tValues = tItr->second.first.second;
-    if (tItr != mTags.end() && !tValues.empty())
-    {
-        std::vector<std::string> tIDs;
-        char tValuesBuffer[10000];
-        strcpy(tValuesBuffer, tValues.c_str());
-        XMLGen::parse_tokens(tValuesBuffer, tIDs);
-        aMetadata.setLevelsetNodesets(tIDs);
     }
 }
 

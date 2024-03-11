@@ -54,7 +54,7 @@ inline void check_fixed_block_material_states
 
 /******************************************************************************//**
  * \fn check_fixed_blocks_domain_values
- * \brief Check if the design variables (density or levelset field) values 
+ * \brief Check if the design variables values 
  *        of the inner fixed block nodes were set by the user. If the values 
  *        were not set, set values to defaults based on the material state.
  * \param [in] aMetadata optimization block metadata
@@ -87,7 +87,7 @@ inline void check_fixed_blocks_domain_values
 
 /******************************************************************************//**
  * \fn check_fixed_blocks_boundary_values
- * \brief Check if the design variables (density or levelset field) values of the 
+ * \brief Check if the design variables values of the 
  *        nodes on the fixed block boundaries were set by the user. If the values 
  *        were not set, set values to defaults based on the material state.
  * \param [in,out] aMetadata optimization block metadata

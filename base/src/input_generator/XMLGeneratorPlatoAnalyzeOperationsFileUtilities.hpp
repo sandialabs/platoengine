@@ -77,16 +77,6 @@ void append_compute_constraint_value_operation_for_shape_problem
  pugi::xml_document& aDocument);
 
 /******************************************************************************//**
- * \fn append_compute_constraint_gradient_operation_for_topology_levelset_problem
- * \brief Append compute constraint value operation for topology levelset optimizatino problems
- * \param [in]     aMetaData   Plato problem input data
- * \param [in/out] aDocument   pugi::xml_document
-**********************************************************************************/
- void append_compute_constraint_gradient_operation_for_topology_levelset_problem
-(const XMLGen::InputData& aMetaData,
- pugi::xml_document& aDocument);
-
-/******************************************************************************//**
  * \fn append_compute_objective_gradient_to_plato_analyze_operation
  * \brief Append compute objective gradient operation to plato_analyze_operation.xml.
  * \param [in]     aMetaData   Plato problem input data

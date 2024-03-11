@@ -10,27 +10,6 @@
 
 namespace PlatoTestXMLGenerator
 {
-TEST(PlatoTestXMLGenerator, InsertLevelsetBasedShapeOptimizationInputs)
-{
-    XMLGen::MetaDataTags tTags;
-    XMLGen::insert_plato_levelset_input_options(tTags);
-    EXPECT_EQ(7u, tTags.size());
-
-    std::unordered_map<std::string, std::string> tGoldValues = { {"levelset_nodesets",""}, {"levelset_sphere_radius",""}, 
-        {"create_levelset_spheres", ""}, {"levelset_material_box_min", ""}, {"levelset_material_box_max", ""},
-        {"levelset_sphere_packing_factor", ""}, {"levelset_initialization_method", ""} };
-    for(auto& tPair : tTags)
-    {
-        // TEST INPUT KEYWORDS
-        auto tGoldItr = tGoldValues.find(tPair.first);
-        ASSERT_FALSE(tGoldItr == tGoldValues.end());
-        EXPECT_STREQ(tPair.first.c_str(), tGoldItr->first.c_str());
-
-        // TEST DEFAULT VALUES
-        EXPECT_STREQ(tPair.second.second.c_str(), tGoldItr->second.c_str());
-    }
-}
-
 TEST(PlatoTestXMLGenerator, InsertProjectionFilterInputs)
 {
     XMLGen::MetaDataTags tTags;

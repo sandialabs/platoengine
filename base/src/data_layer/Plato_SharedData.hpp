@@ -137,6 +137,11 @@ public:
     **********************************************************************************/
     virtual void getData(std::vector<double> & aData) const = 0;
 
+    /******************************************************************************//**
+     * \brief Return whether this shared data is dynamic
+    **********************************************************************************/
+    virtual bool isDynamic() const = 0;
+
     template<class Archive>
     void serialize(Archive & /*aArchive*/, const unsigned int /*version*/){}
 

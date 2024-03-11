@@ -603,6 +603,23 @@ void OptimizerEngineStageData::setInitializationStageName(const std::string & aI
 }
 
 /******************************************************************************/
+const std::string& OptimizerEngineStageData::getControlResetStageName() const
+/******************************************************************************/
+{
+    return mControlResetStageName;
+}
+
+/******************************************************************************//**
+ * @pre [aInput] must not be empty
+ ***********************************************************************************/
+void OptimizerEngineStageData::setControlResetStageName(const std::string & aInput)
+/******************************************************************************/
+{
+    assert(aInput.empty() == false);
+    mControlResetStageName = aInput;
+}
+
+/******************************************************************************/
 std::string OptimizerEngineStageData::getInitialControlDataName() const
 /******************************************************************************/
 {

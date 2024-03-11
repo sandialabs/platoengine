@@ -162,9 +162,8 @@ void StructuralTopologyOptimization::setFixedDOFs(const Epetra_SerialDenseVector
     mIsDirichletConditionsSet = true;
     assert(aInput.Length() > static_cast<int>(0));
     const int tLength = aInput.Length();
-    int tWasResized = mFixedDOFs.Resize(tLength);
-    tWasResized += 0;
-    assert(tWasResized == static_cast<int>(0));
+    [[maybe_unused]] const int tWasResized = mFixedDOFs.Resize(tLength);
+    assert(tWasResized == 0);
     aInput.COPY(aInput.Length(), aInput.A(), mFixedDOFs.A());
 }
 
@@ -201,11 +200,10 @@ void StructuralTopologyOptimization::solve(const Epetra_SerialDenseVector & aCon
 
     this->assembleStiffnessMatrix(aControl);
 
-    double tNormForce = mForce.Norm2();
-    tNormForce += 0.0;
-    assert(tNormForce > static_cast<double>(0));
+    [[maybe_unused]] const double tNormForce = mForce.Norm2();
+    assert(tNormForce > 0.0);
     mStiffnessMatrixOneNorm = mStiffnessMatrix.NormOne();
-    assert(mStiffnessMatrixOneNorm > static_cast<double>(0));
+    assert(mStiffnessMatrixOneNorm > 0.0);
 
     mSolver.SetMatrix(mStiffnessMatrix);
     mWorkVector.COPY(mWorkVector.Length(), mForce.A(), mWorkVector.A());
@@ -423,9 +421,8 @@ void StructuralTopologyOptimization::initialize()
     mTrialDisplacements.Resize(mGlobalNumDofs);
     mCurrentDisplacements.Resize(mGlobalNumDofs);
     mElemStiffTimesElemDisplacements.Resize(mNumElemDOFs);
-    int tWasReshaped = mStiffnessMatrix.Reshape(mGlobalNumDofs, mGlobalNumDofs);
-    tWasReshaped += 0;
-    assert(tWasReshaped == static_cast<int>(0));
+    [[maybe_unused]] const int tWasReshaped = mStiffnessMatrix.Reshape(mGlobalNumDofs, mGlobalNumDofs);
+    assert(tWasReshaped == 0);
 
     // **************** ALLOCATE ELEMENT STIFFNESS MATRIX ****************
     std::vector<double> tStiffness(mNumElemDOFs);

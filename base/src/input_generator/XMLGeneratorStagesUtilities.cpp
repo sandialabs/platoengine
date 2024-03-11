@@ -83,21 +83,9 @@ void append_initial_guess_stage
         auto tOutputNode = tStageNode.append_child("Output");
         XMLGen::append_children({"SharedDataName"},{"Design Parameters"}, tOutputNode);
     }
-    else if(aMetaData.optimization_parameters().optimizationType() == OT_TOPOLOGY && aMetaData.optimization_parameters().discretization() == "levelset")
-    {
-        const std::string tFirstPlatoMainPerformer = aMetaData.getFirstPlatoMainPerformer();
-        const std::string tFirstXTKPerformer = aMetaData.getFirstXTKMainPerformer();
-        auto tStageNode = aDocument.append_child("Stage");
-        XMLGen::append_children({"Name"},{"Initial Guess"}, tStageNode);
-
-        XMLGen::append_generate_xtk_model_operation(aMetaData, false, true,tStageNode);
-
-        auto tOutputNode = tStageNode.append_child("Output");
-        XMLGen::append_children({"SharedDataName"},{"Initial Control"}, tOutputNode);
-    }
     else
     {
-        THROWERR(std::string("Invalid optimization and discretization combination. Supported types are topology+ density, topology+levelset, shape."  
+        THROWERR(std::string("Invalid optimization and discretization combination. Supported types are topology+ density, shape."  
             + aMetaData.optimization_parameters().optimization_type() + aMetaData.optimization_parameters().discretization() +"is not supported."));
     }
 }
@@ -116,14 +104,6 @@ void append_lower_bound_stage
         auto tInputNode = tStageNode.append_child("Input");
         XMLGen::append_children({"SharedDataName"}, {"Lower Bound Value"}, tInputNode);
         XMLGen::append_lower_bound_operation(aMetaData, tStageNode);
-    }
-    else if(aMetaData.optimization_parameters().optimizationType() == OT_TOPOLOGY && aMetaData.optimization_parameters().discretization() == "levelset")
-    {
-        auto tOperation = tStageNode.append_child("Operation");
-        XMLGen::append_children({"Name","PerformerName"}, {"Compute Lower Bounds", aMetaData.getFirstXTKMainPerformer()}, tOperation);
-
-        auto tOutput = tOperation.append_child("Output");
-        XMLGen::append_children({"SharedDataName","ArgumentName"}, {"Lower Bound Vector", "Lower Bound Vector"}, tOutput);
     }
     else if(aMetaData.optimization_parameters().optimizationType() == OT_SHAPE)
     {
@@ -150,14 +130,6 @@ void append_upper_bound_stage
         auto tInputNode = tStageNode.append_child("Input");
         XMLGen::append_children({"SharedDataName"}, {"Upper Bound Value"}, tInputNode);
         XMLGen::append_upper_bound_operation(aMetaData, tStageNode);
-    }
-    else if(aMetaData.optimization_parameters().optimizationType() == OT_TOPOLOGY && aMetaData.optimization_parameters().discretization() == "levelset")
-    {
-        auto tOperation = tStageNode.append_child("Operation");
-        XMLGen::append_children({"Name","PerformerName"}, {"Compute Upper Bounds", aMetaData.getFirstXTKMainPerformer()}, tOperation);
-
-        auto tOutput = tOperation.append_child("Output");
-        XMLGen::append_children({"SharedDataName","ArgumentName"}, {"Upper Bound Vector", "Upper Bound Vector"}, tOutput);
     }
     else if(aMetaData.optimization_parameters().optimizationType() == OT_SHAPE)
     {
@@ -282,40 +254,7 @@ void append_update_problem_stage
 (const XMLGen::InputData& aMetaData,
  pugi::xml_document& aDocument)
 {
-    // always needed for levelset method
-    if(aMetaData.optimization_parameters().optimizationType() == OT_TOPOLOGY  && aMetaData.optimization_parameters().discretization() == "levelset") 
-    {
-        auto tStageNode = aDocument.append_child("Stage");
-        XMLGen::append_children( { "Name" }, { "Update Problem" }, tStageNode);
-
-        auto tInputNode = tStageNode.append_child("Input");
-        XMLGen::append_children({"SharedDataName"},{"Control"},tInputNode);
-
-        XMLGen::append_filter_control_operation(aMetaData, tStageNode);
-
-        XMLGen::append_generate_xtk_model_operation(aMetaData,true, false,tStageNode);
-
-        for (auto &tService : aMetaData.services())
-        {
-            std::cout<<"code = "<<tService.code()<<std::endl;
-            if(tService.code() == "plato_analyze")
-            {
-                auto tOperationNode = tStageNode.append_child("Operation");
-                std::vector<std::string> tKeys = { "Name", "PerformerName" };
-                std::vector<std::string> tValues = { "Reload Mesh", tService.performer() };
-                XMLGen::append_children(tKeys, tValues, tOperationNode);
-            }
-            if(tService.code() != "xtk" && tService.updateProblem())
-            {
-                auto tOperationNode = tStageNode.append_child("Operation");
-                std::vector<std::string> tKeys = { "Name", "PerformerName" };
-                std::vector<std::string> tValues = { "Update Problem", tService.performer() };
-                XMLGen::append_children(tKeys, tValues, tOperationNode);
-            }
-
-        }
-    }
-    else if(XMLGen::need_update_problem_stage(aMetaData))
+    if(XMLGen::need_update_problem_stage(aMetaData))
     {
         auto tStageNode = aDocument.append_child("Stage");
         XMLGen::append_children( { "Name" }, { "Update Problem" }, tStageNode);
@@ -443,13 +382,9 @@ void append_constraint_gradient_stage
     {
         XMLGen::append_constraint_gradient_stage_for_shape_problem(aMetaData, aDocument);
     }
-    else if(aMetaData.optimization_parameters().optimization_type() == "topology" && aMetaData.optimization_parameters().discretization() == "levelset") 
+    else 
     {
-        XMLGen::append_constraint_gradient_stage_for_topology_levelset_problem(aMetaData, aDocument);
-    }
-    else
-    {
-        THROWERR(std::string("Invalid optimization and discretization combination. Supported types are topology+ density, topology+levelset, shape" 
+        THROWERR(std::string("Invalid optimization and discretization combination. Supported types are topology+ density, topology, shape" 
             + aMetaData.optimization_parameters().optimization_type() + aMetaData.optimization_parameters().discretization() +"is not supported."));
     }
 }
@@ -543,76 +478,6 @@ void append_constraint_gradient_stage_for_shape_problem
     }
 }
 // function append_constraint_gradient_stage_for_shape_problem
-/******************************************************************************/
-
-/******************************************************************************/
-void append_constraint_gradient_stage_for_topology_levelset_problem
-(const XMLGen::InputData& aMetaData,
- pugi::xml_document& aDocument)
- {
-    auto tDesignVariableName = XMLGen::get_design_variable_name(aMetaData);
-    std::string tFirstPlatoMainPerformer = aMetaData.getFirstPlatoMainPerformer();
-    XMLGen::ConstraintGradientOperation tGradOperationInterface;
-
-    std::string tFirstXTKPerformer       = aMetaData.getFirstXTKMainPerformer();
-
-    if(tFirstXTKPerformer == "")
-    {
-        THROWERR(std::string("Levelset topology optimization in plato currently requires one xtk perfomer."));
-    }
-    for(auto& tConstraint : aMetaData.constraints)
-    {
-        auto tStageNode = aDocument.append_child("Stage");
-        auto tStageName = std::string("Compute Constraint Gradient ") + tConstraint.id();
-        XMLGen::append_children({"Name"}, {tStageName}, tStageNode);
-        auto tInputNode = tStageNode.append_child("Input");
-        XMLGen::append_children({"SharedDataName"}, {"Control"}, tInputNode);
-
-        auto tService = aMetaData.service(tConstraint.service()); 
-        XMLGen::append_filter_control_operation(aMetaData, tStageNode);
-
-        auto tOperationNode = tStageNode.append_child("Operation");
-        XMLGen::append_children({"Name", "PerformerName"}, {"Compute Constraint Gradient " + tConstraint.id(), tService.performer()}, tOperationNode);
-
-        tOperationNode = tStageNode.append_child("Operation");
-        XMLGen::append_children({"Name", "PerformerName"}, {"Load Constraint GradientX From HDF5", tFirstXTKPerformer}, tOperationNode);
-
-        tOperationNode = tStageNode.append_child("Operation");
-        XMLGen::append_children({"Name", "PerformerName"}, 
-        {"Compute Constraint Gradient " + tConstraint.id() + " XTK", tFirstXTKPerformer}, tOperationNode);
-
-        auto tOutputNode = tOperationNode.append_child("Output");
-        auto tOutputDataName = XMLGen::get_filter_constraint_criterion_gradient_input_shared_data_name(tConstraint);
-        XMLGen::append_children({"ArgumentName", "SharedDataName"}, 
-        {tOutputDataName, tOutputDataName}, tOutputNode);
-
-        // Criterion Gradient - criterion_1_service_2_scenario_1
-
-        std::string tOutputSharedData = "Constraint Gradient " + tConstraint.id();
-        if(aMetaData.optimization_parameters().filterInEngine() == false)
-        {
-            if(aMetaData.optimization_parameters().filter_type() == "helmholtz")
-            {
-                auto tSharedDataName = XMLGen::get_filter_constraint_criterion_gradient_input_shared_data_name(tConstraint);
-                XMLGen::append_helmholtz_filter_criterion_gradient_operation(aMetaData, tSharedDataName, tOutputSharedData, tStageNode);
-            }
-            else
-            {
-                auto tSharedDataName = XMLGen::get_filter_constraint_criterion_gradient_input_shared_data_name(tConstraint);
-                XMLGen::append_copy_field_operation(tFirstPlatoMainPerformer, tSharedDataName, tOutputSharedData, tStageNode);
-            }
-        }
-        else
-        {
-            auto tSharedDataName = XMLGen::get_filter_constraint_criterion_gradient_input_shared_data_name(tConstraint);
-            XMLGen::append_filter_criterion_gradient_operation(aMetaData, tSharedDataName, tOutputSharedData, tStageNode);
-        }
-
-        tOutputNode = tStageNode.append_child("Output");
-        XMLGen::append_children({"SharedDataName"}, {tOutputSharedData}, tOutputNode);
-    }
-}
-// function append_constraint_gradient_stage_for_topology_levelset_problem
 /******************************************************************************/
 
 /******************************************************************************/
@@ -781,10 +646,6 @@ void append_objective_gradient_stage
     {
         XMLGen::append_objective_gradient_stage_for_shape_problem(aMetaData, aDocument);
     }
-    else if(aMetaData.optimization_parameters().optimizationType() == OT_TOPOLOGY  && aMetaData.optimization_parameters().discretization() == "levelset") 
-    {
-        XMLGen::append_objective_gradient_stage_for_topology_levelset_problem(aMetaData, aDocument);
-    }
 }
 // function append_objective_gradient_stage
 /******************************************************************************/
@@ -952,69 +813,6 @@ void append_objective_gradient_stage_for_shape_problem
     XMLGen::append_children({"SharedDataName"}, {"Objective Gradient"}, tStageOutputNode);
 }
 // function append_objective_gradient_stage_for_shape_problem
-/******************************************************************************/
-
-/******************************************************************************/
-void append_objective_gradient_stage_for_topology_levelset_problem
-(const XMLGen::InputData& aMetaData,
- pugi::xml_document& aDocument)
-{
-    std::string tFirstXTKMainPerformer = aMetaData.getFirstXTKMainPerformer();
-    auto tObjective = aMetaData.objective;
-    auto tStageNode = aDocument.append_child("Stage");
-    XMLGen::append_children({"Name"}, {"Compute Objective Gradient"}, tStageNode);
-    auto tStageInputNode = tStageNode.append_child("Input");
-    XMLGen::append_children({"SharedDataName"}, {"Control"}, tStageInputNode);
-    XMLGen::append_filter_control_operation(aMetaData, tStageNode);
-
-    std::string tServiceID = tObjective.serviceIDs[0];
-    XMLGen::Service tService = aMetaData.service(tServiceID);
-
-    auto tOperationNode = tStageNode.append_child("Operation");
-    XMLGen::append_children({"Name", "PerformerName"}, {"Compute Objective Gradient", tService.performer()}, tOperationNode);
-
-    // load from hdf5
-    tOperationNode = tStageNode.append_child("Operation");
-    XMLGen::append_children({"Name", "PerformerName"}, {"Load Objective GradientX From HDF5", tFirstXTKMainPerformer}, tOperationNode);
-
-    tOperationNode = tStageNode.append_child("Operation");
-    XMLGen::append_children({"Name", "PerformerName"}, {"Compute Objective Gradient XTK", tFirstXTKMainPerformer}, tOperationNode);
-
-    auto tOutputNode = tOperationNode.append_child("Output");
-    auto tOutputDataName = XMLGen::get_filter_objective_criterion_gradient_input_shared_data_name(aMetaData);
-    XMLGen::append_children({"ArgumentName", "SharedDataName"}, 
-    {tOutputDataName, tOutputDataName}, tOutputNode);
-
-    if(aMetaData.optimization_parameters().filterInEngine())
-    {
-        auto tInputMetaDataTag = XMLGen::get_filter_objective_criterion_gradient_input_shared_data_name(aMetaData);
-        XMLGen::append_filter_criterion_gradient_operation(aMetaData, tInputMetaDataTag, "Objective Gradient", tStageNode);
-    }
-
-    if(aMetaData.optimization_parameters().filterInEngine() == false)
-    {
-        if(aMetaData.optimization_parameters().filter_type() == "helmholtz")
-        {
-            auto tInputMetaDataTag = XMLGen::get_filter_objective_criterion_gradient_input_shared_data_name(aMetaData);
-            XMLGen::append_helmholtz_filter_criterion_gradient_operation(aMetaData, tInputMetaDataTag, "Objective Gradient", tStageNode);
-        }
-        else if(aMetaData.optimization_parameters().filter_type() != "helmholtz" && !aMetaData.needToAggregate())
-        {
-            tServiceID = tObjective.serviceIDs[0];
-            std::string tCriterionID = tObjective.criteriaIDs[0];
-            std::string tScenarioID = tObjective.scenarioIDs[0];
-            ConcretizedCriterion tConcretizedCriterion(tCriterionID,tServiceID,tScenarioID);
-            auto tIdentifierString = XMLGen::get_concretized_criterion_identifier_string(tConcretizedCriterion);
-
-            std::string tFirstPlatoMainPerformer = aMetaData.getFirstPlatoMainPerformer();
-            append_copy_field_operation(tFirstPlatoMainPerformer, std::string("Criterion Gradient - ") + tIdentifierString, "Objective Gradient", tStageNode);
-        }
-    }
-
-    auto tStageOutputNode = tStageNode.append_child("Output");
-    XMLGen::append_children({"SharedDataName"}, {"Objective Gradient"}, tStageOutputNode);
-}
-// function append_objective_gradient_stage_for_topology_levelset_problem
 /******************************************************************************/
 
 }

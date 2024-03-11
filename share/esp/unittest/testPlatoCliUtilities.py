@@ -4,6 +4,7 @@ import ESPtools
 import csmFileGenerator
 
 csmFileName = "dummy_despmtrs.csm"
+meshSettingsFileName = "dummy_mesh_settings.json"
 writer = csmFileGenerator.csmFileGenerator(csmFileName)
 
 def constructCAPSProblem(csmFilename):
@@ -285,6 +286,214 @@ class prepareGeometryForMeshMorph(unittest.TestCase):
         self.assertEqual(meshMorph, True)
         self.assertEqual(preparedVals, [2.5, 3.5, 6.5])
 
+class parseMeshLength(unittest.TestCase):
+    def test_errorNoMeshLengthKeyword(self):
+        writer.writeCsmFile([
+            "despmtr Lz 7.57 lbound 5.0 ubound 8.0 initial 6.5"
+        ])
+
+        with self.assertRaises(Exception) as errMsg:
+            ESPtools.parseMeshLength(csmFileName)
+
+        self.assertEqual(str(errMsg.exception), "Error reading CSM file: required variable, 'MeshLength', not found.")
+
+    def test_errorMultipleMeshLengthKeywords(self):
+        writer.writeCsmFile([
+            "set MeshLength 0.25 \n",
+            "despmtr Ly 3.99 lbound 3.0 ubound 5.0 initial 3.5 \n",
+            "set MeshLength 1.5"
+        ])
+
+        with self.assertRaises(Exception) as errMsg:
+            ESPtools.parseMeshLength(csmFileName)
+
+        self.assertEqual(str(errMsg.exception), "Error reading CSM file: multiple 'MeshLength' keywords found. 'MeshLength' variable should appear once.")
+
+    def test_returnCorrectMeshLengthString(self):
+        writer.writeCsmFile([
+            "set MeshLength 0.25"
+        ])
+
+        meshLength = ESPtools.parseMeshLength(csmFileName)
+        self.assertIsInstance(meshLength, str)
+        self.assertEqual(meshLength, "0.25\n")
+
+class parseMeshSettingsFile(unittest.TestCase):
+    def test_errorNoJsonFile(self):
+        with self.assertRaises(Exception) as errMsg:
+            ESPtools.parseMeshSettingsFile("not_a_real_file.json")
+
+        self.assertEqual(str(errMsg.exception), "Error mesh settings json file not found.")
+
+    def test_meshSettingsFileNone(self):
+        settings = ESPtools.parseMeshSettingsFile(None)
+        self.assertEqual(settings, None)
+
+    def test_jsonParsedIntoDict(self):
+        settings = ESPtools.parseMeshSettingsFile(meshSettingsFileName)
+        self.assertIs(type(settings), dict)
+        self.assertEqual(settings, {"circumference":{"edgeDistribution":"Even","numEdgePoints":10}})
+
+class insertCurrentParameterVals(unittest.TestCase):
+    def test_emptyParameterValsChangesNothing(self):
+        writer.writeCsmFile([
+            "despmtr Lx 2.65 lbound 2.0 ubound 3.0 initial 2.5 \n",
+            "despmtr Ly 3.99 lbound 3.0 ubound 5.0 initial 3.5 \n",
+            "despmtr Lz 7.57 lbound 5.0 ubound 8.0 initial 6.5"
+        ])
+        
+        parameterVals = []
+
+        ESPtools.insertCurrentParameterVals(csmFileName, parameterVals)
+
+        problem = constructCAPSProblem(csmFileName)
+        params = ESPtools.getCurrentValues(problem)
+
+        self.assertEqual(len(params), 3)
+        self.assertEqual(params[0], 2.65)
+        self.assertEqual(params[1], 3.99)
+        self.assertEqual(params[2], 7.57)
+
+    def test_firstParameterValInsertedCorrectly(self):
+        writer.writeCsmFile([
+            "despmtr Lx 2.65 lbound 2.0 ubound 3.0 initial 2.5 \n",
+            "despmtr Ly 3.99 lbound 3.0 ubound 5.0 initial 3.5 \n",
+            "despmtr Lz 7.57 lbound 5.0 ubound 8.0 initial 6.5"
+        ])
+        
+        parameterVals = [91.77]
+
+        ESPtools.insertCurrentParameterVals(csmFileName, parameterVals)
+
+        problem = constructCAPSProblem(csmFileName)
+        params = ESPtools.getCurrentValues(problem)
+
+        self.assertEqual(len(params), 3)
+        self.assertEqual(params[0], 91.77)
+        self.assertEqual(params[1], 3.99)
+        self.assertEqual(params[2], 7.57)
+
+    def test_allParameterValsInsertedCorrectly(self):
+        writer.writeCsmFile([
+            "despmtr Lx 2.65 lbound 2.0 ubound 3.0 initial 2.5 \n",
+            "despmtr Ly 3.99 lbound 3.0 ubound 5.0 initial 3.5 \n",
+            "despmtr Lz 7.57 lbound 5.0 ubound 8.0 initial 6.5"
+        ])
+        
+        parameterVals = [91, 77, 86]
+
+        ESPtools.insertCurrentParameterVals(csmFileName, parameterVals)
+
+        problem = constructCAPSProblem(csmFileName)
+        params = ESPtools.getCurrentValues(problem)
+
+        self.assertEqual(len(params), 3)
+        self.assertEqual(params[0], 91.0)
+        self.assertEqual(params[1], 77.0)
+        self.assertEqual(params[2], 86.0)
+
+class UpdateFileTester(unittest.TestCase):
+    def assertCsmFileContentsEqual(self, goldContents):
+        file = open(csmFileName, "r")
+        contents = file.readlines()
+        file.close()
+
+        self.assertEqual(len(contents), len(goldContents))
+
+        for i in range(len(contents)):
+            self.assertEqual(contents[i], goldContents[i])
+
+class updateModelAflr4Aflr3Exodus(UpdateFileTester):
+    def test_appendedLinesCorrectWithoutNewParameters(self):
+        writer.writeCsmFile([
+            "despmtr Lx 2.65 lbound 2.0 ubound 3.0 initial 2.5 \n",
+            "set MeshLength 0.25 \n",
+            "end"
+        ])
+
+        ESPtools.updateModelAflr4Aflr3Exodus(csmFileName, [])
+
+        goldContents = [
+            "attribute capsAIM $aflr4AIM;aflr3AIM;platoAIM\n",
+            "attribute capsMeshLength 0.25\n",
+            "\n",
+            "despmtr Lx 2.65 lbound 2.0 ubound 3.0 initial 2.5 \n",
+            "set MeshLength 0.25 \n",
+            "patbeg i @stack.size\n",
+            "  select body @stack[i]\n",
+            "  attribute _name $block_+val2str(i,0)\n",
+            "patend\n",
+            "end"
+        ]
+
+        self.assertCsmFileContentsEqual(goldContents)
+
+    def test_appendedLinesCorrectWithNewParameters(self):
+        writer.writeCsmFile([
+            "despmtr Lx 2.65 lbound 2.0 ubound 3.0 initial 2.5 \n",
+            "set MeshLength 0.25 \n",
+            "end"
+        ])
+
+        ESPtools.updateModelAflr4Aflr3Exodus(csmFileName, [91.0])
+
+        goldContents = [
+            "attribute capsAIM $aflr4AIM;aflr3AIM;platoAIM\n",
+            "attribute capsMeshLength 0.25\n",
+            "\n",
+            "despmtr Lx 91.0 lbound 2.0 ubound 3.0 initial 2.5\n",
+            "set MeshLength 0.25 \n",
+            "patbeg i @stack.size\n",
+            "  select body @stack[i]\n",
+            "  attribute _name $block_+val2str(i,0)\n",
+            "patend\n",
+            "end\n"
+        ]
+
+        self.assertCsmFileContentsEqual(goldContents)
+
+class updateModelAflr2Exodus(UpdateFileTester):
+    def test_appendedLinesCorrectWithoutNewParameters(self):
+        writer.writeCsmFile([
+            "despmtr Lx 2.65 lbound 2.0 ubound 3.0 initial 2.5 \n",
+            "outpmtr MeshLength \n",
+            "set MeshLength 0.25 \n",
+            "end"
+        ])
+
+        ESPtools.updateModelAflr2Exodus(csmFileName, [])
+
+        goldContents = [
+            "attribute capsAIM $aflr2AIM;platoAIM\n",
+            "attribute capsMeshLength 1.0 \n",
+            "despmtr Lx 2.65 lbound 2.0 ubound 3.0 initial 2.5 \n",
+            "outpmtr MeshLength \n",
+            "set MeshLength 0.25 \n",
+            "end"
+        ]
+
+        self.assertCsmFileContentsEqual(goldContents)
+
+    def test_appendedLinesCorrectWithNewParameters(self):
+        writer.writeCsmFile([
+            "despmtr Lx 2.65 lbound 2.0 ubound 3.0 initial 2.5 \n",
+            "outpmtr MeshLength \n",
+            "set MeshLength 0.25 \n",
+            "end"
+        ])
+
+        ESPtools.updateModelAflr2Exodus(csmFileName, [77.0])
+
+        goldContents = [
+            "attribute capsAIM $aflr2AIM;platoAIM\n",
+            "attribute capsMeshLength 1.0 \n",
+            "despmtr Lx 77.0 lbound 2.0 ubound 3.0 initial 2.5\n",
+            "outpmtr MeshLength \n",
+            "set MeshLength 0.25 \n",
+            "end\n"
+        ]
+
+        self.assertCsmFileContentsEqual(goldContents)
 
 
 if __name__ == '__main__':

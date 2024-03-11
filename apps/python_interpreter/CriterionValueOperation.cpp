@@ -8,7 +8,7 @@
 CriterionValueOperation::CriterionValueOperation(const Plato::InputData & aOperationNode) :
  PlatoPythonOperation(aOperationNode),
  mValue(1, 0.0)
-{};
+{}
 
 void
 CriterionValueOperation::runPythonFunction(const boost::python::object & aObject)

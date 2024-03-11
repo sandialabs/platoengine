@@ -19,8 +19,8 @@ set(SOURCES Plato_Filter.cpp
             Plato_InitializeValues.cpp
             Plato_WriteGlobalValue.cpp
             Plato_CSMParameterOutput.cpp
+            Plato_GetGlobalNodeIDMap.cpp
             Plato_OperationsUtilities.cpp
-            Plato_HarvestDataFromFile.cpp
             Plato_NormalizeObjectiveValue.cpp
             Plato_MeanPlusVarianceMeasure.cpp
             Plato_MeanPlusVarianceGradient.cpp
@@ -53,7 +53,7 @@ set(HEADERS Plato_Filter.hpp
             Plato_InitializeValues.hpp
             Plato_WriteGlobalValue.hpp
             Plato_CSMParameterOutput.hpp
-            Plato_HarvestDataFromFile.hpp
+            Plato_GetGlobalNodeIDMap.hpp
             Plato_OperationsUtilities.hpp
             Plato_NormalizeObjectiveValue.hpp
             Plato_MeanPlusVarianceMeasure.hpp

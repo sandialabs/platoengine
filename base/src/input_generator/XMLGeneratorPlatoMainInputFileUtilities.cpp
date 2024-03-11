@@ -34,12 +34,7 @@ void append_mesh_metadata_to_plato_main_input_deck
         THROWERR("Append Mesh Metadata To Plato Main Input Deck: Run mesh name in XMLGen::InputData is empty.");
     }
 
-    // in the case of a level set run, we use the mesh rather than the run mesh
-    std::string tMeshName = aInputData.mesh.run_name;
-    if(aInputData.optimization_parameters().discretization() == "levelset")
-    {
-        tMeshName = aInputData.mesh.name;
-    }
+    const std::string tMeshName = aInputData.mesh.run_name;
 
     auto tMesh = aDocument.append_child("mesh");
     std::vector<std::string> tKeys = { "type", "format", "ignore_node_map", "ignore_element_map", "mesh" };

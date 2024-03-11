@@ -278,4 +278,11 @@ void SharedField::initializeMPI(const Plato::CommunicationData& aCommData)
     initialize(aCommData);
 }
 
+/*****************************************************************************/
+bool SharedField::isDynamic() const
+/*****************************************************************************/
+{
+    return false;
+}
+
 } // End namespace Plato

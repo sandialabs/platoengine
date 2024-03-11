@@ -1305,111 +1305,6 @@ void append_initialize_field_from_file_operation
 /******************************************************************************/
 
 /******************************************************************************/
-void append_levelset_material_box
-(const XMLGen::InputData& aXMLMetaData,
- pugi::xml_node& aParentNode)
-{
-    auto tAppendMaterialBox = !aXMLMetaData.optimization_parameters().levelset_material_box_min().empty() &&
-        !aXMLMetaData.optimization_parameters().levelset_material_box_max().empty();
-    if(tAppendMaterialBox)
-    {
-        auto tMaterialBox = aParentNode.append_child("MaterialBox");
-        std::vector<std::string> tKeys = {"MinCoords", "MaxCoords"};
-        std::vector<std::string> tValues = {aXMLMetaData.optimization_parameters().levelset_material_box_min(),
-            aXMLMetaData.optimization_parameters().levelset_material_box_max()};
-        XMLGen::append_children(tKeys, tValues, tMaterialBox);
-    }
-}
-// function append_levelset_material_box
-/******************************************************************************/
-
-/******************************************************************************/
-void append_initialize_levelset_primitives_operation
-(const XMLGen::InputData& aXMLMetaData,
- pugi::xml_document& aDocument)
-{
-    if(aXMLMetaData.mesh.run_name.empty())
-    {
-        THROWERR(std::string("Append Initialize Levelset Primitives Operation: ")
-            + "Levelset field was supposed to be initialized by reading it from an user-specified file. "
-            + "However, the 'background mesh' keyword is empty.")
-    }
-
-    auto tOperation = aDocument.append_child("Operation");
-    std::vector<std::string> tKeys = {"Function", "Name", "Method"};
-    std::vector<std::string> tValues = {"InitializeField", "Initialize Field", "PrimitivesLevelSet"};
-    XMLGen::append_children(tKeys, tValues, tOperation);
-
-    auto tMethod = tOperation.append_child("PrimitivesLevelSet");
-    XMLGen::append_children({"BackgroundMeshName"}, {aXMLMetaData.mesh.run_name}, tMethod);
-    XMLGen::append_levelset_material_box(aXMLMetaData, tMethod);
-}
-// function append_initialize_levelset_primitives_operation
-/******************************************************************************/
-
-/******************************************************************************/
-void append_initialize_levelset_swiss_cheese_operation
-(const XMLGen::InputData& aXMLMetaData,
- pugi::xml_document& aDocument)
-{
-    if(aXMLMetaData.mesh.run_name.empty())
-    {
-        THROWERR(std::string("Append Initialize Levelset Swiss Cheese Operation: ")
-            + "Levelset field was supposed to be initialized by writing it into an user-specified file. "
-            + "However, the 'background mesh' keyword is empty.")
-    }
-
-    auto tOperation = aDocument.append_child("Operation");
-    std::vector<std::string> tKeys = {"Function", "Name", "Method"};
-    std::vector<std::string> tValues = {"InitializeField", "Initialize Field", "SwissCheeseLevelSet"};
-    XMLGen::append_children(tKeys, tValues, tOperation);
-
-    auto tMethod = tOperation.append_child("SwissCheeseLevelSet");
-    tKeys = {"BackgroundMeshName", "SphereRadius", "SpherePackingFactor"};
-    tValues = {aXMLMetaData.mesh.run_name, aXMLMetaData.optimization_parameters().levelset_sphere_radius(),
-        aXMLMetaData.optimization_parameters().levelset_sphere_packing_factor()};
-    for(auto& tNodeSet : aXMLMetaData.optimization_parameters().levelset_nodesets())
-    {
-        tKeys.push_back("NodeSet"); tValues.push_back(tNodeSet);
-    }
-
-    auto tDefineCreateLevelSetSpheresKeyword =
-        aXMLMetaData.optimization_parameters().levelset_sphere_radius().empty() && aXMLMetaData.optimization_parameters().levelset_sphere_packing_factor().empty();
-    auto tCreateLevelSetSpheres = tDefineCreateLevelSetSpheresKeyword ? "false" : "true";
-    tKeys.push_back("CreateSpheres"); tValues.push_back(tCreateLevelSetSpheres);
-    XMLGen::set_value_keyword_to_ignore_if_empty(tValues);
-    XMLGen::append_children(tKeys, tValues, tMethod);
-}
-// function append_initialize_levelset_swiss_cheese_operation
-/******************************************************************************/
-
-/******************************************************************************/
-void append_initialize_levelset_operation
-(const XMLGen::InputData& aXMLMetaData,
- pugi::xml_document& aDocument)
-{
-    XMLGen::ValidLevelSetInitKeys tValidKeys;
-    auto tLowerKey = Plato::tolower(aXMLMetaData.optimization_parameters().levelset_initialization_method());
-    auto tItr = std::find(tValidKeys.mKeys.begin(), tValidKeys.mKeys.end(), tLowerKey);
-    if(tItr == tValidKeys.mKeys.end())
-    {
-        THROWERR(std::string("Append Initialize Levelset Operation: ") + "Levelset initialization method '"
-            + tLowerKey + "' is not supported.")
-    }
-
-    if(tItr->compare("primitives") == 0)
-    {
-        XMLGen::append_initialize_levelset_primitives_operation(aXMLMetaData, aDocument);
-    }
-    else if(tItr->compare("swiss_cheese") == 0)
-    {
-        XMLGen::append_initialize_levelset_swiss_cheese_operation(aXMLMetaData, aDocument);
-    }
-}
-// function append_initialize_levelset_operation
-/******************************************************************************/
-
-/******************************************************************************/
 void append_initialize_field_operation
 (const XMLGen::InputData& aXMLMetaData,
  pugi::xml_document& aDocument)
@@ -1424,10 +1319,6 @@ void append_initialize_field_operation
     if(tValue.compare("density") == 0)
     {
         XMLGen::append_initialize_density_field_operation(aXMLMetaData, aDocument);
-    }
-    else if(tValue.compare("levelset") == 0)
-    {
-        XMLGen::append_initialize_levelset_operation(aXMLMetaData, aDocument);
     }
 }
 // function append_initialize_field_operation

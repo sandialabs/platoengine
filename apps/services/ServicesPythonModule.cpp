@@ -100,6 +100,11 @@ class SharedData {
 
     double operator[](int index){ return m_data[index]; }
 
+    bool isDynamic() const
+    {
+        return false;
+    }
+
   protected:
     std::vector<double> m_data;
     Plato::data::layout_t m_layout;

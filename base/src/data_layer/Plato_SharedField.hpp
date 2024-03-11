@@ -102,6 +102,7 @@ public:
         aArchive & boost::serialization::make_nvp("Broadcast",mMyBroadcast);
     }
     void initializeMPI(const Plato::CommunicationData& aCommData) override;
+    bool isDynamic() const override;
 private:
     void initialize(const Plato::CommunicationData & aCommData);
 

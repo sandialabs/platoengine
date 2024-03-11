@@ -213,34 +213,6 @@ void append_tet10_conversion_operation
 /******************************************************************************/
 
 /******************************************************************************/
-void append_generate_xtk_model_operation
-(const XMLGen::InputData& aMetaData,
- bool aInput,
- bool aOutput,
- pugi::xml_node& aParentNode)
-{
-
-    auto tOperation = aParentNode.append_child("Operation");
-
-    std::vector<std::string> tKeys = {"Name","PerformerName"};
-    std::vector<std::string> tVals = {"Update Problem",aMetaData.getFirstXTKMainPerformer()};
-    XMLGen::append_children(tKeys,tVals, tOperation);
-
-    if(aInput)
-    {
-        auto tInput = tOperation.append_child("Input");
-        XMLGen::append_children({"ArgumentName","SharedDataName"},{"Topology","Topology"}, tInput);
-    }
-    if(aOutput)
-    {
-        auto tOutput = tOperation.append_child("Output");
-        XMLGen::append_children({"SharedDataName","ArgumentName"},{"Initial Control","Initial Control"}, tOutput);
-    }
-}
-// function append_generate_xtk_model_operation
-/******************************************************************************/
-
-/******************************************************************************/
 void append_filter_control_operation
 (const XMLGen::InputData& aMetaData,
  pugi::xml_node& aParentNode)

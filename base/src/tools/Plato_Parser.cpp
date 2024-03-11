@@ -1248,6 +1248,11 @@ void parseOptimizationVariablesNames(const Plato::InputData & aOptimizerNode, Pl
     {
         aOptimizerEngineStageData.setInitializationStageName(tInitializationStage);
     }
+    std::string tControlResetStage = Plato::Get::String(tOptimizationVariablesNode, "ControlResetStage");
+    if(tControlResetStage.empty() == false)
+    {
+        aOptimizerEngineStageData.setControlResetStageName(tControlResetStage);
+    }
     std::string tFinalizationStage = Plato::Get::String(tOptimizationVariablesNode, "FinalizationStage");
     if(tFinalizationStage.empty() == false)
     {

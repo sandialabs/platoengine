@@ -2,6 +2,7 @@ import unittest
 import ESPtools
 import exodus
 import csmFileGenerator
+import MeshGenerationTester
 
 csmFileName = "dummy_despmtrs.csm"
 writer = csmFileGenerator.csmFileGenerator(csmFileName)
@@ -23,18 +24,7 @@ def generatePerturbedMesh(csmFunc, meshFunc, val, meshMorph):
     mesh = generateMesh(csmFunc, meshFunc, val, initialMeshName, meshMorph=meshMorph)
     return mesh
 
-class MeshMorphTester(unittest.TestCase):
-    def assertMeshesAreDifferent(self, mesh1, mesh2):
-        self.assertNotEqual(mesh1.numNodes, mesh2.numNodes)
-        self.assertNotEqual(mesh1.numElements, mesh2.numElements)
-        self.assertNotEqual(mesh1.elementBlocks[0].connectivity, mesh2.elementBlocks[0].connectivity)
-
-    def assertMeshesAreSame(self, mesh1, mesh2):
-        self.assertEqual(mesh1.numNodes, mesh2.numNodes)
-        self.assertEqual(mesh1.numElements, mesh2.numElements)
-        self.assertEqual(mesh1.elementBlocks[0].connectivity, mesh2.elementBlocks[0].connectivity)
-
-class MeshMorphInAflr4Aflr3Workflow(MeshMorphTester):
+class MeshMorphInAflr4Aflr3Workflow(MeshGenerationTester.MeshGenerationTester):
     def __init__(self, *args, **kwargs):
         super(MeshMorphInAflr4Aflr3Workflow, self).__init__(*args, **kwargs)
         self.meshFunction = ESPtools.aflr4_aflr3_meshing
@@ -165,7 +155,7 @@ class MeshMorphInAflr4Aflr3Workflow(MeshMorphTester):
 
         self.assertMeshesAreSame(initialMesh, perturbedMesh)
 
-class MeshMorphInAflr2Workflow(MeshMorphTester):
+class MeshMorphInAflr2Workflow(MeshGenerationTester.MeshGenerationTester):
     def __init__(self, *args, **kwargs):
         super(MeshMorphInAflr2Workflow, self).__init__(*args, **kwargs)
         self.meshFunction = ESPtools.aflr2_meshing

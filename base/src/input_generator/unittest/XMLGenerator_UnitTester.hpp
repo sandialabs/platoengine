@@ -95,19 +95,12 @@ public:
     std::string getBCApplicationType(const std::string &aBCID);
     std::string getBCApplicationID(const std::string &aBCID);
     std::string getBCApplicationDOF(const std::string &aBCID);
-    std::string getMatBoxMinCoords() {return m_InputData.optimization_parameters().levelset_material_box_min();}
-    std::string getMatBoxMaxCoords() {return m_InputData.optimization_parameters().levelset_material_box_max();}
     std::string getInitDensityValue() {return m_InputData.optimization_parameters().initial_density_value();}
-    std::string getCreateLevelsetSpheres() {return m_InputData.optimization_parameters().create_levelset_spheres();}
-    std::string getLevelsetInitMethod() {return m_InputData.optimization_parameters().levelset_initialization_method();}
     std::string getMaxIterations() {return m_InputData.optimization_parameters().max_iterations();}
     std::string getRestartIteration() {return m_InputData.optimization_parameters().restart_iteration();}
     std::string getRestartFieldName() {return m_InputData.optimization_parameters().initial_guess_field_name();}
     std::string getRestartMeshFilename() {return m_InputData.optimization_parameters().initial_guess_file_name();}
 
-    std::string getLevelsetSpherePackingFactor() {return m_InputData.optimization_parameters().levelset_sphere_packing_factor();}
-    std::string getLevelsetSphereRadius() {return m_InputData.optimization_parameters().levelset_sphere_radius();}
-    std::string getLevelsetNodeset(const int &aIndex) {return m_InputData.optimization_parameters().levelset_nodesets()[aIndex];}
     std::string getFixedBlock(const int &aIndex) {return m_InputData.optimization_parameters().fixed_block_ids()[aIndex];}
     std::string getFixedSideset(const int &aIndex) {return m_InputData.optimization_parameters().fixed_sideset_ids()[aIndex];}
     std::string getFixedNodeset(const int &aIndex) {return m_InputData.optimization_parameters().fixed_nodeset_ids()[aIndex];}

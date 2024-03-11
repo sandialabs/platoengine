@@ -1,0 +1,9 @@
+macro( add_to_srcs_and_hdrs DIRECTORY SRCS_LIST HDRS_LIST )
+
+file(GLOB EXT_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${DIRECTORY}/*.cpp)
+list(APPEND ${SRCS_LIST} ${EXT_SRCS})
+
+file(GLOB EXT_HDRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${DIRECTORY}/*.hpp)
+list(APPEND ${HDRS_LIST} ${EXT_HDRS})
+
+endmacro(add_to_srcs_and_hdrs)

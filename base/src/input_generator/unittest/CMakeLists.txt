@@ -3,7 +3,7 @@ SET(SRCS XMLGenerator_UnitMain.cpp
           UnitTesterTools_UnitTester.cpp
           Plato_Test_XMLGenerator.cpp
           XMLGeneratorLaunch_UnitTester.cpp
-          PlatoGemma_UnitTester.cpp
+          MoveSubDirs_UnitTester.cpp
           XMLGeneratorDefineFile_UnitTester.cpp
           XMLGeneratorDakotaDriver_UnitTester.cpp
           XMLGeneratorParseMetaData_UnitTester.cpp
@@ -17,18 +17,9 @@ SET(SRCS XMLGenerator_UnitMain.cpp
           XMLGeneratorSierraSDInputFile_UnitTester.cpp
           XMLGeneratorSierraTFOperationsFile_UnitTester.cpp
           XMLGeneratorSierraSDOperationsFile_UnitTester.cpp
-          XMLGeneratorXTKInputDeck_UnitTester.cpp
           XMLGeneratorStageOperationsUtilities_UnitTester.cpp
           XMLGeneratorUtilities_UnitTester.cpp
-          XMLGeneratorXTKOperationFile_UnitTester.cpp
           XMLGeneratorOptimizationParametersInput_UnitTester.cpp
-          FileObject_UnitTester.cpp
-          Performer_UnitTester.cpp
-          SharedData_UnitTester.cpp
-          Stage_UnitTester.cpp
-          Criterion_UnitTester.cpp
-          Operation_UnitTester.cpp
-          OptimizationAlgorithm_UnitTester.cpp
           ../XMLGenerator.cpp
           ../XMLGeneratorProblem.cpp
           ../XMLGeneratorParseRun.cpp
@@ -55,13 +46,11 @@ SET(SRCS XMLGenerator_UnitMain.cpp
           ../XMLGeneratorParseUncertainty.cpp
           ../XMLGeneratorScenarioMetadata.cpp
           ../XMLGeneratorSierraSDUtilities.cpp
-          ../XMLGeneratorPlatoXTKInputFile.cpp
           ../XMLGeneratorConstraintMetadata.cpp
           ../XMLGeneratorSharedDataUtilities.cpp
           ../XMLGeneratorPerformersUtilities.cpp
           ../XMLGeneratorUncertaintyMetadata.cpp
           ../XMLGeneratorDefinesFileUtilities.cpp
-          ../XMLGeneratorPlatoXTKOperationFile.cpp
           ../XMLGeneratorPlatoAnalyzeUtilities.cpp
           ../XMLGeneratorLaunchUtilities.cpp
           ../XMLGeneratorInterfaceFileUtilities.cpp
@@ -99,14 +88,6 @@ SET(SRCS XMLGenerator_UnitMain.cpp
           ../XMLGeneratorPlatoMainConstraintGradientOperationInterface.cpp
           # ../PlatoAnalyzeInputDeckWriter.cpp
           # ../SalinasInputDeckWriter.cpp)
-			    ../FileObject.cpp
-			    ../Operation.cpp
-          ../Stage.cpp
-			    ../Performer.cpp
-			    ../SharedData.cpp
-			    ../GemmaProblem.cpp
-          ../OptimizationAlgorithmFactory.cpp
-          ../OptimizationAlgorithm.cpp
           )
 
 SET(HDRS XMLGenerator_UnitTester.hpp

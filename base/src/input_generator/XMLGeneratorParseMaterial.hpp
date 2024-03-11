@@ -76,14 +76,6 @@ private:
     void insertIncompressibleFluidFlowProperties();
 
     /******************************************************************************//**
-     * \fn insertElectromagneticsProperties
-     * \brief Append EM properties to associative container relating the material \n
-     *    property keyword in the plato input deck to the keyword-value pairs used \n
-     *    for electormagnetics applications.
-    **********************************************************************************/
-    void insertElectromagneticsProperties();
-
-    /******************************************************************************//**
      * \fn setCode
      * \brief Set 'code' keyword, default = 'plato_analyze'.
      * \param [in/out] aInputFile parsed input metadata

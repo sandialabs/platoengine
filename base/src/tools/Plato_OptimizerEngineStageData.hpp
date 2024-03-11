@@ -182,6 +182,9 @@ public:
     std::string getInitializationStageName() const;
     void setInitializationStageName(const std::string & aInput);
 
+    const std::string& getControlResetStageName() const;
+    void setControlResetStageName(const std::string & aInput);
+
     std::string getInitialControlDataName() const;
     void setInitialControlDataName(const std::string & aInput);
 
@@ -376,6 +379,7 @@ public:
       aArchive & boost::serialization::make_nvp("ObjectiveGradientOutputName",mObjectiveGradientOutputName);
       aArchive & boost::serialization::make_nvp("ObjectiveHessianOutputName",mObjectiveHessianOutputName);
       aArchive & boost::serialization::make_nvp("InitializationStageName",mInitializationStageName);
+      aArchive & boost::serialization::make_nvp("ControlResetStageName",mControlResetStageName);
       aArchive & boost::serialization::make_nvp("InitialControlDataName",mInitialControlDataName);
       aArchive & boost::serialization::make_nvp("FinalizationStageName",mFinalizationStageName);
       aArchive & boost::serialization::make_nvp("SetLowerBoundsStageName",mSetLowerBoundsStageName);
@@ -441,6 +445,7 @@ private:
     std::string mObjectiveGradientOutputName;
     std::string mObjectiveHessianOutputName;
     std::string mInitializationStageName;
+    std::string mControlResetStageName;
     std::string mInitialControlDataName;
     std::string mFinalizationStageName;
     std::string mSetLowerBoundsStageName;

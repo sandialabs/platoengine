@@ -141,6 +141,8 @@ def esp_action(args):
     argsDict['precision'] = args.precision
   if args.morph != None:
     argsDict['meshMorph'] = args.morph
+  if args.mesh_settings_file != None:
+    argsDict['meshSettingsFileName'] = args.mesh_settings_file
   if args.parameters != None:
     argsDict['parameters'] = args.parameters
   if args.workflow != None:
@@ -158,11 +160,6 @@ def esp_action(args):
     print("ESP operation failed.. aborting")
     print("*******************************")
     exit(return_code)
-
-
-def xtk_action(args):
-  print('calling xtk.')
-  print(args)
 
 def gmsh_action(args):
   print('calling Gmsh.')
@@ -258,6 +255,9 @@ esp_parser.add_argument('--precision', dest='precision', \
 esp_parser.add_argument('--morph', dest='morph', type=bool, \
   help='Turn on mesh morph to generate new mesh by moving surface coordinates of old mesh. Default value is \'False\'.')
 
+esp_parser.add_argument('--mesh-settings-file', dest='mesh_settings_file', \
+  help='Optional mesh settings file (only implemented for aflr2 workflow). Default value is \'None\'.')
+
 esp_parser.add_argument('--parameters', dest='parameters', nargs='*', \
   help='List of parameter values to construct the mesh')
 
@@ -265,11 +265,6 @@ esp_parser.add_argument('--workflow', dest='workflow', \
   help='String identifying which CAP workflow to use')
 
 esp_parser.set_defaults(func=esp_action)
-
-# geometry - xtk
-xtk_parser = geo_subparsers.add_parser('xtk', help='XTK options')
-xtk_parser.add_argument('--input', help='input file name')
-xtk_parser.set_defaults(func=xtk_action)
 
 # geometry - gmsh
 gmsh_parser = geo_subparsers.add_parser('gmsh', help='Gmsh options')

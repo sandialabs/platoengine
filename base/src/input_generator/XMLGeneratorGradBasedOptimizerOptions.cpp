@@ -603,12 +603,6 @@ void append_grad_based_optimizer_constraint_options
             tKeyToValueMap =
             { {"ValueName", ""}, {"ValueStageName", ""}, {"GradientName", ""}, {"GradientStageName", ""} };
         }
-        else if(aMetaData.optimization_parameters().optimization_type() == "topology" && aMetaData.optimization_parameters().discretization() == "levelset")
-        {
-            tKeyToValueMap =
-            { {"ValueName", ""}, {"ValueStageName", ""}, {"GradientName", ""}, {"GradientStageName", ""},
-              {"ReferenceValueName", "Design Volume"} };
-        }
 
         tKeyToValueMap.find("ValueName")->second = std::string("Constraint Value ") + tConstraint.id();
         tKeyToValueMap.find("ValueStageName")->second = std::string("Compute Constraint Value ") + tConstraint.id();

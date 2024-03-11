@@ -1,0 +1,7 @@
+BasedOnStyle: Google
+ColumnLimit: 120
+BinPackParameters: false
+BreakBeforeBraces: Allman
+UseTab: Never
+IndentWidth: 4
+TabWidth: 4

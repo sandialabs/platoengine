@@ -244,14 +244,6 @@ void PlatoApp::initialize( bool initializeTimers )
                 continue;
             }
 
-            tFunctions.push_back("HarvestDataFromFile");
-            if(tStrFunction == tFunctions.back())
-            {
-                mOperationMap[tStrName] = new Plato::HarvestDataFromFile(this, tNode);
-                this->createLocalData(mOperationMap[tStrName]);
-                continue;
-            }
-
             tFunctions.push_back("ReciprocateObjectiveValue");
             if(tStrFunction == tFunctions.back())
             {
@@ -344,6 +336,14 @@ void PlatoApp::initialize( bool initializeTimers )
             if(tStrFunction == tFunctions.back())
             {
                 mOperationMap[tStrName] = new Plato::OutputNodalFieldSharedData(this, tNode);
+                this->createLocalData(mOperationMap[tStrName]);
+                continue;
+            }
+
+            tFunctions.push_back("GetGlobalNodeIDMap");
+            if(tStrFunction == tFunctions.back())
+            {
+                mOperationMap[tStrName] = new Plato::GetGlobalNodeIDMap(this, tNode);
                 this->createLocalData(mOperationMap[tStrName]);
                 continue;
             }

@@ -282,40 +282,6 @@ void PlatoMainOutput::operator()()
                 Plato::system(tTheCommand.str().c_str());
             }
         }
-        else if(mDiscretization == "levelset")
-        {
-            if((tMyRank == 0) && mWriteRestart)
-            {
-                std::string tListCommand = "ls -t IterationHistory* > junk.txt";
-                Plato::system(tListCommand.c_str());
-                FILE *tFile = fopen("junk.txt", "r");
-                if(tFile)
-                {
-                    char tLastHistFileName[200] = " ";
-                    auto tTrash = fscanf(tFile, "%s", tLastHistFileName);
-                    Plato::Utils::ignore_unused(tTrash);
-                    fclose(tFile);
-                    std::string tNewFilename = "Iteration";
-                    std::string tIterationString = "";
-                    buildIterationNumberString(tIntegerTime, tIterationString);
-                    tNewFilename += tIterationString;
-                    tNewFilename += ".exo";
-                    std::string tCopyCommand = "cp ";
-                    tCopyCommand += tLastHistFileName;
-                    tCopyCommand += " ";
-                    tCopyCommand += tNewFilename;
-                    Plato::system(tCopyCommand.c_str());
-                    Plato::system("rm -f IterationHistory*");
-                    tFile = fopen("last_time_step.txt", "w");
-                    if(tFile)
-                    {
-                        fprintf(tFile, "%s\n", tIterationString.c_str());
-                        fclose(tFile);
-                        Plato::system("ls Iteration*.exo >> last_time_step.txt");
-                    }
-                }
-            }
-        }
     }
 
     // end I/O timer

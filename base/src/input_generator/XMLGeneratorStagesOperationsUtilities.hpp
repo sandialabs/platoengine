@@ -138,20 +138,6 @@ void append_tet10_conversion_operation
  pugi::xml_node& aParentNode);
 
 /******************************************************************************//**
- * \fn append_generate_xtk_model_operation
- * \brief Append generate model with xtk operation
- * \param [in]     aMetaData Plato problem input data
- * \param [in]     aInput Include the operation input data in operation
- * \param [in]     aOutput Include the operation output data in operation
- * \param [in/out] aParentNode pugi::xml_node
-**********************************************************************************/
- void append_generate_xtk_model_operation
-(const XMLGen::InputData& aMetaData,
- bool aInput,
- bool aOutput,
- pugi::xml_node& aParentNode);
-
-/******************************************************************************//**
  * \fn append_filter_control_operation
  * \brief Append filter control operation to stage in interface xml file.
  * \param [in]  aMetaData   Plato problem input metadata

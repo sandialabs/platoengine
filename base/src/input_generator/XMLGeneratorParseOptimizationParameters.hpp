@@ -47,13 +47,6 @@ private:
     void setTags(XMLGen::OptimizationParameters& aOptimizationParameters);
 
     /******************************************************************************//**
-     * \fn setLevelsetNodesetIDs
-     * \brief Set the levelset nodeset metadata
-     * \param [in] aMetadata optimization parameters metadata
-    **********************************************************************************/
-    void setLevelsetNodesetIDs(XMLGen::OptimizationParameters &aMetadata);
-
-    /******************************************************************************//**
      * \fn setFixedBlockIDs
      * \brief Set the fixed block metadata
      * \param [in] aMetadata optimization parameters metadata
@@ -101,13 +94,6 @@ private:
      * \param [in] aMetadata optimization parameters metadata
     **********************************************************************************/
     void setFixedBlockMaterialStates(XMLGen::OptimizationParameters &aMetadata);
-
-    /******************************************************************************//**
-     * \fn setMaterialBoxExtents
-     * \brief Set the material box extent metadata
-     * \param [in] aMetadata optimization parameters metadata
-    **********************************************************************************/
-    void setMaterialBoxExtents(XMLGen::OptimizationParameters &aMetadata);
 
     /******************************************************************************//**
      * \fn setDakotaDescriptorsAndBounds

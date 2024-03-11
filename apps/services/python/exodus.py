@@ -63,7 +63,7 @@ class ElementBlock:
     self.name = ""
 
 
-  def Initialize(self, blk_id, elem_type, num_dim, num_elem, num_nodes, num_attr, connect, coord):
+  def Initialize(self, blk_id, name, elem_type, num_dim, num_elem, num_nodes, num_attr, connect, coord):
     self.elemType = elem_type
     self.numDimensions = num_dim
     self.numElements = num_elem
@@ -71,6 +71,7 @@ class ElementBlock:
     self.numAttr = num_attr
     self.connectivity = connect
     self.Id = blk_id
+    self.name = name
     self.coordinates = coord
 
   def Connectivity(self, block_local_elem_id):
@@ -85,7 +86,7 @@ class ElementBlock:
              for local numbering convention.
     """
     start = self.numNodesPerElement* block_local_elem_id
-    stop = start + self.numNodesPerElement;
+    stop = start + self.numNodesPerElement
     if start >= 0 & stop < len(self.connectivity):
       return [self.connectivity[i] for i in range(start,stop)]
     else:
@@ -335,8 +336,10 @@ class ExodusDB:
                                                              numBlocks)
 
     # load blocks
+    blockNames = expy.get_names(self.inFileId, "e", numBlocks)
     index = 0
     for blk_id in elementBlockIds:
+      name = blockNames[index]
       elem_type, num_elem, num_nodes_per_elem, num_attr = \
                                expy.get_elem_block(self.inFileId, blk_id)
       connect_numbered_from_one = expy.get_elem_conn(self.inFileId, \
@@ -347,6 +350,7 @@ class ExodusDB:
                                                        for i in range(len(connect_numbered_from_one)) ]
       self.elementBlocks.append(ElementBlock())
       self.elementBlocks[index].Initialize(blk_id,\
+                                                         name,\
                                                          elem_type,\
                                                           self.numDimensions,\
                                                            num_elem,\
@@ -357,7 +361,7 @@ class ExodusDB:
 
     # load node set ids
     if self.numNodeSets > 0:
-      nodeSetIds = expy.get_node_set_ids(self.inFileId, self.numNodeSets);
+      nodeSetIds = expy.get_node_set_ids(self.inFileId, self.numNodeSets)
       nodeSetNames = expy.get_names(self.inFileId, "ns", self.numNodeSets)
   
       # load node sets
@@ -375,7 +379,7 @@ class ExodusDB:
 
     # load side set ids
     if self.numSideSets > 0:
-      sideSetIds = expy.get_side_set_ids(self.inFileId, self.numSideSets);
+      sideSetIds = expy.get_side_set_ids(self.inFileId, self.numSideSets)
       sideSetNames = expy.get_names(self.inFileId, "ss", self.numSideSets)
 
       # load side sets
@@ -395,7 +399,7 @@ class ExodusDB:
     self.numGlobVars = expy.get_var_param(self.inFileId, "g")
     self.globVarNames = expy.get_var_names(self.inFileId, "g", self.numGlobVars)
 
-    self.varTimes = expy.get_all_times(self.inFileId);
+    self.varTimes = expy.get_all_times(self.inFileId)
 
     self.nodeMap = expy.get_node_num_map(self.inFileId, self.numNodes)
     self.elemMap = expy.get_elem_num_map(self.inFileId, self.numElements)

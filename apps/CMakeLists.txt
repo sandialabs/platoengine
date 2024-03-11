@@ -10,11 +10,6 @@ if( PLATOMAIN )
   add_subdirectory(services)
 endif()
 
-if(XTK_ENABLED)
-    message( "-- Compiling xtk " )
-    add_subdirectory(xtk)
-endif()
-
 if(PYTHON_INTERPRETER_APP)
     message( "-- Compiling python interpreter app " )
     add_subdirectory(python_interpreter)

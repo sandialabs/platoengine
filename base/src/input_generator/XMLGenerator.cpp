@@ -1077,7 +1077,7 @@ namespace XMLGen
         // reason (restart flag should tell us this since prune_and_refine
         // is used for the initial guess field transfer) our "run" mesh name
         // can not be the same as the input mesh name.
-        if (aInputData.optimization_parameters().isARestartRun() || aInputData.optimization_parameters().discretization() == "levelset")
+        if (aInputData.optimization_parameters().isARestartRun())
         {
             aInputData.mesh.run_name_without_extension = aInputData.mesh.name_without_extension + "_mod";
             aInputData.mesh.run_name = aInputData.mesh.run_name_without_extension;

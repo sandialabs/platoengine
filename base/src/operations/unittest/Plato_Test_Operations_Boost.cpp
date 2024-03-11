@@ -72,9 +72,7 @@
 #include "Plato_PlatoMainOutput.hpp"
 #include "Plato_InitializeField.hpp"
 #include "Plato_InitializeValues.hpp"
-#include "Plato_WriteGlobalValue.hpp"
 #include "Plato_CSMParameterOutput.hpp"
-#include "Plato_HarvestDataFromFile.hpp"
 #include "Plato_OperationsUtilities.hpp"
 #include "Plato_NormalizeObjectiveValue.hpp"
 #include "Plato_MeanPlusVarianceMeasure.hpp"
@@ -454,34 +452,6 @@ TEST(BoostSerialization, Roughness)
     EXPECT_TRUE(serializeEquals(tOperation,tOperation2));
 }
 
-TEST(BoostSerialization, WriteGlobalValue)
-{           
-    Plato::WriteGlobalValue tOperation("Input Name",
-                                        "File Name",
-                                       3);
-    Plato::WriteGlobalValue tOperation2;
-    EXPECT_FALSE(serializeEquals(tOperation,tOperation2));
-
-    save<boost::archive::xml_oarchive>(tOperation,"out.xml");
-    load<boost::archive::xml_iarchive>(tOperation2,"out.xml");
-    Plato::system("rm -rf out.xml");
-
-    EXPECT_TRUE(serializeEquals(tOperation,tOperation2));
-}
-/*
-TEST(BoostSerialization, UpdateProblem)
-{           
-    //This test is somewhat of a placeholder, this operation doesn't seem to need anything.
-    Plato::UpdateProblem tOperation();
-    Plato::UpdateProblem tOperation2;
-    
-    save<boost::archive::xml_oarchive>(tOperation,"out.xml");
-    load<boost::archive::xml_iarchive>(tOperation2,"out.xml");
-    Plato::system("rm -rf out.xml");
-
-    EXPECT_TRUE(serializeEquals(tOperation,tOperation2));
-}
-*/
 TEST(BoostSerialization, EnforceBounds)
 {
     Plato::EnforceBounds tOperation("Lower Bound Vector",

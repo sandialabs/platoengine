@@ -212,19 +212,5 @@ void insert_plato_projection_filter_input_options(XMLGen::MetaDataTags &aTags)
     aTags.insert({ "filter_projection_update_interval", { { {"filter_projection_update_interval"}, ""}, "" } });
 }
 
-/******************************************************************************/
-void insert_plato_levelset_input_options(XMLGen::MetaDataTags &aTags)
-{
-    aTags.insert({ "levelset_nodesets", { { {"levelset_nodesets"}, ""}, "" } });
-    aTags.insert({ "levelset_sphere_radius", { { {"levelset_sphere_radius"}, ""}, "" } });
-    aTags.insert({ "create_levelset_spheres", { { {"create_levelset_spheres"}, ""}, "" } });
-    aTags.insert({ "levelset_material_box_min", { { {"levelset_material_box_min"}, ""}, "" } });
-    aTags.insert({ "levelset_material_box_max", { { {"levelset_material_box_max"}, ""}, "" } });
-    aTags.insert({ "levelset_sphere_packing_factor", { { {"levelset_sphere_packing_factor"}, ""}, "" } });
-    aTags.insert({ "levelset_initialization_method", { { {"levelset_initialization_method"}, ""}, "" } });
-}
-// function insert_plato_levelset_input_options
-/******************************************************************************/
-
 }
 // namespace XMLGen
