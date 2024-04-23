@@ -32,3 +32,7 @@ if(EXPY)
   message( "-- Compiling Expy " )
   add_subdirectory(services/python)
 endif()
+
+if( KRINO_ENABLED )
+  add_subdirectory(krino)
+endif()

@@ -1,0 +1,203 @@
+#--------------------------------------------------------------------
+#    Copyright 2002 - 2008, 2010, 2011 National Technology &         
+#    Engineering Solutions of Sandia, LLC (NTESS). Under the terms   
+#    of Contract DE-NA0003525 with NTESS, there is a                 
+#    non-exclusive license for use of this work by or on behalf      
+#    of the U.S. Government.  Export of this program may require     
+#    a license from the United States Government.                    
+#--------------------------------------------------------------------
+#
+# The signature for Boost.build rules is described here:
+#
+# http://www.boost.org/build/doc/html/bbv2/overview/targets.html
+#
+#function-name main-target-name
+#    : sources
+#    : requirements
+#    : default-build
+#    : usage-requirements
+#    ;
+#
+#    * "main-target-name" is the name used to request the target
+#            on command line and to use it from other main targets.
+#            Main target name may contain alphanumeric characters and symbols '-' and '_';
+#    * "sources" is the list of source files and other main targets that must be combined.
+#    * "requirements" is the list of properties that must always be present
+#            when this main target is built.
+#    * "default-build" is the list of properties that will be used unless
+#            some other value of the same feature is already specified.
+#    * "usage-requirements" is the list of properties that will be propagated
+#            to all main targets that use this one, i.e. to all dependedents.
+#
+#
+#
+# SECTION 1: Project definition
+#
+
+import set ;
+import path ;
+
+project votd
+  : requirements
+      $(sierra-warnings)
+     <mpi>intel:<define>USING_INTEL_MPI
+     <mpi>openmpi:<define>USING_OPEN_MPI
+    <include>$(plato-root)/plato_krino
+    <define>BUILD_IN_SIERRA=1
+    <define>ENABLE_ISO=1
+    <define>ENABLE_ROL=1
+    <define>STK_ENABLED=1
+    <define>BOOST_ICL_USE_STATIC_BOUNDED_INTERVALS=1
+    <define>BOOST_SYSTEM_NO_DEPRECATED=1
+    <define>CODE_MP=1
+  : usage-requirements
+    <define>CODE_MP=1
+    <define>STK_ENABLED=1
+    <define>ENABLE_ROL=1
+    <define>ENABLE_ISO=1
+    <define>BUILD_IN_SIERRA=1
+    <define>BOOST_SYSTEM_NO_DEPRECATED=1
+    <mpi>intel:<define>USING_INTEL_MPI
+    <mpi>openmpi:<define>USING_OPEN_MPI
+    <include>$(plato-root)/plato_krino
+  : build-dir $(plato-builddir)
+  ;
+
+# This variable should contain the applications and associated files that
+# must be installed for both developers and end users. Unless they need to
+# be visible to end users, unittests should not be placed here.
+local installed-end-user-files = 
+  plato_krino_main
+  plato_krino_unit_tester
+  ;
+
+# This variable should contain the applications and associated files that will
+# only be installed for and visible to developers.
+# Note that if the --install-developer-files option is passed to bjam these will also
+# be installed for end-users. (This is only intended to be used for testing.)
+local installed-developer-files = 
+  ;
+
+#
+# SECTION 2: Development install
+#
+explicit install-serial-targets ;
+alias install-serial-targets
+  : plato_krino_main
+    plato_krino_unit_tester
+  ;
+
+# Dependencies listed in this target are installed in the developer's project.
+# This should include all executables and any other files needed for developer use.
+explicit install-targets ;
+alias install-targets
+  : $(installed-end-user-files)
+  $(installed-developer-files)
+  ;
+
+#
+# SECTION 3: End-user install
+#
+explicit install-user-env ;
+alias install-user-env : install-user-jamfile
+                         install-user-bin install-user-include install-user-lib ;
+
+# This rule copies build-system related files for this product to the install-root.
+explicit install-user-jamfile ;
+install install-user-jamfile
+  : [ glob $(plato-root)/Jamfile ]
+  : <location>$(install-root)/plato
+    <install-source-root>$(plato-root)
+  ;
+
+# Dependencies listed in this target are installed for end users.
+# This should include only those executables and any other files needed by end users.
+explicit install-user-bin ;
+install install-user-bin
+  : $(installed-end-user-files)
+
+    [ if-defined-val $(install-developer-files-arg) :
+        # Executables listed here will only installed if the --install-developer-files option
+        # is passed to bjam. This is intended for testing that requires things like 
+        # unittest to be installed when they normally would not be.
+        $(installed-developer-files)
+    ]
+  # Note that all Sierra executables are installed in a common bin directory,
+  # not in a product-specific bin directory.
+  : <location>$(install-bin-dir)
+  ;
+
+explicit install-user-include ;
+install install-user-include
+  : [ path.glob-tree $(plato-root) : *.h *.hpp *.H  
+	$(Salinas-root-inc)/ : *.h */*.h */*.H *.H ]
+  : <location>$(install-root)/plato/include <install-source-root>$(plato-root)
+  ;
+
+explicit install-user-lib ;
+install install-user-lib 
+  : 
+  :
+  ;
+
+explicit install-exe-targets ;
+alias install-exe-targets : ;
+
+#
+# SECTION 4: Build configuration
+#
+
+lib plato_krino_lib
+  :
+    $(plato_krino-root)/PlatoKrinoApp.cpp
+    $(plato_krino-root)/PlatoKrinoApp.hpp
+    $(plato_krino-root)/PlatoKrinoInterface.hpp
+    $(plato_krino-root)/PlatoKrinoInterface.cpp
+    $(plato_krino-root)/PlatoKrinoParse.hpp
+    $(plato_krino-root)/PlatoKrinoParse.cpp
+    $(plato_krino-root)/PlatoKrinoUtilities.hpp
+    $(plato_krino-root)/PlatoKrinoUtilities.cpp
+    /sierra/plato//PlatoInterface
+    /sierra/stk_util//stk_util_parallel
+    /sierra/stk_util//stk_util_environment
+    /sierra/stk_mesh//stk_mesh_base
+    /sierra/stk_topology//stk_topology
+    #/sierra/stk_io//stk_io
+    /sierra/stk_coupling//stk_coupling
+    /sierra/krino//krino_lib
+    /sierra/krino//krino_region
+    /sierra/sierra_util//sierra_util_events
+    /mpi//mpi
+    /sierra/mesh//mesh
+  :
+  ;
+
+exe plato_krino_main
+  :
+    $(plato_krino-root)/PlatoKrinoMain.cpp
+    plato_krino_lib
+  :
+    <toolset>gcc:<cflags>-fopenmp
+    <toolset>gcc:<cxxflags>-fopenmp
+    <toolset>gcc:<linkflags>-fopenmp
+    $(plato_includes)
+  ;
+
+exe plato_krino_unit_tester
+  :
+    $(plato_krino-root)/unit_tests/PlatoKrinoUnitTest.cpp
+    $(plato_krino-root)/unit_tests/PlatoKrinoUnitMain.cpp
+    plato_krino_lib
+    /tpl/gtest//gtest
+    /sierra/stk_util//stk_util_parallel
+    /sierra/stk_util//stk_util_environment
+    /sierra/utility//utility
+    /mpi//mpi
+
+  :
+    <toolset>gcc:<cflags>-fopenmp
+    <toolset>gcc:<cxxflags>-fopenmp
+    <toolset>gcc:<linkflags>-fopenmp
+  ;
+
+
