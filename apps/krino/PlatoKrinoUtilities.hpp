@@ -1,4 +1,4 @@
-#include <Plato_InputData.hpp>
+#include "Plato_InputData.hpp"
 #include <mpi.h>
 
 #pragma once 

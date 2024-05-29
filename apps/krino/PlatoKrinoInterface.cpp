@@ -314,10 +314,9 @@ std::map<unsigned int, double> PlatoKrinoInterface::calculateDFDLS(std::map<unsi
     return tDFDLS;
 }
 
-
 void PlatoKrinoInterface::getNodalCoordinates(const unsigned int &aNodeID, double &aX, double &aY, double &aZ)
 {
-    stk::mesh::Field<double> *tCoordsField = mBulkData->mesh_meta_data().get_field<double>(stk::topology::NODE_RANK, "coordinates");
+    const auto * tCoordsField = static_cast<const stk::mesh::Field<double>*>(mBulkData->mesh_meta_data().coordinate_field());
     stk::mesh::Entity entity = mBulkData->get_entity(stk::topology::NODE_RANK, aNodeID);
     double* vals = stk::mesh::field_data(*tCoordsField, entity);
     aX = vals[0];

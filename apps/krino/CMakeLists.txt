@@ -1,8 +1,9 @@
-SET(SRCS PlatoKrinoApp.cpp 
+SET(LIB_SRCS PlatoKrinoApp.cpp 
          PlatoKrinoParse.cpp
          PlatoKrinoUtilities.cpp
-         PlatoKrinoMain.cpp
          PlatoKrinoInterface.cpp)
+
+SET(EXE_SRCS PlatoKrinoMain.cpp)
 
 SET(HDRS PlatoKrinoEnums.hpp
          PlatoKrinoInterface.hpp
@@ -10,8 +11,18 @@ SET(HDRS PlatoKrinoEnums.hpp
          PlatoKrinoParse.hpp
          PlatoKrinoUtilities.hpp)
 
-add_executable(PlatoKrino ${SRCS})
-target_link_libraries(PlatoKrino PUBLIC PlatoInterface Krino::krino_lib)
+# LIBRARY
+add_library(PlatoKrinoLib ${LIB_SRCS} ${HDRS})
+target_link_libraries(PlatoKrinoLib PUBLIC PlatoInterface Krino::krino_lib)
+install(TARGETS PlatoKrinoLib EXPORT PlatoEngine DESTINATION lib)
 
+# EXE
+add_executable(PlatoKrino ${EXE_SRCS})
+target_link_libraries(PlatoKrino PUBLIC PlatoKrinoLib)
 install( TARGETS PlatoKrino EXPORT PlatoEngine DESTINATION bin )
+
+if( UNIT_TESTING )
+  add_subdirectory(./unit_tests)
+endif()
+
 
