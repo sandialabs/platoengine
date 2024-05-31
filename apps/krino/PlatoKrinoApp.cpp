@@ -3,16 +3,13 @@
 #include "PlatoKrinoApp.hpp"
 #include "PlatoKrinoUtilities.hpp"
 #include "PlatoKrinoParse.hpp"
-#include <Kokkos_Core.hpp>
-//#include <Slib_Startup.h>                              
+#include <Kokkos_Core.hpp>                             
 #include <stk_coupling/SplitComms.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 #include <stk_util/environment/EnvData.hpp>
 #include <stk_util/environment/Env.hpp>
-//#include <sierra_util/events/MeshEvents.h>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
-//#include <stkMeshInterface.h>
 
 
 namespace Plato
@@ -28,7 +25,7 @@ PlatoKrinoApp::PlatoKrinoApp(Plato::Interface *aInterface,
         mAppfileData(parseAppFile(aOptions.mKrinoOperationsFileName)),
         mFieldMeshName(aOptions.mFieldMeshName),
         mFieldName(aOptions.mFieldName),
-        mTimeStep(aOptions.mTimeStep)
+        mFieldDataTimeStep(aOptions.mFieldDataTimeStep)
 {
     mPlatoKrinoInterface.includeVoidRegion(aOptions.mIncludeVoidRegion);
 }
@@ -97,12 +94,7 @@ void PlatoKrinoApp::initializeLocalSharedDataVariables()
 bool PlatoKrinoApp::useFieldForInitialization()
 /******************************************************************************/
 {
-    bool tRet=false;
-    if(!mFieldMeshName.empty() && !mFieldName.empty() && mTimeStep != 0)
-    {
-        tRet = true;
-    }
-    return tRet;
+    return !mFieldMeshName.empty() && !mFieldName.empty() && mFieldDataTimeStep != 0;
 }
 
 /******************************************************************************/
@@ -149,31 +141,39 @@ std::vector<double> PlatoKrinoApp::getLevelsetValuesFromFieldInMesh()
     tIoBroker->add_all_mesh_fields_as_input_fields();
     tIoBroker->populate_bulk_data();
     const stk::mesh::Field<double>* tField = tMetaData->get_field<double>(stk::topology::NODE_RANK, mFieldName);
-    tIoBroker->read_defined_input_fields(mTimeStep);
+    tIoBroker->read_defined_input_fields(mFieldDataTimeStep);
 
+    // Get the number of nodes for sizing the return vector
     int tNumNodes=0;
     stk::mesh::BucketVector const& tOwnedBuckets = tBulkData->get_buckets(stk::topology::NODE_RANK, tMetaData->locally_owned_part() );
     for(auto && tBucketPtr : tOwnedBuckets)
     {
         tNumNodes += tBucketPtr->size();
-/*
-        for(auto tNode : *tBucketPtr)
-        {
-            tNumNodes++;
-         //   double* val = stk::mesh::field_data(*tField, tNode);
-         //   tValues.push_back(*val);
-        }
-*/
     }
     tValues.resize(tNumNodes, 0.0);
+
+    // We don't currently handle node maps.  However, if the node map is non trivial 
+    // at least we can return the values in the order of ascending global node ids
+    // so we will get the values and then load the return vector in an ordered way.
+    std::map<unsigned int, double> tGlobalNodeIDToLevelsetValueMap;
+    std::set<unsigned int> tSortedGlobalNodeIDs;
     for(auto && tBucketPtr : tOwnedBuckets)
     {
-        for(auto tNode : *tBucketPtr)
+        for(const auto &tNode : *tBucketPtr)
         {
             int tGlobalNodeID = tBulkData->identifier(tNode); 
             double* val = stk::mesh::field_data(*tField, tNode);
-            tValues[tGlobalNodeID-1] = *val;
+	    tGlobalNodeIDToLevelsetValueMap[tGlobalNodeID] = *val;
+	    tSortedGlobalNodeIDs.insert(tGlobalNodeID);
         }
+    }
+
+    auto tSetIterator = tSortedGlobalNodeIDs.cbegin();
+    int tCntr=0;
+    while(tSetIterator != tSortedGlobalNodeIDs.cend())
+    {
+	tValues[tCntr++] = tGlobalNodeIDToLevelsetValueMap[*tSetIterator];
+	tSetIterator++;
     }
     return tValues;
 }
@@ -215,9 +215,13 @@ void PlatoKrinoApp::compute(const std::string &aName)
     {
         recalculateDistanceField();
     }
-    else if(aName == "Apply Chain Rule")
+    else if(aName == "Apply Chain Rule 1 to N Format")
     {
-        applyChainRule();
+        applyChainRule1ToNFormat();
+    }
+    else if(aName == "Apply Chain Rule Global ID Format")
+    {
+        applyChainRuleGlobalIDFormat();
     }
 
     // end timer for doing physics computation
@@ -228,10 +232,19 @@ void PlatoKrinoApp::compute(const std::string &aName)
 }
 
 /******************************************************************************/
-void PlatoKrinoApp::applyChainRule()
+void PlatoKrinoApp::applyChainRuleGlobalIDFormat()
 /******************************************************************************/
 {
-    std::map<unsigned int, stk::math::Vector3d> tDFDX = getDFDXFromDataLayer();
+    std::map<unsigned int, stk::math::Vector3d> tDFDX = getDFDXFromDataLayer(DFDXFormatting::GlobalID);
+    std::map<unsigned int, double> tDFDLS = mPlatoKrinoInterface.calculateDFDLS(tDFDX);
+    setDFDLSInDataLayer(tDFDLS);
+}
+
+/******************************************************************************/
+void PlatoKrinoApp::applyChainRule1ToNFormat()
+/******************************************************************************/
+{
+    std::map<unsigned int, stk::math::Vector3d> tDFDX = getDFDXFromDataLayer(DFDXFormatting::OneToN);
     std::map<unsigned int, double> tDFDLS = mPlatoKrinoInterface.calculateDFDLS(tDFDX);
     setDFDLSInDataLayer(tDFDLS);
 }
@@ -286,7 +299,7 @@ void PlatoKrinoApp::setDFDLSInDataLayer(std::map<unsigned int, double> &aDFDLS)
 }
 
 /******************************************************************************/
-std::map<unsigned int, stk::math::Vector3d> PlatoKrinoApp::getDFDXFromDataLayer()
+std::map<unsigned int, stk::math::Vector3d> PlatoKrinoApp::getDFDXFromDataLayer(const DFDXFormatting aDFDXFormat)
 /******************************************************************************/
 {
     // get DFDX
@@ -295,17 +308,7 @@ std::map<unsigned int, stk::math::Vector3d> PlatoKrinoApp::getDFDXFromDataLayer(
     // get CutMeshGlobalNodeIDMap
     std::vector<double> tCutMeshGlobalNodeIDMapFromDL = getDoubleVector("CutMeshGlobalNodeIDMap");
 
-    unsigned int tNumNodes = tCutMeshGlobalNodeIDMapFromDL.size();
-    
-    // Assemble the DFDX data structures to set in the PlatoKrinoInterface
-    std::map<unsigned int, stk::math::Vector3d> tDFDX;
-    for(unsigned int i=0; i<tNumNodes; ++i)
-    {
-        unsigned int tCurGlobalNodeIndex = tCutMeshGlobalNodeIDMapFromDL[i];
-        unsigned int tDFDXIndex = 3*(tCurGlobalNodeIndex-1);
-        tDFDX[tCurGlobalNodeIndex] = {tDFDXFromDL[tDFDXIndex], tDFDXFromDL[tDFDXIndex+1], tDFDXFromDL[tDFDXIndex+2]};
-    }
-    return tDFDX;
+    return assembleGlobalIDToDFDXMap(tDFDXFromDL, tCutMeshGlobalNodeIDMapFromDL, aDFDXFormat);
 }
 
 /******************************************************************************/
@@ -582,6 +585,28 @@ void PlatoKrinoApp::setDoubleVector(const std::string & aName, std::vector<doubl
     mDoubleVectorMap[aName] = std::move(aVector);
 }
 
+void PlatoKrinoApp::createAndWriteBoundingBoxMesh(const stk::math::Vector3d & aMinCorner,
+                                   const stk::math::Vector3d & aMmaxCorner,
+                                   const double &aMeshSize, const std::string &aFilename)
+{
+    mPlatoKrinoInterface.createAndWriteBoundingBoxMesh(aMinCorner,aMmaxCorner,aMeshSize,aFilename); 
+}
+unsigned int PlatoKrinoApp::getNumTetsInNamedBlock(const std::string &aBlockName)
+{
+    return mPlatoKrinoInterface.getNumTetsInNamedBlock(aBlockName); 
+}
+std::vector<double> PlatoKrinoApp::getLevelsetValues()
+{
+    return mPlatoKrinoInterface.getLevelsetValues(); 
+}
+void PlatoKrinoApp::writeMesh(const std::string& aFilename)
+{
+    mPlatoKrinoInterface.writeMesh(aFilename);
+}
+void PlatoKrinoApp::resetMesh()
+{
+    mPlatoKrinoInterface.resetMesh();
+}
 
 } // namespace Plato
 

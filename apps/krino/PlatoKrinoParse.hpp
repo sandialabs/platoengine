@@ -16,7 +16,7 @@ struct CommandLineOptions
     std::string mKrinoOperationsFileName{"plato_krino_operations.xml"};
     std::string mFieldMeshName{""};
     std::string mFieldName{""};
-    int mTimeStep{0};
+    int mFieldDataTimeStep{0};
     bool mExecuteInitialMesh{false};
     bool mIncludeVoidRegion{false};
 };

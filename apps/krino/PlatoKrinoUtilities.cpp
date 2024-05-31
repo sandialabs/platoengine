@@ -4,8 +4,6 @@
 #include <stk_util/environment/Env.hpp>
 #include <stk_util/diag/WriterRegistry.hpp>
 #include <stk_util/environment/OutputLog.hpp>
-//#include <Slib_Startup.h>                              
-//#include <Akri_Startup.hpp>
 #include <Akri_DiagWriter.hpp>
 
 namespace Plato::Krino
@@ -16,26 +14,28 @@ T getOrThrow(const Plato::InputData &aInputData,
              const std::string &aName,
              const std::string &aError)
 { 
+    T tReturnValue;
     if(aInputData.size<std::string>(aName) == 0)
     {
         throw std::runtime_error(aError.c_str());
     }
     if constexpr (std::is_same_v<T,bool>)
     {
-        return Plato::Get::Bool(aInputData, aName);
+        tReturnValue = Plato::Get::Bool(aInputData, aName);
     }
     else if constexpr (std::is_same_v<T,int>)
     {
-        return Plato::Get::Int(aInputData, aName);
+        tReturnValue = Plato::Get::Int(aInputData, aName);
     }
     else if constexpr (std::is_same_v<T,double>)
     {
-        return Plato::Get::Double(aInputData, aName);
+        tReturnValue = Plato::Get::Double(aInputData, aName);
     }
     else
     {
-        static_assert(std::is_same_v<T,bool> || std::is_same_v<T,int> || std::is_same_v<T,double>, "Invalid type in getOrThrow()");
+        throw std::runtime_error(aError.c_str());
     }
+    return tReturnValue;
 }
 
 void initializeSTKEnvironment(const MPI_Comm &aComm)
@@ -225,6 +225,35 @@ std::vector<Sphere> generateSpheres(const SpherePatternData &aData)
         }
     }
     return tSpheres;
+}
+
+std::map<unsigned int, stk::math::Vector3d> assembleGlobalIDToDFDXMap(
+		          const std::vector<double> &aDFDX,
+		          const std::vector<double> &aCutMeshGlobalNodeIDMap,
+			  const DFDXFormatting aDFDXFormatting)
+{
+    unsigned int tNumNodes = aCutMeshGlobalNodeIDMap.size();
+    
+    std::map<unsigned int, stk::math::Vector3d> tGlobalIDToDFDXMap;
+    for(unsigned int i=0; i<tNumNodes; ++i)
+    {
+        unsigned int tCurGlobalNodeID = aCutMeshGlobalNodeIDMap[i];
+        unsigned int tDFDXIndex = 0;
+	if(aDFDXFormatting == DFDXFormatting::GlobalID)
+        {
+            tDFDXIndex = 3*(tCurGlobalNodeID-1);
+	}
+	else if(aDFDXFormatting == DFDXFormatting::OneToN)
+	{
+            tDFDXIndex = 3*i;
+	}
+	else
+        {
+            throw std::runtime_error("ERROR: Unrecognized formatting for DFDX.");
+	}
+        tGlobalIDToDFDXMap[tCurGlobalNodeID] = {aDFDX[tDFDXIndex], aDFDX[tDFDXIndex+1], aDFDX[tDFDXIndex+2]};
+    }
+    return tGlobalIDToDFDXMap;
 }
 
 

@@ -1,4 +1,5 @@
 #include "Plato_InputData.hpp"
+#include <stk_math/StkVector.hpp>
 #include <mpi.h>
 
 #pragma once 
@@ -44,6 +45,12 @@ struct LevelsetPrimitives
     std::vector<Sphere> mSpheres;
 };
 
+enum struct DFDXFormatting
+{
+  GlobalID,
+  OneToN
+};
+
 void initializeKrinoLogging();
 void initializeSTKEnvironment(const MPI_Comm &aComm);
 LevelsetPrimitives readLevelsetInitializationData(Plato::InputData &aAppFileData);
@@ -59,6 +66,10 @@ void checkForReasonableSpherePatternDefinition(const SpherePatternData &aData);
 std::pair<double,double> calculateOverlappingSingleSphereLocatorData(const SpherePatternData &aPatternData, const size_t &aDimension);
 std::pair<double,double> calculateOverlappingManySphereLocatorData(const SpherePatternData &aPatternData, const size_t &aDimension);
 std::pair<double,double> calculateNonOverlappingSphereLocatorData(const SpherePatternData &aPatternData, const size_t &aDimension);
+std::map<unsigned int, stk::math::Vector3d> assembleGlobalIDToDFDXMap(const std::vector<double> &aDFDX,
+                          const std::vector<double> &aCutMeshGlobalNodeIDMap,
+                          const DFDXFormatting aDFDXFormatting);
+
 
 
 

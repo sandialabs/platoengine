@@ -19,7 +19,7 @@ bool parseCommandLineOptions(int aArgc, char *aArgv[], CommandLineOptions &aComm
     tCLP.setOption("krino_operations_file", &(aCommandLineOptions.mKrinoOperationsFileName), "Name of plato/krino operations file.");
     tCLP.setOption("field_mesh_name", &(aCommandLineOptions.mFieldMeshName), "Name of mesh containing field for initializing levelset values.");
     tCLP.setOption("field_name", &(aCommandLineOptions.mFieldName), "Name of field from which levelset values will be initialized.");
-    tCLP.setOption("time_step", &(aCommandLineOptions.mTimeStep), "Name of field from which levelset values will be initialized.");
+    tCLP.setOption("time_step", &(aCommandLineOptions.mFieldDataTimeStep), "Time step from which to initialize levelset values.");
     tCLP.setOption("execute_initial_mesh", "", &(aCommandLineOptions.mExecuteInitialMesh), "Specifies whether to create an initial cut mesh.");
     tCLP.setOption("include_void_region", "", &(aCommandLineOptions.mIncludeVoidRegion), "Specifies whether to include the void regions in the output mesh.");
 

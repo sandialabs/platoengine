@@ -34,6 +34,13 @@ public:
     void executeInitialMeshFromPrimitives();
     void executeInitialMeshFromField();
     void executeInitialMesh();
+    void createAndWriteBoundingBoxMesh(const stk::math::Vector3d & aMinCorner,
+                                       const stk::math::Vector3d & aMmaxCorner,
+                                       const double &aMeshSize, const std::string &aFilename);
+    unsigned int getNumTetsInNamedBlock(const std::string &aBlockName);
+    std::vector<double> getLevelsetValues();
+    void writeMesh(const std::string& aFilename);
+    void resetMesh();
 
 private:
     Plato::Interface *mInterface;
@@ -42,7 +49,7 @@ private:
     Plato::InputData mAppfileData;
     std::string mFieldMeshName;
     std::string mFieldName;
-    int mTimeStep;
+    int mFieldDataTimeStep;
     PlatoKrinoInterface mPlatoKrinoInterface;
     std::map<std::string, std::vector<double> > mDoubleVectorMap;
     std::unique_ptr<Plato::TimersTree> mTimersTree;
@@ -63,7 +70,7 @@ private:
     bool useFieldForInitialization();
     std::vector<double> getLevelsetValuesFromFieldInMesh();
     void setDFDLSInDataLayer(std::map<unsigned int, double> &aDFDLS);
-    std::map<unsigned int, stk::math::Vector3d> getDFDXFromDataLayer();
+    std::map<unsigned int, stk::math::Vector3d> getDFDXFromDataLayer(const DFDXFormatting aDFDXFormat);
     std::vector<double> getLevelsetValuesFromDataLayer();
     void setLevelsetValuesInDataLayer(std::vector<double> aValues);
     void initializeLocalSharedDataVariables();
@@ -79,7 +86,8 @@ private:
     void initializeLevelsets();
     void updateGeometry();
     void recalculateDistanceField();
-    void applyChainRule();
+    void applyChainRuleGlobalIDFormat();
+    void applyChainRule1ToNFormat();
     void communicateData(const Plato::SharedData& aSharedData, 
                          const std::vector<double> &aDataIn,
                          const DataTransferMode &aTransferMode,
