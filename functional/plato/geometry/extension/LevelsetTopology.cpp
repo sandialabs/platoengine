@@ -2,8 +2,6 @@
 
 #include <PlatoKrinoInterface.hpp>
 
-#include "plato/filter/library/FilterInterface.hpp"
-#include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -26,7 +24,7 @@ std::map<unsigned int, double> calculateDFDLS(
     std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP>::const_iterator tDXDPMapIter = aDXDP.begin();
     while (tDXDPMapIter != aDXDP.end())
     {
-        unsigned int tCurInterfaceNodeID = tDXDPMapIter->first;
+        const unsigned int tCurInterfaceNodeID = tDXDPMapIter->first;
         if (aDFDXMap.count(tCurInterfaceNodeID) == 0)
         {
             std::cout << "ERROR: Cut mesh interface global node id does not have a corresponding DFDX entry!"
@@ -36,7 +34,7 @@ std::map<unsigned int, double> calculateDFDLS(
 
         for (size_t j = 0; j < tDXDPMapIter->second.parentNodeIds.size(); ++j)
         {
-            unsigned int tCurBackgroundMeshNodeID = tDXDPMapIter->second.parentNodeIds[j];
+            const unsigned int tCurBackgroundMeshNodeID = tDXDPMapIter->second.parentNodeIds[j];
             double tContribution = 0.0;
             for (size_t w = 0; w < 3; ++w)
             {
@@ -102,18 +100,18 @@ LevelsetTopology::LevelsetTopology(const input_parser::levelset_topology& aInput
 
 void LevelsetTopology::generateLevelsetInitializationPrimitives()
 {
-    std::vector<Plato::Krino::Sphere> tSpheres = Plato::Krino::generateSpheres(mSpherePattern);
+    const std::vector<Plato::Krino::Sphere> tSpheres = Plato::Krino::generateSpheres(mSpherePattern);
     mLevelsetPrimitives.mSpheres.insert(mLevelsetPrimitives.mSpheres.end(), tSpheres.begin(), tSpheres.end());
-    ;
 }
 
-std::pair<std::vector<double>, std::vector<double>> LevelsetTopology::bounds(const std::filesystem::path& aMeshFileName)
+std::pair<std::vector<double>, std::vector<double>> LevelsetTopology::bounds(
+    const std::filesystem::path& aMeshFileName) const
 {
     const unsigned int tNumNodes = plato::utilities::read_mesh_node_size(aMeshFileName);
     return {std::vector<double>(tNumNodes, kLevelsetLowerBound), std::vector<double>(tNumNodes, kLevelsetUpperBound)};
 }
 
-linear_algebra::DynamicVector<double> LevelsetTopology::initialGuess(const std::filesystem::path& aMeshFileName)
+linear_algebra::DynamicVector<double> LevelsetTopology::initialGuess(const std::filesystem::path& aMeshFileName) const
 {
     Plato::Krino::PlatoKrinoInterface tPlatoKrinoInterface;
     std::vector<double> tCurLevelsetValues =
@@ -139,15 +137,15 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
          &aDesignParameters](const linear_algebra::DynamicVector<double>& x)
         {
             Plato::Krino::PlatoKrinoInterface tPlatoKrinoInterface;
-            std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP> tDXDP =
+            const std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP> tDXDP =
                 tPlatoKrinoInterface.cut_mesh_and_return_sensitivities(mBackgroundMesh, mCutMesh,
                                                                        aDesignParameters.stdVector());
             const std::vector<unsigned int> tGlobalNodeIDs = utilities::extract_global_node_ids(mCutMesh);
-            std::map<unsigned int, stk::math::Vector3d> tDFDXMap = Plato::Krino::assembleGlobalIDToDFDXMap(
+            const std::map<unsigned int, stk::math::Vector3d> tDFDXMap = Plato::Krino::assembleGlobalIDToDFDXMap(
                 x.stdVector(), tGlobalNodeIDs, Plato::Krino::DFDXFormatting::OneToN);
-            std::map<unsigned int, double> tDFDLS = calculateDFDLS(tDFDXMap, tDXDP);
+            const std::map<unsigned int, double> tDFDLS = calculateDFDLS(tDFDXMap, tDXDP);
             std::vector<double> tDFDLSVector(tDFDLS.size());
-            std::map<unsigned int, double>::iterator it = tDFDLS.begin();
+            std::map<unsigned int, double>::const_iterator it = tDFDLS.begin();
             for (size_t i = 0; i < tDFDLSVector.size(); i++)
             {
                 tDFDLSVector[i] = it->second;

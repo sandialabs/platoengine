@@ -1,15 +1,12 @@
 #ifndef PLATO_GEOMETRY_EXTENSION_LEVELSETTOPOLOGY
 #define PLATO_GEOMETRY_EXTENSION_LEVELSETTOPOLOGY
 
-#include <PlatoKrinoInterface.hpp>
 #include <PlatoKrinoUtilities.hpp>
 #include <filesystem>
 #include <optional>
 
 #include "plato/core/Function.hpp"
 #include "plato/core/MeshProxy.hpp"
-#include "plato/core/ValidationRegistration.hpp"
-#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
@@ -36,8 +33,8 @@ class LevelsetTopology
     explicit LevelsetTopology(const input_parser::levelset_topology& aInput);
 
     [[nodiscard]] std::pair<std::vector<double>, std::vector<double>> bounds(
-        const std::filesystem::path& aMeshFileName);
-    [[nodiscard]] linear_algebra::DynamicVector<double> initialGuess(const std::filesystem::path& aMeshFileName);
+        const std::filesystem::path& aMeshFileName) const;
+    [[nodiscard]] linear_algebra::DynamicVector<double> initialGuess(const std::filesystem::path& aMeshFileName) const;
     [[nodiscard]] core::MeshProxy generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const;
     static void output(const std::filesystem::path& aInputMeshName,
                        const linear_algebra::DynamicVector<double>& aSolution,

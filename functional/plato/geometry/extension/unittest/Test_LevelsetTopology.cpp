@@ -53,12 +53,12 @@ class PlatoTestKrino : public ::testing::Test
 TEST_F(PlatoTestKrino, LevelsetTopology_Jacobian)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mName, 1.0);
-    LevelsetTopology tLevelsetTopology(kLevelsetInput);
+    const LevelsetTopology tLevelsetTopology(kLevelsetInput);
     const linear_algebra::DynamicVector<double> tInitialGuess =
         tLevelsetTopology.initialGuess(kLevelsetInput.background_mesh_name->mName);
     const linear_algebra::JacobianMultiplier tJacobian = tLevelsetTopology.jacobian(tInitialGuess);
 
-    unsigned int tDFDXSize = 3 * utilities::read_mesh_node_size(kLevelsetInput.cut_mesh_name->mName);
+    const unsigned int tDFDXSize = 3 * utilities::read_mesh_node_size(kLevelsetInput.cut_mesh_name->mName);
     const std::vector<double> tDFDX(tDFDXSize, 1.0);
     const linear_algebra::DynamicVector<double> tDFDXDynVec(tDFDX);
 
@@ -67,7 +67,7 @@ TEST_F(PlatoTestKrino, LevelsetTopology_Jacobian)
     const std::vector<double> tGold{0.5, 0.166667, 0.166667, -0.166667,   0.166667, -0.166667, -0.166667, -0.5,
                                     0.5, 0.5,      0.5,      1.11022e-16, -0.5,     -0.5,      -0.5};
     EXPECT_EQ(tRes.size(), tGold.size());
-    double tTol = 1e-6;
+    constexpr double tTol = 1e-6;
     for (size_t i = 0; i < tGold.size(); ++i)
     {
         EXPECT_NEAR(tRes[i], tGold[i], tTol);
@@ -79,7 +79,7 @@ TEST_F(PlatoTestKrino, LevelsetTopology_Jacobian)
 TEST_F(PlatoTestKrino, LevelsetTopology_GenerateMesh)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mName, 0.5);
-    LevelsetTopology tLevelsetTopology(kLevelsetInput);
+    const LevelsetTopology tLevelsetTopology(kLevelsetInput);
     // Calling initialGuess() will create an initial cut mesh with
     // the default sphere pattern defined in kLevelsetInput
     const linear_algebra::DynamicVector<double> tInitialGuess =
@@ -110,7 +110,7 @@ TEST_F(PlatoTestKrino, LevelsetTopology_InitialGuess)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mName, 0.5);
 
-    LevelsetTopology tLevelsetTopology(kLevelsetInput);
+    const LevelsetTopology tLevelsetTopology(kLevelsetInput);
     const linear_algebra::DynamicVector<double> tInitialGuess =
         tLevelsetTopology.initialGuess(kLevelsetInput.background_mesh_name->mName);
 
@@ -133,7 +133,7 @@ TEST_F(PlatoTestKrino, LevelsetTopology_InitialGuess)
 TEST_F(PlatoTestKrino, LevelsetTopology_Bounds)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mName, 0.5);
-    LevelsetTopology tLevelsetTopology(kLevelsetInput);
+    const LevelsetTopology tLevelsetTopology(kLevelsetInput);
     const auto [tLowerBounds, tUpperBounds] = tLevelsetTopology.bounds(kLevelsetInput.background_mesh_name->mName);
 
     EXPECT_EQ(tLowerBounds.size(), kExpectedBackgroundLevelsetSize);
