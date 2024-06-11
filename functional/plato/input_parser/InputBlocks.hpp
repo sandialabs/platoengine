@@ -91,6 +91,24 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (double, boundary_sticking_penalty)
 )
 
+PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), levelset_topology,
+    (plato::input_parser::FileName, background_mesh_name)
+    (plato::input_parser::FileName, cut_mesh_name)
+    (plato::input_parser::FileName, output_mesh_name)
+    (double, sphere_pattern_bbox_min_x)
+    (double, sphere_pattern_bbox_min_y)
+    (double, sphere_pattern_bbox_min_z)
+    (double, sphere_pattern_bbox_max_x)
+    (double, sphere_pattern_bbox_max_y)
+    (double, sphere_pattern_bbox_max_z)
+    (double, sphere_pattern_radius)
+    (int, sphere_pattern_num_x)
+    (int, sphere_pattern_num_y)
+    (int, sphere_pattern_num_z)
+    (bool, sphere_pattern_overlap_bbox)
+)
+
 /// ParsedInput is the in-memory representation of a parsed input deck.
 /// To add new blocks, use PLATO_INPUT_BLOCK_STRUCT or PLATO_NAMED_INPUT_BLOCK_STRUCT
 /// macros. The `NAMED` version is for blocks that can have multiple instantiations
@@ -101,6 +119,7 @@ BOOST_FUSION_DEFINE_STRUCT(
     (std::vector<plato::input_parser::constraint>, mConstraints)
     (boost::optional<plato::input_parser::brick_shape_geometry>, mBrickShapeGeometry)
     (boost::optional<plato::input_parser::density_topology>, mDensityTopology)
+    (boost::optional<plato::input_parser::levelset_topology>, mLevelsetTopology)
     (boost::optional<plato::input_parser::rol_optimization>, mROLOptimization)
     (boost::optional<plato::input_parser::gradient_check>, mGradientCheck)
     (boost::optional<plato::input_parser::sensitivity_check>, mSensitivityCheck)

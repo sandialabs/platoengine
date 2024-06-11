@@ -161,4 +161,21 @@ void write_mesh_density(const std::filesystem::path& aInputMeshName,
     write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);
 }
 
+std::vector<unsigned int> extract_global_node_ids(const std::string& aFilename)
+{
+    std::vector<unsigned int> tNodeIDs;
+
+    std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker = create_input_mesh_broker(aFilename);
+    tIOBroker->populate_bulk_data();
+
+    const Ioss::NodeBlockContainer& tNodeBlocks = tIOBroker->get_input_ioss_region()->get_node_blocks();
+    if (tNodeBlocks.size() == 1)
+    {
+        const Ioss::NodeBlock* const tNB = tNodeBlocks[0];
+        tNB->get_field_data("ids", tNodeIDs);
+    }
+
+    return tNodeIDs;
+}
+
 }  // namespace plato::utilities

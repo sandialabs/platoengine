@@ -12,8 +12,9 @@ SET(HDRS PlatoKrinoEnums.hpp
          PlatoKrinoUtilities.hpp)
 
 # LIBRARY
-add_library(PlatoKrinoLib ${LIB_SRCS} ${HDRS})
+add_library(PlatoKrinoLib SHARED ${LIB_SRCS} ${HDRS})
 target_link_libraries(PlatoKrinoLib PUBLIC PlatoInterface Krino::krino_lib)
+target_include_directories(PlatoKrinoLib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 install(TARGETS PlatoKrinoLib EXPORT PlatoEngine DESTINATION lib)
 
 # EXE

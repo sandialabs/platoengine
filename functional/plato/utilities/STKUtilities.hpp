@@ -29,6 +29,8 @@ void write_mesh(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mes
 
 [[nodiscard]] std::vector<double> read_mesh_density(const std::filesystem::path& aMeshName);
 
+[[nodiscard]] std::vector<unsigned int> extract_global_node_ids(const std::string& aFilename);
+
 void write_mesh_density(const std::filesystem::path& aInputMeshName,
                         const std::vector<double>& aDensity,
                         const std::filesystem::path& aOutputMeshName);

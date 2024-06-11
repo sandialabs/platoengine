@@ -6,6 +6,7 @@
 #include <Akri_MeshFromFile.hpp>
 #include <stk_mesh/base/MetaData.hpp>
 #include "PlatoKrinoUtilities.hpp"
+#include "stk_mesh/base/Types.hpp"
 
 #pragma once 
 
@@ -27,10 +28,22 @@ struct DFDX
     stk::math::Vector3d Sensitivity;
 };
 
+struct InterfaceNode_DXDP
+{
+  std::vector<stk::mesh::EntityId> parentNodeIds;
+  std::vector<stk::math::Vector3d> parentDXDP;
+};
+
 class PlatoKrinoInterface
 {
 
 public:
+    std::map<stk::mesh::EntityId, InterfaceNode_DXDP> cut_mesh_and_return_sensitivities(const std::string &aBackgroundMeshName,
+                         const std::string &aCutMesh, const std::vector<double> &aLevelsetValues);
+    std::vector<double> initialize_mesh_with_levelset_primitives_and_return_levelset_values(
+                  const std::string &aBackgroundMeshName,
+                  const std::string &aCutMesh, 
+                  const LevelsetPrimitives &aLevelsetPrimitives);
 
     // API functions used in PlatoKrinoApp in an optimization run
 
@@ -48,6 +61,7 @@ public:
     unsigned int getUncutBackgroundMeshSize() { return mUncutBackgroundMeshSize; }
     std::vector<double> getLevelsetValues();
     void setLevelsetValues(const std::vector<double> &aValuesIn);
+    void setLevelsetValues_parallel(const std::vector<double> &aValuesIn);
     stk::mesh::BulkData* bulkData(){return mBulkData;} 
     void includeVoidRegion(const bool aValue) { mIncludeVoidRegion = aValue; }
     bool includeVoidRegion() { return mIncludeVoidRegion; }
@@ -71,7 +85,7 @@ private:
     std::unique_ptr<krino::BoundingBoxMesh> mBoundingBoxMesh;
     std::unique_ptr<krino::MeshFromFile> mMeshFromFile;
     std::vector<krino::LS_Field> mLSFields;
-    std::vector<LevelSetShapeSensitivity> mSensitivities;
+    std::map<stk::mesh::EntityId, InterfaceNode_DXDP> mSensitivities;
     stk::mesh::BulkData *mBulkData;
     unsigned int mUncutBackgroundMeshSize;
     krino::LevelSet *mLevelSet=nullptr;
@@ -91,7 +105,7 @@ private:
     void initialize_levelset_fields_from_primitives(const stk::mesh::BulkData & mesh, krino::FieldRef levelSetField,
                                                     const LevelsetPrimitives &aLevelsetPrimitives);
     void decompose_mesh_to_conform_to_levelsets(stk::mesh::BulkData & mesh, const std::vector<krino::LS_Field> & lsFields);
-    std::vector<LevelSetShapeSensitivity> get_levelset_shape_sensitivities(const stk::mesh::BulkData & mesh, const krino::FieldRef levelSetField);
+    std::map<stk::mesh::EntityId, InterfaceNode_DXDP> get_levelset_shape_sensitivities(const stk::mesh::BulkData & mesh, const krino::FieldRef levelSetField);
     void fill_node_ids_for_nodes(const stk::mesh::BulkData & mesh, const std::vector<stk::mesh::Entity> & parentNodes, std::vector<stk::mesh::EntityId> & parentNodeIds);
     void fill_d_coords_d_levelsets(const krino::FieldRef coordsField, const krino::FieldRef levelSetField, const std::vector<stk::mesh::Entity> & parentNodes, 
                                    /*const std::vector<double> & parentWeights,*/ std::vector<stk::math::Vector3d> & dCoordsdParentLevelSets);
@@ -102,6 +116,7 @@ private:
 
     // Private functions
     bool includeVoidRegionPart(const stk::mesh::Part* aPart);
+    std::map<stk::mesh::EntityId, InterfaceNode_DXDP> convertSensitivitiesToMap();
 
 };
 

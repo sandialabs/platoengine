@@ -14,7 +14,31 @@
 #include <stk_util/environment/EnvData.hpp>
 #include <stk_util/diag/Timer.hpp>
 
-using namespace Plato::Krino;
+namespace Plato::Krino
+{
+
+std::map<stk::mesh::EntityId, InterfaceNode_DXDP> PlatoKrinoInterface::cut_mesh_and_return_sensitivities(const std::string &aBackgroundMeshName,
+                  const std::string &aCutMesh, const std::vector<double> &aLevelsetValues)
+{
+    readAndSetupMeshForDecomposition(aBackgroundMeshName); 
+    setLevelsetValues(aLevelsetValues);
+    cutMesh();
+    getSensitivities();
+    writeMesh(aCutMesh);
+    return mSensitivities;
+}
+
+std::vector<double> PlatoKrinoInterface::initialize_mesh_with_levelset_primitives_and_return_levelset_values(
+                  const std::string &aBackgroundMeshName,
+                  const std::string &aCutMesh, 
+                  const LevelsetPrimitives &aLevelsetPrimitives)
+{
+    readAndSetupMeshForDecomposition(aBackgroundMeshName); 
+    initializeLevelsetsFromPrimitives(aLevelsetPrimitives);
+    cutMesh();
+    writeMesh(aCutMesh);
+    return getLevelsetValues();
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // These functions all need to be provided through the krino namespace.
@@ -77,7 +101,7 @@ stk::mesh::Selector PlatoKrinoInterface::build_output_selector(const stk::mesh::
     return activePart & stk::mesh::selectUnion(outputParts);
 }
 
-std::vector<LevelSetShapeSensitivity> PlatoKrinoInterface::get_levelset_shape_sensitivities(const stk::mesh::BulkData & mesh, const krino::FieldRef levelSetField)
+std::map<stk::mesh::EntityId, InterfaceNode_DXDP> PlatoKrinoInterface::get_levelset_shape_sensitivities(const stk::mesh::BulkData & mesh, const krino::FieldRef levelSetField)
 {
   const krino::FieldRef coordsField = mesh.mesh_meta_data().coordinate_field();
   const krino::CDFEM_Support & cdfemSupport = krino::CDFEM_Support::get(mesh.mesh_meta_data());
@@ -87,16 +111,15 @@ std::vector<LevelSetShapeSensitivity> PlatoKrinoInterface::get_levelset_shape_se
   std::vector<stk::mesh::EntityId> parentNodeIds;
   std::vector<stk::math::Vector3d> dCoordsdParentLevelSets;
 
-  std::vector<LevelSetShapeSensitivity> shapeSensitivities;
-  shapeSensitivities.reserve(childNodeStencils.size());
+  std::map<stk::mesh::EntityId, InterfaceNode_DXDP> tSensitivityMap;
   for (auto & stencil : childNodeStencils)
   {
     fill_node_ids_for_nodes(mesh, stencil.parentNodes, parentNodeIds);
     fill_d_coords_d_levelsets(coordsField, levelSetField, stencil.parentNodes, /*stencil.parentWeights,*/ dCoordsdParentLevelSets);
-    shapeSensitivities.emplace_back(mesh.identifier(stencil.childNode), parentNodeIds, dCoordsdParentLevelSets);
+    tSensitivityMap[mesh.identifier(stencil.childNode)] = InterfaceNode_DXDP{parentNodeIds, dCoordsdParentLevelSets};
   }
 
-  return shapeSensitivities;
+  return tSensitivityMap;
 }
 
 void PlatoKrinoInterface::generate_and_write_bounding_box_mesh(const stk::topology elemTopology, 
@@ -246,16 +269,16 @@ std::unordered_map<unsigned int, stk::math::Vector3d> PlatoKrinoInterface::predi
                             std::unordered_map<unsigned int, stk::math::Vector3d> &aCoordVals, const double &aPerturbation)
 {
     std::unordered_map<unsigned int, stk::math::Vector3d> tPredictedCoordinateValues;
-    tPredictedCoordinateValues.clear();
-    for (auto & sens : mSensitivities)
+    std::map<stk::mesh::EntityId, InterfaceNode_DXDP>::iterator tMapIter = mSensitivities.begin();
+    while (tMapIter != mSensitivities.end())
     {
-        unsigned int tInterfaceNodeID = sens.interfaceNodeId;
+        unsigned int tInterfaceNodeID = tMapIter->first;
         double dCoord[3] = {0,0,0};
-        for(size_t i=0; i<sens.parentNodeIds.size(); ++i)
+        for(size_t i=0; i<tMapIter->second.parentNodeIds.size(); ++i)
         {
             for(size_t j=0; j<3; ++j)
             {
-                dCoord[j] += aPerturbation*sens.dCoordsdParentLevelSets[i][j];
+                dCoord[j] += aPerturbation*tMapIter->second.parentDXDP[i][j];
             }
         }
         for(size_t j=0; j<3; ++j)
@@ -263,7 +286,7 @@ std::unordered_map<unsigned int, stk::math::Vector3d> PlatoKrinoInterface::predi
             tPredictedCoordinateValues[tInterfaceNodeID][j] = 
                        aCoordVals[tInterfaceNodeID][j]+dCoord[j];
         }
-        
+        tMapIter++;
     }
     // now add coords for nodes that weren't on the interface (ones
     // we don't have sensitivities for)
@@ -284,22 +307,23 @@ std::map<unsigned int, double> PlatoKrinoInterface::calculateDFDLS(std::map<unsi
     {
         tDFDLS[i+1] = 0.0;
     }
-    for(size_t i=0; i<mSensitivities.size(); i++)
+    std::map<stk::mesh::EntityId, InterfaceNode_DXDP>::iterator tMapIter = mSensitivities.begin();
+    while(tMapIter != mSensitivities.end()) 
     {
-        unsigned int tCurInterfaceNodeID = mSensitivities[i].interfaceNodeId;
+        unsigned int tCurInterfaceNodeID = tMapIter->first;
         if(aDFDX.count(tCurInterfaceNodeID) == 0)
         {
             std::cout << "ERROR: Cut mesh interface global node id does not have a corresponding DFDX entry!" << std::endl;
             throw 1;
         }
 
-        for(size_t j=0; j<mSensitivities[i].parentNodeIds.size(); ++j)
+        for(size_t j=0; j<tMapIter->second.parentNodeIds.size(); ++j)
         {
-            unsigned int tCurBackgroundMeshNodeID = mSensitivities[i].parentNodeIds[j];
+            unsigned int tCurBackgroundMeshNodeID = tMapIter->second.parentNodeIds[j];
             double tContribution = 0.0;
             for(size_t w=0; w<3; ++w)
             {
-                tContribution += aDFDX[tCurInterfaceNodeID][w] * mSensitivities[i].dCoordsdParentLevelSets[j][w];
+                tContribution += aDFDX[tCurInterfaceNodeID][w] * tMapIter->second.parentDXDP[j][w];
             }
             if(tDFDLS.count(tCurBackgroundMeshNodeID))
             {
@@ -310,6 +334,7 @@ std::map<unsigned int, double> PlatoKrinoInterface::calculateDFDLS(std::map<unsi
                 tDFDLS[tCurBackgroundMeshNodeID] = tContribution;
             }
         }
+        tMapIter++;
     }
     return tDFDLS;
 }
@@ -342,6 +367,7 @@ unsigned int PlatoKrinoInterface::getNumTetsInNamedBlock(const std::string &aBlo
 void PlatoKrinoInterface::setSensitivities(const std::vector<std::pair<unsigned int, std::vector<std::pair<
                                                 unsigned int, stk::math::Vector3d>>>> &aSensitivities)
 {
+    mSensitivities.clear();
     for(auto tCurSens : aSensitivities)
     {
         std::vector<stk::mesh::EntityId> tParentIds;
@@ -351,8 +377,7 @@ void PlatoKrinoInterface::setSensitivities(const std::vector<std::pair<unsigned 
             tParentIds.push_back(tCurParent.first);
             tParentLevelSets.push_back(tCurParent.second);
         }
-        LevelSetShapeSensitivity tNewSens(tCurSens.first, tParentIds, tParentLevelSets);
-        mSensitivities.push_back(tNewSens);
+        mSensitivities[tCurSens.first] = InterfaceNode_DXDP{tParentIds, tParentLevelSets};
     }
 }
 
@@ -420,13 +445,28 @@ void PlatoKrinoInterface::setLevelsetValues(const std::vector<double> &aValuesIn
     }
 }
 
+void PlatoKrinoInterface::setLevelsetValues_parallel(const std::vector<double> &aValuesIn)
+{
+    krino::CDFEM_Support & cdfemSupport = krino::CDFEM_Support::get(mBulkData->mesh_meta_data());
+    stk::mesh::Selector tSelector = stk::mesh::selectField(mLSFields[0].isovar) & !cdfemSupport.get_child_node_part();
+    stk::mesh::EntityVector tNodes;
+    stk::mesh::get_selected_entities(tSelector, mBulkData->buckets(stk::topology::NODE_RANK), tNodes);
+    for(size_t i=0; i<tNodes.size(); ++i)
+    {
+        auto tCurNode = tNodes[i];
+        unsigned int tGlobalNodeID = mBulkData->identifier(tCurNode);
+        double *dist = krino::field_data<double>(mLSFields[0].isovar, tCurNode);
+        *dist = aValuesIn[tGlobalNodeID-1];
+    }
+}
+
 void PlatoKrinoInterface::redistance()
 {
     mLevelSet->redistance();
 }
 
 
-
+}
 
 
 

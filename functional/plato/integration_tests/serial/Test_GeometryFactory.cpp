@@ -15,6 +15,7 @@ TEST(GeometryFactory, BrickGeometry)
                                   /*.mConstraints=*/{pftu::create_valid_example_constraint()},
                                   /*.mBrickShapeGeometry=*/pftu::create_valid_brick_shape_geometry(),
                                   /*.mDensityTopology = */ boost::none,
+                                  /*.mLevelsetTopology = */ boost::none,
                                   /*.mROLOptimization = */ pftu::create_valid_example_rol_optimization(),
                                   /*.mGradientCheck = */ boost::none,
                                   /*.mSensitivityCheck = */ boost::none};

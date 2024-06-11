@@ -69,6 +69,9 @@ std::pair<double,double> calculateNonOverlappingSphereLocatorData(const SpherePa
 std::map<unsigned int, stk::math::Vector3d> assembleGlobalIDToDFDXMap(const std::vector<double> &aDFDX,
                           const std::vector<double> &aCutMeshGlobalNodeIDMap,
                           const DFDXFormatting aDFDXFormatting);
+std::map<unsigned int, stk::math::Vector3d> assembleGlobalIDToDFDXMap(const std::vector<double> &aDFDX,
+                          const std::vector<unsigned int> &aCutMeshGlobalNodeIDMap,
+                          const DFDXFormatting aDFDXFormatting);
 
 
 

@@ -47,6 +47,7 @@ input_parser::ParsedInput create_valid_example_input()
                                      /*.mConstraints=*/{create_valid_example_constraint()},
                                      /*.mBrickShapeGeometry=*/boost::none,
                                      /*.mDensityTopology = */ create_valid_density_topology_geometry(),
+                                     /*.mLevelsetTopology = */ create_valid_levelset_topology_geometry(),
                                      /*.mROLOptimization = */ create_valid_example_rol_optimization(),
                                      /*.mGradientCheck=*/boost::none,
                                      /*.mSensitivityCheck=*/boost::none};
@@ -97,6 +98,35 @@ std::string create_valid_density_topology_geometry_string()
           mesh_name my_mesh.exo
           output_name test_out.exo
           filter_type identity
+        end
+        )";
+}
+
+input_parser::levelset_topology create_valid_levelset_topology_geometry()
+{
+    return input_parser::levelset_topology{/*.background_mesh_name = */ input_parser::FileName{"bg.exo"},
+                                           /*.cut_mesh_name = */ input_parser::FileName{"cut.exo"},
+                                           /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
+                                           /*.sphere_pattern_bbox_min_x = */ 0.0,
+                                           /*.sphere_pattern_bbox_min_y = */ 0.0,
+                                           /*.sphere_pattern_bbox_min_z = */ 0.0,
+                                           /*.sphere_pattern_bbox_max_x = */ 1.0,
+                                           /*.sphere_pattern_bbox_max_y = */ 1.0,
+                                           /*.sphere_pattern_bbox_max_z = */ 1.0,
+                                           /*.sphere_pattern_radius = */ 0.25,
+                                           /*.sphere_pattern_num_x = */ 1,
+                                           /*.sphere_pattern_num_y = */ 1,
+                                           /*.sphere_pattern_num_z = */ 1,
+                                           /*.sphere_pattern_overlap_bbox = */ false};
+}
+
+std::string create_valid_levelset_topology_geometry_string()
+{
+    return R"(
+        begin levelset_topology
+          background_mesh_name bg.exo
+          cut_mesh_name cut.exo
+          output_mesh_name out.exo
         end
         )";
 }

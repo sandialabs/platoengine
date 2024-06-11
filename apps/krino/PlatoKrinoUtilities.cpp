@@ -256,5 +256,33 @@ std::map<unsigned int, stk::math::Vector3d> assembleGlobalIDToDFDXMap(
     return tGlobalIDToDFDXMap;
 }
 
+std::map<unsigned int, stk::math::Vector3d> assembleGlobalIDToDFDXMap(
+		          const std::vector<double> &aDFDX,
+		          const std::vector<unsigned int> &aCutMeshGlobalNodeIDMap,
+			  const DFDXFormatting aDFDXFormatting)
+{
+    unsigned int tNumNodes = aCutMeshGlobalNodeIDMap.size();
+    
+    std::map<unsigned int, stk::math::Vector3d> tGlobalIDToDFDXMap;
+    for(unsigned int i=0; i<tNumNodes; ++i)
+    {
+        unsigned int tCurGlobalNodeID = aCutMeshGlobalNodeIDMap[i];
+        unsigned int tDFDXIndex = 0;
+	if(aDFDXFormatting == DFDXFormatting::GlobalID)
+        {
+            tDFDXIndex = 3*(tCurGlobalNodeID-1);
+	}
+	else if(aDFDXFormatting == DFDXFormatting::OneToN)
+	{
+            tDFDXIndex = 3*i;
+	}
+	else
+        {
+            throw std::runtime_error("ERROR: Unrecognized formatting for DFDX.");
+	}
+        tGlobalIDToDFDXMap[tCurGlobalNodeID] = {aDFDX[tDFDXIndex], aDFDX[tDFDXIndex+1], aDFDX[tDFDXIndex+2]};
+    }
+    return tGlobalIDToDFDXMap;
+}
 
 }

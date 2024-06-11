@@ -23,6 +23,9 @@ void create_input_file(const std::filesystem::path& aTestFileName);
 [[nodiscard]] input_parser::density_topology create_valid_density_topology_geometry();
 [[nodiscard]] std::string create_valid_density_topology_geometry_string();
 
+[[nodiscard]] input_parser::levelset_topology create_valid_levelset_topology_geometry();
+[[nodiscard]] std::string create_valid_levelset_topology_geometry_string();
+
 [[nodiscard]] input_parser::objective create_valid_example_objective();
 [[nodiscard]] std::string create_valid_example_objective_string();
 [[nodiscard]] std::string create_valid_example_custom_app_objective_string();
