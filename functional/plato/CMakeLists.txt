@@ -16,6 +16,7 @@ add_subdirectory(./criteria)
 add_subdirectory(./rol_integration)
 add_subdirectory(./process_manager)
 add_subdirectory(./main)
+add_subdirectory(./krino_integration)
 
 if( UNIT_TESTING )
   add_subdirectory(./test_utilities)

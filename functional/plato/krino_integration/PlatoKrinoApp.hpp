@@ -1,18 +1,20 @@
-#include <vector>
+#include <Epetra_Export.h>
+#include <Epetra_Map.h>
+#include <Epetra_MpiComm.h>
+#include <Epetra_Vector.h>
+
 #include <Plato_Application.hpp>
+#include <Plato_InputData.hpp>
 #include <Plato_Interface.hpp>
 #include <Plato_SharedData.hpp>
 #include <Plato_TimersTree.hpp>
-#include <Plato_InputData.hpp>
-#include "PlatoKrinoInterface.hpp"
-#include "PlatoKrinoEnums.hpp"
-#include "PlatoKrinoParse.hpp"
-#include <Epetra_MpiComm.h>
-#include <Epetra_Map.h>
-#include <Epetra_Vector.h>
-#include <Epetra_Export.h>
+#include <vector>
 
-#pragma once 
+#include "PlatoKrinoEnums.hpp"
+#include "PlatoKrinoInterface.hpp"
+#include "PlatoKrinoParse.hpp"
+
+#pragma once
 
 using namespace Plato::Krino;
 
@@ -23,26 +25,27 @@ namespace Plato
 class PlatoKrinoApp : public Plato::Application
 /**********************************************************************/
 {
-public:
+   public:
     explicit PlatoKrinoApp(Plato::Interface *aInterface, const CommandLineOptions &aOptions);
     void finalize() override;
     void initialize() override;
     void compute(const std::string &aName) override;
-    void importData(const std::string &aName, const Plato::SharedData& tSharedData) override;
-    void exportData(const std::string &aName, Plato::SharedData& tSharedData) override;
-    void exportDataMap(const Plato::data::layout_t & aDataLayout, std::vector<int> & aMyOwnedGlobalIDs) override;
+    void importData(const std::string &aName, const Plato::SharedData &tSharedData) override;
+    void exportData(const std::string &aName, Plato::SharedData &tSharedData) override;
+    void exportDataMap(const Plato::data::layout_t &aDataLayout, std::vector<int> &aMyOwnedGlobalIDs) override;
     void executeInitialMeshFromPrimitives();
     void executeInitialMeshFromField();
     void executeInitialMesh();
-    void createAndWriteBoundingBoxMesh(const stk::math::Vector3d & aMinCorner,
-                                       const stk::math::Vector3d & aMmaxCorner,
-                                       const double &aMeshSize, const std::string &aFilename);
+    void createAndWriteBoundingBoxMesh(const stk::math::Vector3d &aMinCorner,
+                                       const stk::math::Vector3d &aMmaxCorner,
+                                       const double &aMeshSize,
+                                       const std::string &aFilename);
     unsigned int getNumTetsInNamedBlock(const std::string &aBlockName);
     std::vector<double> getLevelsetValues();
-    void writeMesh(const std::string& aFilename);
+    void writeMesh(const std::string &aFilename);
     void resetMesh();
 
-private:
+   private:
     Plato::Interface *mInterface;
     std::string mBGMeshFilename;
     std::string mCutMeshFilename;
@@ -63,10 +66,10 @@ private:
     std::vector<double> mCoordMaxes;
     std::vector<int> mNumSpheres;
     double mSphereRadius;
-    std::vector<int> mLocallyOwnedKrinoNodes; 
+    std::vector<int> mLocallyOwnedKrinoNodes;
     LevelsetPrimitives mLevelsetPrimitives;
 
-private:
+   private:
     bool useFieldForInitialization();
     std::vector<double> getLevelsetValuesFromFieldInMesh();
     void setDFDLSInDataLayer(std::map<unsigned int, double> &aDFDLS);
@@ -74,33 +77,30 @@ private:
     std::vector<double> getLevelsetValuesFromDataLayer();
     void setLevelsetValuesInDataLayer(std::vector<double> aValues);
     void initializeLocalSharedDataVariables();
-    void setDoubleVector(const std::string & aName, std::vector<double> aVector);
+    void setDoubleVector(const std::string &aName, std::vector<double> aVector);
     int getDoubleVectorSize(const std::string &aName);
     bool doesDoubleVectorExist(const std::string &aName);
     std::vector<double> getDoubleVector(const std::string &aName);
-    void buildParallelNodeMaps(std::vector<int> &aLocallyOwnedNodes,
-                                   std::vector<int> &aAllLocalNodes);
+    void buildParallelNodeMaps(std::vector<int> &aLocallyOwnedNodes, std::vector<int> &aAllLocalNodes);
     void buildParallelMaps();
-    void parallelFieldFromLocallyOwnedToLocal(const std::vector<double>& aLocallyOwnedField, std::vector<double>& aLocalField);
-    void parallelFieldFromLocalToLocallyOwned(const std::vector<double>& aLocalField, std::vector<double>& aLocallyOwnedField);
+    void parallelFieldFromLocallyOwnedToLocal(const std::vector<double> &aLocallyOwnedField,
+                                              std::vector<double> &aLocalField);
+    void parallelFieldFromLocalToLocallyOwned(const std::vector<double> &aLocalField,
+                                              std::vector<double> &aLocallyOwnedField);
     void initializeLevelsets();
     void updateGeometry();
     void recalculateDistanceField();
     void applyChainRuleGlobalIDFormat();
     void applyChainRule1ToNFormat();
-    void communicateData(const Plato::SharedData& aSharedData, 
+    void communicateData(const Plato::SharedData &aSharedData,
                          const std::vector<double> &aDataIn,
                          const DataTransferMode &aTransferMode,
                          std::vector<double> &aDataOut);
     void communicateScalarFieldData(const std::vector<double> &aDataIn,
                                     const DataTransferMode &aTransferMode,
                                     std::vector<double> &aDataOut);
-    int getSharedDataSize(const std::string &aName, const Plato::SharedData& aSharedData);
-    Plato::InputData parseAppFile(const std::string& aFile);
-
-
-
+    int getSharedDataSize(const std::string &aName, const Plato::SharedData &aSharedData);
+    Plato::InputData parseAppFile(const std::string &aFile);
 };
 
-} // namespace Plato
-
+}  // namespace Plato

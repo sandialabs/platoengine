@@ -146,16 +146,6 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
         [tMeshProxy = core::MeshProxy{mBackgroundMesh, aDesignParameters.stdVector()}, this,
          &aDesignParameters](const linear_algebra::DynamicVector<double>& x)
         {
-            static int tIndex = 1;
-            std::string tFilename = "DFDX" + std::to_string(tIndex) + ".txt";
-            std::ofstream tFile;
-            tFile.open(tFilename);
-            for (auto g : x.stdVector())
-            {
-                tFile << g << std::endl;
-            }
-            tFile.close();
-
             Plato::Krino::PlatoKrinoInterface tPlatoKrinoInterface;
             const std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP> tDXDP =
                 tPlatoKrinoInterface.cut_mesh_and_return_sensitivities(
@@ -172,16 +162,6 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
                 tDFDLSVector[i] = it->second;
                 it++;
             }
-
-            tFilename = "FullGradient" + std::to_string(tIndex) + ".txt";
-            tFile.open(tFilename);
-            for (auto g : tDFDLSVector)
-            {
-                tFile << g << std::endl;
-            }
-            tFile.close();
-            tIndex++;
-
             linear_algebra::DynamicVector<double> tDFDLSDynVector(tDFDLSVector);
             return tDFDLSDynVector;
         }};

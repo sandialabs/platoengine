@@ -1,10 +1,11 @@
+#include <istream>
 #include <memory>
 #include <string>
-#include <istream>
 #include <vector>
+
 #include "PlatoKrinoEnums.hpp"
 
-#pragma once 
+#pragma once
 
 namespace Plato::Krino
 {
@@ -23,4 +24,4 @@ struct CommandLineOptions
 
 bool parseCommandLineOptions(int aArgc, char *aArgv[], CommandLineOptions &aCommandLineOptions);
 
-}
+}  // namespace Plato::Krino

@@ -1,31 +1,31 @@
-#include <Plato_TimersTree.hpp>
-#include <Plato_Parser.hpp>
 #include "PlatoKrinoApp.hpp"
-#include "PlatoKrinoUtilities.hpp"
-#include "PlatoKrinoParse.hpp"
-#include <Kokkos_Core.hpp>                             
+
+#include <Kokkos_Core.hpp>
+#include <Plato_Parser.hpp>
+#include <Plato_TimersTree.hpp>
 #include <stk_coupling/SplitComms.hpp>
-#include <stk_util/parallel/Parallel.hpp>
-#include <stk_util/environment/EnvData.hpp>
-#include <stk_util/environment/Env.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
+#include <stk_util/environment/Env.hpp>
+#include <stk_util/environment/EnvData.hpp>
+#include <stk_util/parallel/Parallel.hpp>
 
+#include "PlatoKrinoParse.hpp"
+#include "PlatoKrinoUtilities.hpp"
 
 namespace Plato
 {
 
 /******************************************************************************/
-PlatoKrinoApp::PlatoKrinoApp(Plato::Interface *aInterface,
-                             const CommandLineOptions &aOptions) :
-/******************************************************************************/
-        mInterface(aInterface),
-        mBGMeshFilename(aOptions.mBackgroundMeshName),
-        mCutMeshFilename(aOptions.mCutMeshName),
-        mAppfileData(parseAppFile(aOptions.mKrinoOperationsFileName)),
-        mFieldMeshName(aOptions.mFieldMeshName),
-        mFieldName(aOptions.mFieldName),
-        mFieldDataTimeStep(aOptions.mFieldDataTimeStep)
+PlatoKrinoApp::PlatoKrinoApp(Plato::Interface* aInterface, const CommandLineOptions& aOptions)
+    : /******************************************************************************/
+      mInterface(aInterface),
+      mBGMeshFilename(aOptions.mBackgroundMeshName),
+      mCutMeshFilename(aOptions.mCutMeshName),
+      mAppfileData(parseAppFile(aOptions.mKrinoOperationsFileName)),
+      mFieldMeshName(aOptions.mFieldMeshName),
+      mFieldName(aOptions.mFieldName),
+      mFieldDataTimeStep(aOptions.mFieldDataTimeStep)
 {
     mPlatoKrinoInterface.includeVoidRegion(aOptions.mIncludeVoidRegion);
 }
@@ -36,7 +36,7 @@ Plato::InputData PlatoKrinoApp::parseAppFile(const std::string& aFile)
     Plato::PugiParser tParser;
     return tParser.parseFile(input_char);
 }
-    
+
 /******************************************************************************/
 void PlatoKrinoApp::initialize()
 /******************************************************************************/
@@ -45,13 +45,13 @@ void PlatoKrinoApp::initialize()
     mInterface->getLocalComm(tComm);
 
     // conditionally begin timers
-    if(mAppfileData.size<Plato::InputData>("Timers"))
+    if (mAppfileData.size<Plato::InputData>("Timers"))
     {
         auto tTimersNode = mAppfileData.get<Plato::InputData>("Timers");
-        if(tTimersNode.size<std::string>("time") > 0)
+        if (tTimersNode.size<std::string>("time") > 0)
         {
             const bool do_time = Plato::Get::Bool(tTimersNode, "time");
-            if(do_time)
+            if (do_time)
             {
                 mTimersTree = std::make_unique<Plato::TimersTree>(tComm);
             }
@@ -60,7 +60,7 @@ void PlatoKrinoApp::initialize()
 
     mLevelsetPrimitives = readLevelsetInitializationData(mAppfileData);
 
-    mPlatoKrinoInterface.readAndSetupMeshForDecomposition(mBGMeshFilename); 
+    mPlatoKrinoInterface.readAndSetupMeshForDecomposition(mBGMeshFilename);
 
     buildParallelMaps();
 
@@ -68,14 +68,14 @@ void PlatoKrinoApp::initialize()
 }
 
 /******************************************************************************/
-void PlatoKrinoApp::exportDataMap(const Plato::data::layout_t & aDataLayout, std::vector<int> & aMyOwnedGlobalIDs)
+void PlatoKrinoApp::exportDataMap(const Plato::data::layout_t& aDataLayout, std::vector<int>& aMyOwnedGlobalIDs)
 /******************************************************************************/
 {
-    if(aDataLayout == Plato::data::layout_t::SCALAR_FIELD)
+    if (aDataLayout == Plato::data::layout_t::SCALAR_FIELD)
     {
         aMyOwnedGlobalIDs = mLocallyOwnedKrinoNodes;
     }
-    else if(aDataLayout == Plato::data::layout_t::ELEMENT_FIELD)
+    else if (aDataLayout == Plato::data::layout_t::ELEMENT_FIELD)
     {
     }
 }
@@ -101,7 +101,7 @@ bool PlatoKrinoApp::useFieldForInitialization()
 void PlatoKrinoApp::executeInitialMesh()
 /******************************************************************************/
 {
-    if(useFieldForInitialization())
+    if (useFieldForInitialization())
     {
         executeInitialMeshFromField();
     }
@@ -116,7 +116,7 @@ void PlatoKrinoApp::executeInitialMeshFromPrimitives()
 /******************************************************************************/
 {
     mLevelsetPrimitives = readLevelsetInitializationData(mAppfileData);
-    mPlatoKrinoInterface.readAndSetupMeshForDecomposition(mBGMeshFilename); 
+    mPlatoKrinoInterface.readAndSetupMeshForDecomposition(mBGMeshFilename);
     mPlatoKrinoInterface.initializeLevelsetsFromPrimitives(mLevelsetPrimitives);
     mPlatoKrinoInterface.cutMesh();
     mPlatoKrinoInterface.writeMesh(mCutMeshFilename);
@@ -144,36 +144,37 @@ std::vector<double> PlatoKrinoApp::getLevelsetValuesFromFieldInMesh()
     tIoBroker->read_defined_input_fields(mFieldDataTimeStep);
 
     // Get the number of nodes for sizing the return vector
-    int tNumNodes=0;
-    stk::mesh::BucketVector const& tOwnedBuckets = tBulkData->get_buckets(stk::topology::NODE_RANK, tMetaData->locally_owned_part() );
-    for(auto && tBucketPtr : tOwnedBuckets)
+    int tNumNodes = 0;
+    stk::mesh::BucketVector const& tOwnedBuckets =
+        tBulkData->get_buckets(stk::topology::NODE_RANK, tMetaData->locally_owned_part());
+    for (auto&& tBucketPtr : tOwnedBuckets)
     {
         tNumNodes += tBucketPtr->size();
     }
     tValues.resize(tNumNodes, 0.0);
 
-    // We don't currently handle node maps.  However, if the node map is non trivial 
+    // We don't currently handle node maps.  However, if the node map is non trivial
     // at least we can return the values in the order of ascending global node ids
     // so we will get the values and then load the return vector in an ordered way.
     std::map<unsigned int, double> tGlobalNodeIDToLevelsetValueMap;
     std::set<unsigned int> tSortedGlobalNodeIDs;
-    for(auto && tBucketPtr : tOwnedBuckets)
+    for (auto&& tBucketPtr : tOwnedBuckets)
     {
-        for(const auto &tNode : *tBucketPtr)
+        for (const auto& tNode : *tBucketPtr)
         {
-            int tGlobalNodeID = tBulkData->identifier(tNode); 
+            int tGlobalNodeID = tBulkData->identifier(tNode);
             double* val = stk::mesh::field_data(*tField, tNode);
-	    tGlobalNodeIDToLevelsetValueMap[tGlobalNodeID] = *val;
-	    tSortedGlobalNodeIDs.insert(tGlobalNodeID);
+            tGlobalNodeIDToLevelsetValueMap[tGlobalNodeID] = *val;
+            tSortedGlobalNodeIDs.insert(tGlobalNodeID);
         }
     }
 
     auto tSetIterator = tSortedGlobalNodeIDs.cbegin();
-    int tCntr=0;
-    while(tSetIterator != tSortedGlobalNodeIDs.cend())
+    int tCntr = 0;
+    while (tSetIterator != tSortedGlobalNodeIDs.cend())
     {
-	tValues[tCntr++] = tGlobalNodeIDToLevelsetValueMap[*tSetIterator];
-	tSetIterator++;
+        tValues[tCntr++] = tGlobalNodeIDToLevelsetValueMap[*tSetIterator];
+        tSetIterator++;
     }
     return tValues;
 }
@@ -183,18 +184,18 @@ void PlatoKrinoApp::executeInitialMeshFromField()
 /******************************************************************************/
 {
     std::vector<double> tLevelsetValues = getLevelsetValuesFromFieldInMesh();
-    mPlatoKrinoInterface.readAndSetupMeshForDecomposition(mBGMeshFilename); 
+    mPlatoKrinoInterface.readAndSetupMeshForDecomposition(mBGMeshFilename);
     mPlatoKrinoInterface.setLevelsetValues(tLevelsetValues);
     mPlatoKrinoInterface.cutMesh();
     mPlatoKrinoInterface.writeMesh(mCutMeshFilename);
 }
 
 /******************************************************************************/
-void PlatoKrinoApp::compute(const std::string &aName)
+void PlatoKrinoApp::compute(const std::string& aName)
 /******************************************************************************/
 {
     // begin timer for doing physics computation
-    if(mTimersTree)
+    if (mTimersTree)
     {
         mTimersTree->begin_partition(Plato::timer_partition_t::timer_partition_t::physics_compute);
     }
@@ -203,29 +204,29 @@ void PlatoKrinoApp::compute(const std::string &aName)
     mInterface->getLocalComm(tComm);
     MPI_Barrier(tComm);
 
-    if(aName == "Initialize Levelsets")
+    if (aName == "Initialize Levelsets")
     {
         initializeLevelsets();
     }
-    else if(aName == "Update Geometry")
+    else if (aName == "Update Geometry")
     {
         updateGeometry();
     }
-    else if(aName == "Recalculate Distance Field")
+    else if (aName == "Recalculate Distance Field")
     {
         recalculateDistanceField();
     }
-    else if(aName == "Apply Chain Rule 1 to N Format")
+    else if (aName == "Apply Chain Rule 1 to N Format")
     {
         applyChainRule1ToNFormat();
     }
-    else if(aName == "Apply Chain Rule Global ID Format")
+    else if (aName == "Apply Chain Rule Global ID Format")
     {
         applyChainRuleGlobalIDFormat();
     }
 
     // end timer for doing physics computation
-    if(mTimersTree)
+    if (mTimersTree)
     {
         mTimersTree->end_partition();
     }
@@ -285,15 +286,15 @@ void PlatoKrinoApp::initializeLevelsets()
 }
 
 /******************************************************************************/
-void PlatoKrinoApp::setDFDLSInDataLayer(std::map<unsigned int, double> &aDFDLS)
+void PlatoKrinoApp::setDFDLSInDataLayer(std::map<unsigned int, double>& aDFDLS)
 /******************************************************************************/
 {
     std::vector<double> tDFDLSForDL(aDFDLS.size());
     std::map<unsigned int, double>::iterator it = aDFDLS.begin();
-    for(size_t i=0; i<tDFDLSForDL.size(); i++)
+    for (size_t i = 0; i < tDFDLSForDL.size(); i++)
     {
         tDFDLSForDL[i] = it->second;
-        it++; 
+        it++;
     }
     setDoubleVector("DFDLS", tDFDLSForDL);
 }
@@ -330,7 +331,7 @@ void PlatoKrinoApp::finalize()
 /******************************************************************************/
 {
     // timers
-    if(mTimersTree)
+    if (mTimersTree)
     {
         mTimersTree->print_results();
     }
@@ -339,10 +340,10 @@ void PlatoKrinoApp::finalize()
 }
 
 /******************************************************************************/
-void PlatoKrinoApp::importData(const std::string &aName, const Plato::SharedData& aSharedData)
+void PlatoKrinoApp::importData(const std::string& aName, const Plato::SharedData& aSharedData)
 /******************************************************************************/
 {
-    if(!doesDoubleVectorExist(aName))
+    if (!doesDoubleVectorExist(aName))
     {
         return;
     }
@@ -359,7 +360,7 @@ void PlatoKrinoApp::importData(const std::string &aName, const Plato::SharedData
 void PlatoKrinoApp::exportData(const std::string& aName, Plato::SharedData& aSharedData)
 /******************************************************************************/
 {
-    if(!doesDoubleVectorExist(aName))
+    if (!doesDoubleVectorExist(aName))
     {
         return;
     }
@@ -371,44 +372,45 @@ void PlatoKrinoApp::exportData(const std::string& aName, Plato::SharedData& aSha
 }
 
 /******************************************************************************/
-void PlatoKrinoApp::communicateScalarFieldData(const std::vector<double> &aDataIn,
-                                               const DataTransferMode &aTransferMode,
-                                               std::vector<double> &aDataOut)
+void PlatoKrinoApp::communicateScalarFieldData(const std::vector<double>& aDataIn,
+                                               const DataTransferMode& aTransferMode,
+                                               std::vector<double>& aDataOut)
 /******************************************************************************/
 {
-    if(aTransferMode == DataTransferMode::IMPORT)
+    if (aTransferMode == DataTransferMode::IMPORT)
     {
         parallelFieldFromLocallyOwnedToLocal(aDataIn, aDataOut);
     }
-    else if(aTransferMode == DataTransferMode::EXPORT)
+    else if (aTransferMode == DataTransferMode::EXPORT)
     {
         parallelFieldFromLocalToLocallyOwned(aDataIn, aDataOut);
     }
     else
     {
         std::stringstream tError;
-        tError << std::endl << "ERROR: Unknown data transfer mode type in PlatoKrinoApp::communicateScalarFieldData()." << std::endl;
+        tError << std::endl
+               << "ERROR: Unknown data transfer mode type in PlatoKrinoApp::communicateScalarFieldData()." << std::endl;
         Plato::ParsingException tParsingException(tError.str());
         throw tParsingException;
     }
 }
 
 /******************************************************************************/
-void PlatoKrinoApp::communicateData(const Plato::SharedData& aSharedData, 
-                                    const std::vector<double> &aDataIn,
-                                    const DataTransferMode &aTransferMode,
-                                    std::vector<double> &aDataOut)
+void PlatoKrinoApp::communicateData(const Plato::SharedData& aSharedData,
+                                    const std::vector<double>& aDataIn,
+                                    const DataTransferMode& aTransferMode,
+                                    std::vector<double>& aDataOut)
 /******************************************************************************/
 {
-    if(aSharedData.myLayout() == Plato::data::layout_t::SCALAR_FIELD)
+    if (aSharedData.myLayout() == Plato::data::layout_t::SCALAR_FIELD)
     {
         communicateScalarFieldData(aDataIn, aTransferMode, aDataOut);
     }
-    else if(aSharedData.myLayout() == Plato::data::layout_t::SCALAR ||
-            aSharedData.myLayout() == Plato::data::layout_t::ELEMENT_FIELD)
+    else if (aSharedData.myLayout() == Plato::data::layout_t::SCALAR ||
+             aSharedData.myLayout() == Plato::data::layout_t::ELEMENT_FIELD)
     {
         aDataOut = aDataIn;
-    } 
+    }
     else
     {
         std::stringstream tError;
@@ -419,19 +421,19 @@ void PlatoKrinoApp::communicateData(const Plato::SharedData& aSharedData,
 }
 
 /******************************************************************************/
-int PlatoKrinoApp::getSharedDataSize(const std::string &aName, const Plato::SharedData& aSharedData)
+int PlatoKrinoApp::getSharedDataSize(const std::string& aName, const Plato::SharedData& aSharedData)
 /******************************************************************************/
 {
     int tReturn = 0;
-    if(aSharedData.myLayout() == Plato::data::layout_t::SCALAR_FIELD ||
-       aSharedData.myLayout() == Plato::data::layout_t::ELEMENT_FIELD)
+    if (aSharedData.myLayout() == Plato::data::layout_t::SCALAR_FIELD ||
+        aSharedData.myLayout() == Plato::data::layout_t::ELEMENT_FIELD)
     {
         tReturn = aSharedData.size();
     }
-    else if(aSharedData.myLayout() == Plato::data::layout_t::SCALAR)
+    else if (aSharedData.myLayout() == Plato::data::layout_t::SCALAR)
     {
         tReturn = getDoubleVectorSize(aName);
-    } 
+    }
     else
     {
         std::stringstream tError;
@@ -443,17 +445,15 @@ int PlatoKrinoApp::getSharedDataSize(const std::string &aName, const Plato::Shar
 }
 
 /******************************************************************************/
-void PlatoKrinoApp::buildParallelNodeMaps(std::vector<int> &aLocallyOwnedNodes,
-                                          std::vector<int> &aAllLocalNodes)
+void PlatoKrinoApp::buildParallelNodeMaps(std::vector<int>& aLocallyOwnedNodes, std::vector<int>& aAllLocalNodes)
 /******************************************************************************/
 {
-
     // Get the locally owned nodes
-    stk::mesh::BucketVector const& tOwnedBuckets = mPlatoKrinoInterface.bulkData()->get_buckets(stk::topology::NODE_RANK, 
-                                      mPlatoKrinoInterface.bulkData()->mesh_meta_data().locally_owned_part() );
-    for(auto && tBucketPtr : tOwnedBuckets)
+    stk::mesh::BucketVector const& tOwnedBuckets = mPlatoKrinoInterface.bulkData()->get_buckets(
+        stk::topology::NODE_RANK, mPlatoKrinoInterface.bulkData()->mesh_meta_data().locally_owned_part());
+    for (auto&& tBucketPtr : tOwnedBuckets)
     {
-        for(auto tNode : *tBucketPtr)
+        for (auto tNode : *tBucketPtr)
         {
             auto tGID = mPlatoKrinoInterface.bulkData()->identifier(tNode);
             aLocallyOwnedNodes.push_back(tGID);
@@ -463,12 +463,14 @@ void PlatoKrinoApp::buildParallelNodeMaps(std::vector<int> &aLocallyOwnedNodes,
     std::sort(aLocallyOwnedNodes.begin(), aLocallyOwnedNodes.end());
 
     // Get all the local nodes
-    stk::mesh::Selector tOwnedAndSharedSelector = mPlatoKrinoInterface.bulkData()->mesh_meta_data().locally_owned_part() | 
-                                                  mPlatoKrinoInterface.bulkData()->mesh_meta_data().globally_shared_part();
-    stk::mesh::BucketVector const& tOwnedAndSharedBuckets = mPlatoKrinoInterface.bulkData()->get_buckets(stk::topology::NODE_RANK, tOwnedAndSharedSelector); 
-    for(auto && tBucketPtr : tOwnedAndSharedBuckets)
+    stk::mesh::Selector tOwnedAndSharedSelector =
+        mPlatoKrinoInterface.bulkData()->mesh_meta_data().locally_owned_part() |
+        mPlatoKrinoInterface.bulkData()->mesh_meta_data().globally_shared_part();
+    stk::mesh::BucketVector const& tOwnedAndSharedBuckets =
+        mPlatoKrinoInterface.bulkData()->get_buckets(stk::topology::NODE_RANK, tOwnedAndSharedSelector);
+    for (auto&& tBucketPtr : tOwnedAndSharedBuckets)
     {
-        for(auto tNode : *tBucketPtr)
+        for (auto tNode : *tBucketPtr)
         {
             auto tGID = mPlatoKrinoInterface.bulkData()->identifier(tNode);
             aAllLocalNodes.push_back(tGID);
@@ -484,7 +486,7 @@ void PlatoKrinoApp::buildParallelMaps()
     MPI_Comm tComm;
     mInterface->getLocalComm(tComm);
 
-    std::vector<int> tAllLocalNodes; // global ids of all nodes on this rank
+    std::vector<int> tAllLocalNodes;  // global ids of all nodes on this rank
     buildParallelNodeMaps(mLocallyOwnedKrinoNodes, tAllLocalNodes);
 
     // build communicator
@@ -492,8 +494,10 @@ void PlatoKrinoApp::buildParallelMaps()
 
     // build maps
     const int tBaseIndex = 0;
-    mOwnedAndSharedNodeMap = std::make_unique<Epetra_Map>(-1, tAllLocalNodes.size(), tAllLocalNodes.data(), tBaseIndex, *mEpetraComm);
-    mOwnedNodeMap = std::make_unique<Epetra_Map>(-1, mLocallyOwnedKrinoNodes.size(), mLocallyOwnedKrinoNodes.data(), tBaseIndex, *mEpetraComm);
+    mOwnedAndSharedNodeMap =
+        std::make_unique<Epetra_Map>(-1, tAllLocalNodes.size(), tAllLocalNodes.data(), tBaseIndex, *mEpetraComm);
+    mOwnedNodeMap = std::make_unique<Epetra_Map>(-1, mLocallyOwnedKrinoNodes.size(), mLocallyOwnedKrinoNodes.data(),
+                                                 tBaseIndex, *mEpetraComm);
 
     // build vectors
     mExporter = std::make_unique<Epetra_Export>(*mOwnedAndSharedNodeMap, *mOwnedNodeMap);
@@ -502,7 +506,7 @@ void PlatoKrinoApp::buildParallelMaps()
 }
 /******************************************************************************/
 void PlatoKrinoApp::parallelFieldFromLocallyOwnedToLocal(const std::vector<double>& aLocallyOwnedField,
-                                                      std::vector<double>& aLocalField)
+                                                         std::vector<double>& aLocalField)
 /******************************************************************************/
 {
     // copy locally owned data
@@ -523,7 +527,7 @@ void PlatoKrinoApp::parallelFieldFromLocallyOwnedToLocal(const std::vector<doubl
 
 /******************************************************************************/
 void PlatoKrinoApp::parallelFieldFromLocalToLocallyOwned(const std::vector<double>& aLocalField,
-                                                      std::vector<double>& aLocallyOwnedField)
+                                                         std::vector<double>& aLocallyOwnedField)
 /******************************************************************************/
 {
     // copy local data
@@ -542,21 +546,22 @@ void PlatoKrinoApp::parallelFieldFromLocalToLocallyOwned(const std::vector<doubl
     aLocallyOwnedField.assign(tOwnedData, tOwnedData + tOwnedLength);
 }
 
-bool PlatoKrinoApp::doesDoubleVectorExist(const std::string & aName)
+bool PlatoKrinoApp::doesDoubleVectorExist(const std::string& aName)
 {
     std::map<std::string, std::vector<double> >::iterator map_iter = mDoubleVectorMap.find(aName);
     const bool is_found = (map_iter != mDoubleVectorMap.end());
     return is_found;
 }
 
-int PlatoKrinoApp::getDoubleVectorSize(const std::string & aName)
+int PlatoKrinoApp::getDoubleVectorSize(const std::string& aName)
 {
     auto map_iter = mDoubleVectorMap.find(aName);
-    if(map_iter == mDoubleVectorMap.end())
+    if (map_iter == mDoubleVectorMap.end())
     {
         std::stringstream tError;
-        tError << std::endl << "ERROR: PlatoKrinoApp::getDoubleVectorSize: unknown vector '" << aName
-                  << "'. Try calling doesDoubleVectorExist(...) first. Aborting." << std::endl;
+        tError << std::endl
+               << "ERROR: PlatoKrinoApp::getDoubleVectorSize: unknown vector '" << aName
+               << "'. Try calling doesDoubleVectorExist(...) first. Aborting." << std::endl;
         Plato::ParsingException tParsingException(tError.str());
         throw tParsingException;
     }
@@ -569,44 +574,36 @@ int PlatoKrinoApp::getDoubleVectorSize(const std::string & aName)
 std::vector<double> PlatoKrinoApp::getDoubleVector(const std::string& aName)
 {
     auto map_iter = mDoubleVectorMap.find(aName);
-    if(map_iter == mDoubleVectorMap.end())
+    if (map_iter == mDoubleVectorMap.end())
     {
         std::stringstream tError;
-        tError << std::endl << "ERROR: PlatoKrinoApp::getDoubleVector: unknown vector '" << aName
-                  << "'. Try calling doesDoubleVectorExist(...) first. Aborting." << std::endl;
+        tError << std::endl
+               << "ERROR: PlatoKrinoApp::getDoubleVector: unknown vector '" << aName
+               << "'. Try calling doesDoubleVectorExist(...) first. Aborting." << std::endl;
         Plato::ParsingException tParsingException(tError.str());
         throw tParsingException;
     }
     return map_iter->second;
 }
 
-void PlatoKrinoApp::setDoubleVector(const std::string & aName, std::vector<double> aVector)
+void PlatoKrinoApp::setDoubleVector(const std::string& aName, std::vector<double> aVector)
 {
     mDoubleVectorMap[aName] = std::move(aVector);
 }
 
-void PlatoKrinoApp::createAndWriteBoundingBoxMesh(const stk::math::Vector3d & aMinCorner,
-                                   const stk::math::Vector3d & aMmaxCorner,
-                                   const double &aMeshSize, const std::string &aFilename)
+void PlatoKrinoApp::createAndWriteBoundingBoxMesh(const stk::math::Vector3d& aMinCorner,
+                                                  const stk::math::Vector3d& aMmaxCorner,
+                                                  const double& aMeshSize,
+                                                  const std::string& aFilename)
 {
-    mPlatoKrinoInterface.createAndWriteBoundingBoxMesh(aMinCorner,aMmaxCorner,aMeshSize,aFilename); 
+    mPlatoKrinoInterface.createAndWriteBoundingBoxMesh(aMinCorner, aMmaxCorner, aMeshSize, aFilename);
 }
-unsigned int PlatoKrinoApp::getNumTetsInNamedBlock(const std::string &aBlockName)
+unsigned int PlatoKrinoApp::getNumTetsInNamedBlock(const std::string& aBlockName)
 {
-    return mPlatoKrinoInterface.getNumTetsInNamedBlock(aBlockName); 
+    return mPlatoKrinoInterface.getNumTetsInNamedBlock(aBlockName);
 }
-std::vector<double> PlatoKrinoApp::getLevelsetValues()
-{
-    return mPlatoKrinoInterface.getLevelsetValues(); 
-}
-void PlatoKrinoApp::writeMesh(const std::string& aFilename)
-{
-    mPlatoKrinoInterface.writeMesh(aFilename);
-}
-void PlatoKrinoApp::resetMesh()
-{
-    mPlatoKrinoInterface.resetMesh();
-}
+std::vector<double> PlatoKrinoApp::getLevelsetValues() { return mPlatoKrinoInterface.getLevelsetValues(); }
+void PlatoKrinoApp::writeMesh(const std::string& aFilename) { mPlatoKrinoInterface.writeMesh(aFilename); }
+void PlatoKrinoApp::resetMesh() { mPlatoKrinoInterface.resetMesh(); }
 
-} // namespace Plato
-
+}  // namespace Plato

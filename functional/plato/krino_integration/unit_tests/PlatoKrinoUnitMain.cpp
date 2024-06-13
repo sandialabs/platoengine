@@ -1,12 +1,14 @@
 #include <gtest/gtest.h>
-#include <stk_util/environment/Env.hpp>
+
 #include <Kokkos_Core.hpp>
+#include <stk_util/environment/Env.hpp>
+
 #include "PlatoKrinoUtilities.hpp"
 
 int gl_argc = 0;
 char** gl_argv = 0;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     MPI_Init(&argc, &argv);
     Plato::Krino::initializeSTKEnvironment(MPI_COMM_WORLD);
@@ -18,5 +20,3 @@ int main(int argc, char **argv)
     MPI_Finalize();
     return returnVal;
 }
-
-
