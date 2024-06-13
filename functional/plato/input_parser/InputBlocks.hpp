@@ -96,6 +96,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato::input_parser::FileName, background_mesh_name)
     (plato::input_parser::FileName, cut_mesh_name)
     (plato::input_parser::FileName, output_mesh_name)
+    (bool, include_void_region)
     (double, sphere_pattern_bbox_min_x)
     (double, sphere_pattern_bbox_min_y)
     (double, sphere_pattern_bbox_min_z)
@@ -107,6 +108,8 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (int, sphere_pattern_num_y)
     (int, sphere_pattern_num_z)
     (bool, sphere_pattern_overlap_bbox)
+    (double, levelset_lower_bound)
+    (double, levelset_upper_bound)
 )
 
 /// ParsedInput is the in-memory representation of a parsed input deck.

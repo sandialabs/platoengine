@@ -49,6 +49,9 @@ class LevelsetTopology
     std::filesystem::path mBackgroundMesh;
     std::filesystem::path mCutMesh;
     std::filesystem::path mOutputMesh;
+    bool mIncludeVoidRegion = false;
+    double mLevelsetLowerBound = -1.0;
+    double mLevelsetUpperBound = 1.0;
     unsigned int mNumDesignParameters = 0;
     Plato::Krino::LevelsetPrimitives mLevelsetPrimitives;
     Plato::Krino::SpherePatternData mSpherePattern;

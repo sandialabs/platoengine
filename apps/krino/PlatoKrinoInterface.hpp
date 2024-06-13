@@ -39,11 +39,13 @@ class PlatoKrinoInterface
 
 public:
     std::map<stk::mesh::EntityId, InterfaceNode_DXDP> cut_mesh_and_return_sensitivities(const std::string &aBackgroundMeshName,
-                         const std::string &aCutMesh, const std::vector<double> &aLevelsetValues);
+                         const std::string &aCutMesh, const std::vector<double> &aLevelsetValues,
+                  const bool aIncludeVoidRegion);
     std::vector<double> initialize_mesh_with_levelset_primitives_and_return_levelset_values(
                   const std::string &aBackgroundMeshName,
                   const std::string &aCutMesh, 
-                  const LevelsetPrimitives &aLevelsetPrimitives);
+                  const LevelsetPrimitives &aLevelsetPrimitives,
+                  const bool aIncludeVoidRegion);
 
     // API functions used in PlatoKrinoApp in an optimization run
 

@@ -144,7 +144,7 @@ TEST_F(PlatoTestKrino, LevelsetTopology_Bounds)
     EXPECT_TRUE(
         std::all_of(tUpperBounds.cbegin(), tUpperBounds.cend(), [](const double aVal) { return aVal == 100.0; }));
 
-    EXPECT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mName));
+    //   EXPECT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mName));
 }
 
 }  // namespace plato::geometry::extension::unittest

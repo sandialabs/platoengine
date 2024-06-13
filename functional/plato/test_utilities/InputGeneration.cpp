@@ -107,6 +107,7 @@ input_parser::levelset_topology create_valid_levelset_topology_geometry()
     return input_parser::levelset_topology{/*.background_mesh_name = */ input_parser::FileName{"bg.exo"},
                                            /*.cut_mesh_name = */ input_parser::FileName{"cut.exo"},
                                            /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
+                                           /*.include_void_region = */ false,
                                            /*.sphere_pattern_bbox_min_x = */ 0.0,
                                            /*.sphere_pattern_bbox_min_y = */ 0.0,
                                            /*.sphere_pattern_bbox_min_z = */ 0.0,
@@ -117,7 +118,9 @@ input_parser::levelset_topology create_valid_levelset_topology_geometry()
                                            /*.sphere_pattern_num_x = */ 1,
                                            /*.sphere_pattern_num_y = */ 1,
                                            /*.sphere_pattern_num_z = */ 1,
-                                           /*.sphere_pattern_overlap_bbox = */ false};
+                                           /*.sphere_pattern_overlap_bbox = */ false,
+                                           /*.levelset_lower_bound = */ -1.0,
+                                           /*.levelset_upper_bound = */ 1.0};
 }
 
 std::string create_valid_levelset_topology_geometry_string()

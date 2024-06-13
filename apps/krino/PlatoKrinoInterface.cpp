@@ -18,8 +18,10 @@ namespace Plato::Krino
 {
 
 std::map<stk::mesh::EntityId, InterfaceNode_DXDP> PlatoKrinoInterface::cut_mesh_and_return_sensitivities(const std::string &aBackgroundMeshName,
-                  const std::string &aCutMesh, const std::vector<double> &aLevelsetValues)
+                  const std::string &aCutMesh, const std::vector<double> &aLevelsetValues,
+                  const bool aIncludeVoidRegion)
 {
+    includeVoidRegion(aIncludeVoidRegion);
     readAndSetupMeshForDecomposition(aBackgroundMeshName); 
     setLevelsetValues(aLevelsetValues);
     cutMesh();
@@ -31,8 +33,10 @@ std::map<stk::mesh::EntityId, InterfaceNode_DXDP> PlatoKrinoInterface::cut_mesh_
 std::vector<double> PlatoKrinoInterface::initialize_mesh_with_levelset_primitives_and_return_levelset_values(
                   const std::string &aBackgroundMeshName,
                   const std::string &aCutMesh, 
-                  const LevelsetPrimitives &aLevelsetPrimitives)
+                  const LevelsetPrimitives &aLevelsetPrimitives,
+                  const bool aIncludeVoidRegion)
 {
+    includeVoidRegion(aIncludeVoidRegion);
     readAndSetupMeshForDecomposition(aBackgroundMeshName); 
     initializeLevelsetsFromPrimitives(aLevelsetPrimitives);
     cutMesh();
