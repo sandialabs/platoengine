@@ -28,3 +28,7 @@ target_link_libraries(Prune PUBLIC Percept::percept)
 install( TARGETS Prune EXPORT Prune
          LIBRARY DESTINATION lib
          ARCHIVE DESTINATION lib)
+
+if( UNIT_TESTING )
+  add_subdirectory(./unittest)
+endif()

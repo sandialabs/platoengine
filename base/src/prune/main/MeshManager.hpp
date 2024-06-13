@@ -53,6 +53,8 @@ public:
 
            int get_transfer_flag();
 
+	   bool allow_nonmanifold_connections() const { return mAllowNonmanifoldConnections; }
+
            stk::ParallelMachine* get_communicator();
 
            stk::ParallelMachine get_u_communicator();
@@ -75,6 +77,7 @@ public:
 
            int element_nodes(PruneHandle elem, PruneHandle nodes[8]);
 
+           bool read_command_line( int argc, char *argv[]);
 
 private:
         std::string mMeshWithVariable;
@@ -82,12 +85,12 @@ private:
         std::string mResultMesh;
         std::string mTransferFieldName;
 
-        int mNumberOfRefines;
-        int mNumberOfBufferLayers;
-        int mPruneFlag;
-        int mTransferFlag;
-
-        double mPruneThreshold;
+        int mNumberOfRefines{0};
+        int mNumberOfBufferLayers{0};
+        bool mPruneFlag{false};
+        bool mAllowNonmanifoldConnections{false};
+        bool mTransferFlag{true};
+        double mPruneThreshold{0.5};
 
         stk::ParallelMachine mComm;
 
@@ -95,8 +98,6 @@ private:
         PerceptMesh mPerceptMeshOut;
 
         std::vector<stk::mesh::Field<double> *> m_isoFields;
-
-        bool read_command_line( int argc, char *argv[]);
 
         void build_stk_mesh();
 };

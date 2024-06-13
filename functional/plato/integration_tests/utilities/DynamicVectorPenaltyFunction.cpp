@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "plato/integration_tests/utilities/DynamicVectorRosenbrockFunction.hpp"
+#include "plato/test_utilities/TwoDTestTypesToDynamicVector.hpp"
 
 namespace plato::integration_tests::utilities
 {

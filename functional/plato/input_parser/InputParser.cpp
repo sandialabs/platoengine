@@ -12,10 +12,12 @@ namespace plato::input_parser
 {
 ParsedInput parse_input(const std::string_view aInput)
 {
-    InputParser<std::string_view::const_iterator> tParser;
+    using Iterator = std::string_view::const_iterator;
+    InputParser<Iterator> tParser;
     ParsedInput tData;
     auto tIter = aInput.cbegin();
-    const bool tParseResult = phrase_parse(tIter, aInput.cend(), tParser, boost::spirit::ascii::space, tData);
+    const auto tSkipper = SkipperRule<Iterator>{};
+    const bool tParseResult = phrase_parse(tIter, aInput.cend(), tParser, tSkipper.skipperRule(), tData);
     if (!tParseResult || tIter != aInput.cend())
     {
         throw utilities::Exception("Could not parse input deck.");

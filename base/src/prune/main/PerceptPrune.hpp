@@ -43,38 +43,35 @@ namespace prune
 class PerceptPrune
 {
 public:
-    PerceptPrune();
     ~PerceptPrune();
-    bool import(int argc,
-                char **argv,
-                std::string fieldName,
-                std::string outputFieldsString,
-                double minEdgeLength,
-                double isoValue,
-                int concatenateResults,
-                int isoOnly,
-                int readSpreadFile,
-                int allowNonmanifoldConnections,
-                int numberOfBufferLayers);
+    bool import(const std::string &aFieldName,
+                const std::string &aOutputFieldsString,
+                const double &aMinEdgeLength,
+                const double &aIsoValue,
+                const bool aConcatenateResults,
+                const bool aOnlyCreateIsoTriangles,
+                const bool aReadSpreadFile,
+                const bool aAllowNonmanifoldConnections,
+                const int aNumberOfBufferLayers);
     bool run_percept_mesh_stand_alone(MeshManager & aMeshManager);
 
 private:
     bool run_percept_mesh_private_stand_alone(MeshManager & aMeshManager);
 
-    std::string mMeshIn;
-    std::string mMeshOut;
-    std::string mFieldName;
-    std::string mOutputFieldsString;
-    std::string mFixedBlocksString;
+    std::string mMeshIn{""};
+    std::string mMeshOut{""};
+    std::string mFieldName{""};
+    std::string mOutputFieldsString{""};
+    std::string mFixedBlocksString{""};
     std::vector<std::string> mOutputFieldNames;
-    double mIsoValue;
-    int mNumBufferLayers;
-    double mMinEdgeLength;
-    int mReadSpreadFile;
-    int mRemoveIslands;
-    int mConcatenateResults;
-    int mAllowNonmanifoldConnections;
-    int mIsoOnly;
+    double mIsoValue{-1.0};
+    int mNumBufferLayers{-1};
+    double mMinEdgeLength{-1.0};
+    bool mReadSpreadFile{false};
+    bool mRemoveIslands{true};
+    bool mConcatenateResults{false};
+    bool mAllowNonmanifoldConnections{false};
+    bool mIsoOnly{true};
 };
 
 } //namespace prune

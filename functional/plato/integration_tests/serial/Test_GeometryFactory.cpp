@@ -8,16 +8,9 @@ namespace plato::integration_tests::serial
 {
 TEST(GeometryFactory, BrickGeometry)
 {
-    namespace pftu = plato::test_utilities;
-
-    const auto tRawInput =
-        input_parser::ParsedInput{/*.mObjectives=*/{pftu::create_valid_example_objective()},
-                                  /*.mConstraints=*/{pftu::create_valid_example_constraint()},
-                                  /*.mBrickShapeGeometry=*/pftu::create_valid_brick_shape_geometry(),
-                                  /*.mDensityTopology = */ boost::none,
-                                  /*.mROLOptimization = */ pftu::create_valid_example_rol_optimization(),
-                                  /*.mGradientCheck = */ boost::none,
-                                  /*.mSensitivityCheck = */ boost::none};
+    input_parser::ParsedInput tRawInput = test_utilities::create_valid_example_input();
+    tRawInput.mDensityTopology = boost::none;
+    tRawInput.mBrickShapeGeometry = test_utilities::create_valid_brick_shape_geometry();
 
     const process_manager::library::ValidatedInput tInput = process_manager::library::make_validated_input(tRawInput);
     const auto tData = geometry::library::make_geometry_data(tInput.geometry());

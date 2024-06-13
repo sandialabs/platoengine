@@ -22,7 +22,7 @@ TEST(ProcessManagerData, InputFileToROLObjective)
                                " begin objective test"
                                " active true"
                                " app nodal_sum"
-                               " number_of_processors 4"
+                               " number_of_processors 1"
                                " input_files test-input.inp"
                                " aggregation_weight " +
                                std::to_string(tWeight) + " objective_type minimize" + " end" +

@@ -118,13 +118,29 @@ void SetUpperBounds::operator()()
 void SetUpperBounds::updateUpperBoundsBasedOnFixedEntitiesForDBTOP(double* aToData)
 {
     auto tIsFluidMaterialUseCase = mMaterialUseCase == "fluid";
+    auto tIsSolidMaterialUseCase = mMaterialUseCase == "solid";
     auto tIsDensityBasedTopologyOptimizationProblem = mDiscretization == "density" && mOutputLayout == Plato::data::layout_t::SCALAR_FIELD;
-    if (tIsDensityBasedTopologyOptimizationProblem && tIsFluidMaterialUseCase)
+    if (tIsDensityBasedTopologyOptimizationProblem)
     {
-        auto tSolidFixedBlocksMetadata = Plato::FixedBlock::get_fixed_solid_blocks_metadata(mFixedBlockMetadata);
-        if( !tSolidFixedBlocksMetadata.mBlockIDs.empty() )
+        if (tIsSolidMaterialUseCase)
         {
-            this->updateUpperBoundsForDensityProblems(tSolidFixedBlocksMetadata, aToData);
+            auto tSolidFixedBlocksMetadata = Plato::FixedBlock::get_fixed_solid_blocks_metadata(mFixedBlockMetadata);
+            if( !tSolidFixedBlocksMetadata.mBlockIDs.empty() )
+            {
+                this->updateUpperBoundsForDensityProblems(tSolidFixedBlocksMetadata, aToData);
+            }
+        }
+        else if(tIsFluidMaterialUseCase)
+        {
+            auto tFluidFixedBlocksMetadata = Plato::FixedBlock::get_fixed_fluid_blocks_metadata(mFixedBlockMetadata);
+            if( !tFluidFixedBlocksMetadata.mBlockIDs.empty() )
+            {
+                this->updateUpperBoundsForDensityProblems(tFluidFixedBlocksMetadata, aToData);
+            }
+        }
+        else 
+        {
+            throw Plato::ParsingException("Unrecognized material UseCase in SetUpperBounds operation");
         }
     }
 }
@@ -194,6 +210,7 @@ void SetUpperBounds::parseFixedBlocks(Plato::InputData& aNode)
         auto tBoundaryValue = Plato::Get::Double(tFixedBlock, "BoundaryValue");
         mFixedBlockMetadata.mBoundaryValues.push_back(tBoundaryValue);
         auto tMaterialState = Plato::Get::String(tFixedBlock, "MaterialState");
+	tMaterialState = tMaterialState.empty() ? "solid" : tMaterialState; 
         mFixedBlockMetadata.mMaterialStates.push_back(tMaterialState);
     }
 }

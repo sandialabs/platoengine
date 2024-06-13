@@ -51,6 +51,17 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
 )
 
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), constraint_check,
+    (plato::input_parser::FileName, linearity_check_output_file_name)
+    (plato::input_parser::FileName, jacobian_check_output_file_name)
+    (plato::input_parser::FileName, jacobian_adjoint_consistency_output_file_name)
+    (unsigned int, number_of_steps)
+    (double, initial_direction_magnitude)
+    (double, step_size_reduction_factor)
+    (unsigned int, random_direction_seed)
+)
+
+PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), sensitivity_check,
     (plato::input_parser::FileName, output_file_name)
 )
@@ -103,6 +114,7 @@ BOOST_FUSION_DEFINE_STRUCT(
     (boost::optional<plato::input_parser::density_topology>, mDensityTopology)
     (boost::optional<plato::input_parser::rol_optimization>, mROLOptimization)
     (boost::optional<plato::input_parser::gradient_check>, mGradientCheck)
+    (boost::optional<plato::input_parser::constraint_check>, mConstraintCheck)
     (boost::optional<plato::input_parser::sensitivity_check>, mSensitivityCheck)
 )
 // clang-format on

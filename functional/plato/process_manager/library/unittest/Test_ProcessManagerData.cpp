@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
+
 #include "plato/core/MeshProxy.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
@@ -23,13 +25,11 @@ TEST(ProcessManagerData, ParsePlatoProblemEvaluateObjective)
     const auto tBoundingBox = linear_algebra::DynamicVector{0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
     const core::MeshProxy tGeomProxy = tGeometry.mCompute.f(tBoundingBox);
     const core::MeshProxy tPlatoProblemGeomProxy = tProblem.mGeometry.mCompute.f(tBoundingBox);
-    EXPECT_EQ(tGeomProxy.mFileName, tPlatoProblemGeomProxy.mFileName);
+    EXPECT_TRUE(std::filesystem::exists(tGeomProxy.mFileName));
 
     // Test Objective
     const auto tObjective = criteria::library::make_aggregate_objective_function(tData.objectives());
     EXPECT_EQ(tObjective.f(tGeomProxy), tProblem.mObjective.f(tGeomProxy));
-
-    std::filesystem::remove(tGeomProxy.mFileName);
 }
 
 TEST(ProcessManagerData, ParseAndValidateInvalidInput)

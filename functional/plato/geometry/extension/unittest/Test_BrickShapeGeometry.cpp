@@ -143,16 +143,18 @@ TEST(Brick, ABrick)
                                                /*.dimension_z = */ 6};
 
     constexpr double tDiscretizationSize = 1.0;
-    BrickShapeGeometry tBrick(tFileName, tDiscretizationSize);
+    auto tUniqueFileName = std::filesystem::path{tFileName};
+    {
+        BrickShapeGeometry tBrick(tFileName, tDiscretizationSize);
 
-    const core::MeshProxy tMP = tBrick.generateMesh(tDesignParameters);
-    EXPECT_EQ(tMP.mFileName, tFileName);
+        const core::MeshProxy tMP = tBrick.generateMesh(tDesignParameters);
+        tUniqueFileName = tMP.mFileName;
 
-    constexpr unsigned tExpectedNumElements = 2 * 4 * 6;
-    EXPECT_EQ(tExpectedNumElements, pfu::element_size(tFileName));
-
-    EXPECT_TRUE(std::filesystem::exists(tFileName));
-    EXPECT_TRUE(std::filesystem::remove(tFileName));
+        constexpr unsigned tExpectedNumElements = 2 * 4 * 6;
+        EXPECT_EQ(tExpectedNumElements, pfu::element_size(tUniqueFileName));
+    }
+    // When BrickShapeGeometry goes out-of-scope, the file should be deleted
+    EXPECT_FALSE(std::filesystem::exists(tUniqueFileName));
 }
 
 TEST(Brick, ConvertDesignParametersToROLStdVector)

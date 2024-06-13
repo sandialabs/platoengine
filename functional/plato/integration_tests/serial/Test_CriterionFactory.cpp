@@ -8,6 +8,18 @@
 
 namespace plato::integration_tests::serial
 {
+
+namespace
+{
+[[nodiscard]] std::string create_valid_example_input_string()
+{
+    return test_utilities::create_valid_example_constraint_string() +
+           test_utilities::create_valid_example_objective_string() +
+           test_utilities::create_valid_density_topology_geometry_string() +
+           test_utilities::create_valid_example_rol_optimization_string();
+}
+}  // namespace
+
 TEST(CriterionFactory, ValidObjective)
 {
     namespace pftu = plato::test_utilities;
@@ -26,7 +38,7 @@ TEST(CriterionFactory, ValidConstraint)
 {
     namespace pftu = plato::test_utilities;
     const process_manager::library::ValidatedInput tData =
-        process_manager::library::parse_and_validate(pftu::create_valid_example_input_string());
+        process_manager::library::parse_and_validate(create_valid_example_input_string());
 
     ASSERT_EQ(tData.constraints().rawInput().size(), 1);
     EXPECT_NO_THROW(auto tFunction =
@@ -37,12 +49,22 @@ TEST(CriterionRegistration, ConvertObjectiveInput)
 {
     namespace pftu = plato::test_utilities;
 
-    const std::string tObjectiveInput = pftu::create_valid_example_custom_app_objective_string();
-    const std::string tGeometryInput = pftu::create_valid_density_topology_geometry_string();
-    const std::string tOptimizerInput = pftu::create_valid_example_rol_optimization_string();
+    const std::string tInput =
+        R"(
+          begin objective test
+            active true
+            app custom_app
+            shared_library_path /path/to/nothing.so
+            number_of_processors 1
+            input_files test-input.inp
+            aggregation_weight 42.0
+            objective_type minimize
+          end
+       )" +
+        test_utilities::create_valid_density_topology_geometry_string() +
+        test_utilities::create_valid_example_rol_optimization_string();
 
-    const process_manager::library::ValidatedInput tData =
-        process_manager::library::parse_and_validate(tObjectiveInput + tGeometryInput + tOptimizerInput);
+    const process_manager::library::ValidatedInput tData = process_manager::library::parse_and_validate(tInput);
     ASSERT_EQ(tData.objectives().rawInput().size(), 1);
     const core::ValidatedInputTypeWrapper<input_parser::objective> tValidatedObjective =
         tData.objectives().rawInput().front();
@@ -66,7 +88,7 @@ TEST(CriterionRegistration, ConvertConstraintInput)
 {
     namespace pftu = plato::test_utilities;
     const process_manager::library::ValidatedInput tData =
-        process_manager::library::parse_and_validate(pftu::create_valid_example_input_string());
+        process_manager::library::parse_and_validate(create_valid_example_input_string());
     ASSERT_EQ(tData.constraints().rawInput().size(), 1);
     const core::ValidatedInputTypeWrapper<input_parser::constraint> tValidatedConstraint =
         tData.constraints().rawInput().front();

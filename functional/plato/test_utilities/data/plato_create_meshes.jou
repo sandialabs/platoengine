@@ -1,0 +1,93 @@
+reset 
+brick x 3 y 4 z 7
+volume 1 size 0.75
+volume 1 scheme tetmesh
+mesh volume 1
+block 1 volume 1
+set exodus netcdf4 off
+set large exodus file on
+set exodus single precision off
+export mesh "C:/Users/acsokol/Documents/Projects/box_3x4x7_tet4.exo"  dimension 3  overwrite 
+block 1 element type TETRA10
+export mesh "C:/Users/acsokol/Documents/Projects/box_3x4x7_tet10.exo"  dimension 3  overwrite 
+
+
+reset 
+brick x 2 y 4 z 8
+volume 1 size 1
+volume 1 scheme map
+mesh volume 1 
+
+delete block 1
+block 1 volume 1
+set exodus netcdf4 off
+set large exodus file on
+set exodus single precision off
+export mesh "C:/Users/acsokol/Documents/Projects/box_2x4x8_hex.exo"  dimension 3  overwrite 
+block 1 element type HEX20
+export mesh "C:/Users/acsokol/Documents/Projects/box_2x4x8_hex20.exo"  dimension 3  overwrite 
+
+
+delete mesh volume 1 propagate
+curve 1  interval 5
+curve 1  scheme equal
+mesh curve 1 
+curve 3  interval 8
+curve 3  scheme equal
+mesh curve 3 
+surface 1  scheme pave
+mesh surface 1 
+
+delete block 1
+block 1 add surface 1
+block 1 element type QUAD4
+set exodus netcdf4 off
+set large exodus file on
+set exodus single precision off
+export mesh "C:/Users/acsokol/Documents/Projects/rectangle_3x4_quad4.exo"  dimension 2  overwrite 
+
+block 1 element type SHELL4
+export mesh "C:/Users/acsokol/Documents/Projects/rectangle_3x4_shell4.exo"  dimension 2  overwrite 
+
+
+delete mesh volume 1 propagate
+curve 1  interval 5
+curve 1  scheme equal
+mesh curve 1 
+curve 3  interval 8
+curve 3  scheme equal
+mesh curve 3 
+surface 1  scheme trimesh
+mesh surface 1 
+delete block 1
+block 1 add surface 1
+block 1 element type TRI3
+export mesh "C:/Users/acsokol/Documents/Projects/rectangle_3x4_tri3.exo"  dimension 2  overwrite 
+
+
+reset
+brick x 2 y 4 z 10
+volume 1 size 1
+webcut volume 1 with plane zplane offset 0 
+volume 1  scheme tetmesh
+mesh volume 1 
+
+volume 2  scheme map
+mesh volume 2 
+Surface 13 11  copy move y -4 
+
+block 1 volume 1
+block 2 volume 2
+
+set exodus single precision off
+export mesh "C:/Users/acsokol/Documents/Projects/box_2x4x10_hex_and_tet.exo"  dimension 3  overwrite 
+
+delete block 1 2
+delete volume 1 2
+rotate volume all angle 90 about y include_merged
+
+block 3 surface 18
+block 4 surface 17
+block 3 element type TRI3
+export mesh "C:/Users/acsokol/Documents/Projects/rectangle_4x10_tri_and_shell.exo"  dimension 2  overwrite 
+

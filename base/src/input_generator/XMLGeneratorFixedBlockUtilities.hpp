@@ -52,6 +52,34 @@ inline void check_fixed_block_material_states
     }
 }
 
+inline void check_fixed_blocks_values(
+XMLGen::OptimizationParameters& aMetadata,
+std::vector<std::string> &aValuesIn,
+const std::string &aSolidFillValue, 
+const std::string &aFluidsFillValue1,
+const std::string &aFluidsFillValue2)
+{
+    if (aValuesIn.empty())
+    {
+        if(XMLGen::FixedBlock::is_material_state_solid(aMetadata))
+        {
+            auto tNumFixedBlocks = aMetadata.fixed_block_ids().size();
+            aValuesIn.resize(tNumFixedBlocks);
+            std::fill(aValuesIn.begin(), aValuesIn.end(), aSolidFillValue);
+        }
+        else
+        {
+            auto tFixedBlockMaterialStates = aMetadata.fixed_block_material_states();
+            for(auto& tMaterialState : tFixedBlockMaterialStates)
+            {
+                auto tMaterialStateLower = Plato::tolower(tMaterialState);
+                std::string tDomainValue = tMaterialStateLower == "solid" ? aFluidsFillValue1 : aFluidsFillValue2;
+                aValuesIn.push_back(tDomainValue);
+            }
+        }
+    }
+}
+
 /******************************************************************************//**
  * \fn check_fixed_blocks_domain_values
  * \brief Check if the design variables values 
@@ -62,26 +90,20 @@ inline void check_fixed_block_material_states
 inline void check_fixed_blocks_domain_values
 (XMLGen::OptimizationParameters& aMetadata)
 {
-    auto tFixedBlockDomainValues = aMetadata.fixed_block_domain_values();
-    if (tFixedBlockDomainValues.empty())
+    const std::string tSolidFillValue = "1.0";
+    const std::string tFluidsValue1 = "0.0";
+    const std::string tFluidsValue2 = "1.0";
+    auto tFixedBlockDomainLowerValues = aMetadata.fixed_block_domain_lower_values();
+    if (tFixedBlockDomainLowerValues.empty())
     {
-        if(XMLGen::FixedBlock::is_material_state_solid(aMetadata))
-        {
-            auto tNumFixedBlocks = aMetadata.fixed_block_ids().size();
-            tFixedBlockDomainValues.resize(tNumFixedBlocks);
-            std::fill(tFixedBlockDomainValues.begin(), tFixedBlockDomainValues.end(), "1.0");
-        }
-        else
-        {
-            auto tFixedBlockMaterialStates = aMetadata.fixed_block_material_states();
-            for(auto& tMaterialState : tFixedBlockMaterialStates)
-            {
-                auto tLowerMaterialState = Plato::tolower(tMaterialState);
-                std::string tDomainValue = tLowerMaterialState == "solid" ? "0.0" : "1.0";
-                tFixedBlockDomainValues.push_back(tDomainValue);
-            }
-        }
-        aMetadata.setFixedBlockDomainValues(tFixedBlockDomainValues);
+        check_fixed_blocks_values(aMetadata, tFixedBlockDomainLowerValues, tSolidFillValue, tFluidsValue1, tFluidsValue2);  
+        aMetadata.setFixedBlockDomainLowerValues(tFixedBlockDomainLowerValues);
+    }
+    auto tFixedBlockDomainUpperValues = aMetadata.fixed_block_domain_upper_values();
+    if (tFixedBlockDomainUpperValues.empty())
+    {
+        check_fixed_blocks_values(aMetadata, tFixedBlockDomainUpperValues, tSolidFillValue, tFluidsValue1, tFluidsValue2);  
+        aMetadata.setFixedBlockDomainUpperValues(tFixedBlockDomainUpperValues);
     }
 }
 
@@ -95,26 +117,23 @@ inline void check_fixed_blocks_domain_values
 inline void check_fixed_blocks_boundary_values
 (XMLGen::OptimizationParameters& aMetadata)
 {
-    auto tFixedBlockBoundaryValues = aMetadata.fixed_block_boundary_values();
-    if (tFixedBlockBoundaryValues.empty())
+    auto tFixedBlockBoundaryLowerValues = aMetadata.fixed_block_boundary_lower_values();
+    if (tFixedBlockBoundaryLowerValues.empty())
     {
-        if(XMLGen::FixedBlock::is_material_state_solid(aMetadata))
-        {
-            auto tNumFixedBlocks = aMetadata.fixed_block_ids().size();
-            tFixedBlockBoundaryValues.resize(tNumFixedBlocks);
-            std::fill(tFixedBlockBoundaryValues.begin(), tFixedBlockBoundaryValues.end(), "0.5001");
-        }
-        else
-        {
-            auto tFixedBlockMaterialStates = aMetadata.fixed_block_material_states();
-            for(auto& tMaterialState : tFixedBlockMaterialStates)
-            {
-                auto tLowerMaterialState = Plato::tolower(tMaterialState);
-                std::string tDomainValue = tLowerMaterialState == "solid" ? "0.4999" : "0.5001";
-                tFixedBlockBoundaryValues.push_back(tDomainValue);
-            }
-        }
-        aMetadata.setFixedBlockBoundaryValues(tFixedBlockBoundaryValues);
+        const std::string tSolidFillValue = "0.5001";
+        const std::string tFluidsValue1 = "0.4999";
+        const std::string tFluidsValue2 = "0.5001";
+        check_fixed_blocks_values(aMetadata, tFixedBlockBoundaryLowerValues, tSolidFillValue, tFluidsValue1, tFluidsValue2);  
+        aMetadata.setFixedBlockBoundaryLowerValues(tFixedBlockBoundaryLowerValues);
+    }
+    auto tFixedBlockBoundaryUpperValues = aMetadata.fixed_block_boundary_upper_values();
+    if (tFixedBlockBoundaryUpperValues.empty())
+    {
+        const std::string tSolidFillValue = "1.0";
+        const std::string tFluidsValue1 = "0.4999";
+        const std::string tFluidsValue2 = "0.5001";
+        check_fixed_blocks_values(aMetadata, tFixedBlockBoundaryUpperValues, tSolidFillValue, tFluidsValue1, tFluidsValue2);  
+        aMetadata.setFixedBlockBoundaryUpperValues(tFixedBlockBoundaryUpperValues);
     }
 }
 
@@ -170,37 +189,71 @@ inline void set_fixed_block_ids
 }
 
 /******************************************************************************//**
- * \fn set_fixed_block_domain_values
- * \brief Set inner fixed block design variable values.
+ * \fn set_fixed_block_domain_lower_values
+ * \brief Set the lower bound for the inner fixed block design variable values.
  * \param [in] aTokens parsed tokens
  * \param [out] aMetadata optimization block metadata
 **********************************************************************************/
-inline void set_fixed_block_domain_values
+inline void set_fixed_block_domain_lower_values
 (const std::string & aTokens, 
  XMLGen::OptimizationParameters& aMetadata)
 {
     char tValuesBuffer[10000];
     strcpy(tValuesBuffer, aTokens.c_str());
-    std::vector<std::string> tFixedBlockDomainValues;
-    XMLGen::parse_tokens(tValuesBuffer, tFixedBlockDomainValues);
-    aMetadata.setFixedBlockDomainValues(tFixedBlockDomainValues);
+    std::vector<std::string> tFixedBlockDomainLowerValues;
+    XMLGen::parse_tokens(tValuesBuffer, tFixedBlockDomainLowerValues);
+    aMetadata.setFixedBlockDomainLowerValues(tFixedBlockDomainLowerValues);
 }
 
 /******************************************************************************//**
- * \fn set_fixed_block_boundary_values
- * \brief Set design variable values on fixed block boundaries.
+ * \fn set_fixed_block_domain_upper_values
+ * \brief Set the upper bound for the inner fixed block design variable values.
  * \param [in] aTokens parsed tokens
  * \param [out] aMetadata optimization block metadata
 **********************************************************************************/
-inline void set_fixed_block_boundary_values
+inline void set_fixed_block_domain_upper_values
 (const std::string & aTokens, 
  XMLGen::OptimizationParameters& aMetadata)
 {
     char tValuesBuffer[10000];
     strcpy(tValuesBuffer, aTokens.c_str());
-    std::vector<std::string> tFixedBlockBoundaryValues;
-    XMLGen::parse_tokens(tValuesBuffer, tFixedBlockBoundaryValues);
-    aMetadata.setFixedBlockBoundaryValues(tFixedBlockBoundaryValues);
+    std::vector<std::string> tFixedBlockDomainUpperValues;
+    XMLGen::parse_tokens(tValuesBuffer, tFixedBlockDomainUpperValues);
+    aMetadata.setFixedBlockDomainUpperValues(tFixedBlockDomainUpperValues);
+}
+
+/******************************************************************************//**
+ * \fn set_fixed_block_boundary_lower_values
+ * \brief Set the lower bound for the design variable values on fixed block boundaries.
+ * \param [in] aTokens parsed tokens
+ * \param [out] aMetadata optimization block metadata
+**********************************************************************************/
+inline void set_fixed_block_boundary_lower_values
+(const std::string & aTokens, 
+ XMLGen::OptimizationParameters& aMetadata)
+{
+    char tValuesBuffer[10000];
+    strcpy(tValuesBuffer, aTokens.c_str());
+    std::vector<std::string> tFixedBlockBoundaryLowerValues;
+    XMLGen::parse_tokens(tValuesBuffer, tFixedBlockBoundaryLowerValues);
+    aMetadata.setFixedBlockBoundaryLowerValues(tFixedBlockBoundaryLowerValues);
+}
+
+/******************************************************************************//**
+ * \fn set_fixed_block_boundary_upper_values
+ * \brief Set the upper bound for the design variable values on fixed block boundaries.
+ * \param [in] aTokens parsed tokens
+ * \param [out] aMetadata optimization block metadata
+**********************************************************************************/
+inline void set_fixed_block_boundary_upper_values
+(const std::string & aTokens, 
+ XMLGen::OptimizationParameters& aMetadata)
+{
+    char tValuesBuffer[10000];
+    strcpy(tValuesBuffer, aTokens.c_str());
+    std::vector<std::string> tFixedBlockBoundaryUpperValues;
+    XMLGen::parse_tokens(tValuesBuffer, tFixedBlockBoundaryUpperValues);
+    aMetadata.setFixedBlockBoundaryUpperValues(tFixedBlockBoundaryUpperValues);
 }
 
 /******************************************************************************//**
@@ -229,13 +282,13 @@ inline void set_fixed_block_material_states
 inline void check_domain_values_array
 (const XMLGen::OptimizationParameters& aMetadata)
 {
-     auto tBlockIDs = aMetadata.fixed_block_ids();
-     auto tDomainValues = aMetadata.fixed_block_domain_values();
-
-     auto tNumFixedBlocks = tBlockIDs.size();
-     if (tNumFixedBlocks != tDomainValues.size())
+     if (aMetadata.fixed_block_ids().size() != aMetadata.fixed_block_domain_lower_values().size())
      {
-         THROWERR("Number of domain values '" + std::to_string(tDomainValues.size()) + "' does not match the number of fixed blocks '" + std::to_string(tNumFixedBlocks) + "'.")
+         THROWERR("Number of domain lower values '" + std::to_string(aMetadata.fixed_block_domain_lower_values().size()) + "' does not match the number of fixed blocks '" + std::to_string(aMetadata.fixed_block_ids().size()) + "'.")
+     }
+     if (aMetadata.fixed_block_ids().size() != aMetadata.fixed_block_domain_upper_values().size())
+     {
+         THROWERR("Number of domain upper values '" + std::to_string(aMetadata.fixed_block_domain_upper_values().size()) + "' does not match the number of fixed blocks '" + std::to_string(aMetadata.fixed_block_ids().size()) + "'.")
      }
 }
 
@@ -248,13 +301,17 @@ inline void check_domain_values_array
 inline void check_boundary_values_array
 (const XMLGen::OptimizationParameters& aMetadata)
 {
-    auto tBlockIDs = aMetadata.fixed_block_ids();
-    auto tBoundaryValues = aMetadata.fixed_block_boundary_values();
+    size_t tNumFixedBlocks = aMetadata.fixed_block_ids().size();
+    size_t tNumFixedBlockBoundaryLowerValues = aMetadata.fixed_block_boundary_lower_values().size();
+    size_t tNumFixedBlockBoundaryUpperValues = aMetadata.fixed_block_boundary_upper_values().size();
 
-    auto tNumFixedBlocks = tBlockIDs.size();
-    if (tNumFixedBlocks != tBoundaryValues.size())
+    if (tNumFixedBlocks != tNumFixedBlockBoundaryLowerValues)
     {
-        THROWERR("Number of boundary values '" + std::to_string(tBoundaryValues.size()) + "' does not match the number of fixed blocks '" + std::to_string(tNumFixedBlocks) + "'.")
+        THROWERR("Number of boundary lower values '" + std::to_string(tNumFixedBlockBoundaryLowerValues) + "' does not match the number of fixed blocks '" + std::to_string(tNumFixedBlocks) + "'.")
+    }
+    if (tNumFixedBlocks != tNumFixedBlockBoundaryUpperValues)
+    {
+        THROWERR("Number of boundary upper values '" + std::to_string(tNumFixedBlockBoundaryUpperValues) + "' does not match the number of fixed blocks '" + std::to_string(tNumFixedBlocks) + "'.")
     }
 }
 

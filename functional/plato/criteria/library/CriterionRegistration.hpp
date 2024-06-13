@@ -1,6 +1,7 @@
 #ifndef PLATO_CRITERIA_LIBRARY_CRITERIONREGISTRATION
 #define PLATO_CRITERIA_LIBRARY_CRITERIONREGISTRATION
 
+#include <boost/mpi/communicator.hpp>
 #include <string_view>
 
 #include "plato/core/FactoryRegistration.hpp"
@@ -24,8 +25,11 @@ struct CriterionInput
 
 using CriterionFunction = core::Function<double, linear_algebra::DynamicVector<double>, const core::MeshProxy&>;
 using CriterionRegistration = core::FactoryRegistration<CriterionFunction, CriterionInput>;
+using ParallelCriterionRegistration =
+    core::FactoryRegistration<CriterionFunction, CriterionInput, boost::mpi::communicator>;
 
-bool is_criterion_function_registered(const std::string_view aFunctionName);
+[[nodiscard]] bool is_criterion_function_registered(const std::string_view aFunctionName);
+[[nodiscard]] bool is_parallel_criterion_function_registered(const std::string_view aFunctionName);
 
 }  // namespace plato::criteria::library
 

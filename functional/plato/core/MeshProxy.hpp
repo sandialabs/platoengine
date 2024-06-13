@@ -5,13 +5,9 @@
 #include <string_view>
 #include <vector>
 
-namespace stk::mesh
-{
-class BulkData;
-}
-
 namespace plato::core
 {
+
 /// @brief Represents a mesh on disk as well as a nodal density field.
 ///
 /// This object is used as an argument to most objectives to represent a mesh

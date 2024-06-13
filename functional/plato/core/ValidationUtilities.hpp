@@ -9,6 +9,7 @@
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::core
 {
@@ -61,8 +62,8 @@ std::optional<std::string> error_message_for_parameter_out_of_bounds(
 {
     if (aParameter && !aBounds.contains(aParameter.value()))
     {
-        return std::string{aPrependString} + " entry \"" + std::string{aEntryName} + "\" has value " +
-               std::to_string(aParameter.value()) + " and is outside the expected bounds " + aBounds.description();
+        return utilities::concatenate(aPrependString, " entry \"", aEntryName, "\" has value ", aParameter.value(),
+                                      " and is outside the expected bounds ", aBounds.description());
     }
     else
     {
@@ -84,7 +85,8 @@ std::vector<std::string> validate_all_variants(const input_parser::ParsedInput& 
     for (const InputVariant& tBlockEntry : tInputBlocks)
     {
         aCurrentMessageList = std::visit(
-            [tList = std::move(aCurrentMessageList)](const auto& aVariantInput) mutable -> std::vector<std::string> {
+            [tList = std::move(aCurrentMessageList)](const auto& aVariantInput) mutable -> std::vector<std::string>
+            {
                 return core::validate(aVariantInput, std::move(tList));  // NOLINT
             },
             tBlockEntry);

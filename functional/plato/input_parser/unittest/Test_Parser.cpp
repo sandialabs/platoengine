@@ -7,6 +7,7 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_parser/InputParser.hpp"
 #include "plato/input_parser/unittest/Test_Helpers.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -14,10 +15,12 @@ namespace
 {
 auto parse_string(const std::string& aInput) -> std::tuple<bool, std::string::const_iterator, ParsedInput>
 {
-    InputParser<std::string::const_iterator> tParser;
+    using Iterator = std::string::const_iterator;
+    InputParser<Iterator> tParser;
     ParsedInput tData;
     auto tIter = aInput.cbegin();
-    const bool tParseResult = phrase_parse(tIter, aInput.cend(), tParser, boost::spirit::ascii::space, tData);
+    const auto tSkipper = SkipperRule<Iterator>{};
+    const bool tParseResult = phrase_parse(tIter, aInput.cend(), tParser, tSkipper.skipperRule(), tData);
     return {tParseResult, tIter, tData};
 }
 
@@ -27,6 +30,16 @@ void check_nothing_parsed(const ParsedInput& aInput)
     EXPECT_TRUE(aInput.mConstraints.empty());
     EXPECT_FALSE(aInput.mROLOptimization);
 }
+
+ParsedInput parse_and_check_success(const std::string& aInput, const test_utilities::TestContext& aTestContext)
+{
+    const auto [tParseResult, tIter, tData] = parse_string(aInput);
+
+    EXPECT_TRUE(tParseResult) << aTestContext;
+    EXPECT_EQ(tIter, aInput.cend()) << aTestContext;
+    return tData;
+}
+
 }  // namespace
 
 TEST(ParsedInput, ObjectiveAllValidInputs)
@@ -35,7 +48,7 @@ TEST(ParsedInput, ObjectiveAllValidInputs)
         R"(
           begin objective mp_objective
             active true
-            app sierra_mass_app
+            app volume
             shared_library_path /path/to/lib.so
             number_of_processors 10
             input_files test.txt, test2.xml
@@ -54,7 +67,7 @@ TEST(ParsedInput, ObjectiveAllValidInputs)
     ASSERT_EQ(tData.mObjectives.size(), 1u);
     const auto& tObjective = tData.mObjectives.front();
     test_existence_and_equality(tObjective.name, "mp_objective");
-    test_existence_and_equality(tObjective.app, CodeOptions::kSierraMassApp);
+    test_existence_and_equality(tObjective.app, CodeOptions::kVolume);
     test_existence_and_equality(tObjective.shared_library_path, std::string{"/path/to/lib.so"});
     test_existence_and_equality(tObjective.number_of_processors, 10u);
     test_existence_and_equality(tObjective.active, true);
@@ -85,7 +98,7 @@ TEST(ParsedInput, ConstraintAllValidInputs)
         R"(
           begin constraint mp_constraint
             active true
-            app sierra_mass_app
+            app volume_fraction
             number_of_processors 10
             input_files test.txt
             equal_to 1.0
@@ -104,7 +117,7 @@ TEST(ParsedInput, ConstraintAllValidInputs)
     const auto& tConstraint = tData.mConstraints.front();
     test_existence_and_equality(tConstraint.name, "mp_constraint");
     test_existence_and_equality(tConstraint.active, true);
-    test_existence_and_equality(tConstraint.app, CodeOptions::kSierraMassApp);
+    test_existence_and_equality(tConstraint.app, CodeOptions::kVolumeFraction);
     test_existence_and_equality(tConstraint.number_of_processors, 10u);
     test_existence_and_equality(tConstraint.input_files, std::vector<std::string>{"test.txt"});
     test_existence_and_equality(tConstraint.equal_to, 1.0);
@@ -165,12 +178,46 @@ TEST(ParsedInput, GradientCheckAllValidInputs)
     test_existence_and_equality(tData.mGradientCheck->initial_direction_magnitude, 0.5);
 }
 
+TEST(ParsedInput, ConstraintCheckAllValidInputs)
+{
+    const std::string tInput =
+        R"(
+          begin constraint_check
+            linearity_check_output_file_name ROL_constraint_linearity_check_output.txt
+            jacobian_check_output_file_name ROL_constraint_jacobian_check_output.txt
+            jacobian_adjoint_consistency_output_file_name ROL_constraint_jacobian_adjoint_consistency_check_output.txt
+            number_of_steps 10
+            initial_direction_magnitude 1
+            step_size_reduction_factor 0.1
+            random_direction_seed 123
+          end
+       )";
+
+    // Parse
+    const auto [tParseResult, tIter, tData] = parse_string(tInput);
+
+    // Tests
+    EXPECT_TRUE(tParseResult);
+    EXPECT_EQ(tIter, tInput.end());
+    ASSERT_TRUE(tData.mConstraintCheck);
+    test_existence_and_equality(tData.mConstraintCheck->linearity_check_output_file_name,
+                                std::string{"ROL_constraint_linearity_check_output.txt"});
+    test_existence_and_equality(tData.mConstraintCheck->jacobian_check_output_file_name,
+                                std::string{"ROL_constraint_jacobian_check_output.txt"});
+    test_existence_and_equality(tData.mConstraintCheck->jacobian_adjoint_consistency_output_file_name,
+                                std::string{"ROL_constraint_jacobian_adjoint_consistency_check_output.txt"});
+    test_existence_and_equality(tData.mConstraintCheck->number_of_steps, 10u);
+    test_existence_and_equality(tData.mConstraintCheck->initial_direction_magnitude, 1.0);
+    test_existence_and_equality(tData.mConstraintCheck->step_size_reduction_factor, 0.1);
+    test_existence_and_equality(tData.mConstraintCheck->random_direction_seed, 123u);
+}
+
 TEST(ParsedInput, ObjectiveNotAllInputs)
 {
     const std::string tInput =
         R"(
           begin objective mp_objective
-            app sierra_mass_app
+            app nodal_sum
             number_of_processors 10
             aggregation_weight 10.0
           end
@@ -182,7 +229,7 @@ TEST(ParsedInput, ObjectiveNotAllInputs)
     ASSERT_EQ(tData.mObjectives.size(), 1u);
     const auto& tObjective = tData.mObjectives.front();
     test_existence_and_equality(tObjective.name, "mp_objective");
-    test_existence_and_equality(tObjective.app, CodeOptions::kSierraMassApp);
+    test_existence_and_equality(tObjective.app, CodeOptions::kNodalSum);
     test_existence_and_equality(tObjective.number_of_processors, 10u);
     EXPECT_FALSE(tObjective.active);
     EXPECT_FALSE(tObjective.input_files);
@@ -305,7 +352,7 @@ TEST(ParsedInput, ConstraintMultipleBlocks)
         R"(
           begin constraint mp_constraint_1
             active true
-            app sierra_mass_app
+            app volume
           end
           begin constraint mp_constraint_2
             number_of_processors 10
@@ -330,4 +377,70 @@ TEST(ParsedInput, ConstraintMultipleBlocks)
     test_existence_and_equality(tConstraint2.number_of_processors, 10u);
     test_existence_and_equality(tConstraint2.equal_to, -10.0);
 }
+
+TEST(ParsedInput, CommentWithinLine)
+{
+    const std::string tInput =
+        R"(
+          begin objective objective_1 
+            active false # true
+            app nodal_sum
+          end
+       )";
+
+    const auto tParsedInput = parse_and_check_success(tInput, TEST_CONTEXT("Commented out input mid-line"));
+
+    ASSERT_EQ(tParsedInput.mObjectives.size(), 1u);
+    test_existence_and_equality(tParsedInput.mObjectives.front().active, false);
+    test_existence_and_equality(tParsedInput.mObjectives.front().app, CodeOptions::kNodalSum);
+}
+
+TEST(ParsedInput, CommentEntireLine)
+{
+    const std::string tInput =
+        R"(
+          begin objective objective_1 
+            # app nodal_sum
+            app volume
+          end
+       )";
+
+    const auto tParsedInput = parse_and_check_success(tInput, TEST_CONTEXT("Commented out input"));
+
+    ASSERT_EQ(tParsedInput.mObjectives.size(), 1u);
+    test_existence_and_equality(tParsedInput.mObjectives.front().app, CodeOptions::kVolume);
+}
+
+TEST(ParsedInput, CommentNonInput)
+{
+    const std::string tInput =
+        R"(
+          begin objective objective_1 
+            # This is not real input!
+            app volume
+          end
+       )";
+    const auto tParsedInput = parse_and_check_success(tInput, TEST_CONTEXT("Comment on non-input"));
+
+    ASSERT_EQ(tParsedInput.mObjectives.size(), 1u);
+    test_existence_and_equality(tParsedInput.mObjectives.front().app, CodeOptions::kVolume);
+}
+
+TEST(ParsedInput, CommentMultipleLinesAndCharacters)
+{
+    const std::string tInput =
+        R"(
+          begin objective objective_1 
+            ## This is not # real input!
+            # active false
+            app volume
+          end
+       )";
+    const auto tParsedInput = parse_and_check_success(tInput, TEST_CONTEXT("Comment multiple lines and characters"));
+
+    ASSERT_EQ(tParsedInput.mObjectives.size(), 1u);
+    test_existence_and_equality(tParsedInput.mObjectives.front().app, CodeOptions::kVolume);
+    EXPECT_FALSE(tParsedInput.mObjectives.front().active.has_value());
+}
+
 }  // namespace plato::input_parser::unittest

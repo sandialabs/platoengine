@@ -15,6 +15,9 @@ template <typename R, typename dR, typename Arg>
 class Function
 {
    public:
+    using FunctionReturn = R;
+
+   public:
     /// Construction from two function objects, @a fun evaluates the function and @a dfun its derivative.
     template <typename F, typename DF>
     Function(F fun, DF dfun);

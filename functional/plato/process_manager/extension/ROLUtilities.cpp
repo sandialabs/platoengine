@@ -70,8 +70,9 @@ std::unique_ptr<ROL::Problem<double>> make_rol_problem(const library::ProcessMan
     constexpr bool tLumpConstraints =
         false;  //( mAlgorithmType == input_parser::rol_integration::algorithm_t::ROL_LINEAR_CONSTRAINT ? false : true
                 //);
-    tROLProblem->finalize(tLumpConstraints);  //, tPrintToStream, mOutputFile);
+    constexpr bool tPrintToStream = true;
+    tROLProblem->finalize(tLumpConstraints, tPrintToStream, std::cout);
     return tROLProblem;
 }
 
-}  // namespace plato::process_manager::library
+}  // namespace plato::process_manager::extension

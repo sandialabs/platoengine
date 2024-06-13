@@ -79,11 +79,11 @@ TEST(PlatoTestXMLGenerator, InsertFixedBlocksInputs)
 {
     XMLGen::MetaDataTags tTags;
     XMLGen::insert_fixed_blocks_input_options(tTags);
-    EXPECT_EQ(6u, tTags.size());
+    EXPECT_EQ(8u, tTags.size());
 
     std::unordered_map<std::string, std::string> tGoldValues = { {"fixed_block_ids",""}, {"fixed_sideset_ids",""}, 
-        {"fixed_nodeset_ids", ""}, {"fixed_block_domain_values", ""}, {"fixed_block_boundary_values", ""},
-        {"fixed_block_material_states", ""} };
+        {"fixed_nodeset_ids", ""}, {"fixed_block_domain_lower_values", ""}, {"fixed_block_domain_upper_values", ""}, 
+	{"fixed_block_boundary_lower_values", ""}, {"fixed_block_boundary_upper_values", ""}, {"fixed_block_material_states", ""} };
     for(auto& tPair : tTags)
     {
         // TEST INPUT KEYWORDS

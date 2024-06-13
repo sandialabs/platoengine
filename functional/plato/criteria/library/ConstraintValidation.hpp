@@ -6,14 +6,17 @@
 
 namespace plato::criteria::library
 {
+/// @brief Validates all constraint inputs in @a aInput, returning all error messages and appending to @a
+/// aCurrentMessageList.
+[[nodiscard]] std::vector<std::string> validate_constraints(const std::vector<input_parser::constraint>& aInput,
+                                                            std::vector<std::string>&& aCurrentMessageList);
+
 namespace detail
 {
 [[nodiscard]] std::optional<std::string> validate_equal_to(const input_parser::constraint& aInput);
-
+[[nodiscard]] std::optional<std::string> validate_constraint_number_of_processors(
+    const input_parser::constraint& aInput);
 }  // namespace detail
-
-[[nodiscard]] std::vector<std::string> validate_constraints(const std::vector<input_parser::constraint>& aInput,
-                                                            std::vector<std::string>&& aCurrentMessageList);
 
 }  // namespace plato::criteria::library
 

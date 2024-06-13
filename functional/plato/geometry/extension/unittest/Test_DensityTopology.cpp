@@ -14,7 +14,9 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/utilities/STKCommandGenerator.hpp"
 #include "plato/utilities/STKUtilities.hpp"
+
 namespace plato::geometry::extension::unittest
 {
 namespace
@@ -25,10 +27,13 @@ constexpr unsigned int kExpectedDensitySize = 8;  // Based on mesh generation co
 
 void create_small_mesh(const std::string& aFileName)
 {
-    namespace pf = plato;
+    namespace pfu = plato::utilities;
     ASSERT_EQ(stk::parallel_machine_size(MPI_COMM_WORLD), 1);
-    auto bulk = pf::utilities::create_mesh("generated:1x1x1|bbox:-1,-2,-1,2,1,2");
-    pf::utilities::write_mesh(aFileName, bulk);
+    const pfu::STKCommandGenerator tSTKCommandGenerator{
+        {1, 1, 1}, {-1, -2, -1}, {2, 1, 2}, pfu::STKCommandElementType::Hex};
+
+    auto bulk = pfu::create_mesh(tSTKCommandGenerator.toString());
+    pfu::write_mesh(aFileName, bulk);
 }
 }  // namespace
 

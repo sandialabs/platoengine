@@ -2,12 +2,14 @@
 
 #include <filesystem>
 
+#include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/GradientCheck.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::process_manager::extension::unittest
 {
@@ -22,24 +24,26 @@ std::size_t num_blocks_with_type(const ProcessManagerInputVector& aAllProcessMan
 
 TEST(GradientCheck, CreateGradientCheckRun)
 {
-    const input_parser::ParsedInput tInputDeck =
-        test_utilities::create_valid_shape_geometry_example_input_with_gradient_check();
+    const input_parser::ParsedInput tInputDeck = test_utilities::create_valid_brick_shape_geometry() |
+                                                 test_utilities::create_valid_example_objective() |
+                                                 test_utilities::create_valid_example_gradient_check();
     const auto tValidatedInput = library::make_validated_input(tInputDeck);
     const library::ProcessManagerData tProblem = library::make_process_manager_data(tValidatedInput);
     const library::ValidatedProcessManagerInputVector tAllProcessManagerInputs = tValidatedInput.processManagers();
-    ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 2);
+    ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1u);
     const auto tGradientCheck = GradientCheck{
         library::process_manager_input<input_parser::gradient_check>(tAllProcessManagerInputs.rawInput().back())};
     tGradientCheck.run(tProblem);
 
-    test_utilities::test_for_existence_and_delete({tInputDeck.mGradientCheck.value().output_file_name.value().mName,
-                                                   tInputDeck.mBrickShapeGeometry.value().mesh_name.value().mName});
+    test_utilities::test_for_existence_and_remove({tInputDeck.mGradientCheck.value().output_file_name.value().mName},
+                                                  TEST_CONTEXT("Checking for file existence"));
 }
 
 TEST(GradientCheck, UnwrapValidatedGradientCheckInput)
 {
     const input_parser::ParsedInput tInputDeck =
-        test_utilities::create_valid_shape_geometry_example_input_with_gradient_check();
+        test_utilities::create_valid_brick_shape_geometry() | test_utilities::create_valid_example_objective() |
+        test_utilities::create_valid_example_rol_optimization() | test_utilities::create_valid_example_gradient_check();
 
     const auto tValidatedInput = library::make_validated_input(tInputDeck);
     const auto tUnwrappedValidatedInput = tValidatedInput.processManagers().rawInput();

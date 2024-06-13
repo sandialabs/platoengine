@@ -111,9 +111,9 @@ private:
 public:
   void prune_percept_mesh(const std::vector<PruneHandle> &elem_list,
                        std::set<PruneHandle> &elems_to_keep,
-                       int num_buffer_layers,
-                       int allow_nonmanifold_connections,
-                       int remove_islands,
+                       const int num_buffer_layers,
+                       const bool allow_nonmanifold_connections,
+                       const bool remove_islands,
                        MeshManager &tMeshManager);
 };
 

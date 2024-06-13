@@ -44,8 +44,10 @@ private:
     std::vector<std::string> mFixedBlockIDs;
     std::vector<std::string> mFixedSidesetIDs;
     std::vector<std::string> mFixedNodesetIDs;
-    std::vector<std::string> mFixedBlockDomainValues;
-    std::vector<std::string> mFixedBlockBoundaryValues;
+    std::vector<std::string> mFixedBlockDomainLowerValues;
+    std::vector<std::string> mFixedBlockDomainUpperValues;
+    std::vector<std::string> mFixedBlockBoundaryLowerValues;
+    std::vector<std::string> mFixedBlockBoundaryUpperValues;
     std::vector<std::string> mFixedBlockMaterialStates;
     std::vector<std::string> mSymmetryPlaneOrigin;
     std::vector<std::string> mSymmetryPlaneNormal;
@@ -328,20 +330,37 @@ public:
     **********************************************************************************/
     void setFixedNodesetIDs(const std::vector<std::string> &aFixedNodesetIDs) { mFixedNodesetIDs = aFixedNodesetIDs; }
 
-    /******************************************************************************//**
-     * \fn setFixedBlockDomainValues
-     * \brief Set density values for the nodes associated with the fixed block domains. 
-     *        assign to the domain.
-     * \param [in] aFixedBlockDomainValues list of homogeneous density values 
+    /*********************************************************************************
+     * \fn setFixedBlockDomainLowerValues
+     * \brief Set the lower bound of the density values for the nodes associated with the fixed block domains. 
+     * \param [in] aFixedBlockDomainLowerValues list of homogeneous density values 
     **********************************************************************************/
-    void setFixedBlockDomainValues(const std::vector<std::string> &aFixedBlockDomainValues) { mFixedBlockDomainValues = aFixedBlockDomainValues; }
+    void setFixedBlockDomainLowerValues(const std::vector<std::string> &aFixedBlockDomainLowerValues) 
+                    { mFixedBlockDomainLowerValues = aFixedBlockDomainLowerValues; }
 
-    /******************************************************************************//**
-     * \fn setFixedBlockBoundaryValues
-     * \brief Set density values for the nodes associated with the fixed block boundaries.
-     * \param [in] aFixedBlockBoundaryValues list of homogeneous density values 
+    /*********************************************************************************
+     * \fn setFixedBlockDomainUpperValues
+     * \brief Set the upper bound of the density values for the nodes associated with the fixed block domains. 
+     * \param [in] aFixedBlockDomainUpperValues list of homogeneous density values 
     **********************************************************************************/
-    void setFixedBlockBoundaryValues(const std::vector<std::string> &aFixedBlockBoundaryValues) { mFixedBlockBoundaryValues = aFixedBlockBoundaryValues; }
+    void setFixedBlockDomainUpperValues(const std::vector<std::string> &aFixedBlockDomainUpperValues) 
+                    { mFixedBlockDomainUpperValues = aFixedBlockDomainUpperValues; }
+
+    /**********************************************************************************
+     * \fn setFixedBlockBoundaryLowerValues
+     * \brief Set the lower bound of the density values for the nodes in between optimizable and fixed blocks
+     * \param [in] aFixedBlockBoundaryLowerValues list of homogeneous density values 
+    **********************************************************************************/
+    void setFixedBlockBoundaryLowerValues(const std::vector<std::string> &aFixedBlockBoundaryLowerValues) 
+                   { mFixedBlockBoundaryLowerValues = aFixedBlockBoundaryLowerValues; }
+
+    /**********************************************************************************
+     * \fn setFixedBlockBoundaryUpperValues
+     * \brief Set the upper bound of the density values for the nodes in between optimizable and fixed blocks
+     * \param [in] aFixedBlockBoundaryUpperValues list of homogeneous density values 
+    **********************************************************************************/
+    void setFixedBlockBoundaryUpperValues(const std::vector<std::string> &aFixedBlockBoundaryUpperValues) 
+                   { mFixedBlockBoundaryUpperValues = aFixedBlockBoundaryUpperValues; }
 
     /******************************************************************************//**
      * \fn setFixedBlockMaterialStates
@@ -404,8 +423,10 @@ public:
     std::vector<std::string> fixed_block_ids() const {return mFixedBlockIDs;}
     std::vector<std::string> fixed_nodeset_ids() const {return mFixedNodesetIDs;}
     std::vector<std::string> fixed_sideset_ids() const {return mFixedSidesetIDs;}
-    std::vector<std::string> fixed_block_domain_values() const {return mFixedBlockDomainValues;}
-    std::vector<std::string> fixed_block_boundary_values() const {return mFixedBlockBoundaryValues;}
+    std::vector<std::string> fixed_block_domain_lower_values() const {return mFixedBlockDomainLowerValues;}
+    std::vector<std::string> fixed_block_domain_upper_values() const {return mFixedBlockDomainUpperValues;}
+    std::vector<std::string> fixed_block_boundary_lower_values() const {return mFixedBlockBoundaryLowerValues;}
+    std::vector<std::string> fixed_block_boundary_upper_values() const {return mFixedBlockBoundaryUpperValues;}
     std::vector<std::string> fixed_block_material_states() const {return mFixedBlockMaterialStates;}
     std::vector<std::string> symmetry_plane_location_names() const {return mSymmetryPlaneLocationNames;}
     std::string hessian_type() const {return value("hessian_type");}

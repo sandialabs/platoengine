@@ -40,18 +40,32 @@ TEST(PlatoTestXMLGenerator, CheckFixedBlocksData_Case1)
         ASSERT_STREQ("solid", tState.c_str());
     }
 
-    auto tDomainValues = tMetadata.fixed_block_domain_values();
-    ASSERT_EQ(3u, tDomainValues.size());
-    for(auto& tValue : tDomainValues)
+    auto tDomainLowerValues = tMetadata.fixed_block_domain_lower_values();
+    ASSERT_EQ(3u, tDomainLowerValues.size());
+    for(auto& tValue : tDomainLowerValues)
     {
         ASSERT_STREQ("1.0", tValue.c_str());
     }
 
-    auto tBoundaryValues = tMetadata.fixed_block_boundary_values();
-    ASSERT_EQ(3u, tBoundaryValues.size());
-    for(auto& tValue : tBoundaryValues)
+    auto tDomainUpperValues = tMetadata.fixed_block_domain_upper_values();
+    ASSERT_EQ(3u, tDomainUpperValues.size());
+    for(auto& tValue : tDomainUpperValues)
+    {
+        ASSERT_STREQ("1.0", tValue.c_str());
+    }
+
+    auto tBoundaryLowerValues = tMetadata.fixed_block_boundary_lower_values();
+    ASSERT_EQ(3u, tBoundaryLowerValues.size());
+    for(auto& tValue : tBoundaryLowerValues)
     {
         ASSERT_STREQ("0.5001", tValue.c_str());
+    }
+
+    auto tBoundaryUpperValues = tMetadata.fixed_block_boundary_upper_values();
+    ASSERT_EQ(3u, tBoundaryUpperValues.size());
+    for(auto& tValue : tBoundaryUpperValues)
+    {
+        ASSERT_STREQ("1.0", tValue.c_str());
     }
 }
 
@@ -77,22 +91,40 @@ TEST(PlatoTestXMLGenerator, CheckFixedBlocksData_Case2)
         ASSERT_STREQ(tMaterialStatesGold[tIndex].c_str(), tState.c_str());
     }
 
-    std::vector<std::string> tDomainValuesGold = {"0.0", "1.0", "0.0"};
-    auto tDomainValues = tMetadata.fixed_block_domain_values();
-    ASSERT_EQ(3u, tDomainValues.size());
-    for(auto& tValue : tDomainValues)
+    std::vector<std::string> tDomainLowerValuesGold = {"0.0", "1.0", "0.0"};
+    auto tDomainLowerValues = tMetadata.fixed_block_domain_lower_values();
+    ASSERT_EQ(3u, tDomainLowerValues.size());
+    for(auto& tValue : tDomainLowerValues)
     {
-        auto tIndex = &tValue - &tDomainValues[0];
-        ASSERT_STREQ(tDomainValuesGold[tIndex].c_str(), tValue.c_str());
+        auto tIndex = &tValue - &tDomainLowerValues[0];
+        ASSERT_STREQ(tDomainLowerValuesGold[tIndex].c_str(), tValue.c_str());
     }
 
-    std::vector<std::string> tBoundaryValuesGold = {"0.4999", "0.5001", "0.4999"};
-    auto tBoundaryValues = tMetadata.fixed_block_boundary_values();
-    ASSERT_EQ(3u, tBoundaryValues.size());
-    for(auto& tValue : tBoundaryValues)
+    std::vector<std::string> tDomainUpperValuesGold = {"0.0", "1.0", "0.0"};
+    auto tDomainUpperValues = tMetadata.fixed_block_domain_upper_values();
+    ASSERT_EQ(3u, tDomainUpperValues.size());
+    for(auto& tValue : tDomainUpperValues)
     {
-        auto tIndex = &tValue - &tBoundaryValues[0];
-        ASSERT_STREQ(tBoundaryValuesGold[tIndex].c_str(), tValue.c_str());
+        auto tIndex = &tValue - &tDomainUpperValues[0];
+        ASSERT_STREQ(tDomainUpperValuesGold[tIndex].c_str(), tValue.c_str());
+    }
+
+    std::vector<std::string> tBoundaryLowerValuesGold = {"0.4999", "0.5001", "0.4999"};
+    auto tBoundaryLowerValues = tMetadata.fixed_block_boundary_lower_values();
+    ASSERT_EQ(3u, tBoundaryLowerValues.size());
+    for(auto& tValue : tBoundaryLowerValues)
+    {
+        auto tIndex = &tValue - &tBoundaryLowerValues[0];
+        ASSERT_STREQ(tBoundaryLowerValuesGold[tIndex].c_str(), tValue.c_str());
+    }
+
+    std::vector<std::string> tBoundaryUpperValuesGold = {"0.4999", "0.5001", "0.4999"};
+    auto tBoundaryUpperValues = tMetadata.fixed_block_boundary_upper_values();
+    ASSERT_EQ(3u, tBoundaryUpperValues.size());
+    for(auto& tValue : tBoundaryUpperValues)
+    {
+        auto tIndex = &tValue - &tBoundaryUpperValues[0];
+        ASSERT_STREQ(tBoundaryUpperValuesGold[tIndex].c_str(), tValue.c_str());
     }
 }
 
@@ -102,10 +134,14 @@ TEST(PlatoTestXMLGenerator, CheckFixedBlocksData_Case3)
     XMLGen::OptimizationParameters tMetadata;
     std::vector<std::string> tFixedBlockIds = {"1", "2", "3"};
     tMetadata.setFixedBlockIDs(tFixedBlockIds);
-    std::vector<std::string> tDomainValues = {"0.9", "0.4", "0.8"};
-    tMetadata.setFixedBlockDomainValues(tDomainValues);
-    std::vector<std::string> tBoundaryValues = {"0.92", "0.43", "0.85"};
-    tMetadata.setFixedBlockBoundaryValues(tBoundaryValues);
+    std::vector<std::string> tDomainLowerValues = {"0.9", "0.4", "0.8"};
+    tMetadata.setFixedBlockDomainLowerValues(tDomainLowerValues);
+    std::vector<std::string> tDomainUpperValues = {"0.9", "0.4", "0.8"};
+    tMetadata.setFixedBlockDomainUpperValues(tDomainUpperValues);
+    std::vector<std::string> tBoundaryLowerValues = {"0.92", "0.43", "0.85"};
+    tMetadata.setFixedBlockBoundaryLowerValues(tBoundaryLowerValues);
+    std::vector<std::string> tBoundaryUpperValues = {"0.92", "0.43", "0.85"};
+    tMetadata.setFixedBlockBoundaryUpperValues(tBoundaryUpperValues);
 
     // CALL FUNCTION
     XMLGen::FixedBlock::check_fixed_block_metadata(tMetadata);
@@ -121,20 +157,34 @@ TEST(PlatoTestXMLGenerator, CheckFixedBlocksData_Case3)
     }
 
     std::vector<std::string> tDomainValuesGold = {"0.9", "0.4", "0.8"};
-    tDomainValues = tMetadata.fixed_block_domain_values();
-    ASSERT_EQ(3u, tDomainValues.size());
-    for(auto& tValue : tDomainValues)
+    tDomainLowerValues = tMetadata.fixed_block_domain_lower_values();
+    ASSERT_EQ(3u, tDomainLowerValues.size());
+    for(auto& tValue : tDomainLowerValues)
     {
-        auto tIndex = &tValue - &tDomainValues[0];
+        auto tIndex = &tValue - &tDomainLowerValues[0];
+        ASSERT_STREQ(tDomainValuesGold[tIndex].c_str(), tValue.c_str());
+    }
+    tDomainUpperValues = tMetadata.fixed_block_domain_upper_values();
+    ASSERT_EQ(3u, tDomainUpperValues.size());
+    for(auto& tValue : tDomainUpperValues)
+    {
+        auto tIndex = &tValue - &tDomainUpperValues[0];
         ASSERT_STREQ(tDomainValuesGold[tIndex].c_str(), tValue.c_str());
     }
 
     std::vector<std::string> tBoundaryValuesGold = {"0.92", "0.43", "0.85"};
-    tBoundaryValues = tMetadata.fixed_block_boundary_values();
-    ASSERT_EQ(3u, tBoundaryValues.size());
-    for(auto& tValue : tBoundaryValues)
+    tBoundaryLowerValues = tMetadata.fixed_block_boundary_lower_values();
+    ASSERT_EQ(3u, tBoundaryLowerValues.size());
+    for(auto& tValue : tBoundaryLowerValues)
     {
-        auto tIndex = &tValue - &tBoundaryValues[0];
+        auto tIndex = &tValue - &tBoundaryLowerValues[0];
+        ASSERT_STREQ(tBoundaryValuesGold[tIndex].c_str(), tValue.c_str());
+    }
+    tBoundaryUpperValues = tMetadata.fixed_block_boundary_upper_values();
+    ASSERT_EQ(3u, tBoundaryUpperValues.size());
+    for(auto& tValue : tBoundaryUpperValues)
+    {
+        auto tIndex = &tValue - &tBoundaryUpperValues[0];
         ASSERT_STREQ(tBoundaryValuesGold[tIndex].c_str(), tValue.c_str());
     }
 }
@@ -145,10 +195,14 @@ TEST(PlatoTestXMLGenerator, CheckFixedBlocksData_Case4)
     XMLGen::OptimizationParameters tMetadata;
     std::vector<std::string> tFixedBlockIds = {"1", "2", "3"};
     tMetadata.setFixedBlockIDs(tFixedBlockIds);
-    std::vector<std::string> tDomainValues = {"0.9", "0.4", "0.8"};
-    tMetadata.setFixedBlockDomainValues(tDomainValues);
-    std::vector<std::string> tBoundaryValues = {"0.92", "0.43", "0.85"};
-    tMetadata.setFixedBlockBoundaryValues(tBoundaryValues);
+    std::vector<std::string> tDomainLowerValues = {"0.9", "0.4", "0.8"};
+    tMetadata.setFixedBlockDomainLowerValues(tDomainLowerValues);
+    std::vector<std::string> tDomainUpperValues = {"0.9", "0.4", "0.8"};
+    tMetadata.setFixedBlockDomainUpperValues(tDomainUpperValues);
+    std::vector<std::string> tBoundaryLowerValues = {"0.92", "0.43", "0.85"};
+    tMetadata.setFixedBlockBoundaryLowerValues(tBoundaryLowerValues);
+    std::vector<std::string> tBoundaryUpperValues = {"0.92", "0.43", "0.85"};
+    tMetadata.setFixedBlockBoundaryUpperValues(tBoundaryUpperValues);
     std::vector<std::string> tMaterialStates = {"solid", "fluid", "solid"};
     tMetadata.setFixedBlockMaterialStates(tMaterialStates);
 
@@ -166,20 +220,35 @@ TEST(PlatoTestXMLGenerator, CheckFixedBlocksData_Case4)
     }
 
     std::vector<std::string> tDomainValuesGold = {"0.9", "0.4", "0.8"};
-    tDomainValues = tMetadata.fixed_block_domain_values();
-    ASSERT_EQ(3u, tDomainValues.size());
-    for(auto& tValue : tDomainValues)
+    tDomainLowerValues = tMetadata.fixed_block_domain_lower_values();
+    ASSERT_EQ(3u, tDomainLowerValues.size());
+    for(auto& tValue : tDomainLowerValues)
     {
-        auto tIndex = &tValue - &tDomainValues[0];
+        auto tIndex = &tValue - &tDomainLowerValues[0];
+        ASSERT_STREQ(tDomainValuesGold[tIndex].c_str(), tValue.c_str());
+    }
+    tDomainUpperValues = tMetadata.fixed_block_domain_upper_values();
+    ASSERT_EQ(3u, tDomainUpperValues.size());
+    for(auto& tValue : tDomainUpperValues)
+    {
+        auto tIndex = &tValue - &tDomainUpperValues[0];
         ASSERT_STREQ(tDomainValuesGold[tIndex].c_str(), tValue.c_str());
     }
 
     std::vector<std::string> tBoundaryValuesGold = {"0.92", "0.43", "0.85"};
-    tBoundaryValues = tMetadata.fixed_block_boundary_values();
-    ASSERT_EQ(3u, tBoundaryValues.size());
-    for(auto& tValue : tBoundaryValues)
+    tBoundaryLowerValues = tMetadata.fixed_block_boundary_lower_values();
+    ASSERT_EQ(3u, tBoundaryLowerValues.size());
+    for(auto& tValue : tBoundaryLowerValues)
     {
-        auto tIndex = &tValue - &tBoundaryValues[0];
+        auto tIndex = &tValue - &tBoundaryLowerValues[0];
+        ASSERT_STREQ(tBoundaryValuesGold[tIndex].c_str(), tValue.c_str());
+    }
+
+    tBoundaryUpperValues = tMetadata.fixed_block_boundary_upper_values();
+    ASSERT_EQ(3u, tBoundaryUpperValues.size());
+    for(auto& tValue : tBoundaryUpperValues)
+    {
+        auto tIndex = &tValue - &tBoundaryUpperValues[0];
         ASSERT_STREQ(tBoundaryValuesGold[tIndex].c_str(), tValue.c_str());
     }
 }

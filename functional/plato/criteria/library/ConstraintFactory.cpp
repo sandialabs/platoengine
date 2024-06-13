@@ -1,8 +1,5 @@
 #include "plato/criteria/library/ConstraintFactory.hpp"
 
-#include <string>
-#include <unordered_map>
-
 #include "plato/core/MeshProxy.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/utilities/Exception.hpp"

@@ -27,10 +27,4 @@ TEST(CriterionRegistration, PhonyCriterion)
     EXPECT_TRUE(plato::criteria::library::is_criterion_function_registered("test"));
 }
 
-TEST(CriterionRegistration, CustomApp)
-{
-    const std::string tCustomAppName =
-        input_parser::kCodeOptionsTable.toString(input_parser::CodeOptions::kCustomApp).value();
-    EXPECT_TRUE(plato::criteria::library::is_criterion_function_registered(tCustomAppName));
-}
 }  // namespace plato::criteria::library::unittest

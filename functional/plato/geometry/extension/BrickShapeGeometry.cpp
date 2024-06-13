@@ -11,6 +11,8 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/FileUtilities.hpp"
+#include "plato/utilities/STKCommandGenerator.hpp"
 #include "plato/utilities/STKUtilities.hpp"
 
 namespace plato::geometry::extension
@@ -33,15 +35,13 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
     return [](const linear_algebra::DynamicVector<double>& aSolution) { return BrickShapeGeometry::output(aSolution); };
 }
 
-[[maybe_unused]] static auto kBrickShapeGeometryRegistration =
-    plato::geometry::library::GeometryRegistration{
-        input_parser::block_name<input_parser::brick_shape_geometry>(),
-        [](const library::ValidatedGeometryInput& aGeometryInput)
-        {
-            return library::FactoryTypes{make_brick_shape_geometry(BrickShapeGeometry{mesh_path(aGeometryInput)}),
-                                         BrickShapeGeometry::initialGuess(), BrickShapeGeometry::bounds(),
-                                         make_output()};
-        }};
+[[maybe_unused]] static auto kBrickShapeGeometryRegistration = plato::geometry::library::GeometryRegistration{
+    input_parser::block_name<input_parser::brick_shape_geometry>(),
+    [](const library::ValidatedGeometryInput& aGeometryInput)
+    {
+        return library::FactoryTypes{make_brick_shape_geometry(BrickShapeGeometry{mesh_path(aGeometryInput)}),
+                                     BrickShapeGeometry::initialGuess(), BrickShapeGeometry::bounds(), make_output()};
+    }};
 
 [[maybe_unused]] static auto kBrickShapeValidationRegistration =
     core::ValidationRegistration<input_parser::brick_shape_geometry>{
@@ -49,9 +49,11 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
 }  // namespace
 
 BrickShapeGeometry::BrickShapeGeometry(std::filesystem::path aFileName, const std::optional<double> aDiscretizationSize)
-    : mFileName(std::move(aFileName)), mDiscretizationSize(aDiscretizationSize)
+    : mFileName(utilities::make_filename_unique(std::move(aFileName))), mDiscretizationSize(aDiscretizationSize)
 {
 }
+
+BrickShapeGeometry::~BrickShapeGeometry() { std::filesystem::remove(mFileName); }
 
 core::MeshProxy BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
 {
@@ -101,32 +103,28 @@ namespace detail
 std::shared_ptr<stk::mesh::BulkData> create_mesh(const BrickDesign& aDesign,
                                                  const std::optional<double> aDiscretizationSize)
 {
-    std::stringstream generationCommand;
-    generationCommand << std::setprecision(16);
-    generationCommand << "generated:";
+    const utilities::STKCommandBounds tLowerBounds{aDesign.center_x - aDesign.dimension_x / 2.0,
+                                                   aDesign.center_y - aDesign.dimension_y / 2.0,
+                                                   aDesign.center_z - aDesign.dimension_z / 2.0};
+    const utilities::STKCommandBounds tUpperBounds{aDesign.center_x + aDesign.dimension_x / 2.0,
+                                                   aDesign.center_y + aDesign.dimension_y / 2.0,
+                                                   aDesign.center_z + aDesign.dimension_z / 2.0};
+    utilities::STKCommandNumberOfElements tNumberOfElements{1, 1, 1};
     if (aDiscretizationSize)
     {
-        const auto tNx = static_cast<int>(std::ceil(aDesign.dimension_x / aDiscretizationSize.value()));
-        const auto tNy = static_cast<int>(std::ceil(aDesign.dimension_y / aDiscretizationSize.value()));
-        const auto tNz = static_cast<int>(std::ceil(aDesign.dimension_z / aDiscretizationSize.value()));
-        generationCommand << tNx << "x" << tNy << "x" << tNz;
+        const auto tNx = static_cast<unsigned int>(std::ceil(aDesign.dimension_x / aDiscretizationSize.value()));
+        const auto tNy = static_cast<unsigned int>(std::ceil(aDesign.dimension_y / aDiscretizationSize.value()));
+        const auto tNz = static_cast<unsigned int>(std::ceil(aDesign.dimension_z / aDiscretizationSize.value()));
+        tNumberOfElements = {tNx, tNy, tNz};
     }
-    else
-    {
-        generationCommand << "1x1x1";
-    }
-    generationCommand << "|bbox:";
-    const double xmin = aDesign.center_x - aDesign.dimension_x / 2.0;
-    const double ymin = aDesign.center_y - aDesign.dimension_y / 2.0;
-    const double zmin = aDesign.center_z - aDesign.dimension_z / 2.0;
-    generationCommand << xmin << "," << ymin << "," << zmin << ",";
-    const double xmax = aDesign.center_x + aDesign.dimension_x / 2.0;
-    const double ymax = aDesign.center_y + aDesign.dimension_y / 2.0;
-    const double zmax = aDesign.center_z + aDesign.dimension_z / 2.0;
-    generationCommand << xmax << "," << ymax << "," << zmax;
-    generationCommand << "|sideset:Z|nodeset:Y";
-    std::cout << generationCommand.str() << std::endl;
-    return plato::utilities::create_mesh(generationCommand.str());
+
+    const utilities::STKCommandGenerator tSTKCommandGenerator{tNumberOfElements, tLowerBounds, tUpperBounds,
+                                                              utilities::STKCommandElementType::Hex};
+
+    const int tPrecision = 16;
+    const std::string tGenerationCommand = tSTKCommandGenerator.toString(tPrecision) + "|sideset:Z|nodeset:Y";
+    std::cout << tGenerationCommand << std::endl;
+    return plato::utilities::create_mesh(tGenerationCommand);
 }
 
 std::vector<double> sensitivities(const unsigned int aParameterIndex)
