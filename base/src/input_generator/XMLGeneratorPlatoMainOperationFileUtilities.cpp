@@ -1511,7 +1511,8 @@ void append_decomp_operations
 /******************************************************************************/
 void append_fixed_blocks_identification_numbers_to_operation
 (const XMLGen::InputData& aXMLMetaData,
- pugi::xml_node& aParentNode)
+ pugi::xml_node& aParentNode,
+ XMLGen::BoundEnum aBoundEnum)
 {
     const auto& tOptParams = aXMLMetaData.optimization_parameters();
     if(tOptParams.fixed_block_ids().size() > 0)
@@ -1519,8 +1520,18 @@ void append_fixed_blocks_identification_numbers_to_operation
         XMLGen::FixedBlock::check_fixed_block_arrays(tOptParams);
 
         auto tFixedBlockIDs = tOptParams.fixed_block_ids();
-        auto tDomainValues = tOptParams.fixed_block_domain_values();
-        auto tBoundaryValues = tOptParams.fixed_block_boundary_values();
+        std::vector<std::string> tDomainValues;
+        std::vector<std::string> tBoundaryValues;
+        if(aBoundEnum == XMLGen::BoundEnum::LowerBound)
+        {
+            tDomainValues = tOptParams.fixed_block_domain_lower_values();
+            tBoundaryValues = tOptParams.fixed_block_boundary_lower_values();
+	}
+	else
+	{
+            tDomainValues = tOptParams.fixed_block_domain_upper_values();
+            tBoundaryValues = tOptParams.fixed_block_boundary_upper_values();
+	}
         auto tMaterialStates = tOptParams.fixed_block_material_states();
 
         for(auto& tID : tFixedBlockIDs)
@@ -1596,7 +1607,7 @@ void append_set_lower_bounds_to_plato_main_operation
         auto tOutput = tOperation.append_child("Output");
         XMLGen::append_children({"ArgumentName"}, {"Lower Bound Vector"}, tOutput);
 
-        XMLGen::append_fixed_blocks_identification_numbers_to_operation(aXMLMetaData, tOperation);
+        XMLGen::append_fixed_blocks_identification_numbers_to_operation(aXMLMetaData, tOperation, XMLGen::BoundEnum::LowerBound);
         XMLGen::append_fixed_sidesets_identification_numbers_to_operation(aXMLMetaData, tOperation);
         XMLGen::append_fixed_nodesets_identification_numbers_to_operation(aXMLMetaData, tOperation);
     }
@@ -1723,7 +1734,7 @@ void append_set_upper_bounds_to_plato_main_operation
         auto tOutput = tOperation.append_child("Output");
         XMLGen::append_children({"ArgumentName"}, {"Upper Bound Vector"}, tOutput);
 
-        XMLGen::append_fixed_blocks_identification_numbers_to_operation(aXMLMetaData, tOperation);
+        XMLGen::append_fixed_blocks_identification_numbers_to_operation(aXMLMetaData, tOperation, XMLGen::BoundEnum::UpperBound);
         XMLGen::append_fixed_sidesets_identification_numbers_to_operation(aXMLMetaData, tOperation);
         XMLGen::append_fixed_nodesets_identification_numbers_to_operation(aXMLMetaData, tOperation);
     }

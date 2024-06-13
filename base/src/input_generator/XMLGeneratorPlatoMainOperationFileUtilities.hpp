@@ -13,6 +13,12 @@
 namespace XMLGen
 {
 
+enum struct BoundEnum
+{
+  UpperBound,
+  LowerBound
+};
+
 /******************************************************************************//**
  * \fn write_plato_main_operations_xml_file
  * \brief Write Plato main operation xml file.
@@ -532,7 +538,8 @@ void append_decomp_operations
 **********************************************************************************/
 void append_fixed_blocks_identification_numbers_to_operation
 (const XMLGen::InputData& aXMLMetaData,
- pugi::xml_node& aParentNode);
+ pugi::xml_node& aParentNode, 
+ XMLGen::BoundEnum aBoundEnum);
 
 /******************************************************************************//**
  * \fn append_fixed_sidesets_identification_numbers_to_operation

@@ -111,8 +111,10 @@ void insert_fixed_blocks_input_options(XMLGen::MetaDataTags &aTags)
     aTags.insert({ "fixed_block_ids", { { {"fixed_block_ids"}, ""}, "" } });
     aTags.insert({ "fixed_sideset_ids", { { {"fixed_sideset_ids"}, ""}, "" } });
     aTags.insert({ "fixed_nodeset_ids", { { {"fixed_nodeset_ids"}, ""}, "" } });
-    aTags.insert({ "fixed_block_domain_values", { { {"fixed_block_domain_values"}, ""}, "" } });
-    aTags.insert({ "fixed_block_boundary_values", { { {"fixed_block_boundary_values"}, ""}, "" } });
+    aTags.insert({ "fixed_block_domain_lower_values", { { {"fixed_block_domain_lower_values"}, ""}, "" } });
+    aTags.insert({ "fixed_block_domain_upper_values", { { {"fixed_block_domain_upper_values"}, ""}, "" } });
+    aTags.insert({ "fixed_block_boundary_lower_values", { { {"fixed_block_boundary_lower_values"}, ""}, "" } });
+    aTags.insert({ "fixed_block_boundary_upper_values", { { {"fixed_block_boundary_upper_values"}, ""}, "" } });
     aTags.insert({ "fixed_block_material_states", { { {"fixed_block_material_states"}, ""}, "" } });
 }
 // function insert_fixed_blocks_input_options

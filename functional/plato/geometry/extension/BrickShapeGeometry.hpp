@@ -3,17 +3,13 @@
 
 #include <filesystem>
 #include <optional>
+#include <stk_mesh/base/BulkData.hpp>
 
 #include "plato/core/Function.hpp"
 #include "plato/core/MeshProxy.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
-
-namespace stk::mesh
-{
-class BulkData;
-}
 
 namespace plato::geometry::extension
 {
@@ -33,6 +29,11 @@ struct BrickDesign
 /// The purpose of this class is to demonstrate a geometry function. It uses six design parameters,
 /// center coordinates and dimensions, and maps to a hex mesh. The goal is to demonstrate a shape-optimization-like
 /// capability similar to ESP for testing purposes.
+///
+/// @note This geometry type generates a mesh used by downstream functions. The mesh file name is based on
+/// the `mesh_name` input field, but with a unique hexadecimal value appended. This is to prevent name clashes
+/// when running in parallel.
+/// @note The file is maintained by this object and will be deleted when the object goes out of scope.
 class BrickShapeGeometry
 {
    public:
@@ -42,6 +43,8 @@ class BrickShapeGeometry
     ///  number of elements is `ceil(dimension / discretizationSize)`.
     explicit BrickShapeGeometry(std::filesystem::path aFileName,
                                 std::optional<double> aDiscretizationSize = std::nullopt);
+
+    ~BrickShapeGeometry();
 
     [[nodiscard]] core::MeshProxy generateMesh(const BrickDesign& aDesignParameters) const;
 

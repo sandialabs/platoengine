@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ObjectiveFactory.hpp"
+#include "plato/integration_tests/utilities/CheckProcessorsMatchObjectives.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::integration_tests::serial
 {
@@ -34,19 +37,7 @@ process_manager::library::ValidatedInput create_two_objective_test_input()
 }
 }  // namespace
 
-TEST(ObjectiveFactory, ValidAggregate)
-{
-    const process_manager::library::ValidatedInput tData = create_two_objective_test_input();
-
-    EXPECT_EQ(tData.objectives().rawInput().size(), 2);
-    const core::Aggregate tAggregate = criteria::library::detail::make_aggregate(tData.objectives());
-    EXPECT_EQ(tAggregate.size(), 2);
-
-    const std::vector tExpected = {42.0, 13.0};
-    EXPECT_EQ(tAggregate.weights(), tExpected);
-}
-
-TEST(ObjectiveFactory, ValidParallelAggregate)
+TEST(ObjectiveFactory, ValidParallelAggregateTwoObjectives)
 {
     const process_manager::library::ValidatedInput tData = create_two_objective_test_input();
 
@@ -81,10 +72,28 @@ TEST(ObjectiveFactory, ValidAggregateOneObjective)
         process_manager::library::parse_and_validate(tObjectiveInput + tGeometryInput + tOptimizerInput);
 
     EXPECT_EQ(tData.objectives().rawInput().size(), 2);
-    const core::Aggregate tAggregate = criteria::library::detail::make_aggregate(tData.objectives());
+    const auto tAggregate = criteria::library::detail::make_parallel_aggregate(tData.objectives());
     EXPECT_EQ(tAggregate.size(), 1);
-
-    const std::vector tExpected = {13.0};
-    EXPECT_EQ(tAggregate.weights(), tExpected);
 }
+
+TEST(ObjectiveFactory, NumberOfProcessors)
+{
+    auto tInput = test_utilities::create_valid_example_input();
+    {
+        // Check example, which sets number_of_processors to 1
+        auto tValidInput = process_manager::library::make_validated_input(tInput);
+        utilities::check_processors_match_objectives(
+            criteria::library::number_of_processors_per_objective(tValidInput.objectives()), tValidInput.objectives(),
+            TEST_CONTEXT("One processor"));
+    }
+    {
+        // Set number_of_processors to boost::none, default is 1
+        tInput.mObjectives.front().number_of_processors = boost::none;
+        auto tValidInput = process_manager::library::make_validated_input(tInput);
+        utilities::check_processors_match_objectives(
+            criteria::library::number_of_processors_per_objective(tValidInput.objectives()), tValidInput.objectives(),
+            TEST_CONTEXT("Default using boost::none"));
+    }
+}
+
 }  // namespace plato::integration_tests::serial

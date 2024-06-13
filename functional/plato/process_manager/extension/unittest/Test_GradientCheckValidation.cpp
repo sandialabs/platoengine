@@ -18,46 +18,6 @@ std::vector<std::string> validate_gradient_check(const input_parser::gradient_ch
 
 }  // namespace
 
-TEST(ValidateGradientCheck, ValidateNumberOfSteps)
-{
-    input_parser::gradient_check tGradientCheck;
-    EXPECT_TRUE(detail::validate_number_of_steps(tGradientCheck).has_value());
-    tGradientCheck.number_of_steps = 0;  // out of bounds
-    EXPECT_TRUE(detail::validate_number_of_steps(tGradientCheck).has_value());
-    tGradientCheck.number_of_steps = 10;  // in bounds
-    EXPECT_FALSE(detail::validate_number_of_steps(tGradientCheck).has_value());
-}
-
-TEST(ValidateGradientCheck, ValidateInitialDirectionMagnitude)
-{
-    input_parser::gradient_check tGradientCheck;
-    EXPECT_TRUE(detail::validate_initial_direction_magnitude(tGradientCheck).has_value());
-    tGradientCheck.initial_direction_magnitude = 0;  // out of bounds
-    EXPECT_TRUE(detail::validate_initial_direction_magnitude(tGradientCheck).has_value());
-    tGradientCheck.initial_direction_magnitude = 10;  // in bounds
-    EXPECT_FALSE(detail::validate_initial_direction_magnitude(tGradientCheck).has_value());
-}
-
-TEST(ValidateGradientCheck, ValidateStepSizeReductionFactor)
-{
-    input_parser::gradient_check tGradientCheck;
-    EXPECT_TRUE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
-    tGradientCheck.step_size_reduction_factor = 0;  // out of bounds
-    EXPECT_TRUE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
-    tGradientCheck.step_size_reduction_factor = 0.5;  // in bounds
-    EXPECT_FALSE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
-    tGradientCheck.step_size_reduction_factor = 10;  // out of bounds
-    EXPECT_TRUE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
-}
-
-TEST(ValidateGradientCheck, ValidateRandomDirectionSeed)
-{
-    input_parser::gradient_check tGradientCheck;
-    EXPECT_TRUE(detail::validate_random_direction_seed(tGradientCheck).has_value());
-    tGradientCheck.random_direction_seed = 0;  // out of bounds
-    EXPECT_TRUE(detail::validate_random_direction_seed(tGradientCheck).has_value());
-}
-
 TEST(ValidateGradientCheck, ValidateOuputFileName)
 {
     auto tGradientCheck = input_parser::gradient_check{};

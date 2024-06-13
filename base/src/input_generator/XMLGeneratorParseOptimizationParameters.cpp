@@ -167,8 +167,10 @@ void ParseOptimizationParameters::setMetaData(XMLGen::OptimizationParameters &aM
     this->setFixedBlockIDs(aMetadata);
     this->setFixedSidesetIDs(aMetadata);
     this->setFixedNodesetIDs(aMetadata);
-    this->setFixedBlockDomainValues(aMetadata);
-    this->setFixedBlockBoundaryValues(aMetadata);
+    this->setFixedBlockDomainLowerValues(aMetadata);
+    this->setFixedBlockDomainUpperValues(aMetadata);
+    this->setFixedBlockBoundaryLowerValues(aMetadata);
+    this->setFixedBlockBoundaryUpperValues(aMetadata);
     this->setFixedBlockMaterialStates(aMetadata);
     XMLGen::FixedBlock::check_fixed_block_metadata(aMetadata);
 
@@ -475,23 +477,43 @@ void ParseOptimizationParameters::setFixedBlockIDs(XMLGen::OptimizationParameter
     }
 }
 
-void ParseOptimizationParameters::setFixedBlockDomainValues(XMLGen::OptimizationParameters &aMetadata)
+void ParseOptimizationParameters::setFixedBlockDomainLowerValues(XMLGen::OptimizationParameters &aMetadata)
 {
-    auto tItr = mTags.find("fixed_block_domain_values");
+    auto tItr = mTags.find("fixed_block_domain_lower_values");
     std::string tValues = tItr->second.first.second;
     if (tItr != mTags.end() && !tValues.empty())
     {
-        XMLGen::FixedBlock::set_fixed_block_domain_values(tValues, aMetadata);
+        XMLGen::FixedBlock::set_fixed_block_domain_lower_values(tValues, aMetadata);
     }
 }
 
-void ParseOptimizationParameters::setFixedBlockBoundaryValues(XMLGen::OptimizationParameters &aMetadata)
+void ParseOptimizationParameters::setFixedBlockDomainUpperValues(XMLGen::OptimizationParameters &aMetadata)
 {
-    auto tItr = mTags.find("fixed_block_boundary_values");
+    auto tItr = mTags.find("fixed_block_domain_upper_values");
     std::string tValues = tItr->second.first.second;
     if (tItr != mTags.end() && !tValues.empty())
     {
-        XMLGen::FixedBlock::set_fixed_block_boundary_values(tValues, aMetadata);
+        XMLGen::FixedBlock::set_fixed_block_domain_upper_values(tValues, aMetadata);
+    }
+}
+
+void ParseOptimizationParameters::setFixedBlockBoundaryLowerValues(XMLGen::OptimizationParameters &aMetadata)
+{
+    auto tItr = mTags.find("fixed_block_boundary_lower_values");
+    std::string tValues = tItr->second.first.second;
+    if (tItr != mTags.end() && !tValues.empty())
+    {
+        XMLGen::FixedBlock::set_fixed_block_boundary_lower_values(tValues, aMetadata);
+    }
+}
+
+void ParseOptimizationParameters::setFixedBlockBoundaryUpperValues(XMLGen::OptimizationParameters &aMetadata)
+{
+    auto tItr = mTags.find("fixed_block_boundary_upper_values");
+    std::string tValues = tItr->second.first.second;
+    if (tItr != mTags.end() && !tValues.empty())
+    {
+        XMLGen::FixedBlock::set_fixed_block_boundary_upper_values(tValues, aMetadata);
     }
 }
 

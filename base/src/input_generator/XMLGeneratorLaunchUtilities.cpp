@@ -240,8 +240,8 @@ namespace XMLGen
       tCommand += (" --field_name=" + aInputData.optimization_parameters().initial_guess_field_name());
     tCommand += (" --number_of_refines=" + tNumRefinesString);
     tCommand += (" --number_of_buffer_layers=" + tNumBufferLayersString);
-    tCommand += (" --prune_mesh=" + tPruneString);
-    if(tPruneThresholdString != "" && tPruneThresholdString != "0.5" && tPruneString == "1")
+    tCommand += (" " + tPruneString);
+    if(tPruneThresholdString != "" && tPruneThresholdString != "0.5" && tPruneString == "--prune_mesh")
       tCommand += (" --prune_threshold=" + tPruneThresholdString);
 
     fprintf(fp, "%s\n", tCommand.c_str());
@@ -593,9 +593,9 @@ namespace XMLGen
 
     std::string get_prune_string(const XMLGen::InputData& aInputData)
     {
-      std::string tPruneString = "0";
+      std::string tPruneString = "";
       if(aInputData.optimization_parameters().prune_mesh() == "true")
-        tPruneString = "1";
+        tPruneString = "--prune_mesh";
       return tPruneString;
     }
     std::string get_prune_threshold_string(const XMLGen::InputData& aInputData)

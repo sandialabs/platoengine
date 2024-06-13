@@ -37,50 +37,29 @@
 namespace prune
 {
 
-PerceptPrune::PerceptPrune() :
-                mMeshIn(),
-                mMeshOut(),
-                mFieldName(),
-                mOutputFieldsString(),
-                mFixedBlocksString(),
-                mOutputFieldNames(),
-                mIsoValue(-1),
-                mNumBufferLayers(-1),
-                mMinEdgeLength(-1),
-                mReadSpreadFile(-1),
-                mRemoveIslands(-1),
-                mConcatenateResults(-1),
-                mAllowNonmanifoldConnections(-1),
-                mIsoOnly(-1)
-{
-}
-
 PerceptPrune::~PerceptPrune()
 {
 }
 
-bool PerceptPrune::import(int /*argc*/, char ** /*argv*/,
-                          std::string fieldName,
-                          std::string outputFieldsString,
-                          double minEdgeLength,
-                          double isoValue,
-                          int concatenateResults,
-                          int isoOnly,
-                          int readSpreadFile,
-                          int allowNonmanifoldConnections,
-                          int numberOfBufferLayers)
+bool PerceptPrune::import(const std::string &aFieldName,
+                          const std::string &aOutputFieldsString,
+                          const double &aMinEdgeLength,
+                          const double &aIsoValue,
+                          const bool aConcatenateResults,
+                          const bool aOnlyCreateIsoTriangles,
+                          const bool aReadSpreadFile,
+                          const bool aAllowNonmanifoldConnections,
+                          const int aNumberOfBufferLayers)
 {
-    mFieldName = fieldName;
-    mMinEdgeLength = minEdgeLength;
-    mIsoValue = isoValue;
-    mConcatenateResults = concatenateResults;
-    mAllowNonmanifoldConnections = allowNonmanifoldConnections;
-    mIsoOnly = isoOnly;
-    mReadSpreadFile = readSpreadFile;
-    mOutputFieldsString = outputFieldsString;
-    mNumBufferLayers = numberOfBufferLayers;
-    //  mCleanUpOrphanNodes = 1;
-    mRemoveIslands = 1;
+    mFieldName = aFieldName;
+    mMinEdgeLength = aMinEdgeLength;
+    mIsoValue = aIsoValue;
+    mConcatenateResults = aConcatenateResults;
+    mAllowNonmanifoldConnections = aAllowNonmanifoldConnections;
+    mIsoOnly = aOnlyCreateIsoTriangles;
+    mReadSpreadFile = aReadSpreadFile;
+    mOutputFieldsString = aOutputFieldsString;
+    mNumBufferLayers = aNumberOfBufferLayers;
 
     return true;
 }

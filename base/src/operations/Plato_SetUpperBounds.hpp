@@ -104,6 +104,14 @@ public:
       aArchive & boost::serialization::make_nvp("OutputLayout",mOutputLayout);
       aArchive & boost::serialization::make_nvp("FixedBlockMetadata",mFixedBlockMetadata);
     }
+
+    /******************************************************************************//**
+     * \brief Update upper bound vector based on fixed entities. This function is only
+     *        used for Density-Based Topology Optimization Problems (DBTOP).
+     * \param [in,out] aToData vector to upper bound vector
+    **********************************************************************************/
+    void updateUpperBoundsBasedOnFixedEntitiesForDBTOP(double* aToData);
+
 private:
     /******************************************************************************//**
      * \brief Initialize upper bound vector. 
@@ -134,13 +142,6 @@ private:
      * \param [in] aNode XML metadata for this operation
     **********************************************************************************/
     void parseOperationArguments(Plato::InputData& aNode);
-
-    /******************************************************************************//**
-     * \brief Update upper bound vector based on fixed entities. This function is only
-     *        used for Density-Based Topology Optimization Problems (DBTOP).
-     * \param [in,out] aToData vector to upper bound vector
-    **********************************************************************************/
-    void updateUpperBoundsBasedOnFixedEntitiesForDBTOP(double* aToData);
 
     /******************************************************************************//**
      * \brief Set upper bound vector for density-based topology optimization problems.

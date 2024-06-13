@@ -1,6 +1,8 @@
 #ifndef PLATO_CRITERIA_LIBRARY_CRITERIONINTERFACE
 #define PLATO_CRITERIA_LIBRARY_CRITERIONINTERFACE
 
+#include <mpi.h>
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -10,6 +12,7 @@
 namespace plato::criteria::library
 {
 static constexpr std::string_view kCreateCriterionFunctionName = "plato_create_criterion";
+static constexpr std::string_view kCreateParallelCriterionFunctionName = "plato_create_parallel_criterion";
 
 /// @brief Interface for implementing criteria loaded from shared libraries.
 ///
@@ -38,6 +41,9 @@ namespace plato
 {
 extern "C" std::unique_ptr<criteria::library::CriterionInterface> plato_create_criterion(
     const std::vector<std::string>& aFileNames);
-}
+
+extern "C" std::unique_ptr<criteria::library::CriterionInterface> plato_create_parallel_criterion(
+    const std::vector<std::string>& aFileNames, MPI_Comm aComm);
+}  // namespace plato
 
 #endif

@@ -14,9 +14,6 @@ class MassObjective
     ///@brief return the total mass of the mesh
     [[nodiscard]] double mass(std::string_view aMeshFileName) const;
 
-    ///@brief return the number of nodes in the mesh
-    [[nodiscard]] unsigned int numMeshNodes(std::string_view aMeshFileName) const;
-
    private:
     double mDensity = 1.0;
 };

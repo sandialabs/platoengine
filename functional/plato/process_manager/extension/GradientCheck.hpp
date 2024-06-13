@@ -42,12 +42,6 @@ class GradientCheck
 namespace detail
 {
 [[nodiscard]] std::optional<std::string> validate_output_file_name(const input_parser::gradient_check& aInput);
-[[nodiscard]] std::optional<std::string> validate_number_of_steps(const input_parser::gradient_check& aInput);
-[[nodiscard]] std::optional<std::string> validate_initial_direction_magnitude(
-    const input_parser::gradient_check& aInput);
-[[nodiscard]] std::optional<std::string> validate_step_size_reduction_factor(
-    const input_parser::gradient_check& aInput);
-[[nodiscard]] std::optional<std::string> validate_random_direction_seed(const input_parser::gradient_check& aInput);
 
 }  // namespace detail
 

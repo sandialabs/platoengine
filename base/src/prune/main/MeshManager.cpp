@@ -21,9 +21,6 @@ using namespace percept;
         {
             mPerceptMeshIn.use_simple_fields();
             mPerceptMeshOut.use_simple_fields();
-            mPruneFlag = 1;
-            mPruneThreshold = 0.5;
-            mTransferFlag = 1;
         }
 
         void MeshManager::setup_mesh(int argc, char *argv[])
@@ -261,8 +258,10 @@ using namespace percept;
           clp.setOption("field_name",  &mTransferFieldName, "field defining level set data.", false );
           clp.setOption("number_of_refines", &mNumberOfRefines,"number of desired refines.",false);
           clp.setOption("number_of_buffer_layers",&mNumberOfBufferLayers,"number of desired buffer layers.",false);
-          clp.setOption("prune_mesh",&mPruneFlag,"whether to prune the mesh.",false);
+          clp.setOption("prune_mesh","",&mPruneFlag,"whether to prune the mesh.");
           clp.setOption("prune_threshold",&mPruneThreshold,"threshold to prune the mesh (val>threshold are kept).",false);
+	  clp.setOption("allow_nonmanifold_connections",  "", &mAllowNonmanifoldConnections, "specify whether to allow nonmanifold connections." );
+
 
           Teuchos::CommandLineProcessor::EParseCommandLineReturn parseReturn =
                              Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL;

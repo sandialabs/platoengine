@@ -15,10 +15,7 @@
 class MeshPrune
 {
 public:
-    MeshPrune();
-
-    void prune_mesh(MeshManager &tMeshManager,int argc, char *argv[],int tLastPrune);
-
+    void prune_mesh(MeshManager &tMeshManager);
 };
 
 

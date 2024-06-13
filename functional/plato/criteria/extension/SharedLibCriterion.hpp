@@ -1,10 +1,10 @@
 #ifndef PLATO_CRITERIA_EXTENSION_SHAREDLIBCRITERION
 #define PLATO_CRITERIA_EXTENSION_SHAREDLIBCRITERION
 
+#include <boost/mpi/communicator.hpp>
 #include <filesystem>
 #include <memory>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include "plato/core/Function.hpp"
@@ -22,14 +22,17 @@ class SharedLibCriterion
 {
    public:
     SharedLibCriterion(const std::filesystem::path& aSharedLibPath, const std::vector<std::string>& aFileNames);
+    SharedLibCriterion(const std::filesystem::path& aSharedLibPath,
+                       const std::vector<std::string>& aFileNames,
+                       const boost::mpi::communicator& aComm);
 
     [[nodiscard]] double f(const core::MeshProxy& aMesh) const;
 
     [[nodiscard]] linear_algebra::DynamicVector<double> df(const core::MeshProxy& aMesh) const;
 
    private:
-    std::filesystem::path mSharedLibPath;
-    std::shared_ptr<library::CriterionInterface> mCriterionFunction;
+    std::shared_ptr<library::CriterionInterface> mCriterionInterface;
+    boost::mpi::communicator mComm{MPI_COMM_NULL, boost::mpi::comm_attach};
 };
 
 [[nodiscard]] auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion)

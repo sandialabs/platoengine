@@ -16,6 +16,16 @@ TEST(ConstraintValidation, ValidateEqualTo)
     EXPECT_FALSE(pfcd::validate_equal_to(tConstraint).has_value());
 }
 
+TEST(ConstraintValidation, NumberOfProcessors)
+{
+    auto tConstraint = input_parser::constraint{};
+    EXPECT_FALSE(detail::validate_constraint_number_of_processors(tConstraint).has_value());
+    tConstraint.number_of_processors = 42u;  // Only one is valid
+    EXPECT_TRUE(detail::validate_constraint_number_of_processors(tConstraint).has_value());
+    tConstraint.number_of_processors = 1u;
+    EXPECT_FALSE(detail::validate_constraint_number_of_processors(tConstraint).has_value());
+}
+
 TEST(ConstraintValidation, ErrorMessagesInvalidConstraint)
 {
     input_parser::constraint tConstraint = plato::test_utilities::create_valid_example_constraint();

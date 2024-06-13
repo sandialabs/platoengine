@@ -8,42 +8,25 @@
 
 #include "PruneMeshAPISTK.hpp"
 
-    MeshPrune::MeshPrune()
+void MeshPrune::prune_mesh(MeshManager &tMeshManager)
+{
+    tMeshManager.define_iso_fields();
+    prune::PerceptPrune pruner;
+    const std::string tFieldName{"LSD"};
+    const std::string tOutputFieldString{""};
+    constexpr double tMinEdgeLength = 0.0;
+    constexpr double tIsoValue = 0.0;
+    constexpr bool tConcatenateResults = false;
+    constexpr bool tOnlyCreateIsoTriangles = true;
+    constexpr bool tReadSpreadFile = 0;
+    const int tNumberOfBufferLayers = tMeshManager.get_buffer_layers();
+    const bool tAllowNonmanifoldConnections = tMeshManager.allow_nonmanifold_connections();
+    if(pruner.import(tFieldName,tOutputFieldString,tMinEdgeLength,
+                     tIsoValue,tConcatenateResults,tOnlyCreateIsoTriangles,tReadSpreadFile,
+                     tAllowNonmanifoldConnections,tNumberOfBufferLayers))
     {
-
+        pruner.run_percept_mesh_stand_alone(tMeshManager);
     }
-
-    void MeshPrune::prune_mesh(MeshManager &tMeshManager,int argc, char *argv[],int /*tLastPrune*/)
-    {
-        tMeshManager.define_iso_fields();
-
-        int tNumberOfBufferLayers;
-
-        prune::PerceptPrune pruner;
-
-        /*
-        if (!tLastPrune)
-        {
-            tNumberOfBufferLayers = 0;
-        }
-        if (tLastPrune)
-        {
-        */
-            tNumberOfBufferLayers = tMeshManager.get_buffer_layers();
-//        }
-
-//        PruneMeshAPISTK tMesh = (PruneMeshAPISTK(tMeshManager.get_communicator(),&tMeshManager.get_output_bulk_data(),&tMeshManager.get_output_meta_data(),tMeshManager.get_transfer_field_name()));
-//        tMesh.define_iso_fields();
-
-
-       if(pruner.import(argc,argv,
-                        "LSD","",1e-5,0.0,0,1,0,0,tNumberOfBufferLayers)
-               )
-               {
-                   pruner.run_percept_mesh_stand_alone(tMeshManager);
-//                   pruner.run_stand_alone(tMesh);
-               }
-    }
-
+}
 
 

@@ -476,7 +476,7 @@ TEST(PlatoTestXMLGenerator, AppendSetUpperBoundsToPlatoMainOperation)
 
     auto tBoundaryValue= tFixedBlocks.child("BoundaryValue");
     ASSERT_FALSE(tBoundaryValue.empty());
-    ASSERT_STREQ(tBoundaryValue.child_value(), "0.5001");
+    ASSERT_STREQ(tBoundaryValue.child_value(), "1.0");
     tBoundaryValue = tBoundaryValue.next_sibling("BoundaryValue");
     ASSERT_TRUE(tBoundaryValue.empty());
 
@@ -504,7 +504,7 @@ TEST(PlatoTestXMLGenerator, AppendSetUpperBoundsToPlatoMainOperation)
 
     tBoundaryValue= tFixedBlocks.child("BoundaryValue");
     ASSERT_FALSE(tBoundaryValue.empty());
-    ASSERT_STREQ(tBoundaryValue.child_value(), "0.5001");
+    ASSERT_STREQ(tBoundaryValue.child_value(), "1.0");
     tBoundaryValue = tBoundaryValue.next_sibling("BoundaryValue");
     ASSERT_TRUE(tBoundaryValue.empty());
 
@@ -531,7 +531,7 @@ TEST(PlatoTestXMLGenerator, AppendFixedBlocksIdentificationNumbersToOperation_No
 {
     pugi::xml_document tDocument;
     XMLGen::InputData tXMLMetaData;
-    XMLGen::append_fixed_blocks_identification_numbers_to_operation(tXMLMetaData, tDocument);
+    XMLGen::append_fixed_blocks_identification_numbers_to_operation(tXMLMetaData, tDocument, XMLGen::BoundEnum::UpperBound);
     ASSERT_FALSE(tDocument.empty());
 
     auto tFixedBlocks = tDocument.child("FixedBlocks");
@@ -547,7 +547,7 @@ TEST(PlatoTestXMLGenerator, AppendFixedBlocksIdentificationNumbersToOperation)
     tOptimizationParameters.addFixedBlockID("2");
     XMLGen::FixedBlock::check_fixed_block_metadata(tOptimizationParameters);
     tXMLMetaData.set(tOptimizationParameters);
-    XMLGen::append_fixed_blocks_identification_numbers_to_operation(tXMLMetaData, tDocument);
+    XMLGen::append_fixed_blocks_identification_numbers_to_operation(tXMLMetaData, tDocument, XMLGen::BoundEnum::LowerBound);
     ASSERT_FALSE(tDocument.empty());
     //tDocument.save_file("dummy.xml");
 

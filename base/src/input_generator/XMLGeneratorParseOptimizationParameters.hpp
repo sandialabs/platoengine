@@ -68,18 +68,32 @@ private:
     void setFixedSidesetIDs(XMLGen::OptimizationParameters &aMetadata);
 
     /******************************************************************************//**
-     * \fn setFixedBlockDomainValues
-     * \brief Set density values corresponding to the fixed block domains 
+     * \fn setFixedBlockDomainLowerValues
+     * \brief Set the lower bound for the density values corresponding to the fixed block domains 
      * \param [in] aMetadata optimization parameters metadata
     **********************************************************************************/
-    void setFixedBlockDomainValues(XMLGen::OptimizationParameters &aMetadata);
+    void setFixedBlockDomainLowerValues(XMLGen::OptimizationParameters &aMetadata);
 
     /******************************************************************************//**
-     * \fn setFixedBlockBoundaryValues
-     * \brief Set density values corresponding to the fixed block boundaries 
+     * \fn setFixedBlockDomainUpperValues
+     * \brief Set the upper bound for the density values corresponding to the fixed block domains 
      * \param [in] aMetadata optimization parameters metadata
     **********************************************************************************/
-    void setFixedBlockBoundaryValues(XMLGen::OptimizationParameters &aMetadata);
+    void setFixedBlockDomainUpperValues(XMLGen::OptimizationParameters &aMetadata);
+
+    /******************************************************************************//**
+     * \fn setFixedBlockBoundaryLowerValues
+     * \brief Set the lower bound for the density values corresponding to the fixed block boundaries 
+     * \param [in] aMetadata optimization parameters metadata
+    **********************************************************************************/
+    void setFixedBlockBoundaryLowerValues(XMLGen::OptimizationParameters &aMetadata);
+
+    /******************************************************************************//**
+     * \fn setFixedBlockBoundaryUpperValues
+     * \brief Set the upper bound for the density values corresponding to the fixed block boundaries 
+     * \param [in] aMetadata optimization parameters metadata
+    **********************************************************************************/
+    void setFixedBlockBoundaryUpperValues(XMLGen::OptimizationParameters &aMetadata);
 
     /******************************************************************************//**
      * \fn setSymmetryPlaneLocationNames

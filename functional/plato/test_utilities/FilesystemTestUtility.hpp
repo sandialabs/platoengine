@@ -6,7 +6,15 @@
 
 namespace plato::test_utilities
 {
-void test_for_existence_and_delete(const std::vector<std::filesystem::path>& aFilesToCheck);
+struct TestContext;
 }
+
+namespace plato::test_utilities
+{
+/// @brief Checks using gtest assertion macros that each file in @a aFilesToCheck exists on
+///  disk and if so deletes them.
+void test_for_existence_and_remove(const std::vector<std::filesystem::path>& aFilesToCheck,
+                                   const TestContext& aTestContext);
+}  // namespace plato::test_utilities
 
 #endif

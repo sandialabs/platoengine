@@ -8,8 +8,8 @@
 
 namespace plato::core
 {
-template <typename Return, typename Input>
-using FactoryFunction = std::function<Return(const Input&)>;
+template <typename Return, typename... Input>
+using FactoryFunction = std::function<Return(const Input&...)>;
 
 /// @brief Object used for static registration of creation functions that construct objects
 ///  from parsed input data.
@@ -32,53 +32,53 @@ using FactoryFunction = std::function<Return(const Input&)>;
 ///
 /// @tparam FactoryReturn The object type created by the factory.
 /// @tparam FactoryInput The type of the input data needed by the factory function as an argument.
-template <typename FactoryReturn, typename FactoryInput>
+template <typename FactoryReturn, typename... FactoryInput>
 struct FactoryRegistration
 {
-    FactoryRegistration(std::string aName, FactoryFunction<FactoryReturn, FactoryInput> aFunction);
+    FactoryRegistration(std::string aName, FactoryFunction<FactoryReturn, FactoryInput...> aFunction);
 };
 
 /// @brief Constructs the object registered with @a aFunctionName, using @a aInput.
 /// @return If the function is not registered, returns `std::nullopt`.
-template <typename FactoryReturn, typename FactoryInput, typename Input>
+// template <typename FactoryReturn, typename FactoryInput, typename... Input>
+template <typename FactoryReturn, typename... FactoryInput>
 [[nodiscard]] std::optional<FactoryReturn> create_object_from_factory(const std::string_view aFunctionName,
-                                                                      Input&& aInput);
+                                                                      const FactoryInput&... aInput);
 
 /// @brief Checks if the function labeled with name @a aFunctionName is registered with the
 ///  factory associated with template types @a FactoryReturn and @a FactoryInput.
-template <typename FactoryReturn, typename FactoryInput>
+template <typename FactoryReturn, typename... FactoryInput>
 [[nodiscard]] bool is_factory_function_registered(const std::string_view aFunctionName);
 
 namespace detail
 {
 /// @return Map holding registered functions used to create CriterionFunction objects in the factory.
-template <typename FactoryReturn, typename FactoryInput>
+template <typename FactoryReturn, typename... FactoryInput>
 [[nodiscard]] auto registered_factory_functions()
-    -> std::unordered_map<std::string, FactoryFunction<FactoryReturn, FactoryInput>>&
+    -> std::unordered_map<std::string, FactoryFunction<FactoryReturn, FactoryInput...>>&
 {
-    static auto tFunctions = std::unordered_map<std::string, FactoryFunction<FactoryReturn, FactoryInput>>{};
+    static auto tFunctions = std::unordered_map<std::string, FactoryFunction<FactoryReturn, FactoryInput...>>{};
     return tFunctions;
 }
 
 }  // namespace detail
 
-template <typename FactoryReturn, typename FactoryInput>
-FactoryRegistration<FactoryReturn, FactoryInput>::FactoryRegistration(
-    std::string aName, FactoryFunction<FactoryReturn, FactoryInput> aFunction)
+template <typename FactoryReturn, typename... FactoryInput>
+FactoryRegistration<FactoryReturn, FactoryInput...>::FactoryRegistration(
+    std::string aName, FactoryFunction<FactoryReturn, FactoryInput...> aFunction)
 {
-    detail::registered_factory_functions<FactoryReturn, FactoryInput>().try_emplace(std::move(aName),
-                                                                                    std::move(aFunction));
+    detail::registered_factory_functions<FactoryReturn, FactoryInput...>().try_emplace(std::move(aName),
+                                                                                       std::move(aFunction));
 }
 
-template <typename FactoryReturn, typename FactoryInput, typename Input>
+template <typename FactoryReturn, typename... FactoryInput>
 [[nodiscard]] std::optional<FactoryReturn> create_object_from_factory(const std::string_view aFunctionName,
-                                                                      Input&& aInput)
+                                                                      const FactoryInput&... aInput)
 {
-    if (const auto tIter =
-            detail::registered_factory_functions<FactoryReturn, FactoryInput>().find(std::string{aFunctionName});
-        tIter != core::detail::registered_factory_functions<FactoryReturn, FactoryInput>().end())
+    const auto tFunctions = detail::registered_factory_functions<FactoryReturn, FactoryInput...>();
+    if (const auto tIter = tFunctions.find(std::string{aFunctionName}); tIter != tFunctions.end())
     {
-        return tIter->second(std::forward<Input>(aInput));
+        return tIter->second(aInput...);
     }
     else
     {
@@ -86,10 +86,11 @@ template <typename FactoryReturn, typename FactoryInput, typename Input>
     }
 }
 
-template <typename FactoryReturn, typename FactoryInput>
+template <typename FactoryReturn, typename... FactoryInput>
 bool is_factory_function_registered(const std::string_view aFunctionName)
 {
-    return detail::registered_factory_functions<FactoryReturn, FactoryInput>().count(std::string{aFunctionName}) == 1;
+    return detail::registered_factory_functions<FactoryReturn, FactoryInput...>().count(std::string{aFunctionName}) ==
+           1;
 }
 
 }  // namespace plato::core

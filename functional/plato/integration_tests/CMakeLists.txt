@@ -1,7 +1,9 @@
 include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
-create_plato_library(PlatoTestMassObjective test_mass_objective PlatoFunctionalCriteria)
+set(LINK_LIBS PlatoFunctionalCriteria
+              PlatoFunctionalTestUtilities)
+create_plato_library(PlatoTestMassObjective test_mass_objective "${LINK_LIBS}")
 
 set(LINK_LIBS PlatoFunctionalLinearAlgebra
               PlatoFunctionalCore
