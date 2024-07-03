@@ -27,8 +27,7 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     const input_parser::KernelFilterCenteringTypes aFilterCentering)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}};
-    third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+    third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
     const FilterRadius tFilterRadius{1.1};
 
     const KernelFilter tKernelFilter{kMeshFile, tFilterRadius, aFilterCentering, boost::mpi::communicator{}};
@@ -177,8 +176,7 @@ TEST(KernelFilterDetail, DetermineMaximumConnectivityEstimate)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
         {21, 21, 21}, {-10, -10, -10}, {10, 10, 10}};
-    third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+    third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
 
     const FilterRadius tFilterRadius{5};
     const double tNodalDensity = tCommandGenerator.numberOfNodes() / tCommandGenerator.volume();

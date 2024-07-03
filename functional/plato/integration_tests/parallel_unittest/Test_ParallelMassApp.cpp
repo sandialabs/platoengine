@@ -35,8 +35,7 @@ TEST(ParallelMassObjective, CallValueAndGradient)
     const auto tSharedLib = criteria::extension::SharedLibCriterion{tTestConfiguration, *tParallelCriterion, {}, tComm};
 
     const auto tRankMeshName = plato::utilities::concatenate(kMeshName, '.', tComm.rank());
-    third_party_integration::stk_io::write_mesh(tRankMeshName,
-                                                third_party_integration::stk_io::generate_mesh(kMeshGenerator));
+    third_party_integration::stk_io::write_mesh(tRankMeshName, kMeshGenerator);
 
     const double tMass = tSharedLib.f(core::MeshProxy{tRankMeshName, {}});
     EXPECT_DOUBLE_EQ(tMass, kMeshGenerator.volume());

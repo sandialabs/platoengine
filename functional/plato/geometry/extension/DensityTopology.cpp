@@ -4,7 +4,7 @@
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::geometry::extension
@@ -46,8 +46,8 @@ std::function<void(const linear_algebra::DynamicVector<double>&)> make_topology_
 DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
                                  plato::filter::library::FilterFunction aFilterFunction)
     : mFileName(aInput.mesh_name.value().mToken),
-      mNumDesignParameters(third_party_integration::stk_io::read_mesh_node_size(mFileName)),
-      mFilter(std::move(aFilterFunction))
+      mNumDesignParameters(mesh::Mesh{mFileName}.numberOfNodes()),
+      mFilter(plato::filter::library::make_filter_function(aInput))
 {
 }
 
@@ -68,13 +68,13 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
 
 linear_algebra::DynamicVector<double> DensityTopology::initialGuess(const std::filesystem::path& aMeshFileName)
 {
-    const unsigned int tNumNodes = third_party_integration::stk_io::read_mesh_node_size(aMeshFileName);
+    const unsigned int tNumNodes = mesh::Mesh{aMeshFileName}.numberOfNodes();
     return linear_algebra::DynamicVector<double>(tNumNodes, kInitialDensity);
 }
 
 std::pair<std::vector<double>, std::vector<double>> DensityTopology::bounds(const std::filesystem::path& aMeshFileName)
 {
-    const unsigned int tNumNodes = third_party_integration::stk_io::read_mesh_node_size(aMeshFileName);
+    const unsigned int tNumNodes = mesh::Mesh{aMeshFileName}.numberOfNodes();
     return {std::vector<double>(tNumNodes, kDensityLowerBound), std::vector<double>(tNumNodes, kDensityUpperBound)};
 }
 

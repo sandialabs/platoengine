@@ -45,8 +45,7 @@ TEST(SharedLibObjective, CallValue)
 {
     const auto tSharedLib = test_shared_lib_criterion();
     constexpr std::string_view tMeshName = "massTest.exo";
-    third_party_integration::stk_io::write_mesh(tMeshName,
-                                                third_party_integration::stk_io::generate_mesh(kMeshGenerator));
+    third_party_integration::stk_io::write_mesh(tMeshName, kMeshGenerator);
     const double tMass = tSharedLib.f(core::MeshProxy{tMeshName, {}});
     EXPECT_DOUBLE_EQ(tMass, 8.0);
     std::filesystem::remove(tMeshName);
@@ -56,8 +55,7 @@ TEST(SharedLibObjective, CallGradient)
 {
     const auto tSharedLib = test_shared_lib_criterion();
     constexpr std::string_view tMeshName = "massTest.exo";
-    third_party_integration::stk_io::write_mesh(tMeshName,
-                                                third_party_integration::stk_io::generate_mesh(kMeshGenerator));
+    third_party_integration::stk_io::write_mesh(tMeshName, kMeshGenerator);
     const auto tGrad = tSharedLib.df(core::MeshProxy{tMeshName, {}});
 
     const std::vector<double> tGold(24, 1.0);
@@ -70,8 +68,7 @@ TEST(SharedLibObjective, ValueUsingFunction)
 {
     const auto tFunction = criteria::extension::make_shared_lib_function(test_shared_lib_criterion());
     constexpr std::string_view tMeshName = "massTest.exo";
-    third_party_integration::stk_io::write_mesh(tMeshName,
-                                                third_party_integration::stk_io::generate_mesh(kMeshGenerator));
+    third_party_integration::stk_io::write_mesh(tMeshName, kMeshGenerator);
     const double tMass = tFunction.f(core::MeshProxy{tMeshName, {}});
     EXPECT_DOUBLE_EQ(tMass, 8.0);
 

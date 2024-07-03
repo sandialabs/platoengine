@@ -69,8 +69,9 @@ namespace detail
 {
 [[nodiscard]] BrickDesign to_design_parameters(const linear_algebra::DynamicVector<double>& aDesignParameter);
 
-[[nodiscard]] std::shared_ptr<stk::mesh::BulkData> create_mesh(
-    const BrickDesign& aDesign, std::optional<double> aDiscretizationSize = std::nullopt);
+void create_mesh(const BrickDesign& aDesign,
+                 const std::filesystem::path& aOutputFile,
+                 std::optional<double> aDiscretizationSize = std::nullopt);
 
 [[nodiscard]] std::vector<double> sensitivities(unsigned int aParameterIndex);
 

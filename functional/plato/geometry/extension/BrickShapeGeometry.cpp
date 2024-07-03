@@ -10,8 +10,8 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/FileUtilities.hpp"
 
@@ -57,8 +57,7 @@ BrickShapeGeometry::~BrickShapeGeometry() { std::filesystem::remove(mFileName); 
 
 core::MeshProxy BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
 {
-    std::shared_ptr<stk::mesh::BulkData> tMesh = detail::create_mesh(aDesignParameters, mDiscretizationSize);
-    third_party_integration::stk_io::write_mesh(mFileName, tMesh);
+    detail::create_mesh(aDesignParameters, mFileName, mDiscretizationSize);
     return core::MeshProxy{mFileName, {}};
 }
 
@@ -100,8 +99,9 @@ auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry)
 
 namespace detail
 {
-std::shared_ptr<stk::mesh::BulkData> create_mesh(const BrickDesign& aDesign,
-                                                 const std::optional<double> aDiscretizationSize)
+void create_mesh(const BrickDesign& aDesign,
+                 const std::filesystem::path& aOutputFile,
+                 const std::optional<double> aDiscretizationSize)
 {
     namespace tpistkio = third_party_integration::stk_io;
     const auto tLowerBounds = tpistkio::CommandBounds{aDesign.center_x - aDesign.dimension_x / 2.0,
@@ -126,11 +126,12 @@ std::shared_ptr<stk::mesh::BulkData> create_mesh(const BrickDesign& aDesign,
                                                                tpistkio::UseLowerY{false}, tpistkio::UseUpperY{true},
                                                                tpistkio::UseLowerZ{false}, tpistkio::UseUpperZ{true}};
     const int tPrecision = 16;
-    const auto tCommandGenerator =
-        tpistkio::CommandGenerator{tNumberOfElements, tLowerBounds, tUpperBounds, tpistkio::CommandElementType::Hex,
-                                   tNodesets,         tSidesets,    tPrecision};
 
-    return tpistkio::generate_mesh(tCommandGenerator);
+    const tpistkio::CommandGenerator tGenerator{
+        tNumberOfElements, tLowerBounds, tUpperBounds, tpistkio::CommandElementType::Hex,
+        tNodesets,         tSidesets,    tPrecision};
+    const mesh::Mesh tMesh{tGenerator};
+    tMesh.write_mesh(aOutputFile);
 }
 
 std::vector<double> sensitivities(const unsigned int aParameterIndex)

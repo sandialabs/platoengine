@@ -6,7 +6,7 @@ set(DIRECTORIES library
 set(LINK_LIBS PlatoFunctionalCore
               PlatoFunctionalLinearAlgebra
               PlatoFunctionalServices
-              PlatoFunctionalSTKIO)
+              PlatoFunctionalMesh)
 create_plato_library(PlatoFunctionalCriteria "${DIRECTORIES}" "${LINK_LIBS}")
 
 if( UNIT_TESTING )

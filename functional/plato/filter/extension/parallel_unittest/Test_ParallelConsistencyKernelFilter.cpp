@@ -108,8 +108,7 @@ TEST(ParallelConsistencyKernelFilter, FilterConsistency)
 
     if (tRank == 0)
     {
-        third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                    third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+        third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
     }
 
     tWorldComm.barrier();
@@ -154,8 +153,7 @@ TEST(KernelFilterDetail, CreateLinearMask)
         third_party_integration::stk_io::CommandGenerator{{4u, 4u, 4u}, {-2, -2, -2}, {2, 2, 2}};
     if (tWorldComm.rank() == 0)
     {
-        third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                    third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+        third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
     }
     tWorldComm.barrier();
     const FilterRadius tFilterRadius{5};

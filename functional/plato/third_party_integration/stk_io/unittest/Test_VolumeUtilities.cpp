@@ -17,7 +17,7 @@ namespace
 
 void create_mesh_test_volume(const CommandGenerator& aCommandGenerator)
 {
-    const double tResult = mesh_volume(*generate_mesh(aCommandGenerator));
+    const double tResult = mesh_volume(*generate_bulk_data(aCommandGenerator));
 
     std::cout << std::setprecision(16) << tResult << std::endl;
     EXPECT_DOUBLE_EQ(tResult, aCommandGenerator.volume());
@@ -25,7 +25,7 @@ void create_mesh_test_volume(const CommandGenerator& aCommandGenerator)
 
 void create_single_element_mesh_test_centroid(const CommandGenerator& aCommandGenerator, const common::Coordinate aGold)
 {
-    const auto tMesh = generate_mesh(aCommandGenerator);
+    const auto tMesh = generate_bulk_data(aCommandGenerator);
     ASSERT_TRUE(tMesh);
 
     const auto tElements = element_vector(*tMesh);
@@ -48,7 +48,7 @@ void test_first_element_volume_and_coordinates(const CommandGenerator& aCommandG
                                                const double aGoldVolume,
                                                const std::vector<common::Coordinate>& aGoldCoordinates)
 {
-    const auto tBulk = generate_mesh(aCommandGenerator);
+    const auto tBulk = generate_bulk_data(aCommandGenerator);
     const stk::mesh::EntityVector tElements = element_vector(*tBulk);
     ASSERT_FALSE(tElements.empty());
     const auto tOnlyElement = tElements[0];
@@ -156,7 +156,7 @@ TEST(STKVolumeUtilities, ElementCentroids)
 {
     CommandGenerator tCommandGenerator{{4, 1, 1}, {0, 0, 0}, {4, 1, 1}};
 
-    const auto tBulk = generate_mesh(tCommandGenerator);
+    const auto tBulk = generate_bulk_data(tCommandGenerator);
     const auto tCentroids = element_centroids(*tBulk);
     ASSERT_EQ(tCentroids.size(), 4u);
 
@@ -174,7 +174,7 @@ TEST(STKVolumeUtilities, AverageNodalDensity)
 {
     const CommandGenerator tCommandGenerator{{4, 4, 4}, {0, 0, 0}, {4, 4, 4}};
 
-    const auto tBulk = generate_mesh(tCommandGenerator);
+    const auto tBulk = generate_bulk_data(tCommandGenerator);
     const int tTotalNumberOfNodes = tCommandGenerator.numberOfNodes();
     const double tTotalVolume = tCommandGenerator.volume();
     const double tGold = static_cast<double>(tTotalNumberOfNodes) / tTotalVolume;

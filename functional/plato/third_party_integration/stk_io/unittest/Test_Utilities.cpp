@@ -16,26 +16,20 @@
 
 namespace plato::third_party_integration::stk_io::unittest
 {
-TEST(STKGenerateMesh, Box)
+
+TEST(STKUtilities, CommandGeneratorWriteMeshToDisk)
 {
-    ASSERT_EQ(stk::parallel_machine_size(MPI_COMM_WORLD), 1);
-
-    constexpr std::string_view fileName = "test.exo";
-    const CommandGenerator tCommandGenerator{{3, 3, 4}, {-1, -2, -1}, {2, 1, 2}, CommandElementType::Hex};
-    auto bulk = generate_mesh(tCommandGenerator);
-    write_mesh(fileName, bulk);
-
-    EXPECT_EQ(tCommandGenerator.numberOfNodes(), read_mesh_node_size(fileName));
-    EXPECT_EQ(tCommandGenerator.numberOfElements(), element_size(fileName));
-
-    EXPECT_TRUE(std::filesystem::exists(fileName));
-    EXPECT_TRUE(std::filesystem::remove(fileName));
+    const CommandGenerator tCommandGenerator{{2, 2, 2}};
+    const std::string_view tMeshFileName{"mesh.exo"};
+    write_mesh(tMeshFileName, tCommandGenerator);
+    EXPECT_TRUE(std::filesystem::exists(tMeshFileName));
+    EXPECT_TRUE(std::filesystem::remove(tMeshFileName));
 }
 
 TEST(STKUtilities, NumberOfNodesAndElementsFromBulk)
 {
     const CommandGenerator tCommandGenerator{{2, 2, 2}};
-    const auto tMesh = generate_mesh(tCommandGenerator);
+    const auto tMesh = generate_bulk_data(tCommandGenerator);
     ASSERT_TRUE(tMesh);
     EXPECT_EQ(node_size(*tMesh), tCommandGenerator.numberOfNodes());
     EXPECT_EQ(element_size(*tMesh), tCommandGenerator.numberOfElements());
@@ -44,7 +38,7 @@ TEST(STKUtilities, NumberOfNodesAndElementsFromBulk)
 TEST(STKUtilities, SpatialDimensions3)
 {
     const CommandGenerator tCommandGenerator{{2, 2, 2}};
-    const auto tMesh = generate_mesh(tCommandGenerator);
+    const auto tMesh = generate_bulk_data(tCommandGenerator);
     ASSERT_TRUE(tMesh);
     EXPECT_EQ(spatial_dimensions(*tMesh), 3u);
 }
@@ -60,7 +54,7 @@ TEST(STKUtilities, ReadCoordinates)
 {
     const CommandGenerator tCommandGenerator;
     const std::vector<double> gold = {0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1};
-    const auto tMesh = generate_mesh(tCommandGenerator);
+    const auto tMesh = generate_bulk_data(tCommandGenerator);
     ASSERT_TRUE(tMesh);
     const std::vector<double> res = flattened_nodal_coordinates(*tMesh);
     EXPECT_EQ(gold, res);
@@ -72,7 +66,7 @@ TEST(STKUtilities, ReadCoordinatesCoordinate)
     const CommandGenerator tCommandGenerator;
     const std::vector<common::Coordinate> tGold = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 0},
                                                    {0, 0, 1}, {1, 0, 1}, {0, 1, 1}, {1, 1, 1}};
-    const auto tMesh = generate_mesh(tCommandGenerator);
+    const auto tMesh = generate_bulk_data(tCommandGenerator);
     ASSERT_TRUE(tMesh);
     const std::vector<common::Coordinate> tResult = nodal_coordinates(*tMesh);
     ASSERT_EQ(tGold.size(), tResult.size());
@@ -88,7 +82,7 @@ TEST(STKUtilities, ReadCoordinatesCoordinate)
 TEST(STKUtilities, WriteDensityField)
 {
     constexpr std::string_view tInputFileName = "brick.exo";
-    write_mesh(tInputFileName, generate_mesh(CommandGenerator{}));
+    write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{}));
     const std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8};
     constexpr std::string_view tOutputFileName = "brick-out.exo";
     write_mesh_density(tInputFileName, data, tOutputFileName);
@@ -104,7 +98,7 @@ TEST(STKUtilities, WriteElementDensityField)
 {
     constexpr std::string_view tInputFileName = "brick.exo";
     const CommandGenerator tCommandGenerator{{2, 2, 2}};
-    write_mesh(tInputFileName, generate_mesh(tCommandGenerator));
+    write_bulk_data(tInputFileName, generate_bulk_data(tCommandGenerator));
     const std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8};
     constexpr std::string_view tOutputFileName = "brick-out.exo";
     write_element_density(tInputFileName, data, tOutputFileName);

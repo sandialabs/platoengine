@@ -3,8 +3,8 @@
 #include <string>
 
 #include "plato/criteria/extension/VolumeCriterion.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::criteria::extension::unittest
 {
@@ -19,8 +19,8 @@ void test_volume_criteria_from_ctor_and_function(
 {
     constexpr double tConstantControls = 0.75;
 
-    const core::MeshProxy tMeshProxy{
-        kMeshFile, std::vector<double>(third_party_integration::stk_io::element_size(kMeshFile), tConstantControls)};
+    const core::MeshProxy tMeshProxy{kMeshFile,
+                                     std::vector<double>(mesh::Mesh{kMeshFile}.numberOfElements(), tConstantControls)};
 
     EXPECT_EQ(tVolumeCriterion.f(tMeshProxy), aGoldVolume * tConstantControls);
     EXPECT_EQ(tVolumeCriterion.f(tMeshProxy), aFunction.f(tMeshProxy));
@@ -29,8 +29,7 @@ void test_volume_criteria_from_ctor_and_function(
 void test_scaled_and_unscaled_on_ctor_and_function(
     const third_party_integration::stk_io::CommandGenerator& aCommandGenerator)
 {
-    third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                third_party_integration::stk_io::generate_mesh(aCommandGenerator));
+    third_party_integration::stk_io::write_mesh(kMeshFile, aCommandGenerator);
     test_volume_criteria_from_ctor_and_function(VolumeCriterion{}, make_volume_constraint_function(),
                                                 aCommandGenerator.volume());
     test_volume_criteria_from_ctor_and_function(VolumeCriterion{1.0 / aCommandGenerator.volume()},
@@ -49,7 +48,7 @@ void test_volume_criteria_derivative_from_ctor_and_function(
     const auto tResult = tVolumeCriterion.df(tMeshProxy);
     const auto tResultFromFunction = aFunction.df(tMeshProxy);
 
-    ASSERT_EQ(tResult.size(), third_party_integration::stk_io::element_size(kMeshFile));
+    ASSERT_EQ(tResult.size(), mesh::Mesh{kMeshFile}.numberOfElements());
     ASSERT_EQ(tResult.size(), aGold.size());
     ASSERT_EQ(tResult.size(), tResultFromFunction.size());
 
@@ -78,8 +77,7 @@ TEST(VolumeCriterion, DerivativeOfScaledVolumeOnControls)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
         {1, 1, 3}, {0, 0, 0}, {2.0, 1.0, 3.0}, third_party_integration::stk_io::CommandElementType::Hex};
-    third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+    third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
 
     {
         const std::vector<double> tGold{2, 2, 2};

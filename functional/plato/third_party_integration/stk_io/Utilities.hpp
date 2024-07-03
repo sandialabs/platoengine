@@ -17,20 +17,18 @@ namespace detail
 constexpr std::string_view kTopologyFieldName = "topology";
 }
 
+/// @brief Given a pathname  @a aMeshName and the Command generator @a aCommandGenerator, write to disk the data in
+/// exodus format
+void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator);
+
 /// @brief Use a STK @a aGenerationCommand, e.g., "generated:1x1x1" to create and return a shared pointer to a STK Bulk
-[[nodiscard]] std::shared_ptr<stk::mesh::BulkData> generate_mesh(const CommandGenerator& aCommandGenerator);
+[[nodiscard]] std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator);
 
 /// @brief Given a pathname  @a aMeshName and the STK Bulk data @a aBulk, write to disk the data in exodus format
-void write_mesh(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk);
+void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk);
 
 /// @brief Given a pathname  @a aMeshName, read from disk and return a shared pointer to the STK Bulk data.
 [[nodiscard]] std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::path& aMeshName);
-
-/// @brief Given a pathname  @a aMeshName, read from disk and return the total number of elements.
-[[nodiscard]] unsigned int element_size(const std::filesystem::path& aMeshName);
-
-/// @brief Given a pathname  @a aMeshName, read from disk and return the total number of nodes.
-[[nodiscard]] unsigned int read_mesh_node_size(const std::filesystem::path& aMeshName);
 
 /// @brief Given a STK Bulk data  @a aBulk, return the total number of nodes.
 [[nodiscard]] unsigned int node_size(const stk::mesh::BulkData& aBulk);

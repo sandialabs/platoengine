@@ -45,7 +45,12 @@ void write_defined_output_fields(stk::io::StkMeshIoBroker& tIOBroker,
 
 }  // namespace
 
-std::shared_ptr<stk::mesh::BulkData> generate_mesh(const CommandGenerator& aCommandGenerator)
+void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator)
+{
+    write_bulk_data(aMeshName, generate_bulk_data(aCommandGenerator));
+}
+
+std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator)
 {
     std::shared_ptr<stk::mesh::BulkData> bulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
     bulk->mesh_meta_data().use_simple_fields();
@@ -53,7 +58,7 @@ std::shared_ptr<stk::mesh::BulkData> generate_mesh(const CommandGenerator& aComm
     return bulk;
 }
 
-void write_mesh(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk)
+void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk)
 {
     stk::io::StkMeshIoBroker tIOBroker;
     tIOBroker.set_bulk_data(std::move(aBulk));
@@ -95,20 +100,6 @@ std::vector<double> read_element_density(const std::filesystem::path& aMeshName)
     std::vector<double> tElementFieldData;
     tEb->get_field_data(std::string{detail::kTopologyFieldName}, tElementFieldData);
     return tElementFieldData;
-}
-
-unsigned int element_size(const std::filesystem::path& aMeshName)
-{
-    const std::shared_ptr<stk::mesh::BulkData> tBulkData = read_mesh_bulk_data(aMeshName);
-    assert(tBulkData);
-    return element_size(*tBulkData);
-}
-
-unsigned int read_mesh_node_size(const std::filesystem::path& aMeshName)
-{
-    const std::shared_ptr<stk::mesh::BulkData> tBulkData = read_mesh_bulk_data(aMeshName);
-    assert(tBulkData);
-    return node_size(*tBulkData);
 }
 
 unsigned int node_size(const stk::mesh::BulkData& aBulk) { return detail::size<stk::topology::NODE_RANK>(aBulk); }
