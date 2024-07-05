@@ -5,6 +5,7 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::geometry::extension
@@ -82,7 +83,7 @@ void DensityTopology::output(const std::filesystem::path& aInputMeshName,
                              const linear_algebra::DynamicVector<double>& aSolution,
                              const std::filesystem::path& aOutputMeshName)
 {
-    plato::third_party_integration::stk_io::write_mesh_density(aInputMeshName, aSolution.stdVector(), aOutputMeshName);
+    plato::third_party_integration::stk_io::write_nodal_density(aInputMeshName, aSolution.stdVector(), aOutputMeshName);
 }
 
 auto make_topology_geometry(const DensityTopology& aDensityTopology)

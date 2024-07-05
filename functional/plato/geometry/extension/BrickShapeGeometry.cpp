@@ -12,6 +12,7 @@
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/FileUtilities.hpp"
 
@@ -131,7 +132,7 @@ void create_mesh(const BrickDesign& aDesign,
         tNumberOfElements, tLowerBounds, tUpperBounds, tpistkio::CommandElementType::Hex,
         tNodesets,         tSidesets,    tPrecision};
     const mesh::Mesh tMesh{tGenerator};
-    tMesh.write_mesh(aOutputFile);
+    tMesh.writeMesh(aOutputFile);
 }
 
 std::vector<double> sensitivities(const unsigned int aParameterIndex)

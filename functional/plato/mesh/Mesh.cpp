@@ -1,5 +1,8 @@
 #include "plato/mesh/Mesh.hpp"
 
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/Utilities.hpp"
+
 namespace plato::mesh
 {
 Mesh::Mesh(const std::filesystem::path& aMeshName)
@@ -36,7 +39,7 @@ std::vector<double> Mesh::flattenedNodalCoordinates() const
     return third_party_integration::stk_io::flattened_nodal_coordinates(*mBulk);
 }
 
-void Mesh::write_mesh(const std::filesystem::path& aOutputFileName) const
+void Mesh::writeMesh(const std::filesystem::path& aOutputFileName) const
 {
     third_party_integration::stk_io::write_bulk_data(aOutputFileName, mBulk);
 }

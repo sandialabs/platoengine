@@ -5,6 +5,7 @@
 
 #include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::mesh::unittest
 {
@@ -49,7 +50,7 @@ TEST(Mesh, CreateFromGeneratorAndWrite)
     const auto tGenerator = third_party_integration::stk_io::CommandGenerator{{2, 2, 2}, {0, 0, 0}, {2, 2, 2}};
     const Mesh tMesh(tGenerator);
     EXPECT_EQ(tGenerator.numberOfElements(), tMesh.numberOfElements());
-    tMesh.write_mesh(kMeshName);
+    tMesh.writeMesh(kMeshName);
     EXPECT_TRUE(std::filesystem::exists(kMeshName));
     EXPECT_TRUE(std::filesystem::remove(kMeshName));
 }

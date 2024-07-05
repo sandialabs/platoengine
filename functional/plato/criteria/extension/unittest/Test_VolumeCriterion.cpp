@@ -5,6 +5,7 @@
 #include "plato/criteria/extension/VolumeCriterion.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::criteria::extension::unittest
 {

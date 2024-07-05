@@ -85,8 +85,8 @@ TEST(STKUtilities, WriteDensityField)
     write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{}));
     const std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8};
     constexpr std::string_view tOutputFileName = "brick-out.exo";
-    write_mesh_density(tInputFileName, data, tOutputFileName);
-    auto res = read_mesh_density(tOutputFileName);
+    write_nodal_density(tInputFileName, data, tOutputFileName);
+    auto res = read_nodal_density(tOutputFileName);
 
     EXPECT_EQ(data, res);
 

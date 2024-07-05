@@ -76,7 +76,7 @@ std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::
     return tBulk;
 }
 
-std::vector<double> read_mesh_density(const std::filesystem::path& aMeshName)
+std::vector<double> read_nodal_density(const std::filesystem::path& aMeshName)
 {
     Ioss::DatabaseIO* tResultsDb =
         Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
@@ -144,9 +144,9 @@ std::vector<common::Coordinate> nodal_coordinates(const stk::mesh::BulkData& aBu
     return tCoordinates;
 }
 
-void write_mesh_density(const std::filesystem::path& aInputMeshName,
-                        const std::vector<double>& aDensity,
-                        const std::filesystem::path& aOutputMeshName)
+void write_nodal_density(const std::filesystem::path& aInputMeshName,
+                         const std::vector<double>& aDensity,
+                         const std::filesystem::path& aOutputMeshName)
 {
     std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker =
         create_input_mesh_broker(aInputMeshName);  // todo : add communicator
