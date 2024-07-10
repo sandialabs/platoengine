@@ -3,8 +3,6 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/mpi.hpp>
 #include <boost/serialization/vector.hpp>
-#include <memory>
-#include <optional>
 
 #include "plato/core/Function.hpp"
 #include "plato/core/MeshProxy.hpp"
@@ -17,6 +15,8 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 
 namespace plato::filter::extension
@@ -92,13 +92,11 @@ double filter_area(const FilterRadius aFilterRadius)
     return boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue;
 }
 
-int maximum_connectivity_estimate(const std::filesystem::path& aMeshFileName, const FilterRadius aFilterRadius)
+int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const FilterRadius aFilterRadius)
 {
-    const auto tBulk = third_party_integration::stk_io::read_mesh_bulk_data(aMeshFileName);
-    const double tAverageNodalDensity = third_party_integration::stk_io::average_nodal_density(*tBulk);
-    const auto tSpatialDims = third_party_integration::stk_io::spatial_dimensions(*tBulk);
+    const double tAverageNodalDensity = mesh::average_nodal_density(aMesh);
     const double tSearchVolume =
-        tSpatialDims == 2u ? detail::filter_area(aFilterRadius) : detail::filter_volume(aFilterRadius);
+        aMesh.spatialDimensions() == 2u ? detail::filter_area(aFilterRadius) : detail::filter_volume(aFilterRadius);
     return static_cast<int>(tSearchVolume * tAverageNodalDensity * kMaxMultiplier);
 }
 
@@ -107,13 +105,13 @@ LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
                               const input_parser::KernelFilterCenteringTypes aFilterCentering,
                               const boost::mpi::communicator& aCommunicator)
 {
-    const auto tBulk = third_party_integration::stk_io::read_mesh_bulk_data(aMeshFileName);
-    auto tNodalCoordinates = third_party_integration::stk_io::nodal_coordinates(*tBulk);
-    const int tMaximumConnectivityEstimate = detail::maximum_connectivity_estimate(aMeshFileName, aFilterRadius);
+    const auto tMesh = mesh::Mesh{aMeshFileName};
+    auto tNodalCoordinates = tMesh.nodalCoordinates();
+    const int tMaximumConnectivityEstimate = detail::maximum_connectivity_estimate(tMesh, aFilterRadius);
 
     if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
     {
-        auto tElementCentroids = third_party_integration::stk_io::element_centroids(*tBulk);
+        auto tElementCentroids = tMesh.elementCentroids();
         return LinearMask(NodalVector{std::move(tNodalCoordinates)}, CenterVector{std::move(tElementCentroids)},
                           SearchRadius{aFilterRadius.mValue}, tMaximumConnectivityEstimate, aCommunicator);
     }

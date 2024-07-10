@@ -15,6 +15,11 @@ namespace plato::core
 struct MeshProxy;
 }
 
+namespace plato::mesh
+{
+class Mesh;
+}
+
 namespace plato::input_parser
 {
 struct kernel_filter;
@@ -68,9 +73,9 @@ double filter_volume(const FilterRadius aFilterRadius);
 /// @brief Compute the area of a circle with radius @a aFilterRadius
 double filter_area(const FilterRadius aFilterRadius);
 
-/// @brief Compute maximum expected connectivity in a row for a mesh @a aMeshFileName, with a filter sphere with radius
+/// @brief Compute maximum expected connectivity in a row for mesh @a aMesh, with a filter sphere with radius
 /// @a aFilterRadius
-int maximum_connectivity_estimate(const std::filesystem::path& aMeshFileName, const FilterRadius aFilterRadius);
+int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const FilterRadius aFilterRadius);
 
 /// @brief Create a LinearMask object a mesh @a aMeshFileName, with a filter sphere with radius @a aFilterRadius,
 /// centered on the elements or nodes determined by @a aFilterCentering, using a communicator @a aCommunicator

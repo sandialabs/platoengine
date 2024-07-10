@@ -2,16 +2,12 @@
 
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 
 namespace plato::mesh
 {
 Mesh::Mesh(const std::filesystem::path& aMeshName)
     : mBulk(third_party_integration::stk_io::read_mesh_bulk_data(aMeshName))
-{
-}
-
-Mesh::Mesh(const third_party_integration::stk_io::CommandGenerator& aCommandGenerator)
-    : mBulk(third_party_integration::stk_io::generate_bulk_data(aCommandGenerator))
 {
 }
 
@@ -39,9 +35,22 @@ std::vector<double> Mesh::flattenedNodalCoordinates() const
     return third_party_integration::stk_io::flattened_nodal_coordinates(*mBulk);
 }
 
-void Mesh::writeMesh(const std::filesystem::path& aOutputFileName) const
+std::vector<third_party_integration::common::Coordinate> Mesh::nodalCoordinates() const
 {
-    third_party_integration::stk_io::write_bulk_data(aOutputFileName, mBulk);
+    assert(mBulk);
+    return third_party_integration::stk_io::nodal_coordinates(*mBulk);
+}
+
+std::vector<third_party_integration::common::Coordinate> Mesh::elementCentroids() const
+{
+    assert(mBulk);
+    return third_party_integration::stk_io::element_centroids(*mBulk);
+}
+
+double Mesh::volume() const
+{
+    assert(mBulk);
+    return third_party_integration::stk_io::mesh_volume(*mBulk);
 }
 
 }  // namespace plato::mesh

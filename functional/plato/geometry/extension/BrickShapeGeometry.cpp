@@ -10,7 +10,6 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
-#include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -126,13 +125,12 @@ void create_mesh(const BrickDesign& aDesign,
     const auto tNodesets = tpistkio::NodeSetSideSetIdentifiers{tpistkio::UseLowerX{false}, tpistkio::UseUpperX{false},
                                                                tpistkio::UseLowerY{false}, tpistkio::UseUpperY{true},
                                                                tpistkio::UseLowerZ{false}, tpistkio::UseUpperZ{true}};
-    const int tPrecision = 16;
+    constexpr int tPrecision = 16;
 
     const tpistkio::CommandGenerator tGenerator{
         tNumberOfElements, tLowerBounds, tUpperBounds, tpistkio::CommandElementType::Hex,
         tNodesets,         tSidesets,    tPrecision};
-    const mesh::Mesh tMesh{tGenerator};
-    tMesh.writeMesh(aOutputFile);
+    tpistkio::write_mesh(aOutputFile, tGenerator);
 }
 
 std::vector<double> sensitivities(const unsigned int aParameterIndex)

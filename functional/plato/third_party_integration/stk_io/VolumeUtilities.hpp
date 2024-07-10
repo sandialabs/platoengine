@@ -29,9 +29,6 @@ namespace plato::third_party_integration::stk_io
 [[nodiscard]] std::vector<common::Coordinate> element_coordinates(const stk::mesh::Entity& aElement,
                                                                   const stk::mesh::BulkData& aBulk);
 
-/// @brief Returns the average nodal density by dividing the total nodes over the total volume of bulk data @a aBulk
-[[nodiscard]] double average_nodal_density(const stk::mesh::BulkData& aBulk);
-
 namespace detail
 {
 

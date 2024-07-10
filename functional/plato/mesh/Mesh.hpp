@@ -5,16 +5,13 @@
 #include <memory>
 #include <vector>
 
+#include "plato/third_party_integration/common/Vector3.hpp"
+
 namespace stk::mesh
 {
 // In trilinos 15.1, there are conflicting forward declarations of BulkData, of which clang-tidy disapproves.
 class BulkData;  // NOLINT
 }  // namespace stk::mesh
-
-namespace plato::third_party_integration::stk_io
-{
-struct CommandGenerator;
-}
 
 namespace plato::mesh
 {
@@ -23,14 +20,22 @@ class Mesh
 {
    public:
     Mesh(const std::filesystem::path& aMeshName);
-    Mesh(const third_party_integration::stk_io::CommandGenerator& aMeshName);
 
+    /// @brief The total number of elements in the mesh
     [[nodiscard]] unsigned int numberOfElements() const;
+    /// @brief The total number of nodes in the mesh
     [[nodiscard]] unsigned int numberOfNodes() const;
+    /// @brief The dimensions of the mesh (2 or 3).
     [[nodiscard]] unsigned int spatialDimensions() const;
+    /// @brief The nodal coordinates ordered as x0,y0,z0,x1,y1,z1
+    /// @note For 2D, only x and y coordinates are included in the vector.
     [[nodiscard]] std::vector<double> flattenedNodalCoordinates() const;
-
-    void writeMesh(const std::filesystem::path& aOutputFileName) const;
+    /// @brief All nodal coordinates in the mesh
+    [[nodiscard]] std::vector<third_party_integration::common::Coordinate> nodalCoordinates() const;
+    /// @brief Centroids of all the elements in the mesh.
+    [[nodiscard]] std::vector<third_party_integration::common::Coordinate> elementCentroids() const;
+    /// @brief The total volume of the mesh.
+    [[nodiscard]] double volume() const;
 
    private:
     std::shared_ptr<stk::mesh::BulkData> mBulk;

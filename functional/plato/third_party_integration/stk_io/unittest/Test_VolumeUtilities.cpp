@@ -170,17 +170,4 @@ TEST(STKVolumeUtilities, ElementCentroids)
                                                          TEST_CONTEXT("Element centroids 3"));
 }
 
-TEST(STKVolumeUtilities, AverageNodalDensity)
-{
-    const CommandGenerator tCommandGenerator{{4, 4, 4}, {0, 0, 0}, {4, 4, 4}};
-
-    const auto tBulk = generate_bulk_data(tCommandGenerator);
-    const int tTotalNumberOfNodes = tCommandGenerator.numberOfNodes();
-    const double tTotalVolume = tCommandGenerator.volume();
-    const double tGold = static_cast<double>(tTotalNumberOfNodes) / tTotalVolume;
-    const double tResult = average_nodal_density(*tBulk);
-
-    EXPECT_DOUBLE_EQ(tGold, tResult);
-}
-
 }  // namespace plato::third_party_integration::stk_io::unittest

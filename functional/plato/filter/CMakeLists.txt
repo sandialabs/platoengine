@@ -6,6 +6,7 @@ set(FOLDERS library
 
 set(LINK_LIBS PlatoFunctionalCore
               PlatoFunctionalLinearAlgebra
+              PlatoFunctionalMesh
               PlatoFunctionalServices
               PlatoFunctionalSTKIO
               PlatoFunctionalSTKSearch

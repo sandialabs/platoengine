@@ -6,7 +6,7 @@
 
 #include "plato/core/MeshProxy.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -183,7 +183,7 @@ TEST(KernelFilterDetail, DetermineMaximumConnectivityEstimate)
     const double tSearchVolume = detail::filter_volume(tFilterRadius);
     const int tGold = static_cast<int>(tNodalDensity * tSearchVolume * detail::kMaxMultiplier);
 
-    const int tResult = detail::maximum_connectivity_estimate(kMeshFile, tFilterRadius);
+    const int tResult = detail::maximum_connectivity_estimate(mesh::Mesh{kMeshFile}, tFilterRadius);
     EXPECT_EQ(tGold, tResult);
 
     constexpr double tNumberOfActualNodes = 515;  // matlab
