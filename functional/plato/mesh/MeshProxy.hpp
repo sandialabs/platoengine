@@ -2,7 +2,6 @@
 #define PLATO_MESH_MESHPROXY
 
 #include <filesystem>
-#include <string_view>
 #include <vector>
 
 namespace plato::mesh
