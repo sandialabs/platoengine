@@ -5,9 +5,8 @@
 #include <boost/serialization/vector.hpp>
 #include <string>
 
-#include "plato/core/MeshProxy.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -47,7 +46,7 @@ std::pair<std::vector<double>, std::vector<double> > test_filter_evaluation(
     const std::vector<double> tStdVectorSensitivities =
         create_linear_space_vector(aCommandGenerator.numberOfElements());
 
-    const core::MeshProxy tMeshProxy{kMeshFile, tNodalDensities};
+    const mesh::MeshProxy tMeshProxy{kMeshFile, tNodalDensities};
     const auto tPostFilter = tKernelFilter.filter(tMeshProxy).mNodalDensities;
     const auto tPostSensitivities =
         tKernelFilter.jacobianTimesVector(tMeshProxy, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))

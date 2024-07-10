@@ -3,8 +3,8 @@
 #include <ROL_Bounds.hpp>
 
 #include "plato/core/Compose.hpp"
-#include "plato/core/MeshProxy.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
@@ -36,7 +36,7 @@ std::vector<std::unique_ptr<plato::third_party_integration::rol::ROLConstraintFu
     std::vector<std::unique_ptr<plato::third_party_integration::rol::ROLConstraintFunction>> tROLConstraints;
     std::transform(
         aProblem.mConstraints.cbegin(), aProblem.mConstraints.cend(), std::back_inserter(tROLConstraints),
-        [&aProblem](const plato::criteria::library::Constraint<const core::MeshProxy&>& aConstraintData)
+        [&aProblem](const plato::criteria::library::Constraint<const mesh::MeshProxy&>& aConstraintData)
         {
             plato::criteria::library::Constraint<const linear_algebra::DynamicVector<double>&> tConstraint{
                 aConstraintData.mName, compose(aConstraintData.mConstraintFunction, aProblem.mGeometry.mCompute),

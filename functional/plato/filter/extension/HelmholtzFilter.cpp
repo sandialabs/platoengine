@@ -4,13 +4,13 @@
 #include <memory>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/MeshProxy.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 
 namespace plato::filter::extension
 {
@@ -40,9 +40,9 @@ library::FilterParameters to_filter_parameters(const input_parser::helmholtz_fil
 auto make_filter_function_from_interface(std::unique_ptr<library::FilterInterface> aFilter) -> library::FilterFunction
 {
     auto tFilterAsShared = std::shared_ptr<library::FilterInterface>(std::move(aFilter));
-    return core::make_function([tFilterAsShared](const core::MeshProxy& aMeshProxy)
+    return core::make_function([tFilterAsShared](const mesh::MeshProxy& aMeshProxy)
                                { return tFilterAsShared->filter(aMeshProxy); },
-                               [tFilterAsShared](const core::MeshProxy& aMeshProxy) {
+                               [tFilterAsShared](const mesh::MeshProxy& aMeshProxy) {
                                    return library::FilterJacobian{tFilterAsShared, aMeshProxy};
                                });
 }

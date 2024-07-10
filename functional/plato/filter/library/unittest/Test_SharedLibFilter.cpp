@@ -1,11 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "plato/core/MeshProxy.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 
 namespace plato::filter::extension::unittest
 {
@@ -14,7 +13,7 @@ namespace
 const std::filesystem::path kSharedLibPath = "libPlatoIdentityFilter.so";
 constexpr std::string_view kMeshName = "the-mesh-is-a-lie.exo";
 const auto kRho = std::vector{-1.0, 0.0, 1.0};
-const auto kMeshArgument = core::MeshProxy{kMeshName, kRho};
+const auto kMeshArgument = mesh::MeshProxy{kMeshName, kRho};
 }  // namespace
 
 TEST(SharedLibFilter, LoadAndValue)

@@ -6,10 +6,10 @@
 #include <stk_mesh/base/BulkData.hpp>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/MeshProxy.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 
 namespace plato::geometry::extension
 {
@@ -46,7 +46,7 @@ class BrickShapeGeometry
 
     ~BrickShapeGeometry();
 
-    [[nodiscard]] core::MeshProxy generateMesh(const BrickDesign& aDesignParameters) const;
+    [[nodiscard]] mesh::MeshProxy generateMesh(const BrickDesign& aDesignParameters) const;
 
     [[nodiscard]] linear_algebra::JacobianColumnEvaluator jacobian(const BrickDesign& aDesignParameters) const;
 
@@ -63,7 +63,7 @@ class BrickShapeGeometry
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
 [[nodiscard]] auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry) -> core::
-    Function<core::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>;
+    Function<mesh::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>;
 
 namespace detail
 {

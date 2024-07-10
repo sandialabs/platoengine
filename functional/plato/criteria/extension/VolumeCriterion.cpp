@@ -29,7 +29,7 @@ auto read_bulk_and_elements(const std::filesystem::path& aMeshFileName)
 
 }  // namespace
 
-double VolumeCriterion::f(const core::MeshProxy& aMeshProxy) const
+double VolumeCriterion::f(const mesh::MeshProxy& aMeshProxy) const
 {
     const auto [tBulk, tElements] = read_bulk_and_elements(aMeshProxy.mFileName);
     assert(tElements.size() == aMeshProxy.mNodalDensities.size());
@@ -42,7 +42,7 @@ double VolumeCriterion::f(const core::MeshProxy& aMeshProxy) const
     return mScaleFactor * utilities::pair_wise_accumulate(tScaledVolume);
 }
 
-linear_algebra::DynamicVector<double> VolumeCriterion::df(const core::MeshProxy& aMeshProxy) const
+linear_algebra::DynamicVector<double> VolumeCriterion::df(const mesh::MeshProxy& aMeshProxy) const
 {
     const auto [tBulk, tElements] = read_bulk_and_elements(aMeshProxy.mFileName);
 
@@ -55,23 +55,23 @@ linear_algebra::DynamicVector<double> VolumeCriterion::df(const core::MeshProxy&
 }
 
 auto make_volume_constraint_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const core::MeshProxy&>
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>
 {
-    return core::make_function([](const core::MeshProxy& mesh) { return VolumeCriterion{}.f(mesh); },
-                               [](const core::MeshProxy& mesh) { return VolumeCriterion{}.df(mesh); });
+    return core::make_function([](const mesh::MeshProxy& mesh) { return VolumeCriterion{}.f(mesh); },
+                               [](const mesh::MeshProxy& mesh) { return VolumeCriterion{}.df(mesh); });
 }
 
 auto make_volume_fraction_constraint_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const core::MeshProxy&>
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>
 {
     return core::make_function(
-        [](const core::MeshProxy& mesh)
+        [](const mesh::MeshProxy& mesh)
         {
             const double tVolumeTotal = third_party_integration::stk_io::mesh_volume(
                 *third_party_integration::stk_io::read_mesh_bulk_data(mesh.mFileName));
             return VolumeCriterion{1.0 / tVolumeTotal}.f(mesh);
         },
-        [](const core::MeshProxy& mesh)
+        [](const mesh::MeshProxy& mesh)
         {
             const double tVolumeTotal = third_party_integration::stk_io::mesh_volume(
                 *third_party_integration::stk_io::read_mesh_bulk_data(mesh.mFileName));

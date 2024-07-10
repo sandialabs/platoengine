@@ -1,11 +1,11 @@
-#ifndef PLATO_CORE_MESHPROXY
-#define PLATO_CORE_MESHPROXY
+#ifndef PLATO_MESH_MESHPROXY
+#define PLATO_MESH_MESHPROXY
 
 #include <filesystem>
 #include <string_view>
 #include <vector>
 
-namespace plato::core
+namespace plato::mesh
 {
 
 /// @brief Represents a mesh on disk as well as a nodal density field.
@@ -18,6 +18,6 @@ struct MeshProxy
     std::vector<double> mNodalDensities;
 };
 
-}  // namespace plato::core
+}  // namespace plato::mesh
 
 #endif

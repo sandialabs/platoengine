@@ -13,7 +13,7 @@
 
 namespace plato::criteria::library
 {
-using CriterionFunction = core::Function<double, linear_algebra::DynamicVector<double>, const core::MeshProxy&>;
+using CriterionFunction = core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>;
 
 /// @brief Converts either objective or constraint input objects to a common CriterionInput struct
 /// @tparam Input Must be either input_parser::objective or input_parser::constraint input structs

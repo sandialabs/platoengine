@@ -1,13 +1,13 @@
 #include "plato/filter/test_utilities/SharedLibIdentityFilter.hpp"
 
-#include "plato/core/MeshProxy.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 
 namespace plato::filter::test_utilities
 {
-core::MeshProxy SharedLibIdentityFilter::filter(const core::MeshProxy& aMeshProxy) const { return aMeshProxy; }
+mesh::MeshProxy SharedLibIdentityFilter::filter(const mesh::MeshProxy& aMeshProxy) const { return aMeshProxy; }
 
 linear_algebra::DynamicVector<double> SharedLibIdentityFilter::jacobianTimesVector(
-    const core::MeshProxy&, const linear_algebra::DynamicVector<double>& aV) const
+    const mesh::MeshProxy&, const linear_algebra::DynamicVector<double>& aV) const
 {
     return aV;
 }

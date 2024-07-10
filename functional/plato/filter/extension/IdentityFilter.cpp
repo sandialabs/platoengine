@@ -1,10 +1,10 @@
 #include "plato/filter/extension/IdentityFilter.hpp"
 
-#include "plato/core/MeshProxy.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::filter::extension
@@ -20,10 +20,10 @@ namespace
                                                                 { return validate_identity_filter(aInput); }};
 }  // namespace
 
-core::MeshProxy IdentityFilter::filter(const core::MeshProxy& aMeshProxy) const { return aMeshProxy; }
+mesh::MeshProxy IdentityFilter::filter(const mesh::MeshProxy& aMeshProxy) const { return aMeshProxy; }
 
 linear_algebra::DynamicVector<double> IdentityFilter::jacobianTimesVector(
-    const core::MeshProxy& aMeshProxy, const linear_algebra::DynamicVector<double>& aV) const
+    const mesh::MeshProxy& aMeshProxy, const linear_algebra::DynamicVector<double>& aV) const
 {
     const auto tVectorDimension = static_cast<std::size_t>(aV.size());
     const std::size_t tDensityDimension = aMeshProxy.mNodalDensities.size();
@@ -37,10 +37,10 @@ linear_algebra::DynamicVector<double> IdentityFilter::jacobianTimesVector(
     return aV;
 }
 
-auto make_identity_filter_function() -> core::Function<core::MeshProxy, library::FilterJacobian, const core::MeshProxy&>
+auto make_identity_filter_function() -> core::Function<mesh::MeshProxy, library::FilterJacobian, const mesh::MeshProxy&>
 {
-    return core::make_function([](const core::MeshProxy& aMeshProxy) { return IdentityFilter{}.filter(aMeshProxy); },
-                               [](const core::MeshProxy& aMeshProxy) {
+    return core::make_function([](const mesh::MeshProxy& aMeshProxy) { return IdentityFilter{}.filter(aMeshProxy); },
+                               [](const mesh::MeshProxy& aMeshProxy) {
                                    return library::FilterJacobian{std::make_unique<IdentityFilter>(), aMeshProxy};
                                });
 }

@@ -2,12 +2,12 @@
 
 #include <string_view>
 
-#include "plato/core/MeshProxy.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::filter::extension::unittest
@@ -16,7 +16,7 @@ namespace
 {
 constexpr std::string_view kMeshName = "the-mesh-is-a-lie.exo";
 const auto kRho = std::vector{-1.0, 0.0, 1.0};
-const auto kMeshArgument = core::MeshProxy{kMeshName, kRho};
+const auto kMeshArgument = mesh::MeshProxy{kMeshName, kRho};
 const auto kV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
 }  // namespace
 

@@ -4,8 +4,8 @@
 #include <string_view>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/MeshProxy.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 
 namespace plato::criteria::extension
 {
@@ -15,8 +15,8 @@ namespace plato::criteria::extension
 
 struct VolumeCriterion
 {
-    [[nodiscard]] double f(const core::MeshProxy& aMeshProxy) const;
-    [[nodiscard]] linear_algebra::DynamicVector<double> df(const core::MeshProxy& aMeshProxy) const;
+    [[nodiscard]] double f(const mesh::MeshProxy& aMeshProxy) const;
+    [[nodiscard]] linear_algebra::DynamicVector<double> df(const mesh::MeshProxy& aMeshProxy) const;
 
     static constexpr auto kVolumeCriterionName = std::string_view{"volume"};
     static constexpr auto kVolumeFractionCriterionName = std::string_view{"volume_fraction"};
@@ -26,11 +26,11 @@ struct VolumeCriterion
 
 /// @brief Creates a Function object from a VolumeCriterion
 [[nodiscard]] auto make_volume_constraint_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const core::MeshProxy&>;
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>;
 
 /// @brief Creates a Function object from a VolumeCriterion
 [[nodiscard]] auto make_volume_fraction_constraint_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const core::MeshProxy&>;
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>;
 
 }  // namespace plato::criteria::extension
 

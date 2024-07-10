@@ -5,14 +5,14 @@
 
 namespace plato::integration_tests::test_mass_objective
 {
-double MassObjectiveInterface::value(const core::MeshProxy& aMeshProxy) const
+double MassObjectiveInterface::value(const mesh::MeshProxy& aMeshProxy) const
 {
     constexpr double tDensity = 1.0;
     const auto tMassObjective = MassObjective{tDensity};
     return tMassObjective.mass(aMeshProxy.mFileName.string());
 }
 
-std::vector<double> MassObjectiveInterface::gradient(const core::MeshProxy& aMeshProxy) const
+std::vector<double> MassObjectiveInterface::gradient(const mesh::MeshProxy& aMeshProxy) const
 {
     ///@todo Populate the gradient with actual values
     constexpr unsigned int tNumDimensions = 3;

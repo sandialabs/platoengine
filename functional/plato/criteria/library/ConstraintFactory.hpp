@@ -8,7 +8,7 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
-namespace plato::core
+namespace plato::mesh
 {
 struct MeshProxy;
 }
@@ -34,7 +34,7 @@ struct Constraint
 
 /// @brief Factory to create Constraint objects from input data.
 /// @post The return vector will have the same size as @a aInput.
-[[nodiscard]] std::vector<Constraint<const core::MeshProxy&>> make_constraints(const ValidatedConstraints& aInput);
+[[nodiscard]] std::vector<Constraint<const mesh::MeshProxy&>> make_constraints(const ValidatedConstraints& aInput);
 
 /// @brief Helper for providing ROL a dual vector for constraints.
 /// @note Currently, constraints are scalar, and so the dual vector always has dimension 1.
@@ -42,7 +42,7 @@ struct Constraint
 
 namespace detail
 {
-[[nodiscard]] Constraint<const core::MeshProxy&> make_constraint(
+[[nodiscard]] Constraint<const mesh::MeshProxy&> make_constraint(
     const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput);
 
 }  // namespace detail

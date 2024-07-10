@@ -21,7 +21,7 @@ TEST(NodalSumObjective, Value111)
 {
     third_party_integration::stk_io::write_mesh(kTestFile, third_party_integration::stk_io::CommandGenerator{});
     constexpr double tExpectedValue = 12.0;
-    EXPECT_EQ(NodalSumObjective{}.f(core::MeshProxy{kTestFile, {}}), tExpectedValue);
+    EXPECT_EQ(NodalSumObjective{}.f(mesh::MeshProxy{kTestFile, {}}), tExpectedValue);
     test_utilities::test_for_existence_and_remove({kTestFile}, TEST_CONTEXT("Checking existence of file"));
 }
 
@@ -30,7 +30,7 @@ TEST(NodalSumObjective, Value211)
     third_party_integration::stk_io::write_mesh(kTestFile,
                                                 third_party_integration::stk_io::CommandGenerator{{2, 1, 1}});
     constexpr double tExpectedValue = 18.0;
-    EXPECT_EQ(NodalSumObjective{}.f(core::MeshProxy{kTestFile, {}}), tExpectedValue);
+    EXPECT_EQ(NodalSumObjective{}.f(mesh::MeshProxy{kTestFile, {}}), tExpectedValue);
     test_utilities::test_for_existence_and_remove({kTestFile}, TEST_CONTEXT("Checking existence of file"));
 }
 
@@ -41,7 +41,7 @@ TEST(NodalSumObjective, Value0)
     third_party_integration::stk_io::write_mesh(kTestFile, tCommandGenerator);
 
     constexpr double tExpectedValue = 0.0;
-    EXPECT_EQ(NodalSumObjective{}.f(core::MeshProxy{kTestFile, {}}), tExpectedValue);
+    EXPECT_EQ(NodalSumObjective{}.f(mesh::MeshProxy{kTestFile, {}}), tExpectedValue);
     test_utilities::test_for_existence_and_remove({kTestFile}, TEST_CONTEXT("Checking existence of file"));
 }
 
@@ -55,7 +55,7 @@ TEST(NodalSumObjective, Gradient111)
 
     constexpr int tNumCoordsPerNode = 3;
     const auto tExpected = std::vector<double>(tNumCoordsPerNode * tCommandGenerator.numberOfNodes(), 1.0);
-    const std::vector tComputed = tNodalSum.df(core::MeshProxy{kTestFile, {}}).stdVector();
+    const std::vector tComputed = tNodalSum.df(mesh::MeshProxy{kTestFile, {}}).stdVector();
     EXPECT_EQ(tComputed, tExpected);
     test_utilities::test_for_existence_and_remove({kTestFile}, TEST_CONTEXT("Checking existence of file"));
 }
@@ -63,7 +63,7 @@ TEST(NodalSumObjective, Gradient111)
 TEST(NodalSumObjective, Value)
 {
     third_party_integration::stk_io::write_mesh(kBrickFile, third_party_integration::stk_io::CommandGenerator{});
-    core::MeshProxy tMeshProxy{kBrickFile, {}};
+    mesh::MeshProxy tMeshProxy{kBrickFile, {}};
 
     const NodalSumObjective tPass;
     EXPECT_EQ(tPass.f(tMeshProxy), 12);
@@ -73,7 +73,7 @@ TEST(NodalSumObjective, Value)
 TEST(NodalSumObjective, Gradient)
 {
     third_party_integration::stk_io::write_mesh(kBrickFile, third_party_integration::stk_io::CommandGenerator{});
-    core::MeshProxy tMeshProxy{kBrickFile, {}};
+    mesh::MeshProxy tMeshProxy{kBrickFile, {}};
 
     const NodalSumObjective tPass;
     const std::vector<double> tGold(24, 1);

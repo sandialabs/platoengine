@@ -11,7 +11,7 @@ struct MeshProxy;
 
 namespace plato::filter::library
 {
-[[nodiscard]] std::size_t hash_mesh(const plato::core::MeshProxy& aMeshProxy);
+[[nodiscard]] std::size_t hash_mesh(const plato::mesh::MeshProxy& aMeshProxy);
 
 namespace detail
 {

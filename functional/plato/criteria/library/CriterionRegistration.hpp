@@ -13,7 +13,7 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/services/AppConfiguration.hpp"
 
-namespace plato::core
+namespace plato::mesh
 {
 struct MeshProxy;
 }  // namespace plato::core
@@ -26,7 +26,7 @@ struct CriterionInput
     input_parser::FileList mInputFiles;
 };
 
-using CriterionFunction = core::Function<double, linear_algebra::DynamicVector<double>, const core::MeshProxy&>;
+using CriterionFunction = core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>;
 using CriterionRegistration = core::FactoryRegistration<CriterionFunction, CriterionInput>;
 using ParallelCriterionRegistration =
     core::FactoryRegistration<CriterionFunction, CriterionInput, boost::mpi::communicator>;

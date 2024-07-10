@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "plato/core/MeshProxy.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -25,7 +25,7 @@ TEST(HashGeneration, HashMesh)
         stk_io::write_mesh(fileName, stk_io::generate_mesh(tCommandGenerator));
     }
 
-    const core::MeshProxy tMeshProxy{fileName, std::vector<double>(stk_io::read_mesh_node_size(fileName))};
+    const mesh::MeshProxy tMeshProxy{fileName, std::vector<double>(stk_io::read_mesh_node_size(fileName))};
     const auto tInitialHash = plato::filter::library::hash_mesh(tMeshProxy);
 
     // reload mesh and rehash

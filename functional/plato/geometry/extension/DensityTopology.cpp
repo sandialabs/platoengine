@@ -52,9 +52,9 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
 {
 }
 
-core::MeshProxy DensityTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+mesh::MeshProxy DensityTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
-    return mFilter.f(core::MeshProxy{mFileName, aDesignParameters.stdVector()});
+    return mFilter.f(mesh::MeshProxy{mFileName, aDesignParameters.stdVector()});
 }
 
 linear_algebra::JacobianMultiplier DensityTopology::jacobian(
@@ -62,7 +62,7 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
 {
     return linear_algebra::JacobianMultiplier{/*.mNumColumns=*/mNumDesignParameters,
                                               /*.mJacobianTimesVectorFunction=*/
-                                              [tMeshProxy = core::MeshProxy{mFileName, aDesignParameters.stdVector()},
+                                              [tMeshProxy = mesh::MeshProxy{mFileName, aDesignParameters.stdVector()},
                                                this](const linear_algebra::DynamicVector<double>& x)
                                               { return x * mFilter.df(tMeshProxy); }};
 }
@@ -87,7 +87,7 @@ void DensityTopology::output(const std::filesystem::path& aInputMeshName,
 }
 
 auto make_topology_geometry(const DensityTopology& aDensityTopology)
-    -> core::Function<core::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>
+    -> core::Function<mesh::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>
 {
     return core::make_function([tDensityTopology = aDensityTopology](const linear_algebra::DynamicVector<double>& x)
                                { return tDensityTopology.generateMesh(x); },

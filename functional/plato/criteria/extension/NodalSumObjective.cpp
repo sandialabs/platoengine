@@ -16,13 +16,13 @@ namespace
                                    [](const library::CriterionInput&) { return make_nodal_sum_function(); }};
 }
 
-double NodalSumObjective::f(const core::MeshProxy& aMeshProxy) const
+double NodalSumObjective::f(const mesh::MeshProxy& aMeshProxy) const
 {
     const std::vector<double> tCoordinates = mesh::Mesh{aMeshProxy.mFileName}.flattenedNodalCoordinates();
     return std::accumulate(tCoordinates.begin(), tCoordinates.end(), 0.0);
 }
 
-linear_algebra::DynamicVector<double> NodalSumObjective::df(const core::MeshProxy& aMeshProxy) const
+linear_algebra::DynamicVector<double> NodalSumObjective::df(const mesh::MeshProxy& aMeshProxy) const
 {
     const auto tMesh = mesh::Mesh{aMeshProxy.mFileName};
     const unsigned int tSpatialDim = tMesh.spatialDimensions();
@@ -32,9 +32,9 @@ linear_algebra::DynamicVector<double> NodalSumObjective::df(const core::MeshProx
     return linear_algebra::DynamicVector<double>(std::move(tCoordinates));
 }
 
-auto make_nodal_sum_function() -> core::Function<double, linear_algebra::DynamicVector<double>, const core::MeshProxy&>
+auto make_nodal_sum_function() -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>
 {
-    return core::make_function([](const core::MeshProxy& mesh) { return NodalSumObjective{}.f(mesh); },
-                               [](const core::MeshProxy& mesh) { return NodalSumObjective{}.df(mesh); });
+    return core::make_function([](const mesh::MeshProxy& mesh) { return NodalSumObjective{}.f(mesh); },
+                               [](const mesh::MeshProxy& mesh) { return NodalSumObjective{}.df(mesh); });
 }
 }  // namespace plato::criteria::extension

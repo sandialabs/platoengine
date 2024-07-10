@@ -10,7 +10,7 @@
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/StateCache.hpp"
 
-namespace plato::core
+namespace plato::mesh
 {
 struct MeshProxy;
 }
@@ -28,7 +28,7 @@ struct kernel_filter;
 namespace plato::filter::extension
 {
 using FilterRadius = utilities::NamedType<double, struct FilterRadiusTag>;
-using FilterCache = plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const core::MeshProxy&>;
+using FilterCache = plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const mesh::MeshProxy&>;
 
 /// @brief An implementation of a kernel filter that relies on Tpetra and STK objects to conduct a search and create a
 /// linear mask.
@@ -43,11 +43,11 @@ class KernelFilter : public library::FilterInterface
                  const boost::mpi::communicator& aCommunicator);
 
     /// @brief Apply the internal filter to the mesh specified in @a aMeshProxy and return a new MeshProxy object
-    [[nodiscard]] core::MeshProxy filter(const core::MeshProxy& aMeshProxy) const override;
+    [[nodiscard]] mesh::MeshProxy filter(const mesh::MeshProxy& aMeshProxy) const override;
 
     /// @brief Return the Jacobian of the linear mask applied to a specific vector @a aV
     [[nodiscard]] linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const core::MeshProxy& aMeshProxy, const linear_algebra::DynamicVector<double>& aV) const override;
+        const mesh::MeshProxy& aMeshProxy, const linear_algebra::DynamicVector<double>& aV) const override;
 
    private:
     LinearMask mLinearMask;

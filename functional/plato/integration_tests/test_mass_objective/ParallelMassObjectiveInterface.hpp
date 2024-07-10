@@ -24,11 +24,11 @@ class ParallelMassObjectiveInterface : public criteria::library::CriterionInterf
 
     ///@brief required by the CriterionInterface, return the value of the criterion evaluated at the controls specified
     /// by the MeshProxy
-    [[nodiscard]] double value(const core::MeshProxy& aMeshProxy) const override;
+    [[nodiscard]] double value(const mesh::MeshProxy& aMeshProxy) const override;
 
     ///@brief required by the CriterionInterface, return the gradient of the criterion evaluated at the controls
     /// specified by the MeshProxy
-    [[nodiscard]] std::vector<double> gradient(const core::MeshProxy& aMeshProxy) const override;
+    [[nodiscard]] std::vector<double> gradient(const mesh::MeshProxy& aMeshProxy) const override;
 
    private:
     boost::mpi::communicator mComm;

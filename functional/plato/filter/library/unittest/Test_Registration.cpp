@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/MeshProxy.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 
 namespace plato::filter::library::unittest
 {
@@ -11,8 +11,8 @@ namespace
 {
 [[nodiscard]] auto make_test_filter_function() -> FilterFunction
 {
-    return core::make_function([](const core::MeshProxy&) { return core::MeshProxy{}; },
-                               [](const core::MeshProxy&) { return FilterJacobian{}; });
+    return core::make_function([](const mesh::MeshProxy&) { return mesh::MeshProxy{}; },
+                               [](const mesh::MeshProxy&) { return FilterJacobian{}; });
 }
 
 [[maybe_unused]] static auto kTestFilterRegistration =

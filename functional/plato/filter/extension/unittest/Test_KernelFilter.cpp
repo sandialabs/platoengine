@@ -4,9 +4,9 @@
 #include <boost/mpi/communicator.hpp>
 #include <vector>
 
-#include "plato/core/MeshProxy.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -38,7 +38,7 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     tNodalDensities[tHalfNode - 1] = .5;
     tNodalDensities[tHalfNode + 1] = .5;
 
-    const core::MeshProxy tMeshProxy{kMeshFile, tNodalDensities};
+    const mesh::MeshProxy tMeshProxy{kMeshFile, tNodalDensities};
 
     const auto tPostFilter = tKernelFilter.filter(tMeshProxy).mNodalDensities;
     std::vector<double> tStdVectorSensitivities;
@@ -149,7 +149,7 @@ TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
     const auto tFilePath = test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf");
     ASSERT_TRUE(tFilePath.has_value());
 
-    const core::MeshProxy tMeshProxy{
+    const mesh::MeshProxy tMeshProxy{
         tFilePath.value(),
         std::vector<double>(third_party_integration::stk_io::read_mesh_node_size(tFilePath.value()))};
 
@@ -202,7 +202,7 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
         third_party_integration::stk_io::write_mesh(kMeshFile,
                                                     third_party_integration::stk_io::generate_mesh(tCommandGenerator));
     }
-    core::MeshProxy tMeshProxy{kMeshFile,
+    mesh::MeshProxy tMeshProxy{kMeshFile,
                                std::vector<double>(third_party_integration::stk_io::read_mesh_node_size(kMeshFile))};
     const auto tFilteredControl = tFilterCache.compute(tMeshProxy)->filter(tMeshProxy).mNodalDensities;
 

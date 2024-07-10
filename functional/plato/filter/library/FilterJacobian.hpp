@@ -3,8 +3,8 @@
 
 #include <memory>
 
-#include "plato/core/MeshProxy.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/mesh/MeshProxy.hpp"
 
 namespace plato::filter::library
 {
@@ -14,7 +14,7 @@ class FilterInterface;
 struct FilterJacobian
 {
     std::shared_ptr<FilterInterface> mFilter;
-    core::MeshProxy mMeshProxy;
+    mesh::MeshProxy mMeshProxy;
 };
 
 /// @pre `FilterJacobian::mFilter` must not be `nullptr`.
