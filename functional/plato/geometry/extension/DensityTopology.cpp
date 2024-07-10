@@ -48,7 +48,7 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
                                  plato::filter::library::FilterFunction aFilterFunction)
     : mFileName(aInput.mesh_name.value().mToken),
       mNumDesignParameters(mesh::Mesh{mFileName}.numberOfNodes()),
-      mFilter(plato::filter::library::make_filter_function(aInput))
+      mFilter(std::move(aFilterFunction))
 {
 }
 
