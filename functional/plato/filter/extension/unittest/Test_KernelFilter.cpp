@@ -183,7 +183,7 @@ TEST(KernelFilterDetail, DetermineMaximumConnectivityEstimate)
     const double tSearchVolume = detail::filter_volume(tFilterRadius);
     const int tGold = static_cast<int>(tNodalDensity * tSearchVolume * detail::kMaxMultiplier);
 
-    const int tResult = detail::determine_maximum_connectivity_estimate(kMeshFile, tFilterRadius);
+    const int tResult = detail::maximum_connectivity_estimate(kMeshFile, tFilterRadius);
     EXPECT_EQ(tGold, tResult);
 
     constexpr double tNumberOfActualNodes = 515;  // matlab

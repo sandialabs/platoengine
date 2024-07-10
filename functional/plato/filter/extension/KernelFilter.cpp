@@ -92,16 +92,14 @@ double filter_area(const FilterRadius aFilterRadius)
     return boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue;
 }
 
-int determine_maximum_connectivity_estimate(const std::filesystem::path& aMeshFileName,
-                                            const FilterRadius aFilterRadius)
+int maximum_connectivity_estimate(const std::filesystem::path& aMeshFileName, const FilterRadius aFilterRadius)
 {
     const auto tBulk = third_party_integration::stk_io::read_mesh_bulk_data(aMeshFileName);
     const double tAverageNodalDensity = third_party_integration::stk_io::average_nodal_density(*tBulk);
     const auto tSpatialDims = third_party_integration::stk_io::spatial_dimensions(*tBulk);
     const double tSearchVolume =
         tSpatialDims == 2u ? detail::filter_area(aFilterRadius) : detail::filter_volume(aFilterRadius);
-    return static_cast<int>(tSearchVolume * tAverageNodalDensity *
-                            kMaxMultiplier);  // for Tpetra sparse matrix allocation
+    return static_cast<int>(tSearchVolume * tAverageNodalDensity * kMaxMultiplier);
 }
 
 LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
@@ -111,8 +109,7 @@ LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
 {
     const auto tBulk = third_party_integration::stk_io::read_mesh_bulk_data(aMeshFileName);
     auto tNodalCoordinates = third_party_integration::stk_io::nodal_coordinates(*tBulk);
-    const int tMaximumConnectivityEstimate =
-        detail::determine_maximum_connectivity_estimate(aMeshFileName, aFilterRadius);
+    const int tMaximumConnectivityEstimate = detail::maximum_connectivity_estimate(aMeshFileName, aFilterRadius);
 
     if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
     {
