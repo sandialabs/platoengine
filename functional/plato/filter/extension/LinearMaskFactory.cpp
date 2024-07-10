@@ -17,14 +17,14 @@ constexpr bool kZeroOut = true;
 }  // namespace
 
 LinearMaskFactory::LinearMaskFactory(const NodalVector& aNodalCoordinates,
-                                     const CenterVector& aCenters,
+                                     CenterVector aCenters,
                                      const SearchRadius aSearchRadius,
                                      const int aMaximumConnectivityEstimate,
                                      const boost::mpi::communicator& aCommunicator)
     : mCommunicator(aCommunicator),
       mSearchRadius(aSearchRadius.mValue),
       mMaximumConnectivityEstimate(aMaximumConnectivityEstimate),
-      mRowCenterCoordinates(aCenters.mValue),
+      mRowCenterCoordinates(std::move(aCenters.mValue)),
       mNodalCoordinates(createNodalCoordinates(aNodalCoordinates.mValue)),
       mLocalSearchPointWithIdentifiers(detail::stk_search_points(mNodalCoordinates, mCommunicator.rank()))
 {

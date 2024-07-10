@@ -11,14 +11,14 @@ namespace plato::filter::extension
 {
 
 LinearMask::LinearMask(const NodalVector& aNodalCoordinates,
-                       const CenterVector& aCentroids,
+                       CenterVector aCentroids,
                        const SearchRadius aSearchRadius,
                        const int aMaximumConnectivityEstimate,
                        const boost::mpi::communicator& aCommunicator)
     : mCommunicator(aCommunicator),
-      mLinearMask(
-          LinearMaskFactory{aNodalCoordinates, aCentroids, aSearchRadius, aMaximumConnectivityEstimate, aCommunicator}
-              .returnMask())
+      mLinearMask(LinearMaskFactory{aNodalCoordinates, std::move(aCentroids), aSearchRadius,
+                                    aMaximumConnectivityEstimate, aCommunicator}
+                      .returnMask())
 {
 }
 

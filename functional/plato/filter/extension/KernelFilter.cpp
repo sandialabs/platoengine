@@ -117,12 +117,12 @@ LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
     if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
     {
         auto tElementCentroids = third_party_integration::stk_io::element_centroids(*tBulk);
-        return LinearMask(NodalVector{tNodalCoordinates}, CenterVector{tElementCentroids},
+        return LinearMask(NodalVector{std::move(tNodalCoordinates)}, CenterVector{std::move(tElementCentroids)},
                           SearchRadius{aFilterRadius.mValue}, tMaximumConnectivityEstimate, aCommunicator);
     }
     else
     {
-        return LinearMask(NodalVector{tNodalCoordinates}, SearchRadius{aFilterRadius.mValue},
+        return LinearMask(NodalVector{std::move(tNodalCoordinates)}, SearchRadius{aFilterRadius.mValue},
                           tMaximumConnectivityEstimate, aCommunicator);
     }
 }

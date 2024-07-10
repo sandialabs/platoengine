@@ -35,7 +35,7 @@ class LinearMaskFactory
     /// @a aMaximumConnectivityEstimate is an estimate provided to the Tpetra CRS Matrix during allocation. It should be
     /// a maximum expected to avoid any additional allocation time.
     LinearMaskFactory(const NodalVector& aNodalCoordinates,
-                      const CenterVector& aCenters,
+                      CenterVector aCenters,
                       const SearchRadius aSearchRadius,
                       const int aMaximumConnectivityEstimate,
                       const boost::mpi::communicator& aCommunicator);
