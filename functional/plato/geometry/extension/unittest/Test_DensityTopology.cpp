@@ -14,6 +14,7 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshProxyViews.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
@@ -70,7 +71,8 @@ TEST(DensityTopology, GenerateMesh)
     const linear_algebra::DynamicVector<double> tDesignVec(tDesignVars);
 
     const auto tMeshProxy = tDensityTopology.generateMesh(tDesignVec);
-    EXPECT_EQ(tMeshProxy.mNodalDensities, tDesignVars);
+    const auto tDensities = mesh::to_vector(mesh::MeshProxyDensitiesView{tMeshProxy});
+    EXPECT_EQ(tDensities, tDesignVars);
 
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
 }

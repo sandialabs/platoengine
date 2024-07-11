@@ -5,6 +5,8 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::filter::extension::unittest
 {
@@ -20,7 +22,12 @@ TEST(SharedLibFilter, LoadAndValue)
 {
     const std::unique_ptr<const library::FilterInterface> tFilter =
         library::load_filter(library::FilterParameters{}, kSharedLibPath);
-    EXPECT_EQ(tFilter->filter(kMeshArgument).mNodalDensities, kRho);
+    const auto tMeshProxyResult = tFilter->filter(kMeshArgument);
+    const auto tMeshView = mesh::MeshProxyDensitiesView{tMeshProxyResult};
+    for (const auto& [tComputed, tExpected] : utilities::Zip{tMeshView, kRho})
+    {
+        EXPECT_EQ(tComputed, tExpected);
+    }
 }
 
 }  // namespace plato::filter::extension::unittest

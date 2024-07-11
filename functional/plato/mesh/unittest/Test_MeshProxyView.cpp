@@ -46,7 +46,7 @@ TEST(MeshProxyViews, IteratorEqualityOperators)
     EXPECT_FALSE(tIterator1 != tIterator2) << "Explicitly check inequality operator";
 }
 
-TEST(MeshProxyViews, AllBlocks)
+TEST(MeshProxyViews, SizeAndAccessor)
 {
     const auto tDensities = std::vector{1.0, 2.0, 3.0};
     const auto tMeshProxy = MeshProxy{/*.mFileName=*/"mars.exo", /*.mNodalDensities=*/tDensities};
@@ -70,6 +70,27 @@ TEST(MeshProxyViews, BeginEnd)
 
     const auto tEndIterator = tMeshView.end();
     EXPECT_EQ(tEndIterator.mIterator, tMeshProxy.mNodalDensities.cend());
+}
+
+TEST(MeshProxyViews, RangeBasedFor)
+{
+    const auto tDensities = std::vector{-10.0, 20.0, 40.0};
+    const auto tMeshProxy = MeshProxy{/*.mFileName=*/"venus.exo", /*.mNodalDensities=*/tDensities};
+    const auto tMeshView = MeshProxyDensitiesView{tMeshProxy};
+    auto tDensityIterator = tDensities.cbegin();
+    for (const auto tDensityValue : tMeshView)
+    {
+        EXPECT_EQ(tDensityValue, *tDensityIterator);
+        ++tDensityIterator;
+    }
+}
+
+TEST(MeshProxyViews, ToVector)
+{
+    const auto tDensities = std::vector{1.0, 0.0, 4.0};
+    const auto tMeshProxy = MeshProxy{/*.mFileName=*/"mercury.exo", /*.mNodalDensities=*/tDensities};
+    const auto tVectorFromView = to_vector(MeshProxyDensitiesView{tMeshProxy});
+    EXPECT_EQ(tVectorFromView, tDensities);
 }
 
 }  // namespace plato::mesh::unittest

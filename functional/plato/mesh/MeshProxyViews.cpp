@@ -1,5 +1,7 @@
 #include "plato/mesh/MeshProxyViews.hpp"
 
+#include <algorithm>
+
 #include "plato/mesh/MeshProxy.hpp"
 
 namespace plato::mesh
@@ -10,7 +12,7 @@ MeshProxyDensitiesViewIterator& MeshProxyDensitiesViewIterator::operator++()
     return *this;
 }
 
-const double& MeshProxyDensitiesViewIterator::operator*() { return *mIterator; }
+const double& MeshProxyDensitiesViewIterator::operator*() const { return *mIterator; }
 
 bool MeshProxyDensitiesViewIterator::operator==(const MeshProxyDensitiesViewIterator& aRHSIterator) const
 {
@@ -35,4 +37,13 @@ MeshProxyDensitiesViewIterator MeshProxyDensitiesView::end() const
 {
     return MeshProxyDensitiesViewIterator{mMeshProxy.get().mNodalDensities.cend()};
 }
+
+std::vector<double> to_vector(const MeshProxyDensitiesView aMeshView)
+{
+    auto tDensities = std::vector<double>{};
+    tDensities.reserve(aMeshView.size());
+    std::copy(aMeshView.begin(), aMeshView.end(), std::back_inserter(tDensities));
+    return tDensities;
+}
+
 }  // namespace plato::mesh

@@ -7,6 +7,7 @@
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshProxyViews.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -40,7 +41,9 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
 
     const mesh::MeshProxy tMeshProxy{kMeshFile, tNodalDensities};
 
-    const auto tPostFilter = tKernelFilter.filter(tMeshProxy).mNodalDensities;
+    const auto tResult = tKernelFilter.filter(tMeshProxy);
+    const auto tPostFilter = mesh::to_vector(mesh::MeshProxyDensitiesView{tResult});
+
     std::vector<double> tStdVectorSensitivities;
     if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
     {

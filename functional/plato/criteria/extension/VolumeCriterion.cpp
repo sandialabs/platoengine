@@ -2,6 +2,7 @@
 
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
+#include "plato/mesh/MeshProxyViews.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"
 
@@ -31,12 +32,13 @@ auto read_bulk_and_elements(const std::filesystem::path& aMeshFileName)
 
 double VolumeCriterion::f(const mesh::MeshProxy& aMeshProxy) const
 {
+    const auto tMeshView = mesh::MeshProxyDensitiesView{aMeshProxy};
     const auto [tBulk, tElements] = read_bulk_and_elements(aMeshProxy.mFileName);
-    assert(tElements.size() == aMeshProxy.mNodalDensities.size());
+    assert(tElements.size() == tMeshView.size());
     std::vector<double> tScaledVolume;
-    std::transform(aMeshProxy.mNodalDensities.begin(), aMeshProxy.mNodalDensities.end(), tElements.begin(),
-                   std::back_inserter(tScaledVolume),
-                   [&tBulkRef = *tBulk](const auto& aControl, const auto& aElement)
+    tScaledVolume.reserve(tElements.size());
+    std::transform(tMeshView.begin(), tMeshView.end(), tElements.begin(), std::back_inserter(tScaledVolume),
+                   [&tBulkRef = *tBulk](const auto aControl, const auto& aElement)
                    { return aControl * third_party_integration::stk_io::element_volume(aElement, tBulkRef); });
 
     return mScaleFactor * utilities::pair_wise_accumulate(tScaledVolume);

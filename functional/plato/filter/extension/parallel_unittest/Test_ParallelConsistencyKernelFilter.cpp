@@ -7,6 +7,7 @@
 
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshProxyViews.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -47,12 +48,14 @@ std::pair<std::vector<double>, std::vector<double> > test_filter_evaluation(
         create_linear_space_vector(aCommandGenerator.numberOfElements());
 
     const mesh::MeshProxy tMeshProxy{kMeshFile, tNodalDensities};
-    const auto tPostFilter = tKernelFilter.filter(tMeshProxy).mNodalDensities;
+    const auto tResult = tKernelFilter.filter(tMeshProxy);
+    const auto tPostFilter = mesh::to_vector(mesh::MeshProxyDensitiesView{tResult});
+
     const auto tPostSensitivities =
         tKernelFilter.jacobianTimesVector(tMeshProxy, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
             .stdVector();
 
-    return {tPostFilter, tPostSensitivities};
+    return std::pair{tPostFilter, tPostSensitivities};
 }
 
 boost::mpi::communicator split_coms()

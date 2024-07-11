@@ -15,6 +15,7 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshProxyViews.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 
@@ -48,15 +49,13 @@ KernelFilter::KernelFilter(const std::filesystem::path& aMeshFileName,
                            const boost::mpi::communicator& aCommunicator)
     : mLinearMask(detail::create_linear_mask(aMeshFileName, aFilterRadius, aFilterCentering, aCommunicator)),
       mCommunicator(aCommunicator)
-
 {
 }
 
 mesh::MeshProxy KernelFilter::filter(const mesh::MeshProxy& aMeshProxy) const
 {
-    mesh::MeshProxy tMeshProxy{aMeshProxy};
-    tMeshProxy.mNodalDensities = mLinearMask.matrixMultiply(aMeshProxy.mNodalDensities);
-    return tMeshProxy;
+    return mesh::MeshProxy{aMeshProxy.mFileName,
+                           mLinearMask.matrixMultiply(mesh::to_vector(mesh::MeshProxyDensitiesView{aMeshProxy}))};
 }
 
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(

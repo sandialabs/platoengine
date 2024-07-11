@@ -8,7 +8,10 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::filter::extension::unittest
 {
@@ -18,9 +21,22 @@ constexpr std::string_view kMeshName = "the-mesh-is-a-lie.exo";
 const auto kRho = std::vector{-1.0, 0.0, 1.0};
 const auto kMeshArgument = mesh::MeshProxy{kMeshName, kRho};
 const auto kV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
+
+void test_filtered_results(const mesh::MeshProxy& aMeshProxy, const test_utilities::TestContext& aTestContext)
+{
+    const auto tMeshView = mesh::MeshProxyDensitiesView{aMeshProxy};
+    for (const auto& [tComputed, tExpected] : utilities::Zip{tMeshView, kRho})
+    {
+        EXPECT_EQ(tComputed, tExpected) << aTestContext;
+    }
+}
 }  // namespace
 
-TEST(IdentityFilter, Filter) { EXPECT_EQ(IdentityFilter{}.filter(kMeshArgument).mNodalDensities, kRho); }
+TEST(IdentityFilter, Filter)
+{
+    const auto tMeshProxyResult = IdentityFilter{}.filter(kMeshArgument);
+    test_filtered_results(tMeshProxyResult, TEST_CONTEXT("Direct filter"));
+}
 
 TEST(IdentityFilter, JacobianTimesVector)
 {
@@ -52,7 +68,8 @@ TEST(IdentityFilter, JacobianBadDimensions)
 TEST(IdentityFilter, Function)
 {
     const auto tFilterFunction = make_identity_filter_function();
-    EXPECT_EQ(tFilterFunction.f(kMeshArgument).mNodalDensities, kRho);
+    const auto tMeshProxyResult = tFilterFunction.f(kMeshArgument);
+    test_filtered_results(tMeshProxyResult, TEST_CONTEXT("Filter via filter function"));
 
     const linear_algebra::DynamicVector<double> tResult = kV * tFilterFunction.df(kMeshArgument);
     EXPECT_EQ(tResult.stdVector(), kV.stdVector());

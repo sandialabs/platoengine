@@ -5,6 +5,7 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshProxyViews.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::filter::extension
@@ -26,7 +27,7 @@ linear_algebra::DynamicVector<double> IdentityFilter::jacobianTimesVector(
     const mesh::MeshProxy& aMeshProxy, const linear_algebra::DynamicVector<double>& aV) const
 {
     const auto tVectorDimension = static_cast<std::size_t>(aV.size());
-    const std::size_t tDensityDimension = aMeshProxy.mNodalDensities.size();
+    const std::size_t tDensityDimension = mesh::MeshProxyDensitiesView{aMeshProxy}.size();
     if (tVectorDimension != tDensityDimension)
     {
         throw utilities::Exception{
