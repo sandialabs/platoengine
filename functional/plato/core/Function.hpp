@@ -2,7 +2,6 @@
 #define PLATO_CORE_FUNCTION
 
 #include <functional>
-#include <tuple>
 #include <type_traits>
 
 namespace plato::core
