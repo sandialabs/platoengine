@@ -7,10 +7,16 @@
 
 namespace plato::mesh::unittest
 {
+namespace
+{
+using MeshProxyDensitiesViewConstIterator =
+    MeshProxyDensitiesViewIterator<std::vector<double>::const_iterator, std::forward_iterator_tag>;
+}
+
 TEST(MeshProxyViews, IncrementIterator)
 {
     const auto tDensities = std::vector{42.0, 45.0, 48.0};
-    auto tIterator = MeshProxyDensitiesViewIterator{tDensities.cbegin()};
+    auto tIterator = MeshProxyDensitiesViewConstIterator{tDensities.cbegin()};
     for (const auto [tIndex] : utilities::MultidimensionalRange{tDensities.size()})
     {
         EXPECT_EQ(tIterator.mIterator, std::next(tDensities.cbegin(), tIndex));
@@ -22,7 +28,7 @@ TEST(MeshProxyViews, IncrementIterator)
 TEST(MeshProxyViews, DereferenceIterator)
 {
     const auto tDensities = std::vector{42.0, 43.0};
-    auto tIterator = MeshProxyDensitiesViewIterator{tDensities.cbegin()};
+    auto tIterator = MeshProxyDensitiesViewConstIterator{tDensities.cbegin()};
     EXPECT_EQ(*tIterator, *tDensities.cbegin());
     ++tIterator;
     EXPECT_EQ(*tIterator, *std::next(tDensities.cbegin()));
@@ -31,8 +37,8 @@ TEST(MeshProxyViews, DereferenceIterator)
 TEST(MeshProxyViews, IteratorEqualityOperators)
 {
     const auto tDensities = std::vector{100.0, 200.0};
-    auto tIterator1 = MeshProxyDensitiesViewIterator{tDensities.cbegin()};
-    auto tIterator2 = MeshProxyDensitiesViewIterator{tDensities.cbegin()};
+    auto tIterator1 = MeshProxyDensitiesViewConstIterator{tDensities.cbegin()};
+    auto tIterator2 = MeshProxyDensitiesViewConstIterator{tDensities.cbegin()};
 
     EXPECT_TRUE(tIterator1 == tIterator2) << "Explicitly check equality operator";
     EXPECT_FALSE(tIterator1 != tIterator2) << "Explicitly check inequality operator";
@@ -91,6 +97,25 @@ TEST(MeshProxyViews, ToVector)
     const auto tMeshProxy = MeshProxy{/*.mFileName=*/"mercury.exo", /*.mNodalDensities=*/tDensities};
     const auto tVectorFromView = to_vector(MeshProxyDensitiesView{tMeshProxy});
     EXPECT_EQ(tVectorFromView, tDensities);
+}
+
+TEST(MeshProxyViews, MutableView)
+{
+    const auto tDensities = std::vector{1.0, 1.0, 1.0};
+    auto tMeshProxy = MeshProxy{/*.mFileName=*/"uranus.exo", /*.mNodalDensities=*/tDensities};
+
+    static_assert(!kIsConstIterator<std::vector<double>::iterator>);
+    static_assert(kIsConstIterator<std::vector<double>::const_iterator>);
+
+    const auto tMeshView = MeshProxyDensitiesMutableView{tMeshProxy};
+
+    const auto tNewDensities = std::vector{0.0, 1.0, 2.0};
+    std::copy(tNewDensities.cbegin(), tNewDensities.cend(), tMeshView.begin());
+
+    for (const auto [tIndex] : utilities::MultidimensionalRange{tNewDensities.size()})
+    {
+        EXPECT_EQ(tMeshView[tIndex], tNewDensities[tIndex]);
+    }
 }
 
 }  // namespace plato::mesh::unittest

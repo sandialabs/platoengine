@@ -24,7 +24,7 @@ TEST(SharedLibFilter, LoadAndValue)
         library::load_filter(library::FilterParameters{}, kSharedLibPath);
     const auto tMeshProxyResult = tFilter->filter(kMeshArgument);
     const auto tMeshView = mesh::MeshProxyDensitiesView{tMeshProxyResult};
-    for (const auto& [tComputed, tExpected] : utilities::Zip{tMeshView, kRho})
+    for (const auto [tComputed, tExpected] : utilities::Zip{tMeshView, kRho})
     {
         EXPECT_EQ(tComputed, tExpected);
     }

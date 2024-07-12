@@ -6,36 +6,59 @@
 
 namespace plato::mesh
 {
-MeshProxyDensitiesViewIterator& MeshProxyDensitiesViewIterator::operator++()
+
+template <typename IteratorType, typename IteratorCategory>
+auto MeshProxyDensitiesViewIterator<IteratorType, IteratorCategory>::operator++()
+    -> MeshProxyDensitiesViewIterator<IteratorType, IteratorCategory>&
 {
     ++mIterator;
     return *this;
 }
 
-const double& MeshProxyDensitiesViewIterator::operator*() const { return *mIterator; }
+template <typename IteratorType, typename IteratorCategory>
+const double& MeshProxyDensitiesViewIterator<IteratorType, IteratorCategory>::operator*() const
+{
+    return *mIterator;
+}
 
-bool MeshProxyDensitiesViewIterator::operator==(const MeshProxyDensitiesViewIterator& aRHSIterator) const
+template <typename IteratorType, typename IteratorCategory>
+bool MeshProxyDensitiesViewIterator<IteratorType, IteratorCategory>::operator==(
+    const MeshProxyDensitiesViewIterator<IteratorType, IteratorCategory>& aRHSIterator) const
 {
     return mIterator == aRHSIterator.mIterator;
 }
 
-bool MeshProxyDensitiesViewIterator::operator!=(const MeshProxyDensitiesViewIterator& aRHSIterator) const
+template <typename IteratorType, typename IteratorCategory>
+bool MeshProxyDensitiesViewIterator<IteratorType, IteratorCategory>::operator!=(
+    const MeshProxyDensitiesViewIterator<IteratorType, IteratorCategory>& aRHSIterator) const
 {
     return !(*this == aRHSIterator);
 }
 
-double MeshProxyDensitiesView::operator[](unsigned aIndex) const { return mMeshProxy.get().mNodalDensities[aIndex]; }
-
-std::size_t MeshProxyDensitiesView::size() const { return mMeshProxy.get().mNodalDensities.size(); }
-
-MeshProxyDensitiesViewIterator MeshProxyDensitiesView::begin() const
+template <typename MeshProxyType>
+double MeshProxyDensitiesViewTemplate<MeshProxyType>::operator[](const unsigned aIndex) const
 {
-    return MeshProxyDensitiesViewIterator{mMeshProxy.get().mNodalDensities.cbegin()};
+    return mMeshProxy.get().mNodalDensities[aIndex];
 }
 
-MeshProxyDensitiesViewIterator MeshProxyDensitiesView::end() const
+template <typename MeshProxyType>
+std::size_t MeshProxyDensitiesViewTemplate<MeshProxyType>::size() const
 {
-    return MeshProxyDensitiesViewIterator{mMeshProxy.get().mNodalDensities.cend()};
+    return mMeshProxy.get().mNodalDensities.size();
+}
+
+template <typename MeshProxyType>
+auto MeshProxyDensitiesViewTemplate<MeshProxyType>::begin() const ->
+    typename MeshProxyDensitiesViewTemplate<MeshProxyType>::IteratorType
+{
+    return IteratorType{mMeshProxy.get().mNodalDensities.begin()};
+}
+
+template <typename MeshProxyType>
+auto MeshProxyDensitiesViewTemplate<MeshProxyType>::end() const ->
+    typename MeshProxyDensitiesViewTemplate<MeshProxyType>::IteratorType
+{
+    return IteratorType{mMeshProxy.get().mNodalDensities.end()};
 }
 
 std::vector<double> to_vector(const MeshProxyDensitiesView aMeshView)
@@ -46,4 +69,9 @@ std::vector<double> to_vector(const MeshProxyDensitiesView aMeshView)
     return tDensities;
 }
 
+// Explicit instantiations
+template struct MeshProxyDensitiesViewTemplate<MeshProxy>;
+template struct MeshProxyDensitiesViewTemplate<const MeshProxy>;
+template struct MeshProxyDensitiesViewIterator<std::vector<double>::iterator, std::output_iterator_tag>;
+template struct MeshProxyDensitiesViewIterator<std::vector<double>::const_iterator, std::forward_iterator_tag>;
 }  // namespace plato::mesh
