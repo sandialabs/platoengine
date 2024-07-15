@@ -19,7 +19,7 @@ namespace
 {
 constexpr std::string_view kMeshName = "the-mesh-is-a-lie.exo";
 const auto kRho = std::vector{-1.0, 0.0, 1.0};
-const auto kMeshArgument = mesh::MeshProxy{kMeshName, kRho};
+const auto kMeshArgument = mesh::vector_to_mesh_proxy(kRho, mesh::MeshProxy{kMeshName, {}});
 const auto kV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
 
 void test_filtered_results(const mesh::MeshProxy& aMeshProxy, const test_utilities::TestContext& aTestContext)
@@ -27,7 +27,7 @@ void test_filtered_results(const mesh::MeshProxy& aMeshProxy, const test_utiliti
     const auto tMeshView = mesh::MeshProxyDensitiesView{aMeshProxy};
     for (const auto& [tComputed, tExpected] : utilities::Zip{tMeshView, kRho})
     {
-        EXPECT_EQ(tComputed, tExpected) << aTestContext;
+        EXPECT_EQ(tComputed.mDensity, tExpected) << aTestContext;
     }
 }
 }  // namespace

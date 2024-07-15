@@ -39,10 +39,11 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     tNodalDensities[tHalfNode - 1] = .5;
     tNodalDensities[tHalfNode + 1] = .5;
 
-    const mesh::MeshProxy tMeshProxy{kMeshFile, tNodalDensities};
+    const auto tMeshProxy = mesh::vector_to_mesh_proxy(tNodalDensities, mesh::MeshProxy{kMeshFile, {}});
 
     const auto tResult = tKernelFilter.filter(tMeshProxy);
-    const auto tPostFilter = mesh::to_vector(mesh::MeshProxyDensitiesView{tResult});
+    const auto [tPostFilter, tIDMap] =
+        mesh::split_densities(mesh::mesh_proxy_to_vector(mesh::MeshProxyDensitiesView{tResult}));
 
     std::vector<double> tStdVectorSensitivities;
     if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)

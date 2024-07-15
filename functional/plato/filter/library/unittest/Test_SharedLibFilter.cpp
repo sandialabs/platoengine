@@ -15,7 +15,7 @@ namespace
 const std::filesystem::path kSharedLibPath = "libPlatoIdentityFilter.so";
 constexpr std::string_view kMeshName = "the-mesh-is-a-lie.exo";
 const auto kRho = std::vector{-1.0, 0.0, 1.0};
-const auto kMeshArgument = mesh::MeshProxy{kMeshName, kRho};
+const auto kMeshArgument = mesh::vector_to_mesh_proxy(kRho, mesh::MeshProxy{kMeshName, {}});
 }  // namespace
 
 TEST(SharedLibFilter, LoadAndValue)
@@ -26,7 +26,7 @@ TEST(SharedLibFilter, LoadAndValue)
     const auto tMeshView = mesh::MeshProxyDensitiesView{tMeshProxyResult};
     for (const auto [tComputed, tExpected] : utilities::Zip{tMeshView, kRho})
     {
-        EXPECT_EQ(tComputed, tExpected);
+        EXPECT_EQ(tComputed.mDensity, tExpected);
     }
 }
 

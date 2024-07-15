@@ -5,7 +5,7 @@
 #include <boost/mpi/collectives.hpp>
 #include <set>
 
-#include "plato/utilities/MultidimensionalRange.hpp"
+#include "plato/utilities/IndexRange.hpp"
 
 namespace plato::filter::extension
 {
@@ -59,8 +59,8 @@ auto LinearMaskFactory::generateRow(third_party_integration::common::Coordinate 
     auto tRow = third_party_integration::tpetra::TpetraVector(mNodalCoordinates.getMap(), tZeroOut);
 
     double tSum = 0;
-    for (const auto [tLocalIndex] : utilities::MultidimensionalRange{
-             third_party_integration::tpetra::number_of_local_elements(mNodalCoordinates.getMap())})
+    for (const auto tLocalIndex :
+         utilities::IndexRange{third_party_integration::tpetra::number_of_local_elements(mNodalCoordinates.getMap())})
     {
         const third_party_integration::stk_search::Identifier tLocalIdentifier{tLocalIndex, mCommunicator.rank()};
         if (third_party_integration::stk_search::is_in_search_results(tLocalIdentifier, tSearchResults))
@@ -96,7 +96,7 @@ void LinearMaskFactory::generateDistanceMap(const third_party_integration::tpetr
     mLinearMask = Teuchos::RCP<third_party_integration::tpetra::TpetraCRSMatrix>{
         new third_party_integration::tpetra::TpetraCRSMatrix(tCrsRowMap, mMaximumConnectivityEstimate)};
 
-    for (const auto [tGlobalIndex] : utilities::MultidimensionalRange{
+    for (const auto tGlobalIndex : utilities::IndexRange{
              static_cast<third_party_integration::tpetra::TpetraGlobalOrdinal>(mRowCenterCoordinates.size())})
     {
         const third_party_integration::common::Coordinate tGlobalCoordinate = mRowCenterCoordinates[tGlobalIndex];
@@ -128,8 +128,8 @@ auto normalize_nonzero_weights(const third_party_integration::tpetra::TpetraVect
     tNonZeroWeightVector.reserve(aEstimatedConnectivity.mValue);
     tNonZeroGlobalIndices.reserve(aEstimatedConnectivity.mValue);
 
-    for (const auto [tLocalIndex] : utilities::MultidimensionalRange{
-             third_party_integration::tpetra::number_of_local_elements(aRowVector.getMap())})
+    for (const auto tLocalIndex :
+         utilities::IndexRange{third_party_integration::tpetra::number_of_local_elements(aRowVector.getMap())})
     {
         const third_party_integration::tpetra::TpetraScalar tReplacementWeight =
             aRowVector.getData()[tLocalIndex] / aRowSum.mValue;
@@ -149,8 +149,8 @@ std::vector<third_party_integration::stk_search::SearchPointWithIdentifier> stk_
     std::vector<third_party_integration::stk_search::SearchPointWithIdentifier> tLocalSearchPointWithIdentifiers(
         third_party_integration::tpetra::number_of_local_elements(aNodalCoordinates.getMap()));
 
-    for (const auto [tLocalIndex] : utilities::MultidimensionalRange{
-             third_party_integration::tpetra::number_of_local_elements(aNodalCoordinates.getMap())})
+    for (const auto tLocalIndex :
+         utilities::IndexRange{third_party_integration::tpetra::number_of_local_elements(aNodalCoordinates.getMap())})
     {
         const third_party_integration::stk_search::Identifier tIdentifier{tLocalIndex, aRank};
         const third_party_integration::common::Coordinate tCoordinate =

@@ -5,6 +5,7 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshProxyViews.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -54,17 +55,17 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
 
 mesh::MeshProxy DensityTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
-    return mFilter.f(mesh::MeshProxy{mFileName, aDesignParameters.stdVector()});
+    return mFilter.f(mesh::vector_to_mesh_proxy(aDesignParameters.stdVector(), mesh::MeshProxy{mFileName, {}}));
 }
 
 linear_algebra::JacobianMultiplier DensityTopology::jacobian(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
-    return linear_algebra::JacobianMultiplier{/*.mNumColumns=*/mNumDesignParameters,
-                                              /*.mJacobianTimesVectorFunction=*/
-                                              [tMeshProxy = mesh::MeshProxy{mFileName, aDesignParameters.stdVector()},
-                                               this](const linear_algebra::DynamicVector<double>& x)
-                                              { return x * mFilter.df(tMeshProxy); }};
+    return linear_algebra::JacobianMultiplier{
+        /*.mNumColumns=*/mNumDesignParameters,
+        /*.mJacobianTimesVectorFunction=*/
+        [tMeshProxy = mesh::vector_to_mesh_proxy(aDesignParameters.stdVector(), mesh::MeshProxy{mFileName, {}}),
+         this](const linear_algebra::DynamicVector<double>& x) { return x * mFilter.df(tMeshProxy); }};
 }
 
 linear_algebra::DynamicVector<double> DensityTopology::initialGuess(const std::filesystem::path& aMeshFileName)

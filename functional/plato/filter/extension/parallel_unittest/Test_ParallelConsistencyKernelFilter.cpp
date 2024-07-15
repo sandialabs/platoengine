@@ -36,7 +36,7 @@ std::vector<double> create_linear_space_vector(unsigned int aSize)
     return tVector;
 }
 
-std::pair<std::vector<double>, std::vector<double> > test_filter_evaluation(
+std::pair<std::vector<mesh::Density>, std::vector<double> > test_filter_evaluation(
     const third_party_integration::stk_io::CommandGenerator& aCommandGenerator,
     const boost::mpi::communicator& aCommunicator)
 {
@@ -47,9 +47,9 @@ std::pair<std::vector<double>, std::vector<double> > test_filter_evaluation(
     const std::vector<double> tStdVectorSensitivities =
         create_linear_space_vector(aCommandGenerator.numberOfElements());
 
-    const mesh::MeshProxy tMeshProxy{kMeshFile, tNodalDensities};
+    const auto tMeshProxy = mesh::vector_to_mesh_proxy(tNodalDensities, mesh::MeshProxy{kMeshFile, {}});
     const auto tResult = tKernelFilter.filter(tMeshProxy);
-    const auto tPostFilter = mesh::to_vector(mesh::MeshProxyDensitiesView{tResult});
+    const auto tPostFilter = mesh::mesh_proxy_to_vector(mesh::MeshProxyDensitiesView{tResult});
 
     const auto tPostSensitivities =
         tKernelFilter.jacobianTimesVector(tMeshProxy, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
@@ -58,7 +58,7 @@ std::pair<std::vector<double>, std::vector<double> > test_filter_evaluation(
     return std::pair{tPostFilter, tPostSensitivities};
 }
 
-boost::mpi::communicator split_coms()
+boost::mpi::communicator split_comm_world()
 {
     auto tWorldComm = boost::mpi::communicator{};
     const auto tRank = tWorldComm.rank();
@@ -90,7 +90,7 @@ TEST(ParallelConsistencyKernelFilter, CommSplit)
     const auto tWorldComm = boost::mpi::communicator{};
     const auto tRank = tWorldComm.rank();
 
-    const auto tSplitComm = split_coms();
+    const auto tSplitComm = split_comm_world();
 
     if (tRank == 0)
     {
@@ -114,7 +114,7 @@ TEST(ParallelConsistencyKernelFilter, FilterConsistency)
     }
 
     tWorldComm.barrier();
-    const auto tSplitComm = split_coms();
+    const auto tSplitComm = split_comm_world();
 
     const auto [tResultFilter, tResultJV] = test_filter_evaluation(tCommandGenerator, tSplitComm);
     tWorldComm.barrier();
@@ -124,7 +124,8 @@ TEST(ParallelConsistencyKernelFilter, FilterConsistency)
 
     if (tWorldComm.rank() == 0)
     {
-        tBroadcastResultFilter = tResultFilter;
+        auto tIDMap = std::vector<std::size_t>{};
+        std::tie(tBroadcastResultFilter, tIDMap) = mesh::split_densities(tResultFilter);
         tBroadcastResultJV = tResultJV;
     }
 
@@ -133,7 +134,7 @@ TEST(ParallelConsistencyKernelFilter, FilterConsistency)
 
     for (const auto [tLocalValue, tBroadcastValue] : utilities::Zip{tResultFilter, tBroadcastResultFilter})
     {
-        EXPECT_DOUBLE_EQ(tLocalValue, tBroadcastValue);
+        EXPECT_DOUBLE_EQ(tLocalValue.mDensity, tBroadcastValue);
     }
 
     for (const auto [tLocalValue, tBroadcastValue] : utilities::Zip{tResultJV, tBroadcastResultJV})

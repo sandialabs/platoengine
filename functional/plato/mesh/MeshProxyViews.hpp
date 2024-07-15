@@ -2,11 +2,9 @@
 #define PLATO_MESH_MESHPROXYVIEWS
 
 #include <functional>
+#include <optional>
 
-namespace plato::mesh
-{
-struct MeshProxy;
-}
+#include "plato/mesh/MeshProxy.hpp"
 
 namespace plato::mesh
 {
@@ -15,25 +13,30 @@ constexpr static bool kIsConstIterator =
     std::is_const_v<std::remove_reference_t<typename std::iterator_traits<IteratorType>::reference>>;
 
 /// @brief An iterator type for using MeshProxyDensitiesView in std algorithms.
-template <typename IteratorType, typename IteratorCategory>
+template <typename OuterIteratorType, typename InnerIteratorType, typename IteratorCategory>
 struct MeshProxyDensitiesViewIterator
 {
-    using value_type = typename std::iterator_traits<IteratorType>::value_type;
+    using OuterIterator = OuterIteratorType;
+    using InnerIterator = InnerIteratorType;
+
+    using value_type = typename std::iterator_traits<InnerIteratorType>::value_type;
     using iterator_category = IteratorCategory;
-    using difference_type = typename std::iterator_traits<IteratorType>::difference_type;
-    using pointer = typename std::iterator_traits<IteratorType>::pointer;
-    using reference = typename std::iterator_traits<IteratorType>::reference;
+    using difference_type = typename std::iterator_traits<InnerIteratorType>::difference_type;
+    using pointer = typename std::iterator_traits<InnerIteratorType>::pointer;
+    using reference = typename std::iterator_traits<InnerIteratorType>::reference;
 
     MeshProxyDensitiesViewIterator& operator++();
-    [[nodiscard]] const double& operator*() const;
+    [[nodiscard]] const reference operator*() const;
 
-    template <typename Iterator = IteratorType>
-    [[nodiscard]] auto operator*() -> std::enable_if_t<!kIsConstIterator<Iterator>, double&>;
+    template <typename Iterator = OuterIteratorType>
+    [[nodiscard]] auto operator*() -> std::enable_if_t<!kIsConstIterator<Iterator>, reference>;
 
     [[nodiscard]] bool operator==(const MeshProxyDensitiesViewIterator& aRHSIterator) const;
     [[nodiscard]] bool operator!=(const MeshProxyDensitiesViewIterator& aRHSIterator) const;
 
-    IteratorType mIterator;
+    OuterIteratorType mOuterIterator;
+    OuterIteratorType mOuterIteratorEnd;
+    std::optional<InnerIteratorType> mInnerIterator;
 };
 
 namespace detail
@@ -46,13 +49,17 @@ struct IteratorType
 template <>
 struct IteratorType<MeshProxy>
 {
-    using type = MeshProxyDensitiesViewIterator<std::vector<double>::iterator, std::output_iterator_tag>;
+    using type = MeshProxyDensitiesViewIterator<MeshProxy::BlockDensities::iterator,
+                                                MeshProxy::DensityVector::iterator,
+                                                std::output_iterator_tag>;
 };
 
 template <>
 struct IteratorType<const MeshProxy>
 {
-    using type = MeshProxyDensitiesViewIterator<std::vector<double>::const_iterator, std::forward_iterator_tag>;
+    using type = MeshProxyDensitiesViewIterator<MeshProxy::BlockDensities::const_iterator,
+                                                MeshProxy::DensityVector::const_iterator,
+                                                std::forward_iterator_tag>;
 };
 }  // namespace detail
 
@@ -65,7 +72,6 @@ struct MeshProxyDensitiesViewTemplate
 {
     std::reference_wrapper<MeshProxyType> mMeshProxy;
 
-    [[nodiscard]] double operator[](unsigned aIndex) const;
     [[nodiscard]] std::size_t size() const;
 
     using IteratorType = typename detail::IteratorType<MeshProxyType>::type;
@@ -77,14 +83,23 @@ using MeshProxyDensitiesView = MeshProxyDensitiesViewTemplate<const MeshProxy>;
 using MeshProxyDensitiesMutableView = MeshProxyDensitiesViewTemplate<MeshProxy>;
 
 /// @brief Converts the densities associated with the mesh in @a aMeshView to a `std::vector`.
-std::vector<double> to_vector(MeshProxyDensitiesView aMeshView);
+std::vector<Density> mesh_proxy_to_vector(MeshProxyDensitiesView aMeshView);
 
-template <typename IteratorType, typename IteratorCategory>
+/// @brief Stores the densities in @a aDensities in @a aMeshProxy
+/// @note This overload assumes a `0` to `N-1` ordering of densities, i.e., no node/element map.
+MeshProxy vector_to_mesh_proxy(const std::vector<double>& aDensities, MeshProxy&& aMeshProxy);
+
+/// @brief Splits a vector of Density objects into the density values and node/element map.
+auto split_densities(const std::vector<Density>& aDensities)
+    -> std::pair<std::vector<double>, std::vector<std::size_t>>;
+
+template <typename OuterIteratorType, typename InnerIteratorType, typename IteratorCategory>
 template <typename Iterator>
-auto MeshProxyDensitiesViewIterator<IteratorType, IteratorCategory>::operator*()
-    -> std::enable_if_t<!kIsConstIterator<Iterator>, double&>
+auto MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::operator*()
+    -> std::enable_if_t<!kIsConstIterator<Iterator>, reference>
 {
-    return *mIterator;
+    assert(mInnerIterator.has_value());
+    return *mInnerIterator.value();
 }
 
 }  // namespace plato::mesh

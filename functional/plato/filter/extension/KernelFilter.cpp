@@ -54,8 +54,10 @@ KernelFilter::KernelFilter(const std::filesystem::path& aMeshFileName,
 
 mesh::MeshProxy KernelFilter::filter(const mesh::MeshProxy& aMeshProxy) const
 {
-    return mesh::MeshProxy{aMeshProxy.mFileName,
-                           mLinearMask.matrixMultiply(mesh::to_vector(mesh::MeshProxyDensitiesView{aMeshProxy}))};
+    const auto [tDensityValues, tGlobalIDs] =
+        mesh::split_densities(mesh::mesh_proxy_to_vector(mesh::MeshProxyDensitiesView{aMeshProxy}));
+    auto tFilteredDensities = mLinearMask.matrixMultiply(tDensityValues);
+    return mesh::vector_to_mesh_proxy(tFilteredDensities, mesh::MeshProxy{aMeshProxy.mFileName, {}});
 }
 
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(

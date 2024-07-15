@@ -71,8 +71,9 @@ TEST(DensityTopology, GenerateMesh)
     const linear_algebra::DynamicVector<double> tDesignVec(tDesignVars);
 
     const auto tMeshProxy = tDensityTopology.generateMesh(tDesignVec);
-    const auto tDensities = mesh::to_vector(mesh::MeshProxyDensitiesView{tMeshProxy});
-    EXPECT_EQ(tDensities, tDesignVars);
+    const auto tDensities = mesh::mesh_proxy_to_vector(mesh::MeshProxyDensitiesView{tMeshProxy});
+    const auto [tDensityValues, tIDMap] = mesh::split_densities(tDensities);
+    EXPECT_EQ(tDensityValues, tDesignVars);
 
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
 }

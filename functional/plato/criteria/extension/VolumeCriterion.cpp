@@ -39,7 +39,7 @@ double VolumeCriterion::f(const mesh::MeshProxy& aMeshProxy) const
     tScaledVolume.reserve(tElements.size());
     std::transform(tMeshView.begin(), tMeshView.end(), tElements.begin(), std::back_inserter(tScaledVolume),
                    [&tBulkRef = *tBulk](const auto aControl, const auto& aElement)
-                   { return aControl * third_party_integration::stk_io::element_volume(aElement, tBulkRef); });
+                   { return aControl.mDensity * third_party_integration::stk_io::element_volume(aElement, tBulkRef); });
 
     return mScaleFactor * utilities::pair_wise_accumulate(tScaledVolume);
 }
