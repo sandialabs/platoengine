@@ -91,7 +91,7 @@ TEST(MultidimensionalIterator, TwoDims)
     auto tManualCountZero = int{0};
     auto tManualCountOne = int{0};
 
-    for (const auto [tIteratorCountZero, tIteratorCountOne] : MultidimensionalRange{tNumDimZero, tNumDimOne})
+    for (const auto& [tIteratorCountZero, tIteratorCountOne] : MultidimensionalRange{tNumDimZero, tNumDimOne})
     {
         EXPECT_EQ(tManualCountZero, tIteratorCountZero);
         EXPECT_EQ(tManualCountOne, tIteratorCountOne);
