@@ -6,16 +6,29 @@
 
 #include <gtest/gtest.h>  // for AssertHelper, TEST, etc
 
-#include <PlatoKrinoInterface.hpp>
 #include <cstdio>
 
-#include "Plato_InputData.hpp"
-#include "Plato_Parser.hpp"
+#include "plato/krino_integration/PlatoKrinoInterface.hpp"
 
 namespace Plato::Krino
 {
 
-TEST(PlatoKrinoUnitTests, create_bounding_box_background_mesh)
+class PlatoTestKrino : public ::testing::Test
+{
+   protected:
+    void SetUp() override
+    {
+        static bool tFirstTime{true};
+        if (tFirstTime)
+        {
+            Plato::Krino::initializeSTKEnvironment(MPI_COMM_WORLD);
+            Plato::Krino::initializeKrinoLogging();
+            tFirstTime = false;
+        }
+    }
+};
+
+TEST_F(PlatoTestKrino, create_bounding_box_background_mesh)
 {
     PlatoKrinoInterface tInterface;
     tInterface.createBoundingBoxMesh(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.5);
@@ -34,7 +47,7 @@ TEST(PlatoKrinoUnitTests, create_bounding_box_background_mesh)
     EXPECT_FLOAT_EQ(z, 0.25);
 }
 
-TEST(PlatoKrinoUnitTests, create_write_read_bbox_background_mesh)
+TEST_F(PlatoTestKrino, create_write_read_bbox_background_mesh)
 {
     PlatoKrinoInterface tInterface;
     tInterface.createAndWriteBoundingBoxMesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, 0.5, "background_mesh.exo");
@@ -55,7 +68,7 @@ TEST(PlatoKrinoUnitTests, create_write_read_bbox_background_mesh)
     std::remove("background_mesh.exo");
 }
 
-TEST(PlatoKrinoUnitTests, cut_sphere_out_of_background_mesh)
+TEST_F(PlatoTestKrino, cut_sphere_out_of_background_mesh)
 {
     PlatoKrinoInterface tInterface;
     tInterface.createAndWriteBoundingBoxMesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, 0.333, "background_mesh.exo");
@@ -71,18 +84,26 @@ TEST(PlatoKrinoUnitTests, cut_sphere_out_of_background_mesh)
     std::remove("swiss_cheese.exo");
 }
 
-TEST(PlatoKrinoUnitTests, calculate_dFdLS)
+TEST_F(PlatoTestKrino, calculate_dFdLS)
 {
     std::map<unsigned int, stk::math::Vector3d> tDFDX_values{
         {1, {.6, .5, .4}}, {2, {.2, -.1, -.9}}, {3, {.45, -.03, -.5}}};
-    const std::vector<std::pair<unsigned int, std::vector<std::pair<unsigned int, stk::math::Vector3d>>>>
-        tSensitivities{{3, {{7, {.5, .5, .5}}, {12, {.4, .4, .4}}, {19, {-.1, .1, -.1}}}},
-                       {1, {{34, {.1, .1, .1}}, {22, {.2, .2, .2}}, {2, {-.1, -.1, -.1}}}},
-                       {2, {{19, {.3, .3, .3}}, {10, {-.2, -.2, -.2}}}}};
-    PlatoKrinoInterface tInterface;
-    tInterface.setSensitivities(tSensitivities);
-    tInterface.setUncutBackgroundMeshSize(34);
-    std::map<unsigned int, double> tDFDLS = tInterface.calculateDFDLS(tDFDX_values);
+    const std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP> tDXDP{
+        {3, Plato::Krino::InterfaceNode_DXDP{{7, 12, 19}, {{.5, .5, .5}, {.4, .4, .4}, {-.1, .1, -.1}}}},
+        {1, Plato::Krino::InterfaceNode_DXDP{{34, 22, 2}, {{.1, .1, .1}, {.2, .2, .2}, {-.1, -.1, -.1}}}},
+        {2, Plato::Krino::InterfaceNode_DXDP{{19, 10}, {{.3, .3, .3}, {-.2, -.2, -.2}}}},
+    };
+
+    //    const std::vector<std::pair<unsigned int, std::vector<std::pair<unsigned int, stk::math::Vector3d>>>>
+    //        tSensitivities{{3, {{7, {.5, .5, .5}}, {12, {.4, .4, .4}}, {19, {-.1, .1, -.1}}}},
+    //                       {1, {{34, {.1, .1, .1}}, {22, {.2, .2, .2}}, {2, {-.1, -.1, -.1}}}},
+    //                       {2, {{19, {.3, .3, .3}}, {10, {-.2, -.2, -.2}}}}};
+    //    PlatoKrinoInterface tInterface;
+    //    tInterface.setSensitivities(tSensitivities);
+    //    tInterface.setUncutBackgroundMeshSize(34);
+    const std::vector<unsigned int> tBackgroundNodemap{7, 12, 19, 34, 22, 2, 10};
+    std::map<unsigned int, double> tDFDLS = calculateDFDLS(tDFDX_values, tDXDP, tBackgroundNodemap);
+
     EXPECT_FLOAT_EQ(tDFDLS[34], .15);
     EXPECT_FLOAT_EQ(tDFDLS[22], .3);
     EXPECT_FLOAT_EQ(tDFDLS[2], -.15);
@@ -92,7 +113,7 @@ TEST(PlatoKrinoUnitTests, calculate_dFdLS)
     EXPECT_FLOAT_EQ(tDFDLS[12], -.032);
 }
 
-TEST(PlatoKrinoUnitTests, get_set_levelset_values)
+TEST_F(PlatoTestKrino, get_set_levelset_values)
 {
     PlatoKrinoInterface tInterface;
     tInterface.createBoundingBoxMesh(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0);
@@ -115,7 +136,7 @@ TEST(PlatoKrinoUnitTests, get_set_levelset_values)
     }
 }
 
-TEST(PlatoKrinoUnitTests, redistance)
+TEST_F(PlatoTestKrino, redistance)
 {
     PlatoKrinoInterface tInterface;
     tInterface.createBoundingBoxMesh(0.0, 0.0, 0.0, 2.0, 1.0, 1.0, 1.0);
@@ -163,7 +184,7 @@ TEST(PlatoKrinoUnitTests, redistance)
     }
 }
 
-TEST(PlatoKrinoUnitTests, test_krino_sensitivities)
+TEST_F(PlatoTestKrino, test_krino_sensitivities)
 {
     PlatoKrinoInterface tInterface;
     tInterface.createBoundingBoxMesh(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0);
@@ -192,139 +213,7 @@ TEST(PlatoKrinoUnitTests, test_krino_sensitivities)
     }
 }
 
-TEST(PlatoKrinoUnitTests, readSpherePatternData_succeed)
-{
-    const std::string tInput =
-        "<SpherePattern>\n"
-        "  <bbox_xmin>1.0</bbox_xmin>\n"
-        "  <bbox_ymin>-2.0</bbox_ymin>\n"
-        "  <bbox_zmin>3.0</bbox_zmin>\n"
-        "  <bbox_xmax>1</bbox_xmax>\n"
-        "  <bbox_ymax>.5</bbox_ymax>\n"
-        "  <bbox_zmax>.05</bbox_zmax>\n"
-        "  <num_spheres_x>5</num_spheres_x>\n"
-        "  <num_spheres_y>4</num_spheres_y>\n"
-        "  <num_spheres_z>1</num_spheres_z>\n"
-        "  <radius>.075</radius>\n"
-        "  <overlap_bbox>true</overlap_bbox>\n"
-        "</SpherePattern>\n";
-
-    const Plato::PugiParser tParser;
-    const Plato::InputData tInputData = tParser.parseString(tInput);
-    Plato::InputData tSpherePatternNode = tInputData.get<Plato::InputData>("SpherePattern");
-
-    SpherePatternData tData;
-    tData = readSpherePatternData(tSpherePatternNode);
-    EXPECT_FLOAT_EQ(tData.mCoordMins[0], 1.0);
-    EXPECT_FLOAT_EQ(tData.mCoordMins[1], -2.0);
-    EXPECT_FLOAT_EQ(tData.mCoordMins[2], 3.0);
-    EXPECT_FLOAT_EQ(tData.mCoordMaxes[0], 1.0);
-    EXPECT_FLOAT_EQ(tData.mCoordMaxes[1], .5);
-    EXPECT_FLOAT_EQ(tData.mCoordMaxes[2], .05);
-    EXPECT_EQ(tData.mNumSpheres[0], 5);
-    EXPECT_EQ(tData.mNumSpheres[1], 4);
-    EXPECT_EQ(tData.mNumSpheres[2], 1);
-    EXPECT_FLOAT_EQ(tData.mSphereRadius, .075);
-    EXPECT_EQ(tData.mSpheresCanOverlapBoundingBox, true);
-}
-
-TEST(PlatoKrinoUnitTests, readSpherePatternData_fail_missing_parameter)
-{
-    const std::string tInput =
-        "<SpherePattern>\n"
-        "  <bbox_xmin>1.0</bbox_xmin>\n"
-        "  <bbox_zmin>3.0</bbox_zmin>\n"
-        "  <bbox_xmax>1</bbox_xmax>\n"
-        "  <bbox_ymax>.5</bbox_ymax>\n"
-        "  <bbox_zmax>.05</bbox_zmax>\n"
-        "  <num_spheres_x>5</num_spheres_x>\n"
-        "  <num_spheres_y>4</num_spheres_y>\n"
-        "  <num_spheres_z>1</num_spheres_z>\n"
-        "  <radius>.075</radius>\n"
-        "  <overlap_bbox>true</overlap_bbox>\n"
-        "</SpherePattern>\n";
-
-    const Plato::PugiParser tParser;
-    const Plato::InputData tInputData = tParser.parseString(tInput);
-    Plato::InputData tSpherePatternNode = tInputData.get<Plato::InputData>("SpherePattern");
-    EXPECT_THROW(readSpherePatternData(tSpherePatternNode), std::runtime_error);
-}
-
-TEST(PlatoKrinoUnitTests, readSphereData_succeed)
-{
-    const std::string tInput =
-        "<Sphere>\n"
-        "  <center_x>1.0</center_x>\n"
-        "  <center_y>2.0</center_y>\n"
-        "  <center_z>3.0</center_z>\n"
-        "  <radius>2.0</radius>\n"
-        "</Sphere>\n";
-
-    const Plato::PugiParser tParser;
-    const Plato::InputData tInputData = tParser.parseString(tInput);
-    Plato::InputData tSphereNode = tInputData.get<Plato::InputData>("Sphere");
-
-    Sphere tSphere = readSphereData(tSphereNode);
-    EXPECT_FLOAT_EQ(tSphere.mCenterX, 1.0);
-    EXPECT_FLOAT_EQ(tSphere.mCenterY, 2.0);
-    EXPECT_FLOAT_EQ(tSphere.mCenterZ, 3.0);
-    EXPECT_FLOAT_EQ(tSphere.mRadius, 2.0);
-}
-
-TEST(PlatoKrinoUnitTests, readSphereData_fail_missing_param)
-{
-    const std::string tInput =
-        "<Sphere>\n"
-        "  <center_y>2.0</center_y>\n"
-        "  <center_z>3.0</center_z>\n"
-        "  <radius>2.0</radius>\n"
-        "</Sphere>\n";
-
-    const Plato::PugiParser tParser;
-    const Plato::InputData tInputData = tParser.parseString(tInput);
-    Plato::InputData tSphereNode = tInputData.get<Plato::InputData>("Sphere");
-
-    EXPECT_THROW(readSphereData(tSphereNode), std::runtime_error);
-}
-
-TEST(PlatoKrinoUnitTests, readPlaneData_succeed)
-{
-    const std::string tInput =
-        "<Plane>\n"
-        "  <normal_x>0.0</normal_x>\n"
-        "  <normal_y>0.5</normal_y>\n"
-        "  <normal_z>3.0</normal_z>\n"
-        "  <offset>-2.2</offset>\n"
-        "</Plane>\n";
-
-    const Plato::PugiParser tParser;
-    const Plato::InputData tInputData = tParser.parseString(tInput);
-    Plato::InputData tPlaneNode = tInputData.get<Plato::InputData>("Plane");
-
-    Plane tPlane = readPlaneData(tPlaneNode);
-    EXPECT_FLOAT_EQ(tPlane.mNormalX, 0.0);
-    EXPECT_FLOAT_EQ(tPlane.mNormalY, 0.5);
-    EXPECT_FLOAT_EQ(tPlane.mNormalZ, 3.0);
-    EXPECT_FLOAT_EQ(tPlane.mOffset, -2.2);
-}
-
-TEST(PlatoKrinoUnitTests, readPlaneData_fail_missing_param)
-{
-    const std::string tInput =
-        "<Plane>\n"
-        "  <normal_x>0.0</normal_x>\n"
-        "  <normal_y>0.5</normal_y>\n"
-        "  <offset>-2.2</offset>\n"
-        "</Plane>\n";
-
-    const Plato::PugiParser tParser;
-    const Plato::InputData tInputData = tParser.parseString(tInput);
-    Plato::InputData tPlaneNode = tInputData.get<Plato::InputData>("Plane");
-
-    EXPECT_THROW(readPlaneData(tPlaneNode), std::runtime_error);
-}
-
-TEST(PlatoKrinoUnitTests, test_generateSpheres_success)
+TEST_F(PlatoTestKrino, test_generateSpheres_success)
 {
     SpherePatternData tData;
     tData.mCoordMins = {1.0, -2.0, 3.0};
@@ -395,7 +284,7 @@ TEST(PlatoKrinoUnitTests, test_generateSpheres_success)
     EXPECT_FLOAT_EQ(tSpheres[11].mRadius, 1.5);
 }
 
-TEST(PlatoKrinoUnitTests, test_generateSpheres_success_with_overlap)
+TEST_F(PlatoTestKrino, test_generateSpheres_success_with_overlap)
 {
     SpherePatternData tData;
     tData.mCoordMins = {1.0, -2.0, 3.0};
@@ -466,7 +355,7 @@ TEST(PlatoKrinoUnitTests, test_generateSpheres_success_with_overlap)
     EXPECT_FLOAT_EQ(tSpheres[11].mRadius, 1.5);
 }
 
-TEST(PlatoKrinoUnitTests, calculateSphereStartsAndSpacing_succeed_with_bbox_overlap)
+TEST_F(PlatoTestKrino, calculateSphereStartsAndSpacing_succeed_with_bbox_overlap)
 {
     SpherePatternData tData;
     tData.mCoordMins = {-3.0, -2.0, 10.0};
@@ -483,7 +372,7 @@ TEST(PlatoKrinoUnitTests, calculateSphereStartsAndSpacing_succeed_with_bbox_over
     EXPECT_FLOAT_EQ(tLocatorData.mStartAndSpacing[2].second, 0.5);
 }
 
-TEST(PlatoKrinoUnitTests, calculateSphereStartsAndSpacing_succeed_without_bbox_overlap)
+TEST_F(PlatoTestKrino, calculateSphereStartsAndSpacing_succeed_without_bbox_overlap)
 {
     SpherePatternData tData;
     tData.mCoordMins = {-3.0, -2.0, 10.0};
@@ -500,7 +389,7 @@ TEST(PlatoKrinoUnitTests, calculateSphereStartsAndSpacing_succeed_without_bbox_o
     EXPECT_FLOAT_EQ(tLocatorData.mStartAndSpacing[2].second, 1.0 / 6.0);
 }
 
-TEST(PlatoKrinoUnitTests, checkForReasonableSpherePatternDefinition_success)
+TEST_F(PlatoTestKrino, checkForReasonableSpherePatternDefinition_success)
 {
     SpherePatternData tData;
     tData.mCoordMins = {-3.0, -2.0, 10.0};
@@ -511,7 +400,7 @@ TEST(PlatoKrinoUnitTests, checkForReasonableSpherePatternDefinition_success)
     checkForReasonableSpherePatternDefinition(tData);
 }
 
-TEST(PlatoKrinoUnitTests, checkForReasonableSpherePatternDefinition_fail_invalid_bbox)
+TEST_F(PlatoTestKrino, checkForReasonableSpherePatternDefinition_fail_invalid_bbox)
 {
     SpherePatternData tData;
     tData.mCoordMins = {-0.5, -2.0, 10.0};
@@ -522,7 +411,7 @@ TEST(PlatoKrinoUnitTests, checkForReasonableSpherePatternDefinition_fail_invalid
     EXPECT_THROW(checkForReasonableSpherePatternDefinition(tData), std::runtime_error);
 }
 
-TEST(PlatoKrinoUnitTests, checkForReasonableSpherePatternDefinition_fail_invalid_count)
+TEST_F(PlatoTestKrino, checkForReasonableSpherePatternDefinition_fail_invalid_count)
 {
     SpherePatternData tData;
     tData.mCoordMins = {-5, -2.0, 10.0};
@@ -533,7 +422,7 @@ TEST(PlatoKrinoUnitTests, checkForReasonableSpherePatternDefinition_fail_invalid
     EXPECT_THROW(checkForReasonableSpherePatternDefinition(tData), std::runtime_error);
 }
 
-TEST(PlatoKrinoUnitTests, checkForReasonableSpherePatternDefinition_fail_invalid_radius)
+TEST_F(PlatoTestKrino, checkForReasonableSpherePatternDefinition_fail_invalid_radius)
 {
     SpherePatternData tData;
     tData.mCoordMins = {-5, -2.0, 10.0};

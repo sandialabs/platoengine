@@ -1,13 +1,21 @@
 #include <mpi.h>
 
+#include <map>
 #include <stk_math/StkVector.hpp>
-
-#include "Plato_InputData.hpp"
+#include <stk_mesh/base/Types.hpp>
+#include <utility>
+#include <vector>
 
 #pragma once
 
 namespace Plato::Krino
 {
+
+struct InterfaceNode_DXDP
+{
+    std::vector<stk::mesh::EntityId> parentNodeIds;
+    std::vector<stk::math::Vector3d> parentDXDP;
+};
 
 struct SphereLocatorData
 {
@@ -57,14 +65,7 @@ enum struct DFDXFormatting
 
 void initializeKrinoLogging();
 void initializeSTKEnvironment(const MPI_Comm &aComm);
-LevelsetPrimitives readLevelsetInitializationData(Plato::InputData &aAppFileData);
 std::vector<Sphere> generateSpheres(const SpherePatternData &aData);
-void createSpheresFromPattern(const Plato::InputData &aNode, LevelsetPrimitives &aPrims);
-void createSphere(const Plato::InputData &aNode, LevelsetPrimitives &aPrims);
-void createPlane(const Plato::InputData &aNode, LevelsetPrimitives &aPrims);
-SpherePatternData readSpherePatternData(const Plato::InputData &aNode);
-Sphere readSphereData(const Plato::InputData &aNode);
-Plane readPlaneData(const Plato::InputData &aNode);
 SphereLocatorData calculateSphereStartsAndSpacing(const SpherePatternData &aData);
 void checkForReasonableSpherePatternDefinition(const SpherePatternData &aData);
 std::pair<double, double> calculateOverlappingSingleSphereLocatorData(const SpherePatternData &aPatternData,
@@ -81,5 +82,9 @@ std::map<unsigned int, stk::math::Vector3d> assembleGlobalIDToDFDXMap(
     const std::vector<double> &aDFDX,
     const std::vector<unsigned int> &aCutMeshGlobalNodeIDMap,
     const DFDXFormatting aDFDXFormatting);
+std::map<unsigned int, double> calculateDFDLS(
+    const std::map<unsigned int, stk::math::Vector3d> &aDFDXMap,
+    const std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP> &aDXDP,
+    const std::vector<unsigned int> &aBackgroundNodemap);
 
 }  // namespace Plato::Krino

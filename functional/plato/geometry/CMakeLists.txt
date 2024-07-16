@@ -3,7 +3,7 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
 set(FOLDERS library 
             extension)
-set(LINK_LIBS PlatoFunctionalFilter PlatoKrinoLib)
+set(LINK_LIBS PlatoFunctionalFilter PlatoFunctionalKrinoLib)
 
 create_plato_library(PlatoFunctionalGeometry "${FOLDERS}" "${LINK_LIBS}")
 

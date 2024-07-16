@@ -1,12 +1,12 @@
 #ifndef PLATO_GEOMETRY_EXTENSION_LEVELSETTOPOLOGY
 #define PLATO_GEOMETRY_EXTENSION_LEVELSETTOPOLOGY
 
-#include <PlatoKrinoUtilities.hpp>
 #include <filesystem>
 #include <optional>
 
 #include "plato/core/Function.hpp"
 #include "plato/core/MeshProxy.hpp"
+#include "plato/krino_integration/PlatoKrinoUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
@@ -63,9 +63,11 @@ class LevelsetTopology
 
 namespace detail
 {
-[[nodiscard]] std::optional<std::string> validate_output_name(const input_parser::levelset_topology& aInput);
-template <typename Geometry>
-[[nodiscard]] std::optional<std::string> validate_mesh_name(const Geometry& aInput);
+[[nodiscard]] std::optional<std::string> validate_output_mesh_name(const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_background_mesh_name(const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_cut_mesh_name(const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_lower_bound(const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_upper_bound(const input_parser::levelset_topology& aInput);
 }  // namespace detail
 
 }  // namespace plato::geometry::extension

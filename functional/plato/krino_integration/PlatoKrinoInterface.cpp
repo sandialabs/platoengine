@@ -18,11 +18,10 @@
 namespace Plato::Krino
 {
 
-std::map<stk::mesh::EntityId, InterfaceNode_DXDP> PlatoKrinoInterface::cut_mesh_and_return_sensitivities(
-    const std::string &aBackgroundMeshName,
-    const std::string &aCutMesh,
-    const std::vector<double> &aLevelsetValues,
-    const bool aIncludeVoidRegion)
+void PlatoKrinoInterface::cut_mesh(const std::string &aBackgroundMeshName,
+                                   const std::string &aCutMesh,
+                                   const std::vector<double> &aLevelsetValues,
+                                   const bool aIncludeVoidRegion)
 {
     includeVoidRegion(aIncludeVoidRegion);
     readAndSetupMeshForDecomposition(aBackgroundMeshName);
@@ -30,8 +29,9 @@ std::map<stk::mesh::EntityId, InterfaceNode_DXDP> PlatoKrinoInterface::cut_mesh_
     cutMesh();
     getSensitivities();
     writeMesh(aCutMesh);
-    return mSensitivities;
 }
+
+std::map<stk::mesh::EntityId, InterfaceNode_DXDP> PlatoKrinoInterface::get_sensitivities() { return mSensitivities; }
 
 std::vector<double> PlatoKrinoInterface::initialize_mesh_with_levelset_primitives_and_return_levelset_values(
     const std::string &aBackgroundMeshName,
@@ -339,46 +339,6 @@ PlatoKrinoInterface::predictNewCoordinatesBasedOnPerturbedLevelsetValues(
     return tPredictedCoordinateValues;
 }
 
-std::map<unsigned int, double> PlatoKrinoInterface::calculateDFDLS(std::map<unsigned int, stk::math::Vector3d> &aDFDX)
-{
-    std::map<unsigned int, double> tDFDLS;
-    for (unsigned int i = 0; i < mUncutBackgroundMeshSize; ++i)
-    {
-        tDFDLS[i + 1] = 0.0;
-    }
-    std::map<stk::mesh::EntityId, InterfaceNode_DXDP>::iterator tMapIter = mSensitivities.begin();
-    while (tMapIter != mSensitivities.end())
-    {
-        unsigned int tCurInterfaceNodeID = tMapIter->first;
-        if (aDFDX.count(tCurInterfaceNodeID) == 0)
-        {
-            std::cout << "ERROR: Cut mesh interface global node id does not have a corresponding DFDX entry!"
-                      << std::endl;
-            throw 1;
-        }
-
-        for (size_t j = 0; j < tMapIter->second.parentNodeIds.size(); ++j)
-        {
-            unsigned int tCurBackgroundMeshNodeID = tMapIter->second.parentNodeIds[j];
-            double tContribution = 0.0;
-            for (size_t w = 0; w < 3; ++w)
-            {
-                tContribution += aDFDX[tCurInterfaceNodeID][w] * tMapIter->second.parentDXDP[j][w];
-            }
-            if (tDFDLS.count(tCurBackgroundMeshNodeID))
-            {
-                tDFDLS[tCurBackgroundMeshNodeID] += tContribution;
-            }
-            else
-            {
-                tDFDLS[tCurBackgroundMeshNodeID] = tContribution;
-            }
-        }
-        tMapIter++;
-    }
-    return tDFDLS;
-}
-
 void PlatoKrinoInterface::getNodalCoordinates(const unsigned int &aNodeID, double &aX, double &aY, double &aZ)
 {
     const auto *tCoordsField =
@@ -499,5 +459,45 @@ void PlatoKrinoInterface::setLevelsetValues_parallel(const std::vector<double> &
 }
 
 void PlatoKrinoInterface::redistance() { mLevelSet->redistance(); }
+
+std::map<unsigned int, double> PlatoKrinoInterface::calculateDFDLS(std::map<unsigned int, stk::math::Vector3d> &aDFDX)
+{
+    std::map<unsigned int, double> tDFDLS;
+    for (unsigned int i = 0; i < mUncutBackgroundMeshSize; ++i)
+    {
+        tDFDLS[i + 1] = 0.0;
+    }
+    std::map<stk::mesh::EntityId, InterfaceNode_DXDP>::iterator tMapIter = mSensitivities.begin();
+    while (tMapIter != mSensitivities.end())
+    {
+        unsigned int tCurInterfaceNodeID = tMapIter->first;
+        if (aDFDX.count(tCurInterfaceNodeID) == 0)
+        {
+            std::cout << "ERROR: Cut mesh interface global node id does not have a corresponding DFDX entry!"
+                      << std::endl;
+            throw 1;
+        }
+
+        for (size_t j = 0; j < tMapIter->second.parentNodeIds.size(); ++j)
+        {
+            unsigned int tCurBackgroundMeshNodeID = tMapIter->second.parentNodeIds[j];
+            double tContribution = 0.0;
+            for (size_t w = 0; w < 3; ++w)
+            {
+                tContribution += aDFDX[tCurInterfaceNodeID][w] * tMapIter->second.parentDXDP[j][w];
+            }
+            if (tDFDLS.count(tCurBackgroundMeshNodeID))
+            {
+                tDFDLS[tCurBackgroundMeshNodeID] += tContribution;
+            }
+            else
+            {
+                tDFDLS[tCurBackgroundMeshNodeID] = tContribution;
+            }
+        }
+        tMapIter++;
+    }
+    return tDFDLS;
+}
 
 }  // namespace Plato::Krino

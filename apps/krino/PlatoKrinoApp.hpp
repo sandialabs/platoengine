@@ -10,9 +10,9 @@
 #include <Plato_TimersTree.hpp>
 #include <vector>
 
-#include "PlatoKrinoEnums.hpp"
-#include "PlatoKrinoInterface.hpp"
-#include "PlatoKrinoParse.hpp"
+#include "plato/krino_integration/PlatoKrinoEnums.hpp"
+#include "plato/krino_integration/PlatoKrinoInterface.hpp"
+#include "plato/krino_integration/PlatoKrinoParse.hpp"
 
 #pragma once
 

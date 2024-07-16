@@ -1,4 +1,5 @@
 #include "PlatoKrinoApp.hpp"
+#include "PlatoKrinoAppUtils.hpp"
 
 #include <Kokkos_Core.hpp>
 #include <Plato_Parser.hpp>
@@ -10,8 +11,8 @@
 #include <stk_util/environment/EnvData.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 
-#include "PlatoKrinoParse.hpp"
-#include "PlatoKrinoUtilities.hpp"
+#include "plato/krino_integration/PlatoKrinoParse.hpp"
+#include "plato/krino_integration/PlatoKrinoUtilities.hpp"
 
 namespace Plato
 {

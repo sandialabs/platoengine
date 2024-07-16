@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <PlatoKrinoInterface.hpp>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
@@ -15,9 +14,11 @@
 #include "plato/core/MeshProxy.hpp"
 #include "plato/geometry/extension/LevelsetTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/krino_integration/PlatoKrinoInterface.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/utilities/STKUtilities.hpp"
+
 namespace plato::geometry::extension::unittest
 {
 namespace
@@ -66,14 +67,14 @@ TEST_F(PlatoTestKrino, LevelsetTopology_Jacobian)
 
     const std::vector<double> tGold{0.5, 0.166667, 0.166667, -0.166667,   0.166667, -0.166667, -0.166667, -0.5,
                                     0.5, 0.5,      0.5,      1.11022e-16, -0.5,     -0.5,      -0.5};
-    EXPECT_EQ(tRes.size(), tGold.size());
+    ASSERT_EQ(tRes.size(), tGold.size());
     constexpr double tTol = 1e-6;
     for (size_t i = 0; i < tGold.size(); ++i)
     {
-        EXPECT_NEAR(tRes[i], tGold[i], tTol);
+        ASSERT_NEAR(tRes[i], tGold[i], tTol);
     }
-    EXPECT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mName));
-    EXPECT_TRUE(std::filesystem::remove(kLevelsetInput.cut_mesh_name->mName));
+    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mName));
+    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.cut_mesh_name->mName));
 }
 
 TEST_F(PlatoTestKrino, LevelsetTopology_GenerateMesh)
@@ -95,15 +96,15 @@ TEST_F(PlatoTestKrino, LevelsetTopology_GenerateMesh)
     const std::vector<double> tNodalCoords2 = utilities::nodal_coordinates(*tBulkData2);
 
     // For levelset methods we won't pass a density vector back in the mesh proxy
-    EXPECT_EQ(tMeshProxy.mNodalDensities.size(), 0u);
+    ASSERT_EQ(tMeshProxy.mNodalDensities.size(), 0u);
 
-    EXPECT_EQ(tNodalCoords1.size(), tNodalCoords2.size());
+    ASSERT_EQ(tNodalCoords1.size(), tNodalCoords2.size());
     for (size_t i = 0; i < tNodalCoords1.size(); ++i)
     {
-        EXPECT_FLOAT_EQ(tNodalCoords1[i], tNodalCoords2[i]);
+        ASSERT_FLOAT_EQ(tNodalCoords1[i], tNodalCoords2[i]);
     }
-    EXPECT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mName));
-    EXPECT_TRUE(std::filesystem::remove(kLevelsetInput.cut_mesh_name->mName));
+    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mName));
+    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.cut_mesh_name->mName));
 }
 
 TEST_F(PlatoTestKrino, LevelsetTopology_InitialGuess)
@@ -121,13 +122,13 @@ TEST_F(PlatoTestKrino, LevelsetTopology_InitialGuess)
         0.362372, 0.362372, 0.362372, 0.362372, 0.183013, 0.183013, 0.362372, 0.362372, 0.183013, 0.183013,
         0.362372, 0.362372, 0.362372, 0.362372, 0.362372, 0.362372, 0.183013, 0.183013, 0.362372, 0.362372,
         0.183013, 0.183013, 0.362372, 0.362372, 0.362372, 0.362372, 0.362372, 0.362372, 0.362372};
-    EXPECT_EQ(tInitialGuess.size(), kExpectedBackgroundLevelsetSize);
+    ASSERT_EQ(tInitialGuess.size(), kExpectedBackgroundLevelsetSize);
     for (size_t i = 0; i < tInitialGuess.size(); ++i)
     {
-        EXPECT_FLOAT_EQ(tInitialGuess[i], tInitialGuess.stdVector()[i]);
+        ASSERT_FLOAT_EQ(tInitialGuess[i], tInitialGuess.stdVector()[i]);
     }
-    EXPECT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mName));
-    EXPECT_TRUE(std::filesystem::remove(kLevelsetInput.cut_mesh_name->mName));
+    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mName));
+    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.cut_mesh_name->mName));
 }
 
 TEST_F(PlatoTestKrino, LevelsetTopology_Bounds)
@@ -136,15 +137,13 @@ TEST_F(PlatoTestKrino, LevelsetTopology_Bounds)
     const LevelsetTopology tLevelsetTopology(kLevelsetInput);
     const auto [tLowerBounds, tUpperBounds] = tLevelsetTopology.bounds(kLevelsetInput.background_mesh_name->mName);
 
-    EXPECT_EQ(tLowerBounds.size(), kExpectedBackgroundLevelsetSize);
-    EXPECT_EQ(tUpperBounds.size(), kExpectedBackgroundLevelsetSize);
+    ASSERT_EQ(tLowerBounds.size(), kExpectedBackgroundLevelsetSize);
+    ASSERT_EQ(tUpperBounds.size(), kExpectedBackgroundLevelsetSize);
 
-    EXPECT_TRUE(
-        std::all_of(tLowerBounds.cbegin(), tLowerBounds.cend(), [](const double aVal) { return aVal == -100.0; }));
-    EXPECT_TRUE(
-        std::all_of(tUpperBounds.cbegin(), tUpperBounds.cend(), [](const double aVal) { return aVal == 100.0; }));
-
-    //   EXPECT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mName));
+    ASSERT_TRUE(
+        std::all_of(tLowerBounds.cbegin(), tLowerBounds.cend(), [](const double aVal) { return aVal == -1.0; }));
+    ASSERT_TRUE(std::all_of(tUpperBounds.cbegin(), tUpperBounds.cend(), [](const double aVal) { return aVal == 1.0; }));
+    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mName));
 }
 
 }  // namespace plato::geometry::extension::unittest

@@ -1,10 +1,10 @@
 #include "plato/geometry/extension/LevelsetTopology.hpp"
 
-#include <PlatoKrinoInterface.hpp>
-
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/krino_integration/PlatoKrinoInterface.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
 #include "plato/utilities/STKUtilities.hpp"
 
 namespace plato::geometry::extension
@@ -12,42 +12,6 @@ namespace plato::geometry::extension
 
 namespace
 {
-
-std::map<unsigned int, double> calculateDFDLS(
-    const std::map<unsigned int, stk::math::Vector3d>& aDFDXMap,
-    const std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP>& aDXDP,
-    const std::vector<unsigned int>& aBackgroundNodemap)
-{
-    std::map<unsigned int, double> tDFDLS;
-    for (auto tNodeID : aBackgroundNodemap)
-    {
-        tDFDLS[tNodeID] = 0.0;
-    }
-    std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP>::const_iterator tDXDPMapIter = aDXDP.begin();
-    while (tDXDPMapIter != aDXDP.end())
-    {
-        const unsigned int tCurInterfaceNodeID = tDXDPMapIter->first;
-        if (aDFDXMap.count(tCurInterfaceNodeID) == 0)
-        {
-            std::cout << "ERROR: Cut mesh interface global node id does not have a corresponding DFDX entry!"
-                      << std::endl;
-            throw 1;
-        }
-
-        for (size_t j = 0; j < tDXDPMapIter->second.parentNodeIds.size(); ++j)
-        {
-            const unsigned int tCurBackgroundMeshNodeID = tDXDPMapIter->second.parentNodeIds[j];
-            double tContribution = 0.0;
-            for (size_t w = 0; w < 3; ++w)
-            {
-                tContribution += aDFDXMap.at(tCurInterfaceNodeID)[w] * tDXDPMapIter->second.parentDXDP[j][w];
-            }
-            tDFDLS[tCurBackgroundMeshNodeID] += tContribution;
-        }
-        tDXDPMapIter++;
-    }
-    return tDFDLS;
-}
 
 std::function<void(const linear_algebra::DynamicVector<double>&)> make_topology_output(
     const std::filesystem::path& aInputMeshName, const std::filesystem::path& aOutputMeshName)
@@ -83,8 +47,11 @@ void initialize_krino()
 /// Static registration for input validation functions
 [[maybe_unused]] static auto kLevelsetTopologyValidationRegistration =
     core::ValidationRegistration<input_parser::levelset_topology>{
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_mesh_name(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_output_name(aInput); }};
+        [](const input_parser::levelset_topology& aInput) { return detail::validate_background_mesh_name(aInput); },
+        [](const input_parser::levelset_topology& aInput) { return detail::validate_cut_mesh_name(aInput); },
+        [](const input_parser::levelset_topology& aInput) { return detail::validate_output_mesh_name(aInput); },
+        [](const input_parser::levelset_topology& aInput) { return detail::validate_lower_bound(aInput); },
+        [](const input_parser::levelset_topology& aInput) { return detail::validate_upper_bound(aInput); }};
 }  // namespace
 
 LevelsetTopology::LevelsetTopology(const input_parser::levelset_topology& aInput)
@@ -132,8 +99,7 @@ linear_algebra::DynamicVector<double> LevelsetTopology::initialGuess(const std::
 core::MeshProxy LevelsetTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
     Plato::Krino::PlatoKrinoInterface tPlatoKrinoInterface;
-    tPlatoKrinoInterface.cut_mesh_and_return_sensitivities(mBackgroundMesh, mCutMesh, aDesignParameters.stdVector(),
-                                                           mIncludeVoidRegion);
+    tPlatoKrinoInterface.cut_mesh(mBackgroundMesh, mCutMesh, aDesignParameters.stdVector(), mIncludeVoidRegion);
     return core::MeshProxy{mCutMesh, std::vector<double>{}};
 }
 
@@ -147,9 +113,9 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
          &aDesignParameters](const linear_algebra::DynamicVector<double>& x)
         {
             Plato::Krino::PlatoKrinoInterface tPlatoKrinoInterface;
+            tPlatoKrinoInterface.cut_mesh(mBackgroundMesh, mCutMesh, aDesignParameters.stdVector(), mIncludeVoidRegion);
             const std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP> tDXDP =
-                tPlatoKrinoInterface.cut_mesh_and_return_sensitivities(
-                    mBackgroundMesh, mCutMesh, aDesignParameters.stdVector(), mIncludeVoidRegion);
+                tPlatoKrinoInterface.get_sensitivities();
             const std::vector<unsigned int> tCutNodeMap = utilities::extract_global_node_ids(mCutMesh);
             const std::vector<unsigned int> tBackgroundNodeMap = utilities::extract_global_node_ids(mBackgroundMesh);
             const std::map<unsigned int, stk::math::Vector3d> tDFDXMap = Plato::Krino::assembleGlobalIDToDFDXMap(
@@ -185,17 +151,36 @@ auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology)
 
 namespace detail
 {
-std::optional<std::string> validate_output_name(const input_parser::levelset_topology& aInput)
+std::optional<std::string> validate_output_mesh_name(const input_parser::levelset_topology& aInput)
 {
     return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::levelset_topology>(),
                                                    aInput.output_mesh_name, "output_name");
 }
 
-template <typename Geometry>
-[[nodiscard]] std::optional<std::string> validate_mesh_name(const Geometry& aInput)
+std::optional<std::string> validate_background_mesh_name(const input_parser::levelset_topology& aInput)
 {
-    return core::error_message_for_empty_parameter(input_parser::block_name<Geometry>(), aInput.background_mesh_name,
-                                                   "background_mesh_name");
+    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::levelset_topology>(),
+                                                   aInput.background_mesh_name, "background_mesh_name");
+}
+
+std::optional<std::string> validate_cut_mesh_name(const input_parser::levelset_topology& aInput)
+{
+    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::levelset_topology>(),
+                                                   aInput.cut_mesh_name, "cut_mesh_name");
+}
+
+std::optional<std::string> validate_lower_bound(const input_parser::levelset_topology& aInput)
+{
+    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
+                                                           aInput.levelset_lower_bound, "levelset_lower_bound",
+                                                           utilities::upper_bounded(utilities::Exclusive{0.0}));
+}
+
+std::optional<std::string> validate_upper_bound(const input_parser::levelset_topology& aInput)
+{
+    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
+                                                           aInput.levelset_upper_bound, "levelset_upper_bound",
+                                                           utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
 }  // namespace detail

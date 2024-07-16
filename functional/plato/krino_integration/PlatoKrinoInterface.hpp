@@ -14,41 +14,14 @@
 namespace Plato::Krino
 {
 
-struct LevelSetShapeSensitivity
-{
-    LevelSetShapeSensitivity(const stk::mesh::EntityId inInterfaceNodeId,
-                             const std::vector<stk::mesh::EntityId> &inParentNodeIds,
-                             const std::vector<stk::math::Vector3d> &inDCoordsdParentLevelSets)
-        : interfaceNodeId(inInterfaceNodeId),
-          parentNodeIds(inParentNodeIds),
-          dCoordsdParentLevelSets(inDCoordsdParentLevelSets)
-    {
-    }
-    stk::mesh::EntityId interfaceNodeId;
-    std::vector<stk::mesh::EntityId> parentNodeIds;
-    std::vector<stk::math::Vector3d> dCoordsdParentLevelSets;
-};
-
-struct DFDX
-{
-    unsigned int NodeID;
-    stk::math::Vector3d Sensitivity;
-};
-
-struct InterfaceNode_DXDP
-{
-    std::vector<stk::mesh::EntityId> parentNodeIds;
-    std::vector<stk::math::Vector3d> parentDXDP;
-};
-
 class PlatoKrinoInterface
 {
    public:
-    std::map<stk::mesh::EntityId, InterfaceNode_DXDP> cut_mesh_and_return_sensitivities(
-        const std::string &aBackgroundMeshName,
-        const std::string &aCutMesh,
-        const std::vector<double> &aLevelsetValues,
-        const bool aIncludeVoidRegion);
+    void cut_mesh(const std::string &aBackgroundMeshName,
+                  const std::string &aCutMesh,
+                  const std::vector<double> &aLevelsetValues,
+                  const bool aIncludeVoidRegion);
+    std::map<stk::mesh::EntityId, InterfaceNode_DXDP> get_sensitivities();
     std::vector<double> initialize_mesh_with_levelset_primitives_and_return_levelset_values(
         const std::string &aBackgroundMeshName,
         const std::string &aCutMesh,
@@ -56,6 +29,7 @@ class PlatoKrinoInterface
         const bool aIncludeVoidRegion);
 
     // API functions used in PlatoKrinoApp in an optimization run
+    std::map<unsigned int, double> calculateDFDLS(std::map<unsigned int, stk::math::Vector3d> &aDFDX);
 
     // The guts of this need to be behind a krino API
     void readAndSetupMeshForDecomposition(const std::string &aFilename);
@@ -70,7 +44,6 @@ class PlatoKrinoInterface
     void writeMesh(const std::string &aFilename);
     void resetMesh();
     void getSensitivities();
-    std::map<unsigned int, double> calculateDFDLS(std::map<unsigned int, stk::math::Vector3d> &aDFDX);
     unsigned int getUncutBackgroundMeshSize() { return mUncutBackgroundMeshSize; }
     std::vector<double> getLevelsetValues();
     void setLevelsetValues(const std::vector<double> &aValuesIn);

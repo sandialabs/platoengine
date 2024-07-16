@@ -1,6 +1,6 @@
 #include "PlatoKrinoApp.hpp"
-#include "PlatoKrinoParse.hpp"
-#include "PlatoKrinoUtilities.hpp"
+#include "plato/krino_integration/PlatoKrinoParse.hpp"
+#include "plato/krino_integration/PlatoKrinoUtilities.hpp"
 
 
 using namespace Plato::Krino;
