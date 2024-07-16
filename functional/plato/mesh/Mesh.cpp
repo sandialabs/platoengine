@@ -1,6 +1,6 @@
 #include "plato/mesh/Mesh.hpp"
 
-#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 
@@ -29,10 +29,10 @@ unsigned int Mesh::numberOfBlocks() const
     return third_party_integration::stk_io::block_size(*mBulk);
 }
 
-std::optional<unsigned int> Mesh::blockId(const std::string_view aBlockName) const
+auto Mesh::blockData() const -> std::vector<third_party_integration::common::BlockData>
 {
     assert(mBulk);
-    return third_party_integration::stk_io::block_id(*mBulk, aBlockName);
+    return third_party_integration::stk_io::block_data(*mBulk);
 }
 
 unsigned int Mesh::spatialDimensions() const

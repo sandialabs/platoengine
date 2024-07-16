@@ -6,6 +6,7 @@
 #include <optional>
 #include <vector>
 
+#include "plato/third_party_integration/common/BlockData.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace stk::mesh
@@ -16,6 +17,7 @@ class BulkData;  // NOLINT
 
 namespace plato::mesh
 {
+
 /// @brief Provides common mesh operations such as retrieving the number of elements or nodal coordinates.
 class Mesh
 {
@@ -30,6 +32,8 @@ class Mesh
     [[nodiscard]] unsigned int numberOfBlocks() const;
     /// @brief Returns the block id for the block with name @a aBlockName if it exists, an empty optional otherwise
     [[nodiscard]] std::optional<unsigned int> blockId(std::string_view aBlockName) const;
+    /// @brief Returns the names and ids of all blocks in the mesh.
+    [[nodiscard]] auto blockData() const -> std::vector<third_party_integration::common::BlockData>;
     /// @brief The dimensions of the mesh (2 or 3).
     [[nodiscard]] unsigned int spatialDimensions() const;
     /// @brief The nodal coordinates ordered as x0,y0,z0,x1,y1,z1

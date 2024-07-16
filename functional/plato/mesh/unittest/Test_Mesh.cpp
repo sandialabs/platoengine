@@ -11,12 +11,12 @@
 
 namespace plato::mesh::unittest
 {
-
-constexpr auto kMeshName = std::string_view{"example.exo"};
-constexpr auto kGenerator = third_party_integration::stk_io::CommandGenerator{{3, 1, 1}, {0, 0, 0}, {3, 1, 1}};
-
 namespace
 {
+constexpr auto kMeshName = std::string_view{"example.exo"};
+constexpr auto kGenerator = third_party_integration::stk_io::CommandGenerator{{3, 1, 1}, {0, 0, 0}, {3, 1, 1}};
+constexpr auto kExpectedNumberOfBlocks = 2u;
+
 Mesh test_two_block_mesh(const test_utilities::TestContext& aTestContext)
 {
     constexpr auto tMeshName = std::string_view{"box_2x4x10_hex_and_tet.cdf"};
@@ -76,21 +76,20 @@ TEST(Mesh, Volume)
 TEST(Mesh, NumberOfBlocks)
 {
     const auto tMesh = test_two_block_mesh(TEST_CONTEXT("Number of blocks"));
-    EXPECT_EQ(tMesh.numberOfBlocks(), 2u);
+    EXPECT_EQ(tMesh.numberOfBlocks(), kExpectedNumberOfBlocks);
 }
 
-TEST(Mesh, BlockID)
+TEST(Mesh, BlockIDsAndNames)
 {
-    const auto tMesh = test_two_block_mesh(TEST_CONTEXT("Block id"));
-    {
-        const auto tBlockID = tMesh.blockId("block_1");
-        ASSERT_TRUE(tBlockID);
-        EXPECT_EQ(tBlockID.value(), 1);
-    }
-    {
-        const auto tBlockID = tMesh.blockId("block_2");
-        ASSERT_TRUE(tBlockID);
-        EXPECT_EQ(tBlockID.value(), 2);
-    }
+    const auto tMesh = test_two_block_mesh(TEST_CONTEXT("Block ids and names"));
+    const auto tBlockIDsAndNames = tMesh.blockData();
+    ASSERT_EQ(tBlockIDsAndNames.size(), kExpectedNumberOfBlocks);
+
+    EXPECT_EQ(tBlockIDsAndNames.front().mID, 1);
+    EXPECT_EQ(tBlockIDsAndNames.front().mName, "block_1");
+
+    EXPECT_EQ(tBlockIDsAndNames.back().mID, 2);
+    EXPECT_EQ(tBlockIDsAndNames.back().mName, "block_2");
 }
+
 }  // namespace plato::mesh::unittest
