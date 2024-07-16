@@ -48,7 +48,7 @@ TEST(MeshProxyViews, IncrementIterator)
     }
 }
 
-TEST(MeshProxyViews, DereferenceIterator)  // NOLINT
+TEST(MeshProxyViews, DereferenceIterator)
 {
     auto tIterator = MeshProxyDensitiesViewConstIterator{kSingleBlockDensities.cbegin(), kSingleBlockDensities.cend(),
                                                          kBlockDensityVector1.cbegin()};
@@ -59,7 +59,7 @@ TEST(MeshProxyViews, DereferenceIterator)  // NOLINT
     EXPECT_EQ((*tIterator).mGlobalID, std::next(kBlockDensityVector1.cbegin())->mGlobalID);
 }
 
-TEST(MeshProxyViews, IteratorEqualityOperators)  // NOLINT
+TEST(MeshProxyViews, IteratorEqualityOperators)
 {
     auto tIterator1 = MeshProxyDensitiesViewConstIterator{kSingleBlockDensities.cbegin(), kSingleBlockDensities.cend(),
                                                           kBlockDensityVector1.cbegin()};
@@ -86,15 +86,16 @@ TEST(MeshProxyViews, Size)
     ASSERT_EQ(tMeshView.size(), kDensities1.size());
 }
 
-TEST(MeshProxyViews, BeginEnd)  // NOLINT
+TEST(MeshProxyViews, BeginEnd)
 {
     const auto tMeshProxy = MeshProxy{/*.mFileName=*/"jupiter.exo", /*.mBlockDensities=*/kSingleBlockDensities};
     const auto tMeshView = MeshProxyDensitiesView{tMeshProxy};
 
     const auto tBeginIterator = tMeshView.begin();
     EXPECT_EQ(tBeginIterator.mOuterIterator, tMeshProxy.mBlockDensities.cbegin());
-    EXPECT_TRUE(tBeginIterator.mInnerIterator);
-    EXPECT_EQ(*tBeginIterator.mInnerIterator, tMeshProxy.mBlockDensities.cbegin()->second.cbegin());
+    ASSERT_TRUE(tBeginIterator.mInnerIterator);
+    assert(tBeginIterator.mInnerIterator);
+    EXPECT_EQ(tBeginIterator.mInnerIterator.value(), tMeshProxy.mBlockDensities.cbegin()->second.cbegin());
     EXPECT_EQ(tBeginIterator.mOuterIterator, tMeshProxy.mBlockDensities.cbegin());
     EXPECT_EQ(tBeginIterator.mOuterIteratorEnd, tMeshProxy.mBlockDensities.cend());
 
@@ -126,6 +127,23 @@ TEST(MeshProxyViews, RangeBasedFor)
     }
 }
 
+TEST(MeshProxyViews, RangeBasedForTwoBlocks)
+{
+    const auto tMeshProxy = MeshProxy{/*.mFileName=*/"pluto.exo", /*.mBlockDensities=*/kTwoBlockDensities};
+    const auto tMeshView = MeshProxyDensitiesView{tMeshProxy};
+    auto tDensityIterator = kBlockDensityVector1.cbegin();
+    for (const auto tDensityValue : tMeshView)
+    {
+        EXPECT_EQ(tDensityValue.mDensity, tDensityIterator->mDensity);
+        EXPECT_EQ(tDensityValue.mGlobalID, tDensityIterator->mGlobalID);
+        ++tDensityIterator;
+        if (tDensityIterator == kBlockDensityVector1.cend())
+        {
+            tDensityIterator = kBlockDensityVector2.cbegin();
+        }
+    }
+}
+
 TEST(MeshProxyViews, MutableView)
 {
     auto tMeshProxy = MeshProxy{/*.mFileName=*/"uranus.exo", /*.mBlockDensities=*/kSingleBlockDensities};
@@ -147,6 +165,15 @@ TEST(MeshProxyViews, ToVector)
     const auto tMeshProxy = MeshProxy{/*.mFileName=*/"mercury.exo", /*.mBlockDensities=*/kSingleBlockDensities};
     const auto tVectorFromView = mesh_proxy_to_vector(MeshProxyDensitiesView{tMeshProxy});
     EXPECT_EQ(tVectorFromView, kBlockDensityVector1);
+}
+
+TEST(MeshProxyViews, ToVectorTwoBlocks)
+{
+    const auto tMeshProxy = MeshProxy{/*.mFileName=*/"earth.exo", /*.mBlockDensities=*/kTwoBlockDensities};
+    const auto tVectorFromView = mesh_proxy_to_vector(MeshProxyDensitiesView{tMeshProxy});
+    auto tAllDensities = kBlockDensityVector1;
+    std::copy(kBlockDensityVector2.cbegin(), kBlockDensityVector2.cend(), std::back_inserter(tAllDensities));
+    EXPECT_EQ(tVectorFromView, tAllDensities);
 }
 
 TEST(MeshProxyViews, FromVector)

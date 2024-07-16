@@ -2,7 +2,7 @@
 #define PLATO_MESH_MESHPROXY
 
 #include <filesystem>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 namespace plato::mesh
@@ -23,7 +23,7 @@ struct Density
 struct MeshProxy
 {
     using DensityVector = std::vector<Density>;
-    using BlockDensities = std::unordered_map<unsigned int, DensityVector>;
+    using BlockDensities = std::map<unsigned int, DensityVector>;
 
     std::filesystem::path mFileName;
     BlockDensities mBlockDensities;
