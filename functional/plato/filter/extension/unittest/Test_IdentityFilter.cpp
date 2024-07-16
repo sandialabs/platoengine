@@ -7,7 +7,6 @@
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -20,13 +19,6 @@ const auto kRho = std::vector{-1.0, 0.0, 1.0};
 const auto kMeshArgument = core::MeshProxy{kMeshName, kRho};
 const auto kV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
 }  // namespace
-
-TEST(FilterFactory, ValidIdentityFilter)
-{
-    auto tDensityTopology = input_parser::density_topology{};
-    tDensityTopology.filter_type = input_parser::FilterTypes::kIdentity;
-    EXPECT_NO_THROW(auto tFunction = library::make_filter_function(tDensityTopology));
-}
 
 TEST(IdentityFilter, Filter) { EXPECT_EQ(IdentityFilter{}.filter(kMeshArgument).mNodalDensities, kRho); }
 

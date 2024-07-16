@@ -84,7 +84,7 @@ TEST(ObjectiveValidation, ValidateMPIRanksVsNumberOfParallelObjectives)
 TEST(ObjectiveValidation, ErrorMessagesInvalidObjective)
 {
     input_parser::objective tObjective = plato::test_utilities::create_valid_example_objective();
-    tObjective.app = boost::none;
+    tObjective.criterion = boost::none;
     std::vector<std::string> tMessages;
     tMessages = core::validate(tObjective, std::move(tMessages));
     EXPECT_EQ(tMessages.size(), 1u);

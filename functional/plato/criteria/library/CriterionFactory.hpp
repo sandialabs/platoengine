@@ -9,6 +9,7 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::criteria::library
 {
@@ -33,17 +34,18 @@ CriterionFunction make_criterion_function(const Input& aValidatedInput, const Ad
                   "input_parser::constraint wrapped in ValidatedInputTypeWrapper");
 
     const auto& tRawInput = aValidatedInput.rawInput();
-    const std::string tAppName = input_parser::kCodeOptionsTable.toString(tRawInput.app.value()).value();
+    const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
     std::optional<CriterionFunction> tCriterion =
         core::create_object_from_factory<CriterionFunction, CriterionInput, AdditionalArgs...>(
-            tAppName, to_criterion_input(aValidatedInput), aArgs...);
+            tRegistrationName, to_criterion_input(aValidatedInput), aArgs...);
     if (tCriterion)
     {
         return std::move(tCriterion).value();
     }
     else
     {
-        throw utilities::Exception("App not supported.");
+        throw utilities::Exception("App/criterion \"" + tRegistrationName + "\" not found. Available criteria are:\n" +
+                                   utilities::concatenate_container(registered_criteria_names(), "\n"));
     }
 }
 
@@ -55,10 +57,8 @@ CriterionInput to_criterion_input(const Input& aInput)
             std::is_same_v<Input, core::ValidatedInputTypeWrapper<input_parser::constraint>>,
         "to_criterion_input must only be called with input_parser::objective or input_parser::constraint wrapped in "
         "ValidatedInputTypeWrapper");
-    return CriterionInput{
-        /*.mSharedLibraryPath=*/aInput.rawInput().shared_library_path.value_or(input_parser::FileName{}),
-        /*.mNumberOfProcessors=*/aInput.rawInput().number_of_processors.value_or(1),
-        /*.mInputFiles=*/aInput.rawInput().input_files.value_or(input_parser::FileList{})};
+    return CriterionInput{/*.mNumberOfProcessors=*/aInput.rawInput().number_of_processors.value_or(1),
+                          /*.mInputFiles=*/aInput.rawInput().input_files.value_or(input_parser::FileList{})};
 }
 
 }  // namespace plato::criteria::library

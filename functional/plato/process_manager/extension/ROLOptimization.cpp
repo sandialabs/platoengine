@@ -8,8 +8,8 @@
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/rol_integration/OptimizerFactory.hpp"
-#include "plato/rol_integration/ROLHelpers.hpp"
+#include "plato/third_party_integration/rol/OptimizerFactory.hpp"
+#include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension
 {
@@ -41,7 +41,7 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
 }  // namespace
 
 ROLOptimization::ROLOptimization(const ValidatedOptimizationParameters& aInput)
-    : mROLOptions{rol_integration::rol_parameter_list(aInput)}
+    : mROLOptions{third_party_integration::rol::rol_parameter_list(aInput)}
 {
 }
 
@@ -49,14 +49,15 @@ void ROLOptimization::run(const library::ProcessManagerData& aProblem) const
 {
     auto tROLProblem = ROL::Ptr<ROL::Problem<double>>{make_rol_problem(aProblem).release()};
     auto tROLInputs = mROLOptions;
-    auto tROLSolver = rol_integration::make_rol_solver(tROLInputs, tROLProblem);
+    auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
 
     auto tOutFile = std::ofstream{std::string{kROLOptimizerFileName}};
     tROLSolver.solve(tOutFile);
 
     if (mCommunicator.rank() == 0)
     {
-        aProblem.mGeometry.mOutput(rol_integration::to_dynamic_vector(*tROLProblem->getPrimalOptimizationVector()));
+        aProblem.mGeometry.mOutput(
+            third_party_integration::rol::to_dynamic_vector(*tROLProblem->getPrimalOptimizationVector()));
     }
 }
 

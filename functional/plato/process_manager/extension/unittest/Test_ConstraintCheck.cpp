@@ -40,7 +40,7 @@ TEST(ConstraintCheck, ValidateAndRunChecksForLinearConstraint)
     validate_and_run_constraint_check(tInputDeck);
 
     ptu::test_for_existence_and_remove(
-        {tInputDeck.mConstraintCheck.value().linearity_check_output_file_name.value().mName},
+        {tInputDeck.mConstraintCheck.value().linearity_check_output_file_name.value().mToken},
         TEST_CONTEXT("Checking linearity check files"));
 }
 
@@ -59,9 +59,9 @@ TEST(ConstraintCheck, ValidateAndRunChecksForNonlinearConstraint)
     validate_and_run_constraint_check(tInputDeck);
 
     ptu::test_for_existence_and_remove(
-        {tInputDeck.mConstraintCheck.value().linearity_check_output_file_name.value().mName,
-         tInputDeck.mConstraintCheck.value().jacobian_check_output_file_name.value().mName,
-         tInputDeck.mConstraintCheck.value().jacobian_adjoint_consistency_output_file_name.value().mName},
+        {tInputDeck.mConstraintCheck.value().linearity_check_output_file_name.value().mToken,
+         tInputDeck.mConstraintCheck.value().jacobian_check_output_file_name.value().mToken,
+         tInputDeck.mConstraintCheck.value().jacobian_adjoint_consistency_output_file_name.value().mToken},
         TEST_CONTEXT("Checking constraint check files"));
 }
 

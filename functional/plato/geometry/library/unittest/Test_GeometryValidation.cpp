@@ -10,7 +10,7 @@ namespace
 {
 std::optional<std::string> bogus_error(const input_parser::density_topology& aInput)
 {
-    if (aInput.mesh_name.value().mName == "trigger_bogus_test")
+    if (aInput.mesh_name.value().mToken == "trigger_bogus_test")
     {
         return "Bogus error for test_geometry_block";
     }

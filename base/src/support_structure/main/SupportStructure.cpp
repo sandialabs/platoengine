@@ -1035,12 +1035,6 @@ bool SupportStructure::runPrivateElementBased()
                 Vector3D interfaceNormal;
                 Vector3D interfaceOrigin;
                 std::vector<Vector3D> triPoints;
-                uint64_t globalElemId = mSTKMeshIn->bulk_data()->identifier(curElem);
-                if(globalElemId == 14714)
-                {
-                    int y=0;
-                    ++y;
-                }
                 if(getIntersectionInfo(curElem, FIELD_DENSITY, interfaceNormal, interfaceOrigin, triPoints))
                 {
                     // See if the interface is pointing toward the build plate
@@ -1073,14 +1067,6 @@ bool SupportStructure::runPrivateElementBased()
                                 mSTKMeshIn->nodeCoordinates(curNode, pointCoords.data());
                                 Vector3D pointOnPlane;
                                 projectPointToPlane(pointCoords, interfaceOrigin, mBuildPlateNormal, pointOnPlane);
-
-                                if(fabs(pointCoords[0]-.1) < 1e-12 &&
-                                   fabs(pointCoords[1]+.6) < 1e-12 &&
-                                   fabs(pointCoords[2]-.1) < 1e-12)
-                                {
-                                    int g= 0;
-                                    g++;
-                                }
 
                                 bool pointIsBelowInterface = false;
                                 // see if the current node is in any of the triangles
@@ -1121,12 +1107,6 @@ bool SupportStructure::runPrivateElementBased()
                 Vector3D interfaceNormal;
                 Vector3D interfaceOrigin;
                 std::vector<Vector3D> triPoints;
-                uint64_t globalElemId = mSTKMeshIn->bulk_data()->identifier(curElem);
-                if(globalElemId == 14684)
-                {
-                    int y=0;
-                    ++y;
-                }
                 if(getIntersectionInfo(curElem, FIELD_SUPPORT, interfaceNormal, interfaceOrigin, triPoints))
                 {
                     // See if the interface is pointing toward the build plate
@@ -1160,15 +1140,6 @@ bool SupportStructure::runPrivateElementBased()
                                 mSTKMeshIn->nodeCoordinates(curNode, pointCoords.data());
                                 Vector3D pointOnPlane;
                                 projectPointToPlane(pointCoords, interfaceOrigin, mBuildPlateNormal, pointOnPlane);
-
-                                if(fabs(pointCoords[0]-.1) < 1e-12 &&
-                                   fabs(pointCoords[1]+.6) < 1e-12 &&
-                                   fabs(pointCoords[2]-.1) < 1e-12)
-                                {
-                                    int g= 0;
-                                    g++;
-                                }
-
 
                                 bool pointIsBelowInterface = false;
                                 // see if the current node is in any of the triangles
@@ -1935,12 +1906,6 @@ void SupportStructure::setVoxelData(stk::mesh::Entity aNode,
     VoxelData aboveVoxelData = aVoxelData[aboveLayerIndex][aXIndex][aYIndex];
     VoxelData &curVoxelData = aVoxelData[curLayerIndex][aXIndex][aYIndex];
 
-    if(aXIndex == 32 && aYIndex == 29)
-    {
-        int ff=0;
-        ff++;
-    }
-
     if(curVoxelHasNode)
     {
         if(aNodeInterfaceAngles.count(aNode))
@@ -2217,12 +2182,6 @@ void SupportStructure::setVoxelDataByNeighbor(int aXIndex, int aYIndex, int aNum
         aboveVoxelData = aVoxelData[aboveLayerIndex][aXIndex][aYIndex];
     VoxelData &curVoxelData = aVoxelData[aZLayer][aXIndex][aYIndex];
 
-    if(aXIndex == 32 && aYIndex == 29)
-    {
-        int ff=0;
-        ff++;
-    }
-
     // Get values for density, dot, and has interface from neighbors
     int imin=aXIndex-mNeighborSearchRadius;
     if(imin<0)
@@ -2390,12 +2349,6 @@ void SupportStructure::setVoxelDataByNode(int aXIndex, int aYIndex,
     bool hasInterface=curVoxelData.hasInterface;
 //    stk::mesh::Entity aNode = curVoxelData.node;
 
-    if(aXIndex == 32 && aYIndex == 29)
-    {
-        int ff=0;
-        ff++;
-    }
-
     if(aboveLayerIndex >= 0)
     {
         // Compare against above data to determine what to do.
@@ -2512,12 +2465,6 @@ void SupportStructure::setVoxelNodeData(stk::mesh::Entity aNode,
     double curDot=0.0;
     bool hasInterface = false;
     VoxelData &curVoxelData = aVoxelData[aZLayer][aXIndex][aYIndex];
-
-    if(aXIndex == 32 && aYIndex == 29)
-    {
-        int ff=0;
-        ff++;
-    }
 
     if(aNodeInterfaceAngles.count(aNode))
     {
@@ -2901,20 +2848,10 @@ bool SupportStructure::runPrivateVoxelBased()
                         {
                             Vector3D p0;
                             mSTKMeshIn->nodeCoordinates(curNode, p0.data());
-                            if(fabs(p0[0]+.135930) < .0001 && fabs(p0[1]+.545187) < .0001 && fabs(p0[2]+.013294) < .0001)
-                            {
-                                int tr=0;
-                                tr++;
-                            }
                             sortedNodeDistancePairs.pop_back();
                             int nodeX, nodeY;
                             getNodeXY(curNode, origin, xAxis, yAxis, minCoords, gridSizeX, gridSizeY,
                                       numGridX, numGridY, nodeX, nodeY);
-                            if(nodeX == 32 && nodeY == 29)
-                            {
-                                int gh=0;
-                                gh++;
-                            }
                             setVoxelData(curNode, nodeX, nodeY, numGridX, numGridY, voxelData3D, nodeInterfaceAngles, 0, 0, voxelLayer);
                             /*
                             double curNodeDensity, curNodeDot=0.0;
@@ -2943,11 +2880,6 @@ bool SupportStructure::runPrivateVoxelBased()
             {
                 if(voxelData3D[voxelLayer][i][j].setByNode == false)
                 {
-                    if(i == 32 && j == 29)
-                    {
-                        int gh=0;
-                        gh++;
-                    }
                     stk::mesh::Entity dummyNode;
                     dummyNode.m_value = 0;
                     setVoxelData(dummyNode, i, j, numGridX, numGridY, voxelData3D, nodeInterfaceAngles, zLayer, numZLayers, -1);
@@ -3152,11 +3084,6 @@ bool SupportStructure::runPrivateVoxelBasedInefficientMemory()
         {
             for(int j=0; j<numGridY; ++j)
             {
-                if(i==16 && j==13)
-                {
-                    int hh=0;
-                    ++hh;
-                }
                 if(voxelData3D[zLayer][i][j].setByNode == true)
                 {
                     setVoxelDataByNode(i, j, voxelData3D, zLayer);
@@ -3266,15 +3193,6 @@ bool SupportStructure::runPrivateNodeBasedMaxDensityAboveTopDown()
             {
                 Vector3D p0;
                 mSTKMeshIn->nodeCoordinates(curNode, p0.data());
-                if(fabs(p0[0]) < 1e-6 &&
-                        fabs(p0[1]+.5) < 1e-6 &&
-                        fabs(p0[2]) < 1e-6)
-
-                {
-                    int p=0;
-                    ++p;
-
-                }
                 stk::mesh::Entity const *nodeElements = mSTKMeshIn->bulk_data()->begin_elements(curNode);
                 int numElems = mSTKMeshIn->bulk_data()->num_elements(curNode);
                 double averageDot = 0.0;
@@ -3466,24 +3384,6 @@ bool SupportStructure::runPrivateNodeBasedMaxDensityAboveTopDown()
                             projectPointToPlane(curNeighborCoords, curNodeCoords, mBuildPlateNormal, curNeighborOnPlane);
                             if(curNeighborOnPlane.distanceSquared(curNodeCoords) < fineSearchRadiusSquared)
                             {
-                                if(fabs(curNeighborCoords[0]) < 1e-6 &&
-                                        fabs(curNeighborCoords[1]+.5) < 1e-6 &&
-                                        fabs(curNeighborCoords[2]) < 1e-6)
-
-                                {
-                                    int p=0;
-                                    ++p;
-
-                                }
-                                if(fabs(curNeighborCoords[0]+0.161868) < 1e-6 &&
-                                        fabs(curNeighborCoords[1]+0.508902) < 1e-6 &&
-                                        fabs(curNeighborCoords[2]+0.110684) < 1e-6)
-
-                                {
-                                    int p=0;
-                                    ++p;
-
-                                }
                                 // We found a valid node "below the current node".
                                 processedNodes.insert(curNeighborNode);
                                 foundBelowNode = true;

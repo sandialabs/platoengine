@@ -24,7 +24,7 @@ std::optional<std::string> validate_at_least_one_process_manager(const input_par
     {
         const std::vector<std::string> tAllProcessManagerNames = core::all_variant_block_names<ProcessManagerInput>();
         return "At least one of the following blocks must be defined: " +
-               utilities::concatenate_vector(tAllProcessManagerNames, "\n");
+               utilities::concatenate_container(tAllProcessManagerNames, "\n");
     }
     return std::nullopt;
 }

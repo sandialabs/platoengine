@@ -31,15 +31,4 @@ TEST(DensityTopologyValidation, ValidDensityTopologyInput)
     tMessages = library::validate_geometry(tInput, std::move(tMessages));
     EXPECT_TRUE(tMessages.empty());
 }
-
-TEST(DensityTopologyValidation, InvalidDensityTopologyInput)
-{
-    auto tInput = input_parser::ParsedInput{};
-    tInput.mDensityTopology = plato::test_utilities::create_valid_density_topology_geometry();
-    tInput.mDensityTopology->filter_radius = 1.0;
-
-    std::vector<std::string> tMessages;
-    tMessages = library::validate_geometry(tInput, std::move(tMessages));
-    EXPECT_EQ(tMessages.size(), 1u);
-}
 }  // namespace plato::geometry::extension::unittest

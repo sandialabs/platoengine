@@ -8,8 +8,7 @@
 namespace plato::criteria::library
 {
 [[maybe_unused]] static auto kConstraintValidationRegistration = core::ValidationRegistration<input_parser::constraint>{
-    [](const input_parser::constraint& aInput) { return detail::validate_app(aInput); },
-    [](const input_parser::constraint& aInput) { return detail::validate_custom_app(aInput); },
+    [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
     [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
     [](const input_parser::constraint& aInput) { return detail::validate_equal_to(aInput); }};
 

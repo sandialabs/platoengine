@@ -26,8 +26,9 @@ TEST(SensitivityCheck, CreateSensitivityCheckRun)
     const auto tSensitivityCheck = SensitivityCheck{
         library::process_manager_input<input_parser::sensitivity_check>(tAllProcessManagerInputs.rawInput().back())};
     tSensitivityCheck.run(tProblem);
-    test_utilities::test_for_existence_and_remove({tInputDeck.mSensitivityCheck.value().output_file_name.value().mName},
-                                                  TEST_CONTEXT("Sensitivity check file existence"));
+    test_utilities::test_for_existence_and_remove(
+        {tInputDeck.mSensitivityCheck.value().output_file_name.value().mToken},
+        TEST_CONTEXT("Sensitivity check file existence"));
 }
 
 }  // namespace plato::process_manager::extension::unittest

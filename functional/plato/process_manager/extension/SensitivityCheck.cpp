@@ -11,8 +11,8 @@
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/rol_integration/OptimizerFactory.hpp"
-#include "plato/rol_integration/ROLHelpers.hpp"
+#include "plato/third_party_integration/rol/OptimizerFactory.hpp"
+#include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension
 {
@@ -38,18 +38,18 @@ namespace
     core::ValidationRegistration<input_parser::sensitivity_check>{
         [](const input_parser::sensitivity_check& aInput) { return detail::validate_output_file_name(aInput); }};
 
-std::unique_ptr<plato::rol_integration::ROLObjectiveFunction> make_rol_sensitivity_objective(
+std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction> make_rol_sensitivity_objective(
     const library::ProcessManagerData& aProblem)
 {
     auto tSimpleObjectiveFunction = criteria::extension::make_nodal_sum_function();
-    return std::make_unique<plato::rol_integration::ROLObjectiveFunction>(
+    return std::make_unique<plato::third_party_integration::rol::ROLObjectiveFunction>(
         core::compose(tSimpleObjectiveFunction, aProblem.mGeometry.mCompute));
 }
 
 }  // namespace
 
 SensitivityCheck::SensitivityCheck(const ValidatedSensitivityCheckInput& aInput)
-    : mOutputFileName(aInput.rawInput().output_file_name.value().mName)
+    : mOutputFileName(aInput.rawInput().output_file_name.value().mToken)
 {
 }
 
@@ -60,9 +60,9 @@ void SensitivityCheck::run(const library::ProcessManagerData& aProblem) const
 
     auto tSensitivityObjective = make_rol_sensitivity_objective(aProblem);
     const auto tInitialGuessSize = static_cast<int>(aProblem.mGeometry.mInitialGuess.size());
-    tSensitivityObjective->checkGradient(rol_integration::to_rol_vector(aProblem.mGeometry.mInitialGuess),
-                                         rol_integration::generate_perturbation(tInitialGuessSize), tPrintOutput,
-                                         tOutFile);
+    tSensitivityObjective->checkGradient(third_party_integration::rol::to_rol_vector(aProblem.mGeometry.mInitialGuess),
+                                         third_party_integration::rol::generate_perturbation(tInitialGuessSize),
+                                         tPrintOutput, tOutFile);
 }
 
 namespace detail

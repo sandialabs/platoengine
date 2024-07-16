@@ -2,8 +2,8 @@
 
 #include "plato/input_parser/InputParser.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
-#include "plato/rol_integration/OptimizerFactory.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/third_party_integration/rol/OptimizerFactory.hpp"
 
 namespace plato::process_manager::extension::unittest
 {
@@ -18,7 +18,8 @@ auto rol_parameter_list(const library::ValidatedInput& aData)
     EXPECT_TRUE(std::holds_alternative<ValidatedOptimizationParameters>(tProcessManagerData.rawInput().front()));
     const auto& tOptimizationParameters =
         std::get<ValidatedOptimizationParameters>(tProcessManagerData.rawInput().front());
-    return {plato::rol_integration::rol_parameter_list(tOptimizationParameters), tOptimizationParameters.rawInput()};
+    return {plato::third_party_integration::rol::rol_parameter_list(tOptimizationParameters),
+            tOptimizationParameters.rawInput()};
 }
 
 }  // namespace

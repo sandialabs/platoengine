@@ -8,6 +8,7 @@
 #include "plato/core/MeshProxy.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
@@ -27,7 +28,8 @@ namespace plato::geometry::extension
 class DensityTopology
 {
    public:
-    explicit DensityTopology(const input_parser::density_topology& aInput);
+    explicit DensityTopology(const input_parser::density_topology& aInput,
+                             plato::filter::library::FilterFunction aFilterFunction);
 
     [[nodiscard]] core::MeshProxy generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const;
 

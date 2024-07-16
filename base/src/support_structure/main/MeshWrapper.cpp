@@ -142,14 +142,6 @@ void MeshWrapper::setSupportStructureFieldValue(uint64_t nodeLocalId, double val
 
     double coords[3];
     this->nodeCoordinates(nodeEntity, coords);
-    if(fabs(coords[0]-.1) < 1e-12 &&
-       fabs(coords[1]+.4) < 1e-12 &&
-       fabs(coords[2]+.3) < 1e-12)
-    {
-        int g= 0;
-        g++;
-    }
-
     double* val = stk::mesh::field_data(*mSupportStructureField, nodeEntity);
     *val = value;
 }

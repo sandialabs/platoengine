@@ -2,27 +2,15 @@
 
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 
 namespace plato::filter::library
 {
-namespace
+std::vector<std::string> validate_filter(const input_parser::ParsedInput& aInput,
+                                         std::vector<std::string>&& aCurrentMessageList)
 {
-[[maybe_unused]] static auto kFilterValidationRegistration =
-    core::ValidationRegistration<input_parser::density_topology>{[](const input_parser::density_topology& aInput)
-                                                                 { return validate_filter_type(aInput); }};
-}
-
-std::optional<std::string> validate_filter_type(const input_parser::density_topology& aInput)
-{
-    if (!aInput.filter_type)
-    {
-        return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::density_topology>(),
-                                                       aInput.filter_type, "filter_type");
-    }
-    else
-    {
-        return std::nullopt;
-    }
+    aCurrentMessageList = core::validate_all_variants<FilterInput>(aInput, std::move(aCurrentMessageList));
+    return core::validate(aInput, std::move(aCurrentMessageList));
 }
 }  // namespace plato::filter::library

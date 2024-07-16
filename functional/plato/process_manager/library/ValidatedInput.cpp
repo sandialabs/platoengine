@@ -7,16 +7,23 @@
 #include "plato/core/InputVariantUtilities.hpp"
 #include "plato/criteria/library/ConstraintValidation.hpp"
 #include "plato/criteria/library/ObjectiveValidation.hpp"
+#include "plato/filter/library/FilterValidation.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_parser/InputParser.hpp"
+#include "plato/process_manager/library/CrossReferenceUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerValidation.hpp"
+#include "plato/process_manager/library/ValidateCrossReferences.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::library
 {
-ValidatedInput::ValidatedInput(input_parser::ParsedInput aInput, const Key&) : mInput{std::move(aInput)} {}
+ValidatedInput::ValidatedInput(input_parser::ParsedInput aInput, const Key&) : mInput{std::move(aInput)}
+{
+    apply_to_cross_references(mInput, [](auto& aField, const auto& aInputBlock, const auto& aFullInput)
+                              { ValidatedInput::fillCrossReference(aField, aInputBlock, aFullInput); });
+}
 
 ValidatedInput::Geometry ValidatedInput::geometry() const
 {
@@ -74,14 +81,16 @@ ValidatedInputVariant ValidatedInput::validatedVariant(InputVariant aInputVarian
 ValidatedInput make_validated_input(input_parser::ParsedInput aInput)
 {
     auto tMessages = plato::geometry::library::validate_geometry(aInput, std::vector<std::string>{});
+    tMessages = plato::filter::library::validate_filter(aInput, std::move(tMessages));
     tMessages = plato::criteria::library::validate_objectives(aInput.mObjectives, std::move(tMessages));
     tMessages = plato::criteria::library::validate_constraints(aInput.mConstraints, std::move(tMessages));
     tMessages = plato::process_manager::library::validate_process_managers(aInput, std::move(tMessages));
+    tMessages = validate_cross_referenced_input(aInput, std::move(tMessages));
 
     if (!tMessages.empty())
     {
         throw plato::utilities::Exception("Error: Could not validate input, the following errors were found: \n" +
-                                          utilities::concatenate_vector(tMessages, "\n"));
+                                          utilities::concatenate_container(tMessages, "\n"));
     }
     return ValidatedInput{std::move(aInput), Key{}};
 }

@@ -42,6 +42,15 @@ struct IsProcessManagerInput
 {
     constexpr static bool value = false;
 };
+
+/// @brief Type trait specifying if a type is a filter input type.
+///
+/// This is specialized to using the PLATO_FILTER_INPUT_BLOCK_STRUCT macro.
+template <typename T>
+struct IsFilterInput
+{
+    constexpr static bool value = false;
+};
 }  // namespace plato::input_parser
 
 // clang-format off
@@ -66,38 +75,37 @@ struct IsProcessManagerInput
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                       \
-BOOST_FUSION_DEFINE_STRUCT(                                                                    \
-    NAMESPACE_SEQ,                                                                             \
-    STRUCT_NAME,                                                                               \
-    TYPES_AS_OPTIONAL(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))                                \
-)                                                                                              \
-namespace plato::input_parser{                                                                 \
-template<>                                                                                     \
-struct InputTypeName<STRUCT_NAME>                                                              \
-{   static constexpr const char* name = #STRUCT_NAME;                                          \
-};                                                                                             \
+#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES) \
+BOOST_FUSION_DEFINE_STRUCT(                                              \
+    NAMESPACE_SEQ,                                                       \
+    STRUCT_NAME,                                                         \
+    TYPES_AS_OPTIONAL(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))          \
+)                                                                        \
+namespace plato::input_parser{                                           \
+template<>                                                               \
+struct InputTypeName<STRUCT_NAME>                                        \
+{   static constexpr const char* name = #STRUCT_NAME;                    \
+};                                                                       \
 }
 
-#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)              \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                               \
-namespace plato::input_parser{                                                                 \
-template<>                                                                                     \
-struct IsGeometryInput<STRUCT_NAME>                                                            \
-{                                                                                              \
-    constexpr static bool value = true;                                                        \
-};                                                                                             \
+#define PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, TYPE_TRAIT_STRUCT, ATTRIBUTES) \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                  \
+namespace plato::input_parser{                                                                    \
+template<>                                                                                        \
+struct TYPE_TRAIT_STRUCT<STRUCT_NAME>                                                             \
+{                                                                                                 \
+    constexpr static bool value = true;                                                           \
+};                                                                                                \
 }
 
-#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)       \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                               \
-namespace plato::input_parser{                                                                 \
-template<>                                                                                     \
-struct IsProcessManagerInput<STRUCT_NAME>                                                      \
-{                                                                                              \
-    constexpr static bool value = true;                                                        \
-};                                                                                             \
-}
+#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                            \
+PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsGeometryInput, ATTRIBUTES) \
+
+#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                           \
+PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsProcessManagerInput, ATTRIBUTES) \
+
+#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                            \
+PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ATTRIBUTES) \
 
 /// Macro for generating an adapted struct that can be used for input parsing. The format
 /// is the same as BOOST_FUSION_DEFINE_STRUCT and the resulting struct has all the same

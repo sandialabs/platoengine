@@ -12,7 +12,6 @@ TEST(ConstraintFactory, MultipleValidConstraints)
     input_parser::ParsedInput tInput = plato::test_utilities::create_valid_example_input();
     input_parser::constraint tConstraint = plato::test_utilities::create_valid_example_constraint();
     tConstraint.name = "eq";
-    tConstraint.app = input_parser::CodeOptions::kNodalSum;
     tConstraint.equal_to = 13;
     tInput.mConstraints = {tConstraint};
 

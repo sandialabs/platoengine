@@ -7,27 +7,18 @@
 #include <string_view>
 #include <vector>
 
+#include "plato/input_parser/UserDefinedToken.hpp"
+
 namespace plato::input_parser
 {
-/// @brief Helper for parsing a single file with a path
-/// Use this type in the input structs for a file name
-struct FileName
+/// @brief Valid characters for a file name, based on POSIX "Fully Portable Filenames"
+///  from https://en.wikipedia.org/wiki/Filename
+struct ValidFilenameCharacters
 {
-    /// Valid characters for a file name, based on
-    /// POSIX "Fully Portable Filenames" from https://en.wikipedia.org/wiki/Filename
-    static constexpr std::string_view kValidChars = "-a-zA-Z0-9._/";
-
-    using value_type = char;
-
-    [[nodiscard]] std::string::const_iterator begin() const;
-    [[nodiscard]] std::string::const_iterator end() const;
-    [[nodiscard]] std::string::iterator begin();
-    [[nodiscard]] std::string::iterator end();
-
-    void insert(std::string::iterator aIter, char aVal);
-
-    std::string mName;
+    constexpr const char* operator()() { return "-a-zA-Z0-9._/"; }
 };
+
+using FileName = UserDefinedToken<ValidFilenameCharacters>;
 
 /// @brief Helper for parsing lists of files
 /// Use this type in the input structs for a list of files
@@ -49,7 +40,6 @@ struct FileList
 };
 
 std::ostream& operator<<(std::ostream& stream, const FileList& aFileList);
-std::ostream& operator<<(std::ostream& stream, const FileName& aFileName);
 }  // namespace plato::input_parser
 
 namespace boost::spirit::traits
@@ -57,27 +47,12 @@ namespace boost::spirit::traits
 template <>
 struct create_parser<plato::input_parser::FileList>
 {
-    typedef proto::result_of::deep_copy<BOOST_TYPEOF(
-        (qi::lexeme[+qi::char_(plato::input_parser::FileName::kValidChars.data())] % ','))>::type type;
+    static constexpr std::string_view kValidChars = plato::input_parser::ValidFilenameCharacters{}();
 
-    static type call()
-    {
-        return proto::deep_copy(
-            (qi::lexeme[+qi::char_(plato::input_parser::FileName::kValidChars.data())] % ','));
-    }
-};
+    using type =
+        typename proto::result_of::deep_copy<BOOST_TYPEOF((qi::lexeme[+qi::char_(kValidChars.data())] % ','))>::type;
 
-template <>
-struct create_parser<plato::input_parser::FileName>
-{
-    typedef proto::result_of::deep_copy<BOOST_TYPEOF(
-        (qi::lexeme[+qi::char_(plato::input_parser::FileName::kValidChars.data())]))>::type type;
-
-    static type call()
-    {
-        return proto::deep_copy(
-            (qi::lexeme[+qi::char_(plato::input_parser::FileName::kValidChars.data())]));
-    }
+    static type call() { return proto::deep_copy((qi::lexeme[+qi::char_(kValidChars.data())] % ',')); }
 };
 
 }  // namespace boost::spirit::traits

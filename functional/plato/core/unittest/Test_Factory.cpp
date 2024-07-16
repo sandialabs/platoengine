@@ -97,4 +97,12 @@ TEST(FactoryRegistration, CreateObjectMultipleArgs)
     EXPECT_EQ(tTestObjectB->mNumber, tNumber);
 }
 
+TEST(FactoryRegistration, RegisteredFunctionNames)
+{
+    const auto tRegisteredFunctionNames = registered_function_names<TestFactoryObject, TestFactoryInput>();
+    EXPECT_EQ(tRegisteredFunctionNames.size(), 2u);
+    EXPECT_EQ(tRegisteredFunctionNames.count(std::string{kONegative}), 1u);
+    EXPECT_EQ(tRegisteredFunctionNames.count(std::string{kBPositive}), 1u);
+}
+
 }  // namespace plato::core::unittest

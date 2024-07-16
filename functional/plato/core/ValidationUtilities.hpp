@@ -27,6 +27,16 @@ template <typename T>
     const std::string_view aEntryName,
     const plato::utilities::ParameterBounds<T>& aBounds);
 
+/// @return an optional error message if @a aParameter exists and does not fall between @a aLowerBound and @a
+/// aUpperBound
+/// No error message if aParameter doesn't exist
+template <typename T>
+[[nodiscard]] std::optional<std::string> error_message_for_optional_parameter_out_of_bounds(
+    const std::string_view aPrependString,
+    const boost::optional<T>& aParameter,
+    const std::string_view aEntryName,
+    const plato::utilities::ParameterBounds<T>& aBounds);
+
 /// @brief Checks if the objective or constraint given by @a aParameter should be included in the optimization problem.
 /// @tparam Must have a public field `active` that is a `boost` or `std::optional`.
 template <typename Parameter>
@@ -71,6 +81,23 @@ std::optional<std::string> error_message_for_parameter_out_of_bounds(
     }
 }
 
+template <typename T>
+std::optional<std::string> error_message_for_optional_parameter_out_of_bounds(
+    const std::string_view aPrependString,
+    const boost::optional<T>& aParameter,
+    const std::string_view aEntryName,
+    const plato::utilities::ParameterBounds<T>& aBounds)
+{
+    if (aParameter.has_value())
+    {
+        return core::error_message_for_parameter_out_of_bounds(aPrependString, aParameter, aEntryName, aBounds);
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
 template <typename Parameter>
 bool is_active(const Parameter& aParameter)
 {
@@ -92,6 +119,14 @@ std::vector<std::string> validate_all_variants(const input_parser::ParsedInput& 
             tBlockEntry);
     }
     return std::move(aCurrentMessageList);
+}
+
+/// @brief Helper to get the raw input from a validated variant.
+template <typename InputType, typename ValidatedVariant>
+[[nodiscard]] const InputType& validated_variant_raw_input(const ValidatedVariant& aValidatedInput)
+{
+    assert(std::holds_alternative<ValidatedInputTypeWrapper<InputType>>(aValidatedInput.rawInput()));
+    return std::get<ValidatedInputTypeWrapper<InputType>>(aValidatedInput.rawInput()).rawInput();
 }
 
 }  // namespace plato::core

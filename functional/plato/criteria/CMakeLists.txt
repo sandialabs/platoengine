@@ -4,7 +4,9 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 set(DIRECTORIES library
                 extension)
 set(LINK_LIBS PlatoFunctionalCore
-              PlatoFunctionalLinearAlgebra)
+              PlatoFunctionalLinearAlgebra
+              PlatoFunctionalServices
+              PlatoFunctionalSTKIO)
 create_plato_library(PlatoFunctionalCriteria "${DIRECTORIES}" "${LINK_LIBS}")
 
 if( UNIT_TESTING )

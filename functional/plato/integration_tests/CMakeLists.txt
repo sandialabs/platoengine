@@ -2,7 +2,8 @@ include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
 set(LINK_LIBS PlatoFunctionalCriteria
-              PlatoFunctionalTestUtilities)
+              PlatoFunctionalTestUtilities
+              PlatoFunctionalSTKIO)
 create_plato_library(PlatoTestMassObjective test_mass_objective "${LINK_LIBS}")
 
 set(LINK_LIBS PlatoFunctionalLinearAlgebra
@@ -16,10 +17,10 @@ set(LINK_LIBS TeuchosCore::teuchoscore
               PlatoFunctional
               PlatoFunctionalIntegrationTestUtilities
               PlatoTestMassObjective)
-create_plato_integration_tester(PlatoFunctional_IntegrationUnitTester serial "${LINK_LIBS}")
+create_plato_integration_tester(PlatoFunctional_IntegrationUnitTester unittest "${LINK_LIBS}")
 
 # Parallel tests
 set(LINK_LIBS PlatoFunctional 
               PlatoFunctionalIntegrationTestUtilities)
 set(NUM_RANKS_FOR_TEST 4)
-create_plato_parallel_integration_tester(PlatoFunctional_IntegrationParallelUnitTester parallel "${LINK_LIBS}" ${NUM_RANKS_FOR_TEST})
+create_plato_parallel_integration_tester(PlatoFunctional_IntegrationParallelUnitTester parallel_unittest "${LINK_LIBS}" ${NUM_RANKS_FOR_TEST})

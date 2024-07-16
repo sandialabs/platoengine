@@ -9,7 +9,7 @@
 #include "plato/core/MeshProxy.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
-#include "plato/utilities/STKUtilities.hpp"
+#include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -43,7 +43,6 @@ void run_test_of_iota_vector_result(const linear_algebra::JacobianColumnEvaluato
 
 TEST(Brick, CenterAndDims)
 {
-    namespace pfu = plato::utilities;
     ASSERT_EQ(stk::parallel_machine_size(MPI_COMM_WORLD), 1);
 
     constexpr std::string_view tFileName = "test.exo";
@@ -52,15 +51,15 @@ TEST(Brick, CenterAndDims)
     {
         constexpr double tDiscretizationSize = 1.0;
         auto mesh = detail::create_mesh(tDesignParameters, tDiscretizationSize);
-        pfu::write_mesh(tFileName, mesh);
+        third_party_integration::stk_io::write_mesh(tFileName, mesh);
         constexpr unsigned tExpectedNumElements = 2 * 4 * 6;
-        EXPECT_EQ(tExpectedNumElements, pfu::element_size(tFileName));
+        EXPECT_EQ(tExpectedNumElements, third_party_integration::stk_io::element_size(tFileName));
     }
     {
         auto mesh = detail::create_mesh(tDesignParameters);
-        pfu::write_mesh(tFileName, mesh);
+        third_party_integration::stk_io::write_mesh(tFileName, mesh);
         constexpr unsigned tExpectedNumElements = 1;
-        EXPECT_EQ(tExpectedNumElements, pfu::element_size(tFileName));
+        EXPECT_EQ(tExpectedNumElements, third_party_integration::stk_io::element_size(tFileName));
     }
 
     EXPECT_TRUE(std::filesystem::exists(tFileName));
@@ -132,7 +131,6 @@ TEST(BrickSensitivities, JacobianEvaluator)
 
 TEST(Brick, ABrick)
 {
-    namespace pfu = plato::utilities;
     const std::string tFileName = "brick.exo";
 
     constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
@@ -151,7 +149,7 @@ TEST(Brick, ABrick)
         tUniqueFileName = tMP.mFileName;
 
         constexpr unsigned tExpectedNumElements = 2 * 4 * 6;
-        EXPECT_EQ(tExpectedNumElements, pfu::element_size(tUniqueFileName));
+        EXPECT_EQ(tExpectedNumElements, third_party_integration::stk_io::element_size(tUniqueFileName));
     }
     // When BrickShapeGeometry goes out-of-scope, the file should be deleted
     EXPECT_FALSE(std::filesystem::exists(tUniqueFileName));
@@ -159,7 +157,6 @@ TEST(Brick, ABrick)
 
 TEST(Brick, ConvertDesignParametersToROLStdVector)
 {
-    namespace pfu = plato::utilities;
     constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
                                                /*.center_y = */ -2,
                                                /*.center_z = */ -3,
@@ -195,7 +192,6 @@ TEST(Brick, Jacobian)
 
 TEST(Brick, ToROLStdVector)
 {
-    namespace pfu = plato::utilities;
     constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
                                                /*.center_y = */ -2,
                                                /*.center_z = */ -3,

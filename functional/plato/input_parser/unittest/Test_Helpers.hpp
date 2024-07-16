@@ -10,6 +10,11 @@
 
 #include "plato/input_parser/FileList.hpp"
 
+namespace plato::input_parser
+{
+struct ParsedInput;
+}
+
 namespace plato::input_parser::unittest
 {
 /// @brief Tests that @a aOptionalValue contains a value via assertion, and that it is equal to @a aVal.
@@ -20,11 +25,12 @@ void test_existence_and_equality(const boost::optional<T>& aOptionalVal, const U
     EXPECT_EQ(aOptionalVal.value(), aVal);
 }
 
-template <>
-inline void test_existence_and_equality(const boost::optional<FileName>& aOptionalVal, const std::string& aVal)
+template <typename ValidChars>
+inline void test_existence_and_equality(const boost::optional<UserDefinedToken<ValidChars>>& aOptionalVal,
+                                        const std::string& aVal)
 {
     ASSERT_TRUE(aOptionalVal);
-    EXPECT_EQ(aOptionalVal.value().mName, aVal);
+    EXPECT_EQ(aOptionalVal.value().mToken, aVal);
 }
 
 template <>
@@ -42,6 +48,8 @@ void copy_test(T& aFileList)
     std::copy(aFileList.begin(), aFileList.end(), std::back_inserter(tCopy));
     EXPECT_EQ(aFileList.mList, tCopy);
 }
+
+auto parse_string(const std::string& aInput) -> std::tuple<bool, std::string::const_iterator, ParsedInput>;
 
 }  // namespace plato::input_parser::unittest
 

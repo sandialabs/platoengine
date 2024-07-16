@@ -1,6 +1,8 @@
 #ifndef PLATO_CRITERIA_EXTENSION_NODALSUMOBJECTIVE
 #define PLATO_CRITERIA_EXTENSION_NODALSUMOBJECTIVE
 
+#include <string_view>
+
 #include "plato/core/Function.hpp"
 #include "plato/core/MeshProxy.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -13,6 +15,8 @@ struct NodalSumObjective
 {
     [[nodiscard]] double f(const core::MeshProxy& aMeshProxy) const;
     [[nodiscard]] linear_algebra::DynamicVector<double> df(const core::MeshProxy& aMeshProxy) const;
+
+    static constexpr auto kCriterionName = std::string_view{"nodal_sum"};
 };
 
 /// @brief Creates a Function object from a NodalSumObjective

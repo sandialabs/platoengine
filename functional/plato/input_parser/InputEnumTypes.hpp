@@ -5,20 +5,13 @@
 #include "plato/utilities/EnumTable.hpp"
 
 // clang-format off
-DECLARE_ENUM_SYMBOL_TABLE(CodeOptions,
-                         (kNodalSum, "nodal_sum")
-                         (kVolume, "volume")
-                         (kVolumeFraction, "volume_fraction")
-                         (kCustomApp, "custom_app"))
-
 DECLARE_ENUM_SYMBOL_TABLE(ObjectiveTypes,
                          (kMinimize, "minimize")
                          (kMaximize, "maximize"))
 
-DECLARE_ENUM_SYMBOL_TABLE(FilterTypes,
-                         (kIdentity, "identity")
-                         (kHelmholtz, "helmholtz")
-                         (kKernel, "kernel"))
+DECLARE_ENUM_SYMBOL_TABLE(KernelFilterCenteringTypes,
+                         (kElementCentered, "element")
+                         (kNodeCentered, "node"))
 // clang-format on
 
 #endif

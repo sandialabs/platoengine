@@ -1,6 +1,7 @@
 #ifndef PLATO_UTILITIES_STRINGUTILTIES
 #define PLATO_UTILITIES_STRINGUTILTIES
 
+#include <numeric>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -8,7 +9,8 @@
 namespace plato::utilities
 {
 /// @brief Concatenates all messages in @a aStrings with a delimeter @a aDelimiter in between each string.
-std::string concatenate_vector(const std::vector<std::string>& aStrings, std::string_view aDelimiter = " ");
+template <template <class...> typename Container>
+std::string concatenate_container(const Container<std::string>& aStrings, std::string_view aDelimiter = " ");
 
 /// @brief Concatenates all of @a strings into a single string.
 /// @tparam StringConvertible Any type that std::string is constructable from or any arithmetic type that
@@ -36,6 +38,18 @@ template <typename T>
     }
 }
 }  // namespace detail
+
+template <template <class...> typename Container>
+std::string concatenate_container(const Container<std::string>& aStrings, const std::string_view aDelimiter)
+{
+    if (aStrings.empty())
+    {
+        return {};
+    }
+    return std::accumulate(std::next(aStrings.cbegin()), aStrings.cend(), *aStrings.cbegin(),
+                           [aDelimiter](std::string aAllNames, std::string aCurrentName)
+                           { return std::move(aAllNames) + std::string{aDelimiter} + std::move(aCurrentName); });
+}
 
 template <typename... StringConvertible>
 std::string concatenate(StringConvertible&&... strings)

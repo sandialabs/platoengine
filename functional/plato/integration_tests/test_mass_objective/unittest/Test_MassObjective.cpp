@@ -3,8 +3,8 @@
 #include <filesystem>
 
 #include "plato/integration_tests/test_mass_objective/MassObjective.hpp"
-#include "plato/utilities/STKCommandGenerator.hpp"
-#include "plato/utilities/STKUtilities.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::integration_tests::test_mass_objective::unittest
 {
@@ -14,9 +14,10 @@ TEST(MassObjective, Value)
     const auto tMassObjective = MassObjective{tDensity};
 
     constexpr std::string_view tMeshName = "massTest.exo";
-    const utilities::STKCommandGenerator tSTKCommandGenerator{
-        {1, 1, 1}, {-1, -1, -1}, {1, 1, 1}, utilities::STKCommandElementType::Hex};
-    utilities::write_mesh(tMeshName, utilities::create_mesh(tSTKCommandGenerator.toString()));
+    const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
+        {1, 1, 1}, {-1, -1, -1}, {1, 1, 1}, utilities::CommandElementType::Hex};
+    third_party_integration::stk_io::write_mesh(
+        tMeshName, third_party_integration::stk_io::generate_mesh(tCommandGenerator.toString()));
 
     constexpr double tExpectedMass = tDensity * 8.0;
     EXPECT_DOUBLE_EQ(tMassObjective.mass(tMeshName), tExpectedMass);

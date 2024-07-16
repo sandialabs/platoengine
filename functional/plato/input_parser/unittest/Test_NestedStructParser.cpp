@@ -5,9 +5,21 @@
 
 #include <string_view>
 
+#include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputParser.hpp"
 #include "plato/input_parser/Skipper.hpp"
+
+namespace plato::input_parser::unittest
+{
+/// @brief Type trait for defining a cross reference field. This is not used in any actual input blocks, but is required
+/// for defining the CrossReference field.
+template <typename T>
+struct IsTypeTraitInput
+{
+    constexpr static bool value = false;
+};
+}  // namespace plato::input_parser::unittest
 
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT(
@@ -31,12 +43,22 @@ PLATO_INPUT_BLOCK_STRUCT(
     (double, end_field)
 )
 
+/// @brief Test input block that includes a cross reference to another input block with the IsTypeTraitInput type trait.
+/// This is used for testing parsing of a Cross-Reference field which requires a type trait template parameter.
+/// No input block with IsTypeTraitInput is defined in this test harness. 
+PLATO_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), block_with_cross_reference, 
+    (int, field)
+    (plato::input_parser::CrossReference<plato::input_parser::unittest::IsTypeTraitInput>, hotdog)
+)
+
 BOOST_FUSION_DEFINE_STRUCT(
     (plato)(input_parser)(unittest), TestParsedInput,
     (boost::optional<plato::input_parser::test>, mTest)
     (boost::optional<plato::input_parser::test_block>, mTestBlock)
     (std::vector<plato::input_parser::test_block_with_name>, mTestBlockWithName)
     (boost::optional<plato::input_parser::block_with_end_field>, mBlockWithEndField)
+    (boost::optional<plato::input_parser::block_with_cross_reference>, mBlockWithCrossReference)
 )
 // clang-format on
 
@@ -115,6 +137,23 @@ TEST(GenericParser, BlockWithEndField)
     ASSERT_TRUE(tParsedData.mBlockWithEndField);
     ASSERT_TRUE(tParsedData.mBlockWithEndField->end_field);
     EXPECT_EQ(tParsedData.mBlockWithEndField->end_field.value(), 42);
+}
+
+TEST(GenericParser, BlockWithCrossReference)
+{
+    const auto tInput = std::string_view{
+        R"(
+        begin block_with_cross_reference
+            field 4
+            hotdog oscar_mayer
+        end
+    )"};
+
+    const auto [tParsedData, tWasParsed] = parse_input(tInput);
+    EXPECT_TRUE(tWasParsed);
+    ASSERT_TRUE(tParsedData.mBlockWithCrossReference);
+    ASSERT_TRUE(tParsedData.mBlockWithCrossReference->hotdog);
+    EXPECT_EQ(tParsedData.mBlockWithCrossReference->hotdog.value().mName, "oscar_mayer");
 }
 
 }  // namespace plato::input_parser::unittest

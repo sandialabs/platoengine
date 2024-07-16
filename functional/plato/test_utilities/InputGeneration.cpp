@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/InputDefinitions.hpp"
 
 namespace plato::test_utilities
 {
@@ -10,7 +11,8 @@ namespace plato::test_utilities
 input_parser::ParsedInput create_valid_example_input()
 {
     return create_valid_example_objective() | create_valid_example_constraint() |
-           create_valid_density_topology_geometry() | create_valid_example_rol_optimization();
+           create_valid_density_topology_geometry() | create_valid_example_rol_optimization() |
+           create_valid_identity_filter();
 }
 
 input_parser::brick_shape_geometry create_valid_brick_shape_geometry()
@@ -29,11 +31,9 @@ std::string create_valid_brick_shape_geometry_string()
 
 input_parser::density_topology create_valid_density_topology_geometry()
 {
-    return input_parser::density_topology{/*.mesh_name = */ input_parser::FileName{"test.exo"},
-                                          /*.output_name = */ input_parser::FileName{"test_out.exo"},
-                                          /*.filter_type = */ input_parser::FilterTypes::kIdentity,
-                                          /*.filter_radius=*/boost::none,
-                                          /*.boundary_sticking_penalty=*/boost::none};
+    return input_parser::density_topology{/*.mesh_name=*/input_parser::FileName{"test.exo"},
+                                          /*.output_name=*/input_parser::FileName{"test_out.exo"},
+                                          /*.filter=*/boost::none};
 }
 
 std::string create_valid_density_topology_geometry_string()
@@ -42,7 +42,6 @@ std::string create_valid_density_topology_geometry_string()
         begin density_topology
           mesh_name my_mesh.exo
           output_name test_out.exo
-          filter_type identity
         end
         )";
 }
@@ -83,8 +82,8 @@ input_parser::constraint create_valid_example_constraint()
 {
     return input_parser::constraint{/*.name=*/std::string{"bike-shed"},
                                     /*.active=*/true,
-                                    /*.app=*/input_parser::CodeOptions::kNodalSum,
-                                    /*.shared_library_path=*/input_parser::FileName{},
+                                    /*.app=*/input_parser::AppName{std::string{input_parser::kBuiltinAppName}},
+                                    /*.criterion=*/input_parser::CriterionName{"nodal_sum"},
                                     /*.number_of_processors=*/1u,
                                     /*.input_files=*/input_parser::FileList{{"brown.txt", "butter.txt", "sauce.txt"}},
                                     /*.equal_to=*/0.0,
@@ -96,7 +95,8 @@ std::string create_valid_example_constraint_string()
     return R"(
           begin constraint test
             active true
-            app nodal_sum
+            app platoengine
+            criterion nodal_sum
             number_of_processors 1
             input_files test-input.inp
             equal_to 13
@@ -109,8 +109,8 @@ input_parser::objective create_valid_example_objective()
 {
     return input_parser::objective{/*.name=*/std::string{"bike-shed"},
                                    /*.active=*/true,
-                                   /*.app=*/input_parser::CodeOptions::kNodalSum,
-                                   /*.shared_library_path=*/input_parser::FileName{},
+                                   /*.app=*/input_parser::AppName{std::string{input_parser::kBuiltinAppName}},
+                                   /*.criterion=*/input_parser::CriterionName{"nodal_sum"},
                                    /*.number_of_processors=*/1u,
                                    /*.input_files=*/input_parser::FileList{{"brown.txt", "butter.txt", "sauce.txt"}},
                                    /*.aggregation_weight=*/13.0,
@@ -122,7 +122,8 @@ std::string create_valid_example_objective_string()
     return R"(
           begin objective test
             active true
-            app nodal_sum
+            app platoengine
+            criterion nodal_sum
             number_of_processors 1
             input_files test-input.inp
             aggregation_weight 42.0
@@ -175,5 +176,30 @@ input_parser::constraint_check create_valid_example_constraint_check()
 input_parser::sensitivity_check create_valid_example_sensitivity_check()
 {
     return input_parser::sensitivity_check{/*.output_file_name=*/input_parser::FileName{"sensitivity_check.txt"}};
+}
+
+input_parser::identity_filter create_valid_identity_filter()
+{
+    return input_parser::identity_filter{/*.filter_radius = */ boost::none};
+}
+
+std::string create_valid_identity_filter_string()
+{
+    return R"(
+          begin identity_filter
+          end
+       )";
+}
+
+input_parser::helmholtz_filter create_valid_helmholtz_filter()
+{
+    return input_parser::helmholtz_filter{/*.filter_radius=*/91.0,
+                                          /*.boundary_sticking_penalty=*/1.0};
+}
+
+input_parser::kernel_filter create_valid_kernel_filter()
+{
+    return input_parser::kernel_filter{/*.filter_radius=*/17.0,
+                                       /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kNodeCentered};
 }
 }  // namespace plato::test_utilities

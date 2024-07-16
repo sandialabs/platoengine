@@ -32,11 +32,14 @@ std::vector<double> ParallelMassObjectiveInterface::gradient(const core::MeshPro
 
 }  // namespace plato::integration_tests::test_mass_objective
 
-namespace plato
+std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_parallel_criterion(
+    const std::vector<std::string>&, const MPI_Comm aComm)
 {
-std::unique_ptr<criteria::library::CriterionInterface> plato_create_parallel_criterion(const std::vector<std::string>&,
-                                                                                       const MPI_Comm aComm)
-{
-    return std::make_unique<integration_tests::test_mass_objective::ParallelMassObjectiveInterface>(aComm);
+    return std::make_unique<::plato::integration_tests::test_mass_objective::ParallelMassObjectiveInterface>(aComm);
 }
-}  // namespace plato
+
+std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_parallel_test_mass_criterion(
+    const std::vector<std::string>&, const MPI_Comm aComm)
+{
+    return std::make_unique<::plato::integration_tests::test_mass_objective::ParallelMassObjectiveInterface>(aComm);
+}

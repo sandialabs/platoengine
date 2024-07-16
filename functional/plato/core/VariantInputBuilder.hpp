@@ -22,6 +22,18 @@ struct TypeOrOptional<boost::optional<T>>
     using type = T;
 };
 
+template <typename T>
+struct TypeOrValidatedType
+{
+    using type = T;
+};
+
+template <typename T>
+struct TypeOrValidatedType<ValidatedInputTypeWrapper<T>>
+{
+    using type = T;
+};
+
 template <typename T, template <typename> typename IsVariantMember>
 auto tuple_if_variant_input()
 {
@@ -83,6 +95,6 @@ template <typename FusionStruct, template <typename> typename IsVariantMember>
 using ValidatedInputVariant = typename VariantFromTuple<
     std::invoke_result_t<make_variant_input_tuple<IsVariantMember>, FusionStruct>>::validated_type;
 
-}  // namespace plato::core::detail
+}  // namespace plato::core
 
 #endif

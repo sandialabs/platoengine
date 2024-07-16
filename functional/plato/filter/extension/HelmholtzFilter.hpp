@@ -6,13 +6,12 @@
 
 namespace plato::input_parser
 {
-struct density_topology;
+struct helmholtz_filter;
 }
 namespace plato::filter::extension
 {
-[[nodiscard]] std::optional<std::string> validate_helmholtz_filter_radius(const input_parser::density_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_helmholtz_filter_boundary_sticking_penalty(
-    const input_parser::density_topology& aInput);
+    const input_parser::helmholtz_filter& aInput);
 
 }  // namespace plato::filter::extension
 

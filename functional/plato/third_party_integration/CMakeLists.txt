@@ -1,0 +1,5 @@
+add_subdirectory(./common)
+add_subdirectory(./rol)
+add_subdirectory(./stk_search)
+add_subdirectory(./stk_io)
+add_subdirectory(./tpetra)

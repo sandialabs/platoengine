@@ -506,16 +506,6 @@ void append_write_output_operation_deterministic_usecase
 (const XMLGen::InputData& aMetaData,
  pugi::xml_node& aParentNode)
 {
-    int tNumPlatoAnalyzeOutputs = 0;
-    for(auto &tCurOutput : aMetaData.mOutputMetaData)
-    {
-        auto tServiceID = tCurOutput.serviceID();
-        auto &tService = aMetaData.service(tServiceID);
-        if(tService.code() == "plato_analyze")
-        {
-            tNumPlatoAnalyzeOutputs++;
-        }
-    }
     pugi::xml_node tCurParentNode = aParentNode;
 
     for(auto &tOutputMetadata : aMetaData.mOutputMetaData)

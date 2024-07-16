@@ -10,7 +10,13 @@
 #include "plato/core/Function.hpp"
 #include "plato/core/MeshProxy.hpp"
 #include "plato/criteria/library/CriterionInterface.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+
+namespace plato::services
+{
+struct AppConfigurationWithDirectory;
+}
 
 namespace plato::criteria::extension
 {
@@ -21,8 +27,11 @@ namespace plato::criteria::extension
 class SharedLibCriterion
 {
    public:
-    SharedLibCriterion(const std::filesystem::path& aSharedLibPath, const std::vector<std::string>& aFileNames);
-    SharedLibCriterion(const std::filesystem::path& aSharedLibPath,
+    SharedLibCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
+                       const services::CriterionConfiguration& aCriterionConfiguration,
+                       const std::vector<std::string>& aFileNames);
+    SharedLibCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
+                       const services::CriterionConfiguration& aCriterionConfiguration,
                        const std::vector<std::string>& aFileNames,
                        const boost::mpi::communicator& aComm);
 

@@ -4,9 +4,16 @@
 #include <string>
 #include <vector>
 
+#include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+
+namespace plato::input_parser
+{
+using FilterCrossReference = plato::input_parser::CrossReference<plato::input_parser::IsFilterInput>;
+}
 
 /// @file Input block declarations.
 ///  Each PLATO_INPUT_BLOCK_STRUCT represents a parsable struct of key-value pairs.
@@ -69,8 +76,8 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), objective,
     (bool, active)
-    (plato::input_parser::CodeOptions, app) 
-    (plato::input_parser::FileName, shared_library_path)
+    (plato::input_parser::AppName, app) 
+    (plato::input_parser::CriterionName, criterion)
     (unsigned int, number_of_processors)
     (plato::input_parser::FileList, input_files)
     (double, aggregation_weight)
@@ -80,8 +87,8 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), constraint,
     (bool, active)
-    (plato::input_parser::CodeOptions, app) 
-    (plato::input_parser::FileName, shared_library_path)
+    (plato::input_parser::AppName, app) 
+    (plato::input_parser::CriterionName, criterion)
     (unsigned int, number_of_processors)
     (plato::input_parser::FileList, input_files)
     (double, equal_to)
@@ -97,10 +104,24 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), density_topology,
     (plato::input_parser::FileName, mesh_name)
     (plato::input_parser::FileName, output_name)
-    (plato::input_parser::FilterTypes, filter_type)
+    (plato::input_parser::FilterCrossReference, filter)
+)
+
+PLATO_FILTER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), identity_filter,
+    (double, filter_radius)
+)
+
+PLATO_FILTER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), helmholtz_filter,
     (double, filter_radius)
     (double, boundary_sticking_penalty)
 )
+
+PLATO_FILTER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), kernel_filter,
+    (double, filter_radius)
+    (plato::input_parser::KernelFilterCenteringTypes, centering_type)
 
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), levelset_topology,
@@ -134,6 +155,9 @@ BOOST_FUSION_DEFINE_STRUCT(
     (boost::optional<plato::input_parser::brick_shape_geometry>, mBrickShapeGeometry)
     (boost::optional<plato::input_parser::density_topology>, mDensityTopology)
     (boost::optional<plato::input_parser::levelset_topology>, mLevelsetTopology)
+    (boost::optional<plato::input_parser::identity_filter>, mIdentityFilter)
+    (boost::optional<plato::input_parser::helmholtz_filter>, mHelmholtzFilter)
+    (boost::optional<plato::input_parser::kernel_filter>, mKernelFilter)
     (boost::optional<plato::input_parser::rol_optimization>, mROLOptimization)
     (boost::optional<plato::input_parser::gradient_check>, mGradientCheck)
     (boost::optional<plato::input_parser::constraint_check>, mConstraintCheck)

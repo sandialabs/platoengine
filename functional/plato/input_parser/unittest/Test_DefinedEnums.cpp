@@ -22,23 +22,6 @@ bool parse_symbol_table(Iterator aBegin, Iterator aEnd, std::vector<EnumType>& a
 }
 }  // namespace
 
-TEST(CodeOptions, EnumTable)
-{
-    EXPECT_TRUE(kCodeOptionsTable.toString(CodeOptions::kVolumeFraction));
-    EXPECT_EQ(kCodeOptionsTable.toString(CodeOptions::kVolumeFraction).value(), "volume_fraction");
-}
-
-TEST(CodeOptions, SymbolParser)
-{
-    std::vector<CodeOptions> tParsedCodeOptions;
-
-    const std::string tValidApps = "volume_fraction, volume_fraction";
-    EXPECT_TRUE(parse_symbol_table(tValidApps.begin(), tValidApps.end(), tParsedCodeOptions));
-    ASSERT_EQ(tParsedCodeOptions.size(), 2u);
-    EXPECT_EQ(tParsedCodeOptions.front(), CodeOptions::kVolumeFraction);
-    EXPECT_EQ(tParsedCodeOptions.back(), CodeOptions::kVolumeFraction);
-}
-
 TEST(ObjectiveTypes, EnumTable)
 {
     EXPECT_TRUE(kObjectiveTypesTable.toString(ObjectiveTypes::kMinimize));
@@ -56,5 +39,14 @@ TEST(ObjectiveTypes, SymbolParser)
     ASSERT_EQ(tParsedObjectiveTypes.size(), 2u);
     EXPECT_EQ(tParsedObjectiveTypes.front(), ObjectiveTypes::kMinimize);
     EXPECT_EQ(tParsedObjectiveTypes.back(), ObjectiveTypes::kMaximize);
+}
+
+TEST(KernelFilterCenteringTypes, EnumTable)
+{
+    EXPECT_TRUE(kKernelFilterCenteringTypesTable.toString(KernelFilterCenteringTypes::kElementCentered));
+    EXPECT_EQ(kKernelFilterCenteringTypesTable.toString(KernelFilterCenteringTypes::kElementCentered).value(),
+              "element");
+    EXPECT_TRUE(kKernelFilterCenteringTypesTable.toString(KernelFilterCenteringTypes::kNodeCentered));
+    EXPECT_EQ(kKernelFilterCenteringTypesTable.toString(KernelFilterCenteringTypes::kNodeCentered).value(), "node");
 }
 }  // namespace plato::input_parser::unittest

@@ -7,19 +7,10 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/Zip.hpp"
 #include "plato/utilities/ZipIterator.hpp"
+#include "plato/utilities/unittest/CopyCounter.hpp"
 
 namespace plato::utilities::unittest
 {
-namespace
-{
-struct CopyCounter
-{
-    unsigned int mCount = 0;
-    CopyCounter() {}
-    CopyCounter(const CopyCounter& aCopy) : mCount{aCopy.mCount} { ++mCount; }
-};
-}  // namespace
-
 TEST(Zip, AnyOf)
 {
     constexpr auto tTuple1 = std::make_tuple(1, 'a');
@@ -89,15 +80,15 @@ TEST(Zip, DereferencingIteratorDoesNotCopy)
     tVector1.reserve(2);
     tVector1.emplace_back();
     tVector1.emplace_back();
-    EXPECT_EQ(tVector1.front().mCount, 0);
+    EXPECT_EQ(tVector1.front().mCopies, 0);
     {
         const auto tIter = tVector1.cbegin();
-        EXPECT_EQ(tIter->mCount, 0);
+        EXPECT_EQ(tIter->mCopies, 0);
     }
     {
         const auto tZipIterator = ZipIterator{tVector1.cbegin()};
         const auto& value = *tZipIterator;
-        EXPECT_EQ(std::get<0>(value).mCount, 0);
+        EXPECT_EQ(std::get<0>(value).mCopies, 0);
     }
 
     // Copies these on construction, so expect 1 copy
@@ -105,14 +96,14 @@ TEST(Zip, DereferencingIteratorDoesNotCopy)
     {
         auto tZipIterator = ZipIterator{tVector1.rbegin(), tVector2.begin()};
         auto values = *tZipIterator;
-        EXPECT_EQ(std::get<0>(values).mCount, 0);
-        EXPECT_EQ(std::get<1>(values).mCount, 1);
+        EXPECT_EQ(std::get<0>(values).mCopies, 0);
+        EXPECT_EQ(std::get<1>(values).mCopies, 1);
     }
     {
         auto tZipIterator = ZipIterator{tVector1.rbegin(), tVector2.begin()};
         auto [tValue1, tValue2] = *tZipIterator;
-        EXPECT_EQ(tValue1.mCount, 0);
-        EXPECT_EQ(tValue2.mCount, 1);
+        EXPECT_EQ(tValue1.mCopies, 0);
+        EXPECT_EQ(tValue2.mCopies, 1);
     }
 }
 
@@ -320,7 +311,7 @@ TEST(Zip, NoCopiesForLValues)
     auto tCopyCount = unsigned{0u};
     for (const auto [tValue1] : Zip{tVector1})
     {
-        tCopyCount += tValue1.mCount;
+        tCopyCount += tValue1.mCopies;
     }
     EXPECT_EQ(tCopyCount, 0);
 }
@@ -330,7 +321,7 @@ TEST(Zip, CopiesForRValues)
     auto tCopyCount = unsigned{0u};
     for (const auto [tValue1] : Zip{std::vector<CopyCounter>(3)})
     {
-        tCopyCount += tValue1.mCount;
+        tCopyCount += tValue1.mCopies;
     }
     EXPECT_EQ(tCopyCount, 3);
 }

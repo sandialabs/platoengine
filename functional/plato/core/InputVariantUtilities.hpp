@@ -8,6 +8,7 @@
 #include <variant>
 
 #include "plato/core/ValidatedInputTypeWrapper.hpp"
+#include "plato/core/VariantInputBuilder.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -15,15 +16,15 @@ namespace plato::core
 {
 /// @brief Given a variant type @a InputVariant, this copies and returns each type type found in @a aInput in a vector.
 /// @tparam InputVariant A `std::variant` with alternatives corresponding to input types in the ParsedInput struct.
-template <typename InputVariant>
-[[nodiscard]] std::vector<InputVariant> all_input_blocks_in_variant(const input_parser::ParsedInput& aInput);
+template <typename InputVariant, typename FullInput>
+[[nodiscard]] std::vector<InputVariant> all_input_blocks_in_variant(const FullInput& aInput);
 
 /// @return An optional InputVariant variant, which is the first non-empty input block found in @a aInput that is a
 /// member of the variant.
 ///  If no block was found, an empty optional is returned.
 /// @tparam InputVariant A `std::variant` with alternatives corresponding to input types in the ParsedInput struct.
-template <typename InputVariant>
-[[nodiscard]] std::optional<InputVariant> first_input_block_in_variant(const input_parser::ParsedInput& aInput);
+template <typename InputVariant, typename FullInput>
+[[nodiscard]] std::optional<InputVariant> first_input_block_in_variant(const FullInput& aInput);
 
 /// @return The name of the input held by the variant @a aInput
 /// @tparam InputVariant A `std::variant` with alternatives corresponding to input types in the ParsedInput struct.
@@ -75,8 +76,8 @@ void emplace_back_if_has_value(std::vector<InputVariant>& aInput, std::optional<
     }
 }
 
-template <typename InputVariant, std::size_t... Is>
-[[nodiscard]] std::vector<InputVariant> all_input_blocks_impl(const input_parser::ParsedInput& aInput,
+template <typename InputVariant, typename FullInput, std::size_t... Is>
+[[nodiscard]] std::vector<InputVariant> all_input_blocks_impl(const FullInput& aInput,
                                                               std::integer_sequence<std::size_t, Is...>)
 {
     std::vector<InputVariant> tInput;
@@ -95,15 +96,15 @@ template <typename InputVariant, std::size_t... Is>
 
 }  // namespace detail
 
-template <typename InputVariant>
-std::vector<InputVariant> all_input_blocks_in_variant(const input_parser::ParsedInput& aInput)
+template <typename InputVariant, typename FullInput>
+[[nodiscard]] std::vector<InputVariant> all_input_blocks_in_variant(const FullInput& aInput)
 {
-    constexpr auto tNumInputFields = boost::fusion::result_of::size<input_parser::ParsedInput>::value;
+    constexpr auto tNumInputFields = boost::fusion::result_of::size<FullInput>::value;
     return detail::all_input_blocks_impl<InputVariant>(aInput, std::make_index_sequence<tNumInputFields>{});
 }
 
-template <typename InputVariant>
-std::optional<InputVariant> first_input_block_in_variant(const input_parser::ParsedInput& aInput)
+template <typename InputVariant, typename FullInput>
+[[nodiscard]] std::optional<InputVariant> first_input_block_in_variant(const FullInput& aInput)
 {
     const std::vector<InputVariant> tInputBlocks = all_input_blocks_in_variant<InputVariant>(aInput);
     if (tInputBlocks.empty())
@@ -117,20 +118,20 @@ std::optional<InputVariant> first_input_block_in_variant(const input_parser::Par
 }
 
 template <typename T>
-std::string block_name(const T& aInput)
+[[nodiscard]] std::string block_name(const T& aInput)
 {
     return std::visit(
         [](const auto& aObj) -> std::string
         {
-            using ValidatedInputType = std::decay_t<decltype(aObj)>;
-            using RawInputType = typename ValidatedInputType::RawInputType;
+            using VariantType = std::decay_t<decltype(aObj)>;
+            using RawInputType = typename TypeOrValidatedType<VariantType>::type;
             return input_parser::block_name<RawInputType>();
         },
         aInput);
 }
 
 template <typename InputVariant>
-std::vector<std::string> all_variant_block_names()
+[[nodiscard]] std::vector<std::string> all_variant_block_names()
 {
     return detail::all_variant_block_names_impl<InputVariant>(
         std::make_index_sequence<std::variant_size_v<InputVariant>>());

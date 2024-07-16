@@ -21,7 +21,7 @@ TEST(ProcessManagerData, InputFileToROLObjective)
     const std::string tInput = test_utilities::create_valid_brick_shape_geometry_string() +
                                " begin objective test"
                                " active true"
-                               " app nodal_sum"
+                               " criterion nodal_sum"
                                " number_of_processors 1"
                                " input_files test-input.inp"
                                " aggregation_weight " +
@@ -31,7 +31,8 @@ TEST(ProcessManagerData, InputFileToROLObjective)
     const library::ValidatedInput tData{library::parse_and_validate(tInput)};
 
     const library::ProcessManagerData tProblem = library::make_process_manager_data(tData);
-    std::unique_ptr<rol_integration::ROLObjectiveFunction> tObjectiveFunction = make_rol_objective(tProblem);
+    std::unique_ptr<third_party_integration::rol::ROLObjectiveFunction> tObjectiveFunction =
+        make_rol_objective(tProblem);
     const ROL::StdVector<double> tBoundingBox{0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
     double tTolerance = 1e-8;
 
@@ -52,7 +53,7 @@ TEST(ProcessManagerData, InputFileToROLConstraint)
                                R"(
                                 begin constraint test
                                   active true
-                                  app nodal_sum
+                                  criterion nodal_sum
                                   equal_to 2
                                 end
                               )" +
@@ -83,7 +84,7 @@ TEST(ProcessManagerData, InputFileToROLSolver)
                                R"(
                                 begin constraint test
                                   active true
-                                  app nodal_sum
+                                  criterion nodal_sum
                                   equal_to 2
                                 end
                               )" +
@@ -91,11 +92,13 @@ TEST(ProcessManagerData, InputFileToROLSolver)
 
     const library::ValidatedInput tData{library::parse_and_validate(tInput)};
     const library::ProcessManagerData tPlatoProblem = library::make_process_manager_data(tData);
-    const auto tValidatedOptimizationParameters = library::process_manager_input<input_parser::rol_optimization>(
-        tData.processManagers().rawInput().front());
-    Teuchos::ParameterList tROLOptions = rol_integration::rol_parameter_list(tValidatedOptimizationParameters);
+    const auto tValidatedOptimizationParameters =
+        library::process_manager_input<input_parser::rol_optimization>(tData.processManagers().rawInput().front());
+    Teuchos::ParameterList tROLOptions =
+        third_party_integration::rol::rol_parameter_list(tValidatedOptimizationParameters);
     const auto tROLProblem = Teuchos::RCP{make_rol_problem(tPlatoProblem).release()};
-    const ROL::Solver<double> tSolver = rol_integration::make_rol_solver(tROLOptions, std::move(tROLProblem));
+    const ROL::Solver<double> tSolver =
+        third_party_integration::rol::make_rol_solver(tROLOptions, std::move(tROLProblem));
 
     EXPECT_EQ(tSolver.getAlgorithmState()->iter, 0);
 }

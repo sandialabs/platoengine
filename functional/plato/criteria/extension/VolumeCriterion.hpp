@@ -1,6 +1,8 @@
 #ifndef PLATO_CRITERIA_EXTENSION_VOLUMECRITERION
 #define PLATO_CRITERIA_EXTENSION_VOLUMECRITERION
 
+#include <string_view>
+
 #include "plato/core/Function.hpp"
 #include "plato/core/MeshProxy.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -15,6 +17,9 @@ struct VolumeCriterion
 {
     [[nodiscard]] double f(const core::MeshProxy& aMeshProxy) const;
     [[nodiscard]] linear_algebra::DynamicVector<double> df(const core::MeshProxy& aMeshProxy) const;
+
+    static constexpr auto kVolumeCriterionName = std::string_view{"volume"};
+    static constexpr auto kVolumeFractionCriterionName = std::string_view{"volume_fraction"};
 
     double mScaleFactor = 1;
 };

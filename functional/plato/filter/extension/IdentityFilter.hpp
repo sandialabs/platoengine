@@ -6,7 +6,7 @@
 
 namespace plato::input_parser
 {
-struct density_topology;
+struct identity_filter;
 }
 namespace plato::core
 {
@@ -35,7 +35,7 @@ class IdentityFilter : public library::FilterInterface
 [[nodiscard]] auto make_identity_filter_function()
     -> core::Function<core::MeshProxy, library::FilterJacobian, const core::MeshProxy&>;
 
-[[nodiscard]] std::optional<std::string> validate_identity_filter(const input_parser::density_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_identity_filter(const input_parser::identity_filter& aInput);
 
 }  // namespace plato::filter::extension
 

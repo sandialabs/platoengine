@@ -120,6 +120,7 @@ int parallel_unit_main(int argc, char** argv, unsigned int aNumRanks)
         // Child processes run tests, so get their exit code
         tExitStatus = communicate_exit_code(tInterComm, tExitStatus);
     }
+
     Kokkos::finalize();
     MPI_Finalize();
 

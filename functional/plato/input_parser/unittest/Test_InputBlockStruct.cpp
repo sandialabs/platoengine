@@ -26,6 +26,11 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestProcessManagerBlock, 
     (int, field1)
 )
+
+PLATO_FILTER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), TestFilterBlock, 
+    (double, field1)
+)
 // clang-format on
 namespace plato::input_parser::unittest
 {
@@ -76,5 +81,14 @@ TEST(InputBlockStruct, Process)
 
     tTestBlock.field1 = 42;
     test_existence_and_equality(tTestBlock.field1, 42);
+}
+
+TEST(InputBlockStruct, Filter)
+{
+    const TestFilterBlock tTestBlock;
+    constexpr bool tIsFilter = IsFilterInput<TestFilterBlock>::value;
+    EXPECT_TRUE(tIsFilter);
+    constexpr bool tIsNotFilter = IsFilterInput<TestGeometryBlock>::value;
+    EXPECT_FALSE(tIsNotFilter);
 }
 }  // namespace plato::input_parser::unittest

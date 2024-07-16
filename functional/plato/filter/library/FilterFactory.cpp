@@ -2,17 +2,17 @@
 
 #include <type_traits>
 
+#include "plato/core/InputVariantUtilities.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::filter::library
 {
-FilterFunction make_filter_function(const input_parser::density_topology& aInput)
+FilterFunction make_filter_function(const ValidatedFilterInput& aInput)
 {
-    const std::string tFilterName = input_parser::kFilterTypesTable.toString(aInput.filter_type.value()).value();
-    std::optional<FilterFunction> tFilter =
-        core::create_object_from_factory<FilterFunction, FilterInput>(tFilterName, aInput);
+    std::optional<FilterFunction> tFilter = core::create_object_from_factory<FilterFunction, ValidatedFilterInput>(
+        core::block_name(aInput.rawInput()), aInput);
 
     if (tFilter)
     {
@@ -20,7 +20,8 @@ FilterFunction make_filter_function(const input_parser::density_topology& aInput
     }
     else
     {
-        throw plato::utilities::Exception{"Unknown filter_type"};
+        throw plato::utilities::Exception{"Unknown filter_type. Requested name: " +
+                                          core::block_name(aInput.rawInput())};
     }
 }
 }  // namespace plato::filter::library

@@ -34,5 +34,13 @@ namespace plato::test_utilities
 
 [[nodiscard]] input_parser::sensitivity_check create_valid_example_sensitivity_check();
 
+[[nodiscard]] input_parser::identity_filter create_valid_identity_filter();
+
+[[nodiscard]] std::string create_valid_identity_filter_string();
+
+[[nodiscard]] input_parser::helmholtz_filter create_valid_helmholtz_filter();
+
+[[nodiscard]] input_parser::kernel_filter create_valid_kernel_filter();
+
 }  // namespace plato::test_utilities
 #endif
