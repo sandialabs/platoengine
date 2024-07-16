@@ -13,6 +13,7 @@
 #include <stk_mesh/base/Field.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
 #include <stk_mesh/base/MetaData.hpp>
+#include <stk_mesh/base/Part.hpp>
 #include <stk_search/Box.hpp>
 #include <stk_topology/topology.hpp>
 #include <stk_util/parallel/Parallel.hpp>
@@ -105,6 +106,23 @@ std::vector<double> read_element_density(const std::filesystem::path& aMeshName)
 unsigned int node_size(const stk::mesh::BulkData& aBulk) { return detail::size<stk::topology::NODE_RANK>(aBulk); }
 
 unsigned int element_size(const stk::mesh::BulkData& aBulk) { return detail::size<stk::topology::ELEM_RANK>(aBulk); }
+
+unsigned int block_size(const stk::mesh::BulkData& aBulk) { return aBulk.mesh_meta_data().get_mesh_parts().size(); }
+
+std::optional<unsigned int> block_id(const stk::mesh::BulkData& aBulk, const std::string_view aBlockName)
+{
+    const auto& tParts = aBulk.mesh_meta_data().get_mesh_parts();
+    const auto tPartWithName = std::find_if(tParts.cbegin(), tParts.cend(),
+                                            [aBlockName](const auto& aPart) { return aBlockName == aPart->name(); });
+    if (tPartWithName != tParts.cend())
+    {
+        return (*tPartWithName)->id();
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
 
 unsigned int spatial_dimensions(const stk::mesh::BulkData& aBulk) { return aBulk.mesh_meta_data().spatial_dimension(); }
 

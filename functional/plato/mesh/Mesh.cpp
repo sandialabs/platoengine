@@ -23,6 +23,18 @@ unsigned int Mesh::numberOfNodes() const
     return third_party_integration::stk_io::node_size(*mBulk);
 }
 
+unsigned int Mesh::numberOfBlocks() const
+{
+    assert(mBulk);
+    return third_party_integration::stk_io::block_size(*mBulk);
+}
+
+std::optional<unsigned int> Mesh::blockId(const std::string_view aBlockName) const
+{
+    assert(mBulk);
+    return third_party_integration::stk_io::block_id(*mBulk, aBlockName);
+}
+
 unsigned int Mesh::spatialDimensions() const
 {
     assert(mBulk);

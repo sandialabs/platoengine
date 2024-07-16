@@ -5,6 +5,7 @@
 
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
@@ -16,6 +17,14 @@ constexpr auto kGenerator = third_party_integration::stk_io::CommandGenerator{{3
 
 namespace
 {
+Mesh test_two_block_mesh(const test_utilities::TestContext& aTestContext)
+{
+    constexpr auto tMeshName = std::string_view{"box_2x4x10_hex_and_tet.cdf"};
+    const auto tFilePath = test_utilities::test_data_file_path(tMeshName);
+    EXPECT_TRUE(tFilePath) << aTestContext;
+    return Mesh(tFilePath.value());
+}
+
 void clean_up(const test_utilities::TestContext& aTestContext)
 {
     EXPECT_TRUE(std::filesystem::exists(kMeshName)) << aTestContext;
@@ -64,4 +73,24 @@ TEST(Mesh, Volume)
     clean_up(TEST_CONTEXT("Deleting files in Coordinates"));
 }
 
+TEST(Mesh, NumberOfBlocks)
+{
+    const auto tMesh = test_two_block_mesh(TEST_CONTEXT("Number of blocks"));
+    EXPECT_EQ(tMesh.numberOfBlocks(), 2u);
+}
+
+TEST(Mesh, BlockID)
+{
+    const auto tMesh = test_two_block_mesh(TEST_CONTEXT("Block id"));
+    {
+        const auto tBlockID = tMesh.blockId("block_1");
+        ASSERT_TRUE(tBlockID);
+        EXPECT_EQ(tBlockID.value(), 1);
+    }
+    {
+        const auto tBlockID = tMesh.blockId("block_2");
+        ASSERT_TRUE(tBlockID);
+        EXPECT_EQ(tBlockID.value(), 2);
+    }
+}
 }  // namespace plato::mesh::unittest

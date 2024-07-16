@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 #include <string_view>
@@ -35,6 +36,12 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
 
 /// @brief Given a STK Bulk data  @a aBulk, return the total number of elements.
 [[nodiscard]] unsigned int element_size(const stk::mesh::BulkData& aBulk);
+
+/// @brief Given a STK bulk data @a aBulk, return the number of blocks.
+[[nodiscard]] unsigned int block_size(const stk::mesh::BulkData& aBulk);
+
+/// @brief Returns the ID associated with block with name @a aBlockName if it exists, an empty optional otherwise.
+[[nodiscard]] std::optional<unsigned int> block_id(const stk::mesh::BulkData& aBulk, std::string_view aBlockName);
 
 /// @brief Given a STK Bulk data  @a aBulk, return the spatial dimensions of the mesh.
 [[nodiscard]] unsigned int spatial_dimensions(const stk::mesh::BulkData& aBulk);

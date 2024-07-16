@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "plato/third_party_integration/common/Vector3.hpp"
@@ -25,6 +26,10 @@ class Mesh
     [[nodiscard]] unsigned int numberOfElements() const;
     /// @brief The total number of nodes in the mesh
     [[nodiscard]] unsigned int numberOfNodes() const;
+    /// @brief The total number of blocks in the mesh
+    [[nodiscard]] unsigned int numberOfBlocks() const;
+    /// @brief Returns the block id for the block with name @a aBlockName if it exists, an empty optional otherwise
+    [[nodiscard]] std::optional<unsigned int> blockId(std::string_view aBlockName) const;
     /// @brief The dimensions of the mesh (2 or 3).
     [[nodiscard]] unsigned int spatialDimensions() const;
     /// @brief The nodal coordinates ordered as x0,y0,z0,x1,y1,z1
