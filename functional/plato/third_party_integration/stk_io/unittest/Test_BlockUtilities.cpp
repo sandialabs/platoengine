@@ -12,6 +12,10 @@ namespace plato::third_party_integration::stk_io::unittest
 namespace
 {
 constexpr auto kExpectedNumberOfBlocks = 2u;
+constexpr auto kExpectedNumberOfElementsInBlock1 = 273u;
+constexpr auto kExpectedNumberOfElementsInBlock2 = 40u;
+constexpr auto kExpectedNumberOfNodesInBlock1 = 93u;
+constexpr auto kExpectedNumberOfNodesInBlock2 = 90u;
 
 auto test_mesh(const plato::test_utilities::TestContext& aTestContext) -> std::shared_ptr<stk::mesh::BulkData>
 {
@@ -22,13 +26,13 @@ auto test_mesh(const plato::test_utilities::TestContext& aTestContext) -> std::s
 }
 }  // namespace
 
-TEST(BlockElementIdentifiers, NumberOfBlocks)
+TEST(BlockUtilities, NumberOfBlocks)
 {
     const auto tBulkData = test_mesh(TEST_CONTEXT("Number of blocks"));
     EXPECT_EQ(kExpectedNumberOfBlocks, block_size(*tBulkData));
 }
 
-TEST(BlockElementIdentifiers, BlockData)
+TEST(BlockUtilities, BlockData)
 {
     const auto tBulkData = test_mesh(TEST_CONTEXT("Block id"));
 
@@ -40,6 +44,28 @@ TEST(BlockElementIdentifiers, BlockData)
     EXPECT_EQ(tBlockIDsAndNames.front().mName, "block_1");
     EXPECT_EQ(tBlockIDsAndNames.back().mID, 2u);
     EXPECT_EQ(tBlockIDsAndNames.back().mName, "block_2");
+
+    // Check sorted post-condition
+    EXPECT_TRUE(std::is_sorted(tBlockIDsAndNames.cbegin(), tBlockIDsAndNames.cend(),
+                               [](const auto& tBlockDataLeft, const auto& tBlockDataRight)
+                               { return tBlockDataLeft.mID < tBlockDataRight.mID; }));
+}
+
+TEST(BlockUtilities, PartWithBlockName)
+{
+    const auto tTwoBlockMesh = test_mesh(TEST_CONTEXT("Bulk data with block name"));
+    {
+        const auto tBlock1 = part_with_block_name(*tTwoBlockMesh, "block_1");
+        ASSERT_TRUE(tBlock1);
+        EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock1->get()), kExpectedNumberOfElementsInBlock1);
+        EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock1->get()), kExpectedNumberOfNodesInBlock1);
+    }
+    {
+        const auto tBlock2 = part_with_block_name(*tTwoBlockMesh, "block_2");
+        ASSERT_TRUE(tBlock2);
+        EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock2->get()), kExpectedNumberOfElementsInBlock2);
+        EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock2->get()), kExpectedNumberOfNodesInBlock2);
+    }
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest
