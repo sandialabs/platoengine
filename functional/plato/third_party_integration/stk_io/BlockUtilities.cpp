@@ -1,5 +1,6 @@
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 
+#include <stk_mesh/base/Bucket.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Comm.hpp>
 #include <stk_mesh/base/MetaData.hpp>
@@ -19,6 +20,23 @@ std::size_t entity_size(const stk::mesh::BulkData& aBulkData,
     stk::mesh::comm_mesh_counts(aBulkData, tEntityCounts, &tSelector);
     return tEntityCounts.at(aEntityType);
 }
+
+std::vector<std::size_t> entity_ids(const stk::mesh::BulkData& aBulkData,
+                                    const stk::mesh::Part& aPart,
+                                    const stk::topology::rank_t aEntityType)
+{
+    auto tEntityIDs = std::vector<std::size_t>{};
+    tEntityIDs.reserve(node_size(aBulkData, aPart));
+    const auto tSelector = stk::mesh::Selector{aPart};
+    const auto& tBuckets = tSelector.get_buckets(aEntityType);
+    for (const auto tBucket : tBuckets)
+    {
+        std::transform(tBucket->begin(), tBucket->end(), std::back_inserter(tEntityIDs),
+                       [&aBulkData](const auto& tNode) { return aBulkData.entity_key(tNode).id(); });
+    }
+    return tEntityIDs;
+}
+
 }  // namespace
 
 unsigned int block_size(const stk::mesh::BulkData& aBulk) { return aBulk.mesh_meta_data().get_mesh_parts().size(); }
@@ -50,7 +68,6 @@ auto part_with_block_name(const stk::mesh::BulkData& aBulkData, const std::strin
     {
         return std::nullopt;
     }
-    // stk::tools::extract_blocks(aBulkData, stk::mesh::BulkData & newBulk, const int& blockNames)
 }
 
 std::size_t element_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart)
@@ -61,6 +78,16 @@ std::size_t element_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::
 std::size_t node_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart)
 {
     return entity_size(aBulkData, aPart, stk::topology::NODE_RANK);
+}
+
+std::vector<std::size_t> node_ids(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart)
+{
+    return entity_ids(aBulkData, aPart, stk::topology::NODE_RANK);
+}
+
+std::vector<std::size_t> element_ids(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart)
+{
+    return entity_ids(aBulkData, aPart, stk::topology::ELEM_RANK);
 }
 
 }  // namespace plato::third_party_integration::stk_io

@@ -34,6 +34,12 @@ namespace plato::third_party_integration::stk_io
 /// @brief Returns the number of elements in the part @a aPart associated with BulkData @a aBulkData.
 [[nodiscard]] std::size_t node_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart);
 
+/// @brief Returns the list of node IDs associated with the block @a aPart in mesh @a aBulkData.
+[[nodiscard]] std::vector<std::size_t> node_ids(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart);
+
+/// @brief Returns the list of element IDs associated with the block @a aPart in mesh @a aBulkData.
+[[nodiscard]] std::vector<std::size_t> element_ids(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart);
+
 }  // namespace plato::third_party_integration::stk_io
 
 #endif
