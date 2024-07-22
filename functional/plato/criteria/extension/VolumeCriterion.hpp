@@ -12,7 +12,6 @@ namespace plato::criteria::extension
 /// @brief Computes the volume of all elements and scales that value by a scale factor [ie density]. The main purpose of
 /// this class is for implementing a volume or mass constraint. This class will assume the densities are element
 /// centered controls and not nodal
-
 struct VolumeCriterion
 {
     [[nodiscard]] double f(const mesh::MeshProxy& aMeshProxy) const;

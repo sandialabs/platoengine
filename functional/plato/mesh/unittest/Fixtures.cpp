@@ -23,4 +23,17 @@ OneBlock3x1x1HexMesh::OneBlock3x1x1HexMesh()
 }
 
 TwoBlockMeshOnDisk::TwoBlockMeshOnDisk() : mMeshFilePath{test_utilities::test_data_file_path(mMeshFileName).value()} {}
+
+TwoDNonUniformHexMesh::TwoDNonUniformHexMesh()
+    : mMeshFilePath{test_utilities::test_data_file_path(mMeshFileName).value()}
+{
+}
+
+TwoDThreeBlockMesh::TwoDThreeBlockMesh()
+{
+    third_party_integration::stk_io::write_mesh(mMeshFilePath, mMeshDescription);
+}
+
+TwoDThreeBlockMesh::~TwoDThreeBlockMesh() { std::filesystem::remove(mMeshFilePath); }
+
 }  // namespace plato::mesh::unittest

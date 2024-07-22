@@ -14,6 +14,7 @@ namespace stk::mesh
 {
 // In trilinos 15.1, there are conflicting forward declarations of BulkData, of which clang-tidy disapproves.
 class BulkData;  // NOLINT
+class Part;
 }  // namespace stk::mesh
 
 namespace plato::third_party_integration::stk_io
@@ -21,6 +22,10 @@ namespace plato::third_party_integration::stk_io
 /// @brief Given a pathname  @a aMeshName and the Command generator @a aCommandGenerator, write to disk the data in
 /// exodus format
 void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator);
+
+/// @brief Given a pathname  @a aMeshName and mesh description (e.g. `textmesh`), write to disk the data in
+/// exodus format
+void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDescription);
 
 /// @brief Use a STK @a aGenerationCommand, e.g., "generated:1x1x1" to create and return a shared pointer to a STK Bulk
 [[nodiscard]] std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator);
@@ -71,6 +76,9 @@ void write_element_density(const std::filesystem::path& aInputMeshName,
 
 /// @brief Given a STK Bulk data  @a aBulk, return the STK element container
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk);
+
+/// @brief Given a STK bulk data @a aBulk and part @a aPart, returns the STK element container.
+stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart);
 
 }  // namespace plato::third_party_integration::stk_io
 

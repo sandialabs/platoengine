@@ -13,7 +13,7 @@ struct EntityRetrieval : public Mesh
 
     /// @brief The nodal coordinates ordered as x0,y0,z0,x1,y1,z1
     /// @note For 2D, only x and y coordinates are included in the vector.
-    [[nodiscard]] std::vector<double> flattenedNodalCoordinates() const;
+    [[nodiscard]] auto flattenedNodalCoordinates() const -> std::vector<double>;
 
     /// @brief All nodal coordinates in the mesh
     [[nodiscard]] auto nodalCoordinates() const -> std::vector<third_party_integration::common::Coordinate>;

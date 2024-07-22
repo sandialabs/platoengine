@@ -2,7 +2,9 @@
 
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"
 
@@ -19,41 +21,24 @@ namespace
     library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
     [](const library::CriterionInput&) { return make_volume_fraction_constraint_function(); }};
 
-auto read_bulk_and_elements(const std::filesystem::path& aMeshFileName)
-    -> std::pair<std::shared_ptr<stk::mesh::BulkData>, stk::mesh::EntityVector>
-{
-    std::shared_ptr<stk::mesh::BulkData> tBulk = third_party_integration::stk_io::read_mesh_bulk_data(aMeshFileName);
-    assert(tBulk);
-    const stk::mesh::EntityVector tElements = third_party_integration::stk_io::element_vector(*tBulk);
-    return {tBulk, tElements};
-}
-
 }  // namespace
 
 double VolumeCriterion::f(const mesh::MeshProxy& aMeshProxy) const
 {
+    const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aMeshProxy.mFileName}};
+    auto tScaledVolumes = tMesh.elementVolumes();
     const auto tMeshView = mesh::MeshProxyDensitiesView{aMeshProxy};
-    const auto [tBulk, tElements] = read_bulk_and_elements(aMeshProxy.mFileName);
-    assert(tElements.size() == tMeshView.size());
-    std::vector<double> tScaledVolume;
-    tScaledVolume.reserve(tElements.size());
-    std::transform(tMeshView.begin(), tMeshView.end(), tElements.begin(), std::back_inserter(tScaledVolume),
-                   [&tBulkRef = *tBulk](const auto aControl, const auto& aElement)
-                   { return aControl.mDensity * third_party_integration::stk_io::element_volume(aElement, tBulkRef); });
-
-    return mScaleFactor * utilities::pair_wise_accumulate(tScaledVolume);
+    std::transform(tScaledVolumes.cbegin(), tScaledVolumes.cend(), tMeshView.begin(), tScaledVolumes.begin(),
+                   [](const double aVolume, const mesh::Density aDensity) { return aDensity.mDensity * aVolume; });
+    return mScaleFactor * utilities::pair_wise_accumulate(tScaledVolumes);
 }
 
 linear_algebra::DynamicVector<double> VolumeCriterion::df(const mesh::MeshProxy& aMeshProxy) const
 {
-    const auto [tBulk, tElements] = read_bulk_and_elements(aMeshProxy.mFileName);
-
-    std::vector<double> tScaledVolume;
-    std::transform(tElements.begin(), tElements.end(), std::back_inserter(tScaledVolume),
-                   [this, &tBulkRef = *tBulk](const auto& aElement)
-                   { return mScaleFactor * third_party_integration::stk_io::element_volume(aElement, tBulkRef); });
-
-    return linear_algebra::DynamicVector<double>(std::move(tScaledVolume));
+    const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aMeshProxy.mFileName}};
+    auto tJacobian = linear_algebra::DynamicVector<double>{tMesh.elementVolumes()};
+    tJacobian = mScaleFactor * std::move(tJacobian);
+    return tJacobian;
 }
 
 auto make_volume_constraint_function()

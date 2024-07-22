@@ -82,6 +82,14 @@ void write_defined_output_fields(stk::io::StkMeshIoBroker& tIOBroker,
     tIOBroker.end_output_step(aOutputFileIndex);
 }
 
+std::shared_ptr<stk::mesh::BulkData> bulk_data_from_description(const std::string_view aMeshDescription)
+{
+    std::shared_ptr<stk::mesh::BulkData> bulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
+    bulk->mesh_meta_data().use_simple_fields();
+    stk::io::fill_mesh(std::string{aMeshDescription}, *bulk);
+    return bulk;
+}
+
 }  // namespace
 
 void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator)
@@ -89,12 +97,14 @@ void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& 
     write_bulk_data(aMeshName, generate_bulk_data(aCommandGenerator));
 }
 
+void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDescription)
+{
+    write_bulk_data(aMeshName, bulk_data_from_description(aMeshDescription));
+}
+
 std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator)
 {
-    std::shared_ptr<stk::mesh::BulkData> bulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
-    bulk->mesh_meta_data().use_simple_fields();
-    stk::io::fill_mesh(aCommandGenerator.toString(), *bulk);
-    return bulk;
+    return bulk_data_from_description(aCommandGenerator.toString());
 }
 
 void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk)
@@ -213,10 +223,14 @@ void write_element_density(const std::filesystem::path& aInputMeshName,
 
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk)
 {
+    return element_vector(aBulk, aBulk.mesh_meta_data().universal_part());
+}
+
+stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart)
+{
     stk::mesh::EntityVector tElements;
     constexpr bool tSortById = true;
-    stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, aBulk.mesh_meta_data().locally_owned_part(), tElements,
-                            tSortById);
+    stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, aPart, tElements, tSortById);
     return tElements;
 }
 

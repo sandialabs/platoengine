@@ -98,4 +98,31 @@ TEST_F(TwoBlockMeshOnDisk, BlockElementIDs)
     EXPECT_EQ(tExpectedElementIDsBlock2, tResultElementIDsBlock2);
 }
 
+TEST_F(TwoDNonUniformHexMesh, BlockNodeIDs)
+{
+    const auto tMeshBase = Mesh{mMeshFilePath};
+    const auto tMesh = MeshBlocks{tMeshBase};
+
+    const auto tResultNodeIDsBlock1 = tMesh.nodeIDs("block_1");
+    // The node ids are from the node_num_map section in rectangle_3x4_quad.txt in test_utilities/data
+    const auto tExpectedNodeIDs =
+        std::vector<std::size_t>{5058, 5059, 5060, 5061, 5062, 5063, 5069, 5070, 5071, 5072, 5073, 5074, 5075, 5076,
+                                 5077, 5086, 5087, 5088, 5089, 5095, 5096, 5097, 5102, 5103, 5104, 5105, 5106, 5107,
+                                 5108, 5109, 5110, 5111, 5112, 5113, 5114, 5115, 5116, 5117, 5118, 5119, 5120};
+    EXPECT_EQ(tResultNodeIDsBlock1, tResultNodeIDsBlock1);
+}
+
+TEST_F(TwoDNonUniformHexMesh, BlockElementIDs)
+{
+    const auto tMeshBase = Mesh{mMeshFilePath};
+    const auto tMesh = MeshBlocks{tMeshBase};
+
+    const auto tResultElementIDsBlock1 = tMesh.elementIDs("block_1");
+    // The element ids are from the elem_num_map section in rectangle_3x4_quad.txt in test_utilities/data
+    const auto tExpectedElementIDs =
+        std::vector<std::size_t>{262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276,
+                                 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290};
+    EXPECT_EQ(tResultElementIDsBlock1, tResultElementIDsBlock1);
+}
+
 }  // namespace plato::mesh::unittest

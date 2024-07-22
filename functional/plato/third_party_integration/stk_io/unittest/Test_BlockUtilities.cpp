@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <stk_io/FillMesh.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
-#include <stk_mesh/base/BulkData.hpp>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDataFilePath.hpp"
@@ -36,16 +36,6 @@ auto test_mesh(const plato::test_utilities::TestContext& aTestContext) -> std::s
     return read_mesh_bulk_data(tFilePath.value());
 }
 
-void write_text_mesh(const std::filesystem::path& tMeshPath, const std::string_view aMeshDescription)
-{
-    auto tIOBroker = stk::io::StkMeshIoBroker{MPI_COMM_SELF};
-    tIOBroker.use_simple_fields();
-    tIOBroker.add_mesh_database(std::string{aMeshDescription}, stk::io::READ_MESH);
-    tIOBroker.create_input_mesh();
-    tIOBroker.populate_bulk_data();
-    auto tProperties = Ioss::PropertyManager{};
-    tIOBroker.write_output_mesh(tIOBroker.create_output_mesh(tMeshPath.string(), stk::io::WRITE_RESULTS, tProperties));
-}
 }  // namespace
 
 TEST(BlockUtilities, NumberOfBlocks)
@@ -93,7 +83,7 @@ TEST(BlockUtilities, PartWithBlockName)
 TEST(BlockUtilities, EntityIDs)
 {
     const auto tMeshPath = std::filesystem::path{"temp_mesh.exo"};
-    write_text_mesh(tMeshPath, tTwoDTriMesh);
+    write_mesh(tMeshPath, tTwoDTriMesh);
     const auto tBulkData = read_mesh_bulk_data(tMeshPath);
     {
         const auto tBlock1 = part_with_block_name(*tBulkData, "block_1");
@@ -124,7 +114,7 @@ TEST(BlockUtilities, NodeIDsOneBlockNonSequential)
 {
     const auto tMeshPath = std::filesystem::path{"temp_mesh.exo"};
     constexpr auto tMesh = std::string_view{"textmesh:0,1,HEX_8,1,2,3,4,11,12,13,14"};
-    write_text_mesh(tMeshPath, tMesh);
+    write_mesh(tMeshPath, tMesh);
 
     const auto tBulkData = read_mesh_bulk_data(tMeshPath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
