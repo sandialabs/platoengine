@@ -1,6 +1,7 @@
 #include "plato/integration_tests/test_mass_objective/MassObjectiveInterface.hpp"
 
 #include "plato/integration_tests/test_mass_objective/MassObjective.hpp"
+#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 
 namespace plato::integration_tests::test_mass_objective
@@ -16,7 +17,8 @@ std::vector<double> MassObjectiveInterface::gradient(const mesh::MeshProxy& aMes
 {
     ///@todo Populate the gradient with actual values
     constexpr unsigned int tNumDimensions = 3;
-    const unsigned int tGradientSize = mesh::Mesh{aMeshProxy.mFileName}.numberOfNodes() * tNumDimensions;
+    const unsigned int tGradientSize =
+        mesh::EntityCounts{mesh::Mesh{aMeshProxy.mFileName}}.numberOfNodes() * tNumDimensions;
 
     return std::vector<double>(tGradientSize, 1.0);
 }

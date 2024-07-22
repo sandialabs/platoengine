@@ -13,6 +13,9 @@
 #include "plato/filter/library/HashGeneration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxy.hpp"
 #include "plato/mesh/MeshProxyViews.hpp"
@@ -48,6 +51,7 @@ KernelFilter::KernelFilter(const std::filesystem::path& aMeshFileName,
                            const input_parser::KernelFilterCenteringTypes aFilterCentering,
                            const boost::mpi::communicator& aCommunicator)
     : mLinearMask(detail::create_linear_mask(aMeshFileName, aFilterRadius, aFilterCentering, aCommunicator)),
+      mFilterCentering{aFilterCentering},
       mCommunicator(aCommunicator)
 {
 }
@@ -57,7 +61,14 @@ mesh::MeshProxy KernelFilter::filter(const mesh::MeshProxy& aMeshProxy) const
     const auto [tDensityValues, tGlobalIDs] =
         mesh::split_densities(mesh::mesh_proxy_to_vector(mesh::MeshProxyDensitiesView{aMeshProxy}));
     auto tFilteredDensities = mLinearMask.matrixMultiply(tDensityValues);
-    return mesh::vector_to_mesh_proxy(tFilteredDensities, mesh::MeshProxy{aMeshProxy.mFileName, {}});
+    if (mFilterCentering == input_parser::KernelFilterCenteringTypes::kNodeCentered)
+    {
+        return mesh::nodal_densities_to_mesh_proxy(tFilteredDensities, mesh::Mesh{aMeshProxy.mFileName});
+    }
+    else
+    {
+        return mesh::element_densities_to_mesh_proxy(tFilteredDensities, mesh::Mesh{aMeshProxy.mFileName});
+    }
 }
 
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(
@@ -94,9 +105,10 @@ double filter_area(const FilterRadius aFilterRadius)
 
 int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const FilterRadius aFilterRadius)
 {
-    const double tAverageNodalDensity = mesh::average_nodal_density(aMesh);
-    const double tSearchVolume =
-        aMesh.spatialDimensions() == 2u ? detail::filter_area(aFilterRadius) : detail::filter_volume(aFilterRadius);
+    const double tAverageNodalDensity = mesh::MeshQuantities{aMesh}.averageNodalDensity();
+    const double tSearchVolume = mesh::EntityCounts{aMesh}.spatialDimensions() == 2u
+                                     ? detail::filter_area(aFilterRadius)
+                                     : detail::filter_volume(aFilterRadius);
     return static_cast<int>(tSearchVolume * tAverageNodalDensity * kMaxMultiplier);
 }
 
@@ -105,7 +117,7 @@ LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
                               const input_parser::KernelFilterCenteringTypes aFilterCentering,
                               const boost::mpi::communicator& aCommunicator)
 {
-    const auto tMesh = mesh::Mesh{aMeshFileName};
+    const auto tMesh = mesh::EntityRetrieval{mesh::Mesh{aMeshFileName}};
     auto tNodalCoordinates = tMesh.nodalCoordinates();
     const int tMaximumConnectivityEstimate = detail::maximum_connectivity_estimate(tMesh, aFilterRadius);
 
@@ -130,7 +142,7 @@ FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)
                                aMeshProxy.mFileName, FilterRadius{aInput.filter_radius.value()},
                                aInput.centering_type.value(), boost::mpi::communicator{});
                        },
-                       [](const mesh::MeshProxy& aMeshProxy) { return library::hash_mesh(aMeshProxy); }};
+                       [](const mesh::MeshProxy& aMeshProxy) { return library::hash_mesh_coordinates(aMeshProxy); }};
 }
 
 }  // namespace detail

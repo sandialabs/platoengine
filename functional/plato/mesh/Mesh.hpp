@@ -6,6 +6,7 @@
 #include <optional>
 #include <vector>
 
+#include "plato/mesh/MeshProxy.hpp"
 #include "plato/third_party_integration/common/BlockData.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 
@@ -17,36 +18,21 @@ class BulkData;  // NOLINT
 
 namespace plato::mesh
 {
-
-/// @brief Provides common mesh operations such as retrieving the number of elements or nodal coordinates.
 class Mesh
 {
    public:
-    Mesh(const std::filesystem::path& aMeshName);
+    /// @brief Loads a mesh from disk at the path @a aMeshName
+    explicit Mesh(const std::filesystem::path& aMeshName);
 
-    /// @brief The total number of elements in the mesh
-    [[nodiscard]] unsigned int numberOfElements() const;
-    /// @brief The total number of nodes in the mesh
-    [[nodiscard]] unsigned int numberOfNodes() const;
-    /// @brief The total number of blocks in the mesh
-    [[nodiscard]] unsigned int numberOfBlocks() const;
-    /// @brief Returns the block id for the block with name @a aBlockName if it exists, an empty optional otherwise
-    [[nodiscard]] std::optional<unsigned int> blockId(std::string_view aBlockName) const;
-    /// @brief Returns the names and ids of all blocks in the mesh.
-    [[nodiscard]] auto blockData() const -> std::vector<third_party_integration::common::BlockData>;
-    /// @brief The dimensions of the mesh (2 or 3).
-    [[nodiscard]] unsigned int spatialDimensions() const;
-    /// @brief The nodal coordinates ordered as x0,y0,z0,x1,y1,z1
-    /// @note For 2D, only x and y coordinates are included in the vector.
-    [[nodiscard]] std::vector<double> flattenedNodalCoordinates() const;
-    /// @brief All nodal coordinates in the mesh
-    [[nodiscard]] std::vector<third_party_integration::common::Coordinate> nodalCoordinates() const;
-    /// @brief Centroids of all the elements in the mesh.
-    [[nodiscard]] std::vector<third_party_integration::common::Coordinate> elementCentroids() const;
-    /// @brief The total volume of the mesh.
-    [[nodiscard]] double volume() const;
+    /// @brief Returns the path to the mesh on disk.
+    const std::filesystem::path& filePath() const;
+
+   protected:
+    /// @brief Returns a reference to the underlying BulkData.
+    const stk::mesh::BulkData& bulkData() const;
 
    private:
+    std::filesystem::path mFilePath;
     std::shared_ptr<stk::mesh::BulkData> mBulk;
 };
 

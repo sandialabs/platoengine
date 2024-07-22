@@ -7,6 +7,7 @@
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/MeshProxy.hpp"
 #include "plato/mesh/MeshProxyViews.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -19,7 +20,9 @@ namespace
 {
 constexpr std::string_view kMeshName = "the-mesh-is-a-lie.exo";
 const auto kRho = std::vector{-1.0, 0.0, 1.0};
-const auto kMeshArgument = mesh::vector_to_mesh_proxy(kRho, mesh::MeshProxy{kMeshName, {}});
+const auto kIDs = std::vector<std::size_t>{0, 1, 2};
+const auto kMeshArgument =
+    mesh::MeshProxy{kMeshName, mesh::MeshProxy::BlockDensities{{1, mesh::combine_densities_and_ids(kRho, kIDs)}}};
 const auto kV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
 
 void test_filtered_results(const mesh::MeshProxy& aMeshProxy, const test_utilities::TestContext& aTestContext)

@@ -10,6 +10,7 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxy.hpp"
 
 namespace plato::input_parser
@@ -47,6 +48,7 @@ class DensityTopology
 
    private:
     std::filesystem::path mFileName;
+    mesh::Mesh mMesh;
     unsigned int mNumDesignParameters = 0;
     plato::filter::library::FilterFunction mFilter;
 };

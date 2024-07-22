@@ -8,6 +8,7 @@
 
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
+#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxy.hpp"
 
@@ -52,12 +53,12 @@ TEST(Brick, CenterAndDims)
         constexpr double tDiscretizationSize = 1.0;
         detail::create_mesh(tDesignParameters, tFileName, tDiscretizationSize);
         constexpr unsigned tExpectedNumElements = 2 * 4 * 6;
-        EXPECT_EQ(tExpectedNumElements, mesh::Mesh{tFileName}.numberOfElements());
+        EXPECT_EQ(tExpectedNumElements, mesh::EntityCounts{mesh::Mesh{tFileName}}.numberOfElements());
     }
     {
         detail::create_mesh(tDesignParameters, tFileName);
         constexpr unsigned tExpectedNumElements = 1;
-        EXPECT_EQ(tExpectedNumElements, mesh::Mesh{tFileName}.numberOfElements());
+        EXPECT_EQ(tExpectedNumElements, mesh::EntityCounts{mesh::Mesh{tFileName}}.numberOfElements());
     }
 
     EXPECT_TRUE(std::filesystem::exists(tFileName));
@@ -147,7 +148,7 @@ TEST(Brick, ABrick)
         tUniqueFileName = tMP.mFileName;
 
         constexpr unsigned tExpectedNumElements = 2 * 4 * 6;
-        EXPECT_EQ(tExpectedNumElements, mesh::Mesh{tUniqueFileName}.numberOfElements());
+        EXPECT_EQ(tExpectedNumElements, mesh::EntityCounts{mesh::Mesh{tUniqueFileName}}.numberOfElements());
     }
     // When BrickShapeGeometry goes out-of-scope, the file should be deleted
     EXPECT_FALSE(std::filesystem::exists(tUniqueFileName));

@@ -1,13 +1,18 @@
 #include "plato/mesh/MeshQuantities.hpp"
 
-#include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 
 namespace plato::mesh
 {
-double average_nodal_density(const Mesh& aMesh)
+MeshQuantities::MeshQuantities(Mesh aMeshBase) : Mesh{std::move(aMeshBase)} {}
+
+double MeshQuantities::volume() const { return third_party_integration::stk_io::mesh_volume(bulkData()); }
+
+double MeshQuantities::averageNodalDensity() const
 {
-    const auto tTotalNumberOfNodes = aMesh.numberOfNodes();
-    const double tTotalVolume = aMesh.volume();
-    return static_cast<double>(tTotalNumberOfNodes) / tTotalVolume;
+    const auto tTotalNumberOfNodes = third_party_integration::stk_io::node_size(bulkData());
+    return static_cast<double>(tTotalNumberOfNodes) / volume();
 }
+
 }  // namespace plato::mesh

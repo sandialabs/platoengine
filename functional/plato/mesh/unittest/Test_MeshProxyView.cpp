@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <boost/core/ignore_unused.hpp>
+#include <numeric>
 
 #include "plato/mesh/MeshProxy.hpp"
 #include "plato/mesh/MeshProxyViews.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/IndexRange.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::mesh
 {
@@ -169,19 +171,17 @@ TEST(MeshProxyViews, ToVector)
 
 TEST(MeshProxyViews, ToVectorTwoBlocks)
 {
-    const auto tMeshProxy = MeshProxy{/*.mFileName=*/"earth.exo", /*.mBlockDensities=*/kTwoBlockDensities};
+    const auto tMeshProxy = MeshProxy{/*.mFileName=*/"saturn.exo", /*.mBlockDensities=*/kTwoBlockDensities};
     const auto tVectorFromView = mesh_proxy_to_vector(MeshProxyDensitiesView{tMeshProxy});
     auto tAllDensities = kBlockDensityVector1;
     std::copy(kBlockDensityVector2.cbegin(), kBlockDensityVector2.cend(), std::back_inserter(tAllDensities));
     EXPECT_EQ(tVectorFromView, tAllDensities);
 }
 
-TEST(MeshProxyViews, FromVector)
+TEST(MeshProxyViews, CombineDensities)
 {
-    const auto tMeshProxy =
-        vector_to_mesh_proxy(kDensities1, MeshProxy{/*.mFileName=*/"neptune.exo", /*.mBlockDensities=*/{}});
-    ASSERT_EQ(tMeshProxy.mBlockDensities.size(), 1u);
-    EXPECT_EQ(tMeshProxy.mBlockDensities.at(0u), kBlockDensityVector1);
+    const auto tDensities = combine_densities_and_ids(kDensities1, kIDs1);
+    EXPECT_EQ(tDensities, kBlockDensityVector1);
 }
 
 TEST(MeshProxyViews, SplitDensities)
@@ -191,5 +191,4 @@ TEST(MeshProxyViews, SplitDensities)
     EXPECT_EQ(tDensityValues, kDensities1);
     EXPECT_EQ(tIDMap, kIDs1);
 }
-
 }  // namespace plato::mesh::unittest

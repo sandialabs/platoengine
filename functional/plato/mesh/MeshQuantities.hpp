@@ -1,15 +1,22 @@
 #ifndef PLATO_MESH_MESHQUANTITIES
 #define PLATO_MESH_MESHQUANTITIES
 
-namespace plato::mesh
-{
-class Mesh;
-}
+#include "plato/mesh/Mesh.hpp"
 
 namespace plato::mesh
 {
-/// @brief Returns the average nodal density by dividing the total nodes over the total volume of @a aMesh
-[[nodiscard]] double average_nodal_density(const Mesh& aMesh);
+/// @brief A mixin extension for Mesh, this provides functions that compute global mesh quantities such as volume.
+struct MeshQuantities : public Mesh
+{
+    MeshQuantities(Mesh aMeshBase);
+
+    /// @brief Returns the total volume of the mesh.
+    [[nodiscard]] double volume() const;
+
+    /// @brief Returns the average nodal density of the mesh, computed as the total number of nodes divided by the
+    /// volume.
+    [[nodiscard]] double averageNodalDensity() const;
+};
 }  // namespace plato::mesh
 
 #endif

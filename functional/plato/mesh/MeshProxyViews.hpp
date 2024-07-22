@@ -34,6 +34,8 @@ struct MeshProxyDensitiesViewIterator
     [[nodiscard]] bool operator==(const MeshProxyDensitiesViewIterator& aRHSIterator) const;
     [[nodiscard]] bool operator!=(const MeshProxyDensitiesViewIterator& aRHSIterator) const;
 
+    auto innerIteratorBegin() const -> std::optional<InnerIteratorType>;
+
     OuterIteratorType mOuterIterator;
     OuterIteratorType mOuterIteratorEnd;
     std::optional<InnerIteratorType> mInnerIterator;
@@ -85,9 +87,10 @@ using MeshProxyDensitiesMutableView = MeshProxyDensitiesViewTemplate<MeshProxy>;
 /// @brief Converts the densities associated with the mesh in @a aMeshView to a `std::vector`.
 std::vector<Density> mesh_proxy_to_vector(MeshProxyDensitiesView aMeshView);
 
-/// @brief Stores the densities in @a aDensities in @a aMeshProxy
-/// @note This overload assumes a `0` to `N-1` ordering of densities, i.e., no node/element map.
-MeshProxy vector_to_mesh_proxy(const std::vector<double>& aDensities, MeshProxy&& aMeshProxy);
+/// @brief Combines a vector of density values with a vector of global IDs into a single vector containing Density
+/// objects.
+auto combine_densities_and_ids(const std::vector<double>& aDensityValues, const std::vector<std::size_t>& aIDs)
+    -> std::vector<Density>;
 
 /// @brief Splits a vector of Density objects into the density values and node/element map.
 auto split_densities(const std::vector<Density>& aDensities)

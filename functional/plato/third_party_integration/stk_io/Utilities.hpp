@@ -4,20 +4,20 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
-#include <stk_io/StkMeshIoBroker.hpp>
-#include <stk_mesh/base/BulkData.hpp>
+#include <stk_mesh/base/Types.hpp>
 #include <string_view>
 #include <vector>
 
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 
+namespace stk::mesh
+{
+// In trilinos 15.1, there are conflicting forward declarations of BulkData, of which clang-tidy disapproves.
+class BulkData;  // NOLINT
+}  // namespace stk::mesh
+
 namespace plato::third_party_integration::stk_io
 {
-namespace detail
-{
-constexpr std::string_view kTopologyFieldName = "topology";
-}
-
 /// @brief Given a pathname  @a aMeshName and the Command generator @a aCommandGenerator, write to disk the data in
 /// exodus format
 void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator);
@@ -71,47 +71,6 @@ void write_element_density(const std::filesystem::path& aInputMeshName,
 
 /// @brief Given a STK Bulk data  @a aBulk, return the STK element container
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk);
-
-namespace detail
-{
-template <stk::topology::rank_t Rank>
-unsigned int size(const stk::mesh::BulkData& aBulk)
-{
-    std::vector<size_t> tEntityCounts;
-    stk::mesh::comm_mesh_counts(aBulk, tEntityCounts);
-    return tEntityCounts[Rank];
-}
-
-template <stk::topology::rank_t Rank>
-size_t write_mesh_density_impl(stk::io::StkMeshIoBroker& aIOBroker,
-                               const std::vector<double>& aDensity,
-                               const std::filesystem::path& aOutputMeshName)
-{
-    constexpr int tScalarFieldSize = 1;
-    stk::mesh::Field<double>& tField =
-        aIOBroker.meta_data().declare_field<double>(Rank, std::string{detail::kTopologyFieldName}, tScalarFieldSize);
-    constexpr double tInitialValue = 0;
-    stk::mesh::put_field_on_mesh(tField, aIOBroker.meta_data().universal_part(), &tInitialValue);
-    aIOBroker.populate_bulk_data();
-
-    std::vector<stk::mesh::Entity> tEntity;
-    constexpr bool tSortByID = false;
-    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntity, tSortByID);
-    assert(tEntity.size() == aDensity.size());
-    for (size_t iEntity = 0; iEntity < tEntity.size(); iEntity++)
-    {
-        double* const tFieldData = stk::mesh::field_data(tField, tEntity[iEntity]);
-        *tFieldData = aDensity[aIOBroker.bulk_data().local_id(tEntity[iEntity])];
-    }
-
-    const size_t tOutputFileIndex = aIOBroker.create_output_mesh(aOutputMeshName.string(), stk::io::WRITE_RESULTS);
-    aIOBroker.write_output_mesh(tOutputFileIndex);
-    aIOBroker.add_field(tOutputFileIndex, tField);
-
-    return tOutputFileIndex;
-}
-
-}  // namespace detail
 
 }  // namespace plato::third_party_integration::stk_io
 

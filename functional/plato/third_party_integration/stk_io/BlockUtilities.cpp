@@ -3,6 +3,7 @@
 #include <stk_mesh/base/Bucket.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Comm.hpp>
+#include <stk_mesh/base/GetEntities.hpp>
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Part.hpp>
 #include <stk_mesh/base/Selector.hpp>
@@ -25,15 +26,12 @@ std::vector<std::size_t> entity_ids(const stk::mesh::BulkData& aBulkData,
                                     const stk::mesh::Part& aPart,
                                     const stk::topology::rank_t aEntityType)
 {
+    auto tEntities = std::vector<stk::mesh::Entity>{};
+    stk::mesh::get_selected_entities(aPart, aBulkData.buckets(aEntityType), tEntities);
     auto tEntityIDs = std::vector<std::size_t>{};
-    tEntityIDs.reserve(node_size(aBulkData, aPart));
-    const auto tSelector = stk::mesh::Selector{aPart};
-    const auto& tBuckets = tSelector.get_buckets(aEntityType);
-    for (const auto tBucket : tBuckets)
-    {
-        std::transform(tBucket->begin(), tBucket->end(), std::back_inserter(tEntityIDs),
-                       [&aBulkData](const auto& tNode) { return aBulkData.entity_key(tNode).id(); });
-    }
+    tEntityIDs.reserve(tEntities.size());
+    std::transform(tEntities.cbegin(), tEntities.cend(), std::back_inserter(tEntityIDs),
+                   [&aBulkData](const auto& tEntity) { return aBulkData.identifier(tEntity); });
     return tEntityIDs;
 }
 

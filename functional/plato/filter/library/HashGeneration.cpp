@@ -1,15 +1,14 @@
 #include "plato/filter/library/HashGeneration.hpp"
 
+#include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxy.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::filter::library
 {
-std::size_t hash_mesh(const plato::mesh::MeshProxy& aMeshProxy)
+std::size_t hash_mesh_coordinates(const plato::mesh::MeshProxy& aMeshProxy)
 {
-    namespace stk_io = plato::third_party_integration::stk_io;
-    const auto tBulk = stk_io::read_mesh_bulk_data(aMeshProxy.mFileName);
-    const auto tCoords = stk_io::flattened_nodal_coordinates(*tBulk);
+    const auto tCoords = mesh::EntityRetrieval{mesh::Mesh{aMeshProxy.mFileName}}.flattenedNodalCoordinates();
     return detail::hash_container(tCoords);
 }
 

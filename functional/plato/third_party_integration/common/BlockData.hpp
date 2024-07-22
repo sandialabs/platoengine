@@ -8,7 +8,9 @@ namespace plato::third_party_integration::common
 /// @brief Struct for holding a block's name and ID, as read from an exodus mesh
 struct BlockData
 {
-    int64_t mID = 0;
+    using BlockIDType = int64_t;
+
+    BlockIDType mID = 0;
     std::string mName{};
 };
 

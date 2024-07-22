@@ -51,6 +51,7 @@ class KernelFilter : public library::FilterInterface
 
    private:
     LinearMask mLinearMask;
+    input_parser::KernelFilterCenteringTypes mFilterCentering;
     boost::mpi::communicator mCommunicator;
 };
 

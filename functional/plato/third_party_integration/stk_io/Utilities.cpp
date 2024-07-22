@@ -10,10 +10,11 @@
 #include <boost/range.hpp>
 #include <boost/range/adaptor/indexed.hpp>
 #include <stk_io/FillMesh.hpp>
+#include <stk_io/StkMeshIoBroker.hpp>
+#include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Field.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
 #include <stk_mesh/base/MetaData.hpp>
-#include <stk_search/Box.hpp>
 #include <stk_topology/topology.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 
@@ -21,6 +22,44 @@ namespace plato::third_party_integration::stk_io
 {
 namespace
 {
+constexpr auto kTopologyFieldName = std::string_view{"topology"};
+
+template <stk::topology::rank_t Rank>
+unsigned int size(const stk::mesh::BulkData& aBulk)
+{
+    std::vector<size_t> tEntityCounts;
+    stk::mesh::comm_mesh_counts(aBulk, tEntityCounts);
+    return tEntityCounts[Rank];
+}
+
+template <stk::topology::rank_t Rank>
+size_t write_mesh_density_impl(stk::io::StkMeshIoBroker& aIOBroker,
+                               const std::vector<double>& aDensity,
+                               const std::filesystem::path& aOutputMeshName)
+{
+    constexpr int tScalarFieldSize = 1;
+    stk::mesh::Field<double>& tField =
+        aIOBroker.meta_data().declare_field<double>(Rank, std::string{kTopologyFieldName}, tScalarFieldSize);
+    constexpr double tInitialValue = 0;
+    stk::mesh::put_field_on_mesh(tField, aIOBroker.meta_data().universal_part(), &tInitialValue);
+    aIOBroker.populate_bulk_data();
+
+    std::vector<stk::mesh::Entity> tEntity;
+    constexpr bool tSortByID = false;
+    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntity, tSortByID);
+    assert(tEntity.size() == aDensity.size());
+    for (size_t iEntity = 0; iEntity < tEntity.size(); iEntity++)
+    {
+        double* const tFieldData = stk::mesh::field_data(tField, tEntity[iEntity]);
+        *tFieldData = aDensity[aIOBroker.bulk_data().local_id(tEntity[iEntity])];
+    }
+
+    const size_t tOutputFileIndex = aIOBroker.create_output_mesh(aOutputMeshName.string(), stk::io::WRITE_RESULTS);
+    aIOBroker.write_output_mesh(tOutputFileIndex);
+    aIOBroker.add_field(tOutputFileIndex, tField);
+
+    return tOutputFileIndex;
+}
 
 std::shared_ptr<stk::io::StkMeshIoBroker> create_input_mesh_broker(const std::filesystem::path& aInputMeshName)
 {
@@ -85,7 +124,7 @@ std::vector<double> read_nodal_density(const std::filesystem::path& aMeshName)
     tResults.begin_state(1);
     Ioss::NodeBlock* tNb = tResults.get_node_blocks()[0];
     std::vector<double> tNodeFieldData;
-    tNb->get_field_data(std::string{detail::kTopologyFieldName}, tNodeFieldData);
+    tNb->get_field_data(std::string{kTopologyFieldName}, tNodeFieldData);
     return tNodeFieldData;
 }
 
@@ -98,13 +137,13 @@ std::vector<double> read_element_density(const std::filesystem::path& aMeshName)
     tResults.begin_state(1);
     Ioss::ElementBlock* tEb = tResults.get_element_blocks()[0];
     std::vector<double> tElementFieldData;
-    tEb->get_field_data(std::string{detail::kTopologyFieldName}, tElementFieldData);
+    tEb->get_field_data(std::string{kTopologyFieldName}, tElementFieldData);
     return tElementFieldData;
 }
 
-unsigned int node_size(const stk::mesh::BulkData& aBulk) { return detail::size<stk::topology::NODE_RANK>(aBulk); }
+unsigned int node_size(const stk::mesh::BulkData& aBulk) { return size<stk::topology::NODE_RANK>(aBulk); }
 
-unsigned int element_size(const stk::mesh::BulkData& aBulk) { return detail::size<stk::topology::ELEM_RANK>(aBulk); }
+unsigned int element_size(const stk::mesh::BulkData& aBulk) { return size<stk::topology::ELEM_RANK>(aBulk); }
 
 unsigned int spatial_dimensions(const stk::mesh::BulkData& aBulk) { return aBulk.mesh_meta_data().spatial_dimension(); }
 
@@ -152,7 +191,7 @@ void write_nodal_density(const std::filesystem::path& aInputMeshName,
         create_input_mesh_broker(aInputMeshName);  // todo : add communicator
 
     const size_t tOutputFileIndex =
-        detail::write_mesh_density_impl<stk::topology::NODE_RANK>(*tIOBroker, aDensity, aOutputMeshName);
+        write_mesh_density_impl<stk::topology::NODE_RANK>(*tIOBroker, aDensity, aOutputMeshName);
 
     constexpr double tTime = 1.0;
     write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);
@@ -166,7 +205,7 @@ void write_element_density(const std::filesystem::path& aInputMeshName,
         create_input_mesh_broker(aInputMeshName);  // todo : add communicator
 
     const size_t tOutputFileIndex =
-        detail::write_mesh_density_impl<stk::topology::ELEMENT_RANK>(*tIOBroker, aDensity, aOutputMeshName);
+        write_mesh_density_impl<stk::topology::ELEMENT_RANK>(*tIOBroker, aDensity, aOutputMeshName);
 
     constexpr double tTime = 1.0;
     write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);

@@ -26,10 +26,10 @@ TEST(HashGeneration, HashMesh)
     }
 
     const mesh::MeshProxy tMeshProxy{fileName, std::vector<double>(stk_io::read_mesh_node_size(fileName))};
-    const auto tInitialHash = plato::filter::library::hash_mesh(tMeshProxy);
+    const auto tInitialHash = plato::filter::library::hash_mesh_coordinates(tMeshProxy);
 
     // reload mesh and rehash
-    EXPECT_TRUE(tInitialHash == plato::filter::library::hash_mesh(tMeshProxy));
+    EXPECT_TRUE(tInitialHash == plato::filter::library::hash_mesh_coordinates(tMeshProxy));
 
     // change mesh
     {
@@ -37,7 +37,7 @@ TEST(HashGeneration, HashMesh)
             {3, 3, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::Tet};
         stk_io::write_mesh(fileName, stk_io::generate_mesh(tCommandGenerator));
     }
-    EXPECT_FALSE(tInitialHash == plato::filter::library::hash_mesh(tMeshProxy));
+    EXPECT_FALSE(tInitialHash == plato::filter::library::hash_mesh_coordinates(tMeshProxy));
 
     test_utilities::test_for_existence_and_remove({fileName}, TEST_CONTEXT("Removing temporary files."));
 }

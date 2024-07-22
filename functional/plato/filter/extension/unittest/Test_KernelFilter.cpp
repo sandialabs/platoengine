@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxy.hpp"
 #include "plato/mesh/MeshProxyViews.hpp"
@@ -39,7 +40,7 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     tNodalDensities[tHalfNode - 1] = .5;
     tNodalDensities[tHalfNode + 1] = .5;
 
-    const auto tMeshProxy = mesh::vector_to_mesh_proxy(tNodalDensities, mesh::MeshProxy{kMeshFile, {}});
+    const auto tMeshProxy = mesh::nodal_densities_to_mesh_proxy(tNodalDensities, mesh::Mesh{kMeshFile});
 
     const auto tResult = tKernelFilter.filter(tMeshProxy);
     const auto [tPostFilter, tIDMap] =

@@ -21,14 +21,7 @@ auto MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, Iterat
     if (mInnerIterator == mOuterIterator->second.end())
     {
         ++mOuterIterator;
-        if (mOuterIterator != mOuterIteratorEnd)
-        {
-            mInnerIterator = mOuterIterator->second.begin();
-        }
-        else
-        {
-            mInnerIterator = std::nullopt;
-        }
+        mInnerIterator = innerIteratorBegin();
     }
     return *this;
 }
@@ -53,6 +46,20 @@ bool MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, Iterat
     const MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>& aRHSIterator) const
 {
     return !(*this == aRHSIterator);
+}
+
+template <typename OuterIteratorType, typename InnerIteratorType, typename IteratorCategory>
+auto MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::innerIteratorBegin() const
+    -> std::optional<InnerIteratorType>
+{
+    if (mOuterIterator != mOuterIteratorEnd)
+    {
+        return mOuterIterator->second.begin();
+    }
+    else
+    {
+        return std::nullopt;
+    }
 }
 
 template <typename MeshProxyType>
@@ -90,18 +97,17 @@ std::vector<Density> mesh_proxy_to_vector(const MeshProxyDensitiesView aMeshView
     return tDensities;
 }
 
-MeshProxy vector_to_mesh_proxy(const std::vector<double>& aDensities, MeshProxy&& aMeshProxy)
+auto combine_densities_and_ids(const std::vector<double>& aDensityValues, const std::vector<std::size_t>& aIDs)
+    -> std::vector<Density>
 {
-    auto tDensitiesWithIndices = std::vector<Density>{};
-    tDensitiesWithIndices.reserve(aDensities.size());
-    std::transform(aDensities.begin(), aDensities.end(), utilities::IndexRange{aDensities.size()}.begin(),
-                   std::back_inserter(tDensitiesWithIndices),
-                   [](const double aDensity, const std::size_t aID) {
-                       return Density{aID, aDensity};
+    assert(aDensityValues.size() == aIDs.size());
+    auto tDensities = std::vector<Density>{};
+    tDensities.reserve(aDensityValues.size());
+    std::transform(aDensityValues.cbegin(), aDensityValues.cend(), aIDs.cbegin(), std::back_inserter(tDensities),
+                   [](const double aDensityValue, const Density::IndexType aID) {
+                       return Density{aID, aDensityValue};
                    });
-    auto tDensitiesBlockMap = MeshProxy::BlockDensities{};
-    tDensitiesBlockMap.emplace(0u, std::move(tDensitiesWithIndices));
-    return MeshProxy{std::move(aMeshProxy).mFileName, std::move(tDensitiesBlockMap)};
+    return tDensities;
 }
 
 auto split_densities(const std::vector<Density>& aDensities)
@@ -113,6 +119,7 @@ auto split_densities(const std::vector<Density>& aDensities)
                    [](const auto& aDensity) { return aDensity.mDensity; });
 
     auto tIndices = std::vector<Density::IndexType>{};
+    tIndices.reserve(aDensities.size());
     std::transform(aDensities.begin(), aDensities.end(), std::back_inserter(tIndices),
                    [](const auto& aDensity) { return aDensity.mGlobalID; });
 

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 
 #include "plato/test_utilities/TestContext.hpp"
@@ -113,7 +114,7 @@ TEST(BlockUtilities, EntityIDs)
         EXPECT_EQ(tResultElementIDs, tExpectedElementIDs);
 
         const auto tResultNodeIDs = node_ids(*tBulkData, tBlock2->get());
-        const auto tExpectedNodeIDs = std::vector<std::size_t>{6, 7, 3, 4, 5};
+        const auto tExpectedNodeIDs = std::vector<std::size_t>{3, 4, 5, 6, 7};
         EXPECT_EQ(tResultNodeIDs, tExpectedNodeIDs);
     }
     std::filesystem::remove(tMeshPath);
