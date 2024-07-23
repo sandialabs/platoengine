@@ -95,7 +95,7 @@ LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
 {
     const auto tMesh = mesh::Mesh{aMeshFileName};
     return LinearMask{
-        LinearMaskFactory{tMesh, aFilterCentering, SearchRadius{aFilterRadius.mValue}, aCommunicator}.returnMask(),
+        LinearMaskFactory{tMesh, aFilterCentering, SearchRadius{aFilterRadius.mValue}, aCommunicator}.mask(),
         aCommunicator};
 }
 

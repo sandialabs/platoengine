@@ -158,7 +158,7 @@ TEST(LinearMaskFactory, GenerateDistanceMapNodal)
 {
     const LinearMaskFactory tLinearMaskFactory = create_simple_linear_mask_factory();
 
-    const auto tDistanceMap = tLinearMaskFactory.returnMask();
+    const auto tDistanceMap = tLinearMaskFactory.mask();
 
     /* 2/3          1/3             0           0
        1/4         1/2            1/4        0
@@ -191,7 +191,7 @@ TEST(LinearMaskFactory, GenerateDistanceMapGivenCentroid)
     const std::vector<third_party_integration::common::Coordinate> tRelativeToCoordinate{{1, 0, 0}};
     const LinearMaskFactory tLinearMaskFactory = create_simple_linear_mask_factory(tRelativeToCoordinate);
 
-    const auto tDistanceMap = tLinearMaskFactory.returnMask();
+    const auto tDistanceMap = tLinearMaskFactory.mask();
     /*
            1/4         1/2            1/4        0
     */

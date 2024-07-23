@@ -74,10 +74,7 @@ third_party_integration::tpetra::TpetraMultiVector LinearMaskFactory::createNoda
     return tNodalCoordinates;
 }
 
-auto LinearMaskFactory::returnMask() const -> const third_party_integration::tpetra::TpetraCRSMatrix&
-{
-    return *mLinearMask;
-}
+auto LinearMaskFactory::mask() const -> const third_party_integration::tpetra::TpetraCRSMatrix& { return *mLinearMask; }
 
 auto LinearMaskFactory::generateRow(third_party_integration::common::Coordinate aCenter)
     -> std::pair<TpetraGlobalOrdinalVector, TpetraScalarVector>

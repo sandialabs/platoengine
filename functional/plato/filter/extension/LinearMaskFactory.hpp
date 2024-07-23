@@ -57,7 +57,7 @@ class LinearMaskFactory
                       const boost::mpi::communicator& aCommunicator);
 
     /// @brief Return a reference to the distance mask.
-    [[nodiscard]] auto returnMask() const -> const third_party_integration::tpetra::TpetraCRSMatrix&;
+    [[nodiscard]] auto mask() const -> const third_party_integration::tpetra::TpetraCRSMatrix&;
 
    private:
     /// @brief create nodal coordinate tpetra container of  @a aNodalCoordinates

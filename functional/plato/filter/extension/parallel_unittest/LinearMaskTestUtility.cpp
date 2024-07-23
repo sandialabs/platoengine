@@ -20,7 +20,7 @@ LinearMaskFactory create_simple_linear_mask_factory(
 
 LinearMask create_simple_linear_mask(const std::vector<third_party_integration::common::Coordinate>& aCentroids)
 {
-    return LinearMask{create_simple_linear_mask_factory(aCentroids).returnMask(), boost::mpi::communicator{}};
+    return LinearMask{create_simple_linear_mask_factory(aCentroids).mask(), boost::mpi::communicator{}};
 }
 
 }  // namespace plato::filter::extension::unittest
