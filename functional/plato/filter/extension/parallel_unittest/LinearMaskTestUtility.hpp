@@ -2,7 +2,7 @@
 #define PLATO_FILTER_EXTENSION_PARALLELUNITTEST_LINEARMASKTESTUTILITY
 
 #include "plato/filter/extension/LinearMask.hpp"
-#include "plato/filter/extension/LinearMaskFactory.hpp"
+#include "plato/filter/extension/LinearMaskBuilder.hpp"
 
 namespace plato::filter::extension::unittest
 {

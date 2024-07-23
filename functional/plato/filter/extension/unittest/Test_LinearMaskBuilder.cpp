@@ -2,7 +2,7 @@
 
 #include <boost/math/constants/constants.hpp>
 
-#include "plato/filter/extension/LinearMaskFactory.hpp"
+#include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"

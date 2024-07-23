@@ -5,7 +5,7 @@
 #include <boost/mpi/collectives.hpp>
 #include <set>
 
-#include "plato/filter/extension/LinearMaskFactory.hpp"
+#include "plato/filter/extension/LinearMaskBuilder.hpp"
 
 namespace plato::filter::extension
 {

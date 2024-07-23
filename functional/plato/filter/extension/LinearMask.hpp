@@ -4,7 +4,7 @@
 #include <boost/mpi/communicator.hpp>
 #include <optional>
 
-#include "plato/filter/extension/LinearMaskFactory.hpp"
+#include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/third_party_integration/tpetra/Utilities.hpp"
 
 namespace plato::filter::extension

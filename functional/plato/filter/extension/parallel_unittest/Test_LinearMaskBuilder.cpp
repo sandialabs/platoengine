@@ -3,7 +3,7 @@
 #include <boost/mpi/communicator.hpp>
 #include <optional>
 
-#include "plato/filter/extension/LinearMaskFactory.hpp"
+#include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/filter/extension/parallel_unittest/LinearMaskTestUtility.hpp"
 #include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"

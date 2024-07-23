@@ -1,4 +1,4 @@
-#include "plato/filter/extension/LinearMaskFactory.hpp"
+#include "plato/filter/extension/LinearMaskBuilder.hpp"
 
 #include <Teuchos_ArrayViewDecl.hpp>
 #include <Teuchos_EReductionType.hpp>
