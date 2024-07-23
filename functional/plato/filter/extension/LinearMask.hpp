@@ -10,35 +10,15 @@
 namespace plato::filter::extension
 {
 
-/// @brief A mask generation class for the Kernel filter.
-/// The intent is that this object gets created during some initialization phase and does not get updated thereafter.
+/// @brief A linear operator used to implement filtering.
+///
+/// This class is mainly a wrapper for a sparse matrix and provides members for multiplication and
+/// transpose multiplication.
+/// Construction is facilitated with LinearMaskFactory.
+/// @sa LinearMaskFactory
 class LinearMask
 {
    public:
-    /// @brief Constructor for the distance mask using element centroids.
-    /// @a aNodalCoordinates is a vector of nodal coordinates
-    /// @a aCentroids is a vector of the element centroids.
-    /// @a aSearchRadius is the search radius the distance map will be calculated over. It is used in a STK search as
-    /// well as the linear function to determine the weight.
-    /// @a aMaximumConnectivityEstimate is an estimate provided to the Tpetra CRS Matrix during allocation. It should be
-    /// a maximum expected to avoid any additional allocation time.
-    LinearMask(const NodalVector& aNodalCoordinates,
-               CenterVector aCentroids,
-               const SearchRadius aSearchRadius,
-               const int aMaximumConnectivityEstimate,
-               const boost::mpi::communicator& aCommunicator);
-
-    /// @brief Node centered constructor for the distance mask.
-    /// @a aNodalCoordinates is a vector of nodal coordinates, presumably from the mesh directly.
-    /// @a aSearchRadius is the search radius the distance map will be calculated over. It is used in a STK search as
-    /// well as the linear function to determine the weight.
-    /// @a aMaximumConnectivityEstimate is an estimate provided to the Tpetra CRS Matrix during allocation. It should be
-    /// a maximum expected to avoid any additional allocation time.
-    LinearMask(const NodalVector& aNodalCoordinates,
-               const SearchRadius aSearchRadius,
-               const int aMaximumConnectivityEstimate,
-               const boost::mpi::communicator& aCommunicator);
-
     /// @brief Constructs a LinearMask from a TpetraCRSMatrix.
     LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask,
                const boost::mpi::communicator& mCommunicator);

@@ -9,30 +9,6 @@
 
 namespace plato::filter::extension
 {
-
-LinearMask::LinearMask(const NodalVector& aNodalCoordinates,
-                       CenterVector aCentroids,
-                       const SearchRadius aSearchRadius,
-                       const int aMaximumConnectivityEstimate,
-                       const boost::mpi::communicator& aCommunicator)
-    : mCommunicator(aCommunicator),
-      mLinearMask(LinearMaskFactory{aNodalCoordinates, std::move(aCentroids), aSearchRadius,
-                                    aMaximumConnectivityEstimate, aCommunicator}
-                      .returnMask())
-{
-}
-
-LinearMask::LinearMask(const NodalVector& aNodalCoordinates,
-                       const SearchRadius aSearchRadius,
-                       const int aMaximumConnectivityEstimate,
-                       const boost::mpi::communicator& aCommunicator)
-    : mCommunicator(aCommunicator),
-      mLinearMask(LinearMaskFactory{aNodalCoordinates, CenterVector{aNodalCoordinates.mValue}, aSearchRadius,
-                                    aMaximumConnectivityEstimate, aCommunicator}
-                      .returnMask())
-{
-}
-
 LinearMask::LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask,
                        const boost::mpi::communicator& aCommunicator)
     : mCommunicator{aCommunicator}, mLinearMask{std::move(aLinearMask)}
