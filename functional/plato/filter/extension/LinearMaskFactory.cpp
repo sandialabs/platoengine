@@ -2,9 +2,13 @@
 
 #include <Teuchos_ArrayViewDecl.hpp>
 #include <Teuchos_EReductionType.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <boost/mpi/collectives.hpp>
-#include <set>
 
+#include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshQuantities.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::filter::extension
@@ -12,9 +16,36 @@ namespace plato::filter::extension
 
 namespace
 {
-
 constexpr bool kZeroOut = true;
+
+auto center_coordinates(const mesh::Mesh& aMesh, input_parser::KernelFilterCenteringTypes aCenteringType)
+    -> std::vector<third_party_integration::common::Coordinate>
+{
+    if (aCenteringType == input_parser::KernelFilterCenteringTypes::kElementCentered)
+    {
+        return mesh::EntityRetrieval{aMesh}.elementCentroids();
+    }
+    else
+    {
+        return mesh::EntityRetrieval{aMesh}.nodalCoordinates();
+    }
+}
+
 }  // namespace
+
+LinearMaskFactory::LinearMaskFactory(const mesh::Mesh& aMesh,
+                                     const input_parser::KernelFilterCenteringTypes aCenteringType,
+                                     const SearchRadius aSearchRadius,
+                                     const boost::mpi::communicator& aCommunicator)
+    : mCommunicator(aCommunicator),
+      mSearchRadius(aSearchRadius.mValue),
+      mMaximumConnectivityEstimate(detail::maximum_connectivity_estimate(aMesh, aSearchRadius)),
+      mRowCenterCoordinates(center_coordinates(aMesh, aCenteringType)),
+      mNodalCoordinates(createNodalCoordinates(mesh::EntityRetrieval{aMesh}.nodalCoordinates())),
+      mLocalSearchPointWithIdentifiers(detail::stk_search_points(mNodalCoordinates, mCommunicator.rank()))
+{
+    generateDistanceMap();
+}
 
 LinearMaskFactory::LinearMaskFactory(const NodalVector& aNodalCoordinates,
                                      CenterVector aCenters,
@@ -28,8 +59,7 @@ LinearMaskFactory::LinearMaskFactory(const NodalVector& aNodalCoordinates,
       mNodalCoordinates(createNodalCoordinates(aNodalCoordinates.mValue)),
       mLocalSearchPointWithIdentifiers(detail::stk_search_points(mNodalCoordinates, mCommunicator.rank()))
 {
-    generateDistanceMap(
-        static_cast<third_party_integration::tpetra::TpetraGlobalOrdinal>(aNodalCoordinates.mValue.size()));
+    generateDistanceMap();
 }
 
 third_party_integration::tpetra::TpetraMultiVector LinearMaskFactory::createNodalCoordinates(
@@ -52,23 +82,24 @@ auto LinearMaskFactory::returnMask() const -> const third_party_integration::tpe
 auto LinearMaskFactory::generateRow(third_party_integration::common::Coordinate aCenter)
     -> std::pair<TpetraGlobalOrdinalVector, TpetraScalarVector>
 {
-    const auto tSearchResults = third_party_integration::stk_search::find_points_in_sphere(
-        aCenter, mSearchRadius, mLocalSearchPointWithIdentifiers, mCommunicator);
+    namespace tpi = third_party_integration;
 
-    constexpr bool tZeroOut = true;
-    auto tRow = third_party_integration::tpetra::TpetraVector(mNodalCoordinates.getMap(), tZeroOut);
+    const auto tSearchResults =
+        tpi::stk_search::find_points_in_sphere(aCenter, mSearchRadius, mLocalSearchPointWithIdentifiers, mCommunicator);
+
+    auto tRow = tpi::tpetra::TpetraVector(mNodalCoordinates.getMap(), kZeroOut);
 
     double tSum = 0;
     for (const auto tLocalIndex :
-         utilities::IndexRange{third_party_integration::tpetra::number_of_local_elements(mNodalCoordinates.getMap())})
+         utilities::IndexRange{tpi::tpetra::number_of_local_elements(mNodalCoordinates.getMap())})
     {
-        const third_party_integration::stk_search::Identifier tLocalIdentifier{tLocalIndex, mCommunicator.rank()};
-        if (third_party_integration::stk_search::is_in_search_results(tLocalIdentifier, tSearchResults))
+        const tpi::stk_search::Identifier tLocalIdentifier{tLocalIndex, mCommunicator.rank()};
+        if (tpi::stk_search::is_in_search_results(tLocalIdentifier, tSearchResults))
         {
-            const third_party_integration::common::Coordinate tLocalCoordinate =
-                third_party_integration::tpetra::multivector_coordinate(mNodalCoordinates, tLocalIndex);
+            const tpi::common::Coordinate tLocalCoordinate =
+                tpi::tpetra::multivector_coordinate(mNodalCoordinates, tLocalIndex);
 
-            const double tDistance = third_party_integration::common::magnitude(aCenter - tLocalCoordinate);
+            const double tDistance = tpi::common::magnitude(aCenter - tLocalCoordinate);
             const double tWeight{detail::linear_ramp_weight(Distance{tDistance}, SearchRadius{mSearchRadius})};
 
             const auto tGlobalID = mNodalCoordinates.getMap()->getGlobalElement(tLocalIndex);
@@ -85,27 +116,28 @@ auto LinearMaskFactory::generateRow(third_party_integration::common::Coordinate 
                                              detail::EstimatedConnectivity{mMaximumConnectivityEstimate});
 }
 
-void LinearMaskFactory::generateDistanceMap(const third_party_integration::tpetra::TpetraGlobalOrdinal aNumberOfRows)
+void LinearMaskFactory::generateDistanceMap()
 {
+    namespace tpi = third_party_integration;
+
     const auto tCommunicator(Teuchos::rcp(new Teuchos::MpiComm<int>(mCommunicator)));
-    auto tCrsRowMap = Teuchos::rcp(new third_party_integration::tpetra::TpetraMap(
-        mRowCenterCoordinates.size(), third_party_integration::tpetra::kIndexBase, tCommunicator));
-    auto tCrsDomainMap = Teuchos::rcp(new third_party_integration::tpetra::TpetraMap(
-        aNumberOfRows, third_party_integration::tpetra::kIndexBase, tCommunicator));
+    auto tCrsRowMap =
+        Teuchos::rcp(new tpi::tpetra::TpetraMap(mRowCenterCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator));
+    auto tCrsDomainMap = Teuchos::rcp(
+        new tpi::tpetra::TpetraMap(mNodalCoordinates.getGlobalLength(), tpi::tpetra::kIndexBase, tCommunicator));
 
-    mLinearMask = Teuchos::RCP<third_party_integration::tpetra::TpetraCRSMatrix>{
-        new third_party_integration::tpetra::TpetraCRSMatrix(tCrsRowMap, mMaximumConnectivityEstimate)};
+    mLinearMask = Teuchos::RCP<tpi::tpetra::TpetraCRSMatrix>{
+        new tpi::tpetra::TpetraCRSMatrix(tCrsRowMap, mMaximumConnectivityEstimate)};
 
-    for (const auto tGlobalIndex : utilities::IndexRange{
-             static_cast<third_party_integration::tpetra::TpetraGlobalOrdinal>(mRowCenterCoordinates.size())})
+    for (const auto tGlobalIndex :
+         utilities::IndexRange{static_cast<tpi::tpetra::TpetraGlobalOrdinal>(mRowCenterCoordinates.size())})
     {
-        const third_party_integration::common::Coordinate tGlobalCoordinate = mRowCenterCoordinates[tGlobalIndex];
+        const tpi::common::Coordinate tGlobalCoordinate = mRowCenterCoordinates[tGlobalIndex];
         auto [tGlobalNonZeroIndices, tGlobalNonZeroWeights] = generateRow(tGlobalCoordinate);
 
-        mLinearMask->insertGlobalValues(
-            tGlobalIndex,
-            Teuchos::ArrayView<third_party_integration::tpetra::TpetraGlobalOrdinal>(tGlobalNonZeroIndices),
-            Teuchos::ArrayView<third_party_integration::tpetra::TpetraScalar>(tGlobalNonZeroWeights));
+        mLinearMask->insertGlobalValues(tGlobalIndex,
+                                        Teuchos::ArrayView<tpi::tpetra::TpetraGlobalOrdinal>(tGlobalNonZeroIndices),
+                                        Teuchos::ArrayView<tpi::tpetra::TpetraScalar>(tGlobalNonZeroWeights));
     }
     mLinearMask->fillComplete(tCrsDomainMap, tCrsRowMap);
 }
@@ -118,21 +150,40 @@ double linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRa
     return std::max(0.0, 1.0 - aDistance.mValue / aSearchRadius.mValue);
 }
 
+double filter_volume(const SearchRadius aFilterRadius)
+{
+    return 4.0 / 3.0 * boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue *
+           aFilterRadius.mValue;
+}
+
+double filter_area(const SearchRadius aFilterRadius)
+{
+    return boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue;
+}
+
+unsigned int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const SearchRadius aFilterRadius)
+{
+    const double tAverageNodalDensity = mesh::MeshQuantities{aMesh}.averageNodalDensity();
+    const double tSearchVolume =
+        mesh::EntityCounts{aMesh}.is2D() ? filter_area(aFilterRadius) : filter_volume(aFilterRadius);
+    return static_cast<int>(tSearchVolume * tAverageNodalDensity * kMaxMultiplier);
+}
+
 auto normalize_nonzero_weights(const third_party_integration::tpetra::TpetraVector& aRowVector,
                                const RowSum aRowSum,
                                const EstimatedConnectivity aEstimatedConnectivity)
     -> std::pair<TpetraGlobalOrdinalVector, TpetraScalarVector>
 {
-    std::vector<third_party_integration::tpetra::TpetraScalar> tNonZeroWeightVector;
-    std::vector<third_party_integration::tpetra::TpetraGlobalOrdinal> tNonZeroGlobalIndices;
+    namespace tpi = third_party_integration;
+
+    auto tNonZeroWeightVector = std::vector<tpi::tpetra::TpetraScalar>{};
+    auto tNonZeroGlobalIndices = std::vector<tpi::tpetra::TpetraGlobalOrdinal>{};
     tNonZeroWeightVector.reserve(aEstimatedConnectivity.mValue);
     tNonZeroGlobalIndices.reserve(aEstimatedConnectivity.mValue);
 
-    for (const auto tLocalIndex :
-         utilities::IndexRange{third_party_integration::tpetra::number_of_local_elements(aRowVector.getMap())})
+    for (const auto tLocalIndex : utilities::IndexRange{tpi::tpetra::number_of_local_elements(aRowVector.getMap())})
     {
-        const third_party_integration::tpetra::TpetraScalar tReplacementWeight =
-            aRowVector.getData()[tLocalIndex] / aRowSum.mValue;
+        const tpi::tpetra::TpetraScalar tReplacementWeight = aRowVector.getData()[tLocalIndex] / aRowSum.mValue;
         if (tReplacementWeight > 0)
         {
             const auto tGlobalID = aRowVector.getMap()->getGlobalElement(tLocalIndex);
@@ -146,17 +197,18 @@ auto normalize_nonzero_weights(const third_party_integration::tpetra::TpetraVect
 std::vector<third_party_integration::stk_search::SearchPointWithIdentifier> stk_search_points(
     const third_party_integration::tpetra::TpetraMultiVector& aNodalCoordinates, const int aRank)
 {
-    std::vector<third_party_integration::stk_search::SearchPointWithIdentifier> tLocalSearchPointWithIdentifiers(
-        third_party_integration::tpetra::number_of_local_elements(aNodalCoordinates.getMap()));
+    namespace tpi = third_party_integration;
+
+    std::vector<tpi::stk_search::SearchPointWithIdentifier> tLocalSearchPointWithIdentifiers(
+        tpi::tpetra::number_of_local_elements(aNodalCoordinates.getMap()));
 
     for (const auto tLocalIndex :
-         utilities::IndexRange{third_party_integration::tpetra::number_of_local_elements(aNodalCoordinates.getMap())})
+         utilities::IndexRange{tpi::tpetra::number_of_local_elements(aNodalCoordinates.getMap())})
     {
-        const third_party_integration::stk_search::Identifier tIdentifier{tLocalIndex, aRank};
-        const third_party_integration::common::Coordinate tCoordinate =
-            third_party_integration::tpetra::multivector_coordinate(aNodalCoordinates, tLocalIndex);
-        tLocalSearchPointWithIdentifiers[tLocalIndex] = third_party_integration::stk_search::SearchPointWithIdentifier(
-            {third_party_integration::stk_search::convert_coordinate(tCoordinate), tIdentifier});
+        const tpi::stk_search::Identifier tIdentifier{tLocalIndex, aRank};
+        const tpi::common::Coordinate tCoordinate = tpi::tpetra::multivector_coordinate(aNodalCoordinates, tLocalIndex);
+        tLocalSearchPointWithIdentifiers[tLocalIndex] =
+            tpi::stk_search::SearchPointWithIdentifier({tpi::stk_search::convert_coordinate(tCoordinate), tIdentifier});
     }
     return tLocalSearchPointWithIdentifiers;
 }

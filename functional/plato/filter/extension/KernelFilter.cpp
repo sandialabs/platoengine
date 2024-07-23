@@ -1,6 +1,5 @@
 #include "plato/filter/extension/KernelFilter.hpp"
 
-#include <boost/math/constants/constants.hpp>
 #include <boost/mpi.hpp>
 #include <boost/serialization/vector.hpp>
 
@@ -8,19 +7,16 @@
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
+#include "plato/filter/extension/LinearMaskFactory.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
-#include "plato/mesh/EntityCounts.hpp"
-#include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxy.hpp"
 #include "plato/mesh/MeshProxyViews.hpp"
-#include "plato/mesh/MeshQuantities.hpp"
-#include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 
 namespace plato::filter::extension
 {
@@ -92,46 +88,15 @@ std::optional<std::string> validate_kernel_filter_centering_type(const input_par
     }
 }
 
-double filter_volume(const FilterRadius aFilterRadius)
-{
-    return 4.0 / 3.0 * boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue *
-           aFilterRadius.mValue;
-}
-
-double filter_area(const FilterRadius aFilterRadius)
-{
-    return boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue;
-}
-
-int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const FilterRadius aFilterRadius)
-{
-    const double tAverageNodalDensity = mesh::MeshQuantities{aMesh}.averageNodalDensity();
-    const double tSearchVolume = mesh::EntityCounts{aMesh}.spatialDimensions() == 2u
-                                     ? detail::filter_area(aFilterRadius)
-                                     : detail::filter_volume(aFilterRadius);
-    return static_cast<int>(tSearchVolume * tAverageNodalDensity * kMaxMultiplier);
-}
-
 LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
                               const FilterRadius aFilterRadius,
                               const input_parser::KernelFilterCenteringTypes aFilterCentering,
                               const boost::mpi::communicator& aCommunicator)
 {
-    const auto tMesh = mesh::EntityRetrieval{mesh::Mesh{aMeshFileName}};
-    auto tNodalCoordinates = tMesh.nodalCoordinates();
-    const int tMaximumConnectivityEstimate = detail::maximum_connectivity_estimate(tMesh, aFilterRadius);
-
-    if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
-    {
-        auto tElementCentroids = tMesh.elementCentroids();
-        return LinearMask(NodalVector{std::move(tNodalCoordinates)}, CenterVector{std::move(tElementCentroids)},
-                          SearchRadius{aFilterRadius.mValue}, tMaximumConnectivityEstimate, aCommunicator);
-    }
-    else
-    {
-        return LinearMask(NodalVector{std::move(tNodalCoordinates)}, SearchRadius{aFilterRadius.mValue},
-                          tMaximumConnectivityEstimate, aCommunicator);
-    }
+    const auto tMesh = mesh::Mesh{aMeshFileName};
+    return LinearMask{
+        LinearMaskFactory{tMesh, aFilterCentering, SearchRadius{aFilterRadius.mValue}, aCommunicator}.returnMask(),
+        aCommunicator};
 }
 
 FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)

@@ -24,6 +24,16 @@ void check_counts(const Mesh& aMesh, const ExpectedCounts& aCounts, const test_u
     EXPECT_EQ(tMeshWithEntityCount.numberOfNodes(), aCounts.mNumberOfNodes) << aTestContext;
     EXPECT_EQ(tMeshWithEntityCount.numberOfBlocks(), aCounts.mNumberOfBlocks) << aTestContext;
     EXPECT_EQ(tMeshWithEntityCount.spatialDimensions(), aCounts.mSpatialDimensions) << aTestContext;
+    if (aCounts.mSpatialDimensions == 2u)
+    {
+        EXPECT_TRUE(tMeshWithEntityCount.is2D()) << aTestContext;
+        EXPECT_FALSE(tMeshWithEntityCount.is3D()) << aTestContext;
+    }
+    else
+    {
+        EXPECT_FALSE(tMeshWithEntityCount.is2D()) << aTestContext;
+        EXPECT_TRUE(tMeshWithEntityCount.is3D()) << aTestContext;
+    }
 }
 }  // namespace
 

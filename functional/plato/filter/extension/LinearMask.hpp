@@ -39,6 +39,10 @@ class LinearMask
                const int aMaximumConnectivityEstimate,
                const boost::mpi::communicator& aCommunicator);
 
+    /// @brief Constructs a LinearMask from a TpetraCRSMatrix.
+    LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask,
+               const boost::mpi::communicator& mCommunicator);
+
     /// @brief Return the size of the distance mask.
     [[nodiscard]] auto size() const -> std::pair<third_party_integration::tpetra::TpetraGlobalOrdinal,
                                                  third_party_integration::tpetra::TpetraGlobalOrdinal>;

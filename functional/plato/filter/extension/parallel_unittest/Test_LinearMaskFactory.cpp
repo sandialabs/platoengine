@@ -156,7 +156,7 @@ TEST(LinearMaskFactoryDetail, MakeSearchPointsWithIdentifiers)
 
 TEST(LinearMaskFactory, GenerateDistanceMapNodal)
 {
-    const LinearMaskFactory tLinearMaskFactory = create_simple_linear_mask<LinearMaskFactory>(std::nullopt);
+    const LinearMaskFactory tLinearMaskFactory = create_simple_linear_mask_factory();
 
     const auto tDistanceMap = tLinearMaskFactory.returnMask();
 
@@ -189,7 +189,7 @@ TEST(LinearMaskFactory, GenerateDistanceMapNodal)
 TEST(LinearMaskFactory, GenerateDistanceMapGivenCentroid)
 {
     const std::vector<third_party_integration::common::Coordinate> tRelativeToCoordinate{{1, 0, 0}};
-    const LinearMaskFactory tLinearMaskFactory = create_simple_linear_mask<LinearMaskFactory>(tRelativeToCoordinate);
+    const LinearMaskFactory tLinearMaskFactory = create_simple_linear_mask_factory(tRelativeToCoordinate);
 
     const auto tDistanceMap = tLinearMaskFactory.returnMask();
     /*

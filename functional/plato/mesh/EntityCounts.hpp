@@ -21,6 +21,16 @@ struct EntityCounts : public Mesh
 
     /// @brief The dimensions of the mesh (2 or 3).
     [[nodiscard]] unsigned int spatialDimensions() const;
+
+    /// @brief Returns whether or not the mesh is 2D.
+    ///
+    /// Equivalent to `spatialDimentions() == 2u`
+    [[nodiscard]] bool is2D() const;
+
+    /// @brief Returns whether or not the mesh is 3D.
+    ///
+    /// Equivalent to `spatialDimentions() == 3u`
+    [[nodiscard]] bool is3D() const;
 };
 
 }  // namespace plato::mesh

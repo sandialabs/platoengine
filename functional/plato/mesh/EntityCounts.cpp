@@ -21,4 +21,8 @@ unsigned int EntityCounts::spatialDimensions() const
     return third_party_integration::stk_io::spatial_dimensions(bulkData());
 }
 
+bool EntityCounts::is2D() const { return spatialDimensions() == 2u; }
+
+bool EntityCounts::is3D() const { return spatialDimensions() == 3u; }
+
 }  // namespace plato::mesh

@@ -12,13 +12,9 @@
 
 namespace plato::mesh
 {
-struct MeshProxy;
-}
-
-namespace plato::mesh
-{
 class Mesh;
-}
+struct MeshProxy;
+}  // namespace plato::mesh
 
 namespace plato::input_parser
 {
@@ -57,33 +53,15 @@ class KernelFilter : public library::FilterInterface
 
 namespace detail
 {
-std::optional<std::string> validate_kernel_filter_centering_type(const input_parser::kernel_filter& aInput);
-
-/// @brief an empirically determined value for a uniform hex mesh and filter radii that are similar in size to the
-/// element size.
-// clang-format off
-/// A value of 1.5 will cover FilterRadii that are 1.45*Element_Length and larger
-/// A value of 1.2 will cover FilterRadii that are 2.6*Element_Length and larger
-/// A value of 1.1 will cover FilterRadii that are 3.9*Element_Length and larger
-// clang-format on
-constexpr double kMaxMultiplier = 1.5;
-
-/// @brief Compute the volume of a sphere with radius @a aFilterRadius
-double filter_volume(const FilterRadius aFilterRadius);
-
-/// @brief Compute the area of a circle with radius @a aFilterRadius
-double filter_area(const FilterRadius aFilterRadius);
-
-/// @brief Compute maximum expected connectivity in a row for mesh @a aMesh, with a filter sphere with radius
-/// @a aFilterRadius
-int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const FilterRadius aFilterRadius);
+[[nodiscard]] std::optional<std::string> validate_kernel_filter_centering_type(
+    const input_parser::kernel_filter& aInput);
 
 /// @brief Create a LinearMask object a mesh @a aMeshFileName, with a filter sphere with radius @a aFilterRadius,
 /// centered on the elements or nodes determined by @a aFilterCentering, using a communicator @a aCommunicator
-LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
-                              const FilterRadius aFilterRadius,
-                              const input_parser::KernelFilterCenteringTypes aFilterCentering,
-                              const boost::mpi::communicator& aCommunicator);
+[[nodiscard]] LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
+                                            const FilterRadius aFilterRadius,
+                                            const input_parser::KernelFilterCenteringTypes aFilterCentering,
+                                            const boost::mpi::communicator& aCommunicator);
 
 /// @brief Create a StateCache object for constructing a shared pointer to a KernelFilter if the mesh coordinates have
 /// changed (i.e. the mesh has changed)

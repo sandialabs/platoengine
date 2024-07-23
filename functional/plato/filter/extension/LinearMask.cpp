@@ -33,6 +33,12 @@ LinearMask::LinearMask(const NodalVector& aNodalCoordinates,
 {
 }
 
+LinearMask::LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask,
+                       const boost::mpi::communicator& aCommunicator)
+    : mCommunicator{aCommunicator}, mLinearMask{std::move(aLinearMask)}
+{
+}
+
 std::vector<double> LinearMask::matrixMultiply(const std::vector<double>& aValues) const
 {
     auto [tRowVector, tColumnVector] =
