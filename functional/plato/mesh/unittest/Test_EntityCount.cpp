@@ -62,4 +62,15 @@ TEST_F(TwoDNonUniformHexMesh, TwoDCounts)
     check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("Two dimensional mesh"));
 }
 
+TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockCounts)
+{
+    const auto tMesh = Mesh{mMeshFilePath};
+    const auto tExpectedCounts =
+        ExpectedCounts{/*.mNumberOfElements=*/mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock2 +
+                           mExpectedNumberOfElementsInBlock3,
+                       /*.mNumberOfNodes=*/mExpectedNumberOfNodes,
+                       /*.mNumberOfBlocks=*/mExpectedNumberOfBlocks, /*.mSpatialDimensions=*/2u};
+    check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("Two dimensional mesh with three blocks"));
+}
+
 }  // namespace plato::mesh::unittest

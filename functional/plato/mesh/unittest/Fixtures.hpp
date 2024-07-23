@@ -91,6 +91,7 @@ class TwoDThreeBlockMesh : public ::testing::Test
     constexpr static auto mExpectedNumberOfElementsInBlock1 = 1u;
     constexpr static auto mExpectedNumberOfElementsInBlock2 = 2u;
     constexpr static auto mExpectedNumberOfElementsInBlock3 = 4u;
+    constexpr static auto mExpectedNumberOfNodes = 9u;
     constexpr static auto mExpectedNumberOfNodesInBlock1 = 4u;
     constexpr static auto mExpectedNumberOfNodesInBlock2 = 4u;
     constexpr static auto mExpectedNumberOfNodesInBlock3 = 5u;
