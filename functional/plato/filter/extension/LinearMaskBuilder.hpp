@@ -1,5 +1,5 @@
-#ifndef PLATO_FILTER_EXTENSION_LINEARMASKFACTORY
-#define PLATO_FILTER_EXTENSION_LINEARMASKFACTORY
+#ifndef PLATO_FILTER_EXTENSION_LINEARMASKBUILDER
+#define PLATO_FILTER_EXTENSION_LINEARMASKBUILDER
 
 #include <boost/mpi/communicator.hpp>
 
@@ -30,14 +30,14 @@ using TpetraScalarVector = std::vector<third_party_integration::tpetra::TpetraSc
 /// @brief A mask generation class for the Kernel filter.
 ///
 /// The intent is that this object gets created during some initialization phase and does not get updated thereafter.
-class LinearMaskFactory
+class LinearMaskBuilder
 {
    public:
     /// @brief Construction from a mesh.
     ///
     /// This will create a filter that expects a nodal field defined at all nodes and will filter to either nodes or
     /// element centroids as given by @a aCenteringType.
-    LinearMaskFactory(const mesh::Mesh& aMesh,
+    LinearMaskBuilder(const mesh::Mesh& aMesh,
                       input_parser::KernelFilterCenteringTypes aCenteringType,
                       const SearchRadius aSearchRadius,
                       const boost::mpi::communicator& aCommunicator);
@@ -50,7 +50,7 @@ class LinearMaskFactory
     /// as well as the linear function to determine the weight.
     /// @param aMaximumConnectivityEstimate is an estimate provided to the Tpetra CRS Matrix during allocation. It
     /// should be a maximum expected to avoid any additional allocation time.
-    LinearMaskFactory(const NodalVector& aNodalCoordinates,
+    LinearMaskBuilder(const NodalVector& aNodalCoordinates,
                       CenterVector aCenters,
                       const SearchRadius aSearchRadius,
                       const int aMaximumConnectivityEstimate,

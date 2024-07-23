@@ -14,8 +14,8 @@ namespace plato::filter::extension
 ///
 /// This class is mainly a wrapper for a sparse matrix and provides members for multiplication and
 /// transpose multiplication.
-/// Construction is facilitated with LinearMaskFactory.
-/// @sa LinearMaskFactory
+/// Construction is facilitated with LinearMaskBuilder.
+/// @sa LinearMaskBuilder
 class LinearMask
 {
    public:

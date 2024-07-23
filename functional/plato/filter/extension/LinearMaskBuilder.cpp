@@ -33,7 +33,7 @@ auto center_coordinates(const mesh::Mesh& aMesh, input_parser::KernelFilterCente
 
 }  // namespace
 
-LinearMaskFactory::LinearMaskFactory(const mesh::Mesh& aMesh,
+LinearMaskBuilder::LinearMaskBuilder(const mesh::Mesh& aMesh,
                                      const input_parser::KernelFilterCenteringTypes aCenteringType,
                                      const SearchRadius aSearchRadius,
                                      const boost::mpi::communicator& aCommunicator)
@@ -47,7 +47,7 @@ LinearMaskFactory::LinearMaskFactory(const mesh::Mesh& aMesh,
     generateDistanceMap();
 }
 
-LinearMaskFactory::LinearMaskFactory(const NodalVector& aNodalCoordinates,
+LinearMaskBuilder::LinearMaskBuilder(const NodalVector& aNodalCoordinates,
                                      CenterVector aCenters,
                                      const SearchRadius aSearchRadius,
                                      const int aMaximumConnectivityEstimate,
@@ -62,7 +62,7 @@ LinearMaskFactory::LinearMaskFactory(const NodalVector& aNodalCoordinates,
     generateDistanceMap();
 }
 
-third_party_integration::tpetra::TpetraMultiVector LinearMaskFactory::createNodalCoordinates(
+third_party_integration::tpetra::TpetraMultiVector LinearMaskBuilder::createNodalCoordinates(
     const std::vector<third_party_integration::common::Coordinate>& aNodalCoordinates)
 {
     const auto tCommunicator(Teuchos::rcp(new Teuchos::MpiComm<int>(mCommunicator)));
@@ -74,9 +74,9 @@ third_party_integration::tpetra::TpetraMultiVector LinearMaskFactory::createNoda
     return tNodalCoordinates;
 }
 
-auto LinearMaskFactory::mask() const -> const third_party_integration::tpetra::TpetraCRSMatrix& { return *mLinearMask; }
+auto LinearMaskBuilder::mask() const -> const third_party_integration::tpetra::TpetraCRSMatrix& { return *mLinearMask; }
 
-auto LinearMaskFactory::generateRow(third_party_integration::common::Coordinate aCenter)
+auto LinearMaskBuilder::generateRow(third_party_integration::common::Coordinate aCenter)
     -> std::pair<TpetraGlobalOrdinalVector, TpetraScalarVector>
 {
     namespace tpi = third_party_integration;
@@ -113,7 +113,7 @@ auto LinearMaskFactory::generateRow(third_party_integration::common::Coordinate 
                                              detail::EstimatedConnectivity{mMaximumConnectivityEstimate});
 }
 
-void LinearMaskFactory::generateDistanceMap()
+void LinearMaskBuilder::generateDistanceMap()
 {
     namespace tpi = third_party_integration;
 
