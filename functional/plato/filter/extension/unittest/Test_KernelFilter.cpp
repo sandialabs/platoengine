@@ -6,6 +6,7 @@
 
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxy.hpp"
 #include "plato/mesh/MeshProxyViews.hpp"
@@ -154,9 +155,9 @@ TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
     const auto tFilePath = test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf");
     ASSERT_TRUE(tFilePath.has_value());
 
-    const mesh::MeshProxy tMeshProxy{
-        tFilePath.value(),
-        std::vector<double>(third_party_integration::stk_io::read_mesh_node_size(tFilePath.value()))};
+    const auto tMesh = mesh::Mesh{tFilePath.value()};
+    const auto tNodalDensities = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
+    const auto tMeshProxy = mesh::nodal_densities_to_mesh_proxy(tNodalDensities, tMesh);
 
     ASSERT_NO_THROW([[maybe_unused]] const auto tFilter = tFilterCache.compute(tMeshProxy));
 }
@@ -203,29 +204,48 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
 
     // make mesh and filter
     {
-        const third_party_integration::stk_io::CommandGenerator tCommandGenerator{{2, 2, 2}, {-1, -1, -1}, {1, 1, 1}};
-        third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                    third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+        const auto tCommandGenerator =
+            third_party_integration::stk_io::CommandGenerator{{2, 2, 2}, {-1, -1, -1}, {1, 1, 1}};
+        third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
     }
-    mesh::MeshProxy tMeshProxy{kMeshFile,
-                               std::vector<double>(third_party_integration::stk_io::read_mesh_node_size(kMeshFile))};
-    const auto tFilteredControl = tFilterCache.compute(tMeshProxy)->filter(tMeshProxy).mNodalDensities;
+
+    const auto tMesh = mesh::Mesh{kMeshFile};
+    const auto tNodalDensitiesAllOne = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
+    const auto tMeshProxyAllOne = mesh::nodal_densities_to_mesh_proxy(tNodalDensitiesAllOne, tMesh);
+    const auto tFilteredControlAllOne = tFilterCache.compute(tMeshProxyAllOne)->filter(tMeshProxyAllOne);
+    const auto tMeshProxyViewFilteredAllOne = mesh::MeshProxyDensitiesView{tFilteredControlAllOne};
 
     // change control and ensure filter size is the same but values are different
-    tMeshProxy.mNodalDensities =
-        std::vector<double>(third_party_integration::stk_io::read_mesh_node_size(kMeshFile), 0.5);
-    EXPECT_TRUE(tFilteredControl.size() == tFilterCache.compute(tMeshProxy)->filter(tMeshProxy).mNodalDensities.size());
-    EXPECT_FALSE(tFilteredControl == tFilterCache.compute(tMeshProxy)->filter(tMeshProxy).mNodalDensities);
+    const auto tNodalDensitiesAllHalf = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 0.5);
+    const auto tMeshProxyAllHalf = mesh::nodal_densities_to_mesh_proxy(tNodalDensitiesAllHalf, tMesh);
+    const auto tFilteredControlAllHalf = tFilterCache.compute(tMeshProxyAllHalf)->filter(tMeshProxyAllHalf);
+    const auto tMeshProxyViewFilteredAllHalf = mesh::MeshProxyDensitiesView{tFilteredControlAllHalf};
+
+    EXPECT_EQ(tMeshProxyViewFilteredAllOne.size(), tMeshProxyViewFilteredAllHalf.size());
+    const auto [tFilteredDensitiesAllOne, tIDsAllOne] =
+        mesh::split_densities(mesh::mesh_proxy_to_vector(tMeshProxyViewFilteredAllOne));
+    const auto [tFilteredDensitiesAllHalf, tIDsAllHalf] =
+        mesh::split_densities(mesh::mesh_proxy_to_vector(tMeshProxyViewFilteredAllHalf));
+    EXPECT_NE(tFilteredDensitiesAllOne, tFilteredDensitiesAllHalf);
+    EXPECT_EQ(tIDsAllOne, tIDsAllHalf);
 
     // change mesh and ensure filter size is different
     {
-        const third_party_integration::stk_io::CommandGenerator tCommandGenerator{{3, 2, 3}, {-1, -1, -1}, {1, 1, 1}};
-        third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                    third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+        const auto tCommandGenerator =
+            third_party_integration::stk_io::CommandGenerator{{3, 2, 3}, {-1, -1, -1}, {1, 1, 1}};
+        third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
     }
-    tMeshProxy.mNodalDensities = std::vector<double>(third_party_integration::stk_io::read_mesh_node_size(kMeshFile));
-    EXPECT_FALSE(tFilteredControl.size() ==
-                 tFilterCache.compute(tMeshProxy)->filter(tMeshProxy).mNodalDensities.size());
+
+    const auto tUpdatedMesh = mesh::Mesh{kMeshFile};
+    const auto tUpdatedNodalDensitiesAllOne =
+        std::vector<double>(mesh::EntityCounts{tUpdatedMesh}.numberOfNodes(), 1.0);
+    const auto tUpdatedMeshProxyAllOne =
+        mesh::nodal_densities_to_mesh_proxy(tUpdatedNodalDensitiesAllOne, tUpdatedMesh);
+    const auto tUpdatedFilteredControlAllOne =
+        tFilterCache.compute(tUpdatedMeshProxyAllOne)->filter(tUpdatedMeshProxyAllOne);
+    const auto tUpdatedMeshProxyViewFilteredAllOne = mesh::MeshProxyDensitiesView{tUpdatedFilteredControlAllOne};
+
+    EXPECT_NE(tMeshProxyViewFilteredAllOne.size(), tUpdatedMeshProxyViewFilteredAllOne.size());
 
     test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
 }
