@@ -18,6 +18,8 @@ class Part;
 
 namespace plato::third_party_integration::stk_io
 {
+using OptionalPartReference = std::optional<std::reference_wrapper<const stk::mesh::Part>>;
+
 /// @brief Given a STK bulk data @a aBulk, return the number of blocks.
 [[nodiscard]] unsigned int block_size(const stk::mesh::BulkData& aBulk);
 
@@ -25,9 +27,14 @@ namespace plato::third_party_integration::stk_io
 /// @post The elements of the returned vector are sorted in ascending order based on the block id.
 [[nodiscard]] std::vector<common::BlockData> block_data(const stk::mesh::BulkData& aBulk);
 
-/// @brief Returns the Part associated with block with name @a aBlockName if the block exists, `nullptr` otherwise.
+/// @brief Returns the Part associated with block with name @a aBlockName if the block exists, `nullopt` otherwise.
 [[nodiscard]] auto part_with_block_name(const stk::mesh::BulkData& aBulkData, std::string_view aBlockName)
-    -> std::optional<std::reference_wrapper<stk::mesh::Part>>;
+    -> OptionalPartReference;
+
+/// @brief Returns the Part associated with block with name @a aBlockID if the block exists, `nullopt` otherwise.
+[[nodiscard]] auto part_with_block_meta_data_ordinal(const stk::mesh::BulkData& aBulkData,
+                                                     common::BlockData::BlockOrdinalType aBlockOrdinal)
+    -> OptionalPartReference;
 
 /// @brief Returns the number of elements in the part @a aPart associated with BulkData @a aBulkData.
 [[nodiscard]] std::size_t element_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart);

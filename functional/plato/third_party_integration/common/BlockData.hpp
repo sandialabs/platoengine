@@ -5,12 +5,14 @@
 
 namespace plato::third_party_integration::common
 {
-/// @brief Struct for holding a block's name and ID, as read from an exodus mesh
+/// @brief Struct for holding a block's name and IDs, as read from an exodus mesh
 struct BlockData
 {
     using BlockIDType = int64_t;
+    using BlockOrdinalType = unsigned;
 
     BlockIDType mID = 0;
+    BlockOrdinalType mMetaDataOrdinal = 0u;  // An internally assigned stk ID
     std::string mName{};
 };
 

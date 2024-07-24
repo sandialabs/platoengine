@@ -22,7 +22,7 @@ struct Density
 /// and a density field.
 struct MeshProxy
 {
-    using BlockIDType = int64_t;
+    using BlockIDType = unsigned;
     using DensityVector = std::vector<Density>;
     using BlockDensities = std::map<BlockIDType, DensityVector>;
 

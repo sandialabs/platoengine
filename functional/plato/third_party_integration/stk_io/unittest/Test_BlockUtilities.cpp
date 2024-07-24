@@ -52,9 +52,11 @@ TEST(BlockUtilities, BlockData)
 
     ASSERT_EQ(tBlockIDsAndNames.size(), kExpectedNumberOfBlocks);
 
-    EXPECT_EQ(tBlockIDsAndNames.front().mID, 1u);
+    EXPECT_EQ(tBlockIDsAndNames.front().mID, 1);
+    EXPECT_EQ(tBlockIDsAndNames.front().mMetaDataOrdinal, 40u);
     EXPECT_EQ(tBlockIDsAndNames.front().mName, "block_1");
-    EXPECT_EQ(tBlockIDsAndNames.back().mID, 2u);
+    EXPECT_EQ(tBlockIDsAndNames.back().mID, 2);
+    EXPECT_EQ(tBlockIDsAndNames.back().mMetaDataOrdinal, 41u);
     EXPECT_EQ(tBlockIDsAndNames.back().mName, "block_2");
 
     // Check sorted post-condition
@@ -63,20 +65,41 @@ TEST(BlockUtilities, BlockData)
                                { return tBlockDataLeft.mID < tBlockDataRight.mID; }));
 }
 
-TEST(BlockUtilities, PartWithBlockName)
+TEST(BlockUtilities, PartWithBlockNameAndID)
 {
     const auto tTwoBlockMesh = test_mesh(TEST_CONTEXT("Bulk data with block name"));
+    const auto tBlockData = block_data(*tTwoBlockMesh);
+    for (const auto& [id, ordinal, name] : tBlockData)
     {
-        const auto tBlock1 = part_with_block_name(*tTwoBlockMesh, "block_1");
-        ASSERT_TRUE(tBlock1);
-        EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock1->get()), kExpectedNumberOfElementsInBlock1);
-        EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock1->get()), kExpectedNumberOfNodesInBlock1);
+        std::cout << "block name: " << name << ", ordinal: " << ordinal << ", id = " << id << std::endl;
     }
     {
-        const auto tBlock2 = part_with_block_name(*tTwoBlockMesh, "block_2");
-        ASSERT_TRUE(tBlock2);
-        EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock2->get()), kExpectedNumberOfElementsInBlock2);
-        EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock2->get()), kExpectedNumberOfNodesInBlock2);
+        const auto tBlockFromName = part_with_block_name(*tTwoBlockMesh, "block_1");
+        const auto tBlockFromID = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 40u);
+        for (const auto& tBlock : {tBlockFromName, tBlockFromID})
+        {
+            ASSERT_TRUE(tBlock);
+            EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfElementsInBlock1);
+            EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfNodesInBlock1);
+        }
+    }
+    {
+        const auto tBlockFromName = part_with_block_name(*tTwoBlockMesh, "block_2");
+        const auto tBlockFromID = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 41u);
+        for (const auto& tBlock : {tBlockFromName, tBlockFromID})
+        {
+            ASSERT_TRUE(tBlock);
+            EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfElementsInBlock2);
+            EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfNodesInBlock2);
+        }
+    }
+    {
+        auto tFalseBlock = part_with_block_name(*tTwoBlockMesh, "definitely-not-a-real-block-banana");
+        EXPECT_FALSE(tFalseBlock);
+
+        constexpr auto tInvalidBlockID = 420000;
+        tFalseBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, tInvalidBlockID);
+        EXPECT_FALSE(tFalseBlock);
     }
 }
 

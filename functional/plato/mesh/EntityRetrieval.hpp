@@ -2,6 +2,7 @@
 #define PLATO_MESH_ENTITYRETRIEVAL
 
 #include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::mesh
 {

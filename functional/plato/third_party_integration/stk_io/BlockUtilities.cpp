@@ -34,7 +34,6 @@ std::vector<std::size_t> entity_ids(const stk::mesh::BulkData& aBulkData,
                    [&aBulkData](const auto& tEntity) { return aBulkData.identifier(tEntity); });
     return tEntityIDs;
 }
-
 }  // namespace
 
 unsigned int block_size(const stk::mesh::BulkData& aBulk) { return aBulk.mesh_meta_data().get_mesh_parts().size(); }
@@ -46,7 +45,7 @@ std::vector<common::BlockData> block_data(const stk::mesh::BulkData& aBulk)
     tBlockData.reserve(tParts.size());
     std::transform(tParts.cbegin(), tParts.cend(), std::back_inserter(tBlockData),
                    [](const auto& aPart) {
-                       return common::BlockData{/*.mID=*/aPart->id(), /*.mName=*/aPart->name()};
+                       return common::BlockData{aPart->id(), aPart->mesh_meta_data_ordinal(), aPart->name()};
                    });
     std::sort(tBlockData.begin(), tBlockData.end(),
               [](const auto& tBlockDataLeft, const auto& tBlockDataRight)
@@ -55,12 +54,25 @@ std::vector<common::BlockData> block_data(const stk::mesh::BulkData& aBulk)
 }
 
 auto part_with_block_name(const stk::mesh::BulkData& aBulkData, const std::string_view aBlockName)
-    -> std::optional<std::reference_wrapper<stk::mesh::Part>>
+    -> OptionalPartReference
 {
-    auto tPart = aBulkData.mesh_meta_data().get_part(std::string{aBlockName});
-    if (tPart)
+    if (auto tPart = aBulkData.mesh_meta_data().get_part(std::string{aBlockName}))
     {
-        return std::make_optional(std::ref(*tPart));
+        return std::make_optional(std::cref(*tPart));
+    }
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+auto part_with_block_meta_data_ordinal(const stk::mesh::BulkData& aBulkData,
+                                       const common::BlockData::BlockOrdinalType aBlockOrdinal) -> OptionalPartReference
+{
+    if (aBulkData.mesh_meta_data().is_valid_part_ordinal(aBlockOrdinal))
+    {
+        const auto& tPart = aBulkData.mesh_meta_data().get_part(aBlockOrdinal);
+        return std::make_optional(std::cref(tPart));
     }
     else
     {

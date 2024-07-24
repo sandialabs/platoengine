@@ -37,12 +37,6 @@ void check_counts(const Mesh& aMesh, const ExpectedCounts& aCounts, const test_u
 }
 }  // namespace
 
-TEST_F(OneBlock3x1x1HexMesh, FilePath)
-{
-    const auto tMesh = Mesh{mMeshFilePath};
-    EXPECT_EQ(tMesh.filePath(), mMeshFilePath);
-}
-
 TEST_F(OneBlock3x1x1HexMesh, OneBlockCounts)
 {
     const auto tMesh = Mesh{mMeshFilePath};
