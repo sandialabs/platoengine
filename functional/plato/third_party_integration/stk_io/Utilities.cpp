@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <boost/range.hpp>
 #include <boost/range/adaptor/indexed.hpp>
+#include <numeric>
 #include <stk_io/FillMesh.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
@@ -18,11 +19,15 @@
 #include <stk_topology/topology.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 
+#include "plato/utilities/IndexRange.hpp"
+
 namespace plato::third_party_integration::stk_io
 {
 namespace
 {
 constexpr auto kTopologyFieldName = std::string_view{"topology"};
+constexpr bool kSortedByID = true;
+constexpr bool kUnsorted = false;
 
 template <stk::topology::rank_t Rank>
 unsigned int size(const stk::mesh::BulkData& aBulk)
@@ -45,8 +50,7 @@ size_t write_mesh_density_impl(stk::io::StkMeshIoBroker& aIOBroker,
     aIOBroker.populate_bulk_data();
 
     std::vector<stk::mesh::Entity> tEntity;
-    constexpr bool tSortByID = false;
-    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntity, tSortByID);
+    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntity, kUnsorted);
     assert(tEntity.size() == aDensity.size());
     for (size_t iEntity = 0; iEntity < tEntity.size(); iEntity++)
     {
@@ -88,6 +92,21 @@ std::shared_ptr<stk::mesh::BulkData> bulk_data_from_description(const std::strin
     bulk->mesh_meta_data().use_simple_fields();
     stk::io::fill_mesh(std::string{aMeshDescription}, *bulk);
     return bulk;
+}
+
+stk::mesh::Selector parts_to_selector(const PartReferenceVector& aParts)
+{
+    return std::accumulate(aParts.cbegin(), aParts.cend(), stk::mesh::Selector{},
+                           [](stk::mesh::Selector aSelector, const auto tPart)
+                           {
+                               aSelector |= tPart.get();
+                               return aSelector;
+                           });
+}
+
+PartReferenceVector universal_part(const stk::mesh::BulkData& aBulk)
+{
+    return PartReferenceVector{std::cref(aBulk.mesh_meta_data().universal_part())};
 }
 
 }  // namespace
@@ -161,7 +180,7 @@ std::vector<double> flattened_nodal_coordinates(const stk::mesh::BulkData& aBulk
 {
     const unsigned int tSpatialDim = spatial_dimensions(aBulk);
     const auto tCoordinates = nodal_coordinates(aBulk);
-    std::vector<double> tFlattenCoordinates(tCoordinates.size() * tSpatialDim, 0.0);
+    std::vector<double> tFlattenCoordinates(tCoordinates.size() * tSpatialDim);
 
     for (auto const& tCoordinate : tCoordinates | boost::adaptors::indexed(0))
     {
@@ -175,21 +194,28 @@ std::vector<double> flattened_nodal_coordinates(const stk::mesh::BulkData& aBulk
 
 std::vector<common::Coordinate> nodal_coordinates(const stk::mesh::BulkData& aBulk)
 {
-    const unsigned int tSpatialDim = spatial_dimensions(aBulk);
-    const unsigned int tNumberOfNodes = node_size(aBulk);
-    std::vector<common::Coordinate> tCoordinates(static_cast<std::size_t>(tNumberOfNodes), {0.0, 0.0, 0.0});
+    return nodal_coordinates(aBulk, universal_part(aBulk));
+}
 
-    stk::mesh::EntityVector tNodeEntity;
-    stk::mesh::get_entities(aBulk, stk::topology::NODE_RANK, tNodeEntity, true);
+auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+    -> std::vector<common::Coordinate>
+{
+    auto tNodeEntity = stk::mesh::EntityVector{};
+    stk::mesh::get_entities(aBulk, stk::topology::NODE_RANK, parts_to_selector(aParts), tNodeEntity, kSortedByID);
+
     const stk::mesh::FieldBase* const tCoordsField = aBulk.mesh_meta_data().coordinate_field();
 
-    for (size_t tNodeIndex = 0; tNodeIndex < tNodeEntity.size(); tNodeIndex++)
-    {
-        const auto tData = static_cast<const double*>(stk::mesh::field_data(*tCoordsField, tNodeEntity[tNodeIndex]));
-        tCoordinates[tNodeIndex].x = tData[0];
-        tCoordinates[tNodeIndex].y = tData[1];
-        tCoordinates[tNodeIndex].z = (tSpatialDim == 2 ? 0 : tData[2]);
-    }
+    auto tCoordinates = std::vector<common::Coordinate>{};
+    tCoordinates.reserve(tNodeEntity.size());
+
+    const auto tIndices = utilities::IndexRange{tNodeEntity.size()};
+    std::transform(tIndices.begin(), tIndices.end(), std::back_inserter(tCoordinates),
+                   [tSpatialDim = spatial_dimensions(aBulk), tCoordsField, &tNodeEntity](const auto aNodeIndex)
+                   {
+                       const auto tData =
+                           static_cast<const double*>(stk::mesh::field_data(*tCoordsField, tNodeEntity[aNodeIndex]));
+                       return common::Coordinate{tData[0], tData[1], tSpatialDim == 2 ? 0 : tData[2]};
+                   });
     return tCoordinates;
 }
 
@@ -229,8 +255,7 @@ stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk)
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart)
 {
     stk::mesh::EntityVector tElements;
-    constexpr bool tSortById = true;
-    stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, aPart, tElements, tSortById);
+    stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, aPart, tElements, kSortedByID);
     return tElements;
 }
 

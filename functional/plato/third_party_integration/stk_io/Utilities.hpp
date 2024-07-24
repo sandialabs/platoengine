@@ -2,6 +2,7 @@
 #define PLATO_THIRDPARTYINTEGRATION_STKIO_UTILITIES
 
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <stk_mesh/base/Types.hpp>
@@ -19,6 +20,8 @@ class Part;
 
 namespace plato::third_party_integration::stk_io
 {
+using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::Part>>;
+
 /// @brief Given a pathname  @a aMeshName and the Command generator @a aCommandGenerator, write to disk the data in
 /// exodus format
 void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator);
@@ -51,7 +54,11 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
 
 /// @brief Given a STK Bulk data  @a aBulk, return a std::vector of Coordinates
 /// For 2D, z values of Coordinates are set to 0.
-[[nodiscard]] std::vector<common::Coordinate> nodal_coordinates(const stk::mesh::BulkData& aBulk);
+[[nodiscard]] auto nodal_coordinates(const stk::mesh::BulkData& aBulk) -> std::vector<common::Coordinate>;
+
+/// @brief Returns the list of element IDs associated with the block @a aPart in mesh @a aBulkData.
+[[nodiscard]] auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+    -> std::vector<common::Coordinate>;
 
 /// @brief Given a pathname  @a aMeshName, return a std::vector of the nodal densities stored in the kTopologyField name
 [[nodiscard]] std::vector<double> read_nodal_density(const std::filesystem::path& aMeshName);

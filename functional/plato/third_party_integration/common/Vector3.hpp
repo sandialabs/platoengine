@@ -19,6 +19,12 @@ struct Coordinate
         stream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
         return stream;
     }
+
+    /// @todo Replace with `== default` in c++20
+    [[nodiscard]] friend constexpr bool operator==(const Coordinate& aLHS, const Coordinate& aRHS)
+    {
+        return aLHS.x == aRHS.x && aLHS.y == aRHS.y && aLHS.z == aRHS.z;
+    }
 };
 
 struct Vector3

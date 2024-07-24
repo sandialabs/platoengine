@@ -20,7 +20,7 @@ double MeshQuantities::averageNodalDensity() const
 std::vector<double> MeshQuantities::elementVolumes() const
 {
     const auto tBlockData = third_party_integration::stk_io::block_data(bulkData());
-    std::vector<double> tElementVolumes;
+    auto tElementVolumes = std::vector<double>{};
     tElementVolumes.reserve(third_party_integration::stk_io::element_size(bulkData()));
     for (const auto& tBlock : tBlockData)
     {

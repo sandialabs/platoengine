@@ -25,7 +25,7 @@ constexpr auto tTwoDTriMesh = std::string_view{
     "0,4,TRI_3_2D,5,7,4,block_2\n"
     "0,5,TRI_3_2D,7,6,4,block_2\n"
     "0,6,TRI_3_2D,6,3,4,block_2\n"
-    "|coordinates: 0,0,0.1,0,0,0.1,0.05,0.1,0.1,0.1,0,0.2,0.1,0.2"
+    "|coordinates: 0,0,0.125,0,0,0.125,0.0625,0.125,0.125,0.125,0,0.25,0.125,0.25"
     "|dimension:2"};
 
 auto test_mesh(const plato::test_utilities::TestContext& aTestContext) -> std::shared_ptr<stk::mesh::BulkData>
@@ -118,12 +118,51 @@ TEST(BlockUtilities, NodeIDsOneBlockNonSequential)
 
     const auto tBulkData = read_mesh_bulk_data(tMeshPath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
-    ASSERT_EQ(tParts.size(), 1u);
+    constexpr auto tExpectedNumberOfParts = 1u;
+    ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
 
     const auto tResultIDs = node_ids(*tBulkData, *tParts.front());
     const auto tExpectedIDs = std::vector<std::size_t>{1, 2, 3, 4, 11, 12, 13, 14};
 
     EXPECT_EQ(tResultIDs, tExpectedIDs);
+
+    std::filesystem::remove(tMeshPath);
+}
+
+TEST(BlockUtilities, NodalCoordinatesInBlock)
+{
+    const auto tMeshPath = std::filesystem::path{"temp_mesh.exo"};
+    write_mesh(tMeshPath, tTwoDTriMesh);
+
+    const auto tBulkData = read_mesh_bulk_data(tMeshPath);
+    const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
+    constexpr auto tExpectedNumberOfParts = 2u;
+    ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
+
+    const auto tAllNodalCoordinates = nodal_coordinates(*tBulkData);
+
+    // All coordinates
+    {
+        const auto tCoordinateParts = std::vector{std::cref(*tParts.front()), std::cref(*tParts.back())};
+        const auto tAllNodalCoordinatesFromParts = nodal_coordinates(*tBulkData, tCoordinateParts);
+        EXPECT_EQ(tAllNodalCoordinatesFromParts, tAllNodalCoordinates);
+    }
+    // Block 1
+    {
+        const auto tExpectedCoordinates = std::vector<common::Coordinate>{
+            {0, 0, 0}, {0.125, 0, 0}, {0, 0.125, 0}, {0.0625, 0.125, 0}, {0.125, 0.125, 0}};
+        const auto tCoordinateParts = std::vector{std::cref(*tParts.front())};
+        const auto tBlock1NodalCoordinatesFromParts = nodal_coordinates(*tBulkData, tCoordinateParts);
+        EXPECT_EQ(tBlock1NodalCoordinatesFromParts, tExpectedCoordinates);
+    }
+    // Block 2
+    {
+        const auto tExpectedCoordinates = std::vector<common::Coordinate>{
+            {0, 0.125, 0}, {0.0625, 0.125, 0}, {0.125, 0.125, 0}, {0, 0.25, 0}, {0.125, 0.25, 0}};
+        const auto tCoordinateParts = std::vector{std::cref(*tParts.back())};
+        const auto tBlock1NodalCoordinatesFromParts = nodal_coordinates(*tBulkData, tCoordinateParts);
+        EXPECT_EQ(tBlock1NodalCoordinatesFromParts, tExpectedCoordinates);
+    }
 
     std::filesystem::remove(tMeshPath);
 }

@@ -34,7 +34,7 @@ struct MeshProxyDensitiesViewIterator
     [[nodiscard]] bool operator==(const MeshProxyDensitiesViewIterator& aRHSIterator) const;
     [[nodiscard]] bool operator!=(const MeshProxyDensitiesViewIterator& aRHSIterator) const;
 
-    auto innerIteratorBegin() const -> std::optional<InnerIteratorType>;
+    [[nodiscard]] auto innerIteratorBegin() const -> std::optional<InnerIteratorType>;
 
     OuterIteratorType mOuterIterator;
     OuterIteratorType mOuterIteratorEnd;

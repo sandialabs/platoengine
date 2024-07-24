@@ -138,4 +138,37 @@ TEST(Container, ContainerToVector)
     test_flatten<Vector3>();
 }
 
+TEST(Coordinate, EqualityOperator)
+{
+    constexpr auto tCoordinateAll1 = Coordinate{1.0, 1.0, 1.0};
+    constexpr auto tCoordinate1x = Coordinate{1.0, 0.0, 0.0};
+    constexpr auto tCoordinate1y = Coordinate{0.0, 1.0, 0.0};
+    constexpr auto tCoordinate1z = Coordinate{0.0, 0.0, 1.0};
+
+    EXPECT_TRUE(tCoordinateAll1 == tCoordinateAll1);
+    EXPECT_FALSE(tCoordinateAll1 == tCoordinate1x);
+    EXPECT_FALSE(tCoordinateAll1 == tCoordinate1y);
+    EXPECT_FALSE(tCoordinateAll1 == tCoordinate1z);
+
+    // Reverse order
+    EXPECT_FALSE(tCoordinate1x == tCoordinateAll1);
+    EXPECT_FALSE(tCoordinate1y == tCoordinateAll1);
+    EXPECT_FALSE(tCoordinate1z == tCoordinateAll1);
+
+    // x with others
+    EXPECT_TRUE(tCoordinate1x == tCoordinate1x);
+    EXPECT_FALSE(tCoordinate1x == tCoordinate1y);
+    EXPECT_FALSE(tCoordinate1x == tCoordinate1z);
+    EXPECT_FALSE(tCoordinate1y == tCoordinate1x);
+    EXPECT_FALSE(tCoordinate1z == tCoordinate1x);
+
+    // y with others
+    EXPECT_TRUE(tCoordinate1y == tCoordinate1y);
+    EXPECT_FALSE(tCoordinate1y == tCoordinate1z);
+    EXPECT_FALSE(tCoordinate1z == tCoordinate1y);
+
+    // z with itself
+    EXPECT_TRUE(tCoordinate1z == tCoordinate1z);
+}
+
 }  // namespace plato::third_party_integration::common::unittest

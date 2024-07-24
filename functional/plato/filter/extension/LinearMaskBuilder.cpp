@@ -117,7 +117,7 @@ void LinearMaskBuilder::generateDistanceMap()
 {
     namespace tpi = third_party_integration;
 
-    const auto tCommunicator(Teuchos::rcp(new Teuchos::MpiComm<int>(mCommunicator)));
+    const auto tCommunicator = Teuchos::rcp(new Teuchos::MpiComm<int>(mCommunicator));
     auto tCrsRowMap =
         Teuchos::rcp(new tpi::tpetra::TpetraMap(mRowCenterCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator));
     auto tCrsDomainMap = Teuchos::rcp(
@@ -196,11 +196,11 @@ std::vector<third_party_integration::stk_search::SearchPointWithIdentifier> stk_
 {
     namespace tpi = third_party_integration;
 
-    std::vector<tpi::stk_search::SearchPointWithIdentifier> tLocalSearchPointWithIdentifiers(
-        tpi::tpetra::number_of_local_elements(aNodalCoordinates.getMap()));
+    const auto tNumberOfLocalElements = tpi::tpetra::number_of_local_elements(aNodalCoordinates.getMap());
+    auto tLocalSearchPointWithIdentifiers =
+        std::vector<tpi::stk_search::SearchPointWithIdentifier>(tNumberOfLocalElements);
 
-    for (const auto tLocalIndex :
-         utilities::IndexRange{tpi::tpetra::number_of_local_elements(aNodalCoordinates.getMap())})
+    for (const auto tLocalIndex : utilities::IndexRange{tNumberOfLocalElements})
     {
         const tpi::stk_search::Identifier tIdentifier{tLocalIndex, aRank};
         const tpi::common::Coordinate tCoordinate = tpi::tpetra::multivector_coordinate(aNodalCoordinates, tLocalIndex);
