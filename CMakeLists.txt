@@ -111,7 +111,8 @@ set(GCC_ADDITIONAL_WARNINGS -Wall
                             -Wsuggest-override
                             -pedantic
                             -Wno-return-type-c-linkage
-                            -Wno-unknown-warning-option)
+                            -Wno-unknown-warning-option
+                            -Wno-error=cpp)
 
 if(BUILD_WITH_SANITIZER_FLAGS)
   message(STATUS "Compiling with sanitizer flags turned on")
