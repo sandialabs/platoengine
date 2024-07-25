@@ -23,13 +23,11 @@ auto center_coordinates(const mesh::Mesh& aMesh, input_parser::KernelFilterCente
 {
     if (aCenteringType == input_parser::KernelFilterCenteringTypes::kElementCentered)
     {
-        return mesh::EntityRetrieval{aMesh}.elementCentroids();
-        // return mesh::EntityRetrieval{Mesh}.designDomainElementCentroids();
+        return mesh::EntityRetrieval{aMesh}.designDomainElementCentroids();
     }
     else
     {
-        return mesh::EntityRetrieval{aMesh}.nodalCoordinates();
-        // return mesh::EntityRetrieval{Mesh}.designDomainNodalCoordinates();
+        return mesh::EntityRetrieval{aMesh}.designDomainNodalCoordinates();
     }
 }
 
@@ -58,7 +56,8 @@ LinearMaskBuilder::LinearMaskBuilder(const mesh::Mesh& aMesh,
       mSearchRadius(aSearchRadius.mValue),
       mMaximumConnectivityEstimate(detail::maximum_connectivity_estimate(aMesh, aSearchRadius)),
       mRowCenterCoordinates(center_coordinates(aMesh, aCenteringType)),
-      mNodalCoordinates(create_nodal_coordinates(mesh::EntityRetrieval{aMesh}.nodalCoordinates(), mCommunicator)),
+      mNodalCoordinates(
+          create_nodal_coordinates(mesh::EntityRetrieval{aMesh}.designDomainNodalCoordinates(), mCommunicator)),
       mLocalSearchPointWithIdentifiers(detail::stk_search_points(mNodalCoordinates, mCommunicator.rank()))
 {
     generateDistanceMap();
