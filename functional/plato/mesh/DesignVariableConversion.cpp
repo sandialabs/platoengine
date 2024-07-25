@@ -12,12 +12,14 @@ namespace plato::mesh
 namespace
 {
 template <typename F>
-MeshProxy entity_densities_to_mesh_proxy(const std::vector<double>& aDensities, const Mesh& aMesh, const F& aIDFunction)
+MeshDesignVariables entity_densities_to_mesh_design_variables(const std::vector<double>& aDensities,
+                                                              const Mesh& aMesh,
+                                                              const F& aIDFunction)
 {
     const auto tBlockData = MeshBlocks{aMesh}.blockData();
 
     auto tDensityIterator = aDensities.cbegin();
-    auto tDensitiesBlockMap = MeshProxy::BlockDensities{};
+    auto tDensitiesBlockMap = MeshDesignVariables::BlockDensities{};
     for (const auto& tBlock : tBlockData)
     {
         auto tDensitiesWithIndices = std::vector<Density>{};
@@ -31,24 +33,24 @@ MeshProxy entity_densities_to_mesh_proxy(const std::vector<double>& aDensities, 
         tDensitiesBlockMap.emplace(tBlock.mID, std::move(tDensitiesWithIndices));
         std::advance(tDensityIterator, tEntityIDs.size());
     }
-    return MeshProxy{aMesh.filePath(), std::move(tDensitiesBlockMap)};
+    return MeshDesignVariables{aMesh.filePath(), std::move(tDensitiesBlockMap)};
 }
 }  // namespace
 
-MeshProxy nodal_densities_to_mesh_proxy(const std::vector<double>& aDensities, const Mesh& aMesh)
+MeshDesignVariables nodal_densities_to_mesh_design_variables(const std::vector<double>& aDensities, const Mesh& aMesh)
 {
     assert(EntityCounts{aMesh}.numberOfNodes() == aDensities.size());
     const auto tNodeIDs = [](const mesh::Mesh& aMesh, const std::string_view aBlockName)
     { return mesh::MeshBlocks{aMesh}.nodeIDs(aBlockName); };
-    return entity_densities_to_mesh_proxy(aDensities, aMesh, tNodeIDs);
+    return entity_densities_to_mesh_design_variables(aDensities, aMesh, tNodeIDs);
 }
 
-MeshProxy element_densities_to_mesh_proxy(const std::vector<double>& aDensities, const Mesh& aMesh)
+MeshDesignVariables element_densities_to_mesh_design_variables(const std::vector<double>& aDensities, const Mesh& aMesh)
 {
     assert(EntityCounts{aMesh}.numberOfElements() == aDensities.size());
     const auto tNodeIDs = [](const mesh::Mesh& aMesh, const std::string_view aBlockName)
     { return mesh::MeshBlocks{aMesh}.elementIDs(aBlockName); };
-    return entity_densities_to_mesh_proxy(aDensities, aMesh, tNodeIDs);
+    return entity_densities_to_mesh_design_variables(aDensities, aMesh, tNodeIDs);
 }
 
 }  // namespace plato::mesh

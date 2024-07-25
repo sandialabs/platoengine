@@ -8,8 +8,8 @@
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshProxy.hpp"
-#include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/mesh/MeshDesignVariablesViews.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -49,12 +49,14 @@ std::pair<std::vector<mesh::Density>, std::vector<double> > test_filter_evaluati
     const std::vector<double> tStdVectorSensitivities =
         create_linear_space_vector(aCommandGenerator.numberOfElements());
 
-    const auto tMeshProxy = mesh::nodal_densities_to_mesh_proxy(tNodalDensities, mesh::Mesh{kMeshFile});
-    const auto tResult = tKernelFilter.filter(tMeshProxy);
-    const auto tPostFilter = mesh::mesh_proxy_to_vector(mesh::MeshProxyDensitiesView{tResult});
+    const auto tMeshDesignVariables =
+        mesh::nodal_densities_to_mesh_design_variables(tNodalDensities, mesh::Mesh{kMeshFile});
+    const auto tResult = tKernelFilter.filter(tMeshDesignVariables);
+    const auto tPostFilter = mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesDensitiesView{tResult});
 
     const auto tPostSensitivities =
-        tKernelFilter.jacobianTimesVector(tMeshProxy, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
+        tKernelFilter
+            .jacobianTimesVector(tMeshDesignVariables, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
             .stdVector();
 
     return std::pair{tPostFilter, tPostSensitivities};

@@ -3,7 +3,7 @@
 #include <numeric>
 
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/mesh/MeshDesignVariablesViews.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -78,7 +78,7 @@ TEST_F(TwoDThreeBlockMesh, MeshQuantitiesElementVolumes)
 {
     const auto tMesh = MeshQuantities{Mesh{mMeshFilePath}};
     const auto tResultElementVolumes = tMesh.elementVolumes();
-    // Check exact order, should be in order of MeshProxyDensitiesView,
+    // Check exact order, should be in order of MeshDesignVariablesDensitiesView,
     // which is ordered by blocks first.
     constexpr auto tExpectedNumberOfElements =
         mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock2 + mExpectedNumberOfElementsInBlock3;

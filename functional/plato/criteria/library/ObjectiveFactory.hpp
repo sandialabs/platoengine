@@ -9,7 +9,7 @@
 
 namespace plato::mesh
 {
-struct MeshProxy;
+struct MeshDesignVariables;
 }
 
 namespace plato::criteria::library
@@ -17,9 +17,10 @@ namespace plato::criteria::library
 using ValidatedObjectives =
     core::ValidatedInputTypeWrapper<std::vector<core::ValidatedInputTypeWrapper<input_parser::objective>>>;
 
-using ObjectiveFunction = core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>;
+using ObjectiveFunction =
+    core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>;
 using ParallelAggregateObjective =
-    core::ParallelAggregate<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>;
+    core::ParallelAggregate<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>;
 
 /// @brief Creates the objectives function from the objectives defined in @a aInput.
 ///

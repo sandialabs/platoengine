@@ -14,9 +14,10 @@ namespace
 {
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 
-void check_two_block_properties(const MeshProxy& aMeshProxy, const test_utilities::TestContext& aTestContext)
+void check_two_block_properties(const MeshDesignVariables& aMeshDesignVariables,
+                                const test_utilities::TestContext& aTestContext)
 {
-    for (const auto& [tBlockID, tDensities] : aMeshProxy.mBlockDensities)
+    for (const auto& [tBlockID, tDensities] : aMeshDesignVariables.mBlockDensities)
     {
         for (const auto& tResult : tDensities)
         {
@@ -27,32 +28,33 @@ void check_two_block_properties(const MeshProxy& aMeshProxy, const test_utilitie
 
 }  // namespace
 
-TEST_F(TwoBlockMeshOnDisk, NodalDensitiesToMeshProxy)
+TEST_F(TwoBlockMeshOnDisk, NodalDensitiesToMeshDesignVariables)
 {
     const auto tMesh = Mesh{mMeshFilePath};
     auto tDensities = std::vector<double>(EntityCounts{tMesh}.numberOfNodes());
     std::iota(tDensities.begin(), tDensities.end(), 1.0);
-    const auto tMeshProxy = nodal_densities_to_mesh_proxy(tDensities, tMesh);
+    const auto tMeshDesignVariables = nodal_densities_to_mesh_design_variables(tDensities, tMesh);
 
-    ASSERT_EQ(tMeshProxy.mBlockDensities.size(), mExpectedNumberOfBlocks);
-    EXPECT_EQ(tMeshProxy.mBlockDensities.cbegin()->second.size(), mExpectedNumberOfNodesInBlock1);
-    EXPECT_EQ(std::next(tMeshProxy.mBlockDensities.cbegin())->second.size(), mExpectedNumberOfNodesInBlock2);
+    ASSERT_EQ(tMeshDesignVariables.mBlockDensities.size(), mExpectedNumberOfBlocks);
+    EXPECT_EQ(tMeshDesignVariables.mBlockDensities.cbegin()->second.size(), mExpectedNumberOfNodesInBlock1);
+    EXPECT_EQ(std::next(tMeshDesignVariables.mBlockDensities.cbegin())->second.size(), mExpectedNumberOfNodesInBlock2);
 
-    check_two_block_properties(tMeshProxy, TEST_CONTEXT("Nodal densities"));
+    check_two_block_properties(tMeshDesignVariables, TEST_CONTEXT("Nodal densities"));
 }
 
-TEST_F(TwoBlockMeshOnDisk, ElementDensitiesToMeshProxy)
+TEST_F(TwoBlockMeshOnDisk, ElementDensitiesToMeshDesignVariables)
 {
     const auto tMesh = Mesh{mMeshFilePath};
     auto tDensities = std::vector<double>(EntityCounts{tMesh}.numberOfElements(), 1.0);
     std::iota(tDensities.begin(), tDensities.end(), 1.0);
-    const auto tMeshProxy = element_densities_to_mesh_proxy(tDensities, tMesh);
+    const auto tMeshDesignVariables = element_densities_to_mesh_design_variables(tDensities, tMesh);
 
-    ASSERT_EQ(tMeshProxy.mBlockDensities.size(), mExpectedNumberOfBlocks);
-    EXPECT_EQ(tMeshProxy.mBlockDensities.cbegin()->second.size(), mExpectedNumberOfElementsInBlock1);
-    EXPECT_EQ(std::next(tMeshProxy.mBlockDensities.cbegin())->second.size(), mExpectedNumberOfElementsInBlock2);
+    ASSERT_EQ(tMeshDesignVariables.mBlockDensities.size(), mExpectedNumberOfBlocks);
+    EXPECT_EQ(tMeshDesignVariables.mBlockDensities.cbegin()->second.size(), mExpectedNumberOfElementsInBlock1);
+    EXPECT_EQ(std::next(tMeshDesignVariables.mBlockDensities.cbegin())->second.size(),
+              mExpectedNumberOfElementsInBlock2);
 
-    check_two_block_properties(tMeshProxy, TEST_CONTEXT("Element densities"));
+    check_two_block_properties(tMeshDesignVariables, TEST_CONTEXT("Element densities"));
 }
 
 }  // namespace plato::mesh::unittest

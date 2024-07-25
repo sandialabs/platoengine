@@ -6,7 +6,7 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/mesh/MeshDesignVariablesViews.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
@@ -18,17 +18,17 @@ constexpr std::string_view kMeshFile = "brick.exo";
 
 void test_volume_criteria_from_ctor_and_function(
     const VolumeCriterion& tVolumeCriterion,
-    const core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>& aFunction,
+    const core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>& aFunction,
     const double aGoldVolume)
 {
     constexpr double tConstantControls = 0.75;
 
     const auto tMesh = mesh::EntityCounts{mesh::Mesh{kMeshFile}};
     const auto tControls = std::vector<double>(tMesh.numberOfElements(), tConstantControls);
-    const auto tMeshProxy = mesh::element_densities_to_mesh_proxy(tControls, tMesh);
+    const auto tMeshDesignVariables = mesh::element_densities_to_mesh_design_variables(tControls, tMesh);
 
-    EXPECT_EQ(tVolumeCriterion.f(tMeshProxy), aGoldVolume * tConstantControls);
-    EXPECT_EQ(tVolumeCriterion.f(tMeshProxy), aFunction.f(tMeshProxy));
+    EXPECT_EQ(tVolumeCriterion.f(tMeshDesignVariables), aGoldVolume * tConstantControls);
+    EXPECT_EQ(tVolumeCriterion.f(tMeshDesignVariables), aFunction.f(tMeshDesignVariables));
 }
 
 void test_scaled_and_unscaled_on_ctor_and_function(
@@ -45,15 +45,15 @@ void test_scaled_and_unscaled_on_ctor_and_function(
 
 void test_volume_criteria_derivative_from_ctor_and_function(
     const VolumeCriterion& tVolumeCriterion,
-    const core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>& aFunction,
+    const core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>& aFunction,
     const std::vector<double>& aGold)
 {
     const auto tMesh = mesh::Mesh{kMeshFile};
     const auto tAssignedDensities =
         std::vector<double>{0.5, 0.4, 0.3};  // Not 1 to make certain DF does not depend on them
-    const auto tMeshProxy = mesh::element_densities_to_mesh_proxy(tAssignedDensities, tMesh);
-    const auto tResult = tVolumeCriterion.df(tMeshProxy);
-    const auto tResultFromFunction = aFunction.df(tMeshProxy);
+    const auto tMeshDesignVariables = mesh::element_densities_to_mesh_design_variables(tAssignedDensities, tMesh);
+    const auto tResult = tVolumeCriterion.df(tMeshDesignVariables);
+    const auto tResultFromFunction = aFunction.df(tMeshDesignVariables);
 
     ASSERT_EQ(tResult.size(), mesh::EntityCounts{tMesh}.numberOfElements());
     ASSERT_EQ(tResult.size(), aGold.size());

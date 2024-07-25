@@ -11,7 +11,7 @@
 
 namespace plato::mesh
 {
-struct MeshProxy;
+struct MeshDesignVariables;
 }
 
 namespace plato::filter::library
@@ -29,7 +29,7 @@ namespace plato::filter::library
 using FilterInput = core::InputVariant<input_parser::ParsedInput, input_parser::IsFilterInput>;
 using ValidatedFilterInput = core::ValidatedInputTypeWrapper<
     core::ValidatedInputVariant<input_parser::ParsedInput, input_parser::IsFilterInput>>;
-using FilterFunction = core::Function<mesh::MeshProxy, FilterJacobian, const mesh::MeshProxy&>;
+using FilterFunction = core::Function<mesh::MeshDesignVariables, FilterJacobian, const mesh::MeshDesignVariables&>;
 using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFilterInput>;
 
 /// @brief Loads a filter from a shared library.

@@ -13,8 +13,8 @@
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
-#include "plato/mesh/MeshProxy.hpp"
-#include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/mesh/MeshDesignVariablesViews.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
@@ -70,8 +70,9 @@ TEST(DensityTopology, GenerateMesh)
     const std::vector<double> tDesignVars = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
     const linear_algebra::DynamicVector<double> tDesignVec(tDesignVars);
 
-    const auto tMeshProxy = tDensityTopology.generateMesh(tDesignVec);
-    const auto tDensities = mesh::mesh_proxy_to_vector(mesh::MeshProxyDensitiesView{tMeshProxy});
+    const auto tMeshDesignVariables = tDensityTopology.generateMesh(tDesignVec);
+    const auto tDensities =
+        mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesDensitiesView{tMeshDesignVariables});
     const auto [tDensityValues, tIDMap] = mesh::split_densities(tDensities);
     EXPECT_EQ(tDensityValues, tDesignVars);
 

@@ -6,7 +6,7 @@
 
 #include "plato/criteria/extension/SharedLibCriterion.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
-#include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -37,10 +37,10 @@ TEST(ParallelMassObjective, CallValueAndGradient)
     const auto tRankMeshName = plato::utilities::concatenate(kMeshName, '.', tComm.rank());
     third_party_integration::stk_io::write_mesh(tRankMeshName, kMeshGenerator);
 
-    const double tMass = tSharedLib.f(mesh::MeshProxy{tRankMeshName, {}});
+    const double tMass = tSharedLib.f(mesh::MeshDesignVariables{tRankMeshName, {}});
     EXPECT_DOUBLE_EQ(tMass, kMeshGenerator.volume());
 
-    const auto tGrad = tSharedLib.df(mesh::MeshProxy{tRankMeshName, {}});
+    const auto tGrad = tSharedLib.df(mesh::MeshDesignVariables{tRankMeshName, {}});
     const std::vector<double> tGold(24, 1.0);
     EXPECT_EQ(tGrad.stdVector(), tGold);
 

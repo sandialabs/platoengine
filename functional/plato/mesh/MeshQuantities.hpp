@@ -2,7 +2,7 @@
 #define PLATO_MESH_MESHQUANTITIES
 
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::mesh
 {
@@ -20,7 +20,7 @@ struct MeshQuantities : public Mesh
 
     /// @brief Returns a vector of element volumes corresponding to all elements in this mesh.
     ///
-    /// The order is given by the order of iteration of MeshProxyDensitiesView.
+    /// The order is given by the order of iteration of MeshDesignVariablesDensitiesView.
     [[nodiscard]] std::vector<double> elementVolumes() const;
 };
 }  // namespace plato::mesh

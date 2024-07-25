@@ -8,8 +8,8 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshProxy.hpp"
-#include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/mesh/MeshDesignVariablesViews.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -41,11 +41,12 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     tNodalDensities[tHalfNode - 1] = .5;
     tNodalDensities[tHalfNode + 1] = .5;
 
-    const auto tMeshProxy = mesh::nodal_densities_to_mesh_proxy(tNodalDensities, mesh::Mesh{kMeshFile});
+    const auto tMeshDesignVariables =
+        mesh::nodal_densities_to_mesh_design_variables(tNodalDensities, mesh::Mesh{kMeshFile});
 
-    const auto tResult = tKernelFilter.filter(tMeshProxy);
+    const auto tResult = tKernelFilter.filter(tMeshDesignVariables);
     const auto [tPostFilter, tIDMap] =
-        mesh::split_densities(mesh::mesh_proxy_to_vector(mesh::MeshProxyDensitiesView{tResult}));
+        mesh::split_densities(mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesDensitiesView{tResult}));
 
     std::vector<double> tStdVectorSensitivities;
     if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
@@ -61,7 +62,8 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     }
 
     const auto tPostSensitivities =
-        tKernelFilter.jacobianTimesVector(tMeshProxy, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
+        tKernelFilter
+            .jacobianTimesVector(tMeshDesignVariables, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
             .stdVector();
 
     test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
@@ -157,9 +159,9 @@ TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
 
     const auto tMesh = mesh::Mesh{tFilePath.value()};
     const auto tNodalDensities = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
-    const auto tMeshProxy = mesh::nodal_densities_to_mesh_proxy(tNodalDensities, tMesh);
+    const auto tMeshDesignVariables = mesh::nodal_densities_to_mesh_design_variables(tNodalDensities, tMesh);
 
-    ASSERT_NO_THROW([[maybe_unused]] const auto tFilter = tFilterCache.compute(tMeshProxy));
+    ASSERT_NO_THROW([[maybe_unused]] const auto tFilter = tFilterCache.compute(tMeshDesignVariables));
 }
 
 TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
@@ -175,21 +177,26 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
 
     const auto tMesh = mesh::Mesh{kMeshFile};
     const auto tNodalDensitiesAllOne = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
-    const auto tMeshProxyAllOne = mesh::nodal_densities_to_mesh_proxy(tNodalDensitiesAllOne, tMesh);
-    const auto tFilteredControlAllOne = tFilterCache.compute(tMeshProxyAllOne)->filter(tMeshProxyAllOne);
-    const auto tMeshProxyViewFilteredAllOne = mesh::MeshProxyDensitiesView{tFilteredControlAllOne};
+    const auto tMeshDesignVariablesAllOne =
+        mesh::nodal_densities_to_mesh_design_variables(tNodalDensitiesAllOne, tMesh);
+    const auto tFilteredControlAllOne =
+        tFilterCache.compute(tMeshDesignVariablesAllOne)->filter(tMeshDesignVariablesAllOne);
+    const auto tMeshDesignVariablesViewFilteredAllOne = mesh::MeshDesignVariablesDensitiesView{tFilteredControlAllOne};
 
     // change control and ensure filter size is the same but values are different
     const auto tNodalDensitiesAllHalf = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 0.5);
-    const auto tMeshProxyAllHalf = mesh::nodal_densities_to_mesh_proxy(tNodalDensitiesAllHalf, tMesh);
-    const auto tFilteredControlAllHalf = tFilterCache.compute(tMeshProxyAllHalf)->filter(tMeshProxyAllHalf);
-    const auto tMeshProxyViewFilteredAllHalf = mesh::MeshProxyDensitiesView{tFilteredControlAllHalf};
+    const auto tMeshDesignVariablesAllHalf =
+        mesh::nodal_densities_to_mesh_design_variables(tNodalDensitiesAllHalf, tMesh);
+    const auto tFilteredControlAllHalf =
+        tFilterCache.compute(tMeshDesignVariablesAllHalf)->filter(tMeshDesignVariablesAllHalf);
+    const auto tMeshDesignVariablesViewFilteredAllHalf =
+        mesh::MeshDesignVariablesDensitiesView{tFilteredControlAllHalf};
 
-    EXPECT_EQ(tMeshProxyViewFilteredAllOne.size(), tMeshProxyViewFilteredAllHalf.size());
+    EXPECT_EQ(tMeshDesignVariablesViewFilteredAllOne.size(), tMeshDesignVariablesViewFilteredAllHalf.size());
     const auto [tFilteredDensitiesAllOne, tIDsAllOne] =
-        mesh::split_densities(mesh::mesh_proxy_to_vector(tMeshProxyViewFilteredAllOne));
+        mesh::split_densities(mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllOne));
     const auto [tFilteredDensitiesAllHalf, tIDsAllHalf] =
-        mesh::split_densities(mesh::mesh_proxy_to_vector(tMeshProxyViewFilteredAllHalf));
+        mesh::split_densities(mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllHalf));
     EXPECT_NE(tFilteredDensitiesAllOne, tFilteredDensitiesAllHalf);
     EXPECT_EQ(tIDsAllOne, tIDsAllHalf);
 
@@ -203,13 +210,14 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
     const auto tUpdatedMesh = mesh::Mesh{kMeshFile};
     const auto tUpdatedNodalDensitiesAllOne =
         std::vector<double>(mesh::EntityCounts{tUpdatedMesh}.numberOfNodes(), 1.0);
-    const auto tUpdatedMeshProxyAllOne =
-        mesh::nodal_densities_to_mesh_proxy(tUpdatedNodalDensitiesAllOne, tUpdatedMesh);
+    const auto tUpdatedMeshDesignVariablesAllOne =
+        mesh::nodal_densities_to_mesh_design_variables(tUpdatedNodalDensitiesAllOne, tUpdatedMesh);
     const auto tUpdatedFilteredControlAllOne =
-        tFilterCache.compute(tUpdatedMeshProxyAllOne)->filter(tUpdatedMeshProxyAllOne);
-    const auto tUpdatedMeshProxyViewFilteredAllOne = mesh::MeshProxyDensitiesView{tUpdatedFilteredControlAllOne};
+        tFilterCache.compute(tUpdatedMeshDesignVariablesAllOne)->filter(tUpdatedMeshDesignVariablesAllOne);
+    const auto tUpdatedMeshDesignVariablesViewFilteredAllOne =
+        mesh::MeshDesignVariablesDensitiesView{tUpdatedFilteredControlAllOne};
 
-    EXPECT_NE(tMeshProxyViewFilteredAllOne.size(), tUpdatedMeshProxyViewFilteredAllOne.size());
+    EXPECT_NE(tMeshDesignVariablesViewFilteredAllOne.size(), tUpdatedMeshDesignVariablesViewFilteredAllOne.size());
 
     test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
 }

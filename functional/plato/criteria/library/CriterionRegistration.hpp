@@ -15,7 +15,7 @@
 
 namespace plato::mesh
 {
-struct MeshProxy;
+struct MeshDesignVariables;
 }  // namespace plato::core
 
 namespace plato::criteria::library
@@ -26,7 +26,8 @@ struct CriterionInput
     input_parser::FileList mInputFiles;
 };
 
-using CriterionFunction = core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshProxy&>;
+using CriterionFunction =
+    core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>;
 using CriterionRegistration = core::FactoryRegistration<CriterionFunction, CriterionInput>;
 using ParallelCriterionRegistration =
     core::FactoryRegistration<CriterionFunction, CriterionInput, boost::mpi::communicator>;

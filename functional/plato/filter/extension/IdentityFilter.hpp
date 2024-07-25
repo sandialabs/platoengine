@@ -10,7 +10,7 @@ struct identity_filter;
 }
 namespace plato::mesh
 {
-struct MeshProxy;
+struct MeshDesignVariables;
 }
 namespace plato::filter::library
 {
@@ -26,14 +26,16 @@ namespace plato::filter::extension
 class IdentityFilter : public library::FilterInterface
 {
    public:
-    [[nodiscard]] mesh::MeshProxy filter(const mesh::MeshProxy& aMeshProxy) const override;
+    [[nodiscard]] mesh::MeshDesignVariables filter(
+        const mesh::MeshDesignVariables& aMeshDesignVariables) const override;
 
     [[nodiscard]] linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const mesh::MeshProxy& aMeshProxy, const linear_algebra::DynamicVector<double>& aV) const override;
+        const mesh::MeshDesignVariables& aMeshDesignVariables,
+        const linear_algebra::DynamicVector<double>& aV) const override;
 };
 
 [[nodiscard]] auto make_identity_filter_function()
-    -> core::Function<mesh::MeshProxy, library::FilterJacobian, const mesh::MeshProxy&>;
+    -> core::Function<mesh::MeshDesignVariables, library::FilterJacobian, const mesh::MeshDesignVariables&>;
 
 [[nodiscard]] std::optional<std::string> validate_identity_filter(const input_parser::identity_filter& aInput);
 

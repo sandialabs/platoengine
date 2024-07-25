@@ -10,7 +10,7 @@
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -144,7 +144,7 @@ TEST(Brick, ABrick)
     {
         BrickShapeGeometry tBrick(tFileName, tDiscretizationSize);
 
-        const mesh::MeshProxy tMP = tBrick.generateMesh(tDesignParameters);
+        const mesh::MeshDesignVariables tMP = tBrick.generateMesh(tDesignParameters);
         tUniqueFileName = tMP.mFileName;
 
         constexpr unsigned tExpectedNumElements = 2 * 4 * 6;

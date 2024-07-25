@@ -1,5 +1,5 @@
-#ifndef PLATO_MESH_MESHPROXY
-#define PLATO_MESH_MESHPROXY
+#ifndef PLATO_MESH_MESHDESIGNVARIABLES
+#define PLATO_MESH_MESHDESIGNVARIABLES
 
 #include <filesystem>
 #include <map>
@@ -16,11 +16,10 @@ struct Density
     double mDensity = 0.0;
 };
 
-/// @brief Represents a mesh on disk as well as a nodal density field.
+/// @brief Contains mesh design variables (nodal or element density fields) organized by mesh block.
 ///
-/// This object is used as an argument to most objectives to represent a mesh
-/// and a density field.
-struct MeshProxy
+/// This object is used as an argument to most objectives to represent a mesh and a density field.
+struct MeshDesignVariables
 {
     using BlockIDType = unsigned;
     using DensityVector = std::vector<Density>;

@@ -15,8 +15,8 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshProxy.hpp"
-#include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/mesh/MeshDesignVariablesViews.hpp"
 
 namespace plato::filter::extension
 {
@@ -28,11 +28,12 @@ namespace
         const auto& tInput = core::validated_variant_raw_input<input_parser::kernel_filter>(aInput);
         auto tFilterCache = detail::create_filter_cache(tInput);
 
-        return core::make_function([tFilterCache](const mesh::MeshProxy& aMeshProxy) mutable
-                                   { return tFilterCache.compute(aMeshProxy)->filter(aMeshProxy); },
-                                   [tFilterCache](const mesh::MeshProxy& aMeshProxy) mutable {
-                                       return library::FilterJacobian{tFilterCache.compute(aMeshProxy), aMeshProxy};
-                                   });
+        return core::make_function(
+            [tFilterCache](const mesh::MeshDesignVariables& aMeshDesignVariables) mutable
+            { return tFilterCache.compute(aMeshDesignVariables)->filter(aMeshDesignVariables); },
+            [tFilterCache](const mesh::MeshDesignVariables& aMeshDesignVariables) mutable {
+                return library::FilterJacobian{tFilterCache.compute(aMeshDesignVariables), aMeshDesignVariables};
+            });
     }};
 
 [[maybe_unused]] static auto kKernelFilterValidationRegistration =
@@ -52,23 +53,25 @@ KernelFilter::KernelFilter(const std::filesystem::path& aMeshFileName,
 {
 }
 
-mesh::MeshProxy KernelFilter::filter(const mesh::MeshProxy& aMeshProxy) const
+mesh::MeshDesignVariables KernelFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
-    const auto [tDensityValues, tGlobalIDs] =
-        mesh::split_densities(mesh::mesh_proxy_to_vector(mesh::MeshProxyDensitiesView{aMeshProxy}));
+    const auto [tDensityValues, tGlobalIDs] = mesh::split_densities(
+        mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesDensitiesView{aMeshDesignVariables}));
     auto tFilteredDensities = mLinearMask.matrixMultiply(tDensityValues);
     if (mFilterCentering == input_parser::KernelFilterCenteringTypes::kNodeCentered)
     {
-        return mesh::nodal_densities_to_mesh_proxy(tFilteredDensities, mesh::Mesh{aMeshProxy.mFileName});
+        return mesh::nodal_densities_to_mesh_design_variables(tFilteredDensities,
+                                                              mesh::Mesh{aMeshDesignVariables.mFileName});
     }
     else
     {
-        return mesh::element_densities_to_mesh_proxy(tFilteredDensities, mesh::Mesh{aMeshProxy.mFileName});
+        return mesh::element_densities_to_mesh_design_variables(tFilteredDensities,
+                                                                mesh::Mesh{aMeshDesignVariables.mFileName});
     }
 }
 
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(
-    const mesh::MeshProxy& /*aMeshProxy*/, const linear_algebra::DynamicVector<double>& aV) const
+    const mesh::MeshDesignVariables& /*aMeshDesignVariables*/, const linear_algebra::DynamicVector<double>& aV) const
 {
     return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
 }
@@ -101,13 +104,14 @@ LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
 
 FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)
 {
-    return FilterCache{[aInput](const mesh::MeshProxy& aMeshProxy)
+    return FilterCache{[aInput](const mesh::MeshDesignVariables& aMeshDesignVariables)
                        {
                            return std::make_shared<KernelFilter>(
-                               aMeshProxy.mFileName, FilterRadius{aInput.filter_radius.value()},
+                               aMeshDesignVariables.mFileName, FilterRadius{aInput.filter_radius.value()},
                                aInput.centering_type.value(), boost::mpi::communicator{});
                        },
-                       [](const mesh::MeshProxy& aMeshProxy) { return library::hash_mesh_coordinates(aMeshProxy); }};
+                       [](const mesh::MeshDesignVariables& aMeshDesignVariables)
+                       { return library::hash_mesh_coordinates(aMeshDesignVariables); }};
 }
 
 }  // namespace detail

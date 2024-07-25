@@ -6,13 +6,14 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
-#include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::geometry::library
 {
 using DesignParameters = linear_algebra::DynamicVector<double>;
-using GeometryFunction =
-    core::Function<mesh::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>;
+using GeometryFunction = core::Function<mesh::MeshDesignVariables,
+                                        linear_algebra::JacobianMultiplier,
+                                        const linear_algebra::DynamicVector<double>&>;
 
 /// @brief Factory function for creating all geometry data, including a GeometryFunction, an initial guess,
 ///  the bound constraints, and an output function.

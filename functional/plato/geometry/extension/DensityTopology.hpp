@@ -11,7 +11,7 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::input_parser
 {
@@ -32,7 +32,8 @@ class DensityTopology
     explicit DensityTopology(const input_parser::density_topology& aInput,
                              plato::filter::library::FilterFunction aFilterFunction);
 
-    [[nodiscard]] mesh::MeshProxy generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const;
+    [[nodiscard]] mesh::MeshDesignVariables generateMesh(
+        const linear_algebra::DynamicVector<double>& aDesignParameter) const;
 
     [[nodiscard]] linear_algebra::JacobianMultiplier jacobian(
         const linear_algebra::DynamicVector<double>& aDesignParameter) const;
@@ -54,8 +55,10 @@ class DensityTopology
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
-[[nodiscard]] auto make_topology_geometry(const DensityTopology& aDensityTopology) -> core::
-    Function<mesh::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>;
+[[nodiscard]] auto make_topology_geometry(const DensityTopology& aDensityTopology)
+    -> core::Function<mesh::MeshDesignVariables,
+                      linear_algebra::JacobianMultiplier,
+                      const linear_algebra::DynamicVector<double>&>;
 
 namespace detail
 {

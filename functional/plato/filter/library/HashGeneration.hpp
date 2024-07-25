@@ -6,14 +6,14 @@
 
 namespace plato::mesh
 {
-struct MeshProxy;
+struct MeshDesignVariables;
 }
 
 namespace plato::filter::library
 {
 /// @brief Computes a hash of the nodal coordinates of the mesh referenced by the file name in
-///  @a aMeshProxy. Does not consider the density values or connectivity, only the nodal coordinates.
-[[nodiscard]] std::size_t hash_mesh_coordinates(const plato::mesh::MeshProxy& aMeshProxy);
+///  @a aMeshDesignVariables. Does not consider the density values or connectivity, only the nodal coordinates.
+[[nodiscard]] std::size_t hash_mesh_coordinates(const plato::mesh::MeshDesignVariables& aMeshDesignVariables);
 
 namespace detail
 {

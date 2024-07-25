@@ -7,7 +7,7 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/mesh/MeshDesignVariablesViews.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -56,9 +56,10 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
 {
 }
 
-mesh::MeshProxy DensityTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+mesh::MeshDesignVariables DensityTopology::generateMesh(
+    const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
-    return mFilter.f(mesh::nodal_densities_to_mesh_proxy(aDesignParameters.stdVector(), mMesh));
+    return mFilter.f(mesh::nodal_densities_to_mesh_design_variables(aDesignParameters.stdVector(), mMesh));
 }
 
 linear_algebra::JacobianMultiplier DensityTopology::jacobian(
@@ -67,8 +68,8 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
     return linear_algebra::JacobianMultiplier{
         /*.mNumColumns=*/mNumDesignParameters,
         /*.mJacobianTimesVectorFunction=*/
-        [tMeshProxy = mesh::nodal_densities_to_mesh_proxy(aDesignParameters.stdVector(), mMesh),
-         this](const linear_algebra::DynamicVector<double>& x) { return x * mFilter.df(tMeshProxy); }};
+        [tMeshDesignVariables = mesh::nodal_densities_to_mesh_design_variables(aDesignParameters.stdVector(), mMesh),
+         this](const linear_algebra::DynamicVector<double>& x) { return x * mFilter.df(tMeshDesignVariables); }};
 }
 
 linear_algebra::DynamicVector<double> DensityTopology::initialGuess(const std::filesystem::path& aMeshFileName)
@@ -91,7 +92,9 @@ void DensityTopology::output(const std::filesystem::path& aInputMeshName,
 }
 
 auto make_topology_geometry(const DensityTopology& aDensityTopology)
-    -> core::Function<mesh::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>
+    -> core::Function<mesh::MeshDesignVariables,
+                      linear_algebra::JacobianMultiplier,
+                      const linear_algebra::DynamicVector<double>&>
 {
     return core::make_function([tDensityTopology = aDensityTopology](const linear_algebra::DynamicVector<double>& x)
                                { return tDensityTopology.generateMesh(x); },

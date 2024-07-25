@@ -9,7 +9,7 @@
 
 namespace plato::mesh
 {
-struct MeshProxy;
+struct MeshDesignVariables;
 }
 
 namespace plato::filter::library
@@ -26,7 +26,7 @@ struct FilterParameters
 /// @brief Base class for density field topology filters.
 ///
 /// Derived types must implement filter, which applies the specific
-/// filter to the density field in a MeshProxy, and jacobianTimesVector,
+/// filter to the density field in a MeshDesignVariables, and jacobianTimesVector,
 /// which implements the left multiplication of the Jacobian of the filter
 /// with a row vector, i.e. \f$v^T J\f$.
 class FilterInterface
@@ -35,13 +35,15 @@ class FilterInterface
     FilterInterface() = default;
     virtual ~FilterInterface() = default;
 
-    /// @brief Appies the filter to the density field held in @a aMeshProxy
-    [[nodiscard]] virtual mesh::MeshProxy filter(const mesh::MeshProxy& aMeshProxy) const = 0;
+    /// @brief Appies the filter to the density field held in @a aMeshDesignVariables
+    [[nodiscard]] virtual mesh::MeshDesignVariables filter(
+        const mesh::MeshDesignVariables& aMeshDesignVariables) const = 0;
 
     /// @brief Implements multiplication of row vector @a aV and the Jacobian of the
-    ///  filter computed at the argument @a aMeshProxy.
+    ///  filter computed at the argument @a aMeshDesignVariables.
     [[nodiscard]] virtual linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const mesh::MeshProxy& aMeshProxy, const linear_algebra::DynamicVector<double>& aV) const = 0;
+        const mesh::MeshDesignVariables& aMeshDesignVariables,
+        const linear_algebra::DynamicVector<double>& aV) const = 0;
 
     FilterInterface(const FilterInterface&) = delete;
     FilterInterface& operator=(const FilterInterface&) = delete;

@@ -1,18 +1,18 @@
-#include "plato/mesh/MeshProxyViews.hpp"
+#include "plato/mesh/MeshDesignVariablesViews.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <numeric>
 
-#include "plato/mesh/MeshProxy.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::mesh
 {
 
 template <typename OuterIteratorType, typename InnerIteratorType, typename IteratorCategory>
-auto MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::operator++()
-    -> MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>&
+auto MeshDesignVariablesDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::operator++()
+    -> MeshDesignVariablesDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>&
 {
     if (mInnerIterator)
     {
@@ -27,30 +27,33 @@ auto MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, Iterat
 }
 
 template <typename OuterIteratorType, typename InnerIteratorType, typename IteratorCategory>
-auto MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::operator*() const -> const
-    typename MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::reference
+auto MeshDesignVariablesDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::operator*() const
+    -> const
+    typename MeshDesignVariablesDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::reference
 {
     assert(mInnerIterator);
     return *mInnerIterator.value();
 }
 
 template <typename OuterIteratorType, typename InnerIteratorType, typename IteratorCategory>
-bool MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::operator==(
-    const MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>& aRHSIterator) const
+bool MeshDesignVariablesDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::operator==(
+    const MeshDesignVariablesDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>&
+        aRHSIterator) const
 {
     return mOuterIterator == aRHSIterator.mOuterIterator && mInnerIterator == aRHSIterator.mInnerIterator;
 }
 
 template <typename OuterIteratorType, typename InnerIteratorType, typename IteratorCategory>
-bool MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::operator!=(
-    const MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>& aRHSIterator) const
+bool MeshDesignVariablesDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::operator!=(
+    const MeshDesignVariablesDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>&
+        aRHSIterator) const
 {
     return !(*this == aRHSIterator);
 }
 
 template <typename OuterIteratorType, typename InnerIteratorType, typename IteratorCategory>
-auto MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::innerIteratorBegin() const
-    -> std::optional<InnerIteratorType>
+auto MeshDesignVariablesDensitiesViewIterator<OuterIteratorType, InnerIteratorType, IteratorCategory>::
+    innerIteratorBegin() const -> std::optional<InnerIteratorType>
 {
     if (mOuterIterator != mOuterIteratorEnd)
     {
@@ -62,34 +65,35 @@ auto MeshProxyDensitiesViewIterator<OuterIteratorType, InnerIteratorType, Iterat
     }
 }
 
-template <typename MeshProxyType>
-std::size_t MeshProxyDensitiesViewTemplate<MeshProxyType>::size() const
+template <typename MeshDesignVariablesType>
+std::size_t MeshDesignVariablesDensitiesViewTemplate<MeshDesignVariablesType>::size() const
 {
-    return std::accumulate(mMeshProxy.get().mBlockDensities.begin(), mMeshProxy.get().mBlockDensities.end(), 0u,
+    return std::accumulate(mMeshDesignVariables.get().mBlockDensities.begin(),
+                           mMeshDesignVariables.get().mBlockDensities.end(), 0u,
                            [](const auto aSize, const auto& aBlock) { return aSize + aBlock.second.size(); });
 }
 
-template <typename MeshProxyType>
-auto MeshProxyDensitiesViewTemplate<MeshProxyType>::begin() const ->
-    typename MeshProxyDensitiesViewTemplate<MeshProxyType>::IteratorType
+template <typename MeshDesignVariablesType>
+auto MeshDesignVariablesDensitiesViewTemplate<MeshDesignVariablesType>::begin() const ->
+    typename MeshDesignVariablesDensitiesViewTemplate<MeshDesignVariablesType>::IteratorType
 {
     using InnerIteratorType = typename IteratorType::InnerIterator;
-    auto& tBlockDensities = mMeshProxy.get().mBlockDensities;
+    auto& tBlockDensities = mMeshDesignVariables.get().mBlockDensities;
     const auto tInnerIterator = tBlockDensities.begin() == tBlockDensities.end()
                                     ? std::optional<InnerIteratorType>{}
                                     : tBlockDensities.begin()->second.begin();
     return IteratorType{tBlockDensities.begin(), tBlockDensities.end(), tInnerIterator};
 }
 
-template <typename MeshProxyType>
-auto MeshProxyDensitiesViewTemplate<MeshProxyType>::end() const ->
-    typename MeshProxyDensitiesViewTemplate<MeshProxyType>::IteratorType
+template <typename MeshDesignVariablesType>
+auto MeshDesignVariablesDensitiesViewTemplate<MeshDesignVariablesType>::end() const ->
+    typename MeshDesignVariablesDensitiesViewTemplate<MeshDesignVariablesType>::IteratorType
 {
-    auto& tBlockDensities = mMeshProxy.get().mBlockDensities;
+    auto& tBlockDensities = mMeshDesignVariables.get().mBlockDensities;
     return IteratorType{tBlockDensities.end(), tBlockDensities.end(), std::nullopt};
 }
 
-std::vector<Density> mesh_proxy_to_vector(const MeshProxyDensitiesView aMeshView)
+std::vector<Density> mesh_design_variables_to_vector(const MeshDesignVariablesDensitiesView aMeshView)
 {
     auto tDensities = std::vector<Density>{};
     tDensities.reserve(aMeshView.size());
@@ -127,12 +131,12 @@ auto split_densities(const std::vector<Density>& aDensities)
 }
 
 // Explicit instantiations
-template struct MeshProxyDensitiesViewTemplate<MeshProxy>;
-template struct MeshProxyDensitiesViewTemplate<const MeshProxy>;
-template struct MeshProxyDensitiesViewIterator<MeshProxy::BlockDensities::iterator,
-                                               MeshProxy::DensityVector::iterator,
-                                               std::output_iterator_tag>;
-template struct MeshProxyDensitiesViewIterator<MeshProxy::BlockDensities::const_iterator,
-                                               MeshProxy::DensityVector::const_iterator,
-                                               std::forward_iterator_tag>;
+template struct MeshDesignVariablesDensitiesViewTemplate<MeshDesignVariables>;
+template struct MeshDesignVariablesDensitiesViewTemplate<const MeshDesignVariables>;
+template struct MeshDesignVariablesDensitiesViewIterator<MeshDesignVariables::BlockDensities::iterator,
+                                                         MeshDesignVariables::DensityVector::iterator,
+                                                         std::output_iterator_tag>;
+template struct MeshDesignVariablesDensitiesViewIterator<MeshDesignVariables::BlockDensities::const_iterator,
+                                                         MeshDesignVariables::DensityVector::const_iterator,
+                                                         std::forward_iterator_tag>;
 }  // namespace plato::mesh
