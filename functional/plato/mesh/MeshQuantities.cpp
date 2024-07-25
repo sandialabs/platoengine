@@ -19,17 +19,19 @@ double MeshQuantities::averageNodalDensity() const
 
 std::vector<double> MeshQuantities::elementVolumes() const
 {
-    const auto tBlockData = third_party_integration::stk_io::block_data(bulkData());
+    namespace tpi = third_party_integration;
+
+    const auto tBlockData = tpi::stk_io::block_data(bulkData());
     auto tElementVolumes = std::vector<double>{};
-    tElementVolumes.reserve(third_party_integration::stk_io::element_size(bulkData()));
+    tElementVolumes.reserve(tpi::stk_io::element_size(bulkData()));
     for (const auto& tBlock : tBlockData)
     {
-        const auto& tPart = third_party_integration::stk_io::part_with_block_name(bulkData(), tBlock.mName);
+        const auto& tPart = tpi::stk_io::part_with_block_meta_data_ordinal(bulkData(), tBlock.mMetaDataOrdinal);
         assert(tPart);
-        const auto tElements = third_party_integration::stk_io::element_vector(bulkData(), tPart.value());
+        const auto tElements = tpi::stk_io::element_vector(bulkData(), tPart.value());
         std::transform(tElements.begin(), tElements.end(), std::back_inserter(tElementVolumes),
                        [&tBulkData = bulkData()](const auto& aElement)
-                       { return third_party_integration::stk_io::element_volume(aElement, tBulkData); });
+                       { return tpi::stk_io::element_volume(aElement, tBulkData); });
     }
     return tElementVolumes;
 }

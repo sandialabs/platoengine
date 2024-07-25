@@ -60,10 +60,6 @@ class LinearMaskBuilder
     [[nodiscard]] auto mask() const -> const third_party_integration::tpetra::TpetraCRSMatrix&;
 
    private:
-    /// @brief create nodal coordinate tpetra container of  @a aNodalCoordinates
-    third_party_integration::tpetra::TpetraMultiVector createNodalCoordinates(
-        const std::vector<third_party_integration::common::Coordinate>& aNodalCoordinates);
-
     /// @brief Perform a parallel computation of the row calculation assuming some center @a aCenter.
     ///  Return a pair of vectors one with the global ordinals and the other the corresponding normalized weights.
     ///  An individual row should sum to 1.

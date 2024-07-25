@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <iomanip>
 
-#include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/TesselationTraits.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
@@ -36,8 +36,8 @@ TEST(TesselationTraits, Hex8Centroid)
 {
     const common::Coordinate tCentroid = detail::centroid_impl<stk::topology::HEXAHEDRON_8>(kHexCoordinates);
     const common::Coordinate tGold{0.5, 0.5, 0.5};
-    common::unittest::test_double_equality_of_components(tCentroid, tGold,
-                                                         TEST_CONTEXT("Tesselation traits Hex8 Centroid"));
+    common::test_utilities::test_double_equality_of_components(tCentroid, tGold,
+                                                               TEST_CONTEXT("Tesselation traits Hex8 Centroid"));
 }
 
 TEST(TesselationTraits, TetVolume)
@@ -59,8 +59,8 @@ TEST(TesselationTraits, TetCentroid)
 {
     const common::Coordinate tCentroid = detail::centroid_impl<stk::topology::TET_4>(kTetCoordinates);
     const common::Coordinate tGold{1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0};
-    common::unittest::test_double_equality_of_components(tCentroid, tGold,
-                                                         TEST_CONTEXT("Tesselation traits Tet Centroid"));
+    common::test_utilities::test_double_equality_of_components(tCentroid, tGold,
+                                                               TEST_CONTEXT("Tesselation traits Tet Centroid"));
 }
 
 TEST(TesselationTraits, Quad4Volume)
@@ -79,8 +79,8 @@ TEST(TesselationTraits, QuadCentroid)
 {
     const common::Coordinate tCentroid = detail::centroid_impl<stk::topology::QUADRILATERAL_4>(kQuadCoordinates);
     const common::Coordinate tGold{1.0 / 2.0, 1.0 / 2.0, 0.0};
-    common::unittest::test_double_equality_of_components(tCentroid, tGold,
-                                                         TEST_CONTEXT("Tesselation traits Quad Centroid"));
+    common::test_utilities::test_double_equality_of_components(tCentroid, tGold,
+                                                               TEST_CONTEXT("Tesselation traits Quad Centroid"));
 }
 
 TEST(TesselationTraits, Tri3Volume)
@@ -99,8 +99,8 @@ TEST(TesselationTraits, TriCentroid)
 {
     const common::Coordinate tCentroid = detail::centroid_impl<stk::topology::TRI_3>(kTriCoordinates);
     const common::Coordinate tGold{1.0 / 3.0, 1.0 / 3.0, 0.0};
-    common::unittest::test_double_equality_of_components(tCentroid, tGold,
-                                                         TEST_CONTEXT("Tesselation traits Tri Centroid"));
+    common::test_utilities::test_double_equality_of_components(tCentroid, tGold,
+                                                               TEST_CONTEXT("Tesselation traits Tri Centroid"));
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

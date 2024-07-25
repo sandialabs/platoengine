@@ -52,7 +52,12 @@ double mesh_volume(const stk::mesh::BulkData& aBulk)
 
 std::vector<common::Coordinate> element_centroids(const stk::mesh::BulkData& aBulk)
 {
-    const stk::mesh::EntityVector tElements = element_vector(aBulk);
+    return element_centroids(aBulk, PartReferenceVector{std::cref(aBulk.mesh_meta_data().universal_part())});
+}
+
+std::vector<common::Coordinate> element_centroids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+{
+    const stk::mesh::EntityVector tElements = element_vector(aBulk, aParts);
     std::vector<common::Coordinate> tCentroids;
     tCentroids.reserve(tElements.size());
     std::transform(tElements.begin(), tElements.end(), std::back_inserter(tCentroids),

@@ -1,15 +1,13 @@
+#ifndef PLATO_THIRD_PARTY_INTEGRATION_STK_IO_TEST_UTILITIES_FIXTURES
+#define PLATO_THIRD_PARTY_INTEGRATION_STK_IO_TEST_UTILITIES_FIXTURES
+
 #include <gtest/gtest.h>
 
 #include <filesystem>
 
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 
-namespace plato::third_party_integration::stk_io
-{
-struct CommandGenerator;
-}
-
-namespace plato::mesh::unittest
+namespace plato::third_party_integration::stk_io::test_utilities
 {
 /// @brief A base class fixture that creates a mesh using CommandGenerator on construction, and deletes it on
 /// destruction.
@@ -77,7 +75,7 @@ class TwoDThreeBlockMesh : public ::testing::Test
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
-        "0,3,QUAD_4_2D,2,5,6,7,block_3\n"
+        "0,3,QUAD_4_2D,2,5,6,3,block_3\n"
         "0,1,TRI_3_2D,1,2,3,block_2\n"
         "0,2,TRI_3_2D,3,4,1,block_2\n"
         "0,4,TRI_3_2D,2,7,9,block_1\n"
@@ -97,4 +95,6 @@ class TwoDThreeBlockMesh : public ::testing::Test
     constexpr static auto mExpectedNumberOfNodesInBlock3 = 5u;
 };
 
-}  // namespace plato::mesh::unittest
+}  // namespace plato::third_party_integration::stk_io::test_utilities
+
+#endif

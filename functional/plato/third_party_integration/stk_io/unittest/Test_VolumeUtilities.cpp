@@ -2,24 +2,24 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
-#include <iomanip>
 
 #include "plato/test_utilities/TestDataFilePath.hpp"
-#include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
 
 namespace
 {
+using test_utilities::TwoDThreeBlockMesh;
 
 void create_mesh_test_volume(const CommandGenerator& aCommandGenerator)
 {
     const double tResult = mesh_volume(*generate_bulk_data(aCommandGenerator));
-
-    std::cout << std::setprecision(16) << tResult << std::endl;
     EXPECT_DOUBLE_EQ(tResult, aCommandGenerator.volume());
 }
 
@@ -32,15 +32,15 @@ void create_single_element_mesh_test_centroid(const CommandGenerator& aCommandGe
     ASSERT_EQ(tElements.size(), 1u);
 
     const common::Coordinate tElemCentroid = element_centroid(tElements[0], *tMesh);
-    common::unittest::test_double_equality_of_components(tElemCentroid, aGold, TEST_CONTEXT("Single element centroid"));
+    common::test_utilities::test_double_equality_of_components(tElemCentroid, aGold,
+                                                               TEST_CONTEXT("Single element centroid"));
 }
 
 void read_mesh_and_test_volume(const std::string_view tMeshFileName, const double aGold)
 {
-    const auto tFilePath = test_utilities::test_data_file_path(tMeshFileName);
+    const auto tFilePath = plato::test_utilities::test_data_file_path(tMeshFileName);
     ASSERT_TRUE(tFilePath);
     const double tResult = mesh_volume(*read_mesh_bulk_data(tFilePath.value()));
-    std::cout << std::setprecision(16) << tResult << std::endl;
     EXPECT_DOUBLE_EQ(tResult, aGold);
 }
 
@@ -56,10 +56,10 @@ void test_first_element_volume_and_coordinates(const CommandGenerator& aCommandG
     EXPECT_DOUBLE_EQ(tVolume, aGoldVolume);
     std::vector<common::Coordinate> tCoordinates = element_coordinates(tOnlyElement, *tBulk);
     ASSERT_EQ(tCoordinates.size(), aGoldCoordinates.size());
-    for (unsigned int iIndex = 0; iIndex < tCoordinates.size(); ++iIndex)
+    for (const auto& [tResult, tExpected] : utilities::Zip{tCoordinates, aGoldCoordinates})
     {
-        common::unittest::test_double_equality_of_components(tCoordinates[iIndex], aGoldCoordinates[iIndex],
-                                                             TEST_CONTEXT("Element coordinates"));
+        common::test_utilities::test_double_equality_of_components(tResult, tExpected,
+                                                                   TEST_CONTEXT("Element coordinates"));
     }
 }
 
@@ -160,14 +160,63 @@ TEST(STKVolumeUtilities, ElementCentroids)
     const auto tCentroids = element_centroids(*tBulk);
     ASSERT_EQ(tCentroids.size(), 4u);
 
-    common::unittest::test_double_equality_of_components(tCentroids[0], {0.5, 0.5, 0.5},
-                                                         TEST_CONTEXT("Element centroids 0"));
-    common::unittest::test_double_equality_of_components(tCentroids[1], {1.5, 0.5, 0.5},
-                                                         TEST_CONTEXT("Element centroids 1"));
-    common::unittest::test_double_equality_of_components(tCentroids[2], {2.5, 0.5, 0.5},
-                                                         TEST_CONTEXT("Element centroids 2"));
-    common::unittest::test_double_equality_of_components(tCentroids[3], {3.5, 0.5, 0.5},
-                                                         TEST_CONTEXT("Element centroids 3"));
+    common::test_utilities::test_double_equality_of_components(tCentroids[0], {0.5, 0.5, 0.5},
+                                                               TEST_CONTEXT("Element centroids 0"));
+    common::test_utilities::test_double_equality_of_components(tCentroids[1], {1.5, 0.5, 0.5},
+                                                               TEST_CONTEXT("Element centroids 1"));
+    common::test_utilities::test_double_equality_of_components(tCentroids[2], {2.5, 0.5, 0.5},
+                                                               TEST_CONTEXT("Element centroids 2"));
+    common::test_utilities::test_double_equality_of_components(tCentroids[3], {3.5, 0.5, 0.5},
+                                                               TEST_CONTEXT("Element centroids 3"));
+}
+
+TEST_F(TwoDThreeBlockMesh, ElementCentroidsOnParts)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
+    constexpr auto tExpectedNumberOfParts = 3u;
+    ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
+
+    const auto tAllElementCentroids = element_centroids(*tBulkData);
+
+    // Check that all centroids match through both functions
+    {
+        const auto tCoordinateParts =
+            std::vector{std::cref(*tParts.front()), std::cref(*tParts.at(1)), std::cref(*tParts.back())};
+        const auto tAllCentroidsFromParts = element_centroids(*tBulkData, tCoordinateParts);
+        EXPECT_EQ(tAllCentroidsFromParts, tAllElementCentroids);
+    }
+    // Block 3
+    {
+        const auto tCoordinateParts = std::vector{std::cref(*tParts.back())};
+        const auto tCentroidsFromParts = element_centroids(*tBulkData, tCoordinateParts);
+        const auto tExpectedCoordinates = std::vector<common::Coordinate>{{1.0, 0.5}};
+        EXPECT_EQ(tCentroidsFromParts, tExpectedCoordinates);
+    }
+    // Blocks 2 and 3
+    {
+        const auto tCoordinateParts = std::vector{std::cref(*tParts.at(1)), std::cref(*tParts.back())};
+        const auto tCentroidsFromParts = element_centroids(*tBulkData, tCoordinateParts);
+        const auto tExpectedCoordinates = std::vector<common::Coordinate>{
+            {-2.0 / 3.0, 1.0 / 3.0, 0.0}, {-4.0 / 3.0, 2.0 / 3.0, 0.0}, {1.0, 0.5, 0.0}};
+        for (const auto& [tExpected, tResult] : utilities::Zip{tExpectedCoordinates, tCentroidsFromParts})
+        {
+            common::test_utilities::test_double_equality_of_components(tResult, tExpected,
+                                                                       TEST_CONTEXT("Blocks 2 and 3 centroids"));
+        }
+    }
+    // Block 1
+    {
+        const auto tCoordinateParts = std::vector{std::cref(*tParts.front())};
+        const auto tCentroidsFromParts = element_centroids(*tBulkData, tCoordinateParts);
+        const auto tExpectedCoordinates = std::vector<common::Coordinate>{
+            {1.0 / 3.0, -0.5, 0.0}, {1.0, -5.0 / 6.0, 0.0}, {5.0 / 3.0, -0.5, 0.0}, {1.0, -1.0 / 6.0, 0.0}};
+        for (const auto& [tExpected, tResult] : utilities::Zip{tExpectedCoordinates, tCentroidsFromParts})
+        {
+            common::test_utilities::test_double_equality_of_components(tResult, tExpected,
+                                                                       TEST_CONTEXT("Block 1 centroids"));
+        }
+    }
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

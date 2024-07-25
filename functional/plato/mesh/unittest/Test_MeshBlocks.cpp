@@ -5,16 +5,23 @@
 
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
-#include "plato/mesh/unittest/Fixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
 
 namespace plato::mesh::unittest
 {
+namespace
+{
+using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
+
 std::vector<std::size_t> sequential_vector(const std::size_t aStart, const std::size_t aSize)
 {
     auto tIndices = std::vector<std::size_t>(aSize);
     std::iota(tIndices.begin(), tIndices.end(), aStart);
     return tIndices;
 }
+}  // namespace
 
 TEST_F(TwoBlockMeshOnDisk, BlockIDsAndNames)
 {

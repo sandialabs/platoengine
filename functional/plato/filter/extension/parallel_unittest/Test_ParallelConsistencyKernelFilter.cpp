@@ -17,7 +17,7 @@
 #include "plato/utilities/RankSplitVector.hpp"
 #include "plato/utilities/Zip.hpp"
 
-namespace plato::filter::extension::unittest
+namespace plato::filter::extension::parallel_unittest
 {
 namespace
 {
@@ -183,4 +183,4 @@ TEST(KernelFilterDetail, CreateLinearMask)
     }
 }
 
-}  // namespace plato::filter::extension::unittest
+}  // namespace plato::filter::extension::parallel_unittest

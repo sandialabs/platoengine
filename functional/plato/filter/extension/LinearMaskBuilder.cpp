@@ -24,11 +24,28 @@ auto center_coordinates(const mesh::Mesh& aMesh, input_parser::KernelFilterCente
     if (aCenteringType == input_parser::KernelFilterCenteringTypes::kElementCentered)
     {
         return mesh::EntityRetrieval{aMesh}.elementCentroids();
+        // return mesh::EntityRetrieval{Mesh}.designDomainElementCentroids();
     }
     else
     {
         return mesh::EntityRetrieval{aMesh}.nodalCoordinates();
+        // return mesh::EntityRetrieval{Mesh}.designDomainNodalCoordinates();
     }
+}
+
+/// @brief create nodal coordinate tpetra container of  @a aNodalCoordinates
+auto create_nodal_coordinates(const std::vector<third_party_integration::common::Coordinate>& aNodalCoordinates,
+                              const boost::mpi::communicator& aCommunicator)
+    -> third_party_integration::tpetra::TpetraMultiVector
+{
+    namespace tpi = third_party_integration;
+
+    const auto tCommunicator = Teuchos::rcp(new Teuchos::MpiComm<int>(aCommunicator));
+    auto tMap =
+        Teuchos::rcp(new tpi::tpetra::TpetraMap(aNodalCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator));
+    auto tNodalCoordinates = tpi::tpetra::TpetraMultiVector(tMap, tpi::tpetra::kNumberOfCartesianDimensions, kZeroOut);
+    tpi::tpetra::distribute_on_tpetra_multivector(aNodalCoordinates, tNodalCoordinates);
+    return tNodalCoordinates;
 }
 
 }  // namespace
@@ -41,7 +58,7 @@ LinearMaskBuilder::LinearMaskBuilder(const mesh::Mesh& aMesh,
       mSearchRadius(aSearchRadius.mValue),
       mMaximumConnectivityEstimate(detail::maximum_connectivity_estimate(aMesh, aSearchRadius)),
       mRowCenterCoordinates(center_coordinates(aMesh, aCenteringType)),
-      mNodalCoordinates(createNodalCoordinates(mesh::EntityRetrieval{aMesh}.nodalCoordinates())),
+      mNodalCoordinates(create_nodal_coordinates(mesh::EntityRetrieval{aMesh}.nodalCoordinates(), mCommunicator)),
       mLocalSearchPointWithIdentifiers(detail::stk_search_points(mNodalCoordinates, mCommunicator.rank()))
 {
     generateDistanceMap();
@@ -56,22 +73,10 @@ LinearMaskBuilder::LinearMaskBuilder(const NodalVector& aNodalCoordinates,
       mSearchRadius(aSearchRadius.mValue),
       mMaximumConnectivityEstimate(aMaximumConnectivityEstimate),
       mRowCenterCoordinates(std::move(aCenters.mValue)),
-      mNodalCoordinates(createNodalCoordinates(aNodalCoordinates.mValue)),
+      mNodalCoordinates(create_nodal_coordinates(aNodalCoordinates.mValue, mCommunicator)),
       mLocalSearchPointWithIdentifiers(detail::stk_search_points(mNodalCoordinates, mCommunicator.rank()))
 {
     generateDistanceMap();
-}
-
-third_party_integration::tpetra::TpetraMultiVector LinearMaskBuilder::createNodalCoordinates(
-    const std::vector<third_party_integration::common::Coordinate>& aNodalCoordinates)
-{
-    const auto tCommunicator(Teuchos::rcp(new Teuchos::MpiComm<int>(mCommunicator)));
-    auto tNodalCoordinates = third_party_integration::tpetra::TpetraMultiVector(
-        Teuchos::rcp(new third_party_integration::tpetra::TpetraMap(
-            aNodalCoordinates.size(), third_party_integration::tpetra::kIndexBase, tCommunicator)),
-        third_party_integration::tpetra::kNumberOfCartesianDimensions, kZeroOut);
-    third_party_integration::tpetra::distribute_on_tpetra_multivector(aNodalCoordinates, tNodalCoordinates);
-    return tNodalCoordinates;
 }
 
 auto LinearMaskBuilder::mask() const -> const third_party_integration::tpetra::TpetraCRSMatrix& { return *mLinearMask; }

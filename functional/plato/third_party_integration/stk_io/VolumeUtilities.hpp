@@ -22,6 +22,10 @@ namespace plato::third_party_integration::stk_io
 /// @brief Return a vector of all the element centroids found in bulk data @a aBulk
 [[nodiscard]] std::vector<common::Coordinate> element_centroids(const stk::mesh::BulkData& aBulk);
 
+/// @brief Returns a vector of the element centroids associated with the parts given in @a aParts.
+[[nodiscard]] std::vector<common::Coordinate> element_centroids(const stk::mesh::BulkData& aBulk,
+                                                                const PartReferenceVector& aParts);
+
 /// @brief Returns the total volume of a mesh found in bulk data @a aBulk
 [[nodiscard]] double mesh_volume(const stk::mesh::BulkData& aBulk);
 

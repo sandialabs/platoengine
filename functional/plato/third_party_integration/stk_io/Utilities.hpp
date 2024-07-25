@@ -87,6 +87,9 @@ stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk);
 /// @brief Given a STK bulk data @a aBulk and part @a aPart, returns the STK element container.
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart);
 
+/// @brief Given a STK bulk data @a aBulk and parts @a aParts, returns the STK element container.
+stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts);
+
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

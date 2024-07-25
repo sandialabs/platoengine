@@ -9,7 +9,7 @@
 #include <string_view>
 
 #include "plato/test_utilities/TestDataFilePath.hpp"
-#include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
@@ -72,8 +72,8 @@ TEST(STKUtilities, ReadCoordinatesCoordinate)
     ASSERT_EQ(tGold.size(), tResult.size());
     for (unsigned int tIndex = 0; tIndex < tGold.size(); ++tIndex)
     {
-        common::unittest::test_double_equality_of_components(tResult[tIndex], tGold[tIndex],
-                                                             TEST_CONTEXT("Read nodal coordinates"));
+        common::test_utilities::test_double_equality_of_components(tResult[tIndex], tGold[tIndex],
+                                                                   TEST_CONTEXT("Read nodal coordinates"));
     }
 
     EXPECT_EQ(node_size(*tMesh), tCommandGenerator.numberOfNodes());

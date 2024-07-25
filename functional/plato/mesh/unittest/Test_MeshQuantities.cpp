@@ -5,11 +5,15 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshProxyViews.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
-#include "plato/mesh/unittest/Fixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::mesh::unittest
 {
+using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
+using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesVolume)
 {

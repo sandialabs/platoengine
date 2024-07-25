@@ -1,6 +1,6 @@
 #include "plato/filter/extension/parallel_unittest/LinearMaskTestUtility.hpp"
 
-namespace plato::filter::extension::unittest
+namespace plato::filter::extension::parallel_unittest
 {
 
 LinearMaskBuilder create_simple_linear_mask_builder(
@@ -23,4 +23,4 @@ LinearMask create_simple_linear_mask(const std::vector<third_party_integration::
     return LinearMask{create_simple_linear_mask_builder(aCentroids).mask(), boost::mpi::communicator{}};
 }
 
-}  // namespace plato::filter::extension::unittest
+}  // namespace plato::filter::extension::parallel_unittest

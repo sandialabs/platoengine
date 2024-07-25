@@ -2,13 +2,17 @@
 
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/unittest/Fixtures.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
 
 namespace plato::mesh::unittest
 {
 namespace
 {
+using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+
 void check_mesh_counts(const std::filesystem::path& aMeshFilePath,
                        const unsigned int aNumberOfNodes,
                        const unsigned int aNumberOfElements,
@@ -40,6 +44,17 @@ TEST_F(TwoBlockMeshOnDisk, TwoBlockRetrieval)
     constexpr auto tTotalNumberOfNodes = mExpectedNumberOfNodesInBlock1 + mExpectedNumberOfNodesInBlock2;
     constexpr auto tTotalNumberOfElements = mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock2;
     check_mesh_counts(mMeshFilePath, tTotalNumberOfNodes, tTotalNumberOfElements, TEST_CONTEXT("Two block mesh"));
+}
+
+TEST_F(TwoDThreeBlockMesh, NodalCoordinatesWithFixedBlocks)
+{
+    const auto tMesh = Mesh{mMeshFilePath, {"block_1"}};
+    const auto tDesignDomainNodes = EntityRetrieval{tMesh}.designDomainNodalCoordinates();
+
+    const auto tExpectedNodalCoordinates = std::vector<third_party_integration::common::Coordinate>{
+        {-2.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {-2.0, 1.0, 0.0}, {2.0, 0.0, 0.0}, {2.0, 1.0, 0.0}};
+
+    EXPECT_EQ(tExpectedNodalCoordinates, tDesignDomainNodes);
 }
 
 }  // namespace plato::mesh::unittest

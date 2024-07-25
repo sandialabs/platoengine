@@ -4,11 +4,13 @@ include(${CMAKE_UTIL_DIR}/add_to_srcs_and_hdrs.cmake)
 #   TEST_LIB: The name of the library to create a unit tester for. The test exe name will be
 #    the name of the library with `_UnitTester` appended.
 #   DIRECTORIES: A list of directories containing the test source files.
-function( create_plato_unittester TEST_LIB DIRECTORIES)
+#   Additional targets to link with may be passed as extra arguments.
+function( create_plato_unittester TEST_LIB DIRECTORIES )
 
+    set(EXTRA_LIBS ${ARGN})
     set(TEST_EXE "${TEST_LIB}_UnitTester")
     set(TARGET_LINK_LIST "${TEST_LIB}")
-    create_plato_unittester_impl( ${TEST_EXE} "${DIRECTORIES}" ${TEST_UNIT_MAIN_INCL} "${TARGET_LINK_LIST}" )
+    create_plato_unittester_impl( ${TEST_EXE} "${DIRECTORIES}" ${TEST_UNIT_MAIN_INCL} "${TARGET_LINK_LIST};${EXTRA_LIBS}" )
 
 endfunction(create_plato_unittester)
 
@@ -27,11 +29,13 @@ endfunction(create_plato_integration_tester)
 #    the name of the library with `_ParallelUnitTester` appended.
 #   DIRECTORIES: A list of directories containing the test source files.
 #   NUM_RANKS_FOR_TEST: The number of MPI ranks to use in the test executable.
+#   Additional targets to link with may be passed as extra arguments.
 function( create_plato_parallel_unittester TEST_LIB DIRECTORIES NUM_RANKS_FOR_TEST)
 
+    set(EXTRA_LIBS ${ARGN})
     set(TEST_EXE "${TEST_LIB}_ParallelUnitTester")
     set(TARGET_LINK_LIST "${TEST_LIB}")
-    create_plato_parallel_integration_tester( ${TEST_EXE} "${DIRECTORIES}" "${TARGET_LINK_LIST}" ${NUM_RANKS_FOR_TEST})
+    create_plato_parallel_integration_tester( ${TEST_EXE} "${DIRECTORIES}" "${TARGET_LINK_LIST};${EXTRA_LIBS}" ${NUM_RANKS_FOR_TEST})
 
 endfunction(create_plato_parallel_unittester)
 

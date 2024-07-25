@@ -25,6 +25,6 @@ if( UNIT_TESTING )
 
   set(DIRECTORIES extension/parallel_unittest)
   set(NUM_RANKS_FOR_TEST 4)
-  create_plato_parallel_unittester(PlatoFunctionalFilter "${DIRECTORIES}" ${NUM_RANKS_FOR_TEST})
+  create_plato_parallel_unittester(PlatoFunctionalFilter "${DIRECTORIES}" ${NUM_RANKS_FOR_TEST} PlatoFunctionalTPICommonTestUtilities)
 
 endif()

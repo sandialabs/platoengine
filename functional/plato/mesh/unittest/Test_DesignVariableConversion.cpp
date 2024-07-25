@@ -5,13 +5,15 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/unittest/Fixtures.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
 
 namespace plato::mesh::unittest
 {
 namespace
 {
+using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+
 void check_two_block_properties(const MeshProxy& aMeshProxy, const test_utilities::TestContext& aTestContext)
 {
     for (const auto& [tBlockID, tDensities] : aMeshProxy.mBlockDensities)

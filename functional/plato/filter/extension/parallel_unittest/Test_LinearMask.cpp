@@ -5,9 +5,9 @@
 
 #include "plato/filter/extension/LinearMask.hpp"
 #include "plato/filter/extension/parallel_unittest/LinearMaskTestUtility.hpp"
-#include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 
-namespace plato::filter::extension::unittest
+namespace plato::filter::extension::parallel_unittest
 {
 
 namespace
@@ -94,4 +94,4 @@ TEST(LinearMask, ApplyGivenCentroid)
     }
 }
 
-}  // namespace plato::filter::extension::unittest
+}  // namespace plato::filter::extension::parallel_unittest

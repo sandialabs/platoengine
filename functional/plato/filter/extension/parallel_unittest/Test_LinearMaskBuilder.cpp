@@ -5,12 +5,12 @@
 
 #include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/filter/extension/parallel_unittest/LinearMaskTestUtility.hpp"
-#include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 
-namespace plato::filter::extension::unittest
+namespace plato::filter::extension::parallel_unittest
 {
 
 namespace
@@ -202,4 +202,4 @@ TEST(LinearMaskBuilder, GenerateDistanceMapGivenCentroid)
     EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 0, 3), 0);
 }
 
-}  // namespace plato::filter::extension::unittest
+}  // namespace plato::filter::extension::parallel_unittest

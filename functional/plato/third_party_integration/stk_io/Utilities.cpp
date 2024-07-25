@@ -254,8 +254,13 @@ stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk)
 
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart)
 {
+    return element_vector(aBulk, PartReferenceVector{std::cref(aPart)});
+}
+
+stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+{
     stk::mesh::EntityVector tElements;
-    stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, aPart, tElements, kSortedByID);
+    stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, parts_to_selector(aParts), tElements, kSortedByID);
     return tElements;
 }
 

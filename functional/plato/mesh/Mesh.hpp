@@ -44,11 +44,11 @@ class Mesh
     /// @brief Returns the path to the mesh on disk.
     const std::filesystem::path& filePath() const;
 
-    /// @brief Returns the fixed block IDs
+    /// @brief Returns the fixed block internal metadata ordinals
     /// @note These are stk internally generated IDs and not the same as the mesh's original block IDs.
     const std::vector<BlockOrdinalType>& fixedBlockOrdinals() const;
 
-    /// @brief Returns the design block IDs
+    /// @brief Returns the design block internal metadata ordinals
     /// @note These are stk internally generated IDs and not the same as the mesh's original block IDs.
     const std::vector<BlockOrdinalType>& designBlockOrdinals() const;
 

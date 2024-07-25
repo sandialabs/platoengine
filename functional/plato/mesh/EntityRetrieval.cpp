@@ -12,13 +12,24 @@ std::vector<double> EntityRetrieval::flattenedNodalCoordinates() const
     return third_party_integration::stk_io::flattened_nodal_coordinates(bulkData());
 }
 
-std::vector<third_party_integration::common::Coordinate> EntityRetrieval::nodalCoordinates() const
+auto EntityRetrieval::nodalCoordinates() const -> std::vector<third_party_integration::common::Coordinate>
 {
     return third_party_integration::stk_io::nodal_coordinates(bulkData());
 }
 
-std::vector<third_party_integration::common::Coordinate> EntityRetrieval::elementCentroids() const
+auto EntityRetrieval::elementCentroids() const -> std::vector<third_party_integration::common::Coordinate>
 {
     return third_party_integration::stk_io::element_centroids(bulkData());
 }
+
+auto EntityRetrieval::designDomainNodalCoordinates() const -> std::vector<third_party_integration::common::Coordinate>
+{
+    return third_party_integration::stk_io::nodal_coordinates(bulkData(), designDomainBlocks());
+}
+
+auto EntityRetrieval::designDomainElementCentroids() const -> std::vector<third_party_integration::common::Coordinate>
+{
+    return {};
+}
+
 }  // namespace plato::mesh

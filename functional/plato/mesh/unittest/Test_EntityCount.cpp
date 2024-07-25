@@ -2,13 +2,18 @@
 
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/unittest/Fixtures.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
 
 namespace plato::mesh::unittest
 {
 namespace
 {
+using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
+using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+
 struct ExpectedCounts
 {
     std::size_t mNumberOfElements = 0u;
