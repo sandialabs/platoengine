@@ -13,9 +13,14 @@
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
+namespace
+{
+using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+}
 
 TEST(STKUtilities, CommandGeneratorWriteMeshToDisk)
 {
@@ -35,6 +40,34 @@ TEST(STKUtilities, NumberOfNodesAndElementsFromBulk)
     EXPECT_EQ(element_size(*tMesh), tCommandGenerator.numberOfElements());
 }
 
+TEST_F(TwoBlockMeshOnDisk, NumberOfNodesAndElementsFromBulkAndParts)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
+    constexpr auto tExpectedNumberOfParts = 2u;
+    ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
+
+    const auto tCheckCounts = [&tBulkData](const unsigned int aExpectedNodeSize,
+                                           const unsigned int aExpectedElementSize, const PartReferenceVector& aParts,
+                                           const plato::test_utilities::TestContext& aTestContext)
+    {
+        EXPECT_EQ(aExpectedNodeSize, node_size(*tBulkData, aParts)) << aTestContext;
+        EXPECT_EQ(aExpectedElementSize, element_size(*tBulkData, aParts)) << aTestContext;
+    };
+
+    // Test full mesh result is same as parts list
+    const auto tAllParts = PartReferenceVector{std::cref(*tParts.front()), std::cref(*tParts.back())};
+    tCheckCounts(node_size(*tBulkData), element_size(*tBulkData), tAllParts, TEST_CONTEXT("Full mesh vs. all blocks"));
+    // Block 1
+    const auto tBlock1Parts = PartReferenceVector{std::cref(*tParts.front())};
+    tCheckCounts(mExpectedNumberOfNodesInBlock1, mExpectedNumberOfElementsInBlock1, tBlock1Parts,
+                 TEST_CONTEXT("Block 1"));
+    // Block 2
+    const auto tBlock2Parts = PartReferenceVector{std::cref(*tParts.back())};
+    tCheckCounts(mExpectedNumberOfNodesInBlock2, mExpectedNumberOfElementsInBlock2, tBlock2Parts,
+                 TEST_CONTEXT("Block 2"));
+}
+
 TEST(STKUtilities, SpatialDimensions3)
 {
     const CommandGenerator tCommandGenerator{{2, 2, 2}};
@@ -45,7 +78,8 @@ TEST(STKUtilities, SpatialDimensions3)
 
 TEST(STKUtilities, SpatialDimensions2)
 {
-    const auto tMesh = read_mesh_bulk_data(test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf").value());
+    const auto tMesh =
+        read_mesh_bulk_data(plato::test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf").value());
     ASSERT_TRUE(tMesh);
     EXPECT_EQ(spatial_dimensions(*tMesh), 2u);
 }

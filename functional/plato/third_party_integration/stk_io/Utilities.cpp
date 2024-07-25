@@ -29,11 +29,22 @@ constexpr auto kTopologyFieldName = std::string_view{"topology"};
 constexpr bool kSortedByID = true;
 constexpr bool kUnsorted = false;
 
+stk::mesh::Selector parts_to_selector(const PartReferenceVector& aParts)
+{
+    return std::accumulate(aParts.cbegin(), aParts.cend(), stk::mesh::Selector{},
+                           [](stk::mesh::Selector aSelector, const auto tPart)
+                           {
+                               aSelector |= tPart.get();
+                               return aSelector;
+                           });
+}
+
 template <stk::topology::rank_t Rank>
-unsigned int size(const stk::mesh::BulkData& aBulk)
+unsigned int size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
 {
     std::vector<size_t> tEntityCounts;
-    stk::mesh::comm_mesh_counts(aBulk, tEntityCounts);
+    const auto tSelector = parts_to_selector(aParts);
+    stk::mesh::comm_mesh_counts(aBulk, tEntityCounts, &tSelector);
     return tEntityCounts[Rank];
 }
 
@@ -92,16 +103,6 @@ std::shared_ptr<stk::mesh::BulkData> bulk_data_from_description(const std::strin
     bulk->mesh_meta_data().use_simple_fields();
     stk::io::fill_mesh(std::string{aMeshDescription}, *bulk);
     return bulk;
-}
-
-stk::mesh::Selector parts_to_selector(const PartReferenceVector& aParts)
-{
-    return std::accumulate(aParts.cbegin(), aParts.cend(), stk::mesh::Selector{},
-                           [](stk::mesh::Selector aSelector, const auto tPart)
-                           {
-                               aSelector |= tPart.get();
-                               return aSelector;
-                           });
 }
 
 PartReferenceVector universal_part(const stk::mesh::BulkData& aBulk)
@@ -170,9 +171,19 @@ std::vector<double> read_element_density(const std::filesystem::path& aMeshName)
     return tElementFieldData;
 }
 
-unsigned int node_size(const stk::mesh::BulkData& aBulk) { return size<stk::topology::NODE_RANK>(aBulk); }
+unsigned int node_size(const stk::mesh::BulkData& aBulk) { return node_size(aBulk, universal_part(aBulk)); }
 
-unsigned int element_size(const stk::mesh::BulkData& aBulk) { return size<stk::topology::ELEM_RANK>(aBulk); }
+unsigned int node_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+{
+    return size<stk::topology::NODE_RANK>(aBulk, aParts);
+}
+
+unsigned int element_size(const stk::mesh::BulkData& aBulk) { return element_size(aBulk, universal_part(aBulk)); }
+
+unsigned int element_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+{
+    return size<stk::topology::ELEM_RANK>(aBulk, aParts);
+}
 
 unsigned int spatial_dimensions(const stk::mesh::BulkData& aBulk) { return aBulk.mesh_meta_data().spatial_dimension(); }
 

@@ -82,4 +82,16 @@ TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockCounts)
     check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("Two dimensional mesh with three blocks"));
 }
 
+TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockDesignVariableCounts)
+{
+    const auto tMesh = Mesh{mMeshFilePath, {"block_2"}};
+    constexpr auto tExpectedNumberOfElements = mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock3;
+    const auto tNumberOfElementsInDesignDomain = EntityCounts{tMesh}.numberOfDesignDomainElements();
+    EXPECT_EQ(tNumberOfElementsInDesignDomain, tExpectedNumberOfElements);
+
+    constexpr auto tExpectedNumberOfNodes = 7u;
+    const auto tNumberOfNodesInDesignDomain = EntityCounts{tMesh}.numberOfDesignDomainNodes();
+    EXPECT_EQ(tNumberOfNodesInDesignDomain, tExpectedNumberOfNodes);
+}
+
 }  // namespace plato::mesh::unittest

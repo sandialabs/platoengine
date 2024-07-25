@@ -42,8 +42,14 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
 /// @brief Given a STK Bulk data  @a aBulk, return the total number of nodes.
 [[nodiscard]] unsigned int node_size(const stk::mesh::BulkData& aBulk);
 
+/// @brief Given a STK Bulk data  @a aBulk, return the total number of nodes only in the parts list @a aParts.
+[[nodiscard]] unsigned int node_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts);
+
 /// @brief Given a STK Bulk data  @a aBulk, return the total number of elements.
 [[nodiscard]] unsigned int element_size(const stk::mesh::BulkData& aBulk);
+
+/// @brief Given a STK Bulk data  @a aBulk, return the total number of elements only in the parts list @a aParts.
+[[nodiscard]] unsigned int element_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts);
 
 /// @brief Given a STK Bulk data  @a aBulk, return the spatial dimensions of the mesh.
 [[nodiscard]] unsigned int spatial_dimensions(const stk::mesh::BulkData& aBulk);

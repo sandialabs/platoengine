@@ -12,7 +12,17 @@ unsigned int EntityCounts::numberOfElements() const
     return third_party_integration::stk_io::element_size(bulkData());
 }
 
+unsigned int EntityCounts::numberOfDesignDomainElements() const
+{
+    return third_party_integration::stk_io::element_size(bulkData(), designDomainBlocks());
+}
+
 unsigned int EntityCounts::numberOfNodes() const { return third_party_integration::stk_io::node_size(bulkData()); }
+
+unsigned int EntityCounts::numberOfDesignDomainNodes() const
+{
+    return third_party_integration::stk_io::node_size(bulkData(), designDomainBlocks());
+}
 
 unsigned int EntityCounts::numberOfBlocks() const { return third_party_integration::stk_io::block_size(bulkData()); }
 

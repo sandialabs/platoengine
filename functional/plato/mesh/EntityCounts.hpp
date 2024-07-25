@@ -13,8 +13,14 @@ struct EntityCounts : public Mesh
     /// @brief The total number of elements in the mesh
     [[nodiscard]] unsigned int numberOfElements() const;
 
+    /// @brief The number of elements in the design domain.
+    [[nodiscard]] unsigned int numberOfDesignDomainElements() const;
+
     /// @brief The total number of nodes in the mesh
     [[nodiscard]] unsigned int numberOfNodes() const;
+
+    /// @brief The number of nodes in the design domain.
+    [[nodiscard]] unsigned int numberOfDesignDomainNodes() const;
 
     /// @brief The total number of blocks in the mesh
     [[nodiscard]] unsigned int numberOfBlocks() const;
