@@ -5,7 +5,7 @@
 
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
-#include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::mesh::unittest
 {

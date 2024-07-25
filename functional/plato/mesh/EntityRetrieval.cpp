@@ -29,7 +29,7 @@ auto EntityRetrieval::designDomainNodalCoordinates() const -> std::vector<third_
 
 auto EntityRetrieval::designDomainElementCentroids() const -> std::vector<third_party_integration::common::Coordinate>
 {
-    return {};
+    return third_party_integration::stk_io::element_centroids(bulkData(), designDomainBlocks());
 }
 
 }  // namespace plato::mesh

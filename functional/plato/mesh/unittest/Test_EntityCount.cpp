@@ -3,7 +3,7 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::mesh::unittest
 {

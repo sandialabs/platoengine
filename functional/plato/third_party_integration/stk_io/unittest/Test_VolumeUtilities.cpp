@@ -7,7 +7,7 @@
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
-#include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest

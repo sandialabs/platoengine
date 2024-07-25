@@ -3,7 +3,7 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/stk_io/test_utilities/Fixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::mesh::unittest
 {
@@ -55,6 +55,26 @@ TEST_F(TwoDThreeBlockMesh, NodalCoordinatesWithFixedBlocks)
         {-2.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {-2.0, 1.0, 0.0}, {2.0, 0.0, 0.0}, {2.0, 1.0, 0.0}};
 
     EXPECT_EQ(tExpectedNodalCoordinates, tDesignDomainNodes);
+}
+
+TEST_F(TwoDThreeBlockMesh, ElementCentroidsDesignDomainSameAsFullMesh)
+{
+    const auto tMesh = Mesh{mMeshFilePath};
+
+    const auto tDesignDomainNodes = EntityRetrieval{tMesh}.designDomainElementCentroids();
+    const auto tFullMeshNodes = EntityRetrieval{tMesh}.elementCentroids();
+
+    EXPECT_EQ(tDesignDomainNodes, tFullMeshNodes);
+}
+
+TEST_F(TwoDThreeBlockMesh, ElementCentroidsWithFixedBlock)
+{
+    const auto tMesh = Mesh{mMeshFilePath, {"block_1", "block_2"}};
+
+    const auto tDesignDomainNodes = EntityRetrieval{tMesh}.designDomainElementCentroids();
+    const auto tExpectedCoordinates = std::vector<third_party_integration::common::Coordinate>{{1.0, 0.5, 0.0}};
+
+    EXPECT_EQ(tDesignDomainNodes, tExpectedCoordinates);
 }
 
 }  // namespace plato::mesh::unittest
