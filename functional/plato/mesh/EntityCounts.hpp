@@ -8,7 +8,7 @@ namespace plato::mesh
 /// @brief A mixin class for Mesh that provides utilities counting entities in a mesh, such as nodes.
 struct EntityCounts : public Mesh
 {
-    EntityCounts(Mesh aMeshBase);
+    explicit EntityCounts(Mesh aMeshBase);
 
     /// @brief The total number of elements in the mesh
     [[nodiscard]] unsigned int numberOfElements() const;

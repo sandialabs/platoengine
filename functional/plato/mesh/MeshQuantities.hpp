@@ -9,7 +9,7 @@ namespace plato::mesh
 /// @brief A mixin extension for Mesh, this provides functions that compute global mesh quantities such as volume.
 struct MeshQuantities : public Mesh
 {
-    MeshQuantities(Mesh aMeshBase);
+    explicit MeshQuantities(Mesh aMeshBase);
 
     /// @brief Returns the total volume of the mesh.
     [[nodiscard]] double volume() const;

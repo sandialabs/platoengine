@@ -14,7 +14,7 @@ struct MeshBlocks : public Mesh
 {
     using BlockIDType = third_party_integration::common::BlockData::BlockIDType;
 
-    MeshBlocks(Mesh aMeshBase);
+    explicit MeshBlocks(Mesh aMeshBase);
 
     /// @brief Returns the block id for the block with name @a aBlockName if it exists, an empty optional otherwise
     [[nodiscard]] auto blockID(std::string_view aBlockName) const -> std::optional<BlockIDType>;

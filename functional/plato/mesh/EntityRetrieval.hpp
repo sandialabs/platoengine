@@ -10,7 +10,7 @@ namespace plato::mesh
 /// coordinates.
 struct EntityRetrieval : public Mesh
 {
-    EntityRetrieval(Mesh aMeshBase);
+    explicit EntityRetrieval(Mesh aMeshBase);
 
     /// @brief The nodal coordinates ordered as x0,y0,z0,x1,y1,z1. This includes all nodes in the mesh.
     /// @note For 2D, only x and y coordinates are included in the vector.
