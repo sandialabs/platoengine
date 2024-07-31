@@ -2,7 +2,6 @@
 #define PLATO_MESH_MESHQUANTITIES
 
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::mesh
 {

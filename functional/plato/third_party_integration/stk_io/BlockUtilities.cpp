@@ -53,19 +53,6 @@ std::vector<common::BlockData> block_data(const stk::mesh::BulkData& aBulk)
     return tBlockData;
 }
 
-auto part_with_block_name(const stk::mesh::BulkData& aBulkData, const std::string_view aBlockName)
-    -> OptionalPartReference
-{
-    if (auto tPart = aBulkData.mesh_meta_data().get_part(std::string{aBlockName}))
-    {
-        return std::make_optional(std::cref(*tPart));
-    }
-    else
-    {
-        return std::nullopt;
-    }
-}
-
 auto part_with_block_meta_data_ordinal(const stk::mesh::BulkData& aBulkData,
                                        const common::BlockData::BlockOrdinalType aBlockOrdinal) -> OptionalPartReference
 {

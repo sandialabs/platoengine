@@ -19,7 +19,7 @@ Mesh::BlockOrdinalType block_meta_data_ordinal(
 }
 
 std::vector<Mesh::BlockOrdinalType> block_ordinals_from_names(const stk::mesh::BulkData& aBulkData,
-                                                              const std::vector<std::string>& aBlockNames)
+                                                              const std::set<std::string>& aBlockNames)
 {
     namespace tpi = third_party_integration;
 
@@ -71,7 +71,7 @@ Mesh::PartReferenceVector parts_from_block_ordinals(const stk::mesh::BulkData& a
 }  // namespace
 
 /// @brief Loads a mesh from disk at the path @a aMeshName
-Mesh::Mesh(const std::filesystem::path& aMeshName, const std::vector<std::string>& aFixedBlockNames)
+Mesh::Mesh(const std::filesystem::path& aMeshName, const std::set<std::string>& aFixedBlockNames)
     : mFilePath{aMeshName},
       mBulk{third_party_integration::stk_io::read_mesh_bulk_data(aMeshName)},
       mFixedBlockOrdinals{block_ordinals_from_names(*mBulk, aFixedBlockNames)},

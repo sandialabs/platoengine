@@ -13,7 +13,8 @@ namespace plato::mesh
 {
 bool operator==(const Density& aLHS, const Density& aRHS)
 {
-    return aLHS.mDensity == aRHS.mDensity && aLHS.mGlobalID == aRHS.mGlobalID;
+    return aLHS.mDensity == aRHS.mDensity && aLHS.mGlobalMeshEntityID == aRHS.mGlobalMeshEntityID &&
+           aLHS.mDesignVariableVectorIndex == aRHS.mDesignVariableVectorIndex;
 }
 }  // namespace plato::mesh
 
@@ -24,23 +25,32 @@ namespace
 const auto kDensities1 = std::vector{1.0, 0.0, 4.0};
 const auto kIDs1 = std::vector<std::size_t>{0, 1, 2};
 const auto kBlockDensityVector1 = MeshDesignVariables::DensityVector{
-    {kIDs1[0], kDensities1[0]}, {kIDs1[1], kDensities1[1]}, {kIDs1[2], kDensities1[2]}};
+    {kIDs1[0], kIDs1[0], kDensities1[0]}, {kIDs1[1], kIDs1[1], kDensities1[1]}, {kIDs1[2], kIDs1[2], kDensities1[2]}};
 
 const auto kDensities2 = std::vector{-1.0, 10.0};
-const auto kBlockDensityVector2 = MeshDesignVariables::DensityVector{{0, kDensities2[0]}, {1, kDensities2[1]}};
+const auto kIDs2 = std::vector<std::size_t>{0, 1};
+const auto kBlockDensityVector2WithOverlap =
+    MeshDesignVariables::DensityVector{{kIDs2[0], kIDs2[0], kDensities2[0]}, {kIDs2[1], kIDs2[1], kDensities2[1]}};
+
+const auto kDensities3 = std::vector{-2.0, 11.0};
+const auto kIDs3 = std::vector<std::size_t>{3, 4};
+const auto kBlockDensityVector2NoOverlap =
+    MeshDesignVariables::DensityVector{{kIDs3[0], kIDs3[0], kDensities3[0]}, {kIDs3[1], kIDs3[1], kDensities3[1]}};
 
 const auto kSingleBlockDensities = MeshDesignVariables::BlockDensities{{0, kBlockDensityVector1}};
-const auto kTwoBlockDensities =
-    MeshDesignVariables::BlockDensities{{0, kBlockDensityVector1}, {1, kBlockDensityVector2}};
+const auto kTwoBlockDensitiesOverlap =
+    MeshDesignVariables::BlockDensities{{0, kBlockDensityVector1}, {1, kBlockDensityVector2WithOverlap}};
+
+const auto kTwoBlockDensitiesNoOverlap =
+    MeshDesignVariables::BlockDensities{{0, kBlockDensityVector1}, {1, kBlockDensityVector2NoOverlap}};
 
 using MeshDesignVariablesDensitiesViewConstIterator = MeshDesignVariablesDensitiesView::IteratorType;
-
 }  // namespace
 
 TEST(MeshDesignVariablesViews, IncrementIterator)
 {
-    auto tIterator = MeshDesignVariablesDensitiesViewConstIterator{
-        kSingleBlockDensities.cbegin(), kSingleBlockDensities.cend(), kBlockDensityVector1.cbegin()};
+    auto tIterator =
+        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector1.cbegin()}, {kBlockDensityVector1.cend()}};
     for (const auto tIndex : utilities::IndexRange{kDensities1.size()})
     {
         boost::ignore_unused(tIndex);
@@ -53,21 +63,22 @@ TEST(MeshDesignVariablesViews, IncrementIterator)
 
 TEST(MeshDesignVariablesViews, DereferenceIterator)
 {
-    auto tIterator = MeshDesignVariablesDensitiesViewConstIterator{
-        kSingleBlockDensities.cbegin(), kSingleBlockDensities.cend(), kBlockDensityVector1.cbegin()};
-    EXPECT_EQ((*tIterator).mDensity, kBlockDensityVector1.cbegin()->mDensity);
-    EXPECT_EQ((*tIterator).mGlobalID, kBlockDensityVector1.cbegin()->mGlobalID);
+    auto tIterator =
+        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector1.cbegin()}, {kBlockDensityVector1.cend()}};
+    EXPECT_EQ(static_cast<Density>(*tIterator).mDensity, kBlockDensityVector1.cbegin()->mDensity);
+    EXPECT_EQ(static_cast<Density>(*tIterator).mGlobalMeshEntityID, kBlockDensityVector1.cbegin()->mGlobalMeshEntityID);
     ++tIterator;
-    EXPECT_EQ((*tIterator).mDensity, std::next(kBlockDensityVector1.cbegin())->mDensity);
-    EXPECT_EQ((*tIterator).mGlobalID, std::next(kBlockDensityVector1.cbegin())->mGlobalID);
+    EXPECT_EQ(static_cast<Density>(*tIterator).mDensity, std::next(kBlockDensityVector1.cbegin())->mDensity);
+    EXPECT_EQ(static_cast<Density>(*tIterator).mGlobalMeshEntityID,
+              std::next(kBlockDensityVector1.cbegin())->mGlobalMeshEntityID);
 }
 
 TEST(MeshDesignVariablesViews, IteratorEqualityOperators)
 {
-    auto tIterator1 = MeshDesignVariablesDensitiesViewConstIterator{
-        kSingleBlockDensities.cbegin(), kSingleBlockDensities.cend(), kBlockDensityVector1.cbegin()};
-    auto tIterator2 = MeshDesignVariablesDensitiesViewConstIterator{
-        kSingleBlockDensities.cbegin(), kSingleBlockDensities.cend(), kBlockDensityVector1.cbegin()};
+    auto tIterator1 =
+        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector1.cbegin()}, {kBlockDensityVector1.cend()}};
+    auto tIterator2 =
+        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector1.cbegin()}, {kBlockDensityVector1.cend()}};
 
     EXPECT_TRUE(tIterator1 == tIterator2) << "Explicitly check equality operator";
     EXPECT_FALSE(tIterator1 != tIterator2) << "Explicitly check inequality operator";
@@ -81,13 +92,25 @@ TEST(MeshDesignVariablesViews, IteratorEqualityOperators)
     EXPECT_FALSE(tIterator1 != tIterator2) << "Explicitly check inequality operator";
 }
 
-TEST(MeshDesignVariablesViews, Size)
+TEST(MeshDesignVariablesViews, SizeSingleBlock)
 {
     const auto tMeshDesignVariables =
         MeshDesignVariables{/*.mFileName=*/"mars.exo", /*.mBlockDensities=*/kSingleBlockDensities};
-    const auto tMeshView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
+    ASSERT_EQ(MeshDesignVariablesDensitiesView{tMeshDesignVariables}.size(), kDensities1.size());
+}
 
-    ASSERT_EQ(tMeshView.size(), kDensities1.size());
+TEST(MeshDesignVariablesViews, SizeTwoBlockOverlap)
+{
+    const auto tMeshDesignVariables =
+        MeshDesignVariables{/*.mFileName=*/"ceres.exo", /*.mBlockDensities=*/kTwoBlockDensitiesOverlap};
+    ASSERT_EQ(MeshDesignVariablesDensitiesView{tMeshDesignVariables}.size(), kDensities1.size());
+}
+
+TEST(MeshDesignVariablesViews, SizeTwoBlockNoOverlap)
+{
+    const auto tMeshDesignVariables =
+        MeshDesignVariables{/*.mFileName=*/"io.exo", /*.mBlockDensities=*/kTwoBlockDensitiesNoOverlap};
+    ASSERT_EQ(MeshDesignVariablesDensitiesView{tMeshDesignVariables}.size(), kDensities1.size() + kDensities2.size());
 }
 
 TEST(MeshDesignVariablesViews, BeginEnd)
@@ -97,17 +120,17 @@ TEST(MeshDesignVariablesViews, BeginEnd)
     const auto tMeshView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
 
     const auto tBeginIterator = tMeshView.begin();
-    EXPECT_EQ(tBeginIterator.mOuterIterator, tMeshDesignVariables.mBlockDensities.cbegin());
-    ASSERT_TRUE(tBeginIterator.mInnerIterator);
-    assert(tBeginIterator.mInnerIterator);
-    EXPECT_EQ(tBeginIterator.mInnerIterator.value(), tMeshDesignVariables.mBlockDensities.cbegin()->second.cbegin());
-    EXPECT_EQ(tBeginIterator.mOuterIterator, tMeshDesignVariables.mBlockDensities.cbegin());
-    EXPECT_EQ(tBeginIterator.mOuterIteratorEnd, tMeshDesignVariables.mBlockDensities.cend());
+    constexpr auto tExpectedIteratorVectorSize = 1U;
+    ASSERT_EQ(tBeginIterator.mCurrentIterators.size(), tExpectedIteratorVectorSize);
+    EXPECT_EQ(tBeginIterator.mCurrentIterators.front(), tMeshDesignVariables.mBlockDensities.cbegin()->second.cbegin());
+    ASSERT_EQ(tBeginIterator.mEndIterators.size(), tExpectedIteratorVectorSize);
+    EXPECT_EQ(tBeginIterator.mEndIterators.front(), tMeshDesignVariables.mBlockDensities.cbegin()->second.cend());
 
     const auto tEndIterator = tMeshView.end();
-    EXPECT_FALSE(tEndIterator.mInnerIterator);
-    EXPECT_EQ(tEndIterator.mOuterIterator, tMeshDesignVariables.mBlockDensities.cend());
-    EXPECT_EQ(tEndIterator.mOuterIteratorEnd, tMeshDesignVariables.mBlockDensities.cend());
+    ASSERT_EQ(tEndIterator.mCurrentIterators.size(), tExpectedIteratorVectorSize);
+    EXPECT_EQ(tEndIterator.mCurrentIterators.front(), tMeshDesignVariables.mBlockDensities.cbegin()->second.cend());
+    ASSERT_EQ(tEndIterator.mEndIterators.size(), tExpectedIteratorVectorSize);
+    EXPECT_EQ(tEndIterator.mEndIterators.front(), tMeshDesignVariables.mBlockDensities.cbegin()->second.cend());
 
     // Increment begin until it's at the end and check that they're equal
     auto tIncrementedIterator = tMeshView.begin();
@@ -121,33 +144,49 @@ TEST(MeshDesignVariablesViews, BeginEnd)
 
 TEST(MeshDesignVariablesViews, RangeBasedFor)
 {
-    const auto tMeshDesignVariables =
-        MeshDesignVariables{/*.mFileName=*/"venus.exo", /*.mBlockDensities=*/kSingleBlockDensities};
-    const auto tMeshView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
-    auto tDensityIterator = kBlockDensityVector1.cbegin();
-    for (const auto tDensityValue : tMeshView)
+    const auto tCheckDensities = [](const MeshDesignVariablesDensitiesView aMeshView,
+                                    const std::vector<Density>& aExpectedDensities,
+                                    const test_utilities::TestContext& aTestContext)
     {
-        EXPECT_EQ(tDensityValue.mDensity, tDensityIterator->mDensity);
-        EXPECT_EQ(tDensityValue.mGlobalID, tDensityIterator->mGlobalID);
-        ++tDensityIterator;
-    }
-}
-
-TEST(MeshDesignVariablesViews, RangeBasedForTwoBlocks)
-{
-    const auto tMeshDesignVariables =
-        MeshDesignVariables{/*.mFileName=*/"pluto.exo", /*.mBlockDensities=*/kTwoBlockDensities};
-    const auto tMeshView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
-    auto tDensityIterator = kBlockDensityVector1.cbegin();
-    for (const auto tDensityValue : tMeshView)
-    {
-        EXPECT_EQ(tDensityValue.mDensity, tDensityIterator->mDensity);
-        EXPECT_EQ(tDensityValue.mGlobalID, tDensityIterator->mGlobalID);
-        ++tDensityIterator;
-        if (tDensityIterator == kBlockDensityVector1.cend())
+        ASSERT_EQ(aExpectedDensities.size(), aMeshView.size());
+        auto tExpectedDensitiesIterator = aExpectedDensities.cbegin();
+        for (const Density tDensityValue : aMeshView)
         {
-            tDensityIterator = kBlockDensityVector2.cbegin();
+            EXPECT_EQ(tDensityValue.mDensity, tExpectedDensitiesIterator->mDensity) << aTestContext;
+            EXPECT_EQ(tDensityValue.mGlobalMeshEntityID, tExpectedDensitiesIterator->mGlobalMeshEntityID)
+                << aTestContext;
+            ++tExpectedDensitiesIterator;
         }
+    };
+
+    // No overlap
+    {
+        const auto tMeshDesignVariables =
+            MeshDesignVariables{/*.mFileName=*/"pluto.exo", /*.mBlockDensities=*/kTwoBlockDensitiesNoOverlap};
+        const auto tMeshView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
+
+        auto tExpectedDensities = kBlockDensityVector1;
+        std::copy(kBlockDensityVector2NoOverlap.cbegin(), kBlockDensityVector2NoOverlap.cend(),
+                  std::back_inserter(tExpectedDensities));
+        tCheckDensities(tMeshView, tExpectedDensities, TEST_CONTEXT("No overlap"));
+    }
+    // Overlap
+    {
+        const auto tMeshDesignVariables =
+            MeshDesignVariables{/*.mFileName=*/"deimos.exo", /*.mBlockDensities=*/kTwoBlockDensitiesOverlap};
+        const auto tMeshView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
+
+        auto tExpectedDensities = kBlockDensityVector1;
+        tCheckDensities(tMeshView, tExpectedDensities, TEST_CONTEXT("Full overlap"));
+    }
+    // One block
+    {
+        const auto tMeshDesignVariables =
+            MeshDesignVariables{/*.mFileName=*/"venus.exo", /*.mBlockDensities=*/kSingleBlockDensities};
+        const auto tMeshView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
+
+        auto tExpectedDensities = kBlockDensityVector1;
+        tCheckDensities(tMeshView, tExpectedDensities, TEST_CONTEXT("Full overlap"));
     }
 }
 
@@ -161,7 +200,7 @@ TEST(MeshDesignVariablesViews, MutableView)
 
     const auto tMeshView = MeshDesignVariablesDensitiesMutableView{tMeshDesignVariables};
 
-    const auto tNewDensities = std::vector{Density{0, 0.0}, Density{1, 1.0}, Density{2, 2.0}};
+    const auto tNewDensities = std::vector{Density{0, 0, 0.0}, Density{1, 1, 1.0}, Density{2, 2, 2.0}};
     std::copy(tNewDensities.cbegin(), tNewDensities.cend(), tMeshView.begin());
 
     const auto tVectorFromView =
@@ -169,35 +208,65 @@ TEST(MeshDesignVariablesViews, MutableView)
     EXPECT_EQ(tVectorFromView, tNewDensities);
 }
 
+TEST(MeshDesignVariablesViews, MutableViewTwoBlocksNoOverlap)
+{
+    auto tMeshDesignVariables = MeshDesignVariables{/*.mFileName*/ "mercury.exo", kTwoBlockDensitiesNoOverlap};
+    const auto tMeshView = MeshDesignVariablesDensitiesMutableView{tMeshDesignVariables};
+    const auto tNewDensities = std::vector<Density>{{0, 0, 0.0}, {1, 1, 1.0}, {2, 2, 2.0}, {3, 3, 3.0}, {4, 4, 4.0}};
+    std::copy(tNewDensities.cbegin(), tNewDensities.cend(), tMeshView.begin());
+
+    const auto tExpectedDensitiesBlock1 = std::vector<Density>{{0, 0, 0.0}, {1, 1, 1.0}, {2, 2, 2.0}};
+    EXPECT_EQ(tExpectedDensitiesBlock1, tMeshDesignVariables.mBlockDensities.at(0));
+
+    const auto tExpectedDensitiesBlock2 = std::vector<Density>{{3, 3, 3.0}, {4, 4, 4.0}};
+    EXPECT_EQ(tExpectedDensitiesBlock2, tMeshDesignVariables.mBlockDensities.at(1));
+}
+
+TEST(MeshDesignVariablesViews, MutableViewTwoBlocksWithOverlap)
+{
+    auto tMeshDesignVariables = MeshDesignVariables{/*.mFileName*/ "earth.exo", kTwoBlockDensitiesOverlap};
+    const auto tMeshView = MeshDesignVariablesDensitiesMutableView{tMeshDesignVariables};
+    const auto tNewDensities = std::vector<Density>{{0, 0, 0.0}, {1, 1, 1.0}, {2, 2, 2.0}};
+    std::copy(tNewDensities.cbegin(), tNewDensities.cend(), tMeshView.begin());
+
+    const auto tExpectedDensitiesBlock1 = std::vector<Density>{{0, 0, 0.0}, {1, 1, 1.0}, {2, 2, 2.0}};
+    EXPECT_EQ(tExpectedDensitiesBlock1, tMeshDesignVariables.mBlockDensities.at(0));
+
+    const auto tExpectedDensitiesBlock2 = std::vector<Density>{{0, 0, 0.0}, {1, 1, 1.0}};
+    EXPECT_EQ(tExpectedDensitiesBlock2, tMeshDesignVariables.mBlockDensities.at(1));
+}
+
 TEST(MeshDesignVariablesViews, ToVector)
 {
     const auto tMeshDesignVariables =
-        MeshDesignVariables{/*.mFileName=*/"mercury.exo", /*.mBlockDensities=*/kSingleBlockDensities};
+        MeshDesignVariables{/*.mFileName=*/"phobos.exo", /*.mBlockDensities=*/kSingleBlockDensities};
     const auto tVectorFromView =
         mesh_design_variables_to_vector(MeshDesignVariablesDensitiesView{tMeshDesignVariables});
     EXPECT_EQ(tVectorFromView, kBlockDensityVector1);
 }
 
-TEST(MeshDesignVariablesViews, ToVectorTwoBlocks)
+TEST(MeshDesignVariablesViews, ToVectorTwoBlocksOverlap)
 {
     const auto tMeshDesignVariables =
-        MeshDesignVariables{/*.mFileName=*/"saturn.exo", /*.mBlockDensities=*/kTwoBlockDensities};
+        MeshDesignVariables{/*.mFileName=*/"saturn.exo", /*.mBlockDensities=*/kTwoBlockDensitiesOverlap};
     const auto tVectorFromView =
         mesh_design_variables_to_vector(MeshDesignVariablesDensitiesView{tMeshDesignVariables});
-    auto tAllDensities = kBlockDensityVector1;
-    std::copy(kBlockDensityVector2.cbegin(), kBlockDensityVector2.cend(), std::back_inserter(tAllDensities));
-    EXPECT_EQ(tVectorFromView, tAllDensities);
+    EXPECT_EQ(tVectorFromView, kBlockDensityVector1);
 }
 
 TEST(MeshDesignVariablesViews, CombineDensities)
 {
-    const auto tDensities = combine_densities_and_ids(kDensities1, kIDs1);
-    EXPECT_EQ(tDensities, kBlockDensityVector1);
+    const auto tDensities = detail::combine_densities_and_ids(kDensities1, kIDs1);
+    for (const auto& [tResult, tExpected] : utilities::Zip{tDensities, kBlockDensityVector1})
+    {
+        EXPECT_EQ(tResult.mDensity, tExpected.mDensity);
+        EXPECT_EQ(tResult.mGlobalMeshEntityID, tExpected.mGlobalMeshEntityID);
+    }
 }
 
 TEST(MeshDesignVariablesViews, SplitDensities)
 {
-    const auto [tDensityValues, tIDMap] = split_densities(kBlockDensityVector1);
+    const auto [tDensityValues, tIDMap] = detail::split_densities(kBlockDensityVector1);
 
     EXPECT_EQ(tDensityValues, kDensities1);
     EXPECT_EQ(tIDMap, kIDs1);

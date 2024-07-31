@@ -73,7 +73,7 @@ TEST(DensityTopology, GenerateMesh)
     const auto tMeshDesignVariables = tDensityTopology.generateMesh(tDesignVec);
     const auto tDensities =
         mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesDensitiesView{tMeshDesignVariables});
-    const auto [tDensityValues, tIDMap] = mesh::split_densities(tDensities);
+    const auto [tDensityValues, tIDMap] = mesh::detail::split_densities(tDensities);
     EXPECT_EQ(tDensityValues, tDesignVars);
 
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));

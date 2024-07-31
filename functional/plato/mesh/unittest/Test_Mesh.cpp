@@ -107,7 +107,7 @@ TEST_F(TwoDThreeBlockMesh, DesignBlockOrdinals)
 
 TEST_F(TwoDThreeBlockMesh, PartVectors)
 {
-    const auto tFixedBlockNames = std::vector<std::string>{"block_2", "block_3"};
+    const auto tFixedBlockNames = std::set<std::string>{"block_2", "block_3"};
     const auto tMesh = Mesh{mMeshFilePath, tFixedBlockNames};
 
     const auto& tFixedBlockOrdinals = tMesh.fixedBlockOrdinals();

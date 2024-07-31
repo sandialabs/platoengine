@@ -51,7 +51,7 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
                                  plato::filter::library::FilterFunction aFilterFunction)
     : mFileName(aInput.mesh_name.value().mToken),
       mMesh(mFileName),
-      mNumDesignParameters(mesh::EntityCounts{mMesh}.numberOfNodes()),
+      mNumDesignParameters(mesh::EntityCounts{mMesh}.numberOfDesignDomainNodes()),
       mFilter(std::move(aFilterFunction))
 {
 }
@@ -59,28 +59,32 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
 mesh::MeshDesignVariables DensityTopology::generateMesh(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
-    return mFilter.f(mesh::nodal_densities_to_mesh_design_variables(aDesignParameters.stdVector(), mMesh));
+    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{mMesh}.nodalDensitiesToMeshDesignVariables(
+        mesh::NodalDensityVectorReference{aDesignParameters.stdVector()});
+    return mFilter.f(tNodalDesignParameters);
 }
 
 linear_algebra::JacobianMultiplier DensityTopology::jacobian(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
+    const auto tDesignVariableConverter = mesh::DesignVariablesConversion{mMesh};
+    const auto tNodalDesignParameters = mesh::NodalDensityVectorReference{aDesignParameters.stdVector()};
     return linear_algebra::JacobianMultiplier{
         /*.mNumColumns=*/mNumDesignParameters,
         /*.mJacobianTimesVectorFunction=*/
-        [tMeshDesignVariables = mesh::nodal_densities_to_mesh_design_variables(aDesignParameters.stdVector(), mMesh),
+        [tMeshDesignVariables = tDesignVariableConverter.nodalDensitiesToMeshDesignVariables(tNodalDesignParameters),
          this](const linear_algebra::DynamicVector<double>& x) { return x * mFilter.df(tMeshDesignVariables); }};
 }
 
 linear_algebra::DynamicVector<double> DensityTopology::initialGuess(const std::filesystem::path& aMeshFileName)
 {
-    const unsigned int tNumNodes = mesh::EntityCounts{mesh::Mesh{aMeshFileName}}.numberOfNodes();
+    const unsigned int tNumNodes = mesh::EntityCounts{mesh::Mesh{aMeshFileName}}.numberOfDesignDomainNodes();
     return linear_algebra::DynamicVector<double>(tNumNodes, kInitialDensity);
 }
 
 std::pair<std::vector<double>, std::vector<double>> DensityTopology::bounds(const std::filesystem::path& aMeshFileName)
 {
-    const unsigned int tNumNodes = mesh::EntityCounts{mesh::Mesh{aMeshFileName}}.numberOfNodes();
+    const unsigned int tNumNodes = mesh::EntityCounts{mesh::Mesh{aMeshFileName}}.numberOfDesignDomainNodes();
     return {std::vector<double>(tNumNodes, kDensityLowerBound), std::vector<double>(tNumNodes, kDensityUpperBound)};
 }
 

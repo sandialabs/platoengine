@@ -22,7 +22,7 @@ constexpr std::string_view kMeshName = "the-mesh-is-a-lie.exo";
 const auto kRho = std::vector{-1.0, 0.0, 1.0};
 const auto kIDs = std::vector<std::size_t>{0, 1, 2};
 const auto kMeshArgument = mesh::MeshDesignVariables{
-    kMeshName, mesh::MeshDesignVariables::BlockDensities{{1, mesh::combine_densities_and_ids(kRho, kIDs)}}};
+    kMeshName, mesh::MeshDesignVariables::BlockDensities{{1, mesh::detail::combine_densities_and_ids(kRho, kIDs)}}};
 const auto kV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
 
 void test_filtered_results(const mesh::MeshDesignVariables& aMeshDesignVariables,
@@ -31,7 +31,7 @@ void test_filtered_results(const mesh::MeshDesignVariables& aMeshDesignVariables
     const auto tMeshView = mesh::MeshDesignVariablesDensitiesView{aMeshDesignVariables};
     for (const auto& [tComputed, tExpected] : utilities::Zip{tMeshView, kRho})
     {
-        EXPECT_EQ(tComputed.mDensity, tExpected) << aTestContext;
+        EXPECT_EQ(static_cast<mesh::Density>(tComputed).mDensity, tExpected) << aTestContext;
     }
 }
 }  // namespace

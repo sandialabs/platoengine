@@ -55,18 +55,22 @@ KernelFilter::KernelFilter(const std::filesystem::path& aMeshFileName,
 
 mesh::MeshDesignVariables KernelFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
-    const auto [tDensityValues, tGlobalIDs] = mesh::split_densities(
-        mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesDensitiesView{aMeshDesignVariables}));
-    auto tFilteredDensities = mLinearMask.matrixMultiply(tDensityValues);
+    const auto tMesh =
+        mesh::Mesh{aMeshDesignVariables.mFileName};  // FIXME: Add fixed blocks. Adding a Mesh ctor that takes a
+                                                     // MeshDesignVariables object would be enough
+    const auto tDensityValues =
+        mesh::DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalDensityVector(aMeshDesignVariables);
+
+    const auto tFilteredDensities = mLinearMask.matrixMultiply(tDensityValues.mValue);
     if (mFilterCentering == input_parser::KernelFilterCenteringTypes::kNodeCentered)
     {
-        return mesh::nodal_densities_to_mesh_design_variables(tFilteredDensities,
-                                                              mesh::Mesh{aMeshDesignVariables.mFileName});
+        return mesh::DesignVariablesConversion{tMesh}.nodalDensitiesToMeshDesignVariables(
+            mesh::NodalDensityVectorReference{std::cref(tFilteredDensities)});
     }
     else
     {
-        return mesh::element_densities_to_mesh_design_variables(tFilteredDensities,
-                                                                mesh::Mesh{aMeshDesignVariables.mFileName});
+        return mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
+            mesh::ElementDensityVectorReference{std::cref(tFilteredDensities)});
     }
 }
 

@@ -7,12 +7,17 @@
 
 namespace plato::mesh
 {
-/// @brief Struct used for pairing a density value with a global mesh id.
+/// @brief Struct used for pairing a density value with a global mesh id and vector index.
 struct Density
 {
     using IndexType = std::size_t;
 
-    IndexType mGlobalID = 0;
+    /// @brief The ID or index of the mesh entity (node or element) that this Density associated with.
+    IndexType mGlobalMeshEntityID = 0;
+    /// @brief The index into the vector of design variables that this Density associated with.
+    /// This can be used to index into a linear array of design variables for converting between datatypes.
+    IndexType mDesignVariableVectorIndex = 0;
+    /// @brief Density or design variable value.
     double mDensity = 0.0;
 };
 

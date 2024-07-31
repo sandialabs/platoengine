@@ -17,7 +17,7 @@ constexpr auto kExpectedNumberOfElementsInBlock1 = 273u;
 constexpr auto kExpectedNumberOfElementsInBlock2 = 40u;
 constexpr auto kExpectedNumberOfNodesInBlock1 = 93u;
 constexpr auto kExpectedNumberOfNodesInBlock2 = 90u;
-constexpr auto tTwoDTriMesh = std::string_view{
+constexpr auto kTwoDTriMesh = std::string_view{
     "textmesh:"
     "0,1,TRI_3_2D,3,1,4,block_1\n"
     "0,2,TRI_3_2D,1,2,4,block_1\n"
@@ -69,36 +69,21 @@ TEST(BlockUtilities, PartWithBlockNameAndID)
 {
     const auto tTwoBlockMesh = test_mesh(TEST_CONTEXT("Bulk data with block name"));
     const auto tBlockData = block_data(*tTwoBlockMesh);
-    for (const auto& [id, ordinal, name] : tBlockData)
     {
-        std::cout << "block name: " << name << ", ordinal: " << ordinal << ", id = " << id << std::endl;
+        const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 40u);
+        ASSERT_TRUE(tBlock);
+        EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfElementsInBlock1);
+        EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfNodesInBlock1);
     }
     {
-        const auto tBlockFromName = part_with_block_name(*tTwoBlockMesh, "block_1");
-        const auto tBlockFromID = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 40u);
-        for (const auto& tBlock : {tBlockFromName, tBlockFromID})
-        {
-            ASSERT_TRUE(tBlock);
-            EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfElementsInBlock1);
-            EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfNodesInBlock1);
-        }
+        const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 41u);
+        ASSERT_TRUE(tBlock);
+        EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfElementsInBlock2);
+        EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfNodesInBlock2);
     }
     {
-        const auto tBlockFromName = part_with_block_name(*tTwoBlockMesh, "block_2");
-        const auto tBlockFromID = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 41u);
-        for (const auto& tBlock : {tBlockFromName, tBlockFromID})
-        {
-            ASSERT_TRUE(tBlock);
-            EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfElementsInBlock2);
-            EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfNodesInBlock2);
-        }
-    }
-    {
-        auto tFalseBlock = part_with_block_name(*tTwoBlockMesh, "definitely-not-a-real-block-banana");
-        EXPECT_FALSE(tFalseBlock);
-
         constexpr auto tInvalidBlockID = 420000;
-        tFalseBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, tInvalidBlockID);
+        const auto tFalseBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, tInvalidBlockID);
         EXPECT_FALSE(tFalseBlock);
     }
 }
@@ -106,10 +91,11 @@ TEST(BlockUtilities, PartWithBlockNameAndID)
 TEST(BlockUtilities, EntityIDs)
 {
     const auto tMeshPath = std::filesystem::path{"temp_mesh.exo"};
-    write_mesh(tMeshPath, tTwoDTriMesh);
+    write_mesh(tMeshPath, kTwoDTriMesh);
     const auto tBulkData = read_mesh_bulk_data(tMeshPath);
     {
-        const auto tBlock1 = part_with_block_name(*tBulkData, "block_1");
+        constexpr auto tBlock1Ordinal = 20u;
+        const auto tBlock1 = part_with_block_meta_data_ordinal(*tBulkData, tBlock1Ordinal);
         ASSERT_TRUE(tBlock1);
         const auto tResultElementIDs = element_ids(*tBulkData, tBlock1->get());
         const auto tExpectedElementIDs = std::vector<std::size_t>{1, 2, 3};
@@ -120,7 +106,8 @@ TEST(BlockUtilities, EntityIDs)
         EXPECT_EQ(tResultNodeIDs, tExpectedNodeIDs);
     }
     {
-        const auto tBlock2 = part_with_block_name(*tBulkData, "block_2");
+        constexpr auto tBlock2Ordinal = 21u;
+        const auto tBlock2 = part_with_block_meta_data_ordinal(*tBulkData, tBlock2Ordinal);
         ASSERT_TRUE(tBlock2);
         const auto tResultElementIDs = element_ids(*tBulkData, tBlock2->get());
         const auto tExpectedElementIDs = std::vector<std::size_t>{4, 5, 6};
@@ -155,7 +142,7 @@ TEST(BlockUtilities, NodeIDsOneBlockNonSequential)
 TEST(BlockUtilities, NodalCoordinatesInBlock)
 {
     const auto tMeshPath = std::filesystem::path{"temp_mesh.exo"};
-    write_mesh(tMeshPath, tTwoDTriMesh);
+    write_mesh(tMeshPath, kTwoDTriMesh);
 
     const auto tBulkData = read_mesh_bulk_data(tMeshPath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();

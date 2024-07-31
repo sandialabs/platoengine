@@ -39,11 +39,11 @@ class TwoBlockMeshOnDisk : public ::testing::Test
     std::filesystem::path mMeshFilePath;
 
     constexpr static auto mMeshFileName = std::string_view{"box_2x4x10_hex_and_tet.cdf"};
-    constexpr static auto mExpectedNumberOfBlocks = 2u;
-    constexpr static auto mExpectedNumberOfElementsInBlock1 = 273u;
-    constexpr static auto mExpectedNumberOfElementsInBlock2 = 40u;
-    constexpr static auto mExpectedNumberOfNodesInBlock1 = 93u;
-    constexpr static auto mExpectedNumberOfNodesInBlock2 = 90u;
+    constexpr static auto mExpectedNumberOfBlocks = 2U;
+    constexpr static auto mExpectedNumberOfElementsInBlock1 = 273U;
+    constexpr static auto mExpectedNumberOfElementsInBlock2 = 40U;
+    constexpr static auto mExpectedNumberOfNodesInBlock1 = 93U;
+    constexpr static auto mExpectedNumberOfNodesInBlock2 = 90U;
     constexpr static auto mExpectedVolume = 80.0;
 };
 
@@ -57,9 +57,9 @@ class TwoDNonUniformHexMesh : public ::testing::Test
     std::filesystem::path mMeshFilePath;
 
     constexpr static auto mMeshFileName = std::string_view{"rectangle_3x4_quad4.cdf"};
-    constexpr static auto mExpectedNumberOfBlocks = 1u;
-    constexpr static auto mExpectedNumberOfElements = 29u;
-    constexpr static auto mExpectedNumberOfNodes = 41u;
+    constexpr static auto mExpectedNumberOfBlocks = 1U;
+    constexpr static auto mExpectedNumberOfElements = 29U;
+    constexpr static auto mExpectedNumberOfNodes = 41U;
     constexpr static auto mExpectedArea = 12.0;
 };
 
@@ -85,14 +85,17 @@ class TwoDThreeBlockMesh : public ::testing::Test
         "|coordinates: -2,0,0,0,0,1,-2,1,2,0,2,1,0,-1,2,-1,1,-0.5"
         "|dimension:2"};
 
-    constexpr static auto mExpectedNumberOfBlocks = 3u;
-    constexpr static auto mExpectedNumberOfElementsInBlock1 = 1u;
-    constexpr static auto mExpectedNumberOfElementsInBlock2 = 2u;
-    constexpr static auto mExpectedNumberOfElementsInBlock3 = 4u;
-    constexpr static auto mExpectedNumberOfNodes = 9u;
-    constexpr static auto mExpectedNumberOfNodesInBlock1 = 4u;
-    constexpr static auto mExpectedNumberOfNodesInBlock2 = 4u;
-    constexpr static auto mExpectedNumberOfNodesInBlock3 = 5u;
+    constexpr static auto mExpectedNumberOfBlocks = 3U;
+    constexpr static auto mExpectedNumberOfElementsInBlock1 = 4U;
+    constexpr static auto mExpectedNumberOfElementsInBlock2 = 2U;
+    constexpr static auto mExpectedNumberOfElementsInBlock3 = 1U;
+    constexpr static auto mExpectedNumberOfNodes = 9U;
+    constexpr static auto mExpectedNumberOfNodesInBlock1 = 5U;
+    constexpr static auto mExpectedNumberOfNodesInBlock2 = 4U;
+    constexpr static auto mExpectedNumberOfNodesInBlock3 = 4U;
+    constexpr static auto mBlock1Ordinal = 20U;
+    constexpr static auto mBlock2Ordinal = 21U;
+    constexpr static auto mBlock3Ordinal = 22U;
 };
 
 }  // namespace plato::third_party_integration::stk_io::test_utilities

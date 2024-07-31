@@ -41,12 +41,13 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     tNodalDensities[tHalfNode - 1] = .5;
     tNodalDensities[tHalfNode + 1] = .5;
 
+    const auto tMesh = mesh::DesignVariablesConversion{mesh::Mesh{kMeshFile}};
     const auto tMeshDesignVariables =
-        mesh::nodal_densities_to_mesh_design_variables(tNodalDensities, mesh::Mesh{kMeshFile});
+        tMesh.nodalDensitiesToMeshDesignVariables(mesh::NodalDensityVectorReference{tNodalDensities});
 
     const auto tResult = tKernelFilter.filter(tMeshDesignVariables);
-    const auto [tPostFilter, tIDMap] =
-        mesh::split_densities(mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesDensitiesView{tResult}));
+    const auto [tPostFilter, tIDMap] = mesh::detail::split_densities(
+        mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesDensitiesView{tResult}));
 
     std::vector<double> tStdVectorSensitivities;
     if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
@@ -159,7 +160,8 @@ TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
 
     const auto tMesh = mesh::Mesh{tFilePath.value()};
     const auto tNodalDensities = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
-    const auto tMeshDesignVariables = mesh::nodal_densities_to_mesh_design_variables(tNodalDensities, tMesh);
+    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.nodalDensitiesToMeshDesignVariables(
+        mesh::NodalDensityVectorReference{tNodalDensities});
 
     ASSERT_NO_THROW([[maybe_unused]] const auto tFilter = tFilterCache.compute(tMeshDesignVariables));
 }
@@ -177,16 +179,16 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
 
     const auto tMesh = mesh::Mesh{kMeshFile};
     const auto tNodalDensitiesAllOne = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
-    const auto tMeshDesignVariablesAllOne =
-        mesh::nodal_densities_to_mesh_design_variables(tNodalDensitiesAllOne, tMesh);
+    const auto tMeshDesignVariablesAllOne = mesh::DesignVariablesConversion{tMesh}.nodalDensitiesToMeshDesignVariables(
+        mesh::NodalDensityVectorReference{tNodalDensitiesAllOne});
     const auto tFilteredControlAllOne =
         tFilterCache.compute(tMeshDesignVariablesAllOne)->filter(tMeshDesignVariablesAllOne);
     const auto tMeshDesignVariablesViewFilteredAllOne = mesh::MeshDesignVariablesDensitiesView{tFilteredControlAllOne};
 
     // change control and ensure filter size is the same but values are different
     const auto tNodalDensitiesAllHalf = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 0.5);
-    const auto tMeshDesignVariablesAllHalf =
-        mesh::nodal_densities_to_mesh_design_variables(tNodalDensitiesAllHalf, tMesh);
+    const auto tMeshDesignVariablesAllHalf = mesh::DesignVariablesConversion{tMesh}.nodalDensitiesToMeshDesignVariables(
+        mesh::NodalDensityVectorReference{tNodalDensitiesAllHalf});
     const auto tFilteredControlAllHalf =
         tFilterCache.compute(tMeshDesignVariablesAllHalf)->filter(tMeshDesignVariablesAllHalf);
     const auto tMeshDesignVariablesViewFilteredAllHalf =
@@ -194,9 +196,9 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
 
     EXPECT_EQ(tMeshDesignVariablesViewFilteredAllOne.size(), tMeshDesignVariablesViewFilteredAllHalf.size());
     const auto [tFilteredDensitiesAllOne, tIDsAllOne] =
-        mesh::split_densities(mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllOne));
+        mesh::detail::split_densities(mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllOne));
     const auto [tFilteredDensitiesAllHalf, tIDsAllHalf] =
-        mesh::split_densities(mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllHalf));
+        mesh::detail::split_densities(mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllHalf));
     EXPECT_NE(tFilteredDensitiesAllOne, tFilteredDensitiesAllHalf);
     EXPECT_EQ(tIDsAllOne, tIDsAllHalf);
 
@@ -211,7 +213,8 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
     const auto tUpdatedNodalDensitiesAllOne =
         std::vector<double>(mesh::EntityCounts{tUpdatedMesh}.numberOfNodes(), 1.0);
     const auto tUpdatedMeshDesignVariablesAllOne =
-        mesh::nodal_densities_to_mesh_design_variables(tUpdatedNodalDensitiesAllOne, tUpdatedMesh);
+        mesh::DesignVariablesConversion{tUpdatedMesh}.nodalDensitiesToMeshDesignVariables(
+            mesh::NodalDensityVectorReference{tUpdatedNodalDensitiesAllOne});
     const auto tUpdatedFilteredControlAllOne =
         tFilterCache.compute(tUpdatedMeshDesignVariablesAllOne)->filter(tUpdatedMeshDesignVariablesAllOne);
     const auto tUpdatedMeshDesignVariablesViewFilteredAllOne =

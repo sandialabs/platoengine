@@ -27,10 +27,6 @@ using OptionalPartReference = std::optional<std::reference_wrapper<const stk::me
 /// @post The elements of the returned vector are sorted in ascending order based on the block id.
 [[nodiscard]] std::vector<common::BlockData> block_data(const stk::mesh::BulkData& aBulk);
 
-/// @brief Returns the Part associated with block with name @a aBlockName if the block exists, `nullopt` otherwise.
-[[nodiscard]] auto part_with_block_name(const stk::mesh::BulkData& aBulkData, std::string_view aBlockName)
-    -> OptionalPartReference;
-
 /// @brief Returns the Part associated with block with name @a aBlockID if the block exists, `nullopt` otherwise.
 [[nodiscard]] auto part_with_block_meta_data_ordinal(const stk::mesh::BulkData& aBulkData,
                                                      common::BlockData::BlockOrdinalType aBlockOrdinal)

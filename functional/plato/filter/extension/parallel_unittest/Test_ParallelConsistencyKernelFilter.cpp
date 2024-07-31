@@ -49,8 +49,9 @@ std::pair<std::vector<mesh::Density>, std::vector<double> > test_filter_evaluati
     const std::vector<double> tStdVectorSensitivities =
         create_linear_space_vector(aCommandGenerator.numberOfElements());
 
+    const auto tMesh = mesh::DesignVariablesConversion{mesh::Mesh{kMeshFile}};
     const auto tMeshDesignVariables =
-        mesh::nodal_densities_to_mesh_design_variables(tNodalDensities, mesh::Mesh{kMeshFile});
+        tMesh.nodalDensitiesToMeshDesignVariables(mesh::NodalDensityVectorReference{tNodalDensities});
     const auto tResult = tKernelFilter.filter(tMeshDesignVariables);
     const auto tPostFilter = mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesDensitiesView{tResult});
 
@@ -129,7 +130,7 @@ TEST(ParallelConsistencyKernelFilter, FilterConsistency)
     if (tWorldComm.rank() == 0)
     {
         auto tIDMap = std::vector<std::size_t>{};
-        std::tie(tBroadcastResultFilter, tIDMap) = mesh::split_densities(tResultFilter);
+        std::tie(tBroadcastResultFilter, tIDMap) = mesh::detail::split_densities(tResultFilter);
         tBroadcastResultJV = tResultJV;
     }
 

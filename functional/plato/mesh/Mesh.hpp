@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <set>
 #include <vector>
 
 #include "plato/third_party_integration/common/BlockData.hpp"
@@ -39,7 +40,7 @@ class Mesh
     /// @brief Loads a mesh from disk at the path @a aMeshName
     /// @param aFixedBlockNames A list of fixed blocks, the inverse of which will define the design domain.
     /// @pre The block names in @a aFixedBlockNames must be valid names in the mesh. Checked with an assertion.
-    explicit Mesh(const std::filesystem::path& aMeshName, const std::vector<std::string>& aFixedBlockNames = {});
+    explicit Mesh(const std::filesystem::path& aMeshName, const std::set<std::string>& aFixedBlockNames = {});
 
     /// @brief Returns the path to the mesh on disk.
     const std::filesystem::path& filePath() const;

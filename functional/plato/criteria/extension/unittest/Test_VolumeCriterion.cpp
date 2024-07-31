@@ -25,7 +25,8 @@ void test_volume_criteria_from_ctor_and_function(
 
     const auto tMesh = mesh::EntityCounts{mesh::Mesh{kMeshFile}};
     const auto tControls = std::vector<double>(tMesh.numberOfElements(), tConstantControls);
-    const auto tMeshDesignVariables = mesh::element_densities_to_mesh_design_variables(tControls, tMesh);
+    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
+        mesh::ElementDensityVectorReference{std::cref(tControls)});
 
     EXPECT_EQ(tVolumeCriterion.f(tMeshDesignVariables), aGoldVolume * tConstantControls);
     EXPECT_EQ(tVolumeCriterion.f(tMeshDesignVariables), aFunction.f(tMeshDesignVariables));
@@ -51,7 +52,8 @@ void test_volume_criteria_derivative_from_ctor_and_function(
     const auto tMesh = mesh::Mesh{kMeshFile};
     const auto tAssignedDensities =
         std::vector<double>{0.5, 0.4, 0.3};  // Not 1 to make certain DF does not depend on them
-    const auto tMeshDesignVariables = mesh::element_densities_to_mesh_design_variables(tAssignedDensities, tMesh);
+    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
+        mesh::ElementDensityVectorReference{std::cref(tAssignedDensities)});
     const auto tResult = tVolumeCriterion.df(tMeshDesignVariables);
     const auto tResultFromFunction = aFunction.df(tMeshDesignVariables);
 

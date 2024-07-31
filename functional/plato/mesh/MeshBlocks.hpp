@@ -16,20 +16,32 @@ struct MeshBlocks : public Mesh
 
     explicit MeshBlocks(Mesh aMeshBase);
 
+    /// @brief Returns the block ordinal for the block with name @a aBlockName if it exists, an empty optional
+    /// otherwise.
+    /// @note The block ordinal is an internally generated id, and not the same as the block ID in the mesh.
+    [[nodiscard]] auto blockOrdinal(std::string_view aBlockName) const -> std::optional<BlockOrdinalType>;
+
     /// @brief Returns the block id for the block with name @a aBlockName if it exists, an empty optional otherwise
     [[nodiscard]] auto blockID(std::string_view aBlockName) const -> std::optional<BlockIDType>;
+
+    /// @brief Returns the block id for the block with ordinal @a aBlockOrdinal if it exists, an empty optional
+    /// otherwise.
+    /// @note A block ordinal is an internally assigned ID, different from the one in the original mesh.
+    [[nodiscard]] auto blockID(BlockOrdinalType aBlockOrdinal) const -> std::optional<BlockIDType>;
 
     /// @brief Returns the names and ids of all blocks in the mesh.
     /// @post The elements of the vector are sorted in ascending order based on the block id.
     [[nodiscard]] auto blockData() const -> std::vector<third_party_integration::common::BlockData>;
 
-    /// @brief Returns the node IDs associated with the block with name @a aBlockName if it exists, or an empty vector
-    /// if it does not exist.
-    [[nodiscard]] auto nodeIDs(std::string_view aBlockName) const -> std::vector<std::size_t>;
-
-    /// @brief Returns the element IDs associated with the block with name @a aBlockName if it exists, or an empty
+    /// @brief Returns the node IDs associated with the block with ordinal @a aBlockOrdinal if it exists, or an empty
     /// vector if it does not exist.
-    [[nodiscard]] auto elementIDs(std::string_view aBlockName) const -> std::vector<std::size_t>;
+    /// @note A block ordinal is an internally assigned ID, different from the one in the original mesh.
+    [[nodiscard]] auto nodeIDs(BlockOrdinalType aBlockOrdinal) const -> std::vector<std::size_t>;
+
+    /// @brief Returns the element IDs associated with the block with ordinal @a aBlockOrdinal if it exists, or an empty
+    /// vector if it does not exist.
+    /// @note A block ordinal is an internally assigned ID, different from the one in the original mesh.
+    [[nodiscard]] auto elementIDs(BlockOrdinalType aBlockOrdinal) const -> std::vector<std::size_t>;
 };
 
 }  // namespace plato::mesh
