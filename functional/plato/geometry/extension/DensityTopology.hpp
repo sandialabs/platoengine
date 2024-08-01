@@ -38,10 +38,11 @@ class DensityTopology
     [[nodiscard]] linear_algebra::JacobianMultiplier jacobian(
         const linear_algebra::DynamicVector<double>& aDesignParameter) const;
 
-    [[nodiscard]] static linear_algebra::DynamicVector<double> initialGuess(const std::filesystem::path& aMeshFileName);
+    [[nodiscard]] static linear_algebra::DynamicVector<double> initialGuess(
+        const input_parser::density_topology& aInput);
 
     [[nodiscard]] static std::pair<std::vector<double>, std::vector<double>> bounds(
-        const std::filesystem::path& aMeshFileName);
+        const input_parser::density_topology& aInput);
 
     static void output(const std::filesystem::path& aInputMeshName,
                        const linear_algebra::DynamicVector<double>& aSolution,
@@ -62,7 +63,22 @@ class DensityTopology
 
 namespace detail
 {
+/// @brief Validates that the `output_name` field in @a aInput has a value.
 [[nodiscard]] std::optional<std::string> validate_output_name(const input_parser::density_topology& aInput);
+
+/// @brief Validates that all fixed block names in the input are unique.
+[[nodiscard]] std::optional<std::string> validate_unique_fixed_block_names(
+    const input_parser::density_topology& aInput);
+
+/// @brief Converts the vector of fixed block names in @a aInput to a set.
+///
+/// A set is used since the list of fixed blocks must be unique. That the raw input is a unique list of names
+/// can be validated with validate_unique_fixed_block_names.
+[[nodiscard]] std::set<std::string> fixed_blocks(const input_parser::density_topology& aInput);
+
+/// @brief Creates a Mesh from an density_topology input block.
+[[nodiscard]] mesh::Mesh mesh_from_input(const input_parser::density_topology& aInput);
+
 }  // namespace detail
 
 }  // namespace plato::geometry::extension

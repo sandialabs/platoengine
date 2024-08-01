@@ -13,16 +13,21 @@
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
+#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/mesh/MeshDesignVariablesViews.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::geometry::extension::unittest
 {
 namespace
 {
+using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+
 const auto kDensityInput = plato::test_utilities::create_valid_density_topology_geometry();
 
 constexpr unsigned int kExpectedDensitySize = 8;  // Based on mesh generation command below (1x1x1)
@@ -83,8 +88,7 @@ TEST(DensityTopology, InitialGuess)
 {
     create_small_mesh(kDensityInput.mesh_name->mToken);
 
-    const linear_algebra::DynamicVector<double> tInitialGuess =
-        DensityTopology::initialGuess(kDensityInput.mesh_name->mToken);
+    const linear_algebra::DynamicVector<double> tInitialGuess = DensityTopology::initialGuess(kDensityInput);
 
     EXPECT_EQ(tInitialGuess.size(), kExpectedDensitySize);
 
@@ -100,7 +104,7 @@ TEST(DensityTopology, Bounds)
 {
     create_small_mesh(kDensityInput.mesh_name->mToken);
 
-    const auto [tLowerBounds, tUpperBounds] = DensityTopology::bounds(kDensityInput.mesh_name->mToken);
+    const auto [tLowerBounds, tUpperBounds] = DensityTopology::bounds(kDensityInput);
 
     EXPECT_EQ(tLowerBounds.size(), kExpectedDensitySize);
     EXPECT_EQ(tUpperBounds.size(), kExpectedDensitySize);
@@ -110,4 +114,90 @@ TEST(DensityTopology, Bounds)
 
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
 }
+
+TEST(DensityTopology, UniqueFixedBlockNames)
+{
+    const auto tBlockName1 = std::string{"block_1"};
+    const auto tBlockName2 = std::string{"some-other-block"};
+    {
+        auto tDensityInputWithFixedBlocks = kDensityInput;
+        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1}};
+        const auto tUniqueFixedBlocks = detail::fixed_blocks(tDensityInputWithFixedBlocks);
+        EXPECT_EQ(tUniqueFixedBlocks.count(tBlockName1), 1U);
+    }
+    {
+        auto tDensityInputWithFixedBlocks = kDensityInput;
+        tDensityInputWithFixedBlocks.fixed_blocks =
+            input_parser::FixedBlockList{{tBlockName1, tBlockName2, tBlockName1, tBlockName2}};
+        const auto tUniqueFixedBlocks = detail::fixed_blocks(tDensityInputWithFixedBlocks);
+        EXPECT_EQ(tUniqueFixedBlocks.count(tBlockName1), 1U);
+        EXPECT_EQ(tUniqueFixedBlocks.count(tBlockName2), 1U);
+    }
+}
+
+TEST_F(TwoDThreeBlockMesh, MeshFromInput)
+{
+    struct ExpectedSizes
+    {
+        std::size_t mNumberOfFixedBlocks = 0U;
+        std::size_t mNumberOfDesignBlocks = 0U;
+        std::size_t mNumberOfDesignDomainNodes = 0U;
+        std::size_t mNumberOfDesignDomainElements = 0U;
+    };
+
+    const auto tTestFunction = [](const input_parser::density_topology& tDensityInput,
+                                  const ExpectedSizes& aExpectedSizes, const test_utilities::TestContext& aTestContext)
+    {
+        const auto tMesh = detail::mesh_from_input(tDensityInput);
+        EXPECT_EQ(tMesh.fixedBlockOrdinals().size(), aExpectedSizes.mNumberOfFixedBlocks) << aTestContext;
+        EXPECT_EQ(tMesh.designBlockOrdinals().size(), aExpectedSizes.mNumberOfDesignBlocks) << aTestContext;
+        EXPECT_EQ(mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes(), aExpectedSizes.mNumberOfDesignDomainNodes)
+            << aTestContext;
+        EXPECT_EQ(mesh::EntityCounts{tMesh}.numberOfDesignDomainElements(),
+                  aExpectedSizes.mNumberOfDesignDomainElements)
+            << aTestContext;
+    };
+
+    const auto tNoFixedBlocksContext = TEST_CONTEXT("No fixed blocks");
+    {
+        auto tDensityInputNoFixedBlocks = kDensityInput;
+        tDensityInputNoFixedBlocks.mesh_name = input_parser::FileName{mMeshFilePath.string()};
+        constexpr auto tExpectedSizes = ExpectedSizes{/*.mNumberOfFixedBlocks=*/0U, /*.mNumberOfFixedBlocks=*/3U,
+                                                      /*.mNumberOfDesignDomainNodes=*/mExpectedNumberOfNodes,
+                                                      /*.mNumberOfDesignDomainElements=*/mExpectedNumberOfElements};
+        tTestFunction(tDensityInputNoFixedBlocks, tExpectedSizes, tNoFixedBlocksContext);
+    }
+    const auto tBlockThreeFixedContext = TEST_CONTEXT("Block 3 fixed");
+    {
+        auto tDensityInputWithFixedBlocks = kDensityInput;
+        tDensityInputWithFixedBlocks.mesh_name = input_parser::FileName{mMeshFilePath.string()};
+        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_3"}};
+        constexpr auto tExpectedSizes = ExpectedSizes{
+            /*.mNumberOfFixedBlocks=*/1U, /*.mNumberOfFixedBlocks=*/2U,
+            /*.mNumberOfDesignDomainNodes=*/8U,
+            /*.mNumberOfDesignDomainElements=*/mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock2};
+        tTestFunction(tDensityInputWithFixedBlocks, tExpectedSizes, tBlockThreeFixedContext);
+    }
+}
+
+TEST_F(TwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
+{
+    auto tDensityInputWithFixedBlocks = kDensityInput;
+    tDensityInputWithFixedBlocks.mesh_name = input_parser::FileName{mMeshFilePath.string()};
+    tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_1"}};
+
+    const auto tInitialGuess = DensityTopology::initialGuess(tDensityInputWithFixedBlocks);
+    constexpr auto tExpectedNumberOfDesignVariables = 6U;
+    EXPECT_EQ(tInitialGuess.size(), tExpectedNumberOfDesignVariables);
+
+    const auto tDensityTopology =
+        DensityTopology{tDensityInputWithFixedBlocks, filter::extension::make_identity_filter_function()};
+    const auto tMeshDesignVariables = tDensityTopology.generateMesh(tInitialGuess);
+    constexpr auto tExpectedNumberOfBlocks = 2U;
+    EXPECT_EQ(tMeshDesignVariables.mBlockDensities.size(), tExpectedNumberOfBlocks);
+
+    const auto tMeshDesignVariablesView = mesh::MeshDesignVariablesDensitiesView{tMeshDesignVariables};
+    EXPECT_EQ(tMeshDesignVariablesView.size(), tExpectedNumberOfDesignVariables);
+}
+
 }  // namespace plato::geometry::extension::unittest

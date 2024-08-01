@@ -35,8 +35,7 @@ std::function<void(const linear_algebra::DynamicVector<double>&)> make_topology_
         return library::FactoryTypes{
             make_topology_geometry(DensityTopology{
                 tInput, plato::filter::library::make_filter_function(library::get_cross_referenced_filter(tInput))}),
-            DensityTopology::initialGuess(tInput.mesh_name.value().mToken),
-            DensityTopology::bounds(tInput.mesh_name.value().mToken),
+            DensityTopology::initialGuess(tInput), DensityTopology::bounds(tInput),
             make_topology_output(tInput.mesh_name.value().mToken, tInput.output_name.value().mToken)};
     }};
 
@@ -45,12 +44,13 @@ std::function<void(const linear_algebra::DynamicVector<double>&)> make_topology_
     core::ValidationRegistration<input_parser::density_topology>{
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_output_name(aInput); }};
+
 }  // namespace
 
 DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
                                  plato::filter::library::FilterFunction aFilterFunction)
     : mFileName(aInput.mesh_name.value().mToken),
-      mMesh(mFileName),
+      mMesh(detail::mesh_from_input(aInput)),
       mNumDesignParameters(mesh::EntityCounts{mMesh}.numberOfDesignDomainNodes()),
       mFilter(std::move(aFilterFunction))
 {
@@ -76,15 +76,18 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
          this](const linear_algebra::DynamicVector<double>& x) { return x * mFilter.df(tMeshDesignVariables); }};
 }
 
-linear_algebra::DynamicVector<double> DensityTopology::initialGuess(const std::filesystem::path& aMeshFileName)
+linear_algebra::DynamicVector<double> DensityTopology::initialGuess(const input_parser::density_topology& aInput)
 {
-    const unsigned int tNumNodes = mesh::EntityCounts{mesh::Mesh{aMeshFileName}}.numberOfDesignDomainNodes();
+    const auto tMesh = detail::mesh_from_input(aInput);
+    const unsigned int tNumNodes = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
     return linear_algebra::DynamicVector<double>(tNumNodes, kInitialDensity);
 }
 
-std::pair<std::vector<double>, std::vector<double>> DensityTopology::bounds(const std::filesystem::path& aMeshFileName)
+std::pair<std::vector<double>, std::vector<double>> DensityTopology::bounds(
+    const input_parser::density_topology& aInput)
 {
-    const unsigned int tNumNodes = mesh::EntityCounts{mesh::Mesh{aMeshFileName}}.numberOfDesignDomainNodes();
+    const auto tMesh = detail::mesh_from_input(aInput);
+    const unsigned int tNumNodes = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
     return {std::vector<double>(tNumNodes, kDensityLowerBound), std::vector<double>(tNumNodes, kDensityUpperBound)};
 }
 
@@ -114,6 +117,23 @@ std::optional<std::string> validate_output_name(const input_parser::density_topo
                                                    aInput.output_name, "output_name");
 }
 
-}  // namespace detail
+std::set<std::string> fixed_blocks(const input_parser::density_topology& aInput)
+{
+    if (!aInput.fixed_blocks.has_value())
+    {
+        return {};
+    }
+    auto tUniqueFixedBlocks = std::set<std::string>{};
+    const auto& tRawFixedBlockInput = aInput.fixed_blocks.value().mList;
+    std::copy(tRawFixedBlockInput.cbegin(), tRawFixedBlockInput.cend(),
+              std::inserter(tUniqueFixedBlocks, tUniqueFixedBlocks.begin()));
+    return tUniqueFixedBlocks;
+}
 
+mesh::Mesh mesh_from_input(const input_parser::density_topology& aInput)
+{
+    return mesh::Mesh{aInput.mesh_name.value().mToken, fixed_blocks(aInput)};
+}
+
+}  // namespace detail
 }  // namespace plato::geometry::extension
