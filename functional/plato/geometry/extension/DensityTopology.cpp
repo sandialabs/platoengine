@@ -45,6 +45,9 @@ std::function<void(const linear_algebra::DynamicVector<double>&)> make_topology_
 [[maybe_unused]] static auto kDensityTopologyValidationRegistration =
     core::ValidationRegistration<input_parser::density_topology>{
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
+        [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_file_exists(aInput); },
+        [](const input_parser::density_topology& aInput) { return detail::validate_unique_fixed_block_names(aInput); },
+        [](const input_parser::density_topology& aInput) { return detail::validate_fixed_block_names_exist(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_output_name(aInput); }};
 
 std::vector<std::string> mesh_block_names(const input_parser::density_topology& aInput)
