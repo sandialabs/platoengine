@@ -16,10 +16,7 @@ std::optional<std::string> bogus_error(const input_parser::density_topology& aIn
     {
         return "Bogus error for test_geometry_block";
     }
-    else
-    {
-        return std::nullopt;
-    }
+    return std::nullopt;
 }
 
 [[maybe_unused]] static auto kDensityTopologyValidationRegistration =
@@ -74,19 +71,27 @@ TEST(GeometryValidation, ValidInputCallsRightVariantTest)
     auto tBrickShapeGeometry = plato::test_utilities::create_valid_brick_shape_geometry();
     std::vector<std::string> tMessages;
 
-    tInput.mBrickShapeGeometry = tBrickShapeGeometry;
-    tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
-    EXPECT_EQ(tMessages.size(), 0u);
-
-    tInput.mBrickShapeGeometry = boost::none;
-    tInput.mDensityTopology = tDensityTopology;
-    tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
-    EXPECT_EQ(tMessages.size(), 1u);  // from bogus test geometry registration above
-
-    tMessages.resize(0);
-    tInput.mBrickShapeGeometry = tBrickShapeGeometry;  // now there are two geometries
-    tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
-    EXPECT_EQ(tMessages.size(), 2u);  // from bogus test geometry registration above and multiple geometries
+    {
+        tInput.mBrickShapeGeometry = tBrickShapeGeometry;
+        tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
+        EXPECT_TRUE(tMessages.empty());
+    }
+    {
+        tInput.mBrickShapeGeometry = boost::none;
+        tInput.mDensityTopology = tDensityTopology;
+        tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
+        // from bogus test geometry registration above and missing mesh file
+        constexpr auto tExpectedNumberOfMessages = 2U;
+        EXPECT_EQ(tMessages.size(), tExpectedNumberOfMessages);
+    }
+    {
+        tMessages.resize(0);
+        tInput.mBrickShapeGeometry = tBrickShapeGeometry;  // now there are two geometries
+        tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
+        // from bogus test geometry registration, missing mesh file, and multiple geometries
+        constexpr auto tExpectedNumberOfMessages = 3U;
+        EXPECT_EQ(tMessages.size(), tExpectedNumberOfMessages);
+    }
 }
 
 TEST(GeometryValidation, MeshFileExists)
