@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <fstream>
+
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
@@ -86,4 +88,35 @@ TEST(GeometryValidation, ValidInputCallsRightVariantTest)
     tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
     EXPECT_EQ(tMessages.size(), 2u);  // from bogus test geometry registration above and multiple geometries
 }
+
+TEST(GeometryValidation, MeshFileExists)
+{
+    const auto tFileName = std::string{"testfile.exo"};
+    auto tDensityTopologyInput = test_utilities::create_valid_density_topology_geometry();
+
+    auto tFileStream = std::ofstream(tFileName);
+    tFileStream << "I'm a mesh!\n";
+    tFileStream.close();
+
+    // Valid
+    {
+        tDensityTopologyInput.mesh_name = input_parser::FileName{tFileName};
+        const auto tErrorMessage = detail::validate_mesh_file_exists(tDensityTopologyInput);
+        EXPECT_FALSE(tErrorMessage.has_value()) << tErrorMessage.value();
+    }
+    // Empty
+    {
+        tDensityTopologyInput.mesh_name = boost::none;
+        const auto tErrorMessage = detail::validate_mesh_file_exists(tDensityTopologyInput);
+        EXPECT_FALSE(tErrorMessage.has_value()) << tErrorMessage.value();
+    }
+    // Invalid
+    {
+        tDensityTopologyInput.mesh_name = input_parser::FileName{"bogus-file-name.txt"};
+        const auto tErrorMessage = detail::validate_mesh_file_exists(tDensityTopologyInput);
+        EXPECT_TRUE(tErrorMessage.has_value());
+    }
+    std::filesystem::remove(tFileName);
+}
+
 }  // namespace plato::geometry::library::unittest
