@@ -19,11 +19,12 @@ namespace plato::filter::extension
 class LinearMask
 {
    public:
-    /// @brief Constructs a LinearMask from a TpetraCRSMatrix.
+    /// @brief Constructs a LinearMask from a TpetraCRSMatrix, which may be constructed from LinearMaskBuilder.
     LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask,
                const boost::mpi::communicator& mCommunicator);
 
-    /// @brief Return the size of the distance mask.
+    /// @brief Return the size of the distance mask. The first entry is the number of rows and the second is the number
+    /// of columns.
     [[nodiscard]] auto size() const -> std::pair<third_party_integration::tpetra::TpetraGlobalOrdinal,
                                                  third_party_integration::tpetra::TpetraGlobalOrdinal>;
 
