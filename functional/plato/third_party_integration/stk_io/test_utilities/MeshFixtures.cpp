@@ -43,4 +43,8 @@ TwoDThreeBlockMesh::TwoDThreeBlockMesh()
 
 TwoDThreeBlockMesh::~TwoDThreeBlockMesh() { std::filesystem::remove(mMeshFilePath); }
 
+TwoDTwoBlockMesh::TwoDTwoBlockMesh() { third_party_integration::stk_io::write_mesh(mMeshFilePath, mMeshDescription); }
+
+TwoDTwoBlockMesh::~TwoDTwoBlockMesh() { std::filesystem::remove(mMeshFilePath); }
+
 }  // namespace plato::third_party_integration::stk_io::test_utilities

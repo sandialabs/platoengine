@@ -70,6 +70,9 @@ namespace detail
 [[nodiscard]] std::optional<std::string> validate_unique_fixed_block_names(
     const input_parser::density_topology& aInput);
 
+/// @brief Validates that all fixed block names in @a aInput exist in the mesh.
+[[nodiscard]] std::optional<std::string> validate_fixed_block_names_exist(const input_parser::density_topology& aInput);
+
 /// @brief Converts the vector of fixed block names in @a aInput to a set.
 ///
 /// A set is used since the list of fixed blocks must be unique. That the raw input is a unique list of names
@@ -77,6 +80,7 @@ namespace detail
 [[nodiscard]] std::set<std::string> fixed_blocks(const input_parser::density_topology& aInput);
 
 /// @brief Creates a Mesh from an density_topology input block.
+/// @pre The mesh_name field in @a aInput has a value. Checked with an assertion.
 [[nodiscard]] mesh::Mesh mesh_from_input(const input_parser::density_topology& aInput);
 
 }  // namespace detail

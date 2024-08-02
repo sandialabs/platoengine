@@ -7,9 +7,11 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshDesignVariablesViews.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::geometry::extension
 {
@@ -44,6 +46,27 @@ std::function<void(const linear_algebra::DynamicVector<double>&)> make_topology_
     core::ValidationRegistration<input_parser::density_topology>{
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_output_name(aInput); }};
+
+std::vector<std::string> mesh_block_names(const input_parser::density_topology& aInput)
+{
+    if (!aInput.mesh_name.has_value() || !std::filesystem::exists(aInput.mesh_name.value().mToken))
+    {
+        return {};
+    }
+    return mesh::MeshBlocks{mesh::Mesh{aInput.mesh_name.value().mToken}}.blockNames();
+}
+
+std::string mesh_block_names_for_error_message(const input_parser::density_topology& aInput)
+{
+    if (const auto tBlockNames = mesh_block_names(aInput); !tBlockNames.empty())
+    {
+        auto tAllBlockNames = utilities::concatenate_container(tBlockNames, ", ");
+        return utilities::concatenate(
+            "fixed_block must be one or more of the following names found in the input mesh: ",
+            std::move(tAllBlockNames));
+    }
+    return "No blocks found in the mesh, or mesh_file does not exist.";
+}
 
 }  // namespace
 
@@ -117,6 +140,51 @@ std::optional<std::string> validate_output_name(const input_parser::density_topo
                                                    aInput.output_name, "output_name");
 }
 
+std::optional<std::string> validate_unique_fixed_block_names(const input_parser::density_topology& aInput)
+{
+    if (!aInput.fixed_blocks.has_value())
+    {
+        return {};
+    }
+
+    const auto tUniqueFixedBlocks = fixed_blocks(aInput);
+    if (tUniqueFixedBlocks.size() != aInput.fixed_blocks.value().mList.size())
+    {
+        auto tFixedBlockNames = utilities::concatenate_container(aInput.fixed_blocks.value().mList, ", ");
+        auto tErrorMessage = utilities::concatenate(
+            "The fixed_block entries in density_topology are not unique: ", std::move(tFixedBlockNames), ". ");
+        return std::optional{std::move(tErrorMessage) + mesh_block_names_for_error_message(aInput)};
+    }
+    return {};
+}
+
+std::optional<std::string> validate_fixed_block_names_exist(const input_parser::density_topology& aInput)
+{
+    if (!aInput.fixed_blocks.has_value())
+    {
+        return {};
+    }
+    const auto tMeshBlockNames = mesh_block_names(aInput);
+    const auto tUniqueFixedBlocks = fixed_blocks(aInput);
+    auto tMissingFixedBlocks = std::vector<std::string>{};
+    for (const auto& tInputBlockName : tUniqueFixedBlocks)
+    {
+        if (const auto tMeshBlockIter = std::find(tMeshBlockNames.cbegin(), tMeshBlockNames.cend(), tInputBlockName);
+            tMeshBlockIter == tMeshBlockNames.cend())
+        {
+            tMissingFixedBlocks.push_back(tInputBlockName);
+        }
+    }
+    if (!tMissingFixedBlocks.empty())
+    {
+        auto tAllMissingFixedBlockNames = utilities::concatenate_container(tMissingFixedBlocks, ", ");
+        return std::optional{utilities::concatenate(
+            "The following fixed_block entries could not be found in the mesh: ", std::move(tAllMissingFixedBlockNames),
+            ". ", mesh_block_names_for_error_message(aInput))};
+    }
+    return std::nullopt;
+}
+
 std::set<std::string> fixed_blocks(const input_parser::density_topology& aInput)
 {
     if (!aInput.fixed_blocks.has_value())
@@ -132,6 +200,7 @@ std::set<std::string> fixed_blocks(const input_parser::density_topology& aInput)
 
 mesh::Mesh mesh_from_input(const input_parser::density_topology& aInput)
 {
+    assert(aInput.mesh_name.has_value());
     return mesh::Mesh{aInput.mesh_name.value().mToken, fixed_blocks(aInput)};
 }
 

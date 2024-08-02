@@ -42,6 +42,9 @@ struct MeshBlocks : public Mesh
     /// vector if it does not exist.
     /// @note A block ordinal is an internally assigned ID, different from the one in the original mesh.
     [[nodiscard]] auto elementIDs(BlockOrdinalType aBlockOrdinal) const -> std::vector<std::size_t>;
+
+    /// @brief Returns all the block names found in the mesh, which is mainly useful for error messages.
+    [[nodiscard]] auto blockNames() const -> std::vector<std::string>;
 };
 
 }  // namespace plato::mesh

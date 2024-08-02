@@ -99,6 +99,32 @@ class TwoDThreeBlockMesh : public ::testing::Test
     constexpr static auto mBlock3Ordinal = 22U;
 };
 
+/// @brief A mesh test fixture providing a 2D mesh with 2 blocks with non-standard block names.
+class TwoDTwoBlockMesh : public ::testing::Test
+{
+   protected:
+    TwoDTwoBlockMesh();
+    ~TwoDTwoBlockMesh();
+
+    std::filesystem::path mMeshFilePath = "two_d_two_block.exo";
+
+    constexpr static auto mMeshDescription = std::string_view{
+        "textmesh:"
+        "0,3,QUAD_4_2D,1,2,5,6,fixed\n"
+        "0,1,TRI_3_2D,2,3,4,design\n"
+        "0,2,TRI_3_2D,2,4,5,design\n"
+        "|coordinates: 0,0,0.5,0,2,0,2,1,0.5,1,0,1"
+        "|dimension:2"};
+
+    constexpr static auto mExpectedNumberOfBlocks = 2U;
+    constexpr static auto mExpectedNumberOfElements = 3U;
+    constexpr static auto mExpectedNumberOfElementsInBlock1 = 1U;
+    constexpr static auto mExpectedNumberOfElementsInBlock2 = 2U;
+    constexpr static auto mExpectedNumberOfNodes = 6U;
+    constexpr static auto mExpectedNumberOfNodesInBlock1 = 4U;
+    constexpr static auto mExpectedNumberOfNodesInBlock2 = 4U;
+};
+
 }  // namespace plato::third_party_integration::stk_io::test_utilities
 
 #endif

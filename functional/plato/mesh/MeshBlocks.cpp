@@ -21,10 +21,7 @@ auto blockDataMatchingPredicate(const std::vector<third_party_integration::commo
     {
         return aResultField(tDataIterator);
     }
-    else
-    {
-        return std::nullopt;
-    }
+    return std::nullopt;
 }
 }  // namespace
 
@@ -63,10 +60,7 @@ auto MeshBlocks::nodeIDs(const BlockOrdinalType aBlockOrdinal) const -> std::vec
     {
         return third_party_integration::stk_io::node_ids(bulkData(), tPart.value().get());
     }
-    else
-    {
-        return {};
-    }
+    return {};
 }
 
 auto MeshBlocks::elementIDs(const BlockOrdinalType aBlockOrdinal) const -> std::vector<std::size_t>
@@ -76,9 +70,17 @@ auto MeshBlocks::elementIDs(const BlockOrdinalType aBlockOrdinal) const -> std::
     {
         return third_party_integration::stk_io::element_ids(bulkData(), tPart.value().get());
     }
-    else
-    {
-        return {};
-    }
+    return {};
 }
+
+auto MeshBlocks::blockNames() const -> std::vector<std::string>
+{
+    const auto tBlockData = blockData();
+    auto tBlockNames = std::vector<std::string>{};
+    tBlockNames.reserve(tBlockNames.size());
+    std::transform(tBlockData.cbegin(), tBlockData.cend(), std::back_inserter(tBlockNames),
+                   [](const auto& tBlockDatum) { return tBlockDatum.mName; });
+    return tBlockNames;
+}
+
 }  // namespace plato::mesh

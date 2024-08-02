@@ -16,6 +16,7 @@ using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
 
 std::vector<std::size_t> sequential_vector(const std::size_t aStart, const std::size_t aSize)
 {
@@ -200,6 +201,14 @@ TEST_F(TwoDNonUniformHexMesh, BlockElementIDs)
         std::vector<std::size_t>{262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276,
                                  277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290};
     EXPECT_EQ(tResultElementIDsBlock1, tResultElementIDsBlock1);
+}
+
+TEST_F(TwoDTwoBlockMesh, BlockNames)
+{
+    const auto tMesh = MeshBlocks{Mesh{mMeshFilePath}};
+
+    const auto tExpectedNames = std::vector<std::string>{"fixed", "design"};
+    EXPECT_EQ(tExpectedNames, tMesh.blockNames());
 }
 
 }  // namespace plato::mesh::unittest
