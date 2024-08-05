@@ -4,10 +4,18 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/ValidInputTestFixture.hpp"
 
 namespace plato::integration_tests::serial
 {
-TEST(ConstraintFactory, ValidConstraint)
+namespace
+{
+struct ConstraintFactoryTestFixture : public test_utilities::ValidInputTestFixture
+{
+};
+}  // namespace
+
+TEST_F(ConstraintFactoryTestFixture, ValidConstraint)
 {
     namespace pftu = plato::test_utilities;
 

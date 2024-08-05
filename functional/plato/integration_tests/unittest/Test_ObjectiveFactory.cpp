@@ -5,6 +5,7 @@
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/test_utilities/ValidInputTestFixture.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -12,6 +13,13 @@ namespace plato::integration_tests::serial
 {
 namespace
 {
+namespace
+{
+struct ObjectiveFactoryTestFixture : public test_utilities::ValidInputTestFixture
+{
+};
+}  // namespace
+
 process_manager::library::ValidatedInput create_two_objective_test_input()
 {
     namespace pftu = plato::test_utilities;
@@ -37,7 +45,7 @@ process_manager::library::ValidatedInput create_two_objective_test_input()
 }
 }  // namespace
 
-TEST(ObjectiveFactory, ValidParallelAggregateTwoObjectives)
+TEST_F(ObjectiveFactoryTestFixture, ValidParallelAggregateTwoObjectives)
 {
     const process_manager::library::ValidatedInput tData = create_two_objective_test_input();
 
@@ -46,7 +54,7 @@ TEST(ObjectiveFactory, ValidParallelAggregateTwoObjectives)
     EXPECT_EQ(tAggregate.size(), 2);
 }
 
-TEST(ObjectiveFactory, ValidAggregateOneObjective)
+TEST_F(ObjectiveFactoryTestFixture, ValidAggregateOneObjective)
 {
     namespace pftu = plato::test_utilities;
 
@@ -75,7 +83,7 @@ TEST(ObjectiveFactory, ValidAggregateOneObjective)
     EXPECT_EQ(tAggregate.size(), 1);
 }
 
-TEST(ObjectiveFactory, NumberOfProcessors)
+TEST_F(ObjectiveFactoryTestFixture, NumberOfProcessors)
 {
     auto tInput = test_utilities::create_valid_example_input();
     {

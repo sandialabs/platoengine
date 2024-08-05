@@ -5,16 +5,22 @@
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/ValidInputTestFixture.hpp"
 
 namespace plato::process_manager::library::unittest
 {
-
-TEST(ProcessManagerFactory, ValidOptimization)
+namespace
 {
-    const input_parser::ParsedInput tInput = test_utilities::create_valid_example_input();
-    const ValidatedInput tData = make_validated_input(tInput);
+struct ProcessManagerFactoryFileFixture : public test_utilities::ValidInputTestFixture
+{
+};
+}  // namespace
+
+TEST_F(ProcessManagerFactoryFileFixture, ValidOptimization)
+{
+    const ValidatedInput tData = make_validated_input(parsedInput());
     const auto tProcesses = make_process_managers(tData.processManagers());
-    EXPECT_EQ(tProcesses.size(), 1u);
+    EXPECT_EQ(tProcesses.size(), 1U);
 }
 
 TEST(ProcessManagerFactory, ValidOptimizationAndGradientCheck)
