@@ -43,21 +43,19 @@ namespace
         { return detail::validate_kernel_filter_centering_type(aInput); }};
 }  // namespace
 
-KernelFilter::KernelFilter(const std::filesystem::path& aMeshFileName,
+KernelFilter::KernelFilter(const mesh::Mesh& aMesh,
                            const FilterRadius aFilterRadius,
                            const input_parser::KernelFilterCenteringTypes aFilterCentering,
                            const boost::mpi::communicator& aCommunicator)
-    : mLinearMask(detail::create_linear_mask(aMeshFileName, aFilterRadius, aFilterCentering, aCommunicator)),
+    : mLinearMask{detail::create_linear_mask(aMesh, aFilterRadius, aFilterCentering, aCommunicator)},
       mFilterCentering{aFilterCentering},
-      mCommunicator(aCommunicator)
+      mCommunicator{aCommunicator}
 {
 }
 
 mesh::MeshDesignVariables KernelFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
-    const auto tMesh =
-        mesh::Mesh{aMeshDesignVariables.mFileName};  // FIXME: Add fixed blocks. Adding a Mesh ctor that takes a
-                                                     // MeshDesignVariables object would be enough
+    const auto tMesh = mesh::Mesh{aMeshDesignVariables};
     const auto tDensityValues =
         mesh::DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalDensityVector(aMeshDesignVariables);
 
@@ -67,11 +65,8 @@ mesh::MeshDesignVariables KernelFilter::filter(const mesh::MeshDesignVariables& 
         return mesh::DesignVariablesConversion{tMesh}.nodalDensitiesToMeshDesignVariables(
             mesh::NodalDensityVectorReference{std::cref(tFilteredDensities)});
     }
-    else
-    {
-        return mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
-            mesh::ElementDensityVectorReference{std::cref(tFilteredDensities)});
-    }
+    return mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
+        mesh::ElementDensityVectorReference{std::cref(tFilteredDensities)});
 }
 
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(
@@ -89,20 +84,16 @@ std::optional<std::string> validate_kernel_filter_centering_type(const input_par
         return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::kernel_filter>(),
                                                        aInput.centering_type, "centering_type");
     }
-    else
-    {
-        return std::nullopt;
-    }
+    return std::nullopt;
 }
 
-LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
+LinearMask create_linear_mask(const mesh::Mesh& aMesh,
                               const FilterRadius aFilterRadius,
                               const input_parser::KernelFilterCenteringTypes aFilterCentering,
                               const boost::mpi::communicator& aCommunicator)
 {
-    const auto tMesh = mesh::Mesh{aMeshFileName};
     return LinearMask{
-        LinearMaskBuilder{tMesh, aFilterCentering, SearchRadius{aFilterRadius.mValue}, aCommunicator}.mask(),
+        LinearMaskBuilder{aMesh, aFilterCentering, SearchRadius{aFilterRadius.mValue}, aCommunicator}.mask(),
         aCommunicator};
 }
 
@@ -111,7 +102,7 @@ FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)
     return FilterCache{[aInput](const mesh::MeshDesignVariables& aMeshDesignVariables)
                        {
                            return std::make_shared<KernelFilter>(
-                               aMeshDesignVariables.mFileName, FilterRadius{aInput.filter_radius.value()},
+                               mesh::Mesh{aMeshDesignVariables}, FilterRadius{aInput.filter_radius.value()},
                                aInput.centering_type.value(), boost::mpi::communicator{});
                        },
                        [](const mesh::MeshDesignVariables& aMeshDesignVariables)

@@ -3,6 +3,8 @@
 #include <stk_mesh/base/Part.hpp>
 
 #include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::mesh::unittest
@@ -122,6 +124,60 @@ TEST_F(TwoDThreeBlockMesh, PartVectors)
     const auto& tDesignBlockOrdinals = tMesh.designBlockOrdinals();
     ASSERT_EQ(tDesignParts.size(), tDesignBlockOrdinals.size());
     EXPECT_EQ(tDesignParts.front().get().mesh_meta_data_ordinal(), tDesignBlockOrdinals.front());
+}
+
+TEST_F(TwoDThreeBlockMesh, ConstructionFromMeshDesignVariables)
+{
+    // Element-based densities
+    const auto tBlock1Densities =
+        MeshDesignVariables::DensityVector{{4, 0, 1.0}, {5, 1, 1.0}, {6, 2, 1.0}, {7, 3, 1.0}};
+    const auto tBlock2Densities = MeshDesignVariables::DensityVector{{1, 4, 1.0}, {2, 5, 1.0}};
+    const auto tBlock3Densities = MeshDesignVariables::DensityVector{{8, 6, 1.0}};
+
+    const auto tTestFunction = [this](const Mesh& aMesh,
+                                      const std::vector<Mesh::BlockOrdinalType>& aExpectedDesignBlockOrdinals,
+                                      const std::vector<Mesh::BlockOrdinalType>& aExpectedFixedBlockOrdinals,
+                                      const test_utilities::TestContext& aTestContext)
+    {
+        EXPECT_EQ(aMesh.filePath(), mMeshFilePath) << aTestContext;
+        EXPECT_EQ(aMesh.designBlockOrdinals(), aExpectedDesignBlockOrdinals) << aTestContext;
+        EXPECT_EQ(aMesh.fixedBlockOrdinals(), aExpectedFixedBlockOrdinals) << aTestContext;
+    };
+
+    const auto aAllFixedBlocksContext = TEST_CONTEXT("All fixed blocks");
+    {
+        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, {}}};
+        const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{};
+        const auto tExpectedFixedBlockOrdinals =
+            std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal, mBlock2Ordinal, mBlock3Ordinal};
+        tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals, aAllFixedBlocksContext);
+    }
+    const auto aOneBlockContext = TEST_CONTEXT("One fixed block");
+    {
+        const auto tDensities = MeshDesignVariables::BlockDensities{{1, tBlock1Densities}};
+        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tDensities}};
+        const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal};
+        const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock2Ordinal, mBlock3Ordinal};
+        tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals, aOneBlockContext);
+    }
+    const auto aTwoBlockContext = TEST_CONTEXT("Two fixed blocks");
+    {
+        const auto tDensities = MeshDesignVariables::BlockDensities{{2, tBlock2Densities}, {3, tBlock3Densities}};
+        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tDensities}};
+        const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock2Ordinal, mBlock3Ordinal};
+        const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal};
+        tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals, aTwoBlockContext);
+    }
+    const auto aThreeBlockContext = TEST_CONTEXT("Three fixed blocks");
+    {
+        const auto tDensities =
+            MeshDesignVariables::BlockDensities{{1, tBlock1Densities}, {2, tBlock2Densities}, {3, tBlock3Densities}};
+        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tDensities}};
+        const auto tExpectedDesignBlockOrdinals =
+            std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal, mBlock2Ordinal, mBlock3Ordinal};
+        const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{};
+        tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals, aThreeBlockContext);
+    }
 }
 
 }  // namespace plato::mesh::unittest

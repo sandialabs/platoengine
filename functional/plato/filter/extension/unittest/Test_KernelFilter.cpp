@@ -33,7 +33,8 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
     const FilterRadius tFilterRadius{1.1};
 
-    const KernelFilter tKernelFilter{kMeshFile, tFilterRadius, aFilterCentering, boost::mpi::communicator{}};
+    const KernelFilter tKernelFilter{mesh::Mesh{kMeshFile}, tFilterRadius, aFilterCentering,
+                                     boost::mpi::communicator{}};
 
     std::vector<double> tNodalDensities(tCommandGenerator.numberOfNodes(), 0);
     const int tHalfNode = tNodalDensities.size() / 2;

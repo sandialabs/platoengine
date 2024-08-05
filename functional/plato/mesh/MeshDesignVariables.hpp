@@ -26,7 +26,7 @@ struct Density
 /// This object is used as an argument to most objectives to represent a mesh and a density field.
 struct MeshDesignVariables
 {
-    using BlockIDType = unsigned;
+    using BlockIDType = int64_t;
     using DensityVector = std::vector<Density>;
     using BlockDensities = std::map<BlockIDType, DensityVector>;
 

@@ -42,7 +42,7 @@ std::pair<std::vector<mesh::Density>, std::vector<double> > test_filter_evaluati
     const third_party_integration::stk_io::CommandGenerator& aCommandGenerator,
     const boost::mpi::communicator& aCommunicator)
 {
-    const KernelFilter tKernelFilter{kMeshFile, FilterRadius{1},
+    const KernelFilter tKernelFilter{mesh::Mesh{kMeshFile}, FilterRadius{1},
                                      input_parser::KernelFilterCenteringTypes::kElementCentered, aCommunicator};
 
     const std::vector<double> tNodalDensities = create_linear_space_vector(aCommandGenerator.numberOfNodes());
@@ -164,17 +164,18 @@ TEST(KernelFilterDetail, CreateLinearMask)
         third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
     }
     tWorldComm.barrier();
+    const auto tMesh = mesh::Mesh{kMeshFile};
     const FilterRadius tFilterRadius{5};
     {
         const LinearMask tLinearMask = detail::create_linear_mask(
-            kMeshFile, tFilterRadius, input_parser::KernelFilterCenteringTypes::kElementCentered, tWorldComm);
+            tMesh, tFilterRadius, input_parser::KernelFilterCenteringTypes::kElementCentered, tWorldComm);
         const auto [tRows, tCols] = tLinearMask.size();
         EXPECT_EQ(tRows, tCommandGenerator.numberOfElements());
         EXPECT_EQ(tCols, tCommandGenerator.numberOfNodes());
     }
     {
         const LinearMask tLinearMask = detail::create_linear_mask(
-            kMeshFile, tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, tWorldComm);
+            tMesh, tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, tWorldComm);
         const auto [tRows, tCols] = tLinearMask.size();
         EXPECT_EQ(tRows, tCommandGenerator.numberOfNodes());
         EXPECT_EQ(tCols, tCommandGenerator.numberOfNodes());
