@@ -21,22 +21,28 @@ namespace
     library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
     [](const library::CriterionInput&) { return make_volume_fraction_constraint_function(); }};
 
+double fixed_domain_volume(const mesh::MeshQuantities& aMesh)
+{
+    const auto tElementVolumes = aMesh.fixedDomainElementVolumes();
+    return utilities::pair_wise_accumulate(tElementVolumes);
+}
+
 }  // namespace
 
 double VolumeCriterion::f(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
-    const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aMeshDesignVariables.mFileName}};
-    auto tScaledVolumes = tMesh.elementVolumes();
+    const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aMeshDesignVariables}};
+    auto tScaledVolumes = tMesh.designDomainElementVolumes();
     const auto tMeshView = mesh::MeshDesignVariablesDensitiesView{aMeshDesignVariables};
     std::transform(tScaledVolumes.cbegin(), tScaledVolumes.cend(), tMeshView.begin(), tScaledVolumes.begin(),
                    [](const double aVolume, const mesh::Density aDensity) { return aDensity.mDensity * aVolume; });
-    return mScaleFactor * utilities::pair_wise_accumulate(tScaledVolumes);
+    return mScaleFactor * (utilities::pair_wise_accumulate(tScaledVolumes) + fixed_domain_volume(tMesh));
 }
 
 linear_algebra::DynamicVector<double> VolumeCriterion::df(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
-    const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aMeshDesignVariables.mFileName}};
-    auto tJacobian = linear_algebra::DynamicVector<double>{tMesh.elementVolumes()};
+    const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aMeshDesignVariables}};
+    auto tJacobian = linear_algebra::DynamicVector<double>{tMesh.designDomainElementVolumes()};
     tJacobian = mScaleFactor * std::move(tJacobian);
     return tJacobian;
 }

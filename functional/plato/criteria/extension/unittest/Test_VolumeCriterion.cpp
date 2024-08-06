@@ -7,13 +7,17 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshDesignVariablesViews.hpp"
+#include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::criteria::extension::unittest
 {
 namespace
 {
+using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+
 constexpr std::string_view kMeshFile = "brick.exo";
 
 void test_volume_criteria_from_ctor_and_function(
@@ -103,6 +107,33 @@ TEST(VolumeCriterion, DerivativeOfScaledVolumeOnControls)
     }
 
     EXPECT_TRUE(std::filesystem::remove(kMeshFile));
+}
+
+TEST_F(TwoDThreeBlockMesh, VolumeCriterionWithFixedBlocks)
+{
+    const auto tMesh = mesh::Mesh{mMeshFilePath, {"block_1"}};
+
+    const auto tDensityVector = std::vector<double>{0.25, 0.25, 1.0};
+    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
+        mesh::ElementDensityVectorReference{tDensityVector});
+
+    const auto tResult = VolumeCriterion{}.f(tMeshDesignVariables);
+    constexpr auto tExpected = double{4.5};
+    EXPECT_DOUBLE_EQ(tExpected, tResult);
+}
+
+TEST_F(TwoDThreeBlockMesh, GradientVolumeCriterionWithFixedBlocks)
+{
+    const auto tMesh = mesh::Mesh{mMeshFilePath, {"block_1", "block_3"}};
+    constexpr auto tNumberOfNodalDensities = 2U;
+    const auto tDensityVector = std::vector<double>(tNumberOfNodalDensities, 1.0);
+    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
+        mesh::ElementDensityVectorReference{tDensityVector});
+
+    const auto tResult = VolumeCriterion{}.df(tMeshDesignVariables);
+    const auto tExpected = mesh::MeshQuantities{tMesh}.designDomainElementVolumes();
+
+    EXPECT_EQ(tExpected, tResult.stdVector());
 }
 
 }  // namespace plato::criteria::extension::unittest

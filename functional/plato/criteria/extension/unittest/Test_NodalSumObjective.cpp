@@ -13,6 +13,7 @@ namespace plato::criteria::extension::unittest
 {
 namespace
 {
+
 constexpr std::string_view kBrickFile = "brick.exo";
 constexpr std::string_view kTestFile = "test.exo";
 }  // namespace
