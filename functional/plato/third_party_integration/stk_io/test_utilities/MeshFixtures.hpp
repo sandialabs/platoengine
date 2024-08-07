@@ -29,6 +29,13 @@ class OneBlock3x1x1HexMesh : public MeshGeneratingTestFixture
     OneBlock3x1x1HexMesh();
 };
 
+/// @brief A mesh creating test fixture that creates a 3x1x1 hex mesh with two nodesets on the x plus and minus faces.
+class OneBlock3x1x1HexMeshWithNodeSets : public MeshGeneratingTestFixture
+{
+   protected:
+    OneBlock3x1x1HexMeshWithNodeSets();
+};
+
 /// @brief A mesh test fixture that provides the path to a specific two-block mesh and has members
 /// giving its node and element sizes.
 class TwoBlockMeshOnDisk : public ::testing::Test

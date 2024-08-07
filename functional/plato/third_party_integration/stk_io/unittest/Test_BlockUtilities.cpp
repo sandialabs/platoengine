@@ -7,12 +7,16 @@
 #include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
 namespace
 {
-constexpr auto kExpectedNumberOfBlocks = 2u;
+using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMeshWithNodeSets;
+using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+
 constexpr auto kExpectedNumberOfElementsInBlock1 = 273u;
 constexpr auto kExpectedNumberOfElementsInBlock2 = 40u;
 constexpr auto kExpectedNumberOfNodesInBlock1 = 93u;
@@ -28,29 +32,21 @@ constexpr auto kTwoDTriMesh = std::string_view{
     "|coordinates: 0,0,0.125,0,0,0.125,0.0625,0.125,0.125,0.125,0,0.25,0.125,0.25"
     "|dimension:2"};
 
-auto test_mesh(const plato::test_utilities::TestContext& aTestContext) -> std::shared_ptr<stk::mesh::BulkData>
-{
-    constexpr auto tMeshName = std::string_view{"box_2x4x10_hex_and_tet.cdf"};
-    const auto tFilePath = test_utilities::test_data_file_path(tMeshName);
-    EXPECT_TRUE(tFilePath) << aTestContext;
-    return read_mesh_bulk_data(tFilePath.value());
-}
-
 }  // namespace
 
-TEST(BlockUtilities, NumberOfBlocks)
+TEST_F(TwoBlockMeshOnDisk, NumberOfBlocks)
 {
-    const auto tBulkData = test_mesh(TEST_CONTEXT("Number of blocks"));
-    EXPECT_EQ(kExpectedNumberOfBlocks, block_size(*tBulkData));
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    EXPECT_EQ(mExpectedNumberOfBlocks, block_size(*tBulkData));
 }
 
-TEST(BlockUtilities, BlockData)
+TEST_F(TwoBlockMeshOnDisk, BlockData)
 {
-    const auto tBulkData = test_mesh(TEST_CONTEXT("Block id"));
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
 
     const auto tBlockIDsAndNames = block_data(*tBulkData);
 
-    ASSERT_EQ(tBlockIDsAndNames.size(), kExpectedNumberOfBlocks);
+    ASSERT_EQ(tBlockIDsAndNames.size(), mExpectedNumberOfBlocks);
 
     EXPECT_EQ(tBlockIDsAndNames.front().mID, 1);
     EXPECT_EQ(tBlockIDsAndNames.front().mMetaDataOrdinal, 40u);
@@ -65,9 +61,9 @@ TEST(BlockUtilities, BlockData)
                                { return tBlockDataLeft.mID < tBlockDataRight.mID; }));
 }
 
-TEST(BlockUtilities, PartWithBlockNameAndID)
+TEST_F(TwoBlockMeshOnDisk, PartWithBlockNameAndID)
 {
-    const auto tTwoBlockMesh = test_mesh(TEST_CONTEXT("Bulk data with block name"));
+    const auto tTwoBlockMesh = read_mesh_bulk_data(mMeshFilePath);
     const auto tBlockData = block_data(*tTwoBlockMesh);
     {
         const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 40u);
@@ -128,7 +124,7 @@ TEST(BlockUtilities, NodeIDsOneBlockNonSequential)
 
     const auto tBulkData = read_mesh_bulk_data(tMeshPath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
-    constexpr auto tExpectedNumberOfParts = 1u;
+    constexpr auto tExpectedNumberOfParts = 1U;
     ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
 
     const auto tResultIDs = node_ids(*tBulkData, *tParts.front());
@@ -146,7 +142,7 @@ TEST(BlockUtilities, NodalCoordinatesInBlock)
 
     const auto tBulkData = read_mesh_bulk_data(tMeshPath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
-    constexpr auto tExpectedNumberOfParts = 2u;
+    constexpr auto tExpectedNumberOfParts = 2U;
     ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
 
     const auto tAllNodalCoordinates = nodal_coordinates(*tBulkData);
@@ -175,6 +171,45 @@ TEST(BlockUtilities, NodalCoordinatesInBlock)
     }
 
     std::filesystem::remove(tMeshPath);
+}
+
+TEST_F(OneBlock3x1x1HexMeshWithNodeSets, ElementBlockParts)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    const auto tElementBlocks = element_blocks_parts(*tBulkData);
+    constexpr auto tNumberOfExpectedBlocks = 1U;
+    EXPECT_EQ(tElementBlocks.size(), tNumberOfExpectedBlocks);
+    EXPECT_EQ(element_size(*tBulkData, *tElementBlocks.front()), mCommandGenerator.numberOfElements());
+}
+
+TEST_F(TwoDThreeBlockMesh, ElementBlockParts)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    const auto tElementBlocks = element_blocks_parts(*tBulkData);
+    constexpr auto tNumberOfExpectedBlocks = 3U;
+    ASSERT_EQ(tElementBlocks.size(), tNumberOfExpectedBlocks);
+    EXPECT_EQ(element_size(*tBulkData, *tElementBlocks.at(0)), mExpectedNumberOfElementsInBlock1);
+    EXPECT_EQ(element_size(*tBulkData, *tElementBlocks.at(1)), mExpectedNumberOfElementsInBlock2);
+    EXPECT_EQ(element_size(*tBulkData, *tElementBlocks.at(2)), mExpectedNumberOfElementsInBlock3);
+}
+
+TEST_F(OneBlock3x1x1HexMeshWithNodeSets, BlockSize)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    constexpr auto tNumberOfExpectedBlocks = 1U;
+    EXPECT_EQ(block_size(*tBulkData), tNumberOfExpectedBlocks);
+}
+
+TEST_F(OneBlock3x1x1HexMeshWithNodeSets, BlockData)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    constexpr auto tNumberOfExpectedBlocks = 1U;
+    const auto tBlockData = block_data(*tBulkData);
+    ASSERT_EQ(tBlockData.size(), tNumberOfExpectedBlocks);
+
+    EXPECT_EQ(tBlockData.front().mID, 1);
+    EXPECT_EQ(tBlockData.front().mMetaDataOrdinal, 40U);
+    EXPECT_EQ(tBlockData.front().mName, "block_1");
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

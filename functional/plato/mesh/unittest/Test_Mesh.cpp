@@ -12,6 +12,7 @@ namespace plato::mesh::unittest
 namespace
 {
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMeshWithNodeSets;
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
@@ -177,6 +178,24 @@ TEST_F(TwoDThreeBlockMesh, ConstructionFromMeshDesignVariables)
             std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal, mBlock2Ordinal, mBlock3Ordinal};
         const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{};
         tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals, aThreeBlockContext);
+    }
+}
+
+TEST_F(OneBlock3x1x1HexMeshWithNodeSets, ConstructionFromMeshDesignVariables)
+{
+    const auto tDensities = MeshDesignVariables::DensityVector{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}};
+    constexpr auto tBlockID = 1;
+    const auto tMeshDesignVariables = MeshDesignVariables{mMeshFilePath, {{tBlockID, tDensities}}};
+
+    {
+        const auto tMesh = Mesh{mMeshFilePath};
+        EXPECT_EQ(tMesh.designBlockOrdinals().size(), 1U);
+        EXPECT_EQ(tMesh.fixedBlockOrdinals().size(), 0U);
+    }
+    {
+        const auto tMesh = Mesh{tMeshDesignVariables};
+        EXPECT_EQ(tMesh.designBlockOrdinals().size(), 1U);
+        EXPECT_EQ(tMesh.fixedBlockOrdinals().size(), 0U);
     }
 }
 

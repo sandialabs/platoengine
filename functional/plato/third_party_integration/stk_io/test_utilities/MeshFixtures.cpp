@@ -32,6 +32,14 @@ OneBlock3x1x1HexMesh::OneBlock3x1x1HexMesh()
 {
 }
 
+OneBlock3x1x1HexMeshWithNodeSets::OneBlock3x1x1HexMeshWithNodeSets()
+    : MeshGeneratingTestFixture(
+          "one_block_3x1x1_hex_nodesets.exo",
+          third_party_integration::stk_io::CommandGenerator{
+              {3, 1, 1}, {0, 0, 0}, {3, 1, 1}, CommandElementType::Hex, {UseLowerX{true}, UseUpperX{true}}, {}})
+{
+}
+
 TwoBlockMeshOnDisk::TwoBlockMeshOnDisk() : mMeshFilePath{affirm_test_file_path(mMeshFileName)} {}
 
 TwoDNonUniformHexMesh::TwoDNonUniformHexMesh() : mMeshFilePath{affirm_test_file_path(mMeshFileName)} {}

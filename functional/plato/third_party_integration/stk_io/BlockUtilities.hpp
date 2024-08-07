@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <optional>
+#include <stk_mesh/base/Types.hpp>
 #include <string>
 #include <vector>
 
@@ -43,6 +44,9 @@ using OptionalPartReference = std::optional<std::reference_wrapper<const stk::me
 
 /// @brief Returns the list of element IDs associated with the block @a aPart in mesh @a aBulkData.
 [[nodiscard]] std::vector<std::size_t> element_ids(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart);
+
+/// @brief Returns the user-defined element blocks defined in @a aBulkData.
+[[nodiscard]] auto element_blocks_parts(const stk::mesh::BulkData& aBulkData) -> stk::mesh::PartVector;
 
 }  // namespace plato::third_party_integration::stk_io
 
