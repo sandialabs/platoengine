@@ -1,7 +1,8 @@
 #ifndef PLATO_ROL_INTEGRATION_ROLOBJECTIVE
 #define PLATO_ROL_INTEGRATION_ROLOBJECTIVE
 
-#include <ROL_Objective.hpp>
+#include <ROL_StdObjective.hpp>
+#include <ROL_UpdateType.hpp>
 #include <ROL_Vector.hpp>
 
 #include "plato/core/Function.hpp"
@@ -9,7 +10,7 @@
 
 namespace plato::third_party_integration::rol
 {
-class ROLObjectiveFunction : public ROL::Objective<double>
+class ROLObjectiveFunction : public ROL::StdObjective<double>
 {
    public:
     using ROLPlatoFunction =
@@ -21,18 +22,18 @@ class ROLObjectiveFunction : public ROL::Objective<double>
     explicit ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction);
 
     ///@brief Compute the value using the set of controls @a aControls and given tolerance @a aTolerance
-    double value(const ROL::Vector<double>& aControls, double& aTolerance) override;
+    double value(const std::vector<double>& aControls, double& aTolerance) override;
 
     ///@brief Compute the gradient @a aGradient from the set of controls and given tolerance.
     ///@param aGradient Modify this variable with the gradient
-    void gradient(ROL::Vector<double>& aGradient, const ROL::Vector<double>& aControls, double& aTolerance) override;
+    void gradient(std::vector<double> &aGradient, const std::vector<double> &aControls, double &aTolerance) override;
 
     ///@brief Compute the hessian times a vector @a aVector from the set of controls @a aControls, and given tolerance
     ///@a aTolerance. Populate @a aHessianTimesVector parameter
     /// This function is hard coded to return a zero Hessian.
-    void hessVec(ROL::Vector<double>& aHessianTimesVector,
-                 const ROL::Vector<double>& aVector,
-                 const ROL::Vector<double>& aControls,
+    void hessVec(std::vector<double>& aHessianTimesVector,
+                 const std::vector<double>& aVector,
+                 const std::vector<double>& aControls,
                  double& aTolerance) override;
 
    private:

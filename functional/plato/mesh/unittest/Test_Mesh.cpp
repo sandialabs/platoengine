@@ -5,6 +5,8 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::mesh::unittest

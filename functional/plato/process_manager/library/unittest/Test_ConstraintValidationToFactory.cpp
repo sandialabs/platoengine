@@ -20,16 +20,16 @@ TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
     auto tInput = parsedInput();
     input_parser::constraint tConstraint = plato::test_utilities::create_valid_example_constraint();
     tConstraint.name = "eq";
-    tConstraint.equal_to = 13;
+    tConstraint.constraint_value = 13;
     tInput.mConstraints = {tConstraint};
 
     tConstraint.name = "le";
-    tConstraint.equal_to = 17;
+    tConstraint.constraint_value = 17;
     tConstraint.is_linear = false;
     tInput.mConstraints.push_back(tConstraint);
 
     tConstraint.name = "ge";
-    tConstraint.equal_to = 10;
+    tConstraint.constraint_value = 10;
     tConstraint.is_linear = false;
     tInput.mConstraints.push_back(tConstraint);
 

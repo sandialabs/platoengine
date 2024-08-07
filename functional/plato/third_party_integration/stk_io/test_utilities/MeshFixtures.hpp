@@ -27,6 +27,7 @@ class OneBlock3x1x1HexMesh : public MeshGeneratingTestFixture
 {
    protected:
     OneBlock3x1x1HexMesh();
+    constexpr static auto mExpectedNumberOfElements = 3U;
 };
 
 /// @brief A mesh creating test fixture that creates a 3x1x1 hex mesh with two nodesets on the x plus and minus faces.

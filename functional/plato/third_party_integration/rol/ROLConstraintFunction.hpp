@@ -1,7 +1,8 @@
-#ifndef PLATO_ROL_INTEGRATION_ROLCONSTRAINT
-#define PLATO_ROL_INTEGRATION_ROLCONSTRAINT
+#ifndef PLATO_ROL_INTEGRATION_ROLCONSTRAINTFUNCTION
+#define PLATO_ROL_INTEGRATION_ROLCONSTRAINTFUNCTION
 
-#include <ROL_Constraint.hpp>
+#include <ROL_Bounds.hpp>
+#include <ROL_StdConstraint.hpp>
 #include <ROL_Vector.hpp>
 
 #include "plato/core/Function.hpp"
@@ -10,7 +11,7 @@
 
 namespace plato::third_party_integration::rol
 {
-class ROLConstraintFunction : public ROL::Constraint<double>
+class ROLConstraintFunction : public ROL::StdConstraint<double>
 {
    public:
     using ROLPlatoFunction =
@@ -22,47 +23,33 @@ class ROLConstraintFunction : public ROL::Constraint<double>
     ROLConstraintFunction(criteria::library::Constraint<const linear_algebra::DynamicVector<double>&> aConstraint);
 
     ///@brief Evaluate and populate aConstraints with the constraints at a given control vector and tolerance
-    void value(ROL::Vector<double>& aConstraints, const ROL::Vector<double>& aControl, double& aTolerance) override;
+    void value(std::vector<double>& aConstraints, const std::vector<double>& aControl, double& aTolerance) override;
 
     ///@brief Evaluate the Jacobian in a given direction for the set of controls. Populate aJacobianTimesDirection
-    void applyJacobian(ROL::Vector<double>& aJacobianTimesDirection,
-                       const ROL::Vector<double>& aDirection,
-                       const ROL::Vector<double>& aControl,
+    void applyJacobian(std::vector<double>& aJacobianTimesDirection,
+                       const std::vector<double>& aDirection,
+                       const std::vector<double>& aControl,
                        double& aTolerance) override;
 
     ///@brief Evaluate the adjoint Jacobian times a direction for the set of controls.
     ///@param aAdjointJacobianTimesDirection Stores result
-    void applyAdjointJacobian(ROL::Vector<double>& aAdjointJacobianTimesDirection,
-                              const ROL::Vector<double>& aDual,
-                              const ROL::Vector<double>& aControl,
-                              double& aTolerance) override;
-
-    void applyAdjointJacobian(ROL::Vector<double>& aAdjointJacobianTimesDirection,
-                              const ROL::Vector<double>& aDual,
-                              const ROL::Vector<double>& aControl,
-                              const ROL::Vector<double>& aDualV,
+    void applyAdjointJacobian(std::vector<double>& aAdjointJacobianTimesDirection,
+                              const std::vector<double>& aDual,
+                              const std::vector<double>& aControl,
                               double& aTolerance) override;
 
     ///@brief Evaluate the Adjoint Hessian at @a aControl applied to vector @a v
     ///@param aHessianUV Stores result
     /// This function is hardcoded to return 0s.
-    void applyAdjointHessian(ROL::Vector<double>& aHessianUV,
-                             const ROL::Vector<double>& u,
-                             const ROL::Vector<double>& v,
-                             const ROL::Vector<double>& aControl,
+    void applyAdjointHessian(std::vector<double>& aHessianUV,
+                             const std::vector<double>& u,
+                             const std::vector<double>& v,
+                             const std::vector<double>& aControl,
                              double& aTolerance) override;
 
-    ///@brief Is this constraint linear
-    bool linear() const;
-
-    ///@brief return the name of the constraint for output
-    const std::string& name() const;
-
    private:
-    std::string mName;
     ROLPlatoFunction mFunction;
     double mConstraintTarget = 0;
-    bool mLinear = false;
 };
 }  // namespace plato::third_party_integration::rol
 

@@ -1,6 +1,7 @@
 #include "plato/test_utilities/InputGeneration.hpp"
 
 #include <fstream>
+#include <optional>
 
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
@@ -37,6 +38,14 @@ input_parser::density_topology create_valid_density_topology_geometry()
                                           /*.filter=*/boost::none,
                                           /*.initial_density_value=*/0.5,
                                           /*.initial_density_field_name=*/boost::none};
+}
+
+auto create_valid_density_topology_geometry_with_element_centered_kernel_filter()
+    -> std::pair<input_parser::density_topology, input_parser::kernel_filter>
+{
+    const auto tDensity = create_valid_density_topology_geometry();
+    const auto tFilter = create_valid_element_centered_kernel_filter();
+    return {tDensity, tFilter};
 }
 
 std::string create_valid_density_topology_geometry_string()
@@ -87,8 +96,9 @@ input_parser::constraint create_valid_example_constraint()
                                     /*.criterion=*/input_parser::CriterionName{"nodal_sum"},
                                     /*.number_of_processors=*/1u,
                                     /*.input_files=*/input_parser::FileList{{"brown.txt", "butter.txt", "sauce.txt"}},
-                                    /*.equal_to=*/0.0,
-                                    /*.is_linear=*/true};
+                                    /*.constraint_value=*/0.0,
+                                    /*.is_linear=*/true,
+                                    /*.constraint_type=*/input_parser::ConstraintTypes::kEquality};
 }
 
 std::string create_valid_example_constraint_string()
@@ -100,8 +110,9 @@ std::string create_valid_example_constraint_string()
             criterion nodal_sum
             number_of_processors 1
             input_files test-input.inp
-            equal_to 13
+            constraint_value 13
             is_linear true
+            constraint_type equal_to
           end
        )";
 }
@@ -218,4 +229,11 @@ input_parser::snopt_optimization create_valid_example_snopt_optimization()
                                             /*.time_limit_in_minutes=*/0};
 }
 
+input_parser::kernel_filter create_valid_element_centered_kernel_filter()
+{
+    return input_parser::kernel_filter{/*.filter_radius=*/2.0,
+                                       /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kElementCentered,
+                                       /*.use_relative_radius=*/false,
+                                       /*.number_of_processors*/ 1};
+}
 }  // namespace plato::test_utilities

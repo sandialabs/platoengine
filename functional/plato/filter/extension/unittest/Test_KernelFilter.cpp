@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <time.h>
 
 #include <boost/math/constants/constants.hpp>
 #include <boost/mpi/communicator.hpp>
@@ -76,7 +77,35 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     return {tPostFilter, tPostSensitivities};
 }
 
+double timing_test(const unsigned int aNumberOfElementsOnSide)
+{
+    const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
+        {aNumberOfElementsOnSide, aNumberOfElementsOnSide, aNumberOfElementsOnSide},
+        {0, 0, 0},
+        {(double)aNumberOfElementsOnSide, (double)aNumberOfElementsOnSide, (double)aNumberOfElementsOnSide}};
+    third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
+    const FilterRadius tFilterRadius{3.1};
+
+    clock_t t1 = clock();
+    [[maybe_unused]] const KernelFilter tKernelFilter{mesh::Mesh{kMeshFile}, tFilterRadius,
+                                                      input_parser::KernelFilterCenteringTypes::kElementCentered,
+                                                      boost::mpi::communicator{}};
+    clock_t t2 = clock();
+    return 1000.0 * (t2 - t1) / CLOCKS_PER_SEC;
+}
+
 }  // namespace
+
+TEST(KernelFilter, Timing)
+{
+    std::vector<unsigned int> tNSide = {3, 5, 8, 10, 12, 14, 20, 22};
+    for (const auto& x : tNSide)
+    {
+        std::cout << "N: " << x << std::endl;
+        const auto tTime = timing_test(x);
+        std::cout << "Total time: " << tTime << std::endl;
+    }
+}
 
 /*
     DistanceMatrix M = [1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8]

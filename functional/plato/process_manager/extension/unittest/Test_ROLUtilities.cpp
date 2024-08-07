@@ -11,6 +11,7 @@
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::process_manager::extension::unittest
 {
@@ -33,7 +34,7 @@ TEST(ProcessManagerData, InputFileToROLObjective)
     const library::ProcessManagerData tProblem = library::make_process_manager_data(tData);
     std::unique_ptr<third_party_integration::rol::ROLObjectiveFunction> tObjectiveFunction =
         make_rol_objective(tProblem);
-    const ROL::StdVector<double> tBoundingBox{0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+    const std::vector<double> tBoundingBox{0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
     double tTolerance = 1e-8;
 
     constexpr double tNodalSum = 12.0;
@@ -54,7 +55,8 @@ TEST(ProcessManagerData, InputFileToROLConstraint)
                                 begin constraint test
                                   active true
                                   criterion nodal_sum
-                                  equal_to 2
+                                  constraint_value 2
+                                  constraint_type equal_to
                                 end
                               )" +
                                test_utilities::create_valid_example_rol_optimization_string();
@@ -65,19 +67,38 @@ TEST(ProcessManagerData, InputFileToROLConstraint)
     const auto tConstraints = make_rol_constraints(tProblem);
     ASSERT_EQ(tConstraints.size(), 1u);
 
-    const ROL::StdVector<double> tBoundingBox{0, 0, 0, 1, 1, 1};
-    ROL::StdVector<double> tResult{0};
+    const std::vector<double> tBoundingBox{0, 0, 0, 1, 1, 1};
+    std::vector<double> tResult{0};
     const auto tGold = std::vector{-2.0};
     double tTolerance = 1e-8;
 
-    ASSERT_NE(tConstraints.front(), nullptr);
-    tConstraints.front()->value(tResult, tBoundingBox, tTolerance);
+    ASSERT_EQ(tConstraints.size(), 1u);
+    ASSERT_NE(tConstraints.front().mConstraintFunction, nullptr);
+    tConstraints.front().mConstraintFunction->value(tResult, tBoundingBox, tTolerance);
 
-    EXPECT_EQ(*tResult.getVector(), tGold);
+    EXPECT_EQ(tResult, tGold);
     std::filesystem::remove("my_mesh.exo");
 }
 
-TEST(ProcessManagerData, InputFileToROLSolver)
+namespace
+{
+void parse_and_generate_solver(const std::string& aInput, const plato::test_utilities::TestContext& aTestContext)
+{
+    const library::ValidatedInput tData{library::parse_and_validate(aInput)};
+    const library::ProcessManagerData tPlatoProblem = library::make_process_manager_data(tData);
+    const auto tValidatedOptimizationParameters =
+        library::process_manager_input<input_parser::rol_optimization>(tData.processManagers().rawInput().front());
+    Teuchos::ParameterList tROLOptions =
+        third_party_integration::rol::make_optimization_parameters(tValidatedOptimizationParameters).parameters();
+    const auto tROLProblem = Teuchos::RCP{make_rol_problem(tPlatoProblem).first.release()};
+    const ROL::Solver<double> tSolver =
+        third_party_integration::rol::make_rol_solver(tROLOptions, std::move(tROLProblem));
+
+    EXPECT_EQ(tSolver.getAlgorithmState()->iter, 0) << aTestContext;
+}
+}  // namespace
+
+TEST(ProcessManagerData, InputFileToROLSolverEquality)
 {
     const std::string tInput = test_utilities::create_valid_brick_shape_geometry_string() +
                                test_utilities::create_valid_example_objective_string() +
@@ -85,22 +106,30 @@ TEST(ProcessManagerData, InputFileToROLSolver)
                                 begin constraint test
                                   active true
                                   criterion nodal_sum
-                                  equal_to 2
+                                  constraint_value 2
+                                  constraint_type equal_to
                                 end
                               )" +
                                test_utilities::create_valid_example_rol_optimization_string();
 
-    const library::ValidatedInput tData{library::parse_and_validate(tInput)};
-    const library::ProcessManagerData tPlatoProblem = library::make_process_manager_data(tData);
-    const auto tValidatedOptimizationParameters =
-        library::process_manager_input<input_parser::rol_optimization>(tData.processManagers().rawInput().front());
-    Teuchos::ParameterList tROLOptions =
-        third_party_integration::rol::make_optimization_parameters(tValidatedOptimizationParameters).parameters();
-    const auto tROLProblem = Teuchos::RCP{make_rol_problem(tPlatoProblem).release()};
-    const ROL::Solver<double> tSolver =
-        third_party_integration::rol::make_rol_solver(tROLOptions, std::move(tROLProblem));
+    parse_and_generate_solver(tInput, TEST_CONTEXT("Equality constraint"));
+}
 
-    EXPECT_EQ(tSolver.getAlgorithmState()->iter, 0);
+TEST(ProcessManagerData, InputFileToROLSolverInequality)
+{
+    const std::string tInput = test_utilities::create_valid_brick_shape_geometry_string() +
+                               test_utilities::create_valid_example_objective_string() +
+                               R"(
+                                begin constraint test
+                                  active true
+                                  criterion nodal_sum
+                                  constraint_value 2
+                                  constraint_type greater_than
+                                end
+                              )" +
+                               test_utilities::create_valid_example_rol_optimization_string();
+
+    parse_and_generate_solver(tInput, TEST_CONTEXT("Inequality constraint"));
 }
 
 }  // namespace plato::process_manager::extension::unittest

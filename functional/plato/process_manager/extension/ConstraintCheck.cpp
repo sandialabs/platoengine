@@ -67,7 +67,7 @@ void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData
 {
     constexpr bool tPrintOutput = true;
 
-    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>{make_rol_problem(aProcessManagerData).release()};
+    auto [tROLProblem, tROLControls] = make_rol_problem(aProcessManagerData);
 
     std::ofstream tCheckLinearityOutFile{mLinearityCheckOutputFileName};
     tROLProblem->checkLinearity(

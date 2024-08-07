@@ -1,7 +1,10 @@
 #include <gtest/gtest.h>
 
 #include <ROL_Algorithm.hpp>
+#include <ROL_Bounds.hpp>
 #include <ROL_LineSearchStep.hpp>
+#include <ROL_Ptr.hpp>
+#include <ROL_RandomVector.hpp>
 #include <ROL_StatusTest.hpp>
 #include <ROL_StdVector.hpp>
 #include <ROL_Stream.hpp>
@@ -16,33 +19,38 @@ namespace plato::integration_tests::serial
 {
 namespace
 {
-constexpr bool tPrintFlag = true;
+constexpr bool kPrintFlag = true;
+
+[[nodiscard]] ROL::ParameterList create_parameter_list()
+{
+    ROL::ParameterList tParlist;
+    tParlist.sublist("Status Test").set("Gradient Tolerance", 1.e-12);
+    tParlist.sublist("Status Test").set("Step Tolerance", 1.e-14);
+    tParlist.sublist("Status Test").set("Iteration Limit", 100);
+    return tParlist;
+}
 
 [[nodiscard]] ROL::Algorithm<double> rol_algorithm()
 {
     // Set parameters.
-    ROL::ParameterList parlist;
-    parlist.sublist("Status Test").set("Gradient Tolerance", 1.e-12);
-    parlist.sublist("Status Test").set("Step Tolerance", 1.e-14);
-    parlist.sublist("Status Test").set("Iteration Limit", 100);
+    ROL::ParameterList tParlist = create_parameter_list();
 
     // Define algorithm
-    auto step = ROL::makePtr<ROL::LineSearchStep<double>>(parlist);
-    auto status = ROL::makePtr<ROL::StatusTest<double>>(parlist);
-    return ROL::Algorithm<double>{step, status, false};
+    auto tStep = ROL::makePtr<ROL::LineSearchStep<double>>(tParlist);
+    auto tStatus = ROL::makePtr<ROL::StatusTest<double>>(tParlist);
+    return ROL::Algorithm<double>{tStep, tStatus, false};
 }
+
 }  // namespace
 
 TEST(Optimize, Rosenbrock)
 {
-    namespace pft = plato::test_utilities;
-
     ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
     auto tControl = ROL::StdVector<double>{-1.2, 1.0};
-    auto tObjective = plato::third_party_integration::rol::ROLObjectiveFunction{
-        utilities::make_rosenbrock_dynamic_vector_function(pft::Rosenbrock{})};
+    auto tObjective = third_party_integration::rol::ROLObjectiveFunction{
+        utilities::make_rosenbrock_dynamic_vector_function(test_utilities::Rosenbrock{})};
 
-    rol_algorithm().run(tControl, tObjective, tPrintFlag, *tOutStream);
+    rol_algorithm().run(tControl, tObjective, kPrintFlag, *tOutStream);
 
     constexpr double tXMinValue = 1.0;
     constexpr double tTolerance = 1e-14;
@@ -52,17 +60,15 @@ TEST(Optimize, Rosenbrock)
 
 TEST(Optimize, RosenbrockPenaltyComposition)
 {
-    namespace pft = plato::test_utilities;
-
     ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
     auto tControl = ROL::StdVector<double>{1.5, 0.5};
-    constexpr auto tXMin = pft::XMin{0.0};
-    constexpr auto tPower = pft::Exponent{3.0};
-    auto tObjective = plato::third_party_integration::rol::ROLObjectiveFunction{
-        core::compose(utilities::make_rosenbrock_dynamic_vector_function(pft::Rosenbrock{}),
-                      utilities::make_penalty_dynamic_vector_function(pft::Penalty{tXMin, tPower}))};
+    constexpr auto tXMin = test_utilities::XMin{0.0};
+    constexpr auto tPower = test_utilities::Exponent{3.0};
+    auto tObjective = third_party_integration::rol::ROLObjectiveFunction{
+        core::compose(utilities::make_rosenbrock_dynamic_vector_function(test_utilities::Rosenbrock{}),
+                      utilities::make_penalty_dynamic_vector_function(test_utilities::Penalty{tXMin, tPower}))};
 
-    rol_algorithm().run(tControl, tObjective, tPrintFlag, *tOutStream);
+    rol_algorithm().run(tControl, tObjective, kPrintFlag, *tOutStream);
 
     const double tXMinValue = 1.0;
     EXPECT_DOUBLE_EQ(tControl[0], tXMinValue);

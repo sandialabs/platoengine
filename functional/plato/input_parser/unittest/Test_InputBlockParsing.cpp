@@ -75,8 +75,9 @@ TEST(ParseConstraintInputBlock, AllValidInputs)
             app volume_fraction
             number_of_processors 10
             input_files test.txt
-            equal_to 1.0
+            constraint_value 1.0
             is_linear false
+            constraint_type equal_to
           end
        )";
 
@@ -94,8 +95,9 @@ TEST(ParseConstraintInputBlock, AllValidInputs)
     test_existence_and_equality(tConstraint.app, std::string{"volume_fraction"});
     test_existence_and_equality(tConstraint.number_of_processors, 10u);
     test_existence_and_equality(tConstraint.input_files, std::vector<std::string>{"test.txt"});
-    test_existence_and_equality(tConstraint.equal_to, 1.0);
+    test_existence_and_equality(tConstraint.constraint_value, 1.0);
     test_existence_and_equality(tConstraint.is_linear, false);
+    test_existence_and_equality(tConstraint.constraint_type, ConstraintTypes::kEquality);
 }
 
 TEST(ParseConstraintInputBlock, MultipleBlocks)
@@ -108,7 +110,7 @@ TEST(ParseConstraintInputBlock, MultipleBlocks)
           end
           begin constraint mp_constraint_2
             number_of_processors 10
-            equal_to -10.0
+            constraint_value -10.0
           end
 
        )";
@@ -127,7 +129,7 @@ TEST(ParseConstraintInputBlock, MultipleBlocks)
     const auto& tConstraint2 = tData.mConstraints.back();
     test_existence_and_equality(tConstraint2.name, "mp_constraint_2");
     test_existence_and_equality(tConstraint2.number_of_processors, 10u);
-    test_existence_and_equality(tConstraint2.equal_to, -10.0);
+    test_existence_and_equality(tConstraint2.constraint_value, -10.0);
 }
 
 TEST(ParseRolOptimizationInputBlock, AllValidInputs)

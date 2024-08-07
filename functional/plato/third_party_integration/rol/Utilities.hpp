@@ -1,12 +1,14 @@
 #ifndef PLATO_THIRDPARTYINTEGRATION_ROL_UTILITIES
 #define PLATO_THIRDPARTYINTEGRATION_ROL_UTILITIES
 
+#include <ROL_Ptr.hpp>
 #include <ROL_StdVector.hpp>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::third_party_integration::rol
 {
+
 /// @brief Converts @a aROLVector to a DynamicVector using a `dynamic_cast` to `ROL::StdVector`.
 template <typename T>
 [[nodiscard]] linear_algebra::DynamicVector<T> to_dynamic_vector(const ROL::Vector<T>& aROLVector);
@@ -17,7 +19,7 @@ template <typename T>
 
 /// @brief Converts @a aDynamicVector to a `ROL::Vector` managed pointer.
 template <typename T>
-[[nodiscard]] ROL::Ptr<ROL::Vector<T>> make_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector);
+[[nodiscard]] ROL::Ptr<ROL::StdVector<T>> make_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector);
 
 /// @brief Copies @a aVector into the storage of @a aROLVector using a `dynamic_cast` to `ROL::StdVector`.
 template <typename T>
@@ -42,7 +44,7 @@ ROL::StdVector<T> to_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector)
 }
 
 template <typename T>
-ROL::Ptr<ROL::Vector<T>> make_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector)
+ROL::Ptr<ROL::StdVector<T>> make_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector)
 {
     return ROL::makePtr<ROL::StdVector<double>>(to_rol_vector(std::move(aDynamicVector)));
 }

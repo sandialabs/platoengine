@@ -13,9 +13,11 @@ namespace plato::criteria::library
 
 namespace detail
 {
-[[nodiscard]] std::optional<std::string> validate_equal_to(const input_parser::constraint& aInput);
+[[nodiscard]] std::optional<std::string> validate_constraint_value(const input_parser::constraint& aInput);
 [[nodiscard]] std::optional<std::string> validate_constraint_number_of_processors(
     const input_parser::constraint& aInput);
+
+[[nodiscard]] std::optional<std::string> validate_constraint_type(const input_parser::constraint& aInput);
 }  // namespace detail
 
 }  // namespace plato::criteria::library

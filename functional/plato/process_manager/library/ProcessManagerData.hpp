@@ -1,7 +1,6 @@
 #ifndef PLATO_PROCESSMANAGER_LIBRARY_PROCESSMANAGERDATA
 #define PLATO_PROCESSMANAGER_LIBRARY_PROCESSMANAGERDATA
 
-#include <Teuchos_ParameterList.hpp>
 #include <vector>
 
 #include "plato/criteria/library/ConstraintFactory.hpp"
@@ -16,7 +15,7 @@ struct ProcessManagerData
 {
     plato::geometry::library::FactoryTypes mGeometry;
     plato::criteria::library::ObjectiveFunction mObjective;
-    std::vector<plato::criteria::library::Constraint<const analysis::AnalysisDomainMesh&>> mConstraints;
+    std::vector<plato::criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>> mConstraints;
 };
 
 ///@brief Convert validated parsed input into a populated ProcessManagerData struct

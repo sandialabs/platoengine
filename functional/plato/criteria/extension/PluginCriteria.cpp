@@ -22,6 +22,7 @@ template <typename... Args>
                                             const criteria::library::CriterionInput& aInput,
                                             Args&&... aAdditionalArgs)
 {
+    std::cout << "registering shared lib, not vec" << std::endl;
     return make_shared_lib_function(SharedLibCriterion{
         aAppConfiguration, aCriterionConfiguration, aInput.mInputFiles.mList, std::forward<Args>(aAdditionalArgs)...});
 }
