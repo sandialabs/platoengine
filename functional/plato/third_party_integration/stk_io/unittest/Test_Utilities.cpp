@@ -1,10 +1,16 @@
+#include <Ioss_ElementBlock.h>
+#include <Ioss_IOFactory.h>
+#include <Ioss_NodeBlock.h>
+#include <Ioss_Region.h>
 #include <gtest/gtest.h>
+#include <mpi.h>
 
 #include <cmath>
 #include <filesystem>
 #include <numeric>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Comm.hpp>
+#include <stk_mesh/base/MetaData.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 #include <string_view>
 
@@ -12,7 +18,6 @@
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
-#include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
@@ -20,7 +25,35 @@ namespace plato::third_party_integration::stk_io::unittest
 namespace
 {
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+
+constexpr auto kTopologyFieldName = std::string_view{"topology"};
+
+std::vector<double> read_nodal_density(const std::filesystem::path& aMeshName)
+{
+    Ioss::DatabaseIO* tResultsDb =
+        Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
+    Ioss::Region tResults(tResultsDb);
+
+    tResults.begin_state(1);
+    Ioss::NodeBlock* tNb = tResults.get_node_blocks()[0];
+    std::vector<double> tNodeFieldData;
+    tNb->get_field_data(std::string{kTopologyFieldName}, tNodeFieldData);
+    return tNodeFieldData;
 }
+
+std::vector<double> read_element_density(const std::filesystem::path& aMeshName)
+{
+    Ioss::DatabaseIO* tResultsDb =
+        Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
+    Ioss::Region tResults(tResultsDb);
+
+    tResults.begin_state(1);
+    Ioss::ElementBlock* tEb = tResults.get_element_blocks()[0];
+    std::vector<double> tElementFieldData;
+    tEb->get_field_data(std::string{kTopologyFieldName}, tElementFieldData);
+    return tElementFieldData;
+}
+}  // namespace
 
 TEST(STKUtilities, CommandGeneratorWriteMeshToDisk)
 {
@@ -116,29 +149,27 @@ TEST(STKUtilities, ReadCoordinatesCoordinate)
 TEST(STKUtilities, WriteDensityField)
 {
     constexpr std::string_view tInputFileName = "brick.exo";
-    write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{}));
-    const std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8};
+    const auto tData = std::unordered_map<std::size_t, double>{{1, 1.0}, {2, 2.0}, {3, 3.0}, {4, 4.0},
+                                                              {5, 5.0}, {6, 6.0}, {7, 7.0}, {8, 8.0}};
+
+    auto tExpected = std::vector<double>(tData.size());
+    std::iota(tExpected.begin(), tExpected.end(), 1.0);
     constexpr std::string_view tOutputFileName = "brick-out.exo";
-    write_nodal_density(tInputFileName, data, tOutputFileName);
-    auto res = read_nodal_density(tOutputFileName);
 
-    EXPECT_EQ(data, res);
-
-    EXPECT_TRUE(std::filesystem::remove(tInputFileName));
-    EXPECT_TRUE(std::filesystem::remove(tOutputFileName));
-}
-
-TEST(STKUtilities, WriteElementDensityField)
-{
-    constexpr std::string_view tInputFileName = "brick.exo";
-    const CommandGenerator tCommandGenerator{{2, 2, 2}};
-    write_bulk_data(tInputFileName, generate_bulk_data(tCommandGenerator));
-    const std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8};
-    constexpr std::string_view tOutputFileName = "brick-out.exo";
-    write_element_density(tInputFileName, data, tOutputFileName);
-    auto res = read_element_density(tOutputFileName);
-
-    EXPECT_EQ(data, res);
+    // Nodal
+    {
+        write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{}));
+        write_nodal_density(tInputFileName, tData, tOutputFileName);
+        const auto tResult = read_nodal_density(tOutputFileName);
+        EXPECT_EQ(tResult, tExpected);
+    }
+    // Element
+    {
+        write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
+        write_element_density(tInputFileName, tData, tOutputFileName);
+        const auto tResult = read_element_density(tOutputFileName);
+        EXPECT_EQ(tResult, tExpected);
+    }
 
     EXPECT_TRUE(std::filesystem::remove(tInputFileName));
     EXPECT_TRUE(std::filesystem::remove(tOutputFileName));

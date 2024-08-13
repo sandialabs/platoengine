@@ -44,9 +44,8 @@ class DensityTopology
     [[nodiscard]] static std::pair<std::vector<double>, std::vector<double>> bounds(
         const input_parser::density_topology& aInput);
 
-    static void output(const std::filesystem::path& aInputMeshName,
-                       const linear_algebra::DynamicVector<double>& aSolution,
-                       const std::filesystem::path& aOutputMeshName);
+    static void output(const linear_algebra::DynamicVector<double>& aSolution,
+                       const input_parser::density_topology& aInput);
 
    private:
     std::filesystem::path mFileName;

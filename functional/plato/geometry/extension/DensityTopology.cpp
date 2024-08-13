@@ -22,10 +22,10 @@ constexpr double kDensityLowerBound = 0.0;
 constexpr double kDensityUpperBound = 1.0;
 
 std::function<void(const linear_algebra::DynamicVector<double>&)> make_topology_output(
-    const std::filesystem::path& aInputMeshName, const std::filesystem::path& aOutputMeshName)
+    const input_parser::density_topology& aInput)
 {
-    return [aInputMeshName, aOutputMeshName](const linear_algebra::DynamicVector<double>& aSolution)
-    { return DensityTopology::output(aInputMeshName, aSolution, aOutputMeshName); };
+    return [aInput](const linear_algebra::DynamicVector<double>& aSolution)
+    { return DensityTopology::output(aSolution, aInput); };
 }
 
 /// Static registration for library
@@ -37,8 +37,7 @@ std::function<void(const linear_algebra::DynamicVector<double>&)> make_topology_
         return library::FactoryTypes{
             make_topology_geometry(DensityTopology{
                 tInput, plato::filter::library::make_filter_function(library::get_cross_referenced_filter(tInput))}),
-            DensityTopology::initialGuess(tInput), DensityTopology::bounds(tInput),
-            make_topology_output(tInput.mesh_name.value().mToken, tInput.output_name.value().mToken)};
+            DensityTopology::initialGuess(tInput), DensityTopology::bounds(tInput), make_topology_output(tInput)};
     }};
 
 /// Static registration for input validation functions
@@ -117,11 +116,15 @@ std::pair<std::vector<double>, std::vector<double>> DensityTopology::bounds(
     return {std::vector<double>(tNumNodes, kDensityLowerBound), std::vector<double>(tNumNodes, kDensityUpperBound)};
 }
 
-void DensityTopology::output(const std::filesystem::path& aInputMeshName,
-                             const linear_algebra::DynamicVector<double>& aSolution,
-                             const std::filesystem::path& aOutputMeshName)
+void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolution,
+                             const input_parser::density_topology& aInput)
 {
-    plato::third_party_integration::stk_io::write_nodal_density(aInputMeshName, aSolution.stdVector(), aOutputMeshName);
+    const auto& tInputMeshName = aInput.mesh_name->mToken;
+    const auto& tOutputMeshName = aInput.output_name->mToken;
+    const auto tMesh = detail::mesh_from_input(aInput);
+    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalDensitiesToNodalIDMap(
+        mesh::NodalDensityVectorReference{aSolution.stdVector()});
+    third_party_integration::stk_io::write_nodal_density(tInputMeshName, tNodalDesignParameters, tOutputMeshName);
 }
 
 auto make_topology_geometry(const DensityTopology& aDensityTopology)

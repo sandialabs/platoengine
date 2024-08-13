@@ -4,10 +4,9 @@
 #include <cassert>
 #include <iostream>
 
-#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshDesignVariablesViews.hpp"
-#include "plato/utilities/IndexRange.hpp"
+#include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::mesh
 {
@@ -37,6 +36,7 @@ MeshDesignVariables entity_densities_to_mesh_design_variables(const std::vector<
     auto tMeshDesignVariables = initialize_mesh_design_variable_data_structures(aMesh, aIDFunction);
 
     auto tMeshView = MeshDesignVariablesDensitiesMutableView{tMeshDesignVariables};
+    std::cout << "aDensities size: " << aDensities.size() << ", tMeshView.size: " << tMeshView.size() << std::endl;
     assert(aDensities.size() == tMeshView.size());
     std::transform(aDensities.cbegin(), aDensities.cend(), tMeshView.begin(), tMeshView.begin(),
                    [tVectorIndex = Density::IndexType{0}](const double aDensity, const auto& aDensityID) mutable
@@ -74,9 +74,9 @@ MeshDesignVariables DesignVariablesConversion::nodalDensitiesToMeshDesignVariabl
 MeshDesignVariables DesignVariablesConversion::elementDensitiesToMeshDesignVariables(
     const ElementDensityVectorReference aDensities) const
 {
-    const auto tNodeIDs = [](const mesh::Mesh& aMesh, const Mesh::BlockOrdinalType aBlockOrdinal)
+    const auto tElementIDs = [](const mesh::Mesh& aMesh, const Mesh::BlockOrdinalType aBlockOrdinal)
     { return mesh::MeshBlocks{aMesh}.elementIDs(aBlockOrdinal); };
-    return entity_densities_to_mesh_design_variables(aDensities.mValue.get(), *this, tNodeIDs);
+    return entity_densities_to_mesh_design_variables(aDensities.mValue.get(), *this, tElementIDs);
 }
 
 NodalDensityVector DesignVariablesConversion::meshDesignVariablesToNodalDensityVector(
@@ -91,4 +91,20 @@ ElementDensityVector DesignVariablesConversion::meshDesignVariablesToElementDens
     return ElementDensityVector{mesh_design_variables_view_to_vector(aMeshDesignVariables)};
 }
 
+auto DesignVariablesConversion::nodalDensitiesToNodalIDMap(const NodalDensityVectorReference aDensities) const
+    -> std::unordered_map<Density::IndexType, double>
+{
+    const auto tMeshDesignVariables = nodalDensitiesToMeshDesignVariables(aDensities);
+    auto tNodeIDDensityMap = std::unordered_map<Density::IndexType, double>{};
+    const auto tDesignVariablesView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
+    tNodeIDDensityMap.reserve(tDesignVariablesView.size());
+    std::transform(tDesignVariablesView.begin(), tDesignVariablesView.end(),
+                   std::inserter(tNodeIDDensityMap, tNodeIDDensityMap.begin()),
+                   [](const auto& tDensityProxy)
+                   {
+                       const auto tDensity = static_cast<Density>(tDensityProxy);
+                       return std::make_pair(tDensity.mGlobalMeshEntityID, tDensity.mDensity);
+                   });
+    return tNodeIDDensityMap;
+}
 }  // namespace plato::mesh

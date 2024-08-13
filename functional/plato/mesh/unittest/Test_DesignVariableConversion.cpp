@@ -67,6 +67,37 @@ std::vector<double> entity_ids_to_densities(const std::vector<std::size_t>& aEnt
     return tDensities;
 }
 
+void check_map_consistency(const DesignVariablesConversion& tMesh,
+                           const std::size_t aNumberOfDesignNodes,
+                           const test_utilities::TestContext& aTestContext)
+{
+    auto tNodalIDs = std::vector<std::size_t>(aNumberOfDesignNodes);
+    std::iota(tNodalIDs.begin(), tNodalIDs.end(), 1);
+    const auto tDensities = entity_ids_to_densities(tNodalIDs);
+    const auto tDensityMap = tMesh.nodalDensitiesToNodalIDMap(NodalDensityVectorReference{tDensities});
+    for (const auto tNodalID : tNodalIDs)
+    {
+        const auto tNodalDensityMapIterator = tDensityMap.find(tNodalID);
+        ASSERT_NE(tNodalDensityMapIterator, tDensityMap.end()) << aTestContext;
+        EXPECT_EQ(tNodalDensityMapIterator->first, tNodalDensityMapIterator->second) << aTestContext;
+    }
+}
+
+MeshDesignVariables one_block_mesh_design_variables_for_tests(
+    const third_party_integration::stk_io::CommandGenerator& aCommandGenerator,
+    const std::filesystem::path& aMeshFilePath)
+{
+    auto tDesignVariables = std::vector<Density>{};
+    tDesignVariables.reserve(aCommandGenerator.numberOfNodes());
+    std::generate_n(std::back_inserter(tDesignVariables), aCommandGenerator.numberOfNodes(),
+                    [tCount = Density::IndexType{0}]() mutable
+                    {
+                        ++tCount;
+                        return Density{tCount, tCount - 1, static_cast<double>(tCount)};
+                    });
+    return MeshDesignVariables{aMeshFilePath, {{0, tDesignVariables}}};
+}
+
 }  // namespace
 
 TEST_F(TwoBlockMeshOnDisk, NodalDensitiesToMeshDesignVariables)
@@ -132,16 +163,7 @@ TEST_F(TwoDThreeBlockMesh, ElementDensitiesToDesignVariablesWithFixedBlocks)
 
 TEST_F(OneBlock3x1x1HexMesh, MeshDesignVariablesToNodalDensities)
 {
-    auto tMeshDesignVariables = MeshDesignVariables{mMeshFilePath, {}};
-    auto tDesignVariables = std::vector<Density>{};
-    tDesignVariables.reserve(mCommandGenerator.numberOfNodes());
-    std::generate_n(std::back_inserter(tDesignVariables), mCommandGenerator.numberOfNodes(),
-                    [tCount = Density::IndexType{0}]() mutable
-                    {
-                        ++tCount;
-                        return Density{tCount, tCount - 1, static_cast<double>(tCount)};
-                    });
-    tMeshDesignVariables.mBlockDensities.emplace(0, tDesignVariables);
+    const auto tMeshDesignVariables = one_block_mesh_design_variables_for_tests(mCommandGenerator, mMeshFilePath);
 
     const auto tMesh = Mesh{mMeshFilePath, {}};
     const auto tDesignVariableVector =
@@ -204,6 +226,19 @@ TEST_F(TwoDThreeBlockMesh, MeshElementDesignVariablesRoundTrip)
         DesignVariablesConversion{tMesh}.meshDesignVariablesToElementDensityVector(tMeshDesignVariables);
 
     EXPECT_EQ(tElementDesignVariables, tRoundTripElementDesignVariables.mValue);
+}
+
+TEST_F(OneBlock3x1x1HexMesh, NodalDensitiesToNodalIDMap)
+{
+    const auto tMesh = DesignVariablesConversion{Mesh{mMeshFilePath, {}}};
+    check_map_consistency(tMesh, mCommandGenerator.numberOfNodes(), TEST_CONTEXT("One block hex"));
+}
+
+TEST_F(TwoDThreeBlockMesh, NodalDensitiesToNodalIDMap)
+{
+    const auto tMesh = DesignVariablesConversion{Mesh{mMeshFilePath, {"block_1"}}};
+    constexpr auto tNumberOfDesignVariables = 6U;
+    check_map_consistency(tMesh, tNumberOfDesignVariables, TEST_CONTEXT("Three block, block 1 fixed"));
 }
 
 }  // namespace plato::mesh::unittest

@@ -57,6 +57,10 @@ struct DesignVariablesConversion : public Mesh
     /// @sa meshDesignVariablesToNodalDensityVector
     ElementDensityVector meshDesignVariablesToElementDensityVector(
         const MeshDesignVariables& aMeshDesignVariables) const;
+
+    /// @brief Converts all design variable densities to a map from global ID to density value.
+    auto nodalDensitiesToNodalIDMap(NodalDensityVectorReference aDensities) const
+        -> std::unordered_map<Density::IndexType, double>;
 };
 
 }  // namespace plato::mesh

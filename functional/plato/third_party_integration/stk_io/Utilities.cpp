@@ -50,7 +50,7 @@ unsigned int size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& a
 
 template <stk::topology::rank_t Rank>
 size_t write_mesh_density_impl(stk::io::StkMeshIoBroker& aIOBroker,
-                               const std::vector<double>& aDensity,
+                               const std::unordered_map<std::size_t, double>& aDensity,
                                const std::filesystem::path& aOutputMeshName)
 {
     constexpr int tScalarFieldSize = 1;
@@ -62,11 +62,13 @@ size_t write_mesh_density_impl(stk::io::StkMeshIoBroker& aIOBroker,
 
     std::vector<stk::mesh::Entity> tEntity;
     stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntity, kUnsorted);
-    assert(tEntity.size() == aDensity.size());
     for (size_t iEntity = 0; iEntity < tEntity.size(); iEntity++)
     {
         double* const tFieldData = stk::mesh::field_data(tField, tEntity[iEntity]);
-        *tFieldData = aDensity[aIOBroker.bulk_data().local_id(tEntity[iEntity])];
+        const auto tGlobalID = aIOBroker.bulk_data().identifier(tEntity[iEntity]);
+        const auto tDensityIterator = aDensity.find(tGlobalID);
+        assert(tDensityIterator != aDensity.end());
+        *tFieldData = tDensityIterator->second;
     }
 
     const size_t tOutputFileIndex = aIOBroker.create_output_mesh(aOutputMeshName.string(), stk::io::WRITE_RESULTS);
@@ -145,32 +147,6 @@ std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::
     return tBulk;
 }
 
-std::vector<double> read_nodal_density(const std::filesystem::path& aMeshName)
-{
-    Ioss::DatabaseIO* tResultsDb =
-        Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
-    Ioss::Region tResults(tResultsDb);
-
-    tResults.begin_state(1);
-    Ioss::NodeBlock* tNb = tResults.get_node_blocks()[0];
-    std::vector<double> tNodeFieldData;
-    tNb->get_field_data(std::string{kTopologyFieldName}, tNodeFieldData);
-    return tNodeFieldData;
-}
-
-std::vector<double> read_element_density(const std::filesystem::path& aMeshName)
-{
-    Ioss::DatabaseIO* tResultsDb =
-        Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
-    Ioss::Region tResults(tResultsDb);
-
-    tResults.begin_state(1);
-    Ioss::ElementBlock* tEb = tResults.get_element_blocks()[0];
-    std::vector<double> tElementFieldData;
-    tEb->get_field_data(std::string{kTopologyFieldName}, tElementFieldData);
-    return tElementFieldData;
-}
-
 unsigned int node_size(const stk::mesh::BulkData& aBulk) { return node_size(aBulk, universal_part(aBulk)); }
 
 unsigned int node_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
@@ -231,7 +207,7 @@ auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVect
 }
 
 void write_nodal_density(const std::filesystem::path& aInputMeshName,
-                         const std::vector<double>& aDensity,
+                         const std::unordered_map<std::size_t, double>& aDensity,
                          const std::filesystem::path& aOutputMeshName)
 {
     std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker =
@@ -245,7 +221,7 @@ void write_nodal_density(const std::filesystem::path& aInputMeshName,
 }
 
 void write_element_density(const std::filesystem::path& aInputMeshName,
-                           const std::vector<double>& aDensity,
+                           const std::unordered_map<std::size_t, double>& aDensity,
                            const std::filesystem::path& aOutputMeshName)
 {
     std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker =

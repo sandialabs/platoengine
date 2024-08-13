@@ -66,25 +66,20 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
 [[nodiscard]] auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
     -> std::vector<common::Coordinate>;
 
-/// @brief Given a pathname  @a aMeshName, return a std::vector of the nodal densities stored in the kTopologyField name
-[[nodiscard]] std::vector<double> read_nodal_density(const std::filesystem::path& aMeshName);
-
-/// @brief Given a pathname  @a aMeshName, return a std::vector of the element densities stored in the kTopologyField
-/// name
-[[nodiscard]] std::vector<double> read_element_density(const std::filesystem::path& aMeshName);
-
 /// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
-/// nodal field stored in the kTopologyField name and populated with the data in @a aDensity
+/// nodal field stored in the kTopologyField name and populated with the data in @a aDensity.
+/// @param aDensity A map associating global IDs with nodal densities.
 /// @pre aDensity.size() == size<stk::topology::NODE_RANK>()
 void write_nodal_density(const std::filesystem::path& aInputMeshName,
-                         const std::vector<double>& aDensity,
+                         const std::unordered_map<std::size_t, double>& aDensity,
                          const std::filesystem::path& aOutputMeshName);
 
 /// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
 /// element field stored in the kTopologyField name and populated with the data in @a aDensity
+/// @param aDensity A map associating global IDs with nodal densities.
 /// @pre aDensity.size() == size<stk::topology::ELEMENT_RANK>()
 void write_element_density(const std::filesystem::path& aInputMeshName,
-                           const std::vector<double>& aDensity,
+                           const std::unordered_map<std::size_t, double>& aDensity,
                            const std::filesystem::path& aOutputMeshName);
 
 /// @brief Given a STK Bulk data  @a aBulk, return the STK element container
