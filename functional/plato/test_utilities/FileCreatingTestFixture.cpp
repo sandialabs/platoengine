@@ -19,9 +19,9 @@ void execute_on_root(const F& aFunction, Args&&... aArgs)
 FileCreatingTestFixture::FileCreatingTestFixture(std::filesystem::path aFilePath) : mFilePath{std::move(aFilePath)}
 {
     execute_on_root(
-        [](const std::filesystem::path& aFilePath)
+        [](const std::filesystem::path& aFilePathArg)
         {
-            auto tStream = std::ofstream{aFilePath};
+            auto tStream = std::ofstream{aFilePathArg};
             tStream.close();
         },
         mFilePath);
