@@ -150,7 +150,7 @@ TEST(STKUtilities, WriteDensityField)
 {
     constexpr std::string_view tInputFileName = "brick.exo";
     const auto tData = std::unordered_map<std::size_t, double>{{1, 1.0}, {2, 2.0}, {3, 3.0}, {4, 4.0},
-                                                              {5, 5.0}, {6, 6.0}, {7, 7.0}, {8, 8.0}};
+                                                               {5, 5.0}, {6, 6.0}, {7, 7.0}, {8, 8.0}};
 
     auto tExpected = std::vector<double>(tData.size());
     std::iota(tExpected.begin(), tExpected.end(), 1.0);
