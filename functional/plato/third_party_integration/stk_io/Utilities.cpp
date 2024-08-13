@@ -28,6 +28,7 @@ namespace
 constexpr auto kTopologyFieldName = std::string_view{"topology"};
 constexpr bool kSortedByID = true;
 constexpr bool kUnsorted = false;
+constexpr auto kFixedDensity = double{1.0};
 
 stk::mesh::Selector parts_to_selector(const PartReferenceVector& aParts)
 {
@@ -60,15 +61,15 @@ size_t write_mesh_density_impl(stk::io::StkMeshIoBroker& aIOBroker,
     stk::mesh::put_field_on_mesh(tField, aIOBroker.meta_data().universal_part(), &tInitialValue);
     aIOBroker.populate_bulk_data();
 
-    std::vector<stk::mesh::Entity> tEntity;
-    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntity, kUnsorted);
-    for (size_t iEntity = 0; iEntity < tEntity.size(); iEntity++)
+    std::vector<stk::mesh::Entity> tEntityVector;
+    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntityVector, kUnsorted);
+    for (const auto& tEntity : tEntityVector)
     {
-        double* const tFieldData = stk::mesh::field_data(tField, tEntity[iEntity]);
-        const auto tGlobalID = aIOBroker.bulk_data().identifier(tEntity[iEntity]);
+        double* const tFieldData = stk::mesh::field_data(tField, tEntity);
+        const auto tGlobalID = aIOBroker.bulk_data().identifier(tEntity);
         const auto tDensityIterator = aDensity.find(tGlobalID);
-        assert(tDensityIterator != aDensity.end());
-        *tFieldData = tDensityIterator->second;
+        const auto tDensity = tDensityIterator != aDensity.end() ? tDensityIterator->second : kFixedDensity;
+        *tFieldData = tDensity;
     }
 
     const size_t tOutputFileIndex = aIOBroker.create_output_mesh(aOutputMeshName.string(), stk::io::WRITE_RESULTS);

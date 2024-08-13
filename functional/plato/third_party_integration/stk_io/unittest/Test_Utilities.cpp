@@ -146,7 +146,7 @@ TEST(STKUtilities, ReadCoordinatesCoordinate)
     EXPECT_EQ(node_size(*tMesh), tCommandGenerator.numberOfNodes());
 }
 
-TEST(STKUtilities, WriteDensityField)
+TEST(STKUtilities, WriteDensityFieldAllValuesExist)
 {
     constexpr std::string_view tInputFileName = "brick.exo";
     const auto tData = std::unordered_map<std::size_t, double>{{1, 1.0}, {2, 2.0}, {3, 3.0}, {4, 4.0},
@@ -154,6 +154,40 @@ TEST(STKUtilities, WriteDensityField)
 
     auto tExpected = std::vector<double>(tData.size());
     std::iota(tExpected.begin(), tExpected.end(), 1.0);
+    constexpr std::string_view tOutputFileName = "brick-out.exo";
+
+    // Nodal
+    {
+        write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{}));
+        write_nodal_density(tInputFileName, tData, tOutputFileName);
+        const auto tResult = read_nodal_density(tOutputFileName);
+        EXPECT_EQ(tResult, tExpected);
+    }
+    // Element
+    {
+        write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
+        write_element_density(tInputFileName, tData, tOutputFileName);
+        const auto tResult = read_element_density(tOutputFileName);
+        EXPECT_EQ(tResult, tExpected);
+    }
+
+    EXPECT_TRUE(std::filesystem::remove(tInputFileName));
+    EXPECT_TRUE(std::filesystem::remove(tOutputFileName));
+}
+
+TEST(STKUtilities, WriteDensityFieldSomeMissing)
+{
+    constexpr std::string_view tInputFileName = "brick.exo";
+    const auto tData =
+        std::unordered_map<std::size_t, double>{{1, 1.0}, {3, 3.0}, {5, 5.0}, {6, 6.0}, {7, 7.0}, {8, 8.0}};
+    const auto tMissingGlobalIDs = std::vector<std::size_t>{2U, 4U};
+
+    auto tExpected = std::vector<double>(tData.size() + tMissingGlobalIDs.size());
+    std::iota(tExpected.begin(), tExpected.end(), 1.0);
+    for (const auto tMissingID : tMissingGlobalIDs)
+    {
+        tExpected.at(tMissingID - 1) = 1.0;
+    }
     constexpr std::string_view tOutputFileName = "brick-out.exo";
 
     // Nodal
