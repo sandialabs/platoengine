@@ -1,5 +1,7 @@
 #include "plato/mesh/Mesh.hpp"
 
+#include <cassert>
+
 #include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
