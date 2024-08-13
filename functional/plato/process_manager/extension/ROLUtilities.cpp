@@ -3,7 +3,6 @@
 #include <ROL_Bounds.hpp>
 
 #include "plato/core/Compose.hpp"
-#include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"

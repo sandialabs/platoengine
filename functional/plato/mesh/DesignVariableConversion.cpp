@@ -36,7 +36,6 @@ MeshDesignVariables entity_densities_to_mesh_design_variables(const std::vector<
     auto tMeshDesignVariables = initialize_mesh_design_variable_data_structures(aMesh, aIDFunction);
 
     auto tMeshView = MeshDesignVariablesDensitiesMutableView{tMeshDesignVariables};
-    std::cout << "aDensities size: " << aDensities.size() << ", tMeshView.size: " << tMeshView.size() << std::endl;
     assert(aDensities.size() == tMeshView.size());
     std::transform(aDensities.cbegin(), aDensities.cend(), tMeshView.begin(), tMeshView.begin(),
                    [tVectorIndex = Density::IndexType{0}](const double aDensity, const auto& aDensityID) mutable
