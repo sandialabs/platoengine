@@ -14,6 +14,7 @@
 #include <stk_util/parallel/Parallel.hpp>
 #include <string_view>
 
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -53,6 +54,31 @@ std::vector<double> read_element_density(const std::filesystem::path& aMeshName)
     tEb->get_field_data(std::string{kTopologyFieldName}, tElementFieldData);
     return tElementFieldData;
 }
+
+void check_write_density(const std::filesystem::path& aInputFileName,
+                         const std::unordered_map<std::size_t, double>& aData,
+                         const std::filesystem::path& aOutputFileName,
+                         const std::vector<double>& aExpected,
+                         const plato::test_utilities::TestContext& aTestContext)
+{
+    // Nodal
+    {
+        write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{}));
+        write_nodal_density(aInputFileName, aData, aOutputFileName);
+        const auto tResult = read_nodal_density(aOutputFileName);
+        EXPECT_EQ(tResult, aExpected) << aTestContext;
+    }
+    // Element
+    {
+        write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
+        write_element_density(aInputFileName, aData, aOutputFileName);
+        const auto tResult = read_element_density(aOutputFileName);
+        EXPECT_EQ(tResult, aExpected) << aTestContext;
+    }
+    EXPECT_TRUE(std::filesystem::remove(aInputFileName)) << aTestContext;
+    EXPECT_TRUE(std::filesystem::remove(aOutputFileName)) << aTestContext;
+}
+
 }  // namespace
 
 TEST(STKUtilities, CommandGeneratorWriteMeshToDisk)
@@ -156,23 +182,7 @@ TEST(STKUtilities, WriteDensityFieldAllValuesExist)
     std::iota(tExpected.begin(), tExpected.end(), 1.0);
     constexpr std::string_view tOutputFileName = "brick-out.exo";
 
-    // Nodal
-    {
-        write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{}));
-        write_nodal_density(tInputFileName, tData, tOutputFileName);
-        const auto tResult = read_nodal_density(tOutputFileName);
-        EXPECT_EQ(tResult, tExpected);
-    }
-    // Element
-    {
-        write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
-        write_element_density(tInputFileName, tData, tOutputFileName);
-        const auto tResult = read_element_density(tOutputFileName);
-        EXPECT_EQ(tResult, tExpected);
-    }
-
-    EXPECT_TRUE(std::filesystem::remove(tInputFileName));
-    EXPECT_TRUE(std::filesystem::remove(tOutputFileName));
+    check_write_density(tInputFileName, tData, tOutputFileName, tExpected, TEST_CONTEXT("All density values exist"));
 }
 
 TEST(STKUtilities, WriteDensityFieldSomeMissing)
@@ -190,23 +200,8 @@ TEST(STKUtilities, WriteDensityFieldSomeMissing)
     }
     constexpr std::string_view tOutputFileName = "brick-out.exo";
 
-    // Nodal
-    {
-        write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{}));
-        write_nodal_density(tInputFileName, tData, tOutputFileName);
-        const auto tResult = read_nodal_density(tOutputFileName);
-        EXPECT_EQ(tResult, tExpected);
-    }
-    // Element
-    {
-        write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
-        write_element_density(tInputFileName, tData, tOutputFileName);
-        const auto tResult = read_element_density(tOutputFileName);
-        EXPECT_EQ(tResult, tExpected);
-    }
-
-    EXPECT_TRUE(std::filesystem::remove(tInputFileName));
-    EXPECT_TRUE(std::filesystem::remove(tOutputFileName));
+    check_write_density(tInputFileName, tData, tOutputFileName, tExpected,
+                        TEST_CONTEXT("Some missing density field values"));
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest
