@@ -8,7 +8,7 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
-#include "plato/mesh/MeshDesignVariablesViews.hpp"
+#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/StringUtilities.hpp"

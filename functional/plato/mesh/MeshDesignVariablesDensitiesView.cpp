@@ -1,4 +1,4 @@
-#include "plato/mesh/MeshDesignVariablesViews.hpp"
+#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
 
 #include <algorithm>
 #include <cassert>

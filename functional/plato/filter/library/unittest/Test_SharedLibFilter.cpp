@@ -5,7 +5,7 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesViews.hpp"
+#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::filter::extension::unittest

@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "plato/mesh/MeshBlocks.hpp"
-#include "plato/mesh/MeshDesignVariablesViews.hpp"
+#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::mesh

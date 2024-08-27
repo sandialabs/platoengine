@@ -4,7 +4,7 @@
 #include <numeric>
 
 #include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesViews.hpp"
+#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/IndexRange.hpp"
 #include "plato/utilities/Zip.hpp"
