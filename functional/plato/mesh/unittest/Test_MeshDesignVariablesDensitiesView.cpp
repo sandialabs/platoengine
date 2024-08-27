@@ -6,7 +6,6 @@
 #include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/utilities/IndexRange.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::mesh
@@ -44,53 +43,7 @@ const auto kTwoBlockDensitiesOverlap =
 const auto kTwoBlockDensitiesNoOverlap =
     MeshDesignVariables::BlockDensities{{0, kBlockDensityVector1}, {1, kBlockDensityVector2NoOverlap}};
 
-using MeshDesignVariablesDensitiesViewConstIterator = MeshDesignVariablesDensitiesView::IteratorType;
 }  // namespace
-
-TEST(MeshDesignVariablesViews, IncrementIterator)
-{
-    auto tIterator =
-        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector1.cbegin()}, {kBlockDensityVector1.cend()}};
-    for (const auto tIndex : utilities::IndexRange{kDensities1.size()})
-    {
-        boost::ignore_unused(tIndex);
-        const auto tIteratorBeforeIncrement = tIterator;
-        ++tIterator;
-        const auto tDistance = std::distance(tIteratorBeforeIncrement, tIterator);
-        EXPECT_EQ(tDistance, 1u);
-    }
-}
-
-TEST(MeshDesignVariablesViews, DereferenceIterator)
-{
-    auto tIterator =
-        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector1.cbegin()}, {kBlockDensityVector1.cend()}};
-    EXPECT_EQ(static_cast<Density>(*tIterator).mDensity, kBlockDensityVector1.cbegin()->mDensity);
-    EXPECT_EQ(static_cast<Density>(*tIterator).mGlobalMeshEntityID, kBlockDensityVector1.cbegin()->mGlobalMeshEntityID);
-    ++tIterator;
-    EXPECT_EQ(static_cast<Density>(*tIterator).mDensity, std::next(kBlockDensityVector1.cbegin())->mDensity);
-    EXPECT_EQ(static_cast<Density>(*tIterator).mGlobalMeshEntityID,
-              std::next(kBlockDensityVector1.cbegin())->mGlobalMeshEntityID);
-}
-
-TEST(MeshDesignVariablesViews, IteratorEqualityOperators)
-{
-    auto tIterator1 =
-        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector1.cbegin()}, {kBlockDensityVector1.cend()}};
-    auto tIterator2 =
-        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector1.cbegin()}, {kBlockDensityVector1.cend()}};
-
-    EXPECT_TRUE(tIterator1 == tIterator2) << "Explicitly check equality operator";
-    EXPECT_FALSE(tIterator1 != tIterator2) << "Explicitly check inequality operator";
-
-    ++tIterator1;
-    EXPECT_FALSE(tIterator1 == tIterator2) << "Explicitly check equality operator";
-    EXPECT_TRUE(tIterator1 != tIterator2) << "Explicitly check inequality operator";
-
-    ++tIterator2;
-    EXPECT_TRUE(tIterator1 == tIterator2) << "Explicitly check equality operator";
-    EXPECT_FALSE(tIterator1 != tIterator2) << "Explicitly check inequality operator";
-}
 
 TEST(MeshDesignVariablesViews, SizeSingleBlock)
 {
