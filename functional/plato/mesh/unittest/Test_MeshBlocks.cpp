@@ -7,6 +7,7 @@
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/utilities/IndexRange.hpp"
 
 namespace plato::mesh::unittest
 {
@@ -76,19 +77,22 @@ TEST_F(TwoDThreeBlockMesh, BlockIDsFromOrdinals)
     tCheckIDFromOrdinal("block_3", 3, TEST_CONTEXT("Block 3"));
 }
 
-TEST_F(TwoBlockMeshOnDisk, BlockData)
+TEST_F(TwoDThreeBlockMesh, BlockData)
 {
     const auto tMesh = Mesh{mMeshFilePath};
     const auto tBlockIDsAndNames = MeshBlocks{tMesh}.blockData();
     ASSERT_EQ(tBlockIDsAndNames.size(), mExpectedNumberOfBlocks);
 
-    EXPECT_EQ(tBlockIDsAndNames.front().mID, 1);
-    EXPECT_EQ(tBlockIDsAndNames.front().mMetaDataOrdinal, 40u);
-    EXPECT_EQ(tBlockIDsAndNames.front().mName, "block_1");
+    const auto tExpectedBlockIDs = std::vector{1, 2, 3};
+    const auto tExpectedBlockOrdinals = std::vector{mBlock1Ordinal, mBlock2Ordinal, mBlock3Ordinal};
+    const auto tExpectedBlockNames = std::vector<std::string>{"block_1", "block_2", "block_3"};
 
-    EXPECT_EQ(tBlockIDsAndNames.back().mID, 2);
-    EXPECT_EQ(tBlockIDsAndNames.back().mMetaDataOrdinal, 41u);
-    EXPECT_EQ(tBlockIDsAndNames.back().mName, "block_2");
+    for (const auto tIndex : utilities::IndexRange{mExpectedNumberOfBlocks})
+    {
+        EXPECT_EQ(tBlockIDsAndNames.at(tIndex).mID, tExpectedBlockIDs.at(tIndex));
+        EXPECT_EQ(tBlockIDsAndNames.at(tIndex).mMetaDataOrdinal, tExpectedBlockOrdinals.at(tIndex));
+        EXPECT_EQ(tBlockIDsAndNames.at(tIndex).mName, tExpectedBlockNames.at(tIndex));
+    }
 
     // Check sorted post-condition
     EXPECT_TRUE(std::is_sorted(tBlockIDsAndNames.cbegin(), tBlockIDsAndNames.cend(),
