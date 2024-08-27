@@ -6,6 +6,7 @@
 #include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::mesh
@@ -43,6 +44,21 @@ const auto kTwoBlockDensitiesOverlap =
 const auto kTwoBlockDensitiesNoOverlap =
     MeshDesignVariables::BlockDensities{{0, kBlockDensityVector1}, {1, kBlockDensityVector2NoOverlap}};
 
+using NewDensities = utilities::NamedType<std::vector<Density>, struct NewDensitiesTag>;
+using Block1Densities = utilities::NamedType<std::vector<Density>, struct NewDensitiesTag>;
+using Block2Densities = utilities::NamedType<std::vector<Density>, struct NewDensitiesTag>;
+
+void check_mutable_view(MeshDesignVariables& aMeshDesignVariables,
+                        const NewDensities& aNewDensities,
+                        const Block1Densities& aExpectedDensitiesBlock1,
+                        const Block2Densities& aExpectedDensitiesBlock2,
+                        const plato::test_utilities::TestContext& aTestContext)
+{
+    const auto tMeshView = MeshDesignVariablesDensitiesMutableView{aMeshDesignVariables};
+    std::copy(aNewDensities.mValue.cbegin(), aNewDensities.mValue.cend(), tMeshView.begin());
+    EXPECT_EQ(aExpectedDensitiesBlock1.mValue, aMeshDesignVariables.mBlockDensities.at(0)) << aTestContext;
+    EXPECT_EQ(aExpectedDensitiesBlock2.mValue, aMeshDesignVariables.mBlockDensities.at(1)) << aTestContext;
+}
 }  // namespace
 
 TEST(MeshDesignVariablesViews, SizeSingleBlock)
@@ -164,29 +180,21 @@ TEST(MeshDesignVariablesViews, MutableView)
 TEST(MeshDesignVariablesViews, MutableViewTwoBlocksNoOverlap)
 {
     auto tMeshDesignVariables = MeshDesignVariables{/*.mFileName*/ "mercury.exo", kTwoBlockDensitiesNoOverlap};
-    const auto tMeshView = MeshDesignVariablesDensitiesMutableView{tMeshDesignVariables};
     const auto tNewDensities = std::vector<Density>{{0, 0, 0.0}, {1, 1, 1.0}, {2, 2, 2.0}, {3, 3, 3.0}, {4, 4, 4.0}};
-    std::copy(tNewDensities.cbegin(), tNewDensities.cend(), tMeshView.begin());
-
     const auto tExpectedDensitiesBlock1 = std::vector<Density>{{0, 0, 0.0}, {1, 1, 1.0}, {2, 2, 2.0}};
-    EXPECT_EQ(tExpectedDensitiesBlock1, tMeshDesignVariables.mBlockDensities.at(0));
-
     const auto tExpectedDensitiesBlock2 = std::vector<Density>{{3, 3, 3.0}, {4, 4, 4.0}};
-    EXPECT_EQ(tExpectedDensitiesBlock2, tMeshDesignVariables.mBlockDensities.at(1));
+    check_mutable_view(tMeshDesignVariables, NewDensities{tNewDensities}, Block1Densities{tExpectedDensitiesBlock1},
+                       Block2Densities{tExpectedDensitiesBlock2}, TEST_CONTEXT("Blocks do not overlap"));
 }
 
 TEST(MeshDesignVariablesViews, MutableViewTwoBlocksWithOverlap)
 {
     auto tMeshDesignVariables = MeshDesignVariables{/*.mFileName*/ "earth.exo", kTwoBlockDensitiesOverlap};
-    const auto tMeshView = MeshDesignVariablesDensitiesMutableView{tMeshDesignVariables};
     const auto tNewDensities = std::vector<Density>{{0, 0, 0.0}, {1, 1, 1.0}, {2, 2, 2.0}};
-    std::copy(tNewDensities.cbegin(), tNewDensities.cend(), tMeshView.begin());
-
     const auto tExpectedDensitiesBlock1 = std::vector<Density>{{0, 0, 0.0}, {1, 1, 1.0}, {2, 2, 2.0}};
-    EXPECT_EQ(tExpectedDensitiesBlock1, tMeshDesignVariables.mBlockDensities.at(0));
-
     const auto tExpectedDensitiesBlock2 = std::vector<Density>{{0, 0, 0.0}, {1, 1, 1.0}};
-    EXPECT_EQ(tExpectedDensitiesBlock2, tMeshDesignVariables.mBlockDensities.at(1));
+    check_mutable_view(tMeshDesignVariables, NewDensities{tNewDensities}, Block1Densities{tExpectedDensitiesBlock1},
+                       Block2Densities{tExpectedDensitiesBlock2}, TEST_CONTEXT("Blocks overlap"));
 }
 
 TEST(MeshDesignVariablesViews, ToVector)
