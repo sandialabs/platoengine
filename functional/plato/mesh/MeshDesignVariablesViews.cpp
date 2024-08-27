@@ -5,48 +5,16 @@
 #include <numeric>
 
 #include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/utilities/IndexRange.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::mesh
 {
-namespace
-{
-template <typename InnerIteratorType>
-std::vector<std::optional<Density>> dereference_all(const std::vector<InnerIteratorType>& aCurrentIterators,
-                                                    const std::vector<InnerIteratorType>& aEndIterators)
-{
-    auto tDensities = std::vector<std::optional<Density>>{};
-    tDensities.reserve(tDensities.size());
-    std::transform(aCurrentIterators.cbegin(), aCurrentIterators.cend(), aEndIterators.cbegin(),
-                   std::back_inserter(tDensities),
-                   [](const auto& aCurrentIterator, const auto& aEndIterator) -> std::optional<Density>
-                   {
-                       if (aCurrentIterator != aEndIterator)
-                       {
-                           return *aCurrentIterator;
-                       }
-                       return std::nullopt;
-                   });
-    return tDensities;
-}
-}  // namespace
-
 template <typename InnerIteratorType, typename IteratorCategory>
 auto MeshDesignVariablesDensitiesViewIterator<InnerIteratorType, IteratorCategory>::operator++()
     -> MeshDesignVariablesDensitiesViewIterator<InnerIteratorType, IteratorCategory>&
 {
-    const auto tValues = dereference_all(mCurrentIterators, mEndIterators);
-    const auto tMinIDIterator =
-        std::min_element(tValues.cbegin(), tValues.cend(),
-                         [](const auto& tLeftDensity, const auto& tRightDensity)
-                         {
-                             if (tLeftDensity && tRightDensity)
-                             {
-                                 return tLeftDensity->mGlobalMeshEntityID < tRightDensity->mGlobalMeshEntityID;
-                             }
-                             return tLeftDensity.has_value();
-                         });
+    const auto tValues = detail::dereference_all(mCurrentIterators, mEndIterators);
+    const auto tMinIDIterator = detail::min_id_iterator(tValues);
     if (tMinIDIterator != tValues.cend() && tMinIDIterator->has_value())
     {
         const auto tMinGlobalID = tMinIDIterator->value().mGlobalMeshEntityID;  // NOLINT
@@ -62,34 +30,9 @@ auto MeshDesignVariablesDensitiesViewIterator<InnerIteratorType, IteratorCategor
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
-auto MeshDesignVariablesDensitiesViewIterator<InnerIteratorType, IteratorCategory>::operator*() const -> const
-    typename MeshDesignVariablesDensitiesViewIterator<InnerIteratorType, IteratorCategory>::reference
+auto MeshDesignVariablesDensitiesViewIterator<InnerIteratorType, IteratorCategory>::operator*() const -> const reference
 {
-    const auto tValues = dereference_all(mCurrentIterators, mEndIterators);
-    const auto tMinIDIterator =
-        std::min_element(tValues.cbegin(), tValues.cend(),
-                         [](const auto& tLeftDensity, const auto& tRightDensity)
-                         {
-                             if (tLeftDensity && tRightDensity)
-                             {
-                                 return tLeftDensity->mGlobalMeshEntityID < tRightDensity->mGlobalMeshEntityID;
-                             }
-                             return tLeftDensity.has_value();
-                         });
-    if (!tMinIDIterator->has_value())
-    {
-        return SharedDensityProxy<InnerIteratorType>{};
-    }
-    const auto tMinGlobalID = tMinIDIterator->value().mGlobalMeshEntityID;  // NOLINT
-    auto tProxy = SharedDensityProxy<InnerIteratorType>{};
-    for (const auto& [tCurrentIterator, tEndIterator] : utilities::Zip{mCurrentIterators, mEndIterators})
-    {
-        if (tCurrentIterator != tEndIterator && tCurrentIterator->mGlobalMeshEntityID == tMinGlobalID)
-        {
-            tProxy.mIterators.push_back(tCurrentIterator);
-        }
-    }
-    return tProxy;
+    return detail::dereferenced_proxy(mCurrentIterators, mEndIterators);
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
@@ -195,6 +138,20 @@ auto split_densities(const std::vector<Density>& aDensities)
                    [](const auto& aDensity) { return aDensity.mGlobalMeshEntityID; });
 
     return {std::move(tDensityValues), std::move(tIndices)};
+}
+
+auto min_id_iterator(const std::vector<std::optional<Density>>& aDensities) ->
+    typename std::vector<std::optional<Density>>::const_iterator
+{
+    return std::min_element(aDensities.cbegin(), aDensities.cend(),
+                            [](const auto& tLeftDensity, const auto& tRightDensity)
+                            {
+                                if (tLeftDensity && tRightDensity)
+                                {
+                                    return tLeftDensity->mGlobalMeshEntityID < tRightDensity->mGlobalMeshEntityID;
+                                }
+                                return tLeftDensity.has_value();
+                            });
 }
 }  // namespace detail
 
