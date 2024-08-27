@@ -1,6 +1,7 @@
 #ifndef PLATO_MESH_SHAREDDENSITYPROXY
 #define PLATO_MESH_SHAREDDENSITYPROXY
 
+#include <cassert>
 #include <functional>
 
 #include "plato/mesh/MeshDesignVariables.hpp"
