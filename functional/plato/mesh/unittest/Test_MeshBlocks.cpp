@@ -40,6 +40,10 @@ TEST_F(TwoBlockMeshOnDisk, BlockOrdinals)
     ASSERT_TRUE(tBlock2Ordinal);
     constexpr auto tExpectedBlock2Ordinal = 41u;
     EXPECT_EQ(tBlock2Ordinal.value(), tExpectedBlock2Ordinal);
+
+    // Non-exestent block
+    const auto tBlock3Ordinal = tMesh.blockOrdinal("block_3");
+    ASSERT_FALSE(tBlock3Ordinal);
 }
 
 TEST_F(TwoBlockMeshOnDisk, BlockIDsFromNames)
@@ -55,6 +59,10 @@ TEST_F(TwoBlockMeshOnDisk, BlockIDsFromNames)
     ASSERT_TRUE(tBlock2ID);
     constexpr auto tExpectedBlock2ID = 2;
     EXPECT_EQ(tBlock2ID.value(), tExpectedBlock2ID);
+
+    // Non-existent block
+    const auto tBlock3ID = tMesh.blockID("block_3");
+    ASSERT_FALSE(tBlock3ID);
 }
 
 TEST_F(TwoDThreeBlockMesh, BlockIDsFromOrdinals)
