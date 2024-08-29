@@ -7,9 +7,9 @@ set(LINK_LIBS PlatoFunctionalUtilities)
 
 create_plato_library(PlatoFunctionalServices ".;${CONFIGURED_SERVICES_SOURCE}" "${LINK_LIBS}")
 if( BUILD_WITH_SANITIZER_FLAGS )
-  target_compile_definitions(PlatoFunctionalServices PUBLIC BUILD_WITH_SANITIZER_FLAGS=1)
+  target_compile_definitions(PlatoFunctionalServices PRIVATE BUILD_WITH_SANITIZER_FLAGS=1)
 else()
-  target_compile_definitions(PlatoFunctionalServices PUBLIC BUILD_WITH_SANITIZER_FLAGS=0)
+  target_compile_definitions(PlatoFunctionalServices PRIVATE BUILD_WITH_SANITIZER_FLAGS=0)
 endif()
 
 if( UNIT_TESTING )
