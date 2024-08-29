@@ -11,7 +11,7 @@ namespace plato::utilities::unittest
 TEST(Enumerate, OneVectorMatchingEntries)
 {
     const auto tEntries = std::vector<unsigned int>{0, 1, 2, 3, 4};
-    for (const auto& [tIndex, tEntry] : utilities::enumerate(entries))
+    for (const auto& [tIndex, tEntry] : utilities::enumerate(tEntries))
     {
         EXPECT_EQ(tIndex, tEntry);
     }
