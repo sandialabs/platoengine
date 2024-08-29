@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include <boost/mpi.hpp>
 #include <filesystem>
 
 namespace plato::test_utilities
@@ -23,6 +24,7 @@ class FileCreatingTestFixture : public ::testing::Test
 
    private:
     std::filesystem::path mFilePath{};
+    boost::mpi::communicator mComm{};
 };
 }  // namespace plato::test_utilities
 
