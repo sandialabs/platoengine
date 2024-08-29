@@ -22,6 +22,14 @@ namespace plato::third_party_integration::stk_io
 {
 using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::Part>>;
 
+/// @brief A helper struct for writing fields to a mesh on disk.
+struct ScalarField
+{
+    std::unordered_map<std::size_t, double> mData{};
+    std::string mName{};
+    double mFixedValue = 1.0;
+};
+
 /// @brief Given a pathname  @a aMeshName and the Command generator @a aCommandGenerator, write to disk the data in
 /// exodus format
 void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator);
@@ -63,20 +71,18 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
     -> std::vector<common::Coordinate>;
 
 /// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
-/// nodal field stored in the kTopologyField name and populated with the data in @a aDensity.
-/// @param aDensity A map associating global IDs with nodal densities.
+/// nodal field stored in the name and populated with the data in @a aScalarField.
 /// @pre aDensity.size() == size<stk::topology::NODE_RANK>()
-void write_nodal_density(const std::filesystem::path& aInputMeshName,
-                         const std::unordered_map<std::size_t, double>& aDensity,
-                         const std::filesystem::path& aOutputMeshName);
+void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
+                              const ScalarField& aScalarField,
+                              const std::filesystem::path& aOutputMeshName);
 
 /// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
-/// element field stored in the kTopologyField name and populated with the data in @a aDensity
-/// @param aDensity A map associating global IDs with nodal densities.
+/// element field stored in the name and populated with the data in @a aScalarField.
 /// @pre aDensity.size() == size<stk::topology::ELEMENT_RANK>()
-void write_element_density(const std::filesystem::path& aInputMeshName,
-                           const std::unordered_map<std::size_t, double>& aDensity,
-                           const std::filesystem::path& aOutputMeshName);
+void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
+                                const ScalarField& aScalarField,
+                                const std::filesystem::path& aOutputMeshName);
 
 /// @brief Given a STK Bulk data  @a aBulk, return the STK element container
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk);

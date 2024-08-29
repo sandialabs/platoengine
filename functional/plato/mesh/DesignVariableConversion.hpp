@@ -60,6 +60,14 @@ struct DesignVariablesConversion : public Mesh
     /// @brief Converts all design variable field values to a map from global ID to scalar design value.
     auto nodalFieldToNodalIDMap(NodalFieldVectorReference aNodalField) const
         -> std::unordered_map<ScalarFieldValue::IndexType, double>;
+
+    /// @brief Converts all element field values to a map from global ID to field value.
+    auto elementFieldToElementIDMap(ElementFieldVectorReference aElementField) const
+        -> std::unordered_map<ScalarFieldValue::IndexType, double>;
+
+    /// @brief Converts all design variables to a map from ID to design variable.
+    auto meshDesignVariablesToIDMap(const MeshDesignVariables& aMeshDesignVariables) const
+        -> std::unordered_map<ScalarFieldValue::IndexType, double>;
 };
 
 }  // namespace plato::mesh

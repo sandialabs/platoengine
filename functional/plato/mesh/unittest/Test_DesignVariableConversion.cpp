@@ -20,6 +20,7 @@ namespace
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
 
 void check_sizes(const MeshDesignVariables& aMeshDesignVariables,
                  const std::vector<unsigned int>& aExpectedEntitySizes,
@@ -67,14 +68,14 @@ std::vector<double> entity_ids_to_field(const std::vector<std::size_t>& aEntityI
     return tScalarField;
 }
 
-void check_map_consistency(const DesignVariablesConversion& tMesh,
-                           const std::size_t aNumberOfDesignNodes,
+template <typename MapFunction>
+void check_map_consistency(const std::size_t aNumberOfDesignNodes,
+                           const MapFunction& aMapFunction,
                            const test_utilities::TestContext& aTestContext)
 {
     auto tNodalIDs = std::vector<std::size_t>(aNumberOfDesignNodes);
     std::iota(tNodalIDs.begin(), tNodalIDs.end(), 1);
-    const auto tScalarField = entity_ids_to_field(tNodalIDs);
-    const auto tFieldMap = tMesh.nodalFieldToNodalIDMap(NodalFieldVectorReference{tScalarField});
+    const auto tFieldMap = aMapFunction(entity_ids_to_field(tNodalIDs));
     for (const auto tNodalID : tNodalIDs)
     {
         const auto tNodalFieldMapIterator = tFieldMap.find(tNodalID);
@@ -185,9 +186,9 @@ TEST_F(TwoDThreeBlockMesh, MeshDesignVariablesToElementScalarField)
     // Set up to assume blocks 1 and 2 are fixed
     constexpr auto tBlock3ElementGlobalID = ScalarFieldValue::IndexType{3};
     constexpr auto tVectorIndex = ScalarFieldValue::IndexType{0};
-    constexpr auto tArbitraryDensity = double{0.5};
+    constexpr auto tArbitraryField = double{0.5};
     const auto tDesignVariables =
-        std::vector<ScalarFieldValue>{{tBlock3ElementGlobalID, tVectorIndex, tArbitraryDensity}};
+        std::vector<ScalarFieldValue>{{tBlock3ElementGlobalID, tVectorIndex, tArbitraryField}};
     constexpr auto tBlock3ID = MeshDesignVariables::BlockIDType{3};
     const auto tMeshDesignVariables = MeshDesignVariables{mMeshFilePath, {{tBlock3ID, tDesignVariables}}};
 
@@ -195,7 +196,7 @@ TEST_F(TwoDThreeBlockMesh, MeshDesignVariablesToElementScalarField)
     const auto tResultDesignVariableVector =
         DesignVariablesConversion{tMesh}.meshDesignVariablesToElementFieldVector(tMeshDesignVariables);
 
-    const auto tExpectedDesignVariableVector = std::vector{tArbitraryDensity};
+    const auto tExpectedDesignVariableVector = std::vector{tArbitraryField};
     EXPECT_EQ(tResultDesignVariableVector.mValue, tExpectedDesignVariableVector);
 }
 
@@ -232,14 +233,57 @@ TEST_F(TwoDThreeBlockMesh, MeshElementDesignVariablesRoundTrip)
 TEST_F(OneBlock3x1x1HexMesh, NodalScalarFieldToNodalIDMap)
 {
     const auto tMesh = DesignVariablesConversion{Mesh{mMeshFilePath, {}}};
-    check_map_consistency(tMesh, mCommandGenerator.numberOfNodes(), TEST_CONTEXT("One block hex"));
+    const auto tMapFunction = [&tMesh](const std::vector<double>& aField)
+    { return tMesh.nodalFieldToNodalIDMap(NodalFieldVectorReference{aField}); };
+    check_map_consistency(mCommandGenerator.numberOfNodes(), tMapFunction, TEST_CONTEXT("One block hex"));
 }
 
 TEST_F(TwoDThreeBlockMesh, NodalScalarFieldToNodalIDMap)
 {
     const auto tMesh = DesignVariablesConversion{Mesh{mMeshFilePath, {"block_1"}}};
     constexpr auto tNumberOfDesignVariables = 6U;
-    check_map_consistency(tMesh, tNumberOfDesignVariables, TEST_CONTEXT("Three block, block 1 fixed"));
+    const auto tMapFunction = [&tMesh](const std::vector<double>& aField)
+    { return tMesh.nodalFieldToNodalIDMap(NodalFieldVectorReference{aField}); };
+    check_map_consistency(tNumberOfDesignVariables, tMapFunction, TEST_CONTEXT("Three block, block 1 fixed"));
+}
+
+TEST_F(OneBlock3x1x1HexMesh, ElementFieldToElementDMap)
+{
+    const auto tMesh = DesignVariablesConversion{Mesh{mMeshFilePath}};
+    const auto tMapFunction = [&tMesh](const std::vector<double>& aField)
+    { return tMesh.elementFieldToElementIDMap(ElementFieldVectorReference{aField}); };
+    check_map_consistency(mCommandGenerator.numberOfElements(), tMapFunction, TEST_CONTEXT("One block hex"));
+}
+
+TEST_F(TwoDTwoBlockMesh, ElementFieldToElementIDMap)
+{
+    const auto tFixedBlocks = std::set<std::string>{"fixed"};
+    const auto tMesh = DesignVariablesConversion{Mesh{mMeshFilePath, tFixedBlocks}};
+    constexpr auto tNumberOfDesignVariables = 2U;
+    const auto tMapFunction = [&tMesh](const std::vector<double>& aField)
+    { return tMesh.elementFieldToElementIDMap(ElementFieldVectorReference{aField}); };
+    check_map_consistency(tNumberOfDesignVariables, tMapFunction, TEST_CONTEXT("Two block, one block fixed"));
+}
+
+TEST_F(TwoDThreeBlockMesh, NodalFieldDesignVariablesToIDMap)
+{
+    const auto tFieldVectorBlock1 =
+        std::vector<ScalarFieldValue>{{2, 0, 2.0}, {5, 3, 5.0}, {7, 5, 7.0}, {8, 6, 8.0}, {9, 7, 9.0}};
+    const auto tFieldVectorBlock3 = std::vector<ScalarFieldValue>{{2, 0, 2.0}, {3, 1, 3.0}, {5, 3, 5.0}, {6, 4, 6.0}};
+    const auto tBlockField = MeshDesignVariables::BlockScalarField{{1, tFieldVectorBlock1}, {3, tFieldVectorBlock3}};
+    const auto tDesignVariables = MeshDesignVariables{mMeshFilePath, tBlockField};
+
+    const auto tFixedBlocks = std::set<std::string>{"block_2"};
+    const auto tMesh = DesignVariablesConversion{Mesh{mMeshFilePath, tFixedBlocks}};
+
+    const auto tIDMap = tMesh.meshDesignVariablesToIDMap(tDesignVariables);
+
+    for (const ScalarFieldValue tValue : MeshDesignVariablesSequentialView{tDesignVariables})
+    {
+        const auto tNodalFieldMapIterator = tIDMap.find(tValue.mGlobalMeshEntityID);
+        ASSERT_NE(tNodalFieldMapIterator, tIDMap.end());
+        EXPECT_EQ(tNodalFieldMapIterator->first, tNodalFieldMapIterator->second);
+    }
 }
 
 }  // namespace plato::mesh::unittest

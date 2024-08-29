@@ -5,6 +5,11 @@
 
 namespace plato::mesh
 {
+struct MeshDesignVariables;
+}
+
+namespace plato::mesh
+{
 /// @brief A mixin class for Mesh that provides utilities counting entities in a mesh, such as nodes.
 struct EntityCounts : public Mesh
 {
@@ -37,6 +42,12 @@ struct EntityCounts : public Mesh
     ///
     /// Equivalent to `spatialDimentions() == 3u`
     [[nodiscard]] bool is3D() const;
+
+    /// @brief Returns `true` if @a aMeshDesignVariables contains a design variable field associated with nodes.
+    [[nodiscard]] bool areNodalDesignVariables(const MeshDesignVariables& aMeshDesignVariables) const;
+
+    /// @brief Returns `true` if @a aMeshDesignVariables contains a design variable field associated with elements.
+    [[nodiscard]] bool areElementDesignVariables(const MeshDesignVariables& aMeshDesignVariables) const;
 };
 
 }  // namespace plato::mesh

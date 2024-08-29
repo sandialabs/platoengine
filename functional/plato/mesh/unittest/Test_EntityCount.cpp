@@ -2,6 +2,7 @@
 
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
@@ -92,6 +93,59 @@ TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockDesignVariableCounts)
     constexpr auto tExpectedNumberOfNodes = 7u;
     const auto tNumberOfNodesInDesignDomain = EntityCounts{tMesh}.numberOfDesignDomainNodes();
     EXPECT_EQ(tNumberOfNodesInDesignDomain, tExpectedNumberOfNodes);
+}
+
+TEST_F(OneBlock3x1x1HexMesh, OneBlockHexAreDesignVariablesElementOrNodal)
+{
+    const auto setupDesignVariables =
+        [this](const std::size_t aNumberOfEntities) -> std::pair<MeshDesignVariables, EntityCounts>
+    {
+        const auto tFieldVector = std::vector<ScalarFieldValue>(aNumberOfEntities, ScalarFieldValue{});
+        const auto tBlockField = MeshDesignVariables::BlockScalarField{{1, tFieldVector}};
+        const auto tDesignVariables = MeshDesignVariables{mMeshFilePath, tBlockField};
+        const auto tMesh = EntityCounts{Mesh{mMeshFilePath}};
+        return {tDesignVariables, tMesh};
+    };
+
+    // Nodes
+    {
+        const auto [tDesignVariables, tMesh] = setupDesignVariables(mCommandGenerator.numberOfNodes());
+        EXPECT_TRUE(tMesh.areNodalDesignVariables(tDesignVariables));
+        EXPECT_FALSE(tMesh.areElementDesignVariables(tDesignVariables));
+    }
+    // Elements
+    {
+        const auto [tDesignVariables, tMesh] = setupDesignVariables(mCommandGenerator.numberOfElements());
+        EXPECT_FALSE(tMesh.areNodalDesignVariables(tDesignVariables));
+        EXPECT_TRUE(tMesh.areElementDesignVariables(tDesignVariables));
+    }
+}
+
+TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockAreNodalDesignVariables)
+{
+    const auto tFieldVectorBlock1 =
+        std::vector<ScalarFieldValue>{{2, 0, 0.0}, {5, 3, 0.0}, {7, 5, 0.0}, {8, 6, 0.0}, {9, 7, 0.0}};
+    const auto tFieldVectorBlock3 = std::vector<ScalarFieldValue>{{2, 0, 0.0}, {3, 1, 0.0}, {5, 3, 0.0}, {6, 4, 0.0}};
+    const auto tBlockField = MeshDesignVariables::BlockScalarField{{1, tFieldVectorBlock1}, {3, tFieldVectorBlock3}};
+    const auto tDesignVariables = MeshDesignVariables{mMeshFilePath, tBlockField};
+
+    const auto tFixedBlocks = std::set<std::string>{"block_2"};
+    const auto tMesh = EntityCounts{Mesh{mMeshFilePath, tFixedBlocks}};
+    EXPECT_TRUE(tMesh.areNodalDesignVariables(tDesignVariables));
+    EXPECT_FALSE(tMesh.areElementDesignVariables(tDesignVariables));
+}
+
+TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockAreElementDesignVariables)
+{
+    const auto tFieldVectorBlock2 = std::vector<ScalarFieldValue>{{1, 0, 0.0}, {2, 1, 0.0}};
+    const auto tFieldVectorBlock3 = std::vector<ScalarFieldValue>{{3, 2, 0.0}};
+    const auto tBlockField = MeshDesignVariables::BlockScalarField{{2, tFieldVectorBlock2}, {3, tFieldVectorBlock3}};
+    const auto tDesignVariables = MeshDesignVariables{mMeshFilePath, tBlockField};
+
+    const auto tFixedBlocks = std::set<std::string>{"block_1"};
+    const auto tMesh = EntityCounts{Mesh{mMeshFilePath, tFixedBlocks}};
+    EXPECT_FALSE(tMesh.areNodalDesignVariables(tDesignVariables));
+    EXPECT_TRUE(tMesh.areElementDesignVariables(tDesignVariables));
 }
 
 }  // namespace plato::mesh::unittest

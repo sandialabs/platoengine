@@ -58,6 +58,23 @@ std::vector<double> mesh_design_variables_view_to_vector(const MeshDesignVariabl
     }
     return tNodalField;
 }
+
+auto mesh_design_variables_to_map(const MeshDesignVariables& aMeshDesignVariables)
+    -> std::unordered_map<ScalarFieldValue::IndexType, double>
+{
+    auto tNodeIDFieldMap = std::unordered_map<ScalarFieldValue::IndexType, double>{};
+    const auto tDesignVariablesView = MeshDesignVariablesSequentialView{aMeshDesignVariables};
+    tNodeIDFieldMap.reserve(tDesignVariablesView.size());
+    std::transform(tDesignVariablesView.begin(), tDesignVariablesView.end(),
+                   std::inserter(tNodeIDFieldMap, tNodeIDFieldMap.begin()),
+                   [](const auto& tProxy)
+                   {
+                       const auto tValue = static_cast<ScalarFieldValue>(tProxy);
+                       return std::make_pair(tValue.mGlobalMeshEntityID, tValue.mValue);
+                   });
+    return tNodeIDFieldMap;
+}
+
 }  // namespace
 
 DesignVariablesConversion::DesignVariablesConversion(Mesh aMesh) : Mesh{std::move(aMesh)} {}
@@ -93,17 +110,18 @@ ElementFieldVector DesignVariablesConversion::meshDesignVariablesToElementFieldV
 auto DesignVariablesConversion::nodalFieldToNodalIDMap(const NodalFieldVectorReference aScalarField) const
     -> std::unordered_map<ScalarFieldValue::IndexType, double>
 {
-    const auto tMeshDesignVariables = nodalFieldToMeshDesignVariables(aScalarField);
-    auto tNodeIDFieldMap = std::unordered_map<ScalarFieldValue::IndexType, double>{};
-    const auto tDesignVariablesView = MeshDesignVariablesSequentialView{tMeshDesignVariables};
-    tNodeIDFieldMap.reserve(tDesignVariablesView.size());
-    std::transform(tDesignVariablesView.begin(), tDesignVariablesView.end(),
-                   std::inserter(tNodeIDFieldMap, tNodeIDFieldMap.begin()),
-                   [](const auto& tFieldProxy)
-                   {
-                       const auto tField = static_cast<ScalarFieldValue>(tFieldProxy);
-                       return std::make_pair(tField.mGlobalMeshEntityID, tField.mValue);
-                   });
-    return tNodeIDFieldMap;
+    return mesh_design_variables_to_map(nodalFieldToMeshDesignVariables(aScalarField));
+}
+
+auto DesignVariablesConversion::elementFieldToElementIDMap(ElementFieldVectorReference aElementField) const
+    -> std::unordered_map<ScalarFieldValue::IndexType, double>
+{
+    return mesh_design_variables_to_map(elementFieldToMeshDesignVariables(aElementField));
+}
+
+auto DesignVariablesConversion::meshDesignVariablesToIDMap(const MeshDesignVariables& aMeshDesignVariables) const
+    -> std::unordered_map<ScalarFieldValue::IndexType, double>
+{
+    return mesh_design_variables_to_map(aMeshDesignVariables);
 }
 }  // namespace plato::mesh

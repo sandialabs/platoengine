@@ -1,11 +1,5 @@
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
-#include <Ioss_DBUsage.h>  // for DatabaseUsage::READ_MODEL
-#include <Ioss_ElementBlock.h>
-#include <Ioss_Field.h>      // for Field, etc
-#include <Ioss_IOFactory.h>  // for IOFactory
-#include <Ioss_NodeBlock.h>  // for NodeBlock
-
 #include <algorithm>
 #include <boost/range.hpp>
 #include <boost/range/adaptor/indexed.hpp>
@@ -25,10 +19,8 @@ namespace plato::third_party_integration::stk_io
 {
 namespace
 {
-constexpr auto kTopologyFieldName = std::string_view{"topology"};
 constexpr bool kSortedByID = true;
 constexpr bool kUnsorted = false;
-constexpr auto kFixedDensity = double{1.0};
 
 stk::mesh::Selector parts_to_selector(const PartReferenceVector& aParts)
 {
@@ -50,35 +42,37 @@ unsigned int size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& a
 }
 
 template <stk::topology::rank_t Rank>
-size_t write_mesh_density_impl(stk::io::StkMeshIoBroker& aIOBroker,
-                               const std::unordered_map<std::size_t, double>& aDensity,
-                               const std::filesystem::path& aOutputMeshName)
+size_t write_mesh_scalar_field_impl(stk::io::StkMeshIoBroker& aIOBroker,
+                                    const ScalarField& aScalarField,
+                                    const std::filesystem::path& aOutputMeshName)
 {
     constexpr int tScalarFieldSize = 1;
     stk::mesh::Field<double>& tField =
-        aIOBroker.meta_data().declare_field<double>(Rank, std::string{kTopologyFieldName}, tScalarFieldSize);
+        aIOBroker.meta_data().declare_field<double>(Rank, aScalarField.mName, tScalarFieldSize);
     constexpr double tInitialValue = 0;
     stk::mesh::put_field_on_mesh(tField, aIOBroker.meta_data().universal_part(), &tInitialValue);
     aIOBroker.populate_bulk_data();
 
-    std::vector<stk::mesh::Entity> tEntityVector;
+    auto tEntityVector = std::vector<stk::mesh::Entity>{};
     stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntityVector, kUnsorted);
     for (const auto& tEntity : tEntityVector)
     {
         double* const tFieldData = stk::mesh::field_data(tField, tEntity);
         const auto tGlobalID = aIOBroker.bulk_data().identifier(tEntity);
-        const auto tDensityIterator = aDensity.find(tGlobalID);
-        const auto tDensity = tDensityIterator != aDensity.end() ? tDensityIterator->second : kFixedDensity;
+        const auto tDensityIterator = aScalarField.mData.find(tGlobalID);
+        const auto tDensity =
+            tDensityIterator != aScalarField.mData.end() ? tDensityIterator->second : aScalarField.mFixedValue;
         *tFieldData = tDensity;
     }
 
     const size_t tOutputFileIndex = aIOBroker.create_output_mesh(aOutputMeshName.string(), stk::io::WRITE_RESULTS);
     aIOBroker.write_output_mesh(tOutputFileIndex);
     aIOBroker.add_field(tOutputFileIndex, tField);
-
     return tOutputFileIndex;
 }
 
+/// @brief Creates a new mesh on disk with name @a aInputMeshName and returns a StkMeshIoBroker to access it.
+/// @todo This currently uses MPI_COMM_SELF and so does not support distributed meshes.
 std::shared_ptr<stk::io::StkMeshIoBroker> create_input_mesh_broker(const std::filesystem::path& aInputMeshName)
 {
     std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker = std::make_shared<stk::io::StkMeshIoBroker>(MPI_COMM_SELF);
@@ -191,29 +185,27 @@ auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVect
     return tCoordinates;
 }
 
-void write_nodal_density(const std::filesystem::path& aInputMeshName,
-                         const std::unordered_map<std::size_t, double>& aDensity,
-                         const std::filesystem::path& aOutputMeshName)
+void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
+                              const ScalarField& aScalarField,
+                              const std::filesystem::path& aOutputMeshName)
 {
-    std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker =
-        create_input_mesh_broker(aInputMeshName);  // todo : add communicator
+    const auto tIOBroker = create_input_mesh_broker(aInputMeshName);
 
     const size_t tOutputFileIndex =
-        write_mesh_density_impl<stk::topology::NODE_RANK>(*tIOBroker, aDensity, aOutputMeshName);
+        write_mesh_scalar_field_impl<stk::topology::NODE_RANK>(*tIOBroker, aScalarField, aOutputMeshName);
 
     constexpr double tTime = 1.0;
     write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);
 }
 
-void write_element_density(const std::filesystem::path& aInputMeshName,
-                           const std::unordered_map<std::size_t, double>& aDensity,
-                           const std::filesystem::path& aOutputMeshName)
+void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
+                                const ScalarField& aScalarField,
+                                const std::filesystem::path& aOutputMeshName)
 {
-    std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker =
-        create_input_mesh_broker(aInputMeshName);  // todo : add communicator
+    const auto tIOBroker = create_input_mesh_broker(aInputMeshName);
 
     const size_t tOutputFileIndex =
-        write_mesh_density_impl<stk::topology::ELEMENT_RANK>(*tIOBroker, aDensity, aOutputMeshName);
+        write_mesh_scalar_field_impl<stk::topology::ELEMENT_RANK>(*tIOBroker, aScalarField, aOutputMeshName);
 
     constexpr double tTime = 1.0;
     write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);

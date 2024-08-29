@@ -1,5 +1,6 @@
 #include "plato/mesh/EntityCounts.hpp"
 
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
@@ -34,5 +35,17 @@ unsigned int EntityCounts::spatialDimensions() const
 bool EntityCounts::is2D() const { return spatialDimensions() == 2u; }
 
 bool EntityCounts::is3D() const { return spatialDimensions() == 3u; }
+
+bool EntityCounts::areNodalDesignVariables(const MeshDesignVariables& aMeshDesignVariables) const
+{
+    const auto tMeshDesignVariablesView = MeshDesignVariablesSequentialView{aMeshDesignVariables};
+    return numberOfDesignDomainNodes() == tMeshDesignVariablesView.size();
+}
+
+bool EntityCounts::areElementDesignVariables(const MeshDesignVariables& aMeshDesignVariables) const
+{
+    const auto tMeshDesignVariablesView = MeshDesignVariablesSequentialView{aMeshDesignVariables};
+    return numberOfDesignDomainElements() == tMeshDesignVariablesView.size();
+}
 
 }  // namespace plato::mesh
