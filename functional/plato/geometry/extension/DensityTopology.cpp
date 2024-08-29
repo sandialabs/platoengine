@@ -74,8 +74,7 @@ std::string mesh_block_names_for_error_message(const input_parser::density_topol
 
 DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
                                  plato::filter::library::FilterFunction aFilterFunction)
-    : mFileName(aInput.mesh_name.value().mToken),
-      mMesh(detail::mesh_from_input(aInput)),
+    : mMesh(detail::mesh_from_input(aInput)),
       mNumDesignParameters(mesh::EntityCounts{mMesh}.numberOfDesignDomainNodes()),
       mFilter(std::move(aFilterFunction))
 {

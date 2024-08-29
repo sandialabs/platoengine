@@ -48,7 +48,6 @@ class DensityTopology
                        const input_parser::density_topology& aInput);
 
    private:
-    std::filesystem::path mFileName;
     mesh::Mesh mMesh;
     unsigned int mNumDesignParameters = 0;
     plato::filter::library::FilterFunction mFilter;
