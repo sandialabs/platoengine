@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/SharedDensityProxy.hpp"
+#include "plato/mesh/SharedValueProxy.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::mesh
@@ -21,7 +21,7 @@ struct MeshDesignVariablesDensitiesViewIterator
     using iterator_category = IteratorCategory;
     using difference_type = typename std::iterator_traits<InnerIteratorType>::difference_type;
     using pointer = typename std::iterator_traits<InnerIteratorType>::pointer;
-    using reference = SharedDensityProxy<InnerIteratorType>;
+    using reference = SharedValueProxy<Density, InnerIteratorType>;
 
     MeshDesignVariablesDensitiesViewIterator& operator++();
     [[nodiscard]] const reference operator*() const;
@@ -82,7 +82,7 @@ auto dereference_all(const std::vector<InnerIteratorType>& aCurrentIterators,
     return tDensities;
 }
 
-/// @brief Returns a SharedDensityProxy corresponding to the iterator in @a aCurrentIterators with the
+/// @brief Returns a SharedValueProxy corresponding to the iterator in @a aCurrentIterators with the
 ///  smallest global id.
 template <typename InnerIteratorType>
 auto dereferenced_proxy(const std::vector<InnerIteratorType>& aCurrentIterators,
@@ -92,10 +92,10 @@ auto dereferenced_proxy(const std::vector<InnerIteratorType>& aCurrentIterators,
     const auto tMinIDIterator = detail::min_id_iterator(tValues);
     if (!tMinIDIterator->has_value())
     {
-        return SharedDensityProxy<InnerIteratorType>{};
+        return SharedValueProxy<Density, InnerIteratorType>{};
     }
     const auto tMinGlobalID = tMinIDIterator->value().mGlobalMeshEntityID;  // NOLINT
-    auto tProxy = SharedDensityProxy<InnerIteratorType>{};
+    auto tProxy = SharedValueProxy<Density, InnerIteratorType>{};
     for (const auto& [tCurrentIterator, tEndIterator] : utilities::Zip{aCurrentIterators, aEndIterators})
     {
         if (tCurrentIterator != tEndIterator && tCurrentIterator->mGlobalMeshEntityID == tMinGlobalID)
