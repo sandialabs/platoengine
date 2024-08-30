@@ -130,10 +130,10 @@ TEST_F(TwoDThreeBlockMesh, PartVectors)
 TEST_F(TwoDThreeBlockMesh, ConstructionFromMeshDesignVariables)
 {
     // Element-based densities
-    const auto tBlock1Densities =
-        MeshDesignVariables::DensityVector{{4, 0, 1.0}, {5, 1, 1.0}, {6, 2, 1.0}, {7, 3, 1.0}};
-    const auto tBlock2Densities = MeshDesignVariables::DensityVector{{1, 4, 1.0}, {2, 5, 1.0}};
-    const auto tBlock3Densities = MeshDesignVariables::DensityVector{{8, 6, 1.0}};
+    const auto tBlock1ScalarField =
+        MeshDesignVariables::ScalarFieldVector{{4, 0, 1.0}, {5, 1, 1.0}, {6, 2, 1.0}, {7, 3, 1.0}};
+    const auto tBlock2ScalarField = MeshDesignVariables::ScalarFieldVector{{1, 4, 1.0}, {2, 5, 1.0}};
+    const auto tBlock3ScalarField = MeshDesignVariables::ScalarFieldVector{{8, 6, 1.0}};
 
     const auto tTestFunction = [this](const Mesh& aMesh,
                                       const std::vector<Mesh::BlockOrdinalType>& aExpectedDesignBlockOrdinals,
@@ -155,25 +155,26 @@ TEST_F(TwoDThreeBlockMesh, ConstructionFromMeshDesignVariables)
     }
     const auto aOneBlockContext = TEST_CONTEXT("One fixed block");
     {
-        const auto tDensities = MeshDesignVariables::BlockDensities{{1, tBlock1Densities}};
-        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tDensities}};
+        const auto tScalarField = MeshDesignVariables::BlockScalarField{{1, tBlock1ScalarField}};
+        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tScalarField}};
         const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal};
         const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock2Ordinal, mBlock3Ordinal};
         tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals, aOneBlockContext);
     }
     const auto aTwoBlockContext = TEST_CONTEXT("Two fixed blocks");
     {
-        const auto tDensities = MeshDesignVariables::BlockDensities{{2, tBlock2Densities}, {3, tBlock3Densities}};
-        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tDensities}};
+        const auto tScalarField =
+            MeshDesignVariables::BlockScalarField{{2, tBlock2ScalarField}, {3, tBlock3ScalarField}};
+        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tScalarField}};
         const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock2Ordinal, mBlock3Ordinal};
         const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal};
         tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals, aTwoBlockContext);
     }
     const auto aThreeBlockContext = TEST_CONTEXT("Three fixed blocks");
     {
-        const auto tDensities =
-            MeshDesignVariables::BlockDensities{{1, tBlock1Densities}, {2, tBlock2Densities}, {3, tBlock3Densities}};
-        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tDensities}};
+        const auto tScalarField = MeshDesignVariables::BlockScalarField{
+            {1, tBlock1ScalarField}, {2, tBlock2ScalarField}, {3, tBlock3ScalarField}};
+        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tScalarField}};
         const auto tExpectedDesignBlockOrdinals =
             std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal, mBlock2Ordinal, mBlock3Ordinal};
         const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{};
@@ -183,9 +184,9 @@ TEST_F(TwoDThreeBlockMesh, ConstructionFromMeshDesignVariables)
 
 TEST_F(OneBlock3x1x1HexMeshWithNodeSets, ConstructionFromMeshDesignVariables)
 {
-    const auto tDensities = MeshDesignVariables::DensityVector{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}};
+    const auto tScalarField = MeshDesignVariables::ScalarFieldVector{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}};
     constexpr auto tBlockID = 1;
-    const auto tMeshDesignVariables = MeshDesignVariables{mMeshFilePath, {{tBlockID, tDensities}}};
+    const auto tMeshDesignVariables = MeshDesignVariables{mMeshFilePath, {{tBlockID, tScalarField}}};
 
     {
         const auto tMesh = Mesh{mMeshFilePath};

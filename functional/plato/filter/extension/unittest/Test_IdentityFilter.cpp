@@ -9,7 +9,7 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -22,16 +22,17 @@ constexpr std::string_view kMeshName = "the-mesh-is-a-lie.exo";
 const auto kRho = std::vector{-1.0, 0.0, 1.0};
 const auto kIDs = std::vector<std::size_t>{0, 1, 2};
 const auto kMeshArgument = mesh::MeshDesignVariables{
-    kMeshName, mesh::MeshDesignVariables::BlockDensities{{1, mesh::detail::combine_densities_and_ids(kRho, kIDs)}}};
+    kMeshName,
+    mesh::MeshDesignVariables::BlockScalarField{{1, mesh::detail::combine_scalar_field_values_and_ids(kRho, kIDs)}}};
 const auto kV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
 
 void test_filtered_results(const mesh::MeshDesignVariables& aMeshDesignVariables,
                            const test_utilities::TestContext& aTestContext)
 {
-    const auto tMeshView = mesh::MeshDesignVariablesDensitiesView{aMeshDesignVariables};
+    const auto tMeshView = mesh::MeshDesignVariablesSequentialView{aMeshDesignVariables};
     for (const auto& [tComputed, tExpected] : utilities::Zip{tMeshView, kRho})
     {
-        EXPECT_EQ(static_cast<mesh::Density>(tComputed).mDensity, tExpected) << aTestContext;
+        EXPECT_EQ(static_cast<mesh::ScalarFieldValue>(tComputed).mValue, tExpected) << aTestContext;
     }
 }
 }  // namespace

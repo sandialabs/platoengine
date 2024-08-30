@@ -5,9 +5,9 @@
 
 namespace plato::mesh
 {
-[[nodiscard]] inline bool operator==(const Density& aLHS, const Density& aRHS)
+[[nodiscard]] inline bool operator==(const ScalarFieldValue& aLHS, const ScalarFieldValue& aRHS)
 {
-    return aLHS.mDensity == aRHS.mDensity && aLHS.mGlobalMeshEntityID == aRHS.mGlobalMeshEntityID &&
+    return aLHS.mValue == aRHS.mValue && aLHS.mGlobalMeshEntityID == aRHS.mGlobalMeshEntityID &&
            aLHS.mDesignVariableVectorIndex == aRHS.mDesignVariableVectorIndex;
 }
 }  // namespace plato::mesh

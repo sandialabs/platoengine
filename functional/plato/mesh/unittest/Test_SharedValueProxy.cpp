@@ -8,12 +8,12 @@ namespace plato::mesh::unittest
 {
 namespace
 {
-const auto tDensity0 = Density{0, 0, 0.0};
-const auto tDensity1 = Density{1, 1, 1.0};
-const auto tDensity2 = Density{2, 2, 2.0};
+const auto tDensity0 = ScalarFieldValue{0, 0, 0.0};
+const auto tDensity1 = ScalarFieldValue{1, 1, 1.0};
+const auto tDensity2 = ScalarFieldValue{2, 2, 2.0};
 
-using VectorType = std::vector<Density>;
-using SharedDensityProxy = SharedValueProxy<Density, typename VectorType::iterator>;
+using VectorType = std::vector<ScalarFieldValue>;
+using SharedDensityProxy = SharedValueProxy<ScalarFieldValue, typename VectorType::iterator>;
 }  // namespace
 
 TEST(SharedDensityProxy, AssignmentOperator1Iterator)
@@ -49,6 +49,6 @@ TEST(SharedDensityProxy, CastToDensity)
     auto tVector2 = VectorType{tDensity1};
     auto tProxy = SharedDensityProxy{{tVector1.begin(), tVector2.begin()}};
 
-    EXPECT_EQ(static_cast<Density>(tProxy), tDensity1);
+    EXPECT_EQ(static_cast<ScalarFieldValue>(tProxy), tDensity1);
 }
 }  // namespace plato::mesh::unittest

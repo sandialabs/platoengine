@@ -14,7 +14,7 @@
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -77,8 +77,8 @@ TEST(DensityTopology, GenerateMesh)
 
     const auto tMeshDesignVariables = tDensityTopology.generateMesh(tDesignVec);
     const auto tDensities =
-        mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesDensitiesView{tMeshDesignVariables});
-    const auto [tDensityValues, tIDMap] = mesh::detail::split_densities(tDensities);
+        mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesSequentialView{tMeshDesignVariables});
+    const auto [tDensityValues, tIDMap] = mesh::detail::split_scalar_field_values(tDensities);
     EXPECT_EQ(tDensityValues, tDesignVars);
 
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
@@ -194,9 +194,9 @@ TEST_F(TwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
         DensityTopology{tDensityInputWithFixedBlocks, filter::extension::make_identity_filter_function()};
     const auto tMeshDesignVariables = tDensityTopology.generateMesh(tInitialGuess);
     constexpr auto tExpectedNumberOfBlocks = 2U;
-    EXPECT_EQ(tMeshDesignVariables.mBlockDensities.size(), tExpectedNumberOfBlocks);
+    EXPECT_EQ(tMeshDesignVariables.mBlockScalarField.size(), tExpectedNumberOfBlocks);
 
-    const auto tMeshDesignVariablesView = mesh::MeshDesignVariablesDensitiesView{tMeshDesignVariables};
+    const auto tMeshDesignVariablesView = mesh::MeshDesignVariablesSequentialView{tMeshDesignVariables};
     EXPECT_EQ(tMeshDesignVariablesView.size(), tExpectedNumberOfDesignVariables);
 }
 

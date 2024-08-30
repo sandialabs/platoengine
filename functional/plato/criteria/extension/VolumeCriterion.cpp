@@ -3,7 +3,7 @@
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"
@@ -33,9 +33,10 @@ double VolumeCriterion::f(const mesh::MeshDesignVariables& aMeshDesignVariables)
 {
     const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aMeshDesignVariables}};
     auto tScaledVolumes = tMesh.designDomainElementVolumes();
-    const auto tMeshView = mesh::MeshDesignVariablesDensitiesView{aMeshDesignVariables};
+    const auto tMeshView = mesh::MeshDesignVariablesSequentialView{aMeshDesignVariables};
     std::transform(tScaledVolumes.cbegin(), tScaledVolumes.cend(), tMeshView.begin(), tScaledVolumes.begin(),
-                   [](const double aVolume, const mesh::Density aDensity) { return aDensity.mDensity * aVolume; });
+                   [](const double aVolume, const mesh::ScalarFieldValue aDensity)
+                   { return aDensity.mValue * aVolume; });
     return mScaleFactor * (utilities::pair_wise_accumulate(tScaledVolumes) + fixed_domain_volume(tMesh));
 }
 

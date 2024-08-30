@@ -2,27 +2,27 @@
 
 #include <boost/core/ignore_unused.hpp>
 
-#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
-#include "plato/mesh/MeshDesignVariablesDensitiesViewIterator.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialViewIterator.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::mesh::unittest
 {
 namespace
 {
-const auto kDensities = std::vector{4.0, 2.0, 7.0};
+const auto kScalarField = std::vector{4.0, 2.0, 7.0};
 const auto kIDs = std::vector<std::size_t>{0, 1, 2};
-const auto kBlockDensityVector = MeshDesignVariables::DensityVector{
-    {kIDs[0], kIDs[0], kDensities[0]}, {kIDs[1], kIDs[1], kDensities[1]}, {kIDs[2], kIDs[2], kDensities[2]}};
+const auto kBlockScalarFieldVector = MeshDesignVariables::ScalarFieldVector{
+    {kIDs[0], kIDs[0], kScalarField[0]}, {kIDs[1], kIDs[1], kScalarField[1]}, {kIDs[2], kIDs[2], kScalarField[2]}};
 
-using MeshDesignVariablesDensitiesViewConstIterator = MeshDesignVariablesDensitiesView::IteratorType;
+using MeshDesignVariablesSequentialViewConstIterator = MeshDesignVariablesSequentialView::IteratorType;
 }  // namespace
 
 TEST(MeshDesignVariablesViews, IncrementIterator)
 {
-    auto tIterator =
-        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector.cbegin()}, {kBlockDensityVector.cend()}};
-    for (const auto tIndex : utilities::IndexRange{kDensities.size()})
+    auto tIterator = MeshDesignVariablesSequentialViewConstIterator{{kBlockScalarFieldVector.cbegin()},
+                                                                    {kBlockScalarFieldVector.cend()}};
+    for (const auto tIndex : utilities::IndexRange{kScalarField.size()})
     {
         boost::ignore_unused(tIndex);
         const auto tIteratorBeforeIncrement = tIterator;
@@ -34,22 +34,23 @@ TEST(MeshDesignVariablesViews, IncrementIterator)
 
 TEST(MeshDesignVariablesViews, DereferenceIterator)
 {
-    auto tIterator =
-        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector.cbegin()}, {kBlockDensityVector.cend()}};
-    EXPECT_EQ(static_cast<Density>(*tIterator).mDensity, kBlockDensityVector.cbegin()->mDensity);
-    EXPECT_EQ(static_cast<Density>(*tIterator).mGlobalMeshEntityID, kBlockDensityVector.cbegin()->mGlobalMeshEntityID);
+    auto tIterator = MeshDesignVariablesSequentialViewConstIterator{{kBlockScalarFieldVector.cbegin()},
+                                                                    {kBlockScalarFieldVector.cend()}};
+    EXPECT_EQ(static_cast<ScalarFieldValue>(*tIterator).mValue, kBlockScalarFieldVector.cbegin()->mValue);
+    EXPECT_EQ(static_cast<ScalarFieldValue>(*tIterator).mGlobalMeshEntityID,
+              kBlockScalarFieldVector.cbegin()->mGlobalMeshEntityID);
     ++tIterator;
-    EXPECT_EQ(static_cast<Density>(*tIterator).mDensity, std::next(kBlockDensityVector.cbegin())->mDensity);
-    EXPECT_EQ(static_cast<Density>(*tIterator).mGlobalMeshEntityID,
-              std::next(kBlockDensityVector.cbegin())->mGlobalMeshEntityID);
+    EXPECT_EQ(static_cast<ScalarFieldValue>(*tIterator).mValue, std::next(kBlockScalarFieldVector.cbegin())->mValue);
+    EXPECT_EQ(static_cast<ScalarFieldValue>(*tIterator).mGlobalMeshEntityID,
+              std::next(kBlockScalarFieldVector.cbegin())->mGlobalMeshEntityID);
 }
 
 TEST(MeshDesignVariablesViews, IteratorEqualityOperators)
 {
-    auto tIterator1 =
-        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector.cbegin()}, {kBlockDensityVector.cend()}};
-    auto tIterator2 =
-        MeshDesignVariablesDensitiesViewConstIterator{{kBlockDensityVector.cbegin()}, {kBlockDensityVector.cend()}};
+    auto tIterator1 = MeshDesignVariablesSequentialViewConstIterator{{kBlockScalarFieldVector.cbegin()},
+                                                                     {kBlockScalarFieldVector.cend()}};
+    auto tIterator2 = MeshDesignVariablesSequentialViewConstIterator{{kBlockScalarFieldVector.cbegin()},
+                                                                     {kBlockScalarFieldVector.cend()}};
 
     EXPECT_TRUE(tIterator1 == tIterator2) << "Explicitly check equality operator";
     EXPECT_FALSE(tIterator1 != tIterator2) << "Explicitly check inequality operator";

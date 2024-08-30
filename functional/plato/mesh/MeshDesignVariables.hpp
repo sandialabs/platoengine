@@ -7,18 +7,18 @@
 
 namespace plato::mesh
 {
-/// @brief Struct used for pairing a density value with a global mesh id and vector index.
-struct Density
+/// @brief Struct used for pairing a scalar design variable field value with a global mesh id and vector index.
+struct ScalarFieldValue
 {
     using IndexType = std::size_t;
 
-    /// @brief The ID or index of the mesh entity (node or element) that this Density associated with.
+    /// @brief The ID or index of the mesh entity (node or element) that this ScalarFieldValue associated with.
     IndexType mGlobalMeshEntityID = 0;
-    /// @brief The index into the vector of design variables that this Density associated with.
+    /// @brief The index into the vector of design variables that this ScalarFieldValue associated with.
     /// This can be used to index into a linear array of design variables for converting between datatypes.
     IndexType mDesignVariableVectorIndex = 0;
-    /// @brief Density or design variable value.
-    double mDensity = 0.0;
+    /// @brief Design variable value.
+    double mValue = 0.0;
 };
 
 /// @brief Contains mesh design variables (nodal or element density fields) organized by mesh block.
@@ -27,11 +27,11 @@ struct Density
 struct MeshDesignVariables
 {
     using BlockIDType = int64_t;
-    using DensityVector = std::vector<Density>;
-    using BlockDensities = std::map<BlockIDType, DensityVector>;
+    using ScalarFieldVector = std::vector<ScalarFieldValue>;
+    using BlockScalarField = std::map<BlockIDType, ScalarFieldVector>;
 
     std::filesystem::path mFileName;
-    BlockDensities mBlockDensities;
+    BlockScalarField mBlockScalarField;
 };
 
 }  // namespace plato::mesh

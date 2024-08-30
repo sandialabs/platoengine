@@ -5,7 +5,7 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::filter::extension
@@ -30,7 +30,7 @@ linear_algebra::DynamicVector<double> IdentityFilter::jacobianTimesVector(
     const mesh::MeshDesignVariables& aMeshDesignVariables, const linear_algebra::DynamicVector<double>& aV) const
 {
     const auto tVectorDimension = static_cast<std::size_t>(aV.size());
-    const std::size_t tDensityDimension = mesh::MeshDesignVariablesDensitiesView{aMeshDesignVariables}.size();
+    const std::size_t tDensityDimension = mesh::MeshDesignVariablesSequentialView{aMeshDesignVariables}.size();
     if (tVectorDimension != tDensityDimension)
     {
         throw utilities::Exception{

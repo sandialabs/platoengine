@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "plato/mesh/MeshBlocks.hpp"
-#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::mesh
@@ -19,29 +19,29 @@ MeshDesignVariables initialize_mesh_design_variable_data_structures(const Mesh& 
     for (const auto tDesignBlockOrdinal : aMesh.designBlockOrdinals())
     {
         const auto tIDs = aIDFunction(aMesh, tDesignBlockOrdinal);
-        const auto tDensities = std::vector<double>(tIDs.size());
+        const auto tField = std::vector<double>(tIDs.size());
         const auto tBlockID = MeshBlocks{aMesh}.blockID(tDesignBlockOrdinal);
         assert(tBlockID.has_value());
-        tMeshDesignVariables.mBlockDensities.emplace(tBlockID.value(),
-                                                     detail::combine_densities_and_ids(tDensities, tIDs));
+        tMeshDesignVariables.mBlockScalarField.emplace(tBlockID.value(),
+                                                       detail::combine_scalar_field_values_and_ids(tField, tIDs));
     }
     return tMeshDesignVariables;
 }
 
 template <typename F>
-MeshDesignVariables entity_densities_to_mesh_design_variables(const std::vector<double>& aDensities,
-                                                              const Mesh& aMesh,
-                                                              const F& aIDFunction)
+MeshDesignVariables entity_field_to_mesh_design_variables(const std::vector<double>& aScalarField,
+                                                          const Mesh& aMesh,
+                                                          const F& aIDFunction)
 {
     auto tMeshDesignVariables = initialize_mesh_design_variable_data_structures(aMesh, aIDFunction);
 
-    auto tMeshView = MeshDesignVariablesDensitiesMutableView{tMeshDesignVariables};
-    assert(aDensities.size() == tMeshView.size());
-    std::transform(aDensities.cbegin(), aDensities.cend(), tMeshView.begin(), tMeshView.begin(),
-                   [tVectorIndex = Density::IndexType{0}](const double aDensity, const auto& aDensityID) mutable
+    auto tMeshView = MeshDesignVariablesMutableSequentialView{tMeshDesignVariables};
+    assert(aScalarField.size() == tMeshView.size());
+    std::transform(aScalarField.cbegin(), aScalarField.cend(), tMeshView.begin(), tMeshView.begin(),
+                   [tVectorIndex = ScalarFieldValue::IndexType{0}](const double aField, const auto& aFieldID) mutable
                    {
-                       const auto& tDensityIndices = static_cast<Density>(aDensityID);
-                       return Density{tDensityIndices.mGlobalMeshEntityID, tVectorIndex++, aDensity};
+                       const auto& tFieldIndices = static_cast<ScalarFieldValue>(aFieldID);
+                       return ScalarFieldValue{tFieldIndices.mGlobalMeshEntityID, tVectorIndex++, aField};
                    });
 
     return tMeshDesignVariables;
@@ -49,61 +49,61 @@ MeshDesignVariables entity_densities_to_mesh_design_variables(const std::vector<
 
 std::vector<double> mesh_design_variables_view_to_vector(const MeshDesignVariables& tMeshDesignVariables)
 {
-    const auto aMeshDesignVariablesView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
-    auto tNodalDensities = std::vector<double>(aMeshDesignVariablesView.size());
-    for (const auto& tDensityProxy : aMeshDesignVariablesView)
+    const auto aMeshDesignVariablesView = MeshDesignVariablesSequentialView{tMeshDesignVariables};
+    auto tNodalField = std::vector<double>(aMeshDesignVariablesView.size());
+    for (const auto& tFieldProxy : aMeshDesignVariablesView)
     {
-        const auto& tDensity = static_cast<Density>(tDensityProxy);
-        tNodalDensities[tDensity.mDesignVariableVectorIndex] = tDensity.mDensity;
+        const auto& tField = static_cast<ScalarFieldValue>(tFieldProxy);
+        tNodalField[tField.mDesignVariableVectorIndex] = tField.mValue;
     }
-    return tNodalDensities;
+    return tNodalField;
 }
 }  // namespace
 
 DesignVariablesConversion::DesignVariablesConversion(Mesh aMesh) : Mesh{std::move(aMesh)} {}
 
-MeshDesignVariables DesignVariablesConversion::nodalDensitiesToMeshDesignVariables(
-    const NodalDensityVectorReference aDensities) const
+MeshDesignVariables DesignVariablesConversion::nodalFieldToMeshDesignVariables(
+    const NodalFieldVectorReference aScalarField) const
 {
     const auto tNodeIDs = [](const mesh::Mesh& aMesh, const Mesh::BlockOrdinalType aBlockOrdinal)
     { return mesh::MeshBlocks{aMesh}.nodeIDs(aBlockOrdinal); };
-    return entity_densities_to_mesh_design_variables(aDensities.mValue.get(), *this, tNodeIDs);
+    return entity_field_to_mesh_design_variables(aScalarField.mValue.get(), *this, tNodeIDs);
 }
 
-MeshDesignVariables DesignVariablesConversion::elementDensitiesToMeshDesignVariables(
-    const ElementDensityVectorReference aDensities) const
+MeshDesignVariables DesignVariablesConversion::elementFieldToMeshDesignVariables(
+    const ElementFieldVectorReference aScalarField) const
 {
     const auto tElementIDs = [](const mesh::Mesh& aMesh, const Mesh::BlockOrdinalType aBlockOrdinal)
     { return mesh::MeshBlocks{aMesh}.elementIDs(aBlockOrdinal); };
-    return entity_densities_to_mesh_design_variables(aDensities.mValue.get(), *this, tElementIDs);
+    return entity_field_to_mesh_design_variables(aScalarField.mValue.get(), *this, tElementIDs);
 }
 
-NodalDensityVector DesignVariablesConversion::meshDesignVariablesToNodalDensityVector(
+NodalFieldVector DesignVariablesConversion::meshDesignVariablesToNodalFieldVector(
     const MeshDesignVariables& aMeshDesignVariables) const
 {
-    return NodalDensityVector{mesh_design_variables_view_to_vector(aMeshDesignVariables)};
+    return NodalFieldVector{mesh_design_variables_view_to_vector(aMeshDesignVariables)};
 }
 
-ElementDensityVector DesignVariablesConversion::meshDesignVariablesToElementDensityVector(
+ElementFieldVector DesignVariablesConversion::meshDesignVariablesToElementFieldVector(
     const MeshDesignVariables& aMeshDesignVariables) const
 {
-    return ElementDensityVector{mesh_design_variables_view_to_vector(aMeshDesignVariables)};
+    return ElementFieldVector{mesh_design_variables_view_to_vector(aMeshDesignVariables)};
 }
 
-auto DesignVariablesConversion::nodalDensitiesToNodalIDMap(const NodalDensityVectorReference aDensities) const
-    -> std::unordered_map<Density::IndexType, double>
+auto DesignVariablesConversion::nodalFieldToNodalIDMap(const NodalFieldVectorReference aScalarField) const
+    -> std::unordered_map<ScalarFieldValue::IndexType, double>
 {
-    const auto tMeshDesignVariables = nodalDensitiesToMeshDesignVariables(aDensities);
-    auto tNodeIDDensityMap = std::unordered_map<Density::IndexType, double>{};
-    const auto tDesignVariablesView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
-    tNodeIDDensityMap.reserve(tDesignVariablesView.size());
+    const auto tMeshDesignVariables = nodalFieldToMeshDesignVariables(aScalarField);
+    auto tNodeIDFieldMap = std::unordered_map<ScalarFieldValue::IndexType, double>{};
+    const auto tDesignVariablesView = MeshDesignVariablesSequentialView{tMeshDesignVariables};
+    tNodeIDFieldMap.reserve(tDesignVariablesView.size());
     std::transform(tDesignVariablesView.begin(), tDesignVariablesView.end(),
-                   std::inserter(tNodeIDDensityMap, tNodeIDDensityMap.begin()),
-                   [](const auto& tDensityProxy)
+                   std::inserter(tNodeIDFieldMap, tNodeIDFieldMap.begin()),
+                   [](const auto& tFieldProxy)
                    {
-                       const auto tDensity = static_cast<Density>(tDensityProxy);
-                       return std::make_pair(tDensity.mGlobalMeshEntityID, tDensity.mDensity);
+                       const auto tField = static_cast<ScalarFieldValue>(tFieldProxy);
+                       return std::make_pair(tField.mGlobalMeshEntityID, tField.mValue);
                    });
-    return tNodeIDDensityMap;
+    return tNodeIDFieldMap;
 }
 }  // namespace plato::mesh

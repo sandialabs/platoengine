@@ -6,7 +6,7 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
@@ -29,8 +29,8 @@ void test_volume_criteria_from_ctor_and_function(
 
     const auto tMesh = mesh::EntityCounts{mesh::Mesh{kMeshFile}};
     const auto tControls = std::vector<double>(tMesh.numberOfElements(), tConstantControls);
-    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
-        mesh::ElementDensityVectorReference{std::cref(tControls)});
+    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+        mesh::ElementFieldVectorReference{std::cref(tControls)});
 
     EXPECT_EQ(tVolumeCriterion.f(tMeshDesignVariables), aGoldVolume * tConstantControls);
     EXPECT_EQ(tVolumeCriterion.f(tMeshDesignVariables), aFunction.f(tMeshDesignVariables));
@@ -56,8 +56,8 @@ void test_volume_criteria_derivative_from_ctor_and_function(
     const auto tMesh = mesh::Mesh{kMeshFile};
     const auto tAssignedDensities =
         std::vector<double>{0.5, 0.4, 0.3};  // Not 1 to make certain DF does not depend on them
-    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
-        mesh::ElementDensityVectorReference{std::cref(tAssignedDensities)});
+    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+        mesh::ElementFieldVectorReference{std::cref(tAssignedDensities)});
     const auto tResult = tVolumeCriterion.df(tMeshDesignVariables);
     const auto tResultFromFunction = aFunction.df(tMeshDesignVariables);
 
@@ -115,8 +115,8 @@ TEST_F(TwoDThreeBlockMesh, VolumeCriterionWithFixedBlocks)
     const auto tMesh = mesh::Mesh{mMeshFilePath, std::move(tFixedBlockNames)};
 
     const auto tDensityVector = std::vector<double>{0.25, 0.25, 1.0};
-    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
-        mesh::ElementDensityVectorReference{tDensityVector});
+    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+        mesh::ElementFieldVectorReference{tDensityVector});
 
     const auto tResult = VolumeCriterion{}.f(tMeshDesignVariables);
     constexpr auto tExpected = double{4.5};
@@ -129,8 +129,8 @@ TEST_F(TwoDThreeBlockMesh, GradientVolumeCriterionWithFixedBlocks)
     const auto tMesh = mesh::Mesh{mMeshFilePath, std::move(tFixedBlockNames)};
     constexpr auto tNumberOfNodalDensities = 2U;
     const auto tDensityVector = std::vector<double>(tNumberOfNodalDensities, 1.0);
-    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
-        mesh::ElementDensityVectorReference{tDensityVector});
+    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+        mesh::ElementFieldVectorReference{tDensityVector});
 
     const auto tResult = VolumeCriterion{}.df(tMeshDesignVariables);
     const auto tExpected = mesh::MeshQuantities{tMesh}.designDomainElementVolumes();

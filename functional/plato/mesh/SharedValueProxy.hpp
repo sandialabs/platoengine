@@ -30,7 +30,7 @@ struct SharedValueProxy
     template <typename Iterator = InnerIteratorType>
     auto operator=(const Value& aValue) -> std::enable_if_t<!kIsConstIterator<Iterator>, SharedValueProxy&>;
 
-    /// @brief Conversion to a Density value, the object that this proxy object represents.
+    /// @brief Conversion to a Value, the object that this proxy object represents.
     operator Value() const;
 
     std::vector<InnerIteratorType> mIterators;

@@ -19,12 +19,12 @@ struct MeshQuantities : public Mesh
 
     /// @brief Returns a vector of element volumes corresponding to the fixed domain only.
     ///
-    /// The order is given by the order of iteration of MeshDesignVariablesDensitiesView.
+    /// The order is given by the order of iteration of MeshDesignVariablesSequentialView.
     [[nodiscard]] std::vector<double> fixedDomainElementVolumes() const;
 
     /// @brief Returns a vector of element volumes corresponding to the elements in the design domain only.
     ///
-    /// The order is given by the order of iteration of MeshDesignVariablesDensitiesView.
+    /// The order is given by the order of iteration of MeshDesignVariablesSequentialView.
     [[nodiscard]] std::vector<double> designDomainElementVolumes() const;
 };
 }  // namespace plato::mesh

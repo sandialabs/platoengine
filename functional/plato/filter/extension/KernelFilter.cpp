@@ -16,7 +16,7 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 
 namespace plato::filter::extension
 {
@@ -56,17 +56,17 @@ KernelFilter::KernelFilter(const mesh::Mesh& aMesh,
 mesh::MeshDesignVariables KernelFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
     const auto tMesh = mesh::Mesh{aMeshDesignVariables};
-    const auto tDensityValues =
-        mesh::DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalDensityVector(aMeshDesignVariables);
+    const auto tFieldValues =
+        mesh::DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalFieldVector(aMeshDesignVariables);
 
-    const auto tFilteredDensities = mLinearMask.matrixMultiply(tDensityValues.mValue);
+    const auto tFilteredField = mLinearMask.matrixMultiply(tFieldValues.mValue);
     if (mFilterCentering == input_parser::KernelFilterCenteringTypes::kNodeCentered)
     {
-        return mesh::DesignVariablesConversion{tMesh}.nodalDensitiesToMeshDesignVariables(
-            mesh::NodalDensityVectorReference{std::cref(tFilteredDensities)});
+        return mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+            mesh::NodalFieldVectorReference{std::cref(tFilteredField)});
     }
-    return mesh::DesignVariablesConversion{tMesh}.elementDensitiesToMeshDesignVariables(
-        mesh::ElementDensityVectorReference{std::cref(tFilteredDensities)});
+    return mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+        mesh::ElementFieldVectorReference{std::cref(tFilteredField)});
 }
 
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(

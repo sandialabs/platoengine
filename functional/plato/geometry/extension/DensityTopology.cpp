@@ -8,7 +8,7 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
-#include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -83,8 +83,8 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
 mesh::MeshDesignVariables DensityTopology::generateMesh(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
-    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{mMesh}.nodalDensitiesToMeshDesignVariables(
-        mesh::NodalDensityVectorReference{aDesignParameters.stdVector()});
+    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{mMesh}.nodalFieldToMeshDesignVariables(
+        mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
     return mFilter.f(tNodalDesignParameters);
 }
 
@@ -92,11 +92,11 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
     const auto tDesignVariableConverter = mesh::DesignVariablesConversion{mMesh};
-    const auto tNodalDesignParameters = mesh::NodalDensityVectorReference{aDesignParameters.stdVector()};
+    const auto tNodalDesignParameters = mesh::NodalFieldVectorReference{aDesignParameters.stdVector()};
     return linear_algebra::JacobianMultiplier{
         /*.mNumColumns=*/mNumDesignParameters,
         /*.mJacobianTimesVectorFunction=*/
-        [tMeshDesignVariables = tDesignVariableConverter.nodalDensitiesToMeshDesignVariables(tNodalDesignParameters),
+        [tMeshDesignVariables = tDesignVariableConverter.nodalFieldToMeshDesignVariables(tNodalDesignParameters),
          this](const linear_algebra::DynamicVector<double>& x) { return x * mFilter.df(tMeshDesignVariables); }};
 }
 
@@ -121,8 +121,8 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
     const auto& tInputMeshName = aInput.mesh_name->mToken;
     const auto& tOutputMeshName = aInput.output_name->mToken;
     const auto tMesh = detail::mesh_from_input(aInput);
-    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalDensitiesToNodalIDMap(
-        mesh::NodalDensityVectorReference{aSolution.stdVector()});
+    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToNodalIDMap(
+        mesh::NodalFieldVectorReference{aSolution.stdVector()});
     third_party_integration::stk_io::write_nodal_density(tInputMeshName, tNodalDesignParameters, tOutputMeshName);
 }
 

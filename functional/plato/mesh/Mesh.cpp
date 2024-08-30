@@ -68,11 +68,11 @@ std::vector<Mesh::BlockOrdinalType> fixed_block_ordinals_from_mesh_design_variab
 
     const auto tBlockData = tpi::stk_io::block_data(aBulkData);
     auto tDesignBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
-    tDesignBlockIDs.reserve(aMeshDesignVariables.mBlockDensities.size());
-    std::transform(aMeshDesignVariables.mBlockDensities.cbegin(), aMeshDesignVariables.mBlockDensities.cend(),
+    tDesignBlockIDs.reserve(aMeshDesignVariables.mBlockScalarField.size());
+    std::transform(aMeshDesignVariables.mBlockScalarField.cbegin(), aMeshDesignVariables.mBlockScalarField.cend(),
                    std::back_inserter(tDesignBlockIDs),
-                   [&tBlockData, &tIDField](const auto& tBlockDensities)
-                   { return block_meta_data_ordinal(tBlockDensities.first, tIDField, tBlockData); });
+                   [&tBlockData, &tIDField](const auto& tBlockScalarField)
+                   { return block_meta_data_ordinal(tBlockScalarField.first, tIDField, tBlockData); });
 
     return set_difference_block_ordinals(aBulkData, tDesignBlockIDs);
 }
