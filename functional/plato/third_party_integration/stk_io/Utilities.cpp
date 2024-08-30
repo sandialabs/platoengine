@@ -164,22 +164,6 @@ unsigned int element_size(const stk::mesh::BulkData& aBulk, const PartReferenceV
 
 unsigned int spatial_dimensions(const stk::mesh::BulkData& aBulk) { return aBulk.mesh_meta_data().spatial_dimension(); }
 
-std::vector<double> flattened_nodal_coordinates(const stk::mesh::BulkData& aBulk)
-{
-    const unsigned int tSpatialDim = spatial_dimensions(aBulk);
-    const auto tCoordinates = nodal_coordinates(aBulk);
-    std::vector<double> tFlattenCoordinates(tCoordinates.size() * tSpatialDim);
-
-    for (auto const& tCoordinate : tCoordinates | boost::adaptors::indexed(0))
-    {
-        const auto tCoordinateVector = flatten(tCoordinate.value(), tSpatialDim);
-        unsigned int tBaseIndex = static_cast<unsigned int>(tCoordinate.index() * tSpatialDim);
-        std::copy(tCoordinateVector.begin(), tCoordinateVector.end(), tFlattenCoordinates.begin() + tBaseIndex);
-    }
-
-    return tFlattenCoordinates;
-}
-
 std::vector<common::Coordinate> nodal_coordinates(const stk::mesh::BulkData& aBulk)
 {
     return nodal_coordinates(aBulk, universal_part(aBulk));

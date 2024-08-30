@@ -143,17 +143,6 @@ TEST(STKUtilities, SpatialDimensions2)
     EXPECT_EQ(spatial_dimensions(*tMesh), 2u);
 }
 
-TEST(STKUtilities, ReadCoordinates)
-{
-    const CommandGenerator tCommandGenerator;
-    const std::vector<double> gold = {0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1};
-    const auto tMesh = generate_bulk_data(tCommandGenerator);
-    ASSERT_TRUE(tMesh);
-    const std::vector<double> res = flattened_nodal_coordinates(*tMesh);
-    EXPECT_EQ(gold, res);
-    EXPECT_EQ(node_size(*tMesh), tCommandGenerator.numberOfNodes());
-}
-
 TEST(STKUtilities, ReadCoordinatesCoordinate)
 {
     const CommandGenerator tCommandGenerator;

@@ -26,10 +26,6 @@ void check_mesh_counts(const std::filesystem::path& aMeshFilePath,
 
     const auto tCentroids = tMesh.elementCentroids();
     EXPECT_EQ(tCentroids.size(), aNumberOfElements) << aTestContext;
-
-    const auto tFlattenCoordinates = tMesh.flattenedNodalCoordinates();
-    constexpr auto tSpatialDimensions = unsigned{3};
-    EXPECT_EQ(tFlattenCoordinates.size(), aNumberOfNodes * tSpatialDimensions) << aTestContext;
 }
 }  // namespace
 

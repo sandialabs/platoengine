@@ -54,10 +54,6 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
 /// @brief Given a STK Bulk data  @a aBulk, return the spatial dimensions of the mesh.
 [[nodiscard]] unsigned int spatial_dimensions(const stk::mesh::BulkData& aBulk);
 
-/// @brief Given a STK Bulk data  @a aBulk, return a std::vector of the nodal coordinates ordered x0,y0,z0,x1,y1,z1, ...
-/// For 2D, only x and y coordinates are included in the vector.
-[[nodiscard]] std::vector<double> flattened_nodal_coordinates(const stk::mesh::BulkData& aBulk);
-
 /// @brief Given a STK Bulk data  @a aBulk, return a std::vector of Coordinates
 /// For 2D, z values of Coordinates are set to 0.
 [[nodiscard]] auto nodal_coordinates(const stk::mesh::BulkData& aBulk) -> std::vector<common::Coordinate>;

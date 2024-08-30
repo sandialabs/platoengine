@@ -2,9 +2,9 @@
 #define PLATO_THIRDPARTYINTEGRATION_COMMON_VECTOR3
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iostream>
-#include <vector>
 
 namespace plato::third_party_integration::common
 {
@@ -13,18 +13,6 @@ struct Coordinate
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
-
-    friend std::ostream& operator<<(std::ostream& stream, const Coordinate& aContainer)
-    {
-        stream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
-        return stream;
-    }
-
-    /// @todo Replace with `== default` in c++20
-    [[nodiscard]] friend constexpr bool operator==(const Coordinate& aLHS, const Coordinate& aRHS)
-    {
-        return aLHS.x == aRHS.x && aLHS.y == aRHS.y && aLHS.z == aRHS.z;
-    }
 };
 
 struct Vector3
@@ -33,6 +21,18 @@ struct Vector3
     double y = 0.0;
     double z = 0.0;
 };
+
+inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContainer)
+{
+    stream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
+    return stream;
+}
+
+/// @todo Replace with `== default` in c++20
+[[nodiscard]] inline constexpr bool operator==(const Coordinate& aLHS, const Coordinate& aRHS)
+{
+    return aLHS.x == aRHS.x && aLHS.y == aRHS.y && aLHS.z == aRHS.z;
+}
 
 [[nodiscard]] constexpr Vector3 operator-(const Coordinate& p0, const Coordinate& p1)
 {
@@ -77,11 +77,5 @@ template <typename Container3>
     return std::sqrt(aContainer.x * aContainer.x + aContainer.y * aContainer.y + aContainer.z * aContainer.z);
 }
 
-template <typename Container3>
-[[nodiscard]] std::vector<double> flatten(const Container3& aContainer3, const unsigned int aSpatialDimensions)
-{
-    return aSpatialDimensions == 2 ? std::vector<double>{aContainer3.x, aContainer3.y}
-                                   : std::vector<double>{aContainer3.x, aContainer3.y, aContainer3.z};
-}
 }  // namespace plato::third_party_integration::common
 #endif

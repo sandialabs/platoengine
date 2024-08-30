@@ -7,11 +7,6 @@ namespace plato::mesh
 {
 EntityRetrieval::EntityRetrieval(Mesh aMeshBase) : Mesh{std::move(aMeshBase)} {}
 
-std::vector<double> EntityRetrieval::flattenedNodalCoordinates() const
-{
-    return third_party_integration::stk_io::flattened_nodal_coordinates(bulkData());
-}
-
 auto EntityRetrieval::nodalCoordinates() const -> std::vector<third_party_integration::common::Coordinate>
 {
     return third_party_integration::stk_io::nodal_coordinates(bulkData());

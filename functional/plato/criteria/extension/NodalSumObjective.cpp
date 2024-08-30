@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "plato/criteria/library/CriterionRegistration.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -20,9 +19,12 @@ namespace
 
 double NodalSumObjective::f(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
+    namespace tpi = plato::third_party_integration;
+
     const auto tMesh = mesh::EntityRetrieval{mesh::Mesh{aMeshDesignVariables.mFileName}};
-    const std::vector<double> tCoordinates = tMesh.flattenedNodalCoordinates();
-    return std::accumulate(tCoordinates.begin(), tCoordinates.end(), 0.0);
+    const auto tCoordinates = tMesh.nodalCoordinates();
+    const auto tCoordinateSum = std::accumulate(tCoordinates.begin(), tCoordinates.end(), tpi::common::Coordinate{});
+    return tCoordinateSum.x + tCoordinateSum.y + tCoordinateSum.z;
 }
 
 linear_algebra::DynamicVector<double> NodalSumObjective::df(const mesh::MeshDesignVariables& aMeshDesignVariables) const

@@ -14,25 +14,6 @@ constexpr Vector3 kX{1, 0, 0};
 constexpr Vector3 kY{0, 1, 0};
 constexpr Vector3 kZ{0, 0, 1};
 constexpr Vector3 k123{1, 2, 3};
-
-template <typename Container>
-void test_flatten()
-{
-    constexpr Container tContainer{1, 2, 3};
-    {
-        constexpr int tNumberOfSpatialDimensions = 2;
-        const auto tResult = flatten(tContainer, tNumberOfSpatialDimensions);
-        const std::vector<double> tGold = {1, 2};
-        EXPECT_EQ(tResult, tGold);
-    }
-    {
-        constexpr int tNumberOfSpatialDimensions = 3;
-        const auto tResult = flatten(tContainer, tNumberOfSpatialDimensions);
-        const std::vector<double> tGold = {1, 2, 3};
-        EXPECT_EQ(tResult, tGold);
-    }
-}
-
 }  // namespace
 
 TEST(Vector3, CoordinateSubtraction)
@@ -131,12 +112,6 @@ TEST(Vector3, Magnitude)
     constexpr Vector3 tVector{1, 2, 3};
     const double tGold = std::sqrt(1 + 4 + 9);
     EXPECT_EQ(tGold, magnitude(tVector));
-}
-
-TEST(Container, ContainerToVector)
-{
-    test_flatten<Coordinate>();
-    test_flatten<Vector3>();
 }
 
 TEST(Coordinate, EqualityOperator)
