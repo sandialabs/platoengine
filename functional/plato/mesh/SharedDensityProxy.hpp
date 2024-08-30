@@ -23,7 +23,7 @@ struct SharedDensityProxy
 {
     /// @brief Assignment operator for assigning to all references held by this proxy.
     ///
-    /// Disabled for non-const objects.
+    /// Disabled for const objects.
     template <typename Iterator = InnerIteratorType>
     auto operator=(const Density& aDensity) -> std::enable_if_t<!kIsConstIterator<Iterator>, SharedDensityProxy&>;
 

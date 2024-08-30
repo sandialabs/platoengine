@@ -5,18 +5,10 @@
 
 #include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/mesh/MeshDesignVariablesDensitiesView.hpp"
+#include "plato/mesh/unittest/Utilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/Zip.hpp"
-
-namespace plato::mesh
-{
-bool operator==(const Density& aLHS, const Density& aRHS)
-{
-    return aLHS.mDensity == aRHS.mDensity && aLHS.mGlobalMeshEntityID == aRHS.mGlobalMeshEntityID &&
-           aLHS.mDesignVariableVectorIndex == aRHS.mDesignVariableVectorIndex;
-}
-}  // namespace plato::mesh
 
 namespace plato::mesh::unittest
 {
@@ -155,7 +147,7 @@ TEST(MeshDesignVariablesViews, RangeBasedFor)
         const auto tMeshView = MeshDesignVariablesDensitiesView{tMeshDesignVariables};
 
         auto tExpectedDensities = kBlockDensityVector1;
-        tCheckDensities(tMeshView, tExpectedDensities, TEST_CONTEXT("Full overlap"));
+        tCheckDensities(tMeshView, tExpectedDensities, TEST_CONTEXT("One block"));
     }
 }
 
