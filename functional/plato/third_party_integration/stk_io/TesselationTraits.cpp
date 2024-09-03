@@ -1,5 +1,6 @@
 #include "plato/third_party_integration/stk_io/TesselationTraits.hpp"
 
+#include <cassert>
 #include <numeric>
 #include <stk_topology/topology.hpp>
 
