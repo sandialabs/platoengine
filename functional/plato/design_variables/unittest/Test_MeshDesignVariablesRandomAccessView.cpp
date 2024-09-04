@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "plato/mesh/MeshDesignVariablesRandomAccessView.hpp"
+#include "plato/design_variables/MeshDesignVariablesRandomAccessView.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
-namespace plato::mesh::unittest
+namespace plato::design_variables::unittest
 {
 namespace
 {
@@ -91,4 +91,4 @@ TEST(MeshDesignVariablesRandomAccessView, TwoBlockAccessHasOverlap)
     const auto tNonExistentIDs = std::vector<std::size_t>{42, 100, 200};
     check_nonexistent_entries(tRandomAccessView, tNonExistentIDs, TEST_CONTEXT("Non-existent entries"));
 }
-}  // namespace plato::mesh::unittest
+}  // namespace plato::design_variables::unittest

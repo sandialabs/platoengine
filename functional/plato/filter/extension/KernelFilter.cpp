@@ -8,6 +8,8 @@
 #include "plato/core/Function.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
+#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
@@ -17,8 +19,6 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::filter::extension
@@ -33,9 +33,9 @@ namespace
         auto tFilterCache = detail::create_filter_cache(tInput);
 
         return core::make_function(
-            [tFilterCache](const mesh::MeshDesignVariables& aMeshDesignVariables) mutable
+            [tFilterCache](const design_variables::MeshDesignVariables& aMeshDesignVariables) mutable
             { return tFilterCache.compute(aMeshDesignVariables)->filter(aMeshDesignVariables); },
-            [tFilterCache](const mesh::MeshDesignVariables& aMeshDesignVariables) mutable {
+            [tFilterCache](const design_variables::MeshDesignVariables& aMeshDesignVariables) mutable {
                 return library::FilterJacobian{tFilterCache.compute(aMeshDesignVariables), aMeshDesignVariables};
             });
     }};
@@ -59,7 +59,8 @@ KernelFilter::KernelFilter(const mesh::Mesh& aMesh,
 {
 }
 
-mesh::MeshDesignVariables KernelFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+design_variables::MeshDesignVariables KernelFilter::filter(
+    const design_variables::MeshDesignVariables& aMeshDesignVariables) const
 {
     const auto tMesh = mesh::Mesh{aMeshDesignVariables};
     const auto tFieldValues =
@@ -76,7 +77,8 @@ mesh::MeshDesignVariables KernelFilter::filter(const mesh::MeshDesignVariables& 
 }
 
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(
-    const mesh::MeshDesignVariables& /*aMeshDesignVariables*/, const linear_algebra::DynamicVector<double>& aV) const
+    const design_variables::MeshDesignVariables& /*aMeshDesignVariables*/,
+    const linear_algebra::DynamicVector<double>& aV) const
 {
     return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
 }
@@ -152,13 +154,13 @@ FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)
     const auto tRequestedRanks = aInput.number_of_processors.value_or(1u);
     const auto tSplitComm = subdivide_world_comm_into_groups(tRequestedRanks);
 
-    return FilterCache{[aInput, tSplitComm](const mesh::MeshDesignVariables& aMeshDesignVariables)
+    return FilterCache{[aInput, tSplitComm](const design_variables::MeshDesignVariables& aMeshDesignVariables)
                        {
                            return std::make_shared<KernelFilter>(mesh::Mesh{aMeshDesignVariables},
                                                                  FilterRadius{aInput.filter_radius.value()},
                                                                  aInput.centering_type.value(), tSplitComm);
                        },
-                       [](const mesh::MeshDesignVariables& aMeshDesignVariables)
+                       [](const design_variables::MeshDesignVariables& aMeshDesignVariables)
                        { return library::hash_mesh_coordinates(aMeshDesignVariables); }};
 }
 

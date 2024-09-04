@@ -2,11 +2,11 @@
 
 #include <boost/core/ignore_unused.hpp>
 
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialViewIterator.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialViewIterator.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
-namespace plato::mesh::unittest
+namespace plato::design_variables::unittest
 {
 namespace
 {
@@ -63,4 +63,4 @@ TEST(MeshDesignVariablesViews, IteratorEqualityOperators)
     EXPECT_TRUE(tIterator1 == tIterator2) << "Explicitly check equality operator";
     EXPECT_FALSE(tIterator1 != tIterator2) << "Explicitly check inequality operator";
 }
-}  // namespace plato::mesh::unittest
+}  // namespace plato::design_variables::unittest

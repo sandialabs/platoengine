@@ -13,8 +13,8 @@ namespace
 {
 [[nodiscard]] auto make_test_criterion_function() -> plato::criteria::library::CriterionFunction
 {
-    return core::make_function([](const mesh::MeshDesignVariables&) { return 0.0; },
-                               [](const mesh::MeshDesignVariables&) {
+    return core::make_function([](const design_variables::MeshDesignVariables&) { return 0.0; },
+                               [](const design_variables::MeshDesignVariables&) {
                                    return linear_algebra::DynamicVector<double>{1.0, 2.0};
                                });
 }

@@ -17,7 +17,7 @@ namespace
                                    [](const library::CriterionInput&) { return make_nodal_sum_function(); }};
 }
 
-double NodalSumObjective::f(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+double NodalSumObjective::f(const design_variables::MeshDesignVariables& aMeshDesignVariables) const
 {
     namespace tpi = plato::third_party_integration;
 
@@ -27,7 +27,8 @@ double NodalSumObjective::f(const mesh::MeshDesignVariables& aMeshDesignVariable
     return tCoordinateSum.x + tCoordinateSum.y + tCoordinateSum.z;
 }
 
-linear_algebra::DynamicVector<double> NodalSumObjective::df(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+linear_algebra::DynamicVector<double> NodalSumObjective::df(
+    const design_variables::MeshDesignVariables& aMeshDesignVariables) const
 {
     const auto tMesh = mesh::EntityCounts{mesh::Mesh{aMeshDesignVariables.mFileName}};
     const unsigned int tSpatialDim = tMesh.spatialDimensions();
@@ -38,9 +39,10 @@ linear_algebra::DynamicVector<double> NodalSumObjective::df(const mesh::MeshDesi
 }
 
 auto make_nodal_sum_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>
 {
-    return core::make_function([](const mesh::MeshDesignVariables& mesh) { return NodalSumObjective{}.f(mesh); },
-                               [](const mesh::MeshDesignVariables& mesh) { return NodalSumObjective{}.df(mesh); });
+    return core::make_function(
+        [](const design_variables::MeshDesignVariables& mesh) { return NodalSumObjective{}.f(mesh); },
+        [](const design_variables::MeshDesignVariables& mesh) { return NodalSumObjective{}.df(mesh); });
 }
 }  // namespace plato::criteria::extension

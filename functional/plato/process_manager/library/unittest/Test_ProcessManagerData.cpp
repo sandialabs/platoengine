@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
@@ -23,8 +23,8 @@ TEST(ProcessManagerData, ParsePlatoProblemEvaluateObjective)
 
     // Test Geometry
     const auto tBoundingBox = linear_algebra::DynamicVector{0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
-    const mesh::MeshDesignVariables tGeomProxy = tGeometry.mCompute.f(tBoundingBox);
-    const mesh::MeshDesignVariables tPlatoProblemGeomProxy = tProblem.mGeometry.mCompute.f(tBoundingBox);
+    const design_variables::MeshDesignVariables tGeomProxy = tGeometry.mCompute.f(tBoundingBox);
+    const design_variables::MeshDesignVariables tPlatoProblemGeomProxy = tProblem.mGeometry.mCompute.f(tBoundingBox);
     EXPECT_TRUE(std::filesystem::exists(tGeomProxy.mFileName));
 
     // Test Objective

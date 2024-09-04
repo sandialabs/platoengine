@@ -4,12 +4,12 @@
 #include <boost/mpi/communicator.hpp>
 #include <vector>
 
+#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -47,8 +47,9 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
         tMesh.nodalFieldToMeshDesignVariables(mesh::NodalFieldVectorReference{tNodalDensities});
 
     const auto tResult = tKernelFilter.filter(tMeshDesignVariables);
-    const auto [tPostFilter, tIDMap] = mesh::detail::split_scalar_field_values(
-        mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesSequentialView{tResult}));
+    const auto [tPostFilter, tIDMap] =
+        design_variables::split_scalar_field_values(design_variables::mesh_design_variables_to_vector(
+            design_variables::MeshDesignVariablesSequentialView{tResult}));
 
     std::vector<double> tStdVectorSensitivities;
     if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
@@ -184,7 +185,8 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
         mesh::NodalFieldVectorReference{tNodalDensitiesAllOne});
     const auto tFilteredControlAllOne =
         tFilterCache.compute(tMeshDesignVariablesAllOne)->filter(tMeshDesignVariablesAllOne);
-    const auto tMeshDesignVariablesViewFilteredAllOne = mesh::MeshDesignVariablesSequentialView{tFilteredControlAllOne};
+    const auto tMeshDesignVariablesViewFilteredAllOne =
+        design_variables::MeshDesignVariablesSequentialView{tFilteredControlAllOne};
 
     // change control and ensure filter size is the same but values are different
     const auto tNodalDensitiesAllHalf = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 0.5);
@@ -193,13 +195,13 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
     const auto tFilteredControlAllHalf =
         tFilterCache.compute(tMeshDesignVariablesAllHalf)->filter(tMeshDesignVariablesAllHalf);
     const auto tMeshDesignVariablesViewFilteredAllHalf =
-        mesh::MeshDesignVariablesSequentialView{tFilteredControlAllHalf};
+        design_variables::MeshDesignVariablesSequentialView{tFilteredControlAllHalf};
 
     EXPECT_EQ(tMeshDesignVariablesViewFilteredAllOne.size(), tMeshDesignVariablesViewFilteredAllHalf.size());
-    const auto [tFilteredDensitiesAllOne, tIDsAllOne] = mesh::detail::split_scalar_field_values(
-        mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllOne));
-    const auto [tFilteredDensitiesAllHalf, tIDsAllHalf] = mesh::detail::split_scalar_field_values(
-        mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllHalf));
+    const auto [tFilteredDensitiesAllOne, tIDsAllOne] = design_variables::split_scalar_field_values(
+        design_variables::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllOne));
+    const auto [tFilteredDensitiesAllHalf, tIDsAllHalf] = design_variables::split_scalar_field_values(
+        design_variables::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllHalf));
     EXPECT_NE(tFilteredDensitiesAllOne, tFilteredDensitiesAllHalf);
     EXPECT_EQ(tIDsAllOne, tIDsAllHalf);
 
@@ -219,7 +221,7 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
     const auto tUpdatedFilteredControlAllOne =
         tFilterCache.compute(tUpdatedMeshDesignVariablesAllOne)->filter(tUpdatedMeshDesignVariablesAllOne);
     const auto tUpdatedMeshDesignVariablesViewFilteredAllOne =
-        mesh::MeshDesignVariablesSequentialView{tUpdatedFilteredControlAllOne};
+        design_variables::MeshDesignVariablesSequentialView{tUpdatedFilteredControlAllOne};
 
     EXPECT_NE(tMeshDesignVariablesViewFilteredAllOne.size(), tUpdatedMeshDesignVariablesViewFilteredAllOne.size());
 

@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -25,7 +25,7 @@ TEST(HashGeneration, HashMesh)
         stk_io::write_mesh(fileName, tCommandGenerator);
     }
 
-    const mesh::MeshDesignVariables tMeshDesignVariables{fileName, {}};
+    const design_variables::MeshDesignVariables tMeshDesignVariables{fileName, {}};
     const auto tInitialHash = plato::filter::library::hash_mesh_coordinates(tMeshDesignVariables);
 
     // reload mesh and rehash

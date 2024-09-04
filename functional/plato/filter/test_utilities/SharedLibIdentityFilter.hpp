@@ -4,7 +4,7 @@
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 struct MeshDesignVariables;
 }
@@ -18,11 +18,11 @@ namespace plato::filter::test_utilities
 class SharedLibIdentityFilter : public library::FilterInterface
 {
    public:
-    [[nodiscard]] mesh::MeshDesignVariables filter(
-        const mesh::MeshDesignVariables& aMeshDesignVariables) const override;
+    [[nodiscard]] design_variables::MeshDesignVariables filter(
+        const design_variables::MeshDesignVariables& aMeshDesignVariables) const override;
 
     [[nodiscard]] linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const mesh::MeshDesignVariables& aMeshDesignVariables,
+        const design_variables::MeshDesignVariables& aMeshDesignVariables,
         const linear_algebra::DynamicVector<double>& aV) const override;
 };
 }  // namespace plato::filter::test_utilities

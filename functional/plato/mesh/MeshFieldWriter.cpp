@@ -32,7 +32,7 @@ void MeshFieldWriter::writeElementField(const std::filesystem::path& aFilePath,
 }
 
 void MeshFieldWriter::writeMeshDesignVariables(const std::filesystem::path& aFilePath,
-                                               const MeshDesignVariables& aMeshDesignVariables,
+                                               const design_variables::MeshDesignVariables& aMeshDesignVariables,
                                                const std::string_view aFieldName,
                                                const double aFixedValue) const
 {

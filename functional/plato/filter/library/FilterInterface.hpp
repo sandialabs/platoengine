@@ -7,7 +7,7 @@
 
 #include "plato/linear_algebra/DynamicVector.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 struct MeshDesignVariables;
 }
@@ -36,13 +36,13 @@ class FilterInterface
     virtual ~FilterInterface() = default;
 
     /// @brief Appies the filter to the density field held in @a aMeshDesignVariables
-    [[nodiscard]] virtual mesh::MeshDesignVariables filter(
-        const mesh::MeshDesignVariables& aMeshDesignVariables) const = 0;
+    [[nodiscard]] virtual design_variables::MeshDesignVariables filter(
+        const design_variables::MeshDesignVariables& aMeshDesignVariables) const = 0;
 
     /// @brief Implements multiplication of row vector @a aV and the Jacobian of the
     ///  filter computed at the argument @a aMeshDesignVariables.
     [[nodiscard]] virtual linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const mesh::MeshDesignVariables& aMeshDesignVariables,
+        const design_variables::MeshDesignVariables& aMeshDesignVariables,
         const linear_algebra::DynamicVector<double>& aV) const = 0;
 
     FilterInterface(const FilterInterface&) = delete;

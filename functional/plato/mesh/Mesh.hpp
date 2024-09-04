@@ -16,7 +16,7 @@ class BulkData;  // NOLINT
 class Part;
 }  // namespace stk::mesh
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 struct MeshDesignVariables;
 }
@@ -47,11 +47,11 @@ class Mesh
     /// @pre The block names in @a aFixedBlockNames must be valid names in the mesh. Checked with an assertion.
     explicit Mesh(const std::filesystem::path& aMeshName, const std::set<std::string>& aFixedBlockNames = {});
 
-    /// @brief Constructs a mesh from a MeshDesignVariables object.
+    /// @brief Constructs a mesh from a design_variables::MeshDesignVariables object.
     ///
     /// Loads a mesh from disk as referred to by the file name in @a aMeshDesignVariables, and determines the fixed
     /// vs. design blocks from the data.
-    explicit Mesh(const MeshDesignVariables& aMeshDesignVariables);
+    explicit Mesh(const design_variables::MeshDesignVariables& aMeshDesignVariables);
 
     /// @brief Returns the path to the mesh on disk.
     const std::filesystem::path& filePath() const;

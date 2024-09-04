@@ -55,10 +55,10 @@ BrickShapeGeometry::BrickShapeGeometry(std::filesystem::path aFileName, const st
 
 BrickShapeGeometry::~BrickShapeGeometry() { std::filesystem::remove(mFileName); }
 
-mesh::MeshDesignVariables BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
+design_variables::MeshDesignVariables BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
 {
     detail::create_mesh(aDesignParameters, mFileName, mDiscretizationSize);
-    return mesh::MeshDesignVariables{mFileName, {}};
+    return design_variables::MeshDesignVariables{mFileName, {}};
 }
 
 linear_algebra::JacobianColumnEvaluator BrickShapeGeometry::jacobian(const BrickDesign& aDesignParameters) const
@@ -88,7 +88,7 @@ void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSo
 }
 
 auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry)
-    -> core::Function<mesh::MeshDesignVariables,
+    -> core::Function<design_variables::MeshDesignVariables,
                       linear_algebra::JacobianMultiplier,
                       const linear_algebra::DynamicVector<double>&>
 {

@@ -6,14 +6,15 @@
 
 namespace plato::integration_tests::test_mass_objective
 {
-double MassObjectiveInterface::value(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+double MassObjectiveInterface::value(const design_variables::MeshDesignVariables& aMeshDesignVariables) const
 {
     constexpr double tDensity = 1.0;
     const auto tMassObjective = MassObjective{tDensity};
     return tMassObjective.mass(aMeshDesignVariables.mFileName.string());
 }
 
-std::vector<double> MassObjectiveInterface::gradient(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+std::vector<double> MassObjectiveInterface::gradient(
+    const design_variables::MeshDesignVariables& aMeshDesignVariables) const
 {
     ///@todo Populate the gradient with actual values
     constexpr unsigned int tNumDimensions = 3;

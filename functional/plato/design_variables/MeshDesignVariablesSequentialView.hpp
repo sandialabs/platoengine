@@ -1,13 +1,13 @@
-#ifndef PLATO_MESH_MESHDESIGNVARIABLESSEQUENTIALVIEW
-#define PLATO_MESH_MESHDESIGNVARIABLESSEQUENTIALVIEW
+#ifndef PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLESSEQUENTIALVIEW
+#define PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLESSEQUENTIALVIEW
 
 #include <functional>
 #include <optional>
 
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialViewIterator.hpp"
+#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialViewIterator.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 /// @brief The purpose of this object is to provide an interface for MeshDesignVariables scalar field in with std
 /// algorithms.
@@ -38,8 +38,6 @@ using MeshDesignVariablesMutableSequentialView = MeshDesignVariablesSequentialVi
 [[nodiscard]] auto mesh_design_variables_to_vector(MeshDesignVariablesSequentialView aMeshView)
     -> std::vector<ScalarFieldValue>;
 
-namespace detail
-{
 /// @brief Combines a vector of scalar field design values with a vector of global IDs into a single vector containing
 /// ScalarFieldValue objects.
 /// @warning This does not set the field `mDesignVariableVectorIndex` in the returned values. This is meant for use as
@@ -52,8 +50,6 @@ namespace detail
 [[nodiscard]] auto split_scalar_field_values(const std::vector<ScalarFieldValue>& aScalarField)
     -> std::pair<std::vector<double>, std::vector<std::size_t>>;
 
-}  // namespace detail
-
-}  // namespace plato::mesh
+}  // namespace plato::design_variables
 
 #endif

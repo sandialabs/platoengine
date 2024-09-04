@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
@@ -60,7 +60,7 @@ std::vector<Mesh::BlockOrdinalType> set_difference_block_ordinals(
 }
 
 std::vector<Mesh::BlockOrdinalType> fixed_block_ordinals_from_mesh_design_variables(
-    const stk::mesh::BulkData& aBulkData, const MeshDesignVariables& aMeshDesignVariables)
+    const stk::mesh::BulkData& aBulkData, const design_variables::MeshDesignVariables& aMeshDesignVariables)
 {
     namespace tpi = third_party_integration;
 
@@ -104,7 +104,7 @@ Mesh::Mesh(const std::filesystem::path& aMeshName, const std::set<std::string>& 
 {
 }
 
-Mesh::Mesh(const MeshDesignVariables& aMeshDesignVariables)
+Mesh::Mesh(const design_variables::MeshDesignVariables& aMeshDesignVariables)
     : mFilePath{aMeshDesignVariables.mFileName},
       mBulk{third_party_integration::stk_io::read_mesh_bulk_data(mFilePath)},
       mFixedBlockOrdinals{fixed_block_ordinals_from_mesh_design_variables(*mBulk, aMeshDesignVariables)},

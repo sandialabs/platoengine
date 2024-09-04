@@ -13,23 +13,23 @@ ParallelMassObjectiveInterface::ParallelMassObjectiveInterface(MPI_Comm aComm) :
 {
 }
 
-double ParallelMassObjectiveInterface::value(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+double ParallelMassObjectiveInterface::value(const design_variables::MeshDesignVariables& aMeshDesignVariables) const
 {
     const auto tParallelizedValue =
-        test_utilities::ParallelTestFunctionWrapper<double, const mesh::MeshDesignVariables&>{
-            [](const mesh::MeshDesignVariables& aMeshDesignVariablesLambdaArg)
+        test_utilities::ParallelTestFunctionWrapper<double, const design_variables::MeshDesignVariables&>{
+            [](const design_variables::MeshDesignVariables& aMeshDesignVariablesLambdaArg)
             { return MassObjectiveInterface{}.value(aMeshDesignVariablesLambdaArg); }};
     const auto tResult = tParallelizedValue(aMeshDesignVariables, mComm);
     return tResult;
 }
 
 std::vector<double> ParallelMassObjectiveInterface::gradient(
-    const mesh::MeshDesignVariables& aMeshDesignVariables) const
+    const design_variables::MeshDesignVariables& aMeshDesignVariables) const
 {
     const auto tParallelizedGradient =
         test_utilities::ParallelTestFunctionWrapper<linear_algebra::DynamicVector<double>,
-                                                    const mesh::MeshDesignVariables&>{
-            [](const mesh::MeshDesignVariables& aMeshDesignVariablesLambdaArg) {
+                                                    const design_variables::MeshDesignVariables&>{
+            [](const design_variables::MeshDesignVariables& aMeshDesignVariablesLambdaArg) {
                 return linear_algebra::DynamicVector<double>{
                     MassObjectiveInterface{}.gradient(aMeshDesignVariablesLambdaArg)};
             }};

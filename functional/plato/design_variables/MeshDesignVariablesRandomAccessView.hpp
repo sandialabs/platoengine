@@ -1,12 +1,12 @@
-#ifndef PLATO_MESH_MESHDESIGNVARIABLESRANDOMACCESSVIEW
-#define PLATO_MESH_MESHDESIGNVARIABLESRANDOMACCESSVIEW
+#ifndef PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLESRANDOMACCESSVIEW
+#define PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLESRANDOMACCESSVIEW
 
 #include <functional>
 #include <optional>
 
-#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/design_variables/MeshDesignVariables.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 /// @brief Provides const random access to MeshDesignVariables using the global ID as the index.
 ///
@@ -19,6 +19,6 @@ struct MeshDesignVariablesRandomAccessView
     [[nodiscard]] auto operator[](ScalarFieldValue::IndexType aIndex) const -> std::optional<ScalarFieldValue>;
 };
 
-}  // namespace plato::mesh
+}  // namespace plato::design_variables
 
 #endif

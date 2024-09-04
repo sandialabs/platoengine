@@ -7,7 +7,7 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 struct MeshDesignVariables;
 }
@@ -45,7 +45,7 @@ class MeshFieldWriter : public Mesh
     /// The type of field (node vs. element) is determined from the number of design variables.
     /// If a file exists at path @a aOutputPath, the file is overwritten.
     void writeMeshDesignVariables(const std::filesystem::path& aFilePath,
-                                  const MeshDesignVariables& aMeshDesignVariables,
+                                  const design_variables::MeshDesignVariables& aMeshDesignVariables,
                                   std::string_view aFieldName,
                                   const double aFixedValue) const;
 };

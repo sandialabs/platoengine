@@ -1,12 +1,12 @@
-#ifndef PLATO_MESH_SHAREDVALUEPROXY
-#define PLATO_MESH_SHAREDVALUEPROXY
+#ifndef PLATO_DESIGN_VARIABLES_SHAREDVALUEPROXY
+#define PLATO_DESIGN_VARIABLES_SHAREDVALUEPROXY
 
 #include <cassert>
 #include <functional>
 #include <type_traits>
 #include <utility>
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 /// @brief Compile time check if an iterator refers to a const object.
 template <typename IteratorType>
@@ -55,6 +55,6 @@ SharedValueProxy<Value, InnerIteratorType>::operator Value() const
     return *mIterators.front();
 }
 
-}  // namespace plato::mesh
+}  // namespace plato::design_variables
 
 #endif

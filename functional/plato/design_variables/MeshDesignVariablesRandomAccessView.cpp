@@ -1,10 +1,10 @@
-#include "plato/mesh/MeshDesignVariablesRandomAccessView.hpp"
+#include "plato/design_variables/MeshDesignVariablesRandomAccessView.hpp"
 
 #include <numeric>
 
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 namespace
 {
@@ -41,4 +41,4 @@ auto MeshDesignVariablesRandomAccessView::operator[](const ScalarFieldValue::Ind
     return std::nullopt;
 }
 
-}  // namespace plato::mesh
+}  // namespace plato::design_variables

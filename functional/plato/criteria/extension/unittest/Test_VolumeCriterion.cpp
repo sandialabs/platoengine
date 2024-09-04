@@ -3,10 +3,10 @@
 #include <string>
 
 #include "plato/criteria/extension/VolumeCriterion.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
@@ -22,7 +22,8 @@ constexpr std::string_view kMeshFile = "brick.exo";
 
 void test_volume_criteria_from_ctor_and_function(
     const VolumeCriterion& tVolumeCriterion,
-    const core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>& aFunction,
+    const core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>&
+        aFunction,
     const double aGoldVolume)
 {
     constexpr double tConstantControls = 0.75;
@@ -50,7 +51,8 @@ void test_scaled_and_unscaled_on_ctor_and_function(
 
 void test_volume_criteria_derivative_from_ctor_and_function(
     const VolumeCriterion& tVolumeCriterion,
-    const core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>& aFunction,
+    const core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>&
+        aFunction,
     const std::vector<double>& aGold)
 {
     const auto tMesh = mesh::Mesh{kMeshFile};

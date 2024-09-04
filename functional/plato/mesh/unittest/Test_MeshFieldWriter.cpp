@@ -85,12 +85,13 @@ TEST_F(MeshFieldWriterTestMesh, WriteElementFieldOneFixedBlock)
 
 TEST_F(MeshFieldWriterTestMesh, WriteFieldsFromDesignVariables)
 {
-    const auto tWriteFieldToDisk = [this](const std::vector<ScalarFieldValue>& aFieldVector1,
-                                          const std::vector<ScalarFieldValue>& aFieldVector2,
+    const auto tWriteFieldToDisk = [this](const std::vector<design_variables::ScalarFieldValue>& aFieldVector1,
+                                          const std::vector<design_variables::ScalarFieldValue>& aFieldVector2,
                                           const std::string_view aFieldName)
     {
-        const auto tBlockField = MeshDesignVariables::BlockScalarField{{1, aFieldVector1}, {2, aFieldVector2}};
-        const auto tDesignVariables = MeshDesignVariables{mMeshFilePath, tBlockField};
+        const auto tBlockField =
+            design_variables::MeshDesignVariables::BlockScalarField{{1, aFieldVector1}, {2, aFieldVector2}};
+        const auto tDesignVariables = design_variables::MeshDesignVariables{mMeshFilePath, tBlockField};
         const auto tMesh = MeshFieldWriter{Mesh{mMeshFilePath}};
         tMesh.writeMeshDesignVariables(kOutputMeshPath, tDesignVariables, aFieldName, kFixedValue);
     };
@@ -99,9 +100,9 @@ TEST_F(MeshFieldWriterTestMesh, WriteFieldsFromDesignVariables)
     {
         constexpr auto tFieldName = std::string_view{"nodal_topology"};
         const auto tFieldVectorBlock1 =
-            std::vector<ScalarFieldValue>{{1, 0, 1.0}, {2, 1, 2.0}, {5, 4, 5.0}, {6, 5, 6.0}};
+            std::vector<design_variables::ScalarFieldValue>{{1, 0, 1.0}, {2, 1, 2.0}, {5, 4, 5.0}, {6, 5, 6.0}};
         const auto tFieldVectorBlock2 =
-            std::vector<ScalarFieldValue>{{2, 1, 2.0}, {3, 2, 3.0}, {4, 3, 4.0}, {5, 6, 5.0}};
+            std::vector<design_variables::ScalarFieldValue>{{2, 1, 2.0}, {3, 2, 3.0}, {4, 3, 4.0}, {5, 6, 5.0}};
         tWriteFieldToDisk(tFieldVectorBlock1, tFieldVectorBlock2, tFieldName);
         const auto tFieldFromDisk =
             third_party_integration::stk_io::test_utilities::read_nodal_field(kOutputMeshPath, tFieldName);
@@ -112,8 +113,8 @@ TEST_F(MeshFieldWriterTestMesh, WriteFieldsFromDesignVariables)
     // Element field
     {
         constexpr auto tFieldName = std::string_view{"element_topology"};
-        const auto tFieldVectorBlock1 = std::vector<ScalarFieldValue>{{3, 2, 3.0}};
-        const auto tFieldVectorBlock2 = std::vector<ScalarFieldValue>{{1, 0, 1.0}, {2, 1, 2.0}};
+        const auto tFieldVectorBlock1 = std::vector<design_variables::ScalarFieldValue>{{3, 2, 3.0}};
+        const auto tFieldVectorBlock2 = std::vector<design_variables::ScalarFieldValue>{{1, 0, 1.0}, {2, 1, 2.0}};
         tWriteFieldToDisk(tFieldVectorBlock1, tFieldVectorBlock2, tFieldName);
         const auto tFieldFromDisk =
             third_party_integration::stk_io::test_utilities::read_element_field(kOutputMeshPath, tFieldName);

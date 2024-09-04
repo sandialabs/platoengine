@@ -1,6 +1,6 @@
-#include "plato/mesh/MeshDesignVariablesSequentialViewIterator.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialViewIterator.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 template <typename InnerIteratorType, typename IteratorCategory>
 auto MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator++()
@@ -72,4 +72,4 @@ template struct MeshDesignVariablesSequentialViewIterator<MeshDesignVariables::S
 template struct MeshDesignVariablesSequentialViewIterator<MeshDesignVariables::ScalarFieldVector::const_iterator,
                                                           std::input_iterator_tag>;
 
-}  // namespace plato::mesh
+}  // namespace plato::design_variables

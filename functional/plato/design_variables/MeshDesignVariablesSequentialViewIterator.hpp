@@ -1,15 +1,15 @@
-#ifndef PLATO_MESH_MESHDESIGNVARIABLESSEQUENTIALVIEWITERATOR
-#define PLATO_MESH_MESHDESIGNVARIABLESSEQUENTIALVIEWITERATOR
+#ifndef PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLESSEQUENTIALVIEWITERATOR
+#define PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLESSEQUENTIALVIEWITERATOR
 
 #include <optional>
 #include <type_traits>
 #include <vector>
 
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/SharedValueProxy.hpp"
+#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/design_variables/SharedValueProxy.hpp"
 #include "plato/utilities/Zip.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 /// @brief An iterator type for using MeshDesignVariablesSequentialView in std algorithms.
 template <typename InnerIteratorType, typename IteratorCategory>
@@ -117,6 +117,6 @@ auto MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCatego
     return detail::dereferenced_proxy(mCurrentIterators, mEndIterators);
 }
 
-}  // namespace plato::mesh
+}  // namespace plato::design_variables
 
 #endif

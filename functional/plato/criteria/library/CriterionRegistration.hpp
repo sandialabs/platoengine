@@ -13,10 +13,10 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/services/AppConfiguration.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 struct MeshDesignVariables;
-}  // namespace plato::core
+}
 
 namespace plato::criteria::library
 {
@@ -27,7 +27,7 @@ struct CriterionInput
 };
 
 using CriterionFunction =
-    core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>;
+    core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>;
 using CriterionRegistration = core::FactoryRegistration<CriterionFunction, CriterionInput>;
 using ParallelCriterionRegistration =
     core::FactoryRegistration<CriterionFunction, CriterionInput, boost::mpi::communicator>;

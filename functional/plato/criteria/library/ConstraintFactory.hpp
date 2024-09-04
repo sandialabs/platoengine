@@ -8,7 +8,7 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 struct MeshDesignVariables;
 }
@@ -34,7 +34,7 @@ struct Constraint
 
 /// @brief Factory to create Constraint objects from input data.
 /// @post The return vector will have the same size as @a aInput.
-[[nodiscard]] std::vector<Constraint<const mesh::MeshDesignVariables&>> make_constraints(
+[[nodiscard]] std::vector<Constraint<const design_variables::MeshDesignVariables&>> make_constraints(
     const ValidatedConstraints& aInput);
 
 /// @brief Helper for providing ROL a dual vector for constraints.
@@ -43,7 +43,7 @@ struct Constraint
 
 namespace detail
 {
-[[nodiscard]] Constraint<const mesh::MeshDesignVariables&> make_constraint(
+[[nodiscard]] Constraint<const design_variables::MeshDesignVariables&> make_constraint(
     const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput);
 
 }  // namespace detail

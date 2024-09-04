@@ -6,11 +6,11 @@
 #include <stk_util/parallel/Parallel.hpp>
 #include <string_view>
 
+#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -144,7 +144,7 @@ TEST(Brick, ABrick)
     {
         BrickShapeGeometry tBrick(tFileName, tDiscretizationSize);
 
-        const mesh::MeshDesignVariables tMP = tBrick.generateMesh(tDesignParameters);
+        const design_variables::MeshDesignVariables tMP = tBrick.generateMesh(tDesignParameters);
         tUniqueFileName = tMP.mFileName;
 
         constexpr unsigned tExpectedNumElements = 2 * 4 * 6;

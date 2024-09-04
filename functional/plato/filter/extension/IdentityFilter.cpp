@@ -1,11 +1,11 @@
 #include "plato/filter/extension/IdentityFilter.hpp"
 
 #include "plato/core/ValidationRegistration.hpp"
+#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::filter::extension
@@ -21,16 +21,19 @@ namespace
                                                                 { return validate_identity_filter(aInput); }};
 }  // namespace
 
-mesh::MeshDesignVariables IdentityFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+design_variables::MeshDesignVariables IdentityFilter::filter(
+    const design_variables::MeshDesignVariables& aMeshDesignVariables) const
 {
     return aMeshDesignVariables;
 }
 
 linear_algebra::DynamicVector<double> IdentityFilter::jacobianTimesVector(
-    const mesh::MeshDesignVariables& aMeshDesignVariables, const linear_algebra::DynamicVector<double>& aV) const
+    const design_variables::MeshDesignVariables& aMeshDesignVariables,
+    const linear_algebra::DynamicVector<double>& aV) const
 {
     const auto tVectorDimension = static_cast<std::size_t>(aV.size());
-    const std::size_t tDensityDimension = mesh::MeshDesignVariablesSequentialView{aMeshDesignVariables}.size();
+    const std::size_t tDensityDimension =
+        design_variables::MeshDesignVariablesSequentialView{aMeshDesignVariables}.size();
     if (tVectorDimension != tDensityDimension)
     {
         throw utilities::Exception{
@@ -41,13 +44,14 @@ linear_algebra::DynamicVector<double> IdentityFilter::jacobianTimesVector(
     return aV;
 }
 
-auto make_identity_filter_function()
-    -> core::Function<mesh::MeshDesignVariables, library::FilterJacobian, const mesh::MeshDesignVariables&>
+auto make_identity_filter_function() -> core::Function<design_variables::MeshDesignVariables,
+                                                       library::FilterJacobian,
+                                                       const design_variables::MeshDesignVariables&>
 {
     return core::make_function(
-        [](const mesh::MeshDesignVariables& aMeshDesignVariables)
+        [](const design_variables::MeshDesignVariables& aMeshDesignVariables)
         { return IdentityFilter{}.filter(aMeshDesignVariables); },
-        [](const mesh::MeshDesignVariables& aMeshDesignVariables) {
+        [](const design_variables::MeshDesignVariables& aMeshDesignVariables) {
             return library::FilterJacobian{std::make_unique<IdentityFilter>(), aMeshDesignVariables};
         });
 }

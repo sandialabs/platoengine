@@ -1,12 +1,12 @@
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <numeric>
 
-#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/design_variables/MeshDesignVariables.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 template <typename MeshDesignVariablesType>
 std::size_t MeshDesignVariablesSequentialViewTemplate<MeshDesignVariablesType>::size() const
@@ -54,8 +54,6 @@ auto mesh_design_variables_to_vector(const MeshDesignVariablesSequentialView aMe
     return tScalarField;
 }
 
-namespace detail
-{
 auto combine_scalar_field_values_and_ids(const std::vector<double>& aScalarField, const std::vector<std::size_t>& aIDs)
     -> std::vector<ScalarFieldValue>
 {
@@ -64,7 +62,7 @@ auto combine_scalar_field_values_and_ids(const std::vector<double>& aScalarField
     tScalarField.reserve(aScalarField.size());
     std::transform(aScalarField.cbegin(), aScalarField.cend(), aIDs.cbegin(), std::back_inserter(tScalarField),
                    [](const double aFieldValue, const ScalarFieldValue::IndexType aID) {
-                       return ScalarFieldValue{aID, mesh::ScalarFieldValue::IndexType{0}, aFieldValue};
+                       return ScalarFieldValue{aID, design_variables::ScalarFieldValue::IndexType{0}, aFieldValue};
                    });
     return tScalarField;
 }
@@ -85,9 +83,7 @@ auto split_scalar_field_values(const std::vector<ScalarFieldValue>& aScalarField
     return {std::move(tFieldValues), std::move(tIndices)};
 }
 
-}  // namespace detail
-
 // Explicit instantiations
 template struct MeshDesignVariablesSequentialViewTemplate<MeshDesignVariables>;
 template struct MeshDesignVariablesSequentialViewTemplate<const MeshDesignVariables>;
-}  // namespace plato::mesh
+}  // namespace plato::design_variables

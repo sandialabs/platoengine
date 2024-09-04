@@ -1,11 +1,11 @@
-#ifndef PLATO_MESH_MESHDESIGNVARIABLES
-#define PLATO_MESH_MESHDESIGNVARIABLES
+#ifndef PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLES
+#define PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLES
 
 #include <filesystem>
 #include <map>
 #include <vector>
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 /// @brief Struct used for pairing a scalar design variable field value with a global mesh id and vector index.
 struct ScalarFieldValue
@@ -34,6 +34,6 @@ struct MeshDesignVariables
     BlockScalarField mBlockScalarField;
 };
 
-}  // namespace plato::mesh
+}  // namespace plato::design_variables
 
 #endif

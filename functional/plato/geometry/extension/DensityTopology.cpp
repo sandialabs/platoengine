@@ -1,5 +1,6 @@
 #include "plato/geometry/extension/DensityTopology.hpp"
 
+#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
@@ -8,7 +9,6 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -89,7 +89,7 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
 {
 }
 
-mesh::MeshDesignVariables DensityTopology::generateMesh(
+design_variables::MeshDesignVariables DensityTopology::generateMesh(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{mMesh}.nodalFieldToMeshDesignVariables(
@@ -137,7 +137,7 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
 }
 
 auto make_topology_geometry(const DensityTopology& aDensityTopology)
-    -> core::Function<mesh::MeshDesignVariables,
+    -> core::Function<design_variables::MeshDesignVariables,
                       linear_algebra::JacobianMultiplier,
                       const linear_algebra::DynamicVector<double>&>
 {

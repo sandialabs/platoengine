@@ -3,8 +3,8 @@
 #include <filesystem>
 
 #include "plato/criteria/extension/SharedLibCriterion.hpp"
+#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -25,7 +25,7 @@ void generate_bad_library_and_do_nothing()
     const auto tTestConfiguration = utilities::test_app_configuration("badRobot.so");
     const auto tBad = criteria::extension::SharedLibCriterion{
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
-    std::cout << tBad.f(mesh::MeshDesignVariables{"dne.exo", {}}) << std::endl;
+    std::cout << tBad.f(design_variables::MeshDesignVariables{"dne.exo", {}}) << std::endl;
 }
 
 criteria::extension::SharedLibCriterion test_shared_lib_criterion()
@@ -46,7 +46,7 @@ TEST(SharedLibObjective, CallValue)
     const auto tSharedLib = test_shared_lib_criterion();
     constexpr std::string_view tMeshName = "massTest.exo";
     third_party_integration::stk_io::write_mesh(tMeshName, kMeshGenerator);
-    const double tMass = tSharedLib.f(mesh::MeshDesignVariables{tMeshName, {}});
+    const double tMass = tSharedLib.f(design_variables::MeshDesignVariables{tMeshName, {}});
     EXPECT_DOUBLE_EQ(tMass, 8.0);
     std::filesystem::remove(tMeshName);
 }
@@ -56,7 +56,7 @@ TEST(SharedLibObjective, CallGradient)
     const auto tSharedLib = test_shared_lib_criterion();
     constexpr std::string_view tMeshName = "massTest.exo";
     third_party_integration::stk_io::write_mesh(tMeshName, kMeshGenerator);
-    const auto tGrad = tSharedLib.df(mesh::MeshDesignVariables{tMeshName, {}});
+    const auto tGrad = tSharedLib.df(design_variables::MeshDesignVariables{tMeshName, {}});
 
     const std::vector<double> tGold(24, 1.0);
     EXPECT_EQ(tGrad.stdVector(), tGold);
@@ -69,7 +69,7 @@ TEST(SharedLibObjective, ValueUsingFunction)
     const auto tFunction = criteria::extension::make_shared_lib_function(test_shared_lib_criterion());
     constexpr std::string_view tMeshName = "massTest.exo";
     third_party_integration::stk_io::write_mesh(tMeshName, kMeshGenerator);
-    const double tMass = tFunction.f(mesh::MeshDesignVariables{tMeshName, {}});
+    const double tMass = tFunction.f(design_variables::MeshDesignVariables{tMeshName, {}});
     EXPECT_DOUBLE_EQ(tMass, 8.0);
 
     std::filesystem::remove(tMeshName);

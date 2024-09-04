@@ -4,7 +4,7 @@
 #include "plato/core/Function.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 
-namespace plato::mesh
+namespace plato::design_variables
 {
 struct MeshDesignVariables;
 }
@@ -13,7 +13,8 @@ namespace plato::filter::library
 {
 struct FilterJacobian;
 
-using FilterFunction = core::Function<mesh::MeshDesignVariables, FilterJacobian, const mesh::MeshDesignVariables&>;
+using FilterFunction =
+    core::Function<design_variables::MeshDesignVariables, FilterJacobian, const design_variables::MeshDesignVariables&>;
 
 /// @brief Creates a Function used for filtering a nodal density field for density TO.
 /// @param aInput The input parameters parsed from an input deck.

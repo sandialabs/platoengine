@@ -3,14 +3,14 @@
 #include <boost/core/ignore_unused.hpp>
 #include <numeric>
 
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
-#include "plato/mesh/unittest/Utilities.hpp"
+#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
+#include "plato/design_variables/unittest/Utilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/Zip.hpp"
 
-namespace plato::mesh::unittest
+namespace plato::design_variables::unittest
 {
 namespace
 {
@@ -216,7 +216,7 @@ TEST(MeshDesignVariablesViews, ToVectorTwoBlocksOverlap)
 
 TEST(MeshDesignVariablesViews, CombineScalarField)
 {
-    const auto tScalarField = detail::combine_scalar_field_values_and_ids(kScalarField1, kIDs1);
+    const auto tScalarField = combine_scalar_field_values_and_ids(kScalarField1, kIDs1);
     for (const auto& [tResult, tExpected] : utilities::Zip{tScalarField, kBlockScalarFieldVector1})
     {
         EXPECT_EQ(tResult.mValue, tExpected.mValue);
@@ -226,9 +226,9 @@ TEST(MeshDesignVariablesViews, CombineScalarField)
 
 TEST(MeshDesignVariablesViews, SplitScalarField)
 {
-    const auto [tScalarFieldValues, tIDMap] = detail::split_scalar_field_values(kBlockScalarFieldVector1);
+    const auto [tScalarFieldValues, tIDMap] = split_scalar_field_values(kBlockScalarFieldVector1);
 
     EXPECT_EQ(tScalarFieldValues, kScalarField1);
     EXPECT_EQ(tIDMap, kIDs1);
 }
-}  // namespace plato::mesh::unittest
+}  // namespace plato::design_variables::unittest

@@ -18,11 +18,11 @@ class MassObjectiveInterface : public criteria::library::CriterionInterface
    public:
     ///@brief required by the CriterionInterface, return the value of the criterion evaluated at the controls specified
     /// by the MeshDesignVariables
-    double value(const mesh::MeshDesignVariables& aMeshDesignVariables) const override;
+    double value(const design_variables::MeshDesignVariables& aMeshDesignVariables) const override;
 
     ///@brief required by the CriterionInterface, return the gradient of the criterion evaluated at the controls
     /// specified by the MeshDesignVariables
-    std::vector<double> gradient(const mesh::MeshDesignVariables& aMeshDesignVariables) const override;
+    std::vector<double> gradient(const design_variables::MeshDesignVariables& aMeshDesignVariables) const override;
 };
 }  // namespace plato::integration_tests::test_mass_objective
 

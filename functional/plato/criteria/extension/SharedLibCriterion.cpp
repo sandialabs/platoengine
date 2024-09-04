@@ -43,7 +43,12 @@ SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirec
 {
 }
 
-double SharedLibCriterion::f(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+double SharedLibCriterion::f(const design_variables::MeshDesignVariables& aMesh) const
+{
+    return mCriterionInterface->value(aMesh);
+}
+
+linear_algebra::DynamicVector<double> SharedLibCriterion::df(const design_variables::MeshDesignVariables& aMeshDesignVariables) const
 {
     return mCriterionInterface->value(aMeshDesignVariables);
 }
@@ -55,11 +60,11 @@ linear_algebra::DynamicVector<double> SharedLibCriterion::df(
 }
 
 auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion)
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>
 {
-    return core::make_function([aSharedLibCriterion](const mesh::MeshDesignVariables& aMeshDesignVariables)
+    return core::make_function([aSharedLibCriterion](const design_variables::MeshDesignVariables& aMeshDesignVariables)
                                { return aSharedLibCriterion.f(aMeshDesignVariables); },
-                               [aSharedLibCriterion](const mesh::MeshDesignVariables& aMeshDesignVariables)
+                               [aSharedLibCriterion](const design_variables::MeshDesignVariables& aMeshDesignVariables)
                                { return aSharedLibCriterion.df(aMeshDesignVariables); });
 }
 
