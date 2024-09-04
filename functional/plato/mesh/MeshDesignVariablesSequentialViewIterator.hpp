@@ -47,7 +47,7 @@ template <>
 struct IteratorType<MeshDesignVariables>
 {
     using type = MeshDesignVariablesSequentialViewIterator<MeshDesignVariables::ScalarFieldVector::iterator,
-                                                           std::output_iterator_tag>;
+                                                           std::forward_iterator_tag>;
 };
 
 template <>

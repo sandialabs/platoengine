@@ -11,15 +11,7 @@ namespace plato::mesh
 template <typename MeshDesignVariablesType>
 std::size_t MeshDesignVariablesSequentialViewTemplate<MeshDesignVariablesType>::size() const
 {
-    auto tIter = begin();
-    const auto tEnd = end();
-    auto tCount = std::size_t{0};
-    while (tIter != tEnd)
-    {
-        ++tIter;
-        ++tCount;
-    }
-    return tCount;
+    return std::distance(begin(), end());
 }
 
 template <typename MeshDesignVariablesType>

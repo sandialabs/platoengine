@@ -68,7 +68,7 @@ auto min_id_iterator(const std::vector<std::optional<ScalarFieldValue>>& aScalar
 }  // namespace detail
 
 template struct MeshDesignVariablesSequentialViewIterator<MeshDesignVariables::ScalarFieldVector::iterator,
-                                                          std::output_iterator_tag>;
+                                                          std::forward_iterator_tag>;
 template struct MeshDesignVariablesSequentialViewIterator<MeshDesignVariables::ScalarFieldVector::const_iterator,
                                                           std::input_iterator_tag>;
 
