@@ -20,7 +20,7 @@ struct density_topology;
 
 namespace plato::geometry::extension
 {
-/// @brief ScalarFieldValue-based topology representation of a geometry.
+/// @brief Density-based topology representation of a geometry.
 ///
 /// Implementation for density-based topology optimization. The design
 /// variable used by this class is a nodal density field in `[0, 1]` representing
