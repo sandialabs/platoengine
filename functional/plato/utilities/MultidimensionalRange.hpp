@@ -21,13 +21,13 @@ class MultidimensionalIterator
     using iterator_category = std::input_iterator_tag;
     using difference_type = std::ptrdiff_t;
     using value_type = std::tuple<Ts...>;
-    using pointer = MultidimensionalIterator*;
-    using reference = MultidimensionalIterator&;
+    using pointer = const value_type*;
+    using reference = const value_type&;
 
     constexpr MultidimensionalIterator(const std::tuple<Ts...> dimensions);
     constexpr MultidimensionalIterator(EndTag, const std::tuple<Ts...> dimensions);
 
-    [[nodiscard]] constexpr value_type operator*() const;
+    [[nodiscard]] constexpr reference operator*() const;
     constexpr MultidimensionalIterator& operator++();
 
     [[nodiscard]] constexpr bool operator!=(const MultidimensionalIterator& iterator) const noexcept;
@@ -119,7 +119,7 @@ constexpr MultidimensionalIterator<Ts...>::MultidimensionalIterator(EndTag, cons
 }
 
 template <typename... Ts>
-constexpr auto MultidimensionalIterator<Ts...>::operator*() const -> MultidimensionalIterator<Ts...>::value_type
+constexpr auto MultidimensionalIterator<Ts...>::operator*() const -> MultidimensionalIterator<Ts...>::reference
 {
     return mCounts;
 }

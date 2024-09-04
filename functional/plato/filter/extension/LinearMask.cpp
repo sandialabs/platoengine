@@ -5,31 +5,13 @@
 #include <boost/mpi/collectives.hpp>
 #include <set>
 
-#include "plato/filter/extension/LinearMaskFactory.hpp"
+#include "plato/filter/extension/LinearMaskBuilder.hpp"
 
 namespace plato::filter::extension
 {
-
-LinearMask::LinearMask(const NodalVector& aNodalCoordinates,
-                       const CenterVector& aCentroids,
-                       const SearchRadius aSearchRadius,
-                       const int aMaximumConnectivityEstimate,
+LinearMask::LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask,
                        const boost::mpi::communicator& aCommunicator)
-    : mCommunicator(aCommunicator),
-      mLinearMask(
-          LinearMaskFactory{aNodalCoordinates, aCentroids, aSearchRadius, aMaximumConnectivityEstimate, aCommunicator}
-              .returnMask())
-{
-}
-
-LinearMask::LinearMask(const NodalVector& aNodalCoordinates,
-                       const SearchRadius aSearchRadius,
-                       const int aMaximumConnectivityEstimate,
-                       const boost::mpi::communicator& aCommunicator)
-    : mCommunicator(aCommunicator),
-      mLinearMask(LinearMaskFactory{aNodalCoordinates, CenterVector{aNodalCoordinates.mValue}, aSearchRadius,
-                                    aMaximumConnectivityEstimate, aCommunicator}
-                      .returnMask())
+    : mCommunicator{aCommunicator}, mLinearMask{std::move(aLinearMask)}
 {
 }
 

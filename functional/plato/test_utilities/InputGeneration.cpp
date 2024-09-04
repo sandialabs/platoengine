@@ -33,6 +33,7 @@ input_parser::density_topology create_valid_density_topology_geometry()
 {
     return input_parser::density_topology{/*.mesh_name=*/input_parser::FileName{"test.exo"},
                                           /*.output_name=*/input_parser::FileName{"test_out.exo"},
+                                          /*.fixed_blocks=*/{},
                                           /*.filter=*/boost::none};
 }
 
@@ -40,7 +41,7 @@ std::string create_valid_density_topology_geometry_string()
 {
     return R"(
         begin density_topology
-          mesh_name my_mesh.exo
+          mesh_name test.exo
           output_name test_out.exo
         end
         )";

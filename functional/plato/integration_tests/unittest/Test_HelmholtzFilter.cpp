@@ -7,11 +7,19 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/ValidInputTestFixture.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::filter::extension::unittest
 {
-TEST(FilterFactory, HelmholtzFilterThrows)
+namespace
+{
+struct FilterFactoryTestFixture : public test_utilities::ValidInputTestFixture
+{
+};
+}  // namespace
+
+TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
 {
     // For the Helmholtz filter, the filter may be loaded depending on whether
     // or not the PA shared library is available. This checks if we can load it,

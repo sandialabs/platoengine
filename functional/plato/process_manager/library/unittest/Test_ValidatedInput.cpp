@@ -7,12 +7,17 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/ValidInputTestFixture.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::process_manager::library::unittest
 {
 namespace
 {
+struct ValidatedInputFileFixture : public test_utilities::ValidInputTestFixture
+{
+};
+
 void test_helmholtz_filter_cross_reference(const ValidatedInput& aInput, const double aFilterRadius)
 {
     const auto tValidatedGeometry = aInput.geometry().rawInput();
@@ -41,9 +46,9 @@ TEST(ValidatedInput, MakeValidInputWithInvalidInput)
     EXPECT_THROW(const auto tValidatedInput = make_validated_input(input_parser::ParsedInput{}), utilities::Exception);
 }
 
-TEST(ValidatedInput, MakeValidInputWithValidInput)
+TEST_F(ValidatedInputFileFixture, MakeValidInputWithValidInput)
 {
-    EXPECT_NO_THROW(const auto tValidatedInput = make_validated_input(test_utilities::create_valid_example_input()));
+    EXPECT_NO_THROW(const auto tValidatedInput = make_validated_input(parsedInput()));
 }
 
 TEST(ValidatedInput, MakeValidInputWithGradientCheck)
@@ -54,7 +59,7 @@ TEST(ValidatedInput, MakeValidInputWithGradientCheck)
                                              test_utilities::create_valid_example_gradient_check()));
 }
 
-TEST(ValidatedInput, DensityTopologyCrossReference)
+TEST_F(ValidatedInputFileFixture, DensityTopologyCrossReference)
 {
     const auto tValidatedInput = make_validated_input(
         test_utilities::create_valid_density_topology_geometry() | test_utilities::create_valid_example_objective() |
@@ -64,14 +69,14 @@ TEST(ValidatedInput, DensityTopologyCrossReference)
     test_helmholtz_filter_cross_reference(tValidatedInput, tFilterRadius);
 }
 
-TEST(ValidatedInput, DensityTopologyCrossReferenceWithName)
+TEST_F(ValidatedInputFileFixture, DensityTopologyCrossReferenceWithName)
 {
     constexpr double tFilterRadius = 77.0;
 
     const auto tValidatedInput = process_manager::library::parse_and_validate(
         R"(
           begin density_topology
-            mesh_name my_mesh.exo
+            mesh_name test.exo
             output_name test_out.exo
             filter helmholtz_filter
           end

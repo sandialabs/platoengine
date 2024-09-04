@@ -18,12 +18,13 @@ class ZipIterator
     using iterator_category = std::input_iterator_tag;
     using value_type = std::tuple<typename std::iterator_traits<Iterators>::value_type...>;
     using reference = std::tuple<typename std::iterator_traits<Iterators>::reference...>;
+    using const_reference = std::tuple<const typename std::iterator_traits<Iterators>::reference...>;
 
     constexpr explicit ZipIterator(const Iterators&... iterators);
     constexpr explicit ZipIterator(std::tuple<Iterators...> iterators);
 
     [[nodiscard]] constexpr reference operator*();
-    [[nodiscard]] constexpr auto operator*() const;
+    [[nodiscard]] constexpr const_reference operator*() const;
     constexpr ZipIterator& operator++();
 
     [[nodiscard]] constexpr bool operator!=(const ZipIterator& iterator) const noexcept;
@@ -41,16 +42,16 @@ constexpr bool any_of_comparison_impl(const Tuple& t1, const Tuple& t2, const Bi
     return (op(std::get<Is>(t1), std::get<Is>(t2)) || ...);
 }
 
-template <typename IteratorTuple, std::size_t... Is>
-constexpr auto dereference(const IteratorTuple& iterator_tuple, std::index_sequence<Is...>)
+template <typename ReferenceTuple, typename IteratorTuple, std::size_t... Is>
+constexpr decltype(auto) dereference(const IteratorTuple& iterator_tuple, std::index_sequence<Is...>)
 {
-    return std::forward_as_tuple(*std::get<Is>(iterator_tuple)...);
+    return ReferenceTuple(*std::get<Is>(iterator_tuple)...);
 }
 
-template <typename IteratorTuple, std::size_t... Is>
-constexpr auto const_dereference(const IteratorTuple& iterator_tuple, std::index_sequence<Is...>)
+template <typename ReferenceTuple, typename IteratorTuple, std::size_t... Is>
+constexpr decltype(auto) const_dereference(const IteratorTuple& iterator_tuple, std::index_sequence<Is...>)
 {
-    return std::forward_as_tuple(std::as_const(*std::get<Is>(iterator_tuple))...);
+    return ReferenceTuple(std::as_const(*std::get<Is>(iterator_tuple))...);
 }
 
 template <typename IteratorTuple, std::size_t... Is>
@@ -79,13 +80,14 @@ constexpr ZipIterator<Iterators...>::ZipIterator(std::tuple<Iterators...> iterat
 template <typename... Iterators>
 constexpr auto ZipIterator<Iterators...>::operator*() -> ZipIterator<Iterators...>::reference
 {
-    return detail::dereference(mIterators, std::make_index_sequence<std::tuple_size_v<value_type> >());
+    return detail::dereference<reference>(mIterators, std::make_index_sequence<std::tuple_size_v<value_type> >());
 }
 
 template <typename... Iterators>
-constexpr auto ZipIterator<Iterators...>::operator*() const
+constexpr auto ZipIterator<Iterators...>::operator*() const -> ZipIterator<Iterators...>::const_reference
 {
-    return detail::const_dereference(mIterators, std::make_index_sequence<std::tuple_size_v<value_type> >());
+    return detail::const_dereference<const_reference>(mIterators,
+                                                      std::make_index_sequence<std::tuple_size_v<value_type> >());
 }
 
 template <typename... Iterators>

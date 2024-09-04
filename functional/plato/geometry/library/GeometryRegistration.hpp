@@ -11,9 +11,9 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
-namespace plato::core
+namespace plato::mesh
 {
-struct MeshProxy;
+struct MeshDesignVariables;
 }
 
 namespace plato::linear_algebra
@@ -25,8 +25,9 @@ namespace plato::geometry::library
 {
 struct FactoryTypes
 {
-    using Compute = core::
-        Function<core::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>;
+    using Compute = core::Function<mesh::MeshDesignVariables,
+                                   linear_algebra::JacobianMultiplier,
+                                   const linear_algebra::DynamicVector<double>&>;
     using InitialGuess = linear_algebra::DynamicVector<double>;
     using Bounds = std::pair<std::vector<double>, std::vector<double>>;
     using Output = std::function<void(const linear_algebra::DynamicVector<double>&)>;

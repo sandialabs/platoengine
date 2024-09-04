@@ -10,6 +10,7 @@
 #include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/third_party_integration/rol/OptimizerFactory.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::extension
 {
@@ -36,7 +37,8 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
     core::ValidationRegistration<input_parser::rol_optimization>{
         [](const input_parser::rol_optimization& aInput) { return detail::validate_max_iterations(aInput); },
         [](const input_parser::rol_optimization& aInput) { return detail::validate_step_tolerance(aInput); },
-        [](const input_parser::rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); }};
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); },
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_rol_input_file_exists(aInput); }};
 
 }  // namespace
 
@@ -45,9 +47,9 @@ ROLOptimization::ROLOptimization(const ValidatedOptimizationParameters& aInput)
 {
 }
 
-void ROLOptimization::run(const library::ProcessManagerData& aProblem) const
+void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData) const
 {
-    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>{make_rol_problem(aProblem).release()};
+    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>{make_rol_problem(aProcessManagerData).release()};
     auto tROLInputs = mROLOptions;
     auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
 
@@ -56,7 +58,7 @@ void ROLOptimization::run(const library::ProcessManagerData& aProblem) const
 
     if (mCommunicator.rank() == 0)
     {
-        aProblem.mGeometry.mOutput(
+        aProcessManagerData.mGeometry.mOutput(
             third_party_integration::rol::to_dynamic_vector(*tROLProblem->getPrimalOptimizationVector()));
     }
 }
@@ -72,10 +74,7 @@ std::optional<std::string> validate_max_iterations(const input_parser::rol_optim
             input_parser::block_name<input_parser::rol_optimization>(), aInput.max_iterations, "max_iterations",
             pfu::lower_bounded(pfu::Inclusive{1u}));
     }
-    else
-    {
-        return std::nullopt;
-    }
+    return std::nullopt;
 }
 
 std::optional<std::string> validate_step_tolerance(const input_parser::rol_optimization& aInput)
@@ -87,10 +86,7 @@ std::optional<std::string> validate_step_tolerance(const input_parser::rol_optim
             input_parser::block_name<input_parser::rol_optimization>(), aInput.step_tolerance, "step_tolerance",
             pfu::lower_bounded(pfu::Exclusive{0.0}));
     }
-    else
-    {
-        return std::nullopt;
-    }
+    return std::nullopt;
 }
 
 std::optional<std::string> validate_gradient_tolerance(const input_parser::rol_optimization& aInput)
@@ -102,10 +98,18 @@ std::optional<std::string> validate_gradient_tolerance(const input_parser::rol_o
             input_parser::block_name<input_parser::rol_optimization>(), aInput.gradient_tolerance, "gradient_tolerance",
             pfu::lower_bounded(pfu::Exclusive{0.0}));
     }
-    else
-    {
-        return std::nullopt;
-    }
+    return std::nullopt;
 }
+
+std::optional<std::string> validate_rol_input_file_exists(const input_parser::rol_optimization& aInput)
+{
+    if (aInput.input_file_name && !std::filesystem::exists(aInput.input_file_name->mToken))
+    {
+        return utilities::concatenate(input_parser::block_name<input_parser::rol_optimization>(),
+                                      ": Could not file input file with name ", aInput.input_file_name->mToken);
+    }
+    return std::nullopt;
+}
+
 }  // namespace detail
 }  // namespace plato::process_manager::extension

@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include "plato/core/MeshProxy.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -22,22 +22,22 @@ TEST(HashGeneration, HashMesh)
     {
         const stk_io::CommandGenerator tCommandGenerator{
             {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::Tet};
-        stk_io::write_mesh(fileName, stk_io::generate_mesh(tCommandGenerator));
+        stk_io::write_mesh(fileName, tCommandGenerator);
     }
 
-    const core::MeshProxy tMeshProxy{fileName, std::vector<double>(stk_io::read_mesh_node_size(fileName))};
-    const auto tInitialHash = plato::filter::library::hash_mesh(tMeshProxy);
+    const mesh::MeshDesignVariables tMeshDesignVariables{fileName, {}};
+    const auto tInitialHash = plato::filter::library::hash_mesh_coordinates(tMeshDesignVariables);
 
     // reload mesh and rehash
-    EXPECT_TRUE(tInitialHash == plato::filter::library::hash_mesh(tMeshProxy));
+    EXPECT_EQ(tInitialHash, plato::filter::library::hash_mesh_coordinates(tMeshDesignVariables));
 
     // change mesh
     {
         const stk_io::CommandGenerator tCommandGenerator{
             {3, 3, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::Tet};
-        stk_io::write_mesh(fileName, stk_io::generate_mesh(tCommandGenerator));
+        stk_io::write_mesh(fileName, tCommandGenerator);
     }
-    EXPECT_FALSE(tInitialHash == plato::filter::library::hash_mesh(tMeshProxy));
+    EXPECT_NE(tInitialHash, plato::filter::library::hash_mesh_coordinates(tMeshDesignVariables));
 
     test_utilities::test_for_existence_and_remove({fileName}, TEST_CONTEXT("Removing temporary files."));
 }

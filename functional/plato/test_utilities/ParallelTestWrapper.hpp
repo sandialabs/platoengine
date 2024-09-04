@@ -3,8 +3,7 @@
 
 #include <boost/mpi.hpp>
 #include <boost/mpi/communicator.hpp>
-
-#include "plato/core/Function.hpp"
+#include <functional>
 
 namespace plato::test_utilities
 {

@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <filesystem>
+#include <fstream>
 #include <functional>
 
 #include "plato/core/ValidationRegistration.hpp"
@@ -9,6 +11,15 @@
 
 namespace plato::process_manager::extension::unittest
 {
+namespace
+{
+void create_file(const std::filesystem::path& aPath)
+{
+    auto tStream = std::ofstream{aPath};
+    tStream.close();
+}
+}  // namespace
+
 TEST(OptimizerValidation, ValidateMaxIterations)
 {
     input_parser::rol_optimization tOptimizationParameters;
@@ -65,6 +76,25 @@ TEST(OptimizerValidation, ValidateGradientTolerance)
     EXPECT_FALSE(detail::validate_gradient_tolerance(tOptimizationParameters).has_value());
     tOptimizationParameters.gradient_tolerance = 1e-8;
     EXPECT_FALSE(detail::validate_gradient_tolerance(tOptimizationParameters).has_value());
+}
+
+TEST(OptimizerValidation, ValidateInputFileExists)
+{
+    auto tOptimizationParameters = input_parser::rol_optimization{};
+
+    // File name entry is empty, so no error
+    EXPECT_FALSE(detail::validate_rol_input_file_exists(tOptimizationParameters).has_value());
+
+    // Now add a non-existent file
+    const auto tTestFileName = std::filesystem::path{"rol-fake-inputs.xml"};
+    tOptimizationParameters.input_file_name = input_parser::FileName{tTestFileName.string()};
+    EXPECT_TRUE(detail::validate_rol_input_file_exists(tOptimizationParameters).has_value());
+
+    // Create an empty file, should pass now
+    create_file(tTestFileName);
+    EXPECT_FALSE(detail::validate_rol_input_file_exists(tOptimizationParameters).has_value());
+
+    std::filesystem::remove(tTestFileName);
 }
 
 TEST(OptimizerValidation, ErrorMessagesValidOptimizationParameters)

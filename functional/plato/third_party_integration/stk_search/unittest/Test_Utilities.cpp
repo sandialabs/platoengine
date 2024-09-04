@@ -4,7 +4,7 @@
 #include <optional>
 
 #include "plato/test_utilities/TestDataFilePath.hpp"
-#include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 
 namespace plato::third_party_integration::stk_search::unittest
@@ -21,8 +21,8 @@ TEST(STKSearchUtilities, NodalIdentifiers)
     for (unsigned int tIndex = 0; tIndex < tNodalCoordinates.size(); ++tIndex)
     {
         const common::Coordinate tResult = convert_search_point(tNodalCoordsWithIdentifiers[tIndex].first);
-        common::unittest::test_double_equality_of_components(tResult, tNodalCoordinates[tIndex],
-                                                             TEST_CONTEXT("Checking search point is node"));
+        common::test_utilities::test_double_equality_of_components(tResult, tNodalCoordinates[tIndex],
+                                                                   TEST_CONTEXT("Checking search point is node"));
         EXPECT_EQ(tNodalCoordsWithIdentifiers[tIndex].second.id(), tIndex);
     }
 }

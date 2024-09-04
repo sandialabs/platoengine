@@ -3,11 +3,11 @@
 #include <variant>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/MeshProxy.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::geometry::library::unittest
@@ -16,7 +16,7 @@ namespace
 {
 [[nodiscard]] auto make_test_geometry_function() -> FactoryTypes::Compute
 {
-    return core::make_function([](const linear_algebra::DynamicVector<double>&) { return core::MeshProxy{}; },
+    return core::make_function([](const linear_algebra::DynamicVector<double>&) { return mesh::MeshDesignVariables{}; },
                                [](const linear_algebra::DynamicVector<double>&)
                                { return linear_algebra::JacobianMultiplier{}; });
 }

@@ -1,23 +1,25 @@
 #include "plato/integration_tests/test_mass_objective/MassObjectiveInterface.hpp"
 
 #include "plato/integration_tests/test_mass_objective/MassObjective.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/Mesh.hpp"
 
 namespace plato::integration_tests::test_mass_objective
 {
-double MassObjectiveInterface::value(const core::MeshProxy& aMeshProxy) const
+double MassObjectiveInterface::value(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
     constexpr double tDensity = 1.0;
     const auto tMassObjective = MassObjective{tDensity};
-    return tMassObjective.mass(aMeshProxy.mFileName.string());
+    return tMassObjective.mass(aMeshDesignVariables.mFileName.string());
 }
 
-std::vector<double> MassObjectiveInterface::gradient(const core::MeshProxy& aMeshProxy) const
+std::vector<double> MassObjectiveInterface::gradient(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
     ///@todo Populate the gradient with actual values
     constexpr unsigned int tNumDimensions = 3;
     const unsigned int tGradientSize =
-        third_party_integration::stk_io::read_mesh_node_size(aMeshProxy.mFileName.string()) * tNumDimensions;
+        mesh::EntityCounts{mesh::Mesh{aMeshDesignVariables.mFileName}}.numberOfNodes() * tNumDimensions;
+
     return std::vector<double>(tGradientSize, 1.0);
 }
 }  // namespace plato::integration_tests::test_mass_objective

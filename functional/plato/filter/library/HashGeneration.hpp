@@ -1,17 +1,19 @@
-#ifndef PLATO_UTILITIES_HASHGENERATION
-#define PLATO_UTILITIES_HASHGENERATION
+#ifndef PLATO_FILTER_LIBRARY_HASHGENERATION
+#define PLATO_FILTER_LIBRARY_HASHGENERATION
 
 #include <boost/functional/hash.hpp>
 #include <cstddef>
 
-namespace plato::core
+namespace plato::mesh
 {
-struct MeshProxy;
+struct MeshDesignVariables;
 }
 
 namespace plato::filter::library
 {
-[[nodiscard]] std::size_t hash_mesh(const plato::core::MeshProxy& aMeshProxy);
+/// @brief Computes a hash of the nodal coordinates of the mesh referenced by the file name in
+///  @a aMeshDesignVariables. Does not consider the density values or connectivity, only the nodal coordinates.
+[[nodiscard]] std::size_t hash_mesh_coordinates(const plato::mesh::MeshDesignVariables& aMeshDesignVariables);
 
 namespace detail
 {

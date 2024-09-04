@@ -1,23 +1,28 @@
 #include <gtest/gtest.h>
 
+#include <fstream>
+
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 
 namespace plato::geometry::library::unittest
 {
 namespace
 {
+struct GeometryTopologyValidationFileFixture : public test_utilities::FileCreatingTestFixture
+{
+    GeometryTopologyValidationFileFixture() : FileCreatingTestFixture{"testfile.txt"} {}
+};
+
 std::optional<std::string> bogus_error(const input_parser::density_topology& aInput)
 {
     if (aInput.mesh_name.value().mToken == "trigger_bogus_test")
     {
         return "Bogus error for test_geometry_block";
     }
-    else
-    {
-        return std::nullopt;
-    }
+    return std::nullopt;
 }
 
 [[maybe_unused]] static auto kDensityTopologyValidationRegistration =
@@ -72,18 +77,51 @@ TEST(GeometryValidation, ValidInputCallsRightVariantTest)
     auto tBrickShapeGeometry = plato::test_utilities::create_valid_brick_shape_geometry();
     std::vector<std::string> tMessages;
 
-    tInput.mBrickShapeGeometry = tBrickShapeGeometry;
-    tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
-    EXPECT_EQ(tMessages.size(), 0u);
-
-    tInput.mBrickShapeGeometry = boost::none;
-    tInput.mDensityTopology = tDensityTopology;
-    tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
-    EXPECT_EQ(tMessages.size(), 1u);  // from bogus test geometry registration above
-
-    tMessages.resize(0);
-    tInput.mBrickShapeGeometry = tBrickShapeGeometry;  // now there are two geometries
-    tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
-    EXPECT_EQ(tMessages.size(), 2u);  // from bogus test geometry registration above and multiple geometries
+    {
+        tInput.mBrickShapeGeometry = tBrickShapeGeometry;
+        tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
+        EXPECT_TRUE(tMessages.empty());
+    }
+    {
+        tInput.mBrickShapeGeometry = boost::none;
+        tInput.mDensityTopology = tDensityTopology;
+        tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
+        // from bogus test geometry registration above and missing mesh file
+        constexpr auto tExpectedNumberOfMessages = 2U;
+        EXPECT_EQ(tMessages.size(), tExpectedNumberOfMessages);
+    }
+    {
+        tMessages.resize(0);
+        tInput.mBrickShapeGeometry = tBrickShapeGeometry;  // now there are two geometries
+        tMessages = plato::geometry::library::validate_geometry(tInput, std::move(tMessages));
+        // from bogus test geometry registration, missing mesh file, and multiple geometries
+        constexpr auto tExpectedNumberOfMessages = 3U;
+        EXPECT_EQ(tMessages.size(), tExpectedNumberOfMessages);
+    }
 }
+
+TEST_F(GeometryTopologyValidationFileFixture, MeshFileExists)
+{
+    auto tDensityTopologyInput = test_utilities::create_valid_density_topology_geometry();
+
+    // Valid
+    {
+        tDensityTopologyInput.mesh_name = input_parser::FileName{filePath().string()};
+        const auto tErrorMessage = detail::validate_mesh_file_exists(tDensityTopologyInput);
+        EXPECT_FALSE(tErrorMessage.has_value()) << tErrorMessage.value();
+    }
+    // Empty
+    {
+        tDensityTopologyInput.mesh_name = boost::none;
+        const auto tErrorMessage = detail::validate_mesh_file_exists(tDensityTopologyInput);
+        EXPECT_FALSE(tErrorMessage.has_value()) << tErrorMessage.value();
+    }
+    // Invalid
+    {
+        tDensityTopologyInput.mesh_name = input_parser::FileName{"bogus-file-name.txt"};
+        const auto tErrorMessage = detail::validate_mesh_file_exists(tDensityTopologyInput);
+        EXPECT_TRUE(tErrorMessage.has_value());
+    }
+}
+
 }  // namespace plato::geometry::library::unittest

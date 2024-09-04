@@ -5,9 +5,11 @@
 #include <boost/serialization/vector.hpp>
 #include <string>
 
-#include "plato/core/MeshProxy.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
+#include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -15,7 +17,7 @@
 #include "plato/utilities/RankSplitVector.hpp"
 #include "plato/utilities/Zip.hpp"
 
-namespace plato::filter::extension::unittest
+namespace plato::filter::extension::parallel_unittest
 {
 namespace
 {
@@ -36,27 +38,32 @@ std::vector<double> create_linear_space_vector(unsigned int aSize)
     return tVector;
 }
 
-std::pair<std::vector<double>, std::vector<double> > test_filter_evaluation(
-    const third_party_integration::stk_io::CommandGenerator& aCommandGenerator,
-    const boost::mpi::communicator& aCommunicator)
+auto test_filter_evaluation(const third_party_integration::stk_io::CommandGenerator& aCommandGenerator,
+                            const boost::mpi::communicator& aCommunicator)
+    -> std::pair<std::vector<mesh::ScalarFieldValue>, std::vector<double> >
 {
-    const KernelFilter tKernelFilter{kMeshFile, FilterRadius{1},
+    const KernelFilter tKernelFilter{mesh::Mesh{kMeshFile}, FilterRadius{1},
                                      input_parser::KernelFilterCenteringTypes::kElementCentered, aCommunicator};
 
     const std::vector<double> tNodalDensities = create_linear_space_vector(aCommandGenerator.numberOfNodes());
     const std::vector<double> tStdVectorSensitivities =
         create_linear_space_vector(aCommandGenerator.numberOfElements());
 
-    const core::MeshProxy tMeshProxy{kMeshFile, tNodalDensities};
-    const auto tPostFilter = tKernelFilter.filter(tMeshProxy).mNodalDensities;
+    const auto tMesh = mesh::DesignVariablesConversion{mesh::Mesh{kMeshFile}};
+    const auto tMeshDesignVariables =
+        tMesh.nodalFieldToMeshDesignVariables(mesh::NodalFieldVectorReference{tNodalDensities});
+    const auto tResult = tKernelFilter.filter(tMeshDesignVariables);
+    const auto tPostFilter = mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesSequentialView{tResult});
+
     const auto tPostSensitivities =
-        tKernelFilter.jacobianTimesVector(tMeshProxy, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
+        tKernelFilter
+            .jacobianTimesVector(tMeshDesignVariables, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
             .stdVector();
 
-    return {tPostFilter, tPostSensitivities};
+    return std::pair{tPostFilter, tPostSensitivities};
 }
 
-boost::mpi::communicator split_coms()
+boost::mpi::communicator split_comm_world()
 {
     auto tWorldComm = boost::mpi::communicator{};
     const auto tRank = tWorldComm.rank();
@@ -88,7 +95,7 @@ TEST(ParallelConsistencyKernelFilter, CommSplit)
     const auto tWorldComm = boost::mpi::communicator{};
     const auto tRank = tWorldComm.rank();
 
-    const auto tSplitComm = split_coms();
+    const auto tSplitComm = split_comm_world();
 
     if (tRank == 0)
     {
@@ -108,12 +115,11 @@ TEST(ParallelConsistencyKernelFilter, FilterConsistency)
 
     if (tRank == 0)
     {
-        third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                    third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+        third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
     }
 
     tWorldComm.barrier();
-    const auto tSplitComm = split_coms();
+    const auto tSplitComm = split_comm_world();
 
     const auto [tResultFilter, tResultJV] = test_filter_evaluation(tCommandGenerator, tSplitComm);
     tWorldComm.barrier();
@@ -123,7 +129,8 @@ TEST(ParallelConsistencyKernelFilter, FilterConsistency)
 
     if (tWorldComm.rank() == 0)
     {
-        tBroadcastResultFilter = tResultFilter;
+        auto tIDMap = std::vector<std::size_t>{};
+        std::tie(tBroadcastResultFilter, tIDMap) = mesh::detail::split_scalar_field_values(tResultFilter);
         tBroadcastResultJV = tResultJV;
     }
 
@@ -132,7 +139,7 @@ TEST(ParallelConsistencyKernelFilter, FilterConsistency)
 
     for (const auto [tLocalValue, tBroadcastValue] : utilities::Zip{tResultFilter, tBroadcastResultFilter})
     {
-        EXPECT_DOUBLE_EQ(tLocalValue, tBroadcastValue);
+        EXPECT_DOUBLE_EQ(tLocalValue.mValue, tBroadcastValue);
     }
 
     for (const auto [tLocalValue, tBroadcastValue] : utilities::Zip{tResultJV, tBroadcastResultJV})
@@ -154,21 +161,21 @@ TEST(KernelFilterDetail, CreateLinearMask)
         third_party_integration::stk_io::CommandGenerator{{4u, 4u, 4u}, {-2, -2, -2}, {2, 2, 2}};
     if (tWorldComm.rank() == 0)
     {
-        third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                    third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+        third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
     }
     tWorldComm.barrier();
+    const auto tMesh = mesh::Mesh{kMeshFile};
     const FilterRadius tFilterRadius{5};
     {
         const LinearMask tLinearMask = detail::create_linear_mask(
-            kMeshFile, tFilterRadius, input_parser::KernelFilterCenteringTypes::kElementCentered, tWorldComm);
+            tMesh, tFilterRadius, input_parser::KernelFilterCenteringTypes::kElementCentered, tWorldComm);
         const auto [tRows, tCols] = tLinearMask.size();
         EXPECT_EQ(tRows, tCommandGenerator.numberOfElements());
         EXPECT_EQ(tCols, tCommandGenerator.numberOfNodes());
     }
     {
         const LinearMask tLinearMask = detail::create_linear_mask(
-            kMeshFile, tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, tWorldComm);
+            tMesh, tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, tWorldComm);
         const auto [tRows, tCols] = tLinearMask.size();
         EXPECT_EQ(tRows, tCommandGenerator.numberOfNodes());
         EXPECT_EQ(tCols, tCommandGenerator.numberOfNodes());
@@ -180,4 +187,4 @@ TEST(KernelFilterDetail, CreateLinearMask)
     }
 }
 
-}  // namespace plato::filter::extension::unittest
+}  // namespace plato::filter::extension::parallel_unittest

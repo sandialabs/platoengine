@@ -1,7 +1,5 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 
-#include <optional>
-
 #include "plato/core/InputVariantUtilities.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/input_parser/InputBlocks.hpp"

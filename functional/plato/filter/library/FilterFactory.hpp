@@ -4,16 +4,16 @@
 #include "plato/core/Function.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 
-namespace plato::core
+namespace plato::mesh
 {
-struct MeshProxy;
+struct MeshDesignVariables;
 }
 
 namespace plato::filter::library
 {
 struct FilterJacobian;
 
-using FilterFunction = core::Function<core::MeshProxy, FilterJacobian, const core::MeshProxy&>;
+using FilterFunction = core::Function<mesh::MeshDesignVariables, FilterJacobian, const mesh::MeshDesignVariables&>;
 
 /// @brief Creates a Function used for filtering a nodal density field for density TO.
 /// @param aInput The input parameters parsed from an input deck.
