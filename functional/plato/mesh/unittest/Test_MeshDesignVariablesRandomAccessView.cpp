@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/mesh/MeshDesignVariablesRandomAccessView.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::mesh::unittest
@@ -22,6 +23,28 @@ const auto kBlockScalarFieldVector3 = MeshDesignVariables::ScalarFieldVector{{kI
                                                                              {kIDs3[1], kIDs3[1], kScalarField3[1]}};
 
 const auto kFileName = std::filesystem::path{"not-a-file.exo"};
+
+void check_view_vs_vector(const MeshDesignVariablesRandomAccessView aMeshDesignVariablesView,
+                          const std::vector<std::size_t>& aIDs,
+                          const std::vector<double>& aValues,
+                          const test_utilities::TestContext& aTestContext)
+{
+    for (const auto tIndex : utilities::IndexRange{aIDs.size()})
+    {
+        const auto tResult = aMeshDesignVariablesView[aIDs[tIndex]];
+        ASSERT_TRUE(tResult) << aTestContext;
+        EXPECT_EQ(tResult->mValue, aValues[tIndex]) << aTestContext;
+    }
+}
+void check_nonexistent_entries(const MeshDesignVariablesRandomAccessView aMeshDesignVariablesView,
+                               const std::vector<std::size_t>& aIDs,
+                               const test_utilities::TestContext& aTestContext)
+{
+    for (const auto tID : aIDs)
+    {
+        EXPECT_FALSE(aMeshDesignVariablesView[tID]) << aTestContext;
+    }
+}
 }  // namespace
 
 TEST(MeshDesignVariablesRandomAccessView, OneBlockSize)
@@ -37,16 +60,10 @@ TEST(MeshDesignVariablesRandomAccessView, OneBlockAccess)
     const auto tBlockScalarField = MeshDesignVariables::BlockScalarField{{1, kBlockScalarFieldVector1}};
     const auto tMeshDesignVariables = MeshDesignVariables{kFileName, tBlockScalarField};
     const auto tRandomAccessView = MeshDesignVariablesRandomAccessView{tMeshDesignVariables};
-    for (const auto tIndex : utilities::IndexRange{kScalarField1.size()})
-    {
-        const auto tResult = tRandomAccessView[kIDs1[tIndex]];
-        ASSERT_TRUE(tResult);
-        EXPECT_EQ(tResult->mValue, kScalarField1[tIndex]);
-    }
-    // Check some non-entries
-    EXPECT_FALSE(tRandomAccessView[42]);
-    EXPECT_FALSE(tRandomAccessView[100]);
-    EXPECT_FALSE(tRandomAccessView[200]);
+
+    check_view_vs_vector(tRandomAccessView, kIDs1, kScalarField1, TEST_CONTEXT("Field 1"));
+    const auto tNonExistentIDs = std::vector<std::size_t>{42, 100, 200};
+    check_nonexistent_entries(tRandomAccessView, tNonExistentIDs, TEST_CONTEXT("Non-existent entries"));
 }
 
 TEST(MeshDesignVariablesRandomAccessView, TwoBlockAccessNoOverlap)
@@ -55,21 +72,11 @@ TEST(MeshDesignVariablesRandomAccessView, TwoBlockAccessNoOverlap)
         MeshDesignVariables::BlockScalarField{{1, kBlockScalarFieldVector1}, {3, kBlockScalarFieldVector3}};
     const auto tMeshDesignVariables = MeshDesignVariables{kFileName, tBlockScalarField};
     const auto tRandomAccessView = MeshDesignVariablesRandomAccessView{tMeshDesignVariables};
-    for (const auto tIndex : utilities::IndexRange{kScalarField1.size()})
-    {
-        const auto tResult = tRandomAccessView[kIDs1[tIndex]];
-        ASSERT_TRUE(tResult);
-        EXPECT_EQ(tResult->mValue, kScalarField1[tIndex]);
-    }
-    for (const auto tIndex : utilities::IndexRange{kScalarField3.size()})
-    {
-        const auto tResult = tRandomAccessView[kIDs3[tIndex]];
-        ASSERT_TRUE(tResult);
-        EXPECT_EQ(tResult->mValue, kScalarField3[tIndex]);
-    }  // Check some non-entries
-    ASSERT_FALSE(tRandomAccessView[42]);
-    ASSERT_FALSE(tRandomAccessView[100]);
-    EXPECT_FALSE(tRandomAccessView[200]);
+
+    check_view_vs_vector(tRandomAccessView, kIDs1, kScalarField1, TEST_CONTEXT("Field 1"));
+    check_view_vs_vector(tRandomAccessView, kIDs3, kScalarField3, TEST_CONTEXT("Field 3"));
+    const auto tNonExistentIDs = std::vector<std::size_t>{42, 100, 200};
+    check_nonexistent_entries(tRandomAccessView, tNonExistentIDs, TEST_CONTEXT("Non-existent entries"));
 }
 
 TEST(MeshDesignVariablesRandomAccessView, TwoBlockAccessHasOverlap)
@@ -78,20 +85,10 @@ TEST(MeshDesignVariablesRandomAccessView, TwoBlockAccessHasOverlap)
         MeshDesignVariables::BlockScalarField{{1, kBlockScalarFieldVector1}, {2, kBlockScalarFieldVector2}};
     const auto tMeshDesignVariables = MeshDesignVariables{kFileName, tBlockScalarField};
     const auto tRandomAccessView = MeshDesignVariablesRandomAccessView{tMeshDesignVariables};
-    for (const auto tIndex : utilities::IndexRange{kScalarField1.size()})
-    {
-        const auto tResult = tRandomAccessView[kIDs1[tIndex]];
-        ASSERT_TRUE(tResult.has_value());
-        EXPECT_EQ(tResult->mValue, kScalarField1[tIndex]);
-    }
-    for (const auto tIndex : utilities::IndexRange{kScalarField2.size()})
-    {
-        const auto tResult = tRandomAccessView[kIDs2[tIndex]];
-        ASSERT_TRUE(tResult.has_value());
-        EXPECT_EQ(tResult->mValue, kScalarField2[tIndex]);
-    }
-    ASSERT_FALSE(tRandomAccessView[42]);
-    ASSERT_FALSE(tRandomAccessView[100]);
-    EXPECT_FALSE(tRandomAccessView[200]);
+
+    check_view_vs_vector(tRandomAccessView, kIDs1, kScalarField1, TEST_CONTEXT("Field 1"));
+    check_view_vs_vector(tRandomAccessView, kIDs2, kScalarField2, TEST_CONTEXT("Field 2"));
+    const auto tNonExistentIDs = std::vector<std::size_t>{42, 100, 200};
+    check_nonexistent_entries(tRandomAccessView, tNonExistentIDs, TEST_CONTEXT("Non-existent entries"));
 }
 }  // namespace plato::mesh::unittest
