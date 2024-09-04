@@ -4,7 +4,7 @@
 
 #include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 
 namespace plato::mesh
 {

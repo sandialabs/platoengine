@@ -9,7 +9,7 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::criteria::extension::unittest

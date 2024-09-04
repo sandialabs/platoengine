@@ -1,7 +1,7 @@
 #include "plato/mesh/MeshFieldWriter.hpp"
 
 #include "plato/mesh/EntityCounts.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 
 namespace plato::mesh
 {

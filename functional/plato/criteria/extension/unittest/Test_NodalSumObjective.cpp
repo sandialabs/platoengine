@@ -7,7 +7,7 @@
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 
 namespace plato::criteria::extension::unittest
 {

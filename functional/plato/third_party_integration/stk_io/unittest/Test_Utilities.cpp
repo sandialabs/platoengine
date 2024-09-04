@@ -14,6 +14,7 @@
 #include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"

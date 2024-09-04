@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
-#include <optional>
 #include <stk_mesh/base/Types.hpp>
 #include <string_view>
 #include <vector>
@@ -21,31 +20,6 @@ class Part;
 namespace plato::third_party_integration::stk_io
 {
 using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::Part>>;
-
-/// @brief A helper struct for writing fields to a mesh on disk.
-struct ScalarField
-{
-    std::unordered_map<std::size_t, double> mData{};
-    std::string mName{};
-    double mFixedValue = 1.0;
-};
-
-/// @brief Given a pathname  @a aMeshName and the Command generator @a aCommandGenerator, write to disk the data in
-/// exodus format
-void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator);
-
-/// @brief Given a pathname  @a aMeshName and mesh description (e.g. `textmesh`), write to disk the data in
-/// exodus format
-void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDescription);
-
-/// @brief Use a STK @a aGenerationCommand, e.g., "generated:1x1x1" to create and return a shared pointer to a STK Bulk
-[[nodiscard]] std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator);
-
-/// @brief Given a pathname  @a aMeshName and the STK Bulk data @a aBulk, write to disk the data in exodus format
-void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk);
-
-/// @brief Given a pathname  @a aMeshName, read from disk and return a shared pointer to the STK Bulk data.
-[[nodiscard]] std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::path& aMeshName);
 
 /// @brief Given a STK Bulk data  @a aBulk, return the total number of nodes.
 [[nodiscard]] unsigned int node_size(const stk::mesh::BulkData& aBulk);
@@ -69,20 +43,6 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
 /// @brief Returns the list of element IDs associated with the block @a aPart in mesh @a aBulkData.
 [[nodiscard]] auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
     -> std::vector<common::Coordinate>;
-
-/// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
-/// nodal field stored in the name and populated with the data in @a aScalarField.
-/// @pre aDensity.size() == size<stk::topology::NODE_RANK>()
-void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
-                              const ScalarField& aScalarField,
-                              const std::filesystem::path& aOutputMeshName);
-
-/// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
-/// element field stored in the name and populated with the data in @a aScalarField.
-/// @pre aDensity.size() == size<stk::topology::ELEMENT_RANK>()
-void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
-                                const ScalarField& aScalarField,
-                                const std::filesystem::path& aOutputMeshName);
 
 /// @brief Given a STK Bulk data  @a aBulk, return the STK element container
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk);

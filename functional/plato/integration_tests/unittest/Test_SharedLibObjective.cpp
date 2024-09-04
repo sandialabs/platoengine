@@ -6,7 +6,7 @@
 #include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::integration_tests::serial

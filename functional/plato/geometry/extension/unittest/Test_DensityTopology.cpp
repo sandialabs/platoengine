@@ -16,7 +16,9 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::geometry::extension::unittest
 {

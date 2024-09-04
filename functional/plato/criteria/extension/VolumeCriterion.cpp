@@ -5,6 +5,7 @@
 #include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"
 

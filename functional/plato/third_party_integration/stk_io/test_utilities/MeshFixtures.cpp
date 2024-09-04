@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include "plato/test_utilities/TestDataFilePath.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::third_party_integration::stk_io::test_utilities

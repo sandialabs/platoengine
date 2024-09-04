@@ -9,6 +9,7 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/tpetra/TestUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
