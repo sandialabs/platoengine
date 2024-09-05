@@ -8,8 +8,8 @@ namespace plato::design_variables
 {
 namespace
 {
-std::optional<ScalarFieldValue> find_element_with_global_index(
-    const MeshDesignVariables::ScalarFieldVector& aScalarField, const ScalarFieldValue::IndexType aIndex)
+std::optional<ScalarFieldValue> element_with_global_index(const MeshDesignVariables::ScalarFieldVector& aScalarField,
+                                                          const ScalarFieldValue::IndexType aIndex)
 {
     const auto tEntryToFind = ScalarFieldValue{aIndex, 0, 0.0};
     const auto tIter = std::lower_bound(aScalarField.cbegin(), aScalarField.cend(), tEntryToFind,
@@ -33,7 +33,7 @@ auto MeshDesignVariablesRandomAccessView::operator[](const ScalarFieldValue::Ind
 {
     for (const auto& tBlockScalarField : mMeshDesignVariables.get().mBlockScalarField)
     {
-        if (const auto tResult = find_element_with_global_index(tBlockScalarField.second, aIndex))
+        if (const auto tResult = element_with_global_index(tBlockScalarField.second, aIndex))
         {
             return tResult;
         }

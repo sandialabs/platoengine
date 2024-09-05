@@ -29,14 +29,15 @@ struct DesignVariablesConversion : public Mesh
     /// meshDesignVariablesToNodalFieldVector.
     /// @pre The size of @a aScalarField must be equal to the total number of nodes in the design domain of @a aMesh,
     /// which is given by numberOfDesignDomainElements in EntityCounts.
-    design_variables::MeshDesignVariables nodalFieldToMeshDesignVariables(NodalFieldVectorReference aScalarField) const;
+    auto nodalFieldToMeshDesignVariables(NodalFieldVectorReference aScalarField) const
+        -> design_variables::MeshDesignVariables;
 
     /// @brief Maps the element scalar field in @a aScalarField to a MeshDesignVariables object using
     /// the node, element, and block info in the mesh.
     /// @pre The size of @a aScalarField must be equal to the total number of elements in the design domain of @a aMesh,
     /// which is given by numberOfDesignDomainElements in EntityCounts.
-    design_variables::MeshDesignVariables elementFieldToMeshDesignVariables(
-        ElementFieldVectorReference aScalarField) const;
+    auto elementFieldToMeshDesignVariables(ElementFieldVectorReference aScalarField) const
+        -> design_variables::MeshDesignVariables;
 
     /// @brief Maps the nodal scalar field contained in @a aMeshDesignVariables to a vector.
     ///

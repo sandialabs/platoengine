@@ -13,8 +13,8 @@ namespace plato::mesh
 namespace
 {
 template <typename F>
-design_variables::MeshDesignVariables initialize_mesh_design_variable_data_structures(const Mesh& aMesh,
-                                                                                      const F& aIDFunction)
+auto initialize_mesh_design_variable_data_structures(const Mesh& aMesh, const F& aIDFunction)
+    -> design_variables::MeshDesignVariables
 {
     auto tMeshDesignVariables = design_variables::MeshDesignVariables{aMesh.filePath(), {}};
     for (const auto tDesignBlockOrdinal : aMesh.designBlockOrdinals())
@@ -30,9 +30,9 @@ design_variables::MeshDesignVariables initialize_mesh_design_variable_data_struc
 }
 
 template <typename F>
-design_variables::MeshDesignVariables entity_field_to_mesh_design_variables(const std::vector<double>& aScalarField,
-                                                                            const Mesh& aMesh,
-                                                                            const F& aIDFunction)
+auto entity_field_to_mesh_design_variables(const std::vector<double>& aScalarField,
+                                           const Mesh& aMesh,
+                                           const F& aIDFunction) -> design_variables::MeshDesignVariables
 {
     auto tMeshDesignVariables = initialize_mesh_design_variable_data_structures(aMesh, aIDFunction);
 
@@ -67,16 +67,16 @@ std::vector<double> mesh_design_variables_view_to_vector(
 
 DesignVariablesConversion::DesignVariablesConversion(Mesh aMesh) : Mesh{std::move(aMesh)} {}
 
-design_variables::MeshDesignVariables DesignVariablesConversion::nodalFieldToMeshDesignVariables(
-    const NodalFieldVectorReference aScalarField) const
+auto DesignVariablesConversion::nodalFieldToMeshDesignVariables(const NodalFieldVectorReference aScalarField) const
+    -> design_variables::MeshDesignVariables
 {
     const auto tNodeIDs = [](const mesh::Mesh& aMesh, const Mesh::BlockOrdinalType aBlockOrdinal)
     { return mesh::MeshBlocks{aMesh}.nodeIDs(aBlockOrdinal); };
     return entity_field_to_mesh_design_variables(aScalarField.mValue.get(), *this, tNodeIDs);
 }
 
-design_variables::MeshDesignVariables DesignVariablesConversion::elementFieldToMeshDesignVariables(
-    const ElementFieldVectorReference aScalarField) const
+auto DesignVariablesConversion::elementFieldToMeshDesignVariables(const ElementFieldVectorReference aScalarField) const
+    -> design_variables::MeshDesignVariables
 {
     const auto tElementIDs = [](const mesh::Mesh& aMesh, const Mesh::BlockOrdinalType aBlockOrdinal)
     { return mesh::MeshBlocks{aMesh}.elementIDs(aBlockOrdinal); };
