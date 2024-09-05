@@ -59,18 +59,6 @@ struct DesignVariablesConversion : public Mesh
     /// @sa meshDesignVariablesToNodalFieldVector
     ElementFieldVector meshDesignVariablesToElementFieldVector(
         const design_variables::MeshDesignVariables& aMeshDesignVariables) const;
-
-    /// @brief Converts all design variable field values to a map from global ID to scalar design value.
-    auto nodalFieldToNodalIDMap(NodalFieldVectorReference aNodalField) const
-        -> std::unordered_map<design_variables::ScalarFieldValue::IndexType, double>;
-
-    /// @brief Converts all element field values to a map from global ID to field value.
-    auto elementFieldToElementIDMap(ElementFieldVectorReference aElementField) const
-        -> std::unordered_map<design_variables::ScalarFieldValue::IndexType, double>;
-
-    /// @brief Converts all design variables to a map from ID to design variable.
-    auto meshDesignVariablesToIDMap(const design_variables::MeshDesignVariables& aMeshDesignVariables) const
-        -> std::unordered_map<design_variables::ScalarFieldValue::IndexType, double>;
 };
 
 }  // namespace plato::mesh

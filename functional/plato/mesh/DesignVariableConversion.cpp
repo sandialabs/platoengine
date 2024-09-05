@@ -63,22 +63,6 @@ std::vector<double> mesh_design_variables_view_to_vector(
     return tNodalField;
 }
 
-auto mesh_design_variables_to_map(const design_variables::MeshDesignVariables& aMeshDesignVariables)
-    -> std::unordered_map<design_variables::ScalarFieldValue::IndexType, double>
-{
-    auto tNodeIDFieldMap = std::unordered_map<design_variables::ScalarFieldValue::IndexType, double>{};
-    const auto tDesignVariablesView = design_variables::MeshDesignVariablesSequentialView{aMeshDesignVariables};
-    tNodeIDFieldMap.reserve(tDesignVariablesView.size());
-    std::transform(tDesignVariablesView.begin(), tDesignVariablesView.end(),
-                   std::inserter(tNodeIDFieldMap, tNodeIDFieldMap.begin()),
-                   [](const auto& tProxy)
-                   {
-                       const auto tValue = static_cast<design_variables::ScalarFieldValue>(tProxy);
-                       return std::make_pair(tValue.mGlobalMeshEntityID, tValue.mValue);
-                   });
-    return tNodeIDFieldMap;
-}
-
 }  // namespace
 
 DesignVariablesConversion::DesignVariablesConversion(Mesh aMesh) : Mesh{std::move(aMesh)} {}
@@ -111,22 +95,4 @@ ElementFieldVector DesignVariablesConversion::meshDesignVariablesToElementFieldV
     return ElementFieldVector{mesh_design_variables_view_to_vector(aMeshDesignVariables)};
 }
 
-auto DesignVariablesConversion::nodalFieldToNodalIDMap(const NodalFieldVectorReference aScalarField) const
-    -> std::unordered_map<design_variables::ScalarFieldValue::IndexType, double>
-{
-    return mesh_design_variables_to_map(nodalFieldToMeshDesignVariables(aScalarField));
-}
-
-auto DesignVariablesConversion::elementFieldToElementIDMap(ElementFieldVectorReference aElementField) const
-    -> std::unordered_map<design_variables::ScalarFieldValue::IndexType, double>
-{
-    return mesh_design_variables_to_map(elementFieldToMeshDesignVariables(aElementField));
-}
-
-auto DesignVariablesConversion::meshDesignVariablesToIDMap(
-    const design_variables::MeshDesignVariables& aMeshDesignVariables) const
-    -> std::unordered_map<design_variables::ScalarFieldValue::IndexType, double>
-{
-    return mesh_design_variables_to_map(aMeshDesignVariables);
-}
 }  // namespace plato::mesh
