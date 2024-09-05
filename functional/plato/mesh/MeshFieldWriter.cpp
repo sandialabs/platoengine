@@ -1,5 +1,6 @@
 #include "plato/mesh/MeshFieldWriter.hpp"
 
+#include "plato/design_variables/MeshDesignVariablesRandomAccessView.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 
@@ -12,11 +13,8 @@ void MeshFieldWriter::writeNodalField(const std::filesystem::path& aFilePath,
                                       const std::string_view aFieldName,
                                       const double aFixedValue) const
 {
-    namespace tpi = plato::third_party_integration;
-    const auto tDesignVariablesConversion = DesignVariablesConversion{*this};
-    const auto tNodalField = tpi::stk_io::ScalarField{tDesignVariablesConversion.nodalFieldToNodalIDMap(aScalarField),
-                                                      std::string{aFieldName}, aFixedValue};
-    tpi::stk_io::write_nodal_scalar_field(filePath(), tNodalField, aFilePath);
+    const auto tDesignVariables = DesignVariablesConversion{*this}.nodalFieldToMeshDesignVariables(aScalarField);
+    writeMeshDesignVariables(aFilePath, tDesignVariables, aFieldName, aFixedValue);
 }
 
 void MeshFieldWriter::writeElementField(const std::filesystem::path& aFilePath,
@@ -24,11 +22,8 @@ void MeshFieldWriter::writeElementField(const std::filesystem::path& aFilePath,
                                         const std::string_view aFieldName,
                                         const double aFixedValue) const
 {
-    namespace tpi = plato::third_party_integration;
-    const auto tDesignVariablesConversion = DesignVariablesConversion{*this};
-    const auto tElementField = tpi::stk_io::ScalarField{
-        tDesignVariablesConversion.elementFieldToElementIDMap(aScalarField), std::string{aFieldName}, aFixedValue};
-    tpi::stk_io::write_element_scalar_field(filePath(), tElementField, aFilePath);
+    const auto tDesignVariables = DesignVariablesConversion{*this}.elementFieldToMeshDesignVariables(aScalarField);
+    writeMeshDesignVariables(aFilePath, tDesignVariables, aFieldName, aFixedValue);
 }
 
 void MeshFieldWriter::writeMeshDesignVariables(const std::filesystem::path& aFilePath,
@@ -37,17 +32,19 @@ void MeshFieldWriter::writeMeshDesignVariables(const std::filesystem::path& aFil
                                                const double aFixedValue) const
 {
     namespace tpi = plato::third_party_integration;
-    const auto tDesignVariablesConversion = DesignVariablesConversion{*this};
+
     const auto tScalarField =
-        tpi::stk_io::ScalarField{tDesignVariablesConversion.meshDesignVariablesToIDMap(aMeshDesignVariables),
-                                 std::string{aFieldName}, aFixedValue};
+        [tDesignVariablesView = design_variables::MeshDesignVariablesRandomAccessView{aMeshDesignVariables},
+         tFixedScalarField = design_variables::ScalarFieldValue{0, 0, aFixedValue}](const std::size_t aGlobalIndex)
+    { return tDesignVariablesView[aGlobalIndex].value_or(tFixedScalarField).mValue; };
+
     if (EntityCounts{*this}.areElementDesignVariables(aMeshDesignVariables))
     {
-        tpi::stk_io::write_element_scalar_field(filePath(), tScalarField, aFilePath);
+        tpi::stk_io::write_element_scalar_field(filePath(), tScalarField, aFieldName, aFilePath);
     }
     else
     {
-        tpi::stk_io::write_nodal_scalar_field(filePath(), tScalarField, aFilePath);
+        tpi::stk_io::write_nodal_scalar_field(filePath(), tScalarField, aFieldName, aFilePath);
     }
 }
 

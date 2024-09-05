@@ -27,24 +27,30 @@ using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 
 constexpr auto kTopologyFieldName = std::string_view{"topology"};
 
-void check_write_density(const std::filesystem::path& aInputFileName,
-                         const std::unordered_map<std::size_t, double>& aData,
-                         const std::filesystem::path& aOutputFileName,
-                         const std::vector<double>& aExpected,
-                         const plato::test_utilities::TestContext& aTestContext)
+void check_write_scalar_field(const std::filesystem::path& aInputFileName,
+                              const std::unordered_map<std::size_t, double>& aData,
+                              const std::filesystem::path& aOutputFileName,
+                              const std::vector<double>& aExpected,
+                              const plato::test_utilities::TestContext& aTestContext)
 {
-    const auto tScalarField = ScalarField{aData, "Topology", 1.0};
+    constexpr auto tFieldName = std::string_view{"Topology"};
+    const auto tScalarFieldFunction = [&aData](const std::size_t aGlobalIndex)
+    {
+        constexpr auto tFixedValue = 42.0;
+        const auto tDensityIterator = aData.find(aGlobalIndex);
+        return tDensityIterator != aData.end() ? tDensityIterator->second : tFixedValue;
+    };
     // Nodal
     {
         write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{}));
-        write_nodal_scalar_field(aInputFileName, tScalarField, aOutputFileName);
+        write_nodal_scalar_field(aInputFileName, tScalarFieldFunction, tFieldName, aOutputFileName);
         const auto tResult = test_utilities::read_nodal_field(aOutputFileName, kTopologyFieldName);
         EXPECT_EQ(tResult, aExpected) << aTestContext;
     }
     // Element
     {
         write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
-        write_element_scalar_field(aInputFileName, tScalarField, aOutputFileName);
+        write_element_scalar_field(aInputFileName, tScalarFieldFunction, tFieldName, aOutputFileName);
         const auto tResult = test_utilities::read_element_field(aOutputFileName, kTopologyFieldName);
         EXPECT_EQ(tResult, aExpected) << aTestContext;
     }
@@ -144,7 +150,8 @@ TEST(STKUtilities, WriteDensityFieldAllValuesExist)
     std::iota(tExpected.begin(), tExpected.end(), 1.0);
     constexpr std::string_view tOutputFileName = "brick-out.exo";
 
-    check_write_density(tInputFileName, tData, tOutputFileName, tExpected, TEST_CONTEXT("All density values exist"));
+    check_write_scalar_field(tInputFileName, tData, tOutputFileName, tExpected,
+                             TEST_CONTEXT("All density values exist"));
 }
 
 TEST(STKUtilities, WriteDensityFieldSomeMissing)
@@ -162,8 +169,8 @@ TEST(STKUtilities, WriteDensityFieldSomeMissing)
     }
     constexpr std::string_view tOutputFileName = "brick-out.exo";
 
-    check_write_density(tInputFileName, tData, tOutputFileName, tExpected,
-                        TEST_CONTEXT("Some missing density field values"));
+    check_write_scalar_field(tInputFileName, tData, tOutputFileName, tExpected,
+                             TEST_CONTEXT("Some missing density field values"));
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

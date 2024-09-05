@@ -19,14 +19,6 @@ class BulkData;  // NOLINT
 
 namespace plato::third_party_integration::stk_io
 {
-/// @brief A helper struct for writing fields to a mesh on disk.
-struct ScalarField
-{
-    std::unordered_map<std::size_t, double> mData{};
-    std::string mName{};
-    double mFixedValue = 1.0;
-};
-
 /// @brief Given a pathname  @a aMeshName and the Command generator @a aCommandGenerator, write to disk the data in
 /// exodus format
 void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator);
@@ -44,18 +36,23 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
 /// @brief Given a pathname  @a aMeshName, read from disk and return a shared pointer to the STK Bulk data.
 [[nodiscard]] std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::path& aMeshName);
 
+/// @brief A function for retrieving a scalar field value using an index into some data structure.
+using ScalarFieldFunction = std::function<double(std::size_t)>;
+
 /// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
 /// nodal field stored in the name and populated with the data in @a aScalarField.
 /// @pre aDensity.size() == size<stk::topology::NODE_RANK>()
 void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
-                              const ScalarField& aScalarField,
+                              const ScalarFieldFunction& aScalarField,
+                              const std::string_view aFieldName,
                               const std::filesystem::path& aOutputMeshName);
 
 /// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
 /// element field stored in the name and populated with the data in @a aScalarField.
 /// @pre aDensity.size() == size<stk::topology::ELEMENT_RANK>()
 void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
-                                const ScalarField& aScalarField,
+                                const ScalarFieldFunction& aScalarField,
+                                const std::string_view aFieldName,
                                 const std::filesystem::path& aOutputMeshName);
 
 }  // namespace plato::third_party_integration::stk_io

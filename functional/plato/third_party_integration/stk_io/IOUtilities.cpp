@@ -17,12 +17,13 @@ constexpr bool kUnsorted = false;
 
 template <stk::topology::rank_t Rank>
 size_t write_mesh_scalar_field_impl(stk::io::StkMeshIoBroker& aIOBroker,
-                                    const ScalarField& aScalarField,
+                                    const ScalarFieldFunction& aScalarField,
+                                    const std::string_view aFieldName,
                                     const std::filesystem::path& aOutputMeshName)
 {
     constexpr int tScalarFieldSize = 1;
     stk::mesh::Field<double>& tField =
-        aIOBroker.meta_data().declare_field<double>(Rank, aScalarField.mName, tScalarFieldSize);
+        aIOBroker.meta_data().declare_field<double>(Rank, std::string{aFieldName}, tScalarFieldSize);
     constexpr double tInitialValue = 0;
     stk::mesh::put_field_on_mesh(tField, aIOBroker.meta_data().universal_part(), &tInitialValue);
     aIOBroker.populate_bulk_data();
@@ -33,10 +34,7 @@ size_t write_mesh_scalar_field_impl(stk::io::StkMeshIoBroker& aIOBroker,
     {
         double* const tFieldData = stk::mesh::field_data(tField, tEntity);
         const auto tGlobalID = aIOBroker.bulk_data().identifier(tEntity);
-        const auto tDensityIterator = aScalarField.mData.find(tGlobalID);
-        const auto tDensity =
-            tDensityIterator != aScalarField.mData.end() ? tDensityIterator->second : aScalarField.mFixedValue;
-        *tFieldData = tDensity;
+        *tFieldData = aScalarField(tGlobalID);
     }
 
     const size_t tOutputFileIndex = aIOBroker.create_output_mesh(aOutputMeshName.string(), stk::io::WRITE_RESULTS);
@@ -112,26 +110,28 @@ std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::
 }
 
 void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
-                              const ScalarField& aScalarField,
+                              const ScalarFieldFunction& aScalarField,
+                              const std::string_view aFieldName,
                               const std::filesystem::path& aOutputMeshName)
 {
     const auto tIOBroker = create_input_mesh_broker(aInputMeshName);
 
     const size_t tOutputFileIndex =
-        write_mesh_scalar_field_impl<stk::topology::NODE_RANK>(*tIOBroker, aScalarField, aOutputMeshName);
+        write_mesh_scalar_field_impl<stk::topology::NODE_RANK>(*tIOBroker, aScalarField, aFieldName, aOutputMeshName);
 
     constexpr double tTime = 1.0;
     write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);
 }
 
 void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
-                                const ScalarField& aScalarField,
+                                const ScalarFieldFunction& aScalarField,
+                                const std::string_view aFieldName,
                                 const std::filesystem::path& aOutputMeshName)
 {
     const auto tIOBroker = create_input_mesh_broker(aInputMeshName);
 
-    const size_t tOutputFileIndex =
-        write_mesh_scalar_field_impl<stk::topology::ELEMENT_RANK>(*tIOBroker, aScalarField, aOutputMeshName);
+    const size_t tOutputFileIndex = write_mesh_scalar_field_impl<stk::topology::ELEMENT_RANK>(
+        *tIOBroker, aScalarField, aFieldName, aOutputMeshName);
 
     constexpr double tTime = 1.0;
     write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);
