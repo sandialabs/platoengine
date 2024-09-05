@@ -26,6 +26,7 @@ namespace
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 
 constexpr auto kTopologyFieldName = std::string_view{"topology"};
+constexpr auto kFixedValue = double{42.0};
 
 void check_write_scalar_field(const std::filesystem::path& aInputFileName,
                               const std::unordered_map<std::size_t, double>& aData,
@@ -36,9 +37,8 @@ void check_write_scalar_field(const std::filesystem::path& aInputFileName,
     constexpr auto tFieldName = std::string_view{"Topology"};
     const auto tScalarFieldFunction = [&aData](const std::size_t aGlobalIndex)
     {
-        constexpr auto tFixedValue = 42.0;
         const auto tDensityIterator = aData.find(aGlobalIndex);
-        return tDensityIterator != aData.end() ? tDensityIterator->second : tFixedValue;
+        return tDensityIterator != aData.end() ? tDensityIterator->second : kFixedValue;
     };
     // Nodal
     {
@@ -165,7 +165,7 @@ TEST(STKUtilities, WriteDensityFieldSomeMissing)
     std::iota(tExpected.begin(), tExpected.end(), 1.0);
     for (const auto tMissingID : tMissingGlobalIDs)
     {
-        tExpected.at(tMissingID - 1) = 1.0;
+        tExpected.at(tMissingID - 1) = kFixedValue;
     }
     constexpr std::string_view tOutputFileName = "brick-out.exo";
 
