@@ -22,7 +22,7 @@ struct DesignVariablesConversion : public Mesh
 {
     explicit DesignVariablesConversion(Mesh aMesh);
 
-    /// @brief Maps the nodal scalar field in @a aScalarField to a design_variables::MeshDesignVariables object using
+    /// @brief Maps the nodal scalar field in @a aScalarField to a MeshDesignVariables object using
     /// the node, element, and block info in the mesh.
     ///
     /// The ordering of @a aScalarField is assumed to match that of the vector returned by
@@ -31,7 +31,7 @@ struct DesignVariablesConversion : public Mesh
     /// which is given by numberOfDesignDomainElements in EntityCounts.
     design_variables::MeshDesignVariables nodalFieldToMeshDesignVariables(NodalFieldVectorReference aScalarField) const;
 
-    /// @brief Maps the element scalar field in @a aScalarField to a design_variables::MeshDesignVariables object using
+    /// @brief Maps the element scalar field in @a aScalarField to a MeshDesignVariables object using
     /// the node, element, and block info in the mesh.
     /// @pre The size of @a aScalarField must be equal to the total number of elements in the design domain of @a aMesh,
     /// which is given by numberOfDesignDomainElements in EntityCounts.
