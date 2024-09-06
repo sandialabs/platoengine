@@ -2,6 +2,7 @@
 
 #include "plato/design_variables/MeshDesignVariablesRandomAccessView.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::design_variables::unittest
@@ -10,19 +11,26 @@ namespace
 {
 const auto kScalarField1 = std::vector{2.0, 4.0, 122.0};
 const auto kIDs1 = std::vector<std::size_t>{2, 4, 122};
-const auto kBlockScalarFieldVector1 = MeshDesignVariables::ScalarFieldVector{{kIDs1[0], kIDs1[0], kScalarField1[0]},
-                                                                             {kIDs1[1], kIDs1[1], kScalarField1[1]},
-                                                                             {kIDs1[2], kIDs1[2], kScalarField1[2]}};
+
 const auto kScalarField2 = std::vector{4.0, 8.0};
 const auto kIDs2 = std::vector<std::size_t>{4, 8};
-const auto kBlockScalarFieldVector2 = MeshDesignVariables::ScalarFieldVector{{kIDs2[0], kIDs2[0], kScalarField2[0]},
-                                                                             {kIDs2[1], kIDs2[1], kScalarField2[1]}};
+
 const auto kScalarField3 = std::vector{1.0, 3.0};
 const auto kIDs3 = std::vector<std::size_t>{1, 3};
-const auto kBlockScalarFieldVector3 = MeshDesignVariables::ScalarFieldVector{{kIDs3[0], kIDs3[0], kScalarField3[0]},
-                                                                             {kIDs3[1], kIDs3[1], kScalarField3[1]}};
 
 const auto kFileName = std::filesystem::path{"not-a-file.exo"};
+
+auto scalar_field_vector(const std::vector<std::size_t>& aGlobalIDs, const std::vector<double>& aScalarField)
+    -> MeshDesignVariables::ScalarFieldVector
+{
+    auto tBlockScalarField = MeshDesignVariables::ScalarFieldVector{};
+    tBlockScalarField.reserve(aGlobalIDs.size());
+    for (const auto [tIndex, tGlobalID, tFieldValue] : utilities::enumerate(aGlobalIDs, aScalarField))
+    {
+        tBlockScalarField.push_back(ScalarFieldValue{tGlobalID, tIndex, tFieldValue});
+    }
+    return tBlockScalarField;
+}
 
 void check_view_vs_vector(const MeshDesignVariablesRandomAccessView aMeshDesignVariablesView,
                           const std::vector<std::size_t>& aIDs,
@@ -49,7 +57,8 @@ void check_nonexistent_entries(const MeshDesignVariablesRandomAccessView aMeshDe
 
 TEST(MeshDesignVariablesRandomAccessView, OneBlockSize)
 {
-    const auto tBlockScalarField = MeshDesignVariables::BlockScalarField{{1, kBlockScalarFieldVector1}};
+    const auto tBlockScalarField =
+        MeshDesignVariables::BlockScalarField{{1, scalar_field_vector(kIDs1, kScalarField1)}};
     const auto tMeshDesignVariables = MeshDesignVariables{kFileName, tBlockScalarField};
     const auto tRandomAccessView = MeshDesignVariablesRandomAccessView{tMeshDesignVariables};
     EXPECT_EQ(tRandomAccessView.size(), kScalarField1.size());
@@ -57,7 +66,8 @@ TEST(MeshDesignVariablesRandomAccessView, OneBlockSize)
 
 TEST(MeshDesignVariablesRandomAccessView, OneBlockAccess)
 {
-    const auto tBlockScalarField = MeshDesignVariables::BlockScalarField{{1, kBlockScalarFieldVector1}};
+    const auto tBlockScalarField =
+        MeshDesignVariables::BlockScalarField{{1, scalar_field_vector(kIDs1, kScalarField1)}};
     const auto tMeshDesignVariables = MeshDesignVariables{kFileName, tBlockScalarField};
     const auto tRandomAccessView = MeshDesignVariablesRandomAccessView{tMeshDesignVariables};
 
@@ -68,8 +78,8 @@ TEST(MeshDesignVariablesRandomAccessView, OneBlockAccess)
 
 TEST(MeshDesignVariablesRandomAccessView, TwoBlockAccessNoOverlap)
 {
-    const auto tBlockScalarField =
-        MeshDesignVariables::BlockScalarField{{1, kBlockScalarFieldVector1}, {3, kBlockScalarFieldVector3}};
+    const auto tBlockScalarField = MeshDesignVariables::BlockScalarField{
+        {1, scalar_field_vector(kIDs1, kScalarField1)}, {3, scalar_field_vector(kIDs3, kScalarField3)}};
     const auto tMeshDesignVariables = MeshDesignVariables{kFileName, tBlockScalarField};
     const auto tRandomAccessView = MeshDesignVariablesRandomAccessView{tMeshDesignVariables};
 
@@ -81,8 +91,8 @@ TEST(MeshDesignVariablesRandomAccessView, TwoBlockAccessNoOverlap)
 
 TEST(MeshDesignVariablesRandomAccessView, TwoBlockAccessHasOverlap)
 {
-    const auto tBlockScalarField =
-        MeshDesignVariables::BlockScalarField{{1, kBlockScalarFieldVector1}, {2, kBlockScalarFieldVector2}};
+    const auto tBlockScalarField = MeshDesignVariables::BlockScalarField{
+        {1, scalar_field_vector(kIDs1, kScalarField1)}, {2, scalar_field_vector(kIDs2, kScalarField2)}};
     const auto tMeshDesignVariables = MeshDesignVariables{kFileName, tBlockScalarField};
     const auto tRandomAccessView = MeshDesignVariablesRandomAccessView{tMeshDesignVariables};
 
