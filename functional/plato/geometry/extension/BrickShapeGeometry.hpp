@@ -6,10 +6,10 @@
 #include <stk_mesh/base/BulkData.hpp>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/MeshProxy.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::geometry::extension
 {
@@ -46,7 +46,7 @@ class BrickShapeGeometry
 
     ~BrickShapeGeometry();
 
-    [[nodiscard]] core::MeshProxy generateMesh(const BrickDesign& aDesignParameters) const;
+    [[nodiscard]] mesh::MeshDesignVariables generateMesh(const BrickDesign& aDesignParameters) const;
 
     [[nodiscard]] linear_algebra::JacobianColumnEvaluator jacobian(const BrickDesign& aDesignParameters) const;
 
@@ -62,15 +62,18 @@ class BrickShapeGeometry
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
-[[nodiscard]] auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry) -> core::
-    Function<core::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>;
+[[nodiscard]] auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry)
+    -> core::Function<mesh::MeshDesignVariables,
+                      linear_algebra::JacobianMultiplier,
+                      const linear_algebra::DynamicVector<double>&>;
 
 namespace detail
 {
 [[nodiscard]] BrickDesign to_design_parameters(const linear_algebra::DynamicVector<double>& aDesignParameter);
 
-[[nodiscard]] std::shared_ptr<stk::mesh::BulkData> create_mesh(
-    const BrickDesign& aDesign, std::optional<double> aDiscretizationSize = std::nullopt);
+void create_mesh(const BrickDesign& aDesign,
+                 const std::filesystem::path& aOutputFile,
+                 std::optional<double> aDiscretizationSize = std::nullopt);
 
 [[nodiscard]] std::vector<double> sensitivities(unsigned int aParameterIndex);
 

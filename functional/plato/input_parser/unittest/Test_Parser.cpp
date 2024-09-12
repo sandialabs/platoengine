@@ -207,4 +207,26 @@ TEST(ParsedInput, CommentMultipleLinesAndCharacters)
     EXPECT_FALSE(tParsedInput.mObjectives.front().active.has_value());
 }
 
+TEST(ParsedInput, FixedBlocks)
+{
+    const std::string tInput =
+        R"(
+          begin density_topology
+            fixed_blocks block_1, arbitrary_block
+          end
+       )";
+
+    // Parse
+    const auto [tParseResult, tIter, tData] = parse_string(tInput);
+
+    // Tests
+    EXPECT_TRUE(tParseResult);
+    EXPECT_EQ(tIter, tInput.cend());
+    ASSERT_TRUE(tData.mDensityTopology.has_value());
+    ASSERT_TRUE(tData.mDensityTopology.value().fixed_blocks.has_value());
+    ASSERT_EQ(tData.mDensityTopology.value().fixed_blocks.value().mList.size(), 2U);
+    EXPECT_EQ(tData.mDensityTopology.value().fixed_blocks.value().mList.front(), "block_1");
+    EXPECT_EQ(tData.mDensityTopology.value().fixed_blocks.value().mList.back(), "arbitrary_block");
+}
+
 }  // namespace plato::input_parser::unittest

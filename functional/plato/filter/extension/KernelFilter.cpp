@@ -1,22 +1,22 @@
 #include "plato/filter/extension/KernelFilter.hpp"
 
-#include <boost/math/constants/constants.hpp>
 #include <boost/mpi.hpp>
 #include <boost/serialization/vector.hpp>
-#include <memory>
-#include <optional>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/MeshProxy.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
+#include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/filter/library/HashGeneration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
+#include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 
 namespace plato::filter::extension
 {
@@ -26,19 +26,13 @@ namespace
     input_parser::block_name<input_parser::kernel_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = core::validated_variant_raw_input<input_parser::kernel_filter>(aInput);
+        auto tFilterCache = detail::create_filter_cache(tInput);
+
         return core::make_function(
-            [&tInput](const core::MeshProxy& aMeshProxy)
-            {
-                const KernelFilter tFilter{aMeshProxy.mFileName, FilterRadius{tInput.filter_radius.value()},
-                                           tInput.centering_type.value(), boost::mpi::communicator{}};
-                return tFilter.filter(aMeshProxy);
-            },
-            [&tInput](const core::MeshProxy& aMeshProxy)
-            {
-                std::shared_ptr<library::FilterInterface> tSharedFilter =
-                    std::make_shared<KernelFilter>(aMeshProxy.mFileName, FilterRadius{tInput.filter_radius.value()},
-                                                   tInput.centering_type.value(), boost::mpi::communicator{});
-                return library::FilterJacobian{tSharedFilter, aMeshProxy};
+            [tFilterCache](const mesh::MeshDesignVariables& aMeshDesignVariables) mutable
+            { return tFilterCache.compute(aMeshDesignVariables)->filter(aMeshDesignVariables); },
+            [tFilterCache](const mesh::MeshDesignVariables& aMeshDesignVariables) mutable {
+                return library::FilterJacobian{tFilterCache.compute(aMeshDesignVariables), aMeshDesignVariables};
             });
     }};
 
@@ -49,25 +43,34 @@ namespace
         { return detail::validate_kernel_filter_centering_type(aInput); }};
 }  // namespace
 
-KernelFilter::KernelFilter(const std::filesystem::path& aMeshFileName,
+KernelFilter::KernelFilter(const mesh::Mesh& aMesh,
                            const FilterRadius aFilterRadius,
                            const input_parser::KernelFilterCenteringTypes aFilterCentering,
                            const boost::mpi::communicator& aCommunicator)
-    : mLinearMask(detail::create_linear_mask(aMeshFileName, aFilterRadius, aFilterCentering, aCommunicator)),
-      mCommunicator(aCommunicator)
-
+    : mLinearMask{detail::create_linear_mask(aMesh, aFilterRadius, aFilterCentering, aCommunicator)},
+      mFilterCentering{aFilterCentering},
+      mCommunicator{aCommunicator}
 {
 }
 
-core::MeshProxy KernelFilter::filter(const core::MeshProxy& aMeshProxy) const
+mesh::MeshDesignVariables KernelFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
-    core::MeshProxy tMeshProxy{aMeshProxy};
-    tMeshProxy.mNodalDensities = mLinearMask.matrixMultiply(aMeshProxy.mNodalDensities);
-    return tMeshProxy;
+    const auto tMesh = mesh::Mesh{aMeshDesignVariables};
+    const auto tFieldValues =
+        mesh::DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalFieldVector(aMeshDesignVariables);
+
+    const auto tFilteredField = mLinearMask.matrixMultiply(tFieldValues.mValue);
+    if (mFilterCentering == input_parser::KernelFilterCenteringTypes::kNodeCentered)
+    {
+        return mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+            mesh::NodalFieldVectorReference{std::cref(tFilteredField)});
+    }
+    return mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+        mesh::ElementFieldVectorReference{std::cref(tFilteredField)});
 }
 
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(
-    const core::MeshProxy& /*aMeshProxy*/, const linear_algebra::DynamicVector<double>& aV) const
+    const mesh::MeshDesignVariables& /*aMeshDesignVariables*/, const linear_algebra::DynamicVector<double>& aV) const
 {
     return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
 }
@@ -81,50 +84,29 @@ std::optional<std::string> validate_kernel_filter_centering_type(const input_par
         return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::kernel_filter>(),
                                                        aInput.centering_type, "centering_type");
     }
-    else
-    {
-        return std::nullopt;
-    }
+    return std::nullopt;
 }
 
-double filter_volume(const FilterRadius aFilterRadius)
-{
-    return 4.0 / 3.0 * boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue *
-           aFilterRadius.mValue;
-}
-
-int determine_maximum_connectivity_estimate(const std::filesystem::path& aMeshFileName,
-                                            const FilterRadius aFilterRadius)
-{
-    const auto tBulk = third_party_integration::stk_io::read_mesh_bulk_data(aMeshFileName);
-    auto tNodalCoordinates = third_party_integration::stk_io::nodal_coordinates(*tBulk);
-    const double tAverageNodalDensity = third_party_integration::stk_io::average_nodal_density(*tBulk);
-    const double tSearchVolume = detail::filter_volume(aFilterRadius);
-    return static_cast<int>(tSearchVolume * tAverageNodalDensity *
-                            kMaxMultiplier);  // for Tpetra sparse matrix allocation
-}
-
-LinearMask create_linear_mask(const std::filesystem::path& aMeshFileName,
+LinearMask create_linear_mask(const mesh::Mesh& aMesh,
                               const FilterRadius aFilterRadius,
                               const input_parser::KernelFilterCenteringTypes aFilterCentering,
                               const boost::mpi::communicator& aCommunicator)
 {
-    const auto tBulk = third_party_integration::stk_io::read_mesh_bulk_data(aMeshFileName);
-    auto tNodalCoordinates = third_party_integration::stk_io::nodal_coordinates(*tBulk);
-    const int tMaximumConnectivityEstimate =
-        detail::determine_maximum_connectivity_estimate(aMeshFileName, aFilterRadius);
+    return LinearMask{
+        LinearMaskBuilder{aMesh, aFilterCentering, SearchRadius{aFilterRadius.mValue}, aCommunicator}.mask(),
+        aCommunicator};
+}
 
-    if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
-    {
-        auto tElementCentroids = third_party_integration::stk_io::element_centroids(*tBulk);
-        return LinearMask(NodalVector{tNodalCoordinates}, CenterVector{tElementCentroids},
-                          SearchRadius{aFilterRadius.mValue}, tMaximumConnectivityEstimate, aCommunicator);
-    }
-    else
-    {
-        return LinearMask(NodalVector{tNodalCoordinates}, SearchRadius{aFilterRadius.mValue},
-                          tMaximumConnectivityEstimate, aCommunicator);
-    }
+FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)
+{
+    return FilterCache{[aInput](const mesh::MeshDesignVariables& aMeshDesignVariables)
+                       {
+                           return std::make_shared<KernelFilter>(
+                               mesh::Mesh{aMeshDesignVariables}, FilterRadius{aInput.filter_radius.value()},
+                               aInput.centering_type.value(), boost::mpi::communicator{});
+                       },
+                       [](const mesh::MeshDesignVariables& aMeshDesignVariables)
+                       { return library::hash_mesh_coordinates(aMeshDesignVariables); }};
 }
 
 }  // namespace detail

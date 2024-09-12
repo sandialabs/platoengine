@@ -4,11 +4,16 @@
 #include <boost/mpi/communicator.hpp>
 #include <vector>
 
-#include "plato/core/MeshProxy.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
+#include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
+#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
@@ -25,11 +30,11 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     const input_parser::KernelFilterCenteringTypes aFilterCentering)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}};
-    third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+    third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
     const FilterRadius tFilterRadius{1.1};
 
-    const KernelFilter tKernelFilter{kMeshFile, tFilterRadius, aFilterCentering, boost::mpi::communicator{}};
+    const KernelFilter tKernelFilter{mesh::Mesh{kMeshFile}, tFilterRadius, aFilterCentering,
+                                     boost::mpi::communicator{}};
 
     std::vector<double> tNodalDensities(tCommandGenerator.numberOfNodes(), 0);
     const int tHalfNode = tNodalDensities.size() / 2;
@@ -37,9 +42,14 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     tNodalDensities[tHalfNode - 1] = .5;
     tNodalDensities[tHalfNode + 1] = .5;
 
-    const core::MeshProxy tMeshProxy{kMeshFile, tNodalDensities};
+    const auto tMesh = mesh::DesignVariablesConversion{mesh::Mesh{kMeshFile}};
+    const auto tMeshDesignVariables =
+        tMesh.nodalFieldToMeshDesignVariables(mesh::NodalFieldVectorReference{tNodalDensities});
 
-    const auto tPostFilter = tKernelFilter.filter(tMeshProxy).mNodalDensities;
+    const auto tResult = tKernelFilter.filter(tMeshDesignVariables);
+    const auto [tPostFilter, tIDMap] = mesh::detail::split_scalar_field_values(
+        mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesSequentialView{tResult}));
+
     std::vector<double> tStdVectorSensitivities;
     if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
     {
@@ -54,7 +64,8 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     }
 
     const auto tPostSensitivities =
-        tKernelFilter.jacobianTimesVector(tMeshProxy, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
+        tKernelFilter
+            .jacobianTimesVector(tMeshDesignVariables, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
             .stdVector();
 
     test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
@@ -139,31 +150,78 @@ TEST(KernelFilter, SingleHexNodalCentered)
     EXPECT_NEAR(tResultJV[7], 0, kTolerance);
 }
 
-TEST(KernelFilterDetail, FilterVolume)
+TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
 {
-    constexpr double tRadius = 1.23;
-    const double tResult = detail::filter_volume(FilterRadius{tRadius});
-    const double tGold = boost::math::constants::pi<double>() * 4.0 / 3.0 * tRadius * tRadius * tRadius;
-    EXPECT_DOUBLE_EQ(tResult, tGold);
+    auto tInput = plato::test_utilities::create_valid_kernel_filter();
+    tInput.filter_radius = 5e-1;
+    auto tFilterCache = detail::create_filter_cache(tInput);
+
+    const auto tFilePath = test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf");
+    ASSERT_TRUE(tFilePath.has_value());
+
+    const auto tMesh = mesh::Mesh{tFilePath.value()};
+    const auto tNodalDensities = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
+    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+        mesh::NodalFieldVectorReference{tNodalDensities});
+
+    ASSERT_NO_THROW([[maybe_unused]] const auto tFilter = tFilterCache.compute(tMeshDesignVariables));
 }
 
-TEST(KernelFilterDetail, DetermineMaximumConnectivityEstimate)
+TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
 {
-    const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
-        {21, 21, 21}, {-10, -10, -10}, {10, 10, 10}};
-    third_party_integration::stk_io::write_mesh(kMeshFile,
-                                                third_party_integration::stk_io::generate_mesh(tCommandGenerator));
+    auto tFilterCache = detail::create_filter_cache(plato::test_utilities::create_valid_kernel_filter());
 
-    const FilterRadius tFilterRadius{5};
-    const double tNodalDensity = tCommandGenerator.numberOfNodes() / tCommandGenerator.volume();
-    const double tSearchVolume = detail::filter_volume(tFilterRadius);
-    const int tGold = static_cast<int>(tNodalDensity * tSearchVolume * detail::kMaxMultiplier);
+    // make mesh and filter
+    {
+        const auto tCommandGenerator =
+            third_party_integration::stk_io::CommandGenerator{{2, 2, 2}, {-1, -1, -1}, {1, 1, 1}};
+        third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
+    }
 
-    const int tResult = detail::determine_maximum_connectivity_estimate(kMeshFile, tFilterRadius);
-    EXPECT_EQ(tGold, tResult);
+    const auto tMesh = mesh::Mesh{kMeshFile};
+    const auto tNodalDensitiesAllOne = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
+    const auto tMeshDesignVariablesAllOne = mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+        mesh::NodalFieldVectorReference{tNodalDensitiesAllOne});
+    const auto tFilteredControlAllOne =
+        tFilterCache.compute(tMeshDesignVariablesAllOne)->filter(tMeshDesignVariablesAllOne);
+    const auto tMeshDesignVariablesViewFilteredAllOne = mesh::MeshDesignVariablesSequentialView{tFilteredControlAllOne};
 
-    constexpr double tNumberOfActualNodes = 515;  // matlab
-    EXPECT_GT(tResult, tNumberOfActualNodes);
+    // change control and ensure filter size is the same but values are different
+    const auto tNodalDensitiesAllHalf = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 0.5);
+    const auto tMeshDesignVariablesAllHalf = mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+        mesh::NodalFieldVectorReference{tNodalDensitiesAllHalf});
+    const auto tFilteredControlAllHalf =
+        tFilterCache.compute(tMeshDesignVariablesAllHalf)->filter(tMeshDesignVariablesAllHalf);
+    const auto tMeshDesignVariablesViewFilteredAllHalf =
+        mesh::MeshDesignVariablesSequentialView{tFilteredControlAllHalf};
+
+    EXPECT_EQ(tMeshDesignVariablesViewFilteredAllOne.size(), tMeshDesignVariablesViewFilteredAllHalf.size());
+    const auto [tFilteredDensitiesAllOne, tIDsAllOne] = mesh::detail::split_scalar_field_values(
+        mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllOne));
+    const auto [tFilteredDensitiesAllHalf, tIDsAllHalf] = mesh::detail::split_scalar_field_values(
+        mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllHalf));
+    EXPECT_NE(tFilteredDensitiesAllOne, tFilteredDensitiesAllHalf);
+    EXPECT_EQ(tIDsAllOne, tIDsAllHalf);
+
+    // change mesh and ensure filter size is different
+    {
+        const auto tCommandGenerator =
+            third_party_integration::stk_io::CommandGenerator{{3, 2, 3}, {-1, -1, -1}, {1, 1, 1}};
+        third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
+    }
+
+    const auto tUpdatedMesh = mesh::Mesh{kMeshFile};
+    const auto tUpdatedNodalDensitiesAllOne =
+        std::vector<double>(mesh::EntityCounts{tUpdatedMesh}.numberOfNodes(), 1.0);
+    const auto tUpdatedMeshDesignVariablesAllOne =
+        mesh::DesignVariablesConversion{tUpdatedMesh}.nodalFieldToMeshDesignVariables(
+            mesh::NodalFieldVectorReference{tUpdatedNodalDensitiesAllOne});
+    const auto tUpdatedFilteredControlAllOne =
+        tFilterCache.compute(tUpdatedMeshDesignVariablesAllOne)->filter(tUpdatedMeshDesignVariablesAllOne);
+    const auto tUpdatedMeshDesignVariablesViewFilteredAllOne =
+        mesh::MeshDesignVariablesSequentialView{tUpdatedFilteredControlAllOne};
+
+    EXPECT_NE(tMeshDesignVariablesViewFilteredAllOne.size(), tUpdatedMeshDesignVariablesViewFilteredAllOne.size());
 
     test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
 }

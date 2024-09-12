@@ -6,9 +6,16 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/ValidInputTestFixture.hpp"
 
 namespace plato::integration_tests::serial
 {
+namespace
+{
+struct CriterionFactoryTestFixture : public test_utilities::ValidInputTestFixture
+{
+};
+}  // namespace
 
 namespace
 {
@@ -22,7 +29,7 @@ namespace
 }
 }  // namespace
 
-TEST(CriterionFactory, ValidObjective)
+TEST_F(CriterionFactoryTestFixture, ValidObjective)
 {
     const auto tData = process_manager::library::make_validated_input(
         test_utilities::create_valid_density_topology_geometry() | test_utilities::create_valid_example_objective() |
@@ -32,7 +39,7 @@ TEST(CriterionFactory, ValidObjective)
     EXPECT_NO_THROW(auto tFunction = criteria::library::make_criterion_function(tData.objectives().rawInput().front()));
 }
 
-TEST(CriterionFactory, ValidConstraint)
+TEST_F(CriterionFactoryTestFixture, ValidConstraint)
 {
     const auto tData = process_manager::library::make_validated_input(
         test_utilities::create_valid_density_topology_geometry() | test_utilities::create_valid_example_objective() |
@@ -44,7 +51,7 @@ TEST(CriterionFactory, ValidConstraint)
                         criteria::library::make_criterion_function(tData.constraints().rawInput().front()));
 }
 
-TEST(CriterionRegistration, ConvertObjectiveInput)
+TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
 {
     const std::string tInput =
         R"(
@@ -79,7 +86,7 @@ TEST(CriterionRegistration, ConvertObjectiveInput)
     }
 }
 
-TEST(CriterionRegistration, ConvertConstraintInput)
+TEST_F(CriterionFactoryTestFixture, ConvertConstraintInput)
 {
     namespace pftu = plato::test_utilities;
     const process_manager::library::ValidatedInput tData =

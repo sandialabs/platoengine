@@ -4,8 +4,9 @@
 #include <vector>
 
 #include "plato/criteria/library/CriterionRegistration.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/mesh/Mesh.hpp"
 
 namespace plato::criteria::extension
 {
@@ -16,28 +17,30 @@ namespace
                                    [](const library::CriterionInput&) { return make_nodal_sum_function(); }};
 }
 
-double NodalSumObjective::f(const core::MeshProxy& aMeshProxy) const
+double NodalSumObjective::f(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
-    const auto tBulk = third_party_integration::stk_io::read_mesh_bulk_data(aMeshProxy.mFileName);
-    assert(tBulk);
-    const std::vector<double> tCoordinates = third_party_integration::stk_io::flattened_nodal_coordinates(*tBulk);
-    return std::accumulate(tCoordinates.begin(), tCoordinates.end(), 0.0);
+    namespace tpi = plato::third_party_integration;
+
+    const auto tMesh = mesh::EntityRetrieval{mesh::Mesh{aMeshDesignVariables.mFileName}};
+    const auto tCoordinates = tMesh.nodalCoordinates();
+    const auto tCoordinateSum = std::accumulate(tCoordinates.begin(), tCoordinates.end(), tpi::common::Coordinate{});
+    return tCoordinateSum.x + tCoordinateSum.y + tCoordinateSum.z;
 }
 
-linear_algebra::DynamicVector<double> NodalSumObjective::df(const core::MeshProxy& aMeshProxy) const
+linear_algebra::DynamicVector<double> NodalSumObjective::df(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
-    const auto tBulk = third_party_integration::stk_io::read_mesh_bulk_data(aMeshProxy.mFileName);
-    assert(tBulk);
-    const unsigned int tSpatialDim = third_party_integration::stk_io::spatial_dimensions(*tBulk);
-    const unsigned int tNumberOfNodes = third_party_integration::stk_io::node_size(*tBulk);
+    const auto tMesh = mesh::EntityCounts{mesh::Mesh{aMeshDesignVariables.mFileName}};
+    const unsigned int tSpatialDim = tMesh.spatialDimensions();
+    const unsigned int tNumberOfNodes = tMesh.numberOfNodes();
     const unsigned int tSize = static_cast<unsigned int>(tSpatialDim * tNumberOfNodes);
     std::vector<double> tCoordinates(tSize, 1);
     return linear_algebra::DynamicVector<double>(std::move(tCoordinates));
 }
 
-auto make_nodal_sum_function() -> core::Function<double, linear_algebra::DynamicVector<double>, const core::MeshProxy&>
+auto make_nodal_sum_function()
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>
 {
-    return core::make_function([](const core::MeshProxy& mesh) { return NodalSumObjective{}.f(mesh); },
-                               [](const core::MeshProxy& mesh) { return NodalSumObjective{}.df(mesh); });
+    return core::make_function([](const mesh::MeshDesignVariables& mesh) { return NodalSumObjective{}.f(mesh); },
+                               [](const mesh::MeshDesignVariables& mesh) { return NodalSumObjective{}.df(mesh); });
 }
 }  // namespace plato::criteria::extension

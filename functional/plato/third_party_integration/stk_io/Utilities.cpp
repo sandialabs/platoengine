@@ -9,18 +9,75 @@
 #include <algorithm>
 #include <boost/range.hpp>
 #include <boost/range/adaptor/indexed.hpp>
+#include <numeric>
 #include <stk_io/FillMesh.hpp>
+#include <stk_io/StkMeshIoBroker.hpp>
+#include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Field.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
 #include <stk_mesh/base/MetaData.hpp>
-#include <stk_search/Box.hpp>
 #include <stk_topology/topology.hpp>
 #include <stk_util/parallel/Parallel.hpp>
+
+#include "plato/utilities/IndexRange.hpp"
 
 namespace plato::third_party_integration::stk_io
 {
 namespace
 {
+constexpr auto kTopologyFieldName = std::string_view{"topology"};
+constexpr bool kSortedByID = true;
+constexpr bool kUnsorted = false;
+constexpr auto kFixedDensity = double{1.0};
+
+stk::mesh::Selector parts_to_selector(const PartReferenceVector& aParts)
+{
+    return std::accumulate(aParts.cbegin(), aParts.cend(), stk::mesh::Selector{},
+                           [](stk::mesh::Selector aSelector, const auto tPart)
+                           {
+                               aSelector |= tPart.get();
+                               return aSelector;
+                           });
+}
+
+template <stk::topology::rank_t Rank>
+unsigned int size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+{
+    std::vector<size_t> tEntityCounts;
+    const auto tSelector = parts_to_selector(aParts);
+    stk::mesh::comm_mesh_counts(aBulk, tEntityCounts, &tSelector);
+    return tEntityCounts[Rank];
+}
+
+template <stk::topology::rank_t Rank>
+size_t write_mesh_density_impl(stk::io::StkMeshIoBroker& aIOBroker,
+                               const std::unordered_map<std::size_t, double>& aDensity,
+                               const std::filesystem::path& aOutputMeshName)
+{
+    constexpr int tScalarFieldSize = 1;
+    stk::mesh::Field<double>& tField =
+        aIOBroker.meta_data().declare_field<double>(Rank, std::string{kTopologyFieldName}, tScalarFieldSize);
+    constexpr double tInitialValue = 0;
+    stk::mesh::put_field_on_mesh(tField, aIOBroker.meta_data().universal_part(), &tInitialValue);
+    aIOBroker.populate_bulk_data();
+
+    std::vector<stk::mesh::Entity> tEntityVector;
+    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntityVector, kUnsorted);
+    for (const auto& tEntity : tEntityVector)
+    {
+        double* const tFieldData = stk::mesh::field_data(tField, tEntity);
+        const auto tGlobalID = aIOBroker.bulk_data().identifier(tEntity);
+        const auto tDensityIterator = aDensity.find(tGlobalID);
+        const auto tDensity = tDensityIterator != aDensity.end() ? tDensityIterator->second : kFixedDensity;
+        *tFieldData = tDensity;
+    }
+
+    const size_t tOutputFileIndex = aIOBroker.create_output_mesh(aOutputMeshName.string(), stk::io::WRITE_RESULTS);
+    aIOBroker.write_output_mesh(tOutputFileIndex);
+    aIOBroker.add_field(tOutputFileIndex, tField);
+
+    return tOutputFileIndex;
+}
 
 std::shared_ptr<stk::io::StkMeshIoBroker> create_input_mesh_broker(const std::filesystem::path& aInputMeshName)
 {
@@ -43,17 +100,37 @@ void write_defined_output_fields(stk::io::StkMeshIoBroker& tIOBroker,
     tIOBroker.end_output_step(aOutputFileIndex);
 }
 
-}  // namespace
-
-std::shared_ptr<stk::mesh::BulkData> generate_mesh(const CommandGenerator& aCommandGenerator)
+std::shared_ptr<stk::mesh::BulkData> bulk_data_from_description(const std::string_view aMeshDescription)
 {
     std::shared_ptr<stk::mesh::BulkData> bulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
     bulk->mesh_meta_data().use_simple_fields();
-    stk::io::fill_mesh(aCommandGenerator.toString(), *bulk);
+    stk::io::fill_mesh(std::string{aMeshDescription}, *bulk);
     return bulk;
 }
 
-void write_mesh(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk)
+PartReferenceVector universal_part(const stk::mesh::BulkData& aBulk)
+{
+    return PartReferenceVector{std::cref(aBulk.mesh_meta_data().universal_part())};
+}
+
+}  // namespace
+
+void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator)
+{
+    write_bulk_data(aMeshName, generate_bulk_data(aCommandGenerator));
+}
+
+void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDescription)
+{
+    write_bulk_data(aMeshName, bulk_data_from_description(aMeshDescription));
+}
+
+std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator)
+{
+    return bulk_data_from_description(aCommandGenerator.toString());
+}
+
+void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk)
 {
     stk::io::StkMeshIoBroker tIOBroker;
     tIOBroker.set_bulk_data(std::move(aBulk));
@@ -71,111 +148,72 @@ std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::
     return tBulk;
 }
 
-std::vector<double> read_mesh_density(const std::filesystem::path& aMeshName)
-{
-    Ioss::DatabaseIO* tResultsDb =
-        Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
-    Ioss::Region tResults(tResultsDb);
+unsigned int node_size(const stk::mesh::BulkData& aBulk) { return node_size(aBulk, universal_part(aBulk)); }
 
-    tResults.begin_state(1);
-    Ioss::NodeBlock* tNb = tResults.get_node_blocks()[0];
-    std::vector<double> tNodeFieldData;
-    tNb->get_field_data(std::string{detail::kTopologyFieldName}, tNodeFieldData);
-    return tNodeFieldData;
+unsigned int node_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+{
+    return size<stk::topology::NODE_RANK>(aBulk, aParts);
 }
 
-std::vector<double> read_element_density(const std::filesystem::path& aMeshName)
+unsigned int element_size(const stk::mesh::BulkData& aBulk) { return element_size(aBulk, universal_part(aBulk)); }
+
+unsigned int element_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
 {
-    Ioss::DatabaseIO* tResultsDb =
-        Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
-    Ioss::Region tResults(tResultsDb);
-
-    tResults.begin_state(1);
-    Ioss::ElementBlock* tEb = tResults.get_element_blocks()[0];
-    std::vector<double> tElementFieldData;
-    tEb->get_field_data(std::string{detail::kTopologyFieldName}, tElementFieldData);
-    return tElementFieldData;
+    return size<stk::topology::ELEM_RANK>(aBulk, aParts);
 }
-
-unsigned int element_size(const std::filesystem::path& aMeshName)
-{
-    const std::shared_ptr<stk::mesh::BulkData> tBulkData = read_mesh_bulk_data(aMeshName);
-    assert(tBulkData);
-    return element_size(*tBulkData);
-}
-
-unsigned int read_mesh_node_size(const std::filesystem::path& aMeshName)
-{
-    const std::shared_ptr<stk::mesh::BulkData> tBulkData = read_mesh_bulk_data(aMeshName);
-    assert(tBulkData);
-    return node_size(*tBulkData);
-}
-
-unsigned int node_size(const stk::mesh::BulkData& aBulk) { return detail::size<stk::topology::NODE_RANK>(aBulk); }
-
-unsigned int element_size(const stk::mesh::BulkData& aBulk) { return detail::size<stk::topology::ELEM_RANK>(aBulk); }
 
 unsigned int spatial_dimensions(const stk::mesh::BulkData& aBulk) { return aBulk.mesh_meta_data().spatial_dimension(); }
 
-std::vector<double> flattened_nodal_coordinates(const stk::mesh::BulkData& aBulk)
-{
-    const unsigned int tSpatialDim = spatial_dimensions(aBulk);
-    const auto tCoordinates = nodal_coordinates(aBulk);
-    std::vector<double> tFlattenCoordinates(tCoordinates.size() * tSpatialDim, 0.0);
-
-    for (auto const& tCoordinate : tCoordinates | boost::adaptors::indexed(0))
-    {
-        const auto tCoordinateVector = flatten(tCoordinate.value(), tSpatialDim);
-        unsigned int tBaseIndex = static_cast<unsigned int>(tCoordinate.index() * tSpatialDim);
-        std::copy(tCoordinateVector.begin(), tCoordinateVector.end(), tFlattenCoordinates.begin() + tBaseIndex);
-    }
-
-    return tFlattenCoordinates;
-}
-
 std::vector<common::Coordinate> nodal_coordinates(const stk::mesh::BulkData& aBulk)
 {
-    const unsigned int tSpatialDim = spatial_dimensions(aBulk);
-    const unsigned int tNumberOfNodes = node_size(aBulk);
-    std::vector<common::Coordinate> tCoordinates(static_cast<std::size_t>(tNumberOfNodes), {0.0, 0.0, 0.0});
+    return nodal_coordinates(aBulk, universal_part(aBulk));
+}
 
-    stk::mesh::EntityVector tNodeEntity;
-    stk::mesh::get_entities(aBulk, stk::topology::NODE_RANK, tNodeEntity, true);
+auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+    -> std::vector<common::Coordinate>
+{
+    auto tNodeEntity = stk::mesh::EntityVector{};
+    stk::mesh::get_entities(aBulk, stk::topology::NODE_RANK, parts_to_selector(aParts), tNodeEntity, kSortedByID);
+
     const stk::mesh::FieldBase* const tCoordsField = aBulk.mesh_meta_data().coordinate_field();
 
-    for (size_t tNodeIndex = 0; tNodeIndex < tNodeEntity.size(); tNodeIndex++)
-    {
-        const auto tData = static_cast<const double*>(stk::mesh::field_data(*tCoordsField, tNodeEntity[tNodeIndex]));
-        tCoordinates[tNodeIndex].x = tData[0];
-        tCoordinates[tNodeIndex].y = tData[1];
-        tCoordinates[tNodeIndex].z = (tSpatialDim == 2 ? 0 : tData[2]);
-    }
+    auto tCoordinates = std::vector<common::Coordinate>{};
+    tCoordinates.reserve(tNodeEntity.size());
+
+    const auto tIndices = utilities::IndexRange{tNodeEntity.size()};
+    std::transform(tIndices.begin(), tIndices.end(), std::back_inserter(tCoordinates),
+                   [tSpatialDim = spatial_dimensions(aBulk), tCoordsField, &tNodeEntity](const auto aNodeIndex)
+                   {
+                       const auto tData =
+                           static_cast<const double*>(stk::mesh::field_data(*tCoordsField, tNodeEntity[aNodeIndex]));
+                       return common::Coordinate{tData[0], tData[1], tSpatialDim == 2 ? 0 : tData[2]};
+                   });
     return tCoordinates;
 }
 
-void write_mesh_density(const std::filesystem::path& aInputMeshName,
-                        const std::vector<double>& aDensity,
-                        const std::filesystem::path& aOutputMeshName)
+void write_nodal_density(const std::filesystem::path& aInputMeshName,
+                         const std::unordered_map<std::size_t, double>& aDensity,
+                         const std::filesystem::path& aOutputMeshName)
 {
     std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker =
         create_input_mesh_broker(aInputMeshName);  // todo : add communicator
 
     const size_t tOutputFileIndex =
-        detail::write_mesh_density_impl<stk::topology::NODE_RANK>(*tIOBroker, aDensity, aOutputMeshName);
+        write_mesh_density_impl<stk::topology::NODE_RANK>(*tIOBroker, aDensity, aOutputMeshName);
 
     constexpr double tTime = 1.0;
     write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);
 }
 
 void write_element_density(const std::filesystem::path& aInputMeshName,
-                           const std::vector<double>& aDensity,
+                           const std::unordered_map<std::size_t, double>& aDensity,
                            const std::filesystem::path& aOutputMeshName)
 {
     std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker =
         create_input_mesh_broker(aInputMeshName);  // todo : add communicator
 
     const size_t tOutputFileIndex =
-        detail::write_mesh_density_impl<stk::topology::ELEMENT_RANK>(*tIOBroker, aDensity, aOutputMeshName);
+        write_mesh_density_impl<stk::topology::ELEMENT_RANK>(*tIOBroker, aDensity, aOutputMeshName);
 
     constexpr double tTime = 1.0;
     write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);
@@ -200,10 +238,18 @@ std::vector<unsigned int> extract_global_node_ids(const std::string& aFilename)
 
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk)
 {
+    return element_vector(aBulk, aBulk.mesh_meta_data().universal_part());
+}
+
+stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart)
+{
+    return element_vector(aBulk, PartReferenceVector{std::cref(aPart)});
+}
+
+stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+{
     stk::mesh::EntityVector tElements;
-    constexpr bool tSortById = true;
-    stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, aBulk.mesh_meta_data().locally_owned_part(), tElements,
-                            tSortById);
+    stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, parts_to_selector(aParts), tElements, kSortedByID);
     return tElements;
 }
 

@@ -104,6 +104,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), density_topology,
     (plato::input_parser::FileName, mesh_name)
     (plato::input_parser::FileName, output_name)
+    (plato::input_parser::FixedBlockList, fixed_blocks)
     (plato::input_parser::FilterCrossReference, filter)
 )
 

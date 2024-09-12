@@ -1,62 +1,146 @@
+#include <Ioss_ElementBlock.h>
+#include <Ioss_IOFactory.h>
+#include <Ioss_NodeBlock.h>
+#include <Ioss_Region.h>
 #include <gtest/gtest.h>
+#include <mpi.h>
 
 #include <cmath>
 #include <filesystem>
 #include <numeric>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Comm.hpp>
+#include <stk_mesh/base/MetaData.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 #include <string_view>
 
-#include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/test_utilities/TestDataFilePath.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
-#include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
-TEST(STKGenerateMesh, Box)
+namespace
 {
-    ASSERT_EQ(stk::parallel_machine_size(MPI_COMM_WORLD), 1);
+using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 
-    constexpr std::string_view fileName = "test.exo";
-    const CommandGenerator tCommandGenerator{{3, 3, 4}, {-1, -2, -1}, {2, 1, 2}, CommandElementType::Hex};
-    auto bulk = generate_mesh(tCommandGenerator);
-    write_mesh(fileName, bulk);
+constexpr auto kTopologyFieldName = std::string_view{"topology"};
 
-    EXPECT_EQ(tCommandGenerator.numberOfNodes(), read_mesh_node_size(fileName));
-    EXPECT_EQ(tCommandGenerator.numberOfElements(), element_size(fileName));
+std::vector<double> read_nodal_density(const std::filesystem::path& aMeshName)
+{
+    Ioss::DatabaseIO* tResultsDb =
+        Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
+    Ioss::Region tResults(tResultsDb);
 
-    EXPECT_TRUE(std::filesystem::exists(fileName));
-    EXPECT_TRUE(std::filesystem::remove(fileName));
+    tResults.begin_state(1);
+    Ioss::NodeBlock* tNb = tResults.get_node_blocks()[0];
+    std::vector<double> tNodeFieldData;
+    tNb->get_field_data(std::string{kTopologyFieldName}, tNodeFieldData);
+    return tNodeFieldData;
+}
+
+std::vector<double> read_element_density(const std::filesystem::path& aMeshName)
+{
+    Ioss::DatabaseIO* tResultsDb =
+        Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
+    Ioss::Region tResults(tResultsDb);
+
+    tResults.begin_state(1);
+    Ioss::ElementBlock* tEb = tResults.get_element_blocks()[0];
+    std::vector<double> tElementFieldData;
+    tEb->get_field_data(std::string{kTopologyFieldName}, tElementFieldData);
+    return tElementFieldData;
+}
+
+void check_write_density(const std::filesystem::path& aInputFileName,
+                         const std::unordered_map<std::size_t, double>& aData,
+                         const std::filesystem::path& aOutputFileName,
+                         const std::vector<double>& aExpected,
+                         const plato::test_utilities::TestContext& aTestContext)
+{
+    // Nodal
+    {
+        write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{}));
+        write_nodal_density(aInputFileName, aData, aOutputFileName);
+        const auto tResult = read_nodal_density(aOutputFileName);
+        EXPECT_EQ(tResult, aExpected) << aTestContext;
+    }
+    // Element
+    {
+        write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
+        write_element_density(aInputFileName, aData, aOutputFileName);
+        const auto tResult = read_element_density(aOutputFileName);
+        EXPECT_EQ(tResult, aExpected) << aTestContext;
+    }
+    EXPECT_TRUE(std::filesystem::remove(aInputFileName)) << aTestContext;
+    EXPECT_TRUE(std::filesystem::remove(aOutputFileName)) << aTestContext;
+}
+
+}  // namespace
+
+TEST(STKUtilities, CommandGeneratorWriteMeshToDisk)
+{
+    const CommandGenerator tCommandGenerator{{2, 2, 2}};
+    const std::string_view tMeshFileName{"mesh.exo"};
+    write_mesh(tMeshFileName, tCommandGenerator);
+    EXPECT_TRUE(std::filesystem::exists(tMeshFileName));
+    EXPECT_TRUE(std::filesystem::remove(tMeshFileName));
 }
 
 TEST(STKUtilities, NumberOfNodesAndElementsFromBulk)
 {
     const CommandGenerator tCommandGenerator{{2, 2, 2}};
-    const auto tMesh = generate_mesh(tCommandGenerator);
+    const auto tMesh = generate_bulk_data(tCommandGenerator);
     ASSERT_TRUE(tMesh);
     EXPECT_EQ(node_size(*tMesh), tCommandGenerator.numberOfNodes());
     EXPECT_EQ(element_size(*tMesh), tCommandGenerator.numberOfElements());
 }
 
-TEST(STKUtilities, SpatialDimensions)
+TEST_F(TwoBlockMeshOnDisk, NumberOfNodesAndElementsFromBulkAndParts)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
+    constexpr auto tExpectedNumberOfParts = 2u;
+    ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
+
+    const auto tCheckCounts = [&tBulkData](const unsigned int aExpectedNodeSize,
+                                           const unsigned int aExpectedElementSize, const PartReferenceVector& aParts,
+                                           const plato::test_utilities::TestContext& aTestContext)
+    {
+        EXPECT_EQ(aExpectedNodeSize, node_size(*tBulkData, aParts)) << aTestContext;
+        EXPECT_EQ(aExpectedElementSize, element_size(*tBulkData, aParts)) << aTestContext;
+    };
+
+    // Test full mesh result is same as parts list
+    const auto tAllParts = PartReferenceVector{std::cref(*tParts.front()), std::cref(*tParts.back())};
+    tCheckCounts(node_size(*tBulkData), element_size(*tBulkData), tAllParts, TEST_CONTEXT("Full mesh vs. all blocks"));
+    // Block 1
+    const auto tBlock1Parts = PartReferenceVector{std::cref(*tParts.front())};
+    tCheckCounts(mExpectedNumberOfNodesInBlock1, mExpectedNumberOfElementsInBlock1, tBlock1Parts,
+                 TEST_CONTEXT("Block 1"));
+    // Block 2
+    const auto tBlock2Parts = PartReferenceVector{std::cref(*tParts.back())};
+    tCheckCounts(mExpectedNumberOfNodesInBlock2, mExpectedNumberOfElementsInBlock2, tBlock2Parts,
+                 TEST_CONTEXT("Block 2"));
+}
+
+TEST(STKUtilities, SpatialDimensions3)
 {
     const CommandGenerator tCommandGenerator{{2, 2, 2}};
-    const auto tMesh = generate_mesh(tCommandGenerator);
+    const auto tMesh = generate_bulk_data(tCommandGenerator);
     ASSERT_TRUE(tMesh);
     EXPECT_EQ(spatial_dimensions(*tMesh), 3u);
 }
 
-TEST(STKUtilities, ReadCoordinates)
+TEST(STKUtilities, SpatialDimensions2)
 {
-    const CommandGenerator tCommandGenerator;
-    const std::vector<double> gold = {0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1};
-    const auto tMesh = generate_mesh(tCommandGenerator);
+    const auto tMesh =
+        read_mesh_bulk_data(plato::test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf").value());
     ASSERT_TRUE(tMesh);
-    const std::vector<double> res = flattened_nodal_coordinates(*tMesh);
-    EXPECT_EQ(gold, res);
-    EXPECT_EQ(node_size(*tMesh), tCommandGenerator.numberOfNodes());
+    EXPECT_EQ(spatial_dimensions(*tMesh), 2u);
 }
 
 TEST(STKUtilities, ReadCoordinatesCoordinate)
@@ -64,48 +148,49 @@ TEST(STKUtilities, ReadCoordinatesCoordinate)
     const CommandGenerator tCommandGenerator;
     const std::vector<common::Coordinate> tGold = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 0},
                                                    {0, 0, 1}, {1, 0, 1}, {0, 1, 1}, {1, 1, 1}};
-    const auto tMesh = generate_mesh(tCommandGenerator);
+    const auto tMesh = generate_bulk_data(tCommandGenerator);
     ASSERT_TRUE(tMesh);
     const std::vector<common::Coordinate> tResult = nodal_coordinates(*tMesh);
     ASSERT_EQ(tGold.size(), tResult.size());
     for (unsigned int tIndex = 0; tIndex < tGold.size(); ++tIndex)
     {
-        common::unittest::test_double_equality_of_components(tResult[tIndex], tGold[tIndex],
-                                                             TEST_CONTEXT("Read nodal coordinates"));
+        common::test_utilities::test_double_equality_of_components(tResult[tIndex], tGold[tIndex],
+                                                                   TEST_CONTEXT("Read nodal coordinates"));
     }
 
     EXPECT_EQ(node_size(*tMesh), tCommandGenerator.numberOfNodes());
 }
 
-TEST(STKUtilities, WriteDensityField)
+TEST(STKUtilities, WriteDensityFieldAllValuesExist)
 {
     constexpr std::string_view tInputFileName = "brick.exo";
-    write_mesh(tInputFileName, generate_mesh(CommandGenerator{}));
-    const std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8};
+    const auto tData = std::unordered_map<std::size_t, double>{{1, 1.0}, {2, 2.0}, {3, 3.0}, {4, 4.0},
+                                                               {5, 5.0}, {6, 6.0}, {7, 7.0}, {8, 8.0}};
+
+    auto tExpected = std::vector<double>(tData.size());
+    std::iota(tExpected.begin(), tExpected.end(), 1.0);
     constexpr std::string_view tOutputFileName = "brick-out.exo";
-    write_mesh_density(tInputFileName, data, tOutputFileName);
-    auto res = read_mesh_density(tOutputFileName);
 
-    EXPECT_EQ(data, res);
-
-    EXPECT_TRUE(std::filesystem::remove(tInputFileName));
-    EXPECT_TRUE(std::filesystem::remove(tOutputFileName));
+    check_write_density(tInputFileName, tData, tOutputFileName, tExpected, TEST_CONTEXT("All density values exist"));
 }
 
-TEST(STKUtilities, WriteElementDensityField)
+TEST(STKUtilities, WriteDensityFieldSomeMissing)
 {
     constexpr std::string_view tInputFileName = "brick.exo";
-    const CommandGenerator tCommandGenerator{{2, 2, 2}};
-    write_mesh(tInputFileName, generate_mesh(tCommandGenerator));
-    const std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8};
+    const auto tData =
+        std::unordered_map<std::size_t, double>{{1, 1.0}, {3, 3.0}, {5, 5.0}, {6, 6.0}, {7, 7.0}, {8, 8.0}};
+    const auto tMissingGlobalIDs = std::vector<std::size_t>{2U, 4U};
+
+    auto tExpected = std::vector<double>(tData.size() + tMissingGlobalIDs.size());
+    std::iota(tExpected.begin(), tExpected.end(), 1.0);
+    for (const auto tMissingID : tMissingGlobalIDs)
+    {
+        tExpected.at(tMissingID - 1) = 1.0;
+    }
     constexpr std::string_view tOutputFileName = "brick-out.exo";
-    write_element_density(tInputFileName, data, tOutputFileName);
-    auto res = read_element_density(tOutputFileName);
 
-    EXPECT_EQ(data, res);
-
-    EXPECT_TRUE(std::filesystem::remove(tInputFileName));
-    EXPECT_TRUE(std::filesystem::remove(tOutputFileName));
+    check_write_density(tInputFileName, tData, tOutputFileName, tExpected,
+                        TEST_CONTEXT("Some missing density field values"));
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

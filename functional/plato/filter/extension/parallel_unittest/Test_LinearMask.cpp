@@ -5,9 +5,9 @@
 
 #include "plato/filter/extension/LinearMask.hpp"
 #include "plato/filter/extension/parallel_unittest/LinearMaskTestUtility.hpp"
-#include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 
-namespace plato::filter::extension::unittest
+namespace plato::filter::extension::parallel_unittest
 {
 
 namespace
@@ -25,7 +25,7 @@ TEST(LinearMaskDetail, MPISize)
 
 TEST(LinearMask, Apply)
 {
-    const LinearMask tLinearMask = create_simple_linear_mask<LinearMask>(std::nullopt);
+    const LinearMask tLinearMask = create_simple_linear_mask();
 
     /* 2/3          1/3             0           0
        1/4         1/2            1/4        0
@@ -63,7 +63,7 @@ TEST(LinearMask, Apply)
 TEST(LinearMask, ApplyGivenCentroid)
 {
     const std::vector<third_party_integration::common::Coordinate> tRelativeToCoordinate{{1, 0, 0}, {2, 0, 0}};
-    const LinearMask tLinearMask = create_simple_linear_mask<LinearMask>(tRelativeToCoordinate);
+    const LinearMask tLinearMask = create_simple_linear_mask(tRelativeToCoordinate);
     /*
            1/4         1/2            1/4        0
            0           1/4            1/2        1/4
@@ -94,4 +94,4 @@ TEST(LinearMask, ApplyGivenCentroid)
     }
 }
 
-}  // namespace plato::filter::extension::unittest
+}  // namespace plato::filter::extension::parallel_unittest

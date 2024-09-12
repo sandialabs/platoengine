@@ -5,10 +5,12 @@
 
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
+#include <boost/spirit/include/qi.hpp>
 #include <string>
 #include <vector>
 
 #include "plato/input_parser/FileList.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::input_parser
 {
@@ -42,14 +44,29 @@ inline void test_existence_and_equality(const boost::optional<FileList>& aOption
 }
 
 template <typename T>
-void copy_test(T& aFileList)
+void copy_test(T& aFileList, const test_utilities::TestContext& aTestContext)
 {
     std::vector<std::string> tCopy;
     std::copy(aFileList.begin(), aFileList.end(), std::back_inserter(tCopy));
-    EXPECT_EQ(aFileList.mList, tCopy);
+    EXPECT_EQ(aFileList.mList, tCopy) << aTestContext;
 }
 
 auto parse_string(const std::string& aInput) -> std::tuple<bool, std::string::const_iterator, ParsedInput>;
+
+/// @brief Helper for parsing individual entries, such as UserDefinedToken or UserDefinedTokenList.
+template <typename ParsedType>
+[[nodiscard]] std::pair<ParsedType, bool> parse_input(const std::string_view aInput)
+{
+    namespace bs = boost::spirit;
+    using Iterator = std::string_view::const_iterator;
+    using Rule = bs::qi::rule<Iterator, ParsedType(), bs::ascii::space_type>;
+
+    auto tData = ParsedType{};
+    const Rule tTestRule = bs::qi::auto_ >> (bs::qi::eol | bs::qi::eoi);
+    const auto* tIter = aInput.cbegin();
+    const bool tParseResult = phrase_parse(tIter, aInput.cend(), tTestRule, bs::ascii::space, tData);
+    return {tData, tParseResult};
+}
 
 }  // namespace plato::input_parser::unittest
 

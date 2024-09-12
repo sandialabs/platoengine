@@ -10,6 +10,6 @@ linear_algebra::DynamicVector<double> operator*(const linear_algebra::DynamicVec
                                                 const FilterJacobian& aJacobian)
 {
     assert(aJacobian.mFilter);
-    return aJacobian.mFilter->jacobianTimesVector(aJacobian.mMeshProxy, aV);
+    return aJacobian.mFilter->jacobianTimesVector(aJacobian.mMeshDesignVariables, aV);
 }
 }  // namespace plato::filter::library

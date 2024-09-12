@@ -6,13 +6,13 @@ set(DIRECTORIES library
 set(LINK_LIBS PlatoFunctionalCore
               PlatoFunctionalLinearAlgebra
               PlatoFunctionalServices
-              PlatoFunctionalSTKIO)
+              PlatoFunctionalMesh)
 create_plato_library(PlatoFunctionalCriteria "${DIRECTORIES}" "${LINK_LIBS}")
 
 if( UNIT_TESTING )
   set(DIRECTORIES library/unittest
                   extension/unittest)
-  create_plato_unittester(PlatoFunctionalCriteria "${DIRECTORIES}")
+  create_plato_unittester(PlatoFunctionalCriteria "${DIRECTORIES}" PlatoFunctionalSTKIOTestUtilities)
 
   set(DIRECTORIES library/parallel_unittest)
   set(NUM_RANKS_FOR_TEST 3)

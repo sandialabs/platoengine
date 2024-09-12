@@ -2,11 +2,11 @@
 
 #include <string_view>
 
-#include "Test_Helpers.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/UserDefinedToken.hpp"
+#include "plato/input_parser/unittest/Test_Helpers.hpp"
 
-namespace plato::input_parser
+namespace plato::input_parser::unittest
 {
 namespace
 {
@@ -16,21 +16,6 @@ struct LowerCaseWithUnderscore
 };
 
 using LowerCaseWithUnderscoreToken = UserDefinedToken<LowerCaseWithUnderscore>;
-
-template <typename ValidChars>
-[[nodiscard]] std::pair<UserDefinedToken<ValidChars>, bool> parse_input(const std::string_view aInput)
-{
-    namespace bs = boost::spirit;
-    using Iterator = std::string_view::const_iterator;
-    using Rule = bs::qi::rule<Iterator, UserDefinedToken<ValidChars>(), bs::ascii::space_type>;
-
-    auto tData = UserDefinedToken<ValidChars>{};
-    const Rule tTestRule = bs::qi::auto_ >> (bs::qi::eol | bs::qi::eoi);
-    auto tIter = aInput.cbegin();
-    const bool tParseResult = phrase_parse(tIter, aInput.cend(), tTestRule, bs::ascii::space, tData);
-    return {tData, tParseResult};
-}
-
 }  // namespace
 
 TEST(UserDefinedToken, ValidChars)
@@ -79,7 +64,7 @@ TEST(UserDefinedToken, ParseFail)
 {
     const auto tTestString = std::string_view{"1_invalid_input_0"};
 
-    const auto [tResult, tSuccess] = parse_input<LowerCaseWithUnderscore>(tTestString);
+    const auto [tResult, tSuccess] = parse_input<LowerCaseWithUnderscoreToken>(tTestString);
     EXPECT_FALSE(tSuccess);
 }
 
@@ -87,7 +72,7 @@ TEST(UserDefinedToken, ParseSuccess)
 {
     const auto tTestString = std::string_view{"valid_input"};
 
-    const auto [tResult, tSuccess] = parse_input<LowerCaseWithUnderscore>(tTestString);
+    const auto [tResult, tSuccess] = parse_input<LowerCaseWithUnderscoreToken>(tTestString);
     EXPECT_TRUE(tSuccess);
     EXPECT_EQ(tResult.mToken, tTestString);
 }

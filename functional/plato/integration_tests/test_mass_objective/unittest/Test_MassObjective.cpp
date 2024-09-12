@@ -16,8 +16,7 @@ TEST(MassObjective, Value)
     constexpr std::string_view tMeshName = "massTest.exo";
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
         {1, 1, 1}, {-1, -1, -1}, {1, 1, 1}, utilities::CommandElementType::Hex};
-    third_party_integration::stk_io::write_mesh(
-        tMeshName, third_party_integration::stk_io::generate_mesh(tCommandGenerator.toString()));
+    third_party_integration::stk_io::write_mesh(tMeshName, tCommandGenerator);
 
     constexpr double tExpectedMass = tDensity * 8.0;
     EXPECT_DOUBLE_EQ(tMassObjective.mass(tMeshName), tExpectedMass);

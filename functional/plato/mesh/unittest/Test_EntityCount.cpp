@@ -1,0 +1,97 @@
+#include <gtest/gtest.h>
+
+#include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/Mesh.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+
+namespace plato::mesh::unittest
+{
+namespace
+{
+using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
+using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+
+struct ExpectedCounts
+{
+    std::size_t mNumberOfElements = 0u;
+    std::size_t mNumberOfNodes = 0u;
+    std::size_t mNumberOfBlocks = 0u;
+    std::size_t mSpatialDimensions = 0u;
+};
+
+void check_counts(const Mesh& aMesh, const ExpectedCounts& aCounts, const test_utilities::TestContext& aTestContext)
+{
+    const auto tMeshWithEntityCount = EntityCounts{aMesh};
+    EXPECT_EQ(tMeshWithEntityCount.numberOfElements(), aCounts.mNumberOfElements) << aTestContext;
+    EXPECT_EQ(tMeshWithEntityCount.numberOfNodes(), aCounts.mNumberOfNodes) << aTestContext;
+    EXPECT_EQ(tMeshWithEntityCount.numberOfBlocks(), aCounts.mNumberOfBlocks) << aTestContext;
+    EXPECT_EQ(tMeshWithEntityCount.spatialDimensions(), aCounts.mSpatialDimensions) << aTestContext;
+    if (aCounts.mSpatialDimensions == 2u)
+    {
+        EXPECT_TRUE(tMeshWithEntityCount.is2D()) << aTestContext;
+        EXPECT_FALSE(tMeshWithEntityCount.is3D()) << aTestContext;
+    }
+    else
+    {
+        EXPECT_FALSE(tMeshWithEntityCount.is2D()) << aTestContext;
+        EXPECT_TRUE(tMeshWithEntityCount.is3D()) << aTestContext;
+    }
+}
+}  // namespace
+
+TEST_F(OneBlock3x1x1HexMesh, OneBlockCounts)
+{
+    const auto tMesh = Mesh{mMeshFilePath};
+    const auto tExpectedCounts = ExpectedCounts{/*.mNumberOfElements=*/mCommandGenerator.numberOfElements(),
+                                                /*.mNumberOfNodes=*/mCommandGenerator.numberOfNodes(),
+                                                /*.mNumberOfBlocks=*/1u, /*.mSpatialDimensions=*/3u};
+    check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("One block"));
+}
+
+TEST_F(TwoBlockMeshOnDisk, TwoBlockCounts)
+{
+    const auto tMesh = Mesh{mMeshFilePath};
+    const auto tExpectedCounts =
+        ExpectedCounts{/*.mNumberOfElements=*/mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock2,
+                       /*.mNumberOfNodes=*/mExpectedNumberOfNodesInBlock1 + mExpectedNumberOfNodesInBlock2,
+                       /*.mNumberOfBlocks=*/mExpectedNumberOfBlocks, /*.mSpatialDimensions=*/3u};
+    check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("Two blocks"));
+}
+
+TEST_F(TwoDNonUniformHexMesh, TwoDCounts)
+{
+    const auto tMesh = Mesh{mMeshFilePath};
+    const auto tExpectedCounts =
+        ExpectedCounts{/*.mNumberOfElements=*/mExpectedNumberOfElements,
+                       /*.mNumberOfNodes=*/mExpectedNumberOfNodes,
+                       /*.mNumberOfBlocks=*/mExpectedNumberOfBlocks, /*.mSpatialDimensions=*/2u};
+    check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("Two dimensional mesh"));
+}
+
+TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockCounts)
+{
+    const auto tMesh = Mesh{mMeshFilePath};
+    const auto tExpectedCounts =
+        ExpectedCounts{/*.mNumberOfElements=*/mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock2 +
+                           mExpectedNumberOfElementsInBlock3,
+                       /*.mNumberOfNodes=*/mExpectedNumberOfNodes,
+                       /*.mNumberOfBlocks=*/mExpectedNumberOfBlocks, /*.mSpatialDimensions=*/2u};
+    check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("Two dimensional mesh with three blocks"));
+}
+
+TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockDesignVariableCounts)
+{
+    const auto tMesh = Mesh{mMeshFilePath, {"block_2"}};
+    constexpr auto tExpectedNumberOfElements = mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock3;
+    const auto tNumberOfElementsInDesignDomain = EntityCounts{tMesh}.numberOfDesignDomainElements();
+    EXPECT_EQ(tNumberOfElementsInDesignDomain, tExpectedNumberOfElements);
+
+    constexpr auto tExpectedNumberOfNodes = 7u;
+    const auto tNumberOfNodesInDesignDomain = EntityCounts{tMesh}.numberOfDesignDomainNodes();
+    EXPECT_EQ(tNumberOfNodesInDesignDomain, tExpectedNumberOfNodes);
+}
+
+}  // namespace plato::mesh::unittest

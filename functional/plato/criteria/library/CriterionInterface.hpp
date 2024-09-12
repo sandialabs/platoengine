@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "plato/core/MeshProxy.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::criteria::library
 {
@@ -34,8 +34,8 @@ class CriterionInterface
 
     /// @note When implementing a constraint, the target value will be subtracted in the optimizer interface.
     /// A criterion that is a constraint should then just evaluate without considering any target value.
-    virtual double value(const core::MeshProxy& aMeshProxy) const = 0;
-    virtual std::vector<double> gradient(const core::MeshProxy& aMeshProxy) const = 0;
+    virtual double value(const mesh::MeshDesignVariables& aMeshDesignVariables) const = 0;
+    virtual std::vector<double> gradient(const mesh::MeshDesignVariables& aMeshDesignVariables) const = 0;
 
     CriterionInterface(const CriterionInterface&) = delete;
     CriterionInterface& operator=(const CriterionInterface&) = delete;

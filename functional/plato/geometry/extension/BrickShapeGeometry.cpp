@@ -55,11 +55,10 @@ BrickShapeGeometry::BrickShapeGeometry(std::filesystem::path aFileName, const st
 
 BrickShapeGeometry::~BrickShapeGeometry() { std::filesystem::remove(mFileName); }
 
-core::MeshProxy BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
+mesh::MeshDesignVariables BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
 {
-    std::shared_ptr<stk::mesh::BulkData> tMesh = detail::create_mesh(aDesignParameters, mDiscretizationSize);
-    third_party_integration::stk_io::write_mesh(mFileName, tMesh);
-    return core::MeshProxy{mFileName, {}};
+    detail::create_mesh(aDesignParameters, mFileName, mDiscretizationSize);
+    return mesh::MeshDesignVariables{mFileName, {}};
 }
 
 linear_algebra::JacobianColumnEvaluator BrickShapeGeometry::jacobian(const BrickDesign& aDesignParameters) const
@@ -89,7 +88,9 @@ void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSo
 }
 
 auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry)
-    -> core::Function<core::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>
+    -> core::Function<mesh::MeshDesignVariables,
+                      linear_algebra::JacobianMultiplier,
+                      const linear_algebra::DynamicVector<double>&>
 {
     return core::make_function(
         [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
@@ -100,8 +101,9 @@ auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry)
 
 namespace detail
 {
-std::shared_ptr<stk::mesh::BulkData> create_mesh(const BrickDesign& aDesign,
-                                                 const std::optional<double> aDiscretizationSize)
+void create_mesh(const BrickDesign& aDesign,
+                 const std::filesystem::path& aOutputFile,
+                 const std::optional<double> aDiscretizationSize)
 {
     namespace tpistkio = third_party_integration::stk_io;
     const auto tLowerBounds = tpistkio::CommandBounds{aDesign.center_x - aDesign.dimension_x / 2.0,
@@ -125,12 +127,12 @@ std::shared_ptr<stk::mesh::BulkData> create_mesh(const BrickDesign& aDesign,
     const auto tNodesets = tpistkio::NodeSetSideSetIdentifiers{tpistkio::UseLowerX{false}, tpistkio::UseUpperX{false},
                                                                tpistkio::UseLowerY{false}, tpistkio::UseUpperY{true},
                                                                tpistkio::UseLowerZ{false}, tpistkio::UseUpperZ{true}};
-    const int tPrecision = 16;
-    const auto tCommandGenerator =
-        tpistkio::CommandGenerator{tNumberOfElements, tLowerBounds, tUpperBounds, tpistkio::CommandElementType::Hex,
-                                   tNodesets,         tSidesets,    tPrecision};
+    constexpr int tPrecision = 16;
 
-    return tpistkio::generate_mesh(tCommandGenerator);
+    const tpistkio::CommandGenerator tGenerator{
+        tNumberOfElements, tLowerBounds, tUpperBounds, tpistkio::CommandElementType::Hex,
+        tNodesets,         tSidesets,    tPrecision};
+    tpistkio::write_mesh(aOutputFile, tGenerator);
 }
 
 std::vector<double> sensitivities(const unsigned int aParameterIndex)

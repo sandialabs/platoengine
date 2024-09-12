@@ -4,12 +4,20 @@
 #include "plato/criteria/library/ConstraintValidation.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/ValidInputTestFixture.hpp"
 
 namespace plato::process_manager::library::unittest
 {
-TEST(ConstraintFactory, MultipleValidConstraints)
+namespace
 {
-    input_parser::ParsedInput tInput = plato::test_utilities::create_valid_example_input();
+struct ConstraintFactoryFileFixture : public test_utilities::ValidInputTestFixture
+{
+};
+}  // namespace
+
+TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
+{
+    auto tInput = parsedInput();
     input_parser::constraint tConstraint = plato::test_utilities::create_valid_example_constraint();
     tConstraint.name = "eq";
     tConstraint.equal_to = 13;

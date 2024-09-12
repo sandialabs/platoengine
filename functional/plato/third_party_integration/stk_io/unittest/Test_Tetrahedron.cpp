@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <iomanip>
 
-#include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Tetrahedron.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
@@ -37,7 +37,7 @@ TEST(Tetrahedron, Centroid)
     const common::Coordinate tResult = tTet.centroid();
     const common::Coordinate tGold{1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0};
 
-    common::unittest::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Tetrahedron Centroid"));
+    common::test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Tetrahedron Centroid"));
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

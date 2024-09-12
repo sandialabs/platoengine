@@ -43,6 +43,7 @@ double mesh_volume(const stk::mesh::BulkData& aBulk)
 {
     const stk::mesh::EntityVector tElements = element_vector(aBulk);
     std::vector<double> tVolume;
+    tVolume.reserve(tElements.size());
     std::transform(tElements.begin(), tElements.end(), std::back_inserter(tVolume),
                    [&aBulk](const auto& iElement) { return element_volume(iElement, aBulk); });
 
@@ -51,8 +52,14 @@ double mesh_volume(const stk::mesh::BulkData& aBulk)
 
 std::vector<common::Coordinate> element_centroids(const stk::mesh::BulkData& aBulk)
 {
-    const stk::mesh::EntityVector tElements = element_vector(aBulk);
+    return element_centroids(aBulk, PartReferenceVector{std::cref(aBulk.mesh_meta_data().universal_part())});
+}
+
+std::vector<common::Coordinate> element_centroids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+{
+    const stk::mesh::EntityVector tElements = element_vector(aBulk, aParts);
     std::vector<common::Coordinate> tCentroids;
+    tCentroids.reserve(tElements.size());
     std::transform(tElements.begin(), tElements.end(), std::back_inserter(tCentroids),
                    [&aBulk](const auto& iElement) { return element_centroid(iElement, aBulk); });
 
@@ -71,13 +78,6 @@ std::vector<common::Coordinate> element_coordinates(const stk::mesh::Entity& aEl
                        return coordinate_from_data_array(tData, tNumDimensions);
                    });
     return tCoordinates;
-}
-
-double average_nodal_density(const stk::mesh::BulkData& aBulk)
-{
-    const auto tTotalNumberOfNodes = node_size(aBulk);
-    const double tTotalVolume = mesh_volume(aBulk);
-    return static_cast<double>(tTotalNumberOfNodes) / tTotalVolume;
 }
 
 }  // namespace plato::third_party_integration::stk_io

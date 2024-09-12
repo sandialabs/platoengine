@@ -3,14 +3,14 @@
 #include <boost/mpi/communicator.hpp>
 #include <optional>
 
-#include "plato/filter/extension/LinearMaskFactory.hpp"
+#include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/filter/extension/parallel_unittest/LinearMaskTestUtility.hpp"
-#include "plato/third_party_integration/common/unittest/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 
-namespace plato::filter::extension::unittest
+namespace plato::filter::extension::parallel_unittest
 {
 
 namespace
@@ -57,13 +57,13 @@ constexpr int kNumSpatialDimensions{3};
 
 }  // namespace
 
-TEST(LinearMaskFactoryDetail, MPISize)
+TEST(LinearMaskBuilderDetail, MPISize)
 {
     const auto tComm = boost::mpi::communicator{};
     EXPECT_EQ(tComm.size(), kNumRanks);
 }
 
-TEST(LinearMaskFactoryDetail, LinearRamp)
+TEST(LinearMaskBuilderDetail, LinearRamp)
 {
     constexpr SearchRadius tSearchRadius{4};
 
@@ -98,7 +98,7 @@ TEST(LinearMaskFactoryDetail, LinearRamp)
     }
 }
 
-TEST(LinearMaskFactoryDetail, ReturnNormalizedNonzeroWeights)
+TEST(LinearMaskBuilderDetail, ReturnNormalizedNonzeroWeights)
 {
     const auto tCommunicator = Tpetra::getDefaultComm();
     const Tpetra::global_size_t tMapSize = 8;
@@ -124,7 +124,7 @@ TEST(LinearMaskFactoryDetail, ReturnNormalizedNonzeroWeights)
     }
 }
 
-TEST(LinearMaskFactoryDetail, MakeSearchPointsWithIdentifiers)
+TEST(LinearMaskBuilderDetail, MakeSearchPointsWithIdentifiers)
 {
     const auto tCommunicator = Tpetra::getDefaultComm();
     const auto tThisRank = tCommunicator->getRank();
@@ -154,11 +154,11 @@ TEST(LinearMaskFactoryDetail, MakeSearchPointsWithIdentifiers)
     EXPECT_EQ(tGoldLocalSearchPointWithIdentifiers[0].second, tSearchPoints[0].second);
 }
 
-TEST(LinearMaskFactory, GenerateDistanceMapNodal)
+TEST(LinearMaskBuilder, GenerateDistanceMapNodal)
 {
-    const LinearMaskFactory tLinearMaskFactory = create_simple_linear_mask<LinearMaskFactory>(std::nullopt);
+    const LinearMaskBuilder tLinearMaskBuilder = create_simple_linear_mask_builder();
 
-    const auto tDistanceMap = tLinearMaskFactory.returnMask();
+    const auto tDistanceMap = tLinearMaskBuilder.mask();
 
     /* 2/3          1/3             0           0
        1/4         1/2            1/4        0
@@ -186,12 +186,12 @@ TEST(LinearMaskFactory, GenerateDistanceMapNodal)
     EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 3, 3), 2.0 / 3.0);
 }
 
-TEST(LinearMaskFactory, GenerateDistanceMapGivenCentroid)
+TEST(LinearMaskBuilder, GenerateDistanceMapGivenCentroid)
 {
     const std::vector<third_party_integration::common::Coordinate> tRelativeToCoordinate{{1, 0, 0}};
-    const LinearMaskFactory tLinearMaskFactory = create_simple_linear_mask<LinearMaskFactory>(tRelativeToCoordinate);
+    const LinearMaskBuilder tLinearMaskBuilder = create_simple_linear_mask_builder(tRelativeToCoordinate);
 
-    const auto tDistanceMap = tLinearMaskFactory.returnMask();
+    const auto tDistanceMap = tLinearMaskBuilder.mask();
     /*
            1/4         1/2            1/4        0
     */
@@ -202,4 +202,4 @@ TEST(LinearMaskFactory, GenerateDistanceMapGivenCentroid)
     EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 0, 3), 0);
 }
 
-}  // namespace plato::filter::extension::unittest
+}  // namespace plato::filter::extension::parallel_unittest

@@ -10,12 +10,17 @@
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/test_utilities/ValidInputTestFixture.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::integration_tests::parallel
 {
 namespace
 {
+struct ObjectiveFactoryParallelTestFixture : public test_utilities::ValidInputTestFixture
+{
+};
+
 constexpr auto kNumRanks = int{4};
 
 process_manager::library::ValidatedInput create_one_objective_test_input()
@@ -92,7 +97,7 @@ TEST(ObjectiveFactory, InvalidParallelAggregate)
                  plato::utilities::Exception);
 }
 
-TEST(ObjectiveFactory, NumberOfProcessors)
+TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
 {
     namespace pitu = plato::integration_tests::utilities;
     auto tInput = test_utilities::create_valid_example_input();

@@ -1,6 +1,7 @@
 #ifndef PLATO_UTILITIES_TESSELATIONTRAITS
 #define PLATO_UTILITIES_TESSELATIONTRAITS
 
+#include <cassert>
 #include <iostream>
 #include <numeric>
 #include <stk_topology/topology.hpp>

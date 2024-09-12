@@ -7,9 +7,16 @@
 #include "plato/input_parser/InputParser.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/ValidInputTestFixture.hpp"
 
 namespace plato::integration_tests::serial
 {
+namespace
+{
+struct InputParserTestFixture : public test_utilities::ValidInputTestFixture
+{
+};
+}  // namespace
 
 namespace
 {
@@ -81,7 +88,7 @@ TEST(InputParser, ParseFromFile)
     std::filesystem::remove(kTestFileName);
 }
 
-TEST(ParsedInputVariant, BlockName)
+TEST_F(InputParserTestFixture, BlockName)
 {
     const process_manager::library::ValidatedInput tValidatedInput =
         process_manager::library::make_validated_input(plato::test_utilities::create_valid_example_input());

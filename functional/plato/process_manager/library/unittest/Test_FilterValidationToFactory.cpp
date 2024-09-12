@@ -6,10 +6,18 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/ValidInputTestFixture.hpp"
 
 namespace plato::process_manager::library::unittest
 {
-TEST(FilterFactory, ValidIdentityFilterFromGeometry)
+namespace
+{
+struct FilterFactoryFileFixture : public test_utilities::ValidInputTestFixture
+{
+};
+}  // namespace
+
+TEST_F(FilterFactoryFileFixture, ValidIdentityFilterFromGeometry)
 {
     namespace ptu = plato::test_utilities;
     const input_parser::ParsedInput tInput =

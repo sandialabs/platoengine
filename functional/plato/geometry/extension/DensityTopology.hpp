@@ -5,12 +5,13 @@
 #include <optional>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/MeshProxy.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::input_parser
 {
@@ -31,33 +32,55 @@ class DensityTopology
     explicit DensityTopology(const input_parser::density_topology& aInput,
                              plato::filter::library::FilterFunction aFilterFunction);
 
-    [[nodiscard]] core::MeshProxy generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const;
+    [[nodiscard]] mesh::MeshDesignVariables generateMesh(
+        const linear_algebra::DynamicVector<double>& aDesignParameter) const;
 
     [[nodiscard]] linear_algebra::JacobianMultiplier jacobian(
         const linear_algebra::DynamicVector<double>& aDesignParameter) const;
 
-    [[nodiscard]] static linear_algebra::DynamicVector<double> initialGuess(const std::filesystem::path& aMeshFileName);
+    [[nodiscard]] static linear_algebra::DynamicVector<double> initialGuess(
+        const input_parser::density_topology& aInput);
 
     [[nodiscard]] static std::pair<std::vector<double>, std::vector<double>> bounds(
-        const std::filesystem::path& aMeshFileName);
+        const input_parser::density_topology& aInput);
 
-    static void output(const std::filesystem::path& aInputMeshName,
-                       const linear_algebra::DynamicVector<double>& aSolution,
-                       const std::filesystem::path& aOutputMeshName);
+    static void output(const linear_algebra::DynamicVector<double>& aSolution,
+                       const input_parser::density_topology& aInput);
 
    private:
-    std::filesystem::path mFileName;
+    mesh::Mesh mMesh;
     unsigned int mNumDesignParameters = 0;
     plato::filter::library::FilterFunction mFilter;
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
-[[nodiscard]] auto make_topology_geometry(const DensityTopology& aDensityTopology) -> core::
-    Function<core::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>;
+[[nodiscard]] auto make_topology_geometry(const DensityTopology& aDensityTopology)
+    -> core::Function<mesh::MeshDesignVariables,
+                      linear_algebra::JacobianMultiplier,
+                      const linear_algebra::DynamicVector<double>&>;
 
 namespace detail
 {
+/// @brief Validates that the `output_name` field in @a aInput has a value.
 [[nodiscard]] std::optional<std::string> validate_output_name(const input_parser::density_topology& aInput);
+
+/// @brief Validates that all fixed block names in the input are unique.
+[[nodiscard]] std::optional<std::string> validate_unique_fixed_block_names(
+    const input_parser::density_topology& aInput);
+
+/// @brief Validates that all fixed block names in @a aInput exist in the mesh.
+[[nodiscard]] std::optional<std::string> validate_fixed_block_names_exist(const input_parser::density_topology& aInput);
+
+/// @brief Converts the vector of fixed block names in @a aInput to a set.
+///
+/// A set is used since the list of fixed blocks must be unique. That the raw input is a unique list of names
+/// can be validated with validate_unique_fixed_block_names.
+[[nodiscard]] std::set<std::string> fixed_blocks(const input_parser::density_topology& aInput);
+
+/// @brief Creates a Mesh from an density_topology input block.
+/// @pre The mesh_name field in @a aInput has a value. Checked with an assertion.
+[[nodiscard]] mesh::Mesh mesh_from_input(const input_parser::density_topology& aInput);
+
 }  // namespace detail
 
 }  // namespace plato::geometry::extension
