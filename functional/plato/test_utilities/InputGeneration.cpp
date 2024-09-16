@@ -169,6 +169,7 @@ input_parser::helmholtz_filter create_valid_helmholtz_filter()
 input_parser::kernel_filter create_valid_kernel_filter()
 {
     return input_parser::kernel_filter{/*.filter_radius=*/17.0,
-                                       /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kNodeCentered};
+                                       /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kNodeCentered,
+                                       /*.number_of_processors*/ 1};
 }
 }  // namespace plato::test_utilities

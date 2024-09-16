@@ -47,6 +47,7 @@ std::function<void(const linear_algebra::DynamicVector<double>&)> make_topology_
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_file_exists(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_unique_fixed_block_names(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_fixed_block_names_exist(aInput); },
+        [](const input_parser::density_topology& aInput) { return detail::validate_at_least_one_design_block(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_output_name(aInput); }};
 
 std::vector<std::string> mesh_block_names(const input_parser::density_topology& aInput)
@@ -186,6 +187,21 @@ std::optional<std::string> validate_fixed_block_names_exist(const input_parser::
         return std::optional{utilities::concatenate(
             "The following fixed_block entries could not be found in the mesh: ", std::move(tAllMissingFixedBlockNames),
             ". ", mesh_block_names_for_error_message(aInput))};
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> validate_at_least_one_design_block(const input_parser::density_topology& aInput)
+{
+    if (!aInput.fixed_blocks.has_value())
+    {
+        return {};
+    }
+    const auto tMeshBlockNames = mesh_block_names(aInput);
+    const auto tUniqueFixedBlocks = fixed_blocks(aInput);
+    if (tMeshBlockNames.size() == tUniqueFixedBlocks.size())
+    {
+        return std::optional{"All blocks have been listed under fixed_block, there is no design domain."};
     }
     return std::nullopt;
 }

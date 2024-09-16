@@ -60,6 +60,11 @@ namespace detail
 [[nodiscard]] std::optional<std::string> validate_kernel_filter_centering_type(
     const input_parser::kernel_filter& aInput);
 
+[[nodiscard]] std::optional<std::string> validate_number_of_processors(const input_parser::kernel_filter& aInput);
+
+[[nodiscard]] std::optional<std::string> validate_number_of_processors_factor_of_comm_world(
+    const input_parser::kernel_filter& aInput);
+
 /// @brief Create a LinearMask object from mesh @a aMesh, with a filter sphere with radius @a aFilterRadius,
 /// centered on the elements or nodes determined by @a aFilterCentering, using a communicator @a aCommunicator
 [[nodiscard]] LinearMask create_linear_mask(const mesh::Mesh& aMesh,

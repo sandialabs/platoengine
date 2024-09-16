@@ -43,19 +43,24 @@ SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirec
 {
 }
 
-double SharedLibCriterion::f(const mesh::MeshDesignVariables& aMesh) const { return mCriterionInterface->value(aMesh); }
-
-linear_algebra::DynamicVector<double> SharedLibCriterion::df(const mesh::MeshDesignVariables& aMesh) const
+double SharedLibCriterion::f(const mesh::MeshDesignVariables& aMeshDesignVariables) const
 {
-    return linear_algebra::DynamicVector<double>(mCriterionInterface->gradient(aMesh));
+    return mCriterionInterface->value(aMeshDesignVariables);
+}
+
+linear_algebra::DynamicVector<double> SharedLibCriterion::df(
+    const mesh::MeshDesignVariables& aMeshDesignVariables) const
+{
+    return linear_algebra::DynamicVector<double>(mCriterionInterface->gradient(aMeshDesignVariables));
 }
 
 auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion)
     -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>
 {
-    return core::make_function(
-        [aSharedLibCriterion](const mesh::MeshDesignVariables& mesh) { return aSharedLibCriterion.f(mesh); },
-        [aSharedLibCriterion](const mesh::MeshDesignVariables& mesh) { return aSharedLibCriterion.df(mesh); });
+    return core::make_function([aSharedLibCriterion](const mesh::MeshDesignVariables& aMeshDesignVariables)
+                               { return aSharedLibCriterion.f(aMeshDesignVariables); },
+                               [aSharedLibCriterion](const mesh::MeshDesignVariables& aMeshDesignVariables)
+                               { return aSharedLibCriterion.df(aMeshDesignVariables); });
 }
 
 }  // namespace plato::criteria::extension

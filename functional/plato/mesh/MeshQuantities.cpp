@@ -3,6 +3,7 @@
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
+#include "plato/utilities/Exception.hpp"
 
 namespace plato::mesh
 {
@@ -33,6 +34,13 @@ double MeshQuantities::averageNodalDensity() const
 {
     const auto tTotalNumberOfNodes = third_party_integration::stk_io::node_size(bulkData());
     return static_cast<double>(tTotalNumberOfNodes) / volume();
+}
+
+double MeshQuantities::smallestDesignDomainElementVolume() const
+{
+    const auto tDesignDomainVolumes = designDomainElementVolumes();
+    assert(!tDesignDomainVolumes.empty());
+    return *std::min_element(tDesignDomainVolumes.begin(), tDesignDomainVolumes.end());
 }
 
 std::vector<double> MeshQuantities::fixedDomainElementVolumes() const

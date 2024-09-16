@@ -7,6 +7,7 @@
 
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
@@ -23,6 +24,68 @@ namespace
 {
 constexpr std::string_view kMeshFile = "mesh.exo";
 constexpr auto kNumRanks = int{4};
+
+boost::mpi::communicator split_comm_world()
+{
+    auto tWorldComm = boost::mpi::communicator{};
+    const auto tRank = tWorldComm.rank();
+    const auto tColor = utilities::rank_group_color({1, 3}, utilities::RankNamedType{tRank});
+    return tWorldComm.split(tColor.mValue);
+}
+
+mesh::Mesh write_generic_mesh_and_load(unsigned int aBaseSize, const boost::mpi::communicator& aWorldCommunicator)
+{
+    namespace tpi = third_party_integration;
+    const auto tCommandGenerator =
+        tpi::stk_io::CommandGenerator{{aBaseSize, aBaseSize, aBaseSize}, {-2, -2, -2}, {2, 2, 2}};
+    if (aWorldCommunicator.rank() == 0)
+    {
+        tpi::stk_io::write_mesh(kMeshFile, tCommandGenerator);
+    }
+    aWorldCommunicator.barrier();
+    return mesh::Mesh{kMeshFile};
+}
+
+constexpr unsigned int kBaseSizeParallelTest = 4;
+class ParallelConsistencyTest : public ::testing::Test
+{
+   public:
+    ParallelConsistencyTest()
+        : mWorldComm(boost::mpi::communicator{}),
+          mSplitComm(split_comm_world()),
+          mMesh(write_generic_mesh_and_load(kBaseSizeParallelTest, mWorldComm))
+    {
+    }
+    ~ParallelConsistencyTest() {}
+    void TearDown() override
+    {
+        mWorldComm.barrier();
+        if (mWorldComm.rank() == 0)
+        {
+            test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
+        }
+    }
+    void check_parallel_consistency_of_sum(const unsigned int aSum, const test_utilities::TestContext& aTestContext)
+    {
+        auto tOtherRanksSumValue = aSum;
+        unsigned int tRankZeroValue = 0;
+        if (mWorldComm.rank() == 0)
+        {
+            tRankZeroValue = aSum;
+        }
+        else
+        {
+            boost::mpi::all_reduce(mSplitComm, boost::mpi::inplace(tOtherRanksSumValue), std::plus<unsigned int>());
+        }
+        boost::mpi::broadcast(mWorldComm, tRankZeroValue, 0);
+        EXPECT_EQ(tRankZeroValue, tOtherRanksSumValue) << aTestContext;
+    }
+
+   protected:
+    boost::mpi::communicator mWorldComm;
+    boost::mpi::communicator mSplitComm;
+    mesh::Mesh mMesh;
+};
 
 std::vector<double> create_linear_space_vector(unsigned int aSize)
 {
@@ -61,14 +124,6 @@ auto test_filter_evaluation(const third_party_integration::stk_io::CommandGenera
             .stdVector();
 
     return std::pair{tPostFilter, tPostSensitivities};
-}
-
-boost::mpi::communicator split_comm_world()
-{
-    auto tWorldComm = boost::mpi::communicator{};
-    const auto tRank = tWorldComm.rank();
-    const auto tColor = utilities::rank_group_color({1, 3}, utilities::RankNamedType{tRank});
-    return tWorldComm.split(tColor.mValue);
 }
 
 }  // namespace
@@ -185,6 +240,54 @@ TEST(KernelFilterDetail, CreateLinearMask)
     {
         test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
     }
+}
+
+TEST_F(ParallelConsistencyTest, ParallelConsistencySearchResults)
+{
+    constexpr double tSearchRadius = 1;
+    const auto tNodalCoordinates = mesh::EntityRetrieval{mMesh}.designDomainNodalCoordinates();
+    const auto tRowCenters = mesh::EntityRetrieval{mMesh}.designDomainElementCentroids();
+
+    const auto tSearchResults = detail::distribute_search_vectors_and_stk_search(
+        CenterVector{tRowCenters}, NodalVector{tNodalCoordinates}, tSearchRadius, mSplitComm);
+
+    check_parallel_consistency_of_sum(tSearchResults.size(), TEST_CONTEXT("Stk search result size"));
+}
+
+TEST_F(ParallelConsistencyTest, ParallelConsistencyCreateTpetraCoordinates)
+{
+    const auto tNodalCoordinates = mesh::EntityRetrieval{mMesh}.designDomainNodalCoordinates();
+    const auto tDistributedNodal = detail::create_tpetravector_coordinates(tNodalCoordinates, mSplitComm);
+
+    check_parallel_consistency_of_sum(
+        third_party_integration::tpetra::number_of_local_elements(tDistributedNodal.getMap()),
+        TEST_CONTEXT("Tpetra distributed nodal size"));
+}
+
+TEST_F(ParallelConsistencyTest, ParallelConsistencySTKSearchPointsFromTpetraVector)
+{
+    const auto tNodalCoordinates = mesh::EntityRetrieval{mMesh}.designDomainNodalCoordinates();
+    const auto tDistributedNodal = detail::create_tpetravector_coordinates(tNodalCoordinates, mSplitComm);
+
+    const auto tLocalSearchPointWithIdentifiers = detail::stk_search_points(tDistributedNodal, mSplitComm.rank());
+
+    check_parallel_consistency_of_sum(tLocalSearchPointWithIdentifiers.size(), TEST_CONTEXT("Stk search points size"));
+}
+
+TEST_F(ParallelConsistencyTest, ParallelConsistencySTKSearchSpheresFromTpetraVector)
+{
+    constexpr double tSearchRadius = 1.5;
+    const auto tRowCentersCoordinates = mesh::EntityRetrieval{mMesh}.designDomainElementCentroids();
+    const auto tDistributedRowCenters = detail::create_tpetravector_coordinates(tRowCentersCoordinates, mSplitComm);
+
+    check_parallel_consistency_of_sum(
+        third_party_integration::tpetra::number_of_local_elements(tDistributedRowCenters.getMap()),
+        TEST_CONTEXT("Tpetra distributed row size"));
+    const auto tLocalSearchSpheresWithIdentifiers =
+        detail::stk_search_spheres(tDistributedRowCenters, SearchRadius{tSearchRadius}, mSplitComm.rank());
+
+    check_parallel_consistency_of_sum(tLocalSearchSpheresWithIdentifiers.size(),
+                                      TEST_CONTEXT("Stk search spheres size"));
 }
 
 }  // namespace plato::filter::extension::parallel_unittest

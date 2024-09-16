@@ -71,6 +71,10 @@ namespace detail
 /// @brief Validates that all fixed block names in @a aInput exist in the mesh.
 [[nodiscard]] std::optional<std::string> validate_fixed_block_names_exist(const input_parser::density_topology& aInput);
 
+/// @brief Validates that at least 1 block remains as the design domain
+[[nodiscard]] std::optional<std::string> validate_at_least_one_design_block(
+    const input_parser::density_topology& aInput);
+
 /// @brief Converts the vector of fixed block names in @a aInput to a set.
 ///
 /// A set is used since the list of fixed blocks must be unique. That the raw input is a unique list of names

@@ -1,13 +1,15 @@
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 
-#include <memory>
-#include <numeric>
+#include <iterator>
+#include <stk_search/SearchMethod.hpp>
 
 namespace plato::third_party_integration::stk_search
 {
 namespace
 {
 const auto kDefaultSTKSearch = stk::search::KDTREE;
+constexpr bool kEnforceSearchSymmetry = false;
+constexpr bool kAutoSwapDomainAndRange = false;
 
 }  // namespace
 
@@ -21,19 +23,18 @@ common::Coordinate convert_search_point(const SearchPoint& aSearchPoint)
     return {aSearchPoint.get_x_min(), aSearchPoint.get_y_min(), aSearchPoint.get_z_min()};
 }
 
-SearchResults find_points_in_sphere(const common::Coordinate aCenter,
-                                    const double aSearchRadius,
-                                    const std::vector<SearchPointWithIdentifier>& aLocalSearchPointWithIdentifiers,
-                                    const boost::mpi::communicator& aCommunicator)
+SearchResults perform_stk_search(const std::vector<SearchSphereWithIdentifier>& aLocalSearchSphereWithIdentifier,
+                                 const std::vector<SearchPointWithIdentifier>& aLocalSearchPointWithIdentifiers,
+                                 const boost::mpi::communicator& aCommunicator)
 {
-    const SearchSphere tSearchSphere = create_sphere(aCenter, STKRadius{aSearchRadius});
-    const Identifier tSphereIdentifier{0, aCommunicator.rank()};
-    const std::vector<SearchSphereWithIdentifier> tSearchDomain = {{tSearchSphere, tSphereIdentifier}};
+    if (aLocalSearchSphereWithIdentifier.empty() || aLocalSearchPointWithIdentifiers.empty())
+    {
+        return SearchResults{};
+    }
 
     SearchResults tSearchResults;
-    constexpr bool tEnforceSearchSymmetry = false;
-    stk::search::coarse_search(tSearchDomain, aLocalSearchPointWithIdentifiers, kDefaultSTKSearch, aCommunicator,
-                               tSearchResults, tEnforceSearchSymmetry);
+    stk::search::coarse_search(aLocalSearchSphereWithIdentifier, aLocalSearchPointWithIdentifiers, kDefaultSTKSearch,
+                               aCommunicator, tSearchResults, kEnforceSearchSymmetry, kAutoSwapDomainAndRange);
     return tSearchResults;
 }
 

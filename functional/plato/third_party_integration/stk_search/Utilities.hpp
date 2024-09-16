@@ -28,12 +28,11 @@ using STKRadius = utilities::NamedType<double, struct STKRadiusTag>;
 /// @brief Convert the stk search point @a aSearchPoint into a plato functional coordinate object
 [[nodiscard]] common::Coordinate convert_search_point(const SearchPoint& aSearchPoint);
 
-/// @brief Helper function that calls the STK search procedures on a specialized case of a single sphere with center @a
-/// aCenter and radius @a aSearchRadius, on a specific rank @a aRank using the already populated vector of search points
-/// with identifiers @a aLocalSearchPointsWithIdentifiers
-[[nodiscard]] SearchResults find_points_in_sphere(
-    const common::Coordinate aCenter,
-    const double aSearchRadius,
+/// @brief Helper function that calls the STK search procedures on a vector of spheres with IDs @a
+/// aLocalSearchSphereWithIdentifier using the vector of search points with identifiers @a
+/// aLocalSearchPointsWithIdentifiers
+[[nodiscard]] SearchResults perform_stk_search(
+    const std::vector<SearchSphereWithIdentifier>& aLocalSearchSphereWithIdentifier,
     const std::vector<SearchPointWithIdentifier>& aLocalSearchPointWithIdentifiers,
     const boost::mpi::communicator& aCommunicator);
 

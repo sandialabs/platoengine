@@ -4,9 +4,9 @@
 #include "plato/filter/extension/LinearMask.hpp"
 #include "plato/filter/extension/LinearMaskBuilder.hpp"
 
-namespace plato::filter::extension::parallel_unittest
+namespace plato::filter::extension::test_utilities
 {
-constexpr int kMaximumConnectivity = 3;
+constexpr int kMaximumConnectivity = 4;
 
 /// @brief Creates a LinearMaskBuilder with a small number of nodes for testing.
 ///
@@ -19,6 +19,6 @@ LinearMaskBuilder create_simple_linear_mask_builder(
 /// If @a aCentroids is empty, the LinearMask will use the nodes as the filter range.
 LinearMask create_simple_linear_mask(const std::vector<third_party_integration::common::Coordinate>& aCentroids = {});
 
-}  // namespace plato::filter::extension::parallel_unittest
+}  // namespace plato::filter::extension::test_utilities
 
 #endif

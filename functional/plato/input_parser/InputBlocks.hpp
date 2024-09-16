@@ -123,6 +123,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), kernel_filter,
     (double, filter_radius)
     (plato::input_parser::KernelFilterCenteringTypes, centering_type)
+    (unsigned int, number_of_processors)
 )
 
 /// ParsedInput is the in-memory representation of a parsed input deck.
