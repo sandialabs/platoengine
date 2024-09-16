@@ -52,6 +52,7 @@ class TwoBlockMeshOnDisk : public ::testing::Test
     constexpr static auto mExpectedNumberOfNodesInBlock1 = 93U;
     constexpr static auto mExpectedNumberOfNodesInBlock2 = 90U;
     constexpr static auto mExpectedVolume = 80.0;
+    constexpr static auto mSmallestElementVolume = 0.080348748056025029;
 };
 
 /// @brief A mesh test fixture that provides the path to a 2D, non-uniform hex mesh
@@ -68,6 +69,7 @@ class TwoDNonUniformHexMesh : public ::testing::Test
     constexpr static auto mExpectedNumberOfElements = 29U;
     constexpr static auto mExpectedNumberOfNodes = 41U;
     constexpr static auto mExpectedArea = 12.0;
+    constexpr static auto mExpectedSmallestElementArea = 0.15715566967755179;
 };
 
 /// @brief A mesh test fixture providing a 2D mesh with 3 blocks. The nodes and elements

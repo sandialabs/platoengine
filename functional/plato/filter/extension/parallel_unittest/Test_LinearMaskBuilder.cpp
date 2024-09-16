@@ -4,11 +4,12 @@
 #include <optional>
 
 #include "plato/filter/extension/LinearMaskBuilder.hpp"
-#include "plato/filter/extension/parallel_unittest/LinearMaskTestUtility.hpp"
+#include "plato/filter/extension/test_utilities/LinearMaskTestUtility.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/third_party_integration/tpetra/TestUtilities.hpp"
 
 namespace plato::filter::extension::parallel_unittest
 {
@@ -18,42 +19,6 @@ namespace
 
 constexpr auto kNumRanks = int{4};
 constexpr int kNumSpatialDimensions{3};
-
-[[nodiscard]] Teuchos::RCP<const third_party_integration::tpetra::TpetraMap> create_contiguous_map(
-    const Tpetra::global_size_t aSize, Teuchos::RCP<const Teuchos::Comm<int>> aCommunicator)
-{
-    return Teuchos::rcp(new third_party_integration::tpetra::TpetraMap(
-        aSize, third_party_integration::tpetra::kIndexBase, std::move(aCommunicator)));
-}
-
-[[nodiscard]] third_party_integration::tpetra::TpetraVector create_projection_vector(
-    const size_t aSize, const third_party_integration::tpetra::TpetraGlobalOrdinal aGlobalIndex)
-{
-    const auto tCommunicator = Tpetra::getDefaultComm();
-    const auto tContiguousMap = create_contiguous_map(aSize, tCommunicator);
-    constexpr bool tZeroOut = true;
-    auto tVector = third_party_integration::tpetra::TpetraVector(tContiguousMap, tZeroOut);
-    tVector.replaceGlobalValue(aGlobalIndex, 1);
-    return tVector;
-}
-
-[[nodiscard]] third_party_integration::tpetra::TpetraScalar get_entry(
-    const third_party_integration::tpetra::TpetraCRSMatrix& aMatrix,
-    const third_party_integration::tpetra::TpetraGlobalOrdinal aGlobalIndexI,
-    const third_party_integration::tpetra::TpetraGlobalOrdinal aGlobalIndexJ)
-{
-    const third_party_integration::tpetra::TpetraGlobalOrdinal tNRows = aMatrix.getGlobalNumRows();
-    const third_party_integration::tpetra::TpetraGlobalOrdinal tMColumns = aMatrix.getGlobalNumCols();
-    const auto tCommunicator = Tpetra::getDefaultComm();
-    const auto tContiguousMap = create_contiguous_map(tNRows, tCommunicator);
-    constexpr bool tZeroOut = true;
-    auto tResult = third_party_integration::tpetra::TpetraVector(tContiguousMap, tZeroOut);
-
-    const auto tProjectionI = create_projection_vector(tNRows, aGlobalIndexI);
-    const auto tProjectionJ = create_projection_vector(tMColumns, aGlobalIndexJ);
-    aMatrix.apply(tProjectionJ, tResult);
-    return tProjectionI.dot(tResult);
-}
 
 }  // namespace
 
@@ -98,65 +63,53 @@ TEST(LinearMaskBuilderDetail, LinearRamp)
     }
 }
 
-TEST(LinearMaskBuilderDetail, ReturnNormalizedNonzeroWeights)
-{
-    const auto tCommunicator = Tpetra::getDefaultComm();
-    const Tpetra::global_size_t tMapSize = 8;
-    const int tEstimatedConnectivity = tMapSize / kNumRanks;
-    const auto tContiguousMap = create_contiguous_map(tMapSize, tCommunicator);
-    constexpr bool tZeroOut = true;
-    third_party_integration::tpetra::TpetraVector tVector =
-        third_party_integration::tpetra::TpetraVector(tContiguousMap, tZeroOut);
-    constexpr double tRowSum = tMapSize * 1.0;
-    {
-        const auto [tGlobalNonZeroIndices, tLocalNonZeroWeights] = detail::normalize_nonzero_weights(
-            tVector, detail::RowSum{tRowSum}, detail::EstimatedConnectivity{tEstimatedConnectivity});
-        EXPECT_EQ(tGlobalNonZeroIndices.size(), tLocalNonZeroWeights.size());
-        EXPECT_EQ(tGlobalNonZeroIndices.size(), 0u);
-    }
-    tVector.putScalar(1.0);
-    {
-        const auto [tGlobalNonZeroIndices, tLocalNonZeroWeights] = detail::normalize_nonzero_weights(
-            tVector, detail::RowSum{tRowSum}, detail::EstimatedConnectivity{tEstimatedConnectivity});
-        ASSERT_EQ(tGlobalNonZeroIndices.size(), tMapSize / kNumRanks);
-        EXPECT_DOUBLE_EQ(tLocalNonZeroWeights[0], 1.0 / tRowSum);
-        EXPECT_DOUBLE_EQ(tLocalNonZeroWeights[1], 1.0 / tRowSum);
-    }
-}
-
 TEST(LinearMaskBuilderDetail, MakeSearchPointsWithIdentifiers)
 {
+    namespace tpi = third_party_integration;
     const auto tCommunicator = Tpetra::getDefaultComm();
     const auto tThisRank = tCommunicator->getRank();
 
-    const std::vector<third_party_integration::common::Coordinate> tNodalCoordinates{
+    const std::vector<tpi::common::Coordinate> tNodalCoordinates{
         {1, 1, 1}, {2, 2, 2}, {3, 3, 3}, {4, 4, 4}};  // non-zero to ensure not default ctor
-    const auto tContiguousMap = create_contiguous_map(tNodalCoordinates.size(), tCommunicator);
+    const auto tContiguousMap = tpi::tpetra::create_contiguous_map(tNodalCoordinates.size(), tCommunicator);
 
     constexpr bool tZeroOut = true;
-    auto tMultiVector =
-        third_party_integration::tpetra::TpetraMultiVector(tContiguousMap, kNumSpatialDimensions, tZeroOut);
+    auto tMultiVector = tpi::tpetra::TpetraMultiVector(tContiguousMap, kNumSpatialDimensions, tZeroOut);
 
-    third_party_integration::tpetra::distribute_on_tpetra_multivector(tNodalCoordinates, tMultiVector);
+    tpi::tpetra::distribute_on_tpetra_multivector(tNodalCoordinates, tMultiVector);
 
     /// round robin assignment to ranks 0->3 of tNodalCoordinates above
-    const third_party_integration::common::Coordinate tGoldCoordinate{tThisRank + 1.0, tThisRank + 1.0,
-                                                                      tThisRank + 1.0};
-    const std::vector<third_party_integration::stk_search::SearchPointWithIdentifier>
-        tGoldLocalSearchPointWithIdentifiers{third_party_integration::stk_search::SearchPointWithIdentifier{
-            third_party_integration::stk_search::convert_coordinate(tGoldCoordinate),
-            third_party_integration::stk_search::Identifier{0, tThisRank}}};
+    const tpi::common::Coordinate tGoldCoordinate{tThisRank + 1.0, tThisRank + 1.0, tThisRank + 1.0};
 
-    const auto tSearchPoints = detail::stk_search_points(tMultiVector, tThisRank);
+    {
+        const std::vector<tpi::stk_search::SearchPointWithIdentifier> tGoldLocalSearchPointWithIdentifiers{
+            tpi::stk_search::SearchPointWithIdentifier{tpi::stk_search::convert_coordinate(tGoldCoordinate),
+                                                       tpi::stk_search::Identifier{tThisRank, tThisRank}}};
 
-    ASSERT_EQ(tSearchPoints.size(), 1u);
-    EXPECT_EQ(tGoldLocalSearchPointWithIdentifiers[0].first, tSearchPoints[0].first);
-    EXPECT_EQ(tGoldLocalSearchPointWithIdentifiers[0].second, tSearchPoints[0].second);
+        const auto tSearchPoints = detail::stk_search_points(tMultiVector, tThisRank);
+
+        ASSERT_EQ(tSearchPoints.size(), 1u);
+        EXPECT_EQ(tGoldLocalSearchPointWithIdentifiers[0].first, tSearchPoints[0].first);
+        EXPECT_EQ(tGoldLocalSearchPointWithIdentifiers[0].second, tSearchPoints[0].second);
+    }
+    {
+        constexpr double tRadius = 2;
+        const std::vector<tpi::stk_search::SearchSphereWithIdentifier> tGoldLocalSphereWithIdentifier{
+            tpi::stk_search::SearchSphereWithIdentifier{
+                tpi::stk_search::create_sphere(tGoldCoordinate, tpi::stk_search::STKRadius{tRadius}),
+                tpi::stk_search::Identifier{tThisRank, tThisRank}}};
+        const auto tSpheres = detail::stk_search_spheres(tMultiVector, SearchRadius{tRadius}, tThisRank);
+
+        ASSERT_EQ(tSpheres.size(), 1U);
+        EXPECT_EQ(tGoldLocalSphereWithIdentifier[0].first, tSpheres[0].first);
+        EXPECT_EQ(tGoldLocalSphereWithIdentifier[0].second, tSpheres[0].second);
+    }
 }
 
 TEST(LinearMaskBuilder, GenerateDistanceMapNodal)
 {
-    const LinearMaskBuilder tLinearMaskBuilder = create_simple_linear_mask_builder();
+    namespace tpit = third_party_integration::tpetra;
+    const LinearMaskBuilder tLinearMaskBuilder = test_utilities::create_simple_linear_mask_builder();
 
     const auto tDistanceMap = tLinearMaskBuilder.mask();
 
@@ -165,41 +118,70 @@ TEST(LinearMaskBuilder, GenerateDistanceMapNodal)
        0            1/4            1/2        1/4
        0            0               1/3         2/3*/
 
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 0, 0), 2.0 / 3.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 0, 1), 1.0 / 3.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 0, 2), 0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 0, 3), 0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 0, 0), 2.0 / 3.0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 0, 1), 1.0 / 3.0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 0, 2), 0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 0, 3), 0);
 
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 1, 0), 1.0 / 4.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 1, 1), 1.0 / 2.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 1, 2), 1.0 / 4.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 1, 3), 0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 1, 0), 1.0 / 4.0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 1, 1), 1.0 / 2.0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 1, 2), 1.0 / 4.0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 1, 3), 0);
 
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 2, 0), 0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 2, 1), 1.0 / 4.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 2, 2), 1.0 / 2.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 2, 3), 1.0 / 4.0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 2, 0), 0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 2, 1), 1.0 / 4.0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 2, 2), 1.0 / 2.0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 2, 3), 1.0 / 4.0);
 
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 3, 0), 0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 3, 1), 0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 3, 2), 1.0 / 3.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 3, 3), 2.0 / 3.0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 3, 0), 0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 3, 1), 0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 3, 2), 1.0 / 3.0);
+    EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 3, 3), 2.0 / 3.0);
 }
 
-TEST(LinearMaskBuilder, GenerateDistanceMapGivenCentroid)
+TEST(LinearMaskBuilderDetail, DistributeSearchVectorsAndStkSearch)
 {
-    const std::vector<third_party_integration::common::Coordinate> tRelativeToCoordinate{{1, 0, 0}};
-    const LinearMaskBuilder tLinearMaskBuilder = create_simple_linear_mask_builder(tRelativeToCoordinate);
+    namespace tpi = third_party_integration;
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
 
-    const auto tDistanceMap = tLinearMaskBuilder.mask();
-    /*
-           1/4         1/2            1/4        0
-    */
+    const std::vector<tpi::common::Coordinate> tCoordinates{{1, 0, 0}, {2, 0, 0}, {3, 0, 0},
+                                                            {4, 0, 0}, {5, 0, 0}, {6, 0, 0}};
 
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 0, 0), 1.0 / 4.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 0, 1), 1.0 / 2.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 0, 2), 1.0 / 4.0);
-    EXPECT_DOUBLE_EQ(get_entry(tDistanceMap, 0, 3), 0);
+    const double tSearchRadius = 2.1;
+
+    const auto tSearchResults = detail::distribute_search_vectors_and_stk_search(
+        CenterVector{tCoordinates}, NodalVector{tCoordinates}, tSearchRadius, tCommunicator);
+
+    // Rank 0 gets Search Coordinate index 0, 1.
+    // Index 0 has itself within 2, and index 1,2
+    // Index 1 has itself within 2, and index 0, 2, 3
+    if (tRank == 0)
+    {
+        EXPECT_EQ(tSearchResults.size(), 7U);
+    }
+    // Rank 1 gets Coordinate index 2, 3 which both have 5 inclusive neighbors
+    if (tRank == 1)
+    {
+        EXPECT_EQ(tSearchResults.size(), 10U);
+    }
+    // Rank 2 gets Coordinate index 4 which has 4 inclusive neighbors
+    if (tRank == 2)
+    {
+        ASSERT_EQ(tSearchResults.size(), 4U);
+        EXPECT_EQ(tSearchResults[0].second.id(), 2U);
+        EXPECT_EQ(tSearchResults[1].second.id(), 3U);
+        EXPECT_EQ(tSearchResults[2].second.id(), 4U);
+        EXPECT_EQ(tSearchResults[3].second.id(), 5U);
+    }
+    // Rank 3 gets Coordinate index 5 which has 3 inclusive neighbors
+    if (tRank == 3)
+    {
+        EXPECT_EQ(tSearchResults.size(), 3U);
+    }
+
+    const auto tTotalSearchResults = detail::reduce_search_result_size(tSearchResults, tCommunicator);
+    EXPECT_EQ(tTotalSearchResults, 24U);
 }
 
 }  // namespace plato::filter::extension::parallel_unittest

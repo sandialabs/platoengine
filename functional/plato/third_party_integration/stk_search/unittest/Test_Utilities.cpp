@@ -35,8 +35,11 @@ TEST(STKSearchUtilities, IsInSearchResults)
 
     constexpr common::Coordinate tCenter{0, 0, 0};
     constexpr double tSearchRadius{2};
+    const auto tSphere = create_sphere(tCenter, STKRadius{tSearchRadius});
+    const auto tIdentifier = Identifier{0, 0};
+    const auto tSphereWithID = SearchSphereWithIdentifier{tSphere, tIdentifier};
     const auto tSearchResults =
-        find_points_in_sphere(tCenter, tSearchRadius, tNodalCoordsWithIdentifiers, boost::mpi::communicator{});
+        perform_stk_search({tSphereWithID}, tNodalCoordsWithIdentifiers, boost::mpi::communicator{});
 
     EXPECT_TRUE(is_in_search_results(tNodalCoordsWithIdentifiers[0].second, tSearchResults));
     EXPECT_TRUE(is_in_search_results(tNodalCoordsWithIdentifiers[1].second, tSearchResults));
@@ -45,23 +48,54 @@ TEST(STKSearchUtilities, IsInSearchResults)
     EXPECT_FALSE(is_in_search_results(tNodalCoordsWithIdentifiers[4].second, tSearchResults));
 }
 
+namespace
+{
+auto create_example_search_points_with_ids(const int aRank) -> std::vector<SearchPointWithIdentifier>
+{
+    return std::vector<SearchPointWithIdentifier>{SearchPointWithIdentifier{{1, 0, 0}, Identifier{0, aRank}},
+                                                  SearchPointWithIdentifier{{2, 0, 0}, Identifier{1, aRank}},
+                                                  SearchPointWithIdentifier{{2, 2, 2}, Identifier{2, aRank}},
+                                                  SearchPointWithIdentifier{{0, 0, 0}, Identifier{3, aRank}}};
+}
+}  // namespace
+
 TEST(STKSearchUtilities, FindPointsInSphere)
 {
     const boost::mpi::communicator tCommunicator{};
     constexpr common::Coordinate tCenter{1, 0, 0};
     constexpr double tSearchRadius{2.1};
     const auto tThisRank = tCommunicator.rank();
+    const auto tSphere = create_sphere(tCenter, STKRadius{tSearchRadius});
+    const auto tIdentifier = Identifier{0, tThisRank};
+    const auto tSphereWithID = SearchSphereWithIdentifier{tSphere, tIdentifier};
 
-    const std::vector<SearchPointWithIdentifier> tLocalSearchPointWithIdentifiers{
-        SearchPointWithIdentifier{{1, 0, 0}, Identifier{0, tThisRank}},
-        SearchPointWithIdentifier{{2, 0, 0}, Identifier{1, tThisRank}},
-        SearchPointWithIdentifier{{2, 2, 2}, Identifier{2, tThisRank}},
-        SearchPointWithIdentifier{{0, 0, 0}, Identifier{3, tThisRank}}};
-
+    const auto tLocalSearchPointWithIdentifiers = create_example_search_points_with_ids(tThisRank);
     const auto tSearchResults =
-        find_points_in_sphere(tCenter, tSearchRadius, tLocalSearchPointWithIdentifiers, tCommunicator);
+        perform_stk_search({tSphereWithID}, tLocalSearchPointWithIdentifiers, boost::mpi::communicator{});
 
     EXPECT_EQ(tSearchResults.size(), 3u);
+}
+
+TEST(STKSearchUtilities, FindPointsInMultipleSpheres)
+{
+    const boost::mpi::communicator tCommunicator{};
+    constexpr common::Coordinate tCenterOne{1, 0, 0};
+    constexpr common::Coordinate tCenterTwo{2, 2, 2};
+    constexpr double tSearchRadius{2.1};
+    const auto tThisRank = tCommunicator.rank();
+    const auto tSphereOne = create_sphere(tCenterOne, STKRadius{tSearchRadius});
+    const auto tIdentifierOne = Identifier{0, tThisRank};
+    const auto tSphereWithIDOne = SearchSphereWithIdentifier{tSphereOne, tIdentifierOne};
+    const auto tSphereTwo = create_sphere(tCenterTwo, STKRadius{tSearchRadius});
+    const auto tIdentifierTwo = Identifier{1, tThisRank};
+    const auto tSphereWithIDTwo = SearchSphereWithIdentifier{tSphereTwo, tIdentifierTwo};
+
+    const auto tLocalSearchPointWithIdentifiers = create_example_search_points_with_ids(tThisRank);
+
+    const auto tSearchResults =
+        perform_stk_search({tSphereWithIDOne, tSphereWithIDTwo}, tLocalSearchPointWithIdentifiers, tCommunicator);
+
+    EXPECT_EQ(tSearchResults.size(), 4u);
 }
 
 }  // namespace plato::third_party_integration::stk_search::unittest

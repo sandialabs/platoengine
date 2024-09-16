@@ -2,6 +2,7 @@
 #define PLATO_FILTER_EXTENSION_LINEARMASKBUILDER
 
 #include <boost/mpi/communicator.hpp>
+#include <memory>
 
 #include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
@@ -16,8 +17,23 @@ class Mesh;
 namespace plato::filter::extension
 {
 
+using RowSphereGlobalID =
+    utilities::NamedType<third_party_integration::tpetra::TpetraGlobalOrdinal, struct RowSphereGlobalIDTag>;
+using ColumnNodeGlobalID =
+    utilities::NamedType<third_party_integration::tpetra::TpetraGlobalOrdinal, struct ColumnNodeGlobalIDTag>;
+
+struct RowDetail
+{
+    std::vector<third_party_integration::tpetra::TpetraGlobalOrdinal> mNonzeroColumnGlobalIDs;
+    std::vector<double> mColumnEntryWeights;
+    double mRowSum = 0;
+};
+
+using RowMap = std::unordered_map<third_party_integration::tpetra::TpetraGlobalOrdinal, RowDetail>;
+
 using SearchRadius = utilities::NamedType<double, struct SearchRadiusTag>;
 using Distance = utilities::NamedType<double, struct DistanceTag>;
+using Weight = utilities::NamedType<double, struct WeightTag>;
 
 using NodalVector =
     utilities::NamedType<std::vector<third_party_integration::common::Coordinate>, struct NodalVectorTag>;
@@ -60,14 +76,20 @@ class LinearMaskBuilder
     [[nodiscard]] auto mask() const -> const third_party_integration::tpetra::TpetraCRSMatrix&;
 
    private:
-    /// @brief Perform a parallel computation of the row calculation assuming some center @a aCenter.
-    ///  Return a pair of vectors one with the global ordinals and the other the corresponding normalized weights.
-    ///  An individual row should sum to 1.
-    [[nodiscard]] auto generateRow(third_party_integration::common::Coordinate aCenter)
-        -> std::pair<TpetraGlobalOrdinalVector, TpetraScalarVector>;
-
     /// @brief Perform the calculation of the full NxM distance map.
     void generateDistanceMap();
+
+    /// @brief Given a sphere ID @a aSphereID and a node entry @a aNodeID call the detail functions to determine the
+    /// weight with the filter parameters
+    [[nodiscard]] double unnormalized_weight(const RowSphereGlobalID aSphereID, const ColumnNodeGlobalID aNodeID);
+
+    /// @brief Take the search results from STK @a aSearchResults and convert them to a RowMap, a map that takes Tpetra
+    /// global ID and maps it to the details regarding that row (nonzero entries, their values, and their total)
+    [[nodiscard]] RowMap create_normalized_row_map(
+        const third_party_integration::stk_search::SearchResults& aSearchResults);
+
+    /// @brief Take the RowMap data structure @a aRowMap and convert it to a CRS matrix
+    void create_linear_mask(const RowMap& aRowMap);
 
    private:
     boost::mpi::communicator mCommunicator;
@@ -75,16 +97,15 @@ class LinearMaskBuilder
     double mSearchRadius = 1;
     unsigned int mMaximumConnectivityEstimate = 1;
 
-    std::vector<third_party_integration::common::Coordinate> mRowCenterCoordinates;
-    third_party_integration::tpetra::TpetraMultiVector mNodalCoordinates;
+    std::vector<third_party_integration::common::Coordinate> mGlobalRowCenterCoordinates;
+    std::vector<third_party_integration::common::Coordinate> mGlobalNodalCoordinates;
 
-    Teuchos::RCP<third_party_integration::tpetra::TpetraCRSMatrix> mLinearMask;
-
-    std::vector<third_party_integration::stk_search::SearchPointWithIdentifier> mLocalSearchPointWithIdentifiers;
+    std::unique_ptr<third_party_integration::tpetra::TpetraCRSMatrix> mLinearMask;
 };
 
 namespace detail
 {
+
 /// @brief an empirically determined value for a uniform hex mesh and filter radii that are similar in size to the
 /// element size.
 // clang-format off
@@ -110,17 +131,50 @@ using EstimatedConnectivity = utilities::NamedType<unsigned int, struct Estimate
 /// @a aFilterRadius
 [[nodiscard]] unsigned int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const SearchRadius aFilterRadius);
 
-/// @brief Helper function that takes a tpetra vector @a RowVector and its sum of values @a aRowSum, and normalizes and
-/// populates the non-zero weights into a pair of vectors storing the global indices and weights.
-[[nodiscard]] auto normalize_nonzero_weights(const third_party_integration::tpetra::TpetraVector& aRowVector,
-                                             const RowSum aRowSum,
-                                             const EstimatedConnectivity aEstimatedConnectivity)
-    -> std::pair<TpetraGlobalOrdinalVector, TpetraScalarVector>;
+/// @brief create nodal coordinate tpetra container of  @a aCoordinates
+[[nodiscard]] auto create_tpetravector_coordinates(
+    const std::vector<third_party_integration::common::Coordinate>& aCoordinates,
+    const boost::mpi::communicator& aCommunicator) -> third_party_integration::tpetra::TpetraMultiVector;
+
+/// @brief Take a center vector @a aCenterVector and a nodal vector @a aNodalVector and distribute them using tpetra
+/// objects over the communicator provided @a aCommunicator. Then conduct a parallel STK search using a search radius @a
+/// aSearchRadius. Return the stk search results.
+[[nodiscard]] auto distribute_search_vectors_and_stk_search(const CenterVector& aCenterVector,
+                                                            const NodalVector& aNodalVector,
+                                                            const double aSearchRadius,
+                                                            const boost::mpi::communicator& aCommunicator)
+    -> third_party_integration::stk_search::SearchResults;
 
 /// @brief Helper function to take a multivector @a aNodalCoordinates and a given rank @a aRank will generate the STK
 /// formatted Search point equal to the node and assigned a local id and rank.
-[[nodiscard]] std::vector<third_party_integration::stk_search::SearchPointWithIdentifier> stk_search_points(
-    const third_party_integration::tpetra::TpetraMultiVector& aNodalCoordinates, const int aRank);
+[[nodiscard]] auto stk_search_points(const third_party_integration::tpetra::TpetraMultiVector& aNodalCoordinates,
+                                     const int aRank)
+    -> std::vector<third_party_integration::stk_search::SearchPointWithIdentifier>;
+
+/// @brief Take a tpetra center vector @a aCenteringCoordinates and create stk_search objects that are search spheres
+/// with radii @a aRadius and assigned the proper identifier based on the rank @a aRank.
+[[nodiscard]] auto stk_search_spheres(const third_party_integration::tpetra::TpetraMultiVector& aCenteringCoordinates,
+                                      const SearchRadius aRadius,
+                                      const int aRank)
+    -> std::vector<third_party_integration::stk_search::SearchSphereWithIdentifier>;
+
+/// @brief Take a search result pair given by a row sphere @a aSphereID and a column node @a aNodeID and determine their
+/// weighting function. Enter this weight into the row map @a RowMap.
+void add_weight_from_search_result_to_map(RowMap& aRowMap,
+                                          const RowSphereGlobalID& aSphereID,
+                                          const ColumnNodeGlobalID& aNodeID,
+                                          const Weight aWeight,
+                                          const unsigned int aMaximumSize);
+
+/// @brief Iterate through the row map @a aRowMap and normalize the detail struct so that the entires sum to 1.
+void normalize_rows_in_map(RowMap& aRowMap);
+
+/// @brief Tally up the size of search results @a aSearchResults across the comms in @a aCommunicator
+[[nodiscard]] unsigned int reduce_search_result_size(
+    const third_party_integration::stk_search::SearchResults& aSearchResults,
+    const boost::mpi::communicator& aCommunicator);
+
+void normalize_vector(std::vector<double>& aVector, const double aNormalization);
 
 }  // namespace detail
 

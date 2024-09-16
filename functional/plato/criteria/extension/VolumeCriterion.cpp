@@ -13,6 +13,7 @@ namespace plato::criteria::extension
 
 namespace
 {
+
 [[maybe_unused]] static auto kVolumeConstraintRegistration =
     library::CriterionRegistration{library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
                                    [](const library::CriterionInput&) { return make_volume_constraint_function(); }};
@@ -37,6 +38,7 @@ double VolumeCriterion::f(const mesh::MeshDesignVariables& aMeshDesignVariables)
     std::transform(tScaledVolumes.cbegin(), tScaledVolumes.cend(), tMeshView.begin(), tScaledVolumes.begin(),
                    [](const double aVolume, const mesh::ScalarFieldValue aDensity)
                    { return aDensity.mValue * aVolume; });
+
     return mScaleFactor * (utilities::pair_wise_accumulate(tScaledVolumes) + fixed_domain_volume(tMesh));
 }
 
@@ -44,8 +46,7 @@ linear_algebra::DynamicVector<double> VolumeCriterion::df(const mesh::MeshDesign
 {
     const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aMeshDesignVariables}};
     auto tJacobian = linear_algebra::DynamicVector<double>{tMesh.designDomainElementVolumes()};
-    tJacobian = mScaleFactor * std::move(tJacobian);
-    return tJacobian;
+    return mScaleFactor * std::move(tJacobian);
 }
 
 auto make_volume_constraint_function()
