@@ -2,8 +2,8 @@
 
 #include <variant>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
-#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -17,7 +17,7 @@ namespace
 [[nodiscard]] auto make_test_geometry_function() -> FactoryTypes::Compute
 {
     return core::make_function(
-        [](const linear_algebra::DynamicVector<double>&) { return design_variables::MeshDesignVariables{}; },
+        [](const linear_algebra::DynamicVector<double>&) { return analysis::AnalysisDomainMesh{}; },
         [](const linear_algebra::DynamicVector<double>&) { return linear_algebra::JacobianMultiplier{}; });
 }
 

@@ -1,9 +1,9 @@
 #ifndef PLATO_GEOMETRY_LIBRARY_GEOMETRYFACTORY
 #define PLATO_GEOMETRY_LIBRARY_GEOMETRYFACTORY
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/core/ValidatedInputTypeWrapper.hpp"
-#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
@@ -11,7 +11,7 @@
 namespace plato::geometry::library
 {
 using DesignParameters = linear_algebra::DynamicVector<double>;
-using GeometryFunction = core::Function<design_variables::MeshDesignVariables,
+using GeometryFunction = core::Function<analysis::AnalysisDomainMesh,
                                         linear_algebra::JacobianMultiplier,
                                         const linear_algebra::DynamicVector<double>&>;
 

@@ -8,9 +8,9 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
-struct MeshDesignVariables;
+struct AnalysisDomainMesh;
 }
 
 namespace plato::criteria::library
@@ -20,7 +20,7 @@ using ValidatedConstraints =
 
 /// @brief Holds members for defining a Constraint
 /// @tparam FunctionArg The argument of the function used to define the constraint.
-///   Typically, this is either MeshDesignVariables or a vector type such as DynamicVector.
+///   Typically, this is either AnalysisDomainMesh or a vector type such as DynamicVector.
 template <typename FunctionArg>
 struct Constraint
 {
@@ -34,7 +34,7 @@ struct Constraint
 
 /// @brief Factory to create Constraint objects from input data.
 /// @post The return vector will have the same size as @a aInput.
-[[nodiscard]] std::vector<Constraint<const design_variables::MeshDesignVariables&>> make_constraints(
+[[nodiscard]] std::vector<Constraint<const analysis::AnalysisDomainMesh&>> make_constraints(
     const ValidatedConstraints& aInput);
 
 /// @brief Helper for providing ROL a dual vector for constraints.
@@ -43,7 +43,7 @@ struct Constraint
 
 namespace detail
 {
-[[nodiscard]] Constraint<const design_variables::MeshDesignVariables&> make_constraint(
+[[nodiscard]] Constraint<const analysis::AnalysisDomainMesh&> make_constraint(
     const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput);
 
 }  // namespace detail

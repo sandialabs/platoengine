@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -25,11 +25,11 @@ TEST(HashGeneration, HashMesh)
         stk_io::write_mesh(fileName, tCommandGenerator);
     }
 
-    const design_variables::MeshDesignVariables tMeshDesignVariables{fileName, {}};
-    const auto tInitialHash = plato::filter::library::hash_mesh_coordinates(tMeshDesignVariables);
+    const analysis::AnalysisDomainMesh tAnalysisDomainMesh{fileName, {}};
+    const auto tInitialHash = plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh);
 
     // reload mesh and rehash
-    EXPECT_EQ(tInitialHash, plato::filter::library::hash_mesh_coordinates(tMeshDesignVariables));
+    EXPECT_EQ(tInitialHash, plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh));
 
     // change mesh
     {
@@ -37,7 +37,7 @@ TEST(HashGeneration, HashMesh)
             {3, 3, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::Tet};
         stk_io::write_mesh(fileName, tCommandGenerator);
     }
-    EXPECT_NE(tInitialHash, plato::filter::library::hash_mesh_coordinates(tMeshDesignVariables));
+    EXPECT_NE(tInitialHash, plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh));
 
     test_utilities::test_for_existence_and_remove({fileName}, TEST_CONTEXT("Removing temporary files."));
 }

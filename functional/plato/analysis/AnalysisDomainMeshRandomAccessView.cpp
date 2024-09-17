@@ -1,14 +1,14 @@
-#include "plato/design_variables/MeshDesignVariablesRandomAccessView.hpp"
+#include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 
 #include <numeric>
 
-#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
 namespace
 {
-std::optional<ScalarFieldValue> element_with_global_index(const MeshDesignVariables::ScalarFieldVector& aScalarField,
+std::optional<ScalarFieldValue> element_with_global_index(const AnalysisDomainMesh::ScalarFieldVector& aScalarField,
                                                           const ScalarFieldValue::IndexType aIndex)
 {
     const auto tEntryToFind = ScalarFieldValue{aIndex, 0, 0.0};
@@ -23,15 +23,15 @@ std::optional<ScalarFieldValue> element_with_global_index(const MeshDesignVariab
 }
 }  // namespace
 
-auto MeshDesignVariablesRandomAccessView::size() const -> std::size_t
+auto AnalysisDomainMeshRandomAccessView::size() const -> std::size_t
 {
-    return MeshDesignVariablesSequentialView{mMeshDesignVariables.get()}.size();
+    return AnalysisDomainMeshSequentialView{mAnalysisDomainMesh.get()}.size();
 }
 
-auto MeshDesignVariablesRandomAccessView::operator[](const ScalarFieldValue::IndexType aIndex) const
+auto AnalysisDomainMeshRandomAccessView::operator[](const ScalarFieldValue::IndexType aIndex) const
     -> std::optional<ScalarFieldValue>
 {
-    for (const auto& tBlockScalarField : mMeshDesignVariables.get().mBlockScalarField)
+    for (const auto& tBlockScalarField : mAnalysisDomainMesh.get().mBlockScalarField)
     {
         if (const auto tResult = element_with_global_index(tBlockScalarField.second, aIndex))
         {
@@ -41,4 +41,4 @@ auto MeshDesignVariablesRandomAccessView::operator[](const ScalarFieldValue::Ind
     return std::nullopt;
 }
 
-}  // namespace plato::design_variables
+}  // namespace plato::analysis

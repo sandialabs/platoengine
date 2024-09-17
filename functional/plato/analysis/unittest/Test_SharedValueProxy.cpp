@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "plato/design_variables/MeshDesignVariables.hpp"
-#include "plato/design_variables/SharedValueProxy.hpp"
-#include "plato/design_variables/unittest/Utilities.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/SharedValueProxy.hpp"
+#include "plato/analysis/unittest/Utilities.hpp"
 
-namespace plato::design_variables::unittest
+namespace plato::analysis::unittest
 {
 namespace
 {
@@ -51,4 +51,4 @@ TEST(SharedDensityProxy, CastToDensity)
 
     EXPECT_EQ(static_cast<ScalarFieldValue>(tProxy), tDensity1);
 }
-}  // namespace plato::design_variables::unittest
+}  // namespace plato::analysis::unittest

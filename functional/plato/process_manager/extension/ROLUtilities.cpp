@@ -2,8 +2,8 @@
 
 #include <ROL_Bounds.hpp>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Compose.hpp"
-#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
@@ -35,8 +35,7 @@ std::vector<std::unique_ptr<plato::third_party_integration::rol::ROLConstraintFu
     std::vector<std::unique_ptr<plato::third_party_integration::rol::ROLConstraintFunction>> tROLConstraints;
     std::transform(
         aProblem.mConstraints.cbegin(), aProblem.mConstraints.cend(), std::back_inserter(tROLConstraints),
-        [&aProblem](
-            const plato::criteria::library::Constraint<const design_variables::MeshDesignVariables&>& aConstraintData)
+        [&aProblem](const plato::criteria::library::Constraint<const analysis::AnalysisDomainMesh&>& aConstraintData)
         {
             plato::criteria::library::Constraint<const linear_algebra::DynamicVector<double>&> tConstraint{
                 aConstraintData.mName, compose(aConstraintData.mConstraintFunction, aProblem.mGeometry.mCompute),

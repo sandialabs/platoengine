@@ -7,9 +7,9 @@
 
 #include "plato/linear_algebra/DynamicVector.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
-struct MeshDesignVariables;
+struct AnalysisDomainMesh;
 }
 
 namespace plato::filter::library
@@ -26,7 +26,7 @@ struct FilterParameters
 /// @brief Base class for density field topology filters.
 ///
 /// Derived types must implement filter, which applies the specific
-/// filter to the density field in a MeshDesignVariables, and jacobianTimesVector,
+/// filter to the density field in a AnalysisDomainMesh, and jacobianTimesVector,
 /// which implements the left multiplication of the Jacobian of the filter
 /// with a row vector, i.e. \f$v^T J\f$.
 class FilterInterface
@@ -35,14 +35,14 @@ class FilterInterface
     FilterInterface() = default;
     virtual ~FilterInterface() = default;
 
-    /// @brief Appies the filter to the density field held in @a aMeshDesignVariables
-    [[nodiscard]] virtual design_variables::MeshDesignVariables filter(
-        const design_variables::MeshDesignVariables& aMeshDesignVariables) const = 0;
+    /// @brief Appies the filter to the density field held in @a aAnalysisDomainMesh
+    [[nodiscard]] virtual analysis::AnalysisDomainMesh filter(
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const = 0;
 
     /// @brief Implements multiplication of row vector @a aV and the Jacobian of the
-    ///  filter computed at the argument @a aMeshDesignVariables.
+    ///  filter computed at the argument @a aAnalysisDomainMesh.
     [[nodiscard]] virtual linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const design_variables::MeshDesignVariables& aMeshDesignVariables,
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
         const linear_algebra::DynamicVector<double>& aV) const = 0;
 
     FilterInterface(const FilterInterface&) = delete;

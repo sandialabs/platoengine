@@ -1,15 +1,15 @@
-#ifndef PLATO_DESIGN_VARIABLES_UNITTEST_UTILITIES
-#define PLATO_DESIGN_VARIABLES_UNITTEST_UTILITIES
+#ifndef PLATO_ANALYSIS_UNITTEST_UTILITIES
+#define PLATO_ANALYSIS_UNITTEST_UTILITIES
 
-#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
 [[nodiscard]] inline bool operator==(const ScalarFieldValue& aLHS, const ScalarFieldValue& aRHS)
 {
     return aLHS.mValue == aRHS.mValue && aLHS.mGlobalMeshEntityID == aRHS.mGlobalMeshEntityID &&
            aLHS.mDesignVariableVectorIndex == aRHS.mDesignVariableVectorIndex;
 }
-}  // namespace plato::design_variables
+}  // namespace plato::analysis
 
 #endif

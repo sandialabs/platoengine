@@ -1,19 +1,19 @@
-#ifndef PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLESSEQUENTIALVIEWITERATOR
-#define PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLESSEQUENTIALVIEWITERATOR
+#ifndef PLATO_ANALYSIS_MESHDESIGNVARIABLESSEQUENTIALVIEWITERATOR
+#define PLATO_ANALYSIS_MESHDESIGNVARIABLESSEQUENTIALVIEWITERATOR
 
 #include <optional>
 #include <type_traits>
 #include <vector>
 
-#include "plato/design_variables/MeshDesignVariables.hpp"
-#include "plato/design_variables/SharedValueProxy.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/SharedValueProxy.hpp"
 #include "plato/utilities/Zip.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
-/// @brief An iterator type for using MeshDesignVariablesSequentialView in std algorithms.
+/// @brief An iterator type for using AnalysisDomainMeshSequentialView in std algorithms.
 template <typename InnerIteratorType, typename IteratorCategory>
-struct MeshDesignVariablesSequentialViewIterator
+struct AnalysisDomainMeshSequentialViewIterator
 {
     using InnerIterator = InnerIteratorType;
 
@@ -23,14 +23,14 @@ struct MeshDesignVariablesSequentialViewIterator
     using pointer = typename std::iterator_traits<InnerIteratorType>::pointer;
     using reference = SharedValueProxy<ScalarFieldValue, InnerIteratorType>;
 
-    MeshDesignVariablesSequentialViewIterator& operator++();
+    AnalysisDomainMeshSequentialViewIterator& operator++();
     [[nodiscard]] const reference operator*() const;
 
     template <typename Iterator = InnerIteratorType>
     [[nodiscard]] auto operator*() -> std::enable_if_t<!kIsConstIterator<Iterator>, reference>;
 
-    [[nodiscard]] bool operator==(const MeshDesignVariablesSequentialViewIterator& aRHSIterator) const;
-    [[nodiscard]] bool operator!=(const MeshDesignVariablesSequentialViewIterator& aRHSIterator) const;
+    [[nodiscard]] bool operator==(const AnalysisDomainMeshSequentialViewIterator& aRHSIterator) const;
+    [[nodiscard]] bool operator!=(const AnalysisDomainMeshSequentialViewIterator& aRHSIterator) const;
 
     std::vector<InnerIteratorType> mCurrentIterators;
     std::vector<InnerIteratorType> mEndIterators;
@@ -38,23 +38,23 @@ struct MeshDesignVariablesSequentialViewIterator
 
 namespace detail
 {
-template <typename MeshDesignVariablesType>
+template <typename AnalysisDomainMeshType>
 struct IteratorType
 {
 };
 
 template <>
-struct IteratorType<MeshDesignVariables>
+struct IteratorType<AnalysisDomainMesh>
 {
-    using type = MeshDesignVariablesSequentialViewIterator<MeshDesignVariables::ScalarFieldVector::iterator,
-                                                           std::forward_iterator_tag>;
+    using type = AnalysisDomainMeshSequentialViewIterator<AnalysisDomainMesh::ScalarFieldVector::iterator,
+                                                          std::forward_iterator_tag>;
 };
 
 template <>
-struct IteratorType<const MeshDesignVariables>
+struct IteratorType<const AnalysisDomainMesh>
 {
-    using type = MeshDesignVariablesSequentialViewIterator<MeshDesignVariables::ScalarFieldVector::const_iterator,
-                                                           std::input_iterator_tag>;
+    using type = AnalysisDomainMeshSequentialViewIterator<AnalysisDomainMesh::ScalarFieldVector::const_iterator,
+                                                          std::input_iterator_tag>;
 };
 
 /// @brief Returns an iterator to the element with the smallest ID.
@@ -111,12 +111,12 @@ auto dereferenced_proxy(const std::vector<InnerIteratorType>& aCurrentIterators,
 
 template <typename InnerIteratorType, typename IteratorCategory>
 template <typename Iterator>
-auto MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator*()
+auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator*()
     -> std::enable_if_t<!kIsConstIterator<Iterator>, reference>
 {
     return detail::dereferenced_proxy(mCurrentIterators, mEndIterators);
 }
 
-}  // namespace plato::design_variables
+}  // namespace plato::analysis
 
 #endif

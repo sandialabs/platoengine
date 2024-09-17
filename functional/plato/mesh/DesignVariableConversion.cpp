@@ -4,7 +4,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
@@ -14,50 +14,47 @@ namespace
 {
 template <typename F>
 auto initialize_mesh_design_variable_data_structures(const Mesh& aMesh, const F& aIDFunction)
-    -> design_variables::MeshDesignVariables
+    -> analysis::AnalysisDomainMesh
 {
-    auto tMeshDesignVariables = design_variables::MeshDesignVariables{aMesh.filePath(), {}};
+    auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{aMesh.filePath(), {}};
     for (const auto tDesignBlockOrdinal : aMesh.designBlockOrdinals())
     {
         const auto tIDs = aIDFunction(aMesh, tDesignBlockOrdinal);
         const auto tField = std::vector<double>(tIDs.size());
         const auto tBlockID = MeshBlocks{aMesh}.blockID(tDesignBlockOrdinal);
         assert(tBlockID.has_value());
-        tMeshDesignVariables.mBlockScalarField.emplace(
-            tBlockID.value(), design_variables::combine_scalar_field_values_and_ids(tField, tIDs));
+        tAnalysisDomainMesh.mBlockScalarField.emplace(tBlockID.value(),
+                                                      analysis::combine_scalar_field_values_and_ids(tField, tIDs));
     }
-    return tMeshDesignVariables;
+    return tAnalysisDomainMesh;
 }
 
 template <typename F>
-auto entity_field_to_mesh_design_variables(const std::vector<double>& aScalarField,
-                                           const Mesh& aMesh,
-                                           const F& aIDFunction) -> design_variables::MeshDesignVariables
+auto entity_field_to_mesh_analysis(const std::vector<double>& aScalarField, const Mesh& aMesh, const F& aIDFunction)
+    -> analysis::AnalysisDomainMesh
 {
-    auto tMeshDesignVariables = initialize_mesh_design_variable_data_structures(aMesh, aIDFunction);
+    auto tAnalysisDomainMesh = initialize_mesh_design_variable_data_structures(aMesh, aIDFunction);
 
-    auto tMeshView = design_variables::MeshDesignVariablesMutableSequentialView{tMeshDesignVariables};
+    auto tMeshView = analysis::AnalysisDomainMeshMutableSequentialView{tAnalysisDomainMesh};
     assert(aScalarField.size() == tMeshView.size());
     std::transform(
         aScalarField.cbegin(), aScalarField.cend(), tMeshView.begin(), tMeshView.begin(),
-        [tVectorIndex = design_variables::ScalarFieldValue::IndexType{0}](const double aField,
-                                                                          const auto& aFieldID) mutable
+        [tVectorIndex = analysis::ScalarFieldValue::IndexType{0}](const double aField, const auto& aFieldID) mutable
         {
-            const auto& tFieldIndices = static_cast<design_variables::ScalarFieldValue>(aFieldID);
-            return design_variables::ScalarFieldValue{tFieldIndices.mGlobalMeshEntityID, tVectorIndex++, aField};
+            const auto& tFieldIndices = static_cast<analysis::ScalarFieldValue>(aFieldID);
+            return analysis::ScalarFieldValue{tFieldIndices.mGlobalMeshEntityID, tVectorIndex++, aField};
         });
 
-    return tMeshDesignVariables;
+    return tAnalysisDomainMesh;
 }
 
-std::vector<double> mesh_design_variables_view_to_vector(
-    const design_variables::MeshDesignVariables& tMeshDesignVariables)
+std::vector<double> mesh_analysis_view_to_vector(const analysis::AnalysisDomainMesh& tAnalysisDomainMesh)
 {
-    const auto aMeshDesignVariablesView = design_variables::MeshDesignVariablesSequentialView{tMeshDesignVariables};
-    auto tNodalField = std::vector<double>(aMeshDesignVariablesView.size());
-    for (const auto& tFieldProxy : aMeshDesignVariablesView)
+    const auto aAnalysisDomainMeshView = analysis::AnalysisDomainMeshSequentialView{tAnalysisDomainMesh};
+    auto tNodalField = std::vector<double>(aAnalysisDomainMeshView.size());
+    for (const auto& tFieldProxy : aAnalysisDomainMeshView)
     {
-        const auto& tField = static_cast<design_variables::ScalarFieldValue>(tFieldProxy);
+        const auto& tField = static_cast<analysis::ScalarFieldValue>(tFieldProxy);
         tNodalField[tField.mDesignVariableVectorIndex] = tField.mValue;
     }
     return tNodalField;
@@ -67,32 +64,32 @@ std::vector<double> mesh_design_variables_view_to_vector(
 
 DesignVariablesConversion::DesignVariablesConversion(Mesh aMesh) : Mesh{std::move(aMesh)} {}
 
-auto DesignVariablesConversion::nodalFieldToMeshDesignVariables(const NodalFieldVectorReference aScalarField) const
-    -> design_variables::MeshDesignVariables
+auto DesignVariablesConversion::nodalFieldToAnalysisDomainMesh(const NodalFieldVectorReference aScalarField) const
+    -> analysis::AnalysisDomainMesh
 {
     const auto tNodeIDs = [](const mesh::Mesh& aMesh, const Mesh::BlockOrdinalType aBlockOrdinal)
     { return mesh::MeshBlocks{aMesh}.nodeIDs(aBlockOrdinal); };
-    return entity_field_to_mesh_design_variables(aScalarField.mValue.get(), *this, tNodeIDs);
+    return entity_field_to_mesh_analysis(aScalarField.mValue.get(), *this, tNodeIDs);
 }
 
-auto DesignVariablesConversion::elementFieldToMeshDesignVariables(const ElementFieldVectorReference aScalarField) const
-    -> design_variables::MeshDesignVariables
+auto DesignVariablesConversion::elementFieldToAnalysisDomainMesh(const ElementFieldVectorReference aScalarField) const
+    -> analysis::AnalysisDomainMesh
 {
     const auto tElementIDs = [](const mesh::Mesh& aMesh, const Mesh::BlockOrdinalType aBlockOrdinal)
     { return mesh::MeshBlocks{aMesh}.elementIDs(aBlockOrdinal); };
-    return entity_field_to_mesh_design_variables(aScalarField.mValue.get(), *this, tElementIDs);
+    return entity_field_to_mesh_analysis(aScalarField.mValue.get(), *this, tElementIDs);
 }
 
 NodalFieldVector DesignVariablesConversion::meshDesignVariablesToNodalFieldVector(
-    const design_variables::MeshDesignVariables& aMeshDesignVariables) const
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    return NodalFieldVector{mesh_design_variables_view_to_vector(aMeshDesignVariables)};
+    return NodalFieldVector{mesh_analysis_view_to_vector(aAnalysisDomainMesh)};
 }
 
 ElementFieldVector DesignVariablesConversion::meshDesignVariablesToElementFieldVector(
-    const design_variables::MeshDesignVariables& aMeshDesignVariables) const
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    return ElementFieldVector{mesh_design_variables_view_to_vector(aMeshDesignVariables)};
+    return ElementFieldVector{mesh_analysis_view_to_vector(aAnalysisDomainMesh)};
 }
 
 }  // namespace plato::mesh

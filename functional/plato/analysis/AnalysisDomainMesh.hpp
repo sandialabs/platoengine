@@ -1,11 +1,11 @@
-#ifndef PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLES
-#define PLATO_DESIGN_VARIABLES_MESHDESIGNVARIABLES
+#ifndef PLATO_ANALYSIS_MESHDESIGNVARIABLES
+#define PLATO_ANALYSIS_MESHDESIGNVARIABLES
 
 #include <filesystem>
 #include <map>
 #include <vector>
 
-namespace plato::design_variables
+namespace plato::analysis
 {
 /// @brief Struct used for pairing a scalar design variable field value with a global mesh id and vector index.
 struct ScalarFieldValue
@@ -24,7 +24,7 @@ struct ScalarFieldValue
 /// @brief Contains mesh design variables (nodal or element density fields) organized by mesh block.
 ///
 /// This object is used as an argument to most objectives to represent a mesh and a density field.
-struct MeshDesignVariables
+struct AnalysisDomainMesh
 {
     using BlockIDType = int64_t;
     using ScalarFieldVector = std::vector<ScalarFieldValue>;
@@ -34,6 +34,6 @@ struct MeshDesignVariables
     BlockScalarField mBlockScalarField;
 };
 
-}  // namespace plato::design_variables
+}  // namespace plato::analysis
 
 #endif

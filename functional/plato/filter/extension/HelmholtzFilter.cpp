@@ -3,10 +3,10 @@
 #include <filesystem>
 #include <memory>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
-#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
@@ -40,10 +40,10 @@ library::FilterParameters to_filter_parameters(const input_parser::helmholtz_fil
 auto make_filter_function_from_interface(std::unique_ptr<library::FilterInterface> aFilter) -> library::FilterFunction
 {
     auto tFilterAsShared = std::shared_ptr<library::FilterInterface>(std::move(aFilter));
-    return core::make_function([tFilterAsShared](const design_variables::MeshDesignVariables& aMeshDesignVariables)
-                               { return tFilterAsShared->filter(aMeshDesignVariables); },
-                               [tFilterAsShared](const design_variables::MeshDesignVariables& aMeshDesignVariables) {
-                                   return library::FilterJacobian{tFilterAsShared, aMeshDesignVariables};
+    return core::make_function([tFilterAsShared](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                               { return tFilterAsShared->filter(aAnalysisDomainMesh); },
+                               [tFilterAsShared](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
+                                   return library::FilterJacobian{tFilterAsShared, aAnalysisDomainMesh};
                                });
 }
 

@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::filter::library
@@ -14,7 +14,7 @@ class FilterInterface;
 struct FilterJacobian
 {
     std::shared_ptr<FilterInterface> mFilter;
-    design_variables::MeshDesignVariables mMeshDesignVariables;
+    analysis::AnalysisDomainMesh mAnalysisDomainMesh;
 };
 
 /// @pre `FilterJacobian::mFilter` must not be `nullptr`.

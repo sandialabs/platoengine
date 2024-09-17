@@ -11,9 +11,9 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
-struct MeshDesignVariables;
+struct AnalysisDomainMesh;
 }
 
 namespace plato::linear_algebra
@@ -25,7 +25,7 @@ namespace plato::geometry::library
 {
 struct FactoryTypes
 {
-    using Compute = core::Function<design_variables::MeshDesignVariables,
+    using Compute = core::Function<analysis::AnalysisDomainMesh,
                                    linear_algebra::JacobianMultiplier,
                                    const linear_algebra::DynamicVector<double>&>;
     using InitialGuess = linear_algebra::DynamicVector<double>;

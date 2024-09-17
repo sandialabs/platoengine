@@ -1,6 +1,6 @@
 #include "plato/geometry/extension/DensityTopology.hpp"
 
-#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
@@ -89,10 +89,10 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
 {
 }
 
-design_variables::MeshDesignVariables DensityTopology::generateMesh(
+analysis::AnalysisDomainMesh DensityTopology::generateMesh(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
-    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{mMesh}.nodalFieldToMeshDesignVariables(
+    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{mMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
     return mFilter.f(tNodalDesignParameters);
 }
@@ -105,8 +105,8 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
     return linear_algebra::JacobianMultiplier{
         /*.mNumColumns=*/mNumDesignParameters,
         /*.mJacobianTimesVectorFunction=*/
-        [tMeshDesignVariables = tDesignVariableConverter.nodalFieldToMeshDesignVariables(tNodalDesignParameters),
-         this](const linear_algebra::DynamicVector<double>& x) { return x * mFilter.df(tMeshDesignVariables); }};
+        [tAnalysisDomainMesh = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(tNodalDesignParameters),
+         this](const linear_algebra::DynamicVector<double>& x) { return x * mFilter.df(tAnalysisDomainMesh); }};
 }
 
 linear_algebra::DynamicVector<double> DensityTopology::initialGuess(const input_parser::density_topology& aInput)
@@ -130,14 +130,14 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
     const auto& tOutputMeshName = aInput.output_name->mToken;
     const auto tMesh = detail::mesh_from_input(aInput);
     const auto tFilter = make_filter(aInput);
-    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aSolution.stdVector()});
-    mesh::MeshFieldWriter{tMesh}.writeMeshDesignVariables(tOutputMeshName, tFilter.f(tNodalDesignParameters),
-                                                          kTopologyFieldName, kDensityFixedValue);
+    mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(tOutputMeshName, tFilter.f(tNodalDesignParameters),
+                                                         kTopologyFieldName, kDensityFixedValue);
 }
 
 auto make_topology_geometry(const DensityTopology& aDensityTopology)
-    -> core::Function<design_variables::MeshDesignVariables,
+    -> core::Function<analysis::AnalysisDomainMesh,
                       linear_algebra::JacobianMultiplier,
                       const linear_algebra::DynamicVector<double>&>
 {

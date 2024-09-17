@@ -3,9 +3,9 @@
 
 #include "plato/mesh/Mesh.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
-struct MeshDesignVariables;
+struct AnalysisDomainMesh;
 }
 
 namespace plato::mesh
@@ -43,12 +43,11 @@ struct EntityCounts : public Mesh
     /// Equivalent to `spatialDimentions() == 3u`
     [[nodiscard]] bool is3D() const;
 
-    /// @brief Returns `true` if @a aMeshDesignVariables contains a design variable field associated with nodes.
-    [[nodiscard]] bool areNodalDesignVariables(const design_variables::MeshDesignVariables& aMeshDesignVariables) const;
+    /// @brief Returns `true` if @a aAnalysisDomainMesh contains a design variable field associated with nodes.
+    [[nodiscard]] bool areNodalDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
 
-    /// @brief Returns `true` if @a aMeshDesignVariables contains a design variable field associated with elements.
-    [[nodiscard]] bool areElementDesignVariables(
-        const design_variables::MeshDesignVariables& aMeshDesignVariables) const;
+    /// @brief Returns `true` if @a aAnalysisDomainMesh contains a design variable field associated with elements.
+    [[nodiscard]] bool areElementDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
 };
 
 }  // namespace plato::mesh

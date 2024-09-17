@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/utilities/NamedReference.hpp"
 #include "plato/utilities/NamedType.hpp"
@@ -22,26 +22,25 @@ struct DesignVariablesConversion : public Mesh
 {
     explicit DesignVariablesConversion(Mesh aMesh);
 
-    /// @brief Maps the nodal scalar field in @a aScalarField to a MeshDesignVariables object using
+    /// @brief Maps the nodal scalar field in @a aScalarField to a AnalysisDomainMesh object using
     /// the node, element, and block info in the mesh.
     ///
     /// The ordering of @a aScalarField is assumed to match that of the vector returned by
     /// meshDesignVariablesToNodalFieldVector.
     /// @pre The size of @a aScalarField must be equal to the total number of nodes in the design domain of @a aMesh,
     /// which is given by numberOfDesignDomainElements in EntityCounts.
-    auto nodalFieldToMeshDesignVariables(NodalFieldVectorReference aScalarField) const
-        -> design_variables::MeshDesignVariables;
+    auto nodalFieldToAnalysisDomainMesh(NodalFieldVectorReference aScalarField) const -> analysis::AnalysisDomainMesh;
 
-    /// @brief Maps the element scalar field in @a aScalarField to a MeshDesignVariables object using
+    /// @brief Maps the element scalar field in @a aScalarField to a AnalysisDomainMesh object using
     /// the node, element, and block info in the mesh.
     /// @pre The size of @a aScalarField must be equal to the total number of elements in the design domain of @a aMesh,
     /// which is given by numberOfDesignDomainElements in EntityCounts.
-    auto elementFieldToMeshDesignVariables(ElementFieldVectorReference aScalarField) const
-        -> design_variables::MeshDesignVariables;
+    auto elementFieldToAnalysisDomainMesh(ElementFieldVectorReference aScalarField) const
+        -> analysis::AnalysisDomainMesh;
 
-    /// @brief Maps the nodal scalar field contained in @a aMeshDesignVariables to a vector.
+    /// @brief Maps the nodal scalar field contained in @a aAnalysisDomainMesh to a vector.
     ///
-    /// The ordering of the resulting vector will be sorted by global node ID. For example if @a aMeshDesignVariables
+    /// The ordering of the resulting vector will be sorted by global node ID. For example if @a aAnalysisDomainMesh
     /// has the data (with the form {block_id : [[global_id, scalar], [global_id, scalar]]}):
     /// @verbatim
     /// { 1 : [[1, 0], [4, 1], [5, 0.5]], 2 : [[2, 1], [3, 0], [6, 0.5]]}
@@ -51,15 +50,15 @@ struct DesignVariablesConversion : public Mesh
     /// [0, 1, 0, 1, 0.5, 0.5]
     /// @endverbatim
     NodalFieldVector meshDesignVariablesToNodalFieldVector(
-        const design_variables::MeshDesignVariables& aMeshDesignVariables) const;
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
 
-    /// @brief Maps the nodal scalar field contained in @a aMeshDesignVariables to a vector.
+    /// @brief Maps the nodal scalar field contained in @a aAnalysisDomainMesh to a vector.
     ///
     /// The ordering of the resulting vector will be sorted by global element ID. See
     /// meshDesignVariablesToNodalFieldVector for an example.
     /// @sa meshDesignVariablesToNodalFieldVector
     ElementFieldVector meshDesignVariablesToElementFieldVector(
-        const design_variables::MeshDesignVariables& aMeshDesignVariables) const;
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
 };
 
 }  // namespace plato::mesh

@@ -5,8 +5,8 @@
 #include <optional>
 #include <stk_mesh/base/BulkData.hpp>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
-#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
@@ -46,7 +46,7 @@ class BrickShapeGeometry
 
     ~BrickShapeGeometry();
 
-    [[nodiscard]] design_variables::MeshDesignVariables generateMesh(const BrickDesign& aDesignParameters) const;
+    [[nodiscard]] analysis::AnalysisDomainMesh generateMesh(const BrickDesign& aDesignParameters) const;
 
     [[nodiscard]] linear_algebra::JacobianColumnEvaluator jacobian(const BrickDesign& aDesignParameters) const;
 
@@ -63,7 +63,7 @@ class BrickShapeGeometry
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
 [[nodiscard]] auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry)
-    -> core::Function<design_variables::MeshDesignVariables,
+    -> core::Function<analysis::AnalysisDomainMesh,
                       linear_algebra::JacobianMultiplier,
                       const linear_algebra::DynamicVector<double>&>;
 

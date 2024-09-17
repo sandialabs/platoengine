@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -98,12 +98,12 @@ TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockDesignVariableCounts)
 TEST_F(OneBlock3x1x1HexMesh, OneBlockHexAreDesignVariablesElementOrNodal)
 {
     const auto setupDesignVariables =
-        [this](const std::size_t aNumberOfEntities) -> std::pair<design_variables::MeshDesignVariables, EntityCounts>
+        [this](const std::size_t aNumberOfEntities) -> std::pair<analysis::AnalysisDomainMesh, EntityCounts>
     {
         const auto tFieldVector =
-            std::vector<design_variables::ScalarFieldValue>(aNumberOfEntities, design_variables::ScalarFieldValue{});
-        const auto tBlockField = design_variables::MeshDesignVariables::BlockScalarField{{1, tFieldVector}};
-        const auto tDesignVariables = design_variables::MeshDesignVariables{mMeshFilePath, tBlockField};
+            std::vector<analysis::ScalarFieldValue>(aNumberOfEntities, analysis::ScalarFieldValue{});
+        const auto tBlockField = analysis::AnalysisDomainMesh::BlockScalarField{{1, tFieldVector}};
+        const auto tDesignVariables = analysis::AnalysisDomainMesh{mMeshFilePath, tBlockField};
         const auto tMesh = EntityCounts{Mesh{mMeshFilePath}};
         return {tDesignVariables, tMesh};
     };
@@ -124,13 +124,13 @@ TEST_F(OneBlock3x1x1HexMesh, OneBlockHexAreDesignVariablesElementOrNodal)
 
 TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockAreNodalDesignVariables)
 {
-    const auto tFieldVectorBlock1 = std::vector<design_variables::ScalarFieldValue>{
-        {2, 0, 0.0}, {5, 3, 0.0}, {7, 5, 0.0}, {8, 6, 0.0}, {9, 7, 0.0}};
+    const auto tFieldVectorBlock1 =
+        std::vector<analysis::ScalarFieldValue>{{2, 0, 0.0}, {5, 3, 0.0}, {7, 5, 0.0}, {8, 6, 0.0}, {9, 7, 0.0}};
     const auto tFieldVectorBlock3 =
-        std::vector<design_variables::ScalarFieldValue>{{2, 0, 0.0}, {3, 1, 0.0}, {5, 3, 0.0}, {6, 4, 0.0}};
+        std::vector<analysis::ScalarFieldValue>{{2, 0, 0.0}, {3, 1, 0.0}, {5, 3, 0.0}, {6, 4, 0.0}};
     const auto tBlockField =
-        design_variables::MeshDesignVariables::BlockScalarField{{1, tFieldVectorBlock1}, {3, tFieldVectorBlock3}};
-    const auto tDesignVariables = design_variables::MeshDesignVariables{mMeshFilePath, tBlockField};
+        analysis::AnalysisDomainMesh::BlockScalarField{{1, tFieldVectorBlock1}, {3, tFieldVectorBlock3}};
+    const auto tDesignVariables = analysis::AnalysisDomainMesh{mMeshFilePath, tBlockField};
 
     const auto tFixedBlocks = std::set<std::string>{"block_2"};
     const auto tMesh = EntityCounts{Mesh{mMeshFilePath, tFixedBlocks}};
@@ -140,11 +140,11 @@ TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockAreNodalDesignVariables)
 
 TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockAreElementDesignVariables)
 {
-    const auto tFieldVectorBlock2 = std::vector<design_variables::ScalarFieldValue>{{1, 0, 0.0}, {2, 1, 0.0}};
-    const auto tFieldVectorBlock3 = std::vector<design_variables::ScalarFieldValue>{{3, 2, 0.0}};
+    const auto tFieldVectorBlock2 = std::vector<analysis::ScalarFieldValue>{{1, 0, 0.0}, {2, 1, 0.0}};
+    const auto tFieldVectorBlock3 = std::vector<analysis::ScalarFieldValue>{{3, 2, 0.0}};
     const auto tBlockField =
-        design_variables::MeshDesignVariables::BlockScalarField{{2, tFieldVectorBlock2}, {3, tFieldVectorBlock3}};
-    const auto tDesignVariables = design_variables::MeshDesignVariables{mMeshFilePath, tBlockField};
+        analysis::AnalysisDomainMesh::BlockScalarField{{2, tFieldVectorBlock2}, {3, tFieldVectorBlock3}};
+    const auto tDesignVariables = analysis::AnalysisDomainMesh{mMeshFilePath, tBlockField};
 
     const auto tFixedBlocks = std::set<std::string>{"block_1"};
     const auto tMesh = EntityCounts{Mesh{mMeshFilePath, tFixedBlocks}};

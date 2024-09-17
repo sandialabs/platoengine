@@ -22,7 +22,7 @@ TEST(NodalSumObjective, Value111)
 {
     third_party_integration::stk_io::write_mesh(kTestFile, third_party_integration::stk_io::CommandGenerator{});
     constexpr double tExpectedValue = 12.0;
-    EXPECT_EQ(NodalSumObjective{}.f(design_variables::MeshDesignVariables{kTestFile, {}}), tExpectedValue);
+    EXPECT_EQ(NodalSumObjective{}.f(analysis::AnalysisDomainMesh{kTestFile, {}}), tExpectedValue);
     test_utilities::test_for_existence_and_remove({kTestFile}, TEST_CONTEXT("Checking existence of file"));
 }
 
@@ -31,7 +31,7 @@ TEST(NodalSumObjective, Value211)
     third_party_integration::stk_io::write_mesh(kTestFile,
                                                 third_party_integration::stk_io::CommandGenerator{{2, 1, 1}});
     constexpr double tExpectedValue = 18.0;
-    EXPECT_EQ(NodalSumObjective{}.f(design_variables::MeshDesignVariables{kTestFile, {}}), tExpectedValue);
+    EXPECT_EQ(NodalSumObjective{}.f(analysis::AnalysisDomainMesh{kTestFile, {}}), tExpectedValue);
     test_utilities::test_for_existence_and_remove({kTestFile}, TEST_CONTEXT("Checking existence of file"));
 }
 
@@ -42,7 +42,7 @@ TEST(NodalSumObjective, Value0)
     third_party_integration::stk_io::write_mesh(kTestFile, tCommandGenerator);
 
     constexpr double tExpectedValue = 0.0;
-    EXPECT_EQ(NodalSumObjective{}.f(design_variables::MeshDesignVariables{kTestFile, {}}), tExpectedValue);
+    EXPECT_EQ(NodalSumObjective{}.f(analysis::AnalysisDomainMesh{kTestFile, {}}), tExpectedValue);
     test_utilities::test_for_existence_and_remove({kTestFile}, TEST_CONTEXT("Checking existence of file"));
 }
 
@@ -56,7 +56,7 @@ TEST(NodalSumObjective, Gradient111)
 
     constexpr int tNumCoordsPerNode = 3;
     const auto tExpected = std::vector<double>(tNumCoordsPerNode * tCommandGenerator.numberOfNodes(), 1.0);
-    const std::vector tComputed = tNodalSum.df(design_variables::MeshDesignVariables{kTestFile, {}}).stdVector();
+    const std::vector tComputed = tNodalSum.df(analysis::AnalysisDomainMesh{kTestFile, {}}).stdVector();
     EXPECT_EQ(tComputed, tExpected);
     test_utilities::test_for_existence_and_remove({kTestFile}, TEST_CONTEXT("Checking existence of file"));
 }
@@ -64,21 +64,21 @@ TEST(NodalSumObjective, Gradient111)
 TEST(NodalSumObjective, Value)
 {
     third_party_integration::stk_io::write_mesh(kBrickFile, third_party_integration::stk_io::CommandGenerator{});
-    design_variables::MeshDesignVariables tMeshDesignVariables{kBrickFile, {}};
+    analysis::AnalysisDomainMesh tAnalysisDomainMesh{kBrickFile, {}};
 
     const NodalSumObjective tPass;
-    EXPECT_EQ(tPass.f(tMeshDesignVariables), 12);
+    EXPECT_EQ(tPass.f(tAnalysisDomainMesh), 12);
     test_utilities::test_for_existence_and_remove({kBrickFile}, TEST_CONTEXT("Checking existence of file"));
 }
 
 TEST(NodalSumObjective, Gradient)
 {
     third_party_integration::stk_io::write_mesh(kBrickFile, third_party_integration::stk_io::CommandGenerator{});
-    design_variables::MeshDesignVariables tMeshDesignVariables{kBrickFile, {}};
+    analysis::AnalysisDomainMesh tAnalysisDomainMesh{kBrickFile, {}};
 
     const NodalSumObjective tPass;
     const std::vector<double> tGold(24, 1);
-    EXPECT_EQ(tPass.df(tMeshDesignVariables).stdVector(), tGold);
+    EXPECT_EQ(tPass.df(tAnalysisDomainMesh).stdVector(), tGold);
     test_utilities::test_for_existence_and_remove({kBrickFile}, TEST_CONTEXT("Checking existence of file"));
 }
 }  // namespace plato::criteria::extension::unittest

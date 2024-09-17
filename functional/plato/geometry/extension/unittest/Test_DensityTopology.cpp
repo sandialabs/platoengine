@@ -7,8 +7,8 @@
 #include <stk_util/parallel/Parallel.hpp>
 #include <vector>
 
-#include "plato/design_variables/MeshDesignVariables.hpp"
-#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
@@ -72,10 +72,10 @@ TEST(DensityTopology, GenerateMesh)
     const std::vector<double> tDesignVars = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
     const linear_algebra::DynamicVector<double> tDesignVec(tDesignVars);
 
-    const auto tMeshDesignVariables = tDensityTopology.generateMesh(tDesignVec);
-    const auto tDensities = design_variables::mesh_design_variables_to_vector(
-        design_variables::MeshDesignVariablesSequentialView{tMeshDesignVariables});
-    const auto [tDensityValues, tIDMap] = design_variables::split_scalar_field_values(tDensities);
+    const auto tAnalysisDomainMesh = tDensityTopology.generateMesh(tDesignVec);
+    const auto tDensities =
+        analysis::mesh_analysis_to_vector(analysis::AnalysisDomainMeshSequentialView{tAnalysisDomainMesh});
+    const auto [tDensityValues, tIDMap] = analysis::split_scalar_field_values(tDensities);
     EXPECT_EQ(tDensityValues, tDesignVars);
 
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
@@ -189,12 +189,12 @@ TEST_F(TwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
 
     const auto tDensityTopology =
         DensityTopology{tDensityInputWithFixedBlocks, filter::extension::make_identity_filter_function()};
-    const auto tMeshDesignVariables = tDensityTopology.generateMesh(tInitialGuess);
+    const auto tAnalysisDomainMesh = tDensityTopology.generateMesh(tInitialGuess);
     constexpr auto tExpectedNumberOfBlocks = 2U;
-    EXPECT_EQ(tMeshDesignVariables.mBlockScalarField.size(), tExpectedNumberOfBlocks);
+    EXPECT_EQ(tAnalysisDomainMesh.mBlockScalarField.size(), tExpectedNumberOfBlocks);
 
-    const auto tMeshDesignVariablesView = design_variables::MeshDesignVariablesSequentialView{tMeshDesignVariables};
-    EXPECT_EQ(tMeshDesignVariablesView.size(), tExpectedNumberOfDesignVariables);
+    const auto tAnalysisDomainMeshView = analysis::AnalysisDomainMeshSequentialView{tAnalysisDomainMesh};
+    EXPECT_EQ(tAnalysisDomainMeshView.size(), tExpectedNumberOfDesignVariables);
 }
 
 TEST(DensityTopology, ValidateUniqueBlockNames)

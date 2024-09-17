@@ -9,9 +9,9 @@
 #include "plato/core/VariantInputBuilder.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
-struct MeshDesignVariables;
+struct AnalysisDomainMesh;
 }
 
 namespace plato::filter::library
@@ -30,7 +30,7 @@ using FilterInput = core::InputVariant<input_parser::ParsedInput, input_parser::
 using ValidatedFilterInput = core::ValidatedInputTypeWrapper<
     core::ValidatedInputVariant<input_parser::ParsedInput, input_parser::IsFilterInput>>;
 using FilterFunction =
-    core::Function<design_variables::MeshDesignVariables, FilterJacobian, const design_variables::MeshDesignVariables&>;
+    core::Function<analysis::AnalysisDomainMesh, FilterJacobian, const analysis::AnalysisDomainMesh&>;
 using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFilterInput>;
 
 /// @brief Loads a filter from a shared library.

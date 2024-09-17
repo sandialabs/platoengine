@@ -3,8 +3,8 @@
 
 #include <string_view>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
-#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::criteria::extension
@@ -14,9 +14,9 @@ namespace plato::criteria::extension
 /// centered controls and not nodal
 struct VolumeCriterion
 {
-    [[nodiscard]] double f(const design_variables::MeshDesignVariables& aMeshDesignVariables) const;
+    [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
     [[nodiscard]] linear_algebra::DynamicVector<double> df(
-        const design_variables::MeshDesignVariables& aMeshDesignVariables) const;
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
 
     static constexpr auto kVolumeCriterionName = std::string_view{"volume"};
     static constexpr auto kVolumeFractionCriterionName = std::string_view{"volume_fraction"};
@@ -26,11 +26,11 @@ struct VolumeCriterion
 
 /// @brief Creates a Function object from a VolumeCriterion
 [[nodiscard]] auto make_volume_constraint_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>;
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
 
 /// @brief Creates a Function object from a VolumeCriterion
 [[nodiscard]] auto make_volume_fraction_constraint_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>;
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
 
 }  // namespace plato::criteria::extension
 

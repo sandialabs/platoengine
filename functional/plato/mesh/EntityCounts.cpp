@@ -1,6 +1,6 @@
 #include "plato/mesh/EntityCounts.hpp"
 
-#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 
@@ -36,16 +36,16 @@ bool EntityCounts::is2D() const { return spatialDimensions() == 2u; }
 
 bool EntityCounts::is3D() const { return spatialDimensions() == 3u; }
 
-bool EntityCounts::areNodalDesignVariables(const design_variables::MeshDesignVariables& aMeshDesignVariables) const
+bool EntityCounts::areNodalDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    const auto tMeshDesignVariablesView = design_variables::MeshDesignVariablesSequentialView{aMeshDesignVariables};
-    return numberOfDesignDomainNodes() == tMeshDesignVariablesView.size();
+    const auto tAnalysisDomainMeshView = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh};
+    return numberOfDesignDomainNodes() == tAnalysisDomainMeshView.size();
 }
 
-bool EntityCounts::areElementDesignVariables(const design_variables::MeshDesignVariables& aMeshDesignVariables) const
+bool EntityCounts::areElementDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    const auto tMeshDesignVariablesView = design_variables::MeshDesignVariablesSequentialView{aMeshDesignVariables};
-    return numberOfDesignDomainElements() == tMeshDesignVariablesView.size();
+    const auto tAnalysisDomainMeshView = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh};
+    return numberOfDesignDomainElements() == tAnalysisDomainMeshView.size();
 }
 
 }  // namespace plato::mesh

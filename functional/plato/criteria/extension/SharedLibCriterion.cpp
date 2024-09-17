@@ -43,29 +43,28 @@ SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirec
 {
 }
 
-double SharedLibCriterion::f(const design_variables::MeshDesignVariables& aMesh) const
+double SharedLibCriterion::f(const analysis::AnalysisDomainMesh& aMesh) const
 {
     return mCriterionInterface->value(aMesh);
 }
 
-linear_algebra::DynamicVector<double> SharedLibCriterion::df(const design_variables::MeshDesignVariables& aMeshDesignVariables) const
+linear_algebra::DynamicVector<double> SharedLibCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisMesh) const
 {
-    return mCriterionInterface->value(aMeshDesignVariables);
+    return mCriterionInterface->value(aAnalysisMesh);
 }
 
-linear_algebra::DynamicVector<double> SharedLibCriterion::df(
-    const mesh::MeshDesignVariables& aMeshDesignVariables) const
+linear_algebra::DynamicVector<double> SharedLibCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisMesh) const
 {
-    return linear_algebra::DynamicVector<double>(mCriterionInterface->gradient(aMeshDesignVariables));
+    return linear_algebra::DynamicVector<double>(mCriterionInterface->gradient(aAnalysisMesh));
 }
 
 auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion)
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>
 {
-    return core::make_function([aSharedLibCriterion](const design_variables::MeshDesignVariables& aMeshDesignVariables)
-                               { return aSharedLibCriterion.f(aMeshDesignVariables); },
-                               [aSharedLibCriterion](const design_variables::MeshDesignVariables& aMeshDesignVariables)
-                               { return aSharedLibCriterion.df(aMeshDesignVariables); });
+    return core::make_function([aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisMesh)
+                               { return aSharedLibCriterion.f(aAnalysisMesh); },
+                               [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisMesh)
+                               { return aSharedLibCriterion.df(aAnalysisMesh); });
 }
 
 }  // namespace plato::criteria::extension

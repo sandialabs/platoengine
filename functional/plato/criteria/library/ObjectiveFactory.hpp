@@ -7,9 +7,9 @@
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
-struct MeshDesignVariables;
+struct AnalysisDomainMesh;
 }
 
 namespace plato::criteria::library
@@ -18,9 +18,9 @@ using ValidatedObjectives =
     core::ValidatedInputTypeWrapper<std::vector<core::ValidatedInputTypeWrapper<input_parser::objective>>>;
 
 using ObjectiveFunction =
-    core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>;
-using ParallelAggregateObjective = core::
-    ParallelAggregate<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>;
+    core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
+using ParallelAggregateObjective =
+    core::ParallelAggregate<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
 
 /// @brief Creates the objectives function from the objectives defined in @a aInput.
 ///

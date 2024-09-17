@@ -11,9 +11,9 @@
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/StateCache.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
-struct MeshDesignVariables;
+struct AnalysisDomainMesh;
 }
 
 namespace plato::input_parser
@@ -24,8 +24,8 @@ struct kernel_filter;
 namespace plato::filter::extension
 {
 using FilterRadius = utilities::NamedType<double, struct FilterRadiusTag>;
-using FilterCache = plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>,
-                                                 const design_variables::MeshDesignVariables&>;
+using FilterCache =
+    plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const analysis::AnalysisDomainMesh&>;
 
 /// @brief An implementation of a kernel filter that relies on Tpetra and STK objects to conduct a search and create a
 /// linear mask.
@@ -39,14 +39,14 @@ class KernelFilter : public library::FilterInterface
                  input_parser::KernelFilterCenteringTypes aFilterCentering,
                  const boost::mpi::communicator& aCommunicator);
 
-    /// @brief Apply the internal filter to the mesh specified in @a aMeshDesignVariables and return a new
-    /// MeshDesignVariables object
-    [[nodiscard]] design_variables::MeshDesignVariables filter(
-        const design_variables::MeshDesignVariables& aMeshDesignVariables) const override;
+    /// @brief Apply the internal filter to the mesh specified in @a aAnalysisDomainMesh and return a new
+    /// AnalysisDomainMesh object
+    [[nodiscard]] analysis::AnalysisDomainMesh filter(
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
 
     /// @brief Return the Jacobian of the linear mask applied to a specific vector @a aV
     [[nodiscard]] linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const design_variables::MeshDesignVariables& aMeshDesignVariables,
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
         const linear_algebra::DynamicVector<double>& aV) const override;
 
    private:

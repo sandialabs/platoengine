@@ -3,8 +3,8 @@
 
 #include <string_view>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
-#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::criteria::extension
@@ -13,16 +13,16 @@ namespace plato::criteria::extension
 ///  class is for implementing a geometry sensitivity check.
 struct NodalSumObjective
 {
-    [[nodiscard]] double f(const design_variables::MeshDesignVariables& aMeshDesignVariables) const;
+    [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
     [[nodiscard]] linear_algebra::DynamicVector<double> df(
-        const design_variables::MeshDesignVariables& aMeshDesignVariables) const;
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
 
     static constexpr auto kCriterionName = std::string_view{"nodal_sum"};
 };
 
 /// @brief Creates a Function object from a NodalSumObjective
 [[nodiscard]] auto make_nodal_sum_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>;
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
 
 }  // namespace plato::criteria::extension
 

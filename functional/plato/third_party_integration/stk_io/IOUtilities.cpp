@@ -45,9 +45,9 @@ size_t write_mesh_scalar_field_impl(stk::io::StkMeshIoBroker& aIOBroker,
 
 /// @brief Creates a new mesh on disk with name @a aInputMeshName and returns a StkMeshIoBroker to access it.
 /// @todo This currently uses MPI_COMM_SELF and so does not support distributed meshes.
-std::shared_ptr<stk::io::StkMeshIoBroker> create_input_mesh_broker(const std::filesystem::path& aInputMeshName)
+auto create_input_mesh_broker(const std::filesystem::path& aInputMeshName) -> std::unique_ptr<stk::io::StkMeshIoBroker>
 {
-    std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker = std::make_shared<stk::io::StkMeshIoBroker>(MPI_COMM_SELF);
+    auto tIOBroker = std::make_unique<stk::io::StkMeshIoBroker>(MPI_COMM_SELF);
     tIOBroker->use_simple_fields();
 
     const size_t index = tIOBroker->add_mesh_database(aInputMeshName.string(), stk::io::READ_MESH);

@@ -2,8 +2,8 @@
 
 #include <string>
 
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/criteria/extension/VolumeCriterion.hpp"
-#include "plato/design_variables/MeshDesignVariablesSequentialView.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -22,19 +22,18 @@ constexpr std::string_view kMeshFile = "brick.exo";
 
 void test_volume_criteria_from_ctor_and_function(
     const VolumeCriterion& tVolumeCriterion,
-    const core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>&
-        aFunction,
+    const core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>& aFunction,
     const double aGoldVolume)
 {
     constexpr double tConstantControls = 0.75;
 
     const auto tMesh = mesh::EntityCounts{mesh::Mesh{kMeshFile}};
     const auto tControls = std::vector<double>(tMesh.numberOfElements(), tConstantControls);
-    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{std::cref(tControls)});
 
-    EXPECT_EQ(tVolumeCriterion.f(tMeshDesignVariables), aGoldVolume * tConstantControls);
-    EXPECT_EQ(tVolumeCriterion.f(tMeshDesignVariables), aFunction.f(tMeshDesignVariables));
+    EXPECT_EQ(tVolumeCriterion.f(tAnalysisDomainMesh), aGoldVolume * tConstantControls);
+    EXPECT_EQ(tVolumeCriterion.f(tAnalysisDomainMesh), aFunction.f(tAnalysisDomainMesh));
 }
 
 void test_scaled_and_unscaled_on_ctor_and_function(
@@ -51,17 +50,16 @@ void test_scaled_and_unscaled_on_ctor_and_function(
 
 void test_volume_criteria_derivative_from_ctor_and_function(
     const VolumeCriterion& tVolumeCriterion,
-    const core::Function<double, linear_algebra::DynamicVector<double>, const design_variables::MeshDesignVariables&>&
-        aFunction,
+    const core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>& aFunction,
     const std::vector<double>& aGold)
 {
     const auto tMesh = mesh::Mesh{kMeshFile};
     const auto tAssignedDensities =
         std::vector<double>{0.5, 0.4, 0.3};  // Not 1 to make certain DF does not depend on them
-    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{std::cref(tAssignedDensities)});
-    const auto tResult = tVolumeCriterion.df(tMeshDesignVariables);
-    const auto tResultFromFunction = aFunction.df(tMeshDesignVariables);
+    const auto tResult = tVolumeCriterion.df(tAnalysisDomainMesh);
+    const auto tResultFromFunction = aFunction.df(tAnalysisDomainMesh);
 
     ASSERT_EQ(tResult.size(), mesh::EntityCounts{tMesh}.numberOfElements());
     ASSERT_EQ(tResult.size(), aGold.size());
@@ -117,10 +115,10 @@ TEST_F(TwoDThreeBlockMesh, VolumeCriterionWithFixedBlocks)
     const auto tMesh = mesh::Mesh{mMeshFilePath, std::move(tFixedBlockNames)};
 
     const auto tDensityVector = std::vector<double>{0.25, 0.25, 1.0};
-    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{tDensityVector});
 
-    const auto tResult = VolumeCriterion{}.f(tMeshDesignVariables);
+    const auto tResult = VolumeCriterion{}.f(tAnalysisDomainMesh);
     constexpr auto tExpected = double{4.5};
     EXPECT_DOUBLE_EQ(tExpected, tResult);
 }
@@ -131,10 +129,10 @@ TEST_F(TwoDThreeBlockMesh, GradientVolumeCriterionWithFixedBlocks)
     const auto tMesh = mesh::Mesh{mMeshFilePath, std::move(tFixedBlockNames)};
     constexpr auto tNumberOfNodalDensities = 2U;
     const auto tDensityVector = std::vector<double>(tNumberOfNodalDensities, 1.0);
-    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{tDensityVector});
 
-    const auto tResult = VolumeCriterion{}.df(tMeshDesignVariables);
+    const auto tResult = VolumeCriterion{}.df(tAnalysisDomainMesh);
     const auto tExpected = mesh::MeshQuantities{tMesh}.designDomainElementVolumes();
 
     EXPECT_EQ(tExpected, tResult.stdVector());

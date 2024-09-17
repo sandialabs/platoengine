@@ -7,9 +7,9 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
 
-namespace plato::design_variables
+namespace plato::analysis
 {
-struct MeshDesignVariables;
+struct AnalysisDomainMesh;
 }
 
 namespace plato::mesh
@@ -40,14 +40,14 @@ class MeshFieldWriter : public Mesh
                            std::string_view aFieldName,
                            double aFixedValue) const;
 
-    /// @brief Writes the design variables in @a aMeshDesignVariables to the file with name @a aFilePath.
+    /// @brief Writes the design variables in @a aAnalysisDomainMesh to the file with name @a aFilePath.
     ///
     /// The type of field (node vs. element) is determined from the number of design variables.
     /// @warning If a file exists at path @a aOutputPath, the file is overwritten.
-    void writeMeshDesignVariables(const std::filesystem::path& aFilePath,
-                                  const design_variables::MeshDesignVariables& aMeshDesignVariables,
-                                  std::string_view aFieldName,
-                                  double aFixedValue) const;
+    void writeAnalysisDomainMesh(const std::filesystem::path& aFilePath,
+                                 const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                 std::string_view aFieldName,
+                                 double aFixedValue) const;
 };
 }  // namespace plato::mesh
 

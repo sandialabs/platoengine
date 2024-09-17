@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
-#include "plato/design_variables/MeshDesignVariables.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 
@@ -11,9 +11,8 @@ namespace
 {
 [[nodiscard]] auto make_test_filter_function() -> FilterFunction
 {
-    return core::make_function([](const design_variables::MeshDesignVariables&)
-                               { return design_variables::MeshDesignVariables{}; },
-                               [](const design_variables::MeshDesignVariables&) { return FilterJacobian{}; });
+    return core::make_function([](const analysis::AnalysisDomainMesh&) { return analysis::AnalysisDomainMesh{}; },
+                               [](const analysis::AnalysisDomainMesh&) { return FilterJacobian{}; });
 }
 
 [[maybe_unused]] static auto kTestFilterRegistration =

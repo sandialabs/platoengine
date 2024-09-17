@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "plato/design_variables/MeshDesignVariables.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 
@@ -59,8 +59,8 @@ std::vector<Mesh::BlockOrdinalType> set_difference_block_ordinals(
     return tDifferenceBlockOrdinals;
 }
 
-std::vector<Mesh::BlockOrdinalType> fixed_block_ordinals_from_mesh_design_variables(
-    const stk::mesh::BulkData& aBulkData, const design_variables::MeshDesignVariables& aMeshDesignVariables)
+std::vector<Mesh::BlockOrdinalType> fixed_block_ordinals_from_mesh_analysis(
+    const stk::mesh::BulkData& aBulkData, const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
 {
     namespace tpi = third_party_integration;
 
@@ -68,8 +68,8 @@ std::vector<Mesh::BlockOrdinalType> fixed_block_ordinals_from_mesh_design_variab
 
     const auto tBlockData = tpi::stk_io::block_data(aBulkData);
     auto tDesignBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
-    tDesignBlockIDs.reserve(aMeshDesignVariables.mBlockScalarField.size());
-    std::transform(aMeshDesignVariables.mBlockScalarField.cbegin(), aMeshDesignVariables.mBlockScalarField.cend(),
+    tDesignBlockIDs.reserve(aAnalysisDomainMesh.mBlockScalarField.size());
+    std::transform(aAnalysisDomainMesh.mBlockScalarField.cbegin(), aAnalysisDomainMesh.mBlockScalarField.cend(),
                    std::back_inserter(tDesignBlockIDs),
                    [&tBlockData, &tIDField](const auto& tBlockScalarField)
                    { return block_meta_data_ordinal(tBlockScalarField.first, tIDField, tBlockData); });
@@ -104,10 +104,10 @@ Mesh::Mesh(const std::filesystem::path& aMeshName, const std::set<std::string>& 
 {
 }
 
-Mesh::Mesh(const design_variables::MeshDesignVariables& aMeshDesignVariables)
-    : mFilePath{aMeshDesignVariables.mFileName},
+Mesh::Mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+    : mFilePath{aAnalysisDomainMesh.mFileName},
       mBulk{third_party_integration::stk_io::read_mesh_bulk_data(mFilePath)},
-      mFixedBlockOrdinals{fixed_block_ordinals_from_mesh_design_variables(*mBulk, aMeshDesignVariables)},
+      mFixedBlockOrdinals{fixed_block_ordinals_from_mesh_analysis(*mBulk, aAnalysisDomainMesh)},
       mDesignBlockOrdinals{set_difference_block_ordinals(*mBulk, mFixedBlockOrdinals)}
 {
 }
