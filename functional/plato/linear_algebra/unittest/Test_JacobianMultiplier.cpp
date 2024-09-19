@@ -6,8 +6,7 @@ namespace plato::linear_algebra::unittest
 {
 TEST(JacobianMultiplier, Identity)
 {
-    const JacobianMultiplier tIdentityJacobian = {/*.mNumColumns=*/2,
-                                                  /*.mJacobianTimesVectorFunction=*/
+    const JacobianMultiplier tIdentityJacobian = {/*.mJacobianTimesVectorFunction=*/
                                                   [](const DynamicVector<double>& aV) { return aV; }};
 
     const auto tVec = DynamicVector<double>{1.0, 2.0};

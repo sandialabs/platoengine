@@ -50,7 +50,6 @@ class DensityTopology
 
    private:
     mesh::Mesh mMesh;
-    unsigned int mNumDesignParameters = 0;
     plato::filter::library::FilterFunction mFilter;
 };
 

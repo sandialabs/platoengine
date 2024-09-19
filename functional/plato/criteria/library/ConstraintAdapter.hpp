@@ -38,7 +38,6 @@ auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) ->
         { return linear_algebra::DynamicVector<double>{aScalarFunction.f(aFunctionArg)}; },
         [aScalarFunction](const auto& aFunctionArg)
         {
-            constexpr unsigned int tNumberOfColumns = 1;
             const linear_algebra::DynamicVector<double> tDf = aScalarFunction.df(aFunctionArg);
             const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
                 [tDf](const linear_algebra::DynamicVector<double>& aV)
@@ -46,7 +45,7 @@ auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) ->
                 std::cout << "jacobian wrapper: tDf size " << tDf.size() << " and aV size " << aV.size() << std::endl;
                 return linear_algebra::DynamicVector<double>{tDf.dot(aV)};
             };
-            return linear_algebra::JacobianMultiplier{tNumberOfColumns, tFunction};
+            return linear_algebra::JacobianMultiplier{tFunction};
         }};
 }
 
@@ -60,8 +59,6 @@ auto make_adjoint_jacobian_vector_function(const ScalarFunction<FunctionArg>& aS
         { return linear_algebra::DynamicVector<double>{aScalarFunction.f(aFunctionArg)}; },
         [aScalarFunction](const auto& aFunctionArg)
         {
-            constexpr unsigned int tNumberOfColumns = 1;
-
             const linear_algebra::DynamicVector<double> tDf = aScalarFunction.df(aFunctionArg);
             const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
                 [tDf](const linear_algebra::DynamicVector<double>& aV)
@@ -73,7 +70,7 @@ auto make_adjoint_jacobian_vector_function(const ScalarFunction<FunctionArg>& aS
                 std::cout << "apply size " << tTemp.size() << std::endl;
                 return tDf * tEntry;
             };
-            return linear_algebra::JacobianMultiplier{tNumberOfColumns, tFunction};
+            return linear_algebra::JacobianMultiplier{tFunction};
         }};
 }
 

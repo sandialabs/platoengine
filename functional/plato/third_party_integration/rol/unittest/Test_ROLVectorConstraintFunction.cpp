@@ -24,12 +24,11 @@ auto make_vector_himmelblau_adjoint_jacobian() -> VectorFunction
                           { return linear_algebra::DynamicVector<double>{tHimmelblau.f(aFunctionArg)}; },
                           [tHimmelblau](const linear_algebra::DynamicVector<double>& aFunctionArg)
                           {
-                              constexpr unsigned int tNumberOfColumns = 1;
                               const linear_algebra::DynamicVector<double> tDf = tHimmelblau.df(aFunctionArg);
                               const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
                                   [tDf](const linear_algebra::DynamicVector<double>& aV)
                               { return tDf * aV.stdVector()[0]; };
-                              return linear_algebra::JacobianMultiplier{tNumberOfColumns, tFunction};
+                              return linear_algebra::JacobianMultiplier{tFunction};
                           }};
 }
 
@@ -41,12 +40,11 @@ auto make_vector_himmelblau_jacobian() -> VectorFunction
                           { return linear_algebra::DynamicVector<double>{tHimmelblau.f(aFunctionArg)}; },
                           [tHimmelblau](const linear_algebra::DynamicVector<double>& aFunctionArg)
                           {
-                              constexpr unsigned int tNumberOfColumns = 1;
                               const linear_algebra::DynamicVector<double> tDf = tHimmelblau.df(aFunctionArg);
                               const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
                                   [tDf](const linear_algebra::DynamicVector<double>& aV)
                               { return linear_algebra::DynamicVector<double>{tDf.dot(aV)}; };
-                              return linear_algebra::JacobianMultiplier{tNumberOfColumns, tFunction};
+                              return linear_algebra::JacobianMultiplier{tFunction};
                           }};
 }
 

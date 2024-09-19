@@ -74,19 +74,17 @@ auto make_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCrit
                               const mesh::MeshDesignVariables& aMeshDesignVariables)
     -> linear_algebra::JacobianMultiplier
 {
-    const unsigned int tNumberOfCriteria = 1;
-    return linear_algebra::JacobianMultiplier{
-        tNumberOfCriteria, [aSharedLibCriterion, aMeshDesignVariables](const auto aDirectionVector)
-        { return aSharedLibCriterion.jacobianTimesVector(aMeshDesignVariables, aDirectionVector); }};
+    return linear_algebra::JacobianMultiplier{[aSharedLibCriterion, aMeshDesignVariables](const auto aDirectionVector) {
+        return aSharedLibCriterion.jacobianTimesVector(aMeshDesignVariables, aDirectionVector);
+    }};
 }
 auto make_adjoint_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCriterion,
                                       const mesh::MeshDesignVariables& aMeshDesignVariables)
     -> linear_algebra::JacobianMultiplier
 {
-    const unsigned int tNumberOfCriteria = 1;
-    return linear_algebra::JacobianMultiplier{
-        tNumberOfCriteria, [aSharedLibCriterion, aMeshDesignVariables](const auto aDualVector)
-        { return aSharedLibCriterion.adjointJacobianTimesVector(aMeshDesignVariables, aDualVector); }};
+    return linear_algebra::JacobianMultiplier{[aSharedLibCriterion, aMeshDesignVariables](const auto aDualVector) {
+        return aSharedLibCriterion.adjointJacobianTimesVector(aMeshDesignVariables, aDualVector);
+    }};
 }
 
 }  // namespace

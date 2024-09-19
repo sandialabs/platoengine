@@ -13,7 +13,6 @@ struct JacobianMultiplier
 {
     using JacobianTimesVectorFunction = std::function<DynamicVector<double>(const DynamicVector<double>&)>;
 
-    unsigned int mNumColumns = 0;
     JacobianTimesVectorFunction mJacobianTimesVectorFunction;
 
     /// @brief Implementation of multiplication of two JacobianMultipliers
@@ -22,7 +21,7 @@ struct JacobianMultiplier
         auto tComposedFunction = [tF = std::move(*this), tG = std::move(aG)](const DynamicVector<double>& aDirection)
         { return tF.mJacobianTimesVectorFunction(tG.mJacobianTimesVectorFunction(aDirection)); };
 
-        return JacobianMultiplier{this->mNumColumns, tComposedFunction};
+        return JacobianMultiplier{tComposedFunction};
     }
 };
 

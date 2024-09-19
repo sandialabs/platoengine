@@ -13,7 +13,6 @@ auto make_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
                               const std::vector<test_utilities::SumConstraint>& aConstraints)
     -> linear_algebra::JacobianMultiplier
 {
-    const unsigned int tNumberOfColumns = 2;
     const auto tDerivativeFunctionEvaluationZero = test_utilities::to_dynamic_vector(aConstraints[0].df(x[0], x[1]));
     const auto tDerivativeFunctionEvaluationOne = test_utilities::to_dynamic_vector(aConstraints[1].df(x[0], x[1]));
 
@@ -25,14 +24,13 @@ auto make_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
             {tDerivativeFunctionEvaluationZero.dot(aVector), tDerivativeFunctionEvaluationOne.dot(aVector)});
     };
 
-    return {tNumberOfColumns, tJacobianTimesVectorFunction};
+    return {tJacobianTimesVectorFunction};
 }
 
 auto make_adjoint_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
                                       const std::vector<test_utilities::SumConstraint>& aConstraints)
     -> linear_algebra::JacobianMultiplier
 {
-    const unsigned int tNumberOfColumns = 2;
     const auto tDerivativeFunctionEvaluationZero = test_utilities::to_dynamic_vector(aConstraints[0].df(x[0], x[1]));
     const auto tDerivativeFunctionEvaluationOne = test_utilities::to_dynamic_vector(aConstraints[1].df(x[0], x[1]));
 
@@ -44,7 +42,7 @@ auto make_adjoint_jacobian_multiplier(const linear_algebra::DynamicVector<double
             {tDerivativeFunctionEvaluationZero * aDual[0] + tDerivativeFunctionEvaluationOne * aDual[1]});
     };
 
-    return {tNumberOfColumns, tAdjointJacobianTimesVectorFunction};
+    return {tAdjointJacobianTimesVectorFunction};
 }
 }  // namespace
 

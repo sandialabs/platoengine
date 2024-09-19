@@ -53,8 +53,6 @@ TEST(ConstraintAdaptor, MakeVectorFunction)
     const auto tTestDirection = linear_algebra::DynamicVector<double>({.6, 1.2});
     const auto tScalarDFGold = tRosenbrock.df(tTestPoint).dot(tTestDirection);
 
-    ASSERT_EQ(tVectorbrock.df(tTestPoint).mNumColumns, 1u);
-
     const auto tVectorDFResult = tVectorbrock.df(tTestPoint).mJacobianTimesVectorFunction(tTestDirection).stdVector();
     ASSERT_EQ(tVectorDFResult.size(), 1u);
     EXPECT_EQ(tVectorDFResult[0], tScalarDFGold);
@@ -69,8 +67,6 @@ TEST(ConstraintAdaptor, MakeAdjointJacobianVectorFunction)
     const auto tTestDual = linear_algebra::DynamicVector<double>({.6});
 
     const auto tScalarDFGold = tRosenbrock.df(tTestPoint) * tTestDual.stdVector()[0];
-
-    ASSERT_EQ(tVectorbrock.df(tTestPoint).mNumColumns, 1u);
 
     const auto tVectorDFResult = tVectorbrock.df(tTestPoint).mJacobianTimesVectorFunction(tTestDual).stdVector();
     ASSERT_EQ(tVectorDFResult.size(), 2u);

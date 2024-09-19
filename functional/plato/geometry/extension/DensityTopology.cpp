@@ -111,9 +111,7 @@ std::string mesh_field_names_for_error_message(const input_parser::density_topol
 
 DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
                                  plato::filter::library::FilterFunction aFilterFunction)
-    : mMesh(detail::mesh_from_input(aInput)),
-      mNumDesignParameters(mesh::EntityCounts{mMesh}.numberOfDesignDomainNodes()),
-      mFilter(std::move(aFilterFunction))
+    : mMesh(detail::mesh_from_input(aInput)), mFilter(std::move(aFilterFunction))
 {
 }
 
@@ -131,7 +129,6 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
     const auto tDesignVariableConverter = mesh::DesignVariablesConversion{mMesh};
     const auto tNodalDesignParameters = mesh::NodalFieldVectorReference{aDesignParameters.stdVector()};
     return linear_algebra::JacobianMultiplier{
-        /*.mNumColumns=*/mNumDesignParameters,
         /*.mJacobianTimesVectorFunction=*/
         [tAnalysisDomainMesh = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(tNodalDesignParameters),
          this](const linear_algebra::DynamicVector<double>& x)
