@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <optional>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
@@ -11,7 +12,6 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::input_parser
 {
@@ -32,7 +32,7 @@ class DensityTopology
     explicit DensityTopology(const input_parser::density_topology& aInput,
                              plato::filter::library::FilterFunction aFilterFunction);
 
-    [[nodiscard]] mesh::MeshDesignVariables generateMesh(
+    [[nodiscard]] analysis::AnalysisDomainMesh generateMesh(
         const linear_algebra::DynamicVector<double>& aDesignParameter) const;
 
     [[nodiscard]] linear_algebra::JacobianMultiplier jacobian(
@@ -55,7 +55,7 @@ class DensityTopology
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
 [[nodiscard]] auto make_topology_geometry(const DensityTopology& aDensityTopology)
-    -> core::Function<mesh::MeshDesignVariables,
+    -> core::Function<analysis::AnalysisDomainMesh,
                       linear_algebra::JacobianMultiplier,
                       const linear_algebra::DynamicVector<double>&>;
 

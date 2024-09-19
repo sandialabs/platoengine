@@ -17,19 +17,20 @@ namespace
                                    [](const library::CriterionInput&) { return make_nodal_sum_function(); }};
 }
 
-double NodalSumObjective::f(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+double NodalSumObjective::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
     namespace tpi = plato::third_party_integration;
 
-    const auto tMesh = mesh::EntityRetrieval{mesh::Mesh{aMeshDesignVariables.mFileName}};
+    const auto tMesh = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
     const auto tCoordinates = tMesh.nodalCoordinates();
     const auto tCoordinateSum = std::accumulate(tCoordinates.begin(), tCoordinates.end(), tpi::common::Coordinate{});
     return tCoordinateSum.x + tCoordinateSum.y + tCoordinateSum.z;
 }
 
-linear_algebra::DynamicVector<double> NodalSumObjective::df(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+linear_algebra::DynamicVector<double> NodalSumObjective::df(
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    const auto tMesh = mesh::EntityCounts{mesh::Mesh{aMeshDesignVariables.mFileName}};
+    const auto tMesh = mesh::EntityCounts{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
     const unsigned int tSpatialDim = tMesh.spatialDimensions();
     const unsigned int tNumberOfNodes = tMesh.numberOfNodes();
     const unsigned int tSize = static_cast<unsigned int>(tSpatialDim * tNumberOfNodes);
@@ -38,9 +39,9 @@ linear_algebra::DynamicVector<double> NodalSumObjective::df(const mesh::MeshDesi
 }
 
 auto make_nodal_sum_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>
 {
-    return core::make_function([](const mesh::MeshDesignVariables& mesh) { return NodalSumObjective{}.f(mesh); },
-                               [](const mesh::MeshDesignVariables& mesh) { return NodalSumObjective{}.df(mesh); });
+    return core::make_function([](const analysis::AnalysisDomainMesh& mesh) { return NodalSumObjective{}.f(mesh); },
+                               [](const analysis::AnalysisDomainMesh& mesh) { return NodalSumObjective{}.df(mesh); });
 }
 }  // namespace plato::criteria::extension

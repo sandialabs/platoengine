@@ -2,11 +2,11 @@
 
 #include <filesystem>
 
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/mesh/EntityCounts.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -135,7 +135,7 @@ TEST_F(TwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
     constexpr auto tExpectedNumberOfBlocks = 2U;
     EXPECT_EQ(tMeshDesignVariables.mBlockScalarField.size(), tExpectedNumberOfBlocks);
 
-    const auto tMeshDesignVariablesView = mesh::MeshDesignVariablesSequentialView{tMeshDesignVariables};
+    const auto tMeshDesignVariablesView = analysis::AnalysisDomainMeshSequentialView{tMeshDesignVariables};
     EXPECT_EQ(tMeshDesignVariablesView.size(), tExpectedNumberOfDesignVariables);
 }
 

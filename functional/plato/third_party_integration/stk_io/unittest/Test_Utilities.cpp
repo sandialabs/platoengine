@@ -1,7 +1,3 @@
-#include <Ioss_ElementBlock.h>
-#include <Ioss_IOFactory.h>
-#include <Ioss_NodeBlock.h>
-#include <Ioss_Region.h>
 #include <gtest/gtest.h>
 #include <mpi.h>
 
@@ -18,8 +14,10 @@
 #include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
@@ -28,51 +26,32 @@ namespace
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 
 constexpr auto kTopologyFieldName = std::string_view{"topology"};
+constexpr auto kFixedValue = double{42.0};
 
-std::vector<double> read_nodal_density(const std::filesystem::path& aMeshName)
+void check_write_scalar_field(const std::filesystem::path& aInputFileName,
+                              const std::unordered_map<std::size_t, double>& aData,
+                              const std::filesystem::path& aOutputFileName,
+                              const std::vector<double>& aExpected,
+                              const plato::test_utilities::TestContext& aTestContext)
 {
-    Ioss::DatabaseIO* tResultsDb =
-        Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
-    Ioss::Region tResults(tResultsDb);
-
-    tResults.begin_state(1);
-    Ioss::NodeBlock* tNb = tResults.get_node_blocks()[0];
-    std::vector<double> tNodeFieldData;
-    tNb->get_field_data(std::string{kTopologyFieldName}, tNodeFieldData);
-    return tNodeFieldData;
-}
-
-std::vector<double> read_element_density(const std::filesystem::path& aMeshName)
-{
-    Ioss::DatabaseIO* tResultsDb =
-        Ioss::IOFactory::create("exodus", aMeshName.string(), Ioss::READ_MODEL, MPI_COMM_SELF);
-    Ioss::Region tResults(tResultsDb);
-
-    tResults.begin_state(1);
-    Ioss::ElementBlock* tEb = tResults.get_element_blocks()[0];
-    std::vector<double> tElementFieldData;
-    tEb->get_field_data(std::string{kTopologyFieldName}, tElementFieldData);
-    return tElementFieldData;
-}
-
-void check_write_density(const std::filesystem::path& aInputFileName,
-                         const std::unordered_map<std::size_t, double>& aData,
-                         const std::filesystem::path& aOutputFileName,
-                         const std::vector<double>& aExpected,
-                         const plato::test_utilities::TestContext& aTestContext)
-{
+    constexpr auto tFieldName = std::string_view{"Topology"};
+    const auto tScalarFieldFunction = [&aData](const std::size_t aGlobalIndex)
+    {
+        const auto tDensityIterator = aData.find(aGlobalIndex);
+        return tDensityIterator != aData.end() ? tDensityIterator->second : kFixedValue;
+    };
     // Nodal
     {
         write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{}));
-        write_nodal_density(aInputFileName, aData, aOutputFileName);
-        const auto tResult = read_nodal_density(aOutputFileName);
+        write_nodal_scalar_field(aInputFileName, tScalarFieldFunction, tFieldName, aOutputFileName);
+        const auto tResult = test_utilities::read_nodal_field(aOutputFileName, kTopologyFieldName);
         EXPECT_EQ(tResult, aExpected) << aTestContext;
     }
     // Element
     {
         write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
-        write_element_density(aInputFileName, aData, aOutputFileName);
-        const auto tResult = read_element_density(aOutputFileName);
+        write_element_scalar_field(aInputFileName, tScalarFieldFunction, tFieldName, aOutputFileName);
+        const auto tResult = test_utilities::read_element_field(aOutputFileName, kTopologyFieldName);
         EXPECT_EQ(tResult, aExpected) << aTestContext;
     }
     EXPECT_TRUE(std::filesystem::remove(aInputFileName)) << aTestContext;
@@ -171,7 +150,8 @@ TEST(STKUtilities, WriteDensityFieldAllValuesExist)
     std::iota(tExpected.begin(), tExpected.end(), 1.0);
     constexpr std::string_view tOutputFileName = "brick-out.exo";
 
-    check_write_density(tInputFileName, tData, tOutputFileName, tExpected, TEST_CONTEXT("All density values exist"));
+    check_write_scalar_field(tInputFileName, tData, tOutputFileName, tExpected,
+                             TEST_CONTEXT("All density values exist"));
 }
 
 TEST(STKUtilities, WriteDensityFieldSomeMissing)
@@ -185,12 +165,12 @@ TEST(STKUtilities, WriteDensityFieldSomeMissing)
     std::iota(tExpected.begin(), tExpected.end(), 1.0);
     for (const auto tMissingID : tMissingGlobalIDs)
     {
-        tExpected.at(tMissingID - 1) = 1.0;
+        tExpected.at(tMissingID - 1) = kFixedValue;
     }
     constexpr std::string_view tOutputFileName = "brick-out.exo";
 
-    check_write_density(tInputFileName, tData, tOutputFileName, tExpected,
-                        TEST_CONTEXT("Some missing density field values"));
+    check_write_scalar_field(tInputFileName, tData, tOutputFileName, tExpected,
+                             TEST_CONTEXT("Some missing density field values"));
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

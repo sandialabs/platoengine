@@ -1,12 +1,12 @@
-#ifndef PLATO_MESH_SHAREDVALUEPROXY
-#define PLATO_MESH_SHAREDVALUEPROXY
+#ifndef PLATO_ANALYSIS_SHAREDVALUEPROXY
+#define PLATO_ANALYSIS_SHAREDVALUEPROXY
 
 #include <cassert>
 #include <functional>
 #include <type_traits>
 #include <utility>
 
-namespace plato::mesh
+namespace plato::analysis
 {
 /// @brief Compile time check if an iterator refers to a const object.
 template <typename IteratorType>
@@ -15,8 +15,8 @@ constexpr static bool kIsConstIterator =
 
 /// @brief A helper for mutable views of nodal scalar values.
 ///
-/// Since MeshDesignVariables is organized in blocks, blocks sharing faces will share nodes on those faces.
-/// MeshDesignVariables stores shared nodes in both blocks, and so assigning to a single value requires a proxy object.
+/// Since AnalysisDomainMesh is organized in blocks, blocks sharing faces will share nodes on those faces.
+/// AnalysisDomainMesh stores shared nodes in both blocks, and so assigning to a single value requires a proxy object.
 /// This allows assignment to all shared nodes.
 template <typename Value, typename InnerIteratorType>
 struct SharedValueProxy
@@ -55,6 +55,6 @@ SharedValueProxy<Value, InnerIteratorType>::operator Value() const
     return *mIterators.front();
 }
 
-}  // namespace plato::mesh
+}  // namespace plato::analysis
 
 #endif

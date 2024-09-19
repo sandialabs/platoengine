@@ -4,16 +4,16 @@
 #include <boost/functional/hash.hpp>
 #include <cstddef>
 
-namespace plato::mesh
+namespace plato::analysis
 {
-struct MeshDesignVariables;
+struct AnalysisDomainMesh;
 }
 
 namespace plato::filter::library
 {
 /// @brief Computes a hash of the nodal coordinates of the mesh referenced by the file name in
-///  @a aMeshDesignVariables. Does not consider the density values or connectivity, only the nodal coordinates.
-[[nodiscard]] std::size_t hash_mesh_coordinates(const plato::mesh::MeshDesignVariables& aMeshDesignVariables);
+///  @a aAnalysisDomainMesh. Does not consider the density values or connectivity, only the nodal coordinates.
+[[nodiscard]] std::size_t hash_mesh_coordinates(const plato::analysis::AnalysisDomainMesh& aAnalysisDomainMesh);
 
 namespace detail
 {

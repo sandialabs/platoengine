@@ -5,6 +5,8 @@
 #include <boost/serialization/vector.hpp>
 #include <optional>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
@@ -17,8 +19,6 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::filter::extension
@@ -33,10 +33,10 @@ namespace
         auto tFilterCache = detail::create_filter_cache(tInput);
 
         return core::make_function(
-            [tFilterCache](const mesh::MeshDesignVariables& aMeshDesignVariables) mutable
-            { return tFilterCache.compute(aMeshDesignVariables)->filter(aMeshDesignVariables); },
-            [tFilterCache](const mesh::MeshDesignVariables& aMeshDesignVariables) mutable {
-                return library::FilterJacobian{tFilterCache.compute(aMeshDesignVariables), aMeshDesignVariables};
+            [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
+            { return tFilterCache.compute(aAnalysisDomainMesh)->filter(aAnalysisDomainMesh); },
+            [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable {
+                return library::FilterJacobian{tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh};
             });
     }};
 
@@ -59,24 +59,24 @@ KernelFilter::KernelFilter(const mesh::Mesh& aMesh,
 {
 }
 
-mesh::MeshDesignVariables KernelFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+analysis::AnalysisDomainMesh KernelFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    const auto tMesh = mesh::Mesh{aMeshDesignVariables};
+    const auto tMesh = mesh::Mesh{aAnalysisDomainMesh};
     const auto tFieldValues =
-        mesh::DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalFieldVector(aMeshDesignVariables);
+        mesh::DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalFieldVector(aAnalysisDomainMesh);
 
     const auto tFilteredField = mLinearMask.matrixMultiply(tFieldValues.mValue);
     if (mFilterCentering == input_parser::KernelFilterCenteringTypes::kNodeCentered)
     {
-        return mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+        return mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{std::cref(tFilteredField)});
     }
-    return mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+    return mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{std::cref(tFilteredField)});
 }
 
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(
-    const mesh::MeshDesignVariables& /*aMeshDesignVariables*/, const linear_algebra::DynamicVector<double>& aV) const
+    const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const linear_algebra::DynamicVector<double>& aV) const
 {
     return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
 }
@@ -152,14 +152,14 @@ FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)
     const auto tRequestedRanks = aInput.number_of_processors.value_or(1u);
     const auto tSplitComm = subdivide_world_comm_into_groups(tRequestedRanks);
 
-    return FilterCache{[aInput, tSplitComm](const mesh::MeshDesignVariables& aMeshDesignVariables)
+    return FilterCache{[aInput, tSplitComm](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
                        {
-                           return std::make_shared<KernelFilter>(mesh::Mesh{aMeshDesignVariables},
+                           return std::make_shared<KernelFilter>(mesh::Mesh{aAnalysisDomainMesh},
                                                                  FilterRadius{aInput.filter_radius.value()},
                                                                  aInput.centering_type.value(), tSplitComm);
                        },
-                       [](const mesh::MeshDesignVariables& aMeshDesignVariables)
-                       { return library::hash_mesh_coordinates(aMeshDesignVariables); }};
+                       [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                       { return library::hash_mesh_coordinates(aAnalysisDomainMesh); }};
 }
 
 }  // namespace detail

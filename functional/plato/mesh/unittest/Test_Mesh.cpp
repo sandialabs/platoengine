@@ -2,8 +2,8 @@
 
 #include <stk_mesh/base/Part.hpp>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
@@ -127,13 +127,13 @@ TEST_F(TwoDThreeBlockMesh, PartVectors)
     EXPECT_EQ(tDesignParts.front().get().mesh_meta_data_ordinal(), tDesignBlockOrdinals.front());
 }
 
-TEST_F(TwoDThreeBlockMesh, ConstructionFromMeshDesignVariables)
+TEST_F(TwoDThreeBlockMesh, ConstructionFromAnalysisDomainMesh)
 {
     // Element-based densities
     const auto tBlock1ScalarField =
-        MeshDesignVariables::ScalarFieldVector{{4, 0, 1.0}, {5, 1, 1.0}, {6, 2, 1.0}, {7, 3, 1.0}};
-    const auto tBlock2ScalarField = MeshDesignVariables::ScalarFieldVector{{1, 4, 1.0}, {2, 5, 1.0}};
-    const auto tBlock3ScalarField = MeshDesignVariables::ScalarFieldVector{{8, 6, 1.0}};
+        analysis::AnalysisDomainMesh::ScalarFieldVector{{4, 0, 1.0}, {5, 1, 1.0}, {6, 2, 1.0}, {7, 3, 1.0}};
+    const auto tBlock2ScalarField = analysis::AnalysisDomainMesh::ScalarFieldVector{{1, 4, 1.0}, {2, 5, 1.0}};
+    const auto tBlock3ScalarField = analysis::AnalysisDomainMesh::ScalarFieldVector{{8, 6, 1.0}};
 
     const auto tTestFunction = [this](const Mesh& aMesh,
                                       const std::vector<Mesh::BlockOrdinalType>& aExpectedDesignBlockOrdinals,
@@ -147,7 +147,7 @@ TEST_F(TwoDThreeBlockMesh, ConstructionFromMeshDesignVariables)
 
     const auto aAllFixedBlocksContext = TEST_CONTEXT("All fixed blocks");
     {
-        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, {}}};
+        const auto tMesh = Mesh{analysis::AnalysisDomainMesh{mMeshFilePath, {}}};
         const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{};
         const auto tExpectedFixedBlockOrdinals =
             std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal, mBlock2Ordinal, mBlock3Ordinal};
@@ -155,8 +155,8 @@ TEST_F(TwoDThreeBlockMesh, ConstructionFromMeshDesignVariables)
     }
     const auto aOneBlockContext = TEST_CONTEXT("One fixed block");
     {
-        const auto tScalarField = MeshDesignVariables::BlockScalarField{{1, tBlock1ScalarField}};
-        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tScalarField}};
+        const auto tScalarField = analysis::AnalysisDomainMesh::BlockScalarField{{1, tBlock1ScalarField}};
+        const auto tMesh = Mesh{analysis::AnalysisDomainMesh{mMeshFilePath, tScalarField}};
         const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal};
         const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock2Ordinal, mBlock3Ordinal};
         tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals, aOneBlockContext);
@@ -164,17 +164,17 @@ TEST_F(TwoDThreeBlockMesh, ConstructionFromMeshDesignVariables)
     const auto aTwoBlockContext = TEST_CONTEXT("Two fixed blocks");
     {
         const auto tScalarField =
-            MeshDesignVariables::BlockScalarField{{2, tBlock2ScalarField}, {3, tBlock3ScalarField}};
-        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tScalarField}};
+            analysis::AnalysisDomainMesh::BlockScalarField{{2, tBlock2ScalarField}, {3, tBlock3ScalarField}};
+        const auto tMesh = Mesh{analysis::AnalysisDomainMesh{mMeshFilePath, tScalarField}};
         const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock2Ordinal, mBlock3Ordinal};
         const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal};
         tTestFunction(tMesh, tExpectedDesignBlockOrdinals, tExpectedFixedBlockOrdinals, aTwoBlockContext);
     }
     const auto aThreeBlockContext = TEST_CONTEXT("Three fixed blocks");
     {
-        const auto tScalarField = MeshDesignVariables::BlockScalarField{
+        const auto tScalarField = analysis::AnalysisDomainMesh::BlockScalarField{
             {1, tBlock1ScalarField}, {2, tBlock2ScalarField}, {3, tBlock3ScalarField}};
-        const auto tMesh = Mesh{MeshDesignVariables{mMeshFilePath, tScalarField}};
+        const auto tMesh = Mesh{analysis::AnalysisDomainMesh{mMeshFilePath, tScalarField}};
         const auto tExpectedDesignBlockOrdinals =
             std::vector<Mesh::BlockOrdinalType>{mBlock1Ordinal, mBlock2Ordinal, mBlock3Ordinal};
         const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{};
@@ -182,11 +182,11 @@ TEST_F(TwoDThreeBlockMesh, ConstructionFromMeshDesignVariables)
     }
 }
 
-TEST_F(OneBlock3x1x1HexMeshWithNodeSets, ConstructionFromMeshDesignVariables)
+TEST_F(OneBlock3x1x1HexMeshWithNodeSets, ConstructionFromAnalysisDomainMesh)
 {
-    const auto tScalarField = MeshDesignVariables::ScalarFieldVector{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}};
+    const auto tScalarField = analysis::AnalysisDomainMesh::ScalarFieldVector{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}};
     constexpr auto tBlockID = 1;
-    const auto tMeshDesignVariables = MeshDesignVariables{mMeshFilePath, {{tBlockID, tScalarField}}};
+    const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {{tBlockID, tScalarField}}};
 
     {
         const auto tMesh = Mesh{mMeshFilePath};
@@ -194,7 +194,7 @@ TEST_F(OneBlock3x1x1HexMeshWithNodeSets, ConstructionFromMeshDesignVariables)
         EXPECT_EQ(tMesh.fixedBlockOrdinals().size(), 0U);
     }
     {
-        const auto tMesh = Mesh{tMeshDesignVariables};
+        const auto tMesh = Mesh{tAnalysisDomainMesh};
         EXPECT_EQ(tMesh.designBlockOrdinals().size(), 1U);
         EXPECT_EQ(tMesh.fixedBlockOrdinals().size(), 0U);
     }

@@ -13,27 +13,27 @@ ParallelMassObjectiveInterface::ParallelMassObjectiveInterface(MPI_Comm aComm) :
 {
 }
 
-double ParallelMassObjectiveInterface::value(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+double ParallelMassObjectiveInterface::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
     const auto tParallelizedValue =
-        test_utilities::ParallelTestFunctionWrapper<double, const mesh::MeshDesignVariables&>{
-            [](const mesh::MeshDesignVariables& aMeshDesignVariablesLambdaArg)
-            { return MassObjectiveInterface{}.value(aMeshDesignVariablesLambdaArg); }};
-    const auto tResult = tParallelizedValue(aMeshDesignVariables, mComm);
+        test_utilities::ParallelTestFunctionWrapper<double, const analysis::AnalysisDomainMesh&>{
+            [](const analysis::AnalysisDomainMesh& aAnalysisDomainMeshLambdaArg)
+            { return MassObjectiveInterface{}.value(aAnalysisDomainMeshLambdaArg); }};
+    const auto tResult = tParallelizedValue(aAnalysisDomainMesh, mComm);
     return tResult;
 }
 
 std::vector<double> ParallelMassObjectiveInterface::gradient(
-    const mesh::MeshDesignVariables& aMeshDesignVariables) const
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
     const auto tParallelizedGradient =
         test_utilities::ParallelTestFunctionWrapper<linear_algebra::DynamicVector<double>,
-                                                    const mesh::MeshDesignVariables&>{
-            [](const mesh::MeshDesignVariables& aMeshDesignVariablesLambdaArg) {
+                                                    const analysis::AnalysisDomainMesh&>{
+            [](const analysis::AnalysisDomainMesh& aAnalysisDomainMeshLambdaArg) {
                 return linear_algebra::DynamicVector<double>{
-                    MassObjectiveInterface{}.gradient(aMeshDesignVariablesLambdaArg)};
+                    MassObjectiveInterface{}.gradient(aAnalysisDomainMeshLambdaArg)};
             }};
-    return tParallelizedGradient(aMeshDesignVariables, mComm).stdVector();
+    return tParallelizedGradient(aAnalysisDomainMesh, mComm).stdVector();
 }
 
 }  // namespace plato::integration_tests::test_mass_objective

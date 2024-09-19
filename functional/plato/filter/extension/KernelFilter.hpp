@@ -11,10 +11,10 @@
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/StateCache.hpp"
 
-namespace plato::mesh
+namespace plato::analysis
 {
-struct MeshDesignVariables;
-}  // namespace plato::mesh
+struct AnalysisDomainMesh;
+}
 
 namespace plato::input_parser
 {
@@ -25,7 +25,7 @@ namespace plato::filter::extension
 {
 using FilterRadius = utilities::NamedType<double, struct FilterRadiusTag>;
 using FilterCache =
-    plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const mesh::MeshDesignVariables&>;
+    plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const analysis::AnalysisDomainMesh&>;
 
 /// @brief An implementation of a kernel filter that relies on Tpetra and STK objects to conduct a search and create a
 /// linear mask.
@@ -39,14 +39,14 @@ class KernelFilter : public library::FilterInterface
                  input_parser::KernelFilterCenteringTypes aFilterCentering,
                  const boost::mpi::communicator& aCommunicator);
 
-    /// @brief Apply the internal filter to the mesh specified in @a aMeshDesignVariables and return a new
-    /// MeshDesignVariables object
-    [[nodiscard]] mesh::MeshDesignVariables filter(
-        const mesh::MeshDesignVariables& aMeshDesignVariables) const override;
+    /// @brief Apply the internal filter to the mesh specified in @a aAnalysisDomainMesh and return a new
+    /// AnalysisDomainMesh object
+    [[nodiscard]] analysis::AnalysisDomainMesh filter(
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
 
     /// @brief Return the Jacobian of the linear mask applied to a specific vector @a aV
     [[nodiscard]] linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const mesh::MeshDesignVariables& aMeshDesignVariables,
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
         const linear_algebra::DynamicVector<double>& aV) const override;
 
    private:

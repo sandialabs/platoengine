@@ -7,6 +7,7 @@ copy_test_utility_data_files_and_convert_to_cdf()
 clang_tidy_setup()
 
 add_subdirectory(./utilities)
+add_subdirectory(./analysis)
 add_subdirectory(./services)
 add_subdirectory(./third_party_integration)
 add_subdirectory(./input_parser)

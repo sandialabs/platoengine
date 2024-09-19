@@ -5,16 +5,16 @@
 #include <boost/serialization/vector.hpp>
 #include <string>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -103,7 +103,7 @@ std::vector<double> create_linear_space_vector(unsigned int aSize)
 
 auto test_filter_evaluation(const third_party_integration::stk_io::CommandGenerator& aCommandGenerator,
                             const boost::mpi::communicator& aCommunicator)
-    -> std::pair<std::vector<mesh::ScalarFieldValue>, std::vector<double> >
+    -> std::pair<std::vector<analysis::ScalarFieldValue>, std::vector<double> >
 {
     const KernelFilter tKernelFilter{mesh::Mesh{kMeshFile}, FilterRadius{1},
                                      input_parser::KernelFilterCenteringTypes::kElementCentered, aCommunicator};
@@ -113,14 +113,14 @@ auto test_filter_evaluation(const third_party_integration::stk_io::CommandGenera
         create_linear_space_vector(aCommandGenerator.numberOfElements());
 
     const auto tMesh = mesh::DesignVariablesConversion{mesh::Mesh{kMeshFile}};
-    const auto tMeshDesignVariables =
-        tMesh.nodalFieldToMeshDesignVariables(mesh::NodalFieldVectorReference{tNodalDensities});
-    const auto tResult = tKernelFilter.filter(tMeshDesignVariables);
-    const auto tPostFilter = mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesSequentialView{tResult});
+    const auto tAnalysisDomainMesh =
+        tMesh.nodalFieldToAnalysisDomainMesh(mesh::NodalFieldVectorReference{tNodalDensities});
+    const auto tResult = tKernelFilter.filter(tAnalysisDomainMesh);
+    const auto tPostFilter = analysis::mesh_analysis_to_vector(analysis::AnalysisDomainMeshSequentialView{tResult});
 
     const auto tPostSensitivities =
         tKernelFilter
-            .jacobianTimesVector(tMeshDesignVariables, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
+            .jacobianTimesVector(tAnalysisDomainMesh, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
             .stdVector();
 
     return std::pair{tPostFilter, tPostSensitivities};
@@ -185,7 +185,7 @@ TEST(ParallelConsistencyKernelFilter, FilterConsistency)
     if (tWorldComm.rank() == 0)
     {
         auto tIDMap = std::vector<std::size_t>{};
-        std::tie(tBroadcastResultFilter, tIDMap) = mesh::detail::split_scalar_field_values(tResultFilter);
+        std::tie(tBroadcastResultFilter, tIDMap) = analysis::split_scalar_field_values(tResultFilter);
         tBroadcastResultJV = tResultJV;
     }
 

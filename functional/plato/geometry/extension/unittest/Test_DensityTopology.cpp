@@ -7,15 +7,18 @@
 #include <stk_util/parallel/Parallel.hpp>
 #include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
+#include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -69,10 +72,10 @@ TEST(DensityTopology, GenerateMesh)
     const std::vector<double> tDesignVars = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
     const linear_algebra::DynamicVector<double> tDesignVec(tDesignVars);
 
-    const auto tMeshDesignVariables = tDensityTopology.generateMesh(tDesignVec);
+    const auto tAnalysisDomainMesh = tDensityTopology.generateMesh(tDesignVec);
     const auto tDensities =
-        mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesSequentialView{tMeshDesignVariables});
-    const auto [tDensityValues, tIDMap] = mesh::detail::split_scalar_field_values(tDensities);
+        analysis::mesh_analysis_to_vector(analysis::AnalysisDomainMeshSequentialView{tAnalysisDomainMesh});
+    const auto [tDensityValues, tIDMap] = analysis::split_scalar_field_values(tDensities);
     EXPECT_EQ(tDensityValues, tDesignVars);
 
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
