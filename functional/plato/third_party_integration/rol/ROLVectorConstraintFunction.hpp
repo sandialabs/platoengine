@@ -46,8 +46,8 @@ class ROLVectorConstraintFunction : public ROL::StdConstraint<double>
                                double& tol) override;*/
 
    private:
-    ROLPlatoFunction mJacobianFunction;
-    ROLPlatoFunction mAdjointJacobianFunction;
+    ROLPlatoFunction mFunctionWithDfAsJacobian;
+    ROLPlatoFunction mFunctionWithDfAsAdjointJacobian;
     double mConstraintTarget = 0;
 };
 }  // namespace plato::third_party_integration::rol

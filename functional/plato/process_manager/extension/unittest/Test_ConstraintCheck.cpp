@@ -47,7 +47,6 @@ TEST(ConstraintCheck, ValidateAndRunChecksForLinearConstraint)
 TEST(ConstraintCheck, ValidateAndRunChecksForNonlinearConstraint)
 {
     namespace ptu = test_utilities;
-
     input_parser::ParsedInput tInputDeck = ptu::create_valid_brick_shape_geometry() |
                                            ptu::create_valid_example_objective() |
                                            ptu::create_valid_example_constraint_check();

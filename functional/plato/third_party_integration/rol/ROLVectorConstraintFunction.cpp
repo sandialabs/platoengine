@@ -4,15 +4,15 @@ namespace plato::third_party_integration::rol
 {
 ROLVectorConstraintFunction::ROLVectorConstraintFunction(
     criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&> aConstraint)
-    : mJacobianFunction(std::move(aConstraint.mConstraintJacobianFunction)),
-      mAdjointJacobianFunction(std::move(aConstraint.mConstraintAdjointJacobianFunction)),
+    : mFunctionWithDfAsJacobian(std::move(aConstraint.mFunctionWithDfAsJacobian)),
+      mFunctionWithDfAsAdjointJacobian(std::move(aConstraint.mFunctionWithDfAsAdjointJacobian)),
       mConstraintTarget(aConstraint.mConstraintTarget)
 {
 }
 
 void ROLVectorConstraintFunction::value(std::vector<double>& aConstraints, const std::vector<double>& aControl, double&)
 {
-    const auto tConstraintValue = mJacobianFunction.f(linear_algebra::DynamicVector<double>(aControl));
+    const auto tConstraintValue = mFunctionWithDfAsJacobian.f(linear_algebra::DynamicVector<double>(aControl));
     const auto tTargetVector = linear_algebra::DynamicVector<double>(tConstraintValue.size(), mConstraintTarget);
     aConstraints = (tConstraintValue + (-1.0 * tTargetVector)).stdVector();
 }
@@ -22,8 +22,11 @@ void ROLVectorConstraintFunction::applyJacobian(std::vector<double>& aJacobianTi
                                                 const std::vector<double>& aControl,
                                                 double& /*aTolerance*/)
 {
-    // std::cout << "Vector constraint apply jacobian. " << std::endl;
-    aJacobianTimesDirection = mJacobianFunction.df(linear_algebra::DynamicVector<double>(aControl))
+    std::cout << "Vector constraint apply jacobian. " << std::endl;
+    std::cout << "Size of direction: " << aDirection.size() << std::endl;
+    std::cout << "Size of control: " << aControl.size() << std::endl;
+
+    aJacobianTimesDirection = mFunctionWithDfAsJacobian.df(linear_algebra::DynamicVector<double>(aControl))
                                   .mJacobianTimesVectorFunction(linear_algebra::DynamicVector<double>(aDirection))
                                   .stdVector();
 }
@@ -33,13 +36,22 @@ void ROLVectorConstraintFunction::applyAdjointJacobian(std::vector<double>& aAdj
                                                        const std::vector<double>& aControl,
                                                        double& /*aTolerance*/)
 {
-    // std::cout << "Vector constraint apply adjoint jacobian. " << std::endl;
+    std::cout << "Vector constraint apply adjoint jacobian. " << std::endl;
+    std::cout << "Size of dual: " << aDual.size() << std::endl;
+    std::cout << "Size of control: " << aControl.size() << std::endl;
+
     assert(aDual.dimension() == 1);
     assert(aAdjointJacobianTimesDirection.dimension() == aControl.dimension());
 
-    aAdjointJacobianTimesDirection = mAdjointJacobianFunction.df(linear_algebra::DynamicVector<double>(aControl))
-                                         .mJacobianTimesVectorFunction(linear_algebra::DynamicVector<double>(aDual))
-                                         .stdVector();
+    const auto tTemp = mFunctionWithDfAsAdjointJacobian.df(linear_algebra::DynamicVector<double>(aControl))
+                           .mJacobianTimesVectorFunction(linear_algebra::DynamicVector<double>(aDual))
+                           .stdVector();
+    std::cout << "Temp size " << tTemp.size() << std::endl;
+
+    aAdjointJacobianTimesDirection =
+        mFunctionWithDfAsAdjointJacobian.df(linear_algebra::DynamicVector<double>(aControl))
+            .mJacobianTimesVectorFunction(linear_algebra::DynamicVector<double>(aDual))
+            .stdVector();
 }
 /*
 void ROLVectorConstraintFunction::applyAdjointHessian(std::vector<double>& ,

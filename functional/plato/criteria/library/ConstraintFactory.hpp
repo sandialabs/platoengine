@@ -49,10 +49,9 @@ struct VectorConstraint
         core::Function<linear_algebra::DynamicVector<double>, linear_algebra::JacobianMultiplier, FunctionArg>;
 
     std::string mName;
-    ConstraintFunction mConstraintJacobianFunction;
-    ConstraintFunction mConstraintAdjointJacobianFunction;
+    ConstraintFunction mFunctionWithDfAsJacobian;
+    ConstraintFunction mFunctionWithDfAsAdjointJacobian;
     double mConstraintTarget = 0;
-    unsigned int mNumberOfConstraints = 1;
     bool mLinear = false;
     ConstraintType mConstraintType;
 };
@@ -69,8 +68,7 @@ using ConstraintVariant = std::variant<Constraint<const analysis::AnalysisDomain
     -> std::vector<Constraint<const analysis::AnalysisDomainMesh&>>;
 
 /// @brief Helper for providing ROL a dual vector for constraints sized with @a aSize.
-/// @note The default behavior is for most constraints that are scalar and so the dual vector always has dimension 1.
-[[nodiscard]] auto make_dual_vector(unsigned int aSize = 1) -> linear_algebra::DynamicVector<double>;
+[[nodiscard]] auto make_dual_vector(unsigned int aSize) -> linear_algebra::DynamicVector<double>;
 
 namespace detail
 {

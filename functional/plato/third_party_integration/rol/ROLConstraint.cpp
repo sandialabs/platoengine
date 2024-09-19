@@ -61,7 +61,7 @@ namespace detail
 
 namespace
 {
-void check_throw_if_number_of_constraints_zero(const unsigned int aNumberOfConstraints)
+void throw_if_number_of_constraints_zero(const unsigned int aNumberOfConstraints)
 {
     if (aNumberOfConstraints == 0)
     {
@@ -73,14 +73,14 @@ void check_throw_if_number_of_constraints_zero(const unsigned int aNumberOfConst
 
 auto create_greater_than_inequality_bounds(const unsigned int aNumberOfConstraints) -> ROL::Ptr<ROL::Bounds<double>>
 {
-    check_throw_if_number_of_constraints_zero(aNumberOfConstraints);
+    throw_if_number_of_constraints_zero(aNumberOfConstraints);
     return create_rol_bound_constraint({std::vector<double>(aNumberOfConstraints, 0),
                                         std::vector<double>(aNumberOfConstraints, ROL::ROL_INF<double>())});
 }
 
 auto create_less_than_inequality_bounds(const unsigned int aNumberOfConstraints) -> ROL::Ptr<ROL::Bounds<double>>
 {
-    check_throw_if_number_of_constraints_zero(aNumberOfConstraints);
+    throw_if_number_of_constraints_zero(aNumberOfConstraints);
     return create_rol_bound_constraint({std::vector<double>(aNumberOfConstraints, ROL::ROL_NINF<double>()),
                                         std::vector<double>(aNumberOfConstraints, 0)});
 }

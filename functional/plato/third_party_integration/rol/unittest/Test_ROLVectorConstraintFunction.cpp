@@ -55,11 +55,10 @@ auto make_himmelblau_rol_vector_constraint() -> ROLVectorConstraintFunction
     const auto tVectorHimmelblauJacobian = make_vector_himmelblau_jacobian();
     const auto tVectorHimmelblauAdjointJacobian = make_vector_himmelblau_adjoint_jacobian();
     constexpr bool tIsLinear = false;
-    constexpr unsigned int tNumberOfConstraints = 1;
     return ROLVectorConstraintFunction{
         criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
-            "name", tVectorHimmelblauJacobian, tVectorHimmelblauAdjointJacobian, kValue, tNumberOfConstraints,
-            tIsLinear, criteria::library::ConstraintType::kEquality}};
+            "name", tVectorHimmelblauJacobian, tVectorHimmelblauAdjointJacobian, kValue, tIsLinear,
+            criteria::library::ConstraintType::kEquality}};
 }
 
 }  // namespace

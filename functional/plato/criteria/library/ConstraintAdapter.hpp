@@ -1,6 +1,9 @@
 #ifndef PLATO_CRITERIA_LIBRARY_CONSTRAINTADAPTOR
 #define PLATO_CRITERIA_LIBRARY_CONSTRAINTADAPTOR
 
+#include <algorithm>
+#include <iterator>
+
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -39,7 +42,10 @@ auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) ->
             const linear_algebra::DynamicVector<double> tDf = aScalarFunction.df(aFunctionArg);
             const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
                 [tDf](const linear_algebra::DynamicVector<double>& aV)
-            { return linear_algebra::DynamicVector<double>{tDf.dot(aV)}; };
+            {
+                std::cout << "jacobian wrapper: tDf size " << tDf.size() << " and aV size " << aV.size() << std::endl;
+                return linear_algebra::DynamicVector<double>{tDf.dot(aV)};
+            };
             return linear_algebra::JacobianMultiplier{tNumberOfColumns, tFunction};
         }};
 }
@@ -48,18 +54,24 @@ template <typename FunctionArg>
 auto make_adjoint_jacobian_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction)
     -> VectorFunction<FunctionArg>
 {
+    std::cout << "no relay adj" << std::endl;
     return VectorFunction<FunctionArg>{
         [aScalarFunction](const auto& aFunctionArg)
         { return linear_algebra::DynamicVector<double>{aScalarFunction.f(aFunctionArg)}; },
         [aScalarFunction](const auto& aFunctionArg)
         {
             constexpr unsigned int tNumberOfColumns = 1;
+
             const linear_algebra::DynamicVector<double> tDf = aScalarFunction.df(aFunctionArg);
             const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
                 [tDf](const linear_algebra::DynamicVector<double>& aV)
             {
+                std::cout << "adjoint jacobian wrapper: tDf size " << tDf.size() << " and aV size " << aV.size()
+                          << std::endl;
                 const auto tEntry = aV.stdVector()[0];
-                return linear_algebra::DynamicVector<double>{tDf * tEntry};
+                const auto tTemp = tDf * tEntry;
+                std::cout << "apply size " << tTemp.size() << std::endl;
+                return tDf * tEntry;
             };
             return linear_algebra::JacobianMultiplier{tNumberOfColumns, tFunction};
         }};
@@ -78,12 +90,10 @@ template <typename FunctionArg>
 auto make_vector_constraint(const Constraint<FunctionArg>& aConstraint) -> VectorConstraint<FunctionArg>
 {
     std::cout << "not relay" << std::endl;
-    constexpr unsigned int tNumberOfConstraints = 1;
     return VectorConstraint<FunctionArg>{aConstraint.mName,
                                          detail::make_vector_function(aConstraint.mConstraintFunction),
                                          detail::make_adjoint_jacobian_vector_function(aConstraint.mConstraintFunction),
                                          aConstraint.mConstraintTarget,
-                                         tNumberOfConstraints,
                                          aConstraint.mLinear,
                                          aConstraint.mConstraintType};
 }

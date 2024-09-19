@@ -4,7 +4,9 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Compose.hpp"
+#include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 #include "plato/third_party_integration/rol/ROLConstraintFunction.hpp"
@@ -20,43 +22,26 @@ auto make_rol_objective(const library::ProcessManagerData& aProblem)
         compose(aProblem.mObjective, aProblem.mGeometry.mCompute));
 }
 
-namespace
-{
-[[nodiscard]] auto compose_geometry_with_constraint(
-    const criteria::library::VectorConstraint<const mesh::MeshDesignVariables&>& aMeshVectorConstraint,
-    const plato::geometry::library::FactoryTypes& aGeometry)
-    -> criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>
-{
-    const auto tJacobianComposition = compose(aMeshVectorConstraint.mConstraintJacobianFunction, aGeometry.mCompute);
-    const auto tAdjointJacobianComposition =
-        compose(aMeshVectorConstraint.mConstraintAdjointJacobianFunction, aGeometry.mCompute);
-
-    return criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
-        aMeshVectorConstraint.mName,
-        tJacobianComposition,
-        tAdjointJacobianComposition,
-        aMeshVectorConstraint.mConstraintTarget,
-        aMeshVectorConstraint.mNumberOfConstraints,
-        aMeshVectorConstraint.mLinear,
-        aMeshVectorConstraint.mConstraintType};
-}
-}  // namespace
-
 auto make_rol_constraints(const library::ProcessManagerData& aProblem)
     -> std::vector<third_party_integration::rol::ROLConstraint>
 {
     std::vector<third_party_integration::rol::ROLConstraint> tROLConstraints;
-    std::transform(
-        aProblem.mConstraints.cbegin(), aProblem.mConstraints.cend(), std::back_inserter(tROLConstraints),
-        [&aProblem](const plato::criteria::library::Constraint<const analysis::AnalysisDomainMesh&>& aConstraintData)
-        {
-            const auto tConstraint = compose_geometry_with_constraint(aConstraintData, aProblem.mGeometry);
-            /// TODO add sizing info
-            return third_party_integration::rol::ROLConstraint{
-                aConstraintData.mName, aConstraintData.mNumberOfConstraints, aConstraintData.mLinear,
-                aConstraintData.mConstraintType,
-                std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(std::move(tConstraint))};
-        });
+    std::transform(aProblem.mConstraints.cbegin(), aProblem.mConstraints.cend(), std::back_inserter(tROLConstraints),
+                   [&aProblem](const auto& aConstraintData)
+                   {
+                       const auto tConstraint = compose_geometry_with_constraint(aConstraintData, aProblem.mGeometry);
+                       const auto tVectorConstraint = criteria::library::make_vector_constraint(tConstraint);
+                       /// TODO add sizing info
+                       const auto tConstraintSize = static_cast<unsigned int>(
+                           tVectorConstraint.mFunctionWithDfAsJacobian.f(aProblem.mGeometry.mInitialGuess).size());
+                       std::cout << "Constraint size determined: " << tConstraintSize << std::endl;
+
+                       return third_party_integration::rol::ROLConstraint{
+                           aConstraintData.mName, tConstraintSize, aConstraintData.mLinear,
+                           aConstraintData.mConstraintType,
+                           std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(
+                               std::move(tVectorConstraint))};
+                   });
     return tROLConstraints;
 }
 

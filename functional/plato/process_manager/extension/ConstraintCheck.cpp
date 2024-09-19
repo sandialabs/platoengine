@@ -65,6 +65,7 @@ ConstraintCheck::ConstraintCheck(const ValidatedConstraintCheckInput& aInput)
 
 void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData) const
 {
+    namespace tpir = third_party_integration::rol;
     constexpr bool tPrintOutput = true;
 
     auto [tROLProblem, tROLControls] = make_rol_problem(aProcessManagerData);
@@ -86,15 +87,18 @@ void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData
         constexpr int tFiniteDifferenceOrder = 1;  // TODO: Should we make this an actual input?
         std::ofstream tCheckJacobianOutFile{mJacobianCheckOutputFileName};
         tConstraint->checkApplyJacobian(
-            third_party_integration::rol::to_rol_vector(aProcessManagerData.mGeometry.mInitialGuess),
-            third_party_integration::rol::generate_perturbation(tNumDesignVariables), *tConstraintVectorStandIn,
+            tpir::to_rol_vector(aProcessManagerData.mGeometry.mInitialGuess),
+            tpir::generate_perturbation(tNumDesignVariables), *tConstraintVectorStandIn,
             LogspaceGenerator{mInitialDirectionMagnitude, mStepSizeReductionFactor, mNumberOfSteps}.steps(),
             tPrintOutput, tCheckJacobianOutFile, tFiniteDifferenceOrder);
 
-        const auto tTolerance = tConstraint->checkAdjointConsistencyJacobian(
-            third_party_integration::rol::generate_perturbation(tROLProblem->getMultiplierVector()->dimension()),
-            third_party_integration::rol::generate_perturbation(tNumDesignVariables),
-            third_party_integration::rol::to_rol_vector(aProcessManagerData.mGeometry.mInitialGuess), false);
+        const auto tControlVector = tpir::to_rol_vector(aProcessManagerData.mGeometry.mInitialGuess);
+        const auto tDirectionVector = tpir::generate_perturbation(tNumDesignVariables);
+        const auto tDualVector = tpir::generate_perturbation(tROLProblem->getMultiplierVector()->dimension());
+
+        const auto tTolerance =
+            tConstraint->checkAdjointConsistencyJacobian(tDualVector, tDirectionVector, tControlVector, tPrintOutput);
+
         detail::write_jacobian_adjoint_consistency_check_output(mJacobianAdjointConsistencyCheckOutputFileName,
                                                                 tTolerance);
     }
