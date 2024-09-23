@@ -1,13 +1,14 @@
+#ifndef PLATO_KRINO_INTEGRATION_PARSE
+#define PLATO_KRINO_INTEGRATION_PARSE
+
 #include <istream>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "PlatoKrinoEnums.hpp"
+#include "Enums.hpp"
 
-#pragma once
-
-namespace Plato::Krino
+namespace plato::krino_integration
 {
 
 struct CommandLineOptions
@@ -24,4 +25,6 @@ struct CommandLineOptions
 
 bool parseCommandLineOptions(int aArgc, char *aArgv[], CommandLineOptions &aCommandLineOptions);
 
-}  // namespace Plato::Krino
+}  // namespace plato::krino_integration
+
+#endif  // PLATO_KRINO_INTEGRATION_PARSE

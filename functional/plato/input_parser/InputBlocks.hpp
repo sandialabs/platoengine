@@ -108,22 +108,6 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato::input_parser::FilterCrossReference, filter)
 )
 
-PLATO_FILTER_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), identity_filter,
-    (double, filter_radius)
-)
-
-PLATO_FILTER_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), helmholtz_filter,
-    (double, filter_radius)
-    (double, boundary_sticking_penalty)
-)
-
-PLATO_FILTER_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), kernel_filter,
-    (double, filter_radius)
-    (plato::input_parser::KernelFilterCenteringTypes, centering_type)
-
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), levelset_topology,
     (plato::input_parser::FileName, background_mesh_name)
@@ -143,6 +127,23 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (bool, sphere_pattern_overlap_bbox)
     (double, levelset_lower_bound)
     (double, levelset_upper_bound)
+)
+
+PLATO_FILTER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), identity_filter,
+    (double, filter_radius)
+)
+
+PLATO_FILTER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), helmholtz_filter,
+    (double, filter_radius)
+    (double, boundary_sticking_penalty)
+)
+
+PLATO_FILTER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), kernel_filter,
+    (double, filter_radius)
+    (plato::input_parser::KernelFilterCenteringTypes, centering_type)
 )
 
 /// ParsedInput is the in-memory representation of a parsed input deck.

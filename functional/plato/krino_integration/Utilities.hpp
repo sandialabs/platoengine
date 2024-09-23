@@ -1,3 +1,6 @@
+#ifndef PLATO_KRINO_INTEGRATION_UTILITIES
+#define PLATO_KRINO_INTEGRATION_UTILITIES
+
 #include <mpi.h>
 
 #include <map>
@@ -6,9 +9,7 @@
 #include <utility>
 #include <vector>
 
-#pragma once
-
-namespace Plato::Krino
+namespace plato::krino_integration
 {
 
 struct InterfaceNode_DXDP
@@ -82,9 +83,10 @@ std::map<unsigned int, stk::math::Vector3d> assembleGlobalIDToDFDXMap(
     const std::vector<double> &aDFDX,
     const std::vector<unsigned int> &aCutMeshGlobalNodeIDMap,
     const DFDXFormatting aDFDXFormatting);
-std::map<unsigned int, double> calculateDFDLS(
-    const std::map<unsigned int, stk::math::Vector3d> &aDFDXMap,
-    const std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP> &aDXDP,
-    const std::vector<unsigned int> &aBackgroundNodemap);
+std::map<unsigned int, double> calculateDFDLS(const std::map<unsigned int, stk::math::Vector3d> &aDFDXMap,
+                                              const std::map<stk::mesh::EntityId, InterfaceNode_DXDP> &aDXDP,
+                                              const std::vector<unsigned int> &aBackgroundNodemap);
 
-}  // namespace Plato::Krino
+}  // namespace plato::krino_integration
+
+#endif  // PLATO_KRINO_INTEGRATION_UTILITIES

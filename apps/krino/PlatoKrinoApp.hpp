@@ -10,13 +10,13 @@
 #include <Plato_TimersTree.hpp>
 #include <vector>
 
-#include "plato/krino_integration/PlatoKrinoEnums.hpp"
-#include "plato/krino_integration/PlatoKrinoInterface.hpp"
-#include "plato/krino_integration/PlatoKrinoParse.hpp"
+#include "plato/krino_integration/Enums.hpp"
+#include "plato/krino_integration/KrinoWrapper.hpp"
+#include "plato/krino_integration/Parse.hpp"
 
 #pragma once
 
-using namespace Plato::Krino;
+using namespace plato::krino_integration;
 
 namespace Plato
 {
@@ -53,7 +53,7 @@ class PlatoKrinoApp : public Plato::Application
     std::string mFieldMeshName;
     std::string mFieldName;
     int mFieldDataTimeStep;
-    PlatoKrinoInterface mPlatoKrinoInterface;
+    KrinoWrapper mKrinoWrapper;
     std::map<std::string, std::vector<double> > mDoubleVectorMap;
     std::unique_ptr<Plato::TimersTree> mTimersTree;
     std::unique_ptr<Epetra_MpiComm> mEpetraComm;

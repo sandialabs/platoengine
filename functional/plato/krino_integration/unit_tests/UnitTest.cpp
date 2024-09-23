@@ -8,9 +8,9 @@
 
 #include <cstdio>
 
-#include "plato/krino_integration/PlatoKrinoInterface.hpp"
+#include "plato/krino_integration/KrinoWrapper.hpp"
 
-namespace Plato::Krino
+namespace plato::krino_integration
 {
 
 class PlatoTestKrino : public ::testing::Test
@@ -21,8 +21,8 @@ class PlatoTestKrino : public ::testing::Test
         static bool tFirstTime{true};
         if (tFirstTime)
         {
-            Plato::Krino::initializeSTKEnvironment(MPI_COMM_WORLD);
-            Plato::Krino::initializeKrinoLogging();
+            initializeSTKEnvironment(MPI_COMM_WORLD);
+            initializeKrinoLogging();
             tFirstTime = false;
         }
     }
@@ -30,68 +30,52 @@ class PlatoTestKrino : public ::testing::Test
 
 TEST_F(PlatoTestKrino, create_bounding_box_background_mesh)
 {
-    PlatoKrinoInterface tInterface;
-    tInterface.createBoundingBoxMesh(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.5);
+    const std::string tFilename{"tmp.exo"};
+    KrinoWrapper tKrinoWrapper;
+    tKrinoWrapper.createBoundingBoxMesh(stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 0.5,
+                                        tFilename);
     double x, y, z;
-    tInterface.getNodalCoordinates(1, x, y, z);
+    tKrinoWrapper.getNodalCoordinates(1, x, y, z);
     EXPECT_FLOAT_EQ(x, 0.0);
     EXPECT_FLOAT_EQ(y, 0.0);
     EXPECT_FLOAT_EQ(z, 0.0);
-    tInterface.getNodalCoordinates(68, x, y, z);
+    tKrinoWrapper.getNodalCoordinates(68, x, y, z);
     EXPECT_FLOAT_EQ(x, 0.0);
     EXPECT_FLOAT_EQ(y, 0.75);
     EXPECT_FLOAT_EQ(z, 0.75);
-    tInterface.getNodalCoordinates(58, x, y, z);
+    tKrinoWrapper.getNodalCoordinates(58, x, y, z);
     EXPECT_FLOAT_EQ(x, 0.75);
     EXPECT_FLOAT_EQ(y, 1.0);
     EXPECT_FLOAT_EQ(z, 0.25);
-}
-
-TEST_F(PlatoTestKrino, create_write_read_bbox_background_mesh)
-{
-    PlatoKrinoInterface tInterface;
-    tInterface.createAndWriteBoundingBoxMesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, 0.5, "background_mesh.exo");
-    tInterface.readAndSetupMeshForDecomposition("background_mesh.exo");
-    double x, y, z;
-    tInterface.getNodalCoordinates(1, x, y, z);
-    EXPECT_FLOAT_EQ(x, 0.0);
-    EXPECT_FLOAT_EQ(y, 0.0);
-    EXPECT_FLOAT_EQ(z, 0.0);
-    tInterface.getNodalCoordinates(68, x, y, z);
-    EXPECT_FLOAT_EQ(x, 0.0);
-    EXPECT_FLOAT_EQ(y, 0.75);
-    EXPECT_FLOAT_EQ(z, 0.75);
-    tInterface.getNodalCoordinates(58, x, y, z);
-    EXPECT_FLOAT_EQ(x, 0.75);
-    EXPECT_FLOAT_EQ(y, 1.0);
-    EXPECT_FLOAT_EQ(z, 0.25);
-    std::remove("background_mesh.exo");
+    remove(tFilename.c_str());
 }
 
 TEST_F(PlatoTestKrino, cut_sphere_out_of_background_mesh)
 {
-    PlatoKrinoInterface tInterface;
-    tInterface.createAndWriteBoundingBoxMesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, 0.333, "background_mesh.exo");
-    tInterface.readAndSetupMeshForDecomposition("background_mesh.exo");
+    const std::string tBackgroundFilename{"background_mesh.exo"};
+    const std::string tCutFilename{"swiss_cheese.exo"};
+    KrinoWrapper tKrinoWrapper;
+    tKrinoWrapper.createBoundingBoxMesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, 0.333, tBackgroundFilename);
+    tKrinoWrapper.readAndSetupMeshForDecomposition("background_mesh.exo");
     const std::vector<std::pair<stk::math::Vector3d, double>> spheres{{{0.5, 0.5, 0.5}, 0.3}};
-    tInterface.initializeSphereLevelset(spheres);
-    tInterface.cutMesh();
-    tInterface.includeVoidRegion(false);
-    tInterface.writeMesh("swiss_cheese.exo");
-    unsigned int tNumSolidTets = tInterface.getNumTetsInNamedBlock("block_1");
+    tKrinoWrapper.initializeSphereLevelset(spheres);
+    tKrinoWrapper.cutMesh();
+    tKrinoWrapper.setIncludeVoidRegion(false);
+    tKrinoWrapper.writeMesh(tCutFilename);
+    unsigned int tNumSolidTets = tKrinoWrapper.getNumTetsInNamedBlock("block_1");
     ASSERT_EQ(tNumSolidTets, 672u);
-    std::remove("background_mesh.exo");
-    std::remove("swiss_cheese.exo");
+    remove(tBackgroundFilename.c_str());
+    remove(tCutFilename.c_str());
 }
 
 TEST_F(PlatoTestKrino, calculate_dFdLS)
 {
     std::map<unsigned int, stk::math::Vector3d> tDFDX_values{
         {1, {.6, .5, .4}}, {2, {.2, -.1, -.9}}, {3, {.45, -.03, -.5}}};
-    const std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP> tDXDP{
-        {3, Plato::Krino::InterfaceNode_DXDP{{7, 12, 19}, {{.5, .5, .5}, {.4, .4, .4}, {-.1, .1, -.1}}}},
-        {1, Plato::Krino::InterfaceNode_DXDP{{34, 22, 2}, {{.1, .1, .1}, {.2, .2, .2}, {-.1, -.1, -.1}}}},
-        {2, Plato::Krino::InterfaceNode_DXDP{{19, 10}, {{.3, .3, .3}, {-.2, -.2, -.2}}}},
+    const std::map<stk::mesh::EntityId, InterfaceNode_DXDP> tDXDP{
+        {3, InterfaceNode_DXDP{{7, 12, 19}, {{.5, .5, .5}, {.4, .4, .4}, {-.1, .1, -.1}}}},
+        {1, InterfaceNode_DXDP{{34, 22, 2}, {{.1, .1, .1}, {.2, .2, .2}, {-.1, -.1, -.1}}}},
+        {2, InterfaceNode_DXDP{{19, 10}, {{.3, .3, .3}, {-.2, -.2, -.2}}}},
     };
 
     //    const std::vector<std::pair<unsigned int, std::vector<std::pair<unsigned int, stk::math::Vector3d>>>>
@@ -115,34 +99,39 @@ TEST_F(PlatoTestKrino, calculate_dFdLS)
 
 TEST_F(PlatoTestKrino, get_set_levelset_values)
 {
-    PlatoKrinoInterface tInterface;
-    tInterface.createBoundingBoxMesh(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0);
-    tInterface.initializePlaneLevelset(-1, .5, .35, .2);
-    tInterface.cutMesh();
-    std::vector<double> tCurLevelsetValues1 = tInterface.getLevelsetValues();
-    tInterface.setLevelsetValues(tCurLevelsetValues1);
-    std::vector<double> tCurLevelsetValues2 = tInterface.getLevelsetValues();
+    const std::string tFilename{"tmp.exo"};
+    KrinoWrapper tKrinoWrapper;
+    tKrinoWrapper.createBoundingBoxMesh(stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 1.0,
+                                        tFilename);
+    tKrinoWrapper.initializePlaneLevelset(-1, .5, .35, .2);
+    tKrinoWrapper.cutMesh();
+    std::vector<double> tCurLevelsetValues1 = tKrinoWrapper.getLevelsetValues();
+    tKrinoWrapper.setLevelsetValues(tCurLevelsetValues1);
+    std::vector<double> tCurLevelsetValues2 = tKrinoWrapper.getLevelsetValues();
     for (size_t i = 0; i < tCurLevelsetValues1.size(); ++i)
     {
         EXPECT_FLOAT_EQ(tCurLevelsetValues1[i], tCurLevelsetValues2[i]);
         tCurLevelsetValues1[i] += 1.0;
     }
-    tInterface.setLevelsetValues(tCurLevelsetValues1);
-    std::vector<double> tCurLevelsetValues3 = tInterface.getLevelsetValues();
+    tKrinoWrapper.setLevelsetValues(tCurLevelsetValues1);
+    std::vector<double> tCurLevelsetValues3 = tKrinoWrapper.getLevelsetValues();
     for (size_t i = 0; i < tCurLevelsetValues1.size(); ++i)
     {
         EXPECT_FLOAT_EQ(tCurLevelsetValues3[i], tCurLevelsetValues2[i] + 1.0);
         EXPECT_FLOAT_EQ(tCurLevelsetValues3[i], tCurLevelsetValues1[i]);
     }
+    remove(tFilename.c_str());
 }
 
 TEST_F(PlatoTestKrino, redistance)
 {
-    PlatoKrinoInterface tInterface;
-    tInterface.createBoundingBoxMesh(0.0, 0.0, 0.0, 2.0, 1.0, 1.0, 1.0);
-    tInterface.initializePlaneLevelset(1, 0, 0, -.25);
-    tInterface.cutMesh();
-    std::vector<double> tLevelsetValues = tInterface.getLevelsetValues();
+    const std::string tFilename{"tmp.exo"};
+    KrinoWrapper tKrinoWrapper;
+    tKrinoWrapper.createBoundingBoxMesh(stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{2.0, 1.0, 1.0}, 1.0,
+                                        tFilename);
+    tKrinoWrapper.initializePlaneLevelset(1, 0, 0, -.25);
+    tKrinoWrapper.cutMesh();
+    std::vector<double> tLevelsetValues = tKrinoWrapper.getLevelsetValues();
     const std::vector<double> tInitialGold = {-0.25, 0.75,  1.75, -0.25, 0.75, 1.75, -0.25, 0.75,
                                               1.75,  -0.25, 0.75, 1.75,  0.25, 1.25, 0.25,  1.25,
                                               -0.25, 0.25,  1.25, 1.75,  0.25, 1.25, 0.25,  1.25};
@@ -165,14 +154,14 @@ TEST_F(PlatoTestKrino, redistance)
     tLevelsetValues[20] -= tDelta;
     tLevelsetValues[22] -= tDelta;
 
-    tInterface.resetMesh();
-    tInterface.setLevelsetValues(tLevelsetValues);
-    tInterface.cutMesh();
+    tKrinoWrapper.resetMesh();
+    tKrinoWrapper.setLevelsetValues(tLevelsetValues);
+    tKrinoWrapper.cutMesh();
 
-    std::vector<double> tLevelsetValues2 = tInterface.getLevelsetValues();
+    std::vector<double> tLevelsetValues2 = tKrinoWrapper.getLevelsetValues();
     EXPECT_EQ(tLevelsetValues, tLevelsetValues2);
-    tInterface.redistance();
-    std::vector<double> tLevelsetValues3 = tInterface.getLevelsetValues();
+    tKrinoWrapper.redistance();
+    std::vector<double> tLevelsetValues3 = tKrinoWrapper.getLevelsetValues();
     std::vector<double> tRedistancedGold = tInitialGold;
     for (auto &tCurVal : tRedistancedGold)
     {
@@ -182,28 +171,31 @@ TEST_F(PlatoTestKrino, redistance)
     {
         EXPECT_FLOAT_EQ(tRedistancedGold[i], tLevelsetValues3[i]);
     }
+    remove(tFilename.c_str());
 }
 
 TEST_F(PlatoTestKrino, test_krino_sensitivities)
 {
-    PlatoKrinoInterface tInterface;
-    tInterface.createBoundingBoxMesh(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0);
-    tInterface.initializePlaneLevelset(-1, .5, .35, .2);
-    std::vector<double> tOriginalLevelsetValues = tInterface.getLevelsetValues();
-    tInterface.cutMesh();
-    tInterface.getSensitivities();
-    std::unordered_map<unsigned int, stk::math::Vector3d> tCurCoordinateValues = tInterface.getCoordinateValues();
+    const std::string tFilename{"tmp.exo"};
+    KrinoWrapper tKrinoWrapper;
+    tKrinoWrapper.createBoundingBoxMesh(stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 1.0,
+                                        tFilename);
+    tKrinoWrapper.initializePlaneLevelset(-1, .5, .35, .2);
+    std::vector<double> tOriginalLevelsetValues = tKrinoWrapper.getLevelsetValues();
+    tKrinoWrapper.cutMesh();
+    tKrinoWrapper.getSensitivities();
+    std::unordered_map<unsigned int, stk::math::Vector3d> tCurCoordinateValues = tKrinoWrapper.getCoordinateValues();
     std::unordered_map<unsigned int, stk::math::Vector3d> tPredictedCoordValues =
-        tInterface.predictNewCoordinatesBasedOnPerturbedLevelsetValues(tCurCoordinateValues, .01);
-    tInterface.resetMesh();
+        tKrinoWrapper.predictNewCoordinatesBasedOnPerturbedLevelsetValues(tCurCoordinateValues, .01);
+    tKrinoWrapper.resetMesh();
     // Add .01 to all level set values
     for (auto &tCurLS : tOriginalLevelsetValues)
     {
         tCurLS += .01;
     }
-    tInterface.setLevelsetValues(tOriginalLevelsetValues);
-    tInterface.cutMesh();
-    std::unordered_map<unsigned int, stk::math::Vector3d> tNewCoordValues = tInterface.getCoordinateValues();
+    tKrinoWrapper.setLevelsetValues(tOriginalLevelsetValues);
+    tKrinoWrapper.cutMesh();
+    std::unordered_map<unsigned int, stk::math::Vector3d> tNewCoordValues = tKrinoWrapper.getCoordinateValues();
     for (auto tPredictedCoordValue : tPredictedCoordValues)
     {
         for (int i = 0; i < 3; i++)
@@ -211,6 +203,7 @@ TEST_F(PlatoTestKrino, test_krino_sensitivities)
             EXPECT_FLOAT_EQ(tPredictedCoordValue.second[i], tNewCoordValues[tPredictedCoordValue.first][i]);
         }
     }
+    remove(tFilename.c_str());
 }
 
 TEST_F(PlatoTestKrino, test_generateSpheres_success)
@@ -433,4 +426,4 @@ TEST_F(PlatoTestKrino, checkForReasonableSpherePatternDefinition_fail_invalid_ra
     EXPECT_THROW(checkForReasonableSpherePatternDefinition(tData), std::runtime_error);
 }
 
-}  // namespace Plato::Krino
+}  // namespace plato::krino_integration

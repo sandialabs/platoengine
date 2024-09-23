@@ -5,10 +5,10 @@
 #include <optional>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/MeshProxy.hpp"
-#include "plato/krino_integration/PlatoKrinoUtilities.hpp"
+#include "plato/krino_integration/Utilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::input_parser
 {
@@ -35,7 +35,8 @@ class LevelsetTopology
     [[nodiscard]] std::pair<std::vector<double>, std::vector<double>> bounds(
         const std::filesystem::path& aMeshFileName) const;
     [[nodiscard]] linear_algebra::DynamicVector<double> initialGuess(const std::filesystem::path& aMeshFileName) const;
-    [[nodiscard]] core::MeshProxy generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const;
+    [[nodiscard]] mesh::MeshDesignVariables generateMesh(
+        const linear_algebra::DynamicVector<double>& aDesignParameter) const;
     static void output(const std::filesystem::path& aInputMeshName,
                        const linear_algebra::DynamicVector<double>& aSolution,
                        const std::filesystem::path& aOutputMeshName);
@@ -53,13 +54,15 @@ class LevelsetTopology
     double mLevelsetLowerBound = -1.0;
     double mLevelsetUpperBound = 1.0;
     unsigned int mNumDesignParameters = 0;
-    Plato::Krino::LevelsetPrimitives mLevelsetPrimitives;
-    Plato::Krino::SpherePatternData mSpherePattern;
+    plato::krino_integration::LevelsetPrimitives mLevelsetPrimitives;
+    plato::krino_integration::SpherePatternData mSpherePattern;
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
-[[nodiscard]] auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology) -> core::
-    Function<core::MeshProxy, linear_algebra::JacobianMultiplier, const linear_algebra::DynamicVector<double>&>;
+[[nodiscard]] auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology)
+    -> core::Function<mesh::MeshDesignVariables,
+                      linear_algebra::JacobianMultiplier,
+                      const linear_algebra::DynamicVector<double>&>;
 
 namespace detail
 {
@@ -68,6 +71,15 @@ namespace detail
 [[nodiscard]] std::optional<std::string> validate_cut_mesh_name(const input_parser::levelset_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_lower_bound(const input_parser::levelset_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_upper_bound(const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_sphere_pattern_num_in_x(
+    const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_sphere_pattern_num_in_y(
+    const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_sphere_pattern_num_in_z(
+    const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_sphere_pattern_radius(const input_parser::levelset_topology& aInput);
+
 }  // namespace detail
 
 }  // namespace plato::geometry::extension

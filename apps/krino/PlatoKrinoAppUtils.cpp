@@ -1,7 +1,7 @@
 #include "PlatoKrinoAppUtils.hpp"
 #include "Plato_Parser.hpp"
 
-namespace Plato::Krino
+namespace plato::krino_integration
 {
 
 template <typename T>
@@ -232,4 +232,4 @@ std::pair<double, double> calculateNonOverlappingSphereLocatorData(const SphereP
     return tStartAndSpacing;
 }
 
-}// namespace Plato::Krino
+}// namespace plato::krino_integration

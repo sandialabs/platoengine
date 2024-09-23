@@ -1,8 +1,8 @@
 #include <vector>
 #include "Plato_InputData.hpp"
-#include "plato/krino_integration/PlatoKrinoUtilities.hpp"
+#include "plato/krino_integration/Utilities.hpp"
 
-namespace Plato::Krino
+namespace plato::krino_integration
 {
 
 LevelsetPrimitives readLevelsetInitializationData(Plato::InputData &aAppFileData);

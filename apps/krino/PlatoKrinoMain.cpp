@@ -1,9 +1,9 @@
 #include "PlatoKrinoApp.hpp"
-#include "plato/krino_integration/PlatoKrinoParse.hpp"
-#include "plato/krino_integration/PlatoKrinoUtilities.hpp"
+#include "plato/krino_integration/Parse.hpp"
+#include "plato/krino_integration/Utilities.hpp"
 
 
-using namespace Plato::Krino;
+using namespace Plato;
 
 int runStandAlone(int aArgc, char *aArgv[], const CommandLineOptions &aOptions);
 int runMPMD(int aArgc, char *aArgv[], const CommandLineOptions &aOptions);
@@ -19,7 +19,7 @@ int main(int aArgc, char *aArgv[])
     {
         std::stringstream tError;
         tError << std::endl << "ERROR: PlatoKrinoMain.cpp: You must specify the background mesh and cut mesh as command line arguments." << std::endl;
-        Plato::ParsingException tParsingException(tError.str());
+        ParsingException tParsingException(tError.str());
         throw tParsingException;
     }
 
@@ -41,7 +41,7 @@ int runStandAlone(int aArgc, char *aArgv[], const CommandLineOptions &aOptions)
     initializeKrinoLogging();
     Kokkos::initialize(aArgc, aArgv);
 
-    Plato::PlatoKrinoApp tMyApp(nullptr, aOptions);
+    PlatoKrinoApp tMyApp(nullptr, aOptions);
     tMyApp.executeInitialMesh();
 
     MPI_Finalize();
@@ -52,7 +52,7 @@ int runStandAlone(int aArgc, char *aArgv[], const CommandLineOptions &aOptions)
 int runMPMD(int aArgc, char *aArgv[], const CommandLineOptions &aOptions)
 {
     MPI_Init(&aArgc, &aArgv);
-    Plato::Interface tPlatoInterface;
+    Interface tPlatoInterface;
     MPI_Comm tLocalComm;
     tPlatoInterface.getLocalComm(tLocalComm);
 
@@ -62,7 +62,7 @@ int runMPMD(int aArgc, char *aArgv[], const CommandLineOptions &aOptions)
    
     Kokkos::initialize(aArgc, aArgv);
 
-    Plato::PlatoKrinoApp tMyApp(&tPlatoInterface, aOptions);
+    PlatoKrinoApp tMyApp(&tPlatoInterface, aOptions);
     tPlatoInterface.registerApplication(&tMyApp);
 
     try

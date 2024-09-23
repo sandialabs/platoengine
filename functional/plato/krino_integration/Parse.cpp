@@ -1,4 +1,4 @@
-#include "PlatoKrinoParse.hpp"
+#include "Parse.hpp"
 
 #include <Teuchos_CommandLineProcessor.hpp>
 #include <algorithm>
@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace Plato::Krino
+namespace plato::krino_integration
 {
 
 bool parseCommandLineOptions(int aArgc, char *aArgv[], CommandLineOptions &aCommandLineOptions)
@@ -48,4 +48,4 @@ bool parseCommandLineOptions(int aArgc, char *aArgv[], CommandLineOptions &aComm
     return false;
 }
 
-}  // namespace Plato::Krino
+}  // namespace plato::krino_integration

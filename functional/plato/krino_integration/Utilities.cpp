@@ -1,4 +1,4 @@
-#include "PlatoKrinoUtilities.hpp"
+#include "Utilities.hpp"
 
 #include <Akri_DiagWriter.hpp>
 #include <stk_util/diag/WriterRegistry.hpp>
@@ -6,7 +6,7 @@
 #include <stk_util/environment/EnvData.hpp>
 #include <stk_util/environment/OutputLog.hpp>
 
-namespace Plato::Krino
+namespace plato::krino_integration
 {
 
 void initializeSTKEnvironment(const MPI_Comm &aComm)
@@ -186,17 +186,16 @@ std::map<unsigned int, stk::math::Vector3d> assembleGlobalIDToDFDXMap(
     return tGlobalIDToDFDXMap;
 }
 
-std::map<unsigned int, double> calculateDFDLS(
-    const std::map<unsigned int, stk::math::Vector3d> &aDFDXMap,
-    const std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP> &aDXDP,
-    const std::vector<unsigned int> &aBackgroundNodemap)
+std::map<unsigned int, double> calculateDFDLS(const std::map<unsigned int, stk::math::Vector3d> &aDFDXMap,
+                                              const std::map<stk::mesh::EntityId, InterfaceNode_DXDP> &aDXDP,
+                                              const std::vector<unsigned int> &aBackgroundNodemap)
 {
     std::map<unsigned int, double> tDFDLS;
     for (auto tNodeID : aBackgroundNodemap)
     {
         tDFDLS[tNodeID] = 0.0;
     }
-    std::map<stk::mesh::EntityId, Plato::Krino::InterfaceNode_DXDP>::const_iterator tDXDPMapIter = aDXDP.begin();
+    std::map<stk::mesh::EntityId, InterfaceNode_DXDP>::const_iterator tDXDPMapIter = aDXDP.begin();
     while (tDXDPMapIter != aDXDP.end())
     {
         const unsigned int tCurInterfaceNodeID = tDXDPMapIter->first;
@@ -222,4 +221,4 @@ std::map<unsigned int, double> calculateDFDLS(
     return tDFDLS;
 }
 
-}  // namespace Plato::Krino
+}  // namespace plato::krino_integration
