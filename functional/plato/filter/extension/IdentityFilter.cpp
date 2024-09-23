@@ -1,11 +1,11 @@
 #include "plato/filter/extension/IdentityFilter.hpp"
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::filter::extension
@@ -21,16 +21,16 @@ namespace
                                                                 { return validate_identity_filter(aInput); }};
 }  // namespace
 
-mesh::MeshDesignVariables IdentityFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+analysis::AnalysisDomainMesh IdentityFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    return aMeshDesignVariables;
+    return aAnalysisDomainMesh;
 }
 
 linear_algebra::DynamicVector<double> IdentityFilter::jacobianTimesVector(
-    const mesh::MeshDesignVariables& aMeshDesignVariables, const linear_algebra::DynamicVector<double>& aV) const
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, const linear_algebra::DynamicVector<double>& aV) const
 {
     const auto tVectorDimension = static_cast<std::size_t>(aV.size());
-    const std::size_t tDensityDimension = mesh::MeshDesignVariablesSequentialView{aMeshDesignVariables}.size();
+    const std::size_t tDensityDimension = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh}.size();
     if (tVectorDimension != tDensityDimension)
     {
         throw utilities::Exception{
@@ -42,13 +42,13 @@ linear_algebra::DynamicVector<double> IdentityFilter::jacobianTimesVector(
 }
 
 auto make_identity_filter_function()
-    -> core::Function<mesh::MeshDesignVariables, library::FilterJacobian, const mesh::MeshDesignVariables&>
+    -> core::Function<analysis::AnalysisDomainMesh, library::FilterJacobian, const analysis::AnalysisDomainMesh&>
 {
     return core::make_function(
-        [](const mesh::MeshDesignVariables& aMeshDesignVariables)
-        { return IdentityFilter{}.filter(aMeshDesignVariables); },
-        [](const mesh::MeshDesignVariables& aMeshDesignVariables) {
-            return library::FilterJacobian{std::make_unique<IdentityFilter>(), aMeshDesignVariables};
+        [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        { return IdentityFilter{}.filter(aAnalysisDomainMesh); },
+        [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
+            return library::FilterJacobian{std::make_unique<IdentityFilter>(), aAnalysisDomainMesh};
         });
 }
 

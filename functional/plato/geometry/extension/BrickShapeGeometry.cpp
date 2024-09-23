@@ -11,7 +11,7 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/FileUtilities.hpp"
 
@@ -55,10 +55,10 @@ BrickShapeGeometry::BrickShapeGeometry(std::filesystem::path aFileName, const st
 
 BrickShapeGeometry::~BrickShapeGeometry() { std::filesystem::remove(mFileName); }
 
-mesh::MeshDesignVariables BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
+analysis::AnalysisDomainMesh BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
 {
     detail::create_mesh(aDesignParameters, mFileName, mDiscretizationSize);
-    return mesh::MeshDesignVariables{mFileName, {}};
+    return analysis::AnalysisDomainMesh{mFileName, {}};
 }
 
 linear_algebra::JacobianColumnEvaluator BrickShapeGeometry::jacobian(const BrickDesign& aDesignParameters) const
@@ -88,7 +88,7 @@ void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSo
 }
 
 auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry)
-    -> core::Function<mesh::MeshDesignVariables,
+    -> core::Function<analysis::AnalysisDomainMesh,
                       linear_algebra::JacobianMultiplier,
                       const linear_algebra::DynamicVector<double>&>
 {

@@ -1,8 +1,12 @@
 #include "plato/filter/extension/KernelFilter.hpp"
 
 #include <boost/mpi.hpp>
+#include <boost/mpi/communicator.hpp>
 #include <boost/serialization/vector.hpp>
+#include <optional>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
@@ -15,11 +19,11 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
+#include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::filter::extension
 {
+
 namespace
 {
 [[maybe_unused]] static auto kKernelFilterRegistration = library::FilterRegistration{
@@ -29,18 +33,20 @@ namespace
         auto tFilterCache = detail::create_filter_cache(tInput);
 
         return core::make_function(
-            [tFilterCache](const mesh::MeshDesignVariables& aMeshDesignVariables) mutable
-            { return tFilterCache.compute(aMeshDesignVariables)->filter(aMeshDesignVariables); },
-            [tFilterCache](const mesh::MeshDesignVariables& aMeshDesignVariables) mutable {
-                return library::FilterJacobian{tFilterCache.compute(aMeshDesignVariables), aMeshDesignVariables};
+            [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
+            { return tFilterCache.compute(aAnalysisDomainMesh)->filter(aAnalysisDomainMesh); },
+            [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable {
+                return library::FilterJacobian{tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh};
             });
     }};
 
 [[maybe_unused]] static auto kKernelFilterValidationRegistration =
     core::ValidationRegistration<input_parser::kernel_filter>{
         [](const input_parser::kernel_filter& aInput) { return detail::validate_filter_radius(aInput); },
+        [](const input_parser::kernel_filter& aInput) { return detail::validate_kernel_filter_centering_type(aInput); },
+        [](const input_parser::kernel_filter& aInput) { return detail::validate_number_of_processors(aInput); },
         [](const input_parser::kernel_filter& aInput)
-        { return detail::validate_kernel_filter_centering_type(aInput); }};
+        { return detail::validate_number_of_processors_factor_of_comm_world(aInput); }};
 }  // namespace
 
 KernelFilter::KernelFilter(const mesh::Mesh& aMesh,
@@ -53,24 +59,24 @@ KernelFilter::KernelFilter(const mesh::Mesh& aMesh,
 {
 }
 
-mesh::MeshDesignVariables KernelFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+analysis::AnalysisDomainMesh KernelFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    const auto tMesh = mesh::Mesh{aMeshDesignVariables};
+    const auto tMesh = mesh::Mesh{aAnalysisDomainMesh};
     const auto tFieldValues =
-        mesh::DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalFieldVector(aMeshDesignVariables);
+        mesh::DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalFieldVector(aAnalysisDomainMesh);
 
     const auto tFilteredField = mLinearMask.matrixMultiply(tFieldValues.mValue);
     if (mFilterCentering == input_parser::KernelFilterCenteringTypes::kNodeCentered)
     {
-        return mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+        return mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{std::cref(tFilteredField)});
     }
-    return mesh::DesignVariablesConversion{tMesh}.elementFieldToMeshDesignVariables(
+    return mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{std::cref(tFilteredField)});
 }
 
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(
-    const mesh::MeshDesignVariables& /*aMeshDesignVariables*/, const linear_algebra::DynamicVector<double>& aV) const
+    const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const linear_algebra::DynamicVector<double>& aV) const
 {
     return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
 }
@@ -87,6 +93,36 @@ std::optional<std::string> validate_kernel_filter_centering_type(const input_par
     return std::nullopt;
 }
 
+std::optional<std::string> validate_number_of_processors(const input_parser::kernel_filter& aInput)
+{
+    return core::error_message_for_optional_parameter_out_of_bounds(
+        input_parser::block_name<input_parser::kernel_filter>(), aInput.number_of_processors, "number_of_processors",
+        utilities::lower_bounded(utilities::Inclusive{1u}));
+}
+
+std::optional<std::string> validate_number_of_processors_factor_of_comm_world(const input_parser::kernel_filter& aInput)
+{
+    const auto tRequestedRanks = aInput.number_of_processors.value_or(1u);
+    const auto tTotalRanks = static_cast<std::size_t>(boost::mpi::communicator{}.size());
+    if (tRequestedRanks > tTotalRanks)
+    {
+        return std::optional<std::string>{utilities::concatenate(
+            "The number of MPI ranks requested for filter cannot exceed the available ranks for the entire run.\n",
+            "The number of available ranks: ", tTotalRanks,
+            ".\n The number of requested ranks for the filter: ", tRequestedRanks)};
+    }
+    if (tTotalRanks % tRequestedRanks != 0)
+    {
+        return std::optional<std::string>{
+            utilities::concatenate("The number of MPI ranks requested for filter has to a factor of the "
+                                   "available ranks for the entire run.\n",
+                                   "The number of available ranks: ", tTotalRanks,
+                                   ".\n The number of requested ranks for the filter: ", tRequestedRanks)};
+    }
+
+    return std::nullopt;
+}
+
 LinearMask create_linear_mask(const mesh::Mesh& aMesh,
                               const FilterRadius aFilterRadius,
                               const input_parser::KernelFilterCenteringTypes aFilterCentering,
@@ -97,16 +133,33 @@ LinearMask create_linear_mask(const mesh::Mesh& aMesh,
         aCommunicator};
 }
 
+namespace
+{
+boost::mpi::communicator subdivide_world_comm_into_groups(const unsigned int aGroupSize)
+{
+    auto tWorldComm = boost::mpi::communicator{};
+
+    const auto tVectorSize = tWorldComm.size() / aGroupSize;
+    const std::vector<unsigned int> tGroups(tVectorSize, aGroupSize);
+    const auto tRank = tWorldComm.rank();
+    const auto tColor = utilities::rank_group_color(tGroups, utilities::RankNamedType{tRank});
+    return tWorldComm.split(tColor.mValue);
+}
+}  // namespace
+
 FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)
 {
-    return FilterCache{[aInput](const mesh::MeshDesignVariables& aMeshDesignVariables)
+    const auto tRequestedRanks = aInput.number_of_processors.value_or(1u);
+    const auto tSplitComm = subdivide_world_comm_into_groups(tRequestedRanks);
+
+    return FilterCache{[aInput, tSplitComm](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
                        {
-                           return std::make_shared<KernelFilter>(
-                               mesh::Mesh{aMeshDesignVariables}, FilterRadius{aInput.filter_radius.value()},
-                               aInput.centering_type.value(), boost::mpi::communicator{});
+                           return std::make_shared<KernelFilter>(mesh::Mesh{aAnalysisDomainMesh},
+                                                                 FilterRadius{aInput.filter_radius.value()},
+                                                                 aInput.centering_type.value(), tSplitComm);
                        },
-                       [](const mesh::MeshDesignVariables& aMeshDesignVariables)
-                       { return library::hash_mesh_coordinates(aMeshDesignVariables); }};
+                       [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                       { return library::hash_mesh_coordinates(aAnalysisDomainMesh); }};
 }
 
 }  // namespace detail

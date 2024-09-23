@@ -4,18 +4,18 @@
 #include <boost/mpi/communicator.hpp>
 #include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
-#include "plato/mesh/MeshDesignVariablesSequentialView.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 
 namespace plato::filter::extension::unittest
 {
@@ -43,12 +43,12 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     tNodalDensities[tHalfNode + 1] = .5;
 
     const auto tMesh = mesh::DesignVariablesConversion{mesh::Mesh{kMeshFile}};
-    const auto tMeshDesignVariables =
-        tMesh.nodalFieldToMeshDesignVariables(mesh::NodalFieldVectorReference{tNodalDensities});
+    const auto tAnalysisDomainMesh =
+        tMesh.nodalFieldToAnalysisDomainMesh(mesh::NodalFieldVectorReference{tNodalDensities});
 
-    const auto tResult = tKernelFilter.filter(tMeshDesignVariables);
-    const auto [tPostFilter, tIDMap] = mesh::detail::split_scalar_field_values(
-        mesh::mesh_design_variables_to_vector(mesh::MeshDesignVariablesSequentialView{tResult}));
+    const auto tResult = tKernelFilter.filter(tAnalysisDomainMesh);
+    const auto [tPostFilter, tIDMap] = analysis::split_scalar_field_values(
+        analysis::mesh_analysis_to_vector(analysis::AnalysisDomainMeshSequentialView{tResult}));
 
     std::vector<double> tStdVectorSensitivities;
     if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
@@ -65,7 +65,7 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
 
     const auto tPostSensitivities =
         tKernelFilter
-            .jacobianTimesVector(tMeshDesignVariables, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
+            .jacobianTimesVector(tAnalysisDomainMesh, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
             .stdVector();
 
     test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
@@ -161,10 +161,10 @@ TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
 
     const auto tMesh = mesh::Mesh{tFilePath.value()};
     const auto tNodalDensities = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
-    const auto tMeshDesignVariables = mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tNodalDensities});
 
-    ASSERT_NO_THROW([[maybe_unused]] const auto tFilter = tFilterCache.compute(tMeshDesignVariables));
+    ASSERT_NO_THROW([[maybe_unused]] const auto tFilter = tFilterCache.compute(tAnalysisDomainMesh));
 }
 
 TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
@@ -180,26 +180,27 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
 
     const auto tMesh = mesh::Mesh{kMeshFile};
     const auto tNodalDensitiesAllOne = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
-    const auto tMeshDesignVariablesAllOne = mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+    const auto tAnalysisDomainMeshAllOne = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tNodalDensitiesAllOne});
     const auto tFilteredControlAllOne =
-        tFilterCache.compute(tMeshDesignVariablesAllOne)->filter(tMeshDesignVariablesAllOne);
-    const auto tMeshDesignVariablesViewFilteredAllOne = mesh::MeshDesignVariablesSequentialView{tFilteredControlAllOne};
+        tFilterCache.compute(tAnalysisDomainMeshAllOne)->filter(tAnalysisDomainMeshAllOne);
+    const auto tAnalysisDomainMeshViewFilteredAllOne =
+        analysis::AnalysisDomainMeshSequentialView{tFilteredControlAllOne};
 
     // change control and ensure filter size is the same but values are different
     const auto tNodalDensitiesAllHalf = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 0.5);
-    const auto tMeshDesignVariablesAllHalf = mesh::DesignVariablesConversion{tMesh}.nodalFieldToMeshDesignVariables(
+    const auto tAnalysisDomainMeshAllHalf = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tNodalDensitiesAllHalf});
     const auto tFilteredControlAllHalf =
-        tFilterCache.compute(tMeshDesignVariablesAllHalf)->filter(tMeshDesignVariablesAllHalf);
-    const auto tMeshDesignVariablesViewFilteredAllHalf =
-        mesh::MeshDesignVariablesSequentialView{tFilteredControlAllHalf};
+        tFilterCache.compute(tAnalysisDomainMeshAllHalf)->filter(tAnalysisDomainMeshAllHalf);
+    const auto tAnalysisDomainMeshViewFilteredAllHalf =
+        analysis::AnalysisDomainMeshSequentialView{tFilteredControlAllHalf};
 
-    EXPECT_EQ(tMeshDesignVariablesViewFilteredAllOne.size(), tMeshDesignVariablesViewFilteredAllHalf.size());
-    const auto [tFilteredDensitiesAllOne, tIDsAllOne] = mesh::detail::split_scalar_field_values(
-        mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllOne));
-    const auto [tFilteredDensitiesAllHalf, tIDsAllHalf] = mesh::detail::split_scalar_field_values(
-        mesh::mesh_design_variables_to_vector(tMeshDesignVariablesViewFilteredAllHalf));
+    EXPECT_EQ(tAnalysisDomainMeshViewFilteredAllOne.size(), tAnalysisDomainMeshViewFilteredAllHalf.size());
+    const auto [tFilteredDensitiesAllOne, tIDsAllOne] =
+        analysis::split_scalar_field_values(analysis::mesh_analysis_to_vector(tAnalysisDomainMeshViewFilteredAllOne));
+    const auto [tFilteredDensitiesAllHalf, tIDsAllHalf] =
+        analysis::split_scalar_field_values(analysis::mesh_analysis_to_vector(tAnalysisDomainMeshViewFilteredAllHalf));
     EXPECT_NE(tFilteredDensitiesAllOne, tFilteredDensitiesAllHalf);
     EXPECT_EQ(tIDsAllOne, tIDsAllHalf);
 
@@ -213,15 +214,15 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
     const auto tUpdatedMesh = mesh::Mesh{kMeshFile};
     const auto tUpdatedNodalDensitiesAllOne =
         std::vector<double>(mesh::EntityCounts{tUpdatedMesh}.numberOfNodes(), 1.0);
-    const auto tUpdatedMeshDesignVariablesAllOne =
-        mesh::DesignVariablesConversion{tUpdatedMesh}.nodalFieldToMeshDesignVariables(
+    const auto tUpdatedAnalysisDomainMeshAllOne =
+        mesh::DesignVariablesConversion{tUpdatedMesh}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tUpdatedNodalDensitiesAllOne});
     const auto tUpdatedFilteredControlAllOne =
-        tFilterCache.compute(tUpdatedMeshDesignVariablesAllOne)->filter(tUpdatedMeshDesignVariablesAllOne);
-    const auto tUpdatedMeshDesignVariablesViewFilteredAllOne =
-        mesh::MeshDesignVariablesSequentialView{tUpdatedFilteredControlAllOne};
+        tFilterCache.compute(tUpdatedAnalysisDomainMeshAllOne)->filter(tUpdatedAnalysisDomainMeshAllOne);
+    const auto tUpdatedAnalysisDomainMeshViewFilteredAllOne =
+        analysis::AnalysisDomainMeshSequentialView{tUpdatedFilteredControlAllOne};
 
-    EXPECT_NE(tMeshDesignVariablesViewFilteredAllOne.size(), tUpdatedMeshDesignVariablesViewFilteredAllOne.size());
+    EXPECT_NE(tAnalysisDomainMeshViewFilteredAllOne.size(), tUpdatedAnalysisDomainMeshViewFilteredAllOne.size());
 
     test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
 }

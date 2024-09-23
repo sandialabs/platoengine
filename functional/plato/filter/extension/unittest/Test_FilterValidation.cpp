@@ -113,4 +113,20 @@ TEST(FilterValidation, CheckFilterValuesKernelCenteringType)
     check_kernel_validation_with_variants(tFilter);
 }
 
+TEST(FilterValidation, ValidateNumberOfProcessors)
+{
+    auto tFilter = plato::test_utilities::create_valid_kernel_filter();
+    EXPECT_FALSE(detail::validate_number_of_processors(tFilter).has_value());  // valid
+    tFilter.number_of_processors = boost::none;
+    EXPECT_FALSE(detail::validate_number_of_processors(tFilter).has_value());  // valid - none specified uses 1
+}
+
+TEST(FilterValidation, ValidateNumberOfProcessorsFactorOfCommWorld)
+{
+    auto tFilter = plato::test_utilities::create_valid_kernel_filter();
+    EXPECT_FALSE(detail::validate_number_of_processors_factor_of_comm_world(tFilter).has_value());  // valid
+    tFilter.number_of_processors = 2;
+    EXPECT_TRUE(detail::validate_number_of_processors_factor_of_comm_world(tFilter).has_value());  // invalid
+}
+
 }  // namespace plato::filter::extension::unittest

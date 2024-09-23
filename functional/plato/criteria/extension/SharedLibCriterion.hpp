@@ -7,11 +7,11 @@
 #include <string>
 #include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionInterface.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
 
 namespace plato::services
 {
@@ -35,9 +35,9 @@ class SharedLibCriterion
                        const std::vector<std::string>& aFileNames,
                        const boost::mpi::communicator& aComm);
 
-    [[nodiscard]] double f(const mesh::MeshDesignVariables& aMesh) const;
+    [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aMesh) const;
 
-    [[nodiscard]] linear_algebra::DynamicVector<double> df(const mesh::MeshDesignVariables& aMesh) const;
+    [[nodiscard]] linear_algebra::DynamicVector<double> df(const analysis::AnalysisDomainMesh& aMesh) const;
 
    private:
     std::shared_ptr<library::CriterionInterface> mCriterionInterface;
@@ -45,7 +45,7 @@ class SharedLibCriterion
 };
 
 [[nodiscard]] auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion)
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const mesh::MeshDesignVariables&>;
+    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
 
 }  // namespace plato::criteria::extension
 

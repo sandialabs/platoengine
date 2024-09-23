@@ -1,10 +1,10 @@
-#include "plato/mesh/MeshDesignVariablesSequentialViewIterator.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialViewIterator.hpp"
 
-namespace plato::mesh
+namespace plato::analysis
 {
 template <typename InnerIteratorType, typename IteratorCategory>
-auto MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator++()
-    -> MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCategory>&
+auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator++()
+    -> AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>&
 {
     const auto tValues = detail::dereference_all(mCurrentIterators, mEndIterators);
     const auto tMinIDIterator = detail::min_id_iterator(tValues);
@@ -23,15 +23,14 @@ auto MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCatego
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
-auto MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator*() const
-    -> const reference
+auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator*() const -> const reference
 {
     return detail::dereferenced_proxy(mCurrentIterators, mEndIterators);
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
-bool MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator==(
-    const MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const
+bool AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator==(
+    const AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const
 {
     auto tAllEqual = true;
     for (const auto& [tLeftIterator, tRightIterator] :
@@ -43,8 +42,8 @@ bool MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCatego
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
-bool MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator!=(
-    const MeshDesignVariablesSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const
+bool AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator!=(
+    const AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const
 {
     return !(*this == aRHSIterator);
 }
@@ -67,9 +66,9 @@ auto min_id_iterator(const std::vector<std::optional<ScalarFieldValue>>& aScalar
 
 }  // namespace detail
 
-template struct MeshDesignVariablesSequentialViewIterator<MeshDesignVariables::ScalarFieldVector::iterator,
-                                                          std::output_iterator_tag>;
-template struct MeshDesignVariablesSequentialViewIterator<MeshDesignVariables::ScalarFieldVector::const_iterator,
-                                                          std::input_iterator_tag>;
+template struct AnalysisDomainMeshSequentialViewIterator<AnalysisDomainMesh::ScalarFieldVector::iterator,
+                                                         std::forward_iterator_tag>;
+template struct AnalysisDomainMeshSequentialViewIterator<AnalysisDomainMesh::ScalarFieldVector::const_iterator,
+                                                         std::input_iterator_tag>;
 
-}  // namespace plato::mesh
+}  // namespace plato::analysis

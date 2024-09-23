@@ -20,10 +20,12 @@ if( UNIT_TESTING )
 
   # Build unit tester
   set(FOLDERS library/unittest
-              extension/unittest)
+              extension/unittest
+              extension/test_utilities)
   create_plato_unittester(PlatoFunctionalFilter "${FOLDERS}")
 
-  set(DIRECTORIES extension/parallel_unittest)
+  set(DIRECTORIES extension/parallel_unittest
+                  extension/test_utilities)
   set(NUM_RANKS_FOR_TEST 4)
   create_plato_parallel_unittester(PlatoFunctionalFilter "${DIRECTORIES}" ${NUM_RANKS_FOR_TEST} PlatoFunctionalTPICommonTestUtilities)
 

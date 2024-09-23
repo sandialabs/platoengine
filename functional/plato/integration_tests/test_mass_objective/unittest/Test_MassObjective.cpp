@@ -4,7 +4,7 @@
 
 #include "plato/integration_tests/test_mass_objective/MassObjective.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 
 namespace plato::integration_tests::test_mass_objective::unittest
 {

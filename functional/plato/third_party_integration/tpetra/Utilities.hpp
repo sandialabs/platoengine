@@ -33,6 +33,7 @@ using TpetraCRSMatrix = Tpetra::CrsMatrix<TpetraScalar, TpetraLocalOrdinal, Tpet
 /// @brief Helper function to retrieve the number of local elements in the map @a aTeptraMap
 [[nodiscard]] TpetraLocalOrdinal number_of_local_elements(const Teuchos::RCP<const TpetraMap>& aTpetraMap);
 
+/// @brief Helper function to create zeroed out pairs of tpetra vectors that are sized to a CRS matrix @a aCRSMatrix
 [[nodiscard]] std::pair<TpetraVector, TpetraVector> create_zeroed_row_and_column_vectors_from_crs_map(
     const TpetraCRSMatrix& aCRSMatrix, const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator);
 

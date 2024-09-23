@@ -1,16 +1,17 @@
 #include "plato/filter/test_utilities/SharedLibIdentityFilter.hpp"
 
-#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 
 namespace plato::filter::test_utilities
 {
-mesh::MeshDesignVariables SharedLibIdentityFilter::filter(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+analysis::AnalysisDomainMesh SharedLibIdentityFilter::filter(
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    return aMeshDesignVariables;
+    return aAnalysisDomainMesh;
 }
 
 linear_algebra::DynamicVector<double> SharedLibIdentityFilter::jacobianTimesVector(
-    const mesh::MeshDesignVariables&, const linear_algebra::DynamicVector<double>& aV) const
+    const analysis::AnalysisDomainMesh&, const linear_algebra::DynamicVector<double>& aV) const
 {
     return aV;
 }

@@ -16,7 +16,7 @@ struct ProcessManagerData
 {
     plato::geometry::library::FactoryTypes mGeometry;
     plato::criteria::library::ObjectiveFunction mObjective;
-    std::vector<plato::criteria::library::Constraint<const mesh::MeshDesignVariables&>> mConstraints;
+    std::vector<plato::criteria::library::Constraint<const analysis::AnalysisDomainMesh&>> mConstraints;
 };
 
 ///@brief Convert validated parsed input into a populated ProcessManagerData struct

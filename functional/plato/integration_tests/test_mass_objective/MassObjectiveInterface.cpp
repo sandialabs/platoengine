@@ -6,19 +6,19 @@
 
 namespace plato::integration_tests::test_mass_objective
 {
-double MassObjectiveInterface::value(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+double MassObjectiveInterface::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
     constexpr double tDensity = 1.0;
     const auto tMassObjective = MassObjective{tDensity};
-    return tMassObjective.mass(aMeshDesignVariables.mFileName.string());
+    return tMassObjective.mass(aAnalysisDomainMesh.mFileName.string());
 }
 
-std::vector<double> MassObjectiveInterface::gradient(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+std::vector<double> MassObjectiveInterface::gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
     ///@todo Populate the gradient with actual values
     constexpr unsigned int tNumDimensions = 3;
     const unsigned int tGradientSize =
-        mesh::EntityCounts{mesh::Mesh{aMeshDesignVariables.mFileName}}.numberOfNodes() * tNumDimensions;
+        mesh::EntityCounts{mesh::Mesh{aAnalysisDomainMesh.mFileName}}.numberOfNodes() * tNumDimensions;
 
     return std::vector<double>(tGradientSize, 1.0);
 }
