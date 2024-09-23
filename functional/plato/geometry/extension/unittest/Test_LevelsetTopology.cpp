@@ -76,7 +76,7 @@ TEST_F(PlatoTestKrino, LevelsetTopology_Jacobian)
     constexpr double tTol = 1e-6;
     for (size_t i = 0; i < tGold.size(); ++i)
     {
-        ASSERT_NEAR(tRes[i], tGold[i], tTol);
+        EXPECT_NEAR(tRes[i], tGold[i], tTol);
     }
     ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken));
     ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.cut_mesh_name->mToken));
