@@ -87,34 +87,6 @@ auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVect
     return tCoordinates;
 }
 
-void write_nodal_density(const std::filesystem::path& aInputMeshName,
-                         const std::unordered_map<std::size_t, double>& aDensity,
-                         const std::filesystem::path& aOutputMeshName)
-{
-    std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker =
-        create_input_mesh_broker(aInputMeshName);  // todo : add communicator
-
-    const size_t tOutputFileIndex =
-        write_mesh_density_impl<stk::topology::NODE_RANK>(*tIOBroker, aDensity, aOutputMeshName);
-
-    constexpr double tTime = 1.0;
-    write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);
-}
-
-void write_element_density(const std::filesystem::path& aInputMeshName,
-                           const std::unordered_map<std::size_t, double>& aDensity,
-                           const std::filesystem::path& aOutputMeshName)
-{
-    std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker =
-        create_input_mesh_broker(aInputMeshName);  // todo : add communicator
-
-    const size_t tOutputFileIndex =
-        write_mesh_density_impl<stk::topology::ELEMENT_RANK>(*tIOBroker, aDensity, aOutputMeshName);
-
-    constexpr double tTime = 1.0;
-    write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);
-}
-
 std::vector<unsigned int> extract_global_node_ids(const std::string& aFilename)
 {
     std::vector<unsigned int> tNodeIDs;

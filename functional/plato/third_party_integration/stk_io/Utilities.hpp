@@ -48,22 +48,6 @@ using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::
 /// name
 [[nodiscard]] std::vector<unsigned int> extract_global_node_ids(const std::string& aFilename);
 
-/// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
-/// nodal field stored in the kTopologyField name and populated with the data in @a aDensity.
-/// @param aDensity A map associating global IDs with nodal densities.
-/// @pre aDensity.size() == size<stk::topology::NODE_RANK>()
-void write_nodal_density(const std::filesystem::path& aInputMeshName,
-                         const std::unordered_map<std::size_t, double>& aDensity,
-                         const std::filesystem::path& aOutputMeshName);
-
-/// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
-/// element field stored in the kTopologyField name and populated with the data in @a aDensity
-/// @param aDensity A map associating global IDs with nodal densities.
-/// @pre aDensity.size() == size<stk::topology::ELEMENT_RANK>()
-void write_element_density(const std::filesystem::path& aInputMeshName,
-                           const std::unordered_map<std::size_t, double>& aDensity,
-                           const std::filesystem::path& aOutputMeshName);
-
 /// @brief Given a STK Bulk data  @a aBulk, return the STK element container
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk);
 
