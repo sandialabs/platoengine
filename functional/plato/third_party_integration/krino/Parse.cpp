@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace plato::krino_integration
+namespace plato::third_party_integration::krino
 {
 
 bool parseCommandLineOptions(int aArgc, char *aArgv[], CommandLineOptions &aCommandLineOptions)
@@ -48,4 +48,4 @@ bool parseCommandLineOptions(int aArgc, char *aArgv[], CommandLineOptions &aComm
     return false;
 }
 
-}  // namespace plato::krino_integration
+}  // namespace plato::third_party_integration::krino

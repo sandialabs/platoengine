@@ -1,5 +1,5 @@
-#ifndef PLATO_KRINO_INTEGRATION_UTILITIES
-#define PLATO_KRINO_INTEGRATION_UTILITIES
+#ifndef PLATO_THIRD_PARTY_INTEGRATION_KRINO_UTILITIES
+#define PLATO_THIRD_PARTY_INTEGRATION_KRINO_UTILITIES
 
 #include <mpi.h>
 
@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-namespace plato::krino_integration
+namespace plato::third_party_integration::krino
 {
 
 struct InterfaceNode_DXDP
@@ -87,6 +87,6 @@ std::map<unsigned int, double> calculateDFDLS(const std::map<unsigned int, stk::
                                               const std::map<stk::mesh::EntityId, InterfaceNode_DXDP> &aDXDP,
                                               const std::vector<unsigned int> &aBackgroundNodemap);
 
-}  // namespace plato::krino_integration
+}  // namespace plato::third_party_integration::krino
 
-#endif  // PLATO_KRINO_INTEGRATION_UTILITIES
+#endif  // PLATO_THIRD_PARTY_INTEGRATION_KRINO_UTILITIES

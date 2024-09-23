@@ -5,10 +5,10 @@
 #include <optional>
 
 #include "plato/core/Function.hpp"
-#include "plato/krino_integration/Utilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace plato::input_parser
 {
@@ -54,8 +54,8 @@ class LevelsetTopology
     double mLevelsetLowerBound = -1.0;
     double mLevelsetUpperBound = 1.0;
     unsigned int mNumDesignParameters = 0;
-    plato::krino_integration::LevelsetPrimitives mLevelsetPrimitives;
-    plato::krino_integration::SpherePatternData mSpherePattern;
+    plato::third_party_integration::krino::LevelsetPrimitives mLevelsetPrimitives;
+    plato::third_party_integration::krino::SpherePatternData mSpherePattern;
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.

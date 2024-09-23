@@ -1,18 +1,15 @@
-#ifndef PLATO_KRINO_INTEGRATION_KRINO_WRAPPER
-#define PLATO_KRINO_INTEGRATION_KRINO_WRAPPER
+#ifndef PLATO_THIRD_PARTY_INTEGRATION_KRINO_KRINO_WRAPPER
+#define PLATO_THIRD_PARTY_INTEGRATION_KRINO_KRINO_WRAPPER
 
 #include <Akri_BoundingBoxMesh.hpp>
 #include <Akri_LevelSet.hpp>
 #include <Akri_LevelSetPolicy.hpp>
 #include <Akri_MeshFromFile.hpp>
-// #include <Akri_Phase_Support.hpp>
-// #include <memory>
 #include <stk_mesh/base/MetaData.hpp>
 
 #include "Utilities.hpp"
-// #include "stk_mesh/base/Types.hpp"
 
-namespace plato::krino_integration
+namespace plato::third_party_integration::krino
 {
 
 class KrinoWrapper
@@ -53,42 +50,42 @@ class KrinoWrapper
     void readAndSetupMeshForDecompositionPrivate(const std::string &aFilename);
     void setupFieldsForConformingDecomposition(const stk::mesh::MetaData &meta);
     bool includeVoidRegionPart(const stk::mesh::Part *aPart);
-    void decomposeMeshToConformToLevelsets(stk::mesh::BulkData &mesh, const std::vector<krino::LS_Field> &lsFields);
+    void decomposeMeshToConformToLevelsets(stk::mesh::BulkData &mesh, const std::vector<::krino::LS_Field> &lsFields);
     std::map<stk::mesh::EntityId, InterfaceNode_DXDP> getLevelsetShapeSensitivities(
-        const stk::mesh::BulkData &mesh, const krino::FieldRef levelSetField);
+        const stk::mesh::BulkData &mesh, const ::krino::FieldRef levelSetField);
     void fillNodeIdsForNodes(const stk::mesh::BulkData &mesh,
                              const std::vector<stk::mesh::Entity> &parentNodes,
                              std::vector<stk::mesh::EntityId> &parentNodeIds);
-    void fillDCoordsDLevelsets(const krino::FieldRef coordsField,
-                               const krino::FieldRef levelSetField,
+    void fillDCoordsDLevelsets(const ::krino::FieldRef coordsField,
+                               const ::krino::FieldRef levelSetField,
                                const std::vector<stk::mesh::Entity> &parentNodes,
                                std::vector<stk::math::Vector3d> &dCoordsdParentLevelSets);
     void initializeLevelsetFieldsFromPrimitives(const stk::mesh::BulkData &mesh,
-                                                krino::FieldRef levelSetField,
+                                                ::krino::FieldRef levelSetField,
                                                 const LevelsetPrimitives &aLevelsetPrimitives);
     void createBoundingBoxMeshPrivate(const stk::math::Vector3d &aMinCorner,
                                       const stk::math::Vector3d &aMaxCorner,
                                       const double &aMeshSize,
                                       const std::string &aFilename);
     void initializeLevelsetFieldForSpheres(const stk::mesh::BulkData &mesh,
-                                           krino::FieldRef levelSetField,
+                                           ::krino::FieldRef levelSetField,
                                            const std::vector<std::pair<stk::math::Vector3d, double>> &spheres);
     void initializeLevelsetFieldForPlane(const stk::mesh::BulkData &mesh,
-                                         krino::FieldRef levelSetField,
+                                         ::krino::FieldRef levelSetField,
                                          const stk::math::Vector3d &normal,
                                          const double offset);
 
    private:
     stk::mesh::BulkData *mBulkData;
-    krino::LevelSet *mLevelSet = nullptr;
-    std::unique_ptr<krino::BoundingBoxMesh> mBoundingBoxMesh;
-    std::unique_ptr<krino::MeshFromFile> mMeshFromFile;
-    std::vector<krino::LS_Field> mLSFields;
+    ::krino::LevelSet *mLevelSet = nullptr;
+    std::unique_ptr<::krino::BoundingBoxMesh> mBoundingBoxMesh;
+    std::unique_ptr<::krino::MeshFromFile> mMeshFromFile;
+    std::vector<::krino::LS_Field> mLSFields;
     std::map<stk::mesh::EntityId, InterfaceNode_DXDP> mSensitivities;
     unsigned int mUncutBackgroundMeshSize;
     bool mIncludeVoidRegion = false;
 };
 
-}  // namespace plato::krino_integration
+}  // namespace plato::third_party_integration::krino
 
-#endif  // PLATO_KRINO_INTEGRATION_KRINO_WRAPPER
+#endif  // PLATO_THIRD_PARTY_INTEGRATION_KRINO_KRINO_WRAPPER

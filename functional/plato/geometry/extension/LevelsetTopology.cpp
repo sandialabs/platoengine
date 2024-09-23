@@ -2,14 +2,14 @@
 
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
-#include "plato/krino_integration/FreeFunctionInterface.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/krino/Interface.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 
-using namespace plato::krino_integration;
+using namespace plato::third_party_integration::krino;
 
 namespace plato::geometry::extension
 {

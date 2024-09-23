@@ -1,16 +1,11 @@
-/*
- * PlatoKrinoUnitTests.cpp
- *
- *  Created on: Nov 1, 2023
- */
 
 #include <gtest/gtest.h>  // for AssertHelper, TEST, etc
 
 #include <cstdio>
 
-#include "plato/krino_integration/KrinoWrapper.hpp"
+#include "plato/third_party_integration/krino/KrinoWrapper.hpp"
 
-namespace plato::krino_integration
+namespace plato::third_party_integration::krino::unit_tests
 {
 
 class PlatoTestKrino : public ::testing::Test
@@ -62,7 +57,7 @@ TEST_F(PlatoTestKrino, cut_sphere_out_of_background_mesh)
     tKrinoWrapper.cutMesh();
     tKrinoWrapper.setIncludeVoidRegion(false);
     tKrinoWrapper.writeMesh(tCutFilename);
-    unsigned int tNumSolidTets = tKrinoWrapper.getNumTetsInNamedBlock("block_1");
+    unsigned int tNumSolidTets = tKrinoWrapper.getNumTetsInNamedBlock("block_45");
     ASSERT_EQ(tNumSolidTets, 672u);
     remove(tBackgroundFilename.c_str());
     remove(tCutFilename.c_str());
@@ -78,13 +73,6 @@ TEST_F(PlatoTestKrino, calculate_dFdLS)
         {2, InterfaceNode_DXDP{{19, 10}, {{.3, .3, .3}, {-.2, -.2, -.2}}}},
     };
 
-    //    const std::vector<std::pair<unsigned int, std::vector<std::pair<unsigned int, stk::math::Vector3d>>>>
-    //        tSensitivities{{3, {{7, {.5, .5, .5}}, {12, {.4, .4, .4}}, {19, {-.1, .1, -.1}}}},
-    //                       {1, {{34, {.1, .1, .1}}, {22, {.2, .2, .2}}, {2, {-.1, -.1, -.1}}}},
-    //                       {2, {{19, {.3, .3, .3}}, {10, {-.2, -.2, -.2}}}}};
-    //    PlatoKrinoInterface tInterface;
-    //    tInterface.setSensitivities(tSensitivities);
-    //    tInterface.setUncutBackgroundMeshSize(34);
     const std::vector<unsigned int> tBackgroundNodemap{7, 12, 19, 34, 22, 2, 10};
     std::map<unsigned int, double> tDFDLS = calculateDFDLS(tDFDX_values, tDXDP, tBackgroundNodemap);
 
@@ -426,4 +414,4 @@ TEST_F(PlatoTestKrino, checkForReasonableSpherePatternDefinition_fail_invalid_ra
     EXPECT_THROW(checkForReasonableSpherePatternDefinition(tData), std::runtime_error);
 }
 
-}  // namespace plato::krino_integration
+}  // namespace plato::third_party_integration::krino::unit_tests

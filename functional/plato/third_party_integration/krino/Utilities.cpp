@@ -6,7 +6,7 @@
 #include <stk_util/environment/EnvData.hpp>
 #include <stk_util/environment/OutputLog.hpp>
 
-namespace plato::krino_integration
+namespace plato::third_party_integration::krino
 {
 
 void initializeSTKEnvironment(const MPI_Comm &aComm)
@@ -18,7 +18,7 @@ void initializeSTKEnvironment(const MPI_Comm &aComm)
 
 void initializeKrinoLogging()
 {
-    sierra::Diag::registerWriter("krinolog", krinolog, krino::theDiagWriterParser());
+    sierra::Diag::registerWriter("krinolog", ::krinolog, ::krino::theDiagWriterParser());
     const std::string output_description = "out>pout dout>out";
     std::string parallel_output_description = " pout>null";
     stk::bind_output_streams(
@@ -221,4 +221,4 @@ std::map<unsigned int, double> calculateDFDLS(const std::map<unsigned int, stk::
     return tDFDLS;
 }
 
-}  // namespace plato::krino_integration
+}  // namespace plato::third_party_integration::krino

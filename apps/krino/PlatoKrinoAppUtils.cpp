@@ -1,7 +1,7 @@
 #include "PlatoKrinoAppUtils.hpp"
 #include "Plato_Parser.hpp"
 
-namespace plato::krino_integration
+namespace apps::krino_app
 {
 
 template <typename T>
@@ -106,33 +106,6 @@ SpherePatternData readSpherePatternData(const Plato::InputData &aNode)
     return tData;
 }
 
-std::vector<Sphere> generateSpheres(const SpherePatternData &aData)
-{
-    checkForReasonableSpherePatternDefinition(aData);
-
-    SphereLocatorData tLocatorData = calculateSphereStartsAndSpacing(aData);
-
-    // Loop to create 3D array of spheres
-    std::vector<Sphere> tSpheres;
-    for (int i = 0; i < aData.mNumSpheres[0]; ++i)
-    {
-        const double tSphereCenterX =
-            tLocatorData.mStartAndSpacing[0].first + (i + 1) * tLocatorData.mStartAndSpacing[0].second;
-        for (int j = 0; j < aData.mNumSpheres[1]; ++j)
-        {
-            const double tSphereCenterY =
-                tLocatorData.mStartAndSpacing[1].first + (j + 1) * tLocatorData.mStartAndSpacing[1].second;
-            for (int k = 0; k < aData.mNumSpheres[2]; ++k)
-            {
-                const double tSphereCenterZ =
-                    tLocatorData.mStartAndSpacing[2].first + (k + 1) * tLocatorData.mStartAndSpacing[2].second;
-                tSpheres.push_back(Sphere{tSphereCenterX, tSphereCenterY, tSphereCenterZ, aData.mSphereRadius});
-            }
-        }
-    }
-    return tSpheres;
-}
-
 Sphere readSphereData(const Plato::InputData &aNode)
 {
     double tCenterX =
@@ -157,79 +130,4 @@ Plane readPlaneData(const Plato::InputData &aNode)
     return Plane{tNormalX, tNormalY, tNormalZ, tOffset};
 }
 
-void checkForReasonableSpherePatternDefinition(const SpherePatternData &aData)
-{
-    for (size_t i = 0; i < aData.mCoordMins.size(); ++i)
-    {
-        if (aData.mCoordMins[i] >= aData.mCoordMaxes[i])
-        {
-            throw std::runtime_error("ERROR: Ill-defined bounding box for sphere pattern.");
-        }
-        if (aData.mNumSpheres[i] < 1)
-        {
-            throw std::runtime_error("ERROR: There must be at least on sphere in each direction in a sphere pattern.");
-        }
-    }
-    if (aData.mSphereRadius <= 0.0)
-    {
-        throw std::runtime_error("ERROR: Sphere radius must be greater than 0.0 when defining a sphere pattern.");
-    }
-}
-
-SphereLocatorData calculateSphereStartsAndSpacing(const SpherePatternData &aData)
-{
-    constexpr int tNumDimensions = 3;
-    SphereLocatorData tLocatorData(tNumDimensions, 0.0);
-    for (size_t tCurDimension = 0; tCurDimension < tNumDimensions; ++tCurDimension)
-    {
-        if (aData.mSpheresCanOverlapBoundingBox)
-        {
-            if (aData.mNumSpheres[tCurDimension] == 1)
-            {
-                tLocatorData.mStartAndSpacing[tCurDimension] =
-                    calculateOverlappingSingleSphereLocatorData(aData, tCurDimension);
-            }
-            else
-            {
-                tLocatorData.mStartAndSpacing[tCurDimension] =
-                    calculateOverlappingManySphereLocatorData(aData, tCurDimension);
-            }
-        }
-        else
-        {
-            tLocatorData.mStartAndSpacing[tCurDimension] =
-                calculateNonOverlappingSphereLocatorData(aData, tCurDimension);
-        }
-    }
-    return tLocatorData;
-}
-
-std::pair<double, double> calculateOverlappingSingleSphereLocatorData(const SpherePatternData &aPatternData,
-                                                                      const size_t &aDimension)
-{
-    std::pair<double, double> tStartAndSpacing(
-        aPatternData.mCoordMins[aDimension],
-        (aPatternData.mCoordMaxes[aDimension] - aPatternData.mCoordMins[aDimension]) / 2.0);
-    return tStartAndSpacing;
-}
-
-std::pair<double, double> calculateOverlappingManySphereLocatorData(const SpherePatternData &aPatternData,
-                                                                    const size_t &aDimension)
-{
-    const double tSpacing = (aPatternData.mCoordMaxes[aDimension] - aPatternData.mCoordMins[aDimension]) /
-                            (aPatternData.mNumSpheres[aDimension] - 1);
-    std::pair<double, double> tStartAndSpacing(aPatternData.mCoordMins[aDimension] - tSpacing, tSpacing);
-    return tStartAndSpacing;
-}
-
-std::pair<double, double> calculateNonOverlappingSphereLocatorData(const SpherePatternData &aPatternData,
-                                                                   const size_t &aDimension)
-{
-    std::pair<double, double> tStartAndSpacing(
-        aPatternData.mCoordMins[aDimension],
-        (aPatternData.mCoordMaxes[aDimension] - aPatternData.mCoordMins[aDimension]) /
-            (aPatternData.mNumSpheres[aDimension] + 1));
-    return tStartAndSpacing;
-}
-
-}// namespace plato::krino_integration
+}// namespace apps::krino

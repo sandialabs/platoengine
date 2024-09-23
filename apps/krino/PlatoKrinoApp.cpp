@@ -13,8 +13,8 @@
 #include <stk_util/environment/EnvData.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 
-#include "plato/krino_integration/Parse.hpp"
-#include "plato/krino_integration/Utilities.hpp"
+#include "plato/third_party_integration/krino/Parse.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace Plato
 {
@@ -61,7 +61,7 @@ void PlatoKrinoApp::initialize()
         }
     }
 
-    mLevelsetPrimitives = readLevelsetInitializationData(mAppfileData);
+    mLevelsetPrimitives = apps::krino_app::readLevelsetInitializationData(mAppfileData);
     mKrinoWrapper.readAndSetupMeshForDecomposition(mBGMeshFilename);
 
     buildParallelMaps();
@@ -117,7 +117,7 @@ void PlatoKrinoApp::executeInitialMesh()
 void PlatoKrinoApp::executeInitialMeshFromPrimitives()
 /******************************************************************************/
 {
-    mLevelsetPrimitives = readLevelsetInitializationData(mAppfileData);
+    mLevelsetPrimitives = apps::krino_app::readLevelsetInitializationData(mAppfileData);
     mKrinoWrapper.readAndSetupMeshForDecomposition(mBGMeshFilename);
     mKrinoWrapper.initializeLevelsetsFromPrimitives(mLevelsetPrimitives);
     mKrinoWrapper.cutMesh();

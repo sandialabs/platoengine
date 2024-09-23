@@ -13,14 +13,14 @@
 
 #include "plato/geometry/extension/LevelsetTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
-#include "plato/krino_integration/KrinoWrapper.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/third_party_integration/krino/KrinoWrapper.hpp"
 
-using namespace plato::krino_integration;
+using namespace plato::third_party_integration::krino;
 
 namespace plato::geometry::extension::unittest
 {
