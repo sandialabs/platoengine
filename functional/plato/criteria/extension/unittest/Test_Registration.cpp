@@ -37,7 +37,7 @@ TEST(CriterionRegistration, BuiltinRegisterAppsList)
         return tRegisteredApps.count(tRegistrationName) == 1u;
     };
 
-    EXPECT_TRUE(tCriterionIsInRegisteredNames(VolumeCriterion::kVolumeCriterionName));
+    EXPECT_TRUE(tCriterionIsInRegisteredNames(NodalSumObjective::kCriterionName));
     EXPECT_TRUE(tCriterionIsInRegisteredNames(VolumeCriterion::kVolumeCriterionName));
     EXPECT_TRUE(tCriterionIsInRegisteredNames(VolumeCriterion::kVolumeFractionCriterionName));
 }
