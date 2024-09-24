@@ -14,7 +14,7 @@ namespace
 {
 [[nodiscard]] auto make_geometry_and_constraint()
     -> std::pair<plato::geometry::library::FactoryTypes,
-                 plato::criteria::library::Constraint<const plato::mesh::MeshDesignVariables&>>
+                 plato::criteria::library::Constraint<const analysis::AnalysisDomainMesh&>>
 {
     namespace ptu = test_utilities;
     const input_parser::ParsedInput tInputDeck =

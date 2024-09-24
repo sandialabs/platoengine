@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "plato/mesh/MeshDesignVariables.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 
 namespace plato::criteria::library
 {
@@ -35,10 +35,10 @@ class VectorCriterionInterface
     /// @note When implementing a constraint, the target value will be subtracted in the optimizer interface.
     /// A criterion that is a constraint should then just evaluate without considering any target value.
     /// Vector constraints share the same target value.
-    virtual std::vector<double> value(const mesh::MeshDesignVariables& aMeshDesignVariables) const = 0;
-    virtual std::vector<double> jacobianTimesVector(const mesh::MeshDesignVariables& aMeshDesignVariables,
+    virtual std::vector<double> value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const = 0;
+    virtual std::vector<double> jacobianTimesVector(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                                     const std::vector<double>& aDirectionVector) const = 0;
-    virtual std::vector<double> adjointJacobianTimesVector(const mesh::MeshDesignVariables& aMeshDesignVariables,
+    virtual std::vector<double> adjointJacobianTimesVector(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                                            const std::vector<double>& aDualVector) const = 0;
 
     VectorCriterionInterface(const VectorCriterionInterface&) = delete;

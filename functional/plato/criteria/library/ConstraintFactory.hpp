@@ -33,7 +33,10 @@ enum class ConstraintType
 template <typename FunctionArg>
 struct Constraint
 {
-    using ConstraintFunction = core::Function<double, linear_algebra::DynamicVector<double>, FunctionArg>;
+    using ConstraintFunction =
+        core::Function<FunctionArg,
+                       core::FunctionInfo<double, core::evaluation::kFunction>,
+                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
     std::string mName;
     ConstraintFunction mConstraintFunction;

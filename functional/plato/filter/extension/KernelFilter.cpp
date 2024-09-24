@@ -88,10 +88,7 @@ analysis::AnalysisDomainMesh KernelFilter::filter(const analysis::AnalysisDomain
 linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(
     const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const linear_algebra::DynamicVector<double>& aV) const
 {
-    std::cout << "Filter JV " << gFilterDFCount++ << std::endl;
-    const auto tReturn = linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
-
-    return tReturn;
+    return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
 }
 
 namespace detail

@@ -12,16 +12,16 @@ class MassConstraintInterface : public criteria::library::VectorCriterionInterfa
    public:
     ///@brief required by the VectorCriterionInterface, return the value of the constraint evaluated at the controls
     /// specified by the MeshDesignVariables
-    std::vector<double> value(const mesh::MeshDesignVariables& aMeshDesignVariables) const override;
+    std::vector<double> value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
 
     ///@brief required by the VectorCriterionInterface, return the jacobian times a vector of the constraint evaluated
     /// at the controls specified by the MeshDesignVariables and the supplied direction vector
-    std::vector<double> jacobianTimesVector(const mesh::MeshDesignVariables& aMeshDesignVariables,
+    std::vector<double> jacobianTimesVector(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                             const std::vector<double>& aDirectionVector) const override;
 
     ///@brief required by the VectorCriterionInterface, return the adjoint jacobian times a dual vector of the
     /// constraint evaluated at the controls specified by the MeshDesignVariables and the supplied direction vector
-    std::vector<double> adjointJacobianTimesVector(const mesh::MeshDesignVariables& aMeshDesignVariables,
+    std::vector<double> adjointJacobianTimesVector(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                                    const std::vector<double>& aDualVector) const override;
 };
 }  // namespace plato::integration_tests::test_vector_constraint

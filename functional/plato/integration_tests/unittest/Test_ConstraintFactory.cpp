@@ -21,16 +21,17 @@ auto create_raw_input() -> input_parser::ParsedInput
            test_utilities::create_valid_identity_filter();
 }
 
-void test_constraint_type_and_value(const criteria::library::Constraint<const mesh::MeshDesignVariables&>& aConstraint,
-                                    const double aGoldValue,
-                                    const criteria::library::ConstraintType aType)
+void test_constraint_type_and_value(
+    const criteria::library::Constraint<const analysis::AnalysisDomainMesh&>& aConstraint,
+    const double aGoldValue,
+    const criteria::library::ConstraintType aType)
 {
     EXPECT_TRUE(aConstraint.mLinear);
     EXPECT_EQ(aConstraint.mConstraintTarget, aGoldValue);
     EXPECT_EQ(aConstraint.mConstraintType, aType);
 }
 
-criteria::library::Constraint<const mesh::MeshDesignVariables&> get_first_constraint(
+criteria::library::Constraint<const analysis::AnalysisDomainMesh&> get_first_constraint(
     const input_parser::ParsedInput& aInput)
 {
     const auto tData = process_manager::library::make_validated_input(aInput);

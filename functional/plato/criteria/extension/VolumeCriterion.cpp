@@ -33,7 +33,7 @@ double fixed_domain_volume(const mesh::MeshQuantities& aMesh)
 
 double VolumeCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aMeshDesignVariables}};
+    const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aAnalysisDomainMesh}};
     auto tScaledVolumes = tMesh.designDomainElementVolumes();
     const auto tMeshView = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh};
     std::transform(tScaledVolumes.cbegin(), tScaledVolumes.cend(), tMeshView.begin(), tScaledVolumes.begin(),

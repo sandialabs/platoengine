@@ -3,10 +3,10 @@
 #include <filesystem>
 #include <iterator>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
 #include "plato/integration_tests/test_vector_constraint/MassConstraintVectorInterface.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::integration_tests::serial
@@ -45,7 +45,7 @@ constexpr std::string_view kLibPath = "libPlatoTestVectorConstraint.so";
 TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallValue)
 {
     const auto tSharedLibrary = test_shared_library_criterion();
-    const auto tMass = tSharedLibrary.value(mesh::MeshDesignVariables{mMeshFilePath, {}}).stdVector();
+    const auto tMass = tSharedLibrary.value(analysis::AnalysisDomainMesh{mMeshFilePath, {}}).stdVector();
 
     EXPECT_EQ(tMass.size(), mExpectedNumberOfElements);
 
@@ -60,7 +60,7 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallJacobianTimesVector)
     const auto tSharedLibrary = test_shared_library_criterion();
     const linear_algebra::DynamicVector<double> tDirection(create_n_step_vector(mExpectedNumberOfElements));
     const auto tJacobianTimesVector =
-        tSharedLibrary.jacobianTimesVector(mesh::MeshDesignVariables{mMeshFilePath, {}}, tDirection).stdVector();
+        tSharedLibrary.jacobianTimesVector(analysis::AnalysisDomainMesh{mMeshFilePath, {}}, tDirection).stdVector();
 
     const auto tGold = tDirection.stdVector();
     EXPECT_EQ(tJacobianTimesVector, tGold);
@@ -71,7 +71,7 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallAdjointJacobianTimesVector)
     const auto tSharedLibrary = test_shared_library_criterion();
     const linear_algebra::DynamicVector<double> tDual(create_n_step_vector(mExpectedNumberOfElements));
     const auto tAdjointJacobianTimesDual =
-        tSharedLibrary.adjointJacobianTimesVector(mesh::MeshDesignVariables{mMeshFilePath, {}}, tDual).stdVector();
+        tSharedLibrary.adjointJacobianTimesVector(analysis::AnalysisDomainMesh{mMeshFilePath, {}}, tDual).stdVector();
 
     const auto tSum = std::accumulate(tDual.stdVector().begin(), tDual.stdVector().end(), 0.0);
     const std::vector<double> tGold(1, tSum);

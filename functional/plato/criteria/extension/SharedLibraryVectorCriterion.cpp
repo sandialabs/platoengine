@@ -46,44 +46,44 @@ SharedLibraryVectorCriterion::SharedLibraryVectorCriterion(
 {
 }
 
-auto SharedLibraryVectorCriterion::value(const mesh::MeshDesignVariables& aMeshDesignVariables) const
+auto SharedLibraryVectorCriterion::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
     -> linear_algebra::DynamicVector<double>
 {
-    return linear_algebra::DynamicVector<double>(mCriterionInterface->value(aMeshDesignVariables));
+    return linear_algebra::DynamicVector<double>(mCriterionInterface->value(aAnalysisDomainMesh));
 }
 
 auto SharedLibraryVectorCriterion::jacobianTimesVector(
-    const mesh::MeshDesignVariables& aMeshDesignVariables,
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     const linear_algebra::DynamicVector<double>& aDirectionVector) const -> linear_algebra::DynamicVector<double>
 {
     return linear_algebra::DynamicVector<double>(
-        mCriterionInterface->jacobianTimesVector(aMeshDesignVariables, aDirectionVector.stdVector()));
+        mCriterionInterface->jacobianTimesVector(aAnalysisDomainMesh, aDirectionVector.stdVector()));
 }
 
 auto SharedLibraryVectorCriterion::adjointJacobianTimesVector(
-    const mesh::MeshDesignVariables& aMeshDesignVariables,
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     const linear_algebra::DynamicVector<double>& aDualVector) const -> linear_algebra::DynamicVector<double>
 {
     return linear_algebra::DynamicVector<double>(
-        mCriterionInterface->adjointJacobianTimesVector(aMeshDesignVariables, aDualVector.stdVector()));
+        mCriterionInterface->adjointJacobianTimesVector(aAnalysisDomainMesh, aDualVector.stdVector()));
 }
 
 namespace
 {
 auto make_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCriterion,
-                              const mesh::MeshDesignVariables& aMeshDesignVariables)
+                              const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
     -> linear_algebra::JacobianMultiplier
 {
-    return linear_algebra::JacobianMultiplier{[aSharedLibCriterion, aMeshDesignVariables](const auto aDirectionVector) {
-        return aSharedLibCriterion.jacobianTimesVector(aMeshDesignVariables, aDirectionVector);
+    return linear_algebra::JacobianMultiplier{[aSharedLibCriterion, aAnalysisDomainMesh](const auto aDirectionVector) {
+        return aSharedLibCriterion.jacobianTimesVector(aAnalysisDomainMesh, aDirectionVector);
     }};
 }
 auto make_adjoint_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCriterion,
-                                      const mesh::MeshDesignVariables& aMeshDesignVariables)
+                                      const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
     -> linear_algebra::JacobianMultiplier
 {
-    return linear_algebra::JacobianMultiplier{[aSharedLibCriterion, aMeshDesignVariables](const auto aDualVector) {
-        return aSharedLibCriterion.adjointJacobianTimesVector(aMeshDesignVariables, aDualVector);
+    return linear_algebra::JacobianMultiplier{[aSharedLibCriterion, aAnalysisDomainMesh](const auto aDualVector) {
+        return aSharedLibCriterion.adjointJacobianTimesVector(aAnalysisDomainMesh, aDualVector);
     }};
 }
 
@@ -92,23 +92,23 @@ auto make_adjoint_jacobian_multiplier(const SharedLibraryVectorCriterion& aShare
 auto make_shared_library_jacobian_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
     -> core::Function<linear_algebra::DynamicVector<double>,
                       linear_algebra::JacobianMultiplier,
-                      const mesh::MeshDesignVariables&>
+                      const analysis::AnalysisDomainMesh&>
 {
-    return core::make_function([aSharedLibCriterion](const mesh::MeshDesignVariables& aMeshDesignVariables)
-                               { return aSharedLibCriterion.value(aMeshDesignVariables); },
-                               [aSharedLibCriterion](const mesh::MeshDesignVariables& aMeshDesignVariables)
-                               { return make_jacobian_multiplier(aSharedLibCriterion, aMeshDesignVariables); });
+    return core::make_function([aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                               { return aSharedLibCriterion.value(aAnalysisDomainMesh); },
+                               [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                               { return make_jacobian_multiplier(aSharedLibCriterion, aAnalysisDomainMesh); });
 }
 
 auto make_shared_library_adjoint_jacobian_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
     -> core::Function<linear_algebra::DynamicVector<double>,
                       linear_algebra::JacobianMultiplier,
-                      const mesh::MeshDesignVariables&>
+                      const analysis::AnalysisDomainMesh&>
 {
-    return core::make_function([aSharedLibCriterion](const mesh::MeshDesignVariables& aMeshDesignVariables)
-                               { return aSharedLibCriterion.value(aMeshDesignVariables); },
-                               [aSharedLibCriterion](const mesh::MeshDesignVariables& aMeshDesignVariables)
-                               { return make_adjoint_jacobian_multiplier(aSharedLibCriterion, aMeshDesignVariables); });
+    return core::make_function([aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                               { return aSharedLibCriterion.value(aAnalysisDomainMesh); },
+                               [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                               { return make_adjoint_jacobian_multiplier(aSharedLibCriterion, aAnalysisDomainMesh); });
 }
 
 }  // namespace plato::criteria::extension
