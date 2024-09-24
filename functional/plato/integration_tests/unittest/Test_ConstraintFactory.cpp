@@ -22,7 +22,7 @@ auto create_raw_input() -> input_parser::ParsedInput
 }
 
 void test_constraint_type_and_value(
-    const criteria::library::Constraint<const analysis::AnalysisDomainMesh&>& aConstraint,
+    const criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>& aConstraint,
     const double aGoldValue,
     const criteria::library::ConstraintType aType)
 {
@@ -31,7 +31,7 @@ void test_constraint_type_and_value(
     EXPECT_EQ(aConstraint.mConstraintType, aType);
 }
 
-criteria::library::Constraint<const analysis::AnalysisDomainMesh&> get_first_constraint(
+criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&> get_first_constraint(
     const input_parser::ParsedInput& aInput)
 {
     const auto tData = process_manager::library::make_validated_input(aInput);

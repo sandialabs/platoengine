@@ -26,22 +26,22 @@ auto make_rol_constraints(const library::ProcessManagerData& aProblem)
     -> std::vector<third_party_integration::rol::ROLConstraint>
 {
     std::vector<third_party_integration::rol::ROLConstraint> tROLConstraints;
-    std::transform(aProblem.mConstraints.cbegin(), aProblem.mConstraints.cend(), std::back_inserter(tROLConstraints),
-                   [&aProblem](const auto& aConstraintData)
-                   {
-                       const auto tConstraint = compose_geometry_with_constraint(aConstraintData, aProblem.mGeometry);
-                       const auto tVectorConstraint = criteria::library::make_vector_constraint(tConstraint);
-                       /// TODO add sizing info
-                       const auto tConstraintSize = static_cast<unsigned int>(
-                           tVectorConstraint.mFunctionWithDfAsJacobian.f(aProblem.mGeometry.mInitialGuess).size());
-                       std::cout << "Constraint size determined: " << tConstraintSize << std::endl;
+    std::transform(
+        aProblem.mConstraints.cbegin(), aProblem.mConstraints.cend(), std::back_inserter(tROLConstraints),
+        [&aProblem](const auto& aConstraintData)
+        {
+            // const auto tConstraint = compose_geometry_with_constraint(aConstraintData, aProblem.mGeometry);
+            // const auto tComposedVectorConstraint = criteria::library::make_vector_constraint(tConstraint);
 
-                       return third_party_integration::rol::ROLConstraint{
-                           aConstraintData.mName, tConstraintSize, aConstraintData.mLinear,
-                           aConstraintData.mConstraintType,
-                           std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(
-                               std::move(tVectorConstraint))};
-                   });
+            const auto tComposedVectorConstraint =
+                compose_geometry_with_vector_constraint(aConstraintData, aProblem.mGeometry);
+            const auto tConstraintSize = static_cast<unsigned int>(
+                tComposedVectorConstraint.mFunctionWithDfAsJacobian.f(aProblem.mGeometry.mInitialGuess).size());
+
+            return third_party_integration::rol::ROLConstraint{
+                aConstraintData.mName, tConstraintSize, aConstraintData.mLinear, aConstraintData.mConstraintType,
+                std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(tComposedVectorConstraint)};
+        });
     return tROLConstraints;
 }
 

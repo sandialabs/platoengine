@@ -41,10 +41,7 @@ auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) ->
             const linear_algebra::DynamicVector<double> tDf = aScalarFunction.df(aFunctionArg);
             const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
                 [tDf](const linear_algebra::DynamicVector<double>& aV)
-            {
-                std::cout << "jacobian wrapper: tDf size " << tDf.size() << " and aV size " << aV.size() << std::endl;
-                return linear_algebra::DynamicVector<double>{tDf.dot(aV)};
-            };
+            { return linear_algebra::DynamicVector<double>{tDf.dot(aV)}; };
             return linear_algebra::JacobianMultiplier{tFunction};
         }};
 }

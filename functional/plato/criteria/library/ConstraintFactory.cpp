@@ -21,9 +21,9 @@ const std::map<input_parser::ConstraintTypes, ConstraintType> kConstraintMap{
     {input_parser::ConstraintTypes::kLessThan, ConstraintType::kLessThan}};
 
 auto make_constraints(const ValidatedConstraints& aInput)
-    -> std::vector<Constraint<const analysis::AnalysisDomainMesh&>>
+    -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>
 {
-    std::vector<Constraint<const analysis::AnalysisDomainMesh&>> tConstraints;
+    std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>> tConstraints;
     utilities::transform_if(
         aInput.rawInput(), std::back_inserter(tConstraints),
         [](const core::ValidatedInputTypeWrapper<input_parser::constraint>& aValidatedInput)
@@ -42,15 +42,17 @@ namespace detail
 {
 
 auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput)
-    -> Constraint<const analysis::AnalysisDomainMesh&>
+    -> VectorConstraint<const analysis::AnalysisDomainMesh&>
 {
     const input_parser::constraint& tRawInput = aConstraintInput.rawInput();
     const double tValue = tRawInput.constraint_value.value();
     const bool tIsLinear = tRawInput.is_linear.value_or(false);
 
-    return Constraint<const analysis::AnalysisDomainMesh&>{tRawInput.name.value_or("Unnamed Constraint"),
-                                                           make_criterion_function(aConstraintInput), tValue, tIsLinear,
-                                                           kConstraintMap.at(tRawInput.constraint_type.value())};
+    const auto tConstraint = Constraint<const analysis::AnalysisDomainMesh&>{
+        tRawInput.name.value_or("Unnamed Constraint"), make_criterion_function(aConstraintInput), tValue, tIsLinear,
+        kConstraintMap.at(tRawInput.constraint_type.value())};
+
+    return make_vector_constraint(tConstraint);
 }
 
 }  // namespace detail

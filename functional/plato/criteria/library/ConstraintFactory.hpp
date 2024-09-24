@@ -68,7 +68,7 @@ using ConstraintVariant = std::variant<Constraint<const analysis::AnalysisDomain
 /// @brief Factory to create Constraint objects from input data.
 /// @post The return vector will have the same size as @a aInput.
 [[nodiscard]] auto make_constraints(const ValidatedConstraints& aInput)
-    -> std::vector<Constraint<const analysis::AnalysisDomainMesh&>>;
+    -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>;
 
 /// @brief Helper for providing ROL a dual vector for constraints sized with @a aSize.
 [[nodiscard]] auto make_dual_vector(unsigned int aSize) -> linear_algebra::DynamicVector<double>;
@@ -76,7 +76,7 @@ using ConstraintVariant = std::variant<Constraint<const analysis::AnalysisDomain
 namespace detail
 {
 [[nodiscard]] auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput)
-    -> Constraint<const analysis::AnalysisDomainMesh&>;
+    -> VectorConstraint<const analysis::AnalysisDomainMesh&>;
 
 }  // namespace detail
 }  // namespace plato::criteria::library
