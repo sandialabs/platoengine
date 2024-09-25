@@ -9,7 +9,7 @@ namespace plato::linear_algebra
 {
 namespace
 {
-void print(const std::vector<double>& aVector, const std::string aName)
+void print(const std::vector<double>& aVector, const std::string& aName)
 {
     std::cout << aName << std::endl;
     std::cout << "Avector size : " << aVector.size() << std::endl;
