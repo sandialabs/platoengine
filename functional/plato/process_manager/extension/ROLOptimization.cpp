@@ -56,11 +56,8 @@ void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData
     auto tOutFile = std::ofstream{std::string{kROLOptimizerFileName}};
     tROLSolver.solve(tOutFile);
 
-    if (mCommunicator.rank() == 0)
-    {
-        aProcessManagerData.mGeometry.mOutput(
-            third_party_integration::rol::to_dynamic_vector(*tROLProblem->getPrimalOptimizationVector()));
-    }
+    aProcessManagerData.mGeometry.mOutput(
+        third_party_integration::rol::to_dynamic_vector(*tROLProblem->getPrimalOptimizationVector()));
 }
 
 namespace detail
