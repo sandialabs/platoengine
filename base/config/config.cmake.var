@@ -1,5 +1,4 @@
 option( PLATOMAIN     "Flag to turn on compilation of PlatoMain"            ON )
-option( PLATOSTATICS  "Flag to turn on compilation of Statics performer"    ON )
 option( REGRESSION    "Flag to create regression test suite"                ON )
 option( SALINAS       "Flag to turn on testing of Salinas performer"       OFF )
 option( ALBANY        "Flag to turn on testing of Albany performer"        OFF )

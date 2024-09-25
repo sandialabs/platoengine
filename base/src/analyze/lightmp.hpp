@@ -89,7 +89,6 @@
 #include "communicator.hpp"
 #include "matrix_container.hpp"
 #include "mesh_io.hpp"
-#include "solid_statics.hpp"
 #include "mesh_services.hpp"
 #include "material_container.hpp"
 
