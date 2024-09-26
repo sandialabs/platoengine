@@ -1,5 +1,7 @@
 #include "plato/geometry/extension/DensityTopology.hpp"
 
+#include <boost/mpi/communicator.hpp>
+
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
@@ -132,8 +134,12 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
     const auto tFilter = make_filter(aInput);
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aSolution.stdVector()});
-    mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(tOutputMeshName, tFilter.f(tNodalDesignParameters),
-                                                         kTopologyFieldName, kDensityFixedValue);
+
+    if (boost::mpi::communicator{}.rank() == 0)
+    {
+        mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(tOutputMeshName, tFilter.f(tNodalDesignParameters),
+                                                             kTopologyFieldName, kDensityFixedValue);
+    }
 }
 
 auto make_topology_geometry(const DensityTopology& aDensityTopology)
