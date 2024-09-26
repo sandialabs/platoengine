@@ -30,7 +30,7 @@ PlatoKrinoApp::PlatoKrinoApp(Plato::Interface* aInterface, const CommandLineOpti
       mFieldName(aOptions.mFieldName),
       mFieldDataTimeStep(aOptions.mFieldDataTimeStep)
 {
-    mKrinoWrapper.setIncludeVoidRegion(aOptions.mIncludeVoidRegion);
+    mKrinoWrapper = std::make_unique<KrinoWrapper>(mBGMeshFilename, aOptions.mIncludeVoidRegion);
 }
 
 Plato::InputData PlatoKrinoApp::parseAppFile(const std::string& aFile)
@@ -62,7 +62,6 @@ void PlatoKrinoApp::initialize()
     }
 
     mLevelsetPrimitives = apps::krino_app::readLevelsetInitializationData(mAppfileData);
-    mKrinoWrapper.readAndSetupMeshForDecomposition(mBGMeshFilename);
 
     buildParallelMaps();
 
@@ -118,10 +117,9 @@ void PlatoKrinoApp::executeInitialMeshFromPrimitives()
 /******************************************************************************/
 {
     mLevelsetPrimitives = apps::krino_app::readLevelsetInitializationData(mAppfileData);
-    mKrinoWrapper.readAndSetupMeshForDecomposition(mBGMeshFilename);
-    mKrinoWrapper.initializeLevelsetsFromPrimitives(mLevelsetPrimitives);
-    mKrinoWrapper.cutMesh();
-    mKrinoWrapper.writeMesh(mCutMeshFilename);
+    mKrinoWrapper->initializeLevelsetsFromPrimitives(mLevelsetPrimitives);
+    mKrinoWrapper->cutMesh();
+    mKrinoWrapper->writeMesh(mCutMeshFilename);
 }
 
 /******************************************************************************/
@@ -186,10 +184,9 @@ void PlatoKrinoApp::executeInitialMeshFromField()
 /******************************************************************************/
 {
     std::vector<double> tLevelsetValues = getLevelsetValuesFromFieldInMesh();
-    mKrinoWrapper.readAndSetupMeshForDecomposition(mBGMeshFilename);
-    mKrinoWrapper.setLevelsetValues(tLevelsetValues);
-    mKrinoWrapper.cutMesh();
-    mKrinoWrapper.writeMesh(mCutMeshFilename);
+    mKrinoWrapper->setLevelsetValues(tLevelsetValues);
+    mKrinoWrapper->cutMesh();
+    mKrinoWrapper->writeMesh(mCutMeshFilename);
 }
 
 /******************************************************************************/
@@ -238,28 +235,28 @@ void PlatoKrinoApp::compute(const std::string& aName)
 void PlatoKrinoApp::applyChainRuleGlobalIDFormat()
 /******************************************************************************/
 {
-    std::map<unsigned int, stk::math::Vector3d> tDFDX = getDFDXFromDataLayer(DFDXFormatting::GlobalID);
-    const std::map<stk::mesh::EntityId, InterfaceNode_DXDP> tGlobalIDToDXDP = mKrinoWrapper.getSensitivities();
-    std::vector<unsigned int> tBackgroundNodeMap(mKrinoWrapper.getUncutBackgroundMeshSize());
+    std::unordered_map<unsigned int, stk::math::Vector3d> tDFDX = getDFDXFromDataLayer(DFDXFormatting::GlobalID);
+    const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> tGlobalIDToDXDP = mKrinoWrapper->getSensitivities();
+    std::vector<unsigned int> tBackgroundNodeMap(mKrinoWrapper->getUncutBackgroundMeshSize());
     // For now we are assuming there is no node map in the background mesh.  This is not 
     // a restriction in the new architecture.
     std::iota (std::begin(tBackgroundNodeMap), std::end(tBackgroundNodeMap), 1);
-    std::map<unsigned int, double> tDFDLS = calculateDFDLS(tDFDX, tGlobalIDToDXDP, tBackgroundNodeMap);
-    setDFDLSInDataLayer(tDFDLS);
+    std::unordered_map<unsigned int, double> tDFDLS = calculate_dfdls(tDFDX, tGlobalIDToDXDP, tBackgroundNodeMap);
+    setDFDLSInDataLayer(tDFDLS, tBackgroundNodeMap);
 }
 
 /******************************************************************************/
 void PlatoKrinoApp::applyChainRule1ToNFormat()
 /******************************************************************************/
 {
-    std::map<unsigned int, stk::math::Vector3d> tDFDX = getDFDXFromDataLayer(DFDXFormatting::OneToN);
-    const std::map<stk::mesh::EntityId, InterfaceNode_DXDP> tGlobalIDToDXDP = mKrinoWrapper.getSensitivities();
-    std::vector<unsigned int> tBackgroundNodeMap(mKrinoWrapper.getUncutBackgroundMeshSize());
+    std::unordered_map<unsigned int, stk::math::Vector3d> tDFDX = getDFDXFromDataLayer(DFDXFormatting::OneToN);
+    const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> tGlobalIDToDXDP = mKrinoWrapper->getSensitivities();
+    std::vector<unsigned int> tBackgroundNodeMap(mKrinoWrapper->getUncutBackgroundMeshSize());
     // For now we are assuming there is no node map in the background mesh.  This is not 
     // a restriction in the new architecture.
     std::iota (std::begin(tBackgroundNodeMap), std::end(tBackgroundNodeMap), 1);
-    std::map<unsigned int, double> tDFDLS = calculateDFDLS(tDFDX, tGlobalIDToDXDP, tBackgroundNodeMap);
-    setDFDLSInDataLayer(tDFDLS);
+    std::unordered_map<unsigned int, double> tDFDLS = calculate_dfdls(tDFDX, tGlobalIDToDXDP, tBackgroundNodeMap);
+    setDFDLSInDataLayer(tDFDLS, tBackgroundNodeMap);
 }
 
 /******************************************************************************/
@@ -267,10 +264,10 @@ void PlatoKrinoApp::recalculateDistanceField()
 /******************************************************************************/
 {
     std::vector<double> tLevelsetValues = getLevelsetValuesFromDataLayer();
-    mKrinoWrapper.setLevelsetValues(tLevelsetValues);
-    mKrinoWrapper.resetMesh();
-    mKrinoWrapper.redistance();
-    std::vector<double> tCurLevelsetValues = mKrinoWrapper.getLevelsetValues();
+    mKrinoWrapper->setLevelsetValues(tLevelsetValues);
+    mKrinoWrapper->resetMesh();
+    mKrinoWrapper->redistance();
+    std::vector<double> tCurLevelsetValues = mKrinoWrapper->getLevelsetValues();
     setLevelsetValuesInDataLayer(tCurLevelsetValues);
 }
 
@@ -279,40 +276,40 @@ void PlatoKrinoApp::updateGeometry()
 /******************************************************************************/
 {
     std::vector<double> tLevelsetValues = getLevelsetValuesFromDataLayer();
-    mKrinoWrapper.setLevelsetValues(tLevelsetValues);
-    mKrinoWrapper.resetMesh();
-    mKrinoWrapper.cutMesh();
-    mKrinoWrapper.getSensitivities();
-    mKrinoWrapper.writeMesh(mCutMeshFilename);
+    mKrinoWrapper->setLevelsetValues(tLevelsetValues);
+    mKrinoWrapper->resetMesh();
+    mKrinoWrapper->cutMesh();
+    mKrinoWrapper->getSensitivities();
+    mKrinoWrapper->writeMesh(mCutMeshFilename);
 }
 
 /******************************************************************************/
 void PlatoKrinoApp::initializeLevelsets()
 /******************************************************************************/
 {
-    mKrinoWrapper.initializeLevelsetsFromPrimitives(mLevelsetPrimitives);
-    mKrinoWrapper.cutMesh();
-    mKrinoWrapper.writeMesh(mCutMeshFilename);
-    std::vector<double> tCurLevelsetValues = mKrinoWrapper.getLevelsetValues();
+    mKrinoWrapper->initializeLevelsetsFromPrimitives(mLevelsetPrimitives);
+    mKrinoWrapper->cutMesh();
+    mKrinoWrapper->writeMesh(mCutMeshFilename);
+    std::vector<double> tCurLevelsetValues = mKrinoWrapper->getLevelsetValues();
     setLevelsetValuesInDataLayer(tCurLevelsetValues);
 }
 
 /******************************************************************************/
-void PlatoKrinoApp::setDFDLSInDataLayer(std::map<unsigned int, double>& aDFDLS)
+void PlatoKrinoApp::setDFDLSInDataLayer(const std::unordered_map<unsigned int, double>& aDFDLS,
+                                        const std::vector<unsigned int>& aBackgroundMeshNodeMap)
 /******************************************************************************/
 {
-    std::vector<double> tDFDLSForDL(aDFDLS.size());
-    std::map<unsigned int, double>::iterator it = aDFDLS.begin();
+    std::vector<double> tDFDLSForDL(aBackgroundMeshNodeMap.size());
     for (size_t i = 0; i < tDFDLSForDL.size(); i++)
     {
-        tDFDLSForDL[i] = it->second;
-        it++;
+        tDFDLSForDL[i] = aDFDLS.at(aBackgroundMeshNodeMap.at(i));
     }
     setDoubleVector("DFDLS", tDFDLSForDL);
 }
 
 /******************************************************************************/
-std::map<unsigned int, stk::math::Vector3d> PlatoKrinoApp::getDFDXFromDataLayer(const DFDXFormatting aDFDXFormat)
+
+std::unordered_map<unsigned int, stk::math::Vector3d> PlatoKrinoApp::getDFDXFromDataLayer(const DFDXFormatting aDFDXFormat)
 /******************************************************************************/
 {
     // get DFDX
@@ -320,8 +317,10 @@ std::map<unsigned int, stk::math::Vector3d> PlatoKrinoApp::getDFDXFromDataLayer(
 
     // get CutMeshGlobalNodeIDMap
     std::vector<double> tCutMeshGlobalNodeIDMapFromDL = getDoubleVector("CutMeshGlobalNodeIDMap");
+    std::vector<unsigned int> tIntegerVec(tCutMeshGlobalNodeIDMapFromDL.size());
+    std::transform(tCutMeshGlobalNodeIDMapFromDL.begin(), tCutMeshGlobalNodeIDMapFromDL.end(), tIntegerVec.begin(), [](int x) { return (unsigned int)x;});
 
-    return assembleGlobalIDToDFDXMap(tDFDXFromDL, tCutMeshGlobalNodeIDMapFromDL, aDFDXFormat);
+    return assemble_global_id_to_dfdx_map(tDFDXFromDL, tIntegerVec, aDFDXFormat);
 }
 
 /******************************************************************************/
@@ -461,13 +460,13 @@ void PlatoKrinoApp::buildParallelNodeMaps(std::vector<int>& aLocallyOwnedNodes, 
 /******************************************************************************/
 {
     // Get the locally owned nodes
-    stk::mesh::BucketVector const& tOwnedBuckets = mKrinoWrapper.bulkData()->get_buckets(
-        stk::topology::NODE_RANK, mKrinoWrapper.bulkData()->mesh_meta_data().locally_owned_part());
+    stk::mesh::BucketVector const& tOwnedBuckets = mKrinoWrapper->bulkData().get_buckets(
+        stk::topology::NODE_RANK, mKrinoWrapper->bulkData().mesh_meta_data().locally_owned_part());
     for (auto&& tBucketPtr : tOwnedBuckets)
     {
         for (auto tNode : *tBucketPtr)
         {
-            auto tGID = mKrinoWrapper.bulkData()->identifier(tNode);
+            auto tGID = mKrinoWrapper->bulkData().identifier(tNode);
             aLocallyOwnedNodes.push_back(tGID);
         }
     }
@@ -476,15 +475,15 @@ void PlatoKrinoApp::buildParallelNodeMaps(std::vector<int>& aLocallyOwnedNodes, 
 
     // Get all the local nodes
     stk::mesh::Selector tOwnedAndSharedSelector =
-        mKrinoWrapper.bulkData()->mesh_meta_data().locally_owned_part() |
-        mKrinoWrapper.bulkData()->mesh_meta_data().globally_shared_part();
+        mKrinoWrapper->bulkData().mesh_meta_data().locally_owned_part() |
+        mKrinoWrapper->bulkData().mesh_meta_data().globally_shared_part();
     stk::mesh::BucketVector const& tOwnedAndSharedBuckets =
-        mKrinoWrapper.bulkData()->get_buckets(stk::topology::NODE_RANK, tOwnedAndSharedSelector);
+        mKrinoWrapper->bulkData().get_buckets(stk::topology::NODE_RANK, tOwnedAndSharedSelector);
     for (auto&& tBucketPtr : tOwnedAndSharedBuckets)
     {
         for (auto tNode : *tBucketPtr)
         {
-            auto tGID = mKrinoWrapper.bulkData()->identifier(tNode);
+            auto tGID = mKrinoWrapper->bulkData().identifier(tNode);
             aAllLocalNodes.push_back(tGID);
         }
     }
@@ -602,20 +601,5 @@ void PlatoKrinoApp::setDoubleVector(const std::string& aName, std::vector<double
 {
     mDoubleVectorMap[aName] = std::move(aVector);
 }
-
-void PlatoKrinoApp::createAndWriteBoundingBoxMesh(const stk::math::Vector3d& aMinCorner,
-                                                  const stk::math::Vector3d& aMmaxCorner,
-                                                  const double& aMeshSize,
-                                                  const std::string& aFilename)
-{
-    mKrinoWrapper.createBoundingBoxMesh(aMinCorner, aMmaxCorner, aMeshSize, aFilename);
-}
-unsigned int PlatoKrinoApp::getNumTetsInNamedBlock(const std::string& aBlockName)
-{
-   return mKrinoWrapper.getNumTetsInNamedBlock(aBlockName);
-}
-std::vector<double> PlatoKrinoApp::getLevelsetValues() { return mKrinoWrapper.getLevelsetValues(); }
-void PlatoKrinoApp::writeMesh(const std::string& aFilename) { mKrinoWrapper.writeMesh(aFilename); }
-void PlatoKrinoApp::resetMesh() { mKrinoWrapper.resetMesh(); }
 
 }  // namespace Plato

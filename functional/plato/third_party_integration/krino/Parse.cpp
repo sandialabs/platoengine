@@ -9,7 +9,7 @@
 namespace plato::third_party_integration::krino
 {
 
-bool parseCommandLineOptions(int aArgc, char *aArgv[], CommandLineOptions &aCommandLineOptions)
+bool parse_command_line_options(int aArgc, char *aArgv[], CommandLineOptions &aCommandLineOptions)
 {
     Teuchos::CommandLineProcessor tCLP;
     tCLP.setDocString("plato_krino_main options:");

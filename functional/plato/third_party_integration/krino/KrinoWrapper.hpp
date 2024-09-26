@@ -1,10 +1,10 @@
 #ifndef PLATO_THIRD_PARTY_INTEGRATION_KRINO_KRINO_WRAPPER
 #define PLATO_THIRD_PARTY_INTEGRATION_KRINO_KRINO_WRAPPER
 
-#include <Akri_BoundingBoxMesh.hpp>
 #include <Akri_LevelSet.hpp>
 #include <Akri_LevelSetPolicy.hpp>
-#include <Akri_MeshFromFile.hpp>
+#include <Akri_MeshInterface.hpp>
+#include <functional>
 #include <stk_mesh/base/MetaData.hpp>
 
 #include "Utilities.hpp"
@@ -15,18 +15,18 @@ namespace plato::third_party_integration::krino
 class KrinoWrapper
 {
    public:
-    void setIncludeVoidRegion(const bool aValue) { mIncludeVoidRegion = aValue; }
-    void readAndSetupMeshForDecomposition(const std::string &aFilename);
+    KrinoWrapper(const std::string &aFilename, const bool aIncludeVoidRegion = false);
+    KrinoWrapper(const stk::math::Vector3d &aMinCorner,
+                 const stk::math::Vector3d &aMaxCorner,
+                 const double &aMeshSize,
+                 const std::string &aFilename,
+                 const bool aIncludeVoidRegion = false);
     void setLevelsetValues(const std::vector<double> &aValuesIn);
     void cutMesh();
     void writeMesh(const std::string &aFilename);
-    std::map<stk::mesh::EntityId, InterfaceNode_DXDP> getSensitivities() { return mSensitivities; }
+    std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> getSensitivities() { return mSensitivities; }
     void initializeLevelsetsFromPrimitives(const LevelsetPrimitives &aLevelsetPrimitives);
     std::vector<double> getLevelsetValues();
-    void createBoundingBoxMesh(const stk::math::Vector3d &aMinCorner,
-                               const stk::math::Vector3d &aMmaxCorner,
-                               const double &aMeshSize,
-                               const std::string &aFilename);
     void getNodalCoordinates(const unsigned int &aNodeID, double &aX, double &aY, double &aZ);
     void initializeSphereLevelset(const std::vector<std::pair<stk::math::Vector3d, double>> &aSpheres);
     unsigned int getNumTetsInNamedBlock(const std::string &aBlockName);
@@ -38,20 +38,22 @@ class KrinoWrapper
     void redistance();
     std::unordered_map<unsigned int, stk::math::Vector3d> getCoordinateValues();
     std::unordered_map<unsigned int, stk::math::Vector3d> predictNewCoordinatesBasedOnPerturbedLevelsetValues(
-        std::unordered_map<unsigned int, stk::math::Vector3d> &tCoordVals, const double &aPerturbation);
-    stk::mesh::BulkData *bulkData() { return mBulkData; }
+        const std::unordered_map<unsigned int, stk::math::Vector3d> &tCoordVals, const double &aPerturbation);
+    const stk::mesh::BulkData &bulkData() { return mKrinoMesh->bulk_data(); }
     unsigned int getUncutBackgroundMeshSize() { return mUncutBackgroundMeshSize; }
 
    private:
-    //        bool getIncludeVoidRegion() { return mIncludeVoidRegion; }
-    //        void setUncutBackgroundMeshSize(const unsigned int &tValue) { mUncutBackgroundMeshSize = tValue; }
+    std::unique_ptr<::krino::MeshInterface> readAndSetupMeshForDecomposition(const std::string &aFilename);
+    std::unique_ptr<::krino::MeshInterface> createBoundingBoxMesh(const stk::math::Vector3d &aMinCorner,
+                                                                  const stk::math::Vector3d &aMmaxCorner,
+                                                                  const double &aMeshSize,
+                                                                  const std::string &aFilename);
     void writeMeshPrivate(const std::string &aFilename);
     stk::mesh::Selector buildOutputSelector(const stk::mesh::MetaData &meta, const stk::mesh::Part &activePart);
-    void readAndSetupMeshForDecompositionPrivate(const std::string &aFilename);
     void setupFieldsForConformingDecomposition(const stk::mesh::MetaData &meta);
     bool includeVoidRegionPart(const stk::mesh::Part *aPart);
     void decomposeMeshToConformToLevelsets(stk::mesh::BulkData &mesh, const std::vector<::krino::LS_Field> &lsFields);
-    std::map<stk::mesh::EntityId, InterfaceNode_DXDP> getLevelsetShapeSensitivities(
+    std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> getLevelsetShapeSensitivities(
         const stk::mesh::BulkData &mesh, const ::krino::FieldRef levelSetField);
     void fillNodeIdsForNodes(const stk::mesh::BulkData &mesh,
                              const std::vector<stk::mesh::Entity> &parentNodes,
@@ -63,10 +65,6 @@ class KrinoWrapper
     void initializeLevelsetFieldsFromPrimitives(const stk::mesh::BulkData &mesh,
                                                 ::krino::FieldRef levelSetField,
                                                 const LevelsetPrimitives &aLevelsetPrimitives);
-    void createBoundingBoxMeshPrivate(const stk::math::Vector3d &aMinCorner,
-                                      const stk::math::Vector3d &aMaxCorner,
-                                      const double &aMeshSize,
-                                      const std::string &aFilename);
     void initializeLevelsetFieldForSpheres(const stk::mesh::BulkData &mesh,
                                            ::krino::FieldRef levelSetField,
                                            const std::vector<std::pair<stk::math::Vector3d, double>> &spheres);
@@ -76,14 +74,11 @@ class KrinoWrapper
                                          const double offset);
 
    private:
-    stk::mesh::BulkData *mBulkData;
-    ::krino::LevelSet *mLevelSet = nullptr;
-    std::unique_ptr<::krino::BoundingBoxMesh> mBoundingBoxMesh;
-    std::unique_ptr<::krino::MeshFromFile> mMeshFromFile;
-    std::vector<::krino::LS_Field> mLSFields;
-    std::map<stk::mesh::EntityId, InterfaceNode_DXDP> mSensitivities;
     unsigned int mUncutBackgroundMeshSize;
-    bool mIncludeVoidRegion = false;
+    bool mIncludeVoidRegion;
+    std::vector<::krino::LS_Field> mLSFields;
+    std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
+    std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> mSensitivities;
 };
 
 }  // namespace plato::third_party_integration::krino

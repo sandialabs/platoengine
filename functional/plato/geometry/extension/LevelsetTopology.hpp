@@ -4,10 +4,10 @@
 #include <filesystem>
 #include <optional>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
-#include "plato/mesh/MeshDesignVariables.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace plato::input_parser
@@ -35,7 +35,7 @@ class LevelsetTopology
     [[nodiscard]] std::pair<std::vector<double>, std::vector<double>> bounds(
         const std::filesystem::path& aMeshFileName) const;
     [[nodiscard]] linear_algebra::DynamicVector<double> initialGuess(const std::filesystem::path& aMeshFileName) const;
-    [[nodiscard]] mesh::MeshDesignVariables generateMesh(
+    [[nodiscard]] analysis::AnalysisDomainMesh generateMesh(
         const linear_algebra::DynamicVector<double>& aDesignParameter) const;
     static void output(const std::filesystem::path& aInputMeshName,
                        const linear_algebra::DynamicVector<double>& aSolution,
@@ -60,7 +60,7 @@ class LevelsetTopology
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
 [[nodiscard]] auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology)
-    -> core::Function<mesh::MeshDesignVariables,
+    -> core::Function<analysis::AnalysisDomainMesh,
                       linear_algebra::JacobianMultiplier,
                       const linear_algebra::DynamicVector<double>&>;
 

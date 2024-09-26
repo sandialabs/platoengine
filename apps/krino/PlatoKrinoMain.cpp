@@ -13,7 +13,7 @@ int main(int aArgc, char *aArgv[])
 /**********************************************************************/
 {
     CommandLineOptions tCommandLineOptions;
-    bool tStatus = parseCommandLineOptions(aArgc, aArgv, tCommandLineOptions);
+    bool tStatus = parse_command_line_options(aArgc, aArgv, tCommandLineOptions);
 
     if(!tStatus || tCommandLineOptions.mBackgroundMeshName == "" || tCommandLineOptions.mCutMeshName == "")
     {
@@ -37,8 +37,7 @@ int runStandAlone(int aArgc, char *aArgv[], const CommandLineOptions &aOptions)
 {
     MPI_Init(&aArgc, &aArgv);
 
-    initializeSTKEnvironment(MPI_COMM_WORLD);
-    initializeKrinoLogging();
+    initialize_environment_for_krino(MPI_COMM_WORLD);
     Kokkos::initialize(aArgc, aArgv);
 
     PlatoKrinoApp tMyApp(nullptr, aOptions);
@@ -56,10 +55,7 @@ int runMPMD(int aArgc, char *aArgv[], const CommandLineOptions &aOptions)
     MPI_Comm tLocalComm;
     tPlatoInterface.getLocalComm(tLocalComm);
 
-    initializeSTKEnvironment(tLocalComm);
-
-    initializeKrinoLogging();
-   
+    initialize_environment_for_krino(tLocalComm);
     Kokkos::initialize(aArgc, aArgv);
 
     PlatoKrinoApp tMyApp(&tPlatoInterface, aOptions);

@@ -87,23 +87,6 @@ auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVect
     return tCoordinates;
 }
 
-std::vector<unsigned int> extract_global_node_ids(const std::string& aFilename)
-{
-    std::vector<unsigned int> tNodeIDs;
-
-    std::shared_ptr<stk::io::StkMeshIoBroker> tIOBroker = create_input_mesh_broker(aFilename);
-    tIOBroker->populate_bulk_data();
-
-    const Ioss::NodeBlockContainer& tNodeBlocks = tIOBroker->get_input_ioss_region()->get_node_blocks();
-    if (tNodeBlocks.size() == 1)
-    {
-        const Ioss::NodeBlock* const tNB = tNodeBlocks[0];
-        tNB->get_field_data("ids", tNodeIDs);
-    }
-
-    return tNodeIDs;
-}
-
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk)
 {
     return element_vector(aBulk, aBulk.mesh_meta_data().universal_part());

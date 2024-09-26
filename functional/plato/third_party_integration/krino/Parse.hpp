@@ -23,7 +23,7 @@ struct CommandLineOptions
     bool mIncludeVoidRegion{false};
 };
 
-bool parseCommandLineOptions(int aArgc, char *aArgv[], CommandLineOptions &aCommandLineOptions);
+[[nodiscard]] bool parse_command_line_options(int aArgc, char *aArgv[], CommandLineOptions &aCommandLineOptions);
 
 }  // namespace plato::third_party_integration::krino
 

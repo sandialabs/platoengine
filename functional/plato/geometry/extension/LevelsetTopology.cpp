@@ -1,11 +1,16 @@
 #include "plato/geometry/extension/LevelsetTopology.hpp"
 
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/third_party_integration/krino/Interface.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 
@@ -16,6 +21,9 @@ namespace plato::geometry::extension
 
 namespace
 {
+
+constexpr double kLevelsetFixedValue = 1.0;
+constexpr auto kTopologyFieldName = std::string_view{"Topology"};
 
 std::function<void(const linear_algebra::DynamicVector<double>&)> make_topology_output(
     const std::filesystem::path& aInputMeshName, const std::filesystem::path& aOutputMeshName)
@@ -29,8 +37,7 @@ void initialize_krino()
     static bool tIsInitialized = false;
     if (!tIsInitialized)
     {
-        initializeSTKEnvironment(MPI_COMM_WORLD);
-        initializeKrinoLogging();
+        initialize_environment_for_krino(MPI_COMM_WORLD);
     }
 }
 
@@ -85,7 +92,7 @@ LevelsetTopology::LevelsetTopology(const input_parser::levelset_topology& aInput
 
 void LevelsetTopology::generateLevelsetInitializationPrimitives()
 {
-    const std::vector<Sphere> tSpheres = generateSpheres(mSpherePattern);
+    const std::vector<Sphere> tSpheres = generate_spheres(mSpherePattern);
     mLevelsetPrimitives.mSpheres.insert(mLevelsetPrimitives.mSpheres.end(), tSpheres.begin(), tSpheres.end());
 }
 
@@ -99,16 +106,27 @@ std::pair<std::vector<double>, std::vector<double>> LevelsetTopology::bounds(
 linear_algebra::DynamicVector<double> LevelsetTopology::initialGuess(const std::filesystem::path& aMeshFileName) const
 {
     std::vector<double> tCurLevelsetValues =
-        initializeMeshWithLevelsetPrimitives(aMeshFileName, mCutMesh, mLevelsetPrimitives, mIncludeVoidRegion);
+        initialize_mesh_with_levelset_primitives(aMeshFileName, mCutMesh, mLevelsetPrimitives, mIncludeVoidRegion);
     return linear_algebra::DynamicVector<double>(tCurLevelsetValues);
 }
 
-mesh::MeshDesignVariables LevelsetTopology::generateMesh(
+analysis::AnalysisDomainMesh LevelsetTopology::generateMesh(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
+    /* When introducing filtering do the following:
+    1. Add member variable mMesh that represents the background mesh (See density class).
+    2. Add mFilter member variable.
+    3. In this function:
+        a. Call mFilter.f() on the passed-in design variables.  This will return an AnalysisDomainMesh.
+        b. Use mesh::DesignVariableConversion class to convert filtered design variables in the AnalysisDomainMesh
+           into a std::vector (see member function for doing this).
+        c. Pass the filtered design variables in to generate_computational_mesh().
+        d. Keep the same return statement that initializes an AnalysisDomainMesh with the cut mesh
+           name and an empty design variable map.
+    */
     std::ignore =
-        generateComputationalMesh(mBackgroundMesh, mCutMesh, aDesignParameters.stdVector(), mIncludeVoidRegion);
-    return mesh::MeshDesignVariables{mCutMesh, {}};
+        generate_computational_mesh(mBackgroundMesh, mCutMesh, aDesignParameters.stdVector(), mIncludeVoidRegion);
+    return analysis::AnalysisDomainMesh{mCutMesh, {}};
 }
 
 linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
@@ -117,22 +135,27 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
     return linear_algebra::JacobianMultiplier{
         mNumDesignParameters, [this, &aDesignParameters](const linear_algebra::DynamicVector<double>& x)
         {
-            const std::map<stk::mesh::EntityId, InterfaceNode_DXDP> tGlobalIDToDXDP =
-                generateComputationalMesh(mBackgroundMesh, mCutMesh, aDesignParameters.stdVector(), mIncludeVoidRegion);
-            const std::vector<unsigned int> tCutNodeMap =
-                third_party_integration::stk_io::extract_global_node_ids(mCutMesh);
+            /* When introducing filtering do the following:
+            return DFDLS * mFilter.df(tAnalysisDomainMesh); where tAnalysisDomainMesh corresponds to the
+            background mesh that the design variables live on.  This can be created with a DesignVariableConverter (see
+            DensityToplogy::jacobian() for example)
+            */
+            const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> tGlobalIDToDXDP =
+                generate_computational_mesh(mBackgroundMesh, mCutMesh, aDesignParameters.stdVector(),
+                                            mIncludeVoidRegion);
+            const std::vector<unsigned int> tCutNodeMap = mesh::EntityRetrieval{mesh::Mesh{mCutMesh}}.globalNodeIds();
             const std::vector<unsigned int> tBackgroundNodeMap =
-                third_party_integration::stk_io::extract_global_node_ids(mBackgroundMesh);
-            const std::map<unsigned int, stk::math::Vector3d> tGlobalIDToDFDXMap =
-                assembleGlobalIDToDFDXMap(x.stdVector(), tCutNodeMap, DFDXFormatting::OneToN);
-            std::map<unsigned int, double> tDFDLS =
-                calculateDFDLS(tGlobalIDToDFDXMap, tGlobalIDToDXDP, tBackgroundNodeMap);
+                mesh::EntityRetrieval{mesh::Mesh{mBackgroundMesh}}.globalNodeIds();
+            ;
+            const std::unordered_map<unsigned int, stk::math::Vector3d> tGlobalIDToDFDXMap =
+                assemble_global_id_to_dfdx_map(x.stdVector(), tCutNodeMap, DFDXFormatting::OneToN);
+            const std::unordered_map<unsigned int, double> tDFDLS =
+                calculate_dfdls(tGlobalIDToDFDXMap, tGlobalIDToDXDP, tBackgroundNodeMap);
             std::vector<double> tDFDLSVector(tDFDLS.size());
 
-            size_t tCounter = 0;
-            for (auto tBackgroundNodeID : tBackgroundNodeMap)
+            for (const auto& [tIndex, tBackgroundNodeID] : utilities::enumerate(tBackgroundNodeMap))
             {
-                tDFDLSVector[tCounter++] = tDFDLS[tBackgroundNodeID];
+                tDFDLSVector[tIndex] = tDFDLS.at(tBackgroundNodeID);
             }
             return linear_algebra::DynamicVector<double>{tDFDLSVector};
         }};
@@ -142,18 +165,15 @@ void LevelsetTopology::output(const std::filesystem::path& aInputMeshName,
                               const linear_algebra::DynamicVector<double>& aSolution,
                               const std::filesystem::path& aOutputMeshName)
 {
-    const std::vector<unsigned int> tMeshNodeMap =
-        third_party_integration::stk_io::extract_global_node_ids(aInputMeshName);
-    std::unordered_map<std::size_t, double> aSolutionMap;
-    for (size_t i = 0; i < tMeshNodeMap.size(); ++i)
-    {
-        aSolutionMap[tMeshNodeMap[i]] = aSolution[i];
-    }
-    third_party_integration::stk_io::write_nodal_density(aInputMeshName, aSolutionMap, aOutputMeshName);
+    const auto tMesh = mesh::Mesh{aInputMeshName};
+    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
+        mesh::NodalFieldVectorReference{aSolution.stdVector()});
+    mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(aOutputMeshName, tNodalDesignParameters, kTopologyFieldName,
+                                                         kLevelsetFixedValue);
 }
 
 auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology)
-    -> core::Function<mesh::MeshDesignVariables,
+    -> core::Function<analysis::AnalysisDomainMesh,
                       linear_algebra::JacobianMultiplier,
                       const linear_algebra::DynamicVector<double>&>
 {

@@ -44,10 +44,6 @@ using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::
 [[nodiscard]] auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
     -> std::vector<common::Coordinate>;
 
-/// @brief Given a pathname  @a aFilename, return a std::vector of the global node id map
-/// name
-[[nodiscard]] std::vector<unsigned int> extract_global_node_ids(const std::string& aFilename);
-
 /// @brief Given a STK Bulk data  @a aBulk, return the STK element container
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk);
 

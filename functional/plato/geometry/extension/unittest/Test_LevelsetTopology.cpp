@@ -34,8 +34,7 @@ constexpr unsigned int kExpectedBackgroundLevelsetSize = 59;  // Based on mesh g
 void create_background_mesh(const std::string& aFileName, const double& aMeshSize)
 {
     ASSERT_EQ(stk::parallel_machine_size(MPI_COMM_WORLD), 1);
-    KrinoWrapper tKrinoWrapper;
-    tKrinoWrapper.createBoundingBoxMesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, aMeshSize, aFileName);
+    KrinoWrapper tKrinoWrapper{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, aMeshSize, aFileName};
 }
 
 class PlatoTestKrino : public ::testing::Test
@@ -46,8 +45,7 @@ class PlatoTestKrino : public ::testing::Test
         static bool tFirstTime{true};
         if (tFirstTime)
         {
-            initializeSTKEnvironment(MPI_COMM_WORLD);
-            initializeKrinoLogging();
+            initialize_environment_for_krino(MPI_COMM_WORLD);
             tFirstTime = false;
         }
     }

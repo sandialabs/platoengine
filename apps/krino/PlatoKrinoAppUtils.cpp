@@ -65,7 +65,7 @@ LevelsetPrimitives readLevelsetInitializationData(Plato::InputData &aAppFileData
 void createSpheresFromPattern(const Plato::InputData &aNode, LevelsetPrimitives &aPrims)
 {
     SpherePatternData tData = readSpherePatternData(aNode);
-    std::vector<Sphere> tSpheres = generateSpheres(tData);
+    std::vector<Sphere> tSpheres = generate_spheres(tData);
     aPrims.mSpheres.insert(aPrims.mSpheres.end(), tSpheres.begin(), tSpheres.end());
 }
 
@@ -84,11 +84,11 @@ void createPlane(const Plato::InputData &aNode, LevelsetPrimitives &aPrims)
 SpherePatternData readSpherePatternData(const Plato::InputData &aNode)
 {
     SpherePatternData tData;
-    tData.mCoordMins = {
+    tData.mBoundingBoxMinXYZ = {
         getOrThrow<double>(aNode, "bbox_xmin", "ERROR: Levelset definition bounding box xmin was not specified."),
         getOrThrow<double>(aNode, "bbox_ymin", "ERROR: Levelset definition bounding box ymin was not specified."),
         getOrThrow<double>(aNode, "bbox_zmin", "ERROR: Levelset definition bounding box zmin was not specified.")};
-    tData.mCoordMaxes = {
+    tData.mBoundingBoxMaxXYZ = {
         getOrThrow<double>(aNode, "bbox_xmax", "ERROR: Levelset definition bounding box xmax was not specified."),
         getOrThrow<double>(aNode, "bbox_ymax", "ERROR: Levelset definition bounding box ymax was not specified."),
         getOrThrow<double>(aNode, "bbox_zmax", "ERROR: Levelset definition bounding box zmax was not specified.")};

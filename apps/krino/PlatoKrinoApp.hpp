@@ -36,14 +36,6 @@ class PlatoKrinoApp : public Plato::Application
     void executeInitialMeshFromPrimitives();
     void executeInitialMeshFromField();
     void executeInitialMesh();
-    void createAndWriteBoundingBoxMesh(const stk::math::Vector3d &aMinCorner,
-                                       const stk::math::Vector3d &aMmaxCorner,
-                                       const double &aMeshSize,
-                                       const std::string &aFilename);
-    unsigned int getNumTetsInNamedBlock(const std::string &aBlockName);
-    std::vector<double> getLevelsetValues();
-    void writeMesh(const std::string &aFilename);
-    void resetMesh();
 
    private:
     Plato::Interface *mInterface;
@@ -53,7 +45,7 @@ class PlatoKrinoApp : public Plato::Application
     std::string mFieldMeshName;
     std::string mFieldName;
     int mFieldDataTimeStep;
-    KrinoWrapper mKrinoWrapper;
+    std::unique_ptr<KrinoWrapper> mKrinoWrapper;
     std::map<std::string, std::vector<double> > mDoubleVectorMap;
     std::unique_ptr<Plato::TimersTree> mTimersTree;
     std::unique_ptr<Epetra_MpiComm> mEpetraComm;
@@ -72,8 +64,9 @@ class PlatoKrinoApp : public Plato::Application
    private:
     bool useFieldForInitialization();
     std::vector<double> getLevelsetValuesFromFieldInMesh();
-    void setDFDLSInDataLayer(std::map<unsigned int, double> &aDFDLS);
-    std::map<unsigned int, stk::math::Vector3d> getDFDXFromDataLayer(const DFDXFormatting aDFDXFormat);
+    void setDFDLSInDataLayer(const std::unordered_map<unsigned int, double>& aDFDLS,
+                             const std::vector<unsigned int>& aBackgroundMeshNodeMap);
+    std::unordered_map<unsigned int, stk::math::Vector3d> getDFDXFromDataLayer(const DFDXFormatting aDFDXFormat);
     std::vector<double> getLevelsetValuesFromDataLayer();
     void setLevelsetValuesInDataLayer(std::vector<double> aValues);
     void initializeLocalSharedDataVariables();

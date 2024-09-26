@@ -1,5 +1,6 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 
@@ -25,6 +26,11 @@ auto EntityRetrieval::designDomainNodalCoordinates() const -> std::vector<third_
 auto EntityRetrieval::designDomainElementCentroids() const -> std::vector<third_party_integration::common::Coordinate>
 {
     return third_party_integration::stk_io::element_centroids(bulkData(), designDomainBlocks());
+}
+
+auto EntityRetrieval::globalNodeIds() const -> std::vector<unsigned int>
+{
+    return third_party_integration::stk_io::extract_global_node_ids(bulkData());
 }
 
 }  // namespace plato::mesh
