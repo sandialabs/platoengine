@@ -1,0 +1,75 @@
+#include "plato/third_party_integration/snopt/SNOPTConstraints.hpp"
+
+#include <algorithm>
+
+namespace plato::third_party_integration::snopt
+{
+namespace
+{
+auto partition_constraints(ConstraintVectorType& aConstraints) -> ConstraintVectorType::iterator
+{
+    return std::partition(aConstraints.begin(), aConstraints.end(),
+                          [](const auto& aConstraint) { return aConstraint.mLinearity == Linearity::kNonlinear; });
+}
+}  // namespace
+
+SNOPTConstraints::SNOPTConstraints(ConstraintVectorType&& aConstraints)
+    : mConstraints{std::move(aConstraints)}, mLinearConstraintsBeginIterator{partition_constraints(mConstraints)}
+{
+}
+
+auto SNOPTConstraints::numberOfLinearConstraints() const -> std::size_t
+{
+    return std::distance(mLinearConstraintsBeginIterator, mConstraints.end());
+}
+
+auto SNOPTConstraints::numberOfNonlinearConstraints() const -> std::size_t
+{
+    return std::distance(mConstraints.begin(), mLinearConstraintsBeginIterator);
+}
+auto SNOPTConstraints::linearConstraintsBegin() const -> ConstraintVectorType::const_iterator
+{
+    return mLinearConstraintsBeginIterator;
+}
+
+auto SNOPTConstraints::linearConstraintsEnd() const -> ConstraintVectorType::const_iterator
+{
+    return mConstraints.end();
+}
+
+auto SNOPTConstraints::nonlinearConstraintsBegin() const -> ConstraintVectorType::const_iterator
+{
+    return mConstraints.begin();
+}
+
+auto SNOPTConstraints::nonlinearConstraintsEnd() const -> ConstraintVectorType::const_iterator
+{
+    return mLinearConstraintsBeginIterator;
+}
+
+auto SNOPTConstraints::constraints() const -> const ConstraintVectorType& { return mConstraints; }
+
+auto SNOPTConstraints::release() && -> ConstraintVectorType { return std::move(mConstraints); }
+
+auto constraint_bounds(const SNOPTConstraints& aConstraints) -> SNOPTBounds
+{
+    const auto tConstraintTargets = [](const SNOPTConstraints& aConstraints)
+    {
+        auto tTargets = std::vector<double>();
+        tTargets.reserve(aConstraints.constraints().size());
+        std::transform(aConstraints.constraints().begin(), aConstraints.constraints().end(),
+                       std::back_inserter(tTargets), [](const auto& tConstraint) { return tConstraint.mTarget; });
+        return tTargets;
+    };
+
+    return std::make_pair(tConstraintTargets(aConstraints), tConstraintTargets(aConstraints));
+}
+
+auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstraints) -> SNOPTBounds
+{
+    auto [tLowerBounds, tUpperBounds] = constraint_bounds(aConstraints);
+    tLowerBounds.insert(tLowerBounds.begin(), -kSNOPTUnbounded);
+    tUpperBounds.insert(tUpperBounds.begin(), kSNOPTUnbounded);
+    return std::make_pair(std::move(tLowerBounds), std::move(tUpperBounds));
+}
+}  // namespace plato::third_party_integration::snopt
