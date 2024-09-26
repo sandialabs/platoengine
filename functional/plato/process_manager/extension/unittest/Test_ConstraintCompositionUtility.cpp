@@ -29,18 +29,6 @@ namespace
     return std::make_pair(tGeometry, tMeshDesignConstraint);
 }
 
-void print(const std::vector<double>& aVector, const std::string aName)
-{
-    std::cout << aName << std::endl;
-    std::cout << "Avector size : " << aVector.size() << std::endl;
-    for (const auto& x : aVector)
-    {
-        std::cout << x << " ";
-    }
-    std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
-    std::cout << std::endl;
-}
-
 }  // namespace
 
 TEST(ConstraintComposition, ComposeGeometryWithVectorConstraint)
@@ -51,28 +39,24 @@ TEST(ConstraintComposition, ComposeGeometryWithVectorConstraint)
 
     const linear_algebra::DynamicVector<double> tParameters({0.1, 0.2, 0.3, 1, 2, 3});
     const linear_algebra::DynamicVector<double> tParameterDirection(std::vector<double>(24U, 0.1));
-    const linear_algebra::DynamicVector<double> tDual({.1});
+    const linear_algebra::DynamicVector<double> tV({.1});
 
     const auto tMeshDesignVariables = tGeometry.mCompute.f(tParameters);
     const auto tManualConstraintValue = tMeshDesignConstraint.mFunctionWithDfAsJacobian.f(tMeshDesignVariables);
     const auto tCompositionValue = tComposedDynamicVectorConstraint.mFunctionWithDfAsJacobian.f(tParameters);
     EXPECT_EQ(tManualConstraintValue.stdVector(), tCompositionValue.stdVector());
 
-    const auto tJacobianTimesVectorGeometry =
-        tGeometry.mCompute.df(tParameters).mJacobianTimesVectorFunction(tParameterDirection);
+    // f(X) = sum(X_i), X \in R^24
+    // \nabla f = [1 1 ... 1]
+    // v * \nabla f
+    const auto tConstraintJacobian = tV * tMeshDesignConstraint.mFunctionWithDfAsJacobian.df(tMeshDesignVariables);
+    // g(x) : R^6 -> R^24
+    const auto tJacobianTimesVectorGeometry = tConstraintJacobian * tGeometry.mCompute.df(tParameters);
 
-    print(tJacobianTimesVectorGeometry.stdVector(), "tJacobianTimesVectorGeometry");
-
-    const auto tConstraintJacobianTimesJacobianTimesVectorGeometry =
-        tJacobianTimesVectorGeometry * tMeshDesignConstraint.mFunctionWithDfAsJacobian.df(tMeshDesignVariables);
-
-    print(tConstraintJacobianTimesJacobianTimesVectorGeometry.stdVector(),
-          "tConstraintJacobianTimesJacobianTimesVectorGeometry");
     const auto tCompositionJacobianTimesVector =
-        tComposedDynamicVectorConstraint.mFunctionWithDfAsJacobian.df(tParameters)
-            .mJacobianTimesVectorFunction(tParameterDirection);
-    EXPECT_EQ(tConstraintJacobianTimesJacobianTimesVectorGeometry.stdVector(),
-              tCompositionJacobianTimesVector.stdVector());
+        tV * tComposedDynamicVectorConstraint.mFunctionWithDfAsJacobian.df(tParameters);
+
+    EXPECT_EQ(tJacobianTimesVectorGeometry.stdVector(), tCompositionJacobianTimesVector.stdVector());
     /*
         const auto tManualAdjointJacobianMultiplier =
             tMeshDesignConstraint.mFunctionWithDfAsAdjointJacobian.df(tMeshDesignVariables) *

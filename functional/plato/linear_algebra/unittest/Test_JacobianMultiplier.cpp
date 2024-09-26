@@ -42,18 +42,20 @@ DynamicVector<double> double_value(const DynamicVector<double>& aDynamicVector)
 
 TEST(JacobianMultiplier, Multiplication)
 {
-    const JacobianMultiplier tJacobianMultiplierSquare = {[](const DynamicVector<double>& aV) { return square(aV); }};
-    const JacobianMultiplier tJacobianMultiplierDouble = {[](const DynamicVector<double>& aV)
-                                                          { return double_value(aV); }};
+    const auto tJacobianMultiplierSquare =
+        JacobianMultiplier{[](const DynamicVector<double>& aV) { return square(aV); }};
+    const auto tJacobianMultiplierDouble =
+        JacobianMultiplier{[](const DynamicVector<double>& aV) { return double_value(aV); }};
 
     const auto tJacobianMultiplierProduct = tJacobianMultiplierDouble * tJacobianMultiplierSquare;
     const DynamicVector<double> tEntries({1, 2, 3});
 
     const auto tResult = tJacobianMultiplierProduct.mJacobianTimesVectorFunction(tEntries);
-    const auto tSquareResult = tJacobianMultiplierSquare.mJacobianTimesVectorFunction(tEntries);
-    const auto tDoubleSquare = tJacobianMultiplierDouble.mJacobianTimesVectorFunction(tSquareResult);
 
-    EXPECT_EQ(tResult.stdVector(), tDoubleSquare.stdVector());
+    const auto tDoubled = tJacobianMultiplierDouble.mJacobianTimesVectorFunction(tEntries);
+    const auto tExpected = tJacobianMultiplierSquare.mJacobianTimesVectorFunction(tDoubled);
+
+    EXPECT_EQ(tResult.stdVector(), tExpected.stdVector());
 }
 
 }  // namespace plato::linear_algebra::unittest

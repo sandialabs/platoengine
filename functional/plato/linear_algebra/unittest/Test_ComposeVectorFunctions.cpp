@@ -57,10 +57,12 @@ auto make_jacobian_multiplier_two_to_three(const DynamicVector<double>& aX) -> J
     const auto tThirdFunctionGrad = kThirdFunctionGrad(aX);
 
     const JacobianMultiplier::JacobianTimesVectorFunction tJacobianTimesVectorFunction =
-        [tFirstFunctionGrad, tSecondFunctionGrad, tThirdFunctionGrad](const DynamicVector<double>& aVector)
+        [tFirstFunctionGrad, tSecondFunctionGrad, tThirdFunctionGrad](const DynamicVector<double>& aDualVector)
     {
-        return DynamicVector<double>(
-            {tFirstFunctionGrad.dot(aVector), tSecondFunctionGrad.dot(aVector), tThirdFunctionGrad.dot(aVector)});
+        return DynamicVector<double>({tFirstFunctionGrad[0] * aDualVector[0] + tSecondFunctionGrad[0] * aDualVector[1] +
+                                          tThirdFunctionGrad[0] * aDualVector[2],
+                                      tFirstFunctionGrad[1] * aDualVector[0] + tSecondFunctionGrad[1] * aDualVector[1] +
+                                          tThirdFunctionGrad[1] * aDualVector[2]});
     };
 
     return {tJacobianTimesVectorFunction};
@@ -73,12 +75,10 @@ auto make_adjoint_jacobian_multiplier_two_to_three(const DynamicVector<double>& 
     const auto tThirdFunctionGrad = kThirdFunctionGrad(aX);
 
     const JacobianMultiplier::JacobianTimesVectorFunction tJacobianTimesVectorFunction =
-        [tFirstFunctionGrad, tSecondFunctionGrad, tThirdFunctionGrad](const DynamicVector<double>& aDualVector)
+        [tFirstFunctionGrad, tSecondFunctionGrad, tThirdFunctionGrad](const DynamicVector<double>& aVector)
     {
-        return DynamicVector<double>({tFirstFunctionGrad[0] * aDualVector[0] + tSecondFunctionGrad[0] * aDualVector[1] +
-                                          tThirdFunctionGrad[0] * aDualVector[2],
-                                      tFirstFunctionGrad[1] * aDualVector[0] + tSecondFunctionGrad[1] * aDualVector[1] +
-                                          tThirdFunctionGrad[1] * aDualVector[2]});
+        return DynamicVector<double>(
+            {tFirstFunctionGrad.dot(aVector), tSecondFunctionGrad.dot(aVector), tThirdFunctionGrad.dot(aVector)});
     };
 
     return {tJacobianTimesVectorFunction};
@@ -89,8 +89,11 @@ auto make_jacobian_multiplier_three_to_one(const DynamicVector<double>& aX) -> J
     const auto tForthFunctionGrad = kForthFunctionGrad(aX);
 
     const JacobianMultiplier::JacobianTimesVectorFunction tJacobianTimesVectorFunction =
-        [tForthFunctionGrad](const DynamicVector<double>& aVector)
-    { return DynamicVector<double>({tForthFunctionGrad.dot(aVector)}); };
+        [tForthFunctionGrad](const DynamicVector<double>& aDualVector)
+    {
+        return DynamicVector<double>({tForthFunctionGrad[0] * aDualVector[0], tForthFunctionGrad[1] * aDualVector[0],
+                                      tForthFunctionGrad[2] * aDualVector[0]});
+    };
 
     return {tJacobianTimesVectorFunction};
 }
@@ -100,11 +103,8 @@ auto make_adjoint_jacobian_multiplier_three_to_one(const DynamicVector<double>& 
     const auto tForthFunctionGrad = kForthFunctionGrad(aX);
 
     const JacobianMultiplier::JacobianTimesVectorFunction tJacobianTimesVectorFunction =
-        [tForthFunctionGrad](const DynamicVector<double>& aDualVector)
-    {
-        return DynamicVector<double>({tForthFunctionGrad[0] * aDualVector[0], tForthFunctionGrad[1] * aDualVector[0],
-                                      tForthFunctionGrad[2] * aDualVector[0]});
-    };
+        [tForthFunctionGrad](const DynamicVector<double>& aVector)
+    { return DynamicVector<double>({tForthFunctionGrad.dot(aVector)}); };
 
     return {tJacobianTimesVectorFunction};
 }
@@ -120,6 +120,7 @@ auto create_vector_function_two_to_three() -> VectorFunction
         },
         [](const DynamicVector<double>& aX) { return make_jacobian_multiplier_two_to_three(aX); });
 }
+
 auto create_vector_function_three_to_one() -> VectorFunction
 {
     return core::make_function(
@@ -166,43 +167,18 @@ TEST(LinearAlgebra, ComposeTwoVectorFunctions)
 
     const auto tCompositionFOfG = core::compose(tF, tG);
 
-    const DynamicVector<double> tX({.4, .6});
-    const DynamicVector<double> tDirection({-.1, .2});
+    const DynamicVector<double> tX{1.0, 2.0};
+    const DynamicVector<double> tDirection{-2.0};
     EXPECT_EQ(tF.f(tG.f(tX)).stdVector(), tCompositionFOfG.f(tX).stdVector());
 
-    const auto tResult = tCompositionFOfG.df(tX).mJacobianTimesVectorFunction(tDirection);
+    const auto tResult = tDirection * tCompositionFOfG.df(tX);
 
-    const auto tResultOfGDf = tG.df(tX).mJacobianTimesVectorFunction(tDirection);
-    const auto tGold = tF.df(tG.f(tX)).mJacobianTimesVectorFunction(tResultOfGDf);
+    const auto tVectorTimesFJacobian = tDirection * tF.df(tG.f(tX));
+    const auto tExpected = tVectorTimesFJacobian * tG.df(tX);
 
-    ASSERT_EQ(tResult.size(), 1U);
-    ASSERT_EQ(tGold.size(), 1U);
-    EXPECT_DOUBLE_EQ(tResult.stdVector()[0], tGold.stdVector()[0]);
-}
-
-TEST(LinearAlgebra, MakeAdjointJacobianMultiplierTwoToThree)
-{
-    const DynamicVector<double> tX({.4, .6});
-    const auto tAdjointJacobianMultiplier = make_adjoint_jacobian_multiplier_two_to_three(tX);
-    const DynamicVector<double> tDual({-.1, .2, .3});
-    const auto tResult = tAdjointJacobianMultiplier.mJacobianTimesVectorFunction(tDual);
-
-    EXPECT_EQ(tResult.size(), 2U);
-    EXPECT_DOUBLE_EQ(tResult.stdVector()[0], 0.3);
-    EXPECT_DOUBLE_EQ(tResult.stdVector()[1], 0.56);
-}
-
-TEST(LinearAlgebra, MakeAdjointJacobianMultiplierThreeToOne)
-{
-    const DynamicVector<double> tX({.4, .76, .52});
-    const auto tAdjointJacobianMultiplier = make_adjoint_jacobian_multiplier_three_to_one(tX);
-    const DynamicVector<double> tDual({-.1});
-    const auto tResult = tAdjointJacobianMultiplier.mJacobianTimesVectorFunction(tDual);
-
-    EXPECT_EQ(tResult.size(), 3U);
-    EXPECT_DOUBLE_EQ(tResult.stdVector()[0], -0.08);
-    EXPECT_DOUBLE_EQ(tResult.stdVector()[1], -0.152);
-    EXPECT_DOUBLE_EQ(tResult.stdVector()[2], -0.104);
+    ASSERT_EQ(tResult.size(), 2U);
+    ASSERT_EQ(tExpected.size(), 2U);
+    EXPECT_EQ(tResult.stdVector(), tExpected.stdVector());
 }
 
 TEST(LinearAlgebra, ComposeTwoAdjointVectorFunctions)
@@ -211,14 +187,38 @@ TEST(LinearAlgebra, ComposeTwoAdjointVectorFunctions)
     const auto tG = create_adjoint_vector_function_two_to_three();
     const auto tCompositionFOfG = compose_adjoint_jacobian(tF, tG);
 
-    const DynamicVector<double> tX({.4, .6});
-    const DynamicVector<double> tDual({.1});
+    const auto tX = DynamicVector{1.0, 2.0};
     EXPECT_EQ(tF.f(tG.f(tX)).stdVector(), tCompositionFOfG.f(tX).stdVector());
 
-    const auto tResult = tCompositionFOfG.df(tX).mJacobianTimesVectorFunction(tDual);
-    const auto tGold = std::vector<double>{0.3472, 0.3392};
-    EXPECT_EQ(tResult.size(), 2U);
-    EXPECT_DOUBLE_EQ(tResult.stdVector()[0], tGold[0]);
-    EXPECT_DOUBLE_EQ(tResult.stdVector()[1], tGold[1]);
+    const auto tDual = DynamicVector{-3.0, 4.0};
+    const auto tResult = tDual * tCompositionFOfG.df(tX);
+    const auto tExpectedFromMatlab = std::vector<double>{182.0};
+    EXPECT_EQ(tResult.size(), 1U);
+    EXPECT_EQ(tResult.stdVector(), tExpectedFromMatlab);
 }
+
+TEST(LinearAlgebra, MakeAdjointJacobianMultiplierTwoToThree)
+{
+    const auto tX = DynamicVector{1.0, 2.0};
+    const auto tAdjointJacobianMultiplier = make_adjoint_jacobian_multiplier_two_to_three(tX);
+    const auto tDual = DynamicVector{3.0, -1.0};
+    const auto tResult = tDual * tAdjointJacobianMultiplier;
+    const auto tExpectedFromMatlab = std::vector{11.0, -1.0, 2.0};
+
+    EXPECT_EQ(tResult.size(), 3U);
+    EXPECT_EQ(tResult.stdVector(), tExpectedFromMatlab);
+}
+
+TEST(LinearAlgebra, MakeAdjointJacobianMultiplierThreeToOne)
+{
+    const auto tX = DynamicVector{1.0, 2.0, 3.0};
+    const auto tAdjointJacobianMultiplier = make_adjoint_jacobian_multiplier_three_to_one(tX);
+    const auto tDual = DynamicVector{-3.0, 2.0, -1.0};
+    const auto tResult = tDual * tAdjointJacobianMultiplier;
+    const auto tExpectedFromMatlab = std::vector{-4.0};
+
+    EXPECT_EQ(tResult.size(), 1U);
+    EXPECT_EQ(tResult.stdVector(), tExpectedFromMatlab);
+}
+
 }  // namespace plato::linear_algebra::unittest
