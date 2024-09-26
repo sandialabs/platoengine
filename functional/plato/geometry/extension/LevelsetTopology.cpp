@@ -221,21 +221,21 @@ std::optional<std::string> validate_sphere_pattern_num_in_x(const input_parser::
 {
     return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
                                                            aInput.sphere_pattern_num_x, "sphere_pattern_num_x",
-                                                           utilities::lower_bounded(utilities::Exclusive{1}));
+                                                           utilities::lower_bounded(utilities::Exclusive{0}));
 }
 
 std::optional<std::string> validate_sphere_pattern_num_in_y(const input_parser::levelset_topology& aInput)
 {
     return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
                                                            aInput.sphere_pattern_num_y, "sphere_pattern_num_y",
-                                                           utilities::lower_bounded(utilities::Exclusive{1}));
+                                                           utilities::lower_bounded(utilities::Exclusive{0}));
 }
 
 std::optional<std::string> validate_sphere_pattern_num_in_z(const input_parser::levelset_topology& aInput)
 {
     return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
                                                            aInput.sphere_pattern_num_z, "sphere_pattern_num_z",
-                                                           utilities::lower_bounded(utilities::Exclusive{1}));
+                                                           utilities::lower_bounded(utilities::Exclusive{0}));
 }
 
 std::optional<std::string> validate_sphere_pattern_radius(const input_parser::levelset_topology& aInput)

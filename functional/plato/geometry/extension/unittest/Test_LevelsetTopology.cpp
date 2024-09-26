@@ -55,6 +55,7 @@ class PlatoTestKrino : public ::testing::Test
 
 TEST_F(PlatoTestKrino, LevelsetTopology_Jacobian)
 {
+    constexpr int tNumDimensions = 3;
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 1.0);
     const LevelsetTopology tLevelsetTopology(kLevelsetInput);
     const linear_algebra::DynamicVector<double> tInitialGuess =
@@ -62,7 +63,7 @@ TEST_F(PlatoTestKrino, LevelsetTopology_Jacobian)
     const linear_algebra::JacobianMultiplier tJacobian = tLevelsetTopology.jacobian(tInitialGuess);
 
     const unsigned int tDFDXSize =
-        3 * mesh::EntityCounts{mesh::Mesh{kLevelsetInput.cut_mesh_name->mToken}}.numberOfNodes();
+        tNumDimensions * mesh::EntityCounts{mesh::Mesh{kLevelsetInput.cut_mesh_name->mToken}}.numberOfNodes();
     const std::vector<double> tDFDX(tDFDXSize, 1.0);
     const linear_algebra::DynamicVector<double> tDFDXDynVec(tDFDX);
 
