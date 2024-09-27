@@ -13,6 +13,7 @@ std::optional<std::string> test_integer_function(const int) { return std::nullop
 std::optional<std::string> test_integer_function_two(const int) { return "error message cruel int"; }
 std::optional<std::string> test_double_function(const double) { return "error message cruel double"; }
 std::optional<std::string> test_double_function_two(const double) { return std::nullopt; }
+std::optional<std::string> test_double_function_int_argument(const double, const int) { return "error cruel int arg"; }
 
 [[maybe_unused]] static auto kValidationRegistrationIntegers =
     ValidationRegistration<int>{[](const int aInput) { return test_integer_function(aInput); },
@@ -23,6 +24,9 @@ std::optional<std::string> test_double_function_two(const double) { return std::
 
 [[maybe_unused]] static auto kValidationRegistrationDoublesSecondIntentionalSplitForCTOR =
     ValidationRegistration<double>{[](const double aInput) { return test_double_function_two(aInput); }};
+
+[[maybe_unused]] static auto kValidationRegistrationDoublesWithIntArgument = ValidationRegistration<double, int>{
+    [](const double aInput, const int aArg) { return test_double_function_int_argument(aInput, aArg); }};
 
 }  // namespace
 
@@ -38,6 +42,12 @@ TEST(Validation, NumberOfRegisteredFunctionsDouble)
     EXPECT_EQ(tRegisteredFunctions.size(), 2u);
 }
 
+TEST(Validation, NumberOfRegisteredFunctionsDoubleWithIntArg)
+{
+    const auto tRegisteredFunctions = detail::registered_validation_functions<double, int>();
+    EXPECT_EQ(tRegisteredFunctions.size(), 1u);
+}
+
 TEST(Validation, ValidateInputOnIntegers)
 {
     std::vector<std::string> tMessages;
@@ -49,6 +59,20 @@ TEST(Validation, ValidateInputOnDoubles)
 {
     std::vector<std::string> tMessages;
     tMessages = validate<double>(1.123, std::move(tMessages));
+    EXPECT_EQ(tMessages.size(), 1u);
+}
+
+TEST(Validation, ValidateInputOnDoublesWithIntArgument)
+{
+    std::vector<std::string> tMessages;
+    tMessages = validate<double, int>(77.86, std::move(tMessages), 88);
+    EXPECT_EQ(tMessages.size(), 1u);
+}
+
+TEST(Validation, ValidateInputOnDoublesWithIntArgument_TypesDeduced)
+{
+    std::vector<std::string> tMessages;
+    tMessages = validate(77.86, std::move(tMessages), 88);
     EXPECT_EQ(tMessages.size(), 1u);
 }
 

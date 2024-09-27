@@ -11,6 +11,7 @@
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
+#include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
@@ -26,27 +27,37 @@ namespace plato::filter::extension
 
 namespace
 {
+boost::mpi::communicator subdivide_world_comm_into_groups(const unsigned int aGroupSize)
+{
+    auto tWorldComm = boost::mpi::communicator{};
+
+    const auto tVectorSize = tWorldComm.size() / aGroupSize;
+    const std::vector<unsigned int> tGroups(tVectorSize, aGroupSize);
+    const auto tRank = tWorldComm.rank();
+    const auto tColor = utilities::rank_group_color(tGroups, utilities::RankNamedType{tRank});
+    return tWorldComm.split(tColor.mValue);
+}
+
 [[maybe_unused]] static auto kKernelFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::kernel_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = core::validated_variant_raw_input<input_parser::kernel_filter>(aInput);
-        auto tFilterCache = detail::create_filter_cache(tInput);
-
-        return core::make_function(
-            [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
-            { return tFilterCache.compute(aAnalysisDomainMesh)->filter(aAnalysisDomainMesh); },
-            [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable {
-                return library::FilterJacobian{tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh};
-            });
+        return library::make_filter_function_from_cache([&tInput]() { return detail::create_filter_cache(tInput); });
     }};
 
 [[maybe_unused]] static auto kKernelFilterValidationRegistration =
     core::ValidationRegistration<input_parser::kernel_filter>{
-        [](const input_parser::kernel_filter& aInput) { return detail::validate_filter_radius(aInput); },
+        [](const input_parser::kernel_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
         [](const input_parser::kernel_filter& aInput) { return detail::validate_kernel_filter_centering_type(aInput); },
         [](const input_parser::kernel_filter& aInput) { return detail::validate_number_of_processors(aInput); },
         [](const input_parser::kernel_filter& aInput)
         { return detail::validate_number_of_processors_factor_of_comm_world(aInput); }};
+
+[[maybe_unused]] static auto kKernelFilterMeshBasedValidationRegistration =
+    core::ValidationRegistration<input_parser::kernel_filter, std::filesystem::path>{
+        [](const input_parser::kernel_filter& aInput, const std::filesystem::path& aMeshPath)
+        { return detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};
+
 }  // namespace
 
 KernelFilter::KernelFilter(const mesh::Mesh& aMesh,
@@ -133,33 +144,19 @@ LinearMask create_linear_mask(const mesh::Mesh& aMesh,
         aCommunicator};
 }
 
-namespace
-{
-boost::mpi::communicator subdivide_world_comm_into_groups(const unsigned int aGroupSize)
-{
-    auto tWorldComm = boost::mpi::communicator{};
-
-    const auto tVectorSize = tWorldComm.size() / aGroupSize;
-    const std::vector<unsigned int> tGroups(tVectorSize, aGroupSize);
-    const auto tRank = tWorldComm.rank();
-    const auto tColor = utilities::rank_group_color(tGroups, utilities::RankNamedType{tRank});
-    return tWorldComm.split(tColor.mValue);
-}
-}  // namespace
-
-FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)
+library::FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)
 {
     const auto tRequestedRanks = aInput.number_of_processors.value_or(1u);
     const auto tSplitComm = subdivide_world_comm_into_groups(tRequestedRanks);
-
-    return FilterCache{[aInput, tSplitComm](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                       {
-                           return std::make_shared<KernelFilter>(mesh::Mesh{aAnalysisDomainMesh},
-                                                                 FilterRadius{aInput.filter_radius.value()},
-                                                                 aInput.centering_type.value(), tSplitComm);
-                       },
-                       [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                       { return library::hash_mesh_coordinates(aAnalysisDomainMesh); }};
+    return library::FilterCache{[aInput, tSplitComm](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                                {
+                                    return std::make_shared<KernelFilter>(
+                                        mesh::Mesh{aAnalysisDomainMesh},
+                                        FilterRadius{detail::get_filter_radius(aInput, aAnalysisDomainMesh.mFileName)},
+                                        aInput.centering_type.value(), tSplitComm);
+                                },
+                                [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                                { return library::hash_mesh_coordinates(aAnalysisDomainMesh); }};
 }
 
 }  // namespace detail

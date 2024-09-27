@@ -15,7 +15,6 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
-#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/IndexRange.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
@@ -129,13 +128,7 @@ void LinearMaskBuilder::generateDistanceMap()
     const auto tSearchResults = detail::distribute_search_vectors_and_stk_search(
         CenterVector{mGlobalRowCenterCoordinates}, NodalVector{mGlobalNodalCoordinates}, mSearchRadius, mCommunicator);
 
-    const auto tResultSize = detail::reduce_search_result_size(tSearchResults, mCommunicator);
-    if (tResultSize < mGlobalRowCenterCoordinates.size())
-    {
-        throw utilities::Exception(
-            "Linear Mask Builder: Too few search results found to fill all the rows. Filter radius might be too "
-            "small!\n");
-    }
+    assert(detail::reduce_search_result_size(tSearchResults, mCommunicator) >= mGlobalRowCenterCoordinates.size());
 
     const auto tRowMap = create_normalized_row_map(tSearchResults);
     create_linear_mask(tRowMap);
@@ -268,11 +261,7 @@ void add_weight_from_search_result_to_map(RowMap& aRowMap,
 
 void normalize_vector(std::vector<double>& aVector, const double aNormalization)
 {
-    if (aNormalization <= 0)
-    {
-        throw utilities::Exception(
-            "Linear Mask Builder: Zero entries found in filter row. Filter radius might be too small!\n");
-    }
+    assert(aNormalization > 0);
 
     std::transform(aVector.begin(), aVector.end(), aVector.begin(),
                    [&, aNormalization](const auto aEntry) { return aEntry / aNormalization; });

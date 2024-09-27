@@ -7,7 +7,6 @@
 #include "plato/core/FactoryRegistration.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/core/VariantInputBuilder.hpp"
-#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
@@ -52,10 +51,10 @@ using GeometryRegistration = core::FactoryRegistration<FactoryTypes, ValidatedGe
 [[nodiscard]] bool is_geometry_function_registered(const std::string_view aFunctionName);
 
 /// @brief Helper to get the cross-referenced validated filter input block.
-template <typename Geometry>
-[[nodiscard]] const plato::filter::library::ValidatedFilterInput get_cross_referenced_filter(const Geometry& aGeometry)
+template <typename FilterInputType, typename Geometry>
+[[nodiscard]] const FilterInputType get_cross_referenced_filter(const Geometry& aGeometry)
 {
-    return aGeometry.filter->mInputBlock.template get<plato::filter::library::ValidatedFilterInput>();
+    return aGeometry.filter->mInputBlock.template get<FilterInputType>();
 }
 }  // namespace plato::geometry::library
 

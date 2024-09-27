@@ -8,9 +8,10 @@
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/ValidInputTestFixture.hpp"
+#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 
-namespace plato::filter::extension::unittest
+namespace plato::integration_tests::serial
 {
 namespace
 {
@@ -28,6 +29,13 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
                                              plato::test_utilities::create_valid_helmholtz_filter() |
                                              plato::test_utilities::create_valid_example_objective() |
                                              plato::test_utilities::create_valid_example_rol_optimization();
+
+    // make mesh for validation of density_topology
+    const std::filesystem::path tMeshFileName{tInput.mDensityTopology.value().mesh_name.value().mToken};
+    const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
+        {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
+    third_party_integration::stk_io::write_mesh(tMeshFileName, tCommandGenerator);
+
     const auto tValidatedGeometry = process_manager::library::make_validated_input(tInput).geometry();
 
     namespace pff = plato::filter;
@@ -38,8 +46,9 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
     {
         const auto& tGeometryInput =
             core::validated_variant_raw_input<input_parser::density_topology>(tValidatedGeometry);
-        const pff::library::FilterFunction tFunction =
-            pff::library::make_filter_function(plato::geometry::library::get_cross_referenced_filter(tGeometryInput));
+        const pff::library::FilterFunction tFunction = pff::library::make_filter_function(
+            plato::geometry::library::get_cross_referenced_filter<plato::filter::library::ValidatedFilterInput>(
+                tGeometryInput));
         tCreationSuccessful = true;
     }
     catch (const plato::utilities::Exception&)
@@ -55,5 +64,6 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
     {
         EXPECT_TRUE(tCorrectException);
     }
+    std::filesystem::remove(tMeshFileName);
 }
-}  // namespace plato::filter::extension::unittest
+}  // namespace plato::integration_tests::serial

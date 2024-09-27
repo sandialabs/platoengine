@@ -104,8 +104,6 @@ TEST(LinearMaskBuilderDetail, NormalizeRowsInMap)
     const RowDetail tRowDetailOne{{TGO{1}, TGO{2}, TGO{3}}, {1, 1, 1}, 3};
     const TGO tSphereIDTwo{2};
     const RowDetail tRowDetailTwo{{TGO{1}, TGO{3}}, {.25, .25}, .5};
-    const TGO tSphereIDThree{3};
-    const RowDetail tRowDetailThree{{}, {}, 0};
 
     RowMap tRowMap;
     tRowMap[tSphereIDOne] = tRowDetailOne;
@@ -116,10 +114,6 @@ TEST(LinearMaskBuilderDetail, NormalizeRowsInMap)
         const std::vector<double> tGoldTwo{1.0 / 2.0, 1.0 / 2.0};
         EXPECT_EQ(tRowMap[tSphereIDOne].mColumnEntryWeights, tGoldOne);
         EXPECT_EQ(tRowMap[tSphereIDTwo].mColumnEntryWeights, tGoldTwo);
-    }
-    {
-        tRowMap[tSphereIDThree] = tRowDetailThree;
-        EXPECT_THROW(detail::normalize_rows_in_map(tRowMap), utilities::Exception);
     }
 }
 
@@ -140,23 +134,10 @@ TEST(LinearMaskBuilder, GenerateDistanceMapGivenCentroid)
     EXPECT_DOUBLE_EQ(tpit::get_entry(tDistanceMap, 0, 3), 0);
 }
 
-TEST(LinearMaskBuilder, RadiusTooSmallError)
-{
-    namespace tpic = third_party_integration::common;
-    const auto tCoordinates = std::vector<tpic::Coordinate>{{0, 0, 0}, {1, 0, 0}, {2, 0, 0}, {3, 0, 0}};
-    const auto tElemCent = std::vector<tpic::Coordinate>{{0.5, 0, 0}, {1.5, 0, 0}, {2.5, 0, 0}};
-
-    EXPECT_THROW([[maybe_unused]] const auto tUnused =
-                     LinearMaskBuilder(NodalVector{tCoordinates}, CenterVector{tElemCent}, SearchRadius{.10},
-                                       test_utilities::kMaximumConnectivity, boost::mpi::communicator{}),
-                 utilities::Exception);
-}
-
 TEST(LinearMaskBuilderDetail, NormalizeVector)
 {
     const std::vector<double> tVector{1, 2, 3};
     auto tResult = tVector;
-    EXPECT_THROW(detail::normalize_vector(tResult, 0), utilities::Exception);
     {
         constexpr double tNormalization = 3;
 

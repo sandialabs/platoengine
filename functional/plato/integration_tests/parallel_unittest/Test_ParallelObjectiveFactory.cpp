@@ -38,8 +38,10 @@ process_manager::library::ValidatedInput create_one_objective_test_input()
     // Other inputs to make sure we have valid input
     const std::string tGeometryInput = pftu::create_valid_density_topology_geometry_string();
     const std::string tOptimizerInput = pftu::create_valid_example_rol_optimization_string();
+    const std::string tIdentityFilterInput = pftu::create_valid_identity_filter_string();
 
-    return process_manager::library::parse_and_validate(tObjectiveInput + tGeometryInput + tOptimizerInput);
+    return process_manager::library::parse_and_validate(tObjectiveInput + tGeometryInput + tIdentityFilterInput +
+                                                        tOptimizerInput);
 }
 
 linear_algebra::DynamicVector<double> test_brick_controls()

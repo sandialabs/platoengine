@@ -4,10 +4,13 @@
 #include <filesystem>
 #include <memory>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/FactoryRegistration.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/core/VariantInputBuilder.hpp"
+#include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/utilities/StateCache.hpp"
 
 namespace plato::analysis
 {
@@ -32,6 +35,8 @@ using ValidatedFilterInput = core::ValidatedInputTypeWrapper<
 using FilterFunction =
     core::Function<analysis::AnalysisDomainMesh, FilterJacobian, const analysis::AnalysisDomainMesh&>;
 using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFilterInput>;
+using FilterCache =
+    plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const analysis::AnalysisDomainMesh&>;
 
 /// @brief Loads a filter from a shared library.
 /// @param aInput The input parameters defining the filter's properties.
@@ -40,6 +45,24 @@ using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFi
                                                            const std::filesystem::path& aSharedLibraryPath);
 
 [[nodiscard]] bool is_filter_function_registered(std::string_view aFunctionName);
+
+/// @brief Returns @a FilterFunction that uses a @a FilterCache to reconstruct the filter object if the mesh has
+/// changed.
+/// @param aCacheFunction a callable that constructs the specified @a FilterCache object.
+template <typename CacheFunction>
+FilterFunction make_filter_function_from_cache(const CacheFunction& aCacheFunction);
+
+template <typename CacheFunction>
+FilterFunction make_filter_function_from_cache(const CacheFunction& aCacheFunction)
+{
+    auto tFilterCache = aCacheFunction();
+    return core::make_function(
+        [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
+        { return tFilterCache.compute(aAnalysisDomainMesh)->filter(aAnalysisDomainMesh); },
+        [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable {
+            return FilterJacobian{tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh};
+        });
+}
 }  // namespace plato::filter::library
 
 #endif
