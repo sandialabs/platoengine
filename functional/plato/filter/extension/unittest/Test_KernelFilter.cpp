@@ -7,6 +7,9 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/filter/library/HashGeneration.hpp"
+#include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -165,6 +168,45 @@ TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
         mesh::NodalFieldVectorReference{tNodalDensities});
 
     ASSERT_NO_THROW([[maybe_unused]] const auto tFilter = tFilterCache.compute(tAnalysisDomainMesh));
+}
+
+TEST(KernelFilterDetail, FilterCache_DummyCallCounts)
+{
+    // dummy filter cache
+    std::size_t tCallCount{0};
+    filter::library::FilterCache tCache{[&tCallCount](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                                        {
+                                            ++tCallCount;
+                                            return std::make_shared<KernelFilter>(
+                                                mesh::Mesh{aAnalysisDomainMesh}, FilterRadius{1.0},
+                                                input_parser::KernelFilterCenteringTypes::kElementCentered,
+                                                boost::mpi::communicator{});
+                                        },
+                                        [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                                        { return library::hash_mesh_coordinates(aAnalysisDomainMesh); }};
+
+    // make mesh
+    const auto tFilePath = test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf");
+    ASSERT_TRUE(tFilePath.has_value());
+
+    const auto tMesh = mesh::Mesh{tFilePath.value()};
+    const auto tNodalDensitiesAllOne = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 1.0);
+    const auto tAnalysisDomainMeshAllOne = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
+        mesh::NodalFieldVectorReference{tNodalDensitiesAllOne});
+
+    // apply cache
+    EXPECT_EQ(tCallCount, 0);
+    tCache.compute(tAnalysisDomainMeshAllOne);
+    EXPECT_EQ(tCallCount, 1);
+    tCache.compute(tAnalysisDomainMeshAllOne);
+    EXPECT_EQ(tCallCount, 1);
+
+    // change density values and apply
+    const auto tNodalDensitiesAllHalf = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfNodes(), 0.5);
+    const auto tAnalysisDomainMeshAllHalf = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
+        mesh::NodalFieldVectorReference{tNodalDensitiesAllHalf});
+    tCache.compute(tAnalysisDomainMeshAllHalf);
+    EXPECT_EQ(tCallCount, 1);
 }
 
 TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)

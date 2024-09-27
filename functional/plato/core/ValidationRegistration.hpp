@@ -8,8 +8,8 @@
 
 namespace plato::core
 {
-template <typename Input>
-using ValidationFunction = std::function<std::optional<std::string>(const Input&)>;
+template <typename Input, typename... AdditionalArgs>
+using ValidationFunction = std::function<std::optional<std::string>(const Input&, const AdditionalArgs&...)>;
 
 /// @brief Object used for static registration of validation functions that validate
 ///  parsed input data.
@@ -31,52 +31,56 @@ using ValidationFunction = std::function<std::optional<std::string>(const Input&
 /// @endcode
 ///
 /// @tparam ValidationInput The type of the input data needed by the validation function as an argument.
-template <typename ValidationInput>
+template <typename ValidationInput, typename... AdditionalArgs>
 struct ValidationRegistration
 {
-    ValidationRegistration(ValidationFunction<ValidationInput> aFunction);
-    ValidationRegistration(std::initializer_list<ValidationFunction<ValidationInput>> aFunctions);
+    ValidationRegistration(ValidationFunction<ValidationInput, AdditionalArgs...> aFunction);
+    ValidationRegistration(std::initializer_list<ValidationFunction<ValidationInput, AdditionalArgs...>> aFunctions);
 };
 
 /// @brief Validates @a aInput, appending any error messages to @a aCurrentMessageList and returning
 ///  the result.
-template <typename ValidationInput>
+template <typename ValidationInput, typename... AdditionalArgs>
 [[nodiscard]] std::vector<std::string> validate(const ValidationInput& aInput,
-                                                std::vector<std::string>&& aCurrentMessageList);
+                                                std::vector<std::string>&& aCurrentMessageList,
+                                                const AdditionalArgs&...);
 
 namespace detail
 {
-template <typename ValidationInput>
-[[nodiscard]] auto registered_validation_functions() -> std::vector<ValidationFunction<ValidationInput>>&
+template <typename ValidationInput, typename... AdditionalArgs>
+[[nodiscard]] auto registered_validation_functions()
+    -> std::vector<ValidationFunction<ValidationInput, AdditionalArgs...>>&
 {
-    static auto tFunctions = std::vector<ValidationFunction<ValidationInput>>{};
+    static auto tFunctions = std::vector<ValidationFunction<ValidationInput, AdditionalArgs...>>{};
     return tFunctions;
 }
 
 }  // namespace detail
 
-template <typename ValidationInput>
-ValidationRegistration<ValidationInput>::ValidationRegistration(ValidationFunction<ValidationInput> aFunction)
+template <typename ValidationInput, typename... AdditionalArgs>
+ValidationRegistration<ValidationInput, AdditionalArgs...>::ValidationRegistration(
+    ValidationFunction<ValidationInput, AdditionalArgs...> aFunction)
 {
-    detail::registered_validation_functions<ValidationInput>().push_back(std::move(aFunction));
+    detail::registered_validation_functions<ValidationInput, AdditionalArgs...>().push_back(std::move(aFunction));
 }
 
-template <typename ValidationInput>
-ValidationRegistration<ValidationInput>::ValidationRegistration(
-    std::initializer_list<ValidationFunction<ValidationInput>> aFunctions)
+template <typename ValidationInput, typename... AdditionalArgs>
+ValidationRegistration<ValidationInput, AdditionalArgs...>::ValidationRegistration(
+    std::initializer_list<ValidationFunction<ValidationInput, AdditionalArgs...>> aFunctions)
 {
     std::move(aFunctions.begin(), aFunctions.end(),
-              std::back_inserter(detail::registered_validation_functions<ValidationInput>()));
+              std::back_inserter(detail::registered_validation_functions<ValidationInput, AdditionalArgs...>()));
 }
 
-template <typename ValidationInput>
+template <typename ValidationInput, typename... AdditionalArgs>
 [[nodiscard]] std::vector<std::string> validate(const ValidationInput& aInput,
-                                                std::vector<std::string>&& aCurrentMessageList)
+                                                std::vector<std::string>&& aCurrentMessageList,
+                                                const AdditionalArgs&... aArgs)
 {
-    const auto tTests = detail::registered_validation_functions<ValidationInput>();
+    const auto tTests = detail::registered_validation_functions<ValidationInput, AdditionalArgs...>();
     for (const auto& iTest : tTests)
     {
-        std::optional<std::string> tMessage = iTest(aInput);
+        std::optional<std::string> tMessage = iTest(aInput, aArgs...);
         if (tMessage.has_value())
         {
             aCurrentMessageList.emplace_back(std::move(tMessage).value());

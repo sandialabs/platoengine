@@ -163,6 +163,7 @@ std::string create_valid_identity_filter_string()
 input_parser::helmholtz_filter create_valid_helmholtz_filter()
 {
     return input_parser::helmholtz_filter{/*.filter_radius=*/91.0,
+                                          /*.use_relative_radius=*/boost::none,
                                           /*.boundary_sticking_penalty=*/1.0};
 }
 
@@ -170,6 +171,7 @@ input_parser::kernel_filter create_valid_kernel_filter()
 {
     return input_parser::kernel_filter{/*.filter_radius=*/17.0,
                                        /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kNodeCentered,
+                                       /*.use_relative_radius=*/boost::none,
                                        /*.number_of_processors*/ 1};
 }
 }  // namespace plato::test_utilities

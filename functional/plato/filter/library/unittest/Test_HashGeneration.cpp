@@ -7,6 +7,7 @@
 #include "plato/filter/library/HashGeneration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/IOUtilities.hpp"
 
@@ -40,5 +41,17 @@ TEST(HashGeneration, HashMesh)
     EXPECT_NE(tInitialHash, plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh));
 
     test_utilities::test_for_existence_and_remove({fileName}, TEST_CONTEXT("Removing temporary files."));
+}
+
+TEST(HashGeneration, HashStoredMesh)
+{
+    // initial mesh
+    const auto tFilePath = test_utilities::test_data_file_path("box_3x4x7_tet10.cdf");
+    ASSERT_TRUE(tFilePath.has_value());
+    const analysis::AnalysisDomainMesh tAnalysisDomainMesh{tFilePath.value(), {}};
+    const auto tInitialHash = plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh);
+
+    // reload mesh and rehash
+    EXPECT_EQ(tInitialHash, plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh));
 }
 }  // namespace plato::integration_tests::serial

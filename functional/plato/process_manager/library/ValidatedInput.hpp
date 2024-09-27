@@ -14,13 +14,13 @@ namespace plato::process_manager::library
 {
 class ValidatedInput;
 
-struct Key
+struct ValidateKey
 {
     friend ValidatedInput make_validated_input(input_parser::ParsedInput input);
 
    private:
-    Key() {}
-    Key(const Key&) {}
+    ValidateKey() {}
+    ValidateKey(const ValidateKey&) {}
 };
 
 class ValidatedInput
@@ -35,7 +35,7 @@ class ValidatedInput
     using ProcessManagers = plato::process_manager::library::ValidatedProcessManagerInputVector;
 
    public:
-    ValidatedInput(input_parser::ParsedInput aInput, const Key&);
+    ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey&);
 
     [[nodiscard]] auto geometry() const -> Geometry;
     [[nodiscard]] auto objectives() const -> Objectives;
@@ -50,7 +50,7 @@ class ValidatedInput
     [[nodiscard]] static ValidatedInputVariant validatedVariant(InputVariant aInputVariant);
 
     template <typename FieldType, typename InputBlock, typename FullInput>
-    static void fillCrossReference(FieldType& aField, const InputBlock&, const FullInput& aFullInput);
+    static void replaceCrossReferenceWithValidatedVersion(FieldType& aField, const InputBlock&, const FullInput&);
 
    private:
     input_parser::ParsedInput mInput;
@@ -65,26 +65,15 @@ class ValidatedInput
 [[nodiscard]] ValidatedInput parse_and_validate(const std::string_view aInput);
 
 template <typename FieldType, typename InputBlock, typename FullInput>
-void ValidatedInput::fillCrossReference(FieldType& aField, const InputBlock&, const FullInput& aFullInput)
+void ValidatedInput::replaceCrossReferenceWithValidatedVersion(FieldType& aField, const InputBlock&, const FullInput&)
 {
     using WrappedFieldType = typename plato::core::TypeOrOptional<std::decay_t<decltype(aField)>>::type;
     using VariantType = core::InputVariant<FullInput, WrappedFieldType::template IsVariantType>;
     using ValidatedVariantType = core::ValidatedInputVariant<FullInput, WrappedFieldType::template IsVariantType>;
-    if (!aField.has_value())
-    {
-        aField.emplace();
-        const auto aFirstInputBlock = core::first_input_block_in_variant<VariantType>(aFullInput);
-        assert(aFirstInputBlock.has_value());
-        aField->mInputBlock.set(core::ValidatedInputTypeWrapper{
-            validatedVariant<ValidatedVariantType>(std::move(aFirstInputBlock).value())});
-    }
-    else
-    {
-        const auto tAllLinkableBlocks = core::all_input_blocks_in_variant<VariantType>(aFullInput);
-        const auto& tNamedBlock = detail::find_cross_reference_named_block(aField.value(), tAllLinkableBlocks);
-        assert(tNamedBlock != tAllLinkableBlocks.cend());
-        aField->mInputBlock.set(core::ValidatedInputTypeWrapper{validatedVariant<ValidatedVariantType>(*tNamedBlock)});
-    }
+
+    auto tVariant = aField->mInputBlock.template get<VariantType>();
+    aField->mInputBlock.set(
+        core::ValidatedInputTypeWrapper{validatedVariant<ValidatedVariantType>(std::move(tVariant))});
 }
 
 }  // namespace plato::process_manager::library

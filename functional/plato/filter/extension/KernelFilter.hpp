@@ -6,10 +6,10 @@
 
 #include "plato/filter/extension/LinearMask.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/utilities/NamedType.hpp"
-#include "plato/utilities/StateCache.hpp"
 
 namespace plato::analysis
 {
@@ -24,8 +24,6 @@ struct kernel_filter;
 namespace plato::filter::extension
 {
 using FilterRadius = utilities::NamedType<double, struct FilterRadiusTag>;
-using FilterCache =
-    plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const analysis::AnalysisDomainMesh&>;
 
 /// @brief An implementation of a kernel filter that relies on Tpetra and STK objects to conduct a search and create a
 /// linear mask.
@@ -74,7 +72,7 @@ namespace detail
 
 /// @brief Create a StateCache object for constructing a shared pointer to a KernelFilter if the mesh coordinates have
 /// changed (i.e. the mesh has changed)
-[[nodiscard]] FilterCache create_filter_cache(const input_parser::kernel_filter& aInput);
+[[nodiscard]] library::FilterCache create_filter_cache(const input_parser::kernel_filter& aInput);
 
 }  // namespace detail
 }  // namespace plato::filter::extension

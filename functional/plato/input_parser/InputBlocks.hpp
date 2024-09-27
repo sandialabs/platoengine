@@ -116,6 +116,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), helmholtz_filter,
     (double, filter_radius)
+    (bool, use_relative_radius)
     (double, boundary_sticking_penalty)
 )
 
@@ -123,6 +124,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), kernel_filter,
     (double, filter_radius)
     (plato::input_parser::KernelFilterCenteringTypes, centering_type)
+    (bool, use_relative_radius)
     (unsigned int, number_of_processors)
 )
 
