@@ -9,8 +9,8 @@ namespace plato::integration_tests::utilities
 {
 namespace
 {
-auto make_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
-                              const std::vector<test_utilities::SumConstraint>& aConstraints)
+auto make_adjoint_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
+                                      const std::vector<test_utilities::SumConstraint>& aConstraints)
     -> linear_algebra::JacobianMultiplier
 {
     const auto tDerivativeFunctionEvaluationZero = test_utilities::to_dynamic_vector(aConstraints[0].df(x[0], x[1]));
@@ -27,8 +27,8 @@ auto make_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
     return {tJacobianTimesVectorFunction};
 }
 
-auto make_adjoint_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
-                                      const std::vector<test_utilities::SumConstraint>& aConstraints)
+auto make_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
+                              const std::vector<test_utilities::SumConstraint>& aConstraints)
     -> linear_algebra::JacobianMultiplier
 {
     const auto tDerivativeFunctionEvaluationZero = test_utilities::to_dynamic_vector(aConstraints[0].df(x[0], x[1]));

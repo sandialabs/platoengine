@@ -27,7 +27,7 @@ auto make_vector_himmelblau_adjoint_jacobian() -> VectorFunction
                               const linear_algebra::DynamicVector<double> tDf = tHimmelblau.df(aFunctionArg);
                               const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
                                   [tDf](const linear_algebra::DynamicVector<double>& aV)
-                              { return tDf * aV.stdVector()[0]; };
+                              { return linear_algebra::DynamicVector<double>{tDf.dot(aV)}; };
                               return linear_algebra::JacobianMultiplier{tFunction};
                           }};
 }
@@ -43,7 +43,7 @@ auto make_vector_himmelblau_jacobian() -> VectorFunction
                               const linear_algebra::DynamicVector<double> tDf = tHimmelblau.df(aFunctionArg);
                               const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
                                   [tDf](const linear_algebra::DynamicVector<double>& aV)
-                              { return linear_algebra::DynamicVector<double>{tDf.dot(aV)}; };
+                              { return tDf * aV.stdVector()[0]; };
                               return linear_algebra::JacobianMultiplier{tFunction};
                           }};
 }

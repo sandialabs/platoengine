@@ -24,7 +24,7 @@ class ROLObjectiveFunction : public ROL::StdObjective<double>
     ///@brief Compute the value using the set of controls @a aControls and given tolerance @a aTolerance
     double value(const std::vector<double>& aControls, double& aTolerance) override;
 
-    ///@brief Compute the gradient @a aGradient from the set of controls and given tolerance.
+    ///@brief Compute the gradient from the set of controls and given tolerance. Populate the aGradient parameter
     ///@param aGradient Modify this variable with the gradient
     void gradient(std::vector<double> &aGradient, const std::vector<double> &aControls, double &aTolerance) override;
 

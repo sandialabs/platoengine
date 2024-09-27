@@ -39,12 +39,6 @@ class ROLVectorConstraintFunction : public ROL::StdConstraint<double>
                               const std::vector<double>& aControl,
                               double& aTolerance) override;
 
-    /*  void applyAdjointHessian(std::vector<double>& ahuv,
-                               const std::vector<double>& u,
-                               const std::vector<double>& v,
-                               const std::vector<double>& x,
-                               double& tol) override;*/
-
    private:
     ROLPlatoFunction mFunctionWithDfAsJacobian;
     ROLPlatoFunction mFunctionWithDfAsAdjointJacobian;

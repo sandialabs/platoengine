@@ -20,6 +20,7 @@
 #include "plato/third_party_integration/rol/ROLConstraintFunction.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
+
 namespace plato::integration_tests::serial
 {
 namespace
@@ -175,46 +176,53 @@ std::unique_ptr<ROL::Problem<double>> create_rol_constrained_rosenbrock_problem_
     return tROLProblem;
 }
 
+auto solution_as_string(const linear_algebra::DynamicVector<double>& aSolution) -> std::string
+{
+    auto tStream = std::stringstream{};
+    tStream << std::setprecision(16) << "tSolution[0]" << aSolution[0] << "\n";
+    tStream << "tSolution[1]" << aSolution[1] << "\n";
+    tStream << "tSolution[0]+tSolution[1] = " << aSolution[0] + aSolution[1] << "\n";
+    tStream << "tSolution[0]^2+tSolution[1]^2  = " << aSolution[0] * aSolution[0] + aSolution[1] * aSolution[1] << "\n";
+    tStream << "Rosenbrock: " << test_utilities::Rosenbrock{}.f(aSolution[0], aSolution[1]) << "\n";
+    return tStream.str();
+}
+
 void print_and_test_solution(const linear_algebra::DynamicVector<double>& aSolution)
 {
-    ASSERT_EQ(aSolution.size(), 2u);
-    EXPECT_NEAR(aSolution[0], kGoldXValue, kTolerance);
-    EXPECT_NEAR(aSolution[1], kGoldYValue, kTolerance);
-    std::cout << std::setprecision(16) << "tSolution[0]" << aSolution[0] << std::endl;
-    std::cout << "tSolution[1]" << aSolution[1] << std::endl;
-    std::cout << "tSolution[0]+tSolution[1] = " << aSolution[0] + aSolution[1] << std::endl;
-    std::cout << "tSolution[0]^2+tSolution[1]^2  = " << aSolution[0] * aSolution[0] + aSolution[1] * aSolution[1]
-              << std::endl;
-
-    std::cout << "Rosenbrock: " << test_utilities::Rosenbrock{}.f(aSolution[0], aSolution[1]) << std::endl;
+    const auto tSolutionForPrinting = solution_as_string(aSolution);
+    ASSERT_EQ(aSolution.size(), 2u) << tSolutionForPrinting;
+    EXPECT_NEAR(aSolution[0], kGoldXValue, kTolerance) << tSolutionForPrinting;
+    EXPECT_NEAR(aSolution[1], kGoldYValue, kTolerance) << tSolutionForPrinting;
 }
 
 }  // namespace
 
-TEST(Optimize, RosenbrockWithConstraintsROL)
+TEST(Optimize, RosenbrockWithConstraintsROLTwoScalarConstraints)
 {
     auto tControl = ROL::makePtr<ROL::StdVector<double>>(2, 0.);
     auto tROLInputs = create_parameter_list();
-    {
-        auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(
-            create_rol_constrained_rosenbrock_problem_by_adding_two_constraints(tControl).release());
+    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(
+        create_rol_constrained_rosenbrock_problem_by_adding_two_constraints(tControl).release());
 
-        auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
-        ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
-        tROLSolver.solve(*tOutStream);
-        const auto tSolution = third_party_integration::rol::to_dynamic_vector(*tControl);
-        print_and_test_solution(tSolution);
-    }
-    {
-        auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(
-            create_rol_constrained_rosenbrock_problem_by_adding_one_vector_constraint(tControl).release());
+    auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
+    ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
+    tROLSolver.solve(*tOutStream);
+    const auto tSolution = third_party_integration::rol::to_dynamic_vector(*tControl);
+    print_and_test_solution(tSolution);
+}
 
-        auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
-        ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
-        tROLSolver.solve(*tOutStream);
-        const auto tSolution = third_party_integration::rol::to_dynamic_vector(*tControl);
-        print_and_test_solution(tSolution);
-    }
+TEST(Optimize, RosenbrockWithConstraintsROLOneVectorConstraint)
+{
+    auto tControl = ROL::makePtr<ROL::StdVector<double>>(2, 0.);
+    auto tROLInputs = create_parameter_list();
+    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(
+        create_rol_constrained_rosenbrock_problem_by_adding_one_vector_constraint(tControl).release());
+
+    auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
+    ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
+    tROLSolver.solve(*tOutStream);
+    const auto tSolution = third_party_integration::rol::to_dynamic_vector(*tControl);
+    print_and_test_solution(tSolution);
 }
 
 }  // namespace plato::integration_tests::serial
