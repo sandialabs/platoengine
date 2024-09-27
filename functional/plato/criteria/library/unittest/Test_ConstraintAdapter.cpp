@@ -11,7 +11,7 @@ namespace plato::criteria::library::unittest
 {
 namespace
 {
-auto to_two_d(const linear_algebra::DynamicVector<double>& aDynamicVector)
+auto to_two_d(const linear_algebra::DynamicVector<double>& aDynamicVector) -> test_utilities::TwoDVector
 {
     return test_utilities::TwoDVector{aDynamicVector[0], aDynamicVector[1]};
 }
@@ -41,37 +41,37 @@ auto make_rosenbrock_constraint() -> Constraint<linear_algebra::DynamicVector<do
 TEST(ConstraintAdaptor, MakeVectorFunction)
 {
     auto tRosenbrock = make_rosenbrock_dynamic_vector_function();
-    const auto tVectorbrock = detail::make_vector_function(tRosenbrock);
+    const auto tVectorRosenbrock = detail::make_vector_function(tRosenbrock);
 
     const auto tTestPoint = linear_algebra::DynamicVector<double>({1, 2});
     const auto tScalarGold = tRosenbrock.f(tTestPoint);
-    const auto tVectorResult = tVectorbrock.f(tTestPoint).stdVector();
+    const auto tVectorResult = tVectorRosenbrock.f(tTestPoint).stdVector();
 
     ASSERT_EQ(tVectorResult.size(), 1u);
     EXPECT_EQ(tVectorResult[0], tScalarGold);
 
-    const auto tTestDirection = linear_algebra::DynamicVector<double>({.6, 1.2});
-    const auto tScalarDFGold = tRosenbrock.df(tTestPoint).dot(tTestDirection);
+    constexpr auto tScaleFactor = double{2.0};
+    const auto tTestDirection = linear_algebra::DynamicVector{tScaleFactor};
+    const auto tExpected = tScaleFactor * tRosenbrock.df(tTestPoint);
 
-    const auto tVectorDFResult = tVectorbrock.df(tTestPoint).mJacobianTimesVectorFunction(tTestDirection).stdVector();
-    ASSERT_EQ(tVectorDFResult.size(), 1u);
-    EXPECT_EQ(tVectorDFResult[0], tScalarDFGold);
+    const auto tVectorDFResult = tTestDirection * tVectorRosenbrock.df(tTestPoint);
+    ASSERT_EQ(tVectorDFResult.size(), 2U);
+    EXPECT_EQ(tVectorDFResult.stdVector(), tExpected.stdVector());
 }
 
 TEST(ConstraintAdaptor, MakeAdjointJacobianVectorFunction)
 {
     auto tRosenbrock = make_rosenbrock_dynamic_vector_function();
-    const auto tVectorbrock = detail::make_adjoint_jacobian_vector_function(tRosenbrock);
+    const auto tVectorRosenbrock = detail::make_adjoint_jacobian_vector_function(tRosenbrock);
 
-    const auto tTestPoint = linear_algebra::DynamicVector<double>({1, 2});
-    const auto tTestDual = linear_algebra::DynamicVector<double>({.6});
+    const auto tTestPoint = linear_algebra::DynamicVector{1.0, 2.0};
+    const auto tTestDual = linear_algebra::DynamicVector{2.0, -4.0};
 
-    const auto tScalarDFGold = tRosenbrock.df(tTestPoint) * tTestDual.stdVector()[0];
+    const auto tExpected = tRosenbrock.df(tTestPoint).dot(tTestDual);
 
-    const auto tVectorDFResult = tVectorbrock.df(tTestPoint).mJacobianTimesVectorFunction(tTestDual).stdVector();
-    ASSERT_EQ(tVectorDFResult.size(), 2u);
-    EXPECT_EQ(tVectorDFResult[0], tScalarDFGold[0]);
-    EXPECT_EQ(tVectorDFResult[1], tScalarDFGold[1]);
+    const auto tVectorDFResult = tTestDual * tVectorRosenbrock.df(tTestPoint);
+    ASSERT_EQ(tVectorDFResult.size(), 1U);
+    EXPECT_EQ(tVectorDFResult[0], tExpected);
 }
 
 TEST(ConstraintAdaptor, MakeVectorConstraint)
