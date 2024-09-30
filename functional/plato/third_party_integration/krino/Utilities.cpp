@@ -168,9 +168,8 @@ std::unordered_map<KrinoGlobalNodeID, double> calculate_dfdls(
         const KrinoGlobalNodeID tCurInterfaceNodeID = tDXDPMapIter->first;
         if (aDFDXMap.count(tCurInterfaceNodeID) == 0)
         {
-            std::cout << "ERROR: Cut mesh interface global node id does not have a corresponding DFDX entry!"
-                      << std::endl;
-            throw 1;
+            throw utilities::Exception(
+                "ERROR: Cut mesh interface global node id does not have a corresponding DFDX entry!");
         }
 
         for (size_t j = 0; j < tDXDPMapIter->second.mParentNodeIds.size(); ++j)
