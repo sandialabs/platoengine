@@ -12,8 +12,7 @@ SET(SOURCES data_mesh.cpp
             math_library.cpp
             linear_elastic.cpp
             lightmp.cpp
-            nemesis_io.cpp
-            solid_statics.cpp)
+            nemesis_io.cpp)
 
 SET(HEADERS data_mesh.hpp
             types.hpp
@@ -28,7 +27,6 @@ SET(HEADERS data_mesh.hpp
             math_library.hpp
             linear_elastic.hpp
             lightmp.hpp
-            solid_statics.hpp
             bc.hpp)
 
 

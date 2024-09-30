@@ -23,11 +23,6 @@ if( PLATOPROXY )
   add_subdirectory(rosenbrock)
 endif()
 
-if( PLATOSTATICS )
-  message( "-- Compiling Statics " )
-  add_subdirectory(statics)
-endif()
-
 if(EXPY)
   message( "-- Compiling Expy " )
   add_subdirectory(services/python)
