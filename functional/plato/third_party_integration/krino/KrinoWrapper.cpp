@@ -62,11 +62,7 @@ bool KrinoWrapper::includeVoidRegionPart(const stk::mesh::Part *aPart)
 
 void KrinoWrapper::setLevelsetValues(const std::vector<double> &aValuesIn)
 {
-    ::krino::CDFEM_Support &cdfemSupport = ::krino::CDFEM_Support::get(mKrinoMesh->meta_data());
-    const stk::mesh::Selector tSelector =
-        stk::mesh::selectField(mLSFields[0].isovar) & !cdfemSupport.get_child_node_part();
-    stk::mesh::EntityVector tNodes;
-    stk::mesh::get_selected_entities(tSelector, mKrinoMesh->bulk_data().buckets(stk::topology::NODE_RANK), tNodes);
+    stk::mesh::EntityVector tNodes = getNodeEntitiesInMesh();
     if (aValuesIn.size() != tNodes.size())
     {
         std::cout << "ERROR: Size mismatch when setting levelset values!" << std::endl;
@@ -173,16 +169,20 @@ void KrinoWrapper::initializeLevelsetFieldsFromPrimitives(const stk::mesh::BulkD
     ::krino::compute_nodal_surface_distance(mesh, coordsField, levelSetField, initializationSurfaces);
 }
 
-std::vector<double> KrinoWrapper::getLevelsetValues()
+stk::mesh::EntityVector KrinoWrapper::getNodeEntitiesInMesh()
 {
     ::krino::CDFEM_Support &cdfemSupport = ::krino::CDFEM_Support::get(mKrinoMesh->meta_data());
     const stk::mesh::Selector tSelector =
         stk::mesh::selectField(mLSFields[0].isovar) & !cdfemSupport.get_child_node_part();
     stk::mesh::EntityVector tNodes;
     stk::mesh::get_selected_entities(tSelector, mKrinoMesh->bulk_data().buckets(stk::topology::NODE_RANK), tNodes);
+    return tNodes;
+}
 
+std::vector<double> KrinoWrapper::getLevelsetValues()
+{
+    stk::mesh::EntityVector tNodes = getNodeEntitiesInMesh();
     std::vector<double> tReturn(tNodes.size());
-
     for (size_t i = 0; i < tNodes.size(); i++)
     {
         const double *dist = ::krino::field_data<double>(mLSFields[0].isovar, tNodes[i]);

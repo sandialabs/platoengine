@@ -72,6 +72,7 @@ class KrinoWrapper
                                          ::krino::FieldRef levelSetField,
                                          const stk::math::Vector3d &normal,
                                          const double offset);
+    stk::mesh::EntityVector getNodeEntitiesInMesh();
 
    private:
     unsigned int mUncutBackgroundMeshSize;

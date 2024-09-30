@@ -7,6 +7,7 @@
 #include <stk_util/environment/OutputLog.hpp>
 
 #include "plato/utilities/Enumerate.hpp"
+#include "plato/utilities/Exception.hpp"
 
 namespace plato::third_party_integration::krino
 {
