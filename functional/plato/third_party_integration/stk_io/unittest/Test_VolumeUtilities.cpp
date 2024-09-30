@@ -1,8 +1,8 @@
-
 #include <gtest/gtest.h>
 
 #include <filesystem>
 
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -62,6 +62,67 @@ void test_first_element_volume_and_coordinates(const CommandGenerator& aCommandG
         common::test_utilities::test_double_equality_of_components(tResult, tExpected,
                                                                    TEST_CONTEXT("Element coordinates"));
     }
+}
+
+void test_first_element_max_edge_length(const CommandGenerator& aCommandGenerator,
+                                        const double aGoldEdgeLength,
+                                        const plato::test_utilities::TestContext& aTestContext)
+{
+    const auto tBulkData = generate_bulk_data(aCommandGenerator);
+    ASSERT_TRUE(tBulkData) << aTestContext;
+
+    const stk::mesh::EntityVector tElements = element_vector(*tBulkData);
+    ASSERT_FALSE(tElements.empty()) << aTestContext;
+
+    const double tMaxLength = element_max_edge_length(tElements[0], *tBulkData);
+    EXPECT_DOUBLE_EQ(tMaxLength, aGoldEdgeLength) << aTestContext;
+}
+
+void test_first_element_max_edge_length(const std::filesystem::path& aFilePath,
+                                        const double aGoldEdgeLength,
+                                        const plato::test_utilities::TestContext& aTestContext,
+                                        const double aTol = 1e-16)
+{
+    const auto tBulkData = read_mesh_bulk_data(aFilePath);
+    ASSERT_TRUE(tBulkData) << aTestContext;
+
+    const stk::mesh::EntityVector tElements = element_vector(*tBulkData);
+    ASSERT_FALSE(tElements.empty()) << aTestContext;
+
+    const double tMaxLength = element_max_edge_length(tElements[0], *tBulkData);
+    EXPECT_NEAR(tMaxLength, aGoldEdgeLength, aTol) << aTestContext;
+}
+
+void test_equality_of_element_max_edge_lengths_from_different_meshes(
+    const std::filesystem::path& aMesh1Path,
+    const std::filesystem::path& aMesh2Path,
+    const plato::test_utilities::TestContext& aTestContext)
+{
+    const auto tBulkData1 = read_mesh_bulk_data(aMesh1Path);
+    ASSERT_TRUE(tBulkData1) << aTestContext;
+    const auto tElements1 = element_vector(*tBulkData1);
+
+    const auto tBulkData2 = read_mesh_bulk_data(aMesh2Path);
+    ASSERT_TRUE(tBulkData2) << aTestContext;
+    const auto tElements2 = element_vector(*tBulkData2);
+
+    ASSERT_EQ(tElements1.size(), tElements2.size()) << aTestContext;
+
+    for (const auto& [aMesh1Element, aMesh2Element] : utilities::Zip{tElements1, tElements2})
+    {
+        const double tMaxLengthHex8 = element_max_edge_length(aMesh1Element, *tBulkData1);
+        const double tMaxLengthHex20 = element_max_edge_length(aMesh2Element, *tBulkData2);
+        EXPECT_DOUBLE_EQ(tMaxLengthHex8, tMaxLengthHex20) << aTestContext;
+    }
+}
+
+void test_average_element_max_edge_length(const CommandGenerator& aCommandGenerator, const double aGoldEdgeLength)
+{
+    const auto tBulkData = generate_bulk_data(aCommandGenerator);
+    ASSERT_TRUE(tBulkData);
+
+    const double tAverageLength = average_element_max_edge_length(*tBulkData);
+    EXPECT_DOUBLE_EQ(tAverageLength, aGoldEdgeLength);
 }
 
 }  // namespace
@@ -218,6 +279,95 @@ TEST_F(TwoDThreeBlockMesh, ElementCentroidsOnParts)
                                                                        TEST_CONTEXT("Block 1 centroids"));
         }
     }
+}
+
+TEST(STKVolumeUtilities, MaxElementEdgeLength_SingleHex)
+{
+    const common::Coordinate tBoxLengths{1, 86, 1};
+    const CommandGenerator tCommandGenerator{{1, 1, 1}, {0, 0, 0}, {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z}};
+    const double tGoldLength = tBoxLengths.y;
+    test_first_element_max_edge_length(tCommandGenerator, tGoldLength,
+                                       TEST_CONTEXT("Test first element max edge length"));
+}
+
+TEST(STKVolumeUtilities, MaxElementEdgeLength_BoxWithTets)
+{
+    const common::Coordinate tBoxLengths{10, 1, 1};
+    const CommandGenerator tCommandGenerator{
+        {1, 1, 1}, {0, 0, 0}, {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z}, CommandElementType::Tet};
+    const double tGoldLength = common::magnitude(tBoxLengths);
+    test_first_element_max_edge_length(tCommandGenerator, tGoldLength,
+                                       TEST_CONTEXT("Test first element max edge length"));
+}
+
+TEST(STKVolumeUtilities, MaxElementEdgeLength_RectangleWithQuads)
+{
+    constexpr double tGoldLength = 0.6;  // gold edge length of face 1 found manually in Cubit
+    const auto tFilePath = plato::test_utilities::test_data_file_path("rectangle_3x4_quad4.cdf");
+    ASSERT_TRUE(tFilePath.has_value());
+    test_first_element_max_edge_length(tFilePath.value(), tGoldLength,
+                                       TEST_CONTEXT("Test first element max edge length"));
+}
+
+TEST(STKVolumeUtilities, MaxElementEdgeLength_RectangleWithTris)
+{
+    constexpr double tGoldLength = 0.7801;  // gold edge length of tri 1 found manually in Cubit
+    constexpr double tTol = 1e-4;           // Cubit output only to 4 digits
+    const auto tFilePath = plato::test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf");
+    ASSERT_TRUE(tFilePath.has_value());
+    test_first_element_max_edge_length(tFilePath.value(), tGoldLength,
+                                       TEST_CONTEXT("Test first element max edge length"), tTol);
+}
+
+TEST(STKVolumeUtilities, MaxElementEdgeLength_Hex8_Hex20_Match)
+{
+    const auto tLowOrderMeshPath = plato::test_utilities::test_data_file_path("box_2x4x8_hex.cdf");
+    ASSERT_TRUE(tLowOrderMeshPath.has_value());
+
+    const auto tHighOrderMeshPath = plato::test_utilities::test_data_file_path("box_2x4x8_hex20.cdf");
+    ASSERT_TRUE(tHighOrderMeshPath.has_value());
+
+    test_equality_of_element_max_edge_lengths_from_different_meshes(
+        tLowOrderMeshPath.value(), tHighOrderMeshPath.value(),
+        TEST_CONTEXT("Max element edge lengths are same for Hex8 and Hex20 mesh"));
+}
+
+TEST(STKVolumeUtilities, MaxElementEdgeLength_Tet4_Tet10_Match)
+{
+    const auto tLowOrderMeshPath = plato::test_utilities::test_data_file_path("box_3x4x7_tet4.cdf");
+    ASSERT_TRUE(tLowOrderMeshPath.has_value());
+
+    const auto tHighOrderMeshPath = plato::test_utilities::test_data_file_path("box_3x4x7_tet10.cdf");
+    ASSERT_TRUE(tHighOrderMeshPath.has_value());
+
+    test_equality_of_element_max_edge_lengths_from_different_meshes(
+        tLowOrderMeshPath.value(), tHighOrderMeshPath.value(),
+        TEST_CONTEXT("Max element edge lengths are same for Tet4 and Tet10 mesh"));
+}
+
+TEST(STKVolumeUtilities, AverageEdgeLength_BoxWithHexes)
+{
+    const common::Coordinate tBoxLengths{1, 86, 1};
+    constexpr unsigned int tNumElementsPerDim = 4;
+    const CommandGenerator tCommandGenerator{{tNumElementsPerDim, tNumElementsPerDim, tNumElementsPerDim},
+                                             {0, 0, 0},
+                                             {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z}};
+    const double tGoldLength = tBoxLengths.y / tNumElementsPerDim;
+
+    test_average_element_max_edge_length(tCommandGenerator, tGoldLength);
+}
+
+TEST(STKVolumeUtilities, AverageEdgeLength_BoxWithTets)
+{
+    const common::Coordinate tBoxLengths{10, 1, 1};
+    constexpr unsigned int tNumElementsPerDim = 2;
+    const CommandGenerator tCommandGenerator{{tNumElementsPerDim, tNumElementsPerDim, tNumElementsPerDim},
+                                             {0, 0, 0},
+                                             {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z},
+                                             CommandElementType::Tet};
+    const double tGoldLength = common::magnitude(tBoxLengths / tNumElementsPerDim);
+
+    test_average_element_max_edge_length(tCommandGenerator, tGoldLength);
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

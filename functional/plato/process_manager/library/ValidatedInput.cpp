@@ -11,6 +11,7 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_parser/InputParser.hpp"
+#include "plato/process_manager/library/CrossLinkedInput.hpp"
 #include "plato/process_manager/library/CrossReferenceUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerValidation.hpp"
 #include "plato/process_manager/library/ValidateCrossReferences.hpp"
@@ -19,10 +20,11 @@
 
 namespace plato::process_manager::library
 {
-ValidatedInput::ValidatedInput(input_parser::ParsedInput aInput, const Key&) : mInput{std::move(aInput)}
+ValidatedInput::ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey&) : mInput{std::move(aInput)}
 {
-    apply_to_cross_references(mInput, [](auto& aField, const auto& aInputBlock, const auto& aFullInput)
-                              { ValidatedInput::fillCrossReference(aField, aInputBlock, aFullInput); });
+    apply_to_cross_references(
+        mInput, [](auto& aField, const auto& aInputBlock, const auto& aFullInput)
+        { ValidatedInput::replaceCrossReferenceWithValidatedVersion(aField, aInputBlock, aFullInput); });
 }
 
 ValidatedInput::Geometry ValidatedInput::geometry() const
@@ -80,19 +82,25 @@ ValidatedInputVariant ValidatedInput::validatedVariant(InputVariant aInputVarian
 
 ValidatedInput make_validated_input(input_parser::ParsedInput aInput)
 {
-    auto tMessages = plato::geometry::library::validate_geometry(aInput, std::vector<std::string>{});
-    tMessages = plato::filter::library::validate_filter(aInput, std::move(tMessages));
-    tMessages = plato::criteria::library::validate_objectives(aInput.mObjectives, std::move(tMessages));
-    tMessages = plato::criteria::library::validate_constraints(aInput.mConstraints, std::move(tMessages));
-    tMessages = plato::process_manager::library::validate_process_managers(aInput, std::move(tMessages));
-    tMessages = validate_cross_referenced_input(aInput, std::move(tMessages));
+    auto tMessages = validate_cross_referenced_input(aInput, std::vector<std::string>{});
+
+    const auto tCrossLinkedInput = make_cross_linked_input(aInput);
+
+    tMessages = plato::geometry::library::validate_geometry(tCrossLinkedInput.rawInput(), std::move(tMessages));
+    tMessages = plato::filter::library::validate_filter(tCrossLinkedInput.rawInput(), std::move(tMessages));
+    tMessages =
+        plato::criteria::library::validate_objectives(tCrossLinkedInput.rawInput().mObjectives, std::move(tMessages));
+    tMessages =
+        plato::criteria::library::validate_constraints(tCrossLinkedInput.rawInput().mConstraints, std::move(tMessages));
+    tMessages =
+        plato::process_manager::library::validate_process_managers(tCrossLinkedInput.rawInput(), std::move(tMessages));
 
     if (!tMessages.empty())
     {
         throw plato::utilities::Exception("Error: Could not validate input, the following errors were found: \n" +
                                           utilities::concatenate_container(tMessages, "\n"));
     }
-    return ValidatedInput{std::move(aInput), Key{}};
+    return ValidatedInput{tCrossLinkedInput.rawInput(), ValidateKey{}};
 }
 
 ValidatedInput parse_and_validate_from_file(const std::filesystem::path& aFileName)
