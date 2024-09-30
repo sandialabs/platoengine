@@ -33,6 +33,4 @@ if(EXPY)
   add_subdirectory(services/python)
 endif()
 
-if( KRINO_ENABLED )
-  add_subdirectory(krino)
-endif()
+add_subdirectory(krino)
