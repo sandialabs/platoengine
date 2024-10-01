@@ -1,5 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <fstream>
+#include <optional>
+#include <snoptProblem.hpp>
+
+#include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TwoDTestTypes.hpp"
@@ -52,8 +57,8 @@ void check_snopt_problem_solution(const std::vector<double>& aInitialGuess,
                                   const std::vector<double>& aExpectedSolution,
                                   const test_utilities::TestContext& aTestContext)
 {
-    const auto tSolution =
-        run_snopt_problem(aInitialGuess, aBounds, std::move(aObjective), std::move(aConstraints), kLogFilePath);
+    const auto tSolution = run_snopt_problem(aInitialGuess, aBounds, std::move(aObjective), std::move(aConstraints),
+                                             kLogFilePath, SNOPTOptions{});
 
     constexpr auto tTolerance = 1e-5;
     ASSERT_EQ(aInitialGuess.size(), aExpectedSolution.size()) << aTestContext;
@@ -117,6 +122,78 @@ TEST(SNOPTInterface, RosenbrockLinearlyAndNonlinearlyConstrained)
                                  },
                                  kExpected, TEST_CONTEXT("Nonlinearly and linearly constrained"));
     std::filesystem::remove(kLogFilePath);
+}
+
+namespace
+{
+
+const auto kSuccessfulGetParameterCode = int{0};
+
+void write_snoptions_file(const std::string& aFileName)
+{
+    const std::string tFileContent = R"(Begin options
+        Time limit 3
+        Iteration limit 400
+    End options
+    )";
+
+    std::ofstream tOutput(aFileName.c_str());
+    tOutput << tFileContent;
+}
+
+void get_parameter_and_test_value(snoptProblemA& aProblem,
+                                  const std::string_view aParameter,
+                                  const int aGold,
+                                  const test_utilities::TestContext aTestContext)
+{
+    int tParameter;
+    const int tReturnCode = aProblem.getIntParameter(aParameter.data(), tParameter);
+    EXPECT_EQ(tReturnCode, kSuccessfulGetParameterCode);
+    EXPECT_EQ(tParameter, aGold) << aTestContext;
+}
+
+[[nodiscard]] auto create_problem_and_apply_options(const SNOPTOptions& aOptions) -> snoptProblemA
+{
+    constexpr auto tUseSummaryFile = int{1};
+    snoptProblemA tProblem{};
+    tProblem.initialize(kLogFilePath.c_str(), tUseSummaryFile);
+    detail::apply_options(tProblem, aOptions);
+    return tProblem;
+}
+
+}  // namespace
+
+TEST(SNOPTInterfaceDetail, ApplyOptions)
+{
+    const auto tInputFile = std::string{"snoptions.in"};
+    constexpr int tPlatoTimeLimit = 42;
+    constexpr int tPlatoMaxIterationLimit = 666;
+    constexpr int tUninitializedSNOPTParameterValue = -11111;
+
+    SNOPTOptions tOptions{std::nullopt, tPlatoTimeLimit, tPlatoMaxIterationLimit};
+    {
+        auto tProblem = create_problem_and_apply_options(tOptions);
+        get_parameter_and_test_value(tProblem, snopt::kMajorIterationLimitName, tPlatoMaxIterationLimit,
+                                     TEST_CONTEXT("plato major iteration spec applied"));
+    }
+
+    write_snoptions_file(tInputFile);
+    tOptions.mFilePath = tInputFile;
+    {
+        auto tProblem = create_problem_and_apply_options(tOptions);
+        get_parameter_and_test_value(tProblem, snopt::kMajorIterationLimitName, tPlatoMaxIterationLimit,
+                                     TEST_CONTEXT("external major iteration input file overridden by plato spec"));
+    }
+
+    tOptions.mMajorIterationLimit = std::nullopt;
+    tOptions.mTimeLimitInMinutes = std::nullopt;
+    {
+        auto tProblem = create_problem_and_apply_options(tOptions);
+        get_parameter_and_test_value(tProblem, snopt::kMajorIterationLimitName, tUninitializedSNOPTParameterValue,
+                                     TEST_CONTEXT("external major iteration input file value"));
+    }
+    test_utilities::test_for_existence_and_remove({tInputFile, kLogFilePath},
+                                                  TEST_CONTEXT("Clean up files SNOPT Interface"));
 }
 
 }  // namespace plato::third_party_integration::snopt::unittest

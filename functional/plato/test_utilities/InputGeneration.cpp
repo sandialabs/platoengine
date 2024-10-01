@@ -174,4 +174,12 @@ input_parser::kernel_filter create_valid_kernel_filter()
                                        /*.use_relative_radius=*/boost::none,
                                        /*.number_of_processors*/ 1};
 }
+
+input_parser::snopt_optimization create_valid_example_snopt_optimization()
+{
+    return input_parser::snopt_optimization{/*.input_file_name=*/boost::none,
+                                            /*.max_iterations=*/10,
+                                            /*.time_limit_in_minutes=*/0};
+}
+
 }  // namespace plato::test_utilities

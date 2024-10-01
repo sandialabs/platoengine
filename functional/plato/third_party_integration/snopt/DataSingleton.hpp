@@ -21,6 +21,8 @@ class DataSingleton
     [[nodiscard]] auto data() -> std::optional<T> &;
     [[nodiscard]] auto data() const -> const std::optional<T> &;
 
+    void reset();
+
    private:
     DataSingleton() = default;
     DataSingleton &operator=(const DataSingleton &) = delete;
@@ -48,6 +50,12 @@ template <typename T, typename Tag>
 auto DataSingleton<T, Tag>::data() const -> const std::optional<T> &
 {
     return mData;
+}
+
+template <typename T, typename Tag>
+void DataSingleton<T, Tag>::reset()
+{
+    mData = std::nullopt;
 }
 
 }  // namespace plato::third_party_integration::snopt

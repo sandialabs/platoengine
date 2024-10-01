@@ -39,5 +39,7 @@ namespace plato::test_utilities
 
 [[nodiscard]] input_parser::kernel_filter create_valid_kernel_filter();
 
+[[nodiscard]] input_parser::snopt_optimization create_valid_example_snopt_optimization();
+
 }  // namespace plato::test_utilities
 #endif

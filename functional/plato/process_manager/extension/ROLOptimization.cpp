@@ -4,13 +4,13 @@
 #include <string_view>
 
 #include "plato/core/ValidationUtilities.hpp"
+#include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/third_party_integration/rol/OptimizerFactory.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
-#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::extension
 {
@@ -35,10 +35,14 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
 
 [[maybe_unused]] static auto kOptimizerValidationRegistration =
     core::ValidationRegistration<input_parser::rol_optimization>{
-        [](const input_parser::rol_optimization& aInput) { return detail::validate_max_iterations(aInput); },
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_rol_max_iterations(aInput); },
         [](const input_parser::rol_optimization& aInput) { return detail::validate_step_tolerance(aInput); },
         [](const input_parser::rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); },
-        [](const input_parser::rol_optimization& aInput) { return detail::validate_rol_input_file_exists(aInput); }};
+        [](const input_parser::rol_optimization& aInput)
+        {
+            return ::plato::process_manager::extension::detail::validate_optional_input_file_name<
+                input_parser::rol_optimization>(aInput);
+        }};
 
 }  // namespace
 
@@ -62,16 +66,17 @@ void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData
 
 namespace detail
 {
-std::optional<std::string> validate_max_iterations(const input_parser::rol_optimization& aInput)
+std::optional<std::string> validate_rol_max_iterations(const input_parser::rol_optimization& aInput)
 {
-    namespace pfu = plato::utilities;
-    if (!aInput.input_file_name || (aInput.input_file_name && aInput.max_iterations))
+    const bool tMissingMandatoryMaxIterationsAndNoInputFile = !aInput.max_iterations && !aInput.input_file_name;
+
+    if (tMissingMandatoryMaxIterationsAndNoInputFile)
     {
-        return core::error_message_for_parameter_out_of_bounds(
-            input_parser::block_name<input_parser::rol_optimization>(), aInput.max_iterations, "max_iterations",
-            pfu::lower_bounded(pfu::Inclusive{1u}));
+        return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::rol_optimization>(),
+                                                       aInput.max_iterations, "max_iterations");
     }
-    return std::nullopt;
+
+    return ::plato::process_manager::extension::detail::validate_max_iterations(aInput);
 }
 
 std::optional<std::string> validate_step_tolerance(const input_parser::rol_optimization& aInput)
@@ -94,16 +99,6 @@ std::optional<std::string> validate_gradient_tolerance(const input_parser::rol_o
         return core::error_message_for_parameter_out_of_bounds(
             input_parser::block_name<input_parser::rol_optimization>(), aInput.gradient_tolerance, "gradient_tolerance",
             pfu::lower_bounded(pfu::Exclusive{0.0}));
-    }
-    return std::nullopt;
-}
-
-std::optional<std::string> validate_rol_input_file_exists(const input_parser::rol_optimization& aInput)
-{
-    if (aInput.input_file_name && !std::filesystem::exists(aInput.input_file_name->mToken))
-    {
-        return utilities::concatenate(input_parser::block_name<input_parser::rol_optimization>(),
-                                      ": Could not file input file with name ", aInput.input_file_name->mToken);
     }
     return std::nullopt;
 }

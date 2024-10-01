@@ -5,10 +5,19 @@ set(DIRECTORIES library extension)
 set(LINK_LIBS PlatoFunctionalGeometry 
               PlatoFunctionalROL)
 
+
+if (SNOPT_ENABLED)
+  list(APPEND DIRECTORIES extension/snopt)
+  list(APPEND LINK_LIBS PlatoFunctionalSNOPT)
+endif()
+
 create_plato_library(PlatoFunctionalProcessManager "${DIRECTORIES}" "${LINK_LIBS}")
 
 if( UNIT_TESTING )
   # Build unit tester
   set(DIRECTORIES library/unittest extension/unittest)
+  if (SNOPT_ENABLED)
+    list(APPEND DIRECTORIES extension/snopt/unittest)
+  endif()
   create_plato_unittester(PlatoFunctionalProcessManager "${DIRECTORIES}")
 endif()

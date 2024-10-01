@@ -1,20 +1,30 @@
 #ifndef PLATO_CORE_PROCESSMANAGER_EXTENSION_COMMONINPUTVALIDATION
 #define PLATO_CORE_PROCESSMANAGER_EXTENSION_COMMONINPUTVALIDATION
 
+#include <filesystem>
 #include <optional>
 #include <string>
 
 #include "plato/core/ValidationUtilities.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::extension::detail
 {
+
+template <typename InputBlock>
+[[nodiscard]] std::optional<std::string> validate_max_iterations(const InputBlock& aInput)
+{
+    return core::error_message_for_optional_parameter_out_of_bounds(input_parser::block_name<InputBlock>(),
+                                                                    aInput.max_iterations, "max_iterations",
+                                                                    utilities::lower_bounded(utilities::Inclusive{1U}));
+}
+
 template <typename InputBlock>
 [[nodiscard]] std::optional<std::string> validate_number_of_steps(const InputBlock& aInput)
 {
-    namespace pfu = plato::utilities;
     return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<InputBlock>(),
                                                            aInput.number_of_steps, "number_of_steps",
-                                                           pfu::lower_bounded(pfu::Inclusive{1u}));
+                                                           utilities::lower_bounded(utilities::Inclusive{1U}));
 }
 
 template <typename InputBlock>
@@ -38,11 +48,22 @@ std::optional<std::string> validate_step_size_reduction_factor(const InputBlock&
 template <typename InputBlock>
 std::optional<std::string> validate_random_direction_seed(const InputBlock& aInput)
 {
-    namespace pfu = plato::utilities;
     return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<InputBlock>(),
                                                            aInput.random_direction_seed, "random_direction_seed",
-                                                           pfu::lower_bounded(pfu::Inclusive{1u}));
+                                                           utilities::lower_bounded(utilities::Inclusive{1U}));
 }
+
+template <typename InputBlock>
+std::optional<std::string> validate_optional_input_file_name(const InputBlock& aInput)
+{
+    if (aInput.input_file_name && !std::filesystem::exists(aInput.input_file_name->mToken))
+    {
+        return utilities::concatenate(input_parser::block_name<InputBlock>(), ": Could not file input file with name ",
+                                      aInput.input_file_name->mToken);
+    }
+    return std::nullopt;
+}
+
 }  // namespace plato::process_manager::extension::detail
 
 #endif
