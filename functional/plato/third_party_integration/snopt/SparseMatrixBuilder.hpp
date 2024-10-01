@@ -1,6 +1,7 @@
 #ifndef PLATO_THIRD_PARTY_INTEGRATION_SNOPT_SPARSEMATRIXBUILDER
 #define PLATO_THIRD_PARTY_INTEGRATION_SNOPT_SPARSEMATRIXBUILDER
 
+#include <boost/numeric/conversion/cast.hpp>
 #include <tuple>
 #include <type_traits>
 #include <vector>
@@ -72,7 +73,7 @@ void SparseMatrixBuilder<IndexType, EntryType>::appendRow(const Row aRowIndex, c
 {
     for (const auto [tIndex, aRowEntry] : utilities::enumerate(aRow))
     {
-        appendIfNotZero(aRowIndex, Column{tIndex}, aRowEntry);
+        appendIfNotZero(aRowIndex, Column{boost::numeric_cast<IndexType>(tIndex)}, aRowEntry);
     }
 }
 

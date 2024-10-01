@@ -1,7 +1,11 @@
 #ifndef PLATO_PROCESSMANAGER_LIBRARY_PROCESSMANAGERREGISTRATION
 #define PLATO_PROCESSMANAGER_LIBRARY_PROCESSMANAGERREGISTRATION
 
+#include <type_traits>
+#include <variant>
+
 #include "plato/core/FactoryRegistration.hpp"
+#include "plato/core/InputVariantUtilities.hpp"
 #include "plato/core/VariantInputBuilder.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
@@ -42,10 +46,22 @@ using ProcessManagerRegistration = core::FactoryRegistration<StageAndProcessMana
 /// @throw std::bad_variant_access If @a aValidatedInput does not hold alternative @a ProcessManagerRawInputType,
 ///  wrapped with ValidatedInputTypeWrapper.
 template <typename ProcessManagerRawInputType>
-[[nodiscard]] const core::ValidatedInputTypeWrapper<ProcessManagerRawInputType>& process_manager_input(
-    const ValidatedProcessManagerInput& aValidatedInput)
+[[nodiscard]] auto process_manager_input(const ValidatedProcessManagerInput& aValidatedInput)
+    -> const core::ValidatedInputTypeWrapper<ProcessManagerRawInputType>&
 {
-    return std::get<core::ValidatedInputTypeWrapper<ProcessManagerRawInputType>>(aValidatedInput);
+    constexpr bool tIsVariantMember =
+        core::detail::kIsVariantMember<core::ValidatedInputTypeWrapper<ProcessManagerRawInputType>,
+                                       ValidatedProcessManagerInput>;
+
+    static_assert(
+        tIsVariantMember,
+        "\n\nRequested process manager variant missing from available variant types. Did you forget to add a new "
+        "process manager to the BOOST_FUSION_DEFINE_STRUCT?\n\n");
+
+    if constexpr (tIsVariantMember)
+    {
+        return std::get<core::ValidatedInputTypeWrapper<ProcessManagerRawInputType>>(aValidatedInput);
+    }
 }
 }  // namespace plato::process_manager::library
 #endif

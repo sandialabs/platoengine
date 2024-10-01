@@ -23,6 +23,10 @@ constexpr auto kObjectiveValueAddition = double{0.0};
 constexpr auto kNoSpecialBoundsInformation = int{0};
 constexpr auto kDerivativeOptionName = std::string_view{"Derivative option"};
 
+constexpr auto kSuccessfulSpecFileRead = int{101};
+constexpr auto kSuccessfulParameterSet = int{0};
+constexpr auto kMinutesToSeconds = int{60};
+
 struct SNOPTTag
 {
 };
@@ -73,15 +77,17 @@ void evaluation_callback(int * /*Status*/,
     if (*aEvaluateFunctions > 0)
     {
         auto tObjectiveAndConstraintsView = ObjectiveConstraintArrayView<double>{
-            aObjectiveAndConstraintValues, ConstraintSizeType{*aNumberOfObjectivesAndConstraints}};
+            aObjectiveAndConstraintValues,
+            ConstraintSizeType{boost::numeric_cast<unsigned long>(*aNumberOfObjectivesAndConstraints)}};
         evaluateObjective<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintsView);
         evaluateConstraints<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintsView);
     }
     if (*aEvaluateGradients > 0)
     {
         auto tObjectiveAndConstraintGradientsView = ObjectiveConstraintGradientArrayView<double>{
-            aObjectiveAndConstraintGradients, ConstraintSizeType{*aNumberOfObjectivesAndConstraints},
-            DesignVariableSizeType{tNumberOfDesignVariables}};
+            aObjectiveAndConstraintGradients,
+            ConstraintSizeType{boost::numeric_cast<unsigned long>(*aNumberOfObjectivesAndConstraints)},
+            DesignVariableSizeType{boost::numeric_cast<unsigned long>(tNumberOfDesignVariables)}};
         evaluateObjectiveGradient<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintGradientsView);
         evaluateConstraintGradient<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintGradientsView);
     }
@@ -144,13 +150,20 @@ void evaluation_callback(int * /*Status*/,
     };
 }
 
+void shut_down_snopt()
+{
+    DataSingleton<ObjectiveType, SNOPTTag>::instance().reset();
+    DataSingleton<ConstraintVectorType, SNOPTTag>::instance().reset();
+}
+
 }  // namespace
 
 auto run_snopt_problem(const std::vector<double> &aInitialGuess,
                        const SNOPTBounds &aBoundConstraints,
                        ObjectiveType aObjective,
                        ConstraintVectorType aConstraints,
-                       const std::filesystem::path &aLogFilePath) -> std::vector<double>
+                       const std::filesystem::path &aLogFilePath,
+                       const SNOPTOptions &aOptions) -> std::vector<double>
 {
     assert(aInitialGuess.size() == aBoundConstraints.first.size());
     assert(aInitialGuess.size() == aBoundConstraints.second.size());
@@ -182,7 +195,8 @@ auto run_snopt_problem(const std::vector<double> &aInitialGuess,
 
     auto tProblem = snoptProblemA{};
     tProblem.initialize(aLogFilePath.c_str(), kUseSummaryFile);
-    tProblem.setIntParameter(kDerivativeOptionName.data(), kUseDerivatives);
+
+    detail::apply_options(tProblem, aOptions);
     tProblem.solve(
         kColdStart, tSNOPTSizes.mNumberOfObjectivesAndConstraints, tSNOPTSizes.mNumberOfDesignVariablesAsInt,
         kObjectiveValueAddition, kObjectiveRow, evaluation_callback, tLinearConstraintJacobian.rowData().get(),
@@ -197,7 +211,38 @@ auto run_snopt_problem(const std::vector<double> &aInitialGuess,
         tSNOPTSolverDetail.mObjectiveAndConstraintDualVariables.data(), tSNOPTSolverDetail.mNumberOfSuperBasicVariables,
         tSNOPTSolverDetail.mNumberOfInfeasibleConstraints, tSNOPTSolverDetail.mSumOfConstraintViolations);
 
+    shut_down_snopt();
+
     return tSolution;
 }
+
+namespace detail
+{
+
+void apply_options(snoptProblemA &aProblem, const SNOPTOptions &aOptions)
+{
+    [[maybe_unused]] const int tErrorTally = aProblem.setIntParameter(kDerivativeOptionName.data(), kUseDerivatives);
+    assert(tErrorTally == 0);
+
+    if (aOptions.mFilePath)
+    {
+        [[maybe_unused]] const int tReturnCode = aProblem.setSpecsFile(std::string(aOptions.mFilePath.value()).c_str());
+        assert(tReturnCode == kSuccessfulSpecFileRead);
+    }
+    if (aOptions.mTimeLimitInMinutes)
+    {
+        [[maybe_unused]] const int tReturnCode = aProblem.setIntParameter(
+            snopt::kTimeLimitName.data(),
+            boost::numeric_cast<int>(aOptions.mTimeLimitInMinutes.value() * kMinutesToSeconds));
+        assert(tReturnCode == kSuccessfulParameterSet);
+    }
+    if (aOptions.mMajorIterationLimit)
+    {
+        [[maybe_unused]] const int tReturnCode = aProblem.setIntParameter(
+            snopt::kMajorIterationLimitName.data(), boost::numeric_cast<int>(aOptions.mMajorIterationLimit.value()));
+        assert(tReturnCode == kSuccessfulParameterSet);
+    }
+}
+}  // namespace detail
 
 }  // namespace plato::third_party_integration::snopt

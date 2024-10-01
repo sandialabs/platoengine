@@ -24,6 +24,9 @@ TEST(DataSingleton, WrapsIntNoTag)
     tSingleton.data() = tTestValue;
     ASSERT_TRUE(tSingleton.data().has_value());
     EXPECT_EQ(tSingleton.data().value(), tTestValue);
+
+    tSingleton.data().reset();
+    EXPECT_FALSE(tSingleton.data().has_value());
 }
 
 TEST(DataSingleton, TwoTags)

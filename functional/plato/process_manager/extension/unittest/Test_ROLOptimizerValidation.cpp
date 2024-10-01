@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
-#include <filesystem>
-#include <fstream>
 #include <functional>
 
 #include "plato/core/ValidationRegistration.hpp"
@@ -11,35 +9,26 @@
 
 namespace plato::process_manager::extension::unittest
 {
-namespace
-{
-void create_file(const std::filesystem::path& aPath)
-{
-    auto tStream = std::ofstream{aPath};
-    tStream.close();
-}
-}  // namespace
-
-TEST(OptimizerValidation, ValidateMaxIterations)
+TEST(ROLOptimizerValidation, ValidateMaxIterations)
 {
     input_parser::rol_optimization tOptimizationParameters;
-    EXPECT_TRUE(detail::validate_max_iterations(tOptimizationParameters).has_value());
+    EXPECT_TRUE(detail::validate_rol_max_iterations(tOptimizationParameters).has_value());
     tOptimizationParameters.input_file_name = input_parser::FileName{"filler"};
-    EXPECT_FALSE(detail::validate_max_iterations(tOptimizationParameters).has_value());
+    EXPECT_FALSE(detail::validate_rol_max_iterations(tOptimizationParameters).has_value());
 
     tOptimizationParameters.max_iterations = 0;
-    EXPECT_TRUE(detail::validate_max_iterations(tOptimizationParameters).has_value());
+    EXPECT_TRUE(detail::validate_rol_max_iterations(tOptimizationParameters).has_value());
 
     tOptimizationParameters.input_file_name = boost::none;
-    EXPECT_TRUE(detail::validate_max_iterations(tOptimizationParameters).has_value());
+    EXPECT_TRUE(detail::validate_rol_max_iterations(tOptimizationParameters).has_value());
 
     tOptimizationParameters.max_iterations = 1.0;
-    EXPECT_FALSE(detail::validate_max_iterations(tOptimizationParameters).has_value());
+    EXPECT_FALSE(detail::validate_rol_max_iterations(tOptimizationParameters).has_value());
     tOptimizationParameters.max_iterations = 100.0;
-    EXPECT_FALSE(detail::validate_max_iterations(tOptimizationParameters).has_value());
+    EXPECT_FALSE(detail::validate_rol_max_iterations(tOptimizationParameters).has_value());
 }
 
-TEST(OptimizerValidation, ValidateStepTolerance)
+TEST(ROLOptimizerValidation, ValidateStepTolerance)
 {
     input_parser::rol_optimization tOptimizationParameters;
     EXPECT_TRUE(detail::validate_step_tolerance(tOptimizationParameters).has_value());  // Empty
@@ -59,7 +48,7 @@ TEST(OptimizerValidation, ValidateStepTolerance)
     EXPECT_FALSE(detail::validate_step_tolerance(tOptimizationParameters).has_value());
 }
 
-TEST(OptimizerValidation, ValidateGradientTolerance)
+TEST(ROLOptimizerValidation, ValidateGradientTolerance)
 {
     input_parser::rol_optimization tOptimizationParameters;
     EXPECT_TRUE(detail::validate_gradient_tolerance(tOptimizationParameters).has_value());
@@ -78,26 +67,7 @@ TEST(OptimizerValidation, ValidateGradientTolerance)
     EXPECT_FALSE(detail::validate_gradient_tolerance(tOptimizationParameters).has_value());
 }
 
-TEST(OptimizerValidation, ValidateInputFileExists)
-{
-    auto tOptimizationParameters = input_parser::rol_optimization{};
-
-    // File name entry is empty, so no error
-    EXPECT_FALSE(detail::validate_rol_input_file_exists(tOptimizationParameters).has_value());
-
-    // Now add a non-existent file
-    const auto tTestFileName = std::filesystem::path{"rol-fake-inputs.xml"};
-    tOptimizationParameters.input_file_name = input_parser::FileName{tTestFileName.string()};
-    EXPECT_TRUE(detail::validate_rol_input_file_exists(tOptimizationParameters).has_value());
-
-    // Create an empty file, should pass now
-    create_file(tTestFileName);
-    EXPECT_FALSE(detail::validate_rol_input_file_exists(tOptimizationParameters).has_value());
-
-    std::filesystem::remove(tTestFileName);
-}
-
-TEST(OptimizerValidation, ErrorMessagesValidOptimizationParameters)
+TEST(ROLOptimizerValidation, ErrorMessagesValidOptimizationParameters)
 {
     input_parser::rol_optimization tOptimizationParameters =
         plato::test_utilities::create_valid_example_rol_optimization();
@@ -106,7 +76,7 @@ TEST(OptimizerValidation, ErrorMessagesValidOptimizationParameters)
     EXPECT_EQ(tMessages.size(), 0u);
 }
 
-TEST(OptimizerValidation, ErrorMessagesInvalidOptimizationParameters)
+TEST(ROLOptimizerValidation, ErrorMessagesInvalidOptimizationParameters)
 {
     input_parser::rol_optimization tOptimizationParameters =
         plato::test_utilities::create_valid_example_rol_optimization();

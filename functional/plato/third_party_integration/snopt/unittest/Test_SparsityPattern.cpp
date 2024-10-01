@@ -70,7 +70,7 @@ TEST(SparsityPattern, DataPtrs)
     auto tSparsityPattern = TestSparsityPattern{};
     constexpr auto tMatrixSize = 4;
     constexpr auto tColumnOffset = 5;
-    for (const auto tIndex : utilities::IndexRange{tMatrixSize})
+    for (const auto tIndex : utilities::IndexRange<unsigned long>{tMatrixSize})
     {
         tSparsityPattern.append(TestSparsityPattern::Row{tIndex}, TestSparsityPattern::Column{tIndex + tColumnOffset});
     }
