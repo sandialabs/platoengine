@@ -28,7 +28,7 @@ auto partition_constraints(ConstraintVectorType& aConstraints) -> ConstraintVect
 SNOPTConstraints::SNOPTConstraints(ConstraintVectorType&& aConstraints)
     : mConstraints{std::move(aConstraints)}, mLinearConstraintsBeginIterator{partition_constraints(mConstraints)}
 {
-    subtract_affine_offset_from_bounds();
+    subtract_affine_offset_from_bounds(mLinearConstraintsBeginIterator, mConstraints.end());
 }
 
 auto SNOPTConstraints::numberOfLinearConstraints() const -> std::size_t
@@ -64,17 +64,6 @@ auto SNOPTConstraints::constraints() const -> const ConstraintVectorType& { retu
 
 auto SNOPTConstraints::release() && -> ConstraintVectorType { return std::move(mConstraints); }
 
-void SNOPTConstraints::subtract_affine_offset_from_bounds()
-{
-    const auto tZero = CriterionType::FunctionArgument{0.0};
-
-    for (auto tConstraintIterator = mLinearConstraintsBeginIterator; tConstraintIterator != mConstraints.end();
-         ++tConstraintIterator)
-    {
-        tConstraintIterator->mTarget -= tConstraintIterator->mFunction.f(tZero);
-    }
-}
-
 auto constraint_bounds(const SNOPTConstraints& aConstraints) -> SNOPTBounds
 {
     return std::make_pair(make_equality_constraint_vector(aConstraints), make_equality_constraint_vector(aConstraints));
@@ -86,5 +75,15 @@ auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstra
     tLowerBounds.insert(tLowerBounds.begin(), -kSNOPTUnbounded);
     tUpperBounds.insert(tUpperBounds.begin(), kSNOPTUnbounded);
     return std::make_pair(std::move(tLowerBounds), std::move(tUpperBounds));
+}
+
+void subtract_affine_offset_from_bounds(ConstraintVectorType::iterator aBegin, ConstraintVectorType::iterator aEnd)
+{
+    const auto tZero = CriterionType::FunctionArgument{0.0};
+
+    for (auto tConstraintIterator = aBegin; tConstraintIterator != aEnd; ++tConstraintIterator)
+    {
+        tConstraintIterator->mTarget -= tConstraintIterator->mFunction.f(tZero);
+    }
 }
 }  // namespace plato::third_party_integration::snopt

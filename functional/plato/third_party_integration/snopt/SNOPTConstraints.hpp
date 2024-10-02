@@ -31,10 +31,6 @@ class SNOPTConstraints
     [[nodiscard]] auto release() && -> ConstraintVectorType;
 
    private:
-    /// @brief Remove affine term from the constraint bounds to conform to SNOPT's interface
-    /// Example: c(x) = a*x + b, l <= c(x) <= u => l - c(0) <= a*x <= u - c(0)
-    void subtract_affine_offset_from_bounds();
-
     ConstraintVectorType mConstraints;
     ConstraintVectorType::iterator mLinearConstraintsBeginIterator;
 };
@@ -45,6 +41,10 @@ auto constraint_bounds(const SNOPTConstraints& aConstraints) -> SNOPTBounds;
 /// @brief Generates the objective and constraint bounds, with the objective bounds first and the constraints ordered as
 /// they appear in @a aConstraints.
 auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstraints) -> SNOPTBounds;
+
+/// @brief Remove affine term from the constraint bounds to conform to SNOPT's interface
+/// Example: c(x) = a*x + b, l <= c(x) <= u => l - c(0) <= a*x <= u - c(0)
+void subtract_affine_offset_from_bounds(ConstraintVectorType::iterator aBegin, ConstraintVectorType::iterator aEnd);
 
 }  // namespace plato::third_party_integration::snopt
 
