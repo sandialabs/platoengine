@@ -1,6 +1,7 @@
-#include "Interface.hpp"
+#include "plato/third_party_integration/krino/Interface.hpp"
 
-#include "KrinoWrapper.hpp"
+#include "plato/third_party_integration/krino/KrinoWrapper.hpp"
+#include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
 
 namespace plato::third_party_integration::krino
 {

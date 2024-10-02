@@ -1,6 +1,7 @@
 #include <vector>
 #include "Plato_InputData.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
+#include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
 
 using namespace plato::third_party_integration::krino;
 

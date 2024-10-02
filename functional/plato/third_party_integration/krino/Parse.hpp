@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "Enums.hpp"
+#include "plato/third_party_integration/krino/Enums.hpp"
 
 namespace plato::third_party_integration::krino
 {

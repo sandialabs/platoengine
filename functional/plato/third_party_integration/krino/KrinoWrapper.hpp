@@ -7,7 +7,8 @@
 #include <functional>
 #include <stk_mesh/base/MetaData.hpp>
 
-#include "Utilities.hpp"
+#include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace plato::third_party_integration::krino
 {

@@ -1,4 +1,4 @@
-#include "KrinoWrapper.hpp"
+#include "plato/third_party_integration/krino/KrinoWrapper.hpp"
 
 #include <Akri_AnalyticSurf.hpp>
 #include <Akri_AuxMetaData.hpp>
@@ -65,7 +65,6 @@ void KrinoWrapper::setLevelsetValues(const std::vector<double> &aValuesIn)
     stk::mesh::EntityVector tNodes = getNodeEntitiesInMesh();
     if (aValuesIn.size() != tNodes.size())
     {
-        std::cout << "ERROR: Size mismatch when setting levelset values!" << std::endl;
         throw std::runtime_error("ERROR: Size mismatch when setting levelset values!");
     }
     for (size_t i = 0; i < tNodes.size(); ++i)

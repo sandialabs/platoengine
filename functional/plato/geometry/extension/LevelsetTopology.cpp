@@ -9,6 +9,7 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/third_party_integration/krino/Interface.hpp"
+#include "plato/third_party_integration/krino/SphereBuilder.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -63,10 +64,8 @@ void initialize_krino()
         [](const input_parser::levelset_topology& aInput) { return detail::validate_output_mesh_name(aInput); },
         [](const input_parser::levelset_topology& aInput) { return detail::validate_lower_bound(aInput); },
         [](const input_parser::levelset_topology& aInput) { return detail::validate_upper_bound(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_sphere_pattern_num_in_x(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_sphere_pattern_num_in_y(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_sphere_pattern_num_in_z(aInput); },
         [](const input_parser::levelset_topology& aInput) { return detail::validate_sphere_pattern_radius(aInput); },
+        [](const input_parser::levelset_topology& aInput) { return detail::validate_sphere_pattern_spacing(aInput); },
         [](const input_parser::levelset_topology& aInput) { return detail::validate_sphere_pattern_bbox(aInput); }};
 }  // namespace
 
@@ -78,14 +77,12 @@ LevelsetTopology::LevelsetTopology(const input_parser::levelset_topology& aInput
       mLevelsetLowerBound(aInput.levelset_lower_bound.value()),
       mLevelsetUpperBound(aInput.levelset_upper_bound.value()),
       mNumDesignParameters(mesh::EntityCounts{mesh::Mesh{mBackgroundMesh}}.numberOfNodes()),
-      mSpherePattern({aInput.sphere_pattern_overlap_bbox.value(),
-                      {aInput.sphere_pattern_bbox_min_x.value(), aInput.sphere_pattern_bbox_min_y.value(),
+      mSpherePattern({{aInput.sphere_pattern_bbox_min_x.value(), aInput.sphere_pattern_bbox_min_y.value(),
                        aInput.sphere_pattern_bbox_min_z.value()},
                       {aInput.sphere_pattern_bbox_max_x.value(), aInput.sphere_pattern_bbox_max_y.value(),
                        aInput.sphere_pattern_bbox_max_z.value()},
-                      {aInput.sphere_pattern_num_x.value(), aInput.sphere_pattern_num_y.value(),
-                       aInput.sphere_pattern_num_z.value()},
-                      aInput.sphere_pattern_radius.value()})
+                      aInput.sphere_pattern_radius.value(),
+                      aInput.sphere_pattern_spacing.value()})
 {
     generateLevelsetInitializationPrimitives();
 }
@@ -217,25 +214,11 @@ std::optional<std::string> validate_upper_bound(const input_parser::levelset_top
                                                            utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
-std::optional<std::string> validate_sphere_pattern_num_in_x(const input_parser::levelset_topology& aInput)
+std::optional<std::string> validate_sphere_pattern_spacing(const input_parser::levelset_topology& aInput)
 {
     return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
-                                                           aInput.sphere_pattern_num_x, "sphere_pattern_num_x",
-                                                           utilities::lower_bounded(utilities::Exclusive{0}));
-}
-
-std::optional<std::string> validate_sphere_pattern_num_in_y(const input_parser::levelset_topology& aInput)
-{
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
-                                                           aInput.sphere_pattern_num_y, "sphere_pattern_num_y",
-                                                           utilities::lower_bounded(utilities::Exclusive{0}));
-}
-
-std::optional<std::string> validate_sphere_pattern_num_in_z(const input_parser::levelset_topology& aInput)
-{
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
-                                                           aInput.sphere_pattern_num_z, "sphere_pattern_num_z",
-                                                           utilities::lower_bounded(utilities::Exclusive{0}));
+                                                           aInput.sphere_pattern_spacing, "sphere_pattern_spacing",
+                                                           utilities::lower_bounded(utilities::Exclusive{1e-5}));
 }
 
 std::optional<std::string> validate_sphere_pattern_radius(const input_parser::levelset_topology& aInput)

@@ -60,10 +60,7 @@ input_parser::levelset_topology create_valid_levelset_topology_geometry()
                                            /*.sphere_pattern_bbox_max_y = */ 1.0,
                                            /*.sphere_pattern_bbox_max_z = */ 1.0,
                                            /*.sphere_pattern_radius = */ 0.25,
-                                           /*.sphere_pattern_num_x = */ 1,
-                                           /*.sphere_pattern_num_y = */ 1,
-                                           /*.sphere_pattern_num_z = */ 1,
-                                           /*.sphere_pattern_overlap_bbox = */ false,
+                                           /*.sphere_pattern_spacing = */ 100.0,
                                            /*.levelset_lower_bound = */ -1.0,
                                            /*.levelset_upper_bound = */ 1.0};
 }

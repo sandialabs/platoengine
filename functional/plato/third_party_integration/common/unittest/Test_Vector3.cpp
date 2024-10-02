@@ -63,6 +63,56 @@ TEST(Vector3, CoordinateScalarDivision)
     test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Vector3 scalar division"));
 }
 
+TEST(Vector3, CoordinateScalarAddition)
+{
+    constexpr Coordinate p1{10, 20, 30};
+    constexpr double tScalar{10};
+    constexpr Coordinate tResult = p1 + tScalar;
+    constexpr Coordinate tGold{20, 30, 40};
+
+    test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Vector3 scalar addition"));
+}
+
+TEST(Vector3, CoordinateCoordinateDivision)
+{
+    constexpr Coordinate p1{10, 20, 30};
+    constexpr Coordinate tDivisor{2.0, 4.0, 10.0};
+    constexpr Coordinate tResult = p1 / tDivisor;
+    constexpr Coordinate tGold{5.0, 5.0, 3.0};
+
+    test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Coordinate coordinate division"));
+}
+
+TEST(Vector3, ScalarCoordinateDivision)
+{
+    constexpr double scalar{10};
+    constexpr Coordinate tDivisor{2.0, 5.0, 1.0};
+    constexpr Coordinate tResult = scalar / tDivisor;
+    constexpr Coordinate tGold{5.0, 2.0, 10.0};
+
+    test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Scalar coordinate division"));
+}
+
+TEST(Vector3, CoordinateCoordinateMultiply)
+{
+    constexpr Coordinate p1{10, 20, 30};
+    constexpr Coordinate tMultiplier{2.0, 4.0, 10.0};
+    constexpr Coordinate tResult = p1 * tMultiplier;
+    constexpr Coordinate tGold{20.0, 80.0, 300.0};
+
+    test_utilities::test_double_equality_of_components(tResult, tGold,
+                                                       TEST_CONTEXT("Coordinate coordinate multiplication"));
+}
+
+TEST(Vector3, CoordinateFloor)
+{
+    constexpr Coordinate tInput{2.2, 5.7, 1.3};
+    const Coordinate tResult = floor(tInput);
+    constexpr Coordinate tGold{2.0, 5.0, 1.0};
+
+    test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Coordinate floor"));
+}
+
 TEST(Vector3, Dot)
 {
     {

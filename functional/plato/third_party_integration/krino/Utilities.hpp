@@ -9,10 +9,6 @@
 #include <utility>
 #include <vector>
 
-#include "plato/third_party_integration/common/Vector3.hpp"
-
-using namespace plato::third_party_integration::common;
-
 namespace plato::third_party_integration::krino
 {
 
@@ -24,78 +20,14 @@ enum struct DFDXFormatting
     OneToN
 };
 
-enum Dimension
-{
-    X = 0,
-    Y,
-    Z
-};
-
 struct InterfaceNodeDXDP
 {
     std::vector<stk::mesh::EntityId> mParentNodeIds;
     std::vector<stk::math::Vector3d> mParentDXDP;
 };
 
-struct SphereLocatorData
-{
-    std::vector<std::pair<double, double>> mStartAndSpacing;
-    SphereLocatorData(const int &aSize, const double &aInitialValue)
-        : mStartAndSpacing(aSize, std::pair(aInitialValue, aInitialValue))
-    {
-    }
-};
-
-struct SpherePatternData
-{
-    bool mSpheresCanOverlapBoundingBox = false;
-    std::vector<double> mBoundingBoxMinXYZ;
-    std::vector<double> mBoundingBoxMaxXYZ;
-    std::vector<int> mNumSpheres;
-    double mSphereRadius = 0.0;
-};
-
-struct Plane
-{
-    Vector3 mNormal{0.0, 0.0, 0.0};
-    double mOffset = 0.0;
-};
-
-struct Sphere
-{
-    Coordinate mCenter{0.0, 0.0, 0.0};
-    double mRadius = 0.0;
-};
-
-struct LevelsetPrimitives
-{
-    std::vector<Plane> mPlanes;
-    std::vector<Sphere> mSpheres;
-};
-
 /// @brief Initialization needed for krino to run correctly.
 void initialize_environment_for_krino(const MPI_Comm &aComm);
-
-/// @brief Given sphere pattern input, @a aData, generate sphere primitives to be used to initialize a krino levelset.
-[[nodiscard]] auto generate_spheres(const SpherePatternData &aData) -> std::vector<Sphere>;
-
-/// @brief Given sphere pattern input, @a aData, calculate the pattern start coordinates in x, y, and z, and their
-/// spacing in x, y, and z.
-[[nodiscard]] auto calculate_sphere_starts_and_spacing(const SpherePatternData &aData) -> SphereLocatorData;
-
-/// @brief Validate sphere pattern data @a aData.
-[[nodiscard]] auto calculate_overlapping_single_sphere_locator_data(const SpherePatternData &aPatternData,
-                                                                    const size_t &aDimension)
-    -> std::pair<double, double>;
-
-/// @brief Validate sphere pattern data @a aData.
-[[nodiscard]] auto calculate_overlapping_many_sphere_locator_data(const SpherePatternData &aPatternData,
-                                                                  const size_t &aDimension)
-    -> std::pair<double, double>;
-
-/// @brief Validate sphere pattern data @a aData.
-[[nodiscard]] auto calculate_non_overlapping_sphere_locator_data(const SpherePatternData &aPatternData,
-                                                                 const size_t &aDimension) -> std::pair<double, double>;
 
 /// @brief Given DFDX values on the computational mesh, @a aDFDX, the computational mesh local-to-global node id map, @a
 /// aCutMeshGlobalNodeIDMap, and the type of formatting for DFDX, @a aDFDXFormatting, generate and return a map from

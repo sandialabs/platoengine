@@ -1,5 +1,6 @@
 #include "PlatoKrinoAppUtils.hpp"
 #include "Plato_Parser.hpp"
+#include "plato/third_party_integration/krino/SphereBuilder.hpp"
 
 namespace apps::krino_app
 {
@@ -92,17 +93,10 @@ SpherePatternData readSpherePatternData(const Plato::InputData &aNode)
         getOrThrow<double>(aNode, "bbox_xmax", "ERROR: Levelset definition bounding box xmax was not specified."),
         getOrThrow<double>(aNode, "bbox_ymax", "ERROR: Levelset definition bounding box ymax was not specified."),
         getOrThrow<double>(aNode, "bbox_zmax", "ERROR: Levelset definition bounding box zmax was not specified.")};
-    tData.mNumSpheres = {
-        getOrThrow<int>(aNode, "num_spheres_x",
-                        "ERROR: Levelset definition number of spheres in the x direction was not specified."),
-        getOrThrow<int>(aNode, "num_spheres_y",
-                        "ERROR: Levelset definition number of spheres in the y direction was not specified."),
-        getOrThrow<int>(aNode, "num_spheres_z",
-                        "ERROR: Levelset definition number of spheres in the z direction was not specified.")};
+    tData.mSphereSpacing = getOrThrow<int>(aNode, "sphere_spacing",
+                        "ERROR: Levelset definition sphere spacing was not specified.");
     tData.mSphereRadius =
         getOrThrow<double>(aNode, "radius", "ERROR: Levelset definition sphere radius was not specified.");
-    tData.mSpheresCanOverlapBoundingBox =
-        getOrThrow<bool>(aNode, "overlap_bbox", "ERROR: Levelset definition overlap param not specified.");
     return tData;
 }
 

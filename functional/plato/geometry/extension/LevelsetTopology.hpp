@@ -8,6 +8,7 @@
 #include "plato/core/Function.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace plato::input_parser
@@ -72,13 +73,8 @@ namespace detail
 [[nodiscard]] std::optional<std::string> validate_lower_bound(const input_parser::levelset_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_upper_bound(const input_parser::levelset_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::levelset_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_sphere_pattern_num_in_x(
-    const input_parser::levelset_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_sphere_pattern_num_in_y(
-    const input_parser::levelset_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_sphere_pattern_num_in_z(
-    const input_parser::levelset_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_sphere_pattern_radius(const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_sphere_pattern_spacing(const input_parser::levelset_topology& aInput);
 
 }  // namespace detail
 
