@@ -1,19 +1,19 @@
 #include "PlatoKrinoApp.hpp"
-#include "plato/third_party_integration/krino/Parse.hpp"
+#include "PlatoKrinoAppUtils.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
 
 using namespace Plato;
 
-int runStandAlone(int aArgc, char *aArgv[], const CommandLineOptions &aOptions);
-int runMPMD(int aArgc, char *aArgv[], const CommandLineOptions &aOptions);
+int runStandAlone(int aArgc, char *aArgv[], const apps::krino_app::CommandLineOptions &aOptions);
+int runMPMD(int aArgc, char *aArgv[], const apps::krino_app::CommandLineOptions &aOptions);
 
 /**********************************************************************/
 int main(int aArgc, char *aArgv[])
 /**********************************************************************/
 {
-    CommandLineOptions tCommandLineOptions;
-    bool tStatus = parse_command_line_options(aArgc, aArgv, tCommandLineOptions);
+    apps::krino_app::CommandLineOptions tCommandLineOptions;
+    bool tStatus = apps::krino_app::parse_command_line_options(aArgc, aArgv, tCommandLineOptions);
 
     if(!tStatus || tCommandLineOptions.mBackgroundMeshName == "" || tCommandLineOptions.mCutMeshName == "")
     {
@@ -33,7 +33,7 @@ int main(int aArgc, char *aArgv[])
     }
 }
 
-int runStandAlone(int aArgc, char *aArgv[], const CommandLineOptions &aOptions)
+int runStandAlone(int aArgc, char *aArgv[], const apps::krino_app::CommandLineOptions &aOptions)
 {
     MPI_Init(&aArgc, &aArgv);
 
@@ -48,7 +48,7 @@ int runStandAlone(int aArgc, char *aArgv[], const CommandLineOptions &aOptions)
     return 0;
 }
 
-int runMPMD(int aArgc, char *aArgv[], const CommandLineOptions &aOptions)
+int runMPMD(int aArgc, char *aArgv[], const apps::krino_app::CommandLineOptions &aOptions)
 {
     MPI_Init(&aArgc, &aArgv);
     Interface tPlatoInterface;

@@ -12,7 +12,8 @@
 
 #include "plato/third_party_integration/krino/Enums.hpp"
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
-#include "plato/third_party_integration/krino/Parse.hpp"
+
+#include "PlatoKrinoAppUtils.hpp"
 
 #pragma once
 
@@ -26,7 +27,7 @@ class PlatoKrinoApp : public Plato::Application
 /**********************************************************************/
 {
    public:
-    explicit PlatoKrinoApp(Plato::Interface *aInterface, const CommandLineOptions &aOptions);
+    explicit PlatoKrinoApp(Plato::Interface *aInterface, const apps::krino_app::CommandLineOptions &aOptions);
     void finalize() override;
     void initialize() override;
     void compute(const std::string &aName) override;

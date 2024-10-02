@@ -1,7 +1,6 @@
 #include <numeric>
 
 #include "PlatoKrinoApp.hpp"
-#include "PlatoKrinoAppUtils.hpp"
 
 #include <Kokkos_Core.hpp>
 #include <Plato_Parser.hpp>
@@ -13,14 +12,13 @@
 #include <stk_util/environment/EnvData.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 
-#include "plato/third_party_integration/krino/Parse.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace Plato
 {
 
 /******************************************************************************/
-PlatoKrinoApp::PlatoKrinoApp(Plato::Interface* aInterface, const CommandLineOptions& aOptions)
+PlatoKrinoApp::PlatoKrinoApp(Plato::Interface* aInterface, const apps::krino_app::CommandLineOptions& aOptions)
     : /******************************************************************************/
       mInterface(aInterface),
       mBGMeshFilename(aOptions.mBackgroundMeshName),
