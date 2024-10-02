@@ -31,8 +31,12 @@ class SNOPTConstraints
     [[nodiscard]] auto release() && -> ConstraintVectorType;
 
    private:
+    /// @brief Remove affine term from the constraint bounds to conform to SNOPT's interface
+    /// Example: c(x) = a*x + b, l <= c(x) <= u => l - c(0) <= a*x <= u - c(0)
+    void subtract_affine_offset_from_bounds();
+
     ConstraintVectorType mConstraints;
-    ConstraintVectorType::const_iterator mLinearConstraintsBeginIterator;
+    ConstraintVectorType::iterator mLinearConstraintsBeginIterator;
 };
 
 /// @brief Generates the constraint bounds, in the order of the constraints in @a aConstraints.

@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "SNOPTTypes.hpp"
+
 namespace plato::third_party_integration::snopt
 {
 namespace
@@ -26,16 +28,17 @@ auto partition_constraints(ConstraintVectorType& aConstraints) -> ConstraintVect
 SNOPTConstraints::SNOPTConstraints(ConstraintVectorType&& aConstraints)
     : mConstraints{std::move(aConstraints)}, mLinearConstraintsBeginIterator{partition_constraints(mConstraints)}
 {
+    subtract_affine_offset_from_bounds();
 }
 
 auto SNOPTConstraints::numberOfLinearConstraints() const -> std::size_t
 {
-    return std::distance(mLinearConstraintsBeginIterator, mConstraints.end());
+    return std::distance<ConstraintVectorType::const_iterator>(mLinearConstraintsBeginIterator, mConstraints.end());
 }
 
 auto SNOPTConstraints::numberOfNonlinearConstraints() const -> std::size_t
 {
-    return std::distance(mConstraints.begin(), mLinearConstraintsBeginIterator);
+    return std::distance<ConstraintVectorType::const_iterator>(mConstraints.begin(), mLinearConstraintsBeginIterator);
 }
 auto SNOPTConstraints::linearConstraintsBegin() const -> ConstraintVectorType::const_iterator
 {
@@ -60,6 +63,17 @@ auto SNOPTConstraints::nonlinearConstraintsEnd() const -> ConstraintVectorType::
 auto SNOPTConstraints::constraints() const -> const ConstraintVectorType& { return mConstraints; }
 
 auto SNOPTConstraints::release() && -> ConstraintVectorType { return std::move(mConstraints); }
+
+void SNOPTConstraints::subtract_affine_offset_from_bounds()
+{
+    const auto tZero = CriterionType::FunctionArgument{0.0};
+
+    for (auto tConstraintIterator = mLinearConstraintsBeginIterator; tConstraintIterator != mConstraints.end();
+         ++tConstraintIterator)
+    {
+        tConstraintIterator->mTarget -= tConstraintIterator->mFunction.f(tZero);
+    }
+}
 
 auto constraint_bounds(const SNOPTConstraints& aConstraints) -> SNOPTBounds
 {

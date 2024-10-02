@@ -117,7 +117,7 @@ TEST(SNOPTInterface, RosenbrockAffineLinearlyConstrained)
     check_snopt_problem_solution(
         kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(test_utilities::Rosenbrock{}),
         ConstraintVectorType{{affine_linear_constraint_function(), kConstraintTarget, Linearity::kLinear}}, kExpected,
-        TEST_CONTEXT("Linearly constrained"));
+        TEST_CONTEXT("Affine-linearly constrained"));
     std::filesystem::remove(kLogFilePath);
 }
 
