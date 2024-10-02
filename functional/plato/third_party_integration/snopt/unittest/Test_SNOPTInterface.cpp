@@ -42,6 +42,15 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
                                });
 }
 
+[[nodiscard]] auto affine_linear_constraint_function()
+{
+    return core::make_function([](const linear_algebra::DynamicVector<double>& aX)
+                               { return 2.0 * aX[0] - aX[1] - 1.0; },
+                               [](const linear_algebra::DynamicVector<double>&) {
+                                   return linear_algebra::DynamicVector<double>{2.0, -1.0};
+                               });
+}
+
 [[nodiscard]] auto nonlinear_constraint_function()
 {
     return core::make_function([](const linear_algebra::DynamicVector<double>& aX) { return aX[1] - aX[0] * aX[0]; },
@@ -99,6 +108,15 @@ TEST(SNOPTInterface, RosenbrockLinearlyConstrained)
     check_snopt_problem_solution(
         kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(test_utilities::Rosenbrock{}),
         ConstraintVectorType{{linear_constraint_function(), kConstraintTarget, Linearity::kLinear}}, kExpected,
+        TEST_CONTEXT("Linearly constrained"));
+    std::filesystem::remove(kLogFilePath);
+}
+
+TEST(SNOPTInterface, RosenbrockAffineLinearlyConstrained)
+{
+    check_snopt_problem_solution(
+        kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(test_utilities::Rosenbrock{}),
+        ConstraintVectorType{{affine_linear_constraint_function(), kConstraintTarget, Linearity::kLinear}}, kExpected,
         TEST_CONTEXT("Linearly constrained"));
     std::filesystem::remove(kLogFilePath);
 }
