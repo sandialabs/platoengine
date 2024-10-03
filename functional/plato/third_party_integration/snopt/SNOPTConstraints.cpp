@@ -80,10 +80,11 @@ auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstra
 void subtract_affine_offset_from_bounds(ConstraintVectorType::iterator aBegin, ConstraintVectorType::iterator aEnd)
 {
     const auto tZero = CriterionType::FunctionArgument{0.0};
-
-    for (auto tConstraintIterator = aBegin; tConstraintIterator != aEnd; ++tConstraintIterator)
-    {
-        tConstraintIterator->mTarget -= tConstraintIterator->mFunction.f(tZero);
-    }
+    std::transform(aBegin, aEnd, aBegin,
+                   [&tZero](auto& tConstraint)
+                   {
+                       tConstraint.mTarget -= tConstraint.mFunction.f(tZero);
+                       return tConstraint;
+                   });
 }
 }  // namespace plato::third_party_integration::snopt
