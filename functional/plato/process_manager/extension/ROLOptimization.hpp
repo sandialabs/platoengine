@@ -36,10 +36,10 @@ class ROLOptimization
 
 namespace detail
 {
-[[nodiscard]] std::optional<std::string> validate_max_iterations(const input_parser::rol_optimization& aInput);
+[[nodiscard]] std::optional<std::string> validate_rol_max_iterations(const input_parser::rol_optimization& aInput);
 [[nodiscard]] std::optional<std::string> validate_step_tolerance(const input_parser::rol_optimization& aInput);
 [[nodiscard]] std::optional<std::string> validate_gradient_tolerance(const input_parser::rol_optimization& aInput);
-[[nodiscard]] std::optional<std::string> validate_rol_input_file_exists(const input_parser::rol_optimization& aInput);
+
 }  // namespace detail
 
 }  // namespace plato::process_manager::extension

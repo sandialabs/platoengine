@@ -12,6 +12,7 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
 #include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/utilities/BoostOptionalToStdOptional.hpp"
 
 namespace plato::filter::extension
 {
@@ -19,24 +20,12 @@ namespace
 {
 const auto kHelmholtzFilterLibName = std::filesystem::path{"libAnalyzeFunctionalInterface.so"};
 
-template <typename T>
-std::optional<T> to_std_optional(const boost::optional<T>& aT)
-{
-    if (aT)
-    {
-        return aT.value();
-    }
-    else
-    {
-        return std::nullopt;
-    }
-}
-
 library::FilterParameters to_filter_parameters(const input_parser::helmholtz_filter& aInput,
                                                const std::filesystem::path& aMeshFileName)
 {
-    return library::FilterParameters{/*.mFilterRadius=*/detail::get_filter_radius(aInput, aMeshFileName),
-                                     /*.mBoundaryStickingPenalty=*/to_std_optional(aInput.boundary_sticking_penalty)};
+    return library::FilterParameters{
+        /*.mFilterRadius=*/detail::get_filter_radius(aInput, aMeshFileName),
+        /*.mBoundaryStickingPenalty=*/utilities::to_std_optional(aInput.boundary_sticking_penalty)};
 }
 
 [[maybe_unused]] static auto kHelmholtzFilterRegistration = library::FilterRegistration{

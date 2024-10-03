@@ -11,6 +11,16 @@ auto partition_constraints(ConstraintVectorType& aConstraints) -> ConstraintVect
     return std::partition(aConstraints.begin(), aConstraints.end(),
                           [](const auto& aConstraint) { return aConstraint.mLinearity == Linearity::kNonlinear; });
 }
+
+[[nodiscard]] auto make_equality_constraint_vector(const SNOPTConstraints& aConstraints) -> std::vector<double>
+{
+    auto tTargets = std::vector<double>();
+    tTargets.reserve(aConstraints.constraints().size());
+    std::transform(aConstraints.constraints().begin(), aConstraints.constraints().end(), std::back_inserter(tTargets),
+                   [](const auto& tConstraint) { return tConstraint.mTarget; });
+    return tTargets;
+}
+
 }  // namespace
 
 SNOPTConstraints::SNOPTConstraints(ConstraintVectorType&& aConstraints)
@@ -53,16 +63,7 @@ auto SNOPTConstraints::release() && -> ConstraintVectorType { return std::move(m
 
 auto constraint_bounds(const SNOPTConstraints& aConstraints) -> SNOPTBounds
 {
-    const auto tConstraintTargets = [](const SNOPTConstraints& aConstraints)
-    {
-        auto tTargets = std::vector<double>();
-        tTargets.reserve(aConstraints.constraints().size());
-        std::transform(aConstraints.constraints().begin(), aConstraints.constraints().end(),
-                       std::back_inserter(tTargets), [](const auto& tConstraint) { return tConstraint.mTarget; });
-        return tTargets;
-    };
-
-    return std::make_pair(tConstraintTargets(aConstraints), tConstraintTargets(aConstraints));
+    return std::make_pair(make_equality_constraint_vector(aConstraints), make_equality_constraint_vector(aConstraints));
 }
 
 auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstraints) -> SNOPTBounds

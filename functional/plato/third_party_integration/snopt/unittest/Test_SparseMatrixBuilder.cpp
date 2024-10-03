@@ -76,7 +76,7 @@ TEST(SparseMatrixBuilder, DataPtrs)
     constexpr auto tMatrixSize = 4;
     constexpr auto tColumnOffset = 5;
     constexpr auto tEntryMultiplier = -2.0;
-    for (const auto tIndex : utilities::IndexRange{tMatrixSize})
+    for (const auto tIndex : utilities::IndexRange<unsigned long>{tMatrixSize})
     {
         const auto tEntry = tIndex % 2 == 0 ? 0.0 : static_cast<double>(tIndex);
         tSparseMatrixBuilder.appendIfNotZero(SparseMatrix::Row{tIndex}, SparseMatrix::Column{tIndex + tColumnOffset},

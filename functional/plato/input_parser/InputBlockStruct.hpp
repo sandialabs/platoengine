@@ -98,14 +98,14 @@ struct TYPE_TRAIT_STRUCT<STRUCT_NAME>                                           
 };                                                                                                \
 }
 
-#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                            \
-PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsGeometryInput, ATTRIBUTES) \
+#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                 \
+PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsGeometryInput, ATTRIBUTES)           \
 
-#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                           \
-PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsProcessManagerInput, ATTRIBUTES) \
+#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)          \
+PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsProcessManagerInput, ATTRIBUTES)     \
 
-#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                            \
-PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ATTRIBUTES) \
+#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                   \
+PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ATTRIBUTES)             \
 
 /// Macro for generating an adapted struct that can be used for input parsing. The format
 /// is the same as BOOST_FUSION_DEFINE_STRUCT and the resulting struct has all the same

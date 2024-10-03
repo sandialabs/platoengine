@@ -41,6 +41,13 @@ using FilterCrossReference = plato::input_parser::CrossReference<plato::input_pa
 ///  defined with DEFINE_ENUM_SYMBOL_TABLE.
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), snopt_optimization,
+    (plato::input_parser::FileName, input_file_name)
+    (unsigned int, max_iterations)
+    (unsigned int, time_limit_in_minutes)
+)
+
+PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), rol_optimization,
     (plato::input_parser::FileName, input_file_name)
     (unsigned int, max_iterations)
@@ -150,6 +157,12 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 /// To add new blocks, use PLATO_INPUT_BLOCK_STRUCT or PLATO_NAMED_INPUT_BLOCK_STRUCT
 /// macros. The `NAMED` version is for blocks that can have multiple instantiations
 /// identified with a name. Those must be added here wrapped in `std::vector`.
+///
+/// @note This macro is what defines the variants for different input block types
+/// (e.g. process_managers, geometry representations, filters, etc.). 
+/// If you get:
+/// "Requested process manager variant missing from available variant types."
+/// you most likely forgot to add the new input block to this list.
 BOOST_FUSION_DEFINE_STRUCT(
     (plato)(input_parser), ParsedInput,
     (std::vector<plato::input_parser::objective>, mObjectives)
@@ -160,6 +173,7 @@ BOOST_FUSION_DEFINE_STRUCT(
     (boost::optional<plato::input_parser::identity_filter>, mIdentityFilter)
     (boost::optional<plato::input_parser::helmholtz_filter>, mHelmholtzFilter)
     (boost::optional<plato::input_parser::kernel_filter>, mKernelFilter)
+    (boost::optional<plato::input_parser::snopt_optimization>, mSNOPTOptimization)
     (boost::optional<plato::input_parser::rol_optimization>, mROLOptimization)
     (boost::optional<plato::input_parser::gradient_check>, mGradientCheck)
     (boost::optional<plato::input_parser::constraint_check>, mConstraintCheck)
