@@ -42,6 +42,11 @@ auto constraint_bounds(const SNOPTConstraints& aConstraints) -> SNOPTBounds;
 /// they appear in @a aConstraints.
 auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstraints) -> SNOPTBounds;
 
+/// @brief Remove affine term from the constraint bounds to conform to SNOPT's interface
+/// Example: \f$c(x) = ax + b, l \leq c(x) \leq u \rightarrow l - c(0) \leq a*x \leq u - c(0)\f$
+auto constraints_with_affine_offset_removed(ConstraintVectorType&& aConstraints,
+                                            const std::size_t aNumberOfDesignVariables) -> ConstraintVectorType;
+
 }  // namespace plato::third_party_integration::snopt
 
 #endif

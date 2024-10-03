@@ -23,22 +23,6 @@ auto partition_constraints(ConstraintVectorType& aConstraints) -> ConstraintVect
     return tTargets;
 }
 
-/// @brief Remove affine term from the constraint bounds to conform to SNOPT's interface
-/// Example: \f$c(x) = ax + b, l \leq c(x) \leq u \rightarrow l - c(0) \leq a*x \leq u - c(0)\f$
-auto constraints_with_affine_offset_removed(ConstraintVectorType&& aConstraints,
-                                            const std::size_t aNumberOfDesignVariables)
-{
-    const auto tZero = ConstraintFunctionArgument(aNumberOfDesignVariables, 0.0);
-    for (auto& tConstraint : aConstraints)
-    {
-        if (tConstraint.mLinearity == Linearity::kLinear)
-        {
-            tConstraint.mTarget -= tConstraint.mFunction.f(tZero);
-        }
-    }
-    return std::move(aConstraints);
-}
-
 }  // namespace
 
 SNOPTConstraints::SNOPTConstraints(ConstraintVectorType&& aConstraints, const std::size_t aNumberOfDesignVariables)
@@ -91,5 +75,19 @@ auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstra
     tLowerBounds.insert(tLowerBounds.begin(), -kSNOPTUnbounded);
     tUpperBounds.insert(tUpperBounds.begin(), kSNOPTUnbounded);
     return std::make_pair(std::move(tLowerBounds), std::move(tUpperBounds));
+}
+
+auto constraints_with_affine_offset_removed(ConstraintVectorType&& aConstraints,
+                                            const std::size_t aNumberOfDesignVariables) -> ConstraintVectorType
+{
+    const auto tZero = ConstraintFunctionArgument(aNumberOfDesignVariables, 0.0);
+    for (auto& tConstraint : aConstraints)
+    {
+        if (tConstraint.mLinearity == Linearity::kLinear)
+        {
+            tConstraint.mTarget -= tConstraint.mFunction.f(tZero);
+        }
+    }
+    return std::move(aConstraints);
 }
 }  // namespace plato::third_party_integration::snopt

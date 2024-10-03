@@ -23,7 +23,8 @@ const auto kArbitraryTestFunction =
     plato::core::make_function([](const linear_algebra::DynamicVector<double>&) { return 1.0; },
                                [](const linear_algebra::DynamicVector<double>& aX) { return aX; });
 constexpr auto kLinearConstraintTarget = 0.0;
-constexpr auto kNonlinearConstraintTarget = 1.0;
+constexpr auto kAffineLinearConstraintTarget = 1.0;
+constexpr auto kNonlinearConstraintTarget = 2.0;
 
 const auto kLinearConstraint = ConstraintType{kLinearTestFunction, kLinearConstraintTarget, Linearity::kLinear};
 const auto kAffineLinearConstraint =
@@ -52,6 +53,18 @@ TEST(Constraints, ConstructionPartitioning)
     EXPECT_EQ(tConstraints.at(2).mLinearity, Linearity::kLinear);
     EXPECT_EQ(tConstraints.at(3).mLinearity, Linearity::kLinear);
     EXPECT_EQ(tConstraints.at(4).mLinearity, Linearity::kLinear);
+}
+
+TEST(Constraints, RemoveAffineOffset)
+{
+    auto tConstraints =
+        constraints_with_affine_offset_removed(ConstraintVectorType{kConstraints}, kNumberofDesignVariables);
+
+    EXPECT_EQ(tConstraints.at(0).mTarget, kLinearConstraintTarget);
+    EXPECT_EQ(tConstraints.at(1).mTarget, kNonlinearConstraintTarget);
+    EXPECT_EQ(tConstraints.at(2).mTarget, kAffineLinearConstraintTarget);
+    EXPECT_EQ(tConstraints.at(3).mTarget, kNonlinearConstraintTarget);
+    EXPECT_EQ(tConstraints.at(4).mTarget, kLinearConstraintTarget);
 }
 
 TEST(Constraints, NumberOfConstraints)
