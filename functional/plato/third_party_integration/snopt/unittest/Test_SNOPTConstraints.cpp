@@ -9,17 +9,30 @@ namespace plato::third_party_integration::snopt::unittest
 {
 namespace
 {
-const auto kTestFunction =
+const auto kLinearTestFunction =
+    plato::core::make_function([](const linear_algebra::DynamicVector<double>& aX) { return 2.0 * aX[0] - aX[1]; },
+                               [](const linear_algebra::DynamicVector<double>&) {
+                                   return linear_algebra::DynamicVector<double>{1.0, -1.0};
+                               });
+const auto kAffineLinearTestFunction = plato::core::make_function(
+    [](const linear_algebra::DynamicVector<double>& aX) { return 2.0 * aX[0] - aX[1] - 1.0; },
+    [](const linear_algebra::DynamicVector<double>&) {
+        return linear_algebra::DynamicVector<double>{2.0, -1.0};
+    });
+const auto kArbitraryTestFunction =
     plato::core::make_function([](const linear_algebra::DynamicVector<double>&) { return 1.0; },
                                [](const linear_algebra::DynamicVector<double>& aX) { return aX; });
 constexpr auto kLinearConstraintTarget = 0.0;
 constexpr auto kNonlinearConstraintTarget = 1.0;
 
-const auto kLinearConstraint = ConstraintType{kTestFunction, kLinearConstraintTarget, Linearity::kLinear};
-const auto kNonlinearConstraint = ConstraintType{kTestFunction, kNonlinearConstraintTarget, Linearity::kNonlinear};
+const auto kLinearConstraint = ConstraintType{kLinearTestFunction, kLinearConstraintTarget, Linearity::kLinear};
+const auto kAffineLinearConstraint =
+    ConstraintType{kAffineLinearTestFunction, kLinearConstraintTarget, Linearity::kLinear};
+const auto kNonlinearConstraint =
+    ConstraintType{kArbitraryTestFunction, kNonlinearConstraintTarget, Linearity::kNonlinear};
 
-const auto kConstraints =
-    std::vector{kLinearConstraint, kNonlinearConstraint, kLinearConstraint, kNonlinearConstraint, kLinearConstraint};
+const auto kConstraints = std::vector{kLinearConstraint, kNonlinearConstraint, kAffineLinearConstraint,
+                                      kNonlinearConstraint, kLinearConstraint};
 
 constexpr auto kNumberOfLinearConstraints = std::size_t{3};
 constexpr auto kNumberOfNonlinearConstraints = std::size_t{2};
@@ -88,8 +101,10 @@ TEST(Constraints, ConstraintBounds)
         }
         else
         {
-            EXPECT_EQ(tLowerBounds.at(tIndex), kLinearConstraintTarget);
-            EXPECT_EQ(tUpperBounds.at(tIndex), kLinearConstraintTarget);
+            const auto tZero = CriterionType::FunctionArgument{0.0};
+            const auto fOfZero = tSNOPTConstraints.constraints().at(tIndex).mFunction.f(tZero);
+            EXPECT_EQ(tLowerBounds.at(tIndex), -fOfZero);
+            EXPECT_EQ(tUpperBounds.at(tIndex), -fOfZero);
         }
     }
 }
