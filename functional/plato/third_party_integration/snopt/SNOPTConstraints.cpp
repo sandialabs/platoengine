@@ -23,22 +23,38 @@ auto partition_constraints(ConstraintVectorType& aConstraints) -> ConstraintVect
     return tTargets;
 }
 
+/// @brief Remove affine term from the constraint bounds to conform to SNOPT's interface
+/// Example: \f$c(x) = ax + b, l \leq c(x) \leq u \rightarrow l - c(0) \leq a*x \leq u - c(0)\f$
+auto constraints_with_affine_offset_removed(ConstraintVectorType&& aConstraints,
+                                            const std::size_t aNumberOfDesignVariables)
+{
+    const auto tZero = ConstraintFunctionArgument(aNumberOfDesignVariables, 0.0);
+    for (auto& tConstraint : aConstraints)
+    {
+        if (tConstraint.mLinearity == Linearity::kLinear)
+        {
+            tConstraint.mTarget -= tConstraint.mFunction.f(tZero);
+        }
+    }
+    return std::move(aConstraints);
+}
+
 }  // namespace
 
-SNOPTConstraints::SNOPTConstraints(ConstraintVectorType&& aConstraints)
-    : mConstraints{std::move(aConstraints)}, mLinearConstraintsBeginIterator{partition_constraints(mConstraints)}
+SNOPTConstraints::SNOPTConstraints(ConstraintVectorType&& aConstraints, const std::size_t aNumberOfDesignVariables)
+    : mConstraints{constraints_with_affine_offset_removed(std::move(aConstraints), aNumberOfDesignVariables)},
+      mLinearConstraintsBeginIterator{partition_constraints(mConstraints)}
 {
-    subtract_affine_offset_from_bounds(mLinearConstraintsBeginIterator, mConstraints.end());
 }
 
 auto SNOPTConstraints::numberOfLinearConstraints() const -> std::size_t
 {
-    return std::distance<ConstraintVectorType::const_iterator>(mLinearConstraintsBeginIterator, mConstraints.end());
+    return std::distance(mLinearConstraintsBeginIterator, mConstraints.end());
 }
 
 auto SNOPTConstraints::numberOfNonlinearConstraints() const -> std::size_t
 {
-    return std::distance<ConstraintVectorType::const_iterator>(mConstraints.begin(), mLinearConstraintsBeginIterator);
+    return std::distance(mConstraints.begin(), mLinearConstraintsBeginIterator);
 }
 auto SNOPTConstraints::linearConstraintsBegin() const -> ConstraintVectorType::const_iterator
 {
@@ -75,16 +91,5 @@ auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstra
     tLowerBounds.insert(tLowerBounds.begin(), -kSNOPTUnbounded);
     tUpperBounds.insert(tUpperBounds.begin(), kSNOPTUnbounded);
     return std::make_pair(std::move(tLowerBounds), std::move(tUpperBounds));
-}
-
-void subtract_affine_offset_from_bounds(ConstraintVectorType::iterator aBegin, ConstraintVectorType::iterator aEnd)
-{
-    const auto tZero = CriterionType::FunctionArgument{0.0};
-    std::transform(aBegin, aEnd, aBegin,
-                   [&tZero](auto& tConstraint)
-                   {
-                       tConstraint.mTarget -= tConstraint.mFunction.f(tZero);
-                       return tConstraint;
-                   });
 }
 }  // namespace plato::third_party_integration::snopt

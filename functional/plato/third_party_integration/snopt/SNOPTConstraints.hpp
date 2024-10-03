@@ -15,7 +15,7 @@ class SNOPTConstraints
     /// @brief Construction from an unpartitioned vector of Constraint objects, which will be partitioned by linearity.
     /// @post The vector returnd by release and constraint member functions will be partitioned such that all
     /// non-linear constraints are ordered before linear constraints.
-    SNOPTConstraints(ConstraintVectorType&& aConstraints);
+    SNOPTConstraints(ConstraintVectorType&& aConstraints, const std::size_t aNumberOfDesignVariables);
 
     [[nodiscard]] auto numberOfLinearConstraints() const -> std::size_t;
     [[nodiscard]] auto numberOfNonlinearConstraints() const -> std::size_t;
@@ -32,7 +32,7 @@ class SNOPTConstraints
 
    private:
     ConstraintVectorType mConstraints;
-    ConstraintVectorType::iterator mLinearConstraintsBeginIterator;
+    ConstraintVectorType::const_iterator mLinearConstraintsBeginIterator;
 };
 
 /// @brief Generates the constraint bounds, in the order of the constraints in @a aConstraints.
@@ -41,10 +41,6 @@ auto constraint_bounds(const SNOPTConstraints& aConstraints) -> SNOPTBounds;
 /// @brief Generates the objective and constraint bounds, with the objective bounds first and the constraints ordered as
 /// they appear in @a aConstraints.
 auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstraints) -> SNOPTBounds;
-
-/// @brief Remove affine term from the constraint bounds to conform to SNOPT's interface
-/// Example: c(x) = a*x + b, l <= c(x) <= u => l - c(0) <= a*x <= u - c(0)
-void subtract_affine_offset_from_bounds(ConstraintVectorType::iterator aBegin, ConstraintVectorType::iterator aEnd);
 
 }  // namespace plato::third_party_integration::snopt
 

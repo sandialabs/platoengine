@@ -15,7 +15,6 @@ class Function
 {
    public:
     using FunctionReturn = R;
-    using FunctionArgument = Arg;
 
    public:
     /// Construction from two function objects, @a fun evaluates the function and @a dfun its derivative.

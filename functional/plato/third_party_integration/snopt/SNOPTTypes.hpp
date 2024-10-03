@@ -36,6 +36,7 @@ using ObjectiveType = CriterionType;
 using ConstraintType = ConstraintData;
 using ConstraintVectorType = std::vector<ConstraintType>;
 using SNOPTBounds = std::pair<std::vector<double>, std::vector<double>>;
+using ConstraintFunctionArgument = linear_algebra::DynamicVector<double>;
 }  // namespace plato::third_party_integration::snopt
 
 #endif
