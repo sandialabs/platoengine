@@ -26,12 +26,16 @@ namespace plato::filter::extension
 class IdentityFilter : public library::FilterInterface
 {
    public:
-    [[nodiscard]] analysis::AnalysisDomainMesh filter(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
+    [[nodiscard]] auto filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> analysis::AnalysisDomainMesh override;
 
-    [[nodiscard]] linear_algebra::DynamicVector<double> rowVectorTimesJacobian(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-        const linear_algebra::DynamicVector<double>& aV) const override;
+    [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                              const linear_algebra::DynamicVector<double>& aV) const
+        -> linear_algebra::DynamicVector<double> override;
+
+    [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                     const linear_algebra::DynamicVector<double>& aV) const
+        -> linear_algebra::DynamicVector<double> override;
 };
 
 [[nodiscard]] auto make_identity_filter_function() -> library::FilterFunction;

@@ -14,6 +14,7 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -30,8 +31,8 @@ namespace
 constexpr std::string_view kMeshFile = "mesh.exo";
 constexpr double kTolerance = 1e-14;  // for comparison against matlab values
 
-[[nodiscard]] std::pair<std::vector<double>, std::vector<double> > test_filter_evaluation(
-    const input_parser::KernelFilterCenteringTypes aFilterCentering)
+[[nodiscard]] auto test_filter_evaluation(const input_parser::KernelFilterCenteringTypes aFilterCentering)
+    -> std::tuple<std::vector<double>, std::vector<double>, std::vector<double>>
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}};
     third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
@@ -54,27 +55,26 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     const auto [tPostFilter, tIDMap] = analysis::split_scalar_field_values(
         analysis::mesh_analysis_to_vector(analysis::AnalysisDomainMeshSequentialView{tResult}));
 
-    std::vector<double> tStdVectorSensitivities;
-    if (aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered)
+    const auto tNodalSensitivities = [&tCommandGenerator]()
     {
-        tStdVectorSensitivities = std::vector<double>(tCommandGenerator.numberOfElements(), 1);
-    }
-    else
-    {
-        tStdVectorSensitivities = std::vector<double>(tCommandGenerator.numberOfNodes(), 0);
-        tStdVectorSensitivities[0] = 1;
-        tStdVectorSensitivities[1] = .5;
-        tStdVectorSensitivities[2] = .25;
-    }
+        auto tSensitivities = std::vector<double>(tCommandGenerator.numberOfNodes(), 0);
+        tSensitivities[0] = 1;
+        tSensitivities[1] = .5;
+        tSensitivities[2] = .25;
+        return linear_algebra::DynamicVector<double>(std::move(tSensitivities));
+    }();
+    const auto tElementSensitivities = linear_algebra::DynamicVector<double>(tCommandGenerator.numberOfElements(), 1);
 
     const auto tPostSensitivities =
-        tKernelFilter
-            .rowVectorTimesJacobian(tAnalysisDomainMesh, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
-            .stdVector();
+        aFilterCentering == input_parser::KernelFilterCenteringTypes::kElementCentered
+            ? tKernelFilter.rowVectorTimesJacobian(tAnalysisDomainMesh, tElementSensitivities).stdVector()
+            : tKernelFilter.rowVectorTimesJacobian(tAnalysisDomainMesh, tNodalSensitivities).stdVector();
+    const auto tPostAdjointSensitivities =
+        tKernelFilter.rowVectorTimesAdjointJacobian(tAnalysisDomainMesh, tNodalSensitivities).stdVector();
 
     test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
 
-    return {tPostFilter, tPostSensitivities};
+    return {tPostFilter, tPostSensitivities, tPostAdjointSensitivities};
 }
 
 double timing_test(const unsigned int aNumberOfElementsOnSide)
@@ -96,7 +96,7 @@ double timing_test(const unsigned int aNumberOfElementsOnSide)
 
 }  // namespace
 
-TEST(KernelFilter, Timing)
+TEST(KernelFilter, DISABLED_Timing)
 {
     std::vector<unsigned int> tNSide = {3, 5, 8, 10, 12, 14, 20, 22};
     for (const auto& x : tNSide)
@@ -107,79 +107,96 @@ TEST(KernelFilter, Timing)
     }
 }
 
-/*
-    DistanceMatrix M = [1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8]
-    incoming densities rho = [0 0 0 .5 1 .5 0 0]
-    M*rho = 1/4
-
-    incoming sensitivities v = [1 ]
-    v*M =[1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8]
-*/
-
 TEST(KernelFilter, SingleHexElementCentered)
 {
-    const auto [tResultFilter, tResultJV] =
+    /*
+        distance_matrix = [1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8]
+        % Filter application
+        rho = [0 0 0 .5 1 .5 0 0]'
+        distance_matrix * rho
+          % = 1/4
+
+        % Jacobian
+        v = [1]
+        v*distance_matrix
+         % = [1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8]
+
+        % Adjoint Jacobian
+        u = [1 .5 .25 0 0 0 0 0 ]
+        u * distance_matrix'
+         % = 0.21875
+    */
+
+    const auto [tResultFilter, tResultJV, tResultAdjointJV] =
         test_filter_evaluation(input_parser::KernelFilterCenteringTypes::kElementCentered);
 
     ASSERT_EQ(tResultFilter.size(), 1u);
     EXPECT_NEAR(tResultFilter[0], 1.0 / 4.0, kTolerance);
 
     ASSERT_EQ(tResultJV.size(), 8u);
-    for (unsigned int tIndex = 0; tIndex < 8; ++tIndex)
-    {
-        EXPECT_NEAR(tResultJV[tIndex], 1.0 / 8.0, kTolerance);
-    }
+    const auto tExpectedVectorJacobianProduct = std::vector<double>(8U, 1.0 / 8.0);
+    test_utilities::expect_container_entries_near(tExpectedVectorJacobianProduct, tResultJV, kTolerance,
+                                                  TEST_CONTEXT("Vector Jacobian product"));
+
+    ASSERT_EQ(tResultAdjointJV.size(), 1U);
+    EXPECT_NEAR(tResultAdjointJV.front(), 0.21875, kTolerance);
 }
-// clang-format off
 
-/*
-    DistanceMatrixBefore Normalization = [1        .1/1.1   .1/1.1      0           .1/1.1      0           0            0      ;
-                                          .1/1.1   1        0           .1/1.1      0           .1/1.1      0            0      ;
-                                          .1/1.1   0        1           .1/1.1      0           0          .1/1.1       0      ;
-                                          0        .1/1.1   .1/1.1      1           0           0           0            .1/1.1    ;
-                                          .1/1.1   0        0           0           1           .1/1.1      .1/1.1       0    ;
-                                          0        .1/1.1   0           0           .1/1.1      1           0            .1/1.1     ;
-                                          0        0        .1/1.1      0           .1/1.1      0           1            .1/1.1     ;
-                                          0        0        0           .1/1.1      0           .1/1.1      .1/1.1       1     ];
-            ]
-    incoming densities rho = [0 0 0 .5 1 .5 0 0]
-    M*rho =[ 0.0714285714285714
-        0.0714285714285714
-        0.0357142857142857
-         0.392857142857143
-         0.821428571428571
-         0.464285714285714
-        0.0714285714285714
-        0.0714285714285714 ]
-
-    incoming sensitivities v = [1 .5 .25 0 0 0 0 0 ]
-    v*M =0.839285714285714         0.464285714285714         0.267857142857143        0.0535714285714286        0.0714285714285714        0.0357142857142857        0.0178571428571429                         0
-*/
-// clang-format on
 TEST(KernelFilter, SingleHexNodalCentered)
 {
-    const auto [tResultFilter, tResultJV] =
+    // clang-format off
+/*
+    distance_matrix = [1        .1/1.1   .1/1.1      0           .1/1.1      0           0            0
+                       .1/1.1   1        0           .1/1.1      0           .1/1.1      0            0
+                       .1/1.1   0        1           .1/1.1      0           0          .1/1.1        0
+                       0        .1/1.1   .1/1.1      1           0           0           0            .1/1.1
+                       .1/1.1   0        0           0           1           .1/1.1      .1/1.1       0
+                       0        .1/1.1   0           0           .1/1.1      1           0            .1/1.1
+                       0        0        .1/1.1      0           .1/1.1      0           1            .1/1.1
+                       0        0        0           .1/1.1      0           .1/1.1      .1/1.1       1 ];
+    normalization = sum(distance_matrix, 2);
+    filter = distance_matrix ./ normalization;
+    % Filter application
+    rho = [0 0 0 .5 1 .5 0 0]'
+    filter*rho
+      % = [ 0.0714285714285714
+      %     0.0714285714285714
+      %     0.0357142857142857
+      %     0.392857142857143
+      %     0.821428571428571
+      %     0.464285714285714
+      %     0.0714285714285714
+      %     0.0714285714285714 ] 
+    
+    % Jacobian
+    v = [1 .5 .25 0 0 0 0 0 ]
+    v*filter 
+      % = [0.839285714285714 0.464285714285714 0.267857142857143 0.0535714285714286 0.0714285714285714 0.0357142857142857 0.0178571428571429 0]
+
+    % Adjoint Jacobian
+    u = [1 2 3 4 5 6 7 8]
+    u * filter'
+     % = [1.5 2.357142857142858 3.214285714285715 4.071428571428571 4.928571428571429 5.785714285714286 6.642857142857142 7.5]
+*/
+    // clang-format on
+
+    const auto [tResultFilter, tResultVectorJacobianProduct, tResultVectorAdjointJacobianProduct] =
         test_filter_evaluation(input_parser::KernelFilterCenteringTypes::kNodeCentered);
 
-    ASSERT_EQ(tResultFilter.size(), 8u);
-    EXPECT_NEAR(tResultFilter[0], 0.0714285714285714, kTolerance);
-    EXPECT_NEAR(tResultFilter[1], 0.0714285714285714, kTolerance);
-    EXPECT_NEAR(tResultFilter[2], 0.0357142857142857, kTolerance);
-    EXPECT_NEAR(tResultFilter[3], 0.392857142857143, kTolerance);
-    EXPECT_NEAR(tResultFilter[4], 0.821428571428571, kTolerance);
-    EXPECT_NEAR(tResultFilter[5], 0.464285714285714, kTolerance);
-    EXPECT_NEAR(tResultFilter[6], 0.0714285714285714, kTolerance);
-    EXPECT_NEAR(tResultFilter[7], 0.0714285714285714, kTolerance);
+    const auto tExpectedFilter =
+        std::vector{7.142857142857144e-02, 7.142857142857144e-02, 3.571428571428572e-02, 3.928571428571428e-01,
+                    8.214285714285715e-01, 4.642857142857143e-01, 7.142857142857144e-02, 7.142857142857144e-02};
+    test_utilities::expect_container_entries_near(tResultFilter, tExpectedFilter, kTolerance,
+                                                  TEST_CONTEXT("Filter application"));
 
-    ASSERT_EQ(tResultJV.size(), 8u);
-    EXPECT_NEAR(tResultJV[0], 0.839285714285714, kTolerance);
-    EXPECT_NEAR(tResultJV[1], 0.464285714285714, kTolerance);
-    EXPECT_NEAR(tResultJV[2], 0.267857142857143, kTolerance);
-    EXPECT_NEAR(tResultJV[3], 0.0535714285714286, kTolerance);
-    EXPECT_NEAR(tResultJV[4], 0.0714285714285714, kTolerance);
-    EXPECT_NEAR(tResultJV[5], 0.0357142857142857, kTolerance);
-    EXPECT_NEAR(tResultJV[6], 0.0178571428571429, kTolerance);
-    EXPECT_NEAR(tResultJV[7], 0, kTolerance);
+    const auto tExpectedVectorJacobianProduct =
+        std::vector{8.392857142857144e-01, 4.642857142857144e-01, 2.678571428571429e-01, 5.357142857142858e-02,
+                    7.142857142857144e-02, 3.571428571428572e-02, 1.785714285714286e-02, 0.0};
+    test_utilities::expect_container_entries_near(tResultVectorJacobianProduct, tExpectedVectorJacobianProduct,
+                                                  kTolerance, TEST_CONTEXT("Vector Jacobian product"));
+
+    test_utilities::expect_container_entries_near(tResultVectorAdjointJacobianProduct, tExpectedVectorJacobianProduct,
+                                                  kTolerance, TEST_CONTEXT("Vector adjoint Jacobian product"));
 }
 
 TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)

@@ -50,6 +50,14 @@ TEST(IdentityFilter, JacobianTimesVector)
     EXPECT_EQ(tResult.stdVector(), tV.stdVector());
 }
 
+TEST(IdentityFilter, AdjointJacobianTimesVector)
+{
+    const auto tV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
+    const linear_algebra::DynamicVector<double> tResult =
+        IdentityFilter{}.rowVectorTimesAdjointJacobian(kMeshArgument, tV);
+    EXPECT_EQ(tResult.stdVector(), tV.stdVector());
+}
+
 TEST(IdentityFilter, JacobianMultiplication)
 {
     const auto tFilterJacobian = library::FilterJacobian{/*.mFilter=*/std::make_unique<IdentityFilter>(),

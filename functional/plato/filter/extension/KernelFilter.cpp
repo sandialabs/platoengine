@@ -91,6 +91,13 @@ linear_algebra::DynamicVector<double> KernelFilter::rowVectorTimesJacobian(
     return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
 }
 
+auto KernelFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh&,
+                                                 const linear_algebra::DynamicVector<double>& aV) const
+    -> linear_algebra::DynamicVector<double>
+{
+    return linear_algebra::DynamicVector<double>{mLinearMask.matrixMultiply(aV.stdVector())};
+}
+
 namespace detail
 {
 std::optional<std::string> validate_kernel_filter_centering_type(const input_parser::kernel_filter& aInput)

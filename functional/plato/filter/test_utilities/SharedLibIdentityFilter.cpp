@@ -16,6 +16,12 @@ linear_algebra::DynamicVector<double> SharedLibIdentityFilter::rowVectorTimesJac
     return aV;
 }
 
+linear_algebra::DynamicVector<double> SharedLibIdentityFilter::rowVectorTimesAdjointJacobian(
+    const analysis::AnalysisDomainMesh& aMesh, const linear_algebra::DynamicVector<double>& aV) const
+{
+    return rowVectorTimesJacobian(aMesh, aV);
+}
+
 }  // namespace plato::filter::test_utilities
 
 namespace plato

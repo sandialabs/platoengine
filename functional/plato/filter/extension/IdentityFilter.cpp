@@ -41,6 +41,13 @@ linear_algebra::DynamicVector<double> IdentityFilter::rowVectorTimesJacobian(
     return aV;
 }
 
+auto IdentityFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                   const linear_algebra::DynamicVector<double>& aV) const
+    -> linear_algebra::DynamicVector<double>
+{
+    return rowVectorTimesJacobian(aAnalysisDomainMesh, aV);
+}
+
 auto make_identity_filter_function() -> library::FilterFunction
 {
     return core::make_function_with_first_derivative(

@@ -18,12 +18,16 @@ namespace plato::filter::test_utilities
 class SharedLibIdentityFilter : public library::FilterInterface
 {
    public:
-    [[nodiscard]] analysis::AnalysisDomainMesh filter(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
+    [[nodiscard]] auto filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> analysis::AnalysisDomainMesh override;
 
-    [[nodiscard]] linear_algebra::DynamicVector<double> rowVectorTimesJacobian(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-        const linear_algebra::DynamicVector<double>& aV) const override;
+    [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                              const linear_algebra::DynamicVector<double>& aV) const
+        -> linear_algebra::DynamicVector<double> override;
+
+    [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                     const plato::linear_algebra::DynamicVector<double>& aV) const
+        -> plato::linear_algebra::DynamicVector<double> override;
 };
 }  // namespace plato::filter::test_utilities
 
