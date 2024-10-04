@@ -22,10 +22,8 @@ auto compose_geometry_with_vector_constraint(
     const plato::geometry::library::FactoryTypes& aGeometry)
     -> criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>
 {
-    std::cout << "Precompose" << std::endl;
     const auto tComposedVectorConstraintJacobian =
         core::compose(aMeshConstraint.mFunctionWithDfAsJacobian, aGeometry.mCompute);
-    std::cout << "Decompose" << std::endl;
     const auto tComposedVectorConstraintAdjointJacobian =
         linear_algebra::compose_adjoint_jacobian(aMeshConstraint.mFunctionWithDfAsAdjointJacobian, aGeometry.mCompute);
 

@@ -10,7 +10,7 @@ analysis::AnalysisDomainMesh SharedLibIdentityFilter::filter(
     return aAnalysisDomainMesh;
 }
 
-linear_algebra::DynamicVector<double> SharedLibIdentityFilter::jacobianTimesVector(
+linear_algebra::DynamicVector<double> SharedLibIdentityFilter::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh&, const linear_algebra::DynamicVector<double>& aV) const
 {
     return aV;

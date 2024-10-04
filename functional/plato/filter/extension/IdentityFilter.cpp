@@ -26,7 +26,7 @@ analysis::AnalysisDomainMesh IdentityFilter::filter(const analysis::AnalysisDoma
     return aAnalysisDomainMesh;
 }
 
-linear_algebra::DynamicVector<double> IdentityFilter::jacobianTimesVector(
+linear_algebra::DynamicVector<double> IdentityFilter::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, const linear_algebra::DynamicVector<double>& aV) const
 {
     const auto tVectorDimension = static_cast<std::size_t>(aV.size());

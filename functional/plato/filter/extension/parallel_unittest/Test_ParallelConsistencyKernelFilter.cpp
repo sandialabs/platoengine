@@ -120,7 +120,7 @@ auto test_filter_evaluation(const third_party_integration::stk_io::CommandGenera
 
     const auto tPostSensitivities =
         tKernelFilter
-            .jacobianTimesVector(tAnalysisDomainMesh, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
+            .rowVectorTimesJacobian(tAnalysisDomainMesh, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
             .stdVector();
 
     return std::pair{tPostFilter, tPostSensitivities};

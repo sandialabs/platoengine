@@ -85,7 +85,7 @@ analysis::AnalysisDomainMesh KernelFilter::filter(const analysis::AnalysisDomain
         mesh::ElementFieldVectorReference{std::cref(tFilteredField)});
 }
 
-linear_algebra::DynamicVector<double> KernelFilter::jacobianTimesVector(
+linear_algebra::DynamicVector<double> KernelFilter::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const linear_algebra::DynamicVector<double>& aV) const
 {
     return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};

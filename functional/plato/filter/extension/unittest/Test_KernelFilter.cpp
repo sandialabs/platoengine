@@ -69,7 +69,7 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
 
     const auto tPostSensitivities =
         tKernelFilter
-            .jacobianTimesVector(tAnalysisDomainMesh, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
+            .rowVectorTimesJacobian(tAnalysisDomainMesh, linear_algebra::DynamicVector<double>(tStdVectorSensitivities))
             .stdVector();
 
     test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));

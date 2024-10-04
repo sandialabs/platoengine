@@ -21,7 +21,7 @@ class SharedLibIdentityFilter : public library::FilterInterface
     [[nodiscard]] analysis::AnalysisDomainMesh filter(
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
 
-    [[nodiscard]] linear_algebra::DynamicVector<double> jacobianTimesVector(
+    [[nodiscard]] linear_algebra::DynamicVector<double> rowVectorTimesJacobian(
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
         const linear_algebra::DynamicVector<double>& aV) const override;
 };

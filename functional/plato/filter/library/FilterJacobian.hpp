@@ -10,7 +10,7 @@ namespace plato::filter::library
 {
 class FilterInterface;
 
-/// @brief A wrapper for a filter an a filter argument, used for implementing operator*.
+/// @brief A wrapper for a filter and a filter argument, used for implementing operator*.
 struct FilterJacobian
 {
     std::shared_ptr<FilterInterface> mFilter;

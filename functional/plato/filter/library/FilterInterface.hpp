@@ -26,7 +26,7 @@ struct FilterParameters
 /// @brief Base class for density field topology filters.
 ///
 /// Derived types must implement filter, which applies the specific
-/// filter to the density field in a AnalysisDomainMesh, and jacobianTimesVector,
+/// filter to the density field in a AnalysisDomainMesh, and rowVectorTimesJacobian,
 /// which implements the left multiplication of the Jacobian of the filter
 /// with a row vector, i.e. \f$v^T J\f$.
 class FilterInterface
@@ -41,7 +41,7 @@ class FilterInterface
 
     /// @brief Implements multiplication of row vector @a aV and the Jacobian of the
     ///  filter computed at the argument @a aAnalysisDomainMesh.
-    [[nodiscard]] virtual linear_algebra::DynamicVector<double> jacobianTimesVector(
+    [[nodiscard]] virtual linear_algebra::DynamicVector<double> rowVectorTimesJacobian(
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
         const linear_algebra::DynamicVector<double>& aV) const = 0;
 

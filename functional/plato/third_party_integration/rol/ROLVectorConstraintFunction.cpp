@@ -28,7 +28,6 @@ void ROLVectorConstraintFunction::value(std::vector<double>& aConstraints, const
     const auto tConstraintValue = mFunctionWithDfAsJacobian.f(linear_algebra::DynamicVector<double>(aControl));
     const auto tTargetVector = linear_algebra::DynamicVector<double>(tConstraintValue.size(), mConstraintTarget);
     aConstraints = (tConstraintValue + (-1.0 * tTargetVector)).stdVector();
-    std::cout << "Constraint: " << aConstraints[0] << std::endl;
 }
 
 void ROLVectorConstraintFunction::applyJacobian(std::vector<double>& aJacobianTimesDirection,
@@ -36,18 +35,9 @@ void ROLVectorConstraintFunction::applyJacobian(std::vector<double>& aJacobianTi
                                                 const std::vector<double>& aControl,
                                                 double& /*aTolerance*/)
 {
-    /*std::cout << "Apply jacobian " << std::endl;
-    std::cout << "control : ";
-    print(aControl);
-    std::cout << "direction : ";
-    print(aDirection);*/
-
     auto tResult = linear_algebra::DynamicVector<double>(aDirection) *
                    mFunctionWithDfAsAdjointJacobian.df(linear_algebra::DynamicVector<double>(aControl));
     aJacobianTimesDirection = std::move(tResult).stdVector();
-
-    /*std::cout << "j*v ";
-    print(aJacobianTimesDirection);*/
 }
 
 void ROLVectorConstraintFunction::applyAdjointJacobian(std::vector<double>& aAdjointJacobianTimesDirection,
@@ -56,18 +46,10 @@ void ROLVectorConstraintFunction::applyAdjointJacobian(std::vector<double>& aAdj
                                                        double& /*aTolerance*/)
 {
     assert(aAdjointJacobianTimesDirection.size() == aControl.size());
-    /*std::cout << "Apply adjoint jacobian " << std::endl;
-    std::cout << "control : ";
-    print(aControl);
-    std::cout << "dual : ";
-    print(aDual);*/
 
     auto tResult = linear_algebra::DynamicVector<double>(aDual) *
                    mFunctionWithDfAsJacobian.df(linear_algebra::DynamicVector<double>(aControl));
     aAdjointJacobianTimesDirection = std::move(tResult).stdVector();
-
-    /*    std::cout << "j^T*d ";
-        print(aAdjointJacobianTimesDirection);*/
 }
 
 }  // namespace plato::third_party_integration::rol

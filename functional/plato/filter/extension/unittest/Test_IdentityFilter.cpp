@@ -46,7 +46,7 @@ TEST(IdentityFilter, Filter)
 TEST(IdentityFilter, JacobianTimesVector)
 {
     const auto tV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
-    const linear_algebra::DynamicVector<double> tResult = IdentityFilter{}.jacobianTimesVector(kMeshArgument, tV);
+    const linear_algebra::DynamicVector<double> tResult = IdentityFilter{}.rowVectorTimesJacobian(kMeshArgument, tV);
     EXPECT_EQ(tResult.stdVector(), tV.stdVector());
 }
 
@@ -66,7 +66,7 @@ TEST(IdentityFilter, JacobianBadDimensions)
                                                          /*.mAnalysisDomainMesh=*/kMeshArgument};
 
     const auto tVBad = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0, 84.0};
-    EXPECT_THROW(auto tTemp = IdentityFilter{}.jacobianTimesVector(kMeshArgument, tVBad), pfu::Exception);
+    EXPECT_THROW(auto tTemp = IdentityFilter{}.rowVectorTimesJacobian(kMeshArgument, tVBad), pfu::Exception);
     EXPECT_THROW(auto tTemp2 = tVBad * tFilterJacobian, pfu::Exception);
 }
 

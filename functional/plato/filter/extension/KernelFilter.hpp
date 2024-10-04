@@ -43,7 +43,7 @@ class KernelFilter : public library::FilterInterface
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
 
     /// @brief Return the Jacobian of the linear mask applied to a specific vector @a aV
-    [[nodiscard]] linear_algebra::DynamicVector<double> jacobianTimesVector(
+    [[nodiscard]] linear_algebra::DynamicVector<double> rowVectorTimesJacobian(
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
         const linear_algebra::DynamicVector<double>& aV) const override;
 
