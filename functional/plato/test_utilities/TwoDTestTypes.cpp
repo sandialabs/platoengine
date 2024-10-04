@@ -11,6 +11,11 @@ TwoDMatrix makeTwoDMatrix(const double x00, const double x01, const double x10, 
     return TwoDMatrix{std::array<double, 2>{x00, x01}, std::array<double, 2>{x10, x11}};
 }
 
+auto transpose(const TwoDMatrix& aTwoDMatrix) -> TwoDMatrix
+{
+    return makeTwoDMatrix(aTwoDMatrix(0, 0), aTwoDMatrix(1, 0), aTwoDMatrix(0, 1), aTwoDMatrix(1, 1));
+}
+
 TwoDVector operator*(const TwoDVector& x, const TwoDMatrix& A)
 {
     return makeTwoDVector(x(0) * A(0, 0) + x(1) * A(1, 0), x(0) * A(0, 1) + x(1) * A(1, 1));
