@@ -102,8 +102,8 @@ std::pair<std::vector<double>, std::vector<double>> LevelsetTopology::bounds(
 
 linear_algebra::DynamicVector<double> LevelsetTopology::initialGuess(const std::filesystem::path& aMeshFileName) const
 {
-    std::vector<double> tCurLevelsetValues =
-        initialize_mesh_with_levelset_primitives(aMeshFileName, mCutMesh, mLevelsetPrimitives, mIncludeVoidRegion);
+    std::vector<double> tCurLevelsetValues = initialize_mesh_with_levelset_primitives(
+        BackgroundMeshNameString{aMeshFileName}, mCutMesh, mLevelsetPrimitives, mIncludeVoidRegion);
     return linear_algebra::DynamicVector<double>(tCurLevelsetValues);
 }
 
@@ -121,8 +121,8 @@ analysis::AnalysisDomainMesh LevelsetTopology::generateMesh(
         d. Keep the same return statement that initializes an AnalysisDomainMesh with the cut mesh
            name and an empty design variable map.
     */
-    std::ignore =
-        generate_computational_mesh(mBackgroundMesh, mCutMesh, aDesignParameters.stdVector(), mIncludeVoidRegion);
+    std::ignore = generate_computational_mesh(BackgroundMeshNameString{mBackgroundMesh}, mCutMesh,
+                                              aDesignParameters.stdVector(), mIncludeVoidRegion);
     return analysis::AnalysisDomainMesh{mCutMesh, {}};
 }
 
@@ -138,8 +138,8 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
             DensityToplogy::jacobian() for example)
             */
             const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> tGlobalIDToDXDP =
-                generate_computational_mesh(mBackgroundMesh, mCutMesh, aDesignParameters.stdVector(),
-                                            mIncludeVoidRegion);
+                generate_computational_mesh(BackgroundMeshNameString{mBackgroundMesh}, mCutMesh,
+                                            aDesignParameters.stdVector(), mIncludeVoidRegion);
             const std::vector<unsigned int> tCutNodeMap = mesh::EntityRetrieval{mesh::Mesh{mCutMesh}}.globalNodeIds();
             const std::vector<unsigned int> tBackgroundNodeMap =
                 mesh::EntityRetrieval{mesh::Mesh{mBackgroundMesh}}.globalNodeIds();

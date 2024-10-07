@@ -3,16 +3,19 @@
 
 #include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
+#include "plato/utilities/NamedType.hpp"
 
 namespace plato::third_party_integration::krino
 {
+
+using BackgroundMeshNameString = utilities::NamedType<std::string, struct BackgroundMeshNameTag>;
 
 /// @brief Generate a computational mesh, @a aCutMesh, by cutting a background mesh,
 /// @a aBackgroundMeshName, with the given levelset values, @a aLevelsetValues.  Returns the
 /// sensitivities of the computational mesh's boundary nodes with respect to the levelset values.
 /// @a aIncludeVoidRegion specifies whether to include the void region defined by the
 /// levelset values in the computational mesh.
-[[nodiscard]] auto generate_computational_mesh(const std::string &aBackgroundMeshName,
+[[nodiscard]] auto generate_computational_mesh(const BackgroundMeshNameString &aBackgroundMeshName,
                                                const std::string &aCutMesh,
                                                const std::vector<double> &aLevelsetValues,
                                                const bool aIncludeVoidRegion)
@@ -23,7 +26,7 @@ namespace plato::third_party_integration::krino
 /// levelset values on the background mesh resulting from the levelset primitives.
 /// @a aIncludeVoidRegion specifies whether to include the void region defined by the
 /// levelset values in the computational mesh.
-[[nodiscard]] auto initialize_mesh_with_levelset_primitives(const std::string &aBackgroundMeshName,
+[[nodiscard]] auto initialize_mesh_with_levelset_primitives(const BackgroundMeshNameString &aBackgroundMeshName,
                                                             const std::string &aCutMesh,
                                                             const LevelsetPrimitives &aLevelsetPrimitives,
                                                             const bool aIncludeVoidRegion) -> std::vector<double>;
