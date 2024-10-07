@@ -89,7 +89,7 @@ void KrinoWrapper::decomposeMeshToConformToLevelsets(stk::mesh::BulkData &mesh,
     ::krino::CDFEM_Support &cdfemSupport = ::krino::CDFEM_Support::get(meta);
     ::krino::Phase_Support &phaseSupport = ::krino::Phase_Support::get(meta);
     std::unique_ptr<::krino::InterfaceGeometry> interfaceGeometry = ::krino::create_levelset_geometry(
-        meta.spatial_dimension(), auxMeta.active_part(), cdfemSupport, phaseSupport, lsFields);
+        static_cast<int>(meta.spatial_dimension()), auxMeta.active_part(), cdfemSupport, phaseSupport, lsFields);
     auxMeta.clear_force_64bit_flag();
     ::krino::CDMesh::decompose_mesh(mesh, *interfaceGeometry);
 }
@@ -347,7 +347,8 @@ std::unordered_map<unsigned int, stk::math::Vector3d> KrinoWrapper::getCoordinat
         for (stk::mesh::Entity tCurNodeEntity : tCurBucket)
         {
             const unsigned int tGlobalNodeID = mKrinoMesh->bulk_data().identifier(tCurNodeEntity);
-            const stk::math::Vector3d tNodeCoords(&tBucketCoords[tNumDimensions * tCntr], tNumDimensions);
+            const stk::math::Vector3d tNodeCoords(&tBucketCoords[static_cast<size_t>(tNumDimensions * tCntr)],
+                                                  tNumDimensions);
             tCurCoordinateValues[tGlobalNodeID] = tNodeCoords;
             tCntr++;
         }
