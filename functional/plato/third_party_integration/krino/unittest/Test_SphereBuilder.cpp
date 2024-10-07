@@ -18,6 +18,23 @@ class PlatoTestKrino : public ::testing::Test
     // you mix TEST and TEST_F in a single executable.
 };
 
+namespace
+{
+const common::Coordinate kZeroCoordinate{0, 0, 0};
+const common::Coordinate kTenCoordinate{10, 10, 10};
+[[nodiscard]] SpherePatternData calculate_sphere_pattern_data_on_zero_ten_mesh(const double aSphereRadius,
+                                                                               const double aSphereSpacing)
+{
+    return SpherePatternData{kZeroCoordinate, kTenCoordinate, aSphereRadius, aSphereSpacing};
+}
+void check_repeated_num_spheres(const common::Coordinate &aNumSpheres, const double aGoldValue)
+{
+    EXPECT_EQ(aNumSpheres.x, aGoldValue);
+    EXPECT_EQ(aNumSpheres.y, aGoldValue);
+    EXPECT_EQ(aNumSpheres.z, aGoldValue);
+}
+}  // namespace
+
 TEST_F(PlatoTestKrino, SphereBuilderGenerateSpheresCalculateSphereCenterCoords)
 {
     constexpr int tNumValues{4};
@@ -32,13 +49,9 @@ TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_SphereJustInside
 {
     constexpr double tSphereRadius = 0.5;
     constexpr double tSphereSpacing = 4.9;
-    const common::Coordinate tBBoxMin{0.0, 0.0, 0.0};
-    const common::Coordinate tBBoxMax{10.0, 10.0, 10.0};
-    const SpherePatternData tData{tBBoxMin, tBBoxMax, tSphereRadius, tSphereSpacing};
+    const SpherePatternData tData{calculate_sphere_pattern_data_on_zero_ten_mesh(tSphereRadius, tSphereSpacing)};
     const common::Coordinate tNumSpheres{calculate_num_spheres_in_each_direction(tData)};
-    EXPECT_EQ(tNumSpheres.x, 3);
-    EXPECT_EQ(tNumSpheres.y, 3);
-    EXPECT_EQ(tNumSpheres.z, 3);
+    check_repeated_num_spheres(tNumSpheres, 3);
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
     const Coordinate tGold{0.1, 0.1, 0.1};
     constexpr double tTol{1e-10};
@@ -51,13 +64,9 @@ TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_SphereJustOutsid
 {
     constexpr double tSphereRadius = 0.5;
     constexpr double tSphereSpacing = 5.1;
-    const common::Coordinate tBBoxMin{0.0, 0.0, 0.0};
-    const common::Coordinate tBBoxMax{10.0, 10.0, 10.0};
-    const SpherePatternData tData{tBBoxMin, tBBoxMax, tSphereRadius, tSphereSpacing};
+    const SpherePatternData tData{calculate_sphere_pattern_data_on_zero_ten_mesh(tSphereRadius, tSphereSpacing)};
     const common::Coordinate tNumSpheres{calculate_num_spheres_in_each_direction(tData)};
-    EXPECT_EQ(tNumSpheres.x, 3);
-    EXPECT_EQ(tNumSpheres.y, 3);
-    EXPECT_EQ(tNumSpheres.z, 3);
+    check_repeated_num_spheres(tNumSpheres, 3);
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
     const Coordinate tGold{-0.1, -0.1, -0.1};
     constexpr double tTol{1e-10};
@@ -70,13 +79,9 @@ TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_SpheresNotInters
 {
     constexpr double tSphereRadius = 0.1;
     constexpr double tSphereSpacing = 2.0;
-    const common::Coordinate tBBoxMin{0.0, 0.0, 0.0};
-    const common::Coordinate tBBoxMax{10.0, 10.0, 10.0};
-    const SpherePatternData tData{tBBoxMin, tBBoxMax, tSphereRadius, tSphereSpacing};
+    const SpherePatternData tData{calculate_sphere_pattern_data_on_zero_ten_mesh(tSphereRadius, tSphereSpacing)};
     const common::Coordinate tNumSpheres{calculate_num_spheres_in_each_direction(tData)};
-    EXPECT_EQ(tNumSpheres.x, 5);
-    EXPECT_EQ(tNumSpheres.y, 5);
-    EXPECT_EQ(tNumSpheres.z, 5);
+    check_repeated_num_spheres(tNumSpheres, 5);
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
     const Coordinate tGold{1, 1, 1};
     constexpr double tTol{1e-10};
@@ -89,13 +94,9 @@ TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_OneSphere)
 {
     constexpr double tSphereRadius = 0.1;
     constexpr double tSphereSpacing = 100.0;
-    const common::Coordinate tBBoxMin{0.0, 0.0, 0.0};
-    const common::Coordinate tBBoxMax{10.0, 10.0, 10.0};
-    const SpherePatternData tData{tBBoxMin, tBBoxMax, tSphereRadius, tSphereSpacing};
+    const SpherePatternData tData{calculate_sphere_pattern_data_on_zero_ten_mesh(tSphereRadius, tSphereSpacing)};
     const common::Coordinate tNumSpheres{calculate_num_spheres_in_each_direction(tData)};
-    EXPECT_EQ(tNumSpheres.x, 1);
-    EXPECT_EQ(tNumSpheres.y, 1);
-    EXPECT_EQ(tNumSpheres.z, 1);
+    check_repeated_num_spheres(tNumSpheres, 1);
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
     const Coordinate tGold{5, 5, 5};
     constexpr double tTol{1e-10};
