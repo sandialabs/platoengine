@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "SNOPTTypes.hpp"
+
 namespace plato::third_party_integration::snopt
 {
 namespace
@@ -23,8 +25,9 @@ auto partition_constraints(ConstraintVectorType& aConstraints) -> ConstraintVect
 
 }  // namespace
 
-SNOPTConstraints::SNOPTConstraints(ConstraintVectorType&& aConstraints)
-    : mConstraints{std::move(aConstraints)}, mLinearConstraintsBeginIterator{partition_constraints(mConstraints)}
+SNOPTConstraints::SNOPTConstraints(ConstraintVectorType&& aConstraints, const std::size_t aNumberOfDesignVariables)
+    : mConstraints{constraints_with_affine_offset_removed(std::move(aConstraints), aNumberOfDesignVariables)},
+      mLinearConstraintsBeginIterator{partition_constraints(mConstraints)}
 {
 }
 
@@ -72,5 +75,19 @@ auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstra
     tLowerBounds.insert(tLowerBounds.begin(), -kSNOPTUnbounded);
     tUpperBounds.insert(tUpperBounds.begin(), kSNOPTUnbounded);
     return std::make_pair(std::move(tLowerBounds), std::move(tUpperBounds));
+}
+
+auto constraints_with_affine_offset_removed(ConstraintVectorType&& aConstraints,
+                                            const std::size_t aNumberOfDesignVariables) -> ConstraintVectorType
+{
+    const auto tZero = ConstraintFunctionArgument(aNumberOfDesignVariables, 0.0);
+    for (auto& tConstraint : aConstraints)
+    {
+        if (tConstraint.mLinearity == Linearity::kLinear)
+        {
+            tConstraint.mTarget -= tConstraint.mFunction.f(tZero);
+        }
+    }
+    return std::move(aConstraints);
 }
 }  // namespace plato::third_party_integration::snopt

@@ -168,7 +168,7 @@ auto run_snopt_problem(const std::vector<double> &aInitialGuess,
     assert(aInitialGuess.size() == aBoundConstraints.first.size());
     assert(aInitialGuess.size() == aBoundConstraints.second.size());
 
-    auto tSNOPTConstraints = SNOPTConstraints{std::move(aConstraints)};
+    auto tSNOPTConstraints = SNOPTConstraints{std::move(aConstraints), aInitialGuess.size()};
 
     auto tObjectiveAndConstraintBounds = constraint_bounds_with_unbounded_objective(tSNOPTConstraints);
 
