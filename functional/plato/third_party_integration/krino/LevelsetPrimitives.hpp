@@ -24,9 +24,9 @@ struct Sphere
 
 struct SphereCounts
 {
-    int mX;
-    int mY;
-    int mZ;
+    unsigned int mX;
+    unsigned int mY;
+    unsigned int mZ;
 };
 
 struct SphereLocatorData

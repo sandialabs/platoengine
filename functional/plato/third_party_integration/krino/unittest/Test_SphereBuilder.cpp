@@ -40,7 +40,8 @@ TEST_F(PlatoTestKrino, SphereBuilderGenerateSpheresCalculateSphereCenterCoords)
     constexpr int tNumValues{4};
     constexpr double tStart{-3.0};
     constexpr double tStep{15.0};
-    const std::vector<double> tResult{calculate_sphere_center_coords(tNumValues, tStart, tStep)};
+    const std::vector<double> tResult{
+        calculate_sphere_center_coords(tNumValues, NamedSphereCenterCoord{tStart}, tStep)};
     const std::vector<double> tGold{-3, 12, 27, 42};
     EXPECT_EQ(tResult, tGold);
 }

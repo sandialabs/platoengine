@@ -11,9 +11,10 @@ using IntegerCoordinate = utilities::NamedType<common::Coordinate, struct Intege
 [[nodiscard]] auto make_sphere_locator_data(const common::Coordinate &aStartLocations,
                                             const IntegerCoordinate &aNumSpheres) -> SphereLocatorData
 {
-    return SphereLocatorData{aStartLocations,
-                             {static_cast<int>(aNumSpheres.mValue.x), static_cast<int>(aNumSpheres.mValue.y),
-                              static_cast<int>(aNumSpheres.mValue.z)}};
+    return SphereLocatorData{
+        aStartLocations,
+        {static_cast<unsigned int>(aNumSpheres.mValue.x), static_cast<unsigned int>(aNumSpheres.mValue.y),
+         static_cast<unsigned int>(aNumSpheres.mValue.z)}};
 }
 }  // namespace
 
@@ -40,14 +41,16 @@ common::Coordinate calculate_sphere_pattern_start(const common::Coordinate &aNum
                                                 aData.mSphereSpacing * (-1.0)};
 }
 
-std::vector<double> calculate_sphere_center_coords(int aNumValues, double aStart, double aStep)
+std::vector<double> calculate_sphere_center_coords(const int aNumValues,
+                                                   NamedSphereCenterCoord aStart,
+                                                   const double aStep)
 {
     std::vector<double> tValues(aNumValues);
     std::generate(tValues.begin(), tValues.end(),
                   [&aStart, &aStep]
                   {
-                      double tRet = aStart;
-                      aStart += aStep;
+                      double tRet = aStart.mValue;
+                      aStart.mValue += aStep;
                       return tRet;
                   });
     return tValues;
@@ -65,15 +68,19 @@ std::vector<Sphere> generate_spheres(const SpherePatternData &aData)
     SphereLocatorData tLocatorData = calculate_sphere_locator_data(aData);
 
     std::vector<double> tXValues = calculate_sphere_center_coords(
-        tLocatorData.mSphereCounts.mX, tLocatorData.mSpherePatternStart.x, aData.mSphereSpacing);
+        tLocatorData.mSphereCounts.mX, NamedSphereCenterCoord{tLocatorData.mSpherePatternStart.x},
+        aData.mSphereSpacing);
     std::vector<double> tYValues = calculate_sphere_center_coords(
-        tLocatorData.mSphereCounts.mY, tLocatorData.mSpherePatternStart.y, aData.mSphereSpacing);
+        tLocatorData.mSphereCounts.mY, NamedSphereCenterCoord{tLocatorData.mSpherePatternStart.y},
+        aData.mSphereSpacing);
     std::vector<double> tZValues = calculate_sphere_center_coords(
-        tLocatorData.mSphereCounts.mZ, tLocatorData.mSpherePatternStart.z, aData.mSphereSpacing);
+        tLocatorData.mSphereCounts.mZ, NamedSphereCenterCoord{tLocatorData.mSpherePatternStart.z},
+        aData.mSphereSpacing);
 
     // Loop to create 3D array of spheres
     std::vector<Sphere> tSpheres;
-    tSpheres.reserve(tLocatorData.mSphereCounts.mX * tLocatorData.mSphereCounts.mY * tLocatorData.mSphereCounts.mZ);
+    tSpheres.reserve(static_cast<std::vector<Sphere>::size_type>(
+        tLocatorData.mSphereCounts.mX * tLocatorData.mSphereCounts.mY * tLocatorData.mSphereCounts.mZ));
 
     for (auto tCurX : tXValues)
     {
