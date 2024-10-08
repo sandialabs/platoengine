@@ -55,10 +55,6 @@ class PlatoKrinoApp : public Plato::Application
     std::unique_ptr<Epetra_Export> mExporter;
     std::unique_ptr<Epetra_Vector> mOwnedAndSharedVec;
     std::unique_ptr<Epetra_Vector> mOwnedVec;
-    std::vector<double> mCoordMins;
-    std::vector<double> mCoordMaxes;
-    std::vector<int> mNumSpheres;
-    double mSphereRadius;
     std::vector<int> mLocallyOwnedKrinoNodes;
     LevelsetPrimitives mLevelsetPrimitives;
 
