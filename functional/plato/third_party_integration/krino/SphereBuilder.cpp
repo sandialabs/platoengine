@@ -1,5 +1,7 @@
 #include "plato/third_party_integration/krino/SphereBuilder.hpp"
 
+#include <cstddef>
+
 #include "plato/utilities/NamedType.hpp"
 
 namespace plato::third_party_integration::krino
@@ -41,7 +43,7 @@ common::Coordinate calculate_sphere_pattern_start(const common::Coordinate &aNum
                                                 aData.mSphereSpacing * (-1.0)};
 }
 
-std::vector<double> calculate_sphere_center_coords(const int aNumValues,
+std::vector<double> calculate_sphere_center_coords(const unsigned int aNumValues,
                                                    NamedSphereCenterCoord aStart,
                                                    const double aStep)
 {
@@ -79,8 +81,8 @@ std::vector<Sphere> generate_spheres(const SpherePatternData &aData)
 
     // Loop to create 3D array of spheres
     std::vector<Sphere> tSpheres;
-    tSpheres.reserve(static_cast<std::vector<Sphere>::size_type>(
-        tLocatorData.mSphereCounts.mX * tLocatorData.mSphereCounts.mY * tLocatorData.mSphereCounts.mZ));
+    tSpheres.reserve(static_cast<std::vector<Sphere>::size_type>(tLocatorData.mSphereCounts.mX) *
+                     tLocatorData.mSphereCounts.mY * tLocatorData.mSphereCounts.mZ);
 
     for (auto tCurX : tXValues)
     {

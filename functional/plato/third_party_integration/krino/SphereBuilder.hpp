@@ -13,7 +13,7 @@ using NamedSphereCenterCoord = utilities::NamedType<double, struct NamedSphereCe
 
 /// @brief Given num values, @a aNumValues, start, @a aStart, and step, @a aStep, calculate a sequence of
 /// coordinates and store them in a vector.
-[[nodiscard]] auto calculate_sphere_center_coords(const int aNumValues,
+[[nodiscard]] auto calculate_sphere_center_coords(const unsigned int aNumValues,
                                                   NamedSphereCenterCoord aStart,
                                                   const double aStep) -> std::vector<double>;
 
