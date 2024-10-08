@@ -1,6 +1,8 @@
 #ifndef PLATO_THIRD_PARTY_INTEGRATION_KRINO_INTERFACE
 #define PLATO_THIRD_PARTY_INTEGRATION_KRINO_INTERFACE
 
+#include <unordered_map>
+
 #include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/NamedType.hpp"

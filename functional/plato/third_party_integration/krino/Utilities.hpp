@@ -3,9 +3,9 @@
 
 #include <mpi.h>
 
-#include <map>
 #include <stk_math/StkVector.hpp>
 #include <stk_mesh/base/Types.hpp>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 

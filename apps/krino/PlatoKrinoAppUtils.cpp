@@ -110,7 +110,7 @@ Sphere readSphereData(const Plato::InputData &aNode)
     double tCenterZ =
         getOrThrow<double>(aNode, "center_z", "ERROR: Levelset definition sphere center_z was not specified.");
     double tRadius = getOrThrow<double>(aNode, "radius", "ERROR: Levelset definition sphere radius was not specified.");
-    return Sphere{tCenterX, tCenterY, tCenterZ, tRadius};
+    return Sphere{{tCenterX, tCenterY, tCenterZ}, tRadius};
 }
 
 Plane readPlaneData(const Plato::InputData &aNode)
@@ -122,7 +122,7 @@ Plane readPlaneData(const Plato::InputData &aNode)
     double tNormalZ =
         getOrThrow<double>(aNode, "normal_z", "ERROR: Levelset definition plane normal_z was not specified.");
     double tOffset = getOrThrow<double>(aNode, "offset", "ERROR: Levelset definition plane offset was not specified.");
-    return Plane{tNormalX, tNormalY, tNormalZ, tOffset};
+    return Plane{{tNormalX, tNormalY, tNormalZ}, tOffset};
 }
 
 bool parse_command_line_options(int aArgc, char *aArgv[], CommandLineOptions &aCommandLineOptions)
