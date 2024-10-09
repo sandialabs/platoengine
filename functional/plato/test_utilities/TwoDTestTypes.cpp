@@ -23,6 +23,12 @@ TwoDVector operator*(const TwoDVector& x, const TwoDMatrix& A)
 
 TwoDVector operator*(double a, const TwoDVector& x) { return makeTwoDVector(a * x(0), a * x(1)); }
 
+TwoDMatrix operator*(const TwoDMatrix& A, const TwoDMatrix& B)
+{
+    return makeTwoDMatrix(A(0, 0) * B(0, 0) + A(0, 1) * B(1, 0), A(0, 0) * B(0, 1) + A(0, 1) * B(1, 1),
+                          A(1, 0) * B(0, 0) + A(1, 1) * B(1, 0), A(1, 0) * B(0, 1) + A(1, 1) * B(1, 1));
+}
+
 TwoDVector operator+(const TwoDVector& x, const TwoDVector& y) { return makeTwoDVector(x(0) + y(0), x(1) + y(1)); }
 
 bool operator==(const TwoDVector& x, const TwoDVector& y) { return x.mData == y.mData; }

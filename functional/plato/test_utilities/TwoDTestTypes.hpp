@@ -24,6 +24,7 @@ struct TwoDMatrix
 
 [[nodiscard]] TwoDVector operator*(const TwoDVector& x, const TwoDMatrix& A);
 [[nodiscard]] TwoDVector operator*(double a, const TwoDVector& x);
+[[nodiscard]] TwoDMatrix operator*(const TwoDMatrix& A, const TwoDMatrix& B);
 [[nodiscard]] TwoDVector operator+(const TwoDVector& x, const TwoDVector& y);
 [[nodiscard]] bool operator==(const TwoDVector& x, const TwoDVector& y);
 [[nodiscard]] bool operator==(const TwoDMatrix& x, const TwoDMatrix& y);
