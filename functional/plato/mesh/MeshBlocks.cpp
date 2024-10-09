@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 
 namespace plato::mesh
 {

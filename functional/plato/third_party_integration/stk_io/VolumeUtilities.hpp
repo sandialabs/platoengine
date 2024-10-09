@@ -7,8 +7,8 @@
 #include <stk_topology/topology.hpp>
 #include <utility>
 
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/TesselationTraits.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
 
 namespace plato::third_party_integration::stk_io
 {

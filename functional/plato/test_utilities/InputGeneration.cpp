@@ -34,7 +34,9 @@ input_parser::density_topology create_valid_density_topology_geometry()
     return input_parser::density_topology{/*.mesh_name=*/input_parser::FileName{"test.exo"},
                                           /*.output_name=*/input_parser::FileName{"test_out.exo"},
                                           /*.fixed_blocks=*/{},
-                                          /*.filter=*/boost::none};
+                                          /*.filter=*/boost::none,
+                                          /*.initial_density_value=*/0.5,
+                                          /*.initial_density_field_name=*/boost::none};
 }
 
 std::string create_valid_density_topology_geometry_string()
@@ -43,6 +45,7 @@ std::string create_valid_density_topology_geometry_string()
         begin density_topology
           mesh_name test.exo
           output_name test_out.exo
+          initial_density_value 0.5
         end
         )";
 }

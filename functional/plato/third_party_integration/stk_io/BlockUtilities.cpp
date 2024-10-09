@@ -23,19 +23,6 @@ std::size_t entity_size(const stk::mesh::BulkData& aBulkData,
     return tEntityCounts.at(aEntityType);
 }
 
-std::vector<std::size_t> entity_ids(const stk::mesh::BulkData& aBulkData,
-                                    const stk::mesh::Part& aPart,
-                                    const stk::topology::rank_t aEntityType)
-{
-    auto tEntities = std::vector<stk::mesh::Entity>{};
-    stk::mesh::get_selected_entities(aPart, aBulkData.buckets(aEntityType), tEntities);
-    auto tEntityIDs = std::vector<std::size_t>{};
-    tEntityIDs.reserve(tEntities.size());
-    std::transform(tEntities.cbegin(), tEntities.cend(), std::back_inserter(tEntityIDs),
-                   [&aBulkData](const auto& tEntity) { return aBulkData.identifier(tEntity); });
-    return tEntityIDs;
-}
-
 }  // namespace
 
 unsigned int block_size(const stk::mesh::BulkData& aBulk) { return element_blocks_parts(aBulk).size(); }
@@ -77,16 +64,6 @@ std::size_t element_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::
 std::size_t node_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart)
 {
     return entity_size(aBulkData, aPart, stk::topology::NODE_RANK);
-}
-
-std::vector<std::size_t> node_ids(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart)
-{
-    return entity_ids(aBulkData, aPart, stk::topology::NODE_RANK);
-}
-
-std::vector<std::size_t> element_ids(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart)
-{
-    return entity_ids(aBulkData, aPart, stk::topology::ELEM_RANK);
 }
 
 auto element_blocks_parts(const stk::mesh::BulkData& aBulkData) -> stk::mesh::PartVector

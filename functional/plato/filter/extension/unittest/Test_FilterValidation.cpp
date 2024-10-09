@@ -10,7 +10,7 @@
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::filter::extension::unittest
 {

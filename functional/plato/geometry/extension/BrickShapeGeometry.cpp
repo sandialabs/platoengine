@@ -11,7 +11,7 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/FileUtilities.hpp"
 

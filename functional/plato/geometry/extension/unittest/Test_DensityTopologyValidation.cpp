@@ -10,7 +10,9 @@
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -18,6 +20,8 @@ namespace
 {
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
+
+using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
 
 const auto kDensityTopology = plato::test_utilities::create_valid_density_topology_geometry();
 
@@ -42,6 +46,43 @@ TEST(DensityTopologyValidation, ValidateOutputName)
     EXPECT_FALSE(detail::validate_output_name(tDensityTopology).has_value());
     tDensityTopology.output_name = boost::none;
     EXPECT_TRUE(detail::validate_output_name(tDensityTopology).has_value());
+}
+
+TEST(DensityTopologyValidation, ValidateInitialDensity)
+{
+    auto tDensityTopology = kDensityTopology;
+    EXPECT_FALSE(detail::validate_initial_density_value(tDensityTopology).has_value());
+    tDensityTopology.initial_density_value = boost::none;
+    EXPECT_FALSE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "Empty value is valid";
+    tDensityTopology.initial_density_value = -1;
+    EXPECT_TRUE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "-1 value is invalid";
+    tDensityTopology.initial_density_value = 0;
+    EXPECT_TRUE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "0 value is invalid";
+    tDensityTopology.initial_density_value = 0.5;
+    EXPECT_FALSE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "0.5 value is valid";
+    tDensityTopology.initial_density_value = 1.0;
+    EXPECT_FALSE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "1 value is valid";
+    tDensityTopology.initial_density_value = 1.5;
+    EXPECT_TRUE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "1.5 value is invalid";
+}
+
+TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
+{
+    auto tDensityTopology = input_parser::density_topology{};
+    EXPECT_TRUE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
+        << "Missing both specifiers";
+
+    tDensityTopology.initial_density_value = 0.5;
+    EXPECT_FALSE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
+        << "Valid, has initial_density_value";
+
+    tDensityTopology.initial_density_field_name = input_parser::IdentifierString{"bogus"};
+    EXPECT_TRUE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
+        << "Both specifiers used, Invalid.";
+
+    tDensityTopology.initial_density_value = boost::none;
+    EXPECT_FALSE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
+        << "Only field specifier is used, valid.";
 }
 
 TEST_F(DensityTopologyValidationFileFixture, ValidDensityTopologyInput)

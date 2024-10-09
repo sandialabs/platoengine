@@ -2,7 +2,6 @@
 
 #include <string_view>
 
-#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/UserDefinedToken.hpp"
 #include "plato/input_parser/unittest/Test_Helpers.hpp"
 
@@ -77,4 +76,4 @@ TEST(UserDefinedToken, ParseSuccess)
     EXPECT_EQ(tResult.mToken, tTestString);
 }
 
-}  // namespace plato::input_parser
+}  // namespace plato::input_parser::unittest

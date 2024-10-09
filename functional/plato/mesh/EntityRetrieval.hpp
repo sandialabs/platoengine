@@ -23,6 +23,16 @@ struct EntityRetrieval : public Mesh
 
     /// @brief Centroids of the elements in the design domain of the mesh.
     [[nodiscard]] auto designDomainElementCentroids() const -> std::vector<third_party_integration::common::Coordinate>;
+
+    /// @brief Nodal Global IDs in the mesh only associated with the design domain (not fixed blocks).
+    [[nodiscard]] auto designDomainNodeIDs() const -> std::vector<std::size_t>;
+
+    /// @brief Return a nodal field on the design domain only for a field @a aFieldName.
+    /// @pre The field exists on the nodes.
+    [[nodiscard]] auto designDomainNodalField(const std::string_view aFieldName) const -> std::vector<double>;
+
+    /// @brief Return a vector of nodal fields defined
+    [[nodiscard]] auto nodalFields() const -> std::vector<std::string>;
 };
 
 }  // namespace plato::mesh

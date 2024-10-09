@@ -134,6 +134,17 @@ class TwoDTwoBlockMesh : public ::testing::Test
     constexpr static auto mExpectedNumberOfNodesInBlock2 = 4U;
 };
 
+constexpr auto kTwoDTriMesh = std::string_view{
+    "textmesh:"
+    "0,1,TRI_3_2D,3,1,4,block_1\n"
+    "0,2,TRI_3_2D,1,2,4,block_1\n"
+    "0,3,TRI_3_2D,2,5,4,block_1\n"
+    "0,4,TRI_3_2D,5,7,4,block_2\n"
+    "0,5,TRI_3_2D,7,6,4,block_2\n"
+    "0,6,TRI_3_2D,6,3,4,block_2\n"
+    "|coordinates: 0,0,0.125,0,0,0.125,0.0625,0.125,0.125,0.125,0,0.25,0.125,0.25"
+    "|dimension:2"};
+
 }  // namespace plato::third_party_integration::stk_io::test_utilities
 
 #endif
