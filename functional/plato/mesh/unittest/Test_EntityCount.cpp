@@ -5,11 +5,14 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 
 namespace plato::mesh::unittest
 {
 namespace
 {
+
+using third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
@@ -150,6 +153,13 @@ TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockAreElementDesignVariables)
     const auto tMesh = EntityCounts{Mesh{mMeshFilePath, tFixedBlocks}};
     EXPECT_FALSE(tMesh.areNodalDesignVariables(tDesignVariables));
     EXPECT_TRUE(tMesh.areElementDesignVariables(tDesignVariables));
+}
+
+TEST_F(MeshWithNodalDensities, HasNodalFieldVariable)
+{
+    const auto tMesh = EntityCounts{Mesh{mMeshName}};
+    EXPECT_TRUE(tMesh.hasNodalFieldVariable(mFieldName));
+    EXPECT_FALSE(tMesh.hasNodalFieldVariable("Dingo"));
 }
 
 }  // namespace plato::mesh::unittest

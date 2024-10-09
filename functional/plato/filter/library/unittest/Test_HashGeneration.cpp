@@ -9,7 +9,7 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::integration_tests::serial
 {

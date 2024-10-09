@@ -1,14 +1,19 @@
 #include <gtest/gtest.h>
 
+#include <numeric>
+
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 
 namespace plato::mesh::unittest
 {
 namespace
 {
+
+using third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
@@ -53,6 +58,22 @@ TEST_F(TwoDThreeBlockMesh, NodalCoordinatesWithFixedBlocks)
     EXPECT_EQ(tExpectedNodalCoordinates, tDesignDomainNodes);
 }
 
+TEST_F(TwoDThreeBlockMesh, NodalIDsWithFixedBlocks)
+{
+    const auto tMesh = Mesh{mMeshFilePath, {"block_1"}};
+    const auto tDesignDomainNodeIDs = EntityRetrieval{tMesh}.designDomainNodeIDs();
+    const auto tExpectedNodalIDs = std::vector<std::size_t>{1U, 2U, 3U, 4U, 5U, 6U};
+    EXPECT_EQ(tExpectedNodalIDs, tDesignDomainNodeIDs);
+}
+
+TEST_F(TwoDThreeBlockMesh, NodalIDs)
+{
+    const auto tMesh = Mesh{mMeshFilePath, {}};
+    const auto tDesignDomainNodeIDs = EntityRetrieval{tMesh}.designDomainNodeIDs();
+    const auto tExpectedNodalIDs = std::vector<std::size_t>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U};
+    EXPECT_EQ(tExpectedNodalIDs, tDesignDomainNodeIDs);
+}
+
 TEST_F(TwoDThreeBlockMesh, ElementCentroidsDesignDomainSameAsFullMesh)
 {
     const auto tMesh = Mesh{mMeshFilePath};
@@ -71,6 +92,25 @@ TEST_F(TwoDThreeBlockMesh, ElementCentroidsWithFixedBlock)
     const auto tExpectedCoordinates = std::vector<third_party_integration::common::Coordinate>{{1.0, 0.5, 0.0}};
 
     EXPECT_EQ(tDesignDomainNodes, tExpectedCoordinates);
+}
+
+TEST_F(MeshWithNodalDensities, DesignDomainNodalField)
+{
+    const auto tMesh = EntityRetrieval{Mesh{mMeshName, {}}};
+    const auto tResult = tMesh.designDomainNodalField(mFieldName);
+
+    EXPECT_EQ(tResult.size(), mGoldNumbering.size());
+    std::vector<double> tGoldVector(mGoldNumbering.size());
+    std::iota(tGoldVector.begin(), tGoldVector.end(), 1.0);
+    EXPECT_EQ(tGoldVector, tResult);
+}
+
+TEST_F(MeshWithNodalDensities, NodalFields)
+{
+    const auto tMesh = EntityRetrieval{Mesh{mMeshName, {}}};
+    const auto tResult = tMesh.nodalFields();
+    const auto tGold = std::vector<std::string>{"coordinates", "topology"};
+    EXPECT_EQ(tGold, tResult);
 }
 
 }  // namespace plato::mesh::unittest

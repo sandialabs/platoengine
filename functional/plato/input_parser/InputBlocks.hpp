@@ -6,6 +6,7 @@
 
 #include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/IdentifierString.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
@@ -113,6 +114,8 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato::input_parser::FileName, output_name)
     (plato::input_parser::FixedBlockList, fixed_blocks)
     (plato::input_parser::FilterCrossReference, filter)
+    (double, initial_density_value)
+    (plato::input_parser::IdentifierString, initial_density_field_name)
 )
 
 PLATO_FILTER_INPUT_BLOCK_STRUCT(

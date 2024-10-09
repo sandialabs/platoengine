@@ -15,13 +15,17 @@
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
-#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 
 namespace plato::geometry::extension::unittest
 {
+
+using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
+
 namespace
 {
 
@@ -81,20 +85,64 @@ TEST(DensityTopology, GenerateMesh)
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
 }
 
+namespace
+{
+void test_uniform_initial_guess_against_gold(const linear_algebra::DynamicVector<double>& aInitialGuess,
+                                             const double aGold,
+                                             const test_utilities::TestContext& aTestContext)
+{
+    EXPECT_EQ(aInitialGuess.size(), kExpectedDensitySize) << aTestContext;
+
+    for (const double val : aInitialGuess.stdVector())
+    {
+        EXPECT_EQ(val, aGold) << aTestContext;
+    }
+}
+
+}  // namespace
+
 TEST(DensityTopology, InitialGuess)
 {
     create_small_mesh(kDensityInput.mesh_name->mToken);
 
-    const linear_algebra::DynamicVector<double> tInitialGuess = DensityTopology::initialGuess(kDensityInput);
-
-    EXPECT_EQ(tInitialGuess.size(), kExpectedDensitySize);
-
-    for (const double val : tInitialGuess.stdVector())
     {
-        EXPECT_EQ(val, 0.5);
+        const linear_algebra::DynamicVector<double> tInitialGuess = DensityTopology::initialGuess(kDensityInput);
+        test_uniform_initial_guess_against_gold(tInitialGuess, kDensityInput.initial_density_value.value(),
+                                                TEST_CONTEXT("Given 0.5 in input"));
+    }
+    {
+        auto tDensityInput = kDensityInput;
+        tDensityInput.initial_density_value = 0.3;
+        const linear_algebra::DynamicVector<double> tInitialGuess = DensityTopology::initialGuess(tDensityInput);
+        test_uniform_initial_guess_against_gold(tInitialGuess, tDensityInput.initial_density_value.value(),
+                                                TEST_CONTEXT("Given 0.3 in input"));
     }
 
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
+}
+
+namespace
+{
+[[nodiscard]] auto density_input_for_test_fixture(const std::filesystem::path& aMeshName,
+                                                  const std::string_view aFieldName) -> input_parser::density_topology
+{
+    auto tDensityInput = kDensityInput;
+    tDensityInput.initial_density_value = boost::none;
+    tDensityInput.mesh_name = input_parser::FileName{aMeshName};
+    tDensityInput.initial_density_field_name = input_parser::IdentifierString{std::string{aFieldName}};
+    return tDensityInput;
+}
+
+}  // namespace
+
+TEST_F(NodalDensityMesh, InitialDensityFromMesh)
+{
+    const auto tDensityInput = density_input_for_test_fixture(mMeshName, mFieldName);
+    const auto tResult = detail::initial_density_value_from_mesh(tDensityInput);
+
+    std::vector<double> tGold(mGoldNumbering.size());
+    std::iota(tGold.begin(), tGold.end(), 1.0);
+    EXPECT_EQ(tResult, tGold);
 }
 
 TEST(DensityTopology, Bounds)
