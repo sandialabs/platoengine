@@ -1,7 +1,5 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 
-// #include "plato/third_party_integration/stk_io/IOUtilities.hpp"
-// #include "plato/third_party_integration/stk_io/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"

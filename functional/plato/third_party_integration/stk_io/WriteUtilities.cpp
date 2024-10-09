@@ -12,8 +12,6 @@
 #include <stk_topology/topology.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
-
 namespace plato::third_party_integration::stk_io
 {
 namespace
@@ -131,21 +129,6 @@ void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
 
     constexpr double tTime = 1.0;
     write_defined_output_fields(*tIOBroker, tOutputFileIndex, tTime);
-}
-
-std::vector<unsigned int> extract_global_node_ids(const stk::mesh::BulkData& aBulkData)
-{
-    auto tNodeEntities = stk::mesh::EntityVector{};
-    stk::mesh::get_entities(aBulkData, stk::topology::NODE_RANK, aBulkData.mesh_meta_data().universal_part(),
-                            tNodeEntities);
-    const unsigned int tNumNodes = third_party_integration::stk_io::node_size(aBulkData);
-    std::vector<unsigned int> tLocalToGlobalMap(tNumNodes);
-
-    for (auto& tNodeEntity : tNodeEntities)
-    {
-        tLocalToGlobalMap[aBulkData.local_id(tNodeEntity)] = aBulkData.identifier(tNodeEntity);
-    }
-    return tLocalToGlobalMap;
 }
 
 }  // namespace plato::third_party_integration::stk_io

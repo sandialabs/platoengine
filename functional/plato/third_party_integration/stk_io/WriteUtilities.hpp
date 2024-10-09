@@ -52,10 +52,6 @@ void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
                                 const std::string_view aFieldName,
                                 const std::filesystem::path& aOutputMeshName);
 
-/// @brief Given a pathname  @a aFilename, return a std::vector of the global node id map
-/// name
-[[nodiscard]] std::vector<unsigned int> extract_global_node_ids(const stk::mesh::BulkData& aBulkData);
-
 }  // namespace plato::third_party_integration::stk_io
 
 #endif
