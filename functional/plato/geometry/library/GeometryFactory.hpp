@@ -10,10 +10,6 @@
 
 namespace plato::geometry::library
 {
-using DesignParameters = linear_algebra::DynamicVector<double>;
-using GeometryFunction = core::Function<analysis::AnalysisDomainMesh,
-                                        linear_algebra::JacobianMultiplier,
-                                        const linear_algebra::DynamicVector<double>&>;
 
 /// @brief Factory function for creating all geometry data, including a GeometryFunction, an initial guess,
 ///  the bound constraints, and an output function.

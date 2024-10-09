@@ -4,7 +4,7 @@
 #include <string_view>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/Function.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::criteria::extension
@@ -21,8 +21,7 @@ struct NodalSumObjective
 };
 
 /// @brief Creates a Function object from a NodalSumObjective
-[[nodiscard]] auto make_nodal_sum_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
+[[nodiscard]] auto make_nodal_sum_function() -> library::CriterionFunction;
 
 }  // namespace plato::criteria::extension
 

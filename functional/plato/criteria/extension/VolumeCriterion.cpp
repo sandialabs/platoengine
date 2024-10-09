@@ -50,15 +50,13 @@ linear_algebra::DynamicVector<double> VolumeCriterion::df(const analysis::Analys
     return mScaleFactor * std::move(tJacobian);
 }
 
-auto make_volume_constraint_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>
+auto make_volume_constraint_function() -> library::CriterionFunction
 {
     return core::make_function([](const analysis::AnalysisDomainMesh& mesh) { return VolumeCriterion{}.f(mesh); },
                                [](const analysis::AnalysisDomainMesh& mesh) { return VolumeCriterion{}.df(mesh); });
 }
 
-auto make_volume_fraction_constraint_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>
+auto make_volume_fraction_constraint_function() -> library::CriterionFunction
 {
     return core::make_function(
         [](const analysis::AnalysisDomainMesh& mesh)

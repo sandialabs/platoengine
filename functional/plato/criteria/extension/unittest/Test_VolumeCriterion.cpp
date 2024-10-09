@@ -20,10 +20,9 @@ using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 constexpr std::string_view kMeshFile = "brick.exo";
 
-void test_volume_criteria_from_ctor_and_function(
-    const VolumeCriterion& tVolumeCriterion,
-    const core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>& aFunction,
-    const double aGoldVolume)
+void test_volume_criteria_from_ctor_and_function(const VolumeCriterion& tVolumeCriterion,
+                                                 const library::CriterionFunction& aFunction,
+                                                 const double aGoldVolume)
 {
     constexpr double tConstantControls = 0.75;
 
@@ -48,10 +47,9 @@ void test_scaled_and_unscaled_on_ctor_and_function(
     EXPECT_TRUE(std::filesystem::remove(kMeshFile));
 }
 
-void test_volume_criteria_derivative_from_ctor_and_function(
-    const VolumeCriterion& tVolumeCriterion,
-    const core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>& aFunction,
-    const std::vector<double>& aGold)
+void test_volume_criteria_derivative_from_ctor_and_function(const VolumeCriterion& tVolumeCriterion,
+                                                            const library::CriterionFunction& aFunction,
+                                                            const std::vector<double>& aGold)
 {
     const auto tMesh = mesh::Mesh{kMeshFile};
     const auto tAssignedDensities =

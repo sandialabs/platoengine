@@ -175,10 +175,7 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
     }
 }
 
-auto make_topology_geometry(const DensityTopology& aDensityTopology)
-    -> core::Function<analysis::AnalysisDomainMesh,
-                      linear_algebra::JacobianMultiplier,
-                      const linear_algebra::DynamicVector<double>&>
+auto make_topology_geometry(const DensityTopology& aDensityTopology) -> library::GeometryFunction
 {
     return core::make_function([tDensityTopology = aDensityTopology](const linear_algebra::DynamicVector<double>& x)
                                { return tDensityTopology.generateMesh(x); },

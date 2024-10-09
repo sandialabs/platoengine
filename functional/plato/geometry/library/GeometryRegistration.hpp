@@ -22,11 +22,13 @@ struct JacobianMultiplier;
 
 namespace plato::geometry::library
 {
+using GeometryFunction = core::Function<analysis::AnalysisDomainMesh,
+                                        linear_algebra::JacobianMultiplier,
+                                        const linear_algebra::DynamicVector<double>&>;
+
 struct FactoryTypes
 {
-    using Compute = core::Function<analysis::AnalysisDomainMesh,
-                                   linear_algebra::JacobianMultiplier,
-                                   const linear_algebra::DynamicVector<double>&>;
+    using Compute = GeometryFunction;
     using InitialGuess = linear_algebra::DynamicVector<double>;
     using Bounds = std::pair<std::vector<double>, std::vector<double>>;
     using Output = std::function<void(const linear_algebra::DynamicVector<double>&)>;

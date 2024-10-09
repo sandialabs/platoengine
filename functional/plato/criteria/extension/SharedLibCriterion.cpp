@@ -53,8 +53,7 @@ linear_algebra::DynamicVector<double> SharedLibCriterion::df(const analysis::Ana
     return linear_algebra::DynamicVector<double>(mCriterionInterface->gradient(aAnalysisMesh));
 }
 
-auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion)
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>
+auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion) -> library::CriterionFunction
 {
     return core::make_function([aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisMesh)
                                { return aSharedLibCriterion.f(aAnalysisMesh); },
