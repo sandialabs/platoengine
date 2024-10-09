@@ -4,7 +4,7 @@
 
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
@@ -27,7 +27,7 @@ void check_read_write_nodal_round_trip(const std::vector<double>& aFieldToWrite,
 {
     aMesh.writeNodalField(kOutputMeshPath, NodalFieldVectorReference{aFieldToWrite}, kFieldName, kFixedValue);
     const auto tFieldFromDisk =
-        third_party_integration::stk_io::test_utilities::read_nodal_field(kOutputMeshPath, kFieldName);
+        third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(kOutputMeshPath, kFieldName);
     EXPECT_EQ(tFieldFromDisk, aExpectedField) << aTestContext;
     std::filesystem::remove(kOutputMeshPath);
 }
@@ -39,7 +39,7 @@ void check_read_write_element_round_trip(const std::vector<double>& aFieldToWrit
 {
     aMesh.writeElementField(kOutputMeshPath, ElementFieldVectorReference{aFieldToWrite}, kFieldName, kFixedValue);
     const auto tFieldFromDisk =
-        third_party_integration::stk_io::test_utilities::read_element_field(kOutputMeshPath, kFieldName);
+        third_party_integration::stk_io::test_utilities::read_element_field_as_vector(kOutputMeshPath, kFieldName);
     EXPECT_EQ(tFieldFromDisk, aExpectedField) << aTestContext;
     std::filesystem::remove(kOutputMeshPath);
 }
@@ -104,7 +104,7 @@ TEST_F(MeshFieldWriterTestMesh, WriteFieldsFromDesignVariables)
             std::vector<analysis::ScalarFieldValue>{{2, 1, 2.0}, {3, 2, 3.0}, {4, 3, 4.0}, {5, 6, 5.0}};
         tWriteFieldToDisk(tFieldVectorBlock1, tFieldVectorBlock2, tFieldName);
         const auto tFieldFromDisk =
-            third_party_integration::stk_io::test_utilities::read_nodal_field(kOutputMeshPath, tFieldName);
+            third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(kOutputMeshPath, tFieldName);
         auto tExpectedField = std::vector<double>(mExpectedNumberOfNodes);
         std::iota(tExpectedField.begin(), tExpectedField.end(), 1.0);
         EXPECT_EQ(tFieldFromDisk, tExpectedField);
@@ -116,7 +116,7 @@ TEST_F(MeshFieldWriterTestMesh, WriteFieldsFromDesignVariables)
         const auto tFieldVectorBlock2 = std::vector<analysis::ScalarFieldValue>{{1, 0, 1.0}, {2, 1, 2.0}};
         tWriteFieldToDisk(tFieldVectorBlock1, tFieldVectorBlock2, tFieldName);
         const auto tFieldFromDisk =
-            third_party_integration::stk_io::test_utilities::read_element_field(kOutputMeshPath, tFieldName);
+            third_party_integration::stk_io::test_utilities::read_element_field_as_vector(kOutputMeshPath, tFieldName);
         auto tExpectedField = std::vector<double>(mExpectedNumberOfElements);
         std::iota(tExpectedField.begin(), tExpectedField.end(), 1.0);
         EXPECT_EQ(tFieldFromDisk, tExpectedField);

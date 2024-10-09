@@ -1,7 +1,7 @@
 #include "plato/mesh/MeshQuantities.hpp"
 
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 

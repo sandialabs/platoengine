@@ -79,6 +79,7 @@ TEST_F(ValidatedInputFileFixture, DensityTopologyCrossReferenceWithName)
             mesh_name test.exo
             output_name test_out.exo
             filter identity_filter
+            initial_density_value 0.5
           end
           begin helmholtz_filter
             filter_radius 1

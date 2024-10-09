@@ -2,7 +2,7 @@
 
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 
 namespace plato::mesh
 {
@@ -46,6 +46,11 @@ bool EntityCounts::areElementDesignVariables(const analysis::AnalysisDomainMesh&
 {
     const auto tAnalysisDomainMeshView = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh};
     return numberOfDesignDomainElements() == tAnalysisDomainMeshView.size();
+}
+
+bool EntityCounts::hasNodalFieldVariable(const std::string_view aFieldName) const
+{
+    return third_party_integration::stk_io::nodal_field_exists(filePath(), aFieldName);
 }
 
 }  // namespace plato::mesh

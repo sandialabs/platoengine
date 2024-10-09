@@ -6,8 +6,8 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
-#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
@@ -22,16 +22,6 @@ constexpr auto kExpectedNumberOfElementsInBlock1 = 273u;
 constexpr auto kExpectedNumberOfElementsInBlock2 = 40u;
 constexpr auto kExpectedNumberOfNodesInBlock1 = 93u;
 constexpr auto kExpectedNumberOfNodesInBlock2 = 90u;
-constexpr auto kTwoDTriMesh = std::string_view{
-    "textmesh:"
-    "0,1,TRI_3_2D,3,1,4,block_1\n"
-    "0,2,TRI_3_2D,1,2,4,block_1\n"
-    "0,3,TRI_3_2D,2,5,4,block_1\n"
-    "0,4,TRI_3_2D,5,7,4,block_2\n"
-    "0,5,TRI_3_2D,7,6,4,block_2\n"
-    "0,6,TRI_3_2D,6,3,4,block_2\n"
-    "|coordinates: 0,0,0.125,0,0,0.125,0.0625,0.125,0.125,0.125,0,0.25,0.125,0.25"
-    "|dimension:2"};
 
 }  // namespace
 
@@ -85,38 +75,6 @@ TEST_F(TwoBlockMeshOnDisk, PartWithBlockNameAndID)
     }
 }
 
-TEST(BlockUtilities, EntityIDs)
-{
-    const auto tMeshPath = std::filesystem::path{"temp_mesh.exo"};
-    write_mesh(tMeshPath, kTwoDTriMesh);
-    const auto tBulkData = read_mesh_bulk_data(tMeshPath);
-    {
-        constexpr auto tBlock1Ordinal = 20u;
-        const auto tBlock1 = part_with_block_meta_data_ordinal(*tBulkData, tBlock1Ordinal);
-        ASSERT_TRUE(tBlock1);
-        const auto tResultElementIDs = element_ids(*tBulkData, tBlock1->get());
-        const auto tExpectedElementIDs = std::vector<std::size_t>{1, 2, 3};
-        EXPECT_EQ(tResultElementIDs, tExpectedElementIDs);
-
-        const auto tResultNodeIDs = node_ids(*tBulkData, tBlock1->get());
-        const auto tExpectedNodeIDs = std::vector<std::size_t>{1, 2, 3, 4, 5};
-        EXPECT_EQ(tResultNodeIDs, tExpectedNodeIDs);
-    }
-    {
-        constexpr auto tBlock2Ordinal = 21u;
-        const auto tBlock2 = part_with_block_meta_data_ordinal(*tBulkData, tBlock2Ordinal);
-        ASSERT_TRUE(tBlock2);
-        const auto tResultElementIDs = element_ids(*tBulkData, tBlock2->get());
-        const auto tExpectedElementIDs = std::vector<std::size_t>{4, 5, 6};
-        EXPECT_EQ(tResultElementIDs, tExpectedElementIDs);
-
-        const auto tResultNodeIDs = node_ids(*tBulkData, tBlock2->get());
-        const auto tExpectedNodeIDs = std::vector<std::size_t>{3, 4, 5, 6, 7};
-        EXPECT_EQ(tResultNodeIDs, tExpectedNodeIDs);
-    }
-    std::filesystem::remove(tMeshPath);
-}
-
 TEST(BlockUtilities, NodeIDsOneBlockNonSequential)
 {
     const auto tMeshPath = std::filesystem::path{"temp_mesh.exo"};
@@ -139,7 +97,7 @@ TEST(BlockUtilities, NodeIDsOneBlockNonSequential)
 TEST(BlockUtilities, NodalCoordinatesInBlock)
 {
     const auto tMeshPath = std::filesystem::path{"temp_mesh.exo"};
-    write_mesh(tMeshPath, kTwoDTriMesh);
+    write_mesh(tMeshPath, test_utilities::kTwoDTriMesh);
 
     const auto tBulkData = read_mesh_bulk_data(tMeshPath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();

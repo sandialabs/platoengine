@@ -8,7 +8,7 @@
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/ValidInputTestFixture.hpp"
-#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::integration_tests::serial

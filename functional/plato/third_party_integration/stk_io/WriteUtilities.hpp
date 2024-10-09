@@ -1,5 +1,5 @@
-#ifndef PLATO_THIRDPARTYINTEGRATION_STKIO_IOUTILITIES
-#define PLATO_THIRDPARTYINTEGRATION_STKIO_IOUTILITIES
+#ifndef PLATO_THIRDPARTYINTEGRATION_STKIO_WRITEUTILITIES
+#define PLATO_THIRDPARTYINTEGRATION_STKIO_WRITEUTILITIES
 
 #include <filesystem>
 #include <functional>
@@ -32,9 +32,6 @@ void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDe
 
 /// @brief Given a pathname  @a aMeshName and the STK Bulk data @a aBulk, write to disk the data in exodus format
 void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk);
-
-/// @brief Given a pathname  @a aMeshName, read from disk and return a shared pointer to the STK Bulk data.
-[[nodiscard]] std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::path& aMeshName);
 
 /// @brief A function for retrieving a scalar field value using an index into some data structure.
 using ScalarFieldFunction = std::function<double(std::size_t)>;

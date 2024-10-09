@@ -67,7 +67,7 @@ TEST(SNOPTUtilities, LinearConstraintJacobians)
                                                              test_linear_constraint(tObjective, tGradient2)};
 
     const auto tSparseMatrix = linear_constraint_jacobian_sparse_matrix(
-        SNOPTConstraints{std::move(tConstraintGradientFunctions)}, tNumberOfDesignVariables);
+        SNOPTConstraints{std::move(tConstraintGradientFunctions), tNumberOfDesignVariables}, tNumberOfDesignVariables);
     constexpr auto tExpectedNumberOfNonZero = std::size_t{3};
     ASSERT_EQ(tSparseMatrix.size(), tExpectedNumberOfNonZero);
 

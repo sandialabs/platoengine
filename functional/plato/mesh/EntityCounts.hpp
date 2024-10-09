@@ -48,6 +48,9 @@ struct EntityCounts : public Mesh
 
     /// @brief Returns `true` if @a aAnalysisDomainMesh contains a design variable field associated with elements.
     [[nodiscard]] bool areElementDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
+
+    /// @brief Returns `true` if the field name @a aFieldName exists on the nodes in the mesh
+    [[nodiscard]] bool hasNodalFieldVariable(const std::string_view aFieldName) const;
 };
 
 }  // namespace plato::mesh

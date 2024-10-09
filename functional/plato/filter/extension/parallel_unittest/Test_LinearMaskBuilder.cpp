@@ -7,7 +7,7 @@
 #include "plato/filter/extension/test_utilities/LinearMaskTestUtility.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 #include "plato/third_party_integration/tpetra/TestUtilities.hpp"
 

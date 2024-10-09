@@ -1,4 +1,4 @@
-#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 #include <Ioss_NodeBlock.h>
 
@@ -103,15 +103,6 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
     const size_t outputFileIndex = tIOBroker.create_output_mesh(aMeshName.string(), stk::io::WRITE_RESULTS);
     tIOBroker.write_output_mesh(outputFileIndex);
     tIOBroker.write_defined_output_fields(outputFileIndex);
-}
-
-std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::path& aMeshName)
-{
-    std::shared_ptr<stk::mesh::BulkData> tBulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
-    stk::mesh::MetaData& tMeta = tBulk->mesh_meta_data();
-    tMeta.use_simple_fields();
-    stk::io::fill_mesh(aMeshName.string(), *tBulk);
-    return tBulk;
 }
 
 void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,

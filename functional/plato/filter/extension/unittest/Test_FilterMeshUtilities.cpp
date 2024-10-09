@@ -4,7 +4,7 @@
 
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
-#include "plato/third_party_integration/stk_io/IOUtilities.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::filter::extension::unittest
 {

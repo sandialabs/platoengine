@@ -6,7 +6,7 @@
 
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
-#include "plato/third_party_integration/stk_io/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 
 namespace plato::mesh
 {
