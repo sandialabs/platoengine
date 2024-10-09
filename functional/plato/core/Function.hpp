@@ -130,6 +130,28 @@ struct ArgType<R (F::*)(Arg) const>
 };
 }  // namespace detail
 
+/// @brief Helper function template for constructing a Function object.
+///
+/// The main purpose of this function is for constructing Function objects
+/// using template argument deduction. Prefer usage of this over Function's ctor.
+template <typename F, typename G>
+auto make_function_with_first_derivative(F aF, G aG)
+{
+    using ArgF = typename detail::ArgType<decltype(&F::operator())>::type;
+    using ArgG = typename detail::ArgType<decltype(&G::operator())>::type;
+    static_assert(std::is_convertible_v<ArgF, ArgG>,
+                  "The arguments of functions with type F and G must be implicitly convertible.");
+
+    using R = std::invoke_result_t<F, ArgF>;
+    using dR = std::invoke_result_t<G, ArgG>;
+
+    using FunctionEvaluationInfo = FunctionInfo<R, evaluation::kFunction>;
+    using FunctionFirstDerivativeInfo = FunctionInfo<dR, evaluation::kFirstDerivative>;
+    using FunctionType = FunctionWithDerivatives<ArgF, FunctionEvaluationInfo, FunctionFirstDerivativeInfo>;
+
+    return FunctionType{std::move(aF), std::move(aG)};
+}
+
 /// @brief A helper function template for constructing a Function object.
 ///
 /// The main purpose of this function is for constructing Function objects

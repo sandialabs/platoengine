@@ -5,7 +5,6 @@
 #include <utility>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/FunctionWithDerivatives.hpp"
 
 namespace plato::core
 {

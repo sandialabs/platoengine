@@ -49,7 +49,7 @@ TEST(PlatoFunctional, TwoD)
     }
 }
 
-TEST(FunctionWithDerivatives, Scalar)
+TEST(Function, Scalar)
 {
     using ScalarFInfo = FunctionInfo<double, evaluation::kFunction>;
     using ScalarFirstDerivativeInfo = FunctionInfo<double, evaluation::kFirstDerivative>;
@@ -68,7 +68,7 @@ TEST(FunctionWithDerivatives, Scalar)
     static_assert(!ScalarFunctionWithFirstDerivative::isImplemented<1, MatrixOrdering::kAdjoint>());
 }
 
-TEST(FunctionWithDerivatives, TwoD)
+TEST(Function, TwoD)
 {
     namespace pft = plato::test_utilities;
 
@@ -102,6 +102,21 @@ TEST(FunctionWithDerivatives, TwoD)
         EXPECT_EQ(tF.evaluate<1>(tX), tExpectedDF);
         EXPECT_EQ((tF.evaluate<1, MatrixOrdering::kAdjoint>(tX)), pft::transpose(tExpectedDF));
     }
+}
+
+TEST(Function, ScalarUsingMakeFunction)
+{
+    const auto tFunction = make_function_with_first_derivative([](const double x) { return x * x * x; },
+                                                               [](const double x) { return 3.0 * x * x; });
+
+    constexpr auto tArgument = double{3.0};
+    EXPECT_EQ(tFunction.evaluate<evaluation::kFunction>(tArgument), tArgument * tArgument * tArgument);
+    EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(3.0), 3.0 * tArgument * tArgument);
+
+    using FunctionType = decltype(tFunction);
+    static_assert(FunctionType::isImplemented<0, MatrixOrdering::kOriginal>());
+    static_assert(FunctionType::isImplemented<1, MatrixOrdering::kOriginal>());
+    static_assert(!FunctionType::isImplemented<1, MatrixOrdering::kAdjoint>());
 }
 
 }  // namespace plato::core::unittest
