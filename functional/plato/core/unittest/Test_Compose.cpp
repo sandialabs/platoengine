@@ -93,4 +93,78 @@ TEST(Composer, TwoDFunctions)
         EXPECT_EQ(tH.df(tX), tExpectedDF);
     }
 }
+
+TEST(Compose, CompositionScalarFunctions)
+{
+    using ScalarFInfo = FunctionInfo<double, evaluation::kFunction>;
+    using ScalarFirstDerivativeInfo = FunctionInfo<double, evaluation::kFirstDerivative>;
+    using ScalarFunctionWithFirstDerivative = FunctionWithDerivatives<double, ScalarFInfo, ScalarFirstDerivativeInfo>;
+
+    const auto tFunction1 =
+        ScalarFunctionWithFirstDerivative{[](const double x) { return x + 1; }, [](const double) { return 1.0; }};
+
+    const auto tFunction2 =
+        ScalarFunctionWithFirstDerivative{[](const double x) { return x * x; }, [](const double x) { return 2.0 * x; }};
+
+    {
+        // x^2 + 1
+        const auto tComposition = compose_new(tFunction1, tFunction2);
+        EXPECT_EQ(tComposition.evaluate<0>(0.0), 1.0);
+        EXPECT_EQ(tComposition.evaluate<1>(0.0), 0.0);
+        EXPECT_EQ(tComposition.evaluate<0>(-1.0), 2.0);
+        EXPECT_EQ(tComposition.evaluate<1>(-1.0), -2.0);
+        EXPECT_EQ(tComposition.evaluate<0>(1.0), 2.0);
+        EXPECT_EQ(tComposition.evaluate<1>(1.0), 2.0);
+    }
+    {
+        // (x + 1)^2
+        const auto tComposition = compose_new(tFunction2, tFunction1);
+        EXPECT_EQ(tComposition.evaluate<0>(0.0), 1.0);
+        EXPECT_EQ(tComposition.evaluate<1>(0.0), 2.0);
+        EXPECT_EQ(tComposition.evaluate<0>(-1.0), 0.0);
+        EXPECT_EQ(tComposition.evaluate<1>(-1.0), 0.0);
+        EXPECT_EQ(tComposition.evaluate<0>(1.0), 4.0);
+        EXPECT_EQ(tComposition.evaluate<1>(1.0), 4.0);
+    }
+}
+
+TEST(Compose, CompositionVectorFunctions)
+{
+    namespace pft = plato::test_utilities;
+
+    using VectorFInfo = FunctionInfo<pft::TwoDVector, evaluation::kFunction>;
+    using VectorFirstDerivativeInfo = FunctionInfo<pft::TwoDMatrix, evaluation::kFirstDerivative>;
+    using VectorFirstDerivativeAdjointInfo =
+        FunctionInfo<pft::TwoDMatrix, evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>;
+
+    using VectorFunction = FunctionWithDerivatives<pft::TwoDVector, VectorFInfo, VectorFirstDerivativeInfo,
+                                                   VectorFirstDerivativeAdjointInfo>;
+
+    const auto tF = VectorFunction{pft::TwoDVectorFunction{}, pft::TwoDVectorFunctionJacobian{},
+                                   pft::TwoDVectorFunctionAdjointJacobian{}};
+
+    const auto tComposition = compose_new(tF, tF);
+
+    {
+        const auto tX = pft::TwoDVector{0.0, 0.0};
+        const auto tExpectedF = pft::makeTwoDVector(0.0, 0.0);
+        const auto tExpectedDF = pft::makeTwoDMatrix(0.0, 0.0, 1.0, 1.0);
+        const auto tExpectedAdjointDF = pft::makeTwoDMatrix(0.0, 1.0, 0.0, 1.0);
+        EXPECT_EQ(tComposition.evaluate<evaluation::kFunction>(tX), tExpectedF);
+        EXPECT_EQ(tComposition.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
+        EXPECT_EQ((tComposition.evaluate<evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>(tX)),
+                  tExpectedAdjointDF);
+    }
+    {
+        const auto tX = pft::TwoDVector{1.0, 0.5};
+        const auto tExpectedF = pft::makeTwoDVector(0.75, 2.0);
+        const auto tExpectedDF = pft::makeTwoDMatrix(1.25, 2.0, 1.5, 2.0);
+        const auto tExpectedAdjointDF = pft::makeTwoDMatrix(1.25, 1.5, 2.0, 2.0);
+        EXPECT_EQ(tComposition.evaluate<evaluation::kFunction>(tX), tExpectedF);
+        EXPECT_EQ(tComposition.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
+        EXPECT_EQ((tComposition.evaluate<evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>(tX)),
+                  tExpectedAdjointDF);
+    }
+}
+
 }  // namespace plato::core::unittest
