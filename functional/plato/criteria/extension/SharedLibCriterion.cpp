@@ -55,10 +55,11 @@ linear_algebra::DynamicVector<double> SharedLibCriterion::df(const analysis::Ana
 
 auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion) -> library::CriterionFunction
 {
-    return core::make_function([aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisMesh)
-                               { return aSharedLibCriterion.f(aAnalysisMesh); },
-                               [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisMesh)
-                               { return aSharedLibCriterion.df(aAnalysisMesh); });
+    return core::make_function_with_first_derivative(
+        [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisMesh)
+        { return aSharedLibCriterion.f(aAnalysisMesh); },
+        [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisMesh)
+        { return aSharedLibCriterion.df(aAnalysisMesh); });
 }
 
 }  // namespace plato::criteria::extension

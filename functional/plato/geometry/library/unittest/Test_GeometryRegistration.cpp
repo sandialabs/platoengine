@@ -16,7 +16,7 @@ namespace
 {
 [[nodiscard]] auto make_test_geometry_function() -> FactoryTypes::Compute
 {
-    return core::make_function(
+    return core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>&) { return analysis::AnalysisDomainMesh{}; },
         [](const linear_algebra::DynamicVector<double>&) { return linear_algebra::JacobianMultiplier{}; });
 }

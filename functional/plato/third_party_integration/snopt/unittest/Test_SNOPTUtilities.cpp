@@ -24,27 +24,33 @@ struct TestTag
 {
 };
 
-const auto kXSquaredConstraint = ConstraintType{/*.mFunction=*/
-                                                core::make_function(kXSquaredFunction, kXSquaredGradientFunction),
-                                                /*.mTarget=*/0.0, /*.mLinearity=*/Linearity::kNonlinear};
-const auto kXCubedConstraint = ConstraintType{/*.mFunction=*/
-                                              core::make_function(kXCubedFunction, kXCubedGradientFunction),
-                                              /*.mTarget=*/0.0, /*.mLinearity=*/Linearity::kNonlinear};
+const auto kXSquaredConstraint =
+    ConstraintType{/*.mFunction=*/
+                   core::make_function_with_first_derivative(kXSquaredFunction, kXSquaredGradientFunction),
+                   /*.mTarget=*/0.0, /*.mLinearity=*/Linearity::kNonlinear};
+const auto kXCubedConstraint =
+    ConstraintType{/*.mFunction=*/
+                   core::make_function_with_first_derivative(kXCubedFunction, kXCubedGradientFunction),
+                   /*.mTarget=*/0.0, /*.mLinearity=*/Linearity::kNonlinear};
 
 template <typename EvaluationFunction, typename GradientFunction>
 auto test_linear_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
     -> ConstraintType
 {
-    return ConstraintType{/*.mFunction=*/core::make_function(aEvaluationFunction, aGradientFunction), /*.mTarget=*/0.0,
-                          /*.mLinearity=*/Linearity::kLinear};
+    return ConstraintType{
+        /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
+        /*.mTarget=*/0.0,
+        /*.mLinearity=*/Linearity::kLinear};
 }
 
 template <typename EvaluationFunction, typename GradientFunction>
 auto test_nonlinear_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
     -> ConstraintType
 {
-    return ConstraintType{/*.mFunction=*/core::make_function(aEvaluationFunction, aGradientFunction), /*.mTarget=*/0.0,
-                          /*.mLinearity=*/Linearity::kNonlinear};
+    return ConstraintType{
+        /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
+        /*.mTarget=*/0.0,
+        /*.mLinearity=*/Linearity::kNonlinear};
 }
 
 }  // namespace
@@ -84,7 +90,7 @@ TEST(SNOPTUtilities, LinearConstraintJacobians)
 TEST(SNOPTUtilities, EvaluateObjective)
 {
     DataSingleton<ObjectiveType, TestTag>::instance().data() =
-        core::make_function(kXSquaredFunction, kXSquaredGradientFunction);
+        core::make_function_with_first_derivative(kXSquaredFunction, kXSquaredGradientFunction);
 
     auto tResult = std::vector<double>(kNumberOfObjectives);
     constexpr auto tX = 0.5;
@@ -99,7 +105,7 @@ TEST(SNOPTUtilities, EvaluateObjective)
 TEST(SNOPTUtilities, EvaluateObjectiveGradient)
 {
     DataSingleton<ObjectiveType, TestTag>::instance().data() =
-        core::make_function(kXSquaredFunction, kXSquaredGradientFunction);
+        core::make_function_with_first_derivative(kXSquaredFunction, kXSquaredGradientFunction);
 
     constexpr auto tNumberOfConstraints = ConstraintSizeType{0};
     constexpr auto tNumberOfDesignVariables = DesignVariableSizeType{2};

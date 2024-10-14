@@ -13,10 +13,10 @@ namespace
 {
 [[nodiscard]] auto make_test_criterion_function() -> plato::criteria::library::CriterionFunction
 {
-    return core::make_function([](const analysis::AnalysisDomainMesh&) { return 0.0; },
-                               [](const analysis::AnalysisDomainMesh&) {
-                                   return linear_algebra::DynamicVector<double>{1.0, 2.0};
-                               });
+    return core::make_function_with_first_derivative([](const analysis::AnalysisDomainMesh&) { return 0.0; },
+                                                     [](const analysis::AnalysisDomainMesh&) {
+                                                         return linear_algebra::DynamicVector<double>{1.0, 2.0};
+                                                     });
 }
 
 [[maybe_unused]] static auto kTestCriterionRegistration = plato::criteria::library::CriterionRegistration{

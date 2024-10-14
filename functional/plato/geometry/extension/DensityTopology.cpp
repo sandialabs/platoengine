@@ -122,7 +122,7 @@ analysis::AnalysisDomainMesh DensityTopology::generateMesh(
 {
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{mMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
-    return mFilter.f(tNodalDesignParameters);
+    return mFilter.evaluate<core::evaluation::kFunction>(tNodalDesignParameters);
 }
 
 linear_algebra::JacobianMultiplier DensityTopology::jacobian(
@@ -134,7 +134,8 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
         /*.mNumColumns=*/mNumDesignParameters,
         /*.mJacobianTimesVectorFunction=*/
         [tAnalysisDomainMesh = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(tNodalDesignParameters),
-         this](const linear_algebra::DynamicVector<double>& x) { return x * mFilter.df(tAnalysisDomainMesh); }};
+         this](const linear_algebra::DynamicVector<double>& x)
+        { return x * mFilter.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh); }};
 }
 
 linear_algebra::DynamicVector<double> DensityTopology::initialGuess(const input_parser::density_topology& aInput)
@@ -168,8 +169,9 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
 
     if (boost::mpi::communicator{}.rank() == 0)
     {
-        mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(tOutputMeshName, tFilter.f(tNodalDesignParameters),
-                                                             kTopologyFieldName, kDensityFixedValue);
+        mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(
+            tOutputMeshName, tFilter.evaluate<core::evaluation::kFunction>(tNodalDesignParameters), kTopologyFieldName,
+            kDensityFixedValue);
         mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(tRestartMeshName, tNodalDesignParameters,
                                                              kUnfilteredControlsFieldName, kDensityFixedValue);
     }
@@ -177,10 +179,11 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
 
 auto make_topology_geometry(const DensityTopology& aDensityTopology) -> library::GeometryFunction
 {
-    return core::make_function([tDensityTopology = aDensityTopology](const linear_algebra::DynamicVector<double>& x)
-                               { return tDensityTopology.generateMesh(x); },
-                               [tDensityTopology = aDensityTopology](const linear_algebra::DynamicVector<double>& x)
-                               { return tDensityTopology.jacobian(x); });
+    return core::make_function_with_first_derivative(
+        [tDensityTopology = aDensityTopology](const linear_algebra::DynamicVector<double>& x)
+        { return tDensityTopology.generateMesh(x); },
+        [tDensityTopology = aDensityTopology](const linear_algebra::DynamicVector<double>& x)
+        { return tDensityTopology.jacobian(x); });
 }
 
 namespace detail

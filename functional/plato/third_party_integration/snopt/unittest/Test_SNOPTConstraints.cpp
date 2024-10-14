@@ -9,19 +9,19 @@ namespace plato::third_party_integration::snopt::unittest
 {
 namespace
 {
-const auto kLinearTestFunction =
-    plato::core::make_function([](const linear_algebra::DynamicVector<double>& aX) { return 2.0 * aX[0] - aX[1]; },
-                               [](const linear_algebra::DynamicVector<double>&) {
-                                   return linear_algebra::DynamicVector<double>{2.0, -1.0};
-                               });
-const auto kAffineLinearTestFunction = plato::core::make_function(
+const auto kLinearTestFunction = plato::core::make_function_with_first_derivative(
+    [](const linear_algebra::DynamicVector<double>& aX) { return 2.0 * aX[0] - aX[1]; },
+    [](const linear_algebra::DynamicVector<double>&) {
+        return linear_algebra::DynamicVector<double>{2.0, -1.0};
+    });
+const auto kAffineLinearTestFunction = plato::core::make_function_with_first_derivative(
     [](const linear_algebra::DynamicVector<double>& aX) { return 2.0 * aX[0] - aX[1] - 1.0; },
     [](const linear_algebra::DynamicVector<double>&) {
         return linear_algebra::DynamicVector<double>{2.0, -1.0};
     });
-const auto kArbitraryTestFunction =
-    plato::core::make_function([](const linear_algebra::DynamicVector<double>&) { return 1.0; },
-                               [](const linear_algebra::DynamicVector<double>& aX) { return aX; });
+const auto kArbitraryTestFunction = plato::core::make_function_with_first_derivative(
+    [](const linear_algebra::DynamicVector<double>&) { return 1.0; },
+    [](const linear_algebra::DynamicVector<double>& aX) { return aX; });
 constexpr auto kLinearConstraintTarget = 0.0;
 constexpr auto kAffineLinearConstraintTarget = 1.0;
 constexpr auto kNonlinearConstraintTarget = 2.0;

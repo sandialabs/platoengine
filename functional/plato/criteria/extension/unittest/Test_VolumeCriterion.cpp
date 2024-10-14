@@ -32,7 +32,8 @@ void test_volume_criteria_from_ctor_and_function(const VolumeCriterion& tVolumeC
         mesh::ElementFieldVectorReference{std::cref(tControls)});
 
     EXPECT_EQ(tVolumeCriterion.f(tAnalysisDomainMesh), aGoldVolume * tConstantControls);
-    EXPECT_EQ(tVolumeCriterion.f(tAnalysisDomainMesh), aFunction.f(tAnalysisDomainMesh));
+    EXPECT_EQ(tVolumeCriterion.f(tAnalysisDomainMesh),
+              aFunction.evaluate<core::evaluation::kFunction>(tAnalysisDomainMesh));
 }
 
 void test_scaled_and_unscaled_on_ctor_and_function(
@@ -57,7 +58,7 @@ void test_volume_criteria_derivative_from_ctor_and_function(const VolumeCriterio
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{std::cref(tAssignedDensities)});
     const auto tResult = tVolumeCriterion.df(tAnalysisDomainMesh);
-    const auto tResultFromFunction = aFunction.df(tAnalysisDomainMesh);
+    const auto tResultFromFunction = aFunction.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh);
 
     ASSERT_EQ(tResult.size(), mesh::EntityCounts{tMesh}.numberOfElements());
     ASSERT_EQ(tResult.size(), aGold.size());

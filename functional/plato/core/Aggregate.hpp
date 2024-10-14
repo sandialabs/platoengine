@@ -11,19 +11,21 @@ namespace plato::core
 {
 /// @brief Implements a weighted sum of Function objects.
 ///
-/// Requires that the types @a R and @a dR implement addition,
+/// Requires that all return types of each function represented in the Info types implement addition,
 /// as well as multiplication with a scalar.
-/// @sa make_aggregate_function
-template <typename R, typename dR, typename Arg>
+/// @sa make_aggregate_function_with_first_derivative
+template <typename DomainType, typename... Info>
 class Aggregate
 {
    public:
-    using AggregateFunction = Function<R, dR, Arg>;
+    using AggregateFunction = Function<DomainType, Info...>;
 
     explicit Aggregate(std::vector<std::pair<AggregateFunction, double>> aFunctionsAndWeights);
 
-    [[nodiscard]] R f(const Arg& aArg) const;
-    [[nodiscard]] dR df(const Arg& aArg) const;
+    /// @brief Computes a weighted sum of all Function object held by this object, evaluated
+    /// for the derivative @a Order and matrix ordering @a Ordering.
+    template <int Order, MatrixOrdering Ordering = MatrixOrdering::kOriginal, typename Argument>
+    [[nodiscard]] auto evaluate(const Argument& aArgument) const;
 
     /// @return The number of Function objects used on construction.
     [[nodiscard]] std::size_t size() const;
@@ -36,73 +38,58 @@ class Aggregate
 };
 
 /// @brief Creates a Function object from an Aggregate.
-template <typename R, typename dR, typename Arg>
-[[nodiscard]] auto make_aggregate_function(const Aggregate<R, dR, Arg>& aAggregate)
+template <typename DomainType, typename... Info>
+[[nodiscard]] auto make_aggregate_function_with_first_derivative(const Aggregate<DomainType, Info...>& aAggregate)
 {
-    return make_function([aAggregate](const Arg& aArg) { return aAggregate.f(aArg); },
-                         [aAggregate](const Arg& aArg) { return aAggregate.df(aArg); });
+    return make_function_with_first_derivative(
+        [aAggregate](DomainType aArg) { return aAggregate.template evaluate<0>(std::move(aArg)); },
+        [aAggregate](DomainType aArg) { return aAggregate.template evaluate<1>(std::move(aArg)); });
 }
 
 /// @brief Creates a Function object by constructing an Aggregate from vectors of Functions and weights.
-template <typename R, typename dR, typename Arg>
-[[nodiscard]] auto make_aggregate_function(std::vector<std::pair<Function<R, dR, Arg>, double>> aFunctionsAndWeights)
+template <typename DomainType, typename... Info>
+[[nodiscard]] auto make_aggregate_function_with_first_derivative(
+    std::vector<std::pair<Function<DomainType, Info...>, double>> aFunctionsAndWeights)
 {
-    return make_aggregate_function(Aggregate{std::move(aFunctionsAndWeights)});
+    return make_aggregate_function_with_first_derivative(Aggregate{std::move(aFunctionsAndWeights)});
 }
 
-template <typename R, typename dR, typename Arg>
-Aggregate<R, dR, Arg>::Aggregate(std::vector<std::pair<Function<R, dR, Arg>, double>> aFunctionsAndWeights)
+template <typename DomainType, typename... Info>
+Aggregate<DomainType, Info...>::Aggregate(
+    std::vector<std::pair<Function<DomainType, Info...>, double>> aFunctionsAndWeights)
     : mFunctionsAndWeights(std::move(aFunctionsAndWeights))
 {
-    // Use requires clause in c++20
-    // Note that these expressions aren't quite right because missing operator* or operator+ makes this fail to compile,
-    // not trip the static_assert. However, this should still help understand compiler errors.
-    static_assert(std::is_convertible_v<decltype(1.0 * std::declval<R>()), R>,
-                  "Aggregate template parameter R must implement scalar multiplication.");
-    static_assert(std::is_convertible_v<decltype(std::declval<R>() + std::declval<R>()), R>,
-                  "Aggregate template parameter R must implement addition.");
-    static_assert(std::is_convertible_v<decltype(1.0 * std::declval<dR>()), dR>,
-                  "Aggregate template parameter dR must implement scalar multiplication.");
-    static_assert(std::is_convertible_v<decltype(std::declval<dR>() + std::declval<dR>()), dR>,
-                  "Aggregate template parameter dR must implement addition.");
 }
 
-template <typename R, typename dR, typename Arg>
-R Aggregate<R, dR, Arg>::f(const Arg& aArg) const
-{
-    return std::accumulate(mFunctionsAndWeights.cbegin(), mFunctionsAndWeights.cend(), R{},
-                           [&aArg](const R& aResult, const FunctionAndWeight& aFunctionAndWeight)
-                           {
-                               const auto& [tFunction, tWeight] = aFunctionAndWeight;
-                               return aResult + tWeight * tFunction.f(aArg);
-                           });
-}
-
-template <typename R, typename dR, typename Arg>
-dR Aggregate<R, dR, Arg>::df(const Arg& aArg) const
+template <typename DomainType, typename... Info>
+template <int Order, MatrixOrdering Ordering, typename Argument>
+auto Aggregate<DomainType, Info...>::evaluate(const Argument& aArgument) const
 {
     if (mFunctionsAndWeights.empty())
     {
-        return dR{};
+        using ReturnType = typename AggregateFunction::template Codomain<Order, Ordering>;
+        return ReturnType{};
     }
 
-    dR tResult = mFunctionsAndWeights.front().second * mFunctionsAndWeights.front().first.df(aArg);
+    auto tResult = mFunctionsAndWeights.front().second *
+                   mFunctionsAndWeights.front().first.template evaluate<Order, Ordering>(aArgument);
+
     return std::accumulate(std::next(mFunctionsAndWeights.cbegin()), mFunctionsAndWeights.cend(), std::move(tResult),
-                           [&aArg](const dR& aResult, const FunctionAndWeight& aFunctionAndWeight)
+                           [&aArgument](const auto& aResult, const FunctionAndWeight& aFunctionAndWeight)
                            {
                                const auto& [tFunction, tWeight] = aFunctionAndWeight;
-                               return aResult + tWeight * tFunction.df(aArg);
+                               return aResult + tWeight * tFunction.template evaluate<Order, Ordering>(aArgument);
                            });
 }
 
-template <typename R, typename dR, typename Arg>
-std::size_t Aggregate<R, dR, Arg>::size() const
+template <typename DomainType, typename... Info>
+auto Aggregate<DomainType, Info...>::size() const -> std::size_t
 {
     return mFunctionsAndWeights.size();
 }
 
-template <typename R, typename dR, typename Arg>
-std::vector<double> Aggregate<R, dR, Arg>::weights() const
+template <typename DomainType, typename... Info>
+auto Aggregate<DomainType, Info...>::weights() const -> std::vector<double>
 {
     std::vector<double> tWeights;
     std::transform(mFunctionsAndWeights.cbegin(), mFunctionsAndWeights.cend(), std::back_inserter(tWeights),

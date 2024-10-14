@@ -14,6 +14,14 @@
 
 namespace plato::integration_tests::parallel
 {
+namespace
+{
+using TestParallelAggregate = core::ParallelAggregate<
+    const linear_algebra::DynamicVector<double>&,
+    core::FunctionInfo<double, core::evaluation::kFunction>,
+    core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
+}
+
 TEST(ParallelAggregateDynamicVector, ParallelAggregateOneRosenbrockPerRank)
 {
     namespace ptu = plato::test_utilities;
@@ -28,19 +36,20 @@ TEST(ParallelAggregateDynamicVector, ParallelAggregateOneRosenbrockPerRank)
 
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
     const auto tWorld = boost::mpi::communicator{};
-    const auto tAggregate = core::ParallelAggregate<double, linear_algebra::DynamicVector<double>,
-                                                    const linear_algebra::DynamicVector<double>&>(
-        FunctionAndWeight{std::make_pair(tRosenbrockFunction, tWeight)}, tWorld);
+    const auto tAggregate =
+        TestParallelAggregate(FunctionAndWeight{std::make_pair(tRosenbrockFunction, tWeight)}, tWorld);
 
     const auto tNumRanks = tWorld.size();
     ASSERT_GT(tNumRanks, 1);
 
     const auto tControl = linear_algebra::DynamicVector{1.0, -2.0};
-    const double tExpectedF = tNumRanks * tWeight * tRosenbrockFunction.f(tControl);
-    const double tComputedF = tAggregate.f(tControl);
+    const double tExpectedF = tNumRanks * tWeight * tRosenbrockFunction.evaluate<core::evaluation::kFunction>(tControl);
+    const double tComputedF = tAggregate.evaluate<core::evaluation::kFunction>(tControl);
     EXPECT_EQ(tComputedF, tExpectedF);
-    const linear_algebra::DynamicVector<double> tExpectedDF = tNumRanks * tWeight * tRosenbrockFunction.df(tControl);
-    const linear_algebra::DynamicVector<double> tComputedDF = tAggregate.df(tControl);
+    const linear_algebra::DynamicVector<double> tExpectedDF =
+        tNumRanks * tWeight * tRosenbrockFunction.evaluate<core::evaluation::kFirstDerivative>(tControl);
+    const linear_algebra::DynamicVector<double> tComputedDF =
+        tAggregate.evaluate<core::evaluation::kFirstDerivative>(tControl);
     EXPECT_EQ(tComputedDF, tExpectedDF);
 }
 
@@ -72,8 +81,8 @@ TEST(ParallelAggregateDynamicVector, ParallelAggregateParallelRosenbrock)
     using RosenbrockF = std::decay_t<decltype(tAdaptedParallelFunction)>;
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
     constexpr auto tWeight = double{0.5};
-    const auto tAggregate = core::ParallelAggregate<double, GradientType, const ArgType&>(
-        FunctionAndWeight{std::make_pair(tAdaptedParallelFunction, tWeight)}, tWorld);
+    const auto tAggregate =
+        TestParallelAggregate(FunctionAndWeight{std::make_pair(tAdaptedParallelFunction, tWeight)}, tWorld);
 
     const auto tControl = linear_algebra::DynamicVector{1.0, -2.0};
 
@@ -81,7 +90,7 @@ TEST(ParallelAggregateDynamicVector, ParallelAggregateParallelRosenbrock)
     ASSERT_GT(tNumRanks, 3) << "Test uses three groups and so it requires at least three ranks.";
 
     const auto tExpectedF = kNumGroups * tWeight * tRosenbrock.f(tControl[0], tControl[1]);
-    EXPECT_EQ(tAggregate.f(tControl), tExpectedF);
+    EXPECT_EQ(tAggregate.evaluate<core::evaluation::kFunction>(tControl), tExpectedF);
 }
 
 }  // namespace plato::integration_tests::parallel

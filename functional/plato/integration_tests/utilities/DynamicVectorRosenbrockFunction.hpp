@@ -14,7 +14,9 @@ namespace plato::integration_tests::utilities
 {
 /// @brief Creates a Function using Rosenbrock, with an interface that uses DynamicVector
 [[nodiscard]] auto make_rosenbrock_dynamic_vector_function(const test_utilities::Rosenbrock& aRosenbrock)
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const linear_algebra::DynamicVector<double>&>;
+    -> core::Function<const linear_algebra::DynamicVector<double>&,
+                      core::FunctionInfo<double, core::evaluation::kFunction>,
+                      core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 }  // namespace plato::integration_tests::utilities
 
 #endif

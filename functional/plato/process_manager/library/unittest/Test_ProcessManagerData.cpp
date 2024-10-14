@@ -23,13 +23,16 @@ TEST(ProcessManagerData, ParsePlatoProblemEvaluateObjective)
 
     // Test Geometry
     const auto tBoundingBox = linear_algebra::DynamicVector{0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
-    const analysis::AnalysisDomainMesh tGeomProxy = tGeometry.mCompute.f(tBoundingBox);
-    const analysis::AnalysisDomainMesh tPlatoProblemGeomProxy = tProblem.mGeometry.mCompute.f(tBoundingBox);
+    const analysis::AnalysisDomainMesh tGeomProxy =
+        tGeometry.mCompute.evaluate<core::evaluation::kFunction>(tBoundingBox);
+    const analysis::AnalysisDomainMesh tPlatoProblemGeomProxy =
+        tProblem.mGeometry.mCompute.evaluate<core::evaluation::kFunction>(tBoundingBox);
     EXPECT_TRUE(std::filesystem::exists(tGeomProxy.mFileName));
 
     // Test Objective
     const auto tObjective = criteria::library::make_aggregate_objective_function(tData.objectives());
-    EXPECT_EQ(tObjective.f(tGeomProxy), tProblem.mObjective.f(tGeomProxy));
+    EXPECT_EQ(tObjective.evaluate<core::evaluation::kFunction>(tGeomProxy),
+              tProblem.mObjective.evaluate<core::evaluation::kFunction>(tGeomProxy));
 }
 
 TEST(ProcessManagerData, ParseAndValidateInvalidInput)

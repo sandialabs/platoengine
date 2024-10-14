@@ -13,13 +13,13 @@ struct DynamicVectorJacobian
     test_utilities::TwoDMatrix mJacobian;
 };
 
-[[nodiscard]] linear_algebra::DynamicVector<double> operator*(const linear_algebra::DynamicVector<double>& aX,
-                                                              const DynamicVectorJacobian& aJacobian);
+[[nodiscard]] auto operator*(const linear_algebra::DynamicVector<double>& aX, const DynamicVectorJacobian& aJacobian)
+    -> linear_algebra::DynamicVector<double>;
 
 [[nodiscard]] auto make_penalty_dynamic_vector_function(const test_utilities::Penalty& aPenalty)
-    -> core::Function<linear_algebra::DynamicVector<double>,
-                      DynamicVectorJacobian,
-                      const linear_algebra::DynamicVector<double>&>;
+    -> core::Function<const linear_algebra::DynamicVector<double>&,
+                      core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFunction>,
+                      core::FunctionInfo<DynamicVectorJacobian, core::evaluation::kFirstDerivative>>;
 
 }  // namespace plato::integration_tests::utilities
 

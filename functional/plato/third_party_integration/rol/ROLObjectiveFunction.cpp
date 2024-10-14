@@ -12,12 +12,13 @@ ROLObjectiveFunction::ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction) :
 
 double ROLObjectiveFunction::value(const ROL::Vector<double>& aControls, double&)
 {
-    return mFunction.f(to_dynamic_vector(aControls));
+    return mFunction.evaluate<core::evaluation::kFunction>(to_dynamic_vector(aControls));
 }
 
 void ROLObjectiveFunction::gradient(ROL::Vector<double>& aGradient, const ROL::Vector<double>& aControls, double&)
 {
-    linear_algebra::DynamicVector<double> tLocalGradient = mFunction.df(to_dynamic_vector(aControls));
+    linear_algebra::DynamicVector<double> tLocalGradient =
+        mFunction.evaluate<core::evaluation::kFirstDerivative>(to_dynamic_vector(aControls));
     assign_vector(aGradient, std::move(tLocalGradient).stdVector());
 }
 

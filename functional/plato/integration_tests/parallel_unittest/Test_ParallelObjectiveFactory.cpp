@@ -81,7 +81,8 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
     const auto tControls = test_brick_controls();
     ASSERT_EQ(tControls.size(), 6u) << aTestContext;
     const auto tExpectedValue = tControls[3] * tControls[4] * tControls[5] * aNumGroups;
-    const auto tResult = tObjectiveFunction.f(tGeometry.f(tControls));
+    const auto tResult = tObjectiveFunction.evaluate<core::evaluation::kFunction>(
+        tGeometry.evaluate<core::evaluation::kFunction>(tControls));
     EXPECT_EQ(tResult, tExpectedValue) << aTestContext;
 }
 

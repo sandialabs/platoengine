@@ -52,13 +52,14 @@ linear_algebra::DynamicVector<double> VolumeCriterion::df(const analysis::Analys
 
 auto make_volume_constraint_function() -> library::CriterionFunction
 {
-    return core::make_function([](const analysis::AnalysisDomainMesh& mesh) { return VolumeCriterion{}.f(mesh); },
-                               [](const analysis::AnalysisDomainMesh& mesh) { return VolumeCriterion{}.df(mesh); });
+    return core::make_function_with_first_derivative(
+        [](const analysis::AnalysisDomainMesh& mesh) { return VolumeCriterion{}.f(mesh); },
+        [](const analysis::AnalysisDomainMesh& mesh) { return VolumeCriterion{}.df(mesh); });
 }
 
 auto make_volume_fraction_constraint_function() -> library::CriterionFunction
 {
-    return core::make_function(
+    return core::make_function_with_first_derivative(
         [](const analysis::AnalysisDomainMesh& mesh)
         {
             const double tVolumeTotal = third_party_integration::stk_io::mesh_volume(

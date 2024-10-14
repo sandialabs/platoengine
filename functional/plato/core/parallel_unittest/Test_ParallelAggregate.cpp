@@ -12,6 +12,10 @@ namespace plato::core::parallel_unittest
 namespace
 {
 constexpr auto kNumRanks = int{2};
+
+using Domain = const plato::test_utilities::TwoDVector&;
+using EvaluationInfo = FunctionInfo<double, evaluation::kFunction>;
+using GradientInfo = FunctionInfo<plato::test_utilities::TwoDVector, evaluation::kFirstDerivative>;
 }  // namespace
 
 TEST(ParallelAggregate, MPISize)
@@ -32,16 +36,16 @@ TEST(ParallelAggregate, EvaluateSame)
     const double tW = 0.5;
     using RosenbrockF = std::decay_t<decltype(tF)>;
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
-    const auto tAggregate = ParallelAggregate<double, pft::TwoDVector, const pft::TwoDVector&>(
+    const auto tAggregate = ParallelAggregate<Domain, EvaluationInfo, GradientInfo>(
         FunctionAndWeight{std::make_pair(tF, tW)}, boost::mpi::communicator{});
 
     EXPECT_EQ(tAggregate.size(), 1);
 
     const auto tArg = pft::TwoDVector{2.0, -1.0};
-    const double tExpectedF = kNumRanks * tW * tF.f(tArg);
-    EXPECT_EQ(tAggregate.f(tArg), tExpectedF);
-    const pft::TwoDVector tExpectedDF = kNumRanks * tW * tF.df(tArg);
-    EXPECT_EQ(tAggregate.df(tArg), tExpectedDF);
+    const double tExpectedF = kNumRanks * tW * tF.evaluate<evaluation::kFunction>(tArg);
+    EXPECT_EQ(tAggregate.evaluate<evaluation::kFunction>(tArg), tExpectedF);
+    const pft::TwoDVector tExpectedDF = kNumRanks * tW * tF.evaluate<evaluation::kFirstDerivative>(tArg);
+    EXPECT_EQ(tAggregate.evaluate<evaluation::kFirstDerivative>(tArg), tExpectedDF);
 }
 
 TEST(ParallelAggregate, EvaluateDifferent)
@@ -59,15 +63,16 @@ TEST(ParallelAggregate, EvaluateDifferent)
     constexpr auto tW = double{0.5};
     const auto tFunctionAndWeight = tCommunicator.rank() == 0 ? FunctionAndWeight{std::make_pair(tFDefault, tW)}
                                                               : FunctionAndWeight{std::make_pair(tFNonDefault, tW)};
-    const auto tAggregate =
-        ParallelAggregate<double, pft::TwoDVector, const pft::TwoDVector&>(tFunctionAndWeight, tCommunicator);
+    const auto tAggregate = ParallelAggregate<Domain, EvaluationInfo, GradientInfo>(tFunctionAndWeight, tCommunicator);
 
     EXPECT_EQ(tAggregate.size(), 1);
 
     const auto tArg = pft::TwoDVector{2.0, -1.0};
-    const double tExpectedF = tW * (tFNonDefault.f(tArg) + tFDefault.f(tArg));
-    EXPECT_EQ(tAggregate.f(tArg), tExpectedF);
-    const pft::TwoDVector tExpectedDF = tW * (tFNonDefault.df(tArg) + tFDefault.df(tArg));
-    EXPECT_EQ(tAggregate.df(tArg), tExpectedDF);
+    const double tExpectedF =
+        tW * (tFNonDefault.evaluate<evaluation::kFunction>(tArg) + tFDefault.evaluate<evaluation::kFunction>(tArg));
+    EXPECT_EQ(tAggregate.evaluate<evaluation::kFunction>(tArg), tExpectedF);
+    const pft::TwoDVector tExpectedDF = tW * (tFNonDefault.evaluate<evaluation::kFirstDerivative>(tArg) +
+                                              tFDefault.evaluate<evaluation::kFirstDerivative>(tArg));
+    EXPECT_EQ(tAggregate.evaluate<evaluation::kFirstDerivative>(tArg), tExpectedDF);
 }
 }  // namespace plato::core::parallel_unittest

@@ -55,7 +55,7 @@ void evaluateObjective(const linear_algebra::DynamicVector<double> &aDesignVaria
 {
     const auto &tObjective = DataSingleton<ObjectiveType, FunctionTag>::instance().data();
     assert(tObjective.has_value());
-    aObjectiveConstraintView.objective() = tObjective->f(aDesignVariables);
+    aObjectiveConstraintView.objective() = tObjective->evaluate<core::evaluation::kFunction>(aDesignVariables);
 }
 
 template <typename FunctionTag>
@@ -66,7 +66,8 @@ void evaluateConstraints(const linear_algebra::DynamicVector<double> &aDesignVar
     assert(tNonlinearConstraints.has_value());
     std::transform(tNonlinearConstraints.value().begin(), tNonlinearConstraints.value().end(),
                    aObjectiveConstraintView.constraints().begin(),
-                   [&aDesignVariables](const auto &tContraint) { return tContraint.mFunction.f(aDesignVariables); });
+                   [&aDesignVariables](const auto &tContraint)
+                   { return tContraint.mFunction.evaluate<core::evaluation::kFunction>(aDesignVariables); });
 }
 
 template <typename FunctionTag>
@@ -75,7 +76,7 @@ void evaluateObjectiveGradient(const linear_algebra::DynamicVector<double> &aDes
 {
     const auto &tObjectiveGradient = DataSingleton<ObjectiveType, FunctionTag>::instance().data();
     assert(tObjectiveGradient.has_value());
-    const auto tGradient = tObjectiveGradient->df(aDesignVariables);
+    const auto tGradient = tObjectiveGradient->evaluate<core::evaluation::kFirstDerivative>(aDesignVariables);
     std::copy(tGradient.stdVector().begin(), tGradient.stdVector().end(),
               aObjectiveConstraintGradientView.objectiveGradient().begin());
 }
@@ -88,7 +89,7 @@ void evaluateConstraintGradient(const linear_algebra::DynamicVector<double> &aDe
     assert(tNonlinearConstraints.has_value());
     for (const auto [tConstraintIndex, tConstraint] : utilities::enumerate(tNonlinearConstraints.value()))
     {
-        const auto tGradient = tConstraint.mFunction.df(aDesignVariables);
+        const auto tGradient = tConstraint.mFunction.evaluate<core::evaluation::kFirstDerivative>(aDesignVariables);
         std::copy(tGradient.stdVector().begin(), tGradient.stdVector().end(),
                   aObjectiveConstraintGradientView.constraintGradient(ConstraintSizeType{tConstraintIndex}).begin());
     }

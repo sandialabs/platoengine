@@ -69,7 +69,7 @@ TEST(SharedLibObjective, ValueUsingFunction)
     const auto tFunction = criteria::extension::make_shared_lib_function(test_shared_lib_criterion());
     constexpr std::string_view tMeshName = "massTest.exo";
     third_party_integration::stk_io::write_mesh(tMeshName, kMeshGenerator);
-    const double tMass = tFunction.f(analysis::AnalysisDomainMesh{tMeshName, {}});
+    const double tMass = tFunction.evaluate<core::evaluation::kFunction>(analysis::AnalysisDomainMesh{tMeshName, {}});
     EXPECT_DOUBLE_EQ(tMass, 8.0);
 
     std::filesystem::remove(tMeshName);

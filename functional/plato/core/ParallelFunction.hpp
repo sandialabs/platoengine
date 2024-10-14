@@ -26,9 +26,11 @@ namespace detail
 template <typename F>
 auto adapt_parallel_function(F aFun, const boost::mpi::communicator& aComm)
 {
-    const auto tParallelAdapter = make_function(
-        [tComm = aComm](const typename F::FunctionReturn& aArg) { return detail::rank_weight(tComm) * aArg; },
-        [tComm = aComm](const typename F::FunctionReturn&) { return detail::rank_weight(tComm); });
+    using FunctionReturn = typename F::template Codomain<0>;
+
+    const auto tParallelAdapter = make_function_with_first_derivative(
+        [tComm = aComm](const FunctionReturn& aArg) { return detail::rank_weight(tComm) * aArg; },
+        [tComm = aComm](const FunctionReturn&) { return detail::rank_weight(tComm); });
 
     return core::compose(tParallelAdapter, std::move(aFun));
 }

@@ -11,8 +11,9 @@ namespace
 {
 [[nodiscard]] auto make_test_filter_function() -> FilterFunction
 {
-    return core::make_function([](const analysis::AnalysisDomainMesh&) { return analysis::AnalysisDomainMesh{}; },
-                               [](const analysis::AnalysisDomainMesh&) { return FilterJacobian{}; });
+    return core::make_function_with_first_derivative(
+        [](const analysis::AnalysisDomainMesh&) { return analysis::AnalysisDomainMesh{}; },
+        [](const analysis::AnalysisDomainMesh&) { return FilterJacobian{}; });
 }
 
 [[maybe_unused]] static auto kTestFilterRegistration =

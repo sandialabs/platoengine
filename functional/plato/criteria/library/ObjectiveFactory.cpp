@@ -92,7 +92,7 @@ ParallelAggregateObjective make_parallel_aggregate(const ValidatedObjectives& aI
 
 ObjectiveFunction make_aggregate_objective_function(const ValidatedObjectives& aInput)
 {
-    return make_aggregate_function(detail::make_parallel_aggregate(aInput));
+    return make_aggregate_function_with_first_derivative(detail::make_parallel_aggregate(aInput));
 }
 
 std::vector<unsigned int> number_of_processors_per_objective(const ValidatedObjectives& aInput)

@@ -18,11 +18,11 @@ TEST(PenaltyFunction, ValueAndJacobian)
 
     // Function and derivative at 1 and 0
     const auto tControl = linear_algebra::DynamicVector{1.0, 0.0};
-    const linear_algebra::DynamicVector tFOfControl = tPenalty.f(tControl);
+    const linear_algebra::DynamicVector tFOfControl = tPenalty.evaluate<core::evaluation::kFunction>(tControl);
     EXPECT_EQ(tFOfControl[0], 1.0);
     EXPECT_EQ(tFOfControl[1], tXMin.mValue);
 
-    const auto tdFOfControl = tPenalty.df(tControl);
+    const auto tdFOfControl = tPenalty.evaluate<core::evaluation::kFirstDerivative>(tControl);
     EXPECT_EQ(tdFOfControl.mJacobian(0, 0), tPower.mValue * (1.0 - tXMin.mValue));
     EXPECT_EQ(tdFOfControl.mJacobian(0, 1), 0.0);
     EXPECT_EQ(tdFOfControl.mJacobian(1, 0), 0.0);
@@ -58,10 +58,11 @@ TEST(PenaltyFunction, Composition)
     const auto tComposition = core::compose(tRosenbrock, tPenalty);
 
     const auto tControl = linear_algebra::DynamicVector<double>{std::vector{1.0, 1.0}};
-    const double tCompositionOfX = tComposition.f(tControl);
+    const double tCompositionOfX = tComposition.evaluate<core::evaluation::kFunction>(tControl);
     EXPECT_EQ(tCompositionOfX, 0.0);
 
-    const linear_algebra::DynamicVector<double> tDCompositionOfX = tComposition.df(tControl);
+    const linear_algebra::DynamicVector<double> tDCompositionOfX =
+        tComposition.evaluate<core::evaluation::kFirstDerivative>(tControl);
     EXPECT_EQ(tDCompositionOfX[0], 0.0);
     EXPECT_EQ(tDCompositionOfX[1], 0.0);
 }

@@ -89,7 +89,7 @@ void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSo
 
 auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry) -> library::GeometryFunction
 {
-    return core::make_function(
+    return core::make_function_with_first_derivative(
         [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
         { return tBrickShapeGeometry.generateMesh(detail::to_design_parameters(x)); },
         [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
