@@ -37,16 +37,6 @@ class ParallelAggregate
     boost::mpi::communicator mCommunicator{};
 };
 
-/// @brief Creates a Function object from an Aggregate.
-template <typename DomainType, typename... Info>
-[[nodiscard]] auto make_aggregate_function_with_first_derivative(
-    const ParallelAggregate<DomainType, Info...>& aAggregate)
-{
-    return make_function_with_first_derivative(
-        [aAggregate](DomainType aArg) { return aAggregate.template evaluate<0>(std::move(aArg)); },
-        [aAggregate](DomainType aArg) { return aAggregate.template evaluate<1>(std::move(aArg)); });
-}
-
 template <typename DomainType, typename... Info>
 ParallelAggregate<DomainType, Info...>::ParallelAggregate(
     std::vector<std::pair<AggregateFunction, double>> aFunctionsAndWeights, boost::mpi::communicator aCommunicator)

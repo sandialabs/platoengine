@@ -4,6 +4,7 @@
 
 #include "plato/core/Compose.hpp"
 #include "plato/core/Function.hpp"
+#include "plato/core/unittest/TestHelpers.hpp"
 #include "plato/test_utilities/TwoDTestTypes.hpp"
 
 namespace plato::core::unittest
@@ -133,14 +134,6 @@ TEST(Compose, CompositionScalarFunctions)
 TEST(Compose, CompositionVectorFunctions)
 {
     namespace pft = plato::test_utilities;
-
-    using VectorFInfo = FunctionInfo<pft::TwoDVector, evaluation::kFunction>;
-    using VectorFirstDerivativeInfo = FunctionInfo<pft::TwoDMatrix, evaluation::kFirstDerivative>;
-    using VectorFirstDerivativeAdjointInfo =
-        FunctionInfo<pft::TwoDMatrix, evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>;
-
-    using VectorFunction =
-        Function<pft::TwoDVector, VectorFInfo, VectorFirstDerivativeInfo, VectorFirstDerivativeAdjointInfo>;
 
     const auto tF = VectorFunction{pft::TwoDVectorFunction{}, pft::TwoDVectorFunctionJacobian{},
                                    pft::TwoDVectorFunctionAdjointJacobian{}};

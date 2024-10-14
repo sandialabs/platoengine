@@ -5,9 +5,18 @@
 
 #include "plato/core/Aggregate.hpp"
 #include "plato/core/Function.hpp"
+#include "plato/core/test_utilities/Utilities.hpp"
 
 namespace plato::core::unittest
 {
+using VectorFInfo = FunctionInfo<plato::test_utilities::TwoDVector, evaluation::kFunction>;
+using VectorFirstDerivativeInfo = FunctionInfo<plato::test_utilities::TwoDMatrix, evaluation::kFirstDerivative>;
+using VectorFirstDerivativeAdjointInfo =
+    FunctionInfo<plato::test_utilities::TwoDMatrix, evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>;
+using VectorFunction = Function<plato::test_utilities::TwoDVector,
+                                VectorFInfo,
+                                VectorFirstDerivativeInfo,
+                                VectorFirstDerivativeAdjointInfo>;
 
 namespace detail
 {

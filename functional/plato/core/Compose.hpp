@@ -70,7 +70,7 @@ template <std::size_t kIndex,
           typename FunctionCompositionTuple,
           typename InfoTuple,
           typename CurrentTuple>
-auto info_tuple_with_composition_codomains_impl(CurrentTuple&& aCurrentTuple)
+[[nodiscard]] constexpr auto info_tuple_with_composition_codomains_impl(CurrentTuple&& aCurrentTuple)
 {
     if constexpr (kIndex < std::tuple_size_v<InfoTuple>)
     {
@@ -88,7 +88,7 @@ auto info_tuple_with_composition_codomains_impl(CurrentTuple&& aCurrentTuple)
 }
 
 template <typename Domain, typename FunctionCompositionTuple, typename InfoTuple>
-auto info_tuple_with_composition_codomains()
+[[nodiscard]] constexpr auto info_tuple_with_composition_codomains()
 {
     static_assert(std::tuple_size_v<FunctionCompositionTuple> == std::tuple_size_v<InfoTuple>,
                   "info_tuple_with_composition_codomains must be instantiated with tuples of the same size.");
@@ -99,7 +99,7 @@ auto info_tuple_with_composition_codomains()
 }
 
 template <typename Domain, typename InfoTuple, typename FunctionTuple, std::size_t... Indices>
-auto function_from_info_tuple(std::index_sequence<Indices...>)
+[[nodiscard]] constexpr auto function_from_info_tuple(std::index_sequence<Indices...>)
 {
     using CompositionInfoTuple = decltype(info_tuple_with_composition_codomains<Domain, FunctionTuple, InfoTuple>());
     return Function<Domain, std::tuple_element_t<Indices, CompositionInfoTuple>...>{

@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
 
 #include "plato/core/Function.hpp"
+#include "plato/core/unittest/TestHelpers.hpp"
 #include "plato/test_utilities/TwoDTestTypes.hpp"
 
 namespace plato::core::unittest
 {
-TEST(PlatoFunctional, Evaluate)
+TEST(Function, Evaluate)
 {
     using EvaluateInfo = FunctionInfo<double, evaluation::kFunction>;
     using ScalarFunction = Function<double, EvaluateInfo>;
@@ -14,7 +15,7 @@ TEST(PlatoFunctional, Evaluate)
     EXPECT_EQ(tF.evaluate<evaluation::kFunction>(0.0), 42.0);
 }
 
-TEST(PlatoFunctional, EvaluateGradient)
+TEST(Function, EvaluateGradient)
 {
     using FirstDerivativeInfo = FunctionInfo<double, evaluation::kFirstDerivative>;
     using ScalarFunctionDerivative = Function<double, FirstDerivativeInfo>;
@@ -23,34 +24,13 @@ TEST(PlatoFunctional, EvaluateGradient)
     EXPECT_EQ(tF.evaluate<evaluation::kFirstDerivative>(0.0), 84.0);
 }
 
-TEST(PlatoFunctional, MakeFunction)
+TEST(Function, MakeFunction)
 {
     const auto tF = make_function_with_first_derivative([](const double aX) { return aX; },
                                                         [](const double aX) { return aX * aX; });
     EXPECT_EQ(tF.evaluate<evaluation::kFunction>(0.0), 0.0);
     EXPECT_EQ(tF.evaluate<evaluation::kFunction>(42.0), 42.0);
     EXPECT_EQ(tF.evaluate<evaluation::kFirstDerivative>(2.0), 4.0);
-}
-
-TEST(PlatoFunctional, TwoD)
-{
-    namespace pft = plato::test_utilities;
-    const auto tF = make_function_with_first_derivative(pft::TwoDVectorFunction{}, pft::TwoDVectorFunctionJacobian{});
-
-    {
-        const auto tX = pft::TwoDVector{0.0, 0.0};
-        const auto tExpectedF = pft::makeTwoDVector(0.0, 0.0);
-        const auto tExpectedDF = pft::makeTwoDMatrix(0.0, 0.0, 1.0, 1.0);
-        EXPECT_EQ(tF.evaluate<evaluation::kFunction>(tX), tExpectedF);
-        EXPECT_EQ(tF.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
-    }
-    {
-        const auto tX = pft::makeTwoDVector(2.0, 1.0);
-        const auto tExpectedF = pft::makeTwoDVector(2.0, 3.0);
-        const auto tExpectedDF = pft::makeTwoDMatrix(1.0, 2.0, 1.0, 1.0);
-        EXPECT_EQ(tF.evaluate<evaluation::kFunction>(tX), tExpectedF);
-        EXPECT_EQ(tF.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
-    }
 }
 
 TEST(Function, Scalar)
@@ -75,14 +55,6 @@ TEST(Function, Scalar)
 TEST(Function, TwoD)
 {
     namespace pft = plato::test_utilities;
-
-    using VectorFInfo = FunctionInfo<pft::TwoDVector, evaluation::kFunction>;
-    using VectorFirstDerivativeInfo = FunctionInfo<pft::TwoDMatrix, evaluation::kFirstDerivative>;
-    using VectorFirstDerivativeAdjointInfo =
-        FunctionInfo<pft::TwoDMatrix, evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>;
-
-    using VectorFunction =
-        Function<pft::TwoDVector, VectorFInfo, VectorFirstDerivativeInfo, VectorFirstDerivativeAdjointInfo>;
 
     static_assert(VectorFunction::isImplemented<evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>());
 

@@ -38,8 +38,8 @@ class Aggregate
 };
 
 /// @brief Creates a Function object from an Aggregate.
-template <typename DomainType, typename... Info>
-[[nodiscard]] auto make_aggregate_function_with_first_derivative(const Aggregate<DomainType, Info...>& aAggregate)
+template <template <typename, typename...> typename AggregateType, typename DomainType, typename... Info>
+[[nodiscard]] auto make_aggregate_function_with_first_derivative(const AggregateType<DomainType, Info...>& aAggregate)
 {
     return make_function_with_first_derivative(
         [aAggregate](DomainType aArg) { return aAggregate.template evaluate<0>(std::move(aArg)); },
