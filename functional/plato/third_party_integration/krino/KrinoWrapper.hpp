@@ -13,6 +13,8 @@
 namespace plato::third_party_integration::krino
 {
 
+constexpr int kNumDimensions = 3;
+
 class KrinoWrapper
 {
    public:

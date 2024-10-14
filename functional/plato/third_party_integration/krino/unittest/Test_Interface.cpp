@@ -8,6 +8,10 @@
 namespace plato::third_party_integration::krino::unittest
 {
 
+namespace
+{
+constexpr int kNumDimensions = 3;
+}
 class PlatoTestKrino : public ::testing::Test
 {
    protected:
@@ -178,7 +182,7 @@ TEST_F(PlatoTestKrino, test_krino_sensitivities)
     const std::unordered_map<unsigned int, stk::math::Vector3d> tNewCoordValues = tKrinoWrapper.getCoordinateValues();
     for (auto tPredictedCoordValue : tPredictedCoordValues)
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < kNumDimensions; i++)
         {
             EXPECT_FLOAT_EQ(tPredictedCoordValue.second[i], tNewCoordValues.at(tPredictedCoordValue.first)[i]);
         }

@@ -367,12 +367,12 @@ std::unordered_map<unsigned int, stk::math::Vector3d> KrinoWrapper::predictNewCo
         double dCoord[3] = {0, 0, 0};
         for (size_t i = 0; i < tMapIter->second.mParentNodeIds.size(); ++i)
         {
-            for (size_t j = 0; j < 3; ++j)
+            for (size_t j = 0; j < kNumDimensions; ++j)
             {
                 dCoord[j] += aPerturbation * tMapIter->second.mParentDXDP[i][j];
             }
         }
-        for (size_t j = 0; j < 3; ++j)
+        for (size_t j = 0; j < kNumDimensions; ++j)
         {
             tPredictedCoordinateValues[tInterfaceNodeID][j] = aCoordVals.at(tInterfaceNodeID)[j] + dCoord[j];
         }

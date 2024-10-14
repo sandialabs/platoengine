@@ -14,6 +14,7 @@ namespace plato::third_party_integration::krino
 
 namespace
 {
+constexpr int kNumDimensions = 3;
 constexpr std::string_view kKrinoLogName = "krinolog";
 }  // namespace
 
@@ -42,11 +43,11 @@ std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d> assemble_global_id_to
         KrinoGlobalNodeID tDFDXIndex = 0;
         if (aDFDXFormatting == DFDXFormatting::GlobalID)
         {
-            tDFDXIndex = 3 * (tCurGlobalNodeID - 1);
+            tDFDXIndex = kNumDimensions * (tCurGlobalNodeID - 1);
         }
         else if (aDFDXFormatting == DFDXFormatting::OneToN)
         {
-            tDFDXIndex = 3 * tIndex;
+            tDFDXIndex = kNumDimensions * tIndex;
         }
         else
         {
@@ -81,7 +82,7 @@ std::unordered_map<KrinoGlobalNodeID, double> calculate_dfdls(
         {
             const KrinoGlobalNodeID tCurBackgroundMeshNodeID = tDXDPMapIter->second.mParentNodeIds[j];
             double tContribution = 0.0;
-            for (size_t w = 0; w < 3; ++w)
+            for (size_t w = 0; w < kNumDimensions; ++w)
             {
                 tContribution += aDFDXMap.at(tCurInterfaceNodeID)[w] * tDXDPMapIter->second.mParentDXDP[j][w];
             }
