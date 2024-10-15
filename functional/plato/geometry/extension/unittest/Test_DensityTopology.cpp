@@ -3,17 +3,19 @@
 #include <cmath>
 #include <filesystem>
 #include <numeric>
-#include <stk_mesh/base/Comm.hpp>
-#include <stk_util/parallel/Parallel.hpp>
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
+#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
+#include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
+#include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -35,12 +37,25 @@ constexpr unsigned int kExpectedDensitySize = 8;  // Based on mesh generation co
 
 void create_small_mesh(const std::string& aFileName)
 {
-    ASSERT_EQ(stk::parallel_machine_size(MPI_COMM_WORLD), 1);
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
         {1, 1, 1}, {-1, -2, -1}, {2, 1, 2}, third_party_integration::stk_io::CommandElementType::Hex};
 
     third_party_integration::stk_io::write_mesh(aFileName, tCommandGenerator);
 }
+
+auto make_test_kernel_filter()
+{
+    const auto tFilter = std::make_shared<filter::extension::KernelFilter>(
+        mesh::Mesh{kDensityInput.mesh_name->mToken}, filter::extension::FilterRadius{3.25},
+        input_parser::KernelFilterCenteringTypes::kElementCentered, boost::mpi::communicator{});
+
+    return core::make_function([tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                               { return tFilter->filter(aAnalysisDomainMesh); },
+                               [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
+                                   return filter::library::FilterJacobian{tFilter, aAnalysisDomainMesh};
+                               });
+}
+
 }  // namespace
 
 TEST(DensityTopology, Jacobian)
@@ -57,14 +72,33 @@ TEST(DensityTopology, Jacobian)
 
     std::vector<double> tRowVec(tNumDesignParameters, 0.0);
     std::iota(tRowVec.begin(), tRowVec.end(), 1.0);
-    const linear_algebra::DynamicVector<double> tRolVec(tRowVec);
+    const linear_algebra::DynamicVector<double> tRowVecAsDynamicVector(tRowVec);
 
     // Jacobian is identity matrix
-    const std::vector<double> tGold = tRowVec;
-    const linear_algebra::DynamicVector<double> tRes = tRolVec * tJacobian;
+    const auto tGold = tRowVec;
+    const auto tRes = tRowVecAsDynamicVector * tJacobian;
     EXPECT_EQ(tRes.stdVector(), tGold);
 
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
+}
+
+TEST(DensityTopology, AdjointJacobian)
+{
+    create_small_mesh(kDensityInput.mesh_name->mToken);
+    const auto tFilter = make_test_kernel_filter();
+    const auto tDensityTopology = DensityTopology{kDensityInput, tFilter};
+    const auto tDesignVariables = linear_algebra::DynamicVector{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
+    const auto tMesh = mesh::DesignVariablesConversion{mesh::Mesh{kDensityInput.mesh_name->mToken}};
+    const auto tNodalDesignParameters =
+        tMesh.nodalFieldToAnalysisDomainMesh(mesh::NodalFieldVectorReference{tDesignVariables.stdVector()});
+
+    // Since adjointJacobian implements v * J', the expected result is then just the same as the filter application,
+    // which is J * v.
+    const auto tExpected = tMesh.meshDesignVariablesToNodalFieldVector(tFilter.f(tNodalDesignParameters));
+    const auto tResult = tDesignVariables * tDensityTopology.adjointJacobian(tDesignVariables);
+    constexpr auto tTolerance = 1e-14;
+    test_utilities::expect_container_entries_near(tExpected.mValue, tResult.stdVector(), tTolerance,
+                                                  TEST_CONTEXT("Adjoint Jacobian multiplication"));
 }
 
 TEST(DensityTopology, GenerateMesh)

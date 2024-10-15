@@ -30,14 +30,16 @@ namespace plato::geometry::extension
 class DensityTopology
 {
    public:
-    explicit DensityTopology(const input_parser::density_topology& aInput,
-                             plato::filter::library::FilterFunction aFilterFunction);
+    DensityTopology(const input_parser::density_topology& aInput, filter::library::FilterFunction aFilterFunction);
 
     [[nodiscard]] analysis::AnalysisDomainMesh generateMesh(
         const linear_algebra::DynamicVector<double>& aDesignParameter) const;
 
     [[nodiscard]] linear_algebra::JacobianMultiplier jacobian(
         const linear_algebra::DynamicVector<double>& aDesignParameter) const;
+
+    [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
+        -> linear_algebra::JacobianMultiplier;
 
     [[nodiscard]] static linear_algebra::DynamicVector<double> initialGuess(
         const input_parser::density_topology& aInput);
@@ -50,7 +52,7 @@ class DensityTopology
 
    private:
     mesh::Mesh mMesh;
-    plato::filter::library::FilterFunction mFilter;
+    filter::library::FilterFunction mFilter;
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.

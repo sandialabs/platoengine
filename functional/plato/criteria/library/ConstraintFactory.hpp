@@ -59,12 +59,6 @@ struct VectorConstraint
     ConstraintType mConstraintType;
 };
 
-using ConstraintVariant = std::variant<Constraint<const analysis::AnalysisDomainMesh&>,
-                                       VectorConstraint<const analysis::AnalysisDomainMesh&>>;
-
-// using VectorConstraint =
-//    Constraint_t<linear_algebra::DynamicVector<double>, linear_algebra::JacobianMultiplier, FunctionArg>;
-
 /// @brief Factory to create Constraint objects from input data.
 /// @post The return vector will have the same size as @a aInput.
 [[nodiscard]] auto make_constraints(const ValidatedConstraints& aInput)

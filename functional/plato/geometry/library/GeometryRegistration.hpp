@@ -35,6 +35,7 @@ struct FactoryTypes
     using Output = std::function<void(const linear_algebra::DynamicVector<double>&)>;
 
     Compute mCompute;
+    //    Compute mComputeAdjointJacobian;
     InitialGuess mInitialGuess;
     Bounds mBounds;
     Output mOutput;

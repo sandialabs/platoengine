@@ -135,6 +135,17 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
         { return x * mFilter.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh); }};
 }
 
+auto DensityTopology::adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+    -> linear_algebra::JacobianMultiplier
+{
+    const auto tDesignVariableConverter = mesh::DesignVariablesConversion{mMesh};
+    const auto tNodalDesignParameters = mesh::NodalFieldVectorReference{aDesignParameters.stdVector()};
+    return linear_algebra::JacobianMultiplier{
+        /*.mJacobianTimesVectorFunction=*/
+        [tAnalysisDomainMesh = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(tNodalDesignParameters),
+         this](const linear_algebra::DynamicVector<double>& x) { return x * mFilter.df(tAnalysisDomainMesh); }};
+}
+
 linear_algebra::DynamicVector<double> DensityTopology::initialGuess(const input_parser::density_topology& aInput)
 {
     if (aInput.initial_density_value.has_value())

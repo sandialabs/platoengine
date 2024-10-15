@@ -2,19 +2,6 @@
 
 namespace plato::third_party_integration::rol
 {
-
-namespace
-{
-/*void print(const std::vector<double>& aVector)
-{
-    for (const auto& x : aVector)
-    {
-        std::cout << x << " ";
-    }
-    std::cout << std::endl;
-}*/
-}  // namespace
-
 ROLVectorConstraintFunction::ROLVectorConstraintFunction(
     criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&> aConstraint)
     : mFunctionWithDfAsJacobian(std::move(aConstraint.mFunctionWithDfAsJacobian)),
