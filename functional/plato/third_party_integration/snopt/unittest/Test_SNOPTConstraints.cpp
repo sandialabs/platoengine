@@ -116,7 +116,9 @@ TEST(Constraints, ConstraintBounds)
         else
         {
             const auto tZero = ConstraintFunctionArgument(kNumberofDesignVariables, 0.0);
-            const auto fOfZero = tSNOPTConstraints.constraints().at(tIndex).mFunction.f(tZero);
+            const auto fOfZero =
+                tSNOPTConstraints.constraints().at(tIndex).mFunction.template evaluate<core::evaluation::kFunction>(
+                    tZero);
             EXPECT_EQ(tLowerBounds.at(tIndex), -fOfZero);
             EXPECT_EQ(tUpperBounds.at(tIndex), -fOfZero);
         }

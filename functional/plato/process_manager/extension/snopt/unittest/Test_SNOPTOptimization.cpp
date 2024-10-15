@@ -64,11 +64,11 @@ TEST(SNOPTOptimizationDetail, MakeConstraints)
 
         const auto tConstraints = detail::make_constraints(tProblem);
         ASSERT_EQ(tConstraints.size(), 1U);
-        const auto tSNOPTConstraint = tConstraints[0];
+        const auto& tSNOPTConstraint = tConstraints[0];
         EXPECT_EQ(tSNOPTConstraint.mLinearity, third_party_integration::snopt::Linearity::kLinear);
         EXPECT_EQ(tSNOPTConstraint.mTarget, 0.0);
         const linear_algebra::DynamicVector<double> tParameter({0.5, 0, 0, 1, 1, 1});
-        const auto tResult = tSNOPTConstraint.mFunction.f(tParameter);
+        const auto tResult = tSNOPTConstraint.mFunction.template evaluate<core::evaluation::kFunction>(tParameter);
 
         constexpr auto tGoldNodalSumFromUnitBoxShiftedZeroPointFiveInX = double{4};
         EXPECT_EQ(tResult, tGoldNodalSumFromUnitBoxShiftedZeroPointFiveInX);

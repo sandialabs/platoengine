@@ -85,7 +85,7 @@ auto constraints_with_affine_offset_removed(ConstraintVectorType&& aConstraints,
     {
         if (tConstraint.mLinearity == Linearity::kLinear)
         {
-            tConstraint.mTarget -= tConstraint.mFunction.f(tZero);
+            tConstraint.mTarget -= tConstraint.mFunction.template evaluate<core::evaluation::kFunction>(tZero);
         }
     }
     return std::move(aConstraints);
