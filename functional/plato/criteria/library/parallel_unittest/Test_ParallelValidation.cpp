@@ -25,11 +25,12 @@ TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
     EXPECT_TRUE(detail::validate_number_of_ranks_vs_serial_objectives({tObjective}).has_value());
 
     // Three objectives and three ranks
-    EXPECT_FALSE(detail::validate_number_of_ranks_vs_serial_objectives({tObjective, tObjective, tObjective}).has_value());
+    EXPECT_FALSE(
+        detail::validate_number_of_ranks_vs_serial_objectives({tObjective, tObjective, tObjective}).has_value());
 
     // Four objectives and three ranks
-    EXPECT_FALSE(
-        detail::validate_number_of_ranks_vs_serial_objectives({tObjective, tObjective, tObjective, tObjective}).has_value());
+    EXPECT_FALSE(detail::validate_number_of_ranks_vs_serial_objectives({tObjective, tObjective, tObjective, tObjective})
+                     .has_value());
 }
 
 TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectivesParallelObjectives)
@@ -49,10 +50,12 @@ TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectivesParallelOb
     // Number of processors matches the number of ranks for two objectives
     auto tObjectiveOneProcessor = tObjective;
     tObjectiveOneProcessor.number_of_processors = 1u;
-    EXPECT_FALSE(detail::validate_number_of_ranks_vs_parallel_objectives({tObjective, tObjectiveOneProcessor}).has_value());
+    EXPECT_FALSE(
+        detail::validate_number_of_ranks_vs_parallel_objectives({tObjective, tObjectiveOneProcessor}).has_value());
 
     // Mismatch with two objectives
     tObjectiveOneProcessor.number_of_processors = 2u;
-    EXPECT_TRUE(detail::validate_number_of_ranks_vs_parallel_objectives({tObjective, tObjectiveOneProcessor}).has_value());
+    EXPECT_TRUE(
+        detail::validate_number_of_ranks_vs_parallel_objectives({tObjective, tObjectiveOneProcessor}).has_value());
 }
 }  // namespace plato::criteria::library::unittest

@@ -1,9 +1,12 @@
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
+#include <Ioss_NodeBlock.h>
+
 #include <stk_io/FillMesh.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Field.hpp>
+#include <stk_mesh/base/GetEntities.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_topology/topology.hpp>

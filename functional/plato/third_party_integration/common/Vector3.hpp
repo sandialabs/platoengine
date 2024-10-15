@@ -57,6 +57,20 @@ inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContain
                       /*.z=*/p0.z + p1.z};
 }
 
+[[nodiscard]] constexpr Coordinate operator+(const Coordinate& p0, const double scalar)
+{
+    return Coordinate{/*.x=*/p0.x + scalar,
+                      /*.y=*/p0.y + scalar,
+                      /*.z=*/p0.z + scalar};
+}
+
+[[nodiscard]] constexpr Coordinate operator/(const Coordinate& p0, const Coordinate& divisor)
+{
+    return Coordinate{/*.x=*/p0.x / divisor.x,
+                      /*.y=*/p0.y / divisor.y,
+                      /*.z=*/p0.z / divisor.z};
+}
+
 [[nodiscard]] constexpr Coordinate operator/(const Coordinate& p0, const double& divisor)
 {
     return Coordinate{/*.x=*/p0.x / divisor,
@@ -69,6 +83,25 @@ inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContain
     return Coordinate{/*.x=*/p0.x * scale,
                       /*.y=*/p0.y * scale,
                       /*.z=*/p0.z * scale};
+}
+
+[[nodiscard]] constexpr Coordinate operator*(const Coordinate& p0, const Coordinate& p1)
+{
+    return Coordinate{/*.x=*/p0.x * p1.x,
+                      /*.y=*/p0.y * p1.y,
+                      /*.z=*/p0.z * p1.z};
+}
+
+[[nodiscard]] constexpr Coordinate operator/(const double& scalar, const Coordinate& p0)
+{
+    return Coordinate{/*.x=*/scalar / p0.x,
+                      /*.y=*/scalar / p0.y,
+                      /*.z=*/scalar / p0.z};
+}
+
+[[nodiscard]] constexpr Coordinate floor(const Coordinate& aInputCoord)
+{
+    return Coordinate{std::floor(aInputCoord.x), std::floor(aInputCoord.y), std::floor(aInputCoord.z)};
 }
 
 template <typename Container3>

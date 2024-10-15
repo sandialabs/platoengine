@@ -44,18 +44,21 @@ TEST(GeometryRegistration, GeometryInputAllEmpty)
 TEST(GeometryRegistration, GeometryInput)
 {
     using TestInput = GeometryInput;
-    static_assert(std::variant_size_v<TestInput> == 2);
-    static_assert(std::is_same_v<std::variant_alternative_t<0, TestInput>, input_parser::density_topology>);
-    static_assert(std::is_same_v<std::variant_alternative_t<1, TestInput>, input_parser::brick_shape_geometry>);
+    static_assert(std::variant_size_v<TestInput> == 3);
+    static_assert(std::is_same_v<std::variant_alternative_t<0, TestInput>, input_parser::levelset_topology>);
+    static_assert(std::is_same_v<std::variant_alternative_t<1, TestInput>, input_parser::density_topology>);
+    static_assert(std::is_same_v<std::variant_alternative_t<2, TestInput>, input_parser::brick_shape_geometry>);
 }
 
 TEST(GeometryRegistration, ValidatedGeometryInput)
 {
     using TestInput = ValidatedGeometryInput::RawInputType;
-    static_assert(std::variant_size_v<TestInput> == 2);
+    static_assert(std::variant_size_v<TestInput> == 3);
     static_assert(std::is_same_v<std::variant_alternative_t<0, TestInput>,
-                                 core::ValidatedInputTypeWrapper<input_parser::density_topology>>);
+                                 core::ValidatedInputTypeWrapper<input_parser::levelset_topology>>);
     static_assert(std::is_same_v<std::variant_alternative_t<1, TestInput>,
+                                 core::ValidatedInputTypeWrapper<input_parser::density_topology>>);
+    static_assert(std::is_same_v<std::variant_alternative_t<2, TestInput>,
                                  core::ValidatedInputTypeWrapper<input_parser::brick_shape_geometry>>);
 }
 

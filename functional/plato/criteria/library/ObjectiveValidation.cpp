@@ -78,7 +78,8 @@ std::optional<std::string> validate_at_least_one_objective(const std::vector<inp
     }
 }
 
-std::optional<std::string> validate_number_of_ranks_vs_serial_objectives(const std::vector<input_parser::objective>& aInput)
+std::optional<std::string> validate_number_of_ranks_vs_serial_objectives(
+    const std::vector<input_parser::objective>& aInput)
 {
     const auto tNumRanks = static_cast<std::size_t>(boost::mpi::communicator{}.size());
     if (!has_parallel_objective(aInput) && static_cast<std::size_t>(tNumRanks) > aInput.size())
