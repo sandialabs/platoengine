@@ -14,7 +14,7 @@ std::filesystem::path affirm_test_file_path(const std::string_view tMeshFileName
 {
     const auto tMeshFilePath = plato::test_utilities::test_data_file_path(tMeshFileName);
     assert(tMeshFilePath);
-    return tMeshFilePath.value();
+    return tMeshFilePath.value();  // NOLINT
 }
 }  // namespace
 

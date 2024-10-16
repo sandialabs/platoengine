@@ -23,6 +23,7 @@ auto initialize_mesh_design_variable_data_structures(const Mesh& aMesh, const F&
         const auto tField = std::vector<double>(tIDs.size());
         const auto tBlockID = MeshBlocks{aMesh}.blockID(tDesignBlockOrdinal);
         assert(tBlockID.has_value());
+        // NOLINTNEXTLINE
         tAnalysisDomainMesh.mBlockScalarField.emplace(tBlockID.value(),
                                                       analysis::combine_scalar_field_values_and_ids(tField, tIDs));
     }

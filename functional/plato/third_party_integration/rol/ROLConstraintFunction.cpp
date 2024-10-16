@@ -34,8 +34,8 @@ void ROLConstraintFunction::applyJacobian(ROL::Vector<double>& aJacobianTimesDir
 }
 
 void ROLConstraintFunction::applyAdjointJacobian(ROL::Vector<double>& aAdjointJacobianTimesDirection,
-                                                 const ROL::Vector<double>& aDual,
-                                                 const ROL::Vector<double>& aControl,
+                                                 const ROL::Vector<double>& aDual,     // NOLINT
+                                                 const ROL::Vector<double>& aControl,  // NOLINT
                                                  double& /*aTolerance*/)
 {
     assert(aDual.dimension() == 1);

@@ -23,8 +23,8 @@ constexpr auto kObjectiveValueAddition = double{0.0};
 constexpr auto kNoSpecialBoundsInformation = int{0};
 constexpr auto kDerivativeOptionName = std::string_view{"Derivative option"};
 
-constexpr auto kSuccessfulSpecFileRead = int{101};
-constexpr auto kSuccessfulParameterSet = int{0};
+[[maybe_unused]] constexpr auto kSuccessfulSpecFileRead = int{101};
+[[maybe_unused]] constexpr auto kSuccessfulParameterSet = int{0};
 constexpr auto kMinutesToSeconds = int{60};
 
 struct SNOPTTag

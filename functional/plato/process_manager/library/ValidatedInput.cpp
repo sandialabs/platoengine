@@ -77,7 +77,7 @@ ValidatedInputVariant ValidatedInput::validatedVariant(InputVariant aInputVarian
         },
         std::move(aInputVariant));
     assert(tValidatedInput);
-    return *tValidatedInput;
+    return tValidatedInput.value();  // NOLINT
 }
 
 ValidatedInput make_validated_input(input_parser::ParsedInput aInput)
