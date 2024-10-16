@@ -37,6 +37,7 @@ void initialize_krino()
     static bool tIsInitialized = false;
     if (!tIsInitialized)
     {
+        tIsInitialized = true;
         initialize_environment_for_krino(MPI_COMM_WORLD);
     }
 }
@@ -92,22 +93,23 @@ void LevelsetTopology::generateLevelsetInitializationPrimitives()
     mLevelsetPrimitives.mSpheres.insert(mLevelsetPrimitives.mSpheres.end(), tSpheres.begin(), tSpheres.end());
 }
 
-std::pair<std::vector<double>, std::vector<double>> LevelsetTopology::bounds(
-    const std::filesystem::path& aMeshFileName) const
+auto LevelsetTopology::bounds(const std::filesystem::path& aMeshFileName) const
+    -> std::pair<std::vector<double>, std::vector<double>>
 {
     const unsigned int tNumNodes = mesh::EntityCounts{mesh::Mesh{aMeshFileName}}.numberOfNodes();
     return {std::vector<double>(tNumNodes, mLevelsetLowerBound), std::vector<double>(tNumNodes, mLevelsetUpperBound)};
 }
 
-linear_algebra::DynamicVector<double> LevelsetTopology::initialGuess(const std::filesystem::path& aMeshFileName) const
+auto LevelsetTopology::initialGuess(const std::filesystem::path& aMeshFileName) const
+    -> linear_algebra::DynamicVector<double>
 {
     std::vector<double> tCurLevelsetValues = initialize_mesh_with_levelset_primitives(
         BackgroundMeshNameString{aMeshFileName}, mCutMesh, mLevelsetPrimitives, mIncludeVoidRegion);
     return linear_algebra::DynamicVector<double>(tCurLevelsetValues);
 }
 
-analysis::AnalysisDomainMesh LevelsetTopology::generateMesh(
-    const linear_algebra::DynamicVector<double>& aDesignParameters) const
+auto LevelsetTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+    -> analysis::AnalysisDomainMesh
 {
     /* When introducing filtering do the following:
     1. Add member variable mMesh that represents the background mesh (See density class).
@@ -142,7 +144,6 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
             const std::vector<unsigned int> tCutNodeMap = mesh::EntityRetrieval{mesh::Mesh{mCutMesh}}.globalNodeIds();
             const std::vector<unsigned int> tBackgroundNodeMap =
                 mesh::EntityRetrieval{mesh::Mesh{mBackgroundMesh}}.globalNodeIds();
-            ;
             const std::unordered_map<unsigned int, stk::math::Vector3d> tGlobalIDToDFDXMap =
                 assemble_global_id_to_dfdx_map(x.stdVector(), tCutNodeMap, DFDXFormatting::OneToN);
             const std::unordered_map<unsigned int, double> tDFDLS =
@@ -168,15 +169,13 @@ void LevelsetTopology::output(const std::filesystem::path& aInputMeshName,
                                                          kLevelsetFixedValue);
 }
 
-auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology)
-    -> core::Function<analysis::AnalysisDomainMesh,
-                      linear_algebra::JacobianMultiplier,
-                      const linear_algebra::DynamicVector<double>&>
+auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology) -> library::GeometryFunction
 {
-    return core::make_function([tLevelsetTopology = aLevelsetTopology](const linear_algebra::DynamicVector<double>& x)
-                               { return tLevelsetTopology.generateMesh(x); },
-                               [tLevelsetTopology = aLevelsetTopology](const linear_algebra::DynamicVector<double>& x)
-                               { return tLevelsetTopology.jacobian(x); });
+    return core::make_function_with_first_derivative(
+        [tLevelsetTopology = aLevelsetTopology](const linear_algebra::DynamicVector<double>& x)
+        { return tLevelsetTopology.generateMesh(x); },
+        [tLevelsetTopology = aLevelsetTopology](const linear_algebra::DynamicVector<double>& x)
+        { return tLevelsetTopology.jacobian(x); });
 }
 
 namespace detail

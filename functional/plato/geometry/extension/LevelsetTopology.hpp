@@ -5,7 +5,7 @@
 #include <optional>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/Function.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
@@ -33,16 +33,17 @@ class LevelsetTopology
    public:
     explicit LevelsetTopology(const input_parser::levelset_topology& aInput);
 
-    [[nodiscard]] std::pair<std::vector<double>, std::vector<double>> bounds(
-        const std::filesystem::path& aMeshFileName) const;
-    [[nodiscard]] linear_algebra::DynamicVector<double> initialGuess(const std::filesystem::path& aMeshFileName) const;
-    [[nodiscard]] analysis::AnalysisDomainMesh generateMesh(
-        const linear_algebra::DynamicVector<double>& aDesignParameter) const;
+    [[nodiscard]] auto bounds(const std::filesystem::path& aMeshFileName) const
+        -> std::pair<std::vector<double>, std::vector<double>>;
+    [[nodiscard]] auto initialGuess(const std::filesystem::path& aMeshFileName) const
+        -> linear_algebra::DynamicVector<double>;
+    [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
+        -> analysis::AnalysisDomainMesh;
     static void output(const std::filesystem::path& aInputMeshName,
                        const linear_algebra::DynamicVector<double>& aSolution,
                        const std::filesystem::path& aOutputMeshName);
-    [[nodiscard]] linear_algebra::JacobianMultiplier jacobian(
-        const linear_algebra::DynamicVector<double>& aDesignParameter) const;
+    [[nodiscard]] auto jacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
+        -> linear_algebra::JacobianMultiplier;
 
    private:
     void generateLevelsetInitializationPrimitives();
@@ -60,10 +61,7 @@ class LevelsetTopology
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
-[[nodiscard]] auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology)
-    -> core::Function<analysis::AnalysisDomainMesh,
-                      linear_algebra::JacobianMultiplier,
-                      const linear_algebra::DynamicVector<double>&>;
+[[nodiscard]] auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology) -> library::GeometryFunction;
 
 namespace detail
 {
