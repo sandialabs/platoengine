@@ -10,6 +10,7 @@
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
@@ -49,11 +50,15 @@ auto make_test_kernel_filter()
         mesh::Mesh{kDensityInput.mesh_name->mToken}, filter::extension::FilterRadius{3.25},
         input_parser::KernelFilterCenteringTypes::kElementCentered, boost::mpi::communicator{});
 
-    return core::make_function([tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                               { return tFilter->filter(aAnalysisDomainMesh); },
-                               [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
-                                   return filter::library::FilterJacobian{tFilter, aAnalysisDomainMesh};
-                               });
+    return filter::library::FilterFunction{[tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                                           { return tFilter->filter(aAnalysisDomainMesh); },
+                                           [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
+                                               return filter::library::FilterJacobian{tFilter, aAnalysisDomainMesh};
+                                           },
+                                           [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
+                                               return filter::library::FilterAdjointJacobian{
+                                                   filter::library::FilterJacobian{tFilter, aAnalysisDomainMesh}};
+                                           }};
 }
 
 }  // namespace
@@ -94,7 +99,8 @@ TEST(DensityTopology, AdjointJacobian)
 
     // Since adjointJacobian implements v * J', the expected result is then just the same as the filter application,
     // which is J * v.
-    const auto tExpected = tMesh.meshDesignVariablesToNodalFieldVector(tFilter.f(tNodalDesignParameters));
+    const auto tExpected = tMesh.meshDesignVariablesToNodalFieldVector(
+        tFilter.template evaluate<core::evaluation::kFunction>(tNodalDesignParameters));
     const auto tResult = tDesignVariables * tDensityTopology.adjointJacobian(tDesignVariables);
     constexpr auto tTolerance = 1e-14;
     test_utilities::expect_container_entries_near(tExpected.mValue, tResult.stdVector(), tTolerance,

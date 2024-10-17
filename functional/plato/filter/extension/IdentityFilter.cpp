@@ -50,12 +50,17 @@ auto IdentityFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomai
 
 auto make_identity_filter_function() -> library::FilterFunction
 {
-    return core::make_function_with_first_derivative(
+    return library::FilterFunction{
         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
         { return IdentityFilter{}.filter(aAnalysisDomainMesh); },
         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
             return library::FilterJacobian{std::make_unique<IdentityFilter>(), aAnalysisDomainMesh};
-        });
+        },
+        [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        {
+            return library::FilterAdjointJacobian{
+                library::FilterJacobian{std::make_unique<IdentityFilter>(), aAnalysisDomainMesh}};
+        }};
 }
 
 [[nodiscard]] std::optional<std::string> validate_identity_filter(const input_parser::identity_filter& aInput)

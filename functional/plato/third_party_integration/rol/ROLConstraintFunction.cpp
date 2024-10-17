@@ -10,7 +10,8 @@ ROLConstraintFunction::ROLConstraintFunction(
 
 void ROLConstraintFunction::value(std::vector<double>& aConstraints, const std::vector<double>& aControl, double&)
 {
-    const double tConstraintValue = mFunction.evaluate<core::evaluation::kFunction>(linear_algebra::DynamicVector<double>(aControl));
+    const double tConstraintValue =
+        mFunction.evaluate<core::evaluation::kFunction>(linear_algebra::DynamicVector<double>(aControl));
     aConstraints.front() = tConstraintValue - mConstraintTarget;
 }
 
@@ -32,7 +33,8 @@ void ROLConstraintFunction::applyAdjointJacobian(std::vector<double>& aAdjointJa
     assert(aDual.size() == 1);
     assert(aAdjointJacobianTimesDirection.size() == aControl.size());
     aAdjointJacobianTimesDirection =
-        (mFunction.evaluate<core::evaluation::kFirstDerivative>(linear_algebra::DynamicVector<double>(aControl)) *
+        (mFunction.evaluate<core::evaluation::kFirstDerivative /*, core::MatrixOrdering::kAdjoint*/>(
+             linear_algebra::DynamicVector<double>(aControl)) *
          aDual.front())
             .stdVector();
 }

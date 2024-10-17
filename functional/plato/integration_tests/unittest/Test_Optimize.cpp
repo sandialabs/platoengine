@@ -29,7 +29,7 @@ TEST(Optimize, NodalSumObjective)
     const auto tValidatedInput = process_manager::library::make_validated_input(tInput);
     const auto tProcessManager = process_manager::library::make_process_managers(tValidatedInput.processManagers());
     ASSERT_EQ(tProcessManager.size(), 1u);
-    const auto tROLOptimize = tProcessManager[0];
+    const auto& tROLOptimize = tProcessManager[0];
     const auto tProcessManagerData = process_manager::library::make_process_manager_data(tValidatedInput);
     tROLOptimize(tProcessManagerData);
 }
@@ -43,7 +43,7 @@ TEST(Optimize, NodalSumObjectiveWithConstraint)
     const auto tValidatedInput = process_manager::library::make_validated_input(tInput);
     const auto tProcessManager = process_manager::library::make_process_managers(tValidatedInput.processManagers());
     ASSERT_EQ(tProcessManager.size(), 1u);
-    const auto tROLOptimize = tProcessManager[0];
+    const auto& tROLOptimize = tProcessManager[0];
     const auto tProcessManagerData = process_manager::library::make_process_manager_data(tValidatedInput);
     tROLOptimize(tProcessManagerData);
 }

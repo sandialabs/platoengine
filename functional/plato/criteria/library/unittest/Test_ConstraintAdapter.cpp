@@ -17,23 +17,28 @@ auto to_two_d(const linear_algebra::DynamicVector<double>& aDynamicVector) -> te
 }
 
 using LinearAlgebraFunction =
-    core::Function<double, linear_algebra::DynamicVector<double>, linear_algebra::DynamicVector<double>>;
+    core::Function<const linear_algebra::DynamicVector<double>&,
+                   core::FunctionInfo<double, core::evaluation::kFunction>,
+                   core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
 auto make_rosenbrock_dynamic_vector_function() -> LinearAlgebraFunction
 {
     const auto tF = core::test_utilities::make_rosenbrock_function(test_utilities::Rosenbrock{});
-    return LinearAlgebraFunction{[tF](const auto aDynamicVector) { return tF.f(to_two_d(aDynamicVector)); },
-                                 [tF](const auto aDynamicVector)
-                                 { return test_utilities::to_dynamic_vector(tF.df(to_two_d(aDynamicVector))); }};
+    return LinearAlgebraFunction{
+        [tF](const auto& aDynamicVector) { return tF.evaluate<core::evaluation::kFunction>(to_two_d(aDynamicVector)); },
+        [tF](const auto& aDynamicVector) {
+            return test_utilities::to_dynamic_vector(
+                tF.evaluate<core::evaluation::kFirstDerivative>(to_two_d(aDynamicVector)));
+        }};
 }
 
-auto make_rosenbrock_constraint() -> Constraint<linear_algebra::DynamicVector<double>>
+auto make_rosenbrock_constraint() -> Constraint<const linear_algebra::DynamicVector<double>&>
 {
     const auto tDynamicVectorFunction = make_rosenbrock_dynamic_vector_function();
     constexpr double tValue = 0;
     constexpr bool tLinear = false;
-    return Constraint<linear_algebra::DynamicVector<double>>{"Rosenbrock", tDynamicVectorFunction, tValue, tLinear,
-                                                             ConstraintType::kLessThan};
+    return Constraint<const linear_algebra::DynamicVector<double>&>{"Rosenbrock", tDynamicVectorFunction, tValue,
+                                                                    tLinear, ConstraintType::kLessThan};
 }
 
 }  // namespace
@@ -41,37 +46,37 @@ auto make_rosenbrock_constraint() -> Constraint<linear_algebra::DynamicVector<do
 TEST(ConstraintAdaptor, MakeVectorFunction)
 {
     auto tRosenbrock = make_rosenbrock_dynamic_vector_function();
-    const auto tVectorRosenbrock = detail::make_vector_function(tRosenbrock);
+    const auto tVectorRosenbrock =
+        detail::make_vector_function<const linear_algebra::DynamicVector<double>&>(tRosenbrock);
 
     const auto tTestPoint = linear_algebra::DynamicVector<double>({1, 2});
-    const auto tScalarGold = tRosenbrock.f(tTestPoint);
-    const auto tVectorResult = tVectorRosenbrock.f(tTestPoint).stdVector();
-
-    ASSERT_EQ(tVectorResult.size(), 1u);
-    EXPECT_EQ(tVectorResult[0], tScalarGold);
-
-    constexpr auto tScaleFactor = double{2.0};
-    const auto tTestDirection = linear_algebra::DynamicVector{tScaleFactor};
-    const auto tExpected = tScaleFactor * tRosenbrock.df(tTestPoint);
-
-    const auto tVectorDFResult = tTestDirection * tVectorRosenbrock.df(tTestPoint);
-    ASSERT_EQ(tVectorDFResult.size(), 2U);
-    EXPECT_EQ(tVectorDFResult.stdVector(), tExpected.stdVector());
-}
-
-TEST(ConstraintAdaptor, MakeAdjointJacobianVectorFunction)
-{
-    auto tRosenbrock = make_rosenbrock_dynamic_vector_function();
-    const auto tVectorRosenbrock = detail::make_adjoint_jacobian_vector_function(tRosenbrock);
-
-    const auto tTestPoint = linear_algebra::DynamicVector{1.0, 2.0};
-    const auto tTestDual = linear_algebra::DynamicVector{2.0, -4.0};
-
-    const auto tExpected = tRosenbrock.df(tTestPoint).dot(tTestDual);
-
-    const auto tVectorDFResult = tTestDual * tVectorRosenbrock.df(tTestPoint);
-    ASSERT_EQ(tVectorDFResult.size(), 1U);
-    EXPECT_EQ(tVectorDFResult[0], tExpected);
+    // Function evaluation
+    {
+        const auto tScalarGold = tRosenbrock.evaluate<core::evaluation::kFunction>(tTestPoint);
+        const auto tVectorResult = tVectorRosenbrock.evaluate<core::evaluation::kFunction>(tTestPoint).stdVector();
+        ASSERT_EQ(tVectorResult.size(), 1U);
+        EXPECT_EQ(tVectorResult[0], tScalarGold);
+    }
+    // Gradient
+    {
+        constexpr auto tScaleFactor = double{2.0};
+        const auto tTestDirection = linear_algebra::DynamicVector{tScaleFactor};
+        const auto tExpected = tScaleFactor * tRosenbrock.evaluate<core::evaluation::kFirstDerivative>(tTestPoint);
+        const auto tVectorDFResult =
+            tTestDirection * tVectorRosenbrock.evaluate<core::evaluation::kFirstDerivative>(tTestPoint);
+        ASSERT_EQ(tVectorDFResult.size(), 2U);
+        EXPECT_EQ(tVectorDFResult.stdVector(), tExpected.stdVector());
+    }
+    // Adjoint gradient
+    {
+        const auto tTestDual = linear_algebra::DynamicVector{2.0, -4.0};
+        const auto tExpected = tRosenbrock.evaluate<core::evaluation::kFirstDerivative>(tTestPoint).dot(tTestDual);
+        const auto tVectorDFResult =
+            tTestDual *
+            tVectorRosenbrock.evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(tTestPoint);
+        ASSERT_EQ(tVectorDFResult.size(), 1U);
+        EXPECT_EQ(tVectorDFResult[0], tExpected);
+    }
 }
 
 TEST(ConstraintAdaptor, MakeVectorConstraint)
@@ -85,8 +90,9 @@ TEST(ConstraintAdaptor, MakeVectorConstraint)
     EXPECT_EQ(tConstraint.mConstraintType, tAdaptedConstraint.mConstraintType);
 
     const auto tTestPoint = linear_algebra::DynamicVector<double>({1, 2});
-    const auto tScalarGold = tConstraint.mConstraintFunction.f(tTestPoint);
-    const auto tVectorResult = tAdaptedConstraint.mFunctionWithDfAsJacobian.f(tTestPoint).stdVector();
+    const auto tScalarGold = tConstraint.mConstraintFunction.evaluate<core::evaluation::kFunction>(tTestPoint);
+    const auto tVectorResult =
+        tAdaptedConstraint.mConstraintFunction.evaluate<core::evaluation::kFunction>(tTestPoint).stdVector();
 
     ASSERT_EQ(tVectorResult.size(), 1u);
     EXPECT_EQ(tVectorResult[0], tScalarGold);

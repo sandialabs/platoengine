@@ -1,7 +1,6 @@
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
 
 #include "plato/core/Compose.hpp"
-#include "plato/linear_algebra/ComposeAdjointJacobian.hpp"
 
 namespace plato::process_manager::extension
 {
@@ -10,10 +9,10 @@ auto compose_geometry_with_constraint(
     const plato::geometry::library::FactoryTypes& aGeometry)
     -> criteria::library::Constraint<const linear_algebra::DynamicVector<double>&>
 {
-    const auto tComposition = compose(aMeshConstraint.mConstraintFunction, aGeometry.mCompute);
+    auto tComposition = compose(aMeshConstraint.mConstraintFunction, aGeometry.mCompute);
 
     return criteria::library::Constraint<const linear_algebra::DynamicVector<double>&>{
-        aMeshConstraint.mName, tComposition, aMeshConstraint.mConstraintTarget, aMeshConstraint.mLinear,
+        aMeshConstraint.mName, std::move(tComposition), aMeshConstraint.mConstraintTarget, aMeshConstraint.mLinear,
         aMeshConstraint.mConstraintType};
 }
 
@@ -22,18 +21,11 @@ auto compose_geometry_with_vector_constraint(
     const plato::geometry::library::FactoryTypes& aGeometry)
     -> criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>
 {
-    const auto tComposedVectorConstraintJacobian =
-        core::compose(aMeshConstraint.mFunctionWithDfAsJacobian, aGeometry.mCompute);
-    const auto tComposedVectorConstraintAdjointJacobian =
-        linear_algebra::compose_adjoint_jacobian(aMeshConstraint.mFunctionWithDfAsAdjointJacobian, aGeometry.mCompute);
+    auto tComposedVectorConstraintJacobian = core::compose(aMeshConstraint.mConstraintFunction, aGeometry.mCompute);
 
     return criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
-        aMeshConstraint.mName,
-        tComposedVectorConstraintJacobian,
-        tComposedVectorConstraintAdjointJacobian,
-        aMeshConstraint.mConstraintTarget,
-        aMeshConstraint.mLinear,
-        aMeshConstraint.mConstraintType};
+        aMeshConstraint.mName, std::move(tComposedVectorConstraintJacobian), aMeshConstraint.mConstraintTarget,
+        aMeshConstraint.mLinear, aMeshConstraint.mConstraintType};
 }
 
 }  // namespace plato::process_manager::extension

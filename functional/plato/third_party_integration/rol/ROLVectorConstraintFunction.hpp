@@ -15,9 +15,13 @@ namespace plato::third_party_integration::rol
 class ROLVectorConstraintFunction : public ROL::StdConstraint<double>
 {
    public:
-    using ROLPlatoFunction = core::Function<linear_algebra::DynamicVector<double>,
-                                            linear_algebra::JacobianMultiplier,
-                                            const linear_algebra::DynamicVector<double>&>;
+    using ROLPlatoFunction =
+        core::Function<const linear_algebra::DynamicVector<double>&,
+                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFunction>,
+                       core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>,
+                       core::FunctionInfo<linear_algebra::AdjointJacobianMultiplier,
+                                          core::evaluation::kFirstDerivative,
+                                          core::MatrixOrdering::kAdjoint>>;
 
     ///@brief Construct a new ROLVectorConstraintFunction object
     ROLVectorConstraintFunction(
@@ -40,8 +44,7 @@ class ROLVectorConstraintFunction : public ROL::StdConstraint<double>
                               double& aTolerance) override;
 
    private:
-    ROLPlatoFunction mFunctionWithDfAsJacobian;
-    ROLPlatoFunction mFunctionWithDfAsAdjointJacobian;
+    ROLPlatoFunction mFunction;
     double mConstraintTarget = 0;
 };
 }  // namespace plato::third_party_integration::rol

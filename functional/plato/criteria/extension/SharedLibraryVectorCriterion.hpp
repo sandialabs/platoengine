@@ -51,15 +51,16 @@ class SharedLibraryVectorCriterion
     boost::mpi::communicator mComm{MPI_COMM_NULL, boost::mpi::comm_attach};
 };
 
-[[nodiscard]] auto make_shared_library_jacobian_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
-    -> core::Function<linear_algebra::DynamicVector<double>,
-                      linear_algebra::JacobianMultiplier,
-                      const analysis::AnalysisDomainMesh&>;
+using SharedLibraryVectorCriterionFunction =
+    core::Function<const analysis::AnalysisDomainMesh&,
+                   core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFunction>,
+                   core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>,
+                   core::FunctionInfo<linear_algebra::AdjointJacobianMultiplier,
+                                      core::evaluation::kFirstDerivative,
+                                      core::MatrixOrdering::kAdjoint> >;
 
-[[nodiscard]] auto make_shared_library_adjoint_jacobian_function(
-    const SharedLibraryVectorCriterion& aSharedLibCriterion) -> core::Function<linear_algebra::DynamicVector<double>,
-                                                                               linear_algebra::JacobianMultiplier,
-                                                                               const analysis::AnalysisDomainMesh&>;
+[[nodiscard]] auto make_shared_library_jacobian_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
+    -> SharedLibraryVectorCriterionFunction;
 
 }  // namespace plato::criteria::extension
 

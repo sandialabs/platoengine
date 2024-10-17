@@ -5,6 +5,7 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/utilities/NamedType.hpp"
 
 namespace plato::filter::library
 {
@@ -17,9 +18,15 @@ struct FilterJacobian
     analysis::AnalysisDomainMesh mAnalysisDomainMesh;
 };
 
+using FilterAdjointJacobian = utilities::NamedType<FilterJacobian, struct FilterAdjointJacobianTag>;
+
 /// @pre `FilterJacobian::mFilter` must not be `nullptr`.
-linear_algebra::DynamicVector<double> operator*(const linear_algebra::DynamicVector<double>& aV,
-                                                const FilterJacobian& aJacobian);
+[[nodiscard]] auto operator*(const linear_algebra::DynamicVector<double>& aV, const FilterJacobian& aJacobian)
+    -> linear_algebra::DynamicVector<double>;
+
+/// @pre `FilterJacobian::mFilter` must not be `nullptr`.
+[[nodiscard]] auto operator*(const linear_algebra::DynamicVector<double>& aV, const FilterAdjointJacobian& aJacobian)
+    -> linear_algebra::DynamicVector<double>;
 
 }  // namespace plato::filter::library
 #endif

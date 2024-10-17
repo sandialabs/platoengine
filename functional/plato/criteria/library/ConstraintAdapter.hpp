@@ -13,11 +13,10 @@ namespace plato::criteria::library
 {
 
 template <typename FunctionArg>
-using ScalarFunction = core::Function<double, linear_algebra::DynamicVector<double>, FunctionArg>;
+using ScalarFunction = typename Constraint<FunctionArg>::ConstraintFunction;
 
 template <typename FunctionArg>
-using VectorFunction =
-    core::Function<linear_algebra::DynamicVector<double>, linear_algebra::JacobianMultiplier, FunctionArg>;
+using VectorFunction = typename VectorConstraint<FunctionArg>::ConstraintFunction;
 
 namespace detail
 {
@@ -31,34 +30,28 @@ auto make_vector_function(const VectorFunction<FunctionArg>& aVectorFunction) ->
 template <typename FunctionArg>
 auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) -> VectorFunction<FunctionArg>
 {
-    return VectorFunction<FunctionArg>{
-        [aScalarFunction](const auto& aFunctionArg)
-        { return linear_algebra::DynamicVector<double>{aScalarFunction.f(aFunctionArg)}; },
-        [aScalarFunction](const auto& aFunctionArg)
-        {
-            const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
-                [tDf = aScalarFunction.df(aFunctionArg)](const linear_algebra::DynamicVector<double>& aV)
-            { return tDf * aV.stdVector()[0]; };
-            return linear_algebra::JacobianMultiplier{tFunction};
-        }};
+    auto tEvaluation = [aScalarFunction](FunctionArg aFunctionArg)
+    {
+        return linear_algebra::DynamicVector<double>{
+            aScalarFunction.template evaluate<core::evaluation::kFunction>(aFunctionArg)};
+    };
+    auto tJacobian = [aScalarFunction](FunctionArg aFunctionArg)
+    {
+        auto tGradient = aScalarFunction.template evaluate<core::evaluation::kFirstDerivative>(aFunctionArg);
+        auto tMultiplierFunction = [tGradient = std::move(tGradient)](const linear_algebra::DynamicVector<double>& aV)
+        { return tGradient * aV.stdVector()[0]; };
+        return linear_algebra::JacobianMultiplier{std::move(tMultiplierFunction)};
+    };
+    auto tAdjointJacobian = [aScalarFunction](FunctionArg aFunctionArg)
+    {
+        auto tGradient = aScalarFunction.template evaluate<core::evaluation::kFirstDerivative>(aFunctionArg);
+        auto tMultiplierFunction = [tGradient = std::move(tGradient)](const linear_algebra::DynamicVector<double>& aV)
+        { return linear_algebra::DynamicVector{tGradient.dot(aV)}; };
+        return linear_algebra::AdjointJacobianMultiplier{
+            linear_algebra::JacobianMultiplier{std::move(tMultiplierFunction)}};
+    };
+    return VectorFunction<FunctionArg>{std::move(tEvaluation), std::move(tJacobian), std::move(tAdjointJacobian)};
 }
-
-template <typename FunctionArg>
-auto make_adjoint_jacobian_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction)
-    -> VectorFunction<FunctionArg>
-{
-    return VectorFunction<FunctionArg>{
-        [aScalarFunction](const auto& aFunctionArg)
-        { return linear_algebra::DynamicVector<double>{aScalarFunction.f(aFunctionArg)}; },
-        [aScalarFunction](const auto& aFunctionArg)
-        {
-            const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tFunction =
-                [tDf = aScalarFunction.df(aFunctionArg)](const linear_algebra::DynamicVector<double>& aV)
-            { return linear_algebra::DynamicVector<double>{tDf.dot(aV)}; };
-            return linear_algebra::JacobianMultiplier{tFunction};
-        }};
-}
-
 }  // namespace detail
 
 template <typename FunctionArg>
@@ -70,12 +63,9 @@ auto make_vector_constraint(const VectorConstraint<FunctionArg>& aConstraint) ->
 template <typename FunctionArg>
 auto make_vector_constraint(const Constraint<FunctionArg>& aConstraint) -> VectorConstraint<FunctionArg>
 {
-    return VectorConstraint<FunctionArg>{aConstraint.mName,
-                                         detail::make_vector_function(aConstraint.mConstraintFunction),
-                                         detail::make_adjoint_jacobian_vector_function(aConstraint.mConstraintFunction),
-                                         aConstraint.mConstraintTarget,
-                                         aConstraint.mLinear,
-                                         aConstraint.mConstraintType};
+    return VectorConstraint<FunctionArg>{
+        aConstraint.mName, detail::make_vector_function<FunctionArg>(aConstraint.mConstraintFunction),
+        aConstraint.mConstraintTarget, aConstraint.mLinear, aConstraint.mConstraintType};
 }
 
 }  // namespace plato::criteria::library

@@ -46,7 +46,7 @@ class Function
     using TupleHelper = detail::MakeTupleHelper<DomainType, Info...>;
     using FunctionTuple = typename TupleHelper::FunctionTuple;
 
-    template <typename... Functions>
+    template <typename... Functions, typename = std::enable_if_t<!detail::is_only_member<Function, Functions...>()>>
     Function(Functions&&... aFunctions);
 
     /// @brief Evaluates a function with derivative order @a Order with matrix ordering @a Ordering.
@@ -69,9 +69,11 @@ class Function
 };
 
 template <typename Domain, typename... Info>
-template <typename... Functions>
+template <typename... Functions, typename>
 Function<Domain, Info...>::Function(Functions&&... aFunctions) : mFunctions{std::forward_as_tuple(aFunctions...)}
 {
+    static_assert(sizeof...(Functions) == std::tuple_size_v<FunctionTuple>,
+                  "Mismatch in number of functions passed to Function constructor.");
 }
 
 template <typename Domain, typename... Info>

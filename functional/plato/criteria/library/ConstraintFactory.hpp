@@ -49,11 +49,15 @@ template <typename FunctionArg>
 struct VectorConstraint
 {
     using ConstraintFunction =
-        core::Function<linear_algebra::DynamicVector<double>, linear_algebra::JacobianMultiplier, FunctionArg>;
+        core::Function<FunctionArg,
+                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFunction>,
+                       core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>,
+                       core::FunctionInfo<linear_algebra::AdjointJacobianMultiplier,
+                                          core::evaluation::kFirstDerivative,
+                                          core::MatrixOrdering::kAdjoint>>;
 
     std::string mName;
-    ConstraintFunction mFunctionWithDfAsJacobian;
-    ConstraintFunction mFunctionWithDfAsAdjointJacobian;
+    ConstraintFunction mConstraintFunction;
     double mConstraintTarget = 0;
     bool mLinear = false;
     ConstraintType mConstraintType;
@@ -65,7 +69,7 @@ struct VectorConstraint
     -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>;
 
 /// @brief Helper for providing ROL a dual vector for constraints sized with @a aSize.
-[[nodiscard]] auto make_dual_vector(unsigned int aSize) -> linear_algebra::DynamicVector<double>;
+[[nodiscard]] auto make_dual_vector(std::size_t aSize) -> linear_algebra::DynamicVector<double>;
 
 namespace detail
 {

@@ -25,10 +25,4 @@ TEST(SumConstraint, Quadratic)
     EXPECT_EQ(tCircleConstraint.df(2.0, 3.0)(1), 2.0);
 }
 
-TEST(SumConstraint, InvalidCtor)
-{
-    constexpr std::pair<double, double> tCenter{1, 2};
-    EXPECT_THROW(test_utilities::SumConstraint(tCenter, 0), utilities::Exception);
-}
-
 }  // namespace plato::core::unittest

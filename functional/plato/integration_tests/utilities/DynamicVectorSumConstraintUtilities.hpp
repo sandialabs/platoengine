@@ -7,16 +7,19 @@
 
 namespace plato::integration_tests::utilities
 {
+using LineAndCircleFunction =
+    core::Function<const linear_algebra::DynamicVector<double>&,
+                   core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFunction>,
+                   core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>,
+                   core::FunctionInfo<linear_algebra::AdjointJacobianMultiplier,
+                                      core::evaluation::kFirstDerivative,
+                                      core::MatrixOrdering::kAdjoint> >;
 
-[[nodiscard]] auto make_line_and_circle_jacobian_function()
-    -> core::Function<linear_algebra::DynamicVector<double>,
-                      linear_algebra::JacobianMultiplier,
-                      const linear_algebra::DynamicVector<double>&>;
-
-[[nodiscard]] auto make_line_and_circle_adjoint_jacobian_function()
-    -> core::Function<linear_algebra::DynamicVector<double>,
-                      linear_algebra::JacobianMultiplier,
-                      const linear_algebra::DynamicVector<double>&>;
+/// @brief Creates a 2D vector function of two arguments for testing.
+///
+/// The function has two components and two arguments. The first component is \f$x + y\f$ and the second is \f$x^2 +
+/// y^2\f$
+[[nodiscard]] auto make_line_and_circle_jacobian_function() -> LineAndCircleFunction;
 }  // namespace plato::integration_tests::utilities
 
 #endif

@@ -53,6 +53,20 @@ struct MakeTupleHelper
     [[nodiscard]] static constexpr auto is_implemented() -> bool;
 };
 
+/// @brief Returns `true` if @a TList has size 1 and the only type contained in it is @a T.
+template <typename T, typename... TList>
+constexpr auto is_only_member()
+{
+    if constexpr (std::tuple_size_v<std::tuple<TList...>> == 1)
+    {
+        return std::is_same_v<T, std::decay_t<std::tuple_element_t<0, std::tuple<TList...>>>>;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 template <typename Domain, typename... Info>
 template <int kOrder, MatrixOrdering kOrdering, std::size_t kIndex>
 constexpr auto MakeTupleHelper<Domain, Info...>::get_index_impl() -> std::size_t

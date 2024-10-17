@@ -48,14 +48,41 @@ TEST(JacobianMultiplier, Multiplication)
         JacobianMultiplier{[](const DynamicVector<double>& aV) { return double_value(aV); }};
 
     const auto tJacobianMultiplierProduct = tJacobianMultiplierDouble * tJacobianMultiplierSquare;
-    const DynamicVector<double> tEntries({1, 2, 3});
+    const auto tVector = DynamicVector{1.0, 2.0, 3.0};
 
-    const auto tResult = tJacobianMultiplierProduct.mJacobianTimesVectorFunction(tEntries);
+    const auto tResult = tJacobianMultiplierProduct.mJacobianTimesVectorFunction(tVector);
 
-    const auto tDoubled = tJacobianMultiplierDouble.mJacobianTimesVectorFunction(tEntries);
+    const auto tDoubled = tJacobianMultiplierDouble.mJacobianTimesVectorFunction(tVector);
     const auto tExpected = tJacobianMultiplierSquare.mJacobianTimesVectorFunction(tDoubled);
 
     EXPECT_EQ(tResult.stdVector(), tExpected.stdVector());
+}
+
+TEST(AdjointJacobianMultiplier, MultiplicationWithVector)
+{
+    const auto tJacobianMultiplierSquare =
+        JacobianMultiplier{[](const DynamicVector<double>& aV) { return square(aV); }};
+    const auto tAdjointJacobianMultiplierSquare = AdjointJacobianMultiplier{tJacobianMultiplierSquare};
+
+    // Result should be the same as with JacobianMultiplier, AdjointJacobianMultiplier is just a strong type
+    const auto tVector = DynamicVector{1.0, 2.0};
+    const auto tExpected = tVector * tJacobianMultiplierSquare;
+    const auto tResult = tVector * tAdjointJacobianMultiplierSquare;
+    EXPECT_EQ(tExpected.stdVector(), tResult.stdVector());
+}
+
+TEST(AdjointJacobianMultiplier, MultiplicationWithAdjointJacobian)
+{
+    const auto tAdjointJacobianMultiplierSquare =
+        AdjointJacobianMultiplier{JacobianMultiplier{[](const DynamicVector<double>& aV) { return square(aV); }}};
+    const auto tAdjointJacobianMultiplierDouble =
+        AdjointJacobianMultiplier{JacobianMultiplier{[](const DynamicVector<double>& aV) { return double_value(aV); }}};
+
+    const auto tAdjointProduct = tAdjointJacobianMultiplierSquare * tAdjointJacobianMultiplierDouble;
+    const auto tVector = DynamicVector{1.0, 2.0};
+    const auto tExpected = (tVector * tAdjointJacobianMultiplierSquare) * tAdjointJacobianMultiplierDouble;
+    const auto tResult = tVector * tAdjointProduct;
+    EXPECT_EQ(tExpected.stdVector(), tResult.stdVector());
 }
 
 }  // namespace plato::linear_algebra::unittest

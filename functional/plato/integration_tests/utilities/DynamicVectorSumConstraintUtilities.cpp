@@ -11,7 +11,7 @@ namespace
 {
 auto make_adjoint_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
                                       const std::vector<test_utilities::SumConstraint>& aConstraints)
-    -> linear_algebra::JacobianMultiplier
+    -> linear_algebra::AdjointJacobianMultiplier
 {
     const auto tDerivativeFunctionEvaluationZero = test_utilities::to_dynamic_vector(aConstraints[0].df(x[0], x[1]));
     const auto tDerivativeFunctionEvaluationOne = test_utilities::to_dynamic_vector(aConstraints[1].df(x[0], x[1]));
@@ -24,7 +24,7 @@ auto make_adjoint_jacobian_multiplier(const linear_algebra::DynamicVector<double
             {tDerivativeFunctionEvaluationZero.dot(aVector), tDerivativeFunctionEvaluationOne.dot(aVector)});
     };
 
-    return {tJacobianTimesVectorFunction};
+    return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{tJacobianTimesVectorFunction}};
 }
 
 auto make_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
@@ -46,35 +46,21 @@ auto make_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
 }
 }  // namespace
 
-auto make_line_and_circle_jacobian_function() -> core::Function<linear_algebra::DynamicVector<double>,
-                                                                linear_algebra::JacobianMultiplier,
-                                                                const linear_algebra::DynamicVector<double>&>
+auto make_line_and_circle_jacobian_function() -> LineAndCircleFunction
 {
     const auto tLineFunction = test_utilities::SumConstraint{};
     const auto tCircleFunction = test_utilities::SumConstraint{{}, 2U};
 
-    return core::make_function(
+    return LineAndCircleFunction{
         [tLineFunction, tCircleFunction](const linear_algebra::DynamicVector<double>& x) {
             return linear_algebra::DynamicVector<double>{tLineFunction.f(x[0], x[1]), tCircleFunction.f(x[0], x[1])};
         },
         [tLineFunction, tCircleFunction](const linear_algebra::DynamicVector<double>& x) {
             return make_jacobian_multiplier(x, {tLineFunction, tCircleFunction});
-        });
-}
-
-auto make_line_and_circle_adjoint_jacobian_function() -> core::Function<linear_algebra::DynamicVector<double>,
-                                                                        linear_algebra::JacobianMultiplier,
-                                                                        const linear_algebra::DynamicVector<double>&>
-{
-    const auto tLineFunction = test_utilities::SumConstraint{};
-    const auto tCircleFunction = test_utilities::SumConstraint{{}, 2U};
-    return core::make_function(
-        [tLineFunction, tCircleFunction](const linear_algebra::DynamicVector<double>& x) {
-            return linear_algebra::DynamicVector<double>{tLineFunction.f(x[0], x[1]), tCircleFunction.f(x[0], x[1])};
         },
         [tLineFunction, tCircleFunction](const linear_algebra::DynamicVector<double>& x) {
             return make_adjoint_jacobian_multiplier(x, {tLineFunction, tCircleFunction});
-        });
+        }};
 }
 
 }  // namespace plato::integration_tests::utilities

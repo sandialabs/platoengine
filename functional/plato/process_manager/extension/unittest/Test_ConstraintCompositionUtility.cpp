@@ -37,78 +37,64 @@ TEST(ConstraintComposition, ComposeGeometryWithVectorConstraint)
     const auto tComposedDynamicVectorConstraint =
         compose_geometry_with_vector_constraint(tMeshDesignConstraint, tGeometry);
 
-    const linear_algebra::DynamicVector<double> tParameters({0.1, 0.2, 0.3, 1, 2, 3});
-    const linear_algebra::DynamicVector<double> tParameterDirection(std::vector<double>(24U, 0.1));
-    const linear_algebra::DynamicVector<double> tV({.1});
+    const auto tParameters = linear_algebra::DynamicVector{0.1, 0.2, 0.3, 1.0, 2.0, 3.0};
+    const auto tParameterDirection = linear_algebra::DynamicVector(24U, 0.1);
+    const auto tAnalysisDomainMesh = tGeometry.mCompute.evaluate<core::evaluation::kFunction>(tParameters);
 
-    const auto tMeshDesignVariables = tGeometry.mCompute.f(tParameters);
-    const auto tManualConstraintValue = tMeshDesignConstraint.mFunctionWithDfAsJacobian.f(tMeshDesignVariables);
-    const auto tCompositionValue = tComposedDynamicVectorConstraint.mFunctionWithDfAsJacobian.f(tParameters);
-    EXPECT_EQ(tManualConstraintValue.stdVector(), tCompositionValue.stdVector());
+    // Check function value
+    {
+        const auto tExpectedConstraintValue =
+            tMeshDesignConstraint.mConstraintFunction.evaluate<core::evaluation::kFunction>(tAnalysisDomainMesh);
+        const auto tCompositionValue =
+            tComposedDynamicVectorConstraint.mConstraintFunction.evaluate<core::evaluation::kFunction>(tParameters);
 
-    // f(X) = sum(X_i), X \in R^24
-    // \nabla f = [1 1 ... 1]
-    // v * \nabla f
-    const auto tConstraintJacobian = tV * tMeshDesignConstraint.mFunctionWithDfAsJacobian.df(tMeshDesignVariables);
-    // g(x) : R^6 -> R^24
-    const auto tJacobianTimesVectorGeometry = tConstraintJacobian * tGeometry.mCompute.df(tParameters);
+        EXPECT_EQ(tExpectedConstraintValue.stdVector(), tCompositionValue.stdVector());
+    }
 
-    const auto tCompositionJacobianTimesVector =
-        tV * tComposedDynamicVectorConstraint.mFunctionWithDfAsJacobian.df(tParameters);
+    // Check Jacobian vector product
+    {
+        // f(X) = sum(X_i), X \in R^24, X is nodal coordinates of a brick
+        // g(x) : R^6 -> R^24, maps x, y, z center coordinates and length, width height of brick to nodal coordinates
+        // \nabla f = [1 1 ... 1] \in R^24
+        // J_x(g) \in R^{24 \times 6}
+        // Checking product of: v \nabla f J_x(g)
+        // v \in R^1
+        // Result should have size 6
+        const auto tV = linear_algebra::DynamicVector{0.1};
+        const auto tConstraintJacobian =
+            tV *
+            tMeshDesignConstraint.mConstraintFunction.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh);
+        const auto tJacobianTimesVectorGeometry =
+            tConstraintJacobian * tGeometry.mCompute.evaluate<core::evaluation::kFirstDerivative>(tParameters);
 
-    EXPECT_EQ(tJacobianTimesVectorGeometry.stdVector(), tCompositionJacobianTimesVector.stdVector());
-    /*
-        const auto tManualAdjointJacobianMultiplier =
-            tMeshDesignConstraint.mFunctionWithDfAsAdjointJacobian.df(tMeshDesignVariables) *
-            tJacobianMultiplierMeshDesignVariables;
-        const auto tManualAdjointGradientResult = tManualAdjointJacobianMultiplier.mJacobianTimesVectorFunction(tDual);
+        const auto tCompositionJacobianTimesVector =
+            tV * tComposedDynamicVectorConstraint.mConstraintFunction.evaluate<core::evaluation::kFirstDerivative>(
+                     tParameters);
+
+        EXPECT_EQ(tCompositionJacobianTimesVector.size(), 6U);
+        EXPECT_EQ(tJacobianTimesVectorGeometry.stdVector(), tCompositionJacobianTimesVector.stdVector());
+    }
+    // Check adjoint adjoint Jacobian vector product
+    {
+        // Checking product of: u J_x(g)^T \nabla f^T
+        // u \in R^6
+        // Result should have size 1
+        const auto tAdjointGeometryMultiplier =
+            tGeometry.mCompute.evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(
+                tParameters);
+        const auto tAdjointConstraintGradient =
+            tMeshDesignConstraint.mConstraintFunction
+                .evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(tAnalysisDomainMesh);
+        const auto tU = linear_algebra::DynamicVector(6U, 0.1);
+        const auto tExpectedAdjointProduct = (tU * tAdjointGeometryMultiplier) * tAdjointConstraintGradient;
+
         const auto tCompositionAdjoint =
-       tComposedDynamicVectorConstraint.mFunctionWithDfAsAdjointJacobian.df(tParameters)
-                                             .mJacobianTimesVectorFunction(tDual);
-        EXPECT_EQ(tCompositionAdjoint.stdVector(), tManualAdjointGradientResult.stdVector());*/
+            tU * tComposedDynamicVectorConstraint.mConstraintFunction
+                     .evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(tParameters);
+
+        EXPECT_EQ(tCompositionAdjoint.size(), 1U);
+        EXPECT_EQ(tCompositionAdjoint.stdVector(), tExpectedAdjointProduct.stdVector());
+    }
 }
-
-/*
-TEST(ConstraintComposition, CompositionThenVectorize)
-{
-    const auto [tGeometry, tMeshDesignConstraint] = make_geometry_and_constraint();
-    const auto tComposedDynamicVectorConstraint = compose_geometry_with_constraint(tMeshDesignConstraint, tGeometry);
-
-    const linear_algebra::DynamicVector<double> tParameters({0.1, 0.2, 0.3, 1, 2, 3});
-    const linear_algebra::DynamicVector<double> tParameterDirection({0.1, 0.1, 0.1, 0.1, 0.1, 0.1});
-
-    const auto tMeshDesignVariables = tGeometry.mCompute.f(tParameters);
-    const auto tManualConstraintValue = tMeshDesignConstraint.mConstraintFunction.f(tMeshDesignVariables);
-    const auto tCompositionValue = tComposedDynamicVectorConstraint.mConstraintFunction.f(tParameters);
-    EXPECT_DOUBLE_EQ(tManualConstraintValue, tCompositionValue);
-
-    const auto tJacobianMultiplierMeshDesignVariables = tGeometry.mCompute.df(tParameters);
-    const auto tManualJacobianMultiplier =
-        tMeshDesignConstraint.mConstraintFunction.df(tMeshDesignVariables) * tJacobianMultiplierMeshDesignVariables;
-
-    EXPECT_EQ(tManualJacobianMultiplier.size(), tParameterDirection.size());
-    const auto tManualGradientResult = tManualJacobianMultiplier.dot(tParameterDirection);
-
-    const auto tCompositionGradient =
-        tComposedDynamicVectorConstraint.mConstraintFunction.df(tParameters).dot(tParameterDirection);
-
-    EXPECT_EQ(tCompositionGradient, tManualGradientResult);
-
-    const auto tVectorConstraint = criteria::library::make_vector_constraint(tComposedDynamicVectorConstraint);
-    const auto tVectorConstraintValue = tVectorConstraint.mFunctionWithDfAsJacobian.f(tParameters);
-    ASSERT_EQ(tVectorConstraintValue.size(), 1U);
-    EXPECT_EQ(tCompositionValue, tVectorConstraintValue.stdVector()[0]);
-
-    const auto tVectorConstraintJacobianTimesVector =
-        tVectorConstraint.mFunctionWithDfAsJacobian.df(tParameters).mJacobianTimesVectorFunction(tParameterDirection);
-    ASSERT_EQ(tVectorConstraintJacobianTimesVector.size(), 1U);
-    EXPECT_EQ(tVectorConstraintJacobianTimesVector.stdVector()[0], tCompositionGradient);
-
-    const auto tDual = linear_algebra::DynamicVector<double>({1});
-    const auto tVectorConstraintAdjointJacobianTimesVector =
-        tVectorConstraint.mFunctionWithDfAsAdjointJacobian.df(tParameters).mJacobianTimesVectorFunction(tDual);
-    ASSERT_EQ(tVectorConstraintAdjointJacobianTimesVector.size(), tParameters.size());
-    EXPECT_EQ(tManualJacobianMultiplier.stdVector(), tVectorConstraintAdjointJacobianTimesVector.stdVector());
-}*/
 
 }  // namespace plato::process_manager::extension::unittest

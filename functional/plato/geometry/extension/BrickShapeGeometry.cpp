@@ -105,11 +105,16 @@ void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSo
 
 auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry) -> library::GeometryFunction
 {
-    return core::make_function_with_first_derivative(
+    return library::GeometryFunction{
         [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
         { return tBrickShapeGeometry.generateMesh(detail::to_design_parameters(x)); },
         [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
-        { return to_jacobian_multiplier(tBrickShapeGeometry.jacobian(detail::to_design_parameters(x))); });
+        { return to_jacobian_multiplier(tBrickShapeGeometry.jacobian(detail::to_design_parameters(x))); },
+        [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
+        {
+            return linear_algebra::AdjointJacobianMultiplier{
+                to_jacobian_multiplier(tBrickShapeGeometry.adjointJacobian(detail::to_design_parameters(x)))};
+        }};
 }
 
 namespace detail

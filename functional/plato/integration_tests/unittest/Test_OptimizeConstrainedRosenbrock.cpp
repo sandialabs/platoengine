@@ -48,18 +48,18 @@ constexpr bool kPrintFlag = true;
 
 [[nodiscard]] auto make_sum_constraint_dynamic_vector_function(const test_utilities::SumConstraint& aSumConstraint)
 {
-    return core::make_function([capture = aSumConstraint](const linear_algebra::DynamicVector<double>& x)
-                               { return capture.f(x[0], x[1]); },
-                               [capture = aSumConstraint](const linear_algebra::DynamicVector<double>& x)
-                               { return to_dynamic_vector(capture.df(x[0], x[1])); });
+    return core::make_function_with_first_derivative([aSumConstraint](const linear_algebra::DynamicVector<double>& x)
+                                                     { return aSumConstraint.f(x[0], x[1]); },
+                                                     [aSumConstraint](const linear_algebra::DynamicVector<double>& x)
+                                                     { return to_dynamic_vector(aSumConstraint.df(x[0], x[1])); });
 }
 
-std::unique_ptr<third_party_integration::rol::ROLConstraintFunction> create_line_constraint()
+[[nodiscard]] auto create_line_constraint() -> std::unique_ptr<third_party_integration::rol::ROLConstraintFunction>
 {
     constexpr bool tLineLinear = true;
-    constexpr double tSumConstraintTarget = 1;
+    constexpr double tSumConstraintTarget = 1.0;
 
-    criteria::library::Constraint<const linear_algebra::DynamicVector<double>&> tConstraint{
+    auto tConstraint = criteria::library::Constraint<const linear_algebra::DynamicVector<double>&>{
         "Line", make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{}), tSumConstraintTarget,
         tLineLinear, criteria::library::ConstraintType::kLessThan};
 
@@ -67,20 +67,21 @@ std::unique_ptr<third_party_integration::rol::ROLConstraintFunction> create_line
     return std::make_unique<third_party_integration::rol::ROLConstraintFunction>(tROLConstraint);
 }
 
-std::unique_ptr<third_party_integration::rol::ROLConstraintFunction> create_circle_constraint()
+[[nodiscard]] auto create_circle_constraint() -> std::unique_ptr<third_party_integration::rol::ROLConstraintFunction>
 {
-    constexpr bool tCircleLinear = false;
-    constexpr double tCircleConstraintTarget = 1;
-    constexpr std::pair<double, double> tCenter{0, 0};
+    constexpr auto tCircleLinear = bool{false};
+    constexpr auto tCircleConstraintTarget = double{1.0};
+    constexpr auto tCenter = std::make_pair(0.0, 0.0);
 
-    criteria::library::Constraint<const linear_algebra::DynamicVector<double>&> tConstraint{
+    auto tConstraint = criteria::library::Constraint<const linear_algebra::DynamicVector<double>&>{
         "Circle", make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{tCenter, 2}),
         tCircleConstraintTarget, tCircleLinear, criteria::library::ConstraintType::kLessThan};
     auto tROLConstraint = third_party_integration::rol::ROLConstraintFunction{std::move(tConstraint)};
-    return std::make_unique<third_party_integration::rol::ROLConstraintFunction>(tROLConstraint);
+    return std::make_unique<third_party_integration::rol::ROLConstraintFunction>(std::move(tROLConstraint));
 }
 
-std::unique_ptr<ROL::Problem<double>> create_rol_bounded_rosenbrock_problem(ROL::Ptr<ROL::StdVector<double>>& aControls)
+[[nodiscard]] auto create_rol_bounded_rosenbrock_problem(ROL::Ptr<ROL::StdVector<double>>& aControls)
+    -> std::unique_ptr<ROL::Problem<double>>
 {
     auto tObjective = std::make_unique<third_party_integration::rol::ROLObjectiveFunction>(
         utilities::make_rosenbrock_dynamic_vector_function(test_utilities::Rosenbrock{}));
@@ -88,8 +89,8 @@ std::unique_ptr<ROL::Problem<double>> create_rol_bounded_rosenbrock_problem(ROL:
     auto tROLProblem =
         std::make_unique<ROL::Problem<double>>(ROL::Ptr<ROL::StdObjective<double>>(tObjective.release()), aControls);
 
-    const std::vector<double> tLower{-1, -1};
-    const std::vector<double> tUpper{1, 1};
+    const auto tLower = std::vector{-1.0, -1.0};
+    const auto tUpper = std::vector{1.0, 1.0};
 
     auto tBounds = third_party_integration::rol::create_rol_bound_constraint({tLower, tUpper});
 
@@ -135,23 +136,20 @@ void add_nonlinear_constraint_rol_problem(std::unique_ptr<ROL::Problem<double>>&
         tInequalityBoundConstraint, tMultipliersPtr, false);
 }
 
-auto create_rol_vector_constraint_combination_line_and_circle()
+[[nodiscard]] auto create_rol_vector_constraint_combination_line_and_circle()
 {
     constexpr bool tIsLinear = false;
-    constexpr double tTarget = 1;
+    constexpr double tTarget = 1.0;
 
-    const auto tJacobianFunction = utilities::make_line_and_circle_jacobian_function();
-    const auto tAdjointJacobianFunction = utilities::make_line_and_circle_adjoint_jacobian_function();
+    auto tConstraint = criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
+        "Circle and line", utilities::make_line_and_circle_jacobian_function(), tTarget, tIsLinear,
+        criteria::library::ConstraintType::kLessThan};
 
-    criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&> tConstraint{
-        "Circle and line", tJacobianFunction, tAdjointJacobianFunction,
-        tTarget,           tIsLinear,         criteria::library::ConstraintType::kLessThan};
-
-    return third_party_integration::rol::ROLVectorConstraintFunction{tConstraint};
+    return third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
 }
 
-std::unique_ptr<ROL::Problem<double>> create_rol_constrained_rosenbrock_problem_by_adding_two_constraints(
-    ROL::Ptr<ROL::StdVector<double>>& aControls)
+[[nodiscard]] auto rol_constrained_rosenbrock_problem_with_two_scalar_constraints(
+    ROL::Ptr<ROL::StdVector<double>>& aControls) -> std::unique_ptr<ROL::Problem<double>>
 {
     auto tROLProblem = create_rol_bounded_rosenbrock_problem(aControls);
     auto tLine = create_line_constraint();
@@ -163,8 +161,8 @@ std::unique_ptr<ROL::Problem<double>> create_rol_constrained_rosenbrock_problem_
     return tROLProblem;
 }
 
-std::unique_ptr<ROL::Problem<double>> create_rol_constrained_rosenbrock_problem_by_adding_one_vector_constraint(
-    ROL::Ptr<ROL::StdVector<double>>& aControls)
+[[nodiscard]] auto rol_constrained_rosenbrock_problem_with_one_vector_constraint(
+    ROL::Ptr<ROL::StdVector<double>>& aControls) -> std::unique_ptr<ROL::Problem<double>>
 {
     auto tROLProblem = create_rol_bounded_rosenbrock_problem(aControls);
 
@@ -176,33 +174,39 @@ std::unique_ptr<ROL::Problem<double>> create_rol_constrained_rosenbrock_problem_
     return tROLProblem;
 }
 
-auto solution_as_string(const linear_algebra::DynamicVector<double>& aSolution) -> std::string
+struct SolutionForStream
 {
-    auto tStream = std::stringstream{};
-    tStream << std::setprecision(16) << "tSolution[0]" << aSolution[0] << "\n";
-    tStream << "tSolution[1]" << aSolution[1] << "\n";
-    tStream << "tSolution[0]+tSolution[1] = " << aSolution[0] + aSolution[1] << "\n";
-    tStream << "tSolution[0]^2+tSolution[1]^2  = " << aSolution[0] * aSolution[0] + aSolution[1] * aSolution[1] << "\n";
-    tStream << "Rosenbrock: " << test_utilities::Rosenbrock{}.f(aSolution[0], aSolution[1]) << "\n";
-    return tStream.str();
+    std::reference_wrapper<const linear_algebra::DynamicVector<double>> mSolution;
+};
+
+template <typename OutStream>
+auto operator<<(OutStream& aOutStream, const SolutionForStream& aSolution) -> OutStream&
+{
+    const auto& tVector = aSolution.mSolution.get();
+    aOutStream << std::setprecision(16) << "tSolution[0]" << tVector[0] << "\n";
+    aOutStream << "tSolution[1]" << tVector[1] << "\n";
+    aOutStream << "tSolution[0]+tSolution[1] = " << tVector[0] + tVector[1] << "\n";
+    aOutStream << "tSolution[0]^2+tSolution[1]^2  = " << tVector[0] * tVector[0] + tVector[1] * tVector[1] << "\n";
+    aOutStream << "Rosenbrock: " << test_utilities::Rosenbrock{}.f(tVector[0], tVector[1]) << "\n";
+    return aOutStream;
 }
 
 void print_and_test_solution(const linear_algebra::DynamicVector<double>& aSolution)
 {
-    const auto tSolutionForPrinting = solution_as_string(aSolution);
-    ASSERT_EQ(aSolution.size(), 2u) << tSolutionForPrinting;
-    EXPECT_NEAR(aSolution[0], kGoldXValue, kTolerance) << tSolutionForPrinting;
-    EXPECT_NEAR(aSolution[1], kGoldYValue, kTolerance) << tSolutionForPrinting;
+    const auto tSolutionForStream = SolutionForStream{std::ref(aSolution)};
+    ASSERT_EQ(aSolution.size(), 2u) << tSolutionForStream;
+    EXPECT_NEAR(aSolution[0], kGoldXValue, kTolerance) << tSolutionForStream;
+    EXPECT_NEAR(aSolution[1], kGoldYValue, kTolerance) << tSolutionForStream;
 }
 
 }  // namespace
 
 TEST(Optimize, RosenbrockWithConstraintsROLTwoScalarConstraints)
 {
-    auto tControl = ROL::makePtr<ROL::StdVector<double>>(2, 0.);
+    auto tControl = ROL::makePtr<ROL::StdVector<double>>(2, 0.0);
     auto tROLInputs = create_parameter_list();
     auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(
-        create_rol_constrained_rosenbrock_problem_by_adding_two_constraints(tControl).release());
+        rol_constrained_rosenbrock_problem_with_two_scalar_constraints(tControl).release());
 
     auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
     ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
@@ -216,7 +220,7 @@ TEST(Optimize, RosenbrockWithConstraintsROLOneVectorConstraint)
     auto tControl = ROL::makePtr<ROL::StdVector<double>>(2, 0.);
     auto tROLInputs = create_parameter_list();
     auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(
-        create_rol_constrained_rosenbrock_problem_by_adding_one_vector_constraint(tControl).release());
+        rol_constrained_rosenbrock_problem_with_one_vector_constraint(tControl).release());
 
     auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
     ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);

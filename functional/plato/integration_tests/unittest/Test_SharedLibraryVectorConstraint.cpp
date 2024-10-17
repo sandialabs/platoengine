@@ -18,7 +18,7 @@ namespace
 // shared library more generically
 constexpr std::string_view kLibPath = "libPlatoTestVectorConstraint.so";
 
-[[nodiscard]] criteria::extension::SharedLibraryVectorCriterion test_shared_library_criterion()
+[[nodiscard]] auto test_shared_library_criterion() -> criteria::extension::SharedLibraryVectorCriterion
 {
     const auto tTestConfiguration = utilities::test_app_configuration(kLibPath);
     return criteria::extension::SharedLibraryVectorCriterion{

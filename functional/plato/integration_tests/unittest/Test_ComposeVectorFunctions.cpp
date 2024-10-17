@@ -4,13 +4,17 @@
 
 #include "plato/core/Compose.hpp"
 #include "plato/core/Function.hpp"
-#include "plato/linear_algebra/ComposeAdjointJacobian.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::linear_algebra::unittest
 {
-using VectorFunction = core::Function<DynamicVector<double>, JacobianMultiplier, const DynamicVector<double>&>;
+using FunctionEvaluationInfo = core::FunctionInfo<DynamicVector<double>, core::evaluation::kFunction>;
+using JacobianInfo = core::FunctionInfo<JacobianMultiplier, core::evaluation::kFirstDerivative>;
+using AdjointJacobianInfo =
+    core::FunctionInfo<AdjointJacobianMultiplier, core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>;
+using VectorFunction =
+    core::Function<const DynamicVector<double>&, FunctionEvaluationInfo, JacobianInfo, AdjointJacobianInfo>;
 
 namespace
 {
@@ -68,7 +72,7 @@ auto make_jacobian_multiplier_two_to_three(const DynamicVector<double>& aX) -> J
     return {tJacobianTimesVectorFunction};
 }
 
-auto make_adjoint_jacobian_multiplier_two_to_three(const DynamicVector<double>& aX) -> JacobianMultiplier
+auto make_adjoint_jacobian_multiplier_two_to_three(const DynamicVector<double>& aX) -> AdjointJacobianMultiplier
 {
     const auto tFirstFunctionGrad = kFirstFunctionGrad(aX);
     const auto tSecondFunctionGrad = kSecondFunctionGrad(aX);
@@ -81,7 +85,7 @@ auto make_adjoint_jacobian_multiplier_two_to_three(const DynamicVector<double>& 
             {tFirstFunctionGrad.dot(aVector), tSecondFunctionGrad.dot(aVector), tThirdFunctionGrad.dot(aVector)});
     };
 
-    return {tJacobianTimesVectorFunction};
+    return AdjointJacobianMultiplier{JacobianMultiplier{tJacobianTimesVectorFunction}};
 }
 
 auto make_jacobian_multiplier_three_to_one(const DynamicVector<double>& aX) -> JacobianMultiplier
@@ -98,7 +102,7 @@ auto make_jacobian_multiplier_three_to_one(const DynamicVector<double>& aX) -> J
     return {tJacobianTimesVectorFunction};
 }
 
-auto make_adjoint_jacobian_multiplier_three_to_one(const DynamicVector<double>& aX) -> JacobianMultiplier
+auto make_adjoint_jacobian_multiplier_three_to_one(const DynamicVector<double>& aX) -> AdjointJacobianMultiplier
 {
     const auto tForthFunctionGrad = kForthFunctionGrad(aX);
 
@@ -106,56 +110,34 @@ auto make_adjoint_jacobian_multiplier_three_to_one(const DynamicVector<double>& 
         [tForthFunctionGrad](const DynamicVector<double>& aVector)
     { return DynamicVector<double>({tForthFunctionGrad.dot(aVector)}); };
 
-    return {tJacobianTimesVectorFunction};
+    return AdjointJacobianMultiplier{JacobianMultiplier{tJacobianTimesVectorFunction}};
 }
 
 auto create_vector_function_two_to_three() -> VectorFunction
 {
-    return core::make_function(
+    return VectorFunction{
         [](const DynamicVector<double>& aX)
         {
             const double tX = aX[0];
             const double tY = aX[1];
             return DynamicVector({kFirstFunction(tX, tY), kSecondFunction(tX, tY), kThirdFunction(tX, tY)});
         },
-        [](const DynamicVector<double>& aX) { return make_jacobian_multiplier_two_to_three(aX); });
+        [](const DynamicVector<double>& aX) { return make_jacobian_multiplier_two_to_three(aX); },
+        [](const DynamicVector<double>& aX) { return make_adjoint_jacobian_multiplier_two_to_three(aX); }};
 }
 
 auto create_vector_function_three_to_one() -> VectorFunction
 {
-    return core::make_function(
-        [](const DynamicVector<double>& aX)
-        {
-            const double tX = aX[0];
-            const double tY = aX[1];
-            const double tZ = aX[2];
-            return DynamicVector({kForthFunction(tX, tY, tZ)});
-        },
-        [](const DynamicVector<double>& aX) { return make_jacobian_multiplier_three_to_one(aX); });
-}
-
-auto create_adjoint_vector_function_two_to_three() -> VectorFunction
-{
-    return core::make_function(
-        [](const DynamicVector<double>& aX)
-        {
-            const double tX = aX[0];
-            const double tY = aX[1];
-            return DynamicVector({kFirstFunction(tX, tY), kSecondFunction(tX, tY), kThirdFunction(tX, tY)});
-        },
-        [](const DynamicVector<double>& aX) { return make_adjoint_jacobian_multiplier_two_to_three(aX); });
-}
-auto create_adjoint_vector_function_three_to_one() -> VectorFunction
-{
-    return core::make_function(
-        [](const DynamicVector<double>& aX)
-        {
-            const double tX = aX[0];
-            const double tY = aX[1];
-            const double tZ = aX[2];
-            return DynamicVector({kForthFunction(tX, tY, tZ)});
-        },
-        [](const DynamicVector<double>& aX) { return make_adjoint_jacobian_multiplier_three_to_one(aX); });
+    return VectorFunction{[](const DynamicVector<double>& aX)
+                          {
+                              const double tX = aX[0];
+                              const double tY = aX[1];
+                              const double tZ = aX[2];
+                              return DynamicVector({kForthFunction(tX, tY, tZ)});
+                          },
+                          [](const DynamicVector<double>& aX) { return make_jacobian_multiplier_three_to_one(aX); },
+                          [](const DynamicVector<double>& aX)
+                          { return make_adjoint_jacobian_multiplier_three_to_one(aX); }};
 }
 
 }  // namespace
@@ -168,33 +150,33 @@ TEST(LinearAlgebra, ComposeTwoVectorFunctions)
     const auto tCompositionFOfG = core::compose(tF, tG);
 
     const DynamicVector<double> tX{1.0, 2.0};
-    const DynamicVector<double> tDirection{-2.0};
-    EXPECT_EQ(tF.f(tG.f(tX)).stdVector(), tCompositionFOfG.f(tX).stdVector());
+    // Function evaluation
+    {
+        EXPECT_EQ(tF.evaluate<0>(tG.evaluate<core::evaluation::kFunction>(tX)).stdVector(),
+                  tCompositionFOfG.evaluate<0>(tX).stdVector());
+    }
+    // Jacobian
+    {
+        const DynamicVector<double> tDirection{-2.0};
+        const auto tResult = tDirection * tCompositionFOfG.evaluate<core::evaluation::kFirstDerivative>(tX);
+        const auto tVectorTimesFJacobian =
+            tDirection * tF.evaluate<core::evaluation::kFirstDerivative>(tG.evaluate<core::evaluation::kFunction>(tX));
+        const auto tExpected = tVectorTimesFJacobian * tG.evaluate<core::evaluation::kFirstDerivative>(tX);
 
-    const auto tResult = tDirection * tCompositionFOfG.df(tX);
+        ASSERT_EQ(tResult.size(), 2U);
+        ASSERT_EQ(tExpected.size(), 2U);
+        EXPECT_EQ(tResult.stdVector(), tExpected.stdVector());
+    }
+    // Adjoint Jacobian
+    {
+        const auto tDual = DynamicVector{-3.0, 4.0};
+        const auto tResult =
+            tDual * tCompositionFOfG.evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(tX);
+        const auto tExpectedFromMatlab = std::vector<double>{182.0};
 
-    const auto tVectorTimesFJacobian = tDirection * tF.df(tG.f(tX));
-    const auto tExpected = tVectorTimesFJacobian * tG.df(tX);
-
-    ASSERT_EQ(tResult.size(), 2U);
-    ASSERT_EQ(tExpected.size(), 2U);
-    EXPECT_EQ(tResult.stdVector(), tExpected.stdVector());
-}
-
-TEST(LinearAlgebra, ComposeTwoAdjointVectorFunctions)
-{
-    const auto tF = create_adjoint_vector_function_three_to_one();
-    const auto tG = create_adjoint_vector_function_two_to_three();
-    const auto tCompositionFOfG = compose_adjoint_jacobian(tF, tG);
-
-    const auto tX = DynamicVector{1.0, 2.0};
-    EXPECT_EQ(tF.f(tG.f(tX)).stdVector(), tCompositionFOfG.f(tX).stdVector());
-
-    const auto tDual = DynamicVector{-3.0, 4.0};
-    const auto tResult = tDual * tCompositionFOfG.df(tX);
-    const auto tExpectedFromMatlab = std::vector<double>{182.0};
-    EXPECT_EQ(tResult.size(), 1U);
-    EXPECT_EQ(tResult.stdVector(), tExpectedFromMatlab);
+        EXPECT_EQ(tResult.size(), 1U);
+        EXPECT_EQ(tResult.stdVector(), tExpectedFromMatlab);
+    }
 }
 
 TEST(LinearAlgebra, MakeAdjointJacobianMultiplierTwoToThree)

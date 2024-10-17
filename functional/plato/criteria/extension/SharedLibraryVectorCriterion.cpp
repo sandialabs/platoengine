@@ -80,35 +80,26 @@ auto make_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCrit
 }
 auto make_adjoint_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCriterion,
                                       const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-    -> linear_algebra::JacobianMultiplier
+    -> linear_algebra::AdjointJacobianMultiplier
 {
-    return linear_algebra::JacobianMultiplier{[aSharedLibCriterion, aAnalysisDomainMesh](const auto aDualVector) {
-        return aSharedLibCriterion.adjointJacobianTimesVector(aAnalysisDomainMesh, aDualVector);
-    }};
+    return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{
+        [aSharedLibCriterion, aAnalysisDomainMesh](const auto aDualVector)
+        { return aSharedLibCriterion.adjointJacobianTimesVector(aAnalysisDomainMesh, aDualVector); }}};
 }
 
 }  // namespace
 
 auto make_shared_library_jacobian_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
-    -> core::Function<linear_algebra::DynamicVector<double>,
-                      linear_algebra::JacobianMultiplier,
-                      const analysis::AnalysisDomainMesh&>
+    -> SharedLibraryVectorCriterionFunction
 {
-    return core::make_function([aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                               { return aSharedLibCriterion.value(aAnalysisDomainMesh); },
-                               [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                               { return make_jacobian_multiplier(aSharedLibCriterion, aAnalysisDomainMesh); });
-}
-
-auto make_shared_library_adjoint_jacobian_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
-    -> core::Function<linear_algebra::DynamicVector<double>,
-                      linear_algebra::JacobianMultiplier,
-                      const analysis::AnalysisDomainMesh&>
-{
-    return core::make_function([aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                               { return aSharedLibCriterion.value(aAnalysisDomainMesh); },
-                               [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                               { return make_adjoint_jacobian_multiplier(aSharedLibCriterion, aAnalysisDomainMesh); });
+    return SharedLibraryVectorCriterionFunction{
+        [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        { return aSharedLibCriterion.value(aAnalysisDomainMesh); },
+        [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        { return make_jacobian_multiplier(aSharedLibCriterion, aAnalysisDomainMesh); },
+        [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
+            return make_adjoint_jacobian_multiplier(aSharedLibCriterion, aAnalysisDomainMesh);
+        }};  // namespace plato::criteria::extension
 }
 
 }  // namespace plato::criteria::extension

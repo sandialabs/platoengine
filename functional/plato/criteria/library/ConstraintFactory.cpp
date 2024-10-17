@@ -33,7 +33,7 @@ auto make_constraints(const ValidatedConstraints& aInput)
     return tConstraints;
 }
 
-auto make_dual_vector(const unsigned int aSize) -> linear_algebra::DynamicVector<double>
+auto make_dual_vector(const std::size_t aSize) -> linear_algebra::DynamicVector<double>
 {
     return linear_algebra::DynamicVector<double>{std::vector<double>(aSize, 1.0)};
 }

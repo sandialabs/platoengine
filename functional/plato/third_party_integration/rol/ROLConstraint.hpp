@@ -15,7 +15,7 @@ namespace plato::third_party_integration::rol
 struct ROLConstraint
 {
     std::string mName;
-    unsigned int mNumberOfConstraints = 1;
+    std::size_t mNumberOfConstraints = 1;
     bool mLinear = false;
     criteria::library::ConstraintType mType;
     std::unique_ptr<ROLVectorConstraintFunction> mConstraintFunction;

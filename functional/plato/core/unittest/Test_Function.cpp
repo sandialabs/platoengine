@@ -88,12 +88,46 @@ TEST(Function, ScalarUsingMakeFunction)
 
     constexpr auto tArgument = double{3.0};
     EXPECT_EQ(tFunction.evaluate<evaluation::kFunction>(tArgument), tArgument * tArgument * tArgument);
-    EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(3.0), 3.0 * tArgument * tArgument);
+    EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(tArgument), 3.0 * tArgument * tArgument);
 
     using FunctionType = decltype(tFunction);
     static_assert(FunctionType::isImplemented<0, MatrixOrdering::kOriginal>());
     static_assert(FunctionType::isImplemented<1, MatrixOrdering::kOriginal>());
     static_assert(!FunctionType::isImplemented<1, MatrixOrdering::kAdjoint>());
+}
+
+TEST(Function, SpecialCtors)
+{
+    auto tFunction = make_function_with_first_derivative([](const double x) { return x * x * x * x; },
+                                                         [](const double x) { return 4.0 * x * x * x; });
+    // Copy
+    {
+        const auto tFunctionCopy = tFunction;  // NOLINT
+
+        constexpr auto tArgument = double{2.0};
+        EXPECT_EQ(tFunctionCopy.evaluate<evaluation::kFunction>(tArgument),
+                  tArgument * tArgument * tArgument * tArgument);
+        EXPECT_EQ(tFunctionCopy.evaluate<evaluation::kFirstDerivative>(tArgument),
+                  4.0 * tArgument * tArgument * tArgument);
+    }
+    // Move
+    {
+        const auto tFunctionMove = std::move(tFunction);  // NOLINT
+
+        constexpr auto tArgument = double{-2.0};
+        EXPECT_EQ(tFunctionMove.evaluate<evaluation::kFunction>(tArgument),
+                  tArgument * tArgument * tArgument * tArgument);
+        EXPECT_EQ(tFunctionMove.evaluate<evaluation::kFirstDerivative>(tArgument),
+                  4.0 * tArgument * tArgument * tArgument);
+    }
+}
+
+TEST(Function, IsOnlyMember)
+{
+    static_assert(!core::detail::is_only_member<int>());
+    static_assert(core::detail::is_only_member<int, int>());
+    static_assert(core::detail::is_only_member<int, const int&>());
+    static_assert(!core::detail::is_only_member<int, int, int>());
 }
 
 }  // namespace plato::core::unittest
