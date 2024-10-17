@@ -46,7 +46,7 @@ void CrossLinkedInput::fillCrossReference(FieldType& aField, const InputBlock&, 
         aField.emplace();
         const auto aFirstInputBlock = core::first_input_block_in_variant<VariantType>(aFullInput);
         assert(aFirstInputBlock.has_value());
-        aField->mInputBlock.set(aFirstInputBlock.value());
+        aField->mInputBlock.set(aFirstInputBlock.value());  // NOLINT
     }
     else
     {

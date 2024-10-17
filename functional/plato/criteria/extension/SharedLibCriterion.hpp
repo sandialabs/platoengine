@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionInterface.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -45,7 +44,7 @@ class SharedLibCriterion
 };
 
 [[nodiscard]] auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion)
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
+    -> library::CriterionFunction;
 
 }  // namespace plato::criteria::extension
 

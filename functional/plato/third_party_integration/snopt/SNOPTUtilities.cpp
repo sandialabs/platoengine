@@ -17,7 +17,9 @@ auto linear_constraint_jacobian_sparse_matrix(const SNOPTConstraints &aConstrain
         const auto tSignedLinearConstraintIndex = boost::numeric_cast<int>(tLinearConstraintIndex);
         const auto &tLinearConstraint =
             *std::next(aConstraintFunctions.linearConstraintsBegin(), tSignedLinearConstraintIndex);
-        const auto tConstraintGradient = tLinearConstraint.mFunction.df(tArbitraryDesignVariables);
+        const auto tConstraintGradient =
+            tLinearConstraint.mFunction.template evaluate<core::evaluation::kFirstDerivative>(
+                tArbitraryDesignVariables);
         tSparseMatrix.appendRow(Row{boost::numeric_cast<IndexType>(tLinearConstraintIndex)},
                                 tConstraintGradient.stdVector());
     }

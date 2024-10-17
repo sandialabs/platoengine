@@ -13,7 +13,9 @@ class ROLObjectiveFunction : public ROL::Objective<double>
 {
    public:
     using ROLPlatoFunction =
-        core::Function<double, linear_algebra::DynamicVector<double>, const linear_algebra::DynamicVector<double> &>;
+        core::Function<const linear_algebra::DynamicVector<double> &,
+                       core::FunctionInfo<double, core::evaluation::kFunction>,
+                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
     ///@brief Construct a new ROLObjectiveFunction object
     explicit ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction);

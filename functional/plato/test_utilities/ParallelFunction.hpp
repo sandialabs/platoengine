@@ -40,8 +40,9 @@ auto make_parallel_function(F aFun, DF aDFun, const boost::mpi::communicator& aC
 {
     using ArgF = typename detail::ParallelArgType<decltype(&F::operator())>::type;
     using ArgDF = typename detail::ParallelArgType<decltype(&DF::operator())>::type;
-    return core::make_function([tComm = aComm, tFun = std::move(aFun)](ArgF aArg) { return tFun(aArg, tComm); },
-                               [tComm = aComm, tDFun = std::move(aDFun)](ArgDF aArg) { return tDFun(aArg, tComm); });
+    return core::make_function_with_first_derivative(
+        [tComm = aComm, tFun = std::move(aFun)](ArgF aArg) { return tFun(aArg, tComm); },
+        [tComm = aComm, tDFun = std::move(aDFun)](ArgDF aArg) { return tDFun(aArg, tComm); });
 }
 }  // namespace plato::test_utilities
 

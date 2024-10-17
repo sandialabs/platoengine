@@ -28,35 +28,38 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 
 [[nodiscard]] auto rosenbrock_dynamic_vector_function(const test_utilities::Rosenbrock& aRosenbrock)
 {
-    return core::make_function([tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& x)
-                               { return tRosenbrock.f(x[0], x[1]); },
-                               [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& x)
-                               { return to_dynamic_vector(tRosenbrock.df(x[0], x[1])); });
+    return core::make_function_with_first_derivative(
+        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& x)
+        { return tRosenbrock.f(x[0], x[1]); },
+        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& x)
+        { return to_dynamic_vector(tRosenbrock.df(x[0], x[1])); });
 }
 
 [[nodiscard]] auto linear_constraint_function()
 {
-    return core::make_function([](const linear_algebra::DynamicVector<double>& aX) { return aX[0] - aX[1]; },
-                               [](const linear_algebra::DynamicVector<double>&) {
-                                   return linear_algebra::DynamicVector<double>{1.0, -1.0};
-                               });
+    return core::make_function_with_first_derivative([](const linear_algebra::DynamicVector<double>& aX)
+                                                     { return aX[0] - aX[1]; },
+                                                     [](const linear_algebra::DynamicVector<double>&) {
+                                                         return linear_algebra::DynamicVector<double>{1.0, -1.0};
+                                                     });
 }
 
 [[nodiscard]] auto affine_linear_constraint_function()
 {
-    return core::make_function([](const linear_algebra::DynamicVector<double>& aX)
-                               { return 2.0 * aX[0] - aX[1] - 1.0; },
-                               [](const linear_algebra::DynamicVector<double>&) {
-                                   return linear_algebra::DynamicVector<double>{2.0, -1.0};
-                               });
+    return core::make_function_with_first_derivative([](const linear_algebra::DynamicVector<double>& aX)
+                                                     { return 2.0 * aX[0] - aX[1] - 1.0; },
+                                                     [](const linear_algebra::DynamicVector<double>&) {
+                                                         return linear_algebra::DynamicVector<double>{2.0, -1.0};
+                                                     });
 }
 
 [[nodiscard]] auto nonlinear_constraint_function()
 {
-    return core::make_function([](const linear_algebra::DynamicVector<double>& aX) { return aX[1] - aX[0] * aX[0]; },
-                               [](const linear_algebra::DynamicVector<double>& aX) {
-                                   return linear_algebra::DynamicVector<double>{-2.0 * aX[0], 1.0};
-                               });
+    return core::make_function_with_first_derivative(
+        [](const linear_algebra::DynamicVector<double>& aX) { return aX[1] - aX[0] * aX[0]; },
+        [](const linear_algebra::DynamicVector<double>& aX) {
+            return linear_algebra::DynamicVector<double>{-2.0 * aX[0], 1.0};
+        });
 }
 
 void check_snopt_problem_solution(const std::vector<double>& aInitialGuess,

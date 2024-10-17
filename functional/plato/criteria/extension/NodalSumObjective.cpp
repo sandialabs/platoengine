@@ -38,10 +38,10 @@ linear_algebra::DynamicVector<double> NodalSumObjective::df(
     return linear_algebra::DynamicVector<double>(std::move(tCoordinates));
 }
 
-auto make_nodal_sum_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>
+auto make_nodal_sum_function() -> library::CriterionFunction
 {
-    return core::make_function([](const analysis::AnalysisDomainMesh& mesh) { return NodalSumObjective{}.f(mesh); },
-                               [](const analysis::AnalysisDomainMesh& mesh) { return NodalSumObjective{}.df(mesh); });
+    return core::make_function_with_first_derivative(
+        [](const analysis::AnalysisDomainMesh& mesh) { return NodalSumObjective{}.f(mesh); },
+        [](const analysis::AnalysisDomainMesh& mesh) { return NodalSumObjective{}.df(mesh); });
 }
 }  // namespace plato::criteria::extension

@@ -17,10 +17,14 @@ namespace plato::criteria::library
 using ValidatedObjectives =
     core::ValidatedInputTypeWrapper<std::vector<core::ValidatedInputTypeWrapper<input_parser::objective>>>;
 
+using ObjectiveEvaluationInfo = core::FunctionInfo<double, core::evaluation::kFunction>;
+using ObjectiveGradientInfo =
+    core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>;
+
 using ObjectiveFunction =
-    core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
+    core::Function<const analysis::AnalysisDomainMesh&, ObjectiveEvaluationInfo, ObjectiveGradientInfo>;
 using ParallelAggregateObjective =
-    core::ParallelAggregate<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
+    core::ParallelAggregate<const analysis::AnalysisDomainMesh&, ObjectiveEvaluationInfo, ObjectiveGradientInfo>;
 
 /// @brief Creates the objectives function from the objectives defined in @a aInput.
 ///

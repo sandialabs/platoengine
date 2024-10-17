@@ -23,10 +23,24 @@ TEST(DataSingleton, WrapsIntNoTag)
     constexpr auto tTestValue = 42;
     tSingleton.data() = tTestValue;
     ASSERT_TRUE(tSingleton.data().has_value());
+    ASSERT_TRUE(tSingleton.hasData());
     EXPECT_EQ(tSingleton.data().value(), tTestValue);
 
     tSingleton.data().reset();
     EXPECT_FALSE(tSingleton.data().has_value());
+    EXPECT_FALSE(tSingleton.hasData());
+}
+
+TEST(DataSingleton, ConstInstance)
+{
+    constexpr auto tTestValue = 42;
+    {
+        auto& tSingleton = DataSingleton<int>::instance();
+        tSingleton.data() = tTestValue;
+    }
+    const auto& tConstSingleton = DataSingleton<int>::constInstance();
+    ASSERT_TRUE(tConstSingleton.hasData());
+    EXPECT_EQ(tConstSingleton.data(), tTestValue);
 }
 
 TEST(DataSingleton, TwoTags)

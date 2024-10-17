@@ -73,10 +73,11 @@ TEST(IdentityFilter, JacobianBadDimensions)
 TEST(IdentityFilter, Function)
 {
     const auto tFilterFunction = make_identity_filter_function();
-    const auto tAnalysisDomainMeshResult = tFilterFunction.f(kMeshArgument);
+    const auto tAnalysisDomainMeshResult = tFilterFunction.evaluate<core::evaluation::kFunction>(kMeshArgument);
     test_filtered_results(tAnalysisDomainMeshResult, TEST_CONTEXT("Filter via filter function"));
 
-    const linear_algebra::DynamicVector<double> tResult = kV * tFilterFunction.df(kMeshArgument);
+    const linear_algebra::DynamicVector<double> tResult =
+        kV * tFilterFunction.evaluate<core::evaluation::kFirstDerivative>(kMeshArgument);
     EXPECT_EQ(tResult.stdVector(), kV.stdVector());
 }
 }  // namespace plato::filter::extension::unittest

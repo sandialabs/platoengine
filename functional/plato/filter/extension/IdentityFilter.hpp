@@ -1,8 +1,8 @@
 #ifndef PLATO_FILTER_EXTENSION_IDENTITYFILTER
 #define PLATO_FILTER_EXTENSION_IDENTITYFILTER
 
-#include "plato/core/Function.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 
 namespace plato::input_parser
 {
@@ -34,8 +34,7 @@ class IdentityFilter : public library::FilterInterface
         const linear_algebra::DynamicVector<double>& aV) const override;
 };
 
-[[nodiscard]] auto make_identity_filter_function()
-    -> core::Function<analysis::AnalysisDomainMesh, library::FilterJacobian, const analysis::AnalysisDomainMesh&>;
+[[nodiscard]] auto make_identity_filter_function() -> library::FilterFunction;
 
 [[nodiscard]] std::optional<std::string> validate_identity_filter(const input_parser::identity_filter& aInput);
 

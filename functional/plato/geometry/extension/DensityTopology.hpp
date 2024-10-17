@@ -6,10 +6,10 @@
 #include <unordered_map>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/Function.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -55,10 +55,7 @@ class DensityTopology
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
-[[nodiscard]] auto make_topology_geometry(const DensityTopology& aDensityTopology)
-    -> core::Function<analysis::AnalysisDomainMesh,
-                      linear_algebra::JacobianMultiplier,
-                      const linear_algebra::DynamicVector<double>&>;
+[[nodiscard]] auto make_topology_geometry(const DensityTopology& aDensityTopology) -> library::GeometryFunction;
 
 namespace detail
 {

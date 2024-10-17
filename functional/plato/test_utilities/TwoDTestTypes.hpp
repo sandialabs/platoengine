@@ -20,9 +20,11 @@ struct TwoDMatrix
 
 [[nodiscard]] constexpr TwoDVector makeTwoDVector(const double x0, const double x1) { return TwoDVector{{x0, x1}}; }
 [[nodiscard]] TwoDMatrix makeTwoDMatrix(const double x00, const double x01, const double x10, const double x11);
+[[nodiscard]] auto transpose(const TwoDMatrix& aTwoDMatrix) -> TwoDMatrix;
 
 [[nodiscard]] TwoDVector operator*(const TwoDVector& x, const TwoDMatrix& A);
 [[nodiscard]] TwoDVector operator*(double a, const TwoDVector& x);
+[[nodiscard]] TwoDMatrix operator*(const TwoDMatrix& A, const TwoDMatrix& B);
 [[nodiscard]] TwoDVector operator+(const TwoDVector& x, const TwoDVector& y);
 [[nodiscard]] bool operator==(const TwoDVector& x, const TwoDVector& y);
 [[nodiscard]] bool operator==(const TwoDMatrix& x, const TwoDMatrix& y);
@@ -41,6 +43,13 @@ struct TwoDVectorFunction
 struct TwoDVectorFunctionJacobian
 {
     [[nodiscard]] TwoDMatrix operator()(const TwoDVector& x) const { return makeTwoDMatrix(x(1), x(0), 1.0, 1.0); }
+};
+
+// [dy1/dx1, dy2/dx1]
+// [dy1/dx2, dy2/dx2]
+struct TwoDVectorFunctionAdjointJacobian
+{
+    [[nodiscard]] TwoDMatrix operator()(const TwoDVector& x) const { return makeTwoDMatrix(x(1), 1.0, x(0), 1.0); }
 };
 
 // y = x1^2 + x2^3

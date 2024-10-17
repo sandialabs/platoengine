@@ -2,6 +2,7 @@
 #define PLATO_UTILITIES_STATECACHE
 
 #include <functional>
+#include <optional>
 
 namespace plato::utilities
 {
@@ -22,10 +23,13 @@ class StateCache
 
     State compute(Args...);
 
+    /// @brief Returns `true` if compute has been called at least once, initializing the cache.
+    auto isInitialized() const -> bool;
+
    private:
     StateComputationFunction mComputeState;
     HashingFunction mGenerateHash;
-    std::size_t mDesignHash;
+    std::optional<std::size_t> mDesignHash;
     State mState;
 };
 
@@ -39,13 +43,20 @@ template <typename State, typename... Args>
 State StateCache<State, Args...>::compute(Args... aArgs)
 {
     const std::size_t tDesignHash = mGenerateHash(aArgs...);
-    if (tDesignHash != mDesignHash)
+    if (!mDesignHash.has_value() || tDesignHash != mDesignHash.value())
     {
         mState = mComputeState(aArgs...);
         mDesignHash = tDesignHash;
     }
     return mState;
 }
+
+template <typename State, typename... Args>
+auto StateCache<State, Args...>::isInitialized() const -> bool
+{
+    return mDesignHash.has_value();
+}
+
 }  // namespace plato::utilities
 
 #endif

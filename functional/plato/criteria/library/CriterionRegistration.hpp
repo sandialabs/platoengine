@@ -27,7 +27,10 @@ struct CriterionInput
 };
 
 using CriterionFunction =
-    core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
+    core::Function<const analysis::AnalysisDomainMesh&,
+                   core::FunctionInfo<double, core::evaluation::kFunction>,
+                   core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
+
 using CriterionRegistration = core::FactoryRegistration<CriterionFunction, CriterionInput>;
 using ParallelCriterionRegistration =
     core::FactoryRegistration<CriterionFunction, CriterionInput, boost::mpi::communicator>;

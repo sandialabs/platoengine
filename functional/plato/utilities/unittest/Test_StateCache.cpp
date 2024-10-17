@@ -23,9 +23,11 @@ TEST(StateCache, StateUpdatedOnlyIfHashChanges)
                                   }};
 
     ASSERT_EQ(tCallCount, 0);
+    EXPECT_FALSE(tDummyCache.isInitialized());
 
     EXPECT_EQ(tDummyCache.compute(0), 0);
     EXPECT_EQ(tCallCount, 1);
+    EXPECT_TRUE(tDummyCache.isInitialized());
 
     EXPECT_EQ(tDummyCache.compute(1), 1);
     EXPECT_EQ(tCallCount, 2);

@@ -26,7 +26,7 @@ TEST(ROLObjectiveFunction, AggregateTwoHimmelblauObjectives)
         std::make_pair(make_himmelblau_dynamic_vector_function(pt::Himmelblau{}), .30),
         std::make_pair(make_himmelblau_dynamic_vector_function(pt::Himmelblau{}), .70)};
 
-    const auto tArgument = core::make_aggregate_function(tFunctionAndWeight);
+    const auto tArgument = core::make_aggregate_function_with_first_derivative(tFunctionAndWeight);
     run_himmelblau_objective_test(tArgument);
 }
 }  // namespace plato::third_party_integration::rol::unittest

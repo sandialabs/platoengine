@@ -28,13 +28,13 @@ TEST(Rosenbrock, MakeRosenbrock)
 
     {
         const auto tX = pft::TwoDVector{0.5, 10.0};
-        EXPECT_EQ(tRosenbrock.f(tX(0), tX(1)), tRosenbrockFunction.f(tX));
-        EXPECT_EQ(tRosenbrock.df(tX(0), tX(1)), tRosenbrockFunction.df(tX));
+        EXPECT_EQ(tRosenbrock.f(tX(0), tX(1)), tRosenbrockFunction.evaluate<evaluation::kFunction>(tX));
+        EXPECT_EQ(tRosenbrock.df(tX(0), tX(1)), tRosenbrockFunction.evaluate<evaluation::kFirstDerivative>(tX));
     }
     {
         const auto tX = pft::TwoDVector{-0.5, 5.0};
-        EXPECT_EQ(tRosenbrock.f(tX(0), tX(1)), tRosenbrockFunction.f(tX));
-        EXPECT_EQ(tRosenbrock.df(tX(0), tX(1)), tRosenbrockFunction.df(tX));
+        EXPECT_EQ(tRosenbrock.f(tX(0), tX(1)), tRosenbrockFunction.evaluate<evaluation::kFunction>(tX));
+        EXPECT_EQ(tRosenbrock.df(tX(0), tX(1)), tRosenbrockFunction.evaluate<evaluation::kFirstDerivative>(tX));
     }
 }
 
@@ -49,8 +49,8 @@ TEST(Rosenbrock, RosenbrockAndPenalty)
                                   test_utilities::make_penalty_function(tPenalty));
 
     const auto tX = pft::TwoDVector{1.0, 1.0};
-    EXPECT_EQ(tH.f(tX), 0.0);
-    EXPECT_EQ(tH.df(tX)(0), 0.0);
-    EXPECT_EQ(tH.df(tX)(1), 0.0);
+    EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), 0.0);
+    EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX)(0), 0.0);
+    EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX)(1), 0.0);
 }
 }  // namespace plato::core::unittest

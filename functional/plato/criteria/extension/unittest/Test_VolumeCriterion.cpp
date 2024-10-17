@@ -20,10 +20,9 @@ using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 constexpr std::string_view kMeshFile = "brick.exo";
 
-void test_volume_criteria_from_ctor_and_function(
-    const VolumeCriterion& tVolumeCriterion,
-    const core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>& aFunction,
-    const double aGoldVolume)
+void test_volume_criteria_from_ctor_and_function(const VolumeCriterion& tVolumeCriterion,
+                                                 const library::CriterionFunction& aFunction,
+                                                 const double aGoldVolume)
 {
     constexpr double tConstantControls = 0.75;
 
@@ -33,7 +32,8 @@ void test_volume_criteria_from_ctor_and_function(
         mesh::ElementFieldVectorReference{std::cref(tControls)});
 
     EXPECT_EQ(tVolumeCriterion.f(tAnalysisDomainMesh), aGoldVolume * tConstantControls);
-    EXPECT_EQ(tVolumeCriterion.f(tAnalysisDomainMesh), aFunction.f(tAnalysisDomainMesh));
+    EXPECT_EQ(tVolumeCriterion.f(tAnalysisDomainMesh),
+              aFunction.evaluate<core::evaluation::kFunction>(tAnalysisDomainMesh));
 }
 
 void test_scaled_and_unscaled_on_ctor_and_function(
@@ -48,10 +48,9 @@ void test_scaled_and_unscaled_on_ctor_and_function(
     EXPECT_TRUE(std::filesystem::remove(kMeshFile));
 }
 
-void test_volume_criteria_derivative_from_ctor_and_function(
-    const VolumeCriterion& tVolumeCriterion,
-    const core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>& aFunction,
-    const std::vector<double>& aGold)
+void test_volume_criteria_derivative_from_ctor_and_function(const VolumeCriterion& tVolumeCriterion,
+                                                            const library::CriterionFunction& aFunction,
+                                                            const std::vector<double>& aGold)
 {
     const auto tMesh = mesh::Mesh{kMeshFile};
     const auto tAssignedDensities =
@@ -59,7 +58,7 @@ void test_volume_criteria_derivative_from_ctor_and_function(
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{std::cref(tAssignedDensities)});
     const auto tResult = tVolumeCriterion.df(tAnalysisDomainMesh);
-    const auto tResultFromFunction = aFunction.df(tAnalysisDomainMesh);
+    const auto tResultFromFunction = aFunction.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh);
 
     ASSERT_EQ(tResult.size(), mesh::EntityCounts{tMesh}.numberOfElements());
     ASSERT_EQ(tResult.size(), aGold.size());

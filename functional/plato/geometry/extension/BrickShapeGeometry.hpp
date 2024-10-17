@@ -3,10 +3,9 @@
 
 #include <filesystem>
 #include <optional>
-#include <stk_mesh/base/BulkData.hpp>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/Function.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
@@ -63,9 +62,7 @@ class BrickShapeGeometry
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
 [[nodiscard]] auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry)
-    -> core::Function<analysis::AnalysisDomainMesh,
-                      linear_algebra::JacobianMultiplier,
-                      const linear_algebra::DynamicVector<double>&>;
+    -> library::GeometryFunction;
 
 namespace detail
 {

@@ -36,13 +36,13 @@ TEST(Penalty, MakePenalty)
 
     {
         const auto tX = pft::TwoDVector{0.5, 10.0};
-        EXPECT_EQ(tPenalty.f(tX(0), tX(1)), tPenaltyFunction.f(tX));
-        EXPECT_EQ(tPenalty.df(tX(0), tX(1)), tPenaltyFunction.df(tX));
+        EXPECT_EQ(tPenalty.f(tX(0), tX(1)), tPenaltyFunction.evaluate<evaluation::kFunction>(tX));
+        EXPECT_EQ(tPenalty.df(tX(0), tX(1)), tPenaltyFunction.evaluate<evaluation::kFirstDerivative>(tX));
     }
     {
         const auto tX = pft::TwoDVector{-0.5, 5.0};
-        EXPECT_EQ(tPenalty.f(tX(0), tX(1)), tPenaltyFunction.f(tX));
-        EXPECT_EQ(tPenalty.df(tX(0), tX(1)), tPenaltyFunction.df(tX));
+        EXPECT_EQ(tPenalty.f(tX(0), tX(1)), tPenaltyFunction.evaluate<evaluation::kFunction>(tX));
+        EXPECT_EQ(tPenalty.df(tX(0), tX(1)), tPenaltyFunction.evaluate<evaluation::kFirstDerivative>(tX));
     }
 }
 }  // namespace plato::core::unittest

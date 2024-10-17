@@ -32,8 +32,11 @@ namespace plato::filter::library
 using FilterInput = core::InputVariant<input_parser::ParsedInput, input_parser::IsFilterInput>;
 using ValidatedFilterInput = core::ValidatedInputTypeWrapper<
     core::ValidatedInputVariant<input_parser::ParsedInput, input_parser::IsFilterInput>>;
-using FilterFunction =
-    core::Function<analysis::AnalysisDomainMesh, FilterJacobian, const analysis::AnalysisDomainMesh&>;
+
+using FilterFunction = core::Function<const analysis::AnalysisDomainMesh&,
+                                      core::FunctionInfo<analysis::AnalysisDomainMesh, core::evaluation::kFunction>,
+                                      core::FunctionInfo<FilterJacobian, core::evaluation::kFirstDerivative>>;
+
 using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFilterInput>;
 using FilterCache =
     plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const analysis::AnalysisDomainMesh&>;
@@ -56,7 +59,7 @@ template <typename CacheFunction>
 FilterFunction make_filter_function_from_cache(const CacheFunction& aCacheFunction)
 {
     auto tFilterCache = aCacheFunction();
-    return core::make_function(
+    return core::make_function_with_first_derivative(
         [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
         { return tFilterCache.compute(aAnalysisDomainMesh)->filter(aAnalysisDomainMesh); },
         [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable {

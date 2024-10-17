@@ -41,10 +41,9 @@ linear_algebra::DynamicVector<double> IdentityFilter::jacobianTimesVector(
     return aV;
 }
 
-auto make_identity_filter_function()
-    -> core::Function<analysis::AnalysisDomainMesh, library::FilterJacobian, const analysis::AnalysisDomainMesh&>
+auto make_identity_filter_function() -> library::FilterFunction
 {
-    return core::make_function(
+    return core::make_function_with_first_derivative(
         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
         { return IdentityFilter{}.filter(aAnalysisDomainMesh); },
         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {

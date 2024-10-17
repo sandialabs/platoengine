@@ -7,7 +7,6 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
-#include "plato/core/Function.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"

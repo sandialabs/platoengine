@@ -112,7 +112,8 @@ void register_load_run_test(const boost::mpi::communicator& aComm, const test_ut
         geometry::extension::make_brick_shape_geometry(geometry::extension::BrickShapeGeometry{"brick.exo"});
 
     const auto [tControls, tExpectedValue] = integration_tests::utilities::brick_shape_geometry_controls_with_volume();
-    const auto tResult = tObjectiveFunction.f(tGeometry.f(tControls));
+    const auto tResult = tObjectiveFunction.evaluate<core::evaluation::kFunction>(
+        tGeometry.evaluate<core::evaluation::kFunction>(tControls));
     EXPECT_DOUBLE_EQ(tResult, tExpectedValue) << aTestContext;
 }
 

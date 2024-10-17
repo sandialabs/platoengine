@@ -1,6 +1,8 @@
 #ifndef PLATO_THIRD_PARTY_INTEGRATION_SNOPT_SNOPTUTILITIES
 #define PLATO_THIRD_PARTY_INTEGRATION_SNOPT_SNOPTUTILITIES
 
+#include <cassert>
+
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/snopt/DataSingleton.hpp"
 #include "plato/third_party_integration/snopt/ObjectiveConstraintArrayView.hpp"
@@ -53,29 +55,33 @@ template <typename FunctionTag>
 void evaluateObjective(const linear_algebra::DynamicVector<double> &aDesignVariables,
                        ObjectiveConstraintArrayView<double> aObjectiveConstraintView)
 {
-    const auto &tObjective = DataSingleton<ObjectiveType, FunctionTag>::instance().data();
-    assert(tObjective.has_value());
-    aObjectiveConstraintView.objective() = tObjective->f(aDesignVariables);
+    const auto &tSingleton = DataSingleton<ObjectiveType, FunctionTag>::constInstance();
+    assert(tSingleton.hasData());
+    const auto &tObjective = tSingleton.data();
+    aObjectiveConstraintView.objective() = tObjective.template evaluate<core::evaluation::kFunction>(aDesignVariables);
 }
 
 template <typename FunctionTag>
 void evaluateConstraints(const linear_algebra::DynamicVector<double> &aDesignVariables,
                          ObjectiveConstraintArrayView<double> aObjectiveConstraintView)
 {
-    const auto &tNonlinearConstraints = DataSingleton<ConstraintVectorType, FunctionTag>::instance().data();
-    assert(tNonlinearConstraints.has_value());
-    std::transform(tNonlinearConstraints.value().begin(), tNonlinearConstraints.value().end(),
+    const auto &tSingleton = DataSingleton<ConstraintVectorType, FunctionTag>::constInstance();
+    assert(tSingleton.hasData());
+    const auto &tNonlinearConstraints = tSingleton.data();
+    std::transform(tNonlinearConstraints.begin(), tNonlinearConstraints.end(),
                    aObjectiveConstraintView.constraints().begin(),
-                   [&aDesignVariables](const auto &tContraint) { return tContraint.mFunction.f(aDesignVariables); });
+                   [&aDesignVariables](const auto &tContraint)
+                   { return tContraint.mFunction.template evaluate<core::evaluation::kFunction>(aDesignVariables); });
 }
 
 template <typename FunctionTag>
 void evaluateObjectiveGradient(const linear_algebra::DynamicVector<double> &aDesignVariables,
                                ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView)
 {
-    const auto &tObjectiveGradient = DataSingleton<ObjectiveType, FunctionTag>::instance().data();
-    assert(tObjectiveGradient.has_value());
-    const auto tGradient = tObjectiveGradient->df(aDesignVariables);
+    const auto &tSingleton = DataSingleton<ObjectiveType, FunctionTag>::constInstance();
+    assert(tSingleton.hasData());
+    const auto &tObjectiveGradient = tSingleton.data();
+    const auto tGradient = tObjectiveGradient.template evaluate<core::evaluation::kFirstDerivative>(aDesignVariables);
     std::copy(tGradient.stdVector().begin(), tGradient.stdVector().end(),
               aObjectiveConstraintGradientView.objectiveGradient().begin());
 }
@@ -84,11 +90,13 @@ template <typename FunctionTag>
 void evaluateConstraintGradient(const linear_algebra::DynamicVector<double> &aDesignVariables,
                                 ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView)
 {
-    const auto &tNonlinearConstraints = DataSingleton<ConstraintVectorType, FunctionTag>::instance().data();
-    assert(tNonlinearConstraints.has_value());
-    for (const auto [tConstraintIndex, tConstraint] : utilities::enumerate(tNonlinearConstraints.value()))
+    const auto &tSingleton = DataSingleton<ConstraintVectorType, FunctionTag>::constInstance();
+    assert(tSingleton.hasData());
+    const auto &tNonlinearConstraints = tSingleton.data();
+    for (const auto [tConstraintIndex, tConstraint] : utilities::enumerate(tNonlinearConstraints))
     {
-        const auto tGradient = tConstraint.mFunction.df(aDesignVariables);
+        const auto tGradient =
+            tConstraint.mFunction.template evaluate<core::evaluation::kFirstDerivative>(aDesignVariables);
         std::copy(tGradient.stdVector().begin(), tGradient.stdVector().end(),
                   aObjectiveConstraintGradientView.constraintGradient(ConstraintSizeType{tConstraintIndex}).begin());
     }

@@ -25,7 +25,7 @@ TEST(ParallelFunction, AdaptRosenbrock)
     { return tRosenbrock.f(aVector.mData[0], aVector.mData[1]); };
     const auto tDF = [tRosenbrock](const ptu::TwoDVector& aVector)
     { return tRosenbrock.df(aVector.mData[0], aVector.mData[1]); };
-    const auto tSerialFunction = make_function(tF, tDF);
+    const auto tSerialFunction = make_function_with_first_derivative(tF, tDF);
 
     // Parallel
     const auto tComm = boost::mpi::communicator{};
@@ -40,13 +40,16 @@ TEST(ParallelFunction, AdaptRosenbrock)
     const auto tControl = ptu::TwoDVector{1.0, -2.0};
     if (tComm.rank() == 0)
     {
-        EXPECT_EQ(tSerialFunction.f(tControl), tAdaptedParallelFunction.f(tControl));
-        EXPECT_EQ(tSerialFunction.df(tControl), tAdaptedParallelFunction.df(tControl));
+        EXPECT_EQ(tSerialFunction.evaluate<evaluation::kFunction>(tControl),
+                  tAdaptedParallelFunction.evaluate<evaluation::kFunction>(tControl));
+        EXPECT_EQ(tSerialFunction.evaluate<evaluation::kFirstDerivative>(tControl),
+                  tAdaptedParallelFunction.evaluate<evaluation::kFirstDerivative>(tControl));
     }
     else
     {
-        EXPECT_EQ(0.0, tAdaptedParallelFunction.f(tControl));
-        EXPECT_EQ(0.0 * tSerialFunction.df(tControl), tAdaptedParallelFunction.df(tControl));
+        EXPECT_EQ(0.0, tAdaptedParallelFunction.evaluate<evaluation::kFunction>(tControl));
+        EXPECT_EQ(0.0 * tSerialFunction.evaluate<evaluation::kFirstDerivative>(tControl),
+                  tAdaptedParallelFunction.evaluate<evaluation::kFirstDerivative>(tControl));
     }
 }
 

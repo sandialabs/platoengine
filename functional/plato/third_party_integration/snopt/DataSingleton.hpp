@@ -18,8 +18,17 @@ class DataSingleton
    public:
     [[nodiscard]] static auto instance() -> DataSingleton &;
 
+    /// @brief Const access to the instance held by this singleton.
+    [[nodiscard]] static auto constInstance() -> const DataSingleton &;
+
+    /// @brief Returns `true` if the data member is set.
+    [[nodiscard]] auto hasData() const -> bool;
+
     [[nodiscard]] auto data() -> std::optional<T> &;
-    [[nodiscard]] auto data() const -> const std::optional<T> &;
+
+    /// @brief Returns the data held by this singleton.
+    /// @pre hasData must return `true`.
+    [[nodiscard]] auto data() const -> const T &;
 
     void reset();
 
@@ -41,15 +50,28 @@ auto DataSingleton<T, Tag>::instance() -> DataSingleton<T, Tag> &
 }
 
 template <typename T, typename Tag>
+auto DataSingleton<T, Tag>::constInstance() -> const DataSingleton<T, Tag> &
+{
+    return instance();
+}
+
+template <typename T, typename Tag>
+auto DataSingleton<T, Tag>::hasData() const -> bool
+{
+    return mData.has_value();
+}
+
+template <typename T, typename Tag>
 auto DataSingleton<T, Tag>::data() -> std::optional<T> &
 {
     return mData;
 }
 
 template <typename T, typename Tag>
-auto DataSingleton<T, Tag>::data() const -> const std::optional<T> &
+auto DataSingleton<T, Tag>::data() const -> const T &
 {
-    return mData;
+    assert(mData);
+    return mData.value();  // NOLINT
 }
 
 template <typename T, typename Tag>

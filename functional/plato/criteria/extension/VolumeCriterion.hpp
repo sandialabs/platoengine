@@ -4,7 +4,7 @@
 #include <string_view>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/Function.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::criteria::extension
@@ -25,12 +25,10 @@ struct VolumeCriterion
 };
 
 /// @brief Creates a Function object from a VolumeCriterion
-[[nodiscard]] auto make_volume_constraint_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
+[[nodiscard]] auto make_volume_constraint_function() -> library::CriterionFunction;
 
 /// @brief Creates a Function object from a VolumeCriterion
-[[nodiscard]] auto make_volume_fraction_constraint_function()
-    -> core::Function<double, linear_algebra::DynamicVector<double>, const analysis::AnalysisDomainMesh&>;
+[[nodiscard]] auto make_volume_fraction_constraint_function() -> library::CriterionFunction;
 
 }  // namespace plato::criteria::extension
 

@@ -5,9 +5,18 @@
 
 #include "plato/core/Aggregate.hpp"
 #include "plato/core/Function.hpp"
+#include "plato/core/test_utilities/Utilities.hpp"
 
 namespace plato::core::unittest
 {
+using VectorFInfo = FunctionInfo<plato::test_utilities::TwoDVector, evaluation::kFunction>;
+using VectorFirstDerivativeInfo = FunctionInfo<plato::test_utilities::TwoDMatrix, evaluation::kFirstDerivative>;
+using VectorFirstDerivativeAdjointInfo =
+    FunctionInfo<plato::test_utilities::TwoDMatrix, evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>;
+using VectorFunction = Function<plato::test_utilities::TwoDVector,
+                                VectorFInfo,
+                                VectorFirstDerivativeInfo,
+                                VectorFirstDerivativeAdjointInfo>;
 
 namespace detail
 {
@@ -32,9 +41,12 @@ void run_rosenbrock_aggregator_test(const F& aGenerateCommand)
 
     for (auto aTestPoint : {pft::TwoDVector{0.0, 1.0}, pft::TwoDVector{1.0, 1.0}, pft::TwoDVector{-1.0, 2.0}})
     {
-        EXPECT_EQ(tAggregate.f(aTestPoint), tWeights.first * tF1.f(aTestPoint) + tWeights.second * tF2.f(aTestPoint));
-        EXPECT_EQ(tAggregate.df(aTestPoint),
-                  tWeights.first * tF1.df(aTestPoint) + tWeights.second * tF2.df(aTestPoint));
+        EXPECT_EQ(tAggregate.template evaluate<evaluation::kFunction>(aTestPoint),
+                  tWeights.first * tF1.evaluate<evaluation::kFunction>(aTestPoint) +
+                      tWeights.second * tF2.evaluate<evaluation::kFunction>(aTestPoint));
+        EXPECT_EQ(tAggregate.template evaluate<evaluation::kFirstDerivative>(aTestPoint),
+                  tWeights.first * tF1.evaluate<evaluation::kFirstDerivative>(aTestPoint) +
+                      tWeights.second * tF2.evaluate<evaluation::kFirstDerivative>(aTestPoint));
     }
 }
 

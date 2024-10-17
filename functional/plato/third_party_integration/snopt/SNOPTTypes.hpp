@@ -15,7 +15,9 @@ constexpr static auto kSNOPTUnbounded = double{1e20};
 using IndexType = int;
 
 using CriterionType =
-    core::Function<double, linear_algebra::DynamicVector<double>, const linear_algebra::DynamicVector<double> &>;
+    core::Function<const linear_algebra::DynamicVector<double>&,
+                   core::FunctionInfo<double, core::evaluation::kFunction>,
+                   core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
 enum struct Linearity
 {

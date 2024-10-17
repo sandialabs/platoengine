@@ -14,7 +14,9 @@ class ROLConstraintFunction : public ROL::Constraint<double>
 {
    public:
     using ROLPlatoFunction =
-        core::Function<double, linear_algebra::DynamicVector<double>, const linear_algebra::DynamicVector<double>&>;
+        core::Function<const linear_algebra::DynamicVector<double>&,
+                       core::FunctionInfo<double, core::evaluation::kFunction>,
+                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
     ///@brief Construct a new ROLConstraintFunction object
     ROLConstraintFunction(criteria::library::Constraint<const linear_algebra::DynamicVector<double>&> aConstraint);
