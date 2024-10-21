@@ -38,12 +38,17 @@ void initialize_environment_for_krino(const MPI_Comm &aComm);
     -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>;
 
 /// @brief Given DFDX, @a aDFDXMap (sensitivity of objective to nodal coordinate changes), and DXDP, @a aDXDP
-/// (sensitivity of nodal coordinates to levelset values), and the local-to-global node id map of the backgroun mesh, @a
-/// aBackgroundNodemap, perform the chain rule to get DFDLS (sensitivity of objective to levelset values).
+/// (sensitivity of nodal coordinates to levelset values), and the local-to-global node id map of the background mesh,
+/// @a aBackgroundNodemap, perform the chain rule to get DFDLS (sensitivity of objective to levelset values).
 [[nodiscard]] auto calculate_dfdls(const std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d> &aDFDXMap,
                                    const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP,
                                    const std::vector<KrinoGlobalNodeID> &aBackgroundNodemap)
     -> std::unordered_map<KrinoGlobalNodeID, double>;
+
+[[nodiscard]] auto calculate_adjoint_dfdls(
+    const std::unordered_map<KrinoGlobalNodeID, double> &aBackgroundLevelSetSpaceVector,
+    const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP)
+    -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>;
 
 }  // namespace plato::third_party_integration::krino
 

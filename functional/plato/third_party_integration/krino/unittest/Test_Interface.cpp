@@ -66,24 +66,42 @@ TEST_F(PlatoTestKrino, cut_sphere_out_of_background_mesh)
 
 TEST_F(PlatoTestKrino, calculate_dFdLS)
 {
-    const std::unordered_map<unsigned int, stk::math::Vector3d> tDFDX_values{
-        {1, {.6, .5, .4}}, {2, {.2, -.1, -.9}}, {3, {.45, -.03, -.5}}};
-    const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> tDXDP{
-        {3, InterfaceNodeDXDP{{7, 12, 19}, {{.5, .5, .5}, {.4, .4, .4}, {-.1, .1, -.1}}}},
-        {1, InterfaceNodeDXDP{{34, 22, 2}, {{.1, .1, .1}, {.2, .2, .2}, {-.1, -.1, -.1}}}},
-        {2, InterfaceNodeDXDP{{19, 10}, {{.3, .3, .3}, {-.2, -.2, -.2}}}},
+    const auto tDFDX = std::unordered_map<unsigned int, stk::math::Vector3d>{
+        {1, {2.0, 0.5, 0.25}}, {2, {0.25, -0.125, -1.0}}, {3, {0.5, -0.0625, -0.125}}};
+
+    const auto tDXDP = std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>{
+        {3, InterfaceNodeDXDP{{7, 12, 19}, {{0.5, 0.5, -0.5}, {-0.25, 0.25, 0.25}, {-0.125, 0.125, -0.125}}}},
+        {1, InterfaceNodeDXDP{{34, 22, 2}, {{-0.125, -0.125, 0.125}, {0.25, 0.25, -0.25}, {0.75, -0.75, -0.75}}}},
+        {2, InterfaceNodeDXDP{{19, 10}, {{1.5, -1.5, 1.5}, {0.25, -0.25, -0.25}}}},
     };
 
-    const std::vector<unsigned int> tBackgroundNodemap{7, 12, 19, 34, 22, 2, 10};
-    const std::unordered_map<unsigned int, double> tDFDLS = calculate_dfdls(tDFDX_values, tDXDP, tBackgroundNodemap);
+    const auto tBackgroundNodemap = std::vector<unsigned int>{7, 12, 19, 34, 22, 2, 10};
+    const auto tDFDLS = calculate_dfdls(tDFDX, tDXDP, tBackgroundNodemap);
 
-    EXPECT_FLOAT_EQ(tDFDLS.at(34), .15);
-    EXPECT_FLOAT_EQ(tDFDLS.at(22), .3);
-    EXPECT_FLOAT_EQ(tDFDLS.at(2), -.15);
-    EXPECT_FLOAT_EQ(tDFDLS.at(19), -.238);
-    EXPECT_FLOAT_EQ(tDFDLS.at(10), .16);
-    EXPECT_FLOAT_EQ(tDFDLS.at(7), -.04);
-    EXPECT_FLOAT_EQ(tDFDLS.at(12), -.032);
+    const auto tExpected = std::unordered_map<KrinoGlobalNodeID, double>{
+        {2, 0.9375}, {7, 0.28125}, {10, 0.34375}, {12, -0.171875}, {19, -0.9921875}, {22, 0.5625}, {34, -0.28125}};
+
+    EXPECT_EQ(tDFDLS, tExpected);
+}
+
+TEST_F(PlatoTestKrino, CalculateAdjointDFDLS)
+{
+    const auto tDXDP = std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>{
+        {3, InterfaceNodeDXDP{{7, 12, 19}, {{0.5, 0.5, -0.5}, {-0.25, 0.25, 0.25}, {-0.125, 0.125, -0.125}}}},
+        {1, InterfaceNodeDXDP{{34, 22, 2}, {{-0.125, -0.125, 0.125}, {0.25, 0.25, -0.25}, {0.75, -0.75, -0.75}}}},
+        {2, InterfaceNodeDXDP{{19, 10}, {{1.5, -1.5, 1.5}, {0.25, -0.25, -0.25}}}},
+    };
+    const auto tBackgroundLevelSetValues = std::unordered_map<unsigned int, double>{
+        {7, 2.0}, {12, 4.0}, {19, 5.0}, {34, 7.0}, {22, 6.0}, {2, 1.0}, {10, 3.0}};
+
+    const auto tDFDLS = calculate_adjoint_dfdls(tBackgroundLevelSetValues, tDXDP);
+
+    auto tExpected =
+        std::unordered_map<unsigned int, stk::math::Vector3d>{{1, stk::math::Vector3d{1.375, -0.125, -1.375}},
+                                                              {2, stk::math::Vector3d{8.25, -8.25, 6.75}},
+                                                              {3, stk::math::Vector3d{-0.625, 2.625, -0.625}}};
+
+    EXPECT_EQ(tExpected, tDFDLS);
 }
 
 TEST_F(PlatoTestKrino, get_set_levelset_values)
@@ -123,7 +141,7 @@ TEST_F(PlatoTestKrino, redistance)
     EXPECT_EQ(tLevelsetValues, tInitialGold);
 
     // Perturb the nodes adjacent to the interface so that the interface moves slightly to the right.
-    const double tDelta = .05;
+    constexpr double tDelta = .05;
     tLevelsetValues[0] -= tDelta;
     tLevelsetValues[1] -= tDelta;
     tLevelsetValues[3] -= tDelta;
