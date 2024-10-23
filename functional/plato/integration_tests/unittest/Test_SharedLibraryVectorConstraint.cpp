@@ -60,7 +60,7 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallJacobianTimesVector)
     const auto tSharedLibrary = test_shared_library_criterion();
     const linear_algebra::DynamicVector<double> tDirection(create_n_step_vector(mExpectedNumberOfElements));
     const auto tJacobianTimesVector =
-        tSharedLibrary.jacobianTimesVector(analysis::AnalysisDomainMesh{mMeshFilePath, {}}, tDirection).stdVector();
+        tSharedLibrary.rowVectorTimesJacobian(analysis::AnalysisDomainMesh{mMeshFilePath, {}}, tDirection).stdVector();
 
     const auto tGold = tDirection.stdVector();
     EXPECT_EQ(tJacobianTimesVector, tGold);
@@ -71,7 +71,8 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallAdjointJacobianTimesVector)
     const auto tSharedLibrary = test_shared_library_criterion();
     const linear_algebra::DynamicVector<double> tDual(create_n_step_vector(mExpectedNumberOfElements));
     const auto tAdjointJacobianTimesDual =
-        tSharedLibrary.adjointJacobianTimesVector(analysis::AnalysisDomainMesh{mMeshFilePath, {}}, tDual).stdVector();
+        tSharedLibrary.rowVectorTimesAdjointJacobian(analysis::AnalysisDomainMesh{mMeshFilePath, {}}, tDual)
+            .stdVector();
 
     const auto tSum = std::accumulate(tDual.stdVector().begin(), tDual.stdVector().end(), 0.0);
     const std::vector<double> tGold(1, tSum);

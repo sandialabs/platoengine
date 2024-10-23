@@ -17,14 +17,14 @@ std::vector<double> MassConstraintInterface::value(const analysis::AnalysisDomai
     return tMassConstraint.masses(std::string{aAnalysisDomainMesh.mFileName});
 }
 
-std::vector<double> MassConstraintInterface::jacobianTimesVector(
+std::vector<double> MassConstraintInterface::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const std::vector<double>& aDirectionVector) const
 {
     std::cout << "J*V inside shared object" << std::endl;
     return aDirectionVector;
 }
 
-std::vector<double> MassConstraintInterface::adjointJacobianTimesVector(
+std::vector<double> MassConstraintInterface::rowVectorTimesAdjointJacobian(
     const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const std::vector<double>& aDualVector) const
 {
     std::cout << "J^T*D  inside shared object" << std::endl;

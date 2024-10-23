@@ -37,10 +37,10 @@ class VectorCriterionInterface
     /// Vector constraints share the same target value.
 
     virtual std::vector<double> value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const = 0;
-    virtual std::vector<double> jacobianTimesVector(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                    const std::vector<double>& aDirectionVector) const = 0;
-    virtual std::vector<double> adjointJacobianTimesVector(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                           const std::vector<double>& aDualVector) const = 0;
+    virtual std::vector<double> rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                       const std::vector<double>& aDirectionVector) const = 0;
+    virtual std::vector<double> rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                              const std::vector<double>& aDualVector) const = 0;
 
     VectorCriterionInterface(const VectorCriterionInterface&) = delete;
     VectorCriterionInterface& operator=(const VectorCriterionInterface&) = delete;

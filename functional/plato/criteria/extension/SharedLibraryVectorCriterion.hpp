@@ -39,11 +39,11 @@ class SharedLibraryVectorCriterion
     [[nodiscard]] auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
         -> linear_algebra::DynamicVector<double>;
 
-    [[nodiscard]] auto jacobianTimesVector(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                           const linear_algebra::DynamicVector<double>& aDirectionVector) const
+    [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                              const linear_algebra::DynamicVector<double>& aDirectionVector) const
         -> linear_algebra::DynamicVector<double>;
-    [[nodiscard]] auto adjointJacobianTimesVector(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                  const linear_algebra::DynamicVector<double>& aDualVector) const
+    [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                     const linear_algebra::DynamicVector<double>& aDualVector) const
         -> linear_algebra::DynamicVector<double>;
 
    private:

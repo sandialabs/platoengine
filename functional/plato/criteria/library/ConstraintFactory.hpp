@@ -28,7 +28,6 @@ enum class ConstraintType
 
 /// @brief Holds members for defining a Constraint
 /// @tparam FunctionArg The argument of the function used to define the constraint.
-
 ///   Typically, this is either MeshDesignVariables or a vector type such as DynamicVector.
 template <typename FunctionArg>
 struct Constraint

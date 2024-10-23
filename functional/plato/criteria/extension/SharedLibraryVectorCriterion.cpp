@@ -52,20 +52,20 @@ auto SharedLibraryVectorCriterion::value(const analysis::AnalysisDomainMesh& aAn
     return linear_algebra::DynamicVector<double>(mCriterionInterface->value(aAnalysisDomainMesh));
 }
 
-auto SharedLibraryVectorCriterion::jacobianTimesVector(
+auto SharedLibraryVectorCriterion::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     const linear_algebra::DynamicVector<double>& aDirectionVector) const -> linear_algebra::DynamicVector<double>
 {
     return linear_algebra::DynamicVector<double>(
-        mCriterionInterface->jacobianTimesVector(aAnalysisDomainMesh, aDirectionVector.stdVector()));
+        mCriterionInterface->rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector.stdVector()));
 }
 
-auto SharedLibraryVectorCriterion::adjointJacobianTimesVector(
+auto SharedLibraryVectorCriterion::rowVectorTimesAdjointJacobian(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     const linear_algebra::DynamicVector<double>& aDualVector) const -> linear_algebra::DynamicVector<double>
 {
     return linear_algebra::DynamicVector<double>(
-        mCriterionInterface->adjointJacobianTimesVector(aAnalysisDomainMesh, aDualVector.stdVector()));
+        mCriterionInterface->rowVectorTimesAdjointJacobian(aAnalysisDomainMesh, aDualVector.stdVector()));
 }
 
 namespace
@@ -75,7 +75,7 @@ auto make_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCrit
     -> linear_algebra::JacobianMultiplier
 {
     return linear_algebra::JacobianMultiplier{[aSharedLibCriterion, aAnalysisDomainMesh](const auto aDirectionVector) {
-        return aSharedLibCriterion.jacobianTimesVector(aAnalysisDomainMesh, aDirectionVector);
+        return aSharedLibCriterion.rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector);
     }};
 }
 auto make_adjoint_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCriterion,
@@ -84,7 +84,7 @@ auto make_adjoint_jacobian_multiplier(const SharedLibraryVectorCriterion& aShare
 {
     return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{
         [aSharedLibCriterion, aAnalysisDomainMesh](const auto aDualVector)
-        { return aSharedLibCriterion.adjointJacobianTimesVector(aAnalysisDomainMesh, aDualVector); }}};
+        { return aSharedLibCriterion.rowVectorTimesAdjointJacobian(aAnalysisDomainMesh, aDualVector); }}};
 }
 
 }  // namespace
