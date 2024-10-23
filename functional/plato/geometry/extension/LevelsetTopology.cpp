@@ -1,6 +1,6 @@
 #include "plato/geometry/extension/LevelsetTopology.hpp"
 
-#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
@@ -171,13 +171,19 @@ auto LevelsetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
                         mesh::NodalFieldVectorReference{aVector.stdVector()});
                 const auto tDFDLS = tpik::calculate_adjoint_dfdls(tLevelSetSpaceVector, tGlobalIDToDXDP);
 
-                const auto tCutNodeMap = mesh::EntityRetrieval{mesh::Mesh{mCutMesh}}.globalNodeIds();
-                auto tDFDLSVector = std::vector<double>(3 * tCutNodeMap.size(), 0.0);
-                for (const auto& [tIndex, tNodalSensitivity] : tDFDLS)
+                const auto tCutMesh = mesh::Mesh{mCutMesh};
+                const auto tNumberOfCutMeshNodes = mesh::EntityCounts{tCutMesh}.numberOfNodes();
+                const auto tCutMeshField = std::vector(tNumberOfCutMeshNodes, 0.0);
+                const auto tCutMeshSpaceVector =
+                    mesh::DesignVariablesConversion{tCutMesh}.nodalFieldToAnalysisDomainMesh(
+                        mesh::NodalFieldVectorReference{tCutMeshField});
+                auto tDFDLSVector = std::vector<double>(kDimensions * tNumberOfCutMeshNodes, 0.0);
+                for (const auto& [tGlobalCutMeshIndex, tNodalSensitivity] : tDFDLS)
                 {
-                    const auto tVectorIter = std::find(tCutNodeMap.begin(), tCutNodeMap.end(), tIndex);
-                    const auto tVectorIndex = std::distance(tCutNodeMap.begin(), tVectorIter);
-                    const auto tBaseIndex = kDimensions * tVectorIndex;
+                    const auto tCutmeshFieldValue =
+                        analysis::AnalysisDomainMeshRandomAccessView{tCutMeshSpaceVector}[tGlobalCutMeshIndex];
+                    assert(tCutmeshFieldValue);
+                    const auto tBaseIndex = kDimensions * tCutmeshFieldValue->mDesignVariableVectorIndex;
                     tDFDLSVector[tBaseIndex] = tNodalSensitivity[0];
                     tDFDLSVector[tBaseIndex + 1] = tNodalSensitivity[1];
                     tDFDLSVector[tBaseIndex + 2] = tNodalSensitivity[2];
