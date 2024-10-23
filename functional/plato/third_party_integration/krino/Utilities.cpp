@@ -39,6 +39,8 @@ std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d> assemble_global_id_to
     const std::vector<KrinoGlobalNodeID> &aCutMeshGlobalNodeIDMap,
     const DFDXFormatting aDFDXFormatting)
 {
+    assert(aDFDXFormatting == DFDXFormatting::OneToN || aDFDXFormatting == DFDXFormatting::GlobalID);
+
     auto tGlobalIDToDFDXMap = std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>{};
     tGlobalIDToDFDXMap.reserve(aCutMeshGlobalNodeIDMap.size());
     for (const auto &[tIndex, tCurGlobalNodeID] : utilities::enumerate(aCutMeshGlobalNodeIDMap))
@@ -51,10 +53,6 @@ std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d> assemble_global_id_to
         else if (aDFDXFormatting == DFDXFormatting::OneToN)
         {
             tDFDXIndex = kNumDimensions * tIndex;
-        }
-        else
-        {
-            throw std::runtime_error("ERROR: Unrecognized formatting for DFDX.");
         }
         tGlobalIDToDFDXMap[tCurGlobalNodeID] = {aDFDX[tDFDXIndex], aDFDX[tDFDXIndex + 1], aDFDX[tDFDXIndex + 2]};
     }

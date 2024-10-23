@@ -131,7 +131,7 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
     return linear_algebra::JacobianMultiplier{
-        [this, &aDesignParameters](const linear_algebra::DynamicVector<double>& x)
+        [this, &aDesignParameters](const linear_algebra::DynamicVector<double>& aVector)
         {
             /* When introducing filtering do the following:
             return DFDLS * mFilter.df(tAnalysisDomainMesh); where tAnalysisDomainMesh corresponds to the
@@ -144,7 +144,7 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
             const auto tCutNodeMap = mesh::EntityRetrieval{mesh::Mesh{mCutMesh}}.globalNodeIds();
             const auto tBackgroundNodeMap = mesh::EntityRetrieval{mBackgroundMesh}.globalNodeIds();
             const auto tGlobalIDToDFDXMap =
-                tpik::assemble_global_id_to_dfdx_map(x.stdVector(), tCutNodeMap, tpik::DFDXFormatting::OneToN);
+                tpik::assemble_global_id_to_dfdx_map(aVector.stdVector(), tCutNodeMap, tpik::DFDXFormatting::OneToN);
             const auto tDFDLS = tpik::calculate_dfdls(tGlobalIDToDFDXMap, tGlobalIDToDXDP, tBackgroundNodeMap);
 
             auto tDFDLSVector = std::vector<double>(tDFDLS.size(), 0.0);
