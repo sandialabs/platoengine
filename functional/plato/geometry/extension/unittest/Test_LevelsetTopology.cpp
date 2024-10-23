@@ -17,6 +17,7 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
 
@@ -27,17 +28,18 @@ namespace plato::geometry::extension::unittest
 
 namespace
 {
+constexpr int kNumDimensions = 3;
 const auto kLevelsetInput = plato::test_utilities::create_valid_levelset_topology_geometry();
 
 constexpr unsigned int kExpectedBackgroundLevelsetSize = 59;  // Based on mesh generation command below
 
-void create_background_mesh(const std::string& aFileName, const double& aMeshSize)
+void create_background_mesh(const std::string& aFileName, const double aMeshSize)
 {
     ASSERT_EQ(stk::parallel_machine_size(MPI_COMM_WORLD), 1);
     KrinoWrapper tKrinoWrapper{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, aMeshSize, aFileName};
 }
 
-class PlatoTestKrino : public ::testing::Test
+class KrinoTestFixture : public ::testing::Test
 {
    protected:
     void SetUp() override
@@ -49,39 +51,70 @@ class PlatoTestKrino : public ::testing::Test
             tFirstTime = false;
         }
     }
+    void TearDown() override
+    {
+        std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken);
+        std::filesystem::remove(kLevelsetInput.cut_mesh_name->mToken);
+    }
 };
 
 }  // namespace
 
-TEST_F(PlatoTestKrino, LevelsetTopology_Jacobian)
+TEST_F(KrinoTestFixture, LevelsetTopology_Jacobian)
 {
-    constexpr int tNumDimensions = 3;
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 1.0);
-    const LevelsetTopology tLevelsetTopology(kLevelsetInput);
-    const linear_algebra::DynamicVector<double> tInitialGuess =
-        tLevelsetTopology.initialGuess(kLevelsetInput.background_mesh_name->mToken);
+
+    const auto tLevelsetTopology = LevelsetTopology{kLevelsetInput};
+    const auto tInitialGuess = tLevelsetTopology.initialGuess(kLevelsetInput.background_mesh_name->mToken);
     const linear_algebra::JacobianMultiplier tJacobian = tLevelsetTopology.jacobian(tInitialGuess);
 
     const unsigned int tDFDXSize =
-        tNumDimensions * mesh::EntityCounts{mesh::Mesh{kLevelsetInput.cut_mesh_name->mToken}}.numberOfNodes();
-    const std::vector<double> tDFDX(tDFDXSize, 1.0);
-    const linear_algebra::DynamicVector<double> tDFDXDynVec(tDFDX);
+        kNumDimensions * mesh::EntityCounts{mesh::Mesh{kLevelsetInput.cut_mesh_name->mToken}}.numberOfNodes();
+    const auto tDFDX = linear_algebra::DynamicVector(tDFDXSize, 1.0);
 
-    const linear_algebra::DynamicVector<double> tRes = tDFDXDynVec * tJacobian;
+    const auto tRes = tDFDX * tJacobian;
 
-    const std::vector<double> tGold{0.5, 0.166667, 0.166667, -0.166667,   0.166667, -0.166667, -0.166667, -0.5,
-                                    0.5, 0.5,      0.5,      1.11022e-16, -0.5,     -0.5,      -0.5};
-    ASSERT_EQ(tRes.size(), tGold.size());
+    const auto tGold = std::vector<double>{0.5, 0.166667, 0.166667, -0.166667,   0.166667, -0.166667, -0.166667, -0.5,
+                                           0.5, 0.5,      0.5,      1.11022e-16, -0.5,     -0.5,      -0.5};
     constexpr double tTol = 1e-6;
-    for (size_t i = 0; i < tGold.size(); ++i)
-    {
-        EXPECT_NEAR(tRes[i], tGold[i], tTol);
-    }
-    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken));
-    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.cut_mesh_name->mToken));
+    test_utilities::expect_container_entries_near(tRes.stdVector(), tGold, tTol,
+                                                  TEST_CONTEXT("Levelset Jacobian entries"));
 }
 
-TEST_F(PlatoTestKrino, LevelsetTopology_GenerateMesh)
+TEST_F(KrinoTestFixture, LevelsetTopology_JacobianTranspose)
+{
+    create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 1.0);
+
+    const auto tLevelsetTopology = LevelsetTopology{kLevelsetInput};
+    const auto tInitialGuess = tLevelsetTopology.initialGuess(kLevelsetInput.background_mesh_name->mToken);
+    const auto tAdjointJacobian = tLevelsetTopology.adjointJacobian(tInitialGuess);
+
+    const unsigned int tDFDXSize =
+        mesh::EntityCounts{mesh::Mesh{kLevelsetInput.background_mesh_name->mToken}}.numberOfNodes();
+    const auto tDFDX = linear_algebra::DynamicVector(tDFDXSize, 1.0);
+
+    const auto tResult = tDFDX * tAdjointJacobian;
+
+    // Regression result computed by outputting the entire Jacobian matrix using the `jacobian` function, and performing
+    // the transpose matrix vector multiplication in Matlab.
+    // clang-format off
+    const auto tExpected = std::vector{
+        0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  
+        0.0,  0.0,  0.0, 0.0,  0.0,  0.0,  0.0, 0.0, 0.0,  0.0,  0.0,  0.0,  0.0, 
+        0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  1.0,  0.0,  0.0,
+        0.5773502691896258,  0.5773502691896258,  0.5773502691896258,  0.5773502691896258,  0.5773502691896258,
+        -0.5773502691896258, 0.5773502691896258,  -0.5773502691896258, -0.5773502691896258, 0.5773502691896258,
+        -0.5773502691896258, 0.5773502691896258,  -1.0, 0.0,  0.0,
+        -0.5773502691896258, 0.5773502691896258,  0.5773502691896258,  -0.5773502691896258, -0.5773502691896258,
+        0.5773502691896258,  -0.5773502691896258, -0.5773502691896258, -0.5773502691896258, -0.5773502691896258,
+        0.5773502691896258,  -0.5773502691896258, 0.0,  1.0,  0.0, 0.0,  -1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0};
+    // clang-format on
+    constexpr double tTol = 1e-14;
+    test_utilities::expect_container_entries_near(tResult.stdVector(), tExpected, tTol,
+                                                  TEST_CONTEXT("Levelset adjoint Jacobian entries"));
+}
+
+TEST_F(KrinoTestFixture, LevelsetTopology_GenerateMesh)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 0.5);
     const LevelsetTopology tLevelsetTopology(kLevelsetInput);
@@ -94,21 +127,20 @@ TEST_F(PlatoTestKrino, LevelsetTopology_GenerateMesh)
     // Call generateMesh to write out the cut mesh based on the passed in params (levelset values
     // from the initial mesh). We should get the exact same mesh.
     const auto tMeshDesignVariables = tLevelsetTopology.generateMesh(tInitialGuess);
+    ASSERT_TRUE(std::filesystem::exists(kLevelsetInput.cut_mesh_name->mToken));
     const std::vector<third_party_integration::common::Coordinate> tNodalCoords2 =
         mesh::EntityRetrieval{mesh::Mesh{kLevelsetInput.cut_mesh_name->mToken}}.nodalCoordinates();
 
     ASSERT_EQ(tNodalCoords1.size(), tNodalCoords2.size());
     for (size_t i = 0; i < tNodalCoords1.size(); ++i)
     {
-        ASSERT_FLOAT_EQ(tNodalCoords1[i].x, tNodalCoords2[i].x);
-        ASSERT_FLOAT_EQ(tNodalCoords1[i].y, tNodalCoords2[i].y);
-        ASSERT_FLOAT_EQ(tNodalCoords1[i].z, tNodalCoords2[i].z);
+        EXPECT_DOUBLE_EQ(tNodalCoords1[i].x, tNodalCoords2[i].x);
+        EXPECT_DOUBLE_EQ(tNodalCoords1[i].y, tNodalCoords2[i].y);
+        EXPECT_DOUBLE_EQ(tNodalCoords1[i].z, tNodalCoords2[i].z);
     }
-    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken));
-    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.cut_mesh_name->mToken));
 }
 
-TEST_F(PlatoTestKrino, LevelsetTopology_InitialGuess)
+TEST_F(KrinoTestFixture, LevelsetTopology_InitialGuess)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 0.5);
 
@@ -126,13 +158,11 @@ TEST_F(PlatoTestKrino, LevelsetTopology_InitialGuess)
     ASSERT_EQ(tInitialGuess.size(), kExpectedBackgroundLevelsetSize);
     for (size_t i = 0; i < tInitialGuess.size(); ++i)
     {
-        ASSERT_FLOAT_EQ(tInitialGuess[i], tInitialGuess.stdVector()[i]);
+        EXPECT_DOUBLE_EQ(tInitialGuess[i], tInitialGuess.stdVector()[i]);
     }
-    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken));
-    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.cut_mesh_name->mToken));
 }
 
-TEST_F(PlatoTestKrino, LevelsetTopology_Bounds)
+TEST_F(KrinoTestFixture, LevelsetTopology_Bounds)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 0.5);
     const LevelsetTopology tLevelsetTopology(kLevelsetInput);
@@ -141,10 +171,9 @@ TEST_F(PlatoTestKrino, LevelsetTopology_Bounds)
     ASSERT_EQ(tLowerBounds.size(), kExpectedBackgroundLevelsetSize);
     ASSERT_EQ(tUpperBounds.size(), kExpectedBackgroundLevelsetSize);
 
-    ASSERT_TRUE(
+    EXPECT_TRUE(
         std::all_of(tLowerBounds.cbegin(), tLowerBounds.cend(), [](const double aVal) { return aVal == -1.0; }));
-    ASSERT_TRUE(std::all_of(tUpperBounds.cbegin(), tUpperBounds.cend(), [](const double aVal) { return aVal == 1.0; }));
-    ASSERT_TRUE(std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken));
+    EXPECT_TRUE(std::all_of(tUpperBounds.cbegin(), tUpperBounds.cend(), [](const double aVal) { return aVal == 1.0; }));
 }
 
 }  // namespace plato::geometry::extension::unittest

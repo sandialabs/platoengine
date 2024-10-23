@@ -6,6 +6,8 @@
 #include <stk_util/environment/EnvData.hpp>
 #include <stk_util/environment/OutputLog.hpp>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -25,7 +27,7 @@ void initialize_environment_for_krino(const MPI_Comm &aComm)
     MPI_Comm_size(stk::EnvData::parallel_comm(), &stk::EnvData::instance().m_parallelSize);
     MPI_Comm_rank(stk::EnvData::parallel_comm(), &stk::EnvData::instance().m_parallelRank);
 
-    // Initialize krion logging
+    // Initialize krino logging
     sierra::Diag::registerWriter(std::string{kKrinoLogName}, ::krinolog, ::krino::theDiagWriterParser());
     const std::string tOutputDescription = "out>pout dout>out";
     const std::string tParallelOutputDescription = " pout>null";
@@ -74,6 +76,7 @@ auto calculate_dfdls(const std::unordered_map<KrinoGlobalNodeID, stk::math::Vect
     {
         if (aDFDXMap.count(tCurInterfaceNodeID) == 0)
         {
+            std::cout << "Node id: " << tCurInterfaceNodeID << std::endl;
             throw utilities::Exception(
                 "ERROR: Cut mesh interface global node id does not have a corresponding DFDX entry!");
         }
@@ -92,19 +95,23 @@ auto calculate_dfdls(const std::unordered_map<KrinoGlobalNodeID, stk::math::Vect
     return tDFDLS;
 }
 
-auto calculate_adjoint_dfdls(const std::unordered_map<KrinoGlobalNodeID, double> &aBackgroundLevelSetSpaceVector,
+auto calculate_adjoint_dfdls(const analysis::AnalysisDomainMesh &aBackgroundLevelSetSpaceVector,
                              const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP)
     -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>
 {
+    const auto tLevelSetSpaceRandomAccessView =
+        analysis::AnalysisDomainMeshRandomAccessView{aBackgroundLevelSetSpaceVector};
+
     auto tAdjointResult = std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>{};
     tAdjointResult.reserve(aDXDP.size());
     for (const auto &[tCurInterfaceNodeID, tInterfaceNodeDXDP] : aDXDP)
     {
         for (size_t j = 0; j < tInterfaceNodeDXDP.mParentNodeIds.size(); ++j)
         {
+            const auto tBackgroundValue = tLevelSetSpaceRandomAccessView[tInterfaceNodeDXDP.mParentNodeIds.at(j)];
+            assert(tBackgroundValue);
             tAdjointResult[tCurInterfaceNodeID] +=
-                aBackgroundLevelSetSpaceVector.at(tInterfaceNodeDXDP.mParentNodeIds.at(j)) *
-                tInterfaceNodeDXDP.mParentDXDP.at(j);
+                tBackgroundValue.value().mValue * tInterfaceNodeDXDP.mParentDXDP.at(j);
         }
     }
     return tAdjointResult;

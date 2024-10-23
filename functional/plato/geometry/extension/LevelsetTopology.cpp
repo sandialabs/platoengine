@@ -6,7 +6,6 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
-#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/third_party_integration/krino/Interface.hpp"
 #include "plato/third_party_integration/krino/SphereBuilder.hpp"
@@ -14,14 +13,14 @@
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 
-using namespace plato::third_party_integration::krino;
-
 namespace plato::geometry::extension
 {
 
 namespace
 {
+namespace tpik = third_party_integration::krino;
 
+constexpr auto kDimensions = std::size_t{3};
 constexpr double kLevelsetFixedValue = 1.0;
 constexpr auto kTopologyFieldName = std::string_view{"Topology"};
 
@@ -38,7 +37,7 @@ void initialize_krino()
     if (!tIsInitialized)
     {
         tIsInitialized = true;
-        initialize_environment_for_krino(MPI_COMM_WORLD);
+        tpik::initialize_environment_for_krino(MPI_COMM_WORLD);
     }
 }
 
@@ -76,7 +75,7 @@ LevelsetTopology::LevelsetTopology(const input_parser::levelset_topology& aInput
       mIncludeVoidRegion(aInput.include_void_region.value()),
       mLevelsetLowerBound(aInput.levelset_lower_bound.value()),
       mLevelsetUpperBound(aInput.levelset_upper_bound.value()),
-      mNumDesignParameters(mesh::EntityCounts{mesh::Mesh{mBackgroundMesh}}.numberOfNodes()),
+      mNumDesignParameters(mesh::EntityCounts{mBackgroundMesh}.numberOfNodes()),
       mSpherePattern({{aInput.sphere_pattern_bbox_min_x.value(), aInput.sphere_pattern_bbox_min_y.value(),
                        aInput.sphere_pattern_bbox_min_z.value()},
                       {aInput.sphere_pattern_bbox_max_x.value(), aInput.sphere_pattern_bbox_max_y.value(),
@@ -89,8 +88,7 @@ LevelsetTopology::LevelsetTopology(const input_parser::levelset_topology& aInput
 
 void LevelsetTopology::generateLevelsetInitializationPrimitives()
 {
-    const std::vector<Sphere> tSpheres = generate_spheres(mSpherePattern);
-    mLevelsetPrimitives.mSpheres.insert(mLevelsetPrimitives.mSpheres.end(), tSpheres.begin(), tSpheres.end());
+    mLevelsetPrimitives = tpik::LevelsetPrimitives{{}, tpik::generate_spheres(mSpherePattern)};
 }
 
 auto LevelsetTopology::bounds(const std::filesystem::path& aMeshFileName) const
@@ -103,9 +101,10 @@ auto LevelsetTopology::bounds(const std::filesystem::path& aMeshFileName) const
 auto LevelsetTopology::initialGuess(const std::filesystem::path& aMeshFileName) const
     -> linear_algebra::DynamicVector<double>
 {
-    std::vector<double> tCurLevelsetValues = initialize_mesh_with_levelset_primitives(
-        BackgroundMeshNameString{aMeshFileName}, mCutMesh, mLevelsetPrimitives, mIncludeVoidRegion);
-    return linear_algebra::DynamicVector<double>(tCurLevelsetValues);
+    auto tCurLevelsetValues = tpik::initialize_mesh_with_levelset_primitives(
+        tpik::BackgroundMeshFilePath{aMeshFileName}, tpik::CutMeshFilePath{mCutMesh}, mLevelsetPrimitives,
+        mIncludeVoidRegion);
+    return linear_algebra::DynamicVector<double>(std::move(tCurLevelsetValues));
 }
 
 auto LevelsetTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
@@ -122,8 +121,9 @@ auto LevelsetTopology::generateMesh(const linear_algebra::DynamicVector<double>&
         d. Keep the same return statement that initializes an AnalysisDomainMesh with the cut mesh
            name and an empty design variable map.
     */
-    std::ignore = generate_computational_mesh(BackgroundMeshNameString{mBackgroundMesh}, mCutMesh,
-                                              aDesignParameters.stdVector(), mIncludeVoidRegion);
+    tpik::generate_computational_mesh(tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()},
+                                      tpik::CutMeshFilePath{mCutMesh}, aDesignParameters.stdVector(),
+                                      mIncludeVoidRegion);
     return analysis::AnalysisDomainMesh{mCutMesh, {}};
 }
 
@@ -131,31 +131,60 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
     return linear_algebra::JacobianMultiplier{
-        mNumDesignParameters, [this, &aDesignParameters](const linear_algebra::DynamicVector<double>& x)
+        [this, &aDesignParameters](const linear_algebra::DynamicVector<double>& x)
         {
             /* When introducing filtering do the following:
             return DFDLS * mFilter.df(tAnalysisDomainMesh); where tAnalysisDomainMesh corresponds to the
             background mesh that the design variables live on.  This can be created with a DesignVariableConverter (see
             DensityToplogy::jacobian() for example)
             */
-            const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> tGlobalIDToDXDP =
-                generate_computational_mesh(BackgroundMeshNameString{mBackgroundMesh}, mCutMesh,
-                                            aDesignParameters.stdVector(), mIncludeVoidRegion);
-            const std::vector<unsigned int> tCutNodeMap = mesh::EntityRetrieval{mesh::Mesh{mCutMesh}}.globalNodeIds();
-            const std::vector<unsigned int> tBackgroundNodeMap =
-                mesh::EntityRetrieval{mesh::Mesh{mBackgroundMesh}}.globalNodeIds();
-            const std::unordered_map<unsigned int, stk::math::Vector3d> tGlobalIDToDFDXMap =
-                assemble_global_id_to_dfdx_map(x.stdVector(), tCutNodeMap, DFDXFormatting::OneToN);
-            const std::unordered_map<unsigned int, double> tDFDLS =
-                calculate_dfdls(tGlobalIDToDFDXMap, tGlobalIDToDXDP, tBackgroundNodeMap);
-            std::vector<double> tDFDLSVector(tDFDLS.size());
+            const auto tGlobalIDToDXDP = tpik::generate_computational_mesh(
+                tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()}, tpik::CutMeshFilePath{mCutMesh},
+                aDesignParameters.stdVector(), mIncludeVoidRegion);
+            const auto tCutNodeMap = mesh::EntityRetrieval{mesh::Mesh{mCutMesh}}.globalNodeIds();
+            const auto tBackgroundNodeMap = mesh::EntityRetrieval{mBackgroundMesh}.globalNodeIds();
+            const auto tGlobalIDToDFDXMap =
+                tpik::assemble_global_id_to_dfdx_map(x.stdVector(), tCutNodeMap, tpik::DFDXFormatting::OneToN);
+            const auto tDFDLS = tpik::calculate_dfdls(tGlobalIDToDFDXMap, tGlobalIDToDXDP, tBackgroundNodeMap);
 
+            auto tDFDLSVector = std::vector<double>(tDFDLS.size(), 0.0);
             for (const auto& [tIndex, tBackgroundNodeID] : utilities::enumerate(tBackgroundNodeMap))
             {
                 tDFDLSVector[tIndex] = tDFDLS.at(tBackgroundNodeID);
             }
-            return linear_algebra::DynamicVector<double>{tDFDLSVector};
+            return linear_algebra::DynamicVector<double>{std::move(tDFDLSVector)};
         }};
+}
+
+auto LevelsetTopology::adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+    -> linear_algebra::AdjointJacobianMultiplier
+{
+    return linear_algebra::AdjointJacobianMultiplier{
+        linear_algebra::JacobianMultiplier{
+            [this, &aDesignParameters](const linear_algebra::DynamicVector<double>& aVector)
+            {
+                const auto tGlobalIDToDXDP = tpik::generate_computational_mesh(
+                    tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()}, tpik::CutMeshFilePath{mCutMesh},
+                    aDesignParameters.stdVector(), mIncludeVoidRegion);
+                const auto tLevelSetSpaceVector =
+                    mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
+                        mesh::NodalFieldVectorReference{aVector.stdVector()});
+                const auto tDFDLS = tpik::calculate_adjoint_dfdls(tLevelSetSpaceVector, tGlobalIDToDXDP);
+
+                const auto tCutNodeMap = mesh::EntityRetrieval{mesh::Mesh{mCutMesh}}.globalNodeIds();
+                auto tDFDLSVector = std::vector<double>(3 * tCutNodeMap.size(), 0.0);
+                for (const auto& [tIndex, tNodalSensitivity] : tDFDLS)
+                {
+                    const auto tVectorIter = std::find(tCutNodeMap.begin(), tCutNodeMap.end(), tIndex);
+                    const auto tVectorIndex = std::distance(tCutNodeMap.begin(), tVectorIter);
+                    const auto tBaseIndex = kDimensions * tVectorIndex;
+                    tDFDLSVector[tBaseIndex] = tNodalSensitivity[0];
+                    tDFDLSVector[tBaseIndex + 1] = tNodalSensitivity[1];
+                    tDFDLSVector[tBaseIndex + 2] = tNodalSensitivity[2];
+                }
+                return linear_algebra::DynamicVector<double>{std::move(tDFDLSVector)};
+            }}  // namespace plato::geometry::extension
+    };
 }
 
 void LevelsetTopology::output(const std::filesystem::path& aInputMeshName,
@@ -171,11 +200,13 @@ void LevelsetTopology::output(const std::filesystem::path& aInputMeshName,
 
 auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology) -> library::GeometryFunction
 {
-    return core::make_function_with_first_derivative(
+    return library::GeometryFunction{
         [tLevelsetTopology = aLevelsetTopology](const linear_algebra::DynamicVector<double>& x)
         { return tLevelsetTopology.generateMesh(x); },
         [tLevelsetTopology = aLevelsetTopology](const linear_algebra::DynamicVector<double>& x)
-        { return tLevelsetTopology.jacobian(x); });
+        { return tLevelsetTopology.jacobian(x); },
+        [tLevelsetTopology = aLevelsetTopology](const linear_algebra::DynamicVector<double>& x)
+        { return linear_algebra::AdjointJacobianMultiplier{tLevelsetTopology.jacobian(x)}; }};
 }
 
 namespace detail

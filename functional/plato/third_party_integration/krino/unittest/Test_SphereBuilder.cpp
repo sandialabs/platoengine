@@ -10,14 +10,6 @@
 namespace plato::third_party_integration::krino::unittest
 {
 
-class PlatoTestKrino : public ::testing::Test
-{
-    // Even though this is doing nothing it is
-    // needed because some of the other unit testing
-    // is using a derived class and googletest won't let
-    // you mix TEST and TEST_F in a single executable.
-};
-
 namespace
 {
 const common::Coordinate kZeroCoordinate{0, 0, 0};
@@ -27,6 +19,7 @@ const common::Coordinate kTenCoordinate{10, 10, 10};
 {
     return SpherePatternData{kZeroCoordinate, kTenCoordinate, aSphereRadius, aSphereSpacing};
 }
+
 void check_repeated_num_spheres(const common::Coordinate &aNumSpheres, const double aGoldValue)
 {
     EXPECT_EQ(aNumSpheres.x, aGoldValue);
@@ -35,7 +28,7 @@ void check_repeated_num_spheres(const common::Coordinate &aNumSpheres, const dou
 }
 }  // namespace
 
-TEST_F(PlatoTestKrino, SphereBuilderGenerateSpheresCalculateSphereCenterCoords)
+TEST(SphereBuilder, GenerateSpheresCalculateSphereCenterCoords)
 {
     constexpr int tNumValues{4};
     constexpr double tStart{-3.0};
@@ -46,7 +39,7 @@ TEST_F(PlatoTestKrino, SphereBuilderGenerateSpheresCalculateSphereCenterCoords)
     EXPECT_EQ(tResult, tGold);
 }
 
-TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_SphereJustInsideBBoxExtent)
+TEST(SphereBuilder, CalculateNumSpheresAndStart_SphereJustInsideBBoxExtent)
 {
     constexpr double tSphereRadius = 0.5;
     constexpr double tSphereSpacing = 4.9;
@@ -56,12 +49,12 @@ TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_SphereJustInside
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
     const Coordinate tGold{0.1, 0.1, 0.1};
     constexpr double tTol{1e-10};
-    ASSERT_NEAR(tStart.x, tGold.x, tTol);
-    ASSERT_NEAR(tStart.y, tGold.y, tTol);
-    ASSERT_NEAR(tStart.z, tGold.z, tTol);
+    EXPECT_NEAR(tStart.x, tGold.x, tTol);
+    EXPECT_NEAR(tStart.y, tGold.y, tTol);
+    EXPECT_NEAR(tStart.z, tGold.z, tTol);
 }
 
-TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_SphereJustOutsideBBoxExtent)
+TEST(SphereBuilder, CalculateNumSpheresAndStart_SphereJustOutsideBBoxExtent)
 {
     constexpr double tSphereRadius = 0.5;
     constexpr double tSphereSpacing = 5.1;
@@ -71,12 +64,12 @@ TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_SphereJustOutsid
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
     const Coordinate tGold{-0.1, -0.1, -0.1};
     constexpr double tTol{1e-10};
-    ASSERT_NEAR(tStart.x, tGold.x, tTol);
-    ASSERT_NEAR(tStart.y, tGold.y, tTol);
-    ASSERT_NEAR(tStart.z, tGold.z, tTol);
+    EXPECT_NEAR(tStart.x, tGold.x, tTol);
+    EXPECT_NEAR(tStart.y, tGold.y, tTol);
+    EXPECT_NEAR(tStart.z, tGold.z, tTol);
 }
 
-TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_SpheresNotIntersectingWithBoundary)
+TEST(SphereBuilder, CalculateNumSpheresAndStart_SpheresNotIntersectingWithBoundary)
 {
     constexpr double tSphereRadius = 0.1;
     constexpr double tSphereSpacing = 2.0;
@@ -86,12 +79,12 @@ TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_SpheresNotInters
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
     const Coordinate tGold{1, 1, 1};
     constexpr double tTol{1e-10};
-    ASSERT_NEAR(tStart.x, tGold.x, tTol);
-    ASSERT_NEAR(tStart.y, tGold.y, tTol);
-    ASSERT_NEAR(tStart.z, tGold.z, tTol);
+    EXPECT_NEAR(tStart.x, tGold.x, tTol);
+    EXPECT_NEAR(tStart.y, tGold.y, tTol);
+    EXPECT_NEAR(tStart.z, tGold.z, tTol);
 }
 
-TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_OneSphere)
+TEST(SphereBuilder, CalculateNumSpheresAndStart_OneSphere)
 {
     constexpr double tSphereRadius = 0.1;
     constexpr double tSphereSpacing = 100.0;
@@ -101,12 +94,12 @@ TEST_F(PlatoTestKrino, SphereBuilderCalculateNumSpheresAndStart_OneSphere)
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
     const Coordinate tGold{5, 5, 5};
     constexpr double tTol{1e-10};
-    ASSERT_NEAR(tStart.x, tGold.x, tTol);
-    ASSERT_NEAR(tStart.y, tGold.y, tTol);
-    ASSERT_NEAR(tStart.z, tGold.z, tTol);
+    EXPECT_NEAR(tStart.x, tGold.x, tTol);
+    EXPECT_NEAR(tStart.y, tGold.y, tTol);
+    EXPECT_NEAR(tStart.z, tGold.z, tTol);
 }
 
-TEST_F(PlatoTestKrino, SphereBuilderGenerateSpheres)
+TEST(SphereBuilder, GenerateSpheres)
 {
     constexpr double tSphereRadius = 0.25;
     constexpr double tSphereSpacing = 1.0;

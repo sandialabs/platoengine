@@ -9,6 +9,11 @@
 #include <utility>
 #include <vector>
 
+namespace plato::analysis
+{
+struct AnalysisDomainMesh;
+}
+
 namespace plato::third_party_integration::krino
 {
 
@@ -45,11 +50,14 @@ void initialize_environment_for_krino(const MPI_Comm &aComm);
                                    const std::vector<KrinoGlobalNodeID> &aBackgroundNodemap)
     -> std::unordered_map<KrinoGlobalNodeID, double>;
 
-[[nodiscard]] auto calculate_adjoint_dfdls(
-    const std::unordered_map<KrinoGlobalNodeID, double> &aBackgroundLevelSetSpaceVector,
-    const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP)
+/// @brief Computes the product of a row vector (represented by @a aBackgroundLevelSetSpaceVector) and adjoint Jacobian
+/// matrix (represented by @a aDXDP).
+///
+/// The result is stored in a map, which maps a cut mesh global node ID to a 3-vector.
+[[nodiscard]] auto calculate_adjoint_dfdls(const analysis::AnalysisDomainMesh &aBackgroundLevelSetSpaceVector,
+                                           const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP)
     -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>;
 
 }  // namespace plato::third_party_integration::krino
 
-#endif  // PLATO_THIRD_PARTY_INTEGRATION_KRINO_UTILITIES
+#endif

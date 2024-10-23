@@ -33,8 +33,7 @@ void ROLConstraintFunction::applyAdjointJacobian(std::vector<double>& aAdjointJa
     assert(aDual.size() == 1);
     assert(aAdjointJacobianTimesDirection.size() == aControl.size());
     aAdjointJacobianTimesDirection =
-        (mFunction.evaluate<core::evaluation::kFirstDerivative /*, core::MatrixOrdering::kAdjoint*/>(
-             linear_algebra::DynamicVector<double>(aControl)) *
+        (mFunction.evaluate<core::evaluation::kFirstDerivative>(linear_algebra::DynamicVector<double>(aControl)) *
          aDual.front())
             .stdVector();
 }

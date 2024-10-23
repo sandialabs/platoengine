@@ -8,6 +8,7 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
@@ -44,12 +45,14 @@ class LevelsetTopology
                        const std::filesystem::path& aOutputMeshName);
     [[nodiscard]] auto jacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> linear_algebra::JacobianMultiplier;
+    [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
+        -> linear_algebra::AdjointJacobianMultiplier;
 
    private:
     void generateLevelsetInitializationPrimitives();
 
    private:
-    std::filesystem::path mBackgroundMesh;
+    mesh::Mesh mBackgroundMesh;
     std::filesystem::path mCutMesh;
     std::filesystem::path mOutputMesh;
     bool mIncludeVoidRegion = false;
