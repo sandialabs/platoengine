@@ -21,10 +21,14 @@ TEST_F(KrinoTestFixture, CalculateDFDLS)
 
     // Row vector times Jacobian matrix
     {
-        const auto tDFDX = std::unordered_map<unsigned int, stk::math::Vector3d>{
-            {1, {2.0, 0.5, 0.25}}, {2, {0.25, -0.125, -1.0}}, {3, {0.5, -0.0625, -0.125}}};
+        const auto tDFDX = std::vector<double>{2.0, 0.5, 0.25, 0.25, -0.125, -1.0, 0.5, -0.0625, -0.125};
+        constexpr auto tBlockID = 1;
+        const auto tFieldVector = std::vector<analysis::ScalarFieldValue>{{1, 0, 0.0}, {2, 1, 0.0}, {3, 2, 0.0}};
+        const auto tCutMeshField = plato::analysis::AnalysisDomainMesh{
+            kMeshFile, analysis::AnalysisDomainMesh::BlockScalarField{{tBlockID, tFieldVector}}};
+
         const auto tBackgroundNodemap = std::vector<unsigned int>{7, 12, 19, 34, 22, 2, 10};
-        const auto tDFDLS = calculate_dfdls(tDFDX, tDXDP, tBackgroundNodemap);
+        const auto tDFDLS = calculate_dfdls(tDFDX, tCutMeshField, tDXDP, tBackgroundNodemap);
 
         const auto tExpected = std::unordered_map<KrinoGlobalNodeID, double>{
             {2, 0.9375}, {7, 0.28125}, {10, 0.34375}, {12, -0.171875}, {19, -0.9921875}, {22, 0.5625}, {34, -0.28125}};

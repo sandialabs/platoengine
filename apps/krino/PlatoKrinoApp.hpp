@@ -22,6 +22,12 @@ using namespace plato::third_party_integration::krino;
 namespace Plato
 {
 
+enum struct DFDXFormatting
+{
+    GlobalID,
+    OneToN
+};
+
 /**********************************************************************/
 class PlatoKrinoApp : public Plato::Application
 /**********************************************************************/

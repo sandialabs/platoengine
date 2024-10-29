@@ -1,7 +1,7 @@
 include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
-set(LINK_LIBS Krino::krino_lib PlatoFunctionalAnalysis)
+set(LINK_LIBS Krino::krino_lib PlatoFunctionalAnalysis PlatoFunctionalUtilities)
 
 create_plato_library(PlatoFunctionalKrinoLib "." "${LINK_LIBS}")
 
