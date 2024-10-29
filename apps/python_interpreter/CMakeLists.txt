@@ -17,12 +17,12 @@ SET(HDRS PlatoPythonApp.hpp
          RunVoidFunctionOperation.hpp)
 
 find_package(Boost REQUIRED COMPONENTS python)
-find_package(Python COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 add_executable(PythonInterpreter ${SRCS})
 target_link_libraries(PythonInterpreter  PUBLIC
                       PlatoInterface PlatoParser PlatoExceptions
-                      Python::Python
+                      Python3::Python
                       Boost::python)
 
 install( TARGETS PythonInterpreter EXPORT PlatoEngine DESTINATION bin )
