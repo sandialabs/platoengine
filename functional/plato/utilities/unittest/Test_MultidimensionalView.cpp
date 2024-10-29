@@ -4,7 +4,7 @@
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/IndexRange.hpp"
-#include "plato/utilities/MultidimensionalView.hpp"
+#include "plato/utilities/MultiVectorView.hpp"
 
 namespace plato::utilities::unittest
 {
@@ -19,25 +19,39 @@ TEST(VectorView, Values)
         return tTempVector;
     }();
 
-    const auto tTest = [&tVector, tLength](auto& tMultidimensionalView, const test_utilities::TestContext& aTestContext)
+    const auto tTest = [&tVector, tLength](auto& tMultiVectorView, const test_utilities::TestContext& aTestContext)
     {
         auto tIndex = std::size_t{0};
-        ASSERT_EQ(tMultidimensionalView.size(), tLength) << aTestContext;
+        ASSERT_EQ(tMultiVectorView.size(), tLength * tDimension) << aTestContext;
+        ASSERT_EQ(tMultiVectorView.numberOfVectors(), tLength) << aTestContext;
         // Check in expected order
         for (const auto tLengthIndex : IndexRange{tLength})
         {
             for (const auto tDimensionIndex : IndexRange{tDimension})
             {
-                EXPECT_EQ(tMultidimensionalView(tLengthIndex, tDimensionIndex), tVector[tIndex]) << aTestContext;
+                EXPECT_EQ(tMultiVectorView(VectorIndex{tLengthIndex}, ComponentIndex{tDimensionIndex}), tVector[tIndex])
+                    << aTestContext;
                 ++tIndex;
             }
         }
     };
 
-    auto tNonConstView = MultidimensionalView<tDimension, const std::vector<double>>{tVector};
+    auto tNonConstView = MultiVectorView<tDimension, const std::vector<double>>{tVector};
     tTest(tNonConstView, TEST_CONTEXT("Non-const view"));
 
-    const auto tConstView = MultidimensionalView<tDimension, const std::vector<double>>{tVector};
+    const auto tConstView = MultiVectorView<tDimension, const std::vector<double>>{tVector};
     tTest(tConstView, TEST_CONTEXT("Const view"));
 }
+
+TEST(VectorView, Sizes)
+{
+    constexpr auto tDimension = std::size_t{3};
+    constexpr auto tLength = std::size_t{2};
+    const auto tVector = std::vector<double>(tDimension * tLength);
+
+    const auto tMultiVectorView = utilities::make_multi_vector_view<tDimension>(tVector);
+    EXPECT_EQ(tMultiVectorView.numberOfVectors(), tLength);
+    EXPECT_EQ(tMultiVectorView.size(), tLength * tDimension);
+}
+
 }  // namespace plato::utilities::unittest
