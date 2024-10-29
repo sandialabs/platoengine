@@ -1,4 +1,3 @@
-// clang-format off
 #include "PlatoPythonApp.hpp"
 #include "Plato_FreeFunctions.hpp"
 #include "Plato_Macros.hpp"
@@ -1148,5 +1147,3 @@ TEST_F(PlatoTestPythonApp, ExportData_StoreGradientInSharedValueClass)
 }
 
 }
-
-// clang-format on

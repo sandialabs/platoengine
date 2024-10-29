@@ -1,4 +1,3 @@
-// clang-format off
 #include "RunVoidFunctionOperation.hpp"
 #include "PlatoPythonOperation.hpp"
 #include "Plato_InputData.hpp"
@@ -89,4 +88,3 @@ RunVoidFunctionOperation::createPythonListFromInput()
     }
     return inputs;
 }
-// clang-format on

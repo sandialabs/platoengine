@@ -1,4 +1,3 @@
-// clang-format off
 #pragma once
 
 #include "PlatoPythonOperation.hpp"
@@ -41,4 +40,3 @@ private:
     std::vector<double> mCurrentInputs;
 
 };
-// clang-format on
