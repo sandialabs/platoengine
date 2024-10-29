@@ -82,7 +82,6 @@ void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData
         const auto tNumDesignVariables = static_cast<int>(aProcessManagerData.mGeometry.mInitialGuess.size());
 
         auto tConstraintVectorStandIn = tROLProblem->getResidualVector();
-        std::cout << "tConstraintVectorStandIn size: " << tConstraintVectorStandIn->dimension() << std::endl;
         tConstraintVectorStandIn->randomize(-mInitialDirectionMagnitude, mInitialDirectionMagnitude);
 
         constexpr int tFiniteDifferenceOrder = 1;  // TODO: Should we make this an actual input?

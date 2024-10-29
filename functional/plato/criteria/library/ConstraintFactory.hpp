@@ -26,9 +26,9 @@ enum class ConstraintType
     kGreaterThan
 };
 
-/// @brief Holds members for defining a Constraint
+/// @brief Holds members for defining a scalar constraint
 /// @tparam FunctionArg The argument of the function used to define the constraint.
-///   Typically, this is either MeshDesignVariables or a vector type such as DynamicVector.
+///   Typically, this is either AnalysisDomainMesh or a vector type such as DynamicVector.
 template <typename FunctionArg>
 struct Constraint
 {
@@ -44,6 +44,9 @@ struct Constraint
     ConstraintType mConstraintType;
 };
 
+/// @brief Holds members for defining a vector-valued constraint
+/// @tparam FunctionArg The argument of the function used to define the constraint.
+///   Typically, this is either AnalysisDomainMesh or a vector type such as DynamicVector.
 template <typename FunctionArg>
 struct VectorConstraint
 {

@@ -3,6 +3,7 @@
 #include <ROL_StdVector.hpp>
 #include <vector>
 
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -111,6 +112,45 @@ TEST(ROLConstraint, CreateInequalityBounds)
     EXPECT_THROW([[maybe_unused]] auto tUnused = detail::create_inequality_bounds(
                      criteria::library::ConstraintType::kEquality, tNumberOfConstraints),
                  utilities::Exception);
+}
+
+TEST(ROLConstraint, ConstraintCombination)
+{
+    const auto tCheckConstraintCombination = [](const ROLConstraint& aConstraint,
+                                                const detail::ConstraintCombination aExpectedConstraintCombination,
+                                                const test_utilities::TestContext& aTestContext)
+    {
+        const auto tConstraintCombination = detail::constraint_combination(aConstraint);
+        EXPECT_EQ(tConstraintCombination, aExpectedConstraintCombination) << aTestContext;
+    };
+
+    auto tConstraint = ROLConstraint{};
+
+    tConstraint.mLinear = true;
+    tConstraint.mType = criteria::library::ConstraintType::kEquality;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kLinearEquality,
+                                TEST_CONTEXT("Linear equality"));
+
+    tConstraint.mType = criteria::library::ConstraintType::kGreaterThan;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kLinearInequality,
+                                TEST_CONTEXT("Linear inequality with greater than"));
+
+    tConstraint.mType = criteria::library::ConstraintType::kLessThan;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kLinearInequality,
+                                TEST_CONTEXT("Linear inequality with less than"));
+
+    tConstraint.mLinear = false;
+    tConstraint.mType = criteria::library::ConstraintType::kEquality;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kNonlinearEquality,
+                                TEST_CONTEXT("Non-linear equality"));
+
+    tConstraint.mType = criteria::library::ConstraintType::kGreaterThan;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kNonlinearInequality,
+                                TEST_CONTEXT("Non-linear inequality with greater than"));
+
+    tConstraint.mType = criteria::library::ConstraintType::kLessThan;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kNonlinearInequality,
+                                TEST_CONTEXT("Non-linear inequality with less than"));
 }
 
 }  // namespace plato::third_party_integration::rol::unittest

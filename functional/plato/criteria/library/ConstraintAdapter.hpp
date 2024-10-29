@@ -18,15 +18,19 @@ using ScalarFunction = typename Constraint<FunctionArg>::ConstraintFunction;
 template <typename FunctionArg>
 using VectorFunction = typename VectorConstraint<FunctionArg>::ConstraintFunction;
 
+/// @brief Constructs a VectorConstraint from a Constraint object, which represents a scalar constraint function.
+///
+/// The purpose of this function is to adapt a scalar constraint function so that it can be used as a vector constraint
+/// function.
+template <typename FunctionArg>
+auto make_vector_constraint(const Constraint<FunctionArg>& aConstraint) -> VectorConstraint<FunctionArg>;
+
+/// @brief Constructs a VectorConstraint from a VectorConstraint, which is essentially a no-op.
+template <typename FunctionArg>
+auto make_vector_constraint(VectorConstraint<FunctionArg> aConstraint) -> VectorConstraint<FunctionArg>;
+
 namespace detail
 {
-
-template <typename FunctionArg>
-auto make_vector_function(const VectorFunction<FunctionArg>& aVectorFunction) -> VectorFunction<FunctionArg>
-{
-    return aVectorFunction;
-}
-
 template <typename FunctionArg>
 auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) -> VectorFunction<FunctionArg>
 {
@@ -55,9 +59,9 @@ auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) ->
 }  // namespace detail
 
 template <typename FunctionArg>
-auto make_vector_constraint(const VectorConstraint<FunctionArg>& aConstraint) -> VectorConstraint<FunctionArg>
+auto make_vector_constraint(VectorConstraint<FunctionArg> aConstraint) -> VectorConstraint<FunctionArg>
 {
-    return aConstraint;
+    return std::move(aConstraint);
 }
 
 template <typename FunctionArg>

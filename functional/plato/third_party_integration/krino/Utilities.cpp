@@ -18,7 +18,7 @@ namespace plato::third_party_integration::krino
 
 namespace
 {
-constexpr int kNumDimensions = 3;
+constexpr int kNumDimensions = std::size_t{3};
 constexpr std::string_view kKrinoLogName = "krinolog";
 
 auto dfdls_entry_contribution(const std::vector<double> &aDFDX,

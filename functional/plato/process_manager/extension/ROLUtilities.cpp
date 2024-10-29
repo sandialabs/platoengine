@@ -53,9 +53,9 @@ auto make_rol_problem(const library::ProcessManagerData& aProblem)
     auto tROLProblem = ROL::makePtr<ROL::Problem<double>>(
         ROL::Ptr<ROL::StdObjective<double>>(make_rol_objective(aProblem).release()), tControls);
     tROLProblem->addBoundConstraint(tpir::create_rol_bound_constraint(aProblem.mGeometry.mBounds));
-    for (auto& tConstraint : make_rol_constraints(aProblem))
+    for (auto&& tConstraint : make_rol_constraints(aProblem))
     {
-        add_constraint_to_problem(*tROLProblem, tConstraint);
+        add_constraint_to_problem(*tROLProblem, std::move(tConstraint));
     }
     ///@todo Determine how ROL lumps constraints - should this only be false if they are all linear constraints?
     constexpr bool tLumpConstraints = false;

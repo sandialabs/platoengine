@@ -12,6 +12,9 @@
 
 namespace plato::third_party_integration::rol
 {
+/// @brief Implementation of a ROL::StdConstraint that represents a vector-valued constraint.
+///
+/// This is the main interface between plato and ROL constraints.
 class ROLVectorConstraintFunction : public ROL::StdConstraint<double>
 {
    public:
