@@ -49,11 +49,9 @@ std::optional<std::string> validate_constraint_type(const input_parser::constrai
         core::error_message_for_empty_parameter(criterion_name(aInput), aInput.constraint_type, "constraint_type");
     if (tMessage.has_value())
     {
-        std::string tOptions = utilities::concatenate(
-            input_parser::kConstraintTypesTable.toString(input_parser::ConstraintTypes::kEquality).value(), ", ",
-            input_parser::kConstraintTypesTable.toString(input_parser::ConstraintTypes::kGreaterThan).value(), ", or ",
-            input_parser::kConstraintTypesTable.toString(input_parser::ConstraintTypes::kLessThan).value(), ".");
-        tMessage.value() = utilities::concatenate(tMessage.value(), ".\nSpecify: ", tOptions);
+        const std::string tOptions = utilities::concatenate_container(
+            utilities::all_strings_from_table(input_parser::kConstraintTypesTable), ", ");
+        tMessage.value() = utilities::concatenate(tMessage.value(), ".\nSpecify one of: ", tOptions);
     }
     return tMessage;
 }

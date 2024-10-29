@@ -19,13 +19,16 @@ TEST(ConstraintValidation, ValidateConstraintValue)
 TEST(ConstraintValidation, ValidateConstraintType)
 {
     namespace pfcd = plato::criteria::library::detail;
+
     input_parser::constraint tConstraint;
     EXPECT_TRUE(pfcd::validate_constraint_type(tConstraint).has_value());
-    std::cout << pfcd::validate_constraint_type(tConstraint).value() << std::endl;
+
     tConstraint.constraint_type = input_parser::ConstraintTypes::kEquality;
     EXPECT_FALSE(pfcd::validate_constraint_type(tConstraint).has_value());
+
     tConstraint.constraint_type = input_parser::ConstraintTypes::kLessThan;
     EXPECT_FALSE(pfcd::validate_constraint_type(tConstraint).has_value());
+
     tConstraint.constraint_type = input_parser::ConstraintTypes::kGreaterThan;
     EXPECT_FALSE(pfcd::validate_constraint_type(tConstraint).has_value());
 }
