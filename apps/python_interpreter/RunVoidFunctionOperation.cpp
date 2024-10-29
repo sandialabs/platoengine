@@ -1,3 +1,4 @@
+// clang-format off
 #include "RunVoidFunctionOperation.hpp"
 #include "PlatoPythonOperation.hpp"
 #include "Plato_InputData.hpp"
@@ -10,17 +11,23 @@
 
 RunVoidFunctionOperation::RunVoidFunctionOperation(const Plato::InputData & aOperationNode) :
  PlatoPythonOperation(aOperationNode),
- mRunFlag(true)
-{
-    mOnChange = Plato::Get::Bool(aOperationNode, "OnChange", false);
-}
+ mRunFlag{true},
+ mOnChange{Plato::Get::Bool(aOperationNode, "OnChange", false)},
+ mUseInput{Plato::Get::Bool(aOperationNode, "UseInput", false)}
+{}
 
 void
 RunVoidFunctionOperation::runPythonFunction(const boost::python::object & aObject)
 {
     if ( mRunFlag )
     {
-        aObject.attr(mFunction.c_str())();
+        if(mUseInput)
+        {
+            throwIfInputEmpty();
+            aObject.attr(mFunction.c_str())(createPythonListFromInput());
+        }
+        else
+            aObject.attr(mFunction.c_str())();
     }
 }
 
@@ -64,3 +71,22 @@ RunVoidFunctionOperation::setRunFlag(const std::vector<double> & aData)
         mCurrentInputs = aData;
     }
 }
+
+void
+RunVoidFunctionOperation::throwIfInputEmpty()
+{
+    if ( mInputData.value.empty() )
+        THROWERR("Input Data has not been set for Operation with Name " + mName + ".")
+}
+
+boost::python::list
+RunVoidFunctionOperation::createPythonListFromInput()
+{
+    boost::python::list inputs;
+    for (auto val : mInputData.value)
+    {
+        inputs.append(val);
+    }
+    return inputs;
+}
+// clang-format on
