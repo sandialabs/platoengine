@@ -9,6 +9,8 @@
 
 #include <memory>
 #include <string>
+#include <numeric>
+#include <vector>
 
 #include <Python.h>
 #include <boost/python.hpp>
@@ -118,6 +120,7 @@ PlatoPythonApp::initialize()
     Py_Initialize();
     this->setPythonPaths();
     this->constructPythonObject();
+    this->getFieldSize();
 }
 
 void 
@@ -138,6 +141,25 @@ PlatoPythonApp::constructPythonObject()
 {
     auto tModule = boost::python::import(mPythonModule.c_str());
     mPythonObject = tModule.attr(mPythonClass.c_str())();
+}
+
+void
+PlatoPythonApp::getFieldSize()
+{
+    const std::string tFieldSizeOperationName{"Initialize Field Size"};
+    const auto& tOperationIter = std::find_if(mOperations.begin(), mOperations.end(), 
+        [&tFieldSizeOperationName](std::unique_ptr<PlatoPythonOperation>& aOperation){
+        return aOperation->name() == tFieldSizeOperationName;
+    });
+
+    if(tOperationIter != mOperations.end())
+    {
+        std::unique_ptr<PlatoPythonOperation>& tOperation = *(tOperationIter); 
+        tOperation->runPythonFunction(mPythonObject);
+        std::vector<double> tData = tOperation->getOutputData();
+        assert(!tData.empty());
+        mFieldSize = static_cast<int>(tData[0]);
+    }
 }
 
 void 
@@ -211,9 +233,26 @@ PlatoPythonApp::importData
 
 void 
 PlatoPythonApp::exportDataMap
-(const Plato::data::layout_t & /*aDataLayout*/, 
- std::vector<int> & /*aMyOwnedGlobalIDs*/)
+(const Plato::data::layout_t & aDataLayout, 
+ std::vector<int> & aMyOwnedGlobalIDs)
 {
+    if (aDataLayout == Plato::data::layout_t::SCALAR_FIELD)
+    {
+        this->throwIfFieldSizeNotSet();
+        aMyOwnedGlobalIDs.resize(mFieldSize.value());
+    }
+    else if (aDataLayout == Plato::data::layout_t::ELEMENT_FIELD)
+    {
+        THROWERR("exportDataMap is not implemented for Element Field layout.")
+    }
+    std::iota(aMyOwnedGlobalIDs.begin(), aMyOwnedGlobalIDs.end(), 1);
+}
+
+void
+PlatoPythonApp::throwIfFieldSizeNotSet()
+{
+    if ( !mFieldSize.has_value() )
+        THROWERR("Field size for SharedData has not been set. Field size must be set by an operation with name 'Initialize Field Size'.")
 }
 
 const MPI_Comm& 

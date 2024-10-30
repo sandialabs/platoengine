@@ -818,7 +818,7 @@ TEST_F(PlatoTestPythonApp, Compute_RunVoidFunctionToChangeStateForGradientWhenIn
     writeInputFile(tInputFileContents);
 
     Plato::CommunicationData tDummyCommData;
-    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::SCALAR, 1, true);
+    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::layout_t::SCALAR, 1, true);
     std::vector<double> tVals = {21.0, 56.0};
     tSharedData.setData(tVals);
 
@@ -933,11 +933,11 @@ TEST_F(PlatoTestPythonApp, Compute_RunVoidFunctionToChangeStateUsingInput)
     writeInputFile(tInputFileContents);
 
     Plato::CommunicationData tDummyCommData;
-    Plato::SharedValue tInputSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::SCALAR, 1, true);
+    Plato::SharedValue tInputSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::layout_t::SCALAR, 1, true);
     std::vector<double> tVals = {91.0};
     tInputSharedData.setData(tVals);
 
-    Plato::SharedValue tOutputSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::SCALAR, 1, true);
+    Plato::SharedValue tOutputSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::layout_t::SCALAR, 1, true);
 
     const auto tApp = defaultApp();
 
@@ -981,7 +981,7 @@ TEST_F(PlatoTestPythonApp, ImportData_ErrorWrongSharedDataName)
     writeInputFile(tInputFileContents);
 
     Plato::CommunicationData tDummyCommData;
-    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::SCALAR, 1, false);
+    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::layout_t::SCALAR, 1, false);
 
     const auto tApp = defaultApp();
 
@@ -1015,7 +1015,7 @@ TEST_F(PlatoTestPythonApp, ImportData_InputStoredCorrectly)
     writeInputFile(tInputFileContents);
 
     Plato::CommunicationData tDummyCommData;
-    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::SCALAR, 1, true);
+    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::layout_t::SCALAR, 1, true);
     std::vector<double> tVals = {21.0, 56.0};
     tSharedData.setData(tVals);
 
@@ -1054,7 +1054,7 @@ TEST_F(PlatoTestPythonApp, ExportData_ErrorWrongSharedDataName)
     writeInputFile(tInputFileContents);
 
     Plato::CommunicationData tDummyCommData;
-    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::SCALAR, 1, false);
+    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::layout_t::SCALAR, 1, false);
 
     const auto tApp = defaultApp();
 
@@ -1087,7 +1087,7 @@ TEST_F(PlatoTestPythonApp, ExportData_StoreValueInSharedValueClass)
     writeInputFile(tInputFileContents);
 
     Plato::CommunicationData tDummyCommData;
-    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::SCALAR, 1, false);
+    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::layout_t::SCALAR, 1, false);
 
     const auto tApp = defaultApp();
 
@@ -1129,7 +1129,7 @@ TEST_F(PlatoTestPythonApp, ExportData_StoreGradientInSharedValueClass)
 
     Plato::CommunicationData tDummyCommData;
     bool tIsDynamic = true;
-    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::SCALAR, 1, tIsDynamic);
+    Plato::SharedValue tSharedData("dumbo", {"nada"}, tDummyCommData, Plato::data::layout_t::SCALAR, 1, tIsDynamic);
 
     const auto tApp = defaultApp();
 
@@ -1144,6 +1144,116 @@ TEST_F(PlatoTestPythonApp, ExportData_StoreGradientInSharedValueClass)
     EXPECT_EQ(tReturnVals[0], 19);
     EXPECT_EQ(tReturnVals[1], 17);
     EXPECT_EQ(tReturnVals[2], 44);
+}
+
+TEST_F(PlatoTestPythonApp, ExportDataMap_NoChangeForScalarLayout)
+{
+    std::vector<std::string> tDummyAppFileContents = {
+        "<?xml version=\"1.0\"?> \n",
+        "<Operation> \n",
+        "  <Function>ComputeCriterionValue</Function> \n",
+        "  <Name>ComputeObjectiveValue</Name> \n",
+        "  <PyFunction>nonexistant</PyFunction> \n",
+        "</Operation> \n"
+    };
+    writeAppFile(tDummyAppFileContents);
+
+    std::vector<std::string> tDummyInputFileContents = {
+        "<?xml version=\"1.0\"?> \n",
+        "<Python> \n",
+        "  <Module>test_functions</Module> \n",
+        "  <Class>TestFunctions</Class> \n",
+        "</Python> \n"
+    };
+    writeInputFile(tDummyInputFileContents);
+    const auto tApp = defaultApp();
+
+    std::vector<int> tGlobalIDs;
+    tApp->exportDataMap(Plato::data::layout_t::SCALAR, tGlobalIDs);
+    ASSERT_TRUE(tGlobalIDs.empty());
+}
+
+TEST_F(PlatoTestPythonApp, ExportDataMap_ElementFieldThrows)
+{
+    std::vector<std::string> tDummyAppFileContents = {
+        "<?xml version=\"1.0\"?> \n",
+        "<Operation> \n",
+        "  <Function>ComputeCriterionValue</Function> \n",
+        "  <Name>ComputeObjectiveValue</Name> \n",
+        "  <PyFunction>nonexistant</PyFunction> \n",
+        "</Operation> \n"
+    };
+    writeAppFile(tDummyAppFileContents);
+
+    std::vector<std::string> tDummyInputFileContents = {
+        "<?xml version=\"1.0\"?> \n",
+        "<Python> \n",
+        "  <Module>test_functions</Module> \n",
+        "  <Class>TestFunctions</Class> \n",
+        "</Python> \n"
+    };
+    writeInputFile(tDummyInputFileContents);
+    const auto tApp = defaultApp();
+
+    std::vector<int> tGlobalIDs;
+    EXPECT_THROW(tApp->exportDataMap(Plato::data::layout_t::ELEMENT_FIELD, tGlobalIDs), std::runtime_error);
+}
+
+TEST_F(PlatoTestPythonApp, ExportDataMap_ScalarFieldThrowsIfNotSetWithOperationNamedInitializeFieldSize)
+{
+    std::vector<std::string> tDummyAppFileContents = {
+        "<?xml version=\"1.0\"?> \n",
+        "<Operation> \n",
+        "  <Function>ComputeCriterionValue</Function> \n",
+        "  <Name>ComputeObjectiveValue</Name> \n",
+        "  <PyFunction>nonexistant</PyFunction> \n",
+        "</Operation> \n"
+    };
+    writeAppFile(tDummyAppFileContents);
+
+    std::vector<std::string> tDummyInputFileContents = {
+        "<?xml version=\"1.0\"?> \n",
+        "<Python> \n",
+        "  <Module>test_functions</Module> \n",
+        "  <Class>TestFunctions</Class> \n",
+        "</Python> \n"
+    };
+    writeInputFile(tDummyInputFileContents);
+    const auto tApp = defaultApp();
+
+    std::vector<int> tGlobalIDs;
+    EXPECT_THROW(tApp->exportDataMap(Plato::data::layout_t::SCALAR_FIELD, tGlobalIDs), std::runtime_error);
+}
+
+TEST_F(PlatoTestPythonApp, ExportDataMap_ScalarFieldSizedCorrectlyIfSetWithOperationNamedInitializeFieldSize)
+{
+    std::vector<std::string> tAppFileContents = {
+        "<?xml version=\"1.0\"?> \n",
+        "<Operation> \n",
+        "  <Function>ComputeCriterionValue</Function> \n",
+        "  <Name>Initialize Field Size</Name> \n",
+        "  <PyFunction>return_val</PyFunction> \n",
+        "</Operation> \n"
+    };
+    writeAppFile(tAppFileContents);
+
+    std::vector<std::string> tInputFileContents = {
+        "<?xml version=\"1.0\"?> \n",
+        "<Python> \n",
+        "  <Module>import_functions</Module> \n",
+        "  <Class>ImportFunctions</Class> \n",
+        "  <Path>./import</Path> \n",
+        "</Python> \n"
+    };
+    writeInputFile(tInputFileContents);
+
+    const auto tApp = defaultApp();
+
+    tApp->initialize();
+
+    std::vector<int> tGlobalIDs;
+    ASSERT_NO_THROW(tApp->exportDataMap(Plato::data::layout_t::SCALAR_FIELD, tGlobalIDs));
+    EXPECT_EQ(tGlobalIDs.size(), 77);
 }
 
 }
