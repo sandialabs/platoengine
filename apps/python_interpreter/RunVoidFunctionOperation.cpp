@@ -22,8 +22,8 @@ RunVoidFunctionOperation::runPythonFunction(const boost::python::object & aObjec
     {
         if(mUseInput)
         {
-            throwIfInputEmpty();
-            aObject.attr(mFunction.c_str())(createPythonListFromInput());
+            this->throwIfInputEmpty();
+            aObject.attr(mFunction.c_str())(this->createPythonListFromInput());
         }
         else
             aObject.attr(mFunction.c_str())();
