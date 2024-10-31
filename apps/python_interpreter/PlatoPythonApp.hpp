@@ -95,9 +95,6 @@ private:
     void
     getFieldSize();
 
-    const std::unique_ptr<PlatoPythonOperation>&
-    findOperation(const std::string & aOperationName);
-
     void
     throwIfFieldSizeNotSet();
 

@@ -15,6 +15,37 @@
 #include <Python.h>
 #include <boost/python.hpp>
 
+namespace 
+{
+const auto tDefaultErrorPolicy = [](const std::string& aOperationName){THROWERR("Failed to find operation with name '" + aOperationName + "'")};
+
+const auto tDefaultLabel = [](const PlatoPythonOperation& aOperation){return aOperation.name();};
+
+template <typename ExecutionPolicy, typename ErrorPolicy, typename OperationLabel>
+void
+findOperationAndExecute
+(const std::vector<std::unique_ptr<PlatoPythonOperation>>& aOperations,
+ const std::string & aOperationTag,
+ const ExecutionPolicy& aFunc,
+ const ErrorPolicy& aError,
+ const OperationLabel& aLabel)
+{
+    const auto& tOperationIter = std::find_if(aOperations.begin(), aOperations.end(), 
+        [&aOperationTag, &aLabel](const std::unique_ptr<PlatoPythonOperation>& aOperation){
+        return aLabel(*(aOperation)) == aOperationTag;
+    });
+
+    if(tOperationIter != aOperations.end())
+    {
+        aFunc(**tOperationIter);
+    }
+    else
+    {
+        aError(aOperationTag);
+    }
+}
+}
+
 PlatoPythonApp::PlatoPythonApp
 (int aArgc, 
  char **aArgv, 
@@ -147,44 +178,27 @@ void
 PlatoPythonApp::getFieldSize()
 {
     const std::string tFieldSizeOperationName{"Initialize Field Size"};
-    const auto& tOperationIter = std::find_if(mOperations.begin(), mOperations.end(), 
-        [&tFieldSizeOperationName](std::unique_ptr<PlatoPythonOperation>& aOperation){
-        return aOperation->name() == tFieldSizeOperationName;
-    });
-
-    if(tOperationIter != mOperations.end())
-    {
-        std::unique_ptr<PlatoPythonOperation>& tOperation = *(tOperationIter); 
-        tOperation->runPythonFunction(mPythonObject);
-        std::vector<double> tData = tOperation->getOutputData();
-        assert(!tData.empty());
-        mFieldSize = static_cast<int>(tData[0]);
-    }
+    findOperationAndExecute(mOperations, tFieldSizeOperationName,
+        [this](PlatoPythonOperation& aOperation)
+        {aOperation.runPythonFunction(mPythonObject);
+         std::vector<double> tData = aOperation.getOutputData();
+         assert(!tData.empty());
+         mFieldSize = static_cast<int>(tData[0]);},
+        [](const std::string & /*aOperationName*/)
+        {},
+        tDefaultLabel
+    );
 }
 
 void 
 PlatoPythonApp::compute(const std::string & aOperationName)
 {
-    const auto& tOperation = this->findOperation(aOperationName);
-    tOperation->runPythonFunction(mPythonObject);
-}
-
-const std::unique_ptr<PlatoPythonOperation>&
-PlatoPythonApp::findOperation(const std::string & aOperationName)
-{
-    const auto& tOperation = std::find_if(mOperations.begin(), mOperations.end(), 
-        [&aOperationName](std::unique_ptr<PlatoPythonOperation>& aOperation){
-        return aOperation->name() == aOperationName;
-    });
-
-    if(tOperation != mOperations.end())
-    {
-        return *(tOperation);
-    }
-    else
-    {
-        THROWERR("Failed to find operation with name '" + aOperationName + "'")
-    }
+    findOperationAndExecute(mOperations, aOperationName,
+        [this](PlatoPythonOperation& aOperation)
+        {aOperation.runPythonFunction(mPythonObject);},
+        tDefaultErrorPolicy,
+        tDefaultLabel
+    );
 }
 
 void 
@@ -192,20 +206,14 @@ PlatoPythonApp::exportData
 (const std::string & aArgumentName, 
  Plato::SharedData & aExportData)
 {
-    const auto tOperation = std::find_if(mOperations.begin(), mOperations.end(), 
-        [&aArgumentName](std::unique_ptr<PlatoPythonOperation>& aOperation){
-        return aOperation->outputDataName() == aArgumentName;
-    });
-
-    if(tOperation != mOperations.end())
-    {
-        auto tData = (*tOperation)->getOutputData();
-        aExportData.setData(tData);
-    }
-    else
-    {
-        THROWERR("Failed to find SharedData with name '" + aArgumentName + "' when exporting")
-    }
+    findOperationAndExecute(mOperations, aArgumentName,
+        [&aExportData](PlatoPythonOperation& aOperation)
+        {auto tData = aOperation.getOutputData();
+         aExportData.setData(tData);},
+        [](const std::string & aOperationName)
+        {THROWERR("Failed to find SharedData with name '" + aOperationName + "' when exporting")},
+        [](const PlatoPythonOperation& aOperation){return aOperation.outputDataName();}
+    );
 }
 
 void 
@@ -213,22 +221,16 @@ PlatoPythonApp::importData
 (const std::string & aArgumentName, 
  const Plato::SharedData & aImportData)
 {
-    const auto tOperation = std::find_if(mOperations.begin(), mOperations.end(), 
-        [&aArgumentName](std::unique_ptr<PlatoPythonOperation>& aOperation){
-        return aOperation->inputDataName() == aArgumentName;
-    });
-
-    if(tOperation != mOperations.end())
-    {
-        std::vector<double> tData;
-        tData.resize(aImportData.size());
-        aImportData.getData(tData);
-        (*tOperation)->setInputData(tData);
-    }
-    else
-    {
-        THROWERR("Failed to find SharedData with name '" + aArgumentName + "' when importing")
-    }
+    findOperationAndExecute(mOperations, aArgumentName,
+        [&aImportData](PlatoPythonOperation& aOperation)
+        {std::vector<double> tData;
+         tData.resize(aImportData.size());
+         aImportData.getData(tData);
+         aOperation.setInputData(tData);},
+        [](const std::string & aOperationName)
+        {THROWERR("Failed to find SharedData with name '" + aOperationName + "' when importing")},
+        [](const PlatoPythonOperation& aOperation){return aOperation.inputDataName();}
+    );
 }
 
 void 
@@ -270,23 +272,38 @@ PlatoPythonApp::isInitialized() const
 double 
 PlatoPythonApp::getCriterionValue(const std::string & aOperationName)
 {
-    const auto& tOperation = this->findOperation(aOperationName);
-    auto tData = tOperation->getOutputData();
+    std::vector<double> tData;
+    findOperationAndExecute(mOperations, aOperationName,
+        [&tData](PlatoPythonOperation& aOperation)
+        {tData = aOperation.getOutputData();},
+        tDefaultErrorPolicy,
+        tDefaultLabel
+    );
     return tData[0];
 }
 
 std::vector<double> 
 PlatoPythonApp::getCriterionGradient(const std::string & aOperationName)
 {
-    const auto& tOperation = this->findOperation(aOperationName);
-    auto tData = tOperation->getOutputData();
+    std::vector<double> tData;
+    findOperationAndExecute(mOperations, aOperationName,
+        [&tData](PlatoPythonOperation& aOperation)
+        {tData = aOperation.getOutputData();},
+        tDefaultErrorPolicy,
+        tDefaultLabel
+    );
     return tData;
 }
 
 std::vector<double> 
 PlatoPythonApp::getOperationInput(const std::string & aOperationName)
 {
-    const auto& tOperation = this->findOperation(aOperationName);
-    auto tData = tOperation->inputDataVals();
+    std::vector<double> tData;
+    findOperationAndExecute(mOperations, aOperationName,
+        [&tData](PlatoPythonOperation& aOperation)
+        {tData = aOperation.inputDataVals();},
+        tDefaultErrorPolicy,
+        tDefaultLabel
+    );
     return tData;
 }
