@@ -29,17 +29,17 @@ public:
     virtual void 
     setInputData(std::vector<double> aData);
 
-    std::string
-    name(){return mName;};
+    const std::string&
+    name() const {return mName;};
 
-    std::string
-    inputDataName(){return mInputData.name;};
+    const std::string&
+    inputDataName() const {return mInputData.name;};
 
-    std::vector<double>
-    inputDataVals(){return mInputData.value;};
+    const std::vector<double>&
+    inputDataVals() const {return mInputData.value;};
 
-    std::string
-    outputDataName(){return mOutputData.name;};
+    const std::string&
+    outputDataName() const {return mOutputData.name;};
 
 protected:
     std::string mName;
