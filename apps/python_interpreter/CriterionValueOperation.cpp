@@ -2,6 +2,7 @@
 #include "PlatoPythonOperation.hpp"
 
 #include <vector>
+#include <iostream>
 
 #include <boost/python.hpp>
 
@@ -14,7 +15,9 @@ void
 CriterionValueOperation::runPythonFunction(const boost::python::object & aObject)
 {
     boost::python::object tReturn = aObject.attr(mFunction.c_str())();
-    mValue[0] = boost::python::extract<double>(tReturn);
+    const auto tValue = boost::python::extract<double>(tReturn);
+    std::cout << "Criterion value:  " << tValue << "\n";
+    mValue[0] = tValue;
 }
 
 const std::vector<double>&
