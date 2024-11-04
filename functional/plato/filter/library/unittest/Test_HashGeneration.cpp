@@ -7,9 +7,9 @@
 #include "plato/filter/library/HashGeneration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::integration_tests::serial
 {
@@ -46,7 +46,7 @@ TEST(HashGeneration, HashMesh)
 TEST(HashGeneration, HashStoredMesh)
 {
     // initial mesh
-    const auto tFilePath = test_utilities::test_data_file_path("box_3x4x7_tet10.cdf");
+    const auto tFilePath = utilities::data_file_path("box_3x4x7_tet10.cdf");
     ASSERT_TRUE(tFilePath.has_value());
     const analysis::AnalysisDomainMesh tAnalysisDomainMesh{tFilePath.value(), {}};
     const auto tInitialHash = plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh);

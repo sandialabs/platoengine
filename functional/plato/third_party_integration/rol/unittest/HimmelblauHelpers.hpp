@@ -45,6 +45,12 @@ void run_himmelblau_objective_test(const Argument& aObjectiveFunctionArgument)
     tObjective.gradient(tGradient, tControl, tTolerance);
     EXPECT_DOUBLE_EQ(tGradient[0], kGoldGradientX);
     EXPECT_DOUBLE_EQ(tGradient[1], kGoldGradientY);
+
+    auto tHessian = ROL::StdVector<double>{10.0, 10.0};
+    auto tDirection = ROL::StdVector<double>{1.0, 1.0};
+    tObjective.hessVec(tHessian, tDirection, tControl, tTolerance);
+    EXPECT_EQ(tHessian[0], 0.0);
+    EXPECT_EQ(tHessian[1], 0.0);
 }
 
 }  // namespace plato::third_party_integration::rol::unittest

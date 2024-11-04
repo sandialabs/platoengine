@@ -3,12 +3,12 @@
 #include <filesystem>
 
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
@@ -39,7 +39,7 @@ void create_single_element_mesh_test_centroid(const CommandGenerator& aCommandGe
 
 void read_mesh_and_test_volume(const std::string_view tMeshFileName, const double aGold)
 {
-    const auto tFilePath = plato::test_utilities::test_data_file_path(tMeshFileName);
+    const auto tFilePath = plato::utilities::data_file_path(tMeshFileName);
     ASSERT_TRUE(tFilePath);
     const double tResult = mesh_volume(*read_mesh_bulk_data(tFilePath.value()));
     EXPECT_DOUBLE_EQ(tResult, aGold);
@@ -303,7 +303,7 @@ TEST(STKVolumeUtilities, MaxElementEdgeLength_BoxWithTets)
 TEST(STKVolumeUtilities, MaxElementEdgeLength_RectangleWithQuads)
 {
     constexpr double tGoldLength = 0.6;  // gold edge length of face 1 found manually in Cubit
-    const auto tFilePath = plato::test_utilities::test_data_file_path("rectangle_3x4_quad4.cdf");
+    const auto tFilePath = plato::utilities::data_file_path("rectangle_3x4_quad4.cdf");
     ASSERT_TRUE(tFilePath.has_value());
     test_first_element_max_edge_length(tFilePath.value(), tGoldLength,
                                        TEST_CONTEXT("Test first element max edge length"));
@@ -313,7 +313,7 @@ TEST(STKVolumeUtilities, MaxElementEdgeLength_RectangleWithTris)
 {
     constexpr double tGoldLength = 0.7801;  // gold edge length of tri 1 found manually in Cubit
     constexpr double tTol = 1e-4;           // Cubit output only to 4 digits
-    const auto tFilePath = plato::test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf");
+    const auto tFilePath = plato::utilities::data_file_path("rectangle_3x4_tri3.cdf");
     ASSERT_TRUE(tFilePath.has_value());
     test_first_element_max_edge_length(tFilePath.value(), tGoldLength,
                                        TEST_CONTEXT("Test first element max edge length"), tTol);
@@ -321,10 +321,10 @@ TEST(STKVolumeUtilities, MaxElementEdgeLength_RectangleWithTris)
 
 TEST(STKVolumeUtilities, MaxElementEdgeLength_Hex8_Hex20_Match)
 {
-    const auto tLowOrderMeshPath = plato::test_utilities::test_data_file_path("box_2x4x8_hex.cdf");
+    const auto tLowOrderMeshPath = plato::utilities::data_file_path("box_2x4x8_hex.cdf");
     ASSERT_TRUE(tLowOrderMeshPath.has_value());
 
-    const auto tHighOrderMeshPath = plato::test_utilities::test_data_file_path("box_2x4x8_hex20.cdf");
+    const auto tHighOrderMeshPath = plato::utilities::data_file_path("box_2x4x8_hex20.cdf");
     ASSERT_TRUE(tHighOrderMeshPath.has_value());
 
     test_equality_of_element_max_edge_lengths_from_different_meshes(
@@ -334,10 +334,10 @@ TEST(STKVolumeUtilities, MaxElementEdgeLength_Hex8_Hex20_Match)
 
 TEST(STKVolumeUtilities, MaxElementEdgeLength_Tet4_Tet10_Match)
 {
-    const auto tLowOrderMeshPath = plato::test_utilities::test_data_file_path("box_3x4x7_tet4.cdf");
+    const auto tLowOrderMeshPath = plato::utilities::data_file_path("box_3x4x7_tet4.cdf");
     ASSERT_TRUE(tLowOrderMeshPath.has_value());
 
-    const auto tHighOrderMeshPath = plato::test_utilities::test_data_file_path("box_3x4x7_tet10.cdf");
+    const auto tHighOrderMeshPath = plato::utilities::data_file_path("box_3x4x7_tet10.cdf");
     ASSERT_TRUE(tHighOrderMeshPath.has_value());
 
     test_equality_of_element_max_edge_lengths_from_different_meshes(

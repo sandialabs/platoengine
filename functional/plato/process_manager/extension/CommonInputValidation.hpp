@@ -58,7 +58,7 @@ std::optional<std::string> validate_optional_input_file_name(const InputBlock& a
 {
     if (aInput.input_file_name && !std::filesystem::exists(aInput.input_file_name->mToken))
     {
-        return utilities::concatenate(input_parser::block_name<InputBlock>(), ": Could not file input file with name ",
+        return utilities::concatenate(input_parser::block_name<InputBlock>(), ": Could not find input file with name ",
                                       aInput.input_file_name->mToken);
     }
     return std::nullopt;

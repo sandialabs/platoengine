@@ -2,9 +2,9 @@
 
 #include <filesystem>
 
-#include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::third_party_integration::stk_io::test_utilities
 {
@@ -12,7 +12,7 @@ namespace
 {
 std::filesystem::path affirm_test_file_path(const std::string_view tMeshFileName)
 {
-    const auto tMeshFilePath = plato::test_utilities::test_data_file_path(tMeshFileName);
+    const auto tMeshFilePath = plato::utilities::data_file_path(tMeshFileName);
     assert(tMeshFilePath);
     return tMeshFilePath.value();  // NOLINT
 }

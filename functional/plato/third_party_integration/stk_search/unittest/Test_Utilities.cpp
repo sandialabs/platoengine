@@ -3,9 +3,9 @@
 #include <boost/mpi/communicator.hpp>
 #include <optional>
 
-#include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::third_party_integration::stk_search::unittest
 {

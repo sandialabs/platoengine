@@ -11,6 +11,7 @@
 #include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/third_party_integration/rol/OptimizerFactory.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::extension
 {
@@ -38,6 +39,8 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
         [](const input_parser::rol_optimization& aInput) { return detail::validate_rol_max_iterations(aInput); },
         [](const input_parser::rol_optimization& aInput) { return detail::validate_step_tolerance(aInput); },
         [](const input_parser::rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); },
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_initial_search_radius(aInput); },
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_unique_output_name(aInput); },
         [](const input_parser::rol_optimization& aInput)
         {
             return ::plato::process_manager::extension::detail::validate_optional_input_file_name<
@@ -47,14 +50,14 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
 }  // namespace
 
 ROLOptimization::ROLOptimization(const ValidatedOptimizationParameters& aInput)
-    : mROLOptions{third_party_integration::rol::rol_parameter_list(aInput)}
+    : mROLOptions{third_party_integration::rol::make_optimization_parameters(aInput)}
 {
 }
 
 void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData) const
 {
     auto tROLProblem = ROL::Ptr<ROL::Problem<double>>{make_rol_problem(aProcessManagerData).release()};
-    auto tROLInputs = mROLOptions;
+    auto tROLInputs = mROLOptions.parameters();
     auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
 
     auto tOutFile = std::ofstream{std::string{kROLOptimizerFileName}};
@@ -68,37 +71,37 @@ namespace detail
 {
 std::optional<std::string> validate_rol_max_iterations(const input_parser::rol_optimization& aInput)
 {
-    const bool tMissingMandatoryMaxIterationsAndNoInputFile = !aInput.max_iterations && !aInput.input_file_name;
-
-    if (tMissingMandatoryMaxIterationsAndNoInputFile)
-    {
-        return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::rol_optimization>(),
-                                                       aInput.max_iterations, "max_iterations");
-    }
-
     return ::plato::process_manager::extension::detail::validate_max_iterations(aInput);
 }
 
 std::optional<std::string> validate_step_tolerance(const input_parser::rol_optimization& aInput)
 {
-    namespace pfu = plato::utilities;
-    if (!aInput.input_file_name || (aInput.input_file_name && aInput.step_tolerance))
-    {
-        return core::error_message_for_parameter_out_of_bounds(
-            input_parser::block_name<input_parser::rol_optimization>(), aInput.step_tolerance, "step_tolerance",
-            pfu::lower_bounded(pfu::Exclusive{0.0}));
-    }
-    return std::nullopt;
+    return core::error_message_for_optional_parameter_out_of_bounds(
+        input_parser::block_name<input_parser::rol_optimization>(), aInput.step_tolerance, "step_tolerance",
+        utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
 std::optional<std::string> validate_gradient_tolerance(const input_parser::rol_optimization& aInput)
 {
-    namespace pfu = plato::utilities;
-    if (!aInput.input_file_name || (aInput.input_file_name && aInput.gradient_tolerance))
+    return core::error_message_for_optional_parameter_out_of_bounds(
+        input_parser::block_name<input_parser::rol_optimization>(), aInput.gradient_tolerance, "gradient_tolerance",
+        utilities::lower_bounded(utilities::Exclusive{0.0}));
+}
+
+std::optional<std::string> validate_initial_search_radius(const input_parser::rol_optimization& aInput)
+{
+    return core::error_message_for_optional_parameter_out_of_bounds(
+        input_parser::block_name<input_parser::rol_optimization>(), aInput.initial_search_radius,
+        "initial_search_radius", utilities::lower_bounded(utilities::Exclusive{0.0}));
+}
+
+std::optional<std::string> validate_unique_output_name(const input_parser::rol_optimization& aInput)
+{
+    if (aInput.input_file_name.has_value() && aInput.export_settings_file_name.has_value() &&
+        aInput.input_file_name.value().mToken == aInput.export_settings_file_name.value().mToken)
     {
-        return core::error_message_for_parameter_out_of_bounds(
-            input_parser::block_name<input_parser::rol_optimization>(), aInput.gradient_tolerance, "gradient_tolerance",
-            pfu::lower_bounded(pfu::Exclusive{0.0}));
+        return utilities::concatenate(input_parser::block_name<input_parser::rol_optimization>(),
+                                      " 'export_settings_file_name' cannot be the same as 'input_file_name'.");
     }
     return std::nullopt;
 }

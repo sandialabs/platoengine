@@ -10,7 +10,8 @@ set(LINK_LIBS PlatoFunctionalCore
               PlatoFunctionalServices
               PlatoFunctionalSTKIO
               PlatoFunctionalSTKSearch
-              PlatoFunctionalTpetra)
+              PlatoFunctionalTpetra
+              PlatoFunctionalUtilities)
 
 create_plato_library(PlatoFunctionalFilter "${FOLDERS}" "${LINK_LIBS}")
 

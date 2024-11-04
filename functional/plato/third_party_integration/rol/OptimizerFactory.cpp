@@ -3,52 +3,70 @@
 #include <ROL_LineSearchStep.hpp>
 #include <ROL_StatusTest.hpp>
 
+#include "plato/third_party_integration/rol/OptimizationParameters.hpp"
+#include "plato/utilities/BoostOptionalToStdOptional.hpp"
+
 namespace plato::third_party_integration::rol
 {
 namespace
 {
-template <typename T>
-struct ParameterAndDefault
-{
-    std::string_view mParameterName;
-    T mDefault;
-};
 
-constexpr auto kIterationLimit = ParameterAndDefault<int>{/*.mParameterName=*/"Iteration Limit", /*.mDefault=*/10};
-constexpr auto kGradientTolerance =
-    ParameterAndDefault<double>{/*.mParameterName=*/"Gradient Tolerance", /*.mDefault=*/1.0e-12};
-constexpr auto kStepTolerance =
-    ParameterAndDefault<double>{/*.mParameterName=*/"Step Tolerance", /*.mDefault=*/1.0e-14};
-
-template <typename ParsedType, typename DefaultType>
-void set_status_test_parameter(ROL::ParameterList& aParlist,
-                               const boost::optional<ParsedType>& aParameter,
-                               const ParameterAndDefault<DefaultType>& aParameterDefault)
+[[nodiscard]] auto load_file_or_use_default_parameters(const ValidOptimizationParameters& aOptimizationParameters)
+    -> third_party_integration::rol::OptimizationParameters
 {
-    aParlist.sublist("Status Test")
-        .set<DefaultType>(std::string{aParameterDefault.mParameterName},
-                          aParameter.value_or(aParameterDefault.mDefault));
-}
-}  // anonymous namespace
-
-ROL::ParameterList rol_parameter_list(const ValidOptimizationParameters& aOptimizationParameters)
-{
-    /// @todo Would like to make this first load from a file if present,
-    /// then override or set any parameters specified in the input block,
-    /// then fill in any missing entries with defaults.
     if (aOptimizationParameters.rawInput().input_file_name)
     {
-        return *ROL::getParametersFromXmlFile(aOptimizationParameters.rawInput().input_file_name.value().mToken);
+        return third_party_integration::rol::OptimizationParameters(
+            aOptimizationParameters.rawInput().input_file_name.value().mToken);
     }
-    else
+    return third_party_integration::rol::OptimizationParameters();
+}
+
+void apply_verbose_output(const ValidOptimizationParameters& aOptimizationParameters,
+                          OptimizationParameters& aParameters)
+{
+    if (aOptimizationParameters.rawInput().verbose_output && aOptimizationParameters.rawInput().verbose_output.value())
     {
-        ROL::ParameterList tParlist;
-        tParlist.sublist("Step").sublist("Line Search").sublist("Descent Method").set("Type", "Newton-Krylov");
-        set_status_test_parameter(tParlist, aOptimizationParameters.rawInput().max_iterations, kIterationLimit);
-        set_status_test_parameter(tParlist, aOptimizationParameters.rawInput().gradient_tolerance, kGradientTolerance);
-        set_status_test_parameter(tParlist, aOptimizationParameters.rawInput().step_tolerance, kStepTolerance);
-        return tParlist;
+        aParameters.verbose();
     }
+}
+
+void apply_approximate_hessian(const ValidOptimizationParameters& aOptimizationParameters,
+                               OptimizationParameters& aParameters)
+{
+    if (aOptimizationParameters.rawInput().approximate_hessian &&
+        aOptimizationParameters.rawInput().approximate_hessian.value())
+    {
+        aParameters.approximateHessian();
+    }
+}
+
+void write_parameters(const ValidOptimizationParameters& aOptimizationParameters, OptimizationParameters& aParameters)
+{
+    if (aOptimizationParameters.rawInput().export_settings_file_name)
+    {
+        aParameters.writeParameters(aOptimizationParameters.rawInput().export_settings_file_name.value().mToken);
+    }
+}
+
+}  // anonymous namespace
+
+OptimizationParameters make_optimization_parameters(const ValidOptimizationParameters& aOptimizationParameters)
+{
+    third_party_integration::rol::OptimizationParameters tParameters =
+        load_file_or_use_default_parameters(aOptimizationParameters);
+
+    tParameters.maximumIterations(utilities::to_std_optional(aOptimizationParameters.rawInput().max_iterations));
+    tParameters.gradientTolerance(utilities::to_std_optional(aOptimizationParameters.rawInput().gradient_tolerance));
+    tParameters.stepTolerance(utilities::to_std_optional(aOptimizationParameters.rawInput().step_tolerance));
+    tParameters.initialSearchRadius(
+        utilities::to_std_optional(aOptimizationParameters.rawInput().initial_search_radius));
+
+    apply_verbose_output(aOptimizationParameters, tParameters);
+    apply_approximate_hessian(aOptimizationParameters, tParameters);
+    write_parameters(aOptimizationParameters, tParameters);
+
+    return tParameters;
 }
 
 ROL::Solver<double> make_rol_solver(Teuchos::ParameterList& aROLOptions,

@@ -16,9 +16,9 @@
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::filter::extension::unittest
 {
@@ -159,7 +159,7 @@ TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
     tInput.filter_radius = 5e-1;
     auto tFilterCache = detail::create_filter_cache(tInput);
 
-    const auto tFilePath = test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf");
+    const auto tFilePath = utilities::data_file_path("rectangle_3x4_tri3.cdf");
     ASSERT_TRUE(tFilePath.has_value());
 
     const auto tMesh = mesh::Mesh{tFilePath.value()};
@@ -186,7 +186,7 @@ TEST(KernelFilterDetail, FilterCache_DummyCallCounts)
                                         { return library::hash_mesh_coordinates(aAnalysisDomainMesh); }};
 
     // make mesh
-    const auto tFilePath = test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf");
+    const auto tFilePath = utilities::data_file_path("rectangle_3x4_tri3.cdf");
     ASSERT_TRUE(tFilePath.has_value());
 
     const auto tMesh = mesh::Mesh{tFilePath.value()};

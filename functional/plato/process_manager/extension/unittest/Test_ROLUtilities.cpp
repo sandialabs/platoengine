@@ -95,7 +95,7 @@ TEST(ProcessManagerData, InputFileToROLSolver)
     const auto tValidatedOptimizationParameters =
         library::process_manager_input<input_parser::rol_optimization>(tData.processManagers().rawInput().front());
     Teuchos::ParameterList tROLOptions =
-        third_party_integration::rol::rol_parameter_list(tValidatedOptimizationParameters);
+        third_party_integration::rol::make_optimization_parameters(tValidatedOptimizationParameters).parameters();
     const auto tROLProblem = Teuchos::RCP{make_rol_problem(tPlatoProblem).release()};
     const ROL::Solver<double> tSolver =
         third_party_integration::rol::make_rol_solver(tROLOptions, std::move(tROLProblem));

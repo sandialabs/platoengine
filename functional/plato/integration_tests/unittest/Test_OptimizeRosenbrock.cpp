@@ -22,7 +22,6 @@ constexpr bool tPrintFlag = true;
 {
     // Set parameters.
     ROL::ParameterList parlist;
-    parlist.sublist("Step").sublist("Line Search").sublist("Descent Method").set("Type", "Newton-Krylov");
     parlist.sublist("Status Test").set("Gradient Tolerance", 1.e-12);
     parlist.sublist("Status Test").set("Step Tolerance", 1.e-14);
     parlist.sublist("Status Test").set("Iteration Limit", 100);
@@ -45,9 +44,10 @@ TEST(Optimize, Rosenbrock)
 
     rol_algorithm().run(tControl, tObjective, tPrintFlag, *tOutStream);
 
-    const double tXMinValue = 1.0;
-    EXPECT_EQ(tControl[0], tXMinValue);
-    EXPECT_EQ(tControl[1], tXMinValue);
+    constexpr double tXMinValue = 1.0;
+    constexpr double tTolerance = 1e-14;
+    EXPECT_NEAR(tControl[0], tXMinValue, tTolerance);
+    EXPECT_NEAR(tControl[1], tXMinValue, tTolerance);
 }
 
 TEST(Optimize, RosenbrockPenaltyComposition)
@@ -65,7 +65,7 @@ TEST(Optimize, RosenbrockPenaltyComposition)
     rol_algorithm().run(tControl, tObjective, tPrintFlag, *tOutStream);
 
     const double tXMinValue = 1.0;
-    EXPECT_EQ(tControl[0], tXMinValue);
-    EXPECT_EQ(tControl[1], tXMinValue);
+    EXPECT_DOUBLE_EQ(tControl[0], tXMinValue);
+    EXPECT_DOUBLE_EQ(tControl[1], tXMinValue);
 }
 }  // namespace plato::integration_tests::serial

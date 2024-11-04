@@ -5,13 +5,13 @@
 #include <unordered_map>
 
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/test_utilities/TestDataFilePath.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
+#include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
@@ -31,8 +31,7 @@ TEST(ReadUtilities, SpatialDimensions3)
 
 TEST(ReadUtilities, SpatialDimensions2)
 {
-    const auto tMesh =
-        read_mesh_bulk_data(plato::test_utilities::test_data_file_path("rectangle_3x4_tri3.cdf").value());
+    const auto tMesh = read_mesh_bulk_data(plato::utilities::data_file_path("rectangle_3x4_tri3.cdf").value());
     ASSERT_TRUE(tMesh);
     EXPECT_EQ(spatial_dimensions(*tMesh), 2u);
 }

@@ -60,6 +60,15 @@ void ROLConstraintFunction::applyAdjointJacobian(ROL::Vector<double>& aAdjointJa
     applyAdjointJacobian(aAdjointJacobianTimesDirection, aDual, aControl, aTolerance);
 }
 
+void ROLConstraintFunction::applyAdjointHessian(ROL::Vector<double>& aHessianUV,
+                                                const ROL::Vector<double>& /*u*/,
+                                                const ROL::Vector<double>& /*v*/,
+                                                const ROL::Vector<double>& /*x*/,
+                                                double& /*tol*/)
+{
+    aHessianUV.zero();
+}
+
 bool ROLConstraintFunction::linear() const { return mLinear; }
 
 const std::string& ROLConstraintFunction::name() const { return mName; }

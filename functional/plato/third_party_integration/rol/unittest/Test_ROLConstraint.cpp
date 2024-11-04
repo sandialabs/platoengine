@@ -31,6 +31,14 @@ TEST(ROLConstraintFunction, ConstraintValue)
     tROLConstraintFunction.value(tConstraintsVector, tControls, tTolerance);
     EXPECT_EQ(tGold, *tConstraintsVector.getVector());
     EXPECT_FALSE(tROLConstraintFunction.linear());
+
+    auto tHessianUV = ROL::StdVector<double>{10, 11};
+    auto tDirection = ROL::StdVector<double>{1, 1};
+    tROLConstraintFunction.applyAdjointHessian(tHessianUV, tDirection, tDirection, tControls, tTolerance);
+
+    EXPECT_EQ(tHessianUV[0], 0.0);
+    EXPECT_EQ(tHessianUV[1], 0.0);
+    // applyAdjointHessian
 }
 
 TEST(ROLConstraintFunction, JacobianTimesDirection)

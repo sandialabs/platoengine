@@ -136,9 +136,13 @@ std::string create_valid_example_objective_string()
 input_parser::rol_optimization create_valid_example_rol_optimization()
 {
     return input_parser::rol_optimization{/*.input_file_name=*/boost::none,
+                                          /*.export_settings_file_name=*/input_parser::FileName{"output_rol.xml"},
                                           /*.max_iterations =  */ 42,
                                           /*.step_tolerance = */ 1e-7,
-                                          /*.gradient_tolerance = */ 1e-9};
+                                          /*.gradient_tolerance = */ 1e-5,
+                                          /*.initial_search_radius = */ 15,
+                                          /*.verbose_output = */ false,
+                                          /*.approximate_hessian = */ false};
 }
 
 std::string create_valid_example_rol_optimization_string()

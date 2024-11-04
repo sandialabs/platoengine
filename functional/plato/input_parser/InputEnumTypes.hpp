@@ -12,6 +12,7 @@ DECLARE_ENUM_SYMBOL_TABLE(ObjectiveTypes,
 DECLARE_ENUM_SYMBOL_TABLE(KernelFilterCenteringTypes,
                          (kElementCentered, "element")
                          (kNodeCentered, "node"))
+
 // clang-format on
 
 #endif
