@@ -44,9 +44,9 @@ class SparseMatrixBuilder
     /// @brief Returns the row/column/entry triple at index @a aIndex.
     [[nodiscard]] auto triple(std::size_t aIndex) const -> std::tuple<Row, Column, EntryType>;
 
-    /// @brief Returns a pointer to the underlying data array holding the rows.
+    /// @brief Returns a pointer to the underlying data array holding the row indices.
     [[nodiscard]] auto rowData() -> NonNullPtr<IndexType>;
-    /// @brief Returns a pointer to the underlying data array holding the columns.
+    /// @brief Returns a pointer to the underlying data array holding the column indices.
     [[nodiscard]] auto columnData() -> NonNullPtr<IndexType>;
     /// @brief Returns a pointer to the underlying data array holding the entries.
     [[nodiscard]] auto entryData() -> NonNullPtr<EntryType>;
