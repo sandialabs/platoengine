@@ -6,6 +6,7 @@
 
 #include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/third_party_integration/rol/OptimizationParameters.hpp"
 
 namespace plato::third_party_integration::rol
 {
@@ -19,12 +20,11 @@ using ValidOptimizationParameters = core::ValidatedInputTypeWrapper<input_parser
 [[nodiscard]] ROL::Solver<double> make_rol_solver(Teuchos::ParameterList& aROLOptions,
                                                   const ROL::Ptr<ROL::Problem<double>>& aProblem);
 
-///@brief Generate a ROL::ParameterList. Either from input deck or file.
-/// First attempt is to load from a file, but if the file input is not specified the defaults
-/// or values specified in the input block will be used
+///@brief Generate a Parameters for ROL. Either from input deck or file.
 ///@param aOptimizationParameters
-///@return ROL::ParameterList
-[[nodiscard]] ROL::ParameterList rol_parameter_list(const ValidOptimizationParameters& aOptimizationParameters);
+///@return Parameters
+[[nodiscard]] OptimizationParameters make_optimization_parameters(
+    const ValidOptimizationParameters& aOptimizationParameters);
 
 }  // namespace plato::third_party_integration::rol
 

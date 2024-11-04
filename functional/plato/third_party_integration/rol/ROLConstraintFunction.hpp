@@ -43,6 +43,15 @@ class ROLConstraintFunction : public ROL::Constraint<double>
                               const ROL::Vector<double>& aDualV,
                               double& aTolerance) override;
 
+    ///@brief Evaluate the Adjoint Hessian at @a aControl applied to vector @a v
+    ///@param aHessianUV Stores result
+    /// This function is hardcoded to return 0s.
+    void applyAdjointHessian(ROL::Vector<double>& aHessianUV,
+                             const ROL::Vector<double>& u,
+                             const ROL::Vector<double>& v,
+                             const ROL::Vector<double>& aControl,
+                             double& aTolerance) override;
+
     ///@brief Is this constraint linear
     bool linear() const;
 

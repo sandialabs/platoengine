@@ -13,19 +13,27 @@ class ROLObjectiveFunction : public ROL::Objective<double>
 {
    public:
     using ROLPlatoFunction =
-        core::Function<const linear_algebra::DynamicVector<double> &,
+        core::Function<const linear_algebra::DynamicVector<double>&,
                        core::FunctionInfo<double, core::evaluation::kFunction>,
                        core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
     ///@brief Construct a new ROLObjectiveFunction object
     explicit ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction);
 
-    ///@brief Compute the value using the set of controls and given tolerance
-    double value(const ROL::Vector<double> &aControls, double &aTolerance) override;
+    ///@brief Compute the value using the set of controls @a aControls and given tolerance @a aTolerance
+    double value(const ROL::Vector<double>& aControls, double& aTolerance) override;
 
-    ///@brief Compute the gradient from the set of controls and given tolerance. Populate the aGradient parameter
+    ///@brief Compute the gradient @a aGradient from the set of controls and given tolerance.
     ///@param aGradient Modify this variable with the gradient
-    void gradient(ROL::Vector<double> &aGradient, const ROL::Vector<double> &aControls, double &aTolerance) override;
+    void gradient(ROL::Vector<double>& aGradient, const ROL::Vector<double>& aControls, double& aTolerance) override;
+
+    ///@brief Compute the hessian times a vector @a aVector from the set of controls @a aControls, and given tolerance
+    ///@a aTolerance. Populate @a aHessianTimesVector parameter
+    /// This function is hard coded to return a zero Hessian.
+    void hessVec(ROL::Vector<double>& aHessianTimesVector,
+                 const ROL::Vector<double>& aVector,
+                 const ROL::Vector<double>& aControls,
+                 double& aTolerance) override;
 
    private:
     ROLPlatoFunction mFunction;

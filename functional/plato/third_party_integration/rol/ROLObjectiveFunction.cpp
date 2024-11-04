@@ -22,4 +22,12 @@ void ROLObjectiveFunction::gradient(ROL::Vector<double>& aGradient, const ROL::V
     assign_vector(aGradient, std::move(tLocalGradient).stdVector());
 }
 
+void ROLObjectiveFunction::hessVec(ROL::Vector<double>& aHessianTimesVector,
+                                   const ROL::Vector<double>& /*aVector*/,
+                                   const ROL::Vector<double>& /*aControls*/,
+                                   double& /*aTolerance*/)
+{
+    aHessianTimesVector.zero();
+}
+
 }  // namespace plato::third_party_integration::rol

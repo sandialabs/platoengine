@@ -51,9 +51,13 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), rol_optimization,
     (plato::input_parser::FileName, input_file_name)
+    (plato::input_parser::FileName, export_settings_file_name)
     (unsigned int, max_iterations)
     (double, step_tolerance)
     (double, gradient_tolerance)
+    (double, initial_search_radius)
+    (bool, verbose_output)
+    (bool, approximate_hessian)
 )
 
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
