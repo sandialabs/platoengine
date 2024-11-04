@@ -61,7 +61,7 @@ VectorWithValidDataPtr<T>::VectorWithValidDataPtr(const std::size_t aInitialSize
 {
     if (aInitialSize == 0U)
     {
-        mVector.push_back(T{});
+        mVector.emplace_back();
     }
 }
 
