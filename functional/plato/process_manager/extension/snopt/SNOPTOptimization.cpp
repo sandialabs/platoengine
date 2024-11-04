@@ -95,11 +95,11 @@ namespace
 auto make_constraints(const library::ProcessManagerData& aProcessManagerData)
     -> third_party_integration::snopt::ConstraintVectorType
 {
-    third_party_integration::snopt::ConstraintVectorType tConstraints;
+    auto tConstraints = third_party_integration::snopt::ConstraintVectorType{};
     tConstraints.reserve(aProcessManagerData.mConstraints.size());
     std::transform(aProcessManagerData.mConstraints.begin(), aProcessManagerData.mConstraints.end(),
                    std::back_inserter(tConstraints),
-                   [aProcessManagerData](const auto& aConstraint)
+                   [&aProcessManagerData](const auto& aConstraint)
                    { return make_snopt_constraint(aProcessManagerData.mGeometry, aConstraint); });
 
     return tConstraints;
