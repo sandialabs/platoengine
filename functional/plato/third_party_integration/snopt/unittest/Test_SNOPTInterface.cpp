@@ -145,6 +145,18 @@ TEST(SNOPTInterface, RosenbrockLinearlyAndNonlinearlyConstrained)
     std::filesystem::remove(kLogFilePath);
 }
 
+TEST(SNOPTInterface, RosenbrockLinearVectorConstraint)
+{
+    // Test that a linear vector constraint works
+    EXPECT_EQ(1, 0);
+}
+
+TEST(SNOPTInterface, RosenbrockNoninearVectorConstraint)
+{
+    // Test that a non-linear vector constraint works
+    EXPECT_EQ(1, 0);
+}
+
 namespace
 {
 

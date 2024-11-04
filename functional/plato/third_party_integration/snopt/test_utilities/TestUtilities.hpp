@@ -6,6 +6,8 @@
 #include <memory>
 #include <numeric>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/SparseMatrixBuilder.hpp"
 
@@ -15,6 +17,20 @@ template <typename IndexType, typename EntryType>
 using Triple = std::tuple<typename SparseMatrixBuilder<IndexType, EntryType>::Row,
                           typename SparseMatrixBuilder<IndexType, EntryType>::Column,
                           EntryType>;
+
+/// @brief Utility function for converting a scalar to a vector to simplify creating test functions
+[[nodiscard]] inline auto vector_from_scalar(const double aScalar) -> linear_algebra::DynamicVector<double>
+{
+    return linear_algebra::DynamicVector<double>{aScalar};
+}
+
+/// @brief Utility function for converting a DynamicVector to a JacobianMultiplier to simplify creating test functions
+[[nodiscard]] inline auto jacobian_from_gradient(const linear_algebra::DynamicVector<double>& aGradient)
+    -> linear_algebra::JacobianMultiplier
+{
+    return linear_algebra::JacobianMultiplier{[aGradient](const linear_algebra::DynamicVector<double>& aVector)
+                                              { return aVector[0] * aGradient; }};
+}
 
 /// @brief Creates a dynamic array with size @a aSize, and fills it using `iota` starting at 0.
 template <typename T>
