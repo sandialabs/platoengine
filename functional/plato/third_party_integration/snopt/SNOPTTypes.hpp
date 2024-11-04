@@ -6,6 +6,7 @@
 
 #include "plato/core/Function.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::third_party_integration::snopt
 {
@@ -29,9 +30,15 @@ enum struct Linearity
 /// whether or not it is a linear function.
 struct ConstraintData
 {
-    CriterionType mFunction;
-    double mTarget = 0;
+    using ConstraintFunction =
+        core::Function<const linear_algebra::DynamicVector<double>&,
+                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFunction>,
+                       core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>>;
+
+    ConstraintFunction mFunction;
+    std::vector<double> mTargets;
     Linearity mLinearity = Linearity::kLinear;
+    std::size_t mConstraintDimension = 1U;
 };
 
 using ObjectiveType = CriterionType;
