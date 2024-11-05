@@ -4,6 +4,8 @@
 #include <functional>
 #include <tuple>
 
+#include "plato/utilities/TupleHelpers.hpp"
+
 namespace plato::core
 {
 /// @brief Used for choosing a matrix ordering for matrix operations such as Jacobian-vector products.
@@ -67,6 +69,17 @@ constexpr auto is_only_member()
     }
 }
 
+/// @brief Returns `true` if a Function templated with arguments @a DomainTypeLHS and @a InfoTupleLHS can be copied
+/// to from a Function templated with @a DomainTypeRHS and @a InfoTupleRHS, such that the LHS type implements a subset
+/// of the functions implemented by the RHS.
+///
+/// More specifically, the following requirements must be met to by copyable:
+///  * The domain types must be the same
+///  * The info types in tuple @a InfoTupleLHS must be a subset of the types in the tuple @a InfoTupleRHS
+///  * To match, an info object must match exactly: The Codomain type must be the same as well as order and ordering.
+template <typename DomainTypeLHS, typename InfoTupleLHS, typename DomainTypeRHS, typename InfoTupleRHS>
+constexpr auto is_copyable() -> bool;
+
 template <typename Domain, typename... Info>
 template <int kOrder, MatrixOrdering kOrdering, std::size_t kIndex>
 constexpr auto MakeTupleHelper<Domain, Info...>::get_index_impl() -> std::size_t
@@ -115,6 +128,14 @@ template <int kOrder, MatrixOrdering kOrdering>
 constexpr auto MakeTupleHelper<Domain, Info...>::is_implemented() -> bool
 {
     return is_implemented_seq<kOrder, kOrdering>(std::make_index_sequence<std::tuple_size_v<InfoTuple>>());
+}
+
+template <typename DomainTypeLHS, typename InfoTupleLHS, typename DomainTypeRHS, typename InfoTupleRHS>
+constexpr auto is_copyable() -> bool
+{
+    constexpr auto tDomainTypesEqual = std::is_same_v<DomainTypeLHS, DomainTypeRHS>;
+    constexpr auto tInfoTuplesAreCompatible = utilities::are_tuples_compatible<InfoTupleLHS, InfoTupleRHS>();
+    return tDomainTypesEqual && tInfoTuplesAreCompatible;
 }
 
 }  // namespace detail

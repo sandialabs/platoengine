@@ -130,4 +130,70 @@ TEST(Function, IsOnlyMember)
     static_assert(!core::detail::is_only_member<int, int, int>());
 }
 
+TEST(Function, IsCopyable)
+{
+    using EvaluateInfo = FunctionInfo<double, evaluation::kFunction>;
+    using FirstDerivativeInfo = FunctionInfo<double, evaluation::kFirstDerivative>;
+    using SecondDerivativeInfo = FunctionInfo<double, evaluation::kSecondDerivative>;
+    using FirstDerivativeAdjointInfo = FunctionInfo<double, evaluation::kSecondDerivative, MatrixOrdering::kAdjoint>;
+
+    using DomainType1 = double;
+    using DomainType2 = int;
+    // Copyable
+    static_assert(
+        core::detail::is_copyable<DomainType1, std::tuple<EvaluateInfo>, DomainType1, std::tuple<EvaluateInfo>>());
+    static_assert(core::detail::is_copyable<DomainType1, std::tuple<EvaluateInfo, FirstDerivativeInfo>, DomainType1,
+                                            std::tuple<EvaluateInfo, FirstDerivativeInfo>>());
+    static_assert(core::detail::is_copyable<DomainType1, std::tuple<EvaluateInfo>, DomainType1,
+                                            std::tuple<EvaluateInfo, FirstDerivativeInfo>>());
+    static_assert(
+        core::detail::is_copyable<DomainType1, std::tuple<EvaluateInfo, FirstDerivativeInfo>, DomainType1,
+                                  std::tuple<EvaluateInfo, FirstDerivativeInfo, FirstDerivativeAdjointInfo>>());
+
+    // Not copyable
+    static_assert(
+        !core::detail::is_copyable<DomainType1, std::tuple<EvaluateInfo>, DomainType2, std::tuple<EvaluateInfo>>());
+    static_assert(!core::detail::is_copyable<DomainType1, std::tuple<SecondDerivativeInfo>, DomainType1,
+                                             std::tuple<EvaluateInfo, FirstDerivativeInfo>>());
+    static_assert(!core::detail::is_copyable<DomainType1, std::tuple<EvaluateInfo, SecondDerivativeInfo>, DomainType1,
+                                             std::tuple<EvaluateInfo, FirstDerivativeInfo>>());
+    static_assert(!core::detail::is_copyable<DomainType1, std::tuple<EvaluateInfo, SecondDerivativeInfo>, DomainType1,
+                                             std::tuple<EvaluateInfo>>());
+}
+
+TEST(Function, ConstructionFromDifferentType)
+{
+    using EvaluateInfo = FunctionInfo<double, evaluation::kFunction>;
+    using FirstDerivativeInfo = FunctionInfo<double, evaluation::kFirstDerivative>;
+    using SecondDerivativeInfo = FunctionInfo<double, evaluation::kSecondDerivative>;
+
+    using FunctionWithFirstAndSecondDerivatives =
+        Function<double, EvaluateInfo, FirstDerivativeInfo, SecondDerivativeInfo>;
+
+    auto tFunctionWithSecondDerivative = FunctionWithFirstAndSecondDerivatives{
+        [](const double) { return 0.0; }, [](const double) { return 1.0; }, [](const double) { return 2.0; }};
+    // Copy construction
+    {
+        using FunctionWithFirstDerivative = Function<double, EvaluateInfo, FirstDerivativeInfo>;
+        const auto tFunctionWithFirstDerivative =
+            tFunctionWithSecondDerivative.compatibleFunction<FunctionWithFirstDerivative>();
+
+        EXPECT_EQ(tFunctionWithFirstDerivative.evaluate<evaluation::kFunction>(0.0), 0.0);
+        EXPECT_EQ(tFunctionWithFirstDerivative.evaluate<evaluation::kFirstDerivative>(0.0), 1.0);
+        EXPECT_FALSE(
+            (tFunctionWithFirstDerivative.isImplemented<evaluation::kSecondDerivative, MatrixOrdering::kOriginal>()));
+    }
+    // Move construction
+    {
+        using FunctionWithNoDerivatives = Function<double, EvaluateInfo>;
+        const auto tFunctionWithNoDerivatives =
+            std::move(tFunctionWithSecondDerivative).compatibleFunction<FunctionWithNoDerivatives>();
+
+        EXPECT_EQ(tFunctionWithNoDerivatives.evaluate<evaluation::kFunction>(0.0), 0.0);
+        EXPECT_THROW(
+            [[maybe_unused]] const auto tResult = tFunctionWithSecondDerivative.evaluate<evaluation::kFunction>(0.0),
+            std::bad_function_call);
+    }
+}
+
 }  // namespace plato::core::unittest
