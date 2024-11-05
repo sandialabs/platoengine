@@ -111,7 +111,7 @@ TEST(ROLConstraint, CreateInequalityBounds)
     }
     EXPECT_THROW([[maybe_unused]] auto tUnused = detail::create_inequality_bounds(
                      criteria::library::ConstraintType::kEquality, tNumberOfConstraints),
-                 utilities::Exception);
+                 std::out_of_range);
 }
 
 TEST(ROLConstraint, ConstraintCombination)
