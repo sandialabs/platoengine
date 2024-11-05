@@ -13,3 +13,7 @@ class ImportFunctions:
     def change_state(self):
         self.value *= 2.0
         self.list = [x * 2.0 for x in self.list]
+    
+    def change_state_with_input(self, vals):
+        if len(vals) > 0:
+            self.value = vals[0]

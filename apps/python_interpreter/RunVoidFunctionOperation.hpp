@@ -3,6 +3,7 @@
 #include "PlatoPythonOperation.hpp"
 #include "Plato_InputData.hpp"
 
+#include <boost/python/list.hpp>
 #include <vector>
 
 #include <boost/python.hpp>
@@ -26,9 +27,16 @@ private:
     void
     setRunFlag(const std::vector<double> & aData);
 
+    void
+    throwIfInputEmpty();
+
+    boost::python::list
+    createPythonListFromInput();
+
 private:
-    bool mOnChange;
     bool mRunFlag;
+    bool mOnChange;
+    bool mUseInput;
     std::vector<double> mCurrentInputs;
 
 };

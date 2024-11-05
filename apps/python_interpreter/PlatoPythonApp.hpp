@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 #include <mpi.h>
 #include <boost/python.hpp>
@@ -91,8 +92,11 @@ private:
     void
     constructPythonObject();
 
-    const std::unique_ptr<PlatoPythonOperation>&
-    findOperation(const std::string & aOperationName);
+    void
+    getFieldSize();
+
+    void
+    throwIfFieldSizeNotSet();
 
 private:
     MPI_Comm mLocalComm;
@@ -102,4 +106,5 @@ private:
     std::vector<std::string> mPythonPaths;
     boost::python::object mPythonObject;
     std::vector<std::unique_ptr<PlatoPythonOperation>> mOperations;
+    std::optional<int> mFieldSize;
 };

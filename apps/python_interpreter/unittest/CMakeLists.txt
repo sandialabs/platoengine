@@ -11,14 +11,14 @@ SET(SRCS UnitMain.cpp
 SET(HDRS )
 
 find_package(Boost REQUIRED COMPONENTS python)
-find_package(Python COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 add_executable(PythonAppUnitTester ${SRCS})
 target_include_directories(PythonAppUnitTester PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>)
 target_link_libraries(PythonAppUnitTester 
                       GTest::GTest
                       PlatoInterface PlatoParser PlatoDataLayer PlatoExceptions
-                      Python::Python
+                      Python3::Python
                       Boost::python)
 
 add_test(NAME PythonAppUnitTester COMMAND PythonAppUnitTester)
