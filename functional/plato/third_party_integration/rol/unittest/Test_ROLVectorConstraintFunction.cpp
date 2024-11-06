@@ -100,4 +100,19 @@ TEST(ROLVectorConstraintFunction, JacobianAndAdjointConsistency)
     }
 }
 
+TEST(ROLVectorConstraintFunction, Hessian)
+{
+    auto tROLVectorConstraintFunction = make_himmelblau_rol_vector_constraint();
+
+    constexpr auto tArbitraryControlValue = 10.0;
+    const auto tControls = std::vector<double>{tArbitraryControlValue, tArbitraryControlValue};
+    auto tHessianUV = std::vector{10.0, 11.0};
+    const auto tDirection = std::vector{1.0, 1.0};
+    double tTolerance;
+    tROLVectorConstraintFunction.applyAdjointHessian(tHessianUV, tDirection, tDirection, tControls, tTolerance);
+
+    EXPECT_EQ(tHessianUV[0], 0.0);
+    EXPECT_EQ(tHessianUV[1], 0.0);
+}
+
 }  // namespace plato::third_party_integration::rol::unittest

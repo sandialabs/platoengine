@@ -40,4 +40,13 @@ void ROLVectorConstraintFunction::applyAdjointJacobian(std::vector<double>& aAdj
     aAdjointJacobianTimesDirection = std::move(tResult).stdVector();
 }
 
+void ROLVectorConstraintFunction::applyAdjointHessian(std::vector<double>& aHessianUV,
+                                                      const std::vector<double>& /*u*/,
+                                                      const std::vector<double>& /*v*/,
+                                                      const std::vector<double>& /*x*/,
+                                                      double& /*tol*/)
+{
+    aHessianUV = std::vector<double>(aHessianUV.size(), 0.0);
+}
+
 }  // namespace plato::third_party_integration::rol

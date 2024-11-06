@@ -9,7 +9,6 @@
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
-#include "plato/third_party_integration/rol/ROLConstraintFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension
