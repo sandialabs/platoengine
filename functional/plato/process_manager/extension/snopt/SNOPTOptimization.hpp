@@ -40,7 +40,7 @@ namespace detail
 {
 
 [[nodiscard]] auto make_constraints(const library::ProcessManagerData& aProcessManagerData)
-    -> third_party_integration::snopt::ConstraintVectorType;
+    -> third_party_integration::snopt::InterfaceConstraintVectorType;
 
 [[nodiscard]] std::optional<std::string> validate_time_limit_in_minutes(const input_parser::snopt_optimization& aInput);
 

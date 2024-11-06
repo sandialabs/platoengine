@@ -66,12 +66,15 @@ TEST(SNOPTOptimizationDetail, MakeConstraints)
         ASSERT_EQ(tConstraints.size(), 1U);
         const auto& tSNOPTConstraint = tConstraints[0];
         EXPECT_EQ(tSNOPTConstraint.mLinearity, third_party_integration::snopt::Linearity::kLinear);
-        EXPECT_EQ(tSNOPTConstraint.mTarget, 0.0);
+        constexpr auto tExpectedTargetsSize = 1U;
+        ASSERT_EQ(tSNOPTConstraint.mTargets.size(), 1U);
+        EXPECT_EQ(tSNOPTConstraint.mTargets.front(), 0.0);
+
         const linear_algebra::DynamicVector<double> tParameter({0.5, 0, 0, 1, 1, 1});
         const auto tResult = tSNOPTConstraint.mFunction.template evaluate<core::evaluation::kFunction>(tParameter);
-
         constexpr auto tGoldNodalSumFromUnitBoxShiftedZeroPointFiveInX = double{4};
-        EXPECT_EQ(tResult, tGoldNodalSumFromUnitBoxShiftedZeroPointFiveInX);
+        ASSERT_EQ(tResult.size(), tExpectedTargetsSize);
+        EXPECT_EQ(tResult[0], tGoldNodalSumFromUnitBoxShiftedZeroPointFiveInX);
     }
 }
 

@@ -63,10 +63,12 @@ SNOPTOptimization::SNOPTOptimization(const ValidatedOptimizationParameters& aInp
 void SNOPTOptimization::run(const library::ProcessManagerData& aProcessManagerData) const
 {
     namespace tpis = third_party_integration::snopt;
+    using SNOPTObjectiveFunction = typename tpis::ObjectiveType;
 
     const tpis::SNOPTBounds tBounds{aProcessManagerData.mGeometry.mBounds};
     const auto tInitialGuess = aProcessManagerData.mGeometry.mInitialGuess.stdVector();
-    const auto tObjective = core::compose(aProcessManagerData.mObjective, aProcessManagerData.mGeometry.mCompute);
+    const auto tObjective = core::compose(aProcessManagerData.mObjective, aProcessManagerData.mGeometry.mCompute)
+                                .compatibleFunction<SNOPTObjectiveFunction>();
     const auto tConstraints = detail::make_constraints(aProcessManagerData);
 
     const auto tSolution = tpis::run_snopt_problem(tInitialGuess, tBounds, tObjective, tConstraints,
@@ -81,21 +83,26 @@ namespace
 {
 [[nodiscard]] auto make_snopt_constraint(
     const geometry::library::FactoryTypes& aGeometry,
-    const criteria::library::Constraint<const analysis::AnalysisDomainMesh&>& aConstraint)
-    -> third_party_integration::snopt::ConstraintType
+    const criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>& aConstraint)
+    -> third_party_integration::snopt::InterfaceConstraintType
 {
     namespace tpis = third_party_integration::snopt;
-    return tpis::ConstraintType{tpis::CriterionType{core::compose(aConstraint.mConstraintFunction, aGeometry.mCompute)},
-                                aConstraint.mConstraintTarget,
-                                (aConstraint.mLinear ? tpis::Linearity::kLinear : tpis::Linearity::kNonlinear)};
+    const auto tLinearity = aConstraint.mLinear ? tpis::Linearity::kLinear : tpis::Linearity::kNonlinear;
+    using SNOPTConstraintFunction = typename tpis::InterfaceConstraintType::ConstraintFunction;
+    auto tFunction = core::compose(aConstraint.mConstraintFunction, aGeometry.mCompute)
+                         .compatibleFunction<SNOPTConstraintFunction>();
+    const auto tConstraintSize =
+        tFunction.template evaluate<core::evaluation::kFunction>(aGeometry.mInitialGuess).size();
+    return tpis::InterfaceConstraintType{
+        std::move(tFunction), {aConstraint.mConstraintTarget}, tLinearity, tConstraintSize};
 }
 
 }  // namespace
 
 auto make_constraints(const library::ProcessManagerData& aProcessManagerData)
-    -> third_party_integration::snopt::ConstraintVectorType
+    -> third_party_integration::snopt::InterfaceConstraintVectorType
 {
-    auto tConstraints = third_party_integration::snopt::ConstraintVectorType{};
+    auto tConstraints = third_party_integration::snopt::InterfaceConstraintVectorType{};
     tConstraints.reserve(aProcessManagerData.mConstraints.size());
     std::transform(aProcessManagerData.mConstraints.begin(), aProcessManagerData.mConstraints.end(),
                    std::back_inserter(tConstraints),
