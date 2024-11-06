@@ -98,31 +98,31 @@ constexpr bool kPrintFlag = true;
     return tROLProblem;
 }
 
-void finalize_rol_problem(std::unique_ptr<ROL::Problem<double>>& aROLProblem)
+void finalize_rol_problem(ROL::Problem<double>& aROLProblem)
 {
     constexpr bool tLumpConstraints = false;
     ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
-    aROLProblem->finalize(tLumpConstraints, kPrintFlag, *tOutStream);
+    aROLProblem.finalize(tLumpConstraints, kPrintFlag, *tOutStream);
 }
 
 void add_linear_constraint_rol_problem(
-    std::unique_ptr<ROL::Problem<double>>& aROLProblem,
-    std::unique_ptr<third_party_integration::rol::ROLConstraintFunction>& aConstraint)
+    ROL::Problem<double>& aROLProblem,
+    std::unique_ptr<third_party_integration::rol::ROLConstraintFunction>&& aConstraint)
 {
     auto tInequalityBoundConstraint = third_party_integration::rol::detail::create_less_than_inequality_bounds(1);
     auto tMultipliers = ROL::makePtr<std::vector<double>>(1, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
     constexpr auto tDualVectorSize = 1U;
 
-    aROLProblem->addLinearConstraint(
-        "Line", ROL::Ptr<ROL::StdConstraint<double>>(aConstraint.release()),
+    aROLProblem.addLinearConstraint(
+        "Line", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
         third_party_integration::rol::make_rol_vector(criteria::library::make_dual_vector(tDualVectorSize)),
         tInequalityBoundConstraint, tMultipliersPtr, false);
 }
 
 template <typename ConstraintType>
-void add_nonlinear_constraint_rol_problem(std::unique_ptr<ROL::Problem<double>>& aROLProblem,
-                                          std::unique_ptr<ConstraintType>& aConstraint,
+void add_nonlinear_constraint_rol_problem(ROL::Problem<double>& aROLProblem,
+                                          std::unique_ptr<ConstraintType>&& aConstraint,
                                           const unsigned int aDualSize)
 {
     auto tInequalityBoundConstraint =
@@ -130,8 +130,8 @@ void add_nonlinear_constraint_rol_problem(std::unique_ptr<ROL::Problem<double>>&
     auto tMultipliers = ROL::makePtr<std::vector<double>>(aDualSize, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
 
-    aROLProblem->addConstraint(
-        "Sum", ROL::Ptr<ROL::StdConstraint<double>>(aConstraint.release()),
+    aROLProblem.addConstraint(
+        "Sum", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
         third_party_integration::rol::make_rol_vector(criteria::library::make_dual_vector(aDualSize)),
         tInequalityBoundConstraint, tMultipliersPtr, false);
 }
@@ -152,12 +152,11 @@ void add_nonlinear_constraint_rol_problem(std::unique_ptr<ROL::Problem<double>>&
     ROL::Ptr<ROL::StdVector<double>>& aControls) -> std::unique_ptr<ROL::Problem<double>>
 {
     auto tROLProblem = create_rol_bounded_rosenbrock_problem(aControls);
-    auto tLine = create_line_constraint();
-    add_linear_constraint_rol_problem(tROLProblem, tLine);
-    auto tCircle = create_circle_constraint();
-    add_nonlinear_constraint_rol_problem(tROLProblem, tCircle, 1U);
+    add_linear_constraint_rol_problem(*tROLProblem, create_line_constraint());
+    constexpr auto tDualSize = 1U;
+    add_nonlinear_constraint_rol_problem(*tROLProblem, create_circle_constraint(), tDualSize);
 
-    finalize_rol_problem(tROLProblem);
+    finalize_rol_problem(*tROLProblem);
     return tROLProblem;
 }
 
@@ -165,12 +164,11 @@ void add_nonlinear_constraint_rol_problem(std::unique_ptr<ROL::Problem<double>>&
     ROL::Ptr<ROL::StdVector<double>>& aControls) -> std::unique_ptr<ROL::Problem<double>>
 {
     auto tROLProblem = create_rol_bounded_rosenbrock_problem(aControls);
-
     auto tConstraint = std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(
         create_rol_vector_constraint_combination_line_and_circle());
-    add_nonlinear_constraint_rol_problem(tROLProblem, tConstraint, 2U);
-
-    finalize_rol_problem(tROLProblem);
+    constexpr auto tDualSize = 2U;
+    add_nonlinear_constraint_rol_problem(*tROLProblem, std::move(tConstraint), tDualSize);
+    finalize_rol_problem(*tROLProblem);
     return tROLProblem;
 }
 

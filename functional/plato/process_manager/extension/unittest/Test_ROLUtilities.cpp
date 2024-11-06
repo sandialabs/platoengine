@@ -90,9 +90,8 @@ void parse_and_generate_solver(const std::string& aInput, const plato::test_util
         library::process_manager_input<input_parser::rol_optimization>(tData.processManagers().rawInput().front());
     Teuchos::ParameterList tROLOptions =
         third_party_integration::rol::make_optimization_parameters(tValidatedOptimizationParameters).parameters();
-    const auto tROLProblem = Teuchos::RCP{make_rol_problem(tPlatoProblem).first.release()};
     const ROL::Solver<double> tSolver =
-        third_party_integration::rol::make_rol_solver(tROLOptions, std::move(tROLProblem));
+        third_party_integration::rol::make_rol_solver(tROLOptions, make_rol_problem(tPlatoProblem).first);
 
     EXPECT_EQ(tSolver.getAlgorithmState()->iter, 0) << aTestContext;
 }

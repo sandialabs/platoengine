@@ -48,8 +48,8 @@ void run_himmelblau_objective_test(const Argument& aObjectiveFunctionArgument)
     EXPECT_DOUBLE_EQ(tGradient[0], kGoldGradientX);
     EXPECT_DOUBLE_EQ(tGradient[1], kGoldGradientY);
 
-    auto tHessian = ROL::StdVector<double>{10.0, 10.0};
-    auto tDirection = ROL::StdVector<double>{1.0, 1.0};
+    auto tHessian = std::vector<double>{10.0, 10.0};
+    auto tDirection = std::vector<double>{1.0, 1.0};
     tObjective.hessVec(tHessian, tDirection, tControl, tTolerance);
     EXPECT_EQ(tHessian[0], 0.0);
     EXPECT_EQ(tHessian[1], 0.0);

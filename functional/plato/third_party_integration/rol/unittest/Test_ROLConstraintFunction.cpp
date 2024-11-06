@@ -106,7 +106,8 @@ TEST(ROLConstraintFunction, Hessian)
     constexpr bool tIsLinear = false;
     auto tROLConstraintFunction =
         ROLConstraintFunction{criteria::library::Constraint<const linear_algebra::DynamicVector<double>&>{
-            "name", make_himmelblau_dynamic_vector_function(pft::Himmelblau{}), tTarget, tIsLinear}};
+            "name", make_himmelblau_dynamic_vector_function(pft::Himmelblau{}), tTarget, tIsLinear,
+            criteria::library::ConstraintType::kEquality}};
 
     const auto tControls = std::vector<double>{tControlValue, tControlValue};
     auto tHessianUV = std::vector<double>{10, 11};
