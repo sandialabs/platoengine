@@ -93,8 +93,9 @@ namespace
                          .compatibleFunction<SNOPTConstraintFunction>();
     const auto tConstraintSize =
         tFunction.template evaluate<core::evaluation::kFunction>(aGeometry.mInitialGuess).size();
-    return tpis::InterfaceConstraintType{
-        std::move(tFunction), {aConstraint.mConstraintTarget}, tLinearity, tConstraintSize};
+    auto tConstraintTargets = std::vector(tConstraintSize, aConstraint.mConstraintTarget);
+    return tpis::InterfaceConstraintType{std::move(tFunction), std::move(tConstraintTargets), tLinearity,
+                                         tConstraintSize};
 }
 
 }  // namespace
