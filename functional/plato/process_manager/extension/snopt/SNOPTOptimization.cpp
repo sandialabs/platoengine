@@ -3,6 +3,7 @@
 #include <boost/numeric/conversion/cast.hpp>
 #include <filesystem>
 #include <iterator>
+#include <map>
 #include <optional>
 
 #include "plato/core/Compose.hpp"
@@ -81,6 +82,12 @@ namespace detail
 {
 namespace
 {
+const auto tConstraintTypeConversion =
+    std::map<criteria::library::ConstraintType, third_party_integration::snopt::ConstraintType>{
+        {criteria::library::ConstraintType::kEquality, third_party_integration::snopt::ConstraintType::kEqualTo},
+        {criteria::library::ConstraintType::kGreaterThan, third_party_integration::snopt::ConstraintType::kGreaterThan},
+        {criteria::library::ConstraintType::kLessThan, third_party_integration::snopt::ConstraintType::kLesserThan}};
+
 [[nodiscard]] auto make_snopt_constraint(
     const geometry::library::FactoryTypes& aGeometry,
     const criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>& aConstraint)
@@ -95,7 +102,7 @@ namespace
         tFunction.template evaluate<core::evaluation::kFunction>(aGeometry.mInitialGuess).size();
     auto tConstraintTargets = std::vector(tConstraintSize, aConstraint.mConstraintTarget);
     return tpis::InterfaceConstraintType{std::move(tFunction), std::move(tConstraintTargets), tLinearity,
-                                         tConstraintSize};
+                                         tConstraintSize, tConstraintTypeConversion.at(aConstraint.mConstraintType)};
 }
 
 }  // namespace
