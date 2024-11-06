@@ -26,6 +26,13 @@ enum struct Linearity
     kNonlinear
 };
 
+enum struct ConstraintType
+{
+    kEqualTo,
+    kLesserThan,
+    kGreaterThan
+};
+
 /// @brief Holds data describing a constraint: Function for evaluating the constraint, the constraint target, and
 /// whether or not it is a linear function.
 struct InterfaceConstraintData
@@ -39,6 +46,7 @@ struct InterfaceConstraintData
     std::vector<double> mTargets;
     Linearity mLinearity = Linearity::kLinear;
     std::size_t mConstraintDimension = 1U;
+    ConstraintType mConstraintType = ConstraintType::kEqualTo;
 };
 
 using ObjectiveType = CriterionType;

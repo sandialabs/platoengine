@@ -47,6 +47,24 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
         });
 }
 
+[[nodiscard]] auto greater_than_constraint_function()
+{
+    return core::make_function_with_first_derivative(
+        [](const linear_algebra::DynamicVector<double>& aX) { return test_utilities::vector_from_scalar(aX[0]); },
+        [](const linear_algebra::DynamicVector<double>&) {
+            return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{1.0, 0.0});
+        });
+}
+
+[[nodiscard]] auto lesser_than_constraint_function()
+{
+    return core::make_function_with_first_derivative(
+        [](const linear_algebra::DynamicVector<double>& aX) { return test_utilities::vector_from_scalar(aX[1]); },
+        [](const linear_algebra::DynamicVector<double>&) {
+            return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{0.0, 1.0});
+        });
+}
+
 [[nodiscard]] auto affine_linear_constraint_function()
 {
     return core::make_function_with_first_derivative(
@@ -207,6 +225,32 @@ TEST(SNOPTInterface, RosenbrockNonlinearVectorConstraint)
         InterfaceConstraintVectorType{{/*.mFunction=*/nonlinear_vector_constraint(), /*.mTargets*/ {0.0, 0.0},
                                        /*.mLinearity=*/Linearity::kNonlinear, /*.mConstraintDimension=*/2U}},
         kExpected, TEST_CONTEXT("Non-linearly constrained with vector constraint"));
+    std::filesystem::remove(kLogFilePath);
+}
+
+TEST(SNOPTInterface, RosenbrockGreaterThanConstraint)
+{
+    constexpr auto tConstraintTarget = 0.0;
+    check_snopt_problem_solution(
+        kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        InterfaceConstraintVectorType{{/*.mFunction=*/greater_than_constraint_function(),
+                                       /*.mTargets=*/{tConstraintTarget},
+                                       /*.mLinearity=*/Linearity::kLinear, /*.mConstraintDimension=*/1U,
+                                       /*.mConstraintType=*/ConstraintType::kGreaterThan}},
+        kExpected, TEST_CONTEXT("Greater than inequality constrained"));
+    std::filesystem::remove(kLogFilePath);
+}
+
+TEST(SNOPTInterface, RosenbrockLesserThanConstraint)
+{
+    constexpr auto tConstraintTarget = 2.0;
+    check_snopt_problem_solution(
+        kInitialGuess, kBounds, rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),
+        InterfaceConstraintVectorType{{/*.mFunction=*/lesser_than_constraint_function(),
+                                       /*.mTargets=*/{tConstraintTarget},
+                                       /*.mLinearity=*/Linearity::kLinear, /*.mConstraintDimension=*/1U,
+                                       /*.mConstraintType=*/ConstraintType::kLesserThan}},
+        kExpected, TEST_CONTEXT("Lesser than inequality constrained"));
     std::filesystem::remove(kLogFilePath);
 }
 

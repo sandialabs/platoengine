@@ -104,6 +104,7 @@ void check_scalar_vs_vector_constraint(const InterfaceConstraintType& aVectorCon
 {
     ASSERT_EQ(aVectorConstraint.mConstraintDimension, aScalarConstraints.size()) << aTestContext;
     EXPECT_EQ(aVectorConstraint.mLinearity, aScalarConstraints.front().mLinearity) << aTestContext;
+    EXPECT_EQ(aVectorConstraint.mConstraintType, aScalarConstraints.front().mConstraintType) << aTestContext;
     for (const auto& [aVectorTarget, tScalarConstraint] :
          utilities::Zip{aVectorConstraint.mTargets, aScalarConstraints})
     {
@@ -225,7 +226,7 @@ TEST(Constraints, NonlinearConstraintIterators)
                   { EXPECT_EQ(tLinearConstraint.mLinearity, Linearity::kNonlinear); });
 }
 
-TEST(Constraints, ConstraintBounds)
+TEST(Constraints, ConstraintBoundsEquality)
 {
     const auto tSNOPTConstraints =
         SNOPTConstraints{InterfaceConstraintVectorType{kInterfaceConstraints}, kNumberOfDesignVariables};
@@ -253,7 +254,29 @@ TEST(Constraints, ConstraintBounds)
     }
 }
 
-TEST(Constraints, VectorConstraintBounds)
+TEST(Constraints, ConstraintBoundsInequality)
+{
+    auto tInterfaceConstraints =
+        InterfaceConstraintVectorType{kNonlinearInterfaceConstraint, kLinearInterfaceConstraint};
+    tInterfaceConstraints.front().mConstraintType = ConstraintType::kGreaterThan;
+    tInterfaceConstraints.back().mConstraintType = ConstraintType::kLesserThan;
+
+    const auto tSNOPTConstraints =
+        SNOPTConstraints{InterfaceConstraintVectorType{tInterfaceConstraints}, kNumberOfDesignVariables};
+
+    const auto [tLowerBounds, tUpperBounds] = constraint_bounds(tSNOPTConstraints);
+
+    ASSERT_EQ(tLowerBounds.size(), tInterfaceConstraints.size());
+    ASSERT_EQ(tUpperBounds.size(), tInterfaceConstraints.size());
+
+    EXPECT_EQ(tLowerBounds.front(), tInterfaceConstraints.front().mTargets.front());
+    EXPECT_EQ(tLowerBounds.back(), -kSNOPTUnbounded);
+
+    EXPECT_EQ(tUpperBounds.front(), kSNOPTUnbounded);
+    EXPECT_EQ(tUpperBounds.back(), tInterfaceConstraints.back().mTargets.front());
+}
+
+TEST(Constraints, VectorConstraintBoundsEquality)
 {
     const auto tSNOPTConstraints =
         SNOPTConstraints{InterfaceConstraintVectorType{kVectorConstraints}, kNumberOfDesignVariables};
@@ -346,11 +369,12 @@ TEST(Constraints, ConvertToScalarSingleScalarConstraint)
 
 TEST(Constraints, ConvertToScalarSingleVectorConstraint)
 {
-    const auto tScalarConstraints =
-        detail::constraint_with_vectors_expanded(InterfaceConstraintType{kAffineLinearVectorConstraint});
+    auto tInterfaceConstraint = InterfaceConstraintType{kAffineLinearVectorConstraint};
+    tInterfaceConstraint.mConstraintType = ConstraintType::kGreaterThan;
+    const auto tScalarConstraints = detail::constraint_with_vectors_expanded(tInterfaceConstraint);
 
     const auto tDesignVariables = linear_algebra::DynamicVector{-10.0, -11.0};
-    check_scalar_vs_vector_constraint(kAffineLinearVectorConstraint, tScalarConstraints, tDesignVariables,
+    check_scalar_vs_vector_constraint(tInterfaceConstraint, tScalarConstraints, tDesignVariables,
                                       TEST_CONTEXT("Single vector constraint"));
 }
 

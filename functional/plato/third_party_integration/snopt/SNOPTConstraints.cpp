@@ -15,12 +15,14 @@ namespace
                                  { return aConstraint.mLinearity == Linearity::kNonlinear; });
 }
 
-[[nodiscard]] auto make_equality_constraint_vector(const SNOPTConstraints& aConstraints) -> std::vector<double>
+template <typename BoundFunction>
+[[nodiscard]] auto make_constraint_bound_vector(const SNOPTConstraints& aConstraints,
+                                                const BoundFunction& aBoundFunction) -> std::vector<double>
 {
     auto tTargets = std::vector<double>();
     tTargets.reserve(aConstraints.constraints().size());
     std::transform(aConstraints.constraints().begin(), aConstraints.constraints().end(), std::back_inserter(tTargets),
-                   [](const auto& tConstraint) { return tConstraint.mTarget; });
+                   aBoundFunction);
     return tTargets;
 }
 
@@ -87,7 +89,14 @@ auto SNOPTConstraints::release() && -> ConstraintVectorType { return std::move(m
 
 auto constraint_bounds(const SNOPTConstraints& aConstraints) -> SNOPTBounds
 {
-    return std::make_pair(make_equality_constraint_vector(aConstraints), make_equality_constraint_vector(aConstraints));
+    const auto tLowerBoundFunction = [](const ConstraintData& aConstraint)
+    { return aConstraint.mConstraintType == ConstraintType::kLesserThan ? -kSNOPTUnbounded : aConstraint.mTarget; };
+
+    const auto tUpperBoundFunction = [](const ConstraintData& aConstraint)
+    { return aConstraint.mConstraintType == ConstraintType::kGreaterThan ? kSNOPTUnbounded : aConstraint.mTarget; };
+
+    return std::make_pair(make_constraint_bound_vector(aConstraints, tLowerBoundFunction),
+                          make_constraint_bound_vector(aConstraints, tUpperBoundFunction));
 }
 
 auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstraints) -> SNOPTBounds
@@ -143,7 +152,8 @@ auto constraint_with_vectors_expanded(const InterfaceConstraintType& aVectorCons
         tScalarConstraints.emplace_back(ConstraintData{
             /*.mFunction=*/scalar_constraint_from_vector_constraint(aVectorConstraint, tConstraintComponent),
             /*.mTarget=*/aVectorConstraint.mTargets.at(tConstraintComponent),
-            /*.mLinearity=*/aVectorConstraint.mLinearity});
+            /*.mLinearity=*/aVectorConstraint.mLinearity,
+            /*.mConstraintType=*/aVectorConstraint.mConstraintType});
     }
     return tScalarConstraints;
 }

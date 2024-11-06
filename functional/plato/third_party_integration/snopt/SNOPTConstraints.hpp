@@ -11,6 +11,7 @@ struct ConstraintData
     CriterionType mFunction;
     double mTarget = 0.0;
     Linearity mLinearity = Linearity::kLinear;
+    ConstraintType mConstraintType = ConstraintType::kEqualTo;
 };
 
 using ConstraintVectorType = std::vector<ConstraintData>;
