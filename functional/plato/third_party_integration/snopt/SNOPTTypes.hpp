@@ -28,7 +28,7 @@ enum struct Linearity
 
 /// @brief Holds data describing a constraint: Function for evaluating the constraint, the constraint target, and
 /// whether or not it is a linear function.
-struct ConstraintData
+struct InterfaceConstraintData
 {
     using ConstraintFunction =
         core::Function<const linear_algebra::DynamicVector<double>&,
@@ -42,8 +42,8 @@ struct ConstraintData
 };
 
 using ObjectiveType = CriterionType;
-using ConstraintType = ConstraintData;
-using ConstraintVectorType = std::vector<ConstraintType>;
+using InterfaceConstraintType = InterfaceConstraintData;
+using InterfaceConstraintVectorType = std::vector<InterfaceConstraintType>;
 using SNOPTBounds = std::pair<std::vector<double>, std::vector<double>>;
 using ConstraintFunctionArgument = linear_algebra::DynamicVector<double>;
 }  // namespace plato::third_party_integration::snopt

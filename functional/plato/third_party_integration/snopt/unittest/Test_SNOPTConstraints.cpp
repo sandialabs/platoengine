@@ -2,9 +2,12 @@
 
 #include "plato/core/Function.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/SNOPTConstraints.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
+#include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/IndexRange.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::snopt::unittest
 {
@@ -12,37 +15,47 @@ namespace
 {
 constexpr auto kScalarConstraintDimension = std::size_t{1U};
 
-const auto kLinearTestFunction = plato::core::make_function_with_first_derivative(
-    [](const linear_algebra::DynamicVector<double>& aX)
-    { return test_utilities::vector_from_scalar(2.0 * aX[0] - aX[1]); },
-    [](const linear_algebra::DynamicVector<double>&) {
-        return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{2.0, -1.0});
-    });
+auto linear_function(const linear_algebra::DynamicVector<double>& aX) -> double { return 2.0 * aX[0] - aX[1]; }
 
-const auto kAffineLinearTestFunction = plato::core::make_function_with_first_derivative(
-    [](const linear_algebra::DynamicVector<double>& aX)
-    { return test_utilities::vector_from_scalar(2.0 * aX[0] - aX[1] - 1.0); },
-    [](const linear_algebra::DynamicVector<double>&) {
-        return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{2.0, -1.0});
-    });
+auto affine_linear_function(const linear_algebra::DynamicVector<double>& aX) -> double
+{
+    return 2.0 * aX[0] - aX[1] - 1.0;
+}
 
-const auto kArbitraryTestFunction = plato::core::make_function_with_first_derivative(
+auto linear_function_gradient() -> linear_algebra::DynamicVector<double>
+{
+    return linear_algebra::DynamicVector<double>{2.0, -1.0};
+}
+
+const auto kLinearTestInterfaceFunction = plato::core::make_function_with_first_derivative(
+    [](const linear_algebra::DynamicVector<double>& aX)
+    { return test_utilities::vector_from_scalar(linear_function(aX)); },
+    [](const linear_algebra::DynamicVector<double>&)
+    { return test_utilities::jacobian_from_gradient(linear_function_gradient()); });
+
+const auto kAffineLinearTestInterfaceFunction = plato::core::make_function_with_first_derivative(
+    [](const linear_algebra::DynamicVector<double>& aX)
+    { return test_utilities::vector_from_scalar(affine_linear_function(aX)); },
+    [](const linear_algebra::DynamicVector<double>&)
+    { return test_utilities::jacobian_from_gradient(linear_function_gradient()); });
+
+const auto kArbitraryTestInterfaceFunction = plato::core::make_function_with_first_derivative(
     [](const linear_algebra::DynamicVector<double>&) { return test_utilities::vector_from_scalar(1.0); },
     [](const linear_algebra::DynamicVector<double>& aX) { return test_utilities::jacobian_from_gradient(aX); });
 
 const auto kLinearConstraintTarget = std::vector{0.0};
-const auto kAffineLinearConstraintTarget = std::vector{1.0};
 const auto kNonlinearConstraintTarget = std::vector{2.0};
 
-const auto kLinearConstraint =
-    ConstraintType{kLinearTestFunction, kLinearConstraintTarget, Linearity::kLinear, kScalarConstraintDimension};
-const auto kAffineLinearConstraint =
-    ConstraintType{kAffineLinearTestFunction, kLinearConstraintTarget, Linearity::kLinear, kScalarConstraintDimension};
-const auto kNonlinearConstraint = ConstraintType{kArbitraryTestFunction, kNonlinearConstraintTarget,
-                                                 Linearity::kNonlinear, kScalarConstraintDimension};
+const auto kLinearInterfaceConstraint = InterfaceConstraintType{kLinearTestInterfaceFunction, kLinearConstraintTarget,
+                                                                Linearity::kLinear, kScalarConstraintDimension};
+const auto kAffineLinearInterfaceConstraint = InterfaceConstraintType{
+    kAffineLinearTestInterfaceFunction, kLinearConstraintTarget, Linearity::kLinear, kScalarConstraintDimension};
+const auto kNonlinearInterfaceConstraint = InterfaceConstraintType{
+    kArbitraryTestInterfaceFunction, kNonlinearConstraintTarget, Linearity::kNonlinear, kScalarConstraintDimension};
 
-const auto kConstraints = std::vector{kLinearConstraint, kNonlinearConstraint, kAffineLinearConstraint,
-                                      kNonlinearConstraint, kLinearConstraint};
+const auto kInterfaceConstraints =
+    std::vector{kLinearInterfaceConstraint, kNonlinearInterfaceConstraint, kAffineLinearInterfaceConstraint,
+                kNonlinearInterfaceConstraint, kLinearInterfaceConstraint};
 
 const auto kAffineLinearVectorTestFunction = plato::core::make_function_with_first_derivative(
     [](const linear_algebra::DynamicVector<double>& aX) {
@@ -73,21 +86,63 @@ const auto kVectorConstraintDimension = std::size_t{2U};
 
 const auto kVectorConstraintTarget = std::vector{0.0, 2.0};
 
-const auto kAffineLinearVectorConstraint = ConstraintType{kAffineLinearVectorTestFunction, kVectorConstraintTarget,
-                                                          Linearity::kLinear, kVectorConstraintDimension};
-const auto kNonlinearVectorConstraint = ConstraintType{kArbitraryVectorTestFunction, kVectorConstraintTarget,
-                                                       Linearity::kNonlinear, kVectorConstraintDimension};
+const auto kAffineLinearVectorConstraint = InterfaceConstraintType{
+    kAffineLinearVectorTestFunction, kVectorConstraintTarget, Linearity::kLinear, kVectorConstraintDimension};
+const auto kNonlinearVectorConstraint = InterfaceConstraintType{kArbitraryVectorTestFunction, kVectorConstraintTarget,
+                                                                Linearity::kNonlinear, kVectorConstraintDimension};
 
 const auto kVectorConstraints = std::vector{kAffineLinearVectorConstraint, kNonlinearVectorConstraint};
 
 constexpr auto kNumberOfLinearConstraints = std::size_t{3};
 constexpr auto kNumberOfNonlinearConstraints = std::size_t{2};
 constexpr auto kNumberOfDesignVariables = std::size_t{2};
+
+void check_scalar_vs_vector_constraint(const InterfaceConstraintType& aVectorConstraint,
+                                       const ConstraintVectorType& aScalarConstraints,
+                                       const linear_algebra::DynamicVector<double>& aDesignVariables,
+                                       const plato::test_utilities::TestContext& aTestContext)
+{
+    ASSERT_EQ(aVectorConstraint.mConstraintDimension, aScalarConstraints.size()) << aTestContext;
+    EXPECT_EQ(aVectorConstraint.mLinearity, aScalarConstraints.front().mLinearity) << aTestContext;
+    for (const auto& [aVectorTarget, tScalarConstraint] :
+         utilities::Zip{aVectorConstraint.mTargets, aScalarConstraints})
+    {
+        EXPECT_EQ(aVectorTarget, tScalarConstraint.mTarget) << aTestContext;
+    }
+
+    // Constraint function evaluation
+    const auto tExpectedConstraintEvaluation =
+        aVectorConstraint.mFunction.template evaluate<core::evaluation::kFunction>(aDesignVariables);
+    for (const auto& [tComponentIndex, tScalarConstraint] : utilities::enumerate(aScalarConstraints))
+    {
+        const auto tResultConstraintEvaluation =
+            tScalarConstraint.mFunction.template evaluate<core::evaluation::kFunction>(aDesignVariables);
+        EXPECT_EQ(tExpectedConstraintEvaluation[tComponentIndex], tResultConstraintEvaluation) << aTestContext;
+    }
+
+    // Constraint Jacobian evaluation
+    const auto tConstraintJacobian =
+        aVectorConstraint.mFunction.template evaluate<core::evaluation::kFirstDerivative>(aDesignVariables);
+    for (const auto& [tComponentIndex, tScalarConstraint] : utilities::enumerate(aScalarConstraints))
+    {
+        auto tBasisVector = std::vector<double>(aScalarConstraints.size(), 0.0);
+        tBasisVector[tComponentIndex] = 1.0;
+        const auto tExpectedConstraintJacobianEvaluationRow =
+            linear_algebra::DynamicVector<double>(std::move(tBasisVector)) * tConstraintJacobian;
+
+        const auto tResultConstraintGradient =
+            tScalarConstraint.mFunction.template evaluate<core::evaluation::kFirstDerivative>(aDesignVariables);
+
+        EXPECT_EQ(tExpectedConstraintJacobianEvaluationRow.stdVector(), tResultConstraintGradient.stdVector())
+            << aTestContext;
+    }
+}
 }  // namespace
 
 TEST(Constraints, ConstructionPartitioning)
 {
-    auto tSNOPTConstraints = SNOPTConstraints{ConstraintVectorType{kConstraints}, kNumberOfDesignVariables};
+    auto tSNOPTConstraints =
+        SNOPTConstraints{InterfaceConstraintVectorType{kInterfaceConstraints}, kNumberOfDesignVariables};
     const auto& tConstraints = tSNOPTConstraints.constraints();
 
     ASSERT_EQ(tConstraints.size(), 5U);
@@ -102,54 +157,53 @@ TEST(Constraints, ConstructionPartitioning)
 
 TEST(Constraints, RemoveAffineOffset)
 {
-    auto tConstraints =
-        constraints_with_affine_offset_removed(ConstraintVectorType{kConstraints}, kNumberOfDesignVariables);
+    const auto kLinearTestFunction = plato::core::make_function_with_first_derivative(
+        [](const linear_algebra::DynamicVector<double>& aX) { return linear_function(aX); },
+        [](const linear_algebra::DynamicVector<double>&) { return linear_function_gradient(); });
 
-    EXPECT_EQ(tConstraints.at(0).mTargets, kLinearConstraintTarget);
-    EXPECT_EQ(tConstraints.at(1).mTargets, kNonlinearConstraintTarget);
-    EXPECT_EQ(tConstraints.at(2).mTargets, kAffineLinearConstraintTarget);
-    EXPECT_EQ(tConstraints.at(3).mTargets, kNonlinearConstraintTarget);
-    EXPECT_EQ(tConstraints.at(4).mTargets, kLinearConstraintTarget);
-}
+    const auto kAffineLinearTestFunction = plato::core::make_function_with_first_derivative(
+        [](const linear_algebra::DynamicVector<double>& aX) { return affine_linear_function(aX); },
+        [](const linear_algebra::DynamicVector<double>&) { return linear_function_gradient(); });
 
-TEST(Constraints, RemoveAffineOffsetVector)
-{
-    auto tConstraints =
-        constraints_with_affine_offset_removed(ConstraintVectorType{kVectorConstraints}, kNumberOfDesignVariables);
+    const auto kArbitraryTestFunction = plato::core::make_function_with_first_derivative(
+        [](const linear_algebra::DynamicVector<double>&) { return 1.0; },
+        [](const linear_algebra::DynamicVector<double>& aX) { return aX; });
 
-    const auto tExpectedVectorConstraintsAfterOffsetRemoval = std::vector{0.0, 0.0};
-    EXPECT_EQ(tConstraints.at(0).mTargets, tExpectedVectorConstraintsAfterOffsetRemoval);
-    EXPECT_EQ(tConstraints.at(1).mTargets, kVectorConstraintTarget);
+    const auto kLinearConstraint =
+        ConstraintData{kLinearTestFunction, kLinearConstraintTarget.front(), Linearity::kLinear};
+    const auto kAffineConstraint =
+        ConstraintData{kAffineLinearTestFunction, kLinearConstraintTarget.front(), Linearity::kLinear};
+    const auto kNonlinearConstraint =
+        ConstraintData{kArbitraryTestFunction, kNonlinearConstraintTarget.front(), Linearity::kNonlinear};
+
+    const auto tConstraintsWithOffsets = std::vector{kLinearConstraint, kNonlinearConstraint, kAffineConstraint,
+                                                     kNonlinearConstraint, kLinearConstraint};
+
+    const auto tResultConstraints =
+        constraints_with_affine_offset_removed(ConstraintVectorType{tConstraintsWithOffsets}, kNumberOfDesignVariables);
+
+    const auto tAffineLinearConstraintTarget = 1.0;
+
+    EXPECT_EQ(tResultConstraints.at(0).mTarget, kLinearConstraintTarget.front());
+    EXPECT_EQ(tResultConstraints.at(1).mTarget, kNonlinearConstraintTarget.front());
+    EXPECT_EQ(tResultConstraints.at(2).mTarget, tAffineLinearConstraintTarget);
+    EXPECT_EQ(tResultConstraints.at(3).mTarget, kNonlinearConstraintTarget.front());
+    EXPECT_EQ(tResultConstraints.at(4).mTarget, kLinearConstraintTarget.front());
 }
 
 TEST(Constraints, NumberOfConstraints)
 {
-    const auto tSNOPTConstraints = SNOPTConstraints{ConstraintVectorType{kConstraints}, kNumberOfDesignVariables};
+    const auto tSNOPTConstraints =
+        SNOPTConstraints{InterfaceConstraintVectorType{kInterfaceConstraints}, kNumberOfDesignVariables};
 
     EXPECT_EQ(tSNOPTConstraints.numberOfLinearConstraints(), kNumberOfLinearConstraints);
     EXPECT_EQ(tSNOPTConstraints.numberOfNonlinearConstraints(), kNumberOfNonlinearConstraints);
-    EXPECT_EQ(tSNOPTConstraints.linearConstraintDimension(), kNumberOfLinearConstraints);
-    EXPECT_EQ(tSNOPTConstraints.nonlinearConstraintDimension(), kNumberOfNonlinearConstraints);
-}
-
-TEST(Constraints, ConstraintDimension)
-{
-    const auto tSNOPTConstraints = SNOPTConstraints{ConstraintVectorType{kVectorConstraints}, kNumberOfDesignVariables};
-
-    constexpr auto tExpectedNumberOfLinearConstraints = 1U;
-    EXPECT_EQ(tSNOPTConstraints.numberOfLinearConstraints(), tExpectedNumberOfLinearConstraints);
-    constexpr auto tExpectedNumberOfNoninearConstraints = 1U;
-    EXPECT_EQ(tSNOPTConstraints.numberOfNonlinearConstraints(), tExpectedNumberOfNoninearConstraints);
-
-    constexpr auto tExpectedNonlinearConstraintDimension = 2U;
-    EXPECT_EQ(tSNOPTConstraints.nonlinearConstraintDimension(), kNumberOfLinearConstraints);
-    constexpr auto tExpectedLinearConstraintDimension = 2U;
-    EXPECT_EQ(tSNOPTConstraints.linearConstraintDimension(), kNumberOfNonlinearConstraints);
 }
 
 TEST(Constraints, LinearConstraintIterators)
 {
-    auto tSNOPTConstraints = SNOPTConstraints{ConstraintVectorType{kConstraints}, kNumberOfDesignVariables};
+    auto tSNOPTConstraints =
+        SNOPTConstraints{InterfaceConstraintVectorType{kInterfaceConstraints}, kNumberOfDesignVariables};
 
     EXPECT_EQ(std::distance(tSNOPTConstraints.linearConstraintsBegin(), tSNOPTConstraints.linearConstraintsEnd()),
               kNumberOfLinearConstraints);
@@ -160,7 +214,8 @@ TEST(Constraints, LinearConstraintIterators)
 
 TEST(Constraints, NonlinearConstraintIterators)
 {
-    auto tSNOPTConstraints = SNOPTConstraints{ConstraintVectorType{kConstraints}, kNumberOfDesignVariables};
+    auto tSNOPTConstraints =
+        SNOPTConstraints{InterfaceConstraintVectorType{kInterfaceConstraints}, kNumberOfDesignVariables};
 
     EXPECT_EQ(std::distance(tSNOPTConstraints.nonlinearConstraintsBegin(), tSNOPTConstraints.nonlinearConstraintsEnd()),
               kNumberOfNonlinearConstraints);
@@ -172,7 +227,8 @@ TEST(Constraints, NonlinearConstraintIterators)
 
 TEST(Constraints, ConstraintBounds)
 {
-    const auto tSNOPTConstraints = SNOPTConstraints{ConstraintVectorType{kConstraints}, kNumberOfDesignVariables};
+    const auto tSNOPTConstraints =
+        SNOPTConstraints{InterfaceConstraintVectorType{kInterfaceConstraints}, kNumberOfDesignVariables};
     const auto [tLowerBounds, tUpperBounds] = constraint_bounds(tSNOPTConstraints);
 
     ASSERT_EQ(tLowerBounds.size(), tSNOPTConstraints.constraints().size());
@@ -182,8 +238,8 @@ TEST(Constraints, ConstraintBounds)
     {
         if (tIndex < kNumberOfNonlinearConstraints)
         {
-            EXPECT_EQ(tLowerBounds.at(tIndex), kNonlinearConstraintTarget);
-            EXPECT_EQ(tUpperBounds.at(tIndex), kNonlinearConstraintTarget);
+            EXPECT_EQ(tLowerBounds.at(tIndex), kNonlinearConstraintTarget.front());
+            EXPECT_EQ(tUpperBounds.at(tIndex), kNonlinearConstraintTarget.front());
         }
         else
         {
@@ -191,16 +247,16 @@ TEST(Constraints, ConstraintBounds)
             const auto tFOfZero =
                 tSNOPTConstraints.constraints().at(tIndex).mFunction.template evaluate<core::evaluation::kFunction>(
                     tZero);
-            ASSERT_EQ(tFOfZero.size(), 1);
-            EXPECT_EQ(tLowerBounds.at(tIndex), -tFOfZero[0]);
-            EXPECT_EQ(tUpperBounds.at(tIndex), -tFOfZero[0]);
+            EXPECT_EQ(tLowerBounds.at(tIndex), -tFOfZero);
+            EXPECT_EQ(tUpperBounds.at(tIndex), -tFOfZero);
         }
     }
 }
 
 TEST(Constraints, VectorConstraintBounds)
 {
-    const auto tSNOPTConstraints = SNOPTConstraints{ConstraintVectorType{kVectorConstraints}, kNumberOfDesignVariables};
+    const auto tSNOPTConstraints =
+        SNOPTConstraints{InterfaceConstraintVectorType{kVectorConstraints}, kNumberOfDesignVariables};
     const auto [tLowerBounds, tUpperBounds] =
         constraint_bounds(tSNOPTConstraints);  // Test constraint_bounds with a vector constraint
 
@@ -225,7 +281,8 @@ TEST(Constraints, VectorConstraintBounds)
 
 TEST(Constraints, ObjectiveAndConstraintBounds)
 {
-    const auto tSNOPTConstraints = SNOPTConstraints{ConstraintVectorType{kConstraints}, kNumberOfDesignVariables};
+    const auto tSNOPTConstraints =
+        SNOPTConstraints{InterfaceConstraintVectorType{kInterfaceConstraints}, kNumberOfDesignVariables};
     const auto [tLowerBounds, tUpperBounds] = constraint_bounds_with_unbounded_objective(tSNOPTConstraints);
 
     constexpr auto tNumberOfObjectives = 1U;
@@ -241,6 +298,69 @@ TEST(Constraints, ObjectiveAndConstraintBounds)
         EXPECT_EQ(tLowerBounds.at(tIndex + tNumberOfObjectives), tLowerBoundsConstraintsOnly.at(tIndex));
         EXPECT_EQ(tUpperBounds.at(tIndex + tNumberOfObjectives), tUpperBoundsConstraintsOnly.at(tIndex));
     }
+}
+
+TEST(Constraints, ConvertToScalarAllScalar)
+{
+    const auto tExpandedConstraints =
+        constraints_with_vectors_expanded(InterfaceConstraintVectorType{kInterfaceConstraints});
+
+    ASSERT_EQ(tExpandedConstraints.size(), kInterfaceConstraints.size());
+
+    const auto tDesignVariables = linear_algebra::DynamicVector{-1.0, 2.0};
+    for (const auto& [tResultConstraint, tOriginalConstraint] :
+         utilities::Zip{tExpandedConstraints, kInterfaceConstraints})
+    {
+        check_scalar_vs_vector_constraint(tOriginalConstraint, {tResultConstraint}, tDesignVariables,
+                                          TEST_CONTEXT("Multiple scalar constraints"));
+    }
+}
+
+TEST(Constraints, ConvertToScalarAllVector)
+{
+    const auto tExpandedConstraints =
+        constraints_with_vectors_expanded(InterfaceConstraintVectorType{kVectorConstraints});
+
+    ASSERT_EQ(tExpandedConstraints.size(), kVectorConstraintDimension * kVectorConstraints.size());
+
+    const auto tDesignVariables = linear_algebra::DynamicVector{2.0, -1.0};
+    auto tResultConstraintIterator = tExpandedConstraints.begin();
+    for (const auto& tOriginalConstraint : kVectorConstraints)
+    {
+        check_scalar_vs_vector_constraint(tOriginalConstraint,
+                                          {tResultConstraintIterator, tResultConstraintIterator + 2U}, tDesignVariables,
+                                          TEST_CONTEXT("Multiple vector constraints"));
+        std::advance(tResultConstraintIterator, 2U);
+    }
+}
+
+TEST(Constraints, ConvertToScalarSingleScalarConstraint)
+{
+    const auto tScalarConstraints =
+        detail::constraint_with_vectors_expanded(InterfaceConstraintType{kLinearInterfaceConstraint});
+
+    const auto tDesignVariables = linear_algebra::DynamicVector{10.0, 11.0};
+    check_scalar_vs_vector_constraint(kLinearInterfaceConstraint, tScalarConstraints, tDesignVariables,
+                                      TEST_CONTEXT("Single scalar constraint"));
+}
+
+TEST(Constraints, ConvertToScalarSingleVectorConstraint)
+{
+    const auto tScalarConstraints =
+        detail::constraint_with_vectors_expanded(InterfaceConstraintType{kAffineLinearVectorConstraint});
+
+    const auto tDesignVariables = linear_algebra::DynamicVector{-10.0, -11.0};
+    check_scalar_vs_vector_constraint(kAffineLinearVectorConstraint, tScalarConstraints, tDesignVariables,
+                                      TEST_CONTEXT("Single vector constraint"));
+}
+
+TEST(Constraints, TotalNumberOfScalarConstraints)
+{
+    const auto tResultNumberOfConstraints =
+        detail::total_number_of_scalar_constraints(InterfaceConstraintVectorType{kVectorConstraints});
+    const auto tExpectedNumberOfConstraints =
+        kVectorConstraints.front().mConstraintDimension + kVectorConstraints.back().mConstraintDimension;
+    EXPECT_EQ(tResultNumberOfConstraints, tExpectedNumberOfConstraints);
 }
 
 }  // namespace plato::third_party_integration::snopt::unittest
