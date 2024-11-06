@@ -36,8 +36,10 @@ constexpr bool kPrintFlag = true;
 {
     ROL::ParameterList tParlist;
     tParlist.sublist("Step").set("Type", "Augmented Lagrangian");
-    int outputLevel = tParlist.sublist("General").get("Output Level", 1);
-    tParlist.sublist("General").set("Output Level", outputLevel);
+    const auto tOutputLevel = tParlist.sublist("General").get("Output Level", 1);
+    tParlist.sublist("General").set("Output Level", tOutputLevel);
+    tParlist.sublist("General").set("Inexact Hessian-Times-A-Vector", true);
+    tParlist.sublist("General").sublist("Secant").set("Use as Hessian", true);
     return tParlist;
 }
 
@@ -109,10 +111,11 @@ void add_linear_constraint_rol_problem(
     ROL::Problem<double>& aROLProblem,
     std::unique_ptr<third_party_integration::rol::ROLConstraintFunction>&& aConstraint)
 {
-    auto tInequalityBoundConstraint = third_party_integration::rol::detail::create_less_than_inequality_bounds(1);
-    auto tMultipliers = ROL::makePtr<std::vector<double>>(1, 0);
-    auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
     constexpr auto tDualVectorSize = 1U;
+    auto tInequalityBoundConstraint =
+        third_party_integration::rol::detail::create_less_than_inequality_bounds(tDualVectorSize);
+    auto tMultipliers = ROL::makePtr<std::vector<double>>(tDualVectorSize, 0);
+    auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
 
     aROLProblem.addLinearConstraint(
         "Line", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
@@ -197,34 +200,31 @@ void print_and_test_solution(const linear_algebra::DynamicVector<double>& aSolut
     EXPECT_NEAR(aSolution[1], kGoldYValue, kTolerance) << tSolutionForStream;
 }
 
+void check_rol_optimization(std::unique_ptr<ROL::Problem<double>>&& aROLProblem,
+                            const ROL::StdVector<double>& aControls)
+{
+    auto tROLInputs = create_parameter_list();
+    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(aROLProblem.release());
+
+    auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
+    ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
+    tROLSolver.solve(*tOutStream);
+    const auto tSolution = third_party_integration::rol::to_dynamic_vector(aControls);
+    print_and_test_solution(tSolution);
+}
+
 }  // namespace
 
 TEST(Optimize, RosenbrockWithConstraintsROLTwoScalarConstraints)
 {
     auto tControl = ROL::makePtr<ROL::StdVector<double>>(2, 0.0);
-    auto tROLInputs = create_parameter_list();
-    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(
-        rol_constrained_rosenbrock_problem_with_two_scalar_constraints(tControl).release());
-
-    auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
-    ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
-    tROLSolver.solve(*tOutStream);
-    const auto tSolution = third_party_integration::rol::to_dynamic_vector(*tControl);
-    print_and_test_solution(tSolution);
+    check_rol_optimization(rol_constrained_rosenbrock_problem_with_two_scalar_constraints(tControl), *tControl);
 }
 
 TEST(Optimize, RosenbrockWithConstraintsROLOneVectorConstraint)
 {
-    auto tControl = ROL::makePtr<ROL::StdVector<double>>(2, 0.);
-    auto tROLInputs = create_parameter_list();
-    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(
-        rol_constrained_rosenbrock_problem_with_one_vector_constraint(tControl).release());
-
-    auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
-    ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
-    tROLSolver.solve(*tOutStream);
-    const auto tSolution = third_party_integration::rol::to_dynamic_vector(*tControl);
-    print_and_test_solution(tSolution);
+    auto tControl = ROL::makePtr<ROL::StdVector<double>>(2, 0.0);
+    check_rol_optimization(rol_constrained_rosenbrock_problem_with_one_vector_constraint(tControl), *tControl);
 }
 
 }  // namespace plato::integration_tests::serial
