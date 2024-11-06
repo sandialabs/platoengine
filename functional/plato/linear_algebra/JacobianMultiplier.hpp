@@ -11,9 +11,9 @@ namespace plato::linear_algebra
 /// @brief An object representing the multiplication of a row vector and a Jacobian matrix.
 struct JacobianMultiplier
 {
-    using JacobianTimesVectorFunction = std::function<DynamicVector<double>(const DynamicVector<double>&)>;
+    using VectorTimesJacobianFunction = std::function<DynamicVector<double>(const DynamicVector<double>&)>;
 
-    JacobianTimesVectorFunction mJacobianTimesVectorFunction;
+    VectorTimesJacobianFunction mVectorTimesJacobianFunction;
 };
 
 /// @brief A NamedType to distinguish adjoint matrix-vector multiplication.
@@ -39,7 +39,7 @@ template <typename Arg>
 auto operator*(const Arg& aX, const JacobianMultiplier& aA)
     -> std::enable_if_t<!std::is_same_v<std::decay_t<Arg>, JacobianMultiplier>, DynamicVector<double>>
 {
-    return aA.mJacobianTimesVectorFunction(aX);
+    return aA.mVectorTimesJacobianFunction(aX);
 }
 
 inline auto operator*(JacobianMultiplier aF, JacobianMultiplier aG) -> JacobianMultiplier

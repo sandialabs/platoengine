@@ -60,7 +60,7 @@ auto make_jacobian_multiplier_two_to_three(const DynamicVector<double>& aX) -> J
     const auto tSecondFunctionGrad = kSecondFunctionGrad(aX);
     const auto tThirdFunctionGrad = kThirdFunctionGrad(aX);
 
-    const JacobianMultiplier::JacobianTimesVectorFunction tJacobianTimesVectorFunction =
+    const JacobianMultiplier::VectorTimesJacobianFunction tVectorTimesJacobianFunction =
         [tFirstFunctionGrad, tSecondFunctionGrad, tThirdFunctionGrad](const DynamicVector<double>& aDualVector)
     {
         return DynamicVector<double>({tFirstFunctionGrad[0] * aDualVector[0] + tSecondFunctionGrad[0] * aDualVector[1] +
@@ -69,7 +69,7 @@ auto make_jacobian_multiplier_two_to_three(const DynamicVector<double>& aX) -> J
                                           tThirdFunctionGrad[1] * aDualVector[2]});
     };
 
-    return {tJacobianTimesVectorFunction};
+    return {tVectorTimesJacobianFunction};
 }
 
 auto make_adjoint_jacobian_multiplier_two_to_three(const DynamicVector<double>& aX) -> AdjointJacobianMultiplier
@@ -78,39 +78,39 @@ auto make_adjoint_jacobian_multiplier_two_to_three(const DynamicVector<double>& 
     const auto tSecondFunctionGrad = kSecondFunctionGrad(aX);
     const auto tThirdFunctionGrad = kThirdFunctionGrad(aX);
 
-    const JacobianMultiplier::JacobianTimesVectorFunction tJacobianTimesVectorFunction =
+    const JacobianMultiplier::VectorTimesJacobianFunction tVectorTimesJacobianFunction =
         [tFirstFunctionGrad, tSecondFunctionGrad, tThirdFunctionGrad](const DynamicVector<double>& aVector)
     {
         return DynamicVector<double>(
             {tFirstFunctionGrad.dot(aVector), tSecondFunctionGrad.dot(aVector), tThirdFunctionGrad.dot(aVector)});
     };
 
-    return AdjointJacobianMultiplier{JacobianMultiplier{tJacobianTimesVectorFunction}};
+    return AdjointJacobianMultiplier{JacobianMultiplier{tVectorTimesJacobianFunction}};
 }
 
 auto make_jacobian_multiplier_three_to_one(const DynamicVector<double>& aX) -> JacobianMultiplier
 {
     const auto tForthFunctionGrad = kForthFunctionGrad(aX);
 
-    const JacobianMultiplier::JacobianTimesVectorFunction tJacobianTimesVectorFunction =
+    const JacobianMultiplier::VectorTimesJacobianFunction tVectorTimesJacobianFunction =
         [tForthFunctionGrad](const DynamicVector<double>& aDualVector)
     {
         return DynamicVector<double>({tForthFunctionGrad[0] * aDualVector[0], tForthFunctionGrad[1] * aDualVector[0],
                                       tForthFunctionGrad[2] * aDualVector[0]});
     };
 
-    return {tJacobianTimesVectorFunction};
+    return {tVectorTimesJacobianFunction};
 }
 
 auto make_adjoint_jacobian_multiplier_three_to_one(const DynamicVector<double>& aX) -> AdjointJacobianMultiplier
 {
     const auto tForthFunctionGrad = kForthFunctionGrad(aX);
 
-    const JacobianMultiplier::JacobianTimesVectorFunction tJacobianTimesVectorFunction =
+    const JacobianMultiplier::VectorTimesJacobianFunction tVectorTimesJacobianFunction =
         [tForthFunctionGrad](const DynamicVector<double>& aVector)
     { return DynamicVector<double>({tForthFunctionGrad.dot(aVector)}); };
 
-    return AdjointJacobianMultiplier{JacobianMultiplier{tJacobianTimesVectorFunction}};
+    return AdjointJacobianMultiplier{JacobianMultiplier{tVectorTimesJacobianFunction}};
 }
 
 auto create_vector_function_two_to_three() -> VectorFunction

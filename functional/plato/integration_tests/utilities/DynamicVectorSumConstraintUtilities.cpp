@@ -16,15 +16,16 @@ auto make_adjoint_jacobian_multiplier(const linear_algebra::DynamicVector<double
     const auto tDerivativeFunctionEvaluationZero = test_utilities::to_dynamic_vector(aConstraints[0].df(x[0], x[1]));
     const auto tDerivativeFunctionEvaluationOne = test_utilities::to_dynamic_vector(aConstraints[1].df(x[0], x[1]));
 
-    const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tJacobianTimesVectorFunction =
+    auto tVectorTimesAdjointJacobianFunction = linear_algebra::JacobianMultiplier::VectorTimesJacobianFunction{
         [tDerivativeFunctionEvaluationZero,
          tDerivativeFunctionEvaluationOne](const linear_algebra::DynamicVector<double>& aVector)
-    {
-        return linear_algebra::DynamicVector<double>(
-            {tDerivativeFunctionEvaluationZero.dot(aVector), tDerivativeFunctionEvaluationOne.dot(aVector)});
-    };
+        {
+            return linear_algebra::DynamicVector<double>{tDerivativeFunctionEvaluationZero.dot(aVector),
+                                                         tDerivativeFunctionEvaluationOne.dot(aVector)};
+        }};
 
-    return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{tJacobianTimesVectorFunction}};
+    return linear_algebra::AdjointJacobianMultiplier{
+        linear_algebra::JacobianMultiplier{std::move(tVectorTimesAdjointJacobianFunction)}};
 }
 
 auto make_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
@@ -34,15 +35,15 @@ auto make_jacobian_multiplier(const linear_algebra::DynamicVector<double>& x,
     const auto tDerivativeFunctionEvaluationZero = test_utilities::to_dynamic_vector(aConstraints[0].df(x[0], x[1]));
     const auto tDerivativeFunctionEvaluationOne = test_utilities::to_dynamic_vector(aConstraints[1].df(x[0], x[1]));
 
-    const linear_algebra::JacobianMultiplier::JacobianTimesVectorFunction tAdjointJacobianTimesVectorFunction =
+    auto tVectorTimesJacobianFunction = linear_algebra::JacobianMultiplier::VectorTimesJacobianFunction{
         [tDerivativeFunctionEvaluationZero,
          tDerivativeFunctionEvaluationOne](const linear_algebra::DynamicVector<double>& aDual)
-    {
-        return linear_algebra::DynamicVector<double>(
-            {tDerivativeFunctionEvaluationZero * aDual[0] + tDerivativeFunctionEvaluationOne * aDual[1]});
-    };
+        {
+            return linear_algebra::DynamicVector<double>{tDerivativeFunctionEvaluationZero * aDual[0] +
+                                                         tDerivativeFunctionEvaluationOne * aDual[1]};
+        }};
 
-    return {tAdjointJacobianTimesVectorFunction};
+    return {std::move(tVectorTimesJacobianFunction)};
 }
 }  // namespace
 

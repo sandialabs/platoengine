@@ -8,7 +8,7 @@ namespace plato::linear_algebra::unittest
 {
 TEST(JacobianMultiplier, Identity)
 {
-    const JacobianMultiplier tIdentityJacobian = {/*.mJacobianTimesVectorFunction=*/
+    const JacobianMultiplier tIdentityJacobian = {/*.mVectorTimesJacobianFunction=*/
                                                   [](const DynamicVector<double>& aV) { return aV; }};
 
     const auto tVec = DynamicVector<double>{1.0, 2.0};
@@ -50,10 +50,10 @@ TEST(JacobianMultiplier, Multiplication)
     const auto tJacobianMultiplierProduct = tJacobianMultiplierDouble * tJacobianMultiplierSquare;
     const auto tVector = DynamicVector{1.0, 2.0, 3.0};
 
-    const auto tResult = tJacobianMultiplierProduct.mJacobianTimesVectorFunction(tVector);
+    const auto tResult = tJacobianMultiplierProduct.mVectorTimesJacobianFunction(tVector);
 
-    const auto tDoubled = tJacobianMultiplierDouble.mJacobianTimesVectorFunction(tVector);
-    const auto tExpected = tJacobianMultiplierSquare.mJacobianTimesVectorFunction(tDoubled);
+    const auto tDoubled = tJacobianMultiplierDouble.mVectorTimesJacobianFunction(tVector);
+    const auto tExpected = tJacobianMultiplierSquare.mVectorTimesJacobianFunction(tDoubled);
 
     EXPECT_EQ(tResult.stdVector(), tExpected.stdVector());
 }

@@ -139,7 +139,7 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
     const auto tDesignVariableConverter = mesh::DesignVariablesConversion{mMesh};
     const auto tNodalDesignParameters = mesh::NodalFieldVectorReference{aDesignParameters.stdVector()};
     return linear_algebra::JacobianMultiplier{
-        /*.mJacobianTimesVectorFunction=*/
+        /*.mVectorTimesJacobianFunction=*/
         [tAnalysisDomainMesh = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(tNodalDesignParameters),
          this](const linear_algebra::DynamicVector<double>& x)
         { return x * mFilter.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh); }};
@@ -151,7 +151,7 @@ auto DensityTopology::adjointJacobian(const linear_algebra::DynamicVector<double
     const auto tDesignVariableConverter = mesh::DesignVariablesConversion{mMesh};
     const auto tNodalDesignParameters = mesh::NodalFieldVectorReference{aDesignParameters.stdVector()};
     return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{
-        /*.mJacobianTimesVectorFunction=*/
+        /*.mVectorTimesJacobianFunction=*/
         [tAnalysisDomainMesh = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(tNodalDesignParameters),
          this](const linear_algebra::DynamicVector<double>& x)
         {
