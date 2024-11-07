@@ -61,7 +61,7 @@ auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) ->
 template <typename FunctionArg>
 auto make_vector_constraint(VectorConstraint<FunctionArg> aConstraint) -> VectorConstraint<FunctionArg>
 {
-    return std::move(aConstraint);
+    return aConstraint;
 }
 
 template <typename FunctionArg>
