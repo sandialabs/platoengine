@@ -14,16 +14,6 @@ namespace plato::utilities
 template <typename ToTuple, typename FromTuple>
 [[nodiscard]] constexpr auto are_tuples_compatible();
 
-/// @brief Copies or moves the entries of @a aFromTuple into a new tuple that may have types that are a subset of the
-/// original tuple.
-///
-/// See are_tuples_compatible for the requirements on the types contained by the two tuples.
-/// @sa are_tuples_compatible
-template <typename ToTuple,
-          typename FromTuple,
-          typename = std::enable_if_t<are_tuples_compatible<ToTuple, std::decay_t<FromTuple>>()>>
-[[nodiscard]] constexpr auto make_compatible_tuple(FromTuple&& aFromTuple) -> ToTuple;
-
 namespace detail
 {
 template <typename T, typename Tuple, std::size_t kIndex>
@@ -79,21 +69,6 @@ template <typename ToTuple, typename FromTuple>
     return tuple_is_subset_seq<ToTuple, FromTuple>(std::make_index_sequence<std::tuple_size_v<ToTuple>>());
 }
 
-template <std::size_t kToTupleIndex, typename ToTuple, typename FromTuple>
-constexpr void assign_matching_rhs_element(ToTuple& aToTuple, FromTuple&& aFromTuple)
-{
-    std::get<kToTupleIndex>(aToTuple) =
-        std::get<std::tuple_element_t<kToTupleIndex, ToTuple>>(std::forward<FromTuple>(aFromTuple));
-}
-
-template <typename ToTuple, typename FromTuple, std::size_t... kLHSIndices>
-constexpr auto make_compatible_tuple_seq(FromTuple&& aFromTuple, std::index_sequence<kLHSIndices...>)
-{
-    auto tToTuple = ToTuple{};
-    (assign_matching_rhs_element<kLHSIndices>(tToTuple, std::forward<FromTuple>(aFromTuple)), ...);
-    return tToTuple;
-}
-
 }  // namespace detail
 
 template <typename ToTuple, typename FromTuple>
@@ -107,13 +82,6 @@ constexpr auto are_tuples_compatible()
         return detail::tuple_is_subset<ToTuple, FromTuple>();
     }
     return false;
-}
-
-template <typename ToTuple, typename FromTuple, typename>
-constexpr auto make_compatible_tuple(FromTuple&& aFromTuple) -> ToTuple
-{
-    return detail::make_compatible_tuple_seq<ToTuple, FromTuple>(
-        std::forward<FromTuple>(aFromTuple), std::make_index_sequence<std::tuple_size_v<ToTuple>>());
 }
 
 }  // namespace plato::utilities
