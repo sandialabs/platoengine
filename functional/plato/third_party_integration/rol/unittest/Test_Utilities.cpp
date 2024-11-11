@@ -42,4 +42,18 @@ TEST(ROLUtilities, GeneratePerturbation)
     EXPECT_DOUBLE_EQ(tVector.norm(), 1.0);
 }
 
+TEST(ROLUtilities, RandomizeAndNormalize)
+{
+    constexpr auto tComponentValue = 10.0;
+    auto tROLStdVector = ROL::StdVector<double>{tComponentValue, tComponentValue};
+    randomize_and_normalize(tROLStdVector);
+    constexpr auto tExpectedNorm = 1.0;
+    EXPECT_DOUBLE_EQ(tROLStdVector.norm(), tExpectedNorm);
+
+    constexpr auto tExpectedDimension = 2U;
+    ASSERT_EQ(tROLStdVector.dimension(), tExpectedDimension);
+    EXPECT_NE(tROLStdVector.getVector()->front(), tComponentValue);
+    EXPECT_NE(tROLStdVector.getVector()->back(), tComponentValue);
+}
+
 }  // namespace plato::third_party_integration::rol::unittest
