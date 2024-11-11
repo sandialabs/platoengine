@@ -23,7 +23,7 @@ TEST(ConstraintValidation, ValidateConstraintType)
     input_parser::constraint tConstraint;
     EXPECT_TRUE(pfcd::validate_constraint_type(tConstraint).has_value());
 
-    tConstraint.constraint_type = input_parser::ConstraintTypes::kEquality;
+    tConstraint.constraint_type = input_parser::ConstraintTypes::kEqualTo;
     EXPECT_FALSE(pfcd::validate_constraint_type(tConstraint).has_value());
 
     tConstraint.constraint_type = input_parser::ConstraintTypes::kLessThan;

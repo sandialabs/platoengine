@@ -98,7 +98,7 @@ input_parser::constraint create_valid_example_constraint()
                                     /*.input_files=*/input_parser::FileList{{"brown.txt", "butter.txt", "sauce.txt"}},
                                     /*.constraint_value=*/0.0,
                                     /*.is_linear=*/true,
-                                    /*.constraint_type=*/input_parser::ConstraintTypes::kEquality};
+                                    /*.constraint_type=*/input_parser::ConstraintTypes::kEqualTo};
 }
 
 std::string create_valid_example_constraint_string()

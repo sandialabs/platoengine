@@ -97,7 +97,7 @@ TEST(ParseConstraintInputBlock, AllValidInputs)
     test_existence_and_equality(tConstraint.input_files, std::vector<std::string>{"test.txt"});
     test_existence_and_equality(tConstraint.constraint_value, 1.0);
     test_existence_and_equality(tConstraint.is_linear, false);
-    test_existence_and_equality(tConstraint.constraint_type, ConstraintTypes::kEquality);
+    test_existence_and_equality(tConstraint.constraint_type, ConstraintTypes::kEqualTo);
 }
 
 TEST(ParseConstraintInputBlock, MultipleBlocks)

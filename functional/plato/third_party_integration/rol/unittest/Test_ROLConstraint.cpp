@@ -110,7 +110,7 @@ TEST(ROLConstraint, CreateInequalityBounds)
         test_bounds_behaves_same_as_gold(tResult, tGold);
     }
     EXPECT_THROW([[maybe_unused]] auto tUnused = detail::create_inequality_bounds(
-                     criteria::library::ConstraintType::kEquality, tNumberOfConstraints),
+                     criteria::library::ConstraintType::kEqualTo, tNumberOfConstraints),
                  std::out_of_range);
 }
 
@@ -127,7 +127,7 @@ TEST(ROLConstraint, ConstraintCombination)
     auto tConstraint = ROLConstraint{};
 
     tConstraint.mLinear = true;
-    tConstraint.mType = criteria::library::ConstraintType::kEquality;
+    tConstraint.mType = criteria::library::ConstraintType::kEqualTo;
     tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kLinearEquality,
                                 TEST_CONTEXT("Linear equality"));
 
@@ -140,7 +140,7 @@ TEST(ROLConstraint, ConstraintCombination)
                                 TEST_CONTEXT("Linear inequality with less than"));
 
     tConstraint.mLinear = false;
-    tConstraint.mType = criteria::library::ConstraintType::kEquality;
+    tConstraint.mType = criteria::library::ConstraintType::kEqualTo;
     tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kNonlinearEquality,
                                 TEST_CONTEXT("Non-linear equality"));
 

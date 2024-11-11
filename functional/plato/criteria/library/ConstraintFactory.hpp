@@ -21,7 +21,7 @@ using ValidatedConstraints =
 
 enum class ConstraintType
 {
-    kEquality,
+    kEqualTo,
     kLessThan,
     kGreaterThan
 };

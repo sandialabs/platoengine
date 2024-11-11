@@ -52,8 +52,8 @@ TEST(KernelFilterCenteringTypes, EnumTable)
 
 TEST(ConstraintTypes, EnumTable)
 {
-    EXPECT_TRUE(kConstraintTypesTable.toString(ConstraintTypes::kEquality));
-    EXPECT_EQ(kConstraintTypesTable.toString(ConstraintTypes::kEquality).value(), "equal_to");
+    EXPECT_TRUE(kConstraintTypesTable.toString(ConstraintTypes::kEqualTo));
+    EXPECT_EQ(kConstraintTypesTable.toString(ConstraintTypes::kEqualTo).value(), "equal_to");
 
     EXPECT_TRUE(kConstraintTypesTable.toString(ConstraintTypes::kLessThan));
     EXPECT_EQ(kConstraintTypesTable.toString(ConstraintTypes::kLessThan).value(), "less_than");

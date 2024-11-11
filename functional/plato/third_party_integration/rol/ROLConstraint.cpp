@@ -127,7 +127,7 @@ void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& a
 
 auto constraint_combination(const ROLConstraint& aConstraint) -> ConstraintCombination
 {
-    if (aConstraint.mType == criteria::library::ConstraintType::kEquality)
+    if (aConstraint.mType == criteria::library::ConstraintType::kEqualTo)
     {
         if (aConstraint.mLinear)
         {

@@ -44,7 +44,7 @@ TEST_F(ConstraintFactoryTestFixture, ValidEqualityConstraint)
 {
     const auto tRawInput = create_raw_input();
 
-    test_constraint_type_and_value(get_first_constraint(tRawInput), 0.0, criteria::library::ConstraintType::kEquality);
+    test_constraint_type_and_value(get_first_constraint(tRawInput), 0.0, criteria::library::ConstraintType::kEqualTo);
 }
 
 TEST_F(ConstraintFactoryTestFixture, ValidInequalityConstraint)

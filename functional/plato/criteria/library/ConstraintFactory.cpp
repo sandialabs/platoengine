@@ -16,7 +16,7 @@ const auto kIsActive = [](const auto& aConstraint) { return core::is_active(aCon
 }
 
 const std::map<input_parser::ConstraintTypes, ConstraintType> kConstraintMap{
-    {input_parser::ConstraintTypes::kEquality, ConstraintType::kEquality},
+    {input_parser::ConstraintTypes::kEqualTo, ConstraintType::kEqualTo},
     {input_parser::ConstraintTypes::kGreaterThan, ConstraintType::kGreaterThan},
     {input_parser::ConstraintTypes::kLessThan, ConstraintType::kLessThan}};
 

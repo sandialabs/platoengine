@@ -91,7 +91,7 @@ TEST(SNOPTOptimizationDetail, ConstraintType)
         EXPECT_EQ(tConstraints.front().mConstraintType, aSNOPTConstraintType) << aTestContext;
     };
 
-    tCheckConstraintType(input_parser::ConstraintTypes::kEquality, tpis::ConstraintType::kEqualTo,
+    tCheckConstraintType(input_parser::ConstraintTypes::kEqualTo, tpis::ConstraintType::kEqualTo,
                          TEST_CONTEXT("Equal to"));
     tCheckConstraintType(input_parser::ConstraintTypes::kGreaterThan, tpis::ConstraintType::kGreaterThan,
                          TEST_CONTEXT("Greater than"));

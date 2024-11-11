@@ -23,8 +23,7 @@ namespace plato::criteria::extension
 {
 /// @brief for a vector criterion that is loaded from a shared library.
 ///
-/// A shared library path is given on construction from which to load
-/// a VectorCriterionInterface object.
+/// A shared library path is given on construction from which to load a VectorCriterionInterface object.
 class SharedLibraryVectorCriterion
 {
    public:
@@ -36,12 +35,18 @@ class SharedLibraryVectorCriterion
                                  const std::vector<std::string>& aFileNames,
                                  const boost::mpi::communicator& aComm);
 
+    /// @brief Computes the value of the criterion evaluated at the argument @a aAnalysisDomainMesh.
     [[nodiscard]] auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
         -> linear_algebra::DynamicVector<double>;
 
+    /// @brief Computes the left multiplication of a row vector @a aDirectionVector with the Jacobian matrix, evaluated
+    /// at the argument @a aAnalysisDomainMesh.
     [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                               const linear_algebra::DynamicVector<double>& aDirectionVector) const
         -> linear_algebra::DynamicVector<double>;
+
+    /// @brief Computes the left multiplication of a row vector @a aDualVector with the adjoint of the Jacobian matrix,
+    /// evaluated at the argument @a aAnalysisDomainMesh..
     [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                                      const linear_algebra::DynamicVector<double>& aDualVector) const
         -> linear_algebra::DynamicVector<double>;

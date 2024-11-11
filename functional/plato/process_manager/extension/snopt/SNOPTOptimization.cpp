@@ -84,7 +84,7 @@ namespace
 {
 const auto tConstraintTypeConversion =
     std::map<criteria::library::ConstraintType, third_party_integration::snopt::ConstraintType>{
-        {criteria::library::ConstraintType::kEquality, third_party_integration::snopt::ConstraintType::kEqualTo},
+        {criteria::library::ConstraintType::kEqualTo, third_party_integration::snopt::ConstraintType::kEqualTo},
         {criteria::library::ConstraintType::kGreaterThan, third_party_integration::snopt::ConstraintType::kGreaterThan},
         {criteria::library::ConstraintType::kLessThan, third_party_integration::snopt::ConstraintType::kLesserThan}};
 
