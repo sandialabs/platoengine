@@ -23,6 +23,7 @@ namespace plato::filter::extension
 ///
 /// Calls to the filter member function return the same density field,
 /// and the Jacobian is the identity matrix.
+// CPD-OFF
 class IdentityFilter : public library::FilterInterface
 {
    public:
@@ -37,6 +38,7 @@ class IdentityFilter : public library::FilterInterface
                                                      const linear_algebra::DynamicVector<double>& aV) const
         -> linear_algebra::DynamicVector<double> override;
 };
+// CPD-ON
 
 [[nodiscard]] auto make_identity_filter_function() -> library::FilterFunction;
 

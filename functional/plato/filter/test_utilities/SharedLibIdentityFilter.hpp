@@ -15,6 +15,7 @@ namespace plato::filter::test_utilities
 ///
 /// It is an identity filter, meaning that the density field will be unchanged on
 /// calls to `filter` and its Jacobian is the identity matrix.
+// CPD-OFF
 class SharedLibIdentityFilter : public library::FilterInterface
 {
    public:
@@ -29,6 +30,7 @@ class SharedLibIdentityFilter : public library::FilterInterface
                                                      const plato::linear_algebra::DynamicVector<double>& aV) const
         -> plato::linear_algebra::DynamicVector<double> override;
 };
+// CPD-ON
 }  // namespace plato::filter::test_utilities
 
 #endif

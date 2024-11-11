@@ -27,6 +27,7 @@ using FilterRadius = utilities::NamedType<double, struct FilterRadiusTag>;
 
 /// @brief An implementation of a kernel filter that relies on Tpetra and STK objects to conduct a search and create a
 /// linear mask.
+// CPD-OFF
 class KernelFilter : public library::FilterInterface
 {
    public:
@@ -57,6 +58,7 @@ class KernelFilter : public library::FilterInterface
     input_parser::KernelFilterCenteringTypes mFilterCentering;
     boost::mpi::communicator mCommunicator;
 };
+// CPD-ON
 
 namespace detail
 {
