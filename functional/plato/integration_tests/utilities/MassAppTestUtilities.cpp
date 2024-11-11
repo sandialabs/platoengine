@@ -191,14 +191,4 @@ void register_load_run_test(const boost::mpi::communicator& aComm, const test_ut
     EXPECT_DOUBLE_EQ(tResult, tExpectedValue) << aTestContext;
 }
 
-/*void register_load_vector_constraint(const test_utilities::TestContext& aTestContext)
-{
-    ASSERT_TRUE(std::filesystem::exists(mass_app_lib_path())) << aTestContext;
-
-    const auto tAppName = input_parser::AppName{"test-mass-app"};
-    const auto tConfigurationTempDirectory = register_test_mass_app(tAppName.mToken, boost::comm::communicator{});
-    const auto tCriterionName = input_parser::CriterionName{"mass"};
-    const auto tValidInput = create_test_mass_vector_constraint_input(tAppName, tCriterionName);
-}*/
-
 }  // namespace plato::integration_tests::utilities
