@@ -24,7 +24,7 @@ TEST(Rosenbrock, MakeRosenbrock)
     constexpr double tA = 2.0;
     constexpr double tB = 50.0;
     const auto tRosenbrock = pft::Rosenbrock{tA, tB};
-    const auto tRosenbrockFunction = test_utilities::make_rosenbrock_function(tRosenbrock);
+    const auto tRosenbrockFunction = test_utilities::make_two_d_function(tRosenbrock);
 
     {
         const auto tX = pft::TwoDVector{0.5, 10.0};
@@ -45,8 +45,8 @@ TEST(Rosenbrock, RosenbrockAndPenalty)
     const auto tRosenbrock = pft::Rosenbrock{1.0, 100.0};
     const auto tPenalty = pft::Penalty{pft::XMin{0.5 - 3}, pft::Exponent{3.0}};
 
-    const auto tH = core::compose(test_utilities::make_rosenbrock_function(tRosenbrock),
-                                  test_utilities::make_penalty_function(tPenalty));
+    const auto tH =
+        core::compose(test_utilities::make_two_d_function(tRosenbrock), test_utilities::make_two_d_function(tPenalty));
 
     const auto tX = pft::TwoDVector{1.0, 1.0};
     EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), 0.0);

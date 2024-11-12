@@ -41,7 +41,7 @@ struct Constraint
     ConstraintFunction mConstraintFunction;
     double mConstraintTarget = 0;
     bool mLinear = false;
-    ConstraintType mConstraintType;
+    ConstraintType mConstraintType = ConstraintType::kEqualTo;
 };
 
 /// @brief Holds members for defining a vector-valued constraint

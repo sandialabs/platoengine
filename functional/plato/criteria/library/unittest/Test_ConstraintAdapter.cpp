@@ -11,6 +11,7 @@ namespace plato::criteria::library::unittest
 {
 namespace
 {
+
 auto to_two_d(const linear_algebra::DynamicVector<double>& aDynamicVector) -> test_utilities::TwoDVector
 {
     return test_utilities::TwoDVector{aDynamicVector[0], aDynamicVector[1]};
@@ -21,24 +22,26 @@ using LinearAlgebraFunction =
                    core::FunctionInfo<double, core::evaluation::kFunction>,
                    core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
+using ConstraintDynamicVector = Constraint<const linear_algebra::DynamicVector<double>&>;
+
 auto make_rosenbrock_dynamic_vector_function() -> LinearAlgebraFunction
 {
-    const auto tF = core::test_utilities::make_rosenbrock_function(test_utilities::Rosenbrock{});
-    return LinearAlgebraFunction{
-        [tF](const auto& aDynamicVector) { return tF.evaluate<core::evaluation::kFunction>(to_two_d(aDynamicVector)); },
-        [tF](const auto& aDynamicVector) {
-            return test_utilities::to_dynamic_vector(
-                tF.evaluate<core::evaluation::kFirstDerivative>(to_two_d(aDynamicVector)));
-        }};
+    const auto tF = core::test_utilities::make_two_d_function(test_utilities::Rosenbrock{});
+    return LinearAlgebraFunction{[tF](const linear_algebra::DynamicVector<double>& aDynamicVector)
+                                 { return tF.evaluate<core::evaluation::kFunction>(to_two_d(aDynamicVector)); },
+                                 [tF](const linear_algebra::DynamicVector<double>& aDynamicVector)
+                                 {
+                                     return test_utilities::to_dynamic_vector(
+                                         tF.evaluate<core::evaluation::kFirstDerivative>(to_two_d(aDynamicVector)));
+                                 }};
 }
 
 auto make_rosenbrock_constraint() -> Constraint<const linear_algebra::DynamicVector<double>&>
 {
-    const auto tDynamicVectorFunction = make_rosenbrock_dynamic_vector_function();
     constexpr double tValue = 0;
     constexpr bool tLinear = false;
-    return Constraint<const linear_algebra::DynamicVector<double>&>{"Rosenbrock", tDynamicVectorFunction, tValue,
-                                                                    tLinear, ConstraintType::kLessThan};
+    return ConstraintDynamicVector{"Rosenbrock", make_rosenbrock_dynamic_vector_function(), tValue, tLinear,
+                                   ConstraintType::kLessThan};
 }
 
 }  // namespace

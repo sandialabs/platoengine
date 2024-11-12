@@ -32,7 +32,7 @@ TEST(Penalty, MakePenalty)
     constexpr auto tXMin = pft::XMin{0.5e-2};
     constexpr auto tExponent = pft::Exponent{2.0};
     const auto tPenalty = pft::Penalty{tXMin, tExponent};
-    const auto tPenaltyFunction = test_utilities::make_penalty_function(tPenalty);
+    const auto tPenaltyFunction = test_utilities::make_two_d_function(tPenalty);
 
     {
         const auto tX = pft::TwoDVector{0.5, 10.0};
