@@ -63,12 +63,4 @@ auto make_rol_problem(const library::ProcessManagerData& aProblem)
     return {tROLProblem, tControls};
 }
 
-auto make_rol_problem_without_constraints_for_gradient_check(const library::ProcessManagerData& aProblem)
-    -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>
-{
-    auto tProblem = aProblem;
-    tProblem.mConstraints.clear();
-    return make_rol_problem(tProblem);
-}
-
 }  // namespace plato::process_manager::extension

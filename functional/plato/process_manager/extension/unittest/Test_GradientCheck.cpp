@@ -24,19 +24,35 @@ std::size_t num_blocks_with_type(const ProcessManagerInputVector& aAllProcessMan
 
 TEST(GradientCheck, CreateGradientCheckRun)
 {
-    const input_parser::ParsedInput tInputDeck = test_utilities::create_valid_brick_shape_geometry() |
-                                                 test_utilities::create_valid_example_objective() |
-                                                 test_utilities::create_valid_example_gradient_check();
-    const auto tValidatedInput = library::make_validated_input(tInputDeck);
-    const library::ProcessManagerData tProblem = library::make_process_manager_data(tValidatedInput);
-    const library::ValidatedProcessManagerInputVector tAllProcessManagerInputs = tValidatedInput.processManagers();
-    ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1u);
-    const auto tGradientCheck = GradientCheck{
-        library::process_manager_input<input_parser::gradient_check>(tAllProcessManagerInputs.rawInput().back())};
-    tGradientCheck.run(tProblem);
+    const auto tCheckGradientCheckRuns =
+        [](const input_parser::ParsedInput& aParsedInput, const test_utilities::TestContext& aTestContext)
+    {
+        const auto tValidatedInput = library::make_validated_input(aParsedInput);
+        const library::ProcessManagerData tProblem = library::make_process_manager_data(tValidatedInput);
+        const library::ValidatedProcessManagerInputVector tAllProcessManagerInputs = tValidatedInput.processManagers();
+        ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1u);
+        const auto tGradientCheck = GradientCheck{
+            library::process_manager_input<input_parser::gradient_check>(tAllProcessManagerInputs.rawInput().back())};
+        tGradientCheck.run(tProblem);
 
-    test_utilities::test_for_existence_and_remove({tInputDeck.mGradientCheck.value().output_file_name.value().mToken},
-                                                  TEST_CONTEXT("Checking for file existence"));
+        test_utilities::test_for_existence_and_remove(
+            {aParsedInput.mGradientCheck.value().output_file_name.value().mToken},
+            EXTEND_CONTEXT("Checking for file existence", aTestContext));
+    };
+
+    const auto tBaseInput = test_utilities::create_valid_brick_shape_geometry() |
+                            test_utilities::create_valid_example_objective() |
+                            test_utilities::create_valid_example_gradient_check();
+
+    {
+        tCheckGradientCheckRuns(tBaseInput, TEST_CONTEXT("No constraints"));
+    }
+    {
+        input_parser::constraint tInequalityConstraint = test_utilities::create_valid_example_constraint();
+        tInequalityConstraint.constraint_type = input_parser::ConstraintTypes::kLessThan;
+        const auto tParsedInput = input_parser::ParsedInput{tBaseInput} | tInequalityConstraint;
+        tCheckGradientCheckRuns(tParsedInput, TEST_CONTEXT("Inequality constraints"));
+    }
 }
 
 TEST(GradientCheck, UnwrapValidatedGradientCheckInput)

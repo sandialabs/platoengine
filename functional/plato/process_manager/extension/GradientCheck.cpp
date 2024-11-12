@@ -54,15 +54,15 @@ void GradientCheck::run(const library::ProcessManagerData& aProblem) const
 {
     std::ofstream tOutFile(mOutputFileName);
     constexpr bool tPrintOutput = true;
-    auto [tROLProblem, tControls] = make_rol_problem_without_constraints_for_gradient_check(aProblem);
+    auto [tROLProblem, tControls] = make_rol_problem(aProblem);
     const LogspaceGenerator tLogspaceGenerator{mInitialDirectionMagnitude, mStepSizeReductionFactor, mNumberOfSteps};
     std::srand(mRandomDirectionSeed);
 
-    const auto tInitialGuessSize = static_cast<int>(aProblem.mGeometry.mInitialGuess.size());
     const auto tObjective = tROLProblem->getObjective();
-    tObjective->checkGradient(third_party_integration::rol::to_rol_vector(aProblem.mGeometry.mInitialGuess),
-                              third_party_integration::rol::generate_perturbation(tInitialGuessSize),
-                              tLogspaceGenerator.steps(), tPrintOutput, tOutFile);
+    auto tDirection = tROLProblem->getPrimalOptimizationVector()->clone();
+    third_party_integration::rol::randomize_and_normalize(*tDirection);
+    tObjective->checkGradient(*tROLProblem->getPrimalOptimizationVector(), *tDirection, tLogspaceGenerator.steps(),
+                              tPrintOutput, tOutFile);
 }
 
 namespace detail

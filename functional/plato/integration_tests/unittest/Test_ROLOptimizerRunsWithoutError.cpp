@@ -31,7 +31,7 @@ void check_optimization_runs_without_error(const input_parser::ParsedInput& aInp
 
 }  // namespace
 
-TEST(Optimize, NodalSumObjective)
+TEST(ROLOptimizerRunsWithoutError, NodalSumObjective)
 {
     const auto tInput = test_utilities::create_valid_example_objective() |
                         test_utilities::create_valid_brick_shape_geometry() |
@@ -39,7 +39,7 @@ TEST(Optimize, NodalSumObjective)
     check_optimization_runs_without_error(tInput);
 }
 
-TEST(Optimize, NodalSumObjectiveWithConstraint)
+TEST(ROLOptimizerRunsWithoutError, NodalSumObjectiveWithConstraint)
 {
     const auto tInput = test_utilities::create_valid_example_objective() |
                         test_utilities::create_valid_brick_shape_geometry() |

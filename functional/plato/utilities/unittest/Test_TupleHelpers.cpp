@@ -73,6 +73,7 @@ TEST(TupleHelpers, TupleIsSubset)
     static_assert(detail::tuple_is_subset<Tuple0, Tuple2>());
     static_assert(detail::tuple_is_subset<Tuple1, Tuple2>());
     static_assert(detail::tuple_is_subset<Tuple0, Tuple0>());
+    static_assert(detail::tuple_is_subset<Tuple1, Tuple1>());
     static_assert(detail::tuple_is_subset<Tuple2, Tuple2>());
 
     // Invalid

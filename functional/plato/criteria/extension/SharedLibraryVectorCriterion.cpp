@@ -78,6 +78,7 @@ auto make_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCrit
         return aSharedLibCriterion.rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector);
     }};
 }
+
 auto make_adjoint_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCriterion,
                                       const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
     -> linear_algebra::AdjointJacobianMultiplier

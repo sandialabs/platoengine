@@ -24,7 +24,7 @@ using LinearAlgebraFunction =
 
 using ConstraintDynamicVector = Constraint<const linear_algebra::DynamicVector<double>&>;
 
-auto make_rosenbrock_dynamic_vector_function() -> LinearAlgebraFunction
+auto make_rosenbrock_function() -> LinearAlgebraFunction
 {
     const auto tF = core::test_utilities::make_two_d_function(test_utilities::Rosenbrock{});
     return LinearAlgebraFunction{[tF](const linear_algebra::DynamicVector<double>& aDynamicVector)
@@ -40,7 +40,7 @@ auto make_rosenbrock_constraint() -> Constraint<const linear_algebra::DynamicVec
 {
     constexpr double tValue = 0;
     constexpr bool tLinear = false;
-    return ConstraintDynamicVector{"Rosenbrock", make_rosenbrock_dynamic_vector_function(), tValue, tLinear,
+    return ConstraintDynamicVector{"Rosenbrock", make_rosenbrock_function(), tValue, tLinear,
                                    ConstraintType::kLessThan};
 }
 
@@ -48,7 +48,7 @@ auto make_rosenbrock_constraint() -> Constraint<const linear_algebra::DynamicVec
 
 TEST(ConstraintAdaptor, MakeVectorFunction)
 {
-    auto tRosenbrock = make_rosenbrock_dynamic_vector_function();
+    auto tRosenbrock = make_rosenbrock_function();
     const auto tVectorRosenbrock =
         detail::make_vector_function<const linear_algebra::DynamicVector<double>&>(tRosenbrock);
 

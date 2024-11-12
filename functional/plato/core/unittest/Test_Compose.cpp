@@ -162,6 +162,15 @@ TEST(Compose, CompositionVectorFunctions)
     }
 }
 
+TEST(Compose, FunctionSizesRequirement)
+{
+    namespace pft = plato::test_utilities;
+    using VectorFunctionNoAdjoint = Function<plato::test_utilities::TwoDVector, VectorFInfo, VectorFirstDerivativeInfo>;
+
+    static_assert(plato::core::detail::kFunctionCompositionSizesRequirement<VectorFunctionNoAdjoint, VectorFunction>);
+    static_assert(!plato::core::detail::kFunctionCompositionSizesRequirement<VectorFunction, VectorFunctionNoAdjoint>);
+}
+
 TEST(Compose, CompositionMismatchedFunctions)
 {
     namespace pft = plato::test_utilities;
