@@ -10,7 +10,7 @@ namespace
 template <std::size_t kIndex, std::size_t... kIndices>
 constexpr auto index_from_index_sequence(std::index_sequence<kIndices...>)
 {
-    constexpr auto tArray = std::array{kIndices...};
+    constexpr auto tArray = std::array<std::size_t, sizeof...(kIndices)>{kIndices...};
     return tArray[kIndex];
 }
 }  // namespace
