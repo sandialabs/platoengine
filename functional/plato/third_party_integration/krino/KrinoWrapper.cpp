@@ -167,7 +167,7 @@ void KrinoWrapper::initializeLevelsetFieldsFromPrimitives(const stk::mesh::BulkD
     ::krino::compute_nodal_surface_distance(mesh, coordsField, levelSetField, initializationSurfaces);
 }
 
-stk::mesh::EntityVector KrinoWrapper::getNodeEntitiesInMesh()
+stk::mesh::EntityVector KrinoWrapper::getNodeEntitiesInMesh() const
 {
     ::krino::CDFEM_Support &cdfemSupport = ::krino::CDFEM_Support::get(mKrinoMesh->meta_data());
     const stk::mesh::Selector tSelector =
@@ -177,7 +177,7 @@ stk::mesh::EntityVector KrinoWrapper::getNodeEntitiesInMesh()
     return tNodes;
 }
 
-std::vector<double> KrinoWrapper::getLevelsetValues()
+std::vector<double> KrinoWrapper::getLevelsetValues() const
 {
     stk::mesh::EntityVector tNodes = getNodeEntitiesInMesh();
     std::vector<double> tReturn(tNodes.size());
@@ -255,17 +255,6 @@ std::unique_ptr<::krino::MeshInterface> KrinoWrapper::readAndSetupMeshForDecompo
     return std::unique_ptr<::krino::MeshInterface>(std::move(tMeshFromFile));
 }
 
-void KrinoWrapper::getNodalCoordinates(const unsigned int &aNodeID, double &aX, double &aY, double &aZ)
-{
-    const auto *tCoordsField =
-        static_cast<const stk::mesh::Field<double> *>(mKrinoMesh->meta_data().coordinate_field());
-    const stk::mesh::Entity entity = mKrinoMesh->bulk_data().get_entity(stk::topology::NODE_RANK, aNodeID);
-    double *vals = stk::mesh::field_data(*tCoordsField, entity);
-    aX = vals[0];
-    aY = vals[1];
-    aZ = vals[2];
-}
-
 void KrinoWrapper::initializeSphereLevelset(const std::vector<std::pair<stk::math::Vector3d, double>> &aSpheres)
 {
     initializeLevelsetFieldForSpheres(mKrinoMesh->bulk_data(), mLSFields[0].isovar, aSpheres);
@@ -281,7 +270,7 @@ void KrinoWrapper::initializeLevelsetFieldForSpheres(const stk::mesh::BulkData &
     compute_nodal_surface_distance(mesh, coordsField, levelSetField, initializationSurfaces);
 }
 
-unsigned int KrinoWrapper::getNumTetsInNamedBlock(const std::string &aBlockName)
+unsigned int KrinoWrapper::getNumTetsInNamedBlock(const std::string &aBlockName) const
 {
     unsigned int tTotalSize = 0;
     const stk::mesh::Part *tPart = mKrinoMesh->meta_data().get_part(aBlockName);
@@ -331,7 +320,7 @@ void KrinoWrapper::redistance()
     }
 }
 
-std::unordered_map<unsigned int, stk::math::Vector3d> KrinoWrapper::getCoordinateValues()
+std::unordered_map<unsigned int, stk::math::Vector3d> KrinoWrapper::getCoordinateValues() const
 {
     auto tCurCoordinateValues = std::unordered_map<unsigned int, stk::math::Vector3d>{};
     const unsigned tNumDimensions = mKrinoMesh->meta_data().spatial_dimension();
@@ -355,30 +344,13 @@ std::unordered_map<unsigned int, stk::math::Vector3d> KrinoWrapper::getCoordinat
     return tCurCoordinateValues;
 }
 
-std::unordered_map<unsigned int, stk::math::Vector3d> KrinoWrapper::predictNewCoordinatesBasedOnPerturbedLevelsetValues(
-    const std::unordered_map<unsigned int, stk::math::Vector3d> &aCoordVals, const double aPerturbation)
+auto KrinoWrapper::getSensitivities() const -> const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &
 {
-    auto tPredictedCoordinateValues = std::unordered_map<unsigned int, stk::math::Vector3d>{};
-    tPredictedCoordinateValues.reserve(mSensitivities.size());
-    for (const auto &[tInterfaceNodeID, tInterfaceNodeDXDP] : mSensitivities)
-    {
-        auto tCoord = stk::math::Vector3d{0.0, 0.0, 0.0};
-        for (size_t i = 0; i < tInterfaceNodeDXDP.mParentNodeIds.size(); ++i)
-        {
-            tCoord += aPerturbation * tInterfaceNodeDXDP.mParentDXDP[i];
-        }
-        tPredictedCoordinateValues[tInterfaceNodeID] = aCoordVals.at(tInterfaceNodeID) + tCoord;
-    }
-    // now add coords for nodes that weren't on the interface (ones
-    // we don't have sensitivities for)
-    for (auto &tCoordValue : aCoordVals)
-    {
-        if (tPredictedCoordinateValues.count(tCoordValue.first) == 0)
-        {
-            tPredictedCoordinateValues[tCoordValue.first] = tCoordValue.second;
-        }
-    }
-    return tPredictedCoordinateValues;
+    return mSensitivities;
 }
+
+auto KrinoWrapper::bulkData() const -> const stk::mesh::BulkData & { return mKrinoMesh->bulk_data(); }
+
+auto KrinoWrapper::getUncutBackgroundMeshSize() const -> unsigned int { return mUncutBackgroundMeshSize; }
 
 }  // namespace plato::third_party_integration::krino

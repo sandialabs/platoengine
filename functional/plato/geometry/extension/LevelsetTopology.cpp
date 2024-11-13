@@ -79,7 +79,7 @@ auto adjoint_jacobian_times_vector(const linear_algebra::DynamicVector<double>& 
                                    const linear_algebra::DynamicVector<double>& aVector)
     -> std::unordered_map<tpik::KrinoGlobalNodeID, stk::math::Vector3d>
 {
-    const auto tGlobalIDToDXDP = tpik::generate_computational_mesh(
+    const auto& tGlobalIDToDXDP = tpik::generate_computational_mesh(
         tpik::BackgroundMeshFilePath{aBackgroundMesh.filePath()}, tpik::CutMeshFilePath{aCutMeshPath},
         aDesignParameters.stdVector(), aIncludeVoidRegion);
     const auto tLevelSetSpaceVector = mesh::DesignVariablesConversion{aBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
@@ -190,7 +190,7 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
             background mesh that the design variables live on.  This can be created with a DesignVariableConverter (see
             DensityToplogy::jacobian() for example)
             */
-            const auto tGlobalIDToDXDP = tpik::generate_computational_mesh(
+            const auto& tGlobalIDToDXDP = tpik::generate_computational_mesh(
                 tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()}, tpik::CutMeshFilePath{mCutMesh},
                 aDesignParameters.stdVector(), mIncludeVoidRegion);
             const auto tCutNodeMap = mesh::EntityRetrieval{mesh::Mesh{mCutMesh}}.globalNodeIds();

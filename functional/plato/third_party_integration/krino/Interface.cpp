@@ -6,11 +6,11 @@
 namespace plato::third_party_integration::krino
 {
 
-std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> generate_computational_mesh(
-    const BackgroundMeshFilePath &aBackgroundMeshName,
-    const CutMeshFilePath &aCutMesh,
-    const std::vector<double> &aLevelsetValues,
-    const bool aIncludeVoidRegion)
+auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshName,
+                                 const CutMeshFilePath &aCutMesh,
+                                 const std::vector<double> &aLevelsetValues,
+                                 const bool aIncludeVoidRegion)
+    -> const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &
 {
     KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aIncludeVoidRegion);
     tKrinoWrapper.setLevelsetValues(aLevelsetValues);

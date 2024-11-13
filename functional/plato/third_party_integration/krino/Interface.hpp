@@ -23,7 +23,7 @@ auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshNa
                                  const CutMeshFilePath &aCutMesh,
                                  const std::vector<double> &aLevelsetValues,
                                  const bool aIncludeVoidRegion)
-    -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>;
+    -> const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &;
 
 /// @brief Generate a computational mesh, @a aCutMesh, by cutting a background mesh,
 /// @a aBackgroundMeshName, with the given levelset primitives, @a aLevelsetPrimitives.  Returns the

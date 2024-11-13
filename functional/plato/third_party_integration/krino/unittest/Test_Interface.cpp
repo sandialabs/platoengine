@@ -12,27 +12,63 @@ namespace plato::third_party_integration::krino::unittest
 namespace
 {
 constexpr int kNumDimensions = 3;
+
+auto predict_new_coordinates_based_on_perturbed_levelset_values(
+    const KrinoWrapper &aKrinoWrapper,
+    const std::unordered_map<unsigned int, stk::math::Vector3d> &aCoordVals,
+    const double aPerturbation) -> std::unordered_map<unsigned int, stk::math::Vector3d>
+{
+    auto tPredictedCoordinateValues = std::unordered_map<unsigned int, stk::math::Vector3d>{};
+    const auto &tSensitivities = aKrinoWrapper.getSensitivities();
+    tPredictedCoordinateValues.reserve(tSensitivities.size());
+    for (const auto &[tInterfaceNodeID, tInterfaceNodeDXDP] : tSensitivities)
+    {
+        auto tCoord = stk::math::Vector3d{0.0, 0.0, 0.0};
+        for (size_t i = 0; i < tInterfaceNodeDXDP.mParentNodeIds.size(); ++i)
+        {
+            tCoord += aPerturbation * tInterfaceNodeDXDP.mParentDXDP[i];
+        }
+        tPredictedCoordinateValues[tInterfaceNodeID] = aCoordVals.at(tInterfaceNodeID) + tCoord;
+    }
+    // now add coords for nodes that weren't on the interface (ones
+    // we don't have sensitivities for)
+    for (auto &tCoordValue : aCoordVals)
+    {
+        if (tPredictedCoordinateValues.count(tCoordValue.first) == 0)
+        {
+            tPredictedCoordinateValues[tCoordValue.first] = tCoordValue.second;
+        }
+    }
+    return tPredictedCoordinateValues;
 }
+
+}  // namespace
 
 TEST_F(KrinoTestFixture, CreateBoundingBoxBackgroundMesh)
 {
     const auto tFilename = std::filesystem::path{"tmp.exo"};
-    KrinoWrapper tKrinoWrapper{stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 0.5, tFilename};
+    const auto tKrinoWrapper =
+        KrinoWrapper{stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 0.5, tFilename};
 
-    double x, y, z;
-    tKrinoWrapper.getNodalCoordinates(1, x, y, z);
-    EXPECT_DOUBLE_EQ(x, 0.0);
-    EXPECT_DOUBLE_EQ(y, 0.0);
-    EXPECT_DOUBLE_EQ(z, 0.0);
-    tKrinoWrapper.getNodalCoordinates(68, x, y, z);
-    EXPECT_DOUBLE_EQ(x, 0.0);
-    EXPECT_DOUBLE_EQ(y, 0.75);
-    EXPECT_DOUBLE_EQ(z, 0.75);
-    tKrinoWrapper.getNodalCoordinates(58, x, y, z);
-    EXPECT_DOUBLE_EQ(x, 0.75);
-    EXPECT_DOUBLE_EQ(y, 1.0);
-    EXPECT_DOUBLE_EQ(z, 0.25);
-
+    const auto tNodalCoordinates = tKrinoWrapper.getCoordinateValues();
+    {
+        const auto tCoordinate = tNodalCoordinates.at(1);
+        EXPECT_DOUBLE_EQ(tCoordinate[0], 0.0);
+        EXPECT_DOUBLE_EQ(tCoordinate[1], 0.0);
+        EXPECT_DOUBLE_EQ(tCoordinate[2], 0.0);
+    }
+    {
+        const auto tCoordinate = tNodalCoordinates.at(68);
+        EXPECT_DOUBLE_EQ(tCoordinate[0], 0.0);
+        EXPECT_DOUBLE_EQ(tCoordinate[1], 0.75);
+        EXPECT_DOUBLE_EQ(tCoordinate[2], 0.75);
+    }
+    {
+        const auto tCoordinate = tNodalCoordinates.at(58);
+        EXPECT_DOUBLE_EQ(tCoordinate[0], 0.75);
+        EXPECT_DOUBLE_EQ(tCoordinate[1], 1.0);
+        EXPECT_DOUBLE_EQ(tCoordinate[2], 0.25);
+    }
     std::filesystem::remove(tFilename);
 }
 
@@ -138,16 +174,16 @@ TEST_F(KrinoTestFixture, Sensitivities)
     tKrinoWrapper.initializePlaneLevelset(-1, .5, .35, .2);
     std::vector<double> tOriginalLevelsetValues = tKrinoWrapper.getLevelsetValues();
     tKrinoWrapper.cutMesh();
-    tKrinoWrapper.getSensitivities();
     const std::unordered_map<unsigned int, stk::math::Vector3d> tCurCoordinateValues =
         tKrinoWrapper.getCoordinateValues();
-    const std::unordered_map<unsigned int, stk::math::Vector3d> tPredictedCoordValues =
-        tKrinoWrapper.predictNewCoordinatesBasedOnPerturbedLevelsetValues(tCurCoordinateValues, .01);
+    constexpr auto tPerturbation = double{0.01};
+    const auto tPredictedCoordValues =
+        predict_new_coordinates_based_on_perturbed_levelset_values(tKrinoWrapper, tCurCoordinateValues, tPerturbation);
     tKrinoWrapper.resetMesh();
     // Add .01 to all level set values
     for (auto &tCurLS : tOriginalLevelsetValues)
     {
-        tCurLS += .01;
+        tCurLS += tPerturbation;
     }
     tKrinoWrapper.setLevelsetValues(tOriginalLevelsetValues);
     tKrinoWrapper.cutMesh();
