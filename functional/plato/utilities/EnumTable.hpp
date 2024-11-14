@@ -28,22 +28,27 @@ class EnumTable
    public:
     EnumTable() = default;
 
-    /// All entries in @a aEnumPairs must be unique, for both left and right sides. I.e.
+    /// @pre All entries in @a aEnumPairs must be unique, for both left and right sides. I.e.
     /// no enum or string can be equal. Checked with an assertion.
     EnumTable(std::initializer_list<std::pair<Enum, std::string>> aEnumPairs);
 
     /// @todo: Change return to std::optional in c++17
-    boost::optional<Enum> toEnum(const std::string& aString) const;
+    auto toEnum(const std::string& aString) const -> boost::optional<Enum>;
 
     /// @todo: Change return to std::optional in c++17
-    boost::optional<std::string> toString(const Enum aEnum) const;
+    auto toString(const Enum aEnum) const -> boost::optional<std::string>;
 
-    typename MapType::left_map::const_iterator begin() const;
-    typename MapType::left_map::const_iterator end() const;
+    auto begin() const -> typename MapType::left_map::const_iterator;
+    auto end() const -> typename MapType::left_map::const_iterator;
 
    private:
     MapType mMap;
 };
+
+/// @brief Returns a vector containing all entries as strings. This is useful for error messages which need to print all
+/// entries as available options.
+template <typename Enum>
+auto all_strings_from_table(const EnumTable<Enum>& aEnumTable) -> std::vector<std::string>;
 
 template <typename Enum>
 EnumTable<Enum>::EnumTable(std::initializer_list<std::pair<Enum, std::string>> aEnumPairs)
@@ -96,6 +101,15 @@ auto EnumTable<Enum>::end() const -> typename EnumTable<Enum>::MapType::left_map
     return mMap.left.end();
 }
 
+template <typename Enum>
+auto all_strings_from_table(const EnumTable<Enum>& aEnumTable) -> std::vector<std::string>
+{
+    auto tAllEntries = std::vector<std::string>{};
+    tAllEntries.reserve(std::distance(aEnumTable.begin(), aEnumTable.end()));
+    std::transform(aEnumTable.begin(), aEnumTable.end(), std::back_inserter(tAllEntries),
+                   [](const auto& tTableEntry) { return tTableEntry.second; });
+    return tAllEntries;
+}
 }  // namespace plato::utilities
 
 #endif

@@ -49,4 +49,17 @@ TEST(KernelFilterCenteringTypes, EnumTable)
     EXPECT_TRUE(kKernelFilterCenteringTypesTable.toString(KernelFilterCenteringTypes::kNodeCentered));
     EXPECT_EQ(kKernelFilterCenteringTypesTable.toString(KernelFilterCenteringTypes::kNodeCentered).value(), "node");
 }
+
+TEST(ConstraintTypes, EnumTable)
+{
+    EXPECT_TRUE(kConstraintTypesTable.toString(ConstraintTypes::kEqualTo));
+    EXPECT_EQ(kConstraintTypesTable.toString(ConstraintTypes::kEqualTo).value(), "equal_to");
+
+    EXPECT_TRUE(kConstraintTypesTable.toString(ConstraintTypes::kLessThan));
+    EXPECT_EQ(kConstraintTypesTable.toString(ConstraintTypes::kLessThan).value(), "less_than");
+
+    EXPECT_TRUE(kConstraintTypesTable.toString(ConstraintTypes::kGreaterThan));
+    EXPECT_EQ(kConstraintTypesTable.toString(ConstraintTypes::kGreaterThan).value(), "greater_than");
+}
+
 }  // namespace plato::input_parser::unittest

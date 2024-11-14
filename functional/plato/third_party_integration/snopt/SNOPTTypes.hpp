@@ -6,6 +6,7 @@
 
 #include "plato/core/Function.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::third_party_integration::snopt
 {
@@ -25,18 +26,32 @@ enum struct Linearity
     kNonlinear
 };
 
+enum struct ConstraintType
+{
+    kEqualTo,
+    kLesserThan,
+    kGreaterThan
+};
+
 /// @brief Holds data describing a constraint: Function for evaluating the constraint, the constraint target, and
 /// whether or not it is a linear function.
-struct ConstraintData
+struct InterfaceConstraintData
 {
-    CriterionType mFunction;
-    double mTarget = 0;
+    using ConstraintFunction =
+        core::Function<const linear_algebra::DynamicVector<double>&,
+                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFunction>,
+                       core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>>;
+
+    ConstraintFunction mFunction;
+    std::vector<double> mTargets;
     Linearity mLinearity = Linearity::kLinear;
+    std::size_t mConstraintDimension = 1U;
+    ConstraintType mConstraintType = ConstraintType::kEqualTo;
 };
 
 using ObjectiveType = CriterionType;
-using ConstraintType = ConstraintData;
-using ConstraintVectorType = std::vector<ConstraintType>;
+using InterfaceConstraintType = InterfaceConstraintData;
+using InterfaceConstraintVectorType = std::vector<InterfaceConstraintType>;
 using SNOPTBounds = std::pair<std::vector<double>, std::vector<double>>;
 using ConstraintFunctionArgument = linear_algebra::DynamicVector<double>;
 }  // namespace plato::third_party_integration::snopt

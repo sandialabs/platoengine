@@ -33,4 +33,17 @@ TEST(SharedLibFilter, LoadAndValue)
     }
 }
 
+TEST(SharedLibFilter, LoadAndJacobian)
+{
+    const std::unique_ptr<const library::FilterInterface> tFilter =
+        library::load_filter(library::FilterParameters{}, kSharedLibPath);
+
+    const auto tVector = linear_algebra::DynamicVector<double>(kRho);
+    const auto tResult = tFilter->rowVectorTimesJacobian(kMeshArgument, tVector);
+    const auto tAdjointResult = tFilter->rowVectorTimesAdjointJacobian(kMeshArgument, tVector);
+
+    EXPECT_EQ(tResult.stdVector(), kRho);
+    EXPECT_EQ(tAdjointResult.stdVector(), kRho);
+}
+
 }  // namespace plato::filter::extension::unittest

@@ -27,6 +27,7 @@ using FilterRadius = utilities::NamedType<double, struct FilterRadiusTag>;
 
 /// @brief An implementation of a kernel filter that relies on Tpetra and STK objects to conduct a search and create a
 /// linear mask.
+// CPD-OFF
 class KernelFilter : public library::FilterInterface
 {
    public:
@@ -39,19 +40,25 @@ class KernelFilter : public library::FilterInterface
 
     /// @brief Apply the internal filter to the mesh specified in @a aAnalysisDomainMesh and return a new
     /// AnalysisDomainMesh object
-    [[nodiscard]] analysis::AnalysisDomainMesh filter(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
+    [[nodiscard]] auto filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> analysis::AnalysisDomainMesh override;
 
-    /// @brief Return the Jacobian of the linear mask applied to a specific vector @a aV
-    [[nodiscard]] linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-        const linear_algebra::DynamicVector<double>& aV) const override;
+    /// @brief Return the multiplication of row vector @a aV with the Jacobian of the filter.
+    [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                              const linear_algebra::DynamicVector<double>& aV) const
+        -> linear_algebra::DynamicVector<double> override;
+
+    /// @brief Return the multiplication of row vector @a aV with the transpose Jacobian of the filter.
+    [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                     const linear_algebra::DynamicVector<double>& aV) const
+        -> linear_algebra::DynamicVector<double> override;
 
    private:
     LinearMask mLinearMask;
     input_parser::KernelFilterCenteringTypes mFilterCentering;
     boost::mpi::communicator mCommunicator;
 };
+// CPD-ON
 
 namespace detail
 {

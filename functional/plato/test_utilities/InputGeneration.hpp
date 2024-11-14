@@ -14,6 +14,8 @@ namespace plato::test_utilities
 [[nodiscard]] std::string create_valid_brick_shape_geometry_string();
 
 [[nodiscard]] input_parser::density_topology create_valid_density_topology_geometry();
+[[nodiscard]] auto create_valid_density_topology_geometry_with_element_centered_kernel_filter()
+    -> std::pair<input_parser::density_topology, input_parser::kernel_filter>;
 [[nodiscard]] std::string create_valid_density_topology_geometry_string();
 
 [[nodiscard]] input_parser::levelset_topology create_valid_levelset_topology_geometry();
@@ -43,6 +45,8 @@ namespace plato::test_utilities
 [[nodiscard]] input_parser::kernel_filter create_valid_kernel_filter();
 
 [[nodiscard]] input_parser::snopt_optimization create_valid_example_snopt_optimization();
+
+[[nodiscard]] input_parser::kernel_filter create_valid_element_centered_kernel_filter();
 
 }  // namespace plato::test_utilities
 #endif

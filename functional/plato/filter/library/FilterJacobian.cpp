@@ -6,10 +6,19 @@
 
 namespace plato::filter::library
 {
-linear_algebra::DynamicVector<double> operator*(const linear_algebra::DynamicVector<double>& aV,
-                                                const FilterJacobian& aJacobian)
+auto operator*(const linear_algebra::DynamicVector<double>& aV, const FilterJacobian& aJacobian)
+    -> linear_algebra::DynamicVector<double>
 {
     assert(aJacobian.mFilter);
-    return aJacobian.mFilter->jacobianTimesVector(aJacobian.mAnalysisDomainMesh, aV);
+    return aJacobian.mFilter->rowVectorTimesJacobian(aJacobian.mAnalysisDomainMesh, aV);
 }
+
+auto operator*(const linear_algebra::DynamicVector<double>& aV, const FilterAdjointJacobian& aAdjointJacobian)
+    -> linear_algebra::DynamicVector<double>
+{
+    assert(aAdjointJacobian.mValue.mFilter);
+    return aAdjointJacobian.mValue.mFilter->rowVectorTimesAdjointJacobian(aAdjointJacobian.mValue.mAnalysisDomainMesh,
+                                                                          aV);
+}
+
 }  // namespace plato::filter::library

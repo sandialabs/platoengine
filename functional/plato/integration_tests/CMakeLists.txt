@@ -6,18 +6,28 @@ set(LINK_LIBS PlatoFunctionalCriteria
               PlatoFunctionalMesh)
 create_plato_library(PlatoTestMassObjective test_mass_objective "${LINK_LIBS}")
 
+set(LINK_LIBS PlatoFunctionalCriteria
+              PlatoFunctionalTestUtilities
+              PlatoFunctionalMesh)
+create_plato_library(PlatoTestVectorConstraint test_vector_constraint "${LINK_LIBS}")
+
+
 set(LINK_LIBS PlatoFunctionalLinearAlgebra
               PlatoFunctionalCore
               PlatoFunctionalTestUtilities)
 create_plato_library(PlatoFunctionalIntegrationTestUtilities utilities "${LINK_LIBS}")
 
 # Build serial unit tester
-set(LINK_LIBS TeuchosCore::teuchoscore 
-              ROL::rol
+set(LINK_LIBS PlatoFunctionalTpetra
+              PlatoFunctionalROL
+              PlatoFunctionalSTKIO
+              PlatoFunctionalSTKIOTestUtilities
               PlatoFunctional
               PlatoFunctionalIntegrationTestUtilities
-              PlatoTestMassObjective)
-create_plato_integration_tester(PlatoFunctional_IntegrationUnitTester unittest "${LINK_LIBS}")
+              PlatoTestMassObjective
+              PlatoTestVectorConstraint)
+set(USE_FOLDERS unittest test_mass_objective/unittest test_vector_constraint/unittest)
+create_plato_integration_tester(PlatoFunctional_IntegrationUnitTester "${USE_FOLDERS}" "${LINK_LIBS}")
 
 # Parallel tests
 set(LINK_LIBS PlatoFunctional 

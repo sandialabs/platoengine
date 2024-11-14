@@ -8,11 +8,30 @@
 
 namespace plato::core
 {
+namespace detail
+{
+/// @brief Requirement for the number of functions implemented in the outer and inner functions for compose.
+template <typename FunctionTypeOuter, typename FunctionTypeInner>
+constexpr bool kFunctionCompositionSizesRequirement =
+    std::tuple_size_v<typename FunctionTypeOuter::TupleHelper::InfoTuple> <=
+    std::tuple_size_v<typename FunctionTypeInner::TupleHelper::InfoTuple>;
+}  // namespace detail
+
 /// @brief Generates a new Function that is the composition of @a aFunctionOuter and @a aFunctionInner, i.e.
 /// \f$f(g(x))\f$
 /// @param aFunctionOuter The outer function, \f$f\f$ in \f$f(g(x))\f$
 /// @param aFunctionInner The inner function, \f$g\f$ in \f$f(g(x))\f$
-template <typename FunctionTypeOuter, typename FunctionTypeInner>
+/// @note Derivatives are implemented using the chain rule.
+/// @note The definitions of @a FunctionTypeOuter and @a FunctionTypeInner must match in the sense that the outer
+/// function must implement a subset of the functions implemented in the inner function. For example, if the outer
+/// function implements function evaluation and the first derivative, but the inner function implements only
+/// function evaluation, that will result in a compilation error. However, if the inner function implements evaluation,
+/// first derivative, and first derivative with adjoint ordering, then the resulting composed function will only
+/// implement evaluation and first derivative.
+template <
+    typename FunctionTypeOuter,
+    typename FunctionTypeInner,
+    typename = std::enable_if_t<detail::kFunctionCompositionSizesRequirement<FunctionTypeOuter, FunctionTypeInner>>>
 auto compose(const FunctionTypeOuter& aFunctionOuter, const FunctionTypeInner& aFunctionInner);
 
 namespace detail
@@ -107,12 +126,9 @@ template <typename Domain, typename InfoTuple, typename FunctionTuple, std::size
 }
 }  // namespace detail
 
-template <typename FunctionTypeOuter, typename FunctionTypeInner>
+template <typename FunctionTypeOuter, typename FunctionTypeInner, typename>
 auto compose(const FunctionTypeOuter& aFunctionOuter, const FunctionTypeInner& aFunctionInner)
 {
-    static_assert(std::tuple_size_v<typename FunctionTypeOuter::TupleHelper::InfoTuple> ==
-                      std::tuple_size_v<typename FunctionTypeInner::TupleHelper::InfoTuple>,
-                  "aFunctionOuter and aFunctionInner must implement the same number of functions.");
     constexpr auto tStartingIndex = int{0};
     using OuterInfo = typename FunctionTypeOuter::TupleHelper::InfoTuple;
     using InnerDomain = typename FunctionTypeInner::Domain;

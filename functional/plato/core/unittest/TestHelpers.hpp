@@ -20,8 +20,7 @@ using VectorFunction = Function<plato::test_utilities::TwoDVector,
 
 namespace detail
 {
-using RosenbrockF =
-    std::decay_t<decltype(test_utilities::make_rosenbrock_function(plato::test_utilities::Rosenbrock{}))>;
+using RosenbrockF = std::decay_t<decltype(test_utilities::make_two_d_function(plato::test_utilities::Rosenbrock{}))>;
 using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
 }  // namespace detail
 
@@ -31,9 +30,9 @@ void run_rosenbrock_aggregator_test(const F& aGenerateCommand)
     namespace pft = plato::test_utilities;
     const std::pair<double, double> tRosenbrockParams{2.0, 3.0};
     const std::pair<double, double> tWeights{.25, .5};
-    const auto tF1 = test_utilities::make_rosenbrock_function(pft::Rosenbrock{});
+    const auto tF1 = test_utilities::make_two_d_function(pft::Rosenbrock{});
     const auto tF2 =
-        test_utilities::make_rosenbrock_function(pft::Rosenbrock{tRosenbrockParams.first, tRosenbrockParams.second});
+        test_utilities::make_two_d_function(pft::Rosenbrock{tRosenbrockParams.first, tRosenbrockParams.second});
 
     const auto tFunctionAndWeight =
         detail::FunctionAndWeight{std::make_pair(tF1, tWeights.first), std::make_pair(tF2, tWeights.second)};

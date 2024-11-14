@@ -10,10 +10,16 @@ analysis::AnalysisDomainMesh SharedLibIdentityFilter::filter(
     return aAnalysisDomainMesh;
 }
 
-linear_algebra::DynamicVector<double> SharedLibIdentityFilter::jacobianTimesVector(
+linear_algebra::DynamicVector<double> SharedLibIdentityFilter::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh&, const linear_algebra::DynamicVector<double>& aV) const
 {
     return aV;
+}
+
+linear_algebra::DynamicVector<double> SharedLibIdentityFilter::rowVectorTimesAdjointJacobian(
+    const analysis::AnalysisDomainMesh& aMesh, const linear_algebra::DynamicVector<double>& aV) const
+{
+    return rowVectorTimesJacobian(aMesh, aV);
 }
 
 }  // namespace plato::filter::test_utilities

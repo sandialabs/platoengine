@@ -65,9 +65,10 @@ ConstraintCheck::ConstraintCheck(const ValidatedConstraintCheckInput& aInput)
 
 void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData) const
 {
+    namespace tpir = third_party_integration::rol;
     constexpr bool tPrintOutput = true;
 
-    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>{make_rol_problem(aProcessManagerData).release()};
+    auto [tROLProblem, tROLControls] = make_rol_problem(aProcessManagerData);
 
     std::ofstream tCheckLinearityOutFile{mLinearityCheckOutputFileName};
     tROLProblem->checkLinearity(
@@ -78,23 +79,26 @@ void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData
     if (tConstraint)
     {
         std::srand(mRandomDirectionSeed);
-        const auto tNumDesignVariables = static_cast<int>(aProcessManagerData.mGeometry.mInitialGuess.size());
 
         auto tConstraintVectorStandIn = tROLProblem->getResidualVector();
         tConstraintVectorStandIn->randomize(-mInitialDirectionMagnitude, mInitialDirectionMagnitude);
 
         constexpr int tFiniteDifferenceOrder = 1;  // TODO: Should we make this an actual input?
         std::ofstream tCheckJacobianOutFile{mJacobianCheckOutputFileName};
+        auto tDirectionVector = tROLProblem->getPrimalOptimizationVector()->clone();
+        tpir::randomize_and_normalize(*tDirectionVector);
+
         tConstraint->checkApplyJacobian(
-            third_party_integration::rol::to_rol_vector(aProcessManagerData.mGeometry.mInitialGuess),
-            third_party_integration::rol::generate_perturbation(tNumDesignVariables), *tConstraintVectorStandIn,
+            *tROLProblem->getPrimalOptimizationVector(), *tDirectionVector, *tConstraintVectorStandIn,
             LogspaceGenerator{mInitialDirectionMagnitude, mStepSizeReductionFactor, mNumberOfSteps}.steps(),
             tPrintOutput, tCheckJacobianOutFile, tFiniteDifferenceOrder);
 
+        const auto tDualVector = tROLProblem->getMultiplierVector()->clone();
+        tpir::randomize_and_normalize(*tDualVector);
+
         const auto tTolerance = tConstraint->checkAdjointConsistencyJacobian(
-            third_party_integration::rol::generate_perturbation(tROLProblem->getMultiplierVector()->dimension()),
-            third_party_integration::rol::generate_perturbation(tNumDesignVariables),
-            third_party_integration::rol::to_rol_vector(aProcessManagerData.mGeometry.mInitialGuess), false);
+            *tDualVector, *tDirectionVector, *tROLProblem->getPrimalOptimizationVector(), tPrintOutput);
+
         detail::write_jacobian_adjoint_consistency_check_output(mJacobianAdjointConsistencyCheckOutputFileName,
                                                                 tTolerance);
     }

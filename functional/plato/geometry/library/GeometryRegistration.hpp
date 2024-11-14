@@ -9,15 +9,11 @@
 #include "plato/core/VariantInputBuilder.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::analysis
 {
 struct AnalysisDomainMesh;
-}
-
-namespace plato::linear_algebra
-{
-struct JacobianMultiplier;
 }
 
 namespace plato::geometry::library
@@ -25,7 +21,10 @@ namespace plato::geometry::library
 using GeometryFunction =
     core::Function<const linear_algebra::DynamicVector<double>&,
                    core::FunctionInfo<analysis::AnalysisDomainMesh, core::evaluation::kFunction>,
-                   core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>>;
+                   core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>,
+                   core::FunctionInfo<linear_algebra::AdjointJacobianMultiplier,
+                                      core::evaluation::kFirstDerivative,
+                                      core::MatrixOrdering::kAdjoint>>;
 
 struct FactoryTypes
 {

@@ -45,13 +45,16 @@ class BrickShapeGeometry
 
     ~BrickShapeGeometry();
 
-    [[nodiscard]] analysis::AnalysisDomainMesh generateMesh(const BrickDesign& aDesignParameters) const;
+    [[nodiscard]] auto generateMesh(const BrickDesign& aDesignParameters) const -> analysis::AnalysisDomainMesh;
 
-    [[nodiscard]] linear_algebra::JacobianColumnEvaluator jacobian(const BrickDesign& aDesignParameters) const;
+    [[nodiscard]] auto jacobian(const BrickDesign& aDesignParameters) const -> linear_algebra::JacobianColumnEvaluator;
 
-    [[nodiscard]] static linear_algebra::DynamicVector<double> initialGuess();
+    [[nodiscard]] auto adjointJacobian(const BrickDesign& aDesignParameters) const
+        -> linear_algebra::JacobianColumnEvaluator;
 
-    [[nodiscard]] static std::pair<std::vector<double>, std::vector<double>> bounds();
+    [[nodiscard]] static auto initialGuess() -> linear_algebra::DynamicVector<double>;
+
+    [[nodiscard]] static auto bounds() -> std::pair<std::vector<double>, std::vector<double>>;
 
     static void output(const linear_algebra::DynamicVector<double>& aSolution);
 

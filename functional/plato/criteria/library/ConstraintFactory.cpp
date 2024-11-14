@@ -1,32 +1,58 @@
 #include "plato/criteria/library/ConstraintFactory.hpp"
 
+#include <map>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/core/ValidationUtilities.hpp"
+#include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
-#include "plato/utilities/Exception.hpp"
+#include "plato/utilities/TransformIf.hpp"
 
 namespace plato::criteria::library
 {
-std::vector<Constraint<const analysis::AnalysisDomainMesh&>> make_constraints(const ValidatedConstraints& aInput)
+namespace
 {
-    std::vector<Constraint<const analysis::AnalysisDomainMesh&>> tConstraints;
-    std::transform(aInput.rawInput().cbegin(), aInput.rawInput().cend(), std::back_inserter(tConstraints),
-                   [](const core::ValidatedInputTypeWrapper<input_parser::constraint>& aValidatedInput)
-                   { return detail::make_constraint(aValidatedInput); });
+const auto kIsActive = [](const auto& aConstraint) { return core::is_active(aConstraint.rawInput()); };
+}
+
+const std::map<input_parser::ConstraintTypes, ConstraintType> kConstraintMap{
+    {input_parser::ConstraintTypes::kEqualTo, ConstraintType::kEqualTo},
+    {input_parser::ConstraintTypes::kGreaterThan, ConstraintType::kGreaterThan},
+    {input_parser::ConstraintTypes::kLessThan, ConstraintType::kLessThan}};
+
+auto make_constraints(const ValidatedConstraints& aInput)
+    -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>
+{
+    std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>> tConstraints;
+    utilities::transform_if(
+        aInput.rawInput(), std::back_inserter(tConstraints),
+        [](const core::ValidatedInputTypeWrapper<input_parser::constraint>& aValidatedInput)
+        { return detail::make_constraint(aValidatedInput); },
+        kIsActive);
+
     return tConstraints;
 }
 
-linear_algebra::DynamicVector<double> make_dual_vector() { return linear_algebra::DynamicVector<double>{1.0}; }
+auto make_dual_vector(const std::size_t aSize) -> linear_algebra::DynamicVector<double>
+{
+    return linear_algebra::DynamicVector<double>{std::vector<double>(aSize, 1.0)};
+}
 
 namespace detail
 {
-Constraint<const analysis::AnalysisDomainMesh&> make_constraint(
-    const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput)
+
+auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput)
+    -> VectorConstraint<const analysis::AnalysisDomainMesh&>
 {
     const input_parser::constraint& tRawInput = aConstraintInput.rawInput();
-    const double tValue = tRawInput.equal_to.value();
+    const double tValue = tRawInput.constraint_value.value();
     const bool tIsLinear = tRawInput.is_linear.value_or(false);
-    return Constraint<const analysis::AnalysisDomainMesh&>{
-        tRawInput.name.value_or("Unnamed Constraint"), make_criterion_function(aConstraintInput), tValue, tIsLinear};
+
+    const auto tConstraint = Constraint<const analysis::AnalysisDomainMesh&>{
+        tRawInput.name.value_or("Unnamed Constraint"), make_criterion_function(aConstraintInput), tValue, tIsLinear,
+        kConstraintMap.at(tRawInput.constraint_type.value())};
+
+    return make_vector_constraint(tConstraint);
 }
 
 }  // namespace detail

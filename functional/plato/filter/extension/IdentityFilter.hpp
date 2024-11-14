@@ -23,16 +23,22 @@ namespace plato::filter::extension
 ///
 /// Calls to the filter member function return the same density field,
 /// and the Jacobian is the identity matrix.
+// CPD-OFF
 class IdentityFilter : public library::FilterInterface
 {
    public:
-    [[nodiscard]] analysis::AnalysisDomainMesh filter(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
+    [[nodiscard]] auto filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> analysis::AnalysisDomainMesh override;
 
-    [[nodiscard]] linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-        const linear_algebra::DynamicVector<double>& aV) const override;
+    [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                              const linear_algebra::DynamicVector<double>& aV) const
+        -> linear_algebra::DynamicVector<double> override;
+
+    [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                     const linear_algebra::DynamicVector<double>& aV) const
+        -> linear_algebra::DynamicVector<double> override;
 };
+// CPD-ON
 
 [[nodiscard]] auto make_identity_filter_function() -> library::FilterFunction;
 

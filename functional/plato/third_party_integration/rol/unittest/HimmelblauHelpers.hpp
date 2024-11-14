@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+#include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
+
 namespace plato::third_party_integration::rol::unittest
 {
 namespace detail
@@ -37,17 +39,17 @@ void run_himmelblau_objective_test(const Argument& aObjectiveFunctionArgument)
     using namespace detail;
     auto tObjective = ROLObjectiveFunction{aObjectiveFunctionArgument};
 
-    const auto tControl = ROL::StdVector<double>{kControlX, kControlY};
+    const auto tControl = std::vector<double>{kControlX, kControlY};
     double tTolerance;
     EXPECT_DOUBLE_EQ(tObjective.value(tControl, tTolerance), kGoldValue);
 
-    auto tGradient = ROL::StdVector<double>{0.0, 0.0};
+    auto tGradient = std::vector<double>{0.0, 0.0};
     tObjective.gradient(tGradient, tControl, tTolerance);
     EXPECT_DOUBLE_EQ(tGradient[0], kGoldGradientX);
     EXPECT_DOUBLE_EQ(tGradient[1], kGoldGradientY);
 
-    auto tHessian = ROL::StdVector<double>{10.0, 10.0};
-    auto tDirection = ROL::StdVector<double>{1.0, 1.0};
+    auto tHessian = std::vector<double>{10.0, 10.0};
+    auto tDirection = std::vector<double>{1.0, 1.0};
     tObjective.hessVec(tHessian, tDirection, tControl, tTolerance);
     EXPECT_EQ(tHessian[0], 0.0);
     EXPECT_EQ(tHessian[1], 0.0);

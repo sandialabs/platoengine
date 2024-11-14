@@ -2,11 +2,19 @@
 
 #include <string>
 
-#include "plato/input_parser/FileList.hpp"
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
 
 namespace plato::utilities::unittest
 {
+namespace
+{
+struct Wrapper
+{
+    int mChocolate = 0;
+    double mPeanuts = 0.0;
+    std::size_t mCaramel = 0;
+};
+}  // namespace
 
 TEST(Utilities, BoostOptionalToStdOptional)
 {
@@ -31,16 +39,26 @@ TEST(Utilities, BoostOptionalToStdOptional)
     }
 }
 
+TEST(Utilities, ToUnwrappedOptionalEmpty)
+{
+    auto tBoostOptionalWrapper = boost::optional<Wrapper>{};
+    const auto tStdOptionalPeanuts =
+        to_unwrapped_optional(tBoostOptionalWrapper, [](const auto& aWrapper) { return aWrapper.mPeanuts; });
+    EXPECT_FALSE(tStdOptionalPeanuts);
+}
+
 TEST(Utilities, ToUnwrappedOptional)
 {
-    constexpr std::string_view tFileName = "test.log";
-    boost::optional<input_parser::FileName> tBoostOptional{input_parser::FileName{std::string{tFileName}}};
+    constexpr auto tChocolate = int{10};
+    constexpr auto tPeanuts = double{0.5};
+    constexpr auto tCaramel = std::size_t{42};
+    auto tBoostOptionalWrapper = boost::optional<Wrapper>{Wrapper{tChocolate, tPeanuts, tCaramel}};
 
-    const std::optional<std::string> tStdOptional =
-        to_unwrapped_optional(tBoostOptional, [](const auto& aFileName) { return aFileName.mToken; });
+    const auto tStdOptionalPeanuts =
+        to_unwrapped_optional(tBoostOptionalWrapper, [](const auto& aWrapper) { return aWrapper.mPeanuts; });
 
-    ASSERT_TRUE(tStdOptional);
-    EXPECT_EQ(tStdOptional.value(), std::string{tFileName});
+    ASSERT_TRUE(tStdOptionalPeanuts);
+    EXPECT_EQ(tStdOptionalPeanuts.value(), tPeanuts);
 }
 
 }  // namespace plato::utilities::unittest

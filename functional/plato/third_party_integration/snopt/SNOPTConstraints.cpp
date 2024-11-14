@@ -2,31 +2,54 @@
 
 #include <algorithm>
 
-#include "SNOPTTypes.hpp"
+#include "plato/utilities/IndexRange.hpp"
 
 namespace plato::third_party_integration::snopt
 {
 namespace
 {
-auto partition_constraints(ConstraintVectorType& aConstraints) -> ConstraintVectorType::iterator
+[[nodiscard]] auto partition_constraints(ConstraintVectorType& aConstraints) -> ConstraintVectorType::iterator
 {
-    return std::partition(aConstraints.begin(), aConstraints.end(),
-                          [](const auto& aConstraint) { return aConstraint.mLinearity == Linearity::kNonlinear; });
+    return std::stable_partition(aConstraints.begin(), aConstraints.end(),
+                                 [](const auto& aConstraint)
+                                 { return aConstraint.mLinearity == Linearity::kNonlinear; });
 }
 
-[[nodiscard]] auto make_equality_constraint_vector(const SNOPTConstraints& aConstraints) -> std::vector<double>
+template <typename BoundFunction>
+[[nodiscard]] auto make_constraint_bound_vector(const SNOPTConstraints& aConstraints,
+                                                const BoundFunction& aBoundFunction) -> std::vector<double>
 {
     auto tTargets = std::vector<double>();
     tTargets.reserve(aConstraints.constraints().size());
     std::transform(aConstraints.constraints().begin(), aConstraints.constraints().end(), std::back_inserter(tTargets),
-                   [](const auto& tConstraint) { return tConstraint.mTarget; });
+                   aBoundFunction);
     return tTargets;
+}
+
+[[nodiscard]] auto scalar_constraint_from_vector_constraint(const InterfaceConstraintType& aVectorConstraint,
+                                                            const std::size_t aComponentIndex) -> CriterionType
+{
+    return CriterionType{
+        [tVectorFunction = aVectorConstraint.mFunction,
+         aComponentIndex](const linear_algebra::DynamicVector<double>& aDesignVariables)
+        { return tVectorFunction.evaluate<core::evaluation::kFunction>(aDesignVariables)[aComponentIndex]; },
+        [tVectorConstraint = aVectorConstraint,
+         aComponentIndex](const linear_algebra::DynamicVector<double>& aDesignVariables)
+        {
+            const auto tJacobian =
+                tVectorConstraint.mFunction.evaluate<core::evaluation::kFirstDerivative>(aDesignVariables);
+            auto tBasisVector = std::vector<double>(tVectorConstraint.mConstraintDimension, 0.0);
+            tBasisVector[aComponentIndex] = 1.0;
+            return linear_algebra::DynamicVector<double>(std::move(tBasisVector)) * tJacobian;
+        }};
 }
 
 }  // namespace
 
-SNOPTConstraints::SNOPTConstraints(ConstraintVectorType&& aConstraints, const std::size_t aNumberOfDesignVariables)
-    : mConstraints{constraints_with_affine_offset_removed(std::move(aConstraints), aNumberOfDesignVariables)},
+SNOPTConstraints::SNOPTConstraints(InterfaceConstraintVectorType&& aConstraints,
+                                   const std::size_t aNumberOfDesignVariables)
+    : mConstraints{constraints_with_affine_offset_removed(constraints_with_vectors_expanded(std::move(aConstraints)),
+                                                          aNumberOfDesignVariables)},
       mLinearConstraintsBeginIterator{partition_constraints(mConstraints)}
 {
 }
@@ -66,7 +89,14 @@ auto SNOPTConstraints::release() && -> ConstraintVectorType { return std::move(m
 
 auto constraint_bounds(const SNOPTConstraints& aConstraints) -> SNOPTBounds
 {
-    return std::make_pair(make_equality_constraint_vector(aConstraints), make_equality_constraint_vector(aConstraints));
+    const auto tLowerBoundFunction = [](const ConstraintData& aConstraint)
+    { return aConstraint.mConstraintType == ConstraintType::kLesserThan ? -kSNOPTUnbounded : aConstraint.mTarget; };
+
+    const auto tUpperBoundFunction = [](const ConstraintData& aConstraint)
+    { return aConstraint.mConstraintType == ConstraintType::kGreaterThan ? kSNOPTUnbounded : aConstraint.mTarget; };
+
+    return std::make_pair(make_constraint_bound_vector(aConstraints, tLowerBoundFunction),
+                          make_constraint_bound_vector(aConstraints, tUpperBoundFunction));
 }
 
 auto constraint_bounds_with_unbounded_objective(const SNOPTConstraints& aConstraints) -> SNOPTBounds
@@ -90,4 +120,43 @@ auto constraints_with_affine_offset_removed(ConstraintVectorType&& aConstraints,
     }
     return std::move(aConstraints);
 }
+
+auto constraints_with_vectors_expanded(InterfaceConstraintVectorType&& aVectorConstraints) -> ConstraintVectorType
+{
+    auto tAllScalarConstraints = ConstraintVectorType{};
+    tAllScalarConstraints.reserve(detail::total_number_of_scalar_constraints(aVectorConstraints));
+    for (const auto& tVectorConstraint : aVectorConstraints)
+    {
+        auto tScalarConstraints = detail::constraint_with_vectors_expanded(tVectorConstraint);
+        std::move(tScalarConstraints.begin(), tScalarConstraints.end(), std::back_inserter(tAllScalarConstraints));
+    }
+    return tAllScalarConstraints;
+}
+
+namespace detail
+{
+auto total_number_of_scalar_constraints(const InterfaceConstraintVectorType& aVectorConstraints) -> std::size_t
+{
+    return std::accumulate(aVectorConstraints.begin(), aVectorConstraints.end(), std::size_t{0},
+                           [](const std::size_t aSum, const auto& aVectorConstraint)
+                           { return aSum + aVectorConstraint.mConstraintDimension; });
+}
+
+auto constraint_with_vectors_expanded(const InterfaceConstraintType& aVectorConstraint) -> ConstraintVectorType
+{
+    const auto tNumberOfScalarConstraints = aVectorConstraint.mConstraintDimension;
+    auto tScalarConstraints = ConstraintVectorType{};
+    tScalarConstraints.reserve(aVectorConstraint.mConstraintDimension);
+    for (const auto tConstraintComponent : utilities::IndexRange{tNumberOfScalarConstraints})
+    {
+        tScalarConstraints.emplace_back(ConstraintData{
+            /*.mFunction=*/scalar_constraint_from_vector_constraint(aVectorConstraint, tConstraintComponent),
+            /*.mTarget=*/aVectorConstraint.mTargets.at(tConstraintComponent),
+            /*.mLinearity=*/aVectorConstraint.mLinearity,
+            /*.mConstraintType=*/aVectorConstraint.mConstraintType});
+    }
+    return tScalarConstraints;
+}
+}  // namespace detail
+
 }  // namespace plato::third_party_integration::snopt

@@ -7,27 +7,27 @@ namespace plato::third_party_integration::krino
 {
 
 std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> generate_computational_mesh(
-    const BackgroundMeshNameString &aBackgroundMeshName,
-    const std::string &aCutMesh,
+    const BackgroundMeshFilePath &aBackgroundMeshName,
+    const CutMeshFilePath &aCutMesh,
     const std::vector<double> &aLevelsetValues,
     const bool aIncludeVoidRegion)
 {
     KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aIncludeVoidRegion);
     tKrinoWrapper.setLevelsetValues(aLevelsetValues);
     tKrinoWrapper.cutMesh();
-    tKrinoWrapper.writeMesh(aCutMesh);
+    tKrinoWrapper.writeMesh(aCutMesh.mValue);
     return tKrinoWrapper.getSensitivities();
 }
 
-std::vector<double> initialize_mesh_with_levelset_primitives(const BackgroundMeshNameString &aBackgroundMeshName,
-                                                             const std::string &aCutMesh,
+std::vector<double> initialize_mesh_with_levelset_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
+                                                             const CutMeshFilePath &aCutMesh,
                                                              const LevelsetPrimitives &aLevelsetPrimitives,
                                                              const bool aIncludeVoidRegion)
 {
     KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aIncludeVoidRegion);
     tKrinoWrapper.initializeLevelsetsFromPrimitives(aLevelsetPrimitives);
     tKrinoWrapper.cutMesh();
-    tKrinoWrapper.writeMesh(aCutMesh);
+    tKrinoWrapper.writeMesh(aCutMesh.mValue);
     return tKrinoWrapper.getLevelsetValues();
 }
 

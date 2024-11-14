@@ -13,6 +13,10 @@ DECLARE_ENUM_SYMBOL_TABLE(KernelFilterCenteringTypes,
                          (kElementCentered, "element")
                          (kNodeCentered, "node"))
 
+DECLARE_ENUM_SYMBOL_TABLE(ConstraintTypes,
+                         (kEqualTo, "equal_to")
+                         (kLessThan, "less_than")
+                         (kGreaterThan, "greater_than"))
 // clang-format on
 
 #endif

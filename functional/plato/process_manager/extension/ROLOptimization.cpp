@@ -1,5 +1,6 @@
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 
+#include <ROL_Ptr.hpp>
 #include <fstream>
 #include <string_view>
 
@@ -56,15 +57,14 @@ ROLOptimization::ROLOptimization(const ValidatedOptimizationParameters& aInput)
 
 void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData) const
 {
-    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>{make_rol_problem(aProcessManagerData).release()};
+    auto [tROLProblem, tROLControls] = make_rol_problem(aProcessManagerData);
     auto tROLInputs = mROLOptions.parameters();
     auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
 
     auto tOutFile = std::ofstream{std::string{kROLOptimizerFileName}};
     tROLSolver.solve(tOutFile);
 
-    aProcessManagerData.mGeometry.mOutput(
-        third_party_integration::rol::to_dynamic_vector(*tROLProblem->getPrimalOptimizationVector()));
+    aProcessManagerData.mGeometry.mOutput(third_party_integration::rol::to_dynamic_vector(*tROLControls));
 }
 
 namespace detail

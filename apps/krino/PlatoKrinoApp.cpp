@@ -12,10 +12,71 @@
 #include <stk_util/environment/EnvData.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 
-#include "plato/third_party_integration/krino/Utilities.hpp"
+#include "plato/utilities/Enumerate.hpp"
 
 namespace Plato
 {
+
+namespace
+{
+using KrinoGlobalNodeID = unsigned int;
+
+auto assemble_global_id_to_dfdx_map(const std::vector<double> &aDFDX,
+                                    const std::vector<KrinoGlobalNodeID> &aCutMeshGlobalNodeIDMap,
+                                    const DFDXFormatting aDFDXFormatting)
+    -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>
+{
+    assert(aDFDXFormatting == DFDXFormatting::OneToN || aDFDXFormatting == DFDXFormatting::GlobalID);
+
+    auto tGlobalIDToDFDXMap = std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>{};
+    tGlobalIDToDFDXMap.reserve(aCutMeshGlobalNodeIDMap.size());
+    for (const auto &[tIndex, tCurGlobalNodeID] : plato::utilities::enumerate(aCutMeshGlobalNodeIDMap))
+    {
+        KrinoGlobalNodeID tDFDXIndex = 0;
+        if (aDFDXFormatting == DFDXFormatting::GlobalID)
+        {
+            tDFDXIndex = kNumDimensions * (tCurGlobalNodeID - 1);
+        }
+        else if (aDFDXFormatting == DFDXFormatting::OneToN)
+        {
+            tDFDXIndex = kNumDimensions * tIndex;
+        }
+        assert(tDFDXIndex + 2 < aDFDX.size());
+
+        tGlobalIDToDFDXMap[tCurGlobalNodeID] = {aDFDX[tDFDXIndex], aDFDX[tDFDXIndex + 1], aDFDX[tDFDXIndex + 2]};
+    }
+    return tGlobalIDToDFDXMap;
+}
+
+auto calculate_dfdls(const std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d> &aDFDXMap,
+                     const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP,
+                     const std::vector<KrinoGlobalNodeID> &aBackgroundNodemap)
+    -> std::unordered_map<KrinoGlobalNodeID, double>
+{
+    auto tDFDLS = std::unordered_map<KrinoGlobalNodeID, double>{};
+    tDFDLS.reserve(aBackgroundNodemap.size());
+    for (const auto tNodeID : aBackgroundNodemap)
+    {
+        tDFDLS[tNodeID] = 0.0;
+    }
+    for (const auto &[tCurInterfaceNodeID, tInterfaceNodeDXDP] : aDXDP)
+    {
+        assert(aDFDXMap.count(tCurInterfaceNodeID) != 0);
+        for (size_t j = 0; j < tInterfaceNodeDXDP.mParentNodeIds.size(); ++j)
+        {
+            const KrinoGlobalNodeID tCurBackgroundMeshNodeID = tInterfaceNodeDXDP.mParentNodeIds[j];
+            auto &tCurrentDFDLSEntry = tDFDLS[tCurBackgroundMeshNodeID];
+            const auto &tDFDXMapEntry = aDFDXMap.at(tCurInterfaceNodeID);
+            for (size_t w = 0; w < kNumDimensions; ++w)
+            {
+                tCurrentDFDLSEntry += tDFDXMapEntry[w] * tInterfaceNodeDXDP.mParentDXDP[j][w];
+            }
+        }
+    }
+    return tDFDLS;
+}
+
+}
 
 /******************************************************************************/
 PlatoKrinoApp::PlatoKrinoApp(Plato::Interface* aInterface, const apps::krino_app::CommandLineOptions& aOptions)

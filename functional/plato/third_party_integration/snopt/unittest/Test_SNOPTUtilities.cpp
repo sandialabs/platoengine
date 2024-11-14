@@ -25,19 +25,41 @@ struct TestTag
 };
 
 const auto kXSquaredConstraint =
-    ConstraintType{/*.mFunction=*/
+    ConstraintData{/*.mFunction=*/
                    core::make_function_with_first_derivative(kXSquaredFunction, kXSquaredGradientFunction),
                    /*.mTarget=*/0.0, /*.mLinearity=*/Linearity::kNonlinear};
 const auto kXCubedConstraint =
-    ConstraintType{/*.mFunction=*/
+    ConstraintData{/*.mFunction=*/
                    core::make_function_with_first_derivative(kXCubedFunction, kXCubedGradientFunction),
                    /*.mTarget=*/0.0, /*.mLinearity=*/Linearity::kNonlinear};
 
 template <typename EvaluationFunction, typename GradientFunction>
-auto test_linear_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
-    -> ConstraintType
+auto test_linear_interface_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
+    -> InterfaceConstraintType
 {
-    return ConstraintType{
+    return InterfaceConstraintType{
+        /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
+        /*.mTargets=*/{0.0},
+        /*.mLinearity=*/Linearity::kLinear,
+        /*.mConstraintDimension=*/1U};
+}
+
+template <typename EvaluationFunction, typename GradientFunction>
+auto test_nonlinear_interface_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
+    -> InterfaceConstraintType
+{
+    return InterfaceConstraintType{
+        /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
+        /*.mTarget=s*/ {0.0},
+        /*.mLinearity=*/Linearity::kNonlinear,
+        /*.mConstraintDimension=*/1U};
+}
+
+template <typename EvaluationFunction, typename GradientFunction>
+auto test_linear_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
+    -> ConstraintData
+{
+    return ConstraintData{
         /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
         /*.mTarget=*/0.0,
         /*.mLinearity=*/Linearity::kLinear};
@@ -45,9 +67,9 @@ auto test_linear_constraint(EvaluationFunction aEvaluationFunction, GradientFunc
 
 template <typename EvaluationFunction, typename GradientFunction>
 auto test_nonlinear_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
-    -> ConstraintType
+    -> ConstraintData
 {
-    return ConstraintType{
+    return ConstraintData{
         /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
         /*.mTarget=*/0.0,
         /*.mLinearity=*/Linearity::kNonlinear};
@@ -61,19 +83,21 @@ TEST(SNOPTUtilities, LinearConstraintJacobians)
     using Column = typename SparseMatrixBuilder<IndexType, double>::Column;
 
     constexpr auto tNumberOfDesignVariables = std::size_t{3};
-    const auto tObjective = [](const linear_algebra::DynamicVector<double>&) { return 0.0; };
+    const auto tObjective = [](const linear_algebra::DynamicVector<double>&)
+    { return test_utilities::vector_from_scalar(0.0); };
     const auto tGradient1 = [](const linear_algebra::DynamicVector<double>&) {
-        return linear_algebra::DynamicVector<double>{1.0, 0.0, 2.0};
+        return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{1.0, 0.0, 2.0});
     };
     const auto tGradient2 = [](const linear_algebra::DynamicVector<double>&) {
-        return linear_algebra::DynamicVector<double>{0.0, -1.0, 0.0};
+        return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{0.0, -1.0, 0.0});
     };
-    auto tConstraintGradientFunctions = ConstraintVectorType{test_linear_constraint(tObjective, tGradient1),
-                                                             test_nonlinear_constraint(tObjective, tGradient2),
-                                                             test_linear_constraint(tObjective, tGradient2)};
+    auto tConstraintFunctions =
+        InterfaceConstraintVectorType{test_linear_interface_constraint(tObjective, tGradient1),
+                                      test_nonlinear_interface_constraint(tObjective, tGradient2),
+                                      test_linear_interface_constraint(tObjective, tGradient2)};
 
     const auto tSparseMatrix = linear_constraint_jacobian_sparse_matrix(
-        SNOPTConstraints{std::move(tConstraintGradientFunctions), tNumberOfDesignVariables}, tNumberOfDesignVariables);
+        SNOPTConstraints{std::move(tConstraintFunctions), tNumberOfDesignVariables}, tNumberOfDesignVariables);
     constexpr auto tExpectedNumberOfNonZero = std::size_t{3};
     ASSERT_EQ(tSparseMatrix.size(), tExpectedNumberOfNonZero);
 

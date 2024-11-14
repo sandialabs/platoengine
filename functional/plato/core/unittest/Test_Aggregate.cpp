@@ -30,7 +30,7 @@ TEST(Aggregate, OneFunction)
 {
     namespace pft = plato::test_utilities;
 
-    const auto tF1 = test_utilities::make_rosenbrock_function(pft::Rosenbrock{});
+    const auto tF1 = test_utilities::make_two_d_function(pft::Rosenbrock{});
     const double tW1 = 1.0;
     using RosenbrockF = std::decay_t<decltype(tF1)>;
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;

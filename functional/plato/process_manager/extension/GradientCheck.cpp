@@ -1,5 +1,6 @@
 #include "plato/process_manager/extension/GradientCheck.hpp"
 
+#include <ROL_StdObjective.hpp>
 #include <cstdlib>
 #include <fstream>
 
@@ -53,15 +54,15 @@ void GradientCheck::run(const library::ProcessManagerData& aProblem) const
 {
     std::ofstream tOutFile(mOutputFileName);
     constexpr bool tPrintOutput = true;
-    auto tROLProblem = ROL::Ptr<ROL::Problem<double>>{make_rol_problem(aProblem).release()};
+    auto [tROLProblem, tControls] = make_rol_problem(aProblem);
     const LogspaceGenerator tLogspaceGenerator{mInitialDirectionMagnitude, mStepSizeReductionFactor, mNumberOfSteps};
-
     std::srand(mRandomDirectionSeed);
-    const auto tInitialGuessSize = static_cast<int>(aProblem.mGeometry.mInitialGuess.size());
-    tROLProblem->getObjective()->checkGradient(
-        third_party_integration::rol::to_rol_vector(aProblem.mGeometry.mInitialGuess),
-        third_party_integration::rol::generate_perturbation(tInitialGuessSize), tLogspaceGenerator.steps(),
-        tPrintOutput, tOutFile);
+
+    const auto tObjective = tROLProblem->getObjective();
+    auto tDirection = tROLProblem->getPrimalOptimizationVector()->clone();
+    third_party_integration::rol::randomize_and_normalize(*tDirection);
+    tObjective->checkGradient(*tROLProblem->getPrimalOptimizationVector(), *tDirection, tLogspaceGenerator.steps(),
+                              tPrintOutput, tOutFile);
 }
 
 namespace detail

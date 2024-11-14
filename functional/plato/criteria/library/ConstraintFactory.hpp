@@ -7,6 +7,7 @@
 #include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::analysis
 {
@@ -18,7 +19,14 @@ namespace plato::criteria::library
 using ValidatedConstraints =
     core::ValidatedInputTypeWrapper<std::vector<core::ValidatedInputTypeWrapper<input_parser::constraint>>>;
 
-/// @brief Holds members for defining a Constraint
+enum class ConstraintType
+{
+    kEqualTo,
+    kLessThan,
+    kGreaterThan
+};
+
+/// @brief Holds members for defining a scalar constraint
 /// @tparam FunctionArg The argument of the function used to define the constraint.
 ///   Typically, this is either AnalysisDomainMesh or a vector type such as DynamicVector.
 template <typename FunctionArg>
@@ -33,21 +41,42 @@ struct Constraint
     ConstraintFunction mConstraintFunction;
     double mConstraintTarget = 0;
     bool mLinear = false;
+    ConstraintType mConstraintType = ConstraintType::kEqualTo;
+};
+
+/// @brief Holds members for defining a vector-valued constraint
+/// @tparam FunctionArg The argument of the function used to define the constraint.
+///   Typically, this is either AnalysisDomainMesh or a vector type such as DynamicVector.
+template <typename FunctionArg>
+struct VectorConstraint
+{
+    using ConstraintFunction =
+        core::Function<FunctionArg,
+                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFunction>,
+                       core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>,
+                       core::FunctionInfo<linear_algebra::AdjointJacobianMultiplier,
+                                          core::evaluation::kFirstDerivative,
+                                          core::MatrixOrdering::kAdjoint>>;
+
+    std::string mName;
+    ConstraintFunction mConstraintFunction;
+    double mConstraintTarget = 0;
+    bool mLinear = false;
+    ConstraintType mConstraintType;
 };
 
 /// @brief Factory to create Constraint objects from input data.
 /// @post The return vector will have the same size as @a aInput.
-[[nodiscard]] std::vector<Constraint<const analysis::AnalysisDomainMesh&>> make_constraints(
-    const ValidatedConstraints& aInput);
+[[nodiscard]] auto make_constraints(const ValidatedConstraints& aInput)
+    -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>;
 
-/// @brief Helper for providing ROL a dual vector for constraints.
-/// @note Currently, constraints are scalar, and so the dual vector always has dimension 1.
-[[nodiscard]] linear_algebra::DynamicVector<double> make_dual_vector();
+/// @brief Helper for providing ROL a dual vector for constraints sized with @a aSize.
+[[nodiscard]] auto make_dual_vector(std::size_t aSize) -> linear_algebra::DynamicVector<double>;
 
 namespace detail
 {
-[[nodiscard]] Constraint<const analysis::AnalysisDomainMesh&> make_constraint(
-    const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput);
+[[nodiscard]] auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput)
+    -> VectorConstraint<const analysis::AnalysisDomainMesh&>;
 
 }  // namespace detail
 }  // namespace plato::criteria::library

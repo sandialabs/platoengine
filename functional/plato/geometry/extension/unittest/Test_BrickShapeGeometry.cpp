@@ -8,20 +8,25 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/utilities/Enumerate.hpp"
+#include "plato/utilities/IndexRange.hpp"
 
 namespace plato::geometry::extension::unittest
 {
 
 namespace
 {
+constexpr auto kNumNodes = std::size_t{8};
+constexpr auto kNumCoordinates = std::size_t{3};
+constexpr auto kBrickFileName = std::string_view{"brick.exo"};
+
 auto create_iota_dynamic_vector() -> linear_algebra::DynamicVector<double>
 {
-    constexpr unsigned int tNumNodes = 8;
-    constexpr unsigned int tNumCoordinates = 3;
-    std::vector<double> tVec(tNumNodes * tNumCoordinates, 0.0);
+    std::vector<double> tVec(kNumNodes * kNumCoordinates, 0.0);
     std::iota(tVec.begin(), tVec.end(), 1.0);
     return linear_algebra::DynamicVector<double>{std::move(tVec)};
 }
@@ -36,8 +41,8 @@ void run_test_of_sensitivities_by_index(const unsigned int aIndex, const std::ve
 void run_test_of_iota_vector_result(const linear_algebra::JacobianColumnEvaluator& aJacobian,
                                     const std::vector<double>& aGold)
 {
-    const linear_algebra::DynamicVector<double> tRolvec = create_iota_dynamic_vector();
-    const linear_algebra::DynamicVector<double> tRes = tRolvec * aJacobian;
+    const linear_algebra::DynamicVector<double> tVector = create_iota_dynamic_vector();
+    const linear_algebra::DynamicVector<double> tRes = tVector * aJacobian;
     EXPECT_EQ(tRes.stdVector(), aGold);
 }
 }  // namespace
@@ -130,8 +135,6 @@ TEST(BrickSensitivities, JacobianEvaluator)
 
 TEST(Brick, ABrick)
 {
-    const std::string tFileName = "brick.exo";
-
     constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
                                                /*.center_y = */ -2,
                                                /*.center_z = */ -3,
@@ -140,9 +143,9 @@ TEST(Brick, ABrick)
                                                /*.dimension_z = */ 6};
 
     constexpr double tDiscretizationSize = 1.0;
-    auto tUniqueFileName = std::filesystem::path{tFileName};
+    auto tUniqueFileName = std::filesystem::path{kBrickFileName};
     {
-        BrickShapeGeometry tBrick(tFileName, tDiscretizationSize);
+        BrickShapeGeometry tBrick(kBrickFileName, tDiscretizationSize);
 
         const analysis::AnalysisDomainMesh tMP = tBrick.generateMesh(tDesignParameters);
         tUniqueFileName = tMP.mFileName;
@@ -154,7 +157,7 @@ TEST(Brick, ABrick)
     EXPECT_FALSE(std::filesystem::exists(tUniqueFileName));
 }
 
-TEST(Brick, ConvertDesignParametersToROLStdVector)
+TEST(Brick, ConvertDesignParametersToDynamicVector)
 {
     constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
                                                /*.center_y = */ -2,
@@ -173,8 +176,6 @@ TEST(Brick, ConvertDesignParametersToROLStdVector)
 
 TEST(Brick, Jacobian)
 {
-    const std::string tFileName = "brick.exo";
-
     constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
                                                /*.center_y = */ -2,
                                                /*.center_z = */ -3,
@@ -182,14 +183,14 @@ TEST(Brick, Jacobian)
                                                /*.dimension_y = */ 4,
                                                /*.dimension_z = */ 6};
 
-    const BrickShapeGeometry tBrick(tFileName);
+    const BrickShapeGeometry tBrick(kBrickFileName);
     const linear_algebra::JacobianColumnEvaluator tJacobian = tBrick.jacobian(tDesignParameters);
 
     const std::vector<double> tGold{92, 100, 108, 6, 12, 24};
     run_test_of_iota_vector_result(tJacobian, tGold);
 }
 
-TEST(Brick, ToROLStdVector)
+TEST(Brick, ToDynamicVector)
 {
     constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
                                                /*.center_y = */ -2,
@@ -206,4 +207,38 @@ TEST(Brick, ToROLStdVector)
     EXPECT_EQ(tDesignParameters.dimension_y, tAsDynamicVector.stdVector().at(4));
     EXPECT_EQ(tDesignParameters.dimension_z, tAsDynamicVector.stdVector().at(5));
 }
+
+TEST(Brick, AdjointJacobian)
+{
+    constexpr auto tDesignParameters = BrickDesign{/*.center_x=*/1.0,
+                                                   /*.center_y=*/-2.0,
+                                                   /*.center_z=*/-3.0,
+                                                   /*.dimension_x=*/2.0,
+                                                   /*.dimension_y=*/4.0,
+                                                   /*.dimension_z=*/6.0};
+
+    const auto tBrick = BrickShapeGeometry{kBrickFileName};
+    const auto tJacobian = tBrick.jacobian(tDesignParameters);
+    const auto tAdjointJacobian = tBrick.adjointJacobian(tDesignParameters);
+
+    // Store the Jacobian in a dense matrix and check that the transpose is consistent
+    auto tJacobianAsDenseMatrix = std::vector<std::vector<double>>(tJacobian.mColumns);
+    for (const auto tColumnIndex : utilities::IndexRange{tJacobian.mColumns})
+    {
+        tJacobianAsDenseMatrix[tColumnIndex] = tJacobian.column(tColumnIndex).stdVector();
+    }
+
+    ASSERT_EQ(tAdjointJacobian.mColumns, kNumNodes * kNumCoordinates);
+    for (const auto tAdjointColumnIndex : utilities::IndexRange{tAdjointJacobian.mColumns})
+    {
+        const auto tAdjointColumn = tAdjointJacobian.column(tAdjointColumnIndex);
+        ASSERT_EQ(tAdjointColumn.size(), tJacobian.mColumns);
+        for (const auto tAdjointRowIndex : utilities::IndexRange{tAdjointColumn.size()})
+        {
+            EXPECT_EQ(tAdjointColumn[tAdjointRowIndex], tJacobianAsDenseMatrix[tAdjointRowIndex][tAdjointColumnIndex])
+                << "Adjoint row: " << tAdjointRowIndex << ", col: " << tAdjointColumnIndex;
+        }
+    }
+}
+
 }  // namespace plato::geometry::extension::unittest

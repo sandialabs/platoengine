@@ -26,7 +26,7 @@ struct FilterParameters
 /// @brief Base class for density field topology filters.
 ///
 /// Derived types must implement filter, which applies the specific
-/// filter to the density field in a AnalysisDomainMesh, and jacobianTimesVector,
+/// filter to the density field in a AnalysisDomainMesh, and rowVectorTimesJacobian,
 /// which implements the left multiplication of the Jacobian of the filter
 /// with a row vector, i.e. \f$v^T J\f$.
 class FilterInterface
@@ -36,14 +36,19 @@ class FilterInterface
     virtual ~FilterInterface() = default;
 
     /// @brief Appies the filter to the density field held in @a aAnalysisDomainMesh
-    [[nodiscard]] virtual analysis::AnalysisDomainMesh filter(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const = 0;
+    [[nodiscard]] virtual auto filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> analysis::AnalysisDomainMesh = 0;
 
     /// @brief Implements multiplication of row vector @a aV and the Jacobian of the
     ///  filter computed at the argument @a aAnalysisDomainMesh.
-    [[nodiscard]] virtual linear_algebra::DynamicVector<double> jacobianTimesVector(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-        const linear_algebra::DynamicVector<double>& aV) const = 0;
+    [[nodiscard]] virtual auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                      const linear_algebra::DynamicVector<double>& aV) const
+        -> linear_algebra::DynamicVector<double> = 0;
+
+    ///@brief Evaluate the product of a row vector with the transpose of the Jacobian matrix.
+    [[nodiscard]] virtual auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                             const plato::linear_algebra::DynamicVector<double>& aV)
+        const -> plato::linear_algebra::DynamicVector<double> = 0;
 
     FilterInterface(const FilterInterface&) = delete;
     FilterInterface& operator=(const FilterInterface&) = delete;

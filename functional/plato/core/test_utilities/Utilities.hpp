@@ -8,20 +8,15 @@
 
 namespace plato::core::test_utilities
 {
-[[nodiscard]] inline auto make_rosenbrock_function(const plato::test_utilities::Rosenbrock& aRosenbrock)
+/// @brief Creates a core::Function from an object with members `f` and `df`.
+/// @tparam FunctionObject A class or struct with members `f` and `df`, which both have two `double` arguments.
+template <typename FunctionObject>
+[[nodiscard]] auto make_two_d_function(const FunctionObject& aFunctionObject)
 {
     namespace pftu = plato::test_utilities;
     return make_function_with_first_derivative(
-        [aRosenbrock](const pftu::TwoDVector& aX) { return aRosenbrock.f(aX(0), aX(1)); },
-        [aRosenbrock](const pftu::TwoDVector& aX) { return aRosenbrock.df(aX(0), aX(1)); });
-}
-
-[[nodiscard]] inline auto make_penalty_function(const plato::test_utilities::Penalty& aPenalty)
-{
-    namespace pftu = plato::test_utilities;
-    return make_function_with_first_derivative(
-        [aPenalty](const pftu::TwoDVector& aX) { return aPenalty.f(aX(0), aX(1)); },
-        [aPenalty](const pftu::TwoDVector& aX) { return aPenalty.df(aX(0), aX(1)); });
+        [aFunctionObject](const pftu::TwoDVector& aX) { return aFunctionObject.f(aX(0), aX(1)); },
+        [aFunctionObject](const pftu::TwoDVector& aX) { return aFunctionObject.df(aX(0), aX(1)); });
 }
 
 }  // namespace plato::core::test_utilities

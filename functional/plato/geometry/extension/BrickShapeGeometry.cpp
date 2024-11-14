@@ -19,8 +19,9 @@ namespace plato::geometry::extension
 {
 namespace
 {
-constexpr int kNumDims = 3;
-constexpr int kNumDesignParameters = 6;
+constexpr auto kNumDims = std::size_t{3};
+constexpr auto kNumNodes = std::size_t{8};
+constexpr auto kNumDesignParameters = std::size_t{6};
 const std::vector<double> kLowerBounds = {-10.0, -10.0, -10.0, 1e-2, 1e-2, 1e-2};  // Arbitrary
 const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};        // Arbitrary
 
@@ -66,8 +67,23 @@ linear_algebra::JacobianColumnEvaluator BrickShapeGeometry::jacobian(const Brick
     return linear_algebra::JacobianColumnEvaluator{
         /*.mColumns=*/kNumDesignParameters,
         /*.mX=*/detail::to_dynamic_vector(aDesignParameters),
-        /*.mColumnFunction=*/[](unsigned int i, const linear_algebra::DynamicVector<double>&) {
-            return linear_algebra::DynamicVector<double>(detail::sensitivities(i));
+        /*.mColumnFunction=*/[](unsigned int aColumnIndex, const linear_algebra::DynamicVector<double>&) {
+            return linear_algebra::DynamicVector<double>(detail::sensitivities(aColumnIndex));
+        }};
+}
+
+auto BrickShapeGeometry::adjointJacobian(const BrickDesign& aDesignParameters) const
+    -> linear_algebra::JacobianColumnEvaluator
+{
+    return linear_algebra::JacobianColumnEvaluator{
+        kNumDims * kNumNodes, detail::to_dynamic_vector(aDesignParameters),
+        [](unsigned int aAdjointColumnIndex, const linear_algebra::DynamicVector<double>&)
+        {
+            auto tAdjointColumn = std::vector<double>(kNumDesignParameters);
+            std::generate(tAdjointColumn.begin(), tAdjointColumn.end(),
+                          [tAdjointRowIndex = 0, aAdjointColumnIndex]() mutable
+                          { return detail::sensitivities(tAdjointRowIndex++)[aAdjointColumnIndex]; });
+            return linear_algebra::DynamicVector(std::move(tAdjointColumn));
         }};
 }
 
@@ -89,11 +105,16 @@ void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSo
 
 auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry) -> library::GeometryFunction
 {
-    return core::make_function_with_first_derivative(
+    return library::GeometryFunction{
         [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
         { return tBrickShapeGeometry.generateMesh(detail::to_design_parameters(x)); },
         [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
-        { return to_jacobian_multiplier(tBrickShapeGeometry.jacobian(detail::to_design_parameters(x))); });
+        { return to_jacobian_multiplier(tBrickShapeGeometry.jacobian(detail::to_design_parameters(x))); },
+        [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
+        {
+            return linear_algebra::AdjointJacobianMultiplier{
+                to_jacobian_multiplier(tBrickShapeGeometry.adjointJacobian(detail::to_design_parameters(x)))};
+        }};
 }
 
 namespace detail
@@ -134,13 +155,14 @@ void create_mesh(const BrickDesign& aDesign,
 
 std::vector<double> sensitivities(const unsigned int aParameterIndex)
 {
+    assert(aParameterIndex < kNumDesignParameters);
     // design parameters are center (x,y,z), dimension (x,y,z)
     // All nodes or just corners? ESP is based on surface nodeset not all interior nodes, settle for corners right now
     // Assuming nodes are min(x),min(y),min(z) -> increasing x, increasing y, increasing z
-    std::vector<double> base = {1, 1, 1, 1, 1, 1, 1, 1};
-    const std::vector<double> xdim = {-0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
-    const std::vector<double> ydim = {-0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5};
-    const std::vector<double> zdim = {-0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5};
+    auto base = std::array{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    constexpr auto xdim = std::array{-0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
+    constexpr auto ydim = std::array{-0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5};
+    constexpr auto zdim = std::array{-0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5};
 
     switch (aParameterIndex)
     {

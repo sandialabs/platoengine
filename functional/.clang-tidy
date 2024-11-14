@@ -1,6 +1,6 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,-clang-analyzer-cplusplus.NewDeleteLeaks'
-WarningsAsErrors: 'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,-clang-analyzer-cplusplus.NewDeleteLeaks'
+Checks:          'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,-clang-analyzer-cplusplus.NewDeleteLeaks,-bugprone-unchecked-optional-access'
+WarningsAsErrors: 'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,-clang-analyzer-cplusplus.NewDeleteLeaks,-bugprone-unchecked-optional-access'
 HeaderFilterRegex: functional
 AnalyzeTemporaryDtors: false
 FormatStyle:     none

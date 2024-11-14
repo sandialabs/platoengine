@@ -103,8 +103,9 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato::input_parser::CriterionName, criterion)
     (unsigned int, number_of_processors)
     (plato::input_parser::FileList, input_files)
-    (double, equal_to)
+    (double, constraint_value)
     (bool, is_linear)
+    (plato::input_parser::ConstraintTypes, constraint_type)
 )
 
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(

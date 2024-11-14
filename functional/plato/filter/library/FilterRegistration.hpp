@@ -33,9 +33,11 @@ using FilterInput = core::InputVariant<input_parser::ParsedInput, input_parser::
 using ValidatedFilterInput = core::ValidatedInputTypeWrapper<
     core::ValidatedInputVariant<input_parser::ParsedInput, input_parser::IsFilterInput>>;
 
-using FilterFunction = core::Function<const analysis::AnalysisDomainMesh&,
-                                      core::FunctionInfo<analysis::AnalysisDomainMesh, core::evaluation::kFunction>,
-                                      core::FunctionInfo<FilterJacobian, core::evaluation::kFirstDerivative>>;
+using FilterFunction = core::Function<
+    const analysis::AnalysisDomainMesh&,
+    core::FunctionInfo<analysis::AnalysisDomainMesh, core::evaluation::kFunction>,
+    core::FunctionInfo<FilterJacobian, core::evaluation::kFirstDerivative>,
+    core::FunctionInfo<FilterAdjointJacobian, core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>>;
 
 using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFilterInput>;
 using FilterCache =
@@ -59,12 +61,15 @@ template <typename CacheFunction>
 FilterFunction make_filter_function_from_cache(const CacheFunction& aCacheFunction)
 {
     auto tFilterCache = aCacheFunction();
-    return core::make_function_with_first_derivative(
-        [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
-        { return tFilterCache.compute(aAnalysisDomainMesh)->filter(aAnalysisDomainMesh); },
-        [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable {
-            return FilterJacobian{tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh};
-        });
+    return FilterFunction{[tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
+                          { return tFilterCache.compute(aAnalysisDomainMesh)->filter(aAnalysisDomainMesh); },
+                          [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable {
+                              return FilterJacobian{tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh};
+                          },
+                          [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable {
+                              return FilterAdjointJacobian{
+                                  FilterJacobian{tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh}};
+                          }};
 }
 }  // namespace plato::filter::library
 

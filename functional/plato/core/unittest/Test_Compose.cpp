@@ -162,4 +162,29 @@ TEST(Compose, CompositionVectorFunctions)
     }
 }
 
+TEST(Compose, FunctionSizesRequirement)
+{
+    namespace pft = plato::test_utilities;
+    using VectorFunctionNoAdjoint = Function<plato::test_utilities::TwoDVector, VectorFInfo, VectorFirstDerivativeInfo>;
+
+    static_assert(plato::core::detail::kFunctionCompositionSizesRequirement<VectorFunctionNoAdjoint, VectorFunction>);
+    static_assert(!plato::core::detail::kFunctionCompositionSizesRequirement<VectorFunction, VectorFunctionNoAdjoint>);
+}
+
+TEST(Compose, CompositionMismatchedFunctions)
+{
+    namespace pft = plato::test_utilities;
+    using VectorFunctionNoAdjoint = Function<plato::test_utilities::TwoDVector, VectorFInfo, VectorFirstDerivativeInfo>;
+
+    const auto tF = VectorFunctionNoAdjoint{pft::TwoDVectorFunction{}, pft::TwoDVectorFunctionJacobian{}};
+    const auto tG = VectorFunction{pft::TwoDVectorFunction{}, pft::TwoDVectorFunctionJacobian{},
+                                   pft::TwoDVectorFunctionAdjointJacobian{}};
+
+    const auto tComposition = compose(tF, tG);
+    using CompositionType = decltype(tComposition);
+    static_assert(CompositionType::isImplemented<evaluation::kFunction, MatrixOrdering::kOriginal>());
+    static_assert(CompositionType::isImplemented<evaluation::kFirstDerivative, MatrixOrdering::kOriginal>());
+    static_assert(!CompositionType::isImplemented<evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>());
+}
+
 }  // namespace plato::core::unittest

@@ -15,20 +15,14 @@
 #include <Akri_Surface_Manager.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/MetaData.hpp>
+#include <stk_mesh/base/Types.hpp>
 #include <stk_util/environment/EnvData.hpp>
-
-#include "stk_mesh/base/Types.hpp"
 
 namespace plato::third_party_integration::krino
 {
-
-const std::string kLevelsetName = "LS";
-
-void KrinoWrapper::writeMeshPrivate(const std::string &aFilename)
+namespace
 {
-    const stk::mesh::Selector outputSelector =
-        buildOutputSelector(mKrinoMesh->meta_data(), ::krino::AuxMetaData::get(mKrinoMesh->meta_data()).active_part());
-    ::krino::output_composed_mesh_with_fields(mKrinoMesh->bulk_data(), outputSelector, aFilename, 1, 0.0);
+const std::string kLevelsetName = "LS";
 }
 
 stk::mesh::Selector KrinoWrapper::buildOutputSelector(const stk::mesh::MetaData &meta,
@@ -144,7 +138,12 @@ void KrinoWrapper::fillDCoordsDLevelsets(const ::krino::FieldRef coordsField,
     dCoordsdParentLevelSets.push_back((ls0 / sqrLo) * dx);
 }
 
-void KrinoWrapper::writeMesh(const std::string &aFilename) { writeMeshPrivate(aFilename); }
+void KrinoWrapper::writeMesh(const std::filesystem::path &aFilename)
+{
+    const stk::mesh::Selector outputSelector =
+        buildOutputSelector(mKrinoMesh->meta_data(), ::krino::AuxMetaData::get(mKrinoMesh->meta_data()).active_part());
+    ::krino::output_composed_mesh_with_fields(mKrinoMesh->bulk_data(), outputSelector, aFilename.string(), 1, 0.0);
+}
 
 void KrinoWrapper::initializeLevelsetsFromPrimitives(const LevelsetPrimitives &aLevelsetPrimitives)
 {
@@ -192,18 +191,17 @@ std::vector<double> KrinoWrapper::getLevelsetValues()
 
 KrinoWrapper::KrinoWrapper(const stk::math::Vector3d &aMinCorner,
                            const stk::math::Vector3d &aMaxCorner,
-                           const double &aMeshSize,
-                           const std::string &aFilename,
+                           const double aMeshSize,
+                           const std::filesystem::path &aFilename,
                            const bool aIncludeVoidRegion)
     : mUncutBackgroundMeshSize(0),
       mIncludeVoidRegion(aIncludeVoidRegion),
       mLSFields(),
       mKrinoMesh(createBoundingBoxMesh(aMinCorner, aMaxCorner, aMeshSize, aFilename))
-
 {
 }
 
-KrinoWrapper::KrinoWrapper(const std::string &aFilename, const bool aIncludeVoidRegion)
+KrinoWrapper::KrinoWrapper(const std::filesystem::path &aFilename, const bool aIncludeVoidRegion)
     : mUncutBackgroundMeshSize(0),
       mIncludeVoidRegion(aIncludeVoidRegion),
       mLSFields(),
@@ -213,8 +211,8 @@ KrinoWrapper::KrinoWrapper(const std::string &aFilename, const bool aIncludeVoid
 
 std::unique_ptr<::krino::MeshInterface> KrinoWrapper::createBoundingBoxMesh(const stk::math::Vector3d &aMinCorner,
                                                                             const stk::math::Vector3d &aMaxCorner,
-                                                                            const double &aMeshSize,
-                                                                            const std::string &aFilename)
+                                                                            const double aMeshSize,
+                                                                            const std::filesystem::path &aFilename)
 {
     std::unique_ptr<::krino::BoundingBoxMesh> tBoundingBoxMesh =
         std::make_unique<::krino::BoundingBoxMesh>(stk::topology::TET_4, stk::EnvData::parallel_comm());
@@ -232,14 +230,15 @@ std::unique_ptr<::krino::MeshInterface> KrinoWrapper::createBoundingBoxMesh(cons
                                    ::krino::AuxMetaData::get(tBoundingBoxMesh->meta_data()).active_part());
     ::krino::output_composed_mesh_with_fields(tBoundingBoxMesh->bulk_data(),
                                               ::krino::AuxMetaData::get(tBoundingBoxMesh->meta_data()).active_part(),
-                                              aFilename, 1, 0.0);
+                                              aFilename.string(), 1, 0.0);
     return std::unique_ptr<::krino::MeshInterface>(std::move(tBoundingBoxMesh));
 }
 
-std::unique_ptr<::krino::MeshInterface> KrinoWrapper::readAndSetupMeshForDecomposition(const std::string &aFilename)
+std::unique_ptr<::krino::MeshInterface> KrinoWrapper::readAndSetupMeshForDecomposition(
+    const std::filesystem::path &aFilename)
 {
     std::unique_ptr<::krino::MeshFromFile> tMeshFromFile =
-        std::make_unique<::krino::MeshFromFile>(aFilename, stk::EnvData::parallel_comm(), "rib");
+        std::make_unique<::krino::MeshFromFile>(aFilename.string(), stk::EnvData::parallel_comm(), "rib");
     mLSFields = ::krino::LSPerInterfacePolicy::setup_levelsets_on_all_blocks_with_void_phase_for_any_negative_levelset(
         tMeshFromFile->meta_data(), 1);
     ::krino::LevelSet &tLevelSet =
@@ -296,10 +295,10 @@ unsigned int KrinoWrapper::getNumTetsInNamedBlock(const std::string &aBlockName)
     return tTotalSize;
 }
 
-void KrinoWrapper::initializePlaneLevelset(const double &aNormalX,
-                                           const double &aNormalY,
-                                           const double &aNormalZ,
-                                           const double &aOffset)
+void KrinoWrapper::initializePlaneLevelset(const double aNormalX,
+                                           const double aNormalY,
+                                           const double aNormalZ,
+                                           const double aOffset)
 {
     initializeLevelsetFieldForPlane(mKrinoMesh->bulk_data(), mLSFields[0].isovar, {aNormalX, aNormalY, aNormalZ},
                                     aOffset);
@@ -334,12 +333,12 @@ void KrinoWrapper::redistance()
 
 std::unordered_map<unsigned int, stk::math::Vector3d> KrinoWrapper::getCoordinateValues()
 {
-    std::unordered_map<unsigned int, stk::math::Vector3d> tCurCoordinateValues;
+    auto tCurCoordinateValues = std::unordered_map<unsigned int, stk::math::Vector3d>{};
     const unsigned tNumDimensions = mKrinoMesh->meta_data().spatial_dimension();
     const stk::mesh::BucketVector &tNodeBuckets =
         mKrinoMesh->bulk_data().get_buckets(stk::topology::NODE_RANK, stk::mesh::selectField(mLSFields[0].isovar));
     const ::krino::FieldRef tCoordsField = mKrinoMesh->meta_data().coordinate_field();
-    for (auto &&tCurBucketPtr : tNodeBuckets)
+    for (auto &tCurBucketPtr : tNodeBuckets)
     {
         const stk::mesh::Bucket &tCurBucket = *tCurBucketPtr;
         const double *tBucketCoords = ::krino::field_data<double>(tCoordsField, tCurBucket);
@@ -357,26 +356,18 @@ std::unordered_map<unsigned int, stk::math::Vector3d> KrinoWrapper::getCoordinat
 }
 
 std::unordered_map<unsigned int, stk::math::Vector3d> KrinoWrapper::predictNewCoordinatesBasedOnPerturbedLevelsetValues(
-    const std::unordered_map<unsigned int, stk::math::Vector3d> &aCoordVals, const double &aPerturbation)
+    const std::unordered_map<unsigned int, stk::math::Vector3d> &aCoordVals, const double aPerturbation)
 {
-    std::unordered_map<unsigned int, stk::math::Vector3d> tPredictedCoordinateValues;
-    std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>::iterator tMapIter = mSensitivities.begin();
-    while (tMapIter != mSensitivities.end())
+    auto tPredictedCoordinateValues = std::unordered_map<unsigned int, stk::math::Vector3d>{};
+    tPredictedCoordinateValues.reserve(mSensitivities.size());
+    for (const auto &[tInterfaceNodeID, tInterfaceNodeDXDP] : mSensitivities)
     {
-        const unsigned int tInterfaceNodeID = tMapIter->first;
-        double dCoord[3] = {0, 0, 0};
-        for (size_t i = 0; i < tMapIter->second.mParentNodeIds.size(); ++i)
+        auto tCoord = stk::math::Vector3d{0.0, 0.0, 0.0};
+        for (size_t i = 0; i < tInterfaceNodeDXDP.mParentNodeIds.size(); ++i)
         {
-            for (size_t j = 0; j < kNumDimensions; ++j)
-            {
-                dCoord[j] += aPerturbation * tMapIter->second.mParentDXDP[i][j];
-            }
+            tCoord += aPerturbation * tInterfaceNodeDXDP.mParentDXDP[i];
         }
-        for (size_t j = 0; j < kNumDimensions; ++j)
-        {
-            tPredictedCoordinateValues[tInterfaceNodeID][j] = aCoordVals.at(tInterfaceNodeID)[j] + dCoord[j];
-        }
-        tMapIter++;
+        tPredictedCoordinateValues[tInterfaceNodeID] = aCoordVals.at(tInterfaceNodeID) + tCoord;
     }
     // now add coords for nodes that weren't on the interface (ones
     // we don't have sensitivities for)

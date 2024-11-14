@@ -32,7 +32,7 @@ TEST(ParallelAggregate, EvaluateSame)
     // Each rank constructs a `ParallelAggregate` object with a single function, so that
     // the resulting aggregation should be the evaluation of one function times the number
     // of ranks.
-    const auto tF = test_utilities::make_rosenbrock_function(pft::Rosenbrock{});
+    const auto tF = test_utilities::make_two_d_function(pft::Rosenbrock{});
     const double tW = 0.5;
     using RosenbrockF = std::decay_t<decltype(tF)>;
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
@@ -55,8 +55,8 @@ TEST(ParallelAggregate, EvaluateDifferent)
     const auto tCommunicator = boost::mpi::communicator{};
     constexpr double tA = 2.0;
     constexpr double tB = 50.0;
-    const auto tFNonDefault = test_utilities::make_rosenbrock_function(pft::Rosenbrock{tA, tB});
-    const auto tFDefault = test_utilities::make_rosenbrock_function(pft::Rosenbrock{});
+    const auto tFNonDefault = test_utilities::make_two_d_function(pft::Rosenbrock{tA, tB});
+    const auto tFDefault = test_utilities::make_two_d_function(pft::Rosenbrock{});
 
     using RosenbrockF = std::decay_t<decltype(tFNonDefault)>;
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;

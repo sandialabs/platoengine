@@ -5,8 +5,7 @@
 
 #include "plato/core/Aggregate.hpp"
 #include "plato/test_utilities/Himmelblau.hpp"
-#include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
-#include "plato/third_party_integration/rol/unittest/DynamicVectorHimmelblauFunction.hpp"
+#include "plato/third_party_integration/rol/unittest/DynamicVectorConstraintFunctions.hpp"
 #include "plato/third_party_integration/rol/unittest/HimmelblauHelpers.hpp"
 
 namespace plato::third_party_integration::rol::unittest

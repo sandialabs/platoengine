@@ -88,12 +88,73 @@ TEST(Function, ScalarUsingMakeFunction)
 
     constexpr auto tArgument = double{3.0};
     EXPECT_EQ(tFunction.evaluate<evaluation::kFunction>(tArgument), tArgument * tArgument * tArgument);
-    EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(3.0), 3.0 * tArgument * tArgument);
+    EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(tArgument), 3.0 * tArgument * tArgument);
 
     using FunctionType = decltype(tFunction);
     static_assert(FunctionType::isImplemented<0, MatrixOrdering::kOriginal>());
     static_assert(FunctionType::isImplemented<1, MatrixOrdering::kOriginal>());
     static_assert(!FunctionType::isImplemented<1, MatrixOrdering::kAdjoint>());
+}
+
+TEST(Function, SpecialCtors)
+{
+    auto tFunction = make_function_with_first_derivative([](const double x) { return x * x * x * x; },
+                                                         [](const double x) { return 4.0 * x * x * x; });
+    // Copy
+    {
+        const auto tFunctionCopy = tFunction;  // NOLINT
+
+        constexpr auto tArgument = double{2.0};
+        EXPECT_EQ(tFunctionCopy.evaluate<evaluation::kFunction>(tArgument),
+                  tArgument * tArgument * tArgument * tArgument);
+        EXPECT_EQ(tFunctionCopy.evaluate<evaluation::kFirstDerivative>(tArgument),
+                  4.0 * tArgument * tArgument * tArgument);
+    }
+    // Move
+    {
+        const auto tFunctionMove = std::move(tFunction);  // NOLINT
+
+        constexpr auto tArgument = double{-2.0};
+        EXPECT_EQ(tFunctionMove.evaluate<evaluation::kFunction>(tArgument),
+                  tArgument * tArgument * tArgument * tArgument);
+        EXPECT_EQ(tFunctionMove.evaluate<evaluation::kFirstDerivative>(tArgument),
+                  4.0 * tArgument * tArgument * tArgument);
+    }
+}
+
+TEST(Function, CompatibleFunction)
+{
+    using EvaluateInfo = FunctionInfo<double, evaluation::kFunction>;
+    using FirstDerivativeInfo = FunctionInfo<double, evaluation::kFirstDerivative>;
+    using SecondDerivativeInfo = FunctionInfo<double, evaluation::kSecondDerivative>;
+
+    using FunctionWithFirstAndSecondDerivatives =
+        Function<double, EvaluateInfo, FirstDerivativeInfo, SecondDerivativeInfo>;
+
+    auto tFunctionWithFirstAndSecondDerivative = FunctionWithFirstAndSecondDerivatives{
+        [](const double) { return 0.0; }, [](const double) { return 1.0; }, [](const double) { return 2.0; }};
+    // Copy construction
+    {
+        using FunctionWithFirstDerivative = Function<double, EvaluateInfo, FirstDerivativeInfo>;
+        const auto tFunctionWithFirstDerivative =
+            tFunctionWithFirstAndSecondDerivative.compatibleFunction<FunctionWithFirstDerivative>();
+
+        EXPECT_EQ(tFunctionWithFirstDerivative.evaluate<evaluation::kFunction>(0.0), 0.0);
+        EXPECT_EQ(tFunctionWithFirstDerivative.evaluate<evaluation::kFirstDerivative>(0.0), 1.0);
+        EXPECT_FALSE(
+            (tFunctionWithFirstDerivative.isImplemented<evaluation::kSecondDerivative, MatrixOrdering::kOriginal>()));
+    }
+    // Move construction
+    {
+        using FunctionWithNoDerivatives = Function<double, EvaluateInfo>;
+        const auto tFunctionWithNoDerivatives =
+            std::move(tFunctionWithFirstAndSecondDerivative).compatibleFunction<FunctionWithNoDerivatives>();
+
+        EXPECT_EQ(tFunctionWithNoDerivatives.evaluate<evaluation::kFunction>(0.0), 0.0);
+        EXPECT_THROW([[maybe_unused]] const auto tResult =
+                         tFunctionWithFirstAndSecondDerivative.evaluate<evaluation::kFunction>(0.0),
+                     std::bad_function_call);
+    }
 }
 
 }  // namespace plato::core::unittest

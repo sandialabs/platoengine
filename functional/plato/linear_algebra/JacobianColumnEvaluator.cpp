@@ -21,9 +21,8 @@ DynamicVector<double> operator*(const DynamicVector<double>& aX, const JacobianC
 
 JacobianMultiplier to_jacobian_multiplier(JacobianColumnEvaluator aJacobianColumnEvaluator)
 {
-    return JacobianMultiplier{/*.mNumColumns=*/aJacobianColumnEvaluator.mColumns,
-                              /*.mJacobianTimesVector=*/[tColumnEvaluator = std::move(aJacobianColumnEvaluator)](
-                                                            const DynamicVector<double>& aX)
+    return JacobianMultiplier{/*.mJacobianTimesVector=*/
+                              [tColumnEvaluator = std::move(aJacobianColumnEvaluator)](const DynamicVector<double>& aX)
                               { return aX * tColumnEvaluator; }};
 }
 }  // namespace plato::linear_algebra

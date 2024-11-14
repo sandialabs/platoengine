@@ -1,110 +1,156 @@
 #include <gtest/gtest.h>
 
 #include <ROL_StdVector.hpp>
-#include <memory>
 #include <vector>
 
-#include "plato/third_party_integration/rol/ROLConstraintFunction.hpp"
-#include "plato/third_party_integration/rol/unittest/DynamicVectorHimmelblauFunction.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/rol/ROLConstraint.hpp"
+#include "plato/utilities/Exception.hpp"
 
 namespace plato::third_party_integration::rol::unittest
 {
-TEST(ROLConstraintFunction, ConstraintValue)
+
+namespace
 {
-    namespace pft = plato::test_utilities;
 
-    pft::Himmelblau tHimmelblau{};
-
-    constexpr double tTarget = 5;
-
-    const double tControlValue = 0.5;
-    const std::vector<double> tGold = {tHimmelblau.f(tControlValue, tControlValue) - tTarget};
-
-    constexpr bool tIsLinear = false;
-    auto tROLConstraintFunction =
-        ROLConstraintFunction{criteria::library::Constraint<const linear_algebra::DynamicVector<double>&>{
-            "name", make_himmelblau_dynamic_vector_function(pft::Himmelblau{}), tTarget, tIsLinear}};
-    const auto tControls = ROL::StdVector<double>{tControlValue, tControlValue};
-    auto tConstraintsVector = ROL::StdVector<double>{.0};
-    double tTolerance;
-
-    tROLConstraintFunction.value(tConstraintsVector, tControls, tTolerance);
-    EXPECT_EQ(tGold, *tConstraintsVector.getVector());
-    EXPECT_FALSE(tROLConstraintFunction.linear());
-
-    auto tHessianUV = ROL::StdVector<double>{10, 11};
-    auto tDirection = ROL::StdVector<double>{1, 1};
-    tROLConstraintFunction.applyAdjointHessian(tHessianUV, tDirection, tDirection, tControls, tTolerance);
-
-    EXPECT_EQ(tHessianUV[0], 0.0);
-    EXPECT_EQ(tHessianUV[1], 0.0);
-    // applyAdjointHessian
+ROL::Ptr<ROL::StdVector<double>> to_rol_std_vector_ptr(const std::vector<double>& aVector)
+{
+    auto tVector = ROL::makePtr<std::vector<double>>(aVector);
+    return ROL::makePtr<ROL::StdVector<double>>(tVector);
 }
 
-TEST(ROLConstraintFunction, JacobianTimesDirection)
+void test_bounds_behaves_same_as_gold(const ROL::Ptr<ROL::Bounds<double>>& aBounds,
+                                      const ROL::Ptr<ROL::Bounds<double>>& aGoldBounds)
 {
-    namespace pft = plato::test_utilities;
-
-    pft::Himmelblau tHimmelblau{};
-
-    constexpr double tTarget = 5;
-
-    const double tControlValue = 0.5;
-    const auto tGoldVec = tHimmelblau.df(tControlValue, tControlValue);
-    auto tDirection = ROL::StdVector<double>{1.0, -1.0};
-    const double tGoldValue = (tGoldVec.mData[0] - tGoldVec.mData[1]);
-
-    constexpr bool tIsLinear = true;
-    auto tROLConstraintFunction =
-        ROLConstraintFunction{criteria::library::Constraint<const linear_algebra::DynamicVector<double>&>{
-            "name", make_himmelblau_dynamic_vector_function(pft::Himmelblau{}), tTarget, tIsLinear}};
-
-    const auto tControls = ROL::StdVector<double>{tControlValue, tControlValue};
-    ROL::StdVector<double> tJacobianTimesDirection{1.0};
-
-    double tTolerance;
-
-    tROLConstraintFunction.applyJacobian(tJacobianTimesDirection, tDirection, tControls, tTolerance);
-    ASSERT_EQ(tJacobianTimesDirection.getVector()->size(), 1u);
-
-    const double tResult = tJacobianTimesDirection.getVector()->front();
-    EXPECT_EQ(tGoldValue, tResult);
-    EXPECT_TRUE(tROLConstraintFunction.linear());
+    auto tNegativeOne = to_rol_std_vector_ptr({-1});
+    auto tZero = to_rol_std_vector_ptr({0});
+    auto tPositiveOne = to_rol_std_vector_ptr({1});
+    EXPECT_EQ(aBounds->isFeasible(*tNegativeOne), aGoldBounds->isFeasible(*tNegativeOne));
+    EXPECT_EQ(aBounds->isFeasible(*tZero), aGoldBounds->isFeasible(*tZero));
+    EXPECT_EQ(aBounds->isFeasible(*tPositiveOne), aGoldBounds->isFeasible(*tPositiveOne));
 }
 
-TEST(ROLConstraintFunction, AdjointJacobianTimesDirection)
+}  // namespace
+
+TEST(ROLConstraint, CreateROLBoundConstraint)
 {
-    namespace pft = plato::test_utilities;
+    const std::vector<double> tLower(2, 0);
+    const std::vector<double> tUpper{1, 2};
+    const auto tBounds = create_rol_bound_constraint({tLower, tUpper});
+    auto tCompare = to_rol_std_vector_ptr({0.4, 0.5});
+    EXPECT_TRUE(tBounds->isFeasible(*tCompare));
+    tCompare = to_rol_std_vector_ptr({-0.4, 0.5});
+    EXPECT_FALSE(tBounds->isFeasible(*tCompare));
+    tCompare = to_rol_std_vector_ptr({0.4, -0.5});
+    EXPECT_FALSE(tBounds->isFeasible(*tCompare));
+    tCompare = to_rol_std_vector_ptr({4, -5});
+    EXPECT_FALSE(tBounds->isFeasible(*tCompare));
+}
 
-    pft::Himmelblau tHimmelblau{};
+TEST(ROLConstraint, CreateLessThanInequalityBounds)
+{
+    EXPECT_THROW([[maybe_unused]] auto tUnused = detail::create_less_than_inequality_bounds(0), utilities::Exception);
+    {
+        constexpr unsigned int tNumberOfConstraints = 1;
+        const auto tBounds = detail::create_less_than_inequality_bounds(tNumberOfConstraints);
 
-    constexpr double tTarget = 5;
-    constexpr std::string_view tConstraintName = "con name";
+        auto tCompare = to_rol_std_vector_ptr({-1});
+        EXPECT_TRUE(tBounds->isFeasible(*tCompare));
+        tCompare = to_rol_std_vector_ptr({1});
+        EXPECT_FALSE(tBounds->isFeasible(*tCompare));
+    }
+    {
+        constexpr unsigned int tNumberOfConstraints = 2;
+        const auto tBounds = detail::create_less_than_inequality_bounds(tNumberOfConstraints);
 
-    const double tControlValue = 0.5;
-    auto tGold = tHimmelblau.df(tControlValue, tControlValue);
-    const double tDual = 1.2;
-    const std::vector<double> tGoldVec{tGold.mData[0] * tDual, tGold.mData[1] * tDual};
+        auto tCompare = to_rol_std_vector_ptr({-1, -2});
+        EXPECT_TRUE(tBounds->isFeasible(*tCompare));
+        tCompare = to_rol_std_vector_ptr({-1});
+        EXPECT_ANY_THROW(tBounds->isFeasible(*tCompare));
+    }
+}
 
-    auto tDirection = ROL::StdVector<double>{tDual};
-    constexpr bool tIsLinear = true;
-    auto tROLConstraintFunction =
-        ROLConstraintFunction{criteria::library::Constraint<const linear_algebra::DynamicVector<double>&>{
-            std::string{tConstraintName}, make_himmelblau_dynamic_vector_function(pft::Himmelblau{}), tTarget,
-            tIsLinear}};
+TEST(ROLConstraint, CreateGreaterThanInequalityBounds)
+{
+    EXPECT_THROW([[maybe_unused]] auto tUnused = detail::create_greater_than_inequality_bounds(0),
+                 utilities::Exception);
+    {
+        constexpr unsigned int tNumberOfConstraints = 1;
+        const auto tBounds = detail::create_greater_than_inequality_bounds(tNumberOfConstraints);
 
-    const auto tControls = ROL::StdVector<double>{tControlValue, tControlValue};
-    ROL::StdVector<double> tAdjointJacobianTimesDirection{1.0, 1.0};
+        auto tCompare = to_rol_std_vector_ptr({1});
+        EXPECT_TRUE(tBounds->isFeasible(*tCompare));
+        tCompare = to_rol_std_vector_ptr({-1});
+        EXPECT_FALSE(tBounds->isFeasible(*tCompare));
+    }
+    {
+        constexpr unsigned int tNumberOfConstraints = 2;
+        const auto tBounds = detail::create_greater_than_inequality_bounds(tNumberOfConstraints);
 
-    double tTolerance;
+        auto tCompare = to_rol_std_vector_ptr({1, 2});
+        EXPECT_TRUE(tBounds->isFeasible(*tCompare));
+        tCompare = to_rol_std_vector_ptr({-1});
+        EXPECT_ANY_THROW(tBounds->isFeasible(*tCompare));
+    }
+}
 
-    tROLConstraintFunction.applyAdjointJacobian(tAdjointJacobianTimesDirection, tDirection, tControls, tTolerance);
-    ASSERT_EQ(tAdjointJacobianTimesDirection.getVector()->size(), 2u);
+TEST(ROLConstraint, CreateInequalityBounds)
+{
+    constexpr unsigned int tNumberOfConstraints = 1;
+    {
+        const auto tGold = detail::create_greater_than_inequality_bounds(tNumberOfConstraints);
+        const auto tResult =
+            detail::create_inequality_bounds(criteria::library::ConstraintType::kGreaterThan, tNumberOfConstraints);
+        test_bounds_behaves_same_as_gold(tResult, tGold);
+    }
+    {
+        const auto tGold = detail::create_less_than_inequality_bounds(tNumberOfConstraints);
+        const auto tResult =
+            detail::create_inequality_bounds(criteria::library::ConstraintType::kLessThan, tNumberOfConstraints);
+        test_bounds_behaves_same_as_gold(tResult, tGold);
+    }
+    EXPECT_THROW([[maybe_unused]] auto tUnused = detail::create_inequality_bounds(
+                     criteria::library::ConstraintType::kEqualTo, tNumberOfConstraints),
+                 std::out_of_range);
+}
 
-    const auto tResult = *tAdjointJacobianTimesDirection.getVector();
-    EXPECT_EQ(tGoldVec, tResult);
-    EXPECT_TRUE(tROLConstraintFunction.linear());
-    EXPECT_EQ(tROLConstraintFunction.name(), std::string{tConstraintName});
+TEST(ROLConstraint, ConstraintCombination)
+{
+    const auto tCheckConstraintCombination = [](const ROLConstraint& aConstraint,
+                                                const detail::ConstraintCombination aExpectedConstraintCombination,
+                                                const test_utilities::TestContext& aTestContext)
+    {
+        const auto tConstraintCombination = detail::constraint_combination(aConstraint);
+        EXPECT_EQ(tConstraintCombination, aExpectedConstraintCombination) << aTestContext;
+    };
+
+    auto tConstraint = ROLConstraint{};
+
+    tConstraint.mLinear = true;
+    tConstraint.mType = criteria::library::ConstraintType::kEqualTo;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kLinearEquality,
+                                TEST_CONTEXT("Linear equality"));
+
+    tConstraint.mType = criteria::library::ConstraintType::kGreaterThan;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kLinearInequality,
+                                TEST_CONTEXT("Linear inequality with greater than"));
+
+    tConstraint.mType = criteria::library::ConstraintType::kLessThan;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kLinearInequality,
+                                TEST_CONTEXT("Linear inequality with less than"));
+
+    tConstraint.mLinear = false;
+    tConstraint.mType = criteria::library::ConstraintType::kEqualTo;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kNonlinearEquality,
+                                TEST_CONTEXT("Non-linear equality"));
+
+    tConstraint.mType = criteria::library::ConstraintType::kGreaterThan;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kNonlinearInequality,
+                                TEST_CONTEXT("Non-linear inequality with greater than"));
+
+    tConstraint.mType = criteria::library::ConstraintType::kLessThan;
+    tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kNonlinearInequality,
+                                TEST_CONTEXT("Non-linear inequality with less than"));
 }
 
 }  // namespace plato::third_party_integration::rol::unittest

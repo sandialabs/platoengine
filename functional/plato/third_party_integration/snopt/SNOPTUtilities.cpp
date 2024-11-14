@@ -4,7 +4,7 @@
 
 namespace plato::third_party_integration::snopt
 {
-auto linear_constraint_jacobian_sparse_matrix(const SNOPTConstraints &aConstraintFunctions,
+auto linear_constraint_jacobian_sparse_matrix(const SNOPTConstraints& aConstraintFunctions,
                                               const std::size_t aNumberOfDesignVariables)
     -> SparseMatrixBuilder<IndexType, double>
 {
@@ -15,7 +15,7 @@ auto linear_constraint_jacobian_sparse_matrix(const SNOPTConstraints &aConstrain
     for (const auto tLinearConstraintIndex : utilities::IndexRange{aConstraintFunctions.numberOfLinearConstraints()})
     {
         const auto tSignedLinearConstraintIndex = boost::numeric_cast<int>(tLinearConstraintIndex);
-        const auto &tLinearConstraint =
+        const auto& tLinearConstraint =
             *std::next(aConstraintFunctions.linearConstraintsBegin(), tSignedLinearConstraintIndex);
         const auto tConstraintGradient =
             tLinearConstraint.mFunction.template evaluate<core::evaluation::kFirstDerivative>(

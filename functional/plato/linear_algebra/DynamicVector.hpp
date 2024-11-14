@@ -132,6 +132,7 @@ std::vector<T> DynamicVector<T>::stdVector() &&
 template <typename T>
 T DynamicVector<T>::dot(const DynamicVector<T>& aRightOperand) const
 {
+    assert(size() == aRightOperand.size());
     return std::inner_product(std::begin(mVector), std::end(mVector), std::begin(aRightOperand.mVector), T{});
 }
 

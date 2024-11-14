@@ -30,32 +30,30 @@ namespace plato::geometry::extension
 class DensityTopology
 {
    public:
-    explicit DensityTopology(const input_parser::density_topology& aInput,
-                             plato::filter::library::FilterFunction aFilterFunction);
+    DensityTopology(const input_parser::density_topology& aInput, filter::library::FilterFunction aFilterFunction);
 
-    [[nodiscard]] analysis::AnalysisDomainMesh generateMesh(
-        const linear_algebra::DynamicVector<double>& aDesignParameter) const;
+    [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
+        -> analysis::AnalysisDomainMesh;
 
-    [[nodiscard]] linear_algebra::JacobianMultiplier jacobian(
-        const linear_algebra::DynamicVector<double>& aDesignParameter) const;
+    [[nodiscard]] auto jacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
+        -> linear_algebra::JacobianMultiplier;
 
-    [[nodiscard]] static linear_algebra::DynamicVector<double> initialGuess(
-        const input_parser::density_topology& aInput);
+    [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
+        -> linear_algebra::AdjointJacobianMultiplier;
 
-    [[nodiscard]] static std::pair<std::vector<double>, std::vector<double>> bounds(
-        const input_parser::density_topology& aInput);
+    [[nodiscard]] static auto initialGuess(const input_parser::density_topology& aInput)
+        -> linear_algebra::DynamicVector<double>;
+
+    [[nodiscard]] static auto bounds(const input_parser::density_topology& aInput)
+        -> std::pair<std::vector<double>, std::vector<double>>;
 
     static void output(const linear_algebra::DynamicVector<double>& aSolution,
                        const input_parser::density_topology& aInput);
 
    private:
     mesh::Mesh mMesh;
-    unsigned int mNumDesignParameters = 0;
-    plato::filter::library::FilterFunction mFilter;
+    filter::library::FilterFunction mFilter;
 };
-
-/// @brief Generate a geometry function, that can be composed with an objective function.
-[[nodiscard]] auto make_topology_geometry(const DensityTopology& aDensityTopology) -> library::GeometryFunction;
 
 namespace detail
 {

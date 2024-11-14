@@ -161,7 +161,7 @@ void shut_down_snopt()
 auto run_snopt_problem(const std::vector<double> &aInitialGuess,
                        const SNOPTBounds &aBoundConstraints,
                        ObjectiveType aObjective,
-                       ConstraintVectorType aConstraints,
+                       InterfaceConstraintVectorType aConstraints,
                        const std::filesystem::path &aLogFilePath,
                        const SNOPTOptions &aOptions) -> std::vector<double>
 {

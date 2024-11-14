@@ -16,9 +16,11 @@ namespace
 {
 [[nodiscard]] auto make_test_geometry_function() -> FactoryTypes::Compute
 {
-    return core::make_function_with_first_derivative(
+    return FactoryTypes::Compute{
         [](const linear_algebra::DynamicVector<double>&) { return analysis::AnalysisDomainMesh{}; },
-        [](const linear_algebra::DynamicVector<double>&) { return linear_algebra::JacobianMultiplier{}; });
+        [](const linear_algebra::DynamicVector<double>&) { return linear_algebra::JacobianMultiplier{}; },
+        [](const linear_algebra::DynamicVector<double>&)
+        { return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{}}; }};
 }
 
 [[maybe_unused]] static auto kTestGeometryRegistration =

@@ -4,21 +4,24 @@
 
 namespace plato::utilities::unittest
 {
+namespace
+{
+enum class TestEnum
+{
+    kInky,
+    kPinky,
+    kBlinky,
+    kClyde,
+    kArbitraryEnumWithNoGhostlyRelation
+};
+
+const auto kTestTable = EnumTable<TestEnum>{
+    {TestEnum::kInky, "Inky"}, {TestEnum::kPinky, "Pinky"}, {TestEnum::kBlinky, "Blinky"}, {TestEnum::kClyde, "Clyde"}};
+
+}  // namespace
+
 TEST(EnumTable, Conversion)
 {
-    enum class TestEnum
-    {
-        kInky,
-        kPinky,
-        kBlinky,
-        kClyde,
-        kArbitraryEnumWithNoGhostlyRelation
-    };
-    const EnumTable<TestEnum> kTestTable = {{TestEnum::kInky, "Inky"},
-                                            {TestEnum::kPinky, "Pinky"},
-                                            {TestEnum::kBlinky, "Blinky"},
-                                            {TestEnum::kClyde, "Clyde"}};
-
     // String to enum
     ASSERT_TRUE(kTestTable.toEnum("Inky"));
     ASSERT_TRUE(kTestTable.toEnum("Blinky"));
@@ -47,4 +50,16 @@ TEST(EnumTable, Conversion)
 
     EXPECT_FALSE(kTestTable.toString(TestEnum::kArbitraryEnumWithNoGhostlyRelation));
 }
+
+TEST(EnumTable, AllStringsFromTable)
+{
+    const auto tAllEntries = all_strings_from_table(kTestTable);
+    constexpr auto tExpectedNumberOfEntries = 4U;
+    ASSERT_EQ(tAllEntries.size(), tExpectedNumberOfEntries);
+    EXPECT_EQ(tAllEntries.at(0), "Inky");
+    EXPECT_EQ(tAllEntries.at(1), "Pinky");
+    EXPECT_EQ(tAllEntries.at(2), "Blinky");
+    EXPECT_EQ(tAllEntries.at(3), "Clyde");
+}
+
 }  // namespace plato::utilities::unittest
