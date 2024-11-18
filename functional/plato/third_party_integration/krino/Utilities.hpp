@@ -30,12 +30,12 @@ void initialize_environment_for_krino(const MPI_Comm &aComm);
 
 /// @brief Given DFDX, @a aDFDXMap (sensitivity of objective to nodal coordinate changes), and DXDP, @a aDXDP
 /// (sensitivity of nodal coordinates to levelset values), and the local-to-global node id map of the background mesh,
-/// @a aBackgroundNodemap, perform the chain rule to get DFDLS (sensitivity of objective to levelset values).
+/// @a aBackgroundMeshSpaceIDs, perform the chain rule to get DFDLS (sensitivity of objective to levelset values).
 [[nodiscard]] auto calculate_dfdls(const std::vector<double> &aDFDX,
                                    const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
                                    const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP,
-                                   const std::vector<KrinoGlobalNodeID> &aBackgroundNodemap)
-    -> std::unordered_map<KrinoGlobalNodeID, double>;
+                                   analysis::AnalysisDomainMesh &&aBackgroundMeshSpaceIDs)
+    -> analysis::AnalysisDomainMesh;
 
 /// @brief Computes the product of a row vector (represented by @a aBackgroundLevelSetSpaceVector) and adjoint Jacobian
 /// matrix (represented by @a aDXDP).

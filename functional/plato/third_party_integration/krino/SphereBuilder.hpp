@@ -4,8 +4,6 @@
 #include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
 #include "plato/utilities/NamedType.hpp"
 
-using namespace plato::third_party_integration::common;
-
 namespace plato::third_party_integration::krino
 {
 

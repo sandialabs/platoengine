@@ -23,7 +23,19 @@ namespace plato::third_party_integration::krino
 namespace
 {
 const std::string kLevelsetName = "LS";
+
+void fillNodeIdsForNodes(const stk::mesh::BulkData &aMesh,
+                         const std::vector<stk::mesh::Entity> &aParentNodes,
+                         std::vector<stk::mesh::EntityId> &aParentNodeIds)
+{
+    aParentNodeIds.clear();
+    for (auto tParent : aParentNodes)
+    {
+        aParentNodeIds.push_back(aMesh.identifier(tParent));
+    }
 }
+
+}  // namespace
 
 stk::mesh::Selector KrinoWrapper::buildOutputSelector(const stk::mesh::MetaData &meta,
                                                       const stk::mesh::Part &activePart)
@@ -49,7 +61,7 @@ void KrinoWrapper::setupFieldsForConformingDecomposition(const stk::mesh::MetaDa
     cdfemSupport.register_parent_node_ids_field();
 }
 
-bool KrinoWrapper::includeVoidRegionPart(const stk::mesh::Part *aPart)
+bool KrinoWrapper::includeVoidRegionPart(const stk::mesh::Part *aPart) const
 {
     return (mIncludeVoidRegion || aPart->name().find("_void") == std::string::npos);
 }
@@ -111,14 +123,6 @@ std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> KrinoWrapper::getLeve
     }
 
     return tSensitivityMap;
-}
-
-void KrinoWrapper::fillNodeIdsForNodes(const stk::mesh::BulkData &mesh,
-                                       const std::vector<stk::mesh::Entity> &parentNodes,
-                                       std::vector<stk::mesh::EntityId> &parentNodeIds)
-{
-    parentNodeIds.clear();
-    for (auto parent : parentNodes) parentNodeIds.push_back(mesh.identifier(parent));
 }
 
 void KrinoWrapper::fillDCoordsDLevelsets(const ::krino::FieldRef coordsField,

@@ -56,14 +56,11 @@ class KrinoWrapper
     [[nodiscard]] auto buildOutputSelector(const stk::mesh::MetaData &meta, const stk::mesh::Part &activePart)
         -> stk::mesh::Selector;
     void setupFieldsForConformingDecomposition(const stk::mesh::MetaData &meta);
-    bool includeVoidRegionPart(const stk::mesh::Part *aPart);
+    [[nodiscard]] bool includeVoidRegionPart(const stk::mesh::Part *aPart) const;
     void decomposeMeshToConformToLevelsets(stk::mesh::BulkData &mesh, const std::vector<::krino::LS_Field> &lsFields);
     [[nodiscard]] auto getLevelsetShapeSensitivities(const stk::mesh::BulkData &mesh,
                                                      const ::krino::FieldRef levelSetField)
         -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>;
-    void fillNodeIdsForNodes(const stk::mesh::BulkData &mesh,
-                             const std::vector<stk::mesh::Entity> &parentNodes,
-                             std::vector<stk::mesh::EntityId> &parentNodeIds);
     void fillDCoordsDLevelsets(const ::krino::FieldRef coordsField,
                                const ::krino::FieldRef levelSetField,
                                const std::vector<stk::mesh::Entity> &parentNodes,

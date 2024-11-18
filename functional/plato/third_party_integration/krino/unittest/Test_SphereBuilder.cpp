@@ -12,8 +12,9 @@ namespace plato::third_party_integration::krino::unittest
 
 namespace
 {
-const common::Coordinate kZeroCoordinate{0, 0, 0};
-const common::Coordinate kTenCoordinate{10, 10, 10};
+constexpr common::Coordinate kZeroCoordinate{0, 0, 0};
+constexpr common::Coordinate kTenCoordinate{10, 10, 10};
+
 [[nodiscard]] SpherePatternData calculate_sphere_pattern_data_on_zero_ten_mesh(const double aSphereRadius,
                                                                                const double aSphereSpacing)
 {
@@ -47,7 +48,7 @@ TEST(SphereBuilder, CalculateNumSpheresAndStart_SphereJustInsideBBoxExtent)
     const common::Coordinate tNumSpheres{calculate_num_spheres_in_each_direction(tData)};
     check_repeated_num_spheres(tNumSpheres, 3);
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
-    const Coordinate tGold{0.1, 0.1, 0.1};
+    const common::Coordinate tGold{0.1, 0.1, 0.1};
     constexpr double tTol{1e-10};
     EXPECT_NEAR(tStart.x, tGold.x, tTol);
     EXPECT_NEAR(tStart.y, tGold.y, tTol);
@@ -62,7 +63,7 @@ TEST(SphereBuilder, CalculateNumSpheresAndStart_SphereJustOutsideBBoxExtent)
     const common::Coordinate tNumSpheres{calculate_num_spheres_in_each_direction(tData)};
     check_repeated_num_spheres(tNumSpheres, 3);
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
-    const Coordinate tGold{-0.1, -0.1, -0.1};
+    const common::Coordinate tGold{-0.1, -0.1, -0.1};
     constexpr double tTol{1e-10};
     EXPECT_NEAR(tStart.x, tGold.x, tTol);
     EXPECT_NEAR(tStart.y, tGold.y, tTol);
@@ -77,7 +78,7 @@ TEST(SphereBuilder, CalculateNumSpheresAndStart_SpheresNotIntersectingWithBounda
     const common::Coordinate tNumSpheres{calculate_num_spheres_in_each_direction(tData)};
     check_repeated_num_spheres(tNumSpheres, 5);
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
-    const Coordinate tGold{1, 1, 1};
+    const common::Coordinate tGold{1, 1, 1};
     constexpr double tTol{1e-10};
     EXPECT_NEAR(tStart.x, tGold.x, tTol);
     EXPECT_NEAR(tStart.y, tGold.y, tTol);
@@ -92,7 +93,7 @@ TEST(SphereBuilder, CalculateNumSpheresAndStart_OneSphere)
     const common::Coordinate tNumSpheres{calculate_num_spheres_in_each_direction(tData)};
     check_repeated_num_spheres(tNumSpheres, 1);
     const common::Coordinate tStart{calculate_sphere_pattern_start(tNumSpheres, tData)};
-    const Coordinate tGold{5, 5, 5};
+    const common::Coordinate tGold{5, 5, 5};
     constexpr double tTol{1e-10};
     EXPECT_NEAR(tStart.x, tGold.x, tTol);
     EXPECT_NEAR(tStart.y, tGold.y, tTol);

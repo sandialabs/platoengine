@@ -1,6 +1,7 @@
 #include "plato/geometry/extension/LevelsetTopology.hpp"
 
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
@@ -87,13 +88,18 @@ auto adjoint_jacobian_times_vector(const linear_algebra::DynamicVector<double>& 
     return tpik::calculate_adjoint_dfdls(tLevelSetSpaceVector, tGlobalIDToDXDP);
 }
 
+auto analysis_domain_mesh(const mesh::Mesh& aMesh) -> analysis::AnalysisDomainMesh
+{
+    const auto tNumberOfCutMeshNodes = mesh::EntityCounts{aMesh}.numberOfNodes();
+    const auto tMeshField = std::vector(tNumberOfCutMeshNodes, 0.0);
+    return mesh::DesignVariablesConversion{aMesh}.nodalFieldToAnalysisDomainMesh(
+        mesh::NodalFieldVectorReference{tMeshField});
+}
+
 auto analysis_domain_mesh(const std::filesystem::path& aMeshPath) -> analysis::AnalysisDomainMesh
 {
     const auto tMesh = mesh::Mesh{aMeshPath};
-    const auto tNumberOfCutMeshNodes = mesh::EntityCounts{tMesh}.numberOfNodes();
-    const auto tMeshField = std::vector(tNumberOfCutMeshNodes, 0.0);
-    return mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
-        mesh::NodalFieldVectorReference{tMeshField});
+    return analysis_domain_mesh(tMesh);
 }
 
 auto assembled_adjoint_jacobian_times_vector(
@@ -193,16 +199,17 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
             const auto& tGlobalIDToDXDP = tpik::generate_computational_mesh(
                 tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()}, tpik::CutMeshFilePath{mCutMesh},
                 aDesignParameters.stdVector(), mIncludeVoidRegion);
-            const auto tCutNodeMap = mesh::EntityRetrieval{mesh::Mesh{mCutMesh}}.globalNodeIds();
             const auto tCutMeshSpaceVector = analysis_domain_mesh(mCutMesh);
-            const auto tBackgroundNodeMap = mesh::EntityRetrieval{mBackgroundMesh}.globalNodeIds();
-            const auto tDFDLS =
-                tpik::calculate_dfdls(aVector.stdVector(), tCutMeshSpaceVector, tGlobalIDToDXDP, tBackgroundNodeMap);
 
-            auto tDFDLSVector = std::vector<double>(tDFDLS.size(), 0.0);
-            for (const auto& [tIndex, tBackgroundNodeID] : utilities::enumerate(tBackgroundNodeMap))
+            const auto tBackgroundDFDLS = tpik::calculate_dfdls(aVector.stdVector(), tCutMeshSpaceVector,
+                                                                tGlobalIDToDXDP, analysis_domain_mesh(mBackgroundMesh));
+
+            const auto tBackgroundDFDLSView = analysis::AnalysisDomainMeshSequentialView{tBackgroundDFDLS};
+            auto tDFDLSVector = std::vector<double>(tBackgroundDFDLSView.size(), 0.0);
+            for (const auto& tBackgroundInfoProxy : tBackgroundDFDLSView)
             {
-                tDFDLSVector[tIndex] = tDFDLS.at(tBackgroundNodeID);
+                const auto& tBackgroundInfo = static_cast<const analysis::ScalarFieldValue&>(tBackgroundInfoProxy);
+                tDFDLSVector[tBackgroundInfo.mDesignVariableVectorIndex] = tBackgroundInfo.mValue;
             }
             return linear_algebra::DynamicVector<double>{std::move(tDFDLSVector)};
         }};

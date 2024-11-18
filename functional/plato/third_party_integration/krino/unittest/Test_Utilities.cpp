@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshOperators.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/unittest/KrinoTestFixture.hpp"
 
@@ -27,13 +29,21 @@ TEST_F(KrinoTestFixture, CalculateDFDLS)
         const auto tCutMeshField = plato::analysis::AnalysisDomainMesh{
             kMeshFile, analysis::AnalysisDomainMesh::BlockScalarField{{tBlockID, tFieldVector}}};
 
-        const auto tBackgroundNodemap = std::vector<unsigned int>{7, 12, 19, 34, 22, 2, 10};
-        const auto tDFDLS = calculate_dfdls(tDFDX, tCutMeshField, tDXDP, tBackgroundNodemap);
+        const auto tBackgroundNodemapValues = std::vector<analysis::ScalarFieldValue>{
+            {2, 0, 0.0}, {7, 1, 0.0}, {10, 2, 0.0}, {12, 3, 0.0}, {19, 4, 0.0}, {22, 5, 0.0}, {34, 6, 0.0}};
+        auto tBackgroundNodemap = plato::analysis::AnalysisDomainMesh{
+            kMeshFile, analysis::AnalysisDomainMesh::BlockScalarField{{tBlockID, tBackgroundNodemapValues}}};
 
-        const auto tExpected = std::unordered_map<KrinoGlobalNodeID, double>{
-            {2, 0.9375}, {7, 0.28125}, {10, 0.34375}, {12, -0.171875}, {19, -0.9921875}, {22, 0.5625}, {34, -0.28125}};
+        const auto tDFDLS = calculate_dfdls(tDFDX, tCutMeshField, tDXDP, std::move(tBackgroundNodemap));
 
-        EXPECT_EQ(tDFDLS, tExpected);
+        const auto tExpected = std::vector<analysis::ScalarFieldValue>{
+            {2, 0, 0.9375},      {7, 1, 0.28125}, {10, 2, 0.34375}, {12, 3, -0.171875},
+            {19, 4, -0.9921875}, {22, 5, 0.5625}, {34, 6, -0.28125}};
+        auto tComputed = std::vector<analysis::ScalarFieldValue>{};
+        const auto tComputedView = analysis::AnalysisDomainMeshSequentialView{tDFDLS};
+        std::copy(tComputedView.begin(), tComputedView.end(), std::back_inserter(tComputed));
+
+        EXPECT_EQ(tComputed, tExpected);
     }
     // Row vector times transpose Jacobian matrix
     {

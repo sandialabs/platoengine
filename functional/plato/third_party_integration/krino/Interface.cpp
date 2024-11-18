@@ -10,7 +10,7 @@ auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshNa
                                  const CutMeshFilePath &aCutMesh,
                                  const std::vector<double> &aLevelsetValues,
                                  const bool aIncludeVoidRegion)
-    -> const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &
+    -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>
 {
     KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aIncludeVoidRegion);
     tKrinoWrapper.setLevelsetValues(aLevelsetValues);

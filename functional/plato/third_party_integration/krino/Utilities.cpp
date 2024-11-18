@@ -37,16 +37,20 @@ auto dfdls_entry_contribution(const std::vector<double> &aDFDX,
                            });
 }
 
-void assemble_dfdls_entry(std::unordered_map<KrinoGlobalNodeID, double> &aDFDLS,
+auto assemble_dfdls_entry(analysis::AnalysisDomainMesh &&aDFDLS,
                           const std::vector<double> &aDFDX,
                           const InterfaceNodeDXDP &aInterfaceNodeDXDP,
-                          const utilities::VectorIndex aVectorIndex)
+                          const utilities::VectorIndex aVectorIndex) -> analysis::AnalysisDomainMesh
 {
+    const auto tDFDLSRandomAccessView = analysis::AnalysisDomainMeshMutableRandomAccessView{aDFDLS};
     for (const auto &[tParentNodeBackgroundID, tParentNodeDXDP] :
          utilities::Zip{aInterfaceNodeDXDP.mParentNodeIds, aInterfaceNodeDXDP.mParentDXDP})
     {
-        aDFDLS[tParentNodeBackgroundID] += dfdls_entry_contribution(aDFDX, aVectorIndex, tParentNodeDXDP);
+        auto tDFDLSRandomAccessViewValue = tDFDLSRandomAccessView[tParentNodeBackgroundID];
+        tDFDLSRandomAccessViewValue = static_cast<analysis::ScalarFieldValue>(tDFDLSRandomAccessViewValue).mValue +
+                                      dfdls_entry_contribution(aDFDX, aVectorIndex, tParentNodeDXDP);
     }
+    return aDFDLS;
 }
 }  // namespace
 
@@ -67,16 +71,9 @@ void initialize_environment_for_krino(const MPI_Comm &aComm)
 auto calculate_dfdls(const std::vector<double> &aDFDX,
                      const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
                      const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP,
-                     const std::vector<KrinoGlobalNodeID> &aBackgroundNodemap)
-    -> std::unordered_map<KrinoGlobalNodeID, double>
+                     analysis::AnalysisDomainMesh &&aBackgroundMeshSpaceIDs) -> analysis::AnalysisDomainMesh
 {
     const auto tCutMeshSpaceRandomAccessView = analysis::AnalysisDomainMeshRandomAccessView{aCutMeshSpaceIDs};
-    auto tDFDLS = std::unordered_map<KrinoGlobalNodeID, double>{};
-    tDFDLS.reserve(aBackgroundNodemap.size());
-    for (const auto tNodeID : aBackgroundNodemap)
-    {
-        tDFDLS[tNodeID] = 0.0;
-    }
     for (const auto &[tCurInterfaceNodeID, tInterfaceNodeDXDP] : aDXDP)
     {
         const auto tCutMeshScalarFieldValues = tCutMeshSpaceRandomAccessView[tCurInterfaceNodeID];
@@ -88,10 +85,11 @@ auto calculate_dfdls(const std::vector<double> &aDFDX,
         const auto tDFDXView = utilities::make_multi_vector_view<kNumDimensions>(aDFDX);
         if (tVectorIndex.mValue < tDFDXView.numberOfVectors())
         {
-            assemble_dfdls_entry(tDFDLS, aDFDX, tInterfaceNodeDXDP, tVectorIndex);
+            aBackgroundMeshSpaceIDs =
+                assemble_dfdls_entry(std::move(aBackgroundMeshSpaceIDs), aDFDX, tInterfaceNodeDXDP, tVectorIndex);
         }
     }
-    return tDFDLS;
+    return aBackgroundMeshSpaceIDs;
 }
 
 auto calculate_adjoint_dfdls(const analysis::AnalysisDomainMesh &aBackgroundLevelSetSpaceVector,

@@ -99,7 +99,7 @@ TEST(DensityTopology, AdjointJacobian)
 
     // Since adjointJacobian implements v * J', the expected result is then just the same as the filter application,
     // which is J * v.
-    const auto tExpected = tMesh.meshDesignVariablesToNodalFieldVector(
+    const auto tExpected = tMesh.analysisDomainMeshToNodalFieldVector(
         tFilter.template evaluate<core::evaluation::kFunction>(tNodalDesignParameters));
     const auto tResult = tDesignVariables * tDensityTopology.adjointJacobian(tDesignVariables);
     constexpr auto tTolerance = 1e-14;
