@@ -4,6 +4,7 @@
 #include <boost/mpi/communicator.hpp>
 
 #include "plato/core/Function.hpp"
+#include "plato/utilities/FunctionArgType.hpp"
 
 namespace plato::test_utilities
 {
@@ -15,31 +16,17 @@ namespace plato::test_utilities
 template <typename F, typename DF>
 auto make_parallel_function(F aFun, DF aDFun, const boost::mpi::communicator& aComm);
 
-namespace detail
-{
-template <typename F>
-struct ParallelArgType
-{
-};
-
-template <typename F, typename R, typename Arg>
-struct ParallelArgType<R (F::*)(Arg, const boost::mpi::communicator&)>
-{
-    using type = Arg;
-};
-
-template <typename F, typename R, typename Arg>
-struct ParallelArgType<R (F::*)(Arg, const boost::mpi::communicator&) const>
-{
-    using type = Arg;
-};
-}  // namespace detail
-
 template <typename F, typename DF>
 auto make_parallel_function(F aFun, DF aDFun, const boost::mpi::communicator& aComm)
 {
-    using ArgF = typename detail::ParallelArgType<decltype(&F::operator())>::type;
-    using ArgDF = typename detail::ParallelArgType<decltype(&DF::operator())>::type;
+    static_assert(std::is_convertible_v<typename utilities::FunctionArgType<F>::template arg<1U>,
+                                        const boost::mpi::communicator&>);
+    static_assert(std::is_convertible_v<typename utilities::FunctionArgType<DF>::template arg<1U>,
+                                        const boost::mpi::communicator&>);
+
+    using ArgF = typename utilities::FunctionArgType<F>::template arg<0U>;
+    using ArgDF = typename utilities::FunctionArgType<DF>::template arg<0U>;
+
     return core::make_function_with_first_derivative(
         [tComm = aComm, tFun = std::move(aFun)](ArgF aArg) { return tFun(aArg, tComm); },
         [tComm = aComm, tDFun = std::move(aDFun)](ArgDF aArg) { return tDFun(aArg, tComm); });

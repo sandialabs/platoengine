@@ -6,6 +6,7 @@
 #include <type_traits>
 
 #include "plato/core/FunctionHelpers.hpp"
+#include "plato/utilities/FunctionArgType.hpp"
 
 namespace plato::core
 {
@@ -167,33 +168,11 @@ constexpr auto Function<Domain, Info...>::isImplemented() -> bool
     return TupleHelper::template is_implemented<Order, Ordering>();
 }
 
-namespace detail
-{
-/// Helper for deducing the argument type of a callable object @a F
-/// @a F must have an `operator()` defined.
-template <typename F>
-struct ArgType
-{
-};
-
-template <typename F, typename R, typename Arg>
-struct ArgType<R (F::*)(Arg)>
-{
-    using type = Arg;
-};
-
-template <typename F, typename R, typename Arg>
-struct ArgType<R (F::*)(Arg) const>
-{
-    using type = Arg;
-};
-}  // namespace detail
-
 template <typename F, typename G>
 auto make_function_with_first_derivative(F aF, G aG)
 {
-    using ArgF = typename detail::ArgType<decltype(&F::operator())>::type;
-    using ArgG = typename detail::ArgType<decltype(&G::operator())>::type;
+    using ArgF = typename utilities::FunctionArgType<F>::template arg<0U>;
+    using ArgG = typename utilities::FunctionArgType<G>::template arg<0U>;
     static_assert(std::is_convertible_v<ArgF, ArgG>,
                   "The arguments of functions with type F and G must be implicitly convertible.");
 
