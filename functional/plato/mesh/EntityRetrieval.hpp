@@ -24,9 +24,6 @@ struct EntityRetrieval : public Mesh
     /// @brief Centroids of the elements in the design domain of the mesh.
     [[nodiscard]] auto designDomainElementCentroids() const -> std::vector<third_party_integration::common::Coordinate>;
 
-    /// @brief Global node ids of the mesh.
-    [[nodiscard]] auto globalNodeIds() const -> std::vector<unsigned int>;
-
     /// @brief Nodal Global IDs in the mesh only associated with the design domain (not fixed blocks).
     [[nodiscard]] auto designDomainNodeIDs() const -> std::vector<std::size_t>;
 

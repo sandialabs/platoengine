@@ -42,11 +42,6 @@ auto EntityRetrieval::designDomainElementCentroids() const -> std::vector<third_
     return third_party_integration::stk_io::element_centroids(bulkData(), designDomainBlocks());
 }
 
-auto EntityRetrieval::globalNodeIds() const -> std::vector<unsigned int>
-{
-    return third_party_integration::stk_io::extract_global_node_ids(bulkData());
-}
-
 auto EntityRetrieval::designDomainNodeIDs() const -> std::vector<std::size_t>
 {
     return third_party_integration::stk_io::node_ids(bulkData(), designDomainBlocks());

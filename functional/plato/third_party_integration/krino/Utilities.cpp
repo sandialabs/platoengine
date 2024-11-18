@@ -79,15 +79,8 @@ auto calculate_dfdls(const std::vector<double> &aDFDX,
         const auto tCutMeshScalarFieldValues = tCutMeshSpaceRandomAccessView[tCurInterfaceNodeID];
         assert(tCutMeshScalarFieldValues.has_value());
         const auto tVectorIndex = utilities::VectorIndex{tCutMeshScalarFieldValues.value().mDesignVariableVectorIndex};
-        // Note: This `if` statement is to account for the fact that if Krino is not using the `include_void_region`
-        // option, the sensitivities vector may have a size equal to the number of nodes only in the material block, not
-        // both material and void blocks. This is a temporary fix and should be handled more robustly.
-        const auto tDFDXView = utilities::make_multi_vector_view<kNumDimensions>(aDFDX);
-        if (tVectorIndex.mValue < tDFDXView.numberOfVectors())
-        {
-            aBackgroundMeshSpaceIDs =
-                assemble_dfdls_entry(std::move(aBackgroundMeshSpaceIDs), aDFDX, tInterfaceNodeDXDP, tVectorIndex);
-        }
+        aBackgroundMeshSpaceIDs =
+            assemble_dfdls_entry(std::move(aBackgroundMeshSpaceIDs), aDFDX, tInterfaceNodeDXDP, tVectorIndex);
     }
     return aBackgroundMeshSpaceIDs;
 }

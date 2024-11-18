@@ -86,10 +86,6 @@ stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const P
 [[nodiscard]] auto read_nodal_field(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName)
     -> std::map<std::size_t, double>;
 
-/// @brief Given a pathname  @a aFilename, return a std::vector of the global node id map
-/// name
-[[nodiscard]] std::vector<unsigned int> extract_global_node_ids(const stk::mesh::BulkData& aBulkData);
-
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

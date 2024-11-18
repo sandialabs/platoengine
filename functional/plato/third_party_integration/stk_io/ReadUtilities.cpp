@@ -247,19 +247,4 @@ auto read_nodal_field(const std::filesystem::path& aInputMeshName, const std::st
     return {};
 }
 
-std::vector<unsigned int> extract_global_node_ids(const stk::mesh::BulkData& aBulkData)
-{
-    auto tNodeEntities = stk::mesh::EntityVector{};
-    stk::mesh::get_entities(aBulkData, stk::topology::NODE_RANK, aBulkData.mesh_meta_data().universal_part(),
-                            tNodeEntities);
-    const unsigned int tNumNodes = third_party_integration::stk_io::node_size(aBulkData);
-    std::vector<unsigned int> tLocalToGlobalMap(tNumNodes);
-
-    for (auto& tNodeEntity : tNodeEntities)
-    {
-        tLocalToGlobalMap[aBulkData.local_id(tNodeEntity)] = aBulkData.identifier(tNodeEntity);
-    }
-    return tLocalToGlobalMap;
-}
-
 }  // namespace plato::third_party_integration::stk_io
