@@ -1,6 +1,6 @@
 #include "PlatoKrinoAppUtils.hpp"
 #include "Plato_Parser.hpp"
-#include "plato/third_party_integration/krino/SphereBuilder.hpp"
+#include "PlatoKrinoSphereBuilder.hpp"
 #include <Teuchos_CommandLineProcessor.hpp>
 
 namespace apps::krino_app
@@ -33,9 +33,9 @@ T getOrThrow(const Plato::InputData &aInputData, const std::string &aName, const
     return tReturnValue;
 }
 
-LevelsetPrimitives readLevelsetInitializationData(Plato::InputData &aAppFileData)
+Plato::LevelsetPrimitives readLevelsetInitializationData(Plato::InputData &aAppFileData)
 {
-    LevelsetPrimitives tPrims;
+    Plato::LevelsetPrimitives tPrims;
     if (!aAppFileData.empty())
     {
         for (auto tNode : aAppFileData.getByName<Plato::InputData>("Operation"))
@@ -64,28 +64,28 @@ LevelsetPrimitives readLevelsetInitializationData(Plato::InputData &aAppFileData
     return tPrims;
 }
 
-void createSpheresFromPattern(const Plato::InputData &aNode, LevelsetPrimitives &aPrims)
+void createSpheresFromPattern(const Plato::InputData &aNode, Plato::LevelsetPrimitives &aPrims)
 {
-    SpherePatternData tData = readSpherePatternData(aNode);
-    std::vector<Sphere> tSpheres = generate_spheres(tData);
+    const auto tData = readSpherePatternData(aNode);
+    const auto tSpheres = generate_spheres(tData);
     aPrims.mSpheres.insert(aPrims.mSpheres.end(), tSpheres.begin(), tSpheres.end());
 }
 
-void createSphere(const Plato::InputData &aNode, LevelsetPrimitives &aPrims)
+void createSphere(const Plato::InputData &aNode, Plato::LevelsetPrimitives &aPrims)
 {
-    Sphere tSphere = readSphereData(aNode);
+    const auto tSphere = readSphereData(aNode);
     aPrims.mSpheres.push_back(tSphere);
 }
 
-void createPlane(const Plato::InputData &aNode, LevelsetPrimitives &aPrims)
+void createPlane(const Plato::InputData &aNode, Plato::LevelsetPrimitives &aPrims)
 {
-    Plane tPlane = readPlaneData(aNode);
+    const auto tPlane = readPlaneData(aNode);
     aPrims.mPlanes.push_back(tPlane);
 }
 
-SpherePatternData readSpherePatternData(const Plato::InputData &aNode)
+Plato::SpherePatternData readSpherePatternData(const Plato::InputData &aNode)
 {
-    SpherePatternData tData;
+    Plato::SpherePatternData tData;
     tData.mBoundingBoxMinXYZ = {
         getOrThrow<double>(aNode, "bbox_xmin", "ERROR: Levelset definition bounding box xmin was not specified."),
         getOrThrow<double>(aNode, "bbox_ymin", "ERROR: Levelset definition bounding box ymin was not specified."),
@@ -101,7 +101,7 @@ SpherePatternData readSpherePatternData(const Plato::InputData &aNode)
     return tData;
 }
 
-Sphere readSphereData(const Plato::InputData &aNode)
+Plato::Sphere readSphereData(const Plato::InputData &aNode)
 {
     double tCenterX =
         getOrThrow<double>(aNode, "center_x", "ERROR: Levelset definition sphere center_x was not specified.");
@@ -110,10 +110,10 @@ Sphere readSphereData(const Plato::InputData &aNode)
     double tCenterZ =
         getOrThrow<double>(aNode, "center_z", "ERROR: Levelset definition sphere center_z was not specified.");
     double tRadius = getOrThrow<double>(aNode, "radius", "ERROR: Levelset definition sphere radius was not specified.");
-    return Sphere{{tCenterX, tCenterY, tCenterZ}, tRadius};
+    return Plato::Sphere{{tCenterX, tCenterY, tCenterZ}, tRadius};
 }
 
-Plane readPlaneData(const Plato::InputData &aNode)
+Plato::Plane readPlaneData(const Plato::InputData &aNode)
 {
     double tNormalX =
         getOrThrow<double>(aNode, "normal_x", "ERROR: Levelset definition plane normal_x was not specified.");
@@ -122,7 +122,7 @@ Plane readPlaneData(const Plato::InputData &aNode)
     double tNormalZ =
         getOrThrow<double>(aNode, "normal_z", "ERROR: Levelset definition plane normal_z was not specified.");
     double tOffset = getOrThrow<double>(aNode, "offset", "ERROR: Levelset definition plane offset was not specified.");
-    return Plane{{tNormalX, tNormalY, tNormalZ}, tOffset};
+    return Plato::Plane{{tNormalX, tNormalY, tNormalZ}, tOffset};
 }
 
 bool parse_command_line_options(int aArgc, char *aArgv[], CommandLineOptions &aCommandLineOptions)
