@@ -4,8 +4,8 @@
 #include <numeric>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshOperators.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
-#include "plato/analysis/unittest/Utilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/Zip.hpp"

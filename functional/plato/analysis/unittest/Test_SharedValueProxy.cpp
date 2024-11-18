@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshOperators.hpp"
 #include "plato/analysis/SharedValueProxy.hpp"
-#include "plato/analysis/unittest/Utilities.hpp"
 
 namespace plato::analysis::unittest
 {
@@ -14,6 +14,11 @@ const auto tDensity2 = ScalarFieldValue{2, 2, 2.0};
 
 using VectorType = std::vector<ScalarFieldValue>;
 using SharedDensityProxy = SharedValueProxy<ScalarFieldValue, typename VectorType::iterator>;
+
+struct AssignDensity
+{
+    void operator()(ScalarFieldValue& aScalarField, const double aDensity) const { aScalarField.mValue = aDensity; }
+};
 }  // namespace
 
 TEST(SharedDensityProxy, AssignmentOperator1Iterator)
@@ -51,4 +56,23 @@ TEST(SharedDensityProxy, CastToDensity)
 
     EXPECT_EQ(static_cast<ScalarFieldValue>(tProxy), tDensity1);
 }
+
+TEST(SharedDensityProxy, AssignmentPolicy)
+{
+    using SharedDensityProxyValueAssignment =
+        SharedValueProxy<ScalarFieldValue, typename VectorType::iterator, AssignDensity>;
+    auto tVector1 = VectorType{tDensity0, tDensity1};
+    auto tVector2 = VectorType{tDensity1};
+    auto tProxy = SharedDensityProxyValueAssignment{{std::next(tVector1.begin()), tVector2.begin()}};
+
+    constexpr auto tNewValue = double{42.0};
+    tProxy = tNewValue;
+    EXPECT_EQ(tVector1.back().mValue, tNewValue);
+    EXPECT_EQ(tVector1.back().mGlobalMeshEntityID, tDensity1.mGlobalMeshEntityID);
+    EXPECT_EQ(tVector1.back().mDesignVariableVectorIndex, tDensity1.mDesignVariableVectorIndex);
+    EXPECT_EQ(tVector2.front().mValue, tNewValue);
+    EXPECT_EQ(tVector2.front().mGlobalMeshEntityID, tDensity1.mGlobalMeshEntityID);
+    EXPECT_EQ(tVector2.front().mDesignVariableVectorIndex, tDensity1.mDesignVariableVectorIndex);
+}
+
 }  // namespace plato::analysis::unittest
