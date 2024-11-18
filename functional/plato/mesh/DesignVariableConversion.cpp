@@ -13,7 +13,7 @@ namespace plato::mesh
 namespace
 {
 template <typename F>
-auto initialize_mesh_design_variable_data_structures(const Mesh& aMesh, const F& aIDFunction)
+auto initialize_analysis_domain_mesh_data_structures(const Mesh& aMesh, const F& aIDFunction)
     -> analysis::AnalysisDomainMesh
 {
     auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{aMesh.filePath(), {}};
@@ -31,10 +31,11 @@ auto initialize_mesh_design_variable_data_structures(const Mesh& aMesh, const F&
 }
 
 template <typename F>
-auto entity_field_to_mesh_analysis(const std::vector<double>& aScalarField, const Mesh& aMesh, const F& aIDFunction)
-    -> analysis::AnalysisDomainMesh
+auto entity_field_to_analysis_domain_mesh(const std::vector<double>& aScalarField,
+                                          const Mesh& aMesh,
+                                          const F& aIDFunction) -> analysis::AnalysisDomainMesh
 {
-    auto tAnalysisDomainMesh = initialize_mesh_design_variable_data_structures(aMesh, aIDFunction);
+    auto tAnalysisDomainMesh = initialize_analysis_domain_mesh_data_structures(aMesh, aIDFunction);
 
     auto tMeshView = analysis::AnalysisDomainMeshMutableSequentialView{tAnalysisDomainMesh};
     assert(aScalarField.size() == tMeshView.size());
@@ -49,7 +50,7 @@ auto entity_field_to_mesh_analysis(const std::vector<double>& aScalarField, cons
     return tAnalysisDomainMesh;
 }
 
-std::vector<double> mesh_analysis_view_to_vector(const analysis::AnalysisDomainMesh& tAnalysisDomainMesh)
+std::vector<double> analysis_domain_mesh_to_vector(const analysis::AnalysisDomainMesh& tAnalysisDomainMesh)
 {
     const auto aAnalysisDomainMeshView = analysis::AnalysisDomainMeshSequentialView{tAnalysisDomainMesh};
     auto tNodalField = std::vector<double>(aAnalysisDomainMeshView.size());
@@ -70,7 +71,7 @@ auto DesignVariablesConversion::nodalFieldToAnalysisDomainMesh(const NodalFieldV
 {
     const auto tNodeIDs = [](const mesh::Mesh& aMesh, const Mesh::BlockOrdinalType aBlockOrdinal)
     { return mesh::MeshBlocks{aMesh}.nodeIDs(aBlockOrdinal); };
-    return entity_field_to_mesh_analysis(aScalarField.mValue.get(), *this, tNodeIDs);
+    return entity_field_to_analysis_domain_mesh(aScalarField.mValue.get(), *this, tNodeIDs);
 }
 
 auto DesignVariablesConversion::elementFieldToAnalysisDomainMesh(const ElementFieldVectorReference aScalarField) const
@@ -78,19 +79,19 @@ auto DesignVariablesConversion::elementFieldToAnalysisDomainMesh(const ElementFi
 {
     const auto tElementIDs = [](const mesh::Mesh& aMesh, const Mesh::BlockOrdinalType aBlockOrdinal)
     { return mesh::MeshBlocks{aMesh}.elementIDs(aBlockOrdinal); };
-    return entity_field_to_mesh_analysis(aScalarField.mValue.get(), *this, tElementIDs);
+    return entity_field_to_analysis_domain_mesh(aScalarField.mValue.get(), *this, tElementIDs);
 }
 
-NodalFieldVector DesignVariablesConversion::meshDesignVariablesToNodalFieldVector(
+NodalFieldVector DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    return NodalFieldVector{mesh_analysis_view_to_vector(aAnalysisDomainMesh)};
+    return NodalFieldVector{analysis_domain_mesh_to_vector(aAnalysisDomainMesh)};
 }
 
-ElementFieldVector DesignVariablesConversion::meshDesignVariablesToElementFieldVector(
+ElementFieldVector DesignVariablesConversion::analysisDomainMeshToElementFieldVector(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    return ElementFieldVector{mesh_analysis_view_to_vector(aAnalysisDomainMesh)};
+    return ElementFieldVector{analysis_domain_mesh_to_vector(aAnalysisDomainMesh)};
 }
 
 }  // namespace plato::mesh

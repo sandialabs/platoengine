@@ -26,7 +26,7 @@ struct DesignVariablesConversion : public Mesh
     /// the node, element, and block info in the mesh.
     ///
     /// The ordering of @a aScalarField is assumed to match that of the vector returned by
-    /// meshDesignVariablesToNodalFieldVector.
+    /// analysisDomainMeshToNodalFieldVector.
     /// @pre The size of @a aScalarField must be equal to the total number of nodes in the design domain of @a aMesh,
     /// which is given by numberOfDesignDomainElements in EntityCounts.
     auto nodalFieldToAnalysisDomainMesh(NodalFieldVectorReference aScalarField) const -> analysis::AnalysisDomainMesh;
@@ -49,15 +49,15 @@ struct DesignVariablesConversion : public Mesh
     /// @verbatim
     /// [0, 1, 0, 1, 0.5, 0.5]
     /// @endverbatim
-    NodalFieldVector meshDesignVariablesToNodalFieldVector(
+    NodalFieldVector analysisDomainMeshToNodalFieldVector(
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
 
     /// @brief Maps the nodal scalar field contained in @a aAnalysisDomainMesh to a vector.
     ///
     /// The ordering of the resulting vector will be sorted by global element ID. See
-    /// meshDesignVariablesToNodalFieldVector for an example.
-    /// @sa meshDesignVariablesToNodalFieldVector
-    ElementFieldVector meshDesignVariablesToElementFieldVector(
+    /// analysisDomainMeshToNodalFieldVector for an example.
+    /// @sa analysisDomainMeshToNodalFieldVector
+    ElementFieldVector analysisDomainMeshToElementFieldVector(
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
 };
 
