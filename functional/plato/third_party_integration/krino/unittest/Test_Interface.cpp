@@ -1,9 +1,12 @@
 
 #include <gtest/gtest.h>  // for AssertHelper, TEST, etc
 
+#include <Akri_BoundingBoxMesh.hpp>
 #include <filesystem>
+#include <stk_util/environment/EnvData.hpp>
 
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/unittest/KrinoTestFixture.hpp"
 
 namespace plato::third_party_integration::krino::unittest
@@ -12,6 +15,7 @@ namespace plato::third_party_integration::krino::unittest
 namespace
 {
 constexpr int kNumDimensions = 3;
+const std::string kLevelsetName = "LS";
 
 auto predict_new_coordinates_based_on_perturbed_levelset_values(
     const KrinoWrapper &aKrinoWrapper,
@@ -47,8 +51,9 @@ auto predict_new_coordinates_based_on_perturbed_levelset_values(
 TEST_F(KrinoTestFixture, CreateBoundingBoxBackgroundMesh)
 {
     const auto tFilename = std::filesystem::path{"tmp.exo"};
-    const auto tKrinoWrapper =
-        KrinoWrapper{stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 0.5, tFilename};
+    create_bounding_box_mesh(stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 0.5, tFilename);
+    constexpr auto tIncludeVoidRegion = false;
+    const auto tKrinoWrapper = KrinoWrapper{tFilename, tIncludeVoidRegion};
 
     const auto tNodalCoordinates = tKrinoWrapper.getCoordinateValues();
     {
@@ -78,8 +83,9 @@ TEST_F(KrinoTestFixture, CutSphereOutOfBackgroundMesh)
     const auto tCutFilename = std::filesystem::path{"swiss_cheese.exo"};
     const std::string tBlockName{"block_1"};
     constexpr bool tIncludeVoidRegion = false;
+    create_bounding_box_mesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, 0.333, tBackgroundFilename);
+    KrinoWrapper tKrinoWrapper{tBackgroundFilename, tIncludeVoidRegion};
 
-    KrinoWrapper tKrinoWrapper{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, 0.333, tBackgroundFilename, tIncludeVoidRegion};
     const std::vector<std::pair<stk::math::Vector3d, double>> spheres{{{0.5, 0.5, 0.5}, 0.3}};
     tKrinoWrapper.initializeSphereLevelset(spheres);
     tKrinoWrapper.cutMesh();
@@ -94,7 +100,10 @@ TEST_F(KrinoTestFixture, CutSphereOutOfBackgroundMesh)
 TEST_F(KrinoTestFixture, GetSetLevelsetValues)
 {
     const auto tFilename = std::filesystem::path{"tmp.exo"};
-    KrinoWrapper tKrinoWrapper{stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 1.0, tFilename};
+    constexpr bool tIncludeVoidRegion = false;
+    create_bounding_box_mesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, 1.0, tFilename);
+    KrinoWrapper tKrinoWrapper{tFilename, tIncludeVoidRegion};
+
     tKrinoWrapper.initializePlaneLevelset(-1, .5, .35, .2);
     tKrinoWrapper.cutMesh();
     std::vector<double> tCurLevelsetValues1 = tKrinoWrapper.getLevelsetValues();
@@ -119,7 +128,10 @@ TEST_F(KrinoTestFixture, GetSetLevelsetValues)
 TEST_F(KrinoTestFixture, Redistance)
 {
     const auto tFilename = std::filesystem::path{"tmp.exo"};
-    KrinoWrapper tKrinoWrapper{stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{2.0, 1.0, 1.0}, 1.0, tFilename};
+    constexpr bool tIncludeVoidRegion = false;
+    create_bounding_box_mesh({0.0, 0.0, 0.0}, {2.0, 1.0, 1.0}, 1.0, tFilename);
+    KrinoWrapper tKrinoWrapper{tFilename, tIncludeVoidRegion};
+
     tKrinoWrapper.initializePlaneLevelset(1, 0, 0, -.25);
     tKrinoWrapper.cutMesh();
     std::vector<double> tLevelsetValues = tKrinoWrapper.getLevelsetValues();
@@ -169,8 +181,10 @@ TEST_F(KrinoTestFixture, Redistance)
 TEST_F(KrinoTestFixture, Sensitivities)
 {
     const auto tFilename = std::filesystem::path{"tmp.exo"};
+    constexpr bool tIncludeVoidRegion = false;
+    create_bounding_box_mesh(stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 1.0, tFilename);
+    KrinoWrapper tKrinoWrapper{tFilename, tIncludeVoidRegion};
 
-    KrinoWrapper tKrinoWrapper{stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 1.0, tFilename};
     tKrinoWrapper.initializePlaneLevelset(-1, .5, .35, .2);
     std::vector<double> tOriginalLevelsetValues = tKrinoWrapper.getLevelsetValues();
     tKrinoWrapper.cutMesh();

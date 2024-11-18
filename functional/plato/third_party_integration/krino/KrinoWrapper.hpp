@@ -20,11 +20,6 @@ class KrinoWrapper
 {
    public:
     explicit KrinoWrapper(const std::filesystem::path &aFilename, const bool aIncludeVoidRegion = false);
-    KrinoWrapper(const stk::math::Vector3d &aMinCorner,
-                 const stk::math::Vector3d &aMaxCorner,
-                 const double aMeshSize,
-                 const std::filesystem::path &aFilename,
-                 const bool aIncludeVoidRegion = false);
 
     void setLevelsetValues(const std::vector<double> &aValuesIn);
     void cutMesh();
@@ -47,11 +42,6 @@ class KrinoWrapper
 
    private:
     [[nodiscard]] auto readAndSetupMeshForDecomposition(const std::filesystem::path &aFilename)
-        -> std::unique_ptr<::krino::MeshInterface>;
-    [[nodiscard]] auto createBoundingBoxMesh(const stk::math::Vector3d &aMinCorner,
-                                             const stk::math::Vector3d &aMaxCorner,
-                                             const double aMeshSize,
-                                             const std::filesystem::path &aFilename)
         -> std::unique_ptr<::krino::MeshInterface>;
     [[nodiscard]] auto buildOutputSelector(const stk::mesh::MetaData &meta, const stk::mesh::Part &activePart)
         -> stk::mesh::Selector;

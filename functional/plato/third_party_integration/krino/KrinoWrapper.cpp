@@ -2,7 +2,6 @@
 
 #include <Akri_AnalyticSurf.hpp>
 #include <Akri_AuxMetaData.hpp>
-#include <Akri_BoundingBoxMesh.hpp>
 #include <Akri_CDFEM_Support.hpp>
 #include <Akri_CDMesh.hpp>
 #include <Akri_ChildNodeStencil.hpp>
@@ -17,6 +16,8 @@
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Types.hpp>
 #include <stk_util/environment/EnvData.hpp>
+
+#include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace plato::third_party_integration::krino
 {
@@ -49,16 +50,6 @@ stk::mesh::Selector KrinoWrapper::buildOutputSelector(const stk::mesh::MetaData 
         }
     }
     return activePart & stk::mesh::selectUnion(outputParts);
-}
-
-void KrinoWrapper::setupFieldsForConformingDecomposition(const stk::mesh::MetaData &meta)
-{
-    ::krino::CDFEM_Support &cdfemSupport = ::krino::CDFEM_Support::get(meta);
-    const ::krino::FieldRef coordsField = meta.coordinate_field();
-
-    cdfemSupport.set_coords_field(coordsField);
-    cdfemSupport.add_edge_interpolation_field(coordsField);
-    cdfemSupport.register_parent_node_ids_field();
 }
 
 bool KrinoWrapper::includeVoidRegionPart(const stk::mesh::Part *aPart) const
@@ -193,49 +184,12 @@ std::vector<double> KrinoWrapper::getLevelsetValues() const
     return tReturn;
 }
 
-KrinoWrapper::KrinoWrapper(const stk::math::Vector3d &aMinCorner,
-                           const stk::math::Vector3d &aMaxCorner,
-                           const double aMeshSize,
-                           const std::filesystem::path &aFilename,
-                           const bool aIncludeVoidRegion)
-    : mUncutBackgroundMeshSize(0),
-      mIncludeVoidRegion(aIncludeVoidRegion),
-      mLSFields(),
-      mKrinoMesh(createBoundingBoxMesh(aMinCorner, aMaxCorner, aMeshSize, aFilename))
-{
-}
-
 KrinoWrapper::KrinoWrapper(const std::filesystem::path &aFilename, const bool aIncludeVoidRegion)
     : mUncutBackgroundMeshSize(0),
       mIncludeVoidRegion(aIncludeVoidRegion),
       mLSFields(),
       mKrinoMesh(readAndSetupMeshForDecomposition(aFilename))
 {
-}
-
-std::unique_ptr<::krino::MeshInterface> KrinoWrapper::createBoundingBoxMesh(const stk::math::Vector3d &aMinCorner,
-                                                                            const stk::math::Vector3d &aMaxCorner,
-                                                                            const double aMeshSize,
-                                                                            const std::filesystem::path &aFilename)
-{
-    std::unique_ptr<::krino::BoundingBoxMesh> tBoundingBoxMesh =
-        std::make_unique<::krino::BoundingBoxMesh>(stk::topology::TET_4, stk::EnvData::parallel_comm());
-    mLSFields = ::krino::LSPerInterfacePolicy::setup_levelsets_on_all_blocks_with_void_phase_for_any_negative_levelset(
-        tBoundingBoxMesh->meta_data(), 1);
-    ::krino::LevelSet &tLevelSet =
-        ::krino::LevelSet::build(tBoundingBoxMesh->meta_data(), kLevelsetName, sierra::Diag::sierraTimer());
-    tLevelSet.set_distance_name(kLevelsetName);
-    tLevelSet.setup();
-    setupFieldsForConformingDecomposition(tBoundingBoxMesh->meta_data());
-    tBoundingBoxMesh->set_domain(::krino::BoundingBoxMesh::BoundingBoxType(aMinCorner, aMaxCorner), aMeshSize);
-    tBoundingBoxMesh->set_mesh_structure_type(::krino::FLAT_WALLED_BCC_BOUNDING_BOX_MESH);
-    tBoundingBoxMesh->populate_mesh();
-    ::krino::activate_all_entities(tBoundingBoxMesh->bulk_data(),
-                                   ::krino::AuxMetaData::get(tBoundingBoxMesh->meta_data()).active_part());
-    ::krino::output_composed_mesh_with_fields(tBoundingBoxMesh->bulk_data(),
-                                              ::krino::AuxMetaData::get(tBoundingBoxMesh->meta_data()).active_part(),
-                                              aFilename.string(), 1, 0.0);
-    return std::unique_ptr<::krino::MeshInterface>(std::move(tBoundingBoxMesh));
 }
 
 std::unique_ptr<::krino::MeshInterface> KrinoWrapper::readAndSetupMeshForDecomposition(
@@ -249,7 +203,7 @@ std::unique_ptr<::krino::MeshInterface> KrinoWrapper::readAndSetupMeshForDecompo
         ::krino::LevelSet::build(tMeshFromFile->meta_data(), kLevelsetName, sierra::Diag::sierraTimer());
     tLevelSet.set_distance_name(kLevelsetName);
     tLevelSet.setup();
-    setupFieldsForConformingDecomposition(tMeshFromFile->meta_data());
+    setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data());
     tMeshFromFile->populate_mesh();
     ::krino::activate_all_entities(tMeshFromFile->bulk_data(),
                                    ::krino::AuxMetaData::get(tMeshFromFile->meta_data()).active_part());

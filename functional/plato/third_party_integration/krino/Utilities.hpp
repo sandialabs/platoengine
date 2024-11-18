@@ -3,6 +3,7 @@
 
 #include <mpi.h>
 
+#include <filesystem>
 #include <stk_math/StkVector.hpp>
 #include <stk_mesh/base/Types.hpp>
 #include <unordered_map>
@@ -44,6 +45,13 @@ void initialize_environment_for_krino(const MPI_Comm &aComm);
 [[nodiscard]] auto calculate_adjoint_dfdls(const analysis::AnalysisDomainMesh &aBackgroundLevelSetSpaceVector,
                                            const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP)
     -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>;
+
+void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData &aMeta);
+
+void create_bounding_box_mesh(const stk::math::Vector3d &aMinCorner,
+                              const stk::math::Vector3d &aMaxCorner,
+                              const double aMeshSize,
+                              const std::filesystem::path &aFilename);
 
 }  // namespace plato::third_party_integration::krino
 

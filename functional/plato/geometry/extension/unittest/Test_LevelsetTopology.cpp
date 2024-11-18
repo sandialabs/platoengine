@@ -20,6 +20,7 @@
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 
 using namespace plato::third_party_integration::krino;
 
@@ -36,7 +37,9 @@ constexpr unsigned int kExpectedBackgroundLevelsetSize = 59;  // Based on mesh g
 void create_background_mesh(const std::string& aFileName, const double aMeshSize)
 {
     ASSERT_EQ(stk::parallel_machine_size(MPI_COMM_WORLD), 1);
-    KrinoWrapper tKrinoWrapper{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, aMeshSize, aFileName};
+    third_party_integration::krino::create_bounding_box_mesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, aMeshSize, aFileName);
+    constexpr auto tIncludeVoidRegion = false;
+    KrinoWrapper tKrinoWrapper{aFileName, tIncludeVoidRegion};
 }
 
 class KrinoTestFixture : public ::testing::Test
