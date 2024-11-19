@@ -2,6 +2,7 @@
 
 #include <cstddef>
 
+#include "plato/utilities/MultidimensionalRange.hpp"
 #include "plato/utilities/NamedType.hpp"
 
 namespace plato::third_party_integration::krino
@@ -84,16 +85,12 @@ std::vector<Sphere> generate_spheres(const SpherePatternData &aData)
     tSpheres.reserve(static_cast<std::vector<Sphere>::size_type>(tLocatorData.mSphereCounts.mX) *
                      tLocatorData.mSphereCounts.mY * tLocatorData.mSphereCounts.mZ);
 
-    for (auto tCurX : tXValues)
+    for (const auto &[tXIndex, tYIndex, tZIndex] :
+         utilities::MultidimensionalRange{tXValues.size(), tYValues.size(), tZValues.size()})
     {
-        for (auto tCurY : tYValues)
-        {
-            for (auto tCurZ : tZValues)
-            {
-                tSpheres.push_back(Sphere{{tCurX, tCurY, tCurZ}, aData.mSphereRadius});
-            }
-        }
+        tSpheres.push_back(Sphere{{tXValues[tXIndex], tYValues[tYIndex], tZValues[tZIndex]}, aData.mSphereRadius});
     }
+
     return tSpheres;
 }
 

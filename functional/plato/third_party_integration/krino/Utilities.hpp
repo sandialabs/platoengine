@@ -17,6 +17,12 @@ struct AnalysisDomainMesh;
 
 namespace plato::third_party_integration::krino
 {
+/// @brief Describes whether or not to include a void phase block in the generated cut mesh.
+enum struct VoidPhase
+{
+    kIncludeInMesh,
+    kExcludeFromMesh
+};
 
 using KrinoGlobalNodeID = unsigned int;
 
@@ -28,8 +34,6 @@ struct InterfaceNodeDXDP
 
 /// @brief Initialization needed for krino to run correctly.
 void initialize_environment_for_krino(const MPI_Comm &aComm);
-
-void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData &aMeta);
 
 void create_bounding_box_mesh(const stk::math::Vector3d &aMinCorner,
                               const stk::math::Vector3d &aMaxCorner,

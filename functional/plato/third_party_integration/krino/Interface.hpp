@@ -22,7 +22,7 @@ using CutMeshFilePath = utilities::NamedType<std::filesystem::path, struct Backg
 auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshName,
                                  const CutMeshFilePath &aCutMesh,
                                  const std::vector<double> &aLevelsetValues,
-                                 const bool aIncludeVoidRegion)
+                                 const VoidPhase aVoidRegion)
     -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>;
 
 /// @brief Generate a computational mesh, @a aCutMesh, by cutting a background mesh,
@@ -33,7 +33,7 @@ auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshNa
 [[nodiscard]] auto initialize_mesh_with_levelset_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
                                                             const CutMeshFilePath &aCutMesh,
                                                             const LevelsetPrimitives &aLevelsetPrimitives,
-                                                            const bool aIncludeVoidRegion) -> std::vector<double>;
+                                                            const VoidPhase aVoidRegion) -> std::vector<double>;
 
 /// @brief Given DFDX, @a aDFDXMap (sensitivity of objective to nodal coordinate changes), and DXDP, @a aDXDP
 /// (sensitivity of nodal coordinates to levelset values), and the local-to-global node id map of the background mesh,

@@ -52,26 +52,22 @@ auto assemble_dfdls_entry(analysis::AnalysisDomainMesh &&aDFDLS,
 auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshName,
                                  const CutMeshFilePath &aCutMesh,
                                  const std::vector<double> &aLevelsetValues,
-                                 const bool aIncludeVoidRegion)
+                                 const VoidPhase aVoidRegion)
     -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aIncludeVoidRegion);
-    tKrinoWrapper.setLevelsetValues(aLevelsetValues);
-    tKrinoWrapper.cutMesh();
+    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelsetValues, aVoidRegion);
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
-    return tKrinoWrapper.getSensitivities();
+    return tKrinoWrapper.sensitivities();
 }
 
 std::vector<double> initialize_mesh_with_levelset_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
                                                              const CutMeshFilePath &aCutMesh,
                                                              const LevelsetPrimitives &aLevelsetPrimitives,
-                                                             const bool aIncludeVoidRegion)
+                                                             const VoidPhase aVoidRegion)
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aIncludeVoidRegion);
-    tKrinoWrapper.initializeLevelsetsFromPrimitives(aLevelsetPrimitives);
-    tKrinoWrapper.cutMesh();
+    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelsetPrimitives, aVoidRegion);
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
-    return tKrinoWrapper.getLevelsetValues();
+    return tKrinoWrapper.levelsetValues();
 }
 
 auto calculate_dfdls(const std::vector<double> &aDFDX,

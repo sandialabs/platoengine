@@ -13,66 +13,34 @@
 
 namespace plato::third_party_integration::krino
 {
-
-constexpr int kNumDimensions = 3;
-
+/// @brief Interface with Krino
+///
+/// This interface with Krino can create a cut mesh from a background mesh and either a set of primitives
+/// or a given levelset field. It also provides member functions to compute the nodal coordinate sensitivities with
+/// respect to the levelset field.
 class KrinoWrapper
 {
    public:
-    explicit KrinoWrapper(const std::filesystem::path &aFilename, const bool aIncludeVoidRegion = false);
+    KrinoWrapper(const std::filesystem::path &aFilename,
+                 const LevelsetPrimitives &aLevelsetPrimitives,
+                 const VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
+    KrinoWrapper(const std::filesystem::path &aFilename,
+                 const std::vector<double> &aLevelsetValues,
+                 const VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
 
     void setLevelsetValues(const std::vector<double> &aValuesIn);
-    void cutMesh();
     void writeMesh(const std::filesystem::path &aFilename);
-    void initializeLevelsetsFromPrimitives(const LevelsetPrimitives &aLevelsetPrimitives);
-    void initializeSphereLevelset(const std::vector<std::pair<stk::math::Vector3d, double>> &aSpheres);
-    void initializePlaneLevelset(const double aNormalX,
-                                 const double aNormalY,
-                                 const double aNormalZ,
-                                 const double aOffset);
-    void resetMesh();
     void redistance();
 
-    [[nodiscard]] auto getSensitivities() const -> const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &;
-    [[nodiscard]] auto getLevelsetValues() const -> std::vector<double>;
-    [[nodiscard]] auto getNumTetsInNamedBlock(const std::string &aBlockName) const -> unsigned int;
-    [[nodiscard]] auto getCoordinateValues() const -> std::unordered_map<unsigned int, stk::math::Vector3d>;
+    [[nodiscard]] auto sensitivities() const -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>;
+    [[nodiscard]] auto levelsetValues() const -> std::vector<double>;
+    [[nodiscard]] auto coordinates() const -> std::unordered_map<unsigned int, stk::math::Vector3d>;
     [[nodiscard]] auto bulkData() const -> const stk::mesh::BulkData &;
-    [[nodiscard]] auto getUncutBackgroundMeshSize() const -> unsigned int;
 
    private:
-    [[nodiscard]] auto readAndSetupMeshForDecomposition(const std::filesystem::path &aFilename)
-        -> std::unique_ptr<::krino::MeshInterface>;
-    [[nodiscard]] auto buildOutputSelector(const stk::mesh::MetaData &meta, const stk::mesh::Part &activePart)
-        -> stk::mesh::Selector;
-    void setupFieldsForConformingDecomposition(const stk::mesh::MetaData &meta);
-    [[nodiscard]] bool includeVoidRegionPart(const stk::mesh::Part *aPart) const;
-    void decomposeMeshToConformToLevelsets(stk::mesh::BulkData &mesh, const std::vector<::krino::LS_Field> &lsFields);
-    [[nodiscard]] auto getLevelsetShapeSensitivities(const stk::mesh::BulkData &mesh,
-                                                     const ::krino::FieldRef levelSetField)
-        -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>;
-    void fillDCoordsDLevelsets(const ::krino::FieldRef coordsField,
-                               const ::krino::FieldRef levelSetField,
-                               const std::vector<stk::mesh::Entity> &parentNodes,
-                               std::vector<stk::math::Vector3d> &dCoordsdParentLevelSets);
-    void initializeLevelsetFieldsFromPrimitives(const stk::mesh::BulkData &mesh,
-                                                ::krino::FieldRef levelSetField,
-                                                const LevelsetPrimitives &aLevelsetPrimitives);
-    void initializeLevelsetFieldForSpheres(const stk::mesh::BulkData &mesh,
-                                           ::krino::FieldRef levelSetField,
-                                           const std::vector<std::pair<stk::math::Vector3d, double>> &spheres);
-    void initializeLevelsetFieldForPlane(const stk::mesh::BulkData &mesh,
-                                         ::krino::FieldRef levelSetField,
-                                         const stk::math::Vector3d &normal,
-                                         const double offset);
-    [[nodiscard]] auto getNodeEntitiesInMesh() const -> stk::mesh::EntityVector;
-
-   private:
-    unsigned int mUncutBackgroundMeshSize;
-    bool mIncludeVoidRegion;
-    std::vector<::krino::LS_Field> mLSFields;
+    VoidPhase mVoidRegion;
     std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
-    std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> mSensitivities;
+    std::vector<::krino::LS_Field> mLevelsetFields;
 };
 
 }  // namespace plato::third_party_integration::krino

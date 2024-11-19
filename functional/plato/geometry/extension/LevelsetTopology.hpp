@@ -49,18 +49,15 @@ class LevelsetTopology
         -> linear_algebra::AdjointJacobianMultiplier;
 
    private:
-    void generateLevelsetInitializationPrimitives();
-
-   private:
     mesh::Mesh mBackgroundMesh;
     std::filesystem::path mCutMesh;
     std::filesystem::path mOutputMesh;
-    bool mIncludeVoidRegion = false;
+    third_party_integration::krino::VoidPhase mVoidRegion = third_party_integration::krino::VoidPhase::kExcludeFromMesh;
     double mLevelsetLowerBound = -1.0;
     double mLevelsetUpperBound = 1.0;
     unsigned int mNumDesignParameters = 0;
-    plato::third_party_integration::krino::LevelsetPrimitives mLevelsetPrimitives;
-    plato::third_party_integration::krino::SpherePatternData mSpherePattern;
+    third_party_integration::krino::SpherePatternData mSpherePattern;
+    third_party_integration::krino::LevelsetPrimitives mLevelsetPrimitives;
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.

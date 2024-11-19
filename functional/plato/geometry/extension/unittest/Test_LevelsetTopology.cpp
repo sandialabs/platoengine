@@ -19,10 +19,7 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
-#include "plato/third_party_integration/krino/KrinoWrapper.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
-
-using namespace plato::third_party_integration::krino;
 
 namespace plato::geometry::extension::unittest
 {
@@ -38,11 +35,9 @@ void create_background_mesh(const std::string& aFileName, const double aMeshSize
 {
     ASSERT_EQ(stk::parallel_machine_size(MPI_COMM_WORLD), 1);
     third_party_integration::krino::create_bounding_box_mesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, aMeshSize, aFileName);
-    constexpr auto tIncludeVoidRegion = false;
-    KrinoWrapper tKrinoWrapper{aFileName, tIncludeVoidRegion};
 }
 
-class KrinoTestFixture : public ::testing::Test
+class LevelsetTopologyFixture : public ::testing::Test
 {
    protected:
     void SetUp() override
@@ -50,7 +45,7 @@ class KrinoTestFixture : public ::testing::Test
         static bool tFirstTime{true};
         if (tFirstTime)
         {
-            initialize_environment_for_krino(MPI_COMM_WORLD);
+            third_party_integration::krino::initialize_environment_for_krino(MPI_COMM_WORLD);
             tFirstTime = false;
         }
     }
@@ -63,7 +58,7 @@ class KrinoTestFixture : public ::testing::Test
 
 }  // namespace
 
-TEST_F(KrinoTestFixture, LevelsetTopology_Jacobian)
+TEST_F(LevelsetTopologyFixture, Jacobian)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 1.0);
 
@@ -84,7 +79,7 @@ TEST_F(KrinoTestFixture, LevelsetTopology_Jacobian)
                                                   TEST_CONTEXT("Levelset Jacobian entries"));
 }
 
-TEST_F(KrinoTestFixture, LevelsetTopology_JacobianTranspose)
+TEST_F(LevelsetTopologyFixture, JacobianTranspose)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 1.0);
 
@@ -117,7 +112,7 @@ TEST_F(KrinoTestFixture, LevelsetTopology_JacobianTranspose)
                                                   TEST_CONTEXT("Levelset adjoint Jacobian entries"));
 }
 
-TEST_F(KrinoTestFixture, LevelsetTopology_GenerateMesh)
+TEST_F(LevelsetTopologyFixture, GenerateMesh)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 0.5);
     const LevelsetTopology tLevelsetTopology(kLevelsetInput);
@@ -143,7 +138,7 @@ TEST_F(KrinoTestFixture, LevelsetTopology_GenerateMesh)
     }
 }
 
-TEST_F(KrinoTestFixture, LevelsetTopology_InitialGuess)
+TEST_F(LevelsetTopologyFixture, InitialGuess)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 0.5);
 
@@ -165,7 +160,7 @@ TEST_F(KrinoTestFixture, LevelsetTopology_InitialGuess)
     }
 }
 
-TEST_F(KrinoTestFixture, LevelsetTopology_Bounds)
+TEST_F(LevelsetTopologyFixture, Bounds)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 0.5);
     const LevelsetTopology tLevelsetTopology(kLevelsetInput);
