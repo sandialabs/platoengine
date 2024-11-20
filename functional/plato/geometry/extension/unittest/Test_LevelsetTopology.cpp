@@ -20,6 +20,7 @@
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -37,7 +38,7 @@ void create_background_mesh(const std::string& aFileName, const double aMeshSize
     third_party_integration::krino::create_bounding_box_mesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, aMeshSize, aFileName);
 }
 
-class LevelsetTopologyFixture : public ::testing::Test
+class LevelsetTopologyFixture : virtual public ::testing::Test
 {
    protected:
     void SetUp() override
@@ -53,6 +54,23 @@ class LevelsetTopologyFixture : public ::testing::Test
     {
         std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken);
         std::filesystem::remove(kLevelsetInput.cut_mesh_name->mToken);
+    }
+};
+
+/// @brief The purpose of this fixture is to provide a mesh with a non-trivial node map.
+class LevelsetTopologyMeshFixture : public LevelsetTopologyFixture,
+                                    public third_party_integration::stk_io::test_utilities::Tet4MeshOnDisk
+{
+   protected:
+    void SetUp() override
+    {
+        LevelsetTopologyFixture::SetUp();
+        Tet4MeshOnDisk::SetUp();
+    }
+    void TearDown() override
+    {
+        LevelsetTopologyFixture::TearDown();
+        Tet4MeshOnDisk::TearDown();
     }
 };
 
@@ -77,6 +95,36 @@ TEST_F(LevelsetTopologyFixture, Jacobian)
     constexpr double tTol = 1e-6;
     test_utilities::expect_container_entries_near(tRes.stdVector(), tGold, tTol,
                                                   TEST_CONTEXT("Levelset Jacobian entries"));
+}
+
+TEST_F(LevelsetTopologyMeshFixture, Jacobian)
+{
+    auto tInput = kLevelsetInput;
+    tInput.background_mesh_name = input_parser::FileName{Tet4MeshOnDisk::mMeshFilePath};
+    tInput.sphere_pattern_bbox_min_x = 0.0;
+    tInput.sphere_pattern_bbox_max_x = 0.0;
+    tInput.sphere_pattern_bbox_min_y = 0.0;
+    tInput.sphere_pattern_bbox_max_y = 0.0;
+    tInput.sphere_pattern_bbox_min_z = 0.0;
+    tInput.sphere_pattern_bbox_max_z = 0.0;
+    tInput.sphere_pattern_radius = 1.0;
+    const auto tLevelsetTopology = LevelsetTopology{tInput};
+
+    const auto tInitialGuess = tLevelsetTopology.initialGuess(tInput.background_mesh_name->mToken);
+    const auto tJacobian = tLevelsetTopology.jacobian(tInitialGuess);
+
+    const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{kLevelsetInput.cut_mesh_name->mToken}}.numberOfNodes();
+    const auto tDFDX = linear_algebra::DynamicVector(static_cast<std::size_t>(kNumDimensions * tNumberOfNodes), 1.0);
+
+    const auto tResult = tDFDX * tJacobian;
+
+    ASSERT_EQ(tResult.size(), Tet4MeshOnDisk::mExpectedNumberOfNodes);
+
+    const auto tSum = std::accumulate(tResult.stdVector().begin(), tResult.stdVector().end(), 0.0);
+    // This is just a regression test, but this mesh has a non-trivial node map, so the test will fail if the node map
+    // is not used.
+    constexpr auto tExpectedJacobianSum = -43.3185837663019484;  // Regression value
+    EXPECT_DOUBLE_EQ(tExpectedJacobianSum, tSum);
 }
 
 TEST_F(LevelsetTopologyFixture, JacobianTranspose)
