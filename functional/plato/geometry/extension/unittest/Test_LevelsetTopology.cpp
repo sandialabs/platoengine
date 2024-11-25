@@ -78,10 +78,11 @@ TEST_F(LevelsetTopologyFixture, Jacobian)
 
     const auto tLevelsetTopology = LevelsetTopology{kLevelsetInput};
     const auto tInitialGuess = tLevelsetTopology.initialGuess(kLevelsetInput.background_mesh_name->mToken);
+    const auto tCutMesh = tLevelsetTopology.generateMesh(tInitialGuess);
+    ASSERT_TRUE(std::filesystem::exists(tCutMesh.mFileName));
     const linear_algebra::JacobianMultiplier tJacobian = tLevelsetTopology.jacobian(tInitialGuess);
 
-    const unsigned int tDFDXSize =
-        kNumDimensions * mesh::EntityCounts{mesh::Mesh{kLevelsetInput.cut_mesh_name->mToken}}.numberOfNodes();
+    const unsigned int tDFDXSize = kNumDimensions * mesh::EntityCounts{mesh::Mesh{tCutMesh.mFileName}}.numberOfNodes();
     const auto tDFDX = linear_algebra::DynamicVector(tDFDXSize, 1.0);
 
     const auto tRes = tDFDX * tJacobian;
@@ -109,7 +110,9 @@ TEST_F(LevelsetTopologyMeshFixture, Jacobian)
     const auto tInitialGuess = tLevelsetTopology.initialGuess(tInput.background_mesh_name->mToken);
     const auto tJacobian = tLevelsetTopology.jacobian(tInitialGuess);
 
-    const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{kLevelsetInput.cut_mesh_name->mToken}}.numberOfNodes();
+    const auto tCutMesh = tLevelsetTopology.generateMesh(tInitialGuess);
+    ASSERT_TRUE(std::filesystem::exists(tCutMesh.mFileName));
+    const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tCutMesh.mFileName}}.numberOfNodes();
     const auto tDFDX = linear_algebra::DynamicVector(static_cast<std::size_t>(kNumDimensions * tNumberOfNodes), 1.0);
 
     const auto tResult = tDFDX * tJacobian;
@@ -159,27 +162,15 @@ TEST_F(LevelsetTopologyFixture, JacobianTranspose)
 TEST_F(LevelsetTopologyFixture, GenerateMesh)
 {
     create_background_mesh(kLevelsetInput.background_mesh_name->mToken, 0.5);
-    const LevelsetTopology tLevelsetTopology(kLevelsetInput);
-    // Calling initialGuess() will create an initial cut mesh with
-    // the default sphere pattern defined in kLevelsetInput
-    const linear_algebra::DynamicVector<double> tInitialGuess =
-        tLevelsetTopology.initialGuess(kLevelsetInput.background_mesh_name->mToken);
-    const std::vector<third_party_integration::common::Coordinate> tNodalCoords1 =
-        mesh::EntityRetrieval{mesh::Mesh{kLevelsetInput.cut_mesh_name->mToken}}.nodalCoordinates();
-    // Call generateMesh to write out the cut mesh based on the passed in params (levelset values
-    // from the initial mesh). We should get the exact same mesh.
-    const auto tMeshDesignVariables = tLevelsetTopology.generateMesh(tInitialGuess);
-    ASSERT_TRUE(std::filesystem::exists(kLevelsetInput.cut_mesh_name->mToken));
-    const std::vector<third_party_integration::common::Coordinate> tNodalCoords2 =
-        mesh::EntityRetrieval{mesh::Mesh{kLevelsetInput.cut_mesh_name->mToken}}.nodalCoordinates();
+    const auto tLevelsetTopology = LevelsetTopology{kLevelsetInput};
+    const auto tInitialGuess = tLevelsetTopology.initialGuess(kLevelsetInput.background_mesh_name->mToken);
+    const auto tAnalysisMesh = tLevelsetTopology.generateMesh(tInitialGuess);
+    ASSERT_TRUE(std::filesystem::exists(tAnalysisMesh.mFileName));
 
-    ASSERT_EQ(tNodalCoords1.size(), tNodalCoords2.size());
-    for (size_t i = 0; i < tNodalCoords1.size(); ++i)
-    {
-        EXPECT_DOUBLE_EQ(tNodalCoords1[i].x, tNodalCoords2[i].x);
-        EXPECT_DOUBLE_EQ(tNodalCoords1[i].y, tNodalCoords2[i].y);
-        EXPECT_DOUBLE_EQ(tNodalCoords1[i].z, tNodalCoords2[i].z);
-    }
+    // Regression, just checks number of nodes
+    const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tAnalysisMesh.mFileName}}.numberOfNodes();
+    constexpr auto tExpectedNumberOfNodes = 72U;
+    EXPECT_EQ(tNumberOfNodes, tExpectedNumberOfNodes);
 }
 
 TEST_F(LevelsetTopologyFixture, InitialGuess)
@@ -190,18 +181,23 @@ TEST_F(LevelsetTopologyFixture, InitialGuess)
     const linear_algebra::DynamicVector<double> tInitialGuess =
         tLevelsetTopology.initialGuess(kLevelsetInput.background_mesh_name->mToken);
 
-    const std::vector<double> tGoldValues{
-        0.616025, 0.457107, 0.616025, 0.457107, 0.25,     0.457107, 0.616025, 0.457107, 0.616025, 0.457107,
-        0.25,     0.457107, 0.25,     -0.25,    0.25,     0.457107, 0.25,     0.457107, 0.616025, 0.457107,
-        0.616025, 0.457107, 0.25,     0.457107, 0.616025, 0.457107, 0.616025, 0.362372, 0.362372, 0.362372,
-        0.362372, 0.362372, 0.362372, 0.362372, 0.183013, 0.183013, 0.362372, 0.362372, 0.183013, 0.183013,
-        0.362372, 0.362372, 0.362372, 0.362372, 0.362372, 0.362372, 0.183013, 0.183013, 0.362372, 0.362372,
-        0.183013, 0.183013, 0.362372, 0.362372, 0.362372, 0.362372, 0.362372, 0.362372, 0.362372};
+    const auto tExpectedInitialGuess = std::vector<double>{
+        0.6160254037844386, 0.4571067811865476, 0.6160254037844386, 0.4571067811865476,  0.2500000000000000,
+        0.4571067811865476, 0.6160254037844386, 0.4571067811865476, 0.6160254037844386,  0.4571067811865476,
+        0.2500000000000000, 0.4571067811865476, 0.2500000000000000, -0.2500000000000000, 0.2500000000000000,
+        0.4571067811865476, 0.2500000000000000, 0.4571067811865476, 0.6160254037844386,  0.4571067811865476,
+        0.6160254037844386, 0.4571067811865476, 0.2500000000000000, 0.4571067811865476,  0.6160254037844386,
+        0.4571067811865476, 0.6160254037844386, 0.3623724356957945, 0.3623724356957945,  0.3623724356957945,
+        0.3623724356957945, 0.3623724356957945, 0.3623724356957945, 0.3623724356957945,  0.1830127018922193,
+        0.1830127018922193, 0.3623724356957945, 0.3623724356957945, 0.1830127018922193,  0.1830127018922193,
+        0.3623724356957945, 0.3623724356957945, 0.3623724356957945, 0.3623724356957945,  0.3623724356957945,
+        0.3623724356957945, 0.1830127018922193, 0.1830127018922193, 0.3623724356957945,  0.3623724356957945,
+        0.1830127018922193, 0.1830127018922193, 0.3623724356957945, 0.3623724356957945,  0.3623724356957945,
+        0.3623724356957945, 0.3623724356957945, 0.3623724356957945, 0.3623724356957945};
     ASSERT_EQ(tInitialGuess.size(), kExpectedBackgroundLevelsetSize);
-    for (size_t i = 0; i < tInitialGuess.size(); ++i)
-    {
-        EXPECT_DOUBLE_EQ(tInitialGuess[i], tInitialGuess.stdVector()[i]);
-    }
+    constexpr auto tTolerance = 1e-14;
+    test_utilities::expect_container_entries_near(tExpectedInitialGuess, tInitialGuess.stdVector(), tTolerance,
+                                                  TEST_CONTEXT("Initial guess"));
 }
 
 TEST_F(LevelsetTopologyFixture, Bounds)
