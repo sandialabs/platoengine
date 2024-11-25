@@ -7,7 +7,6 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/ValidationRegistration.hpp"
-#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"

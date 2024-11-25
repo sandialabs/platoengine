@@ -5,6 +5,7 @@
 #include <optional>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
@@ -32,7 +33,7 @@ namespace plato::geometry::extension
 class LevelSetTopology
 {
    public:
-    explicit LevelSetTopology(const input_parser::level_set_topology& aInput);
+    LevelSetTopology(const input_parser::level_set_topology& aInput, filter::library::FilterFunction aFilterFunction);
 
     ~LevelSetTopology();
     LevelSetTopology(const LevelSetTopology&) = default;
@@ -61,9 +62,9 @@ class LevelSetTopology
     third_party_integration::krino::VoidPhase mVoidRegion = third_party_integration::krino::VoidPhase::kExcludeFromMesh;
     double mLevelSetLowerBound = -1.0;
     double mLevelSetUpperBound = 1.0;
-    unsigned int mNumDesignParameters = 0;
     third_party_integration::krino::SpherePatternData mSpherePattern;
     third_party_integration::krino::LevelSetPrimitives mLevelSetPrimitives;
+    filter::library::FilterFunction mFilter;
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.

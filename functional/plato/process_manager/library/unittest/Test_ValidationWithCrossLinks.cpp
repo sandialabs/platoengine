@@ -23,7 +23,7 @@ namespace
 struct DensityTopologyMeshNameAccessor
 {
     auto operator()(const input_parser::density_topology& aDensityTopology) const
-        -> boost::optional<input_parser::FileName>
+        -> const boost::optional<input_parser::FileName>&
     {
         return aDensityTopology.mesh_name;
     }

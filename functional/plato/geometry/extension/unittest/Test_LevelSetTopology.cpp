@@ -11,6 +11,7 @@
 #include <string_view>
 #include <vector>
 
+#include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
@@ -83,7 +84,7 @@ TEST_F(LevelSetTopologyFixture, JacobianRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 1.0);
 
-    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
+    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput, filter::extension::make_identity_filter_function()};
     const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
     const auto tCutMesh = tLevelSetTopology.generateMesh(tInitialGuess);
     ASSERT_TRUE(std::filesystem::exists(tCutMesh.mFileName));
@@ -113,7 +114,7 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
     tInput.sphere_pattern_bbox_min_z = 0.0;
     tInput.sphere_pattern_bbox_max_z = 0.0;
     tInput.sphere_pattern_radius = 1.0;
-    const auto tLevelSetTopology = LevelSetTopology{tInput};
+    const auto tLevelSetTopology = LevelSetTopology{tInput, filter::extension::make_identity_filter_function()};
 
     const auto tInitialGuess = tLevelSetTopology.initialGuess(tInput.background_mesh_name->mToken);
     const auto tJacobian = tLevelSetTopology.jacobian(tInitialGuess);
@@ -139,7 +140,7 @@ TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 1.0);
 
-    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
+    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput, filter::extension::make_identity_filter_function()};
     const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
     const auto tAdjointJacobian = tLevelSetTopology.adjointJacobian(tInitialGuess);
 
@@ -171,9 +172,9 @@ TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
 TEST_F(LevelSetTopologyFixture, GenerateMeshRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 0.5);
-    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
-    const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
-    const auto tAnalysisMesh = tLevelSetTopology.generateMesh(tInitialGuess);
+    const auto tLevelsetTopology = LevelSetTopology{kLevelSetInput, filter::extension::make_identity_filter_function()};
+    const auto tInitialGuess = tLevelsetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
+    const auto tAnalysisMesh = tLevelsetTopology.generateMesh(tInitialGuess);
     ASSERT_TRUE(std::filesystem::exists(tAnalysisMesh.mFileName));
 
     // Regression, just checks number of nodes
@@ -186,9 +187,8 @@ TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 0.5);
 
-    const LevelSetTopology tLevelSetTopology(kLevelSetInput);
-    const linear_algebra::DynamicVector<double> tInitialGuess =
-        tLevelSetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
+    const auto tLevelsetTopology = LevelSetTopology{kLevelSetInput, filter::extension::make_identity_filter_function()};
+    const auto tInitialGuess = tLevelsetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
 
     const auto tExpectedInitialGuess = std::vector<double>{
         0.6160254037844386, 0.4571067811865476, 0.6160254037844386, 0.4571067811865476,  0.2500000000000000,
@@ -212,7 +212,7 @@ TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
 TEST_F(LevelSetTopologyFixture, Bounds)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 0.5);
-    const LevelSetTopology tLevelSetTopology(kLevelSetInput);
+    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput, filter::extension::make_identity_filter_function()};
     const auto [tLowerBounds, tUpperBounds] = tLevelSetTopology.bounds(kLevelSetInput.background_mesh_name->mToken);
 
     ASSERT_EQ(tLowerBounds.size(), kExpectedBackgroundLevelSetSize);

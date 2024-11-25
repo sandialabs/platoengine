@@ -7,6 +7,7 @@
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
+#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"

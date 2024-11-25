@@ -16,6 +16,8 @@
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 
+#include "plato/filter/extension/IdentityFilter.hpp" // remove me
+
 namespace plato::geometry::extension
 {
 
@@ -56,7 +58,7 @@ void initialize_krino()
     {
         initialize_krino();
         const auto& tInput = core::validated_variant_raw_input<input_parser::level_set_topology>(aGeometryInput);
-        auto tLevelSet = LevelSetTopology{tInput};
+        auto tLevelset = LevelsetTopology{tInput, filter::extension::make_identity_filter_function()}; // Fix me
         return library::FactoryTypes{
             make_topology_geometry(tLevelSet), tLevelSet.initialGuess(tInput.background_mesh_name.value().mToken),
             tLevelSet.bounds(tInput.background_mesh_name.value().mToken),
@@ -126,9 +128,19 @@ auto assembled_adjoint_jacobian_times_vector(
     return linear_algebra::DynamicVector<double>{std::move(tFlattenedAdjointJacobianTimesVector)};
 }
 
+auto sphere_pattern(const input_parser::level_set_topology& aInput) -> third_party_integration::krino::SpherePatternData
+{
+    return third_party_integration::krino::SpherePatternData{
+        {aInput.sphere_pattern_bbox_min_x.value(), aInput.sphere_pattern_bbox_min_y.value(),
+         aInput.sphere_pattern_bbox_min_z.value()},
+        {aInput.sphere_pattern_bbox_max_x.value(), aInput.sphere_pattern_bbox_max_y.value(),
+         aInput.sphere_pattern_bbox_max_z.value()},
+        aInput.sphere_pattern_radius.value(),
+        aInput.sphere_pattern_spacing.value()};
+}
 }  // namespace
 
-LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInput)
+LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInput, filter::library::FilterFunction aFilterFunction)
     : mBackgroundMesh(aInput.background_mesh_name.value().mToken),
       mCutMesh(utilities::make_filename_unique(aInput.cut_mesh_name.value().mToken)),
       mOutputMesh(aInput.output_mesh_name.value().mToken),
@@ -136,16 +148,11 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
                                                      : third_party_integration::krino::VoidPhase::kExcludeFromMesh),
       mLevelSetLowerBound(aInput.level_set_lower_bound.value()),
       mLevelSetUpperBound(aInput.level_set_upper_bound.value()),
-      mNumDesignParameters(mesh::EntityCounts{mBackgroundMesh}.numberOfNodes()),
-      mSpherePattern({{aInput.sphere_pattern_bbox_min_x.value(), aInput.sphere_pattern_bbox_min_y.value(),
-                       aInput.sphere_pattern_bbox_min_z.value()},
-                      {aInput.sphere_pattern_bbox_max_x.value(), aInput.sphere_pattern_bbox_max_y.value(),
-                       aInput.sphere_pattern_bbox_max_z.value()},
-                      aInput.sphere_pattern_radius.value(),
-                      aInput.sphere_pattern_spacing.value()}),
-      mLevelSetPrimitives{{}, tpik::generate_spheres(mSpherePattern)}
+      mLevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(aInput))},
+      mFilter{std::move(aFilterFunction)}
 {
 }
+
 LevelSetTopology::~LevelSetTopology() { std::filesystem::remove(mCutMesh); }
 
 auto LevelSetTopology::bounds(const std::filesystem::path& aMeshFileName) const
