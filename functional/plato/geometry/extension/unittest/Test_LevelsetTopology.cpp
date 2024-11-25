@@ -50,11 +50,7 @@ class LevelsetTopologyFixture : virtual public ::testing::Test
             tFirstTime = false;
         }
     }
-    void TearDown() override
-    {
-        std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken);
-        std::filesystem::remove(kLevelsetInput.cut_mesh_name->mToken);
-    }
+    void TearDown() override { std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken); }
 };
 
 /// @brief The purpose of this fixture is to provide a mesh with a non-trivial node map.

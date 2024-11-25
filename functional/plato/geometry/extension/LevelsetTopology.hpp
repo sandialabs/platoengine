@@ -34,6 +34,12 @@ class LevelsetTopology
    public:
     explicit LevelsetTopology(const input_parser::levelset_topology& aInput);
 
+    ~LevelsetTopology();
+    LevelsetTopology(const LevelsetTopology&) = default;
+    LevelsetTopology(LevelsetTopology&&) = default;
+    LevelsetTopology& operator=(const LevelsetTopology&) = default;
+    LevelsetTopology& operator=(LevelsetTopology&&) = default;
+
     [[nodiscard]] auto bounds(const std::filesystem::path& aMeshFileName) const
         -> std::pair<std::vector<double>, std::vector<double>>;
     [[nodiscard]] auto initialGuess(const std::filesystem::path& aMeshFileName) const

@@ -12,6 +12,7 @@
 #include "plato/third_party_integration/krino/SphereBuilder.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/FileUtilities.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 
@@ -128,7 +129,7 @@ auto assembled_adjoint_jacobian_times_vector(
 
 LevelsetTopology::LevelsetTopology(const input_parser::levelset_topology& aInput)
     : mBackgroundMesh(aInput.background_mesh_name.value().mToken),
-      mCutMesh(aInput.cut_mesh_name.value().mToken),
+      mCutMesh(utilities::make_filename_unique(aInput.cut_mesh_name.value().mToken)),
       mOutputMesh(aInput.output_mesh_name.value().mToken),
       mVoidRegion(aInput.include_void_region.value() ? third_party_integration::krino::VoidPhase::kIncludeInMesh
                                                      : third_party_integration::krino::VoidPhase::kExcludeFromMesh),
@@ -144,6 +145,7 @@ LevelsetTopology::LevelsetTopology(const input_parser::levelset_topology& aInput
       mLevelsetPrimitives{{}, tpik::generate_spheres(mSpherePattern)}
 {
 }
+LevelsetTopology::~LevelsetTopology() { std::filesystem::remove(mCutMesh); }
 
 auto LevelsetTopology::bounds(const std::filesystem::path& aMeshFileName) const
     -> std::pair<std::vector<double>, std::vector<double>>
