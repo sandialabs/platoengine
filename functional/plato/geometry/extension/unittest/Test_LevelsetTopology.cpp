@@ -27,6 +27,8 @@ namespace plato::geometry::extension::unittest
 
 namespace
 {
+const std::string_view kLogFile = "Krino_Test.txt";
+
 constexpr int kNumDimensions = 3;
 const auto kLevelsetInput = plato::test_utilities::create_valid_levelset_topology_geometry();
 
@@ -46,11 +48,15 @@ class LevelsetTopologyFixture : virtual public ::testing::Test
         static bool tFirstTime{true};
         if (tFirstTime)
         {
-            third_party_integration::krino::initialize_environment_for_krino(MPI_COMM_WORLD);
+            third_party_integration::krino::initialize_environment_for_krino(kLogFile, MPI_COMM_WORLD);
             tFirstTime = false;
         }
     }
-    void TearDown() override { std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken); }
+    void TearDown() override
+    {
+        std::filesystem::remove(kLevelsetInput.background_mesh_name->mToken);
+        std::filesystem::remove(std::filesystem::path{kLogFile});
+    }
 };
 
 /// @brief The purpose of this fixture is to provide a mesh with a non-trivial node map.

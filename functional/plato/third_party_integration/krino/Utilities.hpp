@@ -33,7 +33,7 @@ struct InterfaceNodeDXDP
 };
 
 /// @brief Initialization needed for krino to run correctly.
-void initialize_environment_for_krino(const MPI_Comm &aComm);
+void initialize_environment_for_krino(const std::filesystem::path &aLogFile, const MPI_Comm &aComm);
 
 void create_bounding_box_mesh(const stk::math::Vector3d &aMinCorner,
                               const stk::math::Vector3d &aMaxCorner,

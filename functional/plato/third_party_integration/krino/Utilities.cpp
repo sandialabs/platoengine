@@ -11,17 +11,18 @@
 #include <stk_util/environment/Env.hpp>
 #include <stk_util/environment/EnvData.hpp>
 #include <stk_util/environment/OutputLog.hpp>
+#include <string_view>
 
 namespace plato::third_party_integration::krino
 {
 
 namespace
 {
-constexpr std::string_view kKrinoLogName = "krinolog";
-const std::string kLevelsetName = "LS";
+constexpr auto kOutputDescription = std::string_view{"out>pout dout>out pout>null"};
+
 }  // namespace
 
-void initialize_environment_for_krino(const MPI_Comm &aComm)
+void initialize_environment_for_krino(const std::filesystem::path &aLogFile, const MPI_Comm &aComm)
 {
     // Initialize STK environment
     stk::EnvData::instance().m_parallelComm = aComm;
@@ -29,10 +30,8 @@ void initialize_environment_for_krino(const MPI_Comm &aComm)
     MPI_Comm_rank(stk::EnvData::parallel_comm(), &stk::EnvData::instance().m_parallelRank);
 
     // Initialize krino logging
-    sierra::Diag::registerWriter(std::string{kKrinoLogName}, ::krinolog, ::krino::theDiagWriterParser());
-    const std::string tOutputDescription = "out>pout dout>out";
-    const std::string tParallelOutputDescription = " pout>null";
-    stk::bind_output_streams(tOutputDescription + tParallelOutputDescription);
+    sierra::Diag::registerWriter(std::string{aLogFile}, ::krinolog, ::krino::theDiagWriterParser());
+    stk::bind_output_streams(std::string{kOutputDescription});
 }
 
 void create_bounding_box_mesh(const stk::math::Vector3d &aMinCorner,

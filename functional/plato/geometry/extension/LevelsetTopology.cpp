@@ -26,6 +26,7 @@ namespace tpik = third_party_integration::krino;
 constexpr auto kDimensions = std::size_t{3};
 constexpr double kLevelsetFixedValue = 1.0;
 constexpr auto kTopologyFieldName = std::string_view{"Topology"};
+constexpr auto kKrinoLogFileName = std::string_view{"Krino_Output.txt"};
 
 constexpr auto kXComponent = utilities::ComponentIndex{0};
 constexpr auto kYComponent = utilities::ComponentIndex{1};
@@ -44,7 +45,7 @@ void initialize_krino()
     if (!tIsInitialized)
     {
         tIsInitialized = true;
-        tpik::initialize_environment_for_krino(MPI_COMM_WORLD);
+        tpik::initialize_environment_for_krino(kKrinoLogFileName, MPI_COMM_WORLD);
     }
 }
 
