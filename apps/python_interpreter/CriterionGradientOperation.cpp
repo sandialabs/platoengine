@@ -3,14 +3,14 @@
 
 #include <vector>
 
-#include <boost/python.hpp>
+#include <pybind11/embed.h>
+#include <pybind11/stl.h>
 
 void
-CriterionGradientOperation::runPythonFunction(const boost::python::object & aObject)
+CriterionGradientOperation::runPythonFunction(const pybind11::object & aObject)
 {
-    boost::python::object tReturn = aObject.attr(mFunction.c_str())();
-    mGradData.assign(boost::python::stl_input_iterator<double>(tReturn),
-                     boost::python::stl_input_iterator<double>());
+    pybind11::object tReturn = aObject.attr(mFunction.c_str())();
+    mGradData = tReturn.cast<std::vector<double>>();
 }
 
 const std::vector<double>&

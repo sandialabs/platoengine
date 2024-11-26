@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include <boost/python.hpp>
+#include <pybind11/embed.h>
 
 RunVoidFunctionOperation::RunVoidFunctionOperation(const Plato::InputData & aOperationNode) :
  PlatoPythonOperation(aOperationNode),
@@ -16,7 +16,7 @@ RunVoidFunctionOperation::RunVoidFunctionOperation(const Plato::InputData & aOpe
 {}
 
 void
-RunVoidFunctionOperation::runPythonFunction(const boost::python::object & aObject)
+RunVoidFunctionOperation::runPythonFunction(const pybind11::object & aObject)
 {
     if ( mRunFlag )
     {
@@ -78,10 +78,10 @@ RunVoidFunctionOperation::throwIfInputEmpty()
         THROWERR("Input Data has not been set for Operation with Name " + mName + ".")
 }
 
-boost::python::list
+pybind11::list
 RunVoidFunctionOperation::createPythonListFromInput()
 {
-    boost::python::list inputs;
+    pybind11::list inputs;
     for (auto val : mInputData.value)
     {
         inputs.append(val);

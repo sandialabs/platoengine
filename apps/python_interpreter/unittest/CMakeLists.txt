@@ -10,16 +10,15 @@ SET(SRCS UnitMain.cpp
 
 SET(HDRS )
 
-find_package(Boost REQUIRED COMPONENTS python)
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(pybind11 REQUIRED)
 
 add_executable(PythonAppUnitTester ${SRCS})
 target_include_directories(PythonAppUnitTester PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>)
-target_link_libraries(PythonAppUnitTester 
+target_link_libraries(PythonAppUnitTester PRIVATE
                       GTest::GTest
                       PlatoInterface PlatoParser PlatoDataLayer PlatoExceptions
-                      Python3::Python
-                      Boost::python)
+                      pybind11::embed)
 
 add_test(NAME PythonAppUnitTester COMMAND PythonAppUnitTester)
 set_property(TEST PythonAppUnitTester PROPERTY LABELS "small")

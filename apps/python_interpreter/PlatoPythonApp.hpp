@@ -10,9 +10,10 @@
 #include <optional>
 
 #include <mpi.h>
-#include <boost/python.hpp>
 
-class PlatoPythonApp : public Plato::Application
+#include <pybind11/embed.h>
+
+class __attribute__ ((visibility("hidden"))) PlatoPythonApp : public Plato::Application
 {
 public:
     PlatoPythonApp
@@ -20,7 +21,7 @@ public:
      char **aArgv, 
      MPI_Comm& aLocalComm);
 
-    ~PlatoPythonApp() override;
+    ~PlatoPythonApp() = default;
 
     PlatoPythonApp(const PlatoPythonApp& aApp) = delete;
 
@@ -59,9 +60,6 @@ public:
     const MPI_Comm& 
     getComm() const;
 
-    bool
-    isInitialized() const;
-
     double 
     getCriterionValue(const std::string & aArgumentName);
 
@@ -99,12 +97,13 @@ private:
     throwIfFieldSizeNotSet();
 
 private:
+    pybind11::scoped_interpreter mInterpreter;
     MPI_Comm mLocalComm;
     Plato::InputData mAppfileData;
+    pybind11::object mPythonObject;
     std::string mPythonModule;
     std::string mPythonClass;
     std::vector<std::string> mPythonPaths;
-    boost::python::object mPythonObject;
     std::vector<std::unique_ptr<PlatoPythonOperation>> mOperations;
     std::optional<int> mFieldSize;
 };

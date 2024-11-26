@@ -417,60 +417,6 @@ TEST_F(PlatoTestPythonApp, Constructor_MpiCommIsStoredCorrectly)
     EXPECT_EQ(appCommRank, 0);
 }
 
-TEST_F(PlatoTestPythonApp, Constructor_InterpreterUninitializedUponConstruction)
-{
-    std::vector<std::string> tAppFileContents = {
-        "<?xml version=\"1.0\"?> \n",
-        "<Operation> \n",
-        "  <Function>ComputeCriterionValue</Function> \n",
-        "  <Name>ComputeCriterionValue</Name> \n",
-        "  <PyFunction>return_val</PyFunction> \n",
-        "</Operation> \n"
-    };
-    writeAppFile(tAppFileContents);
-
-    std::vector<std::string> tInputFileContents = {
-        "<?xml version=\"1.0\"?> \n",
-        "<Python> \n",
-        "  <Module>test_functions</Module> \n",
-        "  <Class>TestFunctions</Class> \n",
-        "</Python> \n"
-    };
-    writeInputFile(tInputFileContents);
-
-    const auto tApp = defaultApp();
-
-    EXPECT_EQ(tApp->isInitialized(), false);
-}
-
-TEST_F(PlatoTestPythonApp, Initialize_InterpreterInitializes)
-{
-    std::vector<std::string> tAppFileContents = {
-        "<?xml version=\"1.0\"?> \n",
-        "<Operation> \n",
-        "  <Function>ComputeCriterionValue</Function> \n",
-        "  <Name>ComputeCriterionValue</Name> \n",
-        "  <PyFunction>return_val</PyFunction> \n",
-        "</Operation> \n"
-    };
-    writeAppFile(tAppFileContents);
-
-    std::vector<std::string> tInputFileContents = {
-        "<?xml version=\"1.0\"?> \n",
-        "<Python> \n",
-        "  <Module>test_functions</Module> \n",
-        "  <Class>TestFunctions</Class> \n",
-        "</Python> \n"
-    };
-    writeInputFile(tInputFileContents);
-
-    const auto tApp = defaultApp();
-
-    tApp->initialize();
-    EXPECT_EQ(tApp->isInitialized(), true);
-    tApp->finalize();
-}
-
 TEST_F(PlatoTestPythonApp, Initialize_ErrorPythonModuleNotFound)
 {
     std::vector<std::string> tAppFileContents = {
@@ -521,36 +467,6 @@ TEST_F(PlatoTestPythonApp, Initialize_ErrorPythonClassNotFound)
     const auto tApp = defaultApp();
     EXPECT_ANY_THROW(tApp->initialize());
     tApp->finalize();
-}
-
-TEST_F(PlatoTestPythonApp, Finalize_InterpreterUninitializes)
-{
-    std::vector<std::string> tAppFileContents = {
-        "<?xml version=\"1.0\"?> \n",
-        "<Operation> \n",
-        "  <Function>ComputeCriterionValue</Function> \n",
-        "  <Name>ComputeCriterionValue</Name> \n",
-        "  <PyFunction>return_val</PyFunction> \n",
-        "</Operation> \n"
-    };
-    writeAppFile(tAppFileContents);
-
-    std::vector<std::string> tInputFileContents = {
-        "<?xml version=\"1.0\"?> \n",
-        "<Python> \n",
-        "  <Module>test_functions</Module> \n",
-        "  <Class>TestFunctions</Class> \n",
-        "</Python> \n"
-    };
-    writeInputFile(tInputFileContents);
-
-    const auto tApp = defaultApp();
-
-    tApp->initialize();
-    EXPECT_EQ(tApp->isInitialized(), true);
-
-    tApp->finalize();
-    EXPECT_EQ(tApp->isInitialized(), false);
 }
 
 TEST_F(PlatoTestPythonApp, Compute_ErrorFunctionNotFound)
