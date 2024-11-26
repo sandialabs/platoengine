@@ -19,7 +19,6 @@ namespace plato::third_party_integration::krino
 namespace
 {
 constexpr auto kOutputDescription = std::string_view{"out>pout dout>out pout>null"};
-
 }  // namespace
 
 void initialize_environment_for_krino(const std::filesystem::path &aLogFile, const MPI_Comm &aComm)

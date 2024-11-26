@@ -9,7 +9,7 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/third_party_integration/krino/Interface.hpp"
-#include "plato/third_party_integration/krino/SphereBuilder.hpp"
+#include "plato/third_party_integration/krino/SphereFactory.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/FileUtilities.hpp"
