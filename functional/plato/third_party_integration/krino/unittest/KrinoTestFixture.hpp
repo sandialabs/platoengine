@@ -1,3 +1,6 @@
+#ifndef PLATO_THIRDPARTYINTEGRATION_KRINO_UNITTEST_KRINOTESTFIXTURE
+#define PLATO_THIRDPARTYINTEGRATION_KRINO_UNITTEST_KRINOTESTFIXTURE
+
 #include <gtest/gtest.h>
 #include <mpi.h>
 
@@ -20,3 +23,5 @@ class KrinoTestFixture : public ::testing::Test
     }
 };
 }  // namespace plato::third_party_integration::krino::unittest
+
+#endif
