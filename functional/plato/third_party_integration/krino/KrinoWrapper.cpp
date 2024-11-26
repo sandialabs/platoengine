@@ -17,6 +17,7 @@
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Types.hpp>
 #include <stk_util/environment/EnvData.hpp>
+#include <string_view>
 
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/Enumerate.hpp"
@@ -26,7 +27,9 @@ namespace plato::third_party_integration::krino
 {
 namespace
 {
-const std::string kLevelsetName = "LS";
+constexpr auto kLevelsetName = std::string_view{"LS"};
+constexpr auto kDecompositionMethod = std::string_view{"rib"};
+constexpr auto kInitializationSurfaces = std::string_view{"initialization surfaces"};
 
 [[nodiscard]] auto node_ids_for_nodes(const stk::mesh::BulkData &aMesh,
                                       const std::vector<stk::mesh::Entity> &aParentNodes)
@@ -112,7 +115,7 @@ void initialize_levelsets_from_primitives(const LevelsetPrimitives &aLevelsetPri
                                           std::vector<::krino::LS_Field> &aLevelsetFields)
 {
     const auto &tMesh = aKrinoMesh.bulk_data();
-    auto tInitializationSurfaces = ::krino::Composite_Surface{"initialization surfaces"};
+    auto tInitializationSurfaces = ::krino::Composite_Surface{std::string{kInitializationSurfaces}};
     for (const auto &tSphere : aLevelsetPrimitives.mSpheres)
     {
         tInitializationSurfaces.add(
@@ -120,8 +123,8 @@ void initialize_levelsets_from_primitives(const LevelsetPrimitives &aLevelsetPri
     }
     for (const auto &tPlane : aLevelsetPrimitives.mPlanes)
     {
-        const double tNormal[3] = {tPlane.mNormal.x, tPlane.mNormal.y, tPlane.mNormal.z};
-        tInitializationSurfaces.add(new ::krino::Plane(tNormal, tPlane.mOffset, 1.0));
+        const auto tNormal = std::array{tPlane.mNormal.x, tPlane.mNormal.y, tPlane.mNormal.z};
+        tInitializationSurfaces.add(new ::krino::Plane(tNormal.data(), tPlane.mOffset, 1.0));
     }
     ::krino::compute_nodal_surface_distance(tMesh, tMesh.mesh_meta_data().coordinate_field(),
                                             aLevelsetFields.front().isovar, tInitializationSurfaces);
@@ -139,21 +142,21 @@ void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData &aMeta)
 
 auto read_and_setup_for_decomposition(const std::filesystem::path &aFilename) -> std::unique_ptr<::krino::MeshInterface>
 {
-    std::unique_ptr<::krino::MeshFromFile> tMeshFromFile =
-        std::make_unique<::krino::MeshFromFile>(aFilename.string(), stk::EnvData::parallel_comm(), "rib");
+    std::unique_ptr<::krino::MeshFromFile> tMeshFromFile = std::make_unique<::krino::MeshFromFile>(
+        aFilename.string(), stk::EnvData::parallel_comm(), std::string{kDecompositionMethod});
     constexpr auto tNumberOfLevelsets = 1U;
     ::krino::LSPerInterfacePolicy::setup_levelsets_on_all_blocks_with_void_phase_for_any_negative_levelset(
         tMeshFromFile->meta_data(), tNumberOfLevelsets);
     ::krino::LevelSet &tLevelSet =
-        ::krino::LevelSet::build(tMeshFromFile->meta_data(), kLevelsetName, sierra::Diag::sierraTimer());
-    tLevelSet.set_distance_name(kLevelsetName);
+        ::krino::LevelSet::build(tMeshFromFile->meta_data(), std::string{kLevelsetName}, sierra::Diag::sierraTimer());
+    tLevelSet.set_distance_name(std::string{kLevelsetName});
     tLevelSet.setup();
     setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data());
     tMeshFromFile->populate_mesh();
     ::krino::activate_all_entities(tMeshFromFile->bulk_data(),
                                    ::krino::AuxMetaData::get(tMeshFromFile->meta_data()).active_part());
-    stk::mesh::EntityVector nodes;
-    stk::mesh::get_entities(tMeshFromFile->bulk_data(), stk::topology::NODE_RANK, nodes);
+    stk::mesh::EntityVector tNodes;
+    stk::mesh::get_entities(tMeshFromFile->bulk_data(), stk::topology::NODE_RANK, tNodes);
     return tMeshFromFile;
 }
 
@@ -187,11 +190,10 @@ void KrinoWrapper::setLevelsetValues(const std::vector<double> &aValuesIn)
     stk::mesh::EntityVector tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelsetFields);
     assert(aValuesIn.size() == tNodes.size());
 
-    for (size_t i = 0; i < tNodes.size(); ++i)
+    for (const auto &[tIndex, tNode] : utilities::enumerate(tNodes))
     {
-        const auto tCurNode = tNodes[i];
-        double *tDist = ::krino::field_data<double>(mLevelsetFields.front().isovar, tCurNode);
-        *tDist = aValuesIn[i];
+        double *tDistance = ::krino::field_data<double>(mLevelsetFields.front().isovar, tNode);
+        *tDistance = aValuesIn[tIndex];
     }
     cut_mesh(mKrinoMesh->bulk_data(), mLevelsetFields);
 }
@@ -209,12 +211,12 @@ void KrinoWrapper::writeMesh(const std::filesystem::path &aFilename)
 std::vector<double> KrinoWrapper::levelsetValues() const
 {
     stk::mesh::EntityVector tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelsetFields);
-    std::vector<double> tReturn(tNodes.size());
-    for (size_t i = 0; i < tNodes.size(); i++)
-    {
-        const double *dist = ::krino::field_data<double>(mLevelsetFields.front().isovar, tNodes[i]);
-        tReturn[i] = *dist;
-    }
+    std::vector<double> tReturn;
+    tReturn.reserve(tNodes.size());
+    std::transform(tNodes.begin(), tNodes.end(), std::back_inserter(tReturn),
+                   [this](const auto &aNode)
+                   { return *::krino::field_data<double>(mLevelsetFields.front().isovar, aNode); });
+
     return tReturn;
 }
 
@@ -223,10 +225,13 @@ void KrinoWrapper::redistance()
     ::krino::Surface_Manager &tSurfaceManager = ::krino::Surface_Manager::get(mKrinoMesh->meta_data());
     const auto &tLevelsets = tSurfaceManager.get_levelsets();
 
-    const auto tMatchingLevelset = std::find_if(
-        tLevelsets.cbegin(), tLevelsets.cend(),
-        [](const auto &tLevelset)
-        { return tLevelset->name() == kLevelsetName || tLevelset->get_composite_name() == kLevelsetName; });
+    const auto tMatchingLevelset =
+        std::find_if(tLevelsets.cbegin(), tLevelsets.cend(),
+                     [](const auto &tLevelset)
+                     {
+                         return tLevelset->name() == std::string{kLevelsetName} ||
+                                tLevelset->get_composite_name() == std::string{kLevelsetName};
+                     });
 
     if (tMatchingLevelset != tLevelsets.cend())
     {
@@ -261,18 +266,18 @@ auto KrinoWrapper::sensitivities() const -> std::unordered_map<stk::mesh::Entity
 
     const ::krino::FieldRef coordsField = tMesh.mesh_meta_data().coordinate_field();
     const ::krino::CDFEM_Support &cdfemSupport = ::krino::CDFEM_Support::get(tMesh.mesh_meta_data());
-    std::vector<::krino::ChildNodeStencil> childNodeStencils;
+    std::vector<::krino::ChildNodeStencil> tChildNodeStencils;
     ::krino::fill_child_node_stencils(tMesh, cdfemSupport.get_child_node_part(),
                                       cdfemSupport.get_parent_node_ids_field(),
-                                      cdfemSupport.get_parent_node_weights_field(), childNodeStencils);
+                                      cdfemSupport.get_parent_node_weights_field(), tChildNodeStencils);
 
     auto tSensitivityMap = std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>{};
-    tSensitivityMap.reserve(childNodeStencils.size());
-    for (auto &stencil : childNodeStencils)
+    tSensitivityMap.reserve(tChildNodeStencils.size());
+    for (auto &tStencil : tChildNodeStencils)
     {
-        tSensitivityMap[tMesh.identifier(stencil.childNode)] =
-            InterfaceNodeDXDP{node_ids_for_nodes(tMesh, stencil.parentNodes),
-                              coords_levelsets(coordsField, mLevelsetFields.front().isovar, stencil.parentNodes)};
+        tSensitivityMap[tMesh.identifier(tStencil.childNode)] =
+            InterfaceNodeDXDP{node_ids_for_nodes(tMesh, tStencil.parentNodes),
+                              coords_levelsets(coordsField, mLevelsetFields.front().isovar, tStencil.parentNodes)};
     }
 
     return tSensitivityMap;
