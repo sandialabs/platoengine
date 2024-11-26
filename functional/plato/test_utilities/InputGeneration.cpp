@@ -73,8 +73,8 @@ input_parser::level_set_topology create_valid_level_set_topology_geometry()
                                             /*.sphere_pattern_bbox_max_z = */ 1.0,
                                             /*.sphere_pattern_radius = */ 0.25,
                                             /*.sphere_pattern_spacing = */ 100.0,
-                                            /*.levelset_lower_bound = */ -1.0,
-                                            /*.levelset_upper_bound = */ 1.0};
+                                            /*.level_set_lower_bound = */ -1.0,
+                                            /*.level_set_upper_bound = */ 1.0};
 }
 
 std::string create_valid_level_set_topology_geometry_string()

@@ -137,8 +137,8 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (double, sphere_pattern_bbox_max_z)
     (double, sphere_pattern_radius)
     (double, sphere_pattern_spacing)
-    (double, levelset_lower_bound)
-    (double, levelset_upper_bound)
+    (double, level_set_lower_bound)
+    (double, level_set_upper_bound)
 )
 
 PLATO_FILTER_INPUT_BLOCK_STRUCT(

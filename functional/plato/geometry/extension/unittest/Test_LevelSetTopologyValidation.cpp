@@ -12,7 +12,7 @@ namespace
 const auto kLevelSetTopology = plato::test_utilities::create_valid_level_set_topology_geometry();
 }  // namespace
 
-TEST(LevelsetTopologyValidation, ValidateOutputMeshName)
+TEST(LevelSetTopologyValidation, ValidateOutputMeshName)
 {
     auto tLevelSetTopology = kLevelSetTopology;
     EXPECT_FALSE(detail::validate_output_mesh_name(tLevelSetTopology).has_value());
@@ -20,7 +20,7 @@ TEST(LevelsetTopologyValidation, ValidateOutputMeshName)
     EXPECT_TRUE(detail::validate_output_mesh_name(tLevelSetTopology).has_value());
 }
 
-TEST(LevelsetTopologyValidation, ValidateBackgroundMeshName)
+TEST(LevelSetTopologyValidation, ValidateBackgroundMeshName)
 {
     auto tLevelSetTopology = kLevelSetTopology;
     EXPECT_FALSE(detail::validate_background_mesh_name(tLevelSetTopology).has_value());
@@ -28,7 +28,7 @@ TEST(LevelsetTopologyValidation, ValidateBackgroundMeshName)
     EXPECT_TRUE(detail::validate_background_mesh_name(tLevelSetTopology).has_value());
 }
 
-TEST(LevelsetTopologyValidation, ValidateCutMeshName)
+TEST(LevelSetTopologyValidation, ValidateCutMeshName)
 {
     auto tLevelSetTopology = kLevelSetTopology;
     EXPECT_FALSE(detail::validate_cut_mesh_name(tLevelSetTopology).has_value());
@@ -36,29 +36,29 @@ TEST(LevelsetTopologyValidation, ValidateCutMeshName)
     EXPECT_TRUE(detail::validate_cut_mesh_name(tLevelSetTopology).has_value());
 }
 
-TEST(LevelsetTopologyValidation, ValidateLowerBound)
+TEST(LevelSetTopologyValidation, ValidateLowerBound)
 {
     constexpr double tLargestAllowableValue = 0;
     constexpr double tDelta = 1e-6;
     auto tLevelSetTopology = kLevelSetTopology;
-    tLevelSetTopology.levelset_lower_bound = tLargestAllowableValue + tDelta;
+    tLevelSetTopology.level_set_lower_bound = tLargestAllowableValue + tDelta;
     EXPECT_TRUE(detail::validate_lower_bound(tLevelSetTopology).has_value());
-    tLevelSetTopology.levelset_lower_bound = tLargestAllowableValue - tDelta;
+    tLevelSetTopology.level_set_lower_bound = tLargestAllowableValue - tDelta;
     EXPECT_FALSE(detail::validate_lower_bound(tLevelSetTopology).has_value());
 }
 
-TEST(LevelsetTopologyValidation, ValidateUpperBound)
+TEST(LevelSetTopologyValidation, ValidateUpperBound)
 {
     constexpr double tSmallestAllowableValue = 0;
     constexpr double tDelta = 1e-6;
     auto tLevelSetTopology = kLevelSetTopology;
-    tLevelSetTopology.levelset_upper_bound = tSmallestAllowableValue - tDelta;
+    tLevelSetTopology.level_set_upper_bound = tSmallestAllowableValue - tDelta;
     EXPECT_TRUE(detail::validate_upper_bound(tLevelSetTopology).has_value());
-    tLevelSetTopology.levelset_upper_bound = tSmallestAllowableValue + tDelta;
+    tLevelSetTopology.level_set_upper_bound = tSmallestAllowableValue + tDelta;
     EXPECT_FALSE(detail::validate_upper_bound(tLevelSetTopology).has_value());
 }
 
-TEST(LevelsetTopologyValidation, ValidateSpherePatternSpacing)
+TEST(LevelSetTopologyValidation, ValidateSpherePatternSpacing)
 {
     constexpr double tSmallestAllowableValue = 1e-5;
     constexpr double tDelta = 1e-6;
@@ -69,7 +69,7 @@ TEST(LevelsetTopologyValidation, ValidateSpherePatternSpacing)
     EXPECT_FALSE(detail::validate_sphere_pattern_spacing(tLevelSetTopology).has_value());
 }
 
-TEST(LevelsetTopologyValidation, ValidateSpherePatternRadius)
+TEST(LevelSetTopologyValidation, ValidateSpherePatternRadius)
 {
     constexpr double tSmallestAllowableValue = 1e-5;
     constexpr double tDelta = 1e-6;
@@ -80,7 +80,7 @@ TEST(LevelsetTopologyValidation, ValidateSpherePatternRadius)
     EXPECT_FALSE(detail::validate_sphere_pattern_radius(tLevelSetTopology).has_value());
 }
 
-TEST(LevelsetTopologyValidation, ValidateSpherePatternBoundingBox)
+TEST(LevelSetTopologyValidation, ValidateSpherePatternBoundingBox)
 {
     auto tLevelSetTopology = kLevelSetTopology;
     tLevelSetTopology.sphere_pattern_bbox_max_x = 1.0;

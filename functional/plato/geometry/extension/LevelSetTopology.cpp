@@ -134,8 +134,8 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
       mOutputMesh(aInput.output_mesh_name.value().mToken),
       mVoidRegion(aInput.include_void_region.value() ? third_party_integration::krino::VoidPhase::kIncludeInMesh
                                                      : third_party_integration::krino::VoidPhase::kExcludeFromMesh),
-      mLevelSetLowerBound(aInput.levelset_lower_bound.value()),
-      mLevelSetUpperBound(aInput.levelset_upper_bound.value()),
+      mLevelSetLowerBound(aInput.level_set_lower_bound.value()),
+      mLevelSetUpperBound(aInput.level_set_upper_bound.value()),
       mNumDesignParameters(mesh::EntityCounts{mBackgroundMesh}.numberOfNodes()),
       mSpherePattern({{aInput.sphere_pattern_bbox_min_x.value(), aInput.sphere_pattern_bbox_min_y.value(),
                        aInput.sphere_pattern_bbox_min_z.value()},
@@ -272,14 +272,14 @@ std::optional<std::string> validate_cut_mesh_name(const input_parser::level_set_
 std::optional<std::string> validate_lower_bound(const input_parser::level_set_topology& aInput)
 {
     return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::level_set_topology>(),
-                                                           aInput.levelset_lower_bound, "levelset_lower_bound",
+                                                           aInput.level_set_lower_bound, "level_set_lower_bound",
                                                            utilities::upper_bounded(utilities::Exclusive{0.0}));
 }
 
 std::optional<std::string> validate_upper_bound(const input_parser::level_set_topology& aInput)
 {
     return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::level_set_topology>(),
-                                                           aInput.levelset_upper_bound, "levelset_upper_bound",
+                                                           aInput.level_set_upper_bound, "level_set_upper_bound",
                                                            utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
