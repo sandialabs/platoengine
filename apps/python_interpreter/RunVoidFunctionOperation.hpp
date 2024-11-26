@@ -3,10 +3,13 @@
 #include "PlatoPythonOperation.hpp"
 #include "Plato_InputData.hpp"
 
-#include <boost/python/list.hpp>
 #include <vector>
 
-#include <boost/python.hpp>
+namespace pybind11
+{
+    class object;
+    class list;
+}
 
 class RunVoidFunctionOperation : public PlatoPythonOperation
 {
@@ -15,7 +18,7 @@ public:
 
 protected:
     void
-    runPythonFunction(const boost::python::object & aObject) override;
+    runPythonFunction(const pybind11::object & aObject) override;
 
     const std::vector<double>&
     getOutputData() override;
@@ -30,7 +33,7 @@ private:
     void
     throwIfInputEmpty();
 
-    boost::python::list
+    pybind11::list
     createPythonListFromInput();
 
 private:

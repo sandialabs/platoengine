@@ -5,7 +5,10 @@
 
 #include <vector>
 
-#include <boost/python.hpp>
+namespace pybind11
+{
+    class object;
+}
 
 class CriterionGradientOperation : public PlatoPythonOperation
 {
@@ -16,7 +19,7 @@ public:
 
 protected:
     void
-    runPythonFunction(const boost::python::object & aObject) override;
+    runPythonFunction(const pybind11::object & aObject) override;
 
     const std::vector<double>&
     getOutputData() override;

@@ -12,8 +12,7 @@
 #include <numeric>
 #include <vector>
 
-#include <Python.h>
-#include <boost/python.hpp>
+#include <pybind11/embed.h>
 
 namespace 
 {
@@ -50,22 +49,14 @@ PlatoPythonApp::PlatoPythonApp
 (int aArgc, 
  char **aArgv, 
  MPI_Comm& aLocalComm) :
+ mInterpreter{},
  mLocalComm(aLocalComm),
  mAppfileData("Appfile Data"),
- mPythonObject(boost::python::object())
+ mPythonObject{}
 {
     this->storeAppFile();
     this->parseInputFile(aArgc, aArgv);
     this->parseOperations();
-}
-
-PlatoPythonApp::~PlatoPythonApp()
-{
-    if ( this->isInitialized() )
-    {
-        mPythonObject = boost::python::object();
-        Py_Finalize();
-    }
 }
 
 void
@@ -137,18 +128,11 @@ PlatoPythonApp::parseOperations()
 
 void 
 PlatoPythonApp::finalize()
-{
-    if ( this->isInitialized() )
-    {
-        mPythonObject = boost::python::object();
-        Py_Finalize();
-    }
-}
+{}
 
 void 
 PlatoPythonApp::initialize()
 {
-    Py_Initialize();
     this->setPythonPaths();
     this->constructPythonObject();
     this->getFieldSize();
@@ -157,10 +141,9 @@ PlatoPythonApp::initialize()
 void 
 PlatoPythonApp::setPythonPaths()
 {
-    auto sys = boost::python::import("sys");
+    auto sys = pybind11::module_::import("sys");
     auto path = sys.attr("path");
 
-    path.attr("append")("./");
     for( const auto& tPathStr : mPythonPaths)
     {
         path.attr("append")(tPathStr.c_str());
@@ -170,7 +153,7 @@ PlatoPythonApp::setPythonPaths()
 void
 PlatoPythonApp::constructPythonObject()
 {
-    auto tModule = boost::python::import(mPythonModule.c_str());
+    auto tModule = pybind11::module_::import(mPythonModule.c_str());
     mPythonObject = tModule.attr(mPythonClass.c_str())();
 }
 
@@ -261,12 +244,6 @@ const MPI_Comm&
 PlatoPythonApp::getComm() const
 {
     return mLocalComm;
-}
-
-bool
-PlatoPythonApp::isInitialized() const
-{
-    return Py_IsInitialized();
 }
 
 double 

@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-#include <boost/python.hpp>
+#include <pybind11/embed.h>
 
 CriterionValueOperation::CriterionValueOperation(const Plato::InputData & aOperationNode) :
  PlatoPythonOperation(aOperationNode),
@@ -12,10 +12,10 @@ CriterionValueOperation::CriterionValueOperation(const Plato::InputData & aOpera
 {}
 
 void
-CriterionValueOperation::runPythonFunction(const boost::python::object & aObject)
+CriterionValueOperation::runPythonFunction(const pybind11::object & aObject)
 {
-    boost::python::object tReturn = aObject.attr(mFunction.c_str())();
-    const auto tValue = boost::python::extract<double>(tReturn);
+    pybind11::object tReturn = aObject.attr(mFunction.c_str())();
+    const auto tValue = tReturn.cast<double>();
     std::cout << "Criterion value:  " << tValue << "\n";
     mValue[0] = tValue;
 }

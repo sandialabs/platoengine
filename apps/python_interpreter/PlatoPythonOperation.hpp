@@ -5,7 +5,10 @@
 #include <string>
 #include <vector>
 
-#include <boost/python.hpp>
+namespace pybind11
+{
+    class object;
+}
 
 struct IOData
 {
@@ -21,7 +24,7 @@ public:
     virtual ~PlatoPythonOperation() = default;
 
     virtual void
-    runPythonFunction(const boost::python::object & aObject) = 0;
+    runPythonFunction(const pybind11::object & aObject) = 0;
 
     virtual const std::vector<double>&
     getOutputData() = 0;
