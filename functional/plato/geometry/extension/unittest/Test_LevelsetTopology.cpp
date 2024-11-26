@@ -37,7 +37,8 @@ constexpr unsigned int kExpectedBackgroundLevelsetSize = 59;  // Based on mesh g
 void create_background_mesh(const std::string& aFileName, const double aMeshSize)
 {
     ASSERT_EQ(stk::parallel_machine_size(MPI_COMM_WORLD), 1);
-    third_party_integration::krino::create_bounding_box_mesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, aMeshSize, aFileName);
+    const auto tBoundingBox = third_party_integration::krino::BoundingBox{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}};
+    third_party_integration::krino::create_bounding_box_mesh(tBoundingBox, aMeshSize, aFileName);
 }
 
 class LevelsetTopologyFixture : virtual public ::testing::Test

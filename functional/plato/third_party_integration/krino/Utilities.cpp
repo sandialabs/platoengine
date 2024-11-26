@@ -33,14 +33,14 @@ void initialize_environment_for_krino(const std::filesystem::path &aLogFile, con
     stk::bind_output_streams(std::string{kOutputDescription});
 }
 
-void create_bounding_box_mesh(const stk::math::Vector3d &aMinCorner,
-                              const stk::math::Vector3d &aMaxCorner,
+void create_bounding_box_mesh(const BoundingBox &aBoundingBox,
                               const double aMeshSize,
                               const std::filesystem::path &aFilename)
 {
     auto tBoundingBoxMesh =
         std::make_unique<::krino::BoundingBoxMesh>(stk::topology::TET_4, stk::EnvData::parallel_comm());
-    tBoundingBoxMesh->set_domain(::krino::BoundingBoxMesh::BoundingBoxType(aMinCorner, aMaxCorner), aMeshSize);
+    tBoundingBoxMesh->set_domain(::krino::BoundingBoxMesh::BoundingBoxType(aBoundingBox.first, aBoundingBox.second),
+                                 aMeshSize);
     tBoundingBoxMesh->set_mesh_structure_type(::krino::FLAT_WALLED_BCC_BOUNDING_BOX_MESH);
     tBoundingBoxMesh->populate_mesh();
     ::krino::activate_all_entities(tBoundingBoxMesh->bulk_data(),

@@ -6,8 +6,6 @@
 #include <filesystem>
 #include <stk_math/StkVector.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
 namespace plato::analysis
@@ -25,6 +23,7 @@ enum struct VoidPhase
 };
 
 using KrinoGlobalNodeID = unsigned int;
+using BoundingBox = std::pair<stk::math::Vector3d, stk::math::Vector3d>;
 
 struct InterfaceNodeDXDP
 {
@@ -35,8 +34,7 @@ struct InterfaceNodeDXDP
 /// @brief Initialization needed for krino to run correctly.
 void initialize_environment_for_krino(const std::filesystem::path &aLogFile, const MPI_Comm &aComm);
 
-void create_bounding_box_mesh(const stk::math::Vector3d &aMinCorner,
-                              const stk::math::Vector3d &aMaxCorner,
+void create_bounding_box_mesh(const BoundingBox &aBoundingBox,
                               const double aMeshSize,
                               const std::filesystem::path &aFilename);
 

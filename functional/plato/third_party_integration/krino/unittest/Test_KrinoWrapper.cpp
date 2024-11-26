@@ -5,6 +5,7 @@
 #include <string>
 
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/unittest/KrinoTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 
@@ -14,6 +15,8 @@ namespace
 {
 constexpr int kNumDimensions = 3;
 const std::string kLevelsetName = "LS";
+
+const auto kUnitBoundingBox = BoundingBox{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}};
 
 [[nodiscard]] auto number_of_tets_in_block(const KrinoWrapper &aKrinoWrapper, const std::string_view aBlockName)
     -> unsigned int
@@ -59,7 +62,7 @@ const std::string kLevelsetName = "LS";
 TEST_F(KrinoTestFixture, CoordinateValues)
 {
     const auto tFilename = std::filesystem::path{"tmp.exo"};
-    create_bounding_box_mesh(stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 0.5, tFilename);
+    create_bounding_box_mesh(kUnitBoundingBox, 0.5, tFilename);
     constexpr auto tExcludeVoidRegion = VoidPhase::kExcludeFromMesh;
     const auto tKrinoWrapper = KrinoWrapper{tFilename, LevelsetPrimitives{}, tExcludeVoidRegion};
 
@@ -90,7 +93,7 @@ TEST_F(KrinoTestFixture, CutSphereOutOfBackgroundMesh)
     const auto tBackgroundFilename = std::filesystem::path{"background_mesh.exo"};
     const auto tCutFilename = std::filesystem::path{"swiss_cheese.exo"};
     const std::string tBlockName{"block_1"};
-    create_bounding_box_mesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, 0.333, tBackgroundFilename);
+    create_bounding_box_mesh(kUnitBoundingBox, 0.333, tBackgroundFilename);
 
     const auto tSphere =
         LevelsetPrimitives{/*.mPlanes=*/{}, /*.mSpheres=*/{Sphere{/*.mCenter=*/{0.5, 0.5, 0.5}, /*.mRadius=*/0.3}}};
@@ -106,7 +109,7 @@ TEST_F(KrinoTestFixture, CutSphereOutOfBackgroundMesh)
 TEST_F(KrinoTestFixture, GetSetLevelsetValues)
 {
     const auto tFilename = std::filesystem::path{"tmp.exo"};
-    create_bounding_box_mesh({0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}, 1.0, tFilename);
+    create_bounding_box_mesh(kUnitBoundingBox, 1.0, tFilename);
 
     const auto tNumberOfNodes = stk_io::node_size(*stk_io::read_mesh_bulk_data(tFilename));
     auto tLevelsetField = std::vector(tNumberOfNodes, 0.0);
@@ -123,7 +126,7 @@ TEST_F(KrinoTestFixture, GetSetLevelsetValues)
 TEST_F(KrinoTestFixture, Redistance)
 {
     const auto tFilename = std::filesystem::path{"tmp.exo"};
-    create_bounding_box_mesh({0.0, 0.0, 0.0}, {2.0, 1.0, 1.0}, 1.0, tFilename);
+    create_bounding_box_mesh(BoundingBox{{0.0, 0.0, 0.0}, {2.0, 1.0, 1.0}}, 1.0, tFilename);
 
     const auto tPlane =
         LevelsetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{1, 0, 0}, /*.mOffset=*/-0.25}}, /*.mSpheres=*/{}};
@@ -165,7 +168,7 @@ TEST_F(KrinoTestFixture, Redistance)
 TEST_F(KrinoTestFixture, Sensitivities)
 {
     const auto tFilename = std::filesystem::path{"tmp.exo"};
-    create_bounding_box_mesh(stk::math::Vector3d{0.0, 0.0, 0.0}, stk::math::Vector3d{1.0, 1.0, 1.0}, 1.0, tFilename);
+    create_bounding_box_mesh(kUnitBoundingBox, 1.0, tFilename);
 
     const auto tPlane =
         LevelsetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{-1.0, 0.5, 0.35}, /*.mOffset=*/0.2}}, /*.mSpheres=*/{}};
