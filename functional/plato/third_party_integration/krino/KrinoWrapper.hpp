@@ -8,7 +8,7 @@
 #include <functional>
 #include <stk_mesh/base/MetaData.hpp>
 
-#include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace plato::third_party_integration::krino
@@ -16,19 +16,19 @@ namespace plato::third_party_integration::krino
 /// @brief Interface with Krino
 ///
 /// This interface with Krino can create a cut mesh from a background mesh and either a set of primitives
-/// or a given levelset field. It also provides member functions to compute the nodal coordinate sensitivities with
-/// respect to the levelset field.
+/// or a given level set field. It also provides member functions to compute the nodal coordinate sensitivities with
+/// respect to the level set field.
 class KrinoWrapper
 {
    public:
     KrinoWrapper(const std::filesystem::path &aFilename,
-                 const LevelsetPrimitives &aLevelsetPrimitives,
+                 const LevelSetPrimitives &aLevelSetPrimitives,
                  const VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
     KrinoWrapper(const std::filesystem::path &aFilename,
-                 const std::vector<double> &aLevelsetValues,
+                 const std::vector<double> &aLevelSetValues,
                  const VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
 
-    void setLevelsetValues(const std::vector<double> &aValuesIn);
+    void setLevelSetValues(const std::vector<double> &aValuesIn);
     void writeMesh(const std::filesystem::path &aFilename);
     void redistance();
 
@@ -40,7 +40,7 @@ class KrinoWrapper
    private:
     VoidPhase mVoidRegion;
     std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
-    std::vector<::krino::LS_Field> mLevelsetFields;
+    std::vector<::krino::LS_Field> mLevelSetFields;
 };
 
 }  // namespace plato::third_party_integration::krino

@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <unordered_map>
 
-#include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/NamedType.hpp"
 
@@ -15,29 +15,29 @@ using BackgroundMeshFilePath = utilities::NamedType<std::filesystem::path, struc
 using CutMeshFilePath = utilities::NamedType<std::filesystem::path, struct BackgroundMeshNameTag>;
 
 /// @brief Generate a computational mesh, @a aCutMesh, by cutting a background mesh,
-/// @a aBackgroundMeshName, with the given levelset values, @a aLevelsetValues.  Returns the
-/// sensitivities of the computational mesh's boundary nodes with respect to the levelset values.
+/// @a aBackgroundMeshName, with the given level set values, @a aLevelSetValues.  Returns the
+/// sensitivities of the computational mesh's boundary nodes with respect to the level set values.
 /// @a aIncludeVoidRegion specifies whether to include the void region defined by the
-/// levelset values in the computational mesh.
+/// level set values in the computational mesh.
 auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshName,
                                  const CutMeshFilePath &aCutMesh,
-                                 const std::vector<double> &aLevelsetValues,
+                                 const std::vector<double> &aLevelSetValues,
                                  const VoidPhase aVoidRegion)
     -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>;
 
 /// @brief Generate a computational mesh, @a aCutMesh, by cutting a background mesh,
-/// @a aBackgroundMeshName, with the given levelset primitives, @a aLevelsetPrimitives.  Returns the
-/// levelset values on the background mesh resulting from the levelset primitives.
+/// @a aBackgroundMeshName, with the given level set primitives, @a aLevelSetPrimitives.  Returns the
+/// level set values on the background mesh resulting from the level set primitives.
 /// @a aIncludeVoidRegion specifies whether to include the void region defined by the
-/// levelset values in the computational mesh.
-[[nodiscard]] auto initialize_mesh_with_levelset_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
-                                                            const CutMeshFilePath &aCutMesh,
-                                                            const LevelsetPrimitives &aLevelsetPrimitives,
-                                                            const VoidPhase aVoidRegion) -> std::vector<double>;
+/// level set values in the computational mesh.
+[[nodiscard]] auto initialize_mesh_with_level_set_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
+                                                             const CutMeshFilePath &aCutMesh,
+                                                             const LevelSetPrimitives &aLevelSetPrimitives,
+                                                             const VoidPhase aVoidRegion) -> std::vector<double>;
 
 /// @brief Given DFDX, @a aDFDXMap (sensitivity of objective to nodal coordinate changes), and DXDP, @a aDXDP
-/// (sensitivity of nodal coordinates to levelset values), and the local-to-global node id map of the background mesh,
-/// @a aBackgroundMeshSpaceIDs, perform the chain rule to get DFDLS (sensitivity of objective to levelset values).
+/// (sensitivity of nodal coordinates to level set values), and the local-to-global node id map of the background mesh,
+/// @a aBackgroundMeshSpaceIDs, perform the chain rule to get DFDLS (sensitivity of objective to level set values).
 [[nodiscard]] auto calculate_dfdls(const std::vector<double> &aDFDX,
                                    const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
                                    const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP,
@@ -54,4 +54,4 @@ auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshNa
 
 }  // namespace plato::third_party_integration::krino
 
-#endif  // PLATO_THIRD_PARTY_INTEGRATION_KRINO_INTERFACE
+#endif

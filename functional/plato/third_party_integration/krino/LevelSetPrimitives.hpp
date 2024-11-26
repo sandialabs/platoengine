@@ -41,7 +41,7 @@ struct SpherePatternData
     double mSphereSpacing = 1.0;
 };
 
-struct LevelsetPrimitives
+struct LevelSetPrimitives
 {
     std::vector<Plane> mPlanes;
     std::vector<Sphere> mSpheres;

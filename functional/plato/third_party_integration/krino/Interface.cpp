@@ -5,7 +5,7 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
-#include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/utilities/IndexRange.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -51,21 +51,21 @@ auto assemble_dfdls_entry(analysis::AnalysisDomainMesh &&aDFDLS,
 
 auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshName,
                                  const CutMeshFilePath &aCutMesh,
-                                 const std::vector<double> &aLevelsetValues,
+                                 const std::vector<double> &aLevelSetValues,
                                  const VoidPhase aVoidRegion)
     -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelsetValues, aVoidRegion);
+    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelSetValues, aVoidRegion);
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
     return tKrinoWrapper.sensitivities();
 }
 
-std::vector<double> initialize_mesh_with_levelset_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
-                                                             const CutMeshFilePath &aCutMesh,
-                                                             const LevelsetPrimitives &aLevelsetPrimitives,
-                                                             const VoidPhase aVoidRegion)
+std::vector<double> initialize_mesh_with_level_set_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
+                                                              const CutMeshFilePath &aCutMesh,
+                                                              const LevelSetPrimitives &aLevelSetPrimitives,
+                                                              const VoidPhase aVoidRegion)
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelsetPrimitives, aVoidRegion);
+    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelSetPrimitives, aVoidRegion);
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
     return tKrinoWrapper.levelsetValues();
 }

@@ -1,13 +1,13 @@
 #ifndef PLATO_THIRDPARTYINTEGRATION_KRINO_SPHEREFACTORY
 #define PLATO_THIRDPARTYINTEGRATION_KRINO_SPHEREFACTORY
 
-#include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/utilities/NamedType.hpp"
 
 namespace plato::third_party_integration::krino
 {
 
-/// @brief Given sphere pattern input, @a aData, generate sphere primitives to be used to initialize a krino levelset.
+/// @brief Given sphere pattern input, @a aData, generate sphere primitives to be used to initialize a krino level set.
 [[nodiscard]] auto generate_spheres(const SpherePatternData &aData) -> std::vector<Sphere>;
 
 namespace detail
@@ -15,7 +15,7 @@ namespace detail
 using SphereStart = utilities::NamedType<double, struct SphereStartTag>;
 using SphereStep = utilities::NamedType<double, struct SphereStepTag>;
 
-/// @brief Given num values, @a aNumValues, start, @a aStart, and step, @a aStep, calculate a sequence of
+/// @brief Given num values, @a aNumValues, start, @a aStart, and step, @a aSphereStep, calculate a sequence of
 /// coordinates and store them in a vector.
 [[nodiscard]] auto create_sphere_spacing_vector(const unsigned int aNumValues,
                                                 const SphereStart aStart,

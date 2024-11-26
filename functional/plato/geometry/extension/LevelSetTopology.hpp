@@ -9,36 +9,36 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace plato::input_parser
 {
-struct levelset_topology;
+struct level_set_topology;
 }
 
 namespace plato::geometry::extension
 {
 
-/// @brief Levelset-based topology representation of a geometry.
+/// @brief Level set-based topology representation of a geometry.
 ///
-/// Implementation for levelset-based topology optimization. The design
-/// variable used by this class is a nodal levelset field in `[-inf, inf]` defining
+/// Implementation for level set-based topology optimization. The design
+/// variable used by this class is a nodal level set field in `[-inf, inf]` defining
 /// the interface between solid material and void or air (or the interface between
-/// two different materials). The interface is defined to be at a levelset value of
+/// two different materials). The interface is defined to be at a level set value of
 /// 0 with solid on the positive side and void on the negative side (or material 1
-/// and material 2). This class may use a Filter to smooth the levelset field
+/// and material 2). This class may use a Filter to smooth the level set field
 /// and reduce mesh dependency in the solution.
-class LevelsetTopology
+class LevelSetTopology
 {
    public:
-    explicit LevelsetTopology(const input_parser::levelset_topology& aInput);
+    explicit LevelSetTopology(const input_parser::level_set_topology& aInput);
 
-    ~LevelsetTopology();
-    LevelsetTopology(const LevelsetTopology&) = default;
-    LevelsetTopology(LevelsetTopology&&) = default;
-    LevelsetTopology& operator=(const LevelsetTopology&) = default;
-    LevelsetTopology& operator=(LevelsetTopology&&) = default;
+    ~LevelSetTopology();
+    LevelSetTopology(const LevelSetTopology&) = default;
+    LevelSetTopology(LevelSetTopology&&) = default;
+    LevelSetTopology& operator=(const LevelSetTopology&) = default;
+    LevelSetTopology& operator=(LevelSetTopology&&) = default;
 
     [[nodiscard]] auto bounds(const std::filesystem::path& aMeshFileName) const
         -> std::pair<std::vector<double>, std::vector<double>>;
@@ -59,26 +59,27 @@ class LevelsetTopology
     std::filesystem::path mCutMesh;
     std::filesystem::path mOutputMesh;
     third_party_integration::krino::VoidPhase mVoidRegion = third_party_integration::krino::VoidPhase::kExcludeFromMesh;
-    double mLevelsetLowerBound = -1.0;
-    double mLevelsetUpperBound = 1.0;
+    double mLevelSetLowerBound = -1.0;
+    double mLevelSetUpperBound = 1.0;
     unsigned int mNumDesignParameters = 0;
     third_party_integration::krino::SpherePatternData mSpherePattern;
-    third_party_integration::krino::LevelsetPrimitives mLevelsetPrimitives;
+    third_party_integration::krino::LevelSetPrimitives mLevelSetPrimitives;
 };
 
 /// @brief Generate a geometry function, that can be composed with an objective function.
-[[nodiscard]] auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology) -> library::GeometryFunction;
+[[nodiscard]] auto make_topology_geometry(const LevelSetTopology& aLevelSetTopology) -> library::GeometryFunction;
 
 namespace detail
 {
-[[nodiscard]] std::optional<std::string> validate_output_mesh_name(const input_parser::levelset_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_background_mesh_name(const input_parser::levelset_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_cut_mesh_name(const input_parser::levelset_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_lower_bound(const input_parser::levelset_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_upper_bound(const input_parser::levelset_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::levelset_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_sphere_pattern_radius(const input_parser::levelset_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_sphere_pattern_spacing(const input_parser::levelset_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_output_mesh_name(const input_parser::level_set_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_background_mesh_name(const input_parser::level_set_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_cut_mesh_name(const input_parser::level_set_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_lower_bound(const input_parser::level_set_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_upper_bound(const input_parser::level_set_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput);
+[[nodiscard]] std::optional<std::string> validate_sphere_pattern_spacing(
+    const input_parser::level_set_topology& aInput);
 
 }  // namespace detail
 

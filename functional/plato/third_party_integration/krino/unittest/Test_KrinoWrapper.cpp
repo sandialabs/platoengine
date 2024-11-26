@@ -14,7 +14,7 @@ namespace plato::third_party_integration::krino::unittest
 namespace
 {
 constexpr int kNumDimensions = 3;
-const std::string kLevelsetName = "LS";
+const std::string kLevelSetName = "LS";
 
 const auto kUnitBoundingBox = BoundingBox{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}};
 
@@ -28,7 +28,7 @@ const auto kUnitBoundingBox = BoundingBox{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}};
                            [](const unsigned int tTotal, const auto &tBucket) { return tTotal + tBucket->size(); });
 }
 
-[[nodiscard]] auto new_coordinates_based_on_perturbed_levelset_values(
+[[nodiscard]] auto new_coordinates_based_on_perturbed_level_set_values(
     const KrinoWrapper &aKrinoWrapper,
     const std::unordered_map<unsigned int, stk::math::Vector3d> &aCoordVals,
     const double aPerturbation) -> std::unordered_map<unsigned int, stk::math::Vector3d>
@@ -64,7 +64,7 @@ TEST_F(KrinoTestFixture, CoordinateValues)
     const auto tFilename = std::filesystem::path{"tmp.exo"};
     create_bounding_box_mesh(kUnitBoundingBox, 0.5, tFilename);
     constexpr auto tExcludeVoidRegion = VoidPhase::kExcludeFromMesh;
-    const auto tKrinoWrapper = KrinoWrapper{tFilename, LevelsetPrimitives{}, tExcludeVoidRegion};
+    const auto tKrinoWrapper = KrinoWrapper{tFilename, LevelSetPrimitives{}, tExcludeVoidRegion};
 
     const auto tNodalCoordinates = tKrinoWrapper.coordinates();
     {
@@ -96,7 +96,7 @@ TEST_F(KrinoTestFixture, CutSphereOutOfBackgroundMesh)
     create_bounding_box_mesh(kUnitBoundingBox, 0.333, tBackgroundFilename);
 
     const auto tSphere =
-        LevelsetPrimitives{/*.mPlanes=*/{}, /*.mSpheres=*/{Sphere{/*.mCenter=*/{0.5, 0.5, 0.5}, /*.mRadius=*/0.3}}};
+        LevelSetPrimitives{/*.mPlanes=*/{}, /*.mSpheres=*/{Sphere{/*.mCenter=*/{0.5, 0.5, 0.5}, /*.mRadius=*/0.3}}};
     auto tKrinoWrapper = KrinoWrapper{tBackgroundFilename, tSphere};
     tKrinoWrapper.writeMesh(tCutFilename);
     const unsigned int tNumSolidTets = number_of_tets_in_block(tKrinoWrapper, tBlockName);
@@ -106,19 +106,19 @@ TEST_F(KrinoTestFixture, CutSphereOutOfBackgroundMesh)
     std::filesystem::remove(tCutFilename);
 }
 
-TEST_F(KrinoTestFixture, GetSetLevelsetValues)
+TEST_F(KrinoTestFixture, GetSetLevelSetValues)
 {
     const auto tFilename = std::filesystem::path{"tmp.exo"};
     create_bounding_box_mesh(kUnitBoundingBox, 1.0, tFilename);
 
     const auto tNumberOfNodes = stk_io::node_size(*stk_io::read_mesh_bulk_data(tFilename));
-    auto tLevelsetField = std::vector(tNumberOfNodes, 0.0);
-    std::iota(tLevelsetField.begin(), tLevelsetField.end(), 0.0);
-    auto tKrinoWrapper = KrinoWrapper{tFilename, tLevelsetField};
+    auto tLevelSetField = std::vector(tNumberOfNodes, 0.0);
+    std::iota(tLevelSetField.begin(), tLevelSetField.end(), 0.0);
+    auto tKrinoWrapper = KrinoWrapper{tFilename, tLevelSetField};
 
-    const auto tLevelsetValuesFromKrino = tKrinoWrapper.levelsetValues();
+    const auto tLevelSetValuesFromKrino = tKrinoWrapper.levelsetValues();
 
-    EXPECT_EQ(tLevelsetValuesFromKrino, tLevelsetField);
+    EXPECT_EQ(tLevelSetValuesFromKrino, tLevelSetField);
 
     std::filesystem::remove(tFilename);
 }
@@ -129,29 +129,29 @@ TEST_F(KrinoTestFixture, Redistance)
     create_bounding_box_mesh(BoundingBox{{0.0, 0.0, 0.0}, {2.0, 1.0, 1.0}}, 1.0, tFilename);
 
     const auto tPlane =
-        LevelsetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{1, 0, 0}, /*.mOffset=*/-0.25}}, /*.mSpheres=*/{}};
+        LevelSetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{1, 0, 0}, /*.mOffset=*/-0.25}}, /*.mSpheres=*/{}};
     auto tKrinoWrapper = KrinoWrapper{tFilename, tPlane};
 
-    std::vector<double> tLevelsetValues = tKrinoWrapper.levelsetValues();
+    std::vector<double> tLevelSetValues = tKrinoWrapper.levelsetValues();
     const std::vector<double> tInitialGold = {-0.25, 0.75,  1.75, -0.25, 0.75, 1.75, -0.25, 0.75,
                                               1.75,  -0.25, 0.75, 1.75,  0.25, 1.25, 0.25,  1.25,
                                               -0.25, 0.25,  1.25, 1.75,  0.25, 1.25, 0.25,  1.25};
-    EXPECT_EQ(tLevelsetValues, tInitialGold);
+    EXPECT_EQ(tLevelSetValues, tInitialGold);
 
     // Perturb the nodes adjacent to the interface so that the interface moves slightly to the right.
     const auto tInterfaceNodes = std::vector{0, 1, 3, 4, 6, 7, 9, 10, 12, 14, 16, 17, 20, 22};
     constexpr double tDelta = .05;
     for (const auto tIndex : tInterfaceNodes)
     {
-        tLevelsetValues.at(tIndex) -= tDelta;
+        tLevelSetValues.at(tIndex) -= tDelta;
     }
 
-    tKrinoWrapper.setLevelsetValues(tLevelsetValues);
+    tKrinoWrapper.setLevelSetValues(tLevelSetValues);
 
-    const std::vector<double> tLevelsetValues2 = tKrinoWrapper.levelsetValues();
-    EXPECT_EQ(tLevelsetValues, tLevelsetValues2);
+    const std::vector<double> tLevelSetValues2 = tKrinoWrapper.levelsetValues();
+    EXPECT_EQ(tLevelSetValues, tLevelSetValues2);
     tKrinoWrapper.redistance();
-    const std::vector<double> tLevelsetValues3 = tKrinoWrapper.levelsetValues();
+    const std::vector<double> tLevelSetValues3 = tKrinoWrapper.levelsetValues();
     std::vector<double> tRedistancedGold = tInitialGold;
     for (auto &tCurVal : tRedistancedGold)
     {
@@ -159,7 +159,7 @@ TEST_F(KrinoTestFixture, Redistance)
     }
     for (size_t i = 0; i < tRedistancedGold.size(); ++i)
     {
-        EXPECT_DOUBLE_EQ(tRedistancedGold[i], tLevelsetValues3[i]);
+        EXPECT_DOUBLE_EQ(tRedistancedGold[i], tLevelSetValues3[i]);
     }
 
     std::filesystem::remove(tFilename);
@@ -171,20 +171,20 @@ TEST_F(KrinoTestFixture, Sensitivities)
     create_bounding_box_mesh(kUnitBoundingBox, 1.0, tFilename);
 
     const auto tPlane =
-        LevelsetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{-1.0, 0.5, 0.35}, /*.mOffset=*/0.2}}, /*.mSpheres=*/{}};
+        LevelSetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{-1.0, 0.5, 0.35}, /*.mOffset=*/0.2}}, /*.mSpheres=*/{}};
     KrinoWrapper tKrinoWrapper{tFilename, tPlane};
 
     const auto tCurCoordinateValues = tKrinoWrapper.coordinates();
     constexpr auto tPerturbation = double{0.01};
     const auto tPredictedCoordValues =
-        new_coordinates_based_on_perturbed_levelset_values(tKrinoWrapper, tCurCoordinateValues, tPerturbation);
+        new_coordinates_based_on_perturbed_level_set_values(tKrinoWrapper, tCurCoordinateValues, tPerturbation);
 
-    auto tPerturbedLevelsetValues = tKrinoWrapper.levelsetValues();
-    for (auto &tCurLS : tPerturbedLevelsetValues)
+    auto tPerturbedLevelSetValues = tKrinoWrapper.levelsetValues();
+    for (auto &tCurLS : tPerturbedLevelSetValues)
     {
         tCurLS += tPerturbation;
     }
-    const auto tNewCoordValues = KrinoWrapper{tFilename, tPerturbedLevelsetValues}.coordinates();
+    const auto tNewCoordValues = KrinoWrapper{tFilename, tPerturbedLevelSetValues}.coordinates();
     for (auto tPredictedCoordValue : tPredictedCoordValues)
     {
         for (int i = 0; i < kNumDimensions; i++)

@@ -1,4 +1,4 @@
-#include "plato/geometry/extension/LevelsetTopology.hpp"
+#include "plato/geometry/extension/LevelSetTopology.hpp"
 
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
@@ -24,7 +24,7 @@ namespace
 namespace tpik = third_party_integration::krino;
 
 constexpr auto kDimensions = std::size_t{3};
-constexpr double kLevelsetFixedValue = 1.0;
+constexpr double kLevelSetFixedValue = 1.0;
 constexpr auto kTopologyFieldName = std::string_view{"Topology"};
 constexpr auto kKrinoLogFileName = std::string_view{"Krino_Output.txt"};
 
@@ -36,7 +36,7 @@ auto make_topology_output(const std::filesystem::path& aInputMeshName, const std
     -> std::function<void(const linear_algebra::DynamicVector<double>&)>
 {
     return [aInputMeshName, aOutputMeshName](const linear_algebra::DynamicVector<double>& aSolution)
-    { return LevelsetTopology::output(aInputMeshName, aSolution, aOutputMeshName); };
+    { return LevelSetTopology::output(aInputMeshName, aSolution, aOutputMeshName); };
 }
 
 void initialize_krino()
@@ -50,30 +50,30 @@ void initialize_krino()
 }
 
 /// Static registration for library
-[[maybe_unused]] static auto kLevelsetTopologyRegistration = plato::geometry::library::GeometryRegistration{
-    input_parser::block_name<input_parser::levelset_topology>(),
+[[maybe_unused]] static auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
+    input_parser::block_name<input_parser::level_set_topology>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
     {
         initialize_krino();
-        const auto& tInput = core::validated_variant_raw_input<input_parser::levelset_topology>(aGeometryInput);
-        auto tLevelset = LevelsetTopology{tInput};
+        const auto& tInput = core::validated_variant_raw_input<input_parser::level_set_topology>(aGeometryInput);
+        auto tLevelSet = LevelSetTopology{tInput};
         return library::FactoryTypes{
-            make_topology_geometry(tLevelset), tLevelset.initialGuess(tInput.background_mesh_name.value().mToken),
-            tLevelset.bounds(tInput.background_mesh_name.value().mToken),
+            make_topology_geometry(tLevelSet), tLevelSet.initialGuess(tInput.background_mesh_name.value().mToken),
+            tLevelSet.bounds(tInput.background_mesh_name.value().mToken),
             make_topology_output(tInput.background_mesh_name.value().mToken, tInput.output_mesh_name.value().mToken)};
     }};
 
 /// Static registration for input validation functions
-[[maybe_unused]] static auto kLevelsetTopologyValidationRegistration =
-    core::ValidationRegistration<input_parser::levelset_topology>{
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_background_mesh_name(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_cut_mesh_name(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_output_mesh_name(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_lower_bound(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_upper_bound(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_sphere_pattern_radius(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_sphere_pattern_spacing(aInput); },
-        [](const input_parser::levelset_topology& aInput) { return detail::validate_sphere_pattern_bbox(aInput); }};
+[[maybe_unused]] static auto kLevelSetTopologyValidationRegistration =
+    core::ValidationRegistration<input_parser::level_set_topology>{
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_background_mesh_name(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_cut_mesh_name(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_output_mesh_name(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_lower_bound(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_upper_bound(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_radius(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_spacing(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_bbox(aInput); }};
 
 auto adjoint_jacobian_times_vector(const linear_algebra::DynamicVector<double>& aDesignParameters,
                                    const mesh::Mesh& aBackgroundMesh,
@@ -128,14 +128,14 @@ auto assembled_adjoint_jacobian_times_vector(
 
 }  // namespace
 
-LevelsetTopology::LevelsetTopology(const input_parser::levelset_topology& aInput)
+LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInput)
     : mBackgroundMesh(aInput.background_mesh_name.value().mToken),
       mCutMesh(utilities::make_filename_unique(aInput.cut_mesh_name.value().mToken)),
       mOutputMesh(aInput.output_mesh_name.value().mToken),
       mVoidRegion(aInput.include_void_region.value() ? third_party_integration::krino::VoidPhase::kIncludeInMesh
                                                      : third_party_integration::krino::VoidPhase::kExcludeFromMesh),
-      mLevelsetLowerBound(aInput.levelset_lower_bound.value()),
-      mLevelsetUpperBound(aInput.levelset_upper_bound.value()),
+      mLevelSetLowerBound(aInput.levelset_lower_bound.value()),
+      mLevelSetUpperBound(aInput.levelset_upper_bound.value()),
       mNumDesignParameters(mesh::EntityCounts{mBackgroundMesh}.numberOfNodes()),
       mSpherePattern({{aInput.sphere_pattern_bbox_min_x.value(), aInput.sphere_pattern_bbox_min_y.value(),
                        aInput.sphere_pattern_bbox_min_z.value()},
@@ -143,27 +143,27 @@ LevelsetTopology::LevelsetTopology(const input_parser::levelset_topology& aInput
                        aInput.sphere_pattern_bbox_max_z.value()},
                       aInput.sphere_pattern_radius.value(),
                       aInput.sphere_pattern_spacing.value()}),
-      mLevelsetPrimitives{{}, tpik::generate_spheres(mSpherePattern)}
+      mLevelSetPrimitives{{}, tpik::generate_spheres(mSpherePattern)}
 {
 }
-LevelsetTopology::~LevelsetTopology() { std::filesystem::remove(mCutMesh); }
+LevelSetTopology::~LevelSetTopology() { std::filesystem::remove(mCutMesh); }
 
-auto LevelsetTopology::bounds(const std::filesystem::path& aMeshFileName) const
+auto LevelSetTopology::bounds(const std::filesystem::path& aMeshFileName) const
     -> std::pair<std::vector<double>, std::vector<double>>
 {
     const unsigned int tNumNodes = mesh::EntityCounts{mesh::Mesh{aMeshFileName}}.numberOfNodes();
-    return {std::vector<double>(tNumNodes, mLevelsetLowerBound), std::vector<double>(tNumNodes, mLevelsetUpperBound)};
+    return {std::vector<double>(tNumNodes, mLevelSetLowerBound), std::vector<double>(tNumNodes, mLevelSetUpperBound)};
 }
 
-auto LevelsetTopology::initialGuess(const std::filesystem::path& aMeshFileName) const
+auto LevelSetTopology::initialGuess(const std::filesystem::path& aMeshFileName) const
     -> linear_algebra::DynamicVector<double>
 {
-    auto tCurLevelsetValues = tpik::initialize_mesh_with_levelset_primitives(
-        tpik::BackgroundMeshFilePath{aMeshFileName}, tpik::CutMeshFilePath{mCutMesh}, mLevelsetPrimitives, mVoidRegion);
-    return linear_algebra::DynamicVector<double>(std::move(tCurLevelsetValues));
+    auto tCurLevelSetValues = tpik::initialize_mesh_with_level_set_primitives(
+        tpik::BackgroundMeshFilePath{aMeshFileName}, tpik::CutMeshFilePath{mCutMesh}, mLevelSetPrimitives, mVoidRegion);
+    return linear_algebra::DynamicVector<double>(std::move(tCurLevelSetValues));
 }
 
-auto LevelsetTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+auto LevelSetTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
     -> analysis::AnalysisDomainMesh
 {
     /* When introducing filtering do the following:
@@ -182,7 +182,7 @@ auto LevelsetTopology::generateMesh(const linear_algebra::DynamicVector<double>&
     return analysis::AnalysisDomainMesh{mCutMesh, {}};
 }
 
-linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
+linear_algebra::JacobianMultiplier LevelSetTopology::jacobian(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
     return linear_algebra::JacobianMultiplier{
@@ -212,7 +212,7 @@ linear_algebra::JacobianMultiplier LevelsetTopology::jacobian(
         }};
 }
 
-auto LevelsetTopology::adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameters) const
     -> linear_algebra::AdjointJacobianMultiplier
 {
     return linear_algebra::AdjointJacobianMultiplier{
@@ -227,7 +227,7 @@ auto LevelsetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
     };
 }
 
-void LevelsetTopology::output(const std::filesystem::path& aInputMeshName,
+void LevelSetTopology::output(const std::filesystem::path& aInputMeshName,
                               const linear_algebra::DynamicVector<double>& aSolution,
                               const std::filesystem::path& aOutputMeshName)
 {
@@ -235,69 +235,69 @@ void LevelsetTopology::output(const std::filesystem::path& aInputMeshName,
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aSolution.stdVector()});
     mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(aOutputMeshName, tNodalDesignParameters, kTopologyFieldName,
-                                                         kLevelsetFixedValue);
+                                                         kLevelSetFixedValue);
 }
 
-auto make_topology_geometry(const LevelsetTopology& aLevelsetTopology) -> library::GeometryFunction
+auto make_topology_geometry(const LevelSetTopology& aLevelSetTopology) -> library::GeometryFunction
 {
     return library::GeometryFunction{
-        [tLevelsetTopology = aLevelsetTopology](const linear_algebra::DynamicVector<double>& x)
-        { return tLevelsetTopology.generateMesh(x); },
-        [tLevelsetTopology = aLevelsetTopology](const linear_algebra::DynamicVector<double>& x)
-        { return tLevelsetTopology.jacobian(x); },
-        [tLevelsetTopology = aLevelsetTopology](const linear_algebra::DynamicVector<double>& x)
-        { return linear_algebra::AdjointJacobianMultiplier{tLevelsetTopology.adjointJacobian(x)}; }};
+        [tLevelSetTopology = aLevelSetTopology](const linear_algebra::DynamicVector<double>& x)
+        { return tLevelSetTopology.generateMesh(x); },
+        [tLevelSetTopology = aLevelSetTopology](const linear_algebra::DynamicVector<double>& x)
+        { return tLevelSetTopology.jacobian(x); },
+        [tLevelSetTopology = aLevelSetTopology](const linear_algebra::DynamicVector<double>& x)
+        { return linear_algebra::AdjointJacobianMultiplier{tLevelSetTopology.adjointJacobian(x)}; }};
 }
 
 namespace detail
 {
-std::optional<std::string> validate_output_mesh_name(const input_parser::levelset_topology& aInput)
+std::optional<std::string> validate_output_mesh_name(const input_parser::level_set_topology& aInput)
 {
-    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::levelset_topology>(),
+    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::level_set_topology>(),
                                                    aInput.output_mesh_name, "output_name");
 }
 
-std::optional<std::string> validate_background_mesh_name(const input_parser::levelset_topology& aInput)
+std::optional<std::string> validate_background_mesh_name(const input_parser::level_set_topology& aInput)
 {
-    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::levelset_topology>(),
+    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::level_set_topology>(),
                                                    aInput.background_mesh_name, "background_mesh_name");
 }
 
-std::optional<std::string> validate_cut_mesh_name(const input_parser::levelset_topology& aInput)
+std::optional<std::string> validate_cut_mesh_name(const input_parser::level_set_topology& aInput)
 {
-    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::levelset_topology>(),
+    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::level_set_topology>(),
                                                    aInput.cut_mesh_name, "cut_mesh_name");
 }
 
-std::optional<std::string> validate_lower_bound(const input_parser::levelset_topology& aInput)
+std::optional<std::string> validate_lower_bound(const input_parser::level_set_topology& aInput)
 {
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
+    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::level_set_topology>(),
                                                            aInput.levelset_lower_bound, "levelset_lower_bound",
                                                            utilities::upper_bounded(utilities::Exclusive{0.0}));
 }
 
-std::optional<std::string> validate_upper_bound(const input_parser::levelset_topology& aInput)
+std::optional<std::string> validate_upper_bound(const input_parser::level_set_topology& aInput)
 {
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
+    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::level_set_topology>(),
                                                            aInput.levelset_upper_bound, "levelset_upper_bound",
                                                            utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
-std::optional<std::string> validate_sphere_pattern_spacing(const input_parser::levelset_topology& aInput)
+std::optional<std::string> validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput)
 {
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
+    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::level_set_topology>(),
                                                            aInput.sphere_pattern_spacing, "sphere_pattern_spacing",
                                                            utilities::lower_bounded(utilities::Exclusive{1e-5}));
 }
 
-std::optional<std::string> validate_sphere_pattern_radius(const input_parser::levelset_topology& aInput)
+std::optional<std::string> validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput)
 {
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::levelset_topology>(),
+    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::level_set_topology>(),
                                                            aInput.sphere_pattern_radius, "sphere_pattern_radius",
                                                            utilities::lower_bounded(utilities::Exclusive{1e-5}));
 }
 
-std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::levelset_topology& aInput)
+std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput)
 {
     if (aInput.sphere_pattern_bbox_max_x.value() < aInput.sphere_pattern_bbox_min_x.value() ||
         aInput.sphere_pattern_bbox_max_y.value() < aInput.sphere_pattern_bbox_min_y.value() ||
