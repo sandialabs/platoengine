@@ -39,7 +39,8 @@ TEST_F(KrinoTestFixture, CalculateDFDLS)
         auto tBackgroundNodemap = plato::analysis::AnalysisDomainMesh{
             kMeshFile, analysis::AnalysisDomainMesh::BlockScalarField{{tBlockID, tBackgroundNodemapValues}}};
 
-        const auto tDFDLS = calculate_dfdls(tDFDX, tCutMeshField, tLevelSetJacobian, std::move(tBackgroundNodemap));
+        const auto tDFDLS = level_set_row_vector_jacobian_product(tDFDX, tCutMeshField, tLevelSetJacobian,
+                                                                  std::move(tBackgroundNodemap));
 
         const auto tExpected = std::vector<analysis::ScalarFieldValue>{
             {2, 0, 0.9375},      {7, 1, 0.28125}, {10, 2, 0.34375}, {12, 3, -0.171875},
@@ -58,7 +59,7 @@ TEST_F(KrinoTestFixture, CalculateDFDLS)
         const auto tBackgroundLevelSetField = plato::analysis::AnalysisDomainMesh{
             kMeshFile, analysis::AnalysisDomainMesh::BlockScalarField{{tBlockID, tFieldVector}}};
 
-        const auto tDFDLS = calculate_adjoint_dfdls(tBackgroundLevelSetField, tLevelSetJacobian);
+        const auto tDFDLS = level_set_row_vector_adjoint_jacobian_product(tBackgroundLevelSetField, tLevelSetJacobian);
 
         auto tExpected =
             std::unordered_map<unsigned int, stk::math::Vector3d>{{1, stk::math::Vector3d{1.375, -0.125, -1.375}},

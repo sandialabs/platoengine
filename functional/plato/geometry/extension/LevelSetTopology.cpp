@@ -87,7 +87,7 @@ auto adjoint_jacobian_times_vector(const linear_algebra::DynamicVector<double>& 
         aDesignParameters.stdVector(), aVoidRegion);
     const auto tLevelSetSpaceVector = mesh::DesignVariablesConversion{aBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aVector.stdVector()});
-    return tpik::calculate_adjoint_dfdls(tLevelSetSpaceVector, tLevelSetJacobian);
+    return tpik::level_set_row_vector_adjoint_jacobian_product(tLevelSetSpaceVector, tLevelSetJacobian);
 }
 
 auto analysis_domain_mesh(const mesh::Mesh& aMesh) -> analysis::AnalysisDomainMesh
@@ -198,7 +198,7 @@ linear_algebra::JacobianMultiplier LevelSetTopology::jacobian(
                 aDesignParameters.stdVector(), mVoidRegion);
             const auto tCutMeshSpaceVector = analysis_domain_mesh(mCutMesh);
 
-            const auto tBackgroundDFDLS = tpik::calculate_dfdls(
+            const auto tBackgroundDFDLS = tpik::level_set_row_vector_jacobian_product(
                 aVector.stdVector(), tCutMeshSpaceVector, tLevelSetJacobian, analysis_domain_mesh(mBackgroundMesh));
 
             const auto tBackgroundDFDLSView = analysis::AnalysisDomainMeshSequentialView{tBackgroundDFDLS};

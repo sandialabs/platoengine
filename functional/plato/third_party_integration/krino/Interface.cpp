@@ -70,10 +70,11 @@ std::vector<double> initialize_mesh_with_level_set_primitives(const BackgroundMe
     return tKrinoWrapper.levelsetValues();
 }
 
-auto calculate_dfdls(const std::vector<double> &aDFDX,
-                     const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
-                     const std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn> &aLevelSetJacobian,
-                     analysis::AnalysisDomainMesh &&aBackgroundMeshSpaceIDs) -> analysis::AnalysisDomainMesh
+auto level_set_row_vector_jacobian_product(
+    const std::vector<double> &aDFDX,
+    const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
+    const std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn> &aLevelSetJacobian,
+    analysis::AnalysisDomainMesh &&aBackgroundMeshSpaceIDs) -> analysis::AnalysisDomainMesh
 {
     const auto tCutMeshSpaceRandomAccessView = analysis::AnalysisDomainMeshRandomAccessView{aCutMeshSpaceIDs};
     for (const auto &[tCurInterfaceNodeID, tLevelSetJacobianColumn] : aLevelSetJacobian)
@@ -87,8 +88,8 @@ auto calculate_dfdls(const std::vector<double> &aDFDX,
     return aBackgroundMeshSpaceIDs;
 }
 
-auto calculate_adjoint_dfdls(const analysis::AnalysisDomainMesh &aBackgroundLevelSetSpaceVector,
-                             const LevelSetJacobian &aLevelSetJacobian)
+auto level_set_row_vector_adjoint_jacobian_product(const analysis::AnalysisDomainMesh &aBackgroundLevelSetSpaceVector,
+                                                   const LevelSetJacobian &aLevelSetJacobian)
     -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>
 {
     const auto tLevelSetSpaceRandomAccessView =
