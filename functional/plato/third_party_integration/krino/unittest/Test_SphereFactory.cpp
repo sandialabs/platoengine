@@ -1,11 +1,10 @@
 
 #include <gtest/gtest.h>  // for AssertHelper, TEST, etc
 
-#include <cstdio>
-
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::krino::unittest
 {
@@ -21,15 +20,27 @@ constexpr common::Coordinate kTenCoordinate{10, 10, 10};
     return SpherePatternData{kZeroCoordinate, kTenCoordinate, aSphereRadius, aSphereSpacing};
 }
 
-void check_repeated_num_spheres(const common::Coordinate &aNumSpheres, const double aGoldValue)
+void check_all_coordinates_equal_to(const common::Coordinate& aCoordinate,
+                                    const double aExpected,
+                                    const test_utilities::TestContext& aTestContext)
 {
-    EXPECT_EQ(aNumSpheres.x, aGoldValue);
-    EXPECT_EQ(aNumSpheres.y, aGoldValue);
-    EXPECT_EQ(aNumSpheres.z, aGoldValue);
+    EXPECT_DOUBLE_EQ(aCoordinate.x, aExpected) << aTestContext;
+    EXPECT_DOUBLE_EQ(aCoordinate.y, aExpected) << aTestContext;
+    EXPECT_DOUBLE_EQ(aCoordinate.z, aExpected) << aTestContext;
+}
+
+void check_spheres_equal(const Sphere& aSphere1,
+                         const Sphere& aSphere2,
+                         const test_utilities::TestContext& aTestContext)
+{
+    EXPECT_DOUBLE_EQ(aSphere1.mCenter.x, aSphere2.mCenter.x) << aTestContext;
+    EXPECT_DOUBLE_EQ(aSphere1.mCenter.y, aSphere2.mCenter.y) << aTestContext;
+    EXPECT_DOUBLE_EQ(aSphere1.mCenter.z, aSphere2.mCenter.z) << aTestContext;
+    EXPECT_DOUBLE_EQ(aSphere1.mRadius, aSphere2.mRadius) << aTestContext;
 }
 }  // namespace
 
-TEST(SphereBuilder, GenerateSpheresCalculateSphereCenterCoords)
+TEST(SphereFactory, GenerateSpheresCalculateSphereCenterCoords)
 {
     constexpr int tNumValues{4};
     constexpr double tStart{-3.0};
@@ -40,67 +51,77 @@ TEST(SphereBuilder, GenerateSpheresCalculateSphereCenterCoords)
     EXPECT_EQ(tResult, tGold);
 }
 
-TEST(SphereBuilder, CalculateNumSpheresAndStart_SphereJustInsideBBoxExtent)
+TEST(SphereFactory, CalculateNumSpheresAndStart_SphereJustInsideBBoxExtent)
 {
     constexpr double tSphereRadius = 0.5;
-    constexpr double tSphereSpacing = 4.9;
+    constexpr double tSphereSpacing = 4.5;
     const SpherePatternData tData{calculate_sphere_pattern_data_on_zero_ten_mesh(tSphereRadius, tSphereSpacing)};
     const common::Coordinate tNumSpheres{detail::calculate_num_spheres_in_each_direction(tData)};
-    check_repeated_num_spheres(tNumSpheres, 3);
-    const common::Coordinate tStart{detail::calculate_sphere_pattern_start(tNumSpheres, tData)};
-    const common::Coordinate tGold{0.1, 0.1, 0.1};
-    constexpr double tTol{1e-10};
-    EXPECT_NEAR(tStart.x, tGold.x, tTol);
-    EXPECT_NEAR(tStart.y, tGold.y, tTol);
-    EXPECT_NEAR(tStart.z, tGold.z, tTol);
+    {
+        constexpr auto tExpectedNumberOfSpheres = 3.0;
+        check_all_coordinates_equal_to(tNumSpheres, tExpectedNumberOfSpheres, TEST_CONTEXT("Number of spheres"));
+    }
+    {
+        const common::Coordinate tStart{detail::calculate_sphere_pattern_start(tNumSpheres, tData)};
+        constexpr auto tExpectedStartCoordinate = 0.5;
+        check_all_coordinates_equal_to(tStart, tExpectedStartCoordinate, TEST_CONTEXT("Sphere start coordinate"));
+    }
 }
 
-TEST(SphereBuilder, CalculateNumSpheresAndStart_SphereJustOutsideBBoxExtent)
+TEST(SphereFactory, CalculateNumSpheresAndStart_SphereJustOutsideBBoxExtent)
 {
     constexpr double tSphereRadius = 0.5;
-    constexpr double tSphereSpacing = 5.1;
+    constexpr double tSphereSpacing = 5.5;
     const SpherePatternData tData{calculate_sphere_pattern_data_on_zero_ten_mesh(tSphereRadius, tSphereSpacing)};
     const common::Coordinate tNumSpheres{detail::calculate_num_spheres_in_each_direction(tData)};
-    check_repeated_num_spheres(tNumSpheres, 3);
-    const common::Coordinate tStart{detail::calculate_sphere_pattern_start(tNumSpheres, tData)};
-    const common::Coordinate tGold{-0.1, -0.1, -0.1};
-    constexpr double tTol{1e-10};
-    EXPECT_NEAR(tStart.x, tGold.x, tTol);
-    EXPECT_NEAR(tStart.y, tGold.y, tTol);
-    EXPECT_NEAR(tStart.z, tGold.z, tTol);
+    {
+        constexpr auto tExpectedNumberOfSpheres = 3.0;
+        check_all_coordinates_equal_to(tNumSpheres, tExpectedNumberOfSpheres,
+                                       TEST_CONTEXT("Sphere just outside of bounding box"));
+    }
+    {
+        const common::Coordinate tStart{detail::calculate_sphere_pattern_start(tNumSpheres, tData)};
+        constexpr auto tExpectedStartCoordinate = -0.5;
+        check_all_coordinates_equal_to(tStart, tExpectedStartCoordinate, TEST_CONTEXT("Sphere start coordinate"));
+    }
 }
 
-TEST(SphereBuilder, CalculateNumSpheresAndStart_SpheresNotIntersectingWithBoundary)
+TEST(SphereFactory, CalculateNumSpheresAndStart_SpheresNotIntersectingWithBoundary)
 {
     constexpr double tSphereRadius = 0.1;
     constexpr double tSphereSpacing = 2.0;
     const SpherePatternData tData{calculate_sphere_pattern_data_on_zero_ten_mesh(tSphereRadius, tSphereSpacing)};
     const common::Coordinate tNumSpheres{detail::calculate_num_spheres_in_each_direction(tData)};
-    check_repeated_num_spheres(tNumSpheres, 5);
-    const common::Coordinate tStart{detail::calculate_sphere_pattern_start(tNumSpheres, tData)};
-    const common::Coordinate tGold{1, 1, 1};
-    constexpr double tTol{1e-10};
-    EXPECT_NEAR(tStart.x, tGold.x, tTol);
-    EXPECT_NEAR(tStart.y, tGold.y, tTol);
-    EXPECT_NEAR(tStart.z, tGold.z, tTol);
+    {
+        constexpr auto tExpectedNumberOfSpheres = 5.0;
+        check_all_coordinates_equal_to(tNumSpheres, tExpectedNumberOfSpheres,
+                                       TEST_CONTEXT("Spheres not intersecting with bounding box"));
+    }
+    {
+        const common::Coordinate tStart{detail::calculate_sphere_pattern_start(tNumSpheres, tData)};
+        constexpr auto tExpectedStartCoordinate = 1.0;
+        check_all_coordinates_equal_to(tStart, tExpectedStartCoordinate, TEST_CONTEXT("Sphere start coordinate"));
+    }
 }
 
-TEST(SphereBuilder, CalculateNumSpheresAndStart_OneSphere)
+TEST(SphereFactory, CalculateNumSpheresAndStart_OneSphere)
 {
     constexpr double tSphereRadius = 0.1;
     constexpr double tSphereSpacing = 100.0;
     const SpherePatternData tData{calculate_sphere_pattern_data_on_zero_ten_mesh(tSphereRadius, tSphereSpacing)};
     const common::Coordinate tNumSpheres{detail::calculate_num_spheres_in_each_direction(tData)};
-    check_repeated_num_spheres(tNumSpheres, 1);
-    const common::Coordinate tStart{detail::calculate_sphere_pattern_start(tNumSpheres, tData)};
-    const common::Coordinate tGold{5, 5, 5};
-    constexpr double tTol{1e-10};
-    EXPECT_NEAR(tStart.x, tGold.x, tTol);
-    EXPECT_NEAR(tStart.y, tGold.y, tTol);
-    EXPECT_NEAR(tStart.z, tGold.z, tTol);
+    {
+        constexpr auto tExpectedNumberOfSpheres = 1.0;
+        check_all_coordinates_equal_to(tNumSpheres, tExpectedNumberOfSpheres, TEST_CONTEXT("One sphere"));
+    }
+    {
+        const common::Coordinate tStart{detail::calculate_sphere_pattern_start(tNumSpheres, tData)};
+        constexpr auto tExpectedStartCoordinate = 5.0;
+        check_all_coordinates_equal_to(tStart, tExpectedStartCoordinate, TEST_CONTEXT("Sphere start coordinate"));
+    }
 }
 
-TEST(SphereBuilder, GenerateSpheres)
+TEST(SphereFactory, GenerateSpheres)
 {
     constexpr double tSphereRadius = 0.25;
     constexpr double tSphereSpacing = 1.0;
@@ -109,20 +130,15 @@ TEST(SphereBuilder, GenerateSpheres)
     const SpherePatternData tData{tBBoxMin, tBBoxMax, tSphereRadius, tSphereSpacing};
     const std::vector<Sphere> tSpheres = generate_spheres(tData);
 
-    EXPECT_FLOAT_EQ(tSpheres[0].mCenter.x, 0);
-    EXPECT_FLOAT_EQ(tSpheres[0].mCenter.y, 0.5);
-    EXPECT_FLOAT_EQ(tSpheres[0].mCenter.z, 0.5);
-    EXPECT_FLOAT_EQ(tSpheres[0].mRadius, 0.25);
+    const auto tExpectedSpheres =
+        std::vector<Sphere>{{{0.0, 0.5, 0.5}, 0.25}, {{1.0, 0.5, 0.5}, 0.25}, {{2.0, 0.5, 0.5}, 0.25}};
 
-    EXPECT_FLOAT_EQ(tSpheres[1].mCenter.x, 1);
-    EXPECT_FLOAT_EQ(tSpheres[1].mCenter.y, 0.5);
-    EXPECT_FLOAT_EQ(tSpheres[1].mCenter.z, 0.5);
-    EXPECT_FLOAT_EQ(tSpheres[1].mRadius, 0.25);
+    EXPECT_EQ(tSpheres.size(), tExpectedSpheres.size());
 
-    EXPECT_FLOAT_EQ(tSpheres[2].mCenter.x, 2);
-    EXPECT_FLOAT_EQ(tSpheres[2].mCenter.y, 0.5);
-    EXPECT_FLOAT_EQ(tSpheres[2].mCenter.z, 0.5);
-    EXPECT_FLOAT_EQ(tSpheres[2].mRadius, 0.25);
+    for (const auto& [tComputedSphere, tExpectedSphere] : utilities::Zip{tSpheres, tExpectedSpheres})
+    {
+        check_spheres_equal(tComputedSphere, tExpectedSphere, TEST_CONTEXT("Generate spheres"));
+    }
 }
 
 }  // namespace plato::third_party_integration::krino::unittest
