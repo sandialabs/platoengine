@@ -16,9 +16,9 @@ namespace
 {
 constexpr auto kNumDimensions = std::size_t{3};
 
-auto dfdls_entry_contribution(const std::vector<double> &aDFDX,
-                              const utilities::VectorIndex aVectorIndex,
-                              const stk::math::Vector3d &aNodalSensitivities) -> double
+auto vector_jacobian_product_entry_contribution(const std::vector<double> &aDFDX,
+                                                const utilities::VectorIndex aVectorIndex,
+                                                const stk::math::Vector3d &aNodalSensitivities) -> double
 {
     const auto tDFDXView = utilities::make_multi_vector_view<kNumDimensions>(aDFDX);
     const auto tComponentRange = utilities::IndexRange{kNumDimensions};
@@ -32,20 +32,23 @@ auto dfdls_entry_contribution(const std::vector<double> &aDFDX,
                            });
 }
 
-auto assemble_dfdls_entry(analysis::AnalysisDomainMesh &&aDFDLS,
-                          const std::vector<double> &aDFDX,
-                          const LevelSetJacobianColumn &aLevelSetJacobianColumn,
-                          const utilities::VectorIndex aVectorIndex) -> analysis::AnalysisDomainMesh
+auto assemble_vector_jacobian_product_entry(analysis::AnalysisDomainMesh &&aVectorJacobianProduct,
+                                            const std::vector<double> &aDFDX,
+                                            const LevelSetJacobianColumn &aLevelSetJacobianColumn,
+                                            const utilities::VectorIndex aVectorIndex) -> analysis::AnalysisDomainMesh
 {
-    const auto tDFDLSRandomAccessView = analysis::AnalysisDomainMeshMutableRandomAccessView{aDFDLS};
+    const auto tVectorJacobianProductRandomAccessView =
+        analysis::AnalysisDomainMeshMutableRandomAccessView{aVectorJacobianProduct};
     for (const auto &[tParentNodeBackgroundID, tNodalSensitivities] :
          utilities::Zip{aLevelSetJacobianColumn.mBackgroundMeshNodeIDs, aLevelSetJacobianColumn.mNodalSensitivities})
     {
-        auto tDFDLSRandomAccessViewValue = tDFDLSRandomAccessView[tParentNodeBackgroundID];
-        tDFDLSRandomAccessViewValue = static_cast<analysis::ScalarFieldValue>(tDFDLSRandomAccessViewValue).mValue +
-                                      dfdls_entry_contribution(aDFDX, aVectorIndex, tNodalSensitivities);
+        auto tVectorJacobianProductRandomAccessViewValue =
+            tVectorJacobianProductRandomAccessView[tParentNodeBackgroundID];
+        tVectorJacobianProductRandomAccessViewValue =
+            static_cast<analysis::ScalarFieldValue>(tVectorJacobianProductRandomAccessViewValue).mValue +
+            vector_jacobian_product_entry_contribution(aDFDX, aVectorIndex, tNodalSensitivities);
     }
-    return aDFDLS;
+    return aVectorJacobianProduct;
 }
 }  // namespace
 
@@ -82,8 +85,8 @@ auto level_set_row_vector_jacobian_product(
         const auto tCutMeshScalarFieldValues = tCutMeshSpaceRandomAccessView[tCurInterfaceNodeID];
         assert(tCutMeshScalarFieldValues.has_value());
         const auto tVectorIndex = utilities::VectorIndex{tCutMeshScalarFieldValues.value().mDesignVariableVectorIndex};
-        aBackgroundMeshSpaceIDs =
-            assemble_dfdls_entry(std::move(aBackgroundMeshSpaceIDs), aDFDX, tLevelSetJacobianColumn, tVectorIndex);
+        aBackgroundMeshSpaceIDs = assemble_vector_jacobian_product_entry(std::move(aBackgroundMeshSpaceIDs), aDFDX,
+                                                                         tLevelSetJacobianColumn, tVectorIndex);
     }
     return aBackgroundMeshSpaceIDs;
 }

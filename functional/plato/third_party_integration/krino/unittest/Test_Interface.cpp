@@ -18,7 +18,7 @@ namespace
 const auto kMeshFile = std::filesystem::path{"not-a-mesh.exo"};
 }  // namespace
 
-TEST_F(KrinoTestFixture, CalculateDFDLS)
+TEST_F(KrinoTestFixture, LevelSetRowVectorJacobianProduct)
 {
     const auto tLevelSetJacobian = std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>{
         {3, LevelSetJacobianColumn{{7, 12, 19}, {{0.5, 0.5, -0.5}, {-0.25, 0.25, 0.25}, {-0.125, 0.125, -0.125}}}},
@@ -39,14 +39,14 @@ TEST_F(KrinoTestFixture, CalculateDFDLS)
         auto tBackgroundNodemap = plato::analysis::AnalysisDomainMesh{
             kMeshFile, analysis::AnalysisDomainMesh::BlockScalarField{{tBlockID, tBackgroundNodemapValues}}};
 
-        const auto tDFDLS = level_set_row_vector_jacobian_product(tDFDX, tCutMeshField, tLevelSetJacobian,
-                                                                  std::move(tBackgroundNodemap));
+        const auto tVectorJacobianProduct = level_set_row_vector_jacobian_product(
+            tDFDX, tCutMeshField, tLevelSetJacobian, std::move(tBackgroundNodemap));
 
         const auto tExpected = std::vector<analysis::ScalarFieldValue>{
             {2, 0, 0.9375},      {7, 1, 0.28125}, {10, 2, 0.34375}, {12, 3, -0.171875},
             {19, 4, -0.9921875}, {22, 5, 0.5625}, {34, 6, -0.28125}};
         auto tComputed = std::vector<analysis::ScalarFieldValue>{};
-        const auto tComputedView = analysis::AnalysisDomainMeshSequentialView{tDFDLS};
+        const auto tComputedView = analysis::AnalysisDomainMeshSequentialView{tVectorJacobianProduct};
         std::copy(tComputedView.begin(), tComputedView.end(), std::back_inserter(tComputed));
 
         EXPECT_EQ(tComputed, tExpected);
@@ -59,14 +59,15 @@ TEST_F(KrinoTestFixture, CalculateDFDLS)
         const auto tBackgroundLevelSetField = plato::analysis::AnalysisDomainMesh{
             kMeshFile, analysis::AnalysisDomainMesh::BlockScalarField{{tBlockID, tFieldVector}}};
 
-        const auto tDFDLS = level_set_row_vector_adjoint_jacobian_product(tBackgroundLevelSetField, tLevelSetJacobian);
+        const auto tVectorJacobianProduct =
+            level_set_row_vector_adjoint_jacobian_product(tBackgroundLevelSetField, tLevelSetJacobian);
 
         auto tExpected =
             std::unordered_map<unsigned int, stk::math::Vector3d>{{1, stk::math::Vector3d{1.375, -0.125, -1.375}},
                                                                   {2, stk::math::Vector3d{8.25, -8.25, 6.75}},
                                                                   {3, stk::math::Vector3d{-0.625, 2.625, -0.625}}};
 
-        EXPECT_EQ(tExpected, tDFDLS);
+        EXPECT_EQ(tExpected, tVectorJacobianProduct);
     }
 }
 

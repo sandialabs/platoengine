@@ -198,17 +198,17 @@ linear_algebra::JacobianMultiplier LevelSetTopology::jacobian(
                 aDesignParameters.stdVector(), mVoidRegion);
             const auto tCutMeshSpaceVector = analysis_domain_mesh(mCutMesh);
 
-            const auto tBackgroundDFDLS = tpik::level_set_row_vector_jacobian_product(
+            const auto tVectorJacobianProduct = tpik::level_set_row_vector_jacobian_product(
                 aVector.stdVector(), tCutMeshSpaceVector, tLevelSetJacobian, analysis_domain_mesh(mBackgroundMesh));
 
-            const auto tBackgroundDFDLSView = analysis::AnalysisDomainMeshSequentialView{tBackgroundDFDLS};
-            auto tDFDLSVector = std::vector<double>(tBackgroundDFDLSView.size(), 0.0);
-            for (const auto& tBackgroundInfoProxy : tBackgroundDFDLSView)
+            const auto tVectorJacobianProductView = analysis::AnalysisDomainMeshSequentialView{tVectorJacobianProduct};
+            auto tResultVector = std::vector<double>(tVectorJacobianProductView.size(), 0.0);
+            for (const auto& tBackgroundInfoProxy : tVectorJacobianProductView)
             {
                 const auto& tBackgroundInfo = static_cast<const analysis::ScalarFieldValue&>(tBackgroundInfoProxy);
-                tDFDLSVector[tBackgroundInfo.mDesignVariableVectorIndex] = tBackgroundInfo.mValue;
+                tResultVector[tBackgroundInfo.mDesignVariableVectorIndex] = tBackgroundInfo.mValue;
             }
-            return linear_algebra::DynamicVector<double>{std::move(tDFDLSVector)};
+            return linear_algebra::DynamicVector<double>{std::move(tResultVector)};
         }};
 }
 

@@ -36,10 +36,10 @@ auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshNa
                                                              const LevelSetPrimitives &aLevelSetPrimitives,
                                                              const VoidPhase aVoidRegion) -> std::vector<double>;
 
-/// @brief Given DFDX, @a aDFDXMap (sensitivity of objective to nodal coordinate changes), and the Jacobian of the
-/// level-set mapping, @a aLevelSetJacobian (sensitivity of nodal coordinates to level set values), and the
-/// local-to-global node id map of the background mesh, @a aBackgroundMeshSpaceIDs, perform the chain rule to get DFDLS
-/// (sensitivity of objective to level set values).
+/// @brief Given a vector @a aDFDX, the Jacobian of the level-set mapping @a aLevelSetJacobian (sensitivity of nodal
+/// coordinates to level set values), and the local-to-global node id map of the background mesh, @a
+/// aBackgroundMeshSpaceIDs, computes the product of the row vector with the Jacobian of the level-set mapping,
+/// representing the chain rule of the gradient of the objective with respect to the level set values.
 [[nodiscard]] auto level_set_row_vector_jacobian_product(const std::vector<double> &aDFDX,
                                                          const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
                                                          const LevelSetJacobian &aLevelSetJacobian,
