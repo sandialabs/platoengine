@@ -14,7 +14,6 @@ namespace plato::third_party_integration::krino::unittest
 namespace
 {
 constexpr int kNumDimensions = 3;
-const std::string kLevelSetName = "LS";
 
 const auto kUnitBoundingBox = BoundingBox{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}};
 

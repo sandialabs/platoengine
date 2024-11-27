@@ -27,7 +27,7 @@ namespace plato::third_party_integration::krino
 {
 namespace
 {
-constexpr auto kLevelSetName = std::string_view{"LS"};
+constexpr auto kLevelSetName = std::string_view{"LEVEL_SET"};
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kInitializationSurfaces = std::string_view{"initialization surfaces"};
 
@@ -230,16 +230,13 @@ std::vector<double> KrinoWrapper::levelsetValues() const
 
 void KrinoWrapper::redistance()
 {
-    ::krino::Surface_Manager &tSurfaceManager = ::krino::Surface_Manager::get(mKrinoMesh->meta_data());
+    const auto &tSurfaceManager = ::krino::Surface_Manager::get(mKrinoMesh->meta_data());
     const auto &tLevelSets = tSurfaceManager.get_levelsets();
 
-    const auto tMatchingLevelSet =
-        std::find_if(tLevelSets.cbegin(), tLevelSets.cend(),
-                     [](const auto &tLevelSet)
-                     {
-                         return tLevelSet->name() == std::string{kLevelSetName} ||
-                                tLevelSet->get_composite_name() == std::string{kLevelSetName};
-                     });
+    const auto tMatchingLevelSet = std::find_if(
+        tLevelSets.cbegin(), tLevelSets.cend(),
+        [](const auto &tLevelSet)
+        { return tLevelSet->name() == kLevelSetName || tLevelSet->get_composite_name() == kLevelSetName; });
 
     if (tMatchingLevelSet != tLevelSets.cend())
     {
