@@ -20,7 +20,7 @@ const auto kMeshFile = std::filesystem::path{"not-a-mesh.exo"};
 
 TEST_F(KrinoTestFixture, CalculateDFDLS)
 {
-    const auto tDXDP = std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>{
+    const auto tLevelSetJacobian = std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>{
         {3, LevelSetJacobianColumn{{7, 12, 19}, {{0.5, 0.5, -0.5}, {-0.25, 0.25, 0.25}, {-0.125, 0.125, -0.125}}}},
         {1, LevelSetJacobianColumn{{34, 22, 2}, {{-0.125, -0.125, 0.125}, {0.25, 0.25, -0.25}, {0.75, -0.75, -0.75}}}},
         {2, LevelSetJacobianColumn{{19, 10}, {{1.5, -1.5, 1.5}, {0.25, -0.25, -0.25}}}},
@@ -39,7 +39,7 @@ TEST_F(KrinoTestFixture, CalculateDFDLS)
         auto tBackgroundNodemap = plato::analysis::AnalysisDomainMesh{
             kMeshFile, analysis::AnalysisDomainMesh::BlockScalarField{{tBlockID, tBackgroundNodemapValues}}};
 
-        const auto tDFDLS = calculate_dfdls(tDFDX, tCutMeshField, tDXDP, std::move(tBackgroundNodemap));
+        const auto tDFDLS = calculate_dfdls(tDFDX, tCutMeshField, tLevelSetJacobian, std::move(tBackgroundNodemap));
 
         const auto tExpected = std::vector<analysis::ScalarFieldValue>{
             {2, 0, 0.9375},      {7, 1, 0.28125}, {10, 2, 0.34375}, {12, 3, -0.171875},
@@ -58,7 +58,7 @@ TEST_F(KrinoTestFixture, CalculateDFDLS)
         const auto tBackgroundLevelSetField = plato::analysis::AnalysisDomainMesh{
             kMeshFile, analysis::AnalysisDomainMesh::BlockScalarField{{tBlockID, tFieldVector}}};
 
-        const auto tDFDLS = calculate_adjoint_dfdls(tBackgroundLevelSetField, tDXDP);
+        const auto tDFDLS = calculate_adjoint_dfdls(tBackgroundLevelSetField, tLevelSetJacobian);
 
         auto tExpected =
             std::unordered_map<unsigned int, stk::math::Vector3d>{{1, stk::math::Vector3d{1.375, -0.125, -1.375}},

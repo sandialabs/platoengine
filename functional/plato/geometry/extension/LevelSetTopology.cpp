@@ -82,12 +82,12 @@ auto adjoint_jacobian_times_vector(const linear_algebra::DynamicVector<double>& 
                                    const linear_algebra::DynamicVector<double>& aVector)
     -> std::unordered_map<tpik::KrinoGlobalNodeID, stk::math::Vector3d>
 {
-    const auto& tGlobalIDToDXDP = tpik::generate_computational_mesh(
+    const auto& tLevelSetJacobian = tpik::generate_computational_mesh(
         tpik::BackgroundMeshFilePath{aBackgroundMesh.filePath()}, tpik::CutMeshFilePath{aCutMeshPath},
         aDesignParameters.stdVector(), aVoidRegion);
     const auto tLevelSetSpaceVector = mesh::DesignVariablesConversion{aBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aVector.stdVector()});
-    return tpik::calculate_adjoint_dfdls(tLevelSetSpaceVector, tGlobalIDToDXDP);
+    return tpik::calculate_adjoint_dfdls(tLevelSetSpaceVector, tLevelSetJacobian);
 }
 
 auto analysis_domain_mesh(const mesh::Mesh& aMesh) -> analysis::AnalysisDomainMesh
@@ -193,13 +193,13 @@ linear_algebra::JacobianMultiplier LevelSetTopology::jacobian(
             background mesh that the design variables live on.  This can be created with a DesignVariableConverter (see
             DensityToplogy::jacobian() for example)
             */
-            const auto& tGlobalIDToDXDP = tpik::generate_computational_mesh(
+            const auto& tLevelSetJacobian = tpik::generate_computational_mesh(
                 tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()}, tpik::CutMeshFilePath{mCutMesh},
                 aDesignParameters.stdVector(), mVoidRegion);
             const auto tCutMeshSpaceVector = analysis_domain_mesh(mCutMesh);
 
-            const auto tBackgroundDFDLS = tpik::calculate_dfdls(aVector.stdVector(), tCutMeshSpaceVector,
-                                                                tGlobalIDToDXDP, analysis_domain_mesh(mBackgroundMesh));
+            const auto tBackgroundDFDLS = tpik::calculate_dfdls(
+                aVector.stdVector(), tCutMeshSpaceVector, tLevelSetJacobian, analysis_domain_mesh(mBackgroundMesh));
 
             const auto tBackgroundDFDLSView = analysis::AnalysisDomainMeshSequentialView{tBackgroundDFDLS};
             auto tDFDLSVector = std::vector<double>(tBackgroundDFDLSView.size(), 0.0);
