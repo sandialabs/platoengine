@@ -101,7 +101,7 @@ TEST_F(LevelSetTopologyFixture, Jacobian)
                                                   TEST_CONTEXT("LevelSet Jacobian entries"));
 }
 
-TEST_F(LevelSetTopologyMeshFixture, Jacobian)
+TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
 {
     auto tInput = kLevelSetInput;
     tInput.background_mesh_name = input_parser::FileName{Tet4MeshOnDisk::mMeshFilePath};
@@ -133,7 +133,7 @@ TEST_F(LevelSetTopologyMeshFixture, Jacobian)
     EXPECT_DOUBLE_EQ(tExpectedJacobianSum, tSum);
 }
 
-TEST_F(LevelSetTopologyFixture, JacobianTranspose)
+TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 1.0);
 
@@ -166,7 +166,7 @@ TEST_F(LevelSetTopologyFixture, JacobianTranspose)
                                                   TEST_CONTEXT("LevelSet adjoint Jacobian entries"));
 }
 
-TEST_F(LevelSetTopologyFixture, GenerateMesh)
+TEST_F(LevelSetTopologyFixture, GenerateMeshRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 0.5);
     const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
@@ -180,7 +180,7 @@ TEST_F(LevelSetTopologyFixture, GenerateMesh)
     EXPECT_EQ(tNumberOfNodes, tExpectedNumberOfNodes);
 }
 
-TEST_F(LevelSetTopologyFixture, InitialGuess)
+TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 0.5);
 
