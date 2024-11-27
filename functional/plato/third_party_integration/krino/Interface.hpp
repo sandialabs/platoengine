@@ -23,7 +23,7 @@ auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshNa
                                  const CutMeshFilePath &aCutMesh,
                                  const std::vector<double> &aLevelSetValues,
                                  const VoidPhase aVoidRegion)
-    -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>;
+    -> std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>;
 
 /// @brief Generate a computational mesh, @a aCutMesh, by cutting a background mesh,
 /// @a aBackgroundMeshName, with the given level set primitives, @a aLevelSetPrimitives.  Returns the
@@ -40,7 +40,7 @@ auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshNa
 /// @a aBackgroundMeshSpaceIDs, perform the chain rule to get DFDLS (sensitivity of objective to level set values).
 [[nodiscard]] auto calculate_dfdls(const std::vector<double> &aDFDX,
                                    const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
-                                   const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP,
+                                   const std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn> &aDXDP,
                                    analysis::AnalysisDomainMesh &&aBackgroundMeshSpaceIDs)
     -> analysis::AnalysisDomainMesh;
 
@@ -49,7 +49,7 @@ auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshNa
 ///
 /// The result is stored in a map, which maps a cut mesh global node ID to a 3-vector.
 [[nodiscard]] auto calculate_adjoint_dfdls(const analysis::AnalysisDomainMesh &aBackgroundLevelSetSpaceVector,
-                                           const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP)
+                                           const std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn> &aDXDP)
     -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>;
 
 }  // namespace plato::third_party_integration::krino

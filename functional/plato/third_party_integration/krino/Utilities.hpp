@@ -25,10 +25,15 @@ enum struct VoidPhase
 using KrinoGlobalNodeID = unsigned int;
 using BoundingBox = std::pair<stk::math::Vector3d, stk::math::Vector3d>;
 
-struct InterfaceNodeDXDP
+/// @brief Data that describes a column of the Jacobian of the level-set mapping, i.e. the interface coordinate
+/// sensitivities.
+///
+/// The level-set mapping maps a scalar level set field on a background mesh (and has dimensions equal to the number of
+/// nodes on the background mesh) to cut mesh nodal coordinates on the cut mesh interface.
+struct LevelSetJacobianColumn
 {
-    std::vector<stk::mesh::EntityId> mParentNodeIds;
-    std::vector<stk::math::Vector3d> mParentDXDP;
+    std::vector<stk::mesh::EntityId> mBackgroundMeshNodeIDs;
+    std::vector<stk::math::Vector3d> mNodalSensitivities;
 };
 
 /// @brief Initialization needed for krino to run correctly.

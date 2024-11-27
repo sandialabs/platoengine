@@ -20,10 +20,10 @@ const auto kMeshFile = std::filesystem::path{"not-a-mesh.exo"};
 
 TEST_F(KrinoTestFixture, CalculateDFDLS)
 {
-    const auto tDXDP = std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>{
-        {3, InterfaceNodeDXDP{{7, 12, 19}, {{0.5, 0.5, -0.5}, {-0.25, 0.25, 0.25}, {-0.125, 0.125, -0.125}}}},
-        {1, InterfaceNodeDXDP{{34, 22, 2}, {{-0.125, -0.125, 0.125}, {0.25, 0.25, -0.25}, {0.75, -0.75, -0.75}}}},
-        {2, InterfaceNodeDXDP{{19, 10}, {{1.5, -1.5, 1.5}, {0.25, -0.25, -0.25}}}},
+    const auto tDXDP = std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>{
+        {3, LevelSetJacobianColumn{{7, 12, 19}, {{0.5, 0.5, -0.5}, {-0.25, 0.25, 0.25}, {-0.125, 0.125, -0.125}}}},
+        {1, LevelSetJacobianColumn{{34, 22, 2}, {{-0.125, -0.125, 0.125}, {0.25, 0.25, -0.25}, {0.75, -0.75, -0.75}}}},
+        {2, LevelSetJacobianColumn{{19, 10}, {{1.5, -1.5, 1.5}, {0.25, -0.25, -0.25}}}},
     };
 
     // Row vector times Jacobian matrix

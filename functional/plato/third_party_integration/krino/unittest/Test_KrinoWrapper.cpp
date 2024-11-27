@@ -36,12 +36,12 @@ const auto kUnitBoundingBox = BoundingBox{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}};
     auto tPredictedCoordinateValues = std::unordered_map<unsigned int, stk::math::Vector3d>{};
     const auto &tSensitivities = aKrinoWrapper.sensitivities();
     tPredictedCoordinateValues.reserve(tSensitivities.size());
-    for (const auto &[tInterfaceNodeID, tInterfaceNodeDXDP] : tSensitivities)
+    for (const auto &[tInterfaceNodeID, tLevelSetJacobianColumn] : tSensitivities)
     {
         auto tCoord = stk::math::Vector3d{0.0, 0.0, 0.0};
-        for (size_t i = 0; i < tInterfaceNodeDXDP.mParentNodeIds.size(); ++i)
+        for (size_t i = 0; i < tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.size(); ++i)
         {
-            tCoord += aPerturbation * tInterfaceNodeDXDP.mParentDXDP[i];
+            tCoord += aPerturbation * tLevelSetJacobianColumn.mNodalSensitivities[i];
         }
         tPredictedCoordinateValues[tInterfaceNodeID] = aCoordVals.at(tInterfaceNodeID) + tCoord;
     }

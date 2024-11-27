@@ -110,22 +110,30 @@ void reset_mesh(::krino::MeshInterface &aKrinoMesh)
     ::krino::CDMesh::reset_mesh_to_original_undecomposed_state(aKrinoMesh.bulk_data());
 }
 
+void append_spheres(::krino::Composite_Surface &aSurfaces, const std::vector<Sphere> &aSpheres)
+{
+    for (const auto &tSphere : aSpheres)
+    {
+        aSurfaces.add(new ::krino::Sphere({tSphere.mCenter.x, tSphere.mCenter.y, tSphere.mCenter.z}, tSphere.mRadius));
+    }
+}
+void append_planes(::krino::Composite_Surface &aSurfaces, const std::vector<Plane> &aPlanes)
+{
+    for (const auto &tPlane : aPlanes)
+    {
+        const auto tNormal = std::array{tPlane.mNormal.x, tPlane.mNormal.y, tPlane.mNormal.z};
+        aSurfaces.add(new ::krino::Plane(tNormal.data(), tPlane.mOffset, 1.0));
+    }
+}
+
 void initialize_levelsets_from_primitives(const LevelSetPrimitives &aLevelSetPrimitives,
                                           const ::krino::MeshInterface &aKrinoMesh,
                                           std::vector<::krino::LS_Field> &aLevelSetFields)
 {
     const auto &tMesh = aKrinoMesh.bulk_data();
     auto tInitializationSurfaces = ::krino::Composite_Surface{std::string{kInitializationSurfaces}};
-    for (const auto &tSphere : aLevelSetPrimitives.mSpheres)
-    {
-        tInitializationSurfaces.add(
-            new ::krino::Sphere({tSphere.mCenter.x, tSphere.mCenter.y, tSphere.mCenter.z}, tSphere.mRadius));
-    }
-    for (const auto &tPlane : aLevelSetPrimitives.mPlanes)
-    {
-        const auto tNormal = std::array{tPlane.mNormal.x, tPlane.mNormal.y, tPlane.mNormal.z};
-        tInitializationSurfaces.add(new ::krino::Plane(tNormal.data(), tPlane.mOffset, 1.0));
-    }
+    append_spheres(tInitializationSurfaces, aLevelSetPrimitives.mSpheres);
+    append_planes(tInitializationSurfaces, aLevelSetPrimitives.mPlanes);
     ::krino::compute_nodal_surface_distance(tMesh, tMesh.mesh_meta_data().coordinate_field(),
                                             aLevelSetFields.front().isovar, tInitializationSurfaces);
 }
@@ -260,7 +268,7 @@ auto KrinoWrapper::coordinates() const -> std::unordered_map<unsigned int, stk::
     return tCurCoordinateValues;
 }
 
-auto KrinoWrapper::sensitivities() const -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>
+auto KrinoWrapper::sensitivities() const -> std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>
 {
     const stk::mesh::BulkData &tMesh = mKrinoMesh->bulk_data();
 
@@ -271,13 +279,13 @@ auto KrinoWrapper::sensitivities() const -> std::unordered_map<stk::mesh::Entity
                                       cdfemSupport.get_parent_node_ids_field(),
                                       cdfemSupport.get_parent_node_weights_field(), tChildNodeStencils);
 
-    auto tSensitivityMap = std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>{};
+    auto tSensitivityMap = std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>{};
     tSensitivityMap.reserve(tChildNodeStencils.size());
     for (auto &tStencil : tChildNodeStencils)
     {
         tSensitivityMap[tMesh.identifier(tStencil.childNode)] =
-            InterfaceNodeDXDP{node_ids_for_nodes(tMesh, tStencil.parentNodes),
-                              coords_levelsets(coordsField, mLevelSetFields.front().isovar, tStencil.parentNodes)};
+            LevelSetJacobianColumn{node_ids_for_nodes(tMesh, tStencil.parentNodes),
+                                   coords_levelsets(coordsField, mLevelSetFields.front().isovar, tStencil.parentNodes)};
     }
 
     return tSensitivityMap;

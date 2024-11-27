@@ -34,12 +34,12 @@ auto dfdls_entry_contribution(const std::vector<double> &aDFDX,
 
 auto assemble_dfdls_entry(analysis::AnalysisDomainMesh &&aDFDLS,
                           const std::vector<double> &aDFDX,
-                          const InterfaceNodeDXDP &aInterfaceNodeDXDP,
+                          const LevelSetJacobianColumn &aLevelSetJacobianColumn,
                           const utilities::VectorIndex aVectorIndex) -> analysis::AnalysisDomainMesh
 {
     const auto tDFDLSRandomAccessView = analysis::AnalysisDomainMeshMutableRandomAccessView{aDFDLS};
     for (const auto &[tParentNodeBackgroundID, tParentNodeDXDP] :
-         utilities::Zip{aInterfaceNodeDXDP.mParentNodeIds, aInterfaceNodeDXDP.mParentDXDP})
+         utilities::Zip{aLevelSetJacobianColumn.mBackgroundMeshNodeIDs, aLevelSetJacobianColumn.mNodalSensitivities})
     {
         auto tDFDLSRandomAccessViewValue = tDFDLSRandomAccessView[tParentNodeBackgroundID];
         tDFDLSRandomAccessViewValue = static_cast<analysis::ScalarFieldValue>(tDFDLSRandomAccessViewValue).mValue +
@@ -53,7 +53,7 @@ auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshNa
                                  const CutMeshFilePath &aCutMesh,
                                  const std::vector<double> &aLevelSetValues,
                                  const VoidPhase aVoidRegion)
-    -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>
+    -> std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>
 {
     KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelSetValues, aVoidRegion);
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
@@ -72,23 +72,23 @@ std::vector<double> initialize_mesh_with_level_set_primitives(const BackgroundMe
 
 auto calculate_dfdls(const std::vector<double> &aDFDX,
                      const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
-                     const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP,
+                     const std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn> &aDXDP,
                      analysis::AnalysisDomainMesh &&aBackgroundMeshSpaceIDs) -> analysis::AnalysisDomainMesh
 {
     const auto tCutMeshSpaceRandomAccessView = analysis::AnalysisDomainMeshRandomAccessView{aCutMeshSpaceIDs};
-    for (const auto &[tCurInterfaceNodeID, tInterfaceNodeDXDP] : aDXDP)
+    for (const auto &[tCurInterfaceNodeID, tLevelSetJacobianColumn] : aDXDP)
     {
         const auto tCutMeshScalarFieldValues = tCutMeshSpaceRandomAccessView[tCurInterfaceNodeID];
         assert(tCutMeshScalarFieldValues.has_value());
         const auto tVectorIndex = utilities::VectorIndex{tCutMeshScalarFieldValues.value().mDesignVariableVectorIndex};
         aBackgroundMeshSpaceIDs =
-            assemble_dfdls_entry(std::move(aBackgroundMeshSpaceIDs), aDFDX, tInterfaceNodeDXDP, tVectorIndex);
+            assemble_dfdls_entry(std::move(aBackgroundMeshSpaceIDs), aDFDX, tLevelSetJacobianColumn, tVectorIndex);
     }
     return aBackgroundMeshSpaceIDs;
 }
 
 auto calculate_adjoint_dfdls(const analysis::AnalysisDomainMesh &aBackgroundLevelSetSpaceVector,
-                             const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP)
+                             const std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn> &aDXDP)
     -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>
 {
     const auto tLevelSetSpaceRandomAccessView =
@@ -96,9 +96,10 @@ auto calculate_adjoint_dfdls(const analysis::AnalysisDomainMesh &aBackgroundLeve
 
     auto tAdjointResult = std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>{};
     tAdjointResult.reserve(aDXDP.size());
-    for (const auto &[tCurInterfaceNodeID, tInterfaceNodeDXDP] : aDXDP)
+    for (const auto &[tCurInterfaceNodeID, tLevelSetJacobianColumn] : aDXDP)
     {
-        const auto tParentNodeInfo = utilities::Zip{tInterfaceNodeDXDP.mParentNodeIds, tInterfaceNodeDXDP.mParentDXDP};
+        const auto tParentNodeInfo =
+            utilities::Zip{tLevelSetJacobianColumn.mBackgroundMeshNodeIDs, tLevelSetJacobianColumn.mNodalSensitivities};
         tAdjointResult[tCurInterfaceNodeID] = std::accumulate(
             tParentNodeInfo.begin(), tParentNodeInfo.end(), stk::math::Vector3d{0.0, 0.0, 0.0},
             [tLevelSetSpaceRandomAccessView](const stk::math::Vector3d &aSum, const auto &aParentNodeInfo)

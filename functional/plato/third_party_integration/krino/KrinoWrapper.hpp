@@ -32,7 +32,7 @@ class KrinoWrapper
     void writeMesh(const std::filesystem::path &aFilename);
     void redistance();
 
-    [[nodiscard]] auto sensitivities() const -> std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP>;
+    [[nodiscard]] auto sensitivities() const -> std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>;
     [[nodiscard]] auto levelsetValues() const -> std::vector<double>;
     [[nodiscard]] auto coordinates() const -> std::unordered_map<unsigned int, stk::math::Vector3d>;
     [[nodiscard]] auto bulkData() const -> const stk::mesh::BulkData &;
