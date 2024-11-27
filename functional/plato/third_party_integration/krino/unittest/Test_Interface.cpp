@@ -28,7 +28,7 @@ TEST_F(KrinoTestFixture, LevelSetRowVectorJacobianProduct)
 
     // Row vector times Jacobian matrix
     {
-        const auto tDFDX = std::vector<double>{2.0, 0.5, 0.25, 0.25, -0.125, -1.0, 0.5, -0.0625, -0.125};
+        const auto tRowVector = std::vector<double>{2.0, 0.5, 0.25, 0.25, -0.125, -1.0, 0.5, -0.0625, -0.125};
         constexpr auto tBlockID = 1;
         const auto tFieldVector = std::vector<analysis::ScalarFieldValue>{{1, 0, 0.0}, {2, 1, 0.0}, {3, 2, 0.0}};
         const auto tCutMeshField = plato::analysis::AnalysisDomainMesh{
@@ -40,7 +40,7 @@ TEST_F(KrinoTestFixture, LevelSetRowVectorJacobianProduct)
             kMeshFile, analysis::AnalysisDomainMesh::BlockScalarField{{tBlockID, tBackgroundNodemapValues}}};
 
         const auto tVectorJacobianProduct = level_set_row_vector_jacobian_product(
-            tDFDX, tCutMeshField, tLevelSetJacobian, std::move(tBackgroundNodemap));
+            tRowVector, tCutMeshField, tLevelSetJacobian, std::move(tBackgroundNodemap));
 
         const auto tExpected = std::vector<analysis::ScalarFieldValue>{
             {2, 0, 0.9375},      {7, 1, 0.28125}, {10, 2, 0.34375}, {12, 3, -0.171875},

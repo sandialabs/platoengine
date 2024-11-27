@@ -16,24 +16,24 @@ namespace
 {
 constexpr auto kNumDimensions = std::size_t{3};
 
-auto vector_jacobian_product_entry_contribution(const std::vector<double> &aDFDX,
+auto vector_jacobian_product_entry_contribution(const std::vector<double> &aRowVector,
                                                 const utilities::VectorIndex aVectorIndex,
                                                 const stk::math::Vector3d &aNodalSensitivities) -> double
 {
-    const auto tDFDXView = utilities::make_multi_vector_view<kNumDimensions>(aDFDX);
+    const auto tRowVectorView = utilities::make_multi_vector_view<kNumDimensions>(aRowVector);
     const auto tComponentRange = utilities::IndexRange{kNumDimensions};
     return std::accumulate(tComponentRange.begin(), tComponentRange.end(), 0.0,
                            [&](const auto tSum, const auto tComponentIndex)
                            {
-                               const auto tDFDXComponent =
-                                   tDFDXView(aVectorIndex, utilities::ComponentIndex{tComponentIndex});
+                               const auto tRowVectorComponent =
+                                   tRowVectorView(aVectorIndex, utilities::ComponentIndex{tComponentIndex});
                                const auto tNodalSensitivitiesVectorComponent = aNodalSensitivities[tComponentIndex];
-                               return tSum + tDFDXComponent * tNodalSensitivitiesVectorComponent;
+                               return tSum + tRowVectorComponent * tNodalSensitivitiesVectorComponent;
                            });
 }
 
 auto assemble_vector_jacobian_product_entry(analysis::AnalysisDomainMesh &&aVectorJacobianProduct,
-                                            const std::vector<double> &aDFDX,
+                                            const std::vector<double> &aRowVector,
                                             const LevelSetJacobianColumn &aLevelSetJacobianColumn,
                                             const utilities::VectorIndex aVectorIndex) -> analysis::AnalysisDomainMesh
 {
@@ -46,7 +46,7 @@ auto assemble_vector_jacobian_product_entry(analysis::AnalysisDomainMesh &&aVect
             tVectorJacobianProductRandomAccessView[tParentNodeBackgroundID];
         tVectorJacobianProductRandomAccessViewValue =
             static_cast<analysis::ScalarFieldValue>(tVectorJacobianProductRandomAccessViewValue).mValue +
-            vector_jacobian_product_entry_contribution(aDFDX, aVectorIndex, tNodalSensitivities);
+            vector_jacobian_product_entry_contribution(aRowVector, aVectorIndex, tNodalSensitivities);
     }
     return aVectorJacobianProduct;
 }
@@ -74,7 +74,7 @@ std::vector<double> initialize_mesh_with_level_set_primitives(const BackgroundMe
 }
 
 auto level_set_row_vector_jacobian_product(
-    const std::vector<double> &aDFDX,
+    const std::vector<double> &aRowVector,
     const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
     const std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn> &aLevelSetJacobian,
     analysis::AnalysisDomainMesh &&aBackgroundMeshSpaceIDs) -> analysis::AnalysisDomainMesh
@@ -85,7 +85,7 @@ auto level_set_row_vector_jacobian_product(
         const auto tCutMeshScalarFieldValues = tCutMeshSpaceRandomAccessView[tCurInterfaceNodeID];
         assert(tCutMeshScalarFieldValues.has_value());
         const auto tVectorIndex = utilities::VectorIndex{tCutMeshScalarFieldValues.value().mDesignVariableVectorIndex};
-        aBackgroundMeshSpaceIDs = assemble_vector_jacobian_product_entry(std::move(aBackgroundMeshSpaceIDs), aDFDX,
+        aBackgroundMeshSpaceIDs = assemble_vector_jacobian_product_entry(std::move(aBackgroundMeshSpaceIDs), aRowVector,
                                                                          tLevelSetJacobianColumn, tVectorIndex);
     }
     return aBackgroundMeshSpaceIDs;

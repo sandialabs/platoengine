@@ -79,7 +79,7 @@ class LevelSetTopologyMeshFixture : public LevelSetTopologyFixture,
 
 }  // namespace
 
-TEST_F(LevelSetTopologyFixture, Jacobian)
+TEST_F(LevelSetTopologyFixture, JacobianRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 1.0);
 
@@ -89,10 +89,11 @@ TEST_F(LevelSetTopologyFixture, Jacobian)
     ASSERT_TRUE(std::filesystem::exists(tCutMesh.mFileName));
     const linear_algebra::JacobianMultiplier tJacobian = tLevelSetTopology.jacobian(tInitialGuess);
 
-    const unsigned int tDFDXSize = kNumDimensions * mesh::EntityCounts{mesh::Mesh{tCutMesh.mFileName}}.numberOfNodes();
-    const auto tDFDX = linear_algebra::DynamicVector(tDFDXSize, 1.0);
+    const unsigned int tRowVectorSize =
+        kNumDimensions * mesh::EntityCounts{mesh::Mesh{tCutMesh.mFileName}}.numberOfNodes();
+    const auto tRowVector = linear_algebra::DynamicVector(tRowVectorSize, 1.0);
 
-    const auto tRes = tDFDX * tJacobian;
+    const auto tRes = tRowVector * tJacobian;
 
     const auto tGold = std::vector<double>{0.5, 0.166667, 0.166667, -0.166667,   0.166667, -0.166667, -0.166667, -0.5,
                                            0.5, 0.5,      0.5,      1.11022e-16, -0.5,     -0.5,      -0.5};
@@ -120,9 +121,10 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
     const auto tCutMesh = tLevelSetTopology.generateMesh(tInitialGuess);
     ASSERT_TRUE(std::filesystem::exists(tCutMesh.mFileName));
     const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tCutMesh.mFileName}}.numberOfNodes();
-    const auto tDFDX = linear_algebra::DynamicVector(static_cast<std::size_t>(kNumDimensions * tNumberOfNodes), 1.0);
+    const auto tRowVector =
+        linear_algebra::DynamicVector(static_cast<std::size_t>(kNumDimensions * tNumberOfNodes), 1.0);
 
-    const auto tResult = tDFDX * tJacobian;
+    const auto tResult = tRowVector * tJacobian;
 
     ASSERT_EQ(tResult.size(), Tet4MeshOnDisk::mExpectedNumberOfNodes);
 
@@ -141,11 +143,11 @@ TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
     const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
     const auto tAdjointJacobian = tLevelSetTopology.adjointJacobian(tInitialGuess);
 
-    const unsigned int tDFDXSize =
+    const unsigned int tRowVectorSize =
         mesh::EntityCounts{mesh::Mesh{kLevelSetInput.background_mesh_name->mToken}}.numberOfNodes();
-    const auto tDFDX = linear_algebra::DynamicVector(tDFDXSize, 1.0);
+    const auto tRowVector = linear_algebra::DynamicVector(tRowVectorSize, 1.0);
 
-    const auto tResult = tDFDX * tAdjointJacobian;
+    const auto tResult = tRowVector * tAdjointJacobian;
 
     // Regression result computed by outputting the entire Jacobian matrix using the `jacobian` function, and performing
     // the transpose matrix vector multiplication in Matlab.
