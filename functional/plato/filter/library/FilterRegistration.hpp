@@ -21,7 +21,6 @@ namespace plato::filter::library
 {
 struct FilterParameters;
 class FilterInterface;
-struct FilterJacobian;
 }  // namespace plato::filter::library
 
 namespace plato::filter::library
@@ -61,15 +60,13 @@ template <typename CacheFunction>
 FilterFunction make_filter_function_from_cache(const CacheFunction& aCacheFunction)
 {
     auto tFilterCache = aCacheFunction();
-    return FilterFunction{[tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
-                          { return tFilterCache.compute(aAnalysisDomainMesh)->filter(aAnalysisDomainMesh); },
-                          [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable {
-                              return FilterJacobian{tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh};
-                          },
-                          [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable {
-                              return FilterAdjointJacobian{
-                                  FilterJacobian{tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh}};
-                          }};
+    return FilterFunction{
+        [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
+        { return tFilterCache.compute(aAnalysisDomainMesh)->filter(aAnalysisDomainMesh); },
+        [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
+        { return make_filter_jacobian(tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh); },
+        [tFilterCache](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) mutable
+        { return make_filter_adjoint_jacobian(tFilterCache.compute(aAnalysisDomainMesh), aAnalysisDomainMesh); }};
 }
 }  // namespace plato::filter::library
 

@@ -12,10 +12,6 @@ namespace plato::analysis
 {
 struct AnalysisDomainMesh;
 }
-namespace plato::filter::library
-{
-struct FilterJacobian;
-}
 
 namespace plato::filter::extension
 {

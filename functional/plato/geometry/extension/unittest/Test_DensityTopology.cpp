@@ -50,15 +50,13 @@ auto make_test_kernel_filter()
         mesh::Mesh{kDensityInput.mesh_name->mToken}, filter::extension::FilterRadius{3.25},
         input_parser::KernelFilterCenteringTypes::kElementCentered, boost::mpi::communicator{});
 
-    return filter::library::FilterFunction{[tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                                           { return tFilter->filter(aAnalysisDomainMesh); },
-                                           [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
-                                               return filter::library::FilterJacobian{tFilter, aAnalysisDomainMesh};
-                                           },
-                                           [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
-                                               return filter::library::FilterAdjointJacobian{
-                                                   filter::library::FilterJacobian{tFilter, aAnalysisDomainMesh}};
-                                           }};
+    return filter::library::FilterFunction{
+        [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        { return tFilter->filter(aAnalysisDomainMesh); },
+        [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        { return filter::library::make_filter_jacobian(tFilter, aAnalysisDomainMesh); },
+        [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        { return filter::library::make_filter_adjoint_jacobian(tFilter, aAnalysisDomainMesh); }};
 }
 
 }  // namespace

@@ -7,7 +7,7 @@
 
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
-#include "plato/geometry/library/GeometryWithFilterValidation.hpp"
+#include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/InputParser.hpp"

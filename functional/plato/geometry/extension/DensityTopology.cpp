@@ -11,9 +11,9 @@
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
-#include "plato/geometry/library/GeometryWithFilterValidation.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
@@ -41,15 +41,10 @@ constexpr auto kUnfilteredControlsFieldName = std::string_view{"UnfilteredDensit
     { return DensityTopology::output(aSolution, aInput); };
 }
 
-[[nodiscard]] auto make_filter(const input_parser::density_topology& aInput) -> filter::library::FilterFunction
-{
-    return filter::library::make_filter_function(
-        library::get_cross_referenced_filter<plato::filter::library::ValidatedFilterInput>(aInput));
-}
-
 [[nodiscard]] auto make_topology_geometry(const input_parser::density_topology& aInput) -> library::GeometryFunction
 {
-    const auto tDensityTopology = std::make_shared<DensityTopology>(aInput, make_filter(aInput));
+    const auto tDensityTopology =
+        std::make_shared<DensityTopology>(aInput, library::make_filter_from_geometry_input(aInput));
     return library::GeometryFunction{[tDensityTopology](const linear_algebra::DynamicVector<double>& x)
                                      { return tDensityTopology->generateMesh(x); },
                                      [tDensityTopology](const linear_algebra::DynamicVector<double>& x)
@@ -185,7 +180,7 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
     const auto& tOutputMeshName = aInput.output_name->mToken;
     const auto tRestartMeshName = std::string{kRestartFileNamePrefix} + tOutputMeshName;
     const auto tMesh = detail::mesh_from_input(aInput);
-    const auto tFilter = make_filter(aInput);
+    const auto tFilter = library::make_filter_from_geometry_input(aInput);
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aSolution.stdVector()});
 

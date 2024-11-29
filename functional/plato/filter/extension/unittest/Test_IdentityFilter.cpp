@@ -60,8 +60,7 @@ TEST(IdentityFilter, AdjointJacobianTimesVector)
 
 TEST(IdentityFilter, JacobianMultiplication)
 {
-    const auto tFilterJacobian = library::FilterJacobian{/*.mFilter=*/std::make_unique<IdentityFilter>(),
-                                                         /*.mAnalysisDomainMesh=*/kMeshArgument};
+    const auto tFilterJacobian = library::make_filter_jacobian(std::make_unique<IdentityFilter>(), kMeshArgument);
     const linear_algebra::DynamicVector<double> tResult = kV * tFilterJacobian;
     EXPECT_EQ(tResult.stdVector(), kV.stdVector());
 }
@@ -70,8 +69,7 @@ TEST(IdentityFilter, JacobianBadDimensions)
 {
     namespace pfu = plato::utilities;
 
-    const auto tFilterJacobian = library::FilterJacobian{/*.mFilter=*/std::make_unique<IdentityFilter>(),
-                                                         /*.mAnalysisDomainMesh=*/kMeshArgument};
+    const auto tFilterJacobian = library::make_filter_jacobian(std::make_unique<IdentityFilter>(), kMeshArgument);
 
     const auto tVBad = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0, 84.0};
     EXPECT_THROW(auto tTemp = IdentityFilter{}.rowVectorTimesJacobian(kMeshArgument, tVBad), pfu::Exception);

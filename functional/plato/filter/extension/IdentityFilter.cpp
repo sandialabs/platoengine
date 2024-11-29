@@ -53,14 +53,10 @@ auto make_identity_filter_function() -> library::FilterFunction
     return library::FilterFunction{
         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
         { return IdentityFilter{}.filter(aAnalysisDomainMesh); },
-        [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
-            return library::FilterJacobian{std::make_unique<IdentityFilter>(), aAnalysisDomainMesh};
-        },
         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        {
-            return library::FilterAdjointJacobian{
-                library::FilterJacobian{std::make_unique<IdentityFilter>(), aAnalysisDomainMesh}};
-        }};
+        { return library::make_filter_jacobian(std::make_unique<IdentityFilter>(), aAnalysisDomainMesh); },
+        [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        { return library::make_filter_adjoint_jacobian(std::make_unique<IdentityFilter>(), aAnalysisDomainMesh); }};
 }
 
 [[nodiscard]] std::optional<std::string> validate_identity_filter(const input_parser::identity_filter& aInput)

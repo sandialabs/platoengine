@@ -4,15 +4,8 @@
 #include "plato/core/Function.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 
-namespace plato::analysis
-{
-struct AnalysisDomainMesh;
-}
-
 namespace plato::filter::library
 {
-struct FilterJacobian;
-
 /// @brief Creates a Function used for filtering a nodal density field for density TO.
 /// @param aInput The input parameters parsed from an input deck.
 [[nodiscard]] FilterFunction make_filter_function(const ValidatedFilterInput& aInput);
