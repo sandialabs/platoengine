@@ -62,19 +62,20 @@ std::string create_valid_density_topology_geometry_string()
 input_parser::level_set_topology create_valid_level_set_topology_geometry()
 {
     return input_parser::level_set_topology{/*.background_mesh_name = */ input_parser::FileName{"bg.exo"},
-                                            /*.cut_mesh_name = */ input_parser::FileName{"cut.exo"},
-                                            /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
-                                            /*.include_void_region = */ false,
-                                            /*.sphere_pattern_bbox_min_x = */ 0.0,
-                                            /*.sphere_pattern_bbox_min_y = */ 0.0,
-                                            /*.sphere_pattern_bbox_min_z = */ 0.0,
-                                            /*.sphere_pattern_bbox_max_x = */ 1.0,
-                                            /*.sphere_pattern_bbox_max_y = */ 1.0,
-                                            /*.sphere_pattern_bbox_max_z = */ 1.0,
-                                            /*.sphere_pattern_radius = */ 0.25,
-                                            /*.sphere_pattern_spacing = */ 100.0,
-                                            /*.level_set_lower_bound = */ -1.0,
-                                            /*.level_set_upper_bound = */ 1.0};
+                                           /*.cut_mesh_name = */ input_parser::FileName{"cut.exo"},
+                                           /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
+                                           /*.include_void_region = */ false,
+                                           /*.sphere_pattern_bbox_min_x = */ 0.0,
+                                           /*.sphere_pattern_bbox_min_y = */ 0.0,
+                                           /*.sphere_pattern_bbox_min_z = */ 0.0,
+                                           /*.sphere_pattern_bbox_max_x = */ 1.0,
+                                           /*.sphere_pattern_bbox_max_y = */ 1.0,
+                                           /*.sphere_pattern_bbox_max_z = */ 1.0,
+                                           /*.sphere_pattern_radius = */ 0.25,
+                                           /*.sphere_pattern_spacing = */ 100.0,
+                                           /*.level_set_lower_bound = */ -1.0,
+                                           /*.level_set_upper_bound = */ 1.0,
+                                           /*.filter*/ boost::none};
 }
 
 std::string create_valid_level_set_topology_geometry_string()

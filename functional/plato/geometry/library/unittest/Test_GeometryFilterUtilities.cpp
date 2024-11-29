@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/filter/extension/KernelFilter.hpp"
-#include "plato/filter/library/FilterJacobian.hpp"
+#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
@@ -36,13 +36,7 @@ auto make_kernel_filter_test_function(const std::filesystem::path& aMeshFilePath
     const auto tKernelFilter = std::make_shared<filter::extension::KernelFilter>(
         tMesh, tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, boost::mpi::communicator{});
 
-    return filter::library::FilterFunction{
-        [tKernelFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        { return tKernelFilter->filter(aAnalysisDomainMesh); },
-        [tKernelFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        { return filter::library::make_filter_jacobian(tKernelFilter, aAnalysisDomainMesh); },
-        [tKernelFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        { return filter::library::make_filter_adjoint_jacobian(tKernelFilter, aAnalysisDomainMesh); }};
+    return filter::library::make_filter_function(tKernelFilter);
 }
 }  // namespace
 

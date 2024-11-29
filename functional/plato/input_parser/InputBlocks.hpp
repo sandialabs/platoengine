@@ -139,6 +139,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (double, sphere_pattern_spacing)
     (double, level_set_lower_bound)
     (double, level_set_upper_bound)
+    (plato::input_parser::FilterCrossReference, filter)
 )
 
 PLATO_FILTER_INPUT_BLOCK_STRUCT(

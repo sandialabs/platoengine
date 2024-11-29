@@ -33,7 +33,7 @@ namespace plato::geometry::extension
 class LevelSetTopology
 {
    public:
-    LevelSetTopology(const input_parser::level_set_topology& aInput, filter::library::FilterFunction aFilterFunction);
+    LevelSetTopology(const input_parser::level_set_topology& aInput);
 
     ~LevelSetTopology();
     LevelSetTopology(const LevelSetTopology&) = default;
@@ -55,6 +55,8 @@ class LevelSetTopology
     [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> linear_algebra::AdjointJacobianMultiplier;
 
+    [[nodiscard]] auto backgroundMesh() const -> const mesh::Mesh&;
+
    private:
     mesh::Mesh mBackgroundMesh;
     std::filesystem::path mCutMesh;
@@ -64,11 +66,11 @@ class LevelSetTopology
     double mLevelSetUpperBound = 1.0;
     third_party_integration::krino::SpherePatternData mSpherePattern;
     third_party_integration::krino::LevelSetPrimitives mLevelSetPrimitives;
-    filter::library::FilterFunction mFilter;
 };
 
-/// @brief Generate a geometry function, that can be composed with an objective function.
-[[nodiscard]] auto make_topology_geometry(const LevelSetTopology& aLevelSetTopology) -> library::GeometryFunction;
+/// @brief Create a LevelSetTopology Geometry function with a filter.
+auto make_level_set_geometry(const std::shared_ptr<LevelSetTopology>& aLevelSetTopology,
+                             const filter::library::FilterFunction& aFilterFunction) -> library::GeometryFunction;
 
 namespace detail
 {

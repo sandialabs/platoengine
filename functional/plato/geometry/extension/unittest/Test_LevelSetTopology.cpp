@@ -12,6 +12,8 @@
 #include <vector>
 
 #include "plato/filter/extension/IdentityFilter.hpp"
+#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
@@ -20,6 +22,7 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
@@ -28,11 +31,10 @@ namespace plato::geometry::extension::unittest
 
 namespace
 {
-const std::string_view kLogFile = "Krino_Test.txt";
-
+constexpr auto kExpectedJacobianSum = -43.3185837663019484;
+constexpr auto kExpectedAdjointJacobianSum = -72.780945645414576;
 constexpr int kNumDimensions = 3;
 const auto kLevelSetInput = plato::test_utilities::create_valid_level_set_topology_geometry();
-
 constexpr unsigned int kExpectedBackgroundLevelSetSize = 59;  // Based on mesh generation command below
 
 void create_background_mesh(const std::string& aFileName, const double aMeshSize)
@@ -76,7 +78,31 @@ class LevelSetTopologyMeshFixture : public LevelSetTopologyFixture,
         LevelSetTopologyFixture::TearDown();
         Tet4MeshOnDisk::TearDown();
     }
+
+    auto singleSphereInput() -> input_parser::level_set_topology
+    {
+        auto tInput = kLevelSetInput;
+        tInput.background_mesh_name = input_parser::FileName{Tet4MeshOnDisk::mMeshFilePath};
+        tInput.sphere_pattern_bbox_min_x = 0.0;
+        tInput.sphere_pattern_bbox_max_x = 0.0;
+        tInput.sphere_pattern_bbox_min_y = 0.0;
+        tInput.sphere_pattern_bbox_max_y = 0.0;
+        tInput.sphere_pattern_bbox_min_z = 0.0;
+        tInput.sphere_pattern_bbox_max_z = 0.0;
+        tInput.sphere_pattern_radius = 1.0;
+        return tInput;
+    }
 };
+
+auto make_kernel_filter_test_function(const std::filesystem::path& aMeshFilePath) -> filter::library::FilterFunction
+{
+    constexpr auto tFilterRadius = filter::extension::FilterRadius{1.0};
+    const auto tKernelFilter = std::make_shared<filter::extension::KernelFilter>(
+        mesh::Mesh{aMeshFilePath}, tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered,
+        boost::mpi::communicator{});
+
+    return filter::library::make_filter_function(tKernelFilter);
+}
 
 }  // namespace
 
@@ -84,7 +110,7 @@ TEST_F(LevelSetTopologyFixture, JacobianRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 1.0);
 
-    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput, filter::extension::make_identity_filter_function()};
+    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
     const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
     const auto tCutMesh = tLevelSetTopology.generateMesh(tInitialGuess);
     ASSERT_TRUE(std::filesystem::exists(tCutMesh.mFileName));
@@ -105,42 +131,46 @@ TEST_F(LevelSetTopologyFixture, JacobianRegression)
 
 TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
 {
-    auto tInput = kLevelSetInput;
-    tInput.background_mesh_name = input_parser::FileName{Tet4MeshOnDisk::mMeshFilePath};
-    tInput.sphere_pattern_bbox_min_x = 0.0;
-    tInput.sphere_pattern_bbox_max_x = 0.0;
-    tInput.sphere_pattern_bbox_min_y = 0.0;
-    tInput.sphere_pattern_bbox_max_y = 0.0;
-    tInput.sphere_pattern_bbox_min_z = 0.0;
-    tInput.sphere_pattern_bbox_max_z = 0.0;
-    tInput.sphere_pattern_radius = 1.0;
-    const auto tLevelSetTopology = LevelSetTopology{tInput, filter::extension::make_identity_filter_function()};
+    const auto tInput = singleSphereInput();
 
-    const auto tInitialGuess = tLevelSetTopology.initialGuess(tInput.background_mesh_name->mToken);
-    const auto tJacobian = tLevelSetTopology.jacobian(tInitialGuess);
-
-    const auto tCutMesh = tLevelSetTopology.generateMesh(tInitialGuess);
-    ASSERT_TRUE(std::filesystem::exists(tCutMesh.mFileName));
-    const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tCutMesh.mFileName}}.numberOfNodes();
-    const auto tRowVector =
-        linear_algebra::DynamicVector(static_cast<std::size_t>(kNumDimensions * tNumberOfNodes), 1.0);
-
-    const auto tResult = tRowVector * tJacobian;
-
-    ASSERT_EQ(tResult.size(), Tet4MeshOnDisk::mExpectedNumberOfNodes);
-
-    const auto tSum = std::accumulate(tResult.stdVector().begin(), tResult.stdVector().end(), 0.0);
-    // This is just a regression test, but this mesh has a non-trivial node map, so the test will fail if the node map
-    // is not used.
-    constexpr auto tExpectedJacobianSum = -43.3185837663019484;  // Regression value
-    EXPECT_DOUBLE_EQ(tExpectedJacobianSum, tSum);
+    const auto tOnesVectorJacobianProductSum = [](const library::GeometryFunction& aLevelSetTopologyFunction,
+                                                  const linear_algebra::DynamicVector<double>& aArgument)
+    {
+        const auto tJacobian = aLevelSetTopologyFunction.evaluate<core::evaluation::kFirstDerivative>(aArgument);
+        const auto tCutMesh = aLevelSetTopologyFunction.evaluate<core::evaluation::kFunction>(aArgument);
+        const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tCutMesh.mFileName}}.numberOfNodes();
+        const auto tDFDX =
+            linear_algebra::DynamicVector(static_cast<std::size_t>(kNumDimensions * tNumberOfNodes), 1.0);
+        const auto tResult = tDFDX * tJacobian;
+        return std::accumulate(tResult.stdVector().begin(), tResult.stdVector().end(), 0.0);
+    };
+    const auto tLevelSetTopology = std::make_shared<LevelSetTopology>(tInput);
+    const auto tInitialGuess = tLevelSetTopology->initialGuess(tInput.background_mesh_name->mToken);
+    // No filter
+    {
+        const auto tLevelSetFunction =
+            make_level_set_geometry(tLevelSetTopology, filter::extension::make_identity_filter_function());
+        const auto tComputedSum = tOnesVectorJacobianProductSum(tLevelSetFunction, tInitialGuess);
+        // This is just a regression test, but this mesh has a non-trivial node map, so the test will fail if
+        // the node map is not used.
+        EXPECT_DOUBLE_EQ(kExpectedJacobianSum, tComputedSum);
+    }
+    // Kernel filter
+    {
+        const auto tLevelSetFunction =
+            make_level_set_geometry(tLevelSetTopology, make_kernel_filter_test_function(Tet4MeshOnDisk::mMeshFilePath));
+        const auto tComputedSum = tOnesVectorJacobianProductSum(tLevelSetFunction, tInitialGuess);
+        // This is just a regression test, but it is expected to be different from the Jacobian computed with the
+        // identity filter
+        EXPECT_DOUBLE_EQ(kExpectedAdjointJacobianSum, tComputedSum);
+    }
 }
 
 TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 1.0);
 
-    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput, filter::extension::make_identity_filter_function()};
+    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
     const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
     const auto tAdjointJacobian = tLevelSetTopology.adjointJacobian(tInitialGuess);
 
@@ -150,8 +180,8 @@ TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
 
     const auto tResult = tRowVector * tAdjointJacobian;
 
-    // Regression result computed by outputting the entire Jacobian matrix using the `jacobian` function, and performing
-    // the transpose matrix vector multiplication in Matlab.
+    // Regression result computed by outputting the entire Jacobian matrix using the `jacobian` function, and
+    // performing the transpose matrix vector multiplication in Matlab.
     // clang-format off
     const auto tExpected = std::vector{
         0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  0.0,  0.0,  0.0, 0.0,  0.0,  
@@ -169,26 +199,78 @@ TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
                                                   TEST_CONTEXT("LevelSet adjoint Jacobian entries"));
 }
 
-TEST_F(LevelSetTopologyFixture, GenerateMeshRegression)
+TEST_F(LevelSetTopologyMeshFixture, JacobianTranspose)
+{
+    const auto tInput = singleSphereInput();
+
+    const auto tOnesVectorJacobianProductSum = [](const library::GeometryFunction& aLevelSetTopology,
+                                                  const linear_algebra::DynamicVector<double>& aDesignVariables)
+    {
+        const auto tJacobian =
+            aLevelSetTopology.evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(
+                aDesignVariables);
+        const auto tNumberOfNodes = aDesignVariables.size();
+        const auto tDFDX = linear_algebra::DynamicVector(static_cast<std::size_t>(tNumberOfNodes), 1.0);
+        const auto tResult = tDFDX * tJacobian;
+        return std::accumulate(tResult.stdVector().begin(), tResult.stdVector().end(), 0.0);
+    };
+    const auto tLevelSetTopology = std::make_shared<LevelSetTopology>(tInput);
+    const auto tInitialGuess = tLevelSetTopology->initialGuess(tInput.background_mesh_name->mToken);
+    constexpr auto tTolerance = 1e-13;
+    // No filter
+    {
+        const auto tLevelSetFunction =
+            make_level_set_geometry(tLevelSetTopology, filter::extension::make_identity_filter_function());
+        const auto tComputedSum = tOnesVectorJacobianProductSum(tLevelSetFunction, tInitialGuess);
+        EXPECT_NEAR(kExpectedJacobianSum, tComputedSum, tTolerance);
+    }
+    // Kernel filter
+    {
+        const auto tLevelSetFunction = make_level_set_geometry(
+            tLevelSetTopology, make_kernel_filter_test_function(tInput.background_mesh_name->mToken));
+        const auto tComputedSum = tOnesVectorJacobianProductSum(tLevelSetFunction, tInitialGuess);
+        EXPECT_NEAR(kExpectedAdjointJacobianSum, tComputedSum, tTolerance);
+    }
+}
+
+TEST_F(LevelSetTopologyFixture, GenerateMesh)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 0.5);
-    const auto tLevelsetTopology = LevelSetTopology{kLevelSetInput, filter::extension::make_identity_filter_function()};
-    const auto tInitialGuess = tLevelsetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
-    const auto tAnalysisMesh = tLevelsetTopology.generateMesh(tInitialGuess);
-    ASSERT_TRUE(std::filesystem::exists(tAnalysisMesh.mFileName));
+    auto tLevelSetTopology = std::make_unique<LevelSetTopology>(kLevelSetInput);
+    const auto tInitialGuess = tLevelSetTopology->initialGuess(kLevelSetInput.background_mesh_name->mToken);
 
-    // Regression, just checks number of nodes
-    const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tAnalysisMesh.mFileName}}.numberOfNodes();
-    constexpr auto tExpectedNumberOfNodes = 72U;
-    EXPECT_EQ(tNumberOfNodes, tExpectedNumberOfNodes);
+    const auto tMeshRegressionChecks = [](const std::size_t aExpectedNumberOfNodes,
+                                          const std::filesystem::path& aFilePath,
+                                          const test_utilities::TestContext& aTestContext)
+    {
+        EXPECT_TRUE(std::filesystem::exists(aFilePath)) << aTestContext;
+        const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{aFilePath}}.numberOfNodes();
+        EXPECT_EQ(tNumberOfNodes, aExpectedNumberOfNodes) << aTestContext;
+    };
+    {
+        const auto tAnalysisMesh = tLevelSetTopology->generateMesh(tInitialGuess);
+        constexpr auto tExpectedNumberOfNodes = 72U;
+        tMeshRegressionChecks(tExpectedNumberOfNodes, tAnalysisMesh.mFileName,
+                              TEST_CONTEXT("No filter, direct construction"));
+    }
+    {
+        const auto tLevelSetFunction =
+            make_level_set_geometry(std::move(tLevelSetTopology),
+                                    make_kernel_filter_test_function(kLevelSetInput.background_mesh_name->mToken));
+
+        const auto tAnalysisMesh = tLevelSetFunction.evaluate<core::evaluation::kFunction>(tInitialGuess);
+        constexpr auto tExpectedNumberOfNodes = 59U;
+        tMeshRegressionChecks(tExpectedNumberOfNodes, tAnalysisMesh.mFileName,
+                              TEST_CONTEXT("Kernel filter, using function wrapper"));
+    }
 }
 
 TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 0.5);
 
-    const auto tLevelsetTopology = LevelSetTopology{kLevelSetInput, filter::extension::make_identity_filter_function()};
-    const auto tInitialGuess = tLevelsetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
+    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
+    const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput.background_mesh_name->mToken);
 
     const auto tExpectedInitialGuess = std::vector<double>{
         0.6160254037844386, 0.4571067811865476, 0.6160254037844386, 0.4571067811865476,  0.2500000000000000,
@@ -212,7 +294,7 @@ TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
 TEST_F(LevelSetTopologyFixture, Bounds)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 0.5);
-    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput, filter::extension::make_identity_filter_function()};
+    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
     const auto [tLowerBounds, tUpperBounds] = tLevelSetTopology.bounds(kLevelSetInput.background_mesh_name->mToken);
 
     ASSERT_EQ(tLowerBounds.size(), kExpectedBackgroundLevelSetSize);

@@ -9,7 +9,7 @@
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
-#include "plato/filter/library/FilterJacobian.hpp"
+#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
@@ -50,13 +50,7 @@ auto make_test_kernel_filter()
         mesh::Mesh{kDensityInput.mesh_name->mToken}, filter::extension::FilterRadius{3.25},
         input_parser::KernelFilterCenteringTypes::kElementCentered, boost::mpi::communicator{});
 
-    return filter::library::FilterFunction{
-        [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        { return tFilter->filter(aAnalysisDomainMesh); },
-        [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        { return filter::library::make_filter_jacobian(tFilter, aAnalysisDomainMesh); },
-        [tFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        { return filter::library::make_filter_adjoint_jacobian(tFilter, aAnalysisDomainMesh); }};
+    return filter::library::make_filter_function(tFilter);
 }
 
 }  // namespace
