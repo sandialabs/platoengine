@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include "plato/geometry/library/DesignVariableAdapter.hpp"
+#include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
-namespace plato::geometry::library::unittest
+namespace plato::mesh::unittest
 {
 namespace
 {
@@ -107,4 +107,4 @@ TEST_F(DesignVariableAdapterMeshFixture, AnalysisMeshFirstDerivativesAdjointOrde
     EXPECT_EQ(tMultiplicationResult, tRowVector);
 }
 
-}  // namespace plato::geometry::library::unittest
+}  // namespace plato::mesh::unittest

@@ -1,14 +1,15 @@
-#include "plato/geometry/library/DesignVariableAdapter.hpp"
+#include "plato/mesh/DesignVariableAdapter.hpp"
 
 #include "plato/mesh/DesignVariableConversion.hpp"
 
-namespace plato::geometry::library
+namespace plato::mesh
 {
 namespace
 {
 const auto tIdentityJacobian =
     linear_algebra::JacobianMultiplier{[](const linear_algebra::DynamicVector<double>& aVector) { return aVector; }};
-}
+const auto tIdentityAdjointJacobian = linear_algebra::AdjointJacobianMultiplier{tIdentityJacobian};
+}  // namespace
 
 auto design_variables_to_analysis_mesh_adapter(const mesh::Mesh& aMesh) -> DesignVariableToAnalysisMeshAdapterFunction
 {
@@ -19,7 +20,7 @@ auto design_variables_to_analysis_mesh_adapter(const mesh::Mesh& aMesh) -> Desig
                 mesh::NodalFieldVectorReference{aNodalField.stdVector()});
         },
         [](const linear_algebra::DynamicVector<double>&) { return tIdentityJacobian; },
-        [](const linear_algebra::DynamicVector<double>&) { return tIdentityJacobian; }};
+        [](const linear_algebra::DynamicVector<double>&) { return tIdentityAdjointJacobian; }};
 }
 
 auto analysis_mesh_to_design_variables_adapter(const mesh::Mesh& aMesh) -> AnalysisMeshToDesignVariablesAdapterFunction
@@ -32,7 +33,7 @@ auto analysis_mesh_to_design_variables_adapter(const mesh::Mesh& aMesh) -> Analy
                                                              .mValue};
         },
         [](const analysis::AnalysisDomainMesh&) { return tIdentityJacobian; },
-        [](const analysis::AnalysisDomainMesh&) { return tIdentityJacobian; }};
+        [](const analysis::AnalysisDomainMesh&) { return tIdentityAdjointJacobian; }};
 }
 
-}  // namespace plato::geometry::library
+}  // namespace plato::mesh
