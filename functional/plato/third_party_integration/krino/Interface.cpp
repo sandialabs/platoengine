@@ -70,7 +70,7 @@ std::vector<double> initialize_mesh_with_level_set_primitives(const BackgroundMe
 {
     KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelSetPrimitives, aVoidRegion);
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
-    return tKrinoWrapper.levelsetValues();
+    return tKrinoWrapper.levelSetValues();
 }
 
 auto level_set_row_vector_jacobian_product(

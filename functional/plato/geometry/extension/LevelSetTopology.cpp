@@ -190,7 +190,7 @@ linear_algebra::JacobianMultiplier LevelSetTopology::jacobian(
     return linear_algebra::JacobianMultiplier{
         [this, aDesignParameters](const linear_algebra::DynamicVector<double>& aVector)
         {
-            const auto& tGlobalIDToDXDP = tpik::generate_computational_mesh(
+            const auto& tLevelSetJacobian = tpik::generate_computational_mesh(
                 tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()}, tpik::CutMeshFilePath{mCutMesh},
                 aDesignParameters.stdVector(), mVoidRegion);
             const auto tCutMeshSpaceVector = analysis_domain_mesh(mCutMesh);

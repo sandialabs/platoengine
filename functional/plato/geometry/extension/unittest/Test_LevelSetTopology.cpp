@@ -36,6 +36,7 @@ constexpr auto kExpectedAdjointJacobianSum = -72.780945645414576;
 constexpr int kNumDimensions = 3;
 const auto kLevelSetInput = plato::test_utilities::create_valid_level_set_topology_geometry();
 constexpr unsigned int kExpectedBackgroundLevelSetSize = 59;  // Based on mesh generation command below
+const auto kKrinoLogFileName = std::filesystem::path{"Krino_Output.txt"};
 
 void create_background_mesh(const std::string& aFileName, const double aMeshSize)
 {
@@ -52,14 +53,14 @@ class LevelSetTopologyFixture : virtual public ::testing::Test
         static bool tFirstTime{true};
         if (tFirstTime)
         {
-            third_party_integration::krino::initialize_environment_for_krino(kLogFile, MPI_COMM_WORLD);
+            third_party_integration::krino::initialize_environment_for_krino(kKrinoLogFileName, MPI_COMM_WORLD);
             tFirstTime = false;
         }
     }
     void TearDown() override
     {
         std::filesystem::remove(kLevelSetInput.background_mesh_name->mToken);
-        std::filesystem::remove(std::filesystem::path{kLogFile});
+        std::filesystem::remove(kKrinoLogFileName);
     }
 };
 
