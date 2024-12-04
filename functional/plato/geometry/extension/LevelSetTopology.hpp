@@ -33,7 +33,7 @@ namespace plato::geometry::extension
 class LevelSetTopology
 {
    public:
-    LevelSetTopology(const input_parser::level_set_topology& aInput);
+    explicit LevelSetTopology(const input_parser::level_set_topology& aInput);
 
     ~LevelSetTopology();
     LevelSetTopology(const LevelSetTopology&) = default;
