@@ -1,5 +1,5 @@
-#ifndef PLATO_ANALYSIS_UNITTEST_UTILITIES
-#define PLATO_ANALYSIS_UNITTEST_UTILITIES
+#ifndef PLATO_ANALYSIS_ANALYSISDOMAINMESHOPERATORS
+#define PLATO_ANALYSIS_ANALYSISDOMAINMESHOPERATORS
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 
@@ -9,6 +9,11 @@ namespace plato::analysis
 {
     return aLHS.mValue == aRHS.mValue && aLHS.mGlobalMeshEntityID == aRHS.mGlobalMeshEntityID &&
            aLHS.mDesignVariableVectorIndex == aRHS.mDesignVariableVectorIndex;
+}
+
+[[nodiscard]] inline bool operator!=(const ScalarFieldValue& aLHS, const ScalarFieldValue& aRHS)
+{
+    return !(aLHS == aRHS);
 }
 }  // namespace plato::analysis
 

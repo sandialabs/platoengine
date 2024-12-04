@@ -45,6 +45,8 @@ TwoBlockMeshOnDisk::TwoBlockMeshOnDisk() : mMeshFilePath{affirm_test_file_path(m
 
 TwoDNonUniformHexMesh::TwoDNonUniformHexMesh() : mMeshFilePath{affirm_test_file_path(mMeshFileName)} {}
 
+Tet4MeshOnDisk::Tet4MeshOnDisk() : mMeshFilePath{affirm_test_file_path(mMeshFileName)} {}
+
 TwoDThreeBlockMesh::TwoDThreeBlockMesh()
 {
     third_party_integration::stk_io::write_mesh(mMeshFilePath, mMeshDescription);

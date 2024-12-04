@@ -73,7 +73,7 @@ analysis::AnalysisDomainMesh KernelFilter::filter(const analysis::AnalysisDomain
 {
     const auto tMesh = mesh::Mesh{aAnalysisDomainMesh};
     const auto tFieldValues =
-        mesh::DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalFieldVector(aAnalysisDomainMesh);
+        mesh::DesignVariablesConversion{tMesh}.analysisDomainMeshToNodalFieldVector(aAnalysisDomainMesh);
 
     const auto tFilteredField = mLinearMask.matrixMultiply(tFieldValues.mValue);
     if (mFilterCentering == input_parser::KernelFilterCenteringTypes::kNodeCentered)

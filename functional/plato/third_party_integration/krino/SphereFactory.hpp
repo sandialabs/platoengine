@@ -1,0 +1,37 @@
+#ifndef PLATO_THIRDPARTYINTEGRATION_KRINO_SPHEREFACTORY
+#define PLATO_THIRDPARTYINTEGRATION_KRINO_SPHEREFACTORY
+
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
+#include "plato/utilities/NamedType.hpp"
+
+namespace plato::third_party_integration::krino
+{
+
+/// @brief Given sphere pattern input, @a aData, generate sphere primitives to be used to initialize a krino level set.
+[[nodiscard]] auto generate_spheres(const SpherePatternData &aData) -> std::vector<Sphere>;
+
+namespace detail
+{
+using SphereStart = utilities::NamedType<double, struct SphereStartTag>;
+using SphereStep = utilities::NamedType<double, struct SphereStepTag>;
+
+/// @brief Given num values, @a aNumValues, start, @a aStart, and step, @a aSphereStep, calculate a sequence of
+/// coordinates and store them in a vector.
+[[nodiscard]] auto create_sphere_spacing_vector(const unsigned int aNumValues,
+                                                const SphereStart aStart,
+                                                const SphereStep aSphereStep) -> std::vector<double>;
+
+/// @brief Given the sphere pattern from the user generate sphere center coordinates for all spheres in the pattern.
+[[nodiscard]] auto calculate_sphere_locator_data(const SpherePatternData &aData) -> SphereLocatorData;
+
+/// @brief Calculate the number spheres in each direction give sphere pattern data.
+[[nodiscard]] auto calculate_num_spheres_in_each_direction(const SpherePatternData &aData) -> common::Coordinate;
+
+/// @brief Calculate the minimum/starting coordinates for the sphere pattern.
+[[nodiscard]] auto calculate_sphere_pattern_start(const common::Coordinate &aNumSpheres, const SpherePatternData &aData)
+    -> common::Coordinate;
+
+}  // namespace detail
+}  // namespace plato::third_party_integration::krino
+
+#endif

@@ -1,12 +1,11 @@
-#ifndef PLATO_THIRD_PARTY_INTEGRATION_KRINO_UTILITIES
-#define PLATO_THIRD_PARTY_INTEGRATION_KRINO_UTILITIES
+#ifndef PLATO_THIRDPARTYINTEGRATION_KRINO_UTILITIES
+#define PLATO_THIRDPARTYINTEGRATION_KRINO_UTILITIES
 
 #include <mpi.h>
 
+#include <filesystem>
 #include <stk_math/StkVector.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
 namespace plato::analysis
@@ -16,34 +15,33 @@ struct AnalysisDomainMesh;
 
 namespace plato::third_party_integration::krino
 {
+/// @brief Describes whether or not to include a void phase block in the generated cut mesh.
+enum struct VoidPhase
+{
+    kIncludeInMesh,
+    kExcludeFromMesh
+};
 
 using KrinoGlobalNodeID = unsigned int;
+using BoundingBox = std::pair<stk::math::Vector3d, stk::math::Vector3d>;
 
-struct InterfaceNodeDXDP
+/// @brief Data that describes a column of the Jacobian of the level-set mapping, i.e. the interface coordinate
+/// sensitivities.
+///
+/// The level-set mapping maps a scalar level set field on a background mesh (and has dimensions equal to the number of
+/// nodes on the background mesh) to cut mesh nodal coordinates on the cut mesh interface.
+struct LevelSetJacobianColumn
 {
-    std::vector<stk::mesh::EntityId> mParentNodeIds;
-    std::vector<stk::math::Vector3d> mParentDXDP;
+    std::vector<stk::mesh::EntityId> mBackgroundMeshNodeIDs;
+    std::vector<stk::math::Vector3d> mNodalSensitivities;
 };
 
 /// @brief Initialization needed for krino to run correctly.
-void initialize_environment_for_krino(const MPI_Comm &aComm);
+void initialize_environment_for_krino(const std::filesystem::path &aLogFile, const MPI_Comm &aComm);
 
-/// @brief Given DFDX, @a aDFDXMap (sensitivity of objective to nodal coordinate changes), and DXDP, @a aDXDP
-/// (sensitivity of nodal coordinates to levelset values), and the local-to-global node id map of the background mesh,
-/// @a aBackgroundNodemap, perform the chain rule to get DFDLS (sensitivity of objective to levelset values).
-[[nodiscard]] auto calculate_dfdls(const std::vector<double> &aDFDX,
-                                   const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
-                                   const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP,
-                                   const std::vector<KrinoGlobalNodeID> &aBackgroundNodemap)
-    -> std::unordered_map<KrinoGlobalNodeID, double>;
-
-/// @brief Computes the product of a row vector (represented by @a aBackgroundLevelSetSpaceVector) and adjoint Jacobian
-/// matrix (represented by @a aDXDP).
-///
-/// The result is stored in a map, which maps a cut mesh global node ID to a 3-vector.
-[[nodiscard]] auto calculate_adjoint_dfdls(const analysis::AnalysisDomainMesh &aBackgroundLevelSetSpaceVector,
-                                           const std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> &aDXDP)
-    -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>;
+void create_bounding_box_mesh(const BoundingBox &aBoundingBox,
+                              const double aMeshSize,
+                              const std::filesystem::path &aFilename);
 
 }  // namespace plato::third_party_integration::krino
 

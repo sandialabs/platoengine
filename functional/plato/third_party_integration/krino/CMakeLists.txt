@@ -6,5 +6,5 @@ set(LINK_LIBS Krino::krino_lib PlatoFunctionalAnalysis PlatoFunctionalUtilities)
 create_plato_library(PlatoFunctionalKrinoLib "." "${LINK_LIBS}")
 
 if( UNIT_TESTING )
-  create_plato_unittester(PlatoFunctionalKrinoLib "unittest")
+  create_plato_unittester(PlatoFunctionalKrinoLib "unittest" PlatoFunctionalSTKIOTestUtilities)
 endif()

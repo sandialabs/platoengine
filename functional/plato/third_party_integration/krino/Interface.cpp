@@ -1,34 +1,121 @@
 #include "plato/third_party_integration/krino/Interface.hpp"
 
+#include <numeric>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
-#include "plato/third_party_integration/krino/LevelsetPrimitives.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
+#include "plato/utilities/IndexRange.hpp"
+#include "plato/utilities/MultiVectorView.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::krino
 {
-
-std::unordered_map<stk::mesh::EntityId, InterfaceNodeDXDP> generate_computational_mesh(
-    const BackgroundMeshFilePath &aBackgroundMeshName,
-    const CutMeshFilePath &aCutMesh,
-    const std::vector<double> &aLevelsetValues,
-    const bool aIncludeVoidRegion)
+namespace
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aIncludeVoidRegion);
-    tKrinoWrapper.setLevelsetValues(aLevelsetValues);
-    tKrinoWrapper.cutMesh();
-    tKrinoWrapper.writeMesh(aCutMesh.mValue);
-    return tKrinoWrapper.getSensitivities();
+constexpr auto kNumDimensions = std::size_t{3};
+
+auto vector_jacobian_product_entry_contribution(const std::vector<double> &aRowVector,
+                                                const utilities::VectorIndex aVectorIndex,
+                                                const stk::math::Vector3d &aNodalSensitivities) -> double
+{
+    const auto tRowVectorView = utilities::make_multi_vector_view<kNumDimensions>(aRowVector);
+    const auto tComponentRange = utilities::IndexRange{kNumDimensions};
+    return std::accumulate(tComponentRange.begin(), tComponentRange.end(), 0.0,
+                           [&](const auto tSum, const auto tComponentIndex)
+                           {
+                               const auto tRowVectorComponent =
+                                   tRowVectorView(aVectorIndex, utilities::ComponentIndex{tComponentIndex});
+                               const auto tNodalSensitivitiesVectorComponent = aNodalSensitivities[tComponentIndex];
+                               return tSum + tRowVectorComponent * tNodalSensitivitiesVectorComponent;
+                           });
 }
 
-std::vector<double> initialize_mesh_with_levelset_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
-                                                             const CutMeshFilePath &aCutMesh,
-                                                             const LevelsetPrimitives &aLevelsetPrimitives,
-                                                             const bool aIncludeVoidRegion)
+auto assemble_vector_jacobian_product_entry(analysis::AnalysisDomainMesh &&aVectorJacobianProduct,
+                                            const std::vector<double> &aRowVector,
+                                            const LevelSetJacobianColumn &aLevelSetJacobianColumn,
+                                            const utilities::VectorIndex aVectorIndex) -> analysis::AnalysisDomainMesh
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aIncludeVoidRegion);
-    tKrinoWrapper.initializeLevelsetsFromPrimitives(aLevelsetPrimitives);
-    tKrinoWrapper.cutMesh();
+    const auto tVectorJacobianProductRandomAccessView =
+        analysis::AnalysisDomainMeshMutableRandomAccessView{aVectorJacobianProduct};
+    for (const auto &[tParentNodeBackgroundID, tNodalSensitivities] :
+         utilities::Zip{aLevelSetJacobianColumn.mBackgroundMeshNodeIDs, aLevelSetJacobianColumn.mNodalSensitivities})
+    {
+        auto tVectorJacobianProductRandomAccessViewValue =
+            tVectorJacobianProductRandomAccessView[tParentNodeBackgroundID];
+        tVectorJacobianProductRandomAccessViewValue =
+            static_cast<analysis::ScalarFieldValue>(tVectorJacobianProductRandomAccessViewValue).mValue +
+            vector_jacobian_product_entry_contribution(aRowVector, aVectorIndex, tNodalSensitivities);
+    }
+    return aVectorJacobianProduct;
+}
+}  // namespace
+
+auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshName,
+                                 const CutMeshFilePath &aCutMesh,
+                                 const std::vector<double> &aLevelSetValues,
+                                 const VoidPhase aVoidRegion)
+    -> std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>
+{
+    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelSetValues, aVoidRegion);
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
-    return tKrinoWrapper.getLevelsetValues();
+    return tKrinoWrapper.sensitivities();
+}
+
+std::vector<double> initialize_mesh_with_level_set_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
+                                                              const CutMeshFilePath &aCutMesh,
+                                                              const LevelSetPrimitives &aLevelSetPrimitives,
+                                                              const VoidPhase aVoidRegion)
+{
+    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelSetPrimitives, aVoidRegion);
+    tKrinoWrapper.writeMesh(aCutMesh.mValue);
+    return tKrinoWrapper.levelsetValues();
+}
+
+auto level_set_row_vector_jacobian_product(
+    const std::vector<double> &aRowVector,
+    const analysis::AnalysisDomainMesh &aCutMeshSpaceIDs,
+    const std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn> &aLevelSetJacobian,
+    analysis::AnalysisDomainMesh &&aBackgroundMeshSpaceIDs) -> analysis::AnalysisDomainMesh
+{
+    const auto tCutMeshSpaceRandomAccessView = analysis::AnalysisDomainMeshRandomAccessView{aCutMeshSpaceIDs};
+    for (const auto &[tCurInterfaceNodeID, tLevelSetJacobianColumn] : aLevelSetJacobian)
+    {
+        const auto tCutMeshScalarFieldValues = tCutMeshSpaceRandomAccessView[tCurInterfaceNodeID];
+        assert(tCutMeshScalarFieldValues.has_value());
+        const auto tVectorIndex = utilities::VectorIndex{tCutMeshScalarFieldValues.value().mDesignVariableVectorIndex};
+        aBackgroundMeshSpaceIDs = assemble_vector_jacobian_product_entry(std::move(aBackgroundMeshSpaceIDs), aRowVector,
+                                                                         tLevelSetJacobianColumn, tVectorIndex);
+    }
+    return aBackgroundMeshSpaceIDs;
+}
+
+auto level_set_row_vector_adjoint_jacobian_product(const analysis::AnalysisDomainMesh &aBackgroundLevelSetSpaceVector,
+                                                   const LevelSetJacobian &aLevelSetJacobian)
+    -> std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>
+{
+    const auto tLevelSetSpaceRandomAccessView =
+        analysis::AnalysisDomainMeshRandomAccessView{aBackgroundLevelSetSpaceVector};
+
+    auto tAdjointResult = std::unordered_map<KrinoGlobalNodeID, stk::math::Vector3d>{};
+    tAdjointResult.reserve(aLevelSetJacobian.size());
+    for (const auto &[tCurInterfaceNodeID, tLevelSetJacobianColumn] : aLevelSetJacobian)
+    {
+        const auto tParentNodeInfo =
+            utilities::Zip{tLevelSetJacobianColumn.mBackgroundMeshNodeIDs, tLevelSetJacobianColumn.mNodalSensitivities};
+        tAdjointResult[tCurInterfaceNodeID] = std::accumulate(
+            tParentNodeInfo.begin(), tParentNodeInfo.end(), stk::math::Vector3d{0.0, 0.0, 0.0},
+            [tLevelSetSpaceRandomAccessView](const stk::math::Vector3d &aSum, const auto &aParentNodeInfo)
+            {
+                constexpr auto tNodeIdIndex = 0;
+                constexpr auto tSensitivityIndex = 1;
+                const auto tBackgroundValue = tLevelSetSpaceRandomAccessView[std::get<tNodeIdIndex>(aParentNodeInfo)];
+                assert(tBackgroundValue);
+                return aSum + tBackgroundValue.value().mValue * std::get<tSensitivityIndex>(aParentNodeInfo);
+            });
+    }
+    return tAdjointResult;
 }
 
 }  // namespace plato::third_party_integration::krino

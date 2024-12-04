@@ -124,7 +124,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
 )
 
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), levelset_topology,
+    (plato)(input_parser), level_set_topology,
     (plato::input_parser::FileName, background_mesh_name)
     (plato::input_parser::FileName, cut_mesh_name)
     (plato::input_parser::FileName, output_mesh_name)
@@ -137,8 +137,8 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (double, sphere_pattern_bbox_max_z)
     (double, sphere_pattern_radius)
     (double, sphere_pattern_spacing)
-    (double, levelset_lower_bound)
-    (double, levelset_upper_bound)
+    (double, level_set_lower_bound)
+    (double, level_set_upper_bound)
 )
 
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
@@ -177,7 +177,7 @@ BOOST_FUSION_DEFINE_STRUCT(
     (std::vector<plato::input_parser::constraint>, mConstraints)
     (boost::optional<plato::input_parser::brick_shape_geometry>, mBrickShapeGeometry)
     (boost::optional<plato::input_parser::density_topology>, mDensityTopology)
-    (boost::optional<plato::input_parser::levelset_topology>, mLevelsetTopology)
+    (boost::optional<plato::input_parser::level_set_topology>, mLevelSetTopology)
     (boost::optional<plato::input_parser::identity_filter>, mIdentityFilter)
     (boost::optional<plato::input_parser::helmholtz_filter>, mHelmholtzFilter)
     (boost::optional<plato::input_parser::kernel_filter>, mKernelFilter)

@@ -338,7 +338,6 @@ void PlatoKrinoApp::updateGeometry()
     mKrinoWrapper->setLevelsetValues(tLevelsetValues);
     mKrinoWrapper->resetMesh();
     mKrinoWrapper->cutMesh();
-    mKrinoWrapper->getSensitivities();
     mKrinoWrapper->writeMesh(mCutMeshFilename);
 }
 

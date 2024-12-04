@@ -11,7 +11,7 @@ namespace plato::third_party_integration::stk_io::test_utilities
 {
 /// @brief A base class fixture that creates a mesh using CommandGenerator on construction, and deletes it on
 /// destruction.
-class MeshGeneratingTestFixture : public ::testing::Test
+class MeshGeneratingTestFixture : virtual public ::testing::Test
 {
    protected:
     MeshGeneratingTestFixture(const std::filesystem::path& aMeshName,
@@ -39,7 +39,7 @@ class OneBlock3x1x1HexMeshWithNodeSets : public MeshGeneratingTestFixture
 
 /// @brief A mesh test fixture that provides the path to a specific two-block mesh and has members
 /// giving its node and element sizes.
-class TwoBlockMeshOnDisk : public ::testing::Test
+class TwoBlockMeshOnDisk : virtual public ::testing::Test
 {
    protected:
     TwoBlockMeshOnDisk();
@@ -58,7 +58,7 @@ class TwoBlockMeshOnDisk : public ::testing::Test
 
 /// @brief A mesh test fixture that provides the path to a 2D, non-uniform hex mesh
 /// giving its node and element sizes.
-class TwoDNonUniformHexMesh : public ::testing::Test
+class TwoDNonUniformHexMesh : virtual public ::testing::Test
 {
    protected:
     TwoDNonUniformHexMesh();
@@ -73,9 +73,21 @@ class TwoDNonUniformHexMesh : public ::testing::Test
     constexpr static auto mExpectedSmallestElementArea = 0.15715566967755179;
 };
 
+/// @brief A mesh test fixture that provides the path to a mesh composed of tet4 elements.
+class Tet4MeshOnDisk : virtual public ::testing::Test
+{
+   protected:
+    Tet4MeshOnDisk();
+
+    std::filesystem::path mMeshFilePath;
+
+    constexpr static auto mMeshFileName = std::string_view{"box_3x4x7_tet4.cdf"};
+    constexpr static auto mExpectedNumberOfNodes = 389U;
+};
+
 /// @brief A mesh test fixture providing a 2D mesh with 3 blocks. The nodes and elements
 /// are ordered so that the first nodes/elements do not belong to the first block.
-class TwoDThreeBlockMesh : public ::testing::Test
+class TwoDThreeBlockMesh : virtual public ::testing::Test
 {
    protected:
     TwoDThreeBlockMesh();
@@ -110,7 +122,7 @@ class TwoDThreeBlockMesh : public ::testing::Test
 };
 
 /// @brief A mesh test fixture providing a 2D mesh with 2 blocks with non-standard block names.
-class TwoDTwoBlockMesh : public ::testing::Test
+class TwoDTwoBlockMesh : virtual public ::testing::Test
 {
    protected:
     TwoDTwoBlockMesh();

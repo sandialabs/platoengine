@@ -18,8 +18,8 @@ namespace plato::test_utilities
     -> std::pair<input_parser::density_topology, input_parser::kernel_filter>;
 [[nodiscard]] std::string create_valid_density_topology_geometry_string();
 
-[[nodiscard]] input_parser::levelset_topology create_valid_levelset_topology_geometry();
-[[nodiscard]] std::string create_valid_levelset_topology_geometry_string();
+[[nodiscard]] input_parser::level_set_topology create_valid_level_set_topology_geometry();
+[[nodiscard]] std::string create_valid_level_set_topology_geometry_string();
 
 [[nodiscard]] input_parser::objective create_valid_example_objective();
 [[nodiscard]] std::string create_valid_example_objective_string();

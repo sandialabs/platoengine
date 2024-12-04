@@ -168,7 +168,7 @@ TEST_F(OneBlock3x1x1HexMesh, AnalysisDomainMeshToNodalScalarField)
 
     const auto tMesh = Mesh{mMeshFilePath, {}};
     const auto tDesignVariableVector =
-        DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalFieldVector(tAnalysisDomainMesh);
+        DesignVariablesConversion{tMesh}.analysisDomainMeshToNodalFieldVector(tAnalysisDomainMesh);
 
     auto tExpectedIndices = std::vector<analysis::ScalarFieldValue::IndexType>(mCommandGenerator.numberOfNodes());
     constexpr auto tStartIndex = analysis::ScalarFieldValue::IndexType{1};
@@ -194,7 +194,7 @@ TEST_F(TwoDThreeBlockMesh, AnalysisDomainMeshToElementScalarField)
 
     const auto tMesh = Mesh{mMeshFilePath, {"block_1", "block_2"}};
     const auto tResultDesignVariableVector =
-        DesignVariablesConversion{tMesh}.meshDesignVariablesToElementFieldVector(tAnalysisDomainMesh);
+        DesignVariablesConversion{tMesh}.analysisDomainMeshToElementFieldVector(tAnalysisDomainMesh);
 
     const auto tExpectedDesignVariableVector = std::vector{tArbitraryField};
     EXPECT_EQ(tResultDesignVariableVector.mValue, tExpectedDesignVariableVector);
@@ -210,7 +210,7 @@ TEST_F(TwoDThreeBlockMesh, MeshNodalDesignVariablesRoundTrip)
     const auto tAnalysisDomainMesh = DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         NodalFieldVectorReference{tNodalDesignVariables});
     const auto tRoundTripNodalDesignVariables =
-        DesignVariablesConversion{tMesh}.meshDesignVariablesToNodalFieldVector(tAnalysisDomainMesh);
+        DesignVariablesConversion{tMesh}.analysisDomainMeshToNodalFieldVector(tAnalysisDomainMesh);
 
     EXPECT_EQ(tNodalDesignVariables, tRoundTripNodalDesignVariables.mValue);
 }
@@ -225,7 +225,7 @@ TEST_F(TwoDThreeBlockMesh, MeshElementDesignVariablesRoundTrip)
     const auto tAnalysisDomainMesh = DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         ElementFieldVectorReference{tElementDesignVariables});
     const auto tRoundTripElementDesignVariables =
-        DesignVariablesConversion{tMesh}.meshDesignVariablesToElementFieldVector(tAnalysisDomainMesh);
+        DesignVariablesConversion{tMesh}.analysisDomainMeshToElementFieldVector(tAnalysisDomainMesh);
 
     EXPECT_EQ(tElementDesignVariables, tRoundTripElementDesignVariables.mValue);
 }

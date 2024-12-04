@@ -10,14 +10,12 @@
 #include <Plato_TimersTree.hpp>
 #include <vector>
 
-#include "plato/third_party_integration/krino/Enums.hpp"
-#include "plato/third_party_integration/krino/KrinoWrapper.hpp"
+#include "PlatoKrinoEnums.hpp"
+#include "PlatoKrinoWrapper.hpp"
 
 #include "PlatoKrinoAppUtils.hpp"
 
 #pragma once
-
-using namespace plato::third_party_integration::krino;
 
 namespace Plato
 {

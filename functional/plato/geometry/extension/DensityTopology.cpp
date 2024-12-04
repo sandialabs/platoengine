@@ -209,7 +209,7 @@ std::optional<std::string> validate_output_name(const input_parser::density_topo
 
 std::optional<std::string> validate_filter_with_mesh(const input_parser::density_topology& aInput)
 {
-    if (!aInput.filter || !filter_is_cross_linked(aInput))
+    if (!aInput.filter || !filter_is_cross_linked(aInput) || !aInput.mesh_name.has_value())
     {
         return std::nullopt;
     }
