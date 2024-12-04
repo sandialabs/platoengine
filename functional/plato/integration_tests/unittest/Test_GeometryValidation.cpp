@@ -21,4 +21,16 @@ TEST(DensityTopology, ValidateEmptyFilterAndDensityTopologyInput)
     EXPECT_THROW([[maybe_unused]] const auto tValidatedInput = process_manager::library::make_validated_input(tInput),
                  plato::utilities::Exception);
 }
+
+TEST(DensityTopology, ValidateNoCrossLinkedFilter)
+{
+    // This configuration was found to throw an unchecked optional access exception.
+    // The expected filter input block is missing, which should be caught in validation.
+    const auto tInput = test_utilities::create_valid_density_topology_geometry() |
+                        test_utilities::create_valid_example_objective() |
+                        test_utilities::create_valid_example_rol_optimization();
+
+    EXPECT_THROW([[maybe_unused]] const auto tValidatedInput = process_manager::library::make_validated_input(tInput),
+                 plato::utilities::Exception);
+}
 }  // namespace plato::integration_tests::unittest

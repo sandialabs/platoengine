@@ -84,23 +84,22 @@ ValidatedInput make_validated_input(input_parser::ParsedInput aInput)
 {
     auto tMessages = validate_cross_referenced_input(aInput, std::vector<std::string>{});
 
-    const auto tCrossLinkedInput = make_cross_linked_input(aInput);
+    const auto tCrossLinkedInput =
+        tMessages.empty() ? std::make_optional(make_cross_linked_input(aInput)) : std::optional<CrossLinkedInput>{};
+    const auto& tInputToValidate = tCrossLinkedInput.has_value() ? tCrossLinkedInput->rawInput() : aInput;
 
-    tMessages = plato::geometry::library::validate_geometry(tCrossLinkedInput.rawInput(), std::move(tMessages));
-    tMessages = plato::filter::library::validate_filter(tCrossLinkedInput.rawInput(), std::move(tMessages));
-    tMessages =
-        plato::criteria::library::validate_objectives(tCrossLinkedInput.rawInput().mObjectives, std::move(tMessages));
-    tMessages =
-        plato::criteria::library::validate_constraints(tCrossLinkedInput.rawInput().mConstraints, std::move(tMessages));
-    tMessages =
-        plato::process_manager::library::validate_process_managers(tCrossLinkedInput.rawInput(), std::move(tMessages));
+    tMessages = plato::geometry::library::validate_geometry(tInputToValidate, std::move(tMessages));
+    tMessages = plato::filter::library::validate_filter(tInputToValidate, std::move(tMessages));
+    tMessages = plato::criteria::library::validate_objectives(tInputToValidate.mObjectives, std::move(tMessages));
+    tMessages = plato::criteria::library::validate_constraints(tInputToValidate.mConstraints, std::move(tMessages));
+    tMessages = plato::process_manager::library::validate_process_managers(tInputToValidate, std::move(tMessages));
 
     if (!tMessages.empty())
     {
         throw plato::utilities::Exception("Error: Could not validate input, the following errors were found: \n" +
                                           utilities::concatenate_container(tMessages, "\n"));
     }
-    return ValidatedInput{tCrossLinkedInput.rawInput(), ValidateKey{}};
+    return ValidatedInput{tInputToValidate, ValidateKey{}};
 }
 
 ValidatedInput parse_and_validate_from_file(const std::filesystem::path& aFileName)
