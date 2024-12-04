@@ -33,7 +33,7 @@ namespace
 {
 constexpr auto kExpectedJacobianSum = -43.3185837663019484;
 constexpr auto kExpectedAdjointJacobianSum = -72.780945645414576;
-constexpr int kNumDimensions = 3;
+constexpr auto kNumDimensions = std::size_t{3};
 const auto kLevelSetInput = plato::test_utilities::create_valid_level_set_topology_geometry();
 constexpr unsigned int kExpectedBackgroundLevelSetSize = 59;  // Based on mesh generation command below
 const auto kKrinoLogFileName = std::filesystem::path{"Krino_Output.txt"};
@@ -105,6 +105,14 @@ auto make_kernel_filter_test_function(const std::filesystem::path& aMeshFilePath
     return filter::library::make_filter_function(tKernelFilter);
 }
 
+auto ones_vector_times_jacobian(const std::size_t aNumberOfNodes, const linear_algebra::JacobianMultiplier& aJacobian)
+    -> double
+{
+    const auto tOnesVector = linear_algebra::DynamicVector(aNumberOfNodes, 1.0);
+    const auto tResult = tOnesVector * aJacobian;
+    return std::accumulate(tResult.stdVector().begin(), tResult.stdVector().end(), 0.0);
+}
+
 }  // namespace
 
 TEST_F(LevelSetTopologyFixture, JacobianRegression)
@@ -140,10 +148,7 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
         const auto tJacobian = aLevelSetTopologyFunction.evaluate<core::evaluation::kFirstDerivative>(aArgument);
         const auto tCutMesh = aLevelSetTopologyFunction.evaluate<core::evaluation::kFunction>(aArgument);
         const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tCutMesh.mFileName}}.numberOfNodes();
-        const auto tDFDX =
-            linear_algebra::DynamicVector(static_cast<std::size_t>(kNumDimensions * tNumberOfNodes), 1.0);
-        const auto tResult = tDFDX * tJacobian;
-        return std::accumulate(tResult.stdVector().begin(), tResult.stdVector().end(), 0.0);
+        return ones_vector_times_jacobian(kNumDimensions * tNumberOfNodes, tJacobian);
     };
     const auto tLevelSetTopology = std::make_shared<LevelSetTopology>(tInput);
     const auto tInitialGuess = tLevelSetTopology->initialGuess(tInput.background_mesh_name->mToken);
@@ -211,9 +216,7 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianTranspose)
             aLevelSetTopology.evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(
                 aDesignVariables);
         const auto tNumberOfNodes = aDesignVariables.size();
-        const auto tDFDX = linear_algebra::DynamicVector(static_cast<std::size_t>(tNumberOfNodes), 1.0);
-        const auto tResult = tDFDX * tJacobian;
-        return std::accumulate(tResult.stdVector().begin(), tResult.stdVector().end(), 0.0);
+        return ones_vector_times_jacobian(tNumberOfNodes, tJacobian.mValue);
     };
     const auto tLevelSetTopology = std::make_shared<LevelSetTopology>(tInput);
     const auto tInitialGuess = tLevelSetTopology->initialGuess(tInput.background_mesh_name->mToken);
