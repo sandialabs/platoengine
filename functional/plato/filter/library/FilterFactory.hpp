@@ -12,10 +12,6 @@ namespace plato::filter::library
 /// @brief Creates a Function used for filtering a nodal density field for density TO.
 /// @param aInput The input parameters parsed from an input deck.
 [[nodiscard]] FilterFunction make_filter_function(const ValidatedFilterInput& aInput);
-
-/// @brief Creates a FilterFunction from a FilterInterface.
-[[nodiscard]] auto make_filter_function(const std::shared_ptr<FilterInterface>& aFilter) -> FilterFunction;
-
 }  // namespace plato::filter::library
 
 #endif

@@ -25,15 +25,4 @@ FilterFunction make_filter_function(const ValidatedFilterInput& aInput)
     }
 }
 
-auto make_filter_function(const std::shared_ptr<FilterInterface>& aFilter) -> FilterFunction
-{
-    return filter::library::FilterFunction{
-        [aFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        { return aFilter->filter(aAnalysisDomainMesh); },
-        [aFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        { return filter::library::make_filter_jacobian(aFilter, aAnalysisDomainMesh); },
-        [aFilter](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        { return filter::library::make_filter_adjoint_jacobian(aFilter, aAnalysisDomainMesh); }};
-}
-
 }  // namespace plato::filter::library

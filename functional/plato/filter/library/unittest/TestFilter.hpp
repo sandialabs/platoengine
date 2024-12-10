@@ -30,7 +30,7 @@ class TestFilter : public FilterInterface
         return linear_algebra::DynamicVector<double>(aV.size() + analysis_domain_mesh_size(aAnalysisDomainMesh), 1.0);
     }
 
-    /// @brief Returns a vector with all ones and size equal to the sum of the size of @a aAnalysisDomainMesh and @a aV.
+    /// @brief Returns a vector with all twos and size equal to the sum of the size of @a aAnalysisDomainMesh and @a aV.
     [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                                      const plato::linear_algebra::DynamicVector<double>& aV) const
         -> plato::linear_algebra::DynamicVector<double> override

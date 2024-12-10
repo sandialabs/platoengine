@@ -11,6 +11,7 @@
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
@@ -50,7 +51,7 @@ auto make_test_kernel_filter()
         mesh::Mesh{kDensityInput.mesh_name->mToken}, filter::extension::FilterRadius{3.25},
         input_parser::KernelFilterCenteringTypes::kElementCentered, boost::mpi::communicator{});
 
-    return filter::library::make_filter_function(tFilter);
+    return filter::test_utilities::make_filter_function(tFilter);
 }
 
 }  // namespace

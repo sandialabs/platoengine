@@ -14,6 +14,7 @@
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
+#include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
@@ -32,7 +33,7 @@ namespace plato::geometry::extension::unittest
 namespace
 {
 constexpr auto kExpectedJacobianSum = -43.3185837663019484;
-constexpr auto kExpectedAdjointJacobianSum = -72.780945645414576;
+constexpr auto kExpectedFilteredJacobianSum = -72.780945645414576;
 constexpr auto kNumDimensions = std::size_t{3};
 const auto kLevelSetInput = plato::test_utilities::create_valid_level_set_topology_geometry();
 constexpr unsigned int kExpectedBackgroundLevelSetSize = 59;  // Based on mesh generation command below
@@ -102,7 +103,7 @@ auto make_kernel_filter_test_function(const std::filesystem::path& aMeshFilePath
         mesh::Mesh{aMeshFilePath}, tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered,
         boost::mpi::communicator{});
 
-    return filter::library::make_filter_function(tKernelFilter);
+    return filter::test_utilities::make_filter_function(tKernelFilter);
 }
 
 auto ones_vector_times_jacobian(const std::size_t aNumberOfNodes, const linear_algebra::JacobianMultiplier& aJacobian)
@@ -168,7 +169,7 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
         const auto tComputedSum = tOnesVectorJacobianProductSum(tLevelSetFunction, tInitialGuess);
         // This is just a regression test, but it is expected to be different from the Jacobian computed with the
         // identity filter
-        EXPECT_DOUBLE_EQ(kExpectedAdjointJacobianSum, tComputedSum);
+        EXPECT_DOUBLE_EQ(kExpectedFilteredJacobianSum, tComputedSum);
     }
 }
 
@@ -233,7 +234,7 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianTranspose)
         const auto tLevelSetFunction = make_level_set_geometry(
             tLevelSetTopology, make_kernel_filter_test_function(tInput.background_mesh_name->mToken));
         const auto tComputedSum = tOnesVectorJacobianProductSum(tLevelSetFunction, tInitialGuess);
-        EXPECT_NEAR(kExpectedAdjointJacobianSum, tComputedSum, tTolerance);
+        EXPECT_NEAR(kExpectedFilteredJacobianSum, tComputedSum, tTolerance);
     }
 }
 
