@@ -47,9 +47,9 @@ constexpr auto kInitializationSurfaces = std::string_view{"initialization surfac
     return (aVoidRegion == VoidPhase::kIncludeInMesh || aPart->name().find("_void") == std::string::npos);
 }
 
-[[nodiscard]] auto coords_levelsets(const ::krino::FieldRef aCoordsField,
-                                    const ::krino::FieldRef aLevelSetField,
-                                    const std::vector<stk::mesh::Entity> &aParentNodes)
+[[nodiscard]] auto coords_level_sets(const ::krino::FieldRef aCoordsField,
+                                     const ::krino::FieldRef aLevelSetField,
+                                     const std::vector<stk::mesh::Entity> &aParentNodes)
     -> std::vector<stk::math::Vector3d>
 {
     assert(2 == aParentNodes.size());
@@ -126,9 +126,9 @@ void append_planes(::krino::Composite_Surface &aSurfaces, const std::vector<Plan
     }
 }
 
-void initialize_levelsets_from_primitives(const LevelSetPrimitives &aLevelSetPrimitives,
-                                          const ::krino::MeshInterface &aKrinoMesh,
-                                          std::vector<::krino::LS_Field> &aLevelSetFields)
+void initialize_level_sets_from_primitives(const LevelSetPrimitives &aLevelSetPrimitives,
+                                           const ::krino::MeshInterface &aKrinoMesh,
+                                           std::vector<::krino::LS_Field> &aLevelSetFields)
 {
     const auto &tMesh = aKrinoMesh.bulk_data();
     auto tInitializationSurfaces = ::krino::Composite_Surface{std::string{kInitializationSurfaces}};
@@ -177,7 +177,7 @@ KrinoWrapper::KrinoWrapper(const std::filesystem::path &aFilename,
       mKrinoMesh(read_and_setup_for_decomposition(aFilename)),
       mLevelSetFields(::krino::Phase_Support::get_levelset_fields(mKrinoMesh->meta_data()))
 {
-    initialize_levelsets_from_primitives(aLevelSetPrimitives, *mKrinoMesh, mLevelSetFields);
+    initialize_level_sets_from_primitives(aLevelSetPrimitives, *mKrinoMesh, mLevelSetFields);
     cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields);
 }
 
@@ -216,7 +216,7 @@ void KrinoWrapper::writeMesh(const std::filesystem::path &aFilename)
                                               tTime);
 }
 
-std::vector<double> KrinoWrapper::levelsetValues() const
+std::vector<double> KrinoWrapper::levelSetValues() const
 {
     stk::mesh::EntityVector tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
     std::vector<double> tReturn;
@@ -280,9 +280,9 @@ auto KrinoWrapper::sensitivities() const -> std::unordered_map<stk::mesh::Entity
     tSensitivityMap.reserve(tChildNodeStencils.size());
     for (auto &tStencil : tChildNodeStencils)
     {
-        tSensitivityMap[tMesh.identifier(tStencil.childNode)] =
-            LevelSetJacobianColumn{node_ids_for_nodes(tMesh, tStencil.parentNodes),
-                                   coords_levelsets(coordsField, mLevelSetFields.front().isovar, tStencil.parentNodes)};
+        tSensitivityMap[tMesh.identifier(tStencil.childNode)] = LevelSetJacobianColumn{
+            node_ids_for_nodes(tMesh, tStencil.parentNodes),
+            coords_level_sets(coordsField, mLevelSetFields.front().isovar, tStencil.parentNodes)};
     }
 
     return tSensitivityMap;

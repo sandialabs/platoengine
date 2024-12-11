@@ -5,6 +5,7 @@
 #include <optional>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
@@ -54,6 +55,8 @@ class LevelSetTopology
     [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> linear_algebra::AdjointJacobianMultiplier;
 
+    [[nodiscard]] auto backgroundMesh() const -> const mesh::Mesh&;
+
    private:
     mesh::Mesh mBackgroundMesh;
     std::filesystem::path mCutMesh;
@@ -61,13 +64,13 @@ class LevelSetTopology
     third_party_integration::krino::VoidPhase mVoidRegion = third_party_integration::krino::VoidPhase::kExcludeFromMesh;
     double mLevelSetLowerBound = -1.0;
     double mLevelSetUpperBound = 1.0;
-    unsigned int mNumDesignParameters = 0;
     third_party_integration::krino::SpherePatternData mSpherePattern;
     third_party_integration::krino::LevelSetPrimitives mLevelSetPrimitives;
 };
 
-/// @brief Generate a geometry function, that can be composed with an objective function.
-[[nodiscard]] auto make_topology_geometry(const LevelSetTopology& aLevelSetTopology) -> library::GeometryFunction;
+/// @brief Create a LevelSetTopology Geometry function with a filter.
+auto make_level_set_geometry(const std::shared_ptr<LevelSetTopology>& aLevelSetTopology,
+                             const filter::library::FilterFunction& aFilterFunction) -> library::GeometryFunction;
 
 namespace detail
 {

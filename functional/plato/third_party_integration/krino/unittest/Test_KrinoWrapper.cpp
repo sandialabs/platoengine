@@ -115,7 +115,7 @@ TEST_F(KrinoTestFixture, GetSetLevelSetValues)
     std::iota(tLevelSetField.begin(), tLevelSetField.end(), 0.0);
     auto tKrinoWrapper = KrinoWrapper{tFilename, tLevelSetField};
 
-    const auto tLevelSetValuesFromKrino = tKrinoWrapper.levelsetValues();
+    const auto tLevelSetValuesFromKrino = tKrinoWrapper.levelSetValues();
 
     EXPECT_EQ(tLevelSetValuesFromKrino, tLevelSetField);
 
@@ -131,7 +131,7 @@ TEST_F(KrinoTestFixture, Redistance)
         LevelSetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{1, 0, 0}, /*.mOffset=*/-0.25}}, /*.mSpheres=*/{}};
     auto tKrinoWrapper = KrinoWrapper{tFilename, tPlane};
 
-    std::vector<double> tLevelSetValues = tKrinoWrapper.levelsetValues();
+    std::vector<double> tLevelSetValues = tKrinoWrapper.levelSetValues();
     const std::vector<double> tInitialGold = {-0.25, 0.75,  1.75, -0.25, 0.75, 1.75, -0.25, 0.75,
                                               1.75,  -0.25, 0.75, 1.75,  0.25, 1.25, 0.25,  1.25,
                                               -0.25, 0.25,  1.25, 1.75,  0.25, 1.25, 0.25,  1.25};
@@ -147,10 +147,10 @@ TEST_F(KrinoTestFixture, Redistance)
 
     tKrinoWrapper.setLevelSetValues(tLevelSetValues);
 
-    const std::vector<double> tLevelSetValues2 = tKrinoWrapper.levelsetValues();
+    const std::vector<double> tLevelSetValues2 = tKrinoWrapper.levelSetValues();
     EXPECT_EQ(tLevelSetValues, tLevelSetValues2);
     tKrinoWrapper.redistance();
-    const std::vector<double> tLevelSetValues3 = tKrinoWrapper.levelsetValues();
+    const std::vector<double> tLevelSetValues3 = tKrinoWrapper.levelSetValues();
     std::vector<double> tRedistancedGold = tInitialGold;
     for (auto &tCurVal : tRedistancedGold)
     {
@@ -178,7 +178,7 @@ TEST_F(KrinoTestFixture, Sensitivities)
     const auto tPredictedCoordValues =
         new_coordinates_based_on_perturbed_level_set_values(tKrinoWrapper, tCurCoordinateValues, tPerturbation);
 
-    auto tPerturbedLevelSetValues = tKrinoWrapper.levelsetValues();
+    auto tPerturbedLevelSetValues = tKrinoWrapper.levelSetValues();
     for (auto &tCurLS : tPerturbedLevelSetValues)
     {
         tCurLS += tPerturbation;

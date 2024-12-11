@@ -1,5 +1,5 @@
-#ifndef PLATO_FILTER_TESTUTILITIES_SHAREDLIBIDENTITYFILTER
-#define PLATO_FILTER_TESTUTILITIES_SHAREDLIBIDENTITYFILTER
+#ifndef PLATO_FILTER_TESTIDENTITYFILTER_SHAREDLIBIDENTITYFILTER
+#define PLATO_FILTER_TESTIDENTITYFILTER_SHAREDLIBIDENTITYFILTER
 
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -9,7 +9,7 @@ namespace plato::analysis
 struct AnalysisDomainMesh;
 }
 
-namespace plato::filter::test_utilities
+namespace plato::filter::test_identity_filter
 {
 /// @brief The purpose of this filter is to test the shared library interface.
 ///
@@ -31,6 +31,6 @@ class SharedLibIdentityFilter : public library::FilterInterface
         -> plato::linear_algebra::DynamicVector<double> override;
 };
 // CPD-ON
-}  // namespace plato::filter::test_utilities
+}  // namespace plato::filter::test_identity_filter
 
 #endif

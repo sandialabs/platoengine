@@ -7,7 +7,6 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/ValidationRegistration.hpp"
-#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -60,7 +59,6 @@ namespace detail
 /// @brief Validates that the `output_name` field in @a aInput has a value.
 [[nodiscard]] std::optional<std::string> validate_output_name(const input_parser::density_topology& aInput);
 
-[[nodiscard]] std::optional<std::string> validate_filter_with_mesh(const input_parser::density_topology& aInput);
 /// @brief Validates that all fixed block names in the input are unique.
 [[nodiscard]] std::optional<std::string> validate_unique_fixed_block_names(
     const input_parser::density_topology& aInput);

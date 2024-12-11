@@ -24,4 +24,5 @@ FilterFunction make_filter_function(const ValidatedFilterInput& aInput)
                                           core::block_name(aInput.rawInput())};
     }
 }
+
 }  // namespace plato::filter::library

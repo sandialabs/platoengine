@@ -7,6 +7,7 @@
 
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/InputParser.hpp"
@@ -19,6 +20,15 @@ namespace plato::process_manager::library::unittest
 {
 namespace
 {
+struct DensityTopologyMeshNameAccessor
+{
+    auto operator()(const input_parser::density_topology& aDensityTopology) const
+        -> const boost::optional<input_parser::FileName>&
+    {
+        return aDensityTopology.mesh_name;
+    }
+};
+
 void generate_unit_element_mesh(const std::filesystem::path& aMeshFileName)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
@@ -33,9 +43,9 @@ void test_for_invalid_filter_radius(const input_parser::ParsedInput& aInput,
     generate_unit_element_mesh(tMeshFileName);
 
     auto tCrossLinkedInput = make_cross_linked_input(aInput);
-    EXPECT_TRUE(
-        geometry::extension::detail::validate_filter_with_mesh(tCrossLinkedInput.rawInput().mDensityTopology.value())
-            .has_value())
+    EXPECT_TRUE(geometry::library::validate_filter_with_mesh(tCrossLinkedInput.rawInput().mDensityTopology.value(),
+                                                             DensityTopologyMeshNameAccessor{})
+                    .has_value())
         << aTestContext;
 
     std::filesystem::remove(tMeshFileName);
@@ -52,9 +62,9 @@ void test_for_valid_filter_radius(const input_parser::ParsedInput& aInput,
     ASSERT_TRUE(tCrossLinkedInput.rawInput()
                     .mDensityTopology->filter->mInputBlock.template holds_expected_type<filter::library::FilterInput>())
         << aTestContext;
-    EXPECT_FALSE(
-        geometry::extension::detail::validate_filter_with_mesh(tCrossLinkedInput.rawInput().mDensityTopology.value())
-            .has_value())
+    EXPECT_FALSE(geometry::library::validate_filter_with_mesh(tCrossLinkedInput.rawInput().mDensityTopology.value(),
+                                                              DensityTopologyMeshNameAccessor{})
+                     .has_value())
         << aTestContext;
 
     std::filesystem::remove(tMeshFileName);
@@ -65,7 +75,7 @@ TEST(ValidateDensityTopologyCrossLinks, NoCrossLinkedFilter)
 {
     const auto tInput = test_utilities::create_valid_density_topology_geometry();
     ASSERT_FALSE(tInput.filter);
-    EXPECT_FALSE(geometry::extension::detail::validate_filter_with_mesh(tInput).has_value());
+    EXPECT_FALSE(geometry::library::validate_filter_with_mesh(tInput, DensityTopologyMeshNameAccessor{}).has_value());
 }
 
 TEST(ValidateDensityTopologyCrossLinks, CrossLinkIsNotToExpectedType)
@@ -74,7 +84,7 @@ TEST(ValidateDensityTopologyCrossLinks, CrossLinkIsNotToExpectedType)
     tInput.filter.emplace();
     tInput.filter->mInputBlock = input_parser::CrossReferencedInput{};
     ASSERT_TRUE(tInput.filter);
-    EXPECT_FALSE(geometry::extension::detail::validate_filter_with_mesh(tInput).has_value());
+    EXPECT_FALSE(geometry::library::validate_filter_with_mesh(tInput, DensityTopologyMeshNameAccessor{}).has_value());
 }
 
 TEST(ValidateDensityTopologyCrossLinks, HelmholtzFilterRadiusValid)

@@ -39,6 +39,7 @@ template <typename Geometry>
     }
     return std::nullopt;
 }
+
 }  // namespace detail
 
 }  // namespace plato::geometry::library

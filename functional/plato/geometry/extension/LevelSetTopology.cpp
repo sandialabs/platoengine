@@ -2,8 +2,11 @@
 
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/core/Compose.hpp"
+#include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
@@ -49,6 +52,12 @@ void initialize_krino()
     }
 }
 
+auto make_level_set_geometry(const input_parser::level_set_topology& aLevelSetTopology) -> library::GeometryFunction
+{
+    return make_level_set_geometry(std::make_shared<LevelSetTopology>(aLevelSetTopology),
+                                   library::make_filter_from_geometry_input(aLevelSetTopology));
+}
+
 /// Static registration for library
 [[maybe_unused]] static auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::level_set_topology>(),
@@ -58,7 +67,7 @@ void initialize_krino()
         const auto& tInput = core::validated_variant_raw_input<input_parser::level_set_topology>(aGeometryInput);
         auto tLevelSet = LevelSetTopology{tInput};
         return library::FactoryTypes{
-            make_topology_geometry(tLevelSet), tLevelSet.initialGuess(tInput.background_mesh_name.value().mToken),
+            make_level_set_geometry(tInput), tLevelSet.initialGuess(tInput.background_mesh_name.value().mToken),
             tLevelSet.bounds(tInput.background_mesh_name.value().mToken),
             make_topology_output(tInput.background_mesh_name.value().mToken, tInput.output_mesh_name.value().mToken)};
     }};
@@ -126,6 +135,16 @@ auto assembled_adjoint_jacobian_times_vector(
     return linear_algebra::DynamicVector<double>{std::move(tFlattenedAdjointJacobianTimesVector)};
 }
 
+auto sphere_pattern(const input_parser::level_set_topology& aInput) -> third_party_integration::krino::SpherePatternData
+{
+    return third_party_integration::krino::SpherePatternData{
+        {aInput.sphere_pattern_bbox_min_x.value(), aInput.sphere_pattern_bbox_min_y.value(),
+         aInput.sphere_pattern_bbox_min_z.value()},
+        {aInput.sphere_pattern_bbox_max_x.value(), aInput.sphere_pattern_bbox_max_y.value(),
+         aInput.sphere_pattern_bbox_max_z.value()},
+        aInput.sphere_pattern_radius.value(),
+        aInput.sphere_pattern_spacing.value()};
+}
 }  // namespace
 
 LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInput)
@@ -136,16 +155,10 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
                                                      : third_party_integration::krino::VoidPhase::kExcludeFromMesh),
       mLevelSetLowerBound(aInput.level_set_lower_bound.value()),
       mLevelSetUpperBound(aInput.level_set_upper_bound.value()),
-      mNumDesignParameters(mesh::EntityCounts{mBackgroundMesh}.numberOfNodes()),
-      mSpherePattern({{aInput.sphere_pattern_bbox_min_x.value(), aInput.sphere_pattern_bbox_min_y.value(),
-                       aInput.sphere_pattern_bbox_min_z.value()},
-                      {aInput.sphere_pattern_bbox_max_x.value(), aInput.sphere_pattern_bbox_max_y.value(),
-                       aInput.sphere_pattern_bbox_max_z.value()},
-                      aInput.sphere_pattern_radius.value(),
-                      aInput.sphere_pattern_spacing.value()}),
-      mLevelSetPrimitives{{}, tpik::generate_spheres(mSpherePattern)}
+      mLevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(aInput))}
 {
 }
+
 LevelSetTopology::~LevelSetTopology() { std::filesystem::remove(mCutMesh); }
 
 auto LevelSetTopology::bounds(const std::filesystem::path& aMeshFileName) const
@@ -166,17 +179,6 @@ auto LevelSetTopology::initialGuess(const std::filesystem::path& aMeshFileName) 
 auto LevelSetTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
     -> analysis::AnalysisDomainMesh
 {
-    /* When introducing filtering do the following:
-    1. Add member variable mMesh that represents the background mesh (See density class).
-    2. Add mFilter member variable.
-    3. In this function:
-        a. Call mFilter.f() on the passed-in design variables.  This will return an AnalysisDomainMesh.
-        b. Use mesh::DesignVariableConversion class to convert filtered design variables in the AnalysisDomainMesh
-           into a std::vector (see member function for doing this).
-        c. Pass the filtered design variables in to generate_computational_mesh().
-        d. Keep the same return statement that initializes an AnalysisDomainMesh with the cut mesh
-           name and an empty design variable map.
-    */
     tpik::generate_computational_mesh(tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()},
                                       tpik::CutMeshFilePath{mCutMesh}, aDesignParameters.stdVector(), mVoidRegion);
     return analysis::AnalysisDomainMesh{mCutMesh, {}};
@@ -186,13 +188,8 @@ linear_algebra::JacobianMultiplier LevelSetTopology::jacobian(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
     return linear_algebra::JacobianMultiplier{
-        [this, &aDesignParameters](const linear_algebra::DynamicVector<double>& aVector)
+        [this, aDesignParameters](const linear_algebra::DynamicVector<double>& aVector)
         {
-            /* When introducing filtering do the following:
-            return DFDLS * mFilter.df(tAnalysisDomainMesh); where tAnalysisDomainMesh corresponds to the
-            background mesh that the design variables live on.  This can be created with a DesignVariableConverter (see
-            DensityToplogy::jacobian() for example)
-            */
             const auto& tLevelSetJacobian = tpik::generate_computational_mesh(
                 tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()}, tpik::CutMeshFilePath{mCutMesh},
                 aDesignParameters.stdVector(), mVoidRegion);
@@ -217,7 +214,7 @@ auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
 {
     return linear_algebra::AdjointJacobianMultiplier{
         linear_algebra::JacobianMultiplier{
-            [this, &aDesignParameters](const linear_algebra::DynamicVector<double>& aVector)
+            [this, aDesignParameters](const linear_algebra::DynamicVector<double>& aVector)
             {
                 const auto tAdjointJacobianTimesVector =
                     adjoint_jacobian_times_vector(aDesignParameters, mBackgroundMesh, mCutMesh, mVoidRegion, aVector);
@@ -238,15 +235,20 @@ void LevelSetTopology::output(const std::filesystem::path& aInputMeshName,
                                                          kLevelSetFixedValue);
 }
 
-auto make_topology_geometry(const LevelSetTopology& aLevelSetTopology) -> library::GeometryFunction
+auto LevelSetTopology::backgroundMesh() const -> const mesh::Mesh& { return mBackgroundMesh; }
+
+auto make_level_set_geometry(const std::shared_ptr<LevelSetTopology>& aLevelSetTopology,
+                             const filter::library::FilterFunction& aFilterFunction) -> library::GeometryFunction
 {
-    return library::GeometryFunction{
-        [tLevelSetTopology = aLevelSetTopology](const linear_algebra::DynamicVector<double>& x)
-        { return tLevelSetTopology.generateMesh(x); },
-        [tLevelSetTopology = aLevelSetTopology](const linear_algebra::DynamicVector<double>& x)
-        { return tLevelSetTopology.jacobian(x); },
-        [tLevelSetTopology = aLevelSetTopology](const linear_algebra::DynamicVector<double>& x)
-        { return linear_algebra::AdjointJacobianMultiplier{tLevelSetTopology.adjointJacobian(x)}; }};
+    auto tGeometryFunction = library::GeometryFunction{
+        [aLevelSetTopology](const linear_algebra::DynamicVector<double>& x)
+        { return aLevelSetTopology->generateMesh(x); },
+        [aLevelSetTopology](const linear_algebra::DynamicVector<double>& x) { return aLevelSetTopology->jacobian(x); },
+        [aLevelSetTopology](const linear_algebra::DynamicVector<double>& x)
+        { return linear_algebra::AdjointJacobianMultiplier{aLevelSetTopology->adjointJacobian(x)}; }};
+
+    const auto tAdaptedFilter = library::adapt_filter(aFilterFunction, aLevelSetTopology->backgroundMesh());
+    return core::compose(tGeometryFunction, tAdaptedFilter);
 }
 
 namespace detail

@@ -7,9 +7,11 @@
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
+#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
@@ -24,7 +26,6 @@ namespace plato::geometry::extension
 {
 namespace
 {
-
 constexpr double kDensityLowerBound = 0.0;
 constexpr double kDensityUpperBound = 1.0;
 constexpr double kDensityFixedValue = 1.0;
@@ -40,26 +41,16 @@ constexpr auto kUnfilteredControlsFieldName = std::string_view{"UnfilteredDensit
     { return DensityTopology::output(aSolution, aInput); };
 }
 
-[[nodiscard]] auto make_filter(const input_parser::density_topology& aInput) -> filter::library::FilterFunction
-{
-    return filter::library::make_filter_function(
-        library::get_cross_referenced_filter<plato::filter::library::ValidatedFilterInput>(aInput));
-}
-
 [[nodiscard]] auto make_topology_geometry(const input_parser::density_topology& aInput) -> library::GeometryFunction
 {
-    const auto tDensityTopology = std::make_shared<DensityTopology>(aInput, make_filter(aInput));
+    const auto tDensityTopology =
+        std::make_shared<DensityTopology>(aInput, library::make_filter_from_geometry_input(aInput));
     return library::GeometryFunction{[tDensityTopology](const linear_algebra::DynamicVector<double>& x)
                                      { return tDensityTopology->generateMesh(x); },
                                      [tDensityTopology](const linear_algebra::DynamicVector<double>& x)
                                      { return tDensityTopology->jacobian(x); },
                                      [tDensityTopology](const linear_algebra::DynamicVector<double>& x)
                                      { return tDensityTopology->adjointJacobian(x); }};
-}
-
-[[nodiscard]] bool filter_is_cross_linked(const input_parser::density_topology& aInput)
-{
-    return aInput.filter->mInputBlock.template holds_expected_type<plato::filter::library::FilterInput>();
 }
 
 /// Static registration for library
@@ -76,7 +67,11 @@ constexpr auto kUnfilteredControlsFieldName = std::string_view{"UnfilteredDensit
 [[maybe_unused]] static auto kDensityTopologyValidationRegistration =
     core::ValidationRegistration<input_parser::density_topology>{
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
-        [](const input_parser::density_topology& aInput) { return detail::validate_filter_with_mesh(aInput); },
+        [](const input_parser::density_topology& aInput)
+        {
+            return library::validate_filter_with_mesh(
+                aInput, [](const auto& aDensityTopology) { return aDensityTopology.mesh_name; });
+        },
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_file_exists(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_unique_fixed_block_names(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_fixed_block_names_exist(aInput); },
@@ -185,7 +180,7 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
     const auto& tOutputMeshName = aInput.output_name->mToken;
     const auto tRestartMeshName = std::string{kRestartFileNamePrefix} + tOutputMeshName;
     const auto tMesh = detail::mesh_from_input(aInput);
-    const auto tFilter = make_filter(aInput);
+    const auto tFilter = library::make_filter_from_geometry_input(aInput);
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aSolution.stdVector()});
 
@@ -205,28 +200,6 @@ std::optional<std::string> validate_output_name(const input_parser::density_topo
 {
     return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::density_topology>(),
                                                    aInput.output_name, "output_name");
-}
-
-std::optional<std::string> validate_filter_with_mesh(const input_parser::density_topology& aInput)
-{
-    if (!aInput.filter || !filter_is_cross_linked(aInput) || !aInput.mesh_name.has_value())
-    {
-        return std::nullopt;
-    }
-
-    std::vector<std::string> tCurrentMessageList{};
-    tCurrentMessageList = std::visit(
-        [&aInput, tList = std::move(tCurrentMessageList)](const auto& aVariant) mutable -> std::vector<std::string>
-        {  // NOLINTNEXTLINE
-            return core::validate(aVariant, std::move(tList), std::filesystem::path{aInput.mesh_name.value().mToken});
-        },
-        library::get_cross_referenced_filter<plato::filter::library::FilterInput>(aInput));
-
-    if (!tCurrentMessageList.empty())
-    {
-        return utilities::concatenate_container(tCurrentMessageList, "\n");
-    }
-    return std::nullopt;
 }
 
 std::optional<std::string> validate_unique_fixed_block_names(const input_parser::density_topology& aInput)

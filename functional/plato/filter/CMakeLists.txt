@@ -16,14 +16,17 @@ set(LINK_LIBS PlatoFunctionalCore
 create_plato_library(PlatoFunctionalFilter "${FOLDERS}" "${LINK_LIBS}")
 
 if( UNIT_TESTING )
+  # Build test utilities lib
+  create_plato_library(PlatoFunctionalFilterTestUtilities test_utilities PlatoFunctionalFilter)
+
   # Build test filter shared lib
-  create_plato_library(PlatoIdentityFilter test_utilities PlatoFunctionalFilter)
+  create_plato_library(PlatoIdentityFilter test_identity_filter PlatoFunctionalFilter)
 
   # Build unit tester
   set(FOLDERS library/unittest
               extension/unittest
               extension/test_utilities)
-  create_plato_unittester(PlatoFunctionalFilter "${FOLDERS}")
+  create_plato_unittester(PlatoFunctionalFilter "${FOLDERS}" PlatoFunctionalFilterTestUtilities)
 
   set(DIRECTORIES extension/parallel_unittest
                   extension/test_utilities)

@@ -12,7 +12,6 @@
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/extension/LinearMaskBuilder.hpp"
-#include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"

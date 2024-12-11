@@ -5,28 +5,26 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/utilities/NamedType.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::filter::library
 {
 class FilterInterface;
 
-/// @brief A wrapper for a filter and a filter argument, used for implementing operator*.
-struct FilterJacobian
-{
-    std::shared_ptr<FilterInterface> mFilter;
-    analysis::AnalysisDomainMesh mAnalysisDomainMesh;
-};
+using FilterJacobian = linear_algebra::JacobianMultiplier;
+using FilterAdjointJacobian = linear_algebra::AdjointJacobianMultiplier;
 
-using FilterAdjointJacobian = utilities::NamedType<FilterJacobian, struct FilterAdjointJacobianTag>;
+/// @brief Creates a JacobianMultiplier from a FilterInterface object, evaluated at @a aAnalysisDomainMesh.
+/// @pre @a aFilter must not be `nullptr`.
+auto make_filter_jacobian(std::shared_ptr<FilterInterface> aFilter, analysis::AnalysisDomainMesh aAnalysisDomainMesh)
+    -> linear_algebra::JacobianMultiplier;
 
-/// @pre `FilterJacobian::mFilter` must not be `nullptr`.
-[[nodiscard]] auto operator*(const linear_algebra::DynamicVector<double>& aV, const FilterJacobian& aJacobian)
-    -> linear_algebra::DynamicVector<double>;
-
-/// @pre `FilterJacobian::mFilter` must not be `nullptr`.
-[[nodiscard]] auto operator*(const linear_algebra::DynamicVector<double>& aV, const FilterAdjointJacobian& aJacobian)
-    -> linear_algebra::DynamicVector<double>;
+/// @brief Creates an AdjointJacobianMultiplier from a FilterInterface object, evaluated at @a aAnalysisDomainMesh.
+/// @pre @a aFilter must not be `nullptr`.
+auto make_filter_adjoint_jacobian(std::shared_ptr<FilterInterface> aFilter,
+                                  analysis::AnalysisDomainMesh aAnalysisDomainMesh)
+    -> linear_algebra::AdjointJacobianMultiplier;
 
 }  // namespace plato::filter::library
+
 #endif

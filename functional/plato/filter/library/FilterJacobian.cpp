@@ -6,19 +6,25 @@
 
 namespace plato::filter::library
 {
-auto operator*(const linear_algebra::DynamicVector<double>& aV, const FilterJacobian& aJacobian)
-    -> linear_algebra::DynamicVector<double>
+auto make_filter_jacobian(std::shared_ptr<FilterInterface> aFilter, analysis::AnalysisDomainMesh aAnalysisDomainMesh)
+    -> linear_algebra::JacobianMultiplier
 {
-    assert(aJacobian.mFilter);
-    return aJacobian.mFilter->rowVectorTimesJacobian(aJacobian.mAnalysisDomainMesh, aV);
+    assert(aFilter);
+    return linear_algebra::JacobianMultiplier{
+        [tFilter = std::move(aFilter),
+         tAnalysisDomainMesh = std::move(aAnalysisDomainMesh)](const linear_algebra::DynamicVector<double>& aRowVector)
+        { return tFilter->rowVectorTimesJacobian(tAnalysisDomainMesh, aRowVector); }};
 }
 
-auto operator*(const linear_algebra::DynamicVector<double>& aV, const FilterAdjointJacobian& aAdjointJacobian)
-    -> linear_algebra::DynamicVector<double>
+auto make_filter_adjoint_jacobian(std::shared_ptr<FilterInterface> aFilter,
+                                  analysis::AnalysisDomainMesh aAnalysisDomainMesh)
+    -> linear_algebra::AdjointJacobianMultiplier
 {
-    assert(aAdjointJacobian.mValue.mFilter);
-    return aAdjointJacobian.mValue.mFilter->rowVectorTimesAdjointJacobian(aAdjointJacobian.mValue.mAnalysisDomainMesh,
-                                                                          aV);
+    assert(aFilter);
+    return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{
+        [tFilter = std::move(aFilter),
+         tAnalysisDomainMesh = std::move(aAnalysisDomainMesh)](const linear_algebra::DynamicVector<double>& aRowVector)
+        { return tFilter->rowVectorTimesAdjointJacobian(tAnalysisDomainMesh, aRowVector); }}};
 }
 
 }  // namespace plato::filter::library
