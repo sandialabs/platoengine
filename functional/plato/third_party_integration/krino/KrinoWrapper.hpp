@@ -28,12 +28,13 @@ class KrinoWrapper
    public:
     KrinoWrapper(const std::filesystem::path &aFilename,
                  const LevelSetPrimitives &aLevelSetPrimitives,
-                 const VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
+                 VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
     KrinoWrapper(const std::filesystem::path &aFilename,
                  const std::vector<double> &aLevelSetValues,
-                 const VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
-    explicit KrinoWrapper(const analysis::AnalysisDomainMesh &aAnalysisDomainMesh,
-                 const VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
+                 VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
+    KrinoWrapper(const analysis::AnalysisDomainMesh &aAnalysisDomainMesh,
+                 double aFixedLevelSetValue,
+                 VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
 
     void setLevelSetValues(const std::vector<double> &aValuesIn);
     void writeMesh(const std::filesystem::path &aFilename);

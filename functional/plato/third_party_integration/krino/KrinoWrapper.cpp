@@ -124,6 +124,17 @@ void append_planes(::krino::Composite_Surface &aSurfaces, const std::vector<Plan
     }
 }
 
+void initialize_level_set_field_to_fixed_value(::krino::MeshInterface &aKrinoMesh,
+                                               std::vector<::krino::LS_Field> &aLevelSetFields,
+                                               const double aFixedLevelSetValue)
+{
+    const auto tNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
+    for (const auto tNode : tNodes)
+    {
+        *::krino::field_data<double>(aLevelSetFields.front().isovar, tNode) = aFixedLevelSetValue;
+    }
+}
+
 void initialize_level_sets_from_primitives(const LevelSetPrimitives &aLevelSetPrimitives,
                                            const ::krino::MeshInterface &aKrinoMesh,
                                            std::vector<::krino::LS_Field> &aLevelSetFields)
@@ -164,6 +175,20 @@ auto read_and_setup_for_decomposition(const std::filesystem::path &aFilename) ->
     return tMeshFromFile;
 }
 
+void set_level_set_fields(::krino::MeshInterface &aKrinoMesh,
+                          std::vector<::krino::LS_Field> &aLevelSetFields,
+                          const analysis::AnalysisDomainMesh &aAnalysisDomainMesh)
+{
+    for (const auto &tScalarFieldValueProxy : analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
+    {
+        const auto &tScalarFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValueProxy);
+        const auto tStkEntity =
+            aKrinoMesh.bulk_data().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
+        *::krino::field_data<double>(aLevelSetFields.front().isovar, tStkEntity) = tScalarFieldValue.mValue;
+    }
+    cut_mesh(aKrinoMesh.bulk_data(), aLevelSetFields);
+}
+
 }  // namespace
 
 KrinoWrapper::KrinoWrapper(const std::filesystem::path &aFilename,
@@ -187,25 +212,21 @@ KrinoWrapper::KrinoWrapper(const std::filesystem::path &aFilename,
     setLevelSetValues(aLevelSetValues);
 }
 
-KrinoWrapper::KrinoWrapper(const analysis::AnalysisDomainMesh &aAnalysisDomainMesh, const VoidPhase aVoidRegion)
+KrinoWrapper::KrinoWrapper(const analysis::AnalysisDomainMesh &aAnalysisDomainMesh,
+                           const double aFixedLevelSetValue,
+                           const VoidPhase aVoidRegion)
     : mVoidRegion(aVoidRegion),
       mKrinoMesh(read_and_setup_for_decomposition(aAnalysisDomainMesh.mFileName)),
       mLevelSetFields(::krino::Phase_Support::get_levelset_fields(mKrinoMesh->meta_data()))
 {
-    for (const auto &tScalarFieldValueProxy : analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
-    {
-        const auto &tScalarFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValueProxy);
-        const auto tStkEntity =
-            mKrinoMesh->bulk_data().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
-        *::krino::field_data<double>(mLevelSetFields.front().isovar, tStkEntity) = tScalarFieldValue.mValue;
-    }
-    cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields);
+    initialize_level_set_field_to_fixed_value(*mKrinoMesh, mLevelSetFields, aFixedLevelSetValue);
+    set_level_set_fields(*mKrinoMesh, mLevelSetFields, aAnalysisDomainMesh);
 }
 
 void KrinoWrapper::setLevelSetValues(const std::vector<double> &aValuesIn)
 {
     ::krino::CDMesh::reset_mesh_to_original_undecomposed_state(mKrinoMesh->bulk_data());
-    stk::mesh::EntityVector tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
+    const auto tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
     assert(aValuesIn.size() == tNodes.size());
 
     for (const auto &[tNode, tLevelSetValue] : utilities::Zip{tNodes, aValuesIn})
@@ -227,7 +248,7 @@ void KrinoWrapper::writeMesh(const std::filesystem::path &aFilename)
 
 std::vector<double> KrinoWrapper::levelSetValues() const
 {
-    stk::mesh::EntityVector tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
+    const auto tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
     std::vector<double> tReturn;
     tReturn.reserve(tNodes.size());
     std::transform(tNodes.begin(), tNodes.end(), std::back_inserter(tReturn),

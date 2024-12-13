@@ -222,8 +222,8 @@ TEST_F(TwoBlockMeshKrinoFixture, TwoBlockCtor)
     const auto tBlock2 = std::vector<analysis::ScalarFieldValue>{
         {5, 4, 5.0}, {6, 5, 6.0}, {7, 6, 7.0}, {8, 7, 8.0}, {9, 8, 9.0}, {10, 9, 10.0}, {11, 10, 11.0}, {12, 11, 12.0}};
     const auto tTestMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, tBlock1}, {2U, tBlock2}}};
-
-    const auto tKrinoWrapper = KrinoWrapper{tTestMesh};
+    constexpr auto tFixedLevelSetValue = 1.0;
+    const auto tKrinoWrapper = KrinoWrapper{tTestMesh, tFixedLevelSetValue};
 
     // Level-set values
     {
@@ -247,6 +247,30 @@ TEST_F(TwoBlockMeshKrinoFixture, TwoBlockCtor)
             EXPECT_EQ(tExpectedCoordinate.z, tCoordinate[2]) << "Index: " << tIndex;
         }
     }
+}
+
+TEST_F(TwoBlockMeshKrinoFixture, OneFixedBlock)
+{
+    const auto tBlock1 = std::vector<analysis::ScalarFieldValue>{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}, {4, 3, 4.0},
+                                                                 {5, 4, 5.0}, {6, 5, 6.0}, {7, 6, 7.0}, {8, 7, 8.0}};
+    const auto tTestMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, tBlock1}}};
+    constexpr auto tFixedLevelSetValue = -1.0;
+    const auto tKrinoWrapper = KrinoWrapper{tTestMesh, tFixedLevelSetValue};
+
+    const auto tExpectedLevelSetValues = std::vector{1.0,
+                                                     2.0,
+                                                     3.0,
+                                                     4.0,
+                                                     5.0,
+                                                     6.0,
+                                                     7.0,
+                                                     8.0,
+                                                     tFixedLevelSetValue,
+                                                     tFixedLevelSetValue,
+                                                     tFixedLevelSetValue,
+                                                     tFixedLevelSetValue};
+    const auto tLevelSetValues = tKrinoWrapper.levelSetValues();
+    EXPECT_EQ(tExpectedLevelSetValues, tLevelSetValues);
 }
 
 }  // namespace plato::third_party_integration::krino::unittest

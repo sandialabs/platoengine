@@ -58,7 +58,8 @@ auto generate_computational_mesh(const analysis::AnalysisDomainMesh &aBackground
                                  const VoidPhase aVoidRegion)
     -> std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshWithLevelSets, aVoidRegion);
+    constexpr auto tFixedLevelSetValue = 100.0;
+    KrinoWrapper tKrinoWrapper(aBackgroundMeshWithLevelSets, tFixedLevelSetValue, aVoidRegion);
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
     return tKrinoWrapper.sensitivities();
 }
