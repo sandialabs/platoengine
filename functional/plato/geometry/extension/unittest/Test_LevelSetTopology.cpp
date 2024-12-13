@@ -238,7 +238,7 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianTranspose)
     }
 }
 
-TEST_F(LevelSetTopologyFixture, GenerateMesh)
+TEST_F(LevelSetTopologyFixture, GenerateMeshRegression)
 {
     create_background_mesh(kLevelSetInput.background_mesh_name->mToken, 0.5);
     auto tLevelSetTopology = std::make_unique<LevelSetTopology>(kLevelSetInput);

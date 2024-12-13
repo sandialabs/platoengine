@@ -8,6 +8,11 @@
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/NamedType.hpp"
 
+namespace plato::analysis
+{
+struct AnalysisDomainMesh;
+}
+
 namespace plato::third_party_integration::krino
 {
 
@@ -16,14 +21,14 @@ using CutMeshFilePath = utilities::NamedType<std::filesystem::path, struct Backg
 
 using LevelSetJacobian = std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>;
 
-/// @brief Generate a computational mesh, @a aCutMesh, by cutting a background mesh,
-/// @a aBackgroundMeshName, with the given level set values, @a aLevelSetValues.  Returns the
-/// sensitivities of the computational mesh's boundary nodes with respect to the level set values.
-/// @a aIncludeVoidRegion specifies whether to include the void region defined by the
-/// level set values in the computational mesh.
-auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshName,
+/// @brief Generates a computational mesh, @a aCutMesh, by cutting a background mesh.
+/// @param aBackgroundMeshWithLevelSets AnalysisDomainMesh whose scalar field contains the level set values.
+/// @param aCutMesh File path at which to create the cut mesh.
+/// @param aIncludeVoidRegion specifies whether to include the void region defined by the level set values in the
+/// computational mesh.
+/// @return The sensitivities of the computational mesh's boundary nodes with respect to the level set values.
+auto generate_computational_mesh(const analysis::AnalysisDomainMesh &aBackgroundMeshWithLevelSets,
                                  const CutMeshFilePath &aCutMesh,
-                                 const std::vector<double> &aLevelSetValues,
                                  const VoidPhase aVoidRegion) -> LevelSetJacobian;
 
 /// @brief Generate a computational mesh, @a aCutMesh, by cutting a background mesh,

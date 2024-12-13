@@ -91,9 +91,13 @@ auto adjoint_jacobian_times_vector(const linear_algebra::DynamicVector<double>& 
                                    const linear_algebra::DynamicVector<double>& aVector)
     -> std::unordered_map<tpik::KrinoGlobalNodeID, stk::math::Vector3d>
 {
-    const auto& tLevelSetJacobian = tpik::generate_computational_mesh(
-        tpik::BackgroundMeshFilePath{aBackgroundMesh.filePath()}, tpik::CutMeshFilePath{aCutMeshPath},
-        aDesignParameters.stdVector(), aVoidRegion);
+    const auto tDesignVariableConverter = mesh::DesignVariablesConversion{aBackgroundMesh};
+
+    const auto tBackgroundMeshWithLevelSets = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(
+        mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
+    const auto& tLevelSetJacobian = tpik::generate_computational_mesh(tBackgroundMeshWithLevelSets,
+                                                                      tpik::CutMeshFilePath{aCutMeshPath}, aVoidRegion);
+
     const auto tLevelSetSpaceVector = mesh::DesignVariablesConversion{aBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aVector.stdVector()});
     return tpik::level_set_row_vector_adjoint_jacobian_product(tLevelSetSpaceVector, tLevelSetJacobian);
@@ -101,8 +105,8 @@ auto adjoint_jacobian_times_vector(const linear_algebra::DynamicVector<double>& 
 
 auto analysis_domain_mesh(const mesh::Mesh& aMesh) -> analysis::AnalysisDomainMesh
 {
-    const auto tNumberOfCutMeshNodes = mesh::EntityCounts{aMesh}.numberOfNodes();
-    const auto tMeshField = std::vector(tNumberOfCutMeshNodes, 0.0);
+    const auto tNumberOfMeshNodes = mesh::EntityCounts{aMesh}.numberOfNodes();
+    const auto tMeshField = std::vector(tNumberOfMeshNodes, 0.0);
     return mesh::DesignVariablesConversion{aMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tMeshField});
 }
@@ -179,8 +183,11 @@ auto LevelSetTopology::initialGuess(const std::filesystem::path& aMeshFileName) 
 auto LevelSetTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
     -> analysis::AnalysisDomainMesh
 {
-    tpik::generate_computational_mesh(tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()},
-                                      tpik::CutMeshFilePath{mCutMesh}, aDesignParameters.stdVector(), mVoidRegion);
+    const auto tAnalysisMesh = mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
+        mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
+
+    tpik::generate_computational_mesh(tAnalysisMesh, tpik::CutMeshFilePath{mCutMesh}, mVoidRegion);
+
     return analysis::AnalysisDomainMesh{mCutMesh, {}};
 }
 
@@ -190,13 +197,17 @@ auto LevelSetTopology::jacobian(const linear_algebra::DynamicVector<double>& aDe
     return linear_algebra::JacobianMultiplier{
         [this, aDesignParameters](const linear_algebra::DynamicVector<double>& aVector)
         {
+            auto tBackgroundMeshWithLevelSetField =
+                mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
+                    mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
+
             const auto& tLevelSetJacobian = tpik::generate_computational_mesh(
-                tpik::BackgroundMeshFilePath{mBackgroundMesh.filePath()}, tpik::CutMeshFilePath{mCutMesh},
-                aDesignParameters.stdVector(), mVoidRegion);
+                tBackgroundMeshWithLevelSetField, tpik::CutMeshFilePath{mCutMesh}, mVoidRegion);
+
             const auto tCutMeshSpaceVector = analysis_domain_mesh(mCutMesh);
 
             const auto tVectorJacobianProduct = tpik::level_set_row_vector_jacobian_product(
-                aVector.stdVector(), tCutMeshSpaceVector, tLevelSetJacobian, analysis_domain_mesh(mBackgroundMesh));
+                aVector.stdVector(), tCutMeshSpaceVector, tLevelSetJacobian, std::move(tBackgroundMeshWithLevelSetField));
 
             const auto tVectorJacobianProductView = analysis::AnalysisDomainMeshSequentialView{tVectorJacobianProduct};
             auto tResultVector = std::vector<double>(tVectorJacobianProductView.size(), 0.0);

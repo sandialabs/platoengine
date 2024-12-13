@@ -108,11 +108,6 @@ void cut_mesh(stk::mesh::BulkData &aMesh, const std::vector<::krino::LS_Field> &
     return tNodes;
 }
 
-void reset_mesh(::krino::MeshInterface &aKrinoMesh)
-{
-    ::krino::CDMesh::reset_mesh_to_original_undecomposed_state(aKrinoMesh.bulk_data());
-}
-
 void append_spheres(::krino::Composite_Surface &aSurfaces, const std::vector<Sphere> &aSpheres)
 {
     for (const auto &tSphere : aSpheres)
@@ -166,8 +161,6 @@ auto read_and_setup_for_decomposition(const std::filesystem::path &aFilename) ->
     tMeshFromFile->populate_mesh();
     ::krino::activate_all_entities(tMeshFromFile->bulk_data(),
                                    ::krino::AuxMetaData::get(tMeshFromFile->meta_data()).active_part());
-    stk::mesh::EntityVector tNodes;
-    stk::mesh::get_entities(tMeshFromFile->bulk_data(), stk::topology::NODE_RANK, tNodes);
     return tMeshFromFile;
 }
 
@@ -190,7 +183,6 @@ KrinoWrapper::KrinoWrapper(const std::filesystem::path &aFilename,
     : mVoidRegion(aVoidRegion),
       mKrinoMesh(read_and_setup_for_decomposition(aFilename)),
       mLevelSetFields(::krino::Phase_Support::get_levelset_fields(mKrinoMesh->meta_data()))
-
 {
     setLevelSetValues(aLevelSetValues);
 }
@@ -203,15 +195,16 @@ KrinoWrapper::KrinoWrapper(const analysis::AnalysisDomainMesh &aAnalysisDomainMe
     for (const auto &tScalarFieldValueProxy : analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
     {
         const auto &tScalarFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValueProxy);
-        const auto tStkEntity = stk::mesh::Entity{
-            static_cast<typename stk::mesh::Entity::entity_value_type>(tScalarFieldValue.mGlobalMeshEntityID)};
+        const auto tStkEntity =
+            mKrinoMesh->bulk_data().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
         *::krino::field_data<double>(mLevelSetFields.front().isovar, tStkEntity) = tScalarFieldValue.mValue;
     }
+    cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields);
 }
 
 void KrinoWrapper::setLevelSetValues(const std::vector<double> &aValuesIn)
 {
-    reset_mesh(*mKrinoMesh);
+    ::krino::CDMesh::reset_mesh_to_original_undecomposed_state(mKrinoMesh->bulk_data());
     stk::mesh::EntityVector tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
     assert(aValuesIn.size() == tNodes.size());
 

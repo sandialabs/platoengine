@@ -4,6 +4,7 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
+#include "plato/analysis/Utilities.hpp"
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/utilities/IndexRange.hpp"
@@ -52,13 +53,12 @@ auto assemble_vector_jacobian_product_entry(analysis::AnalysisDomainMesh &&aVect
 }
 }  // namespace
 
-auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshName,
+auto generate_computational_mesh(const analysis::AnalysisDomainMesh &aBackgroundMeshWithLevelSets,
                                  const CutMeshFilePath &aCutMesh,
-                                 const std::vector<double> &aLevelSetValues,
                                  const VoidPhase aVoidRegion)
     -> std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelSetValues, aVoidRegion);
+    KrinoWrapper tKrinoWrapper(aBackgroundMeshWithLevelSets, aVoidRegion);
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
     return tKrinoWrapper.sensitivities();
 }
@@ -79,6 +79,8 @@ auto level_set_row_vector_jacobian_product(
     const std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn> &aLevelSetJacobian,
     analysis::AnalysisDomainMesh &&aBackgroundMeshSpaceIDs) -> analysis::AnalysisDomainMesh
 {
+    aBackgroundMeshSpaceIDs = analysis::zero_scalar_field(std::move(aBackgroundMeshSpaceIDs));
+
     const auto tCutMeshSpaceRandomAccessView = analysis::AnalysisDomainMeshRandomAccessView{aCutMeshSpaceIDs};
     for (const auto &[tCurInterfaceNodeID, tLevelSetJacobianColumn] : aLevelSetJacobian)
     {
