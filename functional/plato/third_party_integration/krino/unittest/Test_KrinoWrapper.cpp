@@ -4,10 +4,13 @@
 #include <numeric>
 #include <string>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/unittest/KrinoTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/utilities/Enumerate.hpp"
 
 namespace plato::third_party_integration::krino::unittest
 {
@@ -16,6 +19,22 @@ namespace
 constexpr int kNumDimensions = 3;
 
 const auto kUnitBoundingBox = BoundingBox{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}};
+
+class TwoBlockMeshKrinoFixture : public stk_io::test_utilities::ThreeDTwoBlockTetMesh, public KrinoTestFixture
+{
+   public:
+    void SetUp() override
+    {
+        KrinoTestFixture::SetUp();
+        ThreeDTwoBlockTetMesh::SetUp();
+    }
+
+    void TearDown() override
+    {
+        KrinoTestFixture::TearDown();
+        ThreeDTwoBlockTetMesh::TearDown();
+    }
+};
 
 [[nodiscard]] auto number_of_tets_in_block(const KrinoWrapper &aKrinoWrapper, const std::string_view aBlockName)
     -> unsigned int
@@ -194,6 +213,40 @@ TEST_F(KrinoTestFixture, Sensitivities)
     }
 
     std::filesystem::remove(tFilename);
+}
+
+TEST_F(TwoBlockMeshKrinoFixture, TwoBlockCtor)
+{
+    const auto tBlock1 = std::vector<analysis::ScalarFieldValue>{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}, {4, 3, 4.0},
+                                                                 {5, 4, 5.0}, {6, 5, 6.0}, {7, 6, 7.0}, {8, 7, 8.0}};
+    const auto tBlock2 = std::vector<analysis::ScalarFieldValue>{
+        {5, 4, 5.0}, {6, 5, 6.0}, {7, 6, 7.0}, {8, 7, 8.0}, {9, 8, 9.0}, {10, 9, 10.0}, {11, 10, 11.0}, {12, 11, 12.0}};
+    const auto tTestMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, tBlock1}, {2U, tBlock2}}};
+
+    const auto tKrinoWrapper = KrinoWrapper{tTestMesh};
+
+    // Level-set values
+    {
+        const auto tLevelSetValues = tKrinoWrapper.levelSetValues();
+        for (const auto &[tIndex, tValue] : utilities::enumerate(tLevelSetValues))
+        {
+            EXPECT_EQ(tIndex + 1, tValue);
+        }
+    }
+
+    // Coordinates
+    {
+        const auto tCoordinates = tKrinoWrapper.coordinates();
+        const auto tMeshBulkData = stk_io::read_mesh_bulk_data(mMeshFilePath);
+        const auto tExpectedCoordinates = stk_io::nodal_coordinates(*tMeshBulkData);
+        for (const auto &[tIndex, tCoordinate] : tKrinoWrapper.coordinates())
+        {
+            const auto &tExpectedCoordinate = tExpectedCoordinates.at(tIndex - 1);
+            EXPECT_EQ(tExpectedCoordinate.x, tCoordinate[0]) << "Index: " << tIndex;
+            EXPECT_EQ(tExpectedCoordinate.y, tCoordinate[1]) << "Index: " << tIndex;
+            EXPECT_EQ(tExpectedCoordinate.z, tCoordinate[2]) << "Index: " << tIndex;
+        }
+    }
 }
 
 }  // namespace plato::third_party_integration::krino::unittest

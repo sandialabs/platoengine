@@ -184,8 +184,8 @@ auto LevelSetTopology::generateMesh(const linear_algebra::DynamicVector<double>&
     return analysis::AnalysisDomainMesh{mCutMesh, {}};
 }
 
-linear_algebra::JacobianMultiplier LevelSetTopology::jacobian(
-    const linear_algebra::DynamicVector<double>& aDesignParameters) const
+auto LevelSetTopology::jacobian(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+    -> linear_algebra::JacobianMultiplier
 {
     return linear_algebra::JacobianMultiplier{
         [this, aDesignParameters](const linear_algebra::DynamicVector<double>& aVector)

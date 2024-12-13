@@ -16,7 +16,7 @@ namespace
 const std::string_view kLogFile = "Krino_Test.txt";
 }
 
-class KrinoTestFixture : public ::testing::Test
+class KrinoTestFixture : virtual public ::testing::Test
 {
    protected:
     void SetUp() override

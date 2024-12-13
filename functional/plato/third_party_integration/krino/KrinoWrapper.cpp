@@ -19,9 +19,12 @@
 #include <stk_util/environment/EnvData.hpp>
 #include <string_view>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::krino
 {
@@ -192,16 +195,29 @@ KrinoWrapper::KrinoWrapper(const std::filesystem::path &aFilename,
     setLevelSetValues(aLevelSetValues);
 }
 
+KrinoWrapper::KrinoWrapper(const analysis::AnalysisDomainMesh &aAnalysisDomainMesh, const VoidPhase aVoidRegion)
+    : mVoidRegion(aVoidRegion),
+      mKrinoMesh(read_and_setup_for_decomposition(aAnalysisDomainMesh.mFileName)),
+      mLevelSetFields(::krino::Phase_Support::get_levelset_fields(mKrinoMesh->meta_data()))
+{
+    for (const auto &tScalarFieldValueProxy : analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
+    {
+        const auto &tScalarFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValueProxy);
+        const auto tStkEntity = stk::mesh::Entity{
+            static_cast<typename stk::mesh::Entity::entity_value_type>(tScalarFieldValue.mGlobalMeshEntityID)};
+        *::krino::field_data<double>(mLevelSetFields.front().isovar, tStkEntity) = tScalarFieldValue.mValue;
+    }
+}
+
 void KrinoWrapper::setLevelSetValues(const std::vector<double> &aValuesIn)
 {
     reset_mesh(*mKrinoMesh);
     stk::mesh::EntityVector tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
     assert(aValuesIn.size() == tNodes.size());
 
-    for (const auto &[tIndex, tNode] : utilities::enumerate(tNodes))
+    for (const auto &[tNode, tLevelSetValue] : utilities::Zip{tNodes, aValuesIn})
     {
-        double *tDistance = ::krino::field_data<double>(mLevelSetFields.front().isovar, tNode);
-        *tDistance = aValuesIn[tIndex];
+        *::krino::field_data<double>(mLevelSetFields.front().isovar, tNode) = tLevelSetValue;
     }
     cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields);
 }
