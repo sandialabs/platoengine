@@ -11,6 +11,7 @@
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/geometry/extension/FixedBlockUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
@@ -20,7 +21,6 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
-#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::geometry::extension
 {
@@ -73,35 +73,14 @@ constexpr auto kUnfilteredControlsFieldName = std::string_view{"UnfilteredDensit
                 aInput, [](const auto& aDensityTopology) { return aDensityTopology.mesh_name; });
         },
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_file_exists(aInput); },
-        [](const input_parser::density_topology& aInput) { return detail::validate_unique_fixed_block_names(aInput); },
-        [](const input_parser::density_topology& aInput) { return detail::validate_fixed_block_names_exist(aInput); },
-        [](const input_parser::density_topology& aInput) { return detail::validate_at_least_one_design_block(aInput); },
+        [](const input_parser::density_topology& aInput) { return validate_unique_fixed_block_names(aInput); },
+        [](const input_parser::density_topology& aInput) { return validate_fixed_block_names_exist(aInput); },
+        [](const input_parser::density_topology& aInput) { return validate_at_least_one_design_block(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_output_name(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_initial_density_value(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_initial_topology_source(aInput); },
         [](const input_parser::density_topology& aInput)
         { return detail::validate_exactly_one_initial_topology_specifier(aInput); }};
-
-std::vector<std::string> mesh_block_names(const input_parser::density_topology& aInput)
-{
-    if (!aInput.mesh_name.has_value() || !std::filesystem::exists(aInput.mesh_name.value().mToken))
-    {
-        return {};
-    }
-    return mesh::MeshBlocks{mesh::Mesh{aInput.mesh_name.value().mToken}}.blockNames();
-}
-
-std::string mesh_block_names_for_error_message(const input_parser::density_topology& aInput)
-{
-    if (const auto tBlockNames = mesh_block_names(aInput); !tBlockNames.empty())
-    {
-        auto tAllBlockNames = utilities::concatenate_container(tBlockNames, ", ");
-        return utilities::concatenate(
-            "fixed_block must be one or more of the following names found in the input mesh: ",
-            std::move(tAllBlockNames));
-    }
-    return "No blocks found in the mesh, or mesh_file does not exist.";
-}
 
 std::string mesh_field_names_for_error_message(const input_parser::density_topology& aInput)
 {
@@ -200,66 +179,6 @@ std::optional<std::string> validate_output_name(const input_parser::density_topo
 {
     return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::density_topology>(),
                                                    aInput.output_name, "output_name");
-}
-
-std::optional<std::string> validate_unique_fixed_block_names(const input_parser::density_topology& aInput)
-{
-    if (!aInput.fixed_blocks.has_value())
-    {
-        return {};
-    }
-
-    const auto tUniqueFixedBlocks = fixed_blocks(aInput);
-    if (tUniqueFixedBlocks.size() != aInput.fixed_blocks.value().mList.size())
-    {
-        auto tFixedBlockNames = utilities::concatenate_container(aInput.fixed_blocks.value().mList, ", ");
-        auto tErrorMessage = utilities::concatenate(
-            "The fixed_block entries in density_topology are not unique: ", std::move(tFixedBlockNames), ". ");
-        return std::optional{std::move(tErrorMessage) + mesh_block_names_for_error_message(aInput)};
-    }
-    return {};
-}
-
-std::optional<std::string> validate_fixed_block_names_exist(const input_parser::density_topology& aInput)
-{
-    if (!aInput.fixed_blocks.has_value())
-    {
-        return {};
-    }
-    const auto tMeshBlockNames = mesh_block_names(aInput);
-    const auto tUniqueFixedBlocks = fixed_blocks(aInput);
-    auto tMissingFixedBlocks = std::vector<std::string>{};
-    for (const auto& tInputBlockName : tUniqueFixedBlocks)
-    {
-        if (const auto tMeshBlockIter = std::find(tMeshBlockNames.cbegin(), tMeshBlockNames.cend(), tInputBlockName);
-            tMeshBlockIter == tMeshBlockNames.cend())
-        {
-            tMissingFixedBlocks.push_back(tInputBlockName);
-        }
-    }
-    if (!tMissingFixedBlocks.empty())
-    {
-        auto tAllMissingFixedBlockNames = utilities::concatenate_container(tMissingFixedBlocks, ", ");
-        return std::optional{utilities::concatenate(
-            "The following fixed_block entries could not be found in the mesh: ", std::move(tAllMissingFixedBlockNames),
-            ". ", mesh_block_names_for_error_message(aInput))};
-    }
-    return std::nullopt;
-}
-
-std::optional<std::string> validate_at_least_one_design_block(const input_parser::density_topology& aInput)
-{
-    if (!aInput.fixed_blocks.has_value())
-    {
-        return {};
-    }
-    const auto tMeshBlockNames = mesh_block_names(aInput);
-    const auto tUniqueFixedBlocks = fixed_blocks(aInput);
-    if (tMeshBlockNames.size() == tUniqueFixedBlocks.size())
-    {
-        return std::optional{"All blocks have been listed under fixed_block, there is no design domain."};
-    }
-    return std::nullopt;
 }
 
 std::optional<std::string> validate_initial_density_value(const input_parser::density_topology& aInput)
