@@ -212,15 +212,15 @@ KrinoWrapper::KrinoWrapper(const std::filesystem::path &aFilename,
     setLevelSetValues(aLevelSetValues);
 }
 
-KrinoWrapper::KrinoWrapper(const analysis::AnalysisDomainMesh &aAnalysisDomainMesh,
+KrinoWrapper::KrinoWrapper(const analysis::AnalysisDomainMesh &aLevelSetValues,
                            const double aFixedLevelSetValue,
                            const VoidPhase aVoidRegion)
     : mVoidRegion(aVoidRegion),
-      mKrinoMesh(read_and_setup_for_decomposition(aAnalysisDomainMesh.mFileName)),
+      mKrinoMesh(read_and_setup_for_decomposition(aLevelSetValues.mFileName)),
       mLevelSetFields(::krino::Phase_Support::get_levelset_fields(mKrinoMesh->meta_data()))
 {
     initialize_level_set_field_to_fixed_value(*mKrinoMesh, mLevelSetFields, aFixedLevelSetValue);
-    set_level_set_fields(*mKrinoMesh, mLevelSetFields, aAnalysisDomainMesh);
+    set_level_set_fields(*mKrinoMesh, mLevelSetFields, aLevelSetValues);
 }
 
 void KrinoWrapper::setLevelSetValues(const std::vector<double> &aValuesIn)

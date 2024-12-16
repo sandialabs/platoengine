@@ -75,7 +75,8 @@ input_parser::level_set_topology create_valid_level_set_topology_geometry()
                                             /*.sphere_pattern_spacing = */ 100.0,
                                             /*.level_set_lower_bound = */ -1.0,
                                             /*.level_set_upper_bound = */ 1.0,
-                                            /*.filter*/ boost::none};
+                                            /*.filter=*/boost::none,
+                                            /*.fixed_blocks=*/boost::none};
 }
 
 std::string create_valid_level_set_topology_geometry_string()

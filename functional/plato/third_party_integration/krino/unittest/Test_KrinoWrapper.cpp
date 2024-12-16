@@ -5,6 +5,7 @@
 #include <string>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshOperators.hpp"
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/unittest/KrinoTestFixture.hpp"
@@ -34,6 +35,16 @@ class TwoBlockMeshKrinoFixture : public stk_io::test_utilities::ThreeDTwoBlockTe
         KrinoTestFixture::TearDown();
         ThreeDTwoBlockTetMesh::TearDown();
     }
+
+    auto analysisDomainMesh() const -> analysis::AnalysisDomainMesh
+    {
+        return analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, mBlock1}, {2U, mBlock2}}};
+    }
+
+    const std::vector<analysis::ScalarFieldValue> mBlock1{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}, {4, 3, 4.0},
+                                                          {5, 4, 5.0}, {6, 5, 6.0}, {7, 6, 7.0}, {8, 7, 8.0}};
+    const std::vector<analysis::ScalarFieldValue> mBlock2{{5, 4, 5.0}, {6, 5, 6.0},   {7, 6, 7.0},    {8, 7, 8.0},
+                                                          {9, 8, 9.0}, {10, 9, 10.0}, {11, 10, 11.0}, {12, 11, 12.0}};
 };
 
 [[nodiscard]] auto number_of_tets_in_block(const KrinoWrapper &aKrinoWrapper, const std::string_view aBlockName)
@@ -217,13 +228,8 @@ TEST_F(KrinoTestFixture, Sensitivities)
 
 TEST_F(TwoBlockMeshKrinoFixture, TwoBlockCtor)
 {
-    const auto tBlock1 = std::vector<analysis::ScalarFieldValue>{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}, {4, 3, 4.0},
-                                                                 {5, 4, 5.0}, {6, 5, 6.0}, {7, 6, 7.0}, {8, 7, 8.0}};
-    const auto tBlock2 = std::vector<analysis::ScalarFieldValue>{
-        {5, 4, 5.0}, {6, 5, 6.0}, {7, 6, 7.0}, {8, 7, 8.0}, {9, 8, 9.0}, {10, 9, 10.0}, {11, 10, 11.0}, {12, 11, 12.0}};
-    const auto tTestMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, tBlock1}, {2U, tBlock2}}};
     constexpr auto tFixedLevelSetValue = 1.0;
-    const auto tKrinoWrapper = KrinoWrapper{tTestMesh, tFixedLevelSetValue};
+    const auto tKrinoWrapper = KrinoWrapper{analysisDomainMesh(), tFixedLevelSetValue};
 
     // Level-set values
     {
@@ -251,9 +257,7 @@ TEST_F(TwoBlockMeshKrinoFixture, TwoBlockCtor)
 
 TEST_F(TwoBlockMeshKrinoFixture, OneFixedBlock)
 {
-    const auto tBlock1 = std::vector<analysis::ScalarFieldValue>{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}, {4, 3, 4.0},
-                                                                 {5, 4, 5.0}, {6, 5, 6.0}, {7, 6, 7.0}, {8, 7, 8.0}};
-    const auto tTestMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, tBlock1}}};
+    const auto tTestMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, mBlock1}}};
     constexpr auto tFixedLevelSetValue = -1.0;
     const auto tKrinoWrapper = KrinoWrapper{tTestMesh, tFixedLevelSetValue};
 

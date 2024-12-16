@@ -11,6 +11,8 @@ namespace
 using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
 
 const auto kDensityTopology = plato::test_utilities::create_valid_density_topology_geometry();
+
+constexpr auto kDensityTopologyMeshNameAccessor = [](const auto& aInput) { return aInput.mesh_name; };
 }  // namespace
 
 TEST(DensityTopology, UniqueFixedBlockNames)
@@ -42,27 +44,33 @@ TEST(DensityTopology, ValidateUniqueBlockNames)
     {
         auto tDensityInputWithFixedBlocks = kDensityTopology;
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{}};
-        EXPECT_FALSE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
+        EXPECT_FALSE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor)
+                         .has_value());
 
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1}};
-        EXPECT_FALSE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
+        EXPECT_FALSE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor)
+                         .has_value());
 
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1, tBlockName2}};
-        EXPECT_FALSE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
+        EXPECT_FALSE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor)
+                         .has_value());
     }
     // Invalid
     {
         auto tDensityInputWithFixedBlocks = kDensityTopology;
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1, tBlockName1}};
-        EXPECT_TRUE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
+        EXPECT_TRUE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor)
+                        .has_value());
 
         tDensityInputWithFixedBlocks.fixed_blocks =
             input_parser::FixedBlockList{{tBlockName1, tBlockName2, tBlockName1}};
-        EXPECT_TRUE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
+        EXPECT_TRUE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor)
+                        .has_value());
 
         tDensityInputWithFixedBlocks.fixed_blocks =
             input_parser::FixedBlockList{{tBlockName2, tBlockName2, tBlockName1}};
-        EXPECT_TRUE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
+        EXPECT_TRUE(validate_unique_fixed_block_names(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor)
+                        .has_value());
     }
 }
 
@@ -78,21 +86,25 @@ TEST_F(TwoDTwoBlockMesh, ValidateBlockNamesExist)
     // Valid
     {
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{}};
-        const auto tErrorMessageForNoFixedBlocks = validate_fixed_block_names_exist(tDensityInputWithFixedBlocks);
+        const auto tErrorMessageForNoFixedBlocks =
+            validate_fixed_block_names_exist(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor);
         EXPECT_FALSE(tErrorMessageForNoFixedBlocks.has_value()) << tErrorMessageForNoFixedBlocks.value();
 
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName}};
-        const auto tErrorMessageForOneFixedBlock = validate_fixed_block_names_exist(tDensityInputWithFixedBlocks);
+        const auto tErrorMessageForOneFixedBlock =
+            validate_fixed_block_names_exist(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor);
         EXPECT_FALSE(tErrorMessageForOneFixedBlock.has_value()) << tErrorMessageForOneFixedBlock.value();
 
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName, tDesignBlockName}};
-        const auto tErrorMessageForTwoFixedBlocks = validate_fixed_block_names_exist(tDensityInputWithFixedBlocks);
+        const auto tErrorMessageForTwoFixedBlocks =
+            validate_fixed_block_names_exist(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor);
         EXPECT_FALSE(tErrorMessageForTwoFixedBlocks.has_value()) << tErrorMessageForTwoFixedBlocks.value();
     }
     // Invalid
     {
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBogusBlockName}};
-        EXPECT_TRUE(validate_fixed_block_names_exist(tDensityInputWithFixedBlocks).has_value());
+        EXPECT_TRUE(validate_fixed_block_names_exist(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor)
+                        .has_value());
     }
 }
 
@@ -106,17 +118,20 @@ TEST_F(TwoDTwoBlockMesh, ValidateAtLeastOneDesignBlock)
     // Valid
     {
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{}};
-        const auto tErrorMessageForNoFixedBlocks = validate_at_least_one_design_block(tDensityInputWithFixedBlocks);
+        const auto tErrorMessageForNoFixedBlocks =
+            validate_at_least_one_design_block(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor);
         EXPECT_FALSE(tErrorMessageForNoFixedBlocks.has_value()) << tErrorMessageForNoFixedBlocks.value();
 
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName}};
-        const auto tErrorMessageForOneFixedBlock = validate_at_least_one_design_block(tDensityInputWithFixedBlocks);
+        const auto tErrorMessageForOneFixedBlock =
+            validate_at_least_one_design_block(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor);
         EXPECT_FALSE(tErrorMessageForOneFixedBlock.has_value()) << tErrorMessageForOneFixedBlock.value();
     }
     // Invalid
     {
         tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName, tDesignBlockName}};
-        const auto tErrorMessageForAllFixedBlock = validate_at_least_one_design_block(tDensityInputWithFixedBlocks);
+        const auto tErrorMessageForAllFixedBlock =
+            validate_at_least_one_design_block(tDensityInputWithFixedBlocks, kDensityTopologyMeshNameAccessor);
         EXPECT_TRUE(tErrorMessageForAllFixedBlock.has_value()) << tErrorMessageForAllFixedBlock.value();
     }
 }

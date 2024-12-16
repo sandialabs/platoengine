@@ -84,4 +84,19 @@ auto MeshBlocks::blockNames() const -> std::vector<std::string>
     return tBlockNames;
 }
 
+auto block_ids(const Mesh& aMesh, const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)
+    -> std::vector<MeshBlocks::BlockIDType>
+{
+    auto tFixedBlockIDs = std::vector<MeshBlocks::BlockIDType>{};
+    tFixedBlockIDs.reserve(aBlockOrdinals.size());
+    std::transform(aBlockOrdinals.cbegin(), aBlockOrdinals.cend(), std::back_inserter(tFixedBlockIDs),
+                   [&aMesh](const auto aBlockOrdinal)
+                   {
+                       const auto tBlockID = mesh::MeshBlocks{aMesh}.blockID(aBlockOrdinal);
+                       assert(tBlockID.has_value());
+                       return tBlockID.value();
+                   });
+    return tFixedBlockIDs;
+}
+
 }  // namespace plato::mesh

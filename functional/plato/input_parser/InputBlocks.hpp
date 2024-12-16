@@ -140,6 +140,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (double, level_set_lower_bound, "Required field specifying the value of the control that sets the lower bound of he level set cut.")
     (double, level_set_upper_bound, "Required field specifying the value of the control that sets the upper bound of he level set cut.")
     (plato::input_parser::FilterCrossReference, filter, "Required name of the filter block to apply to the controls.")
+    (plato::input_parser::FixedBlockList, fixed_blocks, "Optional list of blocks in the mesh that will have level-set fields assigned to the level_set_upper_bound value.")
 )
 
 PLATO_FILTER_INPUT_BLOCK_STRUCT(

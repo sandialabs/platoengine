@@ -85,6 +85,17 @@ TEST_F(TwoDThreeBlockMesh, BlockIDsFromOrdinals)
     tCheckIDFromOrdinal("block_3", 3, TEST_CONTEXT("Block 3"));
 }
 
+TEST_F(TwoDThreeBlockMesh, BlockIDs)
+{
+    const auto tMesh = Mesh{mMeshFilePath};
+    const auto tBlockIDs = block_ids(tMesh, {mBlock1Ordinal, mBlock2Ordinal, mBlock3Ordinal});
+    constexpr auto tExpectedSize = 3U;
+    ASSERT_EQ(tBlockIDs.size(), tExpectedSize);
+    EXPECT_EQ(tBlockIDs.at(0), 1U);
+    EXPECT_EQ(tBlockIDs.at(1), 2U);
+    EXPECT_EQ(tBlockIDs.at(2), 3U);
+}
+
 TEST_F(TwoDThreeBlockMesh, BlockData)
 {
     const auto tMesh = Mesh{mMeshFilePath};

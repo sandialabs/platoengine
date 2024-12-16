@@ -41,10 +41,8 @@ class LevelSetTopology
     LevelSetTopology& operator=(const LevelSetTopology&) = default;
     LevelSetTopology& operator=(LevelSetTopology&&) = default;
 
-    [[nodiscard]] auto bounds(const std::filesystem::path& aMeshFileName) const
-        -> std::pair<std::vector<double>, std::vector<double>>;
-    [[nodiscard]] auto initialGuess(const std::filesystem::path& aMeshFileName) const
-        -> linear_algebra::DynamicVector<double>;
+    [[nodiscard]] auto bounds() const -> std::pair<std::vector<double>, std::vector<double>>;
+    [[nodiscard]] auto initialGuess() const -> linear_algebra::DynamicVector<double>;
     [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> analysis::AnalysisDomainMesh;
     static void output(const std::filesystem::path& aInputMeshName,

@@ -32,7 +32,7 @@ class KrinoWrapper
     KrinoWrapper(const std::filesystem::path &aFilename,
                  const std::vector<double> &aLevelSetValues,
                  VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
-    KrinoWrapper(const analysis::AnalysisDomainMesh &aAnalysisDomainMesh,
+    KrinoWrapper(const analysis::AnalysisDomainMesh &aLevelSetValues,
                  double aFixedLevelSetValue,
                  VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
 

@@ -54,23 +54,21 @@ auto assemble_vector_jacobian_product_entry(analysis::AnalysisDomainMesh &&aVect
 }  // namespace
 
 auto generate_computational_mesh(const analysis::AnalysisDomainMesh &aBackgroundMeshWithLevelSets,
+                                 const double aFixedLevelSetValue,
                                  const CutMeshFilePath &aCutMesh,
                                  const VoidPhase aVoidRegion)
     -> std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>
 {
-    constexpr auto tFixedLevelSetValue = 100.0;
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshWithLevelSets, tFixedLevelSetValue, aVoidRegion);
+    auto tKrinoWrapper = KrinoWrapper{aBackgroundMeshWithLevelSets, aFixedLevelSetValue, aVoidRegion};
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
     return tKrinoWrapper.sensitivities();
 }
 
-std::vector<double> initialize_mesh_with_level_set_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
-                                                              const CutMeshFilePath &aCutMesh,
-                                                              const LevelSetPrimitives &aLevelSetPrimitives,
-                                                              const VoidPhase aVoidRegion)
+auto initialize_mesh_with_level_set_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
+                                               const LevelSetPrimitives &aLevelSetPrimitives,
+                                               const VoidPhase aVoidRegion) -> std::vector<double>
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelSetPrimitives, aVoidRegion);
-    tKrinoWrapper.writeMesh(aCutMesh.mValue);
+    const auto tKrinoWrapper = KrinoWrapper{aBackgroundMeshName.mValue, aLevelSetPrimitives, aVoidRegion};
     return tKrinoWrapper.levelSetValues();
 }
 

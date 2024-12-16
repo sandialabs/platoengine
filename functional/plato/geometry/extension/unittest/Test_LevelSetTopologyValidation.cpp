@@ -2,14 +2,22 @@
 
 #include <filesystem>
 
+#include "plato/core/ValidationRegistration.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::geometry::extension::unittest
 {
 namespace
 {
 const auto kLevelSetTopology = plato::test_utilities::create_valid_level_set_topology_geometry();
+
+class LevelSetTopologyValidationTwoBlockFixture
+    : public third_party_integration::stk_io::test_utilities::ThreeDTwoBlockTetMesh
+{
+};
+
 }  // namespace
 
 TEST(LevelSetTopologyValidation, ValidateOutputMeshName)
@@ -98,6 +106,33 @@ TEST(LevelSetTopologyValidation, ValidateSpherePatternBoundingBox)
     tLevelSetTopology.sphere_pattern_bbox_min_y = 0.0;
     tLevelSetTopology.sphere_pattern_bbox_min_z = 2.0;
     EXPECT_TRUE(detail::validate_sphere_pattern_bbox(tLevelSetTopology).has_value());
+}
+
+TEST_F(LevelSetTopologyValidationTwoBlockFixture, HasADesignBlock)
+{
+    auto tInput = kLevelSetTopology;
+    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_1", "block_2"}};
+
+    const auto tValidationMessages = core::validate(tInput, std::vector<std::string>{});
+    EXPECT_FALSE(tValidationMessages.empty());
+}
+
+TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockExists)
+{
+    auto tInput = kLevelSetTopology;
+    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_42"}};
+
+    const auto tValidationMessages = core::validate(tInput, std::vector<std::string>{});
+    EXPECT_FALSE(tValidationMessages.empty());
+}
+
+TEST_F(LevelSetTopologyValidationTwoBlockFixture, UniqueFixedBlocks)
+{
+    auto tInput = kLevelSetTopology;
+    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_2", "block_2"}};
+
+    const auto tValidationMessages = core::validate(tInput, std::vector<std::string>{});
+    EXPECT_FALSE(tValidationMessages.empty());
 }
 
 }  // namespace plato::geometry::extension::unittest

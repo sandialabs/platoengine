@@ -22,33 +22,45 @@ template <typename InputBlock>
 [[nodiscard]] auto fixed_blocks(const InputBlock& aInput) -> std::set<std::string>;
 
 /// @brief Validates that all fixed block names in the input are unique.
-template <typename InputBlock>
-[[nodiscard]] auto validate_unique_fixed_block_names(const InputBlock& aInput) -> std::optional<std::string>;
+/// @param aMeshNameAccessor A function that has a single parameter with type InputBlock and returns a boost::optional
+/// representing the mesh name in the input.
+template <typename InputBlock, typename MeshNameAccessor>
+[[nodiscard]] auto validate_unique_fixed_block_names(const InputBlock& aInput,
+                                                     const MeshNameAccessor& aMeshNameAccessor)
+    -> std::optional<std::string>;
 
 /// @brief Validates that all fixed block names in @a aInput exist in the mesh.
-template <typename InputBlock>
-[[nodiscard]] auto validate_fixed_block_names_exist(const InputBlock& aInput) -> std::optional<std::string>;
+/// @param aMeshNameAccessor A function that has a single parameter with type InputBlock and returns a boost::optional
+/// representing the mesh name in the input.
+template <typename InputBlock, typename MeshNameAccessor>
+[[nodiscard]] auto validate_fixed_block_names_exist(const InputBlock& aInput, const MeshNameAccessor& aMeshNameAccessor)
+    -> std::optional<std::string>;
 
 /// @brief Validates that at least 1 block remains as the design domain
-template <typename InputBlock>
-[[nodiscard]] auto validate_at_least_one_design_block(const InputBlock& aInput) -> std::optional<std::string>;
+/// @param aMeshNameAccessor A function that has a single parameter with type InputBlock and returns a boost::optional
+/// representing the mesh name in the input.
+template <typename InputBlock, typename MeshNameAccessor>
+[[nodiscard]] auto validate_at_least_one_design_block(const InputBlock& aInput,
+                                                      const MeshNameAccessor& aMeshNameAccessor)
+    -> std::optional<std::string>;
 
 namespace detail
 {
-template <typename InputBlock>
-auto mesh_block_names(const InputBlock& aInput) -> std::vector<std::string>
+template <typename InputBlock, typename MeshNameAccessor>
+auto mesh_block_names(const InputBlock& aInput, const MeshNameAccessor& aMeshNameAccessor) -> std::vector<std::string>
 {
-    if (!aInput.mesh_name.has_value() || !std::filesystem::exists(aInput.mesh_name.value().mToken))
+    if (!aMeshNameAccessor(aInput).has_value() || !std::filesystem::exists(aMeshNameAccessor(aInput).value().mToken))
     {
         return {};
     }
-    return mesh::MeshBlocks{mesh::Mesh{aInput.mesh_name.value().mToken}}.blockNames();
+    return mesh::MeshBlocks{mesh::Mesh{aMeshNameAccessor(aInput).value().mToken}}.blockNames();
 }
 
-template <typename InputBlock>
-auto mesh_block_names_for_error_message(const InputBlock& aInput) -> std::string
+template <typename InputBlock, typename MeshNameAccessor>
+auto mesh_block_names_for_error_message(const InputBlock& aInput, const MeshNameAccessor& aMeshNameAccessor)
+    -> std::string
 {
-    if (const auto tBlockNames = mesh_block_names(aInput); !tBlockNames.empty())
+    if (const auto tBlockNames = mesh_block_names(aInput, aMeshNameAccessor); !tBlockNames.empty())
     {
         auto tAllBlockNames = utilities::concatenate_container(tBlockNames, ", ");
         return utilities::concatenate(
@@ -73,8 +85,9 @@ auto fixed_blocks(const InputBlock& aInput) -> std::set<std::string>
     return tUniqueFixedBlocks;
 }
 
-template <typename InputBlock>
-auto validate_unique_fixed_block_names(const InputBlock& aInput) -> std::optional<std::string>
+template <typename InputBlock, typename MeshNameAccessor>
+auto validate_unique_fixed_block_names(const InputBlock& aInput, const MeshNameAccessor& aMeshNameAccessor)
+    -> std::optional<std::string>
 {
     if (!aInput.fixed_blocks.has_value())
     {
@@ -87,19 +100,21 @@ auto validate_unique_fixed_block_names(const InputBlock& aInput) -> std::optiona
         auto tFixedBlockNames = utilities::concatenate_container(aInput.fixed_blocks.value().mList, ", ");
         auto tErrorMessage =
             utilities::concatenate("The fixed_block entries are not unique: ", std::move(tFixedBlockNames), ". ");
-        return std::optional{std::move(tErrorMessage) + detail::mesh_block_names_for_error_message(aInput)};
+        return std::optional{std::move(tErrorMessage) +
+                             detail::mesh_block_names_for_error_message(aInput, aMeshNameAccessor)};
     }
     return {};
 }
 
-template <typename InputBlock>
-auto validate_fixed_block_names_exist(const InputBlock& aInput) -> std::optional<std::string>
+template <typename InputBlock, typename MeshNameAccessor>
+auto validate_fixed_block_names_exist(const InputBlock& aInput, const MeshNameAccessor& aMeshNameAccessor)
+    -> std::optional<std::string>
 {
     if (!aInput.fixed_blocks.has_value())
     {
         return {};
     }
-    const auto tMeshBlockNames = detail::mesh_block_names(aInput);
+    const auto tMeshBlockNames = detail::mesh_block_names(aInput, aMeshNameAccessor);
     const auto tUniqueFixedBlocks = fixed_blocks(aInput);
     auto tMissingFixedBlocks = std::vector<std::string>{};
     for (const auto& tInputBlockName : tUniqueFixedBlocks)
@@ -115,19 +130,20 @@ auto validate_fixed_block_names_exist(const InputBlock& aInput) -> std::optional
         auto tAllMissingFixedBlockNames = utilities::concatenate_container(tMissingFixedBlocks, ", ");
         return std::optional{utilities::concatenate(
             "The following fixed_block entries could not be found in the mesh: ", std::move(tAllMissingFixedBlockNames),
-            ". ", detail::mesh_block_names_for_error_message(aInput))};
+            ". ", detail::mesh_block_names_for_error_message(aInput, aMeshNameAccessor))};
     }
     return std::nullopt;
 }
 
-template <typename InputBlock>
-auto validate_at_least_one_design_block(const InputBlock& aInput) -> std::optional<std::string>
+template <typename InputBlock, typename MeshNameAccessor>
+auto validate_at_least_one_design_block(const InputBlock& aInput, const MeshNameAccessor& aMeshNameAccessor)
+    -> std::optional<std::string>
 {
     if (!aInput.fixed_blocks.has_value())
     {
         return {};
     }
-    const auto tMeshBlockNames = detail::mesh_block_names(aInput);
+    const auto tMeshBlockNames = detail::mesh_block_names(aInput, aMeshNameAccessor);
     const auto tUniqueFixedBlocks = fixed_blocks(aInput);
     if (tMeshBlockNames.size() == tUniqueFixedBlocks.size())
     {

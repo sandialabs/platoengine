@@ -23,21 +23,20 @@ using LevelSetJacobian = std::unordered_map<stk::mesh::EntityId, LevelSetJacobia
 
 /// @brief Generates a computational mesh, @a aCutMesh, by cutting a background mesh.
 /// @param aBackgroundMeshWithLevelSets AnalysisDomainMesh whose scalar field contains the level set values.
+/// @param aFixedLevelSetValue The level-set value to fill in for any missing blocks in the mesh (i.e. fixed blocks).
 /// @param aCutMesh File path at which to create the cut mesh.
 /// @param aIncludeVoidRegion specifies whether to include the void region defined by the level set values in the
 /// computational mesh.
 /// @return The sensitivities of the computational mesh's boundary nodes with respect to the level set values.
 auto generate_computational_mesh(const analysis::AnalysisDomainMesh &aBackgroundMeshWithLevelSets,
+                                 double aFixedLevelSetValue,
                                  const CutMeshFilePath &aCutMesh,
                                  const VoidPhase aVoidRegion) -> LevelSetJacobian;
 
-/// @brief Generate a computational mesh, @a aCutMesh, by cutting a background mesh,
-/// @a aBackgroundMeshName, with the given level set primitives, @a aLevelSetPrimitives.  Returns the
-/// level set values on the background mesh resulting from the level set primitives.
-/// @a aIncludeVoidRegion specifies whether to include the void region defined by the
-/// level set values in the computational mesh.
+/// @brief Returns the level set values on the background mesh resulting from the level set primitives.
+/// @a aIncludeVoidRegion specifies whether to include the void region defined by the level set values in the
+/// computational mesh.
 [[nodiscard]] auto initialize_mesh_with_level_set_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
-                                                             const CutMeshFilePath &aCutMesh,
                                                              const LevelSetPrimitives &aLevelSetPrimitives,
                                                              const VoidPhase aVoidRegion) -> std::vector<double>;
 

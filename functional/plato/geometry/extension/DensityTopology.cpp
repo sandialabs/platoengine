@@ -34,6 +34,8 @@ constexpr auto kRestartFileNamePrefix = std::string_view{"restart_"};
 constexpr auto kTopologyFieldName = std::string_view{"Density"};
 constexpr auto kUnfilteredControlsFieldName = std::string_view{"UnfilteredDensity"};
 
+constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInput) { return aInput.mesh_name; };
+
 [[nodiscard]] auto make_topology_output(const input_parser::density_topology& aInput)
     -> std::function<void(const linear_algebra::DynamicVector<double>&)>
 {
@@ -73,9 +75,12 @@ constexpr auto kUnfilteredControlsFieldName = std::string_view{"UnfilteredDensit
                 aInput, [](const auto& aDensityTopology) { return aDensityTopology.mesh_name; });
         },
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_file_exists(aInput); },
-        [](const input_parser::density_topology& aInput) { return validate_unique_fixed_block_names(aInput); },
-        [](const input_parser::density_topology& aInput) { return validate_fixed_block_names_exist(aInput); },
-        [](const input_parser::density_topology& aInput) { return validate_at_least_one_design_block(aInput); },
+        [](const input_parser::density_topology& aInput)
+        { return validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
+        [](const input_parser::density_topology& aInput)
+        { return validate_fixed_block_names_exist(aInput, kMeshNameAccessor); },
+        [](const input_parser::density_topology& aInput)
+        { return validate_at_least_one_design_block(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput) { return detail::validate_output_name(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_initial_density_value(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_initial_topology_source(aInput); },
@@ -229,19 +234,6 @@ std::optional<std::string> validate_exactly_one_initial_topology_specifier(const
                                       "'initial_density_value' or 'initial_density_field_name'.");
     }
     return std::nullopt;
-}
-
-std::set<std::string> fixed_blocks(const input_parser::density_topology& aInput)
-{
-    if (!aInput.fixed_blocks.has_value())
-    {
-        return {};
-    }
-    auto tUniqueFixedBlocks = std::set<std::string>{};
-    const auto& tRawFixedBlockInput = aInput.fixed_blocks.value().mList;
-    std::copy(tRawFixedBlockInput.cbegin(), tRawFixedBlockInput.cend(),
-              std::inserter(tUniqueFixedBlocks, tUniqueFixedBlocks.begin()));
-    return tUniqueFixedBlocks;
 }
 
 mesh::Mesh mesh_from_input(const input_parser::density_topology& aInput)
