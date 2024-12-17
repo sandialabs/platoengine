@@ -5,4 +5,8 @@ set(EXE_NAME plato)
 add_executable(${EXE_NAME} ${SRCS})
 target_link_libraries(${EXE_NAME} PRIVATE Boost::headers Kokkos::kokkos PlatoFunctional)
 
+if( LINK_WITH_PYTHON )
+    target_link_libraries(${EXE_NAME} PRIVATE Python3::Python)
+endif()
+
 install( TARGETS ${EXE_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )
