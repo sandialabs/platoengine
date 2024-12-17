@@ -101,6 +101,9 @@ if( DAKOTADRIVER )
   find_package(Dakota REQUIRED)
 endif()
 find_package(Boost REQUIRED COMPONENTS serialization filesystem system program_options regex mpi)
+if( LINK_WITH_PYTHON )
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+endif()
 
 ###########################  Compiler setup ###################################
 ####################### (post 'project()' command) ############################
@@ -207,7 +210,8 @@ add_subdirectory(functional)
 
 include(CMakePackageConfigHelpers)
 install(EXPORT PlatoEngine NAMESPACE PlatoEngine FILE PlatoEngineTargets.cmake DESTINATION cmake)
-configure_package_config_file(PlatoEngineConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/PlatoEngineConfig.cmake INSTALL_DESTINATION cmake)
+set(Plugins_install_dir "plugins")
+configure_package_config_file(PlatoEngineConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/PlatoEngineConfig.cmake PATH_VARS Plugins_install_dir INSTALL_DESTINATION cmake)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/PlatoEngineConfig.cmake DESTINATION cmake)
 
 
@@ -230,9 +234,6 @@ if( REGRESSION )
     endif()
     if( SIERRA_TESTS_ENABLED AND DAKOTADRIVER )
       add_integration_test(dakota_sierra)
-    endif()
-    if( OPTIMISM_TESTS_ENABLED )
-      add_integration_test(optimism)
     endif()
   else()
     message("-- !! -- PlatoMain is required for regression testing.")

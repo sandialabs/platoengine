@@ -26,3 +26,5 @@ if( UNIT_TESTING )
   add_subdirectory(./test_utilities)
   add_subdirectory(./integration_tests)
 endif()
+
+install(DIRECTORY DESTINATION plugins)

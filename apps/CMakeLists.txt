@@ -10,11 +10,6 @@ if( PLATOMAIN )
   add_subdirectory(services)
 endif()
 
-if(PYTHON_INTERPRETER_APP)
-    message( "-- Compiling python interpreter app " )
-    add_subdirectory(python_interpreter)
-endif()
-
 if( PLATOPROXY )
   message( "-- Compiling PlatoProxy " )
   add_subdirectory(proxy)
