@@ -15,7 +15,7 @@ const auto kDensityTopology = plato::test_utilities::create_valid_density_topolo
 constexpr auto kDensityTopologyMeshNameAccessor = [](const auto& aInput) { return aInput.mesh_name; };
 }  // namespace
 
-TEST(DensityTopology, UniqueFixedBlockNames)
+TEST(FixedBlockUtilities, UniqueFixedBlockNames)
 {
     const auto tBlockName1 = std::string{"block_1"};
     const auto tBlockName2 = std::string{"some-other-block"};
@@ -35,7 +35,7 @@ TEST(DensityTopology, UniqueFixedBlockNames)
     }
 }
 
-TEST(DensityTopology, ValidateUniqueBlockNames)
+TEST(FixedBlockUtilities, ValidateUniqueBlockNames)
 {
     const auto tBlockName1 = std::string{"fixed-block-1"};
     const auto tBlockName2 = std::string{"fixed-block-2"};

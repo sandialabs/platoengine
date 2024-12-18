@@ -110,6 +110,14 @@ class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
         LevelSetTopologyFixture::TearDown();
         ThreeDTwoBlockTetMesh::TearDown();
     }
+
+    auto levelSetTopologyWithFixedBlocks(std::vector<std::string> aFixedBlocks) const -> LevelSetTopology
+    {
+        auto tInput = kLevelSetInput;
+        tInput.background_mesh_name = input_parser::FileName{mMeshFilePath};
+        tInput.fixed_blocks = input_parser::FixedBlockList{std::move(aFixedBlocks)};
+        return LevelSetTopology{tInput};
+    }
 };
 
 auto make_kernel_filter_test_function(const std::filesystem::path& aMeshFilePath) -> filter::library::FilterFunction
@@ -314,11 +322,7 @@ TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, InitialGuessOneBlockResultSize)
 {
-    auto tInput = kLevelSetInput;
-    tInput.background_mesh_name = input_parser::FileName{mMeshFilePath};
-    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_2"}};
-
-    const auto tLevelSetTopology = LevelSetTopology{tInput};
+    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({"block_2"});
     const auto tInitialGuess = tLevelSetTopology.initialGuess();
     constexpr auto tExpectedNumberOfDesignVariables = 8U;
     EXPECT_EQ(tInitialGuess.size(), tExpectedNumberOfDesignVariables);
@@ -326,11 +330,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, InitialGuessOneBlockResultSize)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, BoundsOneBlockResultSize)
 {
-    auto tInput = kLevelSetInput;
-    tInput.background_mesh_name = input_parser::FileName{mMeshFilePath};
-    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_1"}};
-
-    const auto tLevelSetTopology = LevelSetTopology{tInput};
+    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({"block_1"});
     const auto tBounds = tLevelSetTopology.bounds();
     constexpr auto tExpectedNumberOfDesignVariables = 8U;
     EXPECT_EQ(tBounds.first.size(), tExpectedNumberOfDesignVariables);
@@ -339,13 +339,8 @@ TEST_F(LevelSetTopologyTwoBlockFixture, BoundsOneBlockResultSize)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, GenerateMeshSize)
 {
-    auto tInput = kLevelSetInput;
-    tInput.background_mesh_name = input_parser::FileName{mMeshFilePath};
-    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_1"}};
-
-    const auto tLevelSetTopology = LevelSetTopology{tInput};
+    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({"block_1"});
     const auto tInitialGuess = tLevelSetTopology.initialGuess();
-
     const auto tAnalysisMesh = tLevelSetTopology.generateMesh(tInitialGuess);
     EXPECT_TRUE(std::filesystem::exists(tAnalysisMesh.mFileName));
     const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tAnalysisMesh.mFileName}}.numberOfNodes();
@@ -354,11 +349,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, GenerateMeshSize)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, JacobianOneBlockResultSize)
 {
-    auto tInput = kLevelSetInput;
-    tInput.background_mesh_name = input_parser::FileName{mMeshFilePath};
-    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_2"}};
-
-    const auto tLevelSetTopology = LevelSetTopology{tInput};
+    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({"block_2"});
     const auto tInitialGuess = tLevelSetTopology.initialGuess();
     const auto tAnalysisMesh = tLevelSetTopology.generateMesh(tInitialGuess);
     const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tAnalysisMesh.mFileName}}.numberOfNodes();
@@ -371,11 +362,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, JacobianOneBlockResultSize)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, JacobianTransposeOneBlockResultSize)
 {
-    auto tInput = kLevelSetInput;
-    tInput.background_mesh_name = input_parser::FileName{mMeshFilePath};
-    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_1"}};
-
-    const auto tLevelSetTopology = LevelSetTopology{tInput};
+    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({"block_1"});
     const auto tInitialGuess = tLevelSetTopology.initialGuess();
     const auto tVector = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 1.0);
 
