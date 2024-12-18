@@ -3,7 +3,7 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
 set(LINK_LIBS PlatoFunctionalProcessManager)
 
-create_plato_header_library(PlatoFunctional "." "${LINK_LIBS}")
+create_plato_library(PlatoFunctional "." "${LINK_LIBS}")
 
 if( UNIT_TESTING )
   # Build unit tester

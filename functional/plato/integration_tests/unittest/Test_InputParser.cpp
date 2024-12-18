@@ -36,7 +36,6 @@ void create_input_file(const std::filesystem::path& aTestFileName)
             number_of_processors 4
             input_files test-input.inp
             aggregation_weight 42.0
-            objective_type minimize
           end
           begin rol_optimization
             input_file_name its-a_file.txt
@@ -76,8 +75,6 @@ TEST(InputParser, ParseFromFile)
     EXPECT_EQ(tObjective.input_files->mList.front(), "test-input.inp");
     ASSERT_TRUE(tObjective.aggregation_weight.has_value());
     EXPECT_EQ(tObjective.aggregation_weight.value(), 42.0);
-    ASSERT_TRUE(tObjective.objective_type.has_value());
-    EXPECT_EQ(tObjective.objective_type.value(), input_parser::ObjectiveTypes::kMinimize);
 
     EXPECT_EQ(tInput.mConstraints.size(), 0);
 

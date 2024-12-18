@@ -6,30 +6,30 @@
 // clang-format off
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestNamedBlock, 
-    (int, field1)
-    (double, field2)
+    (int, field1, "help")
+    (double, field2, "help")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestUnnamedBlock, 
-    (bool, field1)
-    (int, field2)
-    (double, field3)
+    (bool, field1, "a helpful comment")
+    (int, field2, "only sorta helpful")
+    (double, field3, "did we even read this part?")
 )
 
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestGeometryBlock, 
-    (bool, field1)
+    (bool, field1, "help")
 )
 
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestProcessManagerBlock, 
-    (int, field1)
+    (int, field1, "help")
 )
 
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestFilterBlock, 
-    (double, field1)
+    (double, field1, "help")
 )
 // clang-format on
 namespace plato::input_parser::unittest
@@ -91,4 +91,5 @@ TEST(InputBlockStruct, Filter)
     constexpr bool tIsNotFilter = IsFilterInput<TestGeometryBlock>::value;
     EXPECT_FALSE(tIsNotFilter);
 }
+
 }  // namespace plato::input_parser::unittest

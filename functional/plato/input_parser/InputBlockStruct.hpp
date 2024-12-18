@@ -5,9 +5,12 @@
 #include <boost/fusion/include/define_struct.hpp>
 #include <boost/optional.hpp>
 #include <boost/preprocessor/seq/push_front.hpp>
+#include <boost/preprocessor/seq/seq.hpp>
 #include <boost/preprocessor/seq/transform.hpp>
 #include <boost/preprocessor/seq/variadic_seq_to_seq.hpp>
 #include <boost/preprocessor/tuple/elem.hpp>
+
+#include "plato/input_parser/HelpDocumentationRegistration.hpp"
 
 namespace plato::input_parser
 {
@@ -51,6 +54,7 @@ struct IsFilterInput
 {
     constexpr static bool value = false;
 };
+
 }  // namespace plato::input_parser
 
 // clang-format off
@@ -59,6 +63,27 @@ struct IsFilterInput
 #define ATTRIBUTES_WITH_NAME(ATTRIBUTES) BOOST_PP_SEQ_PUSH_FRONT(ATTRIBUTES, PLATO_BOOST_FUSION_NAME_FIELD)
 #define TYPES_AS_OPTIONAL(ATTRIBUTES) BOOST_PP_SEQ_TRANSFORM(OPTIONAL_TYPE, _, ATTRIBUTES)
 
+#define STRIP_COMMENT(r, data, elem) (BOOST_PP_TUPLE_ELEM(0, elem), BOOST_PP_TUPLE_ELEM(1, elem))
+#define ATTRIBUTES_WITHOUT_COMMENTS(ATTRIBUTES) BOOST_PP_SEQ_TRANSFORM(STRIP_COMMENT, _, ATTRIBUTES)
+
+#define UNPACK_ATRRIBUTE_AND_CALL_STRINGLY_CONSTRUCTOR(r, data, elem) \
+    tCommands.emplace_back(plato::input_parser::HelpDocumentation{                                           \
+    BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(1, elem)),                 \
+    BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, elem)),                 \
+    BOOST_PP_TUPLE_ELEM(2, elem)}                                      \
+    );
+#ifdef COMPILE_DOCUMENTATION_REGISTRATION
+#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, ATTRIBUTES)                                       \
+    [[maybe_unused]] static auto kNewHelpDocumentationRegistration##STRUCT_NAME =                                           \
+        plato::input_parser::HelpDocumentationRegistration{   BOOST_PP_STRINGIZE(STRUCT_NAME),                              \
+        [](){                                                                                                               \
+        plato::input_parser::Documentation tCommands;                                                                       \
+        BOOST_PP_SEQ_FOR_EACH(UNPACK_ATRRIBUTE_AND_CALL_STRINGLY_CONSTRUCTOR, _, BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))  \
+        return tCommands;                                                                                                   \
+        }};
+#else
+#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, ATTRIBUTES)
+#endif
 /// Macro for generating an adapted struct that can be used for input parsing. The format
 /// is the same as BOOST_FUSION_DEFINE_STRUCT and the resulting struct has all the same
 /// properties.
@@ -75,18 +100,20 @@ struct IsFilterInput
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES) \
-BOOST_FUSION_DEFINE_STRUCT(                                              \
-    NAMESPACE_SEQ,                                                       \
-    STRUCT_NAME,                                                         \
-    TYPES_AS_OPTIONAL(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))          \
-)                                                                        \
-namespace plato::input_parser{                                           \
-template<>                                                               \
-struct InputTypeName<STRUCT_NAME>                                        \
-{   static constexpr const char* name = #STRUCT_NAME;                    \
-};                                                                       \
-}
+#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)                          \
+BOOST_FUSION_DEFINE_STRUCT(                                                                             \
+    NAMESPACE_SEQ,                                                                                      \
+    STRUCT_NAME,                                                                                        \
+    TYPES_AS_OPTIONAL(ATTRIBUTES_WITHOUT_COMMENTS(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))            \
+)                                                                                                       \
+namespace plato::input_parser{                                                                          \
+template<>                                                                                              \
+struct InputTypeName<STRUCT_NAME>                                                                       \
+{   static constexpr const char* name = #STRUCT_NAME;                                                   \
+};                                                                                                      \
+} 
+
 
 #define PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, TYPE_TRAIT_STRUCT, ATTRIBUTES) \
 PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                  \
