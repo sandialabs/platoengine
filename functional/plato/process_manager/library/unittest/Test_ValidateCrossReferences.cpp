@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/input_parser/CrossReference.hpp"
+#include "plato/input_parser/HelpDocumentationRegistration.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/process_manager/library/ValidateCrossReferences.hpp"
 
@@ -16,17 +17,17 @@ struct IsSomeOtherBlock
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), other_block_with_cross_ref, 
-    (plato::input_parser::CrossReference<plato::process_manager::library::unittest::IsSomeOtherBlock>, cross_ref)
+    (plato::input_parser::CrossReference<plato::process_manager::library::unittest::IsSomeOtherBlock>, cross_ref,"cross reference")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), one_other_block, 
-    (double, cross_ref_field)
+    (double, cross_ref_field,"cross referenced field")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), two_other_block, 
-    (int, cross_ref_field)
+    (int, cross_ref_field, "cross referenced field")
 )
 
 BOOST_FUSION_DEFINE_STRUCT(

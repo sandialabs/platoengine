@@ -22,23 +22,16 @@ bool parse_symbol_table(Iterator aBegin, Iterator aEnd, std::vector<EnumType>& a
 }
 }  // namespace
 
-TEST(ObjectiveTypes, EnumTable)
-{
-    EXPECT_TRUE(kObjectiveTypesTable.toString(ObjectiveTypes::kMinimize));
-    EXPECT_EQ(kObjectiveTypesTable.toString(ObjectiveTypes::kMinimize).value(), "minimize");
-    EXPECT_TRUE(kObjectiveTypesTable.toString(ObjectiveTypes::kMaximize));
-    EXPECT_EQ(kObjectiveTypesTable.toString(ObjectiveTypes::kMaximize).value(), "maximize");
-}
-
 TEST(ObjectiveTypes, SymbolParser)
 {
-    std::vector<ObjectiveTypes> tParsedObjectiveTypes;
+    std::vector<ConstraintTypes> tParsedObjectiveTypes;
 
-    const std::string tValidEnums = "minimize, maximize";
+    const std::string tValidEnums = "equal_to, less_than, greater_than";
     EXPECT_TRUE(parse_symbol_table(tValidEnums.begin(), tValidEnums.end(), tParsedObjectiveTypes));
-    ASSERT_EQ(tParsedObjectiveTypes.size(), 2u);
-    EXPECT_EQ(tParsedObjectiveTypes.front(), ObjectiveTypes::kMinimize);
-    EXPECT_EQ(tParsedObjectiveTypes.back(), ObjectiveTypes::kMaximize);
+    ASSERT_EQ(tParsedObjectiveTypes.size(), 3u);
+    EXPECT_EQ(tParsedObjectiveTypes.front(), ConstraintTypes::kEqualTo);
+    EXPECT_EQ(tParsedObjectiveTypes.at(1U), ConstraintTypes::kLessThan);
+    EXPECT_EQ(tParsedObjectiveTypes.back(), ConstraintTypes::kGreaterThan);
 }
 
 TEST(KernelFilterCenteringTypes, EnumTable)

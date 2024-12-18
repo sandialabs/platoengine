@@ -61,7 +61,6 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
             number_of_processors 1
             input_files test-input.inp
             aggregation_weight 42.0
-            objective_type minimize
           end
        )" +
         test_utilities::create_valid_density_topology_geometry_string() +

@@ -15,7 +15,6 @@ TEST(ParseObjectiveInputBlock, AllValidInputs)
             criterion volume
             number_of_processors 10
             input_files test.txt, test2.xml
-            objective_type minimize
             aggregation_weight 10.0
           end
        )";
@@ -35,7 +34,6 @@ TEST(ParseObjectiveInputBlock, AllValidInputs)
     test_existence_and_equality(tObjective.number_of_processors, 10u);
     test_existence_and_equality(tObjective.active, true);
     test_existence_and_equality(tObjective.input_files, std::vector<std::string>{"test.txt", "test2.xml"});
-    test_existence_and_equality(tObjective.objective_type, ObjectiveTypes::kMinimize);
     test_existence_and_equality(tObjective.aggregation_weight, 10.0);
 }
 
@@ -62,7 +60,6 @@ TEST(ParseObjectiveInputBlock, NotAllInputs)
     test_existence_and_equality(tObjective.number_of_processors, 10u);
     EXPECT_FALSE(tObjective.active);
     EXPECT_FALSE(tObjective.input_files);
-    EXPECT_FALSE(tObjective.objective_type);
     test_existence_and_equality(tObjective.aggregation_weight, 10.0);
 }
 

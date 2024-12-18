@@ -15,3 +15,5 @@ endif()
 if( UNIT_TESTING )
   create_plato_unittester(PlatoFunctionalInputParser unittest)
 endif()
+
+add_subdirectory(./documentation_generator)

@@ -8,9 +8,9 @@
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestFileTypes,
-    (plato::input_parser::FileName, file_name)
-    (plato::input_parser::FileList, file_list)
-    (plato::input_parser::IdentifierString, exodus_name)
+    (plato::input_parser::FileName, file_name, "help")
+    (plato::input_parser::FileList, file_list, "help")
+    (plato::input_parser::IdentifierString, exodus_name, "help")
 )
 // clang-format on
 

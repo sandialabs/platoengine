@@ -24,23 +24,23 @@ struct IsTypeTraitInput
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), test, 
-    (int, field1)
+    (int, field1, "help")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), test_block, 
-    (int, field2)
+    (int, field2, "help")
 )
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), test_block_with_name, 
-    (int, field3)
+    (int, field3, "help")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), block_with_end_field, 
-    (bool, field4)
-    (double, end_field)
+    (bool, field4, "help")
+    (double, end_field, "help")
 )
 
 /// @brief Test input block that includes a cross reference to another input block with the IsTypeTraitInput type trait.
@@ -48,8 +48,8 @@ PLATO_INPUT_BLOCK_STRUCT(
 /// No input block with IsTypeTraitInput is defined in this test harness. 
 PLATO_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), block_with_cross_reference, 
-    (int, field)
-    (plato::input_parser::CrossReference<plato::input_parser::unittest::IsTypeTraitInput>, hotdog)
+    (int, field, "help")
+    (plato::input_parser::CrossReference<plato::input_parser::unittest::IsTypeTraitInput>, hotdog, "help")
 )
 
 BOOST_FUSION_DEFINE_STRUCT(
