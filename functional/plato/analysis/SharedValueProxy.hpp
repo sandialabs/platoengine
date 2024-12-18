@@ -40,7 +40,11 @@ struct SharedValueProxy
         -> std::enable_if_t<!kIsConstIterator<Iterator> && !std::is_same_v<AssignmentPolicy, void>, SharedValueProxy&>;
 
     /// @brief Conversion to a Value, the object that this proxy object represents.
+    /// @pre This object must hold valid iterators.
     operator Value() const;
+
+    /// @brief Returns whether or not this object holds any iterators.
+    auto empty() const -> bool;
 
     std::vector<InnerIteratorType> mIterators;
 };
@@ -77,6 +81,12 @@ SharedValueProxy<Value, InnerIteratorType, AssignmentPolicy>::operator Value() c
 {
     assert(!mIterators.empty());
     return *mIterators.front();
+}
+
+template <typename Value, typename InnerIteratorType, typename AssignmentPolicy>
+auto SharedValueProxy<Value, InnerIteratorType, AssignmentPolicy>::empty() const -> bool
+{
+    return mIterators.empty();
 }
 
 }  // namespace plato::analysis
