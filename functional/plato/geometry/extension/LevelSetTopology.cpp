@@ -101,12 +101,12 @@ auto make_level_set_geometry(const input_parser::level_set_topology& aLevelSetTo
         [](const input_parser::level_set_topology& aInput)
         { return validate_at_least_one_design_block(aInput, kMeshNameAccessor); }};
 
-auto adjoint_jacobian_times_vector(const linear_algebra::DynamicVector<double>& aDesignParameters,
-                                   const mesh::Mesh& aBackgroundMesh,
-                                   const std::filesystem::path& aCutMeshPath,
-                                   const third_party_integration::krino::VoidPhase aVoidRegion,
-                                   const linear_algebra::DynamicVector<double>& aVector,
-                                   const double aFixedLevelSetValue)
+auto row_vector_times_adjoint_jacobian(const linear_algebra::DynamicVector<double>& aDesignParameters,
+                                       const mesh::Mesh& aBackgroundMesh,
+                                       const std::filesystem::path& aCutMeshPath,
+                                       const third_party_integration::krino::VoidPhase aVoidRegion,
+                                       const linear_algebra::DynamicVector<double>& aVector,
+                                       const double aFixedLevelSetValue)
     -> std::unordered_map<tpik::KrinoGlobalNodeID, stk::math::Vector3d>
 {
     const auto tDesignVariableConverter = mesh::DesignVariablesConversion{aBackgroundMesh};
@@ -135,7 +135,7 @@ auto analysis_domain_mesh(const std::filesystem::path& aMeshPath) -> analysis::A
     return analysis_domain_mesh(tMesh);
 }
 
-auto assembled_adjoint_jacobian_times_vector(
+auto assembled_row_vector_times_adjoint_jacobian(
     const analysis::AnalysisDomainMesh& aCutMeshSpaceVector,
     const std::unordered_map<tpik::KrinoGlobalNodeID, stk::math::Vector3d>& tAdjointJacobianTimesVector)
     -> linear_algebra::DynamicVector<double>
@@ -267,10 +267,10 @@ auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
         linear_algebra::JacobianMultiplier{
             [this, aDesignParameters](const linear_algebra::DynamicVector<double>& aVector)
             {
-                const auto tAdjointJacobianTimesVector = adjoint_jacobian_times_vector(
+                const auto tAdjointJacobianTimesVector = row_vector_times_adjoint_jacobian(
                     aDesignParameters, mBackgroundMesh, mCutMesh, mVoidRegion, aVector, mLevelSetUpperBound);
                 const auto tCutMeshSpaceVector = analysis_domain_mesh(mCutMesh);
-                return assembled_adjoint_jacobian_times_vector(tCutMeshSpaceVector, tAdjointJacobianTimesVector);
+                return assembled_row_vector_times_adjoint_jacobian(tCutMeshSpaceVector, tAdjointJacobianTimesVector);
             }}  // namespace plato::geometry::extension
     };
 }

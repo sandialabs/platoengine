@@ -111,11 +111,25 @@ class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
         ThreeDTwoBlockTetMesh::TearDown();
     }
 
-    auto levelSetTopologyWithFixedBlocks(std::vector<std::string> aFixedBlocks) const -> LevelSetTopology
+    auto levelSetTopologyInputWithFixedBlocks(std::vector<std::string> aFixedBlocks) const
+        -> input_parser::level_set_topology
     {
         auto tInput = kLevelSetInput;
         tInput.background_mesh_name = input_parser::FileName{mMeshFilePath};
         tInput.fixed_blocks = input_parser::FixedBlockList{std::move(aFixedBlocks)};
+        return tInput;
+    }
+
+    auto levelSetTopologyWithFixedBlocks(std::vector<std::string> aFixedBlocks) const -> LevelSetTopology
+    {
+        return LevelSetTopology{levelSetTopologyInputWithFixedBlocks(std::move(aFixedBlocks))};
+    }
+
+    auto levelSetTopologyWithRadiusAndFixedBlocks(const double aRadius, std::vector<std::string> aFixedBlocks) const
+        -> LevelSetTopology
+    {
+        auto tInput = levelSetTopologyInputWithFixedBlocks(std::move(aFixedBlocks));
+        tInput.sphere_pattern_radius = aRadius;
         return LevelSetTopology{tInput};
     }
 };
@@ -349,29 +363,47 @@ TEST_F(LevelSetTopologyTwoBlockFixture, GenerateMeshSize)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, JacobianOneBlockResultSize)
 {
-    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({"block_2"});
-    const auto tInitialGuess = tLevelSetTopology.initialGuess();
-    const auto tAnalysisMesh = tLevelSetTopology.generateMesh(tInitialGuess);
-    const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tAnalysisMesh.mFileName}}.numberOfNodes();
-    const auto tNumberOfCoordinateComponents = 3U;
-    const auto tVector = linear_algebra::DynamicVector<double>(tNumberOfCoordinateComponents * tNumberOfNodes, 1.0);
+    const auto tCheckJacobianProductSize =
+        [](const LevelSetTopology& aLevelSetTopology, const test_utilities::TestContext& aTestContext)
+    {
+        const auto tInitialGuess = aLevelSetTopology.initialGuess();
+        const auto tAnalysisMesh = aLevelSetTopology.generateMesh(tInitialGuess);
+        const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tAnalysisMesh.mFileName}}.numberOfNodes();
+        const auto tNumberOfCoordinateComponents = 3U;
+        const auto tVector = linear_algebra::DynamicVector<double>(tNumberOfCoordinateComponents * tNumberOfNodes, 1.0);
 
-    const auto tResult = tVector * tLevelSetTopology.jacobian(tInitialGuess);
-    EXPECT_EQ(tResult.size(), mExpectedNumberOfNodesInBlock1);
+        const auto tResult = tVector * aLevelSetTopology.jacobian(tInitialGuess);
+        EXPECT_EQ(tResult.size(), mExpectedNumberOfNodesInBlock1) << aTestContext;
+    };
+    tCheckJacobianProductSize(levelSetTopologyWithFixedBlocks({"block_2"}),
+                              TEST_CONTEXT("Cut mesh and background mesh have matching global IDs"));
+
+    constexpr auto tSphereRadius = 10.0;
+    tCheckJacobianProductSize(levelSetTopologyWithRadiusAndFixedBlocks(tSphereRadius, {"block_1"}),
+                              TEST_CONTEXT("Cut mesh has more global IDs than are in background mesh"));
 }
 
 TEST_F(LevelSetTopologyTwoBlockFixture, JacobianTransposeOneBlockResultSize)
 {
-    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({"block_1"});
-    const auto tInitialGuess = tLevelSetTopology.initialGuess();
-    const auto tVector = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 1.0);
+    const auto tCheckTransposeJacobianProductSize =
+        [](const LevelSetTopology& aLevelSetTopology, const test_utilities::TestContext& aTestContext)
+    {
+        const auto tInitialGuess = aLevelSetTopology.initialGuess();
+        const auto tVector = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 1.0);
 
-    const auto tAnalysisMesh = tLevelSetTopology.generateMesh(tInitialGuess);
-    const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tAnalysisMesh.mFileName}}.numberOfNodes();
-    const auto tNumberOfCoordinateComponents = 3U;
+        const auto tAnalysisMesh = aLevelSetTopology.generateMesh(tInitialGuess);
+        const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tAnalysisMesh.mFileName}}.numberOfNodes();
+        const auto tNumberOfCoordinateComponents = 3U;
 
-    const auto tResult = tVector * tLevelSetTopology.adjointJacobian(tInitialGuess);
-    EXPECT_EQ(tResult.size(), tNumberOfCoordinateComponents * tNumberOfNodes);
+        const auto tResult = tVector * aLevelSetTopology.adjointJacobian(tInitialGuess);
+        EXPECT_EQ(tResult.size(), tNumberOfCoordinateComponents * tNumberOfNodes) << aTestContext;
+    };
+
+    tCheckTransposeJacobianProductSize(levelSetTopologyWithFixedBlocks({"block_1"}),
+                                       TEST_CONTEXT("Cut mesh and background mesh have matching global IDs"));
+    constexpr auto tSphereRadius = 10.0;
+    tCheckTransposeJacobianProductSize(levelSetTopologyWithRadiusAndFixedBlocks(tSphereRadius, {"block_2"}),
+                                       TEST_CONTEXT("Cut mesh has more global IDs than are in background mesh"));
 }
 
 TEST_F(LevelSetTopologyFixture, Bounds)
