@@ -45,9 +45,12 @@ auto assemble_vector_jacobian_product_entry(analysis::AnalysisDomainMesh &&aVect
     {
         auto tVectorJacobianProductRandomAccessViewValue =
             tVectorJacobianProductRandomAccessView[tParentNodeBackgroundID];
-        tVectorJacobianProductRandomAccessViewValue =
-            static_cast<analysis::ScalarFieldValue>(tVectorJacobianProductRandomAccessViewValue).mValue +
-            vector_jacobian_product_entry_contribution(aRowVector, aVectorIndex, tNodalSensitivities);
+        if (!tVectorJacobianProductRandomAccessViewValue.empty())
+        {
+            tVectorJacobianProductRandomAccessViewValue =
+                static_cast<analysis::ScalarFieldValue>(tVectorJacobianProductRandomAccessViewValue).mValue +
+                vector_jacobian_product_entry_contribution(aRowVector, aVectorIndex, tNodalSensitivities);
+        }
     }
     return aVectorJacobianProduct;
 }
@@ -110,10 +113,10 @@ auto level_set_row_vector_adjoint_jacobian_product(const analysis::AnalysisDomai
             [tLevelSetSpaceRandomAccessView](const stk::math::Vector3d &aSum, const auto &aParentNodeInfo)
             {
                 constexpr auto tNodeIdIndex = 0;
-                constexpr auto tSensitivityIndex = 1;
                 const auto tBackgroundValue = tLevelSetSpaceRandomAccessView[std::get<tNodeIdIndex>(aParentNodeInfo)];
-                assert(tBackgroundValue);
-                return aSum + tBackgroundValue.value().mValue * std::get<tSensitivityIndex>(aParentNodeInfo);
+                constexpr auto tSensitivityIndex = 1;
+                return aSum + tBackgroundValue.value_or(analysis::ScalarFieldValue{}).mValue *
+                                  std::get<tSensitivityIndex>(aParentNodeInfo);
             });
     }
     return tAdjointResult;
