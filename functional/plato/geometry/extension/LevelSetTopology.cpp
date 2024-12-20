@@ -38,13 +38,19 @@ constexpr auto kXComponent = utilities::ComponentIndex{0};
 constexpr auto kYComponent = utilities::ComponentIndex{1};
 constexpr auto kZComponent = utilities::ComponentIndex{2};
 
-constexpr auto kMeshNameAccessor = [](const input_parser::level_set_topology& aInput)
+constexpr auto kMeshNameAccessor =
+    [](const input_parser::level_set_topology& aInput) -> const boost::optional<input_parser::FileName>&
 { return aInput.background_mesh_name; };
+
+auto background_mesh_name(const input_parser::level_set_topology& aInput) -> const std::string&
+{
+    return aInput.background_mesh_name.value().mToken;
+}
 
 auto mesh_from_input(const input_parser::level_set_topology& aInput) -> mesh::Mesh
 {
-    assert(aInput.background_mesh_name.has_value());
-    return mesh::Mesh{aInput.background_mesh_name.value().mToken, fixed_blocks(aInput)};
+    assert(kMeshNameAccessor(aInput).has_value());
+    return mesh::Mesh{background_mesh_name(aInput), fixed_blocks(aInput)};
 }
 
 auto make_topology_output(const std::filesystem::path& aInputMeshName, const std::filesystem::path& aOutputMeshName)
@@ -80,7 +86,7 @@ auto make_level_set_geometry(const input_parser::level_set_topology& aLevelSetTo
         auto tLevelSet = LevelSetTopology{tInput};
         return library::FactoryTypes{
             make_level_set_geometry(tInput), tLevelSet.initialGuess(), tLevelSet.bounds(),
-            make_topology_output(tInput.background_mesh_name.value().mToken, tInput.output_mesh_name.value().mToken)};
+            make_topology_output(background_mesh_name(tInput), tInput.output_mesh_name.value().mToken)};
     }};
 
 /// Static registration for input validation functions

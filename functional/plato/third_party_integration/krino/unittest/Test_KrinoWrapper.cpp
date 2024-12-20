@@ -126,7 +126,7 @@ TEST_F(KrinoTestFixture, CutSphereOutOfBackgroundMesh)
 
     const auto tSphere =
         LevelSetPrimitives{/*.mPlanes=*/{}, /*.mSpheres=*/{Sphere{/*.mCenter=*/{0.5, 0.5, 0.5}, /*.mRadius=*/0.3}}};
-    auto tKrinoWrapper = KrinoWrapper{tBackgroundFilename, tSphere};
+    auto tKrinoWrapper = KrinoWrapper{tBackgroundFilename, tSphere, VoidPhase::kExcludeFromMesh};
     tKrinoWrapper.writeMesh(tCutFilename);
     const unsigned int tNumSolidTets = number_of_tets_in_block(tKrinoWrapper, tBlockName);
     ASSERT_EQ(tNumSolidTets, 672u);
@@ -143,7 +143,7 @@ TEST_F(KrinoTestFixture, GetSetLevelSetValues)
     const auto tNumberOfNodes = stk_io::node_size(*stk_io::read_mesh_bulk_data(tFilename));
     auto tLevelSetField = std::vector(tNumberOfNodes, 0.0);
     std::iota(tLevelSetField.begin(), tLevelSetField.end(), 0.0);
-    auto tKrinoWrapper = KrinoWrapper{tFilename, tLevelSetField};
+    auto tKrinoWrapper = KrinoWrapper{tFilename, tLevelSetField, VoidPhase::kExcludeFromMesh};
 
     const auto tLevelSetValuesFromKrino = tKrinoWrapper.levelSetValues();
 
@@ -159,7 +159,7 @@ TEST_F(KrinoTestFixture, Redistance)
 
     const auto tPlane =
         LevelSetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{1, 0, 0}, /*.mOffset=*/-0.25}}, /*.mSpheres=*/{}};
-    auto tKrinoWrapper = KrinoWrapper{tFilename, tPlane};
+    auto tKrinoWrapper = KrinoWrapper{tFilename, tPlane, VoidPhase::kExcludeFromMesh};
 
     std::vector<double> tLevelSetValues = tKrinoWrapper.levelSetValues();
     const std::vector<double> tInitialGold = {-0.25, 0.75,  1.75, -0.25, 0.75, 1.75, -0.25, 0.75,
@@ -201,7 +201,7 @@ TEST_F(KrinoTestFixture, Sensitivities)
 
     const auto tPlane =
         LevelSetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{-1.0, 0.5, 0.35}, /*.mOffset=*/0.2}}, /*.mSpheres=*/{}};
-    KrinoWrapper tKrinoWrapper{tFilename, tPlane};
+    KrinoWrapper tKrinoWrapper{tFilename, tPlane, VoidPhase::kExcludeFromMesh};
 
     const auto tCurCoordinateValues = tKrinoWrapper.coordinates();
     constexpr auto tPerturbation = double{0.01};
@@ -213,7 +213,8 @@ TEST_F(KrinoTestFixture, Sensitivities)
     {
         tCurLS += tPerturbation;
     }
-    const auto tNewCoordValues = KrinoWrapper{tFilename, tPerturbedLevelSetValues}.coordinates();
+    const auto tNewCoordValues =
+        KrinoWrapper{tFilename, tPerturbedLevelSetValues, VoidPhase::kExcludeFromMesh}.coordinates();
     for (auto tPredictedCoordValue : tPredictedCoordValues)
     {
         for (int i = 0; i < kNumDimensions; i++)
@@ -229,7 +230,7 @@ TEST_F(KrinoTestFixture, Sensitivities)
 TEST_F(TwoBlockMeshKrinoFixture, TwoBlockCtor)
 {
     constexpr auto tFixedLevelSetValue = 1.0;
-    const auto tKrinoWrapper = KrinoWrapper{analysisDomainMesh(), tFixedLevelSetValue};
+    const auto tKrinoWrapper = KrinoWrapper{analysisDomainMesh(), tFixedLevelSetValue, VoidPhase::kExcludeFromMesh};
 
     // Level-set values
     {
@@ -259,7 +260,7 @@ TEST_F(TwoBlockMeshKrinoFixture, OneFixedBlock)
 {
     const auto tTestMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, mBlock1}}};
     constexpr auto tFixedLevelSetValue = -1.0;
-    const auto tKrinoWrapper = KrinoWrapper{tTestMesh, tFixedLevelSetValue};
+    const auto tKrinoWrapper = KrinoWrapper{tTestMesh, tFixedLevelSetValue, VoidPhase::kExcludeFromMesh};
 
     const auto tExpectedLevelSetValues = std::vector{1.0,
                                                      2.0,

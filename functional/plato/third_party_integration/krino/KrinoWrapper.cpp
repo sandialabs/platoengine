@@ -34,6 +34,14 @@ constexpr auto kLevelSetName = std::string_view{"LEVEL_SET"};
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kInitializationSurfaces = std::string_view{"initialization surfaces"};
 
+template <typename LevelSetFieldVector>
+[[nodiscard]] auto level_set_value(LevelSetFieldVector &&aLevelSetFields, const stk::mesh::Entity &aNode)
+    -> decltype(auto)
+{
+    assert(!aLevelSetFields.empty());
+    return *::krino::field_data<double>(aLevelSetFields.front().isovar, aNode);
+}
+
 [[nodiscard]] auto node_ids_for_nodes(const stk::mesh::BulkData &aMesh,
                                       const std::vector<stk::mesh::Entity> &aParentNodes)
     -> std::vector<stk::mesh::EntityId>
@@ -131,7 +139,7 @@ void initialize_level_set_field_to_fixed_value(::krino::MeshInterface &aKrinoMes
     const auto tNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
     for (const auto tNode : tNodes)
     {
-        *::krino::field_data<double>(aLevelSetFields.front().isovar, tNode) = aFixedLevelSetValue;
+        level_set_value(aLevelSetFields, tNode) = aFixedLevelSetValue;
     }
 }
 
@@ -184,7 +192,7 @@ void set_level_set_fields(::krino::MeshInterface &aKrinoMesh,
         const auto &tScalarFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValueProxy);
         const auto tStkEntity =
             aKrinoMesh.bulk_data().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
-        *::krino::field_data<double>(aLevelSetFields.front().isovar, tStkEntity) = tScalarFieldValue.mValue;
+        level_set_value(aLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
     }
     cut_mesh(aKrinoMesh.bulk_data(), aLevelSetFields);
 }
@@ -231,7 +239,7 @@ void KrinoWrapper::setLevelSetValues(const std::vector<double> &aValuesIn)
 
     for (const auto &[tNode, tLevelSetValue] : utilities::Zip{tNodes, aValuesIn})
     {
-        *::krino::field_data<double>(mLevelSetFields.front().isovar, tNode) = tLevelSetValue;
+        level_set_value(mLevelSetFields, tNode) = tLevelSetValue;
     }
     cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields);
 }
@@ -246,15 +254,13 @@ void KrinoWrapper::writeMesh(const std::filesystem::path &aFilename)
                                               tTime);
 }
 
-std::vector<double> KrinoWrapper::levelSetValues() const
+auto KrinoWrapper::levelSetValues() const -> std::vector<double>
 {
     const auto tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
     std::vector<double> tReturn;
     tReturn.reserve(tNodes.size());
     std::transform(tNodes.begin(), tNodes.end(), std::back_inserter(tReturn),
-                   [this](const auto &aNode)
-                   { return *::krino::field_data<double>(mLevelSetFields.front().isovar, aNode); });
-
+                   [this](const auto &aNode) { return level_set_value(mLevelSetFields, aNode); });
     return tReturn;
 }
 

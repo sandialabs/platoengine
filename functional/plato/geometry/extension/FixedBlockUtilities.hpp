@@ -91,7 +91,7 @@ auto validate_unique_fixed_block_names(const InputBlock& aInput, const MeshNameA
 {
     if (!aInput.fixed_blocks.has_value())
     {
-        return {};
+        return std::nullopt;
     }
 
     const auto tUniqueFixedBlocks = fixed_blocks(aInput);
@@ -103,7 +103,7 @@ auto validate_unique_fixed_block_names(const InputBlock& aInput, const MeshNameA
         return std::optional{std::move(tErrorMessage) +
                              detail::mesh_block_names_for_error_message(aInput, aMeshNameAccessor)};
     }
-    return {};
+    return std::nullopt;
 }
 
 template <typename InputBlock, typename MeshNameAccessor>
@@ -112,7 +112,7 @@ auto validate_fixed_block_names_exist(const InputBlock& aInput, const MeshNameAc
 {
     if (!aInput.fixed_blocks.has_value())
     {
-        return {};
+        return std::nullopt;
     }
     const auto tMeshBlockNames = detail::mesh_block_names(aInput, aMeshNameAccessor);
     const auto tUniqueFixedBlocks = fixed_blocks(aInput);
@@ -141,7 +141,7 @@ auto validate_at_least_one_design_block(const InputBlock& aInput, const MeshName
 {
     if (!aInput.fixed_blocks.has_value())
     {
-        return {};
+        return std::nullopt;
     }
     const auto tMeshBlockNames = detail::mesh_block_names(aInput, aMeshNameAccessor);
     const auto tUniqueFixedBlocks = fixed_blocks(aInput);
