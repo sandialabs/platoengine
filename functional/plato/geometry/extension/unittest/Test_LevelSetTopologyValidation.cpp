@@ -36,14 +36,6 @@ TEST(LevelSetTopologyValidation, ValidateBackgroundMeshName)
     EXPECT_TRUE(detail::validate_background_mesh_name(tLevelSetTopology).has_value());
 }
 
-TEST(LevelSetTopologyValidation, ValidateCutMeshName)
-{
-    auto tLevelSetTopology = kLevelSetTopology;
-    EXPECT_FALSE(detail::validate_cut_mesh_name(tLevelSetTopology).has_value());
-    tLevelSetTopology.cut_mesh_name = boost::none;
-    EXPECT_TRUE(detail::validate_cut_mesh_name(tLevelSetTopology).has_value());
-}
-
 TEST(LevelSetTopologyValidation, ValidateLowerBound)
 {
     constexpr double tLargestAllowableValue = 0;

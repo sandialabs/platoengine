@@ -33,6 +33,7 @@ constexpr auto kDimensions = std::size_t{3};
 constexpr double kLevelSetFixedValue = 1.0;
 constexpr auto kTopologyFieldName = std::string_view{"Topology"};
 constexpr auto kKrinoLogFileName = std::string_view{"Krino_Output.txt"};
+constexpr auto kKrinoCutMeshBaseName = std::string_view{"krino_cut_mesh.exo"};
 
 constexpr auto kXComponent = utilities::ComponentIndex{0};
 constexpr auto kYComponent = utilities::ComponentIndex{1};
@@ -93,7 +94,6 @@ auto make_level_set_geometry(const input_parser::level_set_topology& aLevelSetTo
 [[maybe_unused]] static auto kLevelSetTopologyValidationRegistration =
     core::ValidationRegistration<input_parser::level_set_topology>{
         [](const input_parser::level_set_topology& aInput) { return detail::validate_background_mesh_name(aInput); },
-        [](const input_parser::level_set_topology& aInput) { return detail::validate_cut_mesh_name(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_output_mesh_name(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_lower_bound(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_upper_bound(aInput); },
@@ -194,7 +194,7 @@ auto remove_fixed_block_fields(const std::vector<double>& aLevelSetValues, const
 
 LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInput)
     : mBackgroundMesh(mesh_from_input(aInput)),
-      mCutMesh(utilities::make_filename_unique(aInput.cut_mesh_name.value().mToken)),
+      mCutMesh(utilities::make_filename_unique(kKrinoCutMeshBaseName)),
       mOutputMesh(aInput.output_mesh_name.value().mToken),
       mVoidRegion(aInput.include_void_region.value() ? third_party_integration::krino::VoidPhase::kIncludeInMesh
                                                      : third_party_integration::krino::VoidPhase::kExcludeFromMesh),
@@ -320,12 +320,6 @@ std::optional<std::string> validate_background_mesh_name(const input_parser::lev
 {
     return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::level_set_topology>(),
                                                    aInput.background_mesh_name, "background_mesh_name");
-}
-
-std::optional<std::string> validate_cut_mesh_name(const input_parser::level_set_topology& aInput)
-{
-    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::level_set_topology>(),
-                                                   aInput.cut_mesh_name, "cut_mesh_name");
 }
 
 std::optional<std::string> validate_lower_bound(const input_parser::level_set_topology& aInput)

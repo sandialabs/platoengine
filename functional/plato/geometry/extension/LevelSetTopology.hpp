@@ -74,7 +74,6 @@ namespace detail
 {
 [[nodiscard]] std::optional<std::string> validate_output_mesh_name(const input_parser::level_set_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_background_mesh_name(const input_parser::level_set_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_cut_mesh_name(const input_parser::level_set_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_lower_bound(const input_parser::level_set_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_upper_bound(const input_parser::level_set_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput);

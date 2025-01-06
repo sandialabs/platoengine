@@ -62,7 +62,6 @@ std::string create_valid_density_topology_geometry_string()
 input_parser::level_set_topology create_valid_level_set_topology_geometry()
 {
     return input_parser::level_set_topology{/*.background_mesh_name = */ input_parser::FileName{"bg.exo"},
-                                            /*.cut_mesh_name = */ input_parser::FileName{"cut.exo"},
                                             /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
                                             /*.include_void_region = */ false,
                                             /*.sphere_pattern_bbox_min_x = */ 0.0,
@@ -84,7 +83,6 @@ std::string create_valid_level_set_topology_geometry_string()
     return R"(
         begin level_set_topology
           background_mesh_name bg.exo
-          cut_mesh_name cut.exo
           output_mesh_name out.exo
         end
         )";
