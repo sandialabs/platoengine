@@ -95,26 +95,6 @@ TEST_F(DensityTopologyValidationFileFixture, ValidDensityTopologyInput)
     EXPECT_TRUE(tMessages.empty());
 }
 
-TEST(DensityTopology, UniqueFixedBlockNames)
-{
-    const auto tBlockName1 = std::string{"block_1"};
-    const auto tBlockName2 = std::string{"some-other-block"};
-    {
-        auto tDensityInputWithFixedBlocks = kDensityTopology;
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1}};
-        const auto tUniqueFixedBlocks = detail::fixed_blocks(tDensityInputWithFixedBlocks);
-        EXPECT_EQ(tUniqueFixedBlocks.count(tBlockName1), 1U);
-    }
-    {
-        auto tDensityInputWithFixedBlocks = kDensityTopology;
-        tDensityInputWithFixedBlocks.fixed_blocks =
-            input_parser::FixedBlockList{{tBlockName1, tBlockName2, tBlockName1, tBlockName2}};
-        const auto tUniqueFixedBlocks = detail::fixed_blocks(tDensityInputWithFixedBlocks);
-        EXPECT_EQ(tUniqueFixedBlocks.count(tBlockName1), 1U);
-        EXPECT_EQ(tUniqueFixedBlocks.count(tBlockName2), 1U);
-    }
-}
-
 TEST_F(TwoDThreeBlockMesh, MeshFromInput)
 {
     struct ExpectedSizes
@@ -178,100 +158,6 @@ TEST_F(TwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
 
     const auto tMeshDesignVariablesView = analysis::AnalysisDomainMeshSequentialView{tMeshDesignVariables};
     EXPECT_EQ(tMeshDesignVariablesView.size(), tExpectedNumberOfDesignVariables);
-}
-
-TEST(DensityTopology, ValidateUniqueBlockNames)
-{
-    const auto tBlockName1 = std::string{"fixed-block-1"};
-    const auto tBlockName2 = std::string{"fixed-block-2"};
-    const auto tBlockName3 = std::string{"design-block"};
-    // Valid cases
-    {
-        auto tDensityInputWithFixedBlocks = kDensityTopology;
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{}};
-        EXPECT_FALSE(detail::validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
-
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1}};
-        EXPECT_FALSE(detail::validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
-
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1, tBlockName2}};
-        EXPECT_FALSE(detail::validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
-    }
-    // Invalid
-    {
-        auto tDensityInputWithFixedBlocks = kDensityTopology;
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1, tBlockName1}};
-        EXPECT_TRUE(detail::validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
-
-        tDensityInputWithFixedBlocks.fixed_blocks =
-            input_parser::FixedBlockList{{tBlockName1, tBlockName2, tBlockName1}};
-        EXPECT_TRUE(detail::validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
-
-        tDensityInputWithFixedBlocks.fixed_blocks =
-            input_parser::FixedBlockList{{tBlockName2, tBlockName2, tBlockName1}};
-        EXPECT_TRUE(detail::validate_unique_fixed_block_names(tDensityInputWithFixedBlocks).has_value());
-    }
-}
-
-TEST_F(TwoDTwoBlockMesh, ValidateBlockNamesExist)
-{
-    const auto tFixedBlockName = std::string{"fixed"};
-    const auto tDesignBlockName = std::string{"design"};
-    const auto tBogusBlockName = std::string{"bogus"};
-
-    auto tDensityInputWithFixedBlocks = kDensityTopology;
-    tDensityInputWithFixedBlocks.mesh_name = input_parser::FileName{mMeshFilePath.string()};
-
-    // Valid
-    {
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{}};
-        const auto tErrorMessageForNoFixedBlocks =
-            detail::validate_fixed_block_names_exist(tDensityInputWithFixedBlocks);
-        EXPECT_FALSE(tErrorMessageForNoFixedBlocks.has_value()) << tErrorMessageForNoFixedBlocks.value();
-
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName}};
-        const auto tErrorMessageForOneFixedBlock =
-            detail::validate_fixed_block_names_exist(tDensityInputWithFixedBlocks);
-        EXPECT_FALSE(tErrorMessageForOneFixedBlock.has_value()) << tErrorMessageForOneFixedBlock.value();
-
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName, tDesignBlockName}};
-        const auto tErrorMessageForTwoFixedBlocks =
-            detail::validate_fixed_block_names_exist(tDensityInputWithFixedBlocks);
-        EXPECT_FALSE(tErrorMessageForTwoFixedBlocks.has_value()) << tErrorMessageForTwoFixedBlocks.value();
-    }
-    // Invalid
-    {
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBogusBlockName}};
-        EXPECT_TRUE(detail::validate_fixed_block_names_exist(tDensityInputWithFixedBlocks).has_value());
-    }
-}
-
-TEST_F(TwoDTwoBlockMesh, ValidateAtLeastOneDesignBlock)
-{
-    const auto tFixedBlockName = std::string{"fixed"};
-    const auto tDesignBlockName = std::string{"design"};
-    auto tDensityInputWithFixedBlocks = kDensityTopology;
-    tDensityInputWithFixedBlocks.mesh_name = input_parser::FileName{mMeshFilePath.string()};
-
-    // Valid
-    {
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{}};
-        const auto tErrorMessageForNoFixedBlocks =
-            detail::validate_at_least_one_design_block(tDensityInputWithFixedBlocks);
-        EXPECT_FALSE(tErrorMessageForNoFixedBlocks.has_value()) << tErrorMessageForNoFixedBlocks.value();
-
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName}};
-        const auto tErrorMessageForOneFixedBlock =
-            detail::validate_at_least_one_design_block(tDensityInputWithFixedBlocks);
-        EXPECT_FALSE(tErrorMessageForOneFixedBlock.has_value()) << tErrorMessageForOneFixedBlock.value();
-    }
-    // Invalid
-    {
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName, tDesignBlockName}};
-        const auto tErrorMessageForAllFixedBlock =
-            detail::validate_at_least_one_design_block(tDensityInputWithFixedBlocks);
-        EXPECT_TRUE(tErrorMessageForAllFixedBlock.has_value()) << tErrorMessageForAllFixedBlock.value();
-    }
 }
 
 }  // namespace plato::geometry::extension::unittest

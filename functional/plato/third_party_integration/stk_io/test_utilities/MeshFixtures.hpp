@@ -121,6 +121,41 @@ class TwoDThreeBlockMesh : virtual public ::testing::Test
     constexpr static auto mBlock3Ordinal = 22U;
 };
 
+/// @brief A mesh test fixture providing a 3D tet mesh with 2 blocks.
+class ThreeDTwoBlockTetMesh : virtual public ::testing::Test
+{
+   protected:
+    ThreeDTwoBlockTetMesh();
+    ~ThreeDTwoBlockTetMesh();
+
+    std::filesystem::path mMeshFilePath = "three_d_two_block_tets.exo";
+
+    constexpr static auto mMeshDescription = std::string_view{
+        "textmesh:"
+        "0,1,TET_4,5,1,2,3,block_1\n"
+        "0,2,TET_4,6,5,2,3,block_1\n"
+        "0,3,TET_4,6,7,5,3,block_1\n"
+        "0,4,TET_4,6,4,7,3,block_1\n"
+        "0,5,TET_4,6,2,4,3,block_1\n"
+        "0,6,TET_4,6,8,7,4,block_1\n"
+        "0,7,TET_4,9,5,6,7,block_2\n"
+        "0,8,TET_4,10,9,6,7,block_2\n"
+        "0,9,TET_4,10,11,9,7,block_2\n"
+        "0,10,TET_4,10,8,11,7,block_2\n"
+        "0,11,TET_4,10,6,8,7,block_2\n"
+        "0,12,TET_4,10,12,11,8,block_2\n"
+        "|coordinates: 0,-1,-1,0,0,-1,1,-1,-1,1,0,-1,0,-1,1,0,0,1,1,-1,1,1,0,1,0,-1,3,0,0,3,1,-1,3,1,0,3"
+        "|dimension:3"};
+
+    constexpr static auto mExpectedNumberOfBlocks = 2U;
+    constexpr static auto mExpectedNumberOfElements = 12U;
+    constexpr static auto mExpectedNumberOfElementsInBlock1 = 6U;
+    constexpr static auto mExpectedNumberOfElementsInBlock2 = 6U;
+    constexpr static auto mExpectedNumberOfNodes = 12U;
+    constexpr static auto mExpectedNumberOfNodesInBlock1 = 8U;
+    constexpr static auto mExpectedNumberOfNodesInBlock2 = 8U;
+};
+
 /// @brief A mesh test fixture providing a 2D mesh with 2 blocks with non-standard block names.
 class TwoDTwoBlockMesh : virtual public ::testing::Test
 {

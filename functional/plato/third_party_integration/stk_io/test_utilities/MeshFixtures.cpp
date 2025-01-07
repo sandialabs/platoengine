@@ -54,6 +54,13 @@ TwoDThreeBlockMesh::TwoDThreeBlockMesh()
 
 TwoDThreeBlockMesh::~TwoDThreeBlockMesh() { std::filesystem::remove(mMeshFilePath); }
 
+ThreeDTwoBlockTetMesh::ThreeDTwoBlockTetMesh()
+{
+    third_party_integration::stk_io::write_mesh(mMeshFilePath, mMeshDescription);
+}
+
+ThreeDTwoBlockTetMesh::~ThreeDTwoBlockTetMesh() { std::filesystem::remove(mMeshFilePath); }
+
 TwoDTwoBlockMesh::TwoDTwoBlockMesh() { third_party_integration::stk_io::write_mesh(mMeshFilePath, mMeshDescription); }
 
 TwoDTwoBlockMesh::~TwoDTwoBlockMesh() { std::filesystem::remove(mMeshFilePath); }

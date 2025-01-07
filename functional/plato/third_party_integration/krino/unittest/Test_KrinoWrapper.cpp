@@ -4,10 +4,14 @@
 #include <numeric>
 #include <string>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshOperators.hpp"
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/unittest/KrinoTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/utilities/Enumerate.hpp"
 
 namespace plato::third_party_integration::krino::unittest
 {
@@ -16,6 +20,32 @@ namespace
 constexpr int kNumDimensions = 3;
 
 const auto kUnitBoundingBox = BoundingBox{{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}};
+
+class TwoBlockMeshKrinoFixture : public stk_io::test_utilities::ThreeDTwoBlockTetMesh, public KrinoTestFixture
+{
+   public:
+    void SetUp() override
+    {
+        KrinoTestFixture::SetUp();
+        ThreeDTwoBlockTetMesh::SetUp();
+    }
+
+    void TearDown() override
+    {
+        KrinoTestFixture::TearDown();
+        ThreeDTwoBlockTetMesh::TearDown();
+    }
+
+    auto analysisDomainMesh() const -> analysis::AnalysisDomainMesh
+    {
+        return analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, mBlock1}, {2U, mBlock2}}};
+    }
+
+    const std::vector<analysis::ScalarFieldValue> mBlock1{{1, 0, 1.0}, {2, 1, 2.0}, {3, 2, 3.0}, {4, 3, 4.0},
+                                                          {5, 4, 5.0}, {6, 5, 6.0}, {7, 6, 7.0}, {8, 7, 8.0}};
+    const std::vector<analysis::ScalarFieldValue> mBlock2{{5, 4, 5.0}, {6, 5, 6.0},   {7, 6, 7.0},    {8, 7, 8.0},
+                                                          {9, 8, 9.0}, {10, 9, 10.0}, {11, 10, 11.0}, {12, 11, 12.0}};
+};
 
 [[nodiscard]] auto number_of_tets_in_block(const KrinoWrapper &aKrinoWrapper, const std::string_view aBlockName)
     -> unsigned int
@@ -96,7 +126,7 @@ TEST_F(KrinoTestFixture, CutSphereOutOfBackgroundMesh)
 
     const auto tSphere =
         LevelSetPrimitives{/*.mPlanes=*/{}, /*.mSpheres=*/{Sphere{/*.mCenter=*/{0.5, 0.5, 0.5}, /*.mRadius=*/0.3}}};
-    auto tKrinoWrapper = KrinoWrapper{tBackgroundFilename, tSphere};
+    auto tKrinoWrapper = KrinoWrapper{tBackgroundFilename, tSphere, VoidPhase::kExcludeFromMesh};
     tKrinoWrapper.writeMesh(tCutFilename);
     const unsigned int tNumSolidTets = number_of_tets_in_block(tKrinoWrapper, tBlockName);
     ASSERT_EQ(tNumSolidTets, 672u);
@@ -113,7 +143,7 @@ TEST_F(KrinoTestFixture, GetSetLevelSetValues)
     const auto tNumberOfNodes = stk_io::node_size(*stk_io::read_mesh_bulk_data(tFilename));
     auto tLevelSetField = std::vector(tNumberOfNodes, 0.0);
     std::iota(tLevelSetField.begin(), tLevelSetField.end(), 0.0);
-    auto tKrinoWrapper = KrinoWrapper{tFilename, tLevelSetField};
+    auto tKrinoWrapper = KrinoWrapper{tFilename, tLevelSetField, VoidPhase::kExcludeFromMesh};
 
     const auto tLevelSetValuesFromKrino = tKrinoWrapper.levelSetValues();
 
@@ -129,7 +159,7 @@ TEST_F(KrinoTestFixture, Redistance)
 
     const auto tPlane =
         LevelSetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{1, 0, 0}, /*.mOffset=*/-0.25}}, /*.mSpheres=*/{}};
-    auto tKrinoWrapper = KrinoWrapper{tFilename, tPlane};
+    auto tKrinoWrapper = KrinoWrapper{tFilename, tPlane, VoidPhase::kExcludeFromMesh};
 
     std::vector<double> tLevelSetValues = tKrinoWrapper.levelSetValues();
     const std::vector<double> tInitialGold = {-0.25, 0.75,  1.75, -0.25, 0.75, 1.75, -0.25, 0.75,
@@ -171,7 +201,7 @@ TEST_F(KrinoTestFixture, Sensitivities)
 
     const auto tPlane =
         LevelSetPrimitives{/*.mPlanes=*/{Plane{/*.mNormal=*/{-1.0, 0.5, 0.35}, /*.mOffset=*/0.2}}, /*.mSpheres=*/{}};
-    KrinoWrapper tKrinoWrapper{tFilename, tPlane};
+    KrinoWrapper tKrinoWrapper{tFilename, tPlane, VoidPhase::kExcludeFromMesh};
 
     const auto tCurCoordinateValues = tKrinoWrapper.coordinates();
     constexpr auto tPerturbation = double{0.01};
@@ -183,7 +213,8 @@ TEST_F(KrinoTestFixture, Sensitivities)
     {
         tCurLS += tPerturbation;
     }
-    const auto tNewCoordValues = KrinoWrapper{tFilename, tPerturbedLevelSetValues}.coordinates();
+    const auto tNewCoordValues =
+        KrinoWrapper{tFilename, tPerturbedLevelSetValues, VoidPhase::kExcludeFromMesh}.coordinates();
     for (auto tPredictedCoordValue : tPredictedCoordValues)
     {
         for (int i = 0; i < kNumDimensions; i++)
@@ -194,6 +225,57 @@ TEST_F(KrinoTestFixture, Sensitivities)
     }
 
     std::filesystem::remove(tFilename);
+}
+
+TEST_F(TwoBlockMeshKrinoFixture, TwoBlockCtor)
+{
+    constexpr auto tFixedLevelSetValue = 1.0;
+    const auto tKrinoWrapper = KrinoWrapper{analysisDomainMesh(), tFixedLevelSetValue, VoidPhase::kExcludeFromMesh};
+
+    // Level-set values
+    {
+        const auto tLevelSetValues = tKrinoWrapper.levelSetValues();
+        for (const auto &[tIndex, tValue] : utilities::enumerate(tLevelSetValues))
+        {
+            EXPECT_EQ(tIndex + 1, tValue);
+        }
+    }
+
+    // Coordinates
+    {
+        const auto tCoordinates = tKrinoWrapper.coordinates();
+        const auto tMeshBulkData = stk_io::read_mesh_bulk_data(mMeshFilePath);
+        const auto tExpectedCoordinates = stk_io::nodal_coordinates(*tMeshBulkData);
+        for (const auto &[tIndex, tCoordinate] : tKrinoWrapper.coordinates())
+        {
+            const auto &tExpectedCoordinate = tExpectedCoordinates.at(tIndex - 1);
+            EXPECT_EQ(tExpectedCoordinate.x, tCoordinate[0]) << "Index: " << tIndex;
+            EXPECT_EQ(tExpectedCoordinate.y, tCoordinate[1]) << "Index: " << tIndex;
+            EXPECT_EQ(tExpectedCoordinate.z, tCoordinate[2]) << "Index: " << tIndex;
+        }
+    }
+}
+
+TEST_F(TwoBlockMeshKrinoFixture, OneFixedBlock)
+{
+    const auto tTestMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, mBlock1}}};
+    constexpr auto tFixedLevelSetValue = -1.0;
+    const auto tKrinoWrapper = KrinoWrapper{tTestMesh, tFixedLevelSetValue, VoidPhase::kExcludeFromMesh};
+
+    const auto tExpectedLevelSetValues = std::vector{1.0,
+                                                     2.0,
+                                                     3.0,
+                                                     4.0,
+                                                     5.0,
+                                                     6.0,
+                                                     7.0,
+                                                     8.0,
+                                                     tFixedLevelSetValue,
+                                                     tFixedLevelSetValue,
+                                                     tFixedLevelSetValue,
+                                                     tFixedLevelSetValue};
+    const auto tLevelSetValues = tKrinoWrapper.levelSetValues();
+    EXPECT_EQ(tExpectedLevelSetValues, tLevelSetValues);
 }
 
 }  // namespace plato::third_party_integration::krino::unittest

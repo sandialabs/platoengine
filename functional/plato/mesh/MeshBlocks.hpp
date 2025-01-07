@@ -47,6 +47,12 @@ struct MeshBlocks : public Mesh
     [[nodiscard]] auto blockNames() const -> std::vector<std::string>;
 };
 
+/// @brief Converts all ordinals @a aBlockOrdinals (which are used by stk) to block IDs, which are used by
+/// AnalysisDomainMesh.
+/// @pre All ordinals in @a aBlockOrdinals are valid block ordinals in @a aMesh. Checked by an assertion.
+auto block_ids(const Mesh& aMesh, const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)
+    -> std::vector<MeshBlocks::BlockIDType>;
+
 }  // namespace plato::mesh
 
 #endif

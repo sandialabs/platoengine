@@ -4,6 +4,7 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
+#include "plato/analysis/Utilities.hpp"
 #include "plato/third_party_integration/krino/KrinoWrapper.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/utilities/IndexRange.hpp"
@@ -44,32 +45,33 @@ auto assemble_vector_jacobian_product_entry(analysis::AnalysisDomainMesh &&aVect
     {
         auto tVectorJacobianProductRandomAccessViewValue =
             tVectorJacobianProductRandomAccessView[tParentNodeBackgroundID];
-        tVectorJacobianProductRandomAccessViewValue =
-            static_cast<analysis::ScalarFieldValue>(tVectorJacobianProductRandomAccessViewValue).mValue +
-            vector_jacobian_product_entry_contribution(aRowVector, aVectorIndex, tNodalSensitivities);
+        if (!tVectorJacobianProductRandomAccessViewValue.empty())
+        {
+            tVectorJacobianProductRandomAccessViewValue =
+                static_cast<analysis::ScalarFieldValue>(tVectorJacobianProductRandomAccessViewValue).mValue +
+                vector_jacobian_product_entry_contribution(aRowVector, aVectorIndex, tNodalSensitivities);
+        }
     }
     return aVectorJacobianProduct;
 }
 }  // namespace
 
-auto generate_computational_mesh(const BackgroundMeshFilePath &aBackgroundMeshName,
+auto generate_computational_mesh(const analysis::AnalysisDomainMesh &aBackgroundMeshWithLevelSets,
+                                 const double aFixedLevelSetValue,
                                  const CutMeshFilePath &aCutMesh,
-                                 const std::vector<double> &aLevelSetValues,
                                  const VoidPhase aVoidRegion)
     -> std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn>
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelSetValues, aVoidRegion);
+    auto tKrinoWrapper = KrinoWrapper{aBackgroundMeshWithLevelSets, aFixedLevelSetValue, aVoidRegion};
     tKrinoWrapper.writeMesh(aCutMesh.mValue);
     return tKrinoWrapper.sensitivities();
 }
 
-std::vector<double> initialize_mesh_with_level_set_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
-                                                              const CutMeshFilePath &aCutMesh,
-                                                              const LevelSetPrimitives &aLevelSetPrimitives,
-                                                              const VoidPhase aVoidRegion)
+auto initialize_mesh_with_level_set_primitives(const BackgroundMeshFilePath &aBackgroundMeshName,
+                                               const LevelSetPrimitives &aLevelSetPrimitives,
+                                               const VoidPhase aVoidRegion) -> std::vector<double>
 {
-    KrinoWrapper tKrinoWrapper(aBackgroundMeshName.mValue, aLevelSetPrimitives, aVoidRegion);
-    tKrinoWrapper.writeMesh(aCutMesh.mValue);
+    const auto tKrinoWrapper = KrinoWrapper{aBackgroundMeshName.mValue, aLevelSetPrimitives, aVoidRegion};
     return tKrinoWrapper.levelSetValues();
 }
 
@@ -79,6 +81,8 @@ auto level_set_row_vector_jacobian_product(
     const std::unordered_map<stk::mesh::EntityId, LevelSetJacobianColumn> &aLevelSetJacobian,
     analysis::AnalysisDomainMesh &&aBackgroundMeshSpaceIDs) -> analysis::AnalysisDomainMesh
 {
+    aBackgroundMeshSpaceIDs = analysis::zero_scalar_field(std::move(aBackgroundMeshSpaceIDs));
+
     const auto tCutMeshSpaceRandomAccessView = analysis::AnalysisDomainMeshRandomAccessView{aCutMeshSpaceIDs};
     for (const auto &[tCurInterfaceNodeID, tLevelSetJacobianColumn] : aLevelSetJacobian)
     {
@@ -109,10 +113,10 @@ auto level_set_row_vector_adjoint_jacobian_product(const analysis::AnalysisDomai
             [tLevelSetSpaceRandomAccessView](const stk::math::Vector3d &aSum, const auto &aParentNodeInfo)
             {
                 constexpr auto tNodeIdIndex = 0;
-                constexpr auto tSensitivityIndex = 1;
                 const auto tBackgroundValue = tLevelSetSpaceRandomAccessView[std::get<tNodeIdIndex>(aParentNodeInfo)];
-                assert(tBackgroundValue);
-                return aSum + tBackgroundValue.value().mValue * std::get<tSensitivityIndex>(aParentNodeInfo);
+                constexpr auto tSensitivityIndex = 1;
+                return aSum + tBackgroundValue.value_or(analysis::ScalarFieldValue{}).mValue *
+                                  std::get<tSensitivityIndex>(aParentNodeInfo);
             });
     }
     return tAdjointResult;

@@ -126,7 +126,6 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), level_set_topology,
     (plato::input_parser::FileName, background_mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
-    (plato::input_parser::FileName, cut_mesh_name, "Required field specifying the file name of the exodus mesh generated after a level set cut has been performed.")
     (plato::input_parser::FileName, output_mesh_name, "Required field specifying the exodus output file name to use when writing results.")
     (bool, include_void_region, "Required field specifying whether to include the elements of the void region when writing the cut mesh.")
     (double, sphere_pattern_bbox_min_x, "Required field specifying the starting x-coordinate of the sphere pattern's bounding box.")
@@ -140,6 +139,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (double, level_set_lower_bound, "Required field specifying the value of the control that sets the lower bound of he level set cut.")
     (double, level_set_upper_bound, "Required field specifying the value of the control that sets the upper bound of he level set cut.")
     (plato::input_parser::FilterCrossReference, filter, "Required name of the filter block to apply to the controls.")
+    (plato::input_parser::FixedBlockList, fixed_blocks, "Optional list of blocks in the mesh that will have level-set fields assigned to the level_set_upper_bound value.")
 )
 
 PLATO_FILTER_INPUT_BLOCK_STRUCT(

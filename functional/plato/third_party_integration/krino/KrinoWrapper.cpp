@@ -19,9 +19,12 @@
 #include <stk_util/environment/EnvData.hpp>
 #include <string_view>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::krino
 {
@@ -30,6 +33,14 @@ namespace
 constexpr auto kLevelSetName = std::string_view{"LEVEL_SET"};
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kInitializationSurfaces = std::string_view{"initialization surfaces"};
+
+template <typename LevelSetFieldVector>
+[[nodiscard]] auto level_set_value(LevelSetFieldVector &&aLevelSetFields, const stk::mesh::Entity &aNode)
+    -> decltype(auto)
+{
+    assert(!aLevelSetFields.empty());
+    return *::krino::field_data<double>(aLevelSetFields.front().isovar, aNode);
+}
 
 [[nodiscard]] auto node_ids_for_nodes(const stk::mesh::BulkData &aMesh,
                                       const std::vector<stk::mesh::Entity> &aParentNodes)
@@ -105,11 +116,6 @@ void cut_mesh(stk::mesh::BulkData &aMesh, const std::vector<::krino::LS_Field> &
     return tNodes;
 }
 
-void reset_mesh(::krino::MeshInterface &aKrinoMesh)
-{
-    ::krino::CDMesh::reset_mesh_to_original_undecomposed_state(aKrinoMesh.bulk_data());
-}
-
 void append_spheres(::krino::Composite_Surface &aSurfaces, const std::vector<Sphere> &aSpheres)
 {
     for (const auto &tSphere : aSpheres)
@@ -123,6 +129,17 @@ void append_planes(::krino::Composite_Surface &aSurfaces, const std::vector<Plan
     {
         const auto tNormal = std::array{tPlane.mNormal.x, tPlane.mNormal.y, tPlane.mNormal.z};
         aSurfaces.add(new ::krino::Plane(tNormal.data(), tPlane.mOffset, 1.0));
+    }
+}
+
+void initialize_level_set_field_to_fixed_value(::krino::MeshInterface &aKrinoMesh,
+                                               std::vector<::krino::LS_Field> &aLevelSetFields,
+                                               const double aFixedLevelSetValue)
+{
+    const auto tNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
+    for (const auto tNode : tNodes)
+    {
+        level_set_value(aLevelSetFields, tNode) = aFixedLevelSetValue;
     }
 }
 
@@ -163,9 +180,21 @@ auto read_and_setup_for_decomposition(const std::filesystem::path &aFilename) ->
     tMeshFromFile->populate_mesh();
     ::krino::activate_all_entities(tMeshFromFile->bulk_data(),
                                    ::krino::AuxMetaData::get(tMeshFromFile->meta_data()).active_part());
-    stk::mesh::EntityVector tNodes;
-    stk::mesh::get_entities(tMeshFromFile->bulk_data(), stk::topology::NODE_RANK, tNodes);
     return tMeshFromFile;
+}
+
+void set_level_set_fields(::krino::MeshInterface &aKrinoMesh,
+                          std::vector<::krino::LS_Field> &aLevelSetFields,
+                          const analysis::AnalysisDomainMesh &aAnalysisDomainMesh)
+{
+    for (const auto &tScalarFieldValueProxy : analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
+    {
+        const auto &tScalarFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValueProxy);
+        const auto tStkEntity =
+            aKrinoMesh.bulk_data().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
+        level_set_value(aLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
+    }
+    cut_mesh(aKrinoMesh.bulk_data(), aLevelSetFields);
 }
 
 }  // namespace
@@ -187,21 +216,30 @@ KrinoWrapper::KrinoWrapper(const std::filesystem::path &aFilename,
     : mVoidRegion(aVoidRegion),
       mKrinoMesh(read_and_setup_for_decomposition(aFilename)),
       mLevelSetFields(::krino::Phase_Support::get_levelset_fields(mKrinoMesh->meta_data()))
-
 {
     setLevelSetValues(aLevelSetValues);
 }
 
+KrinoWrapper::KrinoWrapper(const analysis::AnalysisDomainMesh &aLevelSetValues,
+                           const double aFixedLevelSetValue,
+                           const VoidPhase aVoidRegion)
+    : mVoidRegion(aVoidRegion),
+      mKrinoMesh(read_and_setup_for_decomposition(aLevelSetValues.mFileName)),
+      mLevelSetFields(::krino::Phase_Support::get_levelset_fields(mKrinoMesh->meta_data()))
+{
+    initialize_level_set_field_to_fixed_value(*mKrinoMesh, mLevelSetFields, aFixedLevelSetValue);
+    set_level_set_fields(*mKrinoMesh, mLevelSetFields, aLevelSetValues);
+}
+
 void KrinoWrapper::setLevelSetValues(const std::vector<double> &aValuesIn)
 {
-    reset_mesh(*mKrinoMesh);
-    stk::mesh::EntityVector tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
+    ::krino::CDMesh::reset_mesh_to_original_undecomposed_state(mKrinoMesh->bulk_data());
+    const auto tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
     assert(aValuesIn.size() == tNodes.size());
 
-    for (const auto &[tIndex, tNode] : utilities::enumerate(tNodes))
+    for (const auto &[tNode, tLevelSetValue] : utilities::Zip{tNodes, aValuesIn})
     {
-        double *tDistance = ::krino::field_data<double>(mLevelSetFields.front().isovar, tNode);
-        *tDistance = aValuesIn[tIndex];
+        level_set_value(mLevelSetFields, tNode) = tLevelSetValue;
     }
     cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields);
 }
@@ -216,15 +254,13 @@ void KrinoWrapper::writeMesh(const std::filesystem::path &aFilename)
                                               tTime);
 }
 
-std::vector<double> KrinoWrapper::levelSetValues() const
+auto KrinoWrapper::levelSetValues() const -> std::vector<double>
 {
-    stk::mesh::EntityVector tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
+    const auto tNodes = node_entities_in_mesh(*mKrinoMesh, mLevelSetFields);
     std::vector<double> tReturn;
     tReturn.reserve(tNodes.size());
     std::transform(tNodes.begin(), tNodes.end(), std::back_inserter(tReturn),
-                   [this](const auto &aNode)
-                   { return *::krino::field_data<double>(mLevelSetFields.front().isovar, aNode); });
-
+                   [this](const auto &aNode) { return level_set_value(mLevelSetFields, aNode); });
     return tReturn;
 }
 

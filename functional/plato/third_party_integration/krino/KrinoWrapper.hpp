@@ -11,6 +11,11 @@
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
+namespace plato::analysis
+{
+struct AnalysisDomainMesh;
+}
+
 namespace plato::third_party_integration::krino
 {
 /// @brief Interface with Krino
@@ -23,10 +28,13 @@ class KrinoWrapper
    public:
     KrinoWrapper(const std::filesystem::path &aFilename,
                  const LevelSetPrimitives &aLevelSetPrimitives,
-                 const VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
+                 VoidPhase aIncludeVoidRegion);
     KrinoWrapper(const std::filesystem::path &aFilename,
                  const std::vector<double> &aLevelSetValues,
-                 const VoidPhase aIncludeVoidRegion = VoidPhase::kExcludeFromMesh);
+                 VoidPhase aIncludeVoidRegion);
+    KrinoWrapper(const analysis::AnalysisDomainMesh &aLevelSetValues,
+                 double aFixedLevelSetValue,
+                 VoidPhase aIncludeVoidRegion);
 
     void setLevelSetValues(const std::vector<double> &aValuesIn);
     void writeMesh(const std::filesystem::path &aFilename);

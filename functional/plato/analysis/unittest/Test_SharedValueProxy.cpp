@@ -75,4 +75,15 @@ TEST(SharedDensityProxy, AssignmentPolicy)
     EXPECT_EQ(tVector2.front().mDesignVariableVectorIndex, tDensity1.mDesignVariableVectorIndex);
 }
 
+TEST(SharedDensityProxy, Empty)
+{
+    auto tProxy = SharedDensityProxy{};
+    EXPECT_TRUE(tProxy.empty());
+
+    auto tVector1 = VectorType{tDensity0};
+    auto tVector2 = VectorType{tDensity1};
+    tProxy = SharedDensityProxy{{tVector1.begin(), tVector2.begin()}};
+    EXPECT_FALSE(tProxy.empty());
+}
+
 }  // namespace plato::analysis::unittest

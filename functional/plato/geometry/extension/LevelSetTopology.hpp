@@ -41,10 +41,8 @@ class LevelSetTopology
     LevelSetTopology& operator=(const LevelSetTopology&) = default;
     LevelSetTopology& operator=(LevelSetTopology&&) = default;
 
-    [[nodiscard]] auto bounds(const std::filesystem::path& aMeshFileName) const
-        -> std::pair<std::vector<double>, std::vector<double>>;
-    [[nodiscard]] auto initialGuess(const std::filesystem::path& aMeshFileName) const
-        -> linear_algebra::DynamicVector<double>;
+    [[nodiscard]] auto bounds() const -> std::pair<std::vector<double>, std::vector<double>>;
+    [[nodiscard]] auto initialGuess() const -> linear_algebra::DynamicVector<double>;
     [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> analysis::AnalysisDomainMesh;
     static void output(const std::filesystem::path& aInputMeshName,
@@ -76,7 +74,6 @@ namespace detail
 {
 [[nodiscard]] std::optional<std::string> validate_output_mesh_name(const input_parser::level_set_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_background_mesh_name(const input_parser::level_set_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_cut_mesh_name(const input_parser::level_set_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_lower_bound(const input_parser::level_set_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_upper_bound(const input_parser::level_set_topology& aInput);
 [[nodiscard]] std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput);
