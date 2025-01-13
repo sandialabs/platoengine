@@ -1,5 +1,7 @@
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 
+#include <boost/mpi/communicator.hpp>
+
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/analysis/Utilities.hpp"
@@ -292,16 +294,20 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
     const auto tMesh = mesh_from_input(aInput);
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aSolution.stdVector()});
-    mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(restart_file_name(aInput), tNodalDesignParameters,
-                                                         kTopologyFieldName, kLevelSetFixedValue);
 
-    mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(
-        filtered_output_file_name(aInput),
-        aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters), kTopologyFieldName,
-        kLevelSetFixedValue);
+    if (boost::mpi::communicator{}.rank() == 0)
+    {
+        mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(restart_file_name(aInput), tNodalDesignParameters,
+                                                             kTopologyFieldName, kLevelSetFixedValue);
 
-    tpik::generate_computational_mesh(tNodalDesignParameters, aInput.level_set_upper_bound.value(),
-                                      tpik::CutMeshFilePath{aInput.output_mesh_name->mToken}, void_phase(aInput));
+        mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(
+            filtered_output_file_name(aInput),
+            aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters), kTopologyFieldName,
+            kLevelSetFixedValue);
+
+        tpik::generate_computational_mesh(tNodalDesignParameters, aInput.level_set_upper_bound.value(),
+                                          tpik::CutMeshFilePath{aInput.output_mesh_name->mToken}, void_phase(aInput));
+    }
 }
 
 auto LevelSetTopology::backgroundMesh() const -> const mesh::Mesh& { return mBackgroundMesh; }
