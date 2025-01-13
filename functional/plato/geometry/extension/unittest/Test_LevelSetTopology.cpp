@@ -428,8 +428,8 @@ TEST_F(LevelSetTopologyFixture, Bounds)
 TEST_F(LevelSetTopologyTwoBlockFixture, OutputRoundTrip)
 {
     const auto tInput = levelSetTopologyInputWithFixedBlocks({"block_1"});
-    const auto tDesignVariables = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 0.0);
-    LevelSetTopology::output(tInput, filter::extension::make_identity_filter_function(), tDesignVariables);
+    const auto tDesignVariablesForOutput = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 0.0);
+    LevelSetTopology::output(tInput, filter::extension::make_identity_filter_function(), tDesignVariablesForOutput);
 
     const auto tOutputMeshName = std::filesystem::path{tInput.output_mesh_name->mToken};
     const auto tRestartOutputMeshName = restart_file_name(tInput);
