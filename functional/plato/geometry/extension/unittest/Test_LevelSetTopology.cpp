@@ -26,6 +26,7 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -418,6 +419,34 @@ TEST_F(LevelSetTopologyFixture, Bounds)
     EXPECT_TRUE(
         std::all_of(tLowerBounds.cbegin(), tLowerBounds.cend(), [](const double aVal) { return aVal == -1.0; }));
     EXPECT_TRUE(std::all_of(tUpperBounds.cbegin(), tUpperBounds.cend(), [](const double aVal) { return aVal == 1.0; }));
+}
+
+TEST_F(LevelSetTopologyTwoBlockFixture, OutputRoundTrip)
+{
+    const auto tInput = levelSetTopologyInputWithFixedBlocks({"block_1"});
+    const auto tDesignVariables = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 0.0);
+    LevelSetTopology::output(tInput, tDesignVariables);
+
+    constexpr auto tFieldName = std::string_view{"Topology"};
+    const auto tRestartPrefix = std::string{"restart_"};
+    const auto tOutputMeshName = tRestartPrefix + tInput.output_mesh_name->mToken;
+    const auto tReadDesignVariables =
+        third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(tOutputMeshName, tFieldName);
+
+    EXPECT_EQ(tReadDesignVariables.size(), mExpectedNumberOfNodes);
+    // Block 1 is fixed, so we expect 0's for the first 8 entries, and 1's for the rest
+    const auto tExpectedDesignVariables = []()
+    {
+        auto tDesignVariables = std::vector<double>(mExpectedNumberOfNodes, 1.0);
+        const auto tNumberOfFixedNodes = 4U;
+        std::fill_n(std::next(tDesignVariables.begin(), tNumberOfFixedNodes),
+                    mExpectedNumberOfNodes - tNumberOfFixedNodes, 0.0);
+        return tDesignVariables;
+    }();
+
+    EXPECT_EQ(tExpectedDesignVariables, tReadDesignVariables);
+
+    std::filesystem::remove(tOutputMeshName);
 }
 
 }  // namespace plato::geometry::extension::unittest

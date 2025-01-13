@@ -34,6 +34,7 @@ constexpr double kLevelSetFixedValue = 1.0;
 constexpr auto kTopologyFieldName = std::string_view{"Topology"};
 constexpr auto kKrinoLogFileName = std::string_view{"Krino_Output.txt"};
 constexpr auto kKrinoCutMeshBaseName = std::string_view{"krino_cut_mesh.exo"};
+constexpr auto kRestartFileNamePrefix = std::string_view{"restart_"};
 
 constexpr auto kXComponent = utilities::ComponentIndex{0};
 constexpr auto kYComponent = utilities::ComponentIndex{1};
@@ -54,11 +55,11 @@ auto mesh_from_input(const input_parser::level_set_topology& aInput) -> mesh::Me
     return mesh::Mesh{background_mesh_name(aInput), fixed_blocks(aInput)};
 }
 
-auto make_topology_output(const std::filesystem::path& aInputMeshName, const std::filesystem::path& aOutputMeshName)
+auto make_topology_output(const input_parser::level_set_topology& aInput)
     -> std::function<void(const linear_algebra::DynamicVector<double>&)>
 {
-    return [aInputMeshName, aOutputMeshName](const linear_algebra::DynamicVector<double>& aSolution)
-    { return LevelSetTopology::output(aInputMeshName, aSolution, aOutputMeshName); };
+    return [aInput](const linear_algebra::DynamicVector<double>& aSolution)
+    { return LevelSetTopology::output(aInput, aSolution); };
 }
 
 void initialize_krino()
@@ -85,9 +86,8 @@ auto make_level_set_geometry(const input_parser::level_set_topology& aLevelSetTo
         initialize_krino();
         const auto& tInput = core::validated_variant_raw_input<input_parser::level_set_topology>(aGeometryInput);
         auto tLevelSet = LevelSetTopology{tInput};
-        return library::FactoryTypes{
-            make_level_set_geometry(tInput), tLevelSet.initialGuess(), tLevelSet.bounds(),
-            make_topology_output(background_mesh_name(tInput), tInput.output_mesh_name.value().mToken)};
+        return library::FactoryTypes{make_level_set_geometry(tInput), tLevelSet.initialGuess(), tLevelSet.bounds(),
+                                     make_topology_output(tInput)};
     }};
 
 /// Static registration for input validation functions
@@ -281,14 +281,14 @@ auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
     };
 }
 
-void LevelSetTopology::output(const std::filesystem::path& aInputMeshName,
-                              const linear_algebra::DynamicVector<double>& aSolution,
-                              const std::filesystem::path& aOutputMeshName)
+void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
+                              const linear_algebra::DynamicVector<double>& aSolution)
 {
-    const auto tMesh = mesh::Mesh{aInputMeshName};
+    const auto tMesh = mesh_from_input(aInput);
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aSolution.stdVector()});
-    mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(aOutputMeshName, tNodalDesignParameters, kTopologyFieldName,
+    const auto tFieldOutputName = std::string{kRestartFileNamePrefix} + aInput.output_mesh_name->mToken;
+    mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(tFieldOutputName, tNodalDesignParameters, kTopologyFieldName,
                                                          kLevelSetFixedValue);
 }
 

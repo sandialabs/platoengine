@@ -45,9 +45,8 @@ class LevelSetTopology
     [[nodiscard]] auto initialGuess() const -> linear_algebra::DynamicVector<double>;
     [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> analysis::AnalysisDomainMesh;
-    static void output(const std::filesystem::path& aInputMeshName,
-                       const linear_algebra::DynamicVector<double>& aSolution,
-                       const std::filesystem::path& aOutputMeshName);
+    static void output(const input_parser::level_set_topology& aInput,
+                       const linear_algebra::DynamicVector<double>& aSolution);
     [[nodiscard]] auto jacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> linear_algebra::JacobianMultiplier;
     [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
