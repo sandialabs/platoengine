@@ -34,7 +34,6 @@ constexpr double kLevelSetFixedValue = 1.0;
 constexpr auto kTopologyFieldName = std::string_view{"Topology"};
 constexpr auto kKrinoLogFileName = std::string_view{"Krino_Output.txt"};
 constexpr auto kKrinoCutMeshBaseName = std::string_view{"krino_cut_mesh.exo"};
-constexpr auto kRestartFileNamePrefix = std::string_view{"restart_"};
 
 constexpr auto kXComponent = utilities::ComponentIndex{0};
 constexpr auto kYComponent = utilities::ComponentIndex{1};
@@ -59,7 +58,7 @@ auto make_topology_output(const input_parser::level_set_topology& aInput)
     -> std::function<void(const linear_algebra::DynamicVector<double>&)>
 {
     return [aInput](const linear_algebra::DynamicVector<double>& aSolution)
-    { return LevelSetTopology::output(aInput, aSolution); };
+    { return LevelSetTopology::output(aInput, library::make_filter_from_geometry_input(aInput), aSolution); };
 }
 
 void initialize_krino()
@@ -190,14 +189,19 @@ auto remove_fixed_block_fields(const std::vector<double>& aLevelSetValues, const
         .mValue;
 }
 
+auto void_phase(const input_parser::level_set_topology& aInput)
+{
+    return aInput.include_void_region.value() ? third_party_integration::krino::VoidPhase::kIncludeInMesh
+                                              : third_party_integration::krino::VoidPhase::kExcludeFromMesh;
+}
+
 }  // namespace
 
 LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInput)
     : mBackgroundMesh(mesh_from_input(aInput)),
       mCutMesh(utilities::make_filename_unique(kKrinoCutMeshBaseName)),
       mOutputMesh(aInput.output_mesh_name.value().mToken),
-      mVoidRegion(aInput.include_void_region.value() ? third_party_integration::krino::VoidPhase::kIncludeInMesh
-                                                     : third_party_integration::krino::VoidPhase::kExcludeFromMesh),
+      mVoidRegion(void_phase(aInput)),
       mLevelSetLowerBound(aInput.level_set_lower_bound.value()),
       mLevelSetUpperBound(aInput.level_set_upper_bound.value()),
       mLevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(aInput))}
@@ -282,14 +286,22 @@ auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
 }
 
 void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
+                              const filter::library::FilterFunction& aFilterFunction,
                               const linear_algebra::DynamicVector<double>& aSolution)
 {
     const auto tMesh = mesh_from_input(aInput);
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aSolution.stdVector()});
-    const auto tFieldOutputName = std::string{kRestartFileNamePrefix} + aInput.output_mesh_name->mToken;
-    mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(tFieldOutputName, tNodalDesignParameters, kTopologyFieldName,
-                                                         kLevelSetFixedValue);
+    mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(restart_file_name(aInput), tNodalDesignParameters,
+                                                         kTopologyFieldName, kLevelSetFixedValue);
+
+    mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(
+        filtered_output_file_name(aInput),
+        aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters), kTopologyFieldName,
+        kLevelSetFixedValue);
+
+    tpik::generate_computational_mesh(tNodalDesignParameters, aInput.level_set_upper_bound.value(),
+                                      tpik::CutMeshFilePath{aInput.output_mesh_name->mToken}, void_phase(aInput));
 }
 
 auto LevelSetTopology::backgroundMesh() const -> const mesh::Mesh& { return mBackgroundMesh; }
@@ -306,6 +318,18 @@ auto make_level_set_geometry(const std::shared_ptr<LevelSetTopology>& aLevelSetT
 
     const auto tAdaptedFilter = library::adapt_filter(aFilterFunction, aLevelSetTopology->backgroundMesh());
     return core::compose(tGeometryFunction, tAdaptedFilter);
+}
+
+auto filtered_output_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path
+{
+    constexpr auto tFilteredFileNamePrefix = std::string_view{"filtered_field_"};
+    return std::filesystem::path{std::string{tFilteredFileNamePrefix} + aInput.output_mesh_name->mToken};
+}
+
+auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path
+{
+    constexpr auto tRestartFileNamePrefix = std::string_view{"restart_"};
+    return std::filesystem::path{std::string{tRestartFileNamePrefix} + aInput.output_mesh_name->mToken};
 }
 
 namespace detail

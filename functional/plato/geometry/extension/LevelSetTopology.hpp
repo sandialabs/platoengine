@@ -46,6 +46,7 @@ class LevelSetTopology
     [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> analysis::AnalysisDomainMesh;
     static void output(const input_parser::level_set_topology& aInput,
+                       const filter::library::FilterFunction& aFilterFunction,
                        const linear_algebra::DynamicVector<double>& aSolution);
     [[nodiscard]] auto jacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> linear_algebra::JacobianMultiplier;
@@ -68,6 +69,12 @@ class LevelSetTopology
 /// @brief Create a LevelSetTopology Geometry function with a filter.
 auto make_level_set_geometry(const std::shared_ptr<LevelSetTopology>& aLevelSetTopology,
                              const filter::library::FilterFunction& aFilterFunction) -> library::GeometryFunction;
+
+/// @brief The name of the output file containing the filtered level-set field.
+auto filtered_output_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path;
+
+/// @brief The name of the output file containing the unfiltered level-set field, which may be used as a restart file.
+auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path;
 
 namespace detail
 {
