@@ -17,6 +17,11 @@ namespace stk::mesh
 class BulkData;  // NOLINT
 }  // namespace stk::mesh
 
+namespace stk::io
+{
+class StkMeshIoBroker;
+}
+
 namespace plato::third_party_integration::stk_io
 {
 /// @brief Given a pathname  @a aMeshName and the Command generator @a aCommandGenerator, write to disk the data in
@@ -33,12 +38,45 @@ void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDe
 /// @brief Given a pathname  @a aMeshName and the STK Bulk data @a aBulk, write to disk the data in exodus format
 void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk);
 
+/// @brief Creates a StkMeshIoBroker by reading the contents of the file at @a aInputMeshPath.
+///
+/// The created object may then be used to add fields using other utility functions. create_output_mesh must be called
+/// to set up a new output file and  finalize_mesh_data must be called to close the file and write any field data.
+/// @sa create_output_mesh
+/// @sa write_nodal_scalar_field
+/// @sa write_element_scalar_field
+/// @sa finalize_mesh_data
+[[nodiscard]] auto create_io_mesh_broker(const std::filesystem::path& aInputMeshPath)
+    -> std::unique_ptr<stk::io::StkMeshIoBroker>;
+
+/// @brief Creates an output mesh at file at the file path @a aOutputMeshPath.
+/// @warning If a file exists at @a aOutputMeshPath, it will be overwritten.
+/// @return A file handle that must be used to reference the file in subsequent calls to write data.
+[[nodiscard]] auto create_output_mesh(const std::filesystem::path& aOutputMeshPath, stk::io::StkMeshIoBroker& aIOBroker)
+    -> std::size_t;
+
 /// @brief A function for retrieving a scalar field value using an index into some data structure.
 using ScalarFieldFunction = std::function<double(std::size_t)>;
 
+/// @brief Writes the data in @a aScalarField to the mesh associated with @a aIOBroker and @a aFileHandle using a field
+/// name @a aFieldName.
+void write_nodal_scalar_field(stk::io::StkMeshIoBroker& aIOBroker,
+                              const ScalarFieldFunction& aScalarField,
+                              const std::string_view aFieldName,
+                              std::size_t aFileHandle);
+
+/// @brief Writes the data in @a aScalarField to the mesh associated with @a aIOBroker and @a aFileHandle using a field
+/// name @a aFieldName.
+void write_element_scalar_field(stk::io::StkMeshIoBroker& aIOBroker,
+                                const ScalarFieldFunction& aScalarField,
+                                const std::string_view aFieldName,
+                                std::size_t aFileHandle);
+
+/// @brief This must be called to close a mesh and write its data.
+void finalize_mesh_data(stk::io::StkMeshIoBroker& aIOBroker, std::size_t aFileHandle);
+
 /// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
 /// nodal field stored in the name and populated with the data in @a aScalarField.
-/// @pre aDensity.size() == size<stk::topology::NODE_RANK>()
 void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
                               const ScalarFieldFunction& aScalarField,
                               const std::string_view aFieldName,
@@ -46,7 +84,6 @@ void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
 
 /// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
 /// element field stored in the name and populated with the data in @a aScalarField.
-/// @pre aDensity.size() == size<stk::topology::ELEMENT_RANK>()
 void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
                                 const ScalarFieldFunction& aScalarField,
                                 const std::string_view aFieldName,

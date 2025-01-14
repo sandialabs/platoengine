@@ -4,6 +4,7 @@
 #include <cmath>
 #include <filesystem>
 #include <numeric>
+#include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Comm.hpp>
 #include <stk_mesh/base/MetaData.hpp>
@@ -24,6 +25,17 @@ namespace
 constexpr auto kTopologyFieldName = std::string_view{"topology"};
 constexpr auto kFixedValue = double{42.0};
 
+struct MapField
+{
+    std::unordered_map<std::size_t, double> mData;
+
+    auto operator()(const std::size_t aGlobalIndex) const
+    {
+        const auto tDensityIterator = mData.find(aGlobalIndex);
+        return tDensityIterator != mData.end() ? tDensityIterator->second : kFixedValue;
+    };
+};
+
 void check_write_scalar_field(const std::filesystem::path& aInputFileName,
                               const std::unordered_map<std::size_t, double>& aData,
                               const std::filesystem::path& aOutputFileName,
@@ -31,22 +43,17 @@ void check_write_scalar_field(const std::filesystem::path& aInputFileName,
                               const plato::test_utilities::TestContext& aTestContext)
 {
     constexpr auto tFieldName = std::string_view{"Topology"};
-    const auto tScalarFieldFunction = [&aData](const std::size_t aGlobalIndex)
-    {
-        const auto tDensityIterator = aData.find(aGlobalIndex);
-        return tDensityIterator != aData.end() ? tDensityIterator->second : kFixedValue;
-    };
     // Nodal
     {
         write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{}));
-        write_nodal_scalar_field(aInputFileName, tScalarFieldFunction, tFieldName, aOutputFileName);
+        write_nodal_scalar_field(aInputFileName, MapField{aData}, tFieldName, aOutputFileName);
         const auto tResult = test_utilities::read_nodal_field_as_vector(aOutputFileName, kTopologyFieldName);
         EXPECT_EQ(tResult, aExpected) << aTestContext;
     }
     // Element
     {
         write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
-        write_element_scalar_field(aInputFileName, tScalarFieldFunction, tFieldName, aOutputFileName);
+        write_element_scalar_field(aInputFileName, MapField{aData}, tFieldName, aOutputFileName);
         const auto tResult = test_utilities::read_element_field_as_vector(aOutputFileName, kTopologyFieldName);
         EXPECT_EQ(tResult, aExpected) << aTestContext;
     }
@@ -105,6 +112,43 @@ TEST(WriteUtilities, WriteDensityFieldSomeMissing)
 
     check_write_scalar_field(tInputFileName, tData, tOutputFileName, tExpected,
                              TEST_CONTEXT("Some missing density field values"));
+}
+
+TEST(WriteUtilities, WriteTwoFields)
+{
+    constexpr auto tInputFileName = std::string_view{"brick.exo"};
+    write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{}));
+
+    constexpr auto tField1Name = std::string_view{"aardvark"};
+    constexpr auto tNumberOfNodes = 8U;
+    auto tExpectedField1 = std::vector<double>(tNumberOfNodes);
+    std::iota(tExpectedField1.begin(), tExpectedField1.end(), 1.0);
+    const auto tData1 = std::unordered_map<std::size_t, double>{
+        {1, tExpectedField1[0]}, {2, tExpectedField1[1]}, {3, tExpectedField1[2]}, {4, tExpectedField1[3]},
+        {5, tExpectedField1[4]}, {6, tExpectedField1[5]}, {7, tExpectedField1[6]}, {8, tExpectedField1[7]}};
+
+    constexpr auto tField2Name = std::string_view{"anteater"};
+    constexpr auto tElementValue = 8.0;
+    const auto tData2 = std::unordered_map<std::size_t, double>{{1, tElementValue}};
+
+    constexpr auto tOutputFileName = std::string_view{"brick-out.exo"};
+    {
+        const auto tIOBroker = create_io_mesh_broker(tInputFileName);
+        const auto tFileHandle = create_output_mesh(tOutputFileName, *tIOBroker);
+        write_nodal_scalar_field(*tIOBroker, MapField{tData1}, tField1Name, tFileHandle);
+        write_element_scalar_field(*tIOBroker, MapField{tData2}, tField2Name, tFileHandle);
+        finalize_mesh_data(*tIOBroker, tFileHandle);
+    }
+
+    const auto tReadField1 = test_utilities::read_nodal_field_as_vector(tOutputFileName, tField1Name);
+    EXPECT_EQ(tReadField1, tExpectedField1);
+
+    const auto tReadField2 = test_utilities::read_element_field_as_vector(tOutputFileName, tField2Name);
+    ASSERT_EQ(tReadField2.size(), 1U);
+    EXPECT_EQ(tReadField2.front(), tElementValue);
+
+    std::filesystem::remove(tInputFileName);
+    std::filesystem::remove(tOutputFileName);
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest
