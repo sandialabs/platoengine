@@ -23,6 +23,7 @@
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 
 namespace plato::geometry::extension::unittest
@@ -45,10 +46,10 @@ void create_small_mesh(const std::string& aFileName)
     third_party_integration::stk_io::write_mesh(aFileName, tCommandGenerator);
 }
 
-auto make_test_kernel_filter()
+auto make_test_kernel_filter(const std::filesystem::path& aMeshFile)
 {
     const auto tFilter = std::make_shared<filter::extension::KernelFilter>(
-        mesh::Mesh{kDensityInput.mesh_name->mToken}, filter::extension::FilterRadius{3.25},
+        mesh::Mesh{aMeshFile}, filter::extension::FilterRadius{3.25},
         input_parser::KernelFilterCenteringTypes::kElementCentered, boost::mpi::communicator{});
 
     return filter::test_utilities::make_filter_function(tFilter);
@@ -83,7 +84,7 @@ TEST(DensityTopology, Jacobian)
 TEST(DensityTopology, AdjointJacobian)
 {
     create_small_mesh(kDensityInput.mesh_name->mToken);
-    const auto tFilter = make_test_kernel_filter();
+    const auto tFilter = make_test_kernel_filter(kDensityInput.mesh_name->mToken);
     const auto tDensityTopology = DensityTopology{kDensityInput, tFilter};
     const auto tDesignVariables = linear_algebra::DynamicVector{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
     const auto tMesh = mesh::DesignVariablesConversion{mesh::Mesh{kDensityInput.mesh_name->mToken}};
@@ -199,6 +200,35 @@ TEST(DensityTopology, Bounds)
     EXPECT_TRUE(std::all_of(tUpperBounds.cbegin(), tUpperBounds.cend(), [](const double aVal) { return aVal == 1.0; }));
 
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
+}
+
+TEST_F(NodalDensityMesh, Output)
+{
+    const auto tDensityInput = density_input_for_test_fixture(mMeshName, mFieldName);
+    const auto tDesignVariables = DensityTopology::initialGuess(tDensityInput);
+    const auto tFilter = make_test_kernel_filter(tDensityInput.mesh_name->mToken);
+    DensityTopology::output(tDesignVariables, tFilter, tDensityInput);
+
+    ASSERT_TRUE(std::filesystem::exists(tDensityInput.output_name.value().mToken));
+
+    {
+        constexpr auto tDensityFieldName = std::string_view{"UnfilteredDensity"};
+        const auto tReadUnfilteredDensities =
+            third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(
+                tDensityInput.output_name.value().mToken, tDensityFieldName);
+        EXPECT_EQ(tDesignVariables.stdVector(), tReadUnfilteredDensities);
+    }
+    {
+        constexpr auto tFilteredDensityFieldName = std::string_view{"Density"};
+        const auto tReadFilteredDensities =
+            third_party_integration::stk_io::test_utilities::read_element_field_as_vector(
+                tDensityInput.output_name.value().mToken, tFilteredDensityFieldName);
+        const auto tExpected = std::vector<double>{8.435398473291716, 8.5, 8.564601526708284};  // Regression value
+        constexpr auto tTolerance = 1e-14;
+        test_utilities::expect_container_entries_near(tExpected, tReadFilteredDensities, tTolerance,
+                                                      TEST_CONTEXT("Filtered density values"));
+    }
+    EXPECT_TRUE(std::filesystem::remove(tDensityInput.output_name->mToken));
 }
 
 }  // namespace plato::geometry::extension::unittest

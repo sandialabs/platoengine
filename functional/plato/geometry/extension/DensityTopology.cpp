@@ -30,7 +30,6 @@ constexpr double kDensityLowerBound = 0.0;
 constexpr double kDensityUpperBound = 1.0;
 constexpr double kDensityFixedValue = 1.0;
 
-constexpr auto kRestartFileNamePrefix = std::string_view{"restart_"};
 constexpr auto kTopologyFieldName = std::string_view{"Density"};
 constexpr auto kUnfilteredControlsFieldName = std::string_view{"UnfilteredDensity"};
 
@@ -40,7 +39,10 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
     -> std::function<void(const linear_algebra::DynamicVector<double>&)>
 {
     return [aInput](const linear_algebra::DynamicVector<double>& aSolution)
-    { return DensityTopology::output(aSolution, aInput); };
+    {
+        const auto tFilter = library::make_filter_from_geometry_input(aInput);
+        return DensityTopology::output(aSolution, tFilter, aInput);
+    };
 }
 
 [[nodiscard]] auto make_topology_geometry(const input_parser::density_topology& aInput) -> library::GeometryFunction
@@ -159,22 +161,20 @@ std::pair<std::vector<double>, std::vector<double>> DensityTopology::bounds(
 }
 
 void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolution,
+                             const filter::library::FilterFunction& aFilterFunction,
                              const input_parser::density_topology& aInput)
 {
     const auto& tOutputMeshName = aInput.output_name->mToken;
-    const auto tRestartMeshName = std::string{kRestartFileNamePrefix} + tOutputMeshName;
     const auto tMesh = detail::mesh_from_input(aInput);
-    const auto tFilter = library::make_filter_from_geometry_input(aInput);
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aSolution.stdVector()});
 
     if (boost::mpi::communicator{}.rank() == 0)
     {
-        mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(
-            tOutputMeshName, tFilter.evaluate<core::evaluation::kFunction>(tNodalDesignParameters), kTopologyFieldName,
-            kDensityFixedValue);
-        mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(tRestartMeshName, tNodalDesignParameters,
-                                                             kUnfilteredControlsFieldName, kDensityFixedValue);
+        auto tMeshWriter = mesh::MeshFieldWriter{tMesh, tOutputMeshName};
+        tMeshWriter.addAnalysisDomainMesh(aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters),
+                                          kTopologyFieldName, kDensityFixedValue);
+        tMeshWriter.addAnalysisDomainMesh(tNodalDesignParameters, kUnfilteredControlsFieldName, kDensityFixedValue);
     }
 }
 
@@ -196,17 +196,12 @@ std::optional<std::string> validate_initial_density_value(const input_parser::de
 
 std::optional<std::string> validate_initial_topology_source(const input_parser::density_topology& aInput)
 {
-    if (aInput.initial_density_field_name.has_value())
+    if (aInput.initial_density_field_name.has_value() && aInput.mesh_name.has_value() &&
+        std::filesystem::exists(aInput.mesh_name.value().mToken))
     {
         const auto tFieldName = aInput.initial_density_field_name.value().mToken;
-        if (aInput.mesh_name && !std::filesystem::exists(aInput.mesh_name.value().mToken))
-        {
-            return utilities::concatenate(input_parser::block_name<input_parser::density_topology>(), ": The mesh  ",
-                                          aInput.mesh_name.value().mToken, " does not exist.");
-        }
-
         const auto tFileName = aInput.mesh_name.value().mToken;
-        const bool tNodalFieldExists =
+        const auto tNodalFieldExists =
             mesh::EntityCounts{detail::mesh_from_input(aInput)}.hasNodalFieldVariable(std::string{tFieldName});
 
         if (!tNodalFieldExists)

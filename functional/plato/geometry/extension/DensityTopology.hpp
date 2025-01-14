@@ -47,6 +47,7 @@ class DensityTopology
         -> std::pair<std::vector<double>, std::vector<double>>;
 
     static void output(const linear_algebra::DynamicVector<double>& aSolution,
+                       const filter::library::FilterFunction& aFilterFunction,
                        const input_parser::density_topology& aInput);
 
    private:

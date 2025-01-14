@@ -32,8 +32,8 @@ namespace
 namespace tpik = third_party_integration::krino;
 
 constexpr auto kDimensions = std::size_t{3};
-constexpr double kLevelSetFixedValue = 1.0;
-constexpr auto kTopologyFieldName = std::string_view{"Topology"};
+constexpr auto kTopologyFieldName = std::string_view{"topology"};
+constexpr auto kFilteredTopologyFieldName = std::string_view{"filtered_topology"};
 constexpr auto kKrinoLogFileName = std::string_view{"Krino_Output.txt"};
 constexpr auto kKrinoCutMeshBaseName = std::string_view{"krino_cut_mesh.exo"};
 
@@ -297,13 +297,12 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
 
     if (boost::mpi::communicator{}.rank() == 0)
     {
-        mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(restart_file_name(aInput), tNodalDesignParameters,
-                                                             kTopologyFieldName, kLevelSetFixedValue);
+        auto tMeshWriter = mesh::MeshFieldWriter{tMesh, restart_file_name(aInput)};
+        tMeshWriter.addAnalysisDomainMesh(tNodalDesignParameters, kTopologyFieldName,
+                                          aInput.level_set_upper_bound.value());
 
-        mesh::MeshFieldWriter{tMesh}.writeAnalysisDomainMesh(
-            filtered_output_file_name(aInput),
-            aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters), kTopologyFieldName,
-            kLevelSetFixedValue);
+        tMeshWriter.addAnalysisDomainMesh(aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters),
+                                          kFilteredTopologyFieldName, aInput.level_set_upper_bound.value());
 
         tpik::generate_computational_mesh(tNodalDesignParameters, aInput.level_set_upper_bound.value(),
                                           tpik::CutMeshFilePath{aInput.output_mesh_name->mToken}, void_phase(aInput));

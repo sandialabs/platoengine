@@ -437,7 +437,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, OutputRoundTrip)
     EXPECT_TRUE(std::filesystem::exists(tOutputMeshName));
     EXPECT_TRUE(std::filesystem::exists(tRestartOutputMeshName));
 
-    constexpr auto tFieldName = std::string_view{"Topology"};
+    constexpr auto tFieldName = std::string_view{"topology"};
     const auto tReadDesignVariables =
         third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(tRestartOutputMeshName, tFieldName);
 
@@ -456,7 +456,6 @@ TEST_F(LevelSetTopologyTwoBlockFixture, OutputRoundTrip)
 
     std::filesystem::remove(tOutputMeshName);
     std::filesystem::remove(tRestartOutputMeshName);
-    std::filesystem::remove(filtered_output_file_name(tInput));
 }
 
 TEST_F(LevelSetTopologyTwoBlockFixture, FilteredOutputRoundTrip)
@@ -472,8 +471,8 @@ TEST_F(LevelSetTopologyTwoBlockFixture, FilteredOutputRoundTrip)
                                                               tInput.background_mesh_name->mToken, {tFixedBlock}),
                              tDesignVariables);
 
-    const auto tFieldOutputMeshName = filtered_output_file_name(tInput);
-    constexpr auto tFieldName = std::string_view{"Topology"};
+    const auto tFieldOutputMeshName = restart_file_name(tInput);
+    constexpr auto tFieldName = std::string_view{"filtered_topology"};
     const auto tReadDesignVariables =
         third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(tFieldOutputMeshName, tFieldName);
     const auto tNormalization = 3.0 - 0.5 * std::sqrt(2.0);  // Sum of filter values: 1, 0.5, 0.5, 1 - sqrt(2)/2
@@ -496,7 +495,6 @@ TEST_F(LevelSetTopologyTwoBlockFixture, FilteredOutputRoundTrip)
 
     std::filesystem::remove(tInput.output_mesh_name->mToken);
     std::filesystem::remove(restart_file_name(tInput));
-    std::filesystem::remove(filtered_output_file_name(tInput));
 }
 
 TEST(LevelSetTopology, OutputFileNames)
@@ -504,11 +502,6 @@ TEST(LevelSetTopology, OutputFileNames)
     const auto tRestartPrefix = std::string{"restart_"};
     const auto tRestartOutputMeshName = std::filesystem::path{tRestartPrefix + kLevelSetInput.output_mesh_name->mToken};
     EXPECT_EQ(tRestartOutputMeshName, restart_file_name(kLevelSetInput));
-
-    const auto tFilteredFieldPrefix = std::string{"filtered_field_"};
-    const auto tFieldOutputMeshName =
-        std::filesystem::path{tFilteredFieldPrefix + kLevelSetInput.output_mesh_name->mToken};
-    EXPECT_EQ(tFieldOutputMeshName, filtered_output_file_name(kLevelSetInput));
 }
 
 }  // namespace plato::geometry::extension::unittest
