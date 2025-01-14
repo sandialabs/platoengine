@@ -170,12 +170,20 @@ namespace
 
 TEST_F(NodalDensityMesh, InitialDensityFromMesh)
 {
+    const auto tCheckFunction =
+        [this](const std::vector<double>& aResult, const test_utilities::TestContext& aTestContext)
+    {
+        std::vector<double> tGold(mGoldNumbering.size());
+        std::iota(tGold.begin(), tGold.end(), 1.0);
+        EXPECT_EQ(aResult, tGold) << aTestContext;
+    };
+
     const auto tDensityInput = density_input_for_test_fixture(mMeshName, mFieldName);
     const auto tResult = detail::initial_density_value_from_mesh(tDensityInput);
+    tCheckFunction(tResult, TEST_CONTEXT("From initial_density_value_from_mesh"));
 
-    std::vector<double> tGold(mGoldNumbering.size());
-    std::iota(tGold.begin(), tGold.end(), 1.0);
-    EXPECT_EQ(tResult, tGold);
+    const auto tInitialGuess = DensityTopology::initialGuess(tDensityInput);
+    tCheckFunction(tInitialGuess.stdVector(), TEST_CONTEXT("From DensityTopology::initialGuess"));
 }
 
 TEST(DensityTopology, Bounds)
