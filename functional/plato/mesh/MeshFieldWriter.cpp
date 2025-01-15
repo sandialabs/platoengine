@@ -17,7 +17,7 @@ MeshFieldWriter::MeshFieldWriter(Mesh aMeshBase, const std::filesystem::path& aM
 
 MeshFieldWriter::~MeshFieldWriter()
 {
-    third_party_integration::stk_io::finalize_mesh_data(*mMeshIOBroker, mFileHandle);
+    third_party_integration::stk_io::finalize_mesh_data(std::move(mMeshIOBroker), mFileHandle);
 }
 
 void MeshFieldWriter::addNodalField(const NodalFieldVectorReference& aScalarField,

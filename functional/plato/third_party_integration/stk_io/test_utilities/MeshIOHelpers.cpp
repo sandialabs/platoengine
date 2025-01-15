@@ -26,7 +26,7 @@ void write_mesh_scalar_field_impl(const std::filesystem::path& aInputMeshName,
                                   const std::string_view aFieldName,
                                   const std::filesystem::path& aOutputMeshName)
 {
-    const auto tIOBroker = create_io_mesh_broker(aInputMeshName);
+    auto tIOBroker = create_io_mesh_broker(aInputMeshName);
     const auto tFileHandle = create_output_mesh(aOutputMeshName, *tIOBroker);
     if constexpr (Rank == stk::topology::ELEM_RANK)
     {
@@ -36,7 +36,7 @@ void write_mesh_scalar_field_impl(const std::filesystem::path& aInputMeshName,
     {
         stk_io::write_nodal_scalar_field(*tIOBroker, aScalarField, aFieldName, tFileHandle);
     }
-    finalize_mesh_data(*tIOBroker, tFileHandle);
+    finalize_mesh_data(std::move(tIOBroker), tFileHandle);
 }
 
 }  // namespace

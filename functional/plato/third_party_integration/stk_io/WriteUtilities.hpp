@@ -41,7 +41,7 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
 /// @brief Creates a StkMeshIoBroker by reading the contents of the file at @a aInputMeshPath.
 ///
 /// The created object may then be used to add fields using other utility functions. create_output_mesh must be called
-/// to set up a new output file and  finalize_mesh_data must be called to close the file and write any field data.
+/// to set up a new output file and finalize_mesh_data must be called to close the file and write any field data.
 /// @sa create_output_mesh
 /// @sa write_nodal_scalar_field
 /// @sa write_element_scalar_field
@@ -73,7 +73,7 @@ void write_element_scalar_field(stk::io::StkMeshIoBroker& aIOBroker,
                                 std::size_t aFileHandle);
 
 /// @brief This must be called to close a mesh and write its data.
-void finalize_mesh_data(stk::io::StkMeshIoBroker& aIOBroker, std::size_t aFileHandle);
+void finalize_mesh_data(std::unique_ptr<stk::io::StkMeshIoBroker>&& aIOBroker, std::size_t aFileHandle);
 
 }  // namespace plato::third_party_integration::stk_io
 

@@ -133,11 +133,11 @@ TEST(WriteUtilities, WriteTwoFields)
 
     constexpr auto tOutputFileName = std::string_view{"brick-out.exo"};
     {
-        const auto tIOBroker = create_io_mesh_broker(tInputFileName);
+        auto tIOBroker = create_io_mesh_broker(tInputFileName);
         const auto tFileHandle = create_output_mesh(tOutputFileName, *tIOBroker);
         write_nodal_scalar_field(*tIOBroker, MapField{tData1}, tField1Name, tFileHandle);
         write_element_scalar_field(*tIOBroker, MapField{tData2}, tField2Name, tFileHandle);
-        finalize_mesh_data(*tIOBroker, tFileHandle);
+        finalize_mesh_data(std::move(tIOBroker), tFileHandle);
     }
 
     const auto tReadField1 = test_utilities::read_nodal_field_as_vector(tOutputFileName, tField1Name);

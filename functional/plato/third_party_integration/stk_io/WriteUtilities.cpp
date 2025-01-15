@@ -122,10 +122,10 @@ void write_element_scalar_field(stk::io::StkMeshIoBroker& aIOBroker,
     write_mesh_scalar_field_impl<stk::topology::ELEM_RANK>(aIOBroker, aScalarField, aFieldName, aFileHandle);
 }
 
-void finalize_mesh_data(stk::io::StkMeshIoBroker& aIOBroker, const std::size_t aFileHandle)
+void finalize_mesh_data(std::unique_ptr<stk::io::StkMeshIoBroker>&& aIOBroker, const std::size_t aFileHandle)
 {
     constexpr double tTime = 1.0;
-    write_defined_output_fields(aIOBroker, aFileHandle, tTime);
+    write_defined_output_fields(*aIOBroker, aFileHandle, tTime);
 }
 
 }  // namespace plato::third_party_integration::stk_io
