@@ -1,6 +1,9 @@
 #ifndef PLATO_SERVICES_SHAREDLIBRARYOBJECT
 #define PLATO_SERVICES_SHAREDLIBRARYOBJECT
 
+#include <filesystem>
+#include <string_view>
+
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
 
 namespace plato::services
@@ -24,6 +27,20 @@ class SharedLibraryObject
     SharedLibrarySetupTeardown mSharedLibrary;
     Object mObject;
 };
+
+/// @brief Creates a SharedLibrarySetupTeardown object and wraps the object created by calling
+///  its call member in a SharedLibraryObject.
+template <typename FunctionSignature, typename... Args>
+auto make_shared_library_object(const std::filesystem::path& aSharedLibraryPath,
+                                std::string_view aFunctionName,
+                                Args&&... aArgs)
+    -> SharedLibraryObject<std::invoke_result_t<FunctionSignature, Args...>>
+{
+    using Object = std::invoke_result_t<FunctionSignature, Args...>;
+    auto tSharedLibrary = services::SharedLibrarySetupTeardown{aSharedLibraryPath};
+    return SharedLibraryObject<Object>{
+        std::move(tSharedLibrary), tSharedLibrary.call<FunctionSignature>(aFunctionName, std::forward<Args>(aArgs)...)};
+}
 
 template <typename Object>
 SharedLibraryObject<Object>::SharedLibraryObject(SharedLibrarySetupTeardown&& aSharedLibrary, Object&& aObject)
