@@ -45,8 +45,8 @@ using FilterCache =
 /// @brief Loads a filter from a shared library.
 /// @param aInput The input parameters defining the filter's properties.
 /// @param aSharedLibraryPath The path at which the shared library is located.
-[[nodiscard]] std::unique_ptr<FilterInterface> load_filter(const FilterParameters& aParams,
-                                                           const std::filesystem::path& aSharedLibraryPath);
+[[nodiscard]] auto load_filter(const FilterParameters& aParams, const std::filesystem::path& aSharedLibraryPath)
+    -> std::unique_ptr<FilterInterface>;
 
 [[nodiscard]] bool is_filter_function_registered(std::string_view aFunctionName);
 

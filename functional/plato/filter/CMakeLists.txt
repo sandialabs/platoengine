@@ -19,8 +19,9 @@ if( UNIT_TESTING )
   # Build test utilities lib
   create_plato_library(PlatoFunctionalFilterTestUtilities test_utilities PlatoFunctionalFilter)
 
-  # Build test filter shared lib
+  # Build test filter shared libs
   create_plato_library(PlatoIdentityFilter test_identity_filter PlatoFunctionalFilter)
+  create_plato_library(PlatoConstantValueFilter test_constant_value_filter PlatoFunctionalFilter)
 
   # Build unit tester
   set(FOLDERS library/unittest
