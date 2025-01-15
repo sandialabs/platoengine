@@ -75,20 +75,6 @@ void write_element_scalar_field(stk::io::StkMeshIoBroker& aIOBroker,
 /// @brief This must be called to close a mesh and write its data.
 void finalize_mesh_data(stk::io::StkMeshIoBroker& aIOBroker, std::size_t aFileHandle);
 
-/// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
-/// nodal field stored in the name and populated with the data in @a aScalarField.
-void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
-                              const ScalarFieldFunction& aScalarField,
-                              const std::string_view aFieldName,
-                              const std::filesystem::path& aOutputMeshName);
-
-/// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
-/// element field stored in the name and populated with the data in @a aScalarField.
-void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
-                                const ScalarFieldFunction& aScalarField,
-                                const std::string_view aFieldName,
-                                const std::filesystem::path& aOutputMeshName);
-
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

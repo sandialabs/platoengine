@@ -15,7 +15,7 @@
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
-#include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"  //read_nodal_field_as_vector
+#include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
@@ -46,14 +46,14 @@ void check_write_scalar_field(const std::filesystem::path& aInputFileName,
     // Nodal
     {
         write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{}));
-        write_nodal_scalar_field(aInputFileName, MapField{aData}, tFieldName, aOutputFileName);
+        test_utilities::write_nodal_scalar_field(aInputFileName, MapField{aData}, tFieldName, aOutputFileName);
         const auto tResult = test_utilities::read_nodal_field_as_vector(aOutputFileName, kTopologyFieldName);
         EXPECT_EQ(tResult, aExpected) << aTestContext;
     }
     // Element
     {
         write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
-        write_element_scalar_field(aInputFileName, MapField{aData}, tFieldName, aOutputFileName);
+        test_utilities::write_element_scalar_field(aInputFileName, MapField{aData}, tFieldName, aOutputFileName);
         const auto tResult = test_utilities::read_element_field_as_vector(aOutputFileName, kTopologyFieldName);
         EXPECT_EQ(tResult, aExpected) << aTestContext;
     }

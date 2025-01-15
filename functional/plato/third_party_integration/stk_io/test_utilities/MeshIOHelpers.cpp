@@ -1,6 +1,10 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
+#include <map>
+#include <stk_io/StkMeshIoBroker.hpp>
+
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::third_party_integration::stk_io::test_utilities
 {
@@ -14,6 +18,25 @@ namespace
     std::transform(aMap.begin(), aMap.end(), std::back_inserter(tVector),
                    [](const auto& aPair) { return aPair.second; });
     return tVector;
+}
+
+template <stk::topology::rank_t Rank>
+void write_mesh_scalar_field_impl(const std::filesystem::path& aInputMeshName,
+                                  const ScalarFieldFunction& aScalarField,
+                                  const std::string_view aFieldName,
+                                  const std::filesystem::path& aOutputMeshName)
+{
+    const auto tIOBroker = create_io_mesh_broker(aInputMeshName);
+    const auto tFileHandle = create_output_mesh(aOutputMeshName, *tIOBroker);
+    if constexpr (Rank == stk::topology::ELEM_RANK)
+    {
+        stk_io::write_element_scalar_field(*tIOBroker, aScalarField, aFieldName, tFileHandle);
+    }
+    else
+    {
+        stk_io::write_nodal_scalar_field(*tIOBroker, aScalarField, aFieldName, tFileHandle);
+    }
+    finalize_mesh_data(*tIOBroker, tFileHandle);
 }
 
 }  // namespace
@@ -30,6 +53,22 @@ auto read_element_field_as_vector(const std::filesystem::path& aMeshName, std::s
 {
     const auto tField = stk_io::read_element_field(aMeshName, aFieldName);
     return convert_map_sorted_vector(tField);
+}
+
+void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
+                              const ScalarFieldFunction& aScalarField,
+                              const std::string_view aFieldName,
+                              const std::filesystem::path& aOutputMeshName)
+{
+    write_mesh_scalar_field_impl<stk::topology::NODE_RANK>(aInputMeshName, aScalarField, aFieldName, aOutputMeshName);
+}
+
+void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
+                                const ScalarFieldFunction& aScalarField,
+                                const std::string_view aFieldName,
+                                const std::filesystem::path& aOutputMeshName)
+{
+    write_mesh_scalar_field_impl<stk::topology::ELEM_RANK>(aInputMeshName, aScalarField, aFieldName, aOutputMeshName);
 }
 
 }  // namespace plato::third_party_integration::stk_io::test_utilities

@@ -60,25 +60,6 @@ std::shared_ptr<stk::mesh::BulkData> bulk_data_from_description(const std::strin
     return bulk;
 }
 
-template <stk::topology::rank_t Rank>
-void write_mesh_scalar_field_one_field(const std::filesystem::path& aInputMeshName,
-                                       const ScalarFieldFunction& aScalarField,
-                                       const std::string_view aFieldName,
-                                       const std::filesystem::path& aOutputMeshName)
-{
-    const auto tIOBroker = create_io_mesh_broker(aInputMeshName);
-    const auto tFileHandle = create_output_mesh(aOutputMeshName, *tIOBroker);
-    if constexpr (Rank == stk::topology::ELEM_RANK)
-    {
-        write_element_scalar_field(*tIOBroker, aScalarField, aFieldName, tFileHandle);
-    }
-    else
-    {
-        write_nodal_scalar_field(*tIOBroker, aScalarField, aFieldName, tFileHandle);
-    }
-    finalize_mesh_data(*tIOBroker, tFileHandle);
-}
-
 }  // namespace
 
 auto create_io_mesh_broker(const std::filesystem::path& aInputMeshPath) -> std::unique_ptr<stk::io::StkMeshIoBroker>
@@ -145,24 +126,6 @@ void finalize_mesh_data(stk::io::StkMeshIoBroker& aIOBroker, const std::size_t a
 {
     constexpr double tTime = 1.0;
     write_defined_output_fields(aIOBroker, aFileHandle, tTime);
-}
-
-void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
-                              const ScalarFieldFunction& aScalarField,
-                              const std::string_view aFieldName,
-                              const std::filesystem::path& aOutputMeshName)
-{
-    write_mesh_scalar_field_one_field<stk::topology::NODE_RANK>(aInputMeshName, aScalarField, aFieldName,
-                                                                aOutputMeshName);
-}
-
-void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
-                                const ScalarFieldFunction& aScalarField,
-                                const std::string_view aFieldName,
-                                const std::filesystem::path& aOutputMeshName)
-{
-    write_mesh_scalar_field_one_field<stk::topology::ELEM_RANK>(aInputMeshName, aScalarField, aFieldName,
-                                                                aOutputMeshName);
 }
 
 }  // namespace plato::third_party_integration::stk_io
