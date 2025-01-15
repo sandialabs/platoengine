@@ -45,9 +45,9 @@ class LevelSetTopology
     [[nodiscard]] auto initialGuess() const -> linear_algebra::DynamicVector<double>;
     [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> analysis::AnalysisDomainMesh;
-    static void output(const std::filesystem::path& aInputMeshName,
-                       const linear_algebra::DynamicVector<double>& aSolution,
-                       const std::filesystem::path& aOutputMeshName);
+    static void output(const input_parser::level_set_topology& aInput,
+                       const filter::library::FilterFunction& aFilterFunction,
+                       const linear_algebra::DynamicVector<double>& aSolution);
     [[nodiscard]] auto jacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> linear_algebra::JacobianMultiplier;
     [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
@@ -67,8 +67,18 @@ class LevelSetTopology
 };
 
 /// @brief Create a LevelSetTopology Geometry function with a filter.
-auto make_level_set_geometry(const std::shared_ptr<LevelSetTopology>& aLevelSetTopology,
-                             const filter::library::FilterFunction& aFilterFunction) -> library::GeometryFunction;
+[[nodiscard]] auto make_level_set_geometry(const std::shared_ptr<LevelSetTopology>& aLevelSetTopology,
+                                           const filter::library::FilterFunction& aFilterFunction)
+    -> library::GeometryFunction;
+
+/// @brief The name of the output file containing the unfiltered level-set field, which may be used as a restart file.
+[[nodiscard]] auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path;
+
+/// @brief The label of the unfiltered level-set field used in the output mesh.
+[[nodiscard]] constexpr auto level_set_mesh_field_name() -> std::string_view;
+
+/// @brief The label of the filtered level-set field used in the output mesh.
+[[nodiscard]] constexpr auto filtered_level_set_mesh_field_name() -> std::string_view;
 
 namespace detail
 {
@@ -82,6 +92,13 @@ namespace detail
     const input_parser::level_set_topology& aInput);
 
 }  // namespace detail
+
+constexpr auto level_set_mesh_field_name() -> std::string_view { return std::string_view{"level_set"}; }
+
+constexpr auto filtered_level_set_mesh_field_name() -> std::string_view
+{
+    return std::string_view{"filtered_level_set"};
+}
 
 }  // namespace plato::geometry::extension
 

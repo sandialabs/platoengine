@@ -12,42 +12,52 @@ namespace plato::analysis
 struct AnalysisDomainMesh;
 }
 
+namespace stk::io
+{
+class StkMeshIoBroker;
+}
+
 namespace plato::mesh
 {
 /// @brief A mixin class for Mesh that provides functions to write a design variable field to disk.
+///
+/// This is an RAII-style class that opens a mesh on construction, writes data to that mesh using its member functions,
+/// and closes and saves the mesh on destruction.
+/// @warning If a file exists at path @a aOutputPath, the file is overwritten.
 class MeshFieldWriter : public Mesh
 {
    public:
-    explicit MeshFieldWriter(Mesh aMeshBase);
+    MeshFieldWriter(Mesh aMeshBase, const std::filesystem::path& aMeshFilePath);
 
-    /// @brief Writes the scalar design variable field in @a aScalarField to the file at path @a aFilePath
-    /// assuming that the field represents a nodal field.
+    ~MeshFieldWriter();
+
+    /// @brief Adds the nodal-based scalar field in @a aScalarField to the currently managed file.
     ///
     /// Any values associated with fixed blocks in @a aScalarField are assigned to @a aFixedValue.
-    /// @warning If a file exists at path @a aOutputPath, the file is overwritten.
-    void writeNodalField(const std::filesystem::path& aOutputPath,
-                         const NodalFieldVectorReference& aScalarField,
+    void addNodalField(const NodalFieldVectorReference& aScalarField, std::string_view aFieldName, double aFixedValue);
+
+    /// @brief Adds the element-based scalar field in @a aScalarField to the currently managed file.
+    ///
+    /// Any values associated with fixed blocks in @a aScalarField are assigned to @a aFixedValue.
+    void addElementField(const ElementFieldVectorReference& aScalarField,
                          std::string_view aFieldName,
-                         double aFixedValue) const;
+                         double aFixedValue);
 
-    /// @brief Writes the scalar design variable field in @a aScalarField to the file at path @a aFilePath
-    /// assuming that the field represents a nodal field.
-    ///
-    /// Any values associated with fixed blocks in @a aScalarField are assigned to @a aFixedValue.
-    /// @warning If a file exists at path @a aOutputPath, the file is overwritten.
-    void writeElementField(const std::filesystem::path& aFilePath,
-                           const ElementFieldVectorReference& aScalarField,
-                           std::string_view aFieldName,
-                           double aFixedValue) const;
-
-    /// @brief Writes the design variables in @a aAnalysisDomainMesh to the file with name @a aFilePath.
+    /// @brief Adds the design variables in @a aAnalysisDomainMesh to the currently managed file.
     ///
     /// The type of field (node vs. element) is determined from the number of design variables.
-    /// @warning If a file exists at path @a aOutputPath, the file is overwritten.
-    void writeAnalysisDomainMesh(const std::filesystem::path& aFilePath,
-                                 const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                 std::string_view aFieldName,
-                                 double aFixedValue) const;
+    void addAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                               std::string_view aFieldName,
+                               double aFixedValue);
+
+    MeshFieldWriter(const MeshFieldWriter&) = delete;
+    MeshFieldWriter(MeshFieldWriter&&) = delete;
+    MeshFieldWriter& operator=(const MeshFieldWriter&) = delete;
+    MeshFieldWriter& operator=(MeshFieldWriter&&) = delete;
+
+   private:
+    std::unique_ptr<stk::io::StkMeshIoBroker> mMeshIOBroker;
+    std::size_t mFileHandle;
 };
 }  // namespace plato::mesh
 

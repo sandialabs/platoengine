@@ -26,6 +26,7 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -134,11 +135,12 @@ class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
     }
 };
 
-auto make_kernel_filter_test_function(const std::filesystem::path& aMeshFilePath) -> filter::library::FilterFunction
+auto make_kernel_filter_test_function(const filter::extension::FilterRadius aRadius,
+                                      const std::filesystem::path& aMeshFilePath,
+                                      const std::set<std::string>& aFixedBlocks = {}) -> filter::library::FilterFunction
 {
-    constexpr auto tFilterRadius = filter::extension::FilterRadius{1.0};
     const auto tKernelFilter = std::make_shared<filter::extension::KernelFilter>(
-        mesh::Mesh{aMeshFilePath}, tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered,
+        mesh::Mesh{aMeshFilePath, aFixedBlocks}, aRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered,
         boost::mpi::communicator{});
 
     return filter::test_utilities::make_filter_function(tKernelFilter);
@@ -202,8 +204,9 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
     }
     // Kernel filter
     {
-        const auto tLevelSetFunction =
-            make_level_set_geometry(tLevelSetTopology, make_kernel_filter_test_function(Tet4MeshOnDisk::mMeshFilePath));
+        const auto tLevelSetFunction = make_level_set_geometry(
+            tLevelSetTopology,
+            make_kernel_filter_test_function(filter::extension::FilterRadius{1.0}, Tet4MeshOnDisk::mMeshFilePath));
         const auto tComputedSum = tOnesVectorJacobianProductSum(tLevelSetFunction, tInitialGuess);
         // This is just a regression test, but it is expected to be different from the Jacobian computed with the
         // identity filter
@@ -270,7 +273,8 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianTranspose)
     // Kernel filter
     {
         const auto tLevelSetFunction = make_level_set_geometry(
-            tLevelSetTopology, make_kernel_filter_test_function(tInput.background_mesh_name->mToken));
+            tLevelSetTopology, make_kernel_filter_test_function(filter::extension::FilterRadius{1.0},
+                                                                tInput.background_mesh_name->mToken));
         const auto tComputedSum = tOnesVectorJacobianProductSum(tLevelSetFunction, tInitialGuess);
         EXPECT_NEAR(kExpectedFilteredJacobianSum, tComputedSum, tTolerance);
     }
@@ -299,7 +303,8 @@ TEST_F(LevelSetTopologyFixture, GenerateMeshRegression)
     {
         const auto tLevelSetFunction =
             make_level_set_geometry(std::move(tLevelSetTopology),
-                                    make_kernel_filter_test_function(kLevelSetInput.background_mesh_name->mToken));
+                                    make_kernel_filter_test_function(filter::extension::FilterRadius{1.0},
+                                                                     kLevelSetInput.background_mesh_name->mToken));
 
         const auto tAnalysisMesh = tLevelSetFunction.evaluate<core::evaluation::kFunction>(tInitialGuess);
         constexpr auto tExpectedNumberOfNodes = 59U;
@@ -418,6 +423,85 @@ TEST_F(LevelSetTopologyFixture, Bounds)
     EXPECT_TRUE(
         std::all_of(tLowerBounds.cbegin(), tLowerBounds.cend(), [](const double aVal) { return aVal == -1.0; }));
     EXPECT_TRUE(std::all_of(tUpperBounds.cbegin(), tUpperBounds.cend(), [](const double aVal) { return aVal == 1.0; }));
+}
+
+TEST_F(LevelSetTopologyTwoBlockFixture, OutputRoundTrip)
+{
+    const auto tInput = levelSetTopologyInputWithFixedBlocks({"block_1"});
+    const auto tDesignVariablesForOutput = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 0.0);
+    LevelSetTopology::output(tInput, filter::extension::make_identity_filter_function(), tDesignVariablesForOutput);
+
+    const auto tOutputMeshName = std::filesystem::path{tInput.output_mesh_name->mToken};
+    const auto tRestartOutputMeshName = restart_file_name(tInput);
+
+    EXPECT_TRUE(std::filesystem::exists(tOutputMeshName));
+    EXPECT_TRUE(std::filesystem::exists(tRestartOutputMeshName));
+
+    constexpr auto tFieldName = level_set_mesh_field_name();
+    const auto tReadDesignVariables =
+        third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(tRestartOutputMeshName, tFieldName);
+
+    EXPECT_EQ(tReadDesignVariables.size(), mExpectedNumberOfNodes);
+    // Block 1 is fixed, so we expect 0's for the first 8 entries, and 1's for the rest
+    const auto tExpectedDesignVariables = []()
+    {
+        auto tDesignVariables = std::vector<double>(mExpectedNumberOfNodes, 1.0);
+        const auto tNumberOfFixedNodes = 4U;
+        std::fill_n(std::next(tDesignVariables.begin(), tNumberOfFixedNodes),
+                    mExpectedNumberOfNodes - tNumberOfFixedNodes, 0.0);
+        return tDesignVariables;
+    }();
+
+    EXPECT_EQ(tExpectedDesignVariables, tReadDesignVariables);
+
+    std::filesystem::remove(tOutputMeshName);
+    std::filesystem::remove(tRestartOutputMeshName);
+}
+
+TEST_F(LevelSetTopologyTwoBlockFixture, FilteredOutputRoundTrip)
+{
+    const auto tFixedBlock = std::string{"block_2"};
+    const auto tInput = levelSetTopologyInputWithFixedBlocks({tFixedBlock});
+    auto tDesignVariableVector = std::vector<double>(mExpectedNumberOfNodesInBlock1, 0.0);
+    tDesignVariableVector.front() = 1.0;
+    const auto tDesignVariables = linear_algebra::DynamicVector<double>(std::move(tDesignVariableVector));
+
+    LevelSetTopology::output(tInput,
+                             make_kernel_filter_test_function(filter::extension::FilterRadius{2.0},
+                                                              tInput.background_mesh_name->mToken, {tFixedBlock}),
+                             tDesignVariables);
+
+    const auto tFieldOutputMeshName = restart_file_name(tInput);
+    constexpr auto tFieldName = filtered_level_set_mesh_field_name();
+    const auto tReadDesignVariables =
+        third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(tFieldOutputMeshName, tFieldName);
+    const auto tNormalization = 3.0 - 0.5 * std::sqrt(2.0);  // Sum of filter values: 1, 0.5, 0.5, 1 - sqrt(2)/2
+    const auto tExpected = std::vector{1.0 / tNormalization,
+                                       0.5 / tNormalization,
+                                       0.5 / tNormalization,
+                                       (1.0 - 0.5 * std::sqrt(2.0)) / tNormalization,
+                                       0.0,
+                                       0.0,
+                                       0.0,
+                                       0.0,
+                                       1.0,
+                                       1.0,
+                                       1.0,
+                                       1.0};
+
+    constexpr auto tTolerance = 1e-14;
+    test_utilities::expect_container_entries_near(tExpected, tReadDesignVariables, tTolerance,
+                                                  TEST_CONTEXT("Filtered output round trip"));
+
+    std::filesystem::remove(tInput.output_mesh_name->mToken);
+    std::filesystem::remove(restart_file_name(tInput));
+}
+
+TEST(LevelSetTopology, OutputFileNames)
+{
+    const auto tRestartPrefix = std::string{"restart_"};
+    const auto tRestartOutputMeshName = std::filesystem::path{tRestartPrefix + kLevelSetInput.output_mesh_name->mToken};
+    EXPECT_EQ(tRestartOutputMeshName, restart_file_name(kLevelSetInput));
 }
 
 }  // namespace plato::geometry::extension::unittest

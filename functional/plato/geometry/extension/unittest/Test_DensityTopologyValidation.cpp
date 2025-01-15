@@ -160,4 +160,16 @@ TEST_F(TwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
     EXPECT_EQ(tMeshDesignVariablesView.size(), tExpectedNumberOfDesignVariables);
 }
 
+TEST_F(NodalDensityMesh, ValidateInitialTopologySource)
+{
+    auto tDensityTopology = kDensityTopology;
+    tDensityTopology.mesh_name = input_parser::FileName{mMeshName};
+    tDensityTopology.initial_density_field_name = input_parser::IdentifierString{mFieldName};
+
+    EXPECT_FALSE(detail::validate_initial_topology_source(tDensityTopology).has_value());
+
+    tDensityTopology.initial_density_field_name = input_parser::IdentifierString{"bogus-field"};
+    EXPECT_TRUE(detail::validate_initial_topology_source(tDensityTopology).has_value());
+}
+
 }  // namespace plato::geometry::extension::unittest

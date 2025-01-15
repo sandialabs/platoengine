@@ -3,6 +3,7 @@
 #include <numeric>
 
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
 namespace plato::third_party_integration::stk_io::test_utilities
 {
@@ -56,7 +57,7 @@ void create_element_density_field_mesh_for_reading(const CommandGenerator& aComm
     write_mesh(std::string{kSourceMeshName}, aCommandGenerator.toString());
     std::vector<double> tElementDensities(aCommandGenerator.numberOfElements());
     std::iota(tElementDensities.begin(), tElementDensities.end(), 1.0);
-    write_element_scalar_field(
+    test_utilities::write_element_scalar_field(
         std::string{kSourceMeshName}, [&tElementDensities](const auto aIndex) { return tElementDensities[aIndex - 1]; },
         kFieldName, aFileName);
 }
