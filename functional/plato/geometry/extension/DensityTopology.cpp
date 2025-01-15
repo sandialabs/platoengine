@@ -30,9 +30,6 @@ constexpr double kDensityLowerBound = 0.0;
 constexpr double kDensityUpperBound = 1.0;
 constexpr double kDensityFixedValue = 1.0;
 
-constexpr auto kTopologyFieldName = std::string_view{"Density"};
-constexpr auto kUnfilteredControlsFieldName = std::string_view{"UnfilteredDensity"};
-
 constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInput) { return aInput.mesh_name; };
 
 [[nodiscard]] auto make_topology_output(const input_parser::density_topology& aInput)
@@ -173,8 +170,8 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
     {
         auto tMeshWriter = mesh::MeshFieldWriter{tMesh, tOutputMeshName};
         tMeshWriter.addAnalysisDomainMesh(aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters),
-                                          kTopologyFieldName, kDensityFixedValue);
-        tMeshWriter.addAnalysisDomainMesh(tNodalDesignParameters, kUnfilteredControlsFieldName, kDensityFixedValue);
+                                          filtered_density_mesh_field_name(), kDensityFixedValue);
+        tMeshWriter.addAnalysisDomainMesh(tNodalDesignParameters, density_mesh_field_name(), kDensityFixedValue);
     }
 }
 

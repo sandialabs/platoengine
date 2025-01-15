@@ -55,6 +55,12 @@ class DensityTopology
     filter::library::FilterFunction mFilter;
 };
 
+/// @brief The label of the unfiltered density field used in the output mesh.
+[[nodiscard]] constexpr auto density_mesh_field_name() -> std::string_view;
+
+/// @brief The label of the filtered density field used in the output mesh.
+[[nodiscard]] constexpr auto filtered_density_mesh_field_name() -> std::string_view;
+
 namespace detail
 {
 /// @brief Validates that the `output_name` field in @a aInput has a value.
@@ -83,6 +89,16 @@ namespace detail
 [[nodiscard]] auto initial_density_value_from_mesh(const input_parser::density_topology& aInput) -> std::vector<double>;
 
 }  // namespace detail
+
+[[nodiscard]] constexpr auto density_mesh_field_name() -> std::string_view
+{
+    return std::string_view{"unfiltered_density"};
+}
+
+[[nodiscard]] constexpr auto filtered_density_mesh_field_name() -> std::string_view
+{
+    return std::string_view{"density"};
+}
 
 }  // namespace plato::geometry::extension
 

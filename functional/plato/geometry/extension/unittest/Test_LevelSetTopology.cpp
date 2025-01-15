@@ -437,7 +437,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, OutputRoundTrip)
     EXPECT_TRUE(std::filesystem::exists(tOutputMeshName));
     EXPECT_TRUE(std::filesystem::exists(tRestartOutputMeshName));
 
-    constexpr auto tFieldName = std::string_view{"topology"};
+    constexpr auto tFieldName = level_set_mesh_field_name();
     const auto tReadDesignVariables =
         third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(tRestartOutputMeshName, tFieldName);
 
@@ -472,7 +472,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, FilteredOutputRoundTrip)
                              tDesignVariables);
 
     const auto tFieldOutputMeshName = restart_file_name(tInput);
-    constexpr auto tFieldName = std::string_view{"filtered_topology"};
+    constexpr auto tFieldName = filtered_level_set_mesh_field_name();
     const auto tReadDesignVariables =
         third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(tFieldOutputMeshName, tFieldName);
     const auto tNormalization = 3.0 - 0.5 * std::sqrt(2.0);  // Sum of filter values: 1, 0.5, 0.5, 1 - sqrt(2)/2

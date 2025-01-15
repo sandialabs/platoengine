@@ -32,8 +32,6 @@ namespace
 namespace tpik = third_party_integration::krino;
 
 constexpr auto kDimensions = std::size_t{3};
-constexpr auto kTopologyFieldName = std::string_view{"topology"};
-constexpr auto kFilteredTopologyFieldName = std::string_view{"filtered_topology"};
 constexpr auto kKrinoLogFileName = std::string_view{"Krino_Output.txt"};
 constexpr auto kKrinoCutMeshBaseName = std::string_view{"krino_cut_mesh.exo"};
 
@@ -298,11 +296,11 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
     if (boost::mpi::communicator{}.rank() == 0)
     {
         auto tMeshWriter = mesh::MeshFieldWriter{tMesh, restart_file_name(aInput)};
-        tMeshWriter.addAnalysisDomainMesh(tNodalDesignParameters, kTopologyFieldName,
+        tMeshWriter.addAnalysisDomainMesh(tNodalDesignParameters, level_set_mesh_field_name(),
                                           aInput.level_set_upper_bound.value());
 
         tMeshWriter.addAnalysisDomainMesh(aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters),
-                                          kFilteredTopologyFieldName, aInput.level_set_upper_bound.value());
+                                          filtered_level_set_mesh_field_name(), aInput.level_set_upper_bound.value());
 
         tpik::generate_computational_mesh(tNodalDesignParameters, aInput.level_set_upper_bound.value(),
                                           tpik::CutMeshFilePath{aInput.output_mesh_name->mToken}, void_phase(aInput));
@@ -323,12 +321,6 @@ auto make_level_set_geometry(const std::shared_ptr<LevelSetTopology>& aLevelSetT
 
     const auto tAdaptedFilter = library::adapt_filter(aFilterFunction, aLevelSetTopology->backgroundMesh());
     return core::compose(tGeometryFunction, tAdaptedFilter);
-}
-
-auto filtered_output_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path
-{
-    constexpr auto tFilteredFileNamePrefix = std::string_view{"filtered_field_"};
-    return std::filesystem::path{std::string{tFilteredFileNamePrefix} + aInput.output_mesh_name->mToken};
 }
 
 auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path

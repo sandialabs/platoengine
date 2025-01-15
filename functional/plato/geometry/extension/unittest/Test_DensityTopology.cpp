@@ -212,14 +212,14 @@ TEST_F(NodalDensityMesh, Output)
     ASSERT_TRUE(std::filesystem::exists(tDensityInput.output_name.value().mToken));
 
     {
-        constexpr auto tDensityFieldName = std::string_view{"UnfilteredDensity"};
+        constexpr auto tDensityFieldName = density_mesh_field_name();
         const auto tReadUnfilteredDensities =
             third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(
                 tDensityInput.output_name.value().mToken, tDensityFieldName);
         EXPECT_EQ(tDesignVariables.stdVector(), tReadUnfilteredDensities);
     }
     {
-        constexpr auto tFilteredDensityFieldName = std::string_view{"Density"};
+        constexpr auto tFilteredDensityFieldName = filtered_density_mesh_field_name();
         const auto tReadFilteredDensities =
             third_party_integration::stk_io::test_utilities::read_element_field_as_vector(
                 tDensityInput.output_name.value().mToken, tFilteredDensityFieldName);
