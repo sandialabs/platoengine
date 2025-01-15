@@ -151,6 +151,7 @@ PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ATTRIB
 /// end service
 /// @endcode
 #define PLATO_NAMED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)        \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)        \
 BOOST_FUSION_DEFINE_STRUCT(                                                           \
     NAMESPACE_SEQ,                                                                    \
     STRUCT_NAME,                                                                      \
