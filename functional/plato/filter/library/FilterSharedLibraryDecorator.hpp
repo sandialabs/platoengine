@@ -8,6 +8,9 @@
 
 namespace plato::filter::library
 {
+/// @brief This is a decorator class for FilterInterface that holds a SharedLibraryObject 
+/// to tie the lifetime of a filter loaded via a shared library with the shared library 
+/// that created it.
 class FilterSharedLibraryDecorator : public FilterInterface
 {
    public:
