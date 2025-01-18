@@ -10,13 +10,12 @@ namespace plato::criteria::extension
 namespace
 {
 template <typename FunctionSignature, typename... Args>
-std::unique_ptr<library::CriterionInterface> load_criterion_interface(
-    const services::AppConfigurationWithDirectory& aAppConfiguration,
-    const std::string_view aCreateCriterionFunctionName,
-    Args&&... aArgs)
+auto load_criterion_interface(const services::AppConfigurationWithDirectory& aAppConfiguration,
+                              const std::string_view aCreateCriterionFunctionName,
+                              Args&&... aArgs)
 {
-    auto tSharedLibrary = services::SharedLibrarySetupTeardown{services::shared_library_path(aAppConfiguration)};
-    return tSharedLibrary.call<FunctionSignature>(aCreateCriterionFunctionName, std::forward<Args>(aArgs)...);
+    return std::make_unique<CriterionSharedLibraryObject>(services::make_shared_library_object<FunctionSignature>(
+        services::shared_library_path(aAppConfiguration), aCreateCriterionFunctionName, std::forward<Args>(aArgs)...));
 }
 
 using SerialFunctionSignature = std::unique_ptr<library::CriterionInterface>(const std::vector<std::string>&);
@@ -45,12 +44,12 @@ SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirec
 
 double SharedLibCriterion::f(const analysis::AnalysisDomainMesh& aMesh) const
 {
-    return mCriterionInterface->value(aMesh);
+    return mCriterionInterface->object()->value(aMesh);
 }
 
 linear_algebra::DynamicVector<double> SharedLibCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisMesh) const
 {
-    return linear_algebra::DynamicVector<double>(mCriterionInterface->gradient(aAnalysisMesh));
+    return linear_algebra::DynamicVector<double>(mCriterionInterface->object()->gradient(aAnalysisMesh));
 }
 
 auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion) -> library::CriterionFunction

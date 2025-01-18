@@ -26,11 +26,38 @@ void* load_shared_library(const std::filesystem::path& aSharedLibPath)
     }
     return tSharedLibInterface;
 }
+
+void close_if_nonnull(void* const aSharedLibrary)
+{
+    if (aSharedLibrary != nullptr)
+    {
+        dlclose(aSharedLibrary);
+    }
+}
 }  // namespace
 
 SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(std::filesystem::path aSharedLibraryPath)
     : mSharedLibraryPath{std::move(aSharedLibraryPath)}, mSharedLibrary{load_shared_library(mSharedLibraryPath)}
 {
 }
+
+SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(SharedLibrarySetupTeardown&& aSharedLibrary) noexcept
+    : mSharedLibraryPath{std::move(aSharedLibrary.mSharedLibraryPath)}, mSharedLibrary{aSharedLibrary.mSharedLibrary}
+{
+    aSharedLibrary.mSharedLibraryPath.clear();
+    aSharedLibrary.mSharedLibrary = nullptr;
+}
+
+SharedLibrarySetupTeardown& SharedLibrarySetupTeardown::operator=(SharedLibrarySetupTeardown&& aSharedLibrary) noexcept
+{
+    if (this != &aSharedLibrary)
+    {
+        std::swap(mSharedLibrary, aSharedLibrary.mSharedLibrary);
+        std::swap(mSharedLibraryPath, aSharedLibrary.mSharedLibraryPath);
+    }
+    return *this;
+}
+
+SharedLibrarySetupTeardown::~SharedLibrarySetupTeardown() { close_if_nonnull(mSharedLibrary); }
 
 }  // namespace plato::services

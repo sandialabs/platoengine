@@ -35,7 +35,7 @@ class FilterInterface
     FilterInterface() = default;
     virtual ~FilterInterface() = default;
 
-    /// @brief Appies the filter to the density field held in @a aAnalysisDomainMesh
+    /// @brief Applies the filter to the density field held in @a aAnalysisDomainMesh
     [[nodiscard]] virtual auto filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
         -> analysis::AnalysisDomainMesh = 0;
 
