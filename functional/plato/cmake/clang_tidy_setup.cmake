@@ -1,6 +1,6 @@
 macro(clang_tidy_setup)
   if( BUILD_WITH_CLANG_TIDY )
-    find_program(CLANGTIDY clang-tidy)
+    find_program(CLANGTIDY clang-tidy NAMES clang-tidy clang-tidy-16)
     if(NOT CLANGTIDY)
       message(FATAL_ERROR "Requested to build with clang-tidy, but could not find the executable. Check your path.")
     endif()
