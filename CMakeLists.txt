@@ -188,8 +188,6 @@ if( ENABLE_PRUNE )
   add_definitions(-DENABLE_PRUNE)
 endif()
 
-
-
 if( REGRESSION OR UNIT_TESTING )
     enable_testing()
 endif()

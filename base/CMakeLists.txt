@@ -1,4 +1,5 @@
-
+include( ${CMAKE_SOURCE_DIR}/base/config/require_feature.cmake )
+require_feature( LEGACY_BUILD )
 add_subdirectory(src/tools)
 add_subdirectory(src/analyze)
 add_subdirectory(src/data_layer)
