@@ -7,25 +7,22 @@
 
 namespace plato::test_utilities
 {
-namespace detail
-{
-constexpr double kA = 11.0;
-constexpr double kB = 7.0;
-}  // namespace detail
 
 struct Himmelblau
 {
+    double mA = 11.0;
+    double mB = 7.0;
     [[nodiscard]] constexpr double f(const double aX, const double aY) const
     {
-        const double tParensOne = aX * aX + aY - detail::kA;
-        const double tParensTwo = aX + aY * aY - detail::kB;
+        const double tParensOne = aX * aX + aY - mA;
+        const double tParensTwo = aX + aY * aY - mB;
         return tParensOne * tParensOne + tParensTwo * tParensTwo;
     }
 
     [[nodiscard]] constexpr TwoDVector df(const double aX, const double aY) const
     {
-        const double tParensOne = aX * aX + aY - detail::kA;
-        const double tParensTwo = aX + aY * aY - detail::kB;
+        const double tParensOne = aX * aX + aY - mA;
+        const double tParensTwo = aX + aY * aY - mB;
 
         const double tXterm = 4 * aX * tParensOne + 2 * tParensTwo;
         const double tYterm = 2 * tParensOne + 4 * aY * tParensTwo;

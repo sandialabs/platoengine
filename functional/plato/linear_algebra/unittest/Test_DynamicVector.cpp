@@ -165,4 +165,5 @@ TEST(DynamicVector, Serialization)
         EXPECT_EQ(tStoredVector[k], tLoadedVector[k]);
     }
 }
+
 }  // namespace plato::linear_algebra::unittest

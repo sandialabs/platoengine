@@ -7,6 +7,7 @@ set(LINK_LIBS GTest::GTest
 create_plato_library(PlatoFunctionalTestUtilities "." "${LINK_LIBS}")
 
 if(UNIT_TESTING)
+    create_plato_unittester(PlatoFunctionalTestUtilities "unittest" )
     set(NUM_RANKS_FOR_TEST 4)
     create_plato_parallel_unittester(PlatoFunctionalTestUtilities "parallel_unittest" ${NUM_RANKS_FOR_TEST})
 endif()
