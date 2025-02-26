@@ -12,6 +12,7 @@
 #include <iomanip>
 
 #include "plato/criteria/library/ConstraintAdapter.hpp"
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorRosenbrockFunction.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorSumConstraintUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"

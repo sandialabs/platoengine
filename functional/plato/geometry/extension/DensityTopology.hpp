@@ -48,7 +48,8 @@ class DensityTopology
 
     static void output(const linear_algebra::DynamicVector<double>& aSolution,
                        const filter::library::FilterFunction& aFilterFunction,
-                       const input_parser::density_topology& aInput);
+                       const input_parser::density_topology& aInput,
+                       const library::OutputInfo& aOutputInfo);
 
    private:
     mesh::Mesh mMesh;

@@ -100,14 +100,46 @@ TEST_F(NodalDensityMesh, CheckForFieldExistence)
 
 TEST_F(ElementDensityMesh, ReadElementField)
 {
-    const auto tResult = read_element_field(mMeshName, mFieldName);
-    EXPECT_EQ(tResult, mGoldNumbering);
+    {
+        const auto tResult = read_element_field(mMeshName, mFieldName);
+        ASSERT_FALSE(tResult.empty());
+        EXPECT_EQ(tResult, mGoldNumbering);
+    }
+    {
+        constexpr double tTimeStep = 1.0;
+        const auto tResult = read_element_field(mMeshName, mFieldName, tTimeStep);
+        ASSERT_FALSE(tResult.empty());
+        EXPECT_EQ(tResult, mGoldNumbering);
+    }
+    {
+        constexpr double tTimeStep = 19.25;
+        const auto tResult = read_element_field(mMeshName, mFieldName, tTimeStep);
+        EXPECT_TRUE(tResult.empty());
+    }
 }
 
 TEST_F(NodalDensityMesh, ReadNodalField)
 {
-    const auto tResult = read_nodal_field(mMeshName, mFieldName);
-    EXPECT_EQ(tResult, mGoldNumbering);
+    {
+        const auto tResult = read_nodal_field(mMeshName, mFieldName);
+        ASSERT_FALSE(tResult.empty());
+        EXPECT_EQ(tResult, mGoldNumbering);
+    }
+    {
+        constexpr double tTimeStep = 1.0;
+        const auto tResult = read_nodal_field(mMeshName, mFieldName, tTimeStep);
+        ASSERT_FALSE(tResult.empty());
+        EXPECT_EQ(tResult, mGoldNumbering);
+    }
+    {
+        const auto tResult = read_nodal_field(mMeshName, mFieldName, LastTimeStep{});
+        EXPECT_EQ(tResult, mGoldNumbering);
+    }
+    {
+        constexpr double tTimeStep = 71.125;
+        const auto tResult = read_nodal_field(mMeshName, mFieldName, tTimeStep);
+        EXPECT_TRUE(tResult.empty());
+    }
 }
 
 TEST_F(NodalDensityMesh, NodalFieldNames)

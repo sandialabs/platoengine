@@ -50,7 +50,8 @@ auto EntityRetrieval::designDomainNodeIDs() const -> std::vector<std::size_t>
 auto EntityRetrieval::designDomainNodalField(const std::string_view aFieldName) const -> std::vector<double>
 {
     const std::vector<std::size_t> tNodalIDs = designDomainNodeIDs();
-    const auto tNodalField = third_party_integration::stk_io::read_nodal_field(filePath(), aFieldName);
+    const auto tNodalField = third_party_integration::stk_io::read_nodal_field(
+        filePath(), aFieldName, third_party_integration::stk_io::LastTimeStep{});
     return down_select_values_to_subset(tNodalField, tNodalIDs);
 }
 

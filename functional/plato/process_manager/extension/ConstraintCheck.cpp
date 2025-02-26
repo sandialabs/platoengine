@@ -7,6 +7,7 @@
 
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/LogspaceGenerator.hpp"

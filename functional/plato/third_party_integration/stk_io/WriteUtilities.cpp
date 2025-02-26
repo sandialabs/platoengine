@@ -18,40 +18,6 @@ namespace
 {
 constexpr bool kUnsorted = false;
 
-template <stk::topology::rank_t Rank>
-void write_mesh_scalar_field_impl(stk::io::StkMeshIoBroker& aIOBroker,
-                                  const ScalarFieldFunction& aScalarField,
-                                  const std::string_view aFieldName,
-                                  const std::size_t aFileHandle)
-{
-    constexpr int tScalarFieldSize = 1;
-    auto& tBulkData = aIOBroker.bulk_data();
-    auto& tMetaData = tBulkData.mesh_meta_data();
-    stk::mesh::Field<double>& tField = tMetaData.declare_field<double>(Rank, std::string{aFieldName}, tScalarFieldSize);
-    constexpr double tInitialValue = 0;
-    stk::mesh::put_field_on_mesh(tField, aIOBroker.meta_data().universal_part(), &tInitialValue);
-
-    auto tEntityVector = std::vector<stk::mesh::Entity>{};
-    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntityVector, kUnsorted);
-    for (const auto& tEntity : tEntityVector)
-    {
-        double* const tFieldData = stk::mesh::field_data(tField, tEntity);
-        const auto tGlobalID = aIOBroker.bulk_data().identifier(tEntity);
-        *tFieldData = aScalarField(tGlobalID);
-    }
-
-    aIOBroker.add_field(aFileHandle, tField);
-}
-
-void write_defined_output_fields(stk::io::StkMeshIoBroker& tIOBroker,
-                                 const size_t aOutputFileIndex,
-                                 const double aOutputTime)
-{
-    tIOBroker.begin_output_step(aOutputFileIndex, aOutputTime);
-    tIOBroker.write_defined_output_fields(aOutputFileIndex);
-    tIOBroker.end_output_step(aOutputFileIndex);
-}
-
 std::shared_ptr<stk::mesh::BulkData> bulk_data_from_description(const std::string_view aMeshDescription)
 {
     std::shared_ptr<stk::mesh::BulkData> bulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
@@ -60,15 +26,51 @@ std::shared_ptr<stk::mesh::BulkData> bulk_data_from_description(const std::strin
     return bulk;
 }
 
+template <stk::topology::rank_t Rank>
+void initialize_scalar_output_field_impl(stk::mesh::MetaData& aMetaData, const std::string_view aFieldName)
+{
+    constexpr int tScalarFieldSize = 1;
+    stk::mesh::Field<double>& tField = aMetaData.declare_field<double>(Rank, std::string{aFieldName}, tScalarFieldSize);
+    constexpr double tInitialValue = 0;
+    stk::mesh::put_field_on_mesh(tField, aMetaData.universal_part(), &tInitialValue);
+}
+
+template <stk::topology::rank_t Rank>
+void populate_scalar_field_values_impl(stk::io::StkMeshIoBroker& aIOBroker,
+                                       const std::string_view aFieldName,
+                                       const ScalarFieldFunction& aScalarField)
+{
+    auto tEntityVector = std::vector<stk::mesh::Entity>{};
+    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntityVector, kUnsorted);
+
+    const stk::mesh::Field<double>* tField = aIOBroker.meta_data().get_field<double>(Rank, std::string{aFieldName});
+
+    for (const auto& tEntity : tEntityVector)
+    {
+        double* const tFieldData = stk::mesh::field_data(*tField, tEntity);
+        const auto tGlobalID = aIOBroker.bulk_data().identifier(tEntity);
+        *tFieldData = aScalarField(tGlobalID);
+    }
+}
+
+template <stk::topology::rank_t Rank>
+void add_field_to_output_file_impl(stk::io::StkMeshIoBroker& aIOBroker,
+                                   const size_t aFileHandle,
+                                   const std::string_view aFieldName)
+
+{
+    stk::mesh::Field<double>* tField = aIOBroker.meta_data().get_field<double>(Rank, std::string{aFieldName});
+    aIOBroker.add_field(aFileHandle, *tField);
+}
 }  // namespace
 
-auto create_io_mesh_broker(const std::filesystem::path& aInputMeshPath) -> std::unique_ptr<stk::io::StkMeshIoBroker>
+auto create_io_broker_from_input_file(const std::filesystem::path& aInputMeshPath)
+    -> std::unique_ptr<stk::io::StkMeshIoBroker>
 {
     auto tIOBroker = std::make_unique<stk::io::StkMeshIoBroker>(MPI_COMM_SELF);
     tIOBroker->use_simple_fields();
 
-    const size_t tIndex = tIOBroker->add_mesh_database(aInputMeshPath.string(), stk::io::READ_MESH);
-    tIOBroker->set_active_mesh(tIndex);
+    tIOBroker->add_mesh_database(aInputMeshPath.string(), stk::io::READ_MESH);
     tIOBroker->create_input_mesh();
     tIOBroker->populate_bulk_data();
     tIOBroker->meta_data().enable_late_fields();
@@ -106,26 +108,56 @@ void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk
     tIOBroker.write_defined_output_fields(outputFileIndex);
 }
 
-void write_nodal_scalar_field(stk::io::StkMeshIoBroker& aIOBroker,
-                              const ScalarFieldFunction& aScalarField,
-                              const std::string_view aFieldName,
-                              const std::size_t aFileHandle)
+auto create_io_broker_from_bulk(stk::mesh::BulkData& aBulk) -> std::unique_ptr<stk::io::StkMeshIoBroker>
 {
-    write_mesh_scalar_field_impl<stk::topology::NODE_RANK>(aIOBroker, aScalarField, aFieldName, aFileHandle);
+    auto tIOBroker = std::make_unique<stk::io::StkMeshIoBroker>(MPI_COMM_SELF);
+    tIOBroker->set_bulk_data(aBulk);
+    tIOBroker->meta_data().enable_late_fields();
+
+    return tIOBroker;
 }
 
-void write_element_scalar_field(stk::io::StkMeshIoBroker& aIOBroker,
-                                const ScalarFieldFunction& aScalarField,
-                                const std::string_view aFieldName,
-                                const std::size_t aFileHandle)
+void initialize_element_scalar_field(stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName)
 {
-    write_mesh_scalar_field_impl<stk::topology::ELEM_RANK>(aIOBroker, aScalarField, aFieldName, aFileHandle);
+    initialize_scalar_output_field_impl<stk::topology::ELEM_RANK>(aIOBroker.meta_data(), aFieldName);
 }
 
-void finalize_mesh_data(std::unique_ptr<stk::io::StkMeshIoBroker>&& aIOBroker, const std::size_t aFileHandle)
+void initialize_nodal_scalar_field(stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName)
 {
-    constexpr double tTime = 1.0;
-    write_defined_output_fields(*aIOBroker, aFileHandle, tTime);
+    initialize_scalar_output_field_impl<stk::topology::NODE_RANK>(aIOBroker.meta_data(), aFieldName);
+}
+
+void populate_element_scalar_field_values(stk::io::StkMeshIoBroker& aIOBroker,
+                                          const std::string_view aFieldName,
+                                          const ScalarFieldFunction& aScalarField)
+{
+    populate_scalar_field_values_impl<stk::topology::ELEM_RANK>(aIOBroker, aFieldName, aScalarField);
+}
+
+void populate_nodal_scalar_field_values(stk::io::StkMeshIoBroker& aIOBroker,
+                                        const std::string_view aFieldName,
+                                        const ScalarFieldFunction& aScalarField)
+{
+    populate_scalar_field_values_impl<stk::topology::NODE_RANK>(aIOBroker, aFieldName, aScalarField);
+}
+
+void add_nodal_field_to_output_file(stk::io::StkMeshIoBroker& aIOBroker,
+                                    const size_t aFileHandle,
+                                    const std::string_view aFieldName)
+{
+    add_field_to_output_file_impl<stk::topology::NODE_RANK>(aIOBroker, aFileHandle, aFieldName);
+}
+
+void add_element_field_to_output_file(stk::io::StkMeshIoBroker& aIOBroker,
+                                      const size_t aFileHandle,
+                                      const std::string_view aFieldName)
+{
+    add_field_to_output_file_impl<stk::topology::ELEM_RANK>(aIOBroker, aFileHandle, aFieldName);
+}
+
+void write_fields_at_time(stk::io::StkMeshIoBroker& aIOBroker, const size_t aFileHandle, double aOutputTime)
+{
+    aIOBroker.process_output_request(aFileHandle, aOutputTime);
 }
 
 }  // namespace plato::third_party_integration::stk_io

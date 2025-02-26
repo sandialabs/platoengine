@@ -3,6 +3,7 @@
 
 #include <cassert>
 
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/snopt/DataSingleton.hpp"
 #include "plato/third_party_integration/snopt/ObjectiveConstraintArrayView.hpp"
@@ -78,12 +79,17 @@ template <typename FunctionTag>
 void evaluateObjectiveGradient(const linear_algebra::DynamicVector<double>& aDesignVariables,
                                ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView)
 {
-    const auto& tSingleton = DataSingleton<ObjectiveType, FunctionTag>::constInstance();
-    assert(tSingleton.hasData());
-    const auto& tObjectiveGradient = tSingleton.data();
+    const auto& tObjectiveSingleton = DataSingleton<ObjectiveType, FunctionTag>::constInstance();
+    assert(tObjectiveSingleton.hasData());
+    const auto& tObjectiveGradient = tObjectiveSingleton.data();
     const auto tGradient = tObjectiveGradient.template evaluate<core::evaluation::kFirstDerivative>(aDesignVariables);
     std::copy(tGradient.stdVector().begin(), tGradient.stdVector().end(),
               aObjectiveConstraintGradientView.objectiveGradient().begin());
+
+    auto& tOutputSingleton = DataSingleton<geometry::library::OutputManager, FunctionTag>::instance();
+    assert(tOutputSingleton.hasData());
+    auto& tOutputFunction = tOutputSingleton.data();
+    tOutputFunction->output(aDesignVariables);
 }
 
 template <typename FunctionTag>

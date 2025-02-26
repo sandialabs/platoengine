@@ -2,6 +2,8 @@
 
 #include <numeric>
 
+#include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
@@ -20,13 +22,35 @@ class MeshFieldWriterTestMesh : public plato::third_party_integration::stk_io::t
 {
 };
 
+template <typename MeshIO>
+void add_element_field(MeshIO& aMeshIO,
+                       const ElementFieldVectorReference& aScalarField,
+                       std::string_view aFieldName,
+                       double aFixedValue)
+{
+    const auto tDesignVariables = DesignVariablesConversion{aMeshIO}.elementFieldToAnalysisDomainMesh(aScalarField);
+    aMeshIO.addFieldOnAnalysisDomainMesh(tDesignVariables, aFieldName, aFixedValue);
+}
+
+template <typename MeshIO>
+void add_nodal_field(MeshIO& aMeshIO,
+                     const NodalFieldVectorReference& aScalarField,
+                     std::string_view aFieldName,
+                     double aFixedValue)
+{
+    const auto tDesignVariables = DesignVariablesConversion{aMeshIO}.nodalFieldToAnalysisDomainMesh(aScalarField);
+    aMeshIO.addFieldOnAnalysisDomainMesh(tDesignVariables, aFieldName, aFixedValue);
+}
+
 void check_read_write_nodal_round_trip(const std::vector<double>& aFieldToWrite,
                                        const Mesh& aMesh,
                                        const std::vector<double>& aExpectedField,
                                        const test_utilities::TestContext& aTestContext)
 {
-    MeshFieldWriter{aMesh, kOutputMeshPath}.addNodalField(NodalFieldVectorReference{aFieldToWrite}, kFieldName,
-                                                          kFixedValue);
+    {
+        MeshFieldWriter tWriter{aMesh, kOutputMeshPath};
+        add_nodal_field(tWriter, NodalFieldVectorReference{aFieldToWrite}, kFieldName, kFixedValue);
+    }
     const auto tFieldFromDisk =
         third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(kOutputMeshPath, kFieldName);
     EXPECT_EQ(tFieldFromDisk, aExpectedField) << aTestContext;
@@ -38,8 +62,10 @@ void check_read_write_element_round_trip(const std::vector<double>& aFieldToWrit
                                          const std::vector<double>& aExpectedField,
                                          const test_utilities::TestContext& aTestContext)
 {
-    MeshFieldWriter{aMesh, kOutputMeshPath}.addElementField(ElementFieldVectorReference{aFieldToWrite}, kFieldName,
-                                                            kFixedValue);
+    {
+        MeshFieldWriter tWriter{aMesh, kOutputMeshPath};
+        add_element_field(tWriter, ElementFieldVectorReference{aFieldToWrite}, kFieldName, kFixedValue);
+    }
     const auto tFieldFromDisk =
         third_party_integration::stk_io::test_utilities::read_element_field_as_vector(kOutputMeshPath, kFieldName);
     EXPECT_EQ(tFieldFromDisk, aExpectedField) << aTestContext;
@@ -94,7 +120,7 @@ TEST_F(MeshFieldWriterTestMesh, WriteFieldsFromDesignVariables)
         const auto tBlockField = analysis::AnalysisDomainMesh::BlockScalarField{{1, aFieldVector1}, {2, aFieldVector2}};
         const auto tDesignVariables = analysis::AnalysisDomainMesh{mMeshFilePath, tBlockField};
         auto tMesh = MeshFieldWriter{Mesh{mMeshFilePath}, kOutputMeshPath};
-        tMesh.addAnalysisDomainMesh(tDesignVariables, aFieldName, kFixedValue);
+        tMesh.addFieldOnAnalysisDomainMesh(tDesignVariables, aFieldName, kFixedValue);
     };
 
     // Nodal field
@@ -140,8 +166,8 @@ TEST_F(MeshFieldWriterTestMesh, WriteTwoFields)
 
     {
         auto tMeshWriter = MeshFieldWriter{Mesh{mMeshFilePath}, kOutputMeshPath};
-        tMeshWriter.addElementField(ElementFieldVectorReference{tElementField}, tElementFieldName, kFixedValue);
-        tMeshWriter.addNodalField(NodalFieldVectorReference{tNodalField}, tNodalFieldName, kFixedValue);
+        add_element_field(tMeshWriter, ElementFieldVectorReference{tElementField}, tElementFieldName, kFixedValue);
+        add_nodal_field(tMeshWriter, NodalFieldVectorReference{tNodalField}, tNodalFieldName, kFixedValue);
     }
 
     const auto tNodalFieldFromDisk =
@@ -151,6 +177,63 @@ TEST_F(MeshFieldWriterTestMesh, WriteTwoFields)
     const auto tElementFieldFromDisk = third_party_integration::stk_io::test_utilities::read_element_field_as_vector(
         kOutputMeshPath, tElementFieldName);
     EXPECT_EQ(tElementFieldFromDisk, tElementField);
+
+    std::filesystem::remove(kOutputMeshPath);
+}
+
+TEST_F(MeshFieldWriterTestMesh, WriteFieldsForTwoTimeSteps)
+{
+    constexpr auto tElementFieldName = std::string_view{"barley"};
+    constexpr auto tNodalFieldName = std::string_view{"corn"};
+
+    // write first time step
+    auto tFirstElementField = std::vector<double>(mExpectedNumberOfElements);
+    std::fill(tFirstElementField.begin(), tFirstElementField.end(), 71.0);
+    auto tFirstNodalField = std::vector<double>(mExpectedNumberOfNodes);
+    std::iota(tFirstNodalField.begin(), tFirstNodalField.end(), 1.0);
+    constexpr double tFirstTimeStep = 1.0;
+    {
+        auto tMeshWriter = MeshFieldWriter{Mesh{mMeshFilePath}, kOutputMeshPath, tFirstTimeStep};
+        add_element_field(tMeshWriter, ElementFieldVectorReference{tFirstElementField}, tElementFieldName, kFixedValue);
+        add_nodal_field(tMeshWriter, NodalFieldVectorReference{tFirstNodalField}, tNodalFieldName, kFixedValue);
+    }
+
+    // write second time step
+    constexpr double tSecondTimeStep = 2.0;
+    auto tSecondElementField = std::vector<double>(mExpectedNumberOfElements);
+    std::fill(tSecondElementField.begin(), tSecondElementField.end(), 86.0);
+    auto tSecondNodalField = std::vector<double>(mExpectedNumberOfNodes);
+    std::iota(tSecondNodalField.begin(), tSecondNodalField.end(), 59.0);
+    {
+        auto tMeshAppender = MeshFieldAppender{Mesh{kOutputMeshPath}, tSecondTimeStep};
+        add_element_field(tMeshAppender, ElementFieldVectorReference{tSecondElementField}, tElementFieldName,
+                          kFixedValue);
+        add_nodal_field(tMeshAppender, NodalFieldVectorReference{tSecondNodalField}, tNodalFieldName, kFixedValue);
+    }
+
+    // check first time step
+    {
+        const auto tElementFieldFromDisk =
+            third_party_integration::stk_io::test_utilities::read_element_field_as_vector(
+                kOutputMeshPath, tElementFieldName, tFirstTimeStep);
+        EXPECT_EQ(tElementFieldFromDisk, tFirstElementField);
+
+        const auto tNodalFieldFromDisk = third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(
+            kOutputMeshPath, tNodalFieldName, tFirstTimeStep);
+        EXPECT_EQ(tNodalFieldFromDisk, tFirstNodalField);
+    }
+
+    // check second time step
+    {
+        const auto tElementFieldFromDisk =
+            third_party_integration::stk_io::test_utilities::read_element_field_as_vector(
+                kOutputMeshPath, tElementFieldName, tSecondTimeStep);
+        EXPECT_EQ(tElementFieldFromDisk, tSecondElementField);
+
+        const auto tNodalFieldFromDisk = third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(
+            kOutputMeshPath, tNodalFieldName, tSecondTimeStep);
+        EXPECT_EQ(tNodalFieldFromDisk, tSecondNodalField);
+    }
 
     std::filesystem::remove(kOutputMeshPath);
 }

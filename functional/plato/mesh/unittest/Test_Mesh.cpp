@@ -201,4 +201,29 @@ TEST_F(OneBlock3x1x1HexMeshWithNodeSets, ConstructionFromAnalysisDomainMesh)
     }
 }
 
+TEST_F(TwoDThreeBlockMesh, Valid)
+{
+    {
+        const auto tMesh = Mesh{mMeshFilePath};
+        EXPECT_TRUE(tMesh.valid());
+    }
+    {
+        const auto tMesh = Mesh{analysis::AnalysisDomainMesh{mMeshFilePath, {}}};
+        EXPECT_TRUE(tMesh.valid());
+    }
+}
+
+TEST(Mesh, NonExistentMesh)
+{
+    const auto tBogusFilePath = std::filesystem::path{"bogus-file-path.e"};
+    {
+        const auto tMesh = Mesh{tBogusFilePath};
+        EXPECT_FALSE(tMesh.valid());
+    }
+    {
+        const auto tMesh = Mesh{analysis::AnalysisDomainMesh{tBogusFilePath, {}}};
+        EXPECT_FALSE(tMesh.valid());
+    }
+}
+
 }  // namespace plato::mesh::unittest

@@ -49,30 +49,46 @@ PartReferenceVector universal_part(const stk::mesh::BulkData& aBulk)
 }
 
 [[nodiscard]] auto create_reading_iobroker(const std::filesystem::path& aInputMeshName)
-    -> std::shared_ptr<stk::io::StkMeshIoBroker>
+    -> std::unique_ptr<stk::io::StkMeshIoBroker>
 {
-    auto tIOBroker = std::make_shared<stk::io::StkMeshIoBroker>(MPI_COMM_SELF);
+    auto tIOBroker = std::make_unique<stk::io::StkMeshIoBroker>(MPI_COMM_SELF);
     tIOBroker->add_mesh_database(aInputMeshName.string(), stk::io::READ_MESH);
     tIOBroker->create_input_mesh();
     tIOBroker->populate_bulk_data();
     tIOBroker->meta_data().enable_late_fields();
     tIOBroker->add_all_mesh_fields_as_input_fields();
-
-    const auto tTimeSteps = tIOBroker->get_time_steps();
-    if (!tTimeSteps.empty())
-    {
-        tIOBroker->read_defined_input_fields(tTimeSteps.back());
-    }
     return tIOBroker;
 }
 
 template <stk::topology::rank_t Rank>
-[[nodiscard]] bool check_for_field_existence(const std::filesystem::path& aInputMeshName,
-                                             const std::string_view aFieldName)
+[[nodiscard]] bool field_exists(const stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName)
 {
-    const auto tIOBroker = create_reading_iobroker(aInputMeshName);
-    const auto tField = tIOBroker->meta_data().get_field(Rank, std::string{aFieldName});
+    const auto tField = aIOBroker.meta_data().get_field(Rank, std::string{aFieldName});
     return tField;
+}
+
+/// @pre `aIOBroker.get_time_steps().empty()` must be `false`.
+[[nodiscard]] auto time_step(const stk::io::StkMeshIoBroker& aIOBroker, const TimeStep aTimeStep) -> double
+{
+    return aTimeStep.valueOrInvoke(
+        [&aIOBroker]()
+        {
+            const auto tTimeSteps = aIOBroker.get_time_steps();
+            const auto tMaxElementIter = std::max_element(tTimeSteps.begin(), tTimeSteps.end());
+            assert(tMaxElementIter != tTimeSteps.end());
+            return *tMaxElementIter;
+        });
+}
+
+[[nodiscard]] bool time_step_exists(const stk::io::StkMeshIoBroker& aIOBroker, const TimeStep aTimeStep)
+{
+    if (aIOBroker.get_time_steps().empty())
+    {
+        return false;
+    }
+    const auto tTimeStep = time_step(aIOBroker, aTimeStep);
+    const auto tTimeSteps = aIOBroker.get_time_steps();
+    return std::find(tTimeSteps.begin(), tTimeSteps.end(), tTimeStep) != tTimeSteps.end();
 }
 
 template <stk::topology::rank_t Rank>
@@ -88,20 +104,19 @@ template <stk::topology::rank_t Rank>
 }
 
 template <stk::topology::rank_t Rank>
-[[nodiscard]] auto read_field(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName)
+[[nodiscard]] auto read_field(const stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName)
     -> std::map<std::size_t, double>
 {
-    const auto tIOBroker = create_reading_iobroker(aInputMeshName);
-    auto tField = tIOBroker->meta_data().get_field(Rank, std::string{aFieldName});
+    auto tField = aIOBroker.meta_data().get_field(Rank, std::string{aFieldName});
 
     auto tEntities = stk::mesh::EntityVector{};
     constexpr auto tSorted = true;
-    stk::mesh::get_entities(tIOBroker->bulk_data(), Rank, tEntities, tSorted);
+    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntities, tSorted);
 
     auto tFieldFromFile = std::map<std::size_t, double>{};
     const auto tIndices = utilities::IndexRange{tEntities.size()};
     std::transform(tIndices.begin(), tIndices.end(), std::inserter(tFieldFromFile, tFieldFromFile.end()),
-                   [tField, &tEntities, &tBulk = tIOBroker->bulk_data()](const auto aEntityIndex)
+                   [tField, &tEntities, &tBulk = aIOBroker.bulk_data()](const auto aEntityIndex)
                    {
                        const auto tGlobalID = tBulk.entity_key(tEntities[aEntityIndex]).id();
                        return std::make_pair(tGlobalID, static_cast<const double*>(stk::mesh::field_data(
@@ -214,12 +229,14 @@ stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const P
 
 bool element_field_exists(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName)
 {
-    return check_for_field_existence<stk::topology::ELEMENT_RANK>(aInputMeshName, aFieldName);
+    const auto tIOBroker = create_reading_iobroker(aInputMeshName);
+    return field_exists<stk::topology::ELEMENT_RANK>(*tIOBroker, aFieldName);
 }
 
 bool nodal_field_exists(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName)
 {
-    return check_for_field_existence<stk::topology::NODE_RANK>(aInputMeshName, aFieldName);
+    const auto tIOBroker = create_reading_iobroker(aInputMeshName);
+    return field_exists<stk::topology::NODE_RANK>(*tIOBroker, aFieldName);
 }
 
 auto nodal_field_names(const std::filesystem::path& aInputMeshName) -> std::vector<std::string>
@@ -227,22 +244,28 @@ auto nodal_field_names(const std::filesystem::path& aInputMeshName) -> std::vect
     return get_all_field_names<stk::topology::NODE_RANK>(aInputMeshName);
 }
 
-auto read_element_field(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName)
-    -> std::map<std::size_t, double>
+auto read_element_field(const std::filesystem::path& aInputMeshName,
+                        const std::string_view aFieldName,
+                        const TimeStep aTime) -> std::map<std::size_t, double>
 {
-    if (element_field_exists(aInputMeshName, aFieldName))
+    const auto tIOBroker = create_reading_iobroker(aInputMeshName);
+    if (field_exists<stk::topology::ELEMENT_RANK>(*tIOBroker, aFieldName) && time_step_exists(*tIOBroker, aTime))
     {
-        return read_field<stk::topology::ELEMENT_RANK>(aInputMeshName, aFieldName);
+        tIOBroker->read_defined_input_fields(time_step(*tIOBroker, aTime));
+        return read_field<stk::topology::ELEMENT_RANK>(*tIOBroker, aFieldName);
     }
     return {};
 }
 
-auto read_nodal_field(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName)
-    -> std::map<std::size_t, double>
+auto read_nodal_field(const std::filesystem::path& aInputMeshName,
+                      const std::string_view aFieldName,
+                      const TimeStep aTime) -> std::map<std::size_t, double>
 {
-    if (nodal_field_exists(aInputMeshName, aFieldName))
+    const auto tIOBroker = create_reading_iobroker(aInputMeshName);
+    if (field_exists<stk::topology::NODE_RANK>(*tIOBroker, aFieldName) && time_step_exists(*tIOBroker, aTime))
     {
-        return read_field<stk::topology::NODE_RANK>(aInputMeshName, aFieldName);
+        tIOBroker->read_defined_input_fields(time_step(*tIOBroker, aTime));
+        return read_field<stk::topology::NODE_RANK>(*tIOBroker, aFieldName);
     }
     return {};
 }

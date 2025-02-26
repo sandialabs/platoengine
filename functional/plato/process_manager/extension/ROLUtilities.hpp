@@ -13,10 +13,18 @@ namespace plato::process_manager::library
 struct ProcessManagerData;
 }
 
+namespace plato::geometry::library
+{
+class OutputManager;
+}
+
 namespace plato::process_manager::extension
 {
 ///@brief Create a ROL objective object from a ProcessManagerData by composing the mGeometryFunction with the mObjective
-[[nodiscard]] auto make_rol_objective(const library::ProcessManagerData& aProblem)
+/// @a aOutputManager is used to manage output of design variables through the output function of mGeometry
+[[nodiscard]] auto make_rol_objective(
+    const library::ProcessManagerData& aProblem,
+    geometry::library::OutputManager aOutputManager = geometry::library::OutputManager{})
     -> std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction>;
 
 ///@brief Create a ROL constraint from a ProcessManagerData by looping through the constraints
@@ -30,7 +38,13 @@ namespace plato::process_manager::extension
 /// @note The solution vector is returned to avoid issues with ROL changing derived types. If an inequality constraint
 /// is used, the type returned from `getPrimalOptimizationVector` will be `ROL::PartitionedVector`, which is not easy to
 /// copy to a `std::vector`.
-[[nodiscard]] auto make_rol_problem(const library::ProcessManagerData& aProblem)
+[[nodiscard]] auto make_rol_problem(
+    const library::ProcessManagerData& aProblem,
+    geometry::library::OutputManager aOutputManager = geometry::library::OutputManager{})
+    -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>;
+
+[[nodiscard]] auto make_rol_problem(const library::ProcessManagerData& aProblem,
+                                    const ROL::Ptr<ROL::StdObjective<double>>& aROLObjective)
     -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>;
 
 }  // namespace plato::process_manager::extension

@@ -11,6 +11,11 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
+namespace plato::geometry::library
+{
+struct OutputInfo;
+}
+
 namespace plato::analysis
 {
 struct AnalysisDomainMesh;
@@ -31,7 +36,7 @@ struct FactoryTypes
     using Compute = GeometryFunction;
     using InitialGuess = linear_algebra::DynamicVector<double>;
     using Bounds = std::pair<std::vector<double>, std::vector<double>>;
-    using Output = std::function<void(const linear_algebra::DynamicVector<double>&)>;
+    using Output = std::function<void(const linear_algebra::DynamicVector<double>&, const OutputInfo&)>;
 
     Compute mCompute;
     InitialGuess mInitialGuess;

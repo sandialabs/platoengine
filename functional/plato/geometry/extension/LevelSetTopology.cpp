@@ -7,14 +7,17 @@
 #include "plato/analysis/Utilities.hpp"
 #include "plato/core/Compose.hpp"
 #include "plato/geometry/extension/FixedBlockUtilities.hpp"
+#include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
+#include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/third_party_integration/krino/Interface.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
@@ -43,22 +46,23 @@ constexpr auto kMeshNameAccessor =
     [](const input_parser::level_set_topology& aInput) -> const boost::optional<input_parser::FileName>&
 { return aInput.background_mesh_name; };
 
-auto background_mesh_name(const input_parser::level_set_topology& aInput) -> const std::string&
+[[nodiscard]] auto background_mesh_name(const input_parser::level_set_topology& aInput) -> const std::string&
 {
     return aInput.background_mesh_name.value().mToken;
 }
 
-auto mesh_from_input(const input_parser::level_set_topology& aInput) -> mesh::Mesh
+[[nodiscard]] auto mesh_from_input(const input_parser::level_set_topology& aInput) -> mesh::Mesh
 {
     assert(kMeshNameAccessor(aInput).has_value());
     return mesh::Mesh{background_mesh_name(aInput), fixed_blocks(aInput)};
 }
 
-auto make_topology_output(const input_parser::level_set_topology& aInput)
-    -> std::function<void(const linear_algebra::DynamicVector<double>&)>
+[[nodiscard]] auto make_topology_output(const input_parser::level_set_topology& aInput) -> library::FactoryTypes::Output
 {
-    return [aInput](const linear_algebra::DynamicVector<double>& aSolution)
-    { return LevelSetTopology::output(aInput, library::make_filter_from_geometry_input(aInput), aSolution); };
+    return [aInput](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo) {
+        return LevelSetTopology::output(aInput, library::make_filter_from_geometry_input(aInput), aSolution,
+                                        aOutputInfo);
+    };
 }
 
 void initialize_krino()
@@ -287,24 +291,23 @@ auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
 
 void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
                               const filter::library::FilterFunction& aFilterFunction,
-                              const linear_algebra::DynamicVector<double>& aSolution)
+                              const linear_algebra::DynamicVector<double>& aSolution,
+                              const library::OutputInfo& aOutputInfo)
 {
-    const auto tMesh = mesh_from_input(aInput);
-    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
-        mesh::NodalFieldVectorReference{aSolution.stdVector()});
-
     if (boost::mpi::communicator{}.rank() == 0)
     {
-        auto tMeshWriter = mesh::MeshFieldWriter{tMesh, restart_file_name(aInput)};
-        tMeshWriter.addAnalysisDomainMesh(tNodalDesignParameters, level_set_mesh_field_name(),
-                                          aInput.level_set_upper_bound.value());
+        const auto tMeshFieldOutput = MeshFieldOutputInfo{mesh_from_input(aInput),
+                                                          restart_file_name(aInput),
+                                                          fixed_blocks(aInput),
+                                                          level_set_mesh_field_name(),
+                                                          filtered_level_set_mesh_field_name(),
+                                                          aInput.level_set_upper_bound.value()};
+        const auto tFilteredField = output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 
-        tMeshWriter.addAnalysisDomainMesh(aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters),
-                                          filtered_level_set_mesh_field_name(), aInput.level_set_upper_bound.value());
-
-        tpik::generate_computational_mesh(tNodalDesignParameters, aInput.level_set_upper_bound.value(),
+        tpik::generate_computational_mesh(tFilteredField, tMeshFieldOutput.mFixedFieldValue,
                                           tpik::CutMeshFilePath{aInput.output_mesh_name->mToken}, void_phase(aInput));
     }
+    boost::mpi::communicator{}.barrier();
 }
 
 auto LevelSetTopology::backgroundMesh() const -> const mesh::Mesh& { return mBackgroundMesh; }

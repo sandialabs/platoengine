@@ -23,14 +23,19 @@ Mesh::BlockOrdinalType block_meta_data_ordinal(
     return tBlockDataWithField->mMetaDataOrdinal;
 }
 
-std::vector<Mesh::BlockOrdinalType> block_ordinals_from_names(const stk::mesh::BulkData& aBulkData,
-                                                              const std::set<std::string>& aBlockNames)
+auto block_ordinals_from_names(const std::shared_ptr<stk::mesh::BulkData>& aBulkData,
+                               const std::set<std::string>& aBlockNames) -> std::vector<Mesh::BlockOrdinalType>
 {
     namespace tpi = third_party_integration;
 
+    if (!aBulkData)
+    {
+        return {};
+    }
+
     const auto tNameField = [](const tpi::common::BlockData& aBlockData) { return aBlockData.mName; };
 
-    const auto tBlockData = tpi::stk_io::block_data(aBulkData);
+    const auto tBlockData = tpi::stk_io::block_data(*aBulkData);
     auto tBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
     tBlockIDs.reserve(aBlockNames.size());
     std::transform(aBlockNames.cbegin(), aBlockNames.cend(), std::back_inserter(tBlockIDs),
@@ -49,24 +54,35 @@ std::vector<Mesh::BlockOrdinalType> all_block_ordinals(const stk::mesh::BulkData
     return tBlockIDs;
 }
 
-std::vector<Mesh::BlockOrdinalType> set_difference_block_ordinals(
-    const stk::mesh::BulkData& aBulkData, const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)
+auto set_difference_block_ordinals(const std::shared_ptr<stk::mesh::BulkData>& aBulkData,
+                                   const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)
+    -> std::vector<Mesh::BlockOrdinalType>
 {
-    const auto tAllBlockOrdinals = all_block_ordinals(aBulkData);
+    if (!aBulkData)
+    {
+        return {};
+    }
+    const auto tAllBlockOrdinals = all_block_ordinals(*aBulkData);
     auto tDifferenceBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{};
     std::set_difference(tAllBlockOrdinals.cbegin(), tAllBlockOrdinals.cend(), aBlockOrdinals.cbegin(),
                         aBlockOrdinals.cend(), std::back_inserter(tDifferenceBlockOrdinals));
     return tDifferenceBlockOrdinals;
 }
 
-std::vector<Mesh::BlockOrdinalType> fixed_block_ordinals_from_mesh_analysis(
-    const stk::mesh::BulkData& aBulkData, const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+auto fixed_block_ordinals_from_mesh_analysis(const std::shared_ptr<stk::mesh::BulkData>& aBulkData,
+                                             const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+    -> std::vector<Mesh::BlockOrdinalType>
 {
     namespace tpi = third_party_integration;
 
+    if (!aBulkData)
+    {
+        return {};
+    }
+
     const auto tIDField = [](const tpi::common::BlockData& aBlockData) { return aBlockData.mID; };
 
-    const auto tBlockData = tpi::stk_io::block_data(aBulkData);
+    const auto tBlockData = tpi::stk_io::block_data(*aBulkData);
     auto tDesignBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
     tDesignBlockIDs.reserve(aAnalysisDomainMesh.mBlockScalarField.size());
     std::transform(aAnalysisDomainMesh.mBlockScalarField.cbegin(), aAnalysisDomainMesh.mBlockScalarField.cend(),
@@ -93,22 +109,32 @@ Mesh::PartReferenceVector parts_from_block_ordinals(const stk::mesh::BulkData& a
                    });
     return tParts;
 }
+
+auto read_mesh_file(const std::filesystem::path& aFilePath) -> std::shared_ptr<stk::mesh::BulkData>
+{
+    if (!std::filesystem::exists(aFilePath))
+    {
+        return nullptr;
+    }
+    return third_party_integration::stk_io::read_mesh_bulk_data(aFilePath);
+}
+
 }  // namespace
 
 /// @brief Loads a mesh from disk at the path @a aMeshName
 Mesh::Mesh(const std::filesystem::path& aMeshName, const std::set<std::string>& aFixedBlockNames)
     : mFilePath{aMeshName},
-      mBulk{third_party_integration::stk_io::read_mesh_bulk_data(aMeshName)},
-      mFixedBlockOrdinals{block_ordinals_from_names(*mBulk, aFixedBlockNames)},
-      mDesignBlockOrdinals{set_difference_block_ordinals(*mBulk, mFixedBlockOrdinals)}
+      mBulk{read_mesh_file(aMeshName)},
+      mFixedBlockOrdinals{block_ordinals_from_names(mBulk, aFixedBlockNames)},
+      mDesignBlockOrdinals{set_difference_block_ordinals(mBulk, mFixedBlockOrdinals)}
 {
 }
 
 Mesh::Mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
     : mFilePath{aAnalysisDomainMesh.mFileName},
-      mBulk{third_party_integration::stk_io::read_mesh_bulk_data(mFilePath)},
-      mFixedBlockOrdinals{fixed_block_ordinals_from_mesh_analysis(*mBulk, aAnalysisDomainMesh)},
-      mDesignBlockOrdinals{set_difference_block_ordinals(*mBulk, mFixedBlockOrdinals)}
+      mBulk{read_mesh_file(mFilePath)},
+      mFixedBlockOrdinals{fixed_block_ordinals_from_mesh_analysis(mBulk, aAnalysisDomainMesh)},
+      mDesignBlockOrdinals{set_difference_block_ordinals(mBulk, mFixedBlockOrdinals)}
 {
 }
 
@@ -124,6 +150,12 @@ const stk::mesh::BulkData& Mesh::bulkData() const
     return *mBulk;
 }
 
+stk::mesh::BulkData& Mesh::bulkData()
+{
+    assert(mBulk);
+    return *mBulk;
+}
+
 Mesh::PartReferenceVector Mesh::fixedDomainBlocks() const
 {
     return parts_from_block_ordinals(bulkData(), mFixedBlockOrdinals);
@@ -133,5 +165,7 @@ Mesh::PartReferenceVector Mesh::designDomainBlocks() const
 {
     return parts_from_block_ordinals(bulkData(), mDesignBlockOrdinals);
 }
+
+auto Mesh::valid() const -> bool { return mBulk != nullptr; }
 
 }  // namespace plato::mesh

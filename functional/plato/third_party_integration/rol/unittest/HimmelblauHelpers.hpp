@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 
 namespace plato::third_party_integration::rol::unittest
@@ -53,6 +54,39 @@ void run_himmelblau_objective_test(const Argument& aObjectiveFunctionArgument)
     tObjective.hessVec(tHessian, tDirection, tControl, tTolerance);
     EXPECT_EQ(tHessian[0], 0.0);
     EXPECT_EQ(tHessian[1], 0.0);
+}
+
+template <typename Argument>
+void run_himmelblau_output_test(const Argument& aObjectiveFunctionArgument)
+{
+    using namespace detail;
+
+    std::size_t tOutputCount = 0u;
+    auto tOutputFunction = [&tOutputCount](const linear_algebra::DynamicVector<double>&,
+                                           const geometry::library::OutputInfo&) { tOutputCount++; };
+    auto tOutputManager =
+        geometry::library::OutputManager{tOutputFunction, geometry::library::OutputMode::kEveryIterationAppend};
+    auto tObjective = ROLObjectiveFunction{aObjectiveFunctionArgument, tOutputManager};
+
+    const auto tControl = std::vector<double>{kControlX, kControlY};
+    constexpr int tBogusIteration = 1;
+
+    tObjective.update(tControl, ROL::UpdateType::Initial, tBogusIteration);
+    EXPECT_EQ(tOutputCount, 1u);  // UpdateType::Initial triggers call to output function
+    tObjective.update(tControl, ROL::UpdateType::Accept, tBogusIteration);
+    EXPECT_EQ(tOutputCount, 2u);  // UpdateType::Accept triggers call to output function
+    tObjective.update(tControl, ROL::UpdateType::Revert,
+                      tBogusIteration);  // UpdateType::Revert doesn't trigger call to output function
+    EXPECT_EQ(tOutputCount, 2u);
+    tObjective.update(tControl, ROL::UpdateType::Trial,
+                      tBogusIteration);  // UpdateType::TrialRevert doesn't trigger call to output function
+    EXPECT_EQ(tOutputCount, 2u);
+    tObjective.update(tControl, ROL::UpdateType::Temp,
+                      tBogusIteration);  // UpdateType::Temp doesn't trigger call to output function
+    EXPECT_EQ(tOutputCount, 2u);
+
+    tObjective.finalUpdate(linear_algebra::DynamicVector(tControl));  // increments the count
+    EXPECT_EQ(tOutputCount, 3u);
 }
 
 }  // namespace plato::third_party_integration::rol::unittest

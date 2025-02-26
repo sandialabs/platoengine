@@ -47,7 +47,8 @@ class LevelSetTopology
         -> analysis::AnalysisDomainMesh;
     static void output(const input_parser::level_set_topology& aInput,
                        const filter::library::FilterFunction& aFilterFunction,
-                       const linear_algebra::DynamicVector<double>& aSolution);
+                       const linear_algebra::DynamicVector<double>& aSolution,
+                       const library::OutputInfo& aOutputInfo);
     [[nodiscard]] auto jacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> linear_algebra::JacobianMultiplier;
     [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const

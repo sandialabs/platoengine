@@ -6,6 +6,7 @@
 #include <ROL_Vector.hpp>
 
 #include "plato/core/Function.hpp"
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::third_party_integration::rol
@@ -17,16 +18,20 @@ class ROLObjectiveFunction : public ROL::StdObjective<double>
         core::Function<const linear_algebra::DynamicVector<double>&,
                        core::FunctionInfo<double, core::evaluation::kFunction>,
                        core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
+    using OutputManager = geometry::library::OutputManager;
 
     ///@brief Construct a new ROLObjectiveFunction object
-    explicit ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction);
+    ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction, OutputManager aOutputManager = OutputManager{});
+
+    ///@brief Write geometry output
+    void update(const std::vector<double>& aControls, ROL::UpdateType aIterationType, int aIteration) override;
 
     ///@brief Compute the value using the set of controls @a aControls and given tolerance @a aTolerance
     double value(const std::vector<double>& aControls, double& aTolerance) override;
 
     ///@brief Compute the gradient from the set of controls and given tolerance. Populate the aGradient parameter
     ///@param aGradient Modify this variable with the gradient
-    void gradient(std::vector<double> &aGradient, const std::vector<double> &aControls, double &aTolerance) override;
+    void gradient(std::vector<double>& aGradient, const std::vector<double>& aControls, double& aTolerance) override;
 
     ///@brief Compute the hessian times a vector @a aVector from the set of controls @a aControls, and given tolerance
     ///@a aTolerance. Populate @a aHessianTimesVector parameter
@@ -36,8 +41,12 @@ class ROLObjectiveFunction : public ROL::StdObjective<double>
                  const std::vector<double>& aControls,
                  double& aTolerance) override;
 
+    ///@brief Write geometry output after optimization has concluded
+    void finalUpdate(const linear_algebra::DynamicVector<double>& aControls);
+
    private:
     ROLPlatoFunction mFunction;
+    OutputManager mOutputManager;
 };
 }  // namespace plato::third_party_integration::rol
 

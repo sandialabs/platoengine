@@ -7,6 +7,7 @@
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
@@ -31,9 +32,10 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
     return tInput.mesh_name.value().mToken;
 }
 
-[[nodiscard]] std::function<void(const linear_algebra::DynamicVector<double>&)> make_output()
+[[nodiscard]] library::FactoryTypes::Output make_output()
 {
-    return [](const linear_algebra::DynamicVector<double>& aSolution) { return BrickShapeGeometry::output(aSolution); };
+    return [](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
+    { return BrickShapeGeometry::output(aSolution, aOutputInfo); };
 }
 
 [[maybe_unused]] static auto kBrickShapeGeometryRegistration = plato::geometry::library::GeometryRegistration{
@@ -97,8 +99,10 @@ std::pair<std::vector<double>, std::vector<double>> BrickShapeGeometry::bounds()
     return {kLowerBounds, kUpperBounds};
 }
 
-void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSolution)
+void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSolution,
+                                const library::OutputInfo& aOutputInfo)
 {
+    std::cout << "iteration: " << aOutputInfo.mIteration << std::endl;
     std::cout << "centers: " << aSolution[0] << " " << aSolution[1] << " " << aSolution[2] << std::endl;
     std::cout << "dimensions: " << aSolution[3] << " " << aSolution[4] << " " << aSolution[5] << std::endl;
 }

@@ -10,6 +10,12 @@
 
 namespace plato::third_party_integration::rol::unittest
 {
+TEST(ROLObjectiveFunction, OutputGetsCalledOnUpdate)
+{
+    const auto tArgument = make_himmelblau_dynamic_vector_function(plato::test_utilities::Himmelblau{});
+    run_himmelblau_output_test(tArgument);
+}
+
 TEST(ROLObjectiveFunction, HimmelblauObjectiveValueAndGradient)
 {
     const auto tArgument = make_himmelblau_dynamic_vector_function(plato::test_utilities::Himmelblau{});

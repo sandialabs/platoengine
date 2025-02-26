@@ -47,6 +47,7 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato::input_parser::FileName, input_file_name, "Optional filename of the SNOpt input file to set optimization parameters not otherwise available here.")
     (unsigned int, max_iterations, "Optional command to override the maximum number of outer iterations given in an input file.")
     (unsigned int, time_limit_in_minutes, "Optional command to override the time limit in minutes for this optimization as an additional stopping criteria for the optimization.")
+    (bool, output_design_history, "Optional command to write the entire design history to output file. Default is to only write the final design.")
 )
 
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
@@ -59,6 +60,7 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (double, initial_search_radius, "Optional command to override the starting search radius for the controls. This number should increase with the problem size.")
     (bool, verbose_output, "Optional command to increase the verbosity of the ROL algorithms to their maximum.")
     (bool, approximate_hessian, "Optional command to override the default zero-Hessian behavior. The Hessian will be approximated with a secant method.")
+    (bool, output_design_history, "Optional command to write the entire design history to output file. Default is to only write the final design.")
 )
 
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(

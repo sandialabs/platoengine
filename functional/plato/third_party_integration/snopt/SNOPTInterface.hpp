@@ -9,6 +9,11 @@
 
 class snoptProblemA;
 
+namespace plato::geometry::library
+{
+class OutputManager;
+}
+
 namespace plato::third_party_integration::snopt
 {
 constexpr auto kTimeLimitName = std::string_view{"Time limit"};
@@ -20,14 +25,16 @@ struct SNOPTOptions
     std::optional<std::filesystem::path> mFilePath = std::nullopt;
     std::optional<unsigned int> mTimeLimitInMinutes = std::nullopt;
     std::optional<unsigned int> mMajorIterationLimit = std::nullopt;
+    std::optional<bool> mOutputDesignHistory = std::nullopt;
 };
 
 /// @brief Solve optimization problem with SNOPT and return resulting design variables
 /// @pre The size of @a aInitialGuess must be the same as the sizes of both vectors in @a aBoundConstraints.
 [[nodiscard]] auto run_snopt_problem(const std::vector<double>& aInitialGuess,
                                      const SNOPTBounds& aBoundConstraints,
-                                     ObjectiveType aObjective,
-                                     InterfaceConstraintVectorType aConstraints,
+                                     ObjectiveType&& aObjective,
+                                     InterfaceConstraintVectorType&& aConstraints,
+                                     geometry::library::OutputManager&& aOutputManager,
                                      const std::filesystem::path& aLogFilePath,
                                      const SNOPTOptions& aOptions) -> std::vector<double>;
 

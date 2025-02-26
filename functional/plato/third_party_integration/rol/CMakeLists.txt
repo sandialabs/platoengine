@@ -7,7 +7,8 @@ set(FUNCTIONAL_ROL_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data/)
 copy_rol_data()
 
 set(LINK_LIBS ROL::rol
-              PlatoFunctionalCriteria)
+              PlatoFunctionalCriteria
+              PlatoFunctionalGeometry)
 
 create_plato_library(PlatoFunctionalROL "." "${LINK_LIBS}")
 
