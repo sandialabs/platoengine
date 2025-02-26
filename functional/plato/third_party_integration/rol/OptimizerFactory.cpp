@@ -61,6 +61,8 @@ OptimizationParameters make_optimization_parameters(const ValidOptimizationParam
     tParameters.stepTolerance(utilities::to_std_optional(aOptimizationParameters.rawInput().step_tolerance));
     tParameters.initialSearchRadius(
         utilities::to_std_optional(aOptimizationParameters.rawInput().initial_search_radius));
+    tParameters.writeOutputHistory(
+        utilities::to_std_optional(aOptimizationParameters.rawInput().output_design_history));
 
     apply_verbose_output(aOptimizationParameters, tParameters);
     apply_approximate_hessian(aOptimizationParameters, tParameters);

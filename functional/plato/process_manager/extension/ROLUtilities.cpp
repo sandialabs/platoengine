@@ -6,6 +6,7 @@
 #include "plato/core/Compose.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
@@ -14,11 +15,11 @@
 namespace plato::process_manager::extension
 {
 
-auto make_rol_objective(const library::ProcessManagerData& aProblem)
+auto make_rol_objective(const library::ProcessManagerData& aProblem, geometry::library::OutputManager aOutputManager)
     -> std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction>
 {
     return std::make_unique<plato::third_party_integration::rol::ROLObjectiveFunction>(
-        compose(aProblem.mObjective, aProblem.mGeometry.mCompute));
+        compose(aProblem.mObjective, aProblem.mGeometry.mCompute), std::move(aOutputManager));
 }
 
 auto make_rol_constraints(const library::ProcessManagerData& aProblem)
@@ -44,13 +45,20 @@ auto make_rol_constraints(const library::ProcessManagerData& aProblem)
     return tROLConstraints;
 }
 
-auto make_rol_problem(const library::ProcessManagerData& aProblem)
+auto make_rol_problem(const library::ProcessManagerData& aProblem, geometry::library::OutputManager aOutputManager)
+    -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>
+{
+    return make_rol_problem(aProblem, ROL::Ptr<plato::third_party_integration::rol::ROLObjectiveFunction>(
+                                          make_rol_objective(aProblem, std::move(aOutputManager)).release()));
+}
+
+auto make_rol_problem(const library::ProcessManagerData& aProblem,
+                      const ROL::Ptr<ROL::StdObjective<double>>& aROLObjective)
     -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>
 {
     namespace tpir = third_party_integration::rol;
     auto tControls = tpir::make_rol_vector(aProblem.mGeometry.mInitialGuess);
-    auto tROLProblem = ROL::makePtr<ROL::Problem<double>>(
-        ROL::Ptr<ROL::StdObjective<double>>(make_rol_objective(aProblem).release()), tControls);
+    auto tROLProblem = ROL::makePtr<ROL::Problem<double>>(aROLObjective, tControls);
     tROLProblem->addBoundConstraint(tpir::create_rol_bound_constraint(aProblem.mGeometry.mBounds));
     for (auto&& tConstraint : make_rol_constraints(aProblem))
     {

@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
@@ -15,6 +16,7 @@
 
 namespace plato::process_manager::extension::unittest
 {
+
 TEST(ProcessManagerData, InputFileToROLObjective)
 {
     constexpr double tWeight = 42.0;

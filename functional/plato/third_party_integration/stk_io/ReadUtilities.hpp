@@ -7,9 +7,11 @@
 #include <memory>
 #include <stk_mesh/base/Types.hpp>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 #include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/utilities/ValueOrTag.hpp"
 
 namespace stk::mesh
 {
@@ -21,6 +23,13 @@ class Part;
 namespace plato::third_party_integration::stk_io
 {
 using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::Part>>;
+
+/// @brief A type tag used for specifying reading of the last time step in a file.
+struct LastTimeStep
+{
+};
+
+using TimeStep = utilities::ValueOrTag<double, LastTimeStep>;
 
 /// @brief Given a pathname  @a aMeshName, read from disk and return a shared pointer to the STK Bulk data.
 [[nodiscard]] std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::path& aMeshName);
@@ -77,15 +86,17 @@ stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const P
 /// @brief Given a pathname @a aInputMeshName, return a list of all the field names defined on the nodes
 [[nodiscard]] auto nodal_field_names(const std::filesystem::path& aInputMeshName) -> std::vector<std::string>;
 
-/// @brief Given a pathname @a aInputMeshName, read the field @a aFieldName
-[[nodiscard]] auto read_element_field(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName)
-    -> std::map<std::size_t, double>;
+/// @brief Given a pathname @a aInputMeshName, read the field @a aFieldName at time step @a aTime
+/// @pre The element field exists on the mesh otherwise an empty map is returned
+[[nodiscard]] auto read_element_field(const std::filesystem::path& aInputMeshName,
+                                      const std::string_view aFieldName,
+                                      TimeStep aTime = LastTimeStep{}) -> std::map<std::size_t, double>;
 
-/// @brief Given a pathname @a aInputMeshName, read the field @a aFieldName
+/// @brief Given a pathname @a aInputMeshName, read the field @a aFieldName at time step @a aTime
 /// @pre The nodal field exists on the mesh otherwise an empty map is returned
-[[nodiscard]] auto read_nodal_field(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName)
-    -> std::map<std::size_t, double>;
-
+[[nodiscard]] auto read_nodal_field(const std::filesystem::path& aInputMeshName,
+                                    const std::string_view aFieldName,
+                                    TimeStep aTime = LastTimeStep{}) -> std::map<std::size_t, double>;
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

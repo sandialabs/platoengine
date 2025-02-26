@@ -4,57 +4,54 @@
 
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/MeshFieldOutputUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::mesh
 {
-MeshFieldWriter::MeshFieldWriter(Mesh aMeshBase, const std::filesystem::path& aMeshFilePath)
-    : Mesh{std::move(aMeshBase)},
-      mMeshIOBroker{third_party_integration::stk_io::create_io_mesh_broker(filePath())},
-      mFileHandle{third_party_integration::stk_io::create_output_mesh(aMeshFilePath, *mMeshIOBroker)}
+namespace
+{
+void initialize_field(stk::io::StkMeshIoBroker& aIOBroker,
+                      const EntityCounts& aEntityCounts,
+                      const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                      const std::string_view aFieldName)
+{
+    namespace tpi = plato::third_party_integration;
+
+    if (aEntityCounts.areElementDesignVariables(aAnalysisDomainMesh))
+    {
+        tpi::stk_io::initialize_element_scalar_field(aIOBroker, aFieldName);
+    }
+    else
+    {
+        tpi::stk_io::initialize_nodal_scalar_field(aIOBroker, aFieldName);
+    }
+}
+}  // namespace
+
+MeshFieldWriter::MeshFieldWriter(Mesh aMeshBase, const std::filesystem::path& aWriteFilePath, const double aTimeStep)
+    : MeshOutput{std::move(aMeshBase)},
+      mTimeStep{aTimeStep},
+      mMeshIOBroker{plato::third_party_integration::stk_io::create_io_broker_from_input_file(filePath())},
+      mFileHandle{mMeshIOBroker->create_output_mesh(aWriteFilePath, stk::io::WRITE_RESULTS)}
 {
 }
 
 MeshFieldWriter::~MeshFieldWriter()
 {
-    third_party_integration::stk_io::finalize_mesh_data(std::move(mMeshIOBroker), mFileHandle);
+    plato::third_party_integration::stk_io::write_fields_at_time(*mMeshIOBroker, mFileHandle, mTimeStep);
 }
 
-void MeshFieldWriter::addNodalField(const NodalFieldVectorReference& aScalarField,
-                                    const std::string_view aFieldName,
-                                    const double aFixedValue)
+void MeshFieldWriter::addFieldOnAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                   const std::string_view aFieldName,
+                                                   const double aFixedValue)
 {
-    const auto tDesignVariables = DesignVariablesConversion{*this}.nodalFieldToAnalysisDomainMesh(aScalarField);
-    addAnalysisDomainMesh(tDesignVariables, aFieldName, aFixedValue);
-}
+    initialize_field(*mMeshIOBroker, EntityCounts{*this}, aAnalysisDomainMesh, aFieldName);
 
-void MeshFieldWriter::addElementField(const ElementFieldVectorReference& aScalarField,
-                                      const std::string_view aFieldName,
-                                      const double aFixedValue)
-{
-    const auto tDesignVariables = DesignVariablesConversion{*this}.elementFieldToAnalysisDomainMesh(aScalarField);
-    addAnalysisDomainMesh(tDesignVariables, aFieldName, aFixedValue);
-}
-
-void MeshFieldWriter::addAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                            const std::string_view aFieldName,
-                                            const double aFixedValue)
-{
-    namespace tpi = plato::third_party_integration;
-
-    const auto tScalarField =
-        [tDesignVariablesView = analysis::AnalysisDomainMeshRandomAccessView{aAnalysisDomainMesh},
-         tFixedScalarField = analysis::ScalarFieldValue{0, 0, aFixedValue}](const std::size_t aGlobalIndex)
-    { return tDesignVariablesView[aGlobalIndex].value_or(tFixedScalarField).mValue; };
-
-    if (EntityCounts{*this}.areElementDesignVariables(aAnalysisDomainMesh))
-    {
-        tpi::stk_io::write_element_scalar_field(*mMeshIOBroker, tScalarField, aFieldName, mFileHandle);
-    }
-    else
-    {
-        tpi::stk_io::write_nodal_scalar_field(*mMeshIOBroker, tScalarField, aFieldName, mFileHandle);
-    }
+    MeshFieldType tFieldType = EntityCounts{*this}.areElementDesignVariables(aAnalysisDomainMesh)
+                                   ? MeshFieldType::kElement
+                                   : MeshFieldType::kNode;
+    update_output_field(*mMeshIOBroker, mFileHandle, tFieldType, aFieldName, aAnalysisDomainMesh, aFixedValue);
 }
 
 }  // namespace plato::mesh

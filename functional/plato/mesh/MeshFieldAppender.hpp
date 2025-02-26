@@ -1,5 +1,5 @@
-#ifndef PLATO_MESH_MESHFIELDWRITER
-#define PLATO_MESH_MESHFIELDWRITER
+#ifndef PLATO_MESH_MESHFIELDAPPENDER
+#define PLATO_MESH_MESHFIELDAPPENDER
 
 #include <filesystem>
 #include <memory>
@@ -20,17 +20,17 @@ class StkMeshIoBroker;
 
 namespace plato::mesh
 {
-/// @brief A mixin class for Mesh that provides functions to create an output mesh on disk and write an initial design
-/// variable field to it.
+/// @brief A mixin class for Mesh that provides functions to append a design variable field to an existing output mesh
+/// file on disk.
 ///
-/// This is an RAII-style class that opens a mesh on construction, writes data to that mesh using its member functions,
-/// and closes and saves the mesh on destruction.
-class MeshFieldWriter : public MeshOutput
+/// This is an RAII-style class that opens the output mesh on construction, writes data to that mesh using its member
+/// functions, and closes and saves the mesh on destruction.
+class MeshFieldAppender : public MeshOutput
 {
    public:
-    MeshFieldWriter(Mesh aMeshBase, const std::filesystem::path& aWriteFilePath, double aTimeStep = 1.0);
+    MeshFieldAppender(Mesh aMeshBase, double aTimeStep);
 
-    ~MeshFieldWriter();
+    ~MeshFieldAppender();
 
     /// @brief Adds the design variables in @a aAnalysisDomainMesh to the currently managed file.
     ///
@@ -39,10 +39,10 @@ class MeshFieldWriter : public MeshOutput
                                       std::string_view aFieldName,
                                       double aFixedValue) override;
 
-    MeshFieldWriter(const MeshFieldWriter&) = delete;
-    MeshFieldWriter(MeshFieldWriter&&) = delete;
-    MeshFieldWriter& operator=(const MeshFieldWriter&) = delete;
-    MeshFieldWriter& operator=(MeshFieldWriter&&) = delete;
+    MeshFieldAppender(const MeshFieldAppender&) = delete;
+    MeshFieldAppender(MeshFieldAppender&&) = delete;
+    MeshFieldAppender& operator=(const MeshFieldAppender&) = delete;
+    MeshFieldAppender& operator=(MeshFieldAppender&&) = delete;
 
    private:
     double mTimeStep;

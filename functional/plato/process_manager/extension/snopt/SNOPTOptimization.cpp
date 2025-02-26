@@ -9,6 +9,7 @@
 #include "plato/core/Compose.hpp"
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -50,32 +51,36 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
             return ::plato::process_manager::extension::detail::validate_optional_input_file_name<
                 input_parser::snopt_optimization>(aInput);
         }};
-
 }  // namespace
 
 SNOPTOptimization::SNOPTOptimization(const ValidatedOptimizationParameters& aInput)
     : mOptions{utilities::to_unwrapped_optional(aInput.rawInput().input_file_name,
                                                 [](const auto& aFileName) { return aFileName.mToken; }),
                utilities::to_std_optional(aInput.rawInput().time_limit_in_minutes),
-               utilities::to_std_optional(aInput.rawInput().max_iterations)}
+               utilities::to_std_optional(aInput.rawInput().max_iterations),
+               utilities::to_std_optional(aInput.rawInput().output_design_history)}
 {
 }
 
 void SNOPTOptimization::run(const library::ProcessManagerData& aProcessManagerData) const
 {
+    namespace gl = geometry::library;
     namespace tpis = third_party_integration::snopt;
     using SNOPTObjectiveFunction = typename tpis::ObjectiveType;
 
     const tpis::SNOPTBounds tBounds{aProcessManagerData.mGeometry.mBounds};
     const auto tInitialGuess = aProcessManagerData.mGeometry.mInitialGuess.stdVector();
-    const auto tObjective = core::compose(aProcessManagerData.mObjective, aProcessManagerData.mGeometry.mCompute)
-                                .compatibleFunction<SNOPTObjectiveFunction>();
-    const auto tConstraints = detail::make_constraints(aProcessManagerData);
+    auto tObjective = core::compose(aProcessManagerData.mObjective, aProcessManagerData.mGeometry.mCompute)
+                          .compatibleFunction<SNOPTObjectiveFunction>();
+    auto tConstraints = detail::make_constraints(aProcessManagerData);
 
-    const auto tSolution = tpis::run_snopt_problem(tInitialGuess, tBounds, tObjective, tConstraints,
-                                                   std::string{kSNOPTOptimizerFileName}, mOptions);
+    const auto tOutputMode = mOptions.mOutputDesignHistory.value_or(false) ? gl::OutputMode::kEveryIterationAppend
+                                                                           : gl::OutputMode::kEveryIterationOverwrite;
+    auto tOutputManager = gl::OutputManager{aProcessManagerData.mGeometry.mOutput, tOutputMode};
 
-    aProcessManagerData.mGeometry.mOutput(linear_algebra::DynamicVector<double>(tSolution));
+    const auto tSolution =
+        tpis::run_snopt_problem(tInitialGuess, tBounds, std::move(tObjective), std::move(tConstraints),
+                                std::move(tOutputManager), std::string{kSNOPTOptimizerFileName}, mOptions);
 }
 
 namespace detail

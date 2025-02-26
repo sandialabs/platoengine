@@ -55,6 +55,11 @@ void OptimizationParameters::initialSearchRadius(const std::optional<double> aIn
     }
 }
 
+void OptimizationParameters::writeOutputHistory(const std::optional<bool> aWriteOutputHistory)
+{
+    mWriteOutputHistory = aWriteOutputHistory ? aWriteOutputHistory.value() : false;
+}
+
 const ROL::ParameterList& OptimizationParameters::parameters() const { return mParameterList; }
 
 void OptimizationParameters::writeParameters(const std::filesystem::path& aPath) const

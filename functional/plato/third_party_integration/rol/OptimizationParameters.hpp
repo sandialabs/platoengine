@@ -42,6 +42,12 @@ class OptimizationParameters
     ///@note Search radius in ROL is dictated by the norm of the gradient which grows with controls like sqrt(N)
     void initialSearchRadius(const std::optional<double> aInitialSearchRadius);
 
+    ///@brief Stores the parameter that specifies whether to write the output for each optimization iteration
+    void writeOutputHistory(const std::optional<bool> aWriteOutputHistory);
+
+    ///@brief Returns the parameter that specifies whether to write the output for each optimization iteration
+    bool writeOutputHistory() const { return mWriteOutputHistory; };
+
     ///@brief Return the ROL::ParameterList stored in the class member mParameterList
     [[nodiscard]] const ROL::ParameterList& parameters() const;
 
@@ -50,6 +56,7 @@ class OptimizationParameters
 
    private:
     ROL::ParameterList mParameterList;
+    bool mWriteOutputHistory{false};
 };
 
 namespace detail

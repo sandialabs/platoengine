@@ -13,6 +13,7 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
@@ -207,22 +208,25 @@ TEST_F(NodalDensityMesh, Output)
     const auto tDensityInput = density_input_for_test_fixture(mMeshName, mFieldName);
     const auto tDesignVariables = DensityTopology::initialGuess(tDensityInput);
     const auto tFilter = make_test_kernel_filter(tDensityInput.mesh_name->mToken);
-    DensityTopology::output(tDesignVariables, tFilter, tDensityInput);
+    DensityTopology::output(tDesignVariables, tFilter, tDensityInput, library::kOverwriteInfo);
+    constexpr auto kAppend = false;
+    DensityTopology::output(tDesignVariables, tFilter, tDensityInput, library::OutputInfo{kAppend, 2});
 
     ASSERT_TRUE(std::filesystem::exists(tDensityInput.output_name.value().mToken));
 
+    for (const auto tTimeStep : {1.0, 2.0})
     {
+        // Control densities
         constexpr auto tDensityFieldName = density_mesh_field_name();
         const auto tReadUnfilteredDensities =
             third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(
-                tDensityInput.output_name.value().mToken, tDensityFieldName);
+                tDensityInput.output_name.value().mToken, tDensityFieldName, tTimeStep);
         EXPECT_EQ(tDesignVariables.stdVector(), tReadUnfilteredDensities);
-    }
-    {
+        // Filtered densities
         constexpr auto tFilteredDensityFieldName = filtered_density_mesh_field_name();
         const auto tReadFilteredDensities =
             third_party_integration::stk_io::test_utilities::read_element_field_as_vector(
-                tDensityInput.output_name.value().mToken, tFilteredDensityFieldName);
+                tDensityInput.output_name.value().mToken, tFilteredDensityFieldName, tTimeStep);
         const auto tExpected = std::vector<double>{8.435398473291716, 8.5, 8.564601526708284};  // Regression value
         constexpr auto tTolerance = 1e-14;
         test_utilities::expect_container_entries_near(tExpected, tReadFilteredDensities, tTolerance,

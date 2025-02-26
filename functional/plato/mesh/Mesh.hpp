@@ -54,25 +54,33 @@ class Mesh
     explicit Mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh);
 
     /// @brief Returns the path to the mesh on disk.
-    const std::filesystem::path& filePath() const;
+    [[nodiscard]] auto filePath() const -> const std::filesystem::path&;
 
     /// @brief Returns the fixed block internal metadata ordinals
     /// @note These are stk internally generated IDs and not the same as the mesh's original block IDs.
-    const std::vector<BlockOrdinalType>& fixedBlockOrdinals() const;
+    [[nodiscard]] auto fixedBlockOrdinals() const -> const std::vector<BlockOrdinalType>&;
 
     /// @brief Returns the design block internal metadata ordinals
     /// @note These are stk internally generated IDs and not the same as the mesh's original block IDs.
-    const std::vector<BlockOrdinalType>& designBlockOrdinals() const;
+    [[nodiscard]] auto designBlockOrdinals() const -> const std::vector<BlockOrdinalType>&;
+
+    /// @brief Returns whether or not this object was constructed with a path to a valid mesh.
+    [[nodiscard]] auto valid() const -> bool;
 
    protected:
+    /// @brief Returns a const reference to the underlying BulkData.
+    /// @pre valid returns `true`
+    [[nodiscard]] auto bulkData() const -> const stk::mesh::BulkData&;
+
     /// @brief Returns a reference to the underlying BulkData.
-    const stk::mesh::BulkData& bulkData() const;
+    /// @pre valid returns `true`
+    [[nodiscard]] auto bulkData() -> stk::mesh::BulkData&;
 
     /// @brief Returns a vector of stk::mesh::Parts associated with the fixed (non-optimizable) domain
-    PartReferenceVector fixedDomainBlocks() const;
+    [[nodiscard]] auto fixedDomainBlocks() const -> PartReferenceVector;
 
     /// @brief Returns a vector of stk::mesh::Parts associated with the design (optimizable) domain
-    PartReferenceVector designDomainBlocks() const;
+    [[nodiscard]] auto designDomainBlocks() const -> PartReferenceVector;
 
    private:
     std::filesystem::path mFilePath;

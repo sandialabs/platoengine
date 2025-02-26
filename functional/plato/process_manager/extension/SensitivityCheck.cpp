@@ -6,6 +6,7 @@
 #include "plato/core/Compose.hpp"
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"

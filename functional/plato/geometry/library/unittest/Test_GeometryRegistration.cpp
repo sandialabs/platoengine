@@ -23,13 +23,13 @@ namespace
         { return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{}}; }};
 }
 
-[[maybe_unused]] static auto kTestGeometryRegistration =
-    GeometryRegistration{"test", [](const ValidatedGeometryInput&)
-                         {
-                             return FactoryTypes{make_test_geometry_function(), linear_algebra::DynamicVector<double>{},
-                                                 std::make_pair(std::vector<double>{}, std::vector<double>{}),
-                                                 std::function<void(const linear_algebra::DynamicVector<double>&)>{}};
-                         }};
+[[maybe_unused]] static auto kTestGeometryRegistration = GeometryRegistration{
+    "test", [](const ValidatedGeometryInput&)
+    {
+        return FactoryTypes{make_test_geometry_function(), linear_algebra::DynamicVector<double>{},
+                            std::make_pair(std::vector<double>{}, std::vector<double>{}),
+                            std::function<void(const linear_algebra::DynamicVector<double>&, const OutputInfo&)>{}};
+    }};
 }  // namespace
 
 TEST(GeometryRegistration, PhonyGeometry) { EXPECT_TRUE(is_geometry_function_registered("test")); }

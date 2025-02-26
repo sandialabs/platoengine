@@ -151,7 +151,8 @@ input_parser::rol_optimization create_valid_example_rol_optimization()
                                           /*.gradient_tolerance = */ 1e-5,
                                           /*.initial_search_radius = */ 15,
                                           /*.verbose_output = */ false,
-                                          /*.approximate_hessian = */ false};
+                                          /*.approximate_hessian = */ false,
+                                          /*.output_design_history = */ false};
 }
 
 std::string create_valid_example_rol_optimization_string()
@@ -224,7 +225,8 @@ input_parser::snopt_optimization create_valid_example_snopt_optimization()
 {
     return input_parser::snopt_optimization{/*.input_file_name=*/boost::none,
                                             /*.max_iterations=*/10,
-                                            /*.time_limit_in_minutes=*/0};
+                                            /*.time_limit_in_minutes=*/0,
+                                            /*.output_design_history=*/false};
 }
 
 input_parser::kernel_filter create_valid_element_centered_kernel_filter()

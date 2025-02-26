@@ -12,14 +12,17 @@
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/extension/FixedBlockUtilities.hpp"
+#include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
+#include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 
 namespace plato::geometry::extension
@@ -32,13 +35,18 @@ constexpr double kDensityFixedValue = 1.0;
 
 constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInput) { return aInput.mesh_name; };
 
-[[nodiscard]] auto make_topology_output(const input_parser::density_topology& aInput)
-    -> std::function<void(const linear_algebra::DynamicVector<double>&)>
+[[nodiscard]] auto output_name(const input_parser::density_topology& aInput) -> const std::string&
 {
-    return [aInput](const linear_algebra::DynamicVector<double>& aSolution)
+    assert(aInput.output_name.has_value());
+    return aInput.output_name.value().mToken;
+}
+
+[[nodiscard]] auto make_topology_output(const input_parser::density_topology& aInput) -> library::FactoryTypes::Output
+{
+    return [aInput](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
     {
         const auto tFilter = library::make_filter_from_geometry_input(aInput);
-        return DensityTopology::output(aSolution, tFilter, aInput);
+        return DensityTopology::output(aSolution, tFilter, aInput, aOutputInfo);
     };
 }
 
@@ -159,20 +167,17 @@ std::pair<std::vector<double>, std::vector<double>> DensityTopology::bounds(
 
 void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolution,
                              const filter::library::FilterFunction& aFilterFunction,
-                             const input_parser::density_topology& aInput)
+                             const input_parser::density_topology& aInput,
+                             const library::OutputInfo& aOutputInfo)
 {
-    const auto& tOutputMeshName = aInput.output_name->mToken;
-    const auto tMesh = detail::mesh_from_input(aInput);
-    const auto tNodalDesignParameters = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
-        mesh::NodalFieldVectorReference{aSolution.stdVector()});
-
     if (boost::mpi::communicator{}.rank() == 0)
     {
-        auto tMeshWriter = mesh::MeshFieldWriter{tMesh, tOutputMeshName};
-        tMeshWriter.addAnalysisDomainMesh(aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters),
-                                          filtered_density_mesh_field_name(), kDensityFixedValue);
-        tMeshWriter.addAnalysisDomainMesh(tNodalDesignParameters, density_mesh_field_name(), kDensityFixedValue);
+        const auto tMeshFieldOutput = MeshFieldOutputInfo{
+            detail::mesh_from_input(aInput),    output_name(aInput), fixed_blocks(aInput), density_mesh_field_name(),
+            filtered_density_mesh_field_name(), kDensityFixedValue};
+        output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
     }
+    boost::mpi::communicator{}.barrier();
 }
 
 namespace detail

@@ -9,12 +9,14 @@
 namespace plato::third_party_integration::stk_io::test_utilities
 {
 /// @brief Reads the field with name @a aFieldName from the mesh on disk at path @a aMeshPath
-[[nodiscard]] auto read_nodal_field_as_vector(const std::filesystem::path& aMeshPath, std::string_view aFieldName)
-    -> std::vector<double>;
+[[nodiscard]] auto read_nodal_field_as_vector(const std::filesystem::path& aMeshPath,
+                                              std::string_view aFieldName,
+                                              double aTime = 1.0) -> std::vector<double>;
 
 /// @brief Reads the field with name @a aFieldName from the mesh on disk at path @a aMeshPath
-[[nodiscard]] auto read_element_field_as_vector(const std::filesystem::path& aMeshPath, std::string_view aFieldName)
-    -> std::vector<double>;
+[[nodiscard]] auto read_element_field_as_vector(const std::filesystem::path& aMeshPath,
+                                                std::string_view aFieldName,
+                                                double aTime = 1.0) -> std::vector<double>;
 
 /// @brief A function for retrieving a scalar field value using an index into some data structure.
 using ScalarFieldFunction = std::function<double(std::size_t)>;

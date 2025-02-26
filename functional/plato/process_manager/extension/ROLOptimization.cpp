@@ -5,12 +5,14 @@
 #include <string_view>
 
 #include "plato/core/ValidationUtilities.hpp"
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/third_party_integration/rol/OptimizerFactory.hpp"
+#include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
@@ -47,7 +49,6 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
             return ::plato::process_manager::extension::detail::validate_optional_input_file_name<
                 input_parser::rol_optimization>(aInput);
         }};
-
 }  // namespace
 
 ROLOptimization::ROLOptimization(const ValidatedOptimizationParameters& aInput)
@@ -57,14 +58,21 @@ ROLOptimization::ROLOptimization(const ValidatedOptimizationParameters& aInput)
 
 void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData) const
 {
-    auto [tROLProblem, tROLControls] = make_rol_problem(aProcessManagerData);
+    namespace gl = geometry::library;
+    const auto tOutputMode = mROLOptions.writeOutputHistory() ? gl::OutputMode::kEveryIterationAppend
+                                                              : gl::OutputMode::kEveryIterationOverwrite;
+    auto tOutputManager = gl::OutputManager{aProcessManagerData.mGeometry.mOutput, tOutputMode};
+
+    auto tObjective = ROL::Ptr<plato::third_party_integration::rol::ROLObjectiveFunction>(
+        make_rol_objective(aProcessManagerData, std::move(tOutputManager)).release());
+    auto [tROLProblem, tROLControls] = make_rol_problem(aProcessManagerData, tObjective);
     auto tROLInputs = mROLOptions.parameters();
     auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
 
     auto tOutFile = std::ofstream{std::string{kROLOptimizerFileName}};
     tROLSolver.solve(tOutFile);
 
-    aProcessManagerData.mGeometry.mOutput(third_party_integration::rol::to_dynamic_vector(*tROLControls));
+    tObjective->finalUpdate(third_party_integration::rol::to_dynamic_vector(*tROLControls));
 }
 
 namespace detail

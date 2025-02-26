@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <fstream>
 
+#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/LogspaceGenerator.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
