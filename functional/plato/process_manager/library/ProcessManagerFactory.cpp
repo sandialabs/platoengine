@@ -4,6 +4,7 @@
 
 #include "plato/core/InputVariantUtilities.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
+#include "plato/utilities/TransformIf.hpp"
 
 namespace plato::process_manager::library
 {
@@ -25,4 +26,18 @@ namespace plato::process_manager::library
     return to_stage_ordered_vector(tProcessManagerMap);
 }
 
+auto unregistered_process_managers(const ValidatedProcessManagerInputVector& aValidatedProcessManagerInput)
+    -> std::vector<std::string>
+{
+    auto tUnregisteredProcessManagers = std::vector<std::string>{};
+    utilities::transform_if(
+        aValidatedProcessManagerInput.rawInput(), std::back_inserter(tUnregisteredProcessManagers),
+        [](const auto& aValidatedProcessInput) { return std::string{core::block_name(aValidatedProcessInput)}; },
+        [](const auto& aValidatedProcessInput)
+        {
+            return !core::is_factory_function_registered<StageAndProcessManager, ValidatedProcessManagerInput>(
+                core::block_name(aValidatedProcessInput));
+        });
+    return tUnregisteredProcessManagers;
+}
 }  // namespace plato::process_manager::library
