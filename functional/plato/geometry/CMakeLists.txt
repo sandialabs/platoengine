@@ -18,4 +18,8 @@ if( UNIT_TESTING )
   set(LINK_LIBS PlatoFunctionalSTKIOTestUtilities
                 PlatoFunctionalFilterTestUtilities)
   create_plato_unittester(PlatoFunctionalGeometry "${FOLDERS}" "${LINK_LIBS}")
+
+  set(NUM_RANKS_FOR_TEST 2)
+  create_plato_parallel_unittester(PlatoFunctionalGeometry "extension/parallel_unittest" ${NUM_RANKS_FOR_TEST} "${LINK_LIBS}")
+
 endif()
