@@ -52,6 +52,7 @@ template <typename SharedLibWriter>
         const auto tCriterionConfiguration = services::CriterionConfiguration{
             /*.mName=*/kTestCriterionName,
             /*.mIsParallelized=*/true,
+            /*.mIsScalar=*/true,
             /*.mFunctionName=*/"plato_create_criterion",
         };
         auto tAppConfiguration = services::AppConfiguration{/*.mName=*/std::string{tAppName},

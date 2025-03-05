@@ -64,10 +64,12 @@ void write_mass_app_config(const std::string_view& aAppName,
                            const boost::mpi::communicator& aComm)
 {
     const auto tMassLibPath = std::filesystem::relative(mass_app_lib_path(), aTestPluginDirectory);
-    const auto tCriterionSerialConfiguration = services::CriterionConfiguration{
-        /*.mName=*/"mass", /*.mIsParallelized=*/false, /*.mFunctionName=*/"plato_create_test_mass_criterion"};
-    const auto tCriterionParallelConfiguration = services::CriterionConfiguration{
-        /*.mName=*/"mass", /*.mIsParallelized=*/true, /*.mFunctionName=*/"plato_create_parallel_test_mass_criterion"};
+    const auto tCriterionSerialConfiguration =
+        services::CriterionConfiguration{/*.mName=*/"mass", /*.mIsParallelized=*/false, /*.mIsScalar=*/true,
+                                         /*.mFunctionName=*/"plato_create_test_mass_criterion"};
+    const auto tCriterionParallelConfiguration =
+        services::CriterionConfiguration{/*.mName=*/"mass", /*.mIsParallelized=*/true, /*.mIsScalar=*/true,
+                                         /*.mFunctionName=*/"plato_create_parallel_test_mass_criterion"};
     auto tAppConfiguration =
         services::AppConfiguration{/*.mName=*/
                                    std::string{aAppName},
@@ -84,8 +86,9 @@ void write_mass_vector_constraint_config(const std::string_view& aAppName,
                                          const boost::mpi::communicator& aComm)
 {
     const auto tMassLibPath = std::filesystem::relative(mass_vector_constraint_lib_path(), aTestPluginDirectory);
-    const auto tCriterionSerialConfiguration = services::CriterionConfiguration{
-        /*.mName=*/"masscon", /*.mIsParallelized=*/false, /*.mFunctionName=*/"plato_create_criterion"};
+    const auto tCriterionSerialConfiguration =
+        services::CriterionConfiguration{/*.mName=*/"masscon", /*.mIsParallelized=*/false, /*.mIsScalar=*/false,
+                                         /*.mFunctionName=*/"plato_create_criterion"};
     auto tAppConfiguration = services::AppConfiguration{/*.mName=*/
                                                         std::string{aAppName},
                                                         /*.mLibraryFileName=*/tMassLibPath.string(),

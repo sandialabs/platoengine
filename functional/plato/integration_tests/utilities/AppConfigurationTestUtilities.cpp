@@ -13,10 +13,10 @@ services::AppConfigurationWithDirectory test_app_configuration(const std::filesy
 {
     auto tSerialCriterion = services::CriterionConfiguration{
         /*.mName=*/std::string{kDefaultCriterionName},
-        /*.mIsParallelized=*/false, /*.mFunctionName=*/std::string{kDefaultSerialFunctionName}};
-    auto tParallelCriterion =
-        services::CriterionConfiguration{/*.mName=*/std::string{kDefaultCriterionName}, /*.mIsParallelized=*/true,
-                                         /*.mFunctionName=*/std::string{kDefaultParallelFunctionName}};
+        /*.mIsParallelized=*/false, /*.mIsScalar=*/true, /*.mFunctionName=*/std::string{kDefaultSerialFunctionName}};
+    auto tParallelCriterion = services::CriterionConfiguration{
+        /*.mName=*/std::string{kDefaultCriterionName}, /*.mIsParallelized=*/true, /*.mIsScalar=*/false,
+        /*.mFunctionName=*/std::string{kDefaultParallelFunctionName}};
     auto tAppConfiguration = services::AppConfiguration{
         /*.mName=*/std::string{kDefaultCriterionName}, /*mLibraryName=*/aSharedLibPath.filename().string(),
         /*.mCriteria=*/{std::move(tSerialCriterion), std::move(tParallelCriterion)}};

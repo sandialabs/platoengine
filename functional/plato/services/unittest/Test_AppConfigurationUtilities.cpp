@@ -8,8 +8,8 @@ TEST(AppConfigurationUtilities, SharedLibraryPath)
 {
     const auto tTestPath = std::filesystem::path{"/fake/path/to/"};
     const auto tTestLibName = std::filesystem::path{"libpatterns.so"};
-    const auto tPaisleyCriterion =
-        CriterionConfiguration{/*.mName=*/"paisley", /*.mIsParallelized=*/false, /*.mFunctionName=*/"paisley_function"};
+    const auto tPaisleyCriterion = CriterionConfiguration{/*.mName=*/"paisley", /*.mIsParallelized=*/false,
+                                                          /*.mIsScalar=*/true, /*.mFunctionName=*/"paisley_function"};
     const auto tConfiguration = AppConfiguration{/*.mName=*/"patterns",
                                                  /*.mLibraryFileName=*/tTestLibName.string(),
                                                  {tPaisleyCriterion}};

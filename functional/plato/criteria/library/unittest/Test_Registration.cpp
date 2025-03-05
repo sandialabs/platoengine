@@ -33,8 +33,9 @@ TEST(CriterionRegistration, RegistrationNameConfiguration)
 {
     constexpr auto tTestAppName = std::string_view{"moose"};
     constexpr auto tTestCriterionName = std::string_view{"squirrel"};
-    const auto tCriterionConfiguration = services::CriterionConfiguration{
-        /*.mName*/ std::string{tTestCriterionName}, /*.mIsParallelized*/ false, /*.mFunctionName*/ "fun"};
+    const auto tCriterionConfiguration =
+        services::CriterionConfiguration{/*.mName=*/std::string{tTestCriterionName}, /*.mIsParallelized=*/false,
+                                         /*.mIsScalar=*/true, /*.mFunctionName=*/"fun"};
     const auto tAppConfiguration = services::AppConfiguration{/*.mName=*/std::string{tTestAppName},
                                                               /*.mLibraryFileName=*/"lib.so",
                                                               /*.mCriteria=*/{tCriterionConfiguration}};
