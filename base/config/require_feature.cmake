@@ -1,10 +1,12 @@
 ###############################################################################
 ## require_feature( 
-##    flag  == some flag that defines whether a feature is turned on or make fatal error
+##    flag  == some flag that defines whether a feature is turned - if not skip this folder
 ## )
 ###############################################################################
-function(require_feature flag)
+macro(require_feature flag)
     if(NOT ${flag})
-        message(FATAL_ERROR "Feature ${flag} is required but not enabled.")
+        set(CUR_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+        message(STATUS "${CUR_PATH} not included because following flags are missing or off:\n${flag}")
+        return()
     endif()
-endfunction()
+endmacro()
