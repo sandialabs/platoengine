@@ -32,15 +32,16 @@ void register_all_criteria(const services::AppConfigurationWithDirectory& aAppCo
     {
         if (tCriterionConfiguration.mIsParallelized)
         {
-            [[maybe_unused]] auto tAppRegistration = library::ParallelCriterionRegistration{
-                library::criterion_registration_name(aAppConfiguration.mConfiguration, tCriterionConfiguration),
-                [aAppConfiguration, tCriterionConfiguration](const criteria::library::CriterionInput& aInput,
-                                                             const boost::mpi::communicator& aComm)
-                { return make_plugin_app_function(aAppConfiguration, tCriterionConfiguration, aInput, aComm); }};
+            [[maybe_unused]] auto tAppRegistration =
+                library::CriterionRegistration<library::Parallelization::kParallel>{
+                    library::criterion_registration_name(aAppConfiguration.mConfiguration, tCriterionConfiguration),
+                    [aAppConfiguration, tCriterionConfiguration](const criteria::library::CriterionInput& aInput,
+                                                                 const boost::mpi::communicator& aComm)
+                    { return make_plugin_app_function(aAppConfiguration, tCriterionConfiguration, aInput, aComm); }};
         }
         else
         {
-            [[maybe_unused]] auto tAppRegistration = library::CriterionRegistration{
+            [[maybe_unused]] auto tAppRegistration = library::CriterionRegistration<library::Parallelization::kSerial>{
                 library::criterion_registration_name(aAppConfiguration.mConfiguration, tCriterionConfiguration),
                 [aAppConfiguration, tCriterionConfiguration](const criteria::library::CriterionInput& aInput)
                 { return make_plugin_app_function(aAppConfiguration, tCriterionConfiguration, aInput); }};

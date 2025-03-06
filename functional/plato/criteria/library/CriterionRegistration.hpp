@@ -13,6 +13,7 @@
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/services/AppConfiguration.hpp"
+#include "plato/utilities/EnumIndexing.hpp"
 
 namespace plato::analysis
 {
@@ -31,10 +32,6 @@ using CriterionFunction =
     core::Function<const analysis::AnalysisDomainMesh&,
                    core::FunctionInfo<double, core::evaluation::kFunction>,
                    core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
-
-using CriterionRegistration = core::FactoryRegistration<CriterionFunction, CriterionInput>;
-using ParallelCriterionRegistration =
-    core::FactoryRegistration<CriterionFunction, CriterionInput, boost::mpi::communicator>;
 
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and with traits @a aTraits.
 [[nodiscard]] auto is_criterion_function_registered(const std::string_view aFunctionName, const CriterionTraits aTraits)
@@ -59,6 +56,26 @@ using ParallelCriterionRegistration =
 
 /// @brief Returns the full list of registered criteria, useful for error messages.
 [[nodiscard]] std::set<std::string> registered_criteria_names();
+
+namespace detail
+{
+using SerialCriterionRegistration = core::FactoryRegistration<CriterionFunction, CriterionInput>;
+using ParallelCriterionRegistration =
+    core::FactoryRegistration<CriterionFunction, CriterionInput, boost::mpi::communicator>;
+
+using FactoryRegistrars = std::tuple<ParallelCriterionRegistration, SerialCriterionRegistration>;
+
+template <std::size_t Index>
+using FactoryRegistrationWithTraits = std::tuple_element_t<Index, FactoryRegistrars>;
+}  // namespace detail
+
+/// @brief The main factory registration object for registering criteria.
+///
+/// This template chooses different registration objects based on the template parameter traits.
+/// @tparam kParallelization Chooses the parallel or serial criteria factory.
+/// @tparam kFunctionDimension Chooses the scalar or vector criteria factory.
+template <Parallelization kParallelization>
+using CriterionRegistration = detail::FactoryRegistrationWithTraits<utilities::enum_index<kParallelization>()>;
 
 }  // namespace plato::criteria::library
 

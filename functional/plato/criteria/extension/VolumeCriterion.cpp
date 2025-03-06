@@ -16,12 +16,14 @@ namespace
 {
 
 [[maybe_unused]] static auto kVolumeConstraintRegistration =
-    library::CriterionRegistration{library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
-                                   [](const library::CriterionInput&) { return make_volume_constraint_function(); }};
+    library::CriterionRegistration<library::Parallelization::kSerial>{
+        library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
+        [](const library::CriterionInput&) { return make_volume_constraint_function(); }};
 
-[[maybe_unused]] static auto kVolumeFractionConstraintRegistration = library::CriterionRegistration{
-    library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
-    [](const library::CriterionInput&) { return make_volume_fraction_constraint_function(); }};
+[[maybe_unused]] static auto kVolumeFractionConstraintRegistration =
+    library::CriterionRegistration<library::Parallelization::kSerial>{
+        library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
+        [](const library::CriterionInput&) { return make_volume_fraction_constraint_function(); }};
 
 double fixed_domain_volume(const mesh::MeshQuantities& aMesh)
 {

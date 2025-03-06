@@ -19,8 +19,9 @@ namespace
                                                      });
 }
 
-[[maybe_unused]] static auto kTestCriterionRegistration = plato::criteria::library::CriterionRegistration{
-    "test", [](const plato::criteria::library::CriterionInput&) { return make_test_criterion_function(); }};
+[[maybe_unused]] static auto kTestCriterionRegistration =
+    plato::criteria::library::CriterionRegistration<library::Parallelization::kSerial>{
+        "test", [](const plato::criteria::library::CriterionInput&) { return make_test_criterion_function(); }};
 
 }  // namespace
 
