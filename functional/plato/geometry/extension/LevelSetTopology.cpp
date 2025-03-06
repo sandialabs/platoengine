@@ -294,20 +294,16 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
                               const linear_algebra::DynamicVector<double>& aSolution,
                               const library::OutputInfo& aOutputInfo)
 {
-    if (boost::mpi::communicator{}.rank() == 0)
-    {
-        const auto tMeshFieldOutput = MeshFieldOutputInfo{mesh_from_input(aInput),
-                                                          restart_file_name(aInput),
-                                                          fixed_blocks(aInput),
-                                                          level_set_mesh_field_name(),
-                                                          filtered_level_set_mesh_field_name(),
-                                                          aInput.level_set_upper_bound.value()};
-        const auto tFilteredField = output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
+    const auto tMeshFieldOutput = MeshFieldOutputInfo{mesh_from_input(aInput),
+                                                      restart_file_name(aInput),
+                                                      fixed_blocks(aInput),
+                                                      level_set_mesh_field_name(),
+                                                      filtered_level_set_mesh_field_name(),
+                                                      aInput.level_set_upper_bound.value()};
+    const auto tFilteredField = output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 
-        tpik::generate_computational_mesh(tFilteredField, tMeshFieldOutput.mFixedFieldValue,
-                                          tpik::CutMeshFilePath{aInput.output_mesh_name->mToken}, void_phase(aInput));
-    }
-    boost::mpi::communicator{}.barrier();
+    tpik::generate_computational_mesh(tFilteredField, tMeshFieldOutput.mFixedFieldValue,
+                                      tpik::CutMeshFilePath{aInput.output_mesh_name->mToken}, void_phase(aInput));
 }
 
 auto LevelSetTopology::backgroundMesh() const -> const mesh::Mesh& { return mBackgroundMesh; }

@@ -170,14 +170,10 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
                              const input_parser::density_topology& aInput,
                              const library::OutputInfo& aOutputInfo)
 {
-    if (boost::mpi::communicator{}.rank() == 0)
-    {
-        const auto tMeshFieldOutput = MeshFieldOutputInfo{
-            detail::mesh_from_input(aInput),    output_name(aInput), fixed_blocks(aInput), density_mesh_field_name(),
-            filtered_density_mesh_field_name(), kDensityFixedValue};
-        output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
-    }
-    boost::mpi::communicator{}.barrier();
+    const auto tMeshFieldOutput = MeshFieldOutputInfo{
+        detail::mesh_from_input(aInput),    output_name(aInput), fixed_blocks(aInput), density_mesh_field_name(),
+        filtered_density_mesh_field_name(), kDensityFixedValue};
+    output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 }
 
 namespace detail

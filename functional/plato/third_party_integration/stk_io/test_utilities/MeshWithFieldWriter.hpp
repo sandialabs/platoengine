@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <map>
 
+#include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 
 namespace plato::third_party_integration::stk_io::test_utilities
@@ -15,12 +16,13 @@ namespace plato::third_party_integration::stk_io::test_utilities
 class MeshWithDensities : public ::testing::Test
 {
    public:
-    MeshWithDensities(const std::map<std::size_t, double>& aGoldNumbering);
-    ~MeshWithDensities();
+    MeshWithDensities(const std::map<std::size_t, double>& aGoldNumbering, const std::filesystem::path& aMeshName);
 
    protected:
     std::string mFieldName;
     std::map<std::size_t, double> mGoldNumbering;
+    plato::test_utilities::TestDirectorySetupTeardown mDirectory;
+    std::filesystem::path mMeshName;
 };
 
 /// @brief A test fixture for meshes with a predefined Element field for reading.
@@ -29,10 +31,6 @@ class MeshWithElementDensities : public MeshWithDensities
 {
    public:
     MeshWithElementDensities();
-    ~MeshWithElementDensities();
-
-   protected:
-    std::filesystem::path mMeshName;
 };
 
 /// @brief A test fixture for meshes with a predefined Nodal field for reading.
@@ -41,21 +39,8 @@ class MeshWithNodalDensities : public MeshWithDensities
 {
    public:
     MeshWithNodalDensities();
-    ~MeshWithNodalDensities();
-
-   protected:
-    std::filesystem::path mMeshName;
 };
 
-namespace detail
-{
-
-void create_element_density_field_mesh_for_reading(const CommandGenerator& aCommandGenerator,
-                                                   const std::filesystem::path& aFileName);
-void create_node_density_field_mesh_for_reading(const CommandGenerator& aCommandGenerator,
-                                                const std::filesystem::path& aFileName);
-
-}  // namespace detail
 }  // namespace plato::third_party_integration::stk_io::test_utilities
 
 #endif
