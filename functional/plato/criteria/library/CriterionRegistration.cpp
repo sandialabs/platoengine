@@ -18,15 +18,14 @@ std::string criterion_registration_name(const std::string_view aAppName, const s
 }
 }  // namespace
 
-bool is_criterion_function_registered(const std::string_view aFunctionName)
+auto is_criterion_function_registered(const std::string_view aFunctionName, const CriterionTraits aTraits) -> bool
 {
+    if (aTraits.mParallelization == Parallelization::kParallel)
+    {
+        return core::is_factory_function_registered<CriterionFunction, CriterionInput, boost::mpi::communicator>(
+            aFunctionName);
+    }
     return core::is_factory_function_registered<CriterionFunction, CriterionInput>(aFunctionName);
-}
-
-bool is_parallel_criterion_function_registered(const std::string_view aFunctionName)
-{
-    return core::is_factory_function_registered<CriterionFunction, CriterionInput, boost::mpi::communicator>(
-        aFunctionName);
 }
 
 std::string criterion_registration_name(const services::AppConfiguration& aAppConfiguration,

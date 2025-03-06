@@ -13,19 +13,22 @@ namespace plato::criteria::extension::unittest
 TEST(CriterionRegistration, NodalSum)
 {
     EXPECT_TRUE(library::is_criterion_function_registered(
-        library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName)));
+        library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
+        library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar}));
 }
 
 TEST(CriterionRegistration, Volume)
 {
     EXPECT_TRUE(library::is_criterion_function_registered(
-        library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName)));
+        library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
+        library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar}));
 }
 
 TEST(CriterionRegistration, VolumeFraction)
 {
     EXPECT_TRUE(library::is_criterion_function_registered(
-        library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName)));
+        library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
+        library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar}));
 }
 
 TEST(CriterionRegistration, BuiltinRegisterAppsList)

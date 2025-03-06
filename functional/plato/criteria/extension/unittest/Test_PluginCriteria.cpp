@@ -102,10 +102,15 @@ TEST(PluginCriteria, NonexistentSharedLibrary)
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
     EXPECT_NE(tNumRegistered, tNumKnownConfigurations);
 
-    EXPECT_FALSE(library::is_criterion_function_registered(library::criterion_registration_name(
-        input_parser::AppName{tTheBlobAppName}, input_parser::CriterionName{kTestCriterionName})));
-    EXPECT_FALSE(library::is_parallel_criterion_function_registered(library::criterion_registration_name(
-        input_parser::AppName{tTheBlobAppName}, input_parser::CriterionName{kTestCriterionName})));
+    const auto tFunctionName = library::criterion_registration_name(input_parser::AppName{tTheBlobAppName},
+                                                                    input_parser::CriterionName{kTestCriterionName});
+    const auto tSerialScalarTraits =
+        library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar};
+    EXPECT_FALSE(library::is_criterion_function_registered(tFunctionName, tSerialScalarTraits));
+
+    const auto tParallelScalarTraits =
+        library::CriterionTraits{library::Parallelization::kParallel, library::FunctionDimension::kScalar};
+    EXPECT_FALSE(library::is_criterion_function_registered(tFunctionName, tParallelScalarTraits));
 }
 
 TEST(PluginCriteria, RegisterApps)
@@ -117,10 +122,16 @@ TEST(PluginCriteria, RegisterApps)
         create_test_app_configurations_with_fake_shared_libs({tVampireAppName, tMummyAppName});
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
     EXPECT_EQ(tNumRegistered, 2u);
-    EXPECT_TRUE(library::is_parallel_criterion_function_registered(library::criterion_registration_name(
-        input_parser::AppName{tVampireAppName}, input_parser::CriterionName{kTestCriterionName})));
-    EXPECT_TRUE(library::is_parallel_criterion_function_registered(library::criterion_registration_name(
-        input_parser::AppName{tMummyAppName}, input_parser::CriterionName{kTestCriterionName})));
+
+    const auto tVampireFunctionName = library::criterion_registration_name(
+        input_parser::AppName{tVampireAppName}, input_parser::CriterionName{kTestCriterionName});
+    const auto tParallelScalarTraits =
+        library::CriterionTraits{library::Parallelization::kParallel, library::FunctionDimension::kScalar};
+    EXPECT_TRUE(library::is_criterion_function_registered(tVampireFunctionName, tParallelScalarTraits));
+
+    const auto tMummyFunctionName = library::criterion_registration_name(
+        input_parser::AppName{tMummyAppName}, input_parser::CriterionName{kTestCriterionName});
+    EXPECT_TRUE(library::is_criterion_function_registered(tMummyFunctionName, tParallelScalarTraits));
 }
 
 TEST(PluginCriteria, ValidateValidApps)

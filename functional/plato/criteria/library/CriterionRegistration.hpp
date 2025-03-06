@@ -8,6 +8,7 @@
 
 #include "plato/core/FactoryRegistration.hpp"
 #include "plato/core/Function.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -35,8 +36,9 @@ using CriterionRegistration = core::FactoryRegistration<CriterionFunction, Crite
 using ParallelCriterionRegistration =
     core::FactoryRegistration<CriterionFunction, CriterionInput, boost::mpi::communicator>;
 
-[[nodiscard]] bool is_criterion_function_registered(const std::string_view aFunctionName);
-[[nodiscard]] bool is_parallel_criterion_function_registered(const std::string_view aFunctionName);
+/// @brief Checks if a criterion function is registered with name @a aFunctionName and with traits @a aTraits.
+[[nodiscard]] auto is_criterion_function_registered(const std::string_view aFunctionName, const CriterionTraits aTraits)
+    -> bool;
 
 /// @brief Creates a name from @a aAppConfiguration and @a aCriterionConfiguration that can be used
 /// to uniquely register a criterion function.
