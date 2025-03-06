@@ -1,0 +1,62 @@
+#ifndef PLATO_UTILITIES_ENUMINDEXING
+#define PLATO_UTILITIES_ENUMINDEXING
+
+#include <cstddef>
+#include <tuple>
+#include <utility>
+
+namespace plato::utilities
+{
+/// @brief Returns a linear index associated with a set of ordered enums.
+/// @note Each enum must contain enumerates starting from 0, increasing by 1. The last entry must be
+/// `kNumberOfEnumerates`.
+///
+/// The linear index corresponds to the entry in a linear array as if it were arranged as an N-D array with dimensions
+/// corresponding to the number of enums. For example if A is an enum with 2 entries and B is an enum with 3 entries,
+/// `enum_index` represents a linear index into a 2x3 array:
+///   `enum_index<A::kZero, B::kZero>() == 0`,
+///   `enum_index<A::kOne, B::kZero>() == 1`,
+///   `enum_index<A::kZero, B::kOne>() == 2`,
+///   `enum_index<A::kOne, B::kOne() == 3`,
+///   `enum_index<A::kZero, B::kTwo() == 4`,
+///   `enum_index<A::kOne, B::kTwo() == 5`.
+template <auto... EnumValues>
+[[nodiscard]] constexpr auto enum_index() -> std::size_t;
+
+namespace detail
+{
+template <typename Tuple, std::size_t... kIndices>
+constexpr auto dimension_stride_impl(std::index_sequence<kIndices...>) -> std::size_t
+{
+    return (static_cast<std::size_t>(std::tuple_element_t<kIndices, Tuple>::kNumberOfEnumerates) * ...);
+}
+
+template <std::size_t kIndex, typename... Enums>
+constexpr auto dimension_stride() -> std::size_t
+{
+    if constexpr (kIndex == 0U)
+    {
+        return 1U;
+    }
+    else
+    {
+        return dimension_stride_impl<std::tuple<Enums...>>(std::make_index_sequence<kIndex>());
+    }
+}
+
+template <auto... kEnumValues, std::size_t... kIndices>
+constexpr auto enum_index_impl(std::index_sequence<kIndices...>)
+{
+    return ((static_cast<std::size_t>(kEnumValues) * dimension_stride<kIndices, decltype(kEnumValues)...>()) + ...);
+}
+}  // namespace detail
+
+template <auto... kEnumValues>
+[[nodiscard]] constexpr auto enum_index() -> std::size_t
+{
+    return detail::enum_index_impl<kEnumValues...>(std::make_index_sequence<sizeof...(kEnumValues)>());
+}
+
+}  // namespace plato::utilities
+
+#endif
