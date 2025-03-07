@@ -90,10 +90,10 @@ auto make_adjoint_jacobian_multiplier(const SharedLibraryVectorCriterion& aShare
 
 }  // namespace
 
-auto make_shared_library_jacobian_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
-    -> SharedLibraryVectorCriterionFunction
+auto make_shared_library_vector_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
+    -> library::VectorCriterionFunction
 {
-    return SharedLibraryVectorCriterionFunction{
+    return library::VectorCriterionFunction{
         [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
         { return aSharedLibCriterion.value(aAnalysisDomainMesh); },
         [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)

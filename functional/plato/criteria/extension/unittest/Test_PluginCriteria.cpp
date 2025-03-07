@@ -22,6 +22,16 @@ namespace plato::criteria::extension::unittest
 namespace
 {
 const auto kTestCriterionName = std::string{"test-criterion"};
+constexpr auto kParallelScalar =
+    library::CriterionTraits{library::Parallelization::kParallel, library::FunctionDimension::kScalar};
+constexpr auto kSerialScalar =
+    library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar};
+constexpr auto kSerialVector =
+    library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kVector};
+constexpr auto kParallelVector =
+    library::CriterionTraits{library::Parallelization::kParallel, library::FunctionDimension::kVector};
+
+using AppConfigVector = std::vector<std::pair<std::string_view, library::CriterionTraits>>;
 
 /// @brief A file writer that outputs some text for mimicking a shared library on disk.
 struct FakeSharedLibWriter
@@ -40,22 +50,23 @@ struct NullSharedLibWriter
 };
 
 template <typename SharedLibWriter>
-[[nodiscard]] test_utilities::TestDirectorySetupTeardown create_test_app_configurations_impl(
-    const std::vector<std::string_view>& aAppNames, const SharedLibWriter& aSharedLibWriter)
+[[nodiscard]] auto create_test_app_configurations_impl(const AppConfigVector& aAppConfigs,
+                                                       const SharedLibWriter& aSharedLibWriter)
+    -> test_utilities::TestDirectorySetupTeardown
 {
     const auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{"test-plugin-directory"};
 
-    for (const auto tAppName : aAppNames)
+    for (const auto& tAppConfig : aAppConfigs)
     {
-        const auto tLibName = utilities::concatenate("lib", tAppName, ".so");
-        const auto tConfigName = utilities::concatenate(tAppName, ".config");
+        const auto tLibName = utilities::concatenate("lib", tAppConfig.first, ".so");
+        const auto tConfigName = utilities::concatenate(tAppConfig.first, ".config");
         const auto tCriterionConfiguration = services::CriterionConfiguration{
             /*.mName=*/kTestCriterionName,
-            /*.mIsParallelized=*/true,
-            /*.mIsScalar=*/true,
+            /*.mIsParallelized=*/tAppConfig.second.mParallelization == library::Parallelization::kParallel,
+            /*.mIsScalar=*/tAppConfig.second.mDimension == library::FunctionDimension::kScalar,
             /*.mFunctionName=*/"plato_create_criterion",
         };
-        auto tAppConfiguration = services::AppConfiguration{/*.mName=*/std::string{tAppName},
+        auto tAppConfiguration = services::AppConfiguration{/*.mName=*/std::string{tAppConfig.first},
                                                             /*.mLibraryFileName=*/tLibName,
                                                             /*.mCriteria=*/{tCriterionConfiguration}};
         tConfigurationTempDirectory
@@ -68,17 +79,17 @@ template <typename SharedLibWriter>
 /// @brief Creates a directory with test AppConfigurations with names given in @a aAppNames and creates
 ///  fake shared libraries so that the app can be correctly registered.
 [[nodiscard]] test_utilities::TestDirectorySetupTeardown create_test_app_configurations_with_fake_shared_libs(
-    const std::vector<std::string_view>& aAppNames)
+    const AppConfigVector& aAppConfigs)
 {
-    return create_test_app_configurations_impl(aAppNames, FakeSharedLibWriter{});
+    return create_test_app_configurations_impl(aAppConfigs, FakeSharedLibWriter{});
 }
 
 /// @brief Creates a directory with test AppConfigurations with names given in @a aAppNames. This does
 /// not create any shared libraries so that the apps passed to this function will not be registered correctly.
 [[nodiscard]] test_utilities::TestDirectorySetupTeardown create_test_app_configurations(
-    const std::vector<std::string_view>& aAppNames)
+    const AppConfigVector& aAppConfigs)
 {
-    return create_test_app_configurations_impl(aAppNames, NullSharedLibWriter{});
+    return create_test_app_configurations_impl(aAppConfigs, NullSharedLibWriter{});
 }
 }  // namespace
 
@@ -97,7 +108,7 @@ TEST(PluginCriteria, NothingRegisteredForEmptyPaths)
 TEST(PluginCriteria, NonexistentSharedLibrary)
 {
     const auto tTheBlobAppName = std::string{"the-blob"};
-    const auto tConfigurationTempDirectory = create_test_app_configurations({tTheBlobAppName});
+    const auto tConfigurationTempDirectory = create_test_app_configurations({{tTheBlobAppName, kParallelScalar}});
     const auto tNumKnownConfigurations = services::app_configurations({tConfigurationTempDirectory.directory()}).size();
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
     EXPECT_NE(tNumRegistered, tNumKnownConfigurations);
@@ -118,28 +129,57 @@ TEST(PluginCriteria, RegisterApps)
     // Checks that some fake apps get registered via register_plugin_apps
     const auto tVampireAppName = std::string{"vampire"};
     const auto tMummyAppName = std::string{"mummy"};
-    const auto tConfigurationTempDirectory =
-        create_test_app_configurations_with_fake_shared_libs({tVampireAppName, tMummyAppName});
+    const auto tConfigurationTempDirectory = create_test_app_configurations_with_fake_shared_libs(
+        {{tVampireAppName, kParallelScalar}, {tMummyAppName, kSerialScalar}});
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
     EXPECT_EQ(tNumRegistered, 2u);
 
     const auto tVampireFunctionName = library::criterion_registration_name(
         input_parser::AppName{tVampireAppName}, input_parser::CriterionName{kTestCriterionName});
-    const auto tParallelScalarTraits =
-        library::CriterionTraits{library::Parallelization::kParallel, library::FunctionDimension::kScalar};
-    EXPECT_TRUE(library::is_criterion_function_registered(tVampireFunctionName, tParallelScalarTraits));
+    EXPECT_TRUE(library::is_criterion_function_registered(tVampireFunctionName, kParallelScalar));
+    EXPECT_FALSE(library::is_criterion_function_registered(tVampireFunctionName, kSerialScalar));
+    EXPECT_FALSE(library::is_criterion_function_registered(tVampireFunctionName, kSerialVector));
+    EXPECT_FALSE(library::is_criterion_function_registered(tVampireFunctionName, kParallelVector));
 
     const auto tMummyFunctionName = library::criterion_registration_name(
         input_parser::AppName{tMummyAppName}, input_parser::CriterionName{kTestCriterionName});
-    EXPECT_TRUE(library::is_criterion_function_registered(tMummyFunctionName, tParallelScalarTraits));
+    EXPECT_TRUE(library::is_criterion_function_registered(tMummyFunctionName, kSerialScalar));
+    EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kParallelScalar));
+    EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kSerialVector));
+    EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kParallelVector));
+}
+
+TEST(PluginCriteria, RegisterVectorApps)
+{
+    const auto tZombieAppName = std::string{"zombie"};
+    const auto tDraculaAppName = std::string{"dracula"};
+    const auto tConfigurationTempDirectory = create_test_app_configurations_with_fake_shared_libs(
+        {{tZombieAppName, kSerialVector}, {tDraculaAppName, kParallelVector}});
+
+    const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
+    EXPECT_EQ(tNumRegistered, 2u);
+
+    const auto tZombieFunctionName = library::criterion_registration_name(
+        input_parser::AppName{tZombieAppName}, input_parser::CriterionName{kTestCriterionName});
+    EXPECT_TRUE(library::is_criterion_function_registered(tZombieFunctionName, kSerialVector));
+    EXPECT_FALSE(library::is_criterion_function_registered(tZombieFunctionName, kParallelScalar));
+    EXPECT_FALSE(library::is_criterion_function_registered(tZombieFunctionName, kSerialScalar));
+    EXPECT_FALSE(library::is_criterion_function_registered(tZombieFunctionName, kParallelVector));
+
+    const auto tDraculaFunctionName = library::criterion_registration_name(
+        input_parser::AppName{tDraculaAppName}, input_parser::CriterionName{kTestCriterionName});
+    EXPECT_TRUE(library::is_criterion_function_registered(tDraculaFunctionName, kParallelVector));
+    EXPECT_FALSE(library::is_criterion_function_registered(tDraculaFunctionName, kParallelScalar));
+    EXPECT_FALSE(library::is_criterion_function_registered(tDraculaFunctionName, kSerialScalar));
+    EXPECT_FALSE(library::is_criterion_function_registered(tDraculaFunctionName, kSerialVector));
 }
 
 TEST(PluginCriteria, ValidateValidApps)
 {
     const auto tFrankensteinAppName = std::string{"frankenstein"};
     const auto tMedusaAppName = std::string{"medusa"};
-    const auto tConfigurationTempDirectory =
-        create_test_app_configurations_with_fake_shared_libs({tFrankensteinAppName, tMedusaAppName});
+    const auto tConfigurationTempDirectory = create_test_app_configurations_with_fake_shared_libs(
+        {{tFrankensteinAppName, kSerialScalar}, {tMedusaAppName, kParallelScalar}});
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
     EXPECT_EQ(tNumRegistered, 2u);
 
@@ -157,7 +197,7 @@ TEST(PluginCriteria, ValidateValidApps)
 TEST(PluginCriteria, ValidateInvalidApp)
 {
     const auto tWolfmanAppName = std::string{"wolfman"};
-    const auto tConfigurationTempDirectory = create_test_app_configurations({tWolfmanAppName});
+    const auto tConfigurationTempDirectory = create_test_app_configurations({{tWolfmanAppName, kParallelScalar}});
     register_plugin_apps({tConfigurationTempDirectory.directory()});
 
     auto tCriteria = input_parser::objective{};
@@ -172,8 +212,8 @@ TEST(CriterionRegistration, RegisterAppsList)
 {
     const auto tMartianAppName = std::string{"martian"};
     const auto tCerberusAppName = std::string{"cerberus"};
-    const auto tConfigurationTempDirectory =
-        create_test_app_configurations_with_fake_shared_libs({tMartianAppName, tCerberusAppName});
+    const auto tConfigurationTempDirectory = create_test_app_configurations_with_fake_shared_libs(
+        {{tMartianAppName, kSerialScalar}, {tCerberusAppName, kParallelScalar}});
     register_plugin_apps({tConfigurationTempDirectory.directory()});
 
     const auto tRegisteredApps = library::registered_criteria_names();

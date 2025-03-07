@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "plato/criteria/extension/SharedLibCriterion.hpp"
+#include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
@@ -26,28 +27,68 @@ template <typename... Args>
         aAppConfiguration, aCriterionConfiguration, aInput.mInputFiles.mList, std::forward<Args>(aAdditionalArgs)...});
 }
 
+template <typename... Args>
+[[nodiscard]] auto make_plugin_app_vector_function(const services::AppConfigurationWithDirectory& aAppConfiguration,
+                                                   const services::CriterionConfiguration& aCriterionConfiguration,
+                                                   const criteria::library::CriterionInput& aInput,
+                                                   Args&&... aAdditionalArgs)
+{
+    return make_shared_library_vector_function(SharedLibraryVectorCriterion{
+        aAppConfiguration, aCriterionConfiguration, aInput.mInputFiles.mList, std::forward<Args>(aAdditionalArgs)...});
+}
+
 void register_all_criteria(const services::AppConfigurationWithDirectory& aAppConfiguration)
 {
     for (const auto& tCriterionConfiguration : aAppConfiguration.mConfiguration.mCriteria)
     {
         const auto tParallelization = library::to_parallelization(tCriterionConfiguration.mIsParallelized);
-        const auto tEnumIndex = utilities::enum_index(tParallelization);
+        const auto tFunctionDimension = library::to_function_dimension(tCriterionConfiguration.mIsScalar);
+        const auto tFactoryIndex = library::detail::factory_index(tParallelization, tFunctionDimension);
+        auto tNameForRegistration =
+            library::criterion_registration_name(aAppConfiguration.mConfiguration, tCriterionConfiguration);
 
-        if (tEnumIndex == utilities::enum_index(library::Parallelization::kParallel))
+        if (tFactoryIndex ==
+            library::detail::factory_index(library::Parallelization::kParallel, library::FunctionDimension::kScalar))
         {
-            [[maybe_unused]] auto tAppRegistration =
-                library::CriterionRegistration<library::Parallelization::kParallel>{
-                    library::criterion_registration_name(aAppConfiguration.mConfiguration, tCriterionConfiguration),
-                    [aAppConfiguration, tCriterionConfiguration](const criteria::library::CriterionInput& aInput,
-                                                                 const boost::mpi::communicator& aComm)
-                    { return make_plugin_app_function(aAppConfiguration, tCriterionConfiguration, aInput, aComm); }};
+            using Registration = library::CriterionRegistration<library::Parallelization::kParallel,
+                                                                library::FunctionDimension::kScalar>;
+
+            [[maybe_unused]] auto tAppRegistration = Registration{
+                std::move(tNameForRegistration),
+                [aAppConfiguration, tCriterionConfiguration](const criteria::library::CriterionInput& aInput,
+                                                             const boost::mpi::communicator& aComm)
+                { return make_plugin_app_function(aAppConfiguration, tCriterionConfiguration, aInput, aComm); }};
         }
-        else if (tEnumIndex == utilities::enum_index(library::Parallelization::kSerial))
+        else if (tFactoryIndex ==
+                 library::detail::factory_index(library::Parallelization::kSerial, library::FunctionDimension::kScalar))
         {
-            [[maybe_unused]] auto tAppRegistration = library::CriterionRegistration<library::Parallelization::kSerial>{
-                library::criterion_registration_name(aAppConfiguration.mConfiguration, tCriterionConfiguration),
+            using Registration =
+                library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
+            [[maybe_unused]] auto tAppRegistration = Registration{
+                std::move(tNameForRegistration),
                 [aAppConfiguration, tCriterionConfiguration](const criteria::library::CriterionInput& aInput)
                 { return make_plugin_app_function(aAppConfiguration, tCriterionConfiguration, aInput); }};
+        }
+        else if (tFactoryIndex == library::detail::factory_index(library::Parallelization::kParallel,
+                                                                 library::FunctionDimension::kVector))
+        {
+            using Registration = library::CriterionRegistration<library::Parallelization::kParallel,
+                                                                library::FunctionDimension::kVector>;
+            [[maybe_unused]] auto tAppRegistration = Registration{
+                std::move(tNameForRegistration),
+                [aAppConfiguration, tCriterionConfiguration](const criteria::library::CriterionInput& aInput,
+                                                             const boost::mpi::communicator& aComm)
+                { return make_plugin_app_vector_function(aAppConfiguration, tCriterionConfiguration, aInput, aComm); }};
+        }
+        else if (tFactoryIndex ==
+                 library::detail::factory_index(library::Parallelization::kSerial, library::FunctionDimension::kVector))
+        {
+            using Registration =
+                library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kVector>;
+            [[maybe_unused]] auto tAppRegistration = Registration{
+                std::move(tNameForRegistration),
+                [aAppConfiguration, tCriterionConfiguration](const criteria::library::CriterionInput& aInput)
+                { return make_plugin_app_vector_function(aAppConfiguration, tCriterionConfiguration, aInput); }};
         }
     }
 }

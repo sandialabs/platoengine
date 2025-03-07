@@ -12,10 +12,13 @@ namespace plato::criteria::extension
 {
 namespace
 {
-[[maybe_unused]] static auto kNodalSumRegistration = library::CriterionRegistration<library::Parallelization::kSerial>{
-    library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
-    [](const library::CriterionInput&) { return make_nodal_sum_function(); }};
-}
+using Registration =
+    library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
+
+[[maybe_unused]] static auto kNodalSumRegistration =
+    Registration{library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
+                 [](const library::CriterionInput&) { return make_nodal_sum_function(); }};
+}  // namespace
 
 double NodalSumObjective::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {

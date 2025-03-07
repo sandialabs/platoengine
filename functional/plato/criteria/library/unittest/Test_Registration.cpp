@@ -20,7 +20,8 @@ namespace
 }
 
 [[maybe_unused]] static auto kTestCriterionRegistration =
-    plato::criteria::library::CriterionRegistration<library::Parallelization::kSerial>{
+    plato::criteria::library::CriterionRegistration<library::Parallelization::kSerial,
+                                                    library::FunctionDimension::kScalar>{
         "test", [](const plato::criteria::library::CriterionInput&) { return make_test_criterion_function(); }};
 
 }  // namespace
@@ -63,6 +64,19 @@ TEST(CriterionRegistration, BuiltinRegistrationName)
     const auto tBuiltinRegistrationName = builtin_criterion_registration_name(tTestCriterionName);
     const auto tExpected = std::string{input_parser::kBuiltinAppName} + ":" + std::string{tTestCriterionName};
     EXPECT_EQ(tBuiltinRegistrationName, tExpected);
+}
+
+TEST(CriterionRegistration, FactoryIndex)
+{
+    EXPECT_EQ(detail::factory_index(CriterionTraits{Parallelization::kParallel, FunctionDimension::kScalar}), 0U);
+    EXPECT_EQ(detail::factory_index(CriterionTraits{Parallelization::kSerial, FunctionDimension::kScalar}), 1U);
+    EXPECT_EQ(detail::factory_index(CriterionTraits{Parallelization::kParallel, FunctionDimension::kVector}), 2U);
+    EXPECT_EQ(detail::factory_index(CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector}), 3U);
+
+    EXPECT_EQ(detail::factory_index(Parallelization::kParallel, FunctionDimension::kScalar), 0U);
+    EXPECT_EQ(detail::factory_index(Parallelization::kSerial, FunctionDimension::kScalar), 1U);
+    EXPECT_EQ(detail::factory_index(Parallelization::kParallel, FunctionDimension::kVector), 2U);
+    EXPECT_EQ(detail::factory_index(Parallelization::kSerial, FunctionDimension::kVector), 3U);
 }
 
 }  // namespace plato::criteria::library::unittest

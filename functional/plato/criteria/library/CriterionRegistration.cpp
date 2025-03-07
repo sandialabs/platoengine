@@ -20,12 +20,26 @@ std::string criterion_registration_name(const std::string_view aAppName, const s
 
 auto is_criterion_function_registered(const std::string_view aFunctionName, const CriterionTraits aTraits) -> bool
 {
-    if (aTraits.mParallelization == Parallelization::kParallel)
+    const auto tIndex = detail::factory_index(aTraits.mParallelization, aTraits.mDimension);
+    if (tIndex == detail::factory_index(Parallelization::kParallel, FunctionDimension::kScalar))
     {
         return core::is_factory_function_registered<CriterionFunction, CriterionInput, boost::mpi::communicator>(
             aFunctionName);
     }
-    return core::is_factory_function_registered<CriterionFunction, CriterionInput>(aFunctionName);
+    else if (tIndex == detail::factory_index(Parallelization::kSerial, FunctionDimension::kScalar))
+    {
+        return core::is_factory_function_registered<CriterionFunction, CriterionInput>(aFunctionName);
+    }
+    else if (tIndex == detail::factory_index(Parallelization::kParallel, FunctionDimension::kVector))
+    {
+        return core::is_factory_function_registered<VectorCriterionFunction, CriterionInput, boost::mpi::communicator>(
+            aFunctionName);
+    }
+    else if (tIndex == detail::factory_index(Parallelization::kSerial, FunctionDimension::kVector))
+    {
+        return core::is_factory_function_registered<VectorCriterionFunction, CriterionInput>(aFunctionName);
+    }
+    return false;
 }
 
 std::string criterion_registration_name(const services::AppConfiguration& aAppConfiguration,

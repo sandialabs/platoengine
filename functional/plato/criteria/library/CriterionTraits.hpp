@@ -33,8 +33,8 @@ struct CriterionTraits
 /// @brief Converts a bool to a Parallelization enum, with `true` corresponding to `kParallel`.
 [[nodiscard]] constexpr auto to_parallelization(const bool aIsParallel) -> Parallelization;
 
-/// @brief Converts a bool to a Parallelization enum, with `true` corresponding to `kParallel`.
-[[nodiscard]] constexpr auto to_function_dimension(const bool aIsSerial) -> FunctionDimension;
+/// @brief Converts a bool to a FunctionDimension enum, with `true` corresponding to `kScalar`.
+[[nodiscard]] constexpr auto to_function_dimension(const bool aIsScalar) -> FunctionDimension;
 
 constexpr auto to_parallelization(const bool aIsParallel) -> Parallelization
 {
