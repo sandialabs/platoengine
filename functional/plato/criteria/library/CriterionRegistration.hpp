@@ -69,13 +69,13 @@ template <std::size_t Index>
 using FactoryRegistrationWithTraits = std::tuple_element_t<Index, FactoryRegistrars>;
 }  // namespace detail
 
-/// @brief The main factory registration object for registering criteria.
+/// @brief Factory registration type template for registering criteria.
 ///
 /// This template chooses different registration objects based on the template parameter traits.
 /// @tparam kParallelization Chooses the parallel or serial criteria factory.
 /// @tparam kFunctionDimension Chooses the scalar or vector criteria factory.
 template <Parallelization kParallelization>
-using CriterionRegistration = detail::FactoryRegistrationWithTraits<utilities::enum_index<kParallelization>()>;
+using CriterionRegistration = detail::FactoryRegistrationWithTraits<utilities::enum_index(kParallelization)>;
 
 }  // namespace plato::criteria::library
 

@@ -30,6 +30,22 @@ struct CriterionTraits
     FunctionDimension mDimension;
 };
 
+/// @brief Converts a bool to a Parallelization enum, with `true` corresponding to `kParallel`.
+[[nodiscard]] constexpr auto to_parallelization(const bool aIsParallel) -> Parallelization;
+
+/// @brief Converts a bool to a Parallelization enum, with `true` corresponding to `kParallel`.
+[[nodiscard]] constexpr auto to_function_dimension(const bool aIsSerial) -> FunctionDimension;
+
+constexpr auto to_parallelization(const bool aIsParallel) -> Parallelization
+{
+    return aIsParallel ? Parallelization::kParallel : Parallelization::kSerial;
+}
+
+constexpr auto to_function_dimension(const bool aIsScalar) -> FunctionDimension
+{
+    return aIsScalar ? FunctionDimension::kScalar : FunctionDimension::kVector;
+}
+
 }  // namespace plato::criteria::library
 
 #endif
