@@ -30,7 +30,10 @@ void register_all_criteria(const services::AppConfigurationWithDirectory& aAppCo
 {
     for (const auto& tCriterionConfiguration : aAppConfiguration.mConfiguration.mCriteria)
     {
-        if (tCriterionConfiguration.mIsParallelized)
+        const auto tParallelization = library::to_parallelization(tCriterionConfiguration.mIsParallelized);
+        const auto tEnumIndex = utilities::enum_index(tParallelization);
+
+        if (tEnumIndex == utilities::enum_index(library::Parallelization::kParallel))
         {
             [[maybe_unused]] auto tAppRegistration =
                 library::CriterionRegistration<library::Parallelization::kParallel>{
@@ -39,7 +42,7 @@ void register_all_criteria(const services::AppConfigurationWithDirectory& aAppCo
                                                                  const boost::mpi::communicator& aComm)
                     { return make_plugin_app_function(aAppConfiguration, tCriterionConfiguration, aInput, aComm); }};
         }
-        else
+        else if (tEnumIndex == utilities::enum_index(library::Parallelization::kSerial))
         {
             [[maybe_unused]] auto tAppRegistration = library::CriterionRegistration<library::Parallelization::kSerial>{
                 library::criterion_registration_name(aAppConfiguration.mConfiguration, tCriterionConfiguration),
