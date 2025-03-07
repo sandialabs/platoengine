@@ -80,20 +80,24 @@ using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
                                             ParallelVectorCriterionRegistrationTypes,
                                             SerialVectorCriterionRegistrationTypes>;
 
-using SerialCriterionRegistration = core::FactoryRegistration<CriterionFunction, CriterionInput>;
-using ParallelCriterionRegistration =
-    core::FactoryRegistration<CriterionFunction, CriterionInput, boost::mpi::communicator>;
-using SerialVectorCriterionRegistration = core::FactoryRegistration<VectorCriterionFunction, CriterionInput>;
-using ParallelVectorCriterionRegistration =
-    core::FactoryRegistration<VectorCriterionFunction, CriterionInput, boost::mpi::communicator>;
+template <typename FactoryArgTuple, typename U>
+struct FactoryFromTypes
+{
+};
 
-using FactoryRegistrars = std::tuple<ParallelCriterionRegistration,
-                                     SerialCriterionRegistration,
-                                     ParallelVectorCriterionRegistration,
-                                     SerialVectorCriterionRegistration>;
+template <typename FactoryArgTuple, std::size_t... kIndices>
+struct FactoryFromTypes<FactoryArgTuple, std::index_sequence<kIndices...>>
+{
+    using Factory = core::FactoryRegistration<std::tuple_element_t<kIndices, FactoryArgTuple>...>;
+};
 
-template <std::size_t Index>
-using FactoryRegistrationWithTraits = std::tuple_element_t<Index, FactoryRegistrars>;
+template <std::size_t kIndex>
+using FactoryTypesAtIndex = std::tuple_element_t<kIndex, FactoryRegistrationTypes>;
+
+template <std::size_t kIndex>
+using FactoryRegistrationWithTraits =
+    typename FactoryFromTypes<FactoryTypesAtIndex<kIndex>,
+                              std::make_index_sequence<std::tuple_size_v<FactoryTypesAtIndex<kIndex>>>>::Factory;
 
 /// @brief Returns an index into FactoryRegistrars corresponding to the traits in @a CriterionTraits.
 [[nodiscard]] constexpr auto factory_index(const CriterionTraits aCriterionTraits) -> std::size_t;
