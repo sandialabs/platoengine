@@ -129,10 +129,15 @@ TEST(PluginCriteria, RegisterApps)
     // Checks that some fake apps get registered via register_plugin_apps
     const auto tVampireAppName = std::string{"vampire"};
     const auto tMummyAppName = std::string{"mummy"};
-    const auto tConfigurationTempDirectory = create_test_app_configurations_with_fake_shared_libs(
-        {{tVampireAppName, kParallelScalar}, {tMummyAppName, kSerialScalar}});
+    const auto tZombieAppName = std::string{"zombie"};
+    const auto tDraculaAppName = std::string{"dracula"};
+    const auto tConfigurationTempDirectory =
+        create_test_app_configurations_with_fake_shared_libs({{tVampireAppName, kParallelScalar},
+                                                              {tMummyAppName, kSerialScalar},
+                                                              {tZombieAppName, kSerialVector},
+                                                              {tDraculaAppName, kParallelVector}});
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
-    EXPECT_EQ(tNumRegistered, 2u);
+    EXPECT_EQ(tNumRegistered, 4U);
 
     const auto tVampireFunctionName = library::criterion_registration_name(
         input_parser::AppName{tVampireAppName}, input_parser::CriterionName{kTestCriterionName});
@@ -147,17 +152,6 @@ TEST(PluginCriteria, RegisterApps)
     EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kParallelScalar));
     EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kSerialVector));
     EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kParallelVector));
-}
-
-TEST(PluginCriteria, RegisterVectorApps)
-{
-    const auto tZombieAppName = std::string{"zombie"};
-    const auto tDraculaAppName = std::string{"dracula"};
-    const auto tConfigurationTempDirectory = create_test_app_configurations_with_fake_shared_libs(
-        {{tZombieAppName, kSerialVector}, {tDraculaAppName, kParallelVector}});
-
-    const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
-    EXPECT_EQ(tNumRegistered, 2u);
 
     const auto tZombieFunctionName = library::criterion_registration_name(
         input_parser::AppName{tZombieAppName}, input_parser::CriterionName{kTestCriterionName});
