@@ -5,6 +5,7 @@
 #include <boost/optional.hpp>
 #include <set>
 #include <string_view>
+#include <utility>
 
 #include "plato/core/FactoryRegistration.hpp"
 #include "plato/core/Function.hpp"
@@ -68,6 +69,17 @@ using VectorCriterionFunction =
 
 namespace detail
 {
+using SerialCriterionRegistrationTypes = std::tuple<CriterionFunction, CriterionInput>;
+using ParallelCriterionRegistrationTypes = std::tuple<CriterionFunction, CriterionInput, boost::mpi::communicator>;
+using SerialVectorCriterionRegistrationTypes = std::tuple<VectorCriterionFunction, CriterionInput>;
+using ParallelVectorCriterionRegistrationTypes =
+    std::tuple<VectorCriterionFunction, CriterionInput, boost::mpi::communicator>;
+
+using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
+                                            SerialCriterionRegistrationTypes,
+                                            ParallelVectorCriterionRegistrationTypes,
+                                            SerialVectorCriterionRegistrationTypes>;
+
 using SerialCriterionRegistration = core::FactoryRegistration<CriterionFunction, CriterionInput>;
 using ParallelCriterionRegistration =
     core::FactoryRegistration<CriterionFunction, CriterionInput, boost::mpi::communicator>;
@@ -110,6 +122,21 @@ constexpr auto factory_index(const CriterionTraits aCriterionTraits) -> std::siz
 constexpr auto factory_index(const Parallelization aParallelization, const FunctionDimension aDimension) -> std::size_t
 {
     return factory_index(CriterionTraits{aParallelization, aDimension});
+}
+
+template <typename Tuple, std::size_t... Indices>
+constexpr auto is_criterion_function_registered_impl(const std::string_view aFunctionName,
+                                                     const std::index_sequence<Indices...>)
+{
+    return core::is_factory_function_registered<std::tuple_element_t<Indices, Tuple>...>(aFunctionName);
+}
+
+template <std::size_t FactoryIndex>
+constexpr auto is_criterion_function_registered(const std::string_view aFunctionName)
+{
+    using FactoryTypes = std::tuple_element_t<FactoryIndex, FactoryRegistrationTypes>;
+    return is_criterion_function_registered_impl<FactoryTypes>(
+        aFunctionName, std::make_index_sequence<std::tuple_size_v<FactoryTypes>>());
 }
 }  // namespace detail
 

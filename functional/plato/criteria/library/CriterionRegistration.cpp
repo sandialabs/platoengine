@@ -16,30 +16,21 @@ std::string criterion_registration_name(const std::string_view aAppName, const s
 {
     return std::string{aAppName} + ":" + std::string{aCriterionName};
 }
+
+template <std::size_t... kIndices>
+[[nodiscard]] auto is_criterion_function_registered_impl(const std::string_view aFunctionName,
+                                                         const std::size_t aFactoryIndex,
+                                                         const std::index_sequence<kIndices...>) -> bool
+{
+    return ((aFactoryIndex == kIndices && detail::is_criterion_function_registered<kIndices>(aFunctionName)) || ...);
+}
 }  // namespace
 
 auto is_criterion_function_registered(const std::string_view aFunctionName, const CriterionTraits aTraits) -> bool
 {
     const auto tIndex = detail::factory_index(aTraits.mParallelization, aTraits.mDimension);
-    if (tIndex == detail::factory_index(Parallelization::kParallel, FunctionDimension::kScalar))
-    {
-        return core::is_factory_function_registered<CriterionFunction, CriterionInput, boost::mpi::communicator>(
-            aFunctionName);
-    }
-    else if (tIndex == detail::factory_index(Parallelization::kSerial, FunctionDimension::kScalar))
-    {
-        return core::is_factory_function_registered<CriterionFunction, CriterionInput>(aFunctionName);
-    }
-    else if (tIndex == detail::factory_index(Parallelization::kParallel, FunctionDimension::kVector))
-    {
-        return core::is_factory_function_registered<VectorCriterionFunction, CriterionInput, boost::mpi::communicator>(
-            aFunctionName);
-    }
-    else if (tIndex == detail::factory_index(Parallelization::kSerial, FunctionDimension::kVector))
-    {
-        return core::is_factory_function_registered<VectorCriterionFunction, CriterionInput>(aFunctionName);
-    }
-    return false;
+    return is_criterion_function_registered_impl(
+        aFunctionName, tIndex, std::make_index_sequence<std::tuple_size_v<detail::FactoryRegistrationTypes>>());
 }
 
 std::string criterion_registration_name(const services::AppConfiguration& aAppConfiguration,
