@@ -64,6 +64,7 @@ TEST_F(NodalDensityMesh, ParallelOutput)
         test_utilities::expect_container_entries_near(tExpected, tReadFilteredDensities, tTolerance,
                                                       TEST_CONTEXT("Filtered density values"));
     }
+    boost::mpi::communicator{}.barrier();
     std::filesystem::remove(tDensityInput.output_name->mToken);
 }
 
