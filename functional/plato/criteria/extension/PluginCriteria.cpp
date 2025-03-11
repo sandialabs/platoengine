@@ -5,6 +5,7 @@
 
 #include "plato/criteria/extension/SharedLibCriterion.hpp"
 #include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
@@ -20,26 +21,67 @@ static const auto kNumberOfPluginsLoaded =
 template <library::FunctionDimension kDimension>
 struct CreateCriterionFunction
 {
+};
+
+template <>
+struct CreateCriterionFunction<library::FunctionDimension::kScalar>
+{
     services::AppConfigurationWithDirectory mAppConfiguration;
     services::CriterionConfiguration mCriterionConfiguration;
 
     template <typename... Args>
     [[nodiscard]] auto operator()(const criteria::library::CriterionInput& aInput, Args&&... aAdditionalArgs) const
     {
-        if constexpr (kDimension == library::FunctionDimension::kScalar)
-        {
-            return make_shared_lib_function(SharedLibCriterion{mAppConfiguration, mCriterionConfiguration,
-                                                               aInput.mInputFiles.mList,
-                                                               std::forward<Args>(aAdditionalArgs)...});
-        }
-        else
-        {
-            return make_shared_library_vector_function(
-                SharedLibraryVectorCriterion{mAppConfiguration, mCriterionConfiguration, aInput.mInputFiles.mList,
-                                             std::forward<Args>(aAdditionalArgs)...});
-        }
+        return make_shared_lib_function(SharedLibCriterion{mAppConfiguration, mCriterionConfiguration,
+                                                           aInput.mInputFiles.mList,
+                                                           std::forward<Args>(aAdditionalArgs)...});
     }
 };
+
+template <>
+struct CreateCriterionFunction<library::FunctionDimension::kVector>
+{
+    services::AppConfigurationWithDirectory mAppConfiguration;
+    services::CriterionConfiguration mCriterionConfiguration;
+
+    template <typename... Args>
+    [[nodiscard]] auto operator()(const criteria::library::CriterionInput& aInput, Args&&... aAdditionalArgs) const
+    {
+        return make_shared_library_vector_function(
+            SharedLibraryVectorCriterion{mAppConfiguration, mCriterionConfiguration, aInput.mInputFiles.mList,
+                                         std::forward<Args>(aAdditionalArgs)...});
+    }
+};
+
+template <std::size_t kFactoryIndex>
+auto register_criterion_impl(const std::size_t aFactoryIndexToInstantiate,
+                             const std::string& aNameForRegistration,
+                             const services::AppConfigurationWithDirectory& aAppConfiguration,
+                             const services::CriterionConfiguration& aCriterionConfiguration) -> bool
+{
+    const auto tShouldInstantiate = kFactoryIndex == aFactoryIndexToInstantiate;
+    if (tShouldInstantiate)
+    {
+        using Registration = library::detail::FactoryRegistrationWithTraits<kFactoryIndex>;
+        constexpr auto tCriterionTraits = library::detail::factory_traits_from_index(kFactoryIndex);
+        [[maybe_unused]] auto tAppRegistration = Registration{
+            aNameForRegistration,
+            CreateCriterionFunction<tCriterionTraits.mDimension>{aAppConfiguration, aCriterionConfiguration}};
+    }
+    return tShouldInstantiate;
+}
+
+template <std::size_t... kIndices>
+void register_criterion_impl(const std::size_t aFactoryIndexToInstantiate,
+                             const std::string& aNameForRegistration,
+                             const services::AppConfigurationWithDirectory& aAppConfiguration,
+                             const services::CriterionConfiguration& aCriterionConfiguration,
+                             const std::index_sequence<kIndices...>)
+{
+    (register_criterion_impl<kIndices>(aFactoryIndexToInstantiate, aNameForRegistration, aAppConfiguration,
+                                       aCriterionConfiguration) ||
+     ...);
+}
 
 void register_all_criteria(const services::AppConfigurationWithDirectory& aAppConfiguration)
 {
@@ -48,46 +90,11 @@ void register_all_criteria(const services::AppConfigurationWithDirectory& aAppCo
         const auto tParallelization = library::to_parallelization(tCriterionConfiguration.mIsParallelized);
         const auto tFunctionDimension = library::to_function_dimension(tCriterionConfiguration.mIsScalar);
         const auto tFactoryIndex = library::detail::factory_index(tParallelization, tFunctionDimension);
-        auto tNameForRegistration =
+        const auto tNameForRegistration =
             library::criterion_registration_name(aAppConfiguration.mConfiguration, tCriterionConfiguration);
 
-        if (tFactoryIndex ==
-            library::detail::factory_index(library::Parallelization::kParallel, library::FunctionDimension::kScalar))
-        {
-            using Registration = library::CriterionRegistration<library::Parallelization::kParallel,
-                                                                library::FunctionDimension::kScalar>;
-
-            [[maybe_unused]] auto tAppRegistration = Registration{
-                std::move(tNameForRegistration), CreateCriterionFunction<library::FunctionDimension::kScalar>{
-                                                     aAppConfiguration, tCriterionConfiguration}};
-        }
-        else if (tFactoryIndex ==
-                 library::detail::factory_index(library::Parallelization::kSerial, library::FunctionDimension::kScalar))
-        {
-            using Registration =
-                library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
-            [[maybe_unused]] auto tAppRegistration = Registration{
-                std::move(tNameForRegistration), CreateCriterionFunction<library::FunctionDimension::kScalar>{
-                                                     aAppConfiguration, tCriterionConfiguration}};
-        }
-        else if (tFactoryIndex == library::detail::factory_index(library::Parallelization::kParallel,
-                                                                 library::FunctionDimension::kVector))
-        {
-            using Registration = library::CriterionRegistration<library::Parallelization::kParallel,
-                                                                library::FunctionDimension::kVector>;
-            [[maybe_unused]] auto tAppRegistration = Registration{
-                std::move(tNameForRegistration), CreateCriterionFunction<library::FunctionDimension::kVector>{
-                                                     aAppConfiguration, tCriterionConfiguration}};
-        }
-        else if (tFactoryIndex ==
-                 library::detail::factory_index(library::Parallelization::kSerial, library::FunctionDimension::kVector))
-        {
-            using Registration =
-                library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kVector>;
-            [[maybe_unused]] auto tAppRegistration = Registration{
-                std::move(tNameForRegistration), CreateCriterionFunction<library::FunctionDimension::kVector>{
-                                                     aAppConfiguration, tCriterionConfiguration}};
-        }
+        register_criterion_impl(tFactoryIndex, tNameForRegistration, aAppConfiguration, tCriterionConfiguration,
+                                std::make_index_sequence<library::detail::number_of_factories()>());
     }
 }
 }  // namespace

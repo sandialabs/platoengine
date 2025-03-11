@@ -99,12 +99,19 @@ using FactoryRegistrationWithTraits =
     typename FactoryFromTypes<FactoryTypesAtIndex<kIndex>,
                               std::make_index_sequence<std::tuple_size_v<FactoryTypesAtIndex<kIndex>>>>::Factory;
 
-/// @brief Returns an index into FactoryRegistrars corresponding to the traits in @a CriterionTraits.
+/// @brief Returns an index into FactoryRegistrars corresponding to the traits in @a aCriterionTraits.
 [[nodiscard]] constexpr auto factory_index(const CriterionTraits aCriterionTraits) -> std::size_t;
 
-/// @brief Returns an index into FactoryRegistrars corresponding to the traits in @a CriterionTraits.
+/// @brief Returns an index into FactoryRegistrars corresponding to the traits @a aParallelization and @a aDimension.
 [[nodiscard]] constexpr auto factory_index(Parallelization aParallelization, FunctionDimension aDimension)
     -> std::size_t;
+
+/// @brief Returns the criterion traits associated with index @a aFactoryIndex
+[[nodiscard]] constexpr auto factory_traits_from_index(std::size_t aFactoryIndex) -> CriterionTraits;
+
+/// @brief Returns the number of combinations of criterion factories (all combinations of criterion traits)
+[[nodiscard]] constexpr auto number_of_factories() -> std::size_t;
+
 }  // namespace detail
 
 /// @brief Factory registration type template for registering criteria.
@@ -142,6 +149,21 @@ constexpr auto is_criterion_function_registered(const std::string_view aFunction
     return is_criterion_function_registered_impl<FactoryTypes>(
         aFunctionName, std::make_index_sequence<std::tuple_size_v<FactoryTypes>>());
 }
+
+constexpr auto factory_traits_from_index(const std::size_t aFactoryIndex) -> CriterionTraits
+{
+    const auto tEnumTuple = utilities::enums_from_index<Parallelization, FunctionDimension>(aFactoryIndex);
+    return CriterionTraits{/*.mParallelization=*/std::get<0>(tEnumTuple), /*.mDimension=*/std::get<1>(tEnumTuple)};
+}
+
+constexpr auto number_of_factories() -> std::size_t
+{
+    return utilities::number_of_enumerates<Parallelization, FunctionDimension>();
+}
+
+static_assert(
+    number_of_factories() == std::tuple_size_v<FactoryRegistrationTypes>,
+    "The number of entries in FactoryRegistration types must match the number of combinations of criterion traits.");
 }  // namespace detail
 
 }  // namespace plato::criteria::library
