@@ -20,13 +20,20 @@ namespace plato::utilities
 ///   `enum_index(A::kOne, B::kOne) == 3`,
 ///   `enum_index(A::kZero, B::kTwo) == 4`,
 ///   `enum_index(A::kOne, B::kTwo) == 5`.
+/// @tparam Enums Must be one or more types and all types must be enum.
 template <typename... Enums>
 [[nodiscard]] constexpr auto enum_index(const Enums... aEnums) -> std::size_t;
 
 /// @brief The reverse of enum_index, this returns the set of enums associated with index @a aIndex.
 /// @sa enum_index
+/// @tparam Enums Must be one or more types and all types must be enum.
 template <typename... Enums>
 [[nodiscard]] constexpr auto enums_from_index(std::size_t aIndex) -> std::tuple<Enums...>;
+
+/// @brief Returns the total number of combinations of enumerates associated with the Enums parameter pack.
+/// @tparam Enums Must be one or more types and all types must be enum.
+template <typename... Enums>
+[[nodiscard]] constexpr auto number_of_enumerates() -> std::size_t;
 
 namespace detail
 {
@@ -75,10 +82,17 @@ template <typename AllEnumsTuple, std::size_t kDimension>
                               enums_from_index<AllEnumsTuple, kDimension + 1>(tNextDimensionIndex));
     }
 }
+
+template <typename EnumTuple, std::size_t... kIndices>
+constexpr auto number_of_enumerates_impl(const std::index_sequence<kIndices...>)
+{
+    return (static_cast<std::size_t>(std::tuple_element_t<kIndices, EnumTuple>::kNumberOfEnumerates) * ...);
+}
+
 }  // namespace detail
 
 template <typename... Enums>
-[[nodiscard]] constexpr auto enum_index(const Enums... aEnums) -> std::size_t
+constexpr auto enum_index(const Enums... aEnums) -> std::size_t
 {
     static_assert(sizeof...(Enums) > 0, "enum_index must be called with one or more enums.");
     static_assert(std::conjunction_v<std::is_enum<Enums>...>, "enum_index must only be called with enum arguments.");
@@ -87,7 +101,7 @@ template <typename... Enums>
 }
 
 template <typename... Enums>
-[[nodiscard]] constexpr auto enums_from_index(const std::size_t aIndex) -> std::tuple<Enums...>
+constexpr auto enums_from_index(const std::size_t aIndex) -> std::tuple<Enums...>
 {
     static_assert(sizeof...(Enums) > 0, "enums_from_index must be called with one or more enums.");
     static_assert(std::conjunction_v<std::is_enum<Enums>...>,
@@ -98,6 +112,11 @@ template <typename... Enums>
     return detail::enums_from_index<EnumTuple, tStartDimension>(aIndex);
 }
 
+template <typename... Enums>
+constexpr auto number_of_enumerates() -> std::size_t
+{
+    return detail::number_of_enumerates_impl<std::tuple<Enums...>>(std::make_index_sequence<sizeof...(Enums)>());
+}
 }  // namespace plato::utilities
 
 #endif

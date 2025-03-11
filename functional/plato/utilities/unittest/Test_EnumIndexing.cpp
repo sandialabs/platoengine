@@ -151,4 +151,12 @@ TEST(EnumIndexing, EnumsFromINdex3D)
               std::make_tuple(Numbers::kTwo, Letters::kB, Components::kZ));
 }
 
+TEST(EnumIndexing, NumberOfEnumerates)
+{
+    EXPECT_EQ(number_of_enumerates<Numbers>(), 3U);
+    EXPECT_EQ((number_of_enumerates<Numbers, Letters>()), 6U);
+    EXPECT_EQ((number_of_enumerates<Letters, Numbers>()), 6U);
+    EXPECT_EQ((number_of_enumerates<Numbers, Letters, Components>()), 18U);
+}
+
 }  // namespace plato::utilities::unittest
