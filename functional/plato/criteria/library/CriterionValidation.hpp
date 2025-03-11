@@ -25,10 +25,7 @@ template <typename Criteria>
     if (aInput.criterion.has_value())
     {
         const auto tRegistrationName = criterion_registration_name(aInput.app, aInput.criterion.value());
-        if (is_criterion_function_registered(tRegistrationName,
-                                             CriterionTraits{Parallelization::kSerial, FunctionDimension::kScalar}) ||
-            is_criterion_function_registered(tRegistrationName,
-                                             CriterionTraits{Parallelization::kParallel, FunctionDimension::kScalar}))
+        if (is_criterion_function_registered(tRegistrationName))
         {
             return std::nullopt;
         }

@@ -40,13 +40,21 @@ constexpr auto is_criterion_function_registered_in_specific_factory(const std::s
 }
 
 template <std::size_t... kIndices>
-[[nodiscard]] auto is_criterion_function_registered_in_any_factory(const std::string_view aFunctionName,
-                                                                   const std::size_t aFactoryIndex,
-                                                                   const std::index_sequence<kIndices...>) -> bool
+[[nodiscard]] auto is_criterion_function_registered_in_factory_with_index(const std::string_view aFunctionName,
+                                                                          const std::size_t aFactoryIndex,
+                                                                          const std::index_sequence<kIndices...>)
+    -> bool
 {
     return (
         (aFactoryIndex == kIndices && is_criterion_function_registered_in_specific_factory<kIndices>(aFunctionName)) ||
         ...);
+}
+
+template <std::size_t... kIndices>
+[[nodiscard]] auto is_criterion_function_registered_in_any_factory(const std::string_view aFunctionName,
+                                                                   const std::index_sequence<kIndices...>) -> bool
+{
+    return (is_criterion_function_registered_in_specific_factory<kIndices>(aFunctionName) || ...);
 }
 
 template <typename FactorySignatureTuple, std::size_t... kIndices>
@@ -68,10 +76,16 @@ template <std::size_t... kIndices>
 }
 }  // namespace
 
+auto is_criterion_function_registered(const std::string_view aFunctionName) -> bool
+{
+    return is_criterion_function_registered_in_any_factory(aFunctionName, kFactoryRegistrationTypesSequence);
+}
+
 auto is_criterion_function_registered(const std::string_view aFunctionName, const CriterionTraits aTraits) -> bool
 {
     const auto tIndex = trait_index(aTraits.mParallelization, aTraits.mDimension);
-    return is_criterion_function_registered_in_any_factory(aFunctionName, tIndex, kFactoryRegistrationTypesSequence);
+    return is_criterion_function_registered_in_factory_with_index(aFunctionName, tIndex,
+                                                                  kFactoryRegistrationTypesSequence);
 }
 
 std::string criterion_registration_name(const services::AppConfiguration& aAppConfiguration,

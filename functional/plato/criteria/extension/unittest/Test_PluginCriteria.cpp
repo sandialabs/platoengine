@@ -122,6 +122,8 @@ TEST(PluginCriteria, NonexistentSharedLibrary)
     const auto tParallelScalarTraits =
         library::CriterionTraits{library::Parallelization::kParallel, library::FunctionDimension::kScalar};
     EXPECT_FALSE(library::is_criterion_function_registered(tFunctionName, tParallelScalarTraits));
+
+    EXPECT_FALSE(library::is_criterion_function_registered(tFunctionName));
 }
 
 TEST(PluginCriteria, RegisterApps)
@@ -141,6 +143,7 @@ TEST(PluginCriteria, RegisterApps)
 
     const auto tVampireFunctionName = library::criterion_registration_name(
         input_parser::AppName{tVampireAppName}, input_parser::CriterionName{kTestCriterionName});
+    EXPECT_TRUE(library::is_criterion_function_registered(tVampireFunctionName));
     EXPECT_TRUE(library::is_criterion_function_registered(tVampireFunctionName, kParallelScalar));
     EXPECT_FALSE(library::is_criterion_function_registered(tVampireFunctionName, kSerialScalar));
     EXPECT_FALSE(library::is_criterion_function_registered(tVampireFunctionName, kSerialVector));
@@ -148,6 +151,7 @@ TEST(PluginCriteria, RegisterApps)
 
     const auto tMummyFunctionName = library::criterion_registration_name(
         input_parser::AppName{tMummyAppName}, input_parser::CriterionName{kTestCriterionName});
+    EXPECT_TRUE(library::is_criterion_function_registered(tMummyFunctionName));
     EXPECT_TRUE(library::is_criterion_function_registered(tMummyFunctionName, kSerialScalar));
     EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kParallelScalar));
     EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kSerialVector));
@@ -155,6 +159,7 @@ TEST(PluginCriteria, RegisterApps)
 
     const auto tZombieFunctionName = library::criterion_registration_name(
         input_parser::AppName{tZombieAppName}, input_parser::CriterionName{kTestCriterionName});
+    EXPECT_TRUE(library::is_criterion_function_registered(tZombieFunctionName));
     EXPECT_TRUE(library::is_criterion_function_registered(tZombieFunctionName, kSerialVector));
     EXPECT_FALSE(library::is_criterion_function_registered(tZombieFunctionName, kParallelScalar));
     EXPECT_FALSE(library::is_criterion_function_registered(tZombieFunctionName, kSerialScalar));
@@ -163,6 +168,7 @@ TEST(PluginCriteria, RegisterApps)
     const auto tDraculaFunctionName = library::criterion_registration_name(
         input_parser::AppName{tDraculaAppName}, input_parser::CriterionName{kTestCriterionName});
     EXPECT_TRUE(library::is_criterion_function_registered(tDraculaFunctionName, kParallelVector));
+    EXPECT_TRUE(library::is_criterion_function_registered(tDraculaFunctionName));
     EXPECT_FALSE(library::is_criterion_function_registered(tDraculaFunctionName, kParallelScalar));
     EXPECT_FALSE(library::is_criterion_function_registered(tDraculaFunctionName, kSerialScalar));
     EXPECT_FALSE(library::is_criterion_function_registered(tDraculaFunctionName, kSerialVector));
@@ -172,20 +178,26 @@ TEST(PluginCriteria, ValidateValidApps)
 {
     const auto tFrankensteinAppName = std::string{"frankenstein"};
     const auto tMedusaAppName = std::string{"medusa"};
-    const auto tConfigurationTempDirectory = create_test_app_configurations_with_fake_shared_libs(
-        {{tFrankensteinAppName, kSerialScalar}, {tMedusaAppName, kParallelScalar}});
+    const auto tItAppName = std::string{"it"};
+    const auto tThingAppName = std::string{"thing"};
+    const auto tConfigurationTempDirectory =
+        create_test_app_configurations_with_fake_shared_libs({{tFrankensteinAppName, kSerialScalar},
+                                                              {tMedusaAppName, kParallelScalar},
+                                                              {tItAppName, kSerialVector},
+                                                              {tThingAppName, kParallelVector}});
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
-    EXPECT_EQ(tNumRegistered, 2u);
+    EXPECT_EQ(tNumRegistered, 4u);
 
     auto tCriteria = input_parser::objective{};
     EXPECT_TRUE(library::detail::validate_criterion_is_registered(tCriteria).has_value());
-    tCriteria.app = input_parser::AppName{tFrankensteinAppName};
+
     tCriteria.criterion = input_parser::CriterionName{kTestCriterionName};
-    EXPECT_FALSE(library::detail::validate_criterion_is_registered(tCriteria).has_value())
-        << library::detail::validate_criterion_is_registered(tCriteria).value();
-    tCriteria.app = input_parser::AppName{tMedusaAppName};
-    EXPECT_FALSE(library::detail::validate_criterion_is_registered(tCriteria).has_value())
-        << library::detail::validate_criterion_is_registered(tCriteria).value();
+    for (const auto& tAppName : {tFrankensteinAppName, tMedusaAppName, tItAppName, tThingAppName})
+    {
+        tCriteria.app = input_parser::AppName{tAppName};
+        EXPECT_FALSE(library::detail::validate_criterion_is_registered(tCriteria).has_value())
+            << library::detail::validate_criterion_is_registered(tCriteria).value();
+    }
 }
 
 TEST(PluginCriteria, ValidateInvalidApp)

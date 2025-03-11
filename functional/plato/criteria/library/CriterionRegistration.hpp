@@ -61,6 +61,10 @@ using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
                                             ParallelVectorCriterionRegistrationTypes,
                                             SerialVectorCriterionRegistrationTypes>;
 
+/// @brief Checks if a criterion function is registered with name @a aFunctionName and with any factory (any set of
+/// traits).
+[[nodiscard]] auto is_criterion_function_registered(const std::string_view aFunctionName) -> bool;
+
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and with traits @a aTraits.
 [[nodiscard]] auto is_criterion_function_registered(const std::string_view aFunctionName, const CriterionTraits aTraits)
     -> bool;
