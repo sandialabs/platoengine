@@ -15,7 +15,6 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/services/AppConfiguration.hpp"
-#include "plato/utilities/EnumIndexing.hpp"
 
 namespace plato::analysis
 {
@@ -43,6 +42,22 @@ using VectorCriterionFunction =
                                       core::evaluation::kFirstDerivative,
                                       core::MatrixOrdering::kAdjoint>>;
 
+/// @brief Factory signature types for serial scalar criteria
+using SerialCriterionRegistrationTypes = std::tuple<CriterionFunction, CriterionInput>;
+/// @brief Factory signature types for parallel scalar criteria
+using ParallelCriterionRegistrationTypes = std::tuple<CriterionFunction, CriterionInput, boost::mpi::communicator>;
+/// @brief Factory signature types for serial vector criteria
+using SerialVectorCriterionRegistrationTypes = std::tuple<VectorCriterionFunction, CriterionInput>;
+/// @brief Factory signature types for parallel vector criteria
+using ParallelVectorCriterionRegistrationTypes =
+    std::tuple<VectorCriterionFunction, CriterionInput, boost::mpi::communicator>;
+
+/// @brief All factory argument lists that can be registered.
+using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
+                                            SerialCriterionRegistrationTypes,
+                                            ParallelVectorCriterionRegistrationTypes,
+                                            SerialVectorCriterionRegistrationTypes>;
+
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and with traits @a aTraits.
 [[nodiscard]] auto is_criterion_function_registered(const std::string_view aFunctionName, const CriterionTraits aTraits)
     -> bool;
@@ -69,17 +84,6 @@ using VectorCriterionFunction =
 
 namespace detail
 {
-using SerialCriterionRegistrationTypes = std::tuple<CriterionFunction, CriterionInput>;
-using ParallelCriterionRegistrationTypes = std::tuple<CriterionFunction, CriterionInput, boost::mpi::communicator>;
-using SerialVectorCriterionRegistrationTypes = std::tuple<VectorCriterionFunction, CriterionInput>;
-using ParallelVectorCriterionRegistrationTypes =
-    std::tuple<VectorCriterionFunction, CriterionInput, boost::mpi::communicator>;
-
-using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
-                                            SerialCriterionRegistrationTypes,
-                                            ParallelVectorCriterionRegistrationTypes,
-                                            SerialVectorCriterionRegistrationTypes>;
-
 template <typename FactoryArgTuple, typename U>
 struct FactoryFromTypes
 {
@@ -99,19 +103,6 @@ using FactoryRegistrationWithTraits =
     typename FactoryFromTypes<FactoryTypesAtIndex<kIndex>,
                               std::make_index_sequence<std::tuple_size_v<FactoryTypesAtIndex<kIndex>>>>::Factory;
 
-/// @brief Returns an index into FactoryRegistrars corresponding to the traits in @a aCriterionTraits.
-[[nodiscard]] constexpr auto factory_index(const CriterionTraits aCriterionTraits) -> std::size_t;
-
-/// @brief Returns an index into FactoryRegistrars corresponding to the traits @a aParallelization and @a aDimension.
-[[nodiscard]] constexpr auto factory_index(Parallelization aParallelization, FunctionDimension aDimension)
-    -> std::size_t;
-
-/// @brief Returns the criterion traits associated with index @a aFactoryIndex
-[[nodiscard]] constexpr auto factory_traits_from_index(std::size_t aFactoryIndex) -> CriterionTraits;
-
-/// @brief Returns the number of combinations of criterion factories (all combinations of criterion traits)
-[[nodiscard]] constexpr auto number_of_factories() -> std::size_t;
-
 }  // namespace detail
 
 /// @brief Factory registration type template for registering criteria.
@@ -121,51 +112,11 @@ using FactoryRegistrationWithTraits =
 /// @tparam kFunctionDimension Chooses the scalar or vector criteria factory.
 template <Parallelization kParallelization, FunctionDimension kFunctionDimension>
 using CriterionRegistration =
-    detail::FactoryRegistrationWithTraits<detail::factory_index(CriterionTraits{kParallelization, kFunctionDimension})>;
-
-namespace detail
-{
-constexpr auto factory_index(const CriterionTraits aCriterionTraits) -> std::size_t
-{
-    return utilities::enum_index(aCriterionTraits.mParallelization, aCriterionTraits.mDimension);
-}
-
-constexpr auto factory_index(const Parallelization aParallelization, const FunctionDimension aDimension) -> std::size_t
-{
-    return factory_index(CriterionTraits{aParallelization, aDimension});
-}
-
-template <typename Tuple, std::size_t... Indices>
-constexpr auto is_criterion_function_registered_impl(const std::string_view aFunctionName,
-                                                     const std::index_sequence<Indices...>)
-{
-    return core::is_factory_function_registered<std::tuple_element_t<Indices, Tuple>...>(aFunctionName);
-}
-
-template <std::size_t FactoryIndex>
-constexpr auto is_criterion_function_registered(const std::string_view aFunctionName)
-{
-    using FactoryTypes = std::tuple_element_t<FactoryIndex, FactoryRegistrationTypes>;
-    return is_criterion_function_registered_impl<FactoryTypes>(
-        aFunctionName, std::make_index_sequence<std::tuple_size_v<FactoryTypes>>());
-}
-
-constexpr auto factory_traits_from_index(const std::size_t aFactoryIndex) -> CriterionTraits
-{
-    const auto tEnumTuple = utilities::enums_from_index<Parallelization, FunctionDimension>(aFactoryIndex);
-    return CriterionTraits{/*.mParallelization=*/std::get<0>(tEnumTuple), /*.mDimension=*/std::get<1>(tEnumTuple)};
-}
-
-constexpr auto number_of_factories() -> std::size_t
-{
-    return utilities::number_of_enumerates<Parallelization, FunctionDimension>();
-}
+    detail::FactoryRegistrationWithTraits<trait_index(CriterionTraits{kParallelization, kFunctionDimension})>;
 
 static_assert(
-    number_of_factories() == std::tuple_size_v<FactoryRegistrationTypes>,
+    number_of_traits() == std::tuple_size_v<FactoryRegistrationTypes>,
     "The number of entries in FactoryRegistration types must match the number of combinations of criterion traits.");
-}  // namespace detail
-
 }  // namespace plato::criteria::library
 
 #endif

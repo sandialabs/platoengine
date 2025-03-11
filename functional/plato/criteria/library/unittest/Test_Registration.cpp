@@ -66,30 +66,4 @@ TEST(CriterionRegistration, BuiltinRegistrationName)
     EXPECT_EQ(tBuiltinRegistrationName, tExpected);
 }
 
-TEST(CriterionRegistration, FactoryIndex)
-{
-    EXPECT_EQ(detail::factory_index(CriterionTraits{Parallelization::kParallel, FunctionDimension::kScalar}), 0U);
-    EXPECT_EQ(detail::factory_index(CriterionTraits{Parallelization::kSerial, FunctionDimension::kScalar}), 1U);
-    EXPECT_EQ(detail::factory_index(CriterionTraits{Parallelization::kParallel, FunctionDimension::kVector}), 2U);
-    EXPECT_EQ(detail::factory_index(CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector}), 3U);
-
-    EXPECT_EQ(detail::factory_index(Parallelization::kParallel, FunctionDimension::kScalar), 0U);
-    EXPECT_EQ(detail::factory_index(Parallelization::kSerial, FunctionDimension::kScalar), 1U);
-    EXPECT_EQ(detail::factory_index(Parallelization::kParallel, FunctionDimension::kVector), 2U);
-    EXPECT_EQ(detail::factory_index(Parallelization::kSerial, FunctionDimension::kVector), 3U);
-}
-
-TEST(CriterionRegistration, FactoryTraitsFromIndex)
-{
-    EXPECT_EQ(detail::factory_traits_from_index(0U).mParallelization, Parallelization::kParallel);
-    EXPECT_EQ(detail::factory_traits_from_index(0U).mDimension, FunctionDimension::kScalar);
-    EXPECT_EQ(detail::factory_traits_from_index(1U).mParallelization, Parallelization::kSerial);
-    EXPECT_EQ(detail::factory_traits_from_index(1U).mDimension, FunctionDimension::kScalar);
-
-    EXPECT_EQ(detail::factory_traits_from_index(2U).mParallelization, Parallelization::kParallel);
-    EXPECT_EQ(detail::factory_traits_from_index(2U).mDimension, FunctionDimension::kVector);
-    EXPECT_EQ(detail::factory_traits_from_index(3U).mParallelization, Parallelization::kSerial);
-    EXPECT_EQ(detail::factory_traits_from_index(3U).mDimension, FunctionDimension::kVector);
-}
-
 }  // namespace plato::criteria::library::unittest

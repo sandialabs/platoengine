@@ -18,6 +18,9 @@ namespace
 static const auto kNumberOfPluginsLoaded =
     register_plugin_apps(utilities::optional_to_vector(services::plugin_directory_path()));
 
+/// @brief Function object for generating CriterionFunction objects.
+///
+/// This base template is specialized for different types of criterion factories, based on the criterion traits.
 template <library::FunctionDimension kDimension>
 struct CreateCriterionFunction
 {
@@ -63,7 +66,7 @@ auto register_criterion_impl(const std::size_t aFactoryIndexToInstantiate,
     if (tShouldInstantiate)
     {
         using Registration = library::detail::FactoryRegistrationWithTraits<kFactoryIndex>;
-        constexpr auto tCriterionTraits = library::detail::factory_traits_from_index(kFactoryIndex);
+        constexpr auto tCriterionTraits = library::traits_from_index(kFactoryIndex);
         [[maybe_unused]] auto tAppRegistration = Registration{
             aNameForRegistration,
             CreateCriterionFunction<tCriterionTraits.mDimension>{aAppConfiguration, aCriterionConfiguration}};
@@ -89,12 +92,12 @@ void register_all_criteria(const services::AppConfigurationWithDirectory& aAppCo
     {
         const auto tParallelization = library::to_parallelization(tCriterionConfiguration.mIsParallelized);
         const auto tFunctionDimension = library::to_function_dimension(tCriterionConfiguration.mIsScalar);
-        const auto tFactoryIndex = library::detail::factory_index(tParallelization, tFunctionDimension);
+        const auto tFactoryIndex = library::trait_index(tParallelization, tFunctionDimension);
         const auto tNameForRegistration =
             library::criterion_registration_name(aAppConfiguration.mConfiguration, tCriterionConfiguration);
 
         register_criterion_impl(tFactoryIndex, tNameForRegistration, aAppConfiguration, tCriterionConfiguration,
-                                std::make_index_sequence<library::detail::number_of_factories()>());
+                                std::make_index_sequence<library::number_of_traits()>());
     }
 }
 }  // namespace

@@ -17,20 +17,37 @@ std::string criterion_registration_name(const std::string_view aAppName, const s
     return std::string{aAppName} + ":" + std::string{aCriterionName};
 }
 
-template <std::size_t... kIndices>
-[[nodiscard]] auto is_criterion_function_registered_impl(const std::string_view aFunctionName,
-                                                         const std::size_t aFactoryIndex,
-                                                         const std::index_sequence<kIndices...>) -> bool
+template <typename Tuple, std::size_t... Indices>
+constexpr auto is_criterion_function_registered_in_specific_factory_impl(const std::string_view aFunctionName,
+                                                                         const std::index_sequence<Indices...>)
 {
-    return ((aFactoryIndex == kIndices && detail::is_criterion_function_registered<kIndices>(aFunctionName)) || ...);
+    return core::is_factory_function_registered<std::tuple_element_t<Indices, Tuple>...>(aFunctionName);
+}
+
+template <std::size_t FactoryIndex>
+constexpr auto is_criterion_function_registered_in_specific_factory(const std::string_view aFunctionName)
+{
+    using FactoryTypes = std::tuple_element_t<FactoryIndex, FactoryRegistrationTypes>;
+    return is_criterion_function_registered_in_specific_factory_impl<FactoryTypes>(
+        aFunctionName, std::make_index_sequence<std::tuple_size_v<FactoryTypes>>());
+}
+
+template <std::size_t... kIndices>
+[[nodiscard]] auto is_criterion_function_registered_in_any_factory(const std::string_view aFunctionName,
+                                                                   const std::size_t aFactoryIndex,
+                                                                   const std::index_sequence<kIndices...>) -> bool
+{
+    return (
+        (aFactoryIndex == kIndices && is_criterion_function_registered_in_specific_factory<kIndices>(aFunctionName)) ||
+        ...);
 }
 }  // namespace
 
 auto is_criterion_function_registered(const std::string_view aFunctionName, const CriterionTraits aTraits) -> bool
 {
-    const auto tIndex = detail::factory_index(aTraits.mParallelization, aTraits.mDimension);
-    return is_criterion_function_registered_impl(
-        aFunctionName, tIndex, std::make_index_sequence<std::tuple_size_v<detail::FactoryRegistrationTypes>>());
+    const auto tIndex = trait_index(aTraits.mParallelization, aTraits.mDimension);
+    return is_criterion_function_registered_in_any_factory(
+        aFunctionName, tIndex, std::make_index_sequence<std::tuple_size_v<FactoryRegistrationTypes>>());
 }
 
 std::string criterion_registration_name(const services::AppConfiguration& aAppConfiguration,
