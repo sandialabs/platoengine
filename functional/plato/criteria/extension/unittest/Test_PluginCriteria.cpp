@@ -54,7 +54,7 @@ template <typename SharedLibWriter>
                                                        const SharedLibWriter& aSharedLibWriter)
     -> test_utilities::TestDirectorySetupTeardown
 {
-    const auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{"test-plugin-directory"};
+    auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{"test-plugin-directory"};
 
     for (const auto& tAppConfig : aAppConfigs)
     {
@@ -206,8 +206,13 @@ TEST(CriterionRegistration, RegisterAppsList)
 {
     const auto tMartianAppName = std::string{"martian"};
     const auto tCerberusAppName = std::string{"cerberus"};
-    const auto tConfigurationTempDirectory = create_test_app_configurations_with_fake_shared_libs(
-        {{tMartianAppName, kSerialScalar}, {tCerberusAppName, kParallelScalar}});
+    const auto tVanHelsingAppName = std::string{"van-helsing"};
+    const auto tLurchAppName = std::string{"lurch"};
+    const auto tConfigurationTempDirectory =
+        create_test_app_configurations_with_fake_shared_libs({{tMartianAppName, kSerialScalar},
+                                                              {tCerberusAppName, kParallelScalar},
+                                                              {tVanHelsingAppName, kParallelVector},
+                                                              {tLurchAppName, kSerialVector}});
     register_plugin_apps({tConfigurationTempDirectory.directory()});
 
     const auto tRegisteredApps = library::registered_criteria_names();
@@ -219,6 +224,8 @@ TEST(CriterionRegistration, RegisterAppsList)
     };
     EXPECT_TRUE(tCriterionIsInRegisteredNames(tMartianAppName));
     EXPECT_TRUE(tCriterionIsInRegisteredNames(tCerberusAppName));
+    EXPECT_TRUE(tCriterionIsInRegisteredNames(tVanHelsingAppName));
+    EXPECT_TRUE(tCriterionIsInRegisteredNames(tLurchAppName));
 }
 
 }  // namespace plato::criteria::extension::unittest

@@ -53,6 +53,9 @@ using ParallelVectorCriterionRegistrationTypes =
     std::tuple<VectorCriterionFunction, CriterionInput, boost::mpi::communicator>;
 
 /// @brief All factory argument lists that can be registered.
+/// @note To add a new factory type, a new signature tuple should be created along with associated traits. The trait
+/// index must match the index into this tuple.
+/// @sa CriterionTraits
 using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
                                             SerialCriterionRegistrationTypes,
                                             ParallelVectorCriterionRegistrationTypes,
