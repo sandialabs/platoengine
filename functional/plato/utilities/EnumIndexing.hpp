@@ -23,6 +23,11 @@ namespace plato::utilities
 template <typename... Enums>
 [[nodiscard]] constexpr auto enum_index(const Enums... aEnums) -> std::size_t;
 
+/// @brief The reverse of enum_index, this returns the set of enums associated with index @a aIndex.
+/// @sa enum_index
+template <typename... Enums>
+[[nodiscard]] constexpr auto enums_from_index(std::size_t aIndex) -> std::tuple<Enums...>;
+
 namespace detail
 {
 template <typename Tuple, std::size_t... kIndices>
@@ -51,6 +56,25 @@ template <typename EnumTuple, std::size_t... kIndices>
              dimension_stride<kIndices, std::tuple_element_t<kIndices, EnumTuple>...>()) +
             ...);
 }
+
+template <typename AllEnumsTuple, std::size_t kDimension>
+[[nodiscard]] constexpr auto enums_from_index(const std::size_t aLinearIndex)
+{
+    using CurrentTuple = std::tuple_element_t<kDimension, AllEnumsTuple>;
+    constexpr auto tDimensionSize = static_cast<std::size_t>(CurrentTuple::kNumberOfEnumerates);
+    const auto tDimensionIndex = aLinearIndex % tDimensionSize;
+    const auto tNextDimensionIndex = aLinearIndex / tDimensionSize;
+    const auto tEnum = static_cast<CurrentTuple>(tDimensionIndex);
+    if constexpr (kDimension + 1 == std::tuple_size_v<AllEnumsTuple>)
+    {
+        return std::make_tuple(tEnum);
+    }
+    else
+    {
+        return std::tuple_cat(std::make_tuple(tEnum),
+                              enums_from_index<AllEnumsTuple, kDimension + 1>(tNextDimensionIndex));
+    }
+}
 }  // namespace detail
 
 template <typename... Enums>
@@ -60,6 +84,18 @@ template <typename... Enums>
     static_assert(std::conjunction_v<std::is_enum<Enums>...>, "enum_index must only be called with enum arguments.");
 
     return detail::enum_index_impl(std::make_tuple(aEnums...), std::make_index_sequence<sizeof...(Enums)>());
+}
+
+template <typename... Enums>
+[[nodiscard]] constexpr auto enums_from_index(const std::size_t aIndex) -> std::tuple<Enums...>
+{
+    static_assert(sizeof...(Enums) > 0, "enums_from_index must be called with one or more enums.");
+    static_assert(std::conjunction_v<std::is_enum<Enums>...>,
+                  "enums_from_index must only be called with enum template parameters.");
+
+    using EnumTuple = std::tuple<Enums...>;
+    constexpr auto tStartDimension = std::size_t{0U};
+    return detail::enums_from_index<EnumTuple, tStartDimension>(aIndex);
 }
 
 }  // namespace plato::utilities

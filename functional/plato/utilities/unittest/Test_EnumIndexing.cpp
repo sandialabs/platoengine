@@ -85,4 +85,70 @@ TEST(EnumIndexing, ThreeD)
     EXPECT_EQ(enum_index(Numbers::kTwo, Letters::kB, Components::kZ), 17U);
 }
 
+TEST(EnumIndexing, EnumsFromINdex1D)
+{
+    EXPECT_EQ(std::get<0>(enums_from_index<Numbers>(0U)), Numbers::kZero);
+    EXPECT_EQ(std::get<0>(enums_from_index<Numbers>(1U)), Numbers::kOne);
+    EXPECT_EQ(std::get<0>(enums_from_index<Numbers>(2U)), Numbers::kTwo);
+}
+
+TEST(EnumIndexing, EnumsFromINdex2D)
+{
+    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(0U)), Numbers::kZero);
+    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(1U)), Numbers::kOne);
+    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(2U)), Numbers::kTwo);
+    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(0U)), Letters::kA);
+    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(1U)), Letters::kA);
+    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(2U)), Letters::kA);
+
+    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(3U)), Numbers::kZero);
+    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(4U)), Numbers::kOne);
+    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(5U)), Numbers::kTwo);
+    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(3U)), Letters::kB);
+    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(4U)), Letters::kB);
+    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(5U)), Letters::kB);
+}
+
+TEST(EnumIndexing, EnumsFromINdex3D)
+{
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(0U)),
+              std::make_tuple(Numbers::kZero, Letters::kA, Components::kX));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(1U)),
+              std::make_tuple(Numbers::kOne, Letters::kA, Components::kX));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(2U)),
+              std::make_tuple(Numbers::kTwo, Letters::kA, Components::kX));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(3U)),
+              std::make_tuple(Numbers::kZero, Letters::kB, Components::kX));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(4U)),
+              std::make_tuple(Numbers::kOne, Letters::kB, Components::kX));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(5U)),
+              std::make_tuple(Numbers::kTwo, Letters::kB, Components::kX));
+
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(6U)),
+              std::make_tuple(Numbers::kZero, Letters::kA, Components::kY));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(7U)),
+              std::make_tuple(Numbers::kOne, Letters::kA, Components::kY));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(8U)),
+              std::make_tuple(Numbers::kTwo, Letters::kA, Components::kY));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(9U)),
+              std::make_tuple(Numbers::kZero, Letters::kB, Components::kY));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(10U)),
+              std::make_tuple(Numbers::kOne, Letters::kB, Components::kY));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(11U)),
+              std::make_tuple(Numbers::kTwo, Letters::kB, Components::kY));
+
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(12U)),
+              std::make_tuple(Numbers::kZero, Letters::kA, Components::kZ));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(13U)),
+              std::make_tuple(Numbers::kOne, Letters::kA, Components::kZ));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(14U)),
+              std::make_tuple(Numbers::kTwo, Letters::kA, Components::kZ));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(15U)),
+              std::make_tuple(Numbers::kZero, Letters::kB, Components::kZ));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(160U)),
+              std::make_tuple(Numbers::kOne, Letters::kB, Components::kZ));
+    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(17U)),
+              std::make_tuple(Numbers::kTwo, Letters::kB, Components::kZ));
+}
+
 }  // namespace plato::utilities::unittest
