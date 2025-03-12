@@ -2,8 +2,8 @@
 
 #include <numeric>
 
-#include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
-#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshQuantities.hpp"
 
 namespace plato::integration_tests::test_mass_criteria
 {
@@ -12,14 +12,11 @@ MassObjective::MassObjective(const double aDensity) : mDensity(aDensity) {}
 
 double MassObjective::mass(const std::string_view aMeshFileName) const
 {
-    std::shared_ptr<stk::mesh::BulkData> tBulk = third_party_integration::stk_io::read_mesh_bulk_data(aMeshFileName);
-
-    const stk::mesh::EntityVector tElements = third_party_integration::stk_io::element_vector(*tBulk);
-
-    return std::accumulate(
-        tElements.begin(), tElements.end(), 0.0,
-        [&tBulk, this](const double aResult, const stk::mesh::Entity& aElement)
-        { return aResult + mDensity * third_party_integration::stk_io::element_volume(aElement, *tBulk); });
+    const auto tMesh = mesh::Mesh{aMeshFileName};
+    const auto tVolumes = mesh::MeshQuantities{tMesh}.designDomainElementVolumes();
+    return std::accumulate(tVolumes.begin(), tVolumes.end(), 0.0,
+                           [tDensity = mDensity](const double aTotal, const double aVolume)
+                           { return aTotal + tDensity * aVolume; });
 }
 
 }  // namespace plato::integration_tests::test_mass_criteria
