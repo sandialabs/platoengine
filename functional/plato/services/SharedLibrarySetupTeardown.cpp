@@ -20,9 +20,9 @@ void* load_shared_library(const std::filesystem::path& aSharedLibPath)
     void* const tSharedLibInterface = dlopen(aSharedLibPath.c_str(), tOptions);
     if (tSharedLibInterface == nullptr)
     {
-        char* const tErrorMessage = dlerror();
+        const auto tErrorMessage = std::string{dlerror()};
         throw utilities::Exception{"Couldn't load shared lib at " + aSharedLibPath.string() +
-                                   ".\ndlopen error: " + std::string{tErrorMessage}};
+                                   ".\ndlopen error: " + tErrorMessage};
     }
     return tSharedLibInterface;
 }
