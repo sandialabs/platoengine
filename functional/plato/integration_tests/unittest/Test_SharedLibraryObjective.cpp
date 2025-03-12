@@ -15,14 +15,14 @@ namespace
 {
 // These tests use the mass objective library but through the shared library interface so they are testing the
 // shared library more generically
-constexpr std::string_view kLibPath = "libPlatoTestMassObjective.so";
+constexpr std::string_view kLibPath = "libPlatoTestMassCriteria.so";
 const auto kMeshGenerator = third_party_integration::stk_io::CommandGenerator{
     {1, 1, 1}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
 
 void generate_bad_library_and_do_nothing()
 {
     // This function should throw an exception
-    const auto tTestConfiguration = utilities::test_scalar_app_configuration("badRobot.so");
+    const auto tTestConfiguration = utilities::test_app_configuration("badRobot.so");
     const auto tBad = criteria::extension::SharedLibCriterion{
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
     std::cout << tBad.f(analysis::AnalysisDomainMesh{"dne.exo", {}}) << std::endl;
@@ -30,7 +30,7 @@ void generate_bad_library_and_do_nothing()
 
 criteria::extension::SharedLibCriterion test_shared_lib_criterion()
 {
-    const auto tTestConfiguration = utilities::test_scalar_app_configuration(kLibPath);
+    const auto tTestConfiguration = utilities::test_app_configuration(kLibPath);
     return criteria::extension::SharedLibCriterion{
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
 }

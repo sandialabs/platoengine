@@ -1,10 +1,10 @@
-#include "plato/integration_tests/test_vector_constraint/MassConstraintVectorInterface.hpp"
+#include "plato/integration_tests/test_mass_criteria/MassConstraintVectorInterface.hpp"
 
 #include <numeric>
 
-#include "plato/integration_tests/test_vector_constraint/MassConstraint.hpp"
+#include "plato/integration_tests/test_mass_criteria/MassConstraint.hpp"
 
-namespace plato::integration_tests::test_vector_constraint
+namespace plato::integration_tests::test_mass_criteria
 {
 
 std::vector<double> MassConstraintInterface::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
@@ -25,10 +25,16 @@ std::vector<double> MassConstraintInterface::rowVectorTimesAdjointJacobian(
     return {std::accumulate(aDualVector.begin(), aDualVector.end(), 0.0)};
 }
 
-}  // namespace plato::integration_tests::test_vector_constraint
+}  // namespace plato::integration_tests::test_mass_criteria
 
 auto plato_create_criterion(const std::vector<std::string>&)
     -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>
 {
-    return std::make_unique<::plato::integration_tests::test_vector_constraint::MassConstraintInterface>();
+    return std::make_unique<::plato::integration_tests::test_mass_criteria::MassConstraintInterface>();
+}
+
+auto plato_create_vector_test_mass_criterion(const std::vector<std::string>&)
+    -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>
+{
+    return std::make_unique<::plato::integration_tests::test_mass_criteria::MassConstraintInterface>();
 }

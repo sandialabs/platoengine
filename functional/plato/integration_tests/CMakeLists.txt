@@ -4,12 +4,7 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 set(LINK_LIBS PlatoFunctionalCriteria
               PlatoFunctionalTestUtilities
               PlatoFunctionalMesh)
-create_plato_library(PlatoTestMassObjective test_mass_objective "${LINK_LIBS}")
-
-set(LINK_LIBS PlatoFunctionalCriteria
-              PlatoFunctionalTestUtilities
-              PlatoFunctionalMesh)
-create_plato_library(PlatoTestVectorConstraint test_vector_constraint "${LINK_LIBS}")
+create_plato_library(PlatoTestMassCriteria test_mass_criteria "${LINK_LIBS}")
 
 set(LINK_LIBS PlatoFunctionalLinearAlgebra
               PlatoFunctionalCore
@@ -29,9 +24,8 @@ create_plato_integration_tester(PlatoFunctional_IntegrationUnitTester "${USE_FOL
 set(LINK_LIBS PlatoFunctionalSTKIO
               PlatoFunctionalSTKIOTestUtilities
               PlatoFunctionalProcessManager
-              PlatoTestMassObjective
-              PlatoTestVectorConstraint )
-set(USE_FOLDERS test_mass_objective/unittest test_vector_constraint/unittest)
+              PlatoTestMassCriteria )
+set(USE_FOLDERS test_mass_criteria/unittest)
 create_plato_integration_tester(PlatoFunctional_IntegrationMassLibUnitTester "${USE_FOLDERS}" "${LINK_LIBS}")
 
 # Parallel tests

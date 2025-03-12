@@ -5,7 +5,7 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
-#include "plato/integration_tests/test_vector_constraint/MassConstraintVectorInterface.hpp"
+#include "plato/integration_tests/test_mass_criteria/MassConstraintVectorInterface.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
@@ -21,7 +21,7 @@ constexpr std::string_view kLibPath = "libPlatoTestVectorConstraint.so";
 
 [[nodiscard]] auto test_shared_library_criterion() -> criteria::extension::SharedLibraryVectorCriterion
 {
-    const auto tTestConfiguration = utilities::test_vector_app_configuration(kLibPath);
+    const auto tTestConfiguration = utilities::test_app_configuration(kLibPath);
     return criteria::extension::SharedLibraryVectorCriterion{
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
 }
@@ -48,15 +48,15 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallValue)
     const auto tSharedLibrary = test_shared_library_criterion();
     const auto tMasses = tSharedLibrary.value(analysis::AnalysisDomainMesh{mMeshFilePath, {}}).stdVector();
 
-    const auto tExpected = std::vector<double>(mExpectedNumberOfElements, test_vector_constraint::kDensity);
+    const auto tExpected = std::vector<double>(mExpectedNumberOfElements, test_mass_criteria::kDensity);
     constexpr auto tTolerance = 1e-15;
     test_utilities::expect_container_entries_near(tExpected, tMasses, tTolerance,
                                                   TEST_CONTEXT("Vector mass density value"));
 }
 
-TEST_F(OneBlock3x1x1HexMesh, MakeCriterionFunctionAndCallValue) {}
+TEST_F(OneBlock3x1x1HexMesh, MakeCriterionFunctionAndCallValue) { EXPECT_TRUE(false); }
 
-TEST_F(OneBlock3x1x1HexMesh, MakeConstraintAndCallValue) {}
+TEST_F(OneBlock3x1x1HexMesh, MakeConstraintAndCallValue) { EXPECT_TRUE(false); }
 
 TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallJacobianTimesVector)
 {

@@ -7,36 +7,26 @@ namespace
 constexpr auto kDefaultCriterionName = std::string_view{"default"};
 constexpr auto kDefaultSerialFunctionName = std::string_view{"plato_create_criterion"};
 constexpr auto kDefaultParallelFunctionName = std::string_view{"plato_create_parallel_criterion"};
+constexpr auto kDefaultVectorFunctionName = std::string_view{"plato_create_vector_criterion"};
+}  // namespace
 
-[[nodiscard]] auto test_app_configuration(const std::filesystem::path& aSharedLibPath, const bool aIsScalar)
-    -> services::AppConfigurationWithDirectory
+auto test_app_configuration(const std::filesystem::path& aSharedLibPath) -> services::AppConfigurationWithDirectory
 {
     auto tSerialCriterion =
         services::CriterionConfiguration{/*.mName=*/std::string{kDefaultCriterionName},
-                                         /*.mIsParallelized=*/false, /*.mIsScalar=*/aIsScalar,
+                                         /*.mIsParallelized=*/false, /*.mIsScalar=*/true,
                                          /*.mFunctionName=*/std::string{kDefaultSerialFunctionName}};
     auto tParallelCriterion = services::CriterionConfiguration{
-        /*.mName=*/std::string{kDefaultCriterionName}, /*.mIsParallelized=*/true, /*.mIsScalar=*/aIsScalar,
+        /*.mName=*/std::string{kDefaultCriterionName}, /*.mIsParallelized=*/true, /*.mIsScalar=*/true,
         /*.mFunctionName=*/std::string{kDefaultParallelFunctionName}};
+    auto tVectorCriterion = services::CriterionConfiguration{
+        /*.mName=*/std::string{kDefaultCriterionName}, /*.mIsParallelized=*/false, /*.mIsScalar=*/false,
+        /*.mFunctionName=*/std::string{kDefaultVectorFunctionName}};
+
     auto tAppConfiguration = services::AppConfiguration{
         /*.mName=*/std::string{kDefaultCriterionName}, /*mLibraryName=*/aSharedLibPath.filename().string(),
-        /*.mCriteria=*/{std::move(tSerialCriterion), std::move(tParallelCriterion)}};
+        /*.mCriteria=*/{std::move(tSerialCriterion), std::move(tParallelCriterion), std::move(tVectorCriterion)}};
     return {/*.mConfiguration=*/std::move(tAppConfiguration), /*.mLibraryDirectory=*/aSharedLibPath.parent_path()};
-}
-}  // namespace
-
-auto test_scalar_app_configuration(const std::filesystem::path& aSharedLibPath)
-    -> services::AppConfigurationWithDirectory
-{
-    constexpr auto tScalarApp = true;
-    return test_app_configuration(aSharedLibPath, tScalarApp);
-}
-
-auto test_vector_app_configuration(const std::filesystem::path& aSharedLibPath)
-    -> services::AppConfigurationWithDirectory
-{
-    constexpr auto tVectorApp = false;
-    return test_app_configuration(aSharedLibPath, tVectorApp);
 }
 
 }  // namespace plato::integration_tests::utilities

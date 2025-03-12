@@ -1,11 +1,11 @@
-#include "plato/integration_tests/test_mass_objective/MassObjective.hpp"
+#include "plato/integration_tests/test_mass_criteria/MassObjective.hpp"
 
 #include <numeric>
 
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
-namespace plato::integration_tests::test_mass_objective
+namespace plato::integration_tests::test_mass_criteria
 {
 
 MassObjective::MassObjective(const double aDensity) : mDensity(aDensity) {}
@@ -22,4 +22,4 @@ double MassObjective::mass(const std::string_view aMeshFileName) const
         { return aResult + mDensity * third_party_integration::stk_io::element_volume(aElement, *tBulk); });
 }
 
-}  // namespace plato::integration_tests::test_mass_objective
+}  // namespace plato::integration_tests::test_mass_criteria

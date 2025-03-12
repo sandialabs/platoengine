@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-namespace plato::integration_tests::test_vector_constraint
+namespace plato::integration_tests::test_mass_criteria
 {
 ///@brief A simple class that can be used to impose an additional constraint on the densities
 class MassConstraint
@@ -20,6 +20,6 @@ class MassConstraint
     double mDensity = 1;
 };
 
-}  // namespace plato::integration_tests::test_vector_constraint
+}  // namespace plato::integration_tests::test_mass_criteria
 
 #endif

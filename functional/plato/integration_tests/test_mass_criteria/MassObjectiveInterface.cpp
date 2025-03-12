@@ -1,10 +1,10 @@
-#include "plato/integration_tests/test_mass_objective/MassObjectiveInterface.hpp"
+#include "plato/integration_tests/test_mass_criteria/MassObjectiveInterface.hpp"
 
-#include "plato/integration_tests/test_mass_objective/MassObjective.hpp"
+#include "plato/integration_tests/test_mass_criteria/MassObjective.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 
-namespace plato::integration_tests::test_mass_objective
+namespace plato::integration_tests::test_mass_criteria
 {
 double MassObjectiveInterface::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
@@ -22,15 +22,15 @@ std::vector<double> MassObjectiveInterface::gradient(const analysis::AnalysisDom
 
     return std::vector<double>(tGradientSize, 1.0);
 }
-}  // namespace plato::integration_tests::test_mass_objective
+}  // namespace plato::integration_tests::test_mass_criteria
 
 std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_criterion(const std::vector<std::string>&)
 {
-    return std::make_unique<::plato::integration_tests::test_mass_objective::MassObjectiveInterface>();
+    return std::make_unique<::plato::integration_tests::test_mass_criteria::MassObjectiveInterface>();
 }
 
 std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_test_mass_criterion(
     const std::vector<std::string>&)
 {
-    return std::make_unique<::plato::integration_tests::test_mass_objective::MassObjectiveInterface>();
+    return std::make_unique<::plato::integration_tests::test_mass_criteria::MassObjectiveInterface>();
 }

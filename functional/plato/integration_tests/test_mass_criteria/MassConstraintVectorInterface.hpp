@@ -3,7 +3,7 @@
 
 #include "plato/criteria/library/VectorCriterionInterface.hpp"
 
-namespace plato::integration_tests::test_vector_constraint
+namespace plato::integration_tests::test_mass_criteria
 {
 constexpr double kDensity = 2.5;
 
@@ -25,9 +25,12 @@ class MassConstraintInterface : public criteria::library::VectorCriterionInterfa
     std::vector<double> rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                                       const std::vector<double>& aDualVector) const override;
 };
-}  // namespace plato::integration_tests::test_vector_constraint
+}  // namespace plato::integration_tests::test_mass_criteria
 
-extern "C" auto plato_create_criterion(const std::vector<std::string>&)
+extern "C" auto plato_create_vector_criterion(const std::vector<std::string>&)
+    -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>;
+
+extern "C" auto plato_create_vector_test_mass_criterion(const std::vector<std::string>&)
     -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>;
 
 #endif

@@ -7,7 +7,7 @@
 
 #include "plato/criteria/library/CriterionInterface.hpp"
 
-namespace plato::integration_tests::test_mass_objective
+namespace plato::integration_tests::test_mass_criteria
 {
 /// @brief Parallel version of a test criterion that computes the mass of a mesh.
 ///
@@ -33,7 +33,7 @@ class ParallelMassObjectiveInterface : public criteria::library::CriterionInterf
    private:
     boost::mpi::communicator mComm;
 };
-}  // namespace plato::integration_tests::test_mass_objective
+}  // namespace plato::integration_tests::test_mass_criteria
 
 extern "C" std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_parallel_criterion(
     const std::vector<std::string>&, const MPI_Comm aComm);

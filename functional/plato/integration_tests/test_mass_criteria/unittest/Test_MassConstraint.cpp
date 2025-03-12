@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "plato/integration_tests/test_vector_constraint/MassConstraint.hpp"
+#include "plato/integration_tests/test_mass_criteria/MassConstraint.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
-namespace plato::integration_tests::test_vector_constraint::unittest
+namespace plato::integration_tests::test_mass_criteria::unittest
 {
 
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
@@ -21,4 +21,4 @@ TEST_F(OneBlock3x1x1HexMesh, MassConstraintMasses)
     EXPECT_DOUBLE_EQ(tResult[2], tExpectedMasses[2]);
 }
 
-}  // namespace plato::integration_tests::test_vector_constraint::unittest
+}  // namespace plato::integration_tests::test_mass_criteria::unittest
