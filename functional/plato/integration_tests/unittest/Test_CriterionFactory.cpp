@@ -36,7 +36,8 @@ TEST_F(CriterionFactoryTestFixture, ValidObjective)
         test_utilities::create_valid_example_rol_optimization() | test_utilities::create_valid_identity_filter());
 
     ASSERT_EQ(tData.objectives().rawInput().size(), 1);
-    EXPECT_NO_THROW(auto tFunction = criteria::library::make_criterion_function(tData.objectives().rawInput().front()));
+    EXPECT_NO_THROW(auto tFunction = criteria::library::make_criterion_function<criteria::library::CriterionFunction>(
+                        tData.objectives().rawInput().front()));
 }
 
 TEST_F(CriterionFactoryTestFixture, ValidConstraint)
@@ -47,8 +48,8 @@ TEST_F(CriterionFactoryTestFixture, ValidConstraint)
         test_utilities::create_valid_identity_filter());
 
     ASSERT_EQ(tData.constraints().rawInput().size(), 1);
-    EXPECT_NO_THROW(auto tFunction =
-                        criteria::library::make_criterion_function(tData.constraints().rawInput().front()));
+    EXPECT_NO_THROW(auto tFunction = criteria::library::make_criterion_function<criteria::library::CriterionFunction>(
+                        tData.constraints().rawInput().front()));
 }
 
 TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)

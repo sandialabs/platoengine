@@ -31,8 +31,8 @@ void test_constraint_type_and_value(
     EXPECT_EQ(aConstraint.mConstraintType, aType);
 }
 
-criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&> get_first_constraint(
-    const input_parser::ParsedInput& aInput)
+[[nodiscard]] auto get_first_constraint(const input_parser::ParsedInput& aInput)
+    -> criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>
 {
     const auto tData = process_manager::library::make_validated_input(aInput);
     return criteria::library::detail::make_constraint(tData.constraints().rawInput().front());

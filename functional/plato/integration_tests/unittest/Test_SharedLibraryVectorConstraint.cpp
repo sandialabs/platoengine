@@ -7,6 +7,7 @@
 #include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
 #include "plato/integration_tests/test_vector_constraint/MassConstraintVectorInterface.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
+#include "plato/test_utilities/Containers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::integration_tests::serial
@@ -47,13 +48,15 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallValue)
     const auto tSharedLibrary = test_shared_library_criterion();
     const auto tMasses = tSharedLibrary.value(analysis::AnalysisDomainMesh{mMeshFilePath, {}}).stdVector();
 
-    EXPECT_EQ(tMasses.size(), mExpectedNumberOfElements);
-
-    for (const auto tMass : tMasses)
-    {
-        EXPECT_DOUBLE_EQ(tMass, test_vector_constraint::kDensity);
-    }
+    const auto tExpected = std::vector<double>(mExpectedNumberOfElements, test_vector_constraint::kDensity);
+    constexpr auto tTolerance = 1e-15;
+    test_utilities::expect_container_entries_near(tExpected, tMasses, tTolerance,
+                                                  TEST_CONTEXT("Vector mass density value"));
 }
+
+TEST_F(OneBlock3x1x1HexMesh, MakeCriterionFunctionAndCallValue) {}
+
+TEST_F(OneBlock3x1x1HexMesh, MakeConstraintAndCallValue) {}
 
 TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallJacobianTimesVector)
 {

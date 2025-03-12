@@ -31,6 +31,7 @@ input_parser::objective valid_mass_objective_input(const boost::mpi::communicato
 TEST(CriterionFactory, ValidObjective)
 {
     namespace ptu = plato::test_utilities;
+    namespace pcl = plato::criteria::library;
 
     const auto tComm = boost::mpi::communicator{};
     const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tComm);
@@ -43,7 +44,7 @@ TEST(CriterionFactory, ValidObjective)
 
     EXPECT_GT(tComm.size(), 1);
     ASSERT_FALSE(tData.objectives().rawInput().empty());
-    EXPECT_NO_THROW([[maybe_unused]] auto tFunction =
-                        criteria::library::make_criterion_function(tData.objectives().rawInput().front(), tComm));
+    EXPECT_NO_THROW([[maybe_unused]] auto tFunction = pcl::make_criterion_function<pcl::CriterionFunction>(
+                        tData.objectives().rawInput().front(), tComm));
 }
 }  // namespace plato::integration_tests::parallel

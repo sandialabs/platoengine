@@ -5,7 +5,7 @@
 
 namespace plato::integration_tests::test_vector_constraint
 {
-constexpr double kDensity = 2.3;
+constexpr double kDensity = 2.5;
 
 /// @brief Serial version of a test constraint that bounds a 2D solution within a number of constraints
 class MassConstraintInterface : public criteria::library::VectorCriterionInterface

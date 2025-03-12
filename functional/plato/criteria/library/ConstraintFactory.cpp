@@ -6,6 +6,7 @@
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
 namespace plato::criteria::library
@@ -49,8 +50,8 @@ auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constra
     const bool tIsLinear = tRawInput.is_linear.value_or(false);
 
     const auto tConstraint = Constraint<const analysis::AnalysisDomainMesh&>{
-        tRawInput.name.value_or("Unnamed Constraint"), make_criterion_function(aConstraintInput), tValue, tIsLinear,
-        kConstraintMap.at(tRawInput.constraint_type.value())};
+        tRawInput.name.value_or("Unnamed Constraint"), make_criterion_function<CriterionFunction>(aConstraintInput),
+        tValue, tIsLinear, kConstraintMap.at(tRawInput.constraint_type.value())};
 
     return make_vector_constraint(tConstraint);
 }
