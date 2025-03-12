@@ -1,5 +1,6 @@
 #include "plato/integration_tests/test_mass_criteria/MassConstraintVectorInterface.hpp"
 
+#include <cassert>
 #include <numeric>
 
 #include "plato/integration_tests/test_mass_criteria/MassConstraint.hpp"
@@ -14,15 +15,19 @@ std::vector<double> MassConstraintInterface::value(const analysis::AnalysisDomai
 }
 
 std::vector<double> MassConstraintInterface::rowVectorTimesJacobian(
-    const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const std::vector<double>& aDirectionVector) const
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, const std::vector<double>&) const
 {
-    return aDirectionVector;
+    auto tMasses = value(aAnalysisDomainMesh);
+    std::fill(tMasses.begin(), tMasses.end(), 0.0);
+    return tMasses;
 }
 
 std::vector<double> MassConstraintInterface::rowVectorTimesAdjointJacobian(
-    const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const std::vector<double>& aDualVector) const
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, const std::vector<double>&) const
 {
-    return {std::accumulate(aDualVector.begin(), aDualVector.end(), 0.0)};
+    assert(aAnalysisDomainMesh.mBlockScalarField.size() == 1U);
+    const auto tOptimizationVectorDimension = aAnalysisDomainMesh.mBlockScalarField.begin()->second.size();
+    return std::vector<double>(tOptimizationVectorDimension, 0.0);
 }
 
 }  // namespace plato::integration_tests::test_mass_criteria
