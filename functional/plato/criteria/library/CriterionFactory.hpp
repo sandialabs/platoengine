@@ -33,9 +33,8 @@ auto make_criterion_function(const Input& aValidatedInput, const AdditionalArgs&
 
     const auto& tRawInput = aValidatedInput.rawInput();
     const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
-    std::optional<CriterionFunction> tCriterion =
-        core::create_object_from_factory<FactoryReturn, CriterionInput, AdditionalArgs...>(
-            tRegistrationName, to_criterion_input(aValidatedInput), aArgs...);
+    auto tCriterion = core::create_object_from_factory<FactoryReturn, CriterionInput, AdditionalArgs...>(
+        tRegistrationName, to_criterion_input(aValidatedInput), aArgs...);
     if (tCriterion)
     {
         return std::move(tCriterion).value();

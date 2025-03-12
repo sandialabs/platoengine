@@ -49,11 +49,23 @@ auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constra
     const double tValue = tRawInput.constraint_value.value();
     const bool tIsLinear = tRawInput.is_linear.value_or(false);
 
-    const auto tConstraint = Constraint<const analysis::AnalysisDomainMesh&>{
-        tRawInput.name.value_or("Unnamed Constraint"), make_criterion_function<CriterionFunction>(aConstraintInput),
-        tValue, tIsLinear, kConstraintMap.at(tRawInput.constraint_type.value())};
+    const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
+    constexpr auto tVectorTraits = CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector};
+    if (is_criterion_function_registered(tRegistrationName, tVectorTraits))
+    {
+        return VectorConstraint<const analysis::AnalysisDomainMesh&>{
+            tRawInput.name.value_or("Unnamed Constraint"),
+            make_criterion_function<VectorCriterionFunction>(aConstraintInput), tValue, tIsLinear,
+            kConstraintMap.at(tRawInput.constraint_type.value())};
+    }
+    else
+    {
+        const auto tConstraint = Constraint<const analysis::AnalysisDomainMesh&>{
+            tRawInput.name.value_or("Unnamed Constraint"), make_criterion_function<CriterionFunction>(aConstraintInput),
+            tValue, tIsLinear, kConstraintMap.at(tRawInput.constraint_type.value())};
 
-    return make_vector_constraint(tConstraint);
+        return make_vector_constraint(tConstraint);
+    }
 }
 
 }  // namespace detail

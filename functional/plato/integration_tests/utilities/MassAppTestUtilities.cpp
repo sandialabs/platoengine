@@ -66,7 +66,7 @@ void write_mass_app_config(const std::string_view& aAppName,
         services::CriterionConfiguration{/*.mName=*/"mass", /*.mIsParallelized=*/true, /*.mIsScalar=*/true,
                                          /*.mFunctionName=*/"plato_create_parallel_test_mass_criterion"};
     const auto tCriterionVectorConfiguration =
-        services::CriterionConfiguration{/*.mName=*/"masscon", /*.mIsParallelized=*/false, /*.mIsScalar=*/false,
+        services::CriterionConfiguration{/*.mName=*/"mass", /*.mIsParallelized=*/false, /*.mIsScalar=*/false,
                                          /*.mFunctionName=*/"plato_create_vector_test_mass_criterion"};
 
     auto tAppConfiguration = services::AppConfiguration{

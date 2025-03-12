@@ -5,8 +5,11 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
+#include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassConstraintVectorInterface.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
+#include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
@@ -26,7 +29,7 @@ constexpr std::string_view kLibPath = "libPlatoTestVectorConstraint.so";
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
 }
 
-[[nodiscard]] auto create_n_step_vector(const unsigned int aSize) -> std::vector<double>
+[[nodiscard]] auto create_n_step_vector(const unsigned int aSize) -> linear_algebra::DynamicVector<double>
 {
     std::vector<double> tVector;
     tVector.reserve(aSize);
@@ -38,7 +41,7 @@ constexpr std::string_view kLibPath = "libPlatoTestVectorConstraint.so";
                         aN++;
                         return tStart + tStep * aN;
                     });
-    return tVector;
+    return linear_algebra::DynamicVector<double>(std::move(tVector));
 }
 
 }  // namespace
@@ -54,14 +57,45 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallValue)
                                                   TEST_CONTEXT("Vector mass density value"));
 }
 
-TEST_F(OneBlock3x1x1HexMesh, MakeCriterionFunctionAndCallValue) { EXPECT_TRUE(false); }
+TEST_F(OneBlock3x1x1HexMesh, MakeCriterionAndCallValue)
+{
+    const auto tAppName = input_parser::AppName{"test-mass-app"};
+    const auto tConfigurationTempDirectory =
+        integration_tests::utilities::register_test_mass_app(tAppName.mToken, boost::mpi::communicator{});
+    const auto tCriterionName = input_parser::CriterionName{"mass"};
+    const auto tValidatedInput = integration_tests::utilities::create_test_mass_vector_constraint_input(
+        tAppName, tCriterionName, std::string{mMeshFilePath});
 
-TEST_F(OneBlock3x1x1HexMesh, MakeConstraintAndCallValue) { EXPECT_TRUE(false); }
+    const auto tCheckMassDensities =
+        [this](const auto& aCriterionFunction, const test_utilities::TestContext& aTestContext)
+    {
+        const auto tMasses = aCriterionFunction.template evaluate<core::evaluation::kFunction>(
+            analysis::AnalysisDomainMesh{mMeshFilePath, {}});
+
+        const auto tExpected = std::vector<double>(mExpectedNumberOfElements, test_mass_criteria::kDensity);
+        constexpr auto tTolerance = 1e-15;
+        test_utilities::expect_container_entries_near(tExpected, tMasses.stdVector(), tTolerance, aTestContext);
+    };
+
+    {
+        const auto tCriterion = criteria::library::make_criterion_function<criteria::library::VectorCriterionFunction>(
+            tValidatedInput.constraints().rawInput().front());
+        tCheckMassDensities(tCriterion, TEST_CONTEXT("Test with make_criterion_function"));
+    }
+    {
+        const auto tConstraints = criteria::library::make_constraints(tValidatedInput.constraints());
+
+        constexpr auto tExpectedNumberOfConstraints = 1U;
+        ASSERT_EQ(tConstraints.size(), tExpectedNumberOfConstraints);
+
+        tCheckMassDensities(tConstraints.front().mConstraintFunction, TEST_CONTEXT("Test with make_constraints"));
+    }
+}
 
 TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallJacobianTimesVector)
 {
     const auto tSharedLibrary = test_shared_library_criterion();
-    const linear_algebra::DynamicVector<double> tDirection(create_n_step_vector(mExpectedNumberOfElements));
+    const auto tDirection = create_n_step_vector(mExpectedNumberOfElements);
     const auto tJacobianTimesVector =
         tSharedLibrary.rowVectorTimesJacobian(analysis::AnalysisDomainMesh{mMeshFilePath, {}}, tDirection).stdVector();
 
@@ -72,7 +106,7 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallJacobianTimesVector)
 TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallAdjointJacobianTimesVector)
 {
     const auto tSharedLibrary = test_shared_library_criterion();
-    const linear_algebra::DynamicVector<double> tDual(create_n_step_vector(mExpectedNumberOfElements));
+    const auto tDual = create_n_step_vector(mExpectedNumberOfElements);
     const auto tAdjointJacobianTimesDual =
         tSharedLibrary.rowVectorTimesAdjointJacobian(analysis::AnalysisDomainMesh{mMeshFilePath, {}}, tDual)
             .stdVector();
