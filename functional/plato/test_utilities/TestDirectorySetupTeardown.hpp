@@ -21,6 +21,12 @@ class [[nodiscard]] TestDirectorySetupTeardown
     explicit TestDirectorySetupTeardown(std::filesystem::path aDirectory, const boost::mpi::communicator& aComm = {});
     ~TestDirectorySetupTeardown();
 
+    TestDirectorySetupTeardown(const TestDirectorySetupTeardown&) = delete;
+    TestDirectorySetupTeardown& operator=(const TestDirectorySetupTeardown&) = delete;
+
+    TestDirectorySetupTeardown(TestDirectorySetupTeardown&&) noexcept;
+    TestDirectorySetupTeardown& operator=(TestDirectorySetupTeardown&&) noexcept;
+
     /// @brief Write a file with name @a aFilename in the directory specified at construction.
     /// @param aWriteFunction Must be callable and have the signature `void(const std::filesystem::path&)` and is
     /// expected to write a file to the argument provided.

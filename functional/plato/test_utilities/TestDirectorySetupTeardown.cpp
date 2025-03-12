@@ -15,11 +15,27 @@ TestDirectorySetupTeardown::TestDirectorySetupTeardown(std::filesystem::path aDi
 
 TestDirectorySetupTeardown::~TestDirectorySetupTeardown()
 {
-    if (mComm.rank() == kRootRank)
+    if (mComm.rank() == kRootRank && !mDirectory.empty())
     {
         std::filesystem::remove_all(mDirectory);
     }
     mComm.barrier();
+}
+
+TestDirectorySetupTeardown::TestDirectorySetupTeardown(TestDirectorySetupTeardown&& aOther) noexcept
+    : mDirectory{std::move(aOther.mDirectory)}, mComm{std::move(aOther.mComm)}
+{
+    aOther.mDirectory.clear();
+}
+
+TestDirectorySetupTeardown& TestDirectorySetupTeardown::operator=(TestDirectorySetupTeardown&& aOther) noexcept
+{
+    if (&aOther != this)
+    {
+        std::swap(aOther.mDirectory, mDirectory);
+        std::swap(aOther.mComm, mComm);
+    }
+    return *this;
 }
 
 const std::filesystem::path& TestDirectorySetupTeardown::directory() const { return mDirectory; }
