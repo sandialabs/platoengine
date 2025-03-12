@@ -11,13 +11,12 @@ namespace plato::criteria::extension
 namespace
 {
 template <typename FunctionSignature, typename... Args>
-std::unique_ptr<library::VectorCriterionInterface> load_criterion_interface(
-    const services::AppConfigurationWithDirectory& aAppConfiguration,
-    const std::string_view aCreateCriterionFunctionName,
-    Args&&... aArgs)
+auto load_criterion_interface(const services::AppConfigurationWithDirectory& aAppConfiguration,
+                              const std::string_view aCreateCriterionFunctionName,
+                              Args&&... aArgs)
 {
-    auto tSharedLibrary = services::SharedLibrarySetupTeardown{services::shared_library_path(aAppConfiguration)};
-    return tSharedLibrary.call<FunctionSignature>(aCreateCriterionFunctionName, std::forward<Args>(aArgs)...);
+    return std::make_unique<VectorCriterionSharedLibraryObject>(services::make_shared_library_object<FunctionSignature>(
+        services::shared_library_path(aAppConfiguration), aCreateCriterionFunctionName, std::forward<Args>(aArgs)...));
 }
 
 using SerialFunctionSignature = std::unique_ptr<library::VectorCriterionInterface>(const std::vector<std::string>&);
@@ -49,7 +48,7 @@ SharedLibraryVectorCriterion::SharedLibraryVectorCriterion(
 auto SharedLibraryVectorCriterion::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
     -> linear_algebra::DynamicVector<double>
 {
-    return linear_algebra::DynamicVector<double>(mCriterionInterface->value(aAnalysisDomainMesh));
+    return linear_algebra::DynamicVector<double>(mCriterionInterface->object()->value(aAnalysisDomainMesh));
 }
 
 auto SharedLibraryVectorCriterion::rowVectorTimesJacobian(
@@ -57,7 +56,7 @@ auto SharedLibraryVectorCriterion::rowVectorTimesJacobian(
     const linear_algebra::DynamicVector<double>& aDirectionVector) const -> linear_algebra::DynamicVector<double>
 {
     return linear_algebra::DynamicVector<double>(
-        mCriterionInterface->rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector.stdVector()));
+        mCriterionInterface->object()->rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector.stdVector()));
 }
 
 auto SharedLibraryVectorCriterion::rowVectorTimesAdjointJacobian(
@@ -65,7 +64,7 @@ auto SharedLibraryVectorCriterion::rowVectorTimesAdjointJacobian(
     const linear_algebra::DynamicVector<double>& aDualVector) const -> linear_algebra::DynamicVector<double>
 {
     return linear_algebra::DynamicVector<double>(
-        mCriterionInterface->rowVectorTimesAdjointJacobian(aAnalysisDomainMesh, aDualVector.stdVector()));
+        mCriterionInterface->object()->rowVectorTimesAdjointJacobian(aAnalysisDomainMesh, aDualVector.stdVector()));
 }
 
 namespace
