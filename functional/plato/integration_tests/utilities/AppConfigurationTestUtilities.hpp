@@ -10,7 +10,14 @@ namespace plato::integration_tests::utilities
 /// The configuration will have an app name of `default` and two criteria named `default`, one serial and one
 /// parallel. The names of the functions are `plato_create_criterion` and `plato_create_parallel_criterion`
 /// respectively.
-services::AppConfigurationWithDirectory test_app_configuration(const std::filesystem::path& aSharedLibPath);
+[[nodiscard]] auto test_scalar_app_configuration(const std::filesystem::path& aSharedLibPath)
+    -> services::AppConfigurationWithDirectory;
+
+/// @brief Returns an AppConfiguration that can be used for testing a shared lib with vector criteria at path @a
+/// aSharedLibPath.
+[[nodiscard]] auto test_vector_app_configuration(const std::filesystem::path& aSharedLibPath)
+    -> services::AppConfigurationWithDirectory;
+
 }  // namespace plato::integration_tests::utilities
 
 #endif

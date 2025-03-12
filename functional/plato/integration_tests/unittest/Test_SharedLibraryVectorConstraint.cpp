@@ -20,7 +20,7 @@ constexpr std::string_view kLibPath = "libPlatoTestVectorConstraint.so";
 
 [[nodiscard]] auto test_shared_library_criterion() -> criteria::extension::SharedLibraryVectorCriterion
 {
-    const auto tTestConfiguration = utilities::test_app_configuration(kLibPath);
+    const auto tTestConfiguration = utilities::test_vector_app_configuration(kLibPath);
     return criteria::extension::SharedLibraryVectorCriterion{
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
 }
@@ -45,13 +45,13 @@ constexpr std::string_view kLibPath = "libPlatoTestVectorConstraint.so";
 TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallValue)
 {
     const auto tSharedLibrary = test_shared_library_criterion();
-    const auto tMass = tSharedLibrary.value(analysis::AnalysisDomainMesh{mMeshFilePath, {}}).stdVector();
+    const auto tMasses = tSharedLibrary.value(analysis::AnalysisDomainMesh{mMeshFilePath, {}}).stdVector();
 
-    EXPECT_EQ(tMass.size(), mExpectedNumberOfElements);
+    EXPECT_EQ(tMasses.size(), mExpectedNumberOfElements);
 
-    for (const auto& iMass : tMass)
+    for (const auto tMass : tMasses)
     {
-        EXPECT_DOUBLE_EQ(iMass, test_vector_constraint::kDensity);
+        EXPECT_DOUBLE_EQ(tMass, test_vector_constraint::kDensity);
     }
 }
 

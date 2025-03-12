@@ -88,7 +88,7 @@ void write_mass_vector_constraint_config(const std::string_view& aAppName,
     const auto tMassLibPath = std::filesystem::relative(mass_vector_constraint_lib_path(), aTestPluginDirectory);
     const auto tCriterionSerialConfiguration =
         services::CriterionConfiguration{/*.mName=*/"masscon", /*.mIsParallelized=*/false, /*.mIsScalar=*/false,
-                                         /*.mFunctionName=*/"plato_create_criterion"};
+                                         /*.mFunctionName=*/"plato_create_vector_test_mass_criterion"};
     auto tAppConfiguration = services::AppConfiguration{/*.mName=*/
                                                         std::string{aAppName},
                                                         /*.mLibraryFileName=*/tMassLibPath.string(),
@@ -104,7 +104,7 @@ auto register_test_mass_app(const std::string_view aAppName, const boost::mpi::c
     -> test_utilities::TestDirectorySetupTeardown
 {
     const auto tTestPluginDirectory = std::filesystem::path{"test-plugin-directory"};
-    const auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{tTestPluginDirectory, aComm};
+    auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{tTestPluginDirectory, aComm};
 
     write_mass_app_config(aAppName, tTestPluginDirectory, tConfigurationTempDirectory, aComm);
     write_mass_vector_constraint_config(aAppName, tTestPluginDirectory, tConfigurationTempDirectory, aComm);

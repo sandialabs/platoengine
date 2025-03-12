@@ -26,7 +26,7 @@ TEST(ParallelMassObjective, CallValueAndGradient)
     auto tComm = boost::mpi::communicator{};
     EXPECT_GT(tComm.size(), 1u);
 
-    const auto tTestConfiguration = utilities::test_app_configuration(kLibPath);
+    const auto tTestConfiguration = utilities::test_scalar_app_configuration(kLibPath);
     // Get parallel criterion:
     const auto tParallelCriterion = std::find_if(tTestConfiguration.mConfiguration.mCriteria.cbegin(),
                                                  tTestConfiguration.mConfiguration.mCriteria.cend(),

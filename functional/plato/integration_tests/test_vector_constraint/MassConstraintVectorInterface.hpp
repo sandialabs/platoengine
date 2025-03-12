@@ -27,7 +27,7 @@ class MassConstraintInterface : public criteria::library::VectorCriterionInterfa
 };
 }  // namespace plato::integration_tests::test_vector_constraint
 
-extern "C" std::unique_ptr<::plato::criteria::library::VectorCriterionInterface> plato_create_criterion(
-    const std::vector<std::string>&);
+extern "C" auto plato_create_criterion(const std::vector<std::string>&)
+    -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>;
 
 #endif

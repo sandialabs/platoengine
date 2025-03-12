@@ -9,7 +9,7 @@ namespace plato::integration_tests::unittest
 {
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 
-TEST_F(OneBlock3x1x1HexMesh, DISABLED_MassVectorConstraintRegisterAndRun)
+TEST_F(OneBlock3x1x1HexMesh, MassVectorConstraintRegisterAndRun)
 {
     const auto tAppName = input_parser::AppName{"test-mass-vec-con"};
     const auto tConfigurationTempDirectory =

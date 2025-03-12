@@ -27,8 +27,8 @@ std::vector<double> MassConstraintInterface::rowVectorTimesAdjointJacobian(
 
 }  // namespace plato::integration_tests::test_vector_constraint
 
-std::unique_ptr<::plato::criteria::library::VectorCriterionInterface> plato_create_criterion(
-    const std::vector<std::string>&)
+auto plato_create_criterion(const std::vector<std::string>&)
+    -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_vector_constraint::MassConstraintInterface>();
 }

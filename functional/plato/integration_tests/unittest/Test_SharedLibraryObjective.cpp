@@ -22,7 +22,7 @@ const auto kMeshGenerator = third_party_integration::stk_io::CommandGenerator{
 void generate_bad_library_and_do_nothing()
 {
     // This function should throw an exception
-    const auto tTestConfiguration = utilities::test_app_configuration("badRobot.so");
+    const auto tTestConfiguration = utilities::test_scalar_app_configuration("badRobot.so");
     const auto tBad = criteria::extension::SharedLibCriterion{
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
     std::cout << tBad.f(analysis::AnalysisDomainMesh{"dne.exo", {}}) << std::endl;
@@ -30,7 +30,7 @@ void generate_bad_library_and_do_nothing()
 
 criteria::extension::SharedLibCriterion test_shared_lib_criterion()
 {
-    const auto tTestConfiguration = utilities::test_app_configuration(kLibPath);
+    const auto tTestConfiguration = utilities::test_scalar_app_configuration(kLibPath);
     return criteria::extension::SharedLibCriterion{
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
 }

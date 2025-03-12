@@ -11,7 +11,6 @@ set(LINK_LIBS PlatoFunctionalCriteria
               PlatoFunctionalMesh)
 create_plato_library(PlatoTestVectorConstraint test_vector_constraint "${LINK_LIBS}")
 
-
 set(LINK_LIBS PlatoFunctionalLinearAlgebra
               PlatoFunctionalCore
               PlatoFunctionalTestUtilities)
@@ -23,11 +22,17 @@ set(LINK_LIBS PlatoFunctionalTpetra
               PlatoFunctionalSTKIO
               PlatoFunctionalSTKIOTestUtilities
               PlatoFunctional
-              PlatoFunctionalIntegrationTestUtilities
-              PlatoTestMassObjective
-              PlatoTestVectorConstraint)
-set(USE_FOLDERS unittest test_mass_objective/unittest test_vector_constraint/unittest)
+              PlatoFunctionalIntegrationTestUtilities)
+set(USE_FOLDERS unittest)
 create_plato_integration_tester(PlatoFunctional_IntegrationUnitTester "${USE_FOLDERS}" "${LINK_LIBS}")
+
+set(LINK_LIBS PlatoFunctionalSTKIO
+              PlatoFunctionalSTKIOTestUtilities
+              PlatoFunctionalProcessManager
+              PlatoTestMassObjective
+              PlatoTestVectorConstraint )
+set(USE_FOLDERS test_mass_objective/unittest test_vector_constraint/unittest)
+create_plato_integration_tester(PlatoFunctional_IntegrationMassLibUnitTester "${USE_FOLDERS}" "${LINK_LIBS}")
 
 # Parallel tests
 set(LINK_LIBS PlatoFunctional 
