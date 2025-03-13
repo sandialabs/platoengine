@@ -13,6 +13,7 @@
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -141,37 +142,39 @@ TEST(PluginCriteria, RegisterApps)
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
     EXPECT_EQ(tNumRegistered, 4U);
 
+    const auto tCheckIsCriterionRegistered = [](const std::string_view aFunctionName,
+                                                const library::CriterionTraits aRegisteredTraits,
+                                                const std::vector<library::CriterionTraits>& aUnregisteredTraits,
+                                                const test_utilities::TestContext& aTestContext)
+    {
+        EXPECT_TRUE(library::is_criterion_function_registered(aFunctionName)) << aTestContext;
+        EXPECT_TRUE(library::is_criterion_function_registered(aFunctionName, aRegisteredTraits)) << aTestContext;
+        for (const auto& tUnregisteredTrait : aUnregisteredTraits)
+        {
+            EXPECT_FALSE(library::is_criterion_function_registered(aFunctionName, tUnregisteredTrait)) << aTestContext;
+        }
+    };
+
     const auto tVampireFunctionName = library::criterion_registration_name(
         input_parser::AppName{tVampireAppName}, input_parser::CriterionName{kTestCriterionName});
-    EXPECT_TRUE(library::is_criterion_function_registered(tVampireFunctionName));
-    EXPECT_TRUE(library::is_criterion_function_registered(tVampireFunctionName, kParallelScalar));
-    EXPECT_FALSE(library::is_criterion_function_registered(tVampireFunctionName, kSerialScalar));
-    EXPECT_FALSE(library::is_criterion_function_registered(tVampireFunctionName, kSerialVector));
-    EXPECT_FALSE(library::is_criterion_function_registered(tVampireFunctionName, kParallelVector));
+    tCheckIsCriterionRegistered(tVampireFunctionName, kParallelScalar, {kSerialScalar, kSerialVector, kParallelVector},
+                                TEST_CONTEXT("Parallel scalar registered"));
 
     const auto tMummyFunctionName = library::criterion_registration_name(
         input_parser::AppName{tMummyAppName}, input_parser::CriterionName{kTestCriterionName});
-    EXPECT_TRUE(library::is_criterion_function_registered(tMummyFunctionName));
-    EXPECT_TRUE(library::is_criterion_function_registered(tMummyFunctionName, kSerialScalar));
-    EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kParallelScalar));
-    EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kSerialVector));
-    EXPECT_FALSE(library::is_criterion_function_registered(tMummyFunctionName, kParallelVector));
+    tCheckIsCriterionRegistered(tMummyFunctionName, kSerialScalar, {kParallelScalar, kSerialVector, kParallelVector},
+                                TEST_CONTEXT("Serial scalar registered"));
 
     const auto tZombieFunctionName = library::criterion_registration_name(
         input_parser::AppName{tZombieAppName}, input_parser::CriterionName{kTestCriterionName});
-    EXPECT_TRUE(library::is_criterion_function_registered(tZombieFunctionName));
-    EXPECT_TRUE(library::is_criterion_function_registered(tZombieFunctionName, kSerialVector));
-    EXPECT_FALSE(library::is_criterion_function_registered(tZombieFunctionName, kParallelScalar));
-    EXPECT_FALSE(library::is_criterion_function_registered(tZombieFunctionName, kSerialScalar));
-    EXPECT_FALSE(library::is_criterion_function_registered(tZombieFunctionName, kParallelVector));
+    tCheckIsCriterionRegistered(tZombieFunctionName, kSerialVector, {kSerialScalar, kParallelScalar, kParallelVector},
+                                TEST_CONTEXT("Serial vector registered"));
 
     const auto tDraculaFunctionName = library::criterion_registration_name(
         input_parser::AppName{tDraculaAppName}, input_parser::CriterionName{kTestCriterionName});
-    EXPECT_TRUE(library::is_criterion_function_registered(tDraculaFunctionName, kParallelVector));
-    EXPECT_TRUE(library::is_criterion_function_registered(tDraculaFunctionName));
-    EXPECT_FALSE(library::is_criterion_function_registered(tDraculaFunctionName, kParallelScalar));
-    EXPECT_FALSE(library::is_criterion_function_registered(tDraculaFunctionName, kSerialScalar));
-    EXPECT_FALSE(library::is_criterion_function_registered(tDraculaFunctionName, kSerialVector));
+    tCheckIsCriterionRegistered(tDraculaFunctionName, kParallelVector,
+                                {kSerialScalar, kParallelScalar, kParallelScalar},
+                                TEST_CONTEXT("Parallel vector registered"));
 }
 
 TEST(PluginCriteria, ValidateValidApps)

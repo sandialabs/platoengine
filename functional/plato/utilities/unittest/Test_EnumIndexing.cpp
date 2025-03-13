@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/EnumIndexing.hpp"
+#include "plato/utilities/MultidimensionalRange.hpp"
 
 namespace plato::utilities::unittest
 {
@@ -28,6 +30,22 @@ enum struct Components
     kZ,
     kNumberOfEnumerates,
 };
+
+template <typename TestFunction>
+void check_3d_enum_indexing(const TestFunction& aTestFunction, const test_utilities::TestContext& aTestContext)
+{
+    auto tLinearIndex = 0U;
+    for (const auto& [tComponentValue, tLetterValue, tNumberValue] : MultidimensionalRange{
+             number_of_enumerates<Components>(), number_of_enumerates<Letters>(), number_of_enumerates<Numbers>()})
+    {
+        const auto tNumber = static_cast<Numbers>(tNumberValue);
+        const auto tLetter = static_cast<Letters>(tLetterValue);
+        const auto tComponent = static_cast<Components>(tComponentValue);
+        aTestFunction(tNumber, tLetter, tComponent, tLinearIndex, aTestContext);
+        ++tLinearIndex;
+    }
+    EXPECT_EQ(tLinearIndex, (number_of_enumerates<Numbers, Letters, Components>())) << aTestContext;
+}
 
 }  // namespace
 
@@ -63,26 +81,11 @@ TEST(EnumIndexing, TwoD)
 
 TEST(EnumIndexing, ThreeD)
 {
-    EXPECT_EQ(enum_index(Numbers::kZero, Letters::kA, Components::kX), 0U);
-    EXPECT_EQ(enum_index(Numbers::kOne, Letters::kA, Components::kX), 1U);
-    EXPECT_EQ(enum_index(Numbers::kTwo, Letters::kA, Components::kX), 2U);
-    EXPECT_EQ(enum_index(Numbers::kZero, Letters::kB, Components::kX), 3U);
-    EXPECT_EQ(enum_index(Numbers::kOne, Letters::kB, Components::kX), 4U);
-    EXPECT_EQ(enum_index(Numbers::kTwo, Letters::kB, Components::kX), 5U);
+    const auto tTestFunction = [](const Numbers aNumber, const Letters aLetter, const Components aComponent,
+                                  const std::size_t aLinearIndex, const test_utilities::TestContext& aTestContext)
+    { EXPECT_EQ(enum_index(aNumber, aLetter, aComponent), aLinearIndex) << aTestContext; };
 
-    EXPECT_EQ(enum_index(Numbers::kZero, Letters::kA, Components::kY), 6U);
-    EXPECT_EQ(enum_index(Numbers::kOne, Letters::kA, Components::kY), 7U);
-    EXPECT_EQ(enum_index(Numbers::kTwo, Letters::kA, Components::kY), 8U);
-    EXPECT_EQ(enum_index(Numbers::kZero, Letters::kB, Components::kY), 9U);
-    EXPECT_EQ(enum_index(Numbers::kOne, Letters::kB, Components::kY), 10U);
-    EXPECT_EQ(enum_index(Numbers::kTwo, Letters::kB, Components::kY), 11U);
-
-    EXPECT_EQ(enum_index(Numbers::kZero, Letters::kA, Components::kZ), 12U);
-    EXPECT_EQ(enum_index(Numbers::kOne, Letters::kA, Components::kZ), 13U);
-    EXPECT_EQ(enum_index(Numbers::kTwo, Letters::kA, Components::kZ), 14U);
-    EXPECT_EQ(enum_index(Numbers::kZero, Letters::kB, Components::kZ), 15U);
-    EXPECT_EQ(enum_index(Numbers::kOne, Letters::kB, Components::kZ), 16U);
-    EXPECT_EQ(enum_index(Numbers::kTwo, Letters::kB, Components::kZ), 17U);
+    check_3d_enum_indexing(tTestFunction, TEST_CONTEXT("Enums to index"));
 }
 
 TEST(EnumIndexing, EnumsFromINdex1D)
@@ -94,61 +97,26 @@ TEST(EnumIndexing, EnumsFromINdex1D)
 
 TEST(EnumIndexing, EnumsFromINdex2D)
 {
-    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(0U)), Numbers::kZero);
-    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(1U)), Numbers::kOne);
-    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(2U)), Numbers::kTwo);
-    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(0U)), Letters::kA);
-    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(1U)), Letters::kA);
-    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(2U)), Letters::kA);
+    EXPECT_EQ((enums_from_index<Numbers, Letters>(0U)), std::make_tuple(Numbers::kZero, Letters::kA));
+    EXPECT_EQ((enums_from_index<Numbers, Letters>(1U)), std::make_tuple(Numbers::kOne, Letters::kA));
+    EXPECT_EQ((enums_from_index<Numbers, Letters>(2U)), std::make_tuple(Numbers::kTwo, Letters::kA));
 
-    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(3U)), Numbers::kZero);
-    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(4U)), Numbers::kOne);
-    EXPECT_EQ(std::get<0>(enums_from_index<Numbers, Letters>(5U)), Numbers::kTwo);
-    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(3U)), Letters::kB);
-    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(4U)), Letters::kB);
-    EXPECT_EQ(std::get<1>(enums_from_index<Numbers, Letters>(5U)), Letters::kB);
+    EXPECT_EQ((enums_from_index<Numbers, Letters>(3U)), std::make_tuple(Numbers::kZero, Letters::kB));
+    EXPECT_EQ((enums_from_index<Numbers, Letters>(4U)), std::make_tuple(Numbers::kOne, Letters::kB));
+    EXPECT_EQ((enums_from_index<Numbers, Letters>(5U)), std::make_tuple(Numbers::kTwo, Letters::kB));
 }
 
-TEST(EnumIndexing, EnumsFromINdex3D)
+TEST(EnumIndexing, EnumsFromIndex3D)
 {
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(0U)),
-              std::make_tuple(Numbers::kZero, Letters::kA, Components::kX));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(1U)),
-              std::make_tuple(Numbers::kOne, Letters::kA, Components::kX));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(2U)),
-              std::make_tuple(Numbers::kTwo, Letters::kA, Components::kX));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(3U)),
-              std::make_tuple(Numbers::kZero, Letters::kB, Components::kX));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(4U)),
-              std::make_tuple(Numbers::kOne, Letters::kB, Components::kX));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(5U)),
-              std::make_tuple(Numbers::kTwo, Letters::kB, Components::kX));
+    const auto tTestFunction = [](const Numbers aNumber, const Letters aLetter, const Components aComponent,
+                                  const std::size_t aLinearIndex, const test_utilities::TestContext& aTestContext)
+    {
+        EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(aLinearIndex)),
+                  std::make_tuple(aNumber, aLetter, aComponent))
+            << aTestContext;
+    };
 
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(6U)),
-              std::make_tuple(Numbers::kZero, Letters::kA, Components::kY));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(7U)),
-              std::make_tuple(Numbers::kOne, Letters::kA, Components::kY));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(8U)),
-              std::make_tuple(Numbers::kTwo, Letters::kA, Components::kY));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(9U)),
-              std::make_tuple(Numbers::kZero, Letters::kB, Components::kY));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(10U)),
-              std::make_tuple(Numbers::kOne, Letters::kB, Components::kY));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(11U)),
-              std::make_tuple(Numbers::kTwo, Letters::kB, Components::kY));
-
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(12U)),
-              std::make_tuple(Numbers::kZero, Letters::kA, Components::kZ));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(13U)),
-              std::make_tuple(Numbers::kOne, Letters::kA, Components::kZ));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(14U)),
-              std::make_tuple(Numbers::kTwo, Letters::kA, Components::kZ));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(15U)),
-              std::make_tuple(Numbers::kZero, Letters::kB, Components::kZ));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(160U)),
-              std::make_tuple(Numbers::kOne, Letters::kB, Components::kZ));
-    EXPECT_EQ((enums_from_index<Numbers, Letters, Components>(17U)),
-              std::make_tuple(Numbers::kTwo, Letters::kB, Components::kZ));
+    check_3d_enum_indexing(tTestFunction, TEST_CONTEXT("Index to enums"));
 }
 
 TEST(EnumIndexing, NumberOfEnumerates)
