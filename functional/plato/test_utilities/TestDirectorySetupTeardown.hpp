@@ -3,6 +3,7 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <filesystem>
+#include <optional>
 
 namespace plato::test_utilities
 {
@@ -22,10 +23,10 @@ class [[nodiscard]] TestDirectorySetupTeardown
     ~TestDirectorySetupTeardown();
 
     TestDirectorySetupTeardown(const TestDirectorySetupTeardown&) = delete;
-    TestDirectorySetupTeardown& operator=(const TestDirectorySetupTeardown&) = delete;
+    auto operator=(const TestDirectorySetupTeardown&) -> TestDirectorySetupTeardown& = delete;
 
     TestDirectorySetupTeardown(TestDirectorySetupTeardown&&) noexcept;
-    TestDirectorySetupTeardown& operator=(TestDirectorySetupTeardown&&) noexcept;
+    auto operator=(TestDirectorySetupTeardown&&) noexcept -> TestDirectorySetupTeardown&;
 
     /// @brief Write a file with name @a aFilename in the directory specified at construction.
     /// @param aWriteFunction Must be callable and have the signature `void(const std::filesystem::path&)` and is
@@ -33,29 +34,43 @@ class [[nodiscard]] TestDirectorySetupTeardown
     /// @param aFilename A path relative to the test directory created on construction.
     /// @pre @a aFilename must be a relative path or filename, checked with an assertion.
     template <typename WriteFunction>
-    const TestDirectorySetupTeardown& writeFile(const WriteFunction& aWriteFunction,
-                                                const std::filesystem::path& aFilename) const;
+    auto writeFile(const WriteFunction& aWriteFunction, const std::filesystem::path& aFilename) const
+        -> const TestDirectorySetupTeardown&;
 
     /// @brief Get the directory created on construction.
-    [[nodiscard]] const std::filesystem::path& directory() const;
+    [[nodiscard]] auto directory() const -> const std::filesystem::path&;
 
    private:
-    std::filesystem::path mDirectory;
-    boost::mpi::communicator mComm;
+    template <typename Function, typename... Args>
+    void executeOnRootIfValid(const Function& aFunction, Args&&... aArgs) const;
+
+    std::optional<std::filesystem::path> mDirectory;
+    std::optional<boost::mpi::communicator> mComm;
     static constexpr int kRootRank = 0;
 };
 
 template <typename WriteFunction>
-const TestDirectorySetupTeardown& TestDirectorySetupTeardown::writeFile(const WriteFunction& aWriteFunction,
-                                                                        const std::filesystem::path& aFilename) const
+auto TestDirectorySetupTeardown::writeFile(const WriteFunction& aWriteFunction,
+                                           const std::filesystem::path& aFilename) const
+    -> const TestDirectorySetupTeardown&
 {
     assert(aFilename.is_relative());
-    if (mComm.rank() == kRootRank)
-    {
-        aWriteFunction(mDirectory / aFilename);
-    }
-    mComm.barrier();
+    executeOnRootIfValid(aWriteFunction, mDirectory.value_or("/") / aFilename);
     return *this;
+}
+
+template <typename Function, typename... Args>
+void TestDirectorySetupTeardown::executeOnRootIfValid(const Function& aFunction, Args&&... aArgs) const
+{
+    if (!mDirectory.has_value() || !mComm.has_value())
+    {
+        return;
+    }
+    if (mComm->rank() == kRootRank)
+    {
+        aFunction(std::forward<Args>(aArgs)...);
+    }
+    mComm->barrier();
 }
 
 }  // namespace plato::test_utilities

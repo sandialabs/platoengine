@@ -6,29 +6,21 @@ TestDirectorySetupTeardown::TestDirectorySetupTeardown(std::filesystem::path aDi
                                                        const boost::mpi::communicator& aComm)
     : mDirectory{std::move(aDirectory)}, mComm{aComm}
 {
-    if (mComm.rank() == kRootRank)
-    {
-        std::filesystem::create_directories(mDirectory);
-    }
-    mComm.barrier();
+    executeOnRootIfValid([this]() { std::filesystem::create_directories(mDirectory.value()); });
 }
 
 TestDirectorySetupTeardown::~TestDirectorySetupTeardown()
 {
-    if (mComm.rank() == kRootRank && !mDirectory.empty())
-    {
-        std::filesystem::remove_all(mDirectory);
-    }
-    mComm.barrier();
+    executeOnRootIfValid([this]() { std::filesystem::remove_all(mDirectory.value()); });
 }
 
 TestDirectorySetupTeardown::TestDirectorySetupTeardown(TestDirectorySetupTeardown&& aOther) noexcept
     : mDirectory{std::move(aOther.mDirectory)}, mComm{std::move(aOther.mComm)}
 {
-    aOther.mDirectory.clear();
+    aOther.mDirectory.reset();
 }
 
-TestDirectorySetupTeardown& TestDirectorySetupTeardown::operator=(TestDirectorySetupTeardown&& aOther) noexcept
+auto TestDirectorySetupTeardown::operator=(TestDirectorySetupTeardown&& aOther) noexcept -> TestDirectorySetupTeardown&
 {
     if (&aOther != this)
     {
@@ -38,6 +30,10 @@ TestDirectorySetupTeardown& TestDirectorySetupTeardown::operator=(TestDirectoryS
     return *this;
 }
 
-const std::filesystem::path& TestDirectorySetupTeardown::directory() const { return mDirectory; }
+auto TestDirectorySetupTeardown::directory() const -> const std::filesystem::path&
+{
+    assert(mDirectory.has_value());
+    return mDirectory.value();
+}
 
 }  // namespace plato::test_utilities
