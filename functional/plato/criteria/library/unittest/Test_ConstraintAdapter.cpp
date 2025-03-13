@@ -99,9 +99,6 @@ TEST(ConstraintAdaptor, MakeVectorConstraint)
 
     ASSERT_EQ(tVectorResult.size(), 1u);
     EXPECT_EQ(tVectorResult[0], tScalarGold);
-
-    const auto tVectorNoOp = make_vector_constraint(tAdaptedConstraint);
-    EXPECT_EQ(tVectorNoOp.mName, tAdaptedConstraint.mName);
 }
 
 }  // namespace plato::criteria::library::unittest

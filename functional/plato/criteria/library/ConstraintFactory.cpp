@@ -45,26 +45,25 @@ namespace detail
 auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>
 {
-    const input_parser::constraint& tRawInput = aConstraintInput.rawInput();
-    const double tValue = tRawInput.constraint_value.value();
-    const bool tIsLinear = tRawInput.is_linear.value_or(false);
-
+    const auto& tRawInput = aConstraintInput.rawInput();
+    const auto tValue = tRawInput.constraint_value.value();
+    const auto tIsLinear = tRawInput.is_linear.value_or(false);
     const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
+    const auto tConstraintType = kConstraintMap.at(tRawInput.constraint_type.value());
+    const auto tConstraintName = tRawInput.name.value_or("Unnamed Constraint");
+
     constexpr auto tVectorTraits = CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector};
     if (is_criterion_function_registered(tRegistrationName, tVectorTraits))
     {
         return VectorConstraint<const analysis::AnalysisDomainMesh&>{
-            tRawInput.name.value_or("Unnamed Constraint"),
-            make_criterion_function<VectorCriterionFunction>(aConstraintInput), tValue, tIsLinear,
-            kConstraintMap.at(tRawInput.constraint_type.value())};
+            tConstraintName, make_criterion_function<VectorCriterionFunction>(aConstraintInput), tValue, tIsLinear,
+            tConstraintType};
     }
     else
     {
-        const auto tConstraint = Constraint<const analysis::AnalysisDomainMesh&>{
-            tRawInput.name.value_or("Unnamed Constraint"), make_criterion_function<CriterionFunction>(aConstraintInput),
-            tValue, tIsLinear, kConstraintMap.at(tRawInput.constraint_type.value())};
-
-        return make_vector_constraint(tConstraint);
+        return make_vector_constraint(Constraint<const analysis::AnalysisDomainMesh&>{
+            tConstraintName, make_criterion_function<CriterionFunction>(aConstraintInput), tValue, tIsLinear,
+            tConstraintType});
     }
 }
 

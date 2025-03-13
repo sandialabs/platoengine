@@ -25,10 +25,6 @@ using VectorFunction = typename VectorConstraint<FunctionArg>::ConstraintFunctio
 template <typename FunctionArg>
 auto make_vector_constraint(const Constraint<FunctionArg>& aConstraint) -> VectorConstraint<FunctionArg>;
 
-/// @brief Constructs a VectorConstraint from a VectorConstraint, which is essentially a no-op.
-template <typename FunctionArg>
-auto make_vector_constraint(VectorConstraint<FunctionArg> aConstraint) -> VectorConstraint<FunctionArg>;
-
 namespace detail
 {
 template <typename FunctionArg>
@@ -57,12 +53,6 @@ auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) ->
     return VectorFunction<FunctionArg>{std::move(tEvaluation), std::move(tJacobian), std::move(tAdjointJacobian)};
 }
 }  // namespace detail
-
-template <typename FunctionArg>
-auto make_vector_constraint(VectorConstraint<FunctionArg> aConstraint) -> VectorConstraint<FunctionArg>
-{
-    return aConstraint;
-}
 
 template <typename FunctionArg>
 auto make_vector_constraint(const Constraint<FunctionArg>& aConstraint) -> VectorConstraint<FunctionArg>
