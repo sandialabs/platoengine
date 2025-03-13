@@ -15,7 +15,7 @@ namespace plato::services
 /// from the shared library. This is useful when the main purpose of loading a shared library is to create a single
 /// object, such as CriterionInterface or FilterInterface.
 template <typename Object>
-class SharedLibraryObject
+class [[nodiscard]] SharedLibraryObject
 {
    public:
     SharedLibraryObject(SharedLibrarySetupTeardown&& aSharedLibrary, Object&& aObject);
