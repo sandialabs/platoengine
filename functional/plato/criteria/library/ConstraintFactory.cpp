@@ -61,9 +61,11 @@ auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constra
     }
     else
     {
-        return make_vector_constraint(Constraint<const analysis::AnalysisDomainMesh&>{
-            tConstraintName, make_criterion_function<CriterionFunction>(aConstraintInput), tValue, tIsLinear,
-            tConstraintType});
+        return VectorConstraint<const analysis::AnalysisDomainMesh&>{
+            tConstraintName,
+            make_vector_function<const analysis::AnalysisDomainMesh&>(
+                make_criterion_function<CriterionFunction>(aConstraintInput)),
+            tValue, tIsLinear, tConstraintType};
     }
 }
 

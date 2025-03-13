@@ -36,21 +36,12 @@ auto make_rosenbrock_function() -> LinearAlgebraFunction
                                  }};
 }
 
-auto make_rosenbrock_constraint() -> Constraint<const linear_algebra::DynamicVector<double>&>
-{
-    constexpr double tValue = 0;
-    constexpr bool tLinear = false;
-    return ConstraintDynamicVector{"Rosenbrock", make_rosenbrock_function(), tValue, tLinear,
-                                   ConstraintType::kLessThan};
-}
-
 }  // namespace
 
 TEST(ConstraintAdaptor, MakeVectorFunction)
 {
     auto tRosenbrock = make_rosenbrock_function();
-    const auto tVectorRosenbrock =
-        detail::make_vector_function<const linear_algebra::DynamicVector<double>&>(tRosenbrock);
+    const auto tVectorRosenbrock = make_vector_function<const linear_algebra::DynamicVector<double>&>(tRosenbrock);
 
     const auto tTestPoint = linear_algebra::DynamicVector<double>({1, 2});
     // Function evaluation
@@ -80,25 +71,6 @@ TEST(ConstraintAdaptor, MakeVectorFunction)
         ASSERT_EQ(tVectorDFResult.size(), 1U);
         EXPECT_EQ(tVectorDFResult[0], tExpected);
     }
-}
-
-TEST(ConstraintAdaptor, MakeVectorConstraint)
-{
-    const auto tConstraint = make_rosenbrock_constraint();
-    const auto tAdaptedConstraint = make_vector_constraint(tConstraint);
-
-    EXPECT_EQ(tConstraint.mName, tAdaptedConstraint.mName);
-    EXPECT_EQ(tConstraint.mConstraintTarget, tAdaptedConstraint.mConstraintTarget);
-    EXPECT_EQ(tConstraint.mLinear, tAdaptedConstraint.mLinear);
-    EXPECT_EQ(tConstraint.mConstraintType, tAdaptedConstraint.mConstraintType);
-
-    const auto tTestPoint = linear_algebra::DynamicVector<double>({1, 2});
-    const auto tScalarGold = tConstraint.mConstraintFunction.evaluate<core::evaluation::kFunction>(tTestPoint);
-    const auto tVectorResult =
-        tAdaptedConstraint.mConstraintFunction.evaluate<core::evaluation::kFunction>(tTestPoint).stdVector();
-
-    ASSERT_EQ(tVectorResult.size(), 1u);
-    EXPECT_EQ(tVectorResult[0], tScalarGold);
 }
 
 }  // namespace plato::criteria::library::unittest
