@@ -32,7 +32,7 @@ namespace plato::integration_tests::utilities
 /// and a vector mass constraint with name @a aMassAppName
 [[nodiscard]] auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMassAppName,
                                                             const input_parser::CriterionName& aCriterionName,
-                                                            const std::string_view aMeshName)
+                                                            const std::filesystem::path& aMeshName)
     -> process_manager::library::ValidatedInput;
 
 /// @brief Creates arbitrary test controls with the associated total volume for a BrickShapeGeometry.
@@ -45,6 +45,14 @@ void register_load_run_test(const boost::mpi::communicator& aComm, const test_ut
 /// @brief Function that tests registration of the test mass vector constraint shared library.
 void register_load_vector_constraint(const test_utilities::TestContext& aTestContext);
 
+/// @brief The name on disk of the shared library. This can be used to load the library in tests.
+[[nodiscard]] constexpr auto mass_app_library_file_name() -> std::string_view;
+
+/// @brief Registers the test mass app shared library and returns a validated input
+[[nodiscard]] auto setup_mass_app_for_test(const std::filesystem::path& aMeshFileName)
+    -> std::pair<test_utilities::TestDirectorySetupTeardown, process_manager::library::ValidatedInput>;
+
+constexpr auto mass_app_library_file_name() -> std::string_view { return "libPlatoTestMassCriteria.so"; }
 }  // namespace plato::integration_tests::utilities
 
 #endif

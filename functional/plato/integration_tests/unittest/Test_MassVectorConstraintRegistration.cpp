@@ -11,13 +11,7 @@ using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 
 TEST_F(OneBlock3x1x1HexMesh, MassVectorConstraintRegisterAndRun)
 {
-    const auto tAppName = input_parser::AppName{"test-mass-app"};
-    const auto tConfigurationTempDirectory =
-        integration_tests::utilities::register_test_mass_app(tAppName.mToken, boost::mpi::communicator{});
-
-    const auto tCriterionName = input_parser::CriterionName{"mass"};
-    const auto tValidatedInput = integration_tests::utilities::create_test_mass_vector_constraint_input(
-        tAppName, tCriterionName, std::string{mMeshFilePath});
+    const auto [tTempDirector, tValidatedInput] = integration_tests::utilities::setup_mass_app_for_test(mMeshFilePath);
 
     const auto tProcessManager = process_manager::library::make_process_managers(tValidatedInput.processManagers());
     ASSERT_EQ(tProcessManager.size(), 2u);

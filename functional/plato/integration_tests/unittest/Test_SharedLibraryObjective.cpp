@@ -5,6 +5,7 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/extension/SharedLibCriterion.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
+#include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -15,7 +16,6 @@ namespace
 {
 // These tests use the mass objective library but through the shared library interface so they are testing the
 // shared library more generically
-constexpr std::string_view kLibPath = "libPlatoTestMassCriteria.so";
 const auto kMeshGenerator = third_party_integration::stk_io::CommandGenerator{
     {1, 1, 1}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
 
@@ -30,7 +30,7 @@ void generate_bad_library_and_do_nothing()
 
 criteria::extension::SharedLibCriterion test_shared_lib_criterion()
 {
-    const auto tTestConfiguration = utilities::test_app_configuration(kLibPath);
+    const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
     return criteria::extension::SharedLibCriterion{
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
 }

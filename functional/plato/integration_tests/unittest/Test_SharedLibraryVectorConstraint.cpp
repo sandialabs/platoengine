@@ -18,15 +18,14 @@ namespace plato::integration_tests::serial
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 namespace
 {
-// These tests use the mass objective library but through the shared library interface so they are testing the
-// shared library more generically
-constexpr std::string_view kLibPath = "libPlatoTestVectorConstraint.so";
-
 [[nodiscard]] auto test_shared_library_criterion() -> criteria::extension::SharedLibraryVectorCriterion
 {
-    const auto tTestConfiguration = utilities::test_app_configuration(kLibPath);
-    return criteria::extension::SharedLibraryVectorCriterion{
-        tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
+    const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
+    const auto tVectorCriterion = std::find_if(tTestConfiguration.mConfiguration.mCriteria.cbegin(),
+                                               tTestConfiguration.mConfiguration.mCriteria.cend(),
+                                               [](const auto& tCriterion) { return !tCriterion.mIsScalar; });
+    assert(tVectorCriterion != tTestConfiguration.mConfiguration.mCriteria.cend());
+    return criteria::extension::SharedLibraryVectorCriterion{tTestConfiguration, *tVectorCriterion, {}};
 }
 
 [[nodiscard]] auto create_n_step_vector(const unsigned int aSize) -> linear_algebra::DynamicVector<double>
@@ -59,12 +58,7 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallValue)
 
 TEST_F(OneBlock3x1x1HexMesh, MakeCriterionAndCallValue)
 {
-    const auto tAppName = input_parser::AppName{"test-mass-app"};
-    const auto tConfigurationTempDirectory =
-        integration_tests::utilities::register_test_mass_app(tAppName.mToken, boost::mpi::communicator{});
-    const auto tCriterionName = input_parser::CriterionName{"mass"};
-    const auto tValidatedInput = integration_tests::utilities::create_test_mass_vector_constraint_input(
-        tAppName, tCriterionName, std::string{mMeshFilePath});
+    const auto [tTempDirector, tValidatedInput] = integration_tests::utilities::setup_mass_app_for_test(mMeshFilePath);
 
     const auto tCheckMassDensities =
         [this](const auto& aCriterionFunction, const test_utilities::TestContext& aTestContext)
@@ -99,21 +93,22 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallJacobianTimesVector)
     const auto tJacobianTimesVector =
         tSharedLibrary.rowVectorTimesJacobian(analysis::AnalysisDomainMesh{mMeshFilePath, {}}, tDirection).stdVector();
 
-    const auto tGold = tDirection.stdVector();
-    EXPECT_EQ(tJacobianTimesVector, tGold);
+    const auto tExpected = std::vector<double>(tDirection.stdVector().size(), 0.0);
+    EXPECT_EQ(tJacobianTimesVector, tExpected);
 }
 
 TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallAdjointJacobianTimesVector)
 {
     const auto tSharedLibrary = test_shared_library_criterion();
     const auto tDual = create_n_step_vector(mExpectedNumberOfElements);
+    const auto tDensityField = analysis::AnalysisDomainMesh::ScalarFieldVector(mCommandGenerator.numberOfNodes());
     const auto tAdjointJacobianTimesDual =
-        tSharedLibrary.rowVectorTimesAdjointJacobian(analysis::AnalysisDomainMesh{mMeshFilePath, {}}, tDual)
+        tSharedLibrary
+            .rowVectorTimesAdjointJacobian(analysis::AnalysisDomainMesh{mMeshFilePath, {{1U, tDensityField}}}, tDual)
             .stdVector();
 
-    const auto tSum = std::accumulate(tDual.stdVector().begin(), tDual.stdVector().end(), 0.0);
-    const std::vector<double> tGold(1, tSum);
-    EXPECT_EQ(tAdjointJacobianTimesDual, tGold);
+    const auto tExpected = std::vector<double>(mCommandGenerator.numberOfNodes(), 0.0);
+    EXPECT_EQ(tAdjointJacobianTimesDual, tExpected);
 }
 
 }  // namespace plato::integration_tests::serial

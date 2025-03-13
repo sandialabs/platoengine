@@ -7,6 +7,7 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/extension/SharedLibCriterion.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
+#include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -15,7 +16,6 @@ namespace plato::integration_tests::parallel
 {
 namespace
 {
-constexpr auto kLibPath = std::string_view{"libPlatoTestMassCriteria.so"};
 constexpr auto kMeshName = std::string_view{"massTest.exo"};
 const auto kMeshGenerator = third_party_integration::stk_io::CommandGenerator{
     /*.mElements=*/{1u, 1u, 1u}, /*.mLowerBounds=*/{-1.0, -1.0, -1.0}, /*.mUpperBounds=*/{1.0, 1.0, 1.0}};
@@ -26,7 +26,7 @@ TEST(ParallelMassObjective, CallValueAndGradient)
     auto tComm = boost::mpi::communicator{};
     EXPECT_GT(tComm.size(), 1u);
 
-    const auto tTestConfiguration = utilities::test_app_configuration(kLibPath);
+    const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
     // Get parallel criterion:
     const auto tParallelCriterion = std::find_if(tTestConfiguration.mConfiguration.mCriteria.cbegin(),
                                                  tTestConfiguration.mConfiguration.mCriteria.cend(),

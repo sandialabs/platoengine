@@ -48,10 +48,7 @@ namespace
     return tMassAppPath;
 }
 
-[[nodiscard]] auto mass_app_lib_path() -> std::filesystem::path
-{
-    return lib_path(std::string_view{"libPlatoTestMassCriteria.so"});
-}
+[[nodiscard]] auto mass_app_lib_path() -> std::filesystem::path { return lib_path(mass_app_library_file_name()); }
 
 void write_mass_app_config(const std::string_view& aAppName,
                            const std::filesystem::path& aTestPluginDirectory,
@@ -123,7 +120,7 @@ auto create_test_mass_app_input(const input_parser::AppName& aMassAppName,
 
 auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMassAppName,
                                               const input_parser::CriterionName& aCriterionName,
-                                              const std::string_view aMeshName)
+                                              const std::filesystem::path& aMeshName)
     -> process_manager::library::ValidatedInput
 {
     auto tConstraint = input_parser::constraint{};
@@ -138,7 +135,7 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
 
     auto [tDensity, tFilter] =
         test_utilities::create_valid_density_topology_geometry_with_element_centered_kernel_filter();
-    tDensity.mesh_name = input_parser::FileName{std::string{aMeshName}};
+    tDensity.mesh_name = input_parser::FileName{aMeshName.string()};
 
     const auto tInput = tObjective | tConstraint | tDensity | tFilter |
                         test_utilities::create_valid_example_rol_optimization() |
@@ -174,4 +171,14 @@ void register_load_run_test(const boost::mpi::communicator& aComm, const test_ut
     EXPECT_DOUBLE_EQ(tResult, tExpectedValue) << aTestContext;
 }
 
+auto setup_mass_app_for_test(const std::filesystem::path& aMeshFileName)
+    -> std::pair<test_utilities::TestDirectorySetupTeardown, process_manager::library::ValidatedInput>
+{
+    const auto tAppName = input_parser::AppName{"test-mass-app"};
+    auto tConfigurationTempDirectory = register_test_mass_app(tAppName.mToken, boost::mpi::communicator{});
+
+    const auto tCriterionName = input_parser::CriterionName{"mass"};
+    return std::make_pair(std::move(tConfigurationTempDirectory),
+                          create_test_mass_vector_constraint_input(tAppName, tCriterionName, aMeshFileName));
+}
 }  // namespace plato::integration_tests::utilities
