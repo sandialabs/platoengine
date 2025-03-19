@@ -12,21 +12,21 @@ namespace plato::criteria::extension::unittest
 
 TEST(CriterionRegistration, NodalSum)
 {
-    EXPECT_TRUE(library::is_criterion_function_registered(
+    EXPECT_TRUE(library::criterion_function_has_traits(
         library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
         library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar}));
 }
 
 TEST(CriterionRegistration, Volume)
 {
-    EXPECT_TRUE(library::is_criterion_function_registered(
+    EXPECT_TRUE(library::criterion_function_has_traits(
         library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
         library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar}));
 }
 
 TEST(CriterionRegistration, VolumeFraction)
 {
-    EXPECT_TRUE(library::is_criterion_function_registered(
+    EXPECT_TRUE(library::criterion_function_has_traits(
         library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
         library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar}));
 }

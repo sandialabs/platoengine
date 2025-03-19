@@ -41,7 +41,7 @@ auto make_rosenbrock_function() -> LinearAlgebraFunction
 TEST(ConstraintAdaptor, MakeVectorFunction)
 {
     auto tRosenbrock = make_rosenbrock_function();
-    const auto tVectorRosenbrock = make_vector_function<const linear_algebra::DynamicVector<double>&>(tRosenbrock);
+    const auto tVectorRosenbrock = to_vector_function<const linear_algebra::DynamicVector<double>&>(tRosenbrock);
 
     const auto tTestPoint = linear_algebra::DynamicVector<double>({1, 2});
     // Function evaluation

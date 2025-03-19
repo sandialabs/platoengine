@@ -53,20 +53,13 @@ auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constra
     const auto tConstraintName = tRawInput.name.value_or("Unnamed Constraint");
 
     constexpr auto tVectorTraits = CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector};
-    if (is_criterion_function_registered(tRegistrationName, tVectorTraits))
-    {
-        return VectorConstraint<const analysis::AnalysisDomainMesh&>{
-            tConstraintName, make_criterion_function<VectorCriterionFunction>(aConstraintInput), tValue, tIsLinear,
-            tConstraintType};
-    }
-    else
-    {
-        return VectorConstraint<const analysis::AnalysisDomainMesh&>{
-            tConstraintName,
-            make_vector_function<const analysis::AnalysisDomainMesh&>(
-                make_criterion_function<CriterionFunction>(aConstraintInput)),
-            tValue, tIsLinear, tConstraintType};
-    }
+    auto tCriterionFunction = criterion_function_has_traits(tRegistrationName, tVectorTraits)
+                                  ? make_criterion_function<VectorCriterionFunction>(aConstraintInput)
+                                  : to_vector_function<const analysis::AnalysisDomainMesh&>(
+                                        make_criterion_function<CriterionFunction>(aConstraintInput));
+
+    return VectorConstraint<const analysis::AnalysisDomainMesh&>{tConstraintName, std::move(tCriterionFunction), tValue,
+                                                                 tIsLinear, tConstraintType};
 }
 
 }  // namespace detail

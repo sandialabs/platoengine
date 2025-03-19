@@ -81,7 +81,7 @@ auto is_criterion_function_registered(const std::string_view aFunctionName) -> b
     return is_criterion_function_registered_in_any_factory(aFunctionName, kFactoryRegistrationTypesSequence);
 }
 
-auto is_criterion_function_registered(const std::string_view aFunctionName, const CriterionTraits aTraits) -> bool
+auto criterion_function_has_traits(const std::string_view aFunctionName, const CriterionTraits aTraits) -> bool
 {
     const auto tIndex = trait_index(aTraits.mParallelization, aTraits.mDimension);
     return is_criterion_function_registered_in_factory_with_index(aFunctionName, tIndex,

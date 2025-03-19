@@ -28,7 +28,7 @@ namespace
 
 TEST(CriterionRegistration, PhonyCriterion)
 {
-    EXPECT_TRUE(plato::criteria::library::is_criterion_function_registered(
+    EXPECT_TRUE(plato::criteria::library::criterion_function_has_traits(
         "test", library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar}));
     EXPECT_TRUE(plato::criteria::library::is_criterion_function_registered("test"));
 }

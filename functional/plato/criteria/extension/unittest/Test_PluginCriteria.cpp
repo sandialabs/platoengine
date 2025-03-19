@@ -118,11 +118,11 @@ TEST(PluginCriteria, NonexistentSharedLibrary)
                                                                     input_parser::CriterionName{kTestCriterionName});
     const auto tSerialScalarTraits =
         library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar};
-    EXPECT_FALSE(library::is_criterion_function_registered(tFunctionName, tSerialScalarTraits));
+    EXPECT_FALSE(library::criterion_function_has_traits(tFunctionName, tSerialScalarTraits));
 
     const auto tParallelScalarTraits =
         library::CriterionTraits{library::Parallelization::kParallel, library::FunctionDimension::kScalar};
-    EXPECT_FALSE(library::is_criterion_function_registered(tFunctionName, tParallelScalarTraits));
+    EXPECT_FALSE(library::criterion_function_has_traits(tFunctionName, tParallelScalarTraits));
 
     EXPECT_FALSE(library::is_criterion_function_registered(tFunctionName));
 }
@@ -148,10 +148,10 @@ TEST(PluginCriteria, RegisterApps)
                                                 const test_utilities::TestContext& aTestContext)
     {
         EXPECT_TRUE(library::is_criterion_function_registered(aFunctionName)) << aTestContext;
-        EXPECT_TRUE(library::is_criterion_function_registered(aFunctionName, aRegisteredTraits)) << aTestContext;
+        EXPECT_TRUE(library::criterion_function_has_traits(aFunctionName, aRegisteredTraits)) << aTestContext;
         for (const auto& tUnregisteredTrait : aUnregisteredTraits)
         {
-            EXPECT_FALSE(library::is_criterion_function_registered(aFunctionName, tUnregisteredTrait)) << aTestContext;
+            EXPECT_FALSE(library::criterion_function_has_traits(aFunctionName, tUnregisteredTrait)) << aTestContext;
         }
     };
 

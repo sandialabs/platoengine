@@ -23,11 +23,11 @@ using VectorFunction = typename VectorConstraint<FunctionArg>::ConstraintFunctio
 /// The purpose of this function is to adapt a scalar constraint function so that it can be used as a vector constraint
 /// function.
 template <typename FunctionArg>
-[[nodiscard]] auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction)
+[[nodiscard]] auto to_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction)
     -> VectorFunction<FunctionArg>;
 
 template <typename FunctionArg>
-auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) -> VectorFunction<FunctionArg>
+auto to_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) -> VectorFunction<FunctionArg>
 {
     auto tEvaluation = [aScalarFunction](FunctionArg aFunctionArg)
     {

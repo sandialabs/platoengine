@@ -68,7 +68,7 @@ constexpr bool kPrintFlag = true;
 
     auto tConstraint = criteria::library::VectorConstraint<FunctionArgumentType>{
         "Line",
-        criteria::library::make_vector_function<FunctionArgumentType>(
+        criteria::library::to_vector_function<FunctionArgumentType>(
             make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{})),
         tSumConstraintTarget, tLineLinear, criteria::library::ConstraintType::kLessThan};
 
@@ -85,7 +85,7 @@ constexpr bool kPrintFlag = true;
 
     auto tConstraint = criteria::library::VectorConstraint<FunctionArgumentType>{
         "Circle",
-        criteria::library::make_vector_function<FunctionArgumentType>(
+        criteria::library::to_vector_function<FunctionArgumentType>(
             make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{tCenter, 2})),
         tCircleConstraintTarget, tCircleLinear, criteria::library::ConstraintType::kLessThan};
     auto tROLConstraint = third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
