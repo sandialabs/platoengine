@@ -88,14 +88,14 @@ TEST(EnumIndexing, ThreeD)
     check_3d_enum_indexing(tTestFunction, TEST_CONTEXT("Enums to index"));
 }
 
-TEST(EnumIndexing, EnumsFromINdex1D)
+TEST(EnumIndexing, EnumsFromIndex1D)
 {
     EXPECT_EQ(std::get<0>(enums_from_index<Numbers>(0U)), Numbers::kZero);
     EXPECT_EQ(std::get<0>(enums_from_index<Numbers>(1U)), Numbers::kOne);
     EXPECT_EQ(std::get<0>(enums_from_index<Numbers>(2U)), Numbers::kTwo);
 }
 
-TEST(EnumIndexing, EnumsFromINdex2D)
+TEST(EnumIndexing, EnumsFromIndex2D)
 {
     EXPECT_EQ((enums_from_index<Numbers, Letters>(0U)), std::make_tuple(Numbers::kZero, Letters::kA));
     EXPECT_EQ((enums_from_index<Numbers, Letters>(1U)), std::make_tuple(Numbers::kOne, Letters::kA));

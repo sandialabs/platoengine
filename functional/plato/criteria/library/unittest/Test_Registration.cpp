@@ -30,6 +30,7 @@ TEST(CriterionRegistration, PhonyCriterion)
 {
     EXPECT_TRUE(plato::criteria::library::is_criterion_function_registered(
         "test", library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar}));
+    EXPECT_TRUE(plato::criteria::library::is_criterion_function_registered("test"));
 }
 
 TEST(CriterionRegistration, RegistrationNameConfiguration)

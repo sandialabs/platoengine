@@ -79,16 +79,16 @@ template <typename SharedLibWriter>
 
 /// @brief Creates a directory with test AppConfigurations with names given in @a aAppNames and creates
 ///  fake shared libraries so that the app can be correctly registered.
-[[nodiscard]] test_utilities::TestDirectorySetupTeardown create_test_app_configurations_with_fake_shared_libs(
-    const AppConfigVector& aAppConfigs)
+[[nodiscard]] auto create_test_app_configurations_with_fake_shared_libs(const AppConfigVector& aAppConfigs)
+    -> test_utilities::TestDirectorySetupTeardown
 {
     return create_test_app_configurations_impl(aAppConfigs, FakeSharedLibWriter{});
 }
 
 /// @brief Creates a directory with test AppConfigurations with names given in @a aAppNames. This does
 /// not create any shared libraries so that the apps passed to this function will not be registered correctly.
-[[nodiscard]] test_utilities::TestDirectorySetupTeardown create_test_app_configurations(
-    const AppConfigVector& aAppConfigs)
+[[nodiscard]] auto create_test_app_configurations(const AppConfigVector& aAppConfigs)
+    -> test_utilities::TestDirectorySetupTeardown
 {
     return create_test_app_configurations_impl(aAppConfigs, NullSharedLibWriter{});
 }
@@ -172,8 +172,7 @@ TEST(PluginCriteria, RegisterApps)
 
     const auto tDraculaFunctionName = library::criterion_registration_name(
         input_parser::AppName{tDraculaAppName}, input_parser::CriterionName{kTestCriterionName});
-    tCheckIsCriterionRegistered(tDraculaFunctionName, kParallelVector,
-                                {kSerialScalar, kParallelScalar, kParallelScalar},
+    tCheckIsCriterionRegistered(tDraculaFunctionName, kParallelVector, {kSerialScalar, kSerialVector, kParallelScalar},
                                 TEST_CONTEXT("Parallel vector registered"));
 }
 

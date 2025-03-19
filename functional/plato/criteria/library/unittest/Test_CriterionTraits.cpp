@@ -6,20 +6,26 @@ namespace plato::criteria::library::unittest
 {
 TEST(CriterionTraits, ToParallelization)
 {
-    constexpr auto tParallelized = true;
-    EXPECT_EQ(to_parallelization(tParallelized), Parallelization::kParallel);
-
-    constexpr auto tSerial = false;
-    EXPECT_EQ(to_parallelization(tSerial), Parallelization::kSerial);
+    {
+        constexpr auto tIsParallelized = true;
+        EXPECT_EQ(to_parallelization(tIsParallelized), Parallelization::kParallel);
+    }
+    {
+        constexpr auto tIsParallelized = false;
+        EXPECT_EQ(to_parallelization(tIsParallelized), Parallelization::kSerial);
+    }
 }
 
 TEST(CriterionTraits, ToFunctionDimension)
 {
-    constexpr auto tScalar = true;
-    EXPECT_EQ(to_function_dimension(tScalar), FunctionDimension::kScalar);
-
-    constexpr auto tVector = false;
-    EXPECT_EQ(to_function_dimension(tVector), FunctionDimension::kVector);
+    {
+        constexpr auto tIsScalar = true;
+        EXPECT_EQ(to_function_dimension(tIsScalar), FunctionDimension::kScalar);
+    }
+    {
+        constexpr auto tIsScalar = false;
+        EXPECT_EQ(to_function_dimension(tIsScalar), FunctionDimension::kVector);
+    }
 }
 
 TEST(CriterionRegistration, FactoryIndex)
@@ -46,6 +52,13 @@ TEST(CriterionRegistration, FactoryTraitsFromIndex)
     EXPECT_EQ(traits_from_index(2U).mDimension, FunctionDimension::kVector);
     EXPECT_EQ(traits_from_index(3U).mParallelization, Parallelization::kSerial);
     EXPECT_EQ(traits_from_index(3U).mDimension, FunctionDimension::kVector);
+}
+
+TEST(CriterionRegistration, NumberOfTraits)
+{
+    constexpr auto tExpectedNumberOfTraits = static_cast<std::size_t>(Parallelization::kNumberOfEnumerates) *
+                                             static_cast<std::size_t>(FunctionDimension::kNumberOfEnumerates);
+    EXPECT_EQ(tExpectedNumberOfTraits, number_of_traits());
 }
 
 }  // namespace plato::criteria::library::unittest
