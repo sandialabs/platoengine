@@ -9,15 +9,15 @@ namespace plato::integration_tests::test_mass_criteria::unittest
 {
 namespace
 {
-constexpr double tDensity = 2.3;
+constexpr double kDensity = 2.3;
 }
 
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 
 TEST_F(OneBlock3x1x1HexMesh, MassConstraintMasses)
 {
-    const auto tMassConstraint = MassConstraint{tDensity};
-    const auto tExpectedMasses = std::vector(mExpectedNumberOfElements, tDensity);
+    const auto tMassConstraint = MassConstraint{kDensity};
+    const auto tExpectedMasses = std::vector(mExpectedNumberOfElements, kDensity);
     const auto tResult = tMassConstraint.masses(std::string{mMeshFilePath});
     ASSERT_EQ(tResult.size(), 3U);
 
