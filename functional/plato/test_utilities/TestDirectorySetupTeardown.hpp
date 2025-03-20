@@ -66,6 +66,7 @@ void TestDirectorySetupTeardown::executeOnRootIfValid(const Function& aFunction,
     {
         return;
     }
+    mComm->barrier();
     if (mComm->rank() == kRootRank)
     {
         aFunction(std::forward<Args>(aArgs)...);
