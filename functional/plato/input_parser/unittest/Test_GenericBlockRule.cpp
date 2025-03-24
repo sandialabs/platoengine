@@ -18,41 +18,37 @@ constexpr auto kEndToken = std::string_view{"end"};
 constexpr auto kArbitraryBlockName = std::string_view{"arbitrary_block"};
 const auto kArbitraryInput = std::vector{std::string{"lorend"}, std::string{"ipsum"}};
 
-auto parse_generic_block(const std::string& aInput)
+template <typename ParsedType, typename Parser>
+auto parse_generic_block(const std::string& aInput, const Parser& aParser)
 {
     auto tIter = aInput.begin();
-    const auto tParser = GenericBlockParser<std::string::const_iterator>{};
-    auto tData = GenericBlockData{};
+    auto tData = ParsedType{};
     const auto tSkipper = SkipperRule<std::string::const_iterator>{};
-    const auto tParseResult = phrase_parse(tIter, aInput.cend(), tParser, tSkipper.skipperRule(), tData);
+    const auto tParseResult = phrase_parse(tIter, aInput.cend(), aParser, tSkipper.skipperRule(), tData);
     return std::make_tuple(tParseResult, tIter, tData);
 }
 }  // namespace
 
-TEST(GenericBlockToken, ParsesToken)
+TEST(GenericBlockToken, ParsesTokens)
 {
-    const auto tInput = std::string_view{"atok3n-with_special_,chars*and(the)!w0rd=end@"};
-    auto tIter = tInput.begin();
-    auto tData = GenericToken{};
-    const auto tSkipper = SkipperRule<std::string_view::const_iterator>{};
-    const auto tParseResult =
-        phrase_parse(tIter, tInput.cend(), boost::spirit::qi::auto_, tSkipper.skipperRule(), tData);
+    const auto tInput = std::string{"atok3n-with_special_,chars*and(the)!w0rd=end@"};
+    const auto [tParseResult, tResultIterator, tParsedData] =
+        parse_generic_block<GenericToken>(tInput, boost::spirit::qi::auto_);
+
     EXPECT_TRUE(tParseResult);
-    EXPECT_EQ(tInput, tData.mToken);
-    EXPECT_EQ(tIter, tInput.cend());
+    EXPECT_EQ(tInput, tParsedData.mToken);
+    EXPECT_EQ(tResultIterator, tInput.cend());
 }
 
 TEST(GenericBlockToken, DoesNotParseEnd)
 {
-    const auto tInput = std::string_view{"end"};
-    auto tIter = tInput.begin();
-    auto tData = GenericToken{};
-    const auto tSkipper = SkipperRule<std::string_view::const_iterator>{};
-    const auto tParseResult =
-        phrase_parse(tIter, tInput.cend(), boost::spirit::qi::auto_, tSkipper.skipperRule(), tData);
+    const auto tInput = std::string{"end"};
+    const auto [tParseResult, tResultIterator, tParsedData] =
+        parse_generic_block<GenericToken>(tInput, boost::spirit::qi::auto_);
+
     EXPECT_FALSE(tParseResult);
-    EXPECT_NE(tIter, tInput.cend());
-    const auto tUnparsedText = std::string(tIter, tInput.cend());
+    EXPECT_NE(tResultIterator, tInput.cend());
+    const auto tUnparsedText = std::string(tResultIterator, tInput.cend());
     EXPECT_EQ(tUnparsedText, tInput);
 }
 
@@ -60,7 +56,9 @@ TEST(GenericBlockRule, ParsesValidInput)
 {
     const auto tCheckForValidInput = [](const std::string& aInput, const test_utilities::TestContext& aTestContext)
     {
-        const auto [tParseResult, tResultIterator, tParsedData] = parse_generic_block(aInput);
+        const auto tParser = GenericBlockParser<std::string::const_iterator>{};
+        const auto [tParseResult, tResultIterator, tParsedData] =
+            parse_generic_block<GenericBlockData>(aInput, tParser);
 
         EXPECT_TRUE(tParseResult) << aTestContext;
         EXPECT_EQ(tResultIterator, aInput.cend()) << "Unparsed text: " << std::string{tResultIterator, aInput.cend()};
@@ -93,7 +91,9 @@ TEST(GenericBlockRule, ErrorsOnBadInput)
 {
     const auto tCheckForBadInput = [](const std::string& aInput, const test_utilities::TestContext& aTestContext)
     {
-        const auto [tParseResult, tResultIterator, tParsedData] = parse_generic_block(aInput);
+        const auto tParser = GenericBlockParser<std::string::const_iterator>{};
+        const auto [tParseResult, tResultIterator, tParsedData] =
+            parse_generic_block<GenericBlockData>(aInput, tParser);
         EXPECT_FALSE(tParseResult) << aTestContext;
         EXPECT_NE(tResultIterator, aInput.cend()) << aTestContext;
     };
@@ -114,6 +114,39 @@ TEST(GenericBlockRule, ErrorsOnBadInput)
 
         tCheckForBadInput(tInput, TEST_CONTEXT("Bad end token"));
     }
+}
+
+TEST(GenericBlockRule, MultipleBlocks)
+{
+    const auto tInput = std::string{
+        "begin arbitrary_block \n"
+        " inputs schminputs\n"
+        "end\n"
+        "begin arbitrary_block_two\n"
+        " more inputs!\n"
+        "end"};
+
+    const auto tParser = GenericBlockParser<std::string::const_iterator>{};
+    const auto [tParseResult, tResultIterator, tParsedData] =
+        parse_generic_block<std::vector<GenericBlockData>>(tInput, +(tParser.mRule));
+
+    EXPECT_TRUE(tParseResult);
+    EXPECT_EQ(tResultIterator, tInput.end()) << "Unparsed text: " << std::string{tResultIterator, tInput.cend()};
+    EXPECT_EQ(tParsedData.size(), 2U);
+
+    const auto tCheckBlockData = [](const GenericBlockData& aData, const std::string& aExpectedName,
+                                    const std::vector<std::string>& aExpectedInputs,
+                                    const test_utilities::TestContext& aTestContext)
+    {
+        EXPECT_EQ(aData.mName.mToken, aExpectedName) << aTestContext;
+        for (const auto& [tParsed, tExpected] : utilities::Zip{aData.mInput, aExpectedInputs})
+        {
+            EXPECT_EQ(tParsed.mToken, tExpected) << aTestContext;
+        }
+    };
+
+    tCheckBlockData(tParsedData.front(), "arbitrary_block", {"inputs", "schminputs"}, TEST_CONTEXT("Block 1"));
+    tCheckBlockData(tParsedData.back(), "arbitrary_block_two", {"more", "inputs!"}, TEST_CONTEXT("Block 2"));
 }
 
 }  // namespace plato::input_parser::unittest
