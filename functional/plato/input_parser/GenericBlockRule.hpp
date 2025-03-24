@@ -10,6 +10,7 @@
 
 namespace plato::input_parser
 {
+/// @brief A string token that may contain any printable (non-whitespace) character.
 struct GenericToken
 {
     using value_type = char;
@@ -57,19 +58,24 @@ namespace plato::input_parser
 /// end
 /// @endverbatim
 /// The parser is white-space agnostic in that it doesn't expect newlines as given above (spaces or tabs are allowed).
-/// This example will parse into a string and a vector of five strings: the first being `block_type_token` and the
-/// the vector holding remaining tokens before the `end` token.
+/// This example will parse into a string (`block_type_token`) and a vector of five strings: `arbitrary`. `text`,
+/// `more`, `arbitrary`, `text`.
 template <typename Iterator>
 struct GenericBlockParser : boost::spirit::qi::grammar<Iterator, GenericBlockData(), SkipperType<Iterator>>
 {
-    GenericBlockParser() : GenericBlockParser::base_type(mRule)
-    {
-        namespace bsq = boost::spirit::qi;
-        mRule = bsq::lit("begin") >> bsq::auto_ >> +(bsq::auto_) >> bsq::lit("end");
-    }
+    GenericBlockParser();
 
     boost::spirit::qi::rule<Iterator, GenericBlockData(), SkipperType<Iterator>> mRule;
 };
+
+template <typename Iterator>
+GenericBlockParser<Iterator>::GenericBlockParser()
+    : GenericBlockParser::base_type{mRule},
+      mRule{boost::spirit::qi::lit("begin") >> boost::spirit::qi::auto_ >> +(boost::spirit::qi::auto_) >>
+            boost::spirit::qi::lit("end")}
+{
+}
+
 }  // namespace plato::input_parser
 
 #endif
