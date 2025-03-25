@@ -13,11 +13,12 @@ namespace plato::services
 /// @brief Configuration data for defining a single criterion's interface.
 ///
 /// This includes the function name that is loaded from the shared library as well
-/// as if the function has serial or parallel implementations.
+/// as if the function has serial or parallel implementations and is a vector or scalar function.
 struct CriterionConfiguration
 {
     std::string mName{};
     bool mIsParallelized = false;
+    bool mIsScalar = true;
     std::string mFunctionName{};
 };
 
@@ -62,6 +63,7 @@ void serialize(Archive& aArchive, CriterionConfiguration& aAppConfiguration, con
     aArchive& boost::serialization::make_nvp("name", aAppConfiguration.mName);
     aArchive& boost::serialization::make_nvp("exported_function", aAppConfiguration.mFunctionName);
     aArchive& boost::serialization::make_nvp("is_parallelized", aAppConfiguration.mIsParallelized);
+    aArchive& boost::serialization::make_nvp("is_scalar", aAppConfiguration.mIsScalar);
 }
 
 template <class Archive>

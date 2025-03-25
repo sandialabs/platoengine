@@ -1,12 +1,12 @@
 
-#include "plato/integration_tests/test_vector_constraint/MassConstraint.hpp"
+#include "plato/integration_tests/test_mass_criteria/MassConstraint.hpp"
 
 #include <iterator>
 
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 
-namespace plato::integration_tests::test_vector_constraint
+namespace plato::integration_tests::test_mass_criteria
 {
 
 MassConstraint::MassConstraint(const double aDensity) : mDensity(aDensity) {}
@@ -22,4 +22,4 @@ std::vector<double> MassConstraint::masses(std::string_view aMeshFileName) const
     return tMasses;
 }
 
-}  // namespace plato::integration_tests::test_vector_constraint
+}  // namespace plato::integration_tests::test_mass_criteria

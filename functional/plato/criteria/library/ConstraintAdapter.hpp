@@ -18,21 +18,16 @@ using ScalarFunction = typename Constraint<FunctionArg>::ConstraintFunction;
 template <typename FunctionArg>
 using VectorFunction = typename VectorConstraint<FunctionArg>::ConstraintFunction;
 
-/// @brief Constructs a VectorConstraint from a Constraint object, which represents a scalar constraint function.
+/// @brief Constructs a VectorFunction from a ScalarFunction object.
 ///
 /// The purpose of this function is to adapt a scalar constraint function so that it can be used as a vector constraint
 /// function.
 template <typename FunctionArg>
-auto make_vector_constraint(const Constraint<FunctionArg>& aConstraint) -> VectorConstraint<FunctionArg>;
+[[nodiscard]] auto to_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction)
+    -> VectorFunction<FunctionArg>;
 
-/// @brief Constructs a VectorConstraint from a VectorConstraint, which is essentially a no-op.
 template <typename FunctionArg>
-auto make_vector_constraint(VectorConstraint<FunctionArg> aConstraint) -> VectorConstraint<FunctionArg>;
-
-namespace detail
-{
-template <typename FunctionArg>
-auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) -> VectorFunction<FunctionArg>
+auto to_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) -> VectorFunction<FunctionArg>
 {
     auto tEvaluation = [aScalarFunction](FunctionArg aFunctionArg)
     {
@@ -56,22 +51,6 @@ auto make_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) ->
     };
     return VectorFunction<FunctionArg>{std::move(tEvaluation), std::move(tJacobian), std::move(tAdjointJacobian)};
 }
-}  // namespace detail
-
-template <typename FunctionArg>
-auto make_vector_constraint(VectorConstraint<FunctionArg> aConstraint) -> VectorConstraint<FunctionArg>
-{
-    return aConstraint;
-}
-
-template <typename FunctionArg>
-auto make_vector_constraint(const Constraint<FunctionArg>& aConstraint) -> VectorConstraint<FunctionArg>
-{
-    return VectorConstraint<FunctionArg>{
-        aConstraint.mName, detail::make_vector_function<FunctionArg>(aConstraint.mConstraintFunction),
-        aConstraint.mConstraintTarget, aConstraint.mLinear, aConstraint.mConstraintType};
-}
-
 }  // namespace plato::criteria::library
 
 #endif

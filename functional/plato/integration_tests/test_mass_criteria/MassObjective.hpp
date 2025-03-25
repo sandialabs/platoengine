@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace plato::integration_tests::test_mass_objective
+namespace plato::integration_tests::test_mass_criteria
 {
 class MassObjective
 {
@@ -18,6 +18,6 @@ class MassObjective
     double mDensity = 1.0;
 };
 
-}  // namespace plato::integration_tests::test_mass_objective
+}  // namespace plato::integration_tests::test_mass_criteria
 
 #endif

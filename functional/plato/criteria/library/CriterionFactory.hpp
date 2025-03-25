@@ -20,11 +20,11 @@ template <typename Input>
 
 /// @brief Creates a criterion Function object from either objective or constraint input objects.
 /// @tparam Input Must be either input_parser::objective or input_parser::constraint input structs
-template <typename Input, typename... AdditionalArgs>
-[[nodiscard]] CriterionFunction make_criterion_function(const Input& aInput, const AdditionalArgs&... aArgs);
+template <typename FactoryReturn, typename Input, typename... AdditionalArgs>
+[[nodiscard]] auto make_criterion_function(const Input& aInput, const AdditionalArgs&... aArgs) -> FactoryReturn;
 
-template <typename Input, typename... AdditionalArgs>
-CriterionFunction make_criterion_function(const Input& aValidatedInput, const AdditionalArgs&... aArgs)
+template <typename FactoryReturn, typename Input, typename... AdditionalArgs>
+auto make_criterion_function(const Input& aValidatedInput, const AdditionalArgs&... aArgs) -> FactoryReturn
 {
     static_assert(std::is_same_v<Input, core::ValidatedInputTypeWrapper<input_parser::objective>> ||
                       std::is_same_v<Input, core::ValidatedInputTypeWrapper<input_parser::constraint>>,
@@ -33,9 +33,8 @@ CriterionFunction make_criterion_function(const Input& aValidatedInput, const Ad
 
     const auto& tRawInput = aValidatedInput.rawInput();
     const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
-    std::optional<CriterionFunction> tCriterion =
-        core::create_object_from_factory<CriterionFunction, CriterionInput, AdditionalArgs...>(
-            tRegistrationName, to_criterion_input(aValidatedInput), aArgs...);
+    auto tCriterion = core::create_object_from_factory<FactoryReturn, CriterionInput, AdditionalArgs...>(
+        tRegistrationName, to_criterion_input(aValidatedInput), aArgs...);
     if (tCriterion)
     {
         return std::move(tCriterion).value();

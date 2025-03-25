@@ -14,14 +14,16 @@ namespace plato::criteria::extension
 
 namespace
 {
+using Registration =
+    library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
 [[maybe_unused]] static auto kVolumeConstraintRegistration =
-    library::CriterionRegistration{library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
-                                   [](const library::CriterionInput&) { return make_volume_constraint_function(); }};
+    Registration{library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
+                 [](const library::CriterionInput&) { return make_volume_constraint_function(); }};
 
-[[maybe_unused]] static auto kVolumeFractionConstraintRegistration = library::CriterionRegistration{
-    library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
-    [](const library::CriterionInput&) { return make_volume_fraction_constraint_function(); }};
+[[maybe_unused]] static auto kVolumeFractionConstraintRegistration =
+    Registration{library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
+                 [](const library::CriterionInput&) { return make_volume_fraction_constraint_function(); }};
 
 double fixed_domain_volume(const mesh::MeshQuantities& aMesh)
 {

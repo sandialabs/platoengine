@@ -2,11 +2,11 @@
 
 #include <filesystem>
 
-#include "plato/integration_tests/test_mass_objective/MassObjective.hpp"
+#include "plato/integration_tests/test_mass_criteria/MassObjective.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
-namespace plato::integration_tests::test_mass_objective::unittest
+namespace plato::integration_tests::test_mass_criteria::unittest
 {
 TEST(MassObjective, Value)
 {
@@ -24,4 +24,4 @@ TEST(MassObjective, Value)
     std::filesystem::remove(tMeshName);
 }
 
-}  // namespace plato::integration_tests::test_mass_objective::unittest
+}  // namespace plato::integration_tests::test_mass_criteria::unittest

@@ -6,6 +6,7 @@
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
 namespace plato::criteria::library
@@ -44,15 +45,21 @@ namespace detail
 auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>
 {
-    const input_parser::constraint& tRawInput = aConstraintInput.rawInput();
-    const double tValue = tRawInput.constraint_value.value();
-    const bool tIsLinear = tRawInput.is_linear.value_or(false);
+    const auto& tRawInput = aConstraintInput.rawInput();
+    const auto tValue = tRawInput.constraint_value.value();
+    const auto tIsLinear = tRawInput.is_linear.value_or(false);
+    const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
+    const auto tConstraintType = kConstraintMap.at(tRawInput.constraint_type.value());
+    const auto tConstraintName = tRawInput.name.value_or("Unnamed Constraint");
 
-    const auto tConstraint = Constraint<const analysis::AnalysisDomainMesh&>{
-        tRawInput.name.value_or("Unnamed Constraint"), make_criterion_function(aConstraintInput), tValue, tIsLinear,
-        kConstraintMap.at(tRawInput.constraint_type.value())};
+    constexpr auto tVectorTraits = CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector};
+    auto tCriterionFunction = criterion_function_has_traits(tRegistrationName, tVectorTraits)
+                                  ? make_criterion_function<VectorCriterionFunction>(aConstraintInput)
+                                  : to_vector_function<const analysis::AnalysisDomainMesh&>(
+                                        make_criterion_function<CriterionFunction>(aConstraintInput));
 
-    return make_vector_constraint(tConstraint);
+    return VectorConstraint<const analysis::AnalysisDomainMesh&>{tConstraintName, std::move(tCriterionFunction), tValue,
+                                                                 tIsLinear, tConstraintType};
 }
 
 }  // namespace detail

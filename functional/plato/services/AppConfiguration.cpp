@@ -33,7 +33,8 @@ bool operator==(const CriterionConfiguration& aCriterionConfigurationLeft,
 {
     return aCriterionConfigurationLeft.mName == aCriterionConfigurationRight.mName &&
            aCriterionConfigurationLeft.mFunctionName == aCriterionConfigurationRight.mFunctionName &&
-           aCriterionConfigurationLeft.mIsParallelized == aCriterionConfigurationRight.mIsParallelized;
+           aCriterionConfigurationLeft.mIsParallelized == aCriterionConfigurationRight.mIsParallelized &&
+           aCriterionConfigurationLeft.mIsScalar == aCriterionConfigurationRight.mIsScalar;
 }
 
 bool operator==(const AppConfiguration& aAppConfigurationLeft, const AppConfiguration& aAppConfigurationRight)

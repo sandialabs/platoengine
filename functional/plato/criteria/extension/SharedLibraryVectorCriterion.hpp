@@ -13,6 +13,7 @@
 #include "plato/criteria/library/VectorCriterionInterface.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/services/SharedLibraryObject.hpp"
 
 namespace plato::services
 {
@@ -21,6 +22,9 @@ struct AppConfigurationWithDirectory;
 
 namespace plato::criteria::extension
 {
+using VectorCriterionSharedLibraryObject =
+    services::SharedLibraryObject<std::unique_ptr<library::VectorCriterionInterface>>;
+
 /// @brief for a vector criterion that is loaded from a shared library.
 ///
 /// A shared library path is given on construction from which to load a VectorCriterionInterface object.
@@ -52,20 +56,12 @@ class SharedLibraryVectorCriterion
         -> linear_algebra::DynamicVector<double>;
 
    private:
-    std::shared_ptr<library::VectorCriterionInterface> mCriterionInterface;
+    std::shared_ptr<VectorCriterionSharedLibraryObject> mCriterionInterface;
     boost::mpi::communicator mComm{MPI_COMM_NULL, boost::mpi::comm_attach};
 };
 
-using SharedLibraryVectorCriterionFunction =
-    core::Function<const analysis::AnalysisDomainMesh&,
-                   core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFunction>,
-                   core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>,
-                   core::FunctionInfo<linear_algebra::AdjointJacobianMultiplier,
-                                      core::evaluation::kFirstDerivative,
-                                      core::MatrixOrdering::kAdjoint> >;
-
-[[nodiscard]] auto make_shared_library_jacobian_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
-    -> SharedLibraryVectorCriterionFunction;
+[[nodiscard]] auto make_shared_library_vector_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
+    -> library::VectorCriterionFunction;
 
 }  // namespace plato::criteria::extension
 

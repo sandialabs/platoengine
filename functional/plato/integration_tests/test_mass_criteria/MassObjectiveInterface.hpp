@@ -3,7 +3,7 @@
 
 #include "plato/criteria/library/CriterionInterface.hpp"
 
-namespace plato::integration_tests::test_mass_objective
+namespace plato::integration_tests::test_mass_criteria
 {
 /// @brief Serial version of a test criterion that computes the mass of a mesh.
 ///
@@ -24,7 +24,7 @@ class MassObjectiveInterface : public criteria::library::CriterionInterface
     /// specified by the AnalysisDomainMesh
     std::vector<double> gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
 };
-}  // namespace plato::integration_tests::test_mass_objective
+}  // namespace plato::integration_tests::test_mass_criteria
 
 extern "C" std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_criterion(
     const std::vector<std::string>&);

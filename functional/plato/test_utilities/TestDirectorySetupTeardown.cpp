@@ -6,22 +6,34 @@ TestDirectorySetupTeardown::TestDirectorySetupTeardown(std::filesystem::path aDi
                                                        const boost::mpi::communicator& aComm)
     : mDirectory{std::move(aDirectory)}, mComm{aComm}
 {
-    if (mComm.rank() == kRootRank)
-    {
-        std::filesystem::create_directories(mDirectory);
-    }
-    mComm.barrier();
+    executeOnRootIfValid([this]() { std::filesystem::create_directories(mDirectory.value()); });
 }
 
 TestDirectorySetupTeardown::~TestDirectorySetupTeardown()
 {
-    if (mComm.rank() == kRootRank)
-    {
-        std::filesystem::remove_all(mDirectory);
-    }
-    mComm.barrier();
+    executeOnRootIfValid([this]() { std::filesystem::remove_all(mDirectory.value()); });
 }
 
-const std::filesystem::path& TestDirectorySetupTeardown::directory() const { return mDirectory; }
+TestDirectorySetupTeardown::TestDirectorySetupTeardown(TestDirectorySetupTeardown&& aOther) noexcept
+    : mDirectory{std::move(aOther.mDirectory)}, mComm{std::move(aOther.mComm)}
+{
+    aOther.mDirectory.reset();
+}
+
+auto TestDirectorySetupTeardown::operator=(TestDirectorySetupTeardown&& aOther) noexcept -> TestDirectorySetupTeardown&
+{
+    if (&aOther != this)
+    {
+        std::swap(aOther.mDirectory, mDirectory);
+        std::swap(aOther.mComm, mComm);
+    }
+    return *this;
+}
+
+auto TestDirectorySetupTeardown::directory() const -> const std::filesystem::path&
+{
+    assert(mDirectory.has_value());
+    return mDirectory.value();
+}
 
 }  // namespace plato::test_utilities

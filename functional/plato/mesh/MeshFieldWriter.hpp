@@ -25,7 +25,7 @@ namespace plato::mesh
 ///
 /// This is an RAII-style class that opens a mesh on construction, writes data to that mesh using its member functions,
 /// and closes and saves the mesh on destruction.
-class MeshFieldWriter : public MeshOutput
+class [[nodiscard]] MeshFieldWriter : public MeshOutput
 {
    public:
     MeshFieldWriter(Mesh aMeshBase, const std::filesystem::path& aWriteFilePath, double aTimeStep = 1.0);

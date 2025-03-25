@@ -25,7 +25,7 @@ namespace plato::mesh
 ///
 /// This is an RAII-style class that opens the output mesh on construction, writes data to that mesh using its member
 /// functions, and closes and saves the mesh on destruction.
-class MeshFieldAppender : public MeshOutput
+class [[nodiscard]] MeshFieldAppender : public MeshOutput
 {
    public:
     MeshFieldAppender(Mesh aMeshBase, double aTimeStep);

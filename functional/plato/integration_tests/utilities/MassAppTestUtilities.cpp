@@ -47,16 +47,8 @@ namespace
     }
     return tMassAppPath;
 }
-// Specialized to the MassObjective
-[[nodiscard]] auto mass_app_lib_path() -> std::filesystem::path
-{
-    return lib_path(std::string_view{"libPlatoTestMassObjective.so"});
-}
-// Specialized to the MassVectorConstraint
-[[nodiscard]] auto mass_vector_constraint_lib_path() -> std::filesystem::path
-{
-    return lib_path(std::string_view{"libPlatoTestVectorConstraint.so"});
-}
+
+[[nodiscard]] auto mass_app_lib_path() -> std::filesystem::path { return lib_path(mass_app_library_file_name()); }
 
 void write_mass_app_config(const std::string_view& aAppName,
                            const std::filesystem::path& aTestPluginDirectory,
@@ -64,34 +56,23 @@ void write_mass_app_config(const std::string_view& aAppName,
                            const boost::mpi::communicator& aComm)
 {
     const auto tMassLibPath = std::filesystem::relative(mass_app_lib_path(), aTestPluginDirectory);
-    const auto tCriterionSerialConfiguration = services::CriterionConfiguration{
-        /*.mName=*/"mass", /*.mIsParallelized=*/false, /*.mFunctionName=*/"plato_create_test_mass_criterion"};
-    const auto tCriterionParallelConfiguration = services::CriterionConfiguration{
-        /*.mName=*/"mass", /*.mIsParallelized=*/true, /*.mFunctionName=*/"plato_create_parallel_test_mass_criterion"};
-    auto tAppConfiguration =
-        services::AppConfiguration{/*.mName=*/
-                                   std::string{aAppName},
-                                   /*.mLibraryFileName=*/tMassLibPath.string(),
-                                   /*.mCriteria=*/{tCriterionSerialConfiguration, tCriterionParallelConfiguration}};
+    const auto tCriterionSerialConfiguration =
+        services::CriterionConfiguration{/*.mName=*/"mass", /*.mIsParallelized=*/false, /*.mIsScalar=*/true,
+                                         /*.mFunctionName=*/"plato_create_test_mass_criterion"};
+    const auto tCriterionParallelConfiguration =
+        services::CriterionConfiguration{/*.mName=*/"mass", /*.mIsParallelized=*/true, /*.mIsScalar=*/true,
+                                         /*.mFunctionName=*/"plato_create_parallel_test_mass_criterion"};
+    const auto tCriterionVectorConfiguration =
+        services::CriterionConfiguration{/*.mName=*/"mass", /*.mIsParallelized=*/false, /*.mIsScalar=*/false,
+                                         /*.mFunctionName=*/"plato_create_vector_test_mass_criterion"};
+
+    auto tAppConfiguration = services::AppConfiguration{
+        /*.mName=*/
+        std::string{aAppName},
+        /*.mLibraryFileName=*/tMassLibPath.string(),
+        /*.mCriteria=*/{tCriterionSerialConfiguration, tCriterionParallelConfiguration, tCriterionVectorConfiguration}};
     aConfigurationTempDirectory.writeFile(services::AppConfigurationWriter{std::move(tAppConfiguration)},
                                           "test-mass-app.config");
-    aComm.barrier();
-}
-
-void write_mass_vector_constraint_config(const std::string_view& aAppName,
-                                         const std::filesystem::path& aTestPluginDirectory,
-                                         const test_utilities::TestDirectorySetupTeardown& aConfigurationTempDirectory,
-                                         const boost::mpi::communicator& aComm)
-{
-    const auto tMassLibPath = std::filesystem::relative(mass_vector_constraint_lib_path(), aTestPluginDirectory);
-    const auto tCriterionSerialConfiguration = services::CriterionConfiguration{
-        /*.mName=*/"masscon", /*.mIsParallelized=*/false, /*.mFunctionName=*/"plato_create_criterion"};
-    auto tAppConfiguration = services::AppConfiguration{/*.mName=*/
-                                                        std::string{aAppName},
-                                                        /*.mLibraryFileName=*/tMassLibPath.string(),
-                                                        /*.mCriteria=*/{tCriterionSerialConfiguration}};
-    aConfigurationTempDirectory.writeFile(services::AppConfigurationWriter{std::move(tAppConfiguration)},
-                                          "test-mass-vec-con.config");
     aComm.barrier();
 }
 
@@ -101,10 +82,9 @@ auto register_test_mass_app(const std::string_view aAppName, const boost::mpi::c
     -> test_utilities::TestDirectorySetupTeardown
 {
     const auto tTestPluginDirectory = std::filesystem::path{"test-plugin-directory"};
-    const auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{tTestPluginDirectory, aComm};
+    auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{tTestPluginDirectory, aComm};
 
     write_mass_app_config(aAppName, tTestPluginDirectory, tConfigurationTempDirectory, aComm);
-    write_mass_vector_constraint_config(aAppName, tTestPluginDirectory, tConfigurationTempDirectory, aComm);
 
     criteria::extension::register_plugin_apps({tTestPluginDirectory});
     return tConfigurationTempDirectory;
@@ -140,7 +120,7 @@ auto create_test_mass_app_input(const input_parser::AppName& aMassAppName,
 
 auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMassAppName,
                                               const input_parser::CriterionName& aCriterionName,
-                                              const std::string_view aMeshName)
+                                              const std::filesystem::path& aMeshName)
     -> process_manager::library::ValidatedInput
 {
     auto tConstraint = input_parser::constraint{};
@@ -155,7 +135,7 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
 
     auto [tDensity, tFilter] =
         test_utilities::create_valid_density_topology_geometry_with_element_centered_kernel_filter();
-    tDensity.mesh_name = input_parser::FileName{std::string{aMeshName}};
+    tDensity.mesh_name = input_parser::FileName{aMeshName.string()};
 
     const auto tInput = tObjective | tConstraint | tDensity | tFilter |
                         test_utilities::create_valid_example_rol_optimization() |
@@ -191,4 +171,14 @@ void register_load_run_test(const boost::mpi::communicator& aComm, const test_ut
     EXPECT_DOUBLE_EQ(tResult, tExpectedValue) << aTestContext;
 }
 
+auto setup_mass_app_for_test(const std::filesystem::path& aMeshFileName)
+    -> std::pair<test_utilities::TestDirectorySetupTeardown, process_manager::library::ValidatedInput>
+{
+    const auto tAppName = input_parser::AppName{"test-mass-app"};
+    auto tConfigurationTempDirectory = register_test_mass_app(tAppName.mToken, boost::mpi::communicator{});
+
+    const auto tCriterionName = input_parser::CriterionName{"mass"};
+    return std::make_pair(std::move(tConfigurationTempDirectory),
+                          create_test_mass_vector_constraint_input(tAppName, tCriterionName, aMeshFileName));
+}
 }  // namespace plato::integration_tests::utilities

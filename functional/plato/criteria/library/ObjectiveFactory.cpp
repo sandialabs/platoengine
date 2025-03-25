@@ -35,12 +35,12 @@ auto make_parallel_criterion_function(const core::ValidatedInputTypeWrapper<inpu
 {
     if (is_parallel_objective(aObjective.rawInput()))
     {
-        return core::adapt_parallel_function(make_criterion_function(aObjective, aObjectiveComm.mValue),
-                                             aObjectiveComm.mValue);
+        return core::adapt_parallel_function(
+            make_criterion_function<CriterionFunction>(aObjective, aObjectiveComm.mValue), aObjectiveComm.mValue);
     }
     else
     {
-        return make_criterion_function(aObjective);
+        return make_criterion_function<CriterionFunction>(aObjective);
     }
 }
 

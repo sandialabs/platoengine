@@ -19,13 +19,17 @@ namespace
                                                      });
 }
 
-[[maybe_unused]] static auto kTestCriterionRegistration = plato::criteria::library::CriterionRegistration{
-    "test", [](const plato::criteria::library::CriterionInput&) { return make_test_criterion_function(); }};
+[[maybe_unused]] static auto kTestCriterionRegistration =
+    plato::criteria::library::CriterionRegistration<library::Parallelization::kSerial,
+                                                    library::FunctionDimension::kScalar>{
+        "test", [](const plato::criteria::library::CriterionInput&) { return make_test_criterion_function(); }};
 
 }  // namespace
 
 TEST(CriterionRegistration, PhonyCriterion)
 {
+    EXPECT_TRUE(plato::criteria::library::criterion_function_has_traits(
+        "test", library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar}));
     EXPECT_TRUE(plato::criteria::library::is_criterion_function_registered("test"));
 }
 
@@ -33,8 +37,9 @@ TEST(CriterionRegistration, RegistrationNameConfiguration)
 {
     constexpr auto tTestAppName = std::string_view{"moose"};
     constexpr auto tTestCriterionName = std::string_view{"squirrel"};
-    const auto tCriterionConfiguration = services::CriterionConfiguration{
-        /*.mName*/ std::string{tTestCriterionName}, /*.mIsParallelized*/ false, /*.mFunctionName*/ "fun"};
+    const auto tCriterionConfiguration =
+        services::CriterionConfiguration{/*.mName=*/std::string{tTestCriterionName}, /*.mIsParallelized=*/false,
+                                         /*.mIsScalar=*/true, /*.mFunctionName=*/"fun"};
     const auto tAppConfiguration = services::AppConfiguration{/*.mName=*/std::string{tTestAppName},
                                                               /*.mLibraryFileName=*/"lib.so",
                                                               /*.mCriteria=*/{tCriterionConfiguration}};
