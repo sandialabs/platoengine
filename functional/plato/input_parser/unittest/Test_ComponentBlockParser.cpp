@@ -1,14 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <any>
-#include <functional>
-
 #include "plato/input_parser/BlockStructRule.hpp"
 #include "plato/input_parser/ComponentBlockParser.hpp"
-#include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/GenericBlockRule.hpp"
-#include "plato/input_parser/InputBlockStruct.hpp"
-#include "plato/utilities/StringUtilities.hpp"
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          interface_test_block,
@@ -16,12 +10,6 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
 
 namespace plato::input_parser::unittest
 {
-namespace
-{
-namespace bsq = boost::spirit::qi;
-
-}  // namespace
-
 TEST(ComponentBlockParser, Parse)
 {
     const auto tInput =
