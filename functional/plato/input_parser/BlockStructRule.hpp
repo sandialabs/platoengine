@@ -120,6 +120,45 @@ struct BlockStructRule
         mPreambleRule > mBlockOrRule[bsq::_val = bsq::_1] > mPostambleRule;
 };
 
+/// @brief The allowable types of components. These map to general categories of objects that may be instantiated to
+/// create a workflow.
+enum struct ComponentType
+{
+    kObjective,
+    kConstraint,
+    kGeometry,
+    kFilter,
+    kProcessManager
+};
+
+/// @brief Specifies whether a component has a name that should be parsed.
+///
+/// This indicates whether or not the component is unique in a workflow.
+template <ComponentType kComponentType>
+[[maybe_unused]] constexpr auto kIsNamedComponent =
+    kComponentType == ComponentType::kConstraint || kComponentType == ComponentType::kObjective ||
+    kComponentType == ComponentType::kProcessManager;
+
+/// @brief A parser for a struct as key-value pairs.
+///
+/// This is meant to be instantiated by components for their specific input types.
+template <typename Iterator, typename BlockStruct, ComponentType kComponentType>
+struct ComponentBlockRule
+{
+    using BlockDataStruct = BlockStruct;
+
+    constexpr static inline bool kIsNamedBlockStructRule = kIsNamedComponent<kComponentType>;
+    constexpr static inline ComponentType mComponentType = kComponentType;
+
+    std::string mBlockType = InputTypeName<BlockStruct>::name;
+
+    BlockRuleTuple<Iterator, BlockStruct> mAllBlockRules = rule_tuple<Iterator, BlockStruct>();
+    bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockOrRule =
+        block_or_rule<Iterator, BlockStruct>(mAllBlockRules);
+
+    bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockRule = mBlockOrRule[bsq::_val = bsq::_1];
+};
+
 }  // namespace plato::input_parser
 
 #endif

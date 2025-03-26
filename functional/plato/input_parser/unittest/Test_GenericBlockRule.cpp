@@ -149,4 +149,15 @@ TEST(GenericBlockRule, MultipleBlocks)
     tCheckBlockData(tParsedData.back(), "arbitrary_block_two", {"more", "inputs!"}, TEST_CONTEXT("Block 2"));
 }
 
+TEST(GenericBlockRule, ToString)
+{
+    const auto tInputText = std::vector<std::string>{"gorilla", "orangutan", "chimpanzee", "gibbon"};
+    const auto tGenericBlock = GenericBlockData{BlockName{"arbitrary_block"},
+                                                {GenericToken{tInputText.at(0)}, GenericToken{tInputText.at(1)},
+                                                 GenericToken{tInputText.at(2)}, GenericToken{tInputText.at(3)}}};
+    const auto tResultString = to_string(tGenericBlock);
+    const auto tExpectedString = utilities::concatenate_container(tInputText, " ") + " ";
+    EXPECT_EQ(tResultString, tExpectedString);
+}
+
 }  // namespace plato::input_parser::unittest

@@ -68,6 +68,9 @@ struct GenericBlockParser : boost::spirit::qi::grammar<Iterator, GenericBlockDat
     boost::spirit::qi::rule<Iterator, GenericBlockData(), SkipperType<Iterator>> mRule;
 };
 
+/// @brief Converts the tokenized input held by @a aData to a string.
+[[nodiscard]] auto to_string(const GenericBlockData& aData) -> std::string;
+
 template <typename Iterator>
 GenericBlockParser<Iterator>::GenericBlockParser()
     : GenericBlockParser::base_type{mRule},
