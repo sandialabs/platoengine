@@ -28,13 +28,20 @@ inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContain
     return stream;
 }
 
+inline std::ostream& operator<<(std::ostream& stream, const Vector3& aContainer)
+{
+    stream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
+    return stream;
+}
+
 /// @todo Replace with `== default` in c++20
 [[nodiscard]] inline constexpr bool operator==(const Coordinate& aLHS, const Coordinate& aRHS)
 {
     return aLHS.x == aRHS.x && aLHS.y == aRHS.y && aLHS.z == aRHS.z;
 }
 
-[[nodiscard]] constexpr Vector3 operator-(const Coordinate& p0, const Coordinate& p1)
+template <typename Container3>
+[[nodiscard]] constexpr Vector3 operator-(const Container3& p0, const Container3& p1)
 {
     return Vector3{/*.x=*/p0.x - p1.x,
                    /*.y=*/p0.y - p1.y,
@@ -50,9 +57,10 @@ inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContain
                    /*.z=*/a.x * b.y - a.y * b.x};
 }
 
-[[nodiscard]] constexpr Coordinate operator+(const Coordinate& p0, const Coordinate& p1)
+template <typename Container3>
+[[nodiscard]] constexpr Container3 operator+(const Container3& p0, const Container3& p1)
 {
-    return Coordinate{/*.x=*/p0.x + p1.x,
+    return Container3{/*.x=*/p0.x + p1.x,
                       /*.y=*/p0.y + p1.y,
                       /*.z=*/p0.z + p1.z};
 }
@@ -78,9 +86,10 @@ inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContain
                       /*.z=*/p0.z / divisor};
 }
 
-[[nodiscard]] constexpr Coordinate operator*(const Coordinate& p0, const double& scale)
+template <typename Container3>
+[[nodiscard]] constexpr Container3 operator*(const Container3& p0, const double& scale)
 {
-    return Coordinate{/*.x=*/p0.x * scale,
+    return Container3{/*.x=*/p0.x * scale,
                       /*.y=*/p0.y * scale,
                       /*.z=*/p0.z * scale};
 }

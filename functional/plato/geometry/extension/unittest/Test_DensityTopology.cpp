@@ -13,6 +13,7 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
@@ -164,7 +165,7 @@ namespace
     auto tDensityInput = kDensityInput;
     tDensityInput.initial_density_value = boost::none;
     tDensityInput.mesh_name = input_parser::FileName{aMeshName};
-    tDensityInput.initial_density_field_name = input_parser::IdentifierString{std::string{aFieldName}};
+    tDensityInput.initial_field_name = input_parser::IdentifierString{std::string{aFieldName}};
     return tDensityInput;
 }
 
@@ -181,8 +182,8 @@ TEST_F(NodalDensityMesh, InitialDensityFromMesh)
     };
 
     const auto tDensityInput = density_input_for_test_fixture(mMeshName, mFieldName);
-    const auto tResult = detail::initial_density_value_from_mesh(tDensityInput);
-    tCheckFunction(tResult, TEST_CONTEXT("From initial_density_value_from_mesh"));
+    const auto tResult = initial_field_from_mesh(tDensityInput);
+    tCheckFunction(tResult, TEST_CONTEXT("From initial_field_from_mesh"));
 
     const auto tInitialGuess = DensityTopology::initialGuess(tDensityInput);
     tCheckFunction(tInitialGuess.stdVector(), TEST_CONTEXT("From DensityTopology::initialGuess"));

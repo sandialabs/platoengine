@@ -1,8 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
-#include <iomanip>
-
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/TesselationTraits.hpp"
 

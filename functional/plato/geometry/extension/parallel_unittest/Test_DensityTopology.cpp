@@ -26,7 +26,7 @@ namespace
     auto tDensityInput = input_parser::density_topology{};
     tDensityInput.mesh_name = input_parser::FileName{aMeshName};
     tDensityInput.output_name = input_parser::FileName{"test_out.exo"};
-    tDensityInput.initial_density_field_name = input_parser::IdentifierString{std::string{aFieldName}};
+    tDensityInput.initial_field_name = input_parser::IdentifierString{std::string{aFieldName}};
     return tDensityInput;
 }
 }  // namespace

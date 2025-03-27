@@ -1,8 +1,6 @@
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 
 #include <filesystem>
-#include <iomanip>
-#include <sstream>
 
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
@@ -13,13 +11,16 @@
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
-#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/FileUtilities.hpp"
+#include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
 
 namespace plato::geometry::extension
 {
 namespace
 {
+
+constexpr auto kPrecision = std::size_t{16};
+constexpr auto kPrintWidth = std::size_t{24};
 constexpr auto kNumDims = std::size_t{3};
 constexpr auto kNumNodes = std::size_t{8};
 constexpr auto kNumDesignParameters = std::size_t{6};
@@ -102,9 +103,12 @@ std::pair<std::vector<double>, std::vector<double>> BrickShapeGeometry::bounds()
 void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSolution,
                                 const library::OutputInfo& aOutputInfo)
 {
+    using TableOutput = utilities::FixedWidthFloatingPointOutput<double, kPrecision, kPrintWidth>;
     std::cout << "iteration: " << aOutputInfo.mIteration << std::endl;
-    std::cout << "centers: " << aSolution[0] << " " << aSolution[1] << " " << aSolution[2] << std::endl;
-    std::cout << "dimensions: " << aSolution[3] << " " << aSolution[4] << " " << aSolution[5] << std::endl;
+    std::cout << "centers: " << TableOutput{aSolution[0]} << TableOutput{aSolution[1]} << TableOutput{aSolution[2]}
+              << std::endl;
+    std::cout << "dimensions: " << TableOutput{aSolution[3]} << TableOutput{aSolution[4]} << TableOutput{aSolution[5]}
+              << std::endl;
 }
 
 auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry) -> library::GeometryFunction

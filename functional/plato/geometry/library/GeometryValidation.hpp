@@ -26,6 +26,14 @@ template <typename Geometry>
     return core::error_message_for_empty_parameter(input_parser::block_name<Geometry>(), aInput.mesh_name, "mesh_name");
 }
 
+/// @brief Checks that the `output_name` field has a value.
+template <typename Geometry>
+[[nodiscard]] std::optional<std::string> validate_output_name(const Geometry& aInput)
+{
+    return core::error_message_for_empty_parameter(input_parser::block_name<Geometry>(), aInput.output_name,
+                                                   "output_name");
+}
+
 /// @brief Checks that the `mesh_name` field points to an existing file, if it has a value.
 template <typename Geometry>
 [[nodiscard]] std::optional<std::string> validate_mesh_file_exists(const Geometry& aInput)

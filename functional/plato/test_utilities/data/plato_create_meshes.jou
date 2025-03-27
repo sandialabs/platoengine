@@ -7,9 +7,9 @@ block 1 volume 1
 set exodus netcdf4 off
 set large exodus file on
 set exodus single precision off
-export mesh "C:/Users/acsokol/Documents/Projects/box_3x4x7_tet4.exo"  dimension 3  overwrite 
+export mesh "box_3x4x7_tet4.exo"  dimension 3  overwrite 
 block 1 element type TETRA10
-export mesh "C:/Users/acsokol/Documents/Projects/box_3x4x7_tet10.exo"  dimension 3  overwrite 
+export mesh "box_3x4x7_tet10.exo"  dimension 3  overwrite 
 
 
 reset 
@@ -23,9 +23,9 @@ block 1 volume 1
 set exodus netcdf4 off
 set large exodus file on
 set exodus single precision off
-export mesh "C:/Users/acsokol/Documents/Projects/box_2x4x8_hex.exo"  dimension 3  overwrite 
+export mesh "box_2x4x8_hex.exo"  dimension 3  overwrite 
 block 1 element type HEX20
-export mesh "C:/Users/acsokol/Documents/Projects/box_2x4x8_hex20.exo"  dimension 3  overwrite 
+export mesh "box_2x4x8_hex20.exo"  dimension 3  overwrite 
 
 
 delete mesh volume 1 propagate
@@ -44,10 +44,10 @@ block 1 element type QUAD4
 set exodus netcdf4 off
 set large exodus file on
 set exodus single precision off
-export mesh "C:/Users/acsokol/Documents/Projects/rectangle_3x4_quad4.exo"  dimension 2  overwrite 
+export mesh "rectangle_3x4_quad4.exo"  dimension 2  overwrite 
 
 block 1 element type SHELL4
-export mesh "C:/Users/acsokol/Documents/Projects/rectangle_3x4_shell4.exo"  dimension 2  overwrite 
+export mesh "rectangle_3x4_shell4.exo"  dimension 2  overwrite 
 
 
 delete mesh volume 1 propagate
@@ -62,7 +62,7 @@ mesh surface 1
 delete block 1
 block 1 add surface 1
 block 1 element type TRI3
-export mesh "C:/Users/acsokol/Documents/Projects/rectangle_3x4_tri3.exo"  dimension 2  overwrite 
+export mesh "rectangle_3x4_tri3.exo"  dimension 2  overwrite 
 
 
 reset
@@ -80,7 +80,7 @@ block 1 volume 1
 block 2 volume 2
 
 set exodus single precision off
-export mesh "C:/Users/acsokol/Documents/Projects/box_2x4x10_hex_and_tet.exo"  dimension 3  overwrite 
+export mesh "box_2x4x10_hex_and_tet.exo"  dimension 3  overwrite 
 
 delete block 1 2
 delete volume 1 2
@@ -89,5 +89,36 @@ rotate volume all angle 90 about y include_merged
 block 3 surface 18
 block 4 surface 17
 block 3 element type TRI3
-export mesh "C:/Users/acsokol/Documents/Projects/rectangle_4x10_tri_and_shell.exo"  dimension 2  overwrite 
+export mesh "rectangle_4x10_tri_and_shell.exo"  dimension 2  overwrite 
 
+
+
+reset 
+create node location 0 0 0
+create node location 1 0 0
+create node location 0 0 1
+delete node 3
+create node location 1 1 0
+create tri node 1 2 4
+block 1 tri all
+export mesh "one_tri.exo"  dimension 2  overwrite 
+
+
+reset 
+create node location 0 0 0
+create node location 1 0 0
+create node location 0 0 1
+delete node 3
+create node location 1 1 0
+create tri node 1 2 4
+create node location 0 1 0
+create tri node 1 4 5
+create node location 0 2 0
+create tri node 5 4 6
+create node location 0 -1 0
+create tri node 1 2 7
+
+block 1 tri 1 4
+block 2 tri 2 3
+
+export mesh "four_tri_two_block.exo"  dimension 2  overwrite 

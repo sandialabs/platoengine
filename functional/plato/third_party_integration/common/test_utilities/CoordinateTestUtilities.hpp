@@ -16,6 +16,17 @@ void test_double_equality_of_components(const Container3& aResult,
     EXPECT_DOUBLE_EQ(aResult.z, aGold.z) << aTestContext;
 }
 
+template <typename Container3>
+void test_near_equality_of_components(const Container3& aResult,
+                                      const Container3& aGold,
+                                      const double aTolerance,
+                                      const plato::test_utilities::TestContext& aTestContext)
+{
+    EXPECT_NEAR(aResult.x, aGold.x, aTolerance) << aTestContext;
+    EXPECT_NEAR(aResult.y, aGold.y, aTolerance) << aTestContext;
+    EXPECT_NEAR(aResult.z, aGold.z, aTolerance) << aTestContext;
+}
+
 }  // namespace plato::third_party_integration::common::test_utilities
 
 #endif

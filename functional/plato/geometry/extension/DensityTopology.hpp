@@ -64,30 +64,14 @@ class DensityTopology
 
 namespace detail
 {
-/// @brief Validates that the `output_name` field in @a aInput has a value.
-[[nodiscard]] std::optional<std::string> validate_output_name(const input_parser::density_topology& aInput);
 
 /// @brief Validates that the `initial_density_value` field in @a aInput has a value.
 [[nodiscard]] std::optional<std::string> validate_initial_density_value(const input_parser::density_topology& aInput);
 
-/// @brief Validates that the `initial_density_value` field in @a aInput has a value or that the mesh in `mesh_name`
-/// has a Topology field to be read.
-[[nodiscard]] std::optional<std::string> validate_initial_topology_source(const input_parser::density_topology& aInput);
-
 /// @brief Validates that exactly one specifier for the intitial topology is used, the `initial_density_value` or
-/// `initial_density_field_name`
+/// `initial_field_name`
 [[nodiscard]] std::optional<std::string> validate_exactly_one_initial_topology_specifier(
     const input_parser::density_topology& aInput);
-
-/// @brief Creates a Mesh from an density_topology input block.
-/// @pre The mesh_name field in @a aInput has a value. Checked with an assertion.
-[[nodiscard]] mesh::Mesh mesh_from_input(const input_parser::density_topology& aInput);
-
-/// @brief Retrieve the initial density field from a mesh in @a aInput
-/// @pre The mesh_name in @a aInput has already been checked during validation and it does exist and
-/// that the field 'aInput.initial_density_field_name' exists on the mesh
-/// @post The returned vector size will match the number nodal design variables
-[[nodiscard]] auto initial_density_value_from_mesh(const input_parser::density_topology& aInput) -> std::vector<double>;
 
 }  // namespace detail
 
