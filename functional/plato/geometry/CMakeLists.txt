@@ -6,17 +6,21 @@ set(FOLDERS library
 
 set(LINK_LIBS PlatoFunctionalFilter
               PlatoFunctionalSTKIO
-              PlatoFunctionalKrinoLib 
+              PlatoFunctionalKrino 
               PlatoFunctionalMesh )
 
 create_plato_library(PlatoFunctionalGeometry "${FOLDERS}" "${LINK_LIBS}")
 
 if( UNIT_TESTING )
+  create_plato_library(PlatoFunctionalGeometryTestUtilities "extension/test_utilities" "PlatoFunctionalKrinoTestUtilities;PlatoFunctionalGeometry")
+
   # Build unit tester
   set(FOLDERS library/unittest 
               extension/unittest)
-  set(LINK_LIBS PlatoFunctionalSTKIOTestUtilities
-                PlatoFunctionalFilterTestUtilities)
+  set(LINK_LIBS PlatoFunctionalKrinoTestUtilities
+                PlatoFunctionalSTKIOTestUtilities
+                PlatoFunctionalFilterTestUtilities
+                PlatoFunctionalGeometryTestUtilities)
   create_plato_unittester(PlatoFunctionalGeometry "${FOLDERS}" "${LINK_LIBS}")
 
   set(NUM_RANKS_FOR_TEST 2)

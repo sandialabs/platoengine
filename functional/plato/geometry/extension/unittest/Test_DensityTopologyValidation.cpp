@@ -5,6 +5,7 @@
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
@@ -43,9 +44,9 @@ TEST(DensityTopologyValidation, ValidateMeshName)
 TEST(DensityTopologyValidation, ValidateOutputName)
 {
     auto tDensityTopology = kDensityTopology;
-    EXPECT_FALSE(detail::validate_output_name(tDensityTopology).has_value());
+    EXPECT_FALSE(library::detail::validate_output_name(tDensityTopology).has_value());
     tDensityTopology.output_name = boost::none;
-    EXPECT_TRUE(detail::validate_output_name(tDensityTopology).has_value());
+    EXPECT_TRUE(library::detail::validate_output_name(tDensityTopology).has_value());
 }
 
 TEST(DensityTopologyValidation, ValidateInitialDensity)
@@ -76,7 +77,7 @@ TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
     EXPECT_FALSE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
         << "Valid, has initial_density_value";
 
-    tDensityTopology.initial_density_field_name = input_parser::IdentifierString{"bogus"};
+    tDensityTopology.initial_field_name = input_parser::IdentifierString{"bogus"};
     EXPECT_TRUE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
         << "Both specifiers used, Invalid.";
 
@@ -108,7 +109,7 @@ TEST_F(TwoDThreeBlockMesh, MeshFromInput)
     const auto tTestFunction = [](const input_parser::density_topology& tDensityInput,
                                   const ExpectedSizes& aExpectedSizes, const test_utilities::TestContext& aTestContext)
     {
-        const auto tMesh = detail::mesh_from_input(tDensityInput);
+        const auto tMesh = mesh_from_input(tDensityInput);
         EXPECT_EQ(tMesh.fixedBlockOrdinals().size(), aExpectedSizes.mNumberOfFixedBlocks) << aTestContext;
         EXPECT_EQ(tMesh.designBlockOrdinals().size(), aExpectedSizes.mNumberOfDesignBlocks) << aTestContext;
         EXPECT_EQ(mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes(), aExpectedSizes.mNumberOfDesignDomainNodes)
@@ -164,12 +165,12 @@ TEST_F(NodalDensityMesh, ValidateInitialTopologySource)
 {
     auto tDensityTopology = kDensityTopology;
     tDensityTopology.mesh_name = input_parser::FileName{mMeshName};
-    tDensityTopology.initial_density_field_name = input_parser::IdentifierString{mFieldName};
+    tDensityTopology.initial_field_name = input_parser::IdentifierString{mFieldName};
 
-    EXPECT_FALSE(detail::validate_initial_topology_source(tDensityTopology).has_value());
+    EXPECT_FALSE(validate_initial_field_source(tDensityTopology).has_value());
 
-    tDensityTopology.initial_density_field_name = input_parser::IdentifierString{"bogus-field"};
-    EXPECT_TRUE(detail::validate_initial_topology_source(tDensityTopology).has_value());
+    tDensityTopology.initial_field_name = input_parser::IdentifierString{"bogus-field"};
+    EXPECT_TRUE(validate_initial_field_source(tDensityTopology).has_value());
 }
 
 }  // namespace plato::geometry::extension::unittest

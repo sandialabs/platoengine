@@ -1,13 +1,17 @@
 #include <cmath>
-#include <iomanip>
 #include <iterator>
 #include <numeric>
 #include <type_traits>
+
+#include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
 
 namespace plato::test_utilities
 {
 namespace
 {
+constexpr int kTableEntryWidth = 24;
+constexpr int kPrecision = 16;
+
 /// @brief Generates a sequence of first-order finite difference approximations
 ///
 /// The first evaluation of this generator will compute the finite difference
@@ -68,7 +72,9 @@ struct PrintTableRow
 template <typename Stream>
 auto operator<<(Stream& aStream, const PrintTableRow& aTableRow) -> Stream&
 {
-    aStream << aTableRow.mStep << " " << aTableRow.mAnalytic << " " << aTableRow.mAnalytic << " " << aTableRow.mError;
+    using TableOutput = utilities::FixedWidthFloatingPointOutput<double, kPrecision, kTableEntryWidth>;
+    aStream << TableOutput{aTableRow.mStep} << TableOutput{aTableRow.mAnalytic}
+            << TableOutput{aTableRow.mFiniteDifference} << TableOutput{aTableRow.mError};
     return aStream;
 }
 

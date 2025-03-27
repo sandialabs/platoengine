@@ -1,6 +1,7 @@
 #ifndef PLATO_THIRDPARTYINTEGRATION_KRINO_LEVELSETPRIMITIVES
 #define PLATO_THIRDPARTYINTEGRATION_KRINO_LEVELSETPRIMITIVES
 
+#include <Akri_Composite_Surface.hpp>
 #include <vector>
 
 #include "plato/third_party_integration/common/Vector3.hpp"
@@ -47,6 +48,20 @@ struct LevelSetPrimitives
     std::vector<Sphere> mSpheres;
 };
 
+///@brief Initializes the krino composite surface so that primitive surface types can be added to it
+///@pre krino has been initialized using 'initialize_environment_for_krino'
+[[nodiscard]] auto make_krino_composite_surface() -> ::krino::Composite_Surface;
+
+///@brief Take a vector of Spheres @a aSpheres and convert them to a krino native type and add them to the krino
+/// composite surface @a aSurfaces.
+///@pre krino has been initialized using 'initialize_environment_for_krino'
+void append_spheres(::krino::Composite_Surface& aSurfaces, const std::vector<Sphere>& aSpheres);
+
+///@brief Take a vector of Planes @a aPlanes and convert them to a krino native type and add them to the krino composite
+/// surface @a aSurfaces.
+///@pre krino has been initialized using 'initialize_environment_for_krino'
+void append_planes(::krino::Composite_Surface& aSurfaces, const std::vector<Plane>& aPlanes);
+
 }  // namespace plato::third_party_integration::krino
 
-#endif  // PLATO_THIRD_PARTY_INTEGRATION_KRINO_LEVELSET_PRIMITIVES
+#endif

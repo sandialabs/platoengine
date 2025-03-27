@@ -12,6 +12,7 @@
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/extension/FixedBlockUtilities.hpp"
+#include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
@@ -19,7 +20,6 @@
 #include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
-#include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
@@ -88,26 +88,17 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
         { return validate_fixed_block_names_exist(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput)
         { return validate_at_least_one_design_block(aInput, kMeshNameAccessor); },
-        [](const input_parser::density_topology& aInput) { return detail::validate_output_name(aInput); },
+        [](const input_parser::density_topology& aInput) { return library::detail::validate_output_name(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_initial_density_value(aInput); },
-        [](const input_parser::density_topology& aInput) { return detail::validate_initial_topology_source(aInput); },
+        [](const input_parser::density_topology& aInput) { return validate_initial_field_source(aInput); },
         [](const input_parser::density_topology& aInput)
         { return detail::validate_exactly_one_initial_topology_specifier(aInput); }};
-
-std::string mesh_field_names_for_error_message(const input_parser::density_topology& aInput)
-{
-    const auto tMesh = detail::mesh_from_input(aInput);
-    const auto tNodalFields = mesh::EntityRetrieval{tMesh}.nodalFields();
-
-    return utilities::concatenate("Field name must be one of the following defined on the nodes: ",
-                                  utilities::concatenate_container(tNodalFields, ", "), ".");
-}
 
 }  // namespace
 
 DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
                                  plato::filter::library::FilterFunction aFilterFunction)
-    : mMesh(detail::mesh_from_input(aInput)), mFilter(std::move(aFilterFunction))
+    : mMesh(mesh_from_input(aInput)), mFilter(std::move(aFilterFunction))
 {
 }
 
@@ -150,17 +141,17 @@ linear_algebra::DynamicVector<double> DensityTopology::initialGuess(const input_
 {
     if (aInput.initial_density_value.has_value())
     {
-        const auto tMesh = detail::mesh_from_input(aInput);
+        const auto tMesh = mesh_from_input(aInput);
         const unsigned int tNumNodes = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
         return linear_algebra::DynamicVector<double>(tNumNodes, aInput.initial_density_value.value());
     }
-    return linear_algebra::DynamicVector<double>(detail::initial_density_value_from_mesh(aInput));
+    return linear_algebra::DynamicVector<double>(initial_field_from_mesh(aInput));
 }
 
 std::pair<std::vector<double>, std::vector<double>> DensityTopology::bounds(
     const input_parser::density_topology& aInput)
 {
-    const auto tMesh = mesh::EntityCounts{detail::mesh_from_input(aInput)};
+    const auto tMesh = mesh::EntityCounts{mesh_from_input(aInput)};
     const unsigned int tNumNodes = tMesh.numberOfDesignDomainNodes();
     return {std::vector<double>(tNumNodes, kDensityLowerBound), std::vector<double>(tNumNodes, kDensityUpperBound)};
 }
@@ -170,19 +161,17 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
                              const input_parser::density_topology& aInput,
                              const library::OutputInfo& aOutputInfo)
 {
-    const auto tMeshFieldOutput = MeshFieldOutputInfo{
-        detail::mesh_from_input(aInput),    output_name(aInput), fixed_blocks(aInput), density_mesh_field_name(),
-        filtered_density_mesh_field_name(), kDensityFixedValue};
+    const auto tMeshFieldOutput = MeshFieldOutputInfo{mesh_from_input(aInput),
+                                                      output_name(aInput),
+                                                      fixed_blocks(aInput),
+                                                      density_mesh_field_name(),
+                                                      filtered_density_mesh_field_name(),
+                                                      kDensityFixedValue};
     output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 }
 
 namespace detail
 {
-std::optional<std::string> validate_output_name(const input_parser::density_topology& aInput)
-{
-    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::density_topology>(),
-                                                   aInput.output_name, "output_name");
-}
 
 std::optional<std::string> validate_initial_density_value(const input_parser::density_topology& aInput)
 {
@@ -192,55 +181,18 @@ std::optional<std::string> validate_initial_density_value(const input_parser::de
         "initial_density_value", pfu::ParameterBounds{pfu::Exclusive{0.0}, pfu::Inclusive{1.0}});
 }
 
-std::optional<std::string> validate_initial_topology_source(const input_parser::density_topology& aInput)
-{
-    if (aInput.initial_density_field_name.has_value() && aInput.mesh_name.has_value() &&
-        std::filesystem::exists(aInput.mesh_name.value().mToken))
-    {
-        const auto tFieldName = aInput.initial_density_field_name.value().mToken;
-        const auto tFileName = aInput.mesh_name.value().mToken;
-        const auto tNodalFieldExists =
-            mesh::EntityCounts{detail::mesh_from_input(aInput)}.hasNodalFieldVariable(std::string{tFieldName});
-
-        if (!tNodalFieldExists)
-        {
-            return utilities::concatenate(
-                input_parser::block_name<input_parser::density_topology>(), ": The mesh  ", tFileName,
-                " does not have a nodal field called '", tFieldName,
-                "'.\nYou must either specify an 'initial_density_value' or have the field defined on the mesh.\n",
-                mesh_field_names_for_error_message(aInput));
-        }
-    }
-    return std::nullopt;
-}
-
 std::optional<std::string> validate_exactly_one_initial_topology_specifier(const input_parser::density_topology& aInput)
 {
-    const bool tBothAreTrue = aInput.initial_density_field_name.has_value() && aInput.initial_density_value.has_value();
-    const bool tBothAreFalse =
-        !aInput.initial_density_field_name.has_value() && !aInput.initial_density_value.has_value();
+    const bool tBothAreTrue = aInput.initial_field_name.has_value() && aInput.initial_density_value.has_value();
+    const bool tBothAreFalse = !aInput.initial_field_name.has_value() && !aInput.initial_density_value.has_value();
 
     if (tBothAreFalse || tBothAreTrue)
     {
         return utilities::concatenate(input_parser::block_name<input_parser::density_topology>(),
                                       ": You must specify exactly one initial topology value. Either "
-                                      "'initial_density_value' or 'initial_density_field_name'.");
+                                      "'initial_density_value' or 'initial_field_name'.");
     }
     return std::nullopt;
-}
-
-mesh::Mesh mesh_from_input(const input_parser::density_topology& aInput)
-{
-    assert(aInput.mesh_name.has_value());
-    return mesh::Mesh{aInput.mesh_name.value().mToken, fixed_blocks(aInput)};
-}
-
-auto initial_density_value_from_mesh(const input_parser::density_topology& aInput) -> std::vector<double>
-{
-    const auto tFieldName = aInput.initial_density_field_name.value().mToken;
-    const auto tMesh = detail::mesh_from_input(aInput);
-
-    return mesh::EntityRetrieval{tMesh}.designDomainNodalField(tFieldName);
 }
 
 }  // namespace detail

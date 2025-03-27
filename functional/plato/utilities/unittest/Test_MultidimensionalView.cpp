@@ -36,10 +36,10 @@ TEST(VectorView, Values)
         }
     };
 
-    auto tNonConstView = MultiVectorView<tDimension, const std::vector<double>>{tVector};
+    auto tNonConstView = MultiVectorView<const std::vector<double>>{tVector, tDimension};
     tTest(tNonConstView, TEST_CONTEXT("Non-const view"));
 
-    const auto tConstView = MultiVectorView<tDimension, const std::vector<double>>{tVector};
+    const auto tConstView = MultiVectorView<const std::vector<double>>{tVector, tDimension};
     tTest(tConstView, TEST_CONTEXT("Const view"));
 }
 
@@ -49,7 +49,7 @@ TEST(VectorView, Sizes)
     constexpr auto tLength = std::size_t{2};
     const auto tVector = std::vector<double>(tDimension * tLength);
 
-    const auto tMultiVectorView = utilities::make_multi_vector_view<tDimension>(tVector);
+    const auto tMultiVectorView = utilities::make_multi_vector_view(tVector, tDimension);
     EXPECT_EQ(tMultiVectorView.numberOfVectors(), tLength);
     EXPECT_EQ(tMultiVectorView.size(), tLength * tDimension);
 }

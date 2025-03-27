@@ -13,14 +13,14 @@ using VectorIndex = NamedType<std::size_t, struct VectorIndexTag>;
 using ComponentIndex = NamedType<std::size_t, struct ComponentIndexTag>;
 
 /// @brief The purpose of this view type is to facilitate indexing operations into a contiguous array that represents a
-/// matrix-like 2D array of N-dimensional vectors, with dimension N known at compile-time.
+/// matrix-like 2D array of N-dimensional vectors, with dimension N known at run-time.
 ///
 /// The main use-case is an array of points. For example, a `std::vector` may be adapted to store an array of points
 /// using this view type as
 /// @code{.cpp}
 /// constexpr kDimension = std::size_t{3};
 /// auto tPoints = std::vector<double>(kDimension * tNumberOfPoints);
-/// auto tPointView = MultiVectorView<kDimension>{tPoints};
+/// auto tPointView = MultiVectorView{tPoints, kDimension};
 /// tPointView(0, 0) = 0.0; // x-component of first point
 /// tPointView(0, 1) = 0.0; // y-component of first point
 /// tPointView(0, 2) = 0.0; // z-component of first point
@@ -31,20 +31,20 @@ using ComponentIndex = NamedType<std::size_t, struct ComponentIndexTag>;
 /// vector index `m` and component index `n` indexes into the underlying container as `m * kDimensions + n`.
 ///
 /// @tparam Container Must have an `operator[]` defined.
-template <std::size_t kDimensions, typename Container>
+template <typename Container>
 class MultiVectorView
 {
    public:
     /// @brief Construction from @a aContainer.
     /// @note This class holds a reference to @a aContainer, and so the lifetime of @a aContainer must exceed the
     /// lifetime of this object.
-    /// @pre The size of the container must be an integer multiple of `kDimensions`.
-    MultiVectorView(Container& aContainer);
+    /// @pre The size of the container must be an integer multiple of @a aDimensions.
+    MultiVectorView(Container& aContainer, const std::size_t aDimensions);
 
     /// @brief The number of vectors.
     auto numberOfVectors() const -> std::size_t;
 
-    /// @brief The total size of all entries, i.e., `kDimensions` times numberOfVectors.
+    /// @brief The total size of all entries, i.e., `mDimensions` times numberOfVectors.
     auto size() const -> std::size_t;
 
     /// @brief Accessor for the @a aComponentIndex component of the @a aVectorIndex vector.
@@ -56,45 +56,45 @@ class MultiVectorView
 
    private:
     std::reference_wrapper<Container> mContainer;
+    std::size_t mDimensions;
 };
 
 /// @brief Helper function for creating a MultiVectorView and deducing the container type.
-template <std::size_t kDimensions, typename Container>
-auto make_multi_vector_view(Container& aContainer) -> MultiVectorView<kDimensions, Container>
+template <typename Container>
+auto make_multi_vector_view(Container& aContainer, const std::size_t aDimensions) -> MultiVectorView<Container>
 {
-    return MultiVectorView<kDimensions, Container>{aContainer};
+    return MultiVectorView<Container>{aContainer, aDimensions};
 }
 
-template <std::size_t kDimensions, typename Container>
-MultiVectorView<kDimensions, Container>::MultiVectorView(Container& aContainer) : mContainer{aContainer}
+template <typename Container>
+MultiVectorView<Container>::MultiVectorView(Container& aContainer, const std::size_t aDimensions)
+    : mContainer{aContainer}, mDimensions(aDimensions)
 {
-    assert(aContainer.size() % kDimensions == 0);
+    assert(aContainer.size() % aDimensions == 0);
 }
 
-template <std::size_t kDimensions, typename Container>
-auto MultiVectorView<kDimensions, Container>::numberOfVectors() const -> std::size_t
+template <typename Container>
+auto MultiVectorView<Container>::numberOfVectors() const -> std::size_t
 {
-    return mContainer.get().size() / kDimensions;
+    return mContainer.get().size() / mDimensions;
 }
 
-template <std::size_t kDimensions, typename Container>
-auto MultiVectorView<kDimensions, Container>::size() const -> std::size_t
+template <typename Container>
+auto MultiVectorView<Container>::size() const -> std::size_t
 {
     return mContainer.get().size();
 }
 
-template <std::size_t kDimensions, typename Container>
-auto& MultiVectorView<kDimensions, Container>::operator()(const VectorIndex aVectorIndex,
-                                                          const ComponentIndex aComponentIndex) const
+template <typename Container>
+auto& MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, const ComponentIndex aComponentIndex) const
 {
-    assert(aComponentIndex.mValue < kDimensions);
+    assert(aComponentIndex.mValue < mDimensions);
     assert(aVectorIndex.mValue < numberOfVectors());
-    return mContainer.get()[aVectorIndex.mValue * kDimensions + aComponentIndex.mValue];
+    return mContainer.get()[aVectorIndex.mValue * mDimensions + aComponentIndex.mValue];
 }
 
-template <std::size_t kDimensions, typename Container>
-auto& MultiVectorView<kDimensions, Container>::operator()(const VectorIndex aVectorIndex,
-                                                          const ComponentIndex aComponentIndex)
+template <typename Container>
+auto& MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, const ComponentIndex aComponentIndex)
 {
     const auto* const tConstThis = this;
     return (*tConstThis)(aVectorIndex, aComponentIndex);

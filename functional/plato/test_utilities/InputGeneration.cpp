@@ -37,7 +37,7 @@ input_parser::density_topology create_valid_density_topology_geometry()
                                           /*.fixed_blocks=*/{},
                                           /*.filter=*/boost::none,
                                           /*.initial_density_value=*/0.5,
-                                          /*.initial_density_field_name=*/boost::none};
+                                          /*.initial_field_name=*/boost::none};
 }
 
 auto create_valid_density_topology_geometry_with_element_centered_kernel_filter()
@@ -61,8 +61,8 @@ std::string create_valid_density_topology_geometry_string()
 
 input_parser::level_set_topology create_valid_level_set_topology_geometry()
 {
-    return input_parser::level_set_topology{/*.background_mesh_name = */ input_parser::FileName{"bg.exo"},
-                                            /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
+    return input_parser::level_set_topology{/*.mesh_name = */ input_parser::FileName{"bg.exo"},
+                                            /*.output_name = */ input_parser::FileName{"out.exo"},
                                             /*.include_void_region = */ false,
                                             /*.sphere_pattern_bbox_min_x = */ 0.0,
                                             /*.sphere_pattern_bbox_min_y = */ 0.0,
@@ -75,17 +75,29 @@ input_parser::level_set_topology create_valid_level_set_topology_geometry()
                                             /*.level_set_lower_bound = */ -1.0,
                                             /*.level_set_upper_bound = */ 1.0,
                                             /*.filter=*/boost::none,
-                                            /*.fixed_blocks=*/boost::none};
+                                            /*.fixed_blocks=*/boost::none,
+                                            /*.initial_field_name=*/boost::none};
 }
 
-std::string create_valid_level_set_topology_geometry_string()
+input_parser::level_set_topology create_valid_level_set_topology_geometry_initialize_from_field()
 {
-    return R"(
-        begin level_set_topology
-          background_mesh_name bg.exo
-          output_mesh_name out.exo
-        end
-        )";
+    return input_parser::level_set_topology{/*.mesh_name = */
+                                            input_parser::FileName{"mesh.exo"},
+                                            /*.output_name = */ input_parser::FileName{"level-set-output.exo"},
+                                            /*.include_void_region = */ true,
+                                            /*.sphere_pattern_bbox_min_x = */ boost::none,
+                                            /*.sphere_pattern_bbox_min_y = */ boost::none,
+                                            /*.sphere_pattern_bbox_min_z = */ boost::none,
+                                            /*.sphere_pattern_bbox_max_x = */ boost::none,
+                                            /*.sphere_pattern_bbox_max_y = */ boost::none,
+                                            /*.sphere_pattern_bbox_max_z = */ boost::none,
+                                            /*.sphere_pattern_radius = */ boost::none,
+                                            /*.sphere_pattern_spacing = */ boost::none,
+                                            /*.level_set_lower_bound = */ -1.0,
+                                            /*.level_set_upper_bound = */ 1.0,
+                                            /*.filter=*/boost::none,
+                                            /*.fixed_blocks=*/boost::none,
+                                            /*.initial_field_name=*/input_parser::IdentifierString{"density"}};
 }
 
 input_parser::constraint create_valid_example_constraint()
