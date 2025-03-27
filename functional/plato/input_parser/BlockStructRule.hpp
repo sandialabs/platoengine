@@ -128,7 +128,8 @@ enum struct ComponentType
     kConstraint,
     kGeometry,
     kFilter,
-    kProcessManager
+    kProcessManager,
+    kNumberOfEnumerates
 };
 
 /// @brief Specifies whether a component has a name that should be parsed.
@@ -136,8 +137,7 @@ enum struct ComponentType
 /// This indicates whether or not the component is unique in a workflow.
 template <ComponentType kComponentType>
 [[maybe_unused]] constexpr auto kIsNamedComponent =
-    kComponentType == ComponentType::kConstraint || kComponentType == ComponentType::kObjective ||
-    kComponentType == ComponentType::kProcessManager;
+    kComponentType == ComponentType::kConstraint || kComponentType == ComponentType::kObjective;
 
 /// @brief A parser for a struct as key-value pairs.
 ///
