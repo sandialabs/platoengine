@@ -39,14 +39,15 @@ class ValidationFunction
 
 template <typename F>
 ValidationFunction::ValidationFunction(F aFunction)
-    : mValidationFunction{[mFunction = std::move(aFunction)](const input_parser::CrossReferencedInput& aInput)
+    : mValidationFunction{[tFunction = std::move(aFunction)](const input_parser::CrossReferencedInput& aInput)
                           {
                               static_assert(utilities::FunctionArgType<F>::kNumberOfArgs == 1U,
                                             "A ValidationFunction must be constructed with a function object having a "
                                             "single argument.");
+
                               using InputType = typename utilities::FunctionArgType<F>::template arg<0U>;
                               const auto& tCastInput = aInput.get<const InputType&>();
-                              return mFunction(tCastInput);
+                              return tFunction(tCastInput);
                           }}
 {
 }

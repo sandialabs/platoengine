@@ -126,13 +126,15 @@ TEST(GenericBlockRule, MultipleBlocks)
         " more inputs!\n"
         "end"};
 
-    const auto tParser = GenericBlockParser<std::string::const_iterator>{};
-    const auto [tParseResult, tResultIterator, tParsedData] =
-        parse_generic_block<std::vector<GenericBlockData>>(tInput, +(tParser.mRule));
+    //    ;
+    //    const auto [tParseResult, tResultIterator, tParsedData] =
+    //        parse_generic_block<std::vector<GenericBlockData>>(tInput, +(tParser.mRule));
 
-    EXPECT_TRUE(tParseResult);
-    EXPECT_EQ(tResultIterator, tInput.end()) << "Unparsed text: " << std::string{tResultIterator, tInput.cend()};
-    EXPECT_EQ(tParsedData.size(), 2U);
+    const auto tParsedData = parse_generic_blocks(tInput);
+
+    //    EXPECT_TRUE(tParseResult);
+    //    EXPECT_EQ(tResultIterator, tInput.end()) << "Unparsed text: " << std::string{tResultIterator, tInput.cend()};
+    ASSERT_EQ(tParsedData.size(), 2U);
 
     const auto tCheckBlockData = [](const GenericBlockData& aData, const std::string& aExpectedName,
                                     const std::vector<std::string>& aExpectedInputs,

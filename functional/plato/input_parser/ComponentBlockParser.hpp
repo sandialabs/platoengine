@@ -18,6 +18,11 @@ struct InputDataBlock
     CrossReferencedInput mInput;
 };
 
+template <ComponentType kComponentType>
+struct ComponentTypeHelper
+{
+};
+
 /// @brief A parser that parses a generic component block using the component's specific rule to parse into a struct.
 ///
 /// The body of a component block contained in a GenericBlockData object is parsed into a struct as provided to the
@@ -25,8 +30,8 @@ struct InputDataBlock
 class ComponentBlockParser
 {
    public:
-    template <typename Parser>
-    ComponentBlockParser(Parser aParser);
+    template <typename InputType, ComponentType kComponentType>
+    ComponentBlockParser(const InputType&, ComponentTypeHelper<kComponentType>);
 
     /// @brief Parses @a aData into the struct provided to the constructor.
     ///
@@ -34,33 +39,38 @@ class ComponentBlockParser
     [[nodiscard]] auto parse(const GenericBlockData& aData) const -> InputDataBlock;
 
    private:
-    std::function<InputDataBlock(const std::any&, const GenericBlockData&)> mParseFunction;
-    std::any mParserObject;
+    std::function<InputDataBlock(const GenericBlockData&)> mParseFunction;
 };
 
-template <typename Parser>
-ComponentBlockParser::ComponentBlockParser(Parser aParser)
-    : mParseFunction{[](const std::any& aParserObject, const GenericBlockData& aData) -> InputDataBlock
-                     {
-                         const auto& tParser = std::any_cast<const Parser&>(aParserObject);
-                         const auto tInput = to_string(aData);
-                         auto tInputIterator = tInput.begin();
-                         auto tData = typename Parser::BlockDataStruct{};
-                         const auto tSkipper = SkipperRule<std::string::const_iterator>{};
-                         phrase_parse(tInputIterator, tInput.cend(), tParser.mBlockRule, tSkipper.skipperRule(), tData);
-                         auto tWrappedResult = InputDataBlock{};
-                         tWrappedResult.mInput.set(tData);
-                         tWrappedResult.mBlockName = aData.mName.mToken;
-                         tWrappedResult.mComponentType = Parser::mComponentType;
-                         return tWrappedResult;
-                     }},
-      mParserObject{std::move(aParser)}
+/// @brief Helper function for constructing a ComponentBlockParser
+template <typename InputType, ComponentType kComponentType>
+[[nodiscard]] auto make_component_block_parser() -> ComponentBlockParser;
+
+template <typename InputType, ComponentType kComponentType>
+ComponentBlockParser::ComponentBlockParser(const InputType&, ComponentTypeHelper<kComponentType>)
+    : mParseFunction{
+          [](const GenericBlockData& aData) -> InputDataBlock
+          {
+              using Parser = ComponentBlockRule<std::string::const_iterator, InputType, kComponentType>;
+              const auto tParser = Parser{};
+              const auto tInput = to_string(aData);
+              auto tInputIterator = tInput.begin();
+              auto tData = typename Parser::BlockDataStruct{};
+              const auto tSkipper = SkipperRule<std::string::const_iterator>{};
+              boost::spirit::qi::phrase_parse(tInputIterator, tInput.cend(), tParser.mBlockRule, tSkipper.skipperRule(),
+                                              tData);
+
+              auto tWrappedResult = InputDataBlock{Parser::mComponentType, aData.mName.mToken, CrossReferencedInput{}};
+              tWrappedResult.mInput.set(tData);  // FIX-ME, this should be doable on construction
+              return tWrappedResult;
+          }}
 {
 }
 
-auto ComponentBlockParser::parse(const GenericBlockData& aData) const -> InputDataBlock
+template <typename InputType, ComponentType kComponentType>
+auto make_component_block_parser() -> ComponentBlockParser
 {
-    return mParseFunction(mParserObject, aData);
+    return ComponentBlockParser{InputType{}, ComponentTypeHelper<kComponentType>{}};
 }
 
 }  // namespace plato::input_parser
