@@ -2,6 +2,7 @@
 #define PLATO_INPUT_PARSER_PARSEDINPUT
 
 #include <array>
+#include <unordered_map>
 #include <vector>
 
 #include "plato/input_parser/BlockStructRule.hpp"
@@ -31,6 +32,13 @@ class NewParsedInput
     static constexpr inline std::size_t kNumberOfComponents = utilities::number_of_enumerates<ComponentType>();
     std::array<std::vector<InputDataBlock>, kNumberOfComponents> mInputBlocks;
 };
+
+/// @brief Parse the string @a aInput to a NewParsedInput object.
+/// @throw ?
+/// @todo Fix name
+[[nodiscard]] auto parse_to_new_input(const std::string& aInput,
+                                      const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
+    -> NewParsedInput;
 
 template <ComponentType kComponentType>
 auto NewParsedInput::get() const -> const std::vector<InputDataBlock>&

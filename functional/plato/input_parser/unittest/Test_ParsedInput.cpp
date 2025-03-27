@@ -66,17 +66,15 @@ TEST(ParsedInput, ParsesFullValidInput)
         "  apple 13.0\n"
         "  banana 42\n"
         "end\n"};
-    const auto tGenericBlocks = parse_generic_blocks(tInput);
-    auto tParsedInput = std::vector<InputDataBlock>{};
-    std::transform(tGenericBlocks.begin(), tGenericBlocks.end(), std::back_inserter(tParsedInput),
-                   [](const auto& aGenericBlock)
-                   { return kComponentParsers.at(aGenericBlock.mName.mToken).parse(aGenericBlock); });
 
-    ASSERT_EQ(tParsedInput.size(), 2U);
-    EXPECT_EQ(tParsedInput.front().mBlockName, "vegetables");
-    EXPECT_EQ(tParsedInput.front().mComponentType, ComponentType::kObjective);
-    ASSERT_TRUE(tParsedInput.front().mInput.holds_expected_type<vegetables>());
-    const auto tVegetableInput = tParsedInput.front().mInput.get<vegetables>();
+    const auto tParsedInput = parse_to_new_input(std::string{tInput}, kComponentParsers);
+
+    const auto& tVegetableInputs = tParsedInput.get<ComponentType::kObjective>();
+    ASSERT_EQ(tVegetableInputs.size(), 1U);
+    EXPECT_EQ(tVegetableInputs.front().mBlockName, "vegetables");
+    EXPECT_EQ(tVegetableInputs.front().mComponentType, ComponentType::kObjective);
+    ASSERT_TRUE(tVegetableInputs.front().mInput.holds_expected_type<vegetables>());
+    const auto tVegetableInput = tVegetableInputs.front().mInput.get<vegetables>();
     ASSERT_TRUE(tVegetableInput.name.has_value());
     EXPECT_EQ(tVegetableInput.name.value(), "nightshade");
     ASSERT_TRUE(tVegetableInput.potato.has_value());
@@ -84,10 +82,12 @@ TEST(ParsedInput, ParsesFullValidInput)
     ASSERT_TRUE(tVegetableInput.tomato.has_value());
     EXPECT_TRUE(tVegetableInput.tomato.value());
 
-    EXPECT_EQ(tParsedInput.back().mBlockName, "fruits");
-    EXPECT_EQ(tParsedInput.back().mComponentType, ComponentType::kGeometry);
-    ASSERT_TRUE(tParsedInput.back().mInput.holds_expected_type<fruits>());
-    const auto tFruitInput = tParsedInput.back().mInput.get<fruits>();
+    const auto& tFruitInputs = tParsedInput.get<ComponentType::kGeometry>();
+    ASSERT_EQ(tFruitInputs.size(), 1U);
+    EXPECT_EQ(tFruitInputs.front().mBlockName, "fruits");
+    EXPECT_EQ(tFruitInputs.front().mComponentType, ComponentType::kGeometry);
+    ASSERT_TRUE(tFruitInputs.front().mInput.holds_expected_type<fruits>());
+    const auto tFruitInput = tFruitInputs.front().mInput.get<fruits>();
     ASSERT_TRUE(tFruitInput.apple.has_value());
     EXPECT_EQ(tFruitInput.apple.value(), 13.0);
     ASSERT_TRUE(tFruitInput.banana.value());

@@ -1,5 +1,7 @@
 #include "plato/input_parser/ParsedInput.hpp"
 
+#include "plato/input_parser/GenericBlockRule.hpp"
+
 namespace plato::input_parser
 {
 namespace
@@ -56,6 +58,18 @@ template <typename IteratorArray, std::size_t... kIndices>
 NewParsedInput::NewParsedInput(std::vector<InputDataBlock> aRawInput)
     : mInputBlocks{partition_inputs_by_component(std::move(aRawInput))}
 {
+}
+
+auto parse_to_new_input(const std::string& aInput,
+                        const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
+    -> NewParsedInput
+{
+    const auto tGenericBlocks = parse_generic_blocks(aInput);
+    auto tParsedInput = std::vector<InputDataBlock>{};
+    std::transform(tGenericBlocks.begin(), tGenericBlocks.end(), std::back_inserter(tParsedInput),
+                   [&aComponentParsers](const auto& aGenericBlock)
+                   { return aComponentParsers.at(aGenericBlock.mName.mToken).parse(aGenericBlock); });
+    return NewParsedInput{std::move(tParsedInput)};
 }
 
 }  // namespace plato::input_parser
