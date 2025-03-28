@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "plato/utilities/TupleHelpers.hpp"
-#include "plato/utilities/unittest/CopyCounter.hpp"
 
 namespace plato::utilities::unittest
 {
