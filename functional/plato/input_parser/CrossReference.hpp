@@ -5,6 +5,8 @@
 #include <boost/spirit/include/qi.hpp>
 #include <string>
 
+#include "plato/input_parser/ComponentType.hpp"
+
 namespace plato::input_parser
 {
 
@@ -23,6 +25,12 @@ class CrossReferencedInput
     [[nodiscard]] auto get() const -> const T&
     {
         return std::any_cast<const T&>(mInput);
+    }
+
+    template <typename T>
+    [[nodiscard]] auto get() -> T&
+    {
+        return std::any_cast<T&>(mInput);
     }
 
     /// @brief Assigns a new value with @a aValue.
@@ -63,6 +71,24 @@ struct CrossReference
 
     std::string mName;
     CrossReferencedInput mInputBlock;
+};
+
+/// @brief Helper for parsing a cross-referenced input block
+/// Use this type in the input structs for a cross referenced block
+/// @todo Fix name
+template <ComponentType kComponentType>
+struct NewCrossReference
+{
+    using value_type = char;
+    [[nodiscard]] std::string::const_iterator begin() const { return mName.begin(); }
+    [[nodiscard]] std::string::const_iterator end() const { return mName.end(); }
+    [[nodiscard]] std::string::iterator begin() { return mName.begin(); }
+    [[nodiscard]] std::string::iterator end() { return mName.end(); }
+    void insert(std::string::iterator aIter, char aVal) { mName.insert(aIter, aVal); }
+
+    std::string mName;
+    CrossReferencedInput mInputBlock;
+    constexpr static inline ComponentType mComponentType = kComponentType;
 };
 
 template <typename T, typename>

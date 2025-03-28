@@ -59,6 +59,15 @@ TEST(CrossReferencedInput, HasValue)
     EXPECT_TRUE(tInput.has_value());
 }
 
+TEST(CrossReferencedInput, MutatingGet)
+{
+    auto tInput = CrossReferencedInput{101};
+    ASSERT_TRUE(tInput.holds_expected_type<int>());
+    constexpr auto tNewValue = 42;
+    tInput.get<int>() = tNewValue;
+    EXPECT_EQ(tInput.get<int>(), tNewValue);
+}
+
 TEST(CrossReferencedInput, Ctors)
 {
     constexpr auto tValue = int{42};

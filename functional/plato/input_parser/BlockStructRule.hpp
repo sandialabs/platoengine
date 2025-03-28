@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "plato/input_parser/ComponentType.hpp"
 #include "plato/input_parser/EnumParser.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
@@ -118,18 +119,6 @@ struct BlockStructRule
 
     bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockRule =
         mPreambleRule > mBlockOrRule[bsq::_val = bsq::_1] > mPostambleRule;
-};
-
-/// @brief The allowable types of components. These map to general categories of objects that may be instantiated to
-/// create a workflow.
-enum struct ComponentType
-{
-    kObjective,
-    kConstraint,
-    kGeometry,
-    kFilter,
-    kProcessManager,
-    kNumberOfEnumerates
 };
 
 /// @brief Specifies whether a component has a name that should be parsed.
