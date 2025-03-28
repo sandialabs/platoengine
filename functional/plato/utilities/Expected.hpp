@@ -97,7 +97,8 @@ constexpr Expected<T, Error>::Expected(U&& aU) : mValue{std::forward<U>(aU)}
 
 template <typename T, typename Error>
 template <typename E, typename>
-constexpr Expected<T, Error>::Expected(Unexpected<E>&& aError) : mValue{std::forward<Unexpected<E>>(aError)}
+constexpr Expected<T, Error>::Expected(Unexpected<E>&& aError)
+    : mValue{Unexpected<Error>{std::forward<Unexpected<E>>(aError).mError}}
 {
 }
 
@@ -105,7 +106,7 @@ template <typename T, typename Error>
 template <typename E, typename>
 constexpr auto Expected<T, Error>::operator=(Unexpected<E>&& aError) -> Expected&
 {
-    mValue = Unexpected<Error>{std::forward<E>(aError.mError)};
+    mValue = Unexpected<Error>{std::forward<Unexpected<E>>(aError).mError};
     return *this;
 }
 
