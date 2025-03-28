@@ -126,14 +126,10 @@ TEST(GenericBlockRule, MultipleBlocks)
         " more inputs!\n"
         "end"};
 
-    //    ;
-    //    const auto [tParseResult, tResultIterator, tParsedData] =
-    //        parse_generic_block<std::vector<GenericBlockData>>(tInput, +(tParser.mRule));
+    const auto tParsedDataOrError = parse_generic_blocks(tInput);
 
-    const auto tParsedData = parse_generic_blocks(tInput);
-
-    //    EXPECT_TRUE(tParseResult);
-    //    EXPECT_EQ(tResultIterator, tInput.end()) << "Unparsed text: " << std::string{tResultIterator, tInput.cend()};
+    ASSERT_TRUE(tParsedDataOrError.hasValue());
+    const auto& tParsedData = tParsedDataOrError.value();
     ASSERT_EQ(tParsedData.size(), 2U);
 
     const auto tCheckBlockData = [](const GenericBlockData& aData, const std::string& aExpectedName,
@@ -149,6 +145,21 @@ TEST(GenericBlockRule, MultipleBlocks)
 
     tCheckBlockData(tParsedData.front(), "arbitrary_block", {"inputs", "schminputs"}, TEST_CONTEXT("Block 1"));
     tCheckBlockData(tParsedData.back(), "arbitrary_block_two", {"more", "inputs!"}, TEST_CONTEXT("Block 2"));
+}
+
+TEST(GenericBlockRule, ParseError)
+{
+    const auto tInput = std::string{
+        "begin arbitrary_block \n"
+        " inputs schminputs\n"
+        "end\n"
+        "bgin arbitrary_block_two"
+        " more inputs! "
+        "end"};
+
+    const auto tParsedDataOrError = parse_generic_blocks(tInput);
+    ASSERT_FALSE(tParsedDataOrError.hasValue());
+    EXPECT_FALSE(tParsedDataOrError.error().empty());
 }
 
 TEST(GenericBlockRule, ToString)

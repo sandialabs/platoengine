@@ -123,7 +123,7 @@ struct BlockStructRule
 
 /// @brief Specifies whether a component has a name that should be parsed.
 ///
-/// This indicates whether or not the component is unique in a workflow.
+/// This indicates whether or not the component has a generic name and thus needs a user-given name to disambiguate.
 template <ComponentType kComponentType>
 [[maybe_unused]] constexpr auto kIsNamedComponent =
     kComponentType == ComponentType::kConstraint || kComponentType == ComponentType::kObjective;

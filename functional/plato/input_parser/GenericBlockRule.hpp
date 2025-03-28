@@ -7,6 +7,7 @@
 
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_parser/Skipper.hpp"
+#include "plato/utilities/Expected.hpp"
 
 namespace plato::input_parser
 {
@@ -69,7 +70,8 @@ struct GenericBlockParser : boost::spirit::qi::grammar<Iterator, GenericBlockDat
 };
 
 /// @brief Parses the string @a aInput into a vector of GenericBlockData objects.
-[[nodiscard]] auto parse_generic_blocks(std::string_view aInput) -> std::vector<GenericBlockData>;
+[[nodiscard]] auto parse_generic_blocks(std::string_view aInput)
+    -> utilities::Expected<std::vector<GenericBlockData>, std::string>;
 
 /// @brief Converts the tokenized input held by @a aData to a string.
 [[nodiscard]] auto to_string(const GenericBlockData& aData) -> std::string;

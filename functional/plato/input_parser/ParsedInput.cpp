@@ -64,7 +64,8 @@ auto parse_to_new_input(const std::string& aInput,
                         const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
     -> NewParsedInput
 {
-    const auto tGenericBlocks = parse_generic_blocks(aInput);
+    const auto tGenericBlocksOrError = parse_generic_blocks(aInput);
+    const auto& tGenericBlocks = tGenericBlocksOrError.value();
     auto tParsedInput = std::vector<InputDataBlock>{};
     std::transform(tGenericBlocks.begin(), tGenericBlocks.end(), std::back_inserter(tParsedInput),
                    [&aComponentParsers](const auto& aGenericBlock)

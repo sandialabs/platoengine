@@ -54,12 +54,14 @@ void apply_cross_link(ComponentInput& aComponent, const std::vector<InputDataBlo
     assert(!aAllComponentsOfMatchingType.empty());
     if (!aComponent.has_value())
     {
+        // Component to link was not specified, use the first in the list
         aComponent.emplace();
         aComponent->mName = aAllComponentsOfMatchingType.front().mBlockName;
         aComponent->mInputBlock = aAllComponentsOfMatchingType.front().mInput;
     }
     else
     {
+        // Component to link was specified, find the input with the matching name
         const auto tCrossReferenceBlock =
             std::find_if(aAllComponentsOfMatchingType.begin(), aAllComponentsOfMatchingType.end(),
                          [&aComponent](const auto& tComponent) { return tComponent.mBlockName == aComponent->mName; });
