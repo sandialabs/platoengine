@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "plato/input_parser/CrossReference.hpp"
+#include "plato/test_utilities/CopyCounter.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -56,4 +58,42 @@ TEST(CrossReferencedInput, HasValue)
     tInput.set(38);
     EXPECT_TRUE(tInput.has_value());
 }
+
+TEST(CrossReferencedInput, Ctors)
+{
+    constexpr auto tValue = int{42};
+    auto tInput = CrossReferencedInput{tValue};
+    const auto tCheckCrossReference =
+        [tValue](const CrossReferencedInput& aInput, const test_utilities::TestContext& aTestContext)
+    {
+        ASSERT_TRUE(aInput.has_value()) << aTestContext;
+        ASSERT_TRUE(aInput.holds_expected_type<int>()) << aTestContext;
+        EXPECT_EQ(aInput.get<int>(), tValue) << aTestContext;
+    };
+    // Converting ctor
+    {
+        tCheckCrossReference(tInput, TEST_CONTEXT("Converting constructor"));
+    }
+    // Copy ctor
+    {
+        const auto tInputCopy = tInput;  // NOLINT
+        tCheckCrossReference(tInputCopy, TEST_CONTEXT("Copy constructor"));
+
+        const auto tInputWithCounter = CrossReferencedInput{test_utilities::CopyCounter{}};
+        const auto tInputWithCounter2 = tInputWithCounter;  // NOLINT
+        EXPECT_EQ(tInputWithCounter2.get<test_utilities::CopyCounter>().mCopies, 1U);
+        EXPECT_EQ(tInputWithCounter2.get<test_utilities::CopyCounter>().mMoves, 1U);
+    }
+    // Move ctor
+    {
+        const auto tInput2 = std::move(tInput);
+        tCheckCrossReference(tInput2, TEST_CONTEXT("Move constructor"));
+
+        auto tInputWithCounter = CrossReferencedInput{test_utilities::CopyCounter{}};
+        const auto tInputWithCounter2 = std::move(tInputWithCounter);
+        EXPECT_EQ(tInputWithCounter2.get<test_utilities::CopyCounter>().mCopies, 0U);
+        EXPECT_EQ(tInputWithCounter2.get<test_utilities::CopyCounter>().mMoves, 2U);
+    }
+}
+
 }  // namespace plato::input_parser::unittest

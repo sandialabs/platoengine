@@ -12,12 +12,17 @@ namespace plato::input_parser
 class CrossReferencedInput
 {
    public:
+    CrossReferencedInput() = default;
+
+    template <typename T, typename = std::enable_if<!std::is_convertible_v<T, CrossReferencedInput>>>
+    explicit CrossReferencedInput(T&& aInitialValue);
+
     /// @brief Returns the held object
     /// @pre holds_expected_type must return `true` for type @a T.
     template <typename T>
-    [[nodiscard]] T get() const
+    [[nodiscard]] auto get() const -> const T&
     {
-        return std::any_cast<T>(mInput);
+        return std::any_cast<const T&>(mInput);
     }
 
     /// @brief Assigns a new value with @a aValue.
@@ -59,6 +64,11 @@ struct CrossReference
     std::string mName;
     CrossReferencedInput mInputBlock;
 };
+
+template <typename T, typename>
+CrossReferencedInput::CrossReferencedInput(T&& aInitialValue) : mInput{std::forward<T>(aInitialValue)}
+{
+}
 }  // namespace plato::input_parser
 
 namespace boost::spirit::traits
