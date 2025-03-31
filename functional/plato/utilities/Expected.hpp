@@ -20,11 +20,20 @@ struct Unexpected
 
 /// @brief Helper function for deducing the error type.
 ///
-/// This may be used for assigning an error type to an expected object. The assignment is converting, so the following
-/// will work:
+/// This may be used for assigning an error type to an expected object. The Expected class's assignment is converting,
+/// so the following can be used:
 /// @code{.cpp}
 /// auto tExpected = Expected<int, std::string>{42};
 //  tExpected = unexpected("Error!");
+/// @endcode
+/// or
+/// @code{.cpp}
+/// auto divide(const double x, const double y) -> Expected<double, std::string> {
+///   if(y == 0.0) {
+///    return utilities::unexpected("Error! Divide by zero!");
+///   }
+///   return x / y;
+/// }
 /// @endcode
 template <typename Error>
 constexpr auto unexpected(Error&& aError) -> Unexpected<Error>;
@@ -40,6 +49,7 @@ constexpr bool kIsUnexpected<Unexpected<U>> = true;
 /// The main use of this is to express an error condition using optional-like semantics. The main differences between
 /// this type and `optional` is that this has an error member function that will return an error object. See also
 /// https://en.cppreference.com/w/cpp/utility/expected
+/// @todo Replace this with `std::expected` when possible.
 template <typename T, typename Error>
 class Expected
 {
@@ -57,10 +67,10 @@ class Expected
     template <typename E, typename = std::enable_if<std::is_convertible_v<E, Error>>>
     constexpr auto operator=(Unexpected<E>&& aError) -> Expected&;
 
-    /// @brief Returns whether or not an expected object is held (not an error)
+    /// @brief Returns whether or not an expected object is held (not the error type)
     [[nodiscard]] constexpr auto hasValue() const -> bool;
 
-    /// @brief Returns whether or not an expected object is held (not an error)
+    /// @brief Returns whether or not an expected object is held (not the error type)
     [[nodiscard]] constexpr operator bool() const;
 
     /// @brief If an expected object is held, the value is returned, if not, an exception is thrown with the error if it
