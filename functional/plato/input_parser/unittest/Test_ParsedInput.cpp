@@ -7,6 +7,7 @@
 #include "plato/input_parser/GenericBlockRule.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/NamedType.hpp"
 
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
@@ -96,39 +97,48 @@ TEST(ParsedInput, ParsesFullValidInput)
     EXPECT_EQ(tFruitInput.banana.value(), 42);
 }
 
-TEST(ParsedInput, ParsesFullInvalidInputBadDelimiters)
+TEST(ParsedInput, ParsesFullInvalidInput)
 {
-    const auto tInput = std::string_view{
-        "begin vegetables nightshade\n"
-        "  potato 13\n"
-        "  tomato true\n"
-        "end\n"
-        "begn fruits\n"
-        "  apple 13.0\n"
-        "  banana 42\n"
-        "end\n"};
+    using TokenToCheck = utilities::NamedType<std::string_view, struct TokenToCheckTag>;
 
-    const auto tParsedInput = parse_to_new_input(std::string{tInput}, kComponentParsers);
-    ASSERT_TRUE(tParsedInput.hasError());
+    const auto tCheckForError = [](const std::string_view aInput, const TokenToCheck aTokenToCheck,
+                                   const test_utilities::TestContext& aTestContext)
+    {
+        const auto tParsedInput = parse_to_new_input(std::string{aInput}, kComponentParsers);
+        ASSERT_TRUE(tParsedInput.hasError()) << aTestContext;
 
-    const auto& tErrorMessage = tParsedInput.error();
-    EXPECT_FALSE(tErrorMessage.empty());
-    EXPECT_NE(tErrorMessage.find("begn"), std::string::npos) << tErrorMessage;
-}
+        const auto& tErrorMessage = tParsedInput.error();
+        EXPECT_FALSE(tErrorMessage.empty()) << aTestContext;
+        EXPECT_NE(tErrorMessage.find(aTokenToCheck.mValue), std::string::npos) << aTestContext;
+    };
 
-TEST(ParsedInput, ParsesFullInvalidInputBadToken)
-{
-    const auto tInput = std::string_view{
-        "begin vegetables nightshade\n"
-        "  potat 13\n"
-        "end\n"};
-
-    const auto tParsedInput = parse_to_new_input(std::string{tInput}, kComponentParsers);
-    ASSERT_TRUE(tParsedInput.hasError());
-
-    const auto& tErrorMessage = tParsedInput.error();
-    EXPECT_FALSE(tErrorMessage.empty());
-    EXPECT_NE(tErrorMessage.find("potat"), std::string::npos) << tErrorMessage;
+    {
+        const auto tInput = std::string_view{
+            "begin vegetables nightshade\n"
+            "  potato 13\n"
+            "  tomato true\n"
+            "end\n"
+            "begn fruits\n"
+            "  apple 13.0\n"
+            "  banana 42\n"
+            "end\n"};
+        tCheckForError(tInput, TokenToCheck{std::string_view{"begn"}}, TEST_CONTEXT("Bad begin token"));
+    }
+    {
+        const auto tInput = std::string_view{
+            "begin vegetables nightshade\n"
+            "  potat 13\n"
+            "end\n"};
+        tCheckForError(tInput, TokenToCheck{std::string_view{"potat"}}, TEST_CONTEXT("Bad field token"));
+    }
+    {
+        const auto tInput = std::string_view{
+            "begin fruit\n"
+            "  apple 13.0\n"
+            "  banana 42\n"
+            "end\n"};
+        tCheckForError(tInput, TokenToCheck{std::string_view{"fruit"}}, TEST_CONTEXT("Bad component name"));
+    }
 }
 
 TEST(ParsedInput, OneComponent)

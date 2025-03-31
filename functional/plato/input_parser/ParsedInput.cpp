@@ -83,6 +83,17 @@ template <typename IteratorArray, std::size_t... kIndices>
     return NewParsedInput{std::move(tParsedComponents)};
 }
 
+[[nodiscard]] auto parse_component(const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers,
+                                   const GenericBlockData& aGenericBlock) -> ComponentBlockParser::ParsedDataOrError
+{
+    if (const auto tComponentParserIterator = aComponentParsers.find(aGenericBlock.mName.mToken);
+        tComponentParserIterator != aComponentParsers.end())
+    {
+        return tComponentParserIterator->second.parse(aGenericBlock);
+    }
+    return utilities::unexpected("Parsing error: Could not find component with name: " + aGenericBlock.mName.mToken);
+}
+
 }  // namespace
 
 NewParsedInput::NewParsedInput(std::vector<InputDataBlock> aRawInput)
@@ -104,7 +115,7 @@ auto parse_to_new_input(const std::string& aInput,
     auto tParsedInput = std::vector<ComponentBlockParser::ParsedDataOrError>{};
     std::transform(tGenericBlocks.begin(), tGenericBlocks.end(), std::back_inserter(tParsedInput),
                    [&aComponentParsers](const auto& aGenericBlock)
-                   { return aComponentParsers.at(aGenericBlock.mName.mToken).parse(aGenericBlock); });
+                   { return parse_component(aComponentParsers, aGenericBlock); });
 
     return parsed_input_or_errors(std::move(tParsedInput));
 }
