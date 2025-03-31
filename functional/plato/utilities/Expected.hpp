@@ -44,12 +44,13 @@ constexpr bool kIsUnexpected = false;
 template <typename U>
 constexpr bool kIsUnexpected<Unexpected<U>> = true;
 
-/// @brief An minimal implementation of std::expected until we can use c++23
+/// @brief An optional-like type template that can express either an expected value or an error.
 ///
 /// The main use of this is to express an error condition using optional-like semantics. The main differences between
 /// this type and `optional` is that this has an error member function that will return an error object. See also
 /// https://en.cppreference.com/w/cpp/utility/expected
-/// @todo Replace this with `std::expected` when possible.
+/// @todo This is a minimal implementation of `std::expected` and lacks many features. Replace this with `std::expected`
+/// when possible.
 template <typename T, typename Error>
 class Expected
 {
