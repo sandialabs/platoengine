@@ -1,5 +1,7 @@
 #include "plato/input_parser/GenericBlockRule.hpp"
 
+#include "plato/input_parser/ParseErrorUtilities.hpp"
+
 namespace plato::input_parser
 {
 auto parse_generic_blocks(const std::string_view aInput)
@@ -12,14 +14,13 @@ auto parse_generic_blocks(const std::string_view aInput)
     const auto tParser = GenericBlockParser<Iterator>{};
     const auto tSkipper = SkipperRule<Iterator>{};
 
-    const auto tParseResult =
+    const auto tParserSuccessful =
         boost::spirit::qi::phrase_parse(tInputIterator, aInput.cend(), +(tParser.mRule), tSkipper.skipperRule(), tData);
 
-    if (!tParseResult || tInputIterator != aInput.cend())
+    if (parser_has_error(tParserSuccessful, tInputIterator, aInput.cend()))
     {
-        const auto tNewLineIterator = std::find(tInputIterator, aInput.cend(), '\n');
-        const auto tContext = std::string{tInputIterator, tNewLineIterator};
-        return utilities::unexpected("Parsing error near: \n" + tContext);
+        constexpr auto tDelimeter = '\n';
+        return utilities::unexpected(error_message(tInputIterator, aInput.cend(), tDelimeter));
     }
     return tData;
 }

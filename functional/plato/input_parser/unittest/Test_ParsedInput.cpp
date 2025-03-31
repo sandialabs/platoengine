@@ -67,8 +67,10 @@ TEST(ParsedInput, ParsesFullValidInput)
         "  banana 42\n"
         "end\n"};
 
-    const auto tParsedInput = parse_to_new_input(std::string{tInput}, kComponentParsers);
+    const auto tParsedInputOrError = parse_to_new_input(std::string{tInput}, kComponentParsers);
+    ASSERT_TRUE(tParsedInputOrError.hasValue());
 
+    const auto& tParsedInput = tParsedInputOrError.value();
     const auto& tVegetableInputs = tParsedInput.get<ComponentType::kObjective>();
     ASSERT_EQ(tVegetableInputs.size(), 1U);
     EXPECT_EQ(tVegetableInputs.front().mBlockName, "vegetables");
@@ -92,6 +94,41 @@ TEST(ParsedInput, ParsesFullValidInput)
     EXPECT_EQ(tFruitInput.apple.value(), 13.0);
     ASSERT_TRUE(tFruitInput.banana.value());
     EXPECT_EQ(tFruitInput.banana.value(), 42);
+}
+
+TEST(ParsedInput, ParsesFullInvalidInputBadDelimiters)
+{
+    const auto tInput = std::string_view{
+        "begin vegetables nightshade\n"
+        "  potato 13\n"
+        "  tomato true\n"
+        "end\n"
+        "begn fruits\n"
+        "  apple 13.0\n"
+        "  banana 42\n"
+        "end\n"};
+
+    const auto tParsedInput = parse_to_new_input(std::string{tInput}, kComponentParsers);
+    ASSERT_FALSE(tParsedInput.hasValue());
+
+    const auto& tErrorMessage = tParsedInput.error();
+    EXPECT_FALSE(tErrorMessage.empty());
+    EXPECT_NE(tErrorMessage.find("begn"), std::string::npos) << tErrorMessage;
+}
+
+TEST(ParsedInput, ParsesFullInvalidInputBadToken)
+{
+    const auto tInput = std::string_view{
+        "begin vegetables nightshade\n"
+        "  potat 13\n"
+        "end\n"};
+
+    const auto tParsedInput = parse_to_new_input(std::string{tInput}, kComponentParsers);
+    ASSERT_FALSE(tParsedInput.hasValue());
+
+    const auto& tErrorMessage = tParsedInput.error();
+    EXPECT_FALSE(tErrorMessage.empty());
+    EXPECT_NE(tErrorMessage.find("potat"), std::string::npos) << tErrorMessage;
 }
 
 TEST(ParsedInput, OneComponent)

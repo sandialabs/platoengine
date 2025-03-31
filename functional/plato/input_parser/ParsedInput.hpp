@@ -8,6 +8,7 @@
 #include "plato/input_parser/BlockStructRule.hpp"
 #include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/utilities/EnumIndexing.hpp"
+#include "plato/utilities/Expected.hpp"
 
 namespace plato::input_parser
 {
@@ -38,7 +39,7 @@ class NewParsedInput
 /// @todo Fix name
 [[nodiscard]] auto parse_to_new_input(const std::string& aInput,
                                       const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
-    -> NewParsedInput;
+    -> utilities::Expected<NewParsedInput, std::string>;
 
 template <ComponentType kComponentType>
 auto NewParsedInput::get() const -> const std::vector<InputDataBlock>&

@@ -2,7 +2,7 @@
 
 namespace plato::input_parser
 {
-auto ComponentBlockParser::parse(const GenericBlockData& aData) const -> InputDataBlock
+auto ComponentBlockParser::parse(const GenericBlockData& aData) const -> ParsedDataOrError
 {
     return mParseFunction(aData);
 }

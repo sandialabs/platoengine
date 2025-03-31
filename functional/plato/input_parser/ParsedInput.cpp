@@ -1,6 +1,8 @@
 #include "plato/input_parser/ParsedInput.hpp"
 
 #include "plato/input_parser/GenericBlockRule.hpp"
+#include "plato/utilities/StringUtilities.hpp"
+#include "plato/utilities/TransformIf.hpp"
 
 namespace plato::input_parser
 {
@@ -53,6 +55,34 @@ template <typename IteratorArray, std::size_t... kIndices>
     return partitioned_vector_to_array(tPartitionIterators, tComponentIndices);
 }
 
+[[nodiscard]] auto parsed_input_or_errors(
+    std::vector<ComponentBlockParser::ParsedDataOrError>&& aParsedComponentsOrError)
+    -> utilities::Expected<NewParsedInput, std::string>
+{
+    const auto tComponentHasParseError = [](const auto& aParsedComponentOrError)
+    { return !aParsedComponentOrError.hasValue(); };
+
+    const auto tHasError =
+        std::any_of(aParsedComponentsOrError.begin(), aParsedComponentsOrError.end(), tComponentHasParseError);
+    if (tHasError)
+    {
+        auto tErrorMessages = std::vector<std::string>{};
+        tErrorMessages.reserve(aParsedComponentsOrError.size());
+        utilities::transform_if(
+            aParsedComponentsOrError, std::back_inserter(tErrorMessages),
+            [](const auto& aParsedComponentOrError) { return aParsedComponentOrError.error(); },
+            tComponentHasParseError);
+        return utilities::unexpected(utilities::concatenate_container(tErrorMessages, "\n"));
+    }
+
+    auto tParsedComponents = std::vector<InputDataBlock>{};
+    tParsedComponents.reserve(aParsedComponentsOrError.size());
+    std::transform(std::make_move_iterator(aParsedComponentsOrError.begin()),
+                   std::make_move_iterator(aParsedComponentsOrError.end()), std::back_inserter(tParsedComponents),
+                   [](ComponentBlockParser::ParsedDataOrError&& aComponent) { return std::move(aComponent).value(); });
+    return NewParsedInput{std::move(tParsedComponents)};
+}
+
 }  // namespace
 
 NewParsedInput::NewParsedInput(std::vector<InputDataBlock> aRawInput)
@@ -62,15 +92,21 @@ NewParsedInput::NewParsedInput(std::vector<InputDataBlock> aRawInput)
 
 auto parse_to_new_input(const std::string& aInput,
                         const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
-    -> NewParsedInput
+    -> utilities::Expected<NewParsedInput, std::string>
 {
     const auto tGenericBlocksOrError = parse_generic_blocks(aInput);
+    if (!tGenericBlocksOrError.hasValue())
+    {
+        return utilities::unexpected(tGenericBlocksOrError.error());
+    }
+
     const auto& tGenericBlocks = tGenericBlocksOrError.value();
-    auto tParsedInput = std::vector<InputDataBlock>{};
+    auto tParsedInput = std::vector<ComponentBlockParser::ParsedDataOrError>{};
     std::transform(tGenericBlocks.begin(), tGenericBlocks.end(), std::back_inserter(tParsedInput),
                    [&aComponentParsers](const auto& aGenericBlock)
                    { return aComponentParsers.at(aGenericBlock.mName.mToken).parse(aGenericBlock); });
-    return NewParsedInput{std::move(tParsedInput)};
+
+    return parsed_input_or_errors(std::move(tParsedInput));
 }
 
 }  // namespace plato::input_parser
