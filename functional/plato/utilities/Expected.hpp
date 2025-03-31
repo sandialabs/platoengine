@@ -71,6 +71,9 @@ class Expected
     /// @brief Returns whether or not an expected object is held (not the error type)
     [[nodiscard]] constexpr auto hasValue() const -> bool;
 
+    /// @brief Returns whether or not an error object is held (not the expected type)
+    [[nodiscard]] constexpr auto hasError() const -> bool;
+
     /// @brief Returns whether or not an expected object is held (not the error type)
     [[nodiscard]] constexpr operator bool() const;
 
@@ -125,6 +128,12 @@ template <typename T, typename Error>
 constexpr auto Expected<T, Error>::hasValue() const -> bool
 {
     return std::holds_alternative<T>(mValue);
+}
+
+template <typename T, typename Error>
+constexpr auto Expected<T, Error>::hasError() const -> bool
+{
+    return !hasValue();
 }
 
 template <typename T, typename Error>

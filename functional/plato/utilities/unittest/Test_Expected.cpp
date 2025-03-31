@@ -16,11 +16,13 @@ TEST(Expected, HasValueBoolConversion)
     {
         const auto tExpected = Expected<int, std::string>{42};
         EXPECT_TRUE(tExpected.hasValue());
+        EXPECT_FALSE(tExpected.hasError());
         EXPECT_TRUE(tExpected);
     }
     {
         const auto tExpected = Expected<int, std::string>{Unexpected<std::string>{"Error!"}};
         EXPECT_FALSE(tExpected.hasValue());
+        EXPECT_TRUE(tExpected.hasError());
         EXPECT_FALSE(tExpected);
     }
 }
