@@ -60,7 +60,7 @@ template <typename IteratorArray, std::size_t... kIndices>
     -> utilities::Expected<NewParsedInput, std::string>
 {
     const auto tComponentHasParseError = [](const auto& aParsedComponentOrError)
-    { return !aParsedComponentOrError.hasValue(); };
+    { return aParsedComponentOrError.hasError(); };
 
     const auto tHasError =
         std::any_of(aParsedComponentsOrError.begin(), aParsedComponentsOrError.end(), tComponentHasParseError);
@@ -95,7 +95,7 @@ auto parse_to_new_input(const std::string& aInput,
     -> utilities::Expected<NewParsedInput, std::string>
 {
     const auto tGenericBlocksOrError = parse_generic_blocks(aInput);
-    if (!tGenericBlocksOrError.hasValue())
+    if (tGenericBlocksOrError.hasError())
     {
         return utilities::unexpected(tGenericBlocksOrError.error());
     }

@@ -158,7 +158,7 @@ TEST(GenericBlockRule, ParseError)
         "end"};
 
     const auto tParsedDataOrError = parse_generic_blocks(tInput);
-    ASSERT_FALSE(tParsedDataOrError.hasValue());
+    ASSERT_TRUE(tParsedDataOrError.hasError());
     EXPECT_FALSE(tParsedDataOrError.error().empty());
 }
 

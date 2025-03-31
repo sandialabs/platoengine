@@ -109,7 +109,7 @@ TEST(ParsedInput, ParsesFullInvalidInputBadDelimiters)
         "end\n"};
 
     const auto tParsedInput = parse_to_new_input(std::string{tInput}, kComponentParsers);
-    ASSERT_FALSE(tParsedInput.hasValue());
+    ASSERT_TRUE(tParsedInput.hasError());
 
     const auto& tErrorMessage = tParsedInput.error();
     EXPECT_FALSE(tErrorMessage.empty());
@@ -124,7 +124,7 @@ TEST(ParsedInput, ParsesFullInvalidInputBadToken)
         "end\n"};
 
     const auto tParsedInput = parse_to_new_input(std::string{tInput}, kComponentParsers);
-    ASSERT_FALSE(tParsedInput.hasValue());
+    ASSERT_TRUE(tParsedInput.hasError());
 
     const auto& tErrorMessage = tParsedInput.error();
     EXPECT_FALSE(tErrorMessage.empty());

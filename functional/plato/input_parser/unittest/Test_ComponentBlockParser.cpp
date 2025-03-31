@@ -54,7 +54,7 @@ TEST(ComponentBlockParser, ParseWithError)
     const auto tParser = ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<ComponentType::kGeometry>{}};
     const auto tParsedInputOrError = tParser.parse(tErroneousInput);
 
-    ASSERT_FALSE(tParsedInputOrError.hasValue());
+    ASSERT_TRUE(tParsedInputOrError.hasError());
     EXPECT_FALSE(tParsedInputOrError.error().empty());
 }
 
