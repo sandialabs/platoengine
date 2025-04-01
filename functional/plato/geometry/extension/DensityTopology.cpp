@@ -77,10 +77,7 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
     core::ValidationRegistration<input_parser::density_topology>{
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
         [](const input_parser::density_topology& aInput)
-        {
-            return library::validate_filter_with_mesh(
-                aInput, [](const auto& aDensityTopology) { return aDensityTopology.mesh_name; });
-        },
+        { return library::validate_filter_with_mesh(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_file_exists(aInput); },
         [](const input_parser::density_topology& aInput)
         { return validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
