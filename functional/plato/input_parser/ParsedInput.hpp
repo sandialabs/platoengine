@@ -35,7 +35,6 @@ class NewParsedInput
 };
 
 /// @brief Parse the string @a aInput to a NewParsedInput object.
-/// @throw ?
 /// @todo Fix name
 [[nodiscard]] auto parse_to_new_input(const std::string& aInput,
                                       const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
