@@ -4,7 +4,7 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 set(LINK_LIBS PlatoFunctionalInputParser 
               PlatoFunctionalUtilities)
 
-create_plato_library(PlatoFunctionalCore "." "${LINK_LIBS}")
+create_plato_header_library(PlatoFunctionalCore "." "${LINK_LIBS}")
 
 if( UNIT_TESTING )
   # Build serial unit tester

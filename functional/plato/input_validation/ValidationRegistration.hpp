@@ -1,0 +1,91 @@
+#ifndef PLATO_INPUT_VALIDATION_VALIDATIONREGISTRATION
+#define PLATO_INPUT_VALIDATION_VALIDATIONREGISTRATION
+
+#include <functional>
+#include <optional>
+#include <string>
+
+#include "plato/input_validation/ValidationFunction.hpp"
+
+namespace plato::input_validation
+{
+/// @brief Object used for static registration of validation functions that validate
+///  parsed input data.
+///
+/// The purpose of this struct is to enable static registration of the functions
+/// used in to validate parsed user input of type @a ValidationInput. The ctor can
+/// be used with a list of functions, each of which will be added to the full set
+/// of validation functions for the templated type.
+///
+/// To register functions, client code should instantiate a static object in a cpp file.
+/// For example, registering a new validation function for density topology is:
+/// @code
+/// namespace{
+/// [[maybe_unused]] static auto kNewValidationRegistration =
+///   plato::input_validation::ValidationRegistration<input_parser::density_topology>{
+///    [](const input_parser::density_topology& aInput){ return validate_foo_parameter(aInput); }
+/// };
+/// }
+/// @endcode
+///
+/// @tparam ValidationInput The type of the input data needed by the validation function as an argument.
+template <typename ValidationInput, typename... AdditionalArgs>
+struct ValidationRegistration
+{
+    ValidationRegistration(ValidationFunction<ValidationInput, AdditionalArgs...> aFunction);
+    ValidationRegistration(std::initializer_list<ValidationFunction<ValidationInput, AdditionalArgs...>> aFunctions);
+};
+
+/// @brief Validates @a aInput, appending any error messages to @a aCurrentMessageList and returning
+///  the result.
+template <typename ValidationInput, typename... AdditionalArgs>
+[[nodiscard]] std::vector<std::string> validate(const ValidationInput& aInput,
+                                                std::vector<std::string>&& aCurrentMessageList,
+                                                const AdditionalArgs&...);
+
+namespace detail
+{
+template <typename ValidationInput, typename... AdditionalArgs>
+[[nodiscard]] auto registered_validation_functions()
+    -> std::vector<ValidationFunction<ValidationInput, AdditionalArgs...>>&
+{
+    static auto tFunctions = std::vector<ValidationFunction<ValidationInput, AdditionalArgs...>>{};
+    return tFunctions;
+}
+
+}  // namespace detail
+
+template <typename ValidationInput, typename... AdditionalArgs>
+ValidationRegistration<ValidationInput, AdditionalArgs...>::ValidationRegistration(
+    ValidationFunction<ValidationInput, AdditionalArgs...> aFunction)
+{
+    detail::registered_validation_functions<ValidationInput, AdditionalArgs...>().push_back(std::move(aFunction));
+}
+
+template <typename ValidationInput, typename... AdditionalArgs>
+ValidationRegistration<ValidationInput, AdditionalArgs...>::ValidationRegistration(
+    std::initializer_list<ValidationFunction<ValidationInput, AdditionalArgs...>> aFunctions)
+{
+    std::move(aFunctions.begin(), aFunctions.end(),
+              std::back_inserter(detail::registered_validation_functions<ValidationInput, AdditionalArgs...>()));
+}
+
+template <typename ValidationInput, typename... AdditionalArgs>
+[[nodiscard]] std::vector<std::string> validate(const ValidationInput& aInput,
+                                                std::vector<std::string>&& aCurrentMessageList,
+                                                const AdditionalArgs&... aArgs)
+{
+    const auto tTests = detail::registered_validation_functions<ValidationInput, AdditionalArgs...>();
+    for (const auto& tTest : tTests)
+    {
+        if (auto tMessage = tTest(aInput, aArgs...))
+        {
+            aCurrentMessageList.emplace_back(std::move(tMessage).value());
+        }
+    }
+    return std::move(aCurrentMessageList);
+}
+
+}  // namespace plato::input_validation
+
+#endif
