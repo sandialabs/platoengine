@@ -15,12 +15,6 @@ auto partition_by_component_type(const Iterator aBegin, const Iterator aEnd)
                           [](const auto& aInputBlock) { return aInputBlock.mComponentType == kComponentType; });
 }
 
-template <std::size_t kIndex>
-[[nodiscard]] constexpr auto component_type_from_index() -> ComponentType
-{
-    return std::get<0>(utilities::enums_from_index<ComponentType>(kIndex));
-}
-
 template <std::size_t... kIndices>
 [[nodiscard]] auto partition_inputs_by_component_impl(std::vector<InputDataBlock>& aRawInput,
                                                       std::index_sequence<kIndices...>)
