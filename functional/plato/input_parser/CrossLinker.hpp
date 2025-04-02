@@ -73,6 +73,7 @@ void apply_cross_link(ComponentInput& aComponent, const std::vector<InputDataBlo
 template <typename Input>
 void cross_link(InputDataBlock& aInputBlock, const NewParsedInput& aNewParsedInput)
 {
+    assert(aInputBlock.mInput.holds_expected_type<Input>());
     auto& aCastInputBlock = aInputBlock.mInput.get<Input&>();
     boost::fusion::for_each(aCastInputBlock,
                             [&aNewParsedInput](auto& aField)
@@ -89,7 +90,12 @@ void cross_link(InputDataBlock& aInputBlock, const NewParsedInput& aNewParsedInp
 template <typename Input>
 CrossLinker::CrossLinker(InputTypeHelper<Input>)
     : mCrossLinkFunction{[](InputDataBlock& aInputBlock, const NewParsedInput& aNewParsedInput)
-                         { detail::cross_link<Input>(aInputBlock, aNewParsedInput); }}
+                         {
+                             if (aInputBlock.mInput.holds_expected_type<Input>())
+                             {
+                                 detail::cross_link<Input>(aInputBlock, aNewParsedInput);
+                             }
+                         }}
 {
 }
 }  // namespace plato::input_parser

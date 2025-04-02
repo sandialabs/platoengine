@@ -7,4 +7,11 @@ auto registered_component_parsers() -> std::unordered_map<std::string, Component
     static auto tRegisteredParsers = std::unordered_map<std::string, ComponentBlockParser>{};
     return tRegisteredParsers;
 }
+
+auto registered_cross_linkers() -> std::vector<CrossLinker>&
+{
+    static auto tRegisteredCrossLinkers = std::vector<CrossLinker>{};
+    return tRegisteredCrossLinkers;
+}
+
 }  // namespace plato::input_parser

@@ -24,13 +24,36 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          very_inspired_filter,
                          (double, filteritude, "help"))
 
+PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
+                         no_cross_reference_thing,
+                         (double, a_number, "help")
+                         (int, another_number, "help"))
 // clang-format on
 
 namespace plato::input_parser::unittest
 {
+namespace
+{
+constexpr auto kUninspiredFilterValue = 42.0;
+constexpr auto kVeryInspiredFilterValue = 13.0;
+
+const auto kUninspiredFilterInputBlock =
+    InputDataBlock{/*.mComponentType=*/
+                   ComponentType::kFilter,
+                   /*.mBlockName=*/"uninspired_filter",   /*.mInput=*/
+                   CrossReferencedInput{uninspired_filter{/*.filteriness=*/
+                                                          kUninspiredFilterValue}}};
+const auto kVeryInspiredFilterInputBlock =
+    InputDataBlock{/*.mComponentType=*/
+                   ComponentType::kFilter,
+                   /*.mBlockName=*/"very_inspired_filter",   /*.mInput=*/
+                   CrossReferencedInput{very_inspired_filter{/*.filteritude=*/
+                                                             kVeryInspiredFilterValue}}};
+
+}  // namespace
+
 TEST(CrossLinker, CrossLinkUnspecified)
 {
-    const auto tCrossLinker = make_cross_linker<uninspired_thing>();
     auto tUninspiredInputBlock =
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
                        /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{uninspired_thing{}}};
@@ -38,13 +61,9 @@ TEST(CrossLinker, CrossLinkUnspecified)
     ASSERT_FALSE(tUninspiredInputBlock.mInput.get<uninspired_thing>()
                      .my_filter.has_value());  // Make sure the cross-reference is empty
 
-    constexpr auto tFilterValue = 42.0;
-    const auto tFilterInputBlock = InputDataBlock{/*.mComponentType=*/
-                                                  ComponentType::kFilter,
-                                                  /*.mBlockName=*/"uninspired_filter",   /*.mInput=*/
-                                                  CrossReferencedInput{uninspired_filter{/*.filteriness=*/
-                                                                                         tFilterValue}}};
-    const auto tParsedInput = NewParsedInput{{tUninspiredInputBlock, tFilterInputBlock}};
+    const auto tParsedInput = NewParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock}};
+
+    const auto tCrossLinker = make_cross_linker<uninspired_thing>();
     tCrossLinker.crossLink(tUninspiredInputBlock, tParsedInput);
 
     const auto& tUninspiredInput = tUninspiredInputBlock.mInput.get<uninspired_thing>();
@@ -54,12 +73,11 @@ TEST(CrossLinker, CrossLinkUnspecified)
     ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.holds_expected_type<uninspired_filter>());
     ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.get<uninspired_filter>().filteriness.has_value());
     EXPECT_EQ(tUninspiredInput.my_filter.value().mInputBlock.get<uninspired_filter>().filteriness.value(),
-              tFilterValue);
+              kUninspiredFilterValue);
 }
 
 TEST(CrossLinker, CrossLinkSpecified)
 {
-    const auto tCrossLinker = make_cross_linker<uninspired_thing>();
     const auto tUninspiredThing = uninspired_thing{
         /*.a_number=*/42.0, /*.my_filter=*/FilterNewCrossReference{/*.mName=*/"very_inspired_filter", {}},
         /*.another_number=*/13};
@@ -68,21 +86,10 @@ TEST(CrossLinker, CrossLinkSpecified)
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
                        /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{tUninspiredThing}};
 
-    const auto tUninspiredFilterInputBlock = InputDataBlock{/*.mComponentType=*/
-                                                            ComponentType::kFilter,
-                                                            /*.mBlockName=*/"uninspired_filter",   /*.mInput=*/
-                                                            CrossReferencedInput{uninspired_filter{/*.filteriness=*/
-                                                                                                   42.0}}};
-    constexpr auto tFilterValue = 13.0;
-    const auto tVeryInspiredFilterInputBlock =
-        InputDataBlock{/*.mComponentType=*/
-                       ComponentType::kFilter,
-                       /*.mBlockName=*/"very_inspired_filter",   /*.mInput=*/
-                       CrossReferencedInput{very_inspired_filter{/*.filteritude=*/
-                                                                 tFilterValue}}};
-
     const auto tParsedInput =
-        NewParsedInput{{tUninspiredInputBlock, tUninspiredFilterInputBlock, tVeryInspiredFilterInputBlock}};
+        NewParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock, kVeryInspiredFilterInputBlock}};
+
+    const auto tCrossLinker = make_cross_linker<uninspired_thing>();
     tCrossLinker.crossLink(tUninspiredInputBlock, tParsedInput);
 
     const auto& tUninspiredInput = tUninspiredInputBlock.mInput.get<uninspired_thing>();
@@ -92,7 +99,21 @@ TEST(CrossLinker, CrossLinkSpecified)
     ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.holds_expected_type<very_inspired_filter>());
     ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.get<very_inspired_filter>().filteritude.has_value());
     EXPECT_EQ(tUninspiredInput.my_filter.value().mInputBlock.get<very_inspired_filter>().filteritude.value(),
-              tFilterValue);
+              kVeryInspiredFilterValue);
+}
+
+TEST(CrossLinker, NoOpForTypeWithNoCrossReferences)
+{
+    const auto tNoCrossReferenceThing = no_cross_reference_thing{/*.a_number=*/42.0,
+                                                                 /*.another_number=*/13};
+    auto tNoCrossReferenceInputBlock = InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
+                                                      /*.mBlockName=*/"no_cross_reference_thing",
+                                                      /*.mInput=*/CrossReferencedInput{tNoCrossReferenceThing}};
+
+    const auto tParsedInput = NewParsedInput{{tNoCrossReferenceInputBlock, kUninspiredFilterInputBlock}};
+
+    const auto tCrossLinker = make_cross_linker<no_cross_reference_thing>();
+    EXPECT_NO_THROW(tCrossLinker.crossLink(tNoCrossReferenceInputBlock, tParsedInput));
 }
 
 }  // namespace plato::input_parser::unittest

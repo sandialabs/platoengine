@@ -107,5 +107,12 @@ struct create_parser<plato::input_parser::CrossReference<IsVariantMember>>
     static type call() { return proto::deep_copy((qi::lexeme[+qi::graph])); }
 };
 
+template <plato::input_parser::ComponentType kComponentType>
+struct create_parser<plato::input_parser::NewCrossReference<kComponentType>>
+{
+    typedef proto::result_of::deep_copy<BOOST_TYPEOF((qi::lexeme[+qi::graph]))>::type type;
+
+    static type call() { return proto::deep_copy((qi::lexeme[+qi::graph])); }
+};
 }  // namespace boost::spirit::traits
 #endif
