@@ -3,9 +3,9 @@
 #include <exception>
 #include <iostream>
 
-#include "plato/core/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 
-namespace plato::core::unittest
+namespace plato::input_validation::unittest
 {
 namespace
 {
@@ -82,4 +82,4 @@ TEST(Validation, ValidateInputObjectiveList_EmptyNoneDefined)
     tMessages = validate<char>('c', std::move(tMessages));
     EXPECT_EQ(tMessages.size(), 0u);
 }
-}  // namespace plato::core::unittest
+}  // namespace plato::input_validation::unittest

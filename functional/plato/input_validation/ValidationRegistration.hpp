@@ -7,6 +7,12 @@
 
 #include "plato/input_validation/ValidationFunction.hpp"
 
+namespace plato::input_parser
+{
+class NewParsedInput;
+class CrossReferencedInput;
+}  // namespace plato::input_parser
+
 namespace plato::input_validation
 {
 /// @brief Object used for static registration of validation functions that validate
@@ -36,12 +42,27 @@ struct ValidationRegistration
     ValidationRegistration(std::initializer_list<ValidationFunction<ValidationInput, AdditionalArgs...>> aFunctions);
 };
 
+/// @brief Convenience alias for registering validation functions for CrossReferencedInput objects.
+///
+/// This alias can be used for registering validation functions for input blocks of specific types, such as
+/// density_topology.
+template <typename... AdditionalArgs>
+using CrossReferencedInputValidationRegistration =
+    ValidationRegistration<input_parser::CrossReferencedInput, AdditionalArgs...>;
+
+/// @brief Convenience alias for registering validation functions for NewParsedInput objects.
+///
+/// This alias can be used for registering validation functions for the parsed input as a whole, or components as a
+/// whole. For example, certain components should only have one definition in an input, such as geometry.
+template <typename... AdditionalArgs>
+using NewParsedInputValidationRegistration = ValidationRegistration<input_parser::NewParsedInput, AdditionalArgs...>;
+
 /// @brief Validates @a aInput, appending any error messages to @a aCurrentMessageList and returning
 ///  the result.
 template <typename ValidationInput, typename... AdditionalArgs>
-[[nodiscard]] std::vector<std::string> validate(const ValidationInput& aInput,
-                                                std::vector<std::string>&& aCurrentMessageList,
-                                                const AdditionalArgs&...);
+[[nodiscard]] auto validate(const ValidationInput& aInput,
+                            std::vector<std::string>&& aCurrentMessageList,
+                            const AdditionalArgs&...) -> std::vector<std::string>;
 
 namespace detail
 {
@@ -71,14 +92,14 @@ ValidationRegistration<ValidationInput, AdditionalArgs...>::ValidationRegistrati
 }
 
 template <typename ValidationInput, typename... AdditionalArgs>
-[[nodiscard]] std::vector<std::string> validate(const ValidationInput& aInput,
-                                                std::vector<std::string>&& aCurrentMessageList,
-                                                const AdditionalArgs&... aArgs)
+[[nodiscard]] auto validate(const ValidationInput& aInput,
+                            std::vector<std::string>&& aCurrentMessageList,
+                            const AdditionalArgs&... aArgs) -> std::vector<std::string>
 {
     const auto tTests = detail::registered_validation_functions<ValidationInput, AdditionalArgs...>();
     for (const auto& tTest : tTests)
     {
-        if (auto tMessage = tTest(aInput, aArgs...))
+        if (auto tMessage = tTest.validate(aInput, aArgs...))
         {
             aCurrentMessageList.emplace_back(std::move(tMessage).value());
         }

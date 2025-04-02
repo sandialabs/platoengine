@@ -39,6 +39,10 @@ class ValidationFunction
     std::function<std::optional<std::string>(const InputToValidate&, AdditionalArgs...)> mValidationFunction;
 };
 
+template <typename... AdditionalArgs>
+using CrossReferencedInputValidationFunction =
+    ValidationFunction<input_parser::CrossReferencedInput, AdditionalArgs...>;
+
 namespace detail
 {
 template <typename F, typename... AdditionalArgs>
