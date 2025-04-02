@@ -25,7 +25,7 @@ namespace
 {
 constexpr auto kMarvelValidationErrorMessage = std::string_view{"Marvel error!"};
 constexpr auto kDCValidationErrorMessage = std::string_view{"DC error!"};
-constexpr auto kParsedInputValidationErrorMessage = std::string_view{"Bigtime error!"};
+constexpr auto kParsedInputValidationErrorMessage = std::string_view{"Multiverse error!"};
 
 const auto kValidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/100};
 const auto kValidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.superman=*/true, /*.batman=*/100U};
@@ -65,35 +65,36 @@ const auto kValidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.supe
     [](const input_parser::NewParsedInput& aInput) { return validate_parsed_input(aInput); },
 }};
 
+auto make_test_input(const std::optional<input_parser::marvel>& aMarvelInput,
+                     const std::optional<input_parser::dc>& aDCInput) -> input_parser::NewParsedInput
+{
+    auto tInputs = std::vector<input_parser::InputDataBlock>{};
+    if (aMarvelInput)
+    {
+        tInputs.push_back(input_parser::InputDataBlock{input_parser::ComponentType::kGeometry, "marvel",
+                                                       input_parser::CrossReferencedInput{aMarvelInput.value()}});
+    }
+    if (aDCInput)
+    {
+        tInputs.push_back(input_parser::InputDataBlock{input_parser::ComponentType::kConstraint, "dc",
+                                                       input_parser::CrossReferencedInput{aDCInput.value()}});
+    }
+    return input_parser::NewParsedInput{std::move(tInputs)};
+}
+
 }  // namespace
 
 TEST(ValidatedInput, ConstructionValidInput)
 {
-    const auto tMarvelInput = input_parser::InputDataBlock{
-        /*.mComponentType=*/input_parser::ComponentType::kGeometry, /*.mBlockName=*/"marvel",
-        /*.mInput=*/input_parser::CrossReferencedInput{kValidMarvel}};
-    const auto tDCInput =
-        input_parser::InputDataBlock{/*.mComponentType=*/input_parser::ComponentType::kConstraint, /*.mBlockName=*/"dc",
-                                     /*.mInput=*/input_parser::CrossReferencedInput{kValidDC}};
-
-    const auto tParsedInput = input_parser::NewParsedInput{{tMarvelInput, tDCInput}};
-
+    const auto tParsedInput = make_test_input(kValidMarvel, kValidDC);
     const auto tValidatedInput = make_validated_input(tParsedInput);
-
     ASSERT_TRUE(tValidatedInput.hasValue());
 }
 
 TEST(ValidatedInput, ConstructionOneEntryInvalidInput)
 {
     const auto kInvalidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/101};
-    const auto tMarvelInput = input_parser::InputDataBlock{
-        /*.mComponentType=*/input_parser::ComponentType::kGeometry, /*.mBlockName=*/"marvel",
-        /*.mInput=*/input_parser::CrossReferencedInput{kInvalidMarvel}};
-    const auto tDCInput =
-        input_parser::InputDataBlock{/*.mComponentType=*/input_parser::ComponentType::kConstraint, /*.mBlockName=*/"dc",
-                                     /*.mInput=*/input_parser::CrossReferencedInput{kValidDC}};
-
-    const auto tParsedInput = input_parser::NewParsedInput{{tMarvelInput, tDCInput}};
+    const auto tParsedInput = make_test_input(kInvalidMarvel, std::nullopt);
 
     const auto tValidatedInput = make_validated_input(tParsedInput);
 
@@ -104,35 +105,56 @@ TEST(ValidatedInput, ConstructionOneEntryInvalidInput)
 TEST(ValidatedInput, ConstructionTwoEntriesInvalidInput)
 {
     const auto kInvalidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/101};
-    const auto tMarvelInput = input_parser::InputDataBlock{
-        /*.mComponentType=*/input_parser::ComponentType::kGeometry, /*.mBlockName=*/"marvel",
-        /*.mInput=*/input_parser::CrossReferencedInput{kInvalidMarvel}};
     const auto kInvalidDC =
         input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.superman=*/boost::none, /*.batman=*/100U};
-    const auto tDCInput =
-        input_parser::InputDataBlock{/*.mComponentType=*/input_parser::ComponentType::kConstraint, /*.mBlockName=*/"dc",
-                                     /*.mInput=*/input_parser::CrossReferencedInput{kInvalidDC}};
-
-    const auto tParsedInput = input_parser::NewParsedInput{{tMarvelInput, tDCInput}};
+    const auto tParsedInput = make_test_input(kInvalidMarvel, kInvalidDC);
 
     const auto tValidatedInput = make_validated_input(tParsedInput);
 
     ASSERT_TRUE(tValidatedInput.hasError());
     EXPECT_EQ(tValidatedInput.error(),
-              std::string{kMarvelValidationErrorMessage} + "\n" + std::string{kDCValidationErrorMessage});
+              std::string{kDCValidationErrorMessage} + "\n" + std::string{kMarvelValidationErrorMessage});
 }
 
 TEST(ValidatedInput, ConstructionInvalidParsedInput)
 {
-    const auto tDCInput =
-        input_parser::InputDataBlock{/*.mComponentType=*/input_parser::ComponentType::kConstraint, /*.mBlockName=*/"dc",
-                                     /*.mInput=*/input_parser::CrossReferencedInput{kValidDC}};
-    const auto tParsedInput = input_parser::NewParsedInput{{tDCInput}};
-
+    const auto tParsedInput = make_test_input(std::nullopt, kValidDC);
     const auto tValidatedInput = make_validated_input(tParsedInput);
 
     ASSERT_TRUE(tValidatedInput.hasError());
     EXPECT_EQ(tValidatedInput.error(), std::string{kParsedInputValidationErrorMessage});
+}
+
+TEST(ValidatedInput, GetMember)
+{
+    const auto tParsedInput = make_test_input(kValidMarvel, kValidDC);
+    const auto tValidatedInputOrError = make_validated_input(tParsedInput);
+
+    ASSERT_TRUE(tValidatedInputOrError.hasValue());
+    const auto& tValidatedInput = tValidatedInputOrError.value();
+
+    const auto tGeometryInput = tValidatedInput.get<input_parser::ComponentType::kGeometry>().rawInput();
+    EXPECT_EQ(tGeometryInput.mComponentType, input_parser::ComponentType::kGeometry);
+    EXPECT_EQ(tGeometryInput.mBlockName, "marvel");
+    ASSERT_TRUE(tGeometryInput.mInput.holds_expected_type<input_parser::marvel>());
+    ASSERT_TRUE(tGeometryInput.mInput.get<input_parser::marvel>().cyclops.has_value());
+    EXPECT_EQ(tGeometryInput.mInput.get<input_parser::marvel>().cyclops.value(), 42.0);
+    ASSERT_TRUE(tGeometryInput.mInput.get<input_parser::marvel>().wolverine.has_value());
+    EXPECT_EQ(tGeometryInput.mInput.get<input_parser::marvel>().wolverine.value(), 100);
+
+    const auto tAllConstraintsInput = tValidatedInput.get<input_parser::ComponentType::kConstraint>().rawInput();
+    ASSERT_EQ(tAllConstraintsInput.size(), 1U);
+    const auto& tConstraintInput = tAllConstraintsInput.front().rawInput();
+    EXPECT_EQ(tConstraintInput.mComponentType, input_parser::ComponentType::kConstraint);
+    EXPECT_EQ(tConstraintInput.mBlockName, "dc");
+    ASSERT_TRUE(tConstraintInput.mInput.holds_expected_type<input_parser::dc>());
+    const auto& aDCInput = tConstraintInput.mInput.get<input_parser::dc>();
+    ASSERT_TRUE(aDCInput.name.has_value());
+    EXPECT_EQ(aDCInput.name.value(), "tv-show");
+    ASSERT_TRUE(aDCInput.superman.has_value());
+    EXPECT_TRUE(aDCInput.superman.value());
+    ASSERT_TRUE(aDCInput.batman.has_value());
+    EXPECT_EQ(aDCInput.batman.value(), 100U);
 }
 
 }  // namespace plato::input_validation::unittest

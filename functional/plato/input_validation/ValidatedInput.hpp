@@ -3,6 +3,7 @@
 
 #include "plato/input_parser/ComponentType.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
+#include "plato/input_validation/ValidatedInputTypeWrapper.hpp"
 #include "plato/utilities/Expected.hpp"
 
 namespace plato::input_validation
@@ -29,13 +30,14 @@ struct ValidateKey
 class ValidatedInput
 {
    public:
-    ValidatedInput(const input_parser::NewParsedInput& aInput, const ValidateKey&);
+    ValidatedInput(input_parser::NewParsedInput aInput, const ValidateKey&);
 
     /// @brief Returns the parsed input blocks corresponding to @a kComponentType
     template <input_parser::ComponentType kComponentType>
     [[nodiscard]] auto get() const;
 
    private:
+    input_parser::NewParsedInput mRawInput;
 };
 
 /// @brief Helper function to construct a ValidatedInput object or return a string containing all validation errors.
@@ -44,6 +46,24 @@ class ValidatedInput
 /// It first applies all validation functions to @a aInput, and returns any validation errors that are encountered.
 [[nodiscard]] auto make_validated_input(const input_parser::NewParsedInput& aInput)
     -> utilities::Expected<ValidatedInput, std::string>;
+
+template <input_parser::ComponentType kComponentType>
+auto ValidatedInput::get() const
+{
+    if constexpr (input_parser::kIsNamedComponent<kComponentType>)
+    {
+        auto tValidatedInputs = std::vector<ValidatedInputTypeWrapper<input_parser::InputDataBlock>>{};
+        std::transform(mRawInput.get<kComponentType>().cbegin(), mRawInput.get<kComponentType>().cend(),
+                       std::back_inserter(tValidatedInputs),
+                       [](const auto& aInputBlock) { return ValidatedInputTypeWrapper{aInputBlock}; });
+        return ValidatedInputTypeWrapper{std::move(tValidatedInputs)};
+    }
+    else
+    {
+        assert(mRawInput.get<kComponentType>().size() == 1U);
+        return ValidatedInputTypeWrapper{mRawInput.get<kComponentType>().front()};
+    }
+}
 
 }  // namespace plato::input_validation
 

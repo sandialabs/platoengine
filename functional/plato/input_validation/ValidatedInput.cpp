@@ -30,7 +30,9 @@ template <std::size_t... kIndices>
 }
 }  // namespace
 
-ValidatedInput::ValidatedInput(const input_parser::NewParsedInput& /*aInput*/, const ValidateKey&) {}
+ValidatedInput::ValidatedInput(input_parser::NewParsedInput aInput, const ValidateKey&) : mRawInput{std::move(aInput)}
+{
+}
 
 auto make_validated_input(const input_parser::NewParsedInput& aInput)
     -> utilities::Expected<ValidatedInput, std::string>
