@@ -56,9 +56,7 @@ template <typename IteratorArray, std::size_t... kIndices>
     const auto tComponentHasParseError = [](const auto& aParsedComponentOrError)
     { return aParsedComponentOrError.hasError(); };
 
-    const auto tHasError =
-        std::any_of(aParsedComponentsOrError.begin(), aParsedComponentsOrError.end(), tComponentHasParseError);
-    if (tHasError)
+    if (std::any_of(aParsedComponentsOrError.begin(), aParsedComponentsOrError.end(), tComponentHasParseError))
     {
         auto tErrorMessages = std::vector<std::string>{};
         tErrorMessages.reserve(aParsedComponentsOrError.size());
