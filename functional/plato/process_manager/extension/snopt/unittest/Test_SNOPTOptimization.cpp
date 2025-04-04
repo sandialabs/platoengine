@@ -102,11 +102,10 @@ TEST(SNOPTOptimizationDetail, ConstraintType)
 TEST(SNOPTValidation, ValidateTimeLimit)
 {
     constexpr bool tEmptyParameterGold = false;
-    test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct<
-        input_parser::snopt_optimization>([](const input_parser::snopt_optimization& aInput)
-                                          { return detail::validate_time_limit_in_minutes(aInput); },
-                                          []() { return test_utilities::create_valid_example_snopt_optimization(); },
-                                          tEmptyParameterGold, TEST_CONTEXT("ValidateTimeLimit"));
+    test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct(
+        [](const input_parser::new_snopt_optimization& aInput)
+        { return detail::validate_time_limit_in_minutes(aInput); },
+        create_valid_example_snopt_optimization_input(), tEmptyParameterGold, TEST_CONTEXT("ValidateTimeLimit"));
 }
 
 }  // namespace plato::process_manager::extension::snopt::unittest

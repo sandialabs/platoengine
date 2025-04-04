@@ -16,17 +16,16 @@ namespace plato::test_utilities
 /// that is assumed to be valid and run specified test @a aTestFunction
 /// The second test default constructs the InputBlock and runs the test again with the expected result of @a
 /// aEmptyParameterGold
-template <typename InputBlock>
+template <typename TestFunction, typename InputBlock>
 void test_validation_function_using_valid_function_generator_vs_empty_struct(
-    std::function<std::optional<std::string>(const InputBlock&)> aTestFunction,
-    std::function<InputBlock()> aValidInputGenerationFunction,
+    const TestFunction& aTestFunction,
+    const InputBlock& aValidInput,
     const bool aEmptyParameterGold,
     const test_utilities::TestContext& aTestContext)
 {
     {
         constexpr bool tValidParameterGold = false;
-        const auto tInput = aValidInputGenerationFunction();
-        const auto tResult = aTestFunction(tInput);
+        const auto tResult = aTestFunction(aValidInput);
         EXPECT_EQ(tResult.has_value(), tValidParameterGold) << aTestContext;
     }
     {

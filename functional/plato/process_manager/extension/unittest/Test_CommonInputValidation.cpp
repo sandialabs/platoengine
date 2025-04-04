@@ -23,11 +23,10 @@ void create_file(const std::filesystem::path& aPath)
 TEST(ValidateCommonInput, ValidateMaxIterations)
 {
     constexpr bool tEmptyParameterGold = false;
-    test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct<
-        input_parser::snopt_optimization>([](const input_parser::snopt_optimization& aInput)
-                                          { return detail::validate_max_iterations(aInput); },
-                                          []() { return test_utilities::create_valid_example_snopt_optimization(); },
-                                          tEmptyParameterGold, TEST_CONTEXT("ValidateMaxIterations"));
+    test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct(
+        [](const input_parser::snopt_optimization& aInput) { return detail::validate_max_iterations(aInput); },
+        test_utilities::create_valid_example_snopt_optimization(), tEmptyParameterGold,
+        TEST_CONTEXT("ValidateMaxIterations"));
 }
 
 TEST(ValidateCommonInput, ValidateNumberOfSteps)
