@@ -5,10 +5,11 @@
 #include <optional>
 #include <string>
 
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/geometry/library/OutputManager.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/LogspaceGenerator.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
@@ -31,25 +32,30 @@ namespace
             }};
 }
 
+[[maybe_unused]] static auto kConstraintCheckParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::new_constraint_check,
+                                              input_parser::ComponentType::kProcessManager>{};
+
 [[maybe_unused]] static auto kConstraintCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::constraint_check>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_constraint_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kConstraintCheckValidationRegistration =
-    core::ValidationRegistration<input_parser::constraint_check>{
-        [](const input_parser::constraint_check& aInput)
+    input_validation::ValidationRegistration<input_parser::new_constraint_check>{
+        [](const input_parser::new_constraint_check& aInput)
         { return detail::validate_linearity_check_output_file_name(aInput); },
-        [](const input_parser::constraint_check& aInput)
+        [](const input_parser::new_constraint_check& aInput)
         { return detail::validate_jacobian_check_output_file_name(aInput); },
-        [](const input_parser::constraint_check& aInput)
+        [](const input_parser::new_constraint_check& aInput)
         { return detail::validate_jacobian_adjoint_consistency_check_output_file_name(aInput); },
-        [](const input_parser::constraint_check& aInput) { return detail::validate_number_of_steps(aInput); },
-        [](const input_parser::constraint_check& aInput)
+        [](const input_parser::new_constraint_check& aInput) { return detail::validate_number_of_steps(aInput); },
+        [](const input_parser::new_constraint_check& aInput)
         { return detail::validate_initial_direction_magnitude(aInput); },
-        [](const input_parser::constraint_check& aInput)
+        [](const input_parser::new_constraint_check& aInput)
         { return detail::validate_step_size_reduction_factor(aInput); },
-        [](const input_parser::constraint_check& aInput) { return detail::validate_random_direction_seed(aInput); }};
+        [](const input_parser::new_constraint_check& aInput)
+        { return detail::validate_random_direction_seed(aInput); }};
 }  // namespace
 
 ConstraintCheck::ConstraintCheck(const ValidatedConstraintCheckInput& aInput)
@@ -105,26 +111,41 @@ void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData
     }
 }
 
+auto create_valid_example_constraint_check() -> input_parser::constraint_check
+{
+    return input_parser::constraint_check{
+        /*.linearity_check_output_file_name=*/input_parser::FileName{"constraint_linearity_check.txt"},
+        /*.jacobian_check_output_file_name=*/input_parser::FileName{"constraint_jacobian_check.txt"},
+        /*.jacobian_adjoint_consistency_output_file_name=*/
+        input_parser::FileName{"constraint_jacobian_adjoint_consistency_check.txt"},
+        /*.number_of_steps*/ 10u,
+        /*.initial_direction_magnitude*/ 1.0,
+        /*.step_size_reduction_factor*/ 0.1,
+        /*.random_direction_seed*/ 123};
+}
+
 namespace detail
 {
-std::optional<std::string> validate_linearity_check_output_file_name(const input_parser::constraint_check& aInput)
+auto validate_linearity_check_output_file_name(const input_parser::new_constraint_check& aInput)
+    -> std::optional<std::string>
 {
     return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::constraint_check>(),
                                                    aInput.linearity_check_output_file_name,
                                                    "linearity_check_output_file_name");
 }
 
-std::optional<std::string> validate_jacobian_check_output_file_name(const input_parser::constraint_check& aInput)
+auto validate_jacobian_check_output_file_name(const input_parser::new_constraint_check& aInput)
+    -> std::optional<std::string>
 {
-    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::constraint_check>(),
+    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::new_constraint_check>(),
                                                    aInput.jacobian_check_output_file_name,
                                                    "jacobian_check_output_file_name");
 }
 
-std::optional<std::string> validate_jacobian_adjoint_consistency_check_output_file_name(
-    const input_parser::constraint_check& aInput)
+auto validate_jacobian_adjoint_consistency_check_output_file_name(const input_parser::new_constraint_check& aInput)
+    -> std::optional<std::string>
 {
-    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::constraint_check>(),
+    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::new_constraint_check>(),
                                                    aInput.jacobian_adjoint_consistency_output_file_name,
                                                    "jacobian_adjoint_consistency_output_file_name");
 }
