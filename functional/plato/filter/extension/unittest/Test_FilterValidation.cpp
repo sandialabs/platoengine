@@ -7,6 +7,7 @@
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/filter/library/FilterValidation.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -15,16 +16,17 @@
 namespace plato::filter::extension::unittest
 {
 
-void check_helmholtz_validation_with_variants(const input_parser::helmholtz_filter& aBadFilter)
+void check_helmholtz_validation_with_variants(const input_parser::helmholtz_filter& aBadFilter,
+                                              const test_utilities::TestContext& aTestContext)
 {
     input_parser::ParsedInput tInput =
         input_parser::ParsedInput{} | plato::test_utilities::create_valid_helmholtz_filter();
     std::vector<std::string> tErrorMessages;
     tErrorMessages = filter::library::validate_filter(tInput, std::move(tErrorMessages));
-    EXPECT_EQ(tErrorMessages.size(), 0u);
+    EXPECT_EQ(tErrorMessages.size(), 0u) << aTestContext;
     tInput.mHelmholtzFilter = aBadFilter;
     tErrorMessages = filter::library::validate_filter(tInput, std::vector<std::string>{});
-    EXPECT_EQ(tErrorMessages.size(), 1u);
+    EXPECT_EQ(tErrorMessages.size(), 1u) << aTestContext;
 }
 
 void check_kernel_validation_with_variants(const input_parser::kernel_filter& aBadFilter)
@@ -63,7 +65,7 @@ TEST(FilterValidation, CheckNoFilterRadiusIdentity)
 
 TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusBounds)
 {
-    auto tHelmholtzFilter = plato::test_utilities::create_valid_helmholtz_filter();
+    auto tHelmholtzFilter = create_valid_helmholtz_filter_input();
     EXPECT_FALSE(detail::validate_filter_radius_bounds(tHelmholtzFilter).has_value());  // valid
 
     tHelmholtzFilter.filter_radius = boost::none;
@@ -73,19 +75,19 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusBounds)
     tHelmholtzFilter.filter_radius = -1;
     EXPECT_TRUE(detail::validate_filter_radius_bounds(tHelmholtzFilter).has_value());
 
-    check_helmholtz_validation_with_variants(tHelmholtzFilter);
+    check_helmholtz_validation_with_variants(tHelmholtzFilter, TEST_CONTEXT("Helmholtz radius bounds"));
 }
 
 TEST(FilterValidation, CheckFilterValuesHelmholtzBoundaryStickingPenalty)
 {
-    auto tHelmholtzFilter = plato::test_utilities::create_valid_helmholtz_filter();
+    auto tHelmholtzFilter = create_valid_helmholtz_filter_input();
     EXPECT_FALSE(validate_helmholtz_filter_boundary_sticking_penalty(tHelmholtzFilter).has_value());  // valid
     tHelmholtzFilter.boundary_sticking_penalty = boost::none;
     EXPECT_FALSE(validate_helmholtz_filter_boundary_sticking_penalty(tHelmholtzFilter).has_value());  // valid, optional
     tHelmholtzFilter.boundary_sticking_penalty = -1;
     EXPECT_TRUE(validate_helmholtz_filter_boundary_sticking_penalty(tHelmholtzFilter).has_value());  // invalid
 
-    check_helmholtz_validation_with_variants(tHelmholtzFilter);
+    check_helmholtz_validation_with_variants(tHelmholtzFilter, TEST_CONTEXT("Helmholtz sticking penalty"));
 }
 
 TEST(FilterValidation, CheckFilterValuesKernelRadiusBounds)
@@ -124,7 +126,7 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusWithMesh)
         {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
     third_party_integration::stk_io::write_mesh(tMeshFileName, tCommandGenerator);
 
-    auto tHelmholtzFilter = plato::test_utilities::create_valid_helmholtz_filter();
+    auto tHelmholtzFilter = create_valid_helmholtz_filter_input();
     tHelmholtzFilter.filter_radius = 0.5;
     EXPECT_TRUE(detail::validate_filter_radius_with_mesh(tHelmholtzFilter, tMeshFileName)
                     .has_value());  // radius smaller than element edge length of 1
@@ -136,7 +138,7 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusWithMesh)
                      .has_value());  // radius greater than element edge length of 1
 
     tHelmholtzFilter.filter_radius = 0.5;
-    const auto tErrorMessages = core::validate(tHelmholtzFilter, std::vector<std::string>{}, tMeshFileName);
+    const auto tErrorMessages = input_validation::validate(tHelmholtzFilter, std::vector<std::string>{}, tMeshFileName);
     EXPECT_EQ(tErrorMessages.size(), 1u);
 
     test_utilities::test_for_existence_and_remove({tMeshFileName}, TEST_CONTEXT("Checking existence of mesh file"));

@@ -2,7 +2,6 @@
 
 #include <filesystem>
 
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"

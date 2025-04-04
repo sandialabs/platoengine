@@ -4,13 +4,14 @@
 #include <memory>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
 
@@ -28,6 +29,11 @@ library::FilterParameters to_filter_parameters(const input_parser::helmholtz_fil
         /*.mBoundaryStickingPenalty=*/utilities::to_std_optional(aInput.boundary_sticking_penalty)};
 }
 
+// Static registration of input parser
+[[maybe_unused]] static auto kHelmholtzFilterParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::new_helmholtz_filter,
+                                              input_parser::ComponentType::kFilter>{};
+
 [[maybe_unused]] static auto kHelmholtzFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::helmholtz_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
@@ -36,19 +42,26 @@ library::FilterParameters to_filter_parameters(const input_parser::helmholtz_fil
     }};
 
 [[maybe_unused]] static auto kHelmholtzFilterValidationRegistration =
-    core::ValidationRegistration<input_parser::helmholtz_filter>{
-        [](const input_parser::helmholtz_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
-        [](const input_parser::helmholtz_filter& aInput)
+    input_validation::ValidationRegistration<input_parser::new_helmholtz_filter>{
+        [](const input_parser::new_helmholtz_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
+        [](const input_parser::new_helmholtz_filter& aInput)
         { return validate_helmholtz_filter_boundary_sticking_penalty(aInput); }};
 
 [[maybe_unused]] static auto kHelmholtzFilterMeshBasedValidationRegistration =
-    core::ValidationRegistration<input_parser::helmholtz_filter, std::filesystem::path>{
-        [](const input_parser::helmholtz_filter& aInput, const std::filesystem::path& aMeshPath)
+    input_validation::ValidationRegistration<input_parser::new_helmholtz_filter, std::filesystem::path>{
+        [](const input_parser::new_helmholtz_filter& aInput, const std::filesystem::path& aMeshPath)
         { return detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};
 }  // namespace
 
-[[nodiscard]] std::optional<std::string> validate_helmholtz_filter_boundary_sticking_penalty(
-    const input_parser::helmholtz_filter& aInput)
+auto create_valid_helmholtz_filter_input() -> input_parser::new_helmholtz_filter
+{
+    return input_parser::new_helmholtz_filter{/*.filter_radius=*/91.0,
+                                              /*.use_relative_radius=*/boost::none,
+                                              /*.boundary_sticking_penalty=*/1.0};
+}
+
+auto validate_helmholtz_filter_boundary_sticking_penalty(const input_parser::new_helmholtz_filter& aInput)
+    -> std::optional<std::string>
 {
     namespace pfu = plato::utilities;
     return core::error_message_for_optional_parameter_out_of_bounds(
