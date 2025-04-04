@@ -29,16 +29,17 @@ void check_helmholtz_validation_with_variants(const input_parser::helmholtz_filt
     EXPECT_EQ(tErrorMessages.size(), 1u) << aTestContext;
 }
 
-void check_kernel_validation_with_variants(const input_parser::kernel_filter& aBadFilter)
+void check_kernel_validation_with_variants(const input_parser::kernel_filter& aBadFilter,
+                                           const test_utilities::TestContext& aTestContext)
 {
     input_parser::ParsedInput tInput =
         input_parser::ParsedInput{} | plato::test_utilities::create_valid_kernel_filter();
     std::vector<std::string> tErrorMessages;
     tErrorMessages = filter::library::validate_filter(tInput, std::move(tErrorMessages));
-    EXPECT_EQ(tErrorMessages.size(), 0u);
+    EXPECT_EQ(tErrorMessages.size(), 0u) << aTestContext;
     tInput.mKernelFilter = aBadFilter;
     tErrorMessages = filter::library::validate_filter(tInput, std::vector<std::string>{});
-    EXPECT_EQ(tErrorMessages.size(), 1u);
+    EXPECT_EQ(tErrorMessages.size(), 1u) << aTestContext;
 }
 
 TEST(FilterValidation, CheckNoFilterRadiusIdentity)
@@ -92,7 +93,7 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzBoundaryStickingPenalty)
 
 TEST(FilterValidation, CheckFilterValuesKernelRadiusBounds)
 {
-    auto tFilter = plato::test_utilities::create_valid_kernel_filter();
+    auto tFilter = create_valid_kernel_filter_input();
     EXPECT_FALSE(detail::validate_filter_radius_bounds(tFilter).has_value());  // valid
 
     tFilter.filter_radius = boost::none;
@@ -102,12 +103,12 @@ TEST(FilterValidation, CheckFilterValuesKernelRadiusBounds)
     tFilter.filter_radius = -0.1;
     EXPECT_TRUE(detail::validate_filter_radius_bounds(tFilter).has_value());
 
-    check_kernel_validation_with_variants(tFilter);
+    check_kernel_validation_with_variants(tFilter, TEST_CONTEXT("Kernel filter radius bounds"));
 }
 
 TEST(FilterValidation, CheckFilterValuesKernelCenteringType)
 {
-    auto tFilter = plato::test_utilities::create_valid_kernel_filter();
+    auto tFilter = create_valid_kernel_filter_input();
     EXPECT_FALSE(detail::validate_kernel_filter_centering_type(tFilter).has_value());  // valid
     tFilter.centering_type = boost::none;
     EXPECT_TRUE(detail::validate_kernel_filter_centering_type(tFilter).has_value());  // must be defined
@@ -115,7 +116,7 @@ TEST(FilterValidation, CheckFilterValuesKernelCenteringType)
     EXPECT_FALSE(detail::validate_kernel_filter_centering_type(tFilter).has_value());  // must be defined
 
     tFilter.centering_type = boost::none;
-    check_kernel_validation_with_variants(tFilter);
+    check_kernel_validation_with_variants(tFilter, TEST_CONTEXT("Kernel filter centering type"));
 }
 
 TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusWithMesh)
@@ -146,7 +147,7 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusWithMesh)
 
 TEST(FilterValidation, ValidateNumberOfProcessors)
 {
-    auto tFilter = plato::test_utilities::create_valid_kernel_filter();
+    auto tFilter = create_valid_kernel_filter_input();
     EXPECT_FALSE(detail::validate_number_of_processors(tFilter).has_value());  // valid
     tFilter.number_of_processors = boost::none;
     EXPECT_FALSE(detail::validate_number_of_processors(tFilter).has_value());  // valid - none specified uses 1
@@ -154,7 +155,7 @@ TEST(FilterValidation, ValidateNumberOfProcessors)
 
 TEST(FilterValidation, ValidateNumberOfProcessorsFactorOfCommWorld)
 {
-    auto tFilter = plato::test_utilities::create_valid_kernel_filter();
+    auto tFilter = create_valid_kernel_filter_input();
     EXPECT_FALSE(detail::validate_number_of_processors_factor_of_comm_world(tFilter).has_value());  // valid
     tFilter.number_of_processors = 2;
     EXPECT_TRUE(detail::validate_number_of_processors_factor_of_comm_world(tFilter).has_value());  // invalid
