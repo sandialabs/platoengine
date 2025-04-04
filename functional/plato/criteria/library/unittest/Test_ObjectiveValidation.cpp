@@ -1,15 +1,17 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/CriterionValidation.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveValidation.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 
 namespace plato::criteria::library::unittest
 {
 TEST(ObjectiveValidation, ParallelObjectives)
 {
-    auto tInput = std::vector{test_utilities::create_valid_example_objective()};
+    auto tInput = std::vector{create_valid_example_objective_input()};
     {
         // Check example, which sets number_of_processors to 1
         EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 1u);
@@ -29,7 +31,7 @@ TEST(ObjectiveValidation, ParallelObjectives)
     }
     {
         // Add another objective with 1 processor
-        tInput.push_back(test_utilities::create_valid_example_objective());
+        tInput.push_back(create_valid_example_objective_input());
         EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 43u);
         EXPECT_TRUE(criteria::library::has_parallel_objective(tInput));
     }
@@ -38,7 +40,7 @@ TEST(ObjectiveValidation, ParallelObjectives)
 TEST(ObjectiveValidation, ValidateAggregationWeight)
 {
     namespace pfcd = plato::criteria::library::detail;
-    input_parser::objective tObjective;
+    auto tObjective = input_parser::new_objective{};
     EXPECT_TRUE(pfcd::validate_aggregation_weight(tObjective).has_value());
     tObjective.aggregation_weight = 13.0;
     EXPECT_FALSE(pfcd::validate_aggregation_weight(tObjective).has_value());
@@ -50,13 +52,13 @@ TEST(ObjectiveValidation, ValidateAtLeastOneObjective)
 {
     namespace pfcd = plato::criteria::library::detail;
     EXPECT_TRUE(pfcd::validate_at_least_one_objective({}).has_value());
-    input_parser::objective tObjective;
+    auto tObjective = input_parser::new_objective{};
     EXPECT_FALSE(pfcd::validate_at_least_one_objective({tObjective}).has_value());
     tObjective.active = false;
     EXPECT_TRUE(pfcd::validate_at_least_one_objective({tObjective}).has_value());
     EXPECT_TRUE(pfcd::validate_at_least_one_objective({tObjective, tObjective}).has_value());
 
-    input_parser::objective tObjectiveTwo;
+    auto tObjectiveTwo = input_parser::new_objective{};
     tObjectiveTwo.active = true;
     EXPECT_FALSE(pfcd::validate_at_least_one_objective({tObjective, tObjectiveTwo}).has_value());
     EXPECT_FALSE(pfcd::validate_at_least_one_objective({tObjectiveTwo, tObjectiveTwo}).has_value());
@@ -65,7 +67,7 @@ TEST(ObjectiveValidation, ValidateAtLeastOneObjective)
 TEST(ObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
 {
     // One objective and one rank
-    input_parser::objective tObjective;
+    auto tObjective = input_parser::new_objective{};
     EXPECT_FALSE(detail::validate_number_of_ranks_vs_serial_objectives({tObjective}).has_value());
     // Add an objective, should still be valid
     EXPECT_FALSE(detail::validate_number_of_ranks_vs_serial_objectives({tObjective, tObjective}).has_value());
@@ -74,7 +76,7 @@ TEST(ObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
 TEST(ObjectiveValidation, ValidateMPIRanksVsNumberOfParallelObjectives)
 {
     // No parallel objectives so this should not result in an error
-    input_parser::objective tObjective;
+    auto tObjective = input_parser::new_objective{};
     EXPECT_FALSE(detail::validate_number_of_ranks_vs_parallel_objectives({tObjective}).has_value());
     // Change to 2, should now be invalid
     tObjective.number_of_processors = 2u;
@@ -85,19 +87,17 @@ TEST(ObjectiveValidation, ErrorMessagesInvalidObjective)
 {
     input_parser::objective tObjective = plato::test_utilities::create_valid_example_objective();
     tObjective.criterion = boost::none;
-    std::vector<std::string> tMessages;
-    tMessages = core::validate(tObjective, std::move(tMessages));
+    const auto tMessages = input_validation::validate(tObjective, {});
     EXPECT_EQ(tMessages.size(), 1u);
 }
 
 TEST(ObjectiveValidation, ErrorMessagesInvalidInput)
 {
     namespace pfc = plato::criteria::library;
-    const input_parser::objective tObjective;
+    const auto tObjective = input_parser::new_objective{};
     const std::vector<input_parser::objective> tInput{tObjective, tObjective};
 
-    std::vector<std::string> tMessages;
-    tMessages = pfc::validate_objectives(tInput, std::move(tMessages));
+    const auto tMessages = pfc::validate_objectives(tInput, {});
     EXPECT_EQ(tMessages.size(), 4u);
 }
 
