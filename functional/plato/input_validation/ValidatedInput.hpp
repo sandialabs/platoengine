@@ -51,18 +51,20 @@ class ValidatedInput
 template <input_parser::ComponentType kComponentType>
 auto ValidatedInput::get() const
 {
+    using ValidatedTypeWrapperForComponent = ValidatedInputTypeWrapper<input_parser::InputDataBlock, kComponentType>;
     if constexpr (input_parser::kIsNamedComponent<kComponentType>)
     {
-        auto tValidatedInputs = std::vector<ValidatedInputTypeWrapper<input_parser::InputDataBlock>>{};
+        auto tValidatedInputs = std::vector<ValidatedTypeWrapperForComponent>{};
         std::transform(mRawInput.get<kComponentType>().cbegin(), mRawInput.get<kComponentType>().cend(),
                        std::back_inserter(tValidatedInputs),
-                       [](const auto& aInputBlock) { return ValidatedInputTypeWrapper{aInputBlock}; });
-        return ValidatedInputTypeWrapper{std::move(tValidatedInputs)};
+                       [](const auto& aInputBlock) { return ValidatedTypeWrapperForComponent{aInputBlock}; });
+        return ValidatedInputTypeWrapper<std::vector<ValidatedTypeWrapperForComponent>, kComponentType>{
+            std::move(tValidatedInputs)};
     }
     else
     {
         assert(mRawInput.get<kComponentType>().size() == 1U);
-        return ValidatedInputTypeWrapper{mRawInput.get<kComponentType>().front()};
+        return ValidatedTypeWrapperForComponent{mRawInput.get<kComponentType>().front()};
     }
 }
 

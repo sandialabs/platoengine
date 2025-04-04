@@ -159,4 +159,19 @@ TEST(ValidatedInput, GetMember)
     EXPECT_EQ(aDCInput.batman.value(), 100U);
 }
 
+TEST(ValidatedInput, GetNamedMember)
+{
+    const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
+    const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput);
+    const auto& tValidatedInput = tValidatedInputOrError.value();
+    const auto tGeometryInput = tValidatedInput.get<input_parser::ComponentType::kGeometry>().rawInput();
+    EXPECT_EQ(tGeometryInput.mComponentType, input_parser::ComponentType::kGeometry);
+    EXPECT_EQ(tGeometryInput.mBlockName, "marvel");
+
+    const auto tAllConstraintsInput = tValidatedInput.get<input_parser::ComponentType::kConstraint>().rawInput();
+    const auto& tConstraintInput = tAllConstraintsInput.front().rawInput();
+    EXPECT_EQ(tConstraintInput.mComponentType, input_parser::ComponentType::kConstraint);
+    EXPECT_EQ(tConstraintInput.mBlockName, "dc");
+}
+
 }  // namespace plato::input_validation::unittest
