@@ -7,6 +7,7 @@
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          test_block,
+                         plato::input_parser::ComponentType::kGeometry,
                          (bool, field1, "a helpful comment")(int, field2, "a very helpful comment"))
 
 namespace plato::input_parser::unittest

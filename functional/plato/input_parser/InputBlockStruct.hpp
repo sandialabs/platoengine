@@ -10,6 +10,7 @@
 #include <boost/preprocessor/seq/variadic_seq_to_seq.hpp>
 #include <boost/preprocessor/tuple/elem.hpp>
 
+#include "plato/input_parser/ComponentType.hpp"
 #include "plato/input_parser/HelpDocumentationRegistration.hpp"
 
 namespace plato::input_parser
@@ -91,7 +92,7 @@ struct IsFilterInput
 /// For example, a struct of the form:
 /// @code 
 /// PLATO_INPUT_BLOCK_STRUCT(
-///    (Plato), service,
+///    (plato)(input_parser), service, input_parser::ComponentType::kProcessManager,
 ///    (unsigned int, number_processors))
 /// @endcode
 /// parses the following block:
@@ -100,7 +101,7 @@ struct IsFilterInput
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                \
+#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, ATTRIBUTES)                \
 CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)                          \
 BOOST_FUSION_DEFINE_STRUCT(                                                                             \
     NAMESPACE_SEQ,                                                                                      \
@@ -112,27 +113,31 @@ template<>                                                                      
 struct InputTypeName<STRUCT_NAME>                                                                       \
 {   static constexpr const char* name = #STRUCT_NAME;                                                   \
 };                                                                                                      \
+template<>                                                                                              \
+struct ComponentTypeOfInputBlock<STRUCT_NAME>                                                           \
+{                                                                                                       \
+    constexpr static inline ComponentType value = COMPONENT_TYPE;                                       \
+};                                                                                                      \
 } 
 
-
-#define PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, TYPE_TRAIT_STRUCT, ATTRIBUTES) \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                  \
-namespace plato::input_parser{                                                                    \
-template<>                                                                                        \
-struct TYPE_TRAIT_STRUCT<STRUCT_NAME>                                                             \
-{                                                                                                 \
-    constexpr static bool value = true;                                                           \
-};                                                                                                \
+#define PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, TYPE_TRAIT_STRUCT, COMPONENT_TYPE, ATTRIBUTES) \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, ATTRIBUTES)                                  \
+namespace plato::input_parser{                                                                                    \
+template<>                                                                                                        \
+struct TYPE_TRAIT_STRUCT<STRUCT_NAME>                                                                             \
+{                                                                                                                 \
+    constexpr static bool value = true;                                                                           \
+};                                                                                                                \
 }
 
-#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                 \
-PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsGeometryInput, ATTRIBUTES)           \
+#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                 \
+PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsGeometryInput, ComponentType::kGeometry, ATTRIBUTES) \
 
-#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)          \
-PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsProcessManagerInput, ATTRIBUTES)     \
+#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                      \
+PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsProcessManagerInput, ComponentType::kProcessManager, ATTRIBUTES) \
 
-#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                   \
-PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ATTRIBUTES)             \
+#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                               \
+PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ComponentType::kFilter, ATTRIBUTES) \
 
 /// Macro for generating an adapted struct that can be used for input parsing. The format
 /// is the same as BOOST_FUSION_DEFINE_STRUCT and the resulting struct has all the same
@@ -141,7 +146,7 @@ PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ATTRIB
 /// For example, a struct of the form:
 /// @code 
 /// PLATO_NAMED_INPUT_BLOCK_STRUCT(
-///    (Plato), service,
+///    (plato)(input_parser), service, plato::input_parser::ComponentType::kObjective
 ///    (unsigned int, number_processors))
 /// @endcode
 /// parses the following block:
@@ -150,20 +155,25 @@ PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ATTRIB
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_NAMED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)        \
-CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)        \
-BOOST_FUSION_DEFINE_STRUCT(                                                           \
-    NAMESPACE_SEQ,                                                                    \
-    STRUCT_NAME,                                                                      \
-    TYPES_AS_OPTIONAL(ATTRIBUTES_WITH_NAME(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))) \
-)                                                                                     \
-namespace plato::input_parser{                                                        \
-template<>                                                                            \
-struct InputTypeName<STRUCT_NAME>                                                     \
-{   static constexpr const char* name = #STRUCT_NAME;                                 \
-};                                                                                    \
-template<>                                                                            \
-constexpr inline bool kIsNamedBlock<STRUCT_NAME> = true;                              \
+#define PLATO_NAMED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, ATTRIBUTES)  \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)                  \
+BOOST_FUSION_DEFINE_STRUCT(                                                                     \
+    NAMESPACE_SEQ,                                                                              \
+    STRUCT_NAME,                                                                                \
+    TYPES_AS_OPTIONAL(ATTRIBUTES_WITH_NAME(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))           \
+)                                                                                               \
+namespace plato::input_parser{                                                                  \
+template<>                                                                                      \
+struct InputTypeName<STRUCT_NAME>                                                               \
+{   static constexpr const char* name = #STRUCT_NAME;                                           \
+};                                                                                              \
+template<>                                                                                      \
+constexpr inline bool kIsNamedBlock<STRUCT_NAME> = true;                                        \
+template<>                                                                                      \
+struct ComponentTypeOfInputBlock<STRUCT_NAME>                                                   \
+{                                                                                               \
+    constexpr static inline ComponentType value = COMPONENT_TYPE;                               \
+};                                                                                              \
 }
 
 // clang-format on

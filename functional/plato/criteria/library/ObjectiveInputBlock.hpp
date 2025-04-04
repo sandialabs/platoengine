@@ -7,7 +7,7 @@
 
 // clang-format off
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), new_objective,
+    (plato)(input_parser), new_objective, plato::input_parser::ComponentType::kObjective,
     (bool, active, "Optional field to de/activate this objective.")
     (plato::input_parser::AppName, app, "Required field specifying the app to use for this objective.") 
     (plato::input_parser::CriterionName, criterion, "Required field specifying the name of the criterion to be evaluated.")

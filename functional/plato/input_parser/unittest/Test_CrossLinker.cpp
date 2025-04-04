@@ -14,17 +14,21 @@ using FilterNewCrossReference = plato::input_parser::NewCrossReference<plato::in
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          uninspired_thing,
+                         plato::input_parser::ComponentType::kGeometry,
                          (double, a_number, "help")
                          (FilterNewCrossReference, my_filter, "help")
                          (int, another_number, "help"))
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          uninspired_filter,
+                         plato::input_parser::ComponentType::kFilter,
                          (double, filteriness, "help"))
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          very_inspired_filter,
+                         plato::input_parser::ComponentType::kFilter,
                          (double, filteritude, "help"))
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          no_cross_reference_thing,
+                         plato::input_parser::ComponentType::kGeometry,
                          (double, a_number, "help")
                          (int, another_number, "help"))
 // clang-format on

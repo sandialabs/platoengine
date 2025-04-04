@@ -5,13 +5,13 @@
 
 // clang-format off
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), TestNamedBlock, 
+    (plato)(input_parser), TestNamedBlock, plato::input_parser::ComponentType::kConstraint,
     (int, field1, "help")
     (double, field2, "help")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), TestUnnamedBlock, 
+    (plato)(input_parser), TestUnnamedBlock, plato::input_parser::ComponentType::kFilter,
     (bool, field1, "a helpful comment")
     (int, field2, "only sorta helpful")
     (double, field3, "did we even read this part?")

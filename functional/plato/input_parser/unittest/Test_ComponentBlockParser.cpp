@@ -7,6 +7,7 @@
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          interface_test_block,
+                         plato::input_parser::ComponentType::kGeometry,
                          (int, arabica, "a caffeinated comment")(double, robusta, "a very caffeinated comment"))
 
 namespace plato::input_parser::unittest

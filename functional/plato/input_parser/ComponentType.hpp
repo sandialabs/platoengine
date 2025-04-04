@@ -17,6 +17,14 @@ enum struct ComponentType
     kNumberOfEnumerates
 };
 
+/// @brief A type trait with a member variable corresponding to the ComponentType of @a T.
+///
+/// This is specialized for each input block type in the defining macros.
+template <typename T>
+struct ComponentTypeOfInputBlock
+{
+};
+
 /// @brief Returns the ComponentType associated with an index @a kIndex.
 template <std::size_t kIndex>
 [[nodiscard]] constexpr auto component_type_from_index() -> ComponentType;

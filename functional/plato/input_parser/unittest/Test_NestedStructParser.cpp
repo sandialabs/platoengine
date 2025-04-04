@@ -23,22 +23,22 @@ struct IsTypeTraitInput
 
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), test, 
+    (plato)(input_parser), test, plato::input_parser::ComponentType::kProcessManager,
     (int, field1, "help")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), test_block, 
+    (plato)(input_parser), test_block, plato::input_parser::ComponentType::kFilter,
     (int, field2, "help")
 )
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), test_block_with_name, 
+    (plato)(input_parser), test_block_with_name, plato::input_parser::ComponentType::kObjective,
     (int, field3, "help")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), block_with_end_field, 
+    (plato)(input_parser), block_with_end_field, plato::input_parser::ComponentType::kGeometry,
     (bool, field4, "help")
     (double, end_field, "help")
 )
@@ -47,7 +47,7 @@ PLATO_INPUT_BLOCK_STRUCT(
 /// This is used for testing parsing of a Cross-Reference field which requires a type trait template parameter.
 /// No input block with IsTypeTraitInput is defined in this test harness. 
 PLATO_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), block_with_cross_reference, 
+    (plato)(input_parser), block_with_cross_reference, plato::input_parser::ComponentType::kFilter,
     (int, field, "help")
     (plato::input_parser::CrossReference<plato::input_parser::unittest::IsTypeTraitInput>, hotdog, "help")
 )

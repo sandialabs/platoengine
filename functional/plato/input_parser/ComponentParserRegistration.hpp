@@ -13,7 +13,7 @@ namespace plato::input_parser
 /// component type. Usage is:
 /// @code{.cpp}
 /// PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
-///                         kernel_filter,
+///                         kernel_filter, plato::input_parser::ComponentType::kFilter,
 ///                         (double, filter_radius, "The filter radius"))
 /// [[maybe_unused]] const auto kComponentRegistration = ComponentParserRegistration<kernel_filter,
 /// input_parser::ComponentType::kFilter>{}

@@ -10,12 +10,12 @@
 // Define input structs
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
-                         marvel,
+                         marvel, input_parser::ComponentType::kGeometry,
                          (double, cyclops, "")
                          (int, wolverine, ""))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
-                         dc,
+                         dc, plato::input_parser::ComponentType::kConstraint,
                          (bool, superman, "")
                          (unsigned int, batman, ""))
 // clang-format on

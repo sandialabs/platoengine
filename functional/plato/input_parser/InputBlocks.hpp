@@ -89,7 +89,7 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
 )
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), objective,
+    (plato)(input_parser), objective, plato::input_parser::ComponentType::kObjective,
     (bool, active, "Optional field to de/activate this objective.")
     (plato::input_parser::AppName, app, "Required field specifying the app to use for this objective.") 
     (plato::input_parser::CriterionName, criterion, "Required field specifying the name of the criterion to be evaluated.")
@@ -99,7 +99,7 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
 )
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), constraint,
+    (plato)(input_parser), constraint, plato::input_parser::ComponentType::kConstraint,
     (bool, active, "Optional field to de/activate this constraint.")
     (plato::input_parser::AppName, app, "Required field specifying the app to use for this constraint.") 
     (plato::input_parser::CriterionName, criterion, "Required field specifying the name of the criterion to be evaluated.")

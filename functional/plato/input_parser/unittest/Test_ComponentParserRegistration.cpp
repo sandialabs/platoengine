@@ -6,12 +6,14 @@
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          registration_test_block,
+                         plato::input_parser::ComponentType::kGeometry,
                          (int, dark_roast, "no comment")
                          (bool, medium_roast, "no comment")
                          (unsigned, light_roast, "no comment"))
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          statically_registered_test_block,
+                         plato::input_parser::ComponentType::kFilter,
                          (int, dark_roast, "no comment"))
 // clang-format on
 

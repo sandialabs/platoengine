@@ -16,17 +16,17 @@ struct IsSomeOtherBlock
 
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), other_block_with_cross_ref, 
+    (plato)(input_parser), other_block_with_cross_ref, plato::input_parser::ComponentType::kFilter,
     (plato::input_parser::CrossReference<plato::process_manager::library::unittest::IsSomeOtherBlock>, cross_ref,"cross reference")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), one_other_block, 
+    (plato)(input_parser), one_other_block, plato::input_parser::ComponentType::kGeometry,
     (double, cross_ref_field,"cross referenced field")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), two_other_block, 
+    (plato)(input_parser), two_other_block, plato::input_parser::ComponentType::kProcessManager,
     (int, cross_ref_field, "cross referenced field")
 )
 

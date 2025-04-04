@@ -11,12 +11,12 @@
 
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
-                         fruits,
+                         fruits, plato::input_parser::ComponentType::kGeometry,
                          (int, banana, "It's a yellow oblong fruit.")
                          (double, apple, "It's a red or green thing."))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
-                         vegetables,
+                         vegetables, plato::input_parser::ComponentType::kObjective,
                          (bool, tomato, "Is it a fruit?")
                          (unsigned int, potato, "Boil 'em, mash 'em, stick 'em in a stew."))
 // clang-format on
