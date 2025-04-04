@@ -2,9 +2,10 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -12,13 +13,16 @@ namespace plato::filter::extension
 {
 namespace
 {
+[[maybe_unused]] static auto kIdentityFilterParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::identity_filter, input_parser::ComponentType::kFilter>{};
+
 [[maybe_unused]] static auto kIdentityFilterRegistration =
     library::FilterRegistration{input_parser::block_name<input_parser::identity_filter>(),
                                 [](const library::ValidatedFilterInput&) { return make_identity_filter_function(); }};
 
 [[maybe_unused]] static auto kIdentityFilterValidationRegistration =
-    core::ValidationRegistration<input_parser::identity_filter>{[](const input_parser::identity_filter& aInput)
-                                                                { return validate_identity_filter(aInput); }};
+    input_validation::ValidationRegistration<input_parser::new_identity_filter>{
+        [](const input_parser::new_identity_filter& aInput) { return validate_identity_filter(aInput); }};
 }  // namespace
 
 analysis::AnalysisDomainMesh IdentityFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
@@ -48,6 +52,11 @@ auto IdentityFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomai
     return rowVectorTimesJacobian(aAnalysisDomainMesh, aV);
 }
 
+auto create_valid_identity_filter_input() -> input_parser::new_identity_filter
+{
+    return input_parser::identity_filter{/*.filter_radius = */ boost::none};
+}
+
 auto make_identity_filter_function() -> library::FilterFunction
 {
     return library::FilterFunction{
@@ -59,7 +68,7 @@ auto make_identity_filter_function() -> library::FilterFunction
         { return library::make_filter_adjoint_jacobian(std::make_unique<IdentityFilter>(), aAnalysisDomainMesh); }};
 }
 
-[[nodiscard]] std::optional<std::string> validate_identity_filter(const input_parser::identity_filter& aInput)
+auto validate_identity_filter(const input_parser::new_identity_filter& aInput) -> std::optional<std::string>
 {
     if (aInput.filter_radius.has_value())
     {

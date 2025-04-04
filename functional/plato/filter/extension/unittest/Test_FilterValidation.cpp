@@ -41,7 +41,7 @@ void check_kernel_validation_with_variants(const input_parser::kernel_filter& aB
 
 TEST(FilterValidation, CheckNoFilterRadiusIdentity)
 {
-    auto tIdentityFilter = plato::test_utilities::create_valid_identity_filter();
+    auto tIdentityFilter = create_valid_identity_filter_input();
 
     EXPECT_FALSE(validate_identity_filter(tIdentityFilter).has_value());
     tIdentityFilter.filter_radius = 1;
