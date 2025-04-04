@@ -9,6 +9,16 @@
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 
+namespace plato::input_parser
+{
+struct constraint_check;
+}
+
+namespace plato::process_manager::library
+{
+struct ProcessManagerData;
+}
+
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), new_constraint_check,
@@ -21,16 +31,6 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (unsigned int, random_direction_seed, "Required field specifying the seed that is used to generate the random perturbation of the controls.")
 )
 // clang-format on
-
-namespace plato::input_parser
-{
-struct constraint_check;
-}
-
-namespace plato::process_manager::library
-{
-struct ProcessManagerData;
-}
 
 namespace plato::process_manager::extension
 {
