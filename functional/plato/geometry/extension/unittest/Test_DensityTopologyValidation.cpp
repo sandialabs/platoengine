@@ -24,7 +24,7 @@ using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
 
 using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
 
-const auto kDensityTopology = plato::test_utilities::create_valid_density_topology_geometry();
+const auto kDensityTopology = create_valid_density_topology_geometry_input();
 
 struct DensityTopologyValidationFileFixture : public test_utilities::FileCreatingTestFixture
 {
@@ -69,7 +69,7 @@ TEST(DensityTopologyValidation, ValidateInitialDensity)
 
 TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
 {
-    auto tDensityTopology = input_parser::density_topology{};
+    auto tDensityTopology = input_parser::new_density_topology{};
     EXPECT_TRUE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
         << "Missing both specifiers";
 

@@ -18,6 +18,8 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -62,6 +64,11 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
                                      { return tDensityTopology->adjointJacobian(x); }};
 }
 
+/// Static registration for the input parser
+[[maybe_unused]] static auto kDensityTopologyParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::new_density_topology,
+                                              input_parser::ComponentType::kGeometry>{};
+
 /// Static registration for library
 [[maybe_unused]] static auto kDensityTopologyRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::density_topology>(),
@@ -72,23 +79,23 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
                                      DensityTopology::bounds(tInput), make_topology_output(tInput)};
     }};
 
-/// Static registration for input validation functions
-[[maybe_unused]] static auto kDensityTopologyValidationRegistration =
-    core::ValidationRegistration<input_parser::density_topology>{
-        [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
-        [](const input_parser::density_topology& aInput)
+[[maybe_unused]] static auto kDensityTopologyInputValidationRegistration =
+    input_validation::ValidationRegistration<input_parser::new_density_topology>{
+        [](const input_parser::new_density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
+        [](const input_parser::new_density_topology& aInput)
         { return library::validate_filter_with_mesh(aInput, kMeshNameAccessor); },
-        [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_file_exists(aInput); },
-        [](const input_parser::density_topology& aInput)
+        [](const input_parser::new_density_topology& aInput)
+        { return library::detail::validate_mesh_file_exists(aInput); },
+        [](const input_parser::new_density_topology& aInput)
         { return validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
-        [](const input_parser::density_topology& aInput)
+        [](const input_parser::new_density_topology& aInput)
         { return validate_fixed_block_names_exist(aInput, kMeshNameAccessor); },
-        [](const input_parser::density_topology& aInput)
+        [](const input_parser::new_density_topology& aInput)
         { return validate_at_least_one_design_block(aInput, kMeshNameAccessor); },
-        [](const input_parser::density_topology& aInput) { return library::detail::validate_output_name(aInput); },
-        [](const input_parser::density_topology& aInput) { return detail::validate_initial_density_value(aInput); },
-        [](const input_parser::density_topology& aInput) { return validate_initial_field_source(aInput); },
-        [](const input_parser::density_topology& aInput)
+        [](const input_parser::new_density_topology& aInput) { return library::detail::validate_output_name(aInput); },
+        [](const input_parser::new_density_topology& aInput) { return detail::validate_initial_density_value(aInput); },
+        [](const input_parser::new_density_topology& aInput) { return validate_initial_field_source(aInput); },
+        [](const input_parser::new_density_topology& aInput)
         { return detail::validate_exactly_one_initial_topology_specifier(aInput); }};
 
 }  // namespace
@@ -167,10 +174,19 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
     output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 }
 
+auto create_valid_density_topology_geometry_input() -> input_parser::new_density_topology
+{
+    return input_parser::new_density_topology{/*.mesh_name=*/input_parser::FileName{"test.exo"},
+                                              /*.output_name=*/input_parser::FileName{"test_out.exo"},
+                                              /*.fixed_blocks=*/{},
+                                              /*.filter=*/boost::none,
+                                              /*.initial_density_value=*/0.5,
+                                              /*.initial_density_field_name=*/boost::none};
+}
+
 namespace detail
 {
-
-std::optional<std::string> validate_initial_density_value(const input_parser::density_topology& aInput)
+auto validate_initial_density_value(const input_parser::new_density_topology& aInput) -> std::optional<std::string>
 {
     namespace pfu = plato::utilities;
     return core::error_message_for_optional_parameter_out_of_bounds(
@@ -178,7 +194,8 @@ std::optional<std::string> validate_initial_density_value(const input_parser::de
         "initial_density_value", pfu::ParameterBounds{pfu::Exclusive{0.0}, pfu::Inclusive{1.0}});
 }
 
-std::optional<std::string> validate_exactly_one_initial_topology_specifier(const input_parser::density_topology& aInput)
+auto validate_exactly_one_initial_topology_specifier(const input_parser::new_density_topology& aInput)
+    -> std::optional<std::string>
 {
     const bool tBothAreTrue = aInput.initial_field_name.has_value() && aInput.initial_density_value.has_value();
     const bool tBothAreFalse = !aInput.initial_field_name.has_value() && !aInput.initial_density_value.has_value();
