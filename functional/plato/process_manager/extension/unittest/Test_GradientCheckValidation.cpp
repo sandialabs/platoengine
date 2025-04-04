@@ -19,7 +19,7 @@ TEST(ValidateGradientCheck, ValidateOuputFileName)
 
 TEST(ValidateGradientCheck, NoErrorMessagesValidGradientCheck)
 {
-    const auto tGradientCheck = create_valid_example_gradient_check();
+    const auto tGradientCheck = create_valid_example_gradient_check_input();
     const auto tMessages = input_validation::validate(tGradientCheck, {});
     EXPECT_TRUE(tMessages.empty());
 }

@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "plato/core/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -12,7 +13,7 @@ namespace plato::process_manager::extension::unittest
 {
 TEST(ROLOptimizerValidation, ValidateMaxIterations)
 {
-    input_parser::rol_optimization tOptimizationParameters;
+    auto tOptimizationParameters = input_parser::rol_optimization{};
     EXPECT_FALSE(detail::validate_rol_max_iterations(tOptimizationParameters).has_value());
 
     tOptimizationParameters.max_iterations = 0;
@@ -30,7 +31,7 @@ TEST(ROLOptimizerValidation, ValidateMaxIterations)
 namespace
 {
 template <typename ValidationFunction>
-void test_optional_generic_tolerance(input_parser::rol_optimization& aOptimizationParameters,
+void test_optional_generic_tolerance(input_parser::new_rol_optimization& aOptimizationParameters,
                                      boost::optional<double>& aField,
                                      const ValidationFunction& aValidationFunction,
                                      const test_utilities::TestContext& aTestContext)
@@ -51,7 +52,7 @@ void test_optional_generic_tolerance(input_parser::rol_optimization& aOptimizati
 
 TEST(ROLOptimizerValidation, ValidateAverageGradientTolerance)
 {
-    input_parser::rol_optimization tOptimizationParameters;
+    auto tOptimizationParameters = input_parser::new_rol_optimization{};
     test_optional_generic_tolerance(
         tOptimizationParameters, tOptimizationParameters.gradient_tolerance,
         [](const auto aInput) { return detail::validate_gradient_tolerance(aInput); },
@@ -60,7 +61,7 @@ TEST(ROLOptimizerValidation, ValidateAverageGradientTolerance)
 
 TEST(ROLOptimizerValidation, ValidateAverageStepTolerance)
 {
-    input_parser::rol_optimization tOptimizationParameters;
+    auto tOptimizationParameters = input_parser::new_rol_optimization{};
     test_optional_generic_tolerance(
         tOptimizationParameters, tOptimizationParameters.step_tolerance,
         [](const auto aInput) { return detail::validate_step_tolerance(aInput); },
@@ -69,7 +70,7 @@ TEST(ROLOptimizerValidation, ValidateAverageStepTolerance)
 
 TEST(ROLOptimizerValidation, ValidateInitialSearchRadius)
 {
-    input_parser::rol_optimization tOptimizationParameters;
+    auto tOptimizationParameters = input_parser::new_rol_optimization{};
     EXPECT_FALSE(detail::validate_initial_search_radius(tOptimizationParameters).has_value())
         << "Optional parameter absent is valid";
 
@@ -87,7 +88,7 @@ TEST(ROLOptimizerValidation, ValidateInitialSearchRadius)
 
 TEST(ROLOptimizerValidation, ValidateUniqueOutputName)
 {
-    input_parser::rol_optimization tOptimizationParameters;
+    auto tOptimizationParameters = input_parser::new_rol_optimization{};
     EXPECT_FALSE(detail::validate_unique_output_name(tOptimizationParameters).has_value())
         << "Optional output file name absent is valid";
 
@@ -107,23 +108,20 @@ TEST(ROLOptimizerValidation, ValidateUniqueOutputName)
 
 TEST(ROLOptimizerValidation, ErrorMessagesValidOptimizationParameters)
 {
-    input_parser::rol_optimization tOptimizationParameters =
-        plato::test_utilities::create_valid_example_rol_optimization();
+    const auto tOptimizationParameters = create_valid_example_rol_optimization_input();
 
-    const auto tMessages = core::validate(tOptimizationParameters, std::vector<std::string>{});
+    const auto tMessages = input_validation::validate(tOptimizationParameters, std::vector<std::string>{});
     EXPECT_EQ(tMessages.size(), 0U);
 }
 
 TEST(ROLOptimizerValidation, ErrorMessagesInvalidOptimizationParameters)
 {
-    input_parser::rol_optimization tOptimizationParameters =
-        plato::test_utilities::create_valid_example_rol_optimization();
+    auto tOptimizationParameters = create_valid_example_rol_optimization_input();
     tOptimizationParameters.gradient_tolerance = -1;
     tOptimizationParameters.max_iterations = 0;
     tOptimizationParameters.step_tolerance = boost::none;
 
-    std::vector<std::string> tMessages;
-    tMessages = core::validate(tOptimizationParameters, std::move(tMessages));
+    const auto tMessages = input_validation::validate(tOptimizationParameters, {});
     EXPECT_EQ(tMessages.size(), 2U);
 }
 }  // namespace plato::process_manager::extension::unittest

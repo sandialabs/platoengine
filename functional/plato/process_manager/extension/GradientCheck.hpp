@@ -52,7 +52,7 @@ class GradientCheck
 };
 
 /// @brief Creates a valid example GradientCheck input struct, useful for testing.
-[[nodiscard]] auto create_valid_example_gradient_check() -> input_parser::new_gradient_check;
+[[nodiscard]] auto create_valid_example_gradient_check_input() -> input_parser::new_gradient_check;
 
 namespace detail
 {

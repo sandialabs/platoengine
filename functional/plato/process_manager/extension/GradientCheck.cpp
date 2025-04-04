@@ -72,7 +72,7 @@ void GradientCheck::run(const library::ProcessManagerData& aProblem) const
                               tPrintOutput, tOutFile);
 }
 
-auto create_valid_example_gradient_check() -> input_parser::new_gradient_check
+auto create_valid_example_gradient_check_input() -> input_parser::new_gradient_check
 {
     return input_parser::new_gradient_check{/*.output_file_name=*/input_parser::FileName{"gradient_check.txt"},
                                             /*.number_of_steps=*/12,
