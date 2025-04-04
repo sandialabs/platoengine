@@ -6,12 +6,23 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
+// clang-format off
+PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser),
+    new_brick_shape_geometry,
+    (plato::input_parser::FileName, mesh_name, "Required field specifying the exodus mesh name to write the brick mesh output to."))
+// clang-format on
+
 namespace plato::geometry::extension
 {
+/// @brief Generates a valid brick shape geometry input struct for testing.
+auto create_valid_brick_shape_geometry_input() -> input_parser::new_brick_shape_geometry;
+
 /// @brief Design parameters for BrickShapeGeometry
 struct BrickDesign
 {
