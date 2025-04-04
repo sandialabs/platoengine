@@ -14,7 +14,7 @@ namespace plato::criteria::library
 namespace
 {
 const auto kIsActive = [](const auto& aConstraint) { return core::is_active(aConstraint.rawInput()); };
-}
+}  // namespace
 
 const std::map<input_parser::ConstraintTypes, ConstraintType> kConstraintMap{
     {input_parser::ConstraintTypes::kEqualTo, ConstraintType::kEqualTo},
