@@ -2,6 +2,7 @@
 #define PLATO_INPUT_VALIDATION_VALIDATEDINPUT
 
 #include "plato/input_parser/ComponentType.hpp"
+#include "plato/input_parser/CrossLinkedInput.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInputTypeWrapper.hpp"
 #include "plato/utilities/Expected.hpp"
@@ -14,7 +15,7 @@ class ValidatedInput;
 /// make_validated_input.
 struct ValidateKey
 {
-    friend auto make_validated_input(const input_parser::NewParsedInput& input)
+    friend auto make_validated_input(const input_parser::CrossLinkedInput& input)
         -> utilities::Expected<ValidatedInput, std::string>;
 
    private:
@@ -44,7 +45,7 @@ class ValidatedInput
 ///
 /// This function must be used to construct ValidatedInput, it is the only function allowed to do so.
 /// It first applies all validation functions to @a aInput, and returns any validation errors that are encountered.
-[[nodiscard]] auto make_validated_input(const input_parser::NewParsedInput& aInput)
+[[nodiscard]] auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
     -> utilities::Expected<ValidatedInput, std::string>;
 
 template <input_parser::ComponentType kComponentType>

@@ -34,16 +34,16 @@ ValidatedInput::ValidatedInput(input_parser::NewParsedInput aInput, const Valida
 {
 }
 
-auto make_validated_input(const input_parser::NewParsedInput& aInput)
+auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
     -> utilities::Expected<ValidatedInput, std::string>
 {
     auto tErrorMessages = validate_components(
-        aInput, std::make_index_sequence<utilities::number_of_enumerates<input_parser::ComponentType>()>());
-    tErrorMessages = validate(aInput, std::move(tErrorMessages));
+        aInput.rawInput(), std::make_index_sequence<utilities::number_of_enumerates<input_parser::ComponentType>()>());
+    tErrorMessages = validate(aInput.rawInput(), std::move(tErrorMessages));
 
     if (tErrorMessages.empty())
     {
-        return ValidatedInput{aInput, ValidateKey{}};
+        return ValidatedInput{aInput.rawInput(), ValidateKey{}};
     }
     return utilities::unexpected(utilities::concatenate_container(tErrorMessages, "\n"));
 }

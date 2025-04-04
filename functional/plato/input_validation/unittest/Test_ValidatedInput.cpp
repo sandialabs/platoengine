@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/input_parser/ComponentBlockParser.hpp"
+#include "plato/input_parser/CrossLinkedInput.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
@@ -66,7 +67,7 @@ const auto kValidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.supe
 }};
 
 auto make_test_input(const std::optional<input_parser::marvel>& aMarvelInput,
-                     const std::optional<input_parser::dc>& aDCInput) -> input_parser::NewParsedInput
+                     const std::optional<input_parser::dc>& aDCInput) -> input_parser::CrossLinkedInput
 {
     auto tInputs = std::vector<input_parser::InputDataBlock>{};
     if (aMarvelInput)
@@ -79,24 +80,26 @@ auto make_test_input(const std::optional<input_parser::marvel>& aMarvelInput,
         tInputs.push_back(input_parser::InputDataBlock{input_parser::ComponentType::kConstraint, "dc",
                                                        input_parser::CrossReferencedInput{aDCInput.value()}});
     }
-    return input_parser::NewParsedInput{std::move(tInputs)};
+    const auto tCrossLinkedInput =
+        input_parser::make_cross_linked_input(input_parser::NewParsedInput{std::move(tInputs)});
+    EXPECT_TRUE(tCrossLinkedInput.hasValue());
+    return tCrossLinkedInput.value();
 }
 
 }  // namespace
 
 TEST(ValidatedInput, ConstructionValidInput)
 {
-    const auto tParsedInput = make_test_input(kValidMarvel, kValidDC);
-    const auto tValidatedInput = make_validated_input(tParsedInput);
+    const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
+    const auto tValidatedInput = make_validated_input(tCrossLinkedInput);
     ASSERT_TRUE(tValidatedInput.hasValue());
 }
 
 TEST(ValidatedInput, ConstructionOneEntryInvalidInput)
 {
     const auto kInvalidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/101};
-    const auto tParsedInput = make_test_input(kInvalidMarvel, std::nullopt);
-
-    const auto tValidatedInput = make_validated_input(tParsedInput);
+    const auto tCrossLinkedInput = make_test_input(kInvalidMarvel, std::nullopt);
+    const auto tValidatedInput = make_validated_input(tCrossLinkedInput);
 
     ASSERT_TRUE(tValidatedInput.hasError());
     EXPECT_EQ(tValidatedInput.error(), kMarvelValidationErrorMessage);
@@ -107,9 +110,8 @@ TEST(ValidatedInput, ConstructionTwoEntriesInvalidInput)
     const auto kInvalidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/101};
     const auto kInvalidDC =
         input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.superman=*/boost::none, /*.batman=*/100U};
-    const auto tParsedInput = make_test_input(kInvalidMarvel, kInvalidDC);
-
-    const auto tValidatedInput = make_validated_input(tParsedInput);
+    const auto tCrossLinkedInput = make_test_input(kInvalidMarvel, kInvalidDC);
+    const auto tValidatedInput = make_validated_input(tCrossLinkedInput);
 
     ASSERT_TRUE(tValidatedInput.hasError());
     EXPECT_EQ(tValidatedInput.error(),
@@ -118,8 +120,8 @@ TEST(ValidatedInput, ConstructionTwoEntriesInvalidInput)
 
 TEST(ValidatedInput, ConstructionInvalidParsedInput)
 {
-    const auto tParsedInput = make_test_input(std::nullopt, kValidDC);
-    const auto tValidatedInput = make_validated_input(tParsedInput);
+    const auto tCrossLinkedInput = make_test_input(std::nullopt, kValidDC);
+    const auto tValidatedInput = make_validated_input(tCrossLinkedInput);
 
     ASSERT_TRUE(tValidatedInput.hasError());
     EXPECT_EQ(tValidatedInput.error(), std::string{kParsedInputValidationErrorMessage});
@@ -127,8 +129,8 @@ TEST(ValidatedInput, ConstructionInvalidParsedInput)
 
 TEST(ValidatedInput, GetMember)
 {
-    const auto tParsedInput = make_test_input(kValidMarvel, kValidDC);
-    const auto tValidatedInputOrError = make_validated_input(tParsedInput);
+    const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
+    const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput);
 
     ASSERT_TRUE(tValidatedInputOrError.hasValue());
     const auto& tValidatedInput = tValidatedInputOrError.value();
