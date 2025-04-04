@@ -79,27 +79,6 @@ input_parser::level_set_topology create_valid_level_set_topology_geometry()
                                             /*.initial_field_name=*/boost::none};
 }
 
-input_parser::level_set_topology create_valid_level_set_topology_geometry_initialize_from_field()
-{
-    return input_parser::level_set_topology{/*.mesh_name = */
-                                            input_parser::FileName{"mesh.exo"},
-                                            /*.output_name = */ input_parser::FileName{"level-set-output.exo"},
-                                            /*.include_void_region = */ true,
-                                            /*.sphere_pattern_bbox_min_x = */ boost::none,
-                                            /*.sphere_pattern_bbox_min_y = */ boost::none,
-                                            /*.sphere_pattern_bbox_min_z = */ boost::none,
-                                            /*.sphere_pattern_bbox_max_x = */ boost::none,
-                                            /*.sphere_pattern_bbox_max_y = */ boost::none,
-                                            /*.sphere_pattern_bbox_max_z = */ boost::none,
-                                            /*.sphere_pattern_radius = */ boost::none,
-                                            /*.sphere_pattern_spacing = */ boost::none,
-                                            /*.level_set_lower_bound = */ -1.0,
-                                            /*.level_set_upper_bound = */ 1.0,
-                                            /*.filter=*/boost::none,
-                                            /*.fixed_blocks=*/boost::none,
-                                            /*.initial_field_name=*/input_parser::IdentifierString{"density"}};
-}
-
 input_parser::constraint create_valid_example_constraint()
 {
     return input_parser::constraint{/*.name=*/std::string{"bike-shed"},

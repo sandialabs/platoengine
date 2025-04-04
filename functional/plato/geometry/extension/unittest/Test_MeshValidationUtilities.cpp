@@ -2,6 +2,7 @@
 
 #include <filesystem>
 
+#include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
@@ -26,7 +27,7 @@ namespace
 [[nodiscard]] auto create_level_set_geometry_input(const std::filesystem::path& aPath, const std::string& aField)
     -> input_parser::level_set_topology
 {
-    auto tInput = test_utilities::create_valid_level_set_topology_geometry_initialize_from_field();
+    auto tInput = create_valid_level_set_topology_geometry_initialize_from_field_input();
     tInput.mesh_name = input_parser::FileName{aPath};
     tInput.initial_field_name = input_parser::IdentifierString{aField};
     return tInput;

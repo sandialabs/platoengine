@@ -14,7 +14,10 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
@@ -70,6 +73,11 @@ void initialize_krino()
            aInput.sphere_pattern_bbox_min_y.has_value() && aInput.sphere_pattern_bbox_min_z.has_value();
 }
 
+/// Static registration for parser
+[[maybe_unused]] static auto kLevelSetTopologyParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::new_level_set_topology,
+                                              input_parser::ComponentType::kGeometry>{};
+
 /// Static registration for library
 [[maybe_unused]] static auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::level_set_topology>(),
@@ -85,23 +93,26 @@ void initialize_krino()
 
 /// Static registration for input validation functions
 [[maybe_unused]] static auto kLevelSetTopologyValidationRegistration =
-    core::ValidationRegistration<input_parser::level_set_topology>{
-        [](const input_parser::level_set_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
-        [](const input_parser::level_set_topology& aInput) { return library::detail::validate_output_name(aInput); },
-        [](const input_parser::level_set_topology& aInput) { return detail::validate_lower_bound(aInput); },
-        [](const input_parser::level_set_topology& aInput) { return detail::validate_upper_bound(aInput); },
-        [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_radius(aInput); },
-        [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_spacing(aInput); },
-        [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_bbox(aInput); },
-        [](const input_parser::level_set_topology& aInput)
+    core::ValidationRegistration<input_parser::new_level_set_topology>{
+        [](const input_parser::new_level_set_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
+        [](const input_parser::new_level_set_topology& aInput)
+        { return library::detail::validate_output_name(aInput); },
+        [](const input_parser::new_level_set_topology& aInput) { return detail::validate_lower_bound(aInput); },
+        [](const input_parser::new_level_set_topology& aInput) { return detail::validate_upper_bound(aInput); },
+        [](const input_parser::new_level_set_topology& aInput)
+        { return detail::validate_sphere_pattern_radius(aInput); },
+        [](const input_parser::new_level_set_topology& aInput)
+        { return detail::validate_sphere_pattern_spacing(aInput); },
+        [](const input_parser::new_level_set_topology& aInput) { return detail::validate_sphere_pattern_bbox(aInput); },
+        [](const input_parser::new_level_set_topology& aInput)
         { return validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
-        [](const input_parser::level_set_topology& aInput)
+        [](const input_parser::new_level_set_topology& aInput)
         { return validate_fixed_block_names_exist(aInput, kMeshNameAccessor); },
-        [](const input_parser::level_set_topology& aInput)
+        [](const input_parser::new_level_set_topology& aInput)
         { return validate_at_least_one_design_block(aInput, kMeshNameAccessor); },
-        [](const input_parser::level_set_topology& aInput)
+        [](const input_parser::new_level_set_topology& aInput)
         { return detail::validate_exactly_one_initial_level_set_specifier(aInput); },
-        [](const input_parser::level_set_topology& aInput) { return validate_initial_field_source(aInput); },
+        [](const input_parser::new_level_set_topology& aInput) { return validate_initial_field_source(aInput); },
     };
 
 auto sphere_pattern(const input_parser::level_set_topology& aInput) -> tpik::SpherePatternData
@@ -250,38 +261,78 @@ auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::f
     return std::filesystem::path{std::string{tRestartFileNamePrefix} + aInput.output_name->mToken};
 }
 
+auto create_valid_level_set_topology_geometry_input() -> input_parser::new_level_set_topology
+{
+    return input_parser::new_level_set_topology{/*.background_mesh_name = */ input_parser::FileName{"bg.exo"},
+                                                /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
+                                                /*.include_void_region = */ false,
+                                                /*.sphere_pattern_bbox_min_x = */ 0.0,
+                                                /*.sphere_pattern_bbox_min_y = */ 0.0,
+                                                /*.sphere_pattern_bbox_min_z = */ 0.0,
+                                                /*.sphere_pattern_bbox_max_x = */ 1.0,
+                                                /*.sphere_pattern_bbox_max_y = */ 1.0,
+                                                /*.sphere_pattern_bbox_max_z = */ 1.0,
+                                                /*.sphere_pattern_radius = */ 0.25,
+                                                /*.sphere_pattern_spacing = */ 100.0,
+                                                /*.level_set_lower_bound = */ -1.0,
+                                                /*.level_set_upper_bound = */ 1.0,
+                                                /*.filter=*/boost::none,
+                                                /*.fixed_blocks=*/boost::none};
+}
+
+auto create_valid_level_set_topology_geometry_initialize_from_field() -> input_parser::level_set_topology
+{
+    return input_parser::new_level_set_topology{/*.mesh_name = */
+                                                input_parser::FileName{"mesh.exo"},
+                                                /*.output_name = */ input_parser::FileName{"level-set-output.exo"},
+                                                /*.include_void_region = */ true,
+                                                /*.sphere_pattern_bbox_min_x = */ boost::none,
+                                                /*.sphere_pattern_bbox_min_y = */ boost::none,
+                                                /*.sphere_pattern_bbox_min_z = */ boost::none,
+                                                /*.sphere_pattern_bbox_max_x = */ boost::none,
+                                                /*.sphere_pattern_bbox_max_y = */ boost::none,
+                                                /*.sphere_pattern_bbox_max_z = */ boost::none,
+                                                /*.sphere_pattern_radius = */ boost::none,
+                                                /*.sphere_pattern_spacing = */ boost::none,
+                                                /*.level_set_lower_bound = */ -1.0,
+                                                /*.level_set_upper_bound = */ 1.0,
+                                                /*.filter=*/boost::none,
+                                                /*.fixed_blocks=*/boost::none,
+                                                /*.initial_field_name=*/input_parser::IdentifierString{"density"}};
+}
+
 namespace detail
 {
 
-std::optional<std::string> validate_lower_bound(const input_parser::level_set_topology& aInput)
+auto validate_lower_bound(const input_parser::new_level_set_topology& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::level_set_topology>(),
-                                                           aInput.level_set_lower_bound, "level_set_lower_bound",
-                                                           utilities::upper_bounded(utilities::Exclusive{0.0}));
+    return core::error_message_for_parameter_out_of_bounds(
+        input_parser::block_name<input_parser::new_level_set_topology>(), aInput.level_set_lower_bound,
+        "level_set_lower_bound", utilities::upper_bounded(utilities::Exclusive{0.0}));
 }
 
-std::optional<std::string> validate_upper_bound(const input_parser::level_set_topology& aInput)
+auto validate_upper_bound(const input_parser::new_level_set_topology& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::level_set_topology>(),
-                                                           aInput.level_set_upper_bound, "level_set_upper_bound",
-                                                           utilities::lower_bounded(utilities::Exclusive{0.0}));
+    return core::error_message_for_parameter_out_of_bounds(
+        input_parser::block_name<input_parser::new_level_set_topology>(), aInput.level_set_upper_bound,
+        "level_set_upper_bound", utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
-std::optional<std::string> validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput)
+auto validate_sphere_pattern_spacing(const input_parser::new_level_set_topology& aInput) -> std::optional<std::string>
 {
     return core::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<input_parser::level_set_topology>(), aInput.sphere_pattern_spacing,
         "sphere_pattern_spacing", utilities::lower_bounded(utilities::Exclusive{1e-5}));
 }
 
-std::optional<std::string> validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput)
+auto validate_sphere_pattern_radius(const input_parser::new_level_set_topology& aInput) -> std::optional<std::string>
 {
     return core::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<input_parser::level_set_topology>(), aInput.sphere_pattern_radius,
         "sphere_pattern_radius", utilities::lower_bounded(utilities::Exclusive{1e-5}));
 }
 
-std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput)
+auto validate_sphere_pattern_bbox(const input_parser::new_level_set_topology& aInput) -> std::optional<std::string>
 {
     if (!all_sphere_pattern_bounding_box_specifiers(aInput) && !aInput.initial_field_name.has_value())
     {

@@ -5,6 +5,7 @@
 #include "plato/core/ValidationRegistration.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
@@ -12,9 +13,8 @@ namespace plato::geometry::extension::unittest
 {
 namespace
 {
-const auto kLevelSetTopology = plato::test_utilities::create_valid_level_set_topology_geometry();
-const auto kLevelSetWithoutSpherePattern =
-    plato::test_utilities::create_valid_level_set_topology_geometry_initialize_from_field();
+const auto kLevelSetTopology = create_valid_level_set_topology_geometry_input();
+const auto kLevelSetWithoutSpherePattern = create_valid_level_set_topology_geometry_initialize_from_field_input();
 
 class LevelSetTopologyValidationTwoBlockFixture
     : public third_party_integration::stk_io::test_utilities::ThreeDTwoBlockTetMesh
@@ -162,7 +162,7 @@ TEST_F(LevelSetTopologyValidationTwoBlockFixture, HasADesignBlock)
     auto tInput = kLevelSetTopology;
     tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_1", "block_2"}};
 
-    const auto tValidationMessages = core::validate(tInput, std::vector<std::string>{});
+    const auto tValidationMessages = input_validation::validate(tInput, std::vector<std::string>{});
     EXPECT_FALSE(tValidationMessages.empty());
 }
 
@@ -171,7 +171,7 @@ TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockExists)
     auto tInput = kLevelSetTopology;
     tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_42"}};
 
-    const auto tValidationMessages = core::validate(tInput, std::vector<std::string>{});
+    const auto tValidationMessages = input_validation::validate(tInput, std::vector<std::string>{});
     EXPECT_FALSE(tValidationMessages.empty());
 }
 
@@ -180,7 +180,7 @@ TEST_F(LevelSetTopologyValidationTwoBlockFixture, UniqueFixedBlocks)
     auto tInput = kLevelSetTopology;
     tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_2", "block_2"}};
 
-    const auto tValidationMessages = core::validate(tInput, std::vector<std::string>{});
+    const auto tValidationMessages = input_validation::validate(tInput, std::vector<std::string>{});
     EXPECT_FALSE(tValidationMessages.empty());
 }
 

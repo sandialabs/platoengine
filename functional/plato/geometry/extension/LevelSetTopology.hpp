@@ -7,10 +7,32 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/utilities/NamedType.hpp"
+
+// clang-format off
+PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), new_level_set_topology,
+    (plato::input_parser::FileName, background_mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
+    (plato::input_parser::FileName, output_mesh_name, "Required field specifying the exodus output file name to use when writing results.")
+    (bool, include_void_region, "Required field specifying whether to include the elements of the void region when writing the cut mesh.")
+    (double, sphere_pattern_bbox_min_x, "Required field specifying the starting x-coordinate of the sphere pattern's bounding box.")
+    (double, sphere_pattern_bbox_min_y, "Required field specifying the starting y-coordinate of the sphere pattern's bounding box.")
+    (double, sphere_pattern_bbox_min_z, "Required field specifying the starting z-coordinate of the sphere pattern's bounding box.")
+    (double, sphere_pattern_bbox_max_x, "Required field specifying the ending x-coordinate of the sphere pattern's bounding box.")
+    (double, sphere_pattern_bbox_max_y, "Required field specifying the ending y-coordinate of the sphere pattern's bounding box.")
+    (double, sphere_pattern_bbox_max_z, "Required field specifying the ending z-coordinate of the sphere pattern's bounding box.")
+    (double, sphere_pattern_radius, "Required field specifying the radius of the spheres to be inserted in the bounding box. This and the spacing will determine the total number of spheres added inside the bounding box.")
+    (double, sphere_pattern_spacing, "Required field specifying the gap between adjacent spheres in the unform pattern.")
+    (double, level_set_lower_bound, "Required field specifying the value of the control that sets the lower bound of he level set cut.")
+    (double, level_set_upper_bound, "Required field specifying the value of the control that sets the upper bound of he level set cut.")
+    (plato::input_parser::FilterCrossReference, filter, "Required name of the filter block to apply to the controls.")
+    (plato::input_parser::FixedBlockList, fixed_blocks, "Optional list of blocks in the mesh that will have level-set fields assigned to the level_set_upper_bound value.")
+)
+// clang-format on
 
 namespace plato::input_parser
 {
@@ -79,7 +101,15 @@ class LevelSetTopology
                                            const filter::library::FilterFunction& aFilterFunction)
     -> library::GeometryFunction;
 
-/// @brief The name of the output file containing the unfiltered level-set field, which may be used as a restart file.
+/// @brief Creates a valid example LevelSetTopology input struct, useful for testing.
+[[nodiscard]] auto create_valid_level_set_topology_geometry_input() -> input_parser::new_level_set_topology;
+
+/// @brief Creates a valid example LevelSetTopology input struct witha field initial guess, useful for testing.
+[[nodiscard]] auto create_valid_level_set_topology_geometry_initialize_from_field_input()
+    -> input_parser::level_set_topology;
+
+/// @brief The name of the output file containing the unfiltered level-set field, which may be used as a restart
+/// file.
 [[nodiscard]] auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path;
 
 /// @brief The label of the unfiltered level-set field used in the output mesh.
@@ -90,13 +120,14 @@ class LevelSetTopology
 
 namespace detail
 {
-
-[[nodiscard]] std::optional<std::string> validate_lower_bound(const input_parser::level_set_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_upper_bound(const input_parser::level_set_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput);
-[[nodiscard]] std::optional<std::string> validate_sphere_pattern_spacing(
-    const input_parser::level_set_topology& aInput);
+[[nodiscard]] auto validate_lower_bound(const input_parser::level_set_topology& aInput) -> std::optional<std::string>;
+[[nodiscard]] auto validate_upper_bound(const input_parser::level_set_topology& aInput) -> std::optional<std::string>;
+[[nodiscard]] auto validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput)
+    -> std::optional<std::string>;
+[[nodiscard]] auto validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput)
+    -> std::optional<std::string>;
+[[nodiscard]] auto validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput)
+    -> std::optional<std::string>;
 
 /// @brief Validates that exactly one specifier for the intitial level set is used, either the sphere pattern commands
 /// or `initial_field_name`

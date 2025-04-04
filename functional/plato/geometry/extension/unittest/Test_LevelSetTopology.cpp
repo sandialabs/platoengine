@@ -424,7 +424,7 @@ TEST(LevelSetTopology, DetailAffineTransformation)
 
 TEST_F(NodalDensityMesh, InitialGuessFromField)
 {
-    auto tInput = test_utilities::create_valid_level_set_topology_geometry_initialize_from_field();
+    auto tInput = create_valid_level_set_topology_geometry_initialize_from_field_input();
     tInput.mesh_name = input_parser::FileName{mMeshName};
     tInput.initial_field_name = input_parser::IdentifierString{mFieldName};
 

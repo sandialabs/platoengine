@@ -19,7 +19,6 @@ namespace plato::test_utilities
 [[nodiscard]] std::string create_valid_density_topology_geometry_string();
 
 [[nodiscard]] input_parser::level_set_topology create_valid_level_set_topology_geometry();
-[[nodiscard]] input_parser::level_set_topology create_valid_level_set_topology_geometry_initialize_from_field();
 
 [[nodiscard]] input_parser::objective create_valid_example_objective();
 [[nodiscard]] std::string create_valid_example_objective_string();
