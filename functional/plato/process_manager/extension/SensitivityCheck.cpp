@@ -12,7 +12,6 @@
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/third_party_integration/rol/OptimizerFactory.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension
@@ -30,14 +29,26 @@ namespace
             }};
 }
 
+[[nodiscard]] auto make_rol_sensitivity_check_process_manager(
+    const library::NewValidatedProcessManagerInput& aValidInput) -> library::StageAndProcessManager
+{
+    return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
+            { SensitivityCheck{aValidInput}.run(aProcessManangerData); }};
+}
+
 [[maybe_unused]] static auto kSensitivityCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::sensitivity_check>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_rol_sensitivity_check_process_manager(aValidInput); }};
 
+[[maybe_unused]] static auto kNewSensitivityCheckProcessManagerRegistration =
+    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::new_sensitivity_check>(),
+                                           [](const library::NewValidatedProcessManagerInput& aValidInput)
+                                           { return make_rol_sensitivity_check_process_manager(aValidInput); }};
+
 [[maybe_unused]] static auto kSensitivityCheckValidationRegistration =
-    core::ValidationRegistration<input_parser::sensitivity_check>{
-        [](const input_parser::sensitivity_check& aInput) { return detail::validate_output_file_name(aInput); }};
+    core::ValidationRegistration<input_parser::new_sensitivity_check>{
+        [](const input_parser::new_sensitivity_check& aInput) { return detail::validate_output_file_name(aInput); }};
 
 std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction> make_rol_sensitivity_objective(
     const library::ProcessManagerData& aProblem)
@@ -51,6 +62,13 @@ std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction> make_
 
 SensitivityCheck::SensitivityCheck(const ValidatedSensitivityCheckInput& aInput)
     : mOutputFileName(aInput.rawInput().output_file_name.value().mToken)
+{
+}
+
+SensitivityCheck::SensitivityCheck(const library::NewValidatedProcessManagerInput& aInput)
+    : mOutputFileName(input_validation::get_input_block<input_parser::new_sensitivity_check>(aInput)
+                          .output_file_name.value()
+                          .mToken)
 {
 }
 

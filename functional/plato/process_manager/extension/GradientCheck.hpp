@@ -8,6 +8,7 @@
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 
 namespace plato::input_parser
 {
@@ -40,6 +41,7 @@ class GradientCheck
     using ValidatedGradientCheckInput = core::ValidatedInputTypeWrapper<input_parser::gradient_check>;
 
     explicit GradientCheck(const ValidatedGradientCheckInput& aInput);
+    explicit GradientCheck(const library::NewValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 

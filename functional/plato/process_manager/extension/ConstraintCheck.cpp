@@ -32,6 +32,19 @@ namespace
             }};
 }
 
+[[nodiscard]] auto make_constraint_check_process_manager(const library::NewValidatedProcessManagerInput& aValidInput)
+    -> library::StageAndProcessManager
+{
+    return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManagerData)
+            { ConstraintCheck{aValidInput}.run(aProcessManagerData); }};
+}
+
+[[nodiscard]] auto constraint_check_input(const library::NewValidatedProcessManagerInput& aValidInput)
+    -> const input_parser::new_constraint_check&
+{
+    return input_validation::get_input_block<input_parser::new_constraint_check>(aValidInput);
+}
+
 [[maybe_unused]] static auto kConstraintCheckParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::new_constraint_check,
                                               input_parser::ComponentType::kProcessManager>{};
@@ -40,6 +53,11 @@ namespace
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::constraint_check>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_constraint_check_process_manager(aValidInput); }};
+
+[[maybe_unused]] static auto kNewConstraintCheckProcessManagerRegistration =
+    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::new_constraint_check>(),
+                                           [](const library::NewValidatedProcessManagerInput& aValidInput)
+                                           { return make_constraint_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kConstraintCheckValidationRegistration =
     input_validation::ValidationRegistration<input_parser::new_constraint_check>{
@@ -67,6 +85,18 @@ ConstraintCheck::ConstraintCheck(const ValidatedConstraintCheckInput& aInput)
       mInitialDirectionMagnitude{aInput.rawInput().initial_direction_magnitude.value()},
       mStepSizeReductionFactor{aInput.rawInput().step_size_reduction_factor.value()},
       mRandomDirectionSeed{aInput.rawInput().random_direction_seed.value()}
+{
+}
+
+ConstraintCheck::ConstraintCheck(const library::NewValidatedProcessManagerInput& aInput)
+    : mLinearityCheckOutputFileName{constraint_check_input(aInput).linearity_check_output_file_name.value().mToken},
+      mJacobianCheckOutputFileName{constraint_check_input(aInput).jacobian_check_output_file_name.value().mToken},
+      mJacobianAdjointConsistencyCheckOutputFileName{
+          constraint_check_input(aInput).jacobian_adjoint_consistency_output_file_name.value().mToken},
+      mNumberOfSteps{constraint_check_input(aInput).number_of_steps.value()},
+      mInitialDirectionMagnitude{constraint_check_input(aInput).initial_direction_magnitude.value()},
+      mStepSizeReductionFactor{constraint_check_input(aInput).step_size_reduction_factor.value()},
+      mRandomDirectionSeed{constraint_check_input(aInput).random_direction_seed.value()}
 {
 }
 

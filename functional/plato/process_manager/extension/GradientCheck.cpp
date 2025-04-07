@@ -29,6 +29,13 @@ namespace
             }};
 }
 
+[[nodiscard]] library::StageAndProcessManager make_gradient_check_process_manager(
+    const library::NewValidatedProcessManagerInput& aValidInput)
+{
+    return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
+            { GradientCheck{aValidInput}.run(aProcessManangerData); }};
+}
+
 [[maybe_unused]] static auto kGradientCheckParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::new_gradient_check,
                                               input_parser::ComponentType::kProcessManager>{};
@@ -38,13 +45,26 @@ namespace
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_gradient_check_process_manager(aValidInput); }};
 
+[[maybe_unused]] static auto kNewGradientCheckProcessManagerRegistration =
+    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::new_gradient_check>(),
+                                           [](const library::NewValidatedProcessManagerInput& aValidInput)
+                                           { return make_gradient_check_process_manager(aValidInput); }};
+
 [[maybe_unused]] static auto kGradientCheckValidationRegistration =
     input_validation::ValidationRegistration<input_parser::new_gradient_check>{
-        [](const input_parser::gradient_check& aInput) { return detail::validate_output_file_name(aInput); },
-        [](const input_parser::gradient_check& aInput) { return detail::validate_number_of_steps(aInput); },
-        [](const input_parser::gradient_check& aInput) { return detail::validate_initial_direction_magnitude(aInput); },
-        [](const input_parser::gradient_check& aInput) { return detail::validate_step_size_reduction_factor(aInput); },
-        [](const input_parser::gradient_check& aInput) { return detail::validate_random_direction_seed(aInput); }};
+        [](const input_parser::new_gradient_check& aInput) { return detail::validate_output_file_name(aInput); },
+        [](const input_parser::new_gradient_check& aInput) { return detail::validate_number_of_steps(aInput); },
+        [](const input_parser::new_gradient_check& aInput)
+        { return detail::validate_initial_direction_magnitude(aInput); },
+        [](const input_parser::new_gradient_check& aInput)
+        { return detail::validate_step_size_reduction_factor(aInput); },
+        [](const input_parser::new_gradient_check& aInput) { return detail::validate_random_direction_seed(aInput); }};
+
+[[nodiscard]] auto gradient_check_input(const library::NewValidatedProcessManagerInput& aValidInput)
+    -> const input_parser::new_gradient_check&
+{
+    return input_validation::get_input_block<input_parser::new_gradient_check>(aValidInput);
+}
 
 }  // namespace
 
@@ -54,6 +74,15 @@ GradientCheck::GradientCheck(const ValidatedGradientCheckInput& aInput)
       mInitialDirectionMagnitude(aInput.rawInput().initial_direction_magnitude.value()),
       mStepSizeReductionFactor(aInput.rawInput().step_size_reduction_factor.value()),
       mRandomDirectionSeed(aInput.rawInput().random_direction_seed.value())
+{
+}
+
+GradientCheck::GradientCheck(const library::NewValidatedProcessManagerInput& aInput)
+    : mOutputFileName(gradient_check_input(aInput).output_file_name.value().mToken),
+      mNumberOfSteps(gradient_check_input(aInput).number_of_steps.value()),
+      mInitialDirectionMagnitude(gradient_check_input(aInput).initial_direction_magnitude.value()),
+      mStepSizeReductionFactor(gradient_check_input(aInput).step_size_reduction_factor.value()),
+      mRandomDirectionSeed(gradient_check_input(aInput).random_direction_seed.value())
 {
 }
 

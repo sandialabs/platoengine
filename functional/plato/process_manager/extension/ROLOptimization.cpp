@@ -13,7 +13,6 @@
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/third_party_integration/rol/OptimizerFactory.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -34,6 +33,13 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
             }};
 }
 
+[[nodiscard]] auto make_rol_optimization_process_manager(const library::NewValidatedProcessManagerInput& aValidInput)
+    -> library::StageAndProcessManager
+{
+    return {library::RunStage::kExecute, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
+            { ROLOptimization{aValidInput}.run(aProcessManangerData); }};
+}
+
 [[maybe_unused]] static auto kROLOptimizerParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::new_rol_optimization,
                                               input_parser::ComponentType::kProcessManager>{};
@@ -42,6 +48,11 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::rol_optimization>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_rol_optimization_process_manager(aValidInput); }};
+
+[[maybe_unused]] static auto kNewROLOptimizerProcessManagerRegistration =
+    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::new_rol_optimization>(),
+                                           [](const library::NewValidatedProcessManagerInput& aValidInput)
+                                           { return make_rol_optimization_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kOptimizerValidationRegistration =
     input_validation::ValidationRegistration<input_parser::new_rol_optimization>{
@@ -55,7 +66,12 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
 }  // namespace
 
 ROLOptimization::ROLOptimization(const ValidatedOptimizationParameters& aInput)
-    : mROLOptions{third_party_integration::rol::make_optimization_parameters(aInput)}
+    : mROLOptions{make_optimization_parameters(aInput)}
+{
+}
+
+ROLOptimization::ROLOptimization(const library::NewValidatedProcessManagerInput& aInput)
+    : mROLOptions{make_optimization_parameters(aInput)}
 {
 }
 
@@ -70,7 +86,7 @@ void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData
         make_rol_objective(aProcessManagerData, std::move(tOutputManager)).release());
     auto [tROLProblem, tROLControls] = make_rol_problem(aProcessManagerData, tObjective);
     auto tROLInputs = mROLOptions.parameters();
-    auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
+    auto tROLSolver = make_rol_solver(tROLInputs, tROLProblem);
 
     auto tOutFile = std::ofstream{std::string{kROLOptimizerFileName}};
     tROLSolver.solve(tOutFile);

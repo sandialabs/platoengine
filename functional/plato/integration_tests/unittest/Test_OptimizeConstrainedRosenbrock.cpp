@@ -15,9 +15,9 @@
 #include "plato/geometry/library/OutputManager.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorRosenbrockFunction.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorSumConstraintUtilities.hpp"
+#include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/test_utilities/SumConstraint.hpp"
-#include "plato/third_party_integration/rol/OptimizerFactory.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/ROLVectorConstraintFunction.hpp"
@@ -216,7 +216,7 @@ void check_rol_optimization(std::unique_ptr<ROL::Problem<double>>&& aROLProblem,
     auto tROLInputs = create_parameter_list();
     auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(aROLProblem.release());
 
-    auto tROLSolver = third_party_integration::rol::make_rol_solver(tROLInputs, tROLProblem);
+    auto tROLSolver = process_manager::extension::make_rol_solver(tROLInputs, tROLProblem);
     ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
     tROLSolver.solve(*tOutStream);
     const auto tSolution = third_party_integration::rol::to_dynamic_vector(aControls);

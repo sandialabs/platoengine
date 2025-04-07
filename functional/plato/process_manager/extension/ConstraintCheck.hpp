@@ -8,6 +8,7 @@
 #include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 
 namespace plato::input_parser
 {
@@ -42,6 +43,7 @@ class ConstraintCheck
 
    public:
     explicit ConstraintCheck(const ValidatedConstraintCheckInput& aInput);
+    explicit ConstraintCheck(const library::NewValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 

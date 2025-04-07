@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
 
 #include "plato/input_parser/InputParser.hpp"
+#include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/rol/OptimizerFactory.hpp"
+
 namespace plato::process_manager::extension::unittest
 {
 namespace
@@ -19,11 +20,10 @@ auto rol_parameter_list(const library::ValidatedInput& aData)
     EXPECT_TRUE(std::holds_alternative<ValidatedOptimizationParameters>(tProcessManagerData.rawInput().front()));
     const auto& tOptimizationParameters =
         std::get<ValidatedOptimizationParameters>(tProcessManagerData.rawInput().front());
-    return {plato::third_party_integration::rol::make_optimization_parameters(tOptimizationParameters),
-            tOptimizationParameters.rawInput()};
+    return {make_optimization_parameters(tOptimizationParameters), tOptimizationParameters.rawInput()};
 }
-
 }  // namespace
+
 TEST(OptimizerFactory, ParlistGenerationFromInput)
 {
     const std::string tOutputFileName = "output.xml";

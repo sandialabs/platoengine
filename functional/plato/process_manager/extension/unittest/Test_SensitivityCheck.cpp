@@ -31,4 +31,9 @@ TEST(SensitivityCheck, CreateSensitivityCheckRun)
         TEST_CONTEXT("Sensitivity check file existence"));
 }
 
+TEST(SensitivityCheck, Registration)
+{
+    EXPECT_TRUE(library::is_new_process_manager_function_registered("new_sensitivity_check"));
+}
+
 }  // namespace plato::process_manager::extension::unittest

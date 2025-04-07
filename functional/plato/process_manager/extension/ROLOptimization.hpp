@@ -7,6 +7,7 @@
 #include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/third_party_integration/rol/OptimizationParameters.hpp"
 
 namespace plato::input_parser
@@ -43,6 +44,7 @@ class ROLOptimization
     using ValidatedOptimizationParameters = core::ValidatedInputTypeWrapper<input_parser::rol_optimization>;
 
     explicit ROLOptimization(const ValidatedOptimizationParameters& aInput);
+    explicit ROLOptimization(const library::NewValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 

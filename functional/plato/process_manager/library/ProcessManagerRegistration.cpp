@@ -10,4 +10,9 @@ namespace plato::process_manager::library
     return core::is_factory_function_registered<StageAndProcessManager, ValidatedProcessManagerInput>(aFunctionName);
 }
 
+auto is_new_process_manager_function_registered(const std::string_view aFunctionName) -> bool
+{
+    return core::is_factory_function_registered<StageAndProcessManager, NewValidatedProcessManagerInput>(aFunctionName);
+}
+
 }  // namespace plato::process_manager::library

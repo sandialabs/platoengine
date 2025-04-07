@@ -36,6 +36,13 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
             }};
 }
 
+[[nodiscard]] auto make_snopt_optimization_process_manager(const library::NewValidatedProcessManagerInput& aValidInput)
+    -> library::StageAndProcessManager
+{
+    return {library::RunStage::kExecute, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
+            { SNOPTOptimization{aValidInput}.run(aProcessManangerData); }};
+}
+
 [[maybe_unused]] static auto kSNOPTOptimizerParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::new_snopt_optimization,
                                               input_parser::ComponentType::kProcessManager>{};
@@ -45,6 +52,11 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_snopt_optimization_process_manager(aValidInput); }};
 
+[[maybe_unused]] static auto kNewSNOPTOptimizerProcessManagerRegistration =
+    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::new_snopt_optimization>(),
+                                           [](const library::NewValidatedProcessManagerInput& aValidInput)
+                                           { return make_snopt_optimization_process_manager(aValidInput); }};
+
 [[maybe_unused]] static auto kSNOPTOptimizerValidationRegistration =
     input_validation::ValidationRegistration<input_parser::new_snopt_optimization>{
         [](const input_parser::new_snopt_optimization& aInput)
@@ -53,6 +65,13 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
         { return extension::detail::validate_max_iterations(aInput); },
         [](const input_parser::new_snopt_optimization& aInput)
         { return extension::detail::validate_optional_input_file_name(aInput); }};
+
+[[nodiscard]] auto snopt_input(const library::NewValidatedProcessManagerInput& aValidInput)
+    -> const input_parser::new_snopt_optimization&
+{
+    return input_validation::get_input_block<input_parser::new_snopt_optimization>(aValidInput);
+}
+
 }  // namespace
 
 SNOPTOptimization::SNOPTOptimization(const ValidatedOptimizationParameters& aInput)
@@ -61,6 +80,15 @@ SNOPTOptimization::SNOPTOptimization(const ValidatedOptimizationParameters& aInp
                utilities::to_std_optional(aInput.rawInput().time_limit_in_minutes),
                utilities::to_std_optional(aInput.rawInput().max_iterations),
                utilities::to_std_optional(aInput.rawInput().output_design_history)}
+{
+}
+
+SNOPTOptimization::SNOPTOptimization(const library::NewValidatedProcessManagerInput& aInput)
+    : mOptions{utilities::to_unwrapped_optional(snopt_input(aInput).input_file_name,
+                                                [](const auto& aFileName) { return aFileName.mToken; }),
+               utilities::to_std_optional(snopt_input(aInput).time_limit_in_minutes),
+               utilities::to_std_optional(snopt_input(aInput).max_iterations),
+               utilities::to_std_optional(snopt_input(aInput).output_design_history)}
 {
 }
 

@@ -8,6 +8,7 @@
 #include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/third_party_integration/snopt/SNOPTInterface.hpp"
 #include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 
@@ -40,6 +41,7 @@ class SNOPTOptimization
     using ValidatedOptimizationParameters = core::ValidatedInputTypeWrapper<input_parser::snopt_optimization>;
 
     explicit SNOPTOptimization(const ValidatedOptimizationParameters& aInput);
+    explicit SNOPTOptimization(const library::NewValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 

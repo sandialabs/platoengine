@@ -32,4 +32,9 @@ TEST(ROLOptimization, Create)
     EXPECT_TRUE(std::filesystem::remove(kROLOptimizerFileName));
 }
 
+TEST(ROLOptimization, Registration)
+{
+    EXPECT_TRUE(library::is_new_process_manager_function_registered("new_rol_optimization"));
+}
+
 }  // namespace plato::process_manager::extension::unittest
