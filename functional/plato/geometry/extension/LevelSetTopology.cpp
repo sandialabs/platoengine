@@ -91,6 +91,18 @@ void initialize_krino()
                                      tLevelSet.initialGuess(tInput), tLevelSet.bounds(), make_topology_output(tInput)};
     }};
 
+/// Static registration for library
+[[maybe_unused]] static auto kNewLevelSetTopologyRegistration = plato::geometry::library::NewGeometryRegistration{
+    input_parser::block_name<input_parser::level_set_topology>(),
+    [](const library::NewValidatedGeometryInput& aGeometryInput)
+    {
+        initialize_krino();
+        const auto& tInput = aGeometryInput.rawInput().mInput.get<input_parser::level_set_topology>();
+        auto tLevelSet = LevelSetTopology{tInput};
+        return library::FactoryTypes{make_level_set_geometry(tInput), tLevelSet.initialGuess(), tLevelSet.bounds(),
+                                     make_topology_output(tInput)};
+    }};
+
 /// Static registration for input validation functions
 [[maybe_unused]] static auto kLevelSetTopologyValidationRegistration =
     core::ValidationRegistration<input_parser::new_level_set_topology>{

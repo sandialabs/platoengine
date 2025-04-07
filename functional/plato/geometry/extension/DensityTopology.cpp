@@ -78,6 +78,17 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
                                      DensityTopology::bounds(tInput), make_topology_output(tInput)};
     }};
 
+/// Static registration for library
+[[maybe_unused]] static auto kNewDensityTopologyRegistration = plato::geometry::library::NewGeometryRegistration{
+    input_parser::block_name<input_parser::density_topology>(),
+    [](const library::NewValidatedGeometryInput& aGeometryInput)
+    {
+        const auto& tInput = aGeometryInput.rawInput().mInput.get<input_parser::density_topology>();
+        return library::FactoryTypes{make_topology_geometry(tInput), DensityTopology::initialGuess(tInput),
+                                     DensityTopology::bounds(tInput), make_topology_output(tInput)};
+    }};
+
+/// Static registration for validation functions
 [[maybe_unused]] static auto kDensityTopologyInputValidationRegistration =
     input_validation::ValidationRegistration<input_parser::new_density_topology>{
         [](const input_parser::new_density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
