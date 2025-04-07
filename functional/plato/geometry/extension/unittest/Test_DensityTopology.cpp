@@ -204,6 +204,9 @@ TEST(DensityTopology, Bounds)
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
 }
 
-TEST(DensityTopology, Registration) { EXPECT_TRUE(library::is_new_geometry_function_registered("density_topology")); }
+TEST(DensityTopology, Registration)
+{
+    EXPECT_TRUE(library::is_new_geometry_function_registered("new_density_topology"));
+}
 
 }  // namespace plato::geometry::extension::unittest

@@ -286,6 +286,6 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
     test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
 }
 
-TEST(KernelFilter, Registration) { EXPECT_TRUE(library::is_new_filter_function_registered("kernel_filter")); }
+TEST(KernelFilter, Registration) { EXPECT_TRUE(library::is_new_filter_function_registered("new_kernel_filter")); }
 
 }  // namespace plato::filter::extension::unittest

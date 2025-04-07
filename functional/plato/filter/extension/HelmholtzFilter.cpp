@@ -42,9 +42,9 @@ library::FilterParameters to_filter_parameters(const input_parser::helmholtz_fil
     }};
 
 [[maybe_unused]] static auto kNewHelmholtzFilterRegistration = library::NewFilterRegistration{
-    input_parser::block_name<input_parser::helmholtz_filter>(), [](const library::NewValidatedFilterInput& aInput)
+    input_parser::block_name<input_parser::new_helmholtz_filter>(), [](const library::NewValidatedFilterInput& aInput)
     {
-        const auto& tInput = input_validation::get_input_block<input_parser::helmholtz_filter>(aInput);
+        const auto& tInput = input_validation::get_input_block<input_parser::new_helmholtz_filter>(aInput);
         return library::make_filter_function_from_cache([&tInput]() { return detail::create_filter_cache(tInput); });
     }};
 

@@ -80,10 +80,10 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
 
 /// Static registration for library
 [[maybe_unused]] static auto kNewDensityTopologyRegistration = plato::geometry::library::NewGeometryRegistration{
-    input_parser::block_name<input_parser::density_topology>(),
+    input_parser::block_name<input_parser::new_density_topology>(),
     [](const library::NewValidatedGeometryInput& aGeometryInput)
     {
-        const auto& tInput = input_validation::get_input_block<input_parser::density_topology>(aGeometryInput);
+        const auto& tInput = input_validation::get_input_block<input_parser::new_density_topology>(aGeometryInput);
         return library::FactoryTypes{make_topology_geometry(tInput), DensityTopology::initialGuess(tInput),
                                      DensityTopology::bounds(tInput), make_topology_output(tInput)};
     }};
