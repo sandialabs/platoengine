@@ -36,7 +36,7 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
 
 [[nodiscard]] auto mesh_path(const library::NewValidatedGeometryInput& aGeometryInput) -> std::filesystem::path
 {
-    const auto& tInput = aGeometryInput.rawInput().mInput.get<input_parser::brick_shape_geometry>();
+    const auto& tInput = input_validation::get_input_block<input_parser::brick_shape_geometry>(aGeometryInput);
     return tInput.mesh_name.value().mToken;
 }
 

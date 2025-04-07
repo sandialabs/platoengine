@@ -97,7 +97,7 @@ void initialize_krino()
     [](const library::NewValidatedGeometryInput& aGeometryInput)
     {
         initialize_krino();
-        const auto& tInput = aGeometryInput.rawInput().mInput.get<input_parser::level_set_topology>();
+        const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
         auto tLevelSet = LevelSetTopology{tInput};
         return library::FactoryTypes{make_level_set_geometry(tInput), tLevelSet.initialGuess(), tLevelSet.bounds(),
                                      make_topology_output(tInput)};

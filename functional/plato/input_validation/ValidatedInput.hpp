@@ -52,6 +52,13 @@ class ValidatedInput
 template <input_parser::ComponentType kComponentType>
 using ValidatedInputDataBlock = ValidatedInputTypeWrapper<input_parser::InputDataBlock, kComponentType>;
 
+/// @brief Convenience function to unwrap the original input block struct.
+/// @tparam InputBlock The original input type.
+/// @throw May throw std::bad_any_cast if InputBlock is not the type held by the wrapper.
+template <typename InputBlock, input_parser::ComponentType kComponentType>
+[[nodiscard]] auto get_input_block(const ValidatedInputDataBlock<kComponentType>& aValidatedInputDataBlock) -> const
+    auto&;
+
 template <input_parser::ComponentType kComponentType>
 auto ValidatedInput::get() const
 {
@@ -70,6 +77,13 @@ auto ValidatedInput::get() const
         assert(mRawInput.get<kComponentType>().size() == 1U);
         return ValidatedTypeWrapperForComponent{mRawInput.get<kComponentType>().front()};
     }
+}
+
+template <typename InputBlock, input_parser::ComponentType kComponentType>
+[[nodiscard]] auto get_input_block(const ValidatedInputDataBlock<kComponentType>& aValidatedInputDataBlock) -> const
+    auto&
+{
+    return aValidatedInputDataBlock.rawInput().mInput.template get<InputBlock>();
 }
 
 }  // namespace plato::input_validation

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <boost/optional/optional_io.hpp>
+
 #include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_parser/CrossLinkedInput.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
@@ -172,6 +174,20 @@ TEST(ValidatedInput, GetNamedMember)
     const auto& tConstraintInput = tAllConstraintsInput.front().rawInput();
     EXPECT_EQ(tConstraintInput.mComponentType, input_parser::ComponentType::kConstraint);
     EXPECT_EQ(tConstraintInput.mBlockName, "dc");
+}
+
+TEST(ValidatedInput, GetInputBlock)
+{
+    const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
+    const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput);
+
+    ASSERT_TRUE(tValidatedInputOrError.hasValue());
+    const auto& tValidatedInput = tValidatedInputOrError.value();
+    const auto tValidatedMarvelInput = tValidatedInput.get<input_parser::ComponentType::kGeometry>();
+    const auto tMarvelInput = get_input_block<input_parser::marvel>(tValidatedMarvelInput);
+
+    EXPECT_EQ(tMarvelInput.cyclops, 42.0);
+    EXPECT_EQ(tMarvelInput.wolverine, 100);
 }
 
 }  // namespace plato::input_validation::unittest
