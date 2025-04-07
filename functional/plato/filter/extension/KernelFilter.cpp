@@ -47,6 +47,13 @@ boost::mpi::communicator subdivide_world_comm_into_groups(const unsigned int aGr
         return library::make_filter_function_from_cache([&tInput]() { return detail::create_filter_cache(tInput); });
     }};
 
+[[maybe_unused]] static auto kNewKernelFilterRegistration = library::NewFilterRegistration{
+    input_parser::block_name<input_parser::kernel_filter>(), [](const library::NewValidatedFilterInput& aInput)
+    {
+        const auto& tInput = aInput.rawInput().mInput.get<input_parser::kernel_filter>();
+        return library::make_filter_function_from_cache([&tInput]() { return detail::create_filter_cache(tInput); });
+    }};
+
 [[maybe_unused]] static auto kKernelFilterValidationRegistration =
     input_validation::ValidationRegistration<input_parser::new_kernel_filter>{
         [](const input_parser::new_kernel_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },

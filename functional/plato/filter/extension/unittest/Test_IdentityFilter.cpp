@@ -86,4 +86,7 @@ TEST(IdentityFilter, Function)
         kV * tFilterFunction.evaluate<core::evaluation::kFirstDerivative>(kMeshArgument);
     EXPECT_EQ(tResult.stdVector(), kV.stdVector());
 }
+
+TEST(IdentityFilter, Registration) { EXPECT_TRUE(library::is_new_filter_function_registered("identity_filter")); }
+
 }  // namespace plato::filter::extension::unittest

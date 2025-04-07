@@ -20,6 +20,10 @@ namespace
     library::FilterRegistration{input_parser::block_name<input_parser::identity_filter>(),
                                 [](const library::ValidatedFilterInput&) { return make_identity_filter_function(); }};
 
+[[maybe_unused]] static auto kNewIdentityFilterRegistration = library::NewFilterRegistration{
+    input_parser::block_name<input_parser::identity_filter>(),
+    [](const library::NewValidatedFilterInput&) { return make_identity_filter_function(); }};
+
 [[maybe_unused]] static auto kIdentityFilterValidationRegistration =
     input_validation::ValidationRegistration<input_parser::new_identity_filter>{
         [](const input_parser::new_identity_filter& aInput) { return validate_identity_filter(aInput); }};

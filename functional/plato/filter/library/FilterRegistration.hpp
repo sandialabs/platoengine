@@ -10,6 +10,7 @@
 #include "plato/core/VariantInputBuilder.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/utilities/StateCache.hpp"
 
 namespace plato::analysis
@@ -42,6 +43,9 @@ using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFi
 using FilterCache =
     plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const analysis::AnalysisDomainMesh&>;
 
+using NewValidatedFilterInput = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kFilter>;
+using NewFilterRegistration = core::FactoryRegistration<FilterFunction, NewValidatedFilterInput>;
+
 /// @brief Loads a filter from a shared library.
 /// @param aInput The input parameters defining the filter's properties.
 /// @param aSharedLibraryPath The path at which the shared library is located.
@@ -49,6 +53,7 @@ using FilterCache =
     -> std::unique_ptr<FilterInterface>;
 
 [[nodiscard]] bool is_filter_function_registered(std::string_view aFunctionName);
+[[nodiscard]] auto is_new_filter_function_registered(std::string_view aFunctionName) -> bool;
 
 /// @brief Returns @a FilterFunction that uses a @a FilterCache to reconstruct the filter object if the mesh has
 /// changed.

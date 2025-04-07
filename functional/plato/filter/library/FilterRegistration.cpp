@@ -21,4 +21,9 @@ bool is_filter_function_registered(const std::string_view aFunctionName)
     return core::is_factory_function_registered<FilterFunction, ValidatedFilterInput>(aFunctionName);
 }
 
+auto is_new_filter_function_registered(const std::string_view aFunctionName) -> bool
+{
+    return core::is_factory_function_registered<FilterFunction, NewValidatedFilterInput>(aFunctionName);
+}
+
 }  // namespace plato::filter::library
