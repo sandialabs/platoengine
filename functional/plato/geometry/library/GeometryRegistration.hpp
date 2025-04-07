@@ -8,6 +8,7 @@
 #include "plato/core/Function.hpp"
 #include "plato/core/VariantInputBuilder.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
@@ -51,11 +52,16 @@ using ValidatedGeometryInput = core::ValidatedInputTypeWrapper<
     core::ValidatedInputVariant<input_parser::ParsedInput, input_parser::IsGeometryInput>>;
 using GeometryRegistration = core::FactoryRegistration<FactoryTypes, ValidatedGeometryInput>;
 
+using NewValidatedGeometryInput = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>;
+using NewGeometryRegistration = core::FactoryRegistration<FactoryTypes, NewValidatedGeometryInput>;
+
 /// @return A GeometryInput variant, which is the first non-empty geometry input block found in @a aInput.
 /// @throw Exception If no geometry block was defined in @a aInput.
 [[nodiscard]] library::GeometryInput first_geometry_input(const input_parser::ParsedInput& aInput);
 
 [[nodiscard]] bool is_geometry_function_registered(const std::string_view aFunctionName);
+
+[[nodiscard]] auto is_new_geometry_function_registered(std::string_view aFunctionName) -> bool;
 
 /// @brief Helper to get the cross-referenced validated filter input block.
 template <typename FilterInputType, typename Geometry>

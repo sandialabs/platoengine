@@ -48,10 +48,14 @@ class ValidatedInput
 [[nodiscard]] auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
     -> utilities::Expected<ValidatedInput, std::string>;
 
+/// @brief Validated input block for a given component type
+template <input_parser::ComponentType kComponentType>
+using ValidatedInputDataBlock = ValidatedInputTypeWrapper<input_parser::InputDataBlock, kComponentType>;
+
 template <input_parser::ComponentType kComponentType>
 auto ValidatedInput::get() const
 {
-    using ValidatedTypeWrapperForComponent = ValidatedInputTypeWrapper<input_parser::InputDataBlock, kComponentType>;
+    using ValidatedTypeWrapperForComponent = ValidatedInputDataBlock<kComponentType>;
     if constexpr (input_parser::kIsNamedComponent<kComponentType>)
     {
         auto tValidatedInputs = std::vector<ValidatedTypeWrapperForComponent>{};

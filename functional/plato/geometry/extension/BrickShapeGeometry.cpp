@@ -34,6 +34,12 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
     return tInput.mesh_name.value().mToken;
 }
 
+[[nodiscard]] auto mesh_path(const library::NewValidatedGeometryInput& aGeometryInput) -> std::filesystem::path
+{
+    const auto& tInput = aGeometryInput.rawInput().mInput.get<input_parser::brick_shape_geometry>();
+    return tInput.mesh_name.value().mToken;
+}
+
 [[nodiscard]] library::FactoryTypes::Output make_output()
 {
     return [](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
@@ -47,6 +53,14 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
 [[maybe_unused]] static auto kBrickShapeGeometryRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::brick_shape_geometry>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
+    {
+        return library::FactoryTypes{make_brick_shape_geometry(BrickShapeGeometry{mesh_path(aGeometryInput)}),
+                                     BrickShapeGeometry::initialGuess(), BrickShapeGeometry::bounds(), make_output()};
+    }};
+
+[[maybe_unused]] static auto kNewBrickShapeGeometryRegistration = plato::geometry::library::NewGeometryRegistration{
+    input_parser::block_name<input_parser::brick_shape_geometry>(),
+    [](const library::NewValidatedGeometryInput& aGeometryInput)
     {
         return library::FactoryTypes{make_brick_shape_geometry(BrickShapeGeometry{mesh_path(aGeometryInput)}),
                                      BrickShapeGeometry::initialGuess(), BrickShapeGeometry::bounds(), make_output()};
