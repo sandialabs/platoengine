@@ -9,6 +9,7 @@
 #include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/linear_algebra/DynamicVectorSerialization.hpp"
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
@@ -20,14 +21,23 @@ namespace detail
 {
 namespace
 {
+using ValidatedObjective = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kObjective>;
 using AggregateComm = utilities::NamedType<boost::mpi::communicator, struct AggregateCommTag>;
 using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct ObjectiveCommTag>;
 
 const auto kIsActive = [](const auto& aObjective) { return core::is_active(aObjective.rawInput()); };
+const auto kNewIsActive = [](const auto& aObjective)
+{ return core::is_active(input_validation::get_input_block<input_parser::new_objective>(aObjective)); };
 
 bool is_parallel_objective(const input_parser::objective& aObjective)
 {
     return aObjective.number_of_processors.value_or(1u) > 1u;
+}
+
+bool is_parallel_objective(const ValidatedObjective& aObjective)
+{
+    return input_validation::get_input_block<input_parser::new_objective>(aObjective)
+               .number_of_processors.value_or(1U) > 1U;
 }
 
 auto make_parallel_criterion_function(const core::ValidatedInputTypeWrapper<input_parser::objective>& aObjective,
@@ -41,6 +51,21 @@ auto make_parallel_criterion_function(const core::ValidatedInputTypeWrapper<inpu
     else
     {
         return make_criterion_function<CriterionFunction>(aObjective);
+    }
+}
+
+auto make_parallel_criterion_function(const ValidatedObjective& aObjective, const ObjectiveComm& aObjectiveComm)
+{
+    if (is_parallel_objective(aObjective))
+    {
+        return core::adapt_parallel_function(
+            make_new_criterion_function<CriterionFunction, input_parser::new_objective>(aObjective,
+                                                                                        aObjectiveComm.mValue),
+            aObjectiveComm.mValue);
+    }
+    else
+    {
+        return make_new_criterion_function<CriterionFunction, input_parser::new_objective>(aObjective);
     }
 }
 
@@ -62,8 +87,35 @@ ParallelAggregateObjective make_parallel_aggregate_impl(
     return ParallelAggregateObjective{std::move(tFunctionsAndWeights), aAggregatorComm.mValue};
 }
 
+auto make_parallel_aggregate_impl(const std::vector<ValidatedObjective>& tObjectives,
+                                  const AggregateComm& aAggregatorComm,
+                                  const ObjectiveComm& aObjectiveComm) -> ParallelAggregateObjective
+{
+    using ObjectiveAndWeight = std::pair<ObjectiveFunction, double>;
+    std::vector<ObjectiveAndWeight> tFunctionsAndWeights;
+    utilities::transform_if(
+        tObjectives, std::back_inserter(tFunctionsAndWeights),
+        [&aObjectiveComm](const auto& aObjective)
+        {
+            const double tWeight =
+                input_validation::get_input_block<input_parser::new_objective>(aObjective).aggregation_weight.value();
+            return std::make_pair(make_parallel_criterion_function(aObjective, aObjectiveComm), tWeight);
+        },
+        kNewIsActive);
+    return ParallelAggregateObjective{std::move(tFunctionsAndWeights), aAggregatorComm.mValue};
+}
+
 auto group_split_vector(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
     -> std::vector<core::ValidatedInputTypeWrapper<input_parser::objective>>
+{
+    const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
+    const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});
+    const auto tNumberOfGroups = boost::numeric_cast<int>(tNumberOfProcessors.size());
+    const auto tSplitSize = std::min(aComm.size(), tNumberOfGroups);
+    return utilities::group_split_vector(aInput.rawInput(), tGroupColor, utilities::SizeNamedType{tSplitSize});
+}
+
+auto group_split_vector(const NewValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
     const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});
@@ -78,9 +130,26 @@ boost::mpi::communicator mpi_group(const ValidatedObjectives& aInput, const boos
     const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});
     return aComm.split(tGroupColor.mValue);
 }
+
+[[nodiscard]] auto mpi_group(const NewValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
+    -> boost::mpi::communicator
+{
+    const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
+    const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});
+    return aComm.split(tGroupColor.mValue);
+}
+
 }  // namespace
 
 ParallelAggregateObjective make_parallel_aggregate(const ValidatedObjectives& aInput)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tObjectives = group_split_vector(aInput, tCommunicator);
+    return make_parallel_aggregate_impl(tObjectives, AggregateComm{tCommunicator},
+                                        ObjectiveComm{mpi_group(aInput, tCommunicator)});
+}
+
+auto make_parallel_aggregate(const NewValidatedObjectives& aInput) -> ParallelAggregateObjective
 {
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tObjectives = group_split_vector(aInput, tCommunicator);
@@ -95,6 +164,11 @@ ObjectiveFunction make_aggregate_objective_function(const ValidatedObjectives& a
     return make_aggregate_function_with_first_derivative(detail::make_parallel_aggregate(aInput));
 }
 
+auto make_aggregate_objective_function(const NewValidatedObjectives& aInput) -> ObjectiveFunction
+{
+    return make_aggregate_function_with_first_derivative(detail::make_parallel_aggregate(aInput));
+}
+
 std::vector<unsigned int> number_of_processors_per_objective(const ValidatedObjectives& aInput)
 {
     const auto tGetNumProcs = [](const auto& aObjective)
@@ -102,6 +176,20 @@ std::vector<unsigned int> number_of_processors_per_objective(const ValidatedObje
     auto tNumberOfProcessors = std::vector<unsigned int>{};
     utilities::transform_if(aInput.rawInput(), std::back_inserter(tNumberOfProcessors), tGetNumProcs,
                             detail::kIsActive);
+    return tNumberOfProcessors;
+}
+
+auto number_of_processors_per_objective(const NewValidatedObjectives& aInput) -> std::vector<unsigned int>
+{
+    const auto tGetNumProcs = [](const auto& aObjective)
+    {
+        return input_validation::get_input_block<input_parser::new_objective>(aObjective)
+            .number_of_processors.value_or(1U);
+    };
+
+    auto tNumberOfProcessors = std::vector<unsigned int>{};
+    utilities::transform_if(aInput.rawInput(), std::back_inserter(tNumberOfProcessors), tGetNumProcs,
+                            detail::kNewIsActive);
     return tNumberOfProcessors;
 }
 

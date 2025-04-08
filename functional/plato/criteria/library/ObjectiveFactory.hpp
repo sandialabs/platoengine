@@ -5,6 +5,7 @@
 #include "plato/core/ParallelAggregate.hpp"
 #include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::analysis
@@ -16,6 +17,8 @@ namespace plato::criteria::library
 {
 using ValidatedObjectives =
     core::ValidatedInputTypeWrapper<std::vector<core::ValidatedInputTypeWrapper<input_parser::objective>>>;
+
+using NewValidatedObjectives = input_validation::ValidatedComponentType<input_parser::ComponentType::kObjective>;
 
 using ObjectiveEvaluationInfo = core::FunctionInfo<double, core::evaluation::kFunction>;
 using ObjectiveGradientInfo =
@@ -35,15 +38,19 @@ using ParallelAggregateObjective =
 /// then plato must be run with 6 ranks. If all objectives are serial, then any number of ranks may be used and
 /// objectives will be run in parallel as appropriate.
 [[nodiscard]] ObjectiveFunction make_aggregate_objective_function(const ValidatedObjectives& aInput);
+[[nodiscard]] auto make_aggregate_objective_function(const NewValidatedObjectives& aInput) -> ObjectiveFunction;
 
 /// @brief Returns the number of processors required for each objective.
 /// @post The size of the returned vector is equal to the number of active objectives in @a aInput.
 /// @post The order of the entries in the returned vector matches the order of the entries in @a aInput.
 [[nodiscard]] std::vector<unsigned int> number_of_processors_per_objective(const ValidatedObjectives& aInput);
+[[nodiscard]] auto number_of_processors_per_objective(const NewValidatedObjectives& aInput)
+    -> std::vector<unsigned int>;
 
 namespace detail
 {
 [[nodiscard]] ParallelAggregateObjective make_parallel_aggregate(const ValidatedObjectives& aInput);
+[[nodiscard]] auto make_parallel_aggregate(const NewValidatedObjectives& aInput) -> ParallelAggregateObjective;
 }  // namespace detail
 
 }  // namespace plato::criteria::library

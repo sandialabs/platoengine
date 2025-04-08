@@ -5,6 +5,7 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/ValidationUtilities.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/utilities/TransformIf.hpp"
@@ -13,7 +14,12 @@ namespace plato::criteria::library
 {
 namespace
 {
+using ValidatedConstraint = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kConstraint>;
+
 const auto kIsActive = [](const auto& aConstraint) { return core::is_active(aConstraint.rawInput()); };
+const auto kNewIsActive = [](const auto& aConstraint)
+{ return core::is_active(input_validation::get_input_block<input_parser::new_constraint>(aConstraint)); };
+
 }  // namespace
 
 const std::map<input_parser::ConstraintTypes, ConstraintType> kConstraintMap{
@@ -30,6 +36,17 @@ auto make_constraints(const ValidatedConstraints& aInput)
         [](const core::ValidatedInputTypeWrapper<input_parser::constraint>& aValidatedInput)
         { return detail::make_constraint(aValidatedInput); },
         kIsActive);
+
+    return tConstraints;
+}
+
+auto make_constraints(const NewValidatedConstraints& aInput)
+    -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>
+{
+    auto tConstraints = std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>{};
+    utilities::transform_if(
+        aInput.rawInput(), std::back_inserter(tConstraints),
+        [](const auto& aValidatedInput) { return detail::make_constraint(aValidatedInput); }, kNewIsActive);
 
     return tConstraints;
 }
@@ -57,6 +74,27 @@ auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constra
                                   ? make_criterion_function<VectorCriterionFunction>(aConstraintInput)
                                   : to_vector_function<const analysis::AnalysisDomainMesh&>(
                                         make_criterion_function<CriterionFunction>(aConstraintInput));
+
+    return VectorConstraint<const analysis::AnalysisDomainMesh&>{tConstraintName, std::move(tCriterionFunction), tValue,
+                                                                 tIsLinear, tConstraintType};
+}
+
+auto make_constraint(const ValidatedConstraint& aConstraintInput)
+    -> VectorConstraint<const analysis::AnalysisDomainMesh&>
+{
+    const auto& tRawInput = input_validation::get_input_block<input_parser::new_constraint>(aConstraintInput);
+    const auto tValue = tRawInput.constraint_value.value();
+    const auto tIsLinear = tRawInput.is_linear.value_or(false);
+    const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
+    const auto tConstraintType = kConstraintMap.at(tRawInput.constraint_type.value());
+    const auto tConstraintName = tRawInput.name.value_or("Unnamed Constraint");
+
+    constexpr auto tVectorTraits = CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector};
+    auto tCriterionFunction =
+        criterion_function_has_traits(tRegistrationName, tVectorTraits)
+            ? make_new_criterion_function<VectorCriterionFunction, input_parser::new_constraint>(aConstraintInput)
+            : to_vector_function<const analysis::AnalysisDomainMesh&>(
+                  make_new_criterion_function<CriterionFunction, input_parser::new_constraint>(aConstraintInput));
 
     return VectorConstraint<const analysis::AnalysisDomainMesh&>{tConstraintName, std::move(tCriterionFunction), tValue,
                                                                  tIsLinear, tConstraintType};
