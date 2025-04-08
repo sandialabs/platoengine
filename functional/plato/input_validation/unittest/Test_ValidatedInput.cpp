@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <boost/optional/optional_io.hpp>
+#include <fstream>
 
 #include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_parser/CrossLinkedInput.hpp"
@@ -8,6 +9,8 @@
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/test_utilities/FileCreatingTestFixture.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 // Define input structs
 // clang-format off
@@ -24,6 +27,14 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
 
 namespace plato::input_validation::unittest
 {
+const auto kInputFilePath = std::filesystem::path{"test-input.i"};
+
+class ValidatedInputFileFixture : public test_utilities::FileCreatingTestFixture
+{
+   public:
+    ValidatedInputFileFixture() : test_utilities::FileCreatingTestFixture{kInputFilePath} {}
+};
+
 namespace
 {
 constexpr auto kMarvelValidationErrorMessage = std::string_view{"Marvel error!"};
@@ -190,12 +201,31 @@ TEST(ValidatedInput, GetInputBlock)
     EXPECT_EQ(tMarvelInput.wolverine, 100);
 }
 
-TEST(ValidatedInput, ParseAndValidateString)
+TEST_F(ValidatedInputFileFixture, ParseAndValidate)
 {
     [[maybe_unused]] const auto tMarvelParserRegistration =
         input_parser::ComponentParserRegistration<input_parser::marvel, input_parser::ComponentType::kGeometry>{};
     [[maybe_unused]] const auto tDCParserRegistration =
         input_parser::ComponentParserRegistration<input_parser::dc, input_parser::ComponentType::kConstraint>{};
+
+    const auto tCheckParsedInput =
+        [](const auto& aValidatedInputOrError, const test_utilities::TestContext& aTestContext)
+    {
+        ASSERT_TRUE(aValidatedInputOrError.hasValue()) << aValidatedInputOrError.error();
+        const auto& tValidatedInput = aValidatedInputOrError.value();
+        // Marvel
+        const auto& tValidatedGeometryInput = tValidatedInput.template get<input_parser::ComponentType::kGeometry>();
+        const auto& tRawGeometry = get_input_block<input_parser::marvel>(tValidatedGeometryInput);
+        EXPECT_EQ(tRawGeometry.cyclops, 13.0) << aTestContext;
+        EXPECT_EQ(tRawGeometry.wolverine, 100) << aTestContext;
+        // DC
+        const auto& tValidatedDCInput = tValidatedInput.template get<input_parser::ComponentType::kConstraint>();
+        ASSERT_EQ(tValidatedDCInput.rawInput().size(), 1U) << aTestContext;
+        const auto& tRawConstraint = get_input_block<input_parser::dc>(tValidatedDCInput.rawInput().front());
+        EXPECT_EQ(tRawConstraint.name, std::string{"epic"}) << aTestContext;
+        EXPECT_EQ(tRawConstraint.superman, true) << aTestContext;
+        EXPECT_EQ(tRawConstraint.batman, 11U) << aTestContext;
+    };
 
     constexpr auto tInputText =
         "begin marvel\n"
@@ -207,22 +237,18 @@ TEST(ValidatedInput, ParseAndValidateString)
         "  batman 11\n"
         "end";
 
-    const auto tValidatedInputOrError = parse_and_validate_string(tInputText);
-
-    ASSERT_TRUE(tValidatedInputOrError.hasValue()) << tValidatedInputOrError.error();
-    const auto& tValidatedInput = tValidatedInputOrError.value();
-    // Marvel
-    const auto& tValidatedGeometryInput = tValidatedInput.get<input_parser::ComponentType::kGeometry>();
-    const auto& tRawGeometry = get_input_block<input_parser::marvel>(tValidatedGeometryInput);
-    EXPECT_EQ(tRawGeometry.cyclops, 13.0);
-    EXPECT_EQ(tRawGeometry.wolverine, 100);
-    // DC
-    const auto& tValidatedDCInput = tValidatedInput.get<input_parser::ComponentType::kConstraint>();
-    ASSERT_EQ(tValidatedDCInput.rawInput().size(), 1U);
-    const auto& tRawConstraint = get_input_block<input_parser::dc>(tValidatedDCInput.rawInput().front());
-    EXPECT_EQ(tRawConstraint.name, std::string{"epic"});
-    EXPECT_EQ(tRawConstraint.superman, true);
-    EXPECT_EQ(tRawConstraint.batman, 11U);
+    {
+        const auto tValidatedInputOrError = parse_and_validate_string(tInputText);
+        tCheckParsedInput(tValidatedInputOrError, TEST_CONTEXT("Parsed from string"));
+    }
+    {
+        {
+            auto tFileStream = std::ofstream{filePath()};
+            tFileStream << tInputText;
+        }
+        const auto tValidatedInputOrError = parse_and_validate_file(filePath());
+        tCheckParsedInput(tValidatedInputOrError, TEST_CONTEXT("Parsed from file"));
+    }
 }
 
 }  // namespace plato::input_validation::unittest

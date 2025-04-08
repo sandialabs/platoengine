@@ -1,5 +1,7 @@
 #include "plato/input_validation/ValidatedInput.hpp"
 
+#include <fstream>
+
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
@@ -61,10 +63,12 @@ auto parse_and_validate_string(const std::string_view aInput) -> utilities::Expe
     return make_validated_input(tCrossLinkedInput.value());
 }
 
-auto parse_and_validate_file(const std::filesystem::path& /*aFileName*/)
-    -> utilities::Expected<ValidatedInput, std::string>
+auto parse_and_validate_file(const std::filesystem::path& aFileName) -> utilities::Expected<ValidatedInput, std::string>
 {
-    return utilities::unexpected("Error!");
+    auto tInputStream = std::ifstream{aFileName};
+    const auto tInputFileString =
+        std::string((std::istreambuf_iterator<char>(tInputStream)), std::istreambuf_iterator<char>());
+    return parse_and_validate_string(tInputFileString);
 }
 
 auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
