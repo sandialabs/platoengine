@@ -1,6 +1,8 @@
 #ifndef PLATO_INPUT_VALIDATION_VALIDATEDINPUT
 #define PLATO_INPUT_VALIDATION_VALIDATEDINPUT
 
+#include <filesystem>
+
 #include "plato/input_parser/ComponentType.hpp"
 #include "plato/input_parser/CrossLinkedInput.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
@@ -34,6 +36,21 @@ class ValidatedInput
 /// This function must be used to construct ValidatedInput, it is the only function allowed to do so.
 /// It first applies all validation functions to @a aInput, and returns any validation errors that are encountered.
 [[nodiscard]] auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
+    -> utilities::Expected<ValidatedInput, std::string>;
+
+/// @brief Parse input contained in the string @a aInput.
+///
+/// This is mainly for testing, prefer to use parse_and_validate_file.
+/// Any errors in parsing or validation result in the unexpected type, which is a string containing all error messages
+/// that may be printed to the screen.
+[[nodiscard]] auto parse_and_validate_string(std::string_view aInput)
+    -> utilities::Expected<ValidatedInput, std::string>;
+
+/// @brief Parse input from file @a aInputFile and then validate the input.
+///
+/// Any errors in parsing or validation result in the unexpected type, which is a string containing all error messages
+/// that may be printed to the screen.
+[[nodiscard]] auto parse_and_validate_file(const std::filesystem::path& aFileName)
     -> utilities::Expected<ValidatedInput, std::string>;
 
 /// @brief Validated input block for a given component type

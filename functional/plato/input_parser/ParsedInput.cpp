@@ -1,5 +1,6 @@
 #include "plato/input_parser/ParsedInput.hpp"
 
+#include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/GenericBlockRule.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
@@ -91,6 +92,11 @@ template <typename IteratorArray, std::size_t... kIndices>
 NewParsedInput::NewParsedInput(std::vector<InputDataBlock> aRawInput)
     : mInputBlocks{partition_inputs_by_component(std::move(aRawInput))}
 {
+}
+
+auto parse_to_new_input(const std::string& aInput) -> utilities::Expected<NewParsedInput, std::string>
+{
+    return parse_to_new_input(aInput, registered_component_parsers());
 }
 
 auto parse_to_new_input(const std::string& aInput,

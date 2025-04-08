@@ -37,6 +37,10 @@ class NewParsedInput
     std::array<std::vector<InputDataBlock>, kNumberOfComponents> mInputBlocks;
 };
 
+/// @brief Parse the string @a aInput to a NewParsedInput object using the registered parsers.
+/// @todo Fix name
+[[nodiscard]] auto parse_to_new_input(const std::string& aInput) -> utilities::Expected<NewParsedInput, std::string>;
+
 /// @brief Parse the string @a aInput to a NewParsedInput object.
 /// @todo Fix name
 [[nodiscard]] auto parse_to_new_input(const std::string& aInput,

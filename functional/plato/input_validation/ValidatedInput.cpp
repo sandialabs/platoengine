@@ -46,6 +46,27 @@ ValidatedInput::ValidatedInput(input_parser::NewParsedInput aInput, const Valida
 {
 }
 
+auto parse_and_validate_string(const std::string_view aInput) -> utilities::Expected<ValidatedInput, std::string>
+{
+    auto tParsedInput = input_parser::parse_to_new_input(std::string{aInput});
+    if (tParsedInput.hasError())
+    {
+        return utilities::unexpected(tParsedInput.error());
+    }
+    auto tCrossLinkedInput = make_cross_linked_input(std::move(tParsedInput).value());
+    if (tCrossLinkedInput.hasError())
+    {
+        return utilities::unexpected(tCrossLinkedInput.error());
+    }
+    return make_validated_input(tCrossLinkedInput.value());
+}
+
+auto parse_and_validate_file(const std::filesystem::path& /*aFileName*/)
+    -> utilities::Expected<ValidatedInput, std::string>
+{
+    return utilities::unexpected("Error!");
+}
+
 auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
     -> utilities::Expected<ValidatedInput, std::string>
 {

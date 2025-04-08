@@ -190,4 +190,39 @@ TEST(ValidatedInput, GetInputBlock)
     EXPECT_EQ(tMarvelInput.wolverine, 100);
 }
 
+TEST(ValidatedInput, ParseAndValidateString)
+{
+    [[maybe_unused]] const auto tMarvelParserRegistration =
+        input_parser::ComponentParserRegistration<input_parser::marvel, input_parser::ComponentType::kGeometry>{};
+    [[maybe_unused]] const auto tDCParserRegistration =
+        input_parser::ComponentParserRegistration<input_parser::dc, input_parser::ComponentType::kConstraint>{};
+
+    constexpr auto tInputText =
+        "begin marvel\n"
+        "  cyclops 13.0\n"
+        "  wolverine 100\n"
+        "end\n"
+        "begin dc epic\n"
+        "  superman true\n"
+        "  batman 11\n"
+        "end";
+
+    const auto tValidatedInputOrError = parse_and_validate_string(tInputText);
+
+    ASSERT_TRUE(tValidatedInputOrError.hasValue()) << tValidatedInputOrError.error();
+    const auto& tValidatedInput = tValidatedInputOrError.value();
+    // Marvel
+    const auto& tValidatedGeometryInput = tValidatedInput.get<input_parser::ComponentType::kGeometry>();
+    const auto& tRawGeometry = get_input_block<input_parser::marvel>(tValidatedGeometryInput);
+    EXPECT_EQ(tRawGeometry.cyclops, 13.0);
+    EXPECT_EQ(tRawGeometry.wolverine, 100);
+    // DC
+    const auto& tValidatedDCInput = tValidatedInput.get<input_parser::ComponentType::kConstraint>();
+    ASSERT_EQ(tValidatedDCInput.rawInput().size(), 1U);
+    const auto& tRawConstraint = get_input_block<input_parser::dc>(tValidatedDCInput.rawInput().front());
+    EXPECT_EQ(tRawConstraint.name, std::string{"epic"});
+    EXPECT_EQ(tRawConstraint.superman, true);
+    EXPECT_EQ(tRawConstraint.batman, 11U);
+}
+
 }  // namespace plato::input_validation::unittest
