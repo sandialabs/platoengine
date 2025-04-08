@@ -8,6 +8,7 @@
 /*    a license from the United States Government.                    */
 /*--------------------------------------------------------------------*/
 
+#include "Kokkos_Core.hpp"
 #if defined( STK_HAS_MPI )
 #include <mpi.h>
 #endif
@@ -19,12 +20,24 @@ using namespace iso;
 
 int main(int argc,  char **argv)
 {
-  STKExtract ex;
-  if(ex.create_mesh_apis_stand_alone(argc, argv, "", "", "LSD", "", 1e-5,
-                     0.0, 0, 1, 0, 0))
+#if defined( STK_HAS_MPI )
+  MPI_Init(&argc, &argv);
+#endif
+  Kokkos::initialize(argc, argv);
+
   {
-      ex.run_stand_alone();
+    STKExtract ex(MPI_COMM_WORLD);
+    if(ex.create_mesh_apis_stand_alone(argc, argv, "", "", "LSD", "", 1e-5,
+                      0.0, 0, 1, 0, 0))
+    {
+        ex.run_stand_alone();
+    }
   }
+
+  Kokkos::finalize();
+#if defined( STK_HAS_MPI )
+  MPI_Finalize();
+#endif
 
   return 0;
 }

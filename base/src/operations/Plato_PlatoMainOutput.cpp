@@ -135,7 +135,7 @@ PlatoMainOutput::PlatoMainOutput(PlatoApp* aPlatoApp, Plato::InputData& aNode) :
     }
 
 #ifdef ENABLE_ISO
-    iso::STKExtract ex;
+    iso::STKExtract ex(mPlatoApp->getComm());
     auto tAvailableFormats = ex.availableFormats();
     for(auto tNode : tSurfaceExtractionNode.getByName<Plato::InputData>("Output"))
     {
@@ -191,7 +191,7 @@ void PlatoMainOutput::extractIsoSurface([[maybe_unused]] int aIteration)
         output_filename += tIterationNumberString;
     }
     output_filename += ".exo";
-    iso::STKExtract ex;
+    iso::STKExtract ex(mPlatoApp->getComm());
     std::string input_filename = "platomain.exo";
     int num_procs = 0;
     MPI_Comm_size(mPlatoApp->getComm(), &num_procs);
@@ -209,7 +209,7 @@ void PlatoMainOutput::extractIsoSurface([[maybe_unused]] int aIteration)
             tOutputFields += ",";
         }
     }
-    if(ex.create_mesh_apis_read_from_file((stk::ParallelMachine*)(&(mPlatoApp->getComm())), // MPI_Comm
+    if(ex.create_mesh_apis_read_from_file(
                     input_filename,// input filename
                     output_filename,// output filename
                     "Topology",// iso field name
