@@ -30,6 +30,18 @@ template <std::size_t... kIndices>
 }
 }  // namespace
 
+/// @brief Key for implementing the pass-key idiom for ValidatedInput. The key is only constructible by the function
+/// make_validated_input.
+struct ValidateKey
+{
+    friend auto make_validated_input(const input_parser::CrossLinkedInput& input)
+        -> utilities::Expected<ValidatedInput, std::string>;
+
+   private:
+    ValidateKey() {}
+    ValidateKey(const ValidateKey&) {}
+};
+
 ValidatedInput::ValidatedInput(input_parser::NewParsedInput aInput, const ValidateKey&) : mRawInput{std::move(aInput)}
 {
 }

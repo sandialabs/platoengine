@@ -9,19 +9,7 @@
 
 namespace plato::input_validation
 {
-class ValidatedInput;
-
-/// @brief Key for implementing the pass-key idiom for ValidatedInput. The key is only constructible by the function
-/// make_validated_input.
-struct ValidateKey
-{
-    friend auto make_validated_input(const input_parser::CrossLinkedInput& input)
-        -> utilities::Expected<ValidatedInput, std::string>;
-
-   private:
-    ValidateKey() {}
-    ValidateKey(const ValidateKey&) {}
-};
+struct ValidateKey;
 
 /// @brief Input data that has passed validation.
 ///
@@ -51,6 +39,13 @@ class ValidatedInput
 /// @brief Validated input block for a given component type
 template <input_parser::ComponentType kComponentType>
 using ValidatedInputDataBlock = ValidatedInputTypeWrapper<input_parser::InputDataBlock, kComponentType>;
+
+/// @brief Provides the validated input type of the component.
+///
+/// For components (such as geometry) that are unique in an input deck, this is just ValidatedInputDataBlock.
+/// For non-unique components (such as objectives) this is a ValidatedInputTypeWrapper-wrapped vector.
+template <input_parser::ComponentType kComponentType>
+using ValidatedComponentType = decltype(std::declval<ValidatedInput>().get<kComponentType>());
 
 /// @brief Convenience function to unwrap the original input block struct.
 /// @tparam InputBlock The original input type.
