@@ -89,5 +89,58 @@ auto parent_node_ids_from_parent_nodes(const stk::mesh::BulkData& aBulkData,
     return std::vector<BackgroundMeshNodeId>{aBulkData.identifier(aParentNodes.front()),
                                              aBulkData.identifier(aParentNodes.back())};
 }
+namespace detail
+{
 
+auto merge_sensitivity_maps(AppendMap aAppendMap, const OtherMap& aOtherMap) -> SensitivityMap
+{
+    auto tAppendMap = std::move(aAppendMap).mValue;
+    for (const auto& [tCutMeshId, tLevelSetJacobianColumn] : aOtherMap.mValue)
+    {
+        if (const auto tIterator = tAppendMap.find(tCutMeshId); tIterator != tAppendMap.end())
+        {
+            auto& tAppendLevelSetJacobian = tIterator->second;
+            AppendLevelSetJacobianColumn tAppend{tAppendLevelSetJacobian};
+            tAppendMap[tCutMeshId] =
+                merge_level_set_jacobian_columns(tAppend, OtherLevelSetJacobianColumn{tLevelSetJacobianColumn});
+        }
+        else
+        {
+            tAppendMap[tCutMeshId] = tLevelSetJacobianColumn;
+        }
+    }
+    return tAppendMap;
+}
+
+auto merge_level_set_jacobian_columns(AppendLevelSetJacobianColumn aAppendLevelSetJacobianColumn,
+                                      const OtherLevelSetJacobianColumn& aOtherLevelSetJacobianColumn)
+    -> LevelSetJacobianColumn
+{
+    if (aAppendLevelSetJacobianColumn.mValue.mBackgroundMeshNodeIDs.size() == 2)
+    {
+        return aAppendLevelSetJacobianColumn.mValue;
+    }
+
+    if (aOtherLevelSetJacobianColumn.mValue.mBackgroundMeshNodeIDs.size() == 2)
+    {
+        return aOtherLevelSetJacobianColumn.mValue;
+    }
+
+    auto tLevelSetJacobianColumn = std::move(aAppendLevelSetJacobianColumn).mValue;
+    if (tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.size() == 0 ||
+        tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.front() !=
+            aOtherLevelSetJacobianColumn.mValue.mBackgroundMeshNodeIDs.front())
+    {
+        tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.push_back(
+            aOtherLevelSetJacobianColumn.mValue.mBackgroundMeshNodeIDs.front());
+        tLevelSetJacobianColumn.mNodalSensitivities.push_back(
+            aOtherLevelSetJacobianColumn.mValue.mNodalSensitivities.front());
+        tLevelSetJacobianColumn.mDesignDomainLocalIndex.push_back(
+            aOtherLevelSetJacobianColumn.mValue.mDesignDomainLocalIndex.front());
+    }
+
+    return tLevelSetJacobianColumn;
+}
+
+}  // namespace detail
 }  // namespace plato::third_party_integration::krino

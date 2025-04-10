@@ -48,7 +48,11 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
         const auto& tScalarFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValueProxy);
         const auto tStkEntity =
             aKrinoMesh.bulk_data().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
-        tpik::level_set_value(aLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
+
+        if (tStkEntity != stk::mesh::Entity::InvalidEntity)
+        {
+            tpik::level_set_value(aLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
+        }
     }
 }
 
@@ -80,12 +84,7 @@ KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInt
 
 void KrinoWrapper::writeCutMesh(const std::filesystem::path& aFileName, const tpik::VoidPhase aVoidPhase) const
 {
-    const auto tCommunicator = boost::mpi::communicator{};
-    if (tCommunicator.rank() == 0)
-    {
-        tpik::write_mesh(mKrinoMesh->bulk_data(), aFileName, aVoidPhase);
-    }
-    tCommunicator.barrier();
+    tpik::write_mesh(mKrinoMesh->bulk_data(), aFileName, aVoidPhase);
 }
 
 auto KrinoWrapper::sensitivities() const -> const tpik::SensitivityMap& { return mSensitivityMap; }

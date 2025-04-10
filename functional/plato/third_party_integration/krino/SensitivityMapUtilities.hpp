@@ -79,6 +79,21 @@ using LevelSetFieldReference = utilities::NamedType<::krino::FieldRef, struct Le
                                                     const unsigned int aSpatialDimension)
     -> std::vector<common::Vector3>;
 
+namespace detail
+{
+using AppendMap = utilities::NamedType<SensitivityMap, struct AppendMapTag>;
+using OtherMap = utilities::NamedType<SensitivityMap, struct OtherMapTag>;
+[[nodiscard]] auto merge_sensitivity_maps(AppendMap aAppendMap, const OtherMap& aOtherMap) -> SensitivityMap;
+
+using AppendLevelSetJacobianColumn =
+    utilities::NamedType<LevelSetJacobianColumn, struct AppendLevelSetJacobianColumnTag>;
+using OtherLevelSetJacobianColumn = utilities::NamedType<LevelSetJacobianColumn, struct OtherLevelSetJacobianColumnTag>;
+[[nodiscard]] auto merge_level_set_jacobian_columns(AppendLevelSetJacobianColumn aAppendLevelSetJacobianColumn,
+                                                    const OtherLevelSetJacobianColumn& aOtherLevelSetJacobianColumn)
+    -> LevelSetJacobianColumn;
+
+}  // namespace detail
+
 }  // namespace plato::third_party_integration::krino
 
 #endif

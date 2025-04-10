@@ -81,4 +81,74 @@ TEST_F(SensitivityMapUtilitiesFixture, CoordinatesLevelSets)
     }
 }
 
+namespace
+{
+const auto kLevelSetJacobianColumnOneEntry = LevelSetJacobianColumn{{1U}, {{1, 2, 3}}, {3U}};
+const auto kLevelSetJacobianColumnTwoEntry = LevelSetJacobianColumn{{1U, 3U}, {{1, 2, 3}, {4, 5, 6}}, {0U, 1U}};
+
+void check_equality_level_set_jacobian_column(const LevelSetJacobianColumn& aResult,
+                                              const LevelSetJacobianColumn& aGold)
+{
+    ASSERT_EQ(aResult.mBackgroundMeshNodeIDs.size(), aGold.mBackgroundMeshNodeIDs.size());
+    EXPECT_EQ(aResult.mBackgroundMeshNodeIDs, aGold.mBackgroundMeshNodeIDs);
+    for (const auto& [tResult, tGold] : utilities::Zip(aResult.mNodalSensitivities, aGold.mNodalSensitivities))
+    {
+        common::test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Nodal sensitivities"));
+    }
+
+    EXPECT_EQ(aResult.mDesignDomainLocalIndex, aGold.mDesignDomainLocalIndex);
+}
+
+}  // namespace
+
+TEST(SensitivityMapUtilitiesDetail, MergeLevelSetJacobianColumns)
+{
+    {
+        auto tEmptyLevelSetJacobianColumn = LevelSetJacobianColumn{};
+        auto tResult = detail::merge_level_set_jacobian_columns(
+            detail::AppendLevelSetJacobianColumn{tEmptyLevelSetJacobianColumn},
+            detail::OtherLevelSetJacobianColumn{kLevelSetJacobianColumnOneEntry});
+
+        check_equality_level_set_jacobian_column(tResult, kLevelSetJacobianColumnOneEntry);
+    }
+    {
+        auto tEmptyLevelSetJacobianColumn = LevelSetJacobianColumn{};
+        auto tResult = detail::merge_level_set_jacobian_columns(
+            detail::AppendLevelSetJacobianColumn{tEmptyLevelSetJacobianColumn},
+            detail::OtherLevelSetJacobianColumn{kLevelSetJacobianColumnTwoEntry});
+
+        check_equality_level_set_jacobian_column(tResult, kLevelSetJacobianColumnTwoEntry);
+    }
+    {
+        auto tLevelSetJacobianColumn = kLevelSetJacobianColumnOneEntry;
+        auto tResult = detail::merge_level_set_jacobian_columns(
+            detail::AppendLevelSetJacobianColumn{tLevelSetJacobianColumn},
+            detail::OtherLevelSetJacobianColumn{kLevelSetJacobianColumnTwoEntry});
+
+        check_equality_level_set_jacobian_column(tResult, kLevelSetJacobianColumnTwoEntry);
+    }
+}
+
+TEST(SensitivityMapUtilitiesDetail, MergeSensitivityMaps)
+{
+    auto tSensitivityMapOne =
+        SensitivityMap{{4U, kLevelSetJacobianColumnOneEntry}, {5U, kLevelSetJacobianColumnOneEntry}};
+
+    const auto tLevelSetJacobianColumn = LevelSetJacobianColumn{{4U, 5U}, {{10, 11, 12}, {13, 14, 15}}, {7U, 8U}};
+    const auto tSensitivityMapTwo =
+        SensitivityMap{{4U, kLevelSetJacobianColumnTwoEntry}, {3U, tLevelSetJacobianColumn}};
+
+    const auto tResult =
+        detail::merge_sensitivity_maps(detail::AppendMap{tSensitivityMapOne}, detail::OtherMap{tSensitivityMapTwo});
+
+    ASSERT_TRUE(tResult.find(3U) != tResult.end());
+    check_equality_level_set_jacobian_column(tResult.at(3U), tLevelSetJacobianColumn);
+
+    ASSERT_TRUE(tResult.find(4U) != tResult.end());
+    check_equality_level_set_jacobian_column(tResult.at(4U), kLevelSetJacobianColumnTwoEntry);
+
+    ASSERT_TRUE(tResult.find(5U) != tResult.end());
+    check_equality_level_set_jacobian_column(tResult.at(5U), kLevelSetJacobianColumnOneEntry);
+}
+
 }  // namespace plato::third_party_integration::krino::unittest
