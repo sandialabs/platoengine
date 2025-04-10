@@ -57,7 +57,7 @@ void initialize_krino()
     if (!tIsInitialized)
     {
         tIsInitialized = true;
-        tpik::initialize_environment_for_krino(kKrinoLogFileName, MPI_COMM_SELF);
+        tpik::initialize_environment_for_krino(kKrinoLogFileName, MPI_COMM_WORLD);
     }
 }
 

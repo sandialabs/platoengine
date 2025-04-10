@@ -55,7 +55,7 @@ void initialize_krino()
     static bool tFirstTime{true};
     if (tFirstTime)
     {
-        initialize_environment_for_krino(get_log_file_name(), MPI_COMM_SELF);
+        initialize_environment_for_krino(get_log_file_name(), MPI_COMM_WORLD);
         tFirstTime = false;
     }
 }
