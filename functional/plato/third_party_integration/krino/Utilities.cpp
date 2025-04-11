@@ -147,9 +147,9 @@ namespace
 
     boost::mpi::gather(tCommunicator, aVector, tGatheredData, tRootRank);
 
+    std::vector<stk::mesh::EntityId> tConcatenatedData;
     if (tCommunicator.rank() == tRootRank)
     {
-        std::vector<stk::mesh::EntityId> tConcatenatedData;
         for (const auto& tSubData : tGatheredData)
         {
             tConcatenatedData.insert(tConcatenatedData.end(), tSubData.begin(), tSubData.end());
@@ -157,14 +157,9 @@ namespace
         std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
         auto tLastEntry = std::unique(tConcatenatedData.begin(), tConcatenatedData.end());
         tConcatenatedData.erase(tLastEntry, tConcatenatedData.end());
-        boost::mpi::broadcast(tCommunicator, tConcatenatedData, tRootRank);
-        aVector = tConcatenatedData;
     }
-    else
-    {
-        boost::mpi::broadcast(tCommunicator, aVector, tRootRank);
-    }
-    return aVector;
+    boost::mpi::broadcast(tCommunicator, tConcatenatedData, tRootRank);
+    return tConcatenatedData;
 }
 }  // namespace
 

@@ -1,9 +1,13 @@
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 
+#include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <boost/serialization/unordered_map.hpp>
+#include <boost/serialization/vector.hpp>
 #include <cstddef>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
+#include <stk_util/environment/EnvData.hpp>  //get stk mpi env
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -56,13 +60,35 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
     }
 }
 
+[[nodiscard]] auto reduce_sensitivity_maps(const tpik::SensitivityMap& aSensitivityMap) -> tpik::SensitivityMap
+{
+    const auto tCommunicator = boost::mpi::communicator(
+        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
+    constexpr int tRootRank = 0;
+    std::vector<tpik::SensitivityMap> tGatheredSensitivityMaps;
+
+    boost::mpi::gather(tCommunicator, aSensitivityMap, tGatheredSensitivityMaps, tRootRank);
+    tpik::SensitivityMap tRootSensitivityMap;
+    if (tCommunicator.rank() == tRootRank)
+    {
+        for (const auto& tSubSensitivityMap : tGatheredSensitivityMaps)
+        {
+            tRootSensitivityMap = tpik::detail::merge_sensitivity_maps(tpik::detail::AppendMap{tRootSensitivityMap},
+                                                                       tpik::detail::OtherMap{tSubSensitivityMap});
+        }
+    }
+    boost::mpi::broadcast(tCommunicator, tRootSensitivityMap, tRootRank);
+    return tRootSensitivityMap;
+}
+
 [[nodiscard]] auto cut_mesh_compute_sensitivities(
     stk::mesh::BulkData& aBulkData,
     const std::vector<::krino::LS_Field>& aLevelSetFields,
     const std::vector<tpik::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes) -> tpik::SensitivityMap
 {
     tpik::cut_mesh(aBulkData, aLevelSetFields);
-    return detail::compute_sensitivities(aBulkData, aLevelSetFields, aDesignDomainBackgroundNodes);
+    return reduce_sensitivity_maps(
+        detail::compute_sensitivities(aBulkData, aLevelSetFields, aDesignDomainBackgroundNodes));
 }
 
 }  // namespace
@@ -275,6 +301,7 @@ void add_if_found(tpik::LevelSetJacobianColumn& aLevelSetJacobianColumn,
     }
     return std::nullopt;
 }
+
 }  // namespace
 
 auto compute_sensitivities(const stk::mesh::BulkData& aBulkData,
