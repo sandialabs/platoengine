@@ -60,6 +60,30 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
     }
 }
 
+[[nodiscard]] auto reduce_level_set_values_map(const std::unordered_map<stk::mesh::EntityId, double>& aLevelSetMap)
+    -> std::unordered_map<stk::mesh::EntityId, double>
+{
+    const auto tCommunicator = boost::mpi::communicator(
+        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
+    constexpr int tRootRank = 0;
+    std::vector<std::unordered_map<stk::mesh::EntityId, double>> tGatheredMaps;
+    boost::mpi::gather(tCommunicator, aLevelSetMap, tGatheredMaps, tRootRank);
+
+    std::unordered_map<stk::mesh::EntityId, double> tRootLevelSetMap;
+    if (tCommunicator.rank() == tRootRank)
+    {
+        for (const auto& tMap : tGatheredMaps)
+        {
+            for (const auto& [tEntityId, tLevelSetValue] : tMap)
+            {
+                tRootLevelSetMap[tEntityId] = tLevelSetValue;
+            }
+        }
+    }
+    boost::mpi::broadcast(tCommunicator, tRootLevelSetMap, tRootRank);
+    return tRootLevelSetMap;
+}
+
 [[nodiscard]] auto reduce_sensitivity_maps(const tpik::SensitivityMap& aSensitivityMap) -> tpik::SensitivityMap
 {
     const auto tCommunicator = boost::mpi::communicator(
@@ -110,6 +134,7 @@ KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInt
 
 void KrinoWrapper::writeCutMesh(const std::filesystem::path& aFileName, const tpik::VoidPhase aVoidPhase) const
 {
+    std::cout << "Cut mesh size: " << tpik::cut_mesh_node_ids(*mKrinoMesh, aVoidPhase).size() << std::endl;
     tpik::write_mesh(mKrinoMesh->bulk_data(), aFileName, aVoidPhase);
 }
 
@@ -168,7 +193,7 @@ template <typename Lambda>
 {
     const auto tSpatialDimensions = third_party_integration::stk_io::spatial_dimensions(aKrinoMesh.bulk_data());
     const auto tCutMeshNodeIds = tpik::cut_mesh_node_ids(aKrinoMesh, aVoidPhase);
-
+    std::cout << "Sizing row matrixproduct to :" << aResultSize.mValue << std::endl;
     auto tRowVectorMatrixProduct = std::vector<double>(aResultSize.mValue, 0.0);
     auto tRowVectorMatrixProductView =
         utilities::make_multi_vector_view(tRowVectorMatrixProduct, aResultViewDimensionality.mValue);
@@ -230,6 +255,9 @@ namespace
         aBackgroundDesignIDs, std::back_inserter(tLevelSetValues),
         [&aLevelSetValuesMap](const auto aBackgroundId) { return aLevelSetValuesMap.at(aBackgroundId); },
         tFoundCondition);
+
+    std::cout << "Down selected size: " << tLevelSetValues.size() << std::endl;
+
     return tLevelSetValues;
 }
 
@@ -242,7 +270,10 @@ auto make_initial_guess_from_level_set_primitives(
 {
     auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aFileName);
     auto tLevelSetFields = tpik::make_level_set_field_from_primitives(aLevelSetPrimitives, tKrinoMesh->bulk_data());
-    const auto tLevelSetValuesMap = tpik::get_level_set_values(*tKrinoMesh, tLevelSetFields);
+    const auto tLevelSetValuesMap =
+        reduce_level_set_values_map(tpik::get_level_set_values(*tKrinoMesh, tLevelSetFields));
+
+    std::cout << "tlevel set values map size: " << tLevelSetValuesMap.size() << std::endl;
     const auto tBackgroundNodeIds =
         aBackgroundDesignIDs.value_or(tpik::background_node_ids(*tKrinoMesh, tLevelSetFields));
 

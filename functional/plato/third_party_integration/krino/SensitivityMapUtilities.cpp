@@ -139,6 +139,10 @@ auto merge_level_set_jacobian_columns(AppendLevelSetJacobianColumn aAppendLevelS
             aOtherLevelSetJacobianColumn.mValue.mDesignDomainLocalIndex.front());
     }
 
+    if (tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.size() > 2)
+    {
+        std::cout << "larger than I thought..." << std::endl;
+    }
     return tLevelSetJacobianColumn;
 }
 
