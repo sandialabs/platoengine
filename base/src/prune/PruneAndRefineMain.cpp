@@ -30,36 +30,38 @@ int main(int argc,  char **argv)
   stk::parallel_machine_init(&argc,&argv);
   Kokkos::initialize(argc, argv);
 
-  MeshManager tMeshManager;
-  MeshTransfer tMeshTransfer;
-  MeshPrune tMeshPrune;
-  MeshRefine tRefineMesh;
-  MeshBalance tMeshBalance;
-
-  tMeshManager.setup_mesh(argc, argv);
-
-  if(tMeshManager.get_transfer_flag())
-      tMeshTransfer.transfer_mesh(tMeshManager);
-
-  for(int cntr = 0; cntr<tMeshManager.get_refines(); cntr ++)
   {
-      if(tMeshManager.get_prune_flag())
-      {
-          tMeshPrune.prune_mesh(tMeshManager);
+    MeshManager tMeshManager;
+    MeshTransfer tMeshTransfer;
+    MeshPrune tMeshPrune;
+    MeshRefine tRefineMesh;
+    MeshBalance tMeshBalance;
 
-          tMeshBalance.balance_mesh(tMeshManager);
-      }
+    tMeshManager.setup_mesh(argc, argv);
 
-      tRefineMesh.refine_mesh(tMeshManager);
+    if(tMeshManager.get_transfer_flag())
+        tMeshTransfer.transfer_mesh(tMeshManager);
 
-      if(tMeshManager.get_transfer_flag())
-          tMeshTransfer.transfer_mesh(tMeshManager);
+    for(int cntr = 0; cntr<tMeshManager.get_refines(); cntr ++)
+    {
+        if(tMeshManager.get_prune_flag())
+        {
+            tMeshPrune.prune_mesh(tMeshManager);
+
+            tMeshBalance.balance_mesh(tMeshManager);
+        }
+
+        tRefineMesh.refine_mesh(tMeshManager);
+
+        if(tMeshManager.get_transfer_flag())
+            tMeshTransfer.transfer_mesh(tMeshManager);
+    }
+
+    if(tMeshManager.get_prune_flag())
+        tMeshPrune.prune_mesh(tMeshManager);
+
+    tMeshManager.write_mesh();
   }
-
-  if(tMeshManager.get_prune_flag())
-      tMeshPrune.prune_mesh(tMeshManager);
-
-  tMeshManager.write_mesh();
 
   Kokkos::finalize();
   stk::parallel_machine_finalize();

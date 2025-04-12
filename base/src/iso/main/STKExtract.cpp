@@ -45,6 +45,7 @@
 #include "IVEMeshAPISTK.hpp"
 #include "IsoVolumeExtractionTool.hpp"
 #include "Plato_FreeFunctions.hpp"
+#include "stk_util/parallel/Parallel.hpp"
 
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_io/IossBridge.hpp>
@@ -57,7 +58,8 @@
 namespace iso
 {
 
-STKExtract::STKExtract()
+STKExtract::STKExtract(stk::ParallelMachine comm) :
+  mComm(comm)
 {
   mAvailableFormats = {"EXODUS","STL"};
   mMeshAPIIn = nullptr;
@@ -76,7 +78,7 @@ STKExtract::~STKExtract()
 bool STKExtract::init_single_mesh_apis()
 {
 
-  mMeshAPIIn = new IVEMeshAPISTK(mComm);
+  mMeshAPIIn = new IVEMeshAPISTK(&mComm);
   mMeshAPIIn->prepare_as_source();
 
   mMeshAPIIn->set_fixed_block_ids(mFixedBlocksString);
@@ -114,13 +116,6 @@ bool STKExtract::create_mesh_apis_stand_alone(int argc, char **argv,
   mReadSpreadFile = readSpreadFile;
   mOutputFieldsString = outputFieldsString;
 
-  stk::ParallelMachine *comm = new stk::ParallelMachine(stk::parallel_machine_init(&argc, &argv));
-  if(!comm)
-  {
-    std::cout << "Failed to initialize the parallel machine." << std::endl;
-    return false;
-  }
-  mComm = comm;
   mTimeStep = -1;
   if ( !read_command_line( argc, argv ) )
     return false;
@@ -136,7 +131,7 @@ bool STKExtract::create_mesh_apis_stand_alone(int argc, char **argv,
   return true;
 }
 
-bool STKExtract::create_mesh_apis_read_from_file(stk::ParallelMachine *comm,
+bool STKExtract::create_mesh_apis_read_from_file(
                              std::string meshIn,
                              std::string meshOut,
                              std::string fieldName,
@@ -150,7 +145,6 @@ bool STKExtract::create_mesh_apis_read_from_file(stk::ParallelMachine *comm,
                              int readSpreadFile,
                              int timeStep)
 {
-  mComm = comm;
   mMeshIn = meshIn;
   mMeshOut = meshOut;
   mFieldName = fieldName;
@@ -170,48 +164,6 @@ bool STKExtract::create_mesh_apis_read_from_file(stk::ParallelMachine *comm,
   {
     return false;
   }
-
-  return true;
-}
-
-bool STKExtract::create_mesh_apis_with_existing_stk_mesh(stk::ParallelMachine *comm,
-                                                         const stk::mesh::BulkData *bulkData,
-                                                         const stk::mesh::MetaData *metaData,
-                                                         std::string meshIn,
-                                                         std::string meshOut,
-                                                         std::string fieldName,
-                                                         double minEdgeLength,
-                                                         double isoValue,
-                                                         int levelSetData,
-                                                         int outputMethod,
-                                                         int isoOnly,
-                                                         int readSpreadFile,
-                                                         std::string outputFieldsString)
-{
-  mMeshIn = meshIn;
-  mMeshOut = meshOut;
-  mFieldName = fieldName;
-  mMeshAPIIn = NULL;
-  mMeshAPIOut = NULL;
-  mMinEdgeLength = minEdgeLength;
-  mIsoValue = isoValue;
-  mLevelSetData = levelSetData;
-  mOutputMethod = outputMethod;
-  mIsoOnly = isoOnly;
-  mReadSpreadFile = readSpreadFile;
-  mOutputFieldsString = outputFieldsString;
-
-  // Create non-const pointers for input bulk and meta datas
-  stk::mesh::BulkData *_bulkData = (stk::mesh::BulkData*)bulkData;
-  stk::mesh::MetaData *_metaData = (stk::mesh::MetaData*)metaData;
-
-  // Create the mesh api object for the existing mesh
-  mMeshAPIIn = new IVEMeshAPISTK(comm, _bulkData, _metaData, mFieldName);
-  // Create an api for the output mesh
-  mMeshAPIOut = new IVEMeshAPISTK(comm);
-  // Get pointers to the fields that we will want to read from this mesh and
-  // write out to the new mesh
-  mMeshAPIIn->prepare_field_data(outputFieldsString, mMeshAPIOut);
 
   return true;
 }

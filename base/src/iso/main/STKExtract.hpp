@@ -53,6 +53,7 @@
 
 #include "Teuchos_CommandLineProcessor.hpp"
 #include "IVEMeshAPISTK.hpp"
+#include "stk_util/parallel/Parallel.hpp"
 
   namespace stk
   {
@@ -68,9 +69,9 @@
     class STKExtract
     {
     public:
-      STKExtract();
+      STKExtract(stk::ParallelMachine comm);
       ~STKExtract();
-      bool create_mesh_apis_read_from_file(stk::ParallelMachine *comm,
+      bool create_mesh_apis_read_from_file(
                              std::string meshIn,
                              std::string meshOut,
                              std::string fieldName,
@@ -94,19 +95,6 @@
                              int outputMethod,
                              int isoOnly,
                              int readSpreadFile);
-      bool create_mesh_apis_with_existing_stk_mesh(stk::ParallelMachine *comm,
-                       const stk::mesh::BulkData *bulkData,
-                       const stk::mesh::MetaData *metaData,
-                             std::string meshIn,
-                             std::string meshOut,
-                             std::string fieldName,
-                             double minEdgeLength, 
-                             double isoValue,
-                             int levelSetData,
-                             int outputMethod,
-                             int isoOnly,
-                             int readSpreadFile,
-                             std::string outputFieldsString);
       bool run_stand_alone();
       bool run_extraction(int iteration, int num_materials);
       double minx() { return mMinx; }
@@ -135,7 +123,7 @@
 
       double mMinx, mMiny, mMinz, mMaxx, mMaxy, mMaxz;
       double mAverageEdgeLength;
-      stk::ParallelMachine *mComm;
+      stk::ParallelMachine mComm;
       std::string mMeshIn;
       std::string mMeshOut;
       std::string mFieldName;
