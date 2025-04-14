@@ -29,12 +29,6 @@ namespace plato::input_validation::unittest
 {
 const auto kInputFilePath = std::filesystem::path{"test-input.i"};
 
-class ValidatedInputFileFixture : public test_utilities::FileCreatingTestFixture
-{
-   public:
-    ValidatedInputFileFixture() : test_utilities::FileCreatingTestFixture{kInputFilePath} {}
-};
-
 namespace
 {
 constexpr auto kMarvelValidationErrorMessage = std::string_view{"Marvel error!"};
@@ -71,13 +65,33 @@ const auto kValidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.supe
     return std::nullopt;
 }
 
-[[maybe_unused]] static auto kBlockValidationRegistration = CrossReferencedInputValidationRegistration<>{
-    {[](const input_parser::marvel& aInput) { return validate_wolverine(aInput.wolverine); },
-     [](const input_parser::dc& aInput) { return validate_superman(aInput.superman); }}};
+/// @brief Test fixture for registering validation functions
+class ValidatedInputRegistrationFixture : virtual public ::testing::Test
+{
+   public:
+    ValidatedInputRegistrationFixture()
+    {
+        [[maybe_unused]] const auto kBlockValidationRegistration = CrossReferencedInputValidationRegistration<>{
+            {[](const input_parser::marvel& aInput) { return validate_wolverine(aInput.wolverine); },
+             [](const input_parser::dc& aInput) { return validate_superman(aInput.superman); }}};
 
-[[maybe_unused]] static auto kInputValidationRegistration = NewParsedInputValidationRegistration<>{{
-    [](const input_parser::NewParsedInput& aInput) { return validate_parsed_input(aInput); },
-}};
+        [[maybe_unused]] const auto kInputValidationRegistration = NewParsedInputValidationRegistration<>{{
+            [](const input_parser::NewParsedInput& aInput) { return validate_parsed_input(aInput); },
+        }};
+    }
+    ~ValidatedInputRegistrationFixture()
+    {
+        detail::registered_validation_functions<input_parser::CrossReferencedInput>().clear();
+        detail::registered_validation_functions<input_parser::NewParsedInput>().clear();
+    }
+};
+
+class ValidatedInputFileFixture : public test_utilities::FileCreatingTestFixture,
+                                  public ValidatedInputRegistrationFixture
+{
+   public:
+    ValidatedInputFileFixture() : test_utilities::FileCreatingTestFixture{kInputFilePath} {}
+};
 
 auto make_test_input(const std::optional<input_parser::marvel>& aMarvelInput,
                      const std::optional<input_parser::dc>& aDCInput) -> input_parser::CrossLinkedInput
@@ -101,14 +115,14 @@ auto make_test_input(const std::optional<input_parser::marvel>& aMarvelInput,
 
 }  // namespace
 
-TEST(ValidatedInput, ConstructionValidInput)
+TEST_F(ValidatedInputRegistrationFixture, ConstructionValidInput)
 {
     const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
     const auto tValidatedInput = make_validated_input(tCrossLinkedInput);
     ASSERT_TRUE(tValidatedInput.hasValue());
 }
 
-TEST(ValidatedInput, ConstructionOneEntryInvalidInput)
+TEST_F(ValidatedInputRegistrationFixture, ConstructionOneEntryInvalidInput)
 {
     const auto kInvalidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/101};
     const auto tCrossLinkedInput = make_test_input(kInvalidMarvel, std::nullopt);
@@ -118,7 +132,7 @@ TEST(ValidatedInput, ConstructionOneEntryInvalidInput)
     EXPECT_EQ(tValidatedInput.error(), kMarvelValidationErrorMessage);
 }
 
-TEST(ValidatedInput, ConstructionTwoEntriesInvalidInput)
+TEST_F(ValidatedInputRegistrationFixture, ConstructionTwoEntriesInvalidInput)
 {
     const auto kInvalidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/101};
     const auto kInvalidDC =
@@ -131,7 +145,7 @@ TEST(ValidatedInput, ConstructionTwoEntriesInvalidInput)
               std::string{kDCValidationErrorMessage} + "\n" + std::string{kMarvelValidationErrorMessage});
 }
 
-TEST(ValidatedInput, ConstructionInvalidParsedInput)
+TEST_F(ValidatedInputRegistrationFixture, ConstructionInvalidParsedInput)
 {
     const auto tCrossLinkedInput = make_test_input(std::nullopt, kValidDC);
     const auto tValidatedInput = make_validated_input(tCrossLinkedInput);
@@ -140,7 +154,7 @@ TEST(ValidatedInput, ConstructionInvalidParsedInput)
     EXPECT_EQ(tValidatedInput.error(), std::string{kParsedInputValidationErrorMessage});
 }
 
-TEST(ValidatedInput, GetMember)
+TEST_F(ValidatedInputRegistrationFixture, GetMember)
 {
     const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
     const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput);
@@ -172,7 +186,7 @@ TEST(ValidatedInput, GetMember)
     EXPECT_EQ(aDCInput.batman.value(), 100U);
 }
 
-TEST(ValidatedInput, GetNamedMember)
+TEST_F(ValidatedInputRegistrationFixture, GetNamedMember)
 {
     const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
     const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput);
@@ -187,7 +201,7 @@ TEST(ValidatedInput, GetNamedMember)
     EXPECT_EQ(tConstraintInput.mBlockName, "dc");
 }
 
-TEST(ValidatedInput, GetInputBlock)
+TEST_F(ValidatedInputRegistrationFixture, GetInputBlock)
 {
     const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
     const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput);
