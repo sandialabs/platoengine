@@ -18,7 +18,7 @@ using namespace iso;
 
 int main(int argc,  char **argv)
 {
-  MPI_Init(&argc, &argv);
+  stk::parallel_machine_init(&argc,&argv);
   Kokkos::initialize(argc, argv);
 
   {
@@ -31,7 +31,7 @@ int main(int argc,  char **argv)
   }
 
   Kokkos::finalize();
-  MPI_Finalize();
+  stk::parallel_machine_finalize();
 
   return 0;
 }
