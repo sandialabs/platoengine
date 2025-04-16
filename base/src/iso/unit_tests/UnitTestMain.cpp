@@ -12,14 +12,7 @@
 #include <iostream>
 #include <utility>
 
-#if defined( STK_HAS_MPI )
 #include <mpi.h>
-#endif
-
-//#include <percept/fixtures/Fixture.hpp>
-//#include <percept/RunEnvironment.hpp>
-
-//#include <percept/pyencore.h>
 
 #if !PY_PERCEPT 
 
