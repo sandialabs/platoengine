@@ -2,7 +2,6 @@
 
 #include <filesystem>
 
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"

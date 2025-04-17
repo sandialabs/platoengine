@@ -1,6 +1,5 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 
-#include "plato/core/InputVariantUtilities.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterSharedLibraryDecorator.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
@@ -14,11 +13,6 @@ std::unique_ptr<FilterInterface> load_filter(const FilterParameters& aParams,
     using FilterFunctionSignature = std::unique_ptr<FilterInterface>(const FilterParameters&);
     return std::make_unique<FilterSharedLibraryDecorator>(services::make_shared_library_object<FilterFunctionSignature>(
         aSharedLibraryPath, kCreateFilterFunctionName, aParams));
-}
-
-bool is_filter_function_registered(const std::string_view aFunctionName)
-{
-    return core::is_factory_function_registered<FilterFunction, ValidatedFilterInput>(aFunctionName);
 }
 
 auto is_new_filter_function_registered(const std::string_view aFunctionName) -> bool

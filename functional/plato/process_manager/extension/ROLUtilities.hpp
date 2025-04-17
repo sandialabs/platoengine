@@ -5,7 +5,6 @@
 #include <ROL_StdVector.hpp>
 #include <memory>
 
-#include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/third_party_integration/rol/OptimizationParameters.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"

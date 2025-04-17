@@ -1,7 +1,6 @@
 #ifndef PLATO_CRITERION_LIBRARY_OBJECTIVEVALIDATION
 #define PLATO_CRITERION_LIBRARY_OBJECTIVEVALIDATION
 
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 

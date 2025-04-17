@@ -7,7 +7,6 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/FactoryRegistration.hpp"
 #include "plato/core/Function.hpp"
-#include "plato/core/VariantInputBuilder.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
@@ -27,19 +26,12 @@ class FilterInterface;
 namespace plato::filter::library
 {
 
-/// A `std::variant` with alternatives corresponding to input blocks
-/// created using the PLATO_FILTER_INPUT_BLOCK_STRUCT macro.
-using FilterInput = core::InputVariant<input_parser::ParsedInput, input_parser::IsFilterInput>;
-using ValidatedFilterInput = core::ValidatedInputTypeWrapper<
-    core::ValidatedInputVariant<input_parser::ParsedInput, input_parser::IsFilterInput>>;
-
 using FilterFunction = core::Function<
     const analysis::AnalysisDomainMesh&,
     core::FunctionInfo<analysis::AnalysisDomainMesh, core::evaluation::kFunction>,
     core::FunctionInfo<FilterJacobian, core::evaluation::kFirstDerivative>,
     core::FunctionInfo<FilterAdjointJacobian, core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>>;
 
-using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFilterInput>;
 using FilterCache =
     plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const analysis::AnalysisDomainMesh&>;
 
@@ -52,7 +44,6 @@ using NewFilterRegistration = core::FactoryRegistration<FilterFunction, NewValid
 [[nodiscard]] auto load_filter(const FilterParameters& aParams, const std::filesystem::path& aSharedLibraryPath)
     -> std::unique_ptr<FilterInterface>;
 
-[[nodiscard]] bool is_filter_function_registered(std::string_view aFunctionName);
 [[nodiscard]] auto is_new_filter_function_registered(std::string_view aFunctionName) -> bool;
 
 /// @brief Returns @a FilterFunction that uses a @a FilterCache to reconstruct the filter object if the mesh has

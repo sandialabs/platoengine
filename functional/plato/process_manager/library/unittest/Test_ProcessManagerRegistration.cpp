@@ -10,21 +10,24 @@ namespace plato::process_manager::library::unittest
 {
 namespace
 {
-[[nodiscard]] auto make_test_process_manager_function(const library::ValidatedProcessManagerInput&)
+[[nodiscard]] auto make_test_process_manager_function(const library::NewValidatedProcessManagerInput&)
     -> StageAndProcessManager
 {
     return {RunStage::kValidate, [](const ProcessManagerData&) {}};
 }
 
 [[maybe_unused]] static auto kTestProcessManagerRegistration =
-    ProcessManagerRegistration{"test", [](const ValidatedProcessManagerInput& aValidInput)
-                               { return make_test_process_manager_function(aValidInput); }};
+    NewProcessManagerRegistration{"test", [](const NewValidatedProcessManagerInput& aValidInput)
+                                  { return make_test_process_manager_function(aValidInput); }};
 }  // namespace
 
-TEST(ProcessManagerRegistration, TestProcessManager) { EXPECT_TRUE(is_process_manager_function_registered("test")); }
+TEST(ProcessManagerRegistration, TestProcessManager)
+{
+    EXPECT_TRUE(is_new_process_manager_function_registered("test"));
+}
 
 TEST(ProcessManagerRegistration, NonexistantProcessManager)
 {
-    EXPECT_FALSE(is_process_manager_function_registered("flem"));
+    EXPECT_FALSE(is_new_process_manager_function_registered("flem"));
 }
 }  // namespace plato::process_manager::library::unittest

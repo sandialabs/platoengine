@@ -6,7 +6,6 @@
 #include <unordered_map>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"

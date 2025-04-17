@@ -3,7 +3,6 @@
 #include <boost/none.hpp>
 #include <cmath>
 
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"

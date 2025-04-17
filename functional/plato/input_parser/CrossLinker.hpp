@@ -3,7 +3,6 @@
 
 #include <functional>
 
-#include "plato/core/VariantInputBuilder.hpp"
 #include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/utilities/Expected.hpp"
@@ -127,6 +126,18 @@ struct ApplyCrossLink
     }
 };
 
+template <typename T>
+struct TypeOrOptional
+{
+    using type = T;
+};
+
+template <typename T>
+struct TypeOrOptional<boost::optional<T>>
+{
+    using type = T;
+};
+
 template <typename Input, typename ApplyFunction>
 void apply_cross_link(InputDataBlock& aInputBlock, const NewParsedInput& aNewParsedInput, ApplyFunction& aApplyFunction)
 {
@@ -135,7 +146,7 @@ void apply_cross_link(InputDataBlock& aInputBlock, const NewParsedInput& aNewPar
     boost::fusion::for_each(aCastInputBlock,
                             [&aNewParsedInput, &aApplyFunction](auto& aField)
                             {
-                                using FieldType = typename core::TypeOrOptional<std::decay_t<decltype(aField)>>::type;
+                                using FieldType = typename TypeOrOptional<std::decay_t<decltype(aField)>>::type;
                                 if constexpr (kIsNewCrossReference<FieldType>)
                                 {
                                     aApplyFunction(aField, aNewParsedInput.get<FieldType::mComponentType>());

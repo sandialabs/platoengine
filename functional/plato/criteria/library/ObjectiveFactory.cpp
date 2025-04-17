@@ -6,7 +6,6 @@
 #include <numeric>
 
 #include "plato/core/ParallelFunction.hpp"
-#include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"

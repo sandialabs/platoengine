@@ -2,7 +2,6 @@
 
 #include <iterator>
 
-#include "plato/core/InputVariantUtilities.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
@@ -15,19 +14,7 @@ enum struct RegistrationStatus
     kRegistered,
     kUnregistered
 };
-struct CheckRegistrationStatus
-{
-    RegistrationStatus mRegistrationStatus;
 
-    template <typename T>
-    auto operator()(const T& aValidatedProcessInput) const
-    {
-        const auto tIsRegistered =
-            core::is_factory_function_registered<StageAndProcessManager, ValidatedProcessManagerInput>(
-                core::block_name(aValidatedProcessInput));
-        return mRegistrationStatus == RegistrationStatus::kRegistered ? tIsRegistered : !tIsRegistered;
-    }
-};
 struct NewCheckRegistrationStatus
 {
     RegistrationStatus mRegistrationStatus;

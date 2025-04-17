@@ -4,7 +4,6 @@
 #include <string>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"

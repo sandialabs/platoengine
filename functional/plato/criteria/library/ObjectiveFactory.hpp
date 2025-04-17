@@ -3,7 +3,6 @@
 
 #include "plato/core/Function.hpp"
 #include "plato/core/ParallelAggregate.hpp"
-#include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -15,9 +14,6 @@ struct AnalysisDomainMesh;
 
 namespace plato::criteria::library
 {
-using ValidatedObjectives =
-    core::ValidatedInputTypeWrapper<std::vector<core::ValidatedInputTypeWrapper<input_parser::objective>>>;
-
 using NewValidatedObjectives = input_validation::ValidatedComponentType<input_parser::ComponentType::kObjective>;
 
 using ObjectiveEvaluationInfo = core::FunctionInfo<double, core::evaluation::kFunction>;

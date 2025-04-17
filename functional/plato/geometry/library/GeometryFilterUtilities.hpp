@@ -42,8 +42,10 @@ template <typename Geometry>
 
 /// @brief Constructs a FilterFunction from a geometry component's filter cross-link.
 /// @tparam Geometry Must be an input block with fields `filter`.
-template <typename Geometry>
-[[nodiscard]] auto make_filter_from_geometry_input(const Geometry& aInput) -> filter::library::FilterFunction;
+template <typename InputBlockType>
+[[nodiscard]] auto make_filter_from_new_geometry_input(
+    const input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>& aInput)
+    -> filter::library::FilterFunction;
 
 /// @brief Creates a filter function that takes a DynamicVector as input and returns a DynamicVector as output.
 ///
@@ -73,13 +75,6 @@ auto validate_filter_with_mesh(const Geometry& aInput, const MeshFieldAccessor& 
         return utilities::concatenate_container(tCurrentMessageList, "\n");
     }
     return std::nullopt;
-}
-
-template <typename Geometry>
-auto make_filter_from_geometry_input(const Geometry& aInput) -> filter::library::FilterFunction
-{
-    return filter::library::make_filter_function(
-        library::get_cross_referenced_filter<plato::filter::library::ValidatedFilterInput>(aInput));
 }
 
 template <typename InputBlockType>

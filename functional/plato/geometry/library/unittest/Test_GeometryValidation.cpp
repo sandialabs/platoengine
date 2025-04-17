@@ -2,7 +2,6 @@
 
 #include <fstream>
 
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"

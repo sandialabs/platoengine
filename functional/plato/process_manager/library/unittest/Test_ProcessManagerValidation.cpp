@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"

@@ -5,7 +5,6 @@
 #include <optional>
 #include <string>
 
-#include "plato/core/ValidatedInputTypeWrapper.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"

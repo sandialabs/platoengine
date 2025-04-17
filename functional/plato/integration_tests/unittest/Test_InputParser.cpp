@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <fstream>
 
-#include "plato/core/InputVariantUtilities.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"

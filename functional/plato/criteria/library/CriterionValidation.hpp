@@ -3,7 +3,6 @@
 
 #include <optional>
 
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
@@ -51,19 +50,6 @@ template <typename Criteria>
         criterion_name(aInput), aInput.number_of_processors, "number_of_processors",
         utilities::lower_bounded(utilities::Inclusive{1u}));
 }
-
-template <typename Criteria>
-[[nodiscard]] std::vector<std::string> validate_criteria(const std::vector<Criteria>& aInput,
-                                                         std::vector<std::string>&& aCurrentMessageList)
-{
-    aCurrentMessageList = core::validate(aInput, std::move(aCurrentMessageList));
-    for (const auto& iCriterionInput : aInput)
-    {
-        aCurrentMessageList = core::validate(iCriterionInput, std::move(aCurrentMessageList));
-    }
-    return std::move(aCurrentMessageList);
-}
-
 }  // namespace detail
 
 }  // namespace plato::criteria::library
