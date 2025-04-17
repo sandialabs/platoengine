@@ -59,4 +59,23 @@ TEST(ComponentBlockParser, ParseWithError)
     EXPECT_FALSE(tParsedInputOrError.error().empty());
 }
 
+TEST(ComponentBlockParser, ComponentType)
+{
+    {
+        const auto tParser =
+            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<ComponentType::kGeometry>{}};
+        EXPECT_EQ(tParser.componentType(), ComponentType::kGeometry);
+    }
+    {
+        const auto tParser =
+            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<ComponentType::kFilter>{}};
+        EXPECT_EQ(tParser.componentType(), ComponentType::kFilter);
+    }
+    {
+        const auto tParser =
+            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<ComponentType::kObjective>{}};
+        EXPECT_EQ(tParser.componentType(), ComponentType::kObjective);
+    }
+}
+
 }  // namespace plato::input_parser::unittest

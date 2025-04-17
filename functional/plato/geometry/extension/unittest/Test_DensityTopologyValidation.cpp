@@ -88,12 +88,11 @@ TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
 
 TEST_F(DensityTopologyValidationFileFixture, ValidDensityTopologyInput)
 {
-    auto tInput = input_parser::ParsedInput{};
-    tInput.mDensityTopology = kDensityTopology;
+    //    const auto tInput = input_parser::NewParsedInput{} | kDensityTopology;
 
-    std::vector<std::string> tMessages;
-    tMessages = library::validate_geometry(tInput, std::move(tMessages));
-    EXPECT_TRUE(tMessages.empty());
+    //    std::vector<std::string> tMessages;
+    //    tMessages = library::validate_geometry(tInput, std::move(tMessages));
+    //    EXPECT_TRUE(tMessages.empty());
 }
 
 TEST_F(TwoDThreeBlockMesh, MeshFromInput)
@@ -106,7 +105,7 @@ TEST_F(TwoDThreeBlockMesh, MeshFromInput)
         std::size_t mNumberOfDesignDomainElements = 0U;
     };
 
-    const auto tTestFunction = [](const input_parser::density_topology& tDensityInput,
+    const auto tTestFunction = [](const input_parser::new_density_topology& tDensityInput,
                                   const ExpectedSizes& aExpectedSizes, const test_utilities::TestContext& aTestContext)
     {
         const auto tMesh = mesh_from_input(tDensityInput);

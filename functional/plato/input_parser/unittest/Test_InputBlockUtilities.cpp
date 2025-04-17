@@ -58,7 +58,7 @@ TEST(InputBlockUtilities, PipeOperator)
 {
     const auto tGeometryBlock = TestGeometryBlock{/*.field1=*/42};
     const auto tProcessManagerBlock = TestProcessManagerBlock{/*.field1=*/43};
-    const auto tCombinedInput = NewParsedInput{{}} | tGeometryBlock | tProcessManagerBlock;
+    const auto tCombinedInput = NewParsedInput{} | tGeometryBlock | tProcessManagerBlock;
 
     check_input_block<ComponentType::kGeometry>(tCombinedInput, tGeometryBlock, TEST_CONTEXT("Geometry block"));
     check_input_block<ComponentType::kProcessManager>(tCombinedInput, tProcessManagerBlock,
@@ -74,7 +74,7 @@ TEST(InputBlockUtilities, PipeOperatorNamedTypes)
     const auto tFilterBlock = TestFilterBlock{/*.field1=*/40};
     const auto tObjectiveBlock = TestObjectiveBlock{/*.name=*/std::string{"bob"}, /*.field1=*/41};
     const auto tConstraintBlock = TestConstraintBlock{/*.name=*/std::string{"sally"}, /*.field1=*/42};
-    const auto tCombinedInput = NewParsedInput{{}} | tFilterBlock | tObjectiveBlock | tConstraintBlock;
+    const auto tCombinedInput = NewParsedInput{} | tFilterBlock | tObjectiveBlock | tConstraintBlock;
 
     check_input_block<ComponentType::kFilter>(tCombinedInput, tFilterBlock, TEST_CONTEXT("Filterblock"));
     check_input_block<ComponentType::kObjective>(tCombinedInput, tObjectiveBlock, TEST_CONTEXT("Objective block"));

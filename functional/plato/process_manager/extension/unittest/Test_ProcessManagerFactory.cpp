@@ -1,47 +1,40 @@
 #include <gtest/gtest.h>
 
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/process_manager/extension/ConstraintCheck.hpp"
+#include "plato/process_manager/extension/GradientCheck.hpp"
+#include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/library/ProcessManagerFactory.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
-#include "plato/test_utilities/ValidInputTestFixture.hpp"
 
 namespace plato::process_manager::library::unittest
 {
-namespace
+TEST(ProcessManagerFactory, ValidProcessManagers)
 {
-struct ProcessManagerFactoryFileFixture : public test_utilities::ValidInputTestFixture
-{
-};
-}  // namespace
+    const auto tInput = geometry::extension::create_valid_brick_shape_geometry_input() |
+                        criteria::library::create_valid_example_objective_input() |
+                        process_manager::extension::create_valid_example_rol_optimization_input() |
+                        process_manager::extension::create_valid_example_gradient_check_input() |
+                        process_manager::extension::create_valid_example_constraint_check_input();
 
-TEST_F(ProcessManagerFactoryFileFixture, ValidOptimization)
-{
-    const ValidatedInput tData = make_validated_input(parsedInput());
-    const auto tProcesses = make_process_managers(tData.processManagers());
-    EXPECT_EQ(tProcesses.size(), 1U);
+    const auto tData = input_validation::make_validated_input(tInput);
+    ASSERT_TRUE(tData.hasValue());
+    const auto tProcesses = make_process_managers(tData.value().get<input_parser::ComponentType::kProcessManager>());
+    constexpr auto tExpectedNumberOfProcessManagers = 3U;
+    EXPECT_EQ(tProcesses.size(), tExpectedNumberOfProcessManagers);
 }
 
-TEST(ProcessManagerFactory, ValidOptimizationAndGradientCheck)
+TEST(ProcessManagerFactory, NoProcessManagers)
 {
-    const input_parser::ParsedInput tInput =
-        test_utilities::create_valid_brick_shape_geometry() | test_utilities::create_valid_example_objective() |
-        test_utilities::create_valid_example_gradient_check() | test_utilities::create_valid_example_rol_optimization();
-    const ValidatedInput tData = make_validated_input(tInput);
-    const auto tProcesses = make_process_managers(tData.processManagers());
-    EXPECT_EQ(tProcesses.size(), 2u);
-}
+    const auto tInput = geometry::extension::create_valid_brick_shape_geometry_input() |
+                        criteria::library::create_valid_example_objective_input();
 
-TEST(ProcessManagerFactory, ValidOptimizationAndConstraintCheck)
-{
-    const input_parser::ParsedInput tInput = test_utilities::create_valid_brick_shape_geometry() |
-                                             test_utilities::create_valid_example_objective() |
-                                             test_utilities::create_valid_example_constraint_check();
-
-    const ValidatedInput tData = make_validated_input(tInput);
-    const auto tProcesses = make_process_managers(tData.processManagers());
-    EXPECT_EQ(tProcesses.size(), 1u);
+    const auto tData = input_validation::make_validated_input(tInput);
+    EXPECT_TRUE(tData.hasError());
 }
 
 }  // namespace plato::process_manager::library::unittest

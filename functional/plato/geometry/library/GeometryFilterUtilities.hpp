@@ -4,10 +4,11 @@
 #include <optional>
 #include <string>
 
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/input_validation/ValidatedInputTypeWrapper.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::mesh
@@ -54,7 +55,7 @@ template <typename Geometry>
 template <typename Geometry>
 auto filter_is_cross_linked(const Geometry& aInput) -> bool
 {
-    return aInput.filter->mInputBlock.template holds_expected_type<plato::filter::library::FilterInput>();
+    return aInput.filter.has_value() && aInput.filter.value().mInputBlock.has_value();
 }
 
 template <typename Geometry, typename MeshFieldAccessor>
@@ -65,15 +66,8 @@ auto validate_filter_with_mesh(const Geometry& aInput, const MeshFieldAccessor& 
     {
         return std::nullopt;
     }
-
-    std::vector<std::string> tCurrentMessageList{};
-    tCurrentMessageList = std::visit(
-        [&aInput, tList = std::move(tCurrentMessageList)](const auto& aVariant) mutable -> std::vector<std::string>
-        {  // NOLINTNEXTLINE
-            return core::validate(aVariant, std::move(tList), std::filesystem::path{aInput.mesh_name.value().mToken});
-        },
-        library::get_cross_referenced_filter<plato::filter::library::FilterInput>(aInput));
-
+    const auto tMeshPath = std::filesystem::path{aInput.mesh_name.value().mToken};
+    const auto tCurrentMessageList = input_validation::validate(aInput.filter->mInputBlock, {}, tMeshPath);
     if (!tCurrentMessageList.empty())
     {
         return utilities::concatenate_container(tCurrentMessageList, "\n");
@@ -86,6 +80,16 @@ auto make_filter_from_geometry_input(const Geometry& aInput) -> filter::library:
 {
     return filter::library::make_filter_function(
         library::get_cross_referenced_filter<plato::filter::library::ValidatedFilterInput>(aInput));
+}
+
+template <typename InputBlockType>
+auto make_filter_from_new_geometry_input(
+    const input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>& aInput)
+    -> filter::library::FilterFunction
+{
+    const auto tFilterInput = input_validation::validated_cross_reference<input_parser::ComponentType::kFilter>(
+        aInput, [](const InputBlockType& aRawInput) { return aRawInput.filter; });
+    return filter::library::make_filter_function(tFilterInput);
 }
 
 }  // namespace plato::geometry::library

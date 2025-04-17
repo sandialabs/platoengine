@@ -4,10 +4,11 @@
 #include <string_view>
 
 #include "plato/core/Compose.hpp"
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/geometry/library/OutputManager.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
@@ -18,17 +19,6 @@ namespace plato::process_manager::extension
 {
 namespace
 {
-[[nodiscard]] library::StageAndProcessManager make_rol_sensitivity_check_process_manager(
-    const library::ValidatedProcessManagerInput& aValidInput)
-{
-    return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
-            {
-                const auto& tInput = library::process_manager_input<input_parser::sensitivity_check>(aValidInput);
-                const SensitivityCheck tSensitivityCheck(tInput);
-                tSensitivityCheck.run(aProcessManangerData);
-            }};
-}
-
 [[nodiscard]] auto make_rol_sensitivity_check_process_manager(
     const library::NewValidatedProcessManagerInput& aValidInput) -> library::StageAndProcessManager
 {
@@ -36,22 +26,17 @@ namespace
             { SensitivityCheck{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static auto kSensitivityCheckProcessManagerRegistration =
-    library::ProcessManagerRegistration{input_parser::block_name<input_parser::sensitivity_check>(),
-                                        [](const library::ValidatedProcessManagerInput& aValidInput)
-                                        { return make_rol_sensitivity_check_process_manager(aValidInput); }};
-
 [[maybe_unused]] static auto kNewSensitivityCheckProcessManagerRegistration =
     library::NewProcessManagerRegistration{input_parser::block_name<input_parser::new_sensitivity_check>(),
                                            [](const library::NewValidatedProcessManagerInput& aValidInput)
                                            { return make_rol_sensitivity_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kSensitivityCheckValidationRegistration =
-    core::ValidationRegistration<input_parser::new_sensitivity_check>{
+    input_validation::CrossReferencedInputValidationRegistration<>{
         [](const input_parser::new_sensitivity_check& aInput) { return detail::validate_output_file_name(aInput); }};
 
-std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction> make_rol_sensitivity_objective(
-    const library::ProcessManagerData& aProblem)
+auto make_rol_sensitivity_objective(const library::ProcessManagerData& aProblem)
+    -> std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction>
 {
     auto tSimpleObjectiveFunction = criteria::extension::make_nodal_sum_function();
     return std::make_unique<plato::third_party_integration::rol::ROLObjectiveFunction>(
@@ -59,11 +44,6 @@ std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction> make_
 }
 
 }  // namespace
-
-SensitivityCheck::SensitivityCheck(const ValidatedSensitivityCheckInput& aInput)
-    : mOutputFileName(aInput.rawInput().output_file_name.value().mToken)
-{
-}
 
 SensitivityCheck::SensitivityCheck(const library::NewValidatedProcessManagerInput& aInput)
     : mOutputFileName(input_validation::get_input_block<input_parser::new_sensitivity_check>(aInput)
@@ -84,12 +64,17 @@ void SensitivityCheck::run(const library::ProcessManagerData& aProblem) const
                                          tPrintOutput, tOutFile);
 }
 
+auto create_valid_example_sensitivity_check_input() -> input_parser::new_sensitivity_check
+{
+    return input_parser::sensitivity_check{/*.output_file_name=*/input_parser::FileName{"sensitivity_check.txt"}};
+}
+
 namespace detail
 {
-std::optional<std::string> validate_output_file_name(const input_parser::sensitivity_check& aInput)
+auto validate_output_file_name(const input_parser::new_sensitivity_check& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::sensitivity_check>(),
-                                                   aInput.output_file_name, "output_file_name");
+    return input_validation::error_message_for_empty_parameter(
+        input_parser::block_name<input_parser::new_sensitivity_check>(), aInput.output_file_name, "output_file_name");
 }
 }  // namespace detail
 }  // namespace plato::process_manager::extension

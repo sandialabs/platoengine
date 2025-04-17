@@ -5,9 +5,10 @@
 #include <numeric>
 #include <optional>
 
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::criteria::library
@@ -15,31 +16,25 @@ namespace plato::criteria::library
 namespace
 {
 [[maybe_unused]] static auto kObjectiveValidationRegistration =
-    input_validation::ValidationRegistration<input_parser::new_objective>{
+    input_validation::CrossReferencedInputValidationRegistration<>{
         [](const input_parser::new_objective& aInput) { return detail::validate_criterion_is_registered(aInput); },
         [](const input_parser::new_objective& aInput) { return detail::validate_number_of_processors(aInput); },
         [](const input_parser::new_objective& aInput) { return detail::validate_aggregation_weight(aInput); }};
 
 [[maybe_unused]] static auto kListObjectivesValidationRegistration =
-    input_validation::ValidationRegistration<std::vector<input_parser::new_objective>>{
-        [](const std::vector<input_parser::new_objective>& aInput)
-        { return detail::validate_at_least_one_objective(aInput); },
-        [](const std::vector<input_parser::new_objective>& aInput)
-        { return detail::validate_number_of_ranks_vs_serial_objectives(aInput); },
-        [](const std::vector<input_parser::new_objective>& aInput)
-        { return detail::validate_number_of_ranks_vs_parallel_objectives(aInput); }};
+    input_validation::NewParsedInputValidationRegistration<>{
+        [](const input_parser::NewParsedInput& aInput)
+        { return detail::validate_at_least_one_objective(aInput.get<input_parser::new_objective>()); },
+        [](const input_parser::NewParsedInput& aInput)
+        { return detail::validate_number_of_ranks_vs_serial_objectives(aInput.get<input_parser::new_objective>()); },
+        [](const input_parser::NewParsedInput& aInput)
+        { return detail::validate_number_of_ranks_vs_parallel_objectives(aInput.get<input_parser::new_objective>()); }};
 
 auto number_of_processors(const input_parser::new_objective& aObjective) -> unsigned int
 {
-    return core::is_active(aObjective) ? aObjective.number_of_processors.value_or(1u) : 0u;
+    return input_validation::is_active(aObjective) ? aObjective.number_of_processors.value_or(1u) : 0u;
 }
 }  // namespace
-
-auto validate_objectives(const std::vector<input_parser::objective>& aInput,
-                         std::vector<std::string>&& aCurrentMessageList) -> std::vector<std::string>
-{
-    return detail::validate_criteria(aInput, std::move(aCurrentMessageList));
-}
 
 auto has_parallel_objective(const std::vector<input_parser::new_objective>& aInput) -> bool
 {
@@ -59,16 +54,16 @@ namespace detail
 std::optional<std::string> validate_aggregation_weight(const input_parser::new_objective& aInput)
 {
     namespace pfu = plato::utilities;
-    return core::error_message_for_parameter_out_of_bounds(criterion_name(aInput), aInput.aggregation_weight,
-                                                           "aggregation_weight",
-                                                           pfu::lower_bounded(pfu::Exclusive{0.0}));
+    return input_validation::error_message_for_parameter_out_of_bounds(criterion_name(aInput),
+                                                                       aInput.aggregation_weight, "aggregation_weight",
+                                                                       pfu::lower_bounded(pfu::Exclusive{0.0}));
 }
 
 std::optional<std::string> validate_at_least_one_objective(const std::vector<input_parser::new_objective>& aInput)
 {
     const bool tAnyActiveObjectives =
         std::any_of(aInput.begin(), aInput.end(),
-                    [](const input_parser::objective& aObjective) { return core::is_active(aObjective); });
+                    [](const input_parser::objective& aObjective) { return input_validation::is_active(aObjective); });
 
     if (tAnyActiveObjectives)
     {

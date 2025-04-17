@@ -24,7 +24,7 @@ namespace plato::input_parser::unittest
 {
 namespace
 {
-[[maybe_unused]] static const auto kCrossLinkerRegistration = plato::input_parser::ComponentParserRegistration<block_with_geometry_cross_reference, ComponentType::kProcessManager>{};
+[[maybe_unused]] static const auto kCrossLinkerRegistration = plato::input_parser::ComponentParserRegistration<block_with_geometry_cross_reference>{};
 }
 
 TEST(CrossLinkedInput, MakeCrossLinkedInput)

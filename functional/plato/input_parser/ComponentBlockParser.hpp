@@ -42,7 +42,11 @@ class ComponentBlockParser
     /// The result is stored in type-erased wrapper, and so the type of the struct must be known to retrieve the data.
     [[nodiscard]] auto parse(const GenericBlockData& aData) const -> ParsedDataOrError;
 
+    /// @brief Returns the ComponentType of the parser.
+    [[nodiscard]] auto componentType() const -> ComponentType;
+
    private:
+    ComponentType mComponentType;
     std::function<ParsedDataOrError(const GenericBlockData&)> mParseFunction;
 };
 
@@ -52,7 +56,8 @@ template <typename InputType, ComponentType kComponentType>
 
 template <typename InputType, ComponentType kComponentType>
 ComponentBlockParser::ComponentBlockParser(const InputType&, ComponentTypeHelper<kComponentType>)
-    : mParseFunction{
+    : mComponentType{kComponentType},
+      mParseFunction{
           [](const GenericBlockData& aData) -> ParsedDataOrError
           {
               using Parser = ComponentBlockRule<std::string::const_iterator, InputType, kComponentType>;

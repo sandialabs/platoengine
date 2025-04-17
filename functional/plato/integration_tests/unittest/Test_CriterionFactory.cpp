@@ -2,17 +2,20 @@
 
 #include <boost/optional/optional_io.hpp>
 
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
-#include "plato/test_utilities/ValidInputTestFixture.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::integration_tests::serial
 {
 namespace
 {
-struct CriterionFactoryTestFixture : public test_utilities::ValidInputTestFixture
+struct CriterionFactoryTestFixture : public utilities::ValidInputTestFixture
 {
 };
 }  // namespace
@@ -31,25 +34,24 @@ namespace
 
 TEST_F(CriterionFactoryTestFixture, ValidObjective)
 {
-    const auto tData = process_manager::library::make_validated_input(
-        test_utilities::create_valid_density_topology_geometry() | test_utilities::create_valid_example_objective() |
-        test_utilities::create_valid_example_rol_optimization() | test_utilities::create_valid_identity_filter());
+    const auto tData = input_validation::make_validated_input(parsedInput()).value();
 
-    ASSERT_EQ(tData.objectives().rawInput().size(), 1);
-    EXPECT_NO_THROW(auto tFunction = criteria::library::make_criterion_function<criteria::library::CriterionFunction>(
-                        tData.objectives().rawInput().front()));
+    ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1);
+    EXPECT_NO_THROW(auto tFunction =
+                        (criteria::library::make_new_criterion_function<criteria::library::CriterionFunction,
+                                                                        input_parser::new_objective>(
+                            tData.template get<input_parser::ComponentType::kObjective>().rawInput().front())));
 }
 
 TEST_F(CriterionFactoryTestFixture, ValidConstraint)
 {
-    const auto tData = process_manager::library::make_validated_input(
-        test_utilities::create_valid_density_topology_geometry() | test_utilities::create_valid_example_objective() |
-        test_utilities::create_valid_example_constraint() | test_utilities::create_valid_example_rol_optimization() |
-        test_utilities::create_valid_identity_filter());
+    const auto tData = input_validation::make_validated_input(parsedInput()).value();
 
-    ASSERT_EQ(tData.constraints().rawInput().size(), 1);
-    EXPECT_NO_THROW(auto tFunction = criteria::library::make_criterion_function<criteria::library::CriterionFunction>(
-                        tData.constraints().rawInput().front()));
+    ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1);
+    EXPECT_NO_THROW(auto tFunction =
+                        (criteria::library::make_new_criterion_function<criteria::library::CriterionFunction,
+                                                                        input_parser::new_constraint>(
+                            tData.template get<input_parser::ComponentType::kConstraint>().rawInput().front())));
 }
 
 TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
@@ -68,43 +70,40 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
         test_utilities::create_valid_identity_filter_string() +
         test_utilities::create_valid_example_rol_optimization_string();
 
-    const process_manager::library::ValidatedInput tData = process_manager::library::parse_and_validate(tInput);
-    ASSERT_EQ(tData.objectives().rawInput().size(), 1);
-    const core::ValidatedInputTypeWrapper<input_parser::objective> tValidatedObjective =
-        tData.objectives().rawInput().front();
+    const auto tData = input_validation::parse_and_validate_string(tInput).value();
+    ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1);
 
-    const criteria::library::CriterionInput tCriterionInput =
-        criteria::library::to_criterion_input(tValidatedObjective);
-    const input_parser::objective& tObjective = tValidatedObjective.rawInput();
+    const auto tObjective = input_validation::get_input_block<input_parser::new_objective>(
+        tData.get<input_parser::ComponentType::kObjective>().rawInput().front());
+
+    const auto tCriterionInput = criteria::library::to_new_criterion_input(tObjective);
 
     EXPECT_EQ(tObjective.number_of_processors, tCriterionInput.mNumberOfProcessors);
     ASSERT_TRUE(tObjective.input_files.has_value());
     ASSERT_EQ(tObjective.input_files->mList.size(), tCriterionInput.mInputFiles.mList.size());
-    for (std::size_t tIndex = 0; tIndex < tObjective.input_files->mList.size(); ++tIndex)
+    for (const auto& [tObjectiveInputFile, tCriterionInputFile] :
+         plato::utilities::Zip{tObjective.input_files->mList, tCriterionInput.mInputFiles.mList})
     {
-        EXPECT_EQ(tObjective.input_files->mList[tIndex], tCriterionInput.mInputFiles.mList[tIndex]);
+        EXPECT_EQ(tObjectiveInputFile, tCriterionInputFile);
     }
 }
 
 TEST_F(CriterionFactoryTestFixture, ConvertConstraintInput)
 {
-    namespace pftu = plato::test_utilities;
-    const process_manager::library::ValidatedInput tData =
-        process_manager::library::parse_and_validate(create_valid_example_input_string());
-    ASSERT_EQ(tData.constraints().rawInput().size(), 1);
-    const core::ValidatedInputTypeWrapper<input_parser::constraint> tValidatedConstraint =
-        tData.constraints().rawInput().front();
-
-    const criteria::library::CriterionInput tCriterionInput =
-        criteria::library::to_criterion_input(tValidatedConstraint);
-    const input_parser::constraint& tConstraint = tValidatedConstraint.rawInput();
+    const auto tData = input_validation::parse_and_validate_string(create_valid_example_input_string()).value();
+    const auto& tAllConstraints = tData.get<input_parser::ComponentType::kConstraint>().rawInput();
+    ASSERT_EQ(tAllConstraints.size(), 1);
+    const auto& tValidatedConstraint = tAllConstraints.front();
+    const auto& tConstraint = input_validation::get_input_block<input_parser::new_constraint>(tValidatedConstraint);
+    const auto tCriterionInput = criteria::library::to_new_criterion_input(tConstraint);
 
     EXPECT_EQ(tConstraint.number_of_processors, tCriterionInput.mNumberOfProcessors);
     ASSERT_TRUE(tConstraint.input_files.has_value());
     ASSERT_EQ(tConstraint.input_files->mList.size(), tCriterionInput.mInputFiles.mList.size());
-    for (std::size_t tIndex = 0; tIndex < tConstraint.input_files->mList.size(); ++tIndex)
+    for (const auto& [tConstraintInputFile, tCriterionInputFile] :
+         plato::utilities::Zip{tConstraint.input_files->mList, tCriterionInput.mInputFiles.mList})
     {
-        EXPECT_EQ(tConstraint.input_files->mList[tIndex], tCriterionInput.mInputFiles.mList[tIndex]);
+        EXPECT_EQ(tConstraintInputFile, tCriterionInputFile);
     }
 }
 }  // namespace plato::integration_tests::serial

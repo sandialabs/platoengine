@@ -28,34 +28,37 @@ struct CheckRegistrationStatus
         return mRegistrationStatus == RegistrationStatus::kRegistered ? tIsRegistered : !tIsRegistered;
     }
 };
+struct NewCheckRegistrationStatus
+{
+    RegistrationStatus mRegistrationStatus;
+
+    template <typename T>
+    auto operator()(const T& aValidatedProcessInput) const
+    {
+        const auto tIsRegistered =
+            core::is_factory_function_registered<StageAndProcessManager, NewValidatedProcessManagerInput>(
+                aValidatedProcessInput.rawInput().mBlockName);
+        return mRegistrationStatus == RegistrationStatus::kRegistered ? tIsRegistered : !tIsRegistered;
+    }
+};
 
 }  // namespace
 
-[[nodiscard]] std::vector<ProcessManager> make_process_managers(
-    const ValidatedProcessManagerInputVector& aValidatedProcessManagerInput)
+auto make_process_managers(const NewValidatedProcessManagers& aValidatedProcessManagerInput)
+    -> std::vector<ProcessManager>
 {
     auto tProcessManagerMap = std::multimap<RunStage, ProcessManager>{};
     utilities::transform_if(
         aValidatedProcessManagerInput.rawInput(), std::inserter(tProcessManagerMap, tProcessManagerMap.begin()),
         [](const auto& aValidatedProcessInput)
         {
-            return core::create_object_from_factory<StageAndProcessManager, ValidatedProcessManagerInput>(
-                       core::block_name(aValidatedProcessInput), aValidatedProcessInput)
+            return core::create_object_from_factory<StageAndProcessManager, NewValidatedProcessManagerInput>(
+                       aValidatedProcessInput.rawInput().mBlockName, aValidatedProcessInput)
                 .value();
         },
-        CheckRegistrationStatus{RegistrationStatus::kRegistered});
+        NewCheckRegistrationStatus{RegistrationStatus::kRegistered});
 
     return to_stage_ordered_vector(tProcessManagerMap);
 }
 
-auto unregistered_process_managers(const ValidatedProcessManagerInputVector& aValidatedProcessManagerInput)
-    -> std::vector<std::string>
-{
-    auto tUnregisteredProcessManagers = std::vector<std::string>{};
-    utilities::transform_if(
-        aValidatedProcessManagerInput.rawInput(), std::back_inserter(tUnregisteredProcessManagers),
-        [](const auto& aValidatedProcessInput) { return std::string{core::block_name(aValidatedProcessInput)}; },
-        CheckRegistrationStatus{RegistrationStatus::kUnregistered});
-    return tUnregisteredProcessManagers;
-}
 }  // namespace plato::process_manager::library

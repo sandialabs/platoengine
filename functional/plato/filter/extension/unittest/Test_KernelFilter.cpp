@@ -15,7 +15,6 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
@@ -172,7 +171,7 @@ TEST(KernelFilter, SingleHexNodalCentered)
 
 TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
 {
-    auto tInput = plato::test_utilities::create_valid_kernel_filter();
+    auto tInput = create_valid_kernel_filter_input();
     tInput.filter_radius = 5e-1;
     auto tFilterCache = detail::create_filter_cache(tInput);
 
@@ -228,7 +227,7 @@ TEST(KernelFilterDetail, FilterCache_DummyCallCounts)
 
 TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
 {
-    auto tFilterCache = detail::create_filter_cache(plato::test_utilities::create_valid_kernel_filter());
+    auto tFilterCache = detail::create_filter_cache(create_valid_kernel_filter_input());
 
     // make mesh and filter
     {

@@ -3,19 +3,14 @@
 
 #include <optional>
 #include <string>
-#include <vector>
 
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
 
-namespace plato::process_manager::library
+namespace plato::process_manager::library::detail
 {
-namespace detail
-{
-[[nodiscard]] std::optional<std::string> validate_at_least_one_process_manager(const input_parser::ParsedInput& aInput);
-}
-
-[[nodiscard]] std::vector<std::string> validate_process_managers(const input_parser::ParsedInput& aInput,
-                                                                 std::vector<std::string>&& aCurrentMessageList);
-}  // namespace plato::process_manager::library
+/// @brief Checks that at least one process manager appears in the input. If not, an error message is returned.
+[[nodiscard]] auto validate_at_least_one_process_manager(const input_parser::NewParsedInput& aInput)
+    -> std::optional<std::string>;
+}  // namespace plato::process_manager::library::detail
 
 #endif

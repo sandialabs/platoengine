@@ -9,6 +9,7 @@
 #include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/utilities/EnumIndexing.hpp"
 #include "plato/utilities/Expected.hpp"
+#include "plato/utilities/TransformIf.hpp"
 
 namespace plato::input_parser
 {
@@ -22,6 +23,8 @@ namespace plato::input_parser
 class NewParsedInput
 {
    public:
+    NewParsedInput() = default;
+
     /// @brief @a aRawInput is the result of parsing an input deck without organizing the results by component type.
     NewParsedInput(std::vector<InputDataBlock> aRawInput);
 
@@ -29,8 +32,15 @@ class NewParsedInput
     template <ComponentType kComponentType>
     [[nodiscard]] auto get() const -> const std::vector<InputDataBlock>&;
 
+    /// @brief Returns the parsed input blocks corresponding to @a kComponentType
     template <ComponentType kComponentType>
     [[nodiscard]] auto get() -> std::vector<InputDataBlock>&;
+
+    /// @brief Returns the parsed input blocks corresponding to the type @a InputType
+    ///
+    /// This may be used to retrieve a specific input block.
+    template <typename InputType>
+    [[nodiscard]] auto get() const -> std::vector<InputType>;
 
    private:
     static constexpr inline std::size_t kNumberOfComponents = utilities::number_of_enumerates<ComponentType>();
@@ -63,6 +73,19 @@ auto NewParsedInput::get() const -> const std::vector<InputDataBlock>&
     return std::get<utilities::enum_index(kComponentType)>(mInputBlocks);
 }
 
+template <typename InputType>
+auto NewParsedInput::get() const -> std::vector<InputType>
+{
+    constexpr auto tComponentType = ComponentTypeOfInputBlock<InputType>::value;
+    const auto& tInputsWithComponentType = get<tComponentType>();
+
+    auto tInputsWithType = std::vector<InputType>{};
+    utilities::transform_if(
+        tInputsWithComponentType, std::back_inserter(tInputsWithType),
+        [](const auto& aInputBlock) { return aInputBlock.mInput.template get<InputType>(); },
+        [](const auto& aInputBlock) { return aInputBlock.mInput.template holds_expected_type<InputType>(); });
+    return tInputsWithType;
+}
 }  // namespace plato::input_parser
 
 #endif

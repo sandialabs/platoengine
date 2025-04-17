@@ -6,7 +6,7 @@
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/geometry/library/GeometryFactory.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 
 namespace plato::process_manager::library
 {
@@ -19,7 +19,7 @@ struct ProcessManagerData
 };
 
 ///@brief Convert validated parsed input into a populated ProcessManagerData struct
-[[nodiscard]] ProcessManagerData make_process_manager_data(const ValidatedInput& aData);
+[[nodiscard]] auto make_process_manager_data(const input_validation::ValidatedInput& aData) -> ProcessManagerData;
 
 }  // namespace plato::process_manager::library
 

@@ -1,13 +1,43 @@
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
 
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/filter/extension/IdentityFilter.hpp"
+#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/process_manager/extension/ROLOptimization.hpp"
+
 namespace plato::integration_tests::utilities
 {
-auto create_valid_example_input() -> input_parser::ParsedInput
+namespace
 {
-//    return create_valid_example_objective() | create_valid_example_constraint() |
-//           create_valid_density_topology_geometry() | create_valid_example_rol_optimization() |
-//           create_valid_identity_filter();
-    return input_parser::ParsedInput{};
+[[nodiscard]] auto create_valid_element_centered_kernel_filter() -> input_parser::new_kernel_filter
+{
+    return input_parser::new_kernel_filter{
+        /*.filter_radius=*/2.0,
+        /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kElementCentered,
+        /*.use_relative_radius=*/false,
+        /*.number_of_processors*/ 1U};
+}
+
+}  // namespace
+
+auto create_valid_example_input() -> input_parser::NewParsedInput
+{
+    return geometry::extension::create_valid_density_topology_geometry_input() |
+           filter::extension::create_valid_identity_filter_input() |
+           criteria::library::create_valid_example_constraint_input() |
+           criteria::library::create_valid_example_objective_input() |
+           process_manager::extension::create_valid_example_rol_optimization_input();
+}
+
+auto create_valid_density_topology_geometry_with_element_centered_kernel_filter_input(
+    const std::filesystem::path& aMeshPath) -> input_parser::NewParsedInput
+{
+    auto tGeometry = geometry::extension::create_valid_density_topology_geometry_input();
+    tGeometry.mesh_name = input_parser::FileName{aMeshPath.string()};
+    return tGeometry | create_valid_element_centered_kernel_filter();
 }
 
 }  // namespace plato::integration_tests::utilities

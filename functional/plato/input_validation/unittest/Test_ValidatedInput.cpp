@@ -12,6 +12,11 @@
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
+namespace
+{
+using GeometryNewCrossReference = plato::input_parser::NewCrossReference<plato::input_parser::ComponentType::kGeometry>;
+}
+
 // Define input structs
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
@@ -20,9 +25,10 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          (int, wolverine, ""))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
-                         dc, plato::input_parser::ComponentType::kConstraint,
-                         (bool, superman, "")
-                         (unsigned int, batman, ""))
+                               dc, plato::input_parser::ComponentType::kConstraint,
+                               (bool, superman, "")
+                               (unsigned int, batman, "")
+                               (GeometryNewCrossReference, multiverse, ""))
 // clang-format on
 
 namespace plato::input_validation::unittest
@@ -36,7 +42,8 @@ constexpr auto kDCValidationErrorMessage = std::string_view{"DC error!"};
 constexpr auto kParsedInputValidationErrorMessage = std::string_view{"Multiverse error!"};
 
 const auto kValidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/100};
-const auto kValidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.superman=*/true, /*.batman=*/100U};
+const auto kValidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.superman=*/true, /*.batman=*/100U,
+                                       /*.multiverse=*/boost::none};
 
 [[nodiscard]] auto validate_wolverine(const boost::optional<int> aWolverine) -> std::optional<std::string>
 {
@@ -93,8 +100,8 @@ class ValidatedInputFileFixture : public test_utilities::FileCreatingTestFixture
     ValidatedInputFileFixture() : test_utilities::FileCreatingTestFixture{kInputFilePath} {}
 };
 
-auto make_test_input(const std::optional<input_parser::marvel>& aMarvelInput,
-                     const std::optional<input_parser::dc>& aDCInput) -> input_parser::CrossLinkedInput
+auto make_test_parsed_input(const std::optional<input_parser::marvel>& aMarvelInput,
+                            const std::optional<input_parser::dc>& aDCInput) -> input_parser::NewParsedInput
 {
     auto tInputs = std::vector<input_parser::InputDataBlock>{};
     if (aMarvelInput)
@@ -107,38 +114,64 @@ auto make_test_input(const std::optional<input_parser::marvel>& aMarvelInput,
         tInputs.push_back(input_parser::InputDataBlock{input_parser::ComponentType::kConstraint, "dc",
                                                        input_parser::CrossReferencedInput{aDCInput.value()}});
     }
-    const auto tCrossLinkedInput =
-        input_parser::make_cross_linked_input(input_parser::NewParsedInput{std::move(tInputs)});
+    return input_parser::NewParsedInput{std::move(tInputs)};
+}
+
+auto make_test_input(const std::optional<input_parser::marvel>& aMarvelInput,
+                     const std::optional<input_parser::dc>& aDCInput)
+{
+    auto tCrossLinkedInput = input_parser::make_cross_linked_input(make_test_parsed_input(aMarvelInput, aDCInput));
     EXPECT_TRUE(tCrossLinkedInput.hasValue());
-    return tCrossLinkedInput.value();
+    return tCrossLinkedInput;
 }
 
 }  // namespace
 
 TEST_F(ValidatedInputRegistrationFixture, ConstructionValidInput)
 {
-    const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
-    const auto tValidatedInput = make_validated_input(tCrossLinkedInput);
-    ASSERT_TRUE(tValidatedInput.hasValue());
+    {
+        const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
+        ASSERT_TRUE(tCrossLinkedInput.hasValue());
+        const auto tValidatedInput = make_validated_input(tCrossLinkedInput.value());
+        EXPECT_TRUE(tValidatedInput.hasValue());
+    }
+    {
+        const auto tParsedInput = make_test_parsed_input(kValidMarvel, kValidDC);
+        const auto tValidatedInput = make_validated_input(tParsedInput);
+        EXPECT_TRUE(tValidatedInput.hasValue());
+    }
 }
 
 TEST_F(ValidatedInputRegistrationFixture, ConstructionOneEntryInvalidInput)
 {
     const auto kInvalidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/101};
-    const auto tCrossLinkedInput = make_test_input(kInvalidMarvel, std::nullopt);
-    const auto tValidatedInput = make_validated_input(tCrossLinkedInput);
 
-    ASSERT_TRUE(tValidatedInput.hasError());
-    EXPECT_EQ(tValidatedInput.error(), kMarvelValidationErrorMessage);
+    const auto tCheckErrors = [](const auto& aValidatedInputOrError, const test_utilities::TestContext& aTestContext)
+    {
+        ASSERT_TRUE(aValidatedInputOrError.hasError()) << aTestContext;
+        EXPECT_EQ(aValidatedInputOrError.error(), kMarvelValidationErrorMessage) << aTestContext;
+    };
+    {
+        const auto tCrossLinkedInput = make_test_input(kInvalidMarvel, std::nullopt);
+        ASSERT_TRUE(tCrossLinkedInput.hasValue());
+        const auto tValidatedInput = make_validated_input(tCrossLinkedInput.value());
+        tCheckErrors(tValidatedInput, TEST_CONTEXT("Using make_test_input"));
+    }
+    {
+        const auto tParsedInput = make_test_parsed_input(kInvalidMarvel, std::nullopt);
+        const auto tValidatedInput = make_validated_input(tParsedInput);
+        tCheckErrors(tValidatedInput, TEST_CONTEXT("Using make_test_parsed_input"));
+    }
 }
 
 TEST_F(ValidatedInputRegistrationFixture, ConstructionTwoEntriesInvalidInput)
 {
     const auto kInvalidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/101};
-    const auto kInvalidDC =
-        input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.superman=*/boost::none, /*.batman=*/100U};
+    const auto kInvalidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.superman=*/boost::none,
+                                             /*.batman=*/100U, /*.multiverse=*/GeometryNewCrossReference{}};
     const auto tCrossLinkedInput = make_test_input(kInvalidMarvel, kInvalidDC);
-    const auto tValidatedInput = make_validated_input(tCrossLinkedInput);
+    ASSERT_TRUE(tCrossLinkedInput.hasValue());
+    const auto tValidatedInput = make_validated_input(tCrossLinkedInput.value());
 
     ASSERT_TRUE(tValidatedInput.hasError());
     EXPECT_EQ(tValidatedInput.error(),
@@ -147,17 +180,40 @@ TEST_F(ValidatedInputRegistrationFixture, ConstructionTwoEntriesInvalidInput)
 
 TEST_F(ValidatedInputRegistrationFixture, ConstructionInvalidParsedInput)
 {
+    // No parsers are registered, so no cross-link errors should occur
     const auto tCrossLinkedInput = make_test_input(std::nullopt, kValidDC);
-    const auto tValidatedInput = make_validated_input(tCrossLinkedInput);
+    ASSERT_TRUE(tCrossLinkedInput.hasValue());
+    const auto tValidatedInput = make_validated_input(tCrossLinkedInput.value());
 
     ASSERT_TRUE(tValidatedInput.hasError());
     EXPECT_EQ(tValidatedInput.error(), std::string{kParsedInputValidationErrorMessage});
 }
 
+TEST_F(ValidatedInputRegistrationFixture, ConstructionInvalidCrossLinkedInput)
+{
+    [[maybe_unused]] const auto kLandCreaturesParserRegistration =
+        input_parser::ComponentParserRegistration<input_parser::marvel>{};
+    [[maybe_unused]] const auto kSeaCreaturesParserRegistration =
+        input_parser::ComponentParserRegistration<input_parser::dc>{};
+
+    const auto tParsedInput = make_test_parsed_input(std::nullopt, kValidDC);
+    const auto tValidatedInput = make_validated_input(tParsedInput);
+
+    ASSERT_TRUE(tValidatedInput.hasError());
+    const auto tExpectedError = std::string{
+        "Error satisfying cross-reference for dc: No components are defined that match the cross-reference's required "
+        "component type"};
+    EXPECT_EQ(tValidatedInput.error(), tExpectedError);
+
+    input_parser::registered_component_parsers().clear();
+    input_parser::registered_cross_linkers().clear();
+}
+
 TEST_F(ValidatedInputRegistrationFixture, GetMember)
 {
     const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
-    const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput);
+    ASSERT_TRUE(tCrossLinkedInput.hasValue());
+    const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput.value());
 
     ASSERT_TRUE(tValidatedInputOrError.hasValue());
     const auto& tValidatedInput = tValidatedInputOrError.value();
@@ -189,7 +245,8 @@ TEST_F(ValidatedInputRegistrationFixture, GetMember)
 TEST_F(ValidatedInputRegistrationFixture, GetNamedMember)
 {
     const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
-    const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput);
+    ASSERT_TRUE(tCrossLinkedInput.hasValue());
+    const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput.value());
     const auto& tValidatedInput = tValidatedInputOrError.value();
     const auto tGeometryInput = tValidatedInput.get<input_parser::ComponentType::kGeometry>().rawInput();
     EXPECT_EQ(tGeometryInput.mComponentType, input_parser::ComponentType::kGeometry);
@@ -204,7 +261,8 @@ TEST_F(ValidatedInputRegistrationFixture, GetNamedMember)
 TEST_F(ValidatedInputRegistrationFixture, GetInputBlock)
 {
     const auto tCrossLinkedInput = make_test_input(kValidMarvel, kValidDC);
-    const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput);
+    ASSERT_TRUE(tCrossLinkedInput.hasValue());
+    const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput.value());
 
     ASSERT_TRUE(tValidatedInputOrError.hasValue());
     const auto& tValidatedInput = tValidatedInputOrError.value();
@@ -218,9 +276,8 @@ TEST_F(ValidatedInputRegistrationFixture, GetInputBlock)
 TEST_F(ValidatedInputFileFixture, ParseAndValidate)
 {
     [[maybe_unused]] const auto tMarvelParserRegistration =
-        input_parser::ComponentParserRegistration<input_parser::marvel, input_parser::ComponentType::kGeometry>{};
-    [[maybe_unused]] const auto tDCParserRegistration =
-        input_parser::ComponentParserRegistration<input_parser::dc, input_parser::ComponentType::kConstraint>{};
+        input_parser::ComponentParserRegistration<input_parser::marvel>{};
+    [[maybe_unused]] const auto tDCParserRegistration = input_parser::ComponentParserRegistration<input_parser::dc>{};
 
     const auto tCheckParsedInput =
         [](const auto& aValidatedInputOrError, const test_utilities::TestContext& aTestContext)
@@ -263,6 +320,9 @@ TEST_F(ValidatedInputFileFixture, ParseAndValidate)
         const auto tValidatedInputOrError = parse_and_validate_file(filePath());
         tCheckParsedInput(tValidatedInputOrError, TEST_CONTEXT("Parsed from file"));
     }
+
+    input_parser::registered_component_parsers().clear();
+    input_parser::registered_cross_linkers().clear();
 }
 
 }  // namespace plato::input_validation::unittest

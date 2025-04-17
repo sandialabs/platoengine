@@ -84,4 +84,16 @@ auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
     }
     return utilities::unexpected(utilities::concatenate_container(tErrorMessages, "\n"));
 }
+
+auto make_validated_input(const input_parser::NewParsedInput& aInput)
+    -> utilities::Expected<ValidatedInput, std::string>
+{
+    const auto tCrossLinkedInputOrError = input_parser::make_cross_linked_input(aInput);
+    if (tCrossLinkedInputOrError.hasError())
+    {
+        return utilities::unexpected(tCrossLinkedInputOrError.error());
+    }
+    return make_validated_input(tCrossLinkedInputOrError.value());
+}
+
 }  // namespace plato::input_validation

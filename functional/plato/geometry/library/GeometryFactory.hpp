@@ -21,6 +21,7 @@ namespace plato::geometry::library
 /// The bound constraints are generated from the specific geometry representation, such as
 /// all 0 lower bounds and all 1 upper bounds for density topology optimization.
 [[nodiscard]] FactoryTypes make_geometry_data(const ValidatedGeometryInput& aGeometryInput);
+[[nodiscard]] auto make_geometry_data(const NewValidatedGeometryInput& aGeometryInput) -> FactoryTypes;
 
 }  // namespace plato::geometry::library
 

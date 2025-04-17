@@ -128,6 +128,13 @@ template <ComponentType kComponentType>
 [[maybe_unused]] constexpr auto kIsNamedComponent =
     kComponentType == ComponentType::kConstraint || kComponentType == ComponentType::kObjective;
 
+/// @brief Specifies whether a component is unique in the input deck.
+///
+/// This indicates whether the component must only appear once in an input deck.
+template <ComponentType kComponentType>
+[[maybe_unused]] constexpr auto kIsUniqueComponent =
+    kComponentType == ComponentType::kFilter || kComponentType == ComponentType::kGeometry;
+
 /// @brief A parser for a struct as key-value pairs.
 ///
 /// This is meant to be instantiated by components for their specific input types.

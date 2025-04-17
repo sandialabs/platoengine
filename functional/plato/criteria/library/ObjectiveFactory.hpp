@@ -37,19 +37,16 @@ using ParallelAggregateObjective =
 /// all objectives in parallel. For example, if there are three objectives requesting 1, 2, and 3 ranks respectively,
 /// then plato must be run with 6 ranks. If all objectives are serial, then any number of ranks may be used and
 /// objectives will be run in parallel as appropriate.
-[[nodiscard]] ObjectiveFunction make_aggregate_objective_function(const ValidatedObjectives& aInput);
 [[nodiscard]] auto make_aggregate_objective_function(const NewValidatedObjectives& aInput) -> ObjectiveFunction;
 
 /// @brief Returns the number of processors required for each objective.
 /// @post The size of the returned vector is equal to the number of active objectives in @a aInput.
 /// @post The order of the entries in the returned vector matches the order of the entries in @a aInput.
-[[nodiscard]] std::vector<unsigned int> number_of_processors_per_objective(const ValidatedObjectives& aInput);
 [[nodiscard]] auto number_of_processors_per_objective(const NewValidatedObjectives& aInput)
     -> std::vector<unsigned int>;
 
 namespace detail
 {
-[[nodiscard]] ParallelAggregateObjective make_parallel_aggregate(const ValidatedObjectives& aInput);
 [[nodiscard]] auto make_parallel_aggregate(const NewValidatedObjectives& aInput) -> ParallelAggregateObjective;
 }  // namespace detail
 

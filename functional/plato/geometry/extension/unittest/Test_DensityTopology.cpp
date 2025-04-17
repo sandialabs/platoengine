@@ -36,7 +36,7 @@ using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWi
 namespace
 {
 
-const auto kDensityInput = plato::test_utilities::create_valid_density_topology_geometry();
+const auto kDensityInput = create_valid_density_topology_geometry_input();
 
 constexpr unsigned int kExpectedDensitySize = 8;  // Based on mesh generation command below (1x1x1)
 
@@ -160,7 +160,8 @@ TEST(DensityTopology, InitialGuess)
 namespace
 {
 [[nodiscard]] auto density_input_for_test_fixture(const std::filesystem::path& aMeshName,
-                                                  const std::string_view aFieldName) -> input_parser::density_topology
+                                                  const std::string_view aFieldName)
+    -> input_parser::new_density_topology
 {
     auto tDensityInput = kDensityInput;
     tDensityInput.initial_density_value = boost::none;

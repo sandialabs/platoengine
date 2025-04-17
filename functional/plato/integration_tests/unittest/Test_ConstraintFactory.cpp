@@ -1,66 +1,75 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/filter/extension/IdentityFilter.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
-#include "plato/test_utilities/ValidInputTestFixture.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::integration_tests::serial
 {
 namespace
 {
-struct ConstraintFactoryTestFixture : public test_utilities::ValidInputTestFixture
+struct ConstraintFactoryTestFixture : public utilities::ValidInputTestFixture
 {
 };
-
-auto create_raw_input() -> input_parser::ParsedInput
-{
-    return test_utilities::create_valid_density_topology_geometry() | test_utilities::create_valid_example_objective() |
-           test_utilities::create_valid_example_constraint() | test_utilities::create_valid_example_rol_optimization() |
-           test_utilities::create_valid_identity_filter();
-}
 
 void test_constraint_type_and_value(
     const criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>& aConstraint,
     const double aGoldValue,
-    const criteria::library::ConstraintType aType)
+    const criteria::library::ConstraintType aType,
+    const test_utilities::TestContext& aTestContext)
 {
-    EXPECT_TRUE(aConstraint.mLinear);
-    EXPECT_EQ(aConstraint.mConstraintTarget, aGoldValue);
-    EXPECT_EQ(aConstraint.mConstraintType, aType);
+    EXPECT_TRUE(aConstraint.mLinear) << aTestContext;
+    EXPECT_EQ(aConstraint.mConstraintTarget, aGoldValue) << aTestContext;
+    EXPECT_EQ(aConstraint.mConstraintType, aType) << aTestContext;
 }
 
-[[nodiscard]] auto get_first_constraint(const input_parser::ParsedInput& aInput)
-    -> criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>
+[[nodiscard]] auto get_first_constraint(const input_parser::NewParsedInput& aInput)
 {
-    const auto tData = process_manager::library::make_validated_input(aInput);
-    return criteria::library::detail::make_constraint(tData.constraints().rawInput().front());
+    const auto tData = input_validation::make_validated_input(aInput).value();
+    return criteria::library::detail::make_constraint(
+        tData.get<input_parser::ComponentType::kConstraint>().rawInput().front());
 }
 
 }  // namespace
 
 TEST_F(ConstraintFactoryTestFixture, ValidEqualityConstraint)
 {
-    const auto tRawInput = create_raw_input();
+    auto tInputBase = parsedInput();
+    tInputBase.template get<input_parser::ComponentType::kConstraint>().clear();
+    const auto tRawInput = tInputBase | criteria::library::create_valid_example_constraint_input();
 
-    test_constraint_type_and_value(get_first_constraint(tRawInput), 0.0, criteria::library::ConstraintType::kEqualTo);
+    test_constraint_type_and_value(get_first_constraint(tRawInput), 0.0, criteria::library::ConstraintType::kEqualTo,
+                                   TEST_CONTEXT("Equality constraint"));
 }
 
 TEST_F(ConstraintFactoryTestFixture, ValidInequalityConstraint)
 {
-    auto tRawInput = create_raw_input();
+    auto tInputBase = parsedInput();
+    tInputBase.template get<input_parser::ComponentType::kConstraint>().clear();
     {
-        tRawInput.mConstraints[0].constraint_type = input_parser::ConstraintTypes::kLessThan;
-        tRawInput.mConstraints[0].constraint_value = 1;
-        test_constraint_type_and_value(get_first_constraint(tRawInput), 1.0,
-                                       criteria::library::ConstraintType::kLessThan);
+        constexpr auto tConstraintValue = 1.0;
+        auto tConstraintInput = criteria::library::create_valid_example_constraint_input();
+        tConstraintInput.constraint_type = input_parser::ConstraintTypes::kLessThan;
+        tConstraintInput.constraint_value = tConstraintValue;
+        auto tRawInput = tInputBase | tConstraintInput;
+        test_constraint_type_and_value(get_first_constraint(tRawInput), tConstraintValue,
+                                       criteria::library::ConstraintType::kLessThan, TEST_CONTEXT("Less than"));
     }
     {
-        tRawInput.mConstraints[0].constraint_type = input_parser::ConstraintTypes::kGreaterThan;
-        tRawInput.mConstraints[0].constraint_value = 2;
-        test_constraint_type_and_value(get_first_constraint(tRawInput), 2.0,
-                                       criteria::library::ConstraintType::kGreaterThan);
+        constexpr auto tConstraintValue = 2.0;
+        auto tConstraintInput = criteria::library::create_valid_example_constraint_input();
+        tConstraintInput.constraint_type = input_parser::ConstraintTypes::kGreaterThan;
+        tConstraintInput.constraint_value = tConstraintValue;
+        auto tRawInput = tInputBase | tConstraintInput;
+        test_constraint_type_and_value(get_first_constraint(tRawInput), tConstraintValue,
+                                       criteria::library::ConstraintType::kGreaterThan, TEST_CONTEXT("Greater than"));
     }
 }
 

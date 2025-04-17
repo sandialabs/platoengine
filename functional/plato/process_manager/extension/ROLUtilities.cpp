@@ -57,45 +57,6 @@ void write_parameters(const input_parser::new_rol_optimization& aOptimizationPar
     }
 }
 
-[[nodiscard]] auto load_file_or_use_default_parameters(const ValidOptimizationParameters& aOptimizationParameters)
-    -> third_party_integration::rol::OptimizationParameters
-{
-    if (aOptimizationParameters.rawInput().input_file_name)
-    {
-        return third_party_integration::rol::OptimizationParameters(
-            aOptimizationParameters.rawInput().input_file_name.value().mToken);
-    }
-    return third_party_integration::rol::OptimizationParameters();
-}
-
-void apply_verbose_output(const ValidOptimizationParameters& aOptimizationParameters,
-                          third_party_integration::rol::OptimizationParameters& aParameters)
-{
-    if (aOptimizationParameters.rawInput().verbose_output && aOptimizationParameters.rawInput().verbose_output.value())
-    {
-        aParameters.verbose();
-    }
-}
-
-void apply_approximate_hessian(const ValidOptimizationParameters& aOptimizationParameters,
-                               third_party_integration::rol::OptimizationParameters& aParameters)
-{
-    if (aOptimizationParameters.rawInput().approximate_hessian &&
-        aOptimizationParameters.rawInput().approximate_hessian.value())
-    {
-        aParameters.approximateHessian();
-    }
-}
-
-void write_parameters(const ValidOptimizationParameters& aOptimizationParameters,
-                      third_party_integration::rol::OptimizationParameters& aParameters)
-{
-    if (aOptimizationParameters.rawInput().export_settings_file_name)
-    {
-        aParameters.writeParameters(aOptimizationParameters.rawInput().export_settings_file_name.value().mToken);
-    }
-}
-
 }  // namespace
 
 auto make_rol_objective(const library::ProcessManagerData& aProblem, geometry::library::OutputManager aOutputManager)
@@ -152,27 +113,6 @@ auto make_rol_problem(const library::ProcessManagerData& aProblem,
     constexpr bool tPrintToStream = true;
     tROLProblem->finalize(tLumpConstraints, tPrintToStream, std::cout);
     return {tROLProblem, tControls};
-}
-
-auto make_optimization_parameters(const ValidOptimizationParameters& aOptimizationParameters)
-    -> third_party_integration::rol::OptimizationParameters
-{
-    third_party_integration::rol::OptimizationParameters tParameters =
-        load_file_or_use_default_parameters(aOptimizationParameters);
-
-    tParameters.maximumIterations(utilities::to_std_optional(aOptimizationParameters.rawInput().max_iterations));
-    tParameters.gradientTolerance(utilities::to_std_optional(aOptimizationParameters.rawInput().gradient_tolerance));
-    tParameters.stepTolerance(utilities::to_std_optional(aOptimizationParameters.rawInput().step_tolerance));
-    tParameters.initialSearchRadius(
-        utilities::to_std_optional(aOptimizationParameters.rawInput().initial_search_radius));
-    tParameters.writeOutputHistory(
-        utilities::to_std_optional(aOptimizationParameters.rawInput().output_design_history));
-
-    apply_verbose_output(aOptimizationParameters, tParameters);
-    apply_approximate_hessian(aOptimizationParameters, tParameters);
-    write_parameters(aOptimizationParameters, tParameters);
-
-    return tParameters;
 }
 
 auto make_rol_solver(Teuchos::ParameterList& aROLOptions, const ROL::Ptr<ROL::Problem<double>>& aROLProblem)

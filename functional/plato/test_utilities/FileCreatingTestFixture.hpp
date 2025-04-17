@@ -14,7 +14,7 @@ namespace plato::test_utilities
 /// gtest requires an empty constructor for test fixtures, so the most convenient way to use this fixture is to
 /// make a derived class in the test cpp file with an empty constructor that constructs this class with the correct file
 /// path.
-class FileCreatingTestFixture : public ::testing::Test
+class FileCreatingTestFixture : virtual public ::testing::Test
 {
    public:
     FileCreatingTestFixture(std::filesystem::path aFilePath);

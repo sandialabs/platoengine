@@ -34,6 +34,12 @@ namespace plato::input_validation
 /// }
 /// @endcode
 ///
+/// @note Registered validation functions should check only one thing at a time to provide the best error messages.
+/// @warning Registered validation functions must not assume that any other part of the input is valid, mainly because
+/// there is no guarantee of the order of execution of validation functions. If a validation check is dependent on
+/// another part of the input, it should check it but exit with no error if it finds an issue with that data, and rely
+/// on other checks to provide error messages.
+///
 /// @tparam ValidationInput The type of the input data needed by the validation function as an argument.
 template <typename ValidationInput, typename... AdditionalArgs>
 struct ValidationRegistration
@@ -96,8 +102,7 @@ template <typename ValidationInput, typename... AdditionalArgs>
                             std::vector<std::string>&& aCurrentMessageList,
                             const AdditionalArgs&... aArgs) -> std::vector<std::string>
 {
-    const auto tTests = detail::registered_validation_functions<ValidationInput, AdditionalArgs...>();
-    for (const auto& tTest : tTests)
+    for (const auto& tTest : detail::registered_validation_functions<ValidationInput, AdditionalArgs...>())
     {
         if (auto tMessage = tTest.validate(aInput, aArgs...))
         {

@@ -7,11 +7,6 @@
 
 namespace plato::criteria::library
 {
-/// @brief Validates all objective inputs in @a aInput, returning all error messages and appending to @a
-/// aCurrentMessageList.
-[[nodiscard]] auto validate_objectives(const std::vector<input_parser::objective>& aInput,
-                                       std::vector<std::string>&& aCurrentMessageList) -> std::vector<std::string>;
-
 /// @brief Returns `true` if any objective input in @a aInput has a value of more than one in its
 ///  `number_of_processors` field.
 [[nodiscard]] auto has_parallel_objective(const std::vector<input_parser::new_objective>& aInput) -> bool;

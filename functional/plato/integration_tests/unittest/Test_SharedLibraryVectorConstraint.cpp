@@ -6,7 +6,9 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassConstraintVectorInterface.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
@@ -72,12 +74,15 @@ TEST_F(OneBlock3x1x1HexMesh, MakeCriterionAndCallValue)
     };
 
     {
-        const auto tCriterion = criteria::library::make_criterion_function<criteria::library::VectorCriterionFunction>(
-            tValidatedInput.constraints().rawInput().front());
-        tCheckMassDensities(tCriterion, TEST_CONTEXT("Test with make_criterion_function"));
+        const auto tCriterion =
+            criteria::library::make_new_criterion_function<criteria::library::VectorCriterionFunction,
+                                                           input_parser::new_constraint>(
+                tValidatedInput.get<input_parser::ComponentType::kConstraint>().rawInput().front());
+        tCheckMassDensities(tCriterion, TEST_CONTEXT("Test with make_new_criterion_function"));
     }
     {
-        const auto tConstraints = criteria::library::make_constraints(tValidatedInput.constraints());
+        const auto tConstraints =
+            criteria::library::make_constraints(tValidatedInput.get<input_parser::ComponentType::kConstraint>());
 
         constexpr auto tExpectedNumberOfConstraints = 1U;
         ASSERT_EQ(tConstraints.size(), tExpectedNumberOfConstraints);

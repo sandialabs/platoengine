@@ -14,37 +14,37 @@ namespace plato::input_validation
 {
 /// @return an optional error message if @a aParameter does not contain a value.
 template <typename T>
-[[nodiscard]] std::optional<std::string> error_message_for_empty_parameter(const std::string_view aPrependString,
-                                                                           const boost::optional<T>& aParameter,
-                                                                           const std::string_view aEntryName);
+[[nodiscard]] auto error_message_for_empty_parameter(const std::string_view aPrependString,
+                                                     const boost::optional<T>& aParameter,
+                                                     const std::string_view aEntryName) -> std::optional<std::string>;
 
 /// @return an optional error message if @a aParameter does not fall between @a aLowerBound and @a aUpperBound
 template <typename T>
-[[nodiscard]] std::optional<std::string> error_message_for_parameter_out_of_bounds(
-    const std::string_view aPrependString,
-    const boost::optional<T>& aParameter,
-    const std::string_view aEntryName,
-    const plato::utilities::ParameterBounds<T>& aBounds);
+[[nodiscard]] auto error_message_for_parameter_out_of_bounds(const std::string_view aPrependString,
+                                                             const boost::optional<T>& aParameter,
+                                                             const std::string_view aEntryName,
+                                                             const plato::utilities::ParameterBounds<T>& aBounds)
+    -> std::optional<std::string>;
 
 /// @return an optional error message if @a aParameter exists and does not fall between @a aLowerBound and @a
 /// aUpperBound
 /// No error message if aParameter doesn't exist
 template <typename T>
-[[nodiscard]] std::optional<std::string> error_message_for_optional_parameter_out_of_bounds(
+[[nodiscard]] auto error_message_for_optional_parameter_out_of_bounds(
     const std::string_view aPrependString,
     const boost::optional<T>& aParameter,
     const std::string_view aEntryName,
-    const plato::utilities::ParameterBounds<T>& aBounds);
+    const plato::utilities::ParameterBounds<T>& aBounds) -> std::optional<std::string>;
 
 /// @brief Checks if the objective or constraint given by @a aParameter should be included in the optimization problem.
 /// @tparam Must have a public field `active` that is a `boost` or `std::optional`.
 template <typename Parameter>
-[[nodiscard]] bool is_active(const Parameter& aParameter);
+[[nodiscard]] auto is_active(const Parameter& aParameter) -> bool;
 
 template <typename T>
-std::optional<std::string> error_message_for_empty_parameter(const std::string_view aPrependString,
-                                                             const boost::optional<T>& aParameter,
-                                                             const std::string_view aEntryName)
+auto error_message_for_empty_parameter(const std::string_view aPrependString,
+                                       const boost::optional<T>& aParameter,
+                                       const std::string_view aEntryName) -> std::optional<std::string>
 {
     if (!aParameter)
     {
@@ -57,11 +57,11 @@ std::optional<std::string> error_message_for_empty_parameter(const std::string_v
 }
 
 template <typename T>
-std::optional<std::string> error_message_for_parameter_out_of_bounds(
-    const std::string_view aPrependString,
-    const boost::optional<T>& aParameter,
-    const std::string_view aEntryName,
-    const plato::utilities::ParameterBounds<T>& aBounds)
+auto error_message_for_parameter_out_of_bounds(const std::string_view aPrependString,
+                                               const boost::optional<T>& aParameter,
+                                               const std::string_view aEntryName,
+                                               const plato::utilities::ParameterBounds<T>& aBounds)
+    -> std::optional<std::string>
 {
     if (aParameter && !aBounds.contains(aParameter.value()))
     {
@@ -75,11 +75,11 @@ std::optional<std::string> error_message_for_parameter_out_of_bounds(
 }
 
 template <typename T>
-std::optional<std::string> error_message_for_optional_parameter_out_of_bounds(
-    const std::string_view aPrependString,
-    const boost::optional<T>& aParameter,
-    const std::string_view aEntryName,
-    const plato::utilities::ParameterBounds<T>& aBounds)
+auto error_message_for_optional_parameter_out_of_bounds(const std::string_view aPrependString,
+                                                        const boost::optional<T>& aParameter,
+                                                        const std::string_view aEntryName,
+                                                        const plato::utilities::ParameterBounds<T>& aBounds)
+    -> std::optional<std::string>
 {
     if (aParameter.has_value())
     {

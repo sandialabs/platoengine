@@ -65,8 +65,10 @@ using NewGeometryRegistration = core::FactoryRegistration<FactoryTypes, NewValid
 
 /// @brief Helper to get the cross-referenced validated filter input block.
 template <typename FilterInputType, typename Geometry>
-[[nodiscard]] const FilterInputType get_cross_referenced_filter(const Geometry& aGeometry)
+[[nodiscard]] auto get_cross_referenced_filter(const Geometry& aGeometry) -> FilterInputType
 {
+    assert(aGeometry.filter->mInputBlock.has_value());
+    assert(aGeometry.filter->mInputBlock.template holds_expected_type<FilterInputType>());
     return aGeometry.filter->mInputBlock.template get<FilterInputType>();
 }
 }  // namespace plato::geometry::library

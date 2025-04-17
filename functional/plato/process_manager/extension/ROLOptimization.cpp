@@ -4,10 +4,10 @@
 #include <fstream>
 #include <string_view>
 
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/geometry/library/OutputManager.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -23,16 +23,6 @@ namespace
 {
 constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
 
-[[nodiscard]] library::StageAndProcessManager make_rol_optimization_process_manager(
-    const library::ValidatedProcessManagerInput& aValidInput)
-{
-    return {library::RunStage::kExecute, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
-            {
-                const auto& tInput = library::process_manager_input<input_parser::rol_optimization>(aValidInput);
-                ROLOptimization{tInput}.run(aProcessManangerData);
-            }};
-}
-
 [[nodiscard]] auto make_rol_optimization_process_manager(const library::NewValidatedProcessManagerInput& aValidInput)
     -> library::StageAndProcessManager
 {
@@ -41,13 +31,7 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
 }
 
 [[maybe_unused]] static auto kROLOptimizerParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::new_rol_optimization,
-                                              input_parser::ComponentType::kProcessManager>{};
-
-[[maybe_unused]] static auto kROLOptimizerProcessManagerRegistration =
-    library::ProcessManagerRegistration{input_parser::block_name<input_parser::rol_optimization>(),
-                                        [](const library::ValidatedProcessManagerInput& aValidInput)
-                                        { return make_rol_optimization_process_manager(aValidInput); }};
+    input_parser::ComponentParserRegistration<input_parser::new_rol_optimization>{};
 
 [[maybe_unused]] static auto kNewROLOptimizerProcessManagerRegistration =
     library::NewProcessManagerRegistration{input_parser::block_name<input_parser::new_rol_optimization>(),
@@ -55,7 +39,7 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
                                            { return make_rol_optimization_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kOptimizerValidationRegistration =
-    input_validation::ValidationRegistration<input_parser::new_rol_optimization>{
+    input_validation::CrossReferencedInputValidationRegistration<>{
         [](const input_parser::new_rol_optimization& aInput) { return detail::validate_rol_max_iterations(aInput); },
         [](const input_parser::new_rol_optimization& aInput) { return detail::validate_step_tolerance(aInput); },
         [](const input_parser::new_rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); },
@@ -64,11 +48,6 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
         [](const input_parser::new_rol_optimization& aInput)
         { return detail::validate_optional_input_file_name(aInput); }};
 }  // namespace
-
-ROLOptimization::ROLOptimization(const ValidatedOptimizationParameters& aInput)
-    : mROLOptions{make_optimization_parameters(aInput)}
-{
-}
 
 ROLOptimization::ROLOptimization(const library::NewValidatedProcessManagerInput& aInput)
     : mROLOptions{make_optimization_parameters(aInput)}
@@ -116,21 +95,21 @@ auto validate_rol_max_iterations(const input_parser::new_rol_optimization& aInpu
 
 auto validate_step_tolerance(const input_parser::new_rol_optimization& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_optional_parameter_out_of_bounds(
-        input_parser::block_name<input_parser::rol_optimization>(), aInput.step_tolerance, "step_tolerance",
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
+        input_parser::block_name<input_parser::new_rol_optimization>(), aInput.step_tolerance, "step_tolerance",
         utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
 auto validate_gradient_tolerance(const input_parser::new_rol_optimization& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_optional_parameter_out_of_bounds(
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<input_parser::new_rol_optimization>(), aInput.gradient_tolerance, "gradient_tolerance",
         utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
 auto validate_initial_search_radius(const input_parser::new_rol_optimization& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_optional_parameter_out_of_bounds(
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<input_parser::new_rol_optimization>(), aInput.initial_search_radius,
         "initial_search_radius", utilities::lower_bounded(utilities::Exclusive{0.0}));
 }

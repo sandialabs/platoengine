@@ -13,7 +13,7 @@ namespace plato::process_manager::extension::unittest
 {
 TEST(ROLOptimizerValidation, ValidateMaxIterations)
 {
-    auto tOptimizationParameters = input_parser::rol_optimization{};
+    auto tOptimizationParameters = input_parser::new_rol_optimization{};
     EXPECT_FALSE(detail::validate_rol_max_iterations(tOptimizationParameters).has_value());
 
     tOptimizationParameters.max_iterations = 0;

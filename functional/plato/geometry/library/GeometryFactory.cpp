@@ -20,4 +20,19 @@ FactoryTypes make_geometry_data(const ValidatedGeometryInput& aGeometryInput)
         throw utilities::Exception{"Unknown geometry"};
     }
 }
+
+auto make_geometry_data(const NewValidatedGeometryInput& aGeometryInput) -> FactoryTypes
+{
+    std::optional<FactoryTypes> tGeometry = core::create_object_from_factory<FactoryTypes, NewValidatedGeometryInput>(
+        aGeometryInput.rawInput().mBlockName, aGeometryInput);
+    if (tGeometry)
+    {
+        return std::move(tGeometry).value();
+    }
+    else
+    {
+        throw utilities::Exception{"Unknown geometry"};
+    }
+}
+
 }  // namespace plato::geometry::library

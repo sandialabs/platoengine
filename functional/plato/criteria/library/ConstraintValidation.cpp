@@ -9,25 +9,23 @@
 
 namespace plato::criteria::library
 {
+namespace
+{
 [[maybe_unused]] static auto kConstraintValidationRegistration =
-    input_validation::ValidationRegistration<input_parser::new_constraint>{
+    input_validation::CrossReferencedInputValidationRegistration<>{
         [](const input_parser::new_constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
         [](const input_parser::new_constraint& aInput)
         { return detail::validate_constraint_number_of_processors(aInput); },
         [](const input_parser::new_constraint& aInput) { return detail::validate_constraint_value(aInput); },
         [](const input_parser::new_constraint& aInput) { return detail::validate_constraint_type(aInput); }};
-
-auto validate_constraints(const std::vector<input_parser::constraint>& aInput,
-                          std::vector<std::string>&& aCurrentMessageList) -> std::vector<std::string>
-{
-    return detail::validate_criteria(aInput, std::move(aCurrentMessageList));
 }
 
 namespace detail
 {
 auto validate_constraint_value(const input_parser::new_constraint& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_empty_parameter(criterion_name(aInput), aInput.constraint_value, "constraint_value");
+    return input_validation::error_message_for_empty_parameter(criterion_name(aInput), aInput.constraint_value,
+                                                               "constraint_value");
 }
 
 auto validate_constraint_number_of_processors(const input_parser::new_constraint& aInput) -> std::optional<std::string>
@@ -48,8 +46,8 @@ auto validate_constraint_number_of_processors(const input_parser::new_constraint
 
 auto validate_constraint_type(const input_parser::new_constraint& aInput) -> std::optional<std::string>
 {
-    auto tMessage =
-        core::error_message_for_empty_parameter(criterion_name(aInput), aInput.constraint_type, "constraint_type");
+    auto tMessage = input_validation::error_message_for_empty_parameter(criterion_name(aInput), aInput.constraint_type,
+                                                                        "constraint_type");
     if (tMessage.has_value())
     {
         const std::string tOptions = utilities::concatenate_container(

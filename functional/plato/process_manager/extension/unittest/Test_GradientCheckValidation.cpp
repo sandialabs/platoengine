@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/GradientCheck.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/utilities/Exception.hpp"
 

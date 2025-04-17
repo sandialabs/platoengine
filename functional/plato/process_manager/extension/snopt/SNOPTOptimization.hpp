@@ -38,9 +38,6 @@ namespace plato::process_manager::extension::snopt
 class SNOPTOptimization
 {
    public:
-    using ValidatedOptimizationParameters = core::ValidatedInputTypeWrapper<input_parser::snopt_optimization>;
-
-    explicit SNOPTOptimization(const ValidatedOptimizationParameters& aInput);
     explicit SNOPTOptimization(const library::NewValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;

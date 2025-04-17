@@ -37,9 +37,6 @@ namespace plato::process_manager::extension
 class SensitivityCheck
 {
    public:
-    using ValidatedSensitivityCheckInput = core::ValidatedInputTypeWrapper<input_parser::sensitivity_check>;
-
-    explicit SensitivityCheck(const ValidatedSensitivityCheckInput& aInput);
     explicit SensitivityCheck(const library::NewValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
@@ -48,9 +45,13 @@ class SensitivityCheck
     std::filesystem::path mOutputFileName;
 };
 
+/// @brief Creates an valid example struct useful for testing.
+[[nodiscard]] auto create_valid_example_sensitivity_check_input() -> input_parser::new_sensitivity_check;
+
 namespace detail
 {
-[[nodiscard]] std::optional<std::string> validate_output_file_name(const input_parser::sensitivity_check& aInput);
+[[nodiscard]] auto validate_output_file_name(const input_parser::new_sensitivity_check& aInput)
+    -> std::optional<std::string>;
 }
 
 }  // namespace plato::process_manager::extension

@@ -33,6 +33,8 @@ using ProcessManagerInput = core::InputVariant<input_parser::ParsedInput, input_
 /// @brief Fully validated ProcessManager input vector
 using ValidatedProcessManagerInputVector = core::ValidatedInputTypeWrapper<
     std::vector<core::ValidatedInputVariant<input_parser::ParsedInput, input_parser::IsProcessManagerInput>>>;
+using NewValidatedProcessManagers =
+    input_validation::ValidatedComponentType<input_parser::ComponentType::kProcessManager>;
 
 /// @brief A single validated ProcessManager input variant
 using ValidatedProcessManagerInput = typename ValidatedProcessManagerInputVector::RawInputType::value_type;
@@ -53,26 +55,5 @@ using NewProcessManagerRegistration =
 /// @brief Checks if a ProcessManager creation function is registered with name @a aFunctionName.
 [[nodiscard]] auto is_new_process_manager_function_registered(std::string_view aFunctionName) -> bool;
 
-/// @brief Helper to get the validated input from a validated process_manager variant.
-/// @throw std::bad_variant_access If @a aValidatedInput does not hold alternative @a ProcessManagerRawInputType,
-///  wrapped with ValidatedInputTypeWrapper.
-template <typename ProcessManagerRawInputType>
-[[nodiscard]] auto process_manager_input(const ValidatedProcessManagerInput& aValidatedInput)
-    -> const core::ValidatedInputTypeWrapper<ProcessManagerRawInputType>&
-{
-    constexpr bool tIsVariantMember =
-        core::detail::kIsVariantMember<core::ValidatedInputTypeWrapper<ProcessManagerRawInputType>,
-                                       ValidatedProcessManagerInput>;
-
-    static_assert(
-        tIsVariantMember,
-        "\n\nRequested process manager variant missing from available variant types. Did you forget to add a new "
-        "process manager to the BOOST_FUSION_DEFINE_STRUCT?\n\n");
-
-    if constexpr (tIsVariantMember)
-    {
-        return std::get<core::ValidatedInputTypeWrapper<ProcessManagerRawInputType>>(aValidatedInput);
-    }
-}
 }  // namespace plato::process_manager::library
 #endif

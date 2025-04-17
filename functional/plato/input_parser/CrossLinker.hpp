@@ -79,7 +79,8 @@ struct ErrorCheckCrossLink
                                                             "matching component be defined. Found the following: ",
                                                             blockNames(aAllComponentsOfMatchingType)));
         }
-        if (aAllComponentsOfMatchingType.empty())
+
+        if (!aComponentToLink.has_value() && aAllComponentsOfMatchingType.empty())
         {
             mErrorMessages.push_back(utilities::concatenate(
                 tErrorPreamble, "No components are defined that match the cross-reference's required component type"));

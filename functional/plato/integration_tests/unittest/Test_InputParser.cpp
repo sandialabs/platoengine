@@ -4,16 +4,21 @@
 #include <fstream>
 
 #include "plato/core/InputVariantUtilities.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/input_parser/InputParser.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/integration_tests/utilities/InputGeneration.hpp"
+#include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
+#include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
-#include "plato/test_utilities/ValidInputTestFixture.hpp"
 
 namespace plato::integration_tests::serial
 {
 namespace
 {
-struct InputParserTestFixture : public test_utilities::ValidInputTestFixture
+struct InputParserTestFixture : public integration_tests::utilities::ValidInputTestFixture
 {
 };
 }  // namespace
@@ -21,6 +26,7 @@ struct InputParserTestFixture : public test_utilities::ValidInputTestFixture
 namespace
 {
 const std::filesystem::path kTestFileName = "testInput.i";
+
 void create_input_file(const std::filesystem::path& aTestFileName)
 {
     std::ofstream tOutFile(aTestFileName);
@@ -52,16 +58,19 @@ void create_input_file(const std::filesystem::path& aTestFileName)
 TEST(InputParser, ParseFromFile)
 {
     create_input_file(kTestFileName);
-    const input_parser::ParsedInput tInput = input_parser::parse_input_from_file(kTestFileName);
-    ASSERT_TRUE(tInput.mROLOptimization);
-    EXPECT_FALSE(tInput.mROLOptimization->max_iterations.has_value());
-    ASSERT_TRUE(tInput.mROLOptimization->gradient_tolerance.has_value());
-    EXPECT_EQ(tInput.mROLOptimization->gradient_tolerance.value(), 100.0);
-    ASSERT_TRUE(tInput.mROLOptimization->step_tolerance.has_value());
-    EXPECT_EQ(tInput.mROLOptimization->step_tolerance.value(), 10.0);
+    const auto tInputOrError = input_parser::parse_to_new_input(kTestFileName);
+    ASSERT_TRUE(tInputOrError.hasValue());
+    const auto& tInput = tInputOrError.value();
 
-    ASSERT_EQ(tInput.mObjectives.size(), 1);
-    const input_parser::objective& tObjective = tInput.mObjectives.front();
+    const auto tROLOptimization = tInput.get<input_parser::new_rol_optimization>();
+    ASSERT_EQ(tROLOptimization.size(), 1U);
+    EXPECT_FALSE(tROLOptimization.front().max_iterations.has_value());
+    EXPECT_EQ(tROLOptimization.front().gradient_tolerance.value(), 100.0);
+    EXPECT_EQ(tROLOptimization.front().step_tolerance.value(), 10.0);
+
+    const auto tObjectives = tInput.get<input_parser::new_objective>();
+    ASSERT_EQ(tObjectives.size(), 1);
+    const auto& tObjective = tObjectives.front();
     ASSERT_TRUE(tObjective.active.has_value());
     EXPECT_TRUE(tObjective.active.value());
     ASSERT_TRUE(tObjective.app.has_value());
@@ -76,19 +85,22 @@ TEST(InputParser, ParseFromFile)
     ASSERT_TRUE(tObjective.aggregation_weight.has_value());
     EXPECT_EQ(tObjective.aggregation_weight.value(), 42.0);
 
-    EXPECT_EQ(tInput.mConstraints.size(), 0);
+    EXPECT_TRUE(tInput.get<input_parser::new_constraint>().empty());
 
-    ASSERT_TRUE(tInput.mBrickShapeGeometry.has_value());
-    ASSERT_TRUE(tInput.mBrickShapeGeometry->mesh_name.has_value());
-    EXPECT_EQ(tInput.mBrickShapeGeometry->mesh_name->mToken, "my_mesh.exo");
+    const auto tBrickShapeGeometry = tInput.get<input_parser::new_brick_shape_geometry>();
+    ASSERT_EQ(tBrickShapeGeometry.size(), 1U);
+    ASSERT_TRUE(tBrickShapeGeometry.front().mesh_name.has_value());
+    EXPECT_EQ(tBrickShapeGeometry.front().mesh_name->mToken, "my_mesh.exo");
 
     std::filesystem::remove(kTestFileName);
 }
 
 TEST_F(InputParserTestFixture, BlockName)
 {
-    const process_manager::library::ValidatedInput tValidatedInput =
-        process_manager::library::make_validated_input(plato::test_utilities::create_valid_example_input());
-    EXPECT_EQ(core::block_name(tValidatedInput.geometry().rawInput()), "density_topology");
+    const auto tValidatedInput =
+        input_validation::make_validated_input(integration_tests::utilities::create_valid_example_input());
+    ASSERT_TRUE(tValidatedInput.hasValue());
+    EXPECT_EQ(tValidatedInput.value().get<input_parser::ComponentType::kGeometry>().rawInput().mBlockName,
+              "density_topology");
 }
 }  // namespace plato::integration_tests::serial

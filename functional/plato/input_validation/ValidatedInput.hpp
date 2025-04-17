@@ -38,6 +38,13 @@ class ValidatedInput
 [[nodiscard]] auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
     -> utilities::Expected<ValidatedInput, std::string>;
 
+/// @brief Helper function to construct a ValidatedInput object or return a string containing all validation errors.
+///
+/// This overload first cross-links the input, then performs validation. This will return any cross-linking errors as
+/// well as validation errors.
+[[nodiscard]] auto make_validated_input(const input_parser::NewParsedInput& aInput)
+    -> utilities::Expected<ValidatedInput, std::string>;
+
 /// @brief Parse input contained in the string @a aInput.
 ///
 /// This is mainly for testing, prefer to use parse_and_validate_file.
@@ -75,7 +82,12 @@ template <input_parser::ComponentType kComponentType>
 auto ValidatedInput::get() const
 {
     using ValidatedTypeWrapperForComponent = ValidatedInputDataBlock<kComponentType>;
-    if constexpr (input_parser::kIsNamedComponent<kComponentType>)
+    if constexpr (input_parser::kIsUniqueComponent<kComponentType>)
+    {
+        assert(mRawInput.get<kComponentType>().size() == 1U);
+        return ValidatedTypeWrapperForComponent{mRawInput.get<kComponentType>().front()};
+    }
+    else
     {
         auto tValidatedInputs = std::vector<ValidatedTypeWrapperForComponent>{};
         std::transform(mRawInput.get<kComponentType>().cbegin(), mRawInput.get<kComponentType>().cend(),
@@ -83,11 +95,6 @@ auto ValidatedInput::get() const
                        [](const auto& aInputBlock) { return ValidatedTypeWrapperForComponent{aInputBlock}; });
         return ValidatedInputTypeWrapper<std::vector<ValidatedTypeWrapperForComponent>, kComponentType>{
             std::move(tValidatedInputs)};
-    }
-    else
-    {
-        assert(mRawInput.get<kComponentType>().size() == 1U);
-        return ValidatedTypeWrapperForComponent{mRawInput.get<kComponentType>().front()};
     }
 }
 

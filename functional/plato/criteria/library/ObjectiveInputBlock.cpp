@@ -8,7 +8,7 @@ namespace plato::criteria::library
 namespace
 {
 [[maybe_unused]] static auto kObjectiveParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::new_objective, input_parser::ComponentType::kObjective>{};
+    input_parser::ComponentParserRegistration<input_parser::new_objective>{};
 }
 
 [[nodiscard]] auto create_valid_example_objective_input() -> input_parser::new_objective

@@ -7,10 +7,10 @@
 #include <optional>
 
 #include "plato/core/Compose.hpp"
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/geometry/library/OutputManager.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -26,16 +26,6 @@ namespace
 {
 constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
 
-[[nodiscard]] library::StageAndProcessManager make_snopt_optimization_process_manager(
-    const library::ValidatedProcessManagerInput& aValidInput)
-{
-    return {library::RunStage::kExecute, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
-            {
-                const auto& tInput = library::process_manager_input<input_parser::snopt_optimization>(aValidInput);
-                SNOPTOptimization{tInput}.run(aProcessManangerData);
-            }};
-}
-
 [[nodiscard]] auto make_snopt_optimization_process_manager(const library::NewValidatedProcessManagerInput& aValidInput)
     -> library::StageAndProcessManager
 {
@@ -44,13 +34,7 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
 }
 
 [[maybe_unused]] static auto kSNOPTOptimizerParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::new_snopt_optimization,
-                                              input_parser::ComponentType::kProcessManager>{};
-
-[[maybe_unused]] static auto kSNOPTOptimizerProcessManagerRegistration =
-    library::ProcessManagerRegistration{input_parser::block_name<input_parser::snopt_optimization>(),
-                                        [](const library::ValidatedProcessManagerInput& aValidInput)
-                                        { return make_snopt_optimization_process_manager(aValidInput); }};
+    input_parser::ComponentParserRegistration<input_parser::new_snopt_optimization>{};
 
 [[maybe_unused]] static auto kNewSNOPTOptimizerProcessManagerRegistration =
     library::NewProcessManagerRegistration{input_parser::block_name<input_parser::new_snopt_optimization>(),
@@ -58,7 +42,7 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
                                            { return make_snopt_optimization_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kSNOPTOptimizerValidationRegistration =
-    input_validation::ValidationRegistration<input_parser::new_snopt_optimization>{
+    input_validation::CrossReferencedInputValidationRegistration<>{
         [](const input_parser::new_snopt_optimization& aInput)
         { return detail::validate_time_limit_in_minutes(aInput); },
         [](const input_parser::new_snopt_optimization& aInput)
@@ -73,15 +57,6 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
 }
 
 }  // namespace
-
-SNOPTOptimization::SNOPTOptimization(const ValidatedOptimizationParameters& aInput)
-    : mOptions{utilities::to_unwrapped_optional(aInput.rawInput().input_file_name,
-                                                [](const auto& aFileName) { return aFileName.mToken; }),
-               utilities::to_std_optional(aInput.rawInput().time_limit_in_minutes),
-               utilities::to_std_optional(aInput.rawInput().max_iterations),
-               utilities::to_std_optional(aInput.rawInput().output_design_history)}
-{
-}
 
 SNOPTOptimization::SNOPTOptimization(const library::NewValidatedProcessManagerInput& aInput)
     : mOptions{utilities::to_unwrapped_optional(snopt_input(aInput).input_file_name,
@@ -165,7 +140,7 @@ auto make_constraints(const library::ProcessManagerData& aProcessManagerData)
 
 auto validate_time_limit_in_minutes(const input_parser::new_snopt_optimization& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_optional_parameter_out_of_bounds(
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<input_parser::new_snopt_optimization>(), aInput.time_limit_in_minutes,
         "time_limit_in_minutes", utilities::lower_bounded(utilities::Inclusive{0U}));
 }

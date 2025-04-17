@@ -7,8 +7,8 @@
 #include <utility>
 
 #include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
 
@@ -26,14 +26,14 @@ namespace plato::integration_tests::utilities
 /// with name @a aMassAppName and number of processors @a aNumProcessors.
 [[nodiscard]] auto create_test_mass_app_input(const input_parser::AppName& aMassAppName,
                                               const input_parser::CriterionName& aCriterionName,
-                                              unsigned int aNumProcessors) -> process_manager::library::ValidatedInput;
+                                              unsigned int aNumProcessors) -> input_validation::ValidatedInput;
 
 /// @brief Creates test input that has a brick shape geometry, ROL optimization, ROL constraint check a mass objective,
 /// and a vector mass constraint with name @a aMassAppName
 [[nodiscard]] auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMassAppName,
                                                             const input_parser::CriterionName& aCriterionName,
                                                             const std::filesystem::path& aMeshName)
-    -> process_manager::library::ValidatedInput;
+    -> input_validation::ValidatedInput;
 
 /// @brief Creates arbitrary test controls with the associated total volume for a BrickShapeGeometry.
 [[nodiscard]] auto brick_shape_geometry_controls_with_volume()
@@ -50,7 +50,7 @@ void register_load_vector_constraint(const test_utilities::TestContext& aTestCon
 
 /// @brief Registers the test mass app shared library and returns a validated input
 [[nodiscard]] auto setup_mass_app_for_test(const std::filesystem::path& aMeshFileName)
-    -> std::pair<test_utilities::TestDirectorySetupTeardown, process_manager::library::ValidatedInput>;
+    -> std::pair<test_utilities::TestDirectorySetupTeardown, input_validation::ValidatedInput>;
 
 constexpr auto mass_app_library_file_name() -> std::string_view { return "libPlatoTestMassCriteria.so"; }
 }  // namespace plato::integration_tests::utilities

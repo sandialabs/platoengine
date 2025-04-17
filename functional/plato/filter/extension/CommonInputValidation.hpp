@@ -4,7 +4,7 @@
 #include <optional>
 #include <string>
 
-#include "plato/core/ValidationUtilities.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
@@ -22,8 +22,9 @@ template <typename Filter>
 std::optional<std::string> validate_filter_radius_bounds(const Filter& aInput)
 {
     namespace pfu = plato::utilities;
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<Filter>(), aInput.filter_radius,
-                                                           "filter_radius", pfu::lower_bounded(pfu::Exclusive{0.0}));
+    return input_validation::error_message_for_parameter_out_of_bounds(input_parser::block_name<Filter>(),
+                                                                       aInput.filter_radius, "filter_radius",
+                                                                       pfu::lower_bounded(pfu::Exclusive{0.0}));
 }
 
 template <typename Filter>

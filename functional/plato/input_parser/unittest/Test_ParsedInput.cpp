@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <boost/optional/optional_io.hpp>
 #include <unordered_map>
 
 #include "plato/input_parser/BlockStructRule.hpp"
@@ -19,6 +20,11 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          vegetables, plato::input_parser::ComponentType::kObjective,
                          (bool, tomato, "Is it a fruit?")
                          (unsigned int, potato, "Boil 'em, mash 'em, stick 'em in a stew."))
+
+PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
+                         rocks, plato::input_parser::ComponentType::kFilter,
+                         (int, shininess, ""))
+
 // clang-format on
 
 namespace plato::input_parser::unittest
@@ -215,6 +221,32 @@ TEST(ParsedInput, ThreeComponentsMultipleEntries)
 
     EXPECT_TRUE(tParsedInput.get<ComponentType::kGeometry>().empty());
     EXPECT_TRUE(tParsedInput.get<ComponentType::kFilter>().empty());
+}
+
+TEST(ParsedInput, GetInputBlockWithType)
+{
+    const auto tObjectiveData1 =
+        input_parser::vegetables{/*.name=*/std::string{"objective 1"}, /*.tomato=*/true, /*.potato=*/10U};
+    const auto tObjective1 = InputDataBlock{/*.mComponentType=*/ComponentType::kObjective, /*.mBlockName=*/"vegetables",
+                                            CrossReferencedInput{tObjectiveData1}};
+
+    const auto tObjectiveData2 =
+        input_parser::vegetables{/*.name=*/std::string{"objective 2"}, /*.tomato=*/false, /*.potato=*/11U};
+    const auto tObjective2 = InputDataBlock{/*.mComponentType=*/ComponentType::kObjective, /*.mBlockName=*/"vegetables",
+                                            CrossReferencedInput{tObjectiveData2}};
+
+    const auto tGeometryData = input_parser::fruits{/*.banana=*/42, /*.apple=*/13.0};
+    const auto tGeometry = InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry, /*.mBlockName=*/"fruits",
+                                          CrossReferencedInput{tGeometryData}};
+
+    const auto tParsedInput = NewParsedInput{{tObjective1, tGeometry, tObjective2}};
+
+    ASSERT_EQ(tParsedInput.get<input_parser::vegetables>().size(), 2U);
+    EXPECT_EQ(tParsedInput.get<input_parser::vegetables>().front().name, tObjectiveData1.name);
+    EXPECT_EQ(tParsedInput.get<input_parser::vegetables>().back().name, tObjectiveData2.name);
+    ASSERT_EQ(tParsedInput.get<input_parser::fruits>().size(), 1U);
+    EXPECT_EQ(tParsedInput.get<input_parser::fruits>().front().apple, tGeometryData.apple);
+    EXPECT_TRUE(tParsedInput.get<input_parser::rocks>().empty());
 }
 
 }  // namespace plato::input_parser::unittest

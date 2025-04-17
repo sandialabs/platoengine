@@ -39,10 +39,7 @@ namespace plato::process_manager::extension
 /// using the ROL utilities checkApplyJacobian, checkAdjointConsistencyJacobian, and CheckLinearity
 class ConstraintCheck
 {
-    using ValidatedConstraintCheckInput = core::ValidatedInputTypeWrapper<input_parser::constraint_check>;
-
    public:
-    explicit ConstraintCheck(const ValidatedConstraintCheckInput& aInput);
     explicit ConstraintCheck(const library::NewValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
@@ -58,7 +55,7 @@ class ConstraintCheck
 };
 
 /// @brief Creates a valid example ConstraintCheck input struct, useful for testing.
-[[nodiscard]] auto create_valid_example_constraint_check_input() -> input_parser::constraint_check;
+[[nodiscard]] auto create_valid_example_constraint_check_input() -> input_parser::new_constraint_check;
 
 namespace detail
 {

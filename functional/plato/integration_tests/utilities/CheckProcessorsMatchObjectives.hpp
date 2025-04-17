@@ -16,7 +16,7 @@ namespace plato::integration_tests::utilities
 /// same length and that each entry in @a aNumberOfProcessors matches the `number_of_processors`
 /// field in @a aObjectives.
 void check_processors_match_objectives(const std::vector<unsigned int>& aNumberOfProcessors,
-                                       const criteria::library::ValidatedObjectives& aObjectives,
+                                       const criteria::library::NewValidatedObjectives& aObjectives,
                                        const test_utilities::TestContext& aTestContext);
 }  // namespace plato::integration_tests::utilities
 

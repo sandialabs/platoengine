@@ -82,45 +82,4 @@ TEST(ObjectiveValidation, ValidateMPIRanksVsNumberOfParallelObjectives)
     tObjective.number_of_processors = 2u;
     EXPECT_TRUE(detail::validate_number_of_ranks_vs_parallel_objectives({tObjective}).has_value());
 }
-
-TEST(ObjectiveValidation, ErrorMessagesInvalidObjective)
-{
-    input_parser::objective tObjective = plato::test_utilities::create_valid_example_objective();
-    tObjective.criterion = boost::none;
-    const auto tMessages = input_validation::validate(tObjective, {});
-    EXPECT_EQ(tMessages.size(), 1u);
-}
-
-TEST(ObjectiveValidation, ErrorMessagesInvalidInput)
-{
-    namespace pfc = plato::criteria::library;
-    const auto tObjective = input_parser::new_objective{};
-    const std::vector<input_parser::objective> tInput{tObjective, tObjective};
-
-    const auto tMessages = pfc::validate_objectives(tInput, {});
-    EXPECT_EQ(tMessages.size(), 4u);
-}
-
-TEST(ObjectiveValidation, NoErrorMessagesValidObjective)
-{
-    namespace pfc = plato::criteria::library;
-    const auto tObjective = plato::test_utilities::create_valid_example_objective();
-    const std::vector<input_parser::objective> tInput{tObjective, tObjective};
-
-    std::vector<std::string> tMessages;
-    tMessages = pfc::validate_objectives(tInput, std::move(tMessages));
-    EXPECT_EQ(tMessages.size(), 0u);
-}
-
-TEST(ObjectiveValidation, ErrorMessagesInvalidObjectives)
-{
-    namespace pfc = plato::criteria::library;
-    auto tObjective = plato::test_utilities::create_valid_example_objective();
-    tObjective.active = false;
-    const std::vector<input_parser::objective> tInput{tObjective, tObjective};
-
-    std::vector<std::string> tMessages;
-    tMessages = pfc::validate_objectives(tInput, std::move(tMessages));
-    EXPECT_EQ(tMessages.size(), 1u);
-}
 }  // namespace plato::criteria::library::unittest

@@ -16,8 +16,8 @@
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), new_level_set_topology,
-    (plato::input_parser::FileName, background_mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
-    (plato::input_parser::FileName, output_mesh_name, "Required field specifying the exodus output file name to use when writing results.")
+    (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
+    (plato::input_parser::FileName, output_name, "Required field specifying the exodus output file name to use when writing results.")
     (bool, include_void_region, "Required field specifying whether to include the elements of the void region when writing the cut mesh.")
     (double, sphere_pattern_bbox_min_x, "Required field specifying the starting x-coordinate of the sphere pattern's bounding box.")
     (double, sphere_pattern_bbox_min_y, "Required field specifying the starting y-coordinate of the sphere pattern's bounding box.")
@@ -29,7 +29,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (double, sphere_pattern_spacing, "Required field specifying the gap between adjacent spheres in the unform pattern.")
     (double, level_set_lower_bound, "Required field specifying the value of the control that sets the lower bound of he level set cut.")
     (double, level_set_upper_bound, "Required field specifying the value of the control that sets the upper bound of he level set cut.")
-    (plato::input_parser::FilterCrossReference, filter, "Required name of the filter block to apply to the controls.")
+    (plato::input_parser::NewCrossReference<plato::input_parser::ComponentType::kFilter>, filter, "Required name of the filter block to apply to the controls.")
     (plato::input_parser::FixedBlockList, fixed_blocks, "Optional list of blocks in the mesh that will have level-set fields assigned to the level_set_upper_bound value.")
 )
 // clang-format on
@@ -64,7 +64,7 @@ namespace plato::geometry::extension
 class LevelSetTopology
 {
    public:
-    explicit LevelSetTopology(const input_parser::level_set_topology& aInput);
+    explicit LevelSetTopology(const input_parser::new_level_set_topology& aInput);
 
     ~LevelSetTopology();
     LevelSetTopology(const LevelSetTopology&) = default;
@@ -77,7 +77,7 @@ class LevelSetTopology
         -> linear_algebra::DynamicVector<double>;
     [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> analysis::AnalysisDomainMesh;
-    static void output(const input_parser::level_set_topology& aInput,
+    static void output(const input_parser::new_level_set_topology& aInput,
                        const filter::library::FilterFunction& aFilterFunction,
                        const linear_algebra::DynamicVector<double>& aSolution,
                        const library::OutputInfo& aOutputInfo);
@@ -110,7 +110,7 @@ class LevelSetTopology
 
 /// @brief The name of the output file containing the unfiltered level-set field, which may be used as a restart
 /// file.
-[[nodiscard]] auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path;
+[[nodiscard]] auto restart_file_name(const input_parser::new_level_set_topology& aInput) -> std::filesystem::path;
 
 /// @brief The label of the unfiltered level-set field used in the output mesh.
 [[nodiscard]] constexpr auto level_set_mesh_field_name() -> std::string_view;

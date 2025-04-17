@@ -41,9 +41,6 @@ namespace plato::process_manager::extension
 class ROLOptimization
 {
    public:
-    using ValidatedOptimizationParameters = core::ValidatedInputTypeWrapper<input_parser::rol_optimization>;
-
-    explicit ROLOptimization(const ValidatedOptimizationParameters& aInput);
     explicit ROLOptimization(const library::NewValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;

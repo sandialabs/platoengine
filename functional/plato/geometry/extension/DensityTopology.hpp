@@ -20,7 +20,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
     (plato::input_parser::FileName, output_name, "Required field specifying the exodus output file name to use when writing results.")
     (plato::input_parser::FixedBlockList, fixed_blocks, "Optional comma separated list of block names that should be fixed in the mesh and not be part of the optimization.")
-    (plato::input_parser::FilterCrossReference, filter, "Required name of the filter block to apply to the controls.")
+    (plato::input_parser::NewCrossReference<plato::input_parser::ComponentType::kFilter>, filter, "Required name of the filter block to apply to the controls.")
     (double, initial_density_value, "Method to specify a uniform initial density value to give to the controls. Omit if 'initial_density_field_name' is specified.")
     (plato::input_parser::IdentifierString, initial_density_field_name, "Method to read the controls from the specified field name within the 'mesh_name' exodus mesh. Omit if 'initial_density_value' is specified.")
 )
@@ -42,7 +42,7 @@ namespace plato::geometry::extension
 class DensityTopology
 {
    public:
-    DensityTopology(const input_parser::density_topology& aInput, filter::library::FilterFunction aFilterFunction);
+    DensityTopology(const input_parser::new_density_topology& aInput, filter::library::FilterFunction aFilterFunction);
 
     [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> analysis::AnalysisDomainMesh;
@@ -53,15 +53,15 @@ class DensityTopology
     [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> linear_algebra::AdjointJacobianMultiplier;
 
-    [[nodiscard]] static auto initialGuess(const input_parser::density_topology& aInput)
+    [[nodiscard]] static auto initialGuess(const input_parser::new_density_topology& aInput)
         -> linear_algebra::DynamicVector<double>;
 
-    [[nodiscard]] static auto bounds(const input_parser::density_topology& aInput)
+    [[nodiscard]] static auto bounds(const input_parser::new_density_topology& aInput)
         -> std::pair<std::vector<double>, std::vector<double>>;
 
     static void output(const linear_algebra::DynamicVector<double>& aSolution,
                        const filter::library::FilterFunction& aFilterFunction,
-                       const input_parser::density_topology& aInput,
+                       const input_parser::new_density_topology& aInput,
                        const library::OutputInfo& aOutputInfo);
 
    private:

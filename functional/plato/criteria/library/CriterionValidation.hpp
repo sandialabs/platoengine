@@ -4,9 +4,9 @@
 #include <optional>
 
 #include "plato/core/ValidationRegistration.hpp"
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 
 namespace plato::criteria::library
 {
@@ -39,16 +39,17 @@ template <typename Criteria>
     }
     else
     {
-        return core::error_message_for_empty_parameter(criterion_name(aInput), aInput.criterion, "criterion");
+        return input_validation::error_message_for_empty_parameter(criterion_name(aInput), aInput.criterion,
+                                                                   "criterion");
     }
 }
 
 template <typename Criteria>
 [[nodiscard]] std::optional<std::string> validate_number_of_processors(const Criteria& aInput)
 {
-    return core::error_message_for_optional_parameter_out_of_bounds(criterion_name(aInput), aInput.number_of_processors,
-                                                                    "number_of_processors",
-                                                                    utilities::lower_bounded(utilities::Inclusive{1u}));
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
+        criterion_name(aInput), aInput.number_of_processors, "number_of_processors",
+        utilities::lower_bounded(utilities::Inclusive{1u}));
 }
 
 template <typename Criteria>

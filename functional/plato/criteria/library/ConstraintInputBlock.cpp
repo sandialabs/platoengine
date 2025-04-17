@@ -9,7 +9,7 @@ namespace plato::criteria::library
 namespace
 {
 [[maybe_unused]] static auto kConstraintParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::new_constraint, input_parser::ComponentType::kConstraint>{};
+    input_parser::ComponentParserRegistration<input_parser::new_constraint>{};
 }
 
 auto create_valid_example_constraint_input() -> input_parser::new_constraint

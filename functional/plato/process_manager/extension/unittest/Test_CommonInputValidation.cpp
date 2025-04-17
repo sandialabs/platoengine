@@ -5,7 +5,7 @@
 
 #include "plato/input_parser/InputBlocks.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/test_utilities/InputValidation.hpp"
 
 namespace plato::process_manager::extension::unittest
@@ -24,9 +24,8 @@ TEST(ValidateCommonInput, ValidateMaxIterations)
 {
     constexpr bool tEmptyParameterGold = false;
     test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct(
-        [](const input_parser::snopt_optimization& aInput) { return detail::validate_max_iterations(aInput); },
-        test_utilities::create_valid_example_snopt_optimization(), tEmptyParameterGold,
-        TEST_CONTEXT("ValidateMaxIterations"));
+        [](const input_parser::new_rol_optimization& aInput) { return detail::validate_max_iterations(aInput); },
+        create_valid_example_rol_optimization_input(), tEmptyParameterGold, TEST_CONTEXT("ValidateMaxIterations"));
 }
 
 TEST(ValidateCommonInput, ValidateNumberOfSteps)

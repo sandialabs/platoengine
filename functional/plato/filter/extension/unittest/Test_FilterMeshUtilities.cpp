@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
+#include "plato/filter/extension/HelmholtzFilter.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
@@ -23,7 +24,7 @@ TEST(FilterMeshUtilities, GetFilterRadius)
         third_party_integration::stk_io::CommandElementType::Hex};
     third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
 
-    auto tFilter = test_utilities::create_valid_helmholtz_filter();
+    auto tFilter = create_valid_helmholtz_filter_input();
     constexpr double tFilterRadius = 21;
     tFilter.filter_radius = tFilterRadius;
 

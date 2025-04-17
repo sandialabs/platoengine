@@ -70,8 +70,6 @@ struct VectorConstraint
 
 /// @brief Factory to create Constraint objects from input data.
 /// @post The return vector will have the same size as @a aInput.
-[[nodiscard]] auto make_constraints(const ValidatedConstraints& aInput)
-    -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>;
 [[nodiscard]] auto make_constraints(const NewValidatedConstraints& aInput)
     -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>;
 
@@ -80,8 +78,6 @@ struct VectorConstraint
 
 namespace detail
 {
-[[nodiscard]] auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput)
-    -> VectorConstraint<const analysis::AnalysisDomainMesh&>;
 [[nodiscard]] auto make_constraint(
     const input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kConstraint>& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>;

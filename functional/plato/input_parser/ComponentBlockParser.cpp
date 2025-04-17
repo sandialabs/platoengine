@@ -7,4 +7,6 @@ auto ComponentBlockParser::parse(const GenericBlockData& aData) const -> ParsedD
     return mParseFunction(aData);
 }
 
+auto ComponentBlockParser::componentType() const -> ComponentType { return mComponentType; }
+
 }  // namespace plato::input_parser
