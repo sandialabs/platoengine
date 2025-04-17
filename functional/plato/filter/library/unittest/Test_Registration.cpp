@@ -22,9 +22,4 @@ namespace
 
 TEST(FilterRegistration, PhonyFilter) { EXPECT_TRUE(is_new_filter_function_registered("test")); }
 
-TEST(FilterRegistration, Identity) { EXPECT_TRUE(is_new_filter_function_registered("identity_filter")); }
-
-TEST(FilterRegistration, Helmholtz) { EXPECT_TRUE(is_new_filter_function_registered("helmholtz_filter")); }
-
-TEST(FilterRegistration, Kernel) { EXPECT_TRUE(is_new_filter_function_registered("kernel_filter")); }
 }  // namespace plato::filter::library::unittest

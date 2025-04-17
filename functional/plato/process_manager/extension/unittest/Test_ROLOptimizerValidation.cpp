@@ -120,7 +120,7 @@ TEST(ROLOptimizerValidation, ErrorMessagesInvalidOptimizationParameters)
     tOptimizationParameters.max_iterations = 0;
     tOptimizationParameters.step_tolerance = boost::none;
 
-    const auto tMessages = input_validation::validate(tOptimizationParameters, {});
+    const auto tMessages = input_validation::validate(input_parser::CrossReferencedInput{tOptimizationParameters}, {});
     EXPECT_EQ(tMessages.size(), 2U);
 }
 }  // namespace plato::process_manager::extension::unittest

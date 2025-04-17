@@ -6,6 +6,7 @@
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::geometry::extension::unittest
@@ -156,31 +157,33 @@ TEST(LevelSetTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
     }
 }
 
-TEST_F(LevelSetTopologyValidationTwoBlockFixture, HasADesignBlock)
+TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockValidation)
 {
-    auto tInput = kLevelSetTopology;
-    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_1", "block_2"}};
+    auto tLevelSetInputBase = kLevelSetTopology;
+    tLevelSetInputBase.background_mesh_name = input_parser::FileName{mMeshFilePath};
 
-    const auto tValidationMessages = input_validation::validate(tInput, std::vector<std::string>{});
-    EXPECT_FALSE(tValidationMessages.empty());
+    const auto tCheckForErrors =
+        [](const input_parser::new_level_set_topology& aLevelSetInput, const test_utilities::TestContext& aTestContext)
+    {
+        const auto tInput = input_parser::CrossReferencedInput{aLevelSetInput};
+        const auto tValidationMessages = input_validation::validate(tInput, {});
+        EXPECT_FALSE(tValidationMessages.empty()) << aTestContext;
+    };
+
+    {
+        auto tLevelSetInput = tLevelSetInputBase;
+        tLevelSetInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_1", "block_2"}};
+        tCheckForErrors(tLevelSetInput, TEST_CONTEXT("No design domain"));
+    }
+    {
+        auto tLevelSetInput = tLevelSetInputBase;
+        tLevelSetInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_42"}};
+        tCheckForErrors(tLevelSetInput, TEST_CONTEXT("Fixed block doesn't exist"));
+    }
+    {
+        auto tLevelSetInput = tLevelSetInputBase;
+        tLevelSetInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_2", "block_2"}};
+        tCheckForErrors(tLevelSetInput, TEST_CONTEXT("Fixed blocks not unique."));
+    }
 }
-
-TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockExists)
-{
-    auto tInput = kLevelSetTopology;
-    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_42"}};
-
-    const auto tValidationMessages = input_validation::validate(tInput, std::vector<std::string>{});
-    EXPECT_FALSE(tValidationMessages.empty());
-}
-
-TEST_F(LevelSetTopologyValidationTwoBlockFixture, UniqueFixedBlocks)
-{
-    auto tInput = kLevelSetTopology;
-    tInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_2", "block_2"}};
-
-    const auto tValidationMessages = input_validation::validate(tInput, std::vector<std::string>{});
-    EXPECT_FALSE(tValidationMessages.empty());
-}
-
 }  // namespace plato::geometry::extension::unittest

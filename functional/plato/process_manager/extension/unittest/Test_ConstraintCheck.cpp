@@ -45,10 +45,8 @@ TEST(ConstraintCheck, ValidateAndRunChecksForLinearConstraint)
 
     validate_and_run_constraint_check(kBaseInputDeck);
 
-    const auto tLinearityCheckFilePath = kBaseInputDeck.get<input_parser::ComponentType::kProcessManager>()
-                                             .front()
-                                             .mInput.get<input_parser::new_constraint_check>()
-                                             .linearity_check_output_file_name;
+    const auto tLinearityCheckFilePath =
+        kBaseInputDeck.get<input_parser::new_constraint_check>().front().linearity_check_output_file_name;
     ASSERT_TRUE(tLinearityCheckFilePath.has_value());
     ptu::test_for_existence_and_remove({tLinearityCheckFilePath.value().mToken},
                                        TEST_CONTEXT("Checking linearity check files"));
@@ -59,15 +57,13 @@ TEST(ConstraintCheck, ValidateAndRunChecksForNonlinearConstraint)
     namespace ptu = test_utilities;
 
     const auto tCheckFunction =
-        [](const input_parser::constraint& aConstraint, const test_utilities::TestContext& aTestContext)
+        [](const input_parser::new_constraint& aConstraint, const test_utilities::TestContext& aTestContext)
     {
-        const auto tInputDeck = input_parser::NewParsedInput{kBaseInputDeck} | aConstraint;
+        const auto tInputDeck = kBaseInputDeck | aConstraint;
 
         validate_and_run_constraint_check(tInputDeck);
 
-        const auto tConstraintCheckInput = kBaseInputDeck.get<input_parser::ComponentType::kProcessManager>()
-                                               .front()
-                                               .mInput.get<input_parser::new_constraint_check>();
+        const auto tConstraintCheckInput = kBaseInputDeck.get<input_parser::new_constraint_check>().front();
 
         ptu::test_for_existence_and_remove(
             {tConstraintCheckInput.linearity_check_output_file_name.value().mToken,

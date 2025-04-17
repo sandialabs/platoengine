@@ -21,7 +21,7 @@ namespace
                  plato::criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>>
 {
     const auto tInputDeck = geometry::extension::create_valid_brick_shape_geometry_input() |
-                            criteria::library::create_valid_example_constraint_input() |
+                            criteria::library::create_valid_example_objective_input() |
                             process_manager::extension::create_valid_example_rol_optimization_input() |
                             criteria::library::create_valid_example_constraint_input();
     const auto tValidatedInput = input_validation::make_validated_input(tInputDeck).value();

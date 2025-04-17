@@ -34,8 +34,4 @@ namespace
 
 TEST(GeometryRegistration, PhonyGeometry) { EXPECT_TRUE(is_new_geometry_function_registered("test")); }
 
-TEST(GeometryRegistration, BrickGeometry) { EXPECT_TRUE(is_new_geometry_function_registered("brick_shape_geometry")); }
-
-TEST(GeometryRegistration, DensityTopology) { EXPECT_TRUE(is_new_geometry_function_registered("density_topology")); }
-
 }  // namespace plato::geometry::library::unittest

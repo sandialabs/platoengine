@@ -17,7 +17,7 @@ namespace
 {
 constexpr auto kROLOutputFile = std::string_view{"ROL_Optimizer.txt"};
 
-auto create_mass_app_constraint_input() -> input_parser::constraint
+auto create_mass_app_constraint_input() -> input_parser::new_constraint
 {
     auto tConstraint = criteria::library::create_valid_example_constraint_input();
     tConstraint.name = "mass-app";

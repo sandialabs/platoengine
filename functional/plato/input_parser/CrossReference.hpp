@@ -24,12 +24,14 @@ class CrossReferencedInput
     template <typename T>
     [[nodiscard]] auto get() const -> const T&
     {
+        assert(holds_expected_type<T>());
         return std::any_cast<const T&>(mInput);
     }
 
     template <typename T>
     [[nodiscard]] auto get() -> T&
     {
+        assert(holds_expected_type<T>());
         return std::any_cast<T&>(mInput);
     }
 
