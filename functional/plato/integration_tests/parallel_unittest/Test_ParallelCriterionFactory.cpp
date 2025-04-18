@@ -19,9 +19,9 @@ namespace
 {
 constexpr auto kMassAppName = std::string_view{"test-mass-app"};
 
-[[nodiscard]] auto valid_mass_objective_input(const boost::mpi::communicator& aComm) -> input_parser::new_objective
+[[nodiscard]] auto valid_mass_objective_input(const boost::mpi::communicator& aComm) -> input_parser::objective
 {
-    auto tInput = input_parser::new_objective{};
+    auto tInput = input_parser::objective{};
     tInput.app = input_parser::AppName{std::string{kMassAppName}};
     tInput.criterion = input_parser::CriterionName{"mass"};
     tInput.number_of_processors = aComm.size();
@@ -49,7 +49,7 @@ TEST(CriterionFactory, ValidObjective)
     const auto tCriteria = tData.value().get<input_parser::ComponentType::kObjective>().rawInput();
     ASSERT_FALSE(tCriteria.empty());
     EXPECT_NO_THROW([[maybe_unused]] auto tFunction =
-                        (pcl::make_new_criterion_function<pcl::CriterionFunction, input_parser::new_objective>(
+                        (pcl::make_new_criterion_function<pcl::CriterionFunction, input_parser::objective>(
                             tCriteria.front(), tComm)));
 }
 }  // namespace plato::integration_tests::parallel

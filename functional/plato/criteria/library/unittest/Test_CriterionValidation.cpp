@@ -30,11 +30,11 @@ void check_validation_app(const test_utilities::TestContext& aTestContext)
 
 TEST(CriterionValidation, CheckValidationAppAndCustomAppOnObjective)
 {
-    check_validation_app<input_parser::new_objective>(TEST_CONTEXT("Objective"));
+    check_validation_app<input_parser::objective>(TEST_CONTEXT("Objective"));
 }
 
 TEST(CriterionValidation, CheckValidationAppAndCustomAppOnConstraint)
 {
-    check_validation_app<input_parser::new_constraint>(TEST_CONTEXT("Constraint"));
+    check_validation_app<input_parser::constraint>(TEST_CONTEXT("Constraint"));
 }
 }  // namespace plato::criteria::library::unittest

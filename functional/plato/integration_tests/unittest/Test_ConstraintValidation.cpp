@@ -40,7 +40,7 @@ TEST(ConstraintValidation, ErrorMessagesInvalidConstraint)
 
 TEST(ConstraintValidation, ErrorMessagesTwoInvalidInput)
 {
-    auto tConstraint = input_parser::new_constraint{};
+    auto tConstraint = input_parser::constraint{};
     tConstraint.name = "bad-one";
     auto tConstraintTwo = tConstraint;
     tConstraintTwo.name = "bad-two";

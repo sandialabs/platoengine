@@ -30,7 +30,7 @@ namespace
           begin brick_shape_geometry
             mesh_name my_mesh.exo
           end
-          begin new_objective test
+          begin objective test
             active true
             app platoengine
             criterion nodal_sum
@@ -60,7 +60,7 @@ TEST(InputParser, ParseFromFile)
     EXPECT_EQ(tROLOptimization.front().gradient_tolerance.value(), 100.0);
     EXPECT_EQ(tROLOptimization.front().step_tolerance.value(), 10.0);
 
-    const auto tObjectives = tInput.get<input_parser::new_objective>();
+    const auto tObjectives = tInput.get<input_parser::objective>();
     ASSERT_EQ(tObjectives.size(), 1);
     const auto& tObjective = tObjectives.front();
     ASSERT_TRUE(tObjective.active.has_value());
@@ -77,7 +77,7 @@ TEST(InputParser, ParseFromFile)
     ASSERT_TRUE(tObjective.aggregation_weight.has_value());
     EXPECT_EQ(tObjective.aggregation_weight.value(), 42.0);
 
-    EXPECT_TRUE(tInput.get<input_parser::new_constraint>().empty());
+    EXPECT_TRUE(tInput.get<input_parser::constraint>().empty());
 
     const auto tBrickShapeGeometry = tInput.get<input_parser::brick_shape_geometry>();
     ASSERT_EQ(tBrickShapeGeometry.size(), 1U);

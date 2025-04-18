@@ -5,12 +5,12 @@
 
 namespace plato::criteria::library::detail
 {
-[[nodiscard]] auto validate_constraint_value(const input_parser::new_constraint& aInput) -> std::optional<std::string>;
+[[nodiscard]] auto validate_constraint_value(const input_parser::constraint& aInput) -> std::optional<std::string>;
 
-[[nodiscard]] auto validate_constraint_number_of_processors(const input_parser::new_constraint& aInput)
+[[nodiscard]] auto validate_constraint_number_of_processors(const input_parser::constraint& aInput)
     -> std::optional<std::string>;
 
-[[nodiscard]] auto validate_constraint_type(const input_parser::new_constraint& aInput) -> std::optional<std::string>;
+[[nodiscard]] auto validate_constraint_type(const input_parser::constraint& aInput) -> std::optional<std::string>;
 }  // namespace plato::criteria::library::detail
 
 #endif

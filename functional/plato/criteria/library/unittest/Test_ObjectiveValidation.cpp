@@ -39,7 +39,7 @@ TEST(ObjectiveValidation, ParallelObjectives)
 TEST(ObjectiveValidation, ValidateAggregationWeight)
 {
     namespace pfcd = plato::criteria::library::detail;
-    auto tObjective = input_parser::new_objective{};
+    auto tObjective = input_parser::objective{};
     EXPECT_TRUE(pfcd::validate_aggregation_weight(tObjective).has_value());
     tObjective.aggregation_weight = 13.0;
     EXPECT_FALSE(pfcd::validate_aggregation_weight(tObjective).has_value());
@@ -51,13 +51,13 @@ TEST(ObjectiveValidation, ValidateAtLeastOneObjective)
 {
     namespace pfcd = plato::criteria::library::detail;
     EXPECT_TRUE(pfcd::validate_at_least_one_objective({}).has_value());
-    auto tObjective = input_parser::new_objective{};
+    auto tObjective = input_parser::objective{};
     EXPECT_FALSE(pfcd::validate_at_least_one_objective({tObjective}).has_value());
     tObjective.active = false;
     EXPECT_TRUE(pfcd::validate_at_least_one_objective({tObjective}).has_value());
     EXPECT_TRUE(pfcd::validate_at_least_one_objective({tObjective, tObjective}).has_value());
 
-    auto tObjectiveTwo = input_parser::new_objective{};
+    auto tObjectiveTwo = input_parser::objective{};
     tObjectiveTwo.active = true;
     EXPECT_FALSE(pfcd::validate_at_least_one_objective({tObjective, tObjectiveTwo}).has_value());
     EXPECT_FALSE(pfcd::validate_at_least_one_objective({tObjectiveTwo, tObjectiveTwo}).has_value());
@@ -66,7 +66,7 @@ TEST(ObjectiveValidation, ValidateAtLeastOneObjective)
 TEST(ObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
 {
     // One objective and one rank
-    auto tObjective = input_parser::new_objective{};
+    auto tObjective = input_parser::objective{};
     EXPECT_FALSE(detail::validate_number_of_ranks_vs_serial_objectives({tObjective}).has_value());
     // Add an objective, should still be valid
     EXPECT_FALSE(detail::validate_number_of_ranks_vs_serial_objectives({tObjective, tObjective}).has_value());
@@ -75,7 +75,7 @@ TEST(ObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
 TEST(ObjectiveValidation, ValidateMPIRanksVsNumberOfParallelObjectives)
 {
     // No parallel objectives so this should not result in an error
-    auto tObjective = input_parser::new_objective{};
+    auto tObjective = input_parser::objective{};
     EXPECT_FALSE(detail::validate_number_of_ranks_vs_parallel_objectives({tObjective}).has_value());
     // Change to 2, should now be invalid
     tObjective.number_of_processors = 2u;

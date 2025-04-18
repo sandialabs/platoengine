@@ -25,12 +25,12 @@ using AggregateComm = utilities::NamedType<boost::mpi::communicator, struct Aggr
 using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct ObjectiveCommTag>;
 
 const auto kNewIsActive = [](const auto& aObjective)
-{ return input_validation::is_active(input_validation::get_input_block<input_parser::new_objective>(aObjective)); };
+{ return input_validation::is_active(input_validation::get_input_block<input_parser::objective>(aObjective)); };
 
 bool is_parallel_objective(const ValidatedObjective& aObjective)
 {
-    return input_validation::get_input_block<input_parser::new_objective>(aObjective)
-               .number_of_processors.value_or(1U) > 1U;
+    return input_validation::get_input_block<input_parser::objective>(aObjective).number_of_processors.value_or(1U) >
+           1U;
 }
 
 auto make_parallel_criterion_function(const ValidatedObjective& aObjective, const ObjectiveComm& aObjectiveComm)
@@ -38,13 +38,12 @@ auto make_parallel_criterion_function(const ValidatedObjective& aObjective, cons
     if (is_parallel_objective(aObjective))
     {
         return core::adapt_parallel_function(
-            make_new_criterion_function<CriterionFunction, input_parser::new_objective>(aObjective,
-                                                                                        aObjectiveComm.mValue),
+            make_new_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue),
             aObjectiveComm.mValue);
     }
     else
     {
-        return make_new_criterion_function<CriterionFunction, input_parser::new_objective>(aObjective);
+        return make_new_criterion_function<CriterionFunction, input_parser::objective>(aObjective);
     }
 }
 
@@ -59,7 +58,7 @@ auto make_parallel_aggregate_impl(const std::vector<ValidatedObjective>& tObject
         [&aObjectiveComm](const auto& aObjective)
         {
             const double tWeight =
-                input_validation::get_input_block<input_parser::new_objective>(aObjective).aggregation_weight.value();
+                input_validation::get_input_block<input_parser::objective>(aObjective).aggregation_weight.value();
             return std::make_pair(make_parallel_criterion_function(aObjective, aObjectiveComm), tWeight);
         },
         kNewIsActive);
@@ -102,10 +101,8 @@ auto make_aggregate_objective_function(const NewValidatedObjectives& aInput) -> 
 
 auto number_of_processors_per_objective(const NewValidatedObjectives& aInput) -> std::vector<unsigned int>
 {
-    const auto tGetNumProcs = [](const auto& aObjective)
-    {
-        return input_validation::get_input_block<input_parser::new_objective>(aObjective)
-            .number_of_processors.value_or(1U);
+    const auto tGetNumProcs = [](const auto& aObjective) {
+        return input_validation::get_input_block<input_parser::objective>(aObjective).number_of_processors.value_or(1U);
     };
 
     auto tNumberOfProcessors = std::vector<unsigned int>{};

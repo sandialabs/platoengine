@@ -38,7 +38,7 @@ constexpr auto kNumRanks = int{4};
     // Input for the actual test
     const std::string tObjectiveInput =
         R"(
-          begin new_objective test1
+          begin objective test1
             criterion nodal_sum
             aggregation_weight 42.0
           end
@@ -68,13 +68,13 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
     const auto tComm = boost::mpi::communicator{};
     const auto tConfigurationTempDirectory = utilities::register_test_mass_app(tMassAppName, tComm);
 
-    const auto tObjective = input_parser::new_objective{/*.name=*/std::string{"test_1"},
-                                                        /*.active=*/true,
-                                                        /*.app=*/input_parser::AppName{std::string{tMassAppName}},
-                                                        /*.criterion=*/input_parser::CriterionName{"mass"},
-                                                        /*.number_of_processors=*/kNumRanks / aNumGroups,
-                                                        /*.input_files=*/boost::none,
-                                                        /*.aggregation_weight=*/1.0};
+    const auto tObjective = input_parser::objective{/*.name=*/std::string{"test_1"},
+                                                    /*.active=*/true,
+                                                    /*.app=*/input_parser::AppName{std::string{tMassAppName}},
+                                                    /*.criterion=*/input_parser::CriterionName{"mass"},
+                                                    /*.number_of_processors=*/kNumRanks / aNumGroups,
+                                                    /*.input_files=*/boost::none,
+                                                    /*.aggregation_weight=*/1.0};
 
     auto tInput = geometry::extension::create_valid_brick_shape_geometry_input() |
                   process_manager::extension::create_valid_example_rol_optimization_input();

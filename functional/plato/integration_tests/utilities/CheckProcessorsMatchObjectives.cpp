@@ -16,7 +16,7 @@ void check_processors_match_objectives(const std::vector<unsigned int>& aNumberO
     for (const auto [tNumberOfProcessors, tObjective] :
          plato::utilities::Zip{aNumberOfProcessors, aObjectives.rawInput()})
     {
-        const auto tObjectiveInput = input_validation::get_input_block<input_parser::new_objective>(tObjective);
+        const auto tObjectiveInput = input_validation::get_input_block<input_parser::objective>(tObjective);
         if (tObjectiveInput.active.value_or(true))
         {
             EXPECT_EQ(tNumberOfProcessors, tObjectiveInput.number_of_processors.value_or(1U)) << aTestContext;

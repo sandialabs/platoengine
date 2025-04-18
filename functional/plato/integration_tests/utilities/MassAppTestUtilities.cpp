@@ -98,9 +98,9 @@ namespace
 {
 [[nodiscard]] auto create_mass_objective(const input_parser::AppName& aMassAppName,
                                          const input_parser::CriterionName& aCriterionName,
-                                         const unsigned int aNumProcessors) -> input_parser::new_objective
+                                         const unsigned int aNumProcessors) -> input_parser::objective
 {
-    auto tObjective = input_parser::new_objective{};
+    auto tObjective = input_parser::objective{};
     tObjective.number_of_processors = aNumProcessors;
     tObjective.aggregation_weight = 1.0;
     tObjective.app = aMassAppName;
@@ -127,7 +127,7 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
                                               const std::filesystem::path& aMeshName)
     -> input_validation::ValidatedInput
 {
-    auto tConstraint = input_parser::new_constraint{};
+    auto tConstraint = input_parser::constraint{};
     tConstraint.number_of_processors = 1U;
     tConstraint.app = aMassAppName;
     tConstraint.criterion = aCriterionName;

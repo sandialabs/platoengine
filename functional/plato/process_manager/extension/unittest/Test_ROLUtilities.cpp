@@ -21,7 +21,7 @@ TEST(ProcessManagerData, InputFileToROLObjective)
     constexpr double tWeight = 42.0;
 
     const std::string tInput = test_utilities::create_valid_brick_shape_geometry_string() +
-                               " begin new_objective test"
+                               " begin objective test"
                                " active true"
                                " criterion nodal_sum"
                                " number_of_processors 1"
@@ -52,7 +52,7 @@ TEST(ProcessManagerData, InputFileToROLConstraint)
     const std::string tInput = test_utilities::create_valid_brick_shape_geometry_string() +
                                test_utilities::create_valid_example_objective_string() +
                                R"(
-                                begin new_constraint test
+                                begin constraint test
                                   active true
                                   criterion nodal_sum
                                   constraint_value 2
@@ -101,7 +101,7 @@ TEST(ProcessManagerData, InputFileToROLSolverEquality)
     const std::string tInput = test_utilities::create_valid_brick_shape_geometry_string() +
                                test_utilities::create_valid_example_objective_string() +
                                R"(
-                                begin new_constraint test
+                                begin constraint test
                                   active true
                                   criterion nodal_sum
                                   constraint_value 2
@@ -118,7 +118,7 @@ TEST(ProcessManagerData, InputFileToROLSolverInequality)
     const std::string tInput = test_utilities::create_valid_brick_shape_geometry_string() +
                                test_utilities::create_valid_example_objective_string() +
                                R"(
-                                begin new_constraint test
+                                begin constraint test
                                   active true
                                   criterion nodal_sum
                                   constraint_value 2

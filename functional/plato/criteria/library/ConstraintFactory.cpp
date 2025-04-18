@@ -17,7 +17,7 @@ namespace
 using ValidatedConstraint = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kConstraint>;
 
 const auto kNewIsActive = [](const auto& aConstraint)
-{ return input_validation::is_active(input_validation::get_input_block<input_parser::new_constraint>(aConstraint)); };
+{ return input_validation::is_active(input_validation::get_input_block<input_parser::constraint>(aConstraint)); };
 
 }  // namespace
 
@@ -47,7 +47,7 @@ namespace detail
 auto make_constraint(const ValidatedConstraint& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>
 {
-    const auto& tRawInput = input_validation::get_input_block<input_parser::new_constraint>(aConstraintInput);
+    const auto& tRawInput = input_validation::get_input_block<input_parser::constraint>(aConstraintInput);
     const auto tValue = tRawInput.constraint_value.value();
     const auto tIsLinear = tRawInput.is_linear.value_or(false);
     const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
@@ -57,9 +57,9 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
     constexpr auto tVectorTraits = CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector};
     auto tCriterionFunction =
         criterion_function_has_traits(tRegistrationName, tVectorTraits)
-            ? make_new_criterion_function<VectorCriterionFunction, input_parser::new_constraint>(aConstraintInput)
+            ? make_new_criterion_function<VectorCriterionFunction, input_parser::constraint>(aConstraintInput)
             : to_vector_function<const analysis::AnalysisDomainMesh&>(
-                  make_new_criterion_function<CriterionFunction, input_parser::new_constraint>(aConstraintInput));
+                  make_new_criterion_function<CriterionFunction, input_parser::constraint>(aConstraintInput));
 
     return VectorConstraint<const analysis::AnalysisDomainMesh&>{tConstraintName, std::move(tCriterionFunction), tValue,
                                                                  tIsLinear, tConstraintType};

@@ -76,7 +76,7 @@ TEST_F(OneBlock3x1x1HexMesh, MakeCriterionAndCallValue)
     {
         const auto tCriterion =
             criteria::library::make_new_criterion_function<criteria::library::VectorCriterionFunction,
-                                                           input_parser::new_constraint>(
+                                                           input_parser::constraint>(
                 tValidatedInput.get<input_parser::ComponentType::kConstraint>().rawInput().front());
         tCheckMassDensities(tCriterion, TEST_CONTEXT("Test with make_new_criterion_function"));
     }

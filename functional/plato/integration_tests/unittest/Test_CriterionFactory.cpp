@@ -39,7 +39,7 @@ TEST_F(CriterionFactoryTestFixture, ValidObjective)
     ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1);
     EXPECT_NO_THROW(auto tFunction =
                         (criteria::library::make_new_criterion_function<criteria::library::CriterionFunction,
-                                                                        input_parser::new_objective>(
+                                                                        input_parser::objective>(
                             tData.template get<input_parser::ComponentType::kObjective>().rawInput().front())));
 }
 
@@ -50,7 +50,7 @@ TEST_F(CriterionFactoryTestFixture, ValidConstraint)
     ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1);
     EXPECT_NO_THROW(auto tFunction =
                         (criteria::library::make_new_criterion_function<criteria::library::CriterionFunction,
-                                                                        input_parser::new_constraint>(
+                                                                        input_parser::constraint>(
                             tData.template get<input_parser::ComponentType::kConstraint>().rawInput().front())));
 }
 
@@ -58,7 +58,7 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
 {
     const std::string tInput =
         R"(
-          begin new_objective test
+          begin objective test
             active true
             criterion nodal_sum
             number_of_processors 1
@@ -74,7 +74,7 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
     const auto tData = input_validation::parse_and_validate_string(tInput).value();
     ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1U);
 
-    const auto tObjective = input_validation::get_input_block<input_parser::new_objective>(
+    const auto tObjective = input_validation::get_input_block<input_parser::objective>(
         tData.get<input_parser::ComponentType::kObjective>().rawInput().front());
 
     const auto tCriterionInput = criteria::library::to_new_criterion_input(tObjective);
@@ -95,7 +95,7 @@ TEST_F(CriterionFactoryTestFixture, ConvertConstraintInput)
     const auto tAllConstraints = tData.get<input_parser::ComponentType::kConstraint>().rawInput();
     ASSERT_EQ(tAllConstraints.size(), 1U);
     const auto& tValidatedConstraint = tAllConstraints.front();
-    const auto& tConstraint = input_validation::get_input_block<input_parser::new_constraint>(tValidatedConstraint);
+    const auto& tConstraint = input_validation::get_input_block<input_parser::constraint>(tValidatedConstraint);
     const auto tCriterionInput = criteria::library::to_new_criterion_input(tConstraint);
 
     EXPECT_EQ(tConstraint.number_of_processors, tCriterionInput.mNumberOfProcessors);

@@ -12,22 +12,21 @@ namespace
 {
 [[maybe_unused]] static auto kConstraintValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<>{
-        [](const input_parser::new_constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
-        [](const input_parser::new_constraint& aInput)
-        { return detail::validate_constraint_number_of_processors(aInput); },
-        [](const input_parser::new_constraint& aInput) { return detail::validate_constraint_value(aInput); },
-        [](const input_parser::new_constraint& aInput) { return detail::validate_constraint_type(aInput); }};
+        [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_constraint_value(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_constraint_type(aInput); }};
 }
 
 namespace detail
 {
-auto validate_constraint_value(const input_parser::new_constraint& aInput) -> std::optional<std::string>
+auto validate_constraint_value(const input_parser::constraint& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_empty_parameter(criterion_name(aInput), aInput.constraint_value,
                                                                "constraint_value");
 }
 
-auto validate_constraint_number_of_processors(const input_parser::new_constraint& aInput) -> std::optional<std::string>
+auto validate_constraint_number_of_processors(const input_parser::constraint& aInput) -> std::optional<std::string>
 {
     constexpr auto kSupportedNumberOfProcessorsForConstraint = unsigned{1};
     if (aInput.number_of_processors.has_value() &&
@@ -43,7 +42,7 @@ auto validate_constraint_number_of_processors(const input_parser::new_constraint
     }
 }
 
-auto validate_constraint_type(const input_parser::new_constraint& aInput) -> std::optional<std::string>
+auto validate_constraint_type(const input_parser::constraint& aInput) -> std::optional<std::string>
 {
     auto tMessage = input_validation::error_message_for_empty_parameter(criterion_name(aInput), aInput.constraint_type,
                                                                         "constraint_type");

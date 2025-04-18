@@ -8,7 +8,7 @@
 
 // clang-format off
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), new_constraint, plato::input_parser::ComponentType::kConstraint,
+    (plato)(input_parser), constraint, plato::input_parser::ComponentType::kConstraint,
     (bool, active, "Optional field to de/activate this constraint.")
     (plato::input_parser::AppName, app, "Required field specifying the app to use for this constraint.") 
     (plato::input_parser::CriterionName, criterion, "Required field specifying the name of the criterion to be evaluated.")
@@ -24,7 +24,7 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
 namespace plato::criteria::library
 {
 /// @brief Creates a valid example Constraint struct, useful for testing.
-[[nodiscard]] auto create_valid_example_constraint_input() -> input_parser::new_constraint;
+[[nodiscard]] auto create_valid_example_constraint_input() -> input_parser::constraint;
 }  // namespace plato::criteria::library
 
 #endif

@@ -27,11 +27,11 @@ auto create_two_objective_test_input() -> input_validation::ValidatedInput
     // Input for the actual test
     const std::string tInput =
         R"(
-          begin new_objective test1
+          begin objective test1
             criterion nodal_sum
             aggregation_weight 42.0
           end
-          begin new_objective test2
+          begin objective test2
             active true
             criterion nodal_sum
             aggregation_weight 13.0
@@ -61,12 +61,12 @@ TEST_F(ObjectiveFactoryTestFixture, ValidAggregateOneObjective)
 
     const std::string tInput =
         R"(
-          begin new_objective test1
+          begin objective test1
             active false
             criterion nodal_sum
             aggregation_weight 42.0
           end
-          begin new_objective test2
+          begin objective test2
             active true
             criterion nodal_sum
             aggregation_weight 13.0

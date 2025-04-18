@@ -56,7 +56,7 @@ TEST(ConstraintCheck, ValidateAndRunChecksForNonlinearConstraint)
     namespace ptu = test_utilities;
 
     const auto tCheckFunction =
-        [](const input_parser::new_constraint& aConstraint, const test_utilities::TestContext& aTestContext)
+        [](const input_parser::constraint& aConstraint, const test_utilities::TestContext& aTestContext)
     {
         const auto tInputDeck = kBaseInputDeck | aConstraint;
 

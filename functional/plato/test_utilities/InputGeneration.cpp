@@ -31,7 +31,7 @@ std::string create_valid_density_topology_geometry_string()
 std::string create_valid_example_constraint_string()
 {
     return R"(
-          begin new_constraint test
+          begin constraint test
             active true
             app platoengine
             criterion nodal_sum
@@ -47,7 +47,7 @@ std::string create_valid_example_constraint_string()
 std::string create_valid_example_objective_string()
 {
     return R"(
-          begin new_objective test
+          begin objective test
             active true
             app platoengine
             criterion nodal_sum

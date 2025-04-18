@@ -21,7 +21,7 @@ TEST(ParallelObjectiveValidation, MPISize)
 TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
 {
     // One objective and three ranks
-    const auto tObjective = input_parser::new_objective{};
+    const auto tObjective = input_parser::objective{};
     EXPECT_TRUE(detail::validate_number_of_ranks_vs_serial_objectives({tObjective}).has_value());
 
     // Three objectives and three ranks
@@ -35,7 +35,7 @@ TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
 
 TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectivesParallelObjectives)
 {
-    auto tObjective = input_parser::new_objective{};
+    auto tObjective = input_parser::objective{};
 
     // Number of processors matches the number of ranks for one objective
     tObjective.number_of_processors = static_cast<unsigned int>(kNumRanks);
