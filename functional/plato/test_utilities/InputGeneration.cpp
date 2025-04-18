@@ -72,7 +72,7 @@ std::string create_valid_example_rol_optimization_string()
 std::string create_valid_identity_filter_string()
 {
     return R"(
-          begin new_identity_filter
+          begin identity_filter
           end
        )";
 }

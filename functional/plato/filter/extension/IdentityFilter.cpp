@@ -14,14 +14,14 @@ namespace plato::filter::extension
 namespace
 {
 [[maybe_unused]] static auto kIdentityFilterParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::new_identity_filter>{};
+    input_parser::ComponentParserRegistration<input_parser::identity_filter>{};
 
 [[maybe_unused]] static auto kNewIdentityFilterRegistration = library::NewFilterRegistration{
-    input_parser::block_name<input_parser::new_identity_filter>(),
+    input_parser::block_name<input_parser::identity_filter>(),
     [](const library::NewValidatedFilterInput&) { return make_identity_filter_function(); }};
 
 [[maybe_unused]] static auto kIdentityFilterValidationRegistration =
-    input_validation::CrossReferencedInputValidationRegistration<>{[](const input_parser::new_identity_filter& aInput)
+    input_validation::CrossReferencedInputValidationRegistration<>{[](const input_parser::identity_filter& aInput)
                                                                    { return validate_identity_filter(aInput); }};
 }  // namespace
 
@@ -52,9 +52,9 @@ auto IdentityFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomai
     return rowVectorTimesJacobian(aAnalysisDomainMesh, aV);
 }
 
-auto create_valid_identity_filter_input() -> input_parser::new_identity_filter
+auto create_valid_identity_filter_input() -> input_parser::identity_filter
 {
-    return input_parser::new_identity_filter{/*.filter_radius = */ boost::none};
+    return input_parser::identity_filter{/*.filter_radius = */ boost::none};
 }
 
 auto make_identity_filter_function() -> library::FilterFunction
@@ -68,11 +68,11 @@ auto make_identity_filter_function() -> library::FilterFunction
         { return library::make_filter_adjoint_jacobian(std::make_unique<IdentityFilter>(), aAnalysisDomainMesh); }};
 }
 
-auto validate_identity_filter(const input_parser::new_identity_filter& aInput) -> std::optional<std::string>
+auto validate_identity_filter(const input_parser::identity_filter& aInput) -> std::optional<std::string>
 {
     if (aInput.filter_radius.has_value())
     {
-        return input_parser::block_name<input_parser::new_identity_filter>() +
+        return input_parser::block_name<input_parser::identity_filter>() +
                R"( identity filter cannot have "filter_radius" defined.)";
     }
     return std::nullopt;
