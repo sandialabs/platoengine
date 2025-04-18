@@ -21,7 +21,7 @@ struct ProcessManagerData;
 
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), new_gradient_check,
+    (plato)(input_parser), gradient_check,
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the gradient check.")
     (unsigned int, number_of_steps, "Required field specifying the number of approximations to evaluate using a finite difference.")
     (double, initial_direction_magnitude, "Required field specifying the magnitude of the perturbation of the design controls.")
@@ -50,12 +50,11 @@ class GradientCheck
 };
 
 /// @brief Creates a valid example GradientCheck input struct, useful for testing.
-[[nodiscard]] auto create_valid_example_gradient_check_input() -> input_parser::new_gradient_check;
+[[nodiscard]] auto create_valid_example_gradient_check_input() -> input_parser::gradient_check;
 
 namespace detail
 {
-[[nodiscard]] auto validate_output_file_name(const input_parser::new_gradient_check& aInput)
-    -> std::optional<std::string>;
+[[nodiscard]] auto validate_output_file_name(const input_parser::gradient_check& aInput) -> std::optional<std::string>;
 
 }  // namespace detail
 

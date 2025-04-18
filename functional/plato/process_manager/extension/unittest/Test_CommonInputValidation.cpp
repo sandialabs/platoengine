@@ -25,16 +25,16 @@ TEST(ValidateCommonInput, ValidateMaxIterations)
 {
     constexpr bool tEmptyParameterGold = false;
     test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct(
-        [](const input_parser::new_rol_optimization& aInput) { return detail::validate_max_iterations(aInput); },
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_max_iterations(aInput); },
         create_valid_example_rol_optimization_input(), tEmptyParameterGold, TEST_CONTEXT("ValidateMaxIterations"));
 }
 
 TEST(ValidateCommonInput, ValidateNumberOfSteps)
 {
-    auto tGradientCheck = input_parser::new_gradient_check{};
+    auto tGradientCheck = input_parser::gradient_check{};
     EXPECT_TRUE(detail::validate_number_of_steps(tGradientCheck).has_value());
 
-    auto tConstraintCheck = input_parser::new_constraint_check{};
+    auto tConstraintCheck = input_parser::constraint_check{};
     EXPECT_TRUE(detail::validate_number_of_steps(tConstraintCheck).has_value());
 
     tConstraintCheck.number_of_steps = 1U;  // in bounds
@@ -46,10 +46,10 @@ TEST(ValidateCommonInput, ValidateNumberOfSteps)
 
 TEST(ValidateCommonInput, ValidateInitialDirectionMagnitude)
 {
-    auto tGradientCheck = input_parser::new_gradient_check{};
+    auto tGradientCheck = input_parser::gradient_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tGradientCheck).has_value());
 
-    auto tConstraintCheck = input_parser::new_constraint_check{};
+    auto tConstraintCheck = input_parser::constraint_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 
     tGradientCheck.initial_direction_magnitude = 0.0;  // out of bounds
@@ -64,10 +64,10 @@ TEST(ValidateCommonInput, ValidateInitialDirectionMagnitude)
 
 TEST(ValidateCommonInput, ValidateStepSizeReductionFactor)
 {
-    auto tGradientCheck = input_parser::new_gradient_check{};
+    auto tGradientCheck = input_parser::gradient_check{};
     EXPECT_TRUE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
 
-    auto tConstraintCheck = input_parser::new_constraint_check{};
+    auto tConstraintCheck = input_parser::constraint_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 
     tConstraintCheck.step_size_reduction_factor = 0.5;  // in bounds
@@ -82,10 +82,10 @@ TEST(ValidateCommonInput, ValidateStepSizeReductionFactor)
 
 TEST(ValidateCommonInput, ValidateRandomDirectionSeed)
 {
-    auto tGradientCheck = input_parser::new_gradient_check{};
+    auto tGradientCheck = input_parser::gradient_check{};
     EXPECT_TRUE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
 
-    auto tConstraintCheck = input_parser::new_constraint_check{};
+    auto tConstraintCheck = input_parser::constraint_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 
     tConstraintCheck.random_direction_seed = 1;  // in bounds
@@ -100,7 +100,7 @@ TEST(ValidateCommonInput, ValidateRandomDirectionSeed)
 
 TEST(ValidateCommonInput, ValidateInputFileExists)
 {
-    auto tOptimizationParameters = input_parser::new_rol_optimization{};
+    auto tOptimizationParameters = input_parser::rol_optimization{};
 
     // File name entry is empty, so no error
     EXPECT_FALSE(detail::validate_optional_input_file_name(tOptimizationParameters).has_value());

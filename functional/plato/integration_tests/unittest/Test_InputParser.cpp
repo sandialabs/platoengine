@@ -38,7 +38,7 @@ namespace
             input_files test-input.inp
             aggregation_weight 42.0
           end
-          begin new_rol_optimization
+          begin rol_optimization
             input_file_name its-a_file.txt
             step_tolerance 10
             gradient_tolerance 100.0
@@ -54,7 +54,7 @@ TEST(InputParser, ParseFromFile)
     ASSERT_TRUE(tInputOrError.hasValue()) << tInputOrError.error();
     const auto& tInput = tInputOrError.value();
 
-    const auto tROLOptimization = tInput.get<input_parser::new_rol_optimization>();
+    const auto tROLOptimization = tInput.get<input_parser::rol_optimization>();
     ASSERT_EQ(tROLOptimization.size(), 1U);
     EXPECT_FALSE(tROLOptimization.front().max_iterations.has_value());
     EXPECT_EQ(tROLOptimization.front().gradient_tolerance.value(), 100.0);

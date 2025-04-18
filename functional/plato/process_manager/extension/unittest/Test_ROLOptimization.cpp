@@ -35,7 +35,7 @@ TEST(ROLOptimization, Create)
 
 TEST(ROLOptimization, Registration)
 {
-    EXPECT_TRUE(library::is_new_process_manager_function_registered("new_rol_optimization"));
+    EXPECT_TRUE(library::is_new_process_manager_function_registered("rol_optimization"));
 }
 
 }  // namespace plato::process_manager::extension::unittest

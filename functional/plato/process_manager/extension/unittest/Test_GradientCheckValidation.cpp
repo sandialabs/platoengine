@@ -13,7 +13,7 @@ namespace plato::process_manager::extension::unittest
 {
 TEST(ValidateGradientCheck, ValidateOuputFileName)
 {
-    auto tGradientCheck = input_parser::new_gradient_check{};
+    auto tGradientCheck = input_parser::gradient_check{};
     EXPECT_TRUE(detail::validate_output_file_name(tGradientCheck).has_value());
     tGradientCheck.output_file_name = input_parser::FileName{"file.txt"};  // Requires an input
     EXPECT_FALSE(detail::validate_output_file_name(tGradientCheck).has_value());
@@ -28,10 +28,10 @@ TEST(ValidateGradientCheck, NoErrorMessagesValidGradientCheck)
 
 TEST(ValidateGradientCheck, ErrorMessagesInvalidGradientCheck)
 {
-    const auto tGradientCheck = input_parser::new_gradient_check{};
+    const auto tGradientCheck = input_parser::gradient_check{};
     const auto tMessages = input_validation::validate(tGradientCheck, {});
     const auto tNumberOfGradientCheckValidationFunctions =
-        input_validation::detail::registered_validation_functions<input_parser::new_gradient_check>().size();
+        input_validation::detail::registered_validation_functions<input_parser::gradient_check>().size();
     EXPECT_EQ(tMessages.size(), tNumberOfGradientCheckValidationFunctions);
 }
 

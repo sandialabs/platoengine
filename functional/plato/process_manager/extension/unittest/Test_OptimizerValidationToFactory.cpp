@@ -11,17 +11,15 @@ namespace plato::process_manager::extension::unittest
 namespace
 {
 auto rol_parameter_list(const input_validation::ValidatedInput& aData)
-    -> std::pair<third_party_integration::rol::OptimizationParameters, input_parser::new_rol_optimization>
+    -> std::pair<third_party_integration::rol::OptimizationParameters, input_parser::rol_optimization>
 {
     const auto tProcessManagerData = aData.get<input_parser::ComponentType::kProcessManager>();
     EXPECT_EQ(tProcessManagerData.rawInput().size(), 1U);
-    EXPECT_TRUE(tProcessManagerData.rawInput()
-                    .front()
-                    .rawInput()
-                    .mInput.holdsExpectedType<input_parser::new_rol_optimization>());
+    EXPECT_TRUE(
+        tProcessManagerData.rawInput().front().rawInput().mInput.holdsExpectedType<input_parser::rol_optimization>());
     const auto& tOptimizationParameters = tProcessManagerData.rawInput().front();
     return {make_optimization_parameters(tOptimizationParameters),
-            tOptimizationParameters.rawInput().mInput.get<input_parser::new_rol_optimization>()};
+            tOptimizationParameters.rawInput().mInput.get<input_parser::rol_optimization>()};
 }
 }  // namespace
 
@@ -31,7 +29,7 @@ TEST(OptimizerFactory, ParlistGenerationFromInput)
     const std::string tInput = plato::test_utilities::create_valid_brick_shape_geometry_string() +
                                plato::test_utilities::create_valid_example_objective_string() +
                                R"(
-                                  begin new_rol_optimization
+                                  begin rol_optimization
                                     step_tolerance 10
                                     gradient_tolerance 100.0
                                     max_iterations 10
@@ -74,7 +72,7 @@ TEST(OptimizerFactory, ParlistGenerationFromFile)
 
     const std::string tInput = plato::test_utilities::create_valid_brick_shape_geometry_string() +
                                plato::test_utilities::create_valid_example_objective_string() +
-                               "begin new_rol_optimization"
+                               "begin rol_optimization"
                                " input_file_name" +
                                kFileName + " step_tolerance 10" + " end";
 

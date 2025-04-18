@@ -42,7 +42,7 @@ TEST(GradientCheck, CreateGradientCheckRun)
 
         const auto tGradientCheckFilePath = aParsedInput.get<input_parser::ComponentType::kProcessManager>()
                                                 .front()
-                                                .mInput.get<input_parser::new_gradient_check>()
+                                                .mInput.get<input_parser::gradient_check>()
                                                 .output_file_name;
 
         test_utilities::test_for_existence_and_remove({tGradientCheckFilePath.value().mToken},
@@ -75,11 +75,11 @@ TEST(GradientCheck, UnwrapValidatedGradientCheckInput)
         tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>().rawInput();
 
     constexpr auto tExpectedNumGradientCheckInputs = std::size_t{1};
-    EXPECT_EQ(num_blocks_with_type<input_parser::new_gradient_check>(tUnwrappedValidatedInput),
+    EXPECT_EQ(num_blocks_with_type<input_parser::gradient_check>(tUnwrappedValidatedInput),
               tExpectedNumGradientCheckInputs);
 
     constexpr auto tExpectedNumROLOptimizerInputs = std::size_t{1};
-    EXPECT_EQ(num_blocks_with_type<input_parser::new_rol_optimization>(tUnwrappedValidatedInput),
+    EXPECT_EQ(num_blocks_with_type<input_parser::rol_optimization>(tUnwrappedValidatedInput),
               tExpectedNumROLOptimizerInputs);
 
     constexpr auto tExpectedTotalProcessManagerInputs = std::size_t{2};
@@ -88,7 +88,7 @@ TEST(GradientCheck, UnwrapValidatedGradientCheckInput)
 
 TEST(GradientCheck, Registration)
 {
-    EXPECT_TRUE(library::is_new_process_manager_function_registered("new_gradient_check"));
+    EXPECT_TRUE(library::is_new_process_manager_function_registered("gradient_check"));
 }
 
 }  // namespace plato::process_manager::extension::unittest

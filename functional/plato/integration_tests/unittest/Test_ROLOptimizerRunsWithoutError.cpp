@@ -39,7 +39,7 @@ void check_optimization_runs_without_error(const input_parser::NewParsedInput& a
 
     EXPECT_TRUE(std::filesystem::remove(kROLOutputFile)) << aTestContext;
     EXPECT_TRUE(std::filesystem::remove(
-        aInput.get<input_parser::new_rol_optimization>().front().export_settings_file_name->mToken));
+        aInput.get<input_parser::rol_optimization>().front().export_settings_file_name->mToken));
 }
 
 }  // namespace

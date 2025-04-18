@@ -31,7 +31,7 @@ TEST(SensitivityCheck, CreateSensitivityCheckRun)
     const auto tSensitivityCheckFilePath = tAllProcessManagerInputs.rawInput()
                                                .front()
                                                .rawInput()
-                                               .mInput.get<input_parser::new_sensitivity_check>()
+                                               .mInput.get<input_parser::sensitivity_check>()
                                                .output_file_name;
 
     test_utilities::test_for_existence_and_remove({tSensitivityCheckFilePath.value().mToken},
@@ -40,7 +40,7 @@ TEST(SensitivityCheck, CreateSensitivityCheckRun)
 
 TEST(SensitivityCheck, Registration)
 {
-    EXPECT_TRUE(library::is_new_process_manager_function_registered("new_sensitivity_check"));
+    EXPECT_TRUE(library::is_new_process_manager_function_registered("sensitivity_check"));
 }
 
 }  // namespace plato::process_manager::extension::unittest

@@ -26,13 +26,13 @@ namespace
 }
 
 [[maybe_unused]] static auto kNewSensitivityCheckProcessManagerRegistration =
-    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::new_sensitivity_check>(),
+    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::sensitivity_check>(),
                                            [](const library::NewValidatedProcessManagerInput& aValidInput)
                                            { return make_rol_sensitivity_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kSensitivityCheckValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<>{
-        [](const input_parser::new_sensitivity_check& aInput) { return detail::validate_output_file_name(aInput); }};
+        [](const input_parser::sensitivity_check& aInput) { return detail::validate_output_file_name(aInput); }};
 
 auto make_rol_sensitivity_objective(const library::ProcessManagerData& aProblem)
     -> std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction>
@@ -45,9 +45,8 @@ auto make_rol_sensitivity_objective(const library::ProcessManagerData& aProblem)
 }  // namespace
 
 SensitivityCheck::SensitivityCheck(const library::NewValidatedProcessManagerInput& aInput)
-    : mOutputFileName(input_validation::get_input_block<input_parser::new_sensitivity_check>(aInput)
-                          .output_file_name.value()
-                          .mToken)
+    : mOutputFileName(
+          input_validation::get_input_block<input_parser::sensitivity_check>(aInput).output_file_name.value().mToken)
 {
 }
 
@@ -63,17 +62,17 @@ void SensitivityCheck::run(const library::ProcessManagerData& aProblem) const
                                          tPrintOutput, tOutFile);
 }
 
-auto create_valid_example_sensitivity_check_input() -> input_parser::new_sensitivity_check
+auto create_valid_example_sensitivity_check_input() -> input_parser::sensitivity_check
 {
-    return input_parser::new_sensitivity_check{/*.output_file_name=*/input_parser::FileName{"sensitivity_check.txt"}};
+    return input_parser::sensitivity_check{/*.output_file_name=*/input_parser::FileName{"sensitivity_check.txt"}};
 }
 
 namespace detail
 {
-auto validate_output_file_name(const input_parser::new_sensitivity_check& aInput) -> std::optional<std::string>
+auto validate_output_file_name(const input_parser::sensitivity_check& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_empty_parameter(
-        input_parser::block_name<input_parser::new_sensitivity_check>(), aInput.output_file_name, "output_file_name");
+        input_parser::block_name<input_parser::sensitivity_check>(), aInput.output_file_name, "output_file_name");
 }
 }  // namespace detail
 }  // namespace plato::process_manager::extension

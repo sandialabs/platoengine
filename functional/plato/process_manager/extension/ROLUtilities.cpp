@@ -18,8 +18,7 @@ namespace plato::process_manager::extension
 {
 namespace
 {
-[[nodiscard]] auto load_file_or_use_default_parameters(
-    const input_parser::new_rol_optimization& aOptimizationParameters)
+[[nodiscard]] auto load_file_or_use_default_parameters(const input_parser::rol_optimization& aOptimizationParameters)
     -> third_party_integration::rol::OptimizationParameters
 {
     if (aOptimizationParameters.input_file_name)
@@ -30,7 +29,7 @@ namespace
     return third_party_integration::rol::OptimizationParameters();
 }
 
-void apply_verbose_output(const input_parser::new_rol_optimization& aOptimizationParameters,
+void apply_verbose_output(const input_parser::rol_optimization& aOptimizationParameters,
                           third_party_integration::rol::OptimizationParameters& aParameters)
 {
     if (aOptimizationParameters.verbose_output.value_or(false))
@@ -39,7 +38,7 @@ void apply_verbose_output(const input_parser::new_rol_optimization& aOptimizatio
     }
 }
 
-void apply_approximate_hessian(const input_parser::new_rol_optimization& aOptimizationParameters,
+void apply_approximate_hessian(const input_parser::rol_optimization& aOptimizationParameters,
                                third_party_integration::rol::OptimizationParameters& aParameters)
 {
     if (aOptimizationParameters.approximate_hessian.value_or(false))
@@ -48,7 +47,7 @@ void apply_approximate_hessian(const input_parser::new_rol_optimization& aOptimi
     }
 }
 
-void write_parameters(const input_parser::new_rol_optimization& aOptimizationParameters,
+void write_parameters(const input_parser::rol_optimization& aOptimizationParameters,
                       third_party_integration::rol::OptimizationParameters& aParameters)
 {
     if (aOptimizationParameters.export_settings_file_name)
@@ -125,7 +124,7 @@ auto make_optimization_parameters(const library::NewValidatedProcessManagerInput
     -> third_party_integration::rol::OptimizationParameters
 {
     const auto& aROLParameters =
-        input_validation::get_input_block<input_parser::new_rol_optimization>(aOptimizationParameters);
+        input_validation::get_input_block<input_parser::rol_optimization>(aOptimizationParameters);
 
     auto tParameters = load_file_or_use_default_parameters(aROLParameters);
 

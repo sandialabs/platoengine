@@ -21,7 +21,7 @@ struct ProcessManagerData;
 
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), new_sensitivity_check,
+    (plato)(input_parser), sensitivity_check,
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the sensitivity check.")
 )
 // clang-format on
@@ -46,11 +46,11 @@ class SensitivityCheck
 };
 
 /// @brief Creates an valid example struct useful for testing.
-[[nodiscard]] auto create_valid_example_sensitivity_check_input() -> input_parser::new_sensitivity_check;
+[[nodiscard]] auto create_valid_example_sensitivity_check_input() -> input_parser::sensitivity_check;
 
 namespace detail
 {
-[[nodiscard]] auto validate_output_file_name(const input_parser::new_sensitivity_check& aInput)
+[[nodiscard]] auto validate_output_file_name(const input_parser::sensitivity_check& aInput)
     -> std::optional<std::string>;
 }
 

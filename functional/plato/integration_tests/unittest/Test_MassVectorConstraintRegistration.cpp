@@ -21,7 +21,7 @@ TEST_F(OneBlock3x1x1HexMesh, MassVectorConstraintRegisterAndRun)
     const auto tProcessManagerData = process_manager::library::make_process_manager_data(tValidatedInput);
     tROLOptimize(tProcessManagerData);
 
-    const auto tConstraintCheckInput = input_validation::get_input_block<input_parser::new_constraint_check>(
+    const auto tConstraintCheckInput = input_validation::get_input_block<input_parser::constraint_check>(
         tValidatedInput.get<input_parser::ComponentType::kProcessManager>().rawInput().at(1U));
     EXPECT_TRUE(std::filesystem::remove(tConstraintCheckInput.linearity_check_output_file_name.value().mToken));
     EXPECT_TRUE(std::filesystem::remove(tConstraintCheckInput.jacobian_check_output_file_name.value().mToken));

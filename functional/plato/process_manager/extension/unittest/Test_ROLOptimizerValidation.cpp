@@ -12,7 +12,7 @@ namespace plato::process_manager::extension::unittest
 {
 TEST(ROLOptimizerValidation, ValidateMaxIterations)
 {
-    auto tOptimizationParameters = input_parser::new_rol_optimization{};
+    auto tOptimizationParameters = input_parser::rol_optimization{};
     EXPECT_FALSE(detail::validate_rol_max_iterations(tOptimizationParameters).has_value());
 
     tOptimizationParameters.max_iterations = 0;
@@ -30,7 +30,7 @@ TEST(ROLOptimizerValidation, ValidateMaxIterations)
 namespace
 {
 template <typename ValidationFunction>
-void test_optional_generic_tolerance(input_parser::new_rol_optimization& aOptimizationParameters,
+void test_optional_generic_tolerance(input_parser::rol_optimization& aOptimizationParameters,
                                      boost::optional<double>& aField,
                                      const ValidationFunction& aValidationFunction,
                                      const test_utilities::TestContext& aTestContext)
@@ -51,7 +51,7 @@ void test_optional_generic_tolerance(input_parser::new_rol_optimization& aOptimi
 
 TEST(ROLOptimizerValidation, ValidateAverageGradientTolerance)
 {
-    auto tOptimizationParameters = input_parser::new_rol_optimization{};
+    auto tOptimizationParameters = input_parser::rol_optimization{};
     test_optional_generic_tolerance(
         tOptimizationParameters, tOptimizationParameters.gradient_tolerance,
         [](const auto aInput) { return detail::validate_gradient_tolerance(aInput); },
@@ -60,7 +60,7 @@ TEST(ROLOptimizerValidation, ValidateAverageGradientTolerance)
 
 TEST(ROLOptimizerValidation, ValidateAverageStepTolerance)
 {
-    auto tOptimizationParameters = input_parser::new_rol_optimization{};
+    auto tOptimizationParameters = input_parser::rol_optimization{};
     test_optional_generic_tolerance(
         tOptimizationParameters, tOptimizationParameters.step_tolerance,
         [](const auto aInput) { return detail::validate_step_tolerance(aInput); },
@@ -69,7 +69,7 @@ TEST(ROLOptimizerValidation, ValidateAverageStepTolerance)
 
 TEST(ROLOptimizerValidation, ValidateInitialSearchRadius)
 {
-    auto tOptimizationParameters = input_parser::new_rol_optimization{};
+    auto tOptimizationParameters = input_parser::rol_optimization{};
     EXPECT_FALSE(detail::validate_initial_search_radius(tOptimizationParameters).has_value())
         << "Optional parameter absent is valid";
 
@@ -87,7 +87,7 @@ TEST(ROLOptimizerValidation, ValidateInitialSearchRadius)
 
 TEST(ROLOptimizerValidation, ValidateUniqueOutputName)
 {
-    auto tOptimizationParameters = input_parser::new_rol_optimization{};
+    auto tOptimizationParameters = input_parser::rol_optimization{};
     EXPECT_FALSE(detail::validate_unique_output_name(tOptimizationParameters).has_value())
         << "Optional output file name absent is valid";
 

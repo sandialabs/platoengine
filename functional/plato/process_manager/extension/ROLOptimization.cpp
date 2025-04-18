@@ -31,22 +31,21 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
 }
 
 [[maybe_unused]] static auto kROLOptimizerParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::new_rol_optimization>{};
+    input_parser::ComponentParserRegistration<input_parser::rol_optimization>{};
 
 [[maybe_unused]] static auto kNewROLOptimizerProcessManagerRegistration =
-    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::new_rol_optimization>(),
+    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::rol_optimization>(),
                                            [](const library::NewValidatedProcessManagerInput& aValidInput)
                                            { return make_rol_optimization_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kOptimizerValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<>{
-        [](const input_parser::new_rol_optimization& aInput) { return detail::validate_rol_max_iterations(aInput); },
-        [](const input_parser::new_rol_optimization& aInput) { return detail::validate_step_tolerance(aInput); },
-        [](const input_parser::new_rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); },
-        [](const input_parser::new_rol_optimization& aInput) { return detail::validate_initial_search_radius(aInput); },
-        [](const input_parser::new_rol_optimization& aInput) { return detail::validate_unique_output_name(aInput); },
-        [](const input_parser::new_rol_optimization& aInput)
-        { return detail::validate_optional_input_file_name(aInput); }};
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_rol_max_iterations(aInput); },
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_step_tolerance(aInput); },
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); },
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_initial_search_radius(aInput); },
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_unique_output_name(aInput); },
+        [](const input_parser::rol_optimization& aInput) { return detail::validate_optional_input_file_name(aInput); }};
 }  // namespace
 
 ROLOptimization::ROLOptimization(const library::NewValidatedProcessManagerInput& aInput)
@@ -73,53 +72,53 @@ void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData
     tObjective->finalUpdate(third_party_integration::rol::to_dynamic_vector(*tROLControls));
 }
 
-auto create_valid_example_rol_optimization_input() -> input_parser::new_rol_optimization
+auto create_valid_example_rol_optimization_input() -> input_parser::rol_optimization
 {
-    return input_parser::new_rol_optimization{/*.input_file_name=*/boost::none,
-                                              /*.export_settings_file_name=*/input_parser::FileName{"output_rol.xml"},
-                                              /*.max_iterations =  */ 42,
-                                              /*.step_tolerance = */ 1e-7,
-                                              /*.gradient_tolerance = */ 1e-5,
-                                              /*.initial_search_radius = */ 15,
-                                              /*.verbose_output = */ false,
-                                              /*.approximate_hessian = */ false,
-                                              /*.output_design_history = */ false};
+    return input_parser::rol_optimization{/*.input_file_name=*/boost::none,
+                                          /*.export_settings_file_name=*/input_parser::FileName{"output_rol.xml"},
+                                          /*.max_iterations =  */ 42,
+                                          /*.step_tolerance = */ 1e-7,
+                                          /*.gradient_tolerance = */ 1e-5,
+                                          /*.initial_search_radius = */ 15,
+                                          /*.verbose_output = */ false,
+                                          /*.approximate_hessian = */ false,
+                                          /*.output_design_history = */ false};
 }
 
 namespace detail
 {
-auto validate_rol_max_iterations(const input_parser::new_rol_optimization& aInput) -> std::optional<std::string>
+auto validate_rol_max_iterations(const input_parser::rol_optimization& aInput) -> std::optional<std::string>
 {
     return ::plato::process_manager::extension::detail::validate_max_iterations(aInput);
 }
 
-auto validate_step_tolerance(const input_parser::new_rol_optimization& aInput) -> std::optional<std::string>
+auto validate_step_tolerance(const input_parser::rol_optimization& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
-        input_parser::block_name<input_parser::new_rol_optimization>(), aInput.step_tolerance, "step_tolerance",
+        input_parser::block_name<input_parser::rol_optimization>(), aInput.step_tolerance, "step_tolerance",
         utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
-auto validate_gradient_tolerance(const input_parser::new_rol_optimization& aInput) -> std::optional<std::string>
+auto validate_gradient_tolerance(const input_parser::rol_optimization& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
-        input_parser::block_name<input_parser::new_rol_optimization>(), aInput.gradient_tolerance, "gradient_tolerance",
+        input_parser::block_name<input_parser::rol_optimization>(), aInput.gradient_tolerance, "gradient_tolerance",
         utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
-auto validate_initial_search_radius(const input_parser::new_rol_optimization& aInput) -> std::optional<std::string>
+auto validate_initial_search_radius(const input_parser::rol_optimization& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
-        input_parser::block_name<input_parser::new_rol_optimization>(), aInput.initial_search_radius,
+        input_parser::block_name<input_parser::rol_optimization>(), aInput.initial_search_radius,
         "initial_search_radius", utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
-auto validate_unique_output_name(const input_parser::new_rol_optimization& aInput) -> std::optional<std::string>
+auto validate_unique_output_name(const input_parser::rol_optimization& aInput) -> std::optional<std::string>
 {
     if (aInput.input_file_name.has_value() && aInput.export_settings_file_name.has_value() &&
         aInput.input_file_name.value().mToken == aInput.export_settings_file_name.value().mToken)
     {
-        return utilities::concatenate(input_parser::block_name<input_parser::new_rol_optimization>(),
+        return utilities::concatenate(input_parser::block_name<input_parser::rol_optimization>(),
                                       " 'export_settings_file_name' cannot be the same as 'input_file_name'.");
     }
     return std::nullopt;

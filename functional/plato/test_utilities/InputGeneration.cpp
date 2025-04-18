@@ -61,7 +61,7 @@ std::string create_valid_example_objective_string()
 std::string create_valid_example_rol_optimization_string()
 {
     return R"(
-          begin new_rol_optimization
+          begin rol_optimization
             max_iterations 666
             step_tolerance 1e-4
             gradient_tolerance 1e-6

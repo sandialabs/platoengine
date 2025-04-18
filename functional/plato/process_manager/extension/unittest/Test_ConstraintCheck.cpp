@@ -45,7 +45,7 @@ TEST(ConstraintCheck, ValidateAndRunChecksForLinearConstraint)
     validate_and_run_constraint_check(kBaseInputDeck);
 
     const auto tLinearityCheckFilePath =
-        kBaseInputDeck.get<input_parser::new_constraint_check>().front().linearity_check_output_file_name;
+        kBaseInputDeck.get<input_parser::constraint_check>().front().linearity_check_output_file_name;
     ASSERT_TRUE(tLinearityCheckFilePath.has_value());
     ptu::test_for_existence_and_remove({tLinearityCheckFilePath.value().mToken},
                                        TEST_CONTEXT("Checking linearity check files"));
@@ -62,7 +62,7 @@ TEST(ConstraintCheck, ValidateAndRunChecksForNonlinearConstraint)
 
         validate_and_run_constraint_check(tInputDeck);
 
-        const auto tConstraintCheckInput = kBaseInputDeck.get<input_parser::new_constraint_check>().front();
+        const auto tConstraintCheckInput = kBaseInputDeck.get<input_parser::constraint_check>().front();
 
         ptu::test_for_existence_and_remove(
             {tConstraintCheckInput.linearity_check_output_file_name.value().mToken,
@@ -86,7 +86,7 @@ TEST(ConstraintCheck, ValidateAndRunChecksForNonlinearConstraint)
 
 TEST(ConstraintCheck, Registration)
 {
-    EXPECT_TRUE(library::is_new_process_manager_function_registered("new_constraint_check"));
+    EXPECT_TRUE(library::is_new_process_manager_function_registered("constraint_check"));
 }
 
 }  // namespace plato::process_manager::extension::unittest
