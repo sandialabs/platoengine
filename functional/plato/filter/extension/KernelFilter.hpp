@@ -19,7 +19,7 @@ struct AnalysisDomainMesh;
 
 // clang-format off
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), new_kernel_filter,
+    (plato)(input_parser), kernel_filter,
     (double, filter_radius, "Required field specifying the size of the filter radius.")
     (plato::input_parser::KernelFilterCenteringTypes, centering_type, "Required field specifying whether the results should be 'node' or 'element' centered. "
                                                                       "Platoanalyze requires node-centered and SD requires element-centered.")
@@ -70,17 +70,17 @@ class KernelFilter : public library::FilterInterface
 // CPD-ON
 
 /// @brief Creates a valid example KernelFilter input struct, useful for testing.
-[[nodiscard]] auto create_valid_kernel_filter_input() -> input_parser::new_kernel_filter;
+[[nodiscard]] auto create_valid_kernel_filter_input() -> input_parser::kernel_filter;
 
 namespace detail
 {
-[[nodiscard]] auto validate_kernel_filter_centering_type(const input_parser::new_kernel_filter& aInput)
+[[nodiscard]] auto validate_kernel_filter_centering_type(const input_parser::kernel_filter& aInput)
     -> std::optional<std::string>;
 
-[[nodiscard]] auto validate_number_of_processors(const input_parser::new_kernel_filter& aInput)
+[[nodiscard]] auto validate_number_of_processors(const input_parser::kernel_filter& aInput)
     -> std::optional<std::string>;
 
-[[nodiscard]] auto validate_number_of_processors_factor_of_comm_world(const input_parser::new_kernel_filter& aInput)
+[[nodiscard]] auto validate_number_of_processors_factor_of_comm_world(const input_parser::kernel_filter& aInput)
     -> std::optional<std::string>;
 
 /// @brief Create a LinearMask object from mesh @a aMesh, with a filter sphere with radius @a aFilterRadius,
@@ -92,7 +92,7 @@ namespace detail
 
 /// @brief Create a StateCache object for constructing a shared pointer to a KernelFilter if the mesh coordinates have
 /// changed (i.e. the mesh has changed)
-[[nodiscard]] auto create_filter_cache(const input_parser::new_kernel_filter& aInput) -> library::FilterCache;
+[[nodiscard]] auto create_filter_cache(const input_parser::kernel_filter& aInput) -> library::FilterCache;
 
 }  // namespace detail
 }  // namespace plato::filter::extension

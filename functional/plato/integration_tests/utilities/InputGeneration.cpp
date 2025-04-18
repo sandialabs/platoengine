@@ -12,13 +12,12 @@ namespace plato::integration_tests::utilities
 {
 namespace
 {
-[[nodiscard]] auto create_valid_element_centered_kernel_filter() -> input_parser::new_kernel_filter
+[[nodiscard]] auto create_valid_element_centered_kernel_filter() -> input_parser::kernel_filter
 {
-    return input_parser::new_kernel_filter{
-        /*.filter_radius=*/2.0,
-        /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kElementCentered,
-        /*.use_relative_radius=*/false,
-        /*.number_of_processors*/ 1U};
+    return input_parser::kernel_filter{/*.filter_radius=*/2.0,
+                                       /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kElementCentered,
+                                       /*.use_relative_radius=*/false,
+                                       /*.number_of_processors*/ 1U};
 }
 
 }  // namespace

@@ -37,27 +37,26 @@ boost::mpi::communicator subdivide_world_comm_into_groups(const unsigned int aGr
 }
 
 [[maybe_unused]] static auto kKernelFilterParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::new_kernel_filter>{};
+    input_parser::ComponentParserRegistration<input_parser::kernel_filter>{};
 
 [[maybe_unused]] static auto kNewKernelFilterRegistration = library::NewFilterRegistration{
-    input_parser::block_name<input_parser::new_kernel_filter>(), [](const library::NewValidatedFilterInput& aInput)
+    input_parser::block_name<input_parser::kernel_filter>(), [](const library::NewValidatedFilterInput& aInput)
     {
-        const auto& tInput = input_validation::get_input_block<input_parser::new_kernel_filter>(aInput);
+        const auto& tInput = input_validation::get_input_block<input_parser::kernel_filter>(aInput);
         return library::make_filter_function_from_cache([&tInput]() { return detail::create_filter_cache(tInput); });
     }};
 
 [[maybe_unused]] static auto kKernelFilterValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<>{
-        [](const input_parser::new_kernel_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
-        [](const input_parser::new_kernel_filter& aInput)
-        { return detail::validate_kernel_filter_centering_type(aInput); },
-        [](const input_parser::new_kernel_filter& aInput) { return detail::validate_number_of_processors(aInput); },
-        [](const input_parser::new_kernel_filter& aInput)
+        [](const input_parser::kernel_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
+        [](const input_parser::kernel_filter& aInput) { return detail::validate_kernel_filter_centering_type(aInput); },
+        [](const input_parser::kernel_filter& aInput) { return detail::validate_number_of_processors(aInput); },
+        [](const input_parser::kernel_filter& aInput)
         { return detail::validate_number_of_processors_factor_of_comm_world(aInput); }};
 
 [[maybe_unused]] static auto kKernelFilterMeshBasedValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<std::filesystem::path>{
-        [](const input_parser::new_kernel_filter& aInput, const std::filesystem::path& aMeshPath)
+        [](const input_parser::kernel_filter& aInput, const std::filesystem::path& aMeshPath)
         { return detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};
 
 }  // namespace
@@ -101,34 +100,34 @@ auto KernelFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainM
     return linear_algebra::DynamicVector<double>{mLinearMask.matrixMultiply(aV.stdVector())};
 }
 
-auto create_valid_kernel_filter_input() -> input_parser::new_kernel_filter
+auto create_valid_kernel_filter_input() -> input_parser::kernel_filter
 {
-    return input_parser::new_kernel_filter{/*.filter_radius=*/17.0,
-                                           /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kNodeCentered,
-                                           /*.use_relative_radius=*/boost::none,
-                                           /*.number_of_processors*/ 1};
+    return input_parser::kernel_filter{/*.filter_radius=*/17.0,
+                                       /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kNodeCentered,
+                                       /*.use_relative_radius=*/boost::none,
+                                       /*.number_of_processors*/ 1};
 }
 
 namespace detail
 {
-auto validate_kernel_filter_centering_type(const input_parser::new_kernel_filter& aInput) -> std::optional<std::string>
+auto validate_kernel_filter_centering_type(const input_parser::kernel_filter& aInput) -> std::optional<std::string>
 {
     if (!aInput.centering_type)
     {
         return input_validation::error_message_for_empty_parameter(
-            input_parser::block_name<input_parser::new_kernel_filter>(), aInput.centering_type, "centering_type");
+            input_parser::block_name<input_parser::kernel_filter>(), aInput.centering_type, "centering_type");
     }
     return std::nullopt;
 }
 
-auto validate_number_of_processors(const input_parser::new_kernel_filter& aInput) -> std::optional<std::string>
+auto validate_number_of_processors(const input_parser::kernel_filter& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
-        input_parser::block_name<input_parser::new_kernel_filter>(), aInput.number_of_processors,
-        "number_of_processors", utilities::lower_bounded(utilities::Inclusive{1u}));
+        input_parser::block_name<input_parser::kernel_filter>(), aInput.number_of_processors, "number_of_processors",
+        utilities::lower_bounded(utilities::Inclusive{1u}));
 }
 
-auto validate_number_of_processors_factor_of_comm_world(const input_parser::new_kernel_filter& aInput)
+auto validate_number_of_processors_factor_of_comm_world(const input_parser::kernel_filter& aInput)
     -> std::optional<std::string>
 {
     const auto tRequestedRanks = aInput.number_of_processors.value_or(1u);
@@ -162,7 +161,7 @@ LinearMask create_linear_mask(const mesh::Mesh& aMesh,
         aCommunicator};
 }
 
-library::FilterCache create_filter_cache(const input_parser::new_kernel_filter& aInput)
+library::FilterCache create_filter_cache(const input_parser::kernel_filter& aInput)
 {
     const auto tRequestedRanks = aInput.number_of_processors.value_or(1u);
     const auto tSplitComm = subdivide_world_comm_into_groups(tRequestedRanks);
