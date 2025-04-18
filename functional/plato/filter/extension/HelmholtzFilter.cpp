@@ -21,7 +21,7 @@ namespace
 {
 const auto kHelmholtzFilterLibName = std::filesystem::path{"libAnalyzeFunctionalInterface.so"};
 
-library::FilterParameters to_filter_parameters(const input_parser::new_helmholtz_filter& aInput,
+library::FilterParameters to_filter_parameters(const input_parser::helmholtz_filter& aInput,
                                                const std::filesystem::path& aMeshFileName)
 {
     return library::FilterParameters{
@@ -31,46 +31,46 @@ library::FilterParameters to_filter_parameters(const input_parser::new_helmholtz
 
 // Static registration of input parser
 [[maybe_unused]] static auto kHelmholtzFilterParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::new_helmholtz_filter>{};
+    input_parser::ComponentParserRegistration<input_parser::helmholtz_filter>{};
 
 [[maybe_unused]] static auto kNewHelmholtzFilterRegistration = library::NewFilterRegistration{
-    input_parser::block_name<input_parser::new_helmholtz_filter>(), [](const library::NewValidatedFilterInput& aInput)
+    input_parser::block_name<input_parser::helmholtz_filter>(), [](const library::NewValidatedFilterInput& aInput)
     {
-        const auto& tInput = input_validation::get_input_block<input_parser::new_helmholtz_filter>(aInput);
+        const auto& tInput = input_validation::get_input_block<input_parser::helmholtz_filter>(aInput);
         return library::make_filter_function_from_cache([&tInput]() { return detail::create_filter_cache(tInput); });
     }};
 
 [[maybe_unused]] static auto kHelmholtzFilterValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<>{
-        [](const input_parser::new_helmholtz_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
-        [](const input_parser::new_helmholtz_filter& aInput)
+        [](const input_parser::helmholtz_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
+        [](const input_parser::helmholtz_filter& aInput)
         { return validate_helmholtz_filter_boundary_sticking_penalty(aInput); }};
 
 [[maybe_unused]] static auto kHelmholtzFilterMeshBasedValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<std::filesystem::path>{
-        [](const input_parser::new_helmholtz_filter& aInput, const std::filesystem::path& aMeshPath)
+        [](const input_parser::helmholtz_filter& aInput, const std::filesystem::path& aMeshPath)
         { return detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};
 }  // namespace
 
-auto create_valid_helmholtz_filter_input() -> input_parser::new_helmholtz_filter
+auto create_valid_helmholtz_filter_input() -> input_parser::helmholtz_filter
 {
-    return input_parser::new_helmholtz_filter{/*.filter_radius=*/91.0,
-                                              /*.use_relative_radius=*/boost::none,
-                                              /*.boundary_sticking_penalty=*/1.0};
+    return input_parser::helmholtz_filter{/*.filter_radius=*/91.0,
+                                          /*.use_relative_radius=*/boost::none,
+                                          /*.boundary_sticking_penalty=*/1.0};
 }
 
-auto validate_helmholtz_filter_boundary_sticking_penalty(const input_parser::new_helmholtz_filter& aInput)
+auto validate_helmholtz_filter_boundary_sticking_penalty(const input_parser::helmholtz_filter& aInput)
     -> std::optional<std::string>
 {
     namespace pfu = plato::utilities;
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
-        input_parser::block_name<input_parser::new_helmholtz_filter>(), aInput.boundary_sticking_penalty,
+        input_parser::block_name<input_parser::helmholtz_filter>(), aInput.boundary_sticking_penalty,
         "boundary_sticking_penalty", pfu::unit_bounded());
 }
 
 namespace detail
 {
-library::FilterCache create_filter_cache(const input_parser::new_helmholtz_filter& aInput)
+library::FilterCache create_filter_cache(const input_parser::helmholtz_filter& aInput)
 {
     return library::FilterCache{
         [aInput](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)

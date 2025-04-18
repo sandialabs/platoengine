@@ -23,7 +23,7 @@ void test_cross_linked_filter(const input_parser::CrossLinkedInput& aCrossLinked
     ASSERT_TRUE(tDensityTopologyInput.filter) << aTestContext;
     const auto& tFilterCrossReference = tDensityTopologyInput.filter->mInputBlock;
     EXPECT_TRUE(tFilterCrossReference.hasValue()) << aTestContext;
-    EXPECT_TRUE(tFilterCrossReference.template holdsExpectedType<input_parser::new_helmholtz_filter>()) << aTestContext;
+    EXPECT_TRUE(tFilterCrossReference.template holdsExpectedType<input_parser::helmholtz_filter>()) << aTestContext;
 }
 }  // namespace
 
@@ -69,7 +69,7 @@ TEST(GeometryValidation, LinksDensityTopologyToSpecifiedFilter)
 {
     auto tDensityTopologyInput = geometry::extension::create_valid_density_topology_geometry_input();
     tDensityTopologyInput.filter =
-        input_parser::NewCrossReference<input_parser::ComponentType::kFilter>{"new_helmholtz_filter", {}};
+        input_parser::NewCrossReference<input_parser::ComponentType::kFilter>{"helmholtz_filter", {}};
 
     const auto tInput = tDensityTopologyInput | filter::extension::create_valid_helmholtz_filter_input() |
                         filter::extension::create_valid_identity_filter_input();
