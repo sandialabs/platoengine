@@ -23,17 +23,14 @@ struct InputParserTestFixture : public integration_tests::utilities::ValidInputT
 
 namespace
 {
-const std::filesystem::path kTestFileName = "testInput.i";
-
-void create_input_file(const std::filesystem::path& aTestFileName)
+[[nodiscard]] auto input_deck() -> std::string
 {
-    std::ofstream tOutFile(aTestFileName);
-    const std::string tInput =
+    return
         R"(
-          begin brick_shape_geometry
+          begin new_brick_shape_geometry
             mesh_name my_mesh.exo
           end
-          begin objective test
+          begin new_objective test
             active true
             app platoengine
             criterion nodal_sum
@@ -41,23 +38,20 @@ void create_input_file(const std::filesystem::path& aTestFileName)
             input_files test-input.inp
             aggregation_weight 42.0
           end
-          begin rol_optimization
+          begin new_rol_optimization
             input_file_name its-a_file.txt
             step_tolerance 10
             gradient_tolerance 100.0
             
           end
        )";
-    tOutFile << tInput << std::endl;
-    tOutFile.close();
 }
 }  // namespace
 
 TEST(InputParser, ParseFromFile)
 {
-    create_input_file(kTestFileName);
-    const auto tInputOrError = input_parser::parse_to_new_input(kTestFileName);
-    ASSERT_TRUE(tInputOrError.hasValue());
+    const auto tInputOrError = input_parser::parse_to_new_input(input_deck());
+    ASSERT_TRUE(tInputOrError.hasValue()) << tInputOrError.error();
     const auto& tInput = tInputOrError.value();
 
     const auto tROLOptimization = tInput.get<input_parser::new_rol_optimization>();
@@ -89,16 +83,14 @@ TEST(InputParser, ParseFromFile)
     ASSERT_EQ(tBrickShapeGeometry.size(), 1U);
     ASSERT_TRUE(tBrickShapeGeometry.front().mesh_name.has_value());
     EXPECT_EQ(tBrickShapeGeometry.front().mesh_name->mToken, "my_mesh.exo");
-
-    std::filesystem::remove(kTestFileName);
 }
 
-TEST_F(InputParserTestFixture, BlockName)
+TEST_F(InputParserTestFixture, IsValid)
 {
-    const auto tValidatedInput =
-        input_validation::make_validated_input(integration_tests::utilities::create_valid_example_input());
+    // Tests that the input provided by ValidInputTestFixture is actually valid
+    const auto tValidatedInput = input_validation::make_validated_input(parsedInput());
     ASSERT_TRUE(tValidatedInput.hasValue());
     EXPECT_EQ(tValidatedInput.value().get<input_parser::ComponentType::kGeometry>().rawInput().mBlockName,
-              "density_topology");
+              "new_density_topology");
 }
 }  // namespace plato::integration_tests::serial

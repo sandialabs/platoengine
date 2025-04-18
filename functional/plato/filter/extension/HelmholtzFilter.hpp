@@ -17,11 +17,6 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
                                         "domain as an artifact of filtering. Unit bounded: a value of 1 applies maximum penalization."))
 // clang-format on
 
-namespace plato::input_parser
-{
-struct helmholtz_filter;
-}
-
 namespace plato::filter::extension
 {
 /// @brief Creates a valid example input struct for a HelmholtzFilter, useful for testing.

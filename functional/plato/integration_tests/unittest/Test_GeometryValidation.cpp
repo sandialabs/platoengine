@@ -23,10 +23,7 @@ void test_cross_linked_filter(const input_parser::CrossLinkedInput& aCrossLinked
     ASSERT_TRUE(tDensityTopologyInput.filter) << aTestContext;
     const auto& tFilterCrossReference = tDensityTopologyInput.filter->mInputBlock;
     EXPECT_TRUE(tFilterCrossReference.hasValue()) << aTestContext;
-    ASSERT_TRUE(tFilterCrossReference.template holdsExpectedType<input_parser::InputDataBlock>()) << aTestContext;
-    EXPECT_EQ(tFilterCrossReference.template get<input_parser::InputDataBlock>().mComponentType,
-              input_parser::ComponentType::kFilter)
-        << aTestContext;
+    EXPECT_TRUE(tFilterCrossReference.template holdsExpectedType<input_parser::new_helmholtz_filter>()) << aTestContext;
 }
 }  // namespace
 
@@ -72,13 +69,13 @@ TEST(GeometryValidation, LinksDensityTopologyToSpecifiedFilter)
 {
     auto tDensityTopologyInput = geometry::extension::create_valid_density_topology_geometry_input();
     tDensityTopologyInput.filter =
-        input_parser::NewCrossReference<input_parser::ComponentType::kFilter>{"helmholtz_filter", {}};
+        input_parser::NewCrossReference<input_parser::ComponentType::kFilter>{"new_helmholtz_filter", {}};
 
     const auto tInput = tDensityTopologyInput | filter::extension::create_valid_helmholtz_filter_input() |
                         filter::extension::create_valid_identity_filter_input();
 
     const auto tCrossLinkedInput = input_parser::make_cross_linked_input(tInput);
-    ASSERT_TRUE(tCrossLinkedInput.hasValue());
+    ASSERT_TRUE(tCrossLinkedInput.hasValue()) << tCrossLinkedInput.error();
     test_cross_linked_filter(tCrossLinkedInput.value(), TEST_CONTEXT("Filter specified when multiple are available"));
 }
 }  // namespace plato::integration_tests::unittest

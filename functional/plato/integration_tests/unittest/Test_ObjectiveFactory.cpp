@@ -27,11 +27,11 @@ auto create_two_objective_test_input() -> input_validation::ValidatedInput
     // Input for the actual test
     const std::string tInput =
         R"(
-          begin objective test1
+          begin new_objective test1
             criterion nodal_sum
             aggregation_weight 42.0
           end
-          begin objective test2
+          begin new_objective test2
             active true
             criterion nodal_sum
             aggregation_weight 13.0
@@ -59,15 +59,14 @@ TEST_F(ObjectiveFactoryTestFixture, ValidAggregateOneObjective)
 {
     namespace pftu = plato::test_utilities;
 
-    // Input for the actual test
     const std::string tInput =
         R"(
-          begin objective test1
+          begin new_objective test1
             active false
             criterion nodal_sum
             aggregation_weight 42.0
           end
-          begin objective test2
+          begin new_objective test2
             active true
             criterion nodal_sum
             aggregation_weight 13.0
@@ -79,7 +78,7 @@ TEST_F(ObjectiveFactoryTestFixture, ValidAggregateOneObjective)
 
     const auto tData = input_validation::parse_and_validate_string(tInput).value();
 
-    EXPECT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1U);
+    EXPECT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 2U);
     const auto tAggregate =
         criteria::library::detail::make_parallel_aggregate(tData.get<input_parser::ComponentType::kObjective>());
     EXPECT_EQ(tAggregate.size(), 1U);

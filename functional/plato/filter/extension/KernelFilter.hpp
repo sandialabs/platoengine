@@ -17,11 +17,6 @@ namespace plato::analysis
 struct AnalysisDomainMesh;
 }
 
-namespace plato::input_parser
-{
-struct kernel_filter;
-}
-
 // clang-format off
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), new_kernel_filter,

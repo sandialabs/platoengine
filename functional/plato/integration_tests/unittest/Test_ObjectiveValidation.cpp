@@ -19,14 +19,14 @@ TEST(ObjectiveValidation, ErrorMessagesInvalidObjective)
     {
         auto tObjective = criteria::library::create_valid_example_objective_input();
         tObjective.criterion = boost::none;
-        const auto tInvalidInput = tInputBase | criteria::library::create_valid_example_objective_input();
+        const auto tInvalidInput = tInputBase | tObjective;
         EXPECT_TRUE(input_validation::make_validated_input(tInvalidInput).hasError());
     }
     // No active objective
     {
         auto tObjective = criteria::library::create_valid_example_objective_input();
         tObjective.active = false;
-        const auto tInvalidInput = tInputBase | criteria::library::create_valid_example_objective_input();
+        const auto tInvalidInput = tInputBase | tObjective;
         EXPECT_TRUE(input_validation::make_validated_input(tInvalidInput).hasError());
     }
 }

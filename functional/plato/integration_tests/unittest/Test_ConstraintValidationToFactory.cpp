@@ -16,11 +16,12 @@ struct ConstraintFactoryFileFixture : public utilities::ValidInputTestFixture
 
 TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
 {
+    auto tInput = parsedInput();
+    tInput.get<input_parser::ComponentType::kConstraint>().clear();
+
     auto tConstraint = criteria::library::create_valid_example_constraint_input();
     tConstraint.name = "eq";
     tConstraint.constraint_value = 13;
-
-    auto tInput = parsedInput();
     tInput = tInput | tConstraint;
 
     tConstraint.name = "le";
@@ -36,7 +37,7 @@ TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
     const auto tData = input_validation::make_validated_input(tInput).value();
     auto tConstraints =
         plato::criteria::library::make_constraints(tData.get<input_parser::ComponentType::kConstraint>());
-    ASSERT_EQ(tConstraints.size(), 3u);
+    ASSERT_EQ(tConstraints.size(), 3U);
 
     EXPECT_TRUE(tConstraints[0].mLinear);
     EXPECT_EQ(tConstraints[0].mConstraintTarget, 13);

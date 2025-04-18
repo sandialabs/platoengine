@@ -38,7 +38,7 @@ constexpr auto kNumRanks = int{4};
     // Input for the actual test
     const std::string tObjectiveInput =
         R"(
-          begin objective test1
+          begin new_objective test1
             criterion nodal_sum
             aggregation_weight 42.0
           end

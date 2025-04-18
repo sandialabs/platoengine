@@ -46,8 +46,7 @@ TEST(GeometryFactory, ValidTopology)
 
 TEST(GeometryValidation, BrickShapeGeometry)
 {
-    const auto tValidInputBase = geometry::extension::create_valid_brick_shape_geometry_input() |
-                                 criteria::library::create_valid_example_objective_input() |
+    const auto tValidInputBase = criteria::library::create_valid_example_objective_input() |
                                  process_manager::extension::create_valid_example_rol_optimization_input();
     const auto tValidInput = tValidInputBase | geometry::extension::create_valid_brick_shape_geometry_input();
     EXPECT_TRUE(input_validation::make_validated_input(tValidInput).hasValue());
@@ -59,7 +58,5 @@ TEST(GeometryValidation, BrickShapeGeometry)
         tValidInput | geometry::extension::create_valid_brick_shape_geometry_input();
     EXPECT_TRUE(input_validation::make_validated_input(tInvalidInputNoMeshName).hasError());
 }
-
-// FIX-ME: Add some density & level-set TO checks
 
 }  // namespace plato::integration_tests::unittest

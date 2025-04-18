@@ -12,10 +12,6 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 )
 // clang-format on
 
-namespace plato::input_parser
-{
-struct identity_filter;
-}
 namespace plato::analysis
 {
 struct AnalysisDomainMesh;

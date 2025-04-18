@@ -58,7 +58,7 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
 {
     const std::string tInput =
         R"(
-          begin objective test
+          begin new_objective test
             active true
             criterion nodal_sum
             number_of_processors 1
@@ -67,11 +67,12 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
           end
        )" +
         test_utilities::create_valid_density_topology_geometry_string() +
+        // test_utilities::create_valid_identity_filter_string() +
         test_utilities::create_valid_identity_filter_string() +
         test_utilities::create_valid_example_rol_optimization_string();
 
     const auto tData = input_validation::parse_and_validate_string(tInput).value();
-    ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1);
+    ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1U);
 
     const auto tObjective = input_validation::get_input_block<input_parser::new_objective>(
         tData.get<input_parser::ComponentType::kObjective>().rawInput().front());
@@ -91,8 +92,8 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
 TEST_F(CriterionFactoryTestFixture, ConvertConstraintInput)
 {
     const auto tData = input_validation::parse_and_validate_string(create_valid_example_input_string()).value();
-    const auto& tAllConstraints = tData.get<input_parser::ComponentType::kConstraint>().rawInput();
-    ASSERT_EQ(tAllConstraints.size(), 1);
+    const auto tAllConstraints = tData.get<input_parser::ComponentType::kConstraint>().rawInput();
+    ASSERT_EQ(tAllConstraints.size(), 1U);
     const auto& tValidatedConstraint = tAllConstraints.front();
     const auto& tConstraint = input_validation::get_input_block<input_parser::new_constraint>(tValidatedConstraint);
     const auto tCriterionInput = criteria::library::to_new_criterion_input(tConstraint);
