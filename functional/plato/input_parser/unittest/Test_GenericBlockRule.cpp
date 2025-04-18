@@ -98,10 +98,6 @@ TEST(GenericBlockRule, ErrorsOnBadInput)
         EXPECT_NE(tResultIterator, aInput.cend()) << aTestContext;
     };
     {
-        const auto tInput = utilities::concatenate(kBeginToken, '\n', kArbitraryBlockName, '\n', kEndToken);
-        tCheckForBadInput(tInput, TEST_CONTEXT("Bad content within block"));
-    }
-    {
         const auto tMisspelledBegin = std::string_view{"begn"};
         const auto tInput = utilities::concatenate(tMisspelledBegin, '\n', kArbitraryBlockName, '\n',
                                                    kArbitraryInput.at(0), '\n', kArbitraryInput.at(1), '\n', kEndToken);
@@ -171,6 +167,19 @@ TEST(GenericBlockRule, ToString)
     const auto tResultString = to_string(tGenericBlock);
     const auto tExpectedString = utilities::concatenate_container(tInputText, " ") + " ";
     EXPECT_EQ(tResultString, tExpectedString);
+}
+
+TEST(GenericBlockRule, ParseEmptyBlock)
+{
+    const auto tInput = std::string{
+        "begin arbitrary_block \n"
+        "end\n"};
+
+    const auto tParsedDataOrError = parse_generic_blocks(tInput);
+    ASSERT_TRUE(tParsedDataOrError.hasValue()) << tParsedDataOrError.error();
+    ASSERT_EQ(tParsedDataOrError.value().size(), 1U);
+    EXPECT_EQ(tParsedDataOrError.value().front().mName.mToken, "arbitrary_block");
+    EXPECT_TRUE(tParsedDataOrError.value().front().mInput.empty());
 }
 
 }  // namespace plato::input_parser::unittest

@@ -79,7 +79,7 @@ struct GenericBlockParser : boost::spirit::qi::grammar<Iterator, GenericBlockDat
 template <typename Iterator>
 GenericBlockParser<Iterator>::GenericBlockParser()
     : GenericBlockParser::base_type{mRule},
-      mRule{boost::spirit::qi::lit("begin") >> boost::spirit::qi::auto_ >> +(boost::spirit::qi::auto_) >>
+      mRule{boost::spirit::qi::lit("begin") >> boost::spirit::qi::auto_ >> *(boost::spirit::qi::auto_) >>
             boost::spirit::qi::lit("end")}
 {
 }
