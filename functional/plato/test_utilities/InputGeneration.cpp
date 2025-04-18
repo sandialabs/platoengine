@@ -11,7 +11,7 @@ namespace plato::test_utilities
 std::string create_valid_brick_shape_geometry_string()
 {
     return R"(
-        begin new_brick_shape_geometry
+        begin brick_shape_geometry
           mesh_name my_mesh.exo
         end
         )";
@@ -20,7 +20,7 @@ std::string create_valid_brick_shape_geometry_string()
 std::string create_valid_density_topology_geometry_string()
 {
     return R"(
-        begin new_density_topology
+        begin density_topology
           mesh_name test.exo
           output_name test_out.exo
           initial_density_value 0.5

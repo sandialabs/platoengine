@@ -69,7 +69,7 @@ TEST(DensityTopologyValidation, ValidateInitialDensity)
 
 TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
 {
-    auto tDensityTopology = input_parser::new_density_topology{};
+    auto tDensityTopology = input_parser::density_topology{};
     EXPECT_TRUE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
         << "Missing both specifiers";
 
@@ -105,7 +105,7 @@ TEST_F(TwoDThreeBlockMesh, MeshFromInput)
         std::size_t mNumberOfDesignDomainElements = 0U;
     };
 
-    const auto tTestFunction = [](const input_parser::new_density_topology& tDensityInput,
+    const auto tTestFunction = [](const input_parser::density_topology& tDensityInput,
                                   const ExpectedSizes& aExpectedSizes, const test_utilities::TestContext& aTestContext)
     {
         const auto tMesh = mesh_from_input(tDensityInput);

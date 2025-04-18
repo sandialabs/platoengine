@@ -17,7 +17,7 @@
 
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), new_level_set_topology,
+    (plato)(input_parser), level_set_topology,
     (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
     (plato::input_parser::FileName, output_name, "Required field specifying the exodus output file name to use when writing results.")
     (bool, include_void_region, "Required field specifying whether to include the elements of the void region when writing the cut mesh.")
@@ -66,7 +66,7 @@ namespace plato::geometry::extension
 class LevelSetTopology
 {
    public:
-    explicit LevelSetTopology(const input_parser::new_level_set_topology& aInput);
+    explicit LevelSetTopology(const input_parser::level_set_topology& aInput);
 
     ~LevelSetTopology();
     LevelSetTopology(const LevelSetTopology&) = default;
@@ -79,7 +79,7 @@ class LevelSetTopology
         -> linear_algebra::DynamicVector<double>;
     [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> analysis::AnalysisDomainMesh;
-    static void output(const input_parser::new_level_set_topology& aInput,
+    static void output(const input_parser::level_set_topology& aInput,
                        const filter::library::FilterFunction& aFilterFunction,
                        const linear_algebra::DynamicVector<double>& aSolution,
                        const library::OutputInfo& aOutputInfo);
@@ -104,7 +104,7 @@ class LevelSetTopology
     -> library::GeometryFunction;
 
 /// @brief Creates a valid example LevelSetTopology input struct, useful for testing.
-[[nodiscard]] auto create_valid_level_set_topology_geometry_input() -> input_parser::new_level_set_topology;
+[[nodiscard]] auto create_valid_level_set_topology_geometry_input() -> input_parser::level_set_topology;
 
 /// @brief Creates a valid example LevelSetTopology input struct witha field initial guess, useful for testing.
 [[nodiscard]] auto create_valid_level_set_topology_geometry_initialize_from_field_input()
@@ -112,7 +112,7 @@ class LevelSetTopology
 
 /// @brief The name of the output file containing the unfiltered level-set field, which may be used as a restart
 /// file.
-[[nodiscard]] auto restart_file_name(const input_parser::new_level_set_topology& aInput) -> std::filesystem::path;
+[[nodiscard]] auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path;
 
 /// @brief The label of the unfiltered level-set field used in the output mesh.
 [[nodiscard]] constexpr auto level_set_mesh_field_name() -> std::string_view;

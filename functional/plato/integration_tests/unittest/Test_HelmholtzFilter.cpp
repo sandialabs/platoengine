@@ -34,7 +34,7 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
 
     // make mesh for validation of density_topology
     const auto tMeshFileName =
-        std::filesystem::path{tInput.get<input_parser::new_density_topology>().front().mesh_name.value().mToken};
+        std::filesystem::path{tInput.get<input_parser::density_topology>().front().mesh_name.value().mToken};
     const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{
         {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
     third_party_integration::stk_io::write_mesh(tMeshFileName, tCommandGenerator);
@@ -49,8 +49,7 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
     try
     {
         [[maybe_unused]] const auto tFunction =
-            geometry::library::make_filter_from_new_geometry_input<input_parser::new_density_topology>(
-                tValidatedGeometry);
+            geometry::library::make_filter_from_new_geometry_input<input_parser::density_topology>(tValidatedGeometry);
         tCreationSuccessful = true;
     }
     catch (const plato::utilities::Exception&)

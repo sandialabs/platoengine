@@ -163,7 +163,7 @@ TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockValidation)
     tLevelSetInputBase.background_mesh_name = input_parser::FileName{mMeshFilePath};
 
     const auto tCheckForErrors =
-        [](const input_parser::new_level_set_topology& aLevelSetInput, const test_utilities::TestContext& aTestContext)
+        [](const input_parser::level_set_topology& aLevelSetInput, const test_utilities::TestContext& aTestContext)
     {
         const auto tInput = input_parser::CrossReferencedInput{aLevelSetInput};
         const auto tValidationMessages = input_validation::validate(tInput, {});

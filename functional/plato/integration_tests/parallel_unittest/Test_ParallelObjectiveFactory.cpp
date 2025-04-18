@@ -87,7 +87,7 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
 
     const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
         tValidInput.get<input_parser::ComponentType::kObjective>());
-    const auto tMeshFileName = tInput.get<input_parser::new_brick_shape_geometry>().front().mesh_name.value().mToken;
+    const auto tMeshFileName = tInput.get<input_parser::brick_shape_geometry>().front().mesh_name.value().mToken;
     const auto tGeometry =
         geometry::extension::make_brick_shape_geometry(geometry::extension::BrickShapeGeometry{tMeshFileName});
 

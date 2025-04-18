@@ -18,8 +18,8 @@ namespace
 void test_cross_linked_filter(const input_parser::CrossLinkedInput& aCrossLinkedInput,
                               const test_utilities::TestContext& aTestContext)
 {
-    ASSERT_FALSE(aCrossLinkedInput.rawInput().get<input_parser::new_density_topology>().empty());
-    const auto tDensityTopologyInput = aCrossLinkedInput.rawInput().get<input_parser::new_density_topology>().front();
+    ASSERT_FALSE(aCrossLinkedInput.rawInput().get<input_parser::density_topology>().empty());
+    const auto tDensityTopologyInput = aCrossLinkedInput.rawInput().get<input_parser::density_topology>().front();
     ASSERT_TRUE(tDensityTopologyInput.filter) << aTestContext;
     const auto& tFilterCrossReference = tDensityTopologyInput.filter->mInputBlock;
     EXPECT_TRUE(tFilterCrossReference.hasValue()) << aTestContext;
@@ -58,7 +58,7 @@ TEST(GeometryValidation, LinksDensityTopologyToOnlyFilter)
 {
     const auto tInput = geometry::extension::create_valid_density_topology_geometry_input() |
                         filter::extension::create_valid_helmholtz_filter_input();
-    ASSERT_FALSE(tInput.get<input_parser::new_density_topology>().front().filter);
+    ASSERT_FALSE(tInput.get<input_parser::density_topology>().front().filter);
 
     const auto tCrossLinkedInput = input_parser::make_cross_linked_input(tInput);
     ASSERT_TRUE(tCrossLinkedInput.hasValue());

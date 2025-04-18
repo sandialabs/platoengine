@@ -27,7 +27,7 @@ namespace
 {
     return
         R"(
-          begin new_brick_shape_geometry
+          begin brick_shape_geometry
             mesh_name my_mesh.exo
           end
           begin new_objective test
@@ -79,7 +79,7 @@ TEST(InputParser, ParseFromFile)
 
     EXPECT_TRUE(tInput.get<input_parser::new_constraint>().empty());
 
-    const auto tBrickShapeGeometry = tInput.get<input_parser::new_brick_shape_geometry>();
+    const auto tBrickShapeGeometry = tInput.get<input_parser::brick_shape_geometry>();
     ASSERT_EQ(tBrickShapeGeometry.size(), 1U);
     ASSERT_TRUE(tBrickShapeGeometry.front().mesh_name.has_value());
     EXPECT_EQ(tBrickShapeGeometry.front().mesh_name->mToken, "my_mesh.exo");
@@ -91,6 +91,6 @@ TEST_F(InputParserTestFixture, IsValid)
     const auto tValidatedInput = input_validation::make_validated_input(parsedInput());
     ASSERT_TRUE(tValidatedInput.hasValue());
     EXPECT_EQ(tValidatedInput.value().get<input_parser::ComponentType::kGeometry>().rawInput().mBlockName,
-              "new_density_topology");
+              "density_topology");
 }
 }  // namespace plato::integration_tests::serial

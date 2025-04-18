@@ -565,7 +565,7 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianAdjointJacobianConsistency)
 
 TEST(LevelSetTopology, Registration)
 {
-    EXPECT_TRUE(library::is_new_geometry_function_registered("new_level_set_topology"));
+    EXPECT_TRUE(library::is_new_geometry_function_registered("level_set_topology"));
 }
 
 }  // namespace plato::geometry::extension::unittest

@@ -159,8 +159,7 @@ TEST(DensityTopology, InitialGuess)
 namespace
 {
 [[nodiscard]] auto density_input_for_test_fixture(const std::filesystem::path& aMeshName,
-                                                  const std::string_view aFieldName)
-    -> input_parser::new_density_topology
+                                                  const std::string_view aFieldName) -> input_parser::density_topology
 {
     auto tDensityInput = kDensityInput;
     tDensityInput.initial_density_value = boost::none;
@@ -204,9 +203,6 @@ TEST(DensityTopology, Bounds)
     EXPECT_TRUE(std::filesystem::remove(kDensityInput.mesh_name->mToken));
 }
 
-TEST(DensityTopology, Registration)
-{
-    EXPECT_TRUE(library::is_new_geometry_function_registered("new_density_topology"));
-}
+TEST(DensityTopology, Registration) { EXPECT_TRUE(library::is_new_geometry_function_registered("density_topology")); }
 
 }  // namespace plato::geometry::extension::unittest

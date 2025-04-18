@@ -21,9 +21,9 @@ using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWi
 namespace
 {
 [[nodiscard]] auto density_input(const std::filesystem::path& aMeshName, const std::string_view aFieldName)
-    -> input_parser::new_density_topology
+    -> input_parser::density_topology
 {
-    auto tDensityInput = input_parser::new_density_topology{};
+    auto tDensityInput = input_parser::density_topology{};
     tDensityInput.mesh_name = input_parser::FileName{aMeshName};
     tDensityInput.output_name = input_parser::FileName{"test_out.exo"};
     tDensityInput.initial_field_name = input_parser::IdentifierString{std::string{aFieldName}};

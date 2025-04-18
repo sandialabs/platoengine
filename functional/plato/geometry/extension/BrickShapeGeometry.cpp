@@ -29,7 +29,7 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
 
 [[nodiscard]] auto mesh_path(const library::NewValidatedGeometryInput& aGeometryInput) -> std::filesystem::path
 {
-    const auto& tInput = input_validation::get_input_block<input_parser::new_brick_shape_geometry>(aGeometryInput);
+    const auto& tInput = input_validation::get_input_block<input_parser::brick_shape_geometry>(aGeometryInput);
     return tInput.mesh_name.value().mToken;
 }
 
@@ -40,10 +40,10 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
 }
 
 [[maybe_unused]] static auto kBrickShapeGeometryParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::new_brick_shape_geometry>{};
+    input_parser::ComponentParserRegistration<input_parser::brick_shape_geometry>{};
 
 [[maybe_unused]] static auto kNewBrickShapeGeometryRegistration = plato::geometry::library::NewGeometryRegistration{
-    input_parser::block_name<input_parser::new_brick_shape_geometry>(),
+    input_parser::block_name<input_parser::brick_shape_geometry>(),
     [](const library::NewValidatedGeometryInput& aGeometryInput)
     {
         return library::FactoryTypes{make_brick_shape_geometry(BrickShapeGeometry{mesh_path(aGeometryInput)}),
@@ -52,14 +52,13 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
 
 [[maybe_unused]] static auto kBrickShapeInputValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<>{
-        [](const input_parser::new_brick_shape_geometry& aInput)
-        { return library::detail::validate_mesh_name(aInput); }};
+        [](const input_parser::brick_shape_geometry& aInput) { return library::detail::validate_mesh_name(aInput); }};
 
 }  // namespace
 
-auto create_valid_brick_shape_geometry_input() -> input_parser::new_brick_shape_geometry
+auto create_valid_brick_shape_geometry_input() -> input_parser::brick_shape_geometry
 {
-    return input_parser::new_brick_shape_geometry{/*.mesh_name=*/input_parser::FileName{"my_mesh.exo"}};
+    return input_parser::brick_shape_geometry{/*.mesh_name=*/input_parser::FileName{"my_mesh.exo"}};
 }
 
 BrickShapeGeometry::BrickShapeGeometry(std::filesystem::path aFileName, const std::optional<double> aDiscretizationSize)

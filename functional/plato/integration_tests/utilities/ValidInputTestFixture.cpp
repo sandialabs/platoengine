@@ -11,7 +11,7 @@ const auto kInput = create_valid_example_input();
 }
 
 ValidInputTestFixture::ValidInputTestFixture()
-    : FileCreatingTestFixture{kInput.get<input_parser::new_density_topology>().front().mesh_name.value().mToken},
+    : FileCreatingTestFixture{kInput.get<input_parser::density_topology>().front().mesh_name.value().mToken},
       mInput{kInput}
 {
 }

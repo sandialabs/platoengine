@@ -25,7 +25,7 @@ const auto kValidInputBase = geometry::extension::create_valid_density_topology_
 struct FilterValidationTestFixture : public testing::Test
 {
     std::filesystem::path mMeshPath =
-        kValidInputBase.get<input_parser::new_density_topology>().front().mesh_name.value().mToken;
+        kValidInputBase.get<input_parser::density_topology>().front().mesh_name.value().mToken;
 
     FilterValidationTestFixture()
     {

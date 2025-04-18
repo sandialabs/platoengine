@@ -241,6 +241,6 @@ TEST(Brick, AdjointJacobian)
     }
 }
 
-TEST(Brick, Registration) { EXPECT_TRUE(library::is_new_geometry_function_registered("new_brick_shape_geometry")); }
+TEST(Brick, Registration) { EXPECT_TRUE(library::is_new_geometry_function_registered("brick_shape_geometry")); }
 
 }  // namespace plato::geometry::extension::unittest

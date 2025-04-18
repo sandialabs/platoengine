@@ -51,7 +51,7 @@ TEST(GeometryValidation, BrickShapeGeometry)
     const auto tValidInput = tValidInputBase | geometry::extension::create_valid_brick_shape_geometry_input();
     EXPECT_TRUE(input_validation::make_validated_input(tValidInput).hasValue());
 
-    const auto tInvalidInputNoMeshName = tValidInputBase | input_parser::new_brick_shape_geometry{};
+    const auto tInvalidInputNoMeshName = tValidInputBase | input_parser::brick_shape_geometry{};
     EXPECT_TRUE(input_validation::make_validated_input(tInvalidInputNoMeshName).hasError());
 
     const auto tInvalidInputTwoGeometries =
