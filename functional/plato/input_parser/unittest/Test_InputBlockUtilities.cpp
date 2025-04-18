@@ -45,7 +45,7 @@ void check_input_block(const NewParsedInput& aFullInput,
     ASSERT_EQ(tComponent.size(), 1U) << aTestContext;
     EXPECT_EQ(tComponent.front().mComponentType, kComponentType) << aTestContext;
     EXPECT_EQ(tComponent.front().mBlockName, block_name<InputBlock>()) << aTestContext;
-    ASSERT_TRUE(tComponent.front().mInput.template holds_expected_type<InputBlock>()) << aTestContext;
+    ASSERT_TRUE(tComponent.front().mInput.template holdsExpectedType<InputBlock>()) << aTestContext;
     EXPECT_EQ(tComponent.front().mInput.template get<InputBlock>().field1, aExpectedBlock.field1) << aTestContext;
     if constexpr (kIsNamedComponent<kComponentType>)
     {

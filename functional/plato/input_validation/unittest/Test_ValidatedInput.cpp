@@ -221,7 +221,7 @@ TEST_F(ValidatedInputRegistrationFixture, GetMember)
     const auto tGeometryInput = tValidatedInput.get<input_parser::ComponentType::kGeometry>().rawInput();
     EXPECT_EQ(tGeometryInput.mComponentType, input_parser::ComponentType::kGeometry);
     EXPECT_EQ(tGeometryInput.mBlockName, "marvel");
-    ASSERT_TRUE(tGeometryInput.mInput.holds_expected_type<input_parser::marvel>());
+    ASSERT_TRUE(tGeometryInput.mInput.holdsExpectedType<input_parser::marvel>());
     ASSERT_TRUE(tGeometryInput.mInput.get<input_parser::marvel>().cyclops.has_value());
     EXPECT_EQ(tGeometryInput.mInput.get<input_parser::marvel>().cyclops.value(), 42.0);
     ASSERT_TRUE(tGeometryInput.mInput.get<input_parser::marvel>().wolverine.has_value());
@@ -232,7 +232,7 @@ TEST_F(ValidatedInputRegistrationFixture, GetMember)
     const auto& tConstraintInput = tAllConstraintsInput.front().rawInput();
     EXPECT_EQ(tConstraintInput.mComponentType, input_parser::ComponentType::kConstraint);
     EXPECT_EQ(tConstraintInput.mBlockName, "dc");
-    ASSERT_TRUE(tConstraintInput.mInput.holds_expected_type<input_parser::dc>());
+    ASSERT_TRUE(tConstraintInput.mInput.holdsExpectedType<input_parser::dc>());
     const auto& aDCInput = tConstraintInput.mInput.get<input_parser::dc>();
     ASSERT_TRUE(aDCInput.name.has_value());
     EXPECT_EQ(aDCInput.name.value(), "tv-show");

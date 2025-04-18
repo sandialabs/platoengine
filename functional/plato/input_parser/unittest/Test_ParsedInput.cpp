@@ -82,7 +82,7 @@ TEST(ParsedInput, ParsesFullValidInput)
     ASSERT_EQ(tVegetableInputs.size(), 1U);
     EXPECT_EQ(tVegetableInputs.front().mBlockName, "vegetables");
     EXPECT_EQ(tVegetableInputs.front().mComponentType, ComponentType::kObjective);
-    ASSERT_TRUE(tVegetableInputs.front().mInput.holds_expected_type<vegetables>());
+    ASSERT_TRUE(tVegetableInputs.front().mInput.holdsExpectedType<vegetables>());
     const auto tVegetableInput = tVegetableInputs.front().mInput.get<vegetables>();
     ASSERT_TRUE(tVegetableInput.name.has_value());
     EXPECT_EQ(tVegetableInput.name.value(), "nightshade");
@@ -95,7 +95,7 @@ TEST(ParsedInput, ParsesFullValidInput)
     ASSERT_EQ(tFruitInputs.size(), 1U);
     EXPECT_EQ(tFruitInputs.front().mBlockName, "fruits");
     EXPECT_EQ(tFruitInputs.front().mComponentType, ComponentType::kGeometry);
-    ASSERT_TRUE(tFruitInputs.front().mInput.holds_expected_type<fruits>());
+    ASSERT_TRUE(tFruitInputs.front().mInput.holdsExpectedType<fruits>());
     const auto tFruitInput = tFruitInputs.front().mInput.get<fruits>();
     ASSERT_TRUE(tFruitInput.apple.has_value());
     EXPECT_EQ(tFruitInput.apple.value(), 13.0);

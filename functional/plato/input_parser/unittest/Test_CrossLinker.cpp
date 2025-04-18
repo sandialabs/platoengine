@@ -72,8 +72,8 @@ TEST(CrossLinker, CrossLinkUnspecified)
     const auto& tUninspiredInput = tCrossLinkedInputOrError.value().mInput.get<uninspired_thing>();
 
     ASSERT_TRUE(tUninspiredInput.my_filter.has_value());
-    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.has_value());
-    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.holds_expected_type<uninspired_filter>());
+    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.hasValue());
+    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.holdsExpectedType<uninspired_filter>());
     ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.get<uninspired_filter>().filteriness.has_value());
     EXPECT_EQ(tUninspiredInput.my_filter.value().mInputBlock.get<uninspired_filter>().filteriness.value(),
               kUninspiredFilterValue);
@@ -99,8 +99,8 @@ TEST(CrossLinker, CrossLinkSpecified)
     const auto& tUninspiredInput = tCrossLinkedInputOrError.value().mInput.get<uninspired_thing>();
 
     ASSERT_TRUE(tUninspiredInput.my_filter.has_value());
-    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.has_value());
-    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.holds_expected_type<very_inspired_filter>());
+    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.hasValue());
+    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.holdsExpectedType<very_inspired_filter>());
     ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.get<very_inspired_filter>().filteritude.has_value());
     EXPECT_EQ(tUninspiredInput.my_filter.value().mInputBlock.get<very_inspired_filter>().filteritude.value(),
               kVeryInspiredFilterValue);

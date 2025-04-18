@@ -53,7 +53,7 @@ template <typename FilterInputType, typename Geometry>
 [[nodiscard]] auto get_cross_referenced_filter(const Geometry& aGeometry) -> FilterInputType
 {
     assert(aGeometry.filter->mInputBlock.has_value());
-    assert(aGeometry.filter->mInputBlock.template holds_expected_type<FilterInputType>());
+    assert(aGeometry.filter->mInputBlock.template holdsExpectedType<FilterInputType>());
     return aGeometry.filter->mInputBlock.template get<FilterInputType>();
 }
 }  // namespace plato::geometry::library

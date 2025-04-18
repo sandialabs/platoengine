@@ -142,7 +142,7 @@ struct TypeOrOptional<boost::optional<T>>
 template <typename Input, typename ApplyFunction>
 void apply_cross_link(InputDataBlock& aInputBlock, const NewParsedInput& aNewParsedInput, ApplyFunction& aApplyFunction)
 {
-    assert(aInputBlock.mInput.holds_expected_type<Input>());
+    assert(aInputBlock.mInput.holdsExpectedType<Input>());
     auto& aCastInputBlock = aInputBlock.mInput.get<Input&>();
     boost::fusion::for_each(aCastInputBlock,
                             [&aNewParsedInput, &aApplyFunction](auto& aField)
@@ -161,7 +161,7 @@ CrossLinker::CrossLinker(InputTypeHelper<Input>)
     : mCrossLinkFunction{
           [](InputDataBlock aInputBlock, const NewParsedInput& aNewParsedInput) -> CrossLinkedBlockOrError
           {
-              if (aInputBlock.mInput.holds_expected_type<Input>())
+              if (aInputBlock.mInput.holdsExpectedType<Input>())
               {
                   auto tErrorChecks = detail::ErrorCheckCrossLink{aInputBlock.mBlockName, {}};
                   detail::apply_cross_link<Input>(aInputBlock, aNewParsedInput, tErrorChecks);

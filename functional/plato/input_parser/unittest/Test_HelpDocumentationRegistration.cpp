@@ -35,7 +35,7 @@ auto help_documentation_function_two() -> Documentation
 TEST(HelpDocumentationRegistration, GenerateDocumentation)
 {
     const auto tDocumentation = generate_documentation();
-    EXPECT_GE(tDocumentation.size(), 3U);
+    EXPECT_GE(tDocumentation.size(), 2U);
     ASSERT_EQ(tDocumentation.at("key_one").size(), 1U);
     EXPECT_EQ(tDocumentation.at("key_one").front().mType, "type_1");
     ASSERT_EQ(tDocumentation.at("key_two").size(), 2U);

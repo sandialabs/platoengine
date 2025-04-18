@@ -46,8 +46,8 @@ TEST(CrossLinkedInput, MakeCrossLinkedInput)
     const auto& tResultBlock = tCrossLinkedInput.rawInput().get<ComponentType::kProcessManager>().front().mInput.get<block_with_geometry_cross_reference>();
 
     ASSERT_TRUE(tResultBlock.my_geom.has_value());
-    ASSERT_TRUE(tResultBlock.my_geom.value().mInputBlock.has_value());
-    ASSERT_TRUE(tResultBlock.my_geom.value().mInputBlock.holds_expected_type<geometry_block>());
+    ASSERT_TRUE(tResultBlock.my_geom.value().mInputBlock.hasValue());
+    ASSERT_TRUE(tResultBlock.my_geom.value().mInputBlock.holdsExpectedType<geometry_block>());
     ASSERT_TRUE(tResultBlock.my_geom.value().mInputBlock.get<geometry_block>().a_parameter.has_value());
     EXPECT_EQ(tResultBlock.my_geom.value().mInputBlock.get<geometry_block>().a_parameter.value(), tParameterValue);
 }

@@ -20,8 +20,8 @@ void check_parsed_data(const ComponentBlockParser::ParsedDataOrError& aParsedDat
 
     EXPECT_EQ(aParsedData.mComponentType, ComponentType::kGeometry) << aTestContext;
     EXPECT_EQ(aParsedData.mBlockName, "interface_test_block") << aTestContext;
-    EXPECT_TRUE(aParsedData.mInput.has_value()) << aTestContext;
-    ASSERT_TRUE(aParsedData.mInput.holds_expected_type<interface_test_block>()) << aTestContext;
+    EXPECT_TRUE(aParsedData.mInput.hasValue()) << aTestContext;
+    ASSERT_TRUE(aParsedData.mInput.holdsExpectedType<interface_test_block>()) << aTestContext;
 
     const auto tResultData = aParsedData.mInput.get<interface_test_block>();
     EXPECT_TRUE(tResultData.arabica.has_value()) << aTestContext;

@@ -57,7 +57,7 @@ template <typename InputBlockType>
 template <typename Geometry>
 auto filter_is_cross_linked(const Geometry& aInput) -> bool
 {
-    return aInput.filter.has_value() && aInput.filter.value().mInputBlock.has_value();
+    return aInput.filter.has_value() && aInput.filter.value().mInputBlock.hasValue();
 }
 
 template <typename Geometry, typename MeshFieldAccessor>

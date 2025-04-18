@@ -18,7 +18,7 @@ auto rol_parameter_list(const input_validation::ValidatedInput& aData)
     EXPECT_TRUE(tProcessManagerData.rawInput()
                     .front()
                     .rawInput()
-                    .mInput.holds_expected_type<input_parser::new_rol_optimization>());
+                    .mInput.holdsExpectedType<input_parser::new_rol_optimization>());
     const auto& tOptimizationParameters = tProcessManagerData.rawInput().front();
     return {make_optimization_parameters(tOptimizationParameters),
             tOptimizationParameters.rawInput().mInput.get<input_parser::new_rol_optimization>()};

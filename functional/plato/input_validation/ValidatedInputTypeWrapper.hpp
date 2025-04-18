@@ -80,7 +80,7 @@ template <input_parser::ComponentType kCrossReferenceComponentType,
 {
     using InputBlockType = typename utilities::FunctionArgType<Accessor>::template arg<0U>;
 
-    assert(aValidatedInput.mRawInput.mInput.template holds_expected_type<InputBlockType>());
+    assert(aValidatedInput.mRawInput.mInput.template holdsExpectedType<InputBlockType>());
     const auto& tCrossReferenceField = aAccessor(aValidatedInput.mRawInput.mInput.template get<InputBlockType>());
 
     assert(tCrossReferenceField.has_value());

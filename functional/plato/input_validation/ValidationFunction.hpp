@@ -51,7 +51,7 @@ auto validate_input_block(const F aValidationFunction,
                           AdditionalArgs... aAdditionalArgs) -> std::optional<std::string>
 {
     using InputType = typename utilities::FunctionArgType<F>::template arg<0U>;
-    if (aInput.template holds_expected_type<InputType>())
+    if (aInput.template holdsExpectedType<InputType>())
     {
         return aValidationFunction(aInput.template get<const InputType&>(), std::move(aAdditionalArgs)...);
     }

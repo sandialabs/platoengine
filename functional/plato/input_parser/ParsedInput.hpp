@@ -83,7 +83,7 @@ auto NewParsedInput::get() const -> std::vector<InputType>
     utilities::transform_if(
         tInputsWithComponentType, std::back_inserter(tInputsWithType),
         [](const auto& aInputBlock) { return aInputBlock.mInput.template get<InputType>(); },
-        [](const auto& aInputBlock) { return aInputBlock.mInput.template holds_expected_type<InputType>(); });
+        [](const auto& aInputBlock) { return aInputBlock.mInput.template holdsExpectedType<InputType>(); });
     return tInputsWithType;
 }
 }  // namespace plato::input_parser

@@ -22,8 +22,8 @@ void test_cross_linked_filter(const input_parser::CrossLinkedInput& aCrossLinked
     const auto tDensityTopologyInput = aCrossLinkedInput.rawInput().get<input_parser::new_density_topology>().front();
     ASSERT_TRUE(tDensityTopologyInput.filter) << aTestContext;
     const auto& tFilterCrossReference = tDensityTopologyInput.filter->mInputBlock;
-    EXPECT_TRUE(tFilterCrossReference.has_value()) << aTestContext;
-    ASSERT_TRUE(tFilterCrossReference.template holds_expected_type<input_parser::InputDataBlock>()) << aTestContext;
+    EXPECT_TRUE(tFilterCrossReference.hasValue()) << aTestContext;
+    ASSERT_TRUE(tFilterCrossReference.template holdsExpectedType<input_parser::InputDataBlock>()) << aTestContext;
     EXPECT_EQ(tFilterCrossReference.template get<input_parser::InputDataBlock>().mComponentType,
               input_parser::ComponentType::kFilter)
         << aTestContext;

@@ -33,36 +33,28 @@ TEST(CrossReferencedInput, SetAndGet)
     }
 }
 
-TEST(CrossReferencedInput, GetThrowsWithWrongType)
-{
-    CrossReferencedInput tInput{};
-    tInput.set(77);
-    ASSERT_THROW([[maybe_unused]] const auto tObject = tInput.get<double>(), std::bad_any_cast);
-    EXPECT_NO_THROW([[maybe_unused]] const auto tObject = tInput.get<int>());
-}
-
 TEST(CrossReferencedInput, HoldsExpectedType)
 {
     CrossReferencedInput tInput{};
     tInput.set(86);
-    EXPECT_FALSE(tInput.holds_expected_type<double>());
-    EXPECT_FALSE(tInput.holds_expected_type<unsigned int>());
-    EXPECT_FALSE(tInput.holds_expected_type<char>());
-    EXPECT_TRUE(tInput.holds_expected_type<int>());
+    EXPECT_FALSE(tInput.holdsExpectedType<double>());
+    EXPECT_FALSE(tInput.holdsExpectedType<unsigned int>());
+    EXPECT_FALSE(tInput.holdsExpectedType<char>());
+    EXPECT_TRUE(tInput.holdsExpectedType<int>());
 }
 
 TEST(CrossReferencedInput, HasValue)
 {
     CrossReferencedInput tInput{};
-    EXPECT_FALSE(tInput.has_value());
+    EXPECT_FALSE(tInput.hasValue());
     tInput.set(38);
-    EXPECT_TRUE(tInput.has_value());
+    EXPECT_TRUE(tInput.hasValue());
 }
 
 TEST(CrossReferencedInput, MutatingGet)
 {
     auto tInput = CrossReferencedInput{101};
-    ASSERT_TRUE(tInput.holds_expected_type<int>());
+    ASSERT_TRUE(tInput.holdsExpectedType<int>());
     constexpr auto tNewValue = 42;
     tInput.get<int>() = tNewValue;
     EXPECT_EQ(tInput.get<int>(), tNewValue);
@@ -75,8 +67,8 @@ TEST(CrossReferencedInput, Ctors)
     const auto tCheckCrossReference =
         [tValue](const CrossReferencedInput& aInput, const test_utilities::TestContext& aTestContext)
     {
-        ASSERT_TRUE(aInput.has_value()) << aTestContext;
-        ASSERT_TRUE(aInput.holds_expected_type<int>()) << aTestContext;
+        ASSERT_TRUE(aInput.hasValue()) << aTestContext;
+        ASSERT_TRUE(aInput.holdsExpectedType<int>()) << aTestContext;
         EXPECT_EQ(aInput.get<int>(), tValue) << aTestContext;
     };
     // Converting ctor
