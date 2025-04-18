@@ -4,8 +4,8 @@
 #include <filesystem>
 #include <optional>
 
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 

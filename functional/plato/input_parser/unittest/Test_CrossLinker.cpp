@@ -4,7 +4,6 @@
 #include "plato/input_parser/CrossLinker.hpp"
 #include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 
 namespace
 {

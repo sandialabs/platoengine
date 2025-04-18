@@ -4,7 +4,6 @@
 #include <iterator>
 #include <set>
 
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
 #include "plato/services/AppConfiguration.hpp"
 

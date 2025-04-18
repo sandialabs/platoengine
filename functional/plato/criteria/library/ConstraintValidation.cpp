@@ -3,7 +3,6 @@
 #include <string>
 
 #include "plato/criteria/library/CriterionValidation.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 

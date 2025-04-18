@@ -8,7 +8,6 @@
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
-#include "plato/input_parser/InputParser.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"

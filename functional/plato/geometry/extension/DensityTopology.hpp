@@ -8,6 +8,8 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/IdentifierString.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"

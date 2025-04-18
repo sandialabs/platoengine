@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/extension/NodalSumObjective.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
@@ -33,11 +34,11 @@ void check_validation_app(const test_utilities::TestContext& aTestContext)
 
 TEST(CriterionValidation, CheckValidationAppAndCustomAppOnObjective)
 {
-    check_validation_app<input_parser::objective>(TEST_CONTEXT("Objective"));
+    check_validation_app<input_parser::new_objective>(TEST_CONTEXT("Objective"));
 }
 
 TEST(CriterionValidation, CheckValidationAppAndCustomAppOnConstraint)
 {
-    check_validation_app<input_parser::constraint>(TEST_CONTEXT("Constraint"));
+    check_validation_app<input_parser::new_constraint>(TEST_CONTEXT("Constraint"));
 }
 }  // namespace plato::criteria::extension::unittest

@@ -5,7 +5,6 @@
 
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/Exception.hpp"

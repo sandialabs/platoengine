@@ -61,9 +61,9 @@ std::optional<std::string> validate_aggregation_weight(const input_parser::new_o
 
 std::optional<std::string> validate_at_least_one_objective(const std::vector<input_parser::new_objective>& aInput)
 {
-    const bool tAnyActiveObjectives =
-        std::any_of(aInput.begin(), aInput.end(),
-                    [](const input_parser::objective& aObjective) { return input_validation::is_active(aObjective); });
+    const bool tAnyActiveObjectives = std::any_of(aInput.begin(), aInput.end(),
+                                                  [](const input_parser::new_objective& aObjective)
+                                                  { return input_validation::is_active(aObjective); });
 
     if (tAnyActiveObjectives)
     {

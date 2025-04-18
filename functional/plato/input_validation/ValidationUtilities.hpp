@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 #include "plato/utilities/StringUtilities.hpp"

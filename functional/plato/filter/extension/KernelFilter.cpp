@@ -13,7 +13,6 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"

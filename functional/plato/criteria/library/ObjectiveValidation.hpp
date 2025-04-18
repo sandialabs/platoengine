@@ -1,8 +1,10 @@
 #ifndef PLATO_CRITERION_LIBRARY_OBJECTIVEVALIDATION
 #define PLATO_CRITERION_LIBRARY_OBJECTIVEVALIDATION
 
+#include <optional>
+#include <string>
+
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 
 namespace plato::criteria::library
 {

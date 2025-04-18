@@ -6,7 +6,6 @@
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"

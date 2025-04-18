@@ -8,7 +8,6 @@
 #include "plato/core/FactoryRegistration.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/utilities/StateCache.hpp"
 

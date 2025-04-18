@@ -2,7 +2,6 @@
 
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterSharedLibraryDecorator.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/services/SharedLibraryObject.hpp"
 
 namespace plato::filter::library

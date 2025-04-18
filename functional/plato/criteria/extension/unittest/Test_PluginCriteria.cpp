@@ -8,7 +8,7 @@
 #include "plato/criteria/extension/PluginCriteria.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
@@ -190,7 +190,7 @@ TEST(PluginCriteria, ValidateValidApps)
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
     EXPECT_EQ(tNumRegistered, 4u);
 
-    auto tCriteria = input_parser::objective{};
+    auto tCriteria = input_parser::new_objective{};
     EXPECT_TRUE(library::detail::validate_criterion_is_registered(tCriteria).has_value());
 
     tCriteria.criterion = input_parser::CriterionName{kTestCriterionName};
@@ -208,7 +208,7 @@ TEST(PluginCriteria, ValidateInvalidApp)
     const auto tConfigurationTempDirectory = create_test_app_configurations({{tWolfmanAppName, kParallelScalar}});
     register_plugin_apps({tConfigurationTempDirectory.directory()});
 
-    auto tCriteria = input_parser::objective{};
+    auto tCriteria = input_parser::new_objective{};
     tCriteria.app = input_parser::AppName{tWolfmanAppName};
     EXPECT_TRUE(library::detail::validate_criterion_is_registered(tCriteria).has_value());
 

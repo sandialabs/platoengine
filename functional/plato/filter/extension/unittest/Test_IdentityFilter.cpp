@@ -7,7 +7,6 @@
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/test_utilities/TestContext.hpp"

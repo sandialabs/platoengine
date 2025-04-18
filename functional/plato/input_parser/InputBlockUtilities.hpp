@@ -2,7 +2,6 @@
 #define PLATO_INPUT_PARSER_INPUT_BLOCK_UTILITIES
 
 #include "plato/input_parser/InputBlockTypeTraits.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 
 namespace plato::input_parser

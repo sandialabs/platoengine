@@ -5,7 +5,6 @@
 #include <variant>
 
 #include "plato/core/FactoryRegistration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
 

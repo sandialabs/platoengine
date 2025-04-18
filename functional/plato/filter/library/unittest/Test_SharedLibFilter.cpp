@@ -5,7 +5,6 @@
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::filter::extension::unittest

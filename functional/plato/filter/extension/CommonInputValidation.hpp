@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 
+#include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"

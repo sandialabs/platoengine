@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "plato/input_parser/ComponentBlockParser.hpp"
+#include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/utilities/Expected.hpp"
 #include "plato/utilities/StringUtilities.hpp"

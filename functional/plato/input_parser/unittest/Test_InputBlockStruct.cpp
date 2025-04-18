@@ -62,34 +62,18 @@ TEST(InputBlockStruct, UnNamed)
     EXPECT_EQ(InputTypeName<TestUnnamedBlock>::name, "TestUnnamedBlock");
 }
 
-TEST(InputBlockStruct, Geometry)
+TEST(InputBlockStruct, ComponentTypeOfInputBlock)
 {
-    const TestGeometryBlock tTestBlock;
-    constexpr bool tIsGeometry = IsGeometryInput<TestGeometryBlock>::value;
-    EXPECT_TRUE(tIsGeometry);
-    constexpr bool tIsNotGeometry = IsGeometryInput<int>::value;
-    EXPECT_FALSE(tIsNotGeometry);
+    EXPECT_EQ(ComponentTypeOfInputBlock<TestGeometryBlock>::value, ComponentType::kGeometry);
+    EXPECT_EQ(ComponentTypeOfInputBlock<TestProcessManagerBlock>::value, ComponentType::kProcessManager);
+    EXPECT_EQ(ComponentTypeOfInputBlock<TestFilterBlock>::value, ComponentType::kFilter);
 }
 
-TEST(InputBlockStruct, Process)
+TEST(InputBlockStruct, ProcessManager)
 {
     auto tTestBlock = TestProcessManagerBlock{};
-    constexpr bool tIsProcessManager = IsProcessManagerInput<TestProcessManagerBlock>::value;
-    EXPECT_TRUE(tIsProcessManager);
-    constexpr bool tIsNotProcessManager = IsProcessManagerInput<TestGeometryBlock>::value;
-    EXPECT_FALSE(tIsNotProcessManager);
-
     tTestBlock.field1 = 42;
     test_existence_and_equality(tTestBlock.field1, 42);
-}
-
-TEST(InputBlockStruct, Filter)
-{
-    const TestFilterBlock tTestBlock;
-    constexpr bool tIsFilter = IsFilterInput<TestFilterBlock>::value;
-    EXPECT_TRUE(tIsFilter);
-    constexpr bool tIsNotFilter = IsFilterInput<TestGeometryBlock>::value;
-    EXPECT_FALSE(tIsNotFilter);
 }
 
 }  // namespace plato::input_parser::unittest

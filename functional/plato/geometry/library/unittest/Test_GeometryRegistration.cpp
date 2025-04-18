@@ -5,7 +5,6 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/utilities/Exception.hpp"

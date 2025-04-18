@@ -6,7 +6,6 @@
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
 #include "plato/process_manager/extension/LogspaceGenerator.hpp"

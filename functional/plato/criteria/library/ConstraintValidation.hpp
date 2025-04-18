@@ -2,7 +2,6 @@
 #define PLATO_CRITERIA_LIBRARY_CONSTRAINTVALIDATION
 
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 
 namespace plato::criteria::library::detail
 {

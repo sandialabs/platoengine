@@ -1,23 +1,22 @@
 #include <gtest/gtest.h>
 
+#include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 
+// clang-format off
+PLATO_NAMED_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), test_objective, plato::input_parser::ComponentType::kObjective,
+    (bool, active, "")
+    (double, aggregation_weight, "")
+)
+// clang-format on
+
 namespace plato::input_validation::unittest
 {
-TEST(ValidateUtilities, ActiveConstraint)
-{
-    input_parser::constraint tConstraintInput;
-    EXPECT_TRUE(is_active(tConstraintInput));
-    tConstraintInput.active = true;
-    EXPECT_TRUE(is_active(tConstraintInput));
-    tConstraintInput.active = false;
-    EXPECT_FALSE(is_active(tConstraintInput));
-}
-
 TEST(ValidateUtilities, ActiveObjective)
 {
-    input_parser::objective tObjectiveInput;
+    auto tObjectiveInput = input_parser::test_objective{};
     EXPECT_TRUE(is_active(tObjectiveInput));
     tObjectiveInput.active = true;
     EXPECT_TRUE(is_active(tObjectiveInput));
@@ -27,7 +26,7 @@ TEST(ValidateUtilities, ActiveObjective)
 
 TEST(ValidateUtilities, ValidateParameterExistsWhenParameterDoesNotExist)
 {
-    input_parser::objective tObjectiveInput;
+    auto tObjectiveInput = input_parser::test_objective{};
     EXPECT_TRUE(
         error_message_for_empty_parameter("Objective: ", tObjectiveInput.aggregation_weight, "aggregation_weight")
             .has_value());
@@ -35,7 +34,7 @@ TEST(ValidateUtilities, ValidateParameterExistsWhenParameterDoesNotExist)
 
 TEST(ValidateUtilities, ValidateParameterExistsDoesExist)
 {
-    input_parser::objective tObjectiveInput;
+    auto tObjectiveInput = input_parser::test_objective{};
     tObjectiveInput.aggregation_weight = 23;
     EXPECT_FALSE(
         error_message_for_empty_parameter("Objective: ", tObjectiveInput.aggregation_weight, "aggregation_weight")
@@ -45,7 +44,7 @@ TEST(ValidateUtilities, ValidateParameterExistsDoesExist)
 TEST(ValidateUtilities, ValidateParameterWhenParameterDoesNotExistWithinBounds)
 {
     namespace pfu = plato::utilities;
-    input_parser::objective tObjectiveInput;
+    auto tObjectiveInput = input_parser::test_objective{};
     EXPECT_TRUE(error_message_for_parameter_out_of_bounds("Objective: ", tObjectiveInput.aggregation_weight,
                                                           "aggregation_weight", pfu::unbounded<double>())
                     .has_value());
@@ -54,7 +53,7 @@ TEST(ValidateUtilities, ValidateParameterWhenParameterDoesNotExistWithinBounds)
 TEST(ValidateUtilities, ValidateParameterExistsWithinBounds)
 {
     namespace pfu = plato::utilities;
-    input_parser::objective tObjectiveInput;
+    auto tObjectiveInput = input_parser::test_objective{};
     constexpr double tLowerBound = 0;
 
     tObjectiveInput.aggregation_weight = 23;
@@ -67,7 +66,7 @@ TEST(ValidateUtilities, ValidateParameterExistsWithinBounds)
 TEST(ValidateUtilities, ValidateParameterExistsOutOfBounds)
 {
     namespace pfu = plato::utilities;
-    input_parser::objective tObjectiveInput;
+    auto tObjectiveInput = input_parser::test_objective{};
     constexpr double tLowerBound = 0;
 
     tObjectiveInput.aggregation_weight = -23;

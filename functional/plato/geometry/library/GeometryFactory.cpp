@@ -1,7 +1,6 @@
 #include "plato/geometry/library/GeometryFactory.hpp"
 
 #include "plato/geometry/library/GeometryRegistration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::geometry::library

@@ -13,7 +13,6 @@
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/extension/unittest/LevelSetTopologyTestFixtures.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"

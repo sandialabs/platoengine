@@ -4,8 +4,6 @@
 #include <string>
 #include <string_view>
 
-#include "plato/input_parser/InputBlocks.hpp"
-
 namespace plato::test_utilities
 {
 [[nodiscard]] std::string create_valid_brick_shape_geometry_string();

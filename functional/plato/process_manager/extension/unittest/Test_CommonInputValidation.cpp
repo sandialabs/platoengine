@@ -3,8 +3,9 @@
 #include <filesystem>
 #include <fstream>
 
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
+#include "plato/process_manager/extension/ConstraintCheck.hpp"
+#include "plato/process_manager/extension/GradientCheck.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/test_utilities/InputValidation.hpp"
 
@@ -30,31 +31,31 @@ TEST(ValidateCommonInput, ValidateMaxIterations)
 
 TEST(ValidateCommonInput, ValidateNumberOfSteps)
 {
-    input_parser::gradient_check tGradientCheck;
+    auto tGradientCheck = input_parser::new_gradient_check{};
     EXPECT_TRUE(detail::validate_number_of_steps(tGradientCheck).has_value());
 
-    input_parser::constraint_check tConstraintCheck;
+    auto tConstraintCheck = input_parser::new_constraint_check{};
     EXPECT_TRUE(detail::validate_number_of_steps(tConstraintCheck).has_value());
 
-    tConstraintCheck.number_of_steps = 1u;  // in bounds
+    tConstraintCheck.number_of_steps = 1U;  // in bounds
     EXPECT_FALSE(detail::validate_number_of_steps(tConstraintCheck).has_value());
 
-    tGradientCheck.number_of_steps = 0;  // out of bounds
+    tGradientCheck.number_of_steps = 0U;  // out of bounds
     EXPECT_TRUE(detail::validate_number_of_steps(tGradientCheck).has_value());
 }
 
 TEST(ValidateCommonInput, ValidateInitialDirectionMagnitude)
 {
-    input_parser::gradient_check tGradientCheck;
+    auto tGradientCheck = input_parser::new_gradient_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tGradientCheck).has_value());
 
-    input_parser::constraint_check tConstraintCheck;
+    auto tConstraintCheck = input_parser::new_constraint_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 
-    tGradientCheck.initial_direction_magnitude = 0;  // out of bounds
+    tGradientCheck.initial_direction_magnitude = 0.0;  // out of bounds
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tGradientCheck).has_value());
 
-    tConstraintCheck.initial_direction_magnitude = 10;  // in bounds
+    tConstraintCheck.initial_direction_magnitude = 10.0;  // in bounds
     EXPECT_FALSE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 
     tConstraintCheck.initial_direction_magnitude = -1.0;  // out of bounds
@@ -63,10 +64,10 @@ TEST(ValidateCommonInput, ValidateInitialDirectionMagnitude)
 
 TEST(ValidateCommonInput, ValidateStepSizeReductionFactor)
 {
-    input_parser::gradient_check tGradientCheck;
+    auto tGradientCheck = input_parser::new_gradient_check{};
     EXPECT_TRUE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
 
-    input_parser::constraint_check tConstraintCheck;
+    auto tConstraintCheck = input_parser::new_constraint_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 
     tConstraintCheck.step_size_reduction_factor = 0.5;  // in bounds
@@ -81,10 +82,10 @@ TEST(ValidateCommonInput, ValidateStepSizeReductionFactor)
 
 TEST(ValidateCommonInput, ValidateRandomDirectionSeed)
 {
-    input_parser::gradient_check tGradientCheck;
+    auto tGradientCheck = input_parser::new_gradient_check{};
     EXPECT_TRUE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
 
-    input_parser::constraint_check tConstraintCheck;
+    auto tConstraintCheck = input_parser::new_constraint_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 
     tConstraintCheck.random_direction_seed = 1;  // in bounds
@@ -99,7 +100,7 @@ TEST(ValidateCommonInput, ValidateRandomDirectionSeed)
 
 TEST(ValidateCommonInput, ValidateInputFileExists)
 {
-    auto tOptimizationParameters = input_parser::rol_optimization{};
+    auto tOptimizationParameters = input_parser::new_rol_optimization{};
 
     // File name entry is empty, so no error
     EXPECT_FALSE(detail::validate_optional_input_file_name(tOptimizationParameters).has_value());

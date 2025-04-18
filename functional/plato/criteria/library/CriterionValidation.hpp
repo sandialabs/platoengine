@@ -4,7 +4,7 @@
 #include <optional>
 
 #include "plato/criteria/library/CriterionRegistration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 
 namespace plato::criteria::library

@@ -3,7 +3,6 @@
 #include <type_traits>
 
 #include "plato/filter/library/FilterRegistration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::filter::library

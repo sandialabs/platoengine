@@ -6,7 +6,6 @@
 #include "plato/core/Compose.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/geometry/library/OutputManager.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
@@ -66,7 +65,7 @@ void SensitivityCheck::run(const library::ProcessManagerData& aProblem) const
 
 auto create_valid_example_sensitivity_check_input() -> input_parser::new_sensitivity_check
 {
-    return input_parser::sensitivity_check{/*.output_file_name=*/input_parser::FileName{"sensitivity_check.txt"}};
+    return input_parser::new_sensitivity_check{/*.output_file_name=*/input_parser::FileName{"sensitivity_check.txt"}};
 }
 
 namespace detail
