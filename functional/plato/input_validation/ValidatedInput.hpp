@@ -21,14 +21,14 @@ struct ValidateKey;
 class ValidatedInput
 {
    public:
-    ValidatedInput(input_parser::NewParsedInput aInput, const ValidateKey&);
+    ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey&);
 
     /// @brief Returns the parsed input blocks corresponding to @a kComponentType
     template <input_parser::ComponentType kComponentType>
     [[nodiscard]] auto get() const;
 
    private:
-    input_parser::NewParsedInput mRawInput;
+    input_parser::ParsedInput mRawInput;
 };
 
 /// @brief Helper function to construct a ValidatedInput object or return a string containing all validation errors.
@@ -42,7 +42,7 @@ class ValidatedInput
 ///
 /// This overload first cross-links the input, then performs validation. This will return any cross-linking errors as
 /// well as validation errors.
-[[nodiscard]] auto make_validated_input(const input_parser::NewParsedInput& aInput)
+[[nodiscard]] auto make_validated_input(const input_parser::ParsedInput& aInput)
     -> utilities::Expected<ValidatedInput, std::string>;
 
 /// @brief Parse input contained in the string @a aInput.

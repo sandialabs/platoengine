@@ -53,7 +53,7 @@ TEST(SNOPTOptimizationDetail, MakeConstraints)
 
     {
         const auto tInputDeck =
-            input_parser::NewParsedInput{kBaseInputDeck} | criteria::library::create_valid_example_constraint_input();
+            input_parser::ParsedInput{kBaseInputDeck} | criteria::library::create_valid_example_constraint_input();
         const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);
         ASSERT_TRUE(tValidatedInput.hasValue());
         const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
@@ -84,7 +84,7 @@ TEST(SNOPTOptimizationDetail, ConstraintType)
     {
         auto tConstraintInput = criteria::library::create_valid_example_constraint_input();
         tConstraintInput.constraint_type = aInputConstraintType;
-        const auto tInputDeck = input_parser::NewParsedInput{kBaseInputDeck} | tConstraintInput;
+        const auto tInputDeck = input_parser::ParsedInput{kBaseInputDeck} | tConstraintInput;
         const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);
         const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
 

@@ -9,7 +9,7 @@
 
 namespace plato::input_parser
 {
-class NewParsedInput;
+class ParsedInput;
 class CrossReferencedInput;
 }  // namespace plato::input_parser
 
@@ -56,12 +56,12 @@ template <typename... AdditionalArgs>
 using CrossReferencedInputValidationRegistration =
     ValidationRegistration<input_parser::CrossReferencedInput, AdditionalArgs...>;
 
-/// @brief Convenience alias for registering validation functions for NewParsedInput objects.
+/// @brief Convenience alias for registering validation functions for ParsedInput objects.
 ///
 /// This alias can be used for registering validation functions for the parsed input as a whole, or components as a
 /// whole. For example, certain components should only have one definition in an input, such as geometry.
 template <typename... AdditionalArgs>
-using NewParsedInputValidationRegistration = ValidationRegistration<input_parser::NewParsedInput, AdditionalArgs...>;
+using NewParsedInputValidationRegistration = ValidationRegistration<input_parser::ParsedInput, AdditionalArgs...>;
 
 /// @brief Validates @a aInput, appending any error messages to @a aCurrentMessageList and returning
 ///  the result.

@@ -6,11 +6,11 @@
 namespace plato::geometry::library
 {
 [[maybe_unused]] static auto kGeometryValidationRegistration = input_validation::NewParsedInputValidationRegistration<>{
-    [](const input_parser::NewParsedInput& aInput) { return detail::validate_only_one_geometry(aInput); }};
+    [](const input_parser::ParsedInput& aInput) { return detail::validate_only_one_geometry(aInput); }};
 
 namespace detail
 {
-auto validate_only_one_geometry(const input_parser::NewParsedInput& aInput) -> std::optional<std::string>
+auto validate_only_one_geometry(const input_parser::ParsedInput& aInput) -> std::optional<std::string>
 {
     if (const auto tTally = aInput.get<input_parser::ComponentType::kGeometry>().size(); tTally != 1U)
     {

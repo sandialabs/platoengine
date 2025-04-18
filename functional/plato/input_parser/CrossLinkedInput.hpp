@@ -12,7 +12,7 @@ class CrossLinkedInput;
 /// @brief Implementation of the pass-key idiom for limiting construction of CrossLinkedInput.
 struct CrossLinkKey
 {
-    friend auto make_cross_linked_input(input_parser::NewParsedInput input)
+    friend auto make_cross_linked_input(input_parser::ParsedInput input)
         -> utilities::Expected<CrossLinkedInput, std::string>;
 
    private:
@@ -24,17 +24,17 @@ struct CrossLinkKey
 class CrossLinkedInput
 {
    public:
-    CrossLinkedInput(input_parser::NewParsedInput aInput, const CrossLinkKey&);
+    CrossLinkedInput(input_parser::ParsedInput aInput, const CrossLinkKey&);
 
-    [[nodiscard]] auto rawInput() const -> const input_parser::NewParsedInput&;
+    [[nodiscard]] auto rawInput() const -> const input_parser::ParsedInput&;
 
    private:
-    input_parser::NewParsedInput mInput;
+    input_parser::ParsedInput mInput;
 };
 
 /// @brief friend function to construct a @a CrossLinkedInput object from the @a ParsedInput @param aInput. Uses the
 /// passkey idiom to ensure that only this function can construct a @a CrossLinkedInput
-[[nodiscard]] auto make_cross_linked_input(input_parser::NewParsedInput aInput)
+[[nodiscard]] auto make_cross_linked_input(input_parser::ParsedInput aInput)
     -> utilities::Expected<CrossLinkedInput, std::string>;
 
 }  // namespace plato::input_parser

@@ -34,11 +34,11 @@ class CrossLinker
     CrossLinker(InputTypeHelper<Input>);
 
     /// @brief Fills the cross-reference field in @a aInputBlock with the input contained in @a aNewParsedInput.
-    [[nodiscard]] auto crossLink(InputDataBlock aInputBlock, const NewParsedInput& aNewParsedInput) const
+    [[nodiscard]] auto crossLink(InputDataBlock aInputBlock, const ParsedInput& aNewParsedInput) const
         -> CrossLinkedBlockOrError;
 
    private:
-    std::function<CrossLinkedBlockOrError(InputDataBlock, const NewParsedInput&)> mCrossLinkFunction;
+    std::function<CrossLinkedBlockOrError(InputDataBlock, const ParsedInput&)> mCrossLinkFunction;
 };
 
 /// @brief Helper function for constructing a CrossLinker for a given input type.
@@ -140,7 +140,7 @@ struct TypeOrOptional<boost::optional<T>>
 };
 
 template <typename Input, typename ApplyFunction>
-void apply_cross_link(InputDataBlock& aInputBlock, const NewParsedInput& aNewParsedInput, ApplyFunction& aApplyFunction)
+void apply_cross_link(InputDataBlock& aInputBlock, const ParsedInput& aNewParsedInput, ApplyFunction& aApplyFunction)
 {
     assert(aInputBlock.mInput.holdsExpectedType<Input>());
     auto& aCastInputBlock = aInputBlock.mInput.get<Input&>();
@@ -158,23 +158,23 @@ void apply_cross_link(InputDataBlock& aInputBlock, const NewParsedInput& aNewPar
 
 template <typename Input>
 CrossLinker::CrossLinker(InputTypeHelper<Input>)
-    : mCrossLinkFunction{
-          [](InputDataBlock aInputBlock, const NewParsedInput& aNewParsedInput) -> CrossLinkedBlockOrError
-          {
-              if (aInputBlock.mInput.holdsExpectedType<Input>())
-              {
-                  auto tErrorChecks = detail::ErrorCheckCrossLink{aInputBlock.mBlockName, {}};
-                  detail::apply_cross_link<Input>(aInputBlock, aNewParsedInput, tErrorChecks);
-                  if (tErrorChecks.mErrorMessages.empty())
-                  {
-                      auto tApplyCrossLink = detail::ApplyCrossLink{};
-                      detail::apply_cross_link<Input>(aInputBlock, aNewParsedInput, tApplyCrossLink);
-                      return aInputBlock;
-                  }
-                  return utilities::unexpected(utilities::concatenate_container(tErrorChecks.mErrorMessages, "\n"));
-              }
-              return aInputBlock;
-          }}
+    : mCrossLinkFunction{[](InputDataBlock aInputBlock, const ParsedInput& aNewParsedInput) -> CrossLinkedBlockOrError
+                         {
+                             if (aInputBlock.mInput.holdsExpectedType<Input>())
+                             {
+                                 auto tErrorChecks = detail::ErrorCheckCrossLink{aInputBlock.mBlockName, {}};
+                                 detail::apply_cross_link<Input>(aInputBlock, aNewParsedInput, tErrorChecks);
+                                 if (tErrorChecks.mErrorMessages.empty())
+                                 {
+                                     auto tApplyCrossLink = detail::ApplyCrossLink{};
+                                     detail::apply_cross_link<Input>(aInputBlock, aNewParsedInput, tApplyCrossLink);
+                                     return aInputBlock;
+                                 }
+                                 return utilities::unexpected(
+                                     utilities::concatenate_container(tErrorChecks.mErrorMessages, "\n"));
+                             }
+                             return aInputBlock;
+                         }}
 {
 }
 }  // namespace plato::input_parser

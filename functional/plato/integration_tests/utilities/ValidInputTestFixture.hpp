@@ -14,10 +14,10 @@ class ValidInputTestFixture : public test_utilities::FileCreatingTestFixture
    public:
     ValidInputTestFixture();
 
-    [[nodiscard]] auto parsedInput() const -> const input_parser::NewParsedInput&;
+    [[nodiscard]] auto parsedInput() const -> const input_parser::ParsedInput&;
 
    private:
-    input_parser::NewParsedInput mInput;
+    input_parser::ParsedInput mInput;
     std::filesystem::path mFilePath{};
 };
 }  // namespace plato::integration_tests::utilities

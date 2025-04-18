@@ -44,7 +44,7 @@ TEST(ValidatedInputTypeWrapper, GetCrossReference)
                                                                  input_parser::CrossReferencedInput{tSeaCreature}};
     const auto tParsedInput = std::vector<input_parser::InputDataBlock>{tParsedLandCreature, tParsedSeaCreature};
 
-    const auto tCrossLinkedInput = input_parser::make_cross_linked_input(input_parser::NewParsedInput{tParsedInput});
+    const auto tCrossLinkedInput = input_parser::make_cross_linked_input(input_parser::ParsedInput{tParsedInput});
     ASSERT_TRUE(tCrossLinkedInput.hasValue()) << tCrossLinkedInput.error();
 
     const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput.value());

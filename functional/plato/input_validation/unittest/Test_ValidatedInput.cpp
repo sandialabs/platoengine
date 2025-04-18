@@ -63,7 +63,7 @@ const auto kValidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.supe
     return std::nullopt;
 }
 
-[[nodiscard]] auto validate_parsed_input(const input_parser::NewParsedInput& aParsedInput) -> std::optional<std::string>
+[[nodiscard]] auto validate_parsed_input(const input_parser::ParsedInput& aParsedInput) -> std::optional<std::string>
 {
     if (aParsedInput.get<input_parser::ComponentType::kGeometry>().empty())
     {
@@ -83,13 +83,13 @@ class ValidatedInputRegistrationFixture : virtual public ::testing::Test
              [](const input_parser::dc& aInput) { return validate_superman(aInput.superman); }}};
 
         [[maybe_unused]] const auto kInputValidationRegistration = NewParsedInputValidationRegistration<>{{
-            [](const input_parser::NewParsedInput& aInput) { return validate_parsed_input(aInput); },
+            [](const input_parser::ParsedInput& aInput) { return validate_parsed_input(aInput); },
         }};
     }
     ~ValidatedInputRegistrationFixture()
     {
         detail::registered_validation_functions<input_parser::CrossReferencedInput>().clear();
-        detail::registered_validation_functions<input_parser::NewParsedInput>().clear();
+        detail::registered_validation_functions<input_parser::ParsedInput>().clear();
     }
 };
 
@@ -101,7 +101,7 @@ class ValidatedInputFileFixture : public test_utilities::FileCreatingTestFixture
 };
 
 auto make_test_parsed_input(const std::optional<input_parser::marvel>& aMarvelInput,
-                            const std::optional<input_parser::dc>& aDCInput) -> input_parser::NewParsedInput
+                            const std::optional<input_parser::dc>& aDCInput) -> input_parser::ParsedInput
 {
     auto tInputs = std::vector<input_parser::InputDataBlock>{};
     if (aMarvelInput)
@@ -114,7 +114,7 @@ auto make_test_parsed_input(const std::optional<input_parser::marvel>& aMarvelIn
         tInputs.push_back(input_parser::InputDataBlock{input_parser::ComponentType::kConstraint, "dc",
                                                        input_parser::CrossReferencedInput{aDCInput.value()}});
     }
-    return input_parser::NewParsedInput{std::move(tInputs)};
+    return input_parser::ParsedInput{std::move(tInputs)};
 }
 
 auto make_test_input(const std::optional<input_parser::marvel>& aMarvelInput,

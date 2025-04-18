@@ -37,7 +37,7 @@ TEST(CrossLinkedInput, MakeCrossLinkedInput)
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
                        /*.mBlockName=*/"geometry_block", /*.mInput=*/CrossReferencedInput{geometry_block{/*.a_parameter=*/tParameterValue}}};
    
-    const auto tParsedInput = NewParsedInput{{tBlockWithGeometryCrossReference, tGeometryBlock}};
+    const auto tParsedInput = ParsedInput{{tBlockWithGeometryCrossReference, tGeometryBlock}};
     const auto tCrossLinkedInputOrError = make_cross_linked_input(tParsedInput);
 
     ASSERT_TRUE(tCrossLinkedInputOrError.hasValue());
@@ -58,7 +58,7 @@ TEST(CrossLinkedInput, MakeCrossLinkedInputWithError)
         InputDataBlock{/*.mComponentType=*/ComponentType::kProcessManager,
                        /*.mBlockName=*/"block_with_geometry_cross_reference", /*.mInput=*/CrossReferencedInput{block_with_geometry_cross_reference{}}};
    
-    const auto tParsedInput = NewParsedInput{{tBlockWithGeometryCrossReference}};
+    const auto tParsedInput = ParsedInput{{tBlockWithGeometryCrossReference}};
     const auto tCrossLinkedInputOrError = make_cross_linked_input(tParsedInput);
     EXPECT_TRUE(tCrossLinkedInputOrError.hasError());
 }

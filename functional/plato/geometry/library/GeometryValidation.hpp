@@ -9,13 +9,13 @@
 
 namespace plato::input_parser
 {
-class NewParsedInput;
+class ParsedInput;
 }
 
 namespace plato::geometry::library::detail
 {
 /// @brief Checks that only one geometry block is defined in @a aInput.
-[[nodiscard]] auto validate_only_one_geometry(const input_parser::NewParsedInput& aInput) -> std::optional<std::string>;
+[[nodiscard]] auto validate_only_one_geometry(const input_parser::ParsedInput& aInput) -> std::optional<std::string>;
 
 /// @brief Checks that the `mesh_name` field has a value.
 template <typename Geometry>

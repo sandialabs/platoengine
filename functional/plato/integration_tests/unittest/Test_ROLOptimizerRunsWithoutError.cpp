@@ -26,7 +26,7 @@ auto create_mass_app_constraint_input() -> input_parser::constraint
     return tConstraint;
 }
 
-void check_optimization_runs_without_error(const input_parser::NewParsedInput& aInput,
+void check_optimization_runs_without_error(const input_parser::ParsedInput& aInput,
                                            const test_utilities::TestContext& aTestContext)
 {
     const auto tValidatedInput = input_validation::make_validated_input(aInput).value();

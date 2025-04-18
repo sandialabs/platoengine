@@ -151,7 +151,7 @@ TEST(ParsedInput, OneComponent)
 {
     const auto tGeometry =
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry, /*.mBlockName=*/"geo_block", {}};
-    const auto tParsedInput = NewParsedInput{{tGeometry}};
+    const auto tParsedInput = ParsedInput{{tGeometry}};
 
     const auto& tResult = tParsedInput.get<ComponentType::kGeometry>();
     ASSERT_EQ(tResult.size(), 1U);
@@ -169,7 +169,7 @@ TEST(ParsedInput, TwoComponents)
     const auto tGeometry =
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry, /*.mBlockName=*/"geo_block", {}};
     const auto tFilter = InputDataBlock{/*.mComponentType=*/ComponentType::kFilter, /*.mBlockName=*/"filter_block", {}};
-    const auto tParsedInput = NewParsedInput{{tFilter, tGeometry}};
+    const auto tParsedInput = ParsedInput{{tFilter, tGeometry}};
 
     const auto& tGeometryResults = tParsedInput.get<ComponentType::kGeometry>();
     ASSERT_EQ(tGeometryResults.size(), 1U);
@@ -199,7 +199,7 @@ TEST(ParsedInput, ThreeComponentsMultipleEntries)
     const auto tProcessManager =
         InputDataBlock{/*.mComponentType=*/ComponentType::kProcessManager, /*.mBlockName=*/"process_manager_block", {}};
 
-    const auto tParsedInput = NewParsedInput{{tConstraint1, tProcessManager, tObjective1, tConstraint2, tObjective2}};
+    const auto tParsedInput = ParsedInput{{tConstraint1, tProcessManager, tObjective1, tConstraint2, tObjective2}};
 
     const auto& tObjectiveResults = tParsedInput.get<ComponentType::kObjective>();
     ASSERT_EQ(tObjectiveResults.size(), 2U);
@@ -239,7 +239,7 @@ TEST(ParsedInput, GetInputBlockWithType)
     const auto tGeometry = InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry, /*.mBlockName=*/"fruits",
                                           CrossReferencedInput{tGeometryData}};
 
-    const auto tParsedInput = NewParsedInput{{tObjective1, tGeometry, tObjective2}};
+    const auto tParsedInput = ParsedInput{{tObjective1, tGeometry, tObjective2}};
 
     ASSERT_EQ(tParsedInput.get<input_parser::vegetables>().size(), 2U);
     EXPECT_EQ(tParsedInput.get<input_parser::vegetables>().front().name, tObjectiveData1.name);

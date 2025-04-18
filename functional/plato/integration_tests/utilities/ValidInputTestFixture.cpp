@@ -16,6 +16,6 @@ ValidInputTestFixture::ValidInputTestFixture()
 {
 }
 
-auto ValidInputTestFixture::parsedInput() const -> const input_parser::NewParsedInput& { return mInput; }
+auto ValidInputTestFixture::parsedInput() const -> const input_parser::ParsedInput& { return mInput; }
 
 }  // namespace plato::integration_tests::utilities

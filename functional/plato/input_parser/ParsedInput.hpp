@@ -20,13 +20,13 @@ namespace plato::input_parser
 /// @note The input stored in this class has not been validated and so is not guaranteed to have the correct number of
 /// components for any component type.
 /// @todo Fix class name
-class NewParsedInput
+class ParsedInput
 {
    public:
-    NewParsedInput() = default;
+    ParsedInput() = default;
 
     /// @brief @a aRawInput is the result of parsing an input deck without organizing the results by component type.
-    NewParsedInput(std::vector<InputDataBlock> aRawInput);
+    ParsedInput(std::vector<InputDataBlock> aRawInput);
 
     /// @brief Returns the parsed input blocks corresponding to @a kComponentType
     template <ComponentType kComponentType>
@@ -47,18 +47,18 @@ class NewParsedInput
     std::array<std::vector<InputDataBlock>, kNumberOfComponents> mInputBlocks;
 };
 
-/// @brief Parse the string @a aInput to a NewParsedInput object using the registered parsers.
+/// @brief Parse the string @a aInput to a ParsedInput object using the registered parsers.
 /// @todo Fix name
-[[nodiscard]] auto parse_to_new_input(const std::string& aInput) -> utilities::Expected<NewParsedInput, std::string>;
+[[nodiscard]] auto parse_to_new_input(const std::string& aInput) -> utilities::Expected<ParsedInput, std::string>;
 
-/// @brief Parse the string @a aInput to a NewParsedInput object.
+/// @brief Parse the string @a aInput to a ParsedInput object.
 /// @todo Fix name
 [[nodiscard]] auto parse_to_new_input(const std::string& aInput,
                                       const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
-    -> utilities::Expected<NewParsedInput, std::string>;
+    -> utilities::Expected<ParsedInput, std::string>;
 
 template <ComponentType kComponentType>
-auto NewParsedInput::get() -> std::vector<InputDataBlock>&
+auto ParsedInput::get() -> std::vector<InputDataBlock>&
 {
     static_assert(kComponentType != ComponentType::kNumberOfEnumerates,
                   "ParsedInput::get must only be instantiated with a valid ComponentType.");
@@ -66,7 +66,7 @@ auto NewParsedInput::get() -> std::vector<InputDataBlock>&
 }
 
 template <ComponentType kComponentType>
-auto NewParsedInput::get() const -> const std::vector<InputDataBlock>&
+auto ParsedInput::get() const -> const std::vector<InputDataBlock>&
 {
     static_assert(kComponentType != ComponentType::kNumberOfEnumerates,
                   "ParsedInput::get must only be instantiated with a valid ComponentType.");
@@ -74,7 +74,7 @@ auto NewParsedInput::get() const -> const std::vector<InputDataBlock>&
 }
 
 template <typename InputType>
-auto NewParsedInput::get() const -> std::vector<InputType>
+auto ParsedInput::get() const -> std::vector<InputType>
 {
     constexpr auto tComponentType = ComponentTypeOfInputBlock<InputType>::value;
     const auto& tInputsWithComponentType = get<tComponentType>();

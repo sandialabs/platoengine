@@ -22,7 +22,7 @@ namespace
 
 }  // namespace
 
-auto create_valid_example_input() -> input_parser::NewParsedInput
+auto create_valid_example_input() -> input_parser::ParsedInput
 {
     return geometry::extension::create_valid_density_topology_geometry_input() |
            filter::extension::create_valid_identity_filter_input() |
@@ -32,7 +32,7 @@ auto create_valid_example_input() -> input_parser::NewParsedInput
 }
 
 auto create_valid_density_topology_geometry_with_element_centered_kernel_filter_input(
-    const std::filesystem::path& aMeshPath) -> input_parser::NewParsedInput
+    const std::filesystem::path& aMeshPath) -> input_parser::ParsedInput
 {
     auto tGeometry = geometry::extension::create_valid_density_topology_geometry_input();
     tGeometry.mesh_name = input_parser::FileName{aMeshPath.string()};

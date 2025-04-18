@@ -7,7 +7,7 @@ namespace plato::input_parser
 namespace
 {
 auto apply_cross_linker(const CrossLinker& aCrossLinker,
-                        const NewParsedInput& aParsedInput,
+                        const ParsedInput& aParsedInput,
                         std::vector<InputDataBlock>& aInputBlocksForSingleComponent,
                         std::vector<std::string>&& aErrorMessages) -> std::vector<std::string>
 {
@@ -28,7 +28,7 @@ auto apply_cross_linker(const CrossLinker& aCrossLinker,
 
 template <std::size_t... kComponentIndices>
 auto apply_cross_linker(const CrossLinker& aCrossLinker,
-                        NewParsedInput& aParsedInput,
+                        ParsedInput& aParsedInput,
                         std::vector<std::string>&& aErrorMessages,
                         std::index_sequence<kComponentIndices...>) -> std::vector<std::string>
 {
@@ -40,11 +40,11 @@ auto apply_cross_linker(const CrossLinker& aCrossLinker,
 }
 }  // namespace
 
-CrossLinkedInput::CrossLinkedInput(NewParsedInput aInput, const CrossLinkKey&) : mInput{std::move(aInput)} {}
+CrossLinkedInput::CrossLinkedInput(ParsedInput aInput, const CrossLinkKey&) : mInput{std::move(aInput)} {}
 
-auto CrossLinkedInput::rawInput() const -> const input_parser::NewParsedInput& { return mInput; };
+auto CrossLinkedInput::rawInput() const -> const input_parser::ParsedInput& { return mInput; };
 
-auto make_cross_linked_input(input_parser::NewParsedInput aInput) -> utilities::Expected<CrossLinkedInput, std::string>
+auto make_cross_linked_input(input_parser::ParsedInput aInput) -> utilities::Expected<CrossLinkedInput, std::string>
 {
     auto tErrorMessages = std::vector<std::string>{};
     for (const auto& aCrossLinker : registered_cross_linkers())

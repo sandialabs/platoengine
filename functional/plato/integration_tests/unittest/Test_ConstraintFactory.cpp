@@ -30,7 +30,7 @@ void test_constraint_type_and_value(
     EXPECT_EQ(aConstraint.mConstraintType, aType) << aTestContext;
 }
 
-[[nodiscard]] auto get_first_constraint(const input_parser::NewParsedInput& aInput)
+[[nodiscard]] auto get_first_constraint(const input_parser::ParsedInput& aInput)
 {
     const auto tData = input_validation::make_validated_input(aInput).value();
     return criteria::library::detail::make_constraint(

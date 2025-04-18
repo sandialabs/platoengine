@@ -29,7 +29,7 @@ template <typename BlockType>
 TEST(GradientCheck, CreateGradientCheckRun)
 {
     const auto tCheckGradientCheckRuns =
-        [](const input_parser::NewParsedInput& aParsedInput, const test_utilities::TestContext& aTestContext)
+        [](const input_parser::ParsedInput& aParsedInput, const test_utilities::TestContext& aTestContext)
     {
         const auto tValidatedInput = input_validation::make_validated_input(aParsedInput);
         ASSERT_TRUE(tValidatedInput.hasValue());
@@ -59,7 +59,7 @@ TEST(GradientCheck, CreateGradientCheckRun)
     {
         auto tInequalityConstraint = criteria::library::create_valid_example_constraint_input();
         tInequalityConstraint.constraint_type = input_parser::ConstraintTypes::kLessThan;
-        const auto tParsedInput = input_parser::NewParsedInput{tBaseInput} | tInequalityConstraint;
+        const auto tParsedInput = input_parser::ParsedInput{tBaseInput} | tInequalityConstraint;
         tCheckGradientCheckRuns(tParsedInput, TEST_CONTEXT("Inequality constraints"));
     }
 }

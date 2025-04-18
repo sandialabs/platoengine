@@ -52,7 +52,7 @@ template <typename IteratorArray, std::size_t... kIndices>
 
 [[nodiscard]] auto parsed_input_or_errors(
     std::vector<ComponentBlockParser::ParsedDataOrError>&& aParsedComponentsOrError)
-    -> utilities::Expected<NewParsedInput, std::string>
+    -> utilities::Expected<ParsedInput, std::string>
 {
     const auto tComponentHasParseError = [](const auto& aParsedComponentOrError)
     { return aParsedComponentOrError.hasError(); };
@@ -73,7 +73,7 @@ template <typename IteratorArray, std::size_t... kIndices>
     std::transform(std::make_move_iterator(aParsedComponentsOrError.begin()),
                    std::make_move_iterator(aParsedComponentsOrError.end()), std::back_inserter(tParsedComponents),
                    [](ComponentBlockParser::ParsedDataOrError&& aComponent) { return std::move(aComponent).value(); });
-    return NewParsedInput{std::move(tParsedComponents)};
+    return ParsedInput{std::move(tParsedComponents)};
 }
 
 [[nodiscard]] auto parse_component(const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers,
@@ -89,19 +89,19 @@ template <typename IteratorArray, std::size_t... kIndices>
 
 }  // namespace
 
-NewParsedInput::NewParsedInput(std::vector<InputDataBlock> aRawInput)
+ParsedInput::ParsedInput(std::vector<InputDataBlock> aRawInput)
     : mInputBlocks{partition_inputs_by_component(std::move(aRawInput))}
 {
 }
 
-auto parse_to_new_input(const std::string& aInput) -> utilities::Expected<NewParsedInput, std::string>
+auto parse_to_new_input(const std::string& aInput) -> utilities::Expected<ParsedInput, std::string>
 {
     return parse_to_new_input(aInput, registered_component_parsers());
 }
 
 auto parse_to_new_input(const std::string& aInput,
                         const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
-    -> utilities::Expected<NewParsedInput, std::string>
+    -> utilities::Expected<ParsedInput, std::string>
 {
     const auto tGenericBlocksOrError = parse_generic_blocks(aInput);
     if (tGenericBlocksOrError.hasError())

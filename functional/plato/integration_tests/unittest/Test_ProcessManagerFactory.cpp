@@ -13,7 +13,7 @@ namespace plato::integration_tests::serial
 {
 namespace
 {
-void verify_number_of_process_managers(const input_parser::NewParsedInput& aParsedInput,
+void verify_number_of_process_managers(const input_parser::ParsedInput& aParsedInput,
                                        unsigned int aNumberOfProcessManangers)
 {
     const auto tInput = input_validation::make_validated_input(aParsedInput).value();

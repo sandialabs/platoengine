@@ -23,11 +23,11 @@ namespace
 
 [[maybe_unused]] static auto kListObjectivesValidationRegistration =
     input_validation::NewParsedInputValidationRegistration<>{
-        [](const input_parser::NewParsedInput& aInput)
+        [](const input_parser::ParsedInput& aInput)
         { return detail::validate_at_least_one_objective(aInput.get<input_parser::objective>()); },
-        [](const input_parser::NewParsedInput& aInput)
+        [](const input_parser::ParsedInput& aInput)
         { return detail::validate_number_of_ranks_vs_serial_objectives(aInput.get<input_parser::objective>()); },
-        [](const input_parser::NewParsedInput& aInput)
+        [](const input_parser::ParsedInput& aInput)
         { return detail::validate_number_of_ranks_vs_parallel_objectives(aInput.get<input_parser::objective>()); }};
 
 auto number_of_processors(const input_parser::objective& aObjective) -> unsigned int

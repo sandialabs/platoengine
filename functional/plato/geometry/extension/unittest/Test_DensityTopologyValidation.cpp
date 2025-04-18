@@ -88,7 +88,7 @@ TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
 
 TEST_F(DensityTopologyValidationFileFixture, ValidDensityTopologyInput)
 {
-    //    const auto tInput = input_parser::NewParsedInput{} | kDensityTopology;
+    //    const auto tInput = input_parser::ParsedInput{} | kDensityTopology;
 
     //    std::vector<std::string> tMessages;
     //    tMessages = library::validate_geometry(tInput, std::move(tMessages));

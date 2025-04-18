@@ -63,7 +63,7 @@ TEST(CrossLinker, CrossLinkUnspecified)
     ASSERT_FALSE(tUninspiredInputBlock.mInput.get<uninspired_thing>()
                      .my_filter.has_value());  // Make sure the cross-reference is empty
 
-    const auto tParsedInput = NewParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock}};
+    const auto tParsedInput = ParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock}};
 
     const auto tCrossLinker = make_cross_linker<uninspired_thing>();
     const auto tCrossLinkedInputOrError = tCrossLinker.crossLink(std::move(tUninspiredInputBlock), tParsedInput);
@@ -90,7 +90,7 @@ TEST(CrossLinker, CrossLinkSpecified)
                        /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{tUninspiredThing}};
 
     const auto tParsedInput =
-        NewParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock, kVeryInspiredFilterInputBlock}};
+        ParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock, kVeryInspiredFilterInputBlock}};
 
     const auto tCrossLinker = make_cross_linker<uninspired_thing>();
     const auto tCrossLinkedInputOrError = tCrossLinker.crossLink(std::move(tUninspiredInputBlock), tParsedInput);
@@ -114,7 +114,7 @@ TEST(CrossLinker, NoOpForTypeWithNoCrossReferences)
                                                       /*.mBlockName=*/"no_cross_reference_thing",
                                                       /*.mInput=*/CrossReferencedInput{tNoCrossReferenceThing}};
 
-    const auto tParsedInput = NewParsedInput{{tNoCrossReferenceInputBlock, kUninspiredFilterInputBlock}};
+    const auto tParsedInput = ParsedInput{{tNoCrossReferenceInputBlock, kUninspiredFilterInputBlock}};
 
     const auto tCrossLinkedInputOrError =
         make_cross_linker<no_cross_reference_thing>().crossLink(std::move(tNoCrossReferenceInputBlock), tParsedInput);
@@ -128,7 +128,7 @@ TEST(CrossLinker, ErrorMissingFieldName)
                        /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{uninspired_thing{}}};
 
     const auto tParsedInput =
-        NewParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock, kVeryInspiredFilterInputBlock}};
+        ParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock, kVeryInspiredFilterInputBlock}};
 
     const auto tCrossLinkedInputOrError =
         make_cross_linker<uninspired_thing>().crossLink(std::move(tUninspiredInputBlock), tParsedInput);
@@ -142,7 +142,7 @@ TEST(CrossLinker, ErrorMissingLinkableComponents)
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
                        /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{uninspired_thing{}}};
 
-    const auto tParsedInput = NewParsedInput{{tUninspiredInputBlock}};
+    const auto tParsedInput = ParsedInput{{tUninspiredInputBlock}};
 
     const auto tCrossLinkedInputOrError =
         make_cross_linker<uninspired_thing>().crossLink(std::move(tUninspiredInputBlock), tParsedInput);
@@ -159,7 +159,7 @@ TEST(CrossLinker, ErrorCrossLinkNameNotFound)
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
                        /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{tUninspiredThing}};
 
-    const auto tParsedInput = NewParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock}};
+    const auto tParsedInput = ParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock}};
 
     const auto tCrossLinkedInputOrError =
         make_cross_linker<uninspired_thing>().crossLink(std::move(tUninspiredInputBlock), tParsedInput);

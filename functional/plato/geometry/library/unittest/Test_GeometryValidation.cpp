@@ -34,13 +34,13 @@ struct GeometryTopologyValidationFileFixture : public test_utilities::FileCreati
 
 TEST(GeometryValidation, InValidParsedInputNoGeometry)
 {
-    const auto tInput = input_parser::NewParsedInput{};
+    const auto tInput = input_parser::ParsedInput{};
     EXPECT_TRUE(plato::geometry::library::detail::validate_only_one_geometry(tInput).has_value());
 }
 
 TEST(GeometryValidation, ValidParsedInputOneGeometry)
 {
-    const auto tInput = input_parser::NewParsedInput{} | input_parser::test_geometry{};
+    const auto tInput = input_parser::ParsedInput{} | input_parser::test_geometry{};
     EXPECT_FALSE(plato::geometry::library::detail::validate_only_one_geometry(tInput).has_value());
 }
 

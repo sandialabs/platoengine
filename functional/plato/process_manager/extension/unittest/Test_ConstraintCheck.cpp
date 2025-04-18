@@ -24,7 +24,7 @@ const auto kBaseInputDeck = geometry::extension::create_valid_brick_shape_geomet
                             create_valid_example_constraint_check_input();
 }
 
-void validate_and_run_constraint_check(const input_parser::NewParsedInput& aInputDeck)
+void validate_and_run_constraint_check(const input_parser::ParsedInput& aInputDeck)
 {
     const auto tValidatedInput = input_validation::make_validated_input(aInputDeck);
     ASSERT_TRUE(tValidatedInput.hasValue());

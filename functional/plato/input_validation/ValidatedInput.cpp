@@ -21,7 +21,7 @@ auto append_validation_errors(std::vector<std::string>&& aErrorMessages,
 }
 
 template <std::size_t... kIndices>
-[[nodiscard]] auto validate_components(const input_parser::NewParsedInput& aInput, std::index_sequence<kIndices...>)
+[[nodiscard]] auto validate_components(const input_parser::ParsedInput& aInput, std::index_sequence<kIndices...>)
     -> std::vector<std::string>
 {
     auto tErrorMessages = std::vector<std::string>{};
@@ -44,9 +44,7 @@ struct ValidateKey
     ValidateKey(const ValidateKey&) {}
 };
 
-ValidatedInput::ValidatedInput(input_parser::NewParsedInput aInput, const ValidateKey&) : mRawInput{std::move(aInput)}
-{
-}
+ValidatedInput::ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey&) : mRawInput{std::move(aInput)} {}
 
 auto parse_and_validate_string(const std::string_view aInput) -> utilities::Expected<ValidatedInput, std::string>
 {
@@ -85,8 +83,7 @@ auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
     return utilities::unexpected(utilities::concatenate_container(tErrorMessages, "\n"));
 }
 
-auto make_validated_input(const input_parser::NewParsedInput& aInput)
-    -> utilities::Expected<ValidatedInput, std::string>
+auto make_validated_input(const input_parser::ParsedInput& aInput) -> utilities::Expected<ValidatedInput, std::string>
 {
     const auto tCrossLinkedInputOrError = input_parser::make_cross_linked_input(aInput);
     if (tCrossLinkedInputOrError.hasError())

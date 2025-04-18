@@ -9,13 +9,12 @@
 namespace plato::process_manager::library
 {
 [[maybe_unused]] static auto kProcessManagerValidationRegistration =
-    input_validation::NewParsedInputValidationRegistration<>{[](const input_parser::NewParsedInput& aInput) {
-        return detail::validate_at_least_one_process_manager(aInput);
-    }};
+    input_validation::NewParsedInputValidationRegistration<>{
+        [](const input_parser::ParsedInput& aInput) { return detail::validate_at_least_one_process_manager(aInput); }};
 
 namespace detail
 {
-auto validate_at_least_one_process_manager(const input_parser::NewParsedInput& aInput) -> std::optional<std::string>
+auto validate_at_least_one_process_manager(const input_parser::ParsedInput& aInput) -> std::optional<std::string>
 {
     if (aInput.get<input_parser::ComponentType::kProcessManager>().empty())
     {
