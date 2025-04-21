@@ -165,7 +165,7 @@ TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockValidation)
     const auto tCheckForErrors =
         [](const input_parser::level_set_topology& aLevelSetInput, const test_utilities::TestContext& aTestContext)
     {
-        const auto tInput = input_parser::CrossReferencedInput{aLevelSetInput};
+        const auto tInput = input_parser::InputBlockWrapper{aLevelSetInput};
         const auto tValidationMessages = input_validation::validate(tInput, {});
         EXPECT_FALSE(tValidationMessages.empty()) << aTestContext;
     };

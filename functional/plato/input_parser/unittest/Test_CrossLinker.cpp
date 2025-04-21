@@ -39,18 +39,17 @@ namespace
 constexpr auto kUninspiredFilterValue = 42.0;
 constexpr auto kVeryInspiredFilterValue = 13.0;
 
-const auto kUninspiredFilterInputBlock =
-    InputDataBlock{/*.mComponentType=*/
-                   ComponentType::kFilter,
-                   /*.mBlockName=*/"uninspired_filter",   /*.mInput=*/
-                   CrossReferencedInput{uninspired_filter{/*.filteriness=*/
-                                                          kUninspiredFilterValue}}};
+const auto kUninspiredFilterInputBlock = InputDataBlock{/*.mComponentType=*/
+                                                        ComponentType::kFilter,
+                                                        /*.mBlockName=*/"uninspired_filter", /*.mInput=*/
+                                                        InputBlockWrapper{uninspired_filter{ /*.filteriness=*/
+                                                                                            kUninspiredFilterValue}}};
 const auto kVeryInspiredFilterInputBlock =
     InputDataBlock{/*.mComponentType=*/
                    ComponentType::kFilter,
-                   /*.mBlockName=*/"very_inspired_filter",   /*.mInput=*/
-                   CrossReferencedInput{very_inspired_filter{/*.filteritude=*/
-                                                             kVeryInspiredFilterValue}}};
+                   /*.mBlockName=*/"very_inspired_filter", /*.mInput=*/
+                   InputBlockWrapper{very_inspired_filter{ /*.filteritude=*/
+                                                          kVeryInspiredFilterValue}}};
 
 }  // namespace
 
@@ -58,7 +57,7 @@ TEST(CrossLinker, CrossLinkUnspecified)
 {
     auto tUninspiredInputBlock =
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
-                       /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{uninspired_thing{}}};
+                       /*.mBlockName=*/"uninspired_thing", /*.mInput=*/InputBlockWrapper{uninspired_thing{}}};
 
     ASSERT_FALSE(tUninspiredInputBlock.mInput.get<uninspired_thing>()
                      .my_filter.has_value());  // Make sure the cross-reference is empty
@@ -87,7 +86,7 @@ TEST(CrossLinker, CrossLinkSpecified)
 
     auto tUninspiredInputBlock =
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
-                       /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{tUninspiredThing}};
+                       /*.mBlockName=*/"uninspired_thing", /*.mInput=*/InputBlockWrapper{tUninspiredThing}};
 
     const auto tParsedInput =
         ParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock, kVeryInspiredFilterInputBlock}};
@@ -112,7 +111,7 @@ TEST(CrossLinker, NoOpForTypeWithNoCrossReferences)
                                                                  /*.another_number=*/13};
     auto tNoCrossReferenceInputBlock = InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
                                                       /*.mBlockName=*/"no_cross_reference_thing",
-                                                      /*.mInput=*/CrossReferencedInput{tNoCrossReferenceThing}};
+                                                      /*.mInput=*/InputBlockWrapper{tNoCrossReferenceThing}};
 
     const auto tParsedInput = ParsedInput{{tNoCrossReferenceInputBlock, kUninspiredFilterInputBlock}};
 
@@ -125,7 +124,7 @@ TEST(CrossLinker, ErrorMissingFieldName)
 {
     auto tUninspiredInputBlock =
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
-                       /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{uninspired_thing{}}};
+                       /*.mBlockName=*/"uninspired_thing", /*.mInput=*/InputBlockWrapper{uninspired_thing{}}};
 
     const auto tParsedInput =
         ParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock, kVeryInspiredFilterInputBlock}};
@@ -140,7 +139,7 @@ TEST(CrossLinker, ErrorMissingLinkableComponents)
 {
     auto tUninspiredInputBlock =
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
-                       /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{uninspired_thing{}}};
+                       /*.mBlockName=*/"uninspired_thing", /*.mInput=*/InputBlockWrapper{uninspired_thing{}}};
 
     const auto tParsedInput = ParsedInput{{tUninspiredInputBlock}};
 
@@ -157,7 +156,7 @@ TEST(CrossLinker, ErrorCrossLinkNameNotFound)
                          /*.another_number=*/13};
     auto tUninspiredInputBlock =
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
-                       /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{tUninspiredThing}};
+                       /*.mBlockName=*/"uninspired_thing", /*.mInput=*/InputBlockWrapper{tUninspiredThing}};
 
     const auto tParsedInput = ParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock}};
 

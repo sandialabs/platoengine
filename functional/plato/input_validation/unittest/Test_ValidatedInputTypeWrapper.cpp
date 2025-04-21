@@ -37,11 +37,11 @@ TEST(ValidatedInputTypeWrapper, GetCrossReference)
 
     const auto tLandCreature = plato::input_parser::land_creatures{};
     const auto tParsedLandCreature = input_parser::InputDataBlock{
-        input_parser::ComponentType::kGeometry, "land_creatures", input_parser::CrossReferencedInput{tLandCreature}};
+        input_parser::ComponentType::kGeometry, "land_creatures", input_parser::InputBlockWrapper{tLandCreature}};
 
     const auto tSeaCreature = plato::input_parser::sea_creatures{/*.octopus=*/42.0, /*.squid=*/100};
     const auto tParsedSeaCreature = input_parser::InputDataBlock{input_parser::ComponentType::kFilter, "sea_creatures",
-                                                                 input_parser::CrossReferencedInput{tSeaCreature}};
+                                                                 input_parser::InputBlockWrapper{tSeaCreature}};
     const auto tParsedInput = std::vector<input_parser::InputDataBlock>{tParsedLandCreature, tParsedSeaCreature};
 
     const auto tCrossLinkedInput = input_parser::make_cross_linked_input(input_parser::ParsedInput{tParsedInput});

@@ -12,7 +12,6 @@ namespace plato::input_parser
 {
 /// @brief Helper for parsing a cross-referenced input block
 /// Use this type in the input structs for a cross referenced block
-/// @todo Fix name
 template <ComponentType kComponentType>
 struct CrossReference
 {
@@ -24,7 +23,7 @@ struct CrossReference
     void insert(std::string::iterator aIter, char aVal);
 
     std::string mName;
-    CrossReferencedInput mInputBlock;
+    InputBlockWrapper mInputBlock;
     constexpr static inline ComponentType mComponentType = kComponentType;
 };
 

@@ -39,7 +39,7 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
                                         { return make_rol_optimization_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kOptimizerValidationRegistration =
-    input_validation::CrossReferencedInputValidationRegistration<>{
+    input_validation::InputBlockWrapperValidationRegistration<>{
         [](const input_parser::rol_optimization& aInput) { return detail::validate_rol_max_iterations(aInput); },
         [](const input_parser::rol_optimization& aInput) { return detail::validate_step_tolerance(aInput); },
         [](const input_parser::rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); },

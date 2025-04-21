@@ -21,8 +21,8 @@ namespace
                                 [](const library::ValidatedFilterInput&) { return make_identity_filter_function(); }};
 
 [[maybe_unused]] static auto kIdentityFilterValidationRegistration =
-    input_validation::CrossReferencedInputValidationRegistration<>{[](const input_parser::identity_filter& aInput)
-                                                                   { return validate_identity_filter(aInput); }};
+    input_validation::InputBlockWrapperValidationRegistration<>{[](const input_parser::identity_filter& aInput)
+                                                                { return validate_identity_filter(aInput); }};
 }  // namespace
 
 analysis::AnalysisDomainMesh IdentityFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const

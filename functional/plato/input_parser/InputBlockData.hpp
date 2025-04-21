@@ -9,13 +9,13 @@
 namespace plato::input_parser
 {
 /// @brief A type-erased wrapper for input structs, which may be of any type.
-class CrossReferencedInput
+class InputBlockWrapper
 {
    public:
-    CrossReferencedInput() = default;
+    InputBlockWrapper() = default;
 
-    template <typename T, typename = std::enable_if<!std::is_convertible_v<T, CrossReferencedInput>>>
-    explicit CrossReferencedInput(T&& aInitialValue);
+    template <typename T, typename = std::enable_if<!std::is_convertible_v<T, InputBlockWrapper>>>
+    explicit InputBlockWrapper(T&& aInitialValue);
 
     /// @brief Returns the held object
     /// @pre holdsExpectedType must return `true` for type @a T.
@@ -47,36 +47,36 @@ struct InputDataBlock
 {
     ComponentType mComponentType;
     std::string mBlockName;
-    CrossReferencedInput mInput;
+    InputBlockWrapper mInput;
 };
 
 template <typename T, typename>
-CrossReferencedInput::CrossReferencedInput(T&& aInitialValue) : mInput{std::forward<T>(aInitialValue)}
+InputBlockWrapper::InputBlockWrapper(T&& aInitialValue) : mInput{std::forward<T>(aInitialValue)}
 {
 }
 
 template <typename T>
-auto CrossReferencedInput::get() const -> const T&
+auto InputBlockWrapper::get() const -> const T&
 {
     assert(holdsExpectedType<T>());
     return std::any_cast<const T&>(mInput);
 }
 
 template <typename T>
-auto CrossReferencedInput::get() -> T&
+auto InputBlockWrapper::get() -> T&
 {
     assert(holdsExpectedType<T>());
     return std::any_cast<T&>(mInput);
 }
 
 template <typename T>
-void CrossReferencedInput::set(T&& aValue)
+void InputBlockWrapper::set(T&& aValue)
 {
     mInput = std::forward<T>(aValue);
 }
 
 template <typename T>
-auto CrossReferencedInput::holdsExpectedType() const -> bool
+auto InputBlockWrapper::holdsExpectedType() const -> bool
 {
     return mInput.type() == typeid(T);
 }

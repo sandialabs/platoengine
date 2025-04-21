@@ -11,7 +11,7 @@ namespace plato::criteria::library
 namespace
 {
 [[maybe_unused]] static auto kConstraintValidationRegistration =
-    input_validation::CrossReferencedInputValidationRegistration<>{
+    input_validation::InputBlockWrapperValidationRegistration<>{
         [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
         [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
         [](const input_parser::constraint& aInput) { return detail::validate_constraint_value(aInput); },

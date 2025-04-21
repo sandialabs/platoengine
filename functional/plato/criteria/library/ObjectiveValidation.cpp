@@ -16,7 +16,7 @@ namespace plato::criteria::library
 namespace
 {
 [[maybe_unused]] static auto kObjectiveValidationRegistration =
-    input_validation::CrossReferencedInputValidationRegistration<>{
+    input_validation::InputBlockWrapperValidationRegistration<>{
         [](const input_parser::objective& aInput) { return detail::validate_criterion_is_registered(aInput); },
         [](const input_parser::objective& aInput) { return detail::validate_number_of_processors(aInput); },
         [](const input_parser::objective& aInput) { return detail::validate_aggregation_weight(aInput); }};

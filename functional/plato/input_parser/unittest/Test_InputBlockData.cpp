@@ -6,9 +6,9 @@
 
 namespace plato::input_parser::unittest
 {
-TEST(CrossReferencedInput, SetAndGet)
+TEST(InputBlockWrapper, SetAndGet)
 {
-    CrossReferencedInput tInput{};
+    InputBlockWrapper tInput{};
     // r-value
     {
         tInput.set(88);
@@ -33,9 +33,9 @@ TEST(CrossReferencedInput, SetAndGet)
     }
 }
 
-TEST(CrossReferencedInput, HoldsExpectedType)
+TEST(InputBlockWrapper, HoldsExpectedType)
 {
-    CrossReferencedInput tInput{};
+    InputBlockWrapper tInput{};
     tInput.set(86);
     EXPECT_FALSE(tInput.holdsExpectedType<double>());
     EXPECT_FALSE(tInput.holdsExpectedType<unsigned int>());
@@ -43,29 +43,29 @@ TEST(CrossReferencedInput, HoldsExpectedType)
     EXPECT_TRUE(tInput.holdsExpectedType<int>());
 }
 
-TEST(CrossReferencedInput, HasValue)
+TEST(InputBlockWrapper, HasValue)
 {
-    CrossReferencedInput tInput{};
+    InputBlockWrapper tInput{};
     EXPECT_FALSE(tInput.hasValue());
     tInput.set(38);
     EXPECT_TRUE(tInput.hasValue());
 }
 
-TEST(CrossReferencedInput, MutatingGet)
+TEST(InputBlockWrapper, MutatingGet)
 {
-    auto tInput = CrossReferencedInput{101};
+    auto tInput = InputBlockWrapper{101};
     ASSERT_TRUE(tInput.holdsExpectedType<int>());
     constexpr auto tNewValue = 42;
     tInput.get<int>() = tNewValue;
     EXPECT_EQ(tInput.get<int>(), tNewValue);
 }
 
-TEST(CrossReferencedInput, Ctors)
+TEST(InputBlockWrapper, Ctors)
 {
     constexpr auto tValue = int{42};
-    auto tInput = CrossReferencedInput{tValue};
+    auto tInput = InputBlockWrapper{tValue};
     const auto tCheckCrossReference =
-        [tValue](const CrossReferencedInput& aInput, const test_utilities::TestContext& aTestContext)
+        [tValue](const InputBlockWrapper& aInput, const test_utilities::TestContext& aTestContext)
     {
         ASSERT_TRUE(aInput.hasValue()) << aTestContext;
         ASSERT_TRUE(aInput.holdsExpectedType<int>()) << aTestContext;
@@ -80,7 +80,7 @@ TEST(CrossReferencedInput, Ctors)
         const auto tInputCopy = tInput;  // NOLINT
         tCheckCrossReference(tInputCopy, TEST_CONTEXT("Copy constructor"));
 
-        const auto tInputWithCounter = CrossReferencedInput{test_utilities::CopyCounter{}};
+        const auto tInputWithCounter = InputBlockWrapper{test_utilities::CopyCounter{}};
         const auto tInputWithCounter2 = tInputWithCounter;  // NOLINT
         EXPECT_EQ(tInputWithCounter2.get<test_utilities::CopyCounter>().mCopies, 1U);
         EXPECT_EQ(tInputWithCounter2.get<test_utilities::CopyCounter>().mMoves, 1U);
@@ -90,7 +90,7 @@ TEST(CrossReferencedInput, Ctors)
         const auto tInput2 = std::move(tInput);
         tCheckCrossReference(tInput2, TEST_CONTEXT("Move constructor"));
 
-        auto tInputWithCounter = CrossReferencedInput{test_utilities::CopyCounter{}};
+        auto tInputWithCounter = InputBlockWrapper{test_utilities::CopyCounter{}};
         const auto tInputWithCounter2 = std::move(tInputWithCounter);
         EXPECT_EQ(tInputWithCounter2.get<test_utilities::CopyCounter>().mCopies, 0U);
         EXPECT_EQ(tInputWithCounter2.get<test_utilities::CopyCounter>().mMoves, 2U);

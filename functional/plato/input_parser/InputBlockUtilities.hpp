@@ -32,7 +32,7 @@ template <typename Input>
 {
     constexpr auto tComponentType = ComponentTypeOfInputBlock<Input>::value;
     aParsedInput.get<tComponentType>().push_back(
-        InputDataBlock{tComponentType, block_name<Input>(), CrossReferencedInput{aInput}});
+        InputDataBlock{tComponentType, block_name<Input>(), InputBlockWrapper{aInput}});
     return aParsedInput;
 }
 

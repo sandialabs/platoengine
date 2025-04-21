@@ -78,7 +78,7 @@ class ValidatedInputRegistrationFixture : virtual public ::testing::Test
    public:
     ValidatedInputRegistrationFixture()
     {
-        [[maybe_unused]] const auto kBlockValidationRegistration = CrossReferencedInputValidationRegistration<>{
+        [[maybe_unused]] const auto kBlockValidationRegistration = InputBlockWrapperValidationRegistration<>{
             {[](const input_parser::marvel& aInput) { return validate_wolverine(aInput.wolverine); },
              [](const input_parser::dc& aInput) { return validate_superman(aInput.superman); }}};
 
@@ -88,7 +88,7 @@ class ValidatedInputRegistrationFixture : virtual public ::testing::Test
     }
     ~ValidatedInputRegistrationFixture()
     {
-        detail::registered_validation_functions<input_parser::CrossReferencedInput>().clear();
+        detail::registered_validation_functions<input_parser::InputBlockWrapper>().clear();
         detail::registered_validation_functions<input_parser::ParsedInput>().clear();
     }
 };
@@ -107,12 +107,12 @@ auto make_test_parsed_input(const std::optional<input_parser::marvel>& aMarvelIn
     if (aMarvelInput)
     {
         tInputs.push_back(input_parser::InputDataBlock{input_parser::ComponentType::kGeometry, "marvel",
-                                                       input_parser::CrossReferencedInput{aMarvelInput.value()}});
+                                                       input_parser::InputBlockWrapper{aMarvelInput.value()}});
     }
     if (aDCInput)
     {
         tInputs.push_back(input_parser::InputDataBlock{input_parser::ComponentType::kConstraint, "dc",
-                                                       input_parser::CrossReferencedInput{aDCInput.value()}});
+                                                       input_parser::InputBlockWrapper{aDCInput.value()}});
     }
     return input_parser::ParsedInput{std::move(tInputs)};
 }

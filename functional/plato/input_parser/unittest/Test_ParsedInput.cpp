@@ -229,16 +229,16 @@ TEST(ParsedInput, GetInputBlockWithType)
     const auto tObjectiveData1 =
         input_parser::vegetables{/*.name=*/std::string{"objective 1"}, /*.tomato=*/true, /*.potato=*/10U};
     const auto tObjective1 = InputDataBlock{/*.mComponentType=*/ComponentType::kObjective, /*.mBlockName=*/"vegetables",
-                                            CrossReferencedInput{tObjectiveData1}};
+                                            InputBlockWrapper{tObjectiveData1}};
 
     const auto tObjectiveData2 =
         input_parser::vegetables{/*.name=*/std::string{"objective 2"}, /*.tomato=*/false, /*.potato=*/11U};
     const auto tObjective2 = InputDataBlock{/*.mComponentType=*/ComponentType::kObjective, /*.mBlockName=*/"vegetables",
-                                            CrossReferencedInput{tObjectiveData2}};
+                                            InputBlockWrapper{tObjectiveData2}};
 
     const auto tGeometryData = input_parser::fruits{/*.banana=*/42, /*.apple=*/13.0};
     const auto tGeometry = InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry, /*.mBlockName=*/"fruits",
-                                          CrossReferencedInput{tGeometryData}};
+                                          InputBlockWrapper{tGeometryData}};
 
     const auto tParsedInput = ParsedInput{{tObjective1, tGeometry, tObjective2}};
 

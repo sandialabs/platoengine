@@ -40,14 +40,13 @@ class ValidationFunction
 };
 
 template <typename... AdditionalArgs>
-using CrossReferencedInputValidationFunction =
-    ValidationFunction<input_parser::CrossReferencedInput, AdditionalArgs...>;
+using InputBlockWrapperValidationFunction = ValidationFunction<input_parser::InputBlockWrapper, AdditionalArgs...>;
 
 namespace detail
 {
 template <typename F, typename... AdditionalArgs>
 auto validate_input_block(const F aValidationFunction,
-                          const input_parser::CrossReferencedInput& aInput,
+                          const input_parser::InputBlockWrapper& aInput,
                           AdditionalArgs... aAdditionalArgs) -> std::optional<std::string>
 {
     using InputType = typename utilities::FunctionArgType<F>::template arg<0U>;
@@ -67,7 +66,7 @@ ValidationFunction<InputToValidate, AdditionalArgs...>::ValidationFunction(F aFu
           [tFunction = std::move(aFunction)](const InputToValidate& aInput,
                                              AdditionalArgs... aAdditionalArgs) -> std::optional<std::string>
           {
-              if constexpr (std::is_same_v<InputToValidate, input_parser::CrossReferencedInput>)
+              if constexpr (std::is_same_v<InputToValidate, input_parser::InputBlockWrapper>)
               {
                   return detail::validate_input_block(tFunction, aInput, std::move(aAdditionalArgs)...);
               }

@@ -38,26 +38,26 @@ constexpr auto kCheckForSumFortyOne = [](const ExcellentInput& aInput,
 
 }  // namespace
 
-TEST(ValidationFunction, ValidateCrossReferencedInput)
+TEST(ValidationFunction, ValidateInputBlockWrapper)
 {
-    const auto tValidationFunction = ValidationFunction<input_parser::CrossReferencedInput>{kCheckForFortyTwo};
+    const auto tValidationFunction = ValidationFunction<input_parser::InputBlockWrapper>{kCheckForFortyTwo};
 
     {
-        const auto tInput = input_parser::CrossReferencedInput{ExcellentInput{/*.field1=*/43}};
+        const auto tInput = input_parser::InputBlockWrapper{ExcellentInput{/*.field1=*/43}};
         const auto tResult = tValidationFunction.validate(tInput);
         ASSERT_TRUE(tResult.has_value());
         EXPECT_EQ(tResult.value(), kErrorMessage);
     }
     {
-        const auto tInput = input_parser::CrossReferencedInput{ExcellentInput{/*.field1=*/42}};
+        const auto tInput = input_parser::InputBlockWrapper{ExcellentInput{/*.field1=*/42}};
         ASSERT_FALSE(tValidationFunction.validate(tInput).has_value());
     }
 }
 
-TEST(ValidationFunction, ValidateCrossReferencedInputAdditionalArgs)
+TEST(ValidationFunction, ValidateInputBlockWrapperAdditionalArgs)
 {
-    const auto tValidationFunction = ValidationFunction<input_parser::CrossReferencedInput, int>{kCheckForSumFortyOne};
-    const auto tInput = input_parser::CrossReferencedInput{ExcellentInput{/*.field1=*/41}};
+    const auto tValidationFunction = ValidationFunction<input_parser::InputBlockWrapper, int>{kCheckForSumFortyOne};
+    const auto tInput = input_parser::InputBlockWrapper{ExcellentInput{/*.field1=*/41}};
 
     // Invalid input
     const auto tResult = tValidationFunction.validate(tInput, 1);
@@ -70,10 +70,10 @@ TEST(ValidationFunction, ValidateCrossReferencedInputAdditionalArgs)
 
 TEST(ValidationFunction, ValidateWrongType)
 {
-    const auto tValidationFunction = ValidationFunction<input_parser::CrossReferencedInput>{
+    const auto tValidationFunction = ValidationFunction<input_parser::InputBlockWrapper>{
         [](const ExcellentInput&) -> std::optional<std::string> { return std::string{"Error!"}; }};
 
-    const auto tInput = input_parser::CrossReferencedInput{BogusInput{}};
+    const auto tInput = input_parser::InputBlockWrapper{BogusInput{}};
     const auto tResult = tValidationFunction.validate(tInput);
     EXPECT_FALSE(tResult.has_value()) << tResult.value();
 }

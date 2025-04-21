@@ -43,7 +43,7 @@ namespace
                                         { return make_constraint_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kConstraintCheckValidationRegistration =
-    input_validation::CrossReferencedInputValidationRegistration<>{
+    input_validation::InputBlockWrapperValidationRegistration<>{
         [](const input_parser::constraint_check& aInput)
         { return detail::validate_linearity_check_output_file_name(aInput); },
         [](const input_parser::constraint_check& aInput)

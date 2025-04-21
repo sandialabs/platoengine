@@ -42,7 +42,7 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
                                         { return make_snopt_optimization_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kSNOPTOptimizerValidationRegistration =
-    input_validation::CrossReferencedInputValidationRegistration<>{
+    input_validation::InputBlockWrapperValidationRegistration<>{
         [](const input_parser::snopt_optimization& aInput) { return detail::validate_time_limit_in_minutes(aInput); },
         [](const input_parser::snopt_optimization& aInput)
         { return extension::detail::validate_max_iterations(aInput); },

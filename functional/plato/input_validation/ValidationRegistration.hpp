@@ -10,7 +10,7 @@
 namespace plato::input_parser
 {
 class ParsedInput;
-class CrossReferencedInput;
+class InputBlockWrapper;
 }  // namespace plato::input_parser
 
 namespace plato::input_validation
@@ -48,13 +48,13 @@ struct ValidationRegistration
     ValidationRegistration(std::initializer_list<ValidationFunction<ValidationInput, AdditionalArgs...>> aFunctions);
 };
 
-/// @brief Convenience alias for registering validation functions for CrossReferencedInput objects.
+/// @brief Convenience alias for registering validation functions for InputBlockWrapper objects.
 ///
 /// This alias can be used for registering validation functions for input blocks of specific types, such as
 /// density_topology.
 template <typename... AdditionalArgs>
-using CrossReferencedInputValidationRegistration =
-    ValidationRegistration<input_parser::CrossReferencedInput, AdditionalArgs...>;
+using InputBlockWrapperValidationRegistration =
+    ValidationRegistration<input_parser::InputBlockWrapper, AdditionalArgs...>;
 
 /// @brief Convenience alias for registering validation functions for ParsedInput objects.
 ///

@@ -68,7 +68,7 @@ ComponentBlockParser::ComponentBlockParser(const InputType&, ComponentTypeHelper
                   return utilities::unexpected(error_message(tInputIterator, tInput.cend(), tDelimeter));
               }
 
-              return InputDataBlock{Parser::mComponentType, aData.mName.mToken, CrossReferencedInput{std::move(tData)}};
+              return InputDataBlock{Parser::mComponentType, aData.mName.mToken, InputBlockWrapper{std::move(tData)}};
           }}
 {
 }

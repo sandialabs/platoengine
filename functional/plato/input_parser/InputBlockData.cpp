@@ -2,6 +2,6 @@
 
 namespace plato::input_parser
 {
-auto CrossReferencedInput::hasValue() const -> bool { return mInput.has_value(); }
+auto InputBlockWrapper::hasValue() const -> bool { return mInput.has_value(); }
 
 }  // namespace plato::input_parser

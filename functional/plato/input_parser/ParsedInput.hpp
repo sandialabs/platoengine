@@ -24,7 +24,6 @@ namespace plato::input_parser
 /// the component type.
 /// @note The input stored in this class has not been validated and so is not guaranteed to have the correct number of
 /// components for any component type.
-/// @todo Fix class name
 class ParsedInput
 {
    public:
@@ -53,11 +52,9 @@ class ParsedInput
 };
 
 /// @brief Parse the string @a aInput to a ParsedInput object using the registered parsers.
-/// @todo Fix name
 [[nodiscard]] auto make_parsed_input(const std::string& aInput) -> utilities::Expected<ParsedInput, std::string>;
 
 /// @brief Parse the string @a aInput to a ParsedInput object.
-/// @todo Fix name
 [[nodiscard]] auto make_parsed_input(const std::string& aInput,
                                      const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
     -> utilities::Expected<ParsedInput, std::string>;
