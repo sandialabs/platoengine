@@ -43,10 +43,10 @@ struct FactoryTypes
     Output mOutput;
 };
 
-using NewValidatedGeometryInput = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>;
-using NewGeometryRegistration = core::FactoryRegistration<FactoryTypes, NewValidatedGeometryInput>;
+using ValidatedGeometryInput = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>;
+using GeometryRegistration = core::FactoryRegistration<FactoryTypes, ValidatedGeometryInput>;
 
-[[nodiscard]] auto is_new_geometry_function_registered(std::string_view aFunctionName) -> bool;
+[[nodiscard]] auto is_geometry_function_registered(std::string_view aFunctionName) -> bool;
 
 /// @brief Helper to get the cross-referenced validated filter input block.
 template <typename FilterInputType, typename Geometry>

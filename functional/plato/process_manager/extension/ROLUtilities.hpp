@@ -54,7 +54,7 @@ namespace plato::process_manager::extension
     -> ROL::Solver<double>;
 
 ///@brief Generate a Parameters for ROL. Either from input deck or file.
-[[nodiscard]] auto make_optimization_parameters(const library::NewValidatedProcessManagerInput& aOptimizationParameters)
+[[nodiscard]] auto make_optimization_parameters(const library::ValidatedProcessManagerInput& aOptimizationParameters)
     -> third_party_integration::rol::OptimizationParameters;
 
 }  // namespace plato::process_manager::extension

@@ -120,7 +120,7 @@ auto make_rol_solver(Teuchos::ParameterList& aROLOptions, const ROL::Ptr<ROL::Pr
     return ROL::Solver<double>{aROLProblem, aROLOptions};
 }
 
-auto make_optimization_parameters(const library::NewValidatedProcessManagerInput& aOptimizationParameters)
+auto make_optimization_parameters(const library::ValidatedProcessManagerInput& aOptimizationParameters)
     -> third_party_integration::rol::OptimizationParameters
 {
     const auto& aROLParameters =

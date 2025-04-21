@@ -37,7 +37,7 @@ namespace plato::process_manager::extension
 class SensitivityCheck
 {
    public:
-    explicit SensitivityCheck(const library::NewValidatedProcessManagerInput& aInput);
+    explicit SensitivityCheck(const library::ValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 

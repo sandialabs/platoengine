@@ -6,100 +6,69 @@
 #include <string>
 
 #include "plato/input_parser/ComponentType.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
 
 namespace plato::input_parser
 {
-
-/// @brief A type-erased wrapper for input structs, which may be of any type.
-class CrossReferencedInput
-{
-   public:
-    CrossReferencedInput() = default;
-
-    template <typename T, typename = std::enable_if<!std::is_convertible_v<T, CrossReferencedInput>>>
-    explicit CrossReferencedInput(T&& aInitialValue);
-
-    /// @brief Returns the held object
-    /// @pre holdsExpectedType must return `true` for type @a T.
-    template <typename T>
-    [[nodiscard]] auto get() const -> const T&;
-
-    template <typename T>
-    [[nodiscard]] auto get() -> T&;
-
-    /// @brief Assigns a new value with @a aValue.
-    template <typename T>
-    void set(T&& aValue);
-
-    /// @brief Checks that the held object has type @a T.
-    template <typename T>
-    [[nodiscard]] auto holdsExpectedType() const -> bool;
-
-    /// @brief Checks that the held object has a value.
-    [[nodiscard]] auto hasValue() const -> bool;
-
-   private:
-    std::any mInput;
-};
-
 /// @brief Helper for parsing a cross-referenced input block
 /// Use this type in the input structs for a cross referenced block
 /// @todo Fix name
 template <ComponentType kComponentType>
-struct NewCrossReference
+struct CrossReference
 {
     using value_type = char;
-    [[nodiscard]] std::string::const_iterator begin() const { return mName.begin(); }
-    [[nodiscard]] std::string::const_iterator end() const { return mName.end(); }
-    [[nodiscard]] std::string::iterator begin() { return mName.begin(); }
-    [[nodiscard]] std::string::iterator end() { return mName.end(); }
-    void insert(std::string::iterator aIter, char aVal) { mName.insert(aIter, aVal); }
+    [[nodiscard]] auto begin() const -> std::string::const_iterator;
+    [[nodiscard]] auto end() const -> std::string::const_iterator;
+    [[nodiscard]] auto begin() -> std::string::iterator;
+    [[nodiscard]] auto end() -> std::string::iterator;
+    void insert(std::string::iterator aIter, char aVal);
 
     std::string mName;
     CrossReferencedInput mInputBlock;
     constexpr static inline ComponentType mComponentType = kComponentType;
 };
 
-template <typename T, typename>
-CrossReferencedInput::CrossReferencedInput(T&& aInitialValue) : mInput{std::forward<T>(aInitialValue)}
+template <ComponentType kComponentType>
+auto CrossReference<kComponentType>::begin() const -> std::string::const_iterator
 {
+    return mName.begin();
 }
 
-template <typename T>
-auto CrossReferencedInput::get() const -> const T&
+template <ComponentType kComponentType>
+auto CrossReference<kComponentType>::end() const -> std::string::const_iterator
 {
-    assert(holdsExpectedType<T>());
-    return std::any_cast<const T&>(mInput);
+    return mName.end();
 }
 
-template <typename T>
-auto CrossReferencedInput::get() -> T&
+template <ComponentType kComponentType>
+auto CrossReference<kComponentType>::begin() -> std::string::iterator
 {
-    assert(holdsExpectedType<T>());
-    return std::any_cast<T&>(mInput);
+    return mName.begin();
 }
 
-template <typename T>
-void CrossReferencedInput::set(T&& aValue)
+template <ComponentType kComponentType>
+auto CrossReference<kComponentType>::end() -> std::string::iterator
 {
-    mInput = std::forward<T>(aValue);
+    return mName.end();
 }
 
-template <typename T>
-auto CrossReferencedInput::holdsExpectedType() const -> bool
+template <ComponentType kComponentType>
+void CrossReference<kComponentType>::insert(std::string::iterator aIter, char aVal)
 {
-    return mInput.type() == typeid(T);
+    mName.insert(aIter, aVal);
 }
+
 }  // namespace plato::input_parser
 
 namespace boost::spirit::traits
 {
 template <plato::input_parser::ComponentType kComponentType>
-struct create_parser<plato::input_parser::NewCrossReference<kComponentType>>
+struct create_parser<plato::input_parser::CrossReference<kComponentType>>
 {
     typedef proto::result_of::deep_copy<BOOST_TYPEOF((qi::lexeme[+qi::graph]))>::type type;
 
     static type call() { return proto::deep_copy((qi::lexeme[+qi::graph])); }
 };
 }  // namespace boost::spirit::traits
+
 #endif

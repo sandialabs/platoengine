@@ -22,8 +22,8 @@ namespace
         { return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{}}; }};
 }
 
-[[maybe_unused]] static auto kTestGeometryRegistration = NewGeometryRegistration{
-    "test", [](const NewValidatedGeometryInput&)
+[[maybe_unused]] static auto kTestGeometryRegistration = GeometryRegistration{
+    "test", [](const ValidatedGeometryInput&)
     {
         return FactoryTypes{make_test_geometry_function(), linear_algebra::DynamicVector<double>{},
                             std::make_pair(std::vector<double>{}, std::vector<double>{}),
@@ -31,6 +31,6 @@ namespace
     }};
 }  // namespace
 
-TEST(GeometryRegistration, PhonyGeometry) { EXPECT_TRUE(is_new_geometry_function_registered("test")); }
+TEST(GeometryRegistration, PhonyGeometry) { EXPECT_TRUE(is_geometry_function_registered("test")); }
 
 }  // namespace plato::geometry::library::unittest

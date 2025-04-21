@@ -4,6 +4,7 @@
 #include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_parser/ComponentType.hpp"
 #include "plato/input_parser/CrossLinker.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
 namespace plato::input_parser

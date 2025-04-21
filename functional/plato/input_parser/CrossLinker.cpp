@@ -2,9 +2,9 @@
 
 namespace plato::input_parser
 {
-auto CrossLinker::crossLink(InputDataBlock aInputBlock, const ParsedInput& aNewParsedInput) const
+auto CrossLinker::crossLink(InputDataBlock aInputBlock, const ParsedInput& aParsedInput) const
     -> CrossLinkedBlockOrError
 {
-    return mCrossLinkFunction(std::move(aInputBlock), aNewParsedInput);
+    return mCrossLinkFunction(std::move(aInputBlock), aParsedInput);
 }
 }  // namespace plato::input_parser

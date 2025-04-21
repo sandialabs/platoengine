@@ -94,13 +94,13 @@ ParsedInput::ParsedInput(std::vector<InputDataBlock> aRawInput)
 {
 }
 
-auto parse_to_new_input(const std::string& aInput) -> utilities::Expected<ParsedInput, std::string>
+auto make_parsed_input(const std::string& aInput) -> utilities::Expected<ParsedInput, std::string>
 {
-    return parse_to_new_input(aInput, registered_component_parsers());
+    return make_parsed_input(aInput, registered_component_parsers());
 }
 
-auto parse_to_new_input(const std::string& aInput,
-                        const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
+auto make_parsed_input(const std::string& aInput,
+                       const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
     -> utilities::Expected<ParsedInput, std::string>
 {
     const auto tGenericBlocksOrError = parse_generic_blocks(aInput);

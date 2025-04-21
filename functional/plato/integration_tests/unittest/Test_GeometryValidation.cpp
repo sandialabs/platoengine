@@ -69,7 +69,7 @@ TEST(GeometryValidation, LinksDensityTopologyToSpecifiedFilter)
 {
     auto tDensityTopologyInput = geometry::extension::create_valid_density_topology_geometry_input();
     tDensityTopologyInput.filter =
-        input_parser::NewCrossReference<input_parser::ComponentType::kFilter>{"helmholtz_filter", {}};
+        input_parser::CrossReference<input_parser::ComponentType::kFilter>{"helmholtz_filter", {}};
 
     const auto tInput = tDensityTopologyInput | filter::extension::create_valid_helmholtz_filter_input() |
                         filter::extension::create_valid_identity_filter_input();

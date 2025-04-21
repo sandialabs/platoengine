@@ -48,7 +48,7 @@ ValidatedInput::ValidatedInput(input_parser::ParsedInput aInput, const ValidateK
 
 auto parse_and_validate_string(const std::string_view aInput) -> utilities::Expected<ValidatedInput, std::string>
 {
-    auto tParsedInput = input_parser::parse_to_new_input(std::string{aInput});
+    auto tParsedInput = input_parser::make_parsed_input(std::string{aInput});
     if (tParsedInput.hasError())
     {
         return utilities::unexpected(tParsedInput.error());

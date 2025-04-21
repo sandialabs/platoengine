@@ -27,7 +27,7 @@ constexpr auto kNumDesignParameters = std::size_t{6};
 const std::vector<double> kLowerBounds = {-10.0, -10.0, -10.0, 1e-2, 1e-2, 1e-2};  // Arbitrary
 const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};        // Arbitrary
 
-[[nodiscard]] auto mesh_path(const library::NewValidatedGeometryInput& aGeometryInput) -> std::filesystem::path
+[[nodiscard]] auto mesh_path(const library::ValidatedGeometryInput& aGeometryInput) -> std::filesystem::path
 {
     const auto& tInput = input_validation::get_input_block<input_parser::brick_shape_geometry>(aGeometryInput);
     return tInput.mesh_name.value().mToken;
@@ -42,9 +42,9 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
 [[maybe_unused]] static auto kBrickShapeGeometryParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::brick_shape_geometry>{};
 
-[[maybe_unused]] static auto kNewBrickShapeGeometryRegistration = plato::geometry::library::NewGeometryRegistration{
+[[maybe_unused]] static auto kBrickShapeGeometryRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::brick_shape_geometry>(),
-    [](const library::NewValidatedGeometryInput& aGeometryInput)
+    [](const library::ValidatedGeometryInput& aGeometryInput)
     {
         return library::FactoryTypes{make_brick_shape_geometry(BrickShapeGeometry{mesh_path(aGeometryInput)}),
                                      BrickShapeGeometry::initialGuess(), BrickShapeGeometry::bounds(), make_output()};

@@ -105,16 +105,15 @@ TEST(SNOPTValidation, ValidateTimeLimit)
 {
     constexpr bool tEmptyParameterGold = false;
     test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct(
-        [](const input_parser::new_snopt_optimization& aInput)
-        { return detail::validate_time_limit_in_minutes(aInput); },
+        [](const input_parser::snopt_optimization& aInput) { return detail::validate_time_limit_in_minutes(aInput); },
         create_valid_example_snopt_optimization_input(), tEmptyParameterGold, TEST_CONTEXT("ValidateTimeLimit"));
 }
 
 TEST(SNOPTOptimization, Registration)
 {
-    EXPECT_TRUE(library::is_new_process_manager_function_registered("new_snopt_optimization"));
+    EXPECT_TRUE(library::is_process_manager_function_registered("snopt_optimization"));
     const auto tNames =
-        core::registered_function_names<library::StageAndProcessManager, library::NewValidatedProcessManagerInput>();
+        core::registered_function_names<library::StageAndProcessManager, library::ValidatedProcessManagerInput>();
 }
 
 }  // namespace plato::process_manager::extension::snopt::unittest

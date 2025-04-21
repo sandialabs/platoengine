@@ -4,5 +4,5 @@
 
 namespace plato::filter::extension::unittest
 {
-TEST(HelmholtzFilter, Registration) { EXPECT_TRUE(library::is_new_filter_function_registered("helmholtz_filter")); }
+TEST(HelmholtzFilter, Registration) { EXPECT_TRUE(library::is_filter_function_registered("helmholtz_filter")); }
 }  // namespace plato::filter::extension::unittest

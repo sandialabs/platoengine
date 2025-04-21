@@ -43,7 +43,7 @@ template <typename Geometry>
 /// @brief Constructs a FilterFunction from a geometry component's filter cross-link.
 /// @tparam Geometry Must be an input block with fields `filter`.
 template <typename InputBlockType>
-[[nodiscard]] auto make_filter_from_new_geometry_input(
+[[nodiscard]] auto make_filter_from_geometry_input(
     const input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>& aInput)
     -> filter::library::FilterFunction;
 
@@ -78,7 +78,7 @@ auto validate_filter_with_mesh(const Geometry& aInput, const MeshFieldAccessor& 
 }
 
 template <typename InputBlockType>
-auto make_filter_from_new_geometry_input(
+auto make_filter_from_geometry_input(
     const input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>& aInput)
     -> filter::library::FilterFunction
 {

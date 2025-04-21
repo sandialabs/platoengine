@@ -14,7 +14,7 @@ namespace plato::process_manager::library
 /// @post The order of the objects in the returned is guaranteed to be sorted based on
 ///  each object's RunStage provided to the factory. Within each RunStage, no order
 ///  is guaranteed.
-[[nodiscard]] auto make_process_managers(const NewValidatedProcessManagers& aValidatedProcessManagerInput)
+[[nodiscard]] auto make_process_managers(const ValidatedProcessManagers& aValidatedProcessManagerInput)
     -> std::vector<ProcessManager>;
 }  // namespace plato::process_manager::library
 

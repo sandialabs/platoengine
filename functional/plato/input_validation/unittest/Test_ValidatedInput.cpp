@@ -3,8 +3,8 @@
 #include <boost/optional/optional_io.hpp>
 #include <fstream>
 
-#include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_parser/CrossLinkedInput.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
@@ -14,7 +14,7 @@
 
 namespace
 {
-using GeometryNewCrossReference = plato::input_parser::NewCrossReference<plato::input_parser::ComponentType::kGeometry>;
+using GeometryCrossReference = plato::input_parser::CrossReference<plato::input_parser::ComponentType::kGeometry>;
 }
 
 // Define input structs
@@ -28,7 +28,7 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
                                dc, plato::input_parser::ComponentType::kConstraint,
                                (bool, superman, "")
                                (unsigned int, batman, "")
-                               (GeometryNewCrossReference, multiverse, ""))
+                               (GeometryCrossReference, multiverse, ""))
 // clang-format on
 
 namespace plato::input_validation::unittest
@@ -82,7 +82,7 @@ class ValidatedInputRegistrationFixture : virtual public ::testing::Test
             {[](const input_parser::marvel& aInput) { return validate_wolverine(aInput.wolverine); },
              [](const input_parser::dc& aInput) { return validate_superman(aInput.superman); }}};
 
-        [[maybe_unused]] const auto kInputValidationRegistration = NewParsedInputValidationRegistration<>{{
+        [[maybe_unused]] const auto kInputValidationRegistration = ParsedInputValidationRegistration<>{{
             [](const input_parser::ParsedInput& aInput) { return validate_parsed_input(aInput); },
         }};
     }
@@ -168,7 +168,7 @@ TEST_F(ValidatedInputRegistrationFixture, ConstructionTwoEntriesInvalidInput)
 {
     const auto kInvalidMarvel = input_parser::marvel{/*.cyclops=*/42.0, /*.wolverine=*/101};
     const auto kInvalidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.superman=*/boost::none,
-                                             /*.batman=*/100U, /*.multiverse=*/GeometryNewCrossReference{}};
+                                             /*.batman=*/100U, /*.multiverse=*/GeometryCrossReference{}};
     const auto tCrossLinkedInput = make_test_input(kInvalidMarvel, kInvalidDC);
     ASSERT_TRUE(tCrossLinkedInput.hasValue());
     const auto tValidatedInput = make_validated_input(tCrossLinkedInput.value());

@@ -17,9 +17,9 @@ namespace
 }
 
 [[maybe_unused]] static auto kTestFilterRegistration =
-    NewFilterRegistration{"test", [](const NewValidatedFilterInput&) { return make_test_filter_function(); }};
+    FilterRegistration{"test", [](const ValidatedFilterInput&) { return make_test_filter_function(); }};
 }  // namespace
 
-TEST(FilterRegistration, PhonyFilter) { EXPECT_TRUE(is_new_filter_function_registered("test")); }
+TEST(FilterRegistration, PhonyFilter) { EXPECT_TRUE(is_filter_function_registered("test")); }
 
 }  // namespace plato::filter::library::unittest

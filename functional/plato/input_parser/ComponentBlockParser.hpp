@@ -7,19 +7,12 @@
 #include "plato/input_parser/BlockStructRule.hpp"
 #include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/GenericBlockRule.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_parser/ParseErrorUtilities.hpp"
 #include "plato/utilities/Expected.hpp"
 
 namespace plato::input_parser
 {
-/// @brief Type-erased wrapper for holding the parsed data of a component input block.
-struct InputDataBlock
-{
-    ComponentType mComponentType;
-    std::string mBlockName;
-    CrossReferencedInput mInput;
-};
-
 template <ComponentType kComponentType>
 struct ComponentTypeHelper
 {
@@ -54,10 +47,6 @@ class ComponentBlockParser
 template <typename InputType, ComponentType kComponentType>
 [[nodiscard]] auto make_component_block_parser() -> ComponentBlockParser;
 
-/// @brief Returns the name of an input block, as it appears in the input deck
-template <typename BlockStruct>
-[[nodiscard]] auto block_name() -> std::string;
-
 template <typename InputType, ComponentType kComponentType>
 ComponentBlockParser::ComponentBlockParser(const InputType&, ComponentTypeHelper<kComponentType>)
     : mComponentType{kComponentType},
@@ -88,12 +77,6 @@ template <typename InputType, ComponentType kComponentType>
 auto make_component_block_parser() -> ComponentBlockParser
 {
     return ComponentBlockParser{InputType{}, ComponentTypeHelper<kComponentType>{}};
-}
-
-template <typename BlockStruct>
-auto block_name() -> std::string
-{
-    return InputTypeName<BlockStruct>::name;
 }
 
 }  // namespace plato::input_parser

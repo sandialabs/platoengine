@@ -16,9 +16,9 @@ namespace
 [[maybe_unused]] static auto kIdentityFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::identity_filter>{};
 
-[[maybe_unused]] static auto kNewIdentityFilterRegistration = library::NewFilterRegistration{
-    input_parser::block_name<input_parser::identity_filter>(),
-    [](const library::NewValidatedFilterInput&) { return make_identity_filter_function(); }};
+[[maybe_unused]] static auto kIdentityFilterRegistration =
+    library::FilterRegistration{input_parser::block_name<input_parser::identity_filter>(),
+                                [](const library::ValidatedFilterInput&) { return make_identity_filter_function(); }};
 
 [[maybe_unused]] static auto kIdentityFilterValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<>{[](const input_parser::identity_filter& aInput)

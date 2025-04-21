@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "plato/input_parser/CrossReference.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
 #include "plato/test_utilities/CopyCounter.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 

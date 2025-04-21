@@ -37,10 +37,10 @@ TEST_F(CriterionFactoryTestFixture, ValidObjective)
     const auto tData = input_validation::make_validated_input(parsedInput()).value();
 
     ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1);
-    EXPECT_NO_THROW(auto tFunction =
-                        (criteria::library::make_new_criterion_function<criteria::library::CriterionFunction,
-                                                                        input_parser::objective>(
-                            tData.template get<input_parser::ComponentType::kObjective>().rawInput().front())));
+    EXPECT_NO_THROW(
+        auto tFunction =
+            (criteria::library::make_criterion_function<criteria::library::CriterionFunction, input_parser::objective>(
+                tData.template get<input_parser::ComponentType::kObjective>().rawInput().front())));
 }
 
 TEST_F(CriterionFactoryTestFixture, ValidConstraint)
@@ -48,10 +48,10 @@ TEST_F(CriterionFactoryTestFixture, ValidConstraint)
     const auto tData = input_validation::make_validated_input(parsedInput()).value();
 
     ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1);
-    EXPECT_NO_THROW(auto tFunction =
-                        (criteria::library::make_new_criterion_function<criteria::library::CriterionFunction,
-                                                                        input_parser::constraint>(
-                            tData.template get<input_parser::ComponentType::kConstraint>().rawInput().front())));
+    EXPECT_NO_THROW(
+        auto tFunction =
+            (criteria::library::make_criterion_function<criteria::library::CriterionFunction, input_parser::constraint>(
+                tData.template get<input_parser::ComponentType::kConstraint>().rawInput().front())));
 }
 
 TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
@@ -77,7 +77,7 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
     const auto tObjective = input_validation::get_input_block<input_parser::objective>(
         tData.get<input_parser::ComponentType::kObjective>().rawInput().front());
 
-    const auto tCriterionInput = criteria::library::to_new_criterion_input(tObjective);
+    const auto tCriterionInput = criteria::library::to_criterion_input(tObjective);
 
     EXPECT_EQ(tObjective.number_of_processors, tCriterionInput.mNumberOfProcessors);
     ASSERT_TRUE(tObjective.input_files.has_value());
@@ -96,7 +96,7 @@ TEST_F(CriterionFactoryTestFixture, ConvertConstraintInput)
     ASSERT_EQ(tAllConstraints.size(), 1U);
     const auto& tValidatedConstraint = tAllConstraints.front();
     const auto& tConstraint = input_validation::get_input_block<input_parser::constraint>(tValidatedConstraint);
-    const auto tCriterionInput = criteria::library::to_new_criterion_input(tConstraint);
+    const auto tCriterionInput = criteria::library::to_criterion_input(tConstraint);
 
     EXPECT_EQ(tConstraint.number_of_processors, tCriterionInput.mNumberOfProcessors);
     ASSERT_TRUE(tConstraint.input_files.has_value());

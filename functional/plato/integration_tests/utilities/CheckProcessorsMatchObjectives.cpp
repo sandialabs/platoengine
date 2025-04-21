@@ -10,7 +10,7 @@
 namespace plato::integration_tests::utilities
 {
 void check_processors_match_objectives(const std::vector<unsigned int>& aNumberOfProcessors,
-                                       const criteria::library::NewValidatedObjectives& aObjectives,
+                                       const criteria::library::ValidatedObjectives& aObjectives,
                                        const test_utilities::TestContext& aTestContext)
 {
     for (const auto [tNumberOfProcessors, tObjective] :

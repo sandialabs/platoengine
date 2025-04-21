@@ -3,8 +3,8 @@
 
 #include <functional>
 
-#include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_parser/CrossReference.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/utilities/Expected.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -17,12 +17,12 @@ struct InputTypeHelper
 {
 };
 
-/// @brief A type trait specifying if a type is a NewCrossReference templated on @a T
+/// @brief A type trait specifying if a type is a CrossReference templated on @a T
 template <typename T>
-constexpr bool kIsNewCrossReference = false;
+constexpr bool kIsCrossReference = false;
 
 template <ComponentType kComponentType>
-constexpr bool kIsNewCrossReference<NewCrossReference<kComponentType>> = true;
+constexpr bool kIsCrossReference<CrossReference<kComponentType>> = true;
 
 /// @brief This class provides a method for filling cross-references in input blocks.
 class CrossLinker
@@ -33,8 +33,8 @@ class CrossLinker
     template <typename Input>
     CrossLinker(InputTypeHelper<Input>);
 
-    /// @brief Fills the cross-reference field in @a aInputBlock with the input contained in @a aNewParsedInput.
-    [[nodiscard]] auto crossLink(InputDataBlock aInputBlock, const ParsedInput& aNewParsedInput) const
+    /// @brief Fills the cross-reference field in @a aInputBlock with the input contained in @a aParsedInput.
+    [[nodiscard]] auto crossLink(InputDataBlock aInputBlock, const ParsedInput& aParsedInput) const
         -> CrossLinkedBlockOrError;
 
    private:
@@ -140,17 +140,17 @@ struct TypeOrOptional<boost::optional<T>>
 };
 
 template <typename Input, typename ApplyFunction>
-void apply_cross_link(InputDataBlock& aInputBlock, const ParsedInput& aNewParsedInput, ApplyFunction& aApplyFunction)
+void apply_cross_link(InputDataBlock& aInputBlock, const ParsedInput& aParsedInput, ApplyFunction& aApplyFunction)
 {
     assert(aInputBlock.mInput.holdsExpectedType<Input>());
     auto& aCastInputBlock = aInputBlock.mInput.get<Input&>();
     boost::fusion::for_each(aCastInputBlock,
-                            [&aNewParsedInput, &aApplyFunction](auto& aField)
+                            [&aParsedInput, &aApplyFunction](auto& aField)
                             {
                                 using FieldType = typename TypeOrOptional<std::decay_t<decltype(aField)>>::type;
-                                if constexpr (kIsNewCrossReference<FieldType>)
+                                if constexpr (kIsCrossReference<FieldType>)
                                 {
-                                    aApplyFunction(aField, aNewParsedInput.get<FieldType::mComponentType>());
+                                    aApplyFunction(aField, aParsedInput.get<FieldType::mComponentType>());
                                 }
                             });
 }
@@ -158,16 +158,16 @@ void apply_cross_link(InputDataBlock& aInputBlock, const ParsedInput& aNewParsed
 
 template <typename Input>
 CrossLinker::CrossLinker(InputTypeHelper<Input>)
-    : mCrossLinkFunction{[](InputDataBlock aInputBlock, const ParsedInput& aNewParsedInput) -> CrossLinkedBlockOrError
+    : mCrossLinkFunction{[](InputDataBlock aInputBlock, const ParsedInput& aParsedInput) -> CrossLinkedBlockOrError
                          {
                              if (aInputBlock.mInput.holdsExpectedType<Input>())
                              {
                                  auto tErrorChecks = detail::ErrorCheckCrossLink{aInputBlock.mBlockName, {}};
-                                 detail::apply_cross_link<Input>(aInputBlock, aNewParsedInput, tErrorChecks);
+                                 detail::apply_cross_link<Input>(aInputBlock, aParsedInput, tErrorChecks);
                                  if (tErrorChecks.mErrorMessages.empty())
                                  {
                                      auto tApplyCrossLink = detail::ApplyCrossLink{};
-                                     detail::apply_cross_link<Input>(aInputBlock, aNewParsedInput, tApplyCrossLink);
+                                     detail::apply_cross_link<Input>(aInputBlock, aParsedInput, tApplyCrossLink);
                                      return aInputBlock;
                                  }
                                  return utilities::unexpected(

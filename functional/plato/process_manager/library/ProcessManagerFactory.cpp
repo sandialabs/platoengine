@@ -15,7 +15,7 @@ enum struct RegistrationStatus
     kUnregistered
 };
 
-struct NewCheckRegistrationStatus
+struct CheckRegistrationStatus
 {
     RegistrationStatus mRegistrationStatus;
 
@@ -23,7 +23,7 @@ struct NewCheckRegistrationStatus
     auto operator()(const T& aValidatedProcessInput) const
     {
         const auto tIsRegistered =
-            core::is_factory_function_registered<StageAndProcessManager, NewValidatedProcessManagerInput>(
+            core::is_factory_function_registered<StageAndProcessManager, ValidatedProcessManagerInput>(
                 aValidatedProcessInput.rawInput().mBlockName);
         return mRegistrationStatus == RegistrationStatus::kRegistered ? tIsRegistered : !tIsRegistered;
     }
@@ -31,19 +31,18 @@ struct NewCheckRegistrationStatus
 
 }  // namespace
 
-auto make_process_managers(const NewValidatedProcessManagers& aValidatedProcessManagerInput)
-    -> std::vector<ProcessManager>
+auto make_process_managers(const ValidatedProcessManagers& aValidatedProcessManagerInput) -> std::vector<ProcessManager>
 {
     auto tProcessManagerMap = std::multimap<RunStage, ProcessManager>{};
     utilities::transform_if(
         aValidatedProcessManagerInput.rawInput(), std::inserter(tProcessManagerMap, tProcessManagerMap.begin()),
         [](const auto& aValidatedProcessInput)
         {
-            return core::create_object_from_factory<StageAndProcessManager, NewValidatedProcessManagerInput>(
+            return core::create_object_from_factory<StageAndProcessManager, ValidatedProcessManagerInput>(
                        aValidatedProcessInput.rawInput().mBlockName, aValidatedProcessInput)
                 .value();
         },
-        NewCheckRegistrationStatus{RegistrationStatus::kRegistered});
+        CheckRegistrationStatus{RegistrationStatus::kRegistered});
 
     return to_stage_ordered_vector(tProcessManagerMap);
 }

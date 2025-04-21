@@ -22,7 +22,7 @@ namespace
         [](const input_parser::objective& aInput) { return detail::validate_aggregation_weight(aInput); }};
 
 [[maybe_unused]] static auto kListObjectivesValidationRegistration =
-    input_validation::NewParsedInputValidationRegistration<>{
+    input_validation::ParsedInputValidationRegistration<>{
         [](const input_parser::ParsedInput& aInput)
         { return detail::validate_at_least_one_objective(aInput.get<input_parser::objective>()); },
         [](const input_parser::ParsedInput& aInput)

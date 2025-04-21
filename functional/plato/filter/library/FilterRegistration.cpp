@@ -14,9 +14,9 @@ std::unique_ptr<FilterInterface> load_filter(const FilterParameters& aParams,
         aSharedLibraryPath, kCreateFilterFunctionName, aParams));
 }
 
-auto is_new_filter_function_registered(const std::string_view aFunctionName) -> bool
+auto is_filter_function_registered(const std::string_view aFunctionName) -> bool
 {
-    return core::is_factory_function_registered<FilterFunction, NewValidatedFilterInput>(aFunctionName);
+    return core::is_factory_function_registered<FilterFunction, ValidatedFilterInput>(aFunctionName);
 }
 
 }  // namespace plato::filter::library

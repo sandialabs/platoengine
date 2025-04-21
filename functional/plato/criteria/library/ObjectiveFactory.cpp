@@ -24,7 +24,7 @@ using ValidatedObjective = input_validation::ValidatedInputDataBlock<input_parse
 using AggregateComm = utilities::NamedType<boost::mpi::communicator, struct AggregateCommTag>;
 using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct ObjectiveCommTag>;
 
-const auto kNewIsActive = [](const auto& aObjective)
+const auto kIsActive = [](const auto& aObjective)
 { return input_validation::is_active(input_validation::get_input_block<input_parser::objective>(aObjective)); };
 
 bool is_parallel_objective(const ValidatedObjective& aObjective)
@@ -38,12 +38,12 @@ auto make_parallel_criterion_function(const ValidatedObjective& aObjective, cons
     if (is_parallel_objective(aObjective))
     {
         return core::adapt_parallel_function(
-            make_new_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue),
+            make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue),
             aObjectiveComm.mValue);
     }
     else
     {
-        return make_new_criterion_function<CriterionFunction, input_parser::objective>(aObjective);
+        return make_criterion_function<CriterionFunction, input_parser::objective>(aObjective);
     }
 }
 
@@ -61,11 +61,11 @@ auto make_parallel_aggregate_impl(const std::vector<ValidatedObjective>& tObject
                 input_validation::get_input_block<input_parser::objective>(aObjective).aggregation_weight.value();
             return std::make_pair(make_parallel_criterion_function(aObjective, aObjectiveComm), tWeight);
         },
-        kNewIsActive);
+        kIsActive);
     return ParallelAggregateObjective{std::move(tFunctionsAndWeights), aAggregatorComm.mValue};
 }
 
-auto group_split_vector(const NewValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
+auto group_split_vector(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
     const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});
@@ -74,7 +74,7 @@ auto group_split_vector(const NewValidatedObjectives& aInput, const boost::mpi::
     return utilities::group_split_vector(aInput.rawInput(), tGroupColor, utilities::SizeNamedType{tSplitSize});
 }
 
-[[nodiscard]] auto mpi_group(const NewValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
+[[nodiscard]] auto mpi_group(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
     -> boost::mpi::communicator
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
@@ -84,7 +84,7 @@ auto group_split_vector(const NewValidatedObjectives& aInput, const boost::mpi::
 
 }  // namespace
 
-auto make_parallel_aggregate(const NewValidatedObjectives& aInput) -> ParallelAggregateObjective
+auto make_parallel_aggregate(const ValidatedObjectives& aInput) -> ParallelAggregateObjective
 {
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tObjectives = group_split_vector(aInput, tCommunicator);
@@ -94,12 +94,12 @@ auto make_parallel_aggregate(const NewValidatedObjectives& aInput) -> ParallelAg
 
 }  // namespace detail
 
-auto make_aggregate_objective_function(const NewValidatedObjectives& aInput) -> ObjectiveFunction
+auto make_aggregate_objective_function(const ValidatedObjectives& aInput) -> ObjectiveFunction
 {
     return make_aggregate_function_with_first_derivative(detail::make_parallel_aggregate(aInput));
 }
 
-auto number_of_processors_per_objective(const NewValidatedObjectives& aInput) -> std::vector<unsigned int>
+auto number_of_processors_per_objective(const ValidatedObjectives& aInput) -> std::vector<unsigned int>
 {
     const auto tGetNumProcs = [](const auto& aObjective) {
         return input_validation::get_input_block<input_parser::objective>(aObjective).number_of_processors.value_or(1U);
@@ -107,7 +107,7 @@ auto number_of_processors_per_objective(const NewValidatedObjectives& aInput) ->
 
     auto tNumberOfProcessors = std::vector<unsigned int>{};
     utilities::transform_if(aInput.rawInput(), std::back_inserter(tNumberOfProcessors), tGetNumProcs,
-                            detail::kNewIsActive);
+                            detail::kIsActive);
     return tNumberOfProcessors;
 }
 

@@ -6,6 +6,7 @@
 #include "plato/input_parser/BlockStructRule.hpp"
 #include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_parser/GenericBlockRule.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/NamedType.hpp"
@@ -74,7 +75,7 @@ TEST(ParsedInput, ParsesFullValidInput)
         "  banana 42\n"
         "end\n"};
 
-    const auto tParsedInputOrError = parse_to_new_input(std::string{tInput}, kComponentParsers);
+    const auto tParsedInputOrError = make_parsed_input(std::string{tInput}, kComponentParsers);
     ASSERT_TRUE(tParsedInputOrError.hasValue());
 
     const auto& tParsedInput = tParsedInputOrError.value();
@@ -110,7 +111,7 @@ TEST(ParsedInput, ParsesFullInvalidInput)
     const auto tCheckForError = [](const std::string_view aInput, const TokenToCheck aTokenToCheck,
                                    const test_utilities::TestContext& aTestContext)
     {
-        const auto tParsedInput = parse_to_new_input(std::string{aInput}, kComponentParsers);
+        const auto tParsedInput = make_parsed_input(std::string{aInput}, kComponentParsers);
         ASSERT_TRUE(tParsedInput.hasError()) << aTestContext;
 
         const auto& tErrorMessage = tParsedInput.error();

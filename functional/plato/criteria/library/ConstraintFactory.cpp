@@ -16,7 +16,7 @@ namespace
 {
 using ValidatedConstraint = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kConstraint>;
 
-const auto kNewIsActive = [](const auto& aConstraint)
+const auto kIsActive = [](const auto& aConstraint)
 { return input_validation::is_active(input_validation::get_input_block<input_parser::constraint>(aConstraint)); };
 
 }  // namespace
@@ -26,13 +26,13 @@ const std::map<input_parser::ConstraintTypes, ConstraintType> kConstraintMap{
     {input_parser::ConstraintTypes::kGreaterThan, ConstraintType::kGreaterThan},
     {input_parser::ConstraintTypes::kLessThan, ConstraintType::kLessThan}};
 
-auto make_constraints(const NewValidatedConstraints& aInput)
+auto make_constraints(const ValidatedConstraints& aInput)
     -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>
 {
     auto tConstraints = std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>{};
     utilities::transform_if(
         aInput.rawInput(), std::back_inserter(tConstraints),
-        [](const auto& aValidatedInput) { return detail::make_constraint(aValidatedInput); }, kNewIsActive);
+        [](const auto& aValidatedInput) { return detail::make_constraint(aValidatedInput); }, kIsActive);
 
     return tConstraints;
 }
@@ -57,9 +57,9 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
     constexpr auto tVectorTraits = CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector};
     auto tCriterionFunction =
         criterion_function_has_traits(tRegistrationName, tVectorTraits)
-            ? make_new_criterion_function<VectorCriterionFunction, input_parser::constraint>(aConstraintInput)
+            ? make_criterion_function<VectorCriterionFunction, input_parser::constraint>(aConstraintInput)
             : to_vector_function<const analysis::AnalysisDomainMesh&>(
-                  make_new_criterion_function<CriterionFunction, input_parser::constraint>(aConstraintInput));
+                  make_criterion_function<CriterionFunction, input_parser::constraint>(aConstraintInput));
 
     return VectorConstraint<const analysis::AnalysisDomainMesh&>{tConstraintName, std::move(tCriterionFunction), tValue,
                                                                  tIsLinear, tConstraintType};

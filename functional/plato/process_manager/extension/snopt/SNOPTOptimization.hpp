@@ -23,7 +23,7 @@ struct ProcessManagerData;
 
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), new_snopt_optimization,
+    (plato)(input_parser), snopt_optimization,
     (plato::input_parser::FileName, input_file_name, "Optional filename of the SNOpt input file to set optimization parameters not otherwise available here.")
     (unsigned int, max_iterations, "Optional command to override the maximum number of outer iterations given in an input file.")
     (unsigned int, time_limit_in_minutes, "Optional command to override the time limit in minutes for this optimization as an additional stopping criteria for the optimization.")
@@ -37,7 +37,7 @@ namespace plato::process_manager::extension::snopt
 class SNOPTOptimization
 {
    public:
-    explicit SNOPTOptimization(const library::NewValidatedProcessManagerInput& aInput);
+    explicit SNOPTOptimization(const library::ValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 
@@ -47,14 +47,14 @@ class SNOPTOptimization
 };
 
 /// @brief Creates a valid example SNOPTOptimization input struct, useful for tests.
-[[nodiscard]] auto create_valid_example_snopt_optimization_input() -> input_parser::new_snopt_optimization;
+[[nodiscard]] auto create_valid_example_snopt_optimization_input() -> input_parser::snopt_optimization;
 
 namespace detail
 {
 [[nodiscard]] auto make_constraints(const library::ProcessManagerData& aProcessManagerData)
     -> third_party_integration::snopt::InterfaceConstraintVectorType;
 
-[[nodiscard]] auto validate_time_limit_in_minutes(const input_parser::new_snopt_optimization& aInput)
+[[nodiscard]] auto validate_time_limit_in_minutes(const input_parser::snopt_optimization& aInput)
     -> std::optional<std::string>;
 
 }  // namespace detail

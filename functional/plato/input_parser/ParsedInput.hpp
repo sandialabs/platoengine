@@ -6,10 +6,15 @@
 #include <vector>
 
 #include "plato/input_parser/BlockStructRule.hpp"
-#include "plato/input_parser/ComponentBlockParser.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
 #include "plato/utilities/EnumIndexing.hpp"
 #include "plato/utilities/Expected.hpp"
 #include "plato/utilities/TransformIf.hpp"
+
+namespace plato::input_parser
+{
+class ComponentBlockParser;
+}
 
 namespace plato::input_parser
 {
@@ -49,12 +54,12 @@ class ParsedInput
 
 /// @brief Parse the string @a aInput to a ParsedInput object using the registered parsers.
 /// @todo Fix name
-[[nodiscard]] auto parse_to_new_input(const std::string& aInput) -> utilities::Expected<ParsedInput, std::string>;
+[[nodiscard]] auto make_parsed_input(const std::string& aInput) -> utilities::Expected<ParsedInput, std::string>;
 
 /// @brief Parse the string @a aInput to a ParsedInput object.
 /// @todo Fix name
-[[nodiscard]] auto parse_to_new_input(const std::string& aInput,
-                                      const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
+[[nodiscard]] auto make_parsed_input(const std::string& aInput,
+                                     const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
     -> utilities::Expected<ParsedInput, std::string>;
 
 template <ComponentType kComponentType>

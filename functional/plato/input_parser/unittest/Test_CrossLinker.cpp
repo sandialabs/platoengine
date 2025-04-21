@@ -7,7 +7,7 @@
 
 namespace
 {
-using FilterNewCrossReference = plato::input_parser::NewCrossReference<plato::input_parser::ComponentType::kFilter>;
+using FilterCrossReference = plato::input_parser::CrossReference<plato::input_parser::ComponentType::kFilter>;
 }
 
 // clang-format off
@@ -15,7 +15,7 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          uninspired_thing,
                          plato::input_parser::ComponentType::kGeometry,
                          (double, a_number, "help")
-                         (FilterNewCrossReference, my_filter, "help")
+                         (FilterCrossReference, my_filter, "help")
                          (int, another_number, "help"))
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          uninspired_filter,
@@ -81,9 +81,9 @@ TEST(CrossLinker, CrossLinkUnspecified)
 
 TEST(CrossLinker, CrossLinkSpecified)
 {
-    const auto tUninspiredThing = uninspired_thing{
-        /*.a_number=*/42.0, /*.my_filter=*/FilterNewCrossReference{/*.mName=*/"very_inspired_filter", {}},
-        /*.another_number=*/13};
+    const auto tUninspiredThing =
+        uninspired_thing{/*.a_number=*/42.0, /*.my_filter=*/FilterCrossReference{/*.mName=*/"very_inspired_filter", {}},
+                         /*.another_number=*/13};
 
     auto tUninspiredInputBlock =
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
@@ -152,9 +152,9 @@ TEST(CrossLinker, ErrorMissingLinkableComponents)
 
 TEST(CrossLinker, ErrorCrossLinkNameNotFound)
 {
-    const auto tUninspiredThing = uninspired_thing{
-        /*.a_number=*/42.0, /*.my_filter=*/FilterNewCrossReference{/*.mName=*/"very_inspired_filter", {}},
-        /*.another_number=*/13};
+    const auto tUninspiredThing =
+        uninspired_thing{/*.a_number=*/42.0, /*.my_filter=*/FilterCrossReference{/*.mName=*/"very_inspired_filter", {}},
+                         /*.another_number=*/13};
     auto tUninspiredInputBlock =
         InputDataBlock{/*.mComponentType=*/ComponentType::kGeometry,
                        /*.mBlockName=*/"uninspired_thing", /*.mInput=*/CrossReferencedInput{tUninspiredThing}};

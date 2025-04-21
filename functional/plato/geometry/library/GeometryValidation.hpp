@@ -4,7 +4,8 @@
 #include <filesystem>
 #include <optional>
 
-#include "plato/input_parser/ComponentBlockParser.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 
 namespace plato::input_parser

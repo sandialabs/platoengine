@@ -7,10 +7,10 @@
 
 namespace plato::filter::library
 {
-auto make_filter_function(const NewValidatedFilterInput& aInput) -> FilterFunction
+auto make_filter_function(const ValidatedFilterInput& aInput) -> FilterFunction
 {
     auto tFilter =
-        core::create_object_from_factory<FilterFunction, NewValidatedFilterInput>(aInput.rawInput().mBlockName, aInput);
+        core::create_object_from_factory<FilterFunction, ValidatedFilterInput>(aInput.rawInput().mBlockName, aInput);
 
     if (tFilter)
     {

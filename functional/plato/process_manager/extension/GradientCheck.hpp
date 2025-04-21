@@ -37,7 +37,7 @@ namespace plato::process_manager::extension
 class GradientCheck
 {
    public:
-    explicit GradientCheck(const library::NewValidatedProcessManagerInput& aInput);
+    explicit GradientCheck(const library::ValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 

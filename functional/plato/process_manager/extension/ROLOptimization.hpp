@@ -40,7 +40,7 @@ namespace plato::process_manager::extension
 class ROLOptimization
 {
    public:
-    explicit ROLOptimization(const library::NewValidatedProcessManagerInput& aInput);
+    explicit ROLOptimization(const library::ValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 

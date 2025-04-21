@@ -36,11 +36,11 @@ namespace tpik = third_party_integration::krino;
 constexpr auto kKrinoLogFileName = std::string_view{"Krino_Output.txt"};
 constexpr auto kKrinoCutMeshBaseName = std::string_view{"krino_cut_mesh.exo"};
 
-constexpr auto kNewMeshNameAccessor =
+constexpr auto kMeshNameAccessor =
     [](const input_parser::level_set_topology& aInput) -> const boost::optional<input_parser::FileName>&
 { return aInput.mesh_name; };
 
-[[nodiscard]] auto make_topology_output(const library::NewValidatedGeometryInput& aGeometryInput)
+[[nodiscard]] auto make_topology_output(const library::ValidatedGeometryInput& aGeometryInput)
     -> library::FactoryTypes::Output
 {
     return
@@ -48,7 +48,7 @@ constexpr auto kNewMeshNameAccessor =
     {
         const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
         return LevelSetTopology::output(
-            tInput, library::make_filter_from_new_geometry_input<input_parser::level_set_topology>(aGeometryInput),
+            tInput, library::make_filter_from_geometry_input<input_parser::level_set_topology>(aGeometryInput),
             aSolution, aOutputInfo);
     };
 }
@@ -83,9 +83,9 @@ void initialize_krino()
     input_parser::ComponentParserRegistration<input_parser::level_set_topology>{};
 
 /// Static registration for library
-[[maybe_unused]] static auto kNewLevelSetTopologyRegistration = plato::geometry::library::NewGeometryRegistration{
+[[maybe_unused]] static auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::level_set_topology>(),
-    [](const library::NewValidatedGeometryInput& aGeometryInput)
+    [](const library::ValidatedGeometryInput& aGeometryInput)
     {
         initialize_krino();
         const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
@@ -98,19 +98,16 @@ void initialize_krino()
 [[maybe_unused]] static auto kLevelSetTopologyValidationRegistration =
     core::ValidationRegistration<input_parser::level_set_topology>{
         [](const input_parser::level_set_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
-        [](const input_parser::level_set_topology& aInput)
-        { return library::detail::validate_output_name(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return library::detail::validate_output_name(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_lower_bound(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_upper_bound(aInput); },
-        [](const input_parser::level_set_topology& aInput)
-        { return detail::validate_sphere_pattern_radius(aInput); },
-        [](const input_parser::level_set_topology& aInput)
-        { return detail::validate_sphere_pattern_spacing(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_radius(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_spacing(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_bbox(aInput); },
         [](const input_parser::level_set_topology& aInput)
-        { return validate_unique_fixed_block_names(aInput, kNewMeshNameAccessor); },
+        { return validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
         [](const input_parser::level_set_topology& aInput)
-        { return validate_fixed_block_names_exist(aInput, kNewMeshNameAccessor); },
+        { return validate_fixed_block_names_exist(aInput, kMeshNameAccessor); },
         [](const input_parser::level_set_topology& aInput)
         { return validate_at_least_one_design_block(aInput, kMeshNameAccessor); },
         [](const input_parser::level_set_topology& aInput)

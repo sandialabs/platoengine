@@ -24,18 +24,16 @@ using ProcessManager = std::function<void(const ProcessManagerData&)>;
 using StageAndProcessManager = std::pair<RunStage, ProcessManager>;
 
 /// @brief Fully validated ProcessManager input vector
-using NewValidatedProcessManagers =
-    input_validation::ValidatedComponentType<input_parser::ComponentType::kProcessManager>;
+using ValidatedProcessManagers = input_validation::ValidatedComponentType<input_parser::ComponentType::kProcessManager>;
 
 /// @brief A single validated ProcessManager input
-using NewValidatedProcessManagerInput =
+using ValidatedProcessManagerInput =
     input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kProcessManager>;
 /// @brief Factory registration type
-using NewProcessManagerRegistration =
-    core::FactoryRegistration<StageAndProcessManager, NewValidatedProcessManagerInput>;
+using ProcessManagerRegistration = core::FactoryRegistration<StageAndProcessManager, ValidatedProcessManagerInput>;
 
 /// @brief Checks if a ProcessManager creation function is registered with name @a aFunctionName.
-[[nodiscard]] auto is_new_process_manager_function_registered(std::string_view aFunctionName) -> bool;
+[[nodiscard]] auto is_process_manager_function_registered(std::string_view aFunctionName) -> bool;
 
 }  // namespace plato::process_manager::library
 #endif

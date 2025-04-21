@@ -86,7 +86,7 @@ TEST(ConstraintCheck, ValidateAndRunChecksForNonlinearConstraint)
 
 TEST(ConstraintCheck, Registration)
 {
-    EXPECT_TRUE(library::is_new_process_manager_function_registered("constraint_check"));
+    EXPECT_TRUE(library::is_process_manager_function_registered("constraint_check"));
 }
 
 }  // namespace plato::process_manager::extension::unittest

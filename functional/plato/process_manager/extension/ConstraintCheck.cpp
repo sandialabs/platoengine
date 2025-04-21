@@ -21,14 +21,14 @@ namespace plato::process_manager::extension
 {
 namespace
 {
-[[nodiscard]] auto make_constraint_check_process_manager(const library::NewValidatedProcessManagerInput& aValidInput)
+[[nodiscard]] auto make_constraint_check_process_manager(const library::ValidatedProcessManagerInput& aValidInput)
     -> library::StageAndProcessManager
 {
     return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManagerData)
             { ConstraintCheck{aValidInput}.run(aProcessManagerData); }};
 }
 
-[[nodiscard]] auto constraint_check_input(const library::NewValidatedProcessManagerInput& aValidInput)
+[[nodiscard]] auto constraint_check_input(const library::ValidatedProcessManagerInput& aValidInput)
     -> const input_parser::constraint_check&
 {
     return input_validation::get_input_block<input_parser::constraint_check>(aValidInput);
@@ -37,10 +37,10 @@ namespace
 [[maybe_unused]] static auto kConstraintCheckParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::constraint_check>{};
 
-[[maybe_unused]] static auto kNewConstraintCheckProcessManagerRegistration =
-    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::constraint_check>(),
-                                           [](const library::NewValidatedProcessManagerInput& aValidInput)
-                                           { return make_constraint_check_process_manager(aValidInput); }};
+[[maybe_unused]] static auto kConstraintCheckProcessManagerRegistration =
+    library::ProcessManagerRegistration{input_parser::block_name<input_parser::constraint_check>(),
+                                        [](const library::ValidatedProcessManagerInput& aValidInput)
+                                        { return make_constraint_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kConstraintCheckValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<>{
@@ -58,7 +58,7 @@ namespace
         [](const input_parser::constraint_check& aInput) { return detail::validate_random_direction_seed(aInput); }};
 }  // namespace
 
-ConstraintCheck::ConstraintCheck(const library::NewValidatedProcessManagerInput& aInput)
+ConstraintCheck::ConstraintCheck(const library::ValidatedProcessManagerInput& aInput)
     : mLinearityCheckOutputFileName{constraint_check_input(aInput).linearity_check_output_file_name.value().mToken},
       mJacobianCheckOutputFileName{constraint_check_input(aInput).jacobian_check_output_file_name.value().mToken},
       mJacobianAdjointConsistencyCheckOutputFileName{

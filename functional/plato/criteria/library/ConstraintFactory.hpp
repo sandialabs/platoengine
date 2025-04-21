@@ -15,7 +15,7 @@ struct AnalysisDomainMesh;
 
 namespace plato::criteria::library
 {
-using NewValidatedConstraints = input_validation::ValidatedComponentType<input_parser::ComponentType::kConstraint>;
+using ValidatedConstraints = input_validation::ValidatedComponentType<input_parser::ComponentType::kConstraint>;
 
 enum class ConstraintType
 {
@@ -65,7 +65,7 @@ struct VectorConstraint
 
 /// @brief Factory to create Constraint objects from input data.
 /// @post The return vector will have the same size as @a aInput.
-[[nodiscard]] auto make_constraints(const NewValidatedConstraints& aInput)
+[[nodiscard]] auto make_constraints(const ValidatedConstraints& aInput)
     -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>;
 
 /// @brief Helper for providing ROL a dual vector for constraints sized with @a aSize.

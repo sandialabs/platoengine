@@ -49,7 +49,7 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
     try
     {
         [[maybe_unused]] const auto tFunction =
-            geometry::library::make_filter_from_new_geometry_input<input_parser::density_topology>(tValidatedGeometry);
+            geometry::library::make_filter_from_geometry_input<input_parser::density_topology>(tValidatedGeometry);
         tCreationSuccessful = true;
     }
     catch (const plato::utilities::Exception&)

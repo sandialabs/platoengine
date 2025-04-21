@@ -34,7 +34,7 @@ constexpr double kDensityLowerBound = 0.0;
 constexpr double kDensityUpperBound = 1.0;
 constexpr double kDensityFixedValue = 1.0;
 
-constexpr auto kNewMeshNameAccessor = [](const input_parser::density_topology& aInput) { return aInput.mesh_name; };
+constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInput) { return aInput.mesh_name; };
 
 [[nodiscard]] auto output_name(const input_parser::density_topology& aInput) -> const std::string&
 {
@@ -42,25 +42,24 @@ constexpr auto kNewMeshNameAccessor = [](const input_parser::density_topology& a
     return aInput.output_name.value().mToken;
 }
 
-[[nodiscard]] auto make_topology_output(const library::NewValidatedGeometryInput& aGeometryInput)
+[[nodiscard]] auto make_topology_output(const library::ValidatedGeometryInput& aGeometryInput)
     -> library::FactoryTypes::Output
 {
     return
         [aGeometryInput](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
     {
-        const auto tFilter =
-            library::make_filter_from_new_geometry_input<input_parser::density_topology>(aGeometryInput);
+        const auto tFilter = library::make_filter_from_geometry_input<input_parser::density_topology>(aGeometryInput);
         const auto& tInput = input_validation::get_input_block<input_parser::density_topology>(aGeometryInput);
         return DensityTopology::output(aSolution, tFilter, tInput, aOutputInfo);
     };
 }
 
-[[nodiscard]] auto make_topology_geometry(const library::NewValidatedGeometryInput& aGeometryInput)
+[[nodiscard]] auto make_topology_geometry(const library::ValidatedGeometryInput& aGeometryInput)
     -> library::GeometryFunction
 {
     const auto& tInput = input_validation::get_input_block<input_parser::density_topology>(aGeometryInput);
     const auto tDensityTopology = std::make_shared<DensityTopology>(
-        tInput, library::make_filter_from_new_geometry_input<input_parser::density_topology>(aGeometryInput));
+        tInput, library::make_filter_from_geometry_input<input_parser::density_topology>(aGeometryInput));
     return library::GeometryFunction{[tDensityTopology](const linear_algebra::DynamicVector<double>& x)
                                      { return tDensityTopology->generateMesh(x); },
                                      [tDensityTopology](const linear_algebra::DynamicVector<double>& x)
@@ -74,9 +73,9 @@ constexpr auto kNewMeshNameAccessor = [](const input_parser::density_topology& a
     input_parser::ComponentParserRegistration<input_parser::density_topology>{};
 
 /// Static registration for library
-[[maybe_unused]] static auto kNewDensityTopologyRegistration = plato::geometry::library::NewGeometryRegistration{
+[[maybe_unused]] static auto kDensityTopologyRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::density_topology>(),
-    [](const library::NewValidatedGeometryInput& aGeometryInput)
+    [](const library::ValidatedGeometryInput& aGeometryInput)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::density_topology>(aGeometryInput);
         return library::FactoryTypes{make_topology_geometry(aGeometryInput), DensityTopology::initialGuess(tInput),
@@ -88,12 +87,12 @@ constexpr auto kNewMeshNameAccessor = [](const input_parser::density_topology& a
     input_validation::CrossReferencedInputValidationRegistration<>{
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
         [](const input_parser::density_topology& aInput)
-        { return library::validate_filter_with_mesh(aInput, kNewMeshNameAccessor); },
+        { return library::validate_filter_with_mesh(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_file_exists(aInput); },
         [](const input_parser::density_topology& aInput)
-        { return validate_unique_fixed_block_names(aInput, kNewMeshNameAccessor); },
+        { return validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput)
-        { return validate_fixed_block_names_exist(aInput, kNewMeshNameAccessor); },
+        { return validate_fixed_block_names_exist(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput)
         { return validate_at_least_one_design_block(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput) { return library::detail::validate_output_name(aInput); },

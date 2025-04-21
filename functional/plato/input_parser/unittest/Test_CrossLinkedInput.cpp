@@ -6,14 +6,14 @@
 
 namespace
 {
-using GeometryNewCrossReference = plato::input_parser::NewCrossReference<plato::input_parser::ComponentType::kGeometry>;
+using GeometryCrossReference = plato::input_parser::CrossReference<plato::input_parser::ComponentType::kGeometry>;
 }
 
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          block_with_geometry_cross_reference,
                          plato::input_parser::ComponentType::kProcessManager,
-                         (GeometryNewCrossReference, my_geom, "help"))
+                         (GeometryCrossReference, my_geom, "help"))
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          geometry_block,
                          plato::input_parser::ComponentType::kGeometry,

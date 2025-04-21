@@ -34,8 +34,8 @@ using FilterFunction = core::Function<
 using FilterCache =
     plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const analysis::AnalysisDomainMesh&>;
 
-using NewValidatedFilterInput = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kFilter>;
-using NewFilterRegistration = core::FactoryRegistration<FilterFunction, NewValidatedFilterInput>;
+using ValidatedFilterInput = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kFilter>;
+using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFilterInput>;
 
 /// @brief Loads a filter from a shared library.
 /// @param aInput The input parameters defining the filter's properties.
@@ -43,7 +43,7 @@ using NewFilterRegistration = core::FactoryRegistration<FilterFunction, NewValid
 [[nodiscard]] auto load_filter(const FilterParameters& aParams, const std::filesystem::path& aSharedLibraryPath)
     -> std::unique_ptr<FilterInterface>;
 
-[[nodiscard]] auto is_new_filter_function_registered(std::string_view aFunctionName) -> bool;
+[[nodiscard]] auto is_filter_function_registered(std::string_view aFunctionName) -> bool;
 
 /// @brief Returns @a FilterFunction that uses a @a FilterCache to reconstruct the filter object if the mesh has
 /// changed.

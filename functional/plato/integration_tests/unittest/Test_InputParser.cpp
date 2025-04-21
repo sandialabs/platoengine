@@ -50,7 +50,7 @@ namespace
 
 TEST(InputParser, ParseFromFile)
 {
-    const auto tInputOrError = input_parser::parse_to_new_input(input_deck());
+    const auto tInputOrError = input_parser::make_parsed_input(input_deck());
     ASSERT_TRUE(tInputOrError.hasValue()) << tInputOrError.error();
     const auto& tInput = tInputOrError.value();
 

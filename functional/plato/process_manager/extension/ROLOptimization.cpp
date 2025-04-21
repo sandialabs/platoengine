@@ -23,7 +23,7 @@ namespace
 {
 constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
 
-[[nodiscard]] auto make_rol_optimization_process_manager(const library::NewValidatedProcessManagerInput& aValidInput)
+[[nodiscard]] auto make_rol_optimization_process_manager(const library::ValidatedProcessManagerInput& aValidInput)
     -> library::StageAndProcessManager
 {
     return {library::RunStage::kExecute, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
@@ -33,10 +33,10 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
 [[maybe_unused]] static auto kROLOptimizerParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::rol_optimization>{};
 
-[[maybe_unused]] static auto kNewROLOptimizerProcessManagerRegistration =
-    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::rol_optimization>(),
-                                           [](const library::NewValidatedProcessManagerInput& aValidInput)
-                                           { return make_rol_optimization_process_manager(aValidInput); }};
+[[maybe_unused]] static auto kROLOptimizerProcessManagerRegistration =
+    library::ProcessManagerRegistration{input_parser::block_name<input_parser::rol_optimization>(),
+                                        [](const library::ValidatedProcessManagerInput& aValidInput)
+                                        { return make_rol_optimization_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kOptimizerValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<>{
@@ -48,7 +48,7 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
         [](const input_parser::rol_optimization& aInput) { return detail::validate_optional_input_file_name(aInput); }};
 }  // namespace
 
-ROLOptimization::ROLOptimization(const library::NewValidatedProcessManagerInput& aInput)
+ROLOptimization::ROLOptimization(const library::ValidatedProcessManagerInput& aInput)
     : mROLOptions{make_optimization_parameters(aInput)}
 {
 }

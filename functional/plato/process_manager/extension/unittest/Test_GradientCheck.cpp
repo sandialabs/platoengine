@@ -86,9 +86,6 @@ TEST(GradientCheck, UnwrapValidatedGradientCheckInput)
     EXPECT_EQ(tUnwrappedValidatedInput.size(), tExpectedTotalProcessManagerInputs);
 }
 
-TEST(GradientCheck, Registration)
-{
-    EXPECT_TRUE(library::is_new_process_manager_function_registered("gradient_check"));
-}
+TEST(GradientCheck, Registration) { EXPECT_TRUE(library::is_process_manager_function_registered("gradient_check")); }
 
 }  // namespace plato::process_manager::extension::unittest

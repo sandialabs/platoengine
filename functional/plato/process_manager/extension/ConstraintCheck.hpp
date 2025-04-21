@@ -39,7 +39,7 @@ namespace plato::process_manager::extension
 class ConstraintCheck
 {
    public:
-    explicit ConstraintCheck(const library::NewValidatedProcessManagerInput& aInput);
+    explicit ConstraintCheck(const library::ValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 

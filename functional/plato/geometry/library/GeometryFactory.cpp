@@ -5,9 +5,9 @@
 
 namespace plato::geometry::library
 {
-auto make_geometry_data(const NewValidatedGeometryInput& aGeometryInput) -> FactoryTypes
+auto make_geometry_data(const ValidatedGeometryInput& aGeometryInput) -> FactoryTypes
 {
-    if (auto tGeometry = core::create_object_from_factory<FactoryTypes, NewValidatedGeometryInput>(
+    if (auto tGeometry = core::create_object_from_factory<FactoryTypes, ValidatedGeometryInput>(
             aGeometryInput.rawInput().mBlockName, aGeometryInput))
     {
         return std::move(tGeometry).value();

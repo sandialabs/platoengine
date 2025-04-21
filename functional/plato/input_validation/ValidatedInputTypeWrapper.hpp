@@ -3,8 +3,8 @@
 
 #include <utility>
 
-#include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_parser/ComponentType.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
 #include "plato/utilities/FunctionArgType.hpp"
 
 namespace plato::input_validation

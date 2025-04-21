@@ -2,22 +2,22 @@
 
 #include <boost/optional/optional_io.hpp>
 
-#include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_parser/CrossLinkedInput.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidatedInputTypeWrapper.hpp"
 
 namespace
 {
-using FilterNewCrossReference = plato::input_parser::NewCrossReference<plato::input_parser::ComponentType::kFilter>;
+using FilterCrossReference = plato::input_parser::CrossReference<plato::input_parser::ComponentType::kFilter>;
 }
 
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          land_creatures,
                          plato::input_parser::ComponentType::kGeometry,
-                         (FilterNewCrossReference, my_sea_creature, ""))
+                         (FilterCrossReference, my_sea_creature, ""))
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          sea_creatures, plato::input_parser::ComponentType::kFilter,

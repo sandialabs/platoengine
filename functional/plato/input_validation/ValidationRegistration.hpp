@@ -27,7 +27,7 @@ namespace plato::input_validation
 /// For example, registering a new validation function for density topology is:
 /// @code
 /// namespace{
-/// [[maybe_unused]] static auto kNewValidationRegistration =
+/// [[maybe_unused]] static auto kValidationRegistration =
 ///   plato::input_validation::ValidationRegistration<input_parser::density_topology>{
 ///    [](const input_parser::density_topology& aInput){ return validate_foo_parameter(aInput); }
 /// };
@@ -61,7 +61,7 @@ using CrossReferencedInputValidationRegistration =
 /// This alias can be used for registering validation functions for the parsed input as a whole, or components as a
 /// whole. For example, certain components should only have one definition in an input, such as geometry.
 template <typename... AdditionalArgs>
-using NewParsedInputValidationRegistration = ValidationRegistration<input_parser::ParsedInput, AdditionalArgs...>;
+using ParsedInputValidationRegistration = ValidationRegistration<input_parser::ParsedInput, AdditionalArgs...>;
 
 /// @brief Validates @a aInput, appending any error messages to @a aCurrentMessageList and returning
 ///  the result.

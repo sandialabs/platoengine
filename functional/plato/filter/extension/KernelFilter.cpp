@@ -39,8 +39,8 @@ boost::mpi::communicator subdivide_world_comm_into_groups(const unsigned int aGr
 [[maybe_unused]] static auto kKernelFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::kernel_filter>{};
 
-[[maybe_unused]] static auto kNewKernelFilterRegistration = library::NewFilterRegistration{
-    input_parser::block_name<input_parser::kernel_filter>(), [](const library::NewValidatedFilterInput& aInput)
+[[maybe_unused]] static auto kKernelFilterRegistration = library::FilterRegistration{
+    input_parser::block_name<input_parser::kernel_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::kernel_filter>(aInput);
         return library::make_filter_function_from_cache([&tInput]() { return detail::create_filter_cache(tInput); });

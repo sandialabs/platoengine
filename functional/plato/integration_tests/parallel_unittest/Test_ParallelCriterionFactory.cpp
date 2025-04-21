@@ -48,8 +48,8 @@ TEST(CriterionFactory, ValidObjective)
     EXPECT_GT(tComm.size(), 1);
     const auto tCriteria = tData.value().get<input_parser::ComponentType::kObjective>().rawInput();
     ASSERT_FALSE(tCriteria.empty());
-    EXPECT_NO_THROW([[maybe_unused]] auto tFunction =
-                        (pcl::make_new_criterion_function<pcl::CriterionFunction, input_parser::objective>(
-                            tCriteria.front(), tComm)));
+    EXPECT_NO_THROW(
+        [[maybe_unused]] auto tFunction =
+            (pcl::make_criterion_function<pcl::CriterionFunction, input_parser::objective>(tCriteria.front(), tComm)));
 }
 }  // namespace plato::integration_tests::parallel

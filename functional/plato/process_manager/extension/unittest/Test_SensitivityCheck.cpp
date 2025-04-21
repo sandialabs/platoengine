@@ -40,7 +40,7 @@ TEST(SensitivityCheck, CreateSensitivityCheckRun)
 
 TEST(SensitivityCheck, Registration)
 {
-    EXPECT_TRUE(library::is_new_process_manager_function_registered("sensitivity_check"));
+    EXPECT_TRUE(library::is_process_manager_function_registered("sensitivity_check"));
 }
 
 }  // namespace plato::process_manager::extension::unittest

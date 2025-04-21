@@ -18,17 +18,17 @@ namespace plato::process_manager::extension
 {
 namespace
 {
-[[nodiscard]] auto make_rol_sensitivity_check_process_manager(
-    const library::NewValidatedProcessManagerInput& aValidInput) -> library::StageAndProcessManager
+[[nodiscard]] auto make_rol_sensitivity_check_process_manager(const library::ValidatedProcessManagerInput& aValidInput)
+    -> library::StageAndProcessManager
 {
     return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
             { SensitivityCheck{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static auto kNewSensitivityCheckProcessManagerRegistration =
-    library::NewProcessManagerRegistration{input_parser::block_name<input_parser::sensitivity_check>(),
-                                           [](const library::NewValidatedProcessManagerInput& aValidInput)
-                                           { return make_rol_sensitivity_check_process_manager(aValidInput); }};
+[[maybe_unused]] static auto kSensitivityCheckProcessManagerRegistration =
+    library::ProcessManagerRegistration{input_parser::block_name<input_parser::sensitivity_check>(),
+                                        [](const library::ValidatedProcessManagerInput& aValidInput)
+                                        { return make_rol_sensitivity_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kSensitivityCheckValidationRegistration =
     input_validation::CrossReferencedInputValidationRegistration<>{
@@ -44,7 +44,7 @@ auto make_rol_sensitivity_objective(const library::ProcessManagerData& aProblem)
 
 }  // namespace
 
-SensitivityCheck::SensitivityCheck(const library::NewValidatedProcessManagerInput& aInput)
+SensitivityCheck::SensitivityCheck(const library::ValidatedProcessManagerInput& aInput)
     : mOutputFileName(
           input_validation::get_input_block<input_parser::sensitivity_check>(aInput).output_file_name.value().mToken)
 {
