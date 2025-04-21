@@ -41,13 +41,13 @@ library::FilterParameters to_filter_parameters(const input_parser::helmholtz_fil
     }};
 
 [[maybe_unused]] static auto kHelmholtzFilterValidationRegistration =
-    input_validation::InputBlockWrapperValidationRegistration<>{
+    input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::helmholtz_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
         [](const input_parser::helmholtz_filter& aInput)
         { return validate_helmholtz_filter_boundary_sticking_penalty(aInput); }};
 
 [[maybe_unused]] static auto kHelmholtzFilterMeshBasedValidationRegistration =
-    input_validation::InputBlockWrapperValidationRegistration<std::filesystem::path>{
+    input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::helmholtz_filter& aInput, const std::filesystem::path& aMeshPath)
         { return detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};
 }  // namespace

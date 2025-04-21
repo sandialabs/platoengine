@@ -35,7 +35,7 @@ namespace
                                         { return make_gradient_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kGradientCheckValidationRegistration =
-    input_validation::InputBlockWrapperValidationRegistration<>{
+    input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::gradient_check& aInput) { return detail::validate_output_file_name(aInput); },
         [](const input_parser::gradient_check& aInput) { return detail::validate_number_of_steps(aInput); },
         [](const input_parser::gradient_check& aInput) { return detail::validate_initial_direction_magnitude(aInput); },

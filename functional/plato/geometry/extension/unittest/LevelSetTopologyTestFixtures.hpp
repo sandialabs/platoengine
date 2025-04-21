@@ -5,7 +5,7 @@
 
 #include <filesystem>
 
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
@@ -16,7 +16,7 @@ namespace plato::geometry::extension::unittest
 
 namespace
 {
-const auto kLevelSetInputFixture = plato::test_utilities::create_valid_level_set_topology_geometry();
+const auto kLevelSetInputFixture = create_valid_level_set_topology_geometry_input();
 const auto kKrinoLogFileName = std::filesystem::path{"Krino_Output.txt"};
 
 }  // namespace

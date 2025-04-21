@@ -2,7 +2,6 @@
 #define PLATO_GEOMETRY_EXTENSION_MESHVALIDATIONUTILITIES
 
 #include "plato/geometry/extension/FixedBlockUtilities.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"

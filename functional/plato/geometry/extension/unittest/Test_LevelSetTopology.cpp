@@ -30,10 +30,10 @@
 namespace plato::geometry::extension::unittest
 {
 using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
+
 namespace
 {
-
-const auto kLevelSetInput = plato::test_utilities::create_valid_level_set_topology_geometry();
+const auto kLevelSetInput = create_valid_level_set_topology_geometry_input();
 
 [[nodiscard]] auto create_background_mesh() -> third_party_integration::stk_io::CommandGenerator
 {
@@ -563,9 +563,6 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianAdjointJacobianConsistency)
     check_jacobian_adjoint_jacobian_consistency(tInput, mNumDimensions, tTolerance);
 }
 
-TEST(LevelSetTopology, Registration)
-{
-    EXPECT_TRUE(library::is_new_geometry_function_registered("level_set_topology"));
-}
+TEST(LevelSetTopology, Registration) { EXPECT_TRUE(library::is_geometry_function_registered("level_set_topology")); }
 
 }  // namespace plato::geometry::extension::unittest

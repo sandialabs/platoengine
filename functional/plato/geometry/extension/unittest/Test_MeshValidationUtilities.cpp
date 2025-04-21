@@ -2,6 +2,7 @@
 
 #include <filesystem>
 
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/mesh/EntityCounts.hpp"
@@ -18,7 +19,7 @@ namespace
 [[nodiscard]] auto create_density_geometry_input(const std::filesystem::path& aPath, const std::string& aField)
     -> input_parser::density_topology
 {
-    auto tInput = test_utilities::create_valid_density_topology_geometry();
+    auto tInput = create_valid_density_topology_geometry_input();
     tInput.mesh_name = input_parser::FileName{aPath};
     tInput.initial_field_name = input_parser::IdentifierString{aField};
     return tInput;

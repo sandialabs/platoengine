@@ -10,12 +10,11 @@ namespace plato::criteria::library
 {
 namespace
 {
-[[maybe_unused]] static auto kConstraintValidationRegistration =
-    input_validation::InputBlockWrapperValidationRegistration<>{
-        [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
-        [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
-        [](const input_parser::constraint& aInput) { return detail::validate_constraint_value(aInput); },
-        [](const input_parser::constraint& aInput) { return detail::validate_constraint_type(aInput); }};
+[[maybe_unused]] static auto kConstraintValidationRegistration = input_validation::InputBlockValidationRegistration<>{
+    [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
+    [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
+    [](const input_parser::constraint& aInput) { return detail::validate_constraint_value(aInput); },
+    [](const input_parser::constraint& aInput) { return detail::validate_constraint_type(aInput); }};
 }
 
 namespace detail

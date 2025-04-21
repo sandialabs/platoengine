@@ -78,7 +78,7 @@ class ValidatedInputRegistrationFixture : virtual public ::testing::Test
    public:
     ValidatedInputRegistrationFixture()
     {
-        [[maybe_unused]] const auto kBlockValidationRegistration = InputBlockWrapperValidationRegistration<>{
+        [[maybe_unused]] const auto kBlockValidationRegistration = InputBlockValidationRegistration<>{
             {[](const input_parser::marvel& aInput) { return validate_wolverine(aInput.wolverine); },
              [](const input_parser::dc& aInput) { return validate_superman(aInput.superman); }}};
 

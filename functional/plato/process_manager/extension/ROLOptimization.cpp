@@ -38,14 +38,13 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_rol_optimization_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kOptimizerValidationRegistration =
-    input_validation::InputBlockWrapperValidationRegistration<>{
-        [](const input_parser::rol_optimization& aInput) { return detail::validate_rol_max_iterations(aInput); },
-        [](const input_parser::rol_optimization& aInput) { return detail::validate_step_tolerance(aInput); },
-        [](const input_parser::rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); },
-        [](const input_parser::rol_optimization& aInput) { return detail::validate_initial_search_radius(aInput); },
-        [](const input_parser::rol_optimization& aInput) { return detail::validate_unique_output_name(aInput); },
-        [](const input_parser::rol_optimization& aInput) { return detail::validate_optional_input_file_name(aInput); }};
+[[maybe_unused]] static auto kOptimizerValidationRegistration = input_validation::InputBlockValidationRegistration<>{
+    [](const input_parser::rol_optimization& aInput) { return detail::validate_rol_max_iterations(aInput); },
+    [](const input_parser::rol_optimization& aInput) { return detail::validate_step_tolerance(aInput); },
+    [](const input_parser::rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); },
+    [](const input_parser::rol_optimization& aInput) { return detail::validate_initial_search_radius(aInput); },
+    [](const input_parser::rol_optimization& aInput) { return detail::validate_unique_output_name(aInput); },
+    [](const input_parser::rol_optimization& aInput) { return detail::validate_optional_input_file_name(aInput); }};
 }  // namespace
 
 ROLOptimization::ROLOptimization(const library::ValidatedProcessManagerInput& aInput)

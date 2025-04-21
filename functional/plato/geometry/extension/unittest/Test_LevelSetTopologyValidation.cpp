@@ -160,7 +160,7 @@ TEST(LevelSetTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
 TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockValidation)
 {
     auto tLevelSetInputBase = kLevelSetTopology;
-    tLevelSetInputBase.background_mesh_name = input_parser::FileName{mMeshFilePath};
+    tLevelSetInputBase.mesh_name = input_parser::FileName{mMeshFilePath};
 
     const auto tCheckForErrors =
         [](const input_parser::level_set_topology& aLevelSetInput, const test_utilities::TestContext& aTestContext)

@@ -51,8 +51,8 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
     }};
 
 [[maybe_unused]] static auto kBrickShapeInputValidationRegistration =
-    input_validation::InputBlockWrapperValidationRegistration<>{
-        [](const input_parser::brick_shape_geometry& aInput) { return library::detail::validate_mesh_name(aInput); }};
+    input_validation::InputBlockValidationRegistration<>{[](const input_parser::brick_shape_geometry& aInput)
+                                                         { return library::detail::validate_mesh_name(aInput); }};
 
 }  // namespace
 

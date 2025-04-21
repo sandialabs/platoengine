@@ -31,8 +31,8 @@ namespace
                                         { return make_rol_sensitivity_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kSensitivityCheckValidationRegistration =
-    input_validation::InputBlockWrapperValidationRegistration<>{[](const input_parser::sensitivity_check& aInput)
-                                                                { return detail::validate_output_file_name(aInput); }};
+    input_validation::InputBlockValidationRegistration<>{[](const input_parser::sensitivity_check& aInput)
+                                                         { return detail::validate_output_file_name(aInput); }};
 
 auto make_rol_sensitivity_objective(const library::ProcessManagerData& aProblem)
     -> std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction>

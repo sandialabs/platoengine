@@ -53,8 +53,7 @@ struct ValidationRegistration
 /// This alias can be used for registering validation functions for input blocks of specific types, such as
 /// density_topology.
 template <typename... AdditionalArgs>
-using InputBlockWrapperValidationRegistration =
-    ValidationRegistration<input_parser::InputBlockWrapper, AdditionalArgs...>;
+using InputBlockValidationRegistration = ValidationRegistration<input_parser::InputBlockWrapper, AdditionalArgs...>;
 
 /// @brief Convenience alias for registering validation functions for ParsedInput objects.
 ///

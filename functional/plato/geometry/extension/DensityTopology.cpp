@@ -84,7 +84,7 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
 
 /// Static registration for validation functions
 [[maybe_unused]] static auto kDensityTopologyInputValidationRegistration =
-    input_validation::InputBlockWrapperValidationRegistration<>{
+    input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
         [](const input_parser::density_topology& aInput)
         { return library::validate_filter_with_mesh(aInput, kMeshNameAccessor); },

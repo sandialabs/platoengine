@@ -46,16 +46,15 @@ boost::mpi::communicator subdivide_world_comm_into_groups(const unsigned int aGr
         return library::make_filter_function_from_cache([&tInput]() { return detail::create_filter_cache(tInput); });
     }};
 
-[[maybe_unused]] static auto kKernelFilterValidationRegistration =
-    input_validation::InputBlockWrapperValidationRegistration<>{
-        [](const input_parser::kernel_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
-        [](const input_parser::kernel_filter& aInput) { return detail::validate_kernel_filter_centering_type(aInput); },
-        [](const input_parser::kernel_filter& aInput) { return detail::validate_number_of_processors(aInput); },
-        [](const input_parser::kernel_filter& aInput)
-        { return detail::validate_number_of_processors_factor_of_comm_world(aInput); }};
+[[maybe_unused]] static auto kKernelFilterValidationRegistration = input_validation::InputBlockValidationRegistration<>{
+    [](const input_parser::kernel_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
+    [](const input_parser::kernel_filter& aInput) { return detail::validate_kernel_filter_centering_type(aInput); },
+    [](const input_parser::kernel_filter& aInput) { return detail::validate_number_of_processors(aInput); },
+    [](const input_parser::kernel_filter& aInput)
+    { return detail::validate_number_of_processors_factor_of_comm_world(aInput); }};
 
 [[maybe_unused]] static auto kKernelFilterMeshBasedValidationRegistration =
-    input_validation::InputBlockWrapperValidationRegistration<std::filesystem::path>{
+    input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::kernel_filter& aInput, const std::filesystem::path& aMeshPath)
         { return detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};
 
