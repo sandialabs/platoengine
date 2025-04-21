@@ -23,7 +23,7 @@ const auto kAbortingKeys = std::vector<std::string>{"Executable", "--help", "Abo
 const auto kKnownInputKeys = std::vector<std::string>{"identity_filter", "filter_radius", "density_topology",
                                                       "initial_density_value", "[double]"};
 
-const auto kCouldNotValidateKeys = std::vector<std::string>{"Error:", "Could not", "validate", "errors", "found"};
+const auto kCouldNotValidateKeys = std::vector<std::string>{"Parsing ", "error", "near:"};
 
 }  // namespace
 
@@ -54,12 +54,14 @@ TEST_F(CoutPrintTestFixture, RunPlato)
     std::ofstream tOutfile(tInput);
     {
         detail::run_plato(tInput);
-        checkRankZeroStringStreamForPattern(kCouldNotValidateKeys, TEST_CONTEXT("Plato couldn't validate empty deck."));
+        checkRankZeroStringStreamForPattern(kCouldNotValidateKeys,
+                                            TEST_CONTEXT("Plato couldn't validate empty deck via run_plato."));
         clearStream();
     }
     {
         handle_input(tArguments);
-        checkRankZeroStringStreamForPattern(kCouldNotValidateKeys, TEST_CONTEXT("Plato couldn't validate empty deck."));
+        checkRankZeroStringStreamForPattern(kCouldNotValidateKeys,
+                                            TEST_CONTEXT("Plato couldn't validate empty deck via handle_input."));
     }
     std::filesystem::remove(tInput);
 }

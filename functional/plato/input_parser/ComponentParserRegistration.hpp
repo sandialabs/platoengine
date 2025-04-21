@@ -19,6 +19,7 @@ namespace plato::input_parser
 ///                         (double, filter_radius, "The filter radius"))
 /// [[maybe_unused]] const auto kComponentRegistration = ComponentParserRegistration<kernel_filter>{};
 /// @endcode
+/// @note This also registers any required cross-linkers and documentation.
 template <typename ComponentBlockType>
 struct ComponentParserRegistration
 {
@@ -44,6 +45,7 @@ ComponentParserRegistration<ComponentBlockType>::ComponentParserRegistration()
         block_name<ComponentBlockType>(),
         make_component_block_parser<ComponentBlockType, ComponentTypeOfInputBlock<ComponentBlockType>::value>());
     registered_cross_linkers().push_back(make_cross_linker<ComponentBlockType>());
+    register_help_documentation<ComponentBlockType>();
 }
 
 template <ComponentType kComponentType>
