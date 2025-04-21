@@ -9,9 +9,7 @@
 /*--------------------------------------------------------------------*/
 
 #include "Kokkos_Core.hpp"
-#if defined( STK_HAS_MPI )
 #include <mpi.h>
-#endif
 
 #include <iostream>
 
@@ -20,9 +18,7 @@ using namespace iso;
 
 int main(int argc,  char **argv)
 {
-#if defined( STK_HAS_MPI )
-  MPI_Init(&argc, &argv);
-#endif
+  stk::parallel_machine_init(&argc,&argv);
   Kokkos::initialize(argc, argv);
 
   {
@@ -35,9 +31,7 @@ int main(int argc,  char **argv)
   }
 
   Kokkos::finalize();
-#if defined( STK_HAS_MPI )
-  MPI_Finalize();
-#endif
+  stk::parallel_machine_finalize();
 
   return 0;
 }

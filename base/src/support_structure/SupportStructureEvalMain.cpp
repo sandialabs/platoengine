@@ -8,9 +8,7 @@
 /*    a license from the United States Government.                    */
 /*--------------------------------------------------------------------*/
 
-#if defined( STK_HAS_MPI )
 #include <mpi.h>
-#endif
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Field.hpp>
 #include <stk_mesh/base/CoordinateSystems.hpp>
@@ -24,9 +22,6 @@
 #include "Teuchos_CommandLineProcessor.hpp"
 
 #include <iostream>
-
-//using namespace plato;
-//using namespace support_structure;
 
 int main(int argc,  char **argv)
 {

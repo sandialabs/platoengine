@@ -507,13 +507,11 @@ bool STKExtract::run_stand_alone()
   {
     delete mMeshAPIIn;
     mMeshAPIIn = mMeshAPIOut = NULL;
-    stk::parallel_machine_finalize();
     return false;
   }
 
   delete mMeshAPIIn;
   mMeshAPIIn = mMeshAPIOut = NULL;
-  stk::parallel_machine_finalize();
 
   if ( return_val )
     std::cout << "Exiting Successfully " << std::endl;

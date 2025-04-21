@@ -8,9 +8,7 @@
 /*    a license from the United States Government.                    */
 /*--------------------------------------------------------------------*/
 
-#if defined( STK_HAS_MPI )
 #include <mpi.h>
-#endif
 
 #include <iostream>
 #include <memory>
