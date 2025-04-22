@@ -22,12 +22,16 @@ const auto kBoxFilePath = utilities::data_file_path("box_3x4x7_tet4.cdf");
 const auto kUnitSphere = tpik::Sphere{{0, 0, 0}, 1};
 const auto kThreeQuarterOffsetXHatPlane = tpik::Plane{{-1, 0, 0}, 0.75};
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
-const auto kFourTriSensitivityMap =
-    tpik::SensitivityMap{{9, tpik::LevelSetJacobianColumn{{4, 1}, {{0.75, 0.75, 0}, {0.25, 0.25, 0}}, {2, 0}}},
-                         {12, tpik::LevelSetJacobianColumn{{4}, {{0.75, -0.75, 0}}, {2}}},
-                         {10, tpik::LevelSetJacobianColumn{{7, 2}, {{0.25, 0.25, 0}, {0.75, 0.75, 0}}, {3, 1}}},
-                         {11, tpik::LevelSetJacobianColumn{{4}, {{0.75, 0.0, 0}}, {2}}},
-                         {8, tpik::LevelSetJacobianColumn{{1, 2}, {{.25, 0, 0}, {0.75, 0, 0}}, {0, 1}}}};
+const auto kFourTriSensitivityMapRankZero =
+    tpik::SensitivityMap{{9, tpik::LevelSetJacobianColumn{{4, 5}, {{0.75, 0, 0}, {0.25, 0, 0}}, {2, 3}}},
+                         {10, tpik::LevelSetJacobianColumn{{4, 6}, {{0.75, -0.75, 0}, {0.25, -0.25}}, {2, 4}}},
+                         {8, tpik::LevelSetJacobianColumn{{1, 4}, {{.25, 0.25, 0}, {0.75, 0.75, 0}}, {0, 2}}}};
+
+const auto kFourTriSensitivityMapRankOne =
+    tpik::SensitivityMap{{13, tpik::LevelSetJacobianColumn{{7, 2}, {{0.25, 0.25, 0}, {0.75, 0.75, 0}}, {5, 1}}},
+                         {11, tpik::LevelSetJacobianColumn{{1, 2}, {{0.25, 0.0, 0}, {0.75, 0, 0}}, {0, 1}}},
+                         {8, tpik::LevelSetJacobianColumn{{1, 4}, {{.25, 0.25, 0}, {0.75, 0.75, 0}}, {0, 2}}}};
+
 }  // namespace
 
 TEST_F(KrinoTestFixture, KrinoWrapperParallel)
@@ -45,13 +49,17 @@ TEST_F(KrinoTestFixture, KrinoWrapperParallel)
 
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tRank = tCommunicator.rank();
-    std::size_t tGoldSize;
+
     if (tRank == 0)
     {
-        tGoldSize = tSensitivity.size();
+        const auto tGoldSizeRankZero = std::size_t{289};
+        EXPECT_EQ(tGoldSizeRankZero, tSensitivity.size()) << "Rank zero sensitivity map size.";
     }
-    boost::mpi::broadcast(tCommunicator, tGoldSize, 0);
-    EXPECT_EQ(tGoldSize, tSensitivity.size());
+    else
+    {
+        const auto tGoldSizeRankOne = std::size_t{296};
+        EXPECT_EQ(tGoldSizeRankOne, tSensitivity.size()) << "Rank one sensitivity map size.";
+    }
 
     // tKrinoWrapper.writeCutMesh("out.exo", tpik::VoidPhase::kExcludeFromMesh);
 }
@@ -73,9 +81,16 @@ TEST_F(KrinoTestFixture, FourTriSensitivityMap)
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tRank = tCommunicator.rank();
 
-    tpik::test_utilities::test_sensitivity_map(tSensitivity, kFourTriSensitivityMap,
-                                               TEST_CONTEXT("Parallel consistency of sensitivity map."));
-
+    if (tRank == 0)
+    {
+        tpik::test_utilities::test_sensitivity_map(tSensitivity, kFourTriSensitivityMapRankZero,
+                                                   TEST_CONTEXT("Sensitivity map on Rank Zero."));
+    }
+    else
+    {
+        tpik::test_utilities::test_sensitivity_map(tSensitivity, kFourTriSensitivityMapRankOne,
+                                                   TEST_CONTEXT("Sensitivity map on Rank One."));
+    }
     for (const auto& tSensitivityEntry : tSensitivity)
     {
         const auto tCutMeshId = tSensitivityEntry.first;

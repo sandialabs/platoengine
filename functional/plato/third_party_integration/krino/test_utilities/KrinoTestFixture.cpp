@@ -23,6 +23,7 @@ void test_sensitivity_map(const SensitivityMap& aResult,
     {
         const auto& tGoldEntry = aGold.at(tEntry.first);
         ASSERT_EQ(tGoldEntry.mBackgroundMeshNodeIDs, tEntry.second.mBackgroundMeshNodeIDs);
+
         for (const auto [tGold, tResult] :
              utilities::Zip(tGoldEntry.mNodalSensitivities, tEntry.second.mNodalSensitivities))
         {

@@ -84,7 +84,7 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
     return tRootLevelSetMap;
 }
 
-[[nodiscard]] auto reduce_sensitivity_maps(const tpik::SensitivityMap& aSensitivityMap) -> tpik::SensitivityMap
+/*[[nodiscard]] auto reduce_sensitivity_maps(const tpik::SensitivityMap& aSensitivityMap) -> tpik::SensitivityMap
 {
     const auto tCommunicator = boost::mpi::communicator(
         reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
@@ -103,7 +103,7 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
     }
     boost::mpi::broadcast(tCommunicator, tRootSensitivityMap, tRootRank);
     return tRootSensitivityMap;
-}
+}*/
 
 [[nodiscard]] auto cut_mesh_compute_sensitivities(
     stk::mesh::BulkData& aBulkData,
@@ -111,8 +111,7 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
     const std::vector<tpik::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes) -> tpik::SensitivityMap
 {
     tpik::cut_mesh(aBulkData, aLevelSetFields);
-    return reduce_sensitivity_maps(
-        detail::compute_sensitivities(aBulkData, aLevelSetFields, aDesignDomainBackgroundNodes));
+    return detail::compute_sensitivities(aBulkData, aLevelSetFields, aDesignDomainBackgroundNodes);
 }
 
 }  // namespace
@@ -134,7 +133,6 @@ KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInt
 
 void KrinoWrapper::writeCutMesh(const std::filesystem::path& aFileName, const tpik::VoidPhase aVoidPhase) const
 {
-    std::cout << "Cut mesh size: " << tpik::cut_mesh_node_ids(*mKrinoMesh, aVoidPhase).size() << std::endl;
     tpik::write_mesh(mKrinoMesh->bulk_data(), aFileName, aVoidPhase);
 }
 
@@ -177,6 +175,36 @@ const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<doub
     }
 };
 
+struct custom_reduce
+{
+    double operator()(const double a, const double b) const
+    {
+        double result;
+
+        if (a == 0.0 && b != 0.0)
+        {
+            result = b;  // Replace if a is zero and b is non-zero
+        }
+        else
+        {
+            result = a;  // Leave a[i] alone if it is non-zero
+        }
+
+        return result;
+    }
+};
+
+[[nodiscard]] auto reduce_vector(const std::vector<double>& aVector) -> std::vector<double>
+{
+    std::cout << "aVector size: " << aVector.size() << std::endl;
+    std::vector<double> tGlobal(aVector.size(), 0.0);
+    constexpr int tRootRank = 0;
+    const auto tCommunicator = boost::mpi::communicator(
+        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
+    boost::mpi::reduce(tCommunicator, aVector, tGlobal, custom_reduce(), tRootRank);
+    return tGlobal;
+}
+
 using ResultSize = utilities::NamedType<long unsigned int, struct ResultSizeTag>;
 using ResultViewDimensionality = utilities::NamedType<unsigned int, struct ResultViewDimensionalityTag>;
 
@@ -214,8 +242,8 @@ template <typename Lambda>
             }
         }
     }
-
-    return tRowVectorMatrixProduct;
+    std::cout << "reduce vector" << std::endl;
+    return reduce_vector(tRowVectorMatrixProduct);
 }
 
 }  // namespace
@@ -321,6 +349,8 @@ void add_if_found(tpik::LevelSetJacobianColumn& aLevelSetJacobianColumn,
 {
     assert(aParentNodeIds.size() == 2U);
     assert(aSensitivities.size() == 2U);
+
+    std::cout << "PP: (" << aParentNodeIds.front() << ", " << aParentNodeIds.back() << ") ";
 
     tpik::LevelSetJacobianColumn tLevelSetJacobianColumn;
     add_if_found(tLevelSetJacobianColumn, aParentNodeIds.front(), aSensitivities.front(), aDesignDomainBackgroundNodes);

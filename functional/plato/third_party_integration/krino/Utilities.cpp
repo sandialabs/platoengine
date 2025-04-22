@@ -155,6 +155,11 @@ namespace
             tConcatenatedData.insert(tConcatenatedData.end(), tSubData.begin(), tSubData.end());
         }
         std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
+        for (const auto& tValue : tConcatenatedData)
+        {
+            std::cout << tValue << " ";
+        }
+        std::cout << std::endl;
         auto tLastEntry = std::unique(tConcatenatedData.begin(), tConcatenatedData.end());
         tConcatenatedData.erase(tLastEntry, tConcatenatedData.end());
     }
@@ -167,6 +172,7 @@ auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
                          const std::vector<::krino::LS_Field>& aLevelSetFields) -> std::vector<stk::mesh::EntityId>
 {
     const auto tBackgroundNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
+    std::cout << "All background mesh ids on all ranks" << std::endl;
     return unique_merge_on_all_ranks(get_ids_from_entities(tBackgroundNodes, aKrinoMesh.bulk_data()));
 }
 

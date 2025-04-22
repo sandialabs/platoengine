@@ -86,8 +86,13 @@ auto parent_node_ids_from_parent_nodes(const stk::mesh::BulkData& aBulkData,
                                        const std::vector<ParentNode>& aParentNodes) -> std::vector<BackgroundMeshNodeId>
 {
     assert(aParentNodes.size() == kNumberOfParents);
-    return std::vector<BackgroundMeshNodeId>{aBulkData.identifier(aParentNodes.front()),
-                                             aBulkData.identifier(aParentNodes.back())};
+
+    const auto tParentIDFront = aBulkData.identifier(aParentNodes.front());
+    const auto tParentIDBack = aBulkData.identifier(aParentNodes.back());
+
+    return std::vector{tParentIDFront, tParentIDBack};
+    // return tParentIDFront < tParentIDBack ? std::vector{tParentIDFront, tParentIDBack}
+    //                                      : std::vector{tParentIDBack, tParentIDFront};
 }
 namespace detail
 {
