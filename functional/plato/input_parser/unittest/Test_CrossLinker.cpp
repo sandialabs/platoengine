@@ -4,6 +4,7 @@
 #include "plato/input_parser/CrossLinker.hpp"
 #include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace
 {
@@ -51,6 +52,37 @@ const auto kVeryInspiredFilterInputBlock =
                    InputBlockWrapper{very_inspired_filter{ /*.filteritude=*/
                                                           kVeryInspiredFilterValue}}};
 
+template <typename CrossReferenceType>
+void check_cross_linked_field(const ParsedInput& aParsedInput,
+                              const InputDataBlock& aBlockToLink,
+                              const double tExpectedFilterValue,
+                              const test_utilities::TestContext& aTestContext)
+{
+    const auto tCrossLinker = make_cross_linker<uninspired_thing>();
+    const auto tCrossLinkedInputOrError = tCrossLinker.crossLink(aBlockToLink, aParsedInput);
+
+    ASSERT_TRUE(tCrossLinkedInputOrError.hasValue()) << aTestContext;
+    const auto& tUninspiredInput = tCrossLinkedInputOrError.value().mInput.template get<uninspired_thing>();
+
+    ASSERT_TRUE(tUninspiredInput.my_filter.has_value()) << aTestContext;
+    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.hasValue()) << aTestContext;
+    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.template holdsExpectedType<CrossReferenceType>())
+        << aTestContext;
+
+    if constexpr (std::is_same_v<CrossReferenceType, uninspired_filter>)
+    {
+        EXPECT_EQ(tUninspiredInput.my_filter.value().mInputBlock.template get<CrossReferenceType>().filteriness.value(),
+                  tExpectedFilterValue)
+            << aTestContext;
+    }
+    else
+    {
+        EXPECT_EQ(tUninspiredInput.my_filter.value().mInputBlock.template get<CrossReferenceType>().filteritude.value(),
+                  tExpectedFilterValue)
+            << aTestContext;
+    }
+}
+
 }  // namespace
 
 TEST(CrossLinker, CrossLinkUnspecified)
@@ -63,19 +95,8 @@ TEST(CrossLinker, CrossLinkUnspecified)
                      .my_filter.has_value());  // Make sure the cross-reference is empty
 
     const auto tParsedInput = ParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock}};
-
-    const auto tCrossLinker = make_cross_linker<uninspired_thing>();
-    const auto tCrossLinkedInputOrError = tCrossLinker.crossLink(std::move(tUninspiredInputBlock), tParsedInput);
-
-    ASSERT_TRUE(tCrossLinkedInputOrError.hasValue());
-    const auto& tUninspiredInput = tCrossLinkedInputOrError.value().mInput.get<uninspired_thing>();
-
-    ASSERT_TRUE(tUninspiredInput.my_filter.has_value());
-    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.hasValue());
-    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.holdsExpectedType<uninspired_filter>());
-    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.get<uninspired_filter>().filteriness.has_value());
-    EXPECT_EQ(tUninspiredInput.my_filter.value().mInputBlock.get<uninspired_filter>().filteriness.value(),
-              kUninspiredFilterValue);
+    check_cross_linked_field<uninspired_filter>(tParsedInput, tUninspiredInputBlock, kUninspiredFilterValue,
+                                                TEST_CONTEXT("Cross-reference not specified"));
 }
 
 TEST(CrossLinker, CrossLinkSpecified)
@@ -91,18 +112,8 @@ TEST(CrossLinker, CrossLinkSpecified)
     const auto tParsedInput =
         ParsedInput{{tUninspiredInputBlock, kUninspiredFilterInputBlock, kVeryInspiredFilterInputBlock}};
 
-    const auto tCrossLinker = make_cross_linker<uninspired_thing>();
-    const auto tCrossLinkedInputOrError = tCrossLinker.crossLink(std::move(tUninspiredInputBlock), tParsedInput);
-
-    ASSERT_TRUE(tCrossLinkedInputOrError.hasValue());
-    const auto& tUninspiredInput = tCrossLinkedInputOrError.value().mInput.get<uninspired_thing>();
-
-    ASSERT_TRUE(tUninspiredInput.my_filter.has_value());
-    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.hasValue());
-    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.holdsExpectedType<very_inspired_filter>());
-    ASSERT_TRUE(tUninspiredInput.my_filter.value().mInputBlock.get<very_inspired_filter>().filteritude.has_value());
-    EXPECT_EQ(tUninspiredInput.my_filter.value().mInputBlock.get<very_inspired_filter>().filteritude.value(),
-              kVeryInspiredFilterValue);
+    check_cross_linked_field<very_inspired_filter>(tParsedInput, tUninspiredInputBlock, kVeryInspiredFilterValue,
+                                                   TEST_CONTEXT("Cross-reference specified"));
 }
 
 TEST(CrossLinker, NoOpForTypeWithNoCrossReferences)
