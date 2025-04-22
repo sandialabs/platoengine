@@ -50,9 +50,10 @@ auto validate_input_block(const F aValidationFunction,
                           AdditionalArgs... aAdditionalArgs) -> std::optional<std::string>
 {
     using InputType = typename utilities::FunctionArgType<F>::template arg<0U>;
+    using DecayedInputType = std::decay_t<InputType>;
     if (aInput.template holdsExpectedType<InputType>())
     {
-        return aValidationFunction(aInput.template get<const InputType&>(), std::move(aAdditionalArgs)...);
+        return aValidationFunction(aInput.template get<const DecayedInputType&>(), std::move(aAdditionalArgs)...);
     }
     return std::nullopt;
 }
