@@ -157,6 +157,14 @@ static double ncr(double n, double r) {
 }
 static double npr(double n, double r) {return ncr(n, r) * fac(r);}
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+// e.g. warning: initializing 'const void *' with an expression of type 'double (double)' converts between void pointer and function pointer [-Wpedantic]
 static const te_variable functions[] = {
     /* must be in alphabetical order */
     {"abs", fabs,     TE_FUNCTION1 | TE_FLAG_PURE, 0},
@@ -189,6 +197,11 @@ static const te_variable functions[] = {
     {"tanh", tanh,    TE_FUNCTION1 | TE_FLAG_PURE, 0},
     {0, 0, 0, 0}
 };
+#if defined(__clang__) && !defined(__INTEL_COMPILER)
+#pragma clang diagnostic pop // -Wpedantic
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop // -Wpedantic
+#endif
 
 static const te_variable *find_builtin(const char *name, int len) {
     int imin = 0;
@@ -234,6 +247,14 @@ static double negate(double a) {return -a;}
 static double comma(double a, double b) {(void)a; return b;}
 
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+// e.g. warning: initializing 'const void *' with an expression of type 'double (double)' converts between void pointer and function pointer [-Wpedantic]
 void next_token(state *s) {
     s->type = TOK_NULL;
 
@@ -299,6 +320,11 @@ void next_token(state *s) {
         }
     } while (s->type == TOK_NULL);
 }
+#if defined(__clang__) && !defined(__INTEL_COMPILER)
+#pragma clang diagnostic pop // -Wpedantic
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop // -Wpedantic
+#endif
 
 
 static te_expr *list(state *s);
@@ -403,6 +429,14 @@ static te_expr *base(state *s) {
 #pragma GCC diagnostic pop
 #endif
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+// e.g. warning: initializing 'const void *' with an expression of type 'double (double)' converts between void pointer and function pointer [-Wpedantic]
 
 static te_expr *power(state *s) {
     /* <power>     =    {("-" | "+")} <base> */
@@ -523,6 +557,11 @@ static te_expr *list(state *s) {
 
     return ret;
 }
+#if defined(__clang__) && !defined(__INTEL_COMPILER)
+#pragma clang diagnostic pop // -Wpedantic
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop // -Wpedantic
+#endif
 
 
 #define TE_FUN(...) ((double(*)(__VA_ARGS__))n->function)
