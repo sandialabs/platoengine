@@ -147,34 +147,42 @@ const auto kJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& a
                               const std::vector<double>& aRowVector,
                               const ParentIndex aParentIndex,
                               const CutMeshIndex aCutMeshIndex,
+                              const double aMultiplicityMultiplier,
                               const third_party_integration::common::Vector3& aSensitivity,
                               const unsigned int aSpatialDimension)
 {
     constexpr auto kScalarViewComponent = utilities::ComponentIndex{0};
+    const auto tRowVector =
+        row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension);
+
+    std::cout << "Parent index: " << aParentIndex.mValue << " cut mesh index: " << aCutMeshIndex.mValue
+              << " multiplying: " << tRowVector.x << ", " << tRowVector.y << ", " << tRowVector.z << std::endl;
     aResultVectorView(utilities::VectorIndex{aParentIndex.mValue}, kScalarViewComponent) +=
         third_party_integration::common::dot(
             row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension),
-            aSensitivity);
+            aSensitivity) *
+        aMultiplicityMultiplier;
 };
 
 const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& aResultVectorView,
                                      const std::vector<double>& aRowVector,
                                      const ParentIndex aParentIndex,
                                      const CutMeshIndex aCutMeshIndex,
+                                     const double aMultiplicityMultiplier,
                                      const third_party_integration::common::Vector3& aSensitivity,
                                      const unsigned int aSpatialDimension)
 {
     aResultVectorView(utilities::VectorIndex{aCutMeshIndex.mValue}, kXComponent) +=
-        aRowVector[aParentIndex.mValue] * aSensitivity.x;
+        aRowVector[aParentIndex.mValue] * aSensitivity.x * aMultiplicityMultiplier;
     aResultVectorView(utilities::VectorIndex{aCutMeshIndex.mValue}, kYComponent) +=
-        aRowVector[aParentIndex.mValue] * aSensitivity.y;
+        aRowVector[aParentIndex.mValue] * aSensitivity.y * aMultiplicityMultiplier;
     if (aSpatialDimension == 3U)
     {
         aResultVectorView(utilities::VectorIndex{aCutMeshIndex.mValue}, kZComponent) +=
-            aRowVector[aParentIndex.mValue] * aSensitivity.z;
+            aRowVector[aParentIndex.mValue] * aSensitivity.z * aMultiplicityMultiplier;
     }
 };
-
+/*
 struct custom_reduce
 {
     double operator()(const double a, const double b) const
@@ -193,7 +201,7 @@ struct custom_reduce
         return result;
     }
 };
-
+*/
 [[nodiscard]] auto reduce_vector(const std::vector<double>& aVector) -> std::vector<double>
 {
     std::cout << "aVector size: " << aVector.size() << std::endl;
@@ -201,7 +209,21 @@ struct custom_reduce
     constexpr int tRootRank = 0;
     const auto tCommunicator = boost::mpi::communicator(
         reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
-    boost::mpi::reduce(tCommunicator, aVector, tGlobal, custom_reduce(), tRootRank);
+
+    for (unsigned int lcv = 0; lcv < aVector.size(); ++lcv)
+    {
+        std::cout << "On rank: " << tCommunicator.rank() << " vector entry: " << lcv << " value: " << aVector[lcv]
+                  << std::endl;
+    }
+
+    boost::mpi::reduce(tCommunicator, aVector, tGlobal, std::plus<double>(), tRootRank);
+    boost::mpi::broadcast(tCommunicator, tGlobal, tRootRank);
+    if (tCommunicator.rank() == 0)
+        for (unsigned int lcv = 0; lcv < tGlobal.size(); ++lcv)
+        {
+            std::cout << "On rank: " << tCommunicator.rank() << " tGlobal entry: " << lcv << " value: " << tGlobal[lcv]
+                      << std::endl;
+        }
     return tGlobal;
 }
 
@@ -221,6 +243,16 @@ template <typename Lambda>
 {
     const auto tSpatialDimensions = third_party_integration::stk_io::spatial_dimensions(aKrinoMesh.bulk_data());
     const auto tCutMeshNodeIds = tpik::cut_mesh_node_ids(aKrinoMesh, aVoidPhase);
+
+    const auto tCutMeshMultiplicity = tpik::cut_mesh_node_id_multiplicity(aSensitivityMap);
+
+    std::cout << "Cut mesh ids: ";
+    for (const auto& aId : tCutMeshNodeIds)
+    {
+        std::cout << aId << ", ";
+    }
+    std::cout << std::endl;
+
     std::cout << "Sizing row matrixproduct to :" << aResultSize.mValue << std::endl;
     auto tRowVectorMatrixProduct = std::vector<double>(aResultSize.mValue, 0.0);
     auto tRowVectorMatrixProductView =
@@ -231,18 +263,29 @@ template <typename Lambda>
         if (const auto tSensitivityMapAtCutMeshIdIterator = aSensitivityMap.find(tCutMeshId);
             tSensitivityMapAtCutMeshIdIterator != aSensitivityMap.end())
         {
+            // std::cout << "Current cut mesh id on this rank : " << tCutMeshId << " with index: " << tIndex <<
+            // std::endl;
+
+            const double tMultiplicityMultiplier = tCutMeshMultiplicity.find(tCutMeshId) != tCutMeshMultiplicity.end()
+                                                       ? 1.0 / tCutMeshMultiplicity.at(tCutMeshId)
+                                                       : 1.0;
+            std::cout << "CutMesh ID: " << tCutMeshId << " has multiplier: " << tMultiplicityMultiplier << std::endl;
             const auto& tLevelSetJacobianColumn = tSensitivityMapAtCutMeshIdIterator->second;
 
             for (const auto& [tParentId, tSensitivity, tLocalParentIndex] : utilities::Zip(
                      tLevelSetJacobianColumn.mBackgroundMeshNodeIDs, tLevelSetJacobianColumn.mNodalSensitivities,
                      tLevelSetJacobianColumn.mDesignDomainLocalIndex))
             {
+                std::cout << "Cutmesh id: " << tCutMeshId << " with index " << tIndex
+                          << " has local Parent index:  " << tLocalParentIndex << " and parent id: " << tParentId
+                          << " and sensitivity: " << tSensitivity.x << ", " << tSensitivity.y << ", " << tSensitivity.z
+                          << std::endl;
                 aApplyFunction(tRowVectorMatrixProductView, aRowVector, ParentIndex{tLocalParentIndex},
-                               CutMeshIndex{tIndex}, tSensitivity, tSpatialDimensions);
+                               CutMeshIndex{tIndex}, tMultiplicityMultiplier, tSensitivity, tSpatialDimensions);
             }
         }
     }
-    std::cout << "reduce vector" << std::endl;
+
     return reduce_vector(tRowVectorMatrixProduct);
 }
 
@@ -253,6 +296,15 @@ auto KrinoWrapper::rowVectorJacobianProduct(const std::vector<double>& aCutMeshR
 {
     const auto tViewDimension = 1U;
     const auto tResultSize = mNumberOfDesignDomainBackgroundNodes;
+    std::cout << "tResultSize: " << tResultSize << std::endl;
+    const auto tBackgroundNodeIds = tpik::background_node_ids(*mKrinoMesh, mLevelSetFields);
+    std::cout << "Background node mesh ids: ";
+    for (const auto& aId : tBackgroundNodeIds)
+    {
+        std::cout << aId << ", ";
+    }
+    std::cout << std::endl;
+
     return transformSensitivityMap(aCutMeshRowVector, mSensitivityMap, *mKrinoMesh, aVoidPhase, ResultSize{tResultSize},
                                    ResultViewDimensionality{tViewDimension}, kJacobianImpl);
 }
@@ -393,6 +445,7 @@ auto compute_sensitivities(const stk::mesh::BulkData& aBulkData,
 
     return tSensitivityMap;
 }
+
 }  // namespace detail
 
 }  // namespace plato::geometry::extension

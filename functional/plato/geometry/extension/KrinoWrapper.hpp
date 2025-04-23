@@ -5,6 +5,7 @@
 #include <Akri_LevelSetPolicy.hpp>
 #include <filesystem>
 #include <memory>
+#include <unordered_map>
 
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
@@ -101,6 +102,7 @@ namespace detail
     const std::vector<::krino::LS_Field>& aLevelSetFields,
     const std::vector<third_party_integration::krino::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes)
     -> third_party_integration::krino::SensitivityMap;
+
 }  // namespace detail
 
 }  // namespace plato::geometry::extension

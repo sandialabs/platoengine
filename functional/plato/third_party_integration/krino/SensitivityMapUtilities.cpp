@@ -4,8 +4,14 @@
 #include <Akri_ChildNodeStencil.hpp>  //ChildNodeStencil
 #include <Akri_LevelSet.hpp>          //LevelSet
 #include <Akri_LevelSetPolicy.hpp>    //LSPerInterfacePolicy
+#include <boost/mpi/collectives.hpp>
+#include <boost/mpi/communicator.hpp>
+#include <boost/serialization/unordered_map.hpp>
+#include <boost/serialization/vector.hpp>
+#include <iterator>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
+#include <stk_util/environment/EnvData.hpp>
 
 #include "plato/utilities/NamedType.hpp"
 
@@ -94,6 +100,65 @@ auto parent_node_ids_from_parent_nodes(const stk::mesh::BulkData& aBulkData,
     // return tParentIDFront < tParentIDBack ? std::vector{tParentIDFront, tParentIDBack}
     //                                      : std::vector{tParentIDBack, tParentIDFront};
 }
+
+namespace
+{
+
+[[nodiscard]] auto merge_on_all_ranks(const std::vector<CutMeshSurfaceNodeId>& aVector)
+    -> std::vector<CutMeshSurfaceNodeId>
+{
+    const auto tCommunicator = boost::mpi::communicator(
+        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
+    constexpr int tRootRank = 0;
+    std::vector<std::vector<CutMeshSurfaceNodeId>> tGatheredData;
+
+    boost::mpi::gather(tCommunicator, aVector, tGatheredData, tRootRank);
+
+    std::vector<CutMeshSurfaceNodeId> tConcatenatedData;
+    if (tCommunicator.rank() == tRootRank)
+    {
+        for (const auto& tSubData : tGatheredData)
+        {
+            std::cout << "tSubData size: " << tSubData.size() << std::endl;
+            tConcatenatedData.insert(tConcatenatedData.end(), tSubData.begin(), tSubData.end());
+        }
+        std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
+    }
+    boost::mpi::broadcast(tCommunicator, tConcatenatedData, tRootRank);
+    return tConcatenatedData;
+}
+
+}  // namespace
+
+auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
+    -> std::unordered_map<CutMeshSurfaceNodeId, unsigned int>
+{
+    std::vector<CutMeshSurfaceNodeId> tLocalCutMeshIdsFromMap;
+    tLocalCutMeshIdsFromMap.reserve(aSensitivityMap.size());
+    std::transform(aSensitivityMap.begin(), aSensitivityMap.end(), std::back_inserter(tLocalCutMeshIdsFromMap),
+                   [](const auto aMapEntry) { return aMapEntry.first; });
+
+    const auto tMergedSortedGlobalCutMeshIds = merge_on_all_ranks(tLocalCutMeshIdsFromMap);
+
+    std::cout << "CutMeshIds: ";
+    for (const auto& tId : tMergedSortedGlobalCutMeshIds)
+    {
+        std::cout << tId << ", ";
+    }
+    std::cout << std::endl;
+    const auto tCommunicator = boost::mpi::communicator(
+        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
+    constexpr int tRootRank = 0;
+
+    std::unordered_map<stk::mesh::EntityId, unsigned int> tHistogram;
+    if (tCommunicator.rank() == tRootRank)
+    {
+        tHistogram = detail::compute_histogram(tMergedSortedGlobalCutMeshIds);
+    }
+    boost::mpi::broadcast(tCommunicator, tHistogram, tRootRank);
+    return tHistogram;
+}
+
 namespace detail
 {
 
@@ -149,6 +214,27 @@ auto merge_level_set_jacobian_columns(AppendLevelSetJacobianColumn aAppendLevelS
         std::cout << "larger than I thought..." << std::endl;
     }
     return tLevelSetJacobianColumn;
+}
+
+auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCutMeshNodeIDs)
+    -> std::unordered_map<stk::mesh::EntityId, unsigned int>
+{
+    auto tHistogram = std::unordered_map<stk::mesh::EntityId, unsigned int>{};
+
+    auto tFirst = aGatheredSortedCutMeshNodeIDs.begin();
+    while (tFirst != aGatheredSortedCutMeshNodeIDs.end())
+    {
+        auto tLast = std::find_if(tFirst, aGatheredSortedCutMeshNodeIDs.end(),
+                                  [tFirst](unsigned int aID) { return aID != *tFirst; });
+        unsigned int tCount = std::distance(tFirst, tLast);
+        if (tCount > 1)
+        {
+            tHistogram[*tFirst] = tCount;
+        }
+        tFirst = tLast;
+    }
+
+    return tHistogram;
 }
 
 }  // namespace detail

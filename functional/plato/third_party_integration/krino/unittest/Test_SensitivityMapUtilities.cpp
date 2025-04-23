@@ -151,4 +151,12 @@ TEST(SensitivityMapUtilitiesDetail, MergeSensitivityMaps)
     check_equality_level_set_jacobian_column(tResult.at(5U), kLevelSetJacobianColumnOneEntry);
 }
 
+TEST(SensitivityMapUtilitiesDetail, ComputeHistogram)
+{
+    const auto tCutMeshIds = std::vector<stk::mesh::EntityId>{1, 2, 2, 3, 3, 3, 5, 5, 5, 5, 5, 6, 9, 10, 10};
+    const auto tHistogram = detail::compute_histogram(tCutMeshIds);
+    const auto tGold = std::unordered_map<stk::mesh::EntityId, unsigned int>{{2, 2}, {3, 3}, {5, 5}, {10, 2}};
+    EXPECT_EQ(tGold, tHistogram);
+}
+
 }  // namespace plato::third_party_integration::krino::unittest

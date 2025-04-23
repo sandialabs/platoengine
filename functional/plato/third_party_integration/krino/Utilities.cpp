@@ -11,6 +11,7 @@
 #include <Akri_OutputUtils.hpp>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/vector.hpp>
 #include <iterator>
 #include <stk_io/StkMeshIoBroker.hpp>  //get_selected_entities
@@ -137,7 +138,7 @@ auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh, c
 namespace
 {
 
-[[nodiscard]] auto unique_merge_on_all_ranks(std::vector<stk::mesh::EntityId> aVector)
+[[nodiscard]] auto unique_merge_on_all_ranks(const std::vector<stk::mesh::EntityId>& aVector)
     -> std::vector<stk::mesh::EntityId>
 {
     const auto tCommunicator = boost::mpi::communicator(
@@ -155,17 +156,14 @@ namespace
             tConcatenatedData.insert(tConcatenatedData.end(), tSubData.begin(), tSubData.end());
         }
         std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
-        for (const auto& tValue : tConcatenatedData)
-        {
-            std::cout << tValue << " ";
-        }
-        std::cout << std::endl;
+
         auto tLastEntry = std::unique(tConcatenatedData.begin(), tConcatenatedData.end());
         tConcatenatedData.erase(tLastEntry, tConcatenatedData.end());
     }
     boost::mpi::broadcast(tCommunicator, tConcatenatedData, tRootRank);
     return tConcatenatedData;
 }
+
 }  // namespace
 
 auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
@@ -176,8 +174,10 @@ auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
     return unique_merge_on_all_ranks(get_ids_from_entities(tBackgroundNodes, aKrinoMesh.bulk_data()));
 }
 
-auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
-    -> std::vector<stk::mesh::EntityId>
+namespace
+{
+[[nodiscard]] auto get_cut_mesh_node_entities(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
+    -> stk::mesh::EntityVector
 {
     const auto tSelector = output_selector(aKrinoMesh.meta_data(),
                                            ::krino::AuxMetaData::get(aKrinoMesh.meta_data()).active_part(), aVoidPhase);
@@ -185,7 +185,23 @@ auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase
     stk::mesh::EntityVector tNodes;
     stk::mesh::get_selected_entities(tSelector, aKrinoMesh.bulk_data().buckets(stk::topology::NODE_RANK), tNodes,
                                      kSortByGlobalId);
+    return tNodes;
+}
 
+}  // namespace
+
+auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
+    -> std::vector<stk::mesh::EntityId>
+{
+    // const auto tSelector = output_selector(aKrinoMesh.meta_data(),
+    //  ::krino::AuxMetaData::get(aKrinoMesh.meta_data()).active_part(), aVoidPhase);
+
+    // stk::mesh::EntityVector tNodes;
+    // stk::mesh::get_selected_entities(tSelector,
+    // aKrinoMesh.bulk_data().buckets(stk::topology::NODE_RANK), tNodes,
+    //                                 kSortByGlobalId);
+
+    const auto tNodes = get_cut_mesh_node_entities(aKrinoMesh, aVoidPhase);
     return unique_merge_on_all_ranks(get_ids_from_entities(tNodes, aKrinoMesh.bulk_data()));
 }
 

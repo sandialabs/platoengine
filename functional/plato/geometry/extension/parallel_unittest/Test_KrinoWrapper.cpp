@@ -142,25 +142,65 @@ TEST_F(KrinoTestFixture, MakeInitialGuessFromLevelSetPrimitives)
 
 TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
 {
-    ASSERT_TRUE(kBoxFilePath.has_value());
+    ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
     const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
-        kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}}, std::nullopt);
-    const auto tMesh = mesh::Mesh{kBoxFilePath.value()};
+        kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
+        std::nullopt);
+    const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tInitialGuess});
     const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
 
     tKrinoWrapper.writeCutMesh("out.exo", tpik::VoidPhase::kExcludeFromMesh);
 
-    const std::vector<double> tRowVector(504 * 3, 1.0);
-    // std::iota(tRowVector.begin(), tRowVector.end(), 1.0);
+    const auto tNumberOfCutMeshNodes = 9;
+    const auto tDimensions = 2;
+    std::vector<double> tRowVector(tNumberOfCutMeshNodes * tDimensions, 1.0);
+
     [[maybe_unused]] const auto tResult =
         tKrinoWrapper.rowVectorJacobianProduct(tRowVector, tpik::VoidPhase::kExcludeFromMesh);
 
-    /*for (const auto& aEntry : tResult)
+    const auto tGold = std::vector<double>{0.75, 2.25, 2.25, 0.25, 0, 0.5};
+    EXPECT_EQ(tGold, tResult);
+    boost::mpi::communicator{}.barrier();
+    if (boost::mpi::communicator{}.rank() == 0)
     {
-        std::cout << aEntry << std::endl;
-    }*/
+        for (const auto& aEntry : tResult)
+        {
+            std::cout << aEntry << std::endl;
+        }
+    }
+}
+
+TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
+{
+    ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
+    const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
+        kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
+        std::nullopt);
+    const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
+    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
+        mesh::NodalFieldVectorReference{tInitialGuess});
+    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
+
+    tKrinoWrapper.writeCutMesh("out.exo", tpik::VoidPhase::kExcludeFromMesh);
+
+    const auto tNumberOfBackgroundNodes = 6;
+    std::vector<double> tRowVector(tNumberOfBackgroundNodes, 1.0);
+
+    [[maybe_unused]] const auto tResult =
+        tKrinoWrapper.rowVectorAdjointJacobianProduct(tRowVector, tpik::VoidPhase::kExcludeFromMesh);
+
+    const auto tGold = std::vector<double>{0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, -1, 1, 0, 1, 1};
+    EXPECT_EQ(tGold, tResult);
+    boost::mpi::communicator{}.barrier();
+    if (boost::mpi::communicator{}.rank() == 0)
+    {
+        for (const auto& aEntry : tResult)
+        {
+            std::cout << aEntry << std::endl;
+        }
+    }
 }
 
 }  // namespace plato::geometry::extension::parallel_unittest

@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <numeric>
 #include <string>
+#include <unordered_map>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshOperators.hpp"
