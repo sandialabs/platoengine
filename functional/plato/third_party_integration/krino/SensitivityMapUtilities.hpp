@@ -91,16 +91,6 @@ using LevelSetFieldReference = utilities::NamedType<::krino::FieldRef, struct Le
 
 namespace detail
 {
-using AppendMap = utilities::NamedType<SensitivityMap, struct AppendMapTag>;
-using OtherMap = utilities::NamedType<SensitivityMap, struct OtherMapTag>;
-[[nodiscard]] auto merge_sensitivity_maps(AppendMap aAppendMap, const OtherMap& aOtherMap) -> SensitivityMap;
-
-using AppendLevelSetJacobianColumn =
-    utilities::NamedType<LevelSetJacobianColumn, struct AppendLevelSetJacobianColumnTag>;
-using OtherLevelSetJacobianColumn = utilities::NamedType<LevelSetJacobianColumn, struct OtherLevelSetJacobianColumnTag>;
-[[nodiscard]] auto merge_level_set_jacobian_columns(AppendLevelSetJacobianColumn aAppendLevelSetJacobianColumn,
-                                                    const OtherLevelSetJacobianColumn& aOtherLevelSetJacobianColumn)
-    -> LevelSetJacobianColumn;
 
 [[nodiscard]] auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCutMeshNodeIDs)
     -> std::unordered_map<stk::mesh::EntityId, unsigned int>;

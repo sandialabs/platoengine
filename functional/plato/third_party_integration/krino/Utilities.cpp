@@ -170,7 +170,6 @@ auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
                          const std::vector<::krino::LS_Field>& aLevelSetFields) -> std::vector<stk::mesh::EntityId>
 {
     const auto tBackgroundNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
-    std::cout << "All background mesh ids on all ranks" << std::endl;
     return unique_merge_on_all_ranks(get_ids_from_entities(tBackgroundNodes, aKrinoMesh.bulk_data()));
 }
 
@@ -193,14 +192,6 @@ namespace
 auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
     -> std::vector<stk::mesh::EntityId>
 {
-    // const auto tSelector = output_selector(aKrinoMesh.meta_data(),
-    //  ::krino::AuxMetaData::get(aKrinoMesh.meta_data()).active_part(), aVoidPhase);
-
-    // stk::mesh::EntityVector tNodes;
-    // stk::mesh::get_selected_entities(tSelector,
-    // aKrinoMesh.bulk_data().buckets(stk::topology::NODE_RANK), tNodes,
-    //                                 kSortByGlobalId);
-
     const auto tNodes = get_cut_mesh_node_entities(aKrinoMesh, aVoidPhase);
     return unique_merge_on_all_ranks(get_ids_from_entities(tNodes, aKrinoMesh.bulk_data()));
 }

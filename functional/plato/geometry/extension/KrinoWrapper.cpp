@@ -84,27 +84,6 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
     return tRootLevelSetMap;
 }
 
-/*[[nodiscard]] auto reduce_sensitivity_maps(const tpik::SensitivityMap& aSensitivityMap) -> tpik::SensitivityMap
-{
-    const auto tCommunicator = boost::mpi::communicator(
-        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
-    constexpr int tRootRank = 0;
-    std::vector<tpik::SensitivityMap> tGatheredSensitivityMaps;
-
-    boost::mpi::gather(tCommunicator, aSensitivityMap, tGatheredSensitivityMaps, tRootRank);
-    tpik::SensitivityMap tRootSensitivityMap;
-    if (tCommunicator.rank() == tRootRank)
-    {
-        for (const auto& tSubSensitivityMap : tGatheredSensitivityMaps)
-        {
-            tRootSensitivityMap = tpik::detail::merge_sensitivity_maps(tpik::detail::AppendMap{tRootSensitivityMap},
-                                                                       tpik::detail::OtherMap{tSubSensitivityMap});
-        }
-    }
-    boost::mpi::broadcast(tCommunicator, tRootSensitivityMap, tRootRank);
-    return tRootSensitivityMap;
-}*/
-
 [[nodiscard]] auto cut_mesh_compute_sensitivities(
     stk::mesh::BulkData& aBulkData,
     const std::vector<::krino::LS_Field>& aLevelSetFields,
@@ -152,11 +131,6 @@ const auto kJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& a
                               const unsigned int aSpatialDimension)
 {
     constexpr auto kScalarViewComponent = utilities::ComponentIndex{0};
-    const auto tRowVector =
-        row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension);
-
-    std::cout << "Parent index: " << aParentIndex.mValue << " cut mesh index: " << aCutMeshIndex.mValue
-              << " multiplying: " << tRowVector.x << ", " << tRowVector.y << ", " << tRowVector.z << std::endl;
     aResultVectorView(utilities::VectorIndex{aParentIndex.mValue}, kScalarViewComponent) +=
         third_party_integration::common::dot(
             row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension),
@@ -182,48 +156,17 @@ const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<doub
             aRowVector[aParentIndex.mValue] * aSensitivity.z * aMultiplicityMultiplier;
     }
 };
-/*
-struct custom_reduce
-{
-    double operator()(const double a, const double b) const
-    {
-        double result;
 
-        if (a == 0.0 && b != 0.0)
-        {
-            result = b;  // Replace if a is zero and b is non-zero
-        }
-        else
-        {
-            result = a;  // Leave a[i] alone if it is non-zero
-        }
-
-        return result;
-    }
-};
-*/
 [[nodiscard]] auto reduce_vector(const std::vector<double>& aVector) -> std::vector<double>
 {
-    std::cout << "aVector size: " << aVector.size() << std::endl;
     std::vector<double> tGlobal(aVector.size(), 0.0);
     constexpr int tRootRank = 0;
     const auto tCommunicator = boost::mpi::communicator(
         reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
 
-    for (unsigned int lcv = 0; lcv < aVector.size(); ++lcv)
-    {
-        std::cout << "On rank: " << tCommunicator.rank() << " vector entry: " << lcv << " value: " << aVector[lcv]
-                  << std::endl;
-    }
-
     boost::mpi::reduce(tCommunicator, aVector, tGlobal, std::plus<double>(), tRootRank);
     boost::mpi::broadcast(tCommunicator, tGlobal, tRootRank);
-    if (tCommunicator.rank() == 0)
-        for (unsigned int lcv = 0; lcv < tGlobal.size(); ++lcv)
-        {
-            std::cout << "On rank: " << tCommunicator.rank() << " tGlobal entry: " << lcv << " value: " << tGlobal[lcv]
-                      << std::endl;
-        }
+
     return tGlobal;
 }
 
@@ -243,17 +186,8 @@ template <typename Lambda>
 {
     const auto tSpatialDimensions = third_party_integration::stk_io::spatial_dimensions(aKrinoMesh.bulk_data());
     const auto tCutMeshNodeIds = tpik::cut_mesh_node_ids(aKrinoMesh, aVoidPhase);
-
     const auto tCutMeshMultiplicity = tpik::cut_mesh_node_id_multiplicity(aSensitivityMap);
 
-    std::cout << "Cut mesh ids: ";
-    for (const auto& aId : tCutMeshNodeIds)
-    {
-        std::cout << aId << ", ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Sizing row matrixproduct to :" << aResultSize.mValue << std::endl;
     auto tRowVectorMatrixProduct = std::vector<double>(aResultSize.mValue, 0.0);
     auto tRowVectorMatrixProductView =
         utilities::make_multi_vector_view(tRowVectorMatrixProduct, aResultViewDimensionality.mValue);
@@ -263,9 +197,6 @@ template <typename Lambda>
         if (const auto tSensitivityMapAtCutMeshIdIterator = aSensitivityMap.find(tCutMeshId);
             tSensitivityMapAtCutMeshIdIterator != aSensitivityMap.end())
         {
-            // std::cout << "Current cut mesh id on this rank : " << tCutMeshId << " with index: " << tIndex <<
-            // std::endl;
-
             const double tMultiplicityMultiplier = tCutMeshMultiplicity.find(tCutMeshId) != tCutMeshMultiplicity.end()
                                                        ? 1.0 / tCutMeshMultiplicity.at(tCutMeshId)
                                                        : 1.0;
@@ -296,14 +227,7 @@ auto KrinoWrapper::rowVectorJacobianProduct(const std::vector<double>& aCutMeshR
 {
     const auto tViewDimension = 1U;
     const auto tResultSize = mNumberOfDesignDomainBackgroundNodes;
-    std::cout << "tResultSize: " << tResultSize << std::endl;
     const auto tBackgroundNodeIds = tpik::background_node_ids(*mKrinoMesh, mLevelSetFields);
-    std::cout << "Background node mesh ids: ";
-    for (const auto& aId : tBackgroundNodeIds)
-    {
-        std::cout << aId << ", ";
-    }
-    std::cout << std::endl;
 
     return transformSensitivityMap(aCutMeshRowVector, mSensitivityMap, *mKrinoMesh, aVoidPhase, ResultSize{tResultSize},
                                    ResultViewDimensionality{tViewDimension}, kJacobianImpl);
@@ -335,8 +259,6 @@ namespace
         aBackgroundDesignIDs, std::back_inserter(tLevelSetValues),
         [&aLevelSetValuesMap](const auto aBackgroundId) { return aLevelSetValuesMap.at(aBackgroundId); },
         tFoundCondition);
-
-    std::cout << "Down selected size: " << tLevelSetValues.size() << std::endl;
 
     return tLevelSetValues;
 }
@@ -401,8 +323,6 @@ void add_if_found(tpik::LevelSetJacobianColumn& aLevelSetJacobianColumn,
 {
     assert(aParentNodeIds.size() == 2U);
     assert(aSensitivities.size() == 2U);
-
-    std::cout << "PP: (" << aParentNodeIds.front() << ", " << aParentNodeIds.back() << ") ";
 
     tpik::LevelSetJacobianColumn tLevelSetJacobianColumn;
     add_if_found(tLevelSetJacobianColumn, aParentNodeIds.front(), aSensitivities.front(), aDesignDomainBackgroundNodes);

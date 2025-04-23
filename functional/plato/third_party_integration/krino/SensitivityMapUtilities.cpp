@@ -119,7 +119,6 @@ namespace
     {
         for (const auto& tSubData : tGatheredData)
         {
-            std::cout << "tSubData size: " << tSubData.size() << std::endl;
             tConcatenatedData.insert(tConcatenatedData.end(), tSubData.begin(), tSubData.end());
         }
         std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
@@ -140,12 +139,6 @@ auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
 
     const auto tMergedSortedGlobalCutMeshIds = merge_on_all_ranks(tLocalCutMeshIdsFromMap);
 
-    std::cout << "CutMeshIds: ";
-    for (const auto& tId : tMergedSortedGlobalCutMeshIds)
-    {
-        std::cout << tId << ", ";
-    }
-    std::cout << std::endl;
     const auto tCommunicator = boost::mpi::communicator(
         reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
     constexpr int tRootRank = 0;
@@ -161,60 +154,6 @@ auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
 
 namespace detail
 {
-
-auto merge_sensitivity_maps(AppendMap aAppendMap, const OtherMap& aOtherMap) -> SensitivityMap
-{
-    auto tAppendMap = std::move(aAppendMap).mValue;
-    for (const auto& [tCutMeshId, tLevelSetJacobianColumn] : aOtherMap.mValue)
-    {
-        if (const auto tIterator = tAppendMap.find(tCutMeshId); tIterator != tAppendMap.end())
-        {
-            auto& tAppendLevelSetJacobian = tIterator->second;
-            AppendLevelSetJacobianColumn tAppend{tAppendLevelSetJacobian};
-            tAppendMap[tCutMeshId] =
-                merge_level_set_jacobian_columns(tAppend, OtherLevelSetJacobianColumn{tLevelSetJacobianColumn});
-        }
-        else
-        {
-            tAppendMap[tCutMeshId] = tLevelSetJacobianColumn;
-        }
-    }
-    return tAppendMap;
-}
-
-auto merge_level_set_jacobian_columns(AppendLevelSetJacobianColumn aAppendLevelSetJacobianColumn,
-                                      const OtherLevelSetJacobianColumn& aOtherLevelSetJacobianColumn)
-    -> LevelSetJacobianColumn
-{
-    if (aAppendLevelSetJacobianColumn.mValue.mBackgroundMeshNodeIDs.size() == 2)
-    {
-        return aAppendLevelSetJacobianColumn.mValue;
-    }
-
-    if (aOtherLevelSetJacobianColumn.mValue.mBackgroundMeshNodeIDs.size() == 2)
-    {
-        return aOtherLevelSetJacobianColumn.mValue;
-    }
-
-    auto tLevelSetJacobianColumn = std::move(aAppendLevelSetJacobianColumn).mValue;
-    if (tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.size() == 0 ||
-        tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.front() !=
-            aOtherLevelSetJacobianColumn.mValue.mBackgroundMeshNodeIDs.front())
-    {
-        tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.push_back(
-            aOtherLevelSetJacobianColumn.mValue.mBackgroundMeshNodeIDs.front());
-        tLevelSetJacobianColumn.mNodalSensitivities.push_back(
-            aOtherLevelSetJacobianColumn.mValue.mNodalSensitivities.front());
-        tLevelSetJacobianColumn.mDesignDomainLocalIndex.push_back(
-            aOtherLevelSetJacobianColumn.mValue.mDesignDomainLocalIndex.front());
-    }
-
-    if (tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.size() > 2)
-    {
-        std::cout << "larger than I thought..." << std::endl;
-    }
-    return tLevelSetJacobianColumn;
-}
 
 auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCutMeshNodeIDs)
     -> std::unordered_map<stk::mesh::EntityId, unsigned int>
