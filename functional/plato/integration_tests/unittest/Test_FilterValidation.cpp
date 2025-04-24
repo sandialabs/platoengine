@@ -6,7 +6,7 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
-#include "plato/process_manager/extension/SensitivityCheck.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -18,7 +18,7 @@ namespace
 {
 const auto kValidInputBase = geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
                              criteria::library::test_utilities::create_valid_example_objective_input() |
-                             process_manager::extension::create_valid_example_sensitivity_check_input();
+                             process_manager::extension::test_utilities::create_valid_example_sensitivity_check_input();
 
 struct FilterValidationTestFixture : public testing::Test
 {

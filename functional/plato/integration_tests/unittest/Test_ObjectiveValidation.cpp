@@ -4,14 +4,14 @@
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 
 namespace plato::integration_tests::unittest
 {
 TEST(ObjectiveValidation, ErrorMessagesInvalidObjective)
 {
     const auto tInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                            process_manager::extension::create_valid_example_rol_optimization_input();
+                            process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
     const auto tValidInput = tInputBase | criteria::library::test_utilities::create_valid_example_objective_input();
     EXPECT_TRUE(input_validation::make_validated_input(tValidInput).hasValue());
 

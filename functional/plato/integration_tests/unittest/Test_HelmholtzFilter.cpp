@@ -9,7 +9,7 @@
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -30,7 +30,7 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
     const auto tInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
                         filter::extension::test_utilities::create_valid_helmholtz_filter_input() |
                         criteria::library::test_utilities::create_valid_example_objective_input() |
-                        process_manager::extension::create_valid_example_rol_optimization_input();
+                        process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
 
     // make mesh for validation of density_topology
     const auto tMeshFileName =

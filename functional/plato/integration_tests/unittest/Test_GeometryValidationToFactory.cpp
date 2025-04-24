@@ -6,7 +6,7 @@
 #include "plato/geometry/library/GeometryFactory.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
@@ -16,7 +16,7 @@ TEST(GeometryFactory, ValidBrickShapeGeometry)
 {
     const auto tInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                         criteria::library::test_utilities::create_valid_example_objective_input() |
-                        process_manager::extension::create_valid_example_rol_optimization_input();
+                        process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
 
     const auto tData = input_validation::make_validated_input(tInput).value();
     EXPECT_NO_THROW([[maybe_unused]] const auto tUnused =
@@ -28,7 +28,7 @@ TEST(GeometryFactory, ValidTopology)
     const auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
     const auto tInput = tGeometryInput | criteria::library::test_utilities::create_valid_example_objective_input() |
                         filter::extension::test_utilities::create_valid_identity_filter_input() |
-                        process_manager::extension::create_valid_example_rol_optimization_input();
+                        process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
 
     const auto tMeshFileName = std::filesystem::path{tGeometryInput.mesh_name.value().mToken};
     const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{
@@ -45,8 +45,9 @@ TEST(GeometryFactory, ValidTopology)
 
 TEST(GeometryValidation, BrickShapeGeometry)
 {
-    const auto tValidInputBase = criteria::library::test_utilities::create_valid_example_objective_input() |
-                                 process_manager::extension::create_valid_example_rol_optimization_input();
+    const auto tValidInputBase =
+        criteria::library::test_utilities::create_valid_example_objective_input() |
+        process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
     const auto tValidInput =
         tValidInputBase | geometry::extension::test_utilities::create_valid_brick_shape_geometry_input();
     EXPECT_TRUE(input_validation::make_validated_input(tValidInput).hasValue());

@@ -8,6 +8,7 @@
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
 #include "plato/process_manager/extension/LogspaceGenerator.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
@@ -20,7 +21,7 @@ namespace
 const auto kBaseInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::test_utilities::create_valid_example_objective_input() |
                             criteria::library::test_utilities::create_valid_example_constraint_input() |
-                            create_valid_example_constraint_check_input();
+                            test_utilities::create_valid_example_constraint_check_input();
 }
 
 void validate_and_run_constraint_check(const input_parser::ParsedInput& aInputDeck)
@@ -39,7 +40,7 @@ void validate_and_run_constraint_check(const input_parser::ParsedInput& aInputDe
 
 TEST(ConstraintCheck, ValidateAndRunChecksForLinearConstraint)
 {
-    namespace ptu = test_utilities;
+    namespace ptu = plato::test_utilities;
 
     validate_and_run_constraint_check(kBaseInputDeck);
 
@@ -52,10 +53,9 @@ TEST(ConstraintCheck, ValidateAndRunChecksForLinearConstraint)
 
 TEST(ConstraintCheck, ValidateAndRunChecksForNonlinearConstraint)
 {
-    namespace ptu = test_utilities;
+    namespace ptu = plato::test_utilities;
 
-    const auto tCheckFunction =
-        [](const input_parser::constraint& aConstraint, const test_utilities::TestContext& aTestContext)
+    const auto tCheckFunction = [](const input_parser::constraint& aConstraint, const ptu::TestContext& aTestContext)
     {
         const auto tInputDeck = kBaseInputDeck | aConstraint;
 

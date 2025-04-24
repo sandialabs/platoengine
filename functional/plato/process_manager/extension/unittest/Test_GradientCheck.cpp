@@ -6,7 +6,7 @@
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/GradientCheck.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
@@ -27,7 +27,7 @@ template <typename BlockType>
 TEST(GradientCheck, CreateGradientCheckRun)
 {
     const auto tCheckGradientCheckRuns =
-        [](const input_parser::ParsedInput& aParsedInput, const test_utilities::TestContext& aTestContext)
+        [](const input_parser::ParsedInput& aParsedInput, const plato::test_utilities::TestContext& aTestContext)
     {
         const auto tValidatedInput = input_validation::make_validated_input(aParsedInput);
         ASSERT_TRUE(tValidatedInput.hasValue());
@@ -43,13 +43,13 @@ TEST(GradientCheck, CreateGradientCheckRun)
                                                 .mInput.get<input_parser::gradient_check>()
                                                 .output_file_name;
 
-        test_utilities::test_for_existence_and_remove({tGradientCheckFilePath.value().mToken},
-                                                      EXTEND_CONTEXT("Checking for file existence", aTestContext));
+        plato::test_utilities::test_for_existence_and_remove(
+            {tGradientCheckFilePath.value().mToken}, EXTEND_CONTEXT("Checking for file existence", aTestContext));
     };
 
     const auto tBaseInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::test_utilities::create_valid_example_objective_input() |
-                            create_valid_example_gradient_check_input();
+                            test_utilities::create_valid_example_gradient_check_input();
 
     {
         tCheckGradientCheckRuns(tBaseInput, TEST_CONTEXT("No constraints"));
@@ -66,7 +66,8 @@ TEST(GradientCheck, UnwrapValidatedGradientCheckInput)
 {
     const auto tInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::test_utilities::create_valid_example_objective_input() |
-                            create_valid_example_rol_optimization_input() | create_valid_example_gradient_check_input();
+                            test_utilities::create_valid_example_rol_optimization_input() |
+                            test_utilities::create_valid_example_gradient_check_input();
 
     const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);
     const auto tUnwrappedValidatedInput =

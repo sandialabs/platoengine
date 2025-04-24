@@ -10,7 +10,7 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 
 namespace plato::integration_tests::parallel
@@ -41,7 +41,7 @@ TEST(CriterionFactory, ValidObjective)
 
     const auto tInput = valid_mass_objective_input(tComm) |
                         geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                        process_manager::extension::create_valid_example_rol_optimization_input();
+                        process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
 
     const auto tData = input_validation::make_validated_input(tInput);
     ASSERT_TRUE(tData.hasValue());

@@ -3,7 +3,7 @@
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 
 namespace plato::integration_tests::unittest
 {
@@ -11,7 +11,7 @@ namespace
 {
 const auto kValidInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                              criteria::library::test_utilities::create_valid_example_objective_input() |
-                             process_manager::extension::create_valid_example_rol_optimization_input();
+                             process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
 }
 
 TEST(ConstraintValidation, ValidInput)

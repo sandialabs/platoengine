@@ -6,6 +6,7 @@
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/SensitivityCheck.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -16,7 +17,7 @@ TEST(SensitivityCheck, CreateSensitivityCheckRun)
 {
     const auto tInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::test_utilities::create_valid_example_objective_input() |
-                            create_valid_example_sensitivity_check_input();
+                            test_utilities::create_valid_example_sensitivity_check_input();
 
     const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);
     ASSERT_TRUE(tValidatedInput.hasValue());
@@ -33,8 +34,8 @@ TEST(SensitivityCheck, CreateSensitivityCheckRun)
                                                .mInput.get<input_parser::sensitivity_check>()
                                                .output_file_name;
 
-    test_utilities::test_for_existence_and_remove({tSensitivityCheckFilePath.value().mToken},
-                                                  TEST_CONTEXT("Sensitivity check file existence"));
+    plato::test_utilities::test_for_existence_and_remove({tSensitivityCheckFilePath.value().mToken},
+                                                         TEST_CONTEXT("Sensitivity check file existence"));
 }
 
 TEST(SensitivityCheck, Registration)

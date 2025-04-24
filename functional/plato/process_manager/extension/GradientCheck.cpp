@@ -74,15 +74,6 @@ void GradientCheck::run(const library::ProcessManagerData& aProblem) const
                               tPrintOutput, tOutFile);
 }
 
-auto create_valid_example_gradient_check_input() -> input_parser::gradient_check
-{
-    return input_parser::gradient_check{/*.output_file_name=*/input_parser::FileName{"gradient_check.txt"},
-                                        /*.number_of_steps=*/12,
-                                        /*.initial_direction_magnitude=*/0.5,
-                                        /*.step_size_reduction_factor = */ 0.5,
-                                        /*.random_direction_seed = */ 42};
-}
-
 namespace detail
 {
 auto validate_output_file_name(const input_parser::gradient_check& aInput) -> std::optional<std::string>

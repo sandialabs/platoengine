@@ -53,9 +53,6 @@ class ConstraintCheck
     unsigned int mRandomDirectionSeed = 123;
 };
 
-/// @brief Creates a valid example ConstraintCheck input struct, useful for testing.
-[[nodiscard]] auto create_valid_example_constraint_check_input() -> input_parser::constraint_check;
-
 namespace detail
 {
 [[nodiscard]] auto validate_linearity_check_output_file_name(const input_parser::constraint_check& aInput)

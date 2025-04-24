@@ -7,6 +7,7 @@
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
 #include "plato/process_manager/extension/GradientCheck.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/InputValidation.hpp"
 
 namespace plato::process_manager::extension::unittest
@@ -24,9 +25,10 @@ void create_file(const std::filesystem::path& aPath)
 TEST(ValidateCommonInput, ValidateMaxIterations)
 {
     constexpr bool tEmptyParameterGold = false;
-    test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct(
+    plato::test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct(
         [](const input_parser::rol_optimization& aInput) { return detail::validate_max_iterations(aInput); },
-        create_valid_example_rol_optimization_input(), tEmptyParameterGold, TEST_CONTEXT("ValidateMaxIterations"));
+        test_utilities::create_valid_example_rol_optimization_input(), tEmptyParameterGold,
+        TEST_CONTEXT("ValidateMaxIterations"));
 }
 
 TEST(ValidateCommonInput, ValidateNumberOfSteps)

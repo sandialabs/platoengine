@@ -12,8 +12,7 @@
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
-#include "plato/process_manager/extension/ConstraintCheck.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
@@ -117,7 +116,8 @@ auto create_test_mass_app_input(const input_parser::AppName& aMassAppName,
     const auto tObjective = create_mass_objective(aMassAppName, aCriterionName, aNumProcessors);
 
     const auto tInput = tObjective | geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                        process_manager::extension::create_valid_example_rol_optimization_input();
+                        process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
+
     return input_validation::make_validated_input(tInput).value();
 }
 
@@ -141,8 +141,8 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
             aMeshName);
 
     const auto tInput = tGeometryAndFilterInput | tObjective | tConstraint |
-                        process_manager::extension::create_valid_example_rol_optimization_input() |
-                        process_manager::extension::create_valid_example_constraint_check_input();
+                        process_manager::extension::test_utilities::create_valid_example_rol_optimization_input() |
+                        process_manager::extension::test_utilities::create_valid_example_constraint_check_input();
     return input_validation::make_validated_input(tInput).value();
 }
 

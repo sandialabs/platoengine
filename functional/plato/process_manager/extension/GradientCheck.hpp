@@ -49,9 +49,6 @@ class GradientCheck
     unsigned int mRandomDirectionSeed = 42;
 };
 
-/// @brief Creates a valid example GradientCheck input struct, useful for testing.
-[[nodiscard]] auto create_valid_example_gradient_check_input() -> input_parser::gradient_check;
-
 namespace detail
 {
 [[nodiscard]] auto validate_output_file_name(const input_parser::gradient_check& aInput) -> std::optional<std::string>;

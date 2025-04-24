@@ -14,12 +14,15 @@ endif()
 create_plato_library(PlatoFunctionalProcessManager "${DIRECTORIES}" "${LINK_LIBS}")
 
 if( UNIT_TESTING )
+  create_plato_library(PlatoFunctionalProcessManagerTestUtilities "extension/test_utilities" PlatoFunctionalProcessManager)
+
   # Build unit tester
   set(DIRECTORIES library/unittest extension/unittest)
   if (SNOPT_ENABLED)
     list(APPEND DIRECTORIES extension/snopt/unittest)
   endif()
   set(LINK_LIBS PlatoFunctionalGeometryTestUtilities 
-                PlatoFunctionalCriteriaTestUtilities )
+                PlatoFunctionalCriteriaTestUtilities
+                PlatoFunctionalProcessManagerTestUtilities )
   create_plato_unittester(PlatoFunctionalProcessManager "${DIRECTORIES}" "${LINK_LIBS}")
 endif()

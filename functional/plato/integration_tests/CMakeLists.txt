@@ -10,7 +10,8 @@ set(LINK_LIBS PlatoFunctionalLinearAlgebra
               PlatoFunctionalCore
               PlatoFunctionalTestUtilities
               PlatoFunctionalFilterTestUtilities
-              PlatoFunctionalCriteriaTestUtilities )
+              PlatoFunctionalCriteriaTestUtilities
+              PlatoFunctionalProcessManagerTestUtilities )
 create_plato_library(PlatoFunctionalIntegrationTestUtilities utilities "${LINK_LIBS}")
 
 # Build serial unit tester

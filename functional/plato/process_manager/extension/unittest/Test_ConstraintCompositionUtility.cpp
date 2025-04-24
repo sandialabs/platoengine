@@ -6,7 +6,7 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 
 namespace plato::process_manager::extension::unittest
@@ -21,7 +21,7 @@ namespace
 {
     const auto tInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::test_utilities::create_valid_example_objective_input() |
-                            process_manager::extension::create_valid_example_rol_optimization_input() |
+                            process_manager::extension::test_utilities::create_valid_example_rol_optimization_input() |
                             criteria::library::test_utilities::create_valid_example_constraint_input();
     const auto tValidatedInput = input_validation::make_validated_input(tInputDeck).value();
     const auto tProcessManagerData = library::make_process_manager_data(tValidatedInput);

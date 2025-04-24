@@ -62,11 +62,6 @@ void SensitivityCheck::run(const library::ProcessManagerData& aProblem) const
                                          tPrintOutput, tOutFile);
 }
 
-auto create_valid_example_sensitivity_check_input() -> input_parser::sensitivity_check
-{
-    return input_parser::sensitivity_check{/*.output_file_name=*/input_parser::FileName{"sensitivity_check.txt"}};
-}
-
 namespace detail
 {
 auto validate_output_file_name(const input_parser::sensitivity_check& aInput) -> std::optional<std::string>

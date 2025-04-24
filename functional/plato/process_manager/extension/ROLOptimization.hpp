@@ -49,9 +49,6 @@ class ROLOptimization
     boost::mpi::communicator mCommunicator{};
 };
 
-/// @brief Creates a valid example ROLOptimization input struct, useful for testing.
-[[nodiscard]] auto create_valid_example_rol_optimization_input() -> input_parser::rol_optimization;
-
 namespace detail
 {
 [[nodiscard]] auto validate_rol_max_iterations(const input_parser::rol_optimization& aInput)

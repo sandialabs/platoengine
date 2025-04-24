@@ -5,6 +5,7 @@
 
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::process_manager::extension::unittest
@@ -32,7 +33,7 @@ template <typename ValidationFunction>
 void test_optional_generic_tolerance(input_parser::rol_optimization& aOptimizationParameters,
                                      boost::optional<double>& aField,
                                      const ValidationFunction& aValidationFunction,
-                                     const test_utilities::TestContext& aTestContext)
+                                     const plato::test_utilities::TestContext& aTestContext)
 {
     aField = boost::none;
     EXPECT_FALSE(aValidationFunction(aOptimizationParameters).has_value()) << aTestContext;
@@ -106,7 +107,7 @@ TEST(ROLOptimizerValidation, ValidateUniqueOutputName)
 
 TEST(ROLOptimizerValidation, ErrorMessagesValidOptimizationParameters)
 {
-    const auto tOptimizationParameters = create_valid_example_rol_optimization_input();
+    const auto tOptimizationParameters = test_utilities::create_valid_example_rol_optimization_input();
 
     const auto tMessages = input_validation::validate(tOptimizationParameters, std::vector<std::string>{});
     EXPECT_EQ(tMessages.size(), 0U);
@@ -114,7 +115,7 @@ TEST(ROLOptimizerValidation, ErrorMessagesValidOptimizationParameters)
 
 TEST(ROLOptimizerValidation, ErrorMessagesInvalidOptimizationParameters)
 {
-    auto tOptimizationParameters = create_valid_example_rol_optimization_input();
+    auto tOptimizationParameters = test_utilities::create_valid_example_rol_optimization_input();
     tOptimizationParameters.gradient_tolerance = -1;
     tOptimizationParameters.max_iterations = 0;
     tOptimizationParameters.step_tolerance = boost::none;

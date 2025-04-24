@@ -4,7 +4,7 @@
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 
 namespace plato::integration_tests::utilities
 {
@@ -26,7 +26,7 @@ auto create_valid_example_input() -> input_parser::ParsedInput
            filter::extension::test_utilities::create_valid_identity_filter_input() |
            criteria::library::test_utilities::create_valid_example_constraint_input() |
            criteria::library::test_utilities::create_valid_example_objective_input() |
-           process_manager::extension::create_valid_example_rol_optimization_input();
+           process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
 }
 
 auto create_valid_density_topology_geometry_with_element_centered_kernel_filter_input(

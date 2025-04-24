@@ -45,9 +45,6 @@ class SensitivityCheck
     std::filesystem::path mOutputFileName;
 };
 
-/// @brief Creates an valid example struct useful for testing.
-[[nodiscard]] auto create_valid_example_sensitivity_check_input() -> input_parser::sensitivity_check;
-
 namespace detail
 {
 [[nodiscard]] auto validate_output_file_name(const input_parser::sensitivity_check& aInput)

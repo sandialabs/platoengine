@@ -6,7 +6,7 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::integration_tests::unittest
@@ -37,7 +37,7 @@ TEST(GeometryValidation, ValidateEmptyFilterAndDensityTopologyInput)
 
     auto tInput = tGeometryInput | tFilterInput |
                   criteria::library::test_utilities::create_valid_example_objective_input() |
-                  process_manager::extension::create_valid_example_rol_optimization_input();
+                  process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
 
     EXPECT_TRUE(input_validation::make_validated_input(tInput).hasError());
 }
@@ -48,7 +48,7 @@ TEST(GeometryValidation, ValidateNoCrossLinkedFilter)
     // The expected filter input block is missing, which should be caught in validation.
     const auto tInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
                         criteria::library::test_utilities::create_valid_example_objective_input() |
-                        process_manager::extension::create_valid_example_rol_optimization_input();
+                        process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
 
     EXPECT_TRUE(input_validation::make_validated_input(tInput).hasError());
 }

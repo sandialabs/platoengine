@@ -71,19 +71,6 @@ void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData
     tObjective->finalUpdate(third_party_integration::rol::to_dynamic_vector(*tROLControls));
 }
 
-auto create_valid_example_rol_optimization_input() -> input_parser::rol_optimization
-{
-    return input_parser::rol_optimization{/*.input_file_name=*/boost::none,
-                                          /*.export_settings_file_name=*/input_parser::FileName{"output_rol.xml"},
-                                          /*.max_iterations =  */ 42,
-                                          /*.step_tolerance = */ 1e-7,
-                                          /*.gradient_tolerance = */ 1e-5,
-                                          /*.initial_search_radius = */ 15,
-                                          /*.verbose_output = */ false,
-                                          /*.approximate_hessian = */ false,
-                                          /*.output_design_history = */ false};
-}
-
 namespace detail
 {
 auto validate_rol_max_iterations(const input_parser::rol_optimization& aInput) -> std::optional<std::string>

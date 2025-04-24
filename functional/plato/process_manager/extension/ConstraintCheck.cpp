@@ -111,19 +111,6 @@ void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData
     }
 }
 
-auto create_valid_example_constraint_check_input() -> input_parser::constraint_check
-{
-    return input_parser::constraint_check{
-        /*.linearity_check_output_file_name=*/input_parser::FileName{"constraint_linearity_check.txt"},
-        /*.jacobian_check_output_file_name=*/input_parser::FileName{"constraint_jacobian_check.txt"},
-        /*.jacobian_adjoint_consistency_output_file_name=*/
-        input_parser::FileName{"constraint_jacobian_adjoint_consistency_check.txt"},
-        /*.number_of_steps*/ 10u,
-        /*.initial_direction_magnitude*/ 1.0,
-        /*.step_size_reduction_factor*/ 0.1,
-        /*.random_direction_seed*/ 123};
-}
-
 namespace detail
 {
 auto validate_linearity_check_output_file_name(const input_parser::constraint_check& aInput)

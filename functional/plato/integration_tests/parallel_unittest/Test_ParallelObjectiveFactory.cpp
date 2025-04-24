@@ -13,7 +13,7 @@
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
-#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -75,7 +75,7 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
                                                     /*.aggregation_weight=*/1.0};
 
     auto tInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                  process_manager::extension::create_valid_example_rol_optimization_input();
+                  process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
     for ([[maybe_unused]] const auto tIndex : plato::utilities::IndexRange{aNumGroups})
     {
         tInput = tInput | tObjective;

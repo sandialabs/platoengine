@@ -14,7 +14,7 @@ create_plato_interface(PlatoCriteriaInterface library/CriterionInterface.hpp  Pl
 if( UNIT_TESTING )
   # Build test utilities lib
   set(DIRECTORIES library/test_utilities)
-  create_plato_library(PlatoFunctionalCriteriaTestUtilities "${DIRECTORIES}" "")
+  create_plato_library(PlatoFunctionalCriteriaTestUtilities "${DIRECTORIES}" PlatoFunctionalCriteria)
 
   set(DIRECTORIES library/unittest
                   extension/unittest)
