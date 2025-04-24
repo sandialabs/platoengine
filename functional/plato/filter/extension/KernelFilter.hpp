@@ -69,9 +69,6 @@ class KernelFilter : public library::FilterInterface
 };
 // CPD-ON
 
-/// @brief Creates a valid example KernelFilter input struct, useful for testing.
-[[nodiscard]] auto create_valid_kernel_filter_input() -> input_parser::kernel_filter;
-
 namespace detail
 {
 [[nodiscard]] auto validate_kernel_filter_centering_type(const input_parser::kernel_filter& aInput)

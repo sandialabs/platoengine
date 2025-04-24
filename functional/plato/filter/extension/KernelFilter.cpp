@@ -99,14 +99,6 @@ auto KernelFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainM
     return linear_algebra::DynamicVector<double>{mLinearMask.matrixMultiply(aV.stdVector())};
 }
 
-auto create_valid_kernel_filter_input() -> input_parser::kernel_filter
-{
-    return input_parser::kernel_filter{/*.filter_radius=*/17.0,
-                                       /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kNodeCentered,
-                                       /*.use_relative_radius=*/boost::none,
-                                       /*.number_of_processors*/ 1};
-}
-
 namespace detail
 {
 auto validate_kernel_filter_centering_type(const input_parser::kernel_filter& aInput) -> std::optional<std::string>

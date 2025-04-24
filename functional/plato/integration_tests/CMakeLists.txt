@@ -8,7 +8,8 @@ create_plato_library(PlatoTestMassCriteria test_mass_criteria "${LINK_LIBS}")
 
 set(LINK_LIBS PlatoFunctionalLinearAlgebra
               PlatoFunctionalCore
-              PlatoFunctionalTestUtilities)
+              PlatoFunctionalTestUtilities
+              PlatoFunctionalFilterTestUtilities )
 create_plato_library(PlatoFunctionalIntegrationTestUtilities utilities "${LINK_LIBS}")
 
 # Build serial unit tester
@@ -18,7 +19,8 @@ set(LINK_LIBS PlatoFunctionalTpetra
               PlatoFunctionalSTKIOTestUtilities
               PlatoFunctional
               PlatoFunctionalIntegrationTestUtilities
-              PlatoFunctionalGeometryTestUtilities )
+              PlatoFunctionalGeometryTestUtilities
+              PlatoFunctionalFilterTestUtilities )
 set(USE_FOLDERS unittest)
 create_plato_integration_tester(PlatoFunctional_IntegrationUnitTester "${USE_FOLDERS}" "${LINK_LIBS}")
 

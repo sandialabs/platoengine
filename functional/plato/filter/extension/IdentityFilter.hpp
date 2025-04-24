@@ -40,9 +40,6 @@ class IdentityFilter : public library::FilterInterface
 };
 // CPD-ON
 
-/// @brief Generates a input struct for IdentityFilter, useful for tests.
-[[nodiscard]] auto create_valid_identity_filter_input() -> input_parser::identity_filter;
-
 [[nodiscard]] auto make_identity_filter_function() -> library::FilterFunction;
 
 [[nodiscard]] auto validate_identity_filter(const input_parser::identity_filter& aInput) -> std::optional<std::string>;

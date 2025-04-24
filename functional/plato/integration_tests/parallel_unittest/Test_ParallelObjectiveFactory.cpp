@@ -6,7 +6,7 @@
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/filter/extension/IdentityFilter.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"

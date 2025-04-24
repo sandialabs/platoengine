@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/filter/extension/HelmholtzFilter.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
@@ -28,7 +28,7 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
     // or not the PA shared library is available. This checks if we can load it,
     // and if not, checks that we get the right exception type.
     const auto tInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
-                        filter::extension::create_valid_helmholtz_filter_input() |
+                        filter::extension::test_utilities::create_valid_helmholtz_filter_input() |
                         criteria::library::create_valid_example_objective_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
 

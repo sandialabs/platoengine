@@ -1,9 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/filter/extension/HelmholtzFilter.hpp"
-#include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
@@ -33,7 +31,7 @@ TEST(GeometryValidation, ValidateEmptyFilterAndDensityTopologyInput)
     auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
     tGeometryInput.mesh_name = boost::none;
     tGeometryInput.output_name = boost::none;
-    auto tFilterInput = filter::extension::create_valid_kernel_filter_input();
+    auto tFilterInput = filter::extension::test_utilities::create_valid_kernel_filter_input();
     tFilterInput.filter_radius = boost::none;
     tFilterInput.centering_type = boost::none;
 
@@ -57,7 +55,7 @@ TEST(GeometryValidation, ValidateNoCrossLinkedFilter)
 TEST(GeometryValidation, LinksDensityTopologyToOnlyFilter)
 {
     const auto tInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
-                        filter::extension::create_valid_helmholtz_filter_input();
+                        filter::extension::test_utilities::create_valid_helmholtz_filter_input();
     ASSERT_FALSE(tInput.get<input_parser::density_topology>().front().filter);
 
     const auto tCrossLinkedInput = input_parser::make_cross_linked_input(tInput);
@@ -71,8 +69,9 @@ TEST(GeometryValidation, LinksDensityTopologyToSpecifiedFilter)
     tDensityTopologyInput.filter =
         input_parser::CrossReference<input_parser::ComponentType::kFilter>{"helmholtz_filter", {}};
 
-    const auto tInput = tDensityTopologyInput | filter::extension::create_valid_helmholtz_filter_input() |
-                        filter::extension::create_valid_identity_filter_input();
+    const auto tInput = tDensityTopologyInput |
+                        filter::extension::test_utilities::create_valid_helmholtz_filter_input() |
+                        filter::extension::test_utilities::create_valid_identity_filter_input();
 
     const auto tCrossLinkedInput = input_parser::make_cross_linked_input(tInput);
     ASSERT_TRUE(tCrossLinkedInput.hasValue()) << tCrossLinkedInput.error();

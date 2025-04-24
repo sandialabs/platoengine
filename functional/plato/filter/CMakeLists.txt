@@ -19,7 +19,9 @@ create_plato_interface(PlatoFilterInterface library/FilterInterface.hpp "")
 
 if( UNIT_TESTING )
   # Build test utilities lib
-  create_plato_library(PlatoFunctionalFilterTestUtilities test_utilities PlatoFunctionalFilter)
+  set(FOLDERS test_utilities
+              extension/test_utilities)
+  create_plato_library(PlatoFunctionalFilterTestUtilities "${FOLDERS}" PlatoFunctionalFilter)
 
   # Build test filter shared libs
   create_plato_library(PlatoIdentityFilter test_identity_filter PlatoFunctionalFilter)
@@ -27,8 +29,7 @@ if( UNIT_TESTING )
 
   # Build unit tester
   set(FOLDERS library/unittest
-              extension/unittest
-              extension/test_utilities)
+              extension/unittest)
   create_plato_unittester(PlatoFunctionalFilter "${FOLDERS}" PlatoFunctionalFilterTestUtilities)
 
   set(DIRECTORIES extension/parallel_unittest

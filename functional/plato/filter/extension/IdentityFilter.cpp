@@ -52,11 +52,6 @@ auto IdentityFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomai
     return rowVectorTimesJacobian(aAnalysisDomainMesh, aV);
 }
 
-auto create_valid_identity_filter_input() -> input_parser::identity_filter
-{
-    return input_parser::identity_filter{/*.filter_radius = */ boost::none};
-}
-
 auto make_identity_filter_function() -> library::FilterFunction
 {
     return library::FilterFunction{

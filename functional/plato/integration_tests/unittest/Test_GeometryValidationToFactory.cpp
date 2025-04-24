@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/filter/extension/IdentityFilter.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryFactory.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
@@ -27,7 +27,7 @@ TEST(GeometryFactory, ValidTopology)
 {
     const auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
     const auto tInput = tGeometryInput | criteria::library::create_valid_example_objective_input() |
-                        filter::extension::create_valid_identity_filter_input() |
+                        filter::extension::test_utilities::create_valid_identity_filter_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
 
     const auto tMeshFileName = std::filesystem::path{tGeometryInput.mesh_name.value().mToken};

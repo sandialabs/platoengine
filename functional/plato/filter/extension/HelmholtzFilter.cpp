@@ -52,13 +52,6 @@ library::FilterParameters to_filter_parameters(const input_parser::helmholtz_fil
         { return detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};
 }  // namespace
 
-auto create_valid_helmholtz_filter_input() -> input_parser::helmholtz_filter
-{
-    return input_parser::helmholtz_filter{/*.filter_radius=*/91.0,
-                                          /*.use_relative_radius=*/boost::none,
-                                          /*.boundary_sticking_penalty=*/1.0};
-}
-
 auto validate_helmholtz_filter_boundary_sticking_penalty(const input_parser::helmholtz_filter& aInput)
     -> std::optional<std::string>
 {

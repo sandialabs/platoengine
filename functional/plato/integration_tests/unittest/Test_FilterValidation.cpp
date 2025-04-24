@@ -1,9 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/filter/extension/HelmholtzFilter.hpp"
-#include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
@@ -52,47 +50,47 @@ void check_filter_validation(const FilterInput& aBadFilter, const test_utilities
 
 TEST_F(FilterValidationTestFixture, ValidIdentityFilter)
 {
-    const auto tInput = kValidInputBase | filter::extension::create_valid_identity_filter_input();
+    const auto tInput = kValidInputBase | filter::extension::test_utilities::create_valid_identity_filter_input();
     const auto tValidatedInput = input_validation::make_validated_input(tInput);
     EXPECT_TRUE(tValidatedInput.hasValue()) << tValidatedInput.error();
 }
 
 TEST_F(FilterValidationTestFixture, CheckNoFilterRadiusIdentity)
 {
-    auto tIdentityFilter = filter::extension::create_valid_identity_filter_input();
+    auto tIdentityFilter = filter::extension::test_utilities::create_valid_identity_filter_input();
     tIdentityFilter.filter_radius = 1;  // make invalid
     check_filter_validation(tIdentityFilter, TEST_CONTEXT("Bad identity filter"));
 }
 
 TEST_F(FilterValidationTestFixture, ValidHelmholtzFilter)
 {
-    const auto tInput = kValidInputBase | filter::extension::create_valid_helmholtz_filter_input();
+    const auto tInput = kValidInputBase | filter::extension::test_utilities::create_valid_helmholtz_filter_input();
     EXPECT_TRUE(input_validation::make_validated_input(tInput).hasValue());
 }
 
 TEST_F(FilterValidationTestFixture, CheckFilterValuesHelmholtzRadiusBounds)
 {
-    auto tHelmholtzFilter = filter::extension::create_valid_helmholtz_filter_input();
+    auto tHelmholtzFilter = filter::extension::test_utilities::create_valid_helmholtz_filter_input();
     tHelmholtzFilter.filter_radius = -1;
     check_filter_validation(tHelmholtzFilter, TEST_CONTEXT("Helmholtz radius bounds"));
 }
 
 TEST_F(FilterValidationTestFixture, CheckFilterValuesHelmholtzBoundaryStickingPenalty)
 {
-    auto tHelmholtzFilter = filter::extension::create_valid_helmholtz_filter_input();
+    auto tHelmholtzFilter = filter::extension::test_utilities::create_valid_helmholtz_filter_input();
     tHelmholtzFilter.boundary_sticking_penalty = -1;
     check_filter_validation(tHelmholtzFilter, TEST_CONTEXT("Helmholtz sticking penalty"));
 }
 
 TEST_F(FilterValidationTestFixture, ValidKernelFilter)
 {
-    const auto tInput = kValidInputBase | filter::extension::create_valid_kernel_filter_input();
+    const auto tInput = kValidInputBase | filter::extension::test_utilities::create_valid_kernel_filter_input();
     EXPECT_TRUE(input_validation::make_validated_input(tInput).hasValue());
 }
 
 TEST_F(FilterValidationTestFixture, CheckFilterValuesKernelRadiusBounds)
 {
-    auto tFilter = filter::extension::create_valid_kernel_filter_input();
+    auto tFilter = filter::extension::test_utilities::create_valid_kernel_filter_input();
     tFilter.filter_radius = -0.1;
 
     check_filter_validation(tFilter, TEST_CONTEXT("Kernel filter radius bounds"));
@@ -100,14 +98,14 @@ TEST_F(FilterValidationTestFixture, CheckFilterValuesKernelRadiusBounds)
 
 TEST_F(FilterValidationTestFixture, CheckFilterValuesKernelCenteringType)
 {
-    auto tFilter = filter::extension::create_valid_kernel_filter_input();
+    auto tFilter = filter::extension::test_utilities::create_valid_kernel_filter_input();
     tFilter.centering_type = boost::none;
     check_filter_validation(tFilter, TEST_CONTEXT("Kernel filter centering type"));
 }
 
 TEST_F(FilterValidationTestFixture, CheckFilterValuesHelmholtzRadiusWithMesh)
 {
-    auto tHelmholtzFilter = filter::extension::create_valid_helmholtz_filter_input();
+    auto tHelmholtzFilter = filter::extension::test_utilities::create_valid_helmholtz_filter_input();
     tHelmholtzFilter.filter_radius = 0.5;
 
     check_filter_validation(tHelmholtzFilter, TEST_CONTEXT("Filter radius too small"));

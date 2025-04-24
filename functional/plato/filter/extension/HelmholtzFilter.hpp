@@ -19,9 +19,6 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 
 namespace plato::filter::extension
 {
-/// @brief Creates a valid example input struct for a HelmholtzFilter, useful for testing.
-[[nodiscard]] auto create_valid_helmholtz_filter_input() -> input_parser::helmholtz_filter;
-
 /// @brief Checks that the boundary_sticking_penalty in @a aInput contains a valid value.
 [[nodiscard]] auto validate_helmholtz_filter_boundary_sticking_penalty(const input_parser::helmholtz_filter& aInput)
     -> std::optional<std::string>;

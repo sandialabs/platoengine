@@ -2,8 +2,7 @@
 
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
@@ -25,7 +24,7 @@ namespace
 auto create_valid_example_input() -> input_parser::ParsedInput
 {
     return geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
-           filter::extension::create_valid_identity_filter_input() |
+           filter::extension::test_utilities::create_valid_identity_filter_input() |
            criteria::library::create_valid_example_constraint_input() |
            criteria::library::create_valid_example_objective_input() |
            process_manager::extension::create_valid_example_rol_optimization_input();
