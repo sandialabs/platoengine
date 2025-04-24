@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/ConstraintInputBlock.hpp"
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
@@ -11,27 +10,29 @@ namespace plato::integration_tests::unittest
 namespace
 {
 const auto kValidInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                             criteria::library::create_valid_example_objective_input() |
+                             criteria::library::test_utilities::create_valid_example_objective_input() |
                              process_manager::extension::create_valid_example_rol_optimization_input();
 }
 
 TEST(ConstraintValidation, ValidInput)
 {
-    const auto tValidInput = kValidInputBase | criteria::library::create_valid_example_constraint_input();
+    const auto tValidInput =
+        kValidInputBase | criteria::library::test_utilities::create_valid_example_constraint_input();
     const auto tValidatedInput = input_validation::make_validated_input(tValidInput);
     EXPECT_TRUE(tValidatedInput.hasValue()) << tValidatedInput.error();
 }
 
 TEST(ConstraintValidation, NoErrorMessagesTwoValidConstraints)
 {
-    const auto tValidInput = kValidInputBase | criteria::library::create_valid_example_constraint_input() |
-                             criteria::library::create_valid_example_constraint_input();
+    const auto tValidInput = kValidInputBase |
+                             criteria::library::test_utilities::create_valid_example_constraint_input() |
+                             criteria::library::test_utilities::create_valid_example_constraint_input();
     EXPECT_TRUE(input_validation::make_validated_input(tValidInput).hasValue());
 }
 
 TEST(ConstraintValidation, ErrorMessagesInvalidConstraint)
 {
-    auto tConstraint = criteria::library::create_valid_example_constraint_input();
+    auto tConstraint = criteria::library::test_utilities::create_valid_example_constraint_input();
     tConstraint.app = boost::none;
     tConstraint.criterion = boost::none;
     const auto tInvalidInput = kValidInputBase | tConstraint;

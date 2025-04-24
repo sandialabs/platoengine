@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
@@ -17,7 +17,7 @@ namespace plato::integration_tests::unittest
 namespace
 {
 const auto kValidInputBase = geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
-                             criteria::library::create_valid_example_objective_input() |
+                             criteria::library::test_utilities::create_valid_example_objective_input() |
                              process_manager::extension::create_valid_example_sensitivity_check_input();
 
 struct FilterValidationTestFixture : public testing::Test

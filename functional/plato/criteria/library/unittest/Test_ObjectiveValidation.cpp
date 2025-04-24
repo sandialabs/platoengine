@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/CriterionValidation.hpp"
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveValidation.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 
@@ -10,7 +10,7 @@ namespace plato::criteria::library::unittest
 {
 TEST(ObjectiveValidation, ParallelObjectives)
 {
-    auto tInput = std::vector{create_valid_example_objective_input()};
+    auto tInput = std::vector{test_utilities::create_valid_example_objective_input()};
     {
         // Check example, which sets number_of_processors to 1
         EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 1u);
@@ -30,7 +30,7 @@ TEST(ObjectiveValidation, ParallelObjectives)
     }
     {
         // Add another objective with 1 processor
-        tInput.push_back(create_valid_example_objective_input());
+        tInput.push_back(test_utilities::create_valid_example_objective_input());
         EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 43u);
         EXPECT_TRUE(criteria::library::has_parallel_objective(tInput));
     }

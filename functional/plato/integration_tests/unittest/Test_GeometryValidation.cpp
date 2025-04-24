@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
@@ -35,7 +35,8 @@ TEST(GeometryValidation, ValidateEmptyFilterAndDensityTopologyInput)
     tFilterInput.filter_radius = boost::none;
     tFilterInput.centering_type = boost::none;
 
-    auto tInput = tGeometryInput | tFilterInput | criteria::library::create_valid_example_objective_input() |
+    auto tInput = tGeometryInput | tFilterInput |
+                  criteria::library::test_utilities::create_valid_example_objective_input() |
                   process_manager::extension::create_valid_example_rol_optimization_input();
 
     EXPECT_TRUE(input_validation::make_validated_input(tInput).hasError());
@@ -46,7 +47,7 @@ TEST(GeometryValidation, ValidateNoCrossLinkedFilter)
     // This configuration was found to throw an unchecked optional access exception.
     // The expected filter input block is missing, which should be caught in validation.
     const auto tInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
-                        criteria::library::create_valid_example_objective_input() |
+                        criteria::library::test_utilities::create_valid_example_objective_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
 
     EXPECT_TRUE(input_validation::make_validated_input(tInput).hasError());

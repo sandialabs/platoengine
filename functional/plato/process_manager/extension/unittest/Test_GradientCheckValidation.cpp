@@ -1,12 +1,11 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/GradientCheck.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::process_manager::extension::unittest
@@ -37,7 +36,7 @@ TEST(ValidateGradientCheck, ErrorMessagesInvalidGradientCheck)
 
 TEST(ValidateGradientCheck, RandomDirectionSeedViaRegistration)
 {
-    const auto tValidInputBase = criteria::library::create_valid_example_objective_input() |
+    const auto tValidInputBase = criteria::library::test_utilities::create_valid_example_objective_input() |
                                  geometry::extension::test_utilities::create_valid_brick_shape_geometry_input();
 
     const auto tValidInput = tValidInputBase | process_manager::extension::create_valid_example_gradient_check_input();

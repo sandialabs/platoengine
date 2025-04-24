@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ConstraintAdapter.hpp"
-#include "plato/criteria/library/ConstraintInputBlock.hpp"
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -21,9 +20,9 @@ namespace
                  plato::criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>>
 {
     const auto tInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                            criteria::library::create_valid_example_objective_input() |
+                            criteria::library::test_utilities::create_valid_example_objective_input() |
                             process_manager::extension::create_valid_example_rol_optimization_input() |
-                            criteria::library::create_valid_example_constraint_input();
+                            criteria::library::test_utilities::create_valid_example_constraint_input();
     const auto tValidatedInput = input_validation::make_validated_input(tInputDeck).value();
     const auto tProcessManagerData = library::make_process_manager_data(tValidatedInput);
     const auto tMeshDesignConstraint = tProcessManagerData.mConstraints.front();

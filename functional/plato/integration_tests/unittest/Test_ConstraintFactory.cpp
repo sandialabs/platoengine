@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ConstraintFactory.hpp"
-#include "plato/criteria/library/ConstraintInputBlock.hpp"
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
@@ -43,7 +42,7 @@ TEST_F(ConstraintFactoryTestFixture, ValidEqualityConstraint)
 {
     auto tInputBase = parsedInput();
     tInputBase.template get<input_parser::ComponentType::kConstraint>().clear();
-    const auto tRawInput = tInputBase | criteria::library::create_valid_example_constraint_input();
+    const auto tRawInput = tInputBase | criteria::library::test_utilities::create_valid_example_constraint_input();
 
     test_constraint_type_and_value(get_first_constraint(tRawInput), 0.0, criteria::library::ConstraintType::kEqualTo,
                                    TEST_CONTEXT("Equality constraint"));
@@ -55,7 +54,7 @@ TEST_F(ConstraintFactoryTestFixture, ValidInequalityConstraint)
     tInputBase.template get<input_parser::ComponentType::kConstraint>().clear();
     {
         constexpr auto tConstraintValue = 1.0;
-        auto tConstraintInput = criteria::library::create_valid_example_constraint_input();
+        auto tConstraintInput = criteria::library::test_utilities::create_valid_example_constraint_input();
         tConstraintInput.constraint_type = input_parser::ConstraintTypes::kLessThan;
         tConstraintInput.constraint_value = tConstraintValue;
         auto tRawInput = tInputBase | tConstraintInput;
@@ -64,7 +63,7 @@ TEST_F(ConstraintFactoryTestFixture, ValidInequalityConstraint)
     }
     {
         constexpr auto tConstraintValue = 2.0;
-        auto tConstraintInput = criteria::library::create_valid_example_constraint_input();
+        auto tConstraintInput = criteria::library::test_utilities::create_valid_example_constraint_input();
         tConstraintInput.constraint_type = input_parser::ConstraintTypes::kGreaterThan;
         tConstraintInput.constraint_value = tConstraintValue;
         auto tRawInput = tInputBase | tConstraintInput;

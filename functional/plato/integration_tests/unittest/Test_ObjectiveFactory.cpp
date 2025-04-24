@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ObjectiveFactory.hpp"
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/CheckProcessorsMatchObjectives.hpp"
@@ -98,7 +98,7 @@ TEST_F(ObjectiveFactoryTestFixture, NumberOfProcessors)
         auto tInput = integration_tests::utilities::create_valid_example_input();
         tInput.get<input_parser::ComponentType::kObjective>().clear();
         // Set number_of_processors to boost::none, default is 1
-        auto tObjectiveInput = criteria::library::create_valid_example_objective_input();
+        auto tObjectiveInput = criteria::library::test_utilities::create_valid_example_objective_input();
         tObjectiveInput.number_of_processors = boost::none;
         tInput = tInput | tObjectiveInput;
 

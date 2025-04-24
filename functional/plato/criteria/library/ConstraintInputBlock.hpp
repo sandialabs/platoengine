@@ -21,10 +21,4 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
 )
 // clang-format on
 
-namespace plato::criteria::library
-{
-/// @brief Creates a valid example Constraint struct, useful for testing.
-[[nodiscard]] auto create_valid_example_constraint_input() -> input_parser::constraint;
-}  // namespace plato::criteria::library
-
 #endif

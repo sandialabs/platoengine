@@ -18,10 +18,4 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
 )
 // clang-format off
 
-namespace plato::criteria::library
-{
-/// @brief Creates a valid example Objective struct, useful for testing.
-[[nodiscard]] auto create_valid_example_objective_input() -> input_parser::objective;
-}
-
 #endif

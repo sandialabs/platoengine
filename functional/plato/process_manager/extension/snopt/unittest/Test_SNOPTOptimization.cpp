@@ -2,15 +2,13 @@
 
 #include <fstream>
 
-#include "plato/criteria/library/ConstraintInputBlock.hpp"
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/snopt/SNOPTOptimization.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/InputValidation.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
@@ -22,7 +20,7 @@ namespace
 constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
 
 const auto kBaseInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                            criteria::library::create_valid_example_objective_input() |
+                            criteria::library::test_utilities::create_valid_example_objective_input() |
                             create_valid_example_snopt_optimization_input();
 }  // namespace
 
@@ -52,8 +50,8 @@ TEST(SNOPTOptimizationDetail, MakeConstraints)
     }
 
     {
-        const auto tInputDeck =
-            input_parser::ParsedInput{kBaseInputDeck} | criteria::library::create_valid_example_constraint_input();
+        const auto tInputDeck = input_parser::ParsedInput{kBaseInputDeck} |
+                                criteria::library::test_utilities::create_valid_example_constraint_input();
         const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);
         ASSERT_TRUE(tValidatedInput.hasValue());
         const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
@@ -82,7 +80,7 @@ TEST(SNOPTOptimizationDetail, ConstraintType)
                                          const tpis::ConstraintType aSNOPTConstraintType,
                                          const test_utilities::TestContext& aTestContext)
     {
-        auto tConstraintInput = criteria::library::create_valid_example_constraint_input();
+        auto tConstraintInput = criteria::library::test_utilities::create_valid_example_constraint_input();
         tConstraintInput.constraint_type = aInputConstraintType;
         const auto tInputDeck = input_parser::ParsedInput{kBaseInputDeck} | tConstraintInput;
         const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);

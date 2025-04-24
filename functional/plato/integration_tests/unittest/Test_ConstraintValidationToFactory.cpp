@@ -2,6 +2,7 @@
 
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/criteria/library/ConstraintValidation.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 
@@ -19,7 +20,7 @@ TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
     auto tInput = parsedInput();
     tInput.get<input_parser::ComponentType::kConstraint>().clear();
 
-    auto tConstraint = criteria::library::create_valid_example_constraint_input();
+    auto tConstraint = criteria::library::test_utilities::create_valid_example_constraint_input();
     tConstraint.name = "eq";
     tConstraint.constraint_value = 13;
     tInput = tInput | tConstraint;

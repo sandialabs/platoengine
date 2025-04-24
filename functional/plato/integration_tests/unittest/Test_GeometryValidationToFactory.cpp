@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryFactory.hpp"
@@ -15,7 +15,7 @@ namespace plato::integration_tests::unittest
 TEST(GeometryFactory, ValidBrickShapeGeometry)
 {
     const auto tInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                        criteria::library::create_valid_example_objective_input() |
+                        criteria::library::test_utilities::create_valid_example_objective_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
 
     const auto tData = input_validation::make_validated_input(tInput).value();
@@ -26,7 +26,7 @@ TEST(GeometryFactory, ValidBrickShapeGeometry)
 TEST(GeometryFactory, ValidTopology)
 {
     const auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
-    const auto tInput = tGeometryInput | criteria::library::create_valid_example_objective_input() |
+    const auto tInput = tGeometryInput | criteria::library::test_utilities::create_valid_example_objective_input() |
                         filter::extension::test_utilities::create_valid_identity_filter_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
 
@@ -45,7 +45,7 @@ TEST(GeometryFactory, ValidTopology)
 
 TEST(GeometryValidation, BrickShapeGeometry)
 {
-    const auto tValidInputBase = criteria::library::create_valid_example_objective_input() |
+    const auto tValidInputBase = criteria::library::test_utilities::create_valid_example_objective_input() |
                                  process_manager::extension::create_valid_example_rol_optimization_input();
     const auto tValidInput =
         tValidInputBase | geometry::extension::test_utilities::create_valid_brick_shape_geometry_input();

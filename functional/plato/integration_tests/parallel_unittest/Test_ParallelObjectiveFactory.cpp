@@ -3,9 +3,8 @@
 #include <filesystem>
 #include <iterator>
 
-#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
@@ -118,7 +117,7 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
     tInputBase.template get<input_parser::ComponentType::kObjective>().clear();
     {
         // Set number_of_processors to 4
-        auto tObjective = criteria::library::create_valid_example_objective_input();
+        auto tObjective = criteria::library::test_utilities::create_valid_example_objective_input();
         tObjective.number_of_processors = static_cast<unsigned int>(kNumRanks);
         const auto tInput = tInputBase | tObjective;
         const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
@@ -130,9 +129,10 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
     }
     {
         // Add another objective with 1 processor
-        auto tObjective = criteria::library::create_valid_example_objective_input();
+        auto tObjective = criteria::library::test_utilities::create_valid_example_objective_input();
         tObjective.number_of_processors = static_cast<unsigned int>(kNumRanks) - 1U;
-        const auto tInput = tInputBase | tObjective | criteria::library::create_valid_example_objective_input();
+        const auto tInput =
+            tInputBase | tObjective | criteria::library::test_utilities::create_valid_example_objective_input();
         const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
                                                .value()
                                                .template get<input_parser::ComponentType::kObjective>();
@@ -142,9 +142,9 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
     }
     {
         // Deactivate one objective
-        auto tObjective1 = criteria::library::create_valid_example_objective_input();
+        auto tObjective1 = criteria::library::test_utilities::create_valid_example_objective_input();
         tObjective1.number_of_processors = static_cast<unsigned int>(kNumRanks);
-        auto tObjective2 = criteria::library::create_valid_example_objective_input();
+        auto tObjective2 = criteria::library::test_utilities::create_valid_example_objective_input();
         tObjective2.active = false;
         const auto tInput = tInputBase | tObjective1 | tObjective2;
         const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
@@ -26,7 +26,7 @@ void verify_number_of_process_managers(const input_parser::ParsedInput& aParsedI
 TEST(ProcessManagerFactory, RightNumberOfProcessManagers)
 {
     auto tRawInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                     criteria::library::create_valid_example_objective_input() |
+                     criteria::library::test_utilities::create_valid_example_objective_input() |
                      process_manager::extension::create_valid_example_rol_optimization_input() |
                      process_manager::extension::create_valid_example_gradient_check_input();
     verify_number_of_process_managers(tRawInput, 2u);

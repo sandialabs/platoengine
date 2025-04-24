@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/ConstraintInputBlock.hpp"
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
@@ -19,7 +18,7 @@ constexpr auto kROLOutputFile = std::string_view{"ROL_Optimizer.txt"};
 
 auto create_mass_app_constraint_input() -> input_parser::constraint
 {
-    auto tConstraint = criteria::library::create_valid_example_constraint_input();
+    auto tConstraint = criteria::library::test_utilities::create_valid_example_constraint_input();
     tConstraint.name = "mass-app";
     tConstraint.constraint_value = 1;
     tConstraint.constraint_type = input_parser::ConstraintTypes::kLessThan;
@@ -46,7 +45,7 @@ void check_optimization_runs_without_error(const input_parser::ParsedInput& aInp
 
 TEST(ROLOptimizerRunsWithoutError, NodalSumObjective)
 {
-    const auto tInput = criteria::library::create_valid_example_objective_input() |
+    const auto tInput = criteria::library::test_utilities::create_valid_example_objective_input() |
                         geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
     check_optimization_runs_without_error(tInput, TEST_CONTEXT("Nodal sum objective"));
@@ -54,7 +53,7 @@ TEST(ROLOptimizerRunsWithoutError, NodalSumObjective)
 
 TEST(ROLOptimizerRunsWithoutError, NodalSumObjectiveWithConstraint)
 {
-    const auto tInput = criteria::library::create_valid_example_objective_input() |
+    const auto tInput = criteria::library::test_utilities::create_valid_example_objective_input() |
                         geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input() |
                         create_mass_app_constraint_input();

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
@@ -29,7 +29,7 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
     // and if not, checks that we get the right exception type.
     const auto tInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
                         filter::extension::test_utilities::create_valid_helmholtz_filter_input() |
-                        criteria::library::create_valid_example_objective_input() |
+                        criteria::library::test_utilities::create_valid_example_objective_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
 
     // make mesh for validation of density_topology

@@ -2,8 +2,7 @@
 
 #include <filesystem>
 
-#include "plato/criteria/library/ConstraintInputBlock.hpp"
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/GradientCheck.hpp"
@@ -11,7 +10,6 @@
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::process_manager::extension::unittest
@@ -50,14 +48,14 @@ TEST(GradientCheck, CreateGradientCheckRun)
     };
 
     const auto tBaseInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                            criteria::library::create_valid_example_objective_input() |
+                            criteria::library::test_utilities::create_valid_example_objective_input() |
                             create_valid_example_gradient_check_input();
 
     {
         tCheckGradientCheckRuns(tBaseInput, TEST_CONTEXT("No constraints"));
     }
     {
-        auto tInequalityConstraint = criteria::library::create_valid_example_constraint_input();
+        auto tInequalityConstraint = criteria::library::test_utilities::create_valid_example_constraint_input();
         tInequalityConstraint.constraint_type = input_parser::ConstraintTypes::kLessThan;
         const auto tParsedInput = input_parser::ParsedInput{tBaseInput} | tInequalityConstraint;
         tCheckGradientCheckRuns(tParsedInput, TEST_CONTEXT("Inequality constraints"));
@@ -67,7 +65,7 @@ TEST(GradientCheck, CreateGradientCheckRun)
 TEST(GradientCheck, UnwrapValidatedGradientCheckInput)
 {
     const auto tInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                            criteria::library::create_valid_example_objective_input() |
+                            criteria::library::test_utilities::create_valid_example_objective_input() |
                             create_valid_example_rol_optimization_input() | create_valid_example_gradient_check_input();
 
     const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);

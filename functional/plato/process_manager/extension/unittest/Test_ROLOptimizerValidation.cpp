@@ -5,7 +5,6 @@
 
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::process_manager::extension::unittest

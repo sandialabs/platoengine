@@ -2,9 +2,8 @@
 
 #include <boost/optional/optional_io.hpp>
 
-#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
-#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
