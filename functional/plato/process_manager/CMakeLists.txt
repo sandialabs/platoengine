@@ -22,5 +22,5 @@ if( UNIT_TESTING )
     # Tests to check that errors are issued if snopt is missing, but requested in input
     list(APPEND DIRECTORIES extension/snopt/unittest_missing_snopt)
   endif()
-  create_plato_unittester(PlatoFunctionalProcessManager "${DIRECTORIES}")
+  create_plato_unittester(PlatoFunctionalProcessManager "${DIRECTORIES}" PlatoFunctionalGeometryTestUtilities)
 endif()

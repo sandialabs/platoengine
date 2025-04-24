@@ -7,8 +7,7 @@
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
-#include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/CheckProcessorsMatchObjectives.hpp"
@@ -76,7 +75,7 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
                                                     /*.input_files=*/boost::none,
                                                     /*.aggregation_weight=*/1.0};
 
-    auto tInput = geometry::extension::create_valid_brick_shape_geometry_input() |
+    auto tInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                   process_manager::extension::create_valid_example_rol_optimization_input();
     for ([[maybe_unused]] const auto tIndex : plato::utilities::IndexRange{aNumGroups})
     {

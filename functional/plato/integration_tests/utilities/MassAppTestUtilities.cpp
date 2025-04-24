@@ -10,7 +10,7 @@
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
@@ -117,7 +117,7 @@ auto create_test_mass_app_input(const input_parser::AppName& aMassAppName,
 {
     const auto tObjective = create_mass_objective(aMassAppName, aCriterionName, aNumProcessors);
 
-    const auto tInput = tObjective | geometry::extension::create_valid_brick_shape_geometry_input() |
+    const auto tInput = tObjective | geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
     return input_validation::make_validated_input(tInput).value();
 }

@@ -3,9 +3,9 @@
 #include <filesystem>
 
 #include "plato/geometry/extension/LevelSetTopology.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
@@ -13,8 +13,9 @@ namespace plato::geometry::extension::unittest
 {
 namespace
 {
-const auto kLevelSetTopology = create_valid_level_set_topology_geometry_input();
-const auto kLevelSetWithoutSpherePattern = create_valid_level_set_topology_geometry_initialize_from_field_input();
+const auto kLevelSetTopology = geometry::extension::test_utilities::create_valid_level_set_topology_geometry_input();
+const auto kLevelSetWithoutSpherePattern =
+    geometry::extension::test_utilities::create_valid_level_set_topology_geometry_initialize_from_field_input();
 
 class LevelSetTopologyValidationTwoBlockFixture
     : public third_party_integration::stk_io::test_utilities::ThreeDTwoBlockTetMesh
@@ -162,8 +163,8 @@ TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockValidation)
     auto tLevelSetInputBase = kLevelSetTopology;
     tLevelSetInputBase.mesh_name = input_parser::FileName{mMeshFilePath};
 
-    const auto tCheckForErrors =
-        [](const input_parser::level_set_topology& aLevelSetInput, const test_utilities::TestContext& aTestContext)
+    const auto tCheckForErrors = [](const input_parser::level_set_topology& aLevelSetInput,
+                                    const plato::test_utilities::TestContext& aTestContext)
     {
         const auto tInput = input_parser::InputBlockWrapper{aLevelSetInput};
         const auto tValidationMessages = input_validation::validate(tInput, {});

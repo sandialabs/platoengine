@@ -4,7 +4,7 @@
 #include "plato/filter/extension/HelmholtzFilter.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
-#include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
@@ -30,7 +30,7 @@ void test_cross_linked_filter(const input_parser::CrossLinkedInput& aCrossLinked
 TEST(GeometryValidation, ValidateEmptyFilterAndDensityTopologyInput)
 {
     // This configuration was found to throw an exception for an unchecked optional access
-    auto tGeometryInput = geometry::extension::create_valid_density_topology_geometry_input();
+    auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
     tGeometryInput.mesh_name = boost::none;
     tGeometryInput.output_name = boost::none;
     auto tFilterInput = filter::extension::create_valid_kernel_filter_input();
@@ -47,7 +47,7 @@ TEST(GeometryValidation, ValidateNoCrossLinkedFilter)
 {
     // This configuration was found to throw an unchecked optional access exception.
     // The expected filter input block is missing, which should be caught in validation.
-    const auto tInput = geometry::extension::create_valid_density_topology_geometry_input() |
+    const auto tInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
                         criteria::library::create_valid_example_objective_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
 
@@ -56,7 +56,7 @@ TEST(GeometryValidation, ValidateNoCrossLinkedFilter)
 
 TEST(GeometryValidation, LinksDensityTopologyToOnlyFilter)
 {
-    const auto tInput = geometry::extension::create_valid_density_topology_geometry_input() |
+    const auto tInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
                         filter::extension::create_valid_helmholtz_filter_input();
     ASSERT_FALSE(tInput.get<input_parser::density_topology>().front().filter);
 
@@ -67,7 +67,7 @@ TEST(GeometryValidation, LinksDensityTopologyToOnlyFilter)
 
 TEST(GeometryValidation, LinksDensityTopologyToSpecifiedFilter)
 {
-    auto tDensityTopologyInput = geometry::extension::create_valid_density_topology_geometry_input();
+    auto tDensityTopologyInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
     tDensityTopologyInput.filter =
         input_parser::CrossReference<input_parser::ComponentType::kFilter>{"helmholtz_filter", {}};
 

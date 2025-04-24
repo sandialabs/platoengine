@@ -3,7 +3,7 @@
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
@@ -20,7 +20,7 @@ namespace
     -> std::pair<plato::geometry::library::FactoryTypes,
                  plato::criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>>
 {
-    const auto tInputDeck = geometry::extension::create_valid_brick_shape_geometry_input() |
+    const auto tInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::create_valid_example_objective_input() |
                             process_manager::extension::create_valid_example_rol_optimization_input() |
                             criteria::library::create_valid_example_constraint_input();

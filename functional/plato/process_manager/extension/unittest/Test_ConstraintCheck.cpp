@@ -4,7 +4,7 @@
 
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
@@ -18,7 +18,7 @@ namespace plato::process_manager::extension::unittest
 {
 namespace
 {
-const auto kBaseInputDeck = geometry::extension::create_valid_brick_shape_geometry_input() |
+const auto kBaseInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::create_valid_example_objective_input() |
                             criteria::library::create_valid_example_constraint_input() |
                             create_valid_example_constraint_check_input();

@@ -11,6 +11,7 @@
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/unittest/LevelSetTopologyTestFixtures.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
@@ -19,7 +20,6 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/GradientChecker.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
@@ -33,7 +33,7 @@ using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWi
 
 namespace
 {
-const auto kLevelSetInput = create_valid_level_set_topology_geometry_input();
+const auto kLevelSetInput = geometry::extension::test_utilities::create_valid_level_set_topology_geometry_input();
 
 [[nodiscard]] auto create_background_mesh() -> third_party_integration::stk_io::CommandGenerator
 {
@@ -85,8 +85,8 @@ TEST_F(LevelSetTopologyFixture, JacobianRegression)
                                            0.500, 0.500, 0.000, 0.500, -0.000, -0.500, 0.000, -0.500, -0.500,
                                            0.000, 0.000, 0.000, 0.000, -0.500, -0.500, 0.000, -0.500, -0.500};
     constexpr double tTolerance = 1e-6;
-    test_utilities::expect_container_entries_near(tResult.stdVector(), tGold, tTolerance,
-                                                  TEST_CONTEXT("LevelSet Jacobian entries"));
+    plato::test_utilities::expect_container_entries_near(tResult.stdVector(), tGold, tTolerance,
+                                                         TEST_CONTEXT("LevelSet Jacobian entries"));
 }
 
 TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
@@ -154,8 +154,8 @@ TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
     tExpected.insert(tExpected.end(), tValuesInExpected.begin(), tValuesInExpected.end());
     // clang-format on
     constexpr double tTol = 1e-14;
-    test_utilities::expect_container_entries_near(tResult.stdVector(), tExpected, tTol,
-                                                  TEST_CONTEXT("LevelSet adjoint Jacobian entries"));
+    plato::test_utilities::expect_container_entries_near(tResult.stdVector(), tExpected, tTol,
+                                                         TEST_CONTEXT("LevelSet adjoint Jacobian entries"));
 }
 
 TEST_F(LevelSetTopologyMeshFixture, JacobianTranspose)
@@ -199,7 +199,7 @@ TEST_F(LevelSetTopologyFixture, GenerateMeshRegression)
 
     const auto tMeshRegressionChecks = [](const std::size_t aExpectedNumberOfNodes,
                                           const std::filesystem::path& aFilePath,
-                                          const test_utilities::TestContext& aTestContext)
+                                          const plato::test_utilities::TestContext& aTestContext)
     {
         EXPECT_TRUE(std::filesystem::exists(aFilePath)) << aTestContext;
         const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{aFilePath}}.numberOfNodes();
@@ -239,8 +239,8 @@ TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
         0.4571067811865476, 0.6160254037844386};
     ASSERT_EQ(tInitialGuess.size(), mExpectedBackgroundLevelSetSize);
     constexpr auto tTolerance = 1e-14;
-    test_utilities::expect_container_entries_near(tExpectedInitialGuess, tInitialGuess.stdVector(), tTolerance,
-                                                  TEST_CONTEXT("Initial guess"));
+    plato::test_utilities::expect_container_entries_near(tExpectedInitialGuess, tInitialGuess.stdVector(), tTolerance,
+                                                         TEST_CONTEXT("Initial guess"));
 }
 
 TEST_F(LevelSetTopologyTwoBlockFixture, InitialGuessOneBlockResultSize)
@@ -273,7 +273,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, GenerateMeshSize)
 TEST_F(LevelSetTopologyTwoBlockFixture, JacobianOneBlockResultSize)
 {
     const auto tCheckJacobianProductSize =
-        [](const LevelSetTopology& aLevelSetTopology, const test_utilities::TestContext& aTestContext)
+        [](const LevelSetTopology& aLevelSetTopology, const plato::test_utilities::TestContext& aTestContext)
     {
         const auto tInitialGuess = aLevelSetTopology.initialGuess(kLevelSetInput);
         const auto tAnalysisMesh = aLevelSetTopology.generateMesh(tInitialGuess);
@@ -295,7 +295,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, JacobianOneBlockResultSize)
 TEST_F(LevelSetTopologyTwoBlockFixture, JacobianTransposeOneBlockResultSize)
 {
     const auto tCheckTransposeJacobianProductSize =
-        [](const LevelSetTopology& aLevelSetTopology, const test_utilities::TestContext& aTestContext)
+        [](const LevelSetTopology& aLevelSetTopology, const plato::test_utilities::TestContext& aTestContext)
     {
         const auto tInitialGuess = aLevelSetTopology.initialGuess(kLevelSetInput);
         const auto tVector = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 1.0);
@@ -395,8 +395,8 @@ TEST_F(LevelSetTopologyTwoBlockFixture, FilteredOutputRoundTrip)
                                        1.0};
 
     constexpr auto tTolerance = 1e-14;
-    test_utilities::expect_container_entries_near(tExpected, tReadDesignVariables, tTolerance,
-                                                  TEST_CONTEXT("Filtered output round trip"));
+    plato::test_utilities::expect_container_entries_near(tExpected, tReadDesignVariables, tTolerance,
+                                                         TEST_CONTEXT("Filtered output round trip"));
 
     std::filesystem::remove(tInput.output_name->mToken);
     std::filesystem::remove(restart_file_name(tInput));
@@ -423,7 +423,7 @@ TEST(LevelSetTopology, DetailAffineTransformation)
 
 TEST_F(NodalDensityMesh, InitialGuessFromField)
 {
-    auto tInput = create_valid_level_set_topology_geometry_initialize_from_field_input();
+    auto tInput = test_utilities::create_valid_level_set_topology_geometry_initialize_from_field_input();
     tInput.mesh_name = input_parser::FileName{mMeshName};
     tInput.initial_field_name = input_parser::IdentifierString{mFieldName};
 
@@ -433,8 +433,8 @@ TEST_F(NodalDensityMesh, InitialGuessFromField)
         linear_algebra::DynamicVector<double>{-30, -26, -22, -18, -14, -10, -6, -2, 2, 6, 10, 14, 18, 22, 26, 30} *
         (1.0 / 30.0);
 
-    test_utilities::expect_container_entries_near(tInitialGuess.stdVector(), tGoldVector.stdVector(), 1e-15,
-                                                  TEST_CONTEXT("Initial guess affine transformation"));
+    plato::test_utilities::expect_container_entries_near(tInitialGuess.stdVector(), tGoldVector.stdVector(), 1e-15,
+                                                         TEST_CONTEXT("Initial guess affine transformation"));
 }
 
 namespace
@@ -489,8 +489,8 @@ void evaluate_gradient_check_jacobian(const input_parser::level_set_topology& aI
         return tResult.dot(aV);
     };
 
-    const auto tGradientCheckParameters = test_utilities::GradientCheckParameters{0.5, 8, 0.10};
-    const auto tGradientCheck = test_utilities::GradientChecker{tF, tDf};
+    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 8, 0.10};
+    const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
 
     const auto tLevelSetTopology = LevelSetTopology{aInput};
     const auto tInitialGuess = tLevelSetTopology.initialGuess(aInput);

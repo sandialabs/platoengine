@@ -2,7 +2,7 @@
 
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
@@ -47,7 +47,7 @@ void check_optimization_runs_without_error(const input_parser::ParsedInput& aInp
 TEST(ROLOptimizerRunsWithoutError, NodalSumObjective)
 {
     const auto tInput = criteria::library::create_valid_example_objective_input() |
-                        geometry::extension::create_valid_brick_shape_geometry_input() |
+                        geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
     check_optimization_runs_without_error(tInput, TEST_CONTEXT("Nodal sum objective"));
 }
@@ -55,7 +55,7 @@ TEST(ROLOptimizerRunsWithoutError, NodalSumObjective)
 TEST(ROLOptimizerRunsWithoutError, NodalSumObjectiveWithConstraint)
 {
     const auto tInput = criteria::library::create_valid_example_objective_input() |
-                        geometry::extension::create_valid_brick_shape_geometry_input() |
+                        geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input() |
                         create_mass_app_constraint_input();
     check_optimization_runs_without_error(tInput, TEST_CONTEXT("Nodal sum with constraint"));

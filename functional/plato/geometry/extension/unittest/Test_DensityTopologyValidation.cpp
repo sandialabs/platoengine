@@ -6,10 +6,10 @@
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
@@ -24,9 +24,9 @@ using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
 
 using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
 
-const auto kDensityTopology = create_valid_density_topology_geometry_input();
+const auto kDensityTopology = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
 
-struct DensityTopologyValidationFileFixture : public test_utilities::FileCreatingTestFixture
+struct DensityTopologyValidationFileFixture : public plato::test_utilities::FileCreatingTestFixture
 {
     DensityTopologyValidationFileFixture() : FileCreatingTestFixture{kDensityTopology.mesh_name.value().mToken} {}
 };
@@ -86,15 +86,6 @@ TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
         << "Only field specifier is used, valid.";
 }
 
-TEST_F(DensityTopologyValidationFileFixture, ValidDensityTopologyInput)
-{
-    //    const auto tInput = input_parser::ParsedInput{} | kDensityTopology;
-
-    //    std::vector<std::string> tMessages;
-    //    tMessages = library::validate_geometry(tInput, std::move(tMessages));
-    //    EXPECT_TRUE(tMessages.empty());
-}
-
 TEST_F(TwoDThreeBlockMesh, MeshFromInput)
 {
     struct ExpectedSizes
@@ -106,7 +97,8 @@ TEST_F(TwoDThreeBlockMesh, MeshFromInput)
     };
 
     const auto tTestFunction = [](const input_parser::density_topology& tDensityInput,
-                                  const ExpectedSizes& aExpectedSizes, const test_utilities::TestContext& aTestContext)
+                                  const ExpectedSizes& aExpectedSizes,
+                                  const plato::test_utilities::TestContext& aTestContext)
     {
         const auto tMesh = mesh_from_input(tDensityInput);
         EXPECT_EQ(tMesh.fixedBlockOrdinals().size(), aExpectedSizes.mNumberOfFixedBlocks) << aTestContext;

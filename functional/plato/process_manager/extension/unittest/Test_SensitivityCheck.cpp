@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/SensitivityCheck.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -15,7 +15,7 @@ namespace plato::process_manager::extension::unittest
 {
 TEST(SensitivityCheck, CreateSensitivityCheckRun)
 {
-    const auto tInputDeck = geometry::extension::create_valid_brick_shape_geometry_input() |
+    const auto tInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::create_valid_example_objective_input() |
                             create_valid_example_sensitivity_check_input();
 

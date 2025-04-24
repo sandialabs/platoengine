@@ -4,7 +4,7 @@
 
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/snopt/SNOPTOptimization.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -21,7 +21,7 @@ namespace
 {
 constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
 
-const auto kBaseInputDeck = geometry::extension::create_valid_brick_shape_geometry_input() |
+const auto kBaseInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::create_valid_example_objective_input() |
                             create_valid_example_snopt_optimization_input();
 }  // namespace

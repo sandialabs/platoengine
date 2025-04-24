@@ -267,47 +267,6 @@ auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::f
     return std::filesystem::path{std::string{tRestartFileNamePrefix} + aInput.output_name->mToken};
 }
 
-auto create_valid_level_set_topology_geometry_input() -> input_parser::level_set_topology
-{
-    return input_parser::level_set_topology{/*.mesh_name = */ input_parser::FileName{"bg.exo"},
-                                            /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
-                                            /*.include_void_region = */ false,
-                                            /*.sphere_pattern_bbox_min_x = */ 0.0,
-                                            /*.sphere_pattern_bbox_min_y = */ 0.0,
-                                            /*.sphere_pattern_bbox_min_z = */ 0.0,
-                                            /*.sphere_pattern_bbox_max_x = */ 1.0,
-                                            /*.sphere_pattern_bbox_max_y = */ 1.0,
-                                            /*.sphere_pattern_bbox_max_z = */ 1.0,
-                                            /*.sphere_pattern_radius = */ 0.25,
-                                            /*.sphere_pattern_spacing = */ 100.0,
-                                            /*.level_set_lower_bound = */ -1.0,
-                                            /*.level_set_upper_bound = */ 1.0,
-                                            /*.filter=*/boost::none,
-                                            /*.fixed_blocks=*/boost::none,
-                                            /*.initial_field_name=*/boost::none};
-}
-
-auto create_valid_level_set_topology_geometry_initialize_from_field_input() -> input_parser::level_set_topology
-{
-    return input_parser::level_set_topology{/*.mesh_name = */
-                                            input_parser::FileName{"mesh.exo"},
-                                            /*.output_name = */ input_parser::FileName{"level-set-output.exo"},
-                                            /*.include_void_region = */ true,
-                                            /*.sphere_pattern_bbox_min_x = */ boost::none,
-                                            /*.sphere_pattern_bbox_min_y = */ boost::none,
-                                            /*.sphere_pattern_bbox_min_z = */ boost::none,
-                                            /*.sphere_pattern_bbox_max_x = */ boost::none,
-                                            /*.sphere_pattern_bbox_max_y = */ boost::none,
-                                            /*.sphere_pattern_bbox_max_z = */ boost::none,
-                                            /*.sphere_pattern_radius = */ boost::none,
-                                            /*.sphere_pattern_spacing = */ boost::none,
-                                            /*.level_set_lower_bound = */ -1.0,
-                                            /*.level_set_upper_bound = */ 1.0,
-                                            /*.filter=*/boost::none,
-                                            /*.fixed_blocks=*/boost::none,
-                                            /*.initial_field_name=*/input_parser::IdentifierString{"density"}};
-}
-
 namespace detail
 {
 

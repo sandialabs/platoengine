@@ -17,7 +17,8 @@ set(LINK_LIBS PlatoFunctionalTpetra
               PlatoFunctionalSTKIO
               PlatoFunctionalSTKIOTestUtilities
               PlatoFunctional
-              PlatoFunctionalIntegrationTestUtilities)
+              PlatoFunctionalIntegrationTestUtilities
+              PlatoFunctionalGeometryTestUtilities )
 set(USE_FOLDERS unittest)
 create_plato_integration_tester(PlatoFunctional_IntegrationUnitTester "${USE_FOLDERS}" "${LINK_LIBS}")
 
@@ -30,6 +31,7 @@ create_plato_integration_tester(PlatoFunctional_IntegrationMassLibUnitTester "${
 
 # Parallel tests
 set(LINK_LIBS PlatoFunctional 
-              PlatoFunctionalIntegrationTestUtilities)
+              PlatoFunctionalIntegrationTestUtilities
+              PlatoFunctionalGeometryTestUtilities )
 set(NUM_RANKS_FOR_TEST 4)
 create_plato_parallel_integration_tester(PlatoFunctional_IntegrationParallelUnitTester parallel_unittest "${LINK_LIBS}" ${NUM_RANKS_FOR_TEST})

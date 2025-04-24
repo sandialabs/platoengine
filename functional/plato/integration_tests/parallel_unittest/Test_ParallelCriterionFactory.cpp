@@ -6,7 +6,7 @@
 
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
@@ -40,7 +40,7 @@ TEST(CriterionFactory, ValidObjective)
     tComm.barrier();
 
     const auto tInput = valid_mass_objective_input(tComm) |
-                        geometry::extension::create_valid_brick_shape_geometry_input() |
+                        geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
 
     const auto tData = input_validation::make_validated_input(tInput);

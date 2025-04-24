@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
@@ -38,7 +38,7 @@ TEST(ValidateGradientCheck, ErrorMessagesInvalidGradientCheck)
 TEST(ValidateGradientCheck, RandomDirectionSeedViaRegistration)
 {
     const auto tValidInputBase = criteria::library::create_valid_example_objective_input() |
-                                 geometry::extension::create_valid_brick_shape_geometry_input();
+                                 geometry::extension::test_utilities::create_valid_brick_shape_geometry_input();
 
     const auto tValidInput = tValidInputBase | process_manager::extension::create_valid_example_gradient_check_input();
     EXPECT_TRUE(input_validation::make_validated_input(tValidInput).hasValue());

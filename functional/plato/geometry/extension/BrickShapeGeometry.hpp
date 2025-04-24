@@ -21,9 +21,6 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
 
 namespace plato::geometry::extension
 {
-/// @brief Generates a valid brick shape geometry input struct for testing.
-[[nodiscard]] auto create_valid_brick_shape_geometry_input() -> input_parser::brick_shape_geometry;
-
 /// @brief Design parameters for BrickShapeGeometry
 struct BrickDesign
 {

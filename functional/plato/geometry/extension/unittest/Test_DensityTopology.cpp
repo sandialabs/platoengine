@@ -14,12 +14,12 @@
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/Containers.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
@@ -35,7 +35,7 @@ using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWi
 namespace
 {
 
-const auto kDensityInput = create_valid_density_topology_geometry_input();
+const auto kDensityInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
 
 constexpr unsigned int kExpectedDensitySize = 8;  // Based on mesh generation command below (1x1x1)
 
@@ -98,8 +98,8 @@ TEST(DensityTopology, AdjointJacobian)
         tFilter.template evaluate<core::evaluation::kFunction>(tNodalDesignParameters));
     const auto tResult = tDesignVariables * tDensityTopology.adjointJacobian(tDesignVariables);
     constexpr auto tTolerance = 1e-14;
-    test_utilities::expect_container_entries_near(tExpected.mValue, tResult.stdVector(), tTolerance,
-                                                  TEST_CONTEXT("Adjoint Jacobian multiplication"));
+    plato::test_utilities::expect_container_entries_near(tExpected.mValue, tResult.stdVector(), tTolerance,
+                                                         TEST_CONTEXT("Adjoint Jacobian multiplication"));
 }
 
 TEST(DensityTopology, GenerateMesh)
@@ -124,7 +124,7 @@ namespace
 {
 void test_uniform_initial_guess_against_gold(const linear_algebra::DynamicVector<double>& aInitialGuess,
                                              const double aGold,
-                                             const test_utilities::TestContext& aTestContext)
+                                             const plato::test_utilities::TestContext& aTestContext)
 {
     EXPECT_EQ(aInitialGuess.size(), kExpectedDensitySize) << aTestContext;
 
@@ -173,7 +173,7 @@ namespace
 TEST_F(NodalDensityMesh, InitialDensityFromMesh)
 {
     const auto tCheckFunction =
-        [this](const std::vector<double>& aResult, const test_utilities::TestContext& aTestContext)
+        [this](const std::vector<double>& aResult, const plato::test_utilities::TestContext& aTestContext)
     {
         std::vector<double> tGold(mGoldNumbering.size());
         std::iota(tGold.begin(), tGold.end(), 1.0);

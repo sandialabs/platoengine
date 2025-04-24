@@ -178,16 +178,6 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
     output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 }
 
-auto create_valid_density_topology_geometry_input() -> input_parser::density_topology
-{
-    return input_parser::density_topology{/*.mesh_name=*/input_parser::FileName{"test.exo"},
-                                          /*.output_name=*/input_parser::FileName{"test_out.exo"},
-                                          /*.fixed_blocks=*/{},
-                                          /*.filter=*/boost::none,
-                                          /*.initial_density_value=*/0.5,
-                                          /*.initial_density_field_name=*/boost::none};
-}
-
 namespace detail
 {
 auto validate_initial_density_value(const input_parser::density_topology& aInput) -> std::optional<std::string>

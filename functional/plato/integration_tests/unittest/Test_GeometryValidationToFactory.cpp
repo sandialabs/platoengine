@@ -2,8 +2,7 @@
 
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
-#include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryFactory.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
@@ -15,7 +14,7 @@ namespace plato::integration_tests::unittest
 {
 TEST(GeometryFactory, ValidBrickShapeGeometry)
 {
-    const auto tInput = geometry::extension::create_valid_brick_shape_geometry_input() |
+    const auto tInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                         criteria::library::create_valid_example_objective_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
 
@@ -26,7 +25,7 @@ TEST(GeometryFactory, ValidBrickShapeGeometry)
 
 TEST(GeometryFactory, ValidTopology)
 {
-    const auto tGeometryInput = geometry::extension::create_valid_density_topology_geometry_input();
+    const auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
     const auto tInput = tGeometryInput | criteria::library::create_valid_example_objective_input() |
                         filter::extension::create_valid_identity_filter_input() |
                         process_manager::extension::create_valid_example_rol_optimization_input();
@@ -48,14 +47,15 @@ TEST(GeometryValidation, BrickShapeGeometry)
 {
     const auto tValidInputBase = criteria::library::create_valid_example_objective_input() |
                                  process_manager::extension::create_valid_example_rol_optimization_input();
-    const auto tValidInput = tValidInputBase | geometry::extension::create_valid_brick_shape_geometry_input();
+    const auto tValidInput =
+        tValidInputBase | geometry::extension::test_utilities::create_valid_brick_shape_geometry_input();
     EXPECT_TRUE(input_validation::make_validated_input(tValidInput).hasValue());
 
     const auto tInvalidInputNoMeshName = tValidInputBase | input_parser::brick_shape_geometry{};
     EXPECT_TRUE(input_validation::make_validated_input(tInvalidInputNoMeshName).hasError());
 
     const auto tInvalidInputTwoGeometries =
-        tValidInput | geometry::extension::create_valid_brick_shape_geometry_input();
+        tValidInput | geometry::extension::test_utilities::create_valid_brick_shape_geometry_input();
     EXPECT_TRUE(input_validation::make_validated_input(tInvalidInputNoMeshName).hasError());
 }
 

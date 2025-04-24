@@ -108,13 +108,6 @@ class LevelSetTopology
                                            const filter::library::FilterFunction& aFilterFunction)
     -> library::GeometryFunction;
 
-/// @brief Creates a valid example LevelSetTopology input struct, useful for testing.
-[[nodiscard]] auto create_valid_level_set_topology_geometry_input() -> input_parser::level_set_topology;
-
-/// @brief Creates a valid example LevelSetTopology input struct witha field initial guess, useful for testing.
-[[nodiscard]] auto create_valid_level_set_topology_geometry_initialize_from_field_input()
-    -> input_parser::level_set_topology;
-
 /// @brief The name of the output file containing the unfiltered level-set field, which may be used as a restart
 /// file.
 [[nodiscard]] auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path;

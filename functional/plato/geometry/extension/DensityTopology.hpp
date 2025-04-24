@@ -72,9 +72,6 @@ class DensityTopology
     filter::library::FilterFunction mFilter;
 };
 
-/// @brief Generates a valid example of a density_topology input, useful for testing.
-[[nodiscard]] auto create_valid_density_topology_geometry_input() -> input_parser::density_topology;
-
 /// @brief The label of the unfiltered density field used in the output mesh.
 [[nodiscard]] constexpr auto density_mesh_field_name() -> std::string_view;
 

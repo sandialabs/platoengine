@@ -2,7 +2,7 @@
 
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 
@@ -10,7 +10,7 @@ namespace plato::integration_tests::unittest
 {
 namespace
 {
-const auto kValidInputBase = geometry::extension::create_valid_brick_shape_geometry_input() |
+const auto kValidInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                              criteria::library::create_valid_example_objective_input() |
                              process_manager::extension::create_valid_example_rol_optimization_input();
 }

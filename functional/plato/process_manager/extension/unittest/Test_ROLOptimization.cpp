@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -19,7 +19,7 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
 
 TEST(ROLOptimization, Create)
 {
-    const auto tInputDeck = geometry::extension::create_valid_brick_shape_geometry_input() |
+    const auto tInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             criteria::library::create_valid_example_objective_input() |
                             create_valid_example_rol_optimization_input();
     const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);
