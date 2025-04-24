@@ -8,11 +8,6 @@
 
 namespace plato::linear_algebra
 {
-template <typename T>
-class DynamicVector;
-
-template <typename Archive, typename U>
-void serialize(Archive& aArchive, DynamicVector<U>& aVector, const unsigned int aVersion);
 
 /// @brief A wrapper for a `std::vector`, with functions for addition, multiplication and serialization.
 ///

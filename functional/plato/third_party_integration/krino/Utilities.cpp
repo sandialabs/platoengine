@@ -97,7 +97,7 @@ auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename) ->
         tMeshFromFile->meta_data(), kNumberOfLevelSets);
     ::krino::LevelSet& tLevelSet =
         ::krino::LevelSet::build(tMeshFromFile->meta_data(), std::string{kLevelSetName}, sierra::Diag::sierraTimer());
-    tLevelSet.set_distance_name(std::string{kLevelSetName});
+    tLevelSet.set_distance_name(std::string{kLevelSetName});  /// becomes set_levelset_field_name in Trilinos 16.1
     tLevelSet.setup();
     setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data());
     tMeshFromFile->populate_mesh();

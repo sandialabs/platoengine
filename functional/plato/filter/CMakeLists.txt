@@ -1,5 +1,6 @@
 include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
+include(${CMAKE_UTIL_DIR}/create_plato_interface.cmake)
 
 set(FOLDERS library
             extension)
@@ -14,6 +15,7 @@ set(LINK_LIBS PlatoFunctionalCore
               PlatoFunctionalUtilities)
 
 create_plato_library(PlatoFunctionalFilter "${FOLDERS}" "${LINK_LIBS}")
+create_plato_interface(PlatoFilterInterface library/FilterInterface.hpp "")
 
 if( UNIT_TESTING )
   # Build test utilities lib
