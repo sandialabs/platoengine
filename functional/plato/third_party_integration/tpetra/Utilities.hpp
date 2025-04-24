@@ -17,9 +17,9 @@ constexpr int kNumberOfCartesianDimensions = 3;
 using TeuchosCommOrdinal = int;
 
 using TpetraNode = Tpetra::KokkosCompat::KokkosDeviceWrapperNode<Kokkos::Serial, Kokkos::HostSpace>;
-using TpetraLocalOrdinal = int;   // Tpetra::Vector<>::local_ordinal_type;
-using TpetraGlobalOrdinal = int;  // Tpetra::Vector<>::global_ordinal_type;
-using TpetraScalar = double;      // Tpetra::Vector<>::scalar_type;
+using TpetraLocalOrdinal = Tpetra::Vector<>::local_ordinal_type;
+using TpetraGlobalOrdinal = Tpetra::Vector<>::global_ordinal_type;
+using TpetraScalar = Tpetra::Vector<>::scalar_type;
 
 using TpetraMap = Tpetra::Map<TpetraLocalOrdinal, TpetraGlobalOrdinal, TpetraNode>;
 using TpetraVector = Tpetra::Vector<TpetraScalar, TpetraLocalOrdinal, TpetraGlobalOrdinal, TpetraNode>;

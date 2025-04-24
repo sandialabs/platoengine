@@ -1,5 +1,6 @@
 include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
+include(${CMAKE_UTIL_DIR}/create_plato_interface.cmake)
 
 set(DIRECTORIES library
                 extension)
@@ -8,6 +9,7 @@ set(LINK_LIBS PlatoFunctionalCore
               PlatoFunctionalServices
               PlatoFunctionalMesh)
 create_plato_library(PlatoFunctionalCriteria "${DIRECTORIES}" "${LINK_LIBS}")
+create_plato_interface(PlatoCriteriaInterface library/CriterionInterface.hpp  PlatoAnalysisInterface)
 
 if( UNIT_TESTING )
   set(DIRECTORIES library/unittest
