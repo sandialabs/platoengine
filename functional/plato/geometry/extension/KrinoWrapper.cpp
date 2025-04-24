@@ -275,7 +275,6 @@ auto make_initial_guess_from_level_set_primitives(
     const auto tLevelSetValuesMap =
         reduce_level_set_values_map(tpik::get_level_set_values(*tKrinoMesh, tLevelSetFields));
 
-    std::cout << "tlevel set values map size: " << tLevelSetValuesMap.size() << std::endl;
     const auto tBackgroundNodeIds =
         aBackgroundDesignIDs.value_or(tpik::background_node_ids(*tKrinoMesh, tLevelSetFields));
 

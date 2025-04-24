@@ -60,8 +60,6 @@ TEST_F(KrinoTestFixture, KrinoWrapperParallel)
         const auto tGoldSizeRankOne = std::size_t{296};
         EXPECT_EQ(tGoldSizeRankOne, tSensitivity.size()) << "Rank one sensitivity map size.";
     }
-
-    // tKrinoWrapper.writeCutMesh("out.exo", tpik::VoidPhase::kExcludeFromMesh);
 }
 
 TEST_F(KrinoTestFixture, FourTriSensitivityMap)
@@ -91,23 +89,6 @@ TEST_F(KrinoTestFixture, FourTriSensitivityMap)
         tpik::test_utilities::test_sensitivity_map(tSensitivity, kFourTriSensitivityMapRankOne,
                                                    TEST_CONTEXT("Sensitivity map on Rank One."));
     }
-    for (const auto& tSensitivityEntry : tSensitivity)
-    {
-        const auto tCutMeshId = tSensitivityEntry.first;
-        const auto tLevelSetJacobianColumn = tSensitivityEntry.second;
-        EXPECT_EQ(tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.size(), 2U);
-        std::cout << "Rank: " << tRank << " cut mesh id: " << tCutMeshId << " GIDS ("
-                  << tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.front() << ", "
-                  << tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.back() << ")  LOCALID: ("
-                  << tLevelSetJacobianColumn.mDesignDomainLocalIndex.front() << ", "
-                  << tLevelSetJacobianColumn.mDesignDomainLocalIndex.back() << ")  sensitivity: {"
-                  << tLevelSetJacobianColumn.mNodalSensitivities.front().x << ", "
-                  << tLevelSetJacobianColumn.mNodalSensitivities.front().y << ", "
-                  << tLevelSetJacobianColumn.mNodalSensitivities.front().z << "}  {"
-                  << tLevelSetJacobianColumn.mNodalSensitivities.back().x << ", "
-                  << tLevelSetJacobianColumn.mNodalSensitivities.back().y << ", "
-                  << tLevelSetJacobianColumn.mNodalSensitivities.back().z << "} " << std::endl;
-    }
 }
 
 TEST_F(KrinoTestFixture, MakeInitialGuessFromLevelSetPrimitives)
@@ -120,11 +101,6 @@ TEST_F(KrinoTestFixture, MakeInitialGuessFromLevelSetPrimitives)
             kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}}, std::nullopt);
         const auto tNumberOfDesignNodes = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
         ASSERT_EQ(tInitialGuess.size(), tNumberOfDesignNodes);
-        std::cout << "full design domain" << std::endl;
-        for (const auto& aValue : tInitialGuess)
-        {
-            std::cout << aValue << std::endl;
-        }
     }
 
     {
@@ -132,11 +108,6 @@ TEST_F(KrinoTestFixture, MakeInitialGuessFromLevelSetPrimitives)
         const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
             kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}}, tDesignDomainNodeIds);
         ASSERT_EQ(tInitialGuess.size(), tDesignDomainNodeIds.size());
-        std::cout << "5 design domain" << std::endl;
-        for (const auto& aValue : tInitialGuess)
-        {
-            std::cout << aValue << std::endl;
-        }
     }
 }
 
@@ -151,8 +122,6 @@ TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
         mesh::NodalFieldVectorReference{tInitialGuess});
     const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
 
-    tKrinoWrapper.writeCutMesh("out.exo", tpik::VoidPhase::kExcludeFromMesh);
-
     const auto tNumberOfCutMeshNodes = 9;
     const auto tDimensions = 2;
     std::vector<double> tRowVector(tNumberOfCutMeshNodes * tDimensions, 1.0);
@@ -162,14 +131,6 @@ TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
 
     const auto tGold = std::vector<double>{0.75, 2.25, 2.25, 0.25, 0, 0.5};
     EXPECT_EQ(tGold, tResult);
-    boost::mpi::communicator{}.barrier();
-    if (boost::mpi::communicator{}.rank() == 0)
-    {
-        for (const auto& aEntry : tResult)
-        {
-            std::cout << aEntry << std::endl;
-        }
-    }
 }
 
 TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
@@ -183,8 +144,6 @@ TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
         mesh::NodalFieldVectorReference{tInitialGuess});
     const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
 
-    tKrinoWrapper.writeCutMesh("out.exo", tpik::VoidPhase::kExcludeFromMesh);
-
     const auto tNumberOfBackgroundNodes = 6;
     std::vector<double> tRowVector(tNumberOfBackgroundNodes, 1.0);
 
@@ -193,14 +152,6 @@ TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
 
     const auto tGold = std::vector<double>{0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, -1, 1, 0, 1, 1};
     EXPECT_EQ(tGold, tResult);
-    boost::mpi::communicator{}.barrier();
-    if (boost::mpi::communicator{}.rank() == 0)
-    {
-        for (const auto& aEntry : tResult)
-        {
-            std::cout << aEntry << std::endl;
-        }
-    }
 }
 
 }  // namespace plato::geometry::extension::parallel_unittest
