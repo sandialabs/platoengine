@@ -6,24 +6,26 @@
 
 namespace plato::input_parser
 {
-/// @brief Provides valid characters for an app's name, which are hyphen, underscore,
-///  and all letters.
-struct ValidAppNameCharacters
+/// @brief Provides valid characters for a name, which are hyphen, underscore, and all letters.
+///
+/// This should be used for the names of input blocks and apps in a plato input deck.
+struct ValidNameCharacters
 {
     constexpr const char* operator()() const { return "-a-zA-Z_"; }
 };
 
-/// @brief Provides valid characters for a mesh block's name, which are hyphen, underscore, all letters, and all
+/// @brief Provides valid characters for an identifier, which are hyphen, underscore, all letters, and all
 /// numbers.
-struct ValidBlockNameCharacters
+struct ValidIdentifierCharacters
 {
     constexpr const char* operator()() const { return "-a-zA-Z0-9_"; }
 };
 
-using AppName = UserDefinedToken<ValidAppNameCharacters>;
-using CriterionName = UserDefinedToken<ValidAppNameCharacters>;
-using BlockName = UserDefinedToken<ValidAppNameCharacters>;
-using FixedBlockList = UserDefinedTokenList<ValidBlockNameCharacters>;
+using AppName = UserDefinedToken<ValidNameCharacters>;
+using CriterionName = UserDefinedToken<ValidNameCharacters>;
+using BlockName = UserDefinedToken<ValidNameCharacters>;
+using FixedBlockList = UserDefinedTokenList<ValidIdentifierCharacters>;
+using IdentifierString = UserDefinedToken<ValidIdentifierCharacters>;
 
 }  // namespace plato::input_parser
 

@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "plato/input_parser/FileList.hpp"
-#include "plato/input_parser/IdentifierString.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_parser/unittest/Test_Helpers.hpp"
 
 // clang-format off

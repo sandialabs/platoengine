@@ -8,7 +8,6 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/input_parser/FileList.hpp"
-#include "plato/input_parser/IdentifierString.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
