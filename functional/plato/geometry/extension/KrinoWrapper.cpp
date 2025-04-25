@@ -136,6 +136,17 @@ const auto kJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& a
             row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension),
             aSensitivity) *
         aMultiplicityMultiplier;
+    const auto tRowvector3 =
+        row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension);
+    std::cout << "Adding to entry: " << aCutMeshIndex.mValue << " a row vector size: " << aRowVector.size()
+              << " a value: "
+              << third_party_integration::common::dot(
+                     row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension),
+                     aSensitivity) *
+                     aMultiplicityMultiplier
+              << " multiplicity: " << aMultiplicityMultiplier << " aspatial dim: " << aSpatialDimension
+              << " aSensitivity: " << aSensitivity.x << ", " << aSensitivity.y << ", " << aSensitivity.z
+              << " with tRowvector3  " << tRowvector3.x << ", " << tRowvector3.y << " " << tRowvector3.z << std::endl;
 };
 
 const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& aResultVectorView,
@@ -200,17 +211,17 @@ template <typename Lambda>
             const double tMultiplicityMultiplier = tCutMeshMultiplicity.find(tCutMeshId) != tCutMeshMultiplicity.end()
                                                        ? 1.0 / tCutMeshMultiplicity.at(tCutMeshId)
                                                        : 1.0;
-            std::cout << "CutMesh ID: " << tCutMeshId << " has multiplier: " << tMultiplicityMultiplier << std::endl;
+            // std::cout << "CutMesh ID: " << tCutMeshId << " has multiplier: " << tMultiplicityMultiplier << std::endl;
             const auto& tLevelSetJacobianColumn = tSensitivityMapAtCutMeshIdIterator->second;
 
             for (const auto& [tParentId, tSensitivity, tLocalParentIndex] : utilities::Zip(
                      tLevelSetJacobianColumn.mBackgroundMeshNodeIDs, tLevelSetJacobianColumn.mNodalSensitivities,
                      tLevelSetJacobianColumn.mDesignDomainLocalIndex))
             {
-                std::cout << "Cutmesh id: " << tCutMeshId << " with index " << tIndex
-                          << " has local Parent index:  " << tLocalParentIndex << " and parent id: " << tParentId
-                          << " and sensitivity: " << tSensitivity.x << ", " << tSensitivity.y << ", " << tSensitivity.z
-                          << std::endl;
+                // std::cout << "Cutmesh id: " << tCutMeshId << " with index " << tIndex
+                //         << " has local Parent index:  " << tLocalParentIndex << " and parent id: " << tParentId
+                //       << " and sensitivity: " << tSensitivity.x << ", " << tSensitivity.y << ", " << tSensitivity.z
+                //     << std::endl;
                 aApplyFunction(tRowVectorMatrixProductView, aRowVector, ParentIndex{tLocalParentIndex},
                                CutMeshIndex{tIndex}, tMultiplicityMultiplier, tSensitivity, tSpatialDimensions);
             }
