@@ -11,9 +11,9 @@ function( create_plato_interface LIBRARY_NAME HEADERS TARGET_LINK_LIST )
 
     cmake_path(GET CMAKE_CURRENT_SOURCE_DIR FILENAME FUNCTIONAL_SUB_DIR)
     foreach( currentHeader ${HEADERS} )
-        cmake_path(GET currentHeader PARENT_PATH CURRENT_RELATIVE_PATH)
-        message(STATUS "Current relative path: ${CURRENT_RELATIVE_PATH} for current header ${currentHeader}")
-        install( FILES ${currentHeader} DESTINATION include/plato/${FUNCTIONAL_SUB_DIR}/${CURRENT_RELATIVE_PATH}/)
+        file(RELATIVE_PATH RELATIVE_PATH_FROM_PLATO_WITH_HEADER "${PLATO_BASE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${currentHeader}")
+        get_filename_component(RELATIVE_PATH_FROM_PLATO "${RELATIVE_PATH_FROM_PLATO_WITH_HEADER}" DIRECTORY)
+        install( FILES ${currentHeader} DESTINATION include/plato/${RELATIVE_PATH_FROM_PLATO})
     endforeach(currentHeader)
 
     install( TARGETS ${LIBRARY_NAME} EXPORT PlatoEngine
