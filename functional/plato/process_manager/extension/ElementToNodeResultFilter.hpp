@@ -36,6 +36,8 @@ class ElementToNodeResultFilter
     explicit ElementToNodeResultFilter(const library::ValidatedProcessManagerInput& aInput);
 
     void run(const library::ProcessManagerData& aProcessManagerData) const;
+
+   private:
 };
 
 namespace detail

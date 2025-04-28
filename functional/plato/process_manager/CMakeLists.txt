@@ -22,6 +22,7 @@ if( UNIT_TESTING )
     list(APPEND DIRECTORIES extension/snopt/unittest)
   endif()
   set(LINK_LIBS PlatoFunctionalGeometryTestUtilities 
+                PlatoFunctionalFilterTestUtilities 
                 PlatoFunctionalCriteriaTestUtilities
                 PlatoFunctionalProcessManagerTestUtilities )
   create_plato_unittester(PlatoFunctionalProcessManager "${DIRECTORIES}" "${LINK_LIBS}")

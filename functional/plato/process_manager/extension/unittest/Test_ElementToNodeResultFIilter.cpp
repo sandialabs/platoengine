@@ -1,17 +1,28 @@
 #include <gtest/gtest.h>
 
-#include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/filter/extension/KernelFilter.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
-#include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/ElementToNodeResultFilter.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
+#include "plato/test_utilities/FileCreatingTestFixture.hpp"
 
 namespace plato::process_manager::extension::unittest
 {
 namespace
 {
+class ElementToNodeResultFilterValidationFixture : public test_utilities::FileCreatingTestFixture
+{
+   public:
+    ElementToNodeResultFilterValidationFixture()
+        : FileCreatingTestFixture{geometry::extension::test_utilities::create_valid_density_topology_geometry_input()
+                                      .mesh_name.value()
+                                      .mToken}
+    {
+    }
+};
+
 template <typename ComponentInput>
 [[nodiscard]] auto cross_reference()
 {
@@ -37,7 +48,19 @@ TEST(ElementToNodeResultFilter, ValidateFilterIsKernelFilter)
         const auto tErrorMessage = detail::validate_filter_is_kernel_filter(tInput);
         EXPECT_FALSE(tErrorMessage) << tErrorMessage.value();
     }
+}
+
+TEST_F(ElementToNodeResultFilterValidationFixture, ValidateFilterIsKernelFilter)
+{
     // Via registered validation
+    const auto tInput = input_parser::element_to_node_result_filter{} |
+                        geometry::extension::test_utilities::create_valid_density_topology_geometry_input() |
+                        criteria::library::test_utilities::create_valid_example_objective_input() |
+                        filter::extension::test_utilities::create_valid_identity_filter_input();
+
+    // Wrong filter
+    const auto tValidatedInput = input_validation::make_validated_input(tInput);
+    EXPECT_TRUE(tValidatedInput.hasError());
 }
 
 TEST(ElementToNodeResultFilter, ValidateHasMeshName)
@@ -71,8 +94,18 @@ TEST(ElementToNodeResultFilter, ValidateHasMeshName)
         const auto tErrorMessage = detail::validate_has_mesh_name_or_geometry_is_density_topology(tInput);
         EXPECT_FALSE(detail::validate_has_mesh_name_or_geometry_is_density_topology(tInput)) << tErrorMessage.value();
     }
+}
 
+TEST_F(ElementToNodeResultFilterValidationFixture, ValidateHasMeshName)
+{
     // Via registered validation
+    const auto tInput = input_parser::element_to_node_result_filter{} |
+                        geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
+                        criteria::library::test_utilities::create_valid_example_objective_input() |
+                        filter::extension::test_utilities::create_valid_kernel_filter_input();
+
+    const auto tValidatedInput = input_validation::make_validated_input(tInput);
+    EXPECT_TRUE(tValidatedInput.hasError());
 }
 
 TEST(ElementToNodeResultFilter, Registration)

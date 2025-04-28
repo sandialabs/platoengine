@@ -2,10 +2,24 @@
 
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 
 namespace plato::process_manager::extension
 {
+namespace
+{
+[[maybe_unused]] static const auto kElementToNodeParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::element_to_node_result_filter>{};
+
+[[maybe_unused]] static const auto kElementToNodeValidationRegistration =
+    input_validation::InputBlockValidationRegistration<>{
+        [](const input_parser::element_to_node_result_filter& aInput)
+        { return detail::validate_filter_is_kernel_filter(aInput); },
+        [](const input_parser::element_to_node_result_filter& aInput)
+        { return detail::validate_has_mesh_name_or_geometry_is_density_topology(aInput); }};
+}  // namespace
 
 namespace detail
 {
