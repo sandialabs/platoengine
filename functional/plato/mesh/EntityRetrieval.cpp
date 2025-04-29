@@ -60,4 +60,10 @@ auto EntityRetrieval::nodalFields() const -> std::vector<std::string>
     return third_party_integration::stk_io::nodal_field_names(filePath());
 }
 
+auto EntityRetrieval::hasNodalField(std::string_view aFieldName) const -> bool
+{
+    const auto tNodalFieldNames = nodalFields();
+    return std::find(tNodalFieldNames.begin(), tNodalFieldNames.end(), aFieldName) != tNodalFieldNames.end();
+}
+
 }  // namespace plato::mesh

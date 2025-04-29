@@ -113,4 +113,12 @@ TEST_F(MeshWithNodalDensities, NodalFields)
     EXPECT_EQ(tGold, tResult);
 }
 
+TEST_F(MeshWithNodalDensities, HasNodalField)
+{
+    const auto tMesh = EntityRetrieval{Mesh{mMeshName, {}}};
+    EXPECT_TRUE(tMesh.hasNodalField("coordinates"));
+    EXPECT_TRUE(tMesh.hasNodalField("topology"));
+    EXPECT_FALSE(tMesh.hasNodalField("not-a-hotdog"));
+}
+
 }  // namespace plato::mesh::unittest

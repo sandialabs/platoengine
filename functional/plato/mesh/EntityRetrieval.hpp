@@ -33,6 +33,9 @@ struct EntityRetrieval : public Mesh
 
     /// @brief Return a vector of nodal fields defined
     [[nodiscard]] auto nodalFields() const -> std::vector<std::string>;
+
+    /// @brief Returns `true` if @a aFieldName is an existing field on the mesh.
+    [[nodiscard]] auto hasNodalField(std::string_view aFieldName) const -> bool;
 };
 
 }  // namespace plato::mesh
