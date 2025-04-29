@@ -34,7 +34,6 @@ TEST_F(TwoBlockMeshOnDisk, NumberOfBlocks)
 TEST_F(TwoBlockMeshOnDisk, BlockData)
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
-    std::cout << mMeshFilePath.string() << std::endl;
 
     const auto tBlockIDsAndNames = block_data(*tBulkData);
 
@@ -58,13 +57,13 @@ TEST_F(TwoBlockMeshOnDisk, PartWithBlockNameAndID)
     const auto tTwoBlockMesh = read_mesh_bulk_data(mMeshFilePath);
     const auto tBlockData = block_data(*tTwoBlockMesh);
     {
-        const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 45u);
+        const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, tBlockData.at(0).mMetaDataOrdinal);
         ASSERT_TRUE(tBlock);
         EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfElementsInBlock1);
         EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfNodesInBlock1);
     }
     {
-        const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 46u);
+        const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, tBlockData.at(1).mMetaDataOrdinal);
         ASSERT_TRUE(tBlock);
         EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfElementsInBlock2);
         EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfNodesInBlock2);
