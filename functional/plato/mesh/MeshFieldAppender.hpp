@@ -30,11 +30,12 @@ class [[nodiscard]] MeshFieldAppender : public MeshOutput
    public:
     MeshFieldAppender(Mesh aMeshBase, double aTimeStep);
 
-    ~MeshFieldAppender();
+    ~MeshFieldAppender() override;
 
     /// @brief Adds the design variables in @a aAnalysisDomainMesh to the currently managed file.
     ///
     /// The type of field (node vs. element) is determined from the number of design variables.
+    /// @pre @a aFieldName must exist on the mesh used on construction.
     void addFieldOnAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                       std::string_view aFieldName,
                                       double aFixedValue) override;

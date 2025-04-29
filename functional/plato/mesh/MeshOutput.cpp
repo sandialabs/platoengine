@@ -10,7 +10,7 @@ auto output_mode(bool aOverwrite) -> OutputMode { return aOverwrite ? OutputMode
 
 MeshOutput::MeshOutput(Mesh aMeshBase) : Mesh{std::move(aMeshBase)} {}
 
-auto make_mesh_output(OutputMode aOutputMode,
+auto make_mesh_output(const OutputMode aOutputMode,
                       const InputFilePath& aInputFilePath,
                       const OutputFilePath& aOutputFilePath,
                       const std::set<std::string>& aFixedBlocks,
