@@ -47,23 +47,21 @@ auto EntityRetrieval::designDomainNodeIDs() const -> std::vector<std::size_t>
     return third_party_integration::stk_io::node_ids(bulkData(), designDomainBlocks());
 }
 
-auto EntityRetrieval::designDomainNodalField(const std::string_view aFieldName) const -> std::vector<double>
+auto EntityRetrieval::designDomainNodalField(const std::string_view aFieldName,
+                                             const TimeStep aTimeStep) const -> std::vector<double>
 {
+    namespace tsi = third_party_integration::stk_io;
+
     const std::vector<std::size_t> tNodalIDs = designDomainNodeIDs();
-    const auto tNodalField = third_party_integration::stk_io::read_nodal_field(
-        filePath(), aFieldName, third_party_integration::stk_io::LastTimeStep{});
+    const auto tTimeStep = aTimeStep.hasValue() ? tsi::TimeStep{aTimeStep.valueOr(0.0)}
+                                                : tsi::TimeStep{third_party_integration::stk_io::LastTimeStep{}};
+    const auto tNodalField = third_party_integration::stk_io::read_nodal_field(filePath(), aFieldName, tTimeStep);
     return down_select_values_to_subset(tNodalField, tNodalIDs);
 }
 
 auto EntityRetrieval::nodalFields() const -> std::vector<std::string>
 {
     return third_party_integration::stk_io::nodal_field_names(filePath());
-}
-
-auto EntityRetrieval::hasNodalField(std::string_view aFieldName) const -> bool
-{
-    const auto tNodalFieldNames = nodalFields();
-    return std::find(tNodalFieldNames.begin(), tNodalFieldNames.end(), aFieldName) != tNodalFieldNames.end();
 }
 
 }  // namespace plato::mesh
