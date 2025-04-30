@@ -5,7 +5,9 @@
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/process_manager/extension/ElementToNodeResultFilter.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -19,6 +21,8 @@ namespace plato::process_manager::extension::unittest
 {
 namespace
 {
+const auto kTimeSteps = std::vector{1.0, 10.0};
+
 const auto kMeshPath =
     geometry::extension::test_utilities::create_valid_density_topology_geometry_input().mesh_name.value().mToken;
 
@@ -35,6 +39,16 @@ class ElementToNodeResultFilterRunFixture
     ElementToNodeResultFilterRunFixture()
         : MeshWithNodalDensities{kMeshPath, geometry::extension::density_mesh_field_name()}
     {
+        // Add another field time step
+        const auto tMesh = mesh::Mesh{mMeshName};
+        const auto tNodalField =
+            mesh::EntityRetrieval{tMesh}.designDomainNodalField(geometry::extension::density_mesh_field_name());
+        const auto tNodalAnalysisMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
+            mesh::NodalFieldVectorReference{tNodalField});
+
+        constexpr auto tFixedValue = 1.0;
+        mesh::MeshFieldAppender{tMesh, kTimeSteps.back()}.addFieldOnAnalysisDomainMesh(
+            tNodalAnalysisMesh, geometry::extension::density_mesh_field_name(), tFixedValue);
     }
 };
 
@@ -68,10 +82,13 @@ TEST_F(ElementToNodeResultFilterRunFixture, CreateAndRunSeparateOutputFile)
         library::make_process_manager_data(tValidatedInput.value())));
 
     // Retrieve nodal fields names from the mesh and check that the expected field name is found.
-    const auto tMeshRetrieval = mesh::EntityRetrieval{mesh::Mesh{tOutputMeshPath}};
-    EXPECT_TRUE(tMeshRetrieval.hasNodalField(ElementToNodeResultFilter::field_name())) << "New field was not written";
-    EXPECT_TRUE(tMeshRetrieval.hasNodalField(geometry::extension::density_mesh_field_name()))
+    const auto tMeshRetrieval = mesh::EntityCounts{mesh::Mesh{tOutputMeshPath}};
+    EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(ElementToNodeResultFilter::field_name()))
+        << "New field was not written";
+    EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))
         << "Original field is not present";
+
+    EXPECT_EQ(mesh::EntityCounts{tMeshRetrieval}.timeSteps(), kTimeSteps);
 }
 
 TEST(ElementToNodeResultFilter, ValidateFilterIsKernelFilter)

@@ -7,6 +7,7 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
@@ -71,6 +72,47 @@ namespace
                                                          utilities::RankNamedType{aComm.rank()});
     return {aComm.split(tGroupColor.mValue), tGroupColor.mValue};
 }
+
+auto make_mesh_writer(const mesh::OutputMode aOutputMode,
+                      const mesh::Mesh& aOriginalMesh,
+                      const std::filesystem::path& aOutputMeshPath,
+                      const std::set<std::string>& aFixedBlocks,
+                      const double aTimeStep) -> std::unique_ptr<mesh::MeshOutput>
+{
+    if (aOutputMode == mesh::OutputMode::kOverwrite)
+    {
+        return std::make_unique<mesh::MeshFieldWriter>(aOriginalMesh, aOutputMeshPath, aTimeStep);
+    }
+    return std::make_unique<mesh::MeshFieldAppender>(mesh::Mesh{aOutputMeshPath, aFixedBlocks}, aTimeStep);
+}
+
+void write_nodal_filtered_results(const mesh::Mesh& aMesh,
+                                  const filter::extension::KernelFilter& aFilter,
+                                  const std::filesystem::path& aOutputMeshPath,
+                                  const std::set<std::string>& aFixedBlocks,
+                                  const boost::mpi::communicator& aComm)
+{
+    const auto tTimeSteps = mesh::EntityCounts{aMesh}.timeSteps();
+    for (const auto tTimeStep : tTimeSteps)
+    {
+        const auto tNodalFieldToFilter = mesh::EntityRetrieval{aMesh}.designDomainNodalField(
+            geometry::extension::density_mesh_field_name(), tTimeStep);
+        const auto tFieldAnalysisMesh = mesh::DesignVariablesConversion{aMesh}.nodalFieldToAnalysisDomainMesh(
+            mesh::NodalFieldVectorReference{tNodalFieldToFilter});
+        const auto tFilteredField = aFilter.filter(tFieldAnalysisMesh);
+        if (aComm.rank() == 0)
+        {
+            constexpr auto tFixedValue = double{1.0};
+            const auto tMode =
+                tTimeStep == tTimeSteps.front() ? mesh::OutputMode::kOverwrite : mesh::OutputMode::kAppend;
+            const auto tWriter = make_mesh_writer(tMode, aMesh, aOutputMeshPath, aFixedBlocks, tTimeStep);
+            tWriter->addFieldOnAnalysisDomainMesh(tFilteredField, ElementToNodeResultFilter::field_name(), tFixedValue);
+            tWriter->addFieldOnAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
+                                                  tFixedValue);
+        }
+        aComm.barrier();
+    }
+}
 }  // namespace
 
 ElementToNodeResultFilter::ElementToNodeResultFilter(const library::ValidatedProcessManagerInput& aInput)
@@ -82,15 +124,11 @@ ElementToNodeResultFilter::ElementToNodeResultFilter(const library::ValidatedPro
 {
 }
 
-void ElementToNodeResultFilter::run(const library::ProcessManagerData& /*aProcessManagerData*/) const
+void ElementToNodeResultFilter::run(const library::ProcessManagerData&) const
 {
     const auto tMesh = mesh::Mesh{mInputMeshPath, mFixedBlockNames};
-    if (mesh::EntityRetrieval{tMesh}.hasNodalField(geometry::extension::density_mesh_field_name()))
+    if (mesh::EntityCounts{tMesh}.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))
     {
-        const auto tNodalFieldToFilter =
-            mesh::EntityRetrieval{tMesh}.designDomainNodalField(geometry::extension::density_mesh_field_name());
-        const auto tFieldAnalysisMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
-            mesh::NodalFieldVectorReference{tNodalFieldToFilter});
         const auto tWorldComm = boost::mpi::communicator{};
         const auto [tComm, tGroupColor] = split_comm(mNumberOfProcessorsForFilter, tWorldComm);
         if (tGroupColor == 0)
@@ -98,16 +136,7 @@ void ElementToNodeResultFilter::run(const library::ProcessManagerData& /*aProces
             const auto tFilter =
                 filter::extension::KernelFilter{tMesh, filter::extension::FilterRadius{mFilterRadius},
                                                 input_parser::KernelFilterCenteringTypes::kNodeCentered, tComm};
-            const auto tFilteredField = tFilter.filter(tFieldAnalysisMesh);
-            if (tComm.rank() == 0)
-            {
-                constexpr auto tTimeStep = double{1.0};
-                constexpr auto tFixedValue = double{1.0};
-                auto tWriter = mesh::MeshFieldWriter{tMesh, mOutputMeshPath, tTimeStep};
-                tWriter.addFieldOnAnalysisDomainMesh(tFilteredField, field_name(), tFixedValue);
-                tWriter.addFieldOnAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
-                                                     tFixedValue);
-            }
+            write_nodal_filtered_results(tMesh, tFilter, mOutputMeshPath, mFixedBlockNames, tComm);
         }
         tWorldComm.barrier();
     }

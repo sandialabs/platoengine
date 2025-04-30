@@ -4,6 +4,7 @@
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/process_manager/extension/ElementToNodeResultFilter.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -53,10 +54,15 @@ void run_and_check_output_files(const std::filesystem::path& aMeshName, const un
         library::make_process_manager_data(tValidatedInput.value())));
 
     // Retrieve nodal fields names from the mesh and check that the expected field name is found.
-    const auto tMeshRetrieval = mesh::EntityRetrieval{mesh::Mesh{aMeshName}};
-    EXPECT_TRUE(tMeshRetrieval.hasNodalField(ElementToNodeResultFilter::field_name())) << "New field was not written";
-    EXPECT_TRUE(tMeshRetrieval.hasNodalField(geometry::extension::density_mesh_field_name()))
+    const auto tMeshRetrieval = mesh::EntityCounts{mesh::Mesh{aMeshName}};
+    EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(ElementToNodeResultFilter::field_name()))
+        << "New field was not written";
+    EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))
         << "Original field is not present";
+
+    const auto tExpectedTimeSteps = std::vector{1.0};
+    EXPECT_EQ(mesh::EntityCounts{tMeshRetrieval}.timeSteps(), tExpectedTimeSteps);
+
     boost::mpi::communicator{}.barrier();
 }
 
