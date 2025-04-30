@@ -132,7 +132,7 @@ ElementToNodeResultFilter::ElementToNodeResultFilter(const library::ValidatedPro
       mOutputMeshPath{mesh_output_path(aInput)},
       mFixedBlockNames{fixed_blocks(aInput)},
       mFilterRadius{filter_input(aInput).filter_radius.value()},
-      mNumberOfProcessorsForFilter{filter_input(aInput).number_of_processors.value()}
+      mNumberOfProcessorsForFilter{filter_input(aInput).number_of_processors.value_or(1U)}
 {
 }
 
