@@ -35,7 +35,7 @@ class ElementToNodeResultFilter
    public:
     explicit ElementToNodeResultFilter(const library::ValidatedProcessManagerInput& aInput);
 
-    void run(const library::ProcessManagerData& aProcessManagerData) const;
+    void run() const;
 
     /// @brief Returns the name of the filtered field that is inserted into the output mesh.
     [[nodiscard]] static auto field_name() -> std::string_view;

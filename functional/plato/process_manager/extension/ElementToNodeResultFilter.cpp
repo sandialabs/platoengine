@@ -17,8 +17,20 @@ namespace plato::process_manager::extension
 {
 namespace
 {
+[[nodiscard]] auto make_element_to_node_result_filter_process_manager(
+    const library::ValidatedProcessManagerInput& aValidInput) -> library::StageAndProcessManager
+{
+    return {library::RunStage::kPostProcess,
+            [aValidInput](const library::ProcessManagerData&) { ElementToNodeResultFilter{aValidInput}.run(); }};
+}
+
 [[maybe_unused]] static const auto kElementToNodeParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::element_to_node_result_filter>{};
+
+[[maybe_unused]] static const auto kElementToNodeProcessManagerRegistration =
+    library::ProcessManagerRegistration{input_parser::block_name<input_parser::element_to_node_result_filter>(),
+                                        [](const library::ValidatedProcessManagerInput& aValidInput)
+                                        { return make_element_to_node_result_filter_process_manager(aValidInput); }};
 
 [[maybe_unused]] static const auto kElementToNodeValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
@@ -124,7 +136,7 @@ ElementToNodeResultFilter::ElementToNodeResultFilter(const library::ValidatedPro
 {
 }
 
-void ElementToNodeResultFilter::run(const library::ProcessManagerData&) const
+void ElementToNodeResultFilter::run() const
 {
     const auto tMesh = mesh::Mesh{mInputMeshPath, mFixedBlockNames};
     if (mesh::EntityCounts{tMesh}.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))

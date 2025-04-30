@@ -78,8 +78,7 @@ TEST_F(ElementToNodeResultFilterRunFixture, CreateAndRunSeparateOutputFile)
 
     const auto tElementToNodeInput =
         tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>().rawInput().front();
-    EXPECT_NO_THROW(ElementToNodeResultFilter{tElementToNodeInput}.run(
-        library::make_process_manager_data(tValidatedInput.value())));
+    EXPECT_NO_THROW(ElementToNodeResultFilter{tElementToNodeInput}.run());
 
     // Retrieve nodal fields names from the mesh and check that the expected field name is found.
     const auto tMeshRetrieval = mesh::EntityCounts{mesh::Mesh{tOutputMeshPath}};
