@@ -1,4 +1,4 @@
-#include "plato/process_manager/extension/ElementToNodeResultFilter.hpp"
+#include "plato/process_manager/extension/NodalResultFilter.hpp"
 
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
@@ -17,46 +17,44 @@ namespace plato::process_manager::extension
 {
 namespace
 {
-[[nodiscard]] auto make_element_to_node_result_filter_process_manager(
-    const library::ValidatedProcessManagerInput& aValidInput) -> library::StageAndProcessManager
+[[nodiscard]] auto make_nodal_result_filter_process_manager(const library::ValidatedProcessManagerInput& aValidInput)
+    -> library::StageAndProcessManager
 {
     return {library::RunStage::kPostProcess,
-            [aValidInput](const library::ProcessManagerData&) { ElementToNodeResultFilter{aValidInput}.run(); }};
+            [aValidInput](const library::ProcessManagerData&) { NodalResultFilter{aValidInput}.run(); }};
 }
 
 [[maybe_unused]] static const auto kElementToNodeParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::element_to_node_result_filter>{};
+    input_parser::ComponentParserRegistration<input_parser::nodal_result_filter>{};
 
 [[maybe_unused]] static const auto kElementToNodeProcessManagerRegistration =
-    library::ProcessManagerRegistration{input_parser::block_name<input_parser::element_to_node_result_filter>(),
+    library::ProcessManagerRegistration{input_parser::block_name<input_parser::nodal_result_filter>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
-                                        { return make_element_to_node_result_filter_process_manager(aValidInput); }};
+                                        { return make_nodal_result_filter_process_manager(aValidInput); }};
 
 [[maybe_unused]] static const auto kElementToNodeValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
-        [](const input_parser::element_to_node_result_filter& aInput)
+        [](const input_parser::nodal_result_filter& aInput)
         { return detail::validate_filter_is_kernel_filter(aInput); },
-        [](const input_parser::element_to_node_result_filter& aInput)
+        [](const input_parser::nodal_result_filter& aInput)
         { return detail::validate_geometry_is_density_topology(aInput); }};
 
 [[nodiscard]] auto filter_input(const library::ValidatedProcessManagerInput& aInput)
     -> const input_parser::kernel_filter&
 {
-    return input_validation::get_input_block<input_parser::element_to_node_result_filter>(aInput)
+    return input_validation::get_input_block<input_parser::nodal_result_filter>(aInput)
         .filter->mInputBlock.get<input_parser::kernel_filter>();
 }
 
 [[nodiscard]] auto mesh_input_path(const library::ValidatedProcessManagerInput& aInput) -> std::filesystem::path
 {
-    const auto tElementToNodeFilterInput =
-        input_validation::get_input_block<input_parser::element_to_node_result_filter>(aInput);
+    const auto tElementToNodeFilterInput = input_validation::get_input_block<input_parser::nodal_result_filter>(aInput);
     return tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>().output_name->mToken;
 }
 
 [[nodiscard]] auto mesh_output_path(const library::ValidatedProcessManagerInput& aInput) -> std::filesystem::path
 {
-    const auto tElementToNodeFilterInput =
-        input_validation::get_input_block<input_parser::element_to_node_result_filter>(aInput);
+    const auto tElementToNodeFilterInput = input_validation::get_input_block<input_parser::nodal_result_filter>(aInput);
     if (tElementToNodeFilterInput.output_file_name)
     {
         return tElementToNodeFilterInput.output_file_name->mToken;
@@ -66,8 +64,7 @@ namespace
 
 [[nodiscard]] auto fixed_blocks(const library::ValidatedProcessManagerInput& aInput) -> std::set<std::string>
 {
-    const auto tElementToNodeFilterInput =
-        input_validation::get_input_block<input_parser::element_to_node_result_filter>(aInput);
+    const auto tElementToNodeFilterInput = input_validation::get_input_block<input_parser::nodal_result_filter>(aInput);
     return geometry::extension::fixed_blocks(
         tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>());
 }
@@ -118,7 +115,7 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
             const auto tMode =
                 tTimeStep == tTimeSteps.front() ? mesh::OutputMode::kOverwrite : mesh::OutputMode::kAppend;
             const auto tWriter = make_mesh_writer(tMode, aMesh, aOutputMeshPath, aFixedBlocks, tTimeStep);
-            tWriter->addFieldOnAnalysisDomainMesh(tFilteredField, ElementToNodeResultFilter::field_name(), tFixedValue);
+            tWriter->addFieldOnAnalysisDomainMesh(tFilteredField, NodalResultFilter::field_name(), tFixedValue);
             tWriter->addFieldOnAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
                                                   tFixedValue);
         }
@@ -127,7 +124,7 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
 }
 }  // namespace
 
-ElementToNodeResultFilter::ElementToNodeResultFilter(const library::ValidatedProcessManagerInput& aInput)
+NodalResultFilter::NodalResultFilter(const library::ValidatedProcessManagerInput& aInput)
     : mInputMeshPath{mesh_input_path(aInput)},
       mOutputMeshPath{mesh_output_path(aInput)},
       mFixedBlockNames{fixed_blocks(aInput)},
@@ -136,7 +133,7 @@ ElementToNodeResultFilter::ElementToNodeResultFilter(const library::ValidatedPro
 {
 }
 
-void ElementToNodeResultFilter::run() const
+void NodalResultFilter::run() const
 {
     const auto tMesh = mesh::Mesh{mInputMeshPath, mFixedBlockNames};
     if (mesh::EntityCounts{tMesh}.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))
@@ -154,24 +151,23 @@ void ElementToNodeResultFilter::run() const
     }
     else
     {
-        std::cout << "Warning: " << input_parser::block_name<input_parser::element_to_node_result_filter>()
+        std::cout << "Warning: " << input_parser::block_name<input_parser::nodal_result_filter>()
                   << " could not find field with name " << geometry::extension::density_mesh_field_name() << " in mesh "
                   << mInputMeshPath;
         std::cout << "\nNo filtered output will be added.\n";
     }
 }
 
-auto ElementToNodeResultFilter::field_name() -> std::string_view { return "element_to_nodal_filtered_result"; }
+auto NodalResultFilter::field_name() -> std::string_view { return "nodal_filtered_result"; }
 
 namespace detail
 {
-auto validate_filter_is_kernel_filter(const input_parser::element_to_node_result_filter& aInput)
-    -> std::optional<std::string>
+auto validate_filter_is_kernel_filter(const input_parser::nodal_result_filter& aInput) -> std::optional<std::string>
 {
     return validate_expected_cross_reference_type<input_parser::kernel_filter>(aInput.filter);
 }
 
-auto validate_geometry_is_density_topology(const input_parser::element_to_node_result_filter& aInput)
+auto validate_geometry_is_density_topology(const input_parser::nodal_result_filter& aInput)
     -> std::optional<std::string>
 {
     return validate_expected_cross_reference_type<input_parser::density_topology>(aInput.geometry);
