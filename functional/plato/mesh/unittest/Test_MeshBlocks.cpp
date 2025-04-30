@@ -33,12 +33,12 @@ TEST_F(TwoBlockMeshOnDisk, BlockOrdinals)
 
     const auto tBlock1Ordinal = tMesh.blockOrdinal("block_1");
     ASSERT_TRUE(tBlock1Ordinal);
-    constexpr auto tExpectedBlock1Ordinal = 40u;
+    constexpr auto tExpectedBlock1Ordinal = 45u;
     EXPECT_EQ(tBlock1Ordinal.value(), tExpectedBlock1Ordinal);
 
     const auto tBlock2Ordinal = tMesh.blockOrdinal("block_2");
     ASSERT_TRUE(tBlock2Ordinal);
-    constexpr auto tExpectedBlock2Ordinal = 41u;
+    constexpr auto tExpectedBlock2Ordinal = 46u;
     EXPECT_EQ(tBlock2Ordinal.value(), tExpectedBlock2Ordinal);
 
     // Non-exestent block

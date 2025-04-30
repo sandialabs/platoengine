@@ -40,10 +40,10 @@ TEST_F(TwoBlockMeshOnDisk, BlockData)
     ASSERT_EQ(tBlockIDsAndNames.size(), mExpectedNumberOfBlocks);
 
     EXPECT_EQ(tBlockIDsAndNames.front().mID, 1);
-    EXPECT_EQ(tBlockIDsAndNames.front().mMetaDataOrdinal, 40u);
+    EXPECT_EQ(tBlockIDsAndNames.front().mMetaDataOrdinal, 45u);
     EXPECT_EQ(tBlockIDsAndNames.front().mName, "block_1");
     EXPECT_EQ(tBlockIDsAndNames.back().mID, 2);
-    EXPECT_EQ(tBlockIDsAndNames.back().mMetaDataOrdinal, 41u);
+    EXPECT_EQ(tBlockIDsAndNames.back().mMetaDataOrdinal, 46u);
     EXPECT_EQ(tBlockIDsAndNames.back().mName, "block_2");
 
     // Check sorted post-condition
@@ -57,13 +57,13 @@ TEST_F(TwoBlockMeshOnDisk, PartWithBlockNameAndID)
     const auto tTwoBlockMesh = read_mesh_bulk_data(mMeshFilePath);
     const auto tBlockData = block_data(*tTwoBlockMesh);
     {
-        const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 40u);
+        const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, tBlockData.at(0).mMetaDataOrdinal);
         ASSERT_TRUE(tBlock);
         EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfElementsInBlock1);
         EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfNodesInBlock1);
     }
     {
-        const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, 41u);
+        const auto tBlock = part_with_block_meta_data_ordinal(*tTwoBlockMesh, tBlockData.at(1).mMetaDataOrdinal);
         ASSERT_TRUE(tBlock);
         EXPECT_EQ(element_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfElementsInBlock2);
         EXPECT_EQ(node_size(*tTwoBlockMesh, tBlock->get()), kExpectedNumberOfNodesInBlock2);
@@ -167,7 +167,7 @@ TEST_F(OneBlock3x1x1HexMeshWithNodeSets, BlockData)
     ASSERT_EQ(tBlockData.size(), tNumberOfExpectedBlocks);
 
     EXPECT_EQ(tBlockData.front().mID, 1);
-    EXPECT_EQ(tBlockData.front().mMetaDataOrdinal, 40U);
+    EXPECT_EQ(tBlockData.front().mMetaDataOrdinal, 45U);
     EXPECT_EQ(tBlockData.front().mName, "block_1");
 }
 
