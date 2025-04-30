@@ -133,7 +133,7 @@ auto validate_number_of_processors_factor_of_comm_world(const input_parser::kern
     if (tTotalRanks % tRequestedRanks != 0)
     {
         return std::optional<std::string>{
-            utilities::concatenate("The number of MPI ranks requested for filter has to a factor of the "
+            utilities::concatenate("The number of MPI ranks requested for filter has to be a factor of the "
                                    "available ranks for the entire run.\n",
                                    "The number of available ranks: ", tTotalRanks,
                                    ".\n The number of requested ranks for the filter: ", tRequestedRanks)};
