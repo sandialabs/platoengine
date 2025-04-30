@@ -9,12 +9,12 @@ namespace plato::third_party_integration::stk_io::test_utilities
 {
 namespace
 {
-const CommandGenerator kCommandGenerator{{3, 1, 1}, {0, 0, 0}, {1, 1, 1}, CommandElementType::Hex};
-const std::string_view kSourceMeshName = "source.exo";
-const std::string_view kFieldName = "Topology";
-const std::string_view kNodalMeshName = "nodal_density.exo";
-const std::string_view kElementMeshName = "element_density.exo";
-const std::string_view kTestDirectoryName = "test";
+constexpr CommandGenerator kCommandGenerator{{3, 1, 1}, {0, 0, 0}, {1, 1, 1}, CommandElementType::Hex};
+constexpr std::string_view kTestDirectoryName = "test";
+const auto kSourceMeshPath = std::filesystem::path{kTestDirectoryName} / std::filesystem::path{"source.exo"};
+constexpr std::string_view kFieldName = "Topology";
+constexpr std::string_view kNodalMeshName = "nodal_density.exo";
+constexpr std::string_view kElementMeshName = "element_density.exo";
 
 [[nodiscard]] auto create_nodal_gold() -> std::map<std::size_t, double>
 {
@@ -28,31 +28,33 @@ const std::string_view kTestDirectoryName = "test";
 }
 
 void create_element_density_field_mesh_for_reading(const CommandGenerator& aCommandGenerator,
-                                                   const std::filesystem::path& aFileName)
+                                                   const std::filesystem::path& aFileName,
+                                                   const std::string_view aFieldName)
 {
-    write_mesh(std::string{kSourceMeshName}, aCommandGenerator);
+    write_mesh(kSourceMeshPath, aCommandGenerator);
     std::vector<double> tElementDensities(aCommandGenerator.numberOfElements());
     std::iota(tElementDensities.begin(), tElementDensities.end(), 1.0);
     test_utilities::write_element_scalar_field(
-        std::string{kSourceMeshName}, [&tElementDensities](const auto aIndex) { return tElementDensities[aIndex - 1]; },
-        kFieldName, aFileName);
+        kSourceMeshPath, [&tElementDensities](const auto aIndex) { return tElementDensities[aIndex - 1]; }, aFieldName,
+        aFileName);
 }
 
 void create_node_density_field_mesh_for_reading(const CommandGenerator& aCommandGenerator,
-                                                const std::filesystem::path& aFileName)
+                                                const std::filesystem::path& aFileName,
+                                                const std::string_view aFieldName)
 {
-    write_mesh(std::string{kSourceMeshName}, aCommandGenerator);
+    write_mesh(kSourceMeshPath, aCommandGenerator);
     std::vector<double> tDensities(aCommandGenerator.numberOfNodes());
     std::iota(tDensities.begin(), tDensities.end(), 1.0);
     write_nodal_scalar_field(
-        std::string{kSourceMeshName}, [&tDensities](const auto aIndex) { return tDensities[aIndex - 1]; }, kFieldName,
-        aFileName);
+        kSourceMeshPath, [&tDensities](const auto aIndex) { return tDensities[aIndex - 1]; }, aFieldName, aFileName);
 }
 }  // namespace
 
 MeshWithDensities::MeshWithDensities(const std::map<std::size_t, double>& aGoldNumbering,
-                                     const std::filesystem::path& aMeshName)
-    : mFieldName{kFieldName},
+                                     const std::filesystem::path& aMeshName,
+                                     const std::string_view aFieldName)
+    : mFieldName{aFieldName},
       mGoldNumbering{aGoldNumbering},
       mDirectory{kTestDirectoryName},
       mMeshName{mDirectory.directory() / aMeshName}
@@ -60,17 +62,21 @@ MeshWithDensities::MeshWithDensities(const std::map<std::size_t, double>& aGoldN
 }
 
 MeshWithElementDensities::MeshWithElementDensities()
-    : MeshWithDensities({{1U, 1.0}, {2U, 2.0}, {3U, 3.0}}, kElementMeshName)
+    : MeshWithDensities({{1U, 1.0}, {2U, 2.0}, {3U, 3.0}}, kElementMeshName, kFieldName)
 {
-    mDirectory.writeFile([](const std::filesystem::path& aPath)
-                         { create_element_density_field_mesh_for_reading(kCommandGenerator, aPath); },
+    mDirectory.writeFile([this](const std::filesystem::path& aPath)
+                         { create_element_density_field_mesh_for_reading(kCommandGenerator, aPath, mFieldName); },
                          mMeshName.filename());
 }
 
-MeshWithNodalDensities::MeshWithNodalDensities() : MeshWithDensities(create_nodal_gold(), kNodalMeshName)
+MeshWithNodalDensities::MeshWithNodalDensities() : MeshWithNodalDensities(kNodalMeshName, kFieldName) {}
+
+MeshWithNodalDensities::MeshWithNodalDensities(const std::filesystem::path& aMeshName,
+                                               const std::string_view aFieldName)
+    : MeshWithDensities(create_nodal_gold(), aMeshName, aFieldName)
 {
-    mDirectory.writeFile([](const std::filesystem::path& aPath)
-                         { create_node_density_field_mesh_for_reading(kCommandGenerator, aPath); },
+    mDirectory.writeFile([this](const std::filesystem::path& aPath)
+                         { create_node_density_field_mesh_for_reading(kCommandGenerator, aPath, mFieldName); },
                          mMeshName.filename());
 }
 }  // namespace plato::third_party_integration::stk_io::test_utilities
