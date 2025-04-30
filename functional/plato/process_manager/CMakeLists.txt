@@ -24,6 +24,11 @@ if( UNIT_TESTING )
   set(LINK_LIBS PlatoFunctionalGeometryTestUtilities 
                 PlatoFunctionalFilterTestUtilities 
                 PlatoFunctionalCriteriaTestUtilities
-                PlatoFunctionalProcessManagerTestUtilities )
+                PlatoFunctionalProcessManagerTestUtilities
+                PlatoFunctionalSTKIOTestUtilities )
   create_plato_unittester(PlatoFunctionalProcessManager "${DIRECTORIES}" "${LINK_LIBS}")
+
+  set(NUM_RANKS_FOR_TEST 2)
+  create_plato_parallel_unittester(PlatoFunctionalProcessManager "extension/parallel_unittest" ${NUM_RANKS_FOR_TEST} "${LINK_LIBS}")
+
 endif()

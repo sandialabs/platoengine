@@ -4,21 +4,36 @@
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/process_manager/extension/ElementToNodeResultFilter.hpp"
+#include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 
 namespace plato::process_manager::extension::unittest
 {
 namespace
 {
+const auto kMeshPath =
+    geometry::extension::test_utilities::create_valid_density_topology_geometry_input().mesh_name.value().mToken;
+
 class ElementToNodeResultFilterValidationFixture : public test_utilities::FileCreatingTestFixture
 {
    public:
-    ElementToNodeResultFilterValidationFixture()
-        : FileCreatingTestFixture{geometry::extension::test_utilities::create_valid_density_topology_geometry_input()
-                                      .mesh_name.value()
-                                      .mToken}
+    ElementToNodeResultFilterValidationFixture() : FileCreatingTestFixture{kMeshPath} {}
+};
+
+class ElementToNodeResultFilterRunFixture
+    : public third_party_integration::stk_io::test_utilities::MeshWithNodalDensities
+{
+   public:
+    ElementToNodeResultFilterRunFixture()
+        : MeshWithNodalDensities{kMeshPath, geometry::extension::density_mesh_field_name()}
     {
     }
 };
@@ -31,7 +46,33 @@ template <typename ComponentInput>
 }
 }  // namespace
 
-TEST(ElementToNodeResultFilter, CreateAndRun) {}
+TEST_F(ElementToNodeResultFilterRunFixture, CreateAndRunSeparateOutputFile)
+{
+    auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
+    tGeometryInput.mesh_name = input_parser::FileName{mMeshName};
+    tGeometryInput.output_name = input_parser::FileName{mMeshName};
+
+    auto tNodalResultFilter = input_parser::element_to_node_result_filter{};
+    const auto tOutputMeshPath = mDirectory.directory() / std::filesystem::path{"output.exo"};
+    tNodalResultFilter.output_file_name = input_parser::FileName{tOutputMeshPath};
+
+    const auto tInput = tNodalResultFilter | tGeometryInput |
+                        criteria::library::test_utilities::create_valid_example_objective_input() |
+                        filter::extension::test_utilities::create_valid_kernel_filter_input();
+    const auto tValidatedInput = input_validation::make_validated_input(tInput);
+    ASSERT_TRUE(tValidatedInput.hasValue()) << tValidatedInput.error();
+
+    const auto tElementToNodeInput =
+        tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>().rawInput().front();
+    EXPECT_NO_THROW(ElementToNodeResultFilter{tElementToNodeInput}.run(
+        library::make_process_manager_data(tValidatedInput.value())));
+
+    // Retrieve nodal fields names from the mesh and check that the expected field name is found.
+    const auto tMeshRetrieval = mesh::EntityRetrieval{mesh::Mesh{tOutputMeshPath}};
+    EXPECT_TRUE(tMeshRetrieval.hasNodalField(ElementToNodeResultFilter::field_name())) << "New field was not written";
+    EXPECT_TRUE(tMeshRetrieval.hasNodalField(geometry::extension::density_mesh_field_name()))
+        << "Original field is not present";
+}
 
 TEST(ElementToNodeResultFilter, ValidateFilterIsKernelFilter)
 {
@@ -63,40 +104,24 @@ TEST_F(ElementToNodeResultFilterValidationFixture, ValidateFilterIsKernelFilter)
     EXPECT_TRUE(tValidatedInput.hasError());
 }
 
-TEST(ElementToNodeResultFilter, ValidateHasMeshName)
+TEST(ElementToNodeResultFilter, ValidateGeometryIsDensityTopology)
 {
     {
-        // Has no mesh name and wrong geometry
+        // Wrong geometry
         auto tInput = input_parser::element_to_node_result_filter{};
         tInput.geometry = cross_reference<input_parser::brick_shape_geometry>();
-        EXPECT_TRUE(detail::validate_has_mesh_name_or_geometry_is_density_topology(tInput));
+        EXPECT_TRUE(detail::validate_geometry_is_density_topology(tInput));
     }
     {
-        // Has no mesh name and correct geometry
+        // Correct geometry
         auto tInput = input_parser::element_to_node_result_filter{};
         tInput.geometry = cross_reference<input_parser::density_topology>();
-        const auto tErrorMessage = detail::validate_has_mesh_name_or_geometry_is_density_topology(tInput);
-        EXPECT_FALSE(detail::validate_has_mesh_name_or_geometry_is_density_topology(tInput)) << tErrorMessage.value();
-    }
-    {
-        // Has mesh name and wrong geometry
-        auto tInput = input_parser::element_to_node_result_filter{};
-        tInput.geometry = cross_reference<input_parser::brick_shape_geometry>();
-        tInput.output_file_name = input_parser::FileName{};
-        const auto tErrorMessage = detail::validate_has_mesh_name_or_geometry_is_density_topology(tInput);
-        EXPECT_FALSE(detail::validate_has_mesh_name_or_geometry_is_density_topology(tInput)) << tErrorMessage.value();
-    }
-    {
-        // Has mesh name and correct geometry
-        auto tInput = input_parser::element_to_node_result_filter{};
-        tInput.geometry = cross_reference<input_parser::density_topology>();
-        tInput.output_file_name = input_parser::FileName{};
-        const auto tErrorMessage = detail::validate_has_mesh_name_or_geometry_is_density_topology(tInput);
-        EXPECT_FALSE(detail::validate_has_mesh_name_or_geometry_is_density_topology(tInput)) << tErrorMessage.value();
+        const auto tErrorMessage = detail::validate_geometry_is_density_topology(tInput);
+        EXPECT_FALSE(tErrorMessage) << tErrorMessage.value();
     }
 }
 
-TEST_F(ElementToNodeResultFilterValidationFixture, ValidateHasMeshName)
+TEST_F(ElementToNodeResultFilterValidationFixture, ValidateGeometryIsDensityTopology)
 {
     // Via registered validation
     const auto tInput = input_parser::element_to_node_result_filter{} |
