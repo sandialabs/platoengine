@@ -200,4 +200,11 @@ TEST_F(TwoBlockMeshOnDisk, NumberOfNodesAndElementsFromBulkAndParts)
                  TEST_CONTEXT("Block 2"));
 }
 
+TEST_F(NodalDensityMesh, TimeSteps)
+{
+    const auto tResult = time_steps(mMeshName);
+    const auto tExpected = std::vector{1.0};
+    EXPECT_EQ(tResult, tExpected);
+}
+
 }  // namespace plato::third_party_integration::stk_io::unittest

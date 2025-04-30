@@ -270,4 +270,8 @@ auto read_nodal_field(const std::filesystem::path& aInputMeshName,
     return {};
 }
 
+auto time_steps(const std::filesystem::path& aInputMeshName) -> std::vector<double>
+{
+    return create_reading_iobroker(aInputMeshName)->get_time_steps();
+}
 }  // namespace plato::third_party_integration::stk_io
