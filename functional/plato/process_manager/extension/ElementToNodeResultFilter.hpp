@@ -45,6 +45,7 @@ class ElementToNodeResultFilter
     std::filesystem::path mOutputMeshPath;
     std::set<std::string> mFixedBlockNames;
     double mFilterRadius;
+    unsigned int mNumberOfProcessorsForFilter;
 };
 
 namespace detail

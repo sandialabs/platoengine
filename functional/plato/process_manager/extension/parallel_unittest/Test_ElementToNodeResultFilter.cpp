@@ -8,6 +8,7 @@
 #include "plato/process_manager/extension/ElementToNodeResultFilter.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
+#include "plato/utilities/IndexRange.hpp"
 
 namespace plato::process_manager::extension::parallel_unittest
 {
@@ -25,20 +26,25 @@ class ElementToNodeResultFilterRunFixture
     {
     }
 };
-}  // namespace
 
-TEST_F(ElementToNodeResultFilterRunFixture, CreateAndRunNoExternalMesh)
+void run_and_check_output_files(const std::filesystem::path& aMeshName, const unsigned int aNumberOfProcessorsForFilter)
 {
     auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
-    const auto tOutputMeshPath = mMeshName;
-    tGeometryInput.mesh_name = input_parser::FileName{mMeshName};
-    tGeometryInput.output_name = input_parser::FileName{tOutputMeshPath};
+    tGeometryInput.mesh_name = input_parser::FileName{aMeshName};
+    tGeometryInput.output_name = input_parser::FileName{aMeshName};
 
-    const auto tInput = input_parser::element_to_node_result_filter{} | tGeometryInput |
-                        criteria::library::test_utilities::create_valid_example_objective_input() |
-                        criteria::library::test_utilities::create_valid_example_objective_input() |
-                        filter::extension::test_utilities::create_valid_kernel_filter_input();
+    auto tFilterInput = filter::extension::test_utilities::create_valid_kernel_filter_input();
+    tFilterInput.number_of_processors = aNumberOfProcessorsForFilter;
+
+    auto tCriteriaInput = input_parser::ParsedInput{};
+    for ([[maybe_unused]] const auto tIndex : utilities::IndexRange{boost::mpi::communicator{}.size()})
+    {
+        tCriteriaInput = tCriteriaInput | criteria::library::test_utilities::create_valid_example_objective_input();
+    }
+
+    const auto tInput = tCriteriaInput | input_parser::element_to_node_result_filter{} | tGeometryInput | tFilterInput;
     const auto tValidatedInput = input_validation::make_validated_input(tInput);
+
     ASSERT_TRUE(tValidatedInput.hasValue()) << tValidatedInput.error();
 
     const auto tElementToNodeInput =
@@ -47,10 +53,25 @@ TEST_F(ElementToNodeResultFilterRunFixture, CreateAndRunNoExternalMesh)
         library::make_process_manager_data(tValidatedInput.value())));
 
     // Retrieve nodal fields names from the mesh and check that the expected field name is found.
-    const auto tMeshRetrieval = mesh::EntityRetrieval{mesh::Mesh{tOutputMeshPath}};
+    const auto tMeshRetrieval = mesh::EntityRetrieval{mesh::Mesh{aMeshName}};
     EXPECT_TRUE(tMeshRetrieval.hasNodalField(ElementToNodeResultFilter::field_name())) << "New field was not written";
     EXPECT_TRUE(tMeshRetrieval.hasNodalField(geometry::extension::density_mesh_field_name()))
         << "Original field is not present";
     boost::mpi::communicator{}.barrier();
 }
+
+}  // namespace
+
+TEST_F(ElementToNodeResultFilterRunFixture, CreateAndRunUseAllRanksInFilter)
+{
+    const auto tNumberOfProcessorsForFilter = boost::mpi::communicator{}.size();
+    run_and_check_output_files(mMeshName, tNumberOfProcessorsForFilter);
+}
+
+TEST_F(ElementToNodeResultFilterRunFixture, CreateAndRunUseFewerRanksInFilter)
+{
+    const auto tNumberOfProcessorsForFilter = boost::mpi::communicator{}.size() / 2;
+    run_and_check_output_files(mMeshName, tNumberOfProcessorsForFilter);
+}
+
 }  // namespace plato::process_manager::extension::parallel_unittest

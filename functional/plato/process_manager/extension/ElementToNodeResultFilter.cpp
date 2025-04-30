@@ -10,6 +10,7 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::process_manager::extension
 {
@@ -24,6 +25,13 @@ namespace
         { return detail::validate_filter_is_kernel_filter(aInput); },
         [](const input_parser::element_to_node_result_filter& aInput)
         { return detail::validate_geometry_is_density_topology(aInput); }};
+
+[[nodiscard]] auto filter_input(const library::ValidatedProcessManagerInput& aInput)
+    -> const input_parser::kernel_filter&
+{
+    return input_validation::get_input_block<input_parser::element_to_node_result_filter>(aInput)
+        .filter->mInputBlock.get<input_parser::kernel_filter>();
+}
 
 [[nodiscard]] auto mesh_input_path(const library::ValidatedProcessManagerInput& aInput) -> std::filesystem::path
 {
@@ -51,11 +59,17 @@ namespace
         tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>());
 }
 
-[[nodiscard]] auto filter_radius(const library::ValidatedProcessManagerInput& aInput) -> double
+/// @brief Splits @a aComm into one or two groups.
+///
+/// If @a aNumberOfProcessors is equal to the number of ranks on comm world, then all ranks are allocated to the same
+/// group. If it is smaller, then two groups are formed, one with @a aNumberOfProcessors and one with the remainder.
+[[nodiscard]] auto split_comm(const unsigned int aNumberOfProcessors, const boost::mpi::communicator& aComm)
+    -> std::pair<boost::mpi::communicator, utilities::ColorType>
 {
-    return input_validation::get_input_block<input_parser::element_to_node_result_filter>(aInput)
-        .filter->mInputBlock.get<input_parser::kernel_filter>()
-        .filter_radius.value();
+    const auto tCommSize = aComm.size();
+    const auto tGroupColor = utilities::rank_group_color({aNumberOfProcessors, tCommSize - aNumberOfProcessors},
+                                                         utilities::RankNamedType{aComm.rank()});
+    return {aComm.split(tGroupColor.mValue), tGroupColor.mValue};
 }
 }  // namespace
 
@@ -63,7 +77,8 @@ ElementToNodeResultFilter::ElementToNodeResultFilter(const library::ValidatedPro
     : mInputMeshPath{mesh_input_path(aInput)},
       mOutputMeshPath{mesh_output_path(aInput)},
       mFixedBlockNames{fixed_blocks(aInput)},
-      mFilterRadius{filter_radius(aInput)}
+      mFilterRadius{filter_input(aInput).filter_radius.value()},
+      mNumberOfProcessorsForFilter{filter_input(aInput).number_of_processors.value()}
 {
 }
 
@@ -76,21 +91,25 @@ void ElementToNodeResultFilter::run(const library::ProcessManagerData& /*aProces
             mesh::EntityRetrieval{tMesh}.designDomainNodalField(geometry::extension::density_mesh_field_name());
         const auto tFieldAnalysisMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tNodalFieldToFilter});
-        const auto tComm = boost::mpi::communicator{};
-        const auto tFilter =
-            filter::extension::KernelFilter{tMesh, filter::extension::FilterRadius{mFilterRadius},
-                                            input_parser::KernelFilterCenteringTypes::kNodeCentered, tComm};
-        const auto tFilteredField = tFilter.filter(tFieldAnalysisMesh);
-        if (tComm.rank() == 0)
+        const auto tWorldComm = boost::mpi::communicator{};
+        const auto [tComm, tGroupColor] = split_comm(mNumberOfProcessorsForFilter, tWorldComm);
+        if (tGroupColor == 0)
         {
-            constexpr auto tTimeStep = double{1.0};
-            constexpr auto tFixedValue = double{1.0};
-            auto tWriter = mesh::MeshFieldWriter{tMesh, mOutputMeshPath, tTimeStep};
-            tWriter.addFieldOnAnalysisDomainMesh(tFilteredField, field_name(), tFixedValue);
-            tWriter.addFieldOnAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
-                                                 tFixedValue);
+            const auto tFilter =
+                filter::extension::KernelFilter{tMesh, filter::extension::FilterRadius{mFilterRadius},
+                                                input_parser::KernelFilterCenteringTypes::kNodeCentered, tComm};
+            const auto tFilteredField = tFilter.filter(tFieldAnalysisMesh);
+            if (tComm.rank() == 0)
+            {
+                constexpr auto tTimeStep = double{1.0};
+                constexpr auto tFixedValue = double{1.0};
+                auto tWriter = mesh::MeshFieldWriter{tMesh, mOutputMeshPath, tTimeStep};
+                tWriter.addFieldOnAnalysisDomainMesh(tFilteredField, field_name(), tFixedValue);
+                tWriter.addFieldOnAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
+                                                     tFixedValue);
+            }
         }
-        tComm.barrier();
+        tWorldComm.barrier();
     }
     else
     {
