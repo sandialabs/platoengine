@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "plato/test_utilities/CopyCounter.hpp"
 #include "plato/utilities/ValueOrTag.hpp"
-#include "plato/utilities/unittest/CopyCounter.hpp"
 
 namespace plato::utilities::unittest
 {
@@ -17,7 +17,7 @@ struct Nothing
 {
 };
 
-using MaybeCopyCounter = ValueOrTag<CopyCounter, Nothing>;
+using MaybeCopyCounter = ValueOrTag<test_utilities::CopyCounter, Nothing>;
 
 }  // namespace
 
@@ -87,35 +87,35 @@ TEST(ValueOrTag, ValueOrInvokeWithTag)
 TEST(ValueOrTag, Copy)
 {
     {
-        const auto tValue = MaybeCopyCounter{CopyCounter{}};
-        const auto tResult = tValue.valueOr(CopyCounter{});
+        const auto tValue = MaybeCopyCounter{test_utilities::CopyCounter{}};
+        const auto tResult = tValue.valueOr(test_utilities::CopyCounter{});
         constexpr auto tExpectedNumberOfCopies = 1U;
         EXPECT_EQ(tResult.mCopies, tExpectedNumberOfCopies);
 
-        const auto tInvokeResult = tValue.valueOrInvoke([]() { return CopyCounter{}; });
+        const auto tInvokeResult = tValue.valueOrInvoke([]() { return test_utilities::CopyCounter{}; });
         EXPECT_EQ(tInvokeResult.mCopies, tExpectedNumberOfCopies);
     }
     {
         const auto tValue = MaybeCopyCounter{Nothing{}};
-        const auto tResult = tValue.valueOr(CopyCounter{});
+        const auto tResult = tValue.valueOr(test_utilities::CopyCounter{});
         constexpr auto tExpectedNumberOfCopies = 0U;
         EXPECT_EQ(tResult.mCopies, tExpectedNumberOfCopies);
 
-        const auto tInvokeResult = tValue.valueOrInvoke([]() { return CopyCounter{}; });
+        const auto tInvokeResult = tValue.valueOrInvoke([]() { return test_utilities::CopyCounter{}; });
         EXPECT_EQ(tInvokeResult.mCopies, tExpectedNumberOfCopies);
     }
 }
 
 TEST(ValueOrTag, Move)
 {
-    auto tValue = MaybeCopyCounter{CopyCounter{}};
-    const auto tResult = std::move(tValue).valueOr(CopyCounter{});
+    auto tValue = MaybeCopyCounter{test_utilities::CopyCounter{}};
+    const auto tResult = std::move(tValue).valueOr(test_utilities::CopyCounter{});
     constexpr auto tExpectedNumberOfCopies = 0U;
     EXPECT_EQ(tResult.mCopies, tExpectedNumberOfCopies);
     constexpr auto tExpectedNumberOfMoves = 2U;
     EXPECT_EQ(tResult.mMoves, tExpectedNumberOfMoves);
 
-    const auto tInvokeResult = std::move(tValue).valueOrInvoke([]() { return CopyCounter{}; });
+    const auto tInvokeResult = std::move(tValue).valueOrInvoke([]() { return test_utilities::CopyCounter{}; });
     EXPECT_EQ(tInvokeResult.mCopies, tExpectedNumberOfCopies);
     EXPECT_EQ(tInvokeResult.mMoves, tExpectedNumberOfMoves);
 }

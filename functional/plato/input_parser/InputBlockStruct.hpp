@@ -10,6 +10,7 @@
 #include <boost/preprocessor/seq/variadic_seq_to_seq.hpp>
 #include <boost/preprocessor/tuple/elem.hpp>
 
+#include "plato/input_parser/ComponentType.hpp"
 #include "plato/input_parser/HelpDocumentationRegistration.hpp"
 
 namespace plato::input_parser
@@ -26,35 +27,10 @@ struct InputTypeName
 template <typename InputStruct>
 constexpr inline bool kIsNamedBlock = false;
 
-/// @brief Type trait specifying if a type is a geometry input type.
-///
-/// This is specialized to using the PLATO_GEOMETRY_INPUT_BLOCK_STRUCT macro.
-template <typename T>
-struct IsGeometryInput
-{
-    constexpr static bool value = false;
-};
-
-/// @brief Type trait specifying if a type is a process_manager input type.
-///
-/// This should be used for input blocks specifying general drivers like optimizers,
-/// gradient checkers, constraint checkers, etc.
-/// This is specialized to using the PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT macro.
-template <typename T>
-struct IsProcessManagerInput
-{
-    constexpr static bool value = false;
-};
-
-/// @brief Type trait specifying if a type is a filter input type.
-///
-/// This is specialized to using the PLATO_FILTER_INPUT_BLOCK_STRUCT macro.
-template <typename T>
-struct IsFilterInput
-{
-    constexpr static bool value = false;
-};
-
+/// @brief A helper function template for registering HelpDocumentation object generation.
+/// @note This is specialized in the parser macros and does not need to be called by client code.
+template <typename InputStruct>
+void register_help_documentation();
 }  // namespace plato::input_parser
 
 // clang-format off
@@ -66,24 +42,26 @@ struct IsFilterInput
 #define STRIP_COMMENT(r, data, elem) (BOOST_PP_TUPLE_ELEM(0, elem), BOOST_PP_TUPLE_ELEM(1, elem))
 #define ATTRIBUTES_WITHOUT_COMMENTS(ATTRIBUTES) BOOST_PP_SEQ_TRANSFORM(STRIP_COMMENT, _, ATTRIBUTES)
 
-#define UNPACK_ATRRIBUTE_AND_CALL_STRINGLY_CONSTRUCTOR(r, data, elem) \
-    tCommands.emplace_back(plato::input_parser::HelpDocumentation{                                           \
-    BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(1, elem)),                 \
-    BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, elem)),                 \
-    BOOST_PP_TUPLE_ELEM(2, elem)}                                      \
+#define UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR(r, data, elem) \
+    tCommands.emplace_back(plato::input_parser::HelpDocumentation{         \
+    BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(1, elem)),                      \
+    BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, elem)),                      \
+    BOOST_PP_TUPLE_ELEM(2, elem)}                                          \
     );
-#ifdef COMPILE_DOCUMENTATION_REGISTRATION
-#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, ATTRIBUTES)                                       \
-    [[maybe_unused]] static auto kNewHelpDocumentationRegistration##STRUCT_NAME =                                           \
-        plato::input_parser::HelpDocumentationRegistration{   BOOST_PP_STRINGIZE(STRUCT_NAME),                              \
-        [](){                                                                                                               \
-        plato::input_parser::Documentation tCommands;                                                                       \
-        BOOST_PP_SEQ_FOR_EACH(UNPACK_ATRRIBUTE_AND_CALL_STRINGLY_CONSTRUCTOR, _, BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))  \
-        return tCommands;                                                                                                   \
-        }};
-#else
-#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, ATTRIBUTES)
-#endif
+
+#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, ATTRIBUTES)                                            \
+namespace plato::input_parser {                                                                                                  \
+template<>                                                                                                                       \
+inline void register_help_documentation<STRUCT_NAME>() {                                                                         \
+    [[maybe_unused]] const auto tRegistration = HelpDocumentationRegistration{ BOOST_PP_STRINGIZE(STRUCT_NAME),                  \
+    [](){                                                                                                                        \
+        Documentation tCommands;                                                                                                 \
+        BOOST_PP_SEQ_FOR_EACH(UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR, _, BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))  \
+        return tCommands;                                                                                                        \
+    }};                                                                                                                          \
+};                                                                                                                               \
+}
+
 /// Macro for generating an adapted struct that can be used for input parsing. The format
 /// is the same as BOOST_FUSION_DEFINE_STRUCT and the resulting struct has all the same
 /// properties.
@@ -91,7 +69,7 @@ struct IsFilterInput
 /// For example, a struct of the form:
 /// @code 
 /// PLATO_INPUT_BLOCK_STRUCT(
-///    (Plato), service,
+///    (plato)(input_parser), service, input_parser::ComponentType::kProcessManager,
 ///    (unsigned int, number_processors))
 /// @endcode
 /// parses the following block:
@@ -100,39 +78,33 @@ struct IsFilterInput
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                \
-CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)                          \
+#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, ATTRIBUTES)                \
 BOOST_FUSION_DEFINE_STRUCT(                                                                             \
     NAMESPACE_SEQ,                                                                                      \
     STRUCT_NAME,                                                                                        \
     TYPES_AS_OPTIONAL(ATTRIBUTES_WITHOUT_COMMENTS(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))            \
 )                                                                                                       \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)                          \
 namespace plato::input_parser{                                                                          \
 template<>                                                                                              \
 struct InputTypeName<STRUCT_NAME>                                                                       \
 {   static constexpr const char* name = #STRUCT_NAME;                                                   \
 };                                                                                                      \
+template<>                                                                                              \
+struct ComponentTypeOfInputBlock<STRUCT_NAME>                                                           \
+{                                                                                                       \
+    constexpr static inline ComponentType value = COMPONENT_TYPE;                                       \
+};                                                                                                      \
 } 
 
+#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                       \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ComponentType::kGeometry, ATTRIBUTES)              \
 
-#define PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, TYPE_TRAIT_STRUCT, ATTRIBUTES) \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                  \
-namespace plato::input_parser{                                                                    \
-template<>                                                                                        \
-struct TYPE_TRAIT_STRUCT<STRUCT_NAME>                                                             \
-{                                                                                                 \
-    constexpr static bool value = true;                                                           \
-};                                                                                                \
-}
+#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ComponentType::kProcessManager, ATTRIBUTES)        \
 
-#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                 \
-PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsGeometryInput, ATTRIBUTES)           \
-
-#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)          \
-PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsProcessManagerInput, ATTRIBUTES)     \
-
-#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                   \
-PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ATTRIBUTES)             \
+#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                         \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ComponentType::kFilter, ATTRIBUTES)                \
 
 /// Macro for generating an adapted struct that can be used for input parsing. The format
 /// is the same as BOOST_FUSION_DEFINE_STRUCT and the resulting struct has all the same
@@ -141,7 +113,7 @@ PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ATTRIB
 /// For example, a struct of the form:
 /// @code 
 /// PLATO_NAMED_INPUT_BLOCK_STRUCT(
-///    (Plato), service,
+///    (plato)(input_parser), service, plato::input_parser::ComponentType::kObjective
 ///    (unsigned int, number_processors))
 /// @endcode
 /// parses the following block:
@@ -150,20 +122,25 @@ PLATO_TYPED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, IsFilterInput, ATTRIB
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_NAMED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)        \
-CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)        \
-BOOST_FUSION_DEFINE_STRUCT(                                                           \
-    NAMESPACE_SEQ,                                                                    \
-    STRUCT_NAME,                                                                      \
-    TYPES_AS_OPTIONAL(ATTRIBUTES_WITH_NAME(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))) \
-)                                                                                     \
-namespace plato::input_parser{                                                        \
-template<>                                                                            \
-struct InputTypeName<STRUCT_NAME>                                                     \
-{   static constexpr const char* name = #STRUCT_NAME;                                 \
-};                                                                                    \
-template<>                                                                            \
-constexpr inline bool kIsNamedBlock<STRUCT_NAME> = true;                              \
+#define PLATO_NAMED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, ATTRIBUTES)  \
+BOOST_FUSION_DEFINE_STRUCT(                                                                     \
+    NAMESPACE_SEQ,                                                                              \
+    STRUCT_NAME,                                                                                \
+    TYPES_AS_OPTIONAL(ATTRIBUTES_WITH_NAME(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))           \
+)                                                                                               \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)                  \
+namespace plato::input_parser{                                                                  \
+template<>                                                                                      \
+struct InputTypeName<STRUCT_NAME>                                                               \
+{   static constexpr const char* name = #STRUCT_NAME;                                           \
+};                                                                                              \
+template<>                                                                                      \
+constexpr inline bool kIsNamedBlock<STRUCT_NAME> = true;                                        \
+template<>                                                                                      \
+struct ComponentTypeOfInputBlock<STRUCT_NAME>                                                   \
+{                                                                                               \
+    constexpr static inline ComponentType value = COMPONENT_TYPE;                               \
+};                                                                                              \
 }
 
 // clang-format on

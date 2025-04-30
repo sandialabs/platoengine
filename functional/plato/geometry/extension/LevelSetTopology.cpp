@@ -5,7 +5,6 @@
 #include <optional>
 
 #include "plato/core/Compose.hpp"
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/geometry/extension/FixedBlockUtilities.hpp"
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
@@ -14,7 +13,9 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
@@ -37,11 +38,16 @@ constexpr auto kMeshNameAccessor =
     [](const input_parser::level_set_topology& aInput) -> const boost::optional<input_parser::FileName>&
 { return aInput.mesh_name; };
 
-[[nodiscard]] auto make_topology_output(const input_parser::level_set_topology& aInput) -> library::FactoryTypes::Output
+[[nodiscard]] auto make_topology_output(const library::ValidatedGeometryInput& aGeometryInput)
+    -> library::FactoryTypes::Output
 {
-    return [aInput](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo) {
-        return LevelSetTopology::output(aInput, library::make_filter_from_geometry_input(aInput), aSolution,
-                                        aOutputInfo);
+    return
+        [aGeometryInput](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
+    {
+        const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
+        return LevelSetTopology::output(
+            tInput, library::make_filter_from_geometry_input<input_parser::level_set_topology>(aGeometryInput),
+            aSolution, aOutputInfo);
     };
 }
 
@@ -53,6 +59,14 @@ void initialize_krino()
         tIsInitialized = true;
         tpik::initialize_environment_for_krino(kKrinoLogFileName, MPI_COMM_SELF);
     }
+}
+
+auto make_level_set_geometry(const library::ValidatedGeometryInput& aGeometryInput) -> library::GeometryFunction
+{
+    const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
+    return make_level_set_geometry(
+        std::make_shared<LevelSetTopology>(tInput),
+        library::make_filter_from_geometry_input<input_parser::level_set_topology>(aGeometryInput));
 }
 
 [[nodiscard]] auto any_sphere_pattern_specifiers(const input_parser::level_set_topology& aInput) -> bool
@@ -70,22 +84,25 @@ void initialize_krino()
            aInput.sphere_pattern_bbox_min_y.has_value() && aInput.sphere_pattern_bbox_min_z.has_value();
 }
 
+/// Static registration for parser
+[[maybe_unused]] static auto kLevelSetTopologyParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::level_set_topology>{};
+
 /// Static registration for library
 [[maybe_unused]] static auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::level_set_topology>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
     {
         initialize_krino();
-        const auto& tInput = core::validated_variant_raw_input<input_parser::level_set_topology>(aGeometryInput);
+        const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
         auto tLevelSet = LevelSetTopology{tInput};
-        return library::FactoryTypes{make_level_set_geometry(std::make_shared<LevelSetTopology>(tInput),
-                                                             library::make_filter_from_geometry_input(tInput)),
-                                     tLevelSet.initialGuess(tInput), tLevelSet.bounds(), make_topology_output(tInput)};
+        return library::FactoryTypes{make_level_set_geometry(aGeometryInput), tLevelSet.initialGuess(tInput),
+                                     tLevelSet.bounds(), make_topology_output(aGeometryInput)};
     }};
 
 /// Static registration for input validation functions
 [[maybe_unused]] static auto kLevelSetTopologyValidationRegistration =
-    core::ValidationRegistration<input_parser::level_set_topology>{
+    input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::level_set_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
         [](const input_parser::level_set_topology& aInput) { return library::detail::validate_output_name(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_lower_bound(aInput); },
@@ -253,35 +270,35 @@ auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::f
 namespace detail
 {
 
-std::optional<std::string> validate_lower_bound(const input_parser::level_set_topology& aInput)
+auto validate_lower_bound(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::level_set_topology>(),
-                                                           aInput.level_set_lower_bound, "level_set_lower_bound",
-                                                           utilities::upper_bounded(utilities::Exclusive{0.0}));
+    return input_validation::error_message_for_parameter_out_of_bounds(
+        input_parser::block_name<input_parser::level_set_topology>(), aInput.level_set_lower_bound,
+        "level_set_lower_bound", utilities::upper_bounded(utilities::Exclusive{0.0}));
 }
 
-std::optional<std::string> validate_upper_bound(const input_parser::level_set_topology& aInput)
+auto validate_upper_bound(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<input_parser::level_set_topology>(),
-                                                           aInput.level_set_upper_bound, "level_set_upper_bound",
-                                                           utilities::lower_bounded(utilities::Exclusive{0.0}));
+    return input_validation::error_message_for_parameter_out_of_bounds(
+        input_parser::block_name<input_parser::level_set_topology>(), aInput.level_set_upper_bound,
+        "level_set_upper_bound", utilities::lower_bounded(utilities::Exclusive{0.0}));
 }
 
-std::optional<std::string> validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput)
+auto validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_optional_parameter_out_of_bounds(
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<input_parser::level_set_topology>(), aInput.sphere_pattern_spacing,
         "sphere_pattern_spacing", utilities::lower_bounded(utilities::Exclusive{1e-5}));
 }
 
-std::optional<std::string> validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput)
+auto validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_optional_parameter_out_of_bounds(
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<input_parser::level_set_topology>(), aInput.sphere_pattern_radius,
         "sphere_pattern_radius", utilities::lower_bounded(utilities::Exclusive{1e-5}));
 }
 
-std::optional<std::string> validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput)
+auto validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
     if (!all_sphere_pattern_bounding_box_specifiers(aInput) && !aInput.initial_field_name.has_value())
     {

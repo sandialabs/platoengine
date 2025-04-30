@@ -1,25 +1,16 @@
 #ifndef PLATO_CRITERIA_LIBRARY_CONSTRAINTVALIDATION
 #define PLATO_CRITERIA_LIBRARY_CONSTRAINTVALIDATION
 
-#include "plato/core/ValidationRegistration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 
-namespace plato::criteria::library
+namespace plato::criteria::library::detail
 {
-/// @brief Validates all constraint inputs in @a aInput, returning all error messages and appending to @a
-/// aCurrentMessageList.
-[[nodiscard]] std::vector<std::string> validate_constraints(const std::vector<input_parser::constraint>& aInput,
-                                                            std::vector<std::string>&& aCurrentMessageList);
+[[nodiscard]] auto validate_constraint_value(const input_parser::constraint& aInput) -> std::optional<std::string>;
 
-namespace detail
-{
-[[nodiscard]] std::optional<std::string> validate_constraint_value(const input_parser::constraint& aInput);
-[[nodiscard]] std::optional<std::string> validate_constraint_number_of_processors(
-    const input_parser::constraint& aInput);
+[[nodiscard]] auto validate_constraint_number_of_processors(const input_parser::constraint& aInput)
+    -> std::optional<std::string>;
 
-[[nodiscard]] std::optional<std::string> validate_constraint_type(const input_parser::constraint& aInput);
-}  // namespace detail
-
-}  // namespace plato::criteria::library
+[[nodiscard]] auto validate_constraint_type(const input_parser::constraint& aInput) -> std::optional<std::string>;
+}  // namespace plato::criteria::library::detail
 
 #endif

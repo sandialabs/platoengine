@@ -3,11 +3,15 @@
 
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
 
-namespace plato::input_parser
-{
-struct identity_filter;
-}
+// clang-format off
+PLATO_FILTER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), identity_filter,
+    (double, filter_radius, "Do not use - Identity filter cannot have a filter radius.")
+)
+// clang-format on
+
 namespace plato::analysis
 {
 struct AnalysisDomainMesh;
@@ -38,7 +42,7 @@ class IdentityFilter : public library::FilterInterface
 
 [[nodiscard]] auto make_identity_filter_function() -> library::FilterFunction;
 
-[[nodiscard]] std::optional<std::string> validate_identity_filter(const input_parser::identity_filter& aInput);
+[[nodiscard]] auto validate_identity_filter(const input_parser::identity_filter& aInput) -> std::optional<std::string>;
 
 }  // namespace plato::filter::extension
 

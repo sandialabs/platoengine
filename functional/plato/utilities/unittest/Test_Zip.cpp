@@ -4,10 +4,10 @@
 #include <numeric>
 #include <set>
 
+#include "plato/test_utilities/CopyCounter.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/Zip.hpp"
 #include "plato/utilities/ZipIterator.hpp"
-#include "plato/utilities/unittest/CopyCounter.hpp"
 
 namespace plato::utilities::unittest
 {
@@ -76,7 +76,7 @@ TEST(Zip, DereferenceIterator)
 
 TEST(Zip, DereferencingIteratorDoesNotCopy)
 {
-    auto tVector1 = std::vector<CopyCounter>{};
+    auto tVector1 = std::vector<test_utilities::CopyCounter>{};
     tVector1.reserve(2);
     tVector1.emplace_back();
     tVector1.emplace_back();
@@ -92,7 +92,7 @@ TEST(Zip, DereferencingIteratorDoesNotCopy)
     }
 
     // Copies these on construction, so expect 1 copy
-    auto tVector2 = std::vector<CopyCounter>(3, CopyCounter{});
+    auto tVector2 = std::vector<test_utilities::CopyCounter>(3, test_utilities::CopyCounter{});
     {
         auto tZipIterator = ZipIterator{tVector1.rbegin(), tVector2.begin()};
         auto values = *tZipIterator;
@@ -304,7 +304,7 @@ TEST(Zip, ListAndSet)
 
 TEST(Zip, NoCopiesForLValues)
 {
-    auto tVector1 = std::vector<CopyCounter>{};
+    auto tVector1 = std::vector<test_utilities::CopyCounter>{};
     tVector1.reserve(2);
     tVector1.emplace_back();
     tVector1.emplace_back();
@@ -319,7 +319,7 @@ TEST(Zip, NoCopiesForLValues)
 TEST(Zip, CopiesForRValues)
 {
     auto tCopyCount = unsigned{0u};
-    for (const auto [tValue1] : Zip{std::vector<CopyCounter>(3)})
+    for (const auto [tValue1] : Zip{std::vector<test_utilities::CopyCounter>(3)})
     {
         tCopyCount += tValue1.mCopies;
     }

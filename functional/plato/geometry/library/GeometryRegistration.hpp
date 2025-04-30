@@ -6,8 +6,7 @@
 
 #include "plato/core/FactoryRegistration.hpp"
 #include "plato/core/Function.hpp"
-#include "plato/core/VariantInputBuilder.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
@@ -44,23 +43,17 @@ struct FactoryTypes
     Output mOutput;
 };
 
-/// A `std::variant` with alternatives corresponding to input blocks
-/// created using the PLATO_GEOMETRY_INPUT_BLOCK_STRUCT macro.
-using GeometryInput = core::InputVariant<input_parser::ParsedInput, input_parser::IsGeometryInput>;
-using ValidatedGeometryInput = core::ValidatedInputTypeWrapper<
-    core::ValidatedInputVariant<input_parser::ParsedInput, input_parser::IsGeometryInput>>;
+using ValidatedGeometryInput = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>;
 using GeometryRegistration = core::FactoryRegistration<FactoryTypes, ValidatedGeometryInput>;
 
-/// @return A GeometryInput variant, which is the first non-empty geometry input block found in @a aInput.
-/// @throw Exception If no geometry block was defined in @a aInput.
-[[nodiscard]] library::GeometryInput first_geometry_input(const input_parser::ParsedInput& aInput);
-
-[[nodiscard]] bool is_geometry_function_registered(const std::string_view aFunctionName);
+[[nodiscard]] auto is_geometry_function_registered(std::string_view aFunctionName) -> bool;
 
 /// @brief Helper to get the cross-referenced validated filter input block.
 template <typename FilterInputType, typename Geometry>
-[[nodiscard]] const FilterInputType get_cross_referenced_filter(const Geometry& aGeometry)
+[[nodiscard]] auto get_cross_referenced_filter(const Geometry& aGeometry) -> FilterInputType
 {
+    assert(aGeometry.filter->mInputBlock.has_value());
+    assert(aGeometry.filter->mInputBlock.template holdsExpectedType<FilterInputType>());
     return aGeometry.filter->mInputBlock.template get<FilterInputType>();
 }
 }  // namespace plato::geometry::library

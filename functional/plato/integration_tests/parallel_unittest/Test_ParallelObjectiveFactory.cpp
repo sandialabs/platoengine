@@ -4,26 +4,32 @@
 #include <iterator>
 
 #include "plato/criteria/library/ObjectiveFactory.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/CheckProcessorsMatchObjectives.hpp"
+#include "plato/integration_tests/utilities/InputGeneration.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
+#include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/test_utilities/ValidInputTestFixture.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/IndexRange.hpp"
 
 namespace plato::integration_tests::parallel
 {
 namespace
 {
-struct ObjectiveFactoryParallelTestFixture : public test_utilities::ValidInputTestFixture
+struct ObjectiveFactoryParallelTestFixture : public utilities::ValidInputTestFixture
 {
 };
 
 constexpr auto kNumRanks = int{4};
 
-process_manager::library::ValidatedInput create_one_objective_test_input()
+[[nodiscard]] auto create_one_objective_test_input() -> input_validation::ValidatedInput
 {
     namespace pftu = plato::test_utilities;
 
@@ -40,8 +46,9 @@ process_manager::library::ValidatedInput create_one_objective_test_input()
     const std::string tOptimizerInput = pftu::create_valid_example_rol_optimization_string();
     const std::string tIdentityFilterInput = pftu::create_valid_identity_filter_string();
 
-    return process_manager::library::parse_and_validate(tObjectiveInput + tGeometryInput + tIdentityFilterInput +
-                                                        tOptimizerInput);
+    return input_validation::parse_and_validate_string(tObjectiveInput + tGeometryInput + tIdentityFilterInput +
+                                                       tOptimizerInput)
+        .value();
 }
 
 linear_algebra::DynamicVector<double> test_brick_controls()
@@ -59,22 +66,26 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
     const auto tComm = boost::mpi::communicator{};
     const auto tConfigurationTempDirectory = utilities::register_test_mass_app(tMassAppName, tComm);
 
-    auto tObjective = input_parser::objective{};
-    tObjective.number_of_processors = kNumRanks / aNumGroups;
-    tObjective.aggregation_weight = 1.0;
-    tObjective.app = input_parser::AppName{std::string{tMassAppName}};
-    tObjective.criterion = input_parser::CriterionName{"mass"};
-    tObjective.name = "test_1";
+    const auto tObjective = input_parser::objective{/*.name=*/std::string{"test_1"},
+                                                    /*.active=*/true,
+                                                    /*.app=*/input_parser::AppName{std::string{tMassAppName}},
+                                                    /*.criterion=*/input_parser::CriterionName{"mass"},
+                                                    /*.number_of_processors=*/kNumRanks / aNumGroups,
+                                                    /*.input_files=*/boost::none,
+                                                    /*.aggregation_weight=*/1.0};
 
-    auto tInput = input_parser::ParsedInput{};
-    std::fill_n(std::back_inserter(tInput.mObjectives), aNumGroups, tObjective);
-    tInput.mBrickShapeGeometry = test_utilities::create_valid_brick_shape_geometry();
-    tInput.mROLOptimization = test_utilities::create_valid_example_rol_optimization();
+    auto tInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
+                  process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
+    for ([[maybe_unused]] const auto tIndex : plato::utilities::IndexRange{aNumGroups})
+    {
+        tInput = tInput | tObjective;
+    }
 
-    const auto tValidInput = process_manager::library::make_validated_input(tInput);
+    const auto tValidInput = input_validation::make_validated_input(tInput).value();
 
-    const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(tValidInput.objectives());
-    const auto tMeshFileName = tInput.mBrickShapeGeometry->mesh_name.value().mToken;
+    const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
+        tValidInput.get<input_parser::ComponentType::kObjective>());
+    const auto tMeshFileName = tInput.get<input_parser::brick_shape_geometry>().front().mesh_name.value().mToken;
     const auto tGeometry =
         geometry::extension::make_brick_shape_geometry(geometry::extension::BrickShapeGeometry{tMeshFileName});
 
@@ -96,38 +107,51 @@ TEST(ObjectiveFactory, MPISize)
 
 TEST(ObjectiveFactory, InvalidParallelAggregate)
 {
-    EXPECT_THROW(const process_manager::library::ValidatedInput tData = create_one_objective_test_input(),
-                 plato::utilities::Exception);
+    EXPECT_THROW([[maybe_unused]] const auto tData = create_one_objective_test_input(), plato::utilities::Exception);
 }
 
 TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
 {
     namespace pitu = plato::integration_tests::utilities;
-    auto tInput = test_utilities::create_valid_example_input();
+    auto tInputBase = parsedInput();
+    tInputBase.template get<input_parser::ComponentType::kObjective>().clear();
     {
         // Set number_of_processors to 4
-        tInput.mObjectives.front().number_of_processors = static_cast<unsigned int>(kNumRanks);
-        auto tValidInput = process_manager::library::make_validated_input(tInput);
+        auto tObjective = criteria::library::test_utilities::create_valid_example_objective_input();
+        tObjective.number_of_processors = static_cast<unsigned int>(kNumRanks);
+        const auto tInput = tInputBase | tObjective;
+        const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
+                                               .value()
+                                               .template get<input_parser::ComponentType::kObjective>();
         pitu::check_processors_match_objectives(
-            criteria::library::number_of_processors_per_objective(tValidInput.objectives()), tValidInput.objectives(),
+            criteria::library::number_of_processors_per_objective(tValidObjectivesInput), tValidObjectivesInput,
             TEST_CONTEXT("number_of_processors = 4"));
     }
     {
         // Add another objective with 1 processor
-        tInput.mObjectives.front().number_of_processors = static_cast<unsigned int>(kNumRanks) - 1u;
-        tInput.mObjectives.push_back(test_utilities::create_valid_example_objective());
-        auto tValidInput = process_manager::library::make_validated_input(tInput);
+        auto tObjective = criteria::library::test_utilities::create_valid_example_objective_input();
+        tObjective.number_of_processors = static_cast<unsigned int>(kNumRanks) - 1U;
+        const auto tInput =
+            tInputBase | tObjective | criteria::library::test_utilities::create_valid_example_objective_input();
+        const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
+                                               .value()
+                                               .template get<input_parser::ComponentType::kObjective>();
         pitu::check_processors_match_objectives(
-            criteria::library::number_of_processors_per_objective(tValidInput.objectives()), tValidInput.objectives(),
+            criteria::library::number_of_processors_per_objective(tValidObjectivesInput), tValidObjectivesInput,
             TEST_CONTEXT("Two objectives, 1 and 3 processors"));
     }
     {
         // Deactivate one objective
-        tInput.mObjectives.front().number_of_processors = static_cast<unsigned int>(kNumRanks);
-        tInput.mObjectives.back().active = false;
-        auto tValidInput = process_manager::library::make_validated_input(tInput);
+        auto tObjective1 = criteria::library::test_utilities::create_valid_example_objective_input();
+        tObjective1.number_of_processors = static_cast<unsigned int>(kNumRanks);
+        auto tObjective2 = criteria::library::test_utilities::create_valid_example_objective_input();
+        tObjective2.active = false;
+        const auto tInput = tInputBase | tObjective1 | tObjective2;
+        const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
+                                               .value()
+                                               .template get<input_parser::ComponentType::kObjective>();
         pitu::check_processors_match_objectives(
-            criteria::library::number_of_processors_per_objective(tValidInput.objectives()), tValidInput.objectives(),
+            criteria::library::number_of_processors_per_objective(tValidObjectivesInput), tValidObjectivesInput,
             TEST_CONTEXT("Two objectives, one with active = false"));
     }
 }

@@ -6,11 +6,10 @@
 #include <filesystem>
 #include <memory>
 
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/OutputManager.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
@@ -31,12 +30,11 @@ TEST(ProcessManagerData, InputFileToROLObjective)
                                std::to_string(tWeight) + " end" +
                                test_utilities::create_valid_example_rol_optimization_string();
 
-    const library::ValidatedInput tData{library::parse_and_validate(tInput)};
-
-    const library::ProcessManagerData tProblem = library::make_process_manager_data(tData);
-    std::unique_ptr<third_party_integration::rol::ROLObjectiveFunction> tObjectiveFunction =
-        make_rol_objective(tProblem);
-    const std::vector<double> tBoundingBox{0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+    const auto tData = input_validation::parse_and_validate_string(tInput);
+    ASSERT_TRUE(tData.hasValue()) << tData.error();
+    const auto tProblem = library::make_process_manager_data(tData.value());
+    const auto tObjectiveFunction = make_rol_objective(tProblem);
+    const auto tBoundingBox = std::vector<double>{0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
     double tTolerance = 1e-8;
 
     constexpr double tNodalSum = 12.0;
@@ -63,9 +61,9 @@ TEST(ProcessManagerData, InputFileToROLConstraint)
                               )" +
                                test_utilities::create_valid_example_rol_optimization_string();
 
-    const library::ValidatedInput tData{library::parse_and_validate(tInput)};
-
-    library::ProcessManagerData tProblem = library::make_process_manager_data(tData);
+    const auto tData = input_validation::parse_and_validate_string(tInput);
+    ASSERT_TRUE(tData.hasValue()) << tData.error();
+    auto tProblem = library::make_process_manager_data(tData.value());
     const auto tConstraints = make_rol_constraints(tProblem);
     ASSERT_EQ(tConstraints.size(), 1u);
 
@@ -86,14 +84,13 @@ namespace
 {
 void parse_and_generate_solver(const std::string& aInput, const plato::test_utilities::TestContext& aTestContext)
 {
-    const library::ValidatedInput tData{library::parse_and_validate(aInput)};
-    const library::ProcessManagerData tPlatoProblem = library::make_process_manager_data(tData);
+    const auto tData = input_validation::parse_and_validate_string(aInput);
+    ASSERT_TRUE(tData.hasValue());
+    const auto tPlatoProblem = library::make_process_manager_data(tData.value());
     const auto tValidatedOptimizationParameters =
-        library::process_manager_input<input_parser::rol_optimization>(tData.processManagers().rawInput().front());
-    Teuchos::ParameterList tROLOptions =
-        third_party_integration::rol::make_optimization_parameters(tValidatedOptimizationParameters).parameters();
-    const ROL::Solver<double> tSolver =
-        third_party_integration::rol::make_rol_solver(tROLOptions, make_rol_problem(tPlatoProblem).first);
+        tData.value().get<input_parser::ComponentType::kProcessManager>().rawInput().front();
+    auto tROLOptions = make_optimization_parameters(tValidatedOptimizationParameters).parameters();
+    const auto tSolver = make_rol_solver(tROLOptions, make_rol_problem(tPlatoProblem).first);
 
     EXPECT_EQ(tSolver.getAlgorithmState()->iter, 0) << aTestContext;
 }

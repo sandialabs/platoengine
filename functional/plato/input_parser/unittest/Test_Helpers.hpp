@@ -51,8 +51,6 @@ void copy_test(T& aFileList, const test_utilities::TestContext& aTestContext)
     EXPECT_EQ(aFileList.mList, tCopy) << aTestContext;
 }
 
-auto parse_string(const std::string& aInput) -> std::tuple<bool, std::string::const_iterator, ParsedInput>;
-
 /// @brief Helper for parsing individual entries, such as UserDefinedToken or UserDefinedTokenList.
 template <typename ParsedType>
 [[nodiscard]] std::pair<ParsedType, bool> parse_input(const std::string_view aInput)

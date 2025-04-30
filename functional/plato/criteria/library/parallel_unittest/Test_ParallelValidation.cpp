@@ -2,8 +2,8 @@
 
 #include <boost/mpi/communicator.hpp>
 
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveValidation.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
 
 namespace plato::criteria::library::unittest
 {
@@ -21,7 +21,7 @@ TEST(ParallelObjectiveValidation, MPISize)
 TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
 {
     // One objective and three ranks
-    const input_parser::objective tObjective;
+    const auto tObjective = input_parser::objective{};
     EXPECT_TRUE(detail::validate_number_of_ranks_vs_serial_objectives({tObjective}).has_value());
 
     // Three objectives and three ranks
@@ -35,7 +35,7 @@ TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
 
 TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectivesParallelObjectives)
 {
-    input_parser::objective tObjective;
+    auto tObjective = input_parser::objective{};
 
     // Number of processors matches the number of ranks for one objective
     tObjective.number_of_processors = static_cast<unsigned int>(kNumRanks);

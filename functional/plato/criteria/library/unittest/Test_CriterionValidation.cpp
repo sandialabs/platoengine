@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 

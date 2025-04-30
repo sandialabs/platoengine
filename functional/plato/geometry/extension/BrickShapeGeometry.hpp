@@ -6,9 +6,18 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+
+// clang-format off
+PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser),
+    brick_shape_geometry,
+    (plato::input_parser::FileName, mesh_name, "Required field specifying the exodus mesh file name to which the the brick mesh output is written."))
+// clang-format on
 
 namespace plato::geometry::extension
 {

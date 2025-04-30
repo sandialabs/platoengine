@@ -6,12 +6,28 @@
 #include <unordered_map>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/Mesh.hpp"
+
+// clang-format off
+PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), density_topology,
+    (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
+    (plato::input_parser::FileName, output_name, "Required field specifying the exodus output file name to use when writing results.")
+    (plato::input_parser::FixedBlockList, fixed_blocks, "Optional comma separated list of block names that should be fixed in the mesh and not be part of the optimization.")
+    (plato::input_parser::CrossReference<plato::input_parser::ComponentType::kFilter>, filter, "Name of the filter block to apply to the controls. "
+                                                                                               "Only required if more than one filter is specified.")
+    (double, initial_density_value, "Method to specify a uniform initial density value to give to the controls. Omit if 'initial_density_field_name' is specified.")
+    (plato::input_parser::IdentifierString, initial_field_name, "Method to read the controls from the specified field name within the 'mesh_name' exodus mesh. "
+                                                                "Omit if 'initial_density_value' is specified.")
+)
+// clang-format on
 
 namespace plato::input_parser
 {
@@ -66,12 +82,13 @@ namespace detail
 {
 
 /// @brief Validates that the `initial_density_value` field in @a aInput has a value.
-[[nodiscard]] std::optional<std::string> validate_initial_density_value(const input_parser::density_topology& aInput);
+[[nodiscard]] auto validate_initial_density_value(const input_parser::density_topology& aInput)
+    -> std::optional<std::string>;
 
-/// @brief Validates that exactly one specifier for the intitial topology is used, the `initial_density_value` or
+/// @brief Validates that exactly one specifier for the initial topology is used, the `initial_density_value` or
 /// `initial_field_name`
-[[nodiscard]] std::optional<std::string> validate_exactly_one_initial_topology_specifier(
-    const input_parser::density_topology& aInput);
+[[nodiscard]] auto validate_exactly_one_initial_topology_specifier(const input_parser::density_topology& aInput)
+    -> std::optional<std::string>;
 
 }  // namespace detail
 

@@ -7,14 +7,14 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
-#include "plato/core/ValidationRegistration.hpp"
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -36,23 +36,25 @@ boost::mpi::communicator subdivide_world_comm_into_groups(const unsigned int aGr
     return tWorldComm.split(tColor.mValue);
 }
 
+[[maybe_unused]] static auto kKernelFilterParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::kernel_filter>{};
+
 [[maybe_unused]] static auto kKernelFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::kernel_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
-        const auto& tInput = core::validated_variant_raw_input<input_parser::kernel_filter>(aInput);
+        const auto& tInput = input_validation::get_input_block<input_parser::kernel_filter>(aInput);
         return library::make_filter_function_from_cache([&tInput]() { return detail::create_filter_cache(tInput); });
     }};
 
-[[maybe_unused]] static auto kKernelFilterValidationRegistration =
-    core::ValidationRegistration<input_parser::kernel_filter>{
-        [](const input_parser::kernel_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
-        [](const input_parser::kernel_filter& aInput) { return detail::validate_kernel_filter_centering_type(aInput); },
-        [](const input_parser::kernel_filter& aInput) { return detail::validate_number_of_processors(aInput); },
-        [](const input_parser::kernel_filter& aInput)
-        { return detail::validate_number_of_processors_factor_of_comm_world(aInput); }};
+[[maybe_unused]] static auto kKernelFilterValidationRegistration = input_validation::InputBlockValidationRegistration<>{
+    [](const input_parser::kernel_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
+    [](const input_parser::kernel_filter& aInput) { return detail::validate_kernel_filter_centering_type(aInput); },
+    [](const input_parser::kernel_filter& aInput) { return detail::validate_number_of_processors(aInput); },
+    [](const input_parser::kernel_filter& aInput)
+    { return detail::validate_number_of_processors_factor_of_comm_world(aInput); }};
 
 [[maybe_unused]] static auto kKernelFilterMeshBasedValidationRegistration =
-    core::ValidationRegistration<input_parser::kernel_filter, std::filesystem::path>{
+    input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::kernel_filter& aInput, const std::filesystem::path& aMeshPath)
         { return detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};
 
@@ -99,24 +101,25 @@ auto KernelFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainM
 
 namespace detail
 {
-std::optional<std::string> validate_kernel_filter_centering_type(const input_parser::kernel_filter& aInput)
+auto validate_kernel_filter_centering_type(const input_parser::kernel_filter& aInput) -> std::optional<std::string>
 {
     if (!aInput.centering_type)
     {
-        return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::kernel_filter>(),
-                                                       aInput.centering_type, "centering_type");
+        return input_validation::error_message_for_empty_parameter(
+            input_parser::block_name<input_parser::kernel_filter>(), aInput.centering_type, "centering_type");
     }
     return std::nullopt;
 }
 
-std::optional<std::string> validate_number_of_processors(const input_parser::kernel_filter& aInput)
+auto validate_number_of_processors(const input_parser::kernel_filter& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_optional_parameter_out_of_bounds(
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<input_parser::kernel_filter>(), aInput.number_of_processors, "number_of_processors",
         utilities::lower_bounded(utilities::Inclusive{1u}));
 }
 
-std::optional<std::string> validate_number_of_processors_factor_of_comm_world(const input_parser::kernel_filter& aInput)
+auto validate_number_of_processors_factor_of_comm_world(const input_parser::kernel_filter& aInput)
+    -> std::optional<std::string>
 {
     const auto tRequestedRanks = aInput.number_of_processors.value_or(1u);
     const auto tTotalRanks = static_cast<std::size_t>(boost::mpi::communicator{}.size());

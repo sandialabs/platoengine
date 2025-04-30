@@ -2,7 +2,6 @@
 
 #include <variant>
 
-#include "plato/input_parser/InputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
 

@@ -10,8 +10,9 @@
 #include <type_traits>
 #include <utility>
 
+#include "plato/input_parser/ComponentType.hpp"
 #include "plato/input_parser/EnumParser.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/input_parser/Skipper.hpp"
 
@@ -118,6 +119,40 @@ struct BlockStructRule
 
     bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockRule =
         mPreambleRule > mBlockOrRule[bsq::_val = bsq::_1] > mPostambleRule;
+};
+
+/// @brief Specifies whether a component has a name that should be parsed.
+///
+/// This indicates whether or not the component has a generic name and thus needs a user-given name to disambiguate.
+template <ComponentType kComponentType>
+[[maybe_unused]] constexpr auto kIsNamedComponent =
+    kComponentType == ComponentType::kConstraint || kComponentType == ComponentType::kObjective;
+
+/// @brief Specifies whether a component is unique in the input deck.
+///
+/// This indicates whether the component must only appear once in an input deck.
+template <ComponentType kComponentType>
+[[maybe_unused]] constexpr auto kIsUniqueComponent =
+    kComponentType == ComponentType::kFilter || kComponentType == ComponentType::kGeometry;
+
+/// @brief A parser for a struct as key-value pairs.
+///
+/// This is meant to be instantiated by components for their specific input types.
+template <typename Iterator, typename BlockStruct, ComponentType kComponentType>
+struct ComponentBlockRule
+{
+    using BlockDataStruct = BlockStruct;
+
+    constexpr static inline bool kIsNamedBlockStructRule = kIsNamedComponent<kComponentType>;
+    constexpr static inline ComponentType mComponentType = kComponentType;
+
+    std::string mBlockType = InputTypeName<BlockStruct>::name;
+
+    BlockRuleTuple<Iterator, BlockStruct> mAllBlockRules = rule_tuple<Iterator, BlockStruct>();
+    bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockOrRule =
+        block_or_rule<Iterator, BlockStruct>(mAllBlockRules);
+
+    bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockRule = mBlockOrRule[bsq::_val = bsq::_1];
 };
 
 }  // namespace plato::input_parser

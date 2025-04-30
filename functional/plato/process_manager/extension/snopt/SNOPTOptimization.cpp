@@ -7,9 +7,10 @@
 #include <optional>
 
 #include "plato/core/Compose.hpp"
-#include "plato/core/ValidationRegistration.hpp"
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/geometry/library/OutputManager.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -23,18 +24,17 @@ namespace plato::process_manager::extension::snopt
 {
 namespace
 {
-
 constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
 
-[[nodiscard]] library::StageAndProcessManager make_snopt_optimization_process_manager(
-    const library::ValidatedProcessManagerInput& aValidInput)
+[[nodiscard]] auto make_snopt_optimization_process_manager(const library::ValidatedProcessManagerInput& aValidInput)
+    -> library::StageAndProcessManager
 {
     return {library::RunStage::kExecute, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
-            {
-                const auto& tInput = library::process_manager_input<input_parser::snopt_optimization>(aValidInput);
-                SNOPTOptimization{tInput}.run(aProcessManangerData);
-            }};
+            { SNOPTOptimization{aValidInput}.run(aProcessManangerData); }};
 }
+
+[[maybe_unused]] static auto kSNOPTOptimizerParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::snopt_optimization>{};
 
 [[maybe_unused]] static auto kSNOPTOptimizerProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::snopt_optimization>(),
@@ -42,23 +42,27 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
                                         { return make_snopt_optimization_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kSNOPTOptimizerValidationRegistration =
-    core::ValidationRegistration<input_parser::snopt_optimization>{
+    input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::snopt_optimization& aInput) { return detail::validate_time_limit_in_minutes(aInput); },
         [](const input_parser::snopt_optimization& aInput)
-        { return ::plato::process_manager::extension::detail::validate_max_iterations(aInput); },
+        { return extension::detail::validate_max_iterations(aInput); },
         [](const input_parser::snopt_optimization& aInput)
-        {
-            return ::plato::process_manager::extension::detail::validate_optional_input_file_name<
-                input_parser::snopt_optimization>(aInput);
-        }};
+        { return extension::detail::validate_optional_input_file_name(aInput); }};
+
+[[nodiscard]] auto snopt_input(const library::ValidatedProcessManagerInput& aValidInput)
+    -> const input_parser::snopt_optimization&
+{
+    return input_validation::get_input_block<input_parser::snopt_optimization>(aValidInput);
+}
+
 }  // namespace
 
-SNOPTOptimization::SNOPTOptimization(const ValidatedOptimizationParameters& aInput)
-    : mOptions{utilities::to_unwrapped_optional(aInput.rawInput().input_file_name,
+SNOPTOptimization::SNOPTOptimization(const library::ValidatedProcessManagerInput& aInput)
+    : mOptions{utilities::to_unwrapped_optional(snopt_input(aInput).input_file_name,
                                                 [](const auto& aFileName) { return aFileName.mToken; }),
-               utilities::to_std_optional(aInput.rawInput().time_limit_in_minutes),
-               utilities::to_std_optional(aInput.rawInput().max_iterations),
-               utilities::to_std_optional(aInput.rawInput().output_design_history)}
+               utilities::to_std_optional(snopt_input(aInput).time_limit_in_minutes),
+               utilities::to_std_optional(snopt_input(aInput).max_iterations),
+               utilities::to_std_optional(snopt_input(aInput).output_design_history)}
 {
 }
 
@@ -81,6 +85,14 @@ void SNOPTOptimization::run(const library::ProcessManagerData& aProcessManagerDa
     const auto tSolution =
         tpis::run_snopt_problem(tInitialGuess, tBounds, std::move(tObjective), std::move(tConstraints),
                                 std::move(tOutputManager), std::string{kSNOPTOptimizerFileName}, mOptions);
+}
+
+auto create_valid_example_snopt_optimization_input() -> input_parser::snopt_optimization
+{
+    return input_parser::snopt_optimization{/*.input_file_name=*/boost::none,
+                                            /*.max_iterations=*/10,
+                                            /*.time_limit_in_minutes=*/0,
+                                            /*.output_design_history=*/false};
 }
 
 namespace detail
@@ -125,9 +137,9 @@ auto make_constraints(const library::ProcessManagerData& aProcessManagerData)
     return tConstraints;
 }
 
-std::optional<std::string> validate_time_limit_in_minutes(const input_parser::snopt_optimization& aInput)
+auto validate_time_limit_in_minutes(const input_parser::snopt_optimization& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_optional_parameter_out_of_bounds(
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<input_parser::snopt_optimization>(), aInput.time_limit_in_minutes,
         "time_limit_in_minutes", utilities::lower_bounded(utilities::Inclusive{0U}));
 }

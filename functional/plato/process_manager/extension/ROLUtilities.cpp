@@ -8,12 +8,55 @@
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/geometry/library/OutputManager.hpp"
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
+#include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
+#include "plato/utilities/BoostOptionalToStdOptional.hpp"
 
 namespace plato::process_manager::extension
 {
+namespace
+{
+[[nodiscard]] auto load_file_or_use_default_parameters(const input_parser::rol_optimization& aOptimizationParameters)
+    -> third_party_integration::rol::OptimizationParameters
+{
+    if (aOptimizationParameters.input_file_name)
+    {
+        return third_party_integration::rol::OptimizationParameters(
+            aOptimizationParameters.input_file_name.value().mToken);
+    }
+    return third_party_integration::rol::OptimizationParameters();
+}
+
+void apply_verbose_output(const input_parser::rol_optimization& aOptimizationParameters,
+                          third_party_integration::rol::OptimizationParameters& aParameters)
+{
+    if (aOptimizationParameters.verbose_output.value_or(false))
+    {
+        aParameters.verbose();
+    }
+}
+
+void apply_approximate_hessian(const input_parser::rol_optimization& aOptimizationParameters,
+                               third_party_integration::rol::OptimizationParameters& aParameters)
+{
+    if (aOptimizationParameters.approximate_hessian.value_or(false))
+    {
+        aParameters.approximateHessian();
+    }
+}
+
+void write_parameters(const input_parser::rol_optimization& aOptimizationParameters,
+                      third_party_integration::rol::OptimizationParameters& aParameters)
+{
+    if (aOptimizationParameters.export_settings_file_name)
+    {
+        aParameters.writeParameters(aOptimizationParameters.export_settings_file_name.value().mToken);
+    }
+}
+
+}  // namespace
 
 auto make_rol_objective(const library::ProcessManagerData& aProblem, geometry::library::OutputManager aOutputManager)
     -> std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction>
@@ -69,6 +112,33 @@ auto make_rol_problem(const library::ProcessManagerData& aProblem,
     constexpr bool tPrintToStream = true;
     tROLProblem->finalize(tLumpConstraints, tPrintToStream, std::cout);
     return {tROLProblem, tControls};
+}
+
+auto make_rol_solver(Teuchos::ParameterList& aROLOptions, const ROL::Ptr<ROL::Problem<double>>& aROLProblem)
+    -> ROL::Solver<double>
+{
+    return ROL::Solver<double>{aROLProblem, aROLOptions};
+}
+
+auto make_optimization_parameters(const library::ValidatedProcessManagerInput& aOptimizationParameters)
+    -> third_party_integration::rol::OptimizationParameters
+{
+    const auto& aROLParameters =
+        input_validation::get_input_block<input_parser::rol_optimization>(aOptimizationParameters);
+
+    auto tParameters = load_file_or_use_default_parameters(aROLParameters);
+
+    tParameters.maximumIterations(utilities::to_std_optional(aROLParameters.max_iterations));
+    tParameters.gradientTolerance(utilities::to_std_optional(aROLParameters.gradient_tolerance));
+    tParameters.stepTolerance(utilities::to_std_optional(aROLParameters.step_tolerance));
+    tParameters.initialSearchRadius(utilities::to_std_optional(aROLParameters.initial_search_radius));
+    tParameters.writeOutputHistory(utilities::to_std_optional(aROLParameters.output_design_history));
+
+    apply_verbose_output(aROLParameters, tParameters);
+    apply_approximate_hessian(aROLParameters, tParameters);
+    write_parameters(aROLParameters, tParameters);
+
+    return tParameters;
 }
 
 }  // namespace plato::process_manager::extension

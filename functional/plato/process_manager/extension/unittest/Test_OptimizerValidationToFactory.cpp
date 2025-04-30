@@ -1,29 +1,28 @@
 #include <gtest/gtest.h>
 
-#include "plato/input_parser/InputParser.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
+#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/rol/OptimizerFactory.hpp"
+
 namespace plato::process_manager::extension::unittest
 {
 namespace
 {
-auto rol_parameter_list(const library::ValidatedInput& aData)
+auto rol_parameter_list(const input_validation::ValidatedInput& aData)
     -> std::pair<third_party_integration::rol::OptimizationParameters, input_parser::rol_optimization>
 {
-    const auto tProcessManagerData = aData.processManagers();
-    EXPECT_EQ(tProcessManagerData.rawInput().size(), 1);
-    using ValidatedOptimizationParameters = core::ValidatedInputTypeWrapper<input_parser::rol_optimization>;
-    EXPECT_TRUE(std::holds_alternative<ValidatedOptimizationParameters>(tProcessManagerData.rawInput().front()));
-    const auto& tOptimizationParameters =
-        std::get<ValidatedOptimizationParameters>(tProcessManagerData.rawInput().front());
-    return {plato::third_party_integration::rol::make_optimization_parameters(tOptimizationParameters),
-            tOptimizationParameters.rawInput()};
+    const auto tProcessManagerData = aData.get<input_parser::ComponentType::kProcessManager>();
+    EXPECT_EQ(tProcessManagerData.rawInput().size(), 1U);
+    EXPECT_TRUE(
+        tProcessManagerData.rawInput().front().rawInput().mInput.holdsExpectedType<input_parser::rol_optimization>());
+    const auto& tOptimizationParameters = tProcessManagerData.rawInput().front();
+    return {make_optimization_parameters(tOptimizationParameters),
+            tOptimizationParameters.rawInput().mInput.get<input_parser::rol_optimization>()};
 }
-
 }  // namespace
+
 TEST(OptimizerFactory, ParlistGenerationFromInput)
 {
     const std::string tOutputFileName = "output.xml";
@@ -40,8 +39,9 @@ TEST(OptimizerFactory, ParlistGenerationFromInput)
                                     export_settings_file_name )" +
                                tOutputFileName + "\nend";
 
-    const library::ValidatedInput tData{library::make_validated_input(input_parser::parse_input(tInput))};
-    const auto [tParameters, tOptimizationParameters] = rol_parameter_list(tData);
+    const auto tData = input_validation::parse_and_validate_string(tInput);
+    ASSERT_TRUE(tData.hasValue()) << tData.error();
+    const auto [tParameters, tOptimizationParameters] = rol_parameter_list(tData.value());
     const auto tParlist = tParameters.parameters();
     EXPECT_EQ(tParlist.sublist("Status Test").get<int>("Iteration Limit"),
               tOptimizationParameters.max_iterations.value());
@@ -76,8 +76,9 @@ TEST(OptimizerFactory, ParlistGenerationFromFile)
                                " input_file_name" +
                                kFileName + " step_tolerance 10" + " end";
 
-    const library::ValidatedInput tData{library::make_validated_input(input_parser::parse_input(tInput))};
-    const auto [tParameters, tOptimizationParameters] = rol_parameter_list(tData);
+    const auto tData = input_validation::parse_and_validate_string(tInput);
+    ASSERT_TRUE(tData.hasValue()) << tData.error();
+    const auto [tParameters, tOptimizationParameters] = rol_parameter_list(tData.value());
     const auto tParameterListFromFactory = tParameters.parameters();
     EXPECT_EQ(tParameterListFromFactory.sublist("Status Test").get<int>("Iteration Limit"),
               tParameterListOnDisk.sublist("Status Test").get<int>("Iteration Limit"));

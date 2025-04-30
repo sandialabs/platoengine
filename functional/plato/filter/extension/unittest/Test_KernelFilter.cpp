@@ -7,6 +7,7 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/library/HashGeneration.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
@@ -15,7 +16,6 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
@@ -71,7 +71,7 @@ constexpr double kTolerance = 1e-14;  // for comparison against matlab values
     const auto tPostAdjointSensitivities =
         tKernelFilter.rowVectorTimesAdjointJacobian(tAnalysisDomainMesh, tNodalSensitivities).stdVector();
 
-    test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
+    plato::test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
 
     return {tPostFilter, tPostSensitivities, tPostAdjointSensitivities};
 }
@@ -106,8 +106,8 @@ TEST(KernelFilter, SingleHexElementCentered)
 
     ASSERT_EQ(tResultJV.size(), 8u);
     const auto tExpectedVectorJacobianProduct = std::vector<double>(8U, 1.0 / 8.0);
-    test_utilities::expect_container_entries_near(tExpectedVectorJacobianProduct, tResultJV, kTolerance,
-                                                  TEST_CONTEXT("Vector Jacobian product"));
+    plato::test_utilities::expect_container_entries_near(tExpectedVectorJacobianProduct, tResultJV, kTolerance,
+                                                         TEST_CONTEXT("Vector Jacobian product"));
 
     ASSERT_EQ(tResultAdjointJV.size(), 1U);
     EXPECT_NEAR(tResultAdjointJV.front(), 0.21875, kTolerance);
@@ -157,22 +157,23 @@ TEST(KernelFilter, SingleHexNodalCentered)
     const auto tExpectedFilter =
         std::vector{7.142857142857144e-02, 7.142857142857144e-02, 3.571428571428572e-02, 3.928571428571428e-01,
                     8.214285714285715e-01, 4.642857142857143e-01, 7.142857142857144e-02, 7.142857142857144e-02};
-    test_utilities::expect_container_entries_near(tResultFilter, tExpectedFilter, kTolerance,
-                                                  TEST_CONTEXT("Filter application"));
+    plato::test_utilities::expect_container_entries_near(tResultFilter, tExpectedFilter, kTolerance,
+                                                         TEST_CONTEXT("Filter application"));
 
     const auto tExpectedVectorJacobianProduct =
         std::vector{8.392857142857144e-01, 4.642857142857144e-01, 2.678571428571429e-01, 5.357142857142858e-02,
                     7.142857142857144e-02, 3.571428571428572e-02, 1.785714285714286e-02, 0.0};
-    test_utilities::expect_container_entries_near(tResultVectorJacobianProduct, tExpectedVectorJacobianProduct,
-                                                  kTolerance, TEST_CONTEXT("Vector Jacobian product"));
+    plato::test_utilities::expect_container_entries_near(tResultVectorJacobianProduct, tExpectedVectorJacobianProduct,
+                                                         kTolerance, TEST_CONTEXT("Vector Jacobian product"));
 
-    test_utilities::expect_container_entries_near(tResultVectorAdjointJacobianProduct, tExpectedVectorJacobianProduct,
-                                                  kTolerance, TEST_CONTEXT("Vector adjoint Jacobian product"));
+    plato::test_utilities::expect_container_entries_near(tResultVectorAdjointJacobianProduct,
+                                                         tExpectedVectorJacobianProduct, kTolerance,
+                                                         TEST_CONTEXT("Vector adjoint Jacobian product"));
 }
 
 TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
 {
-    auto tInput = plato::test_utilities::create_valid_kernel_filter();
+    auto tInput = test_utilities::create_valid_kernel_filter_input();
     tInput.filter_radius = 5e-1;
     auto tFilterCache = detail::create_filter_cache(tInput);
 
@@ -228,7 +229,7 @@ TEST(KernelFilterDetail, FilterCache_DummyCallCounts)
 
 TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
 {
-    auto tFilterCache = detail::create_filter_cache(plato::test_utilities::create_valid_kernel_filter());
+    auto tFilterCache = detail::create_filter_cache(test_utilities::create_valid_kernel_filter_input());
 
     // make mesh and filter
     {
@@ -283,7 +284,9 @@ TEST(KernelFilterDetail, CreateFilterCache_UseToApplyFilter)
 
     EXPECT_NE(tAnalysisDomainMeshViewFilteredAllOne.size(), tUpdatedAnalysisDomainMeshViewFilteredAllOne.size());
 
-    test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
+    plato::test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
 }
+
+TEST(KernelFilter, Registration) { EXPECT_TRUE(library::is_filter_function_registered("kernel_filter")); }
 
 }  // namespace plato::filter::extension::unittest

@@ -4,30 +4,25 @@
 #include <string_view>
 
 #include "plato/core/Compose.hpp"
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/geometry/library/OutputManager.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/third_party_integration/rol/OptimizerFactory.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension
 {
 namespace
 {
-[[nodiscard]] library::StageAndProcessManager make_rol_sensitivity_check_process_manager(
-    const library::ValidatedProcessManagerInput& aValidInput)
+[[nodiscard]] auto make_rol_sensitivity_check_process_manager(const library::ValidatedProcessManagerInput& aValidInput)
+    -> library::StageAndProcessManager
 {
     return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
-            {
-                const auto& tInput = library::process_manager_input<input_parser::sensitivity_check>(aValidInput);
-                const SensitivityCheck tSensitivityCheck(tInput);
-                tSensitivityCheck.run(aProcessManangerData);
-            }};
+            { SensitivityCheck{aValidInput}.run(aProcessManangerData); }};
 }
 
 [[maybe_unused]] static auto kSensitivityCheckProcessManagerRegistration =
@@ -36,11 +31,11 @@ namespace
                                         { return make_rol_sensitivity_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kSensitivityCheckValidationRegistration =
-    core::ValidationRegistration<input_parser::sensitivity_check>{
-        [](const input_parser::sensitivity_check& aInput) { return detail::validate_output_file_name(aInput); }};
+    input_validation::InputBlockValidationRegistration<>{[](const input_parser::sensitivity_check& aInput)
+                                                         { return detail::validate_output_file_name(aInput); }};
 
-std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction> make_rol_sensitivity_objective(
-    const library::ProcessManagerData& aProblem)
+auto make_rol_sensitivity_objective(const library::ProcessManagerData& aProblem)
+    -> std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction>
 {
     auto tSimpleObjectiveFunction = criteria::extension::make_nodal_sum_function();
     return std::make_unique<plato::third_party_integration::rol::ROLObjectiveFunction>(
@@ -49,8 +44,9 @@ std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction> make_
 
 }  // namespace
 
-SensitivityCheck::SensitivityCheck(const ValidatedSensitivityCheckInput& aInput)
-    : mOutputFileName(aInput.rawInput().output_file_name.value().mToken)
+SensitivityCheck::SensitivityCheck(const library::ValidatedProcessManagerInput& aInput)
+    : mOutputFileName(
+          input_validation::get_input_block<input_parser::sensitivity_check>(aInput).output_file_name.value().mToken)
 {
 }
 
@@ -68,10 +64,10 @@ void SensitivityCheck::run(const library::ProcessManagerData& aProblem) const
 
 namespace detail
 {
-std::optional<std::string> validate_output_file_name(const input_parser::sensitivity_check& aInput)
+auto validate_output_file_name(const input_parser::sensitivity_check& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::sensitivity_check>(),
-                                                   aInput.output_file_name, "output_file_name");
+    return input_validation::error_message_for_empty_parameter(
+        input_parser::block_name<input_parser::sensitivity_check>(), aInput.output_file_name, "output_file_name");
 }
 }  // namespace detail
 }  // namespace plato::process_manager::extension

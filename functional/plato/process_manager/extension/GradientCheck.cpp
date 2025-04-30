@@ -5,6 +5,8 @@
 #include <fstream>
 
 #include "plato/geometry/library/OutputManager.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/LogspaceGenerator.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
@@ -17,15 +19,15 @@ namespace plato::process_manager::extension
 {
 namespace
 {
-[[nodiscard]] library::StageAndProcessManager make_gradient_check_process_manager(
-    const library::ValidatedProcessManagerInput& aValidInput)
+[[nodiscard]] auto make_gradient_check_process_manager(const library::ValidatedProcessManagerInput& aValidInput)
+    -> library::StageAndProcessManager
 {
     return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
-            {
-                const auto& tInput = library::process_manager_input<input_parser::gradient_check>(aValidInput);
-                GradientCheck{tInput}.run(aProcessManangerData);
-            }};
+            { GradientCheck{aValidInput}.run(aProcessManangerData); }};
 }
+
+[[maybe_unused]] static auto kGradientCheckParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::gradient_check>{};
 
 [[maybe_unused]] static auto kGradientCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::gradient_check>(),
@@ -33,21 +35,27 @@ namespace
                                         { return make_gradient_check_process_manager(aValidInput); }};
 
 [[maybe_unused]] static auto kGradientCheckValidationRegistration =
-    core::ValidationRegistration<input_parser::gradient_check>{
+    input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::gradient_check& aInput) { return detail::validate_output_file_name(aInput); },
         [](const input_parser::gradient_check& aInput) { return detail::validate_number_of_steps(aInput); },
         [](const input_parser::gradient_check& aInput) { return detail::validate_initial_direction_magnitude(aInput); },
         [](const input_parser::gradient_check& aInput) { return detail::validate_step_size_reduction_factor(aInput); },
         [](const input_parser::gradient_check& aInput) { return detail::validate_random_direction_seed(aInput); }};
 
+[[nodiscard]] auto gradient_check_input(const library::ValidatedProcessManagerInput& aValidInput)
+    -> const input_parser::gradient_check&
+{
+    return input_validation::get_input_block<input_parser::gradient_check>(aValidInput);
+}
+
 }  // namespace
 
-GradientCheck::GradientCheck(const ValidatedGradientCheckInput& aInput)
-    : mOutputFileName(aInput.rawInput().output_file_name.value().mToken),
-      mNumberOfSteps(aInput.rawInput().number_of_steps.value()),
-      mInitialDirectionMagnitude(aInput.rawInput().initial_direction_magnitude.value()),
-      mStepSizeReductionFactor(aInput.rawInput().step_size_reduction_factor.value()),
-      mRandomDirectionSeed(aInput.rawInput().random_direction_seed.value())
+GradientCheck::GradientCheck(const library::ValidatedProcessManagerInput& aInput)
+    : mOutputFileName(gradient_check_input(aInput).output_file_name.value().mToken),
+      mNumberOfSteps(gradient_check_input(aInput).number_of_steps.value()),
+      mInitialDirectionMagnitude(gradient_check_input(aInput).initial_direction_magnitude.value()),
+      mStepSizeReductionFactor(gradient_check_input(aInput).step_size_reduction_factor.value()),
+      mRandomDirectionSeed(gradient_check_input(aInput).random_direction_seed.value())
 {
 }
 
@@ -68,10 +76,10 @@ void GradientCheck::run(const library::ProcessManagerData& aProblem) const
 
 namespace detail
 {
-std::optional<std::string> validate_output_file_name(const input_parser::gradient_check& aInput)
+auto validate_output_file_name(const input_parser::gradient_check& aInput) -> std::optional<std::string>
 {
-    return core::error_message_for_empty_parameter(input_parser::block_name<input_parser::gradient_check>(),
-                                                   aInput.output_file_name, "output_file_name");
+    return input_validation::error_message_for_empty_parameter(input_parser::block_name<input_parser::gradient_check>(),
+                                                               aInput.output_file_name, "output_file_name");
 }
 
 }  // namespace detail

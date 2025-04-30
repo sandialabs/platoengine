@@ -5,7 +5,8 @@
 #include <optional>
 #include <string>
 
-#include "plato/core/ValidationUtilities.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::extension::detail
@@ -14,24 +15,24 @@ namespace plato::process_manager::extension::detail
 template <typename InputBlock>
 [[nodiscard]] std::optional<std::string> validate_max_iterations(const InputBlock& aInput)
 {
-    return core::error_message_for_optional_parameter_out_of_bounds(input_parser::block_name<InputBlock>(),
-                                                                    aInput.max_iterations, "max_iterations",
-                                                                    utilities::lower_bounded(utilities::Inclusive{1U}));
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
+        input_parser::block_name<InputBlock>(), aInput.max_iterations, "max_iterations",
+        utilities::lower_bounded(utilities::Inclusive{1U}));
 }
 
 template <typename InputBlock>
 [[nodiscard]] std::optional<std::string> validate_number_of_steps(const InputBlock& aInput)
 {
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<InputBlock>(),
-                                                           aInput.number_of_steps, "number_of_steps",
-                                                           utilities::lower_bounded(utilities::Inclusive{1U}));
+    return input_validation::error_message_for_parameter_out_of_bounds(
+        input_parser::block_name<InputBlock>(), aInput.number_of_steps, "number_of_steps",
+        utilities::lower_bounded(utilities::Inclusive{1U}));
 }
 
 template <typename InputBlock>
 std::optional<std::string> validate_initial_direction_magnitude(const InputBlock& aInput)
 {
     namespace pfu = plato::utilities;
-    return core::error_message_for_parameter_out_of_bounds(
+    return input_validation::error_message_for_parameter_out_of_bounds(
         input_parser::block_name<InputBlock>(), aInput.initial_direction_magnitude, "initial_direction_magnitude",
         pfu::lower_bounded(pfu::Exclusive{0.0}));
 }
@@ -40,7 +41,7 @@ template <typename InputBlock>
 std::optional<std::string> validate_step_size_reduction_factor(const InputBlock& aInput)
 {
     namespace pfu = plato::utilities;
-    return core::error_message_for_parameter_out_of_bounds(
+    return input_validation::error_message_for_parameter_out_of_bounds(
         input_parser::block_name<InputBlock>(), aInput.step_size_reduction_factor, "step_size_reduction_factor",
         pfu::ParameterBounds{pfu::Exclusive{0.0}, pfu::Exclusive{1.0}});
 }
@@ -48,9 +49,9 @@ std::optional<std::string> validate_step_size_reduction_factor(const InputBlock&
 template <typename InputBlock>
 std::optional<std::string> validate_random_direction_seed(const InputBlock& aInput)
 {
-    return core::error_message_for_parameter_out_of_bounds(input_parser::block_name<InputBlock>(),
-                                                           aInput.random_direction_seed, "random_direction_seed",
-                                                           utilities::lower_bounded(utilities::Inclusive{1U}));
+    return input_validation::error_message_for_parameter_out_of_bounds(
+        input_parser::block_name<InputBlock>(), aInput.random_direction_seed, "random_direction_seed",
+        utilities::lower_bounded(utilities::Inclusive{1U}));
 }
 
 template <typename InputBlock>

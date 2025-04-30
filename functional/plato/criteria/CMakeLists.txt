@@ -12,9 +12,15 @@ create_plato_library(PlatoFunctionalCriteria "${DIRECTORIES}" "${LINK_LIBS}")
 create_plato_interface(PlatoCriteriaInterface library/CriterionInterface.hpp  PlatoAnalysisInterface)
 
 if( UNIT_TESTING )
+  # Build test utilities lib
+  set(DIRECTORIES library/test_utilities)
+  create_plato_library(PlatoFunctionalCriteriaTestUtilities "${DIRECTORIES}" PlatoFunctionalCriteria)
+
   set(DIRECTORIES library/unittest
                   extension/unittest)
-  create_plato_unittester(PlatoFunctionalCriteria "${DIRECTORIES}" PlatoFunctionalSTKIOTestUtilities)
+  set(LINK_LIBS PlatoFunctionalCriteriaTestUtilities 
+                PlatoFunctionalSTKIOTestUtilities)
+  create_plato_unittester(PlatoFunctionalCriteria "${DIRECTORIES}" "${LINK_LIBS}")
 
   set(DIRECTORIES library/parallel_unittest)
   set(NUM_RANKS_FOR_TEST 3)

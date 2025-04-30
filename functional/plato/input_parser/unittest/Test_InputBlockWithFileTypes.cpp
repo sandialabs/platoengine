@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
 #include "plato/input_parser/FileList.hpp"
-#include "plato/input_parser/IdentifierString.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_parser/unittest/Test_Helpers.hpp"
 
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), TestFileTypes,
+    (plato)(input_parser), TestFileTypes, plato::input_parser::ComponentType::kProcessManager,
     (plato::input_parser::FileName, file_name, "help")
     (plato::input_parser::FileList, file_list, "help")
     (plato::input_parser::IdentifierString, exodus_name, "help")

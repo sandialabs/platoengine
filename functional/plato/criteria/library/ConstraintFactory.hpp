@@ -4,8 +4,7 @@
 #include <string>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/ValidatedInputTypeWrapper.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
@@ -16,8 +15,7 @@ struct AnalysisDomainMesh;
 
 namespace plato::criteria::library
 {
-using ValidatedConstraints =
-    core::ValidatedInputTypeWrapper<std::vector<core::ValidatedInputTypeWrapper<input_parser::constraint>>>;
+using ValidatedConstraints = input_validation::ValidatedComponentType<input_parser::ComponentType::kConstraint>;
 
 enum class ConstraintType
 {
@@ -75,7 +73,8 @@ struct VectorConstraint
 
 namespace detail
 {
-[[nodiscard]] auto make_constraint(const core::ValidatedInputTypeWrapper<input_parser::constraint>& aConstraintInput)
+[[nodiscard]] auto make_constraint(
+    const input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kConstraint>& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>;
 
 }  // namespace detail

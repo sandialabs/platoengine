@@ -7,6 +7,7 @@
 #include "plato/filter/extension/LinearMask.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/utilities/NamedType.hpp"
@@ -16,10 +17,18 @@ namespace plato::analysis
 struct AnalysisDomainMesh;
 }
 
-namespace plato::input_parser
-{
-struct kernel_filter;
-}
+// clang-format off
+PLATO_FILTER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), kernel_filter,
+    (double, filter_radius, "Required field specifying the size of the filter radius.")
+    (plato::input_parser::KernelFilterCenteringTypes, centering_type, "Required field specifying whether the results should be 'node' or 'element' centered. "
+                                                                      "Platoanalyze requires node-centered and SD requires element-centered.")
+    (bool, use_relative_radius, "Optional field that can convert the filter radius specified into a radius relative to the average element size.")
+    (unsigned int, number_of_processors, "Optional parameter that will specify the number of processors used to run the filter in parallel. "
+                                         "Requires the 'plato' executable be called with mpirun. Limited to the maximum processors specified in the mpirun call. "
+                                         "Over-parallelization can cause a significant degredation of the filter.")
+)
+// clang-format on
 
 namespace plato::filter::extension
 {
@@ -62,13 +71,14 @@ class KernelFilter : public library::FilterInterface
 
 namespace detail
 {
-[[nodiscard]] std::optional<std::string> validate_kernel_filter_centering_type(
-    const input_parser::kernel_filter& aInput);
+[[nodiscard]] auto validate_kernel_filter_centering_type(const input_parser::kernel_filter& aInput)
+    -> std::optional<std::string>;
 
-[[nodiscard]] std::optional<std::string> validate_number_of_processors(const input_parser::kernel_filter& aInput);
+[[nodiscard]] auto validate_number_of_processors(const input_parser::kernel_filter& aInput)
+    -> std::optional<std::string>;
 
-[[nodiscard]] std::optional<std::string> validate_number_of_processors_factor_of_comm_world(
-    const input_parser::kernel_filter& aInput);
+[[nodiscard]] auto validate_number_of_processors_factor_of_comm_world(const input_parser::kernel_filter& aInput)
+    -> std::optional<std::string>;
 
 /// @brief Create a LinearMask object from mesh @a aMesh, with a filter sphere with radius @a aFilterRadius,
 /// centered on the elements or nodes determined by @a aFilterCentering, using a communicator @a aCommunicator
@@ -79,7 +89,7 @@ namespace detail
 
 /// @brief Create a StateCache object for constructing a shared pointer to a KernelFilter if the mesh coordinates have
 /// changed (i.e. the mesh has changed)
-[[nodiscard]] library::FilterCache create_filter_cache(const input_parser::kernel_filter& aInput);
+[[nodiscard]] auto create_filter_cache(const input_parser::kernel_filter& aInput) -> library::FilterCache;
 
 }  // namespace detail
 }  // namespace plato::filter::extension

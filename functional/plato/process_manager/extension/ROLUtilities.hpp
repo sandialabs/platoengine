@@ -1,10 +1,12 @@
 #ifndef PLATO_PROCESSMANAGER_EXTENSION_ROLUTILITIES
 #define PLATO_PROCESSMANAGER_EXTENSION_ROLUTILITIES
 
+#include <ROL_Solver.hpp>
 #include <ROL_StdVector.hpp>
 #include <memory>
 
-#include "plato/third_party_integration/rol/OptimizerFactory.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
+#include "plato/third_party_integration/rol/OptimizationParameters.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 
@@ -46,6 +48,14 @@ namespace plato::process_manager::extension
 [[nodiscard]] auto make_rol_problem(const library::ProcessManagerData& aProblem,
                                     const ROL::Ptr<ROL::StdObjective<double>>& aROLObjective)
     -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>;
+
+///@brief Create a ROL solver based on the ROL problem and the ROL options specified in the solver parameter list
+[[nodiscard]] auto make_rol_solver(Teuchos::ParameterList& aROLOptions, const ROL::Ptr<ROL::Problem<double>>& aProblem)
+    -> ROL::Solver<double>;
+
+///@brief Generate a Parameters for ROL. Either from input deck or file.
+[[nodiscard]] auto make_optimization_parameters(const library::ValidatedProcessManagerInput& aOptimizationParameters)
+    -> third_party_integration::rol::OptimizationParameters;
 
 }  // namespace plato::process_manager::extension
 

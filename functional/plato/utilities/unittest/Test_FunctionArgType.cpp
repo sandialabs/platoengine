@@ -14,6 +14,10 @@ struct Paladin
 {
     int operator()(int, double, char) const { return 42; }
 };
+struct Rogue
+{
+    int operator()(int, char) const { return 42; }
+};
 }  // namespace
 
 TEST(FunctionArgType, Args)
@@ -29,5 +33,11 @@ TEST(FunctionArgType, Arg)
     static_assert(std::is_same_v<int, typename FunctionArgType<Paladin>::arg<0U>>);
     static_assert(std::is_same_v<double, typename FunctionArgType<Paladin>::arg<1U>>);
     static_assert(std::is_same_v<char, typename FunctionArgType<Paladin>::arg<2U>>);
+}
+
+TEST(FunctionArgType, NumberOfArgs)
+{
+    static_assert(FunctionArgType<Paladin>::kNumberOfArgs == 3U);
+    static_assert(FunctionArgType<Rogue>::kNumberOfArgs == 2U);
 }
 }  // namespace plato::utilities::unittest

@@ -14,17 +14,8 @@ namespace plato::process_manager::library
 /// @post The order of the objects in the returned is guaranteed to be sorted based on
 ///  each object's RunStage provided to the factory. Within each RunStage, no order
 ///  is guaranteed.
-[[nodiscard]] std::vector<ProcessManager> make_process_managers(
-    const ValidatedProcessManagerInputVector& aValidatedProcessManagerInput);
-
-/// @brief Returns a list of process managers defined in the input @a aValidatedProcessManagerInput, but not registered
-/// with the factory.
-///
-/// This can happen for process managers such as SNOPT that are conditionally built. Their input block definitions will
-/// be built, but they will not be statically registered.
-[[nodiscard]] auto unregistered_process_managers(
-    const ValidatedProcessManagerInputVector& aValidatedProcessManagerInput) -> std::vector<std::string>;
-
+[[nodiscard]] auto make_process_managers(const ValidatedProcessManagers& aValidatedProcessManagerInput)
+    -> std::vector<ProcessManager>;
 }  // namespace plato::process_manager::library
 
 #endif

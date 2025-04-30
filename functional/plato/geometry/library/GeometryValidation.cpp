@@ -1,21 +1,18 @@
 #include "plato/geometry/library/GeometryValidation.hpp"
 
-#include "plato/core/InputVariantUtilities.hpp"
-#include "plato/core/ValidationRegistration.hpp"
-#include "plato/core/ValidationUtilities.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 
 namespace plato::geometry::library
 {
-[[maybe_unused]] static auto kGeometryValidationRegistration = core::ValidationRegistration<input_parser::ParsedInput>{
+[[maybe_unused]] static auto kGeometryValidationRegistration = input_validation::ParsedInputValidationRegistration<>{
     [](const input_parser::ParsedInput& aInput) { return detail::validate_only_one_geometry(aInput); }};
 
 namespace detail
 {
-std::optional<std::string> validate_only_one_geometry(const input_parser::ParsedInput& aInput)
+auto validate_only_one_geometry(const input_parser::ParsedInput& aInput) -> std::optional<std::string>
 {
-    if (const unsigned int tTally = core::all_input_blocks_in_variant<library::GeometryInput>(aInput).size();
-        tTally != 1)
+    if (const auto tTally = aInput.get<input_parser::ComponentType::kGeometry>().size(); tTally != 1U)
     {
         return "Only define exactly one geometry block. There were " + std::to_string(tTally) + " found.";
     }
@@ -26,12 +23,4 @@ std::optional<std::string> validate_only_one_geometry(const input_parser::Parsed
 }
 
 }  // namespace detail
-
-std::vector<std::string> validate_geometry(const input_parser::ParsedInput& aInput,
-                                           std::vector<std::string>&& aCurrentMessageList)
-{
-    aCurrentMessageList = core::validate_all_variants<GeometryInput>(aInput, std::move(aCurrentMessageList));
-    return core::validate(aInput, std::move(aCurrentMessageList));
-}
-
 }  // namespace plato::geometry::library

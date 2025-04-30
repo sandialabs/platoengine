@@ -1,3 +1,0 @@
-#define COMPILE_DOCUMENTATION_REGISTRATION
-#include "plato/input_parser/InputBlocks.hpp"  // NOLINT
-#undef COMPILE_DOCUMENTATION_REGISTRATION

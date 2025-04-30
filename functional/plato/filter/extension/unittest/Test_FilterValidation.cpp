@@ -1,69 +1,44 @@
 #include <gtest/gtest.h>
 
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
-#include "plato/filter/extension/HelmholtzFilter.hpp"
-#include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/filter/extension/KernelFilter.hpp"
-#include "plato/filter/library/FilterValidation.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::filter::extension::unittest
 {
 
-void check_helmholtz_validation_with_variants(const input_parser::helmholtz_filter& aBadFilter)
+TEST(FilterValidation, ValidateNumberOfProcessors)
 {
-    input_parser::ParsedInput tInput =
-        input_parser::ParsedInput{} | plato::test_utilities::create_valid_helmholtz_filter();
-    std::vector<std::string> tErrorMessages;
-    tErrorMessages = filter::library::validate_filter(tInput, std::move(tErrorMessages));
-    EXPECT_EQ(tErrorMessages.size(), 0u);
-    tInput.mHelmholtzFilter = aBadFilter;
-    tErrorMessages = filter::library::validate_filter(tInput, std::vector<std::string>{});
-    EXPECT_EQ(tErrorMessages.size(), 1u);
+    auto tFilter = test_utilities::create_valid_kernel_filter_input();
+    EXPECT_FALSE(detail::validate_number_of_processors(tFilter).has_value());  // valid
+    tFilter.number_of_processors = boost::none;
+    EXPECT_FALSE(detail::validate_number_of_processors(tFilter).has_value());  // valid - none specified uses 1
 }
 
-void check_kernel_validation_with_variants(const input_parser::kernel_filter& aBadFilter)
+TEST(FilterValidation, ValidateNumberOfProcessorsFactorOfCommWorld)
 {
-    input_parser::ParsedInput tInput =
-        input_parser::ParsedInput{} | plato::test_utilities::create_valid_kernel_filter();
-    std::vector<std::string> tErrorMessages;
-    tErrorMessages = filter::library::validate_filter(tInput, std::move(tErrorMessages));
-    EXPECT_EQ(tErrorMessages.size(), 0u);
-    tInput.mKernelFilter = aBadFilter;
-    tErrorMessages = filter::library::validate_filter(tInput, std::vector<std::string>{});
-    EXPECT_EQ(tErrorMessages.size(), 1u);
+    auto tFilter = test_utilities::create_valid_kernel_filter_input();
+    EXPECT_FALSE(detail::validate_number_of_processors_factor_of_comm_world(tFilter).has_value());  // valid
+    tFilter.number_of_processors = 2;
+    EXPECT_TRUE(detail::validate_number_of_processors_factor_of_comm_world(tFilter).has_value());  // invalid
 }
 
-TEST(FilterValidation, CheckNoFilterRadiusIdentity)
+TEST(FilterValidation, ValidatedIdentityFilter)
 {
-    auto tIdentityFilter = plato::test_utilities::create_valid_identity_filter();
+    auto tIdentityFilter = test_utilities::create_valid_identity_filter_input();
 
     EXPECT_FALSE(validate_identity_filter(tIdentityFilter).has_value());
     tIdentityFilter.filter_radius = 1;
     EXPECT_TRUE(validate_identity_filter(tIdentityFilter).has_value());
     tIdentityFilter.filter_radius = boost::none;
     EXPECT_FALSE(validate_identity_filter(tIdentityFilter).has_value());
-
-    // Check through validation with all variants
-    input_parser::ParsedInput tInput =
-        input_parser::ParsedInput{} | plato::test_utilities::create_valid_identity_filter();
-    std::vector<std::string> tErrorMessages;
-    tErrorMessages = filter::library::validate_filter(tInput, std::move(tErrorMessages));
-    EXPECT_EQ(tErrorMessages.size(), 0u);
-    tIdentityFilter.filter_radius = 1;  // make invalid
-    tInput.mIdentityFilter = tIdentityFilter;
-    tErrorMessages = filter::library::validate_filter(tInput, std::vector<std::string>{});
-    EXPECT_EQ(tErrorMessages.size(), 1u);
 }
 
 TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusBounds)
 {
-    auto tHelmholtzFilter = plato::test_utilities::create_valid_helmholtz_filter();
+    auto tHelmholtzFilter = test_utilities::create_valid_helmholtz_filter_input();
     EXPECT_FALSE(detail::validate_filter_radius_bounds(tHelmholtzFilter).has_value());  // valid
 
     tHelmholtzFilter.filter_radius = boost::none;
@@ -72,25 +47,21 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusBounds)
     EXPECT_FALSE(detail::validate_filter_radius_bounds(tHelmholtzFilter).has_value());
     tHelmholtzFilter.filter_radius = -1;
     EXPECT_TRUE(detail::validate_filter_radius_bounds(tHelmholtzFilter).has_value());
-
-    check_helmholtz_validation_with_variants(tHelmholtzFilter);
 }
 
 TEST(FilterValidation, CheckFilterValuesHelmholtzBoundaryStickingPenalty)
 {
-    auto tHelmholtzFilter = plato::test_utilities::create_valid_helmholtz_filter();
+    auto tHelmholtzFilter = test_utilities::create_valid_helmholtz_filter_input();
     EXPECT_FALSE(validate_helmholtz_filter_boundary_sticking_penalty(tHelmholtzFilter).has_value());  // valid
     tHelmholtzFilter.boundary_sticking_penalty = boost::none;
     EXPECT_FALSE(validate_helmholtz_filter_boundary_sticking_penalty(tHelmholtzFilter).has_value());  // valid, optional
     tHelmholtzFilter.boundary_sticking_penalty = -1;
     EXPECT_TRUE(validate_helmholtz_filter_boundary_sticking_penalty(tHelmholtzFilter).has_value());  // invalid
-
-    check_helmholtz_validation_with_variants(tHelmholtzFilter);
 }
 
 TEST(FilterValidation, CheckFilterValuesKernelRadiusBounds)
 {
-    auto tFilter = plato::test_utilities::create_valid_kernel_filter();
+    auto tFilter = test_utilities::create_valid_kernel_filter_input();
     EXPECT_FALSE(detail::validate_filter_radius_bounds(tFilter).has_value());  // valid
 
     tFilter.filter_radius = boost::none;
@@ -99,32 +70,27 @@ TEST(FilterValidation, CheckFilterValuesKernelRadiusBounds)
     EXPECT_FALSE(detail::validate_filter_radius_bounds(tFilter).has_value());
     tFilter.filter_radius = -0.1;
     EXPECT_TRUE(detail::validate_filter_radius_bounds(tFilter).has_value());
-
-    check_kernel_validation_with_variants(tFilter);
 }
 
 TEST(FilterValidation, CheckFilterValuesKernelCenteringType)
 {
-    auto tFilter = plato::test_utilities::create_valid_kernel_filter();
+    auto tFilter = test_utilities::create_valid_kernel_filter_input();
     EXPECT_FALSE(detail::validate_kernel_filter_centering_type(tFilter).has_value());  // valid
     tFilter.centering_type = boost::none;
     EXPECT_TRUE(detail::validate_kernel_filter_centering_type(tFilter).has_value());  // must be defined
     tFilter.centering_type = input_parser::KernelFilterCenteringTypes::kElementCentered;
     EXPECT_FALSE(detail::validate_kernel_filter_centering_type(tFilter).has_value());  // must be defined
-
-    tFilter.centering_type = boost::none;
-    check_kernel_validation_with_variants(tFilter);
 }
 
 TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusWithMesh)
 {
-    const std::filesystem::path tMeshFileName{"test.exo"};
+    const auto tMeshFileName = std::filesystem::path{"test.exo"};
 
-    const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
+    const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{
         {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
     third_party_integration::stk_io::write_mesh(tMeshFileName, tCommandGenerator);
 
-    auto tHelmholtzFilter = plato::test_utilities::create_valid_helmholtz_filter();
+    auto tHelmholtzFilter = test_utilities::create_valid_helmholtz_filter_input();
     tHelmholtzFilter.filter_radius = 0.5;
     EXPECT_TRUE(detail::validate_filter_radius_with_mesh(tHelmholtzFilter, tMeshFileName)
                     .has_value());  // radius smaller than element edge length of 1
@@ -135,27 +101,8 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusWithMesh)
     EXPECT_FALSE(detail::validate_filter_radius_with_mesh(tHelmholtzFilter, tMeshFileName)
                      .has_value());  // radius greater than element edge length of 1
 
-    tHelmholtzFilter.filter_radius = 0.5;
-    const auto tErrorMessages = core::validate(tHelmholtzFilter, std::vector<std::string>{}, tMeshFileName);
-    EXPECT_EQ(tErrorMessages.size(), 1u);
-
-    test_utilities::test_for_existence_and_remove({tMeshFileName}, TEST_CONTEXT("Checking existence of mesh file"));
-}
-
-TEST(FilterValidation, ValidateNumberOfProcessors)
-{
-    auto tFilter = plato::test_utilities::create_valid_kernel_filter();
-    EXPECT_FALSE(detail::validate_number_of_processors(tFilter).has_value());  // valid
-    tFilter.number_of_processors = boost::none;
-    EXPECT_FALSE(detail::validate_number_of_processors(tFilter).has_value());  // valid - none specified uses 1
-}
-
-TEST(FilterValidation, ValidateNumberOfProcessorsFactorOfCommWorld)
-{
-    auto tFilter = plato::test_utilities::create_valid_kernel_filter();
-    EXPECT_FALSE(detail::validate_number_of_processors_factor_of_comm_world(tFilter).has_value());  // valid
-    tFilter.number_of_processors = 2;
-    EXPECT_TRUE(detail::validate_number_of_processors_factor_of_comm_world(tFilter).has_value());  // invalid
+    plato::test_utilities::test_for_existence_and_remove({tMeshFileName},
+                                                         TEST_CONTEXT("Checking existence of mesh file"));
 }
 
 }  // namespace plato::filter::extension::unittest

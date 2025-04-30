@@ -2,13 +2,13 @@
 
 #include <fstream>
 
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/snopt/SNOPTOptimization.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/InputValidation.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
@@ -19,21 +19,20 @@ namespace
 {
 constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
 
-const auto kBaseInputDeck = test_utilities::create_valid_brick_shape_geometry() |
-                            test_utilities::create_valid_example_objective() |
-                            test_utilities::create_valid_example_snopt_optimization();
+const auto kBaseInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
+                            criteria::library::test_utilities::create_valid_example_objective_input() |
+                            create_valid_example_snopt_optimization_input();
 }  // namespace
 
 TEST(SNOPTOptimization, ConstructAndRunSNOPTOptimization)
 {
-    const auto tValidatedInput = library::make_validated_input(kBaseInputDeck);
-    const library::ProcessManagerData tProblem = library::make_process_manager_data(tValidatedInput);
-    const auto tAllProcessManagerInputs = tValidatedInput.processManagers();
+    const auto tValidatedInput = input_validation::make_validated_input(kBaseInputDeck);
+    const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
+    const auto tAllProcessManagerInputs = tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>();
     ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1U);
 
-    const auto tValidatedSNOPTSection =
-        library::process_manager_input<input_parser::snopt_optimization>(tAllProcessManagerInputs.rawInput().front());
-    const SNOPTOptimization tSNOPTOptimization{tValidatedSNOPTSection};
+    const auto tValidatedSNOPTSection = tAllProcessManagerInputs.rawInput().front();
+    const auto tSNOPTOptimization = SNOPTOptimization{tValidatedSNOPTSection};
     tSNOPTOptimization.run(tProblem);
 
     test_utilities::test_for_existence_and_remove({std::string{kSNOPTOptimizerFileName}},
@@ -43,18 +42,19 @@ TEST(SNOPTOptimization, ConstructAndRunSNOPTOptimization)
 TEST(SNOPTOptimizationDetail, MakeConstraints)
 {
     {
-        const auto tValidatedInput = library::make_validated_input(kBaseInputDeck);
-        const library::ProcessManagerData tProblem = library::make_process_manager_data(tValidatedInput);
+        const auto tValidatedInput = input_validation::make_validated_input(kBaseInputDeck);
+        const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
 
         const auto tConstraints = detail::make_constraints(tProblem);
-        EXPECT_EQ(tConstraints.size(), 0U);
+        EXPECT_TRUE(tConstraints.empty());
     }
 
     {
-        const input_parser::ParsedInput tInputDeck =
-            input_parser::ParsedInput{kBaseInputDeck} | test_utilities::create_valid_example_constraint();
-        const auto tValidatedInput = library::make_validated_input(tInputDeck);
-        const library::ProcessManagerData tProblem = library::make_process_manager_data(tValidatedInput);
+        const auto tInputDeck = input_parser::ParsedInput{kBaseInputDeck} |
+                                criteria::library::test_utilities::create_valid_example_constraint_input();
+        const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);
+        ASSERT_TRUE(tValidatedInput.hasValue());
+        const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
 
         const auto tConstraints = detail::make_constraints(tProblem);
         ASSERT_EQ(tConstraints.size(), 1U);
@@ -80,11 +80,11 @@ TEST(SNOPTOptimizationDetail, ConstraintType)
                                          const tpis::ConstraintType aSNOPTConstraintType,
                                          const test_utilities::TestContext& aTestContext)
     {
-        auto tConstraintInput = test_utilities::create_valid_example_constraint();
+        auto tConstraintInput = criteria::library::test_utilities::create_valid_example_constraint_input();
         tConstraintInput.constraint_type = aInputConstraintType;
-        const input_parser::ParsedInput tInputDeck = input_parser::ParsedInput{kBaseInputDeck} | tConstraintInput;
-        const auto tValidatedInput = library::make_validated_input(tInputDeck);
-        const library::ProcessManagerData tProblem = library::make_process_manager_data(tValidatedInput);
+        const auto tInputDeck = input_parser::ParsedInput{kBaseInputDeck} | tConstraintInput;
+        const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);
+        const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
 
         const auto tConstraints = detail::make_constraints(tProblem);
         ASSERT_EQ(tConstraints.size(), 1U) << aTestContext;
@@ -102,11 +102,16 @@ TEST(SNOPTOptimizationDetail, ConstraintType)
 TEST(SNOPTValidation, ValidateTimeLimit)
 {
     constexpr bool tEmptyParameterGold = false;
-    test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct<
-        input_parser::snopt_optimization>([](const input_parser::snopt_optimization& aInput)
-                                          { return detail::validate_time_limit_in_minutes(aInput); },
-                                          []() { return test_utilities::create_valid_example_snopt_optimization(); },
-                                          tEmptyParameterGold, TEST_CONTEXT("ValidateTimeLimit"));
+    test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct(
+        [](const input_parser::snopt_optimization& aInput) { return detail::validate_time_limit_in_minutes(aInput); },
+        create_valid_example_snopt_optimization_input(), tEmptyParameterGold, TEST_CONTEXT("ValidateTimeLimit"));
+}
+
+TEST(SNOPTOptimization, Registration)
+{
+    EXPECT_TRUE(library::is_process_manager_function_registered("snopt_optimization"));
+    const auto tNames =
+        core::registered_function_names<library::StageAndProcessManager, library::ValidatedProcessManagerInput>();
 }
 
 }  // namespace plato::process_manager::extension::snopt::unittest

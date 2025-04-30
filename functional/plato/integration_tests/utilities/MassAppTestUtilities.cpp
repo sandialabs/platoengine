@@ -8,9 +8,11 @@
 #include "plato/criteria/extension/PluginCriteria.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
-#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
-#include "plato/process_manager/library/ValidatedInput.hpp"
+#include "plato/integration_tests/utilities/InputGeneration.hpp"
+#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
@@ -109,19 +111,20 @@ namespace
 
 auto create_test_mass_app_input(const input_parser::AppName& aMassAppName,
                                 const input_parser::CriterionName& aCriterionName,
-                                const unsigned int aNumProcessors) -> process_manager::library::ValidatedInput
+                                const unsigned int aNumProcessors) -> input_validation::ValidatedInput
 {
     const auto tObjective = create_mass_objective(aMassAppName, aCriterionName, aNumProcessors);
 
-    const auto tInput = tObjective | test_utilities::create_valid_brick_shape_geometry() |
-                        test_utilities::create_valid_example_rol_optimization();
-    return process_manager::library::make_validated_input(tInput);
+    const auto tInput = tObjective | geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
+                        process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
+
+    return input_validation::make_validated_input(tInput).value();
 }
 
 auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMassAppName,
                                               const input_parser::CriterionName& aCriterionName,
                                               const std::filesystem::path& aMeshName)
-    -> process_manager::library::ValidatedInput
+    -> input_validation::ValidatedInput
 {
     auto tConstraint = input_parser::constraint{};
     tConstraint.number_of_processors = 1U;
@@ -133,14 +136,14 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
 
     const auto tObjective = create_mass_objective(aMassAppName, aCriterionName, 1U);
 
-    auto [tDensity, tFilter] =
-        test_utilities::create_valid_density_topology_geometry_with_element_centered_kernel_filter();
-    tDensity.mesh_name = input_parser::FileName{aMeshName.string()};
+    auto tGeometryAndFilterInput =
+        integration_tests::utilities::create_valid_density_topology_geometry_with_element_centered_kernel_filter_input(
+            aMeshName);
 
-    const auto tInput = tObjective | tConstraint | tDensity | tFilter |
-                        test_utilities::create_valid_example_rol_optimization() |
-                        test_utilities::create_valid_example_constraint_check();
-    return process_manager::library::make_validated_input(tInput);
+    const auto tInput = tGeometryAndFilterInput | tObjective | tConstraint |
+                        process_manager::extension::test_utilities::create_valid_example_rol_optimization_input() |
+                        process_manager::extension::test_utilities::create_valid_example_constraint_check_input();
+    return input_validation::make_validated_input(tInput).value();
 }
 
 auto brick_shape_geometry_controls_with_volume() -> std::pair<linear_algebra::DynamicVector<double>, double>
@@ -161,7 +164,8 @@ void register_load_run_test(const boost::mpi::communicator& aComm, const test_ut
     const auto tCriterionName = input_parser::CriterionName{"mass"};
     const auto tValidInput = create_test_mass_app_input(tAppName, tCriterionName, aComm.size());
 
-    const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(tValidInput.objectives());
+    const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
+        tValidInput.get<input_parser::ComponentType::kObjective>());
     const auto tGeometry =
         geometry::extension::make_brick_shape_geometry(geometry::extension::BrickShapeGeometry{"brick.exo"});
 
@@ -172,7 +176,7 @@ void register_load_run_test(const boost::mpi::communicator& aComm, const test_ut
 }
 
 auto setup_mass_app_for_test(const std::filesystem::path& aMeshFileName)
-    -> std::pair<test_utilities::TestDirectorySetupTeardown, process_manager::library::ValidatedInput>
+    -> std::pair<test_utilities::TestDirectorySetupTeardown, input_validation::ValidatedInput>
 {
     const auto tAppName = input_parser::AppName{"test-mass-app"};
     auto tConfigurationTempDirectory = register_test_mass_app(tAppName.mToken, boost::mpi::communicator{});

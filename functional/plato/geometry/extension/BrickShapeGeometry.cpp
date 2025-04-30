@@ -2,11 +2,11 @@
 
 #include <filesystem>
 
-#include "plato/core/ValidationRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
-#include "plato/input_parser/InputBlocks.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -27,9 +27,9 @@ constexpr auto kNumDesignParameters = std::size_t{6};
 const std::vector<double> kLowerBounds = {-10.0, -10.0, -10.0, 1e-2, 1e-2, 1e-2};  // Arbitrary
 const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};        // Arbitrary
 
-[[nodiscard]] std::filesystem::path mesh_path(const library::ValidatedGeometryInput& aGeometryInput)
+[[nodiscard]] auto mesh_path(const library::ValidatedGeometryInput& aGeometryInput) -> std::filesystem::path
 {
-    const auto& tInput = core::validated_variant_raw_input<input_parser::brick_shape_geometry>(aGeometryInput);
+    const auto& tInput = input_validation::get_input_block<input_parser::brick_shape_geometry>(aGeometryInput);
     return tInput.mesh_name.value().mToken;
 }
 
@@ -39,6 +39,9 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
     { return BrickShapeGeometry::output(aSolution, aOutputInfo); };
 }
 
+[[maybe_unused]] static auto kBrickShapeGeometryParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::brick_shape_geometry>{};
+
 [[maybe_unused]] static auto kBrickShapeGeometryRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::brick_shape_geometry>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
@@ -47,9 +50,10 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
                                      BrickShapeGeometry::initialGuess(), BrickShapeGeometry::bounds(), make_output()};
     }};
 
-[[maybe_unused]] static auto kBrickShapeValidationRegistration =
-    core::ValidationRegistration<input_parser::brick_shape_geometry>{
-        [](const input_parser::brick_shape_geometry& aInput) { return library::detail::validate_mesh_name(aInput); }};
+[[maybe_unused]] static auto kBrickShapeInputValidationRegistration =
+    input_validation::InputBlockValidationRegistration<>{[](const input_parser::brick_shape_geometry& aInput)
+                                                         { return library::detail::validate_mesh_name(aInput); }};
+
 }  // namespace
 
 BrickShapeGeometry::BrickShapeGeometry(std::filesystem::path aFileName, const std::optional<double> aDiscretizationSize)

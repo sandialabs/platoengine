@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/geometry/extension/FixedBlockUtilities.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
@@ -10,7 +11,7 @@ namespace
 {
 using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
 
-const auto kDensityTopology = plato::test_utilities::create_valid_density_topology_geometry();
+const auto kDensityTopology = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
 
 constexpr auto kDensityTopologyMeshNameAccessor = [](const auto& aInput) { return aInput.mesh_name; };
 }  // namespace
