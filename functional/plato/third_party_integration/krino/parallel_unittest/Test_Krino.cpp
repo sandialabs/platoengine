@@ -6,6 +6,7 @@
 #include <iterator>
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
+#include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
@@ -156,6 +157,22 @@ TEST_F(KrinoTestFixture, BackgroundNodeIdsFourTri)
     const auto tResult = background_node_ids(*tMesh, tLevelSetField);
     const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6, 7};
     EXPECT_EQ(tGold, tResult) << "Background node ids the same as serial run.";
+}
+
+TEST_F(KrinoTestFixture, MergeOnAllRanks)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
+
+    std::vector<long unsigned int> tIds(5, 0U);
+    std::iota(tIds.begin(), tIds.end(), tRank * 5 + 1);
+
+    const auto tMergedSorted = detail::merge_on_all_ranks(tIds);
+
+    auto tGold = std::vector<long unsigned int>(5 * tCommunicator.size());
+    std::iota(tGold.begin(), tGold.end(), 1.0);
+
+    EXPECT_EQ(tGold, tMergedSorted);
 }
 
 }  // namespace plato::third_party_integration::krino::parallel_unittest

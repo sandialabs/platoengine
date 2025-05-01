@@ -95,6 +95,9 @@ namespace detail
 [[nodiscard]] auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCutMeshNodeIDs)
     -> std::unordered_map<stk::mesh::EntityId, unsigned int>;
 
+[[nodiscard]] auto merge_on_all_ranks(const std::vector<CutMeshSurfaceNodeId>& aVector)
+    -> std::vector<CutMeshSurfaceNodeId>;
+
 }  // namespace detail
 
 }  // namespace plato::third_party_integration::krino

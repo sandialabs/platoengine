@@ -164,6 +164,18 @@ TEST_F(KrinoTestFixture, CutMeshNodeIdMultiplicity)
     const auto tSensitivityMap = detail::compute_sensitivities(tMesh->bulk_data(), tLevelSetField, tDesignDomain);
     const auto tResult = tpik::cut_mesh_node_id_multiplicity(tSensitivityMap);
 
+    for (const auto& tEntry : tSensitivityMap)
+    {
+        std::cout << "Sensitivity map cut id: " << tEntry.first << " on rank " << boost::mpi::communicator{}.rank()
+                  << std::endl;
+    }
+
+    for (const auto& tEntry : tResult)
+    {
+        std::cout << "Cuti mesh: " << tEntry.first << " with count " << tEntry.second << " on rank "
+                  << boost::mpi::communicator{}.rank() << std::endl;
+    }
+
     ASSERT_EQ(tResult.size(), 1U);
     EXPECT_EQ(tResult.at(8U), 2U);
 }

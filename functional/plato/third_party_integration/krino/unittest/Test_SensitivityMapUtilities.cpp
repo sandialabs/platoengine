@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <boost/mpi/communicator.hpp>
 #include <filesystem>
 
 #include "plato/test_utilities/TestContext.hpp"
@@ -88,5 +89,4 @@ TEST(SensitivityMapUtilitiesDetail, ComputeHistogram)
     const auto tGold = std::unordered_map<stk::mesh::EntityId, unsigned int>{{2, 2}, {3, 3}, {5, 5}, {10, 2}};
     EXPECT_EQ(tGold, tHistogram);
 }
-
 }  // namespace plato::third_party_integration::krino::unittest

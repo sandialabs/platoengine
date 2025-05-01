@@ -5,9 +5,11 @@
 #include <Akri_LevelSet.hpp>          //LevelSet
 #include <Akri_LevelSetPolicy.hpp>    //LSPerInterfacePolicy
 #include <boost/mpi/collectives.hpp>
+#include <boost/mpi/collectives/all_gather.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/vector.hpp>
+#include <cstddef>
 #include <iterator>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
@@ -101,34 +103,6 @@ auto parent_node_ids_from_parent_nodes(const stk::mesh::BulkData& aBulkData,
     //                                      : std::vector{tParentIDBack, tParentIDFront};
 }
 
-namespace
-{
-
-[[nodiscard]] auto merge_on_all_ranks(const std::vector<CutMeshSurfaceNodeId>& aVector)
-    -> std::vector<CutMeshSurfaceNodeId>
-{
-    const auto tCommunicator = boost::mpi::communicator(
-        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
-    constexpr int tRootRank = 0;
-    std::vector<std::vector<CutMeshSurfaceNodeId>> tGatheredData;
-
-    boost::mpi::gather(tCommunicator, aVector, tGatheredData, tRootRank);
-
-    std::vector<CutMeshSurfaceNodeId> tConcatenatedData;
-    if (tCommunicator.rank() == tRootRank)
-    {
-        for (const auto& tSubData : tGatheredData)
-        {
-            tConcatenatedData.insert(tConcatenatedData.end(), tSubData.begin(), tSubData.end());
-        }
-        std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
-    }
-    boost::mpi::broadcast(tCommunicator, tConcatenatedData, tRootRank);
-    return tConcatenatedData;
-}
-
-}  // namespace
-
 auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
     -> std::unordered_map<CutMeshSurfaceNodeId, unsigned int>
 {
@@ -137,7 +111,7 @@ auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
     std::transform(aSensitivityMap.begin(), aSensitivityMap.end(), std::back_inserter(tLocalCutMeshIdsFromMap),
                    [](const auto aMapEntry) { return aMapEntry.first; });
 
-    const auto tMergedSortedGlobalCutMeshIds = merge_on_all_ranks(tLocalCutMeshIdsFromMap);
+    const auto tMergedSortedGlobalCutMeshIds = detail::merge_on_all_ranks(tLocalCutMeshIdsFromMap);
 
     const auto tCommunicator = boost::mpi::communicator(
         reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
@@ -159,7 +133,7 @@ auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCu
     -> std::unordered_map<stk::mesh::EntityId, unsigned int>
 {
     auto tHistogram = std::unordered_map<stk::mesh::EntityId, unsigned int>{};
-
+    tHistogram.reserve(aGatheredSortedCutMeshNodeIDs.size());
     auto tFirst = aGatheredSortedCutMeshNodeIDs.begin();
     while (tFirst != aGatheredSortedCutMeshNodeIDs.end())
     {
@@ -174,6 +148,22 @@ auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCu
     }
 
     return tHistogram;
+}
+
+auto merge_on_all_ranks(const std::vector<CutMeshSurfaceNodeId>& aVector) -> std::vector<CutMeshSurfaceNodeId>
+{
+    const auto tCommunicator = boost::mpi::communicator(
+        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
+
+    std::vector<int> tSizes;
+    boost::mpi::all_gather(tCommunicator, static_cast<int>(aVector.size()), tSizes);
+
+    std::vector<CutMeshSurfaceNodeId> tConcatenatedData;
+    boost::mpi::all_gatherv(tCommunicator, aVector, tConcatenatedData, tSizes);
+
+    std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
+
+    return tConcatenatedData;
 }
 
 }  // namespace detail

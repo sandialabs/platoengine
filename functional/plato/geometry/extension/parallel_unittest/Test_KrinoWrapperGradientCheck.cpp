@@ -31,6 +31,7 @@ namespace tpik = third_party_integration::krino;
 const auto kRectangleMeshFilePath = utilities::data_file_path("rectangle_3x4_tri3.cdf");
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 const auto kCutPlane = tpik::Plane{{0, -1, 0}, 0.6};
+const auto kThreeQuarterOffsetXHatPlane = tpik::Plane{{-1, 0, 0}, 0.75};
 const auto kLevelSetPrimitives = tpik::LevelSetPrimitives{{kCutPlane}, {}};
 
 using tpik::test_utilities::KrinoTestFixture;
@@ -120,7 +121,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
         kFourTriTwoBlockMeshFilePath.value(), kLevelSetPrimitives, std::nullopt)};
 
-    auto tIota = std::vector<double>(tX.size(), 0.0);
+    /*auto tIota = std::vector<double>(tX.size(), 0.0);
     std::iota(tIota.begin(), tIota.end(), 1.0);
     std::transform(tIota.begin(), tIota.end(), tIota.begin(),
                    [tScale = tX.size()](const auto tValue) { return tValue / tScale; });
@@ -128,9 +129,9 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
     for (const auto& tValue : tIota)
     {
         std::cout << tValue << ", ";
-    }
-    std::cout << std::endl;
-    const auto tDirection = linear_algebra::DynamicVector(tIota);
+    }*/
+    // std::cout << std::endl;
+    const auto tDirection = linear_algebra::DynamicVector(std::vector<double>(tX.size(), 0.10));
 
     const auto tF = [](const linear_algebra::DynamicVector<double>& aX) -> double
     { return test_utilities::accumulate_cut_node_coordinates(kFourTriTwoBlockMeshFilePath.value(), aX.stdVector()); };
@@ -147,19 +148,19 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
         const auto tCommunicator = boost::mpi::communicator{};
         if (tCommunicator.rank() == 0)
         {
-            std::filesystem::remove(tFileName);
+            //     std::filesystem::remove(tFileName);
         }
-        /*const auto tRowVectorJacobianResult = linear_algebra::DynamicVector<double>{
+        const auto tRowVectorJacobianResult = linear_algebra::DynamicVector<double>{
             tWrapper.rowVectorJacobianProduct(tOnesVector, third_party_integration::krino::VoidPhase::kIncludeInMesh)};
         const auto tXJV = tRowVectorJacobianResult.dot(aV);
-*/
+
         const auto tRowVectorAdjointJacobianResult =
             linear_algebra::DynamicVector<double>{tWrapper.rowVectorAdjointJacobianProduct(
                 aV.stdVector(), third_party_integration::krino::VoidPhase::kIncludeInMesh)};
         const auto tVJTX = tRowVectorAdjointJacobianResult.dot(linear_algebra::DynamicVector<double>{tOnesVector});
-        // EXPECT_DOUBLE_EQ(tXJV, tVJTX);
+        EXPECT_DOUBLE_EQ(tXJV, tVJTX);
 
-        return tVJTX;
+        return tXJV;
     };
 
     const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 7, 1.0};
