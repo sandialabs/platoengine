@@ -69,9 +69,10 @@ auto validate_expected_cross_reference_type(
 {
     if (aCrossReference && !aCrossReference->mInputBlock.template holdsExpectedType<ExpectedCrossReference>())
     {
-        return std::optional<std::string>{input_parser::block_name<input_parser::nodal_result_filter>() +
-                                          " requires that a " + input_parser::block_name<ExpectedCrossReference>() +
-                                          " component be used. The geometry type is: " + aCrossReference->mName};
+        return std::optional<std::string>{
+            input_parser::block_name<input_parser::nodal_result_filter>() + " requires that a " +
+            input_parser::block_name<ExpectedCrossReference>() +
+            " component be used. The incorrect component type is: " + aCrossReference->mName};
     }
     return {};
 }

@@ -159,7 +159,7 @@ void NodalResultFilter::run() const
         }
         tWorldComm.barrier();
     }
-    else
+    else if (boost::mpi::communicator{}.rank() == kRootRank)
     {
         std::cout << "Warning: " << input_parser::block_name<input_parser::nodal_result_filter>()
                   << " could not find field with name " << geometry::extension::density_mesh_field_name() << " in mesh "
