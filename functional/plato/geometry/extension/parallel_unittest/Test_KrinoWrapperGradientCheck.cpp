@@ -139,8 +139,11 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
                         const linear_algebra::DynamicVector<double>& aV) -> double
     {
         const auto tFileName = std::filesystem::path{"out.exo"};
-        const auto tWrapper = test_utilities::make_krino_wrapper_from_vector_values(
-            kFourTriTwoBlockMeshFilePath.value(), test_utilities::InitialLevelSetValues{aX.stdVector()}, std::nullopt);
+        const auto tAnalysisDomainMesh =
+            mesh::DesignVariablesConversion{mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()}}
+                .nodalFieldToAnalysisDomainMesh(mesh::NodalFieldVectorReference{aX.stdVector()});
+
+        const auto tWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
         tWrapper.writeCutMesh(tFileName, third_party_integration::krino::VoidPhase::kIncludeInMesh);
         const auto tMesh = mesh::Mesh{tFileName};
         const auto tCutMeshNodeSize = mesh::EntityCounts{tMesh}.numberOfNodes();
