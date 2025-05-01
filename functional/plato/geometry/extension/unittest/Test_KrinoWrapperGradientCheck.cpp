@@ -2,7 +2,6 @@
 
 #include <vector>
 
-#include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/geometry/extension/test_utilities/KrinoWrapperGradientCheckUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/KrinoWrapperTestUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"

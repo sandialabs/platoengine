@@ -103,6 +103,10 @@ namespace detail
     const std::vector<third_party_integration::krino::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes)
     -> third_party_integration::krino::SensitivityMap;
 
+[[nodiscard]] auto row_vector_to_vector3(const std::vector<double>& aRowVector,
+                                         const utilities::VectorIndex aVectorIndex,
+                                         const std::size_t aDimensions) -> third_party_integration::common::Vector3;
+
 }  // namespace detail
 
 }  // namespace plato::geometry::extension

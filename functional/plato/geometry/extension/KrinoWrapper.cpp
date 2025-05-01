@@ -33,16 +33,6 @@ constexpr auto kXComponent = utilities::ComponentIndex{0};
 constexpr auto kYComponent = utilities::ComponentIndex{1};
 constexpr auto kZComponent = utilities::ComponentIndex{2};
 
-[[nodiscard]] auto row_vector_to_vector3(const std::vector<double>& aRowVector,
-                                         const utilities::VectorIndex aVectorIndex,
-                                         const std::size_t aDimensions) -> third_party_integration::common::Vector3
-{
-    const auto tRowVectorView = utilities::make_multi_vector_view(aRowVector, aDimensions);
-    return third_party_integration::common::Vector3{
-        tRowVectorView(aVectorIndex, kXComponent), tRowVectorView(aVectorIndex, kYComponent),
-        aDimensions == 3U ? tRowVectorView(aVectorIndex, kZComponent) : 0.0};
-}
-
 void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
                           std::vector<::krino::LS_Field>& aLevelSetFields,
                           const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
@@ -131,22 +121,17 @@ const auto kJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& a
                               const unsigned int aSpatialDimension)
 {
     constexpr auto kScalarViewComponent = utilities::ComponentIndex{0};
-    aResultVectorView(utilities::VectorIndex{aParentIndex.mValue}, kScalarViewComponent) +=
-        third_party_integration::common::dot(
-            row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension),
-            aSensitivity) *
-        aMultiplicityMultiplier;
     const auto tRowvector3 =
-        row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension);
+        detail::row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension);
+    const auto tDotProduct = third_party_integration::common::dot(tRowvector3, aSensitivity) * aMultiplicityMultiplier;
+
+    aResultVectorView(utilities::VectorIndex{aParentIndex.mValue}, kScalarViewComponent) += tDotProduct;
+
     std::cout << "Adding to entry: " << aCutMeshIndex.mValue << " a row vector size: " << aRowVector.size()
-              << " a value: "
-              << third_party_integration::common::dot(
-                     row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension),
-                     aSensitivity) *
-                     aMultiplicityMultiplier
-              << " multiplicity: " << aMultiplicityMultiplier << " aspatial dim: " << aSpatialDimension
-              << " aSensitivity: " << aSensitivity.x << ", " << aSensitivity.y << ", " << aSensitivity.z
-              << " with tRowvector3  " << tRowvector3.x << ", " << tRowvector3.y << " " << tRowvector3.z << std::endl;
+              << " a value: " << tDotProduct << " multiplicity: " << aMultiplicityMultiplier
+              << " aspatial dim: " << aSpatialDimension << " aSensitivity: " << aSensitivity.x << ", " << aSensitivity.y
+              << ", " << aSensitivity.z << " with tRowvector3  " << tRowvector3.x << ", " << tRowvector3.y << " "
+              << tRowvector3.z << std::endl;
 };
 
 const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& aResultVectorView,
@@ -195,6 +180,12 @@ template <typename Lambda>
                                            const ResultViewDimensionality aResultViewDimensionality,
                                            const Lambda& aApplyFunction) -> std::vector<double>
 {
+    std::cout << "Incoming row vector: ";
+    for (const auto& tRow : aRowVector)
+    {
+        std::cout << tRow << ", ";
+    }
+    std::cout << std::endl;
     const auto tSpatialDimensions = third_party_integration::stk_io::spatial_dimensions(aKrinoMesh.bulk_data());
     const auto tCutMeshNodeIds = tpik::cut_mesh_node_ids(aKrinoMesh, aVoidPhase);
     const auto tCutMeshMultiplicity = tpik::cut_mesh_node_id_multiplicity(aSensitivityMap);
@@ -218,10 +209,12 @@ template <typename Lambda>
                      tLevelSetJacobianColumn.mBackgroundMeshNodeIDs, tLevelSetJacobianColumn.mNodalSensitivities,
                      tLevelSetJacobianColumn.mDesignDomainLocalIndex))
             {
-                // std::cout << "Cutmesh id: " << tCutMeshId << " with index " << tIndex
-                //         << " has local Parent index:  " << tLocalParentIndex << " and parent id: " << tParentId
-                //       << " and sensitivity: " << tSensitivity.x << ", " << tSensitivity.y << ", " << tSensitivity.z
-                //     << std::endl;
+                {
+                    std::cout << "Cutmesh id: " << tCutMeshId << " with index " << tIndex
+                              << " has local Parent index:  " << tLocalParentIndex << " and parent id: " << tParentId
+                              << " and sensitivity: " << tSensitivity.x << ", " << tSensitivity.y << ", "
+                              << tSensitivity.z << std::endl;
+                }
                 aApplyFunction(tRowVectorMatrixProductView, aRowVector, ParentIndex{tLocalParentIndex},
                                CutMeshIndex{tIndex}, tMultiplicityMultiplier, tSensitivity, tSpatialDimensions);
             }
@@ -374,6 +367,20 @@ auto compute_sensitivities(const stk::mesh::BulkData& aBulkData,
     }
 
     return tSensitivityMap;
+}
+
+auto row_vector_to_vector3(const std::vector<double>& aRowVector,
+                           const utilities::VectorIndex aVectorIndex,
+                           const std::size_t aDimensions) -> third_party_integration::common::Vector3
+{
+    const auto tRowVectorView = utilities::make_multi_vector_view(aRowVector, aDimensions);
+    const auto tRowVector3 = third_party_integration::common::Vector3{
+        tRowVectorView(aVectorIndex, kXComponent), tRowVectorView(aVectorIndex, kYComponent),
+        aDimensions == 3U ? tRowVectorView(aVectorIndex, kZComponent) : 0.0};
+
+    std::cout << "at index: " << aVectorIndex.mValue << "  tRowVector3: " << tRowVector3.x << " " << tRowVector3.y
+              << " " << tRowVector3.z << std::endl;
+    return tRowVector3;
 }
 
 }  // namespace detail

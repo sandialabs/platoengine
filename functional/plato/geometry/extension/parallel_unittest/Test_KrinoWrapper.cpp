@@ -154,4 +154,18 @@ TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
     EXPECT_EQ(tGold, tResult);
 }
 
+TEST_F(KrinoTestFixture, CutMeshNodeIdMultiplicity)
+{
+    const auto tMesh = tpik::read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
+    const auto tLevelSetField =
+        tpik::test_utilities::make_level_set_field_from_vector(*tMesh, {.75, -.25, -.25, 0.75, 0.75, 0.75});
+    tpik::cut_mesh(tMesh->bulk_data(), tLevelSetField);
+    const auto tDesignDomain = tpik::background_node_ids(*tMesh, tLevelSetField);
+    const auto tSensitivityMap = detail::compute_sensitivities(tMesh->bulk_data(), tLevelSetField, tDesignDomain);
+    const auto tResult = tpik::cut_mesh_node_id_multiplicity(tSensitivityMap);
+
+    ASSERT_EQ(tResult.size(), 1U);
+    EXPECT_EQ(tResult.at(8U), 2U);
+}
+
 }  // namespace plato::geometry::extension::parallel_unittest
