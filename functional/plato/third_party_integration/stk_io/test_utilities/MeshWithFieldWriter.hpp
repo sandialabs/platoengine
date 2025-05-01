@@ -3,7 +3,6 @@
 
 #include <gtest/gtest.h>
 
-#include <boost/mpi/communicator.hpp>
 #include <filesystem>
 #include <map>
 

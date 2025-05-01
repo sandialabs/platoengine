@@ -146,9 +146,9 @@ NodalResultFilter::NodalResultFilter(const library::ValidatedProcessManagerInput
 void NodalResultFilter::run() const
 {
     const auto tMesh = mesh::Mesh{mInputMeshPath, mFixedBlockNames};
+    const auto tWorldComm = boost::mpi::communicator{};
     if (mesh::EntityCounts{tMesh}.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))
     {
-        const auto tWorldComm = boost::mpi::communicator{};
         const auto [tComm, tGroupColor] = split_comm(mNumberOfProcessorsForFilter, tWorldComm);
         if (tGroupColor == 0)
         {
@@ -159,7 +159,7 @@ void NodalResultFilter::run() const
         }
         tWorldComm.barrier();
     }
-    else if (boost::mpi::communicator{}.rank() == kRootRank)
+    else if (tWorldComm.rank() == kRootRank)
     {
         std::cout << "Warning: " << input_parser::block_name<input_parser::nodal_result_filter>()
                   << " could not find field with name " << geometry::extension::density_mesh_field_name() << " in mesh "
