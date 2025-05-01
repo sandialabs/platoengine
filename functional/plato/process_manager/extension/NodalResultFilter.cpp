@@ -11,12 +11,15 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/utilities/FileUtilities.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::process_manager::extension
 {
 namespace
 {
+constexpr auto kRootRank = 0;
+
 [[nodiscard]] auto make_nodal_result_filter_process_manager(const library::ValidatedProcessManagerInput& aValidInput)
     -> library::StageAndProcessManager
 {
@@ -102,6 +105,7 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
                                   const boost::mpi::communicator& aComm)
 {
     const auto tTimeSteps = mesh::EntityCounts{aMesh}.timeSteps();
+    const auto tTemporaryOutputPath = utilities::make_filename_unique(aOutputMeshPath);
     for (const auto tTimeStep : tTimeSteps)
     {
         const auto tNodalFieldToFilter = mesh::EntityRetrieval{aMesh}.designDomainNodalField(
@@ -109,17 +113,23 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
         const auto tFieldAnalysisMesh = mesh::DesignVariablesConversion{aMesh}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tNodalFieldToFilter});
         const auto tFilteredField = aFilter.filter(tFieldAnalysisMesh);
-        if (aComm.rank() == 0)
+        if (aComm.rank() == kRootRank)
         {
             constexpr auto tFixedValue = double{1.0};
             const auto tMode =
                 tTimeStep == tTimeSteps.front() ? mesh::OutputMode::kOverwrite : mesh::OutputMode::kAppend;
-            const auto tWriter = make_mesh_writer(tMode, aMesh, aOutputMeshPath, aFixedBlocks, tTimeStep);
+            const auto tWriter = make_mesh_writer(tMode, aMesh, tTemporaryOutputPath, aFixedBlocks, tTimeStep);
             tWriter->addFieldOnAnalysisDomainMesh(tFilteredField, NodalResultFilter::field_name(), tFixedValue);
             tWriter->addFieldOnAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
                                                   tFixedValue);
         }
         aComm.barrier();
+    }
+    if (aComm.rank() == kRootRank)
+    {
+        std::filesystem::copy_file(tTemporaryOutputPath, aOutputMeshPath,
+                                   std::filesystem::copy_options::overwrite_existing);
+        std::filesystem::remove(tTemporaryOutputPath);
     }
 }
 }  // namespace

@@ -13,6 +13,7 @@
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
@@ -60,31 +61,41 @@ template <typename ComponentInput>
 
 TEST_F(NodalResultFilterRunFixture, CreateAndRunSeparateOutputFile)
 {
-    auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
-    tGeometryInput.mesh_name = input_parser::FileName{mMeshName};
-    tGeometryInput.output_name = input_parser::FileName{mMeshName};
+    const auto tCheckNodalFilter = [this](const std::optional<std::filesystem::path>& aOutputMeshPath,
+                                          const test_utilities::TestContext& aTestContext)
+    {
+        auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
+        tGeometryInput.mesh_name = input_parser::FileName{mMeshName};
+        tGeometryInput.output_name = input_parser::FileName{mMeshName};
 
-    auto tNodalResultFilter = input_parser::nodal_result_filter{};
+        auto tNodalResultFilter = input_parser::nodal_result_filter{};
+        if (aOutputMeshPath)
+        {
+            tNodalResultFilter.output_file_name = input_parser::FileName{aOutputMeshPath.value()};
+        }
+
+        const auto tInput = tNodalResultFilter | tGeometryInput |
+                            criteria::library::test_utilities::create_valid_example_objective_input() |
+                            filter::extension::test_utilities::create_valid_kernel_filter_input();
+        const auto tValidatedInput = input_validation::make_validated_input(tInput);
+        ASSERT_TRUE(tValidatedInput.hasValue()) << tValidatedInput.error();
+
+        const auto tElementToNodeInput =
+            tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>().rawInput().front();
+        EXPECT_NO_THROW(NodalResultFilter{tElementToNodeInput}.run()) << aTestContext;
+
+        // Retrieve nodal fields names from the mesh and check that the expected field name is found.
+        const auto tMeshRetrieval = mesh::EntityCounts{mesh::Mesh{aOutputMeshPath.value_or(mMeshName)}};
+        EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(NodalResultFilter::field_name())) << aTestContext;
+        EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))
+            << aTestContext;
+
+        EXPECT_EQ(mesh::EntityCounts{tMeshRetrieval}.timeSteps(), kTimeSteps) << aTestContext;
+    };
+
     const auto tOutputMeshPath = mDirectory.directory() / std::filesystem::path{"output.exo"};
-    tNodalResultFilter.output_file_name = input_parser::FileName{tOutputMeshPath};
-
-    const auto tInput = tNodalResultFilter | tGeometryInput |
-                        criteria::library::test_utilities::create_valid_example_objective_input() |
-                        filter::extension::test_utilities::create_valid_kernel_filter_input();
-    const auto tValidatedInput = input_validation::make_validated_input(tInput);
-    ASSERT_TRUE(tValidatedInput.hasValue()) << tValidatedInput.error();
-
-    const auto tElementToNodeInput =
-        tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>().rawInput().front();
-    EXPECT_NO_THROW(NodalResultFilter{tElementToNodeInput}.run());
-
-    // Retrieve nodal fields names from the mesh and check that the expected field name is found.
-    const auto tMeshRetrieval = mesh::EntityCounts{mesh::Mesh{tOutputMeshPath}};
-    EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(NodalResultFilter::field_name())) << "New field was not written";
-    EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))
-        << "Original field is not present";
-
-    EXPECT_EQ(mesh::EntityCounts{tMeshRetrieval}.timeSteps(), kTimeSteps);
+    tCheckNodalFilter(tOutputMeshPath, TEST_CONTEXT("With a new output file"));
+    tCheckNodalFilter(std::nullopt, TEST_CONTEXT("Overwrite existing output file"));
 }
 
 TEST(NodalResultFilter, ValidateFilterIsKernelFilter)
