@@ -164,13 +164,17 @@ TEST_F(KrinoTestFixture, MergeOnAllRanks)
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tRank = tCommunicator.rank();
 
-    std::vector<long unsigned int> tIds(5, 0U);
-    std::iota(tIds.begin(), tIds.end(), tRank * 5 + 1);
+    // Allocate 5 entries to each rank, except for rank 0. It will be empty because this was found to be a problematic
+    // case.
+    const auto tBaseSize = 5U;
+    const auto tSize = tCommunicator.rank() == 0 ? 0U : tBaseSize;
+    std::vector<long unsigned int> tIds(tSize, 0U);
+    std::iota(tIds.begin(), tIds.end(), tRank * tBaseSize + 1U);
 
     const auto tMergedSorted = detail::merge_on_all_ranks(tIds);
 
-    auto tGold = std::vector<long unsigned int>(5 * tCommunicator.size());
-    std::iota(tGold.begin(), tGold.end(), 1.0);
+    auto tGold = std::vector<long unsigned int>(tBaseSize * (tCommunicator.size() - 1U));
+    std::iota(tGold.begin(), tGold.end(), tBaseSize + 1U);
 
     EXPECT_EQ(tGold, tMergedSorted);
 }

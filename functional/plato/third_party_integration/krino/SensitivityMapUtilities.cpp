@@ -1,5 +1,7 @@
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 
+#include <mpi.h>
+
 #include <Akri_CDFEM_Support.hpp>     //CDFEM_Support
 #include <Akri_ChildNodeStencil.hpp>  //ChildNodeStencil
 #include <Akri_LevelSet.hpp>          //LevelSet
@@ -157,9 +159,18 @@ auto merge_on_all_ranks(const std::vector<CutMeshSurfaceNodeId>& aVector) -> std
 
     std::vector<int> tSizes;
     boost::mpi::all_gather(tCommunicator, static_cast<int>(aVector.size()), tSizes);
+    const auto tTotalSize = std::accumulate(tSizes.cbegin(), tSizes.cend(), 0);
 
-    std::vector<CutMeshSurfaceNodeId> tConcatenatedData;
-    boost::mpi::all_gatherv(tCommunicator, aVector, tConcatenatedData, tSizes);
+    auto tOffsets = std::vector<int>{0};
+    tOffsets.reserve(tSizes.size());
+    std::partial_sum(tSizes.cbegin(), tSizes.cend(), std::back_inserter(tOffsets));
+
+    // boost::mpi::all_gatherv will dereference a zero-length vector and so it is not usable if aVector is empty,
+    // so we're using the raw MPI_Allgatherv instead.
+    std::vector<CutMeshSurfaceNodeId> tConcatenatedData(tTotalSize);
+    auto* tSendBuffer = aVector.empty() ? nullptr : aVector.data();
+    MPI_Allgatherv(tSendBuffer, tSizes[tCommunicator.rank()], MPI_UINT64_T, tConcatenatedData.data(), tSizes.data(),
+                   tOffsets.data(), MPI_UINT64_T, tCommunicator);
 
     std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
 
