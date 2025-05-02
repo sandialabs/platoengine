@@ -118,30 +118,27 @@ TEST_F(KrinoTestFixture, RowVectorToVector3)
  * GC really produces the truncation error region. */
 TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
 {
-    const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-        kFourTriTwoBlockMeshFilePath.value(), kLevelSetPrimitives, std::nullopt)};
+    const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}};
 
-    /*auto tIota = std::vector<double>(tX.size(), 0.0);
+    const auto tMeshFile = kRectangleMeshFilePath;
+    const auto tX = linear_algebra::DynamicVector<double>{
+        make_initial_guess_from_level_set_primitives(tMeshFile.value(), tLevelSetPrimitives, std::nullopt)};
+
+    auto tIota = std::vector<double>(tX.size(), 0.0);
     std::iota(tIota.begin(), tIota.end(), 1.0);
     std::transform(tIota.begin(), tIota.end(), tIota.begin(),
-                   [tScale = tX.size()](const auto tValue) { return tValue / tScale; });
+                   [tScale = static_cast<double>(tX.size())](const auto tValue) { return tValue / tScale - 0.5; });
+    const auto tDirection = linear_algebra::DynamicVector<double>{tIota};
 
-    for (const auto& tValue : tIota)
-    {
-        std::cout << tValue << ", ";
-    }*/
-    // std::cout << std::endl;
-    const auto tDirection = linear_algebra::DynamicVector(std::vector<double>(tX.size(), 0.10));
-
-    const auto tF = [](const linear_algebra::DynamicVector<double>& aX) -> double
-    { return test_utilities::accumulate_cut_node_coordinates(kFourTriTwoBlockMeshFilePath.value(), aX.stdVector()); };
-    const auto tDf = [](const linear_algebra::DynamicVector<double>& aX,
-                        const linear_algebra::DynamicVector<double>& aV) -> double
+    const auto tF = [&tMeshFile](const linear_algebra::DynamicVector<double>& aX) -> double
+    { return test_utilities::accumulate_cut_node_coordinates(tMeshFile.value(), aX.stdVector()); };
+    const auto tDf = [&tMeshFile](const linear_algebra::DynamicVector<double>& aX,
+                                  const linear_algebra::DynamicVector<double>& aV) -> double
     {
         const auto tFileName = std::filesystem::path{"out.exo"};
         const auto tAnalysisDomainMesh =
-            mesh::DesignVariablesConversion{mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()}}
-                .nodalFieldToAnalysisDomainMesh(mesh::NodalFieldVectorReference{aX.stdVector()});
+            mesh::DesignVariablesConversion{mesh::Mesh{tMeshFile.value()}}.nodalFieldToAnalysisDomainMesh(
+                mesh::NodalFieldVectorReference{aX.stdVector()});
 
         const auto tWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
         tWrapper.writeCutMesh(tFileName, third_party_integration::krino::VoidPhase::kIncludeInMesh);
@@ -151,7 +148,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
         const auto tCommunicator = boost::mpi::communicator{};
         if (tCommunicator.rank() == 0)
         {
-            //     std::filesystem::remove(tFileName);
+            std::filesystem::remove(tFileName);
         }
         const auto tRowVectorJacobianResult = linear_algebra::DynamicVector<double>{
             tWrapper.rowVectorJacobianProduct(tOnesVector, third_party_integration::krino::VoidPhase::kIncludeInMesh)};
@@ -165,10 +162,14 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
 
         return tXJV;
     };
-
-    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 7, 1.0};
+    constexpr auto tNumSteps = 10;
+    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, tNumSteps, 0.125};
     const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
 
+    const auto tMaxError = tGradientCheck.maxFirstOrderTruncationError(tX, tDirection, tGradientCheckParameters);
+    EXPECT_NEAR(tMaxError, 0.0, 5e-2) << tGradientCheck.table(tX, tDirection, tGradientCheckParameters);
+
+    /*
     const auto tErrors = tGradientCheck.finiteDifferenceErrors(tX, tDirection, tGradientCheckParameters);
     ASSERT_FALSE(tErrors.empty());
 
@@ -177,7 +178,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
     {
         ASSERT_NEAR(tTruncationError.mValue, 0.0, tTolerance)
             << tGradientCheck.table(tX, tDirection, tGradientCheckParameters);
-    }
+    }*/
 }
 
 }  // namespace plato::geometry::extension::unittest

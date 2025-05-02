@@ -183,12 +183,12 @@ template <typename Lambda>
 {
     const auto tSpatialDimensions = third_party_integration::stk_io::spatial_dimensions(aKrinoMesh.bulk_data());
     const auto tCutMeshNodeIds = tpik::cut_mesh_node_ids(aKrinoMesh, aVoidPhase);
-    std::cout << " Cut mesh node ids: ";
+    /*std::cout << " Cut mesh node ids: ";
     for (const auto& tIds : tCutMeshNodeIds)
     {
         std::cout << tIds << ", ";
     }
-    std::cout << std::endl;
+    std::cout << std::endl;*/
     const auto tCutMeshMultiplicity = tpik::cut_mesh_node_id_multiplicity(aSensitivityMap);
 
     auto tRowVectorMatrixProduct = std::vector<double>(aResultSize.mValue, 0.0);
@@ -211,12 +211,12 @@ template <typename Lambda>
                      tLevelSetJacobianColumn.mDesignDomainLocalIndex))
             {
                 {
-                    std::cout << " M( " << tLocalParentIndex * 2 + 1 << ", " << tIndex + 1 << ") = "
+                    /*std::cout << " M( " << tLocalParentIndex * 2 + 1 << ", " << tIndex + 1 << ") = "
                               << " M( " << tLocalParentIndex * 2 + 1 << ", " << tIndex + 1 << ") + "
                               << tMultiplicityMultiplier << std::endl;
                     std::cout << " M( " << tLocalParentIndex * 2 + 2 << ", " << tIndex + 1 << ") = "
                               << " M( " << tLocalParentIndex * 2 + 2 << ", " << tIndex + 1 << ") + "
-                              << tMultiplicityMultiplier << std::endl;
+                              << tMultiplicityMultiplier << std::endl;*/
                     /*std::cout << "Cutmesh id: " << tCutMeshId << " with index " << tIndex
                               << " has local Parent index:  " << tLocalParentIndex << " and parent id: " << tParentId
                               << " and sensitivity: " << tSensitivity.x << ", " << tSensitivity.y << ", "
