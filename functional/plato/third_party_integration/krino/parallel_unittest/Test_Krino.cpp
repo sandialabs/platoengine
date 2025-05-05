@@ -159,24 +159,4 @@ TEST_F(KrinoTestFixture, BackgroundNodeIdsFourTri)
     EXPECT_EQ(tGold, tResult) << "Background node ids the same as serial run.";
 }
 
-TEST_F(KrinoTestFixture, MergeOnAllRanks)
-{
-    const auto tCommunicator = boost::mpi::communicator{};
-    const auto tRank = tCommunicator.rank();
-
-    // Allocate 5 entries to each rank, except for rank 0. It will be empty because this was found to be a problematic
-    // case.
-    const auto tBaseSize = 5U;
-    const auto tSize = tCommunicator.rank() == 0 ? 0U : tBaseSize;
-    std::vector<long unsigned int> tIds(tSize, 0U);
-    std::iota(tIds.begin(), tIds.end(), tRank * tBaseSize + 1U);
-
-    const auto tMergedSorted = detail::merge_on_all_ranks(tIds);
-
-    auto tGold = std::vector<long unsigned int>(tBaseSize * (tCommunicator.size() - 1U));
-    std::iota(tGold.begin(), tGold.end(), tBaseSize + 1U);
-
-    EXPECT_EQ(tGold, tMergedSorted);
-}
-
 }  // namespace plato::third_party_integration::krino::parallel_unittest

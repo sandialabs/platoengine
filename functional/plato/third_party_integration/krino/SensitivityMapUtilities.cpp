@@ -17,7 +17,9 @@
 #include <stk_mesh/base/Types.hpp>
 #include <stk_util/environment/EnvData.hpp>
 
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/NamedType.hpp"
+#include "plato/utilities/ReduceUtilities.hpp"
 
 namespace plato::third_party_integration::krino
 {
@@ -101,8 +103,6 @@ auto parent_node_ids_from_parent_nodes(const stk::mesh::BulkData& aBulkData,
     const auto tParentIDBack = aBulkData.identifier(aParentNodes.back());
 
     return std::vector{tParentIDFront, tParentIDBack};
-    // return tParentIDFront < tParentIDBack ? std::vector{tParentIDFront, tParentIDBack}
-    //                                      : std::vector{tParentIDBack, tParentIDFront};
 }
 
 auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
@@ -113,10 +113,10 @@ auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
     std::transform(aSensitivityMap.begin(), aSensitivityMap.end(), std::back_inserter(tLocalCutMeshIdsFromMap),
                    [](const auto aMapEntry) { return aMapEntry.first; });
 
-    const auto tMergedSortedGlobalCutMeshIds = detail::merge_on_all_ranks(tLocalCutMeshIdsFromMap);
+    const auto tCommunicator = retrieve_mpi_communicator_from_krino();
 
-    const auto tCommunicator = boost::mpi::communicator(
-        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
+    const auto tMergedSortedGlobalCutMeshIds = utilities::merge_on_all_ranks(tLocalCutMeshIdsFromMap, tCommunicator);
+
     constexpr int tRootRank = 0;
 
     std::unordered_map<stk::mesh::EntityId, unsigned int> tHistogram;
@@ -150,31 +150,6 @@ auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCu
     }
 
     return tHistogram;
-}
-
-auto merge_on_all_ranks(const std::vector<CutMeshSurfaceNodeId>& aVector) -> std::vector<CutMeshSurfaceNodeId>
-{
-    const auto tCommunicator = boost::mpi::communicator(
-        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
-
-    std::vector<int> tSizes;
-    boost::mpi::all_gather(tCommunicator, static_cast<int>(aVector.size()), tSizes);
-    const auto tTotalSize = std::accumulate(tSizes.cbegin(), tSizes.cend(), 0);
-
-    auto tOffsets = std::vector<int>{0};
-    tOffsets.reserve(tSizes.size());
-    std::partial_sum(tSizes.cbegin(), tSizes.cend(), std::back_inserter(tOffsets));
-
-    // boost::mpi::all_gatherv will dereference a zero-length vector and so it is not usable if aVector is empty,
-    // so we're using the raw MPI_Allgatherv instead.
-    std::vector<CutMeshSurfaceNodeId> tConcatenatedData(tTotalSize);
-    auto* tSendBuffer = aVector.empty() ? nullptr : aVector.data();
-    MPI_Allgatherv(tSendBuffer, tSizes[tCommunicator.rank()], MPI_UINT64_T, tConcatenatedData.data(), tSizes.data(),
-                   tOffsets.data(), MPI_UINT64_T, tCommunicator);
-
-    std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
-
-    return tConcatenatedData;
 }
 
 }  // namespace detail

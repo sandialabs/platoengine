@@ -29,13 +29,6 @@ struct LevelSetJacobianColumn
     std::vector<DesignDomainLocalId> mDesignDomainLocalIndex;
 };
 
-template <typename Archive>
-void serialize(Archive& aArchive, LevelSetJacobianColumn& aLevelSetJacobianColumn, const unsigned int /*aVersion*/)
-{
-    aArchive& aLevelSetJacobianColumn.mBackgroundMeshNodeIDs& aLevelSetJacobianColumn
-        .mNodalSensitivities& aLevelSetJacobianColumn.mDesignDomainLocalIndex;
-}
-
 using SensitivityMap = std::unordered_map<CutMeshSurfaceNodeId, LevelSetJacobianColumn>;
 
 using CoordinateFieldReference = utilities::NamedType<::krino::FieldRef, struct CoordinateFieldReferenceTag>;
@@ -94,9 +87,6 @@ namespace detail
 
 [[nodiscard]] auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCutMeshNodeIDs)
     -> std::unordered_map<stk::mesh::EntityId, unsigned int>;
-
-[[nodiscard]] auto merge_on_all_ranks(const std::vector<CutMeshSurfaceNodeId>& aVector)
-    -> std::vector<CutMeshSurfaceNodeId>;
 
 }  // namespace detail
 

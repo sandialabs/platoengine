@@ -9,10 +9,6 @@
 #include <Akri_MeshHelpers.hpp>           //activate_all_entities
 #include <Akri_NodalSurfaceDistance.hpp>  //compute_nodal_surface_distance
 #include <Akri_OutputUtils.hpp>
-#include <boost/mpi/collectives.hpp>
-#include <boost/mpi/communicator.hpp>
-#include <boost/serialization/unordered_map.hpp>
-#include <boost/serialization/vector.hpp>
 #include <iterator>
 #include <stk_io/StkMeshIoBroker.hpp>  //get_selected_entities
 #include <stk_mesh/base/Entity.hpp>
@@ -93,6 +89,11 @@ void initialize_environment_for_krino(const std::filesystem::path& aLogFile, con
     stk::bind_output_streams(std::string{kOutputDescription});
 }
 
+auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
+{
+    return boost::mpi::communicator(stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate);
+}
+
 auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename) -> std::unique_ptr<::krino::MeshInterface>
 {
     std::unique_ptr<::krino::MeshFromFile> tMeshFromFile = std::make_unique<::krino::MeshFromFile>(
@@ -135,16 +136,6 @@ auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh, c
     }
     return tField;
 }
-
-namespace
-{
-
-[[nodiscard]] auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
-{
-    return boost::mpi::communicator(stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate);
-}
-
-}  // namespace
 
 auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
                          const std::vector<::krino::LS_Field>& aLevelSetFields) -> std::vector<stk::mesh::EntityId>
