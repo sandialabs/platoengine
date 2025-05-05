@@ -15,4 +15,8 @@ create_plato_interface(PlatoUtilitiesInterface "${INTERFACE_FILES}" "")
 
 if( UNIT_TESTING )
   create_plato_unittester(PlatoFunctionalUtilities unittest)
+  
+  set(NUM_RANKS_FOR_TEST 3)
+  create_plato_parallel_unittester(PlatoFunctionalUtilities "parallel_unittest" ${NUM_RANKS_FOR_TEST} "")
+
 endif()

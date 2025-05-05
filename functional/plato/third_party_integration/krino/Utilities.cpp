@@ -22,6 +22,7 @@
 #include <stk_util/environment/OutputLog.hpp>  //initialize environment
 #include <string_view>
 
+#include "plato/utilities/ReduceUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -138,30 +139,9 @@ auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh, c
 namespace
 {
 
-[[nodiscard]] auto unique_merge_on_all_ranks(const std::vector<stk::mesh::EntityId>& aVector)
-    -> std::vector<stk::mesh::EntityId>
+[[nodiscard]] auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
 {
-    const auto tCommunicator = boost::mpi::communicator(
-        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
-    constexpr int tRootRank = 0;
-    std::vector<std::vector<stk::mesh::EntityId>> tGatheredData;
-
-    boost::mpi::gather(tCommunicator, aVector, tGatheredData, tRootRank);
-
-    std::vector<stk::mesh::EntityId> tConcatenatedData;
-    if (tCommunicator.rank() == tRootRank)
-    {
-        for (const auto& tSubData : tGatheredData)
-        {
-            tConcatenatedData.insert(tConcatenatedData.end(), tSubData.begin(), tSubData.end());
-        }
-        std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
-
-        auto tLastEntry = std::unique(tConcatenatedData.begin(), tConcatenatedData.end());
-        tConcatenatedData.erase(tLastEntry, tConcatenatedData.end());
-    }
-    boost::mpi::broadcast(tCommunicator, tConcatenatedData, tRootRank);
-    return tConcatenatedData;
+    return boost::mpi::communicator(stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate);
 }
 
 }  // namespace
@@ -170,7 +150,8 @@ auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
                          const std::vector<::krino::LS_Field>& aLevelSetFields) -> std::vector<stk::mesh::EntityId>
 {
     const auto tBackgroundNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
-    return unique_merge_on_all_ranks(get_ids_from_entities(tBackgroundNodes, aKrinoMesh.bulk_data()));
+    return utilities::unique_vector_gather(get_ids_from_entities(tBackgroundNodes, aKrinoMesh.bulk_data()),
+                                           retrieve_mpi_communicator_from_krino());
 }
 
 namespace
@@ -193,7 +174,8 @@ auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase
     -> std::vector<stk::mesh::EntityId>
 {
     const auto tNodes = get_cut_mesh_node_entities(aKrinoMesh, aVoidPhase);
-    return unique_merge_on_all_ranks(get_ids_from_entities(tNodes, aKrinoMesh.bulk_data()));
+    return utilities::unique_vector_gather(get_ids_from_entities(tNodes, aKrinoMesh.bulk_data()),
+                                           retrieve_mpi_communicator_from_krino());
 }
 
 void cut_mesh(stk::mesh::BulkData& aBulkData, const std::vector<::krino::LS_Field>& aLevelSetFields)

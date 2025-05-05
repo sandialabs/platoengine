@@ -2,6 +2,8 @@
 
 #include <mpi.h>
 
+#include <boost/mpi/communicator.hpp>
+
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/utilities/Zip.hpp"
 
