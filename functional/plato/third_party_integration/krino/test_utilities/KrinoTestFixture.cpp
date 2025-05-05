@@ -36,6 +36,7 @@ void test_sensitivity_map(const SensitivityMap& aResult,
 auto make_level_set_field_from_vector(::krino::MeshInterface& aKrinoMesh, const std::vector<double>& aVector)
     -> std::vector<::krino::LS_Field>
 {
+    assert(boost::mpi::communicator{}.size() == 1);
     std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data());
     const auto tNodes = node_entities_in_mesh(aKrinoMesh, tField);
     assert(tNodes.size() == aVector.size());
