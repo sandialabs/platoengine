@@ -119,11 +119,5 @@ template <typename Container3>
     return std::sqrt(aContainer.x * aContainer.x + aContainer.y * aContainer.y + aContainer.z * aContainer.z);
 }
 
-template <typename Archive>
-void serialize(Archive& aArchive, Vector3& aVector3, const unsigned int /*aVersion*/)
-{
-    aArchive& aVector3.x& aVector3.y& aVector3.z;
-}
-
 }  // namespace plato::third_party_integration::common
 #endif
