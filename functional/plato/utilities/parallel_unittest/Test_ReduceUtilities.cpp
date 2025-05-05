@@ -7,6 +7,19 @@
 namespace plato::utilities::parallel_unittest
 {
 
+TEST(ReduceUtilities, ReduceVector)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
+
+    auto tVector = std::vector<double>(3, 0.0);
+    tVector[tRank] = 1;
+
+    const auto tResult = reduce_vector(tVector, tCommunicator);
+    const auto tGold = std::vector<double>{1, 1, 1};
+    EXPECT_EQ(tResult, tGold);
+}
+
 TEST(ReduceUtilities, UniqueVectorGather)
 {
     const auto tCommunicator = boost::mpi::communicator{};

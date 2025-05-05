@@ -8,12 +8,28 @@
 namespace plato::utilities
 {
 template <typename Type>
+[[nodiscard]] auto reduce_vector(const std::vector<Type>& aVector,
+                                 const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
+
+template <typename Type>
 [[nodiscard]] auto unique_vector_gather(const std::vector<Type>& aVector,
                                         const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
 
 template <typename Type>
 [[nodiscard]] auto merge_on_all_ranks(const std::vector<Type>& aVector,
                                       const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
+
+template <typename Type>
+auto reduce_vector(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator) -> std::vector<Type>
+{
+    std::vector<Type> tGlobal(aVector.size(), 0.0);
+    constexpr int tRootRank = 0;
+
+    boost::mpi::reduce(aCommunicator, aVector, tGlobal, std::plus<Type>(), tRootRank);
+    boost::mpi::broadcast(aCommunicator, tGlobal, tRootRank);
+
+    return tGlobal;
+}
 
 template <typename Type>
 auto unique_vector_gather(const std::vector<Type>& aVector,

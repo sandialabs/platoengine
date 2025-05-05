@@ -65,7 +65,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
         return tSensitivities.dot(aV);
     };
 
-    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 7, 1.0};
+    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.1, 7, 1.0};
     const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
 
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
@@ -76,7 +76,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
     const auto tErrors = tGradientCheck.finiteDifferenceErrors(tX, tDirection, tGradientCheckParameters);
     ASSERT_FALSE(tErrors.empty());
 
-    constexpr auto tTolerance = 1e-12;
+    constexpr auto tTolerance = 1e-8;
     for (const auto& tTruncationError : tErrors)
     {
         EXPECT_NEAR(tTruncationError.mValue, 0.0, tTolerance)

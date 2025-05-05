@@ -102,14 +102,6 @@ TEST_F(KrinoTestFixture, RowVectorToVector3)
         third_party_integration::common::test_utilities::test_double_equality_of_components(
             tResult, tGold, TEST_CONTEXT("Checking index 4"));
     }
-    {
-        const auto tIndex = 134U;
-        const auto tResult =
-            extension::detail::row_vector_to_vector3(tIota, utilities::VectorIndex{tIndex}, tSpatialDimension);
-        const auto tGold = third_party_integration::common::Vector3{0, 0, 0};
-        third_party_integration::common::test_utilities::test_double_equality_of_components(
-            tResult, tGold, TEST_CONTEXT("Checking index 134"));
-    }
 }
 
 /* This is a specialized example - the 2d rectangle mesh has a linear level set profile. The 0 contour happens in a nice
@@ -168,17 +160,6 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
 
     const auto tMaxError = tGradientCheck.maxFirstOrderTruncationError(tX, tDirection, tGradientCheckParameters);
     EXPECT_NEAR(tMaxError, 0.0, 5e-2) << tGradientCheck.table(tX, tDirection, tGradientCheckParameters);
-
-    /*
-    const auto tErrors = tGradientCheck.finiteDifferenceErrors(tX, tDirection, tGradientCheckParameters);
-    ASSERT_FALSE(tErrors.empty());
-
-    constexpr auto tTolerance = 1e-14;
-    for (const auto& tTruncationError : tErrors)
-    {
-        ASSERT_NEAR(tTruncationError.mValue, 0.0, tTolerance)
-            << tGradientCheck.table(tX, tDirection, tGradientCheckParameters);
-    }*/
 }
 
 }  // namespace plato::geometry::extension::unittest

@@ -21,6 +21,7 @@
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/NamedType.hpp"
+#include "plato/utilities/ReduceUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -53,8 +54,7 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
 [[nodiscard]] auto reduce_level_set_values_map(const std::unordered_map<stk::mesh::EntityId, double>& aLevelSetMap)
     -> std::unordered_map<stk::mesh::EntityId, double>
 {
-    const auto tCommunicator = boost::mpi::communicator(
-        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
+    const auto tCommunicator = tpik::retrieve_mpi_communicator_from_krino();
     constexpr int tRootRank = 0;
     std::vector<std::unordered_map<stk::mesh::EntityId, double>> tGatheredMaps;
     boost::mpi::gather(tCommunicator, aLevelSetMap, tGatheredMaps, tRootRank);
@@ -147,19 +147,6 @@ const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<doub
     }
 };
 
-[[nodiscard]] auto reduce_vector(const std::vector<double>& aVector) -> std::vector<double>
-{
-    std::vector<double> tGlobal(aVector.size(), 0.0);
-    constexpr int tRootRank = 0;
-    const auto tCommunicator = boost::mpi::communicator(
-        reinterpret_cast<ompi_communicator_t*>(stk::EnvData::instance().m_parallelComm), boost::mpi::comm_duplicate);
-
-    boost::mpi::reduce(tCommunicator, aVector, tGlobal, std::plus<double>(), tRootRank);
-    boost::mpi::broadcast(tCommunicator, tGlobal, tRootRank);
-
-    return tGlobal;
-}
-
 using ResultSize = utilities::NamedType<long unsigned int, struct ResultSizeTag>;
 using ResultViewDimensionality = utilities::NamedType<unsigned int, struct ResultViewDimensionalityTag>;
 
@@ -203,7 +190,7 @@ template <typename Lambda>
         }
     }
 
-    return reduce_vector(tRowVectorMatrixProduct);
+    return utilities::reduce_vector(tRowVectorMatrixProduct, tpik::retrieve_mpi_communicator_from_krino());
 }
 
 }  // namespace
