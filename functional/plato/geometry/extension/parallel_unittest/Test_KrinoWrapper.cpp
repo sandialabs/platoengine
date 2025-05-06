@@ -91,24 +91,31 @@ TEST_F(KrinoTestFixture, FourTriSensitivityMap)
     }
 }
 
+namespace
+{
+
+void check_initial_guess_sized_correctly(const std::optional<std::vector<tpik::BackgroundMeshNodeId>>& aDesignNodes,
+                                         const std::size_t aGoldSize,
+                                         const test_utilities::TestContext& aTestContext)
+{
+    const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
+        kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}}, aDesignNodes);
+    ASSERT_EQ(tInitialGuess.size(), aGoldSize) << aTestContext;
+}
+
+}  // namespace
+
 TEST_F(KrinoTestFixture, MakeInitialGuessFromLevelSetPrimitives)
 {
     ASSERT_TRUE(kBoxFilePath.has_value());
     const auto tMesh = mesh::Mesh{kBoxFilePath.value()};
 
-    {
-        const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
-            kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}}, std::nullopt);
-        const auto tNumberOfDesignNodes = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
-        ASSERT_EQ(tInitialGuess.size(), tNumberOfDesignNodes);
-    }
+    check_initial_guess_sized_correctly(std::nullopt, mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes(),
+                                        TEST_CONTEXT("All nodes are design nodes."));
 
-    {
-        const auto tDesignDomainNodeIds = std::vector<tpik::BackgroundMeshNodeId>{1, 2, 3, 4, 5};
-        const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
-            kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}}, tDesignDomainNodeIds);
-        ASSERT_EQ(tInitialGuess.size(), tDesignDomainNodeIds.size());
-    }
+    const auto tDesignDomainNodeIds = std::vector<tpik::BackgroundMeshNodeId>{1, 2, 3, 4, 5};
+    check_initial_guess_sized_correctly(tDesignDomainNodeIds, tDesignDomainNodeIds.size(),
+                                        TEST_CONTEXT("Subset of nodes are design nodes."));
 }
 
 TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
