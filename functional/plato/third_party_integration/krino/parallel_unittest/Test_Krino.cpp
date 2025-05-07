@@ -4,6 +4,7 @@
 #include <boost/mpi/communicator.hpp>
 #include <boost/serialization/vector.hpp>
 #include <iterator>
+#include <unordered_map>
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -155,6 +156,20 @@ TEST_F(KrinoTestFixture, BackgroundMeshNodeIds)
 TEST_F(KrinoTestFixture, BackgroundNodeIdsFourTri)
 {
     test_utilities::four_tri_test_on_background_node_ids(TEST_CONTEXT("Four tri background nodes in parallel."));
+}
+
+TEST_F(KrinoTestFixture, GetLevelSetValues)
+{
+    ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
+    const auto tKrinoMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
+    const auto tLevelSetField = make_level_set_field_from_primitives(
+        LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tKrinoMesh->bulk_data());
+
+    const auto tLevelSetValues = get_level_set_values(*tKrinoMesh, tLevelSetField);
+
+    const auto tGold = std::unordered_map<stk::mesh::EntityId, double>{{1, .75}, {2, -.25}, {4, -0.25},
+                                                                       {5, .75}, {6, 0.75}, {7, 0.75}};
+    EXPECT_EQ(tLevelSetValues, tGold);
 }
 
 }  // namespace plato::third_party_integration::krino::parallel_unittest

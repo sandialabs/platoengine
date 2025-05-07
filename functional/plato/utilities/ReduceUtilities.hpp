@@ -3,6 +3,7 @@
 
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/vector.hpp>
 
 namespace plato::utilities
@@ -29,6 +30,12 @@ template <typename Type>
 template <typename Type>
 [[nodiscard]] auto merge_on_all_ranks(const std::vector<Type>& aVector,
                                       const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
+
+/// @brief Take an unordered map @a aMap from each rank and reduce it so that all ranks in communicator @a aCommunicator
+/// have the same map.
+template <typename KeyType, typename ValueType>
+[[nodiscard]] auto reduce_map(const std::unordered_map<KeyType, ValueType>& aMap,
+                              const boost::mpi::communicator& aCommunicator) -> std::unordered_map<KeyType, ValueType>;
 
 template <typename Value, typename Function>
 auto compute_on_root(const boost::mpi::communicator& aCommunicator, const Function& aFunction) -> Value
@@ -96,6 +103,30 @@ auto merge_on_all_ranks(const std::vector<Type>& aVector,
     std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
 
     return tConcatenatedData;
+}
+
+template <typename KeyType, typename ValueType>
+auto reduce_map(const std::unordered_map<KeyType, ValueType>& aMap,
+                const boost::mpi::communicator& aCommunicator) -> std::unordered_map<KeyType, ValueType>
+{
+    constexpr int tRootRank = 0;
+    std::vector<std::unordered_map<KeyType, ValueType>> tGatheredMaps;
+    boost::mpi::gather(aCommunicator, aMap, tGatheredMaps, tRootRank);
+
+    return utilities::compute_on_root<std::unordered_map<KeyType, ValueType>>(
+        aCommunicator,
+        [&tGatheredMaps]()
+        {
+            std::unordered_map<KeyType, ValueType> tRootMap;
+            for (const auto& tMap : tGatheredMaps)
+            {
+                for (const auto& [tEntityId, tLevelSetValue] : tMap)
+                {
+                    tRootMap[tEntityId] = tLevelSetValue;
+                }
+            }
+            return tRootMap;
+        });
 }
 
 }  // namespace plato::utilities

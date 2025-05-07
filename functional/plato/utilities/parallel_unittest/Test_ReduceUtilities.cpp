@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <unordered_map>
 
 #include "plato/utilities/ReduceUtilities.hpp"
 
@@ -51,6 +52,23 @@ TEST(ReduceUtilities, MergeOnAllRanks)
     std::iota(tGold.begin(), tGold.end(), tBaseSize + 1U);
 
     EXPECT_EQ(tGold, tMergedSorted);
+}
+
+TEST(ReduceUtilities, ReduceMap)
+{
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
+
+    std::unordered_map<int, double> tMap;
+    tMap[tRank] = tRank;
+
+    const auto tReducedMap = reduce_map(tMap, tCommunicator);
+
+    ASSERT_EQ(tReducedMap.size(), tCommunicator.size());
+    for (const auto& [tKey, tValue] : tReducedMap)
+    {
+        EXPECT_EQ(tKey, tValue);
+    }
 }
 
 }  // namespace plato::utilities::parallel_unittest

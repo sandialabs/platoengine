@@ -32,7 +32,7 @@ void four_tri_test_on_background_node_ids(const plato::test_utilities::TestConte
 /// for all background nodes (fixed or design) to the values in the vector in order of GID.
 /// @pre the environment for krino was initialized by calling 'initialize_environment_for_krino', followed by
 /// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh.
-/// @note Do not use in parallel
+/// @pre Size of `MPI_COMM_WORLD` must be 1.
 [[nodiscard]] auto make_level_set_field_from_vector(
     ::krino::MeshInterface& aKrinoMesh, const std::vector<double>& aVector) -> std::vector<::krino::LS_Field>;
 

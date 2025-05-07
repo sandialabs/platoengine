@@ -125,8 +125,8 @@ auto make_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPri
     return tField;
 }
 
-auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh, const double aFixedLevelSetValue)
-    -> std::vector<::krino::LS_Field>
+auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh,
+                                           const double aFixedLevelSetValue) -> std::vector<::krino::LS_Field>
 {
     std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data());
     const auto tNodes = node_entities_in_mesh(aKrinoMesh, tField);
@@ -147,8 +147,8 @@ auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
 
 namespace
 {
-[[nodiscard]] auto get_cut_mesh_node_entities(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
-    -> stk::mesh::EntityVector
+[[nodiscard]] auto get_cut_mesh_node_entities(const ::krino::MeshInterface& aKrinoMesh,
+                                              const VoidPhase aVoidPhase) -> stk::mesh::EntityVector
 {
     const auto tSelector = output_selector(aKrinoMesh.meta_data(),
                                            ::krino::AuxMetaData::get(aKrinoMesh.meta_data()).active_part(), aVoidPhase);
@@ -161,8 +161,8 @@ namespace
 
 }  // namespace
 
-auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
-    -> std::vector<stk::mesh::EntityId>
+auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh,
+                       const VoidPhase aVoidPhase) -> std::vector<stk::mesh::EntityId>
 {
     const auto tNodes = get_cut_mesh_node_entities(aKrinoMesh, aVoidPhase);
     return utilities::unique_vector_gather(get_ids_from_entities(tNodes, aKrinoMesh.bulk_data()),
@@ -199,7 +199,7 @@ auto get_level_set_values(const ::krino::MeshInterface& aKrinoMesh,
                        return std::make_pair(tId, level_set_value(aLevelSetFields, aNode));
                    });
 
-    return tLevelSetValues;
+    return utilities::reduce_map(tLevelSetValues, retrieve_mpi_communicator_from_krino());
 }
 
 auto node_entities_in_mesh(const ::krino::MeshInterface& aKrinoMesh,

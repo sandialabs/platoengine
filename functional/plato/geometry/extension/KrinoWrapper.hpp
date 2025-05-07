@@ -5,7 +5,6 @@
 #include <Akri_LevelSetPolicy.hpp>
 #include <filesystem>
 #include <memory>
-#include <unordered_map>
 
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
@@ -103,6 +102,11 @@ namespace detail
     const std::vector<third_party_integration::krino::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes)
     -> third_party_integration::krino::SensitivityMap;
 
+/// @brief Take a flattened row vector @a aRowVector and extract the Vector3 stored at the unflattened index @a
+/// aVectorIndex.
+/// @post a Vector3 is returned with z entry 0 if @a aDimensions is 2.
+/// For example, if a row vector input is: {x0, y0, z0, x1, y1, z1, x2, y2, z2}, and index is 1
+/// the return will be {x1, y1, z1}.
 [[nodiscard]] auto row_vector_to_vector3(const std::vector<double>& aRowVector,
                                          const utilities::VectorIndex aVectorIndex,
                                          const std::size_t aDimensions) -> third_party_integration::common::Vector3;
