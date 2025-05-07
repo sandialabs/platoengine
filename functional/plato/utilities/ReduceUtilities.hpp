@@ -7,27 +7,54 @@
 
 namespace plato::utilities
 {
+
+/// @brief Using communicator @a aCommunicator, perform function @a aFunction on root and broadcast to other ranks
+template <typename Value, typename Function>
+[[nodiscard]] auto compute_on_root(const boost::mpi::communicator& aCommunicator, const Function& aFunction) -> Value;
+
+/// @brief Take a vector on this rank @a aVector, and using the communicator @a aCommunicator return a reduced vector
+/// that is the same on all ranks.
 template <typename Type>
 [[nodiscard]] auto reduce_vector(const std::vector<Type>& aVector,
                                  const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
 
+/// @brief Take a vector on this rank @a aVector, and using the communicator @a aCommunicator gather up all the vectors,
+/// sort them, and only keep the unique entries. Return a vector that is the same on all ranks.
 template <typename Type>
 [[nodiscard]] auto unique_vector_gather(const std::vector<Type>& aVector,
                                         const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
 
+/// @brief Take a vector on this rank @a aVector, and using the communicator @a aCommunicator gather up all the vectors
+/// into one sorted vector. This vector can have duplicate entries.
 template <typename Type>
 [[nodiscard]] auto merge_on_all_ranks(const std::vector<Type>& aVector,
                                       const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
 
+template <typename Value, typename Function>
+auto compute_on_root(const boost::mpi::communicator& aCommunicator, const Function& aFunction) -> Value
+{
+    auto tResult = Value{};
+    constexpr auto tRootRank = 0;
+    if (aCommunicator.rank() == tRootRank)
+    {
+        tResult = aFunction();
+    }
+    boost::mpi::broadcast(aCommunicator, tResult, tRootRank);
+    return tResult;
+}
+
 template <typename Type>
 auto reduce_vector(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator) -> std::vector<Type>
 {
+    auto tVectorPlus = [](const std::vector<Type>& aLHS, const std::vector<Type>& aRHS) -> std::vector<Type>
+    {
+        std::vector<Type> tResult(aLHS.size(), 0.0);
+        std::transform(aLHS.begin(), aLHS.end(), aRHS.begin(), tResult.begin(), std::plus<Type>());
+        return tResult;
+    };
+
     std::vector<Type> tGlobal(aVector.size(), 0.0);
-    constexpr int tRootRank = 0;
-
-    boost::mpi::reduce(aCommunicator, aVector, tGlobal, std::plus<Type>(), tRootRank);
-    boost::mpi::broadcast(aCommunicator, tGlobal, tRootRank);
-
+    boost::mpi::all_reduce(aCommunicator, aVector, tGlobal, tVectorPlus);
     return tGlobal;
 }
 
@@ -35,24 +62,15 @@ template <typename Type>
 auto unique_vector_gather(const std::vector<Type>& aVector,
                           const boost::mpi::communicator& aCommunicator) -> std::vector<Type>
 {
-    std::vector<std::vector<Type>> tGatheredData;
-    constexpr int tRootRank = 0;
-
-    boost::mpi::gather(aCommunicator, aVector, tGatheredData, tRootRank);
-    std::vector<Type> tConcatenatedData;
-    if (aCommunicator.rank() == tRootRank)
-    {
-        for (const auto& tSubData : tGatheredData)
-        {
-            tConcatenatedData.insert(tConcatenatedData.end(), tSubData.begin(), tSubData.end());
-        }
-        std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
-
-        auto tLastEntry = std::unique(tConcatenatedData.begin(), tConcatenatedData.end());
-        tConcatenatedData.erase(tLastEntry, tConcatenatedData.end());
-    }
-    boost::mpi::broadcast(aCommunicator, tConcatenatedData, tRootRank);
-    return tConcatenatedData;
+    auto tMergedSorted = merge_on_all_ranks(aVector, aCommunicator);
+    return compute_on_root<std::vector<Type>>(aCommunicator,
+                                              [&tMergedSorted]() -> std::vector<Type>
+                                              {
+                                                  auto tLastEntry =
+                                                      std::unique(tMergedSorted.begin(), tMergedSorted.end());
+                                                  tMergedSorted.erase(tLastEntry, tMergedSorted.end());
+                                                  return tMergedSorted;
+                                              });
 }
 
 template <typename Type>
@@ -69,6 +87,7 @@ auto merge_on_all_ranks(const std::vector<Type>& aVector,
 
     // boost::mpi::all_gatherv will dereference a zero-length vector and so it is not usable if aVector is empty,
     // so we're using the raw MPI_Allgatherv instead.
+    // https://github.com/boostorg/mpi/issues/166
     std::vector<Type> tConcatenatedData(tTotalSize);
     auto* tSendBuffer = aVector.empty() ? nullptr : aVector.data();
     MPI_Allgatherv(tSendBuffer, tSizes[aCommunicator.rank()], MPI_UINT64_T, tConcatenatedData.data(), tSizes.data(),

@@ -79,12 +79,18 @@ using LevelSetFieldReference = utilities::NamedType<::krino::FieldRef, struct Le
                                                     const unsigned int aSpatialDimension)
     -> std::vector<common::Vector3>;
 
+/// @brief Compute the repeated occurrence of cut mesh node ids in parallel using sensitivity map @a aSensitivityMap.
+/// @note Sensitivity maps are computing on their local rank and only contain data from that rank.
+/// @post Return a mpi consistent unorderd map that contains only the duplicated cut mesh ids.
 [[nodiscard]] auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
     -> std::unordered_map<CutMeshSurfaceNodeId, unsigned int>;
 
 namespace detail
 {
 
+/// @brief Take a sorted vector of cut mesh ids @a aGatheredSortedCutMeshNodeIDs and determine a histogram of ids that
+/// are repeated more than once.
+/// @pre @a aGatheredSortedCutMeshNodeIDs is the complete set across ranks and is sorted.
 [[nodiscard]] auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCutMeshNodeIDs)
     -> std::unordered_map<stk::mesh::EntityId, unsigned int>;
 

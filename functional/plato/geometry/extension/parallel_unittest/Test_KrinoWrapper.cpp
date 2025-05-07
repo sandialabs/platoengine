@@ -155,8 +155,9 @@ TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
 TEST_F(KrinoTestFixture, CutMeshNodeIdMultiplicity)
 {
     const auto tMesh = tpik::read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
-    const auto tLevelSetField =
-        tpik::test_utilities::make_level_set_field_from_vector(*tMesh, {.75, -.25, -.25, 0.75, 0.75, 0.75});
+    const auto tLevelSetField = tpik::make_level_set_field_from_primitives(
+        tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tMesh->bulk_data());
+
     tpik::cut_mesh(tMesh->bulk_data(), tLevelSetField);
     const auto tDesignDomain = tpik::background_node_ids(*tMesh, tLevelSetField);
     const auto tSensitivityMap = detail::compute_sensitivities(tMesh->bulk_data(), tLevelSetField, tDesignDomain);
