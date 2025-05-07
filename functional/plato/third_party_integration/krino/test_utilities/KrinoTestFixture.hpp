@@ -25,13 +25,16 @@ void test_sensitivity_map(const SensitivityMap& aResult,
                           const SensitivityMap& aGold,
                           const plato::test_utilities::TestContext& aTestContext);
 
+/// @brief A test that can be run in serial and in parallel and produces the same result.
+void four_tri_test_on_background_node_ids(const plato::test_utilities::TestContext& aTestContext);
+
 /// @brief Takes a vector of doubles value @a aVector along with a KrinoMesh @a aKrinoMesh and sets the level set field
 /// for all background nodes (fixed or design) to the values in the vector in order of GID.
 /// @pre the environment for krino was initialized by calling 'initialize_environment_for_krino', followed by
 /// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh.
-[[nodiscard]] auto make_level_set_field_from_vector(::krino::MeshInterface& aKrinoMesh,
-                                                    const std::vector<double>& aVector)
-    -> std::vector<::krino::LS_Field>;
+/// @note Do not use in parallel
+[[nodiscard]] auto make_level_set_field_from_vector(
+    ::krino::MeshInterface& aKrinoMesh, const std::vector<double>& aVector) -> std::vector<::krino::LS_Field>;
 
 class KrinoTestFixture : virtual public ::testing::Test
 {

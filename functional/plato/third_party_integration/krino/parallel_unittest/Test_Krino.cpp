@@ -6,6 +6,7 @@
 #include <iterator>
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
@@ -26,7 +27,8 @@ const auto kUnitSphere = Sphere{{0, 0, 0}, 1.0};
 const auto kThreeQuarterOffsetXHatPlane = Plane{{-1, 0, 0}, 0.75};
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 
-void check_vector_same_on_all_ranks(const std::vector<stk::mesh::EntityId>& aVector)
+void check_vector_same_on_all_ranks(const std::vector<stk::mesh::EntityId>& aVector,
+                                    const plato::test_utilities::TestContext& aTestContext)
 {
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tRank = tCommunicator.rank();
@@ -38,7 +40,7 @@ void check_vector_same_on_all_ranks(const std::vector<stk::mesh::EntityId>& aVec
     }
     boost::mpi::broadcast(tCommunicator, tGoldVector, 0);
 
-    EXPECT_EQ(tGoldVector, aVector);
+    EXPECT_EQ(tGoldVector, aVector) << aTestContext;
 }
 
 }  // namespace
@@ -75,7 +77,7 @@ TEST_F(KrinoTestFixture, CutMeshNodeIds)
 
     const auto tCutMeshNodeIds = cut_mesh_node_ids(*tKrinoMesh, VoidPhase::kExcludeFromMesh);
 
-    check_vector_same_on_all_ranks(tCutMeshNodeIds);
+    check_vector_same_on_all_ranks(tCutMeshNodeIds, TEST_CONTEXT("Cut mesh node ids same on all ranks 3d sphere"));
 }
 
 namespace
@@ -102,6 +104,17 @@ void remove_file_on_rank_zero()
     }
 }
 
+void test_cut_mesh_node_ids_parallel_consistent(const std::unique_ptr<::krino::MeshInterface>& aKrinoMesh,
+                                                const VoidPhase& aVoidPhase,
+                                                const plato::test_utilities::TestContext& aTestContext)
+{
+    const auto tCutMeshNodeIds = cut_mesh_node_ids(*aKrinoMesh, aVoidPhase);
+    check_vector_same_on_all_ranks(tCutMeshNodeIds, aTestContext);
+    write_mesh(aKrinoMesh->bulk_data(), kWriteMeshName, aVoidPhase);
+    read_mesh_check_ids(tCutMeshNodeIds);
+    remove_file_on_rank_zero();
+}
+
 }  // namespace
 
 TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTriParallelConsistent)
@@ -112,20 +125,11 @@ TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTriParallelConsistent)
         LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tKrinoMesh->bulk_data());
     cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField);
 
-    {
-        const auto tCutMeshNodeIds = cut_mesh_node_ids(*tKrinoMesh, VoidPhase::kIncludeInMesh);
-        check_vector_same_on_all_ranks(tCutMeshNodeIds);
-        write_mesh(tKrinoMesh->bulk_data(), kWriteMeshName, VoidPhase::kIncludeInMesh);
-        read_mesh_check_ids(tCutMeshNodeIds);
-        remove_file_on_rank_zero();
-    }
-    {
-        const auto tCutMeshNodeIds = cut_mesh_node_ids(*tKrinoMesh, VoidPhase::kExcludeFromMesh);
-        check_vector_same_on_all_ranks(tCutMeshNodeIds);
-        write_mesh(tKrinoMesh->bulk_data(), kWriteMeshName, VoidPhase::kExcludeFromMesh);
-        read_mesh_check_ids(tCutMeshNodeIds);
-        remove_file_on_rank_zero();
-    }
+    test_cut_mesh_node_ids_parallel_consistent(tKrinoMesh, VoidPhase::kIncludeInMesh,
+                                               TEST_CONTEXT("Cut nodes consistency using Include void region"));
+
+    test_cut_mesh_node_ids_parallel_consistent(tKrinoMesh, VoidPhase::kExcludeFromMesh,
+                                               TEST_CONTEXT("Cut nodes consistency using Exclude void region"));
 }
 
 TEST_F(KrinoTestFixture, BackgroundMeshNodeIds)
@@ -138,7 +142,8 @@ TEST_F(KrinoTestFixture, BackgroundMeshNodeIds)
 
     const auto tBackgroundNodeIds = background_node_ids(*tKrinoMesh, tLevelSetField);
 
-    check_vector_same_on_all_ranks(tBackgroundNodeIds);
+    check_vector_same_on_all_ranks(tBackgroundNodeIds,
+                                   TEST_CONTEXT("Background mesh node ids same on all ranks 3d sphere"));
 
     const auto tBulkData = stk_io::read_mesh_bulk_data(kTetBoxFilePath.value());
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
@@ -149,14 +154,7 @@ TEST_F(KrinoTestFixture, BackgroundMeshNodeIds)
 
 TEST_F(KrinoTestFixture, BackgroundNodeIdsFourTri)
 {
-    const auto tMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
-    const auto tLevelSetField =
-        test_utilities::make_level_set_field_from_vector(*tMesh, {.75, -.25, -.25, 0.75, 0.75, 0.75});
-    cut_mesh(tMesh->bulk_data(), tLevelSetField);
-
-    const auto tResult = background_node_ids(*tMesh, tLevelSetField);
-    const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6, 7};
-    EXPECT_EQ(tGold, tResult) << "Background node ids the same as serial run.";
+    test_utilities::four_tri_test_on_background_node_ids(TEST_CONTEXT("Four tri background nodes in parallel."));
 }
 
 }  // namespace plato::third_party_integration::krino::parallel_unittest

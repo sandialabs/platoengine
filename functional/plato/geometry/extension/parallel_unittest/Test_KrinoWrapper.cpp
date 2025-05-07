@@ -32,6 +32,17 @@ const auto kFourTriSensitivityMapRankOne =
                          {11, tpik::LevelSetJacobianColumn{{1, 2}, {{0.25, 0.0, 0}, {0.75, 0, 0}}, {0, 1}}},
                          {8, tpik::LevelSetJacobianColumn{{1, 4}, {{.25, 0.25, 0}, {0.75, 0.75, 0}}, {0, 2}}}};
 
+[[nodiscard]] auto create_example_krino_wrapper_for_regression_test() -> KrinoWrapper
+{
+    const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
+        kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
+        std::nullopt);
+    const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
+    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
+        mesh::NodalFieldVectorReference{tInitialGuess});
+    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
+}
+
 }  // namespace
 
 TEST_F(KrinoTestFixture, KrinoWrapperParallel)
@@ -65,14 +76,7 @@ TEST_F(KrinoTestFixture, KrinoWrapperParallel)
 TEST_F(KrinoTestFixture, FourTriSensitivityMap)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-
-    const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
-        kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-        std::nullopt);
-    const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
-    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
-        mesh::NodalFieldVectorReference{tInitialGuess});
-    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
+    const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test();
 
     const auto tSensitivity = tKrinoWrapper.sensitivities();
 
@@ -121,13 +125,7 @@ TEST_F(KrinoTestFixture, MakeInitialGuessFromLevelSetPrimitives)
 TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
-        kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-        std::nullopt);
-    const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
-    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
-        mesh::NodalFieldVectorReference{tInitialGuess});
-    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
+    const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test();
 
     const auto tNumberOfCutMeshNodes = 9;
     const auto tDimensions = 2;
@@ -143,14 +141,7 @@ TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
 TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
-        kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-        std::nullopt);
-    const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
-    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
-        mesh::NodalFieldVectorReference{tInitialGuess});
-    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
-
+    const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test();
     const auto tNumberOfBackgroundNodes = 6;
     std::vector<double> tRowVector(tNumberOfBackgroundNodes, 1.0);
 

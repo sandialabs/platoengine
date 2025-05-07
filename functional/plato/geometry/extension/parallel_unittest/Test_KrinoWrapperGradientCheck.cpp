@@ -73,35 +73,38 @@ namespace
     return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
 }
 
+[[nodiscard]] auto make_iota_vector(const std::size_t aSize, const double aShift) -> std::vector<double>
+{
+    auto tIota = std::vector<double>(aSize, 0.0);
+    std::iota(tIota.begin(), tIota.end(), 1.0);
+    std::transform(tIota.begin(), tIota.end(), tIota.begin(),
+                   [tScale = aSize, aShift](const auto tValue) { return tValue / tScale - aShift; });
+    return tIota;
+}
+
+void check_row_vector_vector3(const unsigned int aIndex,
+                              const std::vector<double>& aSourceVector,
+                              const plato::test_utilities::TestContext& aTestContext)
+{
+    const auto tSpatialDimension = 2U;
+    const auto tResult =
+        extension::detail::row_vector_to_vector3(aSourceVector, utilities::VectorIndex{aIndex}, tSpatialDimension);
+    const auto tGold =
+        third_party_integration::common::Vector3{aSourceVector[2 * aIndex], aSourceVector[2 * aIndex + 1], 0.0};
+    third_party_integration::common::test_utilities::test_double_equality_of_components(tResult, tGold, aTestContext);
+}
+
 }  // namespace
 
 TEST_F(KrinoTestFixture, RowVectorToVector3)
 {
-    const auto tSpatialDimension = 2U;
     const auto tKrinoWrapper = make_example_krino_wrapper();
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
         kRectangleMeshFilePath.value(), kLevelSetPrimitives, std::nullopt)};
-    auto tIota = std::vector<double>(tX.size(), 0.0);
-    std::iota(tIota.begin(), tIota.end(), 1.0);
-    std::transform(tIota.begin(), tIota.end(), tIota.begin(),
-                   [tScale = tX.size()](const auto tValue) { return tValue / tScale; });
+    const auto tIota = make_iota_vector(tX.size(), 0.0);
 
-    {
-        const auto tIndex = 0U;
-        const auto tResult =
-            extension::detail::row_vector_to_vector3(tIota, utilities::VectorIndex{tIndex}, tSpatialDimension);
-        const auto tGold = third_party_integration::common::Vector3{tIota[2 * tIndex], tIota[2 * tIndex + 1], 0.0};
-        third_party_integration::common::test_utilities::test_double_equality_of_components(
-            tResult, tGold, TEST_CONTEXT("Checking index 0"));
-    }
-    {
-        const auto tIndex = 4U;
-        const auto tResult =
-            extension::detail::row_vector_to_vector3(tIota, utilities::VectorIndex{tIndex}, tSpatialDimension);
-        const auto tGold = third_party_integration::common::Vector3{tIota[2 * tIndex], tIota[2 * tIndex + 1], 0.0};
-        third_party_integration::common::test_utilities::test_double_equality_of_components(
-            tResult, tGold, TEST_CONTEXT("Checking index 4"));
-    }
+    check_row_vector_vector3(0U, tIota, TEST_CONTEXT("Checking index 0"));
+    check_row_vector_vector3(4U, tIota, TEST_CONTEXT("Checking index 4"));
 }
 
 /* This is a specialized example - the 2d rectangle mesh has a linear level set profile. The 0 contour happens in a nice
@@ -115,12 +118,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
     const auto tMeshFile = kRectangleMeshFilePath;
     const auto tX = linear_algebra::DynamicVector<double>{
         make_initial_guess_from_level_set_primitives(tMeshFile.value(), tLevelSetPrimitives, std::nullopt)};
-
-    auto tIota = std::vector<double>(tX.size(), 0.0);
-    std::iota(tIota.begin(), tIota.end(), 1.0);
-    std::transform(tIota.begin(), tIota.end(), tIota.begin(),
-                   [tScale = static_cast<double>(tX.size())](const auto tValue) { return tValue / tScale - 0.5; });
-    const auto tDirection = linear_algebra::DynamicVector<double>{tIota};
+    const auto tDirection = linear_algebra::DynamicVector<double>{make_iota_vector(tX.size(), 0.5)};
 
     const auto tF = [&tMeshFile](const linear_algebra::DynamicVector<double>& aX) -> double
     { return test_utilities::accumulate_cut_node_coordinates(tMeshFile.value(), aX.stdVector()); };
