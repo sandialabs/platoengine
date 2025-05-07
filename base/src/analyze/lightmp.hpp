@@ -95,11 +95,11 @@
 #include <string>
 #include <vector>
 
-typedef struct {
+struct PlotVariable {
   std::vector<std::string> plotName;
   std::vector<int> plotIndex;
   VarIndex varIndex{};
-} PlotVariable;
+};
 
 void setupSolver( pugi::xml_node& config, AztecOO&, int&, Real&, DistributedCrsMatrix* A=NULL );
 
