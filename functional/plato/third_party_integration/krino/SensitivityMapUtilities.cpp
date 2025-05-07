@@ -107,14 +107,15 @@ auto parent_node_ids_from_parent_nodes(const stk::mesh::BulkData& aBulkData,
 auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
     -> std::unordered_map<CutMeshSurfaceNodeId, unsigned int>
 {
-    std::vector<CutMeshSurfaceNodeId> tLocalCutMeshIdsFromMap;
-    tLocalCutMeshIdsFromMap.reserve(aSensitivityMap.size());
-    std::transform(aSensitivityMap.begin(), aSensitivityMap.end(), std::back_inserter(tLocalCutMeshIdsFromMap),
+    std::vector<CutMeshSurfaceNodeId> tCutMeshIdsFromMapOnThisRank;
+    tCutMeshIdsFromMapOnThisRank.reserve(aSensitivityMap.size());
+    std::transform(aSensitivityMap.begin(), aSensitivityMap.end(), std::back_inserter(tCutMeshIdsFromMapOnThisRank),
                    [](const auto aMapEntry) { return aMapEntry.first; });
 
     const auto tCommunicator = retrieve_mpi_communicator_from_krino();
 
-    const auto tMergedSortedGlobalCutMeshIds = utilities::merge_on_all_ranks(tLocalCutMeshIdsFromMap, tCommunicator);
+    const auto tMergedSortedGlobalCutMeshIds =
+        utilities::merge_on_all_ranks(tCutMeshIdsFromMapOnThisRank, tCommunicator);
 
     return utilities::compute_on_root<std::unordered_map<stk::mesh::EntityId, unsigned int>>(
         tCommunicator,
