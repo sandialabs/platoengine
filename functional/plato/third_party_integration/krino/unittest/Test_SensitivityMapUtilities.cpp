@@ -1,8 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <boost/mpi/communicator.hpp>
-#include <filesystem>
-
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"

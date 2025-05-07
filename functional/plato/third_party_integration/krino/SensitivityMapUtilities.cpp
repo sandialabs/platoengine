@@ -11,7 +11,6 @@
 #include <boost/mpi/communicator.hpp>
 #include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/vector.hpp>
-#include <cstddef>
 #include <iterator>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
@@ -117,15 +116,9 @@ auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
 
     const auto tMergedSortedGlobalCutMeshIds = utilities::merge_on_all_ranks(tLocalCutMeshIdsFromMap, tCommunicator);
 
-    constexpr int tRootRank = 0;
-
-    std::unordered_map<stk::mesh::EntityId, unsigned int> tHistogram;
-    if (tCommunicator.rank() == tRootRank)
-    {
-        tHistogram = detail::compute_histogram(tMergedSortedGlobalCutMeshIds);
-    }
-    boost::mpi::broadcast(tCommunicator, tHistogram, tRootRank);
-    return tHistogram;
+    return utilities::compute_on_root<std::unordered_map<stk::mesh::EntityId, unsigned int>>(
+        tCommunicator,
+        [&tMergedSortedGlobalCutMeshIds]() { return detail::compute_histogram(tMergedSortedGlobalCutMeshIds); });
 }
 
 namespace detail
@@ -134,15 +127,16 @@ namespace detail
 auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCutMeshNodeIDs)
     -> std::unordered_map<stk::mesh::EntityId, unsigned int>
 {
+    assert(std::is_sorted(aGatheredSortedCutMeshNodeIDs.begin(), aGatheredSortedCutMeshNodeIDs.end()));
     auto tHistogram = std::unordered_map<stk::mesh::EntityId, unsigned int>{};
     tHistogram.reserve(aGatheredSortedCutMeshNodeIDs.size());
     auto tFirst = aGatheredSortedCutMeshNodeIDs.begin();
     while (tFirst != aGatheredSortedCutMeshNodeIDs.end())
     {
-        auto tLast = std::find_if(tFirst, aGatheredSortedCutMeshNodeIDs.end(),
-                                  [tFirst](unsigned int aID) { return aID != *tFirst; });
-        unsigned int tCount = std::distance(tFirst, tLast);
-        if (tCount > 1)
+        const auto tLast = std::find_if(tFirst, aGatheredSortedCutMeshNodeIDs.end(),
+                                        [tFirst](const unsigned int aID) { return aID != *tFirst; });
+
+        if (unsigned int tCount = std::distance(tFirst, tLast); tCount > 1)
         {
             tHistogram[*tFirst] = tCount;
         }
