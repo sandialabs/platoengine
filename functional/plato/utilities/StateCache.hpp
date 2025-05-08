@@ -21,10 +21,10 @@ class StateCache
 
     StateCache(StateComputationFunction aSF, HashingFunction aHF);
 
-    State compute(Args...);
+    auto compute(Args...) -> const State&;
 
     /// @brief Returns `true` if compute has been called at least once, initializing the cache.
-    auto isInitialized() const -> bool;
+    [[nodiscard]] auto isInitialized() const -> bool;
 
    private:
     StateComputationFunction mComputeState;
@@ -40,7 +40,7 @@ StateCache<State, Args...>::StateCache(StateComputationFunction aSF, HashingFunc
 }
 
 template <typename State, typename... Args>
-State StateCache<State, Args...>::compute(Args... aArgs)
+auto StateCache<State, Args...>::compute(Args... aArgs) -> const State&
 {
     const std::size_t tDesignHash = mGenerateHash(aArgs...);
     if (!mDesignHash.has_value() || tDesignHash != mDesignHash.value())
