@@ -1,16 +1,19 @@
 #include "plato/analysis/Utilities.hpp"
 
+#include <boost/functional/hash.hpp>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/utilities/Enumerate.hpp"
+#include "plato/utilities/HashUtilities.hpp"
 
 namespace plato::analysis
 {
 namespace
 {
 template <typename AssociativeContainer, typename Predicate>
-auto remove_entries_matching_predicate(AssociativeContainer&& aAssociativeContainer, const Predicate& aPredicate)
-    -> AssociativeContainer
+auto remove_entries_matching_predicate(AssociativeContainer&& aAssociativeContainer,
+                                       const Predicate& aPredicate) -> AssociativeContainer
 {
     for (auto tBlockIter = aAssociativeContainer.begin(); tBlockIter != aAssociativeContainer.end();)
     {
@@ -58,5 +61,25 @@ auto remove_block_fields(AnalysisDomainMesh&& aAnalysisDomainMesh,
     auto tBlockScalarFields =
         remove_entries_matching_predicate(std::move(aAnalysisDomainMesh.mBlockScalarField), tShouldRemoveBlock);
     return renumber_vector_entries(AnalysisDomainMesh{std::move(tMeshName), std::move(tBlockScalarFields)});
+}
+
+auto hash_value(const ScalarFieldValue& aScalarFieldValue) -> std::size_t
+{
+    auto tSeed = std::size_t{0U};
+    boost::hash_combine(tSeed, aScalarFieldValue.mGlobalMeshEntityID);
+    boost::hash_combine(tSeed, aScalarFieldValue.mDesignVariableVectorIndex);
+    boost::hash_combine(tSeed, aScalarFieldValue.mValue);
+    return tSeed;
+}
+
+auto hash_value(const AnalysisDomainMesh& aAnalysisDomainMesh) -> std::size_t
+{
+    auto tHashValue = hash_value(aAnalysisDomainMesh.mFileName);
+    for (const auto& [tBlockID, tScalarField] : aAnalysisDomainMesh.mBlockScalarField)
+    {
+        boost::hash_combine(tHashValue, tBlockID);
+        boost::hash_combine(tHashValue, utilities::hash_container(tScalarField));
+    }
+    return tHashValue;
 }
 }  // namespace plato::analysis
