@@ -19,7 +19,7 @@ class StateCache
     using StateComputationFunction = std::function<State(Args...)>;
     using HashingFunction = std::function<std::size_t(Args...)>;
 
-    StateCache(StateComputationFunction aSF, HashingFunction aHF);
+    StateCache(StateComputationFunction aStateFunction, HashingFunction aHashFunction);
 
     auto compute(Args...) -> const State&;
 
@@ -29,13 +29,13 @@ class StateCache
    private:
     StateComputationFunction mComputeState;
     HashingFunction mGenerateHash;
-    std::optional<std::size_t> mDesignHash;
-    State mState;
+    std::size_t mDesignHash = 0U;
+    std::optional<State> mState;
 };
 
 template <typename State, typename... Args>
-StateCache<State, Args...>::StateCache(StateComputationFunction aSF, HashingFunction aHF)
-    : mComputeState(std::move(aSF)), mGenerateHash(std::move(aHF))
+StateCache<State, Args...>::StateCache(StateComputationFunction aStateFunction, HashingFunction aHashFunction)
+    : mComputeState(std::move(aStateFunction)), mGenerateHash(std::move(aHashFunction))
 {
 }
 
@@ -43,18 +43,18 @@ template <typename State, typename... Args>
 auto StateCache<State, Args...>::compute(Args... aArgs) -> const State&
 {
     const std::size_t tDesignHash = mGenerateHash(aArgs...);
-    if (!mDesignHash.has_value() || tDesignHash != mDesignHash.value())
+    if (!mState.has_value() || tDesignHash != mDesignHash)
     {
         mState = mComputeState(aArgs...);
         mDesignHash = tDesignHash;
     }
-    return mState;
+    return mState.value();
 }
 
 template <typename State, typename... Args>
 auto StateCache<State, Args...>::isInitialized() const -> bool
 {
-    return mDesignHash.has_value();
+    return mState.has_value();
 }
 
 }  // namespace plato::utilities
