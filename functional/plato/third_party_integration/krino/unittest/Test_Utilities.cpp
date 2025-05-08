@@ -24,7 +24,6 @@ using krino::test_utilities::KrinoTestFixture;
 constexpr auto kMeshName = std::string_view{"simple_mesh.exo"};
 constexpr auto kWriteMeshName = std::string_view{"levelset_mesh.exo"};
 const auto kOneTriMeshFilePath = utilities::data_file_path("one_tri.cdf");
-const auto kThreeQuarterOffsetXHatPlane = Plane{{-1, 0, 0}, 0.75};
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 
 const auto kGoldCutMeshWithVoidNodes = std::map<std::size_t, double>{
