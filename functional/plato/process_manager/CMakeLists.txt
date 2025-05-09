@@ -14,9 +14,10 @@ endif()
 create_plato_library(PlatoFunctionalProcessManager "${DIRECTORIES}" "${LINK_LIBS}")
 
 if( UNIT_TESTING )
-  set(LINK_LIBS PlatoFunctionalProcessManager
+  set(LINK_LIBS GTest::GTest
+                PlatoFunctionalProcessManager
                 PlatoFunctionalTestUtilities)
-  create_plato_library(PlatoFunctionalProcessManagerTestUtilities "extension/test_utilities" PlatoFunctionalProcessManager)
+  create_plato_library(PlatoFunctionalProcessManagerTestUtilities "extension/test_utilities" "${LINK_LIBS}")
 
   # Build unit tester
   set(DIRECTORIES library/unittest extension/unittest)
