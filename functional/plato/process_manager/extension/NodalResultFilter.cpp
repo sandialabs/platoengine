@@ -79,8 +79,8 @@ constexpr auto kRootRank = 0;
 [[nodiscard]] auto split_comm(const unsigned int aNumberOfProcessors, const boost::mpi::communicator& aComm)
     -> std::pair<boost::mpi::communicator, utilities::ColorType>
 {
-    const auto tCommSize = aComm.size();
-    const auto tGroupColor = utilities::rank_group_color({aNumberOfProcessors, tCommSize - aNumberOfProcessors},
+    const auto tCommunicatorSize = aComm.size();
+    const auto tGroupColor = utilities::rank_group_color({aNumberOfProcessors, tCommunicatorSize - aNumberOfProcessors},
                                                          utilities::RankNamedType{aComm.rank()});
     return {aComm.split(tGroupColor.mValue), tGroupColor.mValue};
 }
@@ -115,7 +115,7 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
         const auto tFilteredField = aFilter.filter(tFieldAnalysisMesh);
         if (aComm.rank() == kRootRank)
         {
-            constexpr auto tFixedValue = double{1.0};
+            constexpr auto tFixedValue = geometry::extension::density_fixed_value();
             const auto tMode =
                 tTimeStep == tTimeSteps.front() ? mesh::OutputMode::kOverwrite : mesh::OutputMode::kAppend;
             const auto tWriter = make_mesh_writer(tMode, aMesh, tTemporaryOutputPath, aFixedBlocks, tTimeStep);
@@ -146,20 +146,20 @@ NodalResultFilter::NodalResultFilter(const library::ValidatedProcessManagerInput
 void NodalResultFilter::run() const
 {
     const auto tMesh = mesh::Mesh{mInputMeshPath, mFixedBlockNames};
-    const auto tWorldComm = boost::mpi::communicator{};
+    const auto tWorldCommunicator = boost::mpi::communicator{};
     if (mesh::EntityCounts{tMesh}.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))
     {
-        const auto [tComm, tGroupColor] = split_comm(mNumberOfProcessorsForFilter, tWorldComm);
+        const auto [tCommunicator, tGroupColor] = split_comm(mNumberOfProcessorsForFilter, tWorldCommunicator);
         if (tGroupColor == 0)
         {
             const auto tFilter =
                 filter::extension::KernelFilter{tMesh, filter::extension::FilterRadius{mFilterRadius},
-                                                input_parser::KernelFilterCenteringTypes::kNodeCentered, tComm};
-            write_nodal_filtered_results(tMesh, tFilter, mOutputMeshPath, mFixedBlockNames, tComm);
+                                                input_parser::KernelFilterCenteringTypes::kNodeCentered, tCommunicator};
+            write_nodal_filtered_results(tMesh, tFilter, mOutputMeshPath, mFixedBlockNames, tCommunicator);
         }
-        tWorldComm.barrier();
+        tWorldCommunicator.barrier();
     }
-    else if (tWorldComm.rank() == kRootRank)
+    else if (tWorldCommunicator.rank() == kRootRank)
     {
         std::cout << "Warning: " << input_parser::block_name<input_parser::nodal_result_filter>()
                   << " could not find field with name " << geometry::extension::density_mesh_field_name() << " in mesh "

@@ -32,7 +32,6 @@ namespace
 {
 constexpr double kDensityLowerBound = 0.0;
 constexpr double kDensityUpperBound = 1.0;
-constexpr double kDensityFixedValue = 1.0;
 
 constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInput) { return aInput.mesh_name; };
 
@@ -174,7 +173,7 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
                                                       fixed_blocks(aInput),
                                                       density_mesh_field_name(),
                                                       filtered_density_mesh_field_name(),
-                                                      kDensityFixedValue};
+                                                      density_fixed_value()};
     output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 }
 

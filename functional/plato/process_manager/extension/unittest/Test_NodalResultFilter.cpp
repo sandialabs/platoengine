@@ -10,6 +10,7 @@
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/process_manager/extension/NodalResultFilter.hpp"
+#include "plato/process_manager/extension/test_utilities/NodalResultFilterUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
@@ -27,7 +28,7 @@ const auto kTimeSteps = std::vector{1.0, 10.0};
 const auto kMeshPath =
     geometry::extension::test_utilities::create_valid_density_topology_geometry_input().mesh_name.value().mToken;
 
-class NodalResultFilterValidationFixture : public test_utilities::FileCreatingTestFixture
+class NodalResultFilterValidationFixture : public plato::test_utilities::FileCreatingTestFixture
 {
    public:
     NodalResultFilterValidationFixture() : FileCreatingTestFixture{kMeshPath} {}
@@ -45,7 +46,7 @@ class NodalResultFilterRunFixture : public third_party_integration::stk_io::test
         const auto tNodalAnalysisMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tNodalField});
 
-        constexpr auto tFixedValue = 1.0;
+        constexpr auto tFixedValue = geometry::extension::density_fixed_value();
         mesh::MeshFieldAppender{tMesh, kTimeSteps.back()}.addFieldOnAnalysisDomainMesh(
             tNodalAnalysisMesh, geometry::extension::density_mesh_field_name(), tFixedValue);
     }
@@ -62,7 +63,7 @@ template <typename ComponentInput>
 TEST_F(NodalResultFilterRunFixture, CreateAndRunSeparateOutputFile)
 {
     const auto tCheckNodalFilter = [this](const std::optional<std::filesystem::path>& aOutputMeshPath,
-                                          const test_utilities::TestContext& aTestContext)
+                                          const plato::test_utilities::TestContext& aTestContext)
     {
         auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
         tGeometryInput.mesh_name = input_parser::FileName{mMeshName};
@@ -77,20 +78,9 @@ TEST_F(NodalResultFilterRunFixture, CreateAndRunSeparateOutputFile)
         const auto tInput = tNodalResultFilter | tGeometryInput |
                             criteria::library::test_utilities::create_valid_example_objective_input() |
                             filter::extension::test_utilities::create_valid_kernel_filter_input();
-        const auto tValidatedInput = input_validation::make_validated_input(tInput);
-        ASSERT_TRUE(tValidatedInput.hasValue()) << tValidatedInput.error();
 
-        const auto tElementToNodeInput =
-            tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>().rawInput().front();
-        EXPECT_NO_THROW(NodalResultFilter{tElementToNodeInput}.run()) << aTestContext;
-
-        // Retrieve nodal fields names from the mesh and check that the expected field name is found.
-        const auto tMeshRetrieval = mesh::EntityCounts{mesh::Mesh{aOutputMeshPath.value_or(mMeshName)}};
-        EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(NodalResultFilter::field_name())) << aTestContext;
-        EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))
-            << aTestContext;
-
-        EXPECT_EQ(mesh::EntityCounts{tMeshRetrieval}.timeSteps(), kTimeSteps) << aTestContext;
+        test_utilities::run_and_check_nodal_filter_result(tInput, kTimeSteps, aOutputMeshPath.value_or(mMeshName),
+                                                          EXTEND_CONTEXT("Serial test", aTestContext));
     };
 
     const auto tOutputMeshPath = mDirectory.directory() / std::filesystem::path{"output.exo"};

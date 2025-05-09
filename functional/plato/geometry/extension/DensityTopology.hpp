@@ -29,11 +29,6 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
 )
 // clang-format on
 
-namespace plato::input_parser
-{
-struct density_topology;
-}
-
 namespace plato::geometry::extension
 {
 /// @brief Density-based topology representation of a geometry.
@@ -78,6 +73,9 @@ class DensityTopology
 /// @brief The label of the filtered density field used in the output mesh.
 [[nodiscard]] constexpr auto filtered_density_mesh_field_name() -> std::string_view;
 
+/// @brief Returns the density value used for fixed block regions.
+[[nodiscard]] constexpr auto density_fixed_value() -> double;
+
 namespace detail
 {
 
@@ -101,6 +99,8 @@ namespace detail
 {
     return std::string_view{"density"};
 }
+
+[[nodiscard]] constexpr auto density_fixed_value() -> double { return 1.0; }
 
 }  // namespace plato::geometry::extension
 
