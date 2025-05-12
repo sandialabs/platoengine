@@ -53,4 +53,9 @@ bool EntityCounts::hasNodalFieldVariable(const std::string_view aFieldName) cons
     return third_party_integration::stk_io::nodal_field_exists(filePath(), aFieldName);
 }
 
+auto EntityCounts::timeSteps() const -> std::vector<double>
+{
+    return third_party_integration::stk_io::time_steps(filePath());
+}
+
 }  // namespace plato::mesh

@@ -97,6 +97,9 @@ stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const P
 [[nodiscard]] auto read_nodal_field(const std::filesystem::path& aInputMeshName,
                                     const std::string_view aFieldName,
                                     TimeStep aTime = LastTimeStep{}) -> std::map<std::size_t, double>;
+
+/// @brief Returns the time steps associated with the data in the mesh @a aInputMeshName.
+[[nodiscard]] auto time_steps(const std::filesystem::path& aInputMeshName) -> std::vector<double>;
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

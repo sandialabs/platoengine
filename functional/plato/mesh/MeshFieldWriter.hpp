@@ -30,7 +30,7 @@ class [[nodiscard]] MeshFieldWriter : public MeshOutput
    public:
     MeshFieldWriter(Mesh aMeshBase, const std::filesystem::path& aWriteFilePath, double aTimeStep = 1.0);
 
-    ~MeshFieldWriter();
+    ~MeshFieldWriter() override;
 
     /// @brief Adds the design variables in @a aAnalysisDomainMesh to the currently managed file.
     ///

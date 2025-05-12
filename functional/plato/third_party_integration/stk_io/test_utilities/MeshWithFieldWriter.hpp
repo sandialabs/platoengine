@@ -16,7 +16,9 @@ namespace plato::third_party_integration::stk_io::test_utilities
 class MeshWithDensities : public ::testing::Test
 {
    public:
-    MeshWithDensities(const std::map<std::size_t, double>& aGoldNumbering, const std::filesystem::path& aMeshName);
+    MeshWithDensities(const std::map<std::size_t, double>& aGoldNumbering,
+                      const std::filesystem::path& aMeshName,
+                      std::string_view aFieldName);
 
    protected:
     std::string mFieldName;
@@ -39,6 +41,7 @@ class MeshWithNodalDensities : public MeshWithDensities
 {
    public:
     MeshWithNodalDensities();
+    MeshWithNodalDensities(const std::filesystem::path& aMeshName, std::string_view aFieldName);
 };
 
 }  // namespace plato::third_party_integration::stk_io::test_utilities

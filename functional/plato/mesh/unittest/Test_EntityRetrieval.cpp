@@ -96,13 +96,27 @@ TEST_F(TwoDThreeBlockMesh, ElementCentroidsWithFixedBlock)
 
 TEST_F(MeshWithNodalDensities, DesignDomainNodalField)
 {
-    const auto tMesh = EntityRetrieval{Mesh{mMeshName, {}}};
-    const auto tResult = tMesh.designDomainNodalField(mFieldName);
+    const auto tCheckField = [this](const std::vector<double>& aResult, const test_utilities::TestContext& aTestContext)
+    {
+        EXPECT_EQ(aResult.size(), mGoldNumbering.size()) << aTestContext;
+        std::vector<double> tGoldVector(mGoldNumbering.size());
+        std::iota(tGoldVector.begin(), tGoldVector.end(), 1.0);
+        EXPECT_EQ(tGoldVector, aResult) << aTestContext;
+    };
 
-    EXPECT_EQ(tResult.size(), mGoldNumbering.size());
-    std::vector<double> tGoldVector(mGoldNumbering.size());
-    std::iota(tGoldVector.begin(), tGoldVector.end(), 1.0);
-    EXPECT_EQ(tGoldVector, tResult);
+    const auto tMesh = EntityRetrieval{Mesh{mMeshName, {}}};
+    {
+        const auto tResult = tMesh.designDomainNodalField(mFieldName);
+        tCheckField(tResult, TEST_CONTEXT("No time step argument"));
+    }
+    {
+        const auto tResult = tMesh.designDomainNodalField(mFieldName, 1.0);
+        tCheckField(tResult, TEST_CONTEXT("Time step argument as 1.0"));
+    }
+    {
+        const auto tResult = tMesh.designDomainNodalField(mFieldName, mesh::LastTimeStep{});
+        tCheckField(tResult, TEST_CONTEXT("Time step argument as LastStep"));
+    }
 }
 
 TEST_F(MeshWithNodalDensities, NodalFields)

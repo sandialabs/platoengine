@@ -3,9 +3,17 @@
 
 #include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/utilities/ValueOrTag.hpp"
 
 namespace plato::mesh
 {
+/// @brief A type tag used for specifying reading of the last time step in a file.
+struct LastTimeStep
+{
+};
+
+using TimeStep = utilities::ValueOrTag<double, LastTimeStep>;
+
 /// @brief A mixin class for Mesh that provides utilities to retrieve entities from a mesh, such as nodal
 /// coordinates.
 struct EntityRetrieval : public Mesh
@@ -28,8 +36,10 @@ struct EntityRetrieval : public Mesh
     [[nodiscard]] auto designDomainNodeIDs() const -> std::vector<std::size_t>;
 
     /// @brief Return a nodal field on the design domain only for a field @a aFieldName.
-    /// @pre The field exists on the nodes.
-    [[nodiscard]] auto designDomainNodalField(const std::string_view aFieldName) const -> std::vector<double>;
+    /// @pre The field @a aFieldName exists on the nodes.
+    /// @pre The time step @a aTimeStep exists on the mesh.
+    [[nodiscard]] auto designDomainNodalField(const std::string_view aFieldName,
+                                              const TimeStep aTimeStep = LastTimeStep{}) const -> std::vector<double>;
 
     /// @brief Return a vector of nodal fields defined
     [[nodiscard]] auto nodalFields() const -> std::vector<std::string>;

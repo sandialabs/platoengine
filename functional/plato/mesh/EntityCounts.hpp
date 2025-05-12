@@ -51,6 +51,9 @@ struct EntityCounts : public Mesh
 
     /// @brief Returns `true` if the field name @a aFieldName exists on the nodes in the mesh
     [[nodiscard]] bool hasNodalFieldVariable(const std::string_view aFieldName) const;
+
+    /// @brief Returns a vector of the time steps contained in the mesh.
+    [[nodiscard]] auto timeSteps() const -> std::vector<double>;
 };
 
 }  // namespace plato::mesh

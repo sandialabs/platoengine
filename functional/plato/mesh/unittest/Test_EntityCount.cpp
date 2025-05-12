@@ -162,4 +162,11 @@ TEST_F(MeshWithNodalDensities, HasNodalFieldVariable)
     EXPECT_FALSE(tMesh.hasNodalFieldVariable("Dingo"));
 }
 
+TEST_F(MeshWithNodalDensities, TimeSteps)
+{
+    const auto tResult = EntityCounts{Mesh{mMeshName}}.timeSteps();
+    const auto tExpected = std::vector{1.0};
+    EXPECT_EQ(tResult, tExpected);
+}
+
 }  // namespace plato::mesh::unittest
