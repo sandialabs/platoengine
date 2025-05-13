@@ -7,6 +7,7 @@ plato_functional_setup()
 create_data_paths()
 copy_test_utility_data_files_and_convert_to_cdf()
 clang_tidy_setup()
+create_coverage_target()
 
 add_subdirectory(./utilities)
 add_subdirectory(./analysis)
