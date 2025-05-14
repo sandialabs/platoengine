@@ -13,9 +13,15 @@
 #include <math.h>
 #include <cstddef>
 #include <cassert>
+#include <random>
 
 namespace PlatoSubproblemLibrary
 {
+namespace
+{
+static auto kRandomDevice = std::random_device{};
+static auto kRandomGenerator = std::mt19937{kRandomDevice()};
+}
 
 void set_rand_seed()
 {
@@ -97,7 +103,7 @@ void random_permutations(const int& permutation_length, const int& output_length
     }
 
     // randomly permute
-    std::random_shuffle(output.begin(), output.end());
+    std::shuffle(output.begin(), output.end(), kRandomGenerator);
 
     // remove extension
     output.resize(output_length);
