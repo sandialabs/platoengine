@@ -19,7 +19,11 @@ namespace PlatoSubproblemLibrary
 {
 namespace
 {
+#ifdef PSL_IS_DETERMINISTIC
+static auto kRandomDevice = [](){return 42U;};
+#else
 static auto kRandomDevice = std::random_device{};
+#endif
 static auto kRandomGenerator = std::mt19937{kRandomDevice()};
 }
 
