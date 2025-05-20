@@ -2,7 +2,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 #############################################################################
 
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 20)
 
 include( ${CMAKE_SOURCE_DIR}/base/config/tools.cmake )
 include( ${CMAKE_SOURCE_DIR}/base/config/prebuilt_binaries.cmake )
