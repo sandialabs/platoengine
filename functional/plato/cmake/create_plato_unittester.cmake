@@ -65,7 +65,7 @@ function( create_plato_unittester_impl TEST_EXE DIRECTORIES TEST_MAIN_CPP TARGET
     list(APPEND TEST_SRCS ${TEST_MAIN_CPP})
 
     add_executable(${TEST_EXE} ${TEST_SRCS} ${TEST_HDRS})
-    target_link_libraries( ${TEST_EXE} PRIVATE GTest::GTest PlatoFunctionalTestUtilities ${TARGET_LINK_LIST})
+    target_link_libraries( ${TEST_EXE} PRIVATE GTest::GTest PlatoFunctionalTestUtilities CoverageInterface ${TARGET_LINK_LIST})
     add_test(NAME ${TEST_EXE} COMMAND ${TEST_EXE} --gtest_output=xml:${TEST_EXE}.xml)
     set_property(TEST ${TEST_EXE} PROPERTY LABELS "small")
 

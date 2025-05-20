@@ -34,7 +34,7 @@ function(create_plato_library_impl LIBRARY_NAME DIRECTORIES TARGET_LINK_LIST LIB
     add_library(${LIBRARY_NAME} ${LIB_TYPE} ${LIB_SRCS} ${LIB_HDRS} )
     target_include_directories(${LIBRARY_NAME} ${EXPORT_TYPE} $<BUILD_INTERFACE:${FUNCTIONAL_BASE_DIR}>)
 
-    target_link_libraries(${LIBRARY_NAME} ${EXPORT_TYPE} ${TARGET_LINK_LIST})
+    target_link_libraries(${LIBRARY_NAME} ${EXPORT_TYPE} CoverageInterface ${TARGET_LINK_LIST})
     if(BUILD_WITH_CLANG_TIDY)
         set_target_properties(${LIBRARY_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
     endif()
