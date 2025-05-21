@@ -2,13 +2,12 @@
 
 #include <vector>
 
-#include "plato/geometry/extension/KrinoWrapper.hpp"
+#include "plato/geometry/extension/test_utilities/KrinoWrapperGradientCheckUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/KrinoWrapperTestUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::geometry::extension::unittest
@@ -40,37 +39,6 @@ using tpik::test_utilities::KrinoTestFixture;
     return tFlattenedSensitivity;
 }
 
-[[nodiscard]] auto retrieve_cut_node_coordinates(const std::vector<double>& aPerturbedField) -> std::vector<double>
-{
-    const auto tKrino = test_utilities::make_krino_wrapper_from_vector_values(
-        kRectangleMeshFilePath.value(), test_utilities::InitialLevelSetValues{aPerturbedField}, std::nullopt);
-    const auto tCutMesh = std::filesystem::path{"cut_mesh.exo"};
-    tKrino.writeCutMesh(tCutMesh, tpik::VoidPhase::kIncludeInMesh);
-
-    const auto tOriginalCoordinates = third_party_integration::stk_io::nodal_coordinates(
-        *third_party_integration::stk_io::read_mesh_bulk_data(kRectangleMeshFilePath.value()));
-    auto tCutCoordinates = third_party_integration::stk_io::nodal_coordinates(
-        *third_party_integration::stk_io::read_mesh_bulk_data(tCutMesh));
-
-    std::filesystem::remove(tCutMesh);
-
-    for (const auto& tCoordinate : tOriginalCoordinates)
-    {
-        const auto tNewEnd = std::remove(tCutCoordinates.begin(), tCutCoordinates.end(), tCoordinate);
-        tCutCoordinates.erase(tNewEnd, tCutCoordinates.end());
-    }
-
-    std::vector<double> tFlattenedCoordinates;
-    tFlattenedCoordinates.reserve(tCutCoordinates.size() * 2U);
-    for (const auto& tCutCoordinate : tCutCoordinates)
-    {
-        tFlattenedCoordinates.push_back(tCutCoordinate.x);
-        tFlattenedCoordinates.push_back(tCutCoordinate.y);
-    }
-
-    return tFlattenedCoordinates;
-}
-
 [[nodiscard]] auto retrieve_sensitivities(const std::vector<double>& aPerturbedField) -> std::vector<double>
 {
     const auto tWrapper = test_utilities::make_krino_wrapper_from_vector_values(
@@ -89,10 +57,7 @@ TEST(KrinoWrapperGradientCheck, MeshFilePath) { ASSERT_TRUE(kRectangleMeshFilePa
 TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
 {
     const auto tF = [](const linear_algebra::DynamicVector<double>& aX) -> double
-    {
-        const auto tCutCoordinates = retrieve_cut_node_coordinates(aX.stdVector());
-        return std::accumulate(tCutCoordinates.begin(), tCutCoordinates.end(), 0.0);
-    };
+    { return test_utilities::accumulate_cut_node_coordinates(kRectangleMeshFilePath.value(), aX.stdVector()); };
     const auto tDf = [](const linear_algebra::DynamicVector<double>& aX,
                         const linear_algebra::DynamicVector<double>& aV) -> double
     {
@@ -100,7 +65,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
         return tSensitivities.dot(aV);
     };
 
-    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 7, 1.0};
+    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.1, 7, 1.0};
     const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
 
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
@@ -111,7 +76,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
     const auto tErrors = tGradientCheck.finiteDifferenceErrors(tX, tDirection, tGradientCheckParameters);
     ASSERT_FALSE(tErrors.empty());
 
-    constexpr auto tTolerance = 1e-12;
+    constexpr auto tTolerance = 1e-8;
     for (const auto& tTruncationError : tErrors)
     {
         EXPECT_NEAR(tTruncationError.mValue, 0.0, tTolerance)

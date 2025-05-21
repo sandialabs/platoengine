@@ -8,6 +8,7 @@
 #include <Akri_LevelSet.hpp>                 //LevelSet
 #include <Akri_MeshFromFile.hpp>             //MeshInterface
 #include <Akri_MeshHelpers.hpp>              //field_data
+#include <boost/mpi/communicator.hpp>
 #include <filesystem>
 #include <stk_mesh/base/Types.hpp>
 
@@ -24,6 +25,9 @@ enum struct VoidPhase
 
 /// @brief Initialization needed for krino to run correctly. This should only be called once in an executable.
 void initialize_environment_for_krino(const std::filesystem::path& aLogFile, const MPI_Comm& aComm);
+
+/// @brief Create a comm duplicate of the communicator that Krino has
+[[nodiscard]] auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator;
 
 /// @brief Takes a file path @a aFilename and reads a mesh from disk and converts it to a krino mesh type. It adds the
 /// required fields and other setup for cutting the mesh.

@@ -24,6 +24,7 @@ using krino::test_utilities::KrinoTestFixture;
 constexpr auto kMeshName = std::string_view{"simple_mesh.exo"};
 constexpr auto kWriteMeshName = std::string_view{"levelset_mesh.exo"};
 const auto kOneTriMeshFilePath = utilities::data_file_path("one_tri.cdf");
+const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 
 const auto kGoldCutMeshWithVoidNodes = std::map<std::size_t, double>{
     {1, -1.0}, {2, -1.0}, {3, -1.0}, {4, -1.0}, {5, 1.0},  {6, 1.0},  {7, 1.0},  {8, 1.0}, {9, 0.0},
@@ -123,6 +124,11 @@ TEST_F(KrinoTestFixture, BackgroundNodeIds)
     EXPECT_EQ(tGold, tResult);
 }
 
+TEST_F(KrinoTestFixture, BackgroundNodeIdsFourTri)
+{
+    test_utilities::four_tri_test_on_background_node_ids(TEST_CONTEXT("Four tri background nodes in serial."));
+}
+
 TEST_F(KrinoTestFixture, CutMeshNodeIds)
 {
     const auto tMesh = read_and_setup_for_decomposition(kOneTriMeshFilePath.value());
@@ -136,6 +142,24 @@ TEST_F(KrinoTestFixture, CutMeshNodeIds)
     {
         const auto tResult = cut_mesh_node_ids(*tMesh, VoidPhase::kExcludeFromMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 5, 6};
+        EXPECT_EQ(tGold, tResult) << "Exclude void.";
+    }
+}
+
+TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTri)
+{
+    const auto tMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
+    const auto tLevelSetField =
+        test_utilities::make_level_set_field_from_vector(*tMesh, {.75, -.25, -.25, 0.75, 0.75, 0.75});
+    cut_mesh(tMesh->bulk_data(), tLevelSetField);
+    {
+        const auto tResult = cut_mesh_node_ids(*tMesh, VoidPhase::kIncludeInMesh);
+        const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+        EXPECT_EQ(tGold, tResult) << "Include void.";
+    }
+    {
+        const auto tResult = cut_mesh_node_ids(*tMesh, VoidPhase::kExcludeFromMesh);
+        const auto tGold = std::vector<stk::mesh::EntityId>{1, 5, 6, 7, 8, 9, 10, 11, 12};
         EXPECT_EQ(tGold, tResult) << "Exclude void.";
     }
 }

@@ -1,9 +1,13 @@
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 
+#include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <boost/serialization/unordered_map.hpp>
+#include <boost/serialization/vector.hpp>
 #include <cstddef>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
+#include <stk_util/environment/EnvData.hpp>  //get stk mpi env
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -17,6 +21,7 @@
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/NamedType.hpp"
+#include "plato/utilities/ReduceUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -29,16 +34,6 @@ constexpr auto kXComponent = utilities::ComponentIndex{0};
 constexpr auto kYComponent = utilities::ComponentIndex{1};
 constexpr auto kZComponent = utilities::ComponentIndex{2};
 
-[[nodiscard]] auto row_vector_to_vector3(const std::vector<double>& aRowVector,
-                                         const utilities::VectorIndex aVectorIndex,
-                                         const std::size_t aDimensions) -> third_party_integration::common::Vector3
-{
-    const auto tRowVectorView = utilities::make_multi_vector_view(aRowVector, aDimensions);
-    return third_party_integration::common::Vector3{
-        tRowVectorView(aVectorIndex, kXComponent), tRowVectorView(aVectorIndex, kYComponent),
-        aDimensions == 3U ? tRowVectorView(aVectorIndex, kZComponent) : 0.0};
-}
-
 void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
                           std::vector<::krino::LS_Field>& aLevelSetFields,
                           const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
@@ -48,7 +43,11 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
         const auto& tScalarFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValueProxy);
         const auto tStkEntity =
             aKrinoMesh.bulk_data().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
-        tpik::level_set_value(aLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
+
+        if (tStkEntity != stk::mesh::Entity::InvalidEntity)
+        {
+            tpik::level_set_value(aLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
+        }
     }
 }
 
@@ -80,12 +79,7 @@ KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInt
 
 void KrinoWrapper::writeCutMesh(const std::filesystem::path& aFileName, const tpik::VoidPhase aVoidPhase) const
 {
-    const auto tCommunicator = boost::mpi::communicator{};
-    if (tCommunicator.rank() == 0)
-    {
-        tpik::write_mesh(mKrinoMesh->bulk_data(), aFileName, aVoidPhase);
-    }
-    tCommunicator.barrier();
+    tpik::write_mesh(mKrinoMesh->bulk_data(), aFileName, aVoidPhase);
 }
 
 auto KrinoWrapper::sensitivities() const -> const tpik::SensitivityMap& { return mSensitivityMap; }
@@ -99,31 +93,34 @@ const auto kJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& a
                               const std::vector<double>& aRowVector,
                               const ParentIndex aParentIndex,
                               const CutMeshIndex aCutMeshIndex,
+                              const double aMultiplicityMultiplier,
                               const third_party_integration::common::Vector3& aSensitivity,
                               const unsigned int aSpatialDimension)
 {
     constexpr auto kScalarViewComponent = utilities::ComponentIndex{0};
-    aResultVectorView(utilities::VectorIndex{aParentIndex.mValue}, kScalarViewComponent) +=
-        third_party_integration::common::dot(
-            row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension),
-            aSensitivity);
+    const auto tRowvector3 =
+        detail::row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension);
+    const auto tDotProduct = third_party_integration::common::dot(tRowvector3, aSensitivity) * aMultiplicityMultiplier;
+
+    aResultVectorView(utilities::VectorIndex{aParentIndex.mValue}, kScalarViewComponent) += tDotProduct;
 };
 
 const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& aResultVectorView,
                                      const std::vector<double>& aRowVector,
                                      const ParentIndex aParentIndex,
                                      const CutMeshIndex aCutMeshIndex,
+                                     const double aMultiplicityMultiplier,
                                      const third_party_integration::common::Vector3& aSensitivity,
                                      const unsigned int aSpatialDimension)
 {
     aResultVectorView(utilities::VectorIndex{aCutMeshIndex.mValue}, kXComponent) +=
-        aRowVector[aParentIndex.mValue] * aSensitivity.x;
+        aRowVector[aParentIndex.mValue] * aSensitivity.x * aMultiplicityMultiplier;
     aResultVectorView(utilities::VectorIndex{aCutMeshIndex.mValue}, kYComponent) +=
-        aRowVector[aParentIndex.mValue] * aSensitivity.y;
+        aRowVector[aParentIndex.mValue] * aSensitivity.y * aMultiplicityMultiplier;
     if (aSpatialDimension == 3U)
     {
         aResultVectorView(utilities::VectorIndex{aCutMeshIndex.mValue}, kZComponent) +=
-            aRowVector[aParentIndex.mValue] * aSensitivity.z;
+            aRowVector[aParentIndex.mValue] * aSensitivity.z * aMultiplicityMultiplier;
     }
 };
 
@@ -143,6 +140,7 @@ template <typename Lambda>
 {
     const auto tSpatialDimensions = third_party_integration::stk_io::spatial_dimensions(aKrinoMesh.bulk_data());
     const auto tCutMeshNodeIds = tpik::cut_mesh_node_ids(aKrinoMesh, aVoidPhase);
+    const auto tCutMeshMultiplicity = tpik::cut_mesh_node_id_multiplicity(aSensitivityMap);
 
     auto tRowVectorMatrixProduct = std::vector<double>(aResultSize.mValue, 0.0);
     auto tRowVectorMatrixProductView =
@@ -153,6 +151,10 @@ template <typename Lambda>
         if (const auto tSensitivityMapAtCutMeshIdIterator = aSensitivityMap.find(tCutMeshId);
             tSensitivityMapAtCutMeshIdIterator != aSensitivityMap.end())
         {
+            const double tMultiplicityMultiplier = tCutMeshMultiplicity.find(tCutMeshId) != tCutMeshMultiplicity.end()
+                                                       ? 1.0 / tCutMeshMultiplicity.at(tCutMeshId)
+                                                       : 1.0;
+
             const auto& tLevelSetJacobianColumn = tSensitivityMapAtCutMeshIdIterator->second;
 
             for (const auto& [tParentId, tSensitivity, tLocalParentIndex] : utilities::Zip(
@@ -160,12 +162,12 @@ template <typename Lambda>
                      tLevelSetJacobianColumn.mDesignDomainLocalIndex))
             {
                 aApplyFunction(tRowVectorMatrixProductView, aRowVector, ParentIndex{tLocalParentIndex},
-                               CutMeshIndex{tIndex}, tSensitivity, tSpatialDimensions);
+                               CutMeshIndex{tIndex}, tMultiplicityMultiplier, tSensitivity, tSpatialDimensions);
             }
         }
     }
 
-    return tRowVectorMatrixProduct;
+    return utilities::reduce_vector(tRowVectorMatrixProduct, tpik::retrieve_mpi_communicator_from_krino());
 }
 
 }  // namespace
@@ -202,9 +204,9 @@ namespace
     std::vector<double> tLevelSetValues;
     tLevelSetValues.reserve(aBackgroundDesignIDs.size());
     utilities::transform_if(
-        aBackgroundDesignIDs, std::back_inserter(tLevelSetValues),
-        [&aLevelSetValuesMap](const auto aBackgroundId) { return aLevelSetValuesMap.at(aBackgroundId); },
-        tFoundCondition);
+        aBackgroundDesignIDs, std::back_inserter(tLevelSetValues), [&aLevelSetValuesMap](const auto aBackgroundId)
+        { return aLevelSetValuesMap.at(aBackgroundId); }, tFoundCondition);
+
     return tLevelSetValues;
 }
 
@@ -218,6 +220,7 @@ auto make_initial_guess_from_level_set_primitives(
     auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aFileName);
     auto tLevelSetFields = tpik::make_level_set_field_from_primitives(aLevelSetPrimitives, tKrinoMesh->bulk_data());
     const auto tLevelSetValuesMap = tpik::get_level_set_values(*tKrinoMesh, tLevelSetFields);
+
     const auto tBackgroundNodeIds =
         aBackgroundDesignIDs.value_or(tpik::background_node_ids(*tKrinoMesh, tLevelSetFields));
 
@@ -276,6 +279,7 @@ void add_if_found(tpik::LevelSetJacobianColumn& aLevelSetJacobianColumn,
     }
     return std::nullopt;
 }
+
 }  // namespace
 
 auto compute_sensitivities(const stk::mesh::BulkData& aBulkData,
@@ -306,6 +310,19 @@ auto compute_sensitivities(const stk::mesh::BulkData& aBulkData,
 
     return tSensitivityMap;
 }
+
+auto row_vector_to_vector3(const std::vector<double>& aRowVector,
+                           const utilities::VectorIndex aVectorIndex,
+                           const std::size_t aDimensions) -> third_party_integration::common::Vector3
+{
+    const auto tRowVectorView = utilities::make_multi_vector_view(aRowVector, aDimensions);
+    const auto tRowVector3 = third_party_integration::common::Vector3{
+        tRowVectorView(aVectorIndex, kXComponent), tRowVectorView(aVectorIndex, kYComponent),
+        aDimensions == 3U ? tRowVectorView(aVectorIndex, kZComponent) : 0.0};
+
+    return tRowVector3;
+}
+
 }  // namespace detail
 
 }  // namespace plato::geometry::extension

@@ -18,6 +18,7 @@
 #include <stk_util/environment/OutputLog.hpp>  //initialize environment
 #include <string_view>
 
+#include "plato/utilities/ReduceUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -88,6 +89,11 @@ void initialize_environment_for_krino(const std::filesystem::path& aLogFile, con
     stk::bind_output_streams(std::string{kOutputDescription});
 }
 
+auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
+{
+    return boost::mpi::communicator(stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate);
+}
+
 auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename) -> std::unique_ptr<::krino::MeshInterface>
 {
     std::unique_ptr<::krino::MeshFromFile> tMeshFromFile = std::make_unique<::krino::MeshFromFile>(
@@ -119,8 +125,8 @@ auto make_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPri
     return tField;
 }
 
-auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh, const double aFixedLevelSetValue)
-    -> std::vector<::krino::LS_Field>
+auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh,
+                                           const double aFixedLevelSetValue) -> std::vector<::krino::LS_Field>
 {
     std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data());
     const auto tNodes = node_entities_in_mesh(aKrinoMesh, tField);
@@ -135,11 +141,14 @@ auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
                          const std::vector<::krino::LS_Field>& aLevelSetFields) -> std::vector<stk::mesh::EntityId>
 {
     const auto tBackgroundNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
-    return get_ids_from_entities(tBackgroundNodes, aKrinoMesh.bulk_data());
+    return utilities::unique_vector_gather(get_ids_from_entities(tBackgroundNodes, aKrinoMesh.bulk_data()),
+                                           retrieve_mpi_communicator_from_krino());
 }
 
-auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
-    -> std::vector<stk::mesh::EntityId>
+namespace
+{
+[[nodiscard]] auto get_cut_mesh_node_entities(const ::krino::MeshInterface& aKrinoMesh,
+                                              const VoidPhase aVoidPhase) -> stk::mesh::EntityVector
 {
     const auto tSelector = output_selector(aKrinoMesh.meta_data(),
                                            ::krino::AuxMetaData::get(aKrinoMesh.meta_data()).active_part(), aVoidPhase);
@@ -147,7 +156,17 @@ auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase
     stk::mesh::EntityVector tNodes;
     stk::mesh::get_selected_entities(tSelector, aKrinoMesh.bulk_data().buckets(stk::topology::NODE_RANK), tNodes,
                                      kSortByGlobalId);
-    return get_ids_from_entities(tNodes, aKrinoMesh.bulk_data());
+    return tNodes;
+}
+
+}  // namespace
+
+auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh,
+                       const VoidPhase aVoidPhase) -> std::vector<stk::mesh::EntityId>
+{
+    const auto tNodes = get_cut_mesh_node_entities(aKrinoMesh, aVoidPhase);
+    return utilities::unique_vector_gather(get_ids_from_entities(tNodes, aKrinoMesh.bulk_data()),
+                                           retrieve_mpi_communicator_from_krino());
 }
 
 void cut_mesh(stk::mesh::BulkData& aBulkData, const std::vector<::krino::LS_Field>& aLevelSetFields)
@@ -180,7 +199,7 @@ auto get_level_set_values(const ::krino::MeshInterface& aKrinoMesh,
                        return std::make_pair(tId, level_set_value(aLevelSetFields, aNode));
                    });
 
-    return tLevelSetValues;
+    return utilities::reduce_map(tLevelSetValues, retrieve_mpi_communicator_from_krino());
 }
 
 auto node_entities_in_mesh(const ::krino::MeshInterface& aKrinoMesh,
