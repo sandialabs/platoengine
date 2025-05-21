@@ -75,10 +75,10 @@ class LevelSetTopology
     explicit LevelSetTopology(const input_parser::level_set_topology& aInput);
 
     ~LevelSetTopology();
-    LevelSetTopology(const LevelSetTopology&) = default;
-    LevelSetTopology(LevelSetTopology&&) = default;
-    LevelSetTopology& operator=(const LevelSetTopology&) = default;
-    LevelSetTopology& operator=(LevelSetTopology&&) = default;
+    LevelSetTopology(const LevelSetTopology&) = delete;
+    LevelSetTopology(LevelSetTopology&&) = delete;
+    LevelSetTopology& operator=(const LevelSetTopology&) = delete;
+    LevelSetTopology& operator=(LevelSetTopology&&) = delete;
 
     [[nodiscard]] auto bounds() const -> std::pair<std::vector<double>, std::vector<double>>;
     [[nodiscard]] auto initialGuess(const input_parser::level_set_topology& aInput) const

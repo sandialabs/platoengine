@@ -144,11 +144,10 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
       mOutputMesh(aInput.output_name.value().mToken),
       mVoidRegion(void_phase(aInput)),
       mLevelSetBounds(std::make_pair(aInput.level_set_lower_bound.value(), aInput.level_set_upper_bound.value())),
-      mKrinoWrapperCache{
-          [tFixedValue = mLevelSetBounds.second, this](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-          { return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, tFixedValue); },
-          [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-          { return analysis::hash_value(aAnalysisDomainMesh); }}
+      mKrinoWrapperCache{[tFixedValue = mLevelSetBounds.second](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                         { return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, tFixedValue); },
+                         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                         { return analysis::hash_value(aAnalysisDomainMesh); }}
 {
 }
 
