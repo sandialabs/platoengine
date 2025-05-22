@@ -2,6 +2,7 @@
 #define PLATO_UTILITIES_HASHUTILITIES
 
 #include <boost/functional/hash.hpp>
+#include <numeric>
 
 namespace plato::utilities
 {
@@ -14,12 +15,12 @@ template <typename ContainerType>
 template <typename ContainerType>
 auto hash_container(const ContainerType& aContainer) -> std::size_t
 {
-    auto tSeed = std::size_t{0};
-    for (const auto& aVal : aContainer)
-    {
-        boost::hash_combine(tSeed, aVal);
-    }
-    return tSeed;
+    return std::accumulate(aContainer.cbegin(), aContainer.cend(), std::size_t{0},
+                           [](std::size_t aSeed, const auto& aEntry)
+                           {
+                               boost::hash_combine(aSeed, aEntry);
+                               return aSeed;
+                           });
 }
 }  // namespace plato::utilities
 
