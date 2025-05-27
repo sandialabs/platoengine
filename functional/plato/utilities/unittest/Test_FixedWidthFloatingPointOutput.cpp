@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <boost/math/constants/constants.hpp>
+#include <numbers>
 #include <sstream>
 
 #include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
@@ -12,7 +12,7 @@ TEST(FixedWidthFloatingPoinOutput, OutputOperator)
 {
     constexpr auto tPrecision = std::size_t{3};
     constexpr auto tWidth = std::size_t{10};
-    const auto tPi = FixedWidthFloatingPointOutput<double, tPrecision, tWidth>{boost::math::constants::pi<double>()};
+    const auto tPi = FixedWidthFloatingPointOutput<double, tPrecision, tWidth>{std::numbers::pi};
 
     std::stringstream tString;
     tString << tPi;

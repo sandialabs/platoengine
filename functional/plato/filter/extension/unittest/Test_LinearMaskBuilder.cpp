@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <boost/math/constants/constants.hpp>
+#include <numbers>
 
 #include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/filter/extension/test_utilities/LinearMaskTestUtility.hpp"
@@ -25,7 +25,7 @@ TEST(LinearMaskBuilderDetail, FilterVolume)
 {
     constexpr double tRadius = 1.23;
     const double tResult = detail::filter_volume(SearchRadius{tRadius});
-    const double tGold = boost::math::constants::pi<double>() * 4.0 / 3.0 * tRadius * tRadius * tRadius;
+    const double tGold = std::numbers::pi * 4.0 / 3.0 * tRadius * tRadius * tRadius;
     EXPECT_DOUBLE_EQ(tResult, tGold);
 }
 
@@ -33,7 +33,7 @@ TEST(LinearMaskBuilderDetail, FilterArea)
 {
     constexpr double tRadius = 1.23;
     const double tResult = detail::filter_area(SearchRadius{tRadius});
-    const double tGold = boost::math::constants::pi<double>() * tRadius * tRadius;
+    const double tGold = std::numbers::pi * tRadius * tRadius;
     EXPECT_DOUBLE_EQ(tResult, tGold);
 }
 

@@ -3,12 +3,12 @@
 #include <Teuchos_ArrayViewDecl.hpp>
 #include <Teuchos_EReductionType.hpp>
 #include <algorithm>
-#include <boost/math/constants/constants.hpp>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <cmath>
 #include <iterator>
+#include <numbers>
 #include <utility>
 
 #include "plato/mesh/EntityCounts.hpp"
@@ -144,13 +144,12 @@ double linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRa
 
 double filter_volume(const SearchRadius aFilterRadius)
 {
-    return 4.0 / 3.0 * boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue *
-           aFilterRadius.mValue;
+    return 4.0 / 3.0 * std::numbers::pi * aFilterRadius.mValue * aFilterRadius.mValue * aFilterRadius.mValue;
 }
 
 double filter_area(const SearchRadius aFilterRadius)
 {
-    return boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue;
+    return std::numbers::pi * aFilterRadius.mValue * aFilterRadius.mValue;
 }
 
 unsigned int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const SearchRadius aFilterRadius)

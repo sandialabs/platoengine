@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <boost/math/constants/constants.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <vector>
 
