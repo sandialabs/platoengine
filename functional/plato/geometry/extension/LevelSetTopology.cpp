@@ -4,9 +4,9 @@
 #include <boost/mpi/communicator.hpp>
 #include <optional>
 
+#include "plato/analysis/Utilities.hpp"
 #include "plato/core/Compose.hpp"
 #include "plato/geometry/extension/FixedBlockUtilities.hpp"
-#include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
@@ -143,7 +143,11 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
       mCutMesh(kKrinoCutMeshBaseName),
       mOutputMesh(aInput.output_name.value().mToken),
       mVoidRegion(void_phase(aInput)),
-      mLevelSetBounds(std::make_pair(aInput.level_set_lower_bound.value(), aInput.level_set_upper_bound.value()))
+      mLevelSetBounds(std::make_pair(aInput.level_set_lower_bound.value(), aInput.level_set_upper_bound.value())),
+      mKrinoWrapperCache{[tFixedValue = mLevelSetBounds.second](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                         { return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, tFixedValue); },
+                         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+                         { return analysis::hash_value(aAnalysisDomainMesh); }}
 {
 }
 
@@ -183,9 +187,7 @@ auto LevelSetTopology::generateMesh(const linear_algebra::DynamicVector<double>&
     const auto tAnalysisMesh = mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
 
-    make_krino_wrapper_from_analysis_domain_mesh(tAnalysisMesh, mLevelSetBounds.second)
-        .writeCutMesh(mCutMesh, mVoidRegion);
-
+    mKrinoWrapperCache.compute(tAnalysisMesh).writeCutMesh(mCutMesh, mVoidRegion);
     return analysis::AnalysisDomainMesh{mCutMesh, {}};
 }
 
@@ -200,11 +202,9 @@ auto LevelSetTopology::jacobian(const linear_algebra::DynamicVector<double>& aDe
                 mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
                     mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
 
-            const auto tKrinoWrapper =
-                make_krino_wrapper_from_analysis_domain_mesh(tBackgroundMeshWithLevelSetField, mLevelSetBounds.second);
-
             return linear_algebra::DynamicVector<double>{
-                tKrinoWrapper.rowVectorJacobianProduct(aVector.stdVector(), mVoidRegion)};
+                mKrinoWrapperCache.compute(tBackgroundMeshWithLevelSetField)
+                    .rowVectorJacobianProduct(aVector.stdVector(), mVoidRegion)};
         }};
 }
 
@@ -220,11 +220,9 @@ auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
             const auto tBackgroundMeshWithLevelSets = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(
                 mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
 
-            const auto tKrinoWrapper =
-                make_krino_wrapper_from_analysis_domain_mesh(tBackgroundMeshWithLevelSets, mLevelSetBounds.second);
-
             return linear_algebra::DynamicVector<double>{
-                tKrinoWrapper.rowVectorAdjointJacobianProduct(aVector.stdVector(), mVoidRegion)};
+                mKrinoWrapperCache.compute(tBackgroundMeshWithLevelSets)
+                    .rowVectorAdjointJacobianProduct(aVector.stdVector(), mVoidRegion)};
         }}};
 }
 

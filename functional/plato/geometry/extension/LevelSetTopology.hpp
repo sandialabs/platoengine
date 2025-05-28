@@ -6,6 +6,7 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
@@ -14,6 +15,7 @@
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/utilities/NamedType.hpp"
+#include "plato/utilities/StateCache.hpp"
 
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
@@ -73,10 +75,10 @@ class LevelSetTopology
     explicit LevelSetTopology(const input_parser::level_set_topology& aInput);
 
     ~LevelSetTopology();
-    LevelSetTopology(const LevelSetTopology&) = default;
-    LevelSetTopology(LevelSetTopology&&) = default;
-    LevelSetTopology& operator=(const LevelSetTopology&) = default;
-    LevelSetTopology& operator=(LevelSetTopology&&) = default;
+    LevelSetTopology(const LevelSetTopology&) = delete;
+    LevelSetTopology(LevelSetTopology&&) = delete;
+    LevelSetTopology& operator=(const LevelSetTopology&) = delete;
+    LevelSetTopology& operator=(LevelSetTopology&&) = delete;
 
     [[nodiscard]] auto bounds() const -> std::pair<std::vector<double>, std::vector<double>>;
     [[nodiscard]] auto initialGuess(const input_parser::level_set_topology& aInput) const
@@ -100,6 +102,9 @@ class LevelSetTopology
     std::filesystem::path mOutputMesh;
     third_party_integration::krino::VoidPhase mVoidRegion;
     std::pair<double, double> mLevelSetBounds = std::make_pair(-1.0, 1.0);
+
+    using KrinoWrapperCache = utilities::StateCache<KrinoWrapper, const analysis::AnalysisDomainMesh&>;
+    mutable KrinoWrapperCache mKrinoWrapperCache;
 };
 
 /// @brief Create a LevelSetTopology Geometry function with a filter.

@@ -8,10 +8,10 @@
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
-#include "plato/filter/library/HashGeneration.hpp"
 #include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/HashGeneration.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
@@ -200,7 +200,7 @@ TEST(KernelFilterDetail, FilterCache_DummyCallCounts)
                                                 boost::mpi::communicator{});
                                         },
                                         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                                        { return library::hash_mesh_coordinates(aAnalysisDomainMesh); }};
+                                        { return mesh::hash_mesh_coordinates(aAnalysisDomainMesh); }};
 
     // make mesh
     const auto tFilePath = utilities::data_file_path("rectangle_3x4_tri3.cdf");

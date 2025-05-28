@@ -11,12 +11,12 @@
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/extension/LinearMaskBuilder.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
-#include "plato/filter/library/HashGeneration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/HashGeneration.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
@@ -164,7 +164,7 @@ library::FilterCache create_filter_cache(const input_parser::kernel_filter& aInp
                                         aInput.centering_type.value(), tSplitComm);
                                 },
                                 [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                                { return library::hash_mesh_coordinates(aAnalysisDomainMesh); }};
+                                { return mesh::hash_mesh_coordinates(aAnalysisDomainMesh); }};
 }
 
 }  // namespace detail

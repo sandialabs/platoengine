@@ -4,14 +4,14 @@
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/filter/library/HashGeneration.hpp"
+#include "plato/mesh/HashGeneration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
-namespace plato::integration_tests::serial
+namespace plato::mesh::unittest
 {
 TEST(HashGeneration, HashMesh)
 {
@@ -27,10 +27,10 @@ TEST(HashGeneration, HashMesh)
     }
 
     const analysis::AnalysisDomainMesh tAnalysisDomainMesh{fileName, {}};
-    const auto tInitialHash = plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh);
+    const auto tInitialHash = hash_mesh_coordinates(tAnalysisDomainMesh);
 
     // reload mesh and rehash
-    EXPECT_EQ(tInitialHash, plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh));
+    EXPECT_EQ(tInitialHash, hash_mesh_coordinates(tAnalysisDomainMesh));
 
     // change mesh
     {
@@ -38,7 +38,7 @@ TEST(HashGeneration, HashMesh)
             {3, 3, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::Tet};
         stk_io::write_mesh(fileName, tCommandGenerator);
     }
-    EXPECT_NE(tInitialHash, plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh));
+    EXPECT_NE(tInitialHash, hash_mesh_coordinates(tAnalysisDomainMesh));
 
     test_utilities::test_for_existence_and_remove({fileName}, TEST_CONTEXT("Removing temporary files."));
 }
@@ -49,9 +49,9 @@ TEST(HashGeneration, HashStoredMesh)
     const auto tFilePath = utilities::data_file_path("box_3x4x7_tet10.cdf");
     ASSERT_TRUE(tFilePath.has_value());
     const analysis::AnalysisDomainMesh tAnalysisDomainMesh{tFilePath.value(), {}};
-    const auto tInitialHash = plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh);
+    const auto tInitialHash = hash_mesh_coordinates(tAnalysisDomainMesh);
 
     // reload mesh and rehash
-    EXPECT_EQ(tInitialHash, plato::filter::library::hash_mesh_coordinates(tAnalysisDomainMesh));
+    EXPECT_EQ(tInitialHash, hash_mesh_coordinates(tAnalysisDomainMesh));
 }
-}  // namespace plato::integration_tests::serial
+}  // namespace plato::mesh::unittest

@@ -16,6 +16,14 @@ namespace plato::analysis
 [[nodiscard]] auto remove_block_fields(AnalysisDomainMesh&& aAnalysisDomainMesh,
                                        const std::vector<AnalysisDomainMesh::BlockIDType>& aBlockIDs)
     -> AnalysisDomainMesh;
+
+/// @brief Computes a hash of @a aScalarFieldValue.
+[[nodiscard]] auto hash_value(const ScalarFieldValue& aScalarFieldValue) -> std::size_t;
+
+/// @brief Computes a hash of the scalar field values and mesh path name stored in @a aAnlysisDomainMesh.
+/// @warning This does not change if the nodal coordinates in the underlying mesh change, however this does hash the
+/// mesh file path.
+[[nodiscard]] auto hash_value(const AnalysisDomainMesh& aAnalysisDomainMesh) -> std::size_t;
 }  // namespace plato::analysis
 
 #endif

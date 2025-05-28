@@ -74,4 +74,65 @@ TEST(Utilities, RemoveBlockFieldsAllBlocks)
     EXPECT_EQ(tAnalysisDomainMesh.mBlockScalarField.count(kBlock2ID), 0U);
 }
 
+TEST(Utilities, AnalysisDomainMeshHashValue)
+{
+    const auto tAnalysisDomainMesh = AnalysisDomainMesh{
+        "fake-mesh", AnalysisDomainMesh::BlockScalarField{{kBlock1ID, kBlock1}, {kBlock2ID, kBlock2}}};
+    {
+        const auto tAnalysisDomainMeshCopy = tAnalysisDomainMesh;
+        EXPECT_EQ(hash_value(tAnalysisDomainMesh), hash_value(tAnalysisDomainMeshCopy)) << "Exact copy";
+    }
+    {
+        const auto tAnalysisDomainMeshWithSwappedBlocks = AnalysisDomainMesh{
+            "fake-mesh", AnalysisDomainMesh::BlockScalarField{{kBlock1ID, kBlock2}, {kBlock2ID, kBlock1}}};
+        EXPECT_NE(hash_value(tAnalysisDomainMesh), hash_value(tAnalysisDomainMeshWithSwappedBlocks))
+            << "Swapped blocks";
+    }
+    {
+        auto tAnalysisDomainMeshWithDifferentMeshPath = tAnalysisDomainMesh;
+        tAnalysisDomainMeshWithDifferentMeshPath.mFileName = "another-fake-mesh";
+        EXPECT_NE(hash_value(tAnalysisDomainMesh), hash_value(tAnalysisDomainMeshWithDifferentMeshPath))
+            << "Different mesh path";
+    }
+}
+
+TEST(Utilities, ScalarFieldValueHashValue)
+{
+    const auto tScalarFieldValue =
+        ScalarFieldValue{/*.mGlobalMeshEntityID=*/13, /*.mDesignVariableVectorIndex=*/42, /*.mValue=*/101.0};
+    {
+        const auto tScalarFieldValueCopy = tScalarFieldValue;
+        EXPECT_EQ(hash_value(tScalarFieldValue), hash_value(tScalarFieldValueCopy)) << "Exact copy";
+    }
+    {
+        const auto tScalarFieldValueDifferentGlobalID =
+            ScalarFieldValue{/*.mGlobalMeshEntityID=*/tScalarFieldValue.mGlobalMeshEntityID + 1U,
+                             /*.mDesignVariableVectorIndex=*/tScalarFieldValue.mDesignVariableVectorIndex,
+                             /*.mValue=*/tScalarFieldValue.mValue};
+        EXPECT_NE(hash_value(tScalarFieldValue), hash_value(tScalarFieldValueDifferentGlobalID))
+            << "Different global id";
+    }
+    {
+        const auto tScalarFieldValueDifferentLocalID =
+            ScalarFieldValue{/*.mGlobalMeshEntityID=*/tScalarFieldValue.mGlobalMeshEntityID,
+                             /*.mDesignVariableVectorIndex=*/tScalarFieldValue.mDesignVariableVectorIndex + 1U,
+                             /*.mValue=*/tScalarFieldValue.mValue};
+        EXPECT_NE(hash_value(tScalarFieldValue), hash_value(tScalarFieldValueDifferentLocalID)) << "Different local id";
+    }
+    {
+        const auto tScalarFieldValueDifferentValue =
+            ScalarFieldValue{/*.mGlobalMeshEntityID=*/tScalarFieldValue.mGlobalMeshEntityID,
+                             /*.mDesignVariableVectorIndex=*/tScalarFieldValue.mDesignVariableVectorIndex,
+                             /*.mValue=*/tScalarFieldValue.mValue + 1.0};
+        EXPECT_NE(hash_value(tScalarFieldValue), hash_value(tScalarFieldValueDifferentValue)) << "Different value";
+    }
+    {
+        const auto tScalarFieldValueSwappedIDs =
+            ScalarFieldValue{/*.mGlobalMeshEntityID=*/tScalarFieldValue.mDesignVariableVectorIndex,
+                             /*.mDesignVariableVectorIndex=*/tScalarFieldValue.mGlobalMeshEntityID,
+                             /*.mValue=*/tScalarFieldValue.mValue};
+        EXPECT_NE(hash_value(tScalarFieldValue), hash_value(tScalarFieldValueSwappedIDs)) << "Swapped IDs";
+    }
+}
+
 }  // namespace plato::analysis

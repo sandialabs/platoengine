@@ -8,10 +8,10 @@
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
-#include "plato/filter/library/HashGeneration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/mesh/HashGeneration.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
 
@@ -72,7 +72,7 @@ library::FilterCache create_filter_cache(const input_parser::helmholtz_filter& a
                 to_filter_parameters(aInput, aAnalysisDomainMesh.mFileName), kHelmholtzFilterLibName));
         },
         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        { return library::hash_mesh_coordinates(aAnalysisDomainMesh); }};
+        { return mesh::hash_mesh_coordinates(aAnalysisDomainMesh); }};
 }
 }  // namespace detail
 
