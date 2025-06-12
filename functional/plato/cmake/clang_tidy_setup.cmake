@@ -9,8 +9,12 @@ macro(clang_tidy_setup)
     # Use the parent path of the mpi compiler wrapper:
     cmake_path(GET MPI_CXX_COMPILER PARENT_PATH MPI_COMPILER_PARENT_PATH)
     cmake_path(GET MPI_COMPILER_PARENT_PATH PARENT_PATH MPI_PARENT_PATH)
-    set(CLANG_TIDY_EXTRA_ARGS "-I${MPI_PARENT_PATH}/include")
-    set(CLANG_TIDY_COMMAND ${CLANGTIDY} --extra-arg=${CLANG_TIDY_EXTRA_ARGS})
+    set(CLANG_TIDY_EXTRA_ARGS "--extra-arg=-I${MPI_PARENT_PATH}/include")
+    if(GCC_TOOLCHAIN_PATH)
+      list(APPEND CLANG_TIDY_EXTRA_ARGS "--extra-arg=--gcc-toolchain=${GCC_TOOLCHAIN_PATH}")
+    endif()
+
+    set(CLANG_TIDY_COMMAND ${CLANGTIDY} ${CLANG_TIDY_EXTRA_ARGS})
 
     message(STATUS "Using clang-tidy")
     message(STATUS "Clang-tidy command: ${CLANG_TIDY_COMMAND}")
