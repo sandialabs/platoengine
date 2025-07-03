@@ -21,7 +21,7 @@ TEST(SensitivityCheck, CreateSensitivityCheckRun)
 
     const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);
     ASSERT_TRUE(tValidatedInput.hasValue());
-    const auto tAllProcessManagerInputs = tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>();
+    const auto tAllProcessManagerInputs = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
     EXPECT_EQ(tAllProcessManagerInputs.rawInput().size(), 1U);
 
     const auto tProblem = library::make_process_manager_data(tValidatedInput.value());

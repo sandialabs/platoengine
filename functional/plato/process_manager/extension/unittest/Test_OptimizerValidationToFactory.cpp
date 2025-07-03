@@ -13,7 +13,7 @@ namespace
 auto rol_parameter_list(const input_validation::ValidatedInput& aData)
     -> std::pair<third_party_integration::rol::OptimizationParameters, input_parser::rol_optimization>
 {
-    const auto tProcessManagerData = aData.get<input_parser::ComponentType::kProcessManager>();
+    const auto tProcessManagerData = aData.get<components::ComponentType::kProcessManager>();
     EXPECT_EQ(tProcessManagerData.rawInput().size(), 1U);
     EXPECT_TRUE(
         tProcessManagerData.rawInput().front().rawInput().mInput.holdsExpectedType<input_parser::rol_optimization>());

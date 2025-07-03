@@ -33,7 +33,7 @@ void test_constraint_type_and_value(
 {
     const auto tData = input_validation::make_validated_input(aInput).value();
     return criteria::library::detail::make_constraint(
-        tData.get<input_parser::ComponentType::kConstraint>().rawInput().front());
+        tData.get<components::ComponentType::kConstraint>().rawInput().front());
 }
 
 }  // namespace
@@ -41,7 +41,7 @@ void test_constraint_type_and_value(
 TEST_F(ConstraintFactoryTestFixture, ValidEqualityConstraint)
 {
     auto tInputBase = parsedInput();
-    tInputBase.template get<input_parser::ComponentType::kConstraint>().clear();
+    tInputBase.template get<components::ComponentType::kConstraint>().clear();
     const auto tRawInput = tInputBase | criteria::library::test_utilities::create_valid_example_constraint_input();
 
     test_constraint_type_and_value(get_first_constraint(tRawInput), 0.0, criteria::library::ConstraintType::kEqualTo,
@@ -51,7 +51,7 @@ TEST_F(ConstraintFactoryTestFixture, ValidEqualityConstraint)
 TEST_F(ConstraintFactoryTestFixture, ValidInequalityConstraint)
 {
     auto tInputBase = parsedInput();
-    tInputBase.template get<input_parser::ComponentType::kConstraint>().clear();
+    tInputBase.template get<components::ComponentType::kConstraint>().clear();
     {
         constexpr auto tConstraintValue = 1.0;
         auto tConstraintInput = criteria::library::test_utilities::create_valid_example_constraint_input();

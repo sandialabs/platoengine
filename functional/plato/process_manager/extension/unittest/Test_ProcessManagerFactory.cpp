@@ -23,7 +23,7 @@ TEST(ProcessManagerFactory, ValidProcessManagers)
 
     const auto tData = input_validation::make_validated_input(tInput);
     ASSERT_TRUE(tData.hasValue());
-    const auto tProcesses = make_process_managers(tData.value().get<input_parser::ComponentType::kProcessManager>());
+    const auto tProcesses = make_process_managers(tData.value().get<components::ComponentType::kProcessManager>());
     constexpr auto tExpectedNumberOfProcessManagers = 3U;
     EXPECT_EQ(tProcesses.size(), tExpectedNumberOfProcessManagers);
 }

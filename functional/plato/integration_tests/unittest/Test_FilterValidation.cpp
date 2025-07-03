@@ -43,7 +43,7 @@ template <typename FilterInput>
 void check_filter_validation(const FilterInput& aBadFilter, const test_utilities::TestContext& aTestContext)
 {
     auto tInvalidInput = kValidInputBase;
-    tInvalidInput.get<input_parser::ComponentType::kFilter>().clear();
+    tInvalidInput.get<components::ComponentType::kFilter>().clear();
     tInvalidInput = tInvalidInput | aBadFilter;
     EXPECT_TRUE(input_validation::make_validated_input(tInvalidInput).hasError()) << aTestContext;
 }

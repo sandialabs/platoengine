@@ -40,7 +40,7 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
     third_party_integration::stk_io::write_mesh(tMeshFileName, tCommandGenerator);
 
     const auto tValidatedGeometry =
-        input_validation::make_validated_input(tInput).value().get<input_parser::ComponentType::kGeometry>();
+        input_validation::make_validated_input(tInput).value().get<components::ComponentType::kGeometry>();
 
     namespace pff = plato::filter;
 

@@ -22,7 +22,7 @@ void run_and_check_nodal_filter_result(const input_parser::ParsedInput& aParsedI
     ASSERT_TRUE(tValidatedInput.hasValue()) << tValidatedInput.error();
 
     const auto tElementToNodeInput =
-        tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>().rawInput().front();
+        tValidatedInput.value().get<components::ComponentType::kProcessManager>().rawInput().front();
     EXPECT_NO_THROW(NodalResultFilter{tElementToNodeInput}.run()) << aTestContext;
 
     // Retrieve nodal fields names from the mesh and check that the expected field name is found.

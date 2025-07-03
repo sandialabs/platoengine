@@ -84,8 +84,8 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
 
     const auto tValidInput = input_validation::make_validated_input(tInput).value();
 
-    const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
-        tValidInput.get<input_parser::ComponentType::kObjective>());
+    const auto tObjectiveFunction =
+        criteria::library::make_aggregate_objective_function(tValidInput.get<components::ComponentType::kObjective>());
     const auto tMeshFileName = tInput.get<input_parser::brick_shape_geometry>().front().mesh_name.value().mToken;
     const auto tGeometry =
         geometry::extension::make_brick_shape_geometry(geometry::extension::BrickShapeGeometry{tMeshFileName});
@@ -115,7 +115,7 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
 {
     namespace pitu = plato::integration_tests::utilities;
     auto tInputBase = parsedInput();
-    tInputBase.template get<input_parser::ComponentType::kObjective>().clear();
+    tInputBase.template get<components::ComponentType::kObjective>().clear();
     {
         // Set number_of_processors to 4
         auto tObjective = criteria::library::test_utilities::create_valid_example_objective_input();
@@ -123,7 +123,7 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
         const auto tInput = tInputBase | tObjective;
         const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
                                                .value()
-                                               .template get<input_parser::ComponentType::kObjective>();
+                                               .template get<components::ComponentType::kObjective>();
         pitu::check_processors_match_objectives(
             criteria::library::number_of_processors_per_objective(tValidObjectivesInput), tValidObjectivesInput,
             TEST_CONTEXT("number_of_processors = 4"));
@@ -136,7 +136,7 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
             tInputBase | tObjective | criteria::library::test_utilities::create_valid_example_objective_input();
         const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
                                                .value()
-                                               .template get<input_parser::ComponentType::kObjective>();
+                                               .template get<components::ComponentType::kObjective>();
         pitu::check_processors_match_objectives(
             criteria::library::number_of_processors_per_objective(tValidObjectivesInput), tValidObjectivesInput,
             TEST_CONTEXT("Two objectives, 1 and 3 processors"));
@@ -150,7 +150,7 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
         const auto tInput = tInputBase | tObjective1 | tObjective2;
         const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
                                                .value()
-                                               .template get<input_parser::ComponentType::kObjective>();
+                                               .template get<components::ComponentType::kObjective>();
         pitu::check_processors_match_objectives(
             criteria::library::number_of_processors_per_objective(tValidObjectivesInput), tValidObjectivesInput,
             TEST_CONTEXT("Two objectives, one with active = false"));

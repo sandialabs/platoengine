@@ -1,7 +1,11 @@
 include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
-create_plato_library(PlatoFunctionalInputParser "." "Boost::headers;PlatoFunctionalUtilities")
+set(LINK_LIBS Boost::headers
+              PlatoFunctionalComponents
+              PlatoFunctionalUtilities)
+
+create_plato_library(PlatoFunctionalInputParser "." "${LINK_LIBS}")
 
 if(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
   # Boost will define many fusion types' member functions to be __host__ __device__

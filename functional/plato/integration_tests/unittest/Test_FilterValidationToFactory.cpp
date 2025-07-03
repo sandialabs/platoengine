@@ -22,8 +22,8 @@ struct FilterFactoryFileFixture : public integration_tests::utilities::ValidInpu
 TEST_F(FilterFactoryFileFixture, ValidIdentityFilterFromGeometry)
 {
     const auto tValidatedGeometry =
-        input_validation::make_validated_input(parsedInput()).value().get<input_parser::ComponentType::kGeometry>();
-    const auto tFilterInput = input_validation::validated_cross_reference<input_parser::ComponentType::kFilter>(
+        input_validation::make_validated_input(parsedInput()).value().get<components::ComponentType::kGeometry>();
+    const auto tFilterInput = input_validation::validated_cross_reference<components::ComponentType::kFilter>(
         tValidatedGeometry, [](const input_parser::density_topology& aRawInput) { return aRawInput.filter; });
 
     EXPECT_NO_THROW([[maybe_unused]] const auto tFilter = filter::library::make_filter_function(tFilterInput));

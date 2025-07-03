@@ -10,17 +10,17 @@
 
 namespace
 {
-using FilterCrossReference = plato::input_parser::CrossReference<plato::input_parser::ComponentType::kFilter>;
+using FilterCrossReference = plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>;
 }
 
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          land_creatures,
-                         plato::input_parser::ComponentType::kGeometry,
+                         plato::components::ComponentType::kGeometry,
                          (FilterCrossReference, my_sea_creature, ""))
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
-                         sea_creatures, plato::input_parser::ComponentType::kFilter,
+                         sea_creatures, plato::components::ComponentType::kFilter,
                          (double, octopus, "")
                          (unsigned int, squid, ""))
 // clang-format on
@@ -37,10 +37,10 @@ TEST(ValidatedInputTypeWrapper, GetCrossReference)
 
     const auto tLandCreature = plato::input_parser::land_creatures{};
     const auto tParsedLandCreature = input_parser::InputDataBlock{
-        input_parser::ComponentType::kGeometry, "land_creatures", input_parser::InputBlockWrapper{tLandCreature}};
+        components::ComponentType::kGeometry, "land_creatures", input_parser::InputBlockWrapper{tLandCreature}};
 
     const auto tSeaCreature = plato::input_parser::sea_creatures{/*.octopus=*/42.0, /*.squid=*/100};
-    const auto tParsedSeaCreature = input_parser::InputDataBlock{input_parser::ComponentType::kFilter, "sea_creatures",
+    const auto tParsedSeaCreature = input_parser::InputDataBlock{components::ComponentType::kFilter, "sea_creatures",
                                                                  input_parser::InputBlockWrapper{tSeaCreature}};
     const auto tParsedInput = std::vector<input_parser::InputDataBlock>{tParsedLandCreature, tParsedSeaCreature};
 
@@ -49,9 +49,9 @@ TEST(ValidatedInputTypeWrapper, GetCrossReference)
 
     const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput.value());
     ASSERT_TRUE(tValidatedInputOrError.hasValue()) << tValidatedInputOrError.error();
-    const auto& tValidatedInput = tValidatedInputOrError.value().get<input_parser::ComponentType::kGeometry>();
+    const auto& tValidatedInput = tValidatedInputOrError.value().get<components::ComponentType::kGeometry>();
 
-    const auto tValidatedSeaCreatures = validated_cross_reference<input_parser::ComponentType::kFilter>(
+    const auto tValidatedSeaCreatures = validated_cross_reference<components::ComponentType::kFilter>(
         tValidatedInput,
         [](const input_parser::land_creatures& aLandCreature) { return aLandCreature.my_sea_creature; });
 

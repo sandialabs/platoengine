@@ -48,7 +48,7 @@ void run_plato(const std::filesystem::path& aInputFile)
         print_message(tValidatedInput.error());
         return;
     }
-    const auto& tValidatedProcessManagers = tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>();
+    const auto& tValidatedProcessManagers = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
     const auto tExecutor =
         plato::main::library::Executor{process_manager::library::make_process_managers(tValidatedProcessManagers)};
     const auto tProcessManagerData = process_manager::library::make_process_manager_data(tValidatedInput.value());

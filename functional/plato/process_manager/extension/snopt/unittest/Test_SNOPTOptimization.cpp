@@ -28,7 +28,7 @@ TEST(SNOPTOptimization, ConstructAndRunSNOPTOptimization)
 {
     const auto tValidatedInput = input_validation::make_validated_input(kBaseInputDeck);
     const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
-    const auto tAllProcessManagerInputs = tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>();
+    const auto tAllProcessManagerInputs = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
     ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1U);
 
     const auto tValidatedSNOPTSection = tAllProcessManagerInputs.rawInput().front();

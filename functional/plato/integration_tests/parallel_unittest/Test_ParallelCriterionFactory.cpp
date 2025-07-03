@@ -46,7 +46,7 @@ TEST(CriterionFactory, ValidObjective)
     const auto tData = input_validation::make_validated_input(tInput);
     ASSERT_TRUE(tData.hasValue());
     EXPECT_GT(tComm.size(), 1);
-    const auto tCriteria = tData.value().get<input_parser::ComponentType::kObjective>().rawInput();
+    const auto tCriteria = tData.value().get<components::ComponentType::kObjective>().rawInput();
     ASSERT_FALSE(tCriteria.empty());
     EXPECT_NO_THROW(
         [[maybe_unused]] auto tFunction =

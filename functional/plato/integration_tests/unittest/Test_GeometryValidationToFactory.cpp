@@ -20,7 +20,7 @@ TEST(GeometryFactory, ValidBrickShapeGeometry)
 
     const auto tData = input_validation::make_validated_input(tInput).value();
     EXPECT_NO_THROW([[maybe_unused]] const auto tUnused =
-                        geometry::library::make_geometry_data(tData.get<input_parser::ComponentType::kGeometry>()));
+                        geometry::library::make_geometry_data(tData.get<components::ComponentType::kGeometry>()));
 }
 
 TEST(GeometryFactory, ValidTopology)
@@ -38,7 +38,7 @@ TEST(GeometryFactory, ValidTopology)
     const auto tData = input_validation::make_validated_input(tInput);
     ASSERT_TRUE(tData.hasValue());
     EXPECT_NO_THROW(auto tUnused = geometry::library::make_geometry_data(
-                        tData.value().get<input_parser::ComponentType::kGeometry>()));
+                        tData.value().get<components::ComponentType::kGeometry>()));
 
     std::filesystem::remove(tMeshFileName);
 }

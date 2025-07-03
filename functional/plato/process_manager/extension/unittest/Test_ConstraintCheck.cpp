@@ -29,7 +29,7 @@ void validate_and_run_constraint_check(const input_parser::ParsedInput& aInputDe
     const auto tValidatedInput = input_validation::make_validated_input(aInputDeck);
     ASSERT_TRUE(tValidatedInput.hasValue());
 
-    const auto tAllProcessManagerInputs = tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>();
+    const auto tAllProcessManagerInputs = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
     ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1U);
 
     const auto tConstraintCheck = ConstraintCheck{tAllProcessManagerInputs.rawInput().front()};

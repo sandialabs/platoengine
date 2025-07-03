@@ -89,7 +89,7 @@ TEST_F(InputParserTestFixture, IsValid)
     // Tests that the input provided by ValidInputTestFixture is actually valid
     const auto tValidatedInput = input_validation::make_validated_input(parsedInput());
     ASSERT_TRUE(tValidatedInput.hasValue());
-    EXPECT_EQ(tValidatedInput.value().get<input_parser::ComponentType::kGeometry>().rawInput().mBlockName,
+    EXPECT_EQ(tValidatedInput.value().get<components::ComponentType::kGeometry>().rawInput().mBlockName,
               "density_topology");
 }
 }  // namespace plato::integration_tests::serial

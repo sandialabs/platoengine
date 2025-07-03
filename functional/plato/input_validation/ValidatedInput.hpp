@@ -3,7 +3,7 @@
 
 #include <filesystem>
 
-#include "plato/input_parser/ComponentType.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/CrossLinkedInput.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInputTypeWrapper.hpp"
@@ -24,7 +24,7 @@ class ValidatedInput
     ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey&);
 
     /// @brief Returns the parsed input blocks corresponding to @a kComponentType
-    template <input_parser::ComponentType kComponentType>
+    template <components::ComponentType kComponentType>
     [[nodiscard]] auto get() const;
 
    private:
@@ -61,24 +61,24 @@ class ValidatedInput
     -> utilities::Expected<ValidatedInput, std::string>;
 
 /// @brief Validated input block for a given component type
-template <input_parser::ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 using ValidatedInputDataBlock = ValidatedInputTypeWrapper<input_parser::InputDataBlock, kComponentType>;
 
 /// @brief Provides the validated input type of the component.
 ///
 /// For components (such as geometry) that are unique in an input deck, this is just ValidatedInputDataBlock.
 /// For non-unique components (such as objectives) this is a ValidatedInputTypeWrapper-wrapped vector.
-template <input_parser::ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 using ValidatedComponentType = decltype(std::declval<ValidatedInput>().get<kComponentType>());
 
 /// @brief Convenience function to unwrap the original input block struct.
 /// @tparam InputBlock The original input type.
 /// @throw May throw std::bad_any_cast if InputBlock is not the type held by the wrapper.
-template <typename InputBlock, input_parser::ComponentType kComponentType>
+template <typename InputBlock, components::ComponentType kComponentType>
 [[nodiscard]] auto get_input_block(const ValidatedInputDataBlock<kComponentType>& aValidatedInputDataBlock) -> const
     auto&;
 
-template <input_parser::ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 auto ValidatedInput::get() const
 {
     using ValidatedTypeWrapperForComponent = ValidatedInputDataBlock<kComponentType>;
@@ -98,7 +98,7 @@ auto ValidatedInput::get() const
     }
 }
 
-template <typename InputBlock, input_parser::ComponentType kComponentType>
+template <typename InputBlock, components::ComponentType kComponentType>
 [[nodiscard]] auto get_input_block(const ValidatedInputDataBlock<kComponentType>& aValidatedInputDataBlock) -> const
     auto&
 {

@@ -34,8 +34,8 @@ template <typename FactoryReturn, typename InputBlockType, typename Input, typen
 auto make_criterion_function(const Input& aValidatedInput, const AdditionalArgs&... aArgs) -> FactoryReturn
 {
     static_assert(
-        std::is_same_v<Input, input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kConstraint>> ||
-            std::is_same_v<Input, input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kObjective>>,
+        std::is_same_v<Input, input_validation::ValidatedInputDataBlock<components::ComponentType::kConstraint>> ||
+            std::is_same_v<Input, input_validation::ValidatedInputDataBlock<components::ComponentType::kObjective>>,
         "make_criterion_function must only be called with input_parser::objective or "
         "input_parser::constraint wrapped in ValidatedInputTypeWrapper");
 

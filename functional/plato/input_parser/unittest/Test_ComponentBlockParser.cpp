@@ -7,7 +7,7 @@
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          interface_test_block,
-                         plato::input_parser::ComponentType::kGeometry,
+                         plato::components::ComponentType::kGeometry,
                          (int, arabica, "a caffeinated comment")(double, robusta, "a very caffeinated comment"))
 
 namespace plato::input_parser::unittest
@@ -18,7 +18,7 @@ void check_parsed_data(const ComponentBlockParser::ParsedDataOrError& aParsedDat
     ASSERT_TRUE(aParsedDataOrError.hasValue());
     const auto& aParsedData = aParsedDataOrError.value();
 
-    EXPECT_EQ(aParsedData.mComponentType, ComponentType::kGeometry) << aTestContext;
+    EXPECT_EQ(aParsedData.mComponentType, components::ComponentType::kGeometry) << aTestContext;
     EXPECT_EQ(aParsedData.mBlockName, "interface_test_block") << aTestContext;
     EXPECT_TRUE(aParsedData.mInput.hasValue()) << aTestContext;
     ASSERT_TRUE(aParsedData.mInput.holdsExpectedType<interface_test_block>()) << aTestContext;
@@ -37,11 +37,11 @@ TEST(ComponentBlockParser, Parse)
                          {GenericToken{"robusta"}, GenericToken{"-1.0"}, GenericToken{"arabica"}, GenericToken{"42"}}};
     {
         const auto tParser =
-            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<ComponentType::kGeometry>{}};
+            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<components::ComponentType::kGeometry>{}};
         check_parsed_data(tParser.parse(tInput), TEST_CONTEXT("Direct construction"));
     }
     {
-        const auto tParser = make_component_block_parser<interface_test_block, ComponentType::kGeometry>();
+        const auto tParser = make_component_block_parser<interface_test_block, components::ComponentType::kGeometry>();
         check_parsed_data(tParser.parse(tInput), TEST_CONTEXT("Make function"));
     }
 }
@@ -52,7 +52,8 @@ TEST(ComponentBlockParser, ParseWithError)
         BlockName{"interface_test_block"},
         {GenericToken{"robusicta"}, GenericToken{"-1.0"}, GenericToken{"arabica"}, GenericToken{"42"}}};
 
-    const auto tParser = ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<ComponentType::kGeometry>{}};
+    const auto tParser =
+        ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<components::ComponentType::kGeometry>{}};
     const auto tParsedInputOrError = tParser.parse(tErroneousInput);
 
     ASSERT_TRUE(tParsedInputOrError.hasError());
@@ -63,18 +64,18 @@ TEST(ComponentBlockParser, ComponentType)
 {
     {
         const auto tParser =
-            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<ComponentType::kGeometry>{}};
-        EXPECT_EQ(tParser.componentType(), ComponentType::kGeometry);
+            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<components::ComponentType::kGeometry>{}};
+        EXPECT_EQ(tParser.componentType(), components::ComponentType::kGeometry);
     }
     {
         const auto tParser =
-            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<ComponentType::kFilter>{}};
-        EXPECT_EQ(tParser.componentType(), ComponentType::kFilter);
+            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<components::ComponentType::kFilter>{}};
+        EXPECT_EQ(tParser.componentType(), components::ComponentType::kFilter);
     }
     {
         const auto tParser =
-            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<ComponentType::kObjective>{}};
-        EXPECT_EQ(tParser.componentType(), ComponentType::kObjective);
+            ComponentBlockParser{interface_test_block{}, ComponentTypeHelper<components::ComponentType::kObjective>{}};
+        EXPECT_EQ(tParser.componentType(), components::ComponentType::kObjective);
     }
 }
 

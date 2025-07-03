@@ -16,10 +16,10 @@ namespace detail
 {
 auto validate_at_least_one_process_manager(const input_parser::ParsedInput& aInput) -> std::optional<std::string>
 {
-    if (aInput.get<input_parser::ComponentType::kProcessManager>().empty())
+    if (aInput.get<components::ComponentType::kProcessManager>().empty())
     {
         const auto tAllProcessManagerNames =
-            input_parser::all_block_names_with_component_type<input_parser::ComponentType::kProcessManager>();
+            input_parser::all_block_names_with_component_type<components::ComponentType::kProcessManager>();
         return "At least one of the following blocks must be defined: " +
                utilities::concatenate_container(tAllProcessManagerNames, "\n");
     }

@@ -35,22 +35,22 @@ TEST_F(CriterionFactoryTestFixture, ValidObjective)
 {
     const auto tData = input_validation::make_validated_input(parsedInput()).value();
 
-    ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1);
+    ASSERT_EQ(tData.get<components::ComponentType::kObjective>().rawInput().size(), 1);
     EXPECT_NO_THROW(
         auto tFunction =
             (criteria::library::make_criterion_function<criteria::library::CriterionFunction, input_parser::objective>(
-                tData.template get<input_parser::ComponentType::kObjective>().rawInput().front())));
+                tData.template get<components::ComponentType::kObjective>().rawInput().front())));
 }
 
 TEST_F(CriterionFactoryTestFixture, ValidConstraint)
 {
     const auto tData = input_validation::make_validated_input(parsedInput()).value();
 
-    ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1);
+    ASSERT_EQ(tData.get<components::ComponentType::kObjective>().rawInput().size(), 1);
     EXPECT_NO_THROW(
         auto tFunction =
             (criteria::library::make_criterion_function<criteria::library::CriterionFunction, input_parser::constraint>(
-                tData.template get<input_parser::ComponentType::kConstraint>().rawInput().front())));
+                tData.template get<components::ComponentType::kConstraint>().rawInput().front())));
 }
 
 TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
@@ -71,10 +71,10 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
         test_utilities::create_valid_example_rol_optimization_string();
 
     const auto tData = input_validation::parse_and_validate_string(tInput).value();
-    ASSERT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 1U);
+    ASSERT_EQ(tData.get<components::ComponentType::kObjective>().rawInput().size(), 1U);
 
     const auto tObjective = input_validation::get_input_block<input_parser::objective>(
-        tData.get<input_parser::ComponentType::kObjective>().rawInput().front());
+        tData.get<components::ComponentType::kObjective>().rawInput().front());
 
     const auto tCriterionInput = criteria::library::to_criterion_input(tObjective);
 
@@ -91,7 +91,7 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
 TEST_F(CriterionFactoryTestFixture, ConvertConstraintInput)
 {
     const auto tData = input_validation::parse_and_validate_string(create_valid_example_input_string()).value();
-    const auto tAllConstraints = tData.get<input_parser::ComponentType::kConstraint>().rawInput();
+    const auto tAllConstraints = tData.get<components::ComponentType::kConstraint>().rawInput();
     ASSERT_EQ(tAllConstraints.size(), 1U);
     const auto& tValidatedConstraint = tAllConstraints.front();
     const auto& tConstraint = input_validation::get_input_block<input_parser::constraint>(tValidatedConstraint);

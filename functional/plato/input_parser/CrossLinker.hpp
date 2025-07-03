@@ -3,6 +3,7 @@
 
 #include <functional>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
@@ -21,7 +22,7 @@ struct InputTypeHelper
 template <typename T>
 constexpr bool kIsCrossReference = false;
 
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 constexpr bool kIsCrossReference<CrossReference<kComponentType>> = true;
 
 /// @brief This class provides a method for filling cross-references in input blocks.
@@ -34,8 +35,8 @@ class CrossLinker
     CrossLinker(InputTypeHelper<Input>);
 
     /// @brief Fills the cross-reference field in @a aInputBlock with the input contained in @a aParsedInput.
-    [[nodiscard]] auto crossLink(InputDataBlock aInputBlock, const ParsedInput& aParsedInput) const
-        -> CrossLinkedBlockOrError;
+    [[nodiscard]] auto crossLink(InputDataBlock aInputBlock,
+                                 const ParsedInput& aParsedInput) const -> CrossLinkedBlockOrError;
 
    private:
     std::function<CrossLinkedBlockOrError(InputDataBlock, const ParsedInput&)> mCrossLinkFunction;

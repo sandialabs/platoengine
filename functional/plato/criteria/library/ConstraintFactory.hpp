@@ -15,7 +15,7 @@ struct AnalysisDomainMesh;
 
 namespace plato::criteria::library
 {
-using ValidatedConstraints = input_validation::ValidatedComponentType<input_parser::ComponentType::kConstraint>;
+using ValidatedConstraints = input_validation::ValidatedComponentType<components::ComponentType::kConstraint>;
 
 enum class ConstraintType
 {
@@ -74,7 +74,7 @@ struct VectorConstraint
 namespace detail
 {
 [[nodiscard]] auto make_constraint(
-    const input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kConstraint>& aConstraintInput)
+    const input_validation::ValidatedInputDataBlock<components::ComponentType::kConstraint>& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>;
 
 }  // namespace detail

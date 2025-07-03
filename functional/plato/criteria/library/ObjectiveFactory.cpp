@@ -20,7 +20,7 @@ namespace detail
 {
 namespace
 {
-using ValidatedObjective = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kObjective>;
+using ValidatedObjective = input_validation::ValidatedInputDataBlock<components::ComponentType::kObjective>;
 using AggregateComm = utilities::NamedType<boost::mpi::communicator, struct AggregateCommTag>;
 using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct ObjectiveCommTag>;
 

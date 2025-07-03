@@ -12,7 +12,7 @@ namespace detail
 {
 auto validate_only_one_geometry(const input_parser::ParsedInput& aInput) -> std::optional<std::string>
 {
-    if (const auto tTally = aInput.get<input_parser::ComponentType::kGeometry>().size(); tTally != 1U)
+    if (const auto tTally = aInput.get<components::ComponentType::kGeometry>().size(); tTally != 1U)
     {
         return "Only define exactly one geometry block. There were " + std::to_string(tTally) + " found.";
     }

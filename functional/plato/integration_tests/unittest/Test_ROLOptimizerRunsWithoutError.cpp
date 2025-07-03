@@ -30,7 +30,7 @@ void check_optimization_runs_without_error(const input_parser::ParsedInput& aInp
 {
     const auto tValidatedInput = input_validation::make_validated_input(aInput).value();
     const auto tProcessManager = process_manager::library::make_process_managers(
-        tValidatedInput.get<input_parser::ComponentType::kProcessManager>());
+        tValidatedInput.get<components::ComponentType::kProcessManager>());
     ASSERT_EQ(tProcessManager.size(), 1U) << aTestContext;
     const auto& tROLOptimize = tProcessManager.front();
     const auto tProcessManagerData = process_manager::library::make_process_manager_data(tValidatedInput);
