@@ -1,0 +1,11 @@
+include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
+include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
+
+set(LINK_LIBS Boost::log
+              PlatoFunctionalUtilities)
+
+create_plato_library(PlatoFunctionalBoostLog "." "${LINK_LIBS}")
+
+if(UNIT_TESTING)
+    create_plato_unittester(PlatoFunctionalBoostLog unittest)
+endif()

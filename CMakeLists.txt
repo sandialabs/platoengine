@@ -68,7 +68,7 @@ endif()
 ###############################################################################
 
 
-find_package(Boost REQUIRED COMPONENTS serialization filesystem system program_options regex mpi)
+find_package(Boost REQUIRED COMPONENTS serialization filesystem system program_options regex mpi log)
 if( LINK_WITH_PYTHON )
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 endif()
