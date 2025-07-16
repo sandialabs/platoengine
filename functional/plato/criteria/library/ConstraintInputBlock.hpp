@@ -1,12 +1,18 @@
 #ifndef PLATO_CRITERIA_CONSTRAINTINPUTBLOCK
 #define PLATO_CRITERIA_CONSTRAINTINPUTBLOCK
 
+#include "plato/input_parser/EnumTypeHelpers.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 
 // clang-format off
+DECLARE_ENUM_AND_ENUM_SYMBOL_TABLE(ConstraintTypes,
+                                   plato::input_parser,
+                                  (kEqualTo, "equal_to")
+                                  (kLessThan, "less_than")
+                                  (kGreaterThan, "greater_than"))
+
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), constraint, plato::input_parser::ComponentType::kConstraint,
     (bool, active, "Optional field to de/activate this constraint.")

@@ -16,8 +16,8 @@ class OutputManager;
 
 namespace plato::third_party_integration::snopt
 {
-constexpr auto kTimeLimitName = std::string_view{"Time limit"};
-constexpr auto kMajorIterationLimitName = std::string_view{"Major iterations limit"};
+constexpr inline auto kTimeLimitName = std::string_view{"Time limit"};
+constexpr inline auto kMajorIterationLimitName = std::string_view{"Major iterations limit"};
 
 /// @brief A collection of options that are exposed in the plato input deck, they are all optional
 struct SNOPTOptions

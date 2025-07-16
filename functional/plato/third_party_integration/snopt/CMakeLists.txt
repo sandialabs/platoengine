@@ -11,5 +11,6 @@ create_plato_library(PlatoFunctionalSNOPT "." "${LINK_LIBS}")
 target_include_directories(PlatoFunctionalSNOPT PRIVATE ${SNOPT_INC_DIR})
 
 if(UNIT_TESTING)
-    create_plato_unittester(PlatoFunctionalSNOPT "unittest;test_utilties")
+    create_plato_unittester(PlatoFunctionalSNOPT "unittest;test_utilities")
+    target_include_directories(PlatoFunctionalSNOPT_UnitTester PRIVATE ${SNOPT_INC_DIR})
 endif()

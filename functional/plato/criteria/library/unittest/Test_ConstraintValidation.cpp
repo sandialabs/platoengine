@@ -3,7 +3,6 @@
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ConstraintValidation.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 

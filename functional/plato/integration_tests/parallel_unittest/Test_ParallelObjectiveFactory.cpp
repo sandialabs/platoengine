@@ -72,7 +72,8 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
                                                     /*.criterion=*/input_parser::CriterionName{"mass"},
                                                     /*.number_of_processors=*/kNumRanks / aNumGroups,
                                                     /*.input_files=*/boost::none,
-                                                    /*.aggregation_weight=*/1.0};
+                                                    /*.aggregation_weight=*/1.0,
+                                                    /*.objective_goal=*/boost::none};
 
     auto tInput = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                   process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();

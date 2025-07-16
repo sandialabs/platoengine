@@ -1,6 +1,20 @@
 #include <gtest/gtest.h>
 
-#include "plato/input_parser/InputEnumTypes.hpp"
+#include "plato/input_parser/EnumTypeHelpers.hpp"
+
+namespace plato::enum_test
+{
+enum struct Dragons
+{
+    kRed,
+    kBlue,
+    kGold
+};
+}
+
+DECLARE_ENUM_SYMBOL_TABLE(Dragons, plato::enum_test, (kRed, "red")(kBlue, "blue")(kGold, "gold"))
+DEFINE_ENUM_SYMBOL_TABLE(Dragons, plato::enum_test)
+
 namespace plato::input_parser::unittest
 {
 namespace
@@ -22,37 +36,19 @@ bool parse_symbol_table(Iterator aBegin, Iterator aEnd, std::vector<EnumType>& a
 }
 }  // namespace
 
-TEST(ObjectiveTypes, SymbolParser)
+TEST(DefinedEnums, SeparateEnumDeclaration)
 {
-    std::vector<ConstraintTypes> tParsedObjectiveTypes;
+    EXPECT_EQ(plato::enum_test::kDragonsTable.toString(plato::enum_test::Dragons::kBlue).value(), "blue");
+    EXPECT_EQ(plato::enum_test::kDragonsTable.toString(plato::enum_test::Dragons::kRed).value(), "red");
+    EXPECT_EQ(plato::enum_test::kDragonsTable.toString(plato::enum_test::Dragons::kGold).value(), "gold");
 
-    const std::string tValidEnums = "equal_to, less_than, greater_than";
+    const auto tValidEnums = std::string{"gold, red, blue"};
+    auto tParsedObjectiveTypes = std::vector<plato::enum_test::Dragons>{};
     EXPECT_TRUE(parse_symbol_table(tValidEnums.begin(), tValidEnums.end(), tParsedObjectiveTypes));
-    ASSERT_EQ(tParsedObjectiveTypes.size(), 3u);
-    EXPECT_EQ(tParsedObjectiveTypes.front(), ConstraintTypes::kEqualTo);
-    EXPECT_EQ(tParsedObjectiveTypes.at(1U), ConstraintTypes::kLessThan);
-    EXPECT_EQ(tParsedObjectiveTypes.back(), ConstraintTypes::kGreaterThan);
-}
-
-TEST(KernelFilterCenteringTypes, EnumTable)
-{
-    EXPECT_TRUE(kKernelFilterCenteringTypesTable.toString(KernelFilterCenteringTypes::kElementCentered));
-    EXPECT_EQ(kKernelFilterCenteringTypesTable.toString(KernelFilterCenteringTypes::kElementCentered).value(),
-              "element");
-    EXPECT_TRUE(kKernelFilterCenteringTypesTable.toString(KernelFilterCenteringTypes::kNodeCentered));
-    EXPECT_EQ(kKernelFilterCenteringTypesTable.toString(KernelFilterCenteringTypes::kNodeCentered).value(), "node");
-}
-
-TEST(ConstraintTypes, EnumTable)
-{
-    EXPECT_TRUE(kConstraintTypesTable.toString(ConstraintTypes::kEqualTo));
-    EXPECT_EQ(kConstraintTypesTable.toString(ConstraintTypes::kEqualTo).value(), "equal_to");
-
-    EXPECT_TRUE(kConstraintTypesTable.toString(ConstraintTypes::kLessThan));
-    EXPECT_EQ(kConstraintTypesTable.toString(ConstraintTypes::kLessThan).value(), "less_than");
-
-    EXPECT_TRUE(kConstraintTypesTable.toString(ConstraintTypes::kGreaterThan));
-    EXPECT_EQ(kConstraintTypesTable.toString(ConstraintTypes::kGreaterThan).value(), "greater_than");
+    ASSERT_EQ(tParsedObjectiveTypes.size(), 3U);
+    EXPECT_EQ(tParsedObjectiveTypes.front(), plato::enum_test::Dragons::kGold);
+    EXPECT_EQ(tParsedObjectiveTypes.at(1U), plato::enum_test::Dragons::kRed);
+    EXPECT_EQ(tParsedObjectiveTypes.back(), plato::enum_test::Dragons::kBlue);
 }
 
 }  // namespace plato::input_parser::unittest

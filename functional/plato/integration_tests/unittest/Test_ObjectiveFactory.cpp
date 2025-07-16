@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
@@ -16,6 +18,23 @@ namespace plato::integration_tests::serial
 {
 namespace
 {
+constexpr auto kLinearFunctionName = std::string_view{"linear_test_function"};
+
+auto make_linear_test_function() -> criteria::library::CriterionFunction
+{
+    return core::make_function_with_first_derivative([](const analysis::AnalysisDomainMesh& aMesh)
+                                                     { return aMesh.mBlockScalarField.begin()->second.front().mValue; },
+                                                     [](const analysis::AnalysisDomainMesh&)
+                                                     { return linear_algebra::DynamicVector<double>{1.0}; });
+}
+
+using Registration = criteria::library::CriterionRegistration<criteria::library::Parallelization::kSerial,
+                                                              criteria::library::FunctionDimension::kScalar>;
+
+[[maybe_unused]] static auto kNodalSumRegistration =
+    Registration{criteria::library::builtin_criterion_registration_name(kLinearFunctionName),
+                 [](const criteria::library::CriterionInput&) { return make_linear_test_function(); }};
+
 struct ObjectiveFactoryTestFixture : public integration_tests::utilities::ValidInputTestFixture
 {
 };
@@ -106,6 +125,51 @@ TEST_F(ObjectiveFactoryTestFixture, NumberOfProcessors)
         const auto& tObjectives = tValidInput.get<input_parser::ComponentType::kObjective>();
         utilities::check_processors_match_objectives(criteria::library::number_of_processors_per_objective(tObjectives),
                                                      tObjectives, TEST_CONTEXT("Default using boost::none"));
+    }
+}
+
+TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
+{
+    constexpr auto tX = 21.0;
+
+    const auto tTestFunction = [](criteria::library::ObjectiveGoal aObjectiveGoal)
+    {
+        const auto tObjectiveInput =
+            input_parser::objective{/*.name=*/std::string{"test"},
+                                    /*.active=*/true,
+                                    /*.app=*/input_parser::AppName{"platoengine"},
+                                    /*.criterion=*/input_parser::CriterionName{std::string{kLinearFunctionName}},
+                                    /*.number_of_processors=*/1U,
+                                    /*.input_files=*/plato::input_parser::FileList{},
+                                    /*.aggregation_weight=*/2.0,
+                                    /*.objective_goal*/ aObjectiveGoal};
+        auto tInput = integration_tests::utilities::create_valid_example_input();
+        tInput.get<input_parser::ComponentType::kObjective>().clear();
+        tInput = tInput | tObjectiveInput;
+        const auto tValidInput = input_validation::make_validated_input(tInput).value();
+        const auto& tObjectives = tValidInput.get<input_parser::ComponentType::kObjective>();
+
+        const auto tObjective = criteria::library::make_aggregate_objective_function(tObjectives);
+
+        const auto tMeshField = std::vector{
+            analysis::ScalarFieldValue{.mGlobalMeshEntityID = 0U, .mDesignVariableVectorIndex = 0U, .mValue = tX}};
+        const auto tMesh =
+            analysis::AnalysisDomainMesh{.mFileName = "mesh.exo", .mBlockScalarField = {{0U, tMeshField}}};
+        return std::make_pair(tObjective.template evaluate<core::evaluation::kFunction>(tMesh),
+                              tObjective.template evaluate<core::evaluation::kFirstDerivative>(tMesh));
+    };
+
+    // Minimize
+    {
+        const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMinimize);
+        EXPECT_EQ(2.0 * tX, tObjective);
+        EXPECT_EQ(2.0, tGradient[0]);
+    }
+    // Maximize
+    {
+        const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMaximize);
+        EXPECT_EQ(-2.0 * tX, tObjective);
+        EXPECT_EQ(-2.0, tGradient[0]);
     }
 }
 

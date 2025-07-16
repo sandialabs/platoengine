@@ -10,7 +10,8 @@ create_plato_library(PlatoFunctionalUtilities ".;${CMAKE_CURRENT_BINARY_DIR}/con
 set(INTERFACE_FILES StateCache.hpp
                     NamedType.hpp
                     Zip.hpp
-                    ZipIterator.hpp)
+                    ZipIterator.hpp
+                    FixedWidthFloatingPointOutput.hpp)
 create_plato_interface(PlatoUtilitiesInterface "${INTERFACE_FILES}" "")
 
 if( UNIT_TESTING )
