@@ -2,7 +2,6 @@
 
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"

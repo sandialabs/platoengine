@@ -27,13 +27,22 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
 const auto kIsActive = [](const auto& aObjective)
 { return input_validation::is_active(input_validation::get_input_block<input_parser::objective>(aObjective)); };
 
-bool is_parallel_objective(const ValidatedObjective& aObjective)
+[[nodiscard]] auto objective_goal_scaling(const ValidatedObjective& aObjective) -> double
+{
+    return input_validation::get_input_block<input_parser::objective>(aObjective)
+                       .objective_goal.value_or(ObjectiveGoal::kMinimize) == ObjectiveGoal::kMinimize
+               ? 1.0
+               : -1.0;
+}
+
+[[nodiscard]] bool is_parallel_objective(const ValidatedObjective& aObjective)
 {
     return input_validation::get_input_block<input_parser::objective>(aObjective).number_of_processors.value_or(1U) >
            1U;
 }
 
-auto make_parallel_criterion_function(const ValidatedObjective& aObjective, const ObjectiveComm& aObjectiveComm)
+[[nodiscard]] auto make_parallel_criterion_function(const ValidatedObjective& aObjective,
+                                                    const ObjectiveComm& aObjectiveComm)
 {
     if (is_parallel_objective(aObjective))
     {
@@ -47,9 +56,9 @@ auto make_parallel_criterion_function(const ValidatedObjective& aObjective, cons
     }
 }
 
-auto make_parallel_aggregate_impl(const std::vector<ValidatedObjective>& tObjectives,
-                                  const AggregateComm& aAggregatorComm,
-                                  const ObjectiveComm& aObjectiveComm) -> ParallelAggregateObjective
+[[nodiscard]] auto make_parallel_aggregate_impl(const std::vector<ValidatedObjective>& tObjectives,
+                                                const AggregateComm& aAggregatorComm,
+                                                const ObjectiveComm& aObjectiveComm) -> ParallelAggregateObjective
 {
     using ObjectiveAndWeight = std::pair<ObjectiveFunction, double>;
     std::vector<ObjectiveAndWeight> tFunctionsAndWeights;
@@ -57,14 +66,16 @@ auto make_parallel_aggregate_impl(const std::vector<ValidatedObjective>& tObject
         tObjectives, std::back_inserter(tFunctionsAndWeights),
         [&aObjectiveComm](const auto& aObjective)
         {
-            const double tWeight =
-                input_validation::get_input_block<input_parser::objective>(aObjective).aggregation_weight.value();
+            const auto tWeight =
+                input_validation::get_input_block<input_parser::objective>(aObjective).aggregation_weight.value() *
+                objective_goal_scaling(aObjective);
             return std::make_pair(make_parallel_criterion_function(aObjective, aObjectiveComm), tWeight);
         },
         kIsActive);
     return ParallelAggregateObjective{std::move(tFunctionsAndWeights), aAggregatorComm.mValue};
 }
 
+[[nodiscard]]
 auto group_split_vector(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
@@ -74,8 +85,8 @@ auto group_split_vector(const ValidatedObjectives& aInput, const boost::mpi::com
     return utilities::group_split_vector(aInput.rawInput(), tGroupColor, utilities::SizeNamedType{tSplitSize});
 }
 
-[[nodiscard]] auto mpi_group(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
-    -> boost::mpi::communicator
+[[nodiscard]] auto mpi_group(const ValidatedObjectives& aInput,
+                             const boost::mpi::communicator& aComm) -> boost::mpi::communicator
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
     const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});

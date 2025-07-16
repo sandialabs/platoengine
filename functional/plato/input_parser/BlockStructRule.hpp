@@ -13,7 +13,6 @@
 #include "plato/input_parser/ComponentType.hpp"
 #include "plato/input_parser/EnumParser.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/input_parser/Skipper.hpp"
 
 namespace plato::input_parser

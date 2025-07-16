@@ -31,7 +31,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (double, sphere_pattern_bbox_max_z, "Required field specifying the ending z-coordinate of the sphere pattern's bounding box.")
     (double, sphere_pattern_radius, "Required field specifying the radius of the spheres to be inserted in the bounding box. "
                                     "This and the spacing will determine the total number of spheres added inside the bounding box.")
-    (double, sphere_pattern_spacing, "Required field specifying the gap between adjacent spheres in the unform pattern.")
+    (double, sphere_pattern_spacing, "Required field specifying the center-to-center distance between adjacent spheres in the unform pattern.")
     (double, level_set_lower_bound, "Required field specifying the value of the control that sets the lower bound of he level set cut.")
     (double, level_set_upper_bound, "Required field specifying the value of the control that sets the upper bound of he level set cut.")
     (plato::input_parser::CrossReference<plato::input_parser::ComponentType::kFilter>, filter, "Name of the filter block to apply to the controls."

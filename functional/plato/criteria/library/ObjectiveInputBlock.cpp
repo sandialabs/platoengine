@@ -2,6 +2,8 @@
 
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 
+DEFINE_ENUM_SYMBOL_TABLE(ObjectiveGoal, plato::criteria::library)
+
 namespace plato::criteria::library
 {
 namespace

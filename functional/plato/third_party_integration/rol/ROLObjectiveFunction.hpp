@@ -11,6 +11,7 @@
 
 namespace plato::third_party_integration::rol
 {
+/// @brief Objective interface with ROL.
 class ROLObjectiveFunction : public ROL::StdObjective<double>
 {
    public:

@@ -42,28 +42,24 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 {
     return core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX)
-        { return test_utilities::vector_from_scalar(aX[0] - aX[1]); },
-        [](const linear_algebra::DynamicVector<double>&) {
-            return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{1.0, -1.0});
-        });
+        { return test_utilities::vector_from_scalar(aX[0] - aX[1]); }, [](const linear_algebra::DynamicVector<double>&)
+        { return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{1.0, -1.0}); });
 }
 
 [[nodiscard]] auto greater_than_constraint_function()
 {
     return core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX) { return test_utilities::vector_from_scalar(aX[0]); },
-        [](const linear_algebra::DynamicVector<double>&) {
-            return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{1.0, 0.0});
-        });
+        [](const linear_algebra::DynamicVector<double>&)
+        { return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{1.0, 0.0}); });
 }
 
 [[nodiscard]] auto lesser_than_constraint_function()
 {
     return core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX) { return test_utilities::vector_from_scalar(aX[1]); },
-        [](const linear_algebra::DynamicVector<double>&) {
-            return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{0.0, 1.0});
-        });
+        [](const linear_algebra::DynamicVector<double>&)
+        { return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{0.0, 1.0}); });
 }
 
 [[nodiscard]] auto affine_linear_constraint_function()
@@ -71,9 +67,8 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
     return core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX)
         { return test_utilities::vector_from_scalar(2.0 * aX[0] - aX[1] - 1.0); },
-        [](const linear_algebra::DynamicVector<double>&) {
-            return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{2.0, -1.0});
-        });
+        [](const linear_algebra::DynamicVector<double>&)
+        { return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{2.0, -1.0}); });
 }
 
 [[nodiscard]] auto nonlinear_constraint_function()
@@ -81,18 +76,16 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
     return core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX)
         { return test_utilities::vector_from_scalar(aX[1] - aX[0] * aX[0]); },
-        [](const linear_algebra::DynamicVector<double>& aX) {
-            return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{-2.0 * aX[0], 1.0});
-        });
+        [](const linear_algebra::DynamicVector<double>& aX)
+        { return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{-2.0 * aX[0], 1.0}); });
 }
 
 /// @brief Components of constraint are \f$x = y\f$ and \f$x = 1\f$
 [[nodiscard]] auto linear_vector_constraint()
 {
     return typename InterfaceConstraintData::ConstraintFunction{
-        [](const linear_algebra::DynamicVector<double>& aX) {
-            return linear_algebra::DynamicVector<double>{aX[0] - aX[1], aX[0] - 1.0};
-        },
+        [](const linear_algebra::DynamicVector<double>& aX)
+        { return linear_algebra::DynamicVector<double>{aX[0] - aX[1], aX[0] - 1.0}; },
         [](const linear_algebra::DynamicVector<double>&)
         {
             return linear_algebra::JacobianMultiplier{[](const linear_algebra::DynamicVector<double>& aVector) {
@@ -105,9 +98,8 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 [[nodiscard]] auto nonlinear_vector_constraint()
 {
     return typename InterfaceConstraintData::ConstraintFunction{
-        [](const linear_algebra::DynamicVector<double>& aX) {
-            return linear_algebra::DynamicVector<double>{aX[0] * aX[0] - aX[1], (aX[0] - 2.0) * (aX[0] - 2.0) - aX[1]};
-        },
+        [](const linear_algebra::DynamicVector<double>& aX)
+        { return linear_algebra::DynamicVector<double>{aX[0] * aX[0] - aX[1], (aX[0] - 2.0) * (aX[0] - 2.0) - aX[1]}; },
         [](const linear_algebra::DynamicVector<double>& aX)
         {
             return linear_algebra::JacobianMultiplier{

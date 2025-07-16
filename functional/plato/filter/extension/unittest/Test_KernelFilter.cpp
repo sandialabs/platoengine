@@ -8,7 +8,6 @@
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/HashGeneration.hpp"

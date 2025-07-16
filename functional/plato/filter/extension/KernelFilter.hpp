@@ -4,11 +4,11 @@
 #include <boost/mpi/communicator.hpp>
 #include <filesystem>
 
+#include "plato/filter/extension/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/LinearMask.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
-#include "plato/input_parser/InputEnumTypes.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/utilities/NamedType.hpp"
 

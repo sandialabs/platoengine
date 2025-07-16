@@ -26,6 +26,7 @@ auto create_valid_example_constraint_input() -> input_parser::constraint
                                    /*.criterion=*/input_parser::CriterionName{"nodal_sum"},
                                    /*.number_of_processors=*/1u,
                                    /*.input_files=*/input_parser::FileList{{"brown.txt", "butter.txt", "sauce.txt"}},
-                                   /*.aggregation_weight=*/13.0};
+                                   /*.aggregation_weight=*/13.0,
+                                   /*.objective_goal=*/ObjectiveGoal::kMinimize};
 }
 }  // namespace plato::criteria::library::test_utilities
