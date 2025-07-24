@@ -8,4 +8,8 @@ create_plato_library(PlatoFunctionalBoostLog "." "${LINK_LIBS}")
 
 if(UNIT_TESTING)
     create_plato_unittester(PlatoFunctionalBoostLog unittest)
+
+  set(NUM_RANKS_FOR_TEST 2)
+  create_plato_parallel_unittester(PlatoFunctionalBoostLog parallel_unittest ${NUM_RANKS_FOR_TEST})
+
 endif()
