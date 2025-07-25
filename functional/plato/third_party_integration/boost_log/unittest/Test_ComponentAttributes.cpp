@@ -23,7 +23,7 @@ TEST(ComponentAttributes, Formatter)
                           boost::log::attributes::make_constant(ComponentTypeAndName{
                               .mComponentType = components::ComponentType::kFilter, .mComponentName = "helmholtz"}));
 
-    BOOST_LOG(tLogger) << "";
+    BOOST_LOG(tLogger) << "this message should not appear";
 
     EXPECT_EQ(tStream->str(), "[filter:helmholtz]\n");
 }

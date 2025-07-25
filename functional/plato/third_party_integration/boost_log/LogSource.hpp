@@ -17,6 +17,7 @@ enum struct LogSource
 /// @brief Returns a filter that filters out messages not matching @a aLogSourceToInclude.
 [[nodiscard]] auto log_source_filter(LogSource aLogSourceToInclude) -> boost::log::filter;
 
+/// @brief Stream insertion operator for LogSource.
 auto operator<<(std::ostream& aStream, LogSource aLogSource) -> std::ostream&;
 
 constexpr inline auto kLogSourceAttributeName = std::string_view{"Log source"};
