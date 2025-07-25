@@ -1,4 +1,4 @@
-#include "plato/utilities/ColorizedText.hpp"
+#include "plato/utilities/Colorize.hpp"
 
 #include <unistd.h>
 
@@ -7,7 +7,7 @@
 #include "plato/utilities/EnumTable.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
-namespace plato::utilities
+namespace plato::utilities::detail
 {
 namespace
 {
@@ -24,6 +24,7 @@ namespace
     }
     return nullptr;
 }
+}  // namespace
 
 [[nodiscard]] auto stream_supports_color(const std::ostream& aStream) -> bool
 {
@@ -46,18 +47,4 @@ namespace
     assert(tColorCode.has_value());
     return concatenate(tEscapeSequence, tColorCode.value(), "m");
 }
-}  // namespace
-
-auto operator<<(std::ostream& aStream, ColorizedText aColorizedText) -> std::ostream&
-{
-    if (stream_supports_color(aStream))
-    {
-        aStream << color_code(aColorizedText.mTextColor) << aColorizedText.mText << color_code(TextColor::kDefault);
-    }
-    else
-    {
-        aStream << aColorizedText.mText;
-    }
-    return aStream;
-}
-}  // namespace plato::utilities
+}  // namespace plato::utilities::detail
