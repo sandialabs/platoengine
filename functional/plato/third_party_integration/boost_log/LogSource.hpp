@@ -23,7 +23,7 @@ constexpr inline auto kLogSourceAttributeName = std::string_view{"Log source"};
 
 }  // namespace plato::third_party_integration::boost_log
 
-BOOST_LOG_ATTRIBUTE_KEYWORD(log_source,
+BOOST_LOG_ATTRIBUTE_KEYWORD(log_source_attribute,
                             plato::third_party_integration::boost_log::kLogSourceAttributeName.data(),
                             plato::third_party_integration::boost_log::LogSource)
 

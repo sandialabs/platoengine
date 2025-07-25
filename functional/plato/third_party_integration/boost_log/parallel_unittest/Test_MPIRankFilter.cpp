@@ -4,21 +4,18 @@
 #include <boost/mpi/communicator.hpp>
 
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
+#include "plato/third_party_integration/boost_log/test_utilities/TestUtilities.hpp"
 
 namespace plato::third_party_integration::boost_log::parallel_unittest
 {
 TEST(MPIAttributes, MPIRootRankFilter)
 {
     const auto tWorldCommunicator = boost::mpi::communicator{};
-    const auto tMPIRootRankFilter = mpi_root_rank_filter(tWorldCommunicator);
-
-    auto tAttributeSet = boost::log::attribute_set{};
-    tAttributeSet.insert(boost::log::attribute_name{kMPIRankAttributeName.data()},
-                         boost::log::attributes::constant<int>(tWorldCommunicator.rank()));
+    const auto tMPIRootRankFilter = mpi_root_rank_filter();
+    const auto tMPIRankAttribute = test_utilities::attribute_set(kMPIRankAttributeName, tWorldCommunicator.rank());
+    const auto tAttributeValueSet = test_utilities::attribute_value_set(tMPIRankAttribute);
 
     const auto tExpected = tWorldCommunicator.rank() == 0;
-    EXPECT_EQ(tMPIRootRankFilter(boost::log::attribute_value_set{tAttributeSet, boost::log::attribute_set{},
-                                                                 boost::log::attribute_set{}}),
-              tExpected);
+    EXPECT_EQ(tMPIRootRankFilter(tAttributeValueSet), tExpected);
 }
 }  // namespace plato::third_party_integration::boost_log::parallel_unittest
