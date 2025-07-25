@@ -2,8 +2,8 @@
 
 #include <boost/log/expressions.hpp>
 #include <boost/log/expressions/formatters/stream.hpp>
+#include <boost/log/sources/logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
-#include <boost/log/sources/severity_logger.hpp>
 #include <sstream>
 
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
@@ -21,8 +21,8 @@ TEST(LoggerSinkSetupTeardown, LogsToStringstream)
             boost::log::formatter{boost::log::expressions::stream << boost::log::expressions::smessage};
         [[maybe_unused]] const auto tInternalLoggerSink =
             LoggerSinkSetupTeardown{tStream, tFormatter, boost::log::filter{}};
-        auto tLogger = boost::log::sources::severity_logger<Severity>{};
-        BOOST_LOG_SEV(tLogger, Severity::kInfo) << aMessage;
+        auto tLogger = boost::log::sources::logger{};
+        BOOST_LOG(tLogger) << aMessage;
     };
 
     constexpr auto tFirstMessage = std::string_view{"Message the first."};
