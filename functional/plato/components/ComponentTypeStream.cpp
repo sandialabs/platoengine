@@ -4,9 +4,6 @@
 
 namespace plato::components
 {
-namespace
-{
-}
 auto operator<<(std::ostream& aStream, const ComponentType aComponentType) -> std::ostream&
 {
     const static auto tComponentNameTable =
@@ -21,6 +18,7 @@ auto operator<<(std::ostream& aStream, const ComponentType aComponentType) -> st
 
     const auto tComponentName = tComponentNameTable.toString(aComponentType);
     assert(tComponentName.has_value());
+
     aStream << tComponentName.value();
     return aStream;
 }
