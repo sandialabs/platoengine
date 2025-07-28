@@ -1,5 +1,7 @@
 #include "plato/third_party_integration/boost_log/Severity.hpp"
 
+#include <boost/log/expressions.hpp>
+
 #include "plato/utilities/EnumTable.hpp"
 
 namespace plato::third_party_integration::boost_log
@@ -15,4 +17,12 @@ auto operator<<(std::ostream& aStream, const Severity aSeverity) -> std::ostream
     aStream << tSeverityAsString.value();
     return aStream;
 }
+
+auto severity_attribute_formatter() -> boost::log::formatter
+{
+    namespace ble = boost::log::expressions;
+    return boost::log::formatter{
+        ble::stream << ble::if_(ble::has_attr(severity_attribute))[ble::stream << "[" << severity_attribute << "] "]};
+}
+
 }  // namespace plato::third_party_integration::boost_log

@@ -11,6 +11,7 @@
 #include "plato/third_party_integration/boost_log/FilterConjunction.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
+#include "plato/third_party_integration/boost_log/Severity.hpp"
 #include "plato/third_party_integration/boost_log/TimeStampAttribute.hpp"
 
 namespace plato::third_party_integration::boost_log
@@ -19,10 +20,10 @@ auto internal_console_sink(const std::shared_ptr<std::ostream>& aStreamSink) -> 
 {
     auto tMessageFormatter =
         boost::log::formatter{boost::log::expressions::stream << boost::log::expressions::smessage};
-    return LoggerSinkSetupTeardown{
-        aStreamSink,
-        attribute_formatter(time_stamp_formatter(), component_attributes_formatter(), std::move(tMessageFormatter)),
-        filter_conjunction(log_source_filter(LogSource::kInternal), mpi_root_rank_filter())};
+    return LoggerSinkSetupTeardown{aStreamSink,
+                                   attribute_formatter(time_stamp_formatter(), component_attributes_formatter(),
+                                                       severity_attribute_formatter(), std::move(tMessageFormatter)),
+                                   filter_conjunction(log_source_filter(LogSource::kInternal), mpi_root_rank_filter())};
 }
 
 auto internal_console_sink() -> LoggerSinkSetupTeardown

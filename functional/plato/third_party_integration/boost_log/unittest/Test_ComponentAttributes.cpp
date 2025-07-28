@@ -25,7 +25,7 @@ TEST(ComponentAttributes, Formatter)
 
     BOOST_LOG(tLogger) << "this message should not appear";
 
-    EXPECT_EQ(tStream->str(), "[filter:helmholtz]\n");
+    EXPECT_EQ(tStream->str(), "[filter:helmholtz] \n");
 }
 
 TEST(ComponentAttributes, StreamInsertion)
