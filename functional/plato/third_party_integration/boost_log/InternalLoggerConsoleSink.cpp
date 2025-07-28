@@ -6,17 +6,27 @@
 #include <iostream>
 #include <memory>
 
+#include "plato/third_party_integration/boost_log/AttributeFormatter.hpp"
+#include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/FilterConjunction.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
+#include "plato/third_party_integration/boost_log/TimeStampAttribute.hpp"
 
 namespace plato::third_party_integration::boost_log
 {
+auto internal_console_sink(const std::shared_ptr<std::ostream>& aStreamSink) -> LoggerSinkSetupTeardown
+{
+    auto tMessageFormatter =
+        boost::log::formatter{boost::log::expressions::stream << boost::log::expressions::smessage};
+    return LoggerSinkSetupTeardown{
+        aStreamSink,
+        attribute_formatter(time_stamp_formatter(), component_attributes_formatter(), std::move(tMessageFormatter)),
+        filter_conjunction(log_source_filter(LogSource::kInternal), mpi_root_rank_filter())};
+}
+
 auto internal_console_sink() -> LoggerSinkSetupTeardown
 {
-    return LoggerSinkSetupTeardown{
-        std::shared_ptr<std::ostream>{&std::cout, boost::null_deleter()},
-        boost::log::formatter{boost::log::expressions::stream << boost::log::expressions::smessage},
-        filter_conjunction(log_source_filter(LogSource::kInternal), mpi_root_rank_filter())};
-};
+    return internal_console_sink(std::shared_ptr<std::ostream>{&std::cout, boost::null_deleter()});
+}
 }  // namespace plato::third_party_integration::boost_log
