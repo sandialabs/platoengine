@@ -11,8 +11,9 @@ namespace plato::third_party_integration::boost_log::parallel_unittest
 TEST(MPIAttributes, MPIRootRankFilter)
 {
     const auto tWorldCommunicator = boost::mpi::communicator{};
-    const auto tMPIRootRankFilter = mpi_root_rank_filter();
-    const auto tMPIRankAttribute = test_utilities::attribute_set(kMPIRankAttributeName, tWorldCommunicator.rank());
+    const auto tMPIRootRankFilter = MPIWorldCommRankAttribute::filter();
+    const auto tMPIRankAttribute =
+        test_utilities::attribute_set(MPIWorldCommRankAttribute::name(), tWorldCommunicator.rank());
     const auto tAttributeValueSet = test_utilities::attribute_value_set(tMPIRankAttribute);
 
     const auto tExpected = tWorldCommunicator.rank() == 0;

@@ -21,9 +21,9 @@ class InternalLoggerConsoleSinkCoutRedirect : public plato::test_utilities::Cout
 [[nodiscard]] auto test_logger() -> boost::log::sources::logger
 {
     auto tLogger = boost::log::sources::logger{};
-    tLogger.add_attribute(kLogSourceAttributeName.data(),
+    tLogger.add_attribute(LogSourceAttribute<LogSource::kInternal>::name().data(),
                           boost::log::attributes::constant<LogSource>(LogSource::kInternal));
-    tLogger.add_attribute(kMPIRankAttributeName.data(), boost::log::attributes::constant<int>(0));
+    tLogger.add_attribute(MPIWorldCommRankAttribute::name().data(), boost::log::attributes::constant<int>(0));
     return tLogger;
 }
 }  // namespace

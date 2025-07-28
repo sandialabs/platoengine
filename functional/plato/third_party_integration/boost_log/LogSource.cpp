@@ -16,10 +16,14 @@ auto operator<<(std::ostream& aStream, const LogSource aLogSource) -> std::ostre
     return aStream;
 }
 
-auto log_source_filter(const LogSource aLogSource) -> boost::log::filter
+template <LogSource kIncludedLogSource>
+auto LogSourceAttribute<kIncludedLogSource>::filter() -> boost::log::filter
 {
     return boost::log::filter{boost::log::expressions::has_attr(log_source_attribute) &&
-                              log_source_attribute == aLogSource};
+                              log_source_attribute == kIncludedLogSource};
 }
+
+template struct LogSourceAttribute<LogSource::kInternal>;
+template struct LogSourceAttribute<LogSource::kExternal>;
 
 }  // namespace plato::third_party_integration::boost_log

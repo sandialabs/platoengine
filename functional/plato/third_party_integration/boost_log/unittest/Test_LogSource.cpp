@@ -25,8 +25,9 @@ TEST(LogSource, StreamInsertion)
 
 TEST(LogSource, LogSourceFilter)
 {
-    const auto tLogSourceFilter = log_source_filter(LogSource::kInternal);
-    const auto tLogSourceAttribute = test_utilities::attribute_set(kLogSourceAttributeName, LogSource::kInternal);
+    const auto tLogSourceFilter = LogSourceAttribute<LogSource::kInternal>::filter();
+    const auto tLogSourceAttribute =
+        test_utilities::attribute_set(LogSourceAttribute<LogSource::kInternal>::name().data(), LogSource::kInternal);
     const auto tLogSourceAttributeSet = test_utilities::attribute_value_set(tLogSourceAttribute);
     EXPECT_TRUE(tLogSourceFilter(tLogSourceAttributeSet));
 }

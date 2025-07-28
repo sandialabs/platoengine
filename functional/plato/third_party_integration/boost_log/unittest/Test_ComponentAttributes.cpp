@@ -14,12 +14,12 @@ TEST(ComponentAttributes, Formatter)
 {
     const auto tStream = std::make_shared<std::stringstream>();
 
-    const auto tFormatter = component_attributes_formatter();
+    const auto tFormatter = ComponentTypeAndNameAttribute::formatter();
     [[maybe_unused]] const auto tInternalLoggerSink =
         LoggerSinkSetupTeardown{tStream, tFormatter, boost::log::filter{}};
 
     auto tLogger = boost::log::sources::logger{};
-    tLogger.add_attribute(kComponentAttributeName.data(),
+    tLogger.add_attribute(ComponentTypeAndNameAttribute::name().data(),
                           boost::log::attributes::make_constant(ComponentTypeAndName{
                               .mComponentType = components::ComponentType::kFilter, .mComponentName = "helmholtz"}));
 

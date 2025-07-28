@@ -1,0 +1,30 @@
+#ifndef PLATO_THIRD_PARTY_INTEGRATION_BOOST_LOG_ATTRIBUTETYPES
+#define PLATO_THIRD_PARTY_INTEGRATION_BOOST_LOG_ATTRIBUTETYPES
+
+#include <boost/log/expressions/filter.hpp>
+#include <boost/log/expressions/formatter.hpp>
+#include <concepts>
+#include <string_view>
+
+namespace plato::third_party_integration::boost_log
+{
+/// @brief Concept to constraint templates to match the struct AttributeWithFormatter.
+template <typename T>
+concept AttributeWithFormatter = requires(const T t) {
+    { T::name() } -> std::convertible_to<std::string_view>;
+    { T::formatter() } -> std::convertible_to<boost::log::formatter>;
+    { t.mValue } -> std::convertible_to<typename T::AttributeType>;
+    typename T::AttributeType;
+};
+
+/// @brief Concept to constraint templates to match the struct AttributeWithFilter.
+template <typename T>
+concept AttributeWithFilter = requires(const T t) {
+    { T::name() } -> std::convertible_to<std::string_view>;
+    { T::filter() } -> std::convertible_to<boost::log::filter>;
+    { t.mValue } -> std::convertible_to<typename T::AttributeType>;
+    typename T::AttributeType;
+};
+}  // namespace plato::third_party_integration::boost_log
+
+#endif

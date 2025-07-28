@@ -6,7 +6,7 @@
 
 namespace plato::third_party_integration::boost_log
 {
-[[nodiscard]] auto component_attributes_formatter() -> boost::log::formatter
+[[nodiscard]] auto ComponentTypeAndNameAttribute::formatter() -> boost::log::formatter
 {
     namespace ble = boost::log::expressions;
     return boost::log::formatter{

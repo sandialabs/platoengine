@@ -3,18 +3,33 @@
 
 #include <boost/log/expressions/filter.hpp>
 #include <boost/log/expressions/keyword.hpp>
+#include <boost/mpi/communicator.hpp>
 #include <string_view>
+
+#include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
 
 namespace plato::third_party_integration::boost_log
 {
-/// @brief Returns a filter that filters out all MPI ranks except the root rank on @a aCommunicator.
-[[nodiscard]] auto mpi_root_rank_filter() -> boost::log::filter;
+/// @brief Attribute for specifying the MPI rank of a log message.
+struct MPIWorldCommRankAttribute
+{
+    using AttributeType = int;
+    AttributeType mValue = boost::mpi::communicator{}.rank();
 
-constexpr inline auto kMPIRankAttributeName = std::string_view{"MPI rank"};
+    constexpr static inline auto name() -> std::string_view { return std::string_view{"MPI rank"}; }
+
+    /// @brief Returns a filter that filters out all MPI ranks except the root rank on @a aCommunicator.
+    [[nodiscard]] static auto filter() -> boost::log::filter;
+};
+
+static_assert(AttributeWithFilter<MPIWorldCommRankAttribute>,
+              "MPIWorldCommRankAttribute satisfies concept AttributeWithFilter");
+
 }  // namespace plato::third_party_integration::boost_log
 
-BOOST_LOG_ATTRIBUTE_KEYWORD(mpi_rank_attribute,
-                            plato::third_party_integration::boost_log::kMPIRankAttributeName.data(),
-                            int)
+BOOST_LOG_ATTRIBUTE_KEYWORD(
+    mpi_rank_attribute,
+    plato::third_party_integration::boost_log::MPIWorldCommRankAttribute::name().data(),
+    typename plato::third_party_integration::boost_log::MPIWorldCommRankAttribute::AttributeType)
 
 #endif
