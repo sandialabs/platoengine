@@ -21,16 +21,16 @@ void checkLogMessage(const Severity aSeverity,
     const auto tStream = std::make_shared<std::stringstream>();
     [[maybe_unused]] const auto tLogSink = internal_console_sink(tStream);
 
-    auto tLogger =
-        SeverityLogger{ComponentTypeAndNameAttribute{ComponentTypeAndName{
-                           .mComponentType = components::ComponentType::kFilter, .mComponentName = "helmholtz"}},
-                       MPIWorldCommRankAttribute{}, LogSourceAttribute<LogSource::kInternal>{}};
+    auto tLogger = SeverityLogger{
+        ComponentTypeAndNameAttribute{ComponentTypeAndName{.mComponentType = components::ComponentType::kFilter,
+                                                           .mComponentName = std::string{kFilterName}}},
+        MPIWorldCommRankAttribute{}, LogSourceAttribute<LogSource::kInternal>{}};
 
     constexpr auto tMessage = std::string_view{"Evaluating filter."};
     aLogMemberFunction(tLogger, tMessage);
 
     EXPECT_NE(tStream->str().find("filter"), std::string::npos) << aTestContext << "Result: " << tStream->str();
-    EXPECT_NE(tStream->str().find("helmholtz"), std::string::npos) << aTestContext << "Result: " << tStream->str();
+    EXPECT_NE(tStream->str().find(kFilterName), std::string::npos) << aTestContext << "Result: " << tStream->str();
     EXPECT_NE(tStream->str().find(tMessage), std::string::npos) << aTestContext << "Result: " << tStream->str();
 
     auto tSeverityAsString = std::stringstream{};
@@ -40,7 +40,7 @@ void checkLogMessage(const Severity aSeverity,
 }
 }  // namespace
 
-TEST(ComponentLogger, LogMembers)
+TEST(SeverityLogger, LogMembers)
 {
     checkLogMessage(Severity::kDebug, std::mem_fn(&SeverityLogger::logDebugMessage), TEST_CONTEXT("Debug log member"));
     checkLogMessage(Severity::kInfo, std::mem_fn(&SeverityLogger::logInfo), TEST_CONTEXT("Info log member"));

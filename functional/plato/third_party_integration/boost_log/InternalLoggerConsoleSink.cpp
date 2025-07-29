@@ -32,7 +32,7 @@ auto internal_console_sink(const std::shared_ptr<std::ostream>& aStreamSink) -> 
 
     return LoggerSinkSetupTeardown{
         aStreamSink, boost::log::formatter{std::move(tFormatter)},
-        filter_conjunction(LogSourceAttribute<LogSource::kInternal>::filter(), MPIWorldCommRankAttribute::filter())};
+        filter_conjunction<LogSourceAttribute<LogSource::kInternal>, MPIWorldCommRankAttribute>()};
 }
 
 auto internal_console_sink() -> LoggerSinkSetupTeardown

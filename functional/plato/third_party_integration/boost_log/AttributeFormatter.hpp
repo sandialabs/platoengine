@@ -7,7 +7,9 @@
 
 namespace plato::third_party_integration::boost_log
 {
-/// @brief Creates a formatter combining all arguments into a single formatter.
+/// @brief Creates a formatter combining all template arguments into a single formatter.
+/// @note Order matters, the attributes will be output from left to right matching the order of the formatters in the
+/// template arguments.
 template <AttributeWithFormatter... Formatters>
 [[nodiscard]] auto attribute_formatter() -> boost::log::formatter;
 

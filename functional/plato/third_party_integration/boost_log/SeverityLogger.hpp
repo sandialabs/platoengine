@@ -13,7 +13,7 @@ namespace plato::third_party_integration::boost_log
 class SeverityLogger
 {
    public:
-    template <AttributeWithFormatter... Attributes>
+    template <Attribute... Attributes>
     SeverityLogger(const Attributes... aAttributes);
 
     /// @brief Log a debug message.
@@ -42,10 +42,10 @@ class SeverityLogger
     boost::log::sources::logger mLogger;
 };
 
-template <AttributeWithFormatter... Attributes>
+template <Attribute... Attributes>
 SeverityLogger::SeverityLogger(const Attributes... aAttributes)
 {
-    (mLogger.add_attribute(Attributes::kName, boost::log::attributes::make_constant(aAttributes.mValue)), ...);
+    (mLogger.add_attribute(Attributes::name().data(), boost::log::attributes::make_constant(aAttributes.mValue)), ...);
 }
 
 }  // namespace plato::third_party_integration::boost_log

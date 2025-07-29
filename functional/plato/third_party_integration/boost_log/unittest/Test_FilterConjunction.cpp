@@ -36,6 +36,32 @@ namespace
                               test_attribute_keyword == aAttribute};
 }
 
+template <int FilterValue>
+struct TestFilterAttribute1
+{
+    using AttributeType = int;
+    AttributeType mValue;
+
+    [[nodiscard]] constexpr static inline auto name() -> std::string_view { return kTestAttribute1Name; };
+    [[nodiscard]] static auto filter() -> boost::log::filter
+    {
+        return filter_for_attribute(test_attribute_1, FilterValue);
+    }
+};
+
+template <int FilterValue>
+struct TestFilterAttribute2
+{
+    using AttributeType = int;
+    AttributeType mValue;
+
+    [[nodiscard]] constexpr static inline auto name() -> std::string_view { return kTestAttribute2Name; };
+    [[nodiscard]] static auto filter() -> boost::log::filter
+    {
+        return filter_for_attribute(test_attribute_2, FilterValue);
+    }
+};
+
 void check_attribute_set(const int aValue1,
                          const int aValue2,
                          const bool aExpected,
@@ -47,8 +73,8 @@ void check_attribute_set(const int aValue1,
 
     const auto tTestAttributeSet = test_utilities::attribute_value_set(tTestAttributes);
 
-    const auto tConjoinedFilter = filter_conjunction(filter_for_attribute(test_attribute_1, kAttributeValue1),
-                                                     filter_for_attribute(test_attribute_2, kAttributeValue2));
+    const auto tConjoinedFilter =
+        filter_conjunction<TestFilterAttribute1<kAttributeValue1>, TestFilterAttribute2<kAttributeValue2>>();
 
     EXPECT_EQ(tConjoinedFilter(tTestAttributeSet), aExpected) << aTestContext;
 }

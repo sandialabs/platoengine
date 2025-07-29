@@ -24,12 +24,12 @@ void log(boost::log::sources::logger& aLogger, const std::string_view aMessage, 
 }
 }  // namespace
 
-void ComponentLogger::logDebugMessage(std::string_view aMessage) { log(mLogger, aMessage, Severity::kDebug); }
+void SeverityLogger::logDebugMessage(std::string_view aMessage) { log(mLogger, aMessage, Severity::kDebug); }
 
-void ComponentLogger::logInfo(const std::string_view aMessage) { log(mLogger, aMessage, Severity::kInfo); }
+void SeverityLogger::logInfo(const std::string_view aMessage) { log(mLogger, aMessage, Severity::kInfo); }
 
-void ComponentLogger::logWarning(const std::string_view aMessage) { log(mLogger, aMessage, Severity::kWarning); }
+void SeverityLogger::logWarning(const std::string_view aMessage) { log(mLogger, aMessage, Severity::kWarning); }
 
-void ComponentLogger::logError(std::string_view aMessage) { log(mLogger, aMessage, Severity::kError); }
+void SeverityLogger::logError(std::string_view aMessage) { log(mLogger, aMessage, Severity::kError); }
 
 }  // namespace plato::third_party_integration::boost_log
