@@ -3,7 +3,9 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
 set(CONFIGURED_SERVICES_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/configured_services)
 configure_file(${FUNCTIONAL_BASE_DIR}/plato/cmake/PluginDirectoryPath.cpp ${CONFIGURED_SERVICES_SOURCE}/PluginDirectoryPath.cpp)
-set(LINK_LIBS PlatoFunctionalUtilities)
+
+set(LINK_LIBS PlatoFunctionalUtilities
+              PlatoFunctionalBoostLog)
 
 create_plato_library(PlatoFunctionalServices ".;${CONFIGURED_SERVICES_SOURCE}" "${LINK_LIBS}")
 if( BUILD_WITH_SANITIZER_FLAGS )

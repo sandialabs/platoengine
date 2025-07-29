@@ -1,42 +1,30 @@
-#include "plato/third_party_integration/boost_log/InternalLoggerConsoleSink.hpp"
+#include "plato/services/InternalLoggerConsoleSink.hpp"
 
 #include <boost/core/null_deleter.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/expressions/formatters/stream.hpp>
 #include <iostream>
 #include <memory>
 
-#include "plato/third_party_integration/boost_log/AttributeFormatter.hpp"
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
-#include "plato/third_party_integration/boost_log/FilterConjunction.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
 #include "plato/third_party_integration/boost_log/Severity.hpp"
+#include "plato/third_party_integration/boost_log/SinkWithAttributeFormattersAndFilters.hpp"
 #include "plato/third_party_integration/boost_log/TimeStampAttribute.hpp"
 
-namespace plato::third_party_integration::boost_log
+namespace plato::services
 {
-auto internal_console_sink(const std::shared_ptr<std::ostream>& aStreamSink) -> LoggerSinkSetupTeardown
+auto internal_logger_console_sink(const std::shared_ptr<std::ostream>& aStreamSink)
+    -> third_party_integration::boost_log::LoggerSinkSetupTeardown
 {
-    auto tAttributeFormatter =
-        attribute_formatter<TimeStampAttribute, ComponentTypeAndNameAttribute, SeverityAttribute>();
-    auto tMessageFormatter =
-        boost::log::formatter{boost::log::expressions::stream << boost::log::expressions::smessage};
-    auto tFormatter =
-        [mAttributeFormatter = std::move(tAttributeFormatter), mMessageFormatter = std::move(tMessageFormatter)](
-            const boost::log::record_view& aRecord, boost::log::formatter::stream_type& aStream)
-    {
-        mAttributeFormatter(aRecord, aStream);
-        mMessageFormatter(aRecord, aStream);
-    };
+    namespace tpi_bl = third_party_integration::boost_log;
 
-    return LoggerSinkSetupTeardown{
-        aStreamSink, boost::log::formatter{std::move(tFormatter)},
-        filter_conjunction<LogSourceAttribute<LogSource::kInternal>, MPIWorldCommRankAttribute>()};
+    return third_party_integration::boost_log::sink_with_attribute_formatters_and_filters<
+        tpi_bl::TimeStampAttribute, tpi_bl::ComponentTypeAndNameAttribute, tpi_bl::SeverityAttribute,
+        tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>, tpi_bl::MPIWorldCommRankAttribute>(aStreamSink);
 }
 
-auto internal_console_sink() -> LoggerSinkSetupTeardown
+auto internal_logger_console_sink() -> third_party_integration::boost_log::LoggerSinkSetupTeardown
 {
-    return internal_console_sink(std::shared_ptr<std::ostream>{&std::cout, boost::null_deleter()});
+    return internal_logger_console_sink(std::shared_ptr<std::ostream>{&std::cout, boost::null_deleter()});
 }
-}  // namespace plato::third_party_integration::boost_log
+}  // namespace plato::services
