@@ -1,36 +1,33 @@
 #include <gtest/gtest.h>
 
+#include <boost/log/expressions.hpp>
+
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
-#include "plato/third_party_integration/boost_log/InternalLoggerConsoleSink.hpp"
-#include "plato/third_party_integration/boost_log/LogSource.hpp"
-#include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
 #include "plato/third_party_integration/boost_log/Severity.hpp"
 #include "plato/third_party_integration/boost_log/SeverityLogger.hpp"
+#include "plato/third_party_integration/boost_log/SinkWithAttributeFormattersAndFilters.hpp"
+#include "plato/third_party_integration/boost_log/test_utilities/TestAttributes.hpp"
 
 namespace plato::third_party_integration::boost_log::unittest
 {
 namespace
 {
-constexpr auto kFilterName = std::string_view{"helmholtz"};
-
 void checkLogMessage(const Severity aSeverity,
                      const auto& aLogMemberFunction,
                      const plato::test_utilities::TestContext& aTestContext)
 {
     const auto tStream = std::make_shared<std::stringstream>();
-    [[maybe_unused]] const auto tLogSink = internal_console_sink(tStream);
+    [[maybe_unused]] const auto tLogSink =
+        sink_with_attribute_formatters_and_filters<test_utilities::SharkAttribute, SeverityAttribute>(tStream);
 
-    auto tLogger = SeverityLogger{
-        ComponentTypeAndNameAttribute{ComponentTypeAndName{.mComponentType = components::ComponentType::kFilter,
-                                                           .mComponentName = std::string{kFilterName}}},
-        MPIWorldCommRankAttribute{}, LogSourceAttribute<LogSource::kInternal>{}};
+    constexpr auto kSharkAttributeValue = std::string_view{"hammerhead"};
+    auto tLogger = SeverityLogger{test_utilities::SharkAttribute{std::string{kSharkAttributeValue}}};
 
-    constexpr auto tMessage = std::string_view{"Evaluating filter."};
+    constexpr auto tMessage = std::string_view{"Shark week!"};
     aLogMemberFunction(tLogger, tMessage);
 
-    EXPECT_NE(tStream->str().find("filter"), std::string::npos) << aTestContext << "Result: " << tStream->str();
-    EXPECT_NE(tStream->str().find(kFilterName), std::string::npos) << aTestContext << "Result: " << tStream->str();
+    EXPECT_NE(tStream->str().find(kSharkAttributeValue), std::string::npos)
+        << aTestContext << "Result: " << tStream->str();
     EXPECT_NE(tStream->str().find(tMessage), std::string::npos) << aTestContext << "Result: " << tStream->str();
 
     auto tSeverityAsString = std::stringstream{};

@@ -9,14 +9,25 @@ namespace plato::third_party_integration::boost_log
 {
 /// @brief Returns a filter representing the conjunction (logical `and` operation) of all attribute filters in the
 /// template arguments.
-template <AttributeWithFilter... Attributes>
+template <Attribute... Filters>
 [[nodiscard]] auto filter_conjunction() -> boost::log::filter;
 
-template <AttributeWithFilter... Attributes>
+template <Attribute... Filters>
 auto filter_conjunction() -> boost::log::filter
 {
     return boost::log::filter{[](const boost::log::attribute_value_set& aAttributes)
-                              { return (Attributes::filter()(aAttributes) && ...); }};
+                              {
+                                  const auto tFilter =
+                                      []<typename AttributeType>(const boost::log::attribute_value_set& aAttributes)
+                                  {
+                                      if constexpr (AttributeWithFilter<AttributeType>)
+                                      {
+                                          return AttributeType::filter()(aAttributes);
+                                      }
+                                      return true;
+                                  };
+                                  return (tFilter.template operator()<Filters>(aAttributes) && ...);
+                              }};
 }
 }  // namespace plato::third_party_integration::boost_log
 

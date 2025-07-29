@@ -10,16 +10,27 @@ namespace plato::third_party_integration::boost_log
 /// @brief Creates a formatter combining all template arguments into a single formatter.
 /// @note Order matters, the attributes will be output from left to right matching the order of the formatters in the
 /// template arguments.
-template <AttributeWithFormatter... Formatters>
+template <Attribute... Formatters>
 [[nodiscard]] auto attribute_formatter() -> boost::log::formatter;
 
-template <AttributeWithFormatter... Formatters>
+template <Attribute... Formatters>
 auto attribute_formatter() -> boost::log::formatter
 {
     using StreamType = boost::log::formatter::stream_type;
 
     return boost::log::formatter{[](const boost::log::record_view& aRecord, StreamType& aStream)
-                                 { (Formatters::formatter()(aRecord, aStream), ...); }};
+                                 {
+                                     const auto tFormatter =
+                                         []<typename AttributeType>(const boost::log::record_view& aRecord,
+                                                                    StreamType& aStream)
+                                     {
+                                         if constexpr (AttributeWithFormatter<AttributeType>)
+                                         {
+                                             AttributeType::formatter()(aRecord, aStream);
+                                         }
+                                     };
+                                     (tFormatter.template operator()<Formatters>(aRecord, aStream), ...);
+                                 }};
 }
 
 }  // namespace plato::third_party_integration::boost_log
