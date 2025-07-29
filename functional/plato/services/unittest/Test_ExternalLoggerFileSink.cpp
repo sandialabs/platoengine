@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "plato/services/ExternalLoggerFileSink.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/SeverityLogger.hpp"
 
@@ -19,7 +20,7 @@ namespace
     return tFileContents.str();
 }
 
-void check_external_log(const std::filesystem::path& aTestLogPath)
+void check_external_log(const std::filesystem::path& aTestLogPath, const test_utilities::TestContext& aTestContext)
 {
     namespace tpi_bl = third_party_integration::boost_log;
 
@@ -39,15 +40,15 @@ void check_external_log(const std::filesystem::path& aTestLogPath)
 
     const auto tFileContents = file_to_string(aTestLogPath);
 
-    EXPECT_NE(tFileContents.find(tExternalMessage), std::string::npos) << "Log: " << tFileContents;
-    EXPECT_EQ(tFileContents.find(tInternalMessage), std::string::npos) << "Log: " << tFileContents;
+    EXPECT_NE(tFileContents.find(tExternalMessage), std::string::npos) << aTestContext << "Log: " << tFileContents;
+    EXPECT_EQ(tFileContents.find(tInternalMessage), std::string::npos) << aTestContext << "Log: " << tFileContents;
 }
 }  // namespace
 
 TEST(ExternalLoggerFileSink, LogsToNewFile)
 {
     const auto tTestLogPath = std::filesystem::path{"test-log.txt"};
-    check_external_log(tTestLogPath);
+    check_external_log(tTestLogPath, TEST_CONTEXT("New file, no directory"));
     EXPECT_TRUE(std::filesystem::remove(tTestLogPath));
 }
 
@@ -56,7 +57,7 @@ TEST(ExternalLoggerFileSink, LogsToNewFileWithinExistentDirectory)
     const auto tDirectory = std::filesystem::path{"logs"};
     std::filesystem::create_directory(tDirectory);
     const auto tTestLogPath = tDirectory / std::filesystem::path{"test-log.txt"};
-    check_external_log(tTestLogPath);
+    check_external_log(tTestLogPath, TEST_CONTEXT("New file, existing directory"));
 
     EXPECT_EQ(std::filesystem::remove_all(tDirectory), 2U);
 }
@@ -65,7 +66,7 @@ TEST(ExternalLoggerFileSink, LogsToNewFileWithinNonexistentDirectory)
 {
     const auto tDirectory = std::filesystem::path{"logs"};
     const auto tTestLogPath = tDirectory / std::filesystem::path{"test-log.txt"};
-    check_external_log(tTestLogPath);
+    check_external_log(tTestLogPath, TEST_CONTEXT("New file, new directory"));
 
     EXPECT_EQ(std::filesystem::remove_all(tDirectory), 2U);
 }
@@ -79,7 +80,7 @@ TEST(ExternalLoggerFileSink, LogsToExistingFile)
         tFileStream << tExistingMessage;
     }
 
-    check_external_log(tTestLogPath);
+    check_external_log(tTestLogPath, TEST_CONTEXT("Existing file"));
 
     const auto tFileContents = file_to_string(tTestLogPath);
 

@@ -4,8 +4,10 @@
 #include <fstream>
 #include <memory>
 
+#include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/SinkWithAttributeFormattersAndFilters.hpp"
+#include "plato/third_party_integration/boost_log/TimeStampAttribute.hpp"
 
 namespace plato::services
 {
@@ -18,7 +20,9 @@ namespace plato::services
     {
         std::filesystem::create_directories(aLogFilePath.parent_path());
     }
-    return tpi_bl::sink_with_attribute_formatters_and_filters<tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kExternal>>(
+    return tpi_bl::sink_with_attribute_formatters_and_filters<tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kExternal>,
+                                                              tpi_bl::TimeStampAttribute,
+                                                              tpi_bl::ComponentTypeAndNameAttribute>(
         boost::make_shared<std::ofstream>(aLogFilePath, std::ios::app));
 }
 }  // namespace plato::services
