@@ -81,4 +81,12 @@ TEST(ExternalLoggerFileSink, LogsToExistingFile)
     EXPECT_TRUE(std::filesystem::remove(tTestLogPath));
 }
 
+TEST(ExternalLoggerFileSink, ExternalLogFileName)
+{
+    const auto tLogFilePath =
+        external_log_file_path(components::ComponentType::kProcessManager, boost::mpi::communicator{});
+    const auto tExpected = std::filesystem::path{"logs/process-manager-rank-0.txt"};
+    EXPECT_EQ(tLogFilePath, tExpected);
+}
+
 }  // namespace plato::services::unittest

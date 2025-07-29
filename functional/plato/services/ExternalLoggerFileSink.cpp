@@ -1,9 +1,12 @@
 #include "plato/services/ExternalLoggerFileSink.hpp"
 
+#include <algorithm>
+#include <boost/mpi/communicator.hpp>
 #include <boost/shared_ptr.hpp>
 #include <fstream>
-#include <memory>
+#include <string>
 
+#include "plato/components/ComponentTypeStream.hpp"
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/SinkWithAttributeFormattersAndFilters.hpp"
@@ -24,5 +27,15 @@ namespace plato::services
                                                               tpi_bl::TimeStampAttribute,
                                                               tpi_bl::ComponentTypeAndNameAttribute>(
         boost::make_shared<std::ofstream>(aLogFilePath, std::ios::app));
+}
+
+auto external_log_file_path(const components::ComponentType aComponentType,
+                            const boost::mpi::communicator& aCommunicator) -> std::filesystem::path
+{
+    auto tComponentTypeAsString = components::to_string(aComponentType);
+    std::replace(tComponentTypeAsString.begin(), tComponentTypeAsString.end(), ' ', '-');
+    const auto tBasePath = std::filesystem::path{"logs"};
+    return tBasePath /
+           std::filesystem::path{tComponentTypeAsString + "-rank-" + std::to_string(aCommunicator.rank()) + ".txt"};
 }
 }  // namespace plato::services
