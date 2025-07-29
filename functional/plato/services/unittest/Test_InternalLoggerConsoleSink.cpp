@@ -32,7 +32,7 @@ class InternalLoggerConsoleSinkCoutRedirect : public plato::test_utilities::Cout
 
 TEST(InternalLoggerConsoleSink, Outputs)
 {
-    const auto tStream = std::make_shared<std::stringstream>();
+    const auto tStream = boost::make_shared<std::stringstream>();
     [[maybe_unused]] const auto tLogSink = internal_logger_console_sink(tStream);
 
     constexpr auto tMessage = std::string_view{"It lives in a string!"};

@@ -63,7 +63,7 @@ TEST(AttributeFormatter, AttributeFormatter)
 {
     const auto tFormatter = attribute_formatter<ColorAttribute, SizeAttribute>();
 
-    const auto tStream = std::make_shared<std::stringstream>();
+    const auto tStream = boost::make_shared<std::stringstream>();
     [[maybe_unused]] const auto tInternalLoggerSink =
         LoggerSinkSetupTeardown{tStream, tFormatter, boost::log::filter{}};
 

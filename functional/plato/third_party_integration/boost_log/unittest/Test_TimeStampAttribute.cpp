@@ -11,7 +11,7 @@ namespace plato::third_party_integration::boost_log::unittest
 {
 TEST(TimeStampAttribute, Formatter)
 {
-    const auto tStream = std::make_shared<std::stringstream>();
+    const auto tStream = boost::make_shared<std::stringstream>();
 
     [[maybe_unused]] const auto tInternalLoggerSink =
         LoggerSinkSetupTeardown{tStream, TimeStampAttribute::formatter(), boost::log::filter{}};

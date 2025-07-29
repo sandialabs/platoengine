@@ -33,7 +33,7 @@ class SinkWithAttributeFormattersAndFiltersCoutRedirect : public plato::test_uti
 
 TEST(SinkWithAttributeFormattersAndFilters, Outputs)
 {
-    const auto tStream = std::make_shared<std::stringstream>();
+    const auto tStream = boost::make_shared<std::stringstream>();
     [[maybe_unused]] const auto tLogSink =
         sink_with_attribute_formatters_and_filters<test_utilities::SharkAttribute>(tStream);
 

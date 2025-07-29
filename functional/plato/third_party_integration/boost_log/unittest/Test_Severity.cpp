@@ -30,7 +30,7 @@ TEST(Severity, StreamInsertion)
 
 TEST(Severity, Formatter)
 {
-    const auto tStream = std::make_shared<std::stringstream>();
+    const auto tStream = boost::make_shared<std::stringstream>();
 
     const auto tFormatter = SeverityAttribute::formatter();
     [[maybe_unused]] const auto tInternalLoggerSink =

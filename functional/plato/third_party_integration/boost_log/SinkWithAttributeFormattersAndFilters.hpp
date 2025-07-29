@@ -5,7 +5,6 @@
 #include <boost/log/expressions.hpp>
 #include <boost/log/expressions/formatters/stream.hpp>
 #include <iostream>
-#include <memory>
 #include <ostream>
 
 #include "plato/third_party_integration/boost_log/AttributeFormatter.hpp"
@@ -26,7 +25,7 @@ concept AttributeWithFormatterOrFilter = AttributeWithFormatter<Attribute> || At
 /// The template parameters must satisfy the either concept AttributeWithFormatter or AttributeWithFilter.
 /// All attributes with filters will be used as filters and all attributes with formatters will be used as formatters.
 template <detail::AttributeWithFormatterOrFilter... Attributes>
-[[nodiscard]] auto sink_with_attribute_formatters_and_filters(const std::shared_ptr<std::ostream>& aStreamSink)
+[[nodiscard]] auto sink_with_attribute_formatters_and_filters(const boost::shared_ptr<std::ostream>& aStreamSink)
     -> LoggerSinkSetupTeardown;
 
 /// @brief This overload returns a sink that streams to `std::cout`.
@@ -37,7 +36,7 @@ template <detail::AttributeWithFormatterOrFilter... Attributes>
 [[nodiscard]] auto sink_with_attribute_formatters_and_filters() -> LoggerSinkSetupTeardown;
 
 template <detail::AttributeWithFormatterOrFilter... Attributes>
-auto sink_with_attribute_formatters_and_filters(const std::shared_ptr<std::ostream>& aStreamSink)
+auto sink_with_attribute_formatters_and_filters(const boost::shared_ptr<std::ostream>& aStreamSink)
     -> LoggerSinkSetupTeardown
 {
     auto tAttributeFormatter = attribute_formatter<Attributes...>();
@@ -60,7 +59,7 @@ template <detail::AttributeWithFormatterOrFilter... Attributes>
 auto sink_with_attribute_formatters_and_filters() -> LoggerSinkSetupTeardown
 {
     return sink_with_attribute_formatters_and_filters<Attributes...>(
-        std::shared_ptr<std::ostream>{&std::cout, boost::null_deleter()});
+        boost::shared_ptr<std::ostream>{&std::cout, boost::null_deleter()});
 }
 
 }  // namespace plato::third_party_integration::boost_log

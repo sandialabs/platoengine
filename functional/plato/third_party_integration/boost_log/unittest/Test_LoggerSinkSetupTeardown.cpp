@@ -13,7 +13,7 @@ namespace plato::third_party_integration::boost_log::unittest
 {
 TEST(LoggerSinkSetupTeardown, LogsToStringstream)
 {
-    const auto tStream = std::make_shared<std::stringstream>();
+    const auto tStream = boost::make_shared<std::stringstream>();
 
     const auto tLogInfoMessage = [tStream](const std::string_view aMessage)
     {

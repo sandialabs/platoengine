@@ -5,7 +5,6 @@
 #include "plato/services/ComponentLogger.hpp"
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
 #include "plato/third_party_integration/boost_log/Severity.hpp"
 
 namespace plato::services::unittest
@@ -18,7 +17,7 @@ void checkLogMessage(const third_party_integration::boost_log::Severity aSeverit
                      const auto& aLogMemberFunction,
                      const plato::test_utilities::TestContext& aTestContext)
 {
-    const auto tStream = std::make_shared<std::stringstream>();
+    const auto tStream = boost::make_shared<std::stringstream>();
     [[maybe_unused]] const auto tLogSink = internal_logger_console_sink(tStream);
 
     auto tLogger = ComponentLogger{components::ComponentType::kFilter, kFilterName};

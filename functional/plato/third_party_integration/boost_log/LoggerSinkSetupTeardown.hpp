@@ -15,7 +15,7 @@ namespace plato::third_party_integration::boost_log
 class LoggerSinkSetupTeardown
 {
    public:
-    LoggerSinkSetupTeardown(const std::shared_ptr<std::ostream>& aStreamSink,
+    LoggerSinkSetupTeardown(const boost::shared_ptr<std::ostream>& aStreamSink,
                             const boost::log::formatter& aFormatter,
                             const boost::log::filter& aFilter);
     ~LoggerSinkSetupTeardown();

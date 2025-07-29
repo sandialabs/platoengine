@@ -7,42 +7,42 @@
 
 namespace plato::services
 {
+namespace
+{
+namespace tpi_bl = third_party_integration::boost_log;
+}
+
 struct ComponentLogger::ComponentLoggerImpl
 {
-    third_party_integration::boost_log::SeverityLogger mLogger;
+    tpi_bl::SeverityLogger mLogger;
 };
 
 ComponentLogger::ComponentLogger(components::ComponentType aComponentType, std::string_view aComponentName)
-    : mPimpl{std::make_unique<ComponentLogger::ComponentLoggerImpl>(third_party_integration::boost_log::SeverityLogger{
-          third_party_integration::boost_log::ComponentTypeAndNameAttribute{
-              third_party_integration::boost_log::ComponentTypeAndName{.mComponentType = aComponentType,
-                                                                       .mComponentName = std::string{aComponentName}}},
-          third_party_integration::boost_log::MPIWorldCommRankAttribute{},
-          third_party_integration::boost_log::LogSourceAttribute<
-              third_party_integration::boost_log::LogSource::kInternal>{}
-
-      })}
+    : mPimpl{std::make_unique<ComponentLogger::ComponentLoggerImpl>(tpi_bl::SeverityLogger{
+          tpi_bl::ComponentTypeAndNameAttribute{tpi_bl::ComponentTypeAndName{
+              .mComponentType = aComponentType, .mComponentName = std::string{aComponentName}}},
+          tpi_bl::MPIWorldCommRankAttribute{}, tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>{}})}
 {
 }
 
 void ComponentLogger::logDebugMessage(const std::string_view aMessage)
 {
-    return mPimpl->mLogger.logMessage(aMessage, third_party_integration::boost_log::Severity::kDebug);
+    return mPimpl->mLogger.logMessage(aMessage, tpi_bl::Severity::kDebug);
 }
 
 void ComponentLogger::logInfo(const std::string_view aMessage)
 {
-    return mPimpl->mLogger.logMessage(aMessage, third_party_integration::boost_log::Severity::kInfo);
+    return mPimpl->mLogger.logMessage(aMessage, tpi_bl::Severity::kInfo);
 }
 
 void ComponentLogger::logWarning(const std::string_view aMessage)
 {
-    return mPimpl->mLogger.logMessage(aMessage, third_party_integration::boost_log::Severity::kWarning);
+    return mPimpl->mLogger.logMessage(aMessage, tpi_bl::Severity::kWarning);
 }
 
 void ComponentLogger::logError(const std::string_view aMessage)
 {
-    return mPimpl->mLogger.logMessage(aMessage, third_party_integration::boost_log::Severity::kError);
+    return mPimpl->mLogger.logMessage(aMessage, tpi_bl::Severity::kError);
 }
 
 ComponentLogger::~ComponentLogger() = default;

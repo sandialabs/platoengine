@@ -25,7 +25,7 @@ template <LogSource kIncludedLogSource>
 struct LogSourceAttribute
 {
     using AttributeType = LogSource;
-    AttributeType mValue;
+    AttributeType mValue = kIncludedLogSource;
 
     [[nodiscard]] constexpr static inline auto name() -> std::string_view;
 

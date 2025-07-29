@@ -12,7 +12,7 @@ namespace plato::third_party_integration::boost_log::unttest
 {
 TEST(ComponentAttributes, Formatter)
 {
-    const auto tStream = std::make_shared<std::stringstream>();
+    const auto tStream = boost::make_shared<std::stringstream>();
 
     const auto tFormatter = ComponentTypeAndNameAttribute::formatter();
     [[maybe_unused]] const auto tInternalLoggerSink =
