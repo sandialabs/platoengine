@@ -7,6 +7,7 @@
 
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
+#include "plato/third_party_integration/boost_log/test_utilities/TestUtilities.hpp"
 
 namespace plato::third_party_integration::boost_log::unttest
 {
@@ -35,4 +36,24 @@ TEST(ComponentAttributes, StreamInsertion)
                                     .mComponentName = "mobius-strip"};
     EXPECT_EQ(tStream.str(), "geometry:mobius-strip");
 }
+
+TEST(ComponentAttributes, ComponentTypeFilter)
+{
+    constexpr auto tObjectiveComponent = components::ComponentType::kObjective;
+    const auto tComponentTypeFilter = ComponentTypeFilterAttribute<tObjectiveComponent>::filter();
+
+    {
+        const auto tComponentAttribute = test_utilities::attribute_set(
+            ComponentTypeFilterAttribute<tObjectiveComponent>::name(), tObjectiveComponent);
+        const auto tAttributeValueSet = test_utilities::attribute_value_set(tComponentAttribute);
+        EXPECT_TRUE(tComponentTypeFilter(tAttributeValueSet));
+    }
+    {
+        const auto tComponentAttribute = test_utilities::attribute_set(
+            ComponentTypeFilterAttribute<tObjectiveComponent>::name(), components::ComponentType::kFilter);
+        const auto tAttributeValueSet = test_utilities::attribute_value_set(tComponentAttribute);
+        EXPECT_FALSE(tComponentTypeFilter(tAttributeValueSet));
+    }
+}
+
 }  // namespace plato::third_party_integration::boost_log::unttest

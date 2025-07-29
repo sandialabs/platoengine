@@ -1,6 +1,7 @@
 #ifndef PLATO_THIRD_PARTY_INTEGRATION_BOOST_LOG_COMPONENTATTRIBUTES
 #define PLATO_THIRD_PARTY_INTEGRATION_BOOST_LOG_COMPONENTATTRIBUTES
 
+#include <boost/log/expressions.hpp>
 #include <boost/log/expressions/formatter.hpp>
 #include <boost/log/expressions/keyword.hpp>
 #include <ostream>
@@ -20,10 +21,7 @@ struct ComponentTypeAndName
     std::string mComponentName;
 };
 
-/// @brief Stream insertion operator for a component type and name. Inserts a colon in between the type and name.
-auto operator<<(std::ostream& aStream, const ComponentTypeAndName& aComponentTypeAndName) -> std::ostream&;
-
-/// @brief Attribute for specifying the MPI rank of a log message.
+/// @brief Attribute for specifying the component type and name of a message.
 struct ComponentTypeAndNameAttribute
 {
     using AttributeType = ComponentTypeAndName;
@@ -34,18 +32,58 @@ struct ComponentTypeAndNameAttribute
     [[nodiscard]] static auto formatter() -> boost::log::formatter;
 };
 
+/// @brief Attribute for filtering messages only from a specific component.
+template <components::ComponentType kIncludedComponent>
+struct ComponentTypeFilterAttribute
+{
+    using AttributeType = components::ComponentType;
+    AttributeType mValue;
+
+    [[nodiscard]] constexpr static inline auto name() -> std::string_view;
+
+    [[nodiscard]] static auto filter() -> boost::log::filter;
+};
+
+/// @brief Stream insertion operator for a component type and name. Inserts a colon in between the type and name.
+auto operator<<(std::ostream& aStream, const ComponentTypeAndName& aComponentTypeAndName) -> std::ostream&;
+
 constexpr inline auto ComponentTypeAndNameAttribute::name() -> std::string_view
 {
     return std::string_view{"Component"};
 }
 
+template <components::ComponentType kIncludedComponent>
+constexpr inline auto ComponentTypeFilterAttribute<kIncludedComponent>::name() -> std::string_view
+{
+    return std::string_view{"Component type"};
+}
+
 static_assert(AttributeWithFormatter<ComponentTypeAndNameAttribute>,
-              "ComponentTypeAndNameAttribute satisfies concept AttributeWithFormatter");
+              "ComponentTypeAndNameAttribute must satisfy concept AttributeWithFormatter");
+
+static_assert(AttributeWithFilter<ComponentTypeFilterAttribute<components::ComponentType::kFilter>>,
+              "ComponentTypeFilterAttribute must satisfy concept AttributeWithFilter");
 
 }  // namespace plato::third_party_integration::boost_log
 
 BOOST_LOG_ATTRIBUTE_KEYWORD(component_attribute,
                             plato::third_party_integration::boost_log::ComponentTypeAndNameAttribute::name().data(),
                             plato::third_party_integration::boost_log::ComponentTypeAndName)
+
+BOOST_LOG_ATTRIBUTE_KEYWORD(component_filter_attribute,
+                            plato::third_party_integration::boost_log::ComponentTypeFilterAttribute<
+                                plato::components::ComponentType::kFilter>::name()
+                                .data(),
+                            plato::components::ComponentType)
+
+namespace plato::third_party_integration::boost_log
+{
+template <components::ComponentType kIncludedComponent>
+inline auto ComponentTypeFilterAttribute<kIncludedComponent>::filter() -> boost::log::filter
+{
+    return boost::log::filter{boost::log::expressions::has_attr(component_filter_attribute) &&
+                              component_filter_attribute == kIncludedComponent};
+}
+}  // namespace plato::third_party_integration::boost_log
 
 #endif
