@@ -12,24 +12,12 @@
 
 namespace plato::third_party_integration::boost_log
 {
-namespace
+void SeverityLogger::logMessage(const std::string_view aMessage, const Severity aSeverity)
 {
-void log(boost::log::sources::logger& aLogger, const std::string_view aMessage, const Severity aSeverity)
-{
-    aLogger.add_attribute(TimeStampAttribute::name().data(), boost::log::attributes::local_clock());
-    BOOST_LOG_SCOPED_LOGGER_ATTR(aLogger, SeverityAttribute::name().data(),
+    mLogger.add_attribute(TimeStampAttribute::name().data(), boost::log::attributes::local_clock());
+    BOOST_LOG_SCOPED_LOGGER_ATTR(mLogger, SeverityAttribute::name().data(),
                                  boost::log::attributes::make_constant(aSeverity))
 
-    BOOST_LOG(aLogger) << aMessage;
+    BOOST_LOG(mLogger) << aMessage;
 }
-}  // namespace
-
-void SeverityLogger::logDebugMessage(std::string_view aMessage) { log(mLogger, aMessage, Severity::kDebug); }
-
-void SeverityLogger::logInfo(const std::string_view aMessage) { log(mLogger, aMessage, Severity::kInfo); }
-
-void SeverityLogger::logWarning(const std::string_view aMessage) { log(mLogger, aMessage, Severity::kWarning); }
-
-void SeverityLogger::logError(std::string_view aMessage) { log(mLogger, aMessage, Severity::kError); }
-
 }  // namespace plato::third_party_integration::boost_log

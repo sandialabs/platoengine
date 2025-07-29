@@ -27,14 +27,23 @@ ComponentLogger::ComponentLogger(components::ComponentType aComponentType, std::
 
 void ComponentLogger::logDebugMessage(const std::string_view aMessage)
 {
-    return mPimpl->mLogger.logDebugMessage(aMessage);
+    return mPimpl->mLogger.logMessage(aMessage, third_party_integration::boost_log::Severity::kDebug);
 }
 
-void ComponentLogger::logInfo(const std::string_view aMessage) { return mPimpl->mLogger.logInfo(aMessage); }
+void ComponentLogger::logInfo(const std::string_view aMessage)
+{
+    return mPimpl->mLogger.logMessage(aMessage, third_party_integration::boost_log::Severity::kInfo);
+}
 
-void ComponentLogger::logWarning(const std::string_view aMessage) { return mPimpl->mLogger.logWarning(aMessage); }
+void ComponentLogger::logWarning(const std::string_view aMessage)
+{
+    return mPimpl->mLogger.logMessage(aMessage, third_party_integration::boost_log::Severity::kWarning);
+}
 
-void ComponentLogger::logError(const std::string_view aMessage) { return mPimpl->mLogger.logError(aMessage); }
+void ComponentLogger::logError(const std::string_view aMessage)
+{
+    return mPimpl->mLogger.logMessage(aMessage, third_party_integration::boost_log::Severity::kError);
+}
 
 ComponentLogger::~ComponentLogger() = default;
 

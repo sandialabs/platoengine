@@ -12,9 +12,7 @@ namespace plato::third_party_integration::boost_log::unittest
 {
 namespace
 {
-void checkLogMessage(const Severity aSeverity,
-                     const auto& aLogMemberFunction,
-                     const plato::test_utilities::TestContext& aTestContext)
+void checkLogMessage(const Severity aSeverity, const plato::test_utilities::TestContext& aTestContext)
 {
     const auto tStream = std::make_shared<std::stringstream>();
     [[maybe_unused]] const auto tLogSink =
@@ -24,7 +22,7 @@ void checkLogMessage(const Severity aSeverity,
     auto tLogger = SeverityLogger{test_utilities::SharkAttribute{std::string{kSharkAttributeValue}}};
 
     constexpr auto tMessage = std::string_view{"Shark week!"};
-    aLogMemberFunction(tLogger, tMessage);
+    tLogger.logMessage(tMessage, aSeverity);
 
     EXPECT_NE(tStream->str().find(kSharkAttributeValue), std::string::npos)
         << aTestContext << "Result: " << tStream->str();
@@ -39,10 +37,10 @@ void checkLogMessage(const Severity aSeverity,
 
 TEST(SeverityLogger, LogMembers)
 {
-    checkLogMessage(Severity::kDebug, std::mem_fn(&SeverityLogger::logDebugMessage), TEST_CONTEXT("Debug log member"));
-    checkLogMessage(Severity::kInfo, std::mem_fn(&SeverityLogger::logInfo), TEST_CONTEXT("Info log member"));
-    checkLogMessage(Severity::kWarning, std::mem_fn(&SeverityLogger::logWarning), TEST_CONTEXT("Warning log member"));
-    checkLogMessage(Severity::kError, std::mem_fn(&SeverityLogger::logError), TEST_CONTEXT("Error log member"));
+    checkLogMessage(Severity::kDebug, TEST_CONTEXT("Debug log member"));
+    checkLogMessage(Severity::kInfo, TEST_CONTEXT("Info log member"));
+    checkLogMessage(Severity::kWarning, TEST_CONTEXT("Warning log member"));
+    checkLogMessage(Severity::kError, TEST_CONTEXT("Error log member"));
 }
 
 }  // namespace plato::third_party_integration::boost_log::unittest
