@@ -27,14 +27,20 @@ struct LogSourceAttribute
     using AttributeType = LogSource;
     AttributeType mValue;
 
-    constexpr static inline auto name() -> std::string_view { return std::string_view{"Log source"}; }
+    [[nodiscard]] constexpr static inline auto name() -> std::string_view;
 
     /// @brief Returns a filter that filters out all MPI ranks except the root rank on @a aCommunicator.
     [[nodiscard]] static auto filter() -> boost::log::filter;
 };
 
+template <LogSource kIncludedLogSource>
+constexpr inline auto LogSourceAttribute<kIncludedLogSource>::name() -> std::string_view
+{
+    return std::string_view{"Log source"};
+}
+
 static_assert(AttributeWithFilter<LogSourceAttribute<LogSource::kInternal>>,
-              "LogSource satisfies concept AttributeWithFilter");
+              "LogSource must satisfy concept AttributeWithFilter");
 
 }  // namespace plato::third_party_integration::boost_log
 

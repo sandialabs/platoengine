@@ -32,12 +32,12 @@ TEST(Severity, Formatter)
 {
     const auto tStream = std::make_shared<std::stringstream>();
 
-    const auto tFormatter = severity_attribute_formatter();
+    const auto tFormatter = SeverityAttribute::formatter();
     [[maybe_unused]] const auto tInternalLoggerSink =
         LoggerSinkSetupTeardown{tStream, tFormatter, boost::log::filter{}};
 
     auto tLogger = boost::log::sources::logger{};
-    tLogger.add_attribute(kSeverityAttributeName.data(), boost::log::attributes::make_constant(Severity::kError));
+    tLogger.add_attribute(SeverityAttribute::name().data(), boost::log::attributes::make_constant(Severity::kError));
 
     BOOST_LOG(tLogger) << "this message should not appear";
 

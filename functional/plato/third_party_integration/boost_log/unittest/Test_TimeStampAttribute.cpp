@@ -14,10 +14,10 @@ TEST(TimeStampAttribute, Formatter)
     const auto tStream = std::make_shared<std::stringstream>();
 
     [[maybe_unused]] const auto tInternalLoggerSink =
-        LoggerSinkSetupTeardown{tStream, time_stamp_formatter(), boost::log::filter{}};
+        LoggerSinkSetupTeardown{tStream, TimeStampAttribute::formatter(), boost::log::filter{}};
 
     auto tLogger = boost::log::sources::logger{};
-    tLogger.add_attribute(kTimeStampAttributeName.data(), boost::log::attributes::local_clock());
+    tLogger.add_attribute(TimeStampAttribute::name().data(), boost::log::attributes::local_clock());
     BOOST_LOG(tLogger) << "should not appear";
 
     // Check via a regex matching the date/time format

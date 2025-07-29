@@ -29,10 +29,15 @@ struct ComponentTypeAndNameAttribute
     using AttributeType = ComponentTypeAndName;
     AttributeType mValue;
 
-    constexpr static inline auto name() -> std::string_view { return std::string_view{"Component"}; }
+    [[nodiscard]] constexpr static inline auto name() -> std::string_view;
 
     [[nodiscard]] static auto formatter() -> boost::log::formatter;
 };
+
+constexpr inline auto ComponentTypeAndNameAttribute::name() -> std::string_view
+{
+    return std::string_view{"Component"};
+}
 
 static_assert(AttributeWithFormatter<ComponentTypeAndNameAttribute>,
               "ComponentTypeAndNameAttribute satisfies concept AttributeWithFormatter");

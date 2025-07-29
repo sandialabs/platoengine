@@ -18,7 +18,7 @@ auto operator<<(std::ostream& aStream, const Severity aSeverity) -> std::ostream
     return aStream;
 }
 
-auto severity_attribute_formatter() -> boost::log::formatter
+auto SeverityAttribute::formatter() -> boost::log::formatter
 {
     namespace ble = boost::log::expressions;
     return boost::log::formatter{

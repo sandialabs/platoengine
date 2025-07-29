@@ -28,23 +28,40 @@ namespace plato::third_party_integration::boost_log::unittest
 {
 namespace
 {
-[[nodiscard]] auto color_formatter() -> boost::log::formatter
+struct ColorAttribute
 {
-    namespace ble = boost::log::expressions;
-    return boost::log::formatter{
-        ble::stream << ble::if_(ble::has_attr(color_attribute))[ble::stream << "<" << color_attribute << ">"]};
-}
-[[nodiscard]] auto size_formatter() -> boost::log::formatter
+    using AttributeType = std::string;
+    AttributeType mValue;
+
+    [[nodiscard]] constexpr static auto name() -> std::string_view { return kColorAttribute; }
+
+    [[nodiscard]] static auto formatter() -> boost::log::formatter
+    {
+        namespace ble = boost::log::expressions;
+        return boost::log::formatter{
+            ble::stream << ble::if_(ble::has_attr(color_attribute))[ble::stream << "<" << color_attribute << ">"]};
+    }
+};
+
+struct SizeAttribute
 {
-    namespace ble = boost::log::expressions;
-    return boost::log::formatter{
-        ble::stream << ble::if_(ble::has_attr(size_attribute))[ble::stream << "{" << size_attribute << "}"]};
-}
+    using AttributeType = std::string;
+    AttributeType mValue;
+
+    [[nodiscard]] constexpr static auto name() -> std::string_view { return kSizeAttribute; }
+
+    [[nodiscard]] static auto formatter() -> boost::log::formatter
+    {
+        namespace ble = boost::log::expressions;
+        return boost::log::formatter{
+            ble::stream << ble::if_(ble::has_attr(size_attribute))[ble::stream << "{" << size_attribute << "}"]};
+    }
+};
 }  // namespace
 
 TEST(AttributeFormatter, AttributeFormatter)
 {
-    const auto tFormatter = attribute_formatter(color_formatter(), size_formatter());
+    const auto tFormatter = attribute_formatter<ColorAttribute, SizeAttribute>();
 
     const auto tStream = std::make_shared<std::stringstream>();
     [[maybe_unused]] const auto tInternalLoggerSink =

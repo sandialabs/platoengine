@@ -16,8 +16,8 @@ namespace
 {
 void log(boost::log::sources::logger& aLogger, const std::string_view aMessage, const Severity aSeverity)
 {
-    aLogger.add_attribute(kTimeStampAttributeName.data(), boost::log::attributes::local_clock());
-    BOOST_LOG_SCOPED_LOGGER_ATTR(aLogger, kSeverityAttributeName.data(),
+    aLogger.add_attribute(TimeStampAttribute::name().data(), boost::log::attributes::local_clock());
+    BOOST_LOG_SCOPED_LOGGER_ATTR(aLogger, SeverityAttribute::name().data(),
                                  boost::log::attributes::make_constant(aSeverity))
 
     BOOST_LOG(aLogger) << aMessage;

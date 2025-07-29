@@ -16,11 +16,13 @@ struct MPIWorldCommRankAttribute
     using AttributeType = int;
     AttributeType mValue = boost::mpi::communicator{}.rank();
 
-    constexpr static inline auto name() -> std::string_view { return std::string_view{"MPI rank"}; }
+    [[nodiscard]] constexpr static inline auto name() -> std::string_view;
 
     /// @brief Returns a filter that filters out all MPI ranks except the root rank on @a aCommunicator.
     [[nodiscard]] static auto filter() -> boost::log::filter;
 };
+
+constexpr inline auto MPIWorldCommRankAttribute::name() -> std::string_view { return std::string_view{"MPI rank"}; }
 
 static_assert(AttributeWithFilter<MPIWorldCommRankAttribute>,
               "MPIWorldCommRankAttribute satisfies concept AttributeWithFilter");
