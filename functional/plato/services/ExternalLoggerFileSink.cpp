@@ -14,7 +14,11 @@ namespace plato::services
 {
     namespace tpi_bl = third_party_integration::boost_log;
 
+    if (!aLogFilePath.parent_path().empty())
+    {
+        std::filesystem::create_directories(aLogFilePath.parent_path());
+    }
     return tpi_bl::sink_with_attribute_formatters_and_filters<tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kExternal>>(
-        boost::make_shared<std::ofstream>(aLogFilePath));
+        boost::make_shared<std::ofstream>(aLogFilePath, std::ios::app));
 }
 }  // namespace plato::services
