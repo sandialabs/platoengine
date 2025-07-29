@@ -22,4 +22,14 @@ TEST(ComponentAttribute, StreamInsertion)
     tExpectStreamMatches(ComponentType::kObjective, "objective", TEST_CONTEXT("Objective"));
     tExpectStreamMatches(ComponentType::kProcessManager, "process manager", TEST_CONTEXT("Process manager"));
 }
+
+TEST(ComponentAttribute, ToString)
+{
+    EXPECT_EQ(to_string(ComponentType::kConstraint), "constraint");
+    EXPECT_EQ(to_string(ComponentType::kFilter), "filter");
+    EXPECT_EQ(to_string(ComponentType::kGeometry), "geometry");
+    EXPECT_EQ(to_string(ComponentType::kObjective), "objective");
+    EXPECT_EQ(to_string(ComponentType::kProcessManager), "process manager");
+}
+
 }  // namespace plato::components::unittest

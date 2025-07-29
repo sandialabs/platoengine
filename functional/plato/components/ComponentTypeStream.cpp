@@ -4,22 +4,34 @@
 
 namespace plato::components
 {
+namespace
+{
+const static auto kComponentNameTable =
+    utilities::EnumTable<ComponentType>{{ComponentType::kConstraint, "constraint"},
+                                        {ComponentType::kFilter, "filter"},
+                                        {ComponentType::kGeometry, "geometry"},
+                                        {ComponentType::kObjective, "objective"},
+                                        {ComponentType::kProcessManager, "process manager"}};
+
+}
+
 auto operator<<(std::ostream& aStream, const ComponentType aComponentType) -> std::ostream&
 {
-    const static auto tComponentNameTable =
-        utilities::EnumTable<ComponentType>{{ComponentType::kConstraint, "constraint"},
-                                            {ComponentType::kFilter, "filter"},
-                                            {ComponentType::kGeometry, "geometry"},
-                                            {ComponentType::kObjective, "objective"},
-                                            {ComponentType::kProcessManager, "process manager"}};
     // Check that all enumerates are included in the table
     assert(utilities::number_of_enumerates<ComponentType>() ==
-           std::distance(tComponentNameTable.begin(), tComponentNameTable.end()));
+           std::distance(kComponentNameTable.begin(), kComponentNameTable.end()));
 
-    const auto tComponentName = tComponentNameTable.toString(aComponentType);
+    const auto tComponentName = kComponentNameTable.toString(aComponentType);
     assert(tComponentName.has_value());
 
     aStream << tComponentName.value();
     return aStream;
+}
+
+auto to_string(const ComponentType aComponentType) -> std::string
+{
+    auto tComponentName = kComponentNameTable.toString(aComponentType);
+    assert(tComponentName.has_value());
+    return std::move(tComponentName).value();
 }
 }  // namespace plato::components
