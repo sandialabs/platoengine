@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "plato/services/ExternalLoggerFileSink.hpp"
+#include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/SeverityLogger.hpp"
@@ -12,14 +13,6 @@ namespace plato::services::unittest
 {
 namespace
 {
-[[nodiscard]] auto file_to_string(const std::filesystem::path& aPath) -> std::string
-{
-    auto tFile = std::ifstream{aPath};
-    auto tFileContents = std::stringstream{};
-    tFile >> tFileContents.rdbuf();
-    return tFileContents.str();
-}
-
 void check_external_log(const std::filesystem::path& aTestLogPath, const test_utilities::TestContext& aTestContext)
 {
     namespace tpi_bl = third_party_integration::boost_log;
@@ -38,7 +31,7 @@ void check_external_log(const std::filesystem::path& aTestLogPath, const test_ut
         tInternalLogger.logMessage(tInternalMessage, tpi_bl::Severity::kInfo);
     }
 
-    const auto tFileContents = file_to_string(aTestLogPath);
+    const auto tFileContents = test_utilities::file_to_string(aTestLogPath);
 
     EXPECT_NE(tFileContents.find(tExternalMessage), std::string::npos) << aTestContext << "Log: " << tFileContents;
     EXPECT_EQ(tFileContents.find(tInternalMessage), std::string::npos) << aTestContext << "Log: " << tFileContents;
@@ -82,7 +75,7 @@ TEST(ExternalLoggerFileSink, LogsToExistingFile)
 
     check_external_log(tTestLogPath, TEST_CONTEXT("Existing file"));
 
-    const auto tFileContents = file_to_string(tTestLogPath);
+    const auto tFileContents = test_utilities::file_to_string(tTestLogPath);
 
     EXPECT_NE(tFileContents.find(tExistingMessage), std::string::npos) << "Log: " << tFileContents;
     EXPECT_TRUE(std::filesystem::remove(tTestLogPath));
