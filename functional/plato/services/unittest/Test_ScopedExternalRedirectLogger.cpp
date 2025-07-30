@@ -31,7 +31,7 @@ void check_redirected_log_output(std::ostream& aOutputStream, const test_utiliti
 
     {
         [[maybe_unused]] const auto tExternalLogCapture =
-            ScopedExternalRedirectLogger<components::ComponentType::kObjective>{"nodal-sum"};
+            ScopedExternalRedirectLogger{components::ComponentType::kObjective, "nodal-sum"};
 
         aOutputStream << kTestMessage;
     }
@@ -69,7 +69,7 @@ TEST(ScopedExternalRedirectLogger, ExceptionBehavior)
         try
         {
             [[maybe_unused]] const auto tExternalLogCapture =
-                ScopedExternalRedirectLogger<components::ComponentType::kGeometry>{"brick"};
+                ScopedExternalRedirectLogger{components::ComponentType::kGeometry, "brick"};
 
             std::cout << kTestMessage;
             throw std::runtime_error{"Throwing before redirect closes"};
