@@ -1,5 +1,5 @@
-#ifndef PLATO_SERVICES_EXTERNALREDIRECTLOGGER
-#define PLATO_SERVICES_EXTERNALREDIRECTLOGGER
+#ifndef PLATO_SERVICES_SCOPEDEXTERNALREDIRECTLOGGER
+#define PLATO_SERVICES_SCOPEDEXTERNALREDIRECTLOGGER
 
 #include <sstream>
 #include <string>
@@ -13,10 +13,11 @@ namespace plato::services
 /// This is an RAII-style object that, on construction, captures all `stdout` and `sterr` output and on destruction,
 /// writes the captured output to the external log sink. `stdout` output will be labeled with the `info` attribute, and
 /// `stderr` output will be labeled with the `error` attribute.
+template <components::ComponentType kComponentType>
 class ScopedExternalRedirectLogger
 {
    public:
-    ScopedExternalRedirectLogger(components::ComponentType aComponentType, std::string aComponentName);
+    ScopedExternalRedirectLogger(std::string aComponentName);
     ~ScopedExternalRedirectLogger();
 
     ScopedExternalRedirectLogger(const ScopedExternalRedirectLogger&) = delete;
@@ -25,7 +26,6 @@ class ScopedExternalRedirectLogger
     auto operator=(ScopedExternalRedirectLogger&&) -> ScopedExternalRedirectLogger& = delete;
 
    private:
-    components::ComponentType mComponentType;
     std::string mComponentName;
     std::streambuf* mOriginalCoutBuffer;
     std::streambuf* mOriginalCerrBuffer;
