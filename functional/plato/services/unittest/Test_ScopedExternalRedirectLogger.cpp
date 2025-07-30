@@ -37,6 +37,10 @@ void check_redirected_log_output(std::ostream& aOutputStream, const test_utiliti
     }
 
     EXPECT_NE(tStream->str().find(kTestMessage), std::string::npos) << aTestContext << "Log: " << tStream->str();
+
+    // Check that we can write to std::cout & std::cerr. Without restoring std::cout, this could crash
+    std::cout << "Testing write to std::cout" << std::endl;
+    std::cerr << "Testing write to std::cerr" << std::endl;
 }
 }  // namespace
 

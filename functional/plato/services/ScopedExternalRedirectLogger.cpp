@@ -80,6 +80,9 @@ ScopedExternalRedirectLogger::~ScopedExternalRedirectLogger()
         auto tConsoleLogger = ComponentLogger{mComponentType, mComponentName};
         tConsoleLogger.logError(mRedirectedCerrStream.str());
     }
+
+    std::cout.rdbuf(mOriginalCoutBuffer);
+    std::cerr.rdbuf(mOriginalCerrBuffer);
 }
 
 }  // namespace plato::services
