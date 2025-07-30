@@ -11,6 +11,8 @@
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerFactory.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
+#include "plato/services/ExternalLoggerFileSink.hpp"
+#include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
@@ -42,6 +44,9 @@ namespace detail
 
 void run_plato(const std::filesystem::path& aInputFile)
 {
+    [[maybe_unused]] const auto tInternalLogSink = services::internal_logger_console_sink();
+    [[maybe_unused]] const auto tExternalLogSinks = services::component_external_logger_file_sinks();
+
     const auto tValidatedInput = input_validation::parse_and_validate_file(aInputFile);
     if (tValidatedInput.hasError())
     {
