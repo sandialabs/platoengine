@@ -37,7 +37,7 @@ template <components::ComponentType kIncludedComponent>
 struct ComponentTypeFilterAttribute
 {
     using AttributeType = components::ComponentType;
-    AttributeType mValue;
+    AttributeType mValue = kIncludedComponent;
 
     [[nodiscard]] constexpr static inline auto name() -> std::string_view;
 
