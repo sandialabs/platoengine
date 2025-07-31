@@ -38,10 +38,11 @@ class ComponentLogger
     void logError(std::string_view aMessage);
 
     ~ComponentLogger();
-    ComponentLogger(const ComponentLogger&) = delete;
-    auto operator=(const ComponentLogger&) -> ComponentLogger& = delete;
-    ComponentLogger(ComponentLogger&&) = default;
-    auto operator=(ComponentLogger&&) -> ComponentLogger& = default;
+    ComponentLogger(ComponentLogger&&) noexcept;
+    auto operator=(ComponentLogger&&) noexcept -> ComponentLogger&;
+
+    ComponentLogger(const ComponentLogger&) noexcept = delete;
+    auto operator=(const ComponentLogger&) noexcept -> ComponentLogger& = delete;
 
    private:
     struct ComponentLoggerImpl;

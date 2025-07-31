@@ -71,14 +71,15 @@ ScopedExternalRedirectLogger::~ScopedExternalRedirectLogger()
 
     if (!mRedirectedCoutStream.str().empty())
     {
-        tLogger.logMessage(mRedirectedCoutStream.str(), tpi_bl::Severity::kInfo);
+        // Add a spacer
+        tLogger.logMessage("\n" + mRedirectedCoutStream.str(), tpi_bl::Severity::kInfo);
     }
     if (!mRedirectedCerrStream.str().empty())
     {
         tLogger.logMessage(mRedirectedCerrStream.str(), tpi_bl::Severity::kError);
         // Log an error to the console as well
         auto tConsoleLogger = ComponentLogger{mComponentType, mComponentName};
-        tConsoleLogger.logError(mRedirectedCerrStream.str());
+        tConsoleLogger.logError("\n" + mRedirectedCerrStream.str());
     }
 
     std::cout.rdbuf(mOriginalCoutBuffer);

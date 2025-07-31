@@ -47,4 +47,7 @@ void ComponentLogger::logError(const std::string_view aMessage)
 
 ComponentLogger::~ComponentLogger() = default;
 
+ComponentLogger::ComponentLogger(ComponentLogger&&) noexcept = default;
+auto ComponentLogger::operator=(ComponentLogger&&) noexcept -> ComponentLogger& = default;
+
 }  // namespace plato::services
