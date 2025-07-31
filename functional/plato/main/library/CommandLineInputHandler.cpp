@@ -8,6 +8,7 @@
 #include "plato/input_parser/HelpDocumentationRegistration.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/main/library/Executor.hpp"
+#include "plato/main/library/Splash.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerFactory.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
@@ -53,6 +54,12 @@ void run_plato(const std::filesystem::path& aInputFile)
         print_message(tValidatedInput.error());
         return;
     }
+
+    if (boost::mpi::communicator{}.rank() == 0)
+    {
+        write_splash_screen(std::cout);
+    }
+
     const auto& tValidatedProcessManagers = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
     const auto tExecutor =
         plato::main::library::Executor{process_manager::library::make_process_managers(tValidatedProcessManagers)};
