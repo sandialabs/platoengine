@@ -1,6 +1,7 @@
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 
 #include <numeric>
+#include <algorithm>
 
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 

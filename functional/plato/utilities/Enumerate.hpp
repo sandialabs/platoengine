@@ -2,6 +2,7 @@
 #define PLATO_UTILITIES_ENUMERATE_HPP
 
 #include <numeric>
+#include <algorithm>
 
 #include "plato/utilities/MultidimensionalRange.hpp"
 #include "plato/utilities/Zip.hpp"
