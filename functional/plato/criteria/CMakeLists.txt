@@ -9,7 +9,10 @@ set(LINK_LIBS PlatoFunctionalCore
               PlatoFunctionalServices
               PlatoFunctionalMesh)
 create_plato_library(PlatoFunctionalCriteria "${DIRECTORIES}" "${LINK_LIBS}")
-create_plato_interface(PlatoCriteriaInterface library/CriterionInterface.hpp  PlatoAnalysisInterface)
+
+set(HEADERS library/CriterionInterface.hpp
+            library/VectorCriterionInterface.hpp)
+create_plato_interface(PlatoCriteriaInterface "${HEADERS}"  PlatoAnalysisInterface)
 
 if( UNIT_TESTING )
   # Build test utilities lib
