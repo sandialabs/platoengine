@@ -3,23 +3,14 @@
 ###############################################################################
 SET(SRCS UnitMain.cpp
          Plato_StkMeshUtils.cpp
-         Plato_PlatoProxyApp.cpp
-         Plato_PhysicsProxyApp.cpp
-         Plato_StructuralTopologyOptimizationProxyGoldResults.cpp
-         Plato_Test_Proxy.cpp
-         Plato_Test_SimpleRocket.cpp
          Plato_Test_InputData.cpp
          Plato_Test_LinearAlgebra.cpp
-         Plato_Test_AugmentedLagrangian.cpp
          Plato_Test_Bounds.cpp
-         Plato_Test_SimpleTopOpt.cpp
          Plato_Test_OptimizationTestFunctions.cpp
          Plato_Test_UniqueCounter.cpp
-         Plato_Test_SimpleRocketOptimization.cpp
          Plato_Test_LocalStatisticsOperations.cpp
          Plato_Test_WriteParameterStudyData.cpp
          Plato_Test_FreeFunctions.cpp
-         Plato_Test_ROL.cpp
          Plato_Test_TimersTree.cpp
          PSL_Test_Triangle.cpp  
          PSL_Test_OverhangFilter.cpp  
@@ -66,8 +57,7 @@ ENDIF()
 ###############################################################################
 # Headers:
 ###############################################################################
-SET(HDRS Plato_StructuralTopologyOptimizationProxyGoldResults.hpp
-         ParseUnitTestStrings.hpp
+SET(HDRS ParseUnitTestStrings.hpp
          Plato_UnitTestUtils.hpp
          Plato_StkMeshUtils.hpp
          )
@@ -78,7 +68,7 @@ Plato_add_test_files("${testFiles}")
 
 
 add_executable(PlatoMainUnitTester ${SRCS})
-target_link_libraries(PlatoMainUnitTester PlatoApp PlatoPSLFilter PlatoPSLAbstractInterface PlatoPSLHelper PlatoProxy PlatoOptimize ${NLOPT_LIBRARY} GTest::GTest ${PYTHON_LIBRARY} ${PYTHON_LINK_LIBS})
+target_link_libraries(PlatoMainUnitTester PlatoApp PlatoPSLFilter PlatoPSLAbstractInterface PlatoPSLHelper PlatoOptimize ${NLOPT_LIBRARY} GTest::GTest ${PYTHON_LIBRARY} ${PYTHON_LINK_LIBS})
 if( DAKOTADRIVER )
   target_include_directories(PlatoMainUnitTester PUBLIC ${Dakota_INCLUDE_DIRS})
   target_link_libraries(PlatoMainUnitTester ${Dakota_LIBRARIES} ${Boost_LIBRARIES})
