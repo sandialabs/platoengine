@@ -42,8 +42,9 @@ namespace plato::third_party_integration::stk_io
 namespace detail
 {
 
-template <stk::topology::topology_t... AllTopologies>
-using STKTopologySequence = std::integer_sequence<stk::topology::topology_t, AllTopologies...>;
+using STKTopologyTUnderlyingType = std::underlying_type_t<stk::topology::topology_t>;
+template <STKTopologyTUnderlyingType... AllTopologies>
+using STKTopologySequence = std::integer_sequence<STKTopologyTUnderlyingType, AllTopologies...>;
 constexpr auto kSupportedTopologies = STKTopologySequence<stk::topology::HEXAHEDRON_8,
                                                           stk::topology::HEXAHEDRON_20,
                                                           stk::topology::TETRAHEDRON_4,
@@ -99,13 +100,15 @@ auto topology_selector_apply(const stk::mesh::Entity& aElement,
     return ApplyTaggedFunction<Topology>::template zero<FunctionTag>();
 }
 
-template <typename FunctionTag, stk::topology::topology_t... AllTopologies>
+template <typename FunctionTag, STKTopologyTUnderlyingType... AllTopologies>
 auto element_apply_impl(const stk::mesh::Entity& aElement,
                         const stk::mesh::BulkData& aBulk,
                         const stk::topology::topology_t tTopologyType,
                         const STKTopologySequence<AllTopologies...>)
 {
-    return (topology_selector_apply<FunctionTag, AllTopologies>(aElement, aBulk, tTopologyType) + ...);
+    return (topology_selector_apply<FunctionTag, static_cast<stk::topology::topology_t>(AllTopologies)>(aElement, aBulk,
+                                                                                                        tTopologyType) +
+            ...);
 }
 
 template <typename FunctionTag>
