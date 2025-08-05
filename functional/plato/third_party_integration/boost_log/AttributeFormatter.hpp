@@ -11,26 +11,24 @@ namespace plato::third_party_integration::boost_log
 /// @note Order matters, the attributes will be output from left to right matching the order of the formatters in the
 /// template arguments.
 template <Attribute... Formatters>
-[[nodiscard]] auto attribute_formatter() -> boost::log::formatter;
+[[nodiscard]] auto attribute_formatter(FormattingStyle aFormattingStyle) -> boost::log::formatter;
 
 template <Attribute... Formatters>
-auto attribute_formatter() -> boost::log::formatter
+auto attribute_formatter(const FormattingStyle aFormattingStyle) -> boost::log::formatter
 {
     using StreamType = boost::log::formatter::stream_type;
 
-    return boost::log::formatter{[](const boost::log::record_view& aRecord, StreamType& aStream)
-                                 {
-                                     const auto tFormatter =
-                                         []<typename AttributeType>(const boost::log::record_view& aRecord,
-                                                                    StreamType& aStream)
-                                     {
-                                         if constexpr (AttributeWithFormatter<AttributeType>)
-                                         {
-                                             AttributeType::formatter()(aRecord, aStream);
-                                         }
-                                     };
-                                     (tFormatter.template operator()<Formatters>(aRecord, aStream), ...);
-                                 }};
+    const auto tFormatter =
+        [aFormattingStyle]<typename AttributeType>(const boost::log::record_view& aRecord, StreamType& aStream)
+    {
+        if constexpr (AttributeWithFormatter<AttributeType>)
+        {
+            AttributeType::formatter(aFormattingStyle)(aRecord, aStream);
+        }
+    };
+
+    return boost::log::formatter{[tFormatter](const boost::log::record_view& aRecord, StreamType& aStream)
+                                 { (tFormatter.template operator()<Formatters>(aRecord, aStream), ...); }};
 }
 
 }  // namespace plato::third_party_integration::boost_log

@@ -15,19 +15,17 @@ template <Attribute... Filters>
 template <Attribute... Filters>
 auto filter_conjunction() -> boost::log::filter
 {
-    return boost::log::filter{[](const boost::log::attribute_value_set& aAttributes)
-                              {
-                                  const auto tFilter =
-                                      []<typename AttributeType>(const boost::log::attribute_value_set& aAttributes)
-                                  {
-                                      if constexpr (AttributeWithFilter<AttributeType>)
-                                      {
-                                          return AttributeType::filter()(aAttributes);
-                                      }
-                                      return true;
-                                  };
-                                  return (tFilter.template operator()<Filters>(aAttributes) && ...);
-                              }};
+    const auto tFilter = []<typename AttributeType>(const boost::log::attribute_value_set& aAttributes)
+    {
+        if constexpr (AttributeWithFilter<AttributeType>)
+        {
+            return AttributeType::filter()(aAttributes);
+        }
+        return true;
+    };
+
+    return boost::log::filter{[&tFilter](const boost::log::attribute_value_set& aAttributes)
+                              { return (tFilter.template operator()<Filters>(aAttributes) && ...); }};
 }
 }  // namespace plato::third_party_integration::boost_log
 

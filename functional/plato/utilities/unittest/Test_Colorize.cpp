@@ -2,10 +2,17 @@
 
 #include <sstream>
 
+#include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 #include "plato/utilities/Colorize.hpp"
 
 namespace plato::utilities::unittest
 {
+namespace
+{
+class ColorizeRedirectFixture : public test_utilities::CoutCerrPrintTestFixture
+{
+};
+}  // namespace
 TEST(Colorize, StreamInsertionNoColorSupport)
 {
     auto tStream = std::stringstream{};
@@ -15,10 +22,8 @@ TEST(Colorize, StreamInsertionNoColorSupport)
     EXPECT_EQ(tStream.str(), "Hello green world!42");
 }
 
-TEST(Colorize, ManualColorCheck)
+TEST_F(ColorizeRedirectFixture, ManualColorCheck)
 {
-    GTEST_SKIP() << "Comment this out and run manually to check the colors in the terminal";
-
     std::cout << colorize("T", TextColor::kRed);
     std::cout << colorize("a", TextColor::kGreen);
     std::cout << colorize("s", TextColor::kBlue);
@@ -35,6 +40,28 @@ TEST(Colorize, ManualColorCheck)
     std::cerr << colorize("o", TextColor::kLightGray);
     std::cerr << colorize("w", TextColor::kDarkGray) << "\n";
     std::cout << "Back to normal on cout\n";
-    std::cout << "Back to normal on cerr\n";
+    std::cerr << "Back to normal on cerr\n";
+
+    auto tExpected = std::string{"\033[31mT\033[39m"};  // Red: 31
+    tExpected += "\033[32ma\033[39m";                   // Green: 32
+    tExpected += "\033[34ms\033[39m";                   // Blue: 34
+    tExpected += "\033[36mt\033[39m";                   // Cyan: 36
+    tExpected += "\033[35me\033[39m";                   // Magenta: 35
+    tExpected += "\033[33mT\033[39m";                   // Yellow: 33
+    tExpected += "\033[30mh\033[39m";                   // Black: 30
+    tExpected += "\033[91me\033[39m";                   // Light red: 91
+    tExpected += "Back to normal on cout\n";
+    checkRankZeroCoutStringStream(tExpected, TEST_CONTEXT("Cout"));
+
+    tExpected.clear();
+    tExpected += "\033[92mR\033[39m";    // Light green: 92
+    tExpected += "\033[94ma\033[39m";    // Light blue: 94
+    tExpected += "\033[96mi\033[39m";    // Light cyan: 96
+    tExpected += "\033[95mn\033[39m";    // Light magenta: 95
+    tExpected += "\033[93mb\033[39m";    // Light yellow: 93
+    tExpected += "\033[37mo\033[39m";    // Light gray: 37
+    tExpected += "\033[90mw\033[39m\n";  // Dark gray: 90
+    tExpected += "Back to normal on cerr\n";
+    checkRankZeroCerrStringStream(tExpected, TEST_CONTEXT("Cerr"));
 }
 }  // namespace plato::utilities::unittest

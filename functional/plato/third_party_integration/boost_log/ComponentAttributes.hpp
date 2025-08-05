@@ -29,7 +29,7 @@ struct ComponentTypeAndNameAttribute
 
     [[nodiscard]] constexpr static inline auto name() -> std::string_view;
 
-    [[nodiscard]] static auto formatter() -> boost::log::formatter;
+    [[nodiscard]] static auto formatter(FormattingStyle aFormattingStyle) -> boost::log::formatter;
 };
 
 /// @brief Attribute for filtering messages only from a specific component.

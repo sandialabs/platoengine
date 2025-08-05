@@ -4,7 +4,7 @@
 #include <boost/log/sources/logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 
-#include "plato/test_utilities/CoutPrintTestFixture.hpp"
+#include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
@@ -18,7 +18,7 @@ namespace
 {
 constexpr auto kSharkTag = std::string_view{"great-white"};
 
-class SinkWithAttributeFormattersAndFiltersCoutRedirect : public plato::test_utilities::CoutPrintTestFixture
+class SinkWithAttributeFormattersAndFiltersCoutRedirect : public plato::test_utilities::CoutCerrPrintTestFixture
 {
 };
 
@@ -53,7 +53,7 @@ TEST_F(SinkWithAttributeFormattersAndFiltersCoutRedirect, Outputs)
     auto tLogger = test_logger();
     BOOST_LOG(tLogger) << tMessage;
 
-    checkRankZeroStringStreamForPattern({std::string{tMessage}, std::string{kSharkTag}},
-                                        TEST_CONTEXT("Checking for log message."));
+    checkRankZeroCoutStringStreamStreamForPattern({std::string{tMessage}, std::string{kSharkTag}},
+                                                  TEST_CONTEXT("Checking for log message."));
 }
 }  // namespace plato::third_party_integration::boost_log::unittest

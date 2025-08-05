@@ -7,7 +7,7 @@
 #include "plato/utilities/EnumTable.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
-namespace plato::utilities::detail
+namespace plato::utilities
 {
 namespace
 {
@@ -47,4 +47,11 @@ namespace
     assert(tColorCode.has_value());
     return concatenate(tEscapeSequence, tColorCode.value(), "m");
 }
-}  // namespace plato::utilities::detail
+
+namespace detail
+{
+
+auto DefaultColorPolicy::operator()(const std::ostream& aStream) -> bool { return stream_supports_color(aStream); }
+
+}  // namespace detail
+}  // namespace plato::utilities

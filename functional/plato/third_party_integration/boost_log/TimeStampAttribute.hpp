@@ -18,7 +18,7 @@ struct TimeStampAttribute
 
     [[nodiscard]] constexpr static auto name() -> std::string_view;
 
-    [[nodiscard]] static auto formatter() -> boost::log::formatter;
+    [[nodiscard]] static auto formatter(FormattingStyle aFormattingStyle) -> boost::log::formatter;
 };
 
 constexpr auto TimeStampAttribute::name() -> std::string_view { return std::string_view{"Time stamp"}; }

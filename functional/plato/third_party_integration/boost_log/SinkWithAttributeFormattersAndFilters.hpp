@@ -11,6 +11,7 @@
 #include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
 #include "plato/third_party_integration/boost_log/FilterConjunction.hpp"
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
+#include "plato/utilities/Colorize.hpp"
 
 namespace plato::third_party_integration::boost_log
 {
@@ -39,7 +40,9 @@ template <detail::AttributeWithFormatterOrFilter... Attributes>
 auto sink_with_attribute_formatters_and_filters(const boost::shared_ptr<std::ostream>& aStreamSink)
     -> LoggerSinkSetupTeardown
 {
-    auto tAttributeFormatter = attribute_formatter<Attributes...>();
+    const auto tFormattingStyle =
+        utilities::stream_supports_color(*aStreamSink) ? FormattingStyle::kColor : FormattingStyle::kNone;
+    auto tAttributeFormatter = attribute_formatter<Attributes...>(tFormattingStyle);
     auto tMessageFormatter =
         boost::log::formatter{boost::log::expressions::stream << boost::log::expressions::smessage};
 

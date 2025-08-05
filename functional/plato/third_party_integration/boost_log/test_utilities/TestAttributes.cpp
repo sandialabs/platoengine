@@ -4,7 +4,7 @@
 
 namespace plato::third_party_integration::boost_log::test_utilities
 {
-auto SharkAttribute::formatter() -> boost::log::formatter
+auto SharkAttribute::formatter(const FormattingStyle /*aFormattingStyle*/) -> boost::log::formatter
 {
     namespace ble = boost::log::expressions;
     return boost::log::formatter{

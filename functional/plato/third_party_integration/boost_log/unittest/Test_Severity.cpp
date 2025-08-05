@@ -9,6 +9,8 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
 #include "plato/third_party_integration/boost_log/Severity.hpp"
+#include "plato/utilities/Colorize.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::third_party_integration::boost_log::unittest
 {
@@ -30,18 +32,30 @@ TEST(Severity, StreamInsertion)
 
 TEST(Severity, Formatter)
 {
-    const auto tStream = boost::make_shared<std::stringstream>();
+    const auto tCheckSeverityOutput = [](const FormattingStyle aFormattingStyle, const std::string_view aExpected,
+                                         const plato::test_utilities::TestContext& aTestContext)
+    {
+        const auto tStream = boost::make_shared<std::stringstream>();
+        const auto tFormatter = SeverityAttribute::formatter(aFormattingStyle);
+        [[maybe_unused]] const auto tInternalLoggerSink =
+            LoggerSinkSetupTeardown{tStream, tFormatter, boost::log::filter{}};
 
-    const auto tFormatter = SeverityAttribute::formatter();
-    [[maybe_unused]] const auto tInternalLoggerSink =
-        LoggerSinkSetupTeardown{tStream, tFormatter, boost::log::filter{}};
+        auto tLogger = boost::log::sources::logger{};
+        tLogger.add_attribute(SeverityAttribute::name().data(),
+                              boost::log::attributes::make_constant(Severity::kError));
 
-    auto tLogger = boost::log::sources::logger{};
-    tLogger.add_attribute(SeverityAttribute::name().data(), boost::log::attributes::make_constant(Severity::kError));
+        BOOST_LOG(tLogger) << "this message should not appear";
 
-    BOOST_LOG(tLogger) << "this message should not appear";
+        EXPECT_EQ(tStream->str(), aExpected) << aTestContext;
+    };
 
-    EXPECT_EQ(tStream->str(), "[error] \n");
+    constexpr auto tExpectedNoColorOutput = std::string_view{"[error] \n"};
+    tCheckSeverityOutput(FormattingStyle::kNone, tExpectedNoColorOutput, TEST_CONTEXT("No color"));
+
+    const auto tExpectedColorOutput =
+        utilities::concatenate("[", utilities::color_code(utilities::TextColor::kRed), "error",
+                               utilities::color_code(utilities::TextColor::kDefault), "] \n");
+    tCheckSeverityOutput(FormattingStyle::kColor, tExpectedColorOutput, TEST_CONTEXT("Color"));
 }
 
 }  // namespace plato::third_party_integration::boost_log::unittest

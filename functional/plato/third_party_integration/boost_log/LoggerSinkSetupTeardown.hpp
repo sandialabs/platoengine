@@ -12,7 +12,7 @@ namespace plato::third_party_integration::boost_log
 {
 /// @brief An RAII-style class to manage a boost::log sink. On construction, this adds a new sink to the boost logging
 /// core using the ostream given on construction. On destruction, the sink is removed from the logging core.
-class LoggerSinkSetupTeardown
+class [[nodiscard]] LoggerSinkSetupTeardown
 {
    public:
     LoggerSinkSetupTeardown(const boost::shared_ptr<std::ostream>& aStreamSink,

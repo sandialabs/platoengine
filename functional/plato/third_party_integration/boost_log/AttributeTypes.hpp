@@ -8,6 +8,13 @@
 
 namespace plato::third_party_integration::boost_log
 {
+/// @brief Formatting style, mainly indicating whether or not to use color.
+enum struct FormattingStyle
+{
+    kNone,
+    kColor
+};
+
 /// @brief Concept defining the requirements of an attribute type.
 template <typename T>
 concept Attribute = requires(const T t) {
@@ -20,7 +27,7 @@ concept Attribute = requires(const T t) {
 template <typename T>
 concept AttributeWithFormatter = requires(const T t) {
     { T::name() } -> std::convertible_to<std::string_view>;
-    { T::formatter() } -> std::convertible_to<boost::log::formatter>;
+    { T::formatter(FormattingStyle{}) } -> std::convertible_to<boost::log::formatter>;
     { t.mValue } -> std::convertible_to<typename T::AttributeType>;
     typename T::AttributeType;
 };

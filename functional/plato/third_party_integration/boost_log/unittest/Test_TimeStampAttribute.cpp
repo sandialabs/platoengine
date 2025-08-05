@@ -4,25 +4,54 @@
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/regex.hpp>
 
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
 #include "plato/third_party_integration/boost_log/TimeStampAttribute.hpp"
+#include "plato/utilities/Colorize.hpp"
 
 namespace plato::third_party_integration::boost_log::unittest
 {
-TEST(TimeStampAttribute, Formatter)
+namespace
 {
-    const auto tStream = boost::make_shared<std::stringstream>();
+constexpr auto kDateTimeRegex = std::string_view{"[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}"};
 
-    [[maybe_unused]] const auto tInternalLoggerSink =
-        LoggerSinkSetupTeardown{tStream, TimeStampAttribute::formatter(), boost::log::filter{}};
-
+void check_time_regex(const std::string_view aTimeStampRegex,
+                      const std::stringstream& aLogStream,
+                      const plato::test_utilities::TestContext& aTestContext)
+{
     auto tLogger = boost::log::sources::logger{};
     tLogger.add_attribute(TimeStampAttribute::name().data(), boost::log::attributes::local_clock());
     BOOST_LOG(tLogger) << "should not appear";
 
     // Check via a regex matching the date/time format
-    const auto tDateTimeRegex = "\\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\\]";
-    const auto tRegex = boost::regex{tDateTimeRegex};
-    EXPECT_TRUE(boost::regex_search(tStream->str(), tRegex)) << "Result: " << tStream->str();
+    const auto tRegex = boost::regex{aTimeStampRegex.data()};
+    EXPECT_TRUE(boost::regex_search(aLogStream.str(), tRegex))
+        << aTestContext << "Result: " << aLogStream.str() << "\nRegex: " << aTimeStampRegex;
+}
+}  // namespace
+
+TEST(TimeStampAttribute, FormatterNoStyle)
+{
+    const auto tLogStream = boost::make_shared<std::stringstream>();
+
+    [[maybe_unused]] const auto tInternalLoggerSink = LoggerSinkSetupTeardown{
+        tLogStream, TimeStampAttribute::formatter(FormattingStyle::kNone), boost::log::filter{}};
+
+    check_time_regex(kDateTimeRegex, *tLogStream, TEST_CONTEXT("No style in formatter"));
+}
+
+TEST(TimeStampAttribute, FormatterColor)
+{
+    const auto tLogStream = boost::make_shared<std::stringstream>();
+
+    [[maybe_unused]] const auto tInternalLoggerSink = LoggerSinkSetupTeardown{
+        tLogStream, TimeStampAttribute::formatter(FormattingStyle::kColor), boost::log::filter{}};
+
+    // Define these explicitly because they need extra escape characters.
+    const auto tCyanEscapeCodeForRegex = std::string{"\\033\\[36m"};
+    const auto tDefaultEscapeCodeForRegex = std::string{"\\033\\[39m"};
+    const auto tColorizedDateTimeRegex =
+        tCyanEscapeCodeForRegex + std::string{kDateTimeRegex} + tDefaultEscapeCodeForRegex;
+    check_time_regex(tColorizedDateTimeRegex, *tLogStream, TEST_CONTEXT("Color style"));
 }
 }  // namespace plato::third_party_integration::boost_log::unittest

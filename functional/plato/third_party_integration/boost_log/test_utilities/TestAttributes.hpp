@@ -6,6 +6,8 @@
 #include <string>
 #include <string_view>
 
+#include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
+
 namespace plato::third_party_integration::boost_log::test_utilities
 {
 struct SharkAttribute
@@ -14,7 +16,7 @@ struct SharkAttribute
     AttributeType mValue;
 
     [[nodiscard]] constexpr static auto name() -> std::string_view { return "Sharks!"; }
-    [[nodiscard]] static auto formatter() -> boost::log::formatter;
+    [[nodiscard]] static auto formatter(FormattingStyle aFormattingStyle) -> boost::log::formatter;
     [[nodiscard]] static auto filter() -> boost::log::filter;
 };
 
