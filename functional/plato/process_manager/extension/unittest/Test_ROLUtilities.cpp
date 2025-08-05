@@ -90,7 +90,7 @@ void parse_and_generate_solver(const std::string& aInput, const plato::test_util
     const auto tValidatedOptimizationParameters =
         tData.value().get<components::ComponentType::kProcessManager>().rawInput().front();
     auto tROLOptions = make_optimization_parameters(tValidatedOptimizationParameters).parameters();
-    const auto tSolver = make_rol_solver(tROLOptions, make_rol_problem(tPlatoProblem).first);
+    const auto tSolver = make_rol_solver(tROLOptions, make_rol_problem(tPlatoProblem, "test").first);
 
     EXPECT_EQ(tSolver.getAlgorithmState()->iter, 0) << aTestContext;
 }

@@ -15,6 +15,7 @@ LoggerSinkSetupTeardown::LoggerSinkSetupTeardown(const boost::shared_ptr<std::os
     mSink->locked_backend()->add_stream(aStreamSink);
     mSink->set_formatter(aFormatter);
     mSink->set_filter(aFilter);
+    mSink->locked_backend()->auto_flush(true);
     boost::log::core::get()->add_sink(mSink);
 }
 

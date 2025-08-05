@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "plato/main/library/CommandLineInputHandler.hpp"
-#include "plato/test_utilities/CoutPrintTestFixture.hpp"
+#include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::main::library::unittest
@@ -27,63 +27,55 @@ const auto kCouldNotValidateKeys = std::vector<std::string>{"Parsing ", "error",
 
 }  // namespace
 
-using plato::test_utilities::CoutPrintTestFixture;
+using plato::test_utilities::CoutCerrPrintTestFixture;
 
-TEST_F(CoutPrintTestFixture, HandleInputEmpty)
+TEST_F(CoutCerrPrintTestFixture, HandleInputEmpty)
 {
     handle_input(kPlatoArgumentsEmpty);
-    checkRankZeroStringStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message nothing sent to plato."));
+    checkRankZeroCoutStringStreamStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message nothing sent to plato."));
 }
 
-TEST_F(CoutPrintTestFixture, HandleInputJunk)
+TEST_F(CoutCerrPrintTestFixture, HandleInputJunk)
 {
     handle_input(kPlatoArgumentsJunk);
-    checkRankZeroStringStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message junk was sent to plato."));
+    checkRankZeroCoutStringStreamStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message junk was sent to plato."));
 }
 
-TEST_F(CoutPrintTestFixture, HandleInputHelp)
+TEST_F(CoutCerrPrintTestFixture, HandleInputHelp)
 {
     handle_input(kPlatoArgumentsHelp);
-    checkRankZeroStringStreamForPattern(kKnownInputKeys, TEST_CONTEXT("Help message requested from plato."));
+    checkRankZeroCoutStringStreamStreamForPattern(kKnownInputKeys, TEST_CONTEXT("Help message requested from plato."));
 }
 
-TEST_F(CoutPrintTestFixture, RunPlato)
+TEST_F(CoutCerrPrintTestFixture, RunPlato)
 {
     const auto tInput = std::filesystem::path{"input.i"};
     const auto tArguments = std::vector<std::string>{tInput};
     std::ofstream tOutfile(tInput);
     {
         detail::run_plato(tInput);
-        checkRankZeroStringStreamForPattern(kCouldNotValidateKeys,
-                                            TEST_CONTEXT("Plato couldn't validate empty deck via run_plato."));
-        clearStream();
+        checkRankZeroCoutStringStreamStreamForPattern(
+            kCouldNotValidateKeys, TEST_CONTEXT("Plato couldn't validate empty deck via run_plato."));
+        clearStreams();
     }
     {
         handle_input(tArguments);
-        checkRankZeroStringStreamForPattern(kCouldNotValidateKeys,
-                                            TEST_CONTEXT("Plato couldn't validate empty deck via handle_input."));
+        checkRankZeroCoutStringStreamStreamForPattern(
+            kCouldNotValidateKeys, TEST_CONTEXT("Plato couldn't validate empty deck via handle_input."));
     }
     std::filesystem::remove(tInput);
 }
 
-TEST_F(CoutPrintTestFixture, DetailPrintMessage)
+TEST_F(CoutCerrPrintTestFixture, DetailPrintErrorMessage)
 {
-    constexpr auto tMessage = std::string_view{"Hello"};
-    const auto tGold = std::string{tMessage} + "\n";
-    detail::print_message(tMessage);
-    checkRankZeroStringStream(tGold, TEST_CONTEXT("Detail print message"));
+    detail::print_command_line_error_message();
+    checkRankZeroCoutStringStreamStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message with abort statement."));
 }
 
-TEST_F(CoutPrintTestFixture, DetailPrintErrorMessage)
-{
-    detail::print_error_message();
-    checkRankZeroStringStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message with abort statement."));
-}
-
-TEST_F(CoutPrintTestFixture, DetailPrintKnownInputs)
+TEST_F(CoutCerrPrintTestFixture, DetailPrintKnownInputs)
 {
     detail::print_known_inputs();
-    checkRankZeroStringStreamForPattern(kKnownInputKeys, TEST_CONTEXT("Print known inputs."));
+    checkRankZeroCoutStringStreamStreamForPattern(kKnownInputKeys, TEST_CONTEXT("Print known inputs."));
 }
 
 }  // namespace plato::main::library::unittest

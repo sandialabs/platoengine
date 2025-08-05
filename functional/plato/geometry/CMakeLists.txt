@@ -9,11 +9,12 @@ set(LINK_LIBS PlatoFunctionalFilter
               PlatoFunctionalSTKIO
               PlatoFunctionalKrino 
               PlatoFunctionalMesh
-              PlatoFunctionalInputValidation )
+              PlatoFunctionalInputValidation
+              PlatoFunctionalServices )
 
 if (CUBIT_ENABLED)
   list(APPEND FOLDERS extension/cubit)
-  list(APPEND LINK_LIBS "PlatoFunctionalServices;PlatoCubitInterface")
+  list(APPEND LINK_LIBS "PlatoCubitInterface")
 endif()
 
 create_plato_library(PlatoFunctionalGeometry "${FOLDERS}" "${LINK_LIBS}")

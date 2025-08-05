@@ -10,6 +10,7 @@
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/services/SystemLogger.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
@@ -88,14 +89,18 @@ auto make_rol_constraints(const library::ProcessManagerData& aProblem)
     return tROLConstraints;
 }
 
-auto make_rol_problem(const library::ProcessManagerData& aProblem, geometry::library::OutputManager aOutputManager)
+auto make_rol_problem(const library::ProcessManagerData& aProblem,
+                      const std::string_view aProcessManagerName,
+                      geometry::library::OutputManager aOutputManager)
     -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>
 {
-    return make_rol_problem(aProblem, ROL::Ptr<plato::third_party_integration::rol::ROLObjectiveFunction>(
-                                          make_rol_objective(aProblem, std::move(aOutputManager)).release()));
+    return make_rol_problem(aProblem, aProcessManagerName,
+                            ROL::Ptr<plato::third_party_integration::rol::ROLObjectiveFunction>(
+                                make_rol_objective(aProblem, std::move(aOutputManager)).release()));
 }
 
 auto make_rol_problem(const library::ProcessManagerData& aProblem,
+                      const std::string_view aProcessManagerName,
                       const ROL::Ptr<ROL::StdObjective<double>>& aROLObjective)
     -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>
 {
@@ -107,15 +112,22 @@ auto make_rol_problem(const library::ProcessManagerData& aProblem,
     {
         add_constraint_to_problem(*tROLProblem, std::move(tConstraint));
     }
+
     ///@todo Determine how ROL lumps constraints - should this only be false if they are all linear constraints?
     constexpr bool tLumpConstraints = false;
     constexpr bool tPrintToStream = true;
-    tROLProblem->finalize(tLumpConstraints, tPrintToStream, std::cout);
+    auto tStream = std::stringstream{};
+    tStream << "\n";
+    tROLProblem->finalize(tLumpConstraints, tPrintToStream, tStream);
+
+    auto tLogger = services::component_logger(components::ComponentType::kProcessManager, aProcessManagerName);
+    tLogger.logInfo(tStream.str());
+
     return {tROLProblem, tControls};
 }
 
-auto make_rol_solver(Teuchos::ParameterList& aROLOptions, const ROL::Ptr<ROL::Problem<double>>& aROLProblem)
-    -> ROL::Solver<double>
+auto make_rol_solver(Teuchos::ParameterList& aROLOptions,
+                     const ROL::Ptr<ROL::Problem<double>>& aROLProblem) -> ROL::Solver<double>
 {
     return ROL::Solver<double>{aROLProblem, aROLOptions};
 }

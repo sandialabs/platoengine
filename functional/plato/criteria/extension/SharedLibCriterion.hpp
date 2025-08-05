@@ -31,10 +31,10 @@ class SharedLibCriterion
    public:
     SharedLibCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                        const services::CriterionConfiguration& aCriterionConfiguration,
-                       const std::vector<std::string>& aFileNames);
+                       const library::CriterionInput& aCriterionInput);
     SharedLibCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                        const services::CriterionConfiguration& aCriterionConfiguration,
-                       const std::vector<std::string>& aFileNames,
+                       const library::CriterionInput& aCriterionInput,
                        const boost::mpi::communicator& aComm);
 
     [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aMesh) const;
@@ -44,6 +44,8 @@ class SharedLibCriterion
    private:
     std::shared_ptr<CriterionSharedLibraryObject> mCriterionInterface;
     boost::mpi::communicator mComm{MPI_COMM_NULL, boost::mpi::comm_attach};
+    components::ComponentType mComponentType;
+    std::string mName;
 };
 
 [[nodiscard]] auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion)

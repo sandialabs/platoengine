@@ -2,6 +2,7 @@
 
 #include <filesystem>
 
+#include "plato/geometry/library/GeometryLogger.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
@@ -9,6 +10,7 @@
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/FileUtilities.hpp"
@@ -65,6 +67,9 @@ BrickShapeGeometry::~BrickShapeGeometry() { std::filesystem::remove(mFileName); 
 
 analysis::AnalysisDomainMesh BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Mesh generation", library::geometry_logger<input_parser::brick_shape_geometry>()};
+
     detail::create_mesh(aDesignParameters, mFileName, mDiscretizationSize);
     return analysis::AnalysisDomainMesh{mFileName, {}};
 }
@@ -74,7 +79,10 @@ linear_algebra::JacobianColumnEvaluator BrickShapeGeometry::jacobian(const Brick
     return linear_algebra::JacobianColumnEvaluator{
         /*.mColumns=*/kNumDesignParameters,
         /*.mX=*/detail::to_dynamic_vector(aDesignParameters),
-        /*.mColumnFunction=*/[](unsigned int aColumnIndex, const linear_algebra::DynamicVector<double>&) {
+        /*.mColumnFunction=*/[](unsigned int aColumnIndex, const linear_algebra::DynamicVector<double>&)
+        {
+            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+                "Vector-Jacobian product", library::geometry_logger<input_parser::brick_shape_geometry>()};
             return linear_algebra::DynamicVector<double>(detail::sensitivities(aColumnIndex));
         }};
 }
@@ -86,6 +94,9 @@ auto BrickShapeGeometry::adjointJacobian(const BrickDesign& aDesignParameters) c
         kNumDims * kNumNodes, detail::to_dynamic_vector(aDesignParameters),
         [](unsigned int aAdjointColumnIndex, const linear_algebra::DynamicVector<double>&)
         {
+            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+                "Vector-adjoint-Jacobian product", library::geometry_logger<input_parser::brick_shape_geometry>()};
+
             auto tAdjointColumn = std::vector<double>(kNumDesignParameters);
             std::generate(tAdjointColumn.begin(), tAdjointColumn.end(),
                           [tAdjointRowIndex = 0, aAdjointColumnIndex]() mutable
@@ -108,11 +119,17 @@ void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSo
                                 const library::OutputInfo& aOutputInfo)
 {
     using TableOutput = utilities::FixedWidthFloatingPointOutput<double, kPrecision, kPrintWidth>;
-    std::cout << "iteration: " << aOutputInfo.mIteration << std::endl;
-    std::cout << "centers: " << TableOutput{aSolution[0]} << TableOutput{aSolution[1]} << TableOutput{aSolution[2]}
-              << std::endl;
-    std::cout << "dimensions: " << TableOutput{aSolution[3]} << TableOutput{aSolution[4]} << TableOutput{aSolution[5]}
-              << std::endl;
+
+    auto tBrickParameterTable = std::stringstream{};
+    tBrickParameterTable << "\nBrick geometry parameters:\n";
+    tBrickParameterTable << "iteration: " << aOutputInfo.mIteration << "\n";
+    tBrickParameterTable << "centers: " << TableOutput{aSolution[0]} << TableOutput{aSolution[1]}
+                         << TableOutput{aSolution[2]} << "\n";
+    tBrickParameterTable << "dimensions: " << TableOutput{aSolution[3]} << TableOutput{aSolution[4]}
+                         << TableOutput{aSolution[5]} << "\n";
+
+    auto tLogger = geometry::library::geometry_logger<input_parser::brick_shape_geometry>();
+    tLogger.logInfo(tBrickParameterTable.str());
 }
 
 auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry) -> library::GeometryFunction

@@ -11,8 +11,10 @@
 #include "plato/process_manager/extension/LogspaceGenerator.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension
@@ -61,9 +63,15 @@ GradientCheck::GradientCheck(const library::ValidatedProcessManagerInput& aInput
 
 void GradientCheck::run(const library::ProcessManagerData& aProblem) const
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Gradient check", library::process_manager_logger<input_parser::gradient_check>()};
+
     std::ofstream tOutFile(mOutputFileName);
     constexpr bool tPrintOutput = true;
-    auto [tROLProblem, tControls] = make_rol_problem(aProblem);
+
+    auto [tROLProblem, tControls] =
+        make_rol_problem(aProblem, input_parser::block_name<input_parser::gradient_check>());
+
     const LogspaceGenerator tLogspaceGenerator{mInitialDirectionMagnitude, mStepSizeReductionFactor, mNumberOfSteps};
     std::srand(mRandomDirectionSeed);
 

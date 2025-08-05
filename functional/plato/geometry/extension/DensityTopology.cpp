@@ -13,6 +13,7 @@
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
+#include "plato/geometry/library/GeometryLogger.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
@@ -25,6 +26,7 @@
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 
 namespace plato::geometry::extension
 {
@@ -111,6 +113,9 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
 analysis::AnalysisDomainMesh DensityTopology::generateMesh(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Generating densities", library::geometry_logger<input_parser::density_topology>()};
+
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{mMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
     return mFilter.evaluate<core::evaluation::kFunction>(tNodalDesignParameters);
@@ -125,7 +130,12 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
         /*.mVectorTimesJacobianFunction=*/
         [tAnalysisDomainMesh = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(tNodalDesignParameters),
          this](const linear_algebra::DynamicVector<double>& x)
-        { return x * mFilter.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh); }};
+        {
+            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+                "Vector-Jacobian product", library::geometry_logger<input_parser::density_topology>()};
+
+            return x * mFilter.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh);
+        }};
 }
 
 auto DensityTopology::adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameters) const
@@ -138,6 +148,9 @@ auto DensityTopology::adjointJacobian(const linear_algebra::DynamicVector<double
         [tAnalysisDomainMesh = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(tNodalDesignParameters),
          this](const linear_algebra::DynamicVector<double>& x)
         {
+            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+                "Vector-adjoin-Jacobian product", library::geometry_logger<input_parser::density_topology>()};
+
             return x * mFilter.evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(
                            tAnalysisDomainMesh);
         }}};
@@ -168,6 +181,9 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
                              const input_parser::density_topology& aInput,
                              const library::OutputInfo& aOutputInfo)
 {
+    [[maybe_unused]] const auto tTaskLogger =
+        services::TaskLogSetupTeardown{"Writing output", library::geometry_logger<input_parser::density_topology>()};
+
     const auto tMeshFieldOutput = MeshFieldOutputInfo{mesh_from_input(aInput),
                                                       output_name(aInput),
                                                       fixed_blocks(aInput),

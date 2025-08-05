@@ -13,8 +13,10 @@
 #include "plato/process_manager/extension/LogspaceGenerator.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension
@@ -72,10 +74,14 @@ ConstraintCheck::ConstraintCheck(const library::ValidatedProcessManagerInput& aI
 
 void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData) const
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Constraint check", library::process_manager_logger<input_parser::constraint_check>()};
+
     namespace tpir = third_party_integration::rol;
     constexpr bool tPrintOutput = true;
 
-    auto [tROLProblem, tROLControls] = make_rol_problem(aProcessManagerData);
+    auto [tROLProblem, tROLControls] =
+        make_rol_problem(aProcessManagerData, input_parser::block_name<input_parser::constraint_check>());
 
     std::ofstream tCheckLinearityOutFile{mLinearityCheckOutputFileName};
     tROLProblem->checkLinearity(

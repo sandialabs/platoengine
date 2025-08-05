@@ -27,7 +27,7 @@ using SubTitleText = ColorizedLogo<utilities::TextColor::kLightBlue>;
 
 }  // namespace
 
-void write_splash_screen(std::ostream& aStream)
+void print_splash_screen(std::ostream& aStream)
 {
     // clang-format off
     aStream << Border{"################################################################################\n"};

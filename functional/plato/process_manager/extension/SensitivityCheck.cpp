@@ -6,12 +6,16 @@
 #include "plato/core/Compose.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/geometry/library/OutputManager.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
+#include "plato/services/SystemLogger.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension
@@ -24,6 +28,9 @@ namespace
     return {library::RunStage::kValidate, [aValidInput](const library::ProcessManagerData& aProcessManangerData)
             { SensitivityCheck{aValidInput}.run(aProcessManangerData); }};
 }
+
+[[maybe_unused]] static auto kSensitivityCheckParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::sensitivity_check>{};
 
 [[maybe_unused]] static auto kSensitivityCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::sensitivity_check>(),
@@ -52,6 +59,9 @@ SensitivityCheck::SensitivityCheck(const library::ValidatedProcessManagerInput& 
 
 void SensitivityCheck::run(const library::ProcessManagerData& aProblem) const
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Sensitivity check", library::process_manager_logger<input_parser::sensitivity_check>()};
+
     std::ofstream tOutFile(mOutputFileName);
     constexpr bool tPrintOutput = true;
 

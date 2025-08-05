@@ -1,4 +1,4 @@
-#include "plato/test_utilities/CoutPrintTestFixture.hpp"
+#include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 
 #include <boost/mpi/communicator.hpp>
 #include <boost/regex.hpp>
@@ -7,26 +7,23 @@
 
 namespace plato::test_utilities
 {
-
-CoutPrintTestFixture::CoutPrintTestFixture() : mOriginalCoutBuffer(std::cout.rdbuf())
+namespace
 {
-    std::cout.rdbuf(mOutputStringStream.rdbuf());
-}
-
-CoutPrintTestFixture::~CoutPrintTestFixture() { std::cout.rdbuf(mOriginalCoutBuffer); }
-
-void CoutPrintTestFixture::checkRankZeroStringStream(const std::string& aGold, const TestContext& aTestContext)
+void checkRankZeroStringStream(const std::ostringstream& aStreamWithOutput,
+                               const std::string& aGold,
+                               const TestContext& aTestContext)
 {
     if (boost::mpi::communicator{}.rank() == 0)
     {
-        EXPECT_EQ(mOutputStringStream.str(), aGold) << aTestContext;
+        EXPECT_EQ(aStreamWithOutput.str(), aGold) << aTestContext;
     }
 }
 
-void CoutPrintTestFixture::checkRankZeroStringStreamForPattern(const std::vector<std::string>& aKeyList,
-                                                               const TestContext& aTestContext)
+void checkRankZeroStringStreamStreamForPattern(const std::ostringstream& aStreamWithOutput,
+                                               const std::vector<std::string>& aKeyList,
+                                               const TestContext& aTestContext)
 {
-    const auto tString = mOutputStringStream.str();
+    const auto tString = aStreamWithOutput.str();
     if (boost::mpi::communicator{}.rank() == 0)
     {
         for (const auto& tKey : aKeyList)
@@ -37,6 +34,49 @@ void CoutPrintTestFixture::checkRankZeroStringStreamForPattern(const std::vector
     }
 }
 
-void CoutPrintTestFixture::clearStream() { mOutputStringStream.clear(); }
+}  // namespace
+
+CoutCerrPrintTestFixture::CoutCerrPrintTestFixture()
+    : mOriginalCoutBuffer(std::cout.rdbuf()), mOriginalCerrBuffer(std::cerr.rdbuf())
+{
+    std::cout.rdbuf(mCoutStringStream.rdbuf());
+    std::cerr.rdbuf(mCerrStringStream.rdbuf());
+}
+
+CoutCerrPrintTestFixture::~CoutCerrPrintTestFixture()
+{
+    std::cout.rdbuf(mOriginalCoutBuffer);
+    std::cerr.rdbuf(mOriginalCerrBuffer);
+}
+
+void CoutCerrPrintTestFixture::checkRankZeroCoutStringStream(const std::string& aGold,
+                                                             const TestContext& aTestContext) const
+{
+    checkRankZeroStringStream(mCoutStringStream, aGold, aTestContext);
+}
+
+void CoutCerrPrintTestFixture::checkRankZeroCerrStringStream(const std::string& aGold,
+                                                             const TestContext& aTestContext) const
+{
+    checkRankZeroStringStream(mCerrStringStream, aGold, aTestContext);
+}
+
+void CoutCerrPrintTestFixture::checkRankZeroCoutStringStreamStreamForPattern(const std::vector<std::string>& aKeyList,
+                                                                             const TestContext& aTestContext) const
+{
+    checkRankZeroStringStreamStreamForPattern(mCoutStringStream, aKeyList, aTestContext);
+}
+
+void CoutCerrPrintTestFixture::checkRankZeroCerrStringStreamStreamForPattern(const std::vector<std::string>& aKeyList,
+                                                                             const TestContext& aTestContext) const
+{
+    checkRankZeroStringStreamStreamForPattern(mCerrStringStream, aKeyList, aTestContext);
+}
+
+void CoutCerrPrintTestFixture::clearStreams()
+{
+    mCoutStringStream.clear();
+    mCerrStringStream.clear();
+}
 
 }  // namespace plato::test_utilities

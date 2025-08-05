@@ -11,8 +11,12 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/process_manager/library/ProcessManagerLogger.hpp"
+#include "plato/services/SystemLogger.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/utilities/FileUtilities.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::extension
 {
@@ -145,6 +149,9 @@ NodalResultFilter::NodalResultFilter(const library::ValidatedProcessManagerInput
 
 void NodalResultFilter::run() const
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Nodal result filter", library::process_manager_logger<input_parser::nodal_result_filter>()};
+
     const auto tMesh = mesh::Mesh{mInputMeshPath, mFixedBlockNames};
     const auto tWorldCommunicator = boost::mpi::communicator{};
     if (mesh::EntityCounts{tMesh}.hasNodalFieldVariable(geometry::extension::density_mesh_field_name()))
@@ -161,10 +168,10 @@ void NodalResultFilter::run() const
     }
     else if (tWorldCommunicator.rank() == kRootRank)
     {
-        std::cout << "Warning: " << input_parser::block_name<input_parser::nodal_result_filter>()
-                  << " could not find field with name " << geometry::extension::density_mesh_field_name() << " in mesh "
-                  << mInputMeshPath;
-        std::cout << "\nNo filtered output will be added.\n";
+        auto tLogger = library::process_manager_logger<input_parser::nodal_result_filter>();
+        tLogger.logWarning(utilities::concatenate("Could not find field with name ",
+                                                  geometry::extension::density_mesh_field_name(), " in mesh ",
+                                                  mInputMeshPath, "\nNo filtered output will be added."));
     }
 }
 

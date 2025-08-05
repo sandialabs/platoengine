@@ -30,6 +30,18 @@ struct ComponentTypeOfInputBlock
 {
 };
 
+/// @brief Concept defining the required properties of an input block.
+template <typename T>
+concept InputBlock = requires {
+    InputTypeName<T>::name;
+    ComponentTypeOfInputBlock<T>::value;
+};
+
+/// @brief Concept defining the required properties of an input block and enforces that the block is of a specific
+/// component type.
+template <typename T, components::ComponentType kComponentType>
+concept InputBlockOfComponent = InputBlock<T> && kComponentType == ComponentTypeOfInputBlock<T>::value;
+
 /// @brief Specifies whether the input block parsed into @a InputStruct is named or unnamed.
 /// @note The actual implementation is via template specializations generated from the macros.
 template <typename InputStruct>

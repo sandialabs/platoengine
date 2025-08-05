@@ -6,7 +6,7 @@
 namespace plato::main::library
 {
 /// @brief Writes the Plato spash screen to @a aStream
-void write_splash_screen(std::ostream& aStream);
+void print_splash_screen(std::ostream& aStream);
 }  // namespace plato::main::library
 
 #endif

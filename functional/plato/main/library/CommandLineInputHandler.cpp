@@ -14,6 +14,7 @@
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/services/ExternalLoggerFileSink.hpp"
 #include "plato/services/InternalLoggerConsoleSink.hpp"
+#include "plato/services/SystemLogger.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
@@ -26,13 +27,16 @@ constexpr auto kHelpKey = std::string_view{"--help"};
 
 void handle_input(const std::vector<std::string>& aArguments)
 {
+    [[maybe_unused]] const auto tInternalLogSink = services::internal_logger_console_sink();
+    [[maybe_unused]] const auto tExternalLogSinks = services::component_external_logger_file_sinks();
+
     if (!aArguments.empty() && aArguments.front() == std::string{kHelpKey})
     {
         detail::print_known_inputs();
     }
     else if (aArguments.empty() || !std::filesystem::exists(aArguments.front()))
     {
-        detail::print_error_message();
+        detail::print_command_line_error_message();
     }
     else
     {
@@ -45,19 +49,16 @@ namespace detail
 
 void run_plato(const std::filesystem::path& aInputFile)
 {
-    [[maybe_unused]] const auto tInternalLogSink = services::internal_logger_console_sink();
-    [[maybe_unused]] const auto tExternalLogSinks = services::component_external_logger_file_sinks();
-
     const auto tValidatedInput = input_validation::parse_and_validate_file(aInputFile);
     if (tValidatedInput.hasError())
     {
-        print_message(tValidatedInput.error());
+        services::system_logger().logError(tValidatedInput.error());
         return;
     }
 
     if (boost::mpi::communicator{}.rank() == 0)
     {
-        write_splash_screen(std::cout);
+        print_splash_screen(std::cout);
     }
 
     const auto& tValidatedProcessManagers = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
@@ -71,21 +72,13 @@ void run_plato(const std::filesystem::path& aInputFile)
     }
     catch (const plato::utilities::Exception& tError)
     {
-        print_message(tError.what());
+        services::system_logger().logError(tError.what());
     }
 }
 
-void print_message(const std::string_view aMessage)
+void print_command_line_error_message()
 {
-    if (boost::mpi::communicator{}.rank() == 0)
-    {
-        std::cout << aMessage << std::endl;
-    }
-}
-
-void print_error_message()
-{
-    print_message(
+    services::system_logger().logError(
         "Executable expects an input file name as an argument. Type 'plato --help' for additional information. "
         "Aborting.");
 }

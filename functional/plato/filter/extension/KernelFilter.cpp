@@ -10,6 +10,7 @@
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/extension/LinearMaskBuilder.hpp"
+#include "plato/filter/library/FilterLogger.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
@@ -18,6 +19,7 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/HashGeneration.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::filter::extension
@@ -72,6 +74,9 @@ KernelFilter::KernelFilter(const mesh::Mesh& aMesh,
 
 analysis::AnalysisDomainMesh KernelFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
+    [[maybe_unused]] const auto tTaskLogger =
+        services::TaskLogSetupTeardown{"Filtering field", library::filter_logger<input_parser::kernel_filter>()};
+
     const auto tMesh = mesh::Mesh{aAnalysisDomainMesh};
     const auto tFieldValues =
         mesh::DesignVariablesConversion{tMesh}.analysisDomainMeshToNodalFieldVector(aAnalysisDomainMesh);
@@ -89,6 +94,9 @@ analysis::AnalysisDomainMesh KernelFilter::filter(const analysis::AnalysisDomain
 linear_algebra::DynamicVector<double> KernelFilter::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const linear_algebra::DynamicVector<double>& aV) const
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Vector-Jacobian product", library::filter_logger<input_parser::kernel_filter>()};
+
     return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
 }
 
@@ -96,6 +104,9 @@ auto KernelFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainM
                                                  const linear_algebra::DynamicVector<double>& aV) const
     -> linear_algebra::DynamicVector<double>
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Vector-adjoint-Jacobian product", library::filter_logger<input_parser::kernel_filter>()};
+
     return linear_algebra::DynamicVector<double>{mLinearMask.matrixMultiply(aV.stdVector())};
 }
 

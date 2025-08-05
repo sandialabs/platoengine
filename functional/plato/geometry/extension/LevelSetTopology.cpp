@@ -10,6 +10,7 @@
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
+#include "plato/geometry/library/GeometryLogger.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/geometry/library/OutputInfo.hpp"
@@ -21,6 +22,7 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
 #include "plato/utilities/FileUtilities.hpp"
 
@@ -184,6 +186,9 @@ auto LevelSetTopology::initialGuess(const input_parser::level_set_topology& aInp
 auto LevelSetTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
     -> analysis::AnalysisDomainMesh
 {
+    [[maybe_unused]] const auto tTaskLogger =
+        services::TaskLogSetupTeardown{"Mesh generation", library::geometry_logger<input_parser::level_set_topology>()};
+
     const auto tAnalysisMesh = mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
 
@@ -198,6 +203,9 @@ auto LevelSetTopology::jacobian(const linear_algebra::DynamicVector<double>& aDe
         [this, aDesignParameters](
             const linear_algebra::DynamicVector<double>& aVector) -> linear_algebra::DynamicVector<double>
         {
+            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+                "Vector-Jacobian product", library::geometry_logger<input_parser::level_set_topology>()};
+
             auto tBackgroundMeshWithLevelSetField =
                 mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
                     mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
@@ -215,6 +223,9 @@ auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
         [this, aDesignParameters](
             const linear_algebra::DynamicVector<double>& aVector) -> linear_algebra::DynamicVector<double>
         {
+            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+                "Vector-adjoint-Jacobian product", library::geometry_logger<input_parser::level_set_topology>()};
+
             const auto tDesignVariableConverter = mesh::DesignVariablesConversion{mBackgroundMesh};
 
             const auto tBackgroundMeshWithLevelSets = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(
@@ -231,6 +242,9 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
                               const linear_algebra::DynamicVector<double>& aSolution,
                               const library::OutputInfo& aOutputInfo)
 {
+    [[maybe_unused]] const auto tTaskLogger =
+        services::TaskLogSetupTeardown{"Writing output", library::geometry_logger<input_parser::level_set_topology>()};
+
     const auto tMeshFieldOutput = MeshFieldOutputInfo{mesh_from_input(aInput),
                                                       restart_file_name(aInput),
                                                       fixed_blocks(aInput),
