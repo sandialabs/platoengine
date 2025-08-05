@@ -1,6 +1,7 @@
 #ifndef PLATO_CORE_AGGREGATE
 #define PLATO_CORE_AGGREGATE
 
+#include <algorithm>
 #include <numeric>
 #include <utility>
 #include <vector>
