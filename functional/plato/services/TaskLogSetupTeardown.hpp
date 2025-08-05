@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-#include "plato/services/ComponentLogger.hpp"
+#include "plato/services/SystemLogger.hpp"
 #include "plato/utilities/NamedType.hpp"
 
 namespace plato::services
@@ -12,12 +12,12 @@ namespace plato::services
 /// @brief RAII-style object used to log a message on construction and destruction to log scope bounds.
 ///
 /// Facilitates a typical use-case of logging a message on entrance and exit from a function.
-class TaskLogSetupTeardown
+class [[nodiscard]] TaskLogSetupTeardown
 {
    public:
     /// @param aTaskMessage The message to log on construction, immediately after this function is called. The message
     /// logged on destruction will be @a aTaskMessage appended with "complete".
-    TaskLogSetupTeardown(std::string aTaskMessage, ComponentLogger&& aLogger);
+    TaskLogSetupTeardown(std::string aTaskMessage, SystemLogger&& aLogger);
 
     ~TaskLogSetupTeardown();
 
@@ -28,7 +28,7 @@ class TaskLogSetupTeardown
 
    private:
     std::string mTaskMessage;
-    ComponentLogger mLogger;
+    SystemLogger mLogger;
 };
 }  // namespace plato::services
 

@@ -15,7 +15,7 @@ TEST(TaskLogSetupTeardown, SetupTeardown)
     constexpr auto tSetupMessage = std::string_view{"Filtering"};
     {
         [[maybe_unused]] const auto tLoggerMessageSetupTeardown = TaskLogSetupTeardown{
-            std::string{tSetupMessage}, ComponentLogger{components::ComponentType::kFilter, "some-component"}};
+            std::string{tSetupMessage}, component_logger(components::ComponentType::kFilter, "some-component")};
     }
     EXPECT_NE(tStream->str().find(tSetupMessage), std::string::npos) << "Result: " << tStream->str();
     constexpr auto tExpectedTeardownMessage = std::string_view{"Filtering complete"};

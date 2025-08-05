@@ -5,7 +5,7 @@
 #include <boost/log/sources/record_ostream.hpp>
 
 #include "plato/services/InternalLoggerConsoleSink.hpp"
-#include "plato/test_utilities/CoutPrintTestFixture.hpp"
+#include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
 #include "plato/third_party_integration/boost_log/Severity.hpp"
@@ -16,7 +16,7 @@ namespace
 {
 namespace tpi_bl = third_party_integration::boost_log;
 
-class InternalLoggerConsoleSinkCoutRedirect : public plato::test_utilities::CoutPrintTestFixture
+class InternalLoggerConsoleSinkCoutRedirect : public plato::test_utilities::CoutCerrPrintTestFixture
 {
 };
 
@@ -50,6 +50,6 @@ TEST_F(InternalLoggerConsoleSinkCoutRedirect, Outputs)
     auto tLogger = test_logger();
     BOOST_LOG(tLogger) << tMessage;
 
-    checkRankZeroStringStreamForPattern({std::string{tMessage}}, TEST_CONTEXT("Checking for log message."));
+    checkRankZeroCoutStringStream(std::string{tMessage} + "\n", TEST_CONTEXT("Checking for log message."));
 }
 }  // namespace plato::services::unittest

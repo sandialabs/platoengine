@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "plato/services/ComponentLogger.hpp"
+#include "plato/services/SystemLogger.hpp"
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
@@ -78,7 +78,7 @@ ScopedExternalRedirectLogger::~ScopedExternalRedirectLogger()
     {
         tLogger.logMessage(mRedirectedCerrStream.str(), tpi_bl::Severity::kError);
         // Log an error to the console as well
-        auto tConsoleLogger = ComponentLogger{mComponentType, mComponentName};
+        auto tConsoleLogger = component_logger(mComponentType, mComponentName);
         tConsoleLogger.logError("\n" + mRedirectedCerrStream.str());
     }
 
