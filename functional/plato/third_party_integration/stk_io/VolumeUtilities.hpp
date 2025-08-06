@@ -1,6 +1,7 @@
 #ifndef PLATO_THIRDPARTYINTEGRATION_STKIO_VOLUMEUTILITIES
 #define PLATO_THIRDPARTYINTEGRATION_STKIO_VOLUMEUTILITIES
 
+#include <array>
 #include <functional>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/Bucket.hpp>
@@ -41,20 +42,6 @@ namespace plato::third_party_integration::stk_io
 
 namespace detail
 {
-
-using STKTopologyTUnderlyingType = std::underlying_type_t<stk::topology::topology_t>;
-template <STKTopologyTUnderlyingType... AllTopologies>
-using STKTopologySequence = std::integer_sequence<STKTopologyTUnderlyingType, AllTopologies...>;
-constexpr auto kSupportedTopologies = STKTopologySequence<stk::topology::HEXAHEDRON_8,
-                                                          stk::topology::HEXAHEDRON_20,
-                                                          stk::topology::TETRAHEDRON_4,
-                                                          stk::topology::TETRAHEDRON_10,
-                                                          stk::topology::QUADRILATERAL_4,
-                                                          stk::topology::TRIANGLE_3,
-                                                          stk::topology::TRIANGLE_3_2D,
-                                                          stk::topology::QUAD_4_2D,
-                                                          stk::topology::SHELL_QUAD_4,
-                                                          stk::topology::SHELL_TRIANGLE_3>{};
 
 struct VolumeTag
 {
@@ -100,22 +87,22 @@ auto topology_selector_apply(const stk::mesh::Entity& aElement,
     return ApplyTaggedFunction<Topology>::template zero<FunctionTag>();
 }
 
-template <typename FunctionTag, STKTopologyTUnderlyingType... AllTopologies>
-auto element_apply_impl(const stk::mesh::Entity& aElement,
-                        const stk::mesh::BulkData& aBulk,
-                        const stk::topology::topology_t tTopologyType,
-                        const STKTopologySequence<AllTopologies...>)
-{
-    return (topology_selector_apply<FunctionTag, static_cast<stk::topology::topology_t>(AllTopologies)>(aElement, aBulk,
-                                                                                                        tTopologyType) +
-            ...);
-}
-
 template <typename FunctionTag>
 auto element_apply(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
 {
-    return detail::element_apply_impl<FunctionTag>(aElement, aBulk, aBulk.bucket(aElement).topology()(),
-                                                   kSupportedTopologies);
+    constexpr auto tSupportedTopologies =
+        std::array{stk::topology::HEXAHEDRON_8,    stk::topology::HEXAHEDRON_20,   stk::topology::TETRAHEDRON_4,
+                   stk::topology::TETRAHEDRON_10,  stk::topology::QUADRILATERAL_4, stk::topology::TRIANGLE_3,
+                   stk::topology::TRIANGLE_3_2D,   stk::topology::QUAD_4_2D,       stk::topology::SHELL_QUAD_4,
+                   stk::topology::SHELL_TRIANGLE_3};
+
+    return [&aElement, &aBulk, &tSupportedTopologies]<std::size_t... AllTopologiesIndices>(
+               const std::integer_sequence<std::size_t, AllTopologiesIndices...>)
+    {
+        return (topology_selector_apply<FunctionTag, tSupportedTopologies[AllTopologiesIndices]>(
+                    aElement, aBulk, aBulk.bucket(aElement).topology()()) +
+                ...);
+    }(std::make_index_sequence<tSupportedTopologies.size()>());
 }
 
 }  // namespace detail
