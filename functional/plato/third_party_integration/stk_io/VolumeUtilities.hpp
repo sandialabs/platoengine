@@ -90,11 +90,11 @@ auto topology_selector_apply(const stk::mesh::Entity& aElement,
 template <typename FunctionTag>
 auto element_apply(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
 {
-    constexpr auto tSupportedTopologies =
-        std::array{stk::topology::HEXAHEDRON_8,    stk::topology::HEXAHEDRON_20,   stk::topology::TETRAHEDRON_4,
-                   stk::topology::TETRAHEDRON_10,  stk::topology::QUADRILATERAL_4, stk::topology::TRIANGLE_3,
-                   stk::topology::TRIANGLE_3_2D,   stk::topology::QUAD_4_2D,       stk::topology::SHELL_QUAD_4,
-                   stk::topology::SHELL_TRIANGLE_3};
+    constexpr auto tSupportedTopologies = std::array<stk::topology::topology_t, 10U>{
+        stk::topology::HEXAHEDRON_8,    stk::topology::HEXAHEDRON_20,   stk::topology::TETRAHEDRON_4,
+        stk::topology::TETRAHEDRON_10,  stk::topology::QUADRILATERAL_4, stk::topology::TRIANGLE_3,
+        stk::topology::TRIANGLE_3_2D,   stk::topology::QUAD_4_2D,       stk::topology::SHELL_QUAD_4,
+        stk::topology::SHELL_TRIANGLE_3};
 
     return [&aElement, &aBulk, &tSupportedTopologies]<std::size_t... AllTopologiesIndices>(
                const std::integer_sequence<std::size_t, AllTopologiesIndices...>)
