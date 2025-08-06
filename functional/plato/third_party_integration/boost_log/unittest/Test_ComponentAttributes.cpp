@@ -40,7 +40,7 @@ TEST(ComponentAttributes, Formatter)
     tCheckFormatting(FormattingStyle::kNone, tExpectedNoColor, TEST_CONTEXT("No color"));
 
     const auto tExpectedColor =
-        utilities::concatenate("[", utilities::color_code(utilities::TextColor::kCyan), "filter:helmholtz",
+        utilities::concatenate("[", utilities::color_code(utilities::TextColor::kDarkGray), "filter:helmholtz",
                                utilities::color_code(utilities::TextColor::kDefault), "] \n");
     tCheckFormatting(FormattingStyle::kColor, tExpectedColor, TEST_CONTEXT("Color"));
 }

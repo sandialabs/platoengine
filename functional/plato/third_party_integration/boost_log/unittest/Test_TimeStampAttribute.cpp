@@ -48,10 +48,10 @@ TEST(TimeStampAttribute, FormatterColor)
         tLogStream, TimeStampAttribute::formatter(FormattingStyle::kColor), boost::log::filter{}};
 
     // Define these explicitly because they need extra escape characters.
-    const auto tCyanEscapeCodeForRegex = std::string{"\\033\\[36m"};
+    const auto tDarkGrayEscapeCodeForRegex = std::string{"\\033\\[90m"};
     const auto tDefaultEscapeCodeForRegex = std::string{"\\033\\[39m"};
     const auto tColorizedDateTimeRegex =
-        tCyanEscapeCodeForRegex + std::string{kDateTimeRegex} + tDefaultEscapeCodeForRegex;
+        tDarkGrayEscapeCodeForRegex + std::string{kDateTimeRegex} + tDefaultEscapeCodeForRegex;
     check_time_regex(tColorizedDateTimeRegex, *tLogStream, TEST_CONTEXT("Color style"));
 }
 }  // namespace plato::third_party_integration::boost_log::unittest

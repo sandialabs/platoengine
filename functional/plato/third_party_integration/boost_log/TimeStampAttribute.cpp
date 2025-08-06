@@ -13,7 +13,7 @@ namespace plato::third_party_integration::boost_log
 [[nodiscard]] auto time_format(const FormattingStyle aFormattingStyle) -> std::string
 {
     auto tTimeFormat = "%Y-%m-%d %H:%M:%S";
-    return utilities::concatenate('[', color_code(utilities::TextColor::kCyan, aFormattingStyle), tTimeFormat,
+    return utilities::concatenate('[', color_code(utilities::TextColor::kDarkGray, aFormattingStyle), tTimeFormat,
                                   color_code(utilities::TextColor::kDefault, aFormattingStyle), "] ");
 }
 
