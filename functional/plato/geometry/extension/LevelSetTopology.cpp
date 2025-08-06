@@ -106,6 +106,8 @@ auto make_level_set_geometry(const library::ValidatedGeometryInput& aGeometryInp
 [[maybe_unused]] static auto kLevelSetTopologyValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::level_set_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
+        [](const input_parser::level_set_topology& aInput)
+        { return library::detail::validate_mesh_file_exists(aInput); },
         [](const input_parser::level_set_topology& aInput) { return library::detail::validate_output_name(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_lower_bound(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_upper_bound(aInput); },
