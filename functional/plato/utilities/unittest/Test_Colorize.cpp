@@ -12,7 +12,13 @@ namespace
 class ColorizeRedirectFixture : public test_utilities::CoutCerrPrintTestFixture
 {
 };
+
+struct AlwaysUseColorPolicy
+{
+    [[nodiscard]] auto operator()(const std::ostream&) const -> bool { return true; };
+};
 }  // namespace
+
 TEST(Colorize, StreamInsertionNoColorSupport)
 {
     auto tStream = std::stringstream{};
@@ -22,23 +28,23 @@ TEST(Colorize, StreamInsertionNoColorSupport)
     EXPECT_EQ(tStream.str(), "Hello green world!42");
 }
 
-TEST_F(ColorizeRedirectFixture, ManualColorCheck)
+TEST_F(ColorizeRedirectFixture, ForcedColorCheck)
 {
-    std::cout << colorize("T", TextColor::kRed);
-    std::cout << colorize("a", TextColor::kGreen);
-    std::cout << colorize("s", TextColor::kBlue);
-    std::cout << colorize("t", TextColor::kCyan);
-    std::cout << colorize("e", TextColor::kMagenta);
-    std::cout << colorize("T", TextColor::kYellow);
-    std::cout << colorize("h", TextColor::kBlack);
-    std::cout << colorize("e", TextColor::kLightRed);
-    std::cerr << colorize("R", TextColor::kLightGreen);
-    std::cerr << colorize("a", TextColor::kLightBlue);
-    std::cerr << colorize("i", TextColor::kLightCyan);
-    std::cerr << colorize("n", TextColor::kLightMagenta);
-    std::cerr << colorize("b", TextColor::kLightYellow);
-    std::cerr << colorize("o", TextColor::kLightGray);
-    std::cerr << colorize("w", TextColor::kDarkGray) << "\n";
+    std::cout << colorize<std::string, AlwaysUseColorPolicy>("T", TextColor::kRed);
+    std::cout << colorize<std::string, AlwaysUseColorPolicy>("a", TextColor::kGreen);
+    std::cout << colorize<std::string, AlwaysUseColorPolicy>("s", TextColor::kBlue);
+    std::cout << colorize<std::string, AlwaysUseColorPolicy>("t", TextColor::kCyan);
+    std::cout << colorize<std::string, AlwaysUseColorPolicy>("e", TextColor::kMagenta);
+    std::cout << colorize<std::string, AlwaysUseColorPolicy>("T", TextColor::kYellow);
+    std::cout << colorize<std::string, AlwaysUseColorPolicy>("h", TextColor::kBlack);
+    std::cout << colorize<std::string, AlwaysUseColorPolicy>("e", TextColor::kLightRed);
+    std::cerr << colorize<std::string, AlwaysUseColorPolicy>("R", TextColor::kLightGreen);
+    std::cerr << colorize<std::string, AlwaysUseColorPolicy>("a", TextColor::kLightBlue);
+    std::cerr << colorize<std::string, AlwaysUseColorPolicy>("i", TextColor::kLightCyan);
+    std::cerr << colorize<std::string, AlwaysUseColorPolicy>("n", TextColor::kLightMagenta);
+    std::cerr << colorize<std::string, AlwaysUseColorPolicy>("b", TextColor::kLightYellow);
+    std::cerr << colorize<std::string, AlwaysUseColorPolicy>("o", TextColor::kLightGray);
+    std::cerr << colorize<std::string, AlwaysUseColorPolicy>("w", TextColor::kDarkGray) << "\n";
     std::cout << "Back to normal on cout\n";
     std::cerr << "Back to normal on cerr\n";
 

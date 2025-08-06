@@ -66,7 +66,7 @@ struct Colorize
 
 /// @brief Helper function for deducing the object type. This may be more concise than using the struct directly.
 template <Streamable T, detail::UseColorPolicy ColorPolicy = detail::DefaultColorPolicy>
-[[nodiscard]] auto colorize(const T& aObjectToStream, TextColor aColor) -> Colorize<T>;
+[[nodiscard]] auto colorize(const T& aObjectToStream, TextColor aColor) -> Colorize<T, ColorPolicy>;
 
 /// @brief Stream insertion operator for ColorizedText.
 template <typename T, typename ColorPolicy>
@@ -88,7 +88,7 @@ auto operator<<(std::ostream& aStream, Colorize<T, ColorPolicy> aColorizedText) 
 }
 
 template <Streamable T, detail::UseColorPolicy ColorPolicy>
-[[nodiscard]] auto colorize(const T& aObjectToStream, const TextColor aColor) -> Colorize<T>
+[[nodiscard]] auto colorize(const T& aObjectToStream, const TextColor aColor) -> Colorize<T, ColorPolicy>
 {
     return Colorize<T, ColorPolicy>{aObjectToStream, aColor};
 }

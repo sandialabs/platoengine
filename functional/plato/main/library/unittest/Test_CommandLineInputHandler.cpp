@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "plato/main/library/CommandLineInputHandler.hpp"
+#include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
@@ -27,52 +28,73 @@ const auto kCouldNotValidateKeys = std::vector<std::string>{"Parsing ", "error",
 
 }  // namespace
 
-using plato::test_utilities::CoutCerrPrintTestFixture;
+class CommandLineInputHandlerCoutFixture : public plato::test_utilities::CoutCerrPrintTestFixture
+{
+};
 
-TEST_F(CoutCerrPrintTestFixture, HandleInputEmpty)
+TEST_F(CommandLineInputHandlerCoutFixture, HandleInputEmpty)
 {
     handle_input(kPlatoArgumentsEmpty);
     checkRankZeroCoutStringStreamStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message nothing sent to plato."));
 }
 
-TEST_F(CoutCerrPrintTestFixture, HandleInputJunk)
+TEST_F(CommandLineInputHandlerCoutFixture, HandleInputJunk)
 {
     handle_input(kPlatoArgumentsJunk);
     checkRankZeroCoutStringStreamStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message junk was sent to plato."));
 }
 
-TEST_F(CoutCerrPrintTestFixture, HandleInputHelp)
+TEST_F(CommandLineInputHandlerCoutFixture, HandleInputHelp)
 {
     handle_input(kPlatoArgumentsHelp);
     checkRankZeroCoutStringStreamStreamForPattern(kKnownInputKeys, TEST_CONTEXT("Help message requested from plato."));
 }
 
-TEST_F(CoutCerrPrintTestFixture, RunPlato)
+TEST(CommandLineInputHandler, RunPlatoEmptyFile)
 {
     const auto tInput = std::filesystem::path{"input.i"};
-    const auto tArguments = std::vector<std::string>{tInput};
-    std::ofstream tOutfile(tInput);
+    auto tOutfile = std::ofstream{tInput};
+    const auto tLogSinkStream = boost::make_shared<std::stringstream>();
+    [[maybe_unused]] const auto tLoggerSink = services::internal_logger_console_sink(tLogSinkStream);
+
+    detail::run_plato(tInput);
+
+    for (const auto& tCheckKey : kCouldNotValidateKeys)
     {
-        detail::run_plato(tInput);
-        checkRankZeroCoutStringStreamStreamForPattern(
-            kCouldNotValidateKeys, TEST_CONTEXT("Plato couldn't validate empty deck via run_plato."));
-        clearStreams();
+        EXPECT_NE(tLogSinkStream->str().find(tCheckKey), std::string::npos) << "Log result: " << tLogSinkStream->str();
     }
-    {
-        handle_input(tArguments);
-        checkRankZeroCoutStringStreamStreamForPattern(
-            kCouldNotValidateKeys, TEST_CONTEXT("Plato couldn't validate empty deck via handle_input."));
-    }
+
     std::filesystem::remove(tInput);
 }
 
-TEST_F(CoutCerrPrintTestFixture, DetailPrintErrorMessage)
+TEST_F(CommandLineInputHandlerCoutFixture, HandleInputEmptyFile)
 {
-    detail::print_command_line_error_message();
-    checkRankZeroCoutStringStreamStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message with abort statement."));
+    const auto tInput = std::filesystem::path{"input.i"};
+    auto tOutfile = std::ofstream{tInput};
+    const auto tArguments = std::vector<std::string>{tInput};
+
+    handle_input(tArguments);
+
+    checkRankZeroCoutStringStreamStreamForPattern(kCouldNotValidateKeys,
+                                                  TEST_CONTEXT("Plato couldn't validate empty deck via handle_input."));
+
+    std::filesystem::remove(tInput);
 }
 
-TEST_F(CoutCerrPrintTestFixture, DetailPrintKnownInputs)
+TEST(CommandLineInputHandler, DetailPrintErrorMessage)
+{
+    const auto tLogSinkStream = boost::make_shared<std::stringstream>();
+    [[maybe_unused]] const auto tLoggerSink = services::internal_logger_console_sink(tLogSinkStream);
+
+    detail::print_command_line_error_message();
+
+    for (const auto& tCheckKey : kAbortingKeys)
+    {
+        EXPECT_NE(tLogSinkStream->str().find(tCheckKey), std::string::npos) << "Log result: " << tLogSinkStream->str();
+    }
+}
+
+TEST_F(CommandLineInputHandlerCoutFixture, DetailPrintKnownInputs)
 {
     detail::print_known_inputs();
     checkRankZeroCoutStringStreamStreamForPattern(kKnownInputKeys, TEST_CONTEXT("Print known inputs."));
