@@ -13,9 +13,10 @@
 #include <stk_io/StkMeshIoBroker.hpp>  //get_selected_entities
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_util/diag/WriterRegistry.hpp>    //initialize environment
-#include <stk_util/environment/EnvData.hpp>    //initialize environment
-#include <stk_util/environment/OutputLog.hpp>  //initialize environment
+#include <stk_util/diag/WriterRegistry.hpp>
+#include <stk_util/environment/EnvData.hpp>
+#include <stk_util/environment/OutputLog.hpp>
+#include <stk_util/parallel/OutputStreams.hpp>
 #include <string_view>
 
 #include "plato/utilities/ReduceUtilities.hpp"
@@ -27,7 +28,7 @@ namespace plato::third_party_integration::krino
 namespace
 {
 constexpr auto kSortByGlobalId = true;
-constexpr auto kOutputDescription = std::string_view{"out>pout dout>out pout>null"};
+constexpr auto kOutputDescription = std::string_view{"out>null dout>null pout>null"};
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"LEVEL_SET"};
 constexpr auto kNumberOfLevelSets = 1U;
