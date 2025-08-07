@@ -8,6 +8,7 @@
 #include "plato/input_parser/GenericBlockRule.hpp"
 #include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
+#include "plato/test_utilities/Strings.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/NamedType.hpp"
 
@@ -116,7 +117,8 @@ TEST(ParsedInput, ParsesFullInvalidInput)
 
         const auto& tErrorMessage = tParsedInput.error();
         EXPECT_FALSE(tErrorMessage.empty()) << aTestContext;
-        EXPECT_NE(tErrorMessage.find(aTokenToCheck.mValue), std::string::npos) << aTestContext;
+        plato::test_utilities::expect_string_contains_substring(tErrorMessage, aTokenToCheck.mValue,
+                                                                TEST_CONTEXT("Parser error message"));
     };
 
     {
