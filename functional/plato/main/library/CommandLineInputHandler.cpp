@@ -70,8 +70,9 @@ void run_plato(const std::filesystem::path& aInputFile)
     {
         tExecutor.execute(tProcessManagerData);
     }
-    catch (const plato::utilities::Exception& tError)
+    catch (const std::exception& tError)
     {
+        services::system_logger().logError("Plato encountered an exception, exiting.");
         services::system_logger().logError(tError.what());
     }
 }
