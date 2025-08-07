@@ -18,7 +18,8 @@ namespace
 constexpr auto kObjectiveRow = int{0};
 constexpr auto kNumberOfObjectives = std::size_t{1};
 constexpr auto kUseDerivatives = int{1};
-constexpr auto kUseSummaryFile = int{1};
+constexpr auto kSummaryFileOff = int{0};
+constexpr auto kPrintFileFortranUnitNumber = int{181};  // Arbitrary file number for fortran
 constexpr auto kColdStart = int{0};
 constexpr auto kObjectiveValueAddition = double{0.0};
 constexpr auto kNoSpecialBoundsInformation = int{0};
@@ -198,9 +199,9 @@ auto run_snopt_problem(const std::vector<double> &aInitialGuess,
     auto tSolution = aInitialGuess;
 
     auto tProblem = snoptProblemA{};
-    tProblem.initialize(aLogFilePath.c_str(), kUseSummaryFile);
-
+    tProblem.initialize(aLogFilePath.c_str(), kPrintFileFortranUnitNumber, aLogFilePath.c_str(), kSummaryFileOff);
     detail::apply_options(tProblem, aOptions);
+
     tProblem.solve(
         kColdStart, tSNOPTSizes.mNumberOfObjectivesAndConstraints, tSNOPTSizes.mNumberOfDesignVariablesAsInt,
         kObjectiveValueAddition, kObjectiveRow, evaluation_callback, tLinearConstraintJacobian.rowData().get(),
@@ -250,6 +251,9 @@ void apply_options(snoptProblemA &aProblem, const SNOPTOptions &aOptions)
             snopt::kMajorIterationLimitName.data(), boost::numeric_cast<int>(aOptions.mMajorIterationLimit.value()));
         assert(tReturnCode == kSuccessfulParameterSet);
     }
+    // Turn off solution printing
+    const auto tReturnCode = aProblem.setParameter("Solution No");
+    assert(tReturnCode == kSuccessfulParameterSet);
 }
 }  // namespace detail
 

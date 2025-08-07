@@ -14,8 +14,10 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/snopt/SNOPTInterface.hpp"
 #include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
@@ -72,6 +74,9 @@ void SNOPTOptimization::run(const library::ProcessManagerData& aProcessManagerDa
     namespace tpis = third_party_integration::snopt;
     using SNOPTObjectiveFunction = typename tpis::ObjectiveType;
 
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "SNOPT optimization", library::process_manager_logger<input_parser::snopt_optimization>()};
+
     const tpis::SNOPTBounds tBounds{aProcessManagerData.mGeometry.mBounds};
     const auto tInitialGuess = aProcessManagerData.mGeometry.mInitialGuess.stdVector();
     auto tObjective = core::compose(aProcessManagerData.mObjective, aProcessManagerData.mGeometry.mCompute)
@@ -105,10 +110,9 @@ const auto tConstraintTypeConversion =
         {criteria::library::ConstraintType::kGreaterThan, third_party_integration::snopt::ConstraintType::kGreaterThan},
         {criteria::library::ConstraintType::kLessThan, third_party_integration::snopt::ConstraintType::kLesserThan}};
 
-[[nodiscard]] auto make_snopt_constraint(
-    const geometry::library::FactoryTypes& aGeometry,
-    const criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>& aConstraint)
-    -> third_party_integration::snopt::InterfaceConstraintType
+[[nodiscard]] auto make_snopt_constraint(const geometry::library::FactoryTypes& aGeometry,
+                                         const criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>&
+                                             aConstraint) -> third_party_integration::snopt::InterfaceConstraintType
 {
     namespace tpis = third_party_integration::snopt;
     const auto tLinearity = aConstraint.mLinear ? tpis::Linearity::kLinear : tpis::Linearity::kNonlinear;
@@ -130,8 +134,7 @@ auto make_constraints(const library::ProcessManagerData& aProcessManagerData)
     auto tConstraints = third_party_integration::snopt::InterfaceConstraintVectorType{};
     tConstraints.reserve(aProcessManagerData.mConstraints.size());
     std::transform(aProcessManagerData.mConstraints.begin(), aProcessManagerData.mConstraints.end(),
-                   std::back_inserter(tConstraints),
-                   [&aProcessManagerData](const auto& aConstraint)
+                   std::back_inserter(tConstraints), [&aProcessManagerData](const auto& aConstraint)
                    { return make_snopt_constraint(aProcessManagerData.mGeometry, aConstraint); });
 
     return tConstraints;
