@@ -6,6 +6,7 @@
 
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
+#include "plato/test_utilities/Strings.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
 #include "plato/third_party_integration/boost_log/Severity.hpp"
@@ -39,7 +40,7 @@ TEST(InternalLoggerConsoleSink, Outputs)
     auto tLogger = test_logger();
     BOOST_LOG(tLogger) << tMessage;
 
-    EXPECT_NE(tStream->str().find(tMessage), std::string::npos) << "Result: " << tStream->str();
+    test_utilities::expect_string_contains_substring(tStream->str(), tMessage, TEST_CONTEXT("Logger sink output"));
 }
 
 TEST_F(InternalLoggerConsoleSinkCoutRedirect, Outputs)

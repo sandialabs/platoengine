@@ -14,7 +14,7 @@
 
 namespace plato::third_party_integration::boost_log::unittest
 {
-TEST(Severity, StreamInsertion)
+TEST(Severity, StringConversion)
 {
     const auto tExpectStreamMatches =
         [](const Severity aSeverity, const std::string_view aExpected, const test_utilities::TestContext& aTestContext)
@@ -22,6 +22,7 @@ TEST(Severity, StreamInsertion)
         auto tSeverityStream = std::stringstream{};
         tSeverityStream << aSeverity;
         EXPECT_EQ(tSeverityStream.view(), aExpected) << aTestContext;
+        EXPECT_EQ(to_string(aSeverity), aExpected) << aTestContext;
     };
 
     tExpectStreamMatches(Severity::kDebug, "debug", TEST_CONTEXT("Debug"));

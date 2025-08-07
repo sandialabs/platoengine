@@ -6,6 +6,7 @@
 #include "plato/services/ExternalLoggerFileSink.hpp"
 #include "plato/services/ExternalLoggerFileSinkDetail.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
+#include "plato/test_utilities/Strings.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/SeverityLogger.hpp"
@@ -38,8 +39,8 @@ void check_external_log(const std::filesystem::path& aTestLogPath, const test_ut
 
     const auto tFileContents = test_utilities::file_to_string(aTestLogPath);
 
-    EXPECT_NE(tFileContents.find(tExternalMessage), std::string::npos) << aTestContext << "Log: " << tFileContents;
-    EXPECT_EQ(tFileContents.find(tInternalMessage), std::string::npos) << aTestContext << "Log: " << tFileContents;
+    test_utilities::expect_string_contains_substring(tFileContents, tExternalMessage, aTestContext);
+    test_utilities::expect_string_does_not_contain_substring(tFileContents, tInternalMessage, aTestContext);
 }
 }  // namespace
 
@@ -82,7 +83,7 @@ TEST(ExternalLoggerFileSink, LogsToExistingFile)
 
     const auto tFileContents = test_utilities::file_to_string(tTestLogPath);
 
-    EXPECT_NE(tFileContents.find(tExistingMessage), std::string::npos) << "Log: " << tFileContents;
+    test_utilities::expect_string_contains_substring(tFileContents, tExistingMessage, TEST_CONTEXT("Log message"));
     EXPECT_TRUE(std::filesystem::remove(tTestLogPath));
 }
 

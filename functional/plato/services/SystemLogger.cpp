@@ -17,14 +17,20 @@ struct SystemLogger::SystemLoggerImpl
     tpi_bl::SeverityLogger mLogger;
 };
 
+[[nodiscard]] auto make_system_logger_impl(tpi_bl::SeverityLogger&& aSeverityLogger)
+    -> std::unique_ptr<SystemLogger::SystemLoggerImpl>
+{
+    return std::make_unique<SystemLogger::SystemLoggerImpl>(SystemLogger::SystemLoggerImpl{std::move(aSeverityLogger)});
+}
+
 SystemLogger::SystemLogger()
-    : mPimpl{std::make_unique<SystemLogger::SystemLoggerImpl>(tpi_bl::SeverityLogger{
+    : mPimpl{make_system_logger_impl(tpi_bl::SeverityLogger{
           tpi_bl::MPIWorldCommRankAttribute{}, tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>{}})}
 {
 }
 
 SystemLogger::SystemLogger(components::ComponentType aComponentType, std::string_view aComponentName)
-    : mPimpl{std::make_unique<SystemLogger::SystemLoggerImpl>(tpi_bl::SeverityLogger{
+    : mPimpl{make_system_logger_impl(tpi_bl::SeverityLogger{
           tpi_bl::ComponentTypeAndNameAttribute{tpi_bl::ComponentTypeAndName{
               .mComponentType = aComponentType, .mComponentName = std::string{aComponentName}}},
           tpi_bl::MPIWorldCommRankAttribute{}, tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>{}})}

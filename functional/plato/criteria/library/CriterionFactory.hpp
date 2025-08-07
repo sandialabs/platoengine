@@ -26,7 +26,8 @@ concept CriterionInput = std::same_as<Input, input_parser::constraint> || std::s
 
 /// @brief Converts either objective or constraint input objects to a common CriterionInput struct
 /// @tparam Input Must be either input_parser::objective or input_parser::constraint input structs
-[[nodiscard]] auto to_criterion_input(const detail::CriterionInput auto& aInput) -> CriterionInput;
+template <detail::CriterionInput Input>
+[[nodiscard]] auto to_criterion_input(const Input& aInput) -> CriterionInput;
 
 /// @brief Creates a criterion Function object from either objective or constraint input objects.
 /// @tparam Input Must be either input_parser::objective or input_parser::constraint input structs

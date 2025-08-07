@@ -22,6 +22,9 @@ enum struct Severity
 /// @brief Stream insertion operator for Severity.
 auto operator<<(std::ostream& aStream, Severity aSeverity) -> std::ostream&;
 
+/// @brief Converts @a aSeverity to a string.
+[[nodiscard]] auto to_string(Severity aSeverity) -> std::string;
+
 /// @brief An attribute for a log message's severity.
 struct SeverityAttribute
 {

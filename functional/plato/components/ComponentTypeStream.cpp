@@ -19,7 +19,7 @@ auto operator<<(std::ostream& aStream, const ComponentType aComponentType) -> st
 {
     // Check that all enumerates are included in the table
     assert(utilities::number_of_enumerates<ComponentType>() ==
-           std::distance(kComponentNameTable.begin(), kComponentNameTable.end()));
+           static_cast<std::size_t>(std::distance(kComponentNameTable.begin(), kComponentNameTable.end())));
 
     const auto tComponentName = kComponentNameTable.toString(aComponentType);
     assert(tComponentName.has_value());

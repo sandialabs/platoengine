@@ -7,6 +7,7 @@
 #include "plato/main/library/CommandLineInputHandler.hpp"
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
+#include "plato/test_utilities/Strings.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::main::library::unittest
@@ -61,7 +62,8 @@ TEST(CommandLineInputHandler, RunPlatoEmptyFile)
 
     for (const auto& tCheckKey : kCouldNotValidateKeys)
     {
-        EXPECT_NE(tLogSinkStream->str().find(tCheckKey), std::string::npos) << "Log result: " << tLogSinkStream->str();
+        test_utilities::expect_string_contains_substring(tLogSinkStream->str(), tCheckKey,
+                                                         TEST_CONTEXT("Run plato empty file"));
     }
 
     std::filesystem::remove(tInput);
@@ -90,7 +92,8 @@ TEST(CommandLineInputHandler, DetailPrintErrorMessage)
 
     for (const auto& tCheckKey : kAbortingKeys)
     {
-        EXPECT_NE(tLogSinkStream->str().find(tCheckKey), std::string::npos) << "Log result: " << tLogSinkStream->str();
+        test_utilities::expect_string_contains_substring(tLogSinkStream->str(), tCheckKey,
+                                                         TEST_CONTEXT("Detail print error message"));
     }
 }
 

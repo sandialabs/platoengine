@@ -50,8 +50,9 @@ class SystemLogger
     SystemLogger(const SystemLogger&) noexcept = delete;
     auto operator=(const SystemLogger&) noexcept -> SystemLogger& = delete;
 
-   private:
     struct SystemLoggerImpl;
+
+   private:
     std::unique_ptr<SystemLoggerImpl> mPimpl;
 };
 

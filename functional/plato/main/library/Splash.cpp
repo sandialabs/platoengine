@@ -27,6 +27,7 @@ using SubTitleText = ColorizedLogo<utilities::TextColor::kLightBlue>;
 
 }  // namespace
 
+// CPD-OFF
 void print_splash_screen(std::ostream& aStream)
 {
     // clang-format off
@@ -59,4 +60,5 @@ void print_splash_screen(std::ostream& aStream)
     aStream << Border{"################################################################################\n\n"};
     // clang-format on
 }
+// CPD-ON
 }  // namespace plato::main::library

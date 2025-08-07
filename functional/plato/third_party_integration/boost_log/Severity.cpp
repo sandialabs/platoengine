@@ -16,6 +16,11 @@ const auto kSeverityColorMap =
                                                        {Severity::kWarning, utilities::TextColor::kYellow},
                                                        {Severity::kError, utilities::TextColor::kRed}};
 
+const auto kSeverityTable = utilities::EnumTable<Severity>({{Severity::kDebug, "debug"},
+                                                            {Severity::kInfo, "info"},
+                                                            {Severity::kWarning, "warning"},
+                                                            {Severity::kError, "error"}});
+
 [[nodiscard]] auto severity_color_code(const Severity aSeverityKeyword,
                                        const FormattingStyle aFormattingStyle) -> std::string
 {
@@ -25,14 +30,17 @@ const auto kSeverityColorMap =
 
 auto operator<<(std::ostream& aStream, const Severity aSeverity) -> std::ostream&
 {
-    static const auto tSeverityTable = utilities::EnumTable<Severity>({{Severity::kDebug, "debug"},
-                                                                       {Severity::kInfo, "info"},
-                                                                       {Severity::kWarning, "warning"},
-                                                                       {Severity::kError, "error"}});
-    const auto tSeverityAsString = tSeverityTable.toString(aSeverity);
+    const auto tSeverityAsString = kSeverityTable.toString(aSeverity);
     assert(tSeverityAsString);
     aStream << utilities::colorize(tSeverityAsString.value(), kSeverityColorMap.at(aSeverity));
     return aStream;
+}
+
+auto to_string(Severity aSeverity) -> std::string
+{
+    auto tSeverityAsString = kSeverityTable.toString(aSeverity);
+    assert(tSeverityAsString);
+    return std::move(tSeverityAsString).value();
 }
 
 auto SeverityAttribute::formatter(const FormattingStyle aFormattingStyle) -> boost::log::formatter

@@ -6,6 +6,7 @@
 
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
+#include "plato/test_utilities/Strings.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
@@ -36,7 +37,7 @@ void check_redirected_log_output(std::ostream& aOutputStream, const test_utiliti
         aOutputStream << kTestMessage;
     }
 
-    EXPECT_NE(tStream->str().find(kTestMessage), std::string::npos) << aTestContext << "Log: " << tStream->str();
+    plato::test_utilities::expect_string_contains_substring(tStream->str(), kTestMessage, aTestContext);
 
     // Check that we can write to std::cout & std::cerr. Without restoring std::cout, this could crash
     std::cout << "Testing write to std::cout" << std::endl;
@@ -58,7 +59,8 @@ TEST(ScopedExternalRedirectLogger, CapturesCerr)
 
     check_redirected_log_output(std::cerr, TEST_CONTEXT("std::cerr"));
 
-    EXPECT_NE(tInternalStream->str().find(kTestMessage), std::string::npos) << "Log: " << tInternalStream->str();
+    plato::test_utilities::expect_string_contains_substring(tInternalStream->str(), kTestMessage,
+                                                            TEST_CONTEXT("Cerr message"));
 }
 
 TEST(ScopedExternalRedirectLogger, ExceptionBehavior)
@@ -82,6 +84,7 @@ TEST(ScopedExternalRedirectLogger, ExceptionBehavior)
         {
         }
     }
-    EXPECT_NE(tStream->str().find(kTestMessage), std::string::npos) << "Log: " << tStream->str();
+    plato::test_utilities::expect_string_contains_substring(tStream->str(), kTestMessage,
+                                                            TEST_CONTEXT("Exception message"));
 }
 }  // namespace plato::services::unittest

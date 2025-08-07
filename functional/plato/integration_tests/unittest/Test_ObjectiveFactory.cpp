@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
@@ -144,10 +145,10 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
                                     /*.aggregation_weight=*/2.0,
                                     /*.objective_goal*/ aObjectiveGoal};
         auto tInput = integration_tests::utilities::create_valid_example_input();
-        tInput.get<input_parser::ComponentType::kObjective>().clear();
+        tInput.get<components::ComponentType::kObjective>().clear();
         tInput = tInput | tObjectiveInput;
         const auto tValidInput = input_validation::make_validated_input(tInput).value();
-        const auto& tObjectives = tValidInput.get<input_parser::ComponentType::kObjective>();
+        const auto& tObjectives = tValidInput.get<components::ComponentType::kObjective>();
 
         const auto tObjective = criteria::library::make_aggregate_objective_function(tObjectives);
 

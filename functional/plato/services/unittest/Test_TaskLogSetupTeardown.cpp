@@ -4,6 +4,7 @@
 
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
+#include "plato/test_utilities/Strings.hpp"
 
 namespace plato::services::unittest
 {
@@ -17,8 +18,9 @@ TEST(TaskLogSetupTeardown, SetupTeardown)
         [[maybe_unused]] const auto tLoggerMessageSetupTeardown = TaskLogSetupTeardown{
             std::string{tSetupMessage}, component_logger(components::ComponentType::kFilter, "some-component")};
     }
-    EXPECT_NE(tStream->str().find(tSetupMessage), std::string::npos) << "Result: " << tStream->str();
+    test_utilities::expect_string_contains_substring(tStream->str(), tSetupMessage, TEST_CONTEXT("Set up message"));
     constexpr auto tExpectedTeardownMessage = std::string_view{"Filtering complete"};
-    EXPECT_NE(tStream->str().find(tExpectedTeardownMessage), std::string::npos) << "Result: " << tStream->str();
+    test_utilities::expect_string_contains_substring(tStream->str(), tExpectedTeardownMessage,
+                                                     TEST_CONTEXT("Tear down message"));
 }
 }  // namespace plato::services::unittest

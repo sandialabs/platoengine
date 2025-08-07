@@ -2,6 +2,7 @@
 
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/services/SystemLogger.hpp"
+#include "plato/test_utilities/Strings.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/Severity.hpp"
 
@@ -22,12 +23,8 @@ void checkLogMessage(SystemLogger& aSystemLogger,
     constexpr auto tMessage = std::string_view{"Evaluating filter."};
     aLogMemberFunction(aSystemLogger, tMessage);
 
-    EXPECT_NE(tStream->str().find(tMessage), std::string::npos) << aTestContext << "Result: " << tStream->str();
-
-    auto tSeverityAsString = std::stringstream{};
-    tSeverityAsString << aSeverity;
-    EXPECT_NE(tStream->str().find(tSeverityAsString.str()), std::string::npos)
-        << aTestContext << "Result: " << tStream->str();
+    test_utilities::expect_string_contains_substring(tStream->str(), tMessage, aTestContext);
+    test_utilities::expect_string_contains_substring(tStream->str(), to_string(aSeverity), aTestContext);
 }
 
 void checkLogMessageComponentAttributes(SystemLogger& aSystemLogger,
@@ -39,8 +36,20 @@ void checkLogMessageComponentAttributes(SystemLogger& aSystemLogger,
 
     aLogMemberFunction(aSystemLogger, "Evaluating filter.");
 
-    EXPECT_NE(tStream->str().find("filter"), std::string::npos) << aTestContext << "Result: " << tStream->str();
-    EXPECT_NE(tStream->str().find("helmholtz"), std::string::npos) << aTestContext << "Result: " << tStream->str();
+    test_utilities::expect_string_contains_substring(tStream->str(), "filter", aTestContext);
+    test_utilities::expect_string_contains_substring(tStream->str(), "helmholtz", aTestContext);
+}
+
+void checkAllLogMembers(SystemLogger& aLogger, const test_utilities::TestContext& aTestContext)
+{
+    checkLogMessage(aLogger, third_party_integration::boost_log::Severity::kDebug,
+                    std::mem_fn(&SystemLogger::logDebugMessage), EXTEND_CONTEXT("Debug log member", aTestContext));
+    checkLogMessage(aLogger, third_party_integration::boost_log::Severity::kInfo, std::mem_fn(&SystemLogger::logInfo),
+                    EXTEND_CONTEXT("Info log member", aTestContext));
+    checkLogMessage(aLogger, third_party_integration::boost_log::Severity::kWarning,
+                    std::mem_fn(&SystemLogger::logWarning), EXTEND_CONTEXT("Warning log member", aTestContext));
+    checkLogMessage(aLogger, third_party_integration::boost_log::Severity::kError, std::mem_fn(&SystemLogger::logError),
+                    EXTEND_CONTEXT("Error log member", aTestContext));
 }
 }  // namespace
 
@@ -48,14 +57,7 @@ TEST(SystemLogger, ComponentLogMembers)
 {
     auto tLogger = component_logger(components::ComponentType::kFilter, kFilterName);
 
-    checkLogMessage(tLogger, third_party_integration::boost_log::Severity::kDebug,
-                    std::mem_fn(&SystemLogger::logDebugMessage), TEST_CONTEXT("Debug log member"));
-    checkLogMessage(tLogger, third_party_integration::boost_log::Severity::kInfo, std::mem_fn(&SystemLogger::logInfo),
-                    TEST_CONTEXT("Info log member"));
-    checkLogMessage(tLogger, third_party_integration::boost_log::Severity::kWarning,
-                    std::mem_fn(&SystemLogger::logWarning), TEST_CONTEXT("Warning log member"));
-    checkLogMessage(tLogger, third_party_integration::boost_log::Severity::kError, std::mem_fn(&SystemLogger::logError),
-                    TEST_CONTEXT("Error log member"));
+    checkAllLogMembers(tLogger, TEST_CONTEXT("Component logger"));
 
     checkLogMessageComponentAttributes(tLogger, std::mem_fn(&SystemLogger::logDebugMessage),
                                        TEST_CONTEXT("Debug log member"));
@@ -69,14 +71,7 @@ TEST(SystemLogger, SystemLogMembers)
 {
     auto tLogger = system_logger();
 
-    checkLogMessage(tLogger, third_party_integration::boost_log::Severity::kDebug,
-                    std::mem_fn(&SystemLogger::logDebugMessage), TEST_CONTEXT("Debug log member"));
-    checkLogMessage(tLogger, third_party_integration::boost_log::Severity::kInfo, std::mem_fn(&SystemLogger::logInfo),
-                    TEST_CONTEXT("Info log member"));
-    checkLogMessage(tLogger, third_party_integration::boost_log::Severity::kWarning,
-                    std::mem_fn(&SystemLogger::logWarning), TEST_CONTEXT("Warning log member"));
-    checkLogMessage(tLogger, third_party_integration::boost_log::Severity::kError, std::mem_fn(&SystemLogger::logError),
-                    TEST_CONTEXT("Error log member"));
+    checkAllLogMembers(tLogger, TEST_CONTEXT("Component logger"));
 }
 
 }  // namespace plato::services::unittest

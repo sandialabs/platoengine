@@ -5,6 +5,7 @@
 #include <boost/log/sources/record_ostream.hpp>
 
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
+#include "plato/test_utilities/Strings.hpp"
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
@@ -41,8 +42,10 @@ TEST(SinkWithAttributeFormattersAndFilters, Outputs)
     auto tLogger = test_logger();
     BOOST_LOG(tLogger) << tMessage;
 
-    EXPECT_NE(tStream->str().find(tMessage), std::string::npos) << "Result: " << tStream->str();
-    EXPECT_NE(tStream->str().find(kSharkTag), std::string::npos) << "Result: " << tStream->str();
+    plato::test_utilities::expect_string_contains_substring(tStream->str(), tMessage,
+                                                            TEST_CONTEXT("Contains log message"));
+    plato::test_utilities::expect_string_contains_substring(tStream->str(), kSharkTag,
+                                                            TEST_CONTEXT("Contains attribute"));
 }
 
 TEST_F(SinkWithAttributeFormattersAndFiltersCoutRedirect, Outputs)
