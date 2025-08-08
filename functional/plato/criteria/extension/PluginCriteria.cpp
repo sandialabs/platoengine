@@ -36,7 +36,7 @@ struct CreateCriterionFunction<library::FunctionDimension::kScalar>
     [[nodiscard]] auto operator()(const criteria::library::CriterionInput& aInput, Args&&... aAdditionalArgs) const
     {
         return make_shared_lib_function(SharedLibCriterion{mAppConfiguration, mCriterionConfiguration,
-                                                           aInput.mInputFiles.mList,
+                                                           aInput.mInputFiles.list().mList,
                                                            std::forward<Args>(aAdditionalArgs)...});
     }
 };
@@ -51,7 +51,7 @@ struct CreateCriterionFunction<library::FunctionDimension::kVector>
     [[nodiscard]] auto operator()(const criteria::library::CriterionInput& aInput, Args&&... aAdditionalArgs) const
     {
         return make_shared_library_vector_function(
-            SharedLibraryVectorCriterion{mAppConfiguration, mCriterionConfiguration, aInput.mInputFiles.mList,
+            SharedLibraryVectorCriterion{mAppConfiguration, mCriterionConfiguration, aInput.mInputFiles.list().mList,
                                          std::forward<Args>(aAdditionalArgs)...});
     }
 };

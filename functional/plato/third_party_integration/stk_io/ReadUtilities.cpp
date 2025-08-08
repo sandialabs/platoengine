@@ -104,8 +104,8 @@ template <stk::topology::rank_t Rank>
 }
 
 template <stk::topology::rank_t Rank>
-[[nodiscard]] auto read_field(const stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName)
-    -> std::map<std::size_t, double>
+[[nodiscard]] auto read_field(const stk::io::StkMeshIoBroker& aIOBroker,
+                              const std::string_view aFieldName) -> std::map<std::size_t, double>
 {
     auto tField = aIOBroker.meta_data().get_field(Rank, std::string{aFieldName});
 
@@ -173,8 +173,8 @@ std::vector<common::Coordinate> nodal_coordinates(const stk::mesh::BulkData& aBu
     return nodal_coordinates(aBulk, universal_part(aBulk));
 }
 
-auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
-    -> std::vector<common::Coordinate>
+auto nodal_coordinates(const stk::mesh::BulkData& aBulk,
+                       const PartReferenceVector& aParts) -> std::vector<common::Coordinate>
 {
     auto tNodeEntity = stk::mesh::EntityVector{};
     stk::mesh::get_entities(aBulk, stk::topology::NODE_RANK, parts_to_selector(aParts), tNodeEntity, kSortedByID);

@@ -125,8 +125,8 @@ TEST(BlockUtilities, NodalCoordinatesInBlock)
         const auto tExpectedCoordinates = std::vector<common::Coordinate>{
             {0, 0.125, 0}, {0.0625, 0.125, 0}, {0.125, 0.125, 0}, {0, 0.25, 0}, {0.125, 0.25, 0}};
         const auto tCoordinateParts = std::vector{std::cref(*tParts.back())};
-        const auto tBlock1NodalCoordinatesFromParts = nodal_coordinates(*tBulkData, tCoordinateParts);
-        EXPECT_EQ(tBlock1NodalCoordinatesFromParts, tExpectedCoordinates);
+        const auto tBlock2NodalCoordinatesFromParts = nodal_coordinates(*tBulkData, tCoordinateParts);
+        EXPECT_EQ(tBlock2NodalCoordinatesFromParts, tExpectedCoordinates);
     }
 
     std::filesystem::remove(tMeshPath);

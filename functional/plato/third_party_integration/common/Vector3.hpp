@@ -13,6 +13,7 @@ struct Coordinate
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
+    auto operator==(const Coordinate& aCoordinate) const -> bool = default;
 };
 
 struct Vector3
@@ -20,6 +21,7 @@ struct Vector3
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
+    auto operator==(const Vector3& aVector) const -> bool = default;
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContainer)
@@ -32,12 +34,6 @@ inline std::ostream& operator<<(std::ostream& stream, const Vector3& aContainer)
 {
     stream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
     return stream;
-}
-
-/// @todo Replace with `== default` in c++20
-[[nodiscard]] inline constexpr bool operator==(const Coordinate& aLHS, const Coordinate& aRHS)
-{
-    return aLHS.x == aRHS.x && aLHS.y == aRHS.y && aLHS.z == aRHS.z;
 }
 
 template <typename Container3>

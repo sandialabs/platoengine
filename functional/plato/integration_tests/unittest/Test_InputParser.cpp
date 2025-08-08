@@ -71,8 +71,8 @@ TEST(InputParser, ParseFromFile)
     ASSERT_TRUE(tObjective.number_of_processors.has_value());
     EXPECT_EQ(tObjective.number_of_processors.value(), 4);
     ASSERT_TRUE(tObjective.input_files.has_value());
-    ASSERT_EQ(tObjective.input_files->mList.size(), 1);
-    EXPECT_EQ(tObjective.input_files->mList.front(), "test-input.inp");
+    ASSERT_EQ(tObjective.input_files->size(), 1);
+    EXPECT_EQ(tObjective.input_files->list().mList.front(), "test-input.inp");
     ASSERT_TRUE(tObjective.aggregation_weight.has_value());
     EXPECT_EQ(tObjective.aggregation_weight.value(), 42.0);
 

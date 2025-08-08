@@ -1,11 +1,5 @@
 #include "plato/test_utilities/InputGeneration.hpp"
 
-#include <fstream>
-#include <optional>
-
-#include "plato/input_parser/InputBlockUtilities.hpp"
-#include "plato/input_parser/InputDefinitions.hpp"
-
 namespace plato::test_utilities
 {
 std::string create_valid_brick_shape_geometry_string()
