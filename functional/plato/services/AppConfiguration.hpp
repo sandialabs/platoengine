@@ -20,6 +20,7 @@ struct CriterionConfiguration
     bool mIsParallelized = false;
     bool mIsScalar = true;
     std::string mFunctionName{};
+    auto operator==(const CriterionConfiguration& aCriterionConfiguration) const -> bool = default;
 };
 
 /// @brief Configuration data for defining an app's interface with plato.
@@ -31,6 +32,7 @@ struct AppConfiguration
     std::string mName{};
     std::string mLibraryFileName{};
     std::vector<CriterionConfiguration> mCriteria{};
+    auto operator==(const AppConfiguration& aAppConfiguration) const -> bool = default;
 };
 
 /// @brief Associates an AppConfiguration with the directory in which it was found.
@@ -48,14 +50,6 @@ void save_configuration(const AppConfiguration& aAppConfiguration, const std::fi
 
 /// @brief Reads an AppConfiguration from disk, at path @a aFilename.
 [[nodiscard]] AppConfiguration load_configuration(const std::filesystem::path& aFilename);
-
-/// @todo Use `operator==() = default` in c++20
-[[nodiscard]] bool operator==(const CriterionConfiguration& aAppConfigurationLeft,
-                              const CriterionConfiguration& aAppConfigurationRight);
-
-/// @todo Use `operator==() = default` in c++20
-[[nodiscard]] bool operator==(const AppConfiguration& aAppConfigurationLeft,
-                              const AppConfiguration& aAppConfigurationRight);
 
 template <class Archive>
 void serialize(Archive& aArchive, CriterionConfiguration& aAppConfiguration, const unsigned int /*version*/)

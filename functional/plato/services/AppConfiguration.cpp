@@ -28,19 +28,4 @@ AppConfiguration load_configuration(const std::filesystem::path& aFilename)
     return tAppConfiguration;
 }
 
-bool operator==(const CriterionConfiguration& aCriterionConfigurationLeft,
-                const CriterionConfiguration& aCriterionConfigurationRight)
-{
-    return aCriterionConfigurationLeft.mName == aCriterionConfigurationRight.mName &&
-           aCriterionConfigurationLeft.mFunctionName == aCriterionConfigurationRight.mFunctionName &&
-           aCriterionConfigurationLeft.mIsParallelized == aCriterionConfigurationRight.mIsParallelized &&
-           aCriterionConfigurationLeft.mIsScalar == aCriterionConfigurationRight.mIsScalar;
-}
-
-bool operator==(const AppConfiguration& aAppConfigurationLeft, const AppConfiguration& aAppConfigurationRight)
-{
-    return aAppConfigurationLeft.mName == aAppConfigurationRight.mName &&
-           aAppConfigurationLeft.mLibraryFileName == aAppConfigurationRight.mLibraryFileName &&
-           aAppConfigurationLeft.mCriteria == aAppConfigurationRight.mCriteria;
-}
 }  // namespace plato::services

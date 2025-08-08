@@ -75,13 +75,11 @@ struct create_parser<plato::input_parser::UserDefinedToken<ValidCharFunction>>
     static constexpr std::string_view kValidChars =
         plato::input_parser::UserDefinedToken<ValidCharFunction>::kValidChars;
 
-    using type = typename boost::proto::result_of::deep_copy<BOOST_TYPEOF(
-        (boost::spirit::qi::lexeme[+boost::spirit::qi::char_(kValidChars.data())]))>::type;
-
-    static type call()
+    static auto call()
     {
         return boost::proto::deep_copy((boost::spirit::qi::lexeme[+boost::spirit::qi::char_(kValidChars.data())]));
     }
+    using type = decltype(call());
 };
 
 }  // namespace boost::spirit::traits

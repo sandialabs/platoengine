@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -39,6 +40,13 @@ template <typename T>
 /// @tparam Must have a public field `active` that is a `boost` or `std::optional`.
 template <typename Parameter>
 [[nodiscard]] auto is_active(const Parameter& aParameter) -> bool;
+
+/// @return an optional error message if optional @a aParameter of type FileName does not contain a value or that value
+/// doesn't point to a file on disk
+[[nodiscard]] std::optional<std::string> error_message_for_missing_file_parameter(
+    const std::string_view aPrependString,
+    const boost::optional<input_parser::FileName>& aParameter,
+    const std::string_view aEntryName);
 
 template <typename T>
 auto error_message_for_empty_parameter(const std::string_view aPrependString,

@@ -8,15 +8,6 @@ namespace plato::test_utilities
 {
 namespace
 {
-template <typename F, typename... Args>
-void execute_on_root(const boost::mpi::communicator& aComm, const F& aFunction, Args&&... aArgs)
-{
-    if (aComm.rank() == 0)
-    {
-        aFunction(std::forward<Args>(aArgs)...);
-    }
-    aComm.barrier();
-}
 
 MPI_File open_file_with_mpi(const boost::mpi::communicator& aComm,
                             const std::filesystem::path& aFilePath,
@@ -25,14 +16,11 @@ MPI_File open_file_with_mpi(const boost::mpi::communicator& aComm,
     auto tMPIFileHandle = MPI_File{};
     MPI_Comm tComm = aComm;
     const auto tErrorCode = MPI_File_open(tComm, aFilePath.c_str(), aFileMode, MPI_INFO_NULL, &tMPIFileHandle);
-    if (tErrorCode != MPI_SUCCESS)
+    if (tErrorCode != MPI_SUCCESS && aComm.rank() == 0)
     {
-        execute_on_root(aComm,
-                        [tErrorCode]() {
-                            std::cerr << "FileCreatingTestFixture non-zero mpi error code on file operation: "
-                                      << tErrorCode << std::endl;
-                        });
+        std::cerr << "FileCreatingTestFixture non-zero mpi error code on file operation: " << tErrorCode << std::endl;
     }
+    aComm.barrier();
     return tMPIFileHandle;
 }
 

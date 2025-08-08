@@ -80,9 +80,9 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
 
     EXPECT_EQ(tObjective.number_of_processors, tCriterionInput.mNumberOfProcessors);
     ASSERT_TRUE(tObjective.input_files.has_value());
-    ASSERT_EQ(tObjective.input_files->mList.size(), tCriterionInput.mInputFiles.mList.size());
+    ASSERT_EQ(tObjective.input_files->size(), tCriterionInput.mInputFiles.size());
     for (const auto& [tObjectiveInputFile, tCriterionInputFile] :
-         plato::utilities::Zip{tObjective.input_files->mList, tCriterionInput.mInputFiles.mList})
+         plato::utilities::Zip{tObjective.input_files->list().mList, tCriterionInput.mInputFiles.list().mList})
     {
         EXPECT_EQ(tObjectiveInputFile, tCriterionInputFile);
     }
@@ -99,9 +99,9 @@ TEST_F(CriterionFactoryTestFixture, ConvertConstraintInput)
 
     EXPECT_EQ(tConstraint.number_of_processors, tCriterionInput.mNumberOfProcessors);
     ASSERT_TRUE(tConstraint.input_files.has_value());
-    ASSERT_EQ(tConstraint.input_files->mList.size(), tCriterionInput.mInputFiles.mList.size());
+    ASSERT_EQ(tConstraint.input_files->size(), tCriterionInput.mInputFiles.size());
     for (const auto& [tConstraintInputFile, tCriterionInputFile] :
-         plato::utilities::Zip{tConstraint.input_files->mList, tCriterionInput.mInputFiles.mList})
+         plato::utilities::Zip{tConstraint.input_files->list().mList, tCriterionInput.mInputFiles.list().mList})
     {
         EXPECT_EQ(tConstraintInputFile, tCriterionInputFile);
     }
