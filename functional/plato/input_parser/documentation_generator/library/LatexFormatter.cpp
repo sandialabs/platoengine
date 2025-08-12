@@ -2,6 +2,7 @@
 
 #include <iterator>
 #include <string_view>
+#include <algorithm>
 
 #include "plato/utilities/StringUtilities.hpp"
 

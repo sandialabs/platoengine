@@ -1,6 +1,7 @@
 
 #include "plato/integration_tests/test_mass_criteria/MassConstraint.hpp"
 
+#include <algorithm>
 #include <iterator>
 
 #include "plato/mesh/Mesh.hpp"

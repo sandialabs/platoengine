@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "plato/analysis/Utilities.hpp"
 
 #include <boost/functional/hash.hpp>

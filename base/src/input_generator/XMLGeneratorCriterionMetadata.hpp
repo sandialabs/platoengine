@@ -36,7 +36,7 @@ private:
     std::vector<std::string> mSearchNodesetIDs;
     std::map<std::string, std::pair<double,double>> mMassProperties;
 
-    std::string mReport;
+    mutable std::string mReport;
 
 public:
     /******************************************************************************//**
@@ -56,7 +56,7 @@ public:
     **********************************************************************************/
     void report(const std::string& aInput) const
     {
-        mReport + "\nPlato Input Deck Report: " + aInput;
+        mReport += "\nPlato Input Deck Report: " + aInput;
     }
 
     /******************************************************************************//**

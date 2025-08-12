@@ -1,13 +1,14 @@
 #ifndef PLATO_UTILITIES_BOUNDCLUSIVITY
 #define PLATO_UTILITIES_BOUNDCLUSIVITY
 
+#include <cstdint>
 #include <type_traits>
 
 namespace plato::utilities
 {
 namespace detail
 {
-enum struct Clusivity
+enum struct Clusivity : std::uint8_t
 {
     kInclusive,
     kExclusive,
