@@ -13,6 +13,7 @@
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
+#include "plato/utilities/MPIUtilities.hpp"
 
 namespace plato::third_party_integration::krino::parallel_unittest
 {
@@ -49,12 +50,12 @@ void check_vector_same_on_all_ranks(const std::vector<stk::mesh::EntityId>& aVec
 
 void remove_file_on_rank_zero()
 {
-    boost::mpi::communicator{}.barrier();
-    if (boost::mpi::communicator{}.rank() == 0)
-    {
-        ::plato::test_utilities::test_for_existence_and_remove({kWriteMeshName},
-                                                               TEST_CONTEXT("Removing written cut mesh"));
-    }
+    utilities::execute_on_root(boost::mpi::communicator{},
+                               []()
+                               {
+                                   ::plato::test_utilities::test_for_existence_and_remove(
+                                       {kWriteMeshName}, TEST_CONTEXT("Removing written cut mesh"));
+                               });
 }
 
 }  // namespace

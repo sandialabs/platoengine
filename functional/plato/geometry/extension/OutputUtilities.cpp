@@ -7,6 +7,7 @@
 #include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/MeshOutput.hpp"
+#include "plato/utilities/MPIUtilities.hpp"
 
 namespace plato::geometry::extension
 {
@@ -20,19 +21,21 @@ auto output_nodal_field(const MeshFieldOutputInfo& aMeshOutputInfo,
             mesh::NodalFieldVectorReference{aSolution.stdVector()});
     auto tFilteredDesignParameters = aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters);
 
-    if (boost::mpi::communicator{}.rank() == 0)
-    {
-        const auto tMeshOutput = mesh::make_mesh_output(
-            mesh::output_mode(aOutputInfo.mOverwrite), mesh::InputFilePath{aMeshOutputInfo.mInputMesh.filePath()},
-            mesh::OutputFilePath{aMeshOutputInfo.mOutputPath}, aMeshOutputInfo.mFixedBlocks, aOutputInfo.mIteration);
-        assert(tMeshOutput);
+    utilities::execute_on_root(
+        boost::mpi::communicator{},
+        [&aMeshOutputInfo, &aOutputInfo, &tFilteredDesignParameters, &tNodalDesignParameters]()
+        {
+            const auto tMeshOutput = mesh::make_mesh_output(mesh::output_mode(aOutputInfo.mOverwrite),
+                                                            mesh::InputFilePath{aMeshOutputInfo.mInputMesh.filePath()},
+                                                            mesh::OutputFilePath{aMeshOutputInfo.mOutputPath},
+                                                            aMeshOutputInfo.mFixedBlocks, aOutputInfo.mIteration);
+            assert(tMeshOutput);
 
-        tMeshOutput->addFieldOnAnalysisDomainMesh(tFilteredDesignParameters, aMeshOutputInfo.mFilteredFieldName,
-                                                  aMeshOutputInfo.mFixedFieldValue);
-        tMeshOutput->addFieldOnAnalysisDomainMesh(tNodalDesignParameters, aMeshOutputInfo.mControlFieldName,
-                                                  aMeshOutputInfo.mFixedFieldValue);
-    }
-    boost::mpi::communicator{}.barrier();
+            tMeshOutput->addFieldOnAnalysisDomainMesh(tFilteredDesignParameters, aMeshOutputInfo.mFilteredFieldName,
+                                                      aMeshOutputInfo.mFixedFieldValue);
+            tMeshOutput->addFieldOnAnalysisDomainMesh(tNodalDesignParameters, aMeshOutputInfo.mControlFieldName,
+                                                      aMeshOutputInfo.mFixedFieldValue);
+        });
 
     return tFilteredDesignParameters;
 }

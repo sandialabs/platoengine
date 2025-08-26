@@ -45,11 +45,9 @@
  *
  */
 
-#ifdef STK_ENABLED
 #include "Plato_DecomposeMesh.hpp"
-#include <stk_io/StkMeshIoBroker.hpp>
-#endif
 
+#include <stk_io/StkMeshIoBroker.hpp>
 #include <string>
 
 namespace Plato
@@ -57,7 +55,6 @@ namespace Plato
 
 void decomposeMesh(MPI_Comm aComm, const std::string& aMeshFile)
 {
-#ifdef STK_ENABLED
     int tMyRank;
     int tSize;
     MPI_Comm_rank(aComm, &tMyRank);
@@ -77,16 +74,15 @@ void decomposeMesh(MPI_Comm aComm, const std::string& aMeshFile)
     size_t index = ioBroker.create_output_mesh(aMeshFile, stk::io::WRITE_RESULTS);
     ioBroker.set_active_mesh(index);
     stk::mesh::FieldVector all_fields = ioBroker.meta_data().get_fields();
-    for(size_t j=0; j<all_fields.size(); ++j)
+    for (size_t j = 0; j < all_fields.size(); ++j)
     {
         stk::mesh::FieldBase* cur_field = all_fields[j];
         const Ioss::Field::RoleType* tRoleType = stk::io::get_field_role(*cur_field);
-        if(tRoleType && *tRoleType == Ioss::Field::TRANSIENT)
-            ioBroker.add_field(index, *cur_field);
+        if (tRoleType && *tRoleType == Ioss::Field::TRANSIENT) ioBroker.add_field(index, *cur_field);
     }
-    for(size_t i=0; i<tTimeSteps.size(); ++i)
+    for (size_t i = 0; i < tTimeSteps.size(); ++i)
     {
-        ioBroker.read_defined_input_fields((int)(i+1));
+        ioBroker.read_defined_input_fields((int)(i + 1));
         ioBroker.begin_output_step(index, tTimeSteps[i]);
         ioBroker.write_defined_output_fields(index);
         ioBroker.end_output_step(index);
@@ -94,8 +90,6 @@ void decomposeMesh(MPI_Comm aComm, const std::string& aMeshFile)
 
     ioBroker.write_output_mesh(index);
     MPI_Barrier(aComm);
-#endif
 }
 
-
-} // end namespace Plato
+}  // end namespace Plato

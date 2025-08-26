@@ -15,4 +15,3 @@ trigger-super:
     project: 1540-compsim/plato/plato
     strategy: depend
   needs: []
-

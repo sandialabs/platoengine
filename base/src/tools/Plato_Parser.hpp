@@ -42,9 +42,9 @@
 
 /*
  * Plato_Parser.hpp
- * 
+ *
  * Created on: Dec 13, 2016
- * 
+ *
  */
 
 #ifndef SRC_PARSER_H_
@@ -52,40 +52,40 @@
 
 #include <string>
 #include <vector>
-#include "math_parser/tinyexpr.h"
-#include "pugixml.hpp"
 
 #include "Plato_InputData.hpp"
-#include "Plato_StageInputDataMng.hpp"
-#include "Plato_OperationInputDataMng.hpp"
-#include "Plato_OptimizerEngineStageData.hpp"
+#include "math_parser/tinyexpr.h"
+#include "pugixml.hpp"
 
 namespace Plato
 {
 
-class MathParser {
+class MathParser
+{
     std::vector<te_variable> mVariables;
     std::vector<std::shared_ptr<double>> mValues;
     std::vector<std::shared_ptr<std::string>> mNames;
 
-    std::map<std::string,std::vector<std::string>> mArrays;
-  public:  
+    std::map<std::string, std::vector<std::string>> mArrays;
+
+   public:
     void addVariable(std::string aVarName, std::string aVarValue);
     void addArrays(const decltype(mArrays)&);
     std::string compute(std::string);
     std::string parse(std::string);
 };
 
-
-class Parser {
-  public:
+class Parser
+{
+   public:
     virtual ~Parser() = default;
     virtual InputData parseFile(const std::string& fileName) const = 0;
     virtual InputData parseString(const std::string& inputString) const = 0;
 };
 
-class PugiParser : public Parser {
-  public:
+class PugiParser : public Parser
+{
+   public:
     PugiParser() = default;
     Plato::InputData parseFile(const std::string& fileName) const override;
     Plato::InputData parseString(const std::string& inputString) const override;
@@ -95,20 +95,22 @@ class PugiParser : public Parser {
     static std::string findReplace(std::string aString, std::string aFind, std::string aReplace);
     static std::vector<std::string> tokenize(std::string aString, const char aDelimiter);
 
-
-  private:
+   private:
     Plato::InputData read(std::shared_ptr<pugi::xml_document> doc) const;
     void addChildren(const pugi::xml_node& node, InputData& inputData) const;
     void preProcess(std::shared_ptr<pugi::xml_document> doc) const;
 
     class ForWalker : public pugi::xml_tree_walker
     {
-        const std::map<std::string,std::vector<std::string>>& mVarMap;
+        const std::map<std::string, std::vector<std::string>>& mVarMap;
         int& mNumMods;
 
-      public:
-        ForWalker( const std::map<std::string,std::vector<std::string>>& aVarMap, int& aNumMods ) : 
-            mVarMap(aVarMap), mNumMods(aNumMods) { mNumMods = 0; }
+       public:
+        ForWalker(const std::map<std::string, std::vector<std::string>>& aVarMap, int& aNumMods)
+            : mVarMap(aVarMap), mNumMods(aNumMods)
+        {
+            mNumMods = 0;
+        }
         bool for_each(pugi::xml_node& node) override;
     };
 
@@ -116,10 +118,11 @@ class PugiParser : public Parser {
     {
         std::shared_ptr<Plato::MathParser> mMathParser;
 
-      public:
+       public:
         MathWalker(std::shared_ptr<Plato::MathParser> aMathParser) : mMathParser(aMathParser) {}
         bool for_each(pugi::xml_node& node) override;
-      private:
+
+       private:
         std::string evalExpr(std::string);
         void evalSubExpr(std::string&, size_t);
     };
@@ -131,15 +134,15 @@ InputData inputDataFromPugiParsedFile(const std::string& aFileName);
 
 namespace Get
 {
-bool                Bool      (const Plato::InputData & aInputData, const std::string & aFieldname, bool aDefaultValue=false );
-double              Double    (const Plato::InputData & aInputData, const std::string & aFieldname);
-std::vector<double> Doubles   (const Plato::InputData & aInputData, const std::string & aKeyword);
-int                 Int       (const Plato::InputData & aInputData, const std::string & aFieldname, int aDefaultValue=0 );
-std::vector<int>    Ints      (const Plato::InputData & aInputData, const std::string & aKeyword);
-std::string         String    (const Plato::InputData & aInputData, const std::string & aFieldname, bool aToUpper = false);
-std::string         String    (      Plato::InputData & aInputData, const std::string & aFieldname, const std::string& aDefault);
-Plato::InputData    InputData (Plato::InputData & aNode, const std::string & aNodename, unsigned int aIndex=0);
-}
+bool Bool(const Plato::InputData& aInputData, const std::string& aFieldname, bool aDefaultValue = false);
+double Double(const Plato::InputData& aInputData, const std::string& aFieldname);
+std::vector<double> Doubles(const Plato::InputData& aInputData, const std::string& aKeyword);
+int Int(const Plato::InputData& aInputData, const std::string& aFieldname, int aDefaultValue = 0);
+std::vector<int> Ints(const Plato::InputData& aInputData, const std::string& aKeyword);
+std::string String(const Plato::InputData& aInputData, const std::string& aFieldname, bool aToUpper = false);
+std::string String(Plato::InputData& aInputData, const std::string& aFieldname, const std::string& aDefault);
+Plato::InputData InputData(Plato::InputData& aNode, const std::string& aNodename, unsigned int aIndex = 0);
+}  // namespace Get
 
 namespace Parse
 {
@@ -151,74 +154,38 @@ namespace Parse
 typedef pugi::xml_node InputNode;
 
 void toUppercase(std::string& aString);
-void loadFile(pugi::xml_document & aInput);
-bool getBool(const pugi::xml_node & aNode, const std::string & aFieldname);
-double getDouble(const pugi::xml_node & aNode);
-double getDouble(const pugi::xml_node & aNode, const std::string & aFieldname);
-std::vector<double> getDoubles(const pugi::xml_node & aXML_Node, const std::string & aKeyword);
-int getInt(const pugi::xml_node & aNode, const std::string & aFieldname);
-int numChildren(const pugi::xml_node & aNode, const std::string & aFieldname);
+void loadFile(pugi::xml_document& aInput);
+bool getBool(const pugi::xml_node& aNode, const std::string& aFieldname);
+double getDouble(const pugi::xml_node& aNode);
+double getDouble(const pugi::xml_node& aNode, const std::string& aFieldname);
+std::vector<double> getDoubles(const pugi::xml_node& aXML_Node, const std::string& aKeyword);
+int getInt(const pugi::xml_node& aNode, const std::string& aFieldname);
+int numChildren(const pugi::xml_node& aNode, const std::string& aFieldname);
 
-std::string getString(pugi::xml_node & aNode, const std::string & aFieldname, const std::string& aDefault);
-std::string getStringValue(const pugi::xml_node & aNode, bool aToUpper = false);
-std::string getString(const pugi::xml_node & aNode, const std::string & aFieldname, bool aToUpper = false);
-std::vector<std::string> getStrings(const pugi::xml_node & aXML_Node, const std::string & aKeyword);
+std::string getString(pugi::xml_node& aNode, const std::string& aFieldname, const std::string& aDefault);
+std::string getStringValue(const pugi::xml_node& aNode, bool aToUpper = false);
+std::string getString(const pugi::xml_node& aNode, const std::string& aFieldname, bool aToUpper = false);
+std::vector<std::string> getStrings(const pugi::xml_node& aXML_Node, const std::string& aKeyword);
 /**** end Pugi specific functions *******/
 
-
-
-
 void toUppercase(std::string& aString);
-bool boolFromString(const std::string & strval);
+bool boolFromString(const std::string& strval);
 
-/******************************************************************************//**
- * \brief Parse keyword from input data node. Returns empty string if the keyword is not defined.
- * \param [in] aKeyword keyword to parse
- * \param [in] aDefault default value
- * \param [in] aNode    input data node
-**********************************************************************************/
+/******************************************************************************/ /**
+                                                                                  * \brief Parse keyword from input data
+                                                                                  *node. Returns empty string if the
+                                                                                  *keyword is not defined. \param [in]
+                                                                                  *aKeyword keyword to parse \param [in]
+                                                                                  *aDefault default value \param [in]
+                                                                                  *aNode    input data node
+                                                                                  **********************************************************************************/
 std::string keyword(const Plato::InputData& aNode, const std::string& aKeyword, const std::string& aDefault);
 
-void parseArgumentNameInputs    (const Plato::InputData & aInputData,  std::vector<std::string> & aInputs);
-void parseArgumentNameOutputs   (const Plato::InputData & aOutputData, std::vector<std::string> & aOutputs);
-void parseSharedDataNameInputs  (const Plato::InputData & tInputData,  std::vector<std::string> & aInputs);
-void parseSharedDataNameOutputs (const Plato::InputData & tInputData,  std::vector<std::string> & aOutputs);
-void parseStageData             (const Plato::InputData & aStageData,  Plato::StageInputDataMng & aStageInputDataMng);
-void parseStageOperations       (const Plato::InputData & aStageData,  Plato::StageInputDataMng & aStageInputDataMng);
+void parseArgumentNameInputs(const Plato::InputData& aInputData, std::vector<std::string>& aInputs);
+void parseArgumentNameOutputs(const Plato::InputData& aOutputData, std::vector<std::string>& aOutputs);
 
-void parseConstraintValueNames(const Plato::InputData & aOptimizationNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseConstraintHessianNames(const Plato::InputData & aOptimizationNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseConstraintTargetValues(const Plato::InputData & aOptimizationNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseConstraintGradientNames(const Plato::InputData & aOptimizationNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseConstraintReferenceValues(const Plato::InputData & aOptimizationNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseConstraintReferenceValueNames(const Plato::InputData & aOptimizationNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseOperationData(const Plato::InputData & aOperationNode, Plato::OperationInputDataMng & aOperationData);
-
-void parseObjectiveStagesData(const Plato::InputData & aObjectiveNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseLowerBounds(const Plato::InputData & aOptimizerNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseUpperBounds(const Plato::InputData & aOptimizerNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseInitialGuess(const Plato::InputData & aOptimizerNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseConstraints(const Plato::InputData & aConstraintNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseOptimizerStages(const Plato::InputData & aOptimizerNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseOptimizerOptions(const Plato::InputData & aOptimizerNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-void parseOptimizationVariablesNames(const Plato::InputData & aOptimizerNode, Plato::OptimizerEngineStageData & aOptimizerEngineStageData);
-
-} // namespace Parse
+}  // namespace Parse
 
 } /* namespace Plato */
 
 #endif /* SRC_PARSER_H_ */
-
