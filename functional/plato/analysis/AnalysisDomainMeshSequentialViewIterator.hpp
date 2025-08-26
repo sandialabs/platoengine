@@ -1,10 +1,10 @@
 #ifndef PLATO_ANALYSIS_MESHDESIGNVARIABLESSEQUENTIALVIEWITERATOR
 #define PLATO_ANALYSIS_MESHDESIGNVARIABLESSEQUENTIALVIEWITERATOR
 
+#include <algorithm>
 #include <optional>
 #include <type_traits>
 #include <vector>
-#include <algorithm>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/SharedValueProxy.hpp"

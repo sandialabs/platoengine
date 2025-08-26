@@ -37,7 +37,7 @@ SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirec
     : mCriterionInterface{load_criterion_interface<SerialFunctionSignature>(aAppConfiguration,
                                                                             aCriterionConfiguration.mFunctionName,
                                                                             aCriterionInput,
-                                                                            aCriterionInput.mInputFiles.mList)},
+                                                                            aCriterionInput.mInputFiles.list().mList)},
       mComponentType{aCriterionInput.mComponentType},
       mName{aCriterionInput.mName}
 {
@@ -50,7 +50,7 @@ SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirec
     : mCriterionInterface{load_criterion_interface<ParallelFunctionSignature>(aAppConfiguration,
                                                                               aCriterionConfiguration.mFunctionName,
                                                                               aCriterionInput,
-                                                                              aCriterionInput.mInputFiles.mList,
+                                                                              aCriterionInput.mInputFiles.list().mList,
                                                                               aComm)},
       mComm{aComm},
       mComponentType{aCriterionInput.mComponentType},
