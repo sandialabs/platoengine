@@ -22,38 +22,9 @@ if( CCACHE_FOUND )
   set( CMAKE_CXX_COMPILER_LAUNCHER ccache )
 endif()
 
-##################################################################
-## Load config.cmake                                            ##
-##################################################################
-if( DEFINED CONFIG )
+option( REGRESSION    "Flag to create regression test suite"               OFF )
+option( UNIT_TESTING  "Flag to turn on unit testing"                       OFF )
 
-  message(STATUS "-DCONFIG specified: " ${CONFIG})
-  if( EXISTS ${CMAKE_BINARY_DIR}/${CONFIG} )
-   include( ${CMAKE_BINARY_DIR}/${CONFIG} )
-  else()
-    message(FATAL_ERROR "The configuration file '${CONFIG}' specified with -DCONFIG doesn't exist")
-  endif()
-
-else()
-
-  if( EXISTS ${CMAKE_BINARY_DIR}/config.cmake )
-   include( ${CMAKE_BINARY_DIR}/config.cmake )
-  else()
-    message(STATUS "A configuration file named 'config.cmake' was not provided in the build directory.")
-    message(STATUS "Using command line arguments only to configure build.")
-    include( ${CMAKE_SOURCE_DIR}/base/config/defaults.cmake )
-  endif()
-
-endif()
-
-if( DEFINED PLATO_SYSTEM_CONFIG )
-  if( EXISTS ${PLATO_SYSTEM_CONFIG} )
-   include( ${PLATO_SYSTEM_CONFIG} )
-  else()
-    message(STATUS "Specified system configuration file ($PLATO_SYSTEM_CONFIG} not found")
-    message(FATAL_ERROR " ")
-  endif()
-endif()
 ###############################################################################
 ###############################################################################
 
@@ -97,9 +68,6 @@ endif()
 ###############################################################################
 
 
-if( DAKOTADRIVER )
-  find_package(Dakota REQUIRED)
-endif()
 find_package(Boost REQUIRED COMPONENTS serialization filesystem system program_options regex mpi)
 if( LINK_WITH_PYTHON )
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
@@ -134,8 +102,6 @@ if(BUILD_WITH_SANITIZER_FLAGS)
 endif()
 
 message("Trilinos_CXX_COMPILER_FLAGS: ${Trilinos_CXX_COMPILER_FLAGS}")
-# set(CMAKE_C_FLAGS "${Trilinos_C_COMPILER_FLAGS} -fPIC -fopenmp")
-# set(CMAKE_CXX_FLAGS "${Trilinos_CXX_COMPILER_FLAGS} -fPIC -fopenmp")
 set(CMAKE_C_FLAGS "${Trilinos_C_COMPILER_FLAGS} -fPIC -Werror")
 set(CMAKE_CXX_FLAGS "${Trilinos_CXX_COMPILER_FLAGS} -fPIC -Werror ")
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${GCC_ADDITIONAL_WARNINGS}>")
@@ -149,13 +115,6 @@ if( UNIT_TESTING )
   find_package(GTest REQUIRED)
 endif()
 
-if( ESP_ENABLED )
-  Plato_find_lib ( ESP_LIB ON egads ${ESP_LIB_DIR} )
-  Plato_find_lib ( OCSM_LIB ON ocsm ${ESP_LIB_DIR} )
-  Plato_find_path( ESP_INC ON egads.h ${ESP_INC_DIR} )
-  include_directories( ${ESP_INC} )
-endif()
-
 ###############################################################################
 ###############################################################################
 if("${CMAKE_BUILD_TYPE}" STREQUAL Release)
@@ -163,49 +122,12 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL Release)
 elseif("${CMAKE_BUILD_TYPE}" STREQUAL Debug)
 endif()
 
-if( STK_ENABLED )
-  message( "-- Compiling with STK " )
-  add_definitions( -DSTK_ENABLED )
-endif()
-
-if( ESP_ENABLED )
-  message( "-- Compiling with ESP " )
-  add_definitions( -DESP_ENABLED )
-endif()
-
-if( DAKOTADRIVER )
-  message( "-- Compiling Dakota Driver " )
-  add_definitions(-DDAKOTADRIVER)
-endif()
-
-if( ENABLE_ISO )
-  message( "-- Compiling PlatoIso " )
-  add_definitions(-DENABLE_ISO)
-endif()
-
-if( ENABLE_PRUNE )
-  message( "-- Compiling Plato prune and refine " )
-  add_definitions(-DENABLE_PRUNE)
-endif()
-
 if( REGRESSION OR UNIT_TESTING )
     enable_testing()
 endif()
 
-if( AMFILTER_ENABLED )
-    message( "-- Compiling AMFilter, c++14 required " )
-    string(REPLACE "-std=c++11" "-std=c++14" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-    string(REPLACE "-std=c++11" "-std=c++14" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-    string(REPLACE "-std=c++11" "-std=c++14" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
-    add_definitions(-DAMFILTER_ENABLED)
-    find_package(ArborX REQUIRED)
-    set(PLATO_LIBRARIES ${PLATO_LIBRARIES} ArborX::ArborX)
-endif()
-
 add_subdirectory(base)
-add_subdirectory(apps)
 add_subdirectory(functional)
-install_prebuilt_binaries()
 
 include(CMakePackageConfigHelpers)
 install(EXPORT PlatoEngine NAMESPACE PlatoEngine FILE PlatoEngineTargets.cmake DESTINATION cmake)
@@ -213,29 +135,19 @@ set(Plugins_install_dir "plugins")
 configure_package_config_file(PlatoEngineConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/PlatoEngineConfig.cmake PATH_VARS Plugins_install_dir INSTALL_DESTINATION cmake)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/PlatoEngineConfig.cmake DESTINATION cmake)
 
-
 install(EXPORT PlatoEngine NAMESPACE PlatoEngine:: FILE PlatoEngineTargets.cmake DESTINATION cmake)
 
 if( REGRESSION )
+
   integration_tests_dir()
+  
   if( SIERRA_TESTS_ENABLED )
+      install_prebuilt_binaries()
       add_integration_test(sierra)
   endif()
   
-  if( PLATOMAIN )
-    add_integration_test(support_structure)
-    add_integration_test(su2_to_exodus)
-    if( ENABLE_PRUNE )
-        add_integration_test(prune_and_refine)
-    endif()
-    if( SIERRA_TESTS_ENABLED AND DAKOTADRIVER )
-      add_integration_test(dakota_sierra)
-    endif()
-  else()
-    message("-- !! -- PlatoMain is required for regression testing.")
-  endif()
-else()
-  message("-- !! -- Regression has not been enabled.")
+  add_integration_test(su2_to_exodus)
+  add_integration_test(support_structure)
+  add_integration_test(prune_and_refine)
+  
 endif()
-
-add_subdirectory(share)

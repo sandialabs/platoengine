@@ -15,6 +15,7 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/utilities/MPIUtilities.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -38,11 +39,8 @@ mesh::Mesh write_generic_mesh_and_load(unsigned int aBaseSize, const boost::mpi:
     namespace tpi = third_party_integration;
     const auto tCommandGenerator =
         tpi::stk_io::CommandGenerator{{aBaseSize, aBaseSize, aBaseSize}, {-2, -2, -2}, {2, 2, 2}};
-    if (aWorldCommunicator.rank() == 0)
-    {
-        tpi::stk_io::write_mesh(kMeshFile, tCommandGenerator);
-    }
-    aWorldCommunicator.barrier();
+    utilities::execute_on_root(aWorldCommunicator,
+                               [&tCommandGenerator]() { tpi::stk_io::write_mesh(kMeshFile, tCommandGenerator); });
     return mesh::Mesh{kMeshFile};
 }
 
@@ -59,11 +57,9 @@ class ParallelConsistencyTest : public ::testing::Test
     ~ParallelConsistencyTest() {}
     void TearDown() override
     {
-        mWorldComm.barrier();
-        if (mWorldComm.rank() == 0)
-        {
-            test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
-        }
+        utilities::execute_on_root(
+            mWorldComm, []()
+            { test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files.")); });
     }
     void check_parallel_consistency_of_sum(const unsigned int aSum, const test_utilities::TestContext& aTestContext)
     {
@@ -214,11 +210,8 @@ TEST(KernelFilterDetail, CreateLinearMask)
     const auto tWorldComm = boost::mpi::communicator{};
     const auto tCommandGenerator =
         third_party_integration::stk_io::CommandGenerator{{4u, 4u, 4u}, {-2, -2, -2}, {2, 2, 2}};
-    if (tWorldComm.rank() == 0)
-    {
-        third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
-    }
-    tWorldComm.barrier();
+    utilities::execute_on_root(tWorldComm, [&tCommandGenerator]()
+                               { third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator); });
     const auto tMesh = mesh::Mesh{kMeshFile};
     const FilterRadius tFilterRadius{5};
     {

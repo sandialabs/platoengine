@@ -48,7 +48,6 @@
  */
 
 #include "Plato_Exceptions.hpp"
-#include "Plato_Performer.hpp"
 
 namespace Plato
 {
@@ -61,23 +60,23 @@ void ExceptionHandler::Catch()
     {
         throw;
     }
-    catch(const ParsingException & tParsingException)
+    catch (const ParsingException& tParsingException)
     {
         this->registerException(tParsingException);
     }
-    catch(const LogicException & tLogicException)
+    catch (const LogicException& tLogicException)
     {
         this->registerException(tLogicException);
     }
-    catch(const TerminateSignal & tTerminateSignal)
+    catch (const TerminateSignal& tTerminateSignal)
     {
         this->registerException(tTerminateSignal);
     }
-    catch(std::exception const& any_std_exception)
+    catch (std::exception const& any_std_exception)
     {
         this->registerException(any_std_exception);
     }
-    catch(...)
+    catch (...)
     {
         this->registerException();
     }
@@ -89,7 +88,7 @@ void ExceptionHandler::registerException()
 {
     this->setError();
 
-    if(mMyPID == 0)
+    if (mMyPID == 0)
     {
         mErrorStream << " -- Fatal Error --------------------------------------------------------------" << std::endl;
         mErrorStream << "  Exception of unknown type on Performer '" << mMyCommName << "': " << std::endl;
@@ -113,24 +112,24 @@ void ExceptionHandler::printAcout()
 
     int tData = 0;
     const int tRootPID = 0;
-    if(mGlobalCommSize > 1)
+    if (mGlobalCommSize > 1)
     {
-        if(mGlobalPID != tRootPID)
+        if (mGlobalPID != tRootPID)
         {
             int tTag = 0;
             MPI_Status tStatus;
             int tSource = mGlobalPID - 1;
-            MPI_Recv(&tData, 1, MPI_INT, tSource, tTag, mGlobalComm, &tStatus );
+            MPI_Recv(&tData, 1, MPI_INT, tSource, tTag, mGlobalComm, &tStatus);
         }
 
         std::cout << tBuffer.str();
-        if(tBuffer.str().size())
+        if (tBuffer.str().size())
         {
             std::cout << std::endl;
         }
         std::cout.flush();
 
-        if(mGlobalPID < (mGlobalCommSize - 1))
+        if (mGlobalPID < (mGlobalCommSize - 1))
         {
             int tTag = 0;
             int tDestination = mGlobalPID + 1;
@@ -145,12 +144,12 @@ void ExceptionHandler::printAcout()
 }
 
 /******************************************************************************/
-void ExceptionHandler::registerException(const std::exception & any_std_exception)
+void ExceptionHandler::registerException(const std::exception& any_std_exception)
 /******************************************************************************/
 {
     this->setError();
 
-    if(mMyPID == 0)
+    if (mMyPID == 0)
     {
         mErrorStream << " -- Fatal Error --------------------------------------------------------------" << std::endl;
         mErrorStream << "  std::exception on Performer '" << mMyCommName << "': " << std::endl;
@@ -160,12 +159,12 @@ void ExceptionHandler::registerException(const std::exception & any_std_exceptio
 }
 
 /******************************************************************************/
-void ExceptionHandler::registerException(const Plato::ParsingException & aParsingException)
+void ExceptionHandler::registerException(const Plato::ParsingException& aParsingException)
 /******************************************************************************/
 {
     this->setError();
 
-    if(mMyPID == 0)
+    if (mMyPID == 0)
     {
         mErrorStream << " -- Fatal Error --------------------------------------------------------------" << std::endl;
         mErrorStream << "  Parsing exception on Performer '" << mMyCommName << "': " << std::endl;
@@ -175,11 +174,11 @@ void ExceptionHandler::registerException(const Plato::ParsingException & aParsin
 }
 
 /******************************************************************************/
-void ExceptionHandler::registerException(const Plato::LogicException & aLogicException)
+void ExceptionHandler::registerException(const Plato::LogicException& aLogicException)
 /******************************************************************************/
 {
     this->setError();
-    if(mMyPID == 0)
+    if (mMyPID == 0)
     {
         mErrorStream << " -- Fatal Error --------------------------------------------------------------" << std::endl;
         mErrorStream << "  Logic exception on Performer '" << mMyCommName << "': " << std::endl;
@@ -189,11 +188,11 @@ void ExceptionHandler::registerException(const Plato::LogicException & aLogicExc
 }
 
 /******************************************************************************/
-void ExceptionHandler::registerException(const Plato::TerminateSignal & aTerminateSignal)
+void ExceptionHandler::registerException(const Plato::TerminateSignal& aTerminateSignal)
 /******************************************************************************/
 {
     this->setError();
-    if(mMyPID == 0)
+    if (mMyPID == 0)
     {
         mErrorStream << " -----------------------------------------------------------------------------" << std::endl;
         mErrorStream << "  Terminate signal received on Performer '" << mMyCommName << "': " << std::endl;
@@ -208,7 +207,7 @@ void ExceptionHandler::handleExceptions()
 {
     int tOutput = 0;
     MPI_Allreduce(&mErrorStatus, &tOutput, 1, MPI_INT, MPI_SUM, mGlobalComm);
-    if(tOutput > 0)
+    if (tOutput > 0)
     {
         this->printAcout();
         throw 1;
@@ -219,7 +218,7 @@ std::string ParsingException::message() const
 {
     std::stringstream errorStream;
     errorStream << "  Error message: " << mMessage << std::endl;
-    if(mContext.size())
+    if (mContext.size())
     {
         errorStream << "  Context: " << std::endl;
         errorStream << mContext;
@@ -242,15 +241,17 @@ std::string TerminateSignal::message() const
 }
 
 /******************************************************************************/
-ExceptionHandler::ExceptionHandler(const std::string & aLocalCommName, const MPI_Comm & aLocalComm, const MPI_Comm & aGlobalComm) :
-        mMyPID(-1),
-        mGlobalPID(-1),
-        mErrorStatus(0),
-        mGlobalCommSize(-1),
-        mMyComm(aLocalComm),
-        mGlobalComm(aGlobalComm),
-        mMyCommName(aLocalCommName),
-        mErrorStream()
+ExceptionHandler::ExceptionHandler(const std::string& aLocalCommName,
+                                   const MPI_Comm& aLocalComm,
+                                   const MPI_Comm& aGlobalComm)
+    : mMyPID(-1),
+      mGlobalPID(-1),
+      mErrorStatus(0),
+      mGlobalCommSize(-1),
+      mMyComm(aLocalComm),
+      mGlobalComm(aGlobalComm),
+      mMyCommName(aLocalCommName),
+      mErrorStream()
 /******************************************************************************/
 {
     MPI_Comm_rank(mMyComm, &mMyPID);
@@ -259,9 +260,8 @@ ExceptionHandler::ExceptionHandler(const std::string & aLocalCommName, const MPI
 }
 
 /******************************************************************************/
-ParsingException::ParsingException(const std::string & aMessage, const pugi::xml_node& aContextNode) :
-        mMessage(aMessage),
-        mContext()
+ParsingException::ParsingException(const std::string& aMessage, const pugi::xml_node& aContextNode)
+    : mMessage(aMessage), mContext()
 /******************************************************************************/
 {
     std::stringstream tMessage;
@@ -270,24 +270,18 @@ ParsingException::ParsingException(const std::string & aMessage, const pugi::xml
 }
 
 /******************************************************************************/
-ParsingException::ParsingException(const std::string & aMessage) :
-        mMessage(aMessage),
-        mContext("")
-{
-}
+ParsingException::ParsingException(const std::string& aMessage) : mMessage(aMessage), mContext("") {}
 /******************************************************************************/
 
 /******************************************************************************/
-LogicException::LogicException(const std::string & aMessage) :
-        mMessage(aMessage)
+LogicException::LogicException(const std::string& aMessage) : mMessage(aMessage)
 /******************************************************************************/
 {
 }
 
 /******************************************************************************/
-TerminateSignal::TerminateSignal(const std::string & aMessage) :
-        mMessage(aMessage)
+TerminateSignal::TerminateSignal(const std::string& aMessage) : mMessage(aMessage)
 /******************************************************************************/
 {
 }
-} // End namespace Plato
+}  // End namespace Plato

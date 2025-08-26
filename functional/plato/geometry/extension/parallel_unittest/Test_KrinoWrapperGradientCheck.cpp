@@ -21,6 +21,7 @@
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
+#include "plato/utilities/MPIUtilities.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -136,10 +137,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
         const auto tCutMeshNodeSize = mesh::EntityCounts{tMesh}.numberOfNodes();
         const auto tOnesVector = std::vector<double>(tCutMeshNodeSize * 2, 1.0);
         const auto tCommunicator = boost::mpi::communicator{};
-        if (tCommunicator.rank() == 0)
-        {
-            std::filesystem::remove(tFileName);
-        }
+        utilities::execute_on_root(tCommunicator, [&tFileName]() { std::filesystem::remove(tFileName); });
         const auto tRowVectorJacobianResult = linear_algebra::DynamicVector<double>{
             tWrapper.rowVectorJacobianProduct(tOnesVector, third_party_integration::krino::VoidPhase::kIncludeInMesh)};
         const auto tXJV = tRowVectorJacobianResult.dot(aV);

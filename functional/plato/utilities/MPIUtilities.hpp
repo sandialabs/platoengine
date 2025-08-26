@@ -12,6 +12,7 @@ namespace plato::utilities
 template <typename F, typename... Args>
 void execute_on_root(const boost::mpi::communicator& aComm, const F& aFunction, Args&&... aArgs)
 {
+    aComm.barrier();
     if (aComm.rank() == 0)
     {
         aFunction(std::forward<Args>(aArgs)...);
