@@ -149,8 +149,7 @@ NodalResultFilter::NodalResultFilter(const library::ValidatedProcessManagerInput
 
 void NodalResultFilter::run() const
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "Nodal result filter", library::process_manager_logger<input_parser::nodal_result_filter>()};
+    [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::nodal_result_filter>();
 
     const auto tMesh = mesh::Mesh{mInputMeshPath, mFixedBlockNames};
     const auto tWorldCommunicator = boost::mpi::communicator{};

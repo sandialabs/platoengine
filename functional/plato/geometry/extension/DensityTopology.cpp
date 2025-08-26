@@ -113,8 +113,7 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
 analysis::AnalysisDomainMesh DensityTopology::generateMesh(
     const linear_algebra::DynamicVector<double>& aDesignParameters) const
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "Generating densities", library::geometry_logger<input_parser::density_topology>()};
+    [[maybe_unused]] const auto tTaskLogger = library::mesh_generation_task_log<input_parser::density_topology>();
 
     const auto tNodalDesignParameters = mesh::DesignVariablesConversion{mMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
@@ -131,8 +130,7 @@ linear_algebra::JacobianMultiplier DensityTopology::jacobian(
         [tAnalysisDomainMesh = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(tNodalDesignParameters),
          this](const linear_algebra::DynamicVector<double>& x)
         {
-            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-                "Vector-Jacobian product", library::geometry_logger<input_parser::density_topology>()};
+            [[maybe_unused]] const auto tTaskLogger = library::jacobian_task_log<input_parser::density_topology>();
 
             return x * mFilter.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh);
         }};
@@ -148,8 +146,8 @@ auto DensityTopology::adjointJacobian(const linear_algebra::DynamicVector<double
         [tAnalysisDomainMesh = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(tNodalDesignParameters),
          this](const linear_algebra::DynamicVector<double>& x)
         {
-            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-                "Vector-adjoint-Jacobian product", library::geometry_logger<input_parser::density_topology>()};
+            [[maybe_unused]] const auto tTaskLogger =
+                library::adjoint_jacobian_task_log<input_parser::density_topology>();
 
             return x * mFilter.evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(
                            tAnalysisDomainMesh);
@@ -181,8 +179,7 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
                              const input_parser::density_topology& aInput,
                              const library::OutputInfo& aOutputInfo)
 {
-    [[maybe_unused]] const auto tTaskLogger =
-        services::TaskLogSetupTeardown{"Writing output", library::geometry_logger<input_parser::density_topology>()};
+    [[maybe_unused]] const auto tTaskLogger = library::output_task_log<input_parser::density_topology>();
 
     const auto tMeshFieldOutput = MeshFieldOutputInfo{mesh_from_input(aInput),
                                                       output_name(aInput),

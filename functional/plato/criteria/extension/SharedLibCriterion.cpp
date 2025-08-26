@@ -7,11 +7,15 @@
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
+#include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
 
 namespace plato::criteria::extension
 {
 namespace
 {
+constexpr auto kCriterionValuePrecision = 8U;
+constexpr auto kCriterionValueFieldWidth = kCriterionValuePrecision + 1U;
+
 template <typename FunctionSignature, typename... Args>
 auto load_criterion_interface(const services::AppConfigurationWithDirectory& aAppConfiguration,
                               const std::string_view aCreateCriterionFunctionName,
@@ -69,7 +73,11 @@ double SharedLibCriterion::f(const analysis::AnalysisDomainMesh& aMesh) const
         return mCriterionInterface->object()->value(aMesh);
     }();
 
-    tLogger.logInfo("Evaluation complete. Criterion value = " + std::to_string(tValue));
+    tLogger.logInfo(
+        "Evaluation complete. Criterion value = " +
+        utilities::to_string(
+            utilities::FixedWidthFloatingPointOutput<double, kCriterionValuePrecision, kCriterionValueFieldWidth>{
+                tValue}));
     return tValue;
 }
 

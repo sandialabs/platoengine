@@ -56,8 +56,7 @@ ROLOptimization::ROLOptimization(const library::ValidatedProcessManagerInput& aI
 
 void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData) const
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "ROL optimization", library::process_manager_logger<input_parser::rol_optimization>()};
+    [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::rol_optimization>();
 
     namespace gl = geometry::library;
     const auto tOutputMode = mROLOptions.writeOutputHistory() ? gl::OutputMode::kEveryIterationAppend

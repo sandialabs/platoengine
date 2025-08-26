@@ -95,7 +95,7 @@ linear_algebra::DynamicVector<double> KernelFilter::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const linear_algebra::DynamicVector<double>& aV) const
 {
     [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "Vector-Jacobian product", library::filter_logger<input_parser::kernel_filter>()};
+        "Computing vector-Jacobian product", library::filter_logger<input_parser::kernel_filter>()};
 
     return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
 }
@@ -105,7 +105,7 @@ auto KernelFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainM
     -> linear_algebra::DynamicVector<double>
 {
     [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "Vector-adjoint-Jacobian product", library::filter_logger<input_parser::kernel_filter>()};
+        "Computing vector-adjoint-Jacobian product", library::filter_logger<input_parser::kernel_filter>()};
 
     return linear_algebra::DynamicVector<double>{mLinearMask.matrixMultiply(aV.stdVector())};
 }

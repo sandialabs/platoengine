@@ -10,7 +10,6 @@
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/FileUtilities.hpp"
@@ -67,8 +66,7 @@ BrickShapeGeometry::~BrickShapeGeometry() { std::filesystem::remove(mFileName); 
 
 analysis::AnalysisDomainMesh BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "Mesh generation", library::geometry_logger<input_parser::brick_shape_geometry>()};
+    [[maybe_unused]] const auto tTaskLogger = library::mesh_generation_task_log<input_parser::brick_shape_geometry>();
 
     detail::create_mesh(aDesignParameters, mFileName, mDiscretizationSize);
     return analysis::AnalysisDomainMesh{mFileName, {}};
@@ -81,8 +79,7 @@ linear_algebra::JacobianColumnEvaluator BrickShapeGeometry::jacobian(const Brick
         /*.mX=*/detail::to_dynamic_vector(aDesignParameters),
         /*.mColumnFunction=*/[](unsigned int aColumnIndex, const linear_algebra::DynamicVector<double>&)
         {
-            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-                "Vector-Jacobian product", library::geometry_logger<input_parser::brick_shape_geometry>()};
+            [[maybe_unused]] const auto tTaskLogger = library::jacobian_task_log<input_parser::brick_shape_geometry>();
             return linear_algebra::DynamicVector<double>(detail::sensitivities(aColumnIndex));
         }};
 }
@@ -94,8 +91,8 @@ auto BrickShapeGeometry::adjointJacobian(const BrickDesign& aDesignParameters) c
         kNumDims * kNumNodes, detail::to_dynamic_vector(aDesignParameters),
         [](unsigned int aAdjointColumnIndex, const linear_algebra::DynamicVector<double>&)
         {
-            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-                "Vector-adjoint-Jacobian product", library::geometry_logger<input_parser::brick_shape_geometry>()};
+            [[maybe_unused]] const auto tTaskLogger =
+                library::adjoint_jacobian_task_log<input_parser::brick_shape_geometry>();
 
             auto tAdjointColumn = std::vector<double>(kNumDesignParameters);
             std::generate(tAdjointColumn.begin(), tAdjointColumn.end(),

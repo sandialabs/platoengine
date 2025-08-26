@@ -74,8 +74,7 @@ ConstraintCheck::ConstraintCheck(const library::ValidatedProcessManagerInput& aI
 
 void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData) const
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "Constraint check", library::process_manager_logger<input_parser::constraint_check>()};
+    [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::constraint_check>();
 
     namespace tpir = third_party_integration::rol;
     constexpr bool tPrintOutput = true;

@@ -188,8 +188,7 @@ auto LevelSetTopology::initialGuess(const input_parser::level_set_topology& aInp
 auto LevelSetTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
     -> analysis::AnalysisDomainMesh
 {
-    [[maybe_unused]] const auto tTaskLogger =
-        services::TaskLogSetupTeardown{"Mesh generation", library::geometry_logger<input_parser::level_set_topology>()};
+    [[maybe_unused]] const auto tTaskLogger = library::mesh_generation_task_log<input_parser::level_set_topology>();
 
     const auto tAnalysisMesh = mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
@@ -205,8 +204,7 @@ auto LevelSetTopology::jacobian(const linear_algebra::DynamicVector<double>& aDe
         [this, aDesignParameters](
             const linear_algebra::DynamicVector<double>& aVector) -> linear_algebra::DynamicVector<double>
         {
-            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-                "Vector-Jacobian product", library::geometry_logger<input_parser::level_set_topology>()};
+            [[maybe_unused]] const auto tTaskLogger = library::jacobian_task_log<input_parser::level_set_topology>();
 
             auto tBackgroundMeshWithLevelSetField =
                 mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
@@ -225,8 +223,8 @@ auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
         [this, aDesignParameters](
             const linear_algebra::DynamicVector<double>& aVector) -> linear_algebra::DynamicVector<double>
         {
-            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-                "Vector-adjoint-Jacobian product", library::geometry_logger<input_parser::level_set_topology>()};
+            [[maybe_unused]] const auto tTaskLogger =
+                library::adjoint_jacobian_task_log<input_parser::level_set_topology>();
 
             const auto tDesignVariableConverter = mesh::DesignVariablesConversion{mBackgroundMesh};
 
@@ -244,8 +242,7 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
                               const linear_algebra::DynamicVector<double>& aSolution,
                               const library::OutputInfo& aOutputInfo)
 {
-    [[maybe_unused]] const auto tTaskLogger =
-        services::TaskLogSetupTeardown{"Writing output", library::geometry_logger<input_parser::level_set_topology>()};
+    [[maybe_unused]] const auto tTaskLogger = library::output_task_log<input_parser::level_set_topology>();
 
     const auto tMeshFieldOutput = MeshFieldOutputInfo{mesh_from_input(aInput),
                                                       restart_file_name(aInput),

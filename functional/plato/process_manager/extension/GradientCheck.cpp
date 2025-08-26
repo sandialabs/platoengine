@@ -63,8 +63,7 @@ GradientCheck::GradientCheck(const library::ValidatedProcessManagerInput& aInput
 
 void GradientCheck::run(const library::ProcessManagerData& aProblem) const
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "Gradient check", library::process_manager_logger<input_parser::gradient_check>()};
+    [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::gradient_check>();
 
     std::ofstream tOutFile(mOutputFileName);
     constexpr bool tPrintOutput = true;

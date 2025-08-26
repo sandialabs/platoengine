@@ -59,8 +59,7 @@ SensitivityCheck::SensitivityCheck(const library::ValidatedProcessManagerInput& 
 
 void SensitivityCheck::run(const library::ProcessManagerData& aProblem) const
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "Sensitivity check", library::process_manager_logger<input_parser::sensitivity_check>()};
+    [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::sensitivity_check>();
 
     std::ofstream tOutFile(mOutputFileName);
     constexpr bool tPrintOutput = true;

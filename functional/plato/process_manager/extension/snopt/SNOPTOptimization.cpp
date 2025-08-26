@@ -74,8 +74,7 @@ void SNOPTOptimization::run(const library::ProcessManagerData& aProcessManagerDa
     namespace tpis = third_party_integration::snopt;
     using SNOPTObjectiveFunction = typename tpis::ObjectiveType;
 
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "SNOPT optimization", library::process_manager_logger<input_parser::snopt_optimization>()};
+    [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::snopt_optimization>();
 
     const tpis::SNOPTBounds tBounds{aProcessManagerData.mGeometry.mBounds};
     const auto tInitialGuess = aProcessManagerData.mGeometry.mInitialGuess.stdVector();
