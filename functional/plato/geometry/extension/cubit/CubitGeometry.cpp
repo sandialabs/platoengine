@@ -13,6 +13,7 @@
 
 #include "plato/analysis/Utilities.hpp"
 #include "plato/geometry/extension/cubit/CubitGeometryCommonUtilities.hpp"
+#include "plato/geometry/library/GeometryLogger.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
@@ -24,6 +25,7 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/common/Vector3Serialization.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/HashUtilities.hpp"
@@ -117,6 +119,9 @@ CubitGeometry::CubitGeometry(const plato::input_parser::cubit_parameterized_shap
 auto CubitGeometry::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter)
     -> analysis::AnalysisDomainMesh
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Generating mesh", library::geometry_logger<input_parser::cubit_parameterized_shape>()};
+
     utilities::execute_on_root(boost::mpi::communicator{},
                                [this, &aDesignParameter]()
                                {
@@ -166,6 +171,9 @@ template <AccessorFunction AccessorFunction>
 
 void CubitGeometry::outputMeshSensitivities(mesh::MeshOutput& aMeshOutput)
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Writing output", library::geometry_logger<input_parser::cubit_parameterized_shape>()};
+
     const auto tField = std::vector<double>(mesh::EntityCounts{aMeshOutput}.numberOfNodes(), 0.0);
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{
         mesh::Mesh{mMeshFile}}.nodalFieldToAnalysisDomainMesh(mesh::NodalFieldVectorReference{tField});
@@ -306,6 +314,9 @@ auto CubitGeometry::jacobianMultiplier(const linear_algebra::DynamicVector<doubl
         [tAllSurfaceSensitivities, tSpatialDimension,
          tNodeIds](const linear_algebra::DynamicVector<double>& aRowVector) -> linear_algebra::DynamicVector<double>
         {
+            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+                "Vector-Jacobian product", library::geometry_logger<input_parser::cubit_parameterized_shape>()};
+
             const auto tJacobianResultViewSize = 1U;
             const auto tRowVectorMatrixProduct = transformSensitivityMap(
                 aRowVector.stdVector(), tAllSurfaceSensitivities, tNodeIds, ResultSize{tAllSurfaceSensitivities.size()},
@@ -334,6 +345,9 @@ auto CubitGeometry::adjointJacobianMultiplier(const linear_algebra::DynamicVecto
         [tAllSurfaceSensitivities, tSpatialDimension, tResultSize,
          tNodeIds](const linear_algebra::DynamicVector<double>& aRowVector) -> linear_algebra::DynamicVector<double>
         {
+            [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+                "Vector-adjoint Jacobian product", library::geometry_logger<input_parser::cubit_parameterized_shape>()};
+
             const auto tJacobianResultViewSize = tSpatialDimension;
             const auto tRowVectorMatrixProduct =
                 transformSensitivityMap(aRowVector.stdVector(), tAllSurfaceSensitivities, tNodeIds,
