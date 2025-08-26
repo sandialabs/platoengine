@@ -1,6 +1,7 @@
 #ifndef PLATO_UTILITIES_FIXEDWIDTHFLOATINGPOINTOUTPUT
 #define PLATO_UTILITIES_FIXEDWIDTHFLOATINGPOINTOUTPUT
 
+#include <concepts>
 #include <iomanip>
 #include <sstream>
 
@@ -12,13 +13,12 @@ namespace plato::utilities
 /// @code{.cpp}
 /// const auto tPi = FixedWidthFloatingPointOutput<double, 3U, 10U>{3.1415926};
 /// const auto tE = FixedWidthFloatingPointOutput<double, 3U, 10U>{2.7182818};
-/// std::cout<<tPi<<tE<<std::endl;
+/// std::cout << tPi << tE << std::endl;
 /// @endcode
 /// Produces the output string "      3.14      2.72".
-template <typename T, std::size_t Precision, std::size_t FieldWidth>
+template <std::floating_point T, std::size_t Precision, std::size_t FieldWidth>
 struct FixedWidthFloatingPointOutput
 {
-    static_assert(std::is_floating_point_v<T>, "Must be instantiated with a floating point type.");
     T mValue;
 };
 
