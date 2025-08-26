@@ -149,7 +149,7 @@ auto DensityTopology::adjointJacobian(const linear_algebra::DynamicVector<double
          this](const linear_algebra::DynamicVector<double>& x)
         {
             [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-                "Vector-adjoin-Jacobian product", library::geometry_logger<input_parser::density_topology>()};
+                "Vector-adjoint-Jacobian product", library::geometry_logger<input_parser::density_topology>()};
 
             return x * mFilter.evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(
                            tAnalysisDomainMesh);
