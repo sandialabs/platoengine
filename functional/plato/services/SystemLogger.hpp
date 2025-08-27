@@ -44,7 +44,7 @@ class SystemLogger
     void logError(std::string_view aMessage);
 
    private:
-    std::any mPimpl;
+    std::any mImpl;
 };
 
 /// @brief Helper function for constructing a SystemLogger with no component context.

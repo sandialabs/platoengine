@@ -10,7 +10,6 @@ namespace plato::services
 namespace
 {
 namespace tpi_bl = third_party_integration::boost_log;
-}
 
 struct SystemLoggerImpl
 {
@@ -24,17 +23,18 @@ struct SystemLoggerImpl
 
 [[nodiscard]] auto system_logger(std::any& aImpl) -> tpi_bl::SeverityLogger&
 {
-    return std::any_cast<SystemLoggerImpl&>(aImpl).mLogger;
+    return std::any_cast<SystemLoggerImpl>(&aImpl)->mLogger;
+}
 }
 
 SystemLogger::SystemLogger()
-    : mPimpl{make_system_logger_impl(tpi_bl::SeverityLogger{
-          tpi_bl::MPIWorldCommRankAttribute{}, tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>{}})}
+    : mImpl{make_system_logger_impl(tpi_bl::SeverityLogger{tpi_bl::MPIWorldCommRankAttribute{},
+                                                           tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>{}})}
 {
 }
 
 SystemLogger::SystemLogger(components::ComponentType aComponentType, std::string_view aComponentName)
-    : mPimpl{make_system_logger_impl(tpi_bl::SeverityLogger{
+    : mImpl{make_system_logger_impl(tpi_bl::SeverityLogger{
           tpi_bl::ComponentTypeAndNameAttribute{tpi_bl::ComponentTypeAndName{
               .mComponentType = aComponentType, .mComponentName = std::string{aComponentName}}},
           tpi_bl::MPIWorldCommRankAttribute{}, tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>{}})}
@@ -43,22 +43,22 @@ SystemLogger::SystemLogger(components::ComponentType aComponentType, std::string
 
 void SystemLogger::logDebugMessage(const std::string_view aMessage)
 {
-    return system_logger(mPimpl).logMessage(aMessage, tpi_bl::Severity::kDebug);
+    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kDebug);
 }
 
 void SystemLogger::logInfo(const std::string_view aMessage)
 {
-    return system_logger(mPimpl).logMessage(aMessage, tpi_bl::Severity::kInfo);
+    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kInfo);
 }
 
 void SystemLogger::logWarning(const std::string_view aMessage)
 {
-    return system_logger(mPimpl).logMessage(aMessage, tpi_bl::Severity::kWarning);
+    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kWarning);
 }
 
 void SystemLogger::logError(const std::string_view aMessage)
 {
-    return system_logger(mPimpl).logMessage(aMessage, tpi_bl::Severity::kError);
+    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kError);
 }
 
 auto system_logger() -> SystemLogger { return SystemLogger{}; }
