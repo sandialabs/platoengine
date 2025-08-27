@@ -119,7 +119,8 @@ CubitGeometry::CubitGeometry(const plato::input_parser::cubit_parameterized_shap
 auto CubitGeometry::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter)
     -> analysis::AnalysisDomainMesh
 {
-    [[maybe_unused]] const auto tTaskLogger = library::mesh_generation_task_log<input_parser::level_set_topology>();
+    [[maybe_unused]] const auto tTaskLogger =
+        library::mesh_generation_task_log<input_parser::cubit_parameterized_shape>();
 
     utilities::execute_on_root(boost::mpi::communicator{},
                                [this, &aDesignParameter]()
