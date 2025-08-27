@@ -12,15 +12,19 @@ namespace
 namespace tpi_bl = third_party_integration::boost_log;
 }
 
-struct SystemLogger::SystemLoggerImpl
+struct SystemLoggerImpl
 {
     tpi_bl::SeverityLogger mLogger;
 };
 
-[[nodiscard]] auto make_system_logger_impl(tpi_bl::SeverityLogger&& aSeverityLogger)
-    -> std::unique_ptr<SystemLogger::SystemLoggerImpl>
+[[nodiscard]] auto make_system_logger_impl(tpi_bl::SeverityLogger&& aSeverityLogger) -> std::any
 {
-    return std::make_unique<SystemLogger::SystemLoggerImpl>(SystemLogger::SystemLoggerImpl{std::move(aSeverityLogger)});
+    return std::make_any<SystemLoggerImpl>(SystemLoggerImpl{std::move(aSeverityLogger)});
+}
+
+[[nodiscard]] auto system_logger(std::any& aImpl) -> tpi_bl::SeverityLogger&
+{
+    return std::any_cast<SystemLoggerImpl&>(aImpl).mLogger;
 }
 
 SystemLogger::SystemLogger()
@@ -39,27 +43,23 @@ SystemLogger::SystemLogger(components::ComponentType aComponentType, std::string
 
 void SystemLogger::logDebugMessage(const std::string_view aMessage)
 {
-    return mPimpl->mLogger.logMessage(aMessage, tpi_bl::Severity::kDebug);
+    return system_logger(mPimpl).logMessage(aMessage, tpi_bl::Severity::kDebug);
 }
 
 void SystemLogger::logInfo(const std::string_view aMessage)
 {
-    return mPimpl->mLogger.logMessage(aMessage, tpi_bl::Severity::kInfo);
+    return system_logger(mPimpl).logMessage(aMessage, tpi_bl::Severity::kInfo);
 }
 
 void SystemLogger::logWarning(const std::string_view aMessage)
 {
-    return mPimpl->mLogger.logMessage(aMessage, tpi_bl::Severity::kWarning);
+    return system_logger(mPimpl).logMessage(aMessage, tpi_bl::Severity::kWarning);
 }
 
 void SystemLogger::logError(const std::string_view aMessage)
 {
-    return mPimpl->mLogger.logMessage(aMessage, tpi_bl::Severity::kError);
+    return system_logger(mPimpl).logMessage(aMessage, tpi_bl::Severity::kError);
 }
-
-SystemLogger::~SystemLogger() = default;
-SystemLogger::SystemLogger(SystemLogger&&) noexcept = default;
-auto SystemLogger::operator=(SystemLogger&&) noexcept -> SystemLogger& = default;
 
 auto system_logger() -> SystemLogger { return SystemLogger{}; }
 

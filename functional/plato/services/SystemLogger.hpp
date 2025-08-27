@@ -1,7 +1,7 @@
 #ifndef PLATO_SERVICES_SYSTEMLOGGER
 #define PLATO_SERVICES_SYSTEMLOGGER
 
-#include <memory>
+#include <any>
 #include <string_view>
 
 #include "plato/components/ComponentType.hpp"
@@ -43,17 +43,8 @@ class SystemLogger
     /// Error messages are meant to communicate an issue with the code that caused the code to halt.
     void logError(std::string_view aMessage);
 
-    ~SystemLogger();
-    SystemLogger(SystemLogger&&) noexcept;
-    auto operator=(SystemLogger&&) noexcept -> SystemLogger&;
-
-    SystemLogger(const SystemLogger&) noexcept = delete;
-    auto operator=(const SystemLogger&) noexcept -> SystemLogger& = delete;
-
-    struct SystemLoggerImpl;
-
    private:
-    std::unique_ptr<SystemLoggerImpl> mPimpl;
+    std::any mPimpl;
 };
 
 /// @brief Helper function for constructing a SystemLogger with no component context.
