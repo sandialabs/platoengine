@@ -14,18 +14,18 @@
 
 namespace
 {
-using GeometryCrossReference = plato::input_parser::CrossReference<plato::input_parser::ComponentType::kGeometry>;
+using GeometryCrossReference = plato::input_parser::CrossReference<plato::components::ComponentType::kGeometry>;
 }
 
 // Define input structs
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
-                         marvel, input_parser::ComponentType::kGeometry,
+                         marvel, components::ComponentType::kGeometry,
                          (double, cyclops, "")
                          (int, wolverine, ""))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
-                               dc, plato::input_parser::ComponentType::kConstraint,
+                               dc, plato::components::ComponentType::kConstraint,
                                (bool, superman, "")
                                (unsigned int, batman, "")
                                (GeometryCrossReference, multiverse, ""))
@@ -65,7 +65,7 @@ const auto kValidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.supe
 
 [[nodiscard]] auto validate_parsed_input(const input_parser::ParsedInput& aParsedInput) -> std::optional<std::string>
 {
-    if (aParsedInput.get<input_parser::ComponentType::kGeometry>().empty())
+    if (aParsedInput.get<components::ComponentType::kGeometry>().empty())
     {
         return std::string{kParsedInputValidationErrorMessage};
     }
@@ -106,12 +106,12 @@ auto make_test_parsed_input(const std::optional<input_parser::marvel>& aMarvelIn
     auto tInputs = std::vector<input_parser::InputDataBlock>{};
     if (aMarvelInput)
     {
-        tInputs.push_back(input_parser::InputDataBlock{input_parser::ComponentType::kGeometry, "marvel",
+        tInputs.push_back(input_parser::InputDataBlock{components::ComponentType::kGeometry, "marvel",
                                                        input_parser::InputBlockWrapper{aMarvelInput.value()}});
     }
     if (aDCInput)
     {
-        tInputs.push_back(input_parser::InputDataBlock{input_parser::ComponentType::kConstraint, "dc",
+        tInputs.push_back(input_parser::InputDataBlock{components::ComponentType::kConstraint, "dc",
                                                        input_parser::InputBlockWrapper{aDCInput.value()}});
     }
     return input_parser::ParsedInput{std::move(tInputs)};
@@ -218,8 +218,8 @@ TEST_F(ValidatedInputRegistrationFixture, GetMember)
     ASSERT_TRUE(tValidatedInputOrError.hasValue());
     const auto& tValidatedInput = tValidatedInputOrError.value();
 
-    const auto tGeometryInput = tValidatedInput.get<input_parser::ComponentType::kGeometry>().rawInput();
-    EXPECT_EQ(tGeometryInput.mComponentType, input_parser::ComponentType::kGeometry);
+    const auto tGeometryInput = tValidatedInput.get<components::ComponentType::kGeometry>().rawInput();
+    EXPECT_EQ(tGeometryInput.mComponentType, components::ComponentType::kGeometry);
     EXPECT_EQ(tGeometryInput.mBlockName, "marvel");
     ASSERT_TRUE(tGeometryInput.mInput.holdsExpectedType<input_parser::marvel>());
     ASSERT_TRUE(tGeometryInput.mInput.get<input_parser::marvel>().cyclops.has_value());
@@ -227,10 +227,10 @@ TEST_F(ValidatedInputRegistrationFixture, GetMember)
     ASSERT_TRUE(tGeometryInput.mInput.get<input_parser::marvel>().wolverine.has_value());
     EXPECT_EQ(tGeometryInput.mInput.get<input_parser::marvel>().wolverine.value(), 100);
 
-    const auto tAllConstraintsInput = tValidatedInput.get<input_parser::ComponentType::kConstraint>().rawInput();
+    const auto tAllConstraintsInput = tValidatedInput.get<components::ComponentType::kConstraint>().rawInput();
     ASSERT_EQ(tAllConstraintsInput.size(), 1U);
     const auto& tConstraintInput = tAllConstraintsInput.front().rawInput();
-    EXPECT_EQ(tConstraintInput.mComponentType, input_parser::ComponentType::kConstraint);
+    EXPECT_EQ(tConstraintInput.mComponentType, components::ComponentType::kConstraint);
     EXPECT_EQ(tConstraintInput.mBlockName, "dc");
     ASSERT_TRUE(tConstraintInput.mInput.holdsExpectedType<input_parser::dc>());
     const auto& aDCInput = tConstraintInput.mInput.get<input_parser::dc>();
@@ -248,13 +248,13 @@ TEST_F(ValidatedInputRegistrationFixture, GetNamedMember)
     ASSERT_TRUE(tCrossLinkedInput.hasValue());
     const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput.value());
     const auto& tValidatedInput = tValidatedInputOrError.value();
-    const auto tGeometryInput = tValidatedInput.get<input_parser::ComponentType::kGeometry>().rawInput();
-    EXPECT_EQ(tGeometryInput.mComponentType, input_parser::ComponentType::kGeometry);
+    const auto tGeometryInput = tValidatedInput.get<components::ComponentType::kGeometry>().rawInput();
+    EXPECT_EQ(tGeometryInput.mComponentType, components::ComponentType::kGeometry);
     EXPECT_EQ(tGeometryInput.mBlockName, "marvel");
 
-    const auto tAllConstraintsInput = tValidatedInput.get<input_parser::ComponentType::kConstraint>().rawInput();
+    const auto tAllConstraintsInput = tValidatedInput.get<components::ComponentType::kConstraint>().rawInput();
     const auto& tConstraintInput = tAllConstraintsInput.front().rawInput();
-    EXPECT_EQ(tConstraintInput.mComponentType, input_parser::ComponentType::kConstraint);
+    EXPECT_EQ(tConstraintInput.mComponentType, components::ComponentType::kConstraint);
     EXPECT_EQ(tConstraintInput.mBlockName, "dc");
 }
 
@@ -266,7 +266,7 @@ TEST_F(ValidatedInputRegistrationFixture, GetInputBlock)
 
     ASSERT_TRUE(tValidatedInputOrError.hasValue());
     const auto& tValidatedInput = tValidatedInputOrError.value();
-    const auto tValidatedMarvelInput = tValidatedInput.get<input_parser::ComponentType::kGeometry>();
+    const auto tValidatedMarvelInput = tValidatedInput.get<components::ComponentType::kGeometry>();
     const auto tMarvelInput = get_input_block<input_parser::marvel>(tValidatedMarvelInput);
 
     EXPECT_EQ(tMarvelInput.cyclops, 42.0);
@@ -285,12 +285,12 @@ TEST_F(ValidatedInputFileFixture, ParseAndValidate)
         ASSERT_TRUE(aValidatedInputOrError.hasValue()) << aValidatedInputOrError.error();
         const auto& tValidatedInput = aValidatedInputOrError.value();
         // Marvel
-        const auto& tValidatedGeometryInput = tValidatedInput.template get<input_parser::ComponentType::kGeometry>();
+        const auto& tValidatedGeometryInput = tValidatedInput.template get<components::ComponentType::kGeometry>();
         const auto& tRawGeometry = get_input_block<input_parser::marvel>(tValidatedGeometryInput);
         EXPECT_EQ(tRawGeometry.cyclops, 13.0) << aTestContext;
         EXPECT_EQ(tRawGeometry.wolverine, 100) << aTestContext;
         // DC
-        const auto& tValidatedDCInput = tValidatedInput.template get<input_parser::ComponentType::kConstraint>();
+        const auto& tValidatedDCInput = tValidatedInput.template get<components::ComponentType::kConstraint>();
         ASSERT_EQ(tValidatedDCInput.rawInput().size(), 1U) << aTestContext;
         const auto& tRawConstraint = get_input_block<input_parser::dc>(tValidatedDCInput.rawInput().front());
         EXPECT_EQ(tRawConstraint.name, std::string{"epic"}) << aTestContext;

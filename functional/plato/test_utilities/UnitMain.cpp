@@ -4,6 +4,11 @@
 #include <mpi.h>
 
 #include <Kokkos_Core.hpp>
+#include <boost/core/null_deleter.hpp>
+#include <boost/log/attributes/attribute_value_set.hpp>
+#include <boost/log/core.hpp>
+#include <boost/log/sinks/sync_frontend.hpp>
+#include <boost/log/sinks/text_ostream_backend.hpp>
 #include <string_view>
 
 #include "plato/utilities/NamedType.hpp"
@@ -14,6 +19,20 @@ namespace
 {
 using RankExitCode = utilities::NamedType<int, struct RankExitCodeTag>;
 using GroupExitCode = utilities::NamedType<int, struct GroupExitCodeTag>;
+
+using TextOstreamSink = boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>;
+
+/// @brief Sets the default log sink filter to filter out all messages. This only applies when no other log sink has
+/// been set up.
+[[nodiscard]] auto null_log_sink() -> boost::shared_ptr<TextOstreamSink>
+{
+    auto tSink = boost::make_shared<TextOstreamSink>();
+    auto tSinkStream = boost::shared_ptr<std::ostream>{&std::cout, boost::null_deleter()};
+    tSink->locked_backend()->add_stream(tSinkStream);
+    tSink->set_filter(boost::log::filter{[](const boost::log::attribute_value_set&) { return false; }});
+    boost::log::core::get()->add_sink(tSink);
+    return tSink;
+}
 
 void output_xml(const RankExitCode aMyExitCode, const GroupExitCode aGroupExitCode)
 {
@@ -90,6 +109,7 @@ int unit_main(int argc, char** argv)
 {
     MPI_Init(&argc, &argv);
     Kokkos::initialize(argc, argv);
+    [[maybe_unused]] const auto tLogSink = null_log_sink();
 
     testing::InitGoogleTest(&argc, argv);
     const int returnVal = RUN_ALL_TESTS();
@@ -104,6 +124,7 @@ int parallel_unit_main(int argc, char** argv, unsigned int aNumRanks)
 {
     MPI_Init(&argc, &argv);
     Kokkos::initialize(argc, argv);
+    [[maybe_unused]] const auto tLogSink = null_log_sink();
 
     int tExitStatus = EXIT_SUCCESS;
     const MPI_Comm tInterComm = setup_children(argc, argv, aNumRanks);

@@ -4,7 +4,8 @@ include(${CMAKE_UTIL_DIR}/create_plato_interface.cmake)
 set(LINK_LIBS GTest::GTest
               Kokkos::kokkos
               Boost::headers
-              Boost::mpi)
+              Boost::mpi
+              Boost::log)
 
 create_plato_library(PlatoFunctionalTestUtilities "." "${LINK_LIBS}")
 

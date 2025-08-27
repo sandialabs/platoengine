@@ -16,7 +16,7 @@ namespace plato::process_manager::extension::unittest
 {
 template <typename BlockType>
 [[nodiscard]] auto num_blocks_with_type(
-    const std::vector<input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kProcessManager>>&
+    const std::vector<input_validation::ValidatedInputDataBlock<components::ComponentType::kProcessManager>>&
         aAllProcessManagerInputs) -> std::size_t
 {
     return std::count_if(aAllProcessManagerInputs.cbegin(), aAllProcessManagerInputs.cend(),
@@ -32,13 +32,12 @@ TEST(GradientCheck, CreateGradientCheckRun)
         const auto tValidatedInput = input_validation::make_validated_input(aParsedInput);
         ASSERT_TRUE(tValidatedInput.hasValue());
         const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
-        const auto tAllProcessManagerInputs =
-            tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>();
+        const auto tAllProcessManagerInputs = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
         ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1U);
         const auto tGradientCheck = GradientCheck{tAllProcessManagerInputs.rawInput().back()};
         tGradientCheck.run(tProblem);
 
-        const auto tGradientCheckFilePath = aParsedInput.get<input_parser::ComponentType::kProcessManager>()
+        const auto tGradientCheckFilePath = aParsedInput.get<components::ComponentType::kProcessManager>()
                                                 .front()
                                                 .mInput.get<input_parser::gradient_check>()
                                                 .output_file_name;
@@ -71,7 +70,7 @@ TEST(GradientCheck, UnwrapValidatedGradientCheckInput)
 
     const auto tValidatedInput = input_validation::make_validated_input(tInputDeck);
     const auto tUnwrappedValidatedInput =
-        tValidatedInput.value().get<input_parser::ComponentType::kProcessManager>().rawInput();
+        tValidatedInput.value().get<components::ComponentType::kProcessManager>().rawInput();
 
     constexpr auto tExpectedNumGradientCheckInputs = std::size_t{1};
     EXPECT_EQ(num_blocks_with_type<input_parser::gradient_check>(tUnwrappedValidatedInput),

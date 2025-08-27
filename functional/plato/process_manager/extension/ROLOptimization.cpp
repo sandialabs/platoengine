@@ -11,8 +11,10 @@
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -54,6 +56,8 @@ ROLOptimization::ROLOptimization(const library::ValidatedProcessManagerInput& aI
 
 void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData) const
 {
+    [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::rol_optimization>();
+
     namespace gl = geometry::library;
     const auto tOutputMode = mROLOptions.writeOutputHistory() ? gl::OutputMode::kEveryIterationAppend
                                                               : gl::OutputMode::kEveryIterationOverwrite;
@@ -61,7 +65,8 @@ void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData
 
     auto tObjective = ROL::Ptr<plato::third_party_integration::rol::ROLObjectiveFunction>(
         make_rol_objective(aProcessManagerData, std::move(tOutputManager)).release());
-    auto [tROLProblem, tROLControls] = make_rol_problem(aProcessManagerData, tObjective);
+    auto [tROLProblem, tROLControls] =
+        make_rol_problem(aProcessManagerData, input_parser::block_name<input_parser::rol_optimization>(), tObjective);
     auto tROLInputs = mROLOptions.parameters();
     auto tROLSolver = make_rol_solver(tROLInputs, tROLProblem);
 

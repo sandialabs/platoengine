@@ -13,7 +13,7 @@ struct AnalysisDomainMesh;
 
 namespace plato::criteria::library
 {
-using ValidatedObjectives = input_validation::ValidatedComponentType<input_parser::ComponentType::kObjective>;
+using ValidatedObjectives = input_validation::ValidatedComponentType<components::ComponentType::kObjective>;
 
 using ObjectiveEvaluationInfo = core::FunctionInfo<double, core::evaluation::kFunction>;
 using ObjectiveGradientInfo =

@@ -3,8 +3,8 @@
 
 #include <boost/bimap.hpp>
 #include <boost/bimap/unordered_set_of.hpp>
-#include <boost/optional.hpp>
 #include <initializer_list>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -32,14 +32,16 @@ class EnumTable
     /// no enum or string can be equal. Checked with an assertion.
     EnumTable(std::initializer_list<std::pair<Enum, std::string>> aEnumPairs);
 
-    /// @todo: Change return to std::optional in c++17
-    auto toEnum(const std::string& aString) const -> boost::optional<Enum>;
+    /// @brief Converts a string to the associated enumerate.
+    /// @return `std::nullopt` if @a aString does not match any enumerate string given on construction.
+    [[nodiscard]] auto toEnum(const std::string& aString) const -> std::optional<Enum>;
 
-    /// @todo: Change return to std::optional in c++17
-    auto toString(const Enum aEnum) const -> boost::optional<std::string>;
+    /// @brief Converts an enumerate to the associated string.
+    /// @return `std::nullopt` if @a aEnum does not match any enumerate given on construction.
+    [[nodiscard]] auto toString(const Enum aEnum) const -> std::optional<std::string>;
 
-    auto begin() const -> typename MapType::left_map::const_iterator;
-    auto end() const -> typename MapType::left_map::const_iterator;
+    [[nodiscard]] auto begin() const -> typename MapType::left_map::const_iterator;
+    [[nodiscard]] auto end() const -> typename MapType::left_map::const_iterator;
 
    private:
     MapType mMap;
@@ -62,7 +64,7 @@ EnumTable<Enum>::EnumTable(std::initializer_list<std::pair<Enum, std::string>> a
 }
 
 template <typename Enum>
-boost::optional<Enum> EnumTable<Enum>::toEnum(const std::string& aString) const
+auto EnumTable<Enum>::toEnum(const std::string& aString) const -> std::optional<Enum>
 {
     const auto tIter = mMap.right.find(aString);
     if (tIter != mMap.right.end())
@@ -71,12 +73,12 @@ boost::optional<Enum> EnumTable<Enum>::toEnum(const std::string& aString) const
     }
     else
     {
-        return boost::none;
+        return std::nullopt;
     }
 }
 
 template <typename Enum>
-boost::optional<std::string> EnumTable<Enum>::toString(const Enum aEnum) const
+auto EnumTable<Enum>::toString(const Enum aEnum) const -> std::optional<std::string>
 {
     const auto tIter = mMap.left.find(aEnum);
     if (tIter != mMap.left.end())
@@ -85,7 +87,7 @@ boost::optional<std::string> EnumTable<Enum>::toString(const Enum aEnum) const
     }
     else
     {
-        return boost::none;
+        return std::nullopt;
     }
 }
 

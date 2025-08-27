@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "plato/input_parser/ParseErrorUtilities.hpp"
+#include "plato/test_utilities/Strings.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -50,7 +51,7 @@ TEST(ParseErrorUtilities, ErrorMessage)
     EXPECT_FALSE(tErrorMessage.empty());
 
     const auto tFullString = std::string{tParsedToIterator, tInput.cend()};
-    EXPECT_NE(tErrorMessage.find("bc"), std::string::npos) << tErrorMessage;
+    plato::test_utilities::expect_string_contains_substring(tErrorMessage, "bc", TEST_CONTEXT("Parser error message"));
 }
 
 }  // namespace plato::input_parser::unittest

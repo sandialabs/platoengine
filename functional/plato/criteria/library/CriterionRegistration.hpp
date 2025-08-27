@@ -7,6 +7,7 @@
 #include <string_view>
 #include <utility>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/core/FactoryRegistration.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionTraits.hpp"
@@ -25,8 +26,10 @@ namespace plato::criteria::library
 {
 struct CriterionInput
 {
-    unsigned int mNumberOfProcessors;
+    unsigned int mNumberOfProcessors = 1U;
     input_parser::FileList mInputFiles;
+    components::ComponentType mComponentType = components::ComponentType::kObjective;
+    std::string mName;
 };
 
 using CriterionFunction =
@@ -66,8 +69,8 @@ using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
 [[nodiscard]] auto is_criterion_function_registered(const std::string_view aFunctionName) -> bool;
 
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and with traits @a aTraits.
-[[nodiscard]] auto criterion_function_has_traits(const std::string_view aFunctionName, const CriterionTraits aTraits)
-    -> bool;
+[[nodiscard]] auto criterion_function_has_traits(const std::string_view aFunctionName,
+                                                 const CriterionTraits aTraits) -> bool;
 
 /// @brief Creates a name from @a aAppConfiguration and @a aCriterionConfiguration that can be used
 /// to uniquely register a criterion function.

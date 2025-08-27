@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/BlockStructRule.hpp"
 #include "plato/input_parser/InputBlockData.hpp"
 #include "plato/utilities/EnumIndexing.hpp"
@@ -33,11 +34,11 @@ class ParsedInput
     ParsedInput(std::vector<InputDataBlock> aRawInput);
 
     /// @brief Returns the parsed input blocks corresponding to @a kComponentType
-    template <ComponentType kComponentType>
+    template <components::ComponentType kComponentType>
     [[nodiscard]] auto get() const -> const std::vector<InputDataBlock>&;
 
     /// @brief Returns the parsed input blocks corresponding to @a kComponentType
-    template <ComponentType kComponentType>
+    template <components::ComponentType kComponentType>
     [[nodiscard]] auto get() -> std::vector<InputDataBlock>&;
 
     /// @brief Returns the parsed input blocks corresponding to the type @a InputType
@@ -47,7 +48,8 @@ class ParsedInput
     [[nodiscard]] auto get() const -> std::vector<InputType>;
 
    private:
-    static constexpr inline std::size_t kNumberOfComponents = utilities::number_of_enumerates<ComponentType>();
+    static constexpr inline std::size_t kNumberOfComponents =
+        utilities::number_of_enumerates<components::ComponentType>();
     std::array<std::vector<InputDataBlock>, kNumberOfComponents> mInputBlocks;
 };
 
@@ -59,19 +61,19 @@ class ParsedInput
                                      const std::unordered_map<std::string, ComponentBlockParser>& aComponentParsers)
     -> utilities::Expected<ParsedInput, std::string>;
 
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 auto ParsedInput::get() -> std::vector<InputDataBlock>&
 {
-    static_assert(kComponentType != ComponentType::kNumberOfEnumerates,
-                  "ParsedInput::get must only be instantiated with a valid ComponentType.");
+    static_assert(kComponentType != components::ComponentType::kNumberOfEnumerates,
+                  "ParsedInput::get must only be instantiated with a valid components::ComponentType.");
     return std::get<utilities::enum_index(kComponentType)>(mInputBlocks);
 }
 
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 auto ParsedInput::get() const -> const std::vector<InputDataBlock>&
 {
-    static_assert(kComponentType != ComponentType::kNumberOfEnumerates,
-                  "ParsedInput::get must only be instantiated with a valid ComponentType.");
+    static_assert(kComponentType != components::ComponentType::kNumberOfEnumerates,
+                  "ParsedInput::get must only be instantiated with a valid components::ComponentType.");
     return std::get<utilities::enum_index(kComponentType)>(mInputBlocks);
 }
 

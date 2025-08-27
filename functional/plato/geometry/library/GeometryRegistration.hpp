@@ -43,7 +43,7 @@ struct FactoryTypes
     Output mOutput;
 };
 
-using ValidatedGeometryInput = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>;
+using ValidatedGeometryInput = input_validation::ValidatedInputDataBlock<components::ComponentType::kGeometry>;
 using GeometryRegistration = core::FactoryRegistration<FactoryTypes, ValidatedGeometryInput>;
 
 [[nodiscard]] auto is_geometry_function_registered(std::string_view aFunctionName) -> bool;

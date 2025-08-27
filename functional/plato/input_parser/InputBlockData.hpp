@@ -4,7 +4,7 @@
 #include <any>
 #include <string>
 
-#include "plato/input_parser/ComponentType.hpp"
+#include "plato/components/ComponentType.hpp"
 
 namespace plato::input_parser
 {
@@ -45,7 +45,7 @@ class InputBlockWrapper
 /// @brief Type-erased wrapper for holding the parsed data of a component input block.
 struct InputDataBlock
 {
-    ComponentType mComponentType;
+    components::ComponentType mComponentType;
     std::string mBlockName;
     InputBlockWrapper mInput;
 };

@@ -14,7 +14,7 @@ DECLARE_ENUM_AND_ENUM_SYMBOL_TABLE(ConstraintTypes,
                                   (kGreaterThan, "greater_than"))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), constraint, plato::input_parser::ComponentType::kConstraint,
+    (plato)(input_parser), constraint, plato::components::ComponentType::kConstraint,
     (bool, active, "Optional field to de/activate this constraint.")
     (plato::input_parser::AppName, app, "Required field specifying the app to use for this constraint.") 
     (plato::input_parser::CriterionName, criterion, "Required field specifying the name of the criterion to be evaluated.")

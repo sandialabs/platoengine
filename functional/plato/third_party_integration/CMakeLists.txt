@@ -1,3 +1,4 @@
+add_subdirectory(./boost_log)
 add_subdirectory(./common)
 add_subdirectory(./rol)
 add_subdirectory(./stk_search)

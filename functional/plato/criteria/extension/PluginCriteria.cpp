@@ -9,7 +9,9 @@
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
+#include "plato/services/SystemLogger.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::criteria::extension
 {
@@ -35,8 +37,7 @@ struct CreateCriterionFunction<library::FunctionDimension::kScalar>
     template <typename... Args>
     [[nodiscard]] auto operator()(const criteria::library::CriterionInput& aInput, Args&&... aAdditionalArgs) const
     {
-        return make_shared_lib_function(SharedLibCriterion{mAppConfiguration, mCriterionConfiguration,
-                                                           aInput.mInputFiles.list().mList,
+        return make_shared_lib_function(SharedLibCriterion{mAppConfiguration, mCriterionConfiguration, aInput,
                                                            std::forward<Args>(aAdditionalArgs)...});
     }
 };
@@ -117,9 +118,10 @@ std::size_t register_plugin_apps(const std::vector<std::filesystem::path>& aSear
         }
         else
         {
-            std::cout << "Warning: The shared library " << services::shared_library_path(tAppConfiguration)
-                      << ", associated with app \"" << tAppConfiguration.mConfiguration.mName
-                      << "\", was not found and will not be available.\n";
+            services::system_logger().logWarning(
+                utilities::concatenate("Warning: The shared library ", services::shared_library_path(tAppConfiguration),
+                                       ", associated with app \"", tAppConfiguration.mConfiguration.mName,
+                                       "\", was not found and will not be available."));
         }
     }
     return tNumberOfRegisteredApps;

@@ -7,7 +7,7 @@
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          test_block,
-                         plato::input_parser::ComponentType::kGeometry,
+                         plato::components::ComponentType::kGeometry,
                          (bool, field1, "a helpful comment")(int, field2, "a very helpful comment"))
 
 namespace plato::input_parser::unittest
@@ -17,7 +17,8 @@ TEST(ComponentBlockRule, ParsesToAnyWrapper)
     const auto tInput = std::string{
         "field1 true\n"
         "field2 42\n"};
-    const auto tParser = ComponentBlockRule<std::string::const_iterator, test_block, ComponentType::kGeometry>{};
+    const auto tParser =
+        ComponentBlockRule<std::string::const_iterator, test_block, components::ComponentType::kGeometry>{};
 
     auto tIter = tInput.begin();
     auto tData = std::any{};

@@ -5,14 +5,14 @@
 #include <boost/spirit/include/qi.hpp>
 #include <string>
 
-#include "plato/input_parser/ComponentType.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/InputBlockData.hpp"
 
 namespace plato::input_parser
 {
 /// @brief Helper for parsing a cross-referenced input block
 /// Use this type in the input structs for a cross referenced block
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 struct CrossReference
 {
     using value_type = char;
@@ -24,34 +24,34 @@ struct CrossReference
 
     std::string mName;
     InputBlockWrapper mInputBlock;
-    constexpr static inline ComponentType mComponentType = kComponentType;
+    constexpr static inline components::ComponentType mComponentType = kComponentType;
 };
 
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 auto CrossReference<kComponentType>::begin() const -> std::string::const_iterator
 {
     return mName.begin();
 }
 
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 auto CrossReference<kComponentType>::end() const -> std::string::const_iterator
 {
     return mName.end();
 }
 
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 auto CrossReference<kComponentType>::begin() -> std::string::iterator
 {
     return mName.begin();
 }
 
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 auto CrossReference<kComponentType>::end() -> std::string::iterator
 {
     return mName.end();
 }
 
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 void CrossReference<kComponentType>::insert(std::string::iterator aIter, char aVal)
 {
     mName.insert(aIter, aVal);
@@ -61,7 +61,7 @@ void CrossReference<kComponentType>::insert(std::string::iterator aIter, char aV
 
 namespace boost::spirit::traits
 {
-template <plato::input_parser::ComponentType kComponentType>
+template <plato::components::ComponentType kComponentType>
 struct create_parser<plato::input_parser::CrossReference<kComponentType>>
 {
     typedef proto::result_of::deep_copy<BOOST_TYPEOF((qi::lexeme[+qi::graph]))>::type type;

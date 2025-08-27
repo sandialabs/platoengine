@@ -1,9 +1,9 @@
-#ifndef PLATO_INPUT_PARSER_COMPONENTTYPE
-#define PLATO_INPUT_PARSER_COMPONENTTYPE
+#ifndef PLATO_COMPONENTS_COMPONENTTYPE
+#define PLATO_COMPONENTS_COMPONENTTYPE
 
 #include "plato/utilities/EnumIndexing.hpp"
 
-namespace plato::input_parser
+namespace plato::components
 {
 /// @brief The allowable types of components. These map to general categories of objects that may be instantiated to
 /// create a workflow.
@@ -15,14 +15,6 @@ enum struct ComponentType
     kFilter,
     kProcessManager,
     kNumberOfEnumerates
-};
-
-/// @brief A type trait with a member variable corresponding to the ComponentType of @a T.
-///
-/// This is specialized for each input block type in the defining macros.
-template <typename T>
-struct ComponentTypeOfInputBlock
-{
 };
 
 /// @brief Returns the ComponentType associated with an index @a kIndex.
@@ -38,6 +30,6 @@ constexpr auto component_type_from_index() -> ComponentType
     return std::get<0>(utilities::enums_from_index<ComponentType>(kIndex));
 }
 
-}  // namespace plato::input_parser
+}  // namespace plato::components
 
 #endif

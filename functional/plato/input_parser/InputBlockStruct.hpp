@@ -10,7 +10,7 @@
 #include <boost/preprocessor/seq/variadic_seq_to_seq.hpp>
 #include <boost/preprocessor/tuple/elem.hpp>
 
-#include "plato/input_parser/ComponentType.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/HelpDocumentationRegistration.hpp"
 
 namespace plato::input_parser
@@ -21,6 +21,26 @@ template <typename InputStruct>
 struct InputTypeName
 {
 };
+
+/// @brief A type trait with a member variable corresponding to the components::ComponentType of @a T.
+///
+/// This is specialized for each input block type in the defining macros.
+template <typename T>
+struct ComponentTypeOfInputBlock
+{
+};
+
+/// @brief Concept defining the required properties of an input block.
+template <typename T>
+concept InputBlock = requires {
+    InputTypeName<T>::name;
+    ComponentTypeOfInputBlock<T>::value;
+};
+
+/// @brief Concept defining the required properties of an input block and enforces that the block is of a specific
+/// component type.
+template <typename T, components::ComponentType kComponentType>
+concept InputBlockOfComponent = InputBlock<T> && kComponentType == ComponentTypeOfInputBlock<T>::value;
 
 /// @brief Specifies whether the input block parsed into @a InputStruct is named or unnamed.
 /// @note The actual implementation is via template specializations generated from the macros.
@@ -69,7 +89,7 @@ inline void register_help_documentation<STRUCT_NAME>() {                        
 /// For example, a struct of the form:
 /// @code 
 /// PLATO_INPUT_BLOCK_STRUCT(
-///    (plato)(input_parser), service, input_parser::ComponentType::kProcessManager,
+///    (plato)(input_parser), service, components::ComponentType::kProcessManager,
 ///    (unsigned int, number_processors))
 /// @endcode
 /// parses the following block:
@@ -93,18 +113,18 @@ struct InputTypeName<STRUCT_NAME>                                               
 template<>                                                                                              \
 struct ComponentTypeOfInputBlock<STRUCT_NAME>                                                           \
 {                                                                                                       \
-    constexpr static inline ComponentType value = COMPONENT_TYPE;                                       \
+    constexpr static inline components::ComponentType value = COMPONENT_TYPE;                                       \
 };                                                                                                      \
 } 
 
-#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                       \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ComponentType::kGeometry, ATTRIBUTES)              \
+#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                      \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kGeometry, ATTRIBUTES) \
 
-#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ComponentType::kProcessManager, ATTRIBUTES)        \
+#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                     \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kProcessManager, ATTRIBUTES) \
 
 #define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                         \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ComponentType::kFilter, ATTRIBUTES)                \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kFilter, ATTRIBUTES)    \
 
 /// Macro for generating an adapted struct that can be used for input parsing. The format
 /// is the same as BOOST_FUSION_DEFINE_STRUCT and the resulting struct has all the same
@@ -113,7 +133,7 @@ PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ComponentType::kFilter, ATT
 /// For example, a struct of the form:
 /// @code 
 /// PLATO_NAMED_INPUT_BLOCK_STRUCT(
-///    (plato)(input_parser), service, plato::input_parser::ComponentType::kObjective
+///    (plato)(input_parser), service, plato::componenets::ComponentType::kObjective
 ///    (unsigned int, number_processors))
 /// @endcode
 /// parses the following block:
@@ -139,7 +159,7 @@ constexpr inline bool kIsNamedBlock<STRUCT_NAME> = true;                        
 template<>                                                                                      \
 struct ComponentTypeOfInputBlock<STRUCT_NAME>                                                   \
 {                                                                                               \
-    constexpr static inline ComponentType value = COMPONENT_TYPE;                               \
+    constexpr static inline components::ComponentType value = COMPONENT_TYPE;                   \
 };                                                                                              \
 }
 

@@ -39,13 +39,16 @@ namespace plato::process_manager::extension
 /// the returned `ROL::Problem`.
 /// @note The solution vector is returned to avoid issues with ROL changing derived types. If an inequality constraint
 /// is used, the type returned from `getPrimalOptimizationVector` will be `ROL::PartitionedVector`, which is not easy to
+/// @param aProcessManagerName A name to use for the output log.
 /// copy to a `std::vector`.
 [[nodiscard]] auto make_rol_problem(
     const library::ProcessManagerData& aProblem,
+    std::string_view aProcessManagerName,
     geometry::library::OutputManager aOutputManager = geometry::library::OutputManager{})
     -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>;
 
 [[nodiscard]] auto make_rol_problem(const library::ProcessManagerData& aProblem,
+                                    std::string_view aProcessManagerName,
                                     const ROL::Ptr<ROL::StdObjective<double>>& aROLObjective)
     -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>;
 

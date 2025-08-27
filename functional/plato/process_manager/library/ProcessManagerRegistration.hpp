@@ -24,11 +24,11 @@ using ProcessManager = std::function<void(const ProcessManagerData&)>;
 using StageAndProcessManager = std::pair<RunStage, ProcessManager>;
 
 /// @brief Fully validated ProcessManager input vector
-using ValidatedProcessManagers = input_validation::ValidatedComponentType<input_parser::ComponentType::kProcessManager>;
+using ValidatedProcessManagers = input_validation::ValidatedComponentType<components::ComponentType::kProcessManager>;
 
 /// @brief A single validated ProcessManager input
 using ValidatedProcessManagerInput =
-    input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kProcessManager>;
+    input_validation::ValidatedInputDataBlock<components::ComponentType::kProcessManager>;
 /// @brief Factory registration type
 using ProcessManagerRegistration = core::FactoryRegistration<StageAndProcessManager, ValidatedProcessManagerInput>;
 

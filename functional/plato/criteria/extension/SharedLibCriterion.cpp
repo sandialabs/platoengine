@@ -3,17 +3,28 @@
 #include <boost/mpi/communicator.hpp>
 
 #include "plato/services/AppConfigurationUtilities.hpp"
+#include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
+#include "plato/services/SystemLogger.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
+#include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
 
 namespace plato::criteria::extension
 {
 namespace
 {
+constexpr auto kCriterionValuePrecision = 8U;
+constexpr auto kCriterionValueFieldWidth = kCriterionValuePrecision + 1U;
+
 template <typename FunctionSignature, typename... Args>
 auto load_criterion_interface(const services::AppConfigurationWithDirectory& aAppConfiguration,
                               const std::string_view aCreateCriterionFunctionName,
+                              const library::CriterionInput& aCriterionInput,
                               Args&&... aArgs)
 {
+    [[maybe_unused]] const auto tScopedLogger =
+        services::ScopedExternalRedirectLogger{aCriterionInput.mComponentType, aCriterionInput.mName};
+
     return std::make_unique<CriterionSharedLibraryObject>(services::make_shared_library_object<FunctionSignature>(
         services::shared_library_path(aAppConfiguration), aCreateCriterionFunctionName, std::forward<Args>(aArgs)...));
 }
@@ -26,29 +37,55 @@ using ParallelFunctionSignature = std::unique_ptr<library::CriterionInterface>(c
 
 SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                                        const services::CriterionConfiguration& aCriterionConfiguration,
-                                       const std::vector<std::string>& aFileNames)
-    : mCriterionInterface{load_criterion_interface<SerialFunctionSignature>(
-          aAppConfiguration, aCriterionConfiguration.mFunctionName, aFileNames)}
+                                       const library::CriterionInput& aCriterionInput)
+    : mCriterionInterface{load_criterion_interface<SerialFunctionSignature>(aAppConfiguration,
+                                                                            aCriterionConfiguration.mFunctionName,
+                                                                            aCriterionInput,
+                                                                            aCriterionInput.mInputFiles.list().mList)},
+      mComponentType{aCriterionInput.mComponentType},
+      mName{aCriterionInput.mName}
 {
 }
 
 SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                                        const services::CriterionConfiguration& aCriterionConfiguration,
-                                       const std::vector<std::string>& aFileNames,
+                                       const library::CriterionInput& aCriterionInput,
                                        const boost::mpi::communicator& aComm)
-    : mCriterionInterface{load_criterion_interface<ParallelFunctionSignature>(
-          aAppConfiguration, aCriterionConfiguration.mFunctionName, aFileNames, aComm)},
-      mComm{aComm}
+    : mCriterionInterface{load_criterion_interface<ParallelFunctionSignature>(aAppConfiguration,
+                                                                              aCriterionConfiguration.mFunctionName,
+                                                                              aCriterionInput,
+                                                                              aCriterionInput.mInputFiles.list().mList,
+                                                                              aComm)},
+      mComm{aComm},
+      mComponentType{aCriterionInput.mComponentType},
+      mName{aCriterionInput.mName}
 {
 }
 
 double SharedLibCriterion::f(const analysis::AnalysisDomainMesh& aMesh) const
 {
-    return mCriterionInterface->object()->value(aMesh);
+    auto tLogger = services::component_logger(mComponentType, mName);
+    tLogger.logInfo("Evaluating criterion");
+
+    const auto tValue = [&aMesh, this]()
+    {
+        [[maybe_unused]] const auto tScopedLogger = services::ScopedExternalRedirectLogger{mComponentType, mName};
+        return mCriterionInterface->object()->value(aMesh);
+    }();
+
+    tLogger.logInfo(
+        "Evaluation complete. Criterion value = " +
+        utilities::to_string(
+            utilities::FixedWidthFloatingPointOutput<double, kCriterionValuePrecision, kCriterionValueFieldWidth>{
+                tValue}));
+    return tValue;
 }
 
 linear_algebra::DynamicVector<double> SharedLibCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisMesh) const
 {
+    [[maybe_unused]] const auto tTaskLogger =
+        services::TaskLogSetupTeardown{"Gradient", services::component_logger(mComponentType, mName)};
+
     return linear_algebra::DynamicVector<double>(mCriterionInterface->object()->gradient(aAnalysisMesh));
 }
 

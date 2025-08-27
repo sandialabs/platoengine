@@ -32,9 +32,9 @@ auto apply_cross_linker(const CrossLinker& aCrossLinker,
                         std::vector<std::string>&& aErrorMessages,
                         std::index_sequence<kComponentIndices...>) -> std::vector<std::string>
 {
-    ((aErrorMessages = apply_cross_linker(aCrossLinker, aParsedInput,
-                                          aParsedInput.get<component_type_from_index<kComponentIndices>()>(),
-                                          std::move(aErrorMessages))),
+    ((aErrorMessages = apply_cross_linker(
+          aCrossLinker, aParsedInput, aParsedInput.get<components::component_type_from_index<kComponentIndices>()>(),
+          std::move(aErrorMessages))),
      ...);
     return std::move(aErrorMessages);
 }
@@ -49,9 +49,9 @@ auto make_cross_linked_input(input_parser::ParsedInput aInput) -> utilities::Exp
     auto tErrorMessages = std::vector<std::string>{};
     for (const auto& aCrossLinker : registered_cross_linkers())
     {
-        tErrorMessages =
-            apply_cross_linker(aCrossLinker, aInput, std::move(tErrorMessages),
-                               std::make_index_sequence<utilities::number_of_enumerates<ComponentType>()>());
+        tErrorMessages = apply_cross_linker(
+            aCrossLinker, aInput, std::move(tErrorMessages),
+            std::make_index_sequence<utilities::number_of_enumerates<components::ComponentType>()>());
     }
     if (tErrorMessages.empty())
     {

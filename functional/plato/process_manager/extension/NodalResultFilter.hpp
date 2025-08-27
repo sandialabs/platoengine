@@ -9,9 +9,9 @@
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), nodal_result_filter,
-    (plato::input_parser::CrossReference<plato::input_parser::ComponentType::kFilter>, filter, "Name of the filter to apply. "
+    (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter to apply. "
                                                                                                "Only required if more than one filter is specified.")
-    (plato::input_parser::CrossReference<plato::input_parser::ComponentType::kGeometry>, geometry, "Name of the geometry whose output mesh will be used. "
+    (plato::input_parser::CrossReference<plato::components::ComponentType::kGeometry>, geometry, "Name of the geometry whose output mesh will be used. "
                                                                                                    "Only required if more than one geometry is specified.")
     (plato::input_parser::FileName, output_file_name, "Optional: If omitted, the output file from density_topology will be used and overwritten.")
 )
@@ -59,11 +59,11 @@ namespace detail
     -> std::optional<std::string>;
 
 /// @brief Checks that the cross-reference @a aCrossReference is the expected type, given by @a ExpectedCrossReference.
-template <typename ExpectedCrossReference, input_parser::ComponentType kComponentType>
+template <typename ExpectedCrossReference, components::ComponentType kComponentType>
 [[nodiscard]] auto validate_expected_cross_reference_type(
     const input_parser::CrossReference<kComponentType>& aCrossReference) -> std::optional<std::string>;
 
-template <typename ExpectedCrossReference, input_parser::ComponentType kComponentType>
+template <typename ExpectedCrossReference, components::ComponentType kComponentType>
 auto validate_expected_cross_reference_type(
     const boost::optional<input_parser::CrossReference<kComponentType>>& aCrossReference) -> std::optional<std::string>
 {

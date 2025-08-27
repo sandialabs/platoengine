@@ -3,7 +3,7 @@
 
 #include <utility>
 
-#include "plato/input_parser/ComponentType.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/InputBlockData.hpp"
 #include "plato/utilities/FunctionArgType.hpp"
 
@@ -18,18 +18,18 @@ namespace plato::input_validation
 ///
 /// The purpose of the wrapper is to ensure, via the type, that input passed to a component has passed validation.
 /// After the input is wrapped in this class, only const access is allowed via the rawInput member.
-template <typename InputType, input_parser::ComponentType kComponentType>
+template <typename InputType, components::ComponentType kComponentType>
 class ValidatedInputTypeWrapper
 {
    public:
     using RawInputType = InputType;
-    constexpr static inline input_parser::ComponentType mComponentType = kComponentType;
+    constexpr static inline components::ComponentType mComponentType = kComponentType;
 
     [[nodiscard]] auto rawInput() const -> const InputType&;
 
    private:
-    template <input_parser::ComponentType kCrossReferenceComponentType,
-              input_parser::ComponentType kParentComponentType,
+    template <components::ComponentType kCrossReferenceComponentType,
+              components::ComponentType kParentComponentType,
               typename Accessor>
     friend auto validated_cross_reference(
         const ValidatedInputTypeWrapper<input_parser::InputDataBlock, kParentComponentType>& aValidatedInput,
@@ -46,33 +46,33 @@ class ValidatedInputTypeWrapper
 template <typename T>
 constexpr inline bool kIsValidatedInputTypeWrapper = false;
 
-template <typename T, input_parser::ComponentType kComponentType>
+template <typename T, components::ComponentType kComponentType>
 constexpr inline bool kIsValidatedInputTypeWrapper<ValidatedInputTypeWrapper<T, kComponentType>> = true;
 
 /// @brief Returns a cross reference, accessed using @a aAccessor, wrapped in ValidatedInputTypeWrapper.
 ///
 /// This must be used to access cross-referenced fields that need to be wrapped in ValidatedInputTypeWrapper.
-template <input_parser::ComponentType kCrossReferenceComponentType,
-          input_parser::ComponentType kComponentType,
+template <components::ComponentType kCrossReferenceComponentType,
+          components::ComponentType kComponentType,
           typename Accessor>
 [[nodiscard]] auto validated_cross_reference(
     const ValidatedInputTypeWrapper<input_parser::InputDataBlock, kComponentType>& aValidatedInput,
     const Accessor& aAccessor) -> ValidatedInputTypeWrapper<input_parser::InputDataBlock, kCrossReferenceComponentType>;
 
-template <typename InputType, input_parser::ComponentType kComponentType>
+template <typename InputType, components::ComponentType kComponentType>
 ValidatedInputTypeWrapper<InputType, kComponentType>::ValidatedInputTypeWrapper(InputType aRawInput)
     : mRawInput(std::move(aRawInput))
 {
 }
 
-template <typename InputType, input_parser::ComponentType kComponentType>
+template <typename InputType, components::ComponentType kComponentType>
 auto ValidatedInputTypeWrapper<InputType, kComponentType>::rawInput() const -> const InputType&
 {
     return mRawInput;
 }
 
-template <input_parser::ComponentType kCrossReferenceComponentType,
-          input_parser::ComponentType kComponentType,
+template <components::ComponentType kCrossReferenceComponentType,
+          components::ComponentType kComponentType,
           typename Accessor>
 [[nodiscard]] auto validated_cross_reference(
     const ValidatedInputTypeWrapper<input_parser::InputDataBlock, kComponentType>& aValidatedInput,

@@ -18,7 +18,7 @@ struct ConstraintFactoryFileFixture : public utilities::ValidInputTestFixture
 TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
 {
     auto tInput = parsedInput();
-    tInput.get<input_parser::ComponentType::kConstraint>().clear();
+    tInput.get<components::ComponentType::kConstraint>().clear();
 
     auto tConstraint = criteria::library::test_utilities::create_valid_example_constraint_input();
     tConstraint.name = "eq";
@@ -36,8 +36,7 @@ TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
     tInput = tInput | tConstraint;
 
     const auto tData = input_validation::make_validated_input(tInput).value();
-    auto tConstraints =
-        plato::criteria::library::make_constraints(tData.get<input_parser::ComponentType::kConstraint>());
+    auto tConstraints = plato::criteria::library::make_constraints(tData.get<components::ComponentType::kConstraint>());
     ASSERT_EQ(tConstraints.size(), 3U);
 
     EXPECT_TRUE(tConstraints[0].mLinear);

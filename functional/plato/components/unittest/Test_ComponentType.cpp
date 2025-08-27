@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "plato/input_parser/ComponentType.hpp"
+#include "plato/components/ComponentType.hpp"
 
-namespace plato::input_parser::unittest
+namespace plato::components::unittest
 {
 TEST(ComponentType, ComponentTypeFromIndex)
 {
@@ -12,4 +12,4 @@ TEST(ComponentType, ComponentTypeFromIndex)
     EXPECT_EQ(component_type_from_index<3U>(), ComponentType::kFilter);
     EXPECT_EQ(component_type_from_index<4U>(), ComponentType::kProcessManager);
 }
-}  // namespace plato::input_parser::unittest
+}  // namespace plato::components::unittest

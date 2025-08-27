@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "plato/input_parser/ComponentType.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/EnumParser.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/Skipper.hpp"
@@ -123,27 +123,27 @@ struct BlockStructRule
 /// @brief Specifies whether a component has a name that should be parsed.
 ///
 /// This indicates whether or not the component has a generic name and thus needs a user-given name to disambiguate.
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 [[maybe_unused]] constexpr auto kIsNamedComponent =
-    kComponentType == ComponentType::kConstraint || kComponentType == ComponentType::kObjective;
+    kComponentType == components::ComponentType::kConstraint || kComponentType == components::ComponentType::kObjective;
 
 /// @brief Specifies whether a component is unique in the input deck.
 ///
 /// This indicates whether the component must only appear once in an input deck.
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 [[maybe_unused]] constexpr auto kIsUniqueComponent =
-    kComponentType == ComponentType::kFilter || kComponentType == ComponentType::kGeometry;
+    kComponentType == components::ComponentType::kFilter || kComponentType == components::ComponentType::kGeometry;
 
 /// @brief A parser for a struct as key-value pairs.
 ///
 /// This is meant to be instantiated by components for their specific input types.
-template <typename Iterator, typename BlockStruct, ComponentType kComponentType>
+template <typename Iterator, typename BlockStruct, components::ComponentType kComponentType>
 struct ComponentBlockRule
 {
     using BlockDataStruct = BlockStruct;
 
     constexpr static inline bool kIsNamedBlockStructRule = kIsNamedComponent<kComponentType>;
-    constexpr static inline ComponentType mComponentType = kComponentType;
+    constexpr static inline components::ComponentType mComponentType = kComponentType;
 
     std::string mBlockType = InputTypeName<BlockStruct>::name;
 

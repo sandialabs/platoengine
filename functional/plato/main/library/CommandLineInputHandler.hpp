@@ -24,11 +24,8 @@ namespace detail
 ///@pre @a aInputFile exists on disk, Kokkos has been initialized
 void run_plato(const std::filesystem::path& aInputFile);
 
-///@brief Helper function to print a message @a aMessage only on Rank 0
-void print_message(const std::string_view aMessage);
-
 ///@brief Helper function to print an error message telling the user to provide an input file or request --help
-void print_error_message();
+void print_command_line_error_message();
 
 ///@brief Helper function to print all the known inputs that are defined in the input block structs.
 void print_known_inputs();

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
@@ -68,9 +69,9 @@ TEST_F(ObjectiveFactoryTestFixture, ValidParallelAggregateTwoObjectives)
 {
     const auto tData = create_two_objective_test_input();
 
-    EXPECT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 2);
+    EXPECT_EQ(tData.get<components::ComponentType::kObjective>().rawInput().size(), 2);
     const auto tAggregate =
-        criteria::library::detail::make_parallel_aggregate(tData.get<input_parser::ComponentType::kObjective>());
+        criteria::library::detail::make_parallel_aggregate(tData.get<components::ComponentType::kObjective>());
     EXPECT_EQ(tAggregate.size(), 2);
 }
 
@@ -97,9 +98,9 @@ TEST_F(ObjectiveFactoryTestFixture, ValidAggregateOneObjective)
 
     const auto tData = input_validation::parse_and_validate_string(tInput).value();
 
-    EXPECT_EQ(tData.get<input_parser::ComponentType::kObjective>().rawInput().size(), 2U);
+    EXPECT_EQ(tData.get<components::ComponentType::kObjective>().rawInput().size(), 2U);
     const auto tAggregate =
-        criteria::library::detail::make_parallel_aggregate(tData.get<input_parser::ComponentType::kObjective>());
+        criteria::library::detail::make_parallel_aggregate(tData.get<components::ComponentType::kObjective>());
     EXPECT_EQ(tAggregate.size(), 1U);
 }
 
@@ -109,20 +110,20 @@ TEST_F(ObjectiveFactoryTestFixture, NumberOfProcessors)
         // Check example, which sets number_of_processors to 1
         const auto tInput = integration_tests::utilities::create_valid_example_input();
         const auto tValidInput = input_validation::make_validated_input(tInput).value();
-        const auto& tObjectives = tValidInput.get<input_parser::ComponentType::kObjective>();
+        const auto& tObjectives = tValidInput.get<components::ComponentType::kObjective>();
         utilities::check_processors_match_objectives(criteria::library::number_of_processors_per_objective(tObjectives),
                                                      tObjectives, TEST_CONTEXT("One processor"));
     }
     {
         auto tInput = integration_tests::utilities::create_valid_example_input();
-        tInput.get<input_parser::ComponentType::kObjective>().clear();
+        tInput.get<components::ComponentType::kObjective>().clear();
         // Set number_of_processors to boost::none, default is 1
         auto tObjectiveInput = criteria::library::test_utilities::create_valid_example_objective_input();
         tObjectiveInput.number_of_processors = boost::none;
         tInput = tInput | tObjectiveInput;
 
         const auto tValidInput = input_validation::make_validated_input(tInput).value();
-        const auto& tObjectives = tValidInput.get<input_parser::ComponentType::kObjective>();
+        const auto& tObjectives = tValidInput.get<components::ComponentType::kObjective>();
         utilities::check_processors_match_objectives(criteria::library::number_of_processors_per_objective(tObjectives),
                                                      tObjectives, TEST_CONTEXT("Default using boost::none"));
     }
@@ -144,10 +145,10 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
                                     /*.aggregation_weight=*/2.0,
                                     /*.objective_goal*/ aObjectiveGoal};
         auto tInput = integration_tests::utilities::create_valid_example_input();
-        tInput.get<input_parser::ComponentType::kObjective>().clear();
+        tInput.get<components::ComponentType::kObjective>().clear();
         tInput = tInput | tObjectiveInput;
         const auto tValidInput = input_validation::make_validated_input(tInput).value();
-        const auto& tObjectives = tValidInput.get<input_parser::ComponentType::kObjective>();
+        const auto& tObjectives = tValidInput.get<components::ComponentType::kObjective>();
 
         const auto tObjective = criteria::library::make_aggregate_objective_function(tObjectives);
 

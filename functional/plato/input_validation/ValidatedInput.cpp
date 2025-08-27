@@ -26,7 +26,7 @@ template <std::size_t... kIndices>
 {
     auto tErrorMessages = std::vector<std::string>{};
     ((tErrorMessages = append_validation_errors(std::move(tErrorMessages),
-                                                aInput.get<input_parser::component_type_from_index<kIndices>()>())),
+                                                aInput.get<components::component_type_from_index<kIndices>()>())),
      ...);
     return tErrorMessages;
 }
@@ -73,7 +73,7 @@ auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
     -> utilities::Expected<ValidatedInput, std::string>
 {
     auto tErrorMessages = validate_components(
-        aInput.rawInput(), std::make_index_sequence<utilities::number_of_enumerates<input_parser::ComponentType>()>());
+        aInput.rawInput(), std::make_index_sequence<utilities::number_of_enumerates<components::ComponentType>()>());
     tErrorMessages = validate(aInput.rawInput(), std::move(tErrorMessages));
 
     if (tErrorMessages.empty())

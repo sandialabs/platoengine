@@ -9,7 +9,7 @@ namespace plato::input_parser
 {
 namespace
 {
-template <ComponentType kComponentType, typename Iterator>
+template <components::ComponentType kComponentType, typename Iterator>
 auto partition_by_component_type(const Iterator aBegin, const Iterator aEnd)
 {
     return std::partition(aBegin, aEnd,
@@ -25,8 +25,9 @@ template <std::size_t... kIndices>
     std::get<0>(tPartitionIterators) = aRawInput.begin();
     const auto tEnd = aRawInput.end();
 
-    ((std::get<kIndices + 1>(tPartitionIterators) = partition_by_component_type<component_type_from_index<kIndices>()>(
-          std::get<kIndices>(tPartitionIterators), tEnd)),
+    ((std::get<kIndices + 1>(tPartitionIterators) =
+          partition_by_component_type<components::component_type_from_index<kIndices>()>(
+              std::get<kIndices>(tPartitionIterators), tEnd)),
      ...);
 
     return tPartitionIterators;
@@ -45,7 +46,8 @@ template <typename IteratorArray, std::size_t... kIndices>
 
 [[nodiscard]] auto partition_inputs_by_component(std::vector<InputDataBlock> aRawInput)
 {
-    constexpr auto tComponentIndices = std::make_index_sequence<utilities::number_of_enumerates<ComponentType>()>();
+    constexpr auto tComponentIndices =
+        std::make_index_sequence<utilities::number_of_enumerates<components::ComponentType>()>();
     const auto tPartitionIterators = partition_inputs_by_component_impl(aRawInput, tComponentIndices);
     return partitioned_vector_to_array(tPartitionIterators, tComponentIndices);
 }

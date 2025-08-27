@@ -34,7 +34,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (double, sphere_pattern_spacing, "Required field specifying the center-to-center distance between adjacent spheres in the unform pattern.")
     (double, level_set_lower_bound, "Required field specifying the value of the control that sets the lower bound of he level set cut.")
     (double, level_set_upper_bound, "Required field specifying the value of the control that sets the upper bound of he level set cut.")
-    (plato::input_parser::CrossReference<plato::input_parser::ComponentType::kFilter>, filter, "Name of the filter block to apply to the controls."
+    (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter block to apply to the controls."
                                                                                                "Only required if more than one filter is specified.")
     (plato::input_parser::FixedBlockList, fixed_blocks, "Optional list of blocks in the mesh that will have level-set fields assigned to the level_set_upper_bound value.")
     (plato::input_parser::IdentifierString, initial_field_name, "Method to read the controls from the specified field name within the 'mesh_name' exodus mesh. "

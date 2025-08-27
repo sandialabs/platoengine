@@ -11,11 +11,11 @@ namespace plato::integration_tests::serial
 TEST(GeometryFactory, BrickGeometry)
 {
     auto tRawInput = integration_tests::utilities::create_valid_example_input();
-    tRawInput.get<input_parser::ComponentType::kGeometry>().clear();
+    tRawInput.get<components::ComponentType::kGeometry>().clear();
     tRawInput = std::move(tRawInput) | geometry::extension::test_utilities::create_valid_brick_shape_geometry_input();
 
     const auto tInput = input_validation::make_validated_input(tRawInput).value();
-    const auto tData = geometry::library::make_geometry_data(tInput.get<input_parser::ComponentType::kGeometry>());
+    const auto tData = geometry::library::make_geometry_data(tInput.get<components::ComponentType::kGeometry>());
 
     constexpr auto tExpectedBrickShapeDimensions = int{6};
     EXPECT_EQ(tData.mInitialGuess.size(), tExpectedBrickShapeDimensions);

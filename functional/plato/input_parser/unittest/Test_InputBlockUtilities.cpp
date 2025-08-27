@@ -22,12 +22,12 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 )
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestObjectiveBlock,
-    plato::input_parser::ComponentType::kObjective,
+    plato::components::ComponentType::kObjective,
     (int, field1, "help")
 )
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestConstraintBlock,
-    plato::input_parser::ComponentType::kConstraint,
+    plato::components::ComponentType::kConstraint,
     (int, field1, "help")
 )
 // clang-format on
@@ -36,7 +36,7 @@ namespace plato::input_parser::unittest
 {
 namespace
 {
-template <ComponentType kComponentType, typename InputBlock>
+template <components::ComponentType kComponentType, typename InputBlock>
 void check_input_block(const ParsedInput& aFullInput,
                        const InputBlock& aExpectedBlock,
                        const test_utilities::TestContext& aTestContext)
@@ -60,13 +60,14 @@ TEST(InputBlockUtilities, PipeOperator)
     const auto tProcessManagerBlock = TestProcessManagerBlock{/*.field1=*/43};
     const auto tCombinedInput = ParsedInput{} | tGeometryBlock | tProcessManagerBlock;
 
-    check_input_block<ComponentType::kGeometry>(tCombinedInput, tGeometryBlock, TEST_CONTEXT("Geometry block"));
-    check_input_block<ComponentType::kProcessManager>(tCombinedInput, tProcessManagerBlock,
-                                                      TEST_CONTEXT("Process manager block"));
+    check_input_block<components::ComponentType::kGeometry>(tCombinedInput, tGeometryBlock,
+                                                            TEST_CONTEXT("Geometry block"));
+    check_input_block<components::ComponentType::kProcessManager>(tCombinedInput, tProcessManagerBlock,
+                                                                  TEST_CONTEXT("Process manager block"));
 
-    EXPECT_TRUE(tCombinedInput.get<ComponentType::kFilter>().empty());
-    EXPECT_TRUE(tCombinedInput.get<ComponentType::kObjective>().empty());
-    EXPECT_TRUE(tCombinedInput.get<ComponentType::kConstraint>().empty());
+    EXPECT_TRUE(tCombinedInput.get<components::ComponentType::kFilter>().empty());
+    EXPECT_TRUE(tCombinedInput.get<components::ComponentType::kObjective>().empty());
+    EXPECT_TRUE(tCombinedInput.get<components::ComponentType::kConstraint>().empty());
 }
 
 TEST(InputBlockUtilities, PipeOperatorNamedTypes)
@@ -76,12 +77,14 @@ TEST(InputBlockUtilities, PipeOperatorNamedTypes)
     const auto tConstraintBlock = TestConstraintBlock{/*.name=*/std::string{"sally"}, /*.field1=*/42};
     const auto tCombinedInput = ParsedInput{} | tFilterBlock | tObjectiveBlock | tConstraintBlock;
 
-    check_input_block<ComponentType::kFilter>(tCombinedInput, tFilterBlock, TEST_CONTEXT("Filterblock"));
-    check_input_block<ComponentType::kObjective>(tCombinedInput, tObjectiveBlock, TEST_CONTEXT("Objective block"));
-    check_input_block<ComponentType::kConstraint>(tCombinedInput, tConstraintBlock, TEST_CONTEXT("Constraint block"));
+    check_input_block<components::ComponentType::kFilter>(tCombinedInput, tFilterBlock, TEST_CONTEXT("Filterblock"));
+    check_input_block<components::ComponentType::kObjective>(tCombinedInput, tObjectiveBlock,
+                                                             TEST_CONTEXT("Objective block"));
+    check_input_block<components::ComponentType::kConstraint>(tCombinedInput, tConstraintBlock,
+                                                              TEST_CONTEXT("Constraint block"));
 
-    EXPECT_TRUE(tCombinedInput.get<ComponentType::kGeometry>().empty());
-    EXPECT_TRUE(tCombinedInput.get<ComponentType::kProcessManager>().empty());
+    EXPECT_TRUE(tCombinedInput.get<components::ComponentType::kGeometry>().empty());
+    EXPECT_TRUE(tCombinedInput.get<components::ComponentType::kProcessManager>().empty());
 }
 
 }  // namespace plato::input_parser::unittest

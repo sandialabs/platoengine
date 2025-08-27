@@ -34,7 +34,7 @@ using FilterFunction = core::Function<
 using FilterCache =
     plato::utilities::StateCache<std::shared_ptr<library::FilterInterface>, const analysis::AnalysisDomainMesh&>;
 
-using ValidatedFilterInput = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kFilter>;
+using ValidatedFilterInput = input_validation::ValidatedInputDataBlock<components::ComponentType::kFilter>;
 using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFilterInput>;
 
 /// @brief Loads a filter from a shared library.

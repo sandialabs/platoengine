@@ -5,13 +5,13 @@
 
 // clang-format off
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), TestNamedBlock, plato::input_parser::ComponentType::kConstraint,
+    (plato)(input_parser), TestNamedBlock, plato::components::ComponentType::kConstraint,
     (int, field1, "help")
     (double, field2, "help")
 )
 
 PLATO_INPUT_BLOCK_STRUCT(
-    (plato)(input_parser), TestUnnamedBlock, plato::input_parser::ComponentType::kFilter,
+    (plato)(input_parser), TestUnnamedBlock, plato::components::ComponentType::kFilter,
     (bool, field1, "a helpful comment")
     (int, field2, "only sorta helpful")
     (double, field3, "did we even read this part?")
@@ -64,9 +64,9 @@ TEST(InputBlockStruct, UnNamed)
 
 TEST(InputBlockStruct, ComponentTypeOfInputBlock)
 {
-    EXPECT_EQ(ComponentTypeOfInputBlock<TestGeometryBlock>::value, ComponentType::kGeometry);
-    EXPECT_EQ(ComponentTypeOfInputBlock<TestProcessManagerBlock>::value, ComponentType::kProcessManager);
-    EXPECT_EQ(ComponentTypeOfInputBlock<TestFilterBlock>::value, ComponentType::kFilter);
+    EXPECT_EQ(ComponentTypeOfInputBlock<TestGeometryBlock>::value, components::ComponentType::kGeometry);
+    EXPECT_EQ(ComponentTypeOfInputBlock<TestProcessManagerBlock>::value, components::ComponentType::kProcessManager);
+    EXPECT_EQ(ComponentTypeOfInputBlock<TestFilterBlock>::value, components::ComponentType::kFilter);
 }
 
 TEST(InputBlockStruct, ProcessManager)

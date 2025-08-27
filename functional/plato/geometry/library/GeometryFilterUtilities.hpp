@@ -44,7 +44,7 @@ template <typename Geometry>
 /// @tparam Geometry Must be an input block with fields `filter`.
 template <typename InputBlockType>
 [[nodiscard]] auto make_filter_from_geometry_input(
-    const input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>& aInput)
+    const input_validation::ValidatedInputDataBlock<components::ComponentType::kGeometry>& aInput)
     -> filter::library::FilterFunction;
 
 /// @brief Creates a filter function that takes a DynamicVector as input and returns a DynamicVector as output.
@@ -79,10 +79,10 @@ auto validate_filter_with_mesh(const Geometry& aInput, const MeshFieldAccessor& 
 
 template <typename InputBlockType>
 auto make_filter_from_geometry_input(
-    const input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kGeometry>& aInput)
+    const input_validation::ValidatedInputDataBlock<components::ComponentType::kGeometry>& aInput)
     -> filter::library::FilterFunction
 {
-    const auto tFilterInput = input_validation::validated_cross_reference<input_parser::ComponentType::kFilter>(
+    const auto tFilterInput = input_validation::validated_cross_reference<components::ComponentType::kFilter>(
         aInput, [](const InputBlockType& aRawInput) { return aRawInput.filter; });
     return filter::library::make_filter_function(tFilterInput);
 }

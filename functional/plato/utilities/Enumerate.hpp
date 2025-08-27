@@ -1,8 +1,8 @@
 #ifndef PLATO_UTILITIES_ENUMERATE_HPP
 #define PLATO_UTILITIES_ENUMERATE_HPP
 
-#include <numeric>
 #include <algorithm>
+#include <numeric>
 
 #include "plato/utilities/MultidimensionalRange.hpp"
 #include "plato/utilities/Zip.hpp"

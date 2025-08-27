@@ -1,8 +1,8 @@
 #ifndef PLATO_INPUT_PARSER_COMPONENTPARSERREGISTRATION
 #define PLATO_INPUT_PARSER_COMPONENTPARSERREGISTRATION
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/ComponentBlockParser.hpp"
-#include "plato/input_parser/ComponentType.hpp"
 #include "plato/input_parser/CrossLinker.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
@@ -15,7 +15,7 @@ namespace plato::input_parser
 /// component type. Usage is:
 /// @code{.cpp}
 /// PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
-///                         kernel_filter, plato::input_parser::ComponentType::kFilter,
+///                         kernel_filter, plato::components::ComponentType::kFilter,
 ///                         (double, filter_radius, "The filter radius"))
 /// [[maybe_unused]] const auto kComponentRegistration = ComponentParserRegistration<kernel_filter>{};
 /// @endcode
@@ -29,7 +29,7 @@ struct ComponentParserRegistration
 /// @brief Returns all registered parser block names corresponding to the ComponentType @a kComponentType.
 ///
 /// This is mainly useful for error messages.
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 [[nodiscard]] auto all_block_names_with_component_type() -> std::vector<std::string>;
 
 /// @brief Returns the full map of registered component parsers.
@@ -48,7 +48,7 @@ ComponentParserRegistration<ComponentBlockType>::ComponentParserRegistration()
     register_help_documentation<ComponentBlockType>();
 }
 
-template <ComponentType kComponentType>
+template <components::ComponentType kComponentType>
 auto all_block_names_with_component_type() -> std::vector<std::string>
 {
     const auto& tRegisteredParsers = registered_component_parsers();

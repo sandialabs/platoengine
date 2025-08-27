@@ -1,13 +1,13 @@
 #ifndef PLATO_CORE_FACTORYREGISTRATION
 #define PLATO_CORE_FACTORYREGISTRATION
 
+#include <algorithm>
 #include <functional>
 #include <iterator>
 #include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
-#include <algorithm>
 
 namespace plato::core
 {

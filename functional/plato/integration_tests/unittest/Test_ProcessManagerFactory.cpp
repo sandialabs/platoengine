@@ -15,7 +15,7 @@ void verify_number_of_process_managers(const input_parser::ParsedInput& aParsedI
                                        unsigned int aNumberOfProcessManangers)
 {
     const auto tInput = input_validation::make_validated_input(aParsedInput).value();
-    const auto tProcessManagers = tInput.get<input_parser::ComponentType::kProcessManager>().rawInput();
+    const auto tProcessManagers = tInput.get<components::ComponentType::kProcessManager>().rawInput();
     EXPECT_EQ(tProcessManagers.size(), aNumberOfProcessManangers);
 }
 

@@ -14,7 +14,7 @@ namespace plato::criteria::library
 {
 namespace
 {
-using ValidatedConstraint = input_validation::ValidatedInputDataBlock<input_parser::ComponentType::kConstraint>;
+using ValidatedConstraint = input_validation::ValidatedInputDataBlock<components::ComponentType::kConstraint>;
 
 const auto kIsActive = [](const auto& aConstraint)
 { return input_validation::is_active(input_validation::get_input_block<input_parser::constraint>(aConstraint)); };

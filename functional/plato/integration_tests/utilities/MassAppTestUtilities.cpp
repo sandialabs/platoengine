@@ -164,8 +164,8 @@ void register_load_run_test(const boost::mpi::communicator& aComm, const test_ut
     const auto tCriterionName = input_parser::CriterionName{"mass"};
     const auto tValidInput = create_test_mass_app_input(tAppName, tCriterionName, aComm.size());
 
-    const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
-        tValidInput.get<input_parser::ComponentType::kObjective>());
+    const auto tObjectiveFunction =
+        criteria::library::make_aggregate_objective_function(tValidInput.get<components::ComponentType::kObjective>());
     const auto tGeometry =
         geometry::extension::make_brick_shape_geometry(geometry::extension::BrickShapeGeometry{"brick.exo"});
 

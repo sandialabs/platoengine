@@ -16,6 +16,7 @@
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"  //spatial_dimensions
 #include "plato/utilities/Enumerate.hpp"
@@ -56,6 +57,9 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
     const std::vector<::krino::LS_Field>& aLevelSetFields,
     const std::vector<tpik::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes) -> tpik::SensitivityMap
 {
+    [[maybe_unused]] const auto tScopedLogger =
+        services::ScopedExternalRedirectLogger{components::ComponentType::kGeometry, "krino-wrapper"};
+
     tpik::cut_mesh(aBulkData, aLevelSetFields);
     return detail::compute_sensitivities(aBulkData, aLevelSetFields, aDesignDomainBackgroundNodes);
 }
