@@ -74,8 +74,7 @@ KernelFilter::KernelFilter(const mesh::Mesh& aMesh,
 
 analysis::AnalysisDomainMesh KernelFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    [[maybe_unused]] const auto tTaskLogger =
-        services::TaskLogSetupTeardown{"Filtering field", library::filter_logger<input_parser::kernel_filter>()};
+    [[maybe_unused]] const auto tTaskLogger = library::filter_field_task_log<input_parser::kernel_filter>();
 
     const auto tMesh = mesh::Mesh{aAnalysisDomainMesh};
     const auto tFieldValues =
@@ -94,8 +93,7 @@ analysis::AnalysisDomainMesh KernelFilter::filter(const analysis::AnalysisDomain
 linear_algebra::DynamicVector<double> KernelFilter::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/, const linear_algebra::DynamicVector<double>& aV) const
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "Computing vector-Jacobian product", library::filter_logger<input_parser::kernel_filter>()};
+    [[maybe_unused]] const auto tTaskLogger = library::jacobian_task_log<input_parser::kernel_filter>();
 
     return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
 }
@@ -104,8 +102,7 @@ auto KernelFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainM
                                                  const linear_algebra::DynamicVector<double>& aV) const
     -> linear_algebra::DynamicVector<double>
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        "Computing vector-adjoint-Jacobian product", library::filter_logger<input_parser::kernel_filter>()};
+    [[maybe_unused]] const auto tTaskLogger = library::adjoint_jacobian_task_log<input_parser::kernel_filter>();
 
     return linear_algebra::DynamicVector<double>{mLinearMask.matrixMultiply(aV.stdVector())};
 }

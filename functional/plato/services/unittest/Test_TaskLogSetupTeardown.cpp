@@ -23,4 +23,14 @@ TEST(TaskLogSetupTeardown, SetupTeardown)
     test_utilities::expect_string_contains_substring(tStream->str(), tExpectedTeardownMessage,
                                                      TEST_CONTEXT("Tear down message"));
 }
+
+TEST(TaskLogSetupTeardown, CommonMessages)
+{
+    // Just check that the strings aren't empty
+    EXPECT_FALSE(jacobian_task_message().empty());
+    EXPECT_FALSE(adjoint_jacobian_task_message().empty());
+
+    // We also don't want the task messages to be the same
+    EXPECT_NE(jacobian_task_message(), adjoint_jacobian_task_message());
+}
 }  // namespace plato::services::unittest

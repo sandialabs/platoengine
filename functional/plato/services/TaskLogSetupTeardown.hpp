@@ -30,6 +30,13 @@ class [[nodiscard]] TaskLogSetupTeardown
     std::string mTaskMessage;
     SystemLogger mLogger;
 };
+
+/// @brief Provides a common message for Jacobian operations
+[[nodiscard]] auto jacobian_task_message() -> std::string;
+
+/// @brief Provides a common message for adjoint Jacobian operations
+[[nodiscard]] auto adjoint_jacobian_task_message() -> std::string;
+
 }  // namespace plato::services
 
 #endif

@@ -10,14 +10,14 @@ namespace plato::process_manager::library
 {
 /// @brief Creates a TaskLogger for the mesh generation step of a geometry component.
 template <input_parser::InputBlockOfComponent<components::ComponentType::kProcessManager> Input>
-[[nodiscard]] auto run_task_log();
+[[nodiscard]] auto run_task_log() -> services::TaskLogSetupTeardown;
 
 /// @brief Creates a logger for process managers, using the input parser's block name.
 template <input_parser::InputBlockOfComponent<components::ComponentType::kProcessManager> Input>
 [[nodiscard]] auto process_manager_logger() -> services::SystemLogger;
 
 template <input_parser::InputBlockOfComponent<components::ComponentType::kProcessManager> Input>
-[[nodiscard]] auto run_task_log()
+auto run_task_log() -> services::TaskLogSetupTeardown
 {
     return services::TaskLogSetupTeardown{"Running", process_manager_logger<Input>()};
 }
