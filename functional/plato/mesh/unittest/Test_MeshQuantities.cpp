@@ -29,12 +29,6 @@ TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesVolume)
     EXPECT_DOUBLE_EQ(tMesh.volume(), mCommandGenerator.volume());
 }
 
-TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesSmallestElementVolume)
-{
-    const auto tMesh = MeshQuantities{Mesh{mMeshFilePath}};
-    EXPECT_DOUBLE_EQ(tMesh.smallestDesignDomainElementVolume(), mCommandGenerator.volume() / 3.0);
-}
-
 TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesNodalDensity)
 {
     const auto tMesh = MeshQuantities{Mesh{mMeshFilePath}};
@@ -50,22 +44,10 @@ TEST_F(TwoBlockMeshOnDisk, MeshQuantitiesVolume)
     EXPECT_DOUBLE_EQ(tMesh.volume(), mExpectedVolume);
 }
 
-TEST_F(TwoBlockMeshOnDisk, MeshQuantitiesSmallestElementVolume)
-{
-    const auto tMesh = MeshQuantities{Mesh{mMeshFilePath}};
-    EXPECT_DOUBLE_EQ(tMesh.smallestDesignDomainElementVolume(), mSmallestElementVolume);
-}
-
 TEST_F(TwoDNonUniformHexMesh, MeshQuantitiesVolume)
 {
     const auto tMesh = MeshQuantities{Mesh{mMeshFilePath}};
     EXPECT_DOUBLE_EQ(tMesh.volume(), mExpectedArea);
-}
-
-TEST_F(TwoDNonUniformHexMesh, MeshQuantitiesSmallestElementVolume)
-{
-    const auto tMesh = MeshQuantities{Mesh{mMeshFilePath}};
-    EXPECT_DOUBLE_EQ(tMesh.smallestDesignDomainElementVolume(), mExpectedSmallestElementArea);
 }
 
 TEST_F(TwoDThreeBlockMesh, MeshQuantitiesFixedDomainElementVolumes)

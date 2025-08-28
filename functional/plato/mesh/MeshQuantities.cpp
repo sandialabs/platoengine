@@ -36,13 +36,6 @@ double MeshQuantities::averageNodalDensity() const
     return static_cast<double>(tTotalNumberOfNodes) / volume();
 }
 
-double MeshQuantities::smallestDesignDomainElementVolume() const
-{
-    const auto tDesignDomainVolumes = designDomainElementVolumes();
-    assert(!tDesignDomainVolumes.empty());
-    return *std::min_element(tDesignDomainVolumes.begin(), tDesignDomainVolumes.end());
-}
-
 std::vector<double> MeshQuantities::fixedDomainElementVolumes() const
 {
     return element_volumes(fixedDomainBlocks(), bulkData());

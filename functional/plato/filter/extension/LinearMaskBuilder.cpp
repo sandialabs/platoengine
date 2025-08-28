@@ -46,7 +46,7 @@ LinearMaskBuilder::LinearMaskBuilder(const mesh::Mesh& aMesh,
                                      const boost::mpi::communicator& aCommunicator)
     : mCommunicator(aCommunicator),
       mSearchRadius(aSearchRadius.mValue),
-      mMaximumConnectivityEstimate(detail::maximum_connectivity_estimate(aMesh, aSearchRadius)),
+      mMaximumConnectivityEstimate(detail::average_nodes_in_filter_radius_estimate(aMesh, aSearchRadius)),
       mGlobalRowCenterCoordinates(center_coordinates(aMesh, aCenteringType)),
       mGlobalNodalCoordinates(mesh::EntityRetrieval{aMesh}.designDomainNodalCoordinates())
 {
@@ -152,20 +152,13 @@ double filter_area(const SearchRadius aFilterRadius)
     return std::numbers::pi * aFilterRadius.mValue * aFilterRadius.mValue;
 }
 
-unsigned int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const SearchRadius aFilterRadius)
+auto average_nodes_in_filter_radius_estimate(const mesh::Mesh& aMesh, const SearchRadius aFilterRadius) -> int
 {
-    const double tSmallestElement = mesh::MeshQuantities{aMesh}.smallestDesignDomainElementVolume();
     const double tSearchVolume =
         mesh::EntityCounts{aMesh}.is2D() ? filter_area(aFilterRadius) : filter_volume(aFilterRadius);
-    const auto tTotalElements = mesh::EntityCounts{aMesh}.numberOfElements();
-    const double tVolume = mesh::MeshQuantities{aMesh}.volume();
-
-    const auto tAverageElementSize = tVolume / tTotalElements;
-    const auto tRatioAverageToSmall = tAverageElementSize / tSmallestElement;
-
     const auto tAverageNodalDensity = mesh::MeshQuantities{aMesh}.averageNodalDensity();
 
-    return static_cast<int>(tAverageNodalDensity * tSearchVolume * tRatioAverageToSmall * kMaxMultiplier);
+    return static_cast<int>(tAverageNodalDensity * tSearchVolume);
 }
 
 auto create_tpetravector_coordinates(const std::vector<third_party_integration::common::Coordinate>& aCoordinates,

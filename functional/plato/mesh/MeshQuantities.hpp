@@ -17,9 +17,6 @@ struct MeshQuantities : public Mesh
     /// volume.
     [[nodiscard]] double averageNodalDensity() const;
 
-    /// @brief Returns the smallest element volume in the mesh
-    [[nodiscard]] double smallestDesignDomainElementVolume() const;
-
     /// @brief Returns a vector of element volumes corresponding to the fixed domain only.
     ///
     /// The order is given by the order of iteration of AnalysisDomainMeshSequentialView.

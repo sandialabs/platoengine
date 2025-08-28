@@ -106,15 +106,6 @@ class LinearMaskBuilder
 namespace detail
 {
 
-/// @brief an empirically determined value for a uniform hex mesh and filter radii that are similar in size to the
-/// element size.
-// clang-format off
-/// A value of 1.5 will cover FilterRadii that are 1.45*Element_Length and larger
-/// A value of 1.2 will cover FilterRadii that are 2.6*Element_Length and larger
-/// A value of 1.1 will cover FilterRadii that are 3.9*Element_Length and larger
-// clang-format on
-constexpr double kMaxMultiplier = 1.5;
-
 using RowSum = utilities::NamedType<double, struct RowSumTag>;
 using EstimatedConnectivity = utilities::NamedType<unsigned int, struct EstimatedConnectivityTag>;
 
@@ -127,9 +118,11 @@ using EstimatedConnectivity = utilities::NamedType<unsigned int, struct Estimate
 /// @brief Compute the area of a circle with radius @a aFilterRadius
 [[nodiscard]] double filter_area(const SearchRadius aSearchRadius);
 
-/// @brief Compute maximum expected connectivity in a row for mesh @a aMesh, with a filter sphere with radius
-/// @a aFilterRadius
-[[nodiscard]] unsigned int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const SearchRadius aFilterRadius);
+/// @brief Estimates the the number of nodes within a filter radius @a aFilterRadius based on the average nodal
+/// connectivity of @a aMesh.
+///
+/// The purpose of this function is to provide an estimate for allocating memory for the kernel filter.
+[[nodiscard]] auto average_nodes_in_filter_radius_estimate(const mesh::Mesh& aMesh, SearchRadius aFilterRadius) -> int;
 
 /// @brief create nodal coordinate tpetra container of  @a aCoordinates
 [[nodiscard]] auto create_tpetravector_coordinates(
