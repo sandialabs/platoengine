@@ -105,4 +105,13 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusWithMesh)
                                                          TEST_CONTEXT("Checking existence of mesh file"));
 }
 
+TEST(FilterValidation, CheckFilterRadiusNoMesh)
+{
+    const auto tMeshFileName = std::filesystem::path{"test.exo"};
+    const auto tHelmholtzFilter = test_utilities::create_valid_helmholtz_filter_input();
+
+    // This should not be an error since it's not the responsibility of this function to check that the mesh exists.
+    EXPECT_FALSE(detail::validate_filter_radius_with_mesh(tHelmholtzFilter, tMeshFileName).has_value());
+}
+
 }  // namespace plato::filter::extension::unittest
