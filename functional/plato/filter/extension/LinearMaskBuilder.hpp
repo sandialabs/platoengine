@@ -107,7 +107,6 @@ namespace detail
 {
 
 using RowSum = utilities::NamedType<double, struct RowSumTag>;
-using EstimatedConnectivity = utilities::NamedType<unsigned int, struct EstimatedConnectivityTag>;
 
 /// @brief Computes the linear tophat function based on a distance @a aDistance and a search radius @a aSearchRadius
 [[nodiscard]] double linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRadius);
@@ -168,6 +167,11 @@ void normalize_rows_in_map(RowMap& aRowMap);
     const boost::mpi::communicator& aCommunicator);
 
 void normalize_vector(std::vector<double>& aVector, const double aNormalization);
+
+/// @brief Creates a vector containing the number of columns in each row, sorted by global row ID.
+///
+/// The purpose of this function is to provide the maximum number of entries to allocate in a Tpetra::CRSMatrix.
+[[nodiscard]] auto number_of_column_entries_per_row(const RowMap& aRowMap) -> std::vector<std::size_t>;
 
 }  // namespace detail
 
