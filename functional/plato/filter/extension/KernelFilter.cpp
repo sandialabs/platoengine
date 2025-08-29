@@ -155,6 +155,9 @@ LinearMask create_linear_mask(const mesh::Mesh& aMesh,
                               const input_parser::KernelFilterCenteringTypes aFilterCentering,
                               const boost::mpi::communicator& aCommunicator)
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        "Building filter", library::detail::filter_logger<input_parser::kernel_filter>()};
+
     return LinearMask{
         LinearMaskBuilder{aMesh, aFilterCentering, SearchRadius{aFilterRadius.mValue}, aCommunicator}.mask(),
         aCommunicator};
