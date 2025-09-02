@@ -7,12 +7,12 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
-#include "plato/process_manager/extension/LogspaceGenerator.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/LogSpaceGenerator.hpp"
 
 namespace plato::process_manager::extension::unittest
 {

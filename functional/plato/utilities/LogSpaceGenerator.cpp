@@ -1,12 +1,12 @@
-#include "plato/process_manager/extension/LogspaceGenerator.hpp"
+#include "plato/utilities/LogSpaceGenerator.hpp"
 
 #include <algorithm>
 #include <iostream>
 #include <numeric>
 
-namespace plato::process_manager::extension
+namespace plato::utilities
 {
-std::vector<double> LogspaceGenerator::steps() const
+std::vector<double> LogSpaceGenerator::steps() const
 {
     if (mNumberOfSteps == 0)
     {
@@ -18,4 +18,4 @@ std::vector<double> LogspaceGenerator::steps() const
     return tLogspace;
 }
 
-}  // namespace plato::process_manager::extension
+}  // namespace plato::utilities

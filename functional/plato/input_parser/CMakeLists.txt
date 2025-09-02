@@ -18,7 +18,9 @@ if(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
 endif()
 
 if( UNIT_TESTING )
-  create_plato_unittester(PlatoFunctionalInputParser unittest)
+
+  create_plato_header_library(PlatoFunctionalInputParserTestUtilities "test_utilities" "PlatoFunctionalInputParser")
+  create_plato_unittester(PlatoFunctionalInputParser unittest PlatoFunctionalInputParserTestUtilities)
 endif()
 
 add_subdirectory(./documentation_generator)
