@@ -37,26 +37,22 @@ TEST(LinearMaskBuilderDetail, FilterArea)
     EXPECT_DOUBLE_EQ(tResult, tGold);
 }
 
-TEST(LinearMaskBuilderDetail, DetermineMaximumConnectivityEstimate)
+TEST(LinearMaskBuilderDetail, AverageNodesInFilterRadius)
 {
-    const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
-        {21, 21, 21}, {-10, -10, -10}, {10, 10, 10}};
+    constexpr auto tCommandGenerator =
+        third_party_integration::stk_io::CommandGenerator{{21, 21, 21}, {-10, -10, -10}, {10, 10, 10}};
     third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
 
-    const SearchRadius tFilterRadius{5};
+    constexpr auto tFilterRadius = SearchRadius{5};
 
-    const double tNodalDensity = tCommandGenerator.numberOfNodes() / tCommandGenerator.volume();
-    const double tAverageElementVolume = tCommandGenerator.volume() / tCommandGenerator.numberOfElements();
-    const double tSearchVolume = detail::filter_volume(tFilterRadius);
-    const double tSmallestElementVolume = std::pow(20.0 / 21., 3);
+    const auto tNodalDensity = tCommandGenerator.numberOfNodes() / tCommandGenerator.volume();
+    const auto tSearchVolume = detail::filter_volume(tFilterRadius);
+    const auto tExpected = static_cast<int>(tNodalDensity * tSearchVolume);
 
-    const double tRatioAverageToSmall = tAverageElementVolume / tSmallestElementVolume;
-    const int tGold = static_cast<int>(tNodalDensity * tSearchVolume * detail::kMaxMultiplier * tRatioAverageToSmall);
+    const auto tResult = detail::average_nodes_in_filter_radius_estimate(mesh::Mesh{kMeshFile}, tFilterRadius);
+    EXPECT_EQ(tExpected, tResult);
 
-    const int tResult = detail::maximum_connectivity_estimate(mesh::Mesh{kMeshFile}, tFilterRadius);
-    EXPECT_EQ(tGold, tResult);
-
-    constexpr double tNumberOfActualNodes = 515;  // matlab
+    constexpr auto tNumberOfActualNodes = 515;  // matlab
     EXPECT_GT(tResult, tNumberOfActualNodes);
 
     plato::test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files."));
@@ -146,6 +142,27 @@ TEST(LinearMaskBuilderDetail, NormalizeVector)
         EXPECT_EQ(tResult[1], tVector[1] / tNormalization);
         EXPECT_EQ(tResult[2], tVector[2] / tNormalization);
     }
+}
+
+TEST(LinearMaskBuilderDetail, NumberOfColumnEntriesInRowMap)
+{
+    namespace tpitp = third_party_integration::tpetra;
+
+    const auto tRowDetailWithOneColumn =
+        RowDetail{.mNonzeroColumnGlobalIDs = {0}, .mColumnEntryWeights = {0.0}, .mRowSum = 0.0};
+    const auto tRowDetailWithTwoColumns =
+        RowDetail{.mNonzeroColumnGlobalIDs = {0, 1}, .mColumnEntryWeights = {0.0, 0.0}, .mRowSum = 0.0};
+    const auto tRowDetailWithThreeColumns =
+        RowDetail{.mNonzeroColumnGlobalIDs = {0, 1, 2}, .mColumnEntryWeights = {0.0, 0.0, 0.0}, .mRowSum = 0.0};
+
+    const auto tTestRowMap = RowMap{{tpitp::TpetraGlobalOrdinal{0}, tRowDetailWithOneColumn},
+                                    {tpitp::TpetraGlobalOrdinal{1}, tRowDetailWithTwoColumns},
+                                    {tpitp::TpetraGlobalOrdinal{2}, tRowDetailWithThreeColumns},
+                                    {tpitp::TpetraGlobalOrdinal{3}, tRowDetailWithOneColumn}};
+
+    const auto tComputed = detail::number_of_column_entries_per_row(tTestRowMap);
+    const auto tExpected = std::vector<std::size_t>{1, 2, 3, 1};
+    EXPECT_EQ(tComputed, tExpected);
 }
 
 }  // namespace plato::filter::extension::unittest

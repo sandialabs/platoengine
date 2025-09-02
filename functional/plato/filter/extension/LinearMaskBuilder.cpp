@@ -9,6 +9,7 @@
 #include <cmath>
 #include <iterator>
 #include <numbers>
+#include <ranges>
 #include <utility>
 
 #include "plato/mesh/EntityCounts.hpp"
@@ -46,7 +47,7 @@ LinearMaskBuilder::LinearMaskBuilder(const mesh::Mesh& aMesh,
                                      const boost::mpi::communicator& aCommunicator)
     : mCommunicator(aCommunicator),
       mSearchRadius(aSearchRadius.mValue),
-      mMaximumConnectivityEstimate(detail::maximum_connectivity_estimate(aMesh, aSearchRadius)),
+      mMaximumConnectivityEstimate(detail::average_nodes_in_filter_radius_estimate(aMesh, aSearchRadius)),
       mGlobalRowCenterCoordinates(center_coordinates(aMesh, aCenteringType)),
       mGlobalNodalCoordinates(mesh::EntityRetrieval{aMesh}.designDomainNodalCoordinates())
 {
@@ -106,19 +107,20 @@ void LinearMaskBuilder::create_linear_mask(const RowMap& aRowMap)
     auto tCrsDomainMap = Teuchos::rcp(
         new tpi::tpetra::TpetraMap(mGlobalNodalCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator));
 
-    mLinearMask = std::make_unique<tpi::tpetra::TpetraCRSMatrix>(tCrsRowMap, mMaximumConnectivityEstimate);
+    mLinearMask = std::make_unique<tpi::tpetra::TpetraCRSMatrix>(
+        tCrsRowMap, Teuchos::ArrayView<const std::size_t>{detail::number_of_column_entries_per_row(aRowMap)});
 
     for (const auto& tRow : aRowMap)
     {
         const auto tRowGlobalID = tRow.first;
-        auto tColumnGlobalIDs = aRowMap.at(tRowGlobalID).mNonzeroColumnGlobalIDs;
-        auto tColumnWeights = aRowMap.at(tRowGlobalID).mColumnEntryWeights;
+        const auto& tColumnGlobalIDs = aRowMap.at(tRowGlobalID).mNonzeroColumnGlobalIDs;
+        const auto& tColumnWeights = aRowMap.at(tRowGlobalID).mColumnEntryWeights;
 
         assert(!tColumnGlobalIDs.empty());
 
         mLinearMask->insertGlobalValues(tRowGlobalID,
-                                        Teuchos::ArrayView<tpi::tpetra::TpetraGlobalOrdinal>(tColumnGlobalIDs),
-                                        Teuchos::ArrayView<tpi::tpetra::TpetraScalar>(tColumnWeights));
+                                        Teuchos::ArrayView<const tpi::tpetra::TpetraGlobalOrdinal>(tColumnGlobalIDs),
+                                        Teuchos::ArrayView<const tpi::tpetra::TpetraScalar>(tColumnWeights));
     }
     mLinearMask->fillComplete(tCrsDomainMap, tCrsRowMap);
 }
@@ -152,20 +154,13 @@ double filter_area(const SearchRadius aFilterRadius)
     return std::numbers::pi * aFilterRadius.mValue * aFilterRadius.mValue;
 }
 
-unsigned int maximum_connectivity_estimate(const mesh::Mesh& aMesh, const SearchRadius aFilterRadius)
+auto average_nodes_in_filter_radius_estimate(const mesh::Mesh& aMesh, const SearchRadius aFilterRadius) -> int
 {
-    const double tSmallestElement = mesh::MeshQuantities{aMesh}.smallestDesignDomainElementVolume();
     const double tSearchVolume =
         mesh::EntityCounts{aMesh}.is2D() ? filter_area(aFilterRadius) : filter_volume(aFilterRadius);
-    const auto tTotalElements = mesh::EntityCounts{aMesh}.numberOfElements();
-    const double tVolume = mesh::MeshQuantities{aMesh}.volume();
-
-    const auto tAverageElementSize = tVolume / tTotalElements;
-    const auto tRatioAverageToSmall = tAverageElementSize / tSmallestElement;
-
     const auto tAverageNodalDensity = mesh::MeshQuantities{aMesh}.averageNodalDensity();
 
-    return static_cast<int>(tAverageNodalDensity * tSearchVolume * tRatioAverageToSmall * kMaxMultiplier);
+    return static_cast<int>(tAverageNodalDensity * tSearchVolume);
 }
 
 auto create_tpetravector_coordinates(const std::vector<third_party_integration::common::Coordinate>& aCoordinates,
@@ -202,8 +197,8 @@ auto distribute_search_vectors_and_stk_search(const CenterVector& aCenterVector,
                                                aCommunicator);
 }
 
-auto stk_search_points(const third_party_integration::tpetra::TpetraMultiVector& aNodalCoordinates, const int aRank)
-    -> std::vector<third_party_integration::stk_search::SearchPointWithIdentifier>
+auto stk_search_points(const third_party_integration::tpetra::TpetraMultiVector& aNodalCoordinates,
+                       const int aRank) -> std::vector<third_party_integration::stk_search::SearchPointWithIdentifier>
 {
     namespace tpi = third_party_integration;
 
@@ -280,6 +275,21 @@ unsigned int reduce_search_result_size(const third_party_integration::stk_search
     unsigned int tResultSize = aSearchResults.size();
     boost::mpi::all_reduce(aCommunicator, boost::mpi::inplace(tResultSize), std::plus<unsigned int>());
     return tResultSize;
+}
+
+auto number_of_column_entries_per_row(const RowMap& aRowMap) -> std::vector<std::size_t>
+{
+    auto tGlobalIDs = std::vector<third_party_integration::tpetra::TpetraGlobalOrdinal>{};
+    tGlobalIDs.reserve(aRowMap.size());
+    std::ranges::copy(std::views::keys(aRowMap), std::back_inserter(tGlobalIDs));
+    std::ranges::sort(tGlobalIDs);
+
+    auto tNumberOfColumnsPerRow = std::vector<std::size_t>{};
+    tNumberOfColumnsPerRow.reserve(aRowMap.size());
+    std::ranges::transform(tGlobalIDs, std::back_inserter(tNumberOfColumnsPerRow), [&aRowMap](const auto tGlobalID)
+                           { return aRowMap.at(tGlobalID).mNonzeroColumnGlobalIDs.size(); });
+
+    return tNumberOfColumnsPerRow;
 }
 
 }  // namespace detail

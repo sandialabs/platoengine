@@ -32,7 +32,12 @@ template <typename Filter>
 std::optional<std::string> validate_filter_radius_with_mesh(const Filter& aInput,
                                                             const std::filesystem::path& aMeshFileName)
 {
-    if (aInput.use_relative_radius && aInput.use_relative_radius.value() == true)
+    if (!std::filesystem::exists(aMeshFileName))
+    {
+        return std::nullopt;  // Not our error
+    }
+
+    if (aInput.use_relative_radius && aInput.use_relative_radius.value())
     {
         return std::nullopt;
     }
