@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <unordered_map>
 
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 
@@ -205,6 +206,8 @@ class TwoDManyBlockMesh : virtual public ::testing::Test
 
     constexpr static auto mExpectedNumberOfBlocks = 7U;
     constexpr static auto mExpectedNumberOfElements = 7U;
+    const static inline auto mBlockNameToOrdinal = std::unordered_map<std::string, unsigned int>{
+        {"alpha", 20U}, {"beta", 21U}, {"gamma", 22U}, {"delta", 23U}, {"epsilon", 24U}, {"zeta", 25U}, {"eta", 26U}};
 };
 
 constexpr auto kTwoDTriMesh = std::string_view{
