@@ -1,14 +1,14 @@
-#ifndef PLATO_PROCESSMANAGER_EXTENSION_LINSPACEGENERATOR
-#define PLATO_PROCESSMANAGER_EXTENSION_LINSPACEGENERATOR
+#ifndef PLATO_UTILITIES_LOGSPACEGENERATOR
+#define PLATO_UTILITIES_LOGSPACEGENERATOR
 
 #include <vector>
 
-namespace plato::process_manager::extension
+namespace plato::utilities
 {
 /// @brief The purpose of this is to generate a set of logarithmically spaced values.
 ///
 /// The main use is in the gradient checker for generating finite difference step sizes.
-struct LogspaceGenerator
+struct LogSpaceGenerator
 {
     double mStartingMagnitude = 1;
     double mStepRatio = 0.1;
@@ -16,6 +16,6 @@ struct LogspaceGenerator
 
     [[nodiscard]] std::vector<double> steps() const;
 };
-}  // namespace plato::process_manager::extension
+}  // namespace plato::utilities
 
 #endif
