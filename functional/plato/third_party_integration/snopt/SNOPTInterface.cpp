@@ -252,7 +252,7 @@ void apply_options(snoptProblemA &aProblem, const SNOPTOptions &aOptions)
         assert(tReturnCode == kSuccessfulParameterSet);
     }
     // Turn off solution printing
-    const auto tReturnCode = aProblem.setParameter("Solution No");
+    [[maybe_unused]] const auto tReturnCode = aProblem.setParameter("Solution No");
     assert(tReturnCode == kSuccessfulParameterSet);
 }
 }  // namespace detail
