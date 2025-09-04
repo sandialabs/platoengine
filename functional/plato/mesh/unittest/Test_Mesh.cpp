@@ -18,6 +18,10 @@ using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
+class TwoDManyBlockMeshMeshFixture : public third_party_integration::stk_io::test_utilities::TwoDManyBlockMesh
+{
+};
+
 struct PublicPartVectorMixin : public Mesh
 {
     PublicPartVectorMixin(Mesh aMesh) : Mesh{std::move(aMesh)} {}
@@ -103,10 +107,36 @@ TEST_F(TwoDNonUniformHexMesh, DesignBlockOrdinals)
 
 TEST_F(TwoDThreeBlockMesh, DesignBlockOrdinals)
 {
-    const auto tMesh = Mesh{mMeshFilePath, {"block_2", "block_3"}};
-
     const auto tExpectedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{20u};
+
+    const auto tMesh = Mesh{mMeshFilePath, {"block_2", "block_3"}};
     EXPECT_EQ(tMesh.designBlockOrdinals(), tExpectedBlockOrdinals);
+}
+
+TEST_F(TwoDManyBlockMeshMeshFixture, BlockOrdinals)
+{
+    {
+        const auto tMesh = Mesh{mMeshFilePath, {"alpha", "zeta", "eta"}};
+        const auto tExpectedDesignBlockOrdinals =
+            std::vector<Mesh::BlockOrdinalType>{mBlockNameToOrdinal.at("beta"), mBlockNameToOrdinal.at("gamma"),
+                                                mBlockNameToOrdinal.at("delta"), mBlockNameToOrdinal.at("epsilon")};
+        const auto tExpectedFixedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{
+            mBlockNameToOrdinal.at("alpha"), mBlockNameToOrdinal.at("eta"), mBlockNameToOrdinal.at("zeta")};
+
+        EXPECT_EQ(tMesh.designBlockOrdinals(), tExpectedDesignBlockOrdinals);
+        EXPECT_EQ(tMesh.fixedBlockOrdinals(), tExpectedFixedBlockOrdinals);
+    }
+    {
+        const auto tMesh = Mesh{mMeshFilePath, {"delta", "gamma", "epsilon", "zeta"}};
+        const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{
+            mBlockNameToOrdinal.at("alpha"), mBlockNameToOrdinal.at("beta"), mBlockNameToOrdinal.at("eta")};
+        const auto tExpectedFixedBlockOrdinals =
+            std::vector<Mesh::BlockOrdinalType>{mBlockNameToOrdinal.at("delta"), mBlockNameToOrdinal.at("epsilon"),
+                                                mBlockNameToOrdinal.at("gamma"), mBlockNameToOrdinal.at("zeta")};
+
+        EXPECT_EQ(tMesh.designBlockOrdinals(), tExpectedDesignBlockOrdinals);
+        EXPECT_EQ(tMesh.fixedBlockOrdinals(), tExpectedFixedBlockOrdinals);
+    }
 }
 
 TEST_F(TwoDThreeBlockMesh, PartVectors)

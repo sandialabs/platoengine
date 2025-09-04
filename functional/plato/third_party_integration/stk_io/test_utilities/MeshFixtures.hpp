@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <unordered_map>
 
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 
@@ -180,6 +181,33 @@ class TwoDTwoBlockMesh : virtual public ::testing::Test
     constexpr static auto mExpectedNumberOfNodes = 6U;
     constexpr static auto mExpectedNumberOfNodesInBlock1 = 4U;
     constexpr static auto mExpectedNumberOfNodesInBlock2 = 4U;
+};
+
+/// @brief A 2D mesh with many blocks, useful for testing fixed blocks.
+class TwoDManyBlockMesh : virtual public ::testing::Test
+{
+   protected:
+    TwoDManyBlockMesh();
+    ~TwoDManyBlockMesh();
+
+    std::filesystem::path mMeshFilePath = "two_d_many_block.exo";
+
+    constexpr static auto mMeshDescription = std::string_view{
+        "textmesh:"
+        "0,3,QUAD_4_2D,2,5,6,3,alpha\n"
+        "0,1,TRI_3_2D,1,2,3,beta\n"
+        "0,2,TRI_3_2D,3,4,1,gamma\n"
+        "0,4,TRI_3_2D,2,7,9,delta\n"
+        "0,5,TRI_3_2D,7,8,9,epsilon\n"
+        "0,6,TRI_3_2D,8,5,9,zeta\n"
+        "0,7,TRI_3_2D,5,2,9,eta\n"
+        "|coordinates: -2,0,0,0,0,1,-2,1,2,0,2,1,0,-1,2,-1,1,-0.5"
+        "|dimension:2"};
+
+    constexpr static auto mExpectedNumberOfBlocks = 7U;
+    constexpr static auto mExpectedNumberOfElements = 7U;
+    const static inline auto mBlockNameToOrdinal = std::unordered_map<std::string, unsigned int>{
+        {"alpha", 20U}, {"beta", 21U}, {"gamma", 22U}, {"delta", 23U}, {"epsilon", 24U}, {"zeta", 25U}, {"eta", 26U}};
 };
 
 constexpr auto kTwoDTriMesh = std::string_view{

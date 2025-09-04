@@ -11,20 +11,21 @@ namespace plato::mesh
 namespace
 {
 template <typename T, typename FieldFunction>
-Mesh::BlockOrdinalType block_meta_data_ordinal(
-    const T aBlockField,
-    const FieldFunction& aFieldFunction,
-    const std::vector<third_party_integration::common::BlockData>& aBlockData)
+[[nodiscard]] auto block_meta_data_ordinal(const T aBlockField,
+                                           const FieldFunction& aFieldFunction,
+                                           const std::vector<third_party_integration::common::BlockData>& aBlockData)
+    -> Mesh::BlockOrdinalType
 {
-    const auto tBlockDataWithField = std::find_if(aBlockData.cbegin(), aBlockData.cend(),
-                                                  [aBlockField, aFieldFunction](const auto& aBlockDatum)
-                                                  { return aFieldFunction(aBlockDatum) == aBlockField; });
+    const auto tBlockDataWithField =
+        std::find_if(aBlockData.cbegin(), aBlockData.cend(), [aBlockField, aFieldFunction](const auto& aBlockDatum)
+                     { return aFieldFunction(aBlockDatum) == aBlockField; });
     assert(tBlockDataWithField != aBlockData.cend());
     return tBlockDataWithField->mMetaDataOrdinal;
 }
 
-auto block_ordinals_from_names(const std::shared_ptr<stk::mesh::BulkData>& aBulkData,
-                               const std::set<std::string>& aBlockNames) -> std::vector<Mesh::BlockOrdinalType>
+[[nodiscard]] auto block_ordinals_from_names(const std::shared_ptr<stk::mesh::BulkData>& aBulkData,
+                                             const std::set<std::string>& aBlockNames)
+    -> std::vector<Mesh::BlockOrdinalType>
 {
     namespace tpi = third_party_integration;
 
@@ -44,7 +45,7 @@ auto block_ordinals_from_names(const std::shared_ptr<stk::mesh::BulkData>& aBulk
     return tBlockIDs;
 }
 
-std::vector<Mesh::BlockOrdinalType> all_block_ordinals(const stk::mesh::BulkData& aBulkData)
+[[nodiscard]] auto all_block_ordinals(const stk::mesh::BulkData& aBulkData) -> std::vector<Mesh::BlockOrdinalType>
 {
     const auto tBlockData = third_party_integration::stk_io::block_data(aBulkData);
     auto tBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
@@ -54,23 +55,28 @@ std::vector<Mesh::BlockOrdinalType> all_block_ordinals(const stk::mesh::BulkData
     return tBlockIDs;
 }
 
-auto set_difference_block_ordinals(const std::shared_ptr<stk::mesh::BulkData>& aBulkData,
-                                   const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)
+[[nodiscard]] auto set_difference_block_ordinals(const std::shared_ptr<stk::mesh::BulkData>& aBulkData,
+                                                 std::vector<Mesh::BlockOrdinalType> aBlockOrdinals)
     -> std::vector<Mesh::BlockOrdinalType>
 {
     if (!aBulkData)
     {
         return {};
     }
-    const auto tAllBlockOrdinals = all_block_ordinals(*aBulkData);
+
+    auto tAllBlockOrdinals = all_block_ordinals(*aBulkData);
+
+    std::ranges::sort(aBlockOrdinals);
+    std::ranges::sort(tAllBlockOrdinals);
+
     auto tDifferenceBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{};
     std::set_difference(tAllBlockOrdinals.cbegin(), tAllBlockOrdinals.cend(), aBlockOrdinals.cbegin(),
                         aBlockOrdinals.cend(), std::back_inserter(tDifferenceBlockOrdinals));
     return tDifferenceBlockOrdinals;
 }
 
-auto fixed_block_ordinals_from_mesh_analysis(const std::shared_ptr<stk::mesh::BulkData>& aBulkData,
-                                             const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+[[nodiscard]] auto fixed_block_ordinals_from_mesh_analysis(const std::shared_ptr<stk::mesh::BulkData>& aBulkData,
+                                                           const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
     -> std::vector<Mesh::BlockOrdinalType>
 {
     namespace tpi = third_party_integration;
@@ -86,15 +92,15 @@ auto fixed_block_ordinals_from_mesh_analysis(const std::shared_ptr<stk::mesh::Bu
     auto tDesignBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
     tDesignBlockIDs.reserve(aAnalysisDomainMesh.mBlockScalarField.size());
     std::transform(aAnalysisDomainMesh.mBlockScalarField.cbegin(), aAnalysisDomainMesh.mBlockScalarField.cend(),
-                   std::back_inserter(tDesignBlockIDs),
-                   [&tBlockData, &tIDField](const auto& tBlockScalarField)
+                   std::back_inserter(tDesignBlockIDs), [&tBlockData, &tIDField](const auto& tBlockScalarField)
                    { return block_meta_data_ordinal(tBlockScalarField.first, tIDField, tBlockData); });
 
-    return set_difference_block_ordinals(aBulkData, tDesignBlockIDs);
+    return set_difference_block_ordinals(aBulkData, std::move(tDesignBlockIDs));
 }
 
-Mesh::PartReferenceVector parts_from_block_ordinals(const stk::mesh::BulkData& aBulkData,
-                                                    const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)
+[[nodiscard]] auto parts_from_block_ordinals(const stk::mesh::BulkData& aBulkData,
+                                             const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)
+    -> Mesh::PartReferenceVector
 {
     namespace tpi = third_party_integration;
 
