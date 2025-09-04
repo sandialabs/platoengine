@@ -40,32 +40,6 @@ namespace
 {
 const auto kComputeMesh = third_party_integration::cubit::ApreproVariable{"compute_mesh", 1};
 // LCOV_EXCL_START
-[[nodiscard]] auto make_cubit_output(const input_parser::cubit_parameterized_shape& aInput)
-    -> std::function<void(const linear_algebra::DynamicVector<double>&, const library::OutputInfo&)>
-{
-    return [aInput](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
-    {
-        utilities::execute_on_root(
-            boost::mpi::communicator{},
-            [&aInput, &aSolution, &aOutputInfo]()
-            {
-                if (aInput.output_mesh_sensitivities_name.has_value())
-                {
-                    auto tCubitGeometry = CubitGeometry{aInput};
-                    const auto tAnalysisDomainMesh = tCubitGeometry.generateMesh(aSolution);
-
-                    const auto tMeshOutput = mesh::make_mesh_output(
-                        mesh::output_mode(aOutputInfo.mOverwrite), mesh::InputFilePath{tAnalysisDomainMesh.mFileName},
-                        mesh::OutputFilePath{aInput.output_mesh_sensitivities_name.value().mToken}, {},
-                        aOutputInfo.mIteration);
-
-                    tCubitGeometry.outputMeshSensitivities(*tMeshOutput);
-                }
-                cubit::aprepro_variable_output(aInput.output_file_name.value().mToken, aSolution,
-                                               cubit::initialize_variables(aInput));
-            });
-    };
-}
 
 [[nodiscard]] auto make_cubit_geometry(const input_parser::cubit_parameterized_shape& aInput)
     -> library::GeometryFunction
@@ -89,7 +63,7 @@ const auto kComputeMesh = third_party_integration::cubit::ApreproVariable{"compu
     {
         const auto& tInput = input_validation::get_input_block<input_parser::cubit_parameterized_shape>(aGeometryInput);
         return library::FactoryTypes{make_cubit_geometry(tInput), cubit::initial_guess(tInput), cubit::bounds(tInput),
-                                     make_cubit_output(tInput)};
+                                     detail::make_cubit_output(tInput)};
     }};
 
 [[maybe_unused]] static auto kCubitGeometryValidationRegistration =
@@ -112,7 +86,8 @@ CubitGeometry::CubitGeometry(const plato::input_parser::cubit_parameterized_shap
       mMeshCache(MeshCache{[this](const linear_algebra::DynamicVector<double>& aDesignParameter)
                            { return this->generateMesh(aDesignParameter); },
                            [](const linear_algebra::DynamicVector<double>& aDesignParameter)
-                           { return utilities::hash_container(aDesignParameter.stdVector()); }})
+                           { return utilities::hash_container(aDesignParameter.stdVector()); }}),
+      mCommunicator(boost::mpi::communicator{})
 {
 }
 
@@ -122,7 +97,7 @@ auto CubitGeometry::generateMesh(const linear_algebra::DynamicVector<double>& aD
     [[maybe_unused]] const auto tTaskLogger =
         library::mesh_generation_task_log<input_parser::cubit_parameterized_shape>();
 
-    utilities::execute_on_root(boost::mpi::communicator{},
+    utilities::execute_on_root(mCommunicator,
                                [this, &aDesignParameter]()
                                {
                                    mCubit.addApreproVariable(kComputeMesh);
@@ -172,28 +147,33 @@ template <AccessorFunction AccessorFunction>
 void CubitGeometry::outputMeshSensitivities(mesh::MeshOutput& aMeshOutput)
 {
     [[maybe_unused]] const auto tTaskLogger = library::output_task_log<input_parser::cubit_parameterized_shape>();
-
-    const auto tField = std::vector<double>(mesh::EntityCounts{aMeshOutput}.numberOfNodes(), 0.0);
-    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{
-        mesh::Mesh{mMeshFile}}.nodalFieldToAnalysisDomainMesh(mesh::NodalFieldVectorReference{tField});
-
-    const auto tAllSurfaceSensitivities = detail::sensitivities(mCubit, mVariables, mBaseJournalFile);
-    const auto tPostFixNames = std::vector<std::string>{"_x", "_y", "_z"};
-    const auto tComponentAccessorFunctions =
-        std::vector<std::function<double(const third_party_integration::common::Vector3&)>>{kXAccessor, kYAccessor,
-                                                                                            kZAccessor};
-
-    for (const auto& [tDesignIndex, tSensitivityMap] : utilities::enumerate(tAllSurfaceSensitivities))
-    {
-        for (const auto [tPostFixName, tComponentAccessor] : utilities::Zip(tPostFixNames, tComponentAccessorFunctions))
+    utilities::execute_on_root(
+        mCommunicator,
+        [this, &aMeshOutput]()
         {
-            auto tAnalysisDomainMeshSensitivity =
-                sensitivity_to_analysis_domain_mesh(tAnalysisDomainMesh, tSensitivityMap, tComponentAccessor);
-            constexpr auto tFixedValue = double{0};
-            aMeshOutput.addFieldOnAnalysisDomainMesh(tAnalysisDomainMeshSensitivity,
-                                                     mVariables.at(tDesignIndex).mName + tPostFixName, tFixedValue);
-        }
-    }
+            const auto tField = std::vector<double>(mesh::EntityCounts{aMeshOutput}.numberOfNodes(), 0.0);
+            const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{
+                mesh::Mesh{mMeshFile}}.nodalFieldToAnalysisDomainMesh(mesh::NodalFieldVectorReference{tField});
+
+            const auto tAllSurfaceSensitivities = detail::sensitivities(mCubit, mVariables, mBaseJournalFile);
+            const auto tPostFixNames = std::vector<std::string>{"_x", "_y", "_z"};
+            const auto tComponentAccessorFunctions =
+                std::vector<std::function<double(const third_party_integration::common::Vector3&)>>{
+                    kXAccessor, kYAccessor, kZAccessor};
+
+            for (const auto& [tDesignIndex, tSensitivityMap] : utilities::enumerate(tAllSurfaceSensitivities))
+            {
+                for (const auto [tPostFixName, tComponentAccessor] :
+                     utilities::Zip(tPostFixNames, tComponentAccessorFunctions))
+                {
+                    auto tAnalysisDomainMeshSensitivity =
+                        sensitivity_to_analysis_domain_mesh(tAnalysisDomainMesh, tSensitivityMap, tComponentAccessor);
+                    constexpr auto tFixedValue = double{0};
+                    aMeshOutput.addFieldOnAnalysisDomainMesh(
+                        tAnalysisDomainMeshSensitivity, mVariables.at(tDesignIndex).mName + tPostFixName, tFixedValue);
+                }
+            }
+        });
 }
 
 namespace
@@ -300,14 +280,13 @@ template <JacobianOrAdjointJacobianFunction JacobianOrAdjointJacobianFunction>
 auto CubitGeometry::jacobianMultiplier(const linear_algebra::DynamicVector<double>& aDesignParameter)
     -> linear_algebra::JacobianMultiplier
 {
-    const auto tCommunicator = boost::mpi::communicator{};
-    utilities::execute_on_root(tCommunicator,
+    utilities::execute_on_root(mCommunicator,
                                [this, &aDesignParameter]() { update_variables(mVariables, aDesignParameter); });
     const auto tNodeIds = mesh::EntityRetrieval{mesh::Mesh{mMeshFile}}.designDomainNodeIDs();
     const auto tSpatialDimension = mesh::EntityCounts{mesh::Mesh{mMeshFile}}.spatialDimensions();
 
     const auto tAllSurfaceSensitivities = utilities::compute_on_root<ApreproVariableSensitivities>(
-        tCommunicator, [this]() { return detail::sensitivities(mCubit, mVariables, mBaseJournalFile); });
+        mCommunicator, [this]() { return detail::sensitivities(mCubit, mVariables, mBaseJournalFile); });
 
     return linear_algebra::JacobianMultiplier{
         [tAllSurfaceSensitivities, tSpatialDimension,
@@ -327,8 +306,7 @@ auto CubitGeometry::jacobianMultiplier(const linear_algebra::DynamicVector<doubl
 auto CubitGeometry::adjointJacobianMultiplier(const linear_algebra::DynamicVector<double>& aDesignParameter)
     -> linear_algebra::AdjointJacobianMultiplier
 {
-    const auto tCommunicator = boost::mpi::communicator{};
-    utilities::execute_on_root(tCommunicator,
+    utilities::execute_on_root(mCommunicator,
                                [this, &aDesignParameter]() { update_variables(mVariables, aDesignParameter); });
 
     const auto tSpatialDimension = mesh::EntityCounts{mesh::Mesh{mMeshFile}}.spatialDimensions();
@@ -338,7 +316,7 @@ auto CubitGeometry::adjointJacobianMultiplier(const linear_algebra::DynamicVecto
     const auto tNodeIds = mesh::EntityRetrieval{mesh::Mesh{mMeshFile}}.designDomainNodeIDs();
 
     const auto tAllSurfaceSensitivities = utilities::compute_on_root<ApreproVariableSensitivities>(
-        tCommunicator, [this]() { return detail::sensitivities(mCubit, mVariables, mBaseJournalFile); });
+        mCommunicator, [this]() { return detail::sensitivities(mCubit, mVariables, mBaseJournalFile); });
 
     return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{
         [tAllSurfaceSensitivities, tSpatialDimension, tResultSize,
@@ -394,6 +372,31 @@ std::optional<std::string> validate_mesh_journal_file(const input_parser::cubit_
     return input_validation::error_message_for_missing_file_parameter(
         input_parser::block_name<input_parser::cubit_parameterized_shape>(), aInput.mesh_journal_file,
         "mesh_journal_file");
+}
+
+auto make_cubit_output(const input_parser::cubit_parameterized_shape& aInput)
+    -> std::function<void(const linear_algebra::DynamicVector<double>&, const library::OutputInfo&)>
+{
+    return [aInput](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
+    {
+        if (aInput.output_mesh_sensitivities_name.has_value())
+        {
+            auto tCubitGeometry = CubitGeometry{aInput};
+            const auto tAnalysisDomainMesh = tCubitGeometry.generateMesh(aSolution);
+
+            const auto tMeshOutput = mesh::make_mesh_output(
+                mesh::output_mode(aOutputInfo.mOverwrite), mesh::InputFilePath{tAnalysisDomainMesh.mFileName},
+                mesh::OutputFilePath{aInput.output_mesh_sensitivities_name.value().mToken}, {}, aOutputInfo.mIteration);
+
+            tCubitGeometry.outputMeshSensitivities(*tMeshOutput);
+        }
+        utilities::execute_on_root(boost::mpi::communicator{},
+                                   [&aInput, &aSolution]()
+                                   {
+                                       cubit::aprepro_variable_output(aInput.output_file_name.value().mToken, aSolution,
+                                                                      cubit::initialize_variables(aInput));
+                                   });
+    };
 }
 
 }  // namespace detail
