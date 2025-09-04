@@ -6,6 +6,8 @@
 #include <Akri_Phase_Support.hpp>
 #include <algorithm>
 
+#include "plato/utilities/IndexRange.hpp"
+
 namespace plato::third_party_integration::krino
 {
 namespace
@@ -13,16 +15,18 @@ namespace
 // Note that a lot of this code is lifted from krino/krino/krino_lib/Akri_LevelSetPolicy.cpp, but modified so that we
 // can set the level-set field names for a sub-set of the blocks in the mesh.
 
+constexpr auto kNumberOfStates = 1U;
+
 void declare_and_append_levelset_field(::krino::AuxMetaData& aAuxMeta,
                                        const std::string& aLevelSetName,
                                        std::vector<::krino::LS_Field>& aLevelSetFields)
 {
     const unsigned tLevelSetIndex = aLevelSetFields.size();
-    constexpr auto tNumberOfStates = 1U;
     auto tLevelSetField =
-        aAuxMeta.declare_field(aLevelSetName, ::krino::FieldType::REAL, stk::topology::NODE_RANK, tNumberOfStates);
-    aLevelSetFields.emplace_back(aLevelSetName, ::krino::Surface_Identifier(tLevelSetIndex), tLevelSetField, 0.,
-                                 nullptr, nullptr);
+        aAuxMeta.declare_field(aLevelSetName, ::krino::FieldType::REAL, stk::topology::NODE_RANK, kNumberOfStates);
+    constexpr auto tLevelSetIsoValue = 0.0;
+    aLevelSetFields.emplace_back(aLevelSetName, ::krino::Surface_Identifier(tLevelSetIndex), tLevelSetField,
+                                 tLevelSetIsoValue);
 }
 
 [[nodiscard]] auto level_set_field_name(const unsigned aFieldIndex, const unsigned aNumberOfLevelSets) -> std::string
@@ -34,18 +38,19 @@ void declare_and_append_levelset_field(::krino::AuxMetaData& aAuxMeta,
 [[nodiscard]] auto declare_levelset_fields_and_add_as_interpolation_fields(
     stk::mesh::MetaData& aMetaData, const unsigned aNumberOfLevelSets) -> std::vector<::krino::LS_Field>
 {
-    auto& auxMeta = ::krino::AuxMetaData::get(aMetaData);
-    auto& cdfemSupport = ::krino::CDFEM_Support::get(aMetaData);
+    auto& tAuxMeta = ::krino::AuxMetaData::get(aMetaData);
+    auto& tCdfemSupport = ::krino::CDFEM_Support::get(aMetaData);
 
     auto tLevelSetFields = std::vector<::krino::LS_Field>{};
-    for (unsigned i = 0; i < aNumberOfLevelSets; ++i)
+    for (const auto tLevelSetIndex : utilities::IndexRange{aNumberOfLevelSets})
     {
-        declare_and_append_levelset_field(auxMeta, level_set_field_name(i, aNumberOfLevelSets), tLevelSetFields);
+        declare_and_append_levelset_field(tAuxMeta, level_set_field_name(tLevelSetIndex, aNumberOfLevelSets),
+                                          tLevelSetFields);
     }
 
     for (const auto& tLevelSetField : tLevelSetFields)
     {
-        cdfemSupport.add_interpolation_field(tLevelSetField.isovar);
+        tCdfemSupport.add_interpolation_field(tLevelSetField.isovar);
     }
 
     return tLevelSetFields;
@@ -56,11 +61,11 @@ void declare_and_append_levelset_field(::krino::AuxMetaData& aAuxMeta,
 {
     auto tNamedPhases = ::krino::PhaseVec{};
     const unsigned tNumberOfPhases = 1 << aNumberOfLevelSets;
-    for (unsigned tPhaseIndex = 0; tPhaseIndex < tNumberOfPhases; ++tPhaseIndex)
+    for (const auto tPhaseIndex : utilities::IndexRange{tNumberOfPhases})
     {
         auto tPhaseName = std::string{};
         auto tTag = ::krino::PhaseTag{};
-        for (unsigned tLevelSetIndex = 0; tLevelSetIndex < aNumberOfLevelSets; ++tLevelSetIndex)
+        for (const auto tLevelSetIndex : utilities::IndexRange{aNumberOfLevelSets})
         {
             const auto tLevelSetIsNegative = (tPhaseIndex >> tLevelSetIndex) % 2 == 0;
             const auto tLevelSetSign = tLevelSetIsNegative ? -1 : 1;
@@ -77,9 +82,9 @@ void register_blocks_for_decomposition_by_levelsets(::krino::Phase_Support& aPha
                                                     const stk::mesh::PartVector& aBlocks,
                                                     const ::krino::PhaseVec& aNamedPhases)
 {
-    for (unsigned ls = 0; ls < aNumberOfLevelSets; ++ls)
+    for (const auto tLevelSetIndex : utilities::IndexRange{aNumberOfLevelSets})
     {
-        aPhaseSupport.register_blocks_for_level_set(::krino::Surface_Identifier(ls), aBlocks);
+        aPhaseSupport.register_blocks_for_level_set(::krino::Surface_Identifier(tLevelSetIndex), aBlocks);
     }
 
     auto tLevelSets = std::vector<
@@ -98,8 +103,9 @@ void register_levelset_fields(stk::mesh::MetaData& aMetaData,
         const auto tBlockOrdinals = aPhaseSupport.get_levelset_decomposed_block_ordinals(tField.identifier);
         for (const auto tBlockOrdinal : tBlockOrdinals)
         {
-            tAuxMeta.register_field(tField.isovar.name(), ::krino::FieldType::REAL, stk::topology::NODE_RANK, 1u, 1u,
-                                    aMetaData.get_part(tBlockOrdinal));
+            constexpr auto tNumberOfFieldDimensions = 1U;
+            tAuxMeta.register_field(tField.isovar.name(), ::krino::FieldType::REAL, stk::topology::NODE_RANK,
+                                    kNumberOfStates, tNumberOfFieldDimensions, aMetaData.get_part(tBlockOrdinal));
         }
     }
 }
