@@ -1,6 +1,7 @@
 #ifndef PLATO_GEOMETRY_EXTENSION_CUBITNGS_CUBITGEOMETRY
 #define PLATO_GEOMETRY_EXTENSION_CUBITNGS_CUBITGEOMETRY
 
+#include <boost/mpi.hpp>
 #include <optional>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
@@ -84,6 +85,7 @@ class CubitGeometry
     CubitWrapper mCubit;
 
     MeshCache mMeshCache;
+    boost::mpi::communicator mCommunicator;
 };
 
 namespace detail
@@ -111,6 +113,10 @@ void write_exodus_mesh(CubitWrapper& aCubit,
 ///@brief Given the input @a aInput, checks to make sure a journal file is specified and exists on disk.
 [[nodiscard]] std::optional<std::string> validate_mesh_journal_file(
     const input_parser::cubit_parameterized_shape& aInput);
+
+///@brief Given the input @a aInput, create an output function that generates the requested output when called.
+[[nodiscard]] auto make_cubit_output(const input_parser::cubit_parameterized_shape& aInput)
+    -> std::function<void(const linear_algebra::DynamicVector<double>&, const library::OutputInfo&)>;
 
 }  // namespace detail
 }  // namespace plato::geometry::extension::cubit
