@@ -20,6 +20,7 @@
 #include <string_view>
 
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/krino/LevelSetInitialization.hpp"
 #include "plato/utilities/ReduceUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -110,6 +111,28 @@ auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename) ->
     ::krino::LevelSet& tLevelSet =
         ::krino::LevelSet::build(tMeshFromFile->meta_data(), std::string{kLevelSetName}, sierra::Diag::sierraTimer());
     tLevelSet.set_levelset_field_name(std::string{kLevelSetName});
+    tLevelSet.setup();
+    setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data());
+    tMeshFromFile->populate_mesh();
+    ::krino::activate_all_entities(tMeshFromFile->bulk_data(),
+                                   ::krino::AuxMetaData::get(tMeshFromFile->meta_data()).active_part());
+    return tMeshFromFile;
+}
+
+auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,
+                                      const std::set<std::string>& aExcludedBlocks)
+    -> std::unique_ptr<::krino::MeshInterface>
+{
+    assert(std::filesystem::exists(aFilename));
+
+    auto tMeshFromFile = std::make_unique<::krino::MeshFromFile>(aFilename.string(), stk::EnvData::parallel_comm(),
+                                                                 std::string{kDecompositionMethod});
+
+    setup_level_sets(*tMeshFromFile, aExcludedBlocks);
+
+    auto& tLevelSet =
+        ::krino::LevelSet::build(tMeshFromFile->meta_data(), std::string{kLevelSetName}, sierra::Diag::sierraTimer());
+    tLevelSet.set_distance_name(std::string{kLevelSetName});  /// becomes set_levelset_field_name in Trilinos 16.1
     tLevelSet.setup();
     setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data());
     tMeshFromFile->populate_mesh();

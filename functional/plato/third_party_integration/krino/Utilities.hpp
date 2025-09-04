@@ -38,6 +38,14 @@ void initialize_environment_for_krino(const std::filesystem::path& aLogFile, con
 [[nodiscard]] auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename)
     -> std::unique_ptr<::krino::MeshInterface>;
 
+/// @brief Creates a Krino mesh from a mesh on disk at @a aFilename that excludes blocks with names given in @a
+/// aExcludedBlocks. Typically, @a aExcludedBlocks will be the fixed (non-design) blocks.
+/// @pre The environment for krino was initialized.
+/// @pre @a aFileName is a valid exodus mesh file on disk.
+[[nodiscard]] auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,
+                                                    const std::set<std::string>& aExcludedBlocks)
+    -> std::unique_ptr<::krino::MeshInterface>;
+
 /// @brief Takes a LevelSetPrimitives specification @a aLevelSetPrimitives along with a bulk data @a aBulkData from a
 /// KrinoMesh and sets the level set field based on the primitives specified required fields and other setup for cutting
 /// @pre the environment for krino was initialized by calling 'initialize_environment_for_krino', followed by
@@ -118,8 +126,8 @@ void write_mesh(const stk::mesh::BulkData& aBulkData,
                 const VoidPhase aVoidPhase);
 
 template <typename LevelSetFieldVector>
-[[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields, const stk::mesh::Entity& aNode)
-    -> decltype(auto)
+[[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields,
+                                   const stk::mesh::Entity& aNode) -> decltype(auto)
 {
     assert(!aLevelSetFields.empty());
     return *::krino::field_data<double>(aLevelSetFields.front().isovar, aNode);
