@@ -32,18 +32,12 @@ void initialize_environment_for_krino(const std::filesystem::path& aLogFile, con
 /// @brief Create a comm duplicate of the communicator that Krino has
 [[nodiscard]] auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator;
 
-/// @brief Takes a file path @a aFilename and reads a mesh from disk and converts it to a krino mesh type. It adds the
-/// required fields and other setup for cutting the mesh.
-/// @pre the environment for krino was initialized
-[[nodiscard]] auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename)
-    -> std::unique_ptr<::krino::MeshInterface>;
-
 /// @brief Creates a Krino mesh from a mesh on disk at @a aFilename that excludes blocks with names given in @a
 /// aExcludedBlocks. Typically, @a aExcludedBlocks will be the fixed (non-design) blocks.
 /// @pre The environment for krino was initialized.
 /// @pre @a aFileName is a valid exodus mesh file on disk.
 [[nodiscard]] auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,
-                                                    const std::set<std::string>& aExcludedBlocks)
+                                                    const std::set<std::string>& aExcludedBlocks = {})
     -> std::unique_ptr<::krino::MeshInterface>;
 
 /// @brief Takes a LevelSetPrimitives specification @a aLevelSetPrimitives along with a bulk data @a aBulkData from a

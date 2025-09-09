@@ -13,7 +13,8 @@ namespace plato::third_party_integration::krino
 namespace
 {
 // Note that a lot of this code is lifted from krino/krino/krino_lib/Akri_LevelSetPolicy.cpp, but modified so that we
-// can set the level-set field names for a sub-set of the blocks in the mesh.
+// can set the level-set field names for a sub-set of the blocks in the mesh. It also assumes there is only one
+// level-set field.
 
 constexpr auto kNumberOfStates = 1U;
 
@@ -29,24 +30,16 @@ void declare_and_append_levelset_field(::krino::AuxMetaData& aAuxMeta,
                                  tLevelSetIsoValue);
 }
 
-[[nodiscard]] auto level_set_field_name(const unsigned aFieldIndex, const unsigned aNumberOfLevelSets) -> std::string
-{
-    auto tPostFix = aNumberOfLevelSets > 1 ? std::to_string(aFieldIndex) : std::string{};
-    return std::string{"LS" + std::move(tPostFix)};
-}
+[[nodiscard]] auto level_set_field_name() -> std::string { return std::string{"LS"}; }
 
-[[nodiscard]] auto declare_levelset_fields_and_add_as_interpolation_fields(
-    stk::mesh::MetaData& aMetaData, const unsigned aNumberOfLevelSets) -> std::vector<::krino::LS_Field>
+[[nodiscard]] auto declare_levelset_fields_and_add_as_interpolation_fields(stk::mesh::MetaData& aMetaData)
+    -> std::vector<::krino::LS_Field>
 {
     auto& tAuxMeta = ::krino::AuxMetaData::get(aMetaData);
     auto& tCdfemSupport = ::krino::CDFEM_Support::get(aMetaData);
 
     auto tLevelSetFields = std::vector<::krino::LS_Field>{};
-    for (const auto tLevelSetIndex : utilities::IndexRange{aNumberOfLevelSets})
-    {
-        declare_and_append_levelset_field(tAuxMeta, level_set_field_name(tLevelSetIndex, aNumberOfLevelSets),
-                                          tLevelSetFields);
-    }
+    declare_and_append_levelset_field(tAuxMeta, level_set_field_name(), tLevelSetFields);
 
     for (const auto& tLevelSetField : tLevelSetFields)
     {
@@ -56,24 +49,23 @@ void declare_and_append_levelset_field(::krino::AuxMetaData& aAuxMeta,
     return tLevelSetFields;
 }
 
-[[nodiscard]] auto create_named_phases_with_void_phase_for_any_negative_levelset(const unsigned aNumberOfLevelSets)
-    -> ::krino::PhaseVec
+[[nodiscard]] auto create_named_phases_with_void_phase_for_any_negative_levelset() -> ::krino::PhaseVec
 {
     auto tNamedPhases = ::krino::PhaseVec{};
-    const unsigned tNumberOfPhases = 1 << aNumberOfLevelSets;
-    for (const auto tPhaseIndex : utilities::IndexRange{tNumberOfPhases})
-    {
-        auto tPhaseName = std::string{};
-        auto tTag = ::krino::PhaseTag{};
-        for (const auto tLevelSetIndex : utilities::IndexRange{aNumberOfLevelSets})
-        {
-            const auto tLevelSetIsNegative = (tPhaseIndex >> tLevelSetIndex) % 2 == 0;
-            const auto tLevelSetSign = tLevelSetIsNegative ? -1 : 1;
-            tTag.add(::krino::Surface_Identifier(tLevelSetIndex), tLevelSetSign);
-            tPhaseName = (tLevelSetIsNegative ? "void" : "");
-        }
-        tNamedPhases.push_back(::krino::NamedPhase{tPhaseName, tTag});
-    }
+    constexpr auto tNumberOfPhases = 2U;
+    const auto tIndices = utilities::IndexRange{tNumberOfPhases};
+    std::transform(tIndices.begin(), tIndices.end(), std::back_inserter(tNamedPhases),
+                   [](const auto tPhaseIndex)
+                   {
+                       auto tTag = ::krino::PhaseTag{};
+                       const auto tLevelSetIsNegative = tPhaseIndex % 2 == 0;
+                       const auto tLevelSetSign = tLevelSetIsNegative ? -1 : 1;
+                       constexpr auto tLevelSetIndex = 0U;
+                       tTag.add(::krino::Surface_Identifier(tLevelSetIndex), tLevelSetSign);
+
+                       auto tPhaseName = (tLevelSetIsNegative ? "void" : "");
+                       return ::krino::NamedPhase{std::move(tPhaseName), tTag};
+                   });
     return tNamedPhases;
 }
 
@@ -128,11 +120,9 @@ void setup_phase_support_and_register_levelset_fields(stk::mesh::MetaData& aMeta
 
 void setup_level_sets(::krino::MeshInterface& aKrinoMesh, const std::set<std::string>& aExcludedBlocks)
 {
-    constexpr auto tNumberOfLevelSets = 1U;
-
     auto& tMetaData = aKrinoMesh.meta_data();
-    auto tLevelSetFields = declare_levelset_fields_and_add_as_interpolation_fields(tMetaData, tNumberOfLevelSets);
-    const auto tNamedPhases = create_named_phases_with_void_phase_for_any_negative_levelset(tNumberOfLevelSets);
+    auto tLevelSetFields = declare_levelset_fields_and_add_as_interpolation_fields(tMetaData);
+    const auto tNamedPhases = create_named_phases_with_void_phase_for_any_negative_levelset();
 
     auto tBlockSurfaceInfo = ::krino::Block_Surface_Connectivity{tMetaData};
     setup_phase_support_and_register_levelset_fields(tMetaData, tLevelSetFields, tNamedPhases,

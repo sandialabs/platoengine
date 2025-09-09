@@ -33,7 +33,6 @@ constexpr auto kSortByGlobalId = true;
 constexpr auto kOutputDescription = std::string_view{"out>null dout>null pout>null"};
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"LEVEL_SET"};
-constexpr auto kNumberOfLevelSets = 1U;
 
 [[nodiscard]] bool include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart)
 {
