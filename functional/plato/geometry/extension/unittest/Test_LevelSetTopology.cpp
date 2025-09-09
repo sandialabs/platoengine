@@ -70,7 +70,7 @@ TEST_F(LevelSetTopologyFixture, JacobianRegression)
     third_party_integration::stk_io::write_mesh(kLevelSetInput.mesh_name->mToken, create_background_mesh());
 
     const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
-    const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput);
+    const auto tInitialGuess = tLevelSetTopology.initialGuess();
     const auto tCutMesh = tLevelSetTopology.generateMesh(tInitialGuess);
     ASSERT_TRUE(std::filesystem::exists(tCutMesh.mFileName));
     const linear_algebra::JacobianMultiplier tJacobian = tLevelSetTopology.jacobian(tInitialGuess);
@@ -103,7 +103,7 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
         return ones_vector_times_jacobian(mNumDimensions * tNumberOfNodes, tJacobian);
     };
     const auto tLevelSetTopology = std::make_shared<LevelSetTopology>(tInput);
-    const auto tInitialGuess = tLevelSetTopology->initialGuess(tInput);
+    const auto tInitialGuess = tLevelSetTopology->initialGuess();
     // No filter
     {
         const auto tLevelSetFunction =
@@ -130,7 +130,7 @@ TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
     third_party_integration::stk_io::write_mesh(kLevelSetInput.mesh_name->mToken, create_background_mesh());
 
     const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
-    const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput);
+    const auto tInitialGuess = tLevelSetTopology.initialGuess();
     const auto tAdjointJacobian = tLevelSetTopology.adjointJacobian(tInitialGuess);
 
     const unsigned int tRowVectorSize =
@@ -174,7 +174,7 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianTransposeRegression)
         return ones_vector_times_jacobian(tNumberOfNodes, tJacobian.mValue);
     };
     const auto tLevelSetTopology = std::make_shared<LevelSetTopology>(tInput);
-    const auto tInitialGuess = tLevelSetTopology->initialGuess(tInput);
+    const auto tInitialGuess = tLevelSetTopology->initialGuess();
     constexpr auto tTolerance = 1e-13;
     // No filter
     {
@@ -197,7 +197,7 @@ TEST_F(LevelSetTopologyFixture, GenerateMeshRegression)
 {
     third_party_integration::stk_io::write_mesh(kLevelSetInput.mesh_name->mToken, create_background_mesh());
     auto tLevelSetTopology = std::make_unique<LevelSetTopology>(kLevelSetInput);
-    const auto tInitialGuess = tLevelSetTopology->initialGuess(kLevelSetInput);
+    const auto tInitialGuess = tLevelSetTopology->initialGuess();
 
     const auto tMeshRegressionChecks = [](const std::size_t aExpectedNumberOfNodes,
                                           const std::filesystem::path& aFilePath,
@@ -230,7 +230,7 @@ TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
     third_party_integration::stk_io::write_mesh(kLevelSetInput.mesh_name->mToken, create_background_mesh());
 
     const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
-    const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput);
+    const auto tInitialGuess = tLevelSetTopology.initialGuess();
 
     const auto tExpectedInitialGuess = std::vector<double>{
         0.6160254037844386, 0.4571067811865476, 0.6160254037844386, 0.4571067811865476,  0.2500000000000000,
@@ -248,7 +248,7 @@ TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
 TEST_F(LevelSetTopologyTwoBlockFixture, InitialGuessOneBlockResultSize)
 {
     const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({mBlockNames[1]});
-    const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput);
+    const auto tInitialGuess = tLevelSetTopology.initialGuess();
     constexpr auto tExpectedNumberOfDesignVariables = 8U;
     EXPECT_EQ(tInitialGuess.size(), tExpectedNumberOfDesignVariables);
 }
@@ -265,7 +265,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, BoundsOneBlockResultSize)
 TEST_F(LevelSetTopologyTwoBlockFixture, GenerateMeshSize)
 {
     const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({mBlockNames[0]});
-    const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput);
+    const auto tInitialGuess = tLevelSetTopology.initialGuess();
     const auto tAnalysisMesh = tLevelSetTopology.generateMesh(tInitialGuess);
     EXPECT_TRUE(std::filesystem::exists(tAnalysisMesh.mFileName));
     const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tAnalysisMesh.mFileName}}.numberOfNodes();
@@ -277,7 +277,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, JacobianOneBlockResultSize)
     const auto tCheckJacobianProductSize =
         [](const LevelSetTopology& aLevelSetTopology, const plato::test_utilities::TestContext& aTestContext)
     {
-        const auto tInitialGuess = aLevelSetTopology.initialGuess(kLevelSetInput);
+        const auto tInitialGuess = aLevelSetTopology.initialGuess();
         const auto tAnalysisMesh = aLevelSetTopology.generateMesh(tInitialGuess);
         const auto tNumberOfNodes = mesh::EntityCounts{mesh::Mesh{tAnalysisMesh.mFileName}}.numberOfNodes();
         const auto tNumberOfCoordinateComponents = 3U;
@@ -299,7 +299,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, JacobianTransposeOneBlockResultSize)
     const auto tCheckTransposeJacobianProductSize =
         [](const LevelSetTopology& aLevelSetTopology, const plato::test_utilities::TestContext& aTestContext)
     {
-        const auto tInitialGuess = aLevelSetTopology.initialGuess(kLevelSetInput);
+        const auto tInitialGuess = aLevelSetTopology.initialGuess();
         const auto tVector = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 1.0);
 
         const auto tAnalysisMesh = aLevelSetTopology.generateMesh(tInitialGuess);
@@ -430,7 +430,7 @@ TEST_F(NodalDensityMesh, InitialGuessFromField)
     tInput.initial_field_name = input_parser::IdentifierString{mFieldName};
 
     const auto tLevelSetGeometry = LevelSetTopology(tInput);
-    const auto tInitialGuess = tLevelSetGeometry.initialGuess(tInput);
+    const auto tInitialGuess = tLevelSetGeometry.initialGuess();
     const auto tGoldVector =
         linear_algebra::DynamicVector<double>{-30, -26, -22, -18, -14, -10, -6, -2, 2, 6, 10, 14, 18, 22, 26, 30} *
         (1.0 / 30.0);
@@ -498,7 +498,7 @@ void check_coordinate_sum_gradient_for_small_level_set_perturbations(const input
     const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
 
     const auto tLevelSetTopology = LevelSetTopology{aInput};
-    const auto tInitialGuess = tLevelSetTopology.initialGuess(aInput);
+    const auto tInitialGuess = tLevelSetTopology.initialGuess();
     const auto tDirection = linear_algebra::DynamicVector(tInitialGuess.size(), 1.0);
 
     const auto tErrors = tGradientCheck.finiteDifferenceErrors(tInitialGuess, tDirection, tGradientCheckParameters);
@@ -531,7 +531,7 @@ void check_jacobian_adjoint_jacobian_consistency(const input_parser::level_set_t
                                                  const double aTolerance)
 {
     const auto tLevelSetTopology = LevelSetTopology{aInput};
-    const auto tInitialGuess = tLevelSetTopology.initialGuess(aInput);
+    const auto tInitialGuess = tLevelSetTopology.initialGuess();
     const auto tJacobian = tLevelSetTopology.jacobian(tInitialGuess);
     const auto tAdjointJacobian = tLevelSetTopology.adjointJacobian(tInitialGuess);
 

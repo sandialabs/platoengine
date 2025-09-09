@@ -119,7 +119,7 @@ const auto kUnitCubeLambda = []() -> KrinoWrapper
                                                 create_krino_wrapper_test_command_generator());
     return test_utilities::make_krino_wrapper_from_vector_values(
         kTemporaryMeshFile,
-        test_utilities::InitialLevelSetValues{std::vector{-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0}}, std::nullopt);
+        test_utilities::InitialLevelSetValues{std::vector{-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0}});
 };
 
 const auto kUnitCubeInputs = KrinoWrapperTestFixtureInputs{/*mFileName=*/std::string{kTemporaryMeshFile},
@@ -143,7 +143,7 @@ const auto kOneTriLambda = []() -> KrinoWrapper
 {
     initialize_krino();
     return test_utilities::make_krino_wrapper_from_level_set_primitives(
-        kOneTriMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, std::nullopt);
+        kOneTriMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}});
 };
 
 const auto kOneTriInputs = KrinoWrapperTestFixtureInputs{/*mFileName=*/std::string{kOneTriMeshFilePath.value()},
@@ -163,26 +163,27 @@ const auto kOneTriGoldValues =
 const auto kFourTriLambda = []() -> KrinoWrapper
 {
     initialize_krino();
+    const auto tFixedBlockNames = std::set<std::string>{"block_2"};
     return test_utilities::make_krino_wrapper_from_level_set_primitives(
         kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-        std::vector<tpik::BackgroundMeshNodeId>{1U, 2U, 4U, 7U});
+        tFixedBlockNames);
 };
 
 const auto kFourTriInputs = KrinoWrapperTestFixtureInputs{
-    /*mFileName=*/std::string{kFourTriTwoBlockMeshFilePath.value()},
-    /*mCutMeshRowVector=*/{1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
-    /*mBackgroundRowVector=*/{1.0, 2, 3, 4},
-    /*mVoidPhase=*/tpik::VoidPhase::kExcludeFromMesh};
+    .mFileName = std::string{kFourTriTwoBlockMeshFilePath.value()},
+    .mCutMeshRowVector = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0},
+    .mBackgroundRowVector = {1.0, 2.0, 3.0, 4.0},
+    .mVoidPhase = tpik::VoidPhase::kExcludeFromMesh};
 
-const auto kFourTriFixedTwoGoldValues = KrinoWrapperGoldValues{
-    /*mSpatialDimensions=*/2U,
-    /*mNumberBackgroundNodes=*/4U,
-    /*mNumberCutNodes=*/9U,
-    /*mSensitivityMapSize=*/5U,
-    /*mLevelSetValues=*/{0.75, -0.25, -0.25, 0.75},
-    /*mJacobianGold=*/{8, 27, 27.75, 6.75},
-    /*mAdjointJacobianGold=*/
-    std::vector<double>{0, 0, 0, 0, 0, 0, 0, 0, 1.75, 0, 2.5, 2.5, 2.5, 2.5, 2.25, 0, 2.25, -2.25}};
+const auto kFourTriFixedTwoGoldValues =
+    KrinoWrapperGoldValues{.mSpatialDimensions = 2U,
+                           .mNumberBackgroundNodes = 4U,
+                           .mNumberCutNodes = 8U,
+                           .mSensitivityMapSize = 3U,
+                           .mLevelSetValues = {0.75, -0.25, -0.25, 0.75},
+                           .mJacobianGold = {9.5, 31.5, 20.25, 7.75},
+                           .mAdjointJacobianGold = std::vector{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.75,
+                                                               0.0, 2.5, 2.5, 2.5, 2.5}};
 
 const auto kFourTriInterfaceNearNodeLambda = []() -> KrinoWrapper
 {
@@ -310,7 +311,7 @@ TEST_F(OneBlockMeshKrinoFixture, CutSphereOutOfBackgroundMesh)
     const auto tSphere =
         tpik::LevelSetPrimitives{/*.mPlanes=*/{},
                                  /*.mSpheres=*/{tpik::Sphere{/*.mCenter=*/{0., 0., 0.}, /*.mRadius=*/tRadius}}};
-    test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tSphere, std::nullopt)
+    test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tSphere)
         .writeCutMesh(tCutFilename, tpik::VoidPhase::kExcludeFromMesh);
 
     const auto tBulkData = third_party_integration::stk_io::read_mesh_bulk_data(tCutFilename);
@@ -347,7 +348,7 @@ TEST_F(OneBlockMeshKrinoFixture, CutPlaneBackgroundMesh)
     const auto tCutFilename = std::filesystem::path{"cut_mesh.exo"};
     constexpr double tOffset = -.5;
     const auto tPlane = tpik::LevelSetPrimitives{/*.mPlanes=*/{tpik::Plane{{0, 1, 0}, tOffset}}, /*.mSpheres=*/{}};
-    test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tPlane, std::nullopt)
+    test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tPlane)
         .writeCutMesh(tCutFilename, tpik::VoidPhase::kIncludeInMesh);
 
     const auto tBulkData = third_party_integration::stk_io::read_mesh_bulk_data(tCutFilename);
@@ -362,7 +363,7 @@ TEST_F(OneBlockMeshKrinoFixture, PlaneSensitivities)
     const auto tPlane = tpik::LevelSetPrimitives{/*.mPlanes=*/{kThreeQuarterOffsetXHatPlane},
                                                  /*.mSpheres=*/{}};
     const auto tSensitivities =
-        test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tPlane, std::nullopt).sensitivities();
+        test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tPlane).sensitivities();
     ASSERT_EQ(tSensitivities.size(), 9U);
 
     compareMapAgainstBuiltInGold(tSensitivities, TEST_CONTEXT("One block mesh sensitivity check"));

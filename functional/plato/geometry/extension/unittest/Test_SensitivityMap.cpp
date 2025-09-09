@@ -139,8 +139,9 @@ TEST_F(KrinoTestFixture, MakeKrinoWrapperFromAnalysisDomainMeshOneTri)
     const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{
         kOneTriMeshFilePath.value(),
         analysis::AnalysisDomainMesh::BlockScalarField{{1U, {{1U, 0U, .75}, {2U, 1U, -.25}, {4U, 2U, -.25}}}}};
+    const auto tFixedBlocks = std::set<std::string>{};
     const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(
-        tAnalysisDomainMesh, tNonExistentFixedBlockValue, tpik::SnappingParameters{});
+        tAnalysisDomainMesh, tNonExistentFixedBlockValue, tFixedBlocks, tpik::SnappingParameters{});
 
     const auto tSensitivityMap = tKrinoWrapper.sensitivities();
     tpik::test_utilities::test_sensitivity_map(tSensitivityMap, kOneTriSensitivityMap,
@@ -155,11 +156,17 @@ TEST_F(KrinoTestFixture, MakeKrinoWrapperFromAnalysisDomainMeshFourTriTwoBlock)
         analysis::AnalysisDomainMesh{kFourTriTwoBlockMeshFilePath.value(),
                                      analysis::AnalysisDomainMesh::BlockScalarField{
                                          {1U, {{1U, 0U, .75}, {2U, 1U, -.25}, {4U, 2U, -.25}, {7U, 3U, .75}}}}};
-    const auto tKrinoWrapper =
-        make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlockValue, tpik::SnappingParameters{});
+    const auto tFixedBlocks = std::set<std::string>{"block_2"};
+    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlockValue,
+                                                                            tFixedBlocks, tpik::SnappingParameters{});
+
+    const auto tFourTriWithFixedBlockSensitivityMap =
+        tpik::SensitivityMap{{9, tpik::LevelSetJacobianColumn{{4, 1}, {{0.75, 0.75, 0}, {0.25, 0.25, 0}}, {2, 0}}},
+                             {10, tpik::LevelSetJacobianColumn{{7, 2}, {{0.25, 0.25, 0}, {0.75, 0.75, 0}}, {3, 1}}},
+                             {8, tpik::LevelSetJacobianColumn{{1, 2}, {{.25, 0, 0}, {0.75, 0, 0}}, {0, 1}}}};
 
     const auto tSensitivityMap = tKrinoWrapper.sensitivities();
-    tpik::test_utilities::test_sensitivity_map(tSensitivityMap, kFourTriSensitivityMap,
+    tpik::test_utilities::test_sensitivity_map(tSensitivityMap, tFourTriWithFixedBlockSensitivityMap,
                                                TEST_CONTEXT("Four tri, two block, block 2 fixed sensitivity map"));
 }
 

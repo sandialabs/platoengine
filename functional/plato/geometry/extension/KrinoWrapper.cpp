@@ -71,17 +71,15 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
 
 KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInterface,
                            std::vector<::krino::LS_Field> aLevelSetField,
-                           std::optional<std::vector<tpik::BackgroundMeshNodeId>> aBackgroundDesignIDs,
                            const tpik::SnappingParameters aSnappingParameters)
     : mKrinoMesh(std::move(aKrinoMeshInterface)),
       mLevelSetFields(std::move(aLevelSetField)),
-      mNumberOfDesignDomainBackgroundNodes(
-          aBackgroundDesignIDs.value_or(tpik::background_node_ids(*mKrinoMesh, mLevelSetFields)).size()),
-      mSensitivityMap(cut_mesh_compute_sensitivities(
-          mKrinoMesh->bulk_data(),
-          mLevelSetFields,
-          std::move(aBackgroundDesignIDs).value_or(tpik::background_node_ids(*mKrinoMesh, mLevelSetFields)),
-          aSnappingParameters))
+      mNumberOfDesignDomainBackgroundNodes(tpik::background_node_ids(*mKrinoMesh, mLevelSetFields).size()),
+      mSensitivityMap(cut_mesh_compute_sensitivities(mKrinoMesh->bulk_data(),
+                                                     mLevelSetFields,
+                                                     tpik::background_node_ids(*mKrinoMesh, mLevelSetFields),
+                                                     aSnappingParameters))
+
 {
 }
 
@@ -221,30 +219,27 @@ namespace
 
 }  // namespace
 
-auto make_initial_guess_from_level_set_primitives(
-    const std::filesystem::path& aFileName,
-    const tpik::LevelSetPrimitives& aLevelSetPrimitives,
-    const std::optional<std::vector<tpik::BackgroundMeshNodeId>>& aBackgroundDesignIDs) -> std::vector<double>
+auto make_initial_guess_from_level_set_primitives(const std::filesystem::path& aFileName,
+                                                  const tpik::LevelSetPrimitives& aLevelSetPrimitives,
+                                                  const std::set<std::string>& aFixedBlocks) -> std::vector<double>
 {
-    auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aFileName);
+    auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aFileName, aFixedBlocks);
     auto tLevelSetFields = tpik::make_level_set_field_from_primitives(aLevelSetPrimitives, tKrinoMesh->bulk_data());
     const auto tLevelSetValuesMap = tpik::get_level_set_values(*tKrinoMesh, tLevelSetFields);
-
-    const auto tBackgroundNodeIds =
-        aBackgroundDesignIDs.value_or(tpik::background_node_ids(*tKrinoMesh, tLevelSetFields));
+    const auto tBackgroundNodeIds = tpik::background_node_ids(*tKrinoMesh, tLevelSetFields);
 
     return down_select_to_design_domain(tLevelSetValuesMap, tBackgroundNodeIds);
 }
 
 auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                                   const double aFixedBlockLevelSetValue,
+                                                  const std::set<std::string>& aFixedBlocks,
                                                   const tpik::SnappingParameters aSnappingParameters) -> KrinoWrapper
 {
-    auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aAnalysisDomainMesh.mFileName);
+    auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aAnalysisDomainMesh.mFileName, aFixedBlocks);
     auto tLevelSet = tpik::make_level_set_field_from_fixed_value(*tKrinoMesh, aFixedBlockLevelSetValue);
     set_level_set_fields(*tKrinoMesh, tLevelSet, aAnalysisDomainMesh);
-    const auto tDesignDomainNodeIds = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh}}.designDomainNodeIDs();
-    return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), tDesignDomainNodeIds, aSnappingParameters};
+    return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), aSnappingParameters};
 }
 
 namespace detail

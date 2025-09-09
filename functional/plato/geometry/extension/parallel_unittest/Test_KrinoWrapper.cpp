@@ -36,14 +36,14 @@ const auto kFourTriSensitivityMapRankOne =
 
 [[nodiscard]] auto create_example_krino_wrapper_for_regression_test() -> KrinoWrapper
 {
+    const auto tFixedBlocks = std::set<std::string>{};
     const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
         kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-        std::nullopt);
+        tFixedBlocks);
     const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tInitialGuess});
-    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, kFixedBlockLevelSetValue,
-                                                        tpik::SnappingParameters{});
+    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0, tFixedBlocks, tpik::SnappingParameters{});
 }
 
 }  // namespace
@@ -58,8 +58,9 @@ TEST_F(KrinoTestFixture, KrinoWrapperParallel)
     std::iota(tDesignVariable.begin(), tDesignVariable.end(), -static_cast<double>(tNumberOfDesignNodes) / 2.0);
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tDesignVariable});
-    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(
-        tAnalysisDomainMesh, kFixedBlockLevelSetValue, tpik::snapping_off_parameters());
+    const auto tFixedBlocks = std::set<std::string>{};
+    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0, tFixedBlocks,
+                                                                            tpik::snapping_off_parameters());
     const auto tSensitivity = tKrinoWrapper.sensitivities();
 
     const auto tCommunicator = boost::mpi::communicator{};
@@ -99,31 +100,17 @@ TEST_F(KrinoTestFixture, FourTriSensitivityMap)
     }
 }
 
-namespace
-{
-
-void check_initial_guess_sized_correctly(const std::optional<std::vector<tpik::BackgroundMeshNodeId>>& aDesignNodes,
-                                         const std::size_t aGoldSize,
-                                         const test_utilities::TestContext& aTestContext)
-{
-    const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
-        kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}}, aDesignNodes);
-    ASSERT_EQ(tInitialGuess.size(), aGoldSize) << aTestContext;
-}
-
-}  // namespace
-
 TEST_F(KrinoTestFixture, MakeInitialGuessFromLevelSetPrimitives)
 {
     ASSERT_TRUE(kBoxFilePath.has_value());
     const auto tMesh = mesh::Mesh{kBoxFilePath.value()};
 
-    check_initial_guess_sized_correctly(std::nullopt, mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes(),
-                                        TEST_CONTEXT("All nodes are design nodes."));
+    const auto tFixedBlocks = std::set<std::string>{};
+    const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
+        kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}}, tFixedBlocks);
 
-    const auto tDesignDomainNodeIds = std::vector<tpik::BackgroundMeshNodeId>{1, 2, 3, 4, 5};
-    check_initial_guess_sized_correctly(tDesignDomainNodeIds, tDesignDomainNodeIds.size(),
-                                        TEST_CONTEXT("Subset of nodes are design nodes."));
+    const auto tExpectedInitialGuessSize = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
+    ASSERT_EQ(tInitialGuess.size(), tExpectedInitialGuessSize);
 }
 
 TEST_F(KrinoTestFixture, RowVectorJacobianProduct)

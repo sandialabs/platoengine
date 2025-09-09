@@ -42,7 +42,7 @@ using tpik::test_utilities::KrinoTestFixture;
 [[nodiscard]] auto retrieve_sensitivities(const std::vector<double>& aPerturbedField) -> std::vector<double>
 {
     const auto tWrapper = test_utilities::make_krino_wrapper_from_vector_values(
-        kRectangleMeshFilePath.value(), test_utilities::InitialLevelSetValues{aPerturbedField}, std::nullopt);
+        kRectangleMeshFilePath.value(), test_utilities::InitialLevelSetValues{aPerturbedField});
     return flatten_sensitivities(tWrapper.sensitivities());
 }
 
@@ -68,8 +68,9 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
     const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.1, 7, 0.1};
     const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
 
+    const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-        kRectangleMeshFilePath.value(), kLevelSetPrimitives, std::nullopt)};
+        kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks)};
 
     const auto tDirection = linear_algebra::DynamicVector(std::vector<double>(tX.size(), 0.1));
 

@@ -81,8 +81,7 @@ class LevelSetTopology
     LevelSetTopology& operator=(LevelSetTopology&&) = delete;
 
     [[nodiscard]] auto bounds() const -> std::pair<std::vector<double>, std::vector<double>>;
-    [[nodiscard]] auto initialGuess(const input_parser::level_set_topology& aInput) const
-        -> linear_algebra::DynamicVector<double>;
+    [[nodiscard]] auto initialGuess() const -> linear_algebra::DynamicVector<double>;
     [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> analysis::AnalysisDomainMesh;
     static void output(const input_parser::level_set_topology& aInput,
@@ -97,6 +96,7 @@ class LevelSetTopology
     [[nodiscard]] auto backgroundMesh() const -> const mesh::Mesh&;
 
    private:
+    input_parser::level_set_topology mInput;
     mesh::Mesh mBackgroundMesh;
     std::filesystem::path mCutMesh;
     std::filesystem::path mOutputMesh;
