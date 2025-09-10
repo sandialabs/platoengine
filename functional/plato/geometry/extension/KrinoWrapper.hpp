@@ -8,6 +8,7 @@
 
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 
@@ -32,7 +33,8 @@ class KrinoWrapper
     /// @brief Construct a KrinoWrapper from its data type members. Use free make functions below instead.
     KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInterface,
                  std::vector<::krino::LS_Field> aLevelSetField,
-                 std::optional<std::vector<third_party_integration::krino::BackgroundMeshNodeId>> aBackgroundDesignIDs);
+                 std::optional<std::vector<third_party_integration::krino::BackgroundMeshNodeId>> aBackgroundDesignIDs,
+                 const third_party_integration::krino::SnappingParameters aSnappingParameters);
 
     /// @brief Write a cut mesh to the file @a aFileName with the void region specifier @a aVoidPhase.
     void writeCutMesh(const std::filesystem::path& aFileName,
@@ -80,8 +82,10 @@ class KrinoWrapper
 /// Use a mesh along with level set values and fixed blocks specified in an analysis domain mesh @a
 /// aAnalysisDomainMesh to create a KrinoWrapper. Design domain IDs are determined from the Analysis domain
 /// mesh. Fixed regions are set to a fixed block level set value @a aFixedBlockLevelSetValue.
-[[nodiscard]] auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                                const double aFixedBlockLevelSetValue) -> KrinoWrapper;
+[[nodiscard]] auto make_krino_wrapper_from_analysis_domain_mesh(
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+    const double aFixedBlockLevelSetValue,
+    const third_party_integration::krino::SnappingParameters aSnappingParameters) -> KrinoWrapper;
 
 namespace detail
 {
@@ -93,7 +97,6 @@ namespace detail
 /// @code{.cpp}
 /// initialize_environment_for_krino(...);
 /// read_and_setup_for_decomposition(...);
-/// setup_level_set_field_values(...);
 /// cut_mesh(...);
 /// @endcode
 [[nodiscard]] auto compute_sensitivities(

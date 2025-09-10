@@ -32,8 +32,8 @@ template <detail::CriterionInput Input>
 /// @brief Creates a criterion Function object from either objective or constraint input objects.
 /// @tparam Input Must be either input_parser::objective or input_parser::constraint input structs
 template <typename FactoryReturn, typename InputBlockType, typename Input, typename... AdditionalArgs>
-[[nodiscard]] auto make_criterion_function(const Input& aValidatedInput,
-                                           const AdditionalArgs&... aArgs) -> FactoryReturn;
+[[nodiscard]] auto make_criterion_function(const Input& aValidatedInput, const AdditionalArgs&... aArgs)
+    -> FactoryReturn;
 
 template <detail::CriterionInput Input>
 auto to_criterion_input(const Input& aInput) -> CriterionInput

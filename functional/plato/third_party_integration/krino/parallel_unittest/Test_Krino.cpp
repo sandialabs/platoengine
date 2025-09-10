@@ -9,6 +9,7 @@
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
@@ -72,7 +73,7 @@ TEST_F(ParallelKrinoFixture, InitializeKrino)
     const auto tKrinoMesh = read_and_setup_for_decomposition(kTetBoxFilePath.value());
     const auto tLevelSetField =
         make_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tKrinoMesh->bulk_data());
-    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField);
+    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
     write_mesh(tKrinoMesh->bulk_data(), kWriteMeshName, VoidPhase::kIncludeInMesh);
     remove_file_on_rank_zero();
 }
@@ -83,7 +84,7 @@ TEST_F(ParallelKrinoFixture, CutMeshNodeIds)
     const auto tKrinoMesh = read_and_setup_for_decomposition(kTetBoxFilePath.value());
     const auto tLevelSetField =
         make_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tKrinoMesh->bulk_data());
-    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField);
+    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
 
     const auto tCutMeshNodeIds = cut_mesh_node_ids(*tKrinoMesh, VoidPhase::kExcludeFromMesh);
 
@@ -123,7 +124,7 @@ TEST_F(ParallelKrinoFixture, CutMeshNodeIdsFourTriParallelConsistent)
     const auto tKrinoMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
     const auto tLevelSetField = make_level_set_field_from_primitives(
         LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tKrinoMesh->bulk_data());
-    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField);
+    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
 
     test_cut_mesh_node_ids_parallel_consistent(*tKrinoMesh, VoidPhase::kIncludeInMesh,
                                                TEST_CONTEXT("Cut nodes consistency using Include void region"));
@@ -138,7 +139,7 @@ TEST_F(ParallelKrinoFixture, BackgroundMeshNodeIds)
     const auto tKrinoMesh = read_and_setup_for_decomposition(kTetBoxFilePath.value());
     const auto tLevelSetField =
         make_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tKrinoMesh->bulk_data());
-    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField);
+    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
 
     const auto tBackgroundNodeIds = background_node_ids(*tKrinoMesh, tLevelSetField);
 

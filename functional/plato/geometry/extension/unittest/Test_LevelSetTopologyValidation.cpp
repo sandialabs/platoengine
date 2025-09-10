@@ -62,6 +62,17 @@ TEST(LevelSetTopologyValidation, ValidateUpperBound)
     EXPECT_FALSE(detail::validate_upper_bound(tLevelSetTopology).has_value());
 }
 
+TEST(LevelSetTopologyValidation, ValidateMaxSnappingEdgeLength)
+{
+    auto tLevelSetTopology = kLevelSetTopology;
+    tLevelSetTopology.max_edge_length_percentage_for_snapping = -0.1;
+    EXPECT_TRUE(detail::validate_max_snapping_edge_length(tLevelSetTopology).has_value());
+    tLevelSetTopology.max_edge_length_percentage_for_snapping = 1.1;
+    EXPECT_TRUE(detail::validate_max_snapping_edge_length(tLevelSetTopology).has_value());
+    tLevelSetTopology.max_edge_length_percentage_for_snapping = 0.15;
+    EXPECT_FALSE(detail::validate_max_snapping_edge_length(tLevelSetTopology).has_value());
+}
+
 TEST(LevelSetTopologyValidation, ValidateSpherePatternSpacing)
 {
     constexpr double tSmallestAllowableValue = 1e-5;
@@ -173,7 +184,8 @@ TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockValidation)
 
     {
         auto tLevelSetInput = tLevelSetInputBase;
-        tLevelSetInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_1", "block_2"}};
+        tLevelSetInput.fixed_blocks =
+            input_parser::FixedBlockList{std::vector<std::string>{mBlockNames[0], mBlockNames[1]}};
         tCheckForErrors(tLevelSetInput, TEST_CONTEXT("No design domain"));
     }
     {
@@ -183,7 +195,8 @@ TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockValidation)
     }
     {
         auto tLevelSetInput = tLevelSetInputBase;
-        tLevelSetInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_2", "block_2"}};
+        tLevelSetInput.fixed_blocks =
+            input_parser::FixedBlockList{std::vector<std::string>{mBlockNames[1], mBlockNames[1]}};
         tCheckForErrors(tLevelSetInput, TEST_CONTEXT("Fixed blocks not unique."));
     }
 }

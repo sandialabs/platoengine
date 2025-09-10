@@ -17,6 +17,8 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
+#include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"  //spatial_dimensions
 #include "plato/utilities/Enumerate.hpp"
@@ -55,12 +57,13 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
 [[nodiscard]] auto cut_mesh_compute_sensitivities(
     stk::mesh::BulkData& aBulkData,
     const std::vector<::krino::LS_Field>& aLevelSetFields,
-    const std::vector<tpik::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes) -> tpik::SensitivityMap
+    const std::vector<tpik::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes,
+    const tpik::SnappingParameters aSnappingParameters) -> tpik::SensitivityMap
 {
     [[maybe_unused]] const auto tScopedLogger =
         services::ScopedExternalRedirectLogger{components::ComponentType::kGeometry, "krino-wrapper"};
 
-    tpik::cut_mesh(aBulkData, aLevelSetFields);
+    tpik::cut_mesh(aBulkData, aLevelSetFields, aSnappingParameters);
     return detail::compute_sensitivities(aBulkData, aLevelSetFields, aDesignDomainBackgroundNodes);
 }
 
@@ -68,7 +71,8 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
 
 KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInterface,
                            std::vector<::krino::LS_Field> aLevelSetField,
-                           std::optional<std::vector<tpik::BackgroundMeshNodeId>> aBackgroundDesignIDs)
+                           std::optional<std::vector<tpik::BackgroundMeshNodeId>> aBackgroundDesignIDs,
+                           const tpik::SnappingParameters aSnappingParameters)
     : mKrinoMesh(std::move(aKrinoMeshInterface)),
       mLevelSetFields(std::move(aLevelSetField)),
       mNumberOfDesignDomainBackgroundNodes(
@@ -76,8 +80,8 @@ KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInt
       mSensitivityMap(cut_mesh_compute_sensitivities(
           mKrinoMesh->bulk_data(),
           mLevelSetFields,
-          std::move(aBackgroundDesignIDs).value_or(tpik::background_node_ids(*mKrinoMesh, mLevelSetFields))))
-
+          std::move(aBackgroundDesignIDs).value_or(tpik::background_node_ids(*mKrinoMesh, mLevelSetFields)),
+          aSnappingParameters))
 {
 }
 
@@ -208,8 +212,9 @@ namespace
     std::vector<double> tLevelSetValues;
     tLevelSetValues.reserve(aBackgroundDesignIDs.size());
     utilities::transform_if(
-        aBackgroundDesignIDs, std::back_inserter(tLevelSetValues), [&aLevelSetValuesMap](const auto aBackgroundId)
-        { return aLevelSetValuesMap.at(aBackgroundId); }, tFoundCondition);
+        aBackgroundDesignIDs, std::back_inserter(tLevelSetValues),
+        [&aLevelSetValuesMap](const auto aBackgroundId) { return aLevelSetValuesMap.at(aBackgroundId); },
+        tFoundCondition);
 
     return tLevelSetValues;
 }
@@ -232,13 +237,14 @@ auto make_initial_guess_from_level_set_primitives(
 }
 
 auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                  const double aFixedBlockLevelSetValue) -> KrinoWrapper
+                                                  const double aFixedBlockLevelSetValue,
+                                                  const tpik::SnappingParameters aSnappingParameters) -> KrinoWrapper
 {
     auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aAnalysisDomainMesh.mFileName);
     auto tLevelSet = tpik::make_level_set_field_from_fixed_value(*tKrinoMesh, aFixedBlockLevelSetValue);
     set_level_set_fields(*tKrinoMesh, tLevelSet, aAnalysisDomainMesh);
     const auto tDesignDomainNodeIds = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh}}.designDomainNodeIDs();
-    return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), tDesignDomainNodeIds};
+    return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), tDesignDomainNodeIds, aSnappingParameters};
 }
 
 namespace detail
@@ -265,17 +271,16 @@ void add_if_found(tpik::LevelSetJacobianColumn& aLevelSetJacobianColumn,
 }
 
 [[nodiscard]] auto make_level_set_jacobian_column(
-    std::vector<tpik::BackgroundMeshNodeId>& aParentNodeIds,
-    std::vector<third_party_integration::common::Vector3>& aSensitivities,
+    const std::vector<tpik::BackgroundMeshNodeId>& aParentNodeIds,
+    const std::vector<third_party_integration::common::Vector3>& aSensitivities,
     const std::vector<tpik::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes)
     -> std::optional<tpik::LevelSetJacobianColumn>
 {
-    assert(aParentNodeIds.size() == 2U);
-    assert(aSensitivities.size() == 2U);
-
     tpik::LevelSetJacobianColumn tLevelSetJacobianColumn;
-    add_if_found(tLevelSetJacobianColumn, aParentNodeIds.front(), aSensitivities.front(), aDesignDomainBackgroundNodes);
-    add_if_found(tLevelSetJacobianColumn, aParentNodeIds.back(), aSensitivities.back(), aDesignDomainBackgroundNodes);
+    for (const auto& [tParentId, tSensitivity] : utilities::Zip(aParentNodeIds, aSensitivities))
+    {
+        add_if_found(tLevelSetJacobianColumn, tParentId, tSensitivity, aDesignDomainBackgroundNodes);
+    }
 
     if (!tLevelSetJacobianColumn.mBackgroundMeshNodeIDs.empty())
     {
@@ -291,27 +296,19 @@ auto compute_sensitivities(const stk::mesh::BulkData& aBulkData,
                            const std::vector<tpik::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes)
     -> tpik::SensitivityMap
 {
-    const ::krino::FieldRef tCoordsField = aBulkData.mesh_meta_data().coordinate_field();
-    const auto tChildNodeStencils = tpik::get_child_node_stencils(aBulkData);
-    const auto tSpatialDimension = aBulkData.mesh_meta_data().spatial_dimension();
-
     auto tSensitivityMap = tpik::SensitivityMap{};
-    tSensitivityMap.reserve(tChildNodeStencils.size());
-    for (auto& tStencil : tChildNodeStencils)
+    const auto tSensitvitiesFromKrino = tpik::get_krino_sensitivities(aBulkData, aLevelSetFields);
+    const auto tSpatialDimension = aBulkData.mesh_meta_data().spatial_dimension();
+    for (const auto& tCurrentSensitivity : tSensitvitiesFromKrino)
     {
-        auto tParentNodeIds = tpik::parent_node_ids_from_parent_nodes(aBulkData, tStencil.parentNodes);
-        auto tSensitivity = tpik::level_set_coordinate_sensitivity(
-            tpik::CoordinateFieldReference{tCoordsField}, tpik::LevelSetFieldReference{aLevelSetFields.front().isovar},
-            tStencil.parentNodes, tSpatialDimension);
-
-        if (auto tLevelSetJacobianColumn =
-                make_level_set_jacobian_column(tParentNodeIds, tSensitivity, aDesignDomainBackgroundNodes);
+        const auto tSensitivity = tpik::coordinate_level_set_sensitivity(tCurrentSensitivity, tSpatialDimension);
+        if (auto tLevelSetJacobianColumn = make_level_set_jacobian_column(tCurrentSensitivity.parentNodeIds,
+                                                                          tSensitivity, aDesignDomainBackgroundNodes);
             tLevelSetJacobianColumn.has_value())
         {
-            tSensitivityMap[aBulkData.identifier(tStencil.childNode)] = std::move(tLevelSetJacobianColumn).value();
+            tSensitivityMap[tCurrentSensitivity.interfaceNodeId] = std::move(tLevelSetJacobianColumn).value();
         }
     }
-
     return tSensitivityMap;
 }
 

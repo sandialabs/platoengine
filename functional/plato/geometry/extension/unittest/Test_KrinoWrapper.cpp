@@ -19,6 +19,7 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/Enumerate.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -29,6 +30,7 @@ namespace tpik = third_party_integration::krino;
 
 const auto kOneTriMeshFilePath = utilities::data_file_path("one_tri.cdf");
 const auto kThreeQuarterOffsetXHatPlane = tpik::Plane{{-1, 0, 0}, 0.75};
+const auto kPlaneNearBackgroundNode = tpik::Plane{{-1, -1, 0}, 1.0e-4};
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 
 constexpr auto kTemporaryMeshFile = std::string_view{"tmp.exo"};
@@ -182,6 +184,30 @@ const auto kFourTriFixedTwoGoldValues = KrinoWrapperGoldValues{
     /*mAdjointJacobianGold=*/
     std::vector<double>{0, 0, 0, 0, 0, 0, 0, 0, 1.75, 0, 2.5, 2.5, 2.5, 2.5, 2.25, 0, 2.25, -2.25}};
 
+const auto kFourTriInterfaceNearNodeLambda = []() -> KrinoWrapper
+{
+    initialize_krino();
+    return test_utilities::make_krino_wrapper_from_level_set_primitives(
+        kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kPlaneNearBackgroundNode}, {}},
+        std::vector<tpik::BackgroundMeshNodeId>{1U, 2U, 4U, 7U});
+};
+
+const auto kFourTriInterfaceNearNodeInputs =
+    KrinoWrapperTestFixtureInputs{/*mFileName=*/std::string{kFourTriTwoBlockMeshFilePath.value()},
+                                  /*mCutMeshRowVector=*/{1.0, 2, 3, 4, 5, 6},  // three nodes in cut mesh
+                                  /*mBackgroundRowVector=*/{1.0, 2, 3, 4},
+                                  /*mVoidPhase=*/tpik::VoidPhase::kExcludeFromMesh};
+
+const auto kFourTriInterfaceNearNodeGoldValues = KrinoWrapperGoldValues{
+    /*mSpatialDimensions=*/2U,
+    /*mNumberBackgroundNodes=*/4U,
+    /*mNumberCutNodes=*/3U,
+    /*mSensitivityMapSize=*/2U,
+    /*mLevelSetValues=*/{0.75, -0.25, -0.25, 0.75},
+    /*mJacobianGold=*/{2.1211703435596427, 3.8896372965260113, 0.0001500000000000, 3.8885372965260117},
+    /*mAdjointJacobianGold=*/
+    std::vector<double>{0.7072067811865476, 0.7072067811865476, 0, 0, 2.1212203435596426, 2.1212203435596426}};
+
 }  // namespace
 
 class KrinoWrapperTestFixtureBase : virtual public ::testing::Test, public KrinoTestFixture
@@ -203,19 +229,31 @@ class KrinoWrapperTestFixtureBase : virtual public ::testing::Test, public Krino
     void runJacobianTest(const plato::test_utilities::TestContext& aTestContext)
     {
         EXPECT_EQ(mKrinoWrapper.value().sensitivities().size(), mGoldValues.mSensitivityMapSize) << aTestContext;
-        const auto tJacobian =
+        const auto tJacobianRowVectorProduct =
             mKrinoWrapper.value().rowVectorJacobianProduct(mInputValues.mCutMeshRowVector, mInputValues.mVoidPhase);
-        ASSERT_EQ(tJacobian.size(), mGoldValues.mNumberBackgroundNodes) << aTestContext;
-        EXPECT_EQ(tJacobian, mGoldValues.mJacobianGold) << aTestContext;
+        ASSERT_EQ(tJacobianRowVectorProduct.size(), mGoldValues.mNumberBackgroundNodes) << aTestContext;
+        EXPECT_EQ(tJacobianRowVectorProduct, mGoldValues.mJacobianGold) << aTestContext;
     }
 
     void runAdjointJacobianTest(const plato::test_utilities::TestContext& aTestContext)
     {
-        const auto tAdjointJacobian = mKrinoWrapper.value().rowVectorAdjointJacobianProduct(
+        const auto tRowVectorAdjointJacobianProduct = mKrinoWrapper.value().rowVectorAdjointJacobianProduct(
             mInputValues.mBackgroundRowVector, mInputValues.mVoidPhase);
-        ASSERT_EQ(tAdjointJacobian.size(), mGoldValues.mNumberCutNodes * mGoldValues.mSpatialDimensions)
+        ASSERT_EQ(tRowVectorAdjointJacobianProduct.size(), mGoldValues.mNumberCutNodes * mGoldValues.mSpatialDimensions)
             << aTestContext;
-        EXPECT_EQ(tAdjointJacobian, mGoldValues.mAdjointJacobianGold) << aTestContext;
+        EXPECT_EQ(tRowVectorAdjointJacobianProduct, mGoldValues.mAdjointJacobianGold) << aTestContext;
+    }
+
+    void runJacobianRegressionTest(const plato::test_utilities::TestContext& aTestContext)
+    {
+        EXPECT_EQ(mKrinoWrapper.value().sensitivities().size(), mGoldValues.mSensitivityMapSize) << aTestContext;
+        const auto tJacobianRowVectorProduct =
+            mKrinoWrapper.value().rowVectorJacobianProduct(mInputValues.mCutMeshRowVector, mInputValues.mVoidPhase);
+        for (const auto [tJacobianRowVectorProductValue, tGoldValue] :
+             utilities::Zip{tJacobianRowVectorProduct, mGoldValues.mJacobianGold})
+        {
+            EXPECT_DOUBLE_EQ(tJacobianRowVectorProductValue, tGoldValue);
+        }
     }
 
    protected:
@@ -234,6 +272,14 @@ class KrinoWrapperTestFixtureUnitCube : public KrinoWrapperTestFixtureBase
     void TearDown() override { KrinoWrapperTestFixtureBase::TearDown(); }
 };
 
+class KrinoWrapperTestFixtureOneTriMesh : public KrinoWrapperTestFixtureBase
+{
+   public:
+    KrinoWrapperTestFixtureOneTriMesh() : KrinoWrapperTestFixtureBase(kOneTriLambda, kOneTriInputs, kOneTriGoldValues)
+    {
+    }
+};
+
 class KrinoWrapperTestFixtureFourTriMeshFixedBlockTwo : public KrinoWrapperTestFixtureBase
 {
    public:
@@ -243,10 +289,12 @@ class KrinoWrapperTestFixtureFourTriMeshFixedBlockTwo : public KrinoWrapperTestF
     }
 };
 
-class KrinoWrapperTestFixtureOneTriMesh : public KrinoWrapperTestFixtureBase
+class KrinoWrapperTestFixtureFourTriInterfaceNearNode : public KrinoWrapperTestFixtureBase
 {
    public:
-    KrinoWrapperTestFixtureOneTriMesh() : KrinoWrapperTestFixtureBase(kOneTriLambda, kOneTriInputs, kOneTriGoldValues)
+    KrinoWrapperTestFixtureFourTriInterfaceNearNode()
+        : KrinoWrapperTestFixtureBase(
+              kFourTriInterfaceNearNodeLambda, kFourTriInterfaceNearNodeInputs, kFourTriInterfaceNearNodeGoldValues)
     {
     }
 };
@@ -333,6 +381,11 @@ TEST_F(KrinoWrapperTestFixtureOneTriMesh, Jacobian)
 TEST_F(KrinoWrapperTestFixtureFourTriMeshFixedBlockTwo, Jacobian)
 {
     runJacobianTest(TEST_CONTEXT("KrinoWrapperTestFixtureFourTriMeshFixedBlockTwo Jacobian"));
+}
+
+TEST_F(KrinoWrapperTestFixtureFourTriInterfaceNearNode, JacobianRegression)
+{
+    runJacobianRegressionTest(TEST_CONTEXT("KrinoWrapperTestFixtureFourTriInterfaceNearNode JacobianRegression"));
 }
 
 TEST_F(KrinoWrapperTestFixtureUnitCube, AdjointJacobian)

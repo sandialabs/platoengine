@@ -3,7 +3,9 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <filesystem>
+#include <string_view>
 #include <unordered_map>
 
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -108,6 +110,7 @@ class TwoDThreeBlockMesh : virtual public ::testing::Test
         "|coordinates: -2,0,0,0,0,1,-2,1,2,0,2,1,0,-1,2,-1,1,-0.5"
         "|dimension:2"};
 
+    constexpr static auto mBlockNames = std::array{"BLOCK_1", "BLOCK_2", "BLOCK_3"};
     constexpr static auto mExpectedNumberOfBlocks = 3U;
     constexpr static auto mExpectedNumberOfElements = 7U;
     constexpr static auto mExpectedNumberOfElementsInBlock1 = 4U;
@@ -148,6 +151,7 @@ class ThreeDTwoBlockTetMesh : virtual public ::testing::Test
         "|coordinates: 0,-1,-1,0,0,-1,1,-1,-1,1,0,-1,0,-1,1,0,0,1,1,-1,1,1,0,1,0,-1,3,0,0,3,1,-1,3,1,0,3"
         "|dimension:3"};
 
+    constexpr static auto mBlockNames = std::array{"BLOCK_1", "BLOCK_2"};
     constexpr static auto mExpectedNumberOfBlocks = 2U;
     constexpr static auto mExpectedNumberOfElements = 12U;
     constexpr static auto mExpectedNumberOfElementsInBlock1 = 6U;
@@ -174,6 +178,7 @@ class TwoDTwoBlockMesh : virtual public ::testing::Test
         "|coordinates: 0,0,0.5,0,2,0,2,1,0.5,1,0,1"
         "|dimension:2"};
 
+    constexpr static auto mBlockNames = std::array{"FIXED", "DESIGN"};
     constexpr static auto mExpectedNumberOfBlocks = 2U;
     constexpr static auto mExpectedNumberOfElements = 3U;
     constexpr static auto mExpectedNumberOfElementsInBlock1 = 1U;
@@ -204,6 +209,7 @@ class TwoDManyBlockMesh : virtual public ::testing::Test
         "|coordinates: -2,0,0,0,0,1,-2,1,2,0,2,1,0,-1,2,-1,1,-0.5"
         "|dimension:2"};
 
+    constexpr static auto mBlockNames = std::array{"ALPHA", "BETA", "GAMMA", "DELTA", "EPSILON", "ZETA", "ETA"};
     constexpr static auto mExpectedNumberOfBlocks = 7U;
     constexpr static auto mExpectedNumberOfElements = 7U;
     const static inline auto mBlockNameToOrdinal = std::unordered_map<std::string, unsigned int>{

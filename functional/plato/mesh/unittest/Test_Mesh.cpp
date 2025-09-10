@@ -74,7 +74,7 @@ TEST_F(TwoDNonUniformHexMesh, FixedBlockOrdinals)
 
 TEST_F(TwoDThreeBlockMesh, FixedBlockOrdinals)
 {
-    const auto tMesh = Mesh{mMeshFilePath, {"block_2", "block_3"}};
+    const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[1], mBlockNames[2]}};
 
     const auto tExpectedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{21u, 22u};
     EXPECT_EQ(tMesh.fixedBlockOrdinals(), tExpectedBlockOrdinals);
@@ -109,14 +109,14 @@ TEST_F(TwoDThreeBlockMesh, DesignBlockOrdinals)
 {
     const auto tExpectedBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{20u};
 
-    const auto tMesh = Mesh{mMeshFilePath, {"block_2", "block_3"}};
+    const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[1], mBlockNames[2]}};
     EXPECT_EQ(tMesh.designBlockOrdinals(), tExpectedBlockOrdinals);
 }
 
 TEST_F(TwoDManyBlockMeshMeshFixture, BlockOrdinals)
 {
     {
-        const auto tMesh = Mesh{mMeshFilePath, {"alpha", "zeta", "eta"}};
+        const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[0], mBlockNames[5], mBlockNames[6]}};
         const auto tExpectedDesignBlockOrdinals =
             std::vector<Mesh::BlockOrdinalType>{mBlockNameToOrdinal.at("beta"), mBlockNameToOrdinal.at("gamma"),
                                                 mBlockNameToOrdinal.at("delta"), mBlockNameToOrdinal.at("epsilon")};
@@ -127,7 +127,7 @@ TEST_F(TwoDManyBlockMeshMeshFixture, BlockOrdinals)
         EXPECT_EQ(tMesh.fixedBlockOrdinals(), tExpectedFixedBlockOrdinals);
     }
     {
-        const auto tMesh = Mesh{mMeshFilePath, {"delta", "gamma", "epsilon", "zeta"}};
+        const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[3], mBlockNames[2], mBlockNames[4], mBlockNames[5]}};
         const auto tExpectedDesignBlockOrdinals = std::vector<Mesh::BlockOrdinalType>{
             mBlockNameToOrdinal.at("alpha"), mBlockNameToOrdinal.at("beta"), mBlockNameToOrdinal.at("eta")};
         const auto tExpectedFixedBlockOrdinals =
@@ -141,7 +141,7 @@ TEST_F(TwoDManyBlockMeshMeshFixture, BlockOrdinals)
 
 TEST_F(TwoDThreeBlockMesh, PartVectors)
 {
-    const auto tFixedBlockNames = std::set<std::string>{"block_2", "block_3"};
+    const auto tFixedBlockNames = std::set<std::string>{mBlockNames[1], mBlockNames[2]};
     const auto tMesh = Mesh{mMeshFilePath, tFixedBlockNames};
 
     const auto& tFixedBlockOrdinals = tMesh.fixedBlockOrdinals();

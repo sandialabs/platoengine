@@ -23,6 +23,7 @@ TEST(ParallelKrino, NodalSumObjectivesRegression)
     ASSERT_TRUE(kRectangleMeshFilePath);
     auto tGeometryInput = geometry::extension::test_utilities::create_valid_level_set_topology_geometry_input();
     tGeometryInput.mesh_name = input_parser::FileName{*kRectangleMeshFilePath};
+    tGeometryInput.max_edge_length_percentage_for_snapping = 0.0;  // turns off snapping for regression
     tGeometryInput.sphere_pattern_bbox_min_x = -1.5;
     tGeometryInput.sphere_pattern_bbox_max_x = 1.5;
     tGeometryInput.sphere_pattern_bbox_min_y = -2.0;

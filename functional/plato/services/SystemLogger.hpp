@@ -51,8 +51,8 @@ class SystemLogger
 [[nodiscard]] auto system_logger() -> SystemLogger;
 
 /// @brief Helper function for constructing a SystemLogger with component context.
-[[nodiscard]] auto component_logger(components::ComponentType aComponentType,
-                                    std::string_view aComponentName) -> SystemLogger;
+[[nodiscard]] auto component_logger(components::ComponentType aComponentType, std::string_view aComponentName)
+    -> SystemLogger;
 
 }  // namespace plato::services
 

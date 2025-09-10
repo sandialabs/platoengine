@@ -80,9 +80,9 @@ TEST_F(TwoDThreeBlockMesh, BlockIDsFromOrdinals)
         EXPECT_EQ(tBlockID.value(), aExpectedID) << aTestContext;
     };
 
-    tCheckIDFromOrdinal("block_1", 1, TEST_CONTEXT("Block 1"));
-    tCheckIDFromOrdinal("block_2", 2, TEST_CONTEXT("Block 2"));
-    tCheckIDFromOrdinal("block_3", 3, TEST_CONTEXT("Block 3"));
+    tCheckIDFromOrdinal(mBlockNames[0], 1, TEST_CONTEXT("Block 1"));
+    tCheckIDFromOrdinal(mBlockNames[1], 2, TEST_CONTEXT("Block 2"));
+    tCheckIDFromOrdinal(mBlockNames[2], 3, TEST_CONTEXT("Block 3"));
 }
 
 TEST_F(TwoDThreeBlockMesh, BlockIDs)
@@ -104,7 +104,7 @@ TEST_F(TwoDThreeBlockMesh, BlockData)
 
     const auto tExpectedBlockIDs = std::vector{1, 2, 3};
     const auto tExpectedBlockOrdinals = std::vector{mBlock1Ordinal, mBlock2Ordinal, mBlock3Ordinal};
-    const auto tExpectedBlockNames = std::vector<std::string>{"block_1", "block_2", "block_3"};
+    const auto tExpectedBlockNames = std::vector<std::string>{mBlockNames[0], mBlockNames[1], mBlockNames[2]};
 
     for (const auto tIndex : utilities::IndexRange{mExpectedNumberOfBlocks})
     {
@@ -230,7 +230,7 @@ TEST_F(TwoDTwoBlockMesh, BlockNames)
 {
     const auto tMesh = MeshBlocks{Mesh{mMeshFilePath}};
 
-    const auto tExpectedNames = std::vector<std::string>{"fixed", "design"};
+    const auto tExpectedNames = std::vector<std::string>{mBlockNames[0], mBlockNames[1]};
     EXPECT_EQ(tExpectedNames, tMesh.blockNames());
 }
 

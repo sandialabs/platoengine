@@ -8,6 +8,7 @@
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
@@ -56,7 +57,7 @@ class OneTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrino
         mLevelSetFields = make_level_set_field_from_primitives(
             tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, mKrinoMesh->bulk_data());
         mDesignDomainBackgroundNodes = tpik::background_node_ids(*mKrinoMesh, mLevelSetFields);
-        tpik::cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields);
+        tpik::cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields, tpik::SnappingParameters{});
     }
 
    protected:
@@ -79,7 +80,7 @@ class FourTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrin
         mLevelSetFields = make_level_set_field_from_primitives(
             tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, mKrinoMesh->bulk_data());
         mDesignDomainBackgroundNodes = std::vector<tpik::BackgroundMeshNodeId>{1U, 2U, 4U, 7U};
-        tpik::cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields);
+        tpik::cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields, tpik::SnappingParameters{});
     }
 
    protected:
@@ -138,8 +139,8 @@ TEST_F(KrinoTestFixture, MakeKrinoWrapperFromAnalysisDomainMeshOneTri)
     const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{
         kOneTriMeshFilePath.value(),
         analysis::AnalysisDomainMesh::BlockScalarField{{1U, {{1U, 0U, .75}, {2U, 1U, -.25}, {4U, 2U, -.25}}}}};
-    const auto tKrinoWrapper =
-        make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tNonExistentFixedBlockValue);
+    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(
+        tAnalysisDomainMesh, tNonExistentFixedBlockValue, tpik::SnappingParameters{});
 
     const auto tSensitivityMap = tKrinoWrapper.sensitivities();
     tpik::test_utilities::test_sensitivity_map(tSensitivityMap, kOneTriSensitivityMap,
@@ -154,7 +155,8 @@ TEST_F(KrinoTestFixture, MakeKrinoWrapperFromAnalysisDomainMeshFourTriTwoBlock)
         analysis::AnalysisDomainMesh{kFourTriTwoBlockMeshFilePath.value(),
                                      analysis::AnalysisDomainMesh::BlockScalarField{
                                          {1U, {{1U, 0U, .75}, {2U, 1U, -.25}, {4U, 2U, -.25}, {7U, 3U, .75}}}}};
-    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlockValue);
+    const auto tKrinoWrapper =
+        make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlockValue, tpik::SnappingParameters{});
 
     const auto tSensitivityMap = tKrinoWrapper.sensitivities();
     tpik::test_utilities::test_sensitivity_map(tSensitivityMap, kFourTriSensitivityMap,

@@ -13,9 +13,11 @@
 #include <stk_mesh/base/Types.hpp>
 
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 
 namespace plato::third_party_integration::krino
 {
+
 /// @brief Describes whether or not to include a void phase block in the generated cut mesh.
 enum struct VoidPhase
 {
@@ -76,7 +78,9 @@ void initialize_environment_for_krino(const std::filesystem::path& aLogFile, con
 /// @pre the environment for krino was initialized by calling 'initialize_environment_for_krino', followed by
 /// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh, followed by a call to set up the
 /// level set field values
-void cut_mesh(stk::mesh::BulkData& aBulkData, const std::vector<::krino::LS_Field>& aLevelSetFields);
+void cut_mesh(stk::mesh::BulkData& aBulkData,
+              const std::vector<::krino::LS_Field>& aLevelSetFields,
+              const SnappingParameters aSnappingParameters);
 
 /// @brief Take a level set field vector @a aLevelSetFields and a node @a aNode and return the data stored in the mesh
 /// @pre the environment for krino was initialized by calling 'initialize_environment_for_krino', followed by

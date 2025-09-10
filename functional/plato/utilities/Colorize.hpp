@@ -41,7 +41,9 @@ namespace detail
 /// @brief Concept for the policy that will be checked to determine if color output should be used.
 template <typename F>
 concept UseColorPolicy = requires(F aF, const std::ostream& aStream) {
-    { aF(aStream) } -> std::convertible_to<bool>;
+    {
+        aF(aStream)
+    } -> std::convertible_to<bool>;
 };
 
 /// @brief The default policy to use for Colorize and colorize, checks @a aStream with `isatty`.

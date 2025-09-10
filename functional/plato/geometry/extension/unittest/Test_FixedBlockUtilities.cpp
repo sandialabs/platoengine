@@ -77,8 +77,8 @@ TEST(FixedBlockUtilities, ValidateUniqueBlockNames)
 
 TEST_F(TwoDTwoBlockMesh, ValidateBlockNamesExist)
 {
-    const auto tFixedBlockName = std::string{"fixed"};
-    const auto tDesignBlockName = std::string{"design"};
+    const auto tFixedBlockName = std::string{mBlockNames[0]};
+    const auto tDesignBlockName = std::string{mBlockNames[1]};
     const auto tBogusBlockName = std::string{"bogus"};
 
     auto tDensityInputWithFixedBlocks = kDensityTopology;
@@ -111,8 +111,8 @@ TEST_F(TwoDTwoBlockMesh, ValidateBlockNamesExist)
 
 TEST_F(TwoDTwoBlockMesh, ValidateAtLeastOneDesignBlock)
 {
-    const auto tFixedBlockName = std::string{"fixed"};
-    const auto tDesignBlockName = std::string{"design"};
+    const auto tFixedBlockName = std::string{mBlockNames[0]};
+    const auto tDesignBlockName = std::string{mBlockNames[1]};
     auto tDensityInputWithFixedBlocks = kDensityTopology;
     tDensityInputWithFixedBlocks.mesh_name = input_parser::FileName{mMeshFilePath.string()};
 

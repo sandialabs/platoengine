@@ -90,7 +90,7 @@ TEST_F(NodalDensityMesh, MeshFieldNamesForErrorMessage)
     const auto tInput = create_density_geometry_input(mMeshName, mFieldName);
     const auto tString = mesh_field_names_for_error_message(tInput);
     const auto tGoldString =
-        std::string{"Field name must be one of the following defined on the nodes: coordinates, topology."};
+        std::string{"Field name must be one of the following defined on the nodes: coordinates, Topology."};
     EXPECT_EQ(tGoldString, tString);
 }
 

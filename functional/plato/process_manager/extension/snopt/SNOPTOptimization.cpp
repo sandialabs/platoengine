@@ -109,9 +109,10 @@ const auto tConstraintTypeConversion =
         {criteria::library::ConstraintType::kGreaterThan, third_party_integration::snopt::ConstraintType::kGreaterThan},
         {criteria::library::ConstraintType::kLessThan, third_party_integration::snopt::ConstraintType::kLesserThan}};
 
-[[nodiscard]] auto make_snopt_constraint(const geometry::library::FactoryTypes& aGeometry,
-                                         const criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>&
-                                             aConstraint) -> third_party_integration::snopt::InterfaceConstraintType
+[[nodiscard]] auto make_snopt_constraint(
+    const geometry::library::FactoryTypes& aGeometry,
+    const criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>& aConstraint)
+    -> third_party_integration::snopt::InterfaceConstraintType
 {
     namespace tpis = third_party_integration::snopt;
     const auto tLinearity = aConstraint.mLinear ? tpis::Linearity::kLinear : tpis::Linearity::kNonlinear;
@@ -133,7 +134,8 @@ auto make_constraints(const library::ProcessManagerData& aProcessManagerData)
     auto tConstraints = third_party_integration::snopt::InterfaceConstraintVectorType{};
     tConstraints.reserve(aProcessManagerData.mConstraints.size());
     std::transform(aProcessManagerData.mConstraints.begin(), aProcessManagerData.mConstraints.end(),
-                   std::back_inserter(tConstraints), [&aProcessManagerData](const auto& aConstraint)
+                   std::back_inserter(tConstraints),
+                   [&aProcessManagerData](const auto& aConstraint)
                    { return make_snopt_constraint(aProcessManagerData.mGeometry, aConstraint); });
 
     return tConstraints;

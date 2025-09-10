@@ -35,8 +35,8 @@ class CrossLinker
     CrossLinker(InputTypeHelper<Input>);
 
     /// @brief Fills the cross-reference field in @a aInputBlock with the input contained in @a aParsedInput.
-    [[nodiscard]] auto crossLink(InputDataBlock aInputBlock,
-                                 const ParsedInput& aParsedInput) const -> CrossLinkedBlockOrError;
+    [[nodiscard]] auto crossLink(InputDataBlock aInputBlock, const ParsedInput& aParsedInput) const
+        -> CrossLinkedBlockOrError;
 
    private:
     std::function<CrossLinkedBlockOrError(InputDataBlock, const ParsedInput&)> mCrossLinkFunction;

@@ -14,8 +14,8 @@ namespace
 [[nodiscard]] auto enclose_in_curly_braces(const std::string& aString) -> std::string { return "{" + aString + "}"; }
 
 constexpr auto kCommandPrefix = std::string_view{"\\PlatoCommand"};
-[[nodiscard]] auto format_command(const std::string& aBlockName,
-                                  const HelpDocumentation& aHelpDocumentation) -> std::string
+[[nodiscard]] auto format_command(const std::string& aBlockName, const HelpDocumentation& aHelpDocumentation)
+    -> std::string
 {
     return utilities::concatenate(std::string{kCommandPrefix}, enclose_in_curly_braces(aBlockName),
                                   enclose_in_curly_braces(aHelpDocumentation.mName),

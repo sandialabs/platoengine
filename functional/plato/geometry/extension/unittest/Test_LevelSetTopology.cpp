@@ -91,7 +91,8 @@ TEST_F(LevelSetTopologyFixture, JacobianRegression)
 
 TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
 {
-    const auto tInput = singleSphereInput();
+    auto tInput = singleSphereInput();
+    tInput.max_edge_length_percentage_for_snapping = 0.0;  // turn snapping off for regression
 
     const auto tOnesVectorJacobianProductSum = [this](const library::GeometryFunction& aLevelSetTopologyFunction,
                                                       const linear_algebra::DynamicVector<double>& aArgument)
@@ -158,9 +159,10 @@ TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
                                                          TEST_CONTEXT("LevelSet adjoint Jacobian entries"));
 }
 
-TEST_F(LevelSetTopologyMeshFixture, JacobianTranspose)
+TEST_F(LevelSetTopologyMeshFixture, JacobianTransposeRegression)
 {
-    const auto tInput = singleSphereInput();
+    auto tInput = singleSphereInput();
+    tInput.max_edge_length_percentage_for_snapping = 0.0;  // turn snapping off for regression
 
     const auto tOnesVectorJacobianProductSum = [](const library::GeometryFunction& aLevelSetTopology,
                                                   const linear_algebra::DynamicVector<double>& aDesignVariables)
@@ -245,7 +247,7 @@ TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, InitialGuessOneBlockResultSize)
 {
-    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({"block_2"});
+    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({mBlockNames[1]});
     const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput);
     constexpr auto tExpectedNumberOfDesignVariables = 8U;
     EXPECT_EQ(tInitialGuess.size(), tExpectedNumberOfDesignVariables);
@@ -253,7 +255,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, InitialGuessOneBlockResultSize)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, BoundsOneBlockResultSize)
 {
-    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({"block_1"});
+    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({mBlockNames[0]});
     const auto tBounds = tLevelSetTopology.bounds();
     constexpr auto tExpectedNumberOfDesignVariables = 8U;
     EXPECT_EQ(tBounds.first.size(), tExpectedNumberOfDesignVariables);
@@ -262,7 +264,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, BoundsOneBlockResultSize)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, GenerateMeshSize)
 {
-    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({"block_1"});
+    const auto tLevelSetTopology = levelSetTopologyWithFixedBlocks({mBlockNames[0]});
     const auto tInitialGuess = tLevelSetTopology.initialGuess(kLevelSetInput);
     const auto tAnalysisMesh = tLevelSetTopology.generateMesh(tInitialGuess);
     EXPECT_TRUE(std::filesystem::exists(tAnalysisMesh.mFileName));
@@ -284,11 +286,11 @@ TEST_F(LevelSetTopologyTwoBlockFixture, JacobianOneBlockResultSize)
         const auto tResult = tVector * aLevelSetTopology.jacobian(tInitialGuess);
         EXPECT_EQ(tResult.size(), mExpectedNumberOfNodesInBlock1) << aTestContext;
     };
-    tCheckJacobianProductSize(levelSetTopologyWithFixedBlocks({"block_2"}),
+    tCheckJacobianProductSize(levelSetTopologyWithFixedBlocks({mBlockNames[1]}),
                               TEST_CONTEXT("Cut mesh and background mesh have matching global IDs"));
 
     constexpr auto tSphereRadius = 10.0;
-    tCheckJacobianProductSize(levelSetTopologyWithRadiusAndFixedBlocks(tSphereRadius, {"block_1"}),
+    tCheckJacobianProductSize(levelSetTopologyWithRadiusAndFixedBlocks(tSphereRadius, {mBlockNames[0]}),
                               TEST_CONTEXT("Cut mesh has more global IDs than are in background mesh"));
 }
 
@@ -308,10 +310,10 @@ TEST_F(LevelSetTopologyTwoBlockFixture, JacobianTransposeOneBlockResultSize)
         EXPECT_EQ(tResult.size(), tNumberOfCoordinateComponents * tNumberOfNodes) << aTestContext;
     };
 
-    tCheckTransposeJacobianProductSize(levelSetTopologyWithFixedBlocks({"block_1"}),
+    tCheckTransposeJacobianProductSize(levelSetTopologyWithFixedBlocks({mBlockNames[0]}),
                                        TEST_CONTEXT("Cut mesh and background mesh have matching global IDs"));
     constexpr auto tSphereRadius = 10.0;
-    tCheckTransposeJacobianProductSize(levelSetTopologyWithRadiusAndFixedBlocks(tSphereRadius, {"block_2"}),
+    tCheckTransposeJacobianProductSize(levelSetTopologyWithRadiusAndFixedBlocks(tSphereRadius, {mBlockNames[1]}),
                                        TEST_CONTEXT("Cut mesh has more global IDs than are in background mesh"));
 }
 
@@ -331,7 +333,7 @@ TEST_F(LevelSetTopologyFixture, Bounds)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, OutputRoundTrip)
 {
-    const auto tInput = levelSetTopologyInputWithFixedBlocks({"block_1"});
+    const auto tInput = levelSetTopologyInputWithFixedBlocks({mBlockNames[0]});
     const auto tDesignVariablesForOutput = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 0.0);
     LevelSetTopology::output(tInput, filter::extension::make_identity_filter_function(), tDesignVariablesForOutput,
                              library::kOverwriteInfo);
@@ -365,7 +367,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, OutputRoundTrip)
 
 TEST_F(LevelSetTopologyTwoBlockFixture, FilteredOutputRoundTrip)
 {
-    const auto tFixedBlock = std::string{"block_2"};
+    const auto tFixedBlock = std::string{mBlockNames[1]};
     const auto tInput = levelSetTopologyInputWithFixedBlocks({tFixedBlock});
     auto tDesignVariableVector = std::vector<double>(mExpectedNumberOfNodesInBlock1, 0.0);
     tDesignVariableVector.front() = 1.0;
@@ -461,9 +463,10 @@ namespace
     return tFlattenedCoordinates;
 }
 
-void evaluate_gradient_check_jacobian(const input_parser::level_set_topology& aInput, const unsigned int aNumDimensions)
+void check_coordinate_sum_gradient_for_small_level_set_perturbations(const input_parser::level_set_topology& aInput,
+                                                                     const unsigned int aNumDimensions)
 {
-    constexpr auto tTolerance = 5e-13;
+    constexpr auto tTolerance = 1e-11;
 
     const auto tF = [aNumDimensions, aInput](const linear_algebra::DynamicVector<double>& aX) -> double
     {
@@ -489,7 +492,9 @@ void evaluate_gradient_check_jacobian(const input_parser::level_set_topology& aI
         return tResult.dot(aV);
     };
 
-    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 8, 0.10};
+    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{
+        0.5, 8,
+        0.0125};  // set the initial step size such that mesh topological changes are not by the level set perturbation
     const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
 
     const auto tLevelSetTopology = LevelSetTopology{aInput};
@@ -499,22 +504,23 @@ void evaluate_gradient_check_jacobian(const input_parser::level_set_topology& aI
     const auto tErrors = tGradientCheck.finiteDifferenceErrors(tInitialGuess, tDirection, tGradientCheckParameters);
     ASSERT_FALSE(tErrors.empty());
 
-    EXPECT_NEAR(tErrors.back().mValue, 0.0, tTolerance)
+    EXPECT_TRUE(std::all_of(tErrors.begin(), tErrors.end(),
+                            [tTolerance](const auto aStepAndValue) { return aStepAndValue.mValue < tTolerance; }))
         << tGradientCheck.table(tInitialGuess, tDirection, tGradientCheckParameters);
 }
 
 }  // namespace
 
-TEST_F(LevelSetTopology2DFixture, Jacobian)
+TEST_F(LevelSetTopology2DFixture, JacobianWithoutTopologicalChanges)
 {
     const auto tInput = levelSetTopologyInputFor2D();
-    evaluate_gradient_check_jacobian(tInput, mNumDimensions);
+    check_coordinate_sum_gradient_for_small_level_set_perturbations(tInput, mNumDimensions);
 }
 
-TEST_F(LevelSetTopologyMeshFixture, Jacobian)
+TEST_F(LevelSetTopologyLargeSphereFixture, JacobianWithoutTopologicalChanges)
 {
-    const auto tInput = singleSphereInput();
-    evaluate_gradient_check_jacobian(tInput, mNumDimensions);
+    const auto tInput = levelSetTopologyInputForLargeSphere();
+    check_coordinate_sum_gradient_for_small_level_set_perturbations(tInput, mNumDimensions);
 }
 
 namespace

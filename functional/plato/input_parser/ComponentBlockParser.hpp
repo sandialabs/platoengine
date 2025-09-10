@@ -51,26 +51,26 @@ template <typename InputType, components::ComponentType kComponentType>
 template <typename InputType, components::ComponentType kComponentType>
 ComponentBlockParser::ComponentBlockParser(const InputType&, ComponentTypeHelper<kComponentType>)
     : mComponentType{kComponentType},
-      mParseFunction{[](const GenericBlockData& aData) -> ParsedDataOrError
-                     {
-                         using Parser = ComponentBlockRule<std::string::const_iterator, InputType, kComponentType>;
-                         const auto tParser = Parser{};
-                         const auto tInput = to_string(aData);
-                         auto tInputIterator = tInput.begin();
-                         auto tData = typename Parser::BlockDataStruct{};
-                         const auto tSkipper = SkipperRule<std::string::const_iterator>{};
-                         const auto tParsedSuccessfully = boost::spirit::qi::phrase_parse(
-                             tInputIterator, tInput.cend(), tParser.mBlockRule, tSkipper.skipperRule(), tData);
+      mParseFunction{
+          [](const GenericBlockData& aData) -> ParsedDataOrError
+          {
+              using Parser = ComponentBlockRule<std::string::const_iterator, InputType, kComponentType>;
+              const auto tParser = Parser{};
+              const auto tInput = to_string(aData);
+              auto tInputIterator = tInput.begin();
+              auto tData = typename Parser::BlockDataStruct{};
+              const auto tSkipper = SkipperRule<std::string::const_iterator>{};
+              const auto tParsedSuccessfully = boost::spirit::qi::phrase_parse(
+                  tInputIterator, tInput.cend(), tParser.mBlockRule, tSkipper.skipperRule(), tData);
 
-                         if (parser_has_error(tParsedSuccessfully, tInputIterator, tInput.cend()))
-                         {
-                             constexpr auto tDelimeter = ' ';
-                             return utilities::unexpected(error_message(tInputIterator, tInput.cend(), tDelimeter));
-                         }
+              if (parser_has_error(tParsedSuccessfully, tInputIterator, tInput.cend()))
+              {
+                  constexpr auto tDelimeter = ' ';
+                  return utilities::unexpected(error_message(tInputIterator, tInput.cend(), tDelimeter));
+              }
 
-                         return InputDataBlock{Parser::mComponentType, aData.mName.mToken,
-                                               InputBlockWrapper{std::move(tData)}};
-                     }}
+              return InputDataBlock{Parser::mComponentType, aData.mName.mToken, InputBlockWrapper{std::move(tData)}};
+          }}
 {
 }
 

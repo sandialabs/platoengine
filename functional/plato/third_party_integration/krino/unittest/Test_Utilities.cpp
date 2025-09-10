@@ -7,6 +7,7 @@
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -68,7 +69,7 @@ void run_cut_and_write_test(const VoidPhase& aVoidPhase,
     create_mesh();
     const auto tMesh = read_and_setup_for_decomposition(kMeshName);
     const auto tLevelSetField = make_test_level_set_field(*tMesh);
-    cut_mesh(tMesh->bulk_data(), tLevelSetField);
+    cut_mesh(tMesh->bulk_data(), tLevelSetField, SnappingParameters{});
     write_mesh(tMesh->bulk_data(), kWriteMeshName, aVoidPhase);
 
     const auto tCutLevelSetField = read_coordinates_and_level_sets(kWriteMeshName);
@@ -89,12 +90,15 @@ TEST_F(KrinoTestFixture, ReadAndSetupForDecomposition)
     const auto tFieldNames = stk_io::nodal_field_names(kWriteMeshName);
 
     const auto tFieldNameGold = std::vector<std::string>{"coordinates",
-                                                         "cdfem_up_4_parent_node_ids",
-                                                         "cdfem_up_4_parent_node_wts",
-                                                         "distancecorrectiondenominator",
-                                                         "distancecorrectionnumerator",
-                                                         "level_set",
-                                                         "ls"};
+                                                         "CDFEM_SNAP_DISPLACEMENTS",
+                                                         "CDFEM_SNAP_DISPLACEMENTS_STKFS_O",
+                                                         "CDFEM_UP_4_PARENT_NODE_IDS",
+                                                         "CDFEM_UP_4_PARENT_NODE_WTS",
+                                                         "DistanceCorrectionDenominator",
+                                                         "DistanceCorrectionNumerator",
+                                                         "LEVEL_SET",
+                                                         "LEVEL_SET_STASH",
+                                                         "LS"};
     EXPECT_EQ(tFieldNameGold, tFieldNames);
     std::filesystem::remove(kMeshName);
     plato::test_utilities::test_for_existence_and_remove({kWriteMeshName}, TEST_CONTEXT("Write Mesh file"));
@@ -117,7 +121,7 @@ TEST_F(KrinoTestFixture, BackgroundNodeIds)
 {
     const auto tMesh = read_and_setup_for_decomposition(kOneTriMeshFilePath.value());
     const auto tLevelSetField = test_utilities::make_level_set_field_from_vector(*tMesh, {.75, -.25, -.25});
-    cut_mesh(tMesh->bulk_data(), tLevelSetField);
+    cut_mesh(tMesh->bulk_data(), tLevelSetField, SnappingParameters{});
 
     const auto tResult = background_node_ids(*tMesh, tLevelSetField);
     const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4};
@@ -133,7 +137,7 @@ TEST_F(KrinoTestFixture, CutMeshNodeIds)
 {
     const auto tMesh = read_and_setup_for_decomposition(kOneTriMeshFilePath.value());
     const auto tLevelSetField = test_utilities::make_level_set_field_from_vector(*tMesh, {.75, -.25, -.25});
-    cut_mesh(tMesh->bulk_data(), tLevelSetField);
+    cut_mesh(tMesh->bulk_data(), tLevelSetField, SnappingParameters{});
     {
         const auto tResult = cut_mesh_node_ids(*tMesh, VoidPhase::kIncludeInMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6};
@@ -151,7 +155,7 @@ TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTri)
     const auto tMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
     const auto tLevelSetField =
         test_utilities::make_level_set_field_from_vector(*tMesh, {.75, -.25, -.25, 0.75, 0.75, 0.75});
-    cut_mesh(tMesh->bulk_data(), tLevelSetField);
+    cut_mesh(tMesh->bulk_data(), tLevelSetField, SnappingParameters{});
     {
         const auto tResult = cut_mesh_node_ids(*tMesh, VoidPhase::kIncludeInMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12};

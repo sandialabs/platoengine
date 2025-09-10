@@ -77,7 +77,8 @@ linear_algebra::JacobianColumnEvaluator BrickShapeGeometry::jacobian(const Brick
     return linear_algebra::JacobianColumnEvaluator{
         /*.mColumns=*/kNumDesignParameters,
         /*.mX=*/detail::to_dynamic_vector(aDesignParameters),
-        /*.mColumnFunction=*/[](unsigned int aColumnIndex, const linear_algebra::DynamicVector<double>&)
+        /*.mColumnFunction=*/
+        [](unsigned int aColumnIndex, const linear_algebra::DynamicVector<double>&)
         {
             [[maybe_unused]] const auto tTaskLogger = library::jacobian_task_log<input_parser::brick_shape_geometry>();
             return linear_algebra::DynamicVector<double>(detail::sensitivities(aColumnIndex));
