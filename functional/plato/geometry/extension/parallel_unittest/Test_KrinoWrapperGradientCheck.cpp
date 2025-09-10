@@ -131,15 +131,14 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
 
     const auto tF = [&tMeshFile](const linear_algebra::DynamicVector<double>& aX) -> double
     { return test_utilities::accumulate_cut_node_coordinates(tMeshFile.value(), aX.stdVector()); };
-    const auto tDf = [&tMeshFile](const linear_algebra::DynamicVector<double>& aX,
-                                  const linear_algebra::DynamicVector<double>& aV) -> double
+    const auto tDf = [&tMeshFile, &tFixedBlocks](const linear_algebra::DynamicVector<double>& aX,
+                                                 const linear_algebra::DynamicVector<double>& aV) -> double
     {
         const auto tFileName = std::filesystem::path{"out.exo"};
         const auto tAnalysisDomainMesh =
             mesh::DesignVariablesConversion{mesh::Mesh{tMeshFile.value()}}.nodalFieldToAnalysisDomainMesh(
                 mesh::NodalFieldVectorReference{aX.stdVector()});
 
-        const auto tFixedBlocks = std::set<std::string>{};
         const auto tWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0, tFixedBlocks, tpik::SnappingParameters{});
         tWrapper.writeCutMesh(tFileName, third_party_integration::krino::VoidPhase::kIncludeInMesh);
         const auto tMesh = mesh::Mesh{tFileName};
