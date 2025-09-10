@@ -209,7 +209,7 @@ auto stk_search_points(const third_party_integration::tpetra::TpetraMultiVector&
     for (const auto tLocalIndex : utilities::IndexRange{tNumberOfLocalElements})
     {
         const auto tGlobalID = aNodalCoordinates.getMap()->getGlobalElement(tLocalIndex);
-        const tpi::stk_search::Identifier tIdentifier{tGlobalID, aRank};
+        const tpi::stk_search::Identifier tIdentifier{static_cast<int>(tGlobalID), aRank};
         const tpi::common::Coordinate tCoordinate = tpi::tpetra::multivector_coordinate(aNodalCoordinates, tLocalIndex);
         tLocalSearchPointWithIdentifiers[tLocalIndex] =
             tpi::stk_search::SearchPointWithIdentifier({tpi::stk_search::convert_coordinate(tCoordinate), tIdentifier});
@@ -230,7 +230,7 @@ auto stk_search_spheres(const third_party_integration::tpetra::TpetraMultiVector
     for (const auto tLocalIndex : utilities::IndexRange{tNumberOfLocalElements})
     {
         const auto tGlobalID = aCenteringCoordinates.getMap()->getGlobalElement(tLocalIndex);
-        const tpi::stk_search::Identifier tIdentifier{tGlobalID, aRank};
+        const tpi::stk_search::Identifier tIdentifier{static_cast<int>(tGlobalID), aRank};
         const tpi::common::Coordinate tCoordinate =
             tpi::tpetra::multivector_coordinate(aCenteringCoordinates, tLocalIndex);
         tLocalSearchSpheresWithIdentifier[tLocalIndex] = tpi::stk_search::SearchSphereWithIdentifier(
