@@ -25,7 +25,7 @@ struct SystemLoggerImpl
 {
     return std::any_cast<SystemLoggerImpl>(&aImpl)->mLogger;
 }
-}
+}  // namespace
 
 SystemLogger::SystemLogger()
     : mImpl{make_system_logger_impl(tpi_bl::SeverityLogger{tpi_bl::MPIWorldCommRankAttribute{},

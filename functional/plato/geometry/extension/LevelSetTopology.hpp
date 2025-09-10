@@ -23,6 +23,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
     (plato::input_parser::FileName, output_name, "Required field specifying the exodus output file name to use when writing results.")
     (bool, include_void_region, "Required field specifying whether to include the elements of the void region when writing the cut mesh.")
+    (double, max_edge_length_percentage_for_snapping, "Optional field specifying maximum fraction of an edge length that can be collapsed by snapping. Can range from 0 to 1. A value of 0 turns off snapping (only cutting), a value of 1 will collapse all edges near the level set interface (no cutting). Default is 0.15.")
     (double, sphere_pattern_bbox_min_x, "Required field specifying the starting x-coordinate of the sphere pattern's bounding box.")
     (double, sphere_pattern_bbox_min_y, "Required field specifying the starting y-coordinate of the sphere pattern's bounding box.")
     (double, sphere_pattern_bbox_min_z, "Required field specifying the starting z-coordinate of the sphere pattern's bounding box.")
@@ -50,11 +51,10 @@ struct level_set_topology;
 namespace plato::third_party_integration::krino
 {
 enum struct VoidPhase;
-}
+}  // namespace plato::third_party_integration::krino
 
 namespace plato::geometry::extension
 {
-
 /// @brief Level set-based topology representation of a geometry.
 ///
 /// Implementation for level set-based topology optimization. The design
@@ -64,11 +64,11 @@ namespace plato::geometry::extension
 /// 0 with solid on the positive side and void on the negative side (or material 1
 /// and material 2). This class may use a Filter to smooth the level set field
 /// and reduce mesh dependency in the solution.
-/// The mesh that is specified in the input is the background mesh. The level set field is defined at all the nodes of
-/// this mesh. The 0-isocontour represents the boundary of the level-set field dividing material and void. Krino creates
-/// nodes on this boundary and new elements. Krino methods maintain two representations of the same mesh, one that is
-/// the original background mesh and one that has these additional nodes and elements called the cut mesh. When the
-/// cut-mesh is written to disk for a criteria it can include or exclude the void region.
+/// The mesh that is specified in the input is the background mesh. The level set field is defined at all the nodes
+/// of this mesh. The 0-isocontour represents the boundary of the level-set field dividing material and void. Krino
+/// creates nodes on this boundary and new elements. Krino methods maintain two representations of the same mesh,
+/// one that is the original background mesh and one that has these additional nodes and elements called the cut
+/// mesh. When the cut-mesh is written to disk for a criteria it can include or exclude the void region.
 class LevelSetTopology
 {
    public:
@@ -126,6 +126,8 @@ namespace detail
 {
 [[nodiscard]] auto validate_lower_bound(const input_parser::level_set_topology& aInput) -> std::optional<std::string>;
 [[nodiscard]] auto validate_upper_bound(const input_parser::level_set_topology& aInput) -> std::optional<std::string>;
+[[nodiscard]] auto validate_max_snapping_edge_length(const input_parser::level_set_topology& aInput)
+    -> std::optional<std::string>;
 [[nodiscard]] auto validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput)
     -> std::optional<std::string>;
 [[nodiscard]] auto validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput)
@@ -133,8 +135,8 @@ namespace detail
 [[nodiscard]] auto validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput)
     -> std::optional<std::string>;
 
-/// @brief Validates that exactly one specifier for the intitial level set is used, either the sphere pattern commands
-/// or `initial_field_name`
+/// @brief Validates that exactly one specifier for the intitial level set is used, either the sphere pattern
+/// commands or `initial_field_name`
 [[nodiscard]] std::optional<std::string> validate_exactly_one_initial_level_set_specifier(
     const input_parser::level_set_topology& aInput);
 
@@ -144,9 +146,10 @@ using EndingLimits = utilities::NamedType<std::pair<double, double>, struct Endi
 /// @brief Takes a vector of doubles @a aVector and linearly rescales them based on the starting limits @a
 /// aStartingLimits and the ending limits @a aEndingLimits.
 ///
-/// For example, if the starting limits are 0 -> 1, and the ending limits are -1 -> 1, a value of 0.5 gets mapped to 0,
-/// 1 gets mapped to 1, and 0 gets mapped to -1.
-/// @pre Both limits are ordered from lower to upper, eg, aStartingLimits.mValue.first < aStartingLimits.mValue.second
+/// For example, if the starting limits are 0 -> 1, and the ending limits are -1 -> 1, a value of 0.5 gets mapped to
+/// 0, 1 gets mapped to 1, and 0 gets mapped to -1.
+/// @pre Both limits are ordered from lower to upper, eg, aStartingLimits.mValue.first <
+/// aStartingLimits.mValue.second
 [[nodiscard]] auto affine_transformation(std::vector<double> aVector,
                                          const StartingLimits& aStartingLimits,
                                          const EndingLimits& aEndingLimits) -> std::vector<double>;

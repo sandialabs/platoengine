@@ -9,6 +9,7 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
@@ -18,6 +19,7 @@ using third_party_integration::krino::test_utilities::KrinoTestFixture;
 namespace
 {
 namespace tpik = third_party_integration::krino;
+constexpr double kFixedBlockLevelSetValue{1.0};
 const auto kBoxFilePath = utilities::data_file_path("box_3x4x7_tet4.cdf");
 const auto kUnitSphere = tpik::Sphere{{0, 0, 0}, 1};
 const auto kThreeQuarterOffsetXHatPlane = tpik::Plane{{-1, 0, 0}, 0.75};
@@ -40,7 +42,8 @@ const auto kFourTriSensitivityMapRankOne =
     const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tInitialGuess});
-    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
+    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, kFixedBlockLevelSetValue,
+                                                        tpik::SnappingParameters{});
 }
 
 }  // namespace
@@ -55,7 +58,8 @@ TEST_F(KrinoTestFixture, KrinoWrapperParallel)
     std::iota(tDesignVariable.begin(), tDesignVariable.end(), -static_cast<double>(tNumberOfDesignNodes) / 2.0);
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tDesignVariable});
-    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
+    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(
+        tAnalysisDomainMesh, kFixedBlockLevelSetValue, tpik::snapping_off_parameters());
     const auto tSensitivity = tKrinoWrapper.sensitivities();
 
     const auto tCommunicator = boost::mpi::communicator{};
@@ -158,7 +162,7 @@ TEST_F(KrinoTestFixture, CutMeshNodeIdMultiplicity)
     const auto tLevelSetField = tpik::make_level_set_field_from_primitives(
         tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tMesh->bulk_data());
 
-    tpik::cut_mesh(tMesh->bulk_data(), tLevelSetField);
+    tpik::cut_mesh(tMesh->bulk_data(), tLevelSetField, tpik::SnappingParameters{});
     const auto tDesignDomain = tpik::background_node_ids(*tMesh, tLevelSetField);
     const auto tSensitivityMap = detail::compute_sensitivities(tMesh->bulk_data(), tLevelSetField, tDesignDomain);
     const auto tResult = tpik::cut_mesh_node_id_multiplicity(tSensitivityMap);

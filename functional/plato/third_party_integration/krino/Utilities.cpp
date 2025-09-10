@@ -19,6 +19,7 @@
 #include <stk_util/parallel/OutputStreams.hpp>
 #include <string_view>
 
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/utilities/ReduceUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -61,6 +62,10 @@ void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData& aMeta)
     tCdfemSupport.set_coords_field(tCoordsField);
     tCdfemSupport.add_edge_interpolation_field(tCoordsField);
     tCdfemSupport.register_parent_node_ids_field();
+    tCdfemSupport.setup_levelset_field_stash(
+        ::krino::get_levelset_fields(::krino::Phase_Support::get_levelset_fields(aMeta)));
+    tCdfemSupport.register_cdfem_snap_displacements_field();
+    tCdfemSupport.finalize_fields();
 }
 
 [[nodiscard]] auto get_ids_from_entities(const std::vector<stk::mesh::Entity>& aEntities,
@@ -104,7 +109,7 @@ auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename) ->
         tMeshFromFile->meta_data(), kNumberOfLevelSets);
     ::krino::LevelSet& tLevelSet =
         ::krino::LevelSet::build(tMeshFromFile->meta_data(), std::string{kLevelSetName}, sierra::Diag::sierraTimer());
-    tLevelSet.set_distance_name(std::string{kLevelSetName});  /// becomes set_levelset_field_name in Trilinos 16.1
+    tLevelSet.set_levelset_field_name(std::string{kLevelSetName});
     tLevelSet.setup();
     setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data());
     tMeshFromFile->populate_mesh();
@@ -126,8 +131,8 @@ auto make_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPri
     return tField;
 }
 
-auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh,
-                                           const double aFixedLevelSetValue) -> std::vector<::krino::LS_Field>
+auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh, const double aFixedLevelSetValue)
+    -> std::vector<::krino::LS_Field>
 {
     std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data());
     const auto tNodes = node_entities_in_mesh(aKrinoMesh, tField);
@@ -148,8 +153,8 @@ auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
 
 namespace
 {
-[[nodiscard]] auto get_cut_mesh_node_entities(const ::krino::MeshInterface& aKrinoMesh,
-                                              const VoidPhase aVoidPhase) -> stk::mesh::EntityVector
+[[nodiscard]] auto get_cut_mesh_node_entities(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
+    -> stk::mesh::EntityVector
 {
     const auto tSelector = output_selector(aKrinoMesh.meta_data(),
                                            ::krino::AuxMetaData::get(aKrinoMesh.meta_data()).active_part(), aVoidPhase);
@@ -162,19 +167,25 @@ namespace
 
 }  // namespace
 
-auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh,
-                       const VoidPhase aVoidPhase) -> std::vector<stk::mesh::EntityId>
+auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
+    -> std::vector<stk::mesh::EntityId>
 {
     const auto tNodes = get_cut_mesh_node_entities(aKrinoMesh, aVoidPhase);
     return utilities::unique_vector_gather(get_ids_from_entities(tNodes, aKrinoMesh.bulk_data()),
                                            retrieve_mpi_communicator_from_krino());
 }
 
-void cut_mesh(stk::mesh::BulkData& aBulkData, const std::vector<::krino::LS_Field>& aLevelSetFields)
+void cut_mesh(stk::mesh::BulkData& aBulkData,
+              const std::vector<::krino::LS_Field>& aLevelSetFields,
+              const SnappingParameters aSnappingParameters)
 {
-    auto& tMeta = aBulkData.mesh_meta_data();
+    const auto& tMeta = aBulkData.mesh_meta_data();
     auto& tAuxMeta = ::krino::AuxMetaData::get(tMeta);
     auto& tCdfemSupport = ::krino::CDFEM_Support::get(tMeta);
+    tCdfemSupport.set_cdfem_edge_degeneracy_handling(
+        ::krino::Edge_Degeneracy_Handling::SNAP_TO_INTERFACE_WHEN_QUALITY_ALLOWS_THEN_SNAP_TO_NODE);
+    tCdfemSupport.set_snapping_sharp_feature_angle_in_degrees(aSnappingParameters.mSharpFeatureAngle);
+    tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength);
     auto& tPhaseSupport = ::krino::Phase_Support::get(tMeta);
     auto tInterfaceGeometry =
         ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),

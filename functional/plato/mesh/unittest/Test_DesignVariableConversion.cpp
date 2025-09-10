@@ -134,7 +134,7 @@ TEST_F(TwoBlockMeshOnDisk, ElementScalarFieldToAnalysisDomainMesh)
 
 TEST_F(TwoDThreeBlockMesh, NodeScalarFieldToDesignVariablesWithFixedBlocks)
 {
-    const auto tMesh = Mesh{mMeshFilePath, {"block_3"}};
+    const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[2]}};
     auto tNodeIds = MeshBlocks{tMesh}.nodeIDs(mBlock1Ordinal);
     const auto tNodeIdsBlock2 = MeshBlocks{tMesh}.nodeIDs(mBlock2Ordinal);
     tNodeIds.insert(tNodeIds.end(), tNodeIdsBlock2.cbegin(), tNodeIdsBlock2.cend());
@@ -151,7 +151,7 @@ TEST_F(TwoDThreeBlockMesh, NodeScalarFieldToDesignVariablesWithFixedBlocks)
 
 TEST_F(TwoDThreeBlockMesh, ElementScalarFieldToDesignVariablesWithFixedBlocks)
 {
-    const auto tMesh = Mesh{mMeshFilePath, {"block_1", "block_2"}};
+    const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[0], mBlockNames[1]}};
     const auto tElementIds = MeshBlocks{tMesh}.elementIDs(mBlock3Ordinal);
     const auto tScalarField = entity_ids_to_field(tElementIds);
     const auto tAnalysisDomainMesh =
@@ -192,7 +192,7 @@ TEST_F(TwoDThreeBlockMesh, AnalysisDomainMeshToElementScalarField)
     constexpr auto tBlock3ID = analysis::AnalysisDomainMesh::BlockIDType{3};
     const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{mMeshFilePath, {{tBlock3ID, tDesignVariables}}};
 
-    const auto tMesh = Mesh{mMeshFilePath, {"block_1", "block_2"}};
+    const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[0], mBlockNames[1]}};
     const auto tResultDesignVariableVector =
         DesignVariablesConversion{tMesh}.analysisDomainMeshToElementFieldVector(tAnalysisDomainMesh);
 
@@ -202,7 +202,7 @@ TEST_F(TwoDThreeBlockMesh, AnalysisDomainMeshToElementScalarField)
 
 TEST_F(TwoDThreeBlockMesh, MeshNodalDesignVariablesRoundTrip)
 {
-    const auto tMesh = Mesh{mMeshFilePath, {"block_3"}};
+    const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[2]}};
     auto tNodalDesignVariables = std::vector<double>(EntityCounts{tMesh}.numberOfDesignDomainNodes());
     constexpr auto tStartField = double{1.0};
     std::iota(tNodalDesignVariables.begin(), tNodalDesignVariables.end(), tStartField);
@@ -217,7 +217,7 @@ TEST_F(TwoDThreeBlockMesh, MeshNodalDesignVariablesRoundTrip)
 
 TEST_F(TwoDThreeBlockMesh, MeshElementDesignVariablesRoundTrip)
 {
-    const auto tMesh = Mesh{mMeshFilePath, {"block_1"}};
+    const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[0]}};
     auto tElementDesignVariables = std::vector<double>(EntityCounts{tMesh}.numberOfDesignDomainElements());
     constexpr auto tStartField = double{1.0};
     std::iota(tElementDesignVariables.begin(), tElementDesignVariables.end(), tStartField);

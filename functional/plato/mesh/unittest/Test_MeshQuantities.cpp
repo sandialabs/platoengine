@@ -60,19 +60,19 @@ TEST_F(TwoDThreeBlockMesh, MeshQuantitiesFixedDomainElementVolumes)
         std::vector<double>(mExpectedNumberOfElementsInBlock3, kExpectedElementVolumeBlock3);
 
     {
-        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {"block_1"}}};
+        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {mBlockNames[0]}}};
         EXPECT_EQ(tMesh.fixedDomainElementVolumes(), tExpectedVolumesBlock1);
     }
     {
-        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {"block_2"}}};
+        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {mBlockNames[1]}}};
         EXPECT_EQ(tMesh.fixedDomainElementVolumes(), tExpectedVolumesBlock2);
     }
     {
-        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {"block_3"}}};
+        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {mBlockNames[2]}}};
         EXPECT_EQ(tMesh.fixedDomainElementVolumes(), tExpectedVolumesBlock3);
     }
     {
-        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {"block_3", "block_2"}}};
+        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {mBlockNames[2], mBlockNames[1]}}};
         auto tExpectedElementVolumeBlocks2And3 = tExpectedVolumesBlock2;
         std::copy(tExpectedVolumesBlock3.cbegin(), tExpectedVolumesBlock3.cend(),
                   std::back_inserter(tExpectedElementVolumeBlocks2And3));
@@ -90,19 +90,19 @@ TEST_F(TwoDThreeBlockMesh, MeshQuantitiesDesignDomainElementVolumes)
         std::vector<double>(mExpectedNumberOfElementsInBlock3, kExpectedElementVolumeBlock3);
 
     {
-        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {"block_1", "block_2"}}};
+        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {mBlockNames[0], mBlockNames[1]}}};
         EXPECT_EQ(tMesh.designDomainElementVolumes(), tExpectedVolumesBlock3);
     }
     {
-        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {"block_3", "block_1"}}};
+        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {mBlockNames[2], mBlockNames[0]}}};
         EXPECT_EQ(tMesh.designDomainElementVolumes(), tExpectedVolumesBlock2);
     }
     {
-        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {"block_2", "block_3"}}};
+        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {mBlockNames[1], mBlockNames[2]}}};
         EXPECT_EQ(tMesh.designDomainElementVolumes(), tExpectedVolumesBlock1);
     }
     {
-        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {"block_3"}}};
+        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {mBlockNames[2]}}};
         auto tExpectedElementVolumeBlocks1And2 = tExpectedVolumesBlock1;
         std::copy(tExpectedVolumesBlock2.cbegin(), tExpectedVolumesBlock2.cend(),
                   std::back_inserter(tExpectedElementVolumeBlocks1And2));

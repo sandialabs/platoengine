@@ -138,7 +138,7 @@ class LevelSetTopology2DFixture : public LevelSetTopologyBaseFixture
    protected:
     void SetUp() override { LevelSetTopologyBaseFixture::SetUp(); }
     void TearDown() override { LevelSetTopologyBaseFixture::TearDown(); }
-    auto levelSetTopologyInputFor2D() const -> input_parser::level_set_topology
+    [[nodiscard]] auto levelSetTopologyInputFor2D() const -> input_parser::level_set_topology
     {
         const auto tFilePath = utilities::data_file_path("rectangle_3x4_tri3.cdf");
         assert(tFilePath.has_value());
@@ -153,12 +153,32 @@ class LevelSetTopology2DFixture : public LevelSetTopologyBaseFixture
     std::filesystem::path mFileName = utilities::data_file_path("rectangle_3x4_tri3.cdf").value();
 };
 
+class LevelSetTopologyLargeSphereFixture : public LevelSetTopologyBaseFixture
+{
+   protected:
+    void SetUp() override { LevelSetTopologyBaseFixture::SetUp(); }
+    void TearDown() override { LevelSetTopologyBaseFixture::TearDown(); }
+    [[nodiscard]] auto levelSetTopologyInputForLargeSphere() const -> input_parser::level_set_topology
+    {
+        const auto tFilePath = utilities::data_file_path("box_3x4x7_tet4.cdf");
+        assert(tFilePath.has_value());
+        auto tInput = kLevelSetInputFixture;
+        constexpr double tSize = 500;
+        constexpr double tShift = 0.95;
+        create_large_sphere_input(tInput, tSize, tShift);
+        tInput.mesh_name = input_parser::FileName{tFilePath.value()};
+        return tInput;
+    }
+    std::size_t mNumDimensions = std::size_t{3};
+    std::filesystem::path mFileName = utilities::data_file_path("box_3x4x7_tet4.cdf").value();
+};
+
 class LevelSetTopology2DOneTriFixture : public LevelSetTopologyBaseFixture
 {
    protected:
     void SetUp() override { LevelSetTopologyBaseFixture::SetUp(); }
     void TearDown() override { LevelSetTopologyBaseFixture::TearDown(); }
-    auto levelSetTopologyInputFor2D() const -> input_parser::level_set_topology
+    [[nodiscard]] auto levelSetTopologyInputFor2D() const -> input_parser::level_set_topology
     {
         const auto tFilePath = utilities::data_file_path("one_tri.cdf");
         assert(tFilePath.has_value());

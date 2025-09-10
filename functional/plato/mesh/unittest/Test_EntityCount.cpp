@@ -88,7 +88,7 @@ TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockCounts)
 
 TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockDesignVariableCounts)
 {
-    const auto tMesh = Mesh{mMeshFilePath, {"block_2"}};
+    const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[1]}};
     constexpr auto tExpectedNumberOfElements = mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock3;
     const auto tNumberOfElementsInDesignDomain = EntityCounts{tMesh}.numberOfDesignDomainElements();
     EXPECT_EQ(tNumberOfElementsInDesignDomain, tExpectedNumberOfElements);
@@ -135,7 +135,7 @@ TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockAreNodalDesignVariables)
         analysis::AnalysisDomainMesh::BlockScalarField{{1, tFieldVectorBlock1}, {3, tFieldVectorBlock3}};
     const auto tDesignVariables = analysis::AnalysisDomainMesh{mMeshFilePath, tBlockField};
 
-    const auto tFixedBlocks = std::set<std::string>{"block_2"};
+    const auto tFixedBlocks = std::set<std::string>{mBlockNames[1]};
     const auto tMesh = EntityCounts{Mesh{mMeshFilePath, tFixedBlocks}};
     EXPECT_TRUE(tMesh.areNodalDesignVariables(tDesignVariables));
     EXPECT_FALSE(tMesh.areElementDesignVariables(tDesignVariables));
@@ -149,7 +149,7 @@ TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockAreElementDesignVariables)
         analysis::AnalysisDomainMesh::BlockScalarField{{2, tFieldVectorBlock2}, {3, tFieldVectorBlock3}};
     const auto tDesignVariables = analysis::AnalysisDomainMesh{mMeshFilePath, tBlockField};
 
-    const auto tFixedBlocks = std::set<std::string>{"block_1"};
+    const auto tFixedBlocks = std::set<std::string>{mBlockNames[0]};
     const auto tMesh = EntityCounts{Mesh{mMeshFilePath, tFixedBlocks}};
     EXPECT_FALSE(tMesh.areNodalDesignVariables(tDesignVariables));
     EXPECT_TRUE(tMesh.areElementDesignVariables(tDesignVariables));

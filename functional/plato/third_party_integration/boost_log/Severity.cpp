@@ -21,8 +21,8 @@ const auto kSeverityTable = utilities::EnumTable<Severity>({{Severity::kDebug, "
                                                             {Severity::kWarning, "warning"},
                                                             {Severity::kError, "error"}});
 
-[[nodiscard]] auto severity_color_code(const Severity aSeverityKeyword,
-                                       const FormattingStyle aFormattingStyle) -> std::string
+[[nodiscard]] auto severity_color_code(const Severity aSeverityKeyword, const FormattingStyle aFormattingStyle)
+    -> std::string
 {
     return color_code(kSeverityColorMap.at(aSeverityKeyword), aFormattingStyle);
 }

@@ -123,7 +123,8 @@ TEST_F(TwoDThreeBlockMesh, MeshFromInput)
     {
         auto tDensityInputWithFixedBlocks = kDensityTopology;
         tDensityInputWithFixedBlocks.mesh_name = input_parser::FileName{mMeshFilePath.string()};
-        tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_3"}};
+        tDensityInputWithFixedBlocks.fixed_blocks =
+            input_parser::FixedBlockList{std::vector<std::string>{mBlockNames[2]}};
         constexpr auto tExpectedSizes = ExpectedSizes{
             /*.mNumberOfFixedBlocks=*/1U, /*.mNumberOfFixedBlocks=*/2U,
             /*.mNumberOfDesignDomainNodes=*/8U,
@@ -136,7 +137,7 @@ TEST_F(TwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
 {
     auto tDensityInputWithFixedBlocks = kDensityTopology;
     tDensityInputWithFixedBlocks.mesh_name = input_parser::FileName{mMeshFilePath.string()};
-    tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_1"}};
+    tDensityInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{mBlockNames[0]}};
 
     const auto tInitialGuess = DensityTopology::initialGuess(tDensityInputWithFixedBlocks);
     constexpr auto tExpectedNumberOfDesignVariables = 6U;

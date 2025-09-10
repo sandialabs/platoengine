@@ -126,8 +126,8 @@ auto make_rol_problem(const library::ProcessManagerData& aProblem,
     return {tROLProblem, tControls};
 }
 
-auto make_rol_solver(Teuchos::ParameterList& aROLOptions,
-                     const ROL::Ptr<ROL::Problem<double>>& aROLProblem) -> ROL::Solver<double>
+auto make_rol_solver(Teuchos::ParameterList& aROLOptions, const ROL::Ptr<ROL::Problem<double>>& aROLProblem)
+    -> ROL::Solver<double>
 {
     return ROL::Solver<double>{aROLProblem, aROLOptions};
 }

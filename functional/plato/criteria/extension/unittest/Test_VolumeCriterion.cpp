@@ -110,7 +110,7 @@ TEST(VolumeCriterion, DerivativeOfScaledVolumeOnControls)
 
 TEST_F(TwoDThreeBlockMesh, VolumeCriterionWithFixedBlocks)
 {
-    auto tFixedBlockNames = std::set<std::string>{"block_1"};
+    auto tFixedBlockNames = std::set<std::string>{mBlockNames[0]};
     const auto tMesh = mesh::Mesh{mMeshFilePath, std::move(tFixedBlockNames)};
 
     const auto tDensityVector = std::vector<double>{0.25, 0.25, 1.0};
@@ -124,7 +124,7 @@ TEST_F(TwoDThreeBlockMesh, VolumeCriterionWithFixedBlocks)
 
 TEST_F(TwoDThreeBlockMesh, GradientVolumeCriterionWithFixedBlocks)
 {
-    auto tFixedBlockNames = std::set<std::string>{"block_1", "block_3"};
+    auto tFixedBlockNames = std::set<std::string>{mBlockNames[0], mBlockNames[2]};
     const auto tMesh = mesh::Mesh{mMeshFilePath, std::move(tFixedBlockNames)};
     constexpr auto tNumberOfNodalDensities = 2U;
     const auto tDensityVector = std::vector<double>(tNumberOfNodalDensities, 1.0);

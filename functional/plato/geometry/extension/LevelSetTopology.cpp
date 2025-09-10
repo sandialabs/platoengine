@@ -23,6 +23,7 @@
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
 #include "plato/utilities/FileUtilities.hpp"
 
@@ -111,6 +112,8 @@ auto make_level_set_geometry(const library::ValidatedGeometryInput& aGeometryInp
         [](const input_parser::level_set_topology& aInput) { return library::detail::validate_output_name(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_lower_bound(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_upper_bound(aInput); },
+        [](const input_parser::level_set_topology& aInput)
+        { return detail::validate_max_snapping_edge_length(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_radius(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_spacing(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_bbox(aInput); },
@@ -140,6 +143,12 @@ auto void_phase(const input_parser::level_set_topology& aInput)
     return aInput.include_void_region.value() ? tpik::VoidPhase::kIncludeInMesh : tpik::VoidPhase::kExcludeFromMesh;
 }
 
+auto snapping_parameters_from_input(const input_parser::level_set_topology& aInput) -> tpik::SnappingParameters
+{
+    constexpr auto tDefaultSnappingEdgeLength = tpik::SnappingParameters{}.mMaxSnappingEdgeLength;
+    return tpik::SnappingParameters{
+        .mMaxSnappingEdgeLength = aInput.max_edge_length_percentage_for_snapping.value_or(tDefaultSnappingEdgeLength)};
+}
 }  // namespace
 
 LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInput)
@@ -148,10 +157,14 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
       mOutputMesh(aInput.output_name.value().mToken),
       mVoidRegion(void_phase(aInput)),
       mLevelSetBounds(std::make_pair(aInput.level_set_lower_bound.value(), aInput.level_set_upper_bound.value())),
-      mKrinoWrapperCache{[tFixedValue = mLevelSetBounds.second](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                         { return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, tFixedValue); },
-                         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                         { return analysis::hash_value(aAnalysisDomainMesh); }}
+      mKrinoWrapperCache{
+          [tFixedValue = mLevelSetBounds.second, tSnappingParameters = snapping_parameters_from_input(aInput)](
+              const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
+              return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, tFixedValue,
+                                                                  tSnappingParameters);
+          },
+          [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+          { return analysis::hash_value(aAnalysisDomainMesh); }}
 {
 }
 
@@ -252,7 +265,8 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
                                                       aInput.level_set_upper_bound.value()};
     const auto tFilteredField = output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 
-    make_krino_wrapper_from_analysis_domain_mesh(tFilteredField, tMeshFieldOutput.mFixedFieldValue)
+    make_krino_wrapper_from_analysis_domain_mesh(tFilteredField, tMeshFieldOutput.mFixedFieldValue,
+                                                 snapping_parameters_from_input(aInput))
         .writeCutMesh(aInput.output_name->mToken, void_phase(aInput));
 }
 
@@ -293,6 +307,13 @@ auto validate_upper_bound(const input_parser::level_set_topology& aInput) -> std
     return input_validation::error_message_for_parameter_out_of_bounds(
         input_parser::block_name<input_parser::level_set_topology>(), aInput.level_set_upper_bound,
         "level_set_upper_bound", utilities::lower_bounded(utilities::Exclusive{0.0}));
+}
+
+auto validate_max_snapping_edge_length(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
+{
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
+        input_parser::block_name<input_parser::level_set_topology>(), aInput.max_edge_length_percentage_for_snapping,
+        "max_edge_length_percentage_for_snapping", utilities::unit_bounded());
 }
 
 auto validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput) -> std::optional<std::string>

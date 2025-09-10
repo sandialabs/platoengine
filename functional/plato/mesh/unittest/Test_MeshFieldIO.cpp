@@ -84,7 +84,7 @@ TEST_F(MeshFieldWriterTestMesh, WriteNodalFieldNoFixedBlocks)
 
 TEST_F(MeshFieldWriterTestMesh, WriteNodalFieldOneFixedBlock)
 {
-    const auto tFixedBlock = std::set<std::string>{"fixed"};
+    const auto tFixedBlock = std::set<std::string>{mBlockNames[0]};
     const auto tMesh = Mesh{mMeshFilePath, tFixedBlock};
     const auto tFieldToWrite = std::vector{1.0, 2.0, 3.0, 4.0};
     const auto tExpectedField =
@@ -103,7 +103,7 @@ TEST_F(MeshFieldWriterTestMesh, WriteElementFieldNoFixedBlocks)
 
 TEST_F(MeshFieldWriterTestMesh, WriteElementFieldOneFixedBlock)
 {
-    const auto tFixedBlock = std::set<std::string>{"fixed"};
+    const auto tFixedBlock = std::set<std::string>{mBlockNames[0]};
     const auto tMesh = Mesh{mMeshFilePath, tFixedBlock};
     const auto tFieldToWrite = std::vector{1.0, 2.0};
     const auto tExpectedField = std::vector{tFieldToWrite[0], tFieldToWrite[1], kFixedValue};

@@ -18,6 +18,7 @@
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
@@ -29,6 +30,7 @@ namespace plato::geometry::extension::unittest
 namespace
 {
 namespace tpik = third_party_integration::krino;
+constexpr double kFixedBlockLevelSetValue{1.0};
 const auto kRectangleMeshFilePath = utilities::data_file_path("rectangle_3x4_tri3.cdf");
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 const auto kCutPlane = tpik::Plane{{0, -1, 0}, 0.6};
@@ -71,7 +73,8 @@ namespace
         mesh::DesignVariablesConversion{mesh::Mesh{kRectangleMeshFilePath.value()}}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tX});
 
-    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
+    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, kFixedBlockLevelSetValue,
+                                                        tpik::SnappingParameters{});
 }
 
 [[nodiscard]] auto make_iota_vector(const std::size_t aSize, const double aShift) -> std::vector<double>
@@ -131,7 +134,8 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
             mesh::DesignVariablesConversion{mesh::Mesh{tMeshFile.value()}}.nodalFieldToAnalysisDomainMesh(
                 mesh::NodalFieldVectorReference{aX.stdVector()});
 
-        const auto tWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0);
+        const auto tWrapper = make_krino_wrapper_from_analysis_domain_mesh(
+            tAnalysisDomainMesh, kFixedBlockLevelSetValue, tpik::SnappingParameters{});
         tWrapper.writeCutMesh(tFileName, third_party_integration::krino::VoidPhase::kIncludeInMesh);
         const auto tMesh = mesh::Mesh{tFileName};
         const auto tCutMeshNodeSize = mesh::EntityCounts{tMesh}.numberOfNodes();

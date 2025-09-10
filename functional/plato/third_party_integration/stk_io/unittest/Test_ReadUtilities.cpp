@@ -145,7 +145,7 @@ TEST_F(NodalDensityMesh, ReadNodalField)
 TEST_F(NodalDensityMesh, NodalFieldNames)
 {
     const auto tResult = nodal_field_names(mMeshName);
-    const std::vector<std::string> tGold{"coordinates", "topology"};
+    const std::vector<std::string> tGold{"coordinates", "Topology"};
     EXPECT_EQ(tResult, tGold);
 }
 

@@ -5,6 +5,7 @@
 #include <Akri_CreateInterfaceGeometry.hpp>  //LS_Field
 #include <Akri_LevelSet.hpp>
 #include <Akri_LevelSetPolicy.hpp>
+#include <Akri_LevelSetShapeSensitivities.hpp>
 #include <stk_mesh/base/Types.hpp>
 
 #include "plato/third_party_integration/common/Vector3.hpp"
@@ -34,48 +35,21 @@ using SensitivityMap = std::unordered_map<CutMeshSurfaceNodeId, LevelSetJacobian
 using CoordinateFieldReference = utilities::NamedType<::krino::FieldRef, struct CoordinateFieldReferenceTag>;
 using LevelSetFieldReference = utilities::NamedType<::krino::FieldRef, struct LevelSetFieldReferenceTag>;
 
-/// @brief Take a krino mesh's bulk data @a aBulkData, and retrieve a vector of the child node stencils.
+/// @brief Return sensitivities of nodal coordinates with respect to the nodal level set field as computed by krino.
 ///
-/// Child node stencils provide information about who the parents are of that child node.
 /// @pre The environment for krino must be initialized and set up as follows:
 /// @code{.cpp}
 /// initialize_environment_for_krino(...);
 /// read_and_setup_for_decomposition(...);
-/// setup_level_set_field_values(...);
 /// cut_mesh(...);
 /// @endcode
-[[nodiscard]] auto get_child_node_stencils(const stk::mesh::BulkData& aBulkData)
-    -> std::vector<::krino::ChildNodeStencil>;
+[[nodiscard]] auto get_krino_sensitivities(const stk::mesh::BulkData& aBulkData,
+                                           const std::vector<::krino::LS_Field>& aLevelSetFields)
+    -> std::vector<::krino::LevelSetShapeSensitivity>;
 
-/// @brief Take a krino mesh's bulk data @a aBulkData, and a vector of parent nodes @a aParentNodes and extract the stk
-/// mesh ids for the parents
-///
-/// @pre The environment for krino must be initialized and set up as follows:
-/// @code{.cpp}
-/// initialize_environment_for_krino(...);
-/// read_and_setup_for_decomposition(...);
-/// setup_level_set_field_values(...);
-/// cut_mesh(...);
-/// @endcode
-[[nodiscard]] auto parent_node_ids_from_parent_nodes(const stk::mesh::BulkData& aBulkData,
-                                                     const std::vector<ParentNode>& aParentNodes)
-    -> std::vector<BackgroundMeshNodeId>;
-
-/// @brief Compute the coordinate level set by taking field data references for the coordinates @a aCoordinateField and
-/// the level set field @a aLevelSetField, and using the parent nodes @a aParentNodes along with   krino mesh's bulk
-/// data @a aBulkData, and a vector of parent nodes @a aParentNodes. Perform the calculation using the spatial dimension
-/// specified in @a aSpatialDimension
-///
-/// @pre The environment for krino must be initialized and set up as follows:
-/// @code{.cpp}
-/// initialize_environment_for_krino(...);
-/// read_and_setup_for_decomposition(...);
-/// setup_level_set_field_values(...);
-/// cut_mesh(...);
-/// @endcode
-[[nodiscard]] auto level_set_coordinate_sensitivity(const CoordinateFieldReference aCoordinateField,
-                                                    const LevelSetFieldReference aLevelSetField,
-                                                    const std::vector<stk::mesh::Entity>& aParentNodes,
+/// @brief Return a vector of derivatives of each nodal coordinate with respect to the nodal level set field. The
+/// coordinate sensitivities are stored in a Vector3, with z coordinates set to 0 if @a aSpatialDimension is 2.
+[[nodiscard]] auto coordinate_level_set_sensitivity(const ::krino::LevelSetShapeSensitivity& aLevelSetSensitivity,
                                                     const unsigned int aSpatialDimension)
     -> std::vector<common::Vector3>;
 
