@@ -14,6 +14,7 @@ struct Triangle
     common::Coordinate p2;
 
     [[nodiscard]] double volume() const;
+    [[nodiscard]] common::Vector3 normal() const;
     [[nodiscard]] common::Coordinate centroid() const;
 
     constexpr static auto kNumVertices = unsigned{3};
