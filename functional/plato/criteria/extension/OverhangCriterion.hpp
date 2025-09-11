@@ -9,8 +9,7 @@
 
 namespace plato::criteria::extension
 {
-/// @brief Computes a scalar value representing the amount of unwanted overhang wrt a build direction and overhang
-/// angle.
+/// @brief Computes a scalar value representing the amount of overhang wrt a build direction and overhang angle.
 struct OverhangCriterion
 {
     [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;

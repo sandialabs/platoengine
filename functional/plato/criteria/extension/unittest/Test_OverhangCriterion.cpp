@@ -1,18 +1,11 @@
 #include <gtest/gtest.h>
-/*
-#include <string_view>
 
-#include "plato/mesh/Mesh.hpp"
-#include "plato/test_utilities/FilesystemTestUtility.hpp"
-#include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
-*/
 #include "plato/criteria/extension/OverhangCriterion.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::criteria::extension::unittest
 {
+
 using namespace plato::third_party_integration::common;
 using namespace plato::third_party_integration::stk_io;
 
@@ -20,12 +13,6 @@ constexpr double kTolerance{1e-14};
 constexpr Vector3 kBuildDirection{0, 0, -1};
 constexpr double kStepTransitionWidth{0.05};
 constexpr double kOverhangAngleThreshold{-std::sqrt(2.0) / 2.0};
-// namespace
-//{
-
-// constexpr std::string_view kBrickFile = "brick.exo";
-// constexpr std::string_view kTestFile = "test.exo";
-// }  // namespace
 
 TEST(OverhangCriterion, ExponentialStepFunction)
 {

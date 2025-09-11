@@ -21,11 +21,13 @@ using Registration =
                  [](const library::CriterionInput&) { return make_overhang_function(); }};
 }  // namespace
 
-double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+double OverhangCriterion::f(const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/) const
 {
+    /*
     namespace tpi = plato::third_party_integration;
 
     const auto tMesh = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
+    */
     return 0.0;
 }
 
