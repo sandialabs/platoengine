@@ -1,5 +1,6 @@
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 
+#include <algorithm>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <boost/serialization/unordered_map.hpp>
@@ -7,7 +8,7 @@
 #include <cstddef>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_util/environment/EnvData.hpp>  //get stk mpi env
+#include <stk_util/environment/EnvData.hpp>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -20,7 +21,8 @@
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"  //spatial_dimensions
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/NamedType.hpp"
@@ -200,19 +202,14 @@ auto KrinoWrapper::rowVectorAdjointJacobianProduct(const std::vector<double>& aB
 namespace
 {
 
-[[nodiscard]] auto down_select_to_design_domain(
+[[nodiscard]] auto to_vector_ordered_by_node_id(
     const std::unordered_map<tpik::BackgroundMeshNodeId, double>& aLevelSetValuesMap,
     const std::vector<tpik::BackgroundMeshNodeId>& aBackgroundDesignIDs) -> std::vector<double>
 {
-    const auto tFoundCondition = [&aLevelSetValuesMap](const auto aDesignDomainId) -> bool
-    { return aLevelSetValuesMap.find(aDesignDomainId) != aLevelSetValuesMap.end(); };
-
-    std::vector<double> tLevelSetValues;
-    tLevelSetValues.reserve(aBackgroundDesignIDs.size());
-    utilities::transform_if(
-        aBackgroundDesignIDs, std::back_inserter(tLevelSetValues),
-        [&aLevelSetValuesMap](const auto aBackgroundId) { return aLevelSetValuesMap.at(aBackgroundId); },
-        tFoundCondition);
+    auto tLevelSetValues = utilities::reserved_container<std::vector<double>>(aBackgroundDesignIDs.size());
+    std::ranges::transform(aBackgroundDesignIDs, std::back_inserter(tLevelSetValues),
+                           [&aLevelSetValuesMap](const auto aBackgroundNodeId)
+                           { return aLevelSetValuesMap.at(aBackgroundNodeId); });
 
     return tLevelSetValues;
 }
@@ -228,7 +225,7 @@ auto make_initial_guess_from_level_set_primitives(const std::filesystem::path& a
     const auto tLevelSetValuesMap = tpik::get_level_set_values(*tKrinoMesh, tLevelSetFields);
     const auto tBackgroundNodeIds = tpik::background_node_ids(*tKrinoMesh, tLevelSetFields);
 
-    return down_select_to_design_domain(tLevelSetValuesMap, tBackgroundNodeIds);
+    return to_vector_ordered_by_node_id(tLevelSetValuesMap, tBackgroundNodeIds);
 }
 
 auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
