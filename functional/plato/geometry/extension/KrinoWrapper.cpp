@@ -1,6 +1,5 @@
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 
-#include <algorithm>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <boost/serialization/unordered_map.hpp>
@@ -8,7 +7,7 @@
 #include <cstddef>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_util/environment/EnvData.hpp>
+#include <stk_util/environment/EnvData.hpp>  //get stk mpi env
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -21,8 +20,7 @@
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
-#include "plato/utilities/ContainerHelpers.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"  //spatial_dimensions
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/NamedType.hpp"
@@ -202,14 +200,19 @@ auto KrinoWrapper::rowVectorAdjointJacobianProduct(const std::vector<double>& aB
 namespace
 {
 
-[[nodiscard]] auto to_vector_ordered_by_node_id(
+[[nodiscard]] auto down_select_to_design_domain(
     const std::unordered_map<tpik::BackgroundMeshNodeId, double>& aLevelSetValuesMap,
     const std::vector<tpik::BackgroundMeshNodeId>& aBackgroundDesignIDs) -> std::vector<double>
 {
-    auto tLevelSetValues = utilities::reserved_container<std::vector<double>>(aBackgroundDesignIDs.size());
-    std::ranges::transform(aBackgroundDesignIDs, std::back_inserter(tLevelSetValues),
-                           [&aLevelSetValuesMap](const auto aBackgroundNodeId)
-                           { return aLevelSetValuesMap.at(aBackgroundNodeId); });
+    const auto tFoundCondition = [&aLevelSetValuesMap](const auto aDesignDomainId) -> bool
+    { return aLevelSetValuesMap.find(aDesignDomainId) != aLevelSetValuesMap.end(); };
+
+    std::vector<double> tLevelSetValues;
+    tLevelSetValues.reserve(aBackgroundDesignIDs.size());
+    utilities::transform_if(
+        aBackgroundDesignIDs, std::back_inserter(tLevelSetValues),
+        [&aLevelSetValuesMap](const auto aBackgroundId) { return aLevelSetValuesMap.at(aBackgroundId); },
+        tFoundCondition);
 
     return tLevelSetValues;
 }
@@ -225,7 +228,7 @@ auto make_initial_guess_from_level_set_primitives(const std::filesystem::path& a
     const auto tLevelSetValuesMap = tpik::get_level_set_values(*tKrinoMesh, tLevelSetFields);
     const auto tBackgroundNodeIds = tpik::background_node_ids(*tKrinoMesh, tLevelSetFields);
 
-    return to_vector_ordered_by_node_id(tLevelSetValuesMap, tBackgroundNodeIds);
+    return down_select_to_design_domain(tLevelSetValuesMap, tBackgroundNodeIds);
 }
 
 auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
@@ -287,15 +290,14 @@ auto compute_sensitivities(const stk::mesh::BulkData& aBulkData,
                            const std::vector<tpik::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes)
     -> tpik::SensitivityMap
 {
-    auto tSensitivityMap = tpik::SensitivityMap{};
-    const auto tSensitvitiesFromKrino = tpik::get_krino_sensitivities(aBulkData, aLevelSetFields);
+    const auto tSensitivitiesFromKrino = tpik::get_krino_sensitivities(aBulkData, aLevelSetFields);
     const auto tSpatialDimension = aBulkData.mesh_meta_data().spatial_dimension();
-    for (const auto& tCurrentSensitivity : tSensitvitiesFromKrino)
+    auto tSensitivityMap = utilities::reserved_container<tpik::SensitivityMap>(tSensitivitiesFromKrino.size());
+    for (const auto& tCurrentSensitivity : tSensitivitiesFromKrino)
     {
         const auto tSensitivity = tpik::coordinate_level_set_sensitivity(tCurrentSensitivity, tSpatialDimension);
         if (auto tLevelSetJacobianColumn = make_level_set_jacobian_column(tCurrentSensitivity.parentNodeIds,
-                                                                          tSensitivity, aDesignDomainBackgroundNodes);
-            tLevelSetJacobianColumn.has_value())
+                                                                          tSensitivity, aDesignDomainBackgroundNodes))
         {
             tSensitivityMap[tCurrentSensitivity.interfaceNodeId] = std::move(tLevelSetJacobianColumn).value();
         }
