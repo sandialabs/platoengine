@@ -135,13 +135,12 @@ TEST_F(OneTriMeshKrinoFixture, OneTriMeshNodeAllFixed)
 TEST_F(KrinoTestFixture, MakeKrinoWrapperFromAnalysisDomainMeshOneTri)
 {
     ASSERT_TRUE(kOneTriMeshFilePath.has_value());
-    constexpr auto tNonExistentFixedBlockValue = double{10.};
     const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{
         kOneTriMeshFilePath.value(),
         analysis::AnalysisDomainMesh::BlockScalarField{{1U, {{1U, 0U, .75}, {2U, 1U, -.25}, {4U, 2U, -.25}}}}};
     const auto tFixedBlocks = std::set<std::string>{};
-    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(
-        tAnalysisDomainMesh, tNonExistentFixedBlockValue, tFixedBlocks, tpik::SnappingParameters{});
+    const auto tKrinoWrapper =
+        make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
 
     const auto tSensitivityMap = tKrinoWrapper.sensitivities();
     tpik::test_utilities::test_sensitivity_map(tSensitivityMap, kOneTriSensitivityMap,
@@ -151,14 +150,13 @@ TEST_F(KrinoTestFixture, MakeKrinoWrapperFromAnalysisDomainMeshOneTri)
 TEST_F(KrinoTestFixture, MakeKrinoWrapperFromAnalysisDomainMeshFourTriTwoBlock)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    constexpr auto tFixedBlockValue = double{.75};
     const auto tAnalysisDomainMesh =
         analysis::AnalysisDomainMesh{kFourTriTwoBlockMeshFilePath.value(),
                                      analysis::AnalysisDomainMesh::BlockScalarField{
                                          {1U, {{1U, 0U, .75}, {2U, 1U, -.25}, {4U, 2U, -.25}, {7U, 3U, .75}}}}};
     const auto tFixedBlocks = std::set<std::string>{"block_2"};
-    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlockValue,
-                                                                            tFixedBlocks, tpik::SnappingParameters{});
+    const auto tKrinoWrapper =
+        make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
 
     const auto tFourTriWithFixedBlockSensitivityMap =
         tpik::SensitivityMap{{9, tpik::LevelSetJacobianColumn{{4, 1}, {{0.75, 0.75, 0}, {0.25, 0.25, 0}}, {2, 0}}},

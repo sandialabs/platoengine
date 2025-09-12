@@ -202,7 +202,7 @@ namespace
 
 [[nodiscard]] auto down_select_to_design_domain(
     const std::unordered_map<tpik::BackgroundMeshNodeId, double>& aLevelSetValuesMap,
-    const std::vector<tpik::BackgroundMeshNodeId>& aBackgroundDesignIDs)
+    const std::vector<tpik::BackgroundMeshNodeId>& aBackgroundDesignIDs) -> std::vector<double>
 {
     const auto tFoundCondition = [&aLevelSetValuesMap](const auto aDesignDomainId) -> bool
     { return aLevelSetValuesMap.find(aDesignDomainId) != aLevelSetValuesMap.end(); };
@@ -232,12 +232,11 @@ auto make_initial_guess_from_level_set_primitives(const std::filesystem::path& a
 }
 
 auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                  const double aFixedBlockLevelSetValue,
                                                   const std::set<std::string>& aFixedBlocks,
                                                   const tpik::SnappingParameters aSnappingParameters) -> KrinoWrapper
 {
     auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aAnalysisDomainMesh.mFileName, aFixedBlocks);
-    auto tLevelSet = tpik::make_level_set_field_from_fixed_value(*tKrinoMesh, aFixedBlockLevelSetValue);
+    auto tLevelSet = tpik::get_level_set_fields(*tKrinoMesh);
     set_level_set_fields(*tKrinoMesh, tLevelSet, aAnalysisDomainMesh);
     return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), aSnappingParameters};
 }

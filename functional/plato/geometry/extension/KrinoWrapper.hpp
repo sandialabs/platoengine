@@ -78,11 +78,9 @@ class KrinoWrapper
 /// @brief Helper function to facilitate making a KrinoWrapper.
 ///
 /// Use a mesh along with level set values and fixed blocks specified in an analysis domain mesh @a
-/// aAnalysisDomainMesh to create a KrinoWrapper. Design domain IDs are determined from the Analysis domain
-/// mesh. Fixed regions are set to a fixed block level set value @a aFixedBlockLevelSetValue.
+/// aAnalysisDomainMesh to create a KrinoWrapper. Design domain IDs are determined from the AnalysisDomainMesh.
 [[nodiscard]] auto make_krino_wrapper_from_analysis_domain_mesh(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-    double aFixedBlockLevelSetValue,
     const std::set<std::string>& aFixedBlocks,
     const third_party_integration::krino::SnappingParameters aSnappingParameters) -> KrinoWrapper;
 

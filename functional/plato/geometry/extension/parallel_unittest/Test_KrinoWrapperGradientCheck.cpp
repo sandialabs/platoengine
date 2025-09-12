@@ -76,8 +76,7 @@ namespace
         mesh::DesignVariablesConversion{mesh::Mesh{kRectangleMeshFilePath.value()}}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tX});
 
-    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0, tFixedBlocks,
-                                                        tpik::SnappingParameters{});
+    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
 }
 
 [[nodiscard]] auto make_iota_vector(const std::size_t aSize, const double aShift) -> std::vector<double>
@@ -139,7 +138,8 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
             mesh::DesignVariablesConversion{mesh::Mesh{tMeshFile.value()}}.nodalFieldToAnalysisDomainMesh(
                 mesh::NodalFieldVectorReference{aX.stdVector()});
 
-        const auto tWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0, tFixedBlocks, tpik::SnappingParameters{});
+        const auto tWrapper =
+            make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
         tWrapper.writeCutMesh(tFileName, third_party_integration::krino::VoidPhase::kIncludeInMesh);
         const auto tMesh = mesh::Mesh{tFileName};
         const auto tCutMeshNodeSize = mesh::EntityCounts{tMesh}.numberOfNodes();

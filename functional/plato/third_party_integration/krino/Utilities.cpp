@@ -153,16 +153,9 @@ auto make_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPri
     return tField;
 }
 
-auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh, const double aFixedLevelSetValue)
-    -> std::vector<::krino::LS_Field>
+auto get_level_set_fields(::krino::MeshInterface& aKrinoMesh) -> std::vector<::krino::LS_Field>
 {
-    std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data());
-    const auto tNodes = node_entities_in_mesh(aKrinoMesh, tField);
-    for (const auto tNode : tNodes)
-    {
-        level_set_value(tField, tNode) = aFixedLevelSetValue;
-    }
-    return tField;
+    return ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data());
 }
 
 auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,

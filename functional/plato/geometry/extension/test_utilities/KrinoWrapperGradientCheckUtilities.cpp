@@ -29,7 +29,8 @@ auto accumulate_cut_node_coordinates(const std::filesystem::path& aMeshToLoad,
             mesh::NodalFieldVectorReference{aPerturbedLevelSetField});
 
     const auto tFixedBlocks = std::set<std::string>{};
-    const auto tKrino = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0, tFixedBlocks, tpik::SnappingParameters{});
+    const auto tKrino =
+        make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
     const auto tCutMesh = std::filesystem::path{"cut_mesh.exo"};
     tKrino.writeCutMesh(tCutMesh, tpik::VoidPhase::kIncludeInMesh);
 

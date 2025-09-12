@@ -158,16 +158,14 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
       mOutputMesh(aInput.output_name.value().mToken),
       mVoidRegion(void_phase(aInput)),
       mLevelSetBounds(std::make_pair(aInput.level_set_lower_bound.value(), aInput.level_set_upper_bound.value())),
-      mKrinoWrapperCache{[mFixedValue = mLevelSetBounds.second,
-                          mFixedBlocks = fixed_blocks(aInput),
-                          mSnappingParameters = snapping_parameters_from_input(aInput)](
-                             const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                         {
-                             return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, mFixedValue,
-                                                                                 mFixedBlocks, tSnappingParameters);
-                         },
-                         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-                         { return analysis::hash_value(aAnalysisDomainMesh); }}
+      mKrinoWrapperCache{
+          [mFixedBlocks = fixed_blocks(aInput), mSnappingParameters = snapping_parameters_from_input(aInput)](
+              const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
+              return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, mFixedBlocks,
+                                                                  tSnappingParameters);
+          },
+          [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+          { return analysis::hash_value(aAnalysisDomainMesh); }}
 {
 }
 
@@ -266,8 +264,8 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
                                                       aInput.level_set_upper_bound.value()};
     const auto tFilteredField = output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 
-    make_krino_wrapper_from_analysis_domain_mesh(tFilteredField, tMeshFieldOutput.mFixedFieldValue,
-                                                 fixed_blocks(aInput), snapping_parameters_from_input(aInput))
+    make_krino_wrapper_from_analysis_domain_mesh(tFilteredField, fixed_blocks(aInput),
+                                                 snapping_parameters_from_input(aInput))
         .writeCutMesh(aInput.output_name->mToken, void_phase(aInput));
 }
 

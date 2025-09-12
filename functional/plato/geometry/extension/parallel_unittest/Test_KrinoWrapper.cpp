@@ -43,7 +43,7 @@ const auto kFourTriSensitivityMapRankOne =
     const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tInitialGuess});
-    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0, tFixedBlocks, tpik::SnappingParameters{});
+    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
 }
 
 }  // namespace
@@ -59,7 +59,7 @@ TEST_F(KrinoTestFixture, KrinoWrapperParallel)
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tDesignVariable});
     const auto tFixedBlocks = std::set<std::string>{};
-    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, 1.0, tFixedBlocks,
+    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks,
                                                                             tpik::snapping_off_parameters());
     const auto tSensitivity = tKrinoWrapper.sensitivities();
 
