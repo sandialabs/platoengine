@@ -3,6 +3,7 @@
 
 #include <boost/log/expressions/formatter.hpp>
 #include <boost/log/expressions/keyword.hpp>
+#include <cstdint>
 #include <ostream>
 
 #include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
@@ -11,7 +12,7 @@
 namespace plato::third_party_integration::boost_log
 {
 /// @brief Log severity level, used for filtering log messages.
-enum struct Severity
+enum struct Severity : std::uint8_t
 {
     kDebug,
     kInfo,

@@ -2,6 +2,7 @@
 #define PLATO_PROCESSMANAGER_LIBRARY_STAGEORDERING
 
 #include <algorithm>
+#include <cstdint>
 #include <iterator>
 #include <map>
 #include <vector>
@@ -14,7 +15,7 @@ namespace plato::process_manager::library
 /// execution order. Earlier stages are guaranteed to be executed before later
 /// stages, but if two ProcessManager functions have the same stage, no order
 /// is specified.
-enum class RunStage
+enum class RunStage : std::uint8_t
 {
     kValidate,
     kExecute,

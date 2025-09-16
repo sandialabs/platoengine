@@ -1,6 +1,7 @@
 #ifndef PLATO_CORE_FUNCTIONHELPERS
 #define PLATO_CORE_FUNCTIONHELPERS
 
+#include <cstdint>
 #include <functional>
 #include <tuple>
 
@@ -9,7 +10,7 @@
 namespace plato::core
 {
 /// @brief Used for choosing a matrix ordering for matrix operations such as Jacobian-vector products.
-enum struct MatrixOrdering
+enum struct MatrixOrdering : std::uint8_t
 {
     kOriginal,
     kAdjoint

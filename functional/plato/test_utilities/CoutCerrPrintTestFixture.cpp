@@ -1,7 +1,7 @@
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 
 #include <boost/mpi/communicator.hpp>
-#include <boost/regex.hpp>
+#include <regex>
 
 #include "plato/test_utilities/TestContext.hpp"
 
@@ -28,8 +28,8 @@ void checkRankZeroStringStreamStreamForPattern(const std::ostringstream& aStream
     {
         for (const auto& tKey : aKeyList)
         {
-            boost::regex tPattern(tKey);
-            EXPECT_TRUE(boost::regex_search(tString, tPattern)) << aTestContext << ": " << tKey;
+            auto tPattern = std::regex{tKey};
+            EXPECT_TRUE(std::regex_search(tString, tPattern)) << aTestContext << ": " << tKey;
         }
     }
 }

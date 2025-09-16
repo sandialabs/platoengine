@@ -117,7 +117,7 @@ struct BlockStructRule
         block_or_rule<Iterator, BlockStruct>(mAllBlockRules);
 
     bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockRule =
-        mPreambleRule > mBlockOrRule[bsq::_val = bsq::_1] > mPostambleRule;
+        mPreambleRule > mBlockOrRule[bsq::_val = bsq::_1] > mPostambleRule;  // NOLINT(bugprone-chained-comparison)
 };
 
 /// @brief Specifies whether a component has a name that should be parsed.

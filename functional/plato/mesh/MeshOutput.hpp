@@ -1,6 +1,7 @@
 #ifndef PLATO_MESH_MESHOUTPUT
 #define PLATO_MESH_MESHOUTPUT
 
+#include <cstdint>
 #include <memory>
 #include <set>
 #include <string>
@@ -17,7 +18,7 @@ struct AnalysisDomainMesh;
 namespace plato::mesh
 {
 /// @brief The supported types of output for meshes.
-enum struct OutputMode
+enum struct OutputMode : std::uint8_t
 {
     kOverwrite,
     kAppend

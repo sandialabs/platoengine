@@ -1,6 +1,7 @@
 #ifndef PLATO_CRITERIA_LIBRARY_CONSTRAINTFACTORY
 #define PLATO_CRITERIA_LIBRARY_CONSTRAINTFACTORY
 
+#include <cstdint>
 #include <string>
 
 #include "plato/core/Function.hpp"
@@ -17,7 +18,7 @@ namespace plato::criteria::library
 {
 using ValidatedConstraints = input_validation::ValidatedComponentType<components::ComponentType::kConstraint>;
 
-enum class ConstraintType
+enum class ConstraintType : std::uint8_t
 {
     kEqualTo,
     kLessThan,

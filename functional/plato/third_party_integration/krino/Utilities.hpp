@@ -9,6 +9,7 @@
 #include <Akri_MeshFromFile.hpp>             //MeshInterface
 #include <Akri_MeshHelpers.hpp>              //field_data
 #include <boost/mpi/communicator.hpp>
+#include <cstdint>
 #include <filesystem>
 #include <stk_mesh/base/Types.hpp>
 
@@ -19,7 +20,7 @@ namespace plato::third_party_integration::krino
 {
 
 /// @brief Describes whether or not to include a void phase block in the generated cut mesh.
-enum struct VoidPhase
+enum struct VoidPhase : std::uint8_t
 {
     kIncludeInMesh,
     kExcludeFromMesh

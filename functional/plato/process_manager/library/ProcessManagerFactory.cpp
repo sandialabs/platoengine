@@ -1,5 +1,6 @@
 #include "plato/process_manager/library/ProcessManagerFactory.hpp"
 
+#include <cstdint>
 #include <iterator>
 
 #include "plato/process_manager/library/StageOrdering.hpp"
@@ -9,7 +10,7 @@ namespace plato::process_manager::library
 {
 namespace
 {
-enum struct RegistrationStatus
+enum struct RegistrationStatus : std::uint8_t
 {
     kRegistered,
     kUnregistered

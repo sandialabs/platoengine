@@ -2,6 +2,7 @@
 #define PLATO_UTILITIES_COLORIZE
 
 #include <concepts>
+#include <cstdint>
 #include <ostream>
 #include <string_view>
 
@@ -10,7 +11,7 @@ namespace plato::utilities
 /// @brief Text color for console output.
 /// @sa Colorize
 /// @sa colorize
-enum struct TextColor
+enum struct TextColor : std::uint8_t
 {
     kDefault,
     kRed,

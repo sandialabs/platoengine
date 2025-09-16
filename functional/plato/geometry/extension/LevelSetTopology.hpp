@@ -50,7 +50,7 @@ struct level_set_topology;
 
 namespace plato::third_party_integration::krino
 {
-enum struct VoidPhase;
+enum struct VoidPhase : std::uint8_t;
 }  // namespace plato::third_party_integration::krino
 
 namespace plato::geometry::extension

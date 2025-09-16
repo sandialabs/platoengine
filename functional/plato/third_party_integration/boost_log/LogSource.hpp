@@ -3,6 +3,7 @@
 
 #include <boost/log/expressions/filter.hpp>
 #include <boost/log/expressions/keyword.hpp>
+#include <cstdint>
 #include <ostream>
 
 #include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
@@ -10,7 +11,7 @@
 namespace plato::third_party_integration::boost_log
 {
 /// @brief Enum tag to distinguish log messages generated internally to platoengine vs. externally in shared libraries.
-enum struct LogSource
+enum struct LogSource : std::uint8_t
 {
     kInternal,
     kExternal

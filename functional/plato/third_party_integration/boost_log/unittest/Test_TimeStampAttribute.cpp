@@ -2,7 +2,7 @@
 
 #include <boost/log/sources/logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
-#include <boost/regex.hpp>
+#include <regex>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
@@ -24,8 +24,8 @@ void check_time_regex(const std::string_view aTimeStampRegex,
     BOOST_LOG(tLogger) << "should not appear";
 
     // Check via a regex matching the date/time format
-    const auto tRegex = boost::regex{aTimeStampRegex.data()};
-    EXPECT_TRUE(boost::regex_search(aLogStream.str(), tRegex))
+    const auto tRegex = std::regex{aTimeStampRegex.data()};
+    EXPECT_TRUE(std::regex_search(aLogStream.str(), tRegex))
         << aTestContext << "Result: " << aLogStream.str() << "\nRegex: " << aTimeStampRegex;
 }
 }  // namespace
