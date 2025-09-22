@@ -188,9 +188,10 @@ const auto kFourTriFixedTwoGoldValues =
 const auto kFourTriInterfaceNearNodeLambda = []() -> KrinoWrapper
 {
     initialize_krino();
+    const auto tFixedBlockNames = std::set<std::string>{"block_2"};
     return test_utilities::make_krino_wrapper_from_level_set_primitives(
         kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kPlaneNearBackgroundNode}, {}},
-        std::vector<tpik::BackgroundMeshNodeId>{1U, 2U, 4U, 7U});
+        tFixedBlockNames);
 };
 
 const auto kFourTriInterfaceNearNodeInputs =

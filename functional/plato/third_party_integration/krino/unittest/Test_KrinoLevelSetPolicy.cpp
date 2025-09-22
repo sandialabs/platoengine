@@ -3,7 +3,7 @@
 #include <stk_util/environment/EnvData.hpp>
 
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/krino/LevelSetInitialization.hpp"
+#include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/DataFilePath.hpp"
@@ -12,7 +12,7 @@ namespace plato::third_party_integration::krino::unittest
 {
 namespace
 {
-class LevelSetInitializationFixture : public test_utilities::KrinoTestFixture
+class KrinoLevelSetPolicyFixture : public test_utilities::KrinoTestFixture
 {
 };
 
@@ -20,7 +20,7 @@ const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_tw
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 }  // namespace
 
-TEST_F(LevelSetInitializationFixture, SetupLevelSets)
+TEST_F(KrinoLevelSetPolicyFixture, SetupLevelSets)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
 
@@ -63,7 +63,7 @@ TEST_F(LevelSetInitializationFixture, SetupLevelSets)
     tCheckFieldsAndBlocks({"block_2"}, {"block_1_void"}, TEST_CONTEXT("Block 2 excluded"));
 }
 
-TEST_F(LevelSetInitializationFixture, BlockParts)
+TEST_F(KrinoLevelSetPolicyFixture, BlockParts)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
     auto tMeshFromFile =

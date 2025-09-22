@@ -21,6 +21,7 @@
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"  //spatial_dimensions
+#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/NamedType.hpp"
@@ -207,12 +208,10 @@ namespace
     const auto tFoundCondition = [&aLevelSetValuesMap](const auto aDesignDomainId) -> bool
     { return aLevelSetValuesMap.find(aDesignDomainId) != aLevelSetValuesMap.end(); };
 
-    std::vector<double> tLevelSetValues;
-    tLevelSetValues.reserve(aBackgroundDesignIDs.size());
+    auto tLevelSetValues = utilities::reserved_container<std::vector<double>>(aBackgroundDesignIDs.size());
     utilities::transform_if(
-        aBackgroundDesignIDs, std::back_inserter(tLevelSetValues),
-        [&aLevelSetValuesMap](const auto aBackgroundId) { return aLevelSetValuesMap.at(aBackgroundId); },
-        tFoundCondition);
+        aBackgroundDesignIDs, std::back_inserter(tLevelSetValues), [&aLevelSetValuesMap](const auto aBackgroundId)
+        { return aLevelSetValuesMap.at(aBackgroundId); }, tFoundCondition);
 
     return tLevelSetValues;
 }

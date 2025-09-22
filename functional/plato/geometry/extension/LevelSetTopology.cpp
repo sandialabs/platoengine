@@ -162,7 +162,7 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
           [mFixedBlocks = fixed_blocks(aInput), mSnappingParameters = snapping_parameters_from_input(aInput)](
               const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
               return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, mFixedBlocks,
-                                                                  tSnappingParameters);
+                                                                  mSnappingParameters);
           },
           [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
           { return analysis::hash_value(aAnalysisDomainMesh); }}

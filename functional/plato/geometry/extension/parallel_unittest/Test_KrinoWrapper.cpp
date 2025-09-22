@@ -19,7 +19,6 @@ using third_party_integration::krino::test_utilities::KrinoTestFixture;
 namespace
 {
 namespace tpik = third_party_integration::krino;
-constexpr double kFixedBlockLevelSetValue{1.0};
 const auto kBoxFilePath = utilities::data_file_path("box_3x4x7_tet4.cdf");
 const auto kUnitSphere = tpik::Sphere{{0, 0, 0}, 1};
 const auto kThreeQuarterOffsetXHatPlane = tpik::Plane{{-1, 0, 0}, 0.75};

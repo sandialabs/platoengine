@@ -8,6 +8,7 @@
 #include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::geometry::extension::unittest
@@ -25,8 +26,10 @@ using tpik::test_utilities::KrinoTestFixture;
 [[nodiscard]] auto flatten_sensitivities(
     const std::unordered_map<tpik::CutMeshSurfaceNodeId, tpik::LevelSetJacobianColumn>& aMap) -> std::vector<double>
 {
-    std::vector<double> tFlattenedSensitivity;
-    tFlattenedSensitivity.reserve(aMap.size() * 2U * 2U);
+    constexpr auto tDimensions = 2U;
+    constexpr auto tNumberOfParentNodes = 2U;
+    auto tFlattenedSensitivity =
+        utilities::reserved_container<std::vector<double>>(aMap.size() * tDimensions * tNumberOfParentNodes);
     for (const auto& tEntry : aMap)
     {
         for (const auto& tNodalSensitivity : tEntry.second.mNodalSensitivities)

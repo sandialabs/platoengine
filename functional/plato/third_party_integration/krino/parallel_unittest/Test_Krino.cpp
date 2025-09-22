@@ -9,7 +9,7 @@
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/krino/LevelSetInitialization.hpp"
+#include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
@@ -100,10 +100,9 @@ void read_mesh_check_ids(const std::vector<stk::mesh::EntityId>& aCutMeshNodeIds
 {
     const auto tBulk = stk_io::read_mesh_bulk_data(std::string{kWriteMeshName});
     const auto& tParts = tBulk->mesh_meta_data().get_mesh_parts();
-    stk_io::PartReferenceVector tPartsVector;
-    tPartsVector.reserve(tParts.size());
-    std::transform(tParts.begin(), tParts.end(), std::back_inserter(tPartsVector),
-                   [](const auto aPart) { return std::cref(*aPart); });
+    auto tPartsVector = utilities::reserved_container<stk_io::PartReferenceVector>(tParts.size());
+    std::ranges::transform(tParts, std::back_inserter(tPartsVector),
+                           [](const auto aPart) { return std::cref(*aPart); });
     const auto tNodeIds = stk_io::node_ids(*tBulk, tPartsVector);
     EXPECT_EQ(tNodeIds, aCutMeshNodeIds);
 }
@@ -191,7 +190,7 @@ TEST_F(ParallelKrinoFixture, FixedBlock)
     }
     // Cut mesh node ids
     {
-        cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField);
+        cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
         const auto tCutMeshNodeIds = cut_mesh_node_ids(*tKrinoMesh, VoidPhase::kIncludeInMesh);
         constexpr auto tExpectedNumberOfCutMeshNodes = 9U;  // For both blocks, this would be 11
         EXPECT_EQ(tCutMeshNodeIds.size(), tExpectedNumberOfCutMeshNodes);

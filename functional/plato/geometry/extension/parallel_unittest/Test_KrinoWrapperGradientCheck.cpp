@@ -30,7 +30,7 @@ namespace plato::geometry::extension::unittest
 namespace
 {
 namespace tpik = third_party_integration::krino;
-constexpr double kFixedBlockLevelSetValue{1.0};
+
 const auto kRectangleMeshFilePath = utilities::data_file_path("rectangle_3x4_tri3.cdf");
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 const auto kCutPlane = tpik::Plane{{0, -1, 0}, 0.6};
