@@ -23,7 +23,8 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
     (plato::input_parser::FileName, output_name, "Required field specifying the exodus output file name to use when writing results.")
     (bool, include_void_region, "Required field specifying whether to include the elements of the void region when writing the cut mesh.")
-    (double, max_edge_length_percentage_for_snapping, "Optional field specifying maximum fraction of an edge length that can be collapsed by snapping. Can range from 0 to 1. A value of 0 turns off snapping (only cutting), a value of 1 will collapse all edges near the level set interface (no cutting). Default is 0.15.")
+    (double, max_edge_length_percentage_for_snapping, "Optional field specifying maximum fraction of an edge length that can be collapsed by snapping. "
+        "Can range from 0 to 1. A value of 0 turns off snapping (only cutting), a value of 1 will collapse all edges near the level set interface (no cutting). Default is 0.15.")
     (double, sphere_pattern_bbox_min_x, "Required field specifying the starting x-coordinate of the sphere pattern's bounding box.")
     (double, sphere_pattern_bbox_min_y, "Required field specifying the starting y-coordinate of the sphere pattern's bounding box.")
     (double, sphere_pattern_bbox_min_z, "Required field specifying the starting z-coordinate of the sphere pattern's bounding box.")
@@ -80,19 +81,44 @@ class LevelSetTopology
     LevelSetTopology& operator=(const LevelSetTopology&) = delete;
     LevelSetTopology& operator=(LevelSetTopology&&) = delete;
 
+    /// @brief Returns the bounds on the design variables.
+    /// @return Design variable bounds vectors, `.first` containing the lower bounds and `.second` containing the upper
+    /// bounds. The size of each vector will match the total number of design variables.
     [[nodiscard]] auto bounds() const -> std::pair<std::vector<double>, std::vector<double>>;
+
+    /// @brief Returns the initial guess design variable vector.
+    /// @return The size of the returned vector is equal to the number of design variables, which will be the number of
+    /// nodes in design domain of the background mesh.
     [[nodiscard]] auto initialGuess() const -> linear_algebra::DynamicVector<double>;
+
+    /// @brief Writes a cut mesh to disk based on the design variables @a aDesignParameter.
+    /// @param aDesignParameter The vector size must be equal to the number of design variables.
+    /// @return An AnalysisDomainMesh, only containing the location of the cut mesh on disk.
     [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> analysis::AnalysisDomainMesh;
+
+    /// @brief Writes user output corresponding to the input parameters in @a aInput.
+    ///
+    /// The size of the solution vector @a aSolution must match the number of design variables. This represents a scalar
+    /// level-set field that is filtered with @a aFilterFunction in the output file.
     static void output(const input_parser::level_set_topology& aInput,
                        const filter::library::FilterFunction& aFilterFunction,
                        const linear_algebra::DynamicVector<double>& aSolution,
                        const library::OutputInfo& aOutputInfo);
+
+    /// @brief Returns a JacobianMultiplier function object that computes the row-vector-Jacobian-product of the
+    /// level-set operation evaluated at @a aDesignParameter.
+    /// @param aDesignParameter The vector size must be equal to the number of design variables.
     [[nodiscard]] auto jacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> linear_algebra::JacobianMultiplier;
+
+    /// @brief Returns an AdjointJacobianMultiplier function object that computes the
+    /// row-vector-adjoint-Jacobian-product of the level-set operation evaluated at @a aDesignParameter.
+    /// @param aDesignParameter The vector size must be equal to the number of design variables.
     [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
         -> linear_algebra::AdjointJacobianMultiplier;
 
+    /// @brief Returns the background mesh on which the level-set field is defined.
     [[nodiscard]] auto backgroundMesh() const -> const mesh::Mesh&;
 
    private:

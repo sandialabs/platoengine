@@ -5,6 +5,9 @@
 #include <stk_mesh/base/Types.hpp>
 #include <string>
 
+/// @file This code is mainly lifted from internal functions in krino/krino/krino_lib/Akri_LevelSetPolicy.cpp. It is not
+/// API-accessible and so it is reproduced here. This code should be moved to krino.
+
 namespace krino
 {
 class MeshInterface;

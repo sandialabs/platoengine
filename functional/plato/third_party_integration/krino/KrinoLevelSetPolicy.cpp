@@ -1,4 +1,4 @@
-#include "plato/third_party_integration/krino/LevelSetInitialization.hpp"
+#include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
 
 #include <Akri_AuxMetaData.hpp>
 #include <Akri_CDFEM_Support.hpp>
@@ -79,10 +79,9 @@ void register_blocks_for_decomposition_by_levelsets(::krino::Phase_Support& aPha
         aPhaseSupport.register_blocks_for_level_set(::krino::Surface_Identifier(tLevelSetIndex), aBlocks);
     }
 
-    auto tLevelSets = std::vector<
-        std::tuple<stk::mesh::PartVector, std::shared_ptr<::krino::Interface_Name_Generator>, ::krino::PhaseVec>>{};
-    tLevelSets.push_back(std::make_tuple(aBlocks, std::make_shared<::krino::LS_Name_Generator>(), aNamedPhases));
-    aPhaseSupport.decompose_blocks(tLevelSets);
+    auto tDecompositionPackage = ::krino::DecompositionPackage{};
+    tDecompositionPackage.add_levelset_decomposition(aBlocks, aNamedPhases);
+    aPhaseSupport.decompose_blocks(tDecompositionPackage);
 }
 
 void register_levelset_fields(stk::mesh::MetaData& aMetaData,
