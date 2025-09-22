@@ -65,10 +65,10 @@ TEST_F(KrinoLevelSetPolicyFixture, SetupLevelSets)
 
 TEST_F(KrinoLevelSetPolicyFixture, BlockParts)
 {
-    ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    auto tMeshFromFile =
-        std::make_unique<::krino::MeshFromFile>(kFourTriTwoBlockMeshFilePath.value().string(),
-                                                stk::EnvData::parallel_comm(), std::string{kDecompositionMethod});
+    const auto kFourBlockMeshFilePath = utilities::data_file_path("four_block_rect_with_circ.cdf");
+    ASSERT_TRUE(kFourBlockMeshFilePath.has_value());
+    auto tMeshFromFile = std::make_unique<::krino::MeshFromFile>(
+        kFourBlockMeshFilePath.value().string(), stk::EnvData::parallel_comm(), std::string{kDecompositionMethod});
 
     const auto tToBlockNames = [](const stk::mesh::PartVector& aBlockParts)
     {
@@ -78,21 +78,34 @@ TEST_F(KrinoLevelSetPolicyFixture, BlockParts)
         return tBlockNames;
     };
     // All block parts
+    const auto tAllBlockNames = std::vector<std::string>{"left_rect", "right_rect", "left_circ", "right_circ"};
     {
         const auto tAllBlocks = all_block_parts(*tMeshFromFile);
-        const auto tExpectedBlockNames = std::vector<std::string>{"block_1", "block_2"};
-        EXPECT_EQ(tToBlockNames(tAllBlocks), tExpectedBlockNames);
+        EXPECT_EQ(tToBlockNames(tAllBlocks), tAllBlockNames);
     }
     // Subset of block parts
     {
-        const auto tBlocks = all_blocks_except(*tMeshFromFile, {"block_1"});
-        const auto tExpectedBlockNames = std::vector<std::string>{"block_2"};
+        const auto tBlocks = all_blocks_except(*tMeshFromFile, {});
+        EXPECT_EQ(tToBlockNames(tBlocks), tAllBlockNames);
+    }
+    {
+        const auto tBlocks = all_blocks_except(*tMeshFromFile, {"right_rect"});
+        const auto tExpectedBlockNames = std::vector<std::string>{"left_rect", "left_circ", "right_circ"};
         EXPECT_EQ(tToBlockNames(tBlocks), tExpectedBlockNames);
     }
     {
-        const auto tBlocks = all_blocks_except(*tMeshFromFile, {"block_2"});
-        const auto tExpectedBlockNames = std::vector<std::string>{"block_1"};
+        const auto tBlocks = all_blocks_except(*tMeshFromFile, {"right_rect", "left_circ"});
+        const auto tExpectedBlockNames = std::vector<std::string>{"left_rect", "right_circ"};
         EXPECT_EQ(tToBlockNames(tBlocks), tExpectedBlockNames);
+    }
+    {
+        const auto tBlocks = all_blocks_except(*tMeshFromFile, {"left_circ", "right_circ", "right_rect"});
+        const auto tExpectedBlockNames = std::vector<std::string>{"left_rect"};
+        EXPECT_EQ(tToBlockNames(tBlocks), tExpectedBlockNames);
+    }
+    {
+        const auto tBlocks = all_blocks_except(*tMeshFromFile, {"right_rect", "left_circ", "right_circ", "left_rect"});
+        EXPECT_TRUE(tBlocks.empty());
     }
 }
 
