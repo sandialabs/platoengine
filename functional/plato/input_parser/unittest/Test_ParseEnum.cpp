@@ -4,6 +4,7 @@
 #include <boost/phoenix/operator.hpp>
 #include <boost/phoenix/stl/algorithm.hpp>
 #include <boost/phoenix/stl/container.hpp>
+#include <cstdint>
 
 #include "plato/input_parser/EnumParser.hpp"
 #include "plato/utilities/EnumTable.hpp"
@@ -12,7 +13,7 @@ namespace plato::input_parser::unittest
 {
 namespace
 {
-enum struct Pizza
+enum struct Pizza : std::uint8_t
 {
     kCheese,
     kSupreme,

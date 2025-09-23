@@ -1,6 +1,7 @@
 #ifndef PLATO_MESH_MESHFIELDOUTPUTUTILITIES
 #define PLATO_MESH_MESHFIELDOUTPUTUTILITIES
 
+#include <cstdint>
 #include <string_view>
 
 namespace plato::analysis
@@ -16,7 +17,7 @@ class StkMeshIoBroker;
 namespace plato::mesh
 {
 /// @brief Enum describing whether a field is on nodes or elements
-enum struct MeshFieldType
+enum struct MeshFieldType : std::uint8_t
 {
     kElement,
     kNode

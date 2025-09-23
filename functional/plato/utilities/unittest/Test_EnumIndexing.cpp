@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
+
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/EnumIndexing.hpp"
 #include "plato/utilities/MultidimensionalRange.hpp"
@@ -8,7 +10,7 @@ namespace plato::utilities::unittest
 {
 namespace
 {
-enum struct Numbers
+enum struct Numbers : std::uint8_t
 {
     kZero,
     kOne,
@@ -16,14 +18,14 @@ enum struct Numbers
     kNumberOfEnumerates,
 };
 
-enum struct Letters
+enum struct Letters : std::uint8_t
 {
     kA,
     kB,
     kNumberOfEnumerates,
 };
 
-enum struct Components
+enum struct Components : std::uint8_t
 {
     kX,
     kY,

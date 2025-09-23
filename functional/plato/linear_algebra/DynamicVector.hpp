@@ -36,7 +36,7 @@ class DynamicVector
     [[nodiscard]] bool operator==(const DynamicVector<T>& aRight) const;
 
     template <typename Archive, typename U>
-    friend void serialize(Archive& aArchive, DynamicVector<U>& aVector, const unsigned int aVersion);
+    friend void serialize(Archive& aArchive, DynamicVector<U>& aVector, const unsigned int /*aVersion*/);
 
    private:
     std::vector<T> mVector;

@@ -1,13 +1,15 @@
 #ifndef PLATO_COMPONENTS_COMPONENTTYPE
 #define PLATO_COMPONENTS_COMPONENTTYPE
 
+#include <cstdint>
+
 #include "plato/utilities/EnumIndexing.hpp"
 
 namespace plato::components
 {
 /// @brief The allowable types of components. These map to general categories of objects that may be instantiated to
 /// create a workflow.
-enum struct ComponentType
+enum struct ComponentType : std::uint8_t
 {
     kObjective,
     kConstraint,

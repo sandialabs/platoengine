@@ -1,6 +1,7 @@
 #ifndef PLATO_THIRD_PARTY_INTEGRATION_SNOPT_SNOPTTYPES
 #define PLATO_THIRD_PARTY_INTEGRATION_SNOPT_SNOPTTYPES
 
+#include <cstdint>
 #include <utility>
 #include <vector>
 
@@ -20,13 +21,13 @@ using CriterionType =
                    core::FunctionInfo<double, core::evaluation::kFunction>,
                    core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
-enum struct Linearity
+enum struct Linearity : std::uint8_t
 {
     kLinear,
     kNonlinear
 };
 
-enum struct ConstraintType
+enum struct ConstraintType : std::uint8_t
 {
     kEqualTo,
     kLesserThan,

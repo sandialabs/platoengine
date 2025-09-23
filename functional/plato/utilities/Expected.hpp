@@ -59,13 +59,13 @@ class Expected
    public:
     constexpr Expected() = default;
 
-    template <typename U, typename = std::enable_if<std::is_convertible_v<U, T>>>
+    template <typename U, typename = std::enable_if_t<std::is_convertible_v<U, T>>>
     constexpr Expected(U&& aU);
 
-    template <typename E, typename = std::enable_if<std::is_convertible_v<E, Error>>>
+    template <typename E, typename = std::enable_if_t<std::is_convertible_v<E, Error>>>
     constexpr Expected(Unexpected<E>&& aError);
 
-    template <typename E, typename = std::enable_if<std::is_convertible_v<E, Error>>>
+    template <typename E, typename = std::enable_if_t<std::is_convertible_v<E, Error>>>
     constexpr auto operator=(Unexpected<E>&& aError) -> Expected&;
 
     /// @brief Returns whether or not an expected object is held (not the error type)

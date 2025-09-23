@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstddef>
 
 #include "plato/process_manager/extension/CombinationGenerator.hpp"

@@ -1,12 +1,14 @@
 #ifndef PLATO_THIRDPARTYINTEGRATION_COMMON_OutputManager
 #define PLATO_THIRDPARTYINTEGRATION_COMMON_OutputManager
 
+#include <cstdint>
+
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::geometry::library
 {
-enum struct OutputMode
+enum struct OutputMode : std::uint8_t
 {
     kNever,
     kEveryIterationOverwrite,

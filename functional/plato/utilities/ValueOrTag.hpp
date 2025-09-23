@@ -37,23 +37,23 @@ class ValueOrTag
     [[nodiscard]] auto has() const -> bool;
 
     /// @brief Returns a copy of the current value if a value is held, or @a aTagValue.
-    template <typename U, typename = std::enable_if<std::is_convertible_v<U, Value>>>
+    template <typename U, typename = std::enable_if_t<std::is_convertible_v<U, Value>>>
     [[nodiscard]] auto valueOr(U&& aTagValue) const& -> Value;
 
     /// @brief Moves the current value if a value is held, or returns @a aTagValue.
-    template <typename U, typename = std::enable_if<std::is_convertible_v<U, Value>>>
+    template <typename U, typename = std::enable_if_t<std::is_convertible_v<U, Value>>>
     [[nodiscard]] auto valueOr(U&& aTagValue) && -> Value;
 
     /// @brief Returns the current value, or the result of invoking @a aFunction.
     ///
     /// The function will only be invoked if no value is held.
-    template <typename F, typename = std::enable_if<std::is_convertible_v<std::invoke_result_t<F>, Value>>>
+    template <typename F, typename = std::enable_if_t<std::is_convertible_v<std::invoke_result_t<F>, Value>>>
     [[nodiscard]] auto valueOrInvoke(const F& aFunction) const& -> Value;
 
     /// @brief Moves the current value, or the result of invoking @a aFunction.
     ///
     /// The function will only be invoked if no value is held.
-    template <typename F, typename = std::enable_if<std::is_convertible_v<std::invoke_result_t<F>, Value>>>
+    template <typename F, typename = std::enable_if_t<std::is_convertible_v<std::invoke_result_t<F>, Value>>>
     [[nodiscard]] auto valueOrInvoke(const F& aFunction) && -> Value;
 
    private:

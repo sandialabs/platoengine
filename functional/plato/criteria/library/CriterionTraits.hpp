@@ -1,6 +1,8 @@
 #ifndef PLATO_CRITERIA_LIBRARY_CRITERIATRAITS
 #define PLATO_CRITERIA_LIBRARY_CRITERIATRAITS
 
+#include <cstdint>
+
 #include "plato/utilities/EnumIndexing.hpp"
 
 namespace plato::criteria::library
@@ -9,7 +11,7 @@ namespace plato::criteria::library
 ///
 /// The downstream use of this is whether or not to pass an MPI communicator to the function.
 /// @note When adding a new enumerate, ensure that `kNumberOfEnumerates` is last.
-enum struct Parallelization
+enum struct Parallelization : std::uint8_t
 {
     kParallel,
     kSerial,
@@ -18,7 +20,7 @@ enum struct Parallelization
 
 /// @brief Indicates if a function's return value is a scalar or vector.
 /// @note When adding a new enumerate, ensure that `kNumberOfEnumerates` is last.
-enum struct FunctionDimension
+enum struct FunctionDimension : std::uint8_t
 {
     kScalar,
     kVector,
