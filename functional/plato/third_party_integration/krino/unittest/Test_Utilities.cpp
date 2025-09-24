@@ -97,7 +97,7 @@ TEST_F(KrinoTestFixture, ReadAndSetupForDecomposition)
                                                          "DistanceCorrectionDenominator",
                                                          "DistanceCorrectionNumerator",
                                                          "LEVEL_SET",
-                                                         "LEVEL_SET_STASH",
+                                                         "LEVEL_SET_COPYFORSNAPPING",
                                                          "LS"};
     EXPECT_EQ(tFieldNameGold, tFieldNames);
     std::filesystem::remove(kMeshName);
