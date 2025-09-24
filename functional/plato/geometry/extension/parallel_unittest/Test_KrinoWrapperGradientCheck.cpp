@@ -30,7 +30,7 @@ namespace plato::geometry::extension::unittest
 namespace
 {
 namespace tpik = third_party_integration::krino;
-constexpr double kFixedBlockLevelSetValue{1.0};
+
 const auto kRectangleMeshFilePath = utilities::data_file_path("rectangle_3x4_tri3.cdf");
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 const auto kCutPlane = tpik::Plane{{0, -1, 0}, 0.6};
@@ -46,8 +46,9 @@ TEST(KrinoWrapperGradientCheck, MeshFilePath) { ASSERT_TRUE(kRectangleMeshFilePa
 
 TEST_F(KrinoTestFixture, AccumulateInitialGuess)
 {
+    const auto tFixedBlocks = std::set<std::string>{};
     const auto tX =
-        make_initial_guess_from_level_set_primitives(kRectangleMeshFilePath.value(), kLevelSetPrimitives, std::nullopt);
+        make_initial_guess_from_level_set_primitives(kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks);
     const auto tResultantSum = std::accumulate(tX.begin(), tX.end(), 0.0);
 
     EXPECT_NEAR(tResultantSum, 21.62420765215437, kMPISummedTolerance);
@@ -55,8 +56,9 @@ TEST_F(KrinoTestFixture, AccumulateInitialGuess)
 
 TEST_F(KrinoTestFixture, AccumulateCutNodeCoordinates)
 {
+    const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-        kRectangleMeshFilePath.value(), kLevelSetPrimitives, std::nullopt)};
+        kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks)};
     const auto tResultantSum =
         test_utilities::accumulate_cut_node_coordinates(kRectangleMeshFilePath.value(), tX.stdVector());
 
@@ -67,14 +69,14 @@ namespace
 {
 [[nodiscard]] auto make_example_krino_wrapper()
 {
+    const auto tFixedBlocks = std::set<std::string>{};
     const auto tX =
-        make_initial_guess_from_level_set_primitives(kRectangleMeshFilePath.value(), kLevelSetPrimitives, std::nullopt);
+        make_initial_guess_from_level_set_primitives(kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks);
     const auto tAnalysisDomainMesh =
         mesh::DesignVariablesConversion{mesh::Mesh{kRectangleMeshFilePath.value()}}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tX});
 
-    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, kFixedBlockLevelSetValue,
-                                                        tpik::SnappingParameters{});
+    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
 }
 
 [[nodiscard]] auto make_iota_vector(const std::size_t aSize, const double aShift) -> std::vector<double>
@@ -103,8 +105,9 @@ void check_row_vector_vector3(const unsigned int aIndex,
 TEST_F(KrinoTestFixture, RowVectorToVector3)
 {
     const auto tKrinoWrapper = make_example_krino_wrapper();
+    const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-        kRectangleMeshFilePath.value(), kLevelSetPrimitives, std::nullopt)};
+        kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks)};
     const auto tIota = make_iota_vector(tX.size(), 0.0);
 
     check_row_vector_vector3(0U, tIota, TEST_CONTEXT("Checking index 0"));
@@ -120,22 +123,23 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
     const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}};
 
     const auto tMeshFile = kRectangleMeshFilePath;
+    const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{
-        make_initial_guess_from_level_set_primitives(tMeshFile.value(), tLevelSetPrimitives, std::nullopt)};
+        make_initial_guess_from_level_set_primitives(tMeshFile.value(), tLevelSetPrimitives, tFixedBlocks)};
     const auto tDirection = linear_algebra::DynamicVector<double>{make_iota_vector(tX.size(), 0.5)};
 
     const auto tF = [&tMeshFile](const linear_algebra::DynamicVector<double>& aX) -> double
     { return test_utilities::accumulate_cut_node_coordinates(tMeshFile.value(), aX.stdVector()); };
-    const auto tDf = [&tMeshFile](const linear_algebra::DynamicVector<double>& aX,
-                                  const linear_algebra::DynamicVector<double>& aV) -> double
+    const auto tDf = [&tMeshFile, &tFixedBlocks](const linear_algebra::DynamicVector<double>& aX,
+                                                 const linear_algebra::DynamicVector<double>& aV) -> double
     {
         const auto tFileName = std::filesystem::path{"out.exo"};
         const auto tAnalysisDomainMesh =
             mesh::DesignVariablesConversion{mesh::Mesh{tMeshFile.value()}}.nodalFieldToAnalysisDomainMesh(
                 mesh::NodalFieldVectorReference{aX.stdVector()});
 
-        const auto tWrapper = make_krino_wrapper_from_analysis_domain_mesh(
-            tAnalysisDomainMesh, kFixedBlockLevelSetValue, tpik::SnappingParameters{});
+        const auto tWrapper =
+            make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
         tWrapper.writeCutMesh(tFileName, third_party_integration::krino::VoidPhase::kIncludeInMesh);
         const auto tMesh = mesh::Mesh{tFileName};
         const auto tCutMeshNodeSize = mesh::EntityCounts{tMesh}.numberOfNodes();

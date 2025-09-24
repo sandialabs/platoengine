@@ -10,6 +10,8 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
+#include "plato/utilities/MPIUtilities.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"
 
 namespace plato::geometry::extension::test_utilities
@@ -17,7 +19,6 @@ namespace plato::geometry::extension::test_utilities
 namespace
 {
 namespace tpik = third_party_integration::krino;
-constexpr double kFixedBlockLevelSetValue{1.0};
 }  // namespace
 
 auto accumulate_cut_node_coordinates(const std::filesystem::path& aMeshToLoad,
@@ -27,22 +28,19 @@ auto accumulate_cut_node_coordinates(const std::filesystem::path& aMeshToLoad,
         mesh::DesignVariablesConversion{mesh::Mesh{aMeshToLoad}}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{aPerturbedLevelSetField});
 
-    const auto tKrino = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, kFixedBlockLevelSetValue,
-                                                                     tpik::SnappingParameters{});
+    const auto tFixedBlocks = std::set<std::string>{};
+    const auto tKrino =
+        make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
     const auto tCutMesh = std::filesystem::path{"cut_mesh.exo"};
     tKrino.writeCutMesh(tCutMesh, tpik::VoidPhase::kIncludeInMesh);
 
     auto tCutCoordinates = mesh::EntityRetrieval{mesh::Mesh{tCutMesh}}.nodalCoordinates();
 
-    const auto tCommunicator = boost::mpi::communicator{};
-    tCommunicator.barrier();
-    if (tCommunicator.rank() == 0)
-    {
-        std::filesystem::remove(tCutMesh);
-    }
+    utilities::execute_on_root(boost::mpi::communicator{}, [&tCutMesh]() { std::filesystem::remove(tCutMesh); });
 
-    std::vector<double> tFlattenedCoordinates;
-    tFlattenedCoordinates.reserve(tCutCoordinates.size() * 2U);
+    constexpr auto tDimensions = 2U;
+    auto tFlattenedCoordinates =
+        utilities::reserved_container<std::vector<double>>(tCutCoordinates.size() * tDimensions);
     for (const auto& tCutCoordinate : tCutCoordinates)
     {
         tFlattenedCoordinates.push_back(tCutCoordinate.x);

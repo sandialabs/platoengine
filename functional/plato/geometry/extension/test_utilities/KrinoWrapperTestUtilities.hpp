@@ -16,24 +16,19 @@ using InitialLevelSetValues = utilities::NamedType<std::vector<double>, struct I
 /// @brief Helper function to facilitate making a KrinoWrapper.
 ///
 /// Read a mesh from @a aFileName, and use the level set values specified in @a aInitialLevelSetValues to assign the
-/// level set field. There is an optional specification of the background node ids @a aBackgroundDesignIDs.
+/// level set field.
 /// @pre the size of @a aInitialLevelSetValues must equal the total number of background nodes in the mesh.
 [[nodiscard]] auto make_krino_wrapper_from_vector_values(
-    const std::filesystem::path& aFileName,
-    const InitialLevelSetValues& aInitialLevelSetValues,
-    const std::optional<std::vector<third_party_integration::krino::BackgroundMeshNodeId>>& aBackgroundDesignIDs)
-    -> KrinoWrapper;
+    const std::filesystem::path& aFileName, const InitialLevelSetValues& aInitialLevelSetValues) -> KrinoWrapper;
 
 /// @brief Helper function to facilitate making a KrinoWrapper.
 ///
-/// Read a mesh from @a aFileName, and use the level set primitives @a aLevelSetPrimitives, along with an optional
-/// specification of the background node ids @a aBackgroundDesignIDs. This is primarily used to specify a starting point
-/// for a level set optimization.
+/// Read a mesh from @a aFileName, and use the level set primitives @a aLevelSetPrimitives. This is primarily used to
+/// specify a starting point for a level set optimization.
 [[nodiscard]] auto make_krino_wrapper_from_level_set_primitives(
     const std::filesystem::path& aFileName,
     const third_party_integration::krino::LevelSetPrimitives& aLevelSetPrimitives,
-    const std::optional<std::vector<third_party_integration::krino::BackgroundMeshNodeId>>& aBackgroundDesignIDs)
-    -> KrinoWrapper;
+    const std::set<std::string>& aFixedBlockNames = {}) -> KrinoWrapper;
 
 }  // namespace plato::geometry::extension::test_utilities
 

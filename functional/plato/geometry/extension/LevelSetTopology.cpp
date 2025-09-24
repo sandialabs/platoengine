@@ -99,7 +99,7 @@ auto make_level_set_geometry(const library::ValidatedGeometryInput& aGeometryInp
         initialize_krino();
         const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
         auto tLevelSet = LevelSetTopology{tInput};
-        return library::FactoryTypes{make_level_set_geometry(aGeometryInput), tLevelSet.initialGuess(tInput),
+        return library::FactoryTypes{make_level_set_geometry(aGeometryInput), tLevelSet.initialGuess(),
                                      tLevelSet.bounds(), make_topology_output(aGeometryInput)};
     }};
 
@@ -152,16 +152,17 @@ auto snapping_parameters_from_input(const input_parser::level_set_topology& aInp
 }  // namespace
 
 LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInput)
-    : mBackgroundMesh(mesh_from_input(aInput)),
+    : mInput{aInput},
+      mBackgroundMesh(mesh_from_input(aInput)),
       mCutMesh(kKrinoCutMeshBaseName),
       mOutputMesh(aInput.output_name.value().mToken),
       mVoidRegion(void_phase(aInput)),
       mLevelSetBounds(std::make_pair(aInput.level_set_lower_bound.value(), aInput.level_set_upper_bound.value())),
       mKrinoWrapperCache{
-          [tFixedValue = mLevelSetBounds.second, tSnappingParameters = snapping_parameters_from_input(aInput)](
+          [mFixedBlocks = fixed_blocks(aInput), mSnappingParameters = snapping_parameters_from_input(aInput)](
               const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
-              return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, tFixedValue,
-                                                                  tSnappingParameters);
+              return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, mFixedBlocks,
+                                                                  mSnappingParameters);
           },
           [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
           { return analysis::hash_value(aAnalysisDomainMesh); }}
@@ -177,12 +178,11 @@ auto LevelSetTopology::bounds() const -> std::pair<std::vector<double>, std::vec
             std::vector<double>(tNumNodes, mLevelSetBounds.second)};
 }
 
-auto LevelSetTopology::initialGuess(const input_parser::level_set_topology& aInput) const
-    -> linear_algebra::DynamicVector<double>
+auto LevelSetTopology::initialGuess() const -> linear_algebra::DynamicVector<double>
 {
-    if (aInput.initial_field_name.has_value())
+    if (mInput.initial_field_name.has_value())
     {
-        auto tValuesFromMesh = initial_field_from_mesh(aInput, mBackgroundMesh);
+        auto tValuesFromMesh = initial_field_from_mesh(mInput, mBackgroundMesh);
         const auto tMin = *std::min_element(tValuesFromMesh.begin(), tValuesFromMesh.end());
         const auto tMax = *std::max_element(tValuesFromMesh.begin(), tValuesFromMesh.end());
         return linear_algebra::DynamicVector<double>(detail::affine_transformation(
@@ -191,10 +191,9 @@ auto LevelSetTopology::initialGuess(const input_parser::level_set_topology& aInp
     }
     else
     {
-        const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(aInput))};
-        const auto tDesignDomainNodeIds = mesh::EntityRetrieval{mBackgroundMesh}.designDomainNodeIDs();
+        const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(mInput))};
         return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-            mBackgroundMesh.filePath(), tLevelSetPrimitives, tDesignDomainNodeIds)};
+            mBackgroundMesh.filePath(), tLevelSetPrimitives, fixed_blocks(mInput))};
     }
 }
 
@@ -265,7 +264,7 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
                                                       aInput.level_set_upper_bound.value()};
     const auto tFilteredField = output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 
-    make_krino_wrapper_from_analysis_domain_mesh(tFilteredField, tMeshFieldOutput.mFixedFieldValue,
+    make_krino_wrapper_from_analysis_domain_mesh(tFilteredField, fixed_blocks(aInput),
                                                  snapping_parameters_from_input(aInput))
         .writeCutMesh(aInput.output_name->mToken, void_phase(aInput));
 }

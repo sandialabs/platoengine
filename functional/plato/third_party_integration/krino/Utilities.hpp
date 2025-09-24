@@ -32,10 +32,12 @@ void initialize_environment_for_krino(const std::filesystem::path& aLogFile, con
 /// @brief Create a comm duplicate of the communicator that Krino has
 [[nodiscard]] auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator;
 
-/// @brief Takes a file path @a aFilename and reads a mesh from disk and converts it to a krino mesh type. It adds the
-/// required fields and other setup for cutting the mesh.
-/// @pre the environment for krino was initialized
-[[nodiscard]] auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename)
+/// @brief Creates a Krino mesh from a mesh on disk at @a aFilename that excludes blocks with names given in @a
+/// aExcludedBlocks. Typically, @a aExcludedBlocks will be the fixed (non-design) blocks.
+/// @pre The environment for krino was initialized.
+/// @pre @a aFileName is a valid exodus mesh file on disk.
+[[nodiscard]] auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,
+                                                    const std::set<std::string>& aExcludedBlocks = {})
     -> std::unique_ptr<::krino::MeshInterface>;
 
 /// @brief Takes a LevelSetPrimitives specification @a aLevelSetPrimitives along with a bulk data @a aBulkData from a
@@ -46,13 +48,10 @@ void initialize_environment_for_krino(const std::filesystem::path& aLogFile, con
                                                         const stk::mesh::BulkData& aBulkData)
     -> std::vector<::krino::LS_Field>;
 
-/// @brief Takes a fixed double value @a aFixedLevelSetValue along with a KrinoMesh @a aKrinoMesh and sets the level set
-/// field to the fixed value
-/// @pre the environment for krino was initialized by calling 'initialize_environment_for_krino', followed by
+/// @brief Returns all level-set fields defined on @a aKrinoMesh.
+/// @pre The environment for krino was initialized by calling 'initialize_environment_for_krino', followed by
 /// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh.
-[[nodiscard]] auto make_level_set_field_from_fixed_value(::krino::MeshInterface& aKrinoMesh,
-                                                         const double aFixedLevelSetValue)
-    -> std::vector<::krino::LS_Field>;
+[[nodiscard]] auto get_level_set_fields(::krino::MeshInterface& aKrinoMesh) -> std::vector<::krino::LS_Field>;
 
 /// @brief Takes a KrinoMesh @a aKrinoMesh and a level set field @a aLevelSetFields and determines the background node
 /// ids in the cut mesh.
@@ -118,8 +117,8 @@ void write_mesh(const stk::mesh::BulkData& aBulkData,
                 const VoidPhase aVoidPhase);
 
 template <typename LevelSetFieldVector>
-[[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields, const stk::mesh::Entity& aNode)
-    -> decltype(auto)
+[[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields,
+                                   const stk::mesh::Entity& aNode) -> decltype(auto)
 {
     assert(!aLevelSetFields.empty());
     return *::krino::field_data<double>(aLevelSetFields.front().isovar, aNode);
