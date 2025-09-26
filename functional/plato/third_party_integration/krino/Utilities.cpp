@@ -1,11 +1,12 @@
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
-#include <Akri_AuxMetaData.hpp>           // AuxMetaData::get
-#include <Akri_CDFEM_Support.hpp>         //CDFEM_Support
-#include <Akri_CDMesh.hpp>                //sierraTimer
-#include <Akri_DiagWriter.hpp>            //initialize environment
-#include <Akri_LevelSet.hpp>              //LevelSet
-#include <Akri_LevelSetPolicy.hpp>        //LSPerInterfacePolicy
+#include <Akri_AuxMetaData.hpp>     // AuxMetaData::get
+#include <Akri_CDFEM_Support.hpp>   //CDFEM_Support
+#include <Akri_CDMesh.hpp>          //sierraTimer
+#include <Akri_DiagWriter.hpp>      //initialize environment
+#include <Akri_LevelSet.hpp>        //LevelSet
+#include <Akri_LevelSetPolicy.hpp>  //LSPerInterfacePolicy
+#include <Akri_LevelSetShapeSensitivities.hpp>
 #include <Akri_MeshHelpers.hpp>           //activate_all_entities
 #include <Akri_NodalSurfaceDistance.hpp>  //compute_nodal_surface_distance
 #include <Akri_OutputUtils.hpp>
@@ -63,8 +64,8 @@ void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData& aMeta)
     tCdfemSupport.set_coords_field(tCoordsField);
     tCdfemSupport.add_edge_interpolation_field(tCoordsField);
     tCdfemSupport.register_parent_node_ids_field();
-    tCdfemSupport.setup_levelset_field_stash(
-        ::krino::get_levelset_fields(::krino::Phase_Support::get_levelset_fields(aMeta)));
+    ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta,
+                                                                  ::krino::Phase_Support::get_levelset_fields(aMeta));
     tCdfemSupport.register_cdfem_snap_displacements_field();
     tCdfemSupport.finalize_fields();
 }
@@ -184,9 +185,10 @@ void cut_mesh(stk::mesh::BulkData& aBulkData,
     tCdfemSupport.set_snapping_sharp_feature_angle_in_degrees(aSnappingParameters.mSharpFeatureAngle);
     tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength);
     auto& tPhaseSupport = ::krino::Phase_Support::get(tMeta);
+    const auto tSnapLevelSetFields = ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aLevelSetFields);
     auto tInterfaceGeometry =
         ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
-                                          tCdfemSupport, tPhaseSupport, aLevelSetFields);
+                                          tCdfemSupport, tPhaseSupport, tSnapLevelSetFields);
     tAuxMeta.clear_force_64bit_flag();
     ::krino::CDMesh::decompose_mesh(aBulkData, *tInterfaceGeometry);
 }
