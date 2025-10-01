@@ -1,0 +1,24 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "default",
+      "hidden": false,
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "ADDITIONAL_WARNINGS": "-Wall;-Wextra;-Wshadow;-Wnon-virtual-dtor;-Wsuggest-override;-pedantic;-Wno-return-type-c-linkage;-Wno-unknown-warning-option;-Wno-error=cpp;-Wno-restrict",
+        "WARNINGS_AS_ERRORS": true
+      }
+    },
+    {
+      "name": "dev_build",
+      "inherits": "default",
+      "hidden": false,
+      "cacheVariables": {
+        "BUILD_WITH_CLANG_TIDY": true,
+        "BUILD_WITH_SANITIZER_FLAGS": true,
+        "SANITIZER_FLAGS": "-fsanitize=address;-fno-omit-frame-pointer;-fsanitize=undefined;-fno-sanitize-recover=all;-fsanitize=float-divide-by-zero;-fsanitize=float-cast-overflow;-fsanitize=null;-fno-sanitize=alignment;-fsanitize=enum"
+      }
+    }
+  ]
+}
