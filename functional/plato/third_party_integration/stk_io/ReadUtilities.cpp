@@ -141,6 +141,21 @@ auto entity_ids(const stk::mesh::BulkData& aBulk,
     return tIDs;
 }
 
+auto global_entity_ids(const stk::mesh::BulkData& aBulk,
+                       const PartReferenceVector& aParts,
+                       const stk::topology::rank_t aEntityType) -> std::vector<std::size_t>
+{
+    auto tEntityVector = stk::mesh::EntityVector{};
+    stk::mesh::get_entities(aBulk, aEntityType, parts_to_selector(aParts), tEntityVector, kSortedByID);
+
+    auto tIDs = std::vector<std::size_t>{};
+    tIDs.reserve(tEntityVector.size());
+
+    std::transform(tEntityVector.begin(), tEntityVector.end(), std::back_inserter(tIDs),
+                   [&aBulk](const auto aEntity) { return aBulk.identifier(aEntity); });
+    return tIDs;
+}
+
 }  // namespace
 
 std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::path& aMeshName)
@@ -193,6 +208,11 @@ auto nodal_coordinates(const stk::mesh::BulkData& aBulk,
                        return common::Coordinate{tData[0], tData[1], tSpatialDim == 2 ? 0 : tData[2]};
                    });
     return tCoordinates;
+}
+
+auto global_node_ids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> std::vector<std::size_t>
+{
+    return global_entity_ids(aBulk, aParts, stk::topology::NODE_RANK);
 }
 
 auto node_ids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> std::vector<std::size_t>

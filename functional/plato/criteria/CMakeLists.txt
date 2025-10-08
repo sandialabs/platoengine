@@ -7,7 +7,8 @@ set(DIRECTORIES library
 set(LINK_LIBS PlatoFunctionalCore
               PlatoFunctionalLinearAlgebra
               PlatoFunctionalServices
-              PlatoFunctionalMesh)
+              PlatoFunctionalMesh
+              PlatoFunctionalKrino)
 create_plato_library(PlatoFunctionalCriteria "${DIRECTORIES}" "${LINK_LIBS}")
 
 set(HEADERS library/CriterionInterface.hpp

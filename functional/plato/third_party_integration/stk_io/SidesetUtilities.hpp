@@ -23,9 +23,6 @@ class Part;
 namespace plato::third_party_integration::stk_io
 {
 
-[[nodiscard]] auto get_sideset_triangles(const stk::mesh::BulkData& aBulkData,
-                                         const std::string& aSidesetName) -> std::vector<Triangle>;
-
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

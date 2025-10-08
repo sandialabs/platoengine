@@ -1,11 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <Akri_Phase_Support.hpp>
+#include <Akri_TriangleWithSensitivities.hpp>
 #include <algorithm>
 #include <filesystem>
 #include <string_view>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
+#include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
@@ -79,6 +82,122 @@ void run_cut_and_write_test(const VoidPhase& aVoidPhase,
 }
 
 }  // namespace
+
+TEST(KrinoUtilities, dAreadCoords)
+{
+    constexpr auto tAbsoluteError = 4e-3;
+    const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
+    { return get_tri_area_from_nodal_coords(aX.stdVector()); };
+    const auto tDf =
+        [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
+    {
+        const auto tGradient =
+            linear_algebra::DynamicVector<double>{get_d_area_d_nodal_coords_from_tri_coords(aX.stdVector())};
+        return tGradient.dot(aV);
+    };
+
+    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 10, .001};
+    const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
+    const auto tNodalCoordinates = linear_algebra::DynamicVector<double>{0.1, -0.9, .8, -.3, -.3, -.3, .5, .67, .1};
+    const auto tDirection = linear_algebra::DynamicVector<double>{.10, -.10, 0.05, 0.03, -0.09, 0.2, -.04, -.3, .07};
+
+    EXPECT_NEAR(tGradientCheck.maxFirstOrderTruncationError(tNodalCoordinates, tDirection, tGradientCheckParameters),
+                0.0, tAbsoluteError)
+        << tGradientCheck.table(tNodalCoordinates, tDirection, tGradientCheckParameters);
+}
+
+TEST(KrinoUtilities, dNormaldCoordsX)
+{
+    constexpr auto tAbsoluteError = 2e-3;
+    const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
+    {
+        const auto tNormal = linear_algebra::DynamicVector<double>{get_tri_normal_from_nodal_coords(aX.stdVector())};
+        return tNormal[0];
+    };
+    const auto tDf =
+        [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
+    {
+        const auto tGradient =
+            linear_algebra::DynamicVector<double>{get_d_normal_d_nodal_coords_from_tri_coords(aX.stdVector())};
+        double tDot = 0.0;
+        for (size_t i = 0; i < 9; ++i)
+        {
+            tDot += tGradient[3 * i] * aV[i];
+        }
+        return tDot;
+    };
+
+    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 10, .001};
+    const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
+    const auto tNodalCoordinates = linear_algebra::DynamicVector<double>{0.1, -0.9, .8, -.3, -.3, -.3, .5, .67, .1};
+    const auto tDirection = linear_algebra::DynamicVector<double>{.10, -.10, 0.05, 0.03, -0.09, 0.2, -.04, -.3, .07};
+
+    EXPECT_NEAR(tGradientCheck.maxFirstOrderTruncationError(tNodalCoordinates, tDirection, tGradientCheckParameters),
+                0.0, tAbsoluteError)
+        << tGradientCheck.table(tNodalCoordinates, tDirection, tGradientCheckParameters);
+}
+
+TEST(KrinoUtilities, dNormaldCoordsY)
+{
+    constexpr auto tAbsoluteError = 2e-3;
+    const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
+    {
+        const auto tNormal = linear_algebra::DynamicVector<double>{get_tri_normal_from_nodal_coords(aX.stdVector())};
+        return tNormal[1];
+    };
+    const auto tDf =
+        [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
+    {
+        const auto tGradient =
+            linear_algebra::DynamicVector<double>{get_d_normal_d_nodal_coords_from_tri_coords(aX.stdVector())};
+        double tDot = 0.0;
+        for (size_t i = 0; i < 9; ++i)
+        {
+            tDot += tGradient[3 * i + 1] * aV[i];
+        }
+        return tDot;
+    };
+
+    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 10, .001};
+    const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
+    const auto tNodalCoordinates = linear_algebra::DynamicVector<double>{0.1, -0.9, .8, -.3, -.3, -.3, .5, .67, .1};
+    const auto tDirection = linear_algebra::DynamicVector<double>{.10, -.10, 0.05, 0.03, -0.09, 0.2, -.04, -.3, .07};
+
+    EXPECT_NEAR(tGradientCheck.maxFirstOrderTruncationError(tNodalCoordinates, tDirection, tGradientCheckParameters),
+                0.0, tAbsoluteError)
+        << tGradientCheck.table(tNodalCoordinates, tDirection, tGradientCheckParameters);
+}
+
+TEST(KrinoUtilities, dNormaldCoordsZ)
+{
+    constexpr auto tAbsoluteError = 4e-3;
+    const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
+    {
+        const auto tNormal = linear_algebra::DynamicVector<double>{get_tri_normal_from_nodal_coords(aX.stdVector())};
+        return tNormal[2];
+    };
+    const auto tDf =
+        [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
+    {
+        const auto tGradient =
+            linear_algebra::DynamicVector<double>{get_d_normal_d_nodal_coords_from_tri_coords(aX.stdVector())};
+        double tDot = 0.0;
+        for (size_t i = 0; i < 9; ++i)
+        {
+            tDot += tGradient[3 * i + 2] * aV[i];
+        }
+        return tDot;
+    };
+
+    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 10, .001};
+    const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
+    const auto tNodalCoordinates = linear_algebra::DynamicVector<double>{0.1, -0.9, .8, -.3, -.3, -.3, .5, .67, .1};
+    const auto tDirection = linear_algebra::DynamicVector<double>{.10, -.10, 0.05, 0.03, -0.09, 0.2, -.04, -.3, .07};
+
+    EXPECT_NEAR(tGradientCheck.maxFirstOrderTruncationError(tNodalCoordinates, tDirection, tGradientCheckParameters),
+                0.0, tAbsoluteError)
+        << tGradientCheck.table(tNodalCoordinates, tDirection, tGradientCheckParameters);
+}
 
 TEST_F(KrinoTestFixture, ReadAndSetupForDecomposition)
 {
@@ -198,5 +317,38 @@ TEST_F(KrinoTestFixture, GetLevelSetValuesMakeFromVector)
 
     std::filesystem::remove(kMeshName);
 }
+
+/*
+TEST(KrinoUtilities, GetSidesetTriangles)
+{
+    constexpr double tTolerance{1e-14};
+    const auto tMeshPath = std::filesystem::path{"temp_mesh_save.exo"};
+    constexpr auto tMesh = std::string_view{
+        "textmesh:"
+        "0,1,TET_4,5,1,2,3,block_1\n"
+        "0,2,TET_4,6,5,2,3,block_1\n"
+        "0,3,TET_4,6,7,5,3,block_1\n"
+        "0,4,TET_4,6,4,7,3,block_1\n"
+        "0,5,TET_4,6,2,4,3,block_1\n"
+        "0,6,TET_4,6,8,7,4,block_1\n"
+        "0,7,TET_4,9,5,6,7,block_2\n"
+        "0,8,TET_4,10,9,6,7,block_2\n"
+        "0,9,TET_4,10,11,9,7,block_2\n"
+        "0,10,TET_4,10,8,11,7,block_2\n"
+        "0,11,TET_4,10,6,8,7,block_2\n"
+        "0,12,TET_4,10,12,11,8,block_2\n"
+        "|coordinates: 0,-1,-1,0,0,-1,1,-1,-1,1,0,-1,0,-1,1,0,0,1,1,-1,1,1,0,1,0,-1,3,0,0,3,1,-1,3,1,0,3"
+        "|dimension:3|sideset:name=my_ss;data=1,2,5,2"}; // data=<tet_id>,<side_id>,<tet_id>,<side_id>...
+    write_mesh(tMeshPath, tMesh);
+    const auto tBulkData = read_mesh_bulk_data(tMeshPath);
+    const std::vector<Triangle> tTriangles = get_sideset_triangles(*tBulkData, "my_ss");
+    EXPECT_EQ(tTriangles.size(), 2);
+    double tArea = tTriangles[0].volume();
+    EXPECT_NEAR(tArea, 0.5, tTolerance);
+    tArea = tTriangles[1].volume();
+    EXPECT_NEAR(tArea, 0.5, tTolerance);
+    std::filesystem::remove(tMeshPath);
+}
+    */
 
 }  // namespace plato::third_party_integration::krino::unittest

@@ -1,13 +1,14 @@
 include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
-set(LINK_LIBS Krino::krino_lib PlatoFunctionalUtilities)
+set(LINK_LIBS Krino::krino_lib PlatoFunctionalUtilities PlatoFunctionalSTKIO STKIO::stk_io)
 create_plato_library(PlatoFunctionalKrino "." "${LINK_LIBS}")
 
 if( UNIT_TESTING )
 
   set(LINK_LIBS PlatoFunctionalKrino 
-                PlatoFunctionalTestUtilities)
+                PlatoFunctionalTestUtilities
+                PlatoFunctionalSTKIO)
   create_plato_library(PlatoFunctionalKrinoTestUtilities "./test_utilities" "${LINK_LIBS}")
   
   

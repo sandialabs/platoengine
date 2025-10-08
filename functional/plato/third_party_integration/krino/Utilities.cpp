@@ -1,17 +1,22 @@
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
-#include <Akri_AuxMetaData.hpp>           // AuxMetaData::get
-#include <Akri_CDFEM_Support.hpp>         //CDFEM_Support
-#include <Akri_CDMesh.hpp>                //sierraTimer
-#include <Akri_DiagWriter.hpp>            //initialize environment
-#include <Akri_LevelSet.hpp>              //LevelSet
-#include <Akri_LevelSetPolicy.hpp>        //LSPerInterfacePolicy
+#include <Akri_AuxMetaData.hpp>     // AuxMetaData::get
+#include <Akri_CDFEM_Support.hpp>   //CDFEM_Support
+#include <Akri_CDMesh.hpp>          //sierraTimer
+#include <Akri_DiagWriter.hpp>      //initialize environment
+#include <Akri_LevelSet.hpp>        //LevelSet
+#include <Akri_LevelSetPolicy.hpp>  //LSPerInterfacePolicy
+#include <Akri_LevelSetShapeSensitivities.hpp>
 #include <Akri_MeshHelpers.hpp>           //activate_all_entities
 #include <Akri_NodalSurfaceDistance.hpp>  //compute_nodal_surface_distance
+#include <Akri_OrientedSideNodes.hpp>
 #include <Akri_OutputUtils.hpp>
+#include <Akri_TriangleWithSensitivities.hpp>
 #include <iterator>
 #include <stk_io/StkMeshIoBroker.hpp>  //get_selected_entities
+#include <stk_math/StkVector.hpp>
 #include <stk_mesh/base/Entity.hpp>
+#include <stk_mesh/base/Selector.hpp>
 #include <stk_mesh/base/Types.hpp>
 #include <stk_util/diag/WriterRegistry.hpp>
 #include <stk_util/environment/EnvData.hpp>
@@ -237,4 +242,221 @@ void write_mesh(const stk::mesh::BulkData& aBulkData,
     ::krino::output_composed_mesh_with_fields(aBulkData, tOutputSelector, aOutputFileName.string(), tStepIndex, tTime);
 }
 
+std::vector<TriangleSensitivity> get_d_area_and_normal_d_nodal_coords(const std::vector<stk_io::Triangle>& aTriangles)
+{
+    std::vector<TriangleSensitivity> tTriangleSensitivities;
+    constexpr auto tNumberSpatialDimensions{3};
+    constexpr auto tNumberNodesPerTriangle{3};
+    constexpr auto tNumberNormalSensComponentsPerNode{tNumberSpatialDimensions * tNumberSpatialDimensions};
+
+    // Loop over all triangles of interest and calculate change in area with change in level set values
+    for (const auto& tCurTri : aTriangles)
+    {
+        // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
+        double t_dArea_dNodalCoordinates[tNumberSpatialDimensions * tNumberNodesPerTriangle];
+        double
+            t_dNormal_dNodalCoordinates[tNumberSpatialDimensions * tNumberNodesPerTriangle * tNumberSpatialDimensions];
+        const stk::math::Vector3d tPoint0{tCurTri.p0.x, tCurTri.p0.y, tCurTri.p0.z};
+        const stk::math::Vector3d tPoint1{tCurTri.p1.x, tCurTri.p1.y, tCurTri.p1.z};
+        const stk::math::Vector3d tPoint2{tCurTri.p2.x, tCurTri.p2.y, tCurTri.p2.z};
+        ::krino::TriangleWithSens::area_and_optional_sensitivities(tPoint0, tPoint1, tPoint2,
+                                                                   t_dArea_dNodalCoordinates);
+        ::krino::TriangleWithSens::normal_and_optional_sensitivities(tPoint0, tPoint1, tPoint2,
+                                                                     t_dNormal_dNodalCoordinates);
+
+        TriangleSensitivity tCurTriSensitivity;
+        // Loop over all nodes in the triangle
+        for (size_t tTriNodeIndex = 0; tTriNodeIndex < tNumberNodesPerTriangle; ++tTriNodeIndex)
+        {
+            size_t tCurTriNodeGlobalId = tCurTri.global_ids[tTriNodeIndex];
+
+            // Initialize sensitivities to zero if first time for this node
+            if (tCurTriSensitivity.areaSensitivities.find(tCurTriNodeGlobalId) ==
+                tCurTriSensitivity.areaSensitivities.end())
+            {
+                tCurTriSensitivity.areaSensitivities[tCurTriNodeGlobalId] = {0, 0, 0};
+            }
+            if (tCurTriSensitivity.normalSensitivities.find(tCurTriNodeGlobalId) ==
+                tCurTriSensitivity.normalSensitivities.end())
+            {
+                for (size_t tSpatialDimIndex = 0; tSpatialDimIndex < tNumberSpatialDimensions; ++tSpatialDimIndex)
+                {
+                    tCurTriSensitivity.normalSensitivities[tCurTriNodeGlobalId][tSpatialDimIndex] = {0, 0, 0};
+                }
+            }
+
+            const auto tAreaNodeStride = tNumberSpatialDimensions * tTriNodeIndex;
+            const auto tNormalNodeStride = tNumberNormalSensComponentsPerNode * tTriNodeIndex;
+
+            // Get the dArea/dNodalCoord and dNormal/dNodalCoord for this node
+            for (size_t tSpatialDimIndex = 0; tSpatialDimIndex < tNumberSpatialDimensions; ++tSpatialDimIndex)
+            {
+                tCurTriSensitivity.areaSensitivities[tCurTriNodeGlobalId][tSpatialDimIndex] +=
+                    t_dArea_dNodalCoordinates[tAreaNodeStride + tSpatialDimIndex];
+
+                const auto tDimStride = tNumberSpatialDimensions * tSpatialDimIndex;
+                for (size_t tNormSpatialDimIndex = 0; tNormSpatialDimIndex < tNumberSpatialDimensions;
+                     ++tNormSpatialDimIndex)
+                {
+                    tCurTriSensitivity
+                        .normalSensitivities[tCurTriNodeGlobalId][tSpatialDimIndex][tNormSpatialDimIndex] +=
+                        t_dNormal_dNodalCoordinates[tNormalNodeStride + tDimStride + tNormSpatialDimIndex];
+                }
+            }
+        }
+        tTriangleSensitivities.push_back(tCurTriSensitivity);
+    }
+    return tTriangleSensitivities;
+}
+
+TriangleAreaSensitivity get_d_area_d_nodal_coords_from_tri(const stk_io::Triangle& aTriangle)
+{
+    constexpr size_t tNumDimensions{3};
+    constexpr size_t tNumNodesPerTriangle{3};
+    TriangleAreaSensitivity tTriangleAreaSensitivity;
+    std::vector<double> tDAreaDCoords = get_d_area_d_nodal_coords_from_tri_coords(
+        {aTriangle.p0.x, aTriangle.p0.y, aTriangle.p0.z, aTriangle.p1.x, aTriangle.p1.y, aTriangle.p1.z, aTriangle.p2.x,
+         aTriangle.p2.y, aTriangle.p2.z});
+    for (size_t tNodeIndex = 0; tNodeIndex < tNumNodesPerTriangle; tNodeIndex++)
+    {
+        for (size_t tDimIndex = 0; tDimIndex < tNumDimensions; ++tDimIndex)
+        {
+            tTriangleAreaSensitivity[aTriangle.global_ids[tNodeIndex]][tDimIndex] =
+                tDAreaDCoords[tNumDimensions * tNodeIndex + tDimIndex];
+        }
+    }
+    return tTriangleAreaSensitivity;
+}
+
+TriangleNormalSensitivity get_d_normal_d_nodal_coords_from_tri(const stk_io::Triangle& aTriangle)
+{
+    constexpr size_t tNumDimensions{3};
+    constexpr size_t tNumNodesPerTriangle{3};
+    constexpr size_t tNumNodeSensitivities = tNumDimensions * tNumDimensions;
+    TriangleNormalSensitivity tTriangleNormalSensitivity;
+    std::vector<double> tDNormalDCoords = get_d_normal_d_nodal_coords_from_tri_coords(
+        {aTriangle.p0.x, aTriangle.p0.y, aTriangle.p0.z, aTriangle.p1.x, aTriangle.p1.y, aTriangle.p1.z, aTriangle.p2.x,
+         aTriangle.p2.y, aTriangle.p2.z});
+    for (size_t tNodeIndex = 0; tNodeIndex < tNumNodesPerTriangle; tNodeIndex++)
+    {
+        const size_t tNodeStride = tNodeIndex * tNumNodeSensitivities;
+        for (size_t tSpatialDimIndex = 0; tSpatialDimIndex < tNumDimensions; ++tSpatialDimIndex)
+        {
+            const size_t tSpatialStride = tSpatialDimIndex * tNumDimensions;
+            for (size_t tNormalDimIndex = 0; tNormalDimIndex < tNumDimensions; ++tNormalDimIndex)
+            {
+                tTriangleNormalSensitivity[aTriangle.global_ids[tNodeIndex]][tSpatialDimIndex][tNormalDimIndex] =
+                    tDNormalDCoords[tNodeStride + tSpatialStride + tNormalDimIndex];
+            }
+        }
+    }
+    return tTriangleNormalSensitivity;
+}
+
+double get_tri_area_from_nodal_coords(const std::vector<double>& aNodalCoords)
+{
+    const stk::math::Vector3d tPoint0{aNodalCoords[0], aNodalCoords[1], aNodalCoords[2]};
+    const stk::math::Vector3d tPoint1{aNodalCoords[3], aNodalCoords[4], aNodalCoords[5]};
+    const stk::math::Vector3d tPoint2{aNodalCoords[6], aNodalCoords[7], aNodalCoords[8]};
+    return ::krino::TriangleWithSens::area_and_optional_sensitivities(tPoint0, tPoint1, tPoint2, nullptr);
+}
+
+std::vector<double> get_tri_normal_from_nodal_coords(const std::vector<double>& aNodalCoords)
+{
+    const stk::math::Vector3d tPoint0{aNodalCoords[0], aNodalCoords[1], aNodalCoords[2]};
+    const stk::math::Vector3d tPoint1{aNodalCoords[3], aNodalCoords[4], aNodalCoords[5]};
+    const stk::math::Vector3d tPoint2{aNodalCoords[6], aNodalCoords[7], aNodalCoords[8]};
+    stk::math::Vector3d tNormal =
+        ::krino::TriangleWithSens::normal_and_optional_sensitivities(tPoint0, tPoint1, tPoint2, nullptr);
+    return std::vector<double>{tNormal[0], tNormal[1], tNormal[2]};
+}
+
+std::vector<double> get_d_area_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords)
+{
+    constexpr auto tNumberSpatialDimensions{3};
+    constexpr auto tNumberNodesPerTriangle{3};
+    constexpr auto tNumSensitivities = tNumberSpatialDimensions * tNumberNodesPerTriangle;
+
+    // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
+    std::vector<double> tDAreaDNodalCoordinates(tNumSensitivities);
+    const stk::math::Vector3d tPoint0{aNodalCoords[0], aNodalCoords[1], aNodalCoords[2]};
+    const stk::math::Vector3d tPoint1{aNodalCoords[3], aNodalCoords[4], aNodalCoords[5]};
+    const stk::math::Vector3d tPoint2{aNodalCoords[6], aNodalCoords[7], aNodalCoords[8]};
+    ::krino::TriangleWithSens::area_and_optional_sensitivities(tPoint0, tPoint1, tPoint2,
+                                                               tDAreaDNodalCoordinates.data());
+    return tDAreaDNodalCoordinates;
+}
+
+std::vector<double> get_d_normal_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords)
+{
+    constexpr auto tNumberSpatialDimensions{3};
+    constexpr auto tNumberNodesPerTriangle{3};
+    constexpr auto tNumSensitivities = tNumberSpatialDimensions * tNumberNodesPerTriangle * tNumberSpatialDimensions;
+
+    // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
+    std::vector<double> tDNormalDNodalCoordinates(tNumSensitivities);
+    const stk::math::Vector3d tPoint0{aNodalCoords[0], aNodalCoords[1], aNodalCoords[2]};
+    const stk::math::Vector3d tPoint1{aNodalCoords[3], aNodalCoords[4], aNodalCoords[5]};
+    const stk::math::Vector3d tPoint2{aNodalCoords[6], aNodalCoords[7], aNodalCoords[8]};
+    ::krino::TriangleWithSens::normal_and_optional_sensitivities(tPoint0, tPoint1, tPoint2,
+                                                                 tDNormalDNodalCoordinates.data());
+    return tDNormalDNodalCoordinates;
+}
+
+std::vector<stk::mesh::Entity> get_owned_interface_sides(const stk::mesh::BulkData& aBulkData,
+                                                         const stk::mesh::Selector& aInterfaceSelector)
+{
+    std::vector<stk::mesh::Entity> tInterfaceSides;
+
+    for (auto* tBucket : aBulkData.get_buckets(aBulkData.mesh_meta_data().side_rank(),
+                                               aBulkData.mesh_meta_data().locally_owned_part() & aInterfaceSelector))
+    {
+        tInterfaceSides.insert(tInterfaceSides.end(), tBucket->begin(), tBucket->end());
+    }
+
+    return tInterfaceSides;
+}
+
+auto get_interface_triangles(const stk::mesh::BulkData& aBulkData,
+                             const std::string& aSidesetName,
+                             const PartReferenceVector& aDesignDomainBlocks) -> std::vector<stk_io::Triangle>
+{
+    std::vector<stk_io::Triangle> tTriList;
+
+    const stk::mesh::Selector tTriSelector(*(aBulkData.mesh_meta_data().get_part(aSidesetName)));
+    std::vector<const stk::mesh::Part*> tParts;
+    for (const auto& tCurBlock : aDesignDomainBlocks)
+    {
+        std::cout << "Block ID: " << tCurBlock.get().id() << "; Name: " << tCurBlock.get().name() << std::endl;
+        if (tCurBlock.get().name().find("void") == std::string::npos)
+        {
+            tParts.push_back(&(tCurBlock.get()));
+        }
+    }
+    const stk::mesh::Selector tTetSelector{stk::mesh::selectUnion(tParts)};
+    const std::vector<stk::mesh::Entity> tInterfaceSides = get_owned_interface_sides(aBulkData, tTriSelector);
+    const stk::mesh::FieldBase* const tCoordsField = aBulkData.mesh_meta_data().coordinate_field();
+    std::vector<stk_io::Triangle> tTriangles(tInterfaceSides.size());
+    size_t tNumTris = 0;
+    for (const auto& tInterfaceSide : tInterfaceSides)
+    {
+        const std::array<stk::mesh::Entity, 3> tSideNodes =
+            ::krino::get_oriented_triangle_side_nodes(aBulkData, tTetSelector, tInterfaceSide);
+        std::vector<common::Coordinate> tTriCoords(3);
+        for (size_t i = 0; i < 3; ++i)
+        {
+            const double* tCoords = static_cast<const double*>(stk::mesh::field_data(*tCoordsField, tSideNodes[i]));
+            tTriCoords[i].x = tCoords[0];
+            tTriCoords[i].y = tCoords[1];
+            tTriCoords[i].z = tCoords[2];
+        }
+        tTriangles[tNumTris++] = stk_io::Triangle{
+            tTriCoords[0],
+            tTriCoords[1],
+            tTriCoords[2],
+            {(unsigned int)aBulkData.identifier(tSideNodes[0]), (unsigned int)aBulkData.identifier(tSideNodes[1]),
+             (unsigned int)aBulkData.identifier(tSideNodes[2])}};
+    }
+    return tTriangles;
+}
 }  // namespace plato::third_party_integration::krino

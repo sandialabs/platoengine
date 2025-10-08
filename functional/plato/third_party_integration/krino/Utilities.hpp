@@ -10,13 +10,32 @@
 #include <Akri_MeshHelpers.hpp>              //field_data
 #include <boost/mpi/communicator.hpp>
 #include <filesystem>
+#include <map>
 #include <stk_mesh/base/Types.hpp>
 
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/stk_io/Triangle.hpp"
 
 namespace plato::third_party_integration::krino
 {
+
+struct TriangleSensitivity
+{
+    std::map<size_t, std::array<double, 3>> areaSensitivities;
+    std::map<size_t, std::array<std::array<double, 3>, 3>> normalSensitivities;
+};
+
+using TriangleAreaSensitivity = std::map<size_t, std::array<double, 3>>;
+using TriangleNormalSensitivity = std::map<size_t, std::array<std::array<double, 3>, 3>>;
+using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::Part>>;
+
+/*
+struct TriAreaSensitivity
+{
+    std::map<size_t, std::array<double,3>> areaSensitivity;
+};
+*/
 
 /// @brief Describes whether or not to include a void phase block in the generated cut mesh.
 enum struct VoidPhase
@@ -123,6 +142,27 @@ template <typename LevelSetFieldVector>
     assert(!aLevelSetFields.empty());
     return *::krino::field_data<double>(aLevelSetFields.front().isovar, aNode);
 }
+
+//[[nodiscard]] auto get_d_area_d_nodal_coords(const stk_io::Triangle &aTriangle) -> TriAreaSensitivity;
+[[nodiscard]] auto get_d_area_and_normal_d_nodal_coords(const std::vector<stk_io::Triangle>& aTriangles)
+    -> std::vector<TriangleSensitivity>;
+
+[[nodiscard]] auto get_tri_area_from_nodal_coords(const std::vector<double>& aNodalCoords) -> double;
+[[nodiscard]] auto get_tri_normal_from_nodal_coords(const std::vector<double>& aNodalCoords) -> std::vector<double>;
+
+[[nodiscard]] auto get_d_normal_d_nodal_coords_from_tri(const stk_io::Triangle& aTriangle) -> TriangleNormalSensitivity;
+[[nodiscard]] auto get_d_normal_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords)
+    -> std::vector<double>;
+
+[[nodiscard]] auto get_d_area_d_nodal_coords_from_tri(const stk_io::Triangle& aTriangle) -> TriangleAreaSensitivity;
+[[nodiscard]] auto get_d_area_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords)
+    -> std::vector<double>;
+
+//[[nodiscard]] auto get_interface_triangles(const stk::mesh::BulkData &aBulkData) -> std::vector<stk_io::Triangle>;
+[[nodiscard]] auto get_interface_triangles(const stk::mesh::BulkData& aBulkData,
+                                           const std::string& aSidesetName,
+                                           const PartReferenceVector& aDesignDomainBlocks)
+    -> std::vector<stk_io::Triangle>;
 
 }  // namespace plato::third_party_integration::krino
 

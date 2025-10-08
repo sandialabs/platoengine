@@ -5,6 +5,7 @@
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/Triangle.hpp"
 
 namespace plato::criteria::extension
@@ -27,22 +28,44 @@ namespace detail
 
 using namespace plato::third_party_integration::common;
 using namespace plato::third_party_integration::stk_io;
+using namespace plato::third_party_integration::krino;
 
 [[nodiscard]] double exponential_step_function(const double& aInput);
+[[nodiscard]] double d_exponential_step_function(const double& aInput);
 [[nodiscard]] double smoothing_function(const double& aInput);
+[[nodiscard]] double d_smoothing_function(const double& aInput);
 [[nodiscard]] double overhang(const double& aAngleDotBuildDirection,
                               const double& aOverhangAngleThreshold,
                               const double& aStepTransitionWidth);
+[[nodiscard]] double d_overhang(const double& aAngleDotBuildDirection,
+                                const double& aOverhangAngleThreshold,
+                                const double& aStepTransitionWidth);
 [[nodiscard]] double overhang_from_triangle_node_coordinates(const Coordinate& aNode1,
                                                              const Coordinate& aNode2,
                                                              const Coordinate& aNode3,
                                                              const double& aOverhangAngleThreshold,
                                                              const double& aStepTransitionWidth,
                                                              const Vector3& aBuildDirection);
+[[nodiscard]] double d_overhang_from_triangle_node_coordinates(const Coordinate& aNode1,
+                                                               const Coordinate& aNode2,
+                                                               const Coordinate& aNode3,
+                                                               const double& aOverhangAngleThreshold,
+                                                               const double& aStepTransitionWidth,
+                                                               const Vector3& aBuildDirection);
 [[nodiscard]] double area_weighted_overhang_from_triangle(const Triangle& aTriangle,
                                                           const double& aOverhangAngleThreshold,
                                                           const double& aStepTransitionWidth,
                                                           const Vector3& aBuildDirection);
+void gradient_contribution_for_triangle(const Triangle& aTriangle,
+                                        const double& aOverhangAngleThreshold,
+                                        const double& aStepTransitionWidth,
+                                        const Vector3& aBuildDirection,
+                                        TriangleSensitivity& tAreaAndNormalSensitivities,
+                                        std::map<size_t, std::array<double, 3>>& aGradientMap);
+[[nodiscard]] auto get_gradient_contribution_for_triangle(const Triangle& aTriangle,
+                                                          const double& aOverhangAngleThreshold,
+                                                          const double& aStepTransitionWidth,
+                                                          const Vector3& aBuildDirection) -> std::vector<double>;
 }  // namespace detail
 
 }  // namespace plato::criteria::extension
