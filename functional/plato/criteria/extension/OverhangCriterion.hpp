@@ -56,12 +56,6 @@ using namespace plato::third_party_integration::krino;
                                                           const double& aOverhangAngleThreshold,
                                                           const double& aStepTransitionWidth,
                                                           const Vector3& aBuildDirection);
-void gradient_contribution_for_triangle(const Triangle& aTriangle,
-                                        const double& aOverhangAngleThreshold,
-                                        const double& aStepTransitionWidth,
-                                        const Vector3& aBuildDirection,
-                                        TriangleSensitivity& tAreaAndNormalSensitivities,
-                                        std::map<size_t, std::array<double, 3>>& aGradientMap);
 [[nodiscard]] auto get_gradient_contribution_for_triangle(const Triangle& aTriangle,
                                                           const double& aOverhangAngleThreshold,
                                                           const double& aStepTransitionWidth,
