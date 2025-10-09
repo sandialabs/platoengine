@@ -360,7 +360,6 @@ auto get_interface_triangles(const stk::mesh::BulkData& aBulkData,
     std::vector<const stk::mesh::Part*> tParts;
     for (const auto& tCurBlock : aDesignDomainBlocks)
     {
-        std::cout << "Block ID: " << tCurBlock.get().id() << "; Name: " << tCurBlock.get().name() << std::endl;
         if (tCurBlock.get().name().find("void") == std::string::npos)
         {
             tParts.push_back(&(tCurBlock.get()));
