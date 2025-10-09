@@ -12,15 +12,20 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshSidesets.hpp"
+#include "plato/services/SystemLogger.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/Triangle.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::criteria::extension
 {
 namespace
 {
+constexpr auto kCriterionValuePrecision = 8U;
+constexpr auto kCriterionValueFieldWidth = kCriterionValuePrecision + 1U;
 
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
@@ -34,8 +39,8 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
 {
     namespace tpistk = plato::third_party_integration::stk_io;
 
-    //    auto tLogger = services::component_logger(mComponentType, mName);
-    //    tLogger.logInfo("Evaluating criterion");
+    auto tLogger = services::component_logger(mComponentType, mName);
+    tLogger.logInfo("Evaluating criterion");
 
     const auto tMesh = mesh::MeshSidesets{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
     const std::vector<tpistk::Triangle> tTriangles = tMesh.sidesetTriangles("surface__void");
@@ -46,33 +51,92 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
                                                                              aCurTri, mOverhangAngleThreshold,
                                                                              mTransitionWidth, mBuildDirection);
                                                 });
-    std::cout << "Overhang criterion value: " << tReturnValue << std::endl;
-    /*
-        tLogger.logInfo(
-            "Evaluation complete. Criterion value = " +
-            utilities::to_string(
-                utilities::FixedWidthFloatingPointOutput<double, kCriterionValuePrecision, kCriterionValueFieldWidth>{
-                    tValue}));
-                    */
+    tLogger.logInfo(
+        "Evaluation complete. Criterion value = " +
+        utilities::to_string(
+            utilities::FixedWidthFloatingPointOutput<double, kCriterionValuePrecision, kCriterionValueFieldWidth>{
+                tReturnValue}));
     return tReturnValue;
 }
 
 linear_algebra::DynamicVector<double> OverhangCriterion::df(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
+    auto tLogger = services::component_logger(mComponentType, mName);
+    tLogger.logInfo("Evaluating criterion gradient");
+
     namespace tpistk = plato::third_party_integration::stk_io;
     namespace tpik = plato::third_party_integration::krino;
-
-    constexpr size_t tNumNodesPerTriangle{3};
-    constexpr size_t tNumSpatialDimensions{3};
 
     const auto tSidesetMesh = mesh::MeshSidesets{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
 
     const std::vector<tpistk::Triangle> tTriangles = tSidesetMesh.sidesetTriangles("surface__void");
 
-    //  Initialize all future map entries to 0.0
+    std::map<size_t, std::array<double, 3>> tGradientMap = detail::calculate_gradient_map_from_triangles(
+        tTriangles, mOverhangAngleThreshold, mTransitionWidth, mBuildDirection);
+
+    const auto tEntityRetrievalMesh = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
+    std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.globalNodeIDs();
+    std::sort(tAllNodeIds.begin(), tAllNodeIds.end());
+
+    std::vector<double> tGradientVector = detail::get_full_gradient_vector_from_gradient_map(tGradientMap, tAllNodeIds);
+
+    const double tGradientNorm =
+        std::sqrt(std::inner_product(tGradientVector.begin(), tGradientVector.end(), tGradientVector.begin(), 0));
+    std::cout << std::scientific << std::setprecision(14) << "Overhang criterion gradient norm: " << tGradientNorm
+              << std::endl;
+
+    tLogger.logInfo(
+        "Gradient evaluation complete. Criterion gradient norm = " +
+        utilities::to_string(
+            utilities::FixedWidthFloatingPointOutput<double, kCriterionValuePrecision, kCriterionValueFieldWidth>{
+                tGradientNorm}));
+
+    return linear_algebra::DynamicVector<double>(std::move(tGradientVector));
+}
+
+OverhangCriterion::OverhangCriterion(const ParsedInputParams& aInputParams,
+                                     const library::CriterionInput& aCriterionInput)
+    : mTransitionWidth(aInputParams.transition_width),
+      mBuildDirection(aInputParams.build_direction),
+      mOverhangAngleThreshold(aInputParams.overhang_angle_threshold),
+      mComponentType{aCriterionInput.mComponentType},
+      mName{aCriterionInput.mName}
+{
+}
+
+auto make_overhang_function(const library::CriterionInput& aCriterionInput) -> library::CriterionFunction
+{
+    if (aCriterionInput.mInputFiles.list().mList.size() == 0)
+    {
+        throw utilities::Exception{"You must specify an overhang criterion input file."};
+    }
+    ParsedInputParams tInputParams = detail::parse_input_deck(aCriterionInput.mInputFiles.list().mList[0]);
+    return core::make_function_with_first_derivative(
+        [tInputParams, aCriterionInput](const analysis::AnalysisDomainMesh& mesh)
+        { return OverhangCriterion(tInputParams, aCriterionInput).f(mesh); },
+        [tInputParams, aCriterionInput](const analysis::AnalysisDomainMesh& mesh)
+        { return OverhangCriterion(tInputParams, aCriterionInput).df(mesh); });
+}
+
+namespace detail
+{
+
+using namespace plato::third_party_integration::common;
+using namespace plato::third_party_integration::stk_io;
+
+[[nodiscard]] auto calculate_gradient_map_from_triangles(const std::vector<Triangle>& aTriangles,
+                                                         const double& aOverhangAngleThreshold,
+                                                         const double& aStepTransitionWidth,
+                                                         const Vector3& aBuildDirection)
+    -> std::map<size_t, std::array<double, 3>>
+{
+    constexpr size_t tNumNodesPerTriangle{3};
+    constexpr size_t tNumSpatialDimensions{3};
+
     std::map<size_t, std::array<double, 3>> tGradientMap;
-    for (const auto& tCurTriangle : tTriangles)
+    //  Initialize all future map entries to 0.0
+    for (const auto& tCurTriangle : aTriangles)
     {
         for (const auto& tGlobalNodeID : tCurTriangle.global_ids)
         {
@@ -80,10 +144,10 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
         }
     }
     //  Accumulate gradient contributions from all triangles
-    for (const auto& tCurTriangle : tTriangles)
+    for (const auto& tCurTriangle : aTriangles)
     {
         std::vector<double> tCurTriGradient = detail::get_gradient_contribution_for_triangle(
-            tCurTriangle, mOverhangAngleThreshold, mTransitionWidth, mBuildDirection);
+            tCurTriangle, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
         for (size_t tNodeIndex = 0; tNodeIndex < tNumNodesPerTriangle; tNodeIndex++)
         {
             const size_t tCurGlobalNodeID = tCurTriangle.global_ids[tNodeIndex];
@@ -94,17 +158,20 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
             }
         }
     }
+    return tGradientMap;
+}
 
+[[nodiscard]] auto get_full_gradient_vector_from_gradient_map(
+    const std::map<size_t, std::array<double, 3>>& aGradientMap, const std::vector<size_t>& aAllNodeIds)
+    -> std::vector<double>
+{
     // Build the gradient vector (3 entries for each node in the cut mesh) sorted by global node id
-    const auto tEntityRetrievalMesh = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
-    std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.globalNodeIDs();
-    std::sort(tAllNodeIds.begin(), tAllNodeIds.end());
-    std::vector<double> tGradientVector(tAllNodeIds.size() * 3);
+    std::vector<double> tGradientVector(aAllNodeIds.size() * 3);
     size_t tIndex = 0;
     constexpr size_t tNumDimensions{3};
-    for (const auto& tCurNode : tAllNodeIds)
+    for (const auto& tCurNode : aAllNodeIds)
     {
-        if (tGradientMap.find(tCurNode) == tGradientMap.end())
+        if (aGradientMap.find(tCurNode) == aGradientMap.end())
         {
             for (size_t i = 0; i < tNumDimensions; ++i)
             {
@@ -115,37 +182,12 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
         {
             for (size_t i = 0; i < tNumDimensions; ++i)
             {
-                tGradientVector[tIndex++] = tGradientMap[tCurNode][i];
+                tGradientVector[tIndex++] = aGradientMap.at(tCurNode)[i];
             }
         }
     }
-
-    const double tGradientNorm =
-        std::sqrt(std::inner_product(tGradientVector.begin(), tGradientVector.end(), tGradientVector.begin(), 0));
-    std::cout << "Overhang criterion gradient norm: " << tGradientNorm << std::endl;
-    return linear_algebra::DynamicVector<double>(std::move(tGradientVector));
+    return tGradientVector;
 }
-
-OverhangCriterion::OverhangCriterion(const ParsedInputParams& aInputParams)
-    : mTransitionWidth(aInputParams.transition_width),
-      mBuildDirection(aInputParams.build_direction),
-      mOverhangAngleThreshold(aInputParams.overhang_angle_threshold)
-{
-}
-
-auto make_overhang_function(const library::CriterionInput& aCriterionInput) -> library::CriterionFunction
-{
-    ParsedInputParams tInputParams = detail::parse_input_deck(aCriterionInput.mInputFiles.list().mList[0]);
-    return core::make_function_with_first_derivative(
-        [tInputParams](const analysis::AnalysisDomainMesh& mesh) { return OverhangCriterion(tInputParams).f(mesh); },
-        [tInputParams](const analysis::AnalysisDomainMesh& mesh) { return OverhangCriterion(tInputParams).df(mesh); });
-}
-
-namespace detail
-{
-
-using namespace plato::third_party_integration::common;
-using namespace plato::third_party_integration::stk_io;
 
 [[nodiscard]] double exponential_step_function(const double& aInput)
 {

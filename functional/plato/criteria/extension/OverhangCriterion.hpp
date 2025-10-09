@@ -20,7 +20,7 @@ struct ParsedInputParams
 /// @brief Computes a scalar value representing the amount of overhang wrt a build direction and overhang angle.
 struct OverhangCriterion
 {
-    OverhangCriterion(const ParsedInputParams& aInputParams);
+    OverhangCriterion(const ParsedInputParams& aInputParams, const library::CriterionInput& aCriterionInput);
     [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
     [[nodiscard]] linear_algebra::DynamicVector<double> df(
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
@@ -28,6 +28,8 @@ struct OverhangCriterion
     double mTransitionWidth;
     plato::third_party_integration::common::Vector3 mBuildDirection;
     double mOverhangAngleThreshold;
+    components::ComponentType mComponentType;
+    std::string mName;
 
     static constexpr auto kCriterionName = std::string_view{"overhang"};
 };
@@ -73,6 +75,14 @@ using namespace plato::third_party_integration::krino;
                                                           const double& aStepTransitionWidth,
                                                           const Vector3& aBuildDirection) -> std::vector<double>;
 [[nodiscard]] auto parse_input_deck(const std::string& aFilename) -> ParsedInputParams;
+[[nodiscard]] auto calculate_gradient_map_from_triangles(const std::vector<Triangle>& aTriangles,
+                                                         const double& aOverhangAngleThreshold,
+                                                         const double& aStepTransitionWidth,
+                                                         const Vector3& aBuildDirection)
+    -> std::map<size_t, std::array<double, 3>>;
+[[nodiscard]] auto get_full_gradient_vector_from_gradient_map(
+    const std::map<size_t, std::array<double, 3>>& aGradientMap, const std::vector<size_t>& aAllNodeIds)
+    -> std::vector<double>;
 }  // namespace detail
 
 }  // namespace plato::criteria::extension

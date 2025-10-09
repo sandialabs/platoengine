@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <ios>
+
 #include "plato/criteria/extension/OverhangCriterion.hpp"
 #include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -171,6 +173,83 @@ TEST(OverhangCriterion, SingleTriangleDerivative)
     EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(tNodalCoordinates, tDirection, tGradientCheckParameters), 0.0,
                 tAbsoluteError)
         << tChecker.table(tNodalCoordinates, tDirection, tGradientCheckParameters);
+}
+
+TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
+{
+    // clang-format off
+
+    /*                     6  (1,2,0)         */
+    /*                    /\                  */
+    /*                   /  \                 */
+    /*                  /    \                */
+    /*       (.5,1,0) 4 ------ 5 (1.5,1,0)    */   
+    /*                / \    / \              */
+    /*               /   \  /   \             */
+    /*              /     \/     \            */
+    /*    (0,0,0) 1-------2------ 3 (2,0,0)   */    
+    /*                   (1,0,0)              */
+    //
+    // 4 triangles as shown above with nodes {1,2,4}, {2,3,5}, {2,5,4}, {4,5,6}
+
+    // clang-format on
+
+    const std::vector<Triangle> tTriangles{{{0., 0., 0.}, {1., 0., 0.}, {.5, 1., 0.}, {1, 2, 4}},
+                                           {{1., 0., 0.}, {2., 0., 0.}, {1.5, 1., 0.}, {2, 3, 5}},
+                                           {{1., 0., 0.}, {1.5, 1., 0.}, {.5, 1., 0.}, {2, 5, 4}},
+                                           {{.5, 1., 0.}, {1.5, 1., 0.}, {1., 2., 0.}, {4, 5, 6}}};
+
+    const double tOverhangThreshold = -std::sqrt(2.0) / 2.0;
+    constexpr double tTransitionWidth = 0.05;
+    constexpr Vector3 tBuildDirection = {0, .681189886111555, -.732106781186548};
+    constexpr size_t tNumNodes = 6;
+    constexpr size_t tNumTris = 4;
+    constexpr size_t tNumDimensions = 3;
+    constexpr auto tAbsoluteError = 1e-10;
+
+    // Calculate indivdual triangle maps--one for each tri
+    std::vector<std::map<size_t, std::array<double, 3>>> tIndividualGradientMaps;
+    for (size_t i = 0; i < tNumTris; ++i)
+    {
+        tIndividualGradientMaps.push_back(detail::calculate_gradient_map_from_triangles(
+            {tTriangles[i]}, tOverhangThreshold, tTransitionWidth, tBuildDirection));
+    }
+    // Calculate combined triangle map from multiple tris
+    std::map<size_t, std::array<double, 3>> tCombinedGradientMap = detail::calculate_gradient_map_from_triangles(
+        tTriangles, tOverhangThreshold, tTransitionWidth, tBuildDirection);
+    // Compare results
+    for (size_t i = 0; i < tNumNodes; ++i)
+    {
+        std::array<double, 3> tCurNodeGradient = {0.0, 0.0, 0.0};
+        // For this node get contributions from individual maps
+        for (size_t j = 0; j < tNumTris; ++j)
+        {
+            if (tIndividualGradientMaps[j].count(i + 1))
+            {
+                for (size_t k = 0; k < tNumDimensions; ++k)
+                {
+                    tCurNodeGradient[k] += tIndividualGradientMaps[j].at(i + 1)[k];
+                }
+            }
+        }
+        // Compare against combined map
+        for (size_t k = 0; k < tNumDimensions; ++k)
+        {
+            EXPECT_NEAR(tCurNodeGradient[k], tCombinedGradientMap.at(i + 1)[k], tAbsoluteError);
+        }
+    }
+}
+
+TEST(OverhangCriterion, FullGradientVectorFromPartialGradientMap)
+{
+    const std::map<size_t, std::array<double, 3>> tPartialGradientMap = {
+        {3, {.1, .2, .3}}, {5, {.9, -.1, -.2}}, {9, {-1., -2., -3.}}};
+    const std::vector<size_t> tAllNodeIDs = {2, 3, 5, 6, 7, 9, 11, 12};
+    const std::vector<double> tFullGradientVector =
+        detail::get_full_gradient_vector_from_gradient_map(tPartialGradientMap, tAllNodeIDs);
+    const std::vector<double> tGoldValues = {0, 0, 0, .1,  .2,  .3,  .9, -.1, -.2, 0, 0, 0,
+                                             0, 0, 0, -1., -2., -3., 0,  0,   0,   0, 0, 0};
+    EXPECT_EQ(tFullGradientVector, tGoldValues);
 }
 
 TEST(OverhangCriterion, ParseInputDeck_Correct)
