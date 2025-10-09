@@ -2,6 +2,7 @@
 
 #include "plato/criteria/extension/OverhangCriterion.hpp"
 #include "plato/test_utilities/GradientChecker.hpp"
+#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::criteria::extension::unittest
@@ -170,6 +171,89 @@ TEST(OverhangCriterion, SingleTriangleDerivative)
     EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(tNodalCoordinates, tDirection, tGradientCheckParameters), 0.0,
                 tAbsoluteError)
         << tChecker.table(tNodalCoordinates, tDirection, tGradientCheckParameters);
+}
+
+TEST(OverhangCriterion, ParseInputDeck_Correct)
+{
+    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
+    std::ofstream tTextFile(tMeshPath);
+    tTextFile << "<OverhangInput>\n";
+    tTextFile << "  <BuildDirection>0 0 1</BuildDirection>\n";
+    tTextFile << "  <OverhangAngleFromHorizontal>45</OverhangAngleFromHorizontal>\n";
+    tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
+    tTextFile << "</OverhangInput>";
+    tTextFile.close();
+
+    ParsedInputParams tParams = detail::parse_input_deck(tMeshPath);
+    constexpr auto tAbsoluteError = 1e-10;
+    EXPECT_NEAR(tParams.build_direction.x, 0.0, tAbsoluteError);
+    EXPECT_NEAR(tParams.build_direction.y, 0.0, tAbsoluteError);
+    EXPECT_NEAR(tParams.build_direction.z, 1.0, tAbsoluteError);
+    EXPECT_NEAR(tParams.overhang_angle_threshold, -std::sqrt(2.0) / 2.0, tAbsoluteError);
+    EXPECT_NEAR(tParams.transition_width, 0.1, tAbsoluteError);
+
+    std::filesystem::remove(tMeshPath);
+}
+
+TEST(OverhangCriterion, ParseInputDeck_WrongNumberBuildDirectionParameters)
+{
+    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
+    std::ofstream tTextFile(tMeshPath);
+    tTextFile << "<OverhangInput>\n";
+    tTextFile << "  <BuildDirection>0</BuildDirection>\n";
+    tTextFile << "  <OverhangAngleFromHorizontal>45</OverhangAngleFromHorizontal>\n";
+    tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
+    tTextFile << "</OverhangInput>";
+    tTextFile.close();
+
+    ParsedInputParams tParams;
+    EXPECT_THROW(tParams = detail::parse_input_deck(tMeshPath), plato::utilities::Exception);
+    std::filesystem::remove(tMeshPath);
+}
+
+TEST(OverhangCriterion, ParseInputDeck_MissingBuildDirectionParameters)
+{
+    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
+    std::ofstream tTextFile(tMeshPath);
+    tTextFile << "<OverhangInput>\n";
+    tTextFile << "  <OverhangAngleFromHorizontal>45</OverhangAngleFromHorizontal>\n";
+    tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
+    tTextFile << "</OverhangInput>";
+    tTextFile.close();
+
+    ParsedInputParams tParams;
+    EXPECT_THROW(tParams = detail::parse_input_deck(tMeshPath), std::runtime_error);
+    std::filesystem::remove(tMeshPath);
+}
+
+TEST(OverhangCriterion, ParseInputDeck_MissingOverhangAngleParameter)
+{
+    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
+    std::ofstream tTextFile(tMeshPath);
+    tTextFile << "<OverhangInput>\n";
+    tTextFile << "  <BuildDirection>0 0 1</BuildDirection>\n";
+    tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
+    tTextFile << "</OverhangInput>";
+    tTextFile.close();
+
+    ParsedInputParams tParams;
+    EXPECT_THROW(tParams = detail::parse_input_deck(tMeshPath), std::runtime_error);
+    std::filesystem::remove(tMeshPath);
+}
+
+TEST(OverhangCriterion, ParseInputDeck_MissingTransitionWidthParameter)
+{
+    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
+    std::ofstream tTextFile(tMeshPath);
+    tTextFile << "<OverhangInput>\n";
+    tTextFile << "  <OverhangAngleFromHorizontal>45</OverhangAngleFromHorizontal>\n";
+    tTextFile << "  <BuildDirection>0 0 1</BuildDirection>\n";
+    tTextFile << "</OverhangInput>";
+    tTextFile.close();
+
+    ParsedInputParams tParams;
+    EXPECT_THROW(tParams = detail::parse_input_deck(tMeshPath), std::runtime_error);
+    std::filesystem::remove(tMeshPath);
 }
 
 }  // namespace plato::criteria::extension::unittest

@@ -1,5 +1,9 @@
 #include "plato/criteria/extension/OverhangCriterion.hpp"
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <filesystem>
+#include <numbers>
 #include <numeric>
 #include <vector>
 
@@ -10,22 +14,20 @@
 #include "plato/mesh/MeshSidesets.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/stk_io/Triangle.hpp"
+#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::criteria::extension
 {
 namespace
 {
-constexpr auto kTransitionWidth{.1};
-constexpr plato::third_party_integration::common::Vector3 kBuildDirection{0.0, 0.0, 1.0};
-const auto kOverhangAngleThreshold = -std::sqrt(2.0) / 2.0;
 
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
-[[maybe_unused]] static auto kOverhangRegistration =
-    Registration{library::builtin_criterion_registration_name(OverhangCriterion::kCriterionName),
-                 [](const library::CriterionInput&) { return make_overhang_function(); }};
+[[maybe_unused]] static auto kOverhangRegistration = Registration{
+    library::builtin_criterion_registration_name(OverhangCriterion::kCriterionName),
+    [](const library::CriterionInput& aCriterionInput) { return make_overhang_function(aCriterionInput); }};
 }  // namespace
 
 double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
@@ -38,11 +40,11 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
     const auto tMesh = mesh::MeshSidesets{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
     const std::vector<tpistk::Triangle> tTriangles = tMesh.sidesetTriangles("surface__void");
     const double tReturnValue = std::accumulate(tTriangles.begin(), tTriangles.end(), 0.0,
-                                                [](double aCurrentSum, tpistk::Triangle aCurTri)
+                                                [&](double aCurrentSum, tpistk::Triangle aCurTri)
                                                 {
                                                     return aCurrentSum + detail::area_weighted_overhang_from_triangle(
-                                                                             aCurTri, kOverhangAngleThreshold,
-                                                                             kTransitionWidth, kBuildDirection);
+                                                                             aCurTri, mOverhangAngleThreshold,
+                                                                             mTransitionWidth, mBuildDirection);
                                                 });
     std::cout << "Overhang criterion value: " << tReturnValue << std::endl;
     /*
@@ -81,7 +83,7 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     for (const auto& tCurTriangle : tTriangles)
     {
         std::vector<double> tCurTriGradient = detail::get_gradient_contribution_for_triangle(
-            tCurTriangle, kOverhangAngleThreshold, kTransitionWidth, kBuildDirection);
+            tCurTriangle, mOverhangAngleThreshold, mTransitionWidth, mBuildDirection);
         for (size_t tNodeIndex = 0; tNodeIndex < tNumNodesPerTriangle; tNodeIndex++)
         {
             const size_t tCurGlobalNodeID = tCurTriangle.global_ids[tNodeIndex];
@@ -99,23 +101,22 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     std::sort(tAllNodeIds.begin(), tAllNodeIds.end());
     std::vector<double> tGradientVector(tAllNodeIds.size() * 3);
     size_t tIndex = 0;
+    constexpr size_t tNumDimensions{3};
     for (const auto& tCurNode : tAllNodeIds)
     {
         if (tGradientMap.find(tCurNode) == tGradientMap.end())
         {
-            for (size_t i = 0; i < 3; ++i)
+            for (size_t i = 0; i < tNumDimensions; ++i)
             {
-                tGradientVector[tIndex + i] = 0.0;
+                tGradientVector[tIndex++] = 0.0;
             }
-            tIndex += 3;
         }
         else
         {
-            for (size_t i = 0; i < 3; ++i)
+            for (size_t i = 0; i < tNumDimensions; ++i)
             {
-                tGradientVector[tIndex + i] = tGradientMap[tCurNode][i];
+                tGradientVector[tIndex++] = tGradientMap[tCurNode][i];
             }
-            tIndex += 3;
         }
     }
 
@@ -125,11 +126,19 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     return linear_algebra::DynamicVector<double>(std::move(tGradientVector));
 }
 
-auto make_overhang_function() -> library::CriterionFunction
+OverhangCriterion::OverhangCriterion(const ParsedInputParams& aInputParams)
+    : mTransitionWidth(aInputParams.transition_width),
+      mBuildDirection(aInputParams.build_direction),
+      mOverhangAngleThreshold(aInputParams.overhang_angle_threshold)
 {
+}
+
+auto make_overhang_function(const library::CriterionInput& aCriterionInput) -> library::CriterionFunction
+{
+    ParsedInputParams tInputParams = detail::parse_input_deck(aCriterionInput.mInputFiles.list().mList[0]);
     return core::make_function_with_first_derivative(
-        [](const analysis::AnalysisDomainMesh& mesh) { return OverhangCriterion{}.f(mesh); },
-        [](const analysis::AnalysisDomainMesh& mesh) { return OverhangCriterion{}.df(mesh); });
+        [tInputParams](const analysis::AnalysisDomainMesh& mesh) { return OverhangCriterion(tInputParams).f(mesh); },
+        [tInputParams](const analysis::AnalysisDomainMesh& mesh) { return OverhangCriterion(tInputParams).df(mesh); });
 }
 
 namespace detail
@@ -276,6 +285,55 @@ std::vector<double> get_gradient_contribution_for_triangle(const Triangle& aTria
         }
     }
     return tGradient;
+}
+
+[[nodiscard]] std::string get_xml_node_string(const boost::property_tree::ptree& aTree,
+                                              const std::string& aNode,
+                                              const std::string& aNodeName)
+{
+    if (const auto tValue = aTree.get_optional<std::string>(aNode + "." + aNodeName))
+    {
+        return tValue.value();
+    }
+    else
+    {
+        throw std::runtime_error("ERROR: Node with name " + aNodeName + " was not found in input file!");
+    }
+}
+
+ParsedInputParams parse_input_deck(const std::string& aFilename)
+{
+    const auto tExists = std::filesystem::exists(aFilename);
+    if (!tExists)
+    {
+        throw utilities::Exception{"Couldn't find overhang criterion input deck " + aFilename + "."};
+    }
+    boost::property_tree::ptree tTree;
+    boost::property_tree::read_xml(aFilename, tTree);
+
+    ParsedInputParams tInputParams;
+    std::string tBuildDirection = get_xml_node_string(tTree, "OverhangInput", "BuildDirection");
+    std::stringstream tStringStream(tBuildDirection);  // Initialize stringstream with the input string
+    std::string tEntry;
+    std::vector<double> tValues;
+
+    while (tStringStream >> tEntry)
+    {
+        tValues.push_back(std::stod(tEntry));
+    }
+    if (tValues.size() != 3)
+    {
+        throw utilities::Exception{"BuildDirection parameter entered incorrectly in overhang criterion input deck."};
+    }
+
+    tInputParams.build_direction = {tValues[0], tValues[1], tValues[2]};
+    std::string tOverhangAngleFromHorizontal =
+        get_xml_node_string(tTree, "OverhangInput", "OverhangAngleFromHorizontal");
+    tInputParams.overhang_angle_threshold =
+        -std::cos(std::stod(tOverhangAngleFromHorizontal) * std::numbers::pi / 180.0);
+    tInputParams.transition_width = std::stod(get_xml_node_string(tTree, "OverhangInput", "TransitionWidth"));
+
+    return tInputParams;
 }
 
 }  // namespace detail

@@ -20,6 +20,7 @@ using ElementDensityMesh = test_utilities::MeshWithElementDensities;
 using NodalDensityMesh = test_utilities::MeshWithNodalDensities;
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::Part>>;
 
 TEST(ReadUtilities, SpatialDimensions3)
 {
@@ -205,6 +206,42 @@ TEST_F(NodalDensityMesh, TimeSteps)
     const auto tResult = time_steps(mMeshName);
     const auto tExpected = std::vector{1.0};
     EXPECT_EQ(tResult, tExpected);
+}
+
+TEST(ReadUtilities, GlobalNodeIDs)
+{
+    const auto tMeshPath = std::filesystem::path{"temp_mesh_save.exo"};
+    constexpr auto tMesh = std::string_view{
+        "textmesh:"
+        "0,1,TET_4,15,11,12,13,block_1\n"
+        "0,2,TET_4,16,15,12,13,block_1\n"
+        "0,3,TET_4,16,17,15,13,block_1\n"
+        "0,4,TET_4,16,14,17,13,block_1\n"
+        "0,5,TET_4,16,12,14,13,block_1\n"
+        "0,6,TET_4,16,18,17,14,block_1\n"
+        "0,7,TET_4,19,15,16,17,block_2\n"
+        "0,8,TET_4,20,19,16,17,block_2\n"
+        "0,9,TET_4,20,21,19,17,block_2\n"
+        "0,10,TET_4,20,18,21,17,block_2\n"
+        "0,11,TET_4,20,16,18,17,block_2\n"
+        "0,12,TET_4,20,22,21,18,block_2\n"
+        "|coordinates: 0,-1,-1,0,0,-1,1,-1,-1,1,0,-1,0,-1,1,0,0,1,1,-1,1,1,0,1,0,-1,3,0,0,3,1,-1,3,1,0,3"
+        "|dimension:3|sideset:name=my_ss;data=7,2,11,2"};  // data=<tet_id>,<side_id>,<tet_id>,<side_id>...
+    stk_io::write_mesh(tMeshPath, tMesh);
+    const auto tBulkData = stk_io::read_mesh_bulk_data(tMeshPath);
+    {
+        const std::vector<size_t> tPart1IDs = global_node_ids(
+            *tBulkData, PartReferenceVector{std::cref(*tBulkData->mesh_meta_data().get_part("block_1"))});
+        const auto tExpectedNodeIDs = std::vector<std::size_t>{11, 12, 13, 14, 15, 16, 17, 18};
+        EXPECT_EQ(tPart1IDs, tExpectedNodeIDs);
+    }
+    {
+        const std::vector<size_t> tPart1IDs = global_node_ids(
+            *tBulkData, PartReferenceVector{std::cref(*tBulkData->mesh_meta_data().get_part("block_2"))});
+        const auto tExpectedNodeIDs = std::vector<std::size_t>{15, 16, 17, 18, 19, 20, 21, 22};
+        EXPECT_EQ(tPart1IDs, tExpectedNodeIDs);
+    }
+    std::filesystem::remove(tMeshPath);
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest
