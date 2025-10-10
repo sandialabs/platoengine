@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <fstream>
 #include <string>
+#include <string_view>
 
 #include "plato/components/ComponentTypeStream.hpp"
 #include "plato/services/ExternalLoggerFileSinkDetail.hpp"
@@ -12,6 +13,8 @@ namespace plato::services
 {
 namespace
 {
+constexpr auto kLoggingFolder = std::string_view{"logs"};
+
 template <std::size_t kComponentIndex>
 [[nodiscard]] auto component_external_log_sink() -> third_party_integration::boost_log::LoggerSinkSetupTeardown
 {
@@ -26,12 +29,12 @@ auto external_log_file_path(const components::ComponentType aComponentType,
 {
     auto tComponentTypeAsString = components::to_string(aComponentType);
     std::replace(tComponentTypeAsString.begin(), tComponentTypeAsString.end(), ' ', '-');
-    const auto tBasePath = std::filesystem::path{"logs"};
+    const auto tBasePath = logging_directory_path();
     return tBasePath /
            std::filesystem::path{tComponentTypeAsString + "-rank-" + std::to_string(aCommunicator.rank()) + ".txt"};
 }
 
-[[nodiscard]] auto component_external_logger_file_sinks() -> ComponentExternalLoggerSinks
+auto component_external_logger_file_sinks() -> ComponentExternalLoggerSinks
 {
     const auto tLogSinks =
         []<std::size_t... kComponentIndices>(const std::integer_sequence<std::size_t, kComponentIndices...>)
@@ -40,5 +43,7 @@ auto external_log_file_path(const components::ComponentType aComponentType,
     constexpr auto tNumberOfComponents = utilities::number_of_enumerates<components::ComponentType>();
     return tLogSinks(std::make_index_sequence<tNumberOfComponents>());
 }
+
+auto logging_directory_path() -> std::filesystem::path { return std::filesystem::path{kLoggingFolder}; }
 
 }  // namespace plato::services

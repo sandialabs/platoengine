@@ -6,6 +6,7 @@
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/process_manager/extension/snopt/SNOPTOptimization.hpp"
+#include "plato/process_manager/extension/snopt/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
@@ -19,9 +20,10 @@ namespace
 {
 constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
 
-const auto kBaseInputDeck = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                            criteria::library::test_utilities::create_valid_example_objective_input() |
-                            create_valid_example_snopt_optimization_input();
+const auto kBaseInputDeck =
+    geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
+    criteria::library::test_utilities::create_valid_example_objective_input() |
+    process_manager::extension::snopt::test_utilities::create_valid_example_snopt_optimization_input();
 }  // namespace
 
 TEST(SNOPTOptimization, ConstructAndRunSNOPTOptimization)
@@ -35,8 +37,8 @@ TEST(SNOPTOptimization, ConstructAndRunSNOPTOptimization)
     const auto tSNOPTOptimization = SNOPTOptimization{tValidatedSNOPTSection};
     tSNOPTOptimization.run(tProblem);
 
-    test_utilities::test_for_existence_and_remove({std::string{kSNOPTOptimizerFileName}},
-                                                  TEST_CONTEXT("Checking existence of SNOPT log file"));
+    plato::test_utilities::test_for_existence_and_remove({std::string{kSNOPTOptimizerFileName}},
+                                                         TEST_CONTEXT("Checking existence of SNOPT log file"));
 }
 
 TEST(SNOPTOptimizationDetail, MakeConstraints)
@@ -78,7 +80,7 @@ TEST(SNOPTOptimizationDetail, ConstraintType)
     namespace tpis = third_party_integration::snopt;
     const auto tCheckConstraintType = [](const input_parser::ConstraintTypes aInputConstraintType,
                                          const tpis::ConstraintType aSNOPTConstraintType,
-                                         const test_utilities::TestContext& aTestContext)
+                                         const plato::test_utilities::TestContext& aTestContext)
     {
         auto tConstraintInput = criteria::library::test_utilities::create_valid_example_constraint_input();
         tConstraintInput.constraint_type = aInputConstraintType;
@@ -102,9 +104,10 @@ TEST(SNOPTOptimizationDetail, ConstraintType)
 TEST(SNOPTValidation, ValidateTimeLimit)
 {
     constexpr bool tEmptyParameterGold = false;
-    test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct(
+    plato::test_utilities::test_validation_function_using_valid_function_generator_vs_empty_struct(
         [](const input_parser::snopt_optimization& aInput) { return detail::validate_time_limit_in_minutes(aInput); },
-        create_valid_example_snopt_optimization_input(), tEmptyParameterGold, TEST_CONTEXT("ValidateTimeLimit"));
+        process_manager::extension::snopt::test_utilities::create_valid_example_snopt_optimization_input(),
+        tEmptyParameterGold, TEST_CONTEXT("ValidateTimeLimit"));
 }
 
 TEST(SNOPTOptimization, Registration)

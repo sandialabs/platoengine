@@ -23,6 +23,9 @@ using ComponentExternalLoggerSinks = std::array<third_party_integration::boost_l
 /// @brief Creates all component external sinks, which are meant to capture output from external libraries.
 [[nodiscard]] auto component_external_logger_file_sinks() -> ComponentExternalLoggerSinks;
 
+/// @brief Return the name of the directory containing the log files
+[[nodiscard]] auto logging_directory_path() -> std::filesystem::path;
+
 }  // namespace plato::services
 
 #endif

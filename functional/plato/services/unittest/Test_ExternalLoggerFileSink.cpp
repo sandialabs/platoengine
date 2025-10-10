@@ -95,6 +95,13 @@ TEST(ExternalLoggerFileSink, ExternalLogFileName)
     EXPECT_EQ(tLogFilePath, tExpected);
 }
 
+TEST(ExternalLoggerFileSink, ExternalLoggingFolderName)
+{
+    const auto tResult = logging_directory_path();
+    const auto tGold = std::filesystem::path{"logs"};
+    EXPECT_EQ(tGold, tResult);
+}
+
 TEST(ExternalLoggerFileSink, ComponentExternalLoggerFileSinks)
 {
     [[maybe_unused]] const auto tExternalSinks = component_external_logger_file_sinks();
@@ -113,7 +120,7 @@ TEST(ExternalLoggerFileSink, ComponentExternalLoggerFileSinks)
     constexpr auto tNumberOfFiles = utilities::number_of_enumerates<components::ComponentType>();
     tCheckFiles(std::make_index_sequence<tNumberOfFiles>());
 
-    EXPECT_EQ(std::filesystem::remove_all("logs"), tNumberOfFiles + 1);
+    EXPECT_EQ(std::filesystem::remove_all(logging_directory_path()), tNumberOfFiles + 1);
 }
 
 }  // namespace plato::services::unittest
