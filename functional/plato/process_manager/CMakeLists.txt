@@ -23,6 +23,7 @@ if( UNIT_TESTING )
   # Build unit tester
   set(DIRECTORIES library/unittest extension/unittest)
   if (SNOPT_ENABLED)
+    list(APPEND DIRECTORIES extension/snopt/test_utilities)
     list(APPEND DIRECTORIES extension/snopt/unittest)
   endif()
   set(LINK_LIBS PlatoFunctionalGeometryTestUtilities 

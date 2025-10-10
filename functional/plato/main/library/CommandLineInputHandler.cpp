@@ -16,6 +16,7 @@
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/MPIUtilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::main::library
@@ -27,6 +28,8 @@ constexpr auto kHelpKey = std::string_view{"--help"};
 
 void handle_input(const std::vector<std::string>& aArguments)
 {
+    plato::utilities::execute_on_root(boost::mpi::communicator{},
+                                      []() { std::filesystem::remove_all(plato::services::logging_directory_path()); });
     [[maybe_unused]] const auto tInternalLogSink = services::internal_logger_console_sink();
     [[maybe_unused]] const auto tExternalLogSinks = services::component_external_logger_file_sinks();
 

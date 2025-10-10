@@ -46,9 +46,6 @@ class SNOPTOptimization
     third_party_integration::snopt::SNOPTOptions mOptions;
 };
 
-/// @brief Creates a valid example SNOPTOptimization input struct, useful for tests.
-[[nodiscard]] auto create_valid_example_snopt_optimization_input() -> input_parser::snopt_optimization;
-
 namespace detail
 {
 [[nodiscard]] auto make_constraints(const library::ProcessManagerData& aProcessManagerData)
