@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
+
 #include "plato/input_parser/EnumTypeHelpers.hpp"
 
 namespace plato::enum_test
 {
-enum struct Dragons
+enum struct Dragons : std::uint8_t
 {
     kRed,
     kBlue,

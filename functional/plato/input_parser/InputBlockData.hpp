@@ -14,7 +14,7 @@ class InputBlockWrapper
    public:
     InputBlockWrapper() = default;
 
-    template <typename T, typename = std::enable_if<!std::is_convertible_v<T, InputBlockWrapper>>>
+    template <typename T, typename = std::enable_if_t<!std::is_convertible_v<T, InputBlockWrapper>>>
     explicit InputBlockWrapper(T&& aInitialValue);
 
     /// @brief Returns the held object

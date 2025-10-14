@@ -19,6 +19,7 @@
 #define TABLE_NAME_FROM_ENUM_NAME(ENUM_NAME) BOOST_PP_CAT(BOOST_PP_CAT(k,ENUM_NAME),Table)
 
 #define ENUM_STRUCT_DEFINE(ENUM_NAME, SEQ)                                                      \
+/* NOLINTNEXTLINE(performance-enum-size) */                                                     \
 enum struct ENUM_NAME {                                                                         \
 BOOST_PP_SEQ_FOR_EACH(ENUMERATE_WITH_COMMA, _, SEQ)                                             \
 };                                                                                              

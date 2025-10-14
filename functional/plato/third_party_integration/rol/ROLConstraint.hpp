@@ -4,6 +4,7 @@
 #include <ROL_Bounds.hpp>
 #include <ROL_Problem.hpp>
 #include <ROL_StdVector.hpp>
+#include <cstdint>
 #include <string>
 
 #include "plato/criteria/library/ConstraintFactory.hpp"
@@ -52,7 +53,7 @@ void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& a
 [[nodiscard]] auto create_less_than_inequality_bounds(const unsigned int aNumberOfConstraints)
     -> ROL::Ptr<ROL::Bounds<double>>;
 
-enum class ConstraintCombination
+enum class ConstraintCombination : std::uint8_t
 {
     kLinearEquality,
     kLinearInequality,

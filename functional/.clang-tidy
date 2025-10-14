@@ -1,8 +1,7 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,-clang-analyzer-cplusplus.NewDeleteLeaks,-bugprone-unchecked-optional-access'
+Checks:          'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,-clang-analyzer-cplusplus.NewDeleteLeaks,-bugprone-unchecked-optional-access,-performance-avoid-endl'
 WarningsAsErrors: 'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,-clang-analyzer-cplusplus.NewDeleteLeaks,-bugprone-unchecked-optional-access'
 HeaderFilterRegex: functional
-AnalyzeTemporaryDtors: false
 FormatStyle:     none
 CheckOptions:
   - key:             bugprone-string-constructor.LargeLengthThreshold

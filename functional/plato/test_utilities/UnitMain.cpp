@@ -13,6 +13,9 @@
 
 #include "plato/utilities/NamedType.hpp"
 
+// openmpi casts MPI communicators through void via a macro, so this check has to be disabled in this file.
+// NOLINTBEGIN(bugprone-casting-through-void)
+
 namespace plato::test_utilities
 {
 namespace
@@ -73,7 +76,7 @@ MPI_Comm setup_children(int argc, char** argv, unsigned int aNumRanks)
         MPI_Comm_get_parent(&tParentComm);
         if (tParentComm == MPI_COMM_NULL)
         {
-            std::cout << "Spawning " << aNumRanks << " new ranks" << std::endl;
+            std::cout << "Spawning " << aNumRanks << " new ranks\n";
             auto [tProgramName, tArguments] = program_name_and_arguments_for_mpi(argc, argv);
             MPI_Comm_spawn(tProgramName.data(), tArguments.data(), static_cast<int>(aNumRanks), MPI_INFO_NULL, 0,
                            MPI_COMM_WORLD, &tInterComm, tErrorCodes.data());
@@ -149,3 +152,5 @@ int parallel_unit_main(int argc, char** argv, unsigned int aNumRanks)
 }
 
 }  // namespace plato::test_utilities
+
+// NOLINTEND(bugprone-casting-through-void)

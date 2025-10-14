@@ -56,10 +56,10 @@ class Function
     /// @tparam LHSInfo The function info for the function to convert to. This must be a subset of the function info for
     /// this object.
     template <typename CompatibleFunction,
-              typename = std::enable_if<detail::is_copyable<typename CompatibleFunction::Domain,
-                                                            typename CompatibleFunction::TupleHelper::InfoTuple,
-                                                            DomainType,
-                                                            std::tuple<Info...>>()>>
+              typename = std::enable_if_t<detail::is_copyable<typename CompatibleFunction::Domain,
+                                                              typename CompatibleFunction::TupleHelper::InfoTuple,
+                                                              DomainType,
+                                                              std::tuple<Info...>>()>>
     [[nodiscard]] auto compatibleFunction() const& -> CompatibleFunction;
 
     /// @brief Converts (with move semantics) to a Function with possibly different functions implemented.
@@ -68,10 +68,10 @@ class Function
     /// @tparam LHSInfo The function info for the function to convert to. This must be a subset of the function info for
     /// this object.
     template <typename CompatibleFunction,
-              typename = std::enable_if<detail::is_copyable<typename CompatibleFunction::Domain,
-                                                            typename CompatibleFunction::TupleHelper::InfoTuple,
-                                                            DomainType,
-                                                            std::tuple<Info...>>()>>
+              typename = std::enable_if_t<detail::is_copyable<typename CompatibleFunction::Domain,
+                                                              typename CompatibleFunction::TupleHelper::InfoTuple,
+                                                              DomainType,
+                                                              std::tuple<Info...>>()>>
     [[nodiscard]] auto compatibleFunction() && -> CompatibleFunction;
 
     /// @brief Evaluates a function with derivative order @a Order with matrix ordering @a Ordering.

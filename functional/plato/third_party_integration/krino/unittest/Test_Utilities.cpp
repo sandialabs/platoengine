@@ -101,7 +101,7 @@ TEST_F(KrinoTestFixture, ReadAndSetupForDecomposition)
                                                          "DistanceCorrectionDenominator",
                                                          "DistanceCorrectionNumerator",
                                                          "LEVEL_SET",
-                                                         "LEVEL_SET_STASH",
+                                                         "LEVEL_SET_COPYFORSNAPPING",
                                                          "LS"};
     EXPECT_EQ(tFieldNameGold, tFieldNames);
     std::filesystem::remove(kMeshName);
@@ -172,17 +172,15 @@ TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTri)
     }
 }
 
-TEST_F(KrinoTestFixture, GetLevelSetValuesMakeFromFixed)
+TEST_F(KrinoTestFixture, GetLevelSetFields)
 {
-    constexpr auto tFixedValue = double{1.234};
     create_mesh();
     const auto tMesh = read_and_setup_for_decomposition(kMeshName);
-    const auto tLevelSetFields = make_level_set_field_from_fixed_value(*tMesh, tFixedValue);
-    const auto tLevelSetValues = get_level_set_values(*tMesh, tLevelSetFields);
-    for (const auto& [tId, tValue] : tLevelSetValues)
-    {
-        EXPECT_EQ(tValue, tFixedValue);
-    }
+    const auto tLevelSetFields = get_level_set_fields(*tMesh);
+
+    ASSERT_EQ(tLevelSetFields.size(), 1U);
+    EXPECT_EQ(tLevelSetFields.front().name, get_level_set_field_name());
+    EXPECT_EQ(tLevelSetFields.front().isoval, 0.0);
 
     std::filesystem::remove(kMeshName);
 }

@@ -1,6 +1,7 @@
 #ifndef PLATO_THIRDPARTYINTEGRATION_STKIO_COMMANDGENERATOR
 #define PLATO_THIRDPARTYINTEGRATION_STKIO_COMMANDGENERATOR
 
+#include <cstdint>
 #include <string>
 
 #include "plato/third_party_integration/common/Vector3.hpp"
@@ -17,7 +18,7 @@ using UseUpperZ = utilities::NamedType<bool, struct UseUpperZTag>;
 
 /// @brief Simple enum class to indicate whether the STK command should generate hexs or tets. Very limited scope of
 /// this enum class.
-enum class CommandElementType
+enum class CommandElementType : std::uint8_t
 {
     Hex,
     Tet

@@ -8,6 +8,7 @@
 #include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::geometry::extension::unittest
@@ -25,8 +26,10 @@ using tpik::test_utilities::KrinoTestFixture;
 [[nodiscard]] auto flatten_sensitivities(
     const std::unordered_map<tpik::CutMeshSurfaceNodeId, tpik::LevelSetJacobianColumn>& aMap) -> std::vector<double>
 {
-    std::vector<double> tFlattenedSensitivity;
-    tFlattenedSensitivity.reserve(aMap.size() * 2U * 2U);
+    constexpr auto tDimensions = 2U;
+    constexpr auto tNumberOfParentNodes = 2U;
+    auto tFlattenedSensitivity =
+        utilities::reserved_container<std::vector<double>>(aMap.size() * tDimensions * tNumberOfParentNodes);
     for (const auto& tEntry : aMap)
     {
         for (const auto& tNodalSensitivity : tEntry.second.mNodalSensitivities)
@@ -42,7 +45,7 @@ using tpik::test_utilities::KrinoTestFixture;
 [[nodiscard]] auto retrieve_sensitivities(const std::vector<double>& aPerturbedField) -> std::vector<double>
 {
     const auto tWrapper = test_utilities::make_krino_wrapper_from_vector_values(
-        kRectangleMeshFilePath.value(), test_utilities::InitialLevelSetValues{aPerturbedField}, std::nullopt);
+        kRectangleMeshFilePath.value(), test_utilities::InitialLevelSetValues{aPerturbedField});
     return flatten_sensitivities(tWrapper.sensitivities());
 }
 
@@ -68,8 +71,9 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
     const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.1, 7, 0.1};
     const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
 
+    const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-        kRectangleMeshFilePath.value(), kLevelSetPrimitives, std::nullopt)};
+        kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks)};
 
     const auto tDirection = linear_algebra::DynamicVector(std::vector<double>(tX.size(), 0.1));
 

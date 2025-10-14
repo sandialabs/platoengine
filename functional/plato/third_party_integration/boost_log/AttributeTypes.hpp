@@ -4,12 +4,13 @@
 #include <boost/log/expressions/filter.hpp>
 #include <boost/log/expressions/formatter.hpp>
 #include <concepts>
+#include <cstdint>
 #include <string_view>
 
 namespace plato::third_party_integration::boost_log
 {
 /// @brief Formatting style, mainly indicating whether or not to use color.
-enum struct FormattingStyle
+enum struct FormattingStyle : std::uint8_t
 {
     kNone,
     kColor

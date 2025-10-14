@@ -97,8 +97,10 @@ auto merge_on_all_ranks(const std::vector<Type>& aVector,
     // https://github.com/boostorg/mpi/issues/166
     std::vector<Type> tConcatenatedData(tTotalSize);
     auto* tSendBuffer = aVector.empty() ? nullptr : aVector.data();
+    // NOLINTBEGIN(bugprone-casting-through-void)
     MPI_Allgatherv(tSendBuffer, tSizes[aCommunicator.rank()], MPI_UINT64_T, tConcatenatedData.data(), tSizes.data(),
                    tOffsets.data(), MPI_UINT64_T, aCommunicator);
+    // NOLINTEND(bugprone-casting-through-void)
 
     std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
 
