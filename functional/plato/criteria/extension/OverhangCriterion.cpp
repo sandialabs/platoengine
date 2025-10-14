@@ -65,21 +65,20 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     auto tLogger = services::component_logger(mComponentType, mName);
     tLogger.logInfo("Evaluating criterion gradient");
 
-    namespace tpistk = plato::third_party_integration::stk_io;
-    namespace tpik = plato::third_party_integration::krino;
-
     const auto tSidesetMesh = mesh::MeshSidesets{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
 
-    const std::vector<tpistk::Triangle> tTriangles = tSidesetMesh.sidesetTriangles("surface__void");
+    const std::vector<third_party_integration::stk_io::Triangle> tTriangles =
+        tSidesetMesh.sidesetTriangles("surface__void");
 
-    std::map<size_t, std::array<double, 3>> tGradientMap = detail::calculate_gradient_map_from_triangles(
+    const std::map<size_t, std::array<double, 3>> tGradientMap = detail::calculate_gradient_map_from_triangles(
         tTriangles, mOverhangAngleThreshold, mTransitionWidth, mBuildDirection);
 
     const auto tEntityRetrievalMesh = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
     std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.globalNodeIDs();
     std::sort(tAllNodeIds.begin(), tAllNodeIds.end());
 
-    std::vector<double> tGradientVector = detail::get_full_gradient_vector_from_gradient_map(tGradientMap, tAllNodeIds);
+    const std::vector<double> tGradientVector =
+        detail::get_full_gradient_vector_from_gradient_map(tGradientMap, tAllNodeIds);
 
     const double tGradientNorm =
         std::sqrt(std::inner_product(tGradientVector.begin(), tGradientVector.end(), tGradientVector.begin(), 0));
