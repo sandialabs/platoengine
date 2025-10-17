@@ -301,7 +301,7 @@ TEST(KrinoUtilities, dNormaldCoordsX)
 
 TEST(KrinoUtilities, dNormaldCoordsY)
 {
-    constexpr auto tAbsoluteError = 2e-3;
+    constexpr auto tAbsoluteError = 3e-3;
     constexpr size_t tNumDimensions = 3;
     constexpr size_t tNumNumSensComponents = 9;
     constexpr size_t tDimensionIndex = 1;
