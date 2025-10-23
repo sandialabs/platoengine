@@ -26,6 +26,8 @@ struct UserDefinedToken
 
     void insert(std::string::iterator aIter, char aVal);
 
+    [[nodiscard]] auto operator==(const UserDefinedToken&) const -> bool = default;
+
     std::string mToken;
 };
 
