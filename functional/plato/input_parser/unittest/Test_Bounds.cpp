@@ -3,7 +3,7 @@
 #include <string_view>
 
 #include "plato/input_parser/Bounds.hpp"
-#include "plato/input_parser/unittest/Test_Helpers.hpp"
+#include "plato/input_parser/test_utilities/TestHelpers.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::input_parser::unittest
@@ -14,17 +14,17 @@ namespace
 
 void expect_valid_input(const std::string_view aInput,
                         const std::pair<double, double> aGold,
-                        const test_utilities::TestContext& aTestContext)
+                        const plato::test_utilities::TestContext& aTestContext)
 {
-    const auto [tResult, tSuccess] = unittest::parse_input<Bounds>(aInput);
+    const auto [tResult, tSuccess] = test_utilities::parse_input<Bounds>(aInput);
     ASSERT_TRUE(tSuccess) << aTestContext;
     EXPECT_EQ(tResult.mLower, aGold.first) << aTestContext;
     EXPECT_EQ(tResult.mUpper, aGold.second) << aTestContext;
 }
 
-void expect_invalid_input(const std::string_view aInput, const test_utilities::TestContext& aTestContext)
+void expect_invalid_input(const std::string_view aInput, const plato::test_utilities::TestContext& aTestContext)
 {
-    const auto [tResult, tSuccess] = unittest::parse_input<Bounds>(aInput);
+    const auto [tResult, tSuccess] = test_utilities::parse_input<Bounds>(aInput);
     EXPECT_FALSE(tSuccess) << aTestContext;
 }
 

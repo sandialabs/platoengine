@@ -2,7 +2,7 @@
 
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/UserDefinedTokenList.hpp"
-#include "plato/input_parser/unittest/Test_Helpers.hpp"
+#include "plato/input_parser/test_utilities/TestHelpers.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -29,12 +29,12 @@ TEST(FileList, Insert)
 TEST(FileList, Iterators)
 {
     FileList tFileList{{{"r", "a", "w", "r"}}};
-    copy_test(tFileList, TEST_CONTEXT("Iterators"));
+    test_utilities::copy_test(tFileList, TEST_CONTEXT("Iterators"));
 }
 
 TEST(FileList, ConstIterators)
 {
     const FileList tFileList{{{"r", "a", "w", "r"}}};
-    copy_test(tFileList, TEST_CONTEXT("Const iterators"));
+    test_utilities::copy_test(tFileList, TEST_CONTEXT("Const iterators"));
 }
 }  // namespace plato::input_parser::unittest

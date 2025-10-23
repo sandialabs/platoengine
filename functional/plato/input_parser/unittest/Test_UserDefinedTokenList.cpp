@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/input_parser/UserDefinedTokenList.hpp"
-#include "plato/input_parser/unittest/Test_Helpers.hpp"
+#include "plato/input_parser/test_utilities/TestHelpers.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -38,7 +38,7 @@ TEST(UserDefinedTokenList, SuccessfulParseSingleEntries)
 {
     const auto tToken1 = std::string{"birdo"};
     const auto tAllTokens = std::vector{tToken1};
-    const auto [tResult, tSuccess] = parse_input<ListType>(tToken1);
+    const auto [tResult, tSuccess] = test_utilities::parse_input<ListType>(tToken1);
     EXPECT_TRUE(tSuccess);
     EXPECT_EQ(tResult, std::vector{tToken1});
 }
@@ -51,7 +51,7 @@ TEST(UserDefinedTokenList, SuccessfulParseMultipleEntries)
     const auto tAllTokens = std::vector{tToken1, tToken2, tToken3};
     const auto tTokenList = utilities::concatenate_container(tAllTokens, ", ");
 
-    const auto [tResult, tSuccess] = parse_input<ListType>(tTokenList);
+    const auto [tResult, tSuccess] = test_utilities::parse_input<ListType>(tTokenList);
     EXPECT_TRUE(tSuccess);
 
     EXPECT_EQ(tResult, tAllTokens);
@@ -60,7 +60,7 @@ TEST(UserDefinedTokenList, SuccessfulParseMultipleEntries)
 TEST(UserDefinedTokenList, FailedParseBadCharacters)
 {
     const auto tBadInput = std::string_view{"dry-bones, koopa-troopa"};
-    const auto [tResult, tSuccess] = parse_input<ListType>(tBadInput);
+    const auto [tResult, tSuccess] = test_utilities::parse_input<ListType>(tBadInput);
     EXPECT_FALSE(tSuccess);
 }
 

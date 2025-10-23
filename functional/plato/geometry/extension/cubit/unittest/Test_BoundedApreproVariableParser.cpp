@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/geometry/extension/cubit/BoundedApreproVariableParser.hpp"
-#include "plato/input_parser/unittest/Test_Helpers.hpp"
+#include "plato/input_parser/test_utilities/TestHelpers.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::geometry::extension::cubit::unittest
@@ -19,9 +19,10 @@ void expect_equal(const input_parser::BoundedApreproVariable& aResult,
     EXPECT_EQ(aResult.mBounds.mUpper, aGold.mBounds.mUpper) << aTestContext;
 }
 
-void expect_invalid_input(const std::string_view aInput, const test_utilities::TestContext& aTestContext)
+void expect_invalid_input(const std::string_view aInput, const plato::test_utilities::TestContext& aTestContext)
 {
-    const auto [tResult, tSuccess] = input_parser::unittest::parse_input<input_parser::BoundedApreproVariable>(aInput);
+    const auto [tResult, tSuccess] =
+        input_parser::test_utilities::parse_input<input_parser::BoundedApreproVariable>(aInput);
     ASSERT_FALSE(tSuccess) << aTestContext;
 }
 
@@ -31,7 +32,7 @@ TEST(BoundedApreproVariable, ValidInputParsingTest)
 {
     constexpr auto tValidInput = std::string_view{"width 0.5 [0.2, 1.0]"};
     const auto [tResult, tSuccess] =
-        input_parser::unittest::parse_input<input_parser::BoundedApreproVariable>(tValidInput);
+        input_parser::test_utilities::parse_input<input_parser::BoundedApreproVariable>(tValidInput);
 
     const auto tGold =
         input_parser::BoundedApreproVariable{input_parser::ApreproString{"width"}, 0.5, input_parser::Bounds{0.2, 1.0}};
@@ -69,7 +70,7 @@ TEST(BoundedApreproVariable, ValidInputParsingTestTwoEntries)
         " width 0.5 [0.2, 1.0],"
         " height 1 [0.5, 2.0]\n "};
     const auto [tResult, tSuccess] =
-        input_parser::unittest::parse_input<input_parser::BoundedApreproVariableList>(tValidInput);
+        input_parser::test_utilities::parse_input<input_parser::BoundedApreproVariableList>(tValidInput);
 
     const auto tGoldFront =
         input_parser::BoundedApreproVariable{input_parser::ApreproString{"width"}, 0.5, input_parser::Bounds{0.2, 1.0}};
@@ -86,7 +87,7 @@ TEST(BoundedApreproVariableListParser, ValidInputParsingTestEmptyList)
 {
     constexpr auto tValidInput = std::string_view{""};
     const auto [tResult, tSuccess] =
-        input_parser::unittest::parse_input<input_parser::BoundedApreproVariableList>(tValidInput);
+        input_parser::test_utilities::parse_input<input_parser::BoundedApreproVariableList>(tValidInput);
     EXPECT_FALSE(tSuccess) << "Invalid input, empty list";
 }
 
@@ -94,7 +95,7 @@ TEST(BoundedApreproVariableListParser, ValidInputParsingTestSingleEntry)
 {
     constexpr auto tValidInput = std::string_view{" width 0.5 [0.2, 1.0] "};
     const auto [tResult, tSuccess] =
-        input_parser::unittest::parse_input<input_parser::BoundedApreproVariableList>(tValidInput);
+        input_parser::test_utilities::parse_input<input_parser::BoundedApreproVariableList>(tValidInput);
 
     ASSERT_TRUE(tSuccess) << "Valid input";
     ASSERT_EQ(tResult.mList.size(), 1U);
