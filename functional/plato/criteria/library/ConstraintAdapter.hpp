@@ -11,9 +11,11 @@
 
 namespace plato::criteria::library
 {
-
 template <typename FunctionArg>
-using ScalarFunction = typename Constraint<FunctionArg>::ConstraintFunction;
+using ScalarFunction =
+    core::Function<FunctionArg,
+                   core::FunctionInfo<double, core::evaluation::kFunction>,
+                   core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
 template <typename FunctionArg>
 using VectorFunction = typename VectorConstraint<FunctionArg>::ConstraintFunction;

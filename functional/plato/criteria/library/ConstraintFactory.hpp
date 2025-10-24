@@ -5,6 +5,7 @@
 #include <string>
 
 #include "plato/core/Function.hpp"
+#include "plato/criteria/library/ConstraintTarget.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
@@ -25,24 +26,6 @@ enum class ConstraintType : std::uint8_t
     kGreaterThan
 };
 
-/// @brief Holds members for defining a scalar constraint
-/// @tparam FunctionArg The argument of the function used to define the constraint.
-///   Typically, this is either AnalysisDomainMesh or a vector type such as DynamicVector.
-template <typename FunctionArg>
-struct Constraint
-{
-    using ConstraintFunction =
-        core::Function<FunctionArg,
-                       core::FunctionInfo<double, core::evaluation::kFunction>,
-                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
-
-    std::string mName;
-    ConstraintFunction mConstraintFunction;
-    double mConstraintTarget = 0;
-    bool mLinear = false;
-    ConstraintType mConstraintType = ConstraintType::kEqualTo;
-};
-
 /// @brief Holds members for defining a vector-valued constraint
 /// @tparam FunctionArg The argument of the function used to define the constraint.
 ///   Typically, this is either AnalysisDomainMesh or a vector type such as DynamicVector.
@@ -59,7 +42,7 @@ struct VectorConstraint
 
     std::string mName;
     ConstraintFunction mConstraintFunction;
-    double mConstraintTarget = 0;
+    ConstraintTarget mConstraintTarget;
     bool mLinear = false;
     ConstraintType mConstraintType;
 };

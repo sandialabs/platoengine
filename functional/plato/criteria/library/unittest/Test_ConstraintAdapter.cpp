@@ -22,8 +22,6 @@ using LinearAlgebraFunction =
                    core::FunctionInfo<double, core::evaluation::kFunction>,
                    core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
-using ConstraintDynamicVector = Constraint<const linear_algebra::DynamicVector<double>&>;
-
 auto make_rosenbrock_function() -> LinearAlgebraFunction
 {
     const auto tF = core::test_utilities::make_two_d_function(test_utilities::Rosenbrock{});
