@@ -23,6 +23,7 @@ struct CriterionConfiguration
     bool mIsScalar = true;
     std::string mFunctionName{};
     std::optional<std::vector<std::string>> mVectorComponentNames = std::nullopt;
+
     auto operator==(const CriterionConfiguration& aCriterionConfiguration) const -> bool = default;
 };
 
