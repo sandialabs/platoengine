@@ -15,14 +15,25 @@ namespace
     [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
     [](const input_parser::constraint& aInput) { return detail::validate_constraint_value(aInput); },
     [](const input_parser::constraint& aInput) { return detail::validate_constraint_type(aInput); }};
-}
+}  // namespace
 
 namespace detail
 {
 auto validate_constraint_value(const input_parser::constraint& aInput) -> std::optional<std::string>
 {
-    return input_validation::error_message_for_empty_parameter(criterion_name(aInput), aInput.constraint_value,
-                                                               "constraint_value");
+    if (aInput.constraint_value && aInput.constraint_value_list)
+    {
+        return std::optional<std::string>{utilities::concatenate(
+            criterion_name(aInput),
+            " defines both scalar and vector constraint targets. Only one target definition is allowed.")};
+    }
+    else if (!aInput.constraint_value && !aInput.constraint_value_list)
+    {
+        return std::optional<std::string>{utilities::concatenate(
+            criterion_name(aInput),
+            " does not define constraint_value or constraint_value_list. One constraint value entry is required.")};
+    }
+    return std::nullopt;
 }
 
 auto validate_constraint_number_of_processors(const input_parser::constraint& aInput) -> std::optional<std::string>

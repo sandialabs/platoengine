@@ -2,19 +2,36 @@
 
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ConstraintValidation.hpp"
-#include "plato/criteria/library/CriterionValidation.hpp"
-#include "plato/input_validation/ValidationRegistration.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 
 namespace plato::criteria::library::unittest
 {
 TEST(ConstraintValidation, ValidateConstraintValue)
 {
     namespace pfcd = plato::criteria::library::detail;
-    auto tConstraint = input_parser::constraint{};
-    EXPECT_TRUE(pfcd::validate_constraint_value(tConstraint).has_value());
-    tConstraint.constraint_value = 1.0;  // has only 1 : valid
-    EXPECT_FALSE(pfcd::validate_constraint_value(tConstraint).has_value());
+    // Valid, only constraint_value is set
+    {
+        auto tConstraint = input_parser::constraint{};
+        tConstraint.constraint_value = 1.0;  // has only 1 : valid
+        EXPECT_FALSE(pfcd::validate_constraint_value(tConstraint).has_value());
+    }
+    // Valid, only constraint_value_list is set
+    {
+        auto tConstraint = input_parser::constraint{};
+        tConstraint.constraint_value_list = ConstraintValueList{{input_parser::ComponentAndTarget{}}};
+        EXPECT_FALSE(pfcd::validate_constraint_value(tConstraint).has_value());
+    }
+    // Invalid, no constraint targets
+    {
+        auto tConstraint = input_parser::constraint{};
+        EXPECT_TRUE(pfcd::validate_constraint_value(tConstraint).has_value());
+    }
+    // Invalid, both constraint target types are set (constraint_value and constraint_value_list)
+    {
+        auto tConstraint = input_parser::constraint{};
+        tConstraint.constraint_value = 1.0;
+        tConstraint.constraint_value_list = ConstraintValueList{{input_parser::ComponentAndTarget{}}};
+        EXPECT_TRUE(pfcd::validate_constraint_value(tConstraint).has_value());
+    }
 }
 
 TEST(ConstraintValidation, ValidateConstraintType)
