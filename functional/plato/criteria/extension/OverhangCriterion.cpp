@@ -77,11 +77,10 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.globalNodeIDs();
     std::sort(tAllNodeIds.begin(), tAllNodeIds.end());
 
-    const std::vector<double> tGradientVector =
-        detail::get_full_gradient_vector_from_gradient_map(tGradientMap, tAllNodeIds);
+    std::vector<double> tGradientVector = detail::get_full_gradient_vector_from_gradient_map(tGradientMap, tAllNodeIds);
 
     const double tGradientNorm =
-        std::sqrt(std::inner_product(tGradientVector.begin(), tGradientVector.end(), tGradientVector.begin(), 0));
+        std::sqrt(std::inner_product(tGradientVector.begin(), tGradientVector.end(), tGradientVector.begin(), 0.0));
     std::cout << std::scientific << std::setprecision(14) << "Overhang criterion gradient norm: " << tGradientNorm
               << std::endl;
 

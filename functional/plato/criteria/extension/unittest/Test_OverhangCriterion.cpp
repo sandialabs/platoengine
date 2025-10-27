@@ -16,7 +16,7 @@ using namespace plato::third_party_integration::stk_io;
 constexpr double kTolerance{1e-14};
 constexpr Vector3 kBuildDirection{0, 0, -1};
 constexpr double kStepTransitionWidth{0.05};
-constexpr double kOverhangAngleThreshold{-std::sqrt(2.0) / 2.0};
+const double kOverhangAngleThreshold{-std::sqrt(2.0) / 2.0};
 
 TEST(OverhangCriterion, ExponentialStepFunction)
 {
