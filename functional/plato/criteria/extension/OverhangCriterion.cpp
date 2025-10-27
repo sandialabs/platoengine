@@ -124,8 +124,8 @@ using namespace plato::third_party_integration::common;
 using namespace plato::third_party_integration::stk_io;
 
 [[nodiscard]] auto calculate_gradient_map_from_triangles(const std::vector<Triangle>& aTriangles,
-                                                         const double& aOverhangAngleThreshold,
-                                                         const double& aStepTransitionWidth,
+                                                         const double aOverhangAngleThreshold,
+                                                         const double aStepTransitionWidth,
                                                          const Vector3& aBuildDirection)
     -> std::map<size_t, std::array<double, 3>>
 {
@@ -187,32 +187,32 @@ using namespace plato::third_party_integration::stk_io;
     return tGradientVector;
 }
 
-[[nodiscard]] double exponential_step_function(const double& aInput)
+[[nodiscard]] double exponential_step_function(const double aInput)
 {
     return aInput > 0.0 ? std::exp(-1.0 / aInput) : 0.0;
 }
 
-[[nodiscard]] double d_exponential_step_function(const double& aInput)
+[[nodiscard]] double d_exponential_step_function(const double aInput)
 {
     return aInput > 0.0 ? std::exp(-1.0 / aInput) / (aInput * aInput) : 0.0;
 }
 
-[[nodiscard]] double smoothing_function(const double& aInput)
+[[nodiscard]] double smoothing_function(const double aInput)
 {
     return exponential_step_function(aInput) /
            (exponential_step_function(aInput) + exponential_step_function(1.0 - aInput));
 }
 
-[[nodiscard]] double d_smoothing_function(const double& aInput)
+[[nodiscard]] double d_smoothing_function(const double aInput)
 {
     return (d_exponential_step_function(aInput) * exponential_step_function(1.0 - aInput) +
             d_exponential_step_function(1.0 - aInput) * exponential_step_function(aInput)) /
            std::pow((exponential_step_function(aInput) + exponential_step_function(1.0 - aInput)), 2);
 }
 
-[[nodiscard]] double overhang(const double& aAngleDotBuildDirection,
-                              const double& aOverhangAngleThreshold,
-                              const double& aStepTransitionWidth)
+[[nodiscard]] double overhang(const double aAngleDotBuildDirection,
+                              const double aOverhangAngleThreshold,
+                              const double aStepTransitionWidth)
 {
     // The calculation of the return value will be determined by whether the input value, aAngleDotBuildDirection,
     // is in one of three ranges: 1) less than the step function transition region (return 1.0), 2) inside the step
@@ -229,9 +229,9 @@ using namespace plato::third_party_integration::stk_io;
     return tReturnValue;
 }
 
-[[nodiscard]] double d_overhang(const double& aAngleDotBuildDirection,
-                                const double& aOverhangAngleThreshold,
-                                const double& aStepTransitionWidth)
+[[nodiscard]] double d_overhang(const double aAngleDotBuildDirection,
+                                const double aOverhangAngleThreshold,
+                                const double aStepTransitionWidth)
 {
     // The calculation of the return value will be determined by whether the input value, aAngleDotBuildDirection,
     // is in one of three ranges: 1) less than the step function transition region (return 1.0), 2) inside the step
@@ -253,8 +253,8 @@ using namespace plato::third_party_integration::stk_io;
 [[nodiscard]] double overhang_from_triangle_node_coordinates(const Coordinate& aNode1,
                                                              const Coordinate& aNode2,
                                                              const Coordinate& aNode3,
-                                                             const double& aOverhangAngleThreshold,
-                                                             const double& aStepTransitionWidth,
+                                                             const double aOverhangAngleThreshold,
+                                                             const double aStepTransitionWidth,
                                                              const Vector3& aBuildDirection)
 {
     const Triangle tTriangle{aNode1, aNode2, aNode3};
@@ -266,8 +266,8 @@ using namespace plato::third_party_integration::stk_io;
 [[nodiscard]] double d_overhang_from_triangle_node_coordinates(const Coordinate& aNode1,
                                                                const Coordinate& aNode2,
                                                                const Coordinate& aNode3,
-                                                               const double& aOverhangAngleThreshold,
-                                                               const double& aStepTransitionWidth,
+                                                               const double aOverhangAngleThreshold,
+                                                               const double aStepTransitionWidth,
                                                                const Vector3& aBuildDirection)
 {
     const Triangle tTriangle{aNode1, aNode2, aNode3};
@@ -277,8 +277,8 @@ using namespace plato::third_party_integration::stk_io;
 }
 
 [[nodiscard]] double area_weighted_overhang_from_triangle(const Triangle& aTriangle,
-                                                          const double& aOverhangAngleThreshold,
-                                                          const double& aStepTransitionWidth,
+                                                          const double aOverhangAngleThreshold,
+                                                          const double aStepTransitionWidth,
                                                           const Vector3& aBuildDirection)
 {
     const double tArea = aTriangle.volume();
@@ -288,8 +288,8 @@ using namespace plato::third_party_integration::stk_io;
 }
 
 std::vector<double> get_gradient_contribution_for_triangle(const Triangle& aTriangle,
-                                                           const double& aOverhangAngleThreshold,
-                                                           const double& aStepTransitionWidth,
+                                                           const double aOverhangAngleThreshold,
+                                                           const double aStepTransitionWidth,
                                                            const Vector3& aBuildDirection)
 {
     namespace tpik = plato::third_party_integration::krino;
