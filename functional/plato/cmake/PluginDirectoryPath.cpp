@@ -1,7 +1,5 @@
 #include "plato/services/PluginDirectoryPath.hpp"
 
-#include <iostream>
-
 namespace plato::services
 {
 
