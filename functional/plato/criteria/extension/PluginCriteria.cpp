@@ -118,10 +118,9 @@ std::size_t register_plugin_apps(const std::vector<std::filesystem::path>& aSear
         }
         else
         {
-            services::system_logger().logWarning(
-                utilities::concatenate("Warning: The shared library ", services::shared_library_path(tAppConfiguration),
-                                       ", associated with app \"", tAppConfiguration.mConfiguration.mName,
-                                       "\", was not found and will not be available."));
+            services::system_logger().logWarning(utilities::concatenate(
+                "The shared library ", services::shared_library_path(tAppConfiguration), ", associated with app \"",
+                tAppConfiguration.mConfiguration.mName, "\", was not found and will not be available."));
         }
     }
     return tNumberOfRegisteredApps;
