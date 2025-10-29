@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
-#include <fstream>
 
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
@@ -50,20 +49,20 @@ void testSerializeRoundTrip(const AppConfiguration& aSerializable, const test_ut
 
 TEST(AppConfiguration, Serialization)
 {
-    const auto tAppConfiguration = services::AppConfiguration{
-        /*.mName=*/"test-app",
-        /*.mLibraryFileName=*/"libtest.so",
-        /*.mCriteria=*/
-        {kTestCriterionConfiguration, kAnotherTestCriterionConfiguration, kVectorTestCriterionConfiguration}};
+    const auto tAppConfiguration =
+        services::AppConfiguration{.mName = "test-app",
+                                   .mLibraryFileName = "libtest.so",
+                                   .mCriteria = {kTestCriterionConfiguration, kAnotherTestCriterionConfiguration,
+                                                 kVectorTestCriterionConfiguration}};
     testSerializeRoundTrip(tAppConfiguration, TEST_CONTEXT("App configuration"));
 }
 
 TEST(AppConfiguration, AppConfigurationWithDirectory)
 {
     const auto tSharedLibName = std::string_view{"libappetizer.so"};
-    const auto tAppConfiguration =
-        services::AppConfiguration{/*.mName=*/"appetizer", /*.mLbraryFileName=*/std::string{tSharedLibName},
-                                   /*.mCriteria=*/{kTestCriterionConfiguration}};
+    const auto tAppConfiguration = services::AppConfiguration{.mName = "appetizer",
+                                                              .mLibraryFileName = std::string{tSharedLibName},
+                                                              .mCriteria = {kTestCriterionConfiguration}};
     const auto tDirectory = std::filesystem::path{"/path/to/food"};
 
     const auto tAppConfigurationWithDirectory = app_configuration_with_directory(tAppConfiguration, tDirectory);
