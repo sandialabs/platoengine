@@ -15,6 +15,16 @@ namespace plato::analysis
 struct AnalysisDomainMesh;
 }
 
+namespace plato::input_parser
+{
+struct constraint;
+}
+
+namespace plato::services
+{
+struct AppConfigurationWithDirectory;
+}
+
 namespace plato::criteria::library
 {
 using ValidatedConstraints = input_validation::ValidatedComponentType<components::ComponentType::kConstraint>;
@@ -61,6 +71,15 @@ namespace detail
     const input_validation::ValidatedInputDataBlock<components::ComponentType::kConstraint>& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>;
 
+/// @brief Creates a ConstraintTarget object based on the input contained in @a aInput and uses the component names, if
+/// necessary, in @a aAppConfigurations.
+/// @pre The app and criterion names in @a aInput are set (not `nullopt`) and refer to an existing configuration in @a
+/// aAppConfigurations.
+/// @pre The app and criterion names in @a aInput refer to a vector criterion with named components, so that the
+/// CriterionConfiguration object has a non-empty `mVectorComponents` field.
+[[nodiscard]] auto make_constraint_target(
+    const input_parser::constraint& aInput,
+    const std::vector<services::AppConfigurationWithDirectory>& aAppConfigurations) -> ConstraintTarget;
 }  // namespace detail
 }  // namespace plato::criteria::library
 

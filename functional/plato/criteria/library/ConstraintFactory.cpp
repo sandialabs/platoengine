@@ -5,9 +5,11 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
+#include "plato/criteria/library/ConstraintTarget.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
 namespace plato::criteria::library
@@ -48,7 +50,7 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>
 {
     const auto& tRawInput = input_validation::get_input_block<input_parser::constraint>(aConstraintInput);
-    const auto tValue = tRawInput.constraint_value.value();
+    auto tConstraintValue = make_constraint_target(tRawInput, services::plugin_configurations());
     const auto tIsLinear = tRawInput.is_linear.value_or(false);
     const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
     const auto tConstraintType = kConstraintMap.at(tRawInput.constraint_type.value());
@@ -61,8 +63,36 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
             : to_vector_function<const analysis::AnalysisDomainMesh&>(
                   make_criterion_function<CriterionFunction, input_parser::constraint>(aConstraintInput));
 
-    return VectorConstraint<const analysis::AnalysisDomainMesh&>{tConstraintName, std::move(tCriterionFunction), tValue,
-                                                                 tIsLinear, tConstraintType};
+    return VectorConstraint<const analysis::AnalysisDomainMesh&>{.mName = tConstraintName,
+                                                                 .mConstraintFunction = std::move(tCriterionFunction),
+                                                                 .mConstraintTarget = std::move(tConstraintValue),
+                                                                 .mLinear = tIsLinear,
+                                                                 .mConstraintType = tConstraintType};
+}
+
+auto make_constraint_target(const input_parser::constraint& aInput,
+                            const std::vector<services::AppConfigurationWithDirectory>& aAppConfigurations)
+    -> ConstraintTarget
+{
+    if (aInput.constraint_value)
+    {
+        return ConstraintTarget{aInput.constraint_value.value()};
+    }
+
+    assert(aInput.app);
+    assert(aInput.criterion);
+
+    const auto tCriterionConfiguration = services::criterion_configuration_with_name(
+        services::CriterionName{.mAppName = aInput.app.value().mToken,
+                                .mCriterionName = aInput.criterion.value().mToken},
+        aAppConfigurations);
+
+    assert(tCriterionConfiguration);
+    assert(tCriterionConfiguration.value().mVectorComponents);
+    assert(aInput.constraint_value_list);
+
+    return criteria::library::make_constraint_target(to_vector(aInput.constraint_value_list->mList),
+                                                     tCriterionConfiguration.value().mVectorComponents.value());
 }
 
 }  // namespace detail

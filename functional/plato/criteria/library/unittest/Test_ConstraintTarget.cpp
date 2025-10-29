@@ -43,4 +43,16 @@ TEST(ConstraintTarget, Value)
     }
 }
 
+TEST(ConstraintTarget, MakeConstraintTarget)
+{
+    const auto tTargets = std::vector<std::pair<std::string, double>>{{"brick", 91.0}, {"mortar", 90.0}};
+    const auto tComponentNameIndices =
+        std::map<std::size_t, std::string>{{0U, "gravel"}, {1U, "mortar"}, {2U, "asphalt"}, {3U, "brick"}};
+    const auto tConstraintTarget = make_constraint_target(tTargets, tComponentNameIndices);
+
+    EXPECT_EQ(tConstraintTarget.size(), tTargets.size());
+    const auto tExpected = std::vector{90.0, 91.0};
+    EXPECT_EQ(tConstraintTarget.value(tTargets.size()), tExpected);
+}
+
 }  // namespace plato::criteria::library::unittest

@@ -2,10 +2,12 @@
 #define PLATO_SERVICES_APPCONFIGURATION
 
 #include <boost/core/nvp.hpp>
+#include <boost/serialization/map.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/optional.hpp>
 #include <boost/serialization/vector.hpp>
 #include <filesystem>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -22,7 +24,7 @@ struct CriterionConfiguration
     bool mIsParallelized = false;
     bool mIsScalar = true;
     std::string mFunctionName{};
-    std::optional<std::vector<std::string>> mVectorComponentNames = std::nullopt;
+    std::optional<std::map<std::size_t, std::string>> mVectorComponents = std::nullopt;
 
     auto operator==(const CriterionConfiguration& aCriterionConfiguration) const -> bool = default;
 };
@@ -64,7 +66,7 @@ void serialize(Archive& aArchive, CriterionConfiguration& aAppConfiguration, con
     aArchive& boost::serialization::make_nvp("is_scalar", aAppConfiguration.mIsScalar);
     if (!aAppConfiguration.mIsScalar)
     {
-        aArchive& boost::serialization::make_nvp("vector_component_names", aAppConfiguration.mVectorComponentNames);
+        aArchive& boost::serialization::make_nvp("vector_component_names", aAppConfiguration.mVectorComponents);
     }
 }
 

@@ -13,7 +13,7 @@ auto create_valid_example_constraint_input() -> input_parser::constraint
                                     /*.criterion=*/input_parser::CriterionName{"nodal_sum"},
                                     /*.number_of_processors=*/1U,
                                     /*.input_files=*/input_parser::FileList{{"brown.txt", "butter.txt", "sauce.txt"}},
-                                    /*.constraint_value_list=*/criteria::library::ConstraintValueList{},
+                                    /*.constraint_value_list=*/boost::none,
                                     /*.constraint_value=*/0.0,
                                     /*.is_linear=*/true,
                                     /*.constraint_type=*/input_parser::ConstraintTypes::kEqualTo};

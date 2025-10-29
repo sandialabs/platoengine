@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iostream>  // TODO Remove
 
 #include "plato/services/PluginDirectoryPath.hpp"
 #include "plato/utilities/OptionalToVector.hpp"

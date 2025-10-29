@@ -29,8 +29,6 @@ struct CriterionName
 [[nodiscard]] std::filesystem::path shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration);
 
 /// @brief Returns the CriterionRegistration with name @a aCriterionName.
-/// @note The name of the criterion must be prefixed with the app name, separated by a colon, e.g.,
-/// "platoanalyze:mass_properties".
 [[nodiscard]] auto criterion_configuration_with_name(
     const CriterionName& aCriterionName,
     const std::vector<AppConfigurationWithDirectory>& aAppConfigurations) -> std::optional<CriterionConfiguration>;

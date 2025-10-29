@@ -20,12 +20,12 @@ const auto kAnotherTestCriterionConfiguration = CriterionConfiguration{.mName = 
                                                                        .mIsScalar = false,
                                                                        .mFunctionName = "plato_another_test_criterion"};
 
-const auto kVectorTestCriterionConfiguration =
-    CriterionConfiguration{.mName = "vector_test-criterion",
-                           .mIsParallelized = false,
-                           .mIsScalar = false,
-                           .mFunctionName = "plato_vector_test_criterion",
-                           .mVectorComponentNames = std::vector<std::string>{"octopus", "cuttlefish"}};
+const auto kVectorTestCriterionConfiguration = CriterionConfiguration{
+    .mName = "vector_test-criterion",
+    .mIsParallelized = false,
+    .mIsScalar = false,
+    .mFunctionName = "plato_vector_test_criterion",
+    .mVectorComponents = std::map<std::size_t, std::string>{{0U, "octopus"}, {1U, "cuttlefish"}}};
 
 const auto kTestConfiguration =
     AppConfiguration{.mName = "test-app", .mLibraryFileName = "libtest.so", .mCriteria = {kTestCriterionConfiguration}};
