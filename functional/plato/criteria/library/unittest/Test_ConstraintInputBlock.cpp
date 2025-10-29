@@ -71,4 +71,17 @@ TEST(ConstraintInputBlock, FullBlockParse)
     EXPECT_FALSE(tParsedData.is_linear.value());
     EXPECT_EQ(tParsedData.constraint_type.value(), input_parser::ConstraintTypes::kEqualTo);
 }
+
+TEST(ConstraintInputBlock, ConstraintValueListToVector)
+{
+    const auto tConstraintList = ConstraintValueList{
+        {input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"x"}, /*.target=*/1.0},
+         input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"y"}, /*.target=*/2.0},
+         input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"z"}, /*.target=*/3.0}}};
+
+    const auto tConstraintValuesAsVector = to_vector(tConstraintList);
+
+    const auto tExpected = ConstraintComponentVector{{"x", 1.0}, {"y", 2.0}, {"z", 3.0}};
+    EXPECT_EQ(tConstraintValuesAsVector, tExpected);
+}
 }  // namespace plato::criteria::library::unittest

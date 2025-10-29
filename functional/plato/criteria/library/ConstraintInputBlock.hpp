@@ -10,7 +10,12 @@
 namespace plato::criteria::library
 {
 using ConstraintValueList = input_parser::AutoList<input_parser::ComponentAndTarget>;
-}
+using ConstraintComponentVector = std::vector<std::pair<std::string, double>>;
+
+/// @brief Helper function for converting a ConstraintValueList to std types.
+[[nodiscard]] auto to_vector(const ConstraintValueList& aConstraintList) -> ConstraintComponentVector;
+
+}  // namespace plato::criteria::library
 
 // clang-format off
 DECLARE_ENUM_AND_ENUM_SYMBOL_TABLE(ConstraintTypes,
