@@ -19,6 +19,10 @@ struct JacobianMultiplier
 /// @brief A NamedType to distinguish adjoint matrix-vector multiplication.
 using AdjointJacobianMultiplier = utilities::NamedType<JacobianMultiplier, struct AdjointJacobianMultiplierTag>;
 
+/// @brief Returns an AdjointJacobianMultiplier implemented with the product function @a aProductFunction
+[[nodiscard]] auto make_adjoint_jacobian_multiplier(JacobianMultiplier::VectorTimesJacobianFunction aProductFunction)
+    -> AdjointJacobianMultiplier;
+
 /// @brief Implementation of multiplication of a row vector @a aX
 template <typename Arg>
 [[nodiscard]] auto operator*(const Arg& aX, const JacobianMultiplier& aA)
