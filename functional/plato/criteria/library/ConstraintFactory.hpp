@@ -23,7 +23,8 @@ struct constraint;
 namespace plato::services
 {
 struct AppConfigurationWithDirectory;
-}
+struct CriterionConfiguration;
+}  // namespace plato::services
 
 namespace plato::criteria::library
 {
@@ -72,14 +73,19 @@ namespace detail
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>;
 
 /// @brief Creates a ConstraintTarget object based on the input contained in @a aInput and uses the component names, if
-/// necessary, in @a aAppConfigurations.
-/// @pre The app and criterion names in @a aInput are set (not `nullopt`) and refer to an existing configuration in @a
-/// aAppConfigurations.
-/// @pre The app and criterion names in @a aInput refer to a vector criterion with named components, so that the
-/// CriterionConfiguration object has a non-empty `mVectorComponents` field.
-[[nodiscard]] auto make_constraint_target(
-    const input_parser::constraint& aInput,
-    const std::vector<services::AppConfigurationWithDirectory>& aAppConfigurations) -> ConstraintTarget;
+/// necessary, in @a aConfiguration.
+/// @pre If @a aInput does not define `constraint_value`, @a aConfiguration must have a non-empty `mVectorComponents`
+/// field.
+[[nodiscard]] auto make_constraint_target(const input_parser::constraint& aInput,
+                                          const services::CriterionConfiguration& aConfiguration) -> ConstraintTarget;
+
+/// @brief Returns the vector indices associated with the requested constraint targets.
+///
+/// If `constraint_value` has a value, or @a aConfiguration has no value in its `mVectorComponents` member, then
+/// `std::nullopt` returned.
+[[nodiscard]] auto constraint_component_indices(const input_parser::constraint& aInput,
+                                                const services::CriterionConfiguration& aConfiguration)
+    -> std::optional<std::set<std::size_t>>;
 }  // namespace detail
 }  // namespace plato::criteria::library
 

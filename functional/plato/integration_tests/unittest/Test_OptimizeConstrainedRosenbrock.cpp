@@ -67,10 +67,12 @@ constexpr bool kPrintFlag = true;
     constexpr double tSumConstraintTarget = 1.0;
 
     auto tConstraint = criteria::library::VectorConstraint<FunctionArgumentType>{
-        "Line",
-        criteria::library::to_vector_function<FunctionArgumentType>(
+        .mName = "Line",
+        .mConstraintFunction = criteria::library::to_vector_function<FunctionArgumentType>(
             make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{})),
-        tSumConstraintTarget, tLineLinear, criteria::library::ConstraintType::kLessThan};
+        .mConstraintTarget = criteria::library::ConstraintTarget{tSumConstraintTarget},
+        .mLinear = tLineLinear,
+        .mConstraintType = criteria::library::ConstraintType::kLessThan};
 
     auto tROLConstraint = third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
     return std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(tROLConstraint);
@@ -84,10 +86,12 @@ constexpr bool kPrintFlag = true;
     constexpr auto tCenter = std::make_pair(0.0, 0.0);
 
     auto tConstraint = criteria::library::VectorConstraint<FunctionArgumentType>{
-        "Circle",
-        criteria::library::to_vector_function<FunctionArgumentType>(
+        .mName = "Circle",
+        .mConstraintFunction = criteria::library::to_vector_function<FunctionArgumentType>(
             make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{tCenter, 2})),
-        tCircleConstraintTarget, tCircleLinear, criteria::library::ConstraintType::kLessThan};
+        .mConstraintTarget = criteria::library::ConstraintTarget{tCircleConstraintTarget},
+        .mLinear = tCircleLinear,
+        .mConstraintType = criteria::library::ConstraintType::kLessThan};
     auto tROLConstraint = third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
     return std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(std::move(tROLConstraint));
 }
@@ -155,8 +159,11 @@ void add_nonlinear_constraint_rol_problem(ROL::Problem<double>& aROLProblem,
     constexpr double tTarget = 1.0;
 
     auto tConstraint = criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
-        "Circle and line", utilities::make_line_and_circle_jacobian_function(), tTarget, tIsLinear,
-        criteria::library::ConstraintType::kLessThan};
+        .mName = "Circle and line",
+        .mConstraintFunction = utilities::make_line_and_circle_jacobian_function(),
+        .mConstraintTarget = criteria::library::ConstraintTarget{tTarget},
+        .mLinear = tIsLinear,
+        .mConstraintType = criteria::library::ConstraintType::kLessThan};
 
     return third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
 }

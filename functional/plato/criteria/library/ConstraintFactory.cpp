@@ -8,9 +8,11 @@
 #include "plato/criteria/library/ConstraintTarget.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/VectorSubsetFunction.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
-#include "plato/services/AppConfigurationUtilities.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/TransformIf.hpp"
+#include "plato/core/Compose.hpp"
 
 namespace plato::criteria::library
 {
@@ -20,6 +22,26 @@ using ValidatedConstraint = input_validation::ValidatedInputDataBlock<components
 
 const auto kIsActive = [](const auto& aConstraint)
 { return input_validation::is_active(input_validation::get_input_block<input_parser::constraint>(aConstraint)); };
+
+[[nodiscard]] auto make_vector_criterion(const ValidatedConstraint& aConstraintInput)
+{
+    auto [tFunction, tConfiguration] =
+        make_criterion_function<CriterionFunction, input_parser::constraint>(aConstraintInput);
+    return FunctionWithConfiguration{.mFunction = to_vector_function<const analysis::AnalysisDomainMesh&>(tFunction),
+                                     .mConfiguration = std::move(tConfiguration)};
+}
+
+[[nodiscard]] auto to_vector_subset_function(const VectorCriterionFunction& aFunction,
+                                             const input_parser::constraint& aInput,
+                                             const services::CriterionConfiguration& aConfiguration)
+{
+    const auto tComponentIndices = detail::constraint_component_indices(aInput, aConfiguration);
+    if (tComponentIndices)
+    {
+        return core::compose(make_vector_subset_function(tComponentIndices.value()), aFunction);
+    }
+    return aFunction;
+}
 
 }  // namespace
 
@@ -50,50 +72,62 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>
 {
     const auto& tRawInput = input_validation::get_input_block<input_parser::constraint>(aConstraintInput);
-    auto tConstraintValue = make_constraint_target(tRawInput, services::plugin_configurations());
     const auto tIsLinear = tRawInput.is_linear.value_or(false);
     const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
     const auto tConstraintType = kConstraintMap.at(tRawInput.constraint_type.value());
     const auto tConstraintName = tRawInput.name.value_or("Unnamed Constraint");
 
     constexpr auto tVectorTraits = CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector};
-    auto tCriterionFunction =
+    auto [tCriterionFunction, tCriterionConfiguration] =
         criterion_function_has_traits(tRegistrationName, tVectorTraits)
             ? make_criterion_function<VectorCriterionFunction, input_parser::constraint>(aConstraintInput)
-            : to_vector_function<const analysis::AnalysisDomainMesh&>(
-                  make_criterion_function<CriterionFunction, input_parser::constraint>(aConstraintInput));
+            : make_vector_criterion(aConstraintInput);
 
-    return VectorConstraint<const analysis::AnalysisDomainMesh&>{.mName = tConstraintName,
-                                                                 .mConstraintFunction = std::move(tCriterionFunction),
-                                                                 .mConstraintTarget = std::move(tConstraintValue),
-                                                                 .mLinear = tIsLinear,
-                                                                 .mConstraintType = tConstraintType};
+    auto tConstraintValue = make_constraint_target(tRawInput, tCriterionConfiguration);
+
+    return VectorConstraint<const analysis::AnalysisDomainMesh&>{
+        .mName = tConstraintName,
+        .mConstraintFunction = to_vector_subset_function(tCriterionFunction, tRawInput, tCriterionConfiguration),
+        .mConstraintTarget = std::move(tConstraintValue),
+        .mLinear = tIsLinear,
+        .mConstraintType = tConstraintType};
 }
 
 auto make_constraint_target(const input_parser::constraint& aInput,
-                            const std::vector<services::AppConfigurationWithDirectory>& aAppConfigurations)
-    -> ConstraintTarget
+                            const services::CriterionConfiguration& aConfiguration) -> ConstraintTarget
 {
     if (aInput.constraint_value)
     {
         return ConstraintTarget{aInput.constraint_value.value()};
     }
 
-    assert(aInput.app);
-    assert(aInput.criterion);
-
-    const auto tCriterionConfiguration = services::criterion_configuration_with_name(
-        services::CriterionName{.mAppName = aInput.app.value().mToken,
-                                .mCriterionName = aInput.criterion.value().mToken},
-        aAppConfigurations);
-
-    assert(tCriterionConfiguration);
-    assert(tCriterionConfiguration.value().mVectorComponents);
+    assert(aConfiguration.mVectorComponents);
     assert(aInput.constraint_value_list);
 
     return criteria::library::make_constraint_target(to_vector(aInput.constraint_value_list->mList),
-                                                     tCriterionConfiguration.value().mVectorComponents.value());
+                                                     aConfiguration.mVectorComponents.value());
 }
 
+auto constraint_component_indices(const input_parser::constraint& aInput,
+                                  const services::CriterionConfiguration& aConfiguration)
+    -> std::optional<std::set<std::size_t>>
+{
+    if (aInput.constraint_value || !aConfiguration.mVectorComponents)
+    {
+        return std::nullopt;
+    }
+
+    assert(aInput.constraint_value_list);
+
+    auto tIndices = std::set<std::size_t>{};
+    std::ranges::transform(aInput.constraint_value_list.value().mList, std::inserter(tIndices, tIndices.begin()),
+                           [&aConfiguration](const auto& aComponentAndTarget)
+                           {
+                               return utilities::find_key_with_value(aConfiguration.mVectorComponents.value(),
+                                                                     aComponentAndTarget.component.mToken)
+                                   .value();
+                           });
+    return tIndices;
+}
 }  // namespace detail
 }  // namespace plato::criteria::library

@@ -40,10 +40,10 @@ TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
     ASSERT_EQ(tConstraints.size(), 3U);
 
     EXPECT_TRUE(tConstraints[0].mLinear);
-    EXPECT_EQ(tConstraints[0].mConstraintTarget, 13);
+    EXPECT_EQ(tConstraints[0].mConstraintTarget.value(1U).front(), 13);
     EXPECT_FALSE(tConstraints[1].mLinear);
-    EXPECT_EQ(tConstraints[1].mConstraintTarget, 17);
+    EXPECT_EQ(tConstraints[1].mConstraintTarget.value(1U).front(), 17);
     EXPECT_FALSE(tConstraints[2].mLinear);
-    EXPECT_EQ(tConstraints[2].mConstraintTarget, 10);
+    EXPECT_EQ(tConstraints[2].mConstraintTarget.value(1U).front(), 10);
 }
 }  // namespace plato::integration_tests::unittest
