@@ -17,8 +17,6 @@ namespace plato::criteria::extension
 {
 namespace
 {
-static const auto kNumberOfPluginsLoaded =
-    register_plugin_apps(utilities::optional_to_vector(services::plugin_directory_path()));
 
 /// @brief Function object for generating CriterionFunction objects.
 ///
@@ -102,8 +100,6 @@ void register_all_criteria(const services::AppConfigurationWithDirectory& aAppCo
     }
 }
 }  // namespace
-
-std::size_t number_of_plugins_registered_at_startup() { return kNumberOfPluginsLoaded; }
 
 std::size_t register_plugin_apps(const std::vector<std::filesystem::path>& aSearchDirectories)
 {
