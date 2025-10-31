@@ -3,6 +3,7 @@
 #include <map>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/core/Compose.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ConstraintTarget.hpp"
@@ -12,7 +13,6 @@
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/TransformIf.hpp"
-#include "plato/core/Compose.hpp"
 
 namespace plato::criteria::library
 {

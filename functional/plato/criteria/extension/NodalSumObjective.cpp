@@ -15,11 +15,8 @@ namespace
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
-const auto kConfiguration = services::CriterionConfiguration{.mName = std::string{NodalSumObjective::kCriterionName},
-                                                             .mIsParallelized = false,
-                                                             .mIsScalar = true,
-                                                             .mFunctionName = "",
-                                                             .mVectorComponents = std::nullopt};
+const auto kConfiguration = services::CriterionConfiguration{
+    .mName = std::string{NodalSumObjective::kCriterionName}, .mIsParallelized = false, .mIsScalar = true};
 
 [[maybe_unused]] static auto kNodalSumRegistration = Registration{
     library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),

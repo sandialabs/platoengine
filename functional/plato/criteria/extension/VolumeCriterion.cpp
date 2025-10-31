@@ -15,12 +15,8 @@ namespace
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
-const auto kVolumeConfiguration =
-    services::CriterionConfiguration{.mName = std::string{VolumeCriterion::kVolumeCriterionName},
-                                     .mIsParallelized = false,
-                                     .mIsScalar = true,
-                                     .mFunctionName = "",
-                                     .mVectorComponents = std::nullopt};
+const auto kVolumeConfiguration = services::CriterionConfiguration{
+    .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
 
 [[maybe_unused]] static auto kVolumeConstraintRegistration =
     Registration{library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
@@ -30,12 +26,8 @@ const auto kVolumeConfiguration =
                                                                .mConfiguration = kVolumeConfiguration};
                  }};
 
-const auto kVolumeFractionConfiguration =
-    services::CriterionConfiguration{.mName = std::string{VolumeCriterion::kVolumeCriterionName},
-                                     .mIsParallelized = false,
-                                     .mIsScalar = true,
-                                     .mFunctionName = "",
-                                     .mVectorComponents = std::nullopt};
+const auto kVolumeFractionConfiguration = services::CriterionConfiguration{
+    .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
 
 [[maybe_unused]] static auto kVolumeFractionConstraintRegistration =
     Registration{library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
