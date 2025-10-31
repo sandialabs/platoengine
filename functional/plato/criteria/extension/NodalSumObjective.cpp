@@ -15,9 +15,18 @@ namespace
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
-[[maybe_unused]] static auto kNodalSumRegistration =
-    Registration{library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
-                 [](const library::CriterionInput&) { return make_nodal_sum_function(); }};
+const auto kConfiguration = services::CriterionConfiguration{.mName = std::string{NodalSumObjective::kCriterionName},
+                                                             .mIsParallelized = false,
+                                                             .mIsScalar = true,
+                                                             .mFunctionName = "",
+                                                             .mVectorComponents = std::nullopt};
+
+[[maybe_unused]] static auto kNodalSumRegistration = Registration{
+    library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
+    [](const library::CriterionInput&) {
+        return library::FunctionWithConfiguration{.mFunction = make_nodal_sum_function(),
+                                                  .mConfiguration = kConfiguration};
+    }};
 }  // namespace
 
 double NodalSumObjective::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
