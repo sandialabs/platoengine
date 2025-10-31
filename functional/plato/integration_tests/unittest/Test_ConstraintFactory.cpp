@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ConstraintFactory.hpp"
-#include "plato/criteria/library/ConstraintTarget.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
@@ -19,12 +18,10 @@ struct ConstraintFactoryTestFixture : public utilities::ValidInputTestFixture
 
 void test_constraint_type_and_value(
     const criteria::library::VectorConstraint<const analysis::AnalysisDomainMesh&>& aConstraint,
-    const criteria::library::ConstraintTarget& aExpected,
     const criteria::library::ConstraintType aType,
     const test_utilities::TestContext& aTestContext)
 {
     EXPECT_TRUE(aConstraint.mLinear) << aTestContext;
-    EXPECT_EQ(aConstraint.mConstraintTarget, aExpected) << aTestContext;
     EXPECT_EQ(aConstraint.mConstraintType, aType) << aTestContext;
 }
 
@@ -42,10 +39,9 @@ TEST_F(ConstraintFactoryTestFixture, ValidEqualityConstraint)
     auto tInputBase = parsedInput();
     tInputBase.template get<components::ComponentType::kConstraint>().clear();
     const auto tRawInput = tInputBase | criteria::library::test_utilities::create_valid_example_constraint_input();
-    const auto tConstraintTarget = criteria::library::ConstraintTarget{0.0};
 
-    test_constraint_type_and_value(first_constraint(tRawInput), tConstraintTarget,
-                                   criteria::library::ConstraintType::kEqualTo, TEST_CONTEXT("Equality constraint"));
+    test_constraint_type_and_value(first_constraint(tRawInput), criteria::library::ConstraintType::kEqualTo,
+                                   TEST_CONTEXT("Equality constraint"));
 }
 
 TEST_F(ConstraintFactoryTestFixture, ValidInequalityConstraint)
@@ -54,23 +50,21 @@ TEST_F(ConstraintFactoryTestFixture, ValidInequalityConstraint)
     tInputBase.template get<components::ComponentType::kConstraint>().clear();
     {
         constexpr auto tConstraintValue = 1.0;
-        const auto tConstraintTarget = criteria::library::ConstraintTarget{tConstraintValue};
         auto tConstraintInput = criteria::library::test_utilities::create_valid_example_constraint_input();
         tConstraintInput.constraint_type = input_parser::ConstraintTypes::kLessThan;
         tConstraintInput.constraint_value = tConstraintValue;
         auto tRawInput = tInputBase | tConstraintInput;
-        test_constraint_type_and_value(first_constraint(tRawInput), tConstraintTarget,
-                                       criteria::library::ConstraintType::kLessThan, TEST_CONTEXT("Less than"));
+        test_constraint_type_and_value(first_constraint(tRawInput), criteria::library::ConstraintType::kLessThan,
+                                       TEST_CONTEXT("Less than"));
     }
     {
         constexpr auto tConstraintValue = 2.0;
-        const auto tConstraintTarget = criteria::library::ConstraintTarget{tConstraintValue};
         auto tConstraintInput = criteria::library::test_utilities::create_valid_example_constraint_input();
         tConstraintInput.constraint_type = input_parser::ConstraintTypes::kGreaterThan;
         tConstraintInput.constraint_value = tConstraintValue;
         auto tRawInput = tInputBase | tConstraintInput;
-        test_constraint_type_and_value(first_constraint(tRawInput), tConstraintTarget,
-                                       criteria::library::ConstraintType::kGreaterThan, TEST_CONTEXT("Greater than"));
+        test_constraint_type_and_value(first_constraint(tRawInput), criteria::library::ConstraintType::kGreaterThan,
+                                       TEST_CONTEXT("Greater than"));
     }
 }
 
@@ -82,7 +76,6 @@ TEST_F(ConstraintFactoryTestFixture, ValidVectorConstraint)
     auto tInputBase = parsedInput();
     tInputBase.template get<components::ComponentType::kConstraint>().clear();
 
-    const auto tConstraintTargets = criteria::library::ConstraintTarget{{42.0, 43.0}};
     auto tConstraintInput = criteria::library::test_utilities::create_valid_example_constraint_input();
     tConstraintInput.app = tAppName;
     tConstraintInput.criterion = input_parser::CriterionName{"mass-properties"};
@@ -93,8 +86,8 @@ TEST_F(ConstraintFactoryTestFixture, ValidVectorConstraint)
          input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_z"}, /*.target=*/43.0}}};
 
     auto tRawInput = tInputBase | tConstraintInput;
-    test_constraint_type_and_value(first_constraint(tRawInput), tConstraintTargets,
-                                   criteria::library::ConstraintType::kEqualTo, TEST_CONTEXT("Vector"));
+    test_constraint_type_and_value(first_constraint(tRawInput), criteria::library::ConstraintType::kEqualTo,
+                                   TEST_CONTEXT("Vector"));
 }
 
 }  // namespace plato::integration_tests::serial

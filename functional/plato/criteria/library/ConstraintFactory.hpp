@@ -5,7 +5,6 @@
 #include <string>
 
 #include "plato/core/Function.hpp"
-#include "plato/criteria/library/ConstraintTarget.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
@@ -53,7 +52,6 @@ struct VectorConstraint
 
     std::string mName;
     ConstraintFunction mConstraintFunction;
-    ConstraintTarget mConstraintTarget;
     bool mLinear = false;
     ConstraintType mConstraintType;
 };
@@ -72,13 +70,6 @@ namespace detail
     const input_validation::ValidatedInputDataBlock<components::ComponentType::kConstraint>& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>;
 
-/// @brief Creates a ConstraintTarget object based on the input contained in @a aInput and uses the component names, if
-/// necessary, in @a aConfiguration.
-/// @pre If @a aInput does not define `constraint_value`, @a aConfiguration must have a non-empty `mVectorComponents`
-/// field.
-[[nodiscard]] auto make_constraint_target(const input_parser::constraint& aInput,
-                                          const services::CriterionConfiguration& aConfiguration) -> ConstraintTarget;
-
 /// @brief Returns the vector indices associated with the requested constraint targets.
 ///
 /// If `constraint_value` has a value, or @a aConfiguration has no value in its `mVectorComponents` member, then
@@ -86,6 +77,25 @@ namespace detail
 [[nodiscard]] auto constraint_component_indices(const input_parser::constraint& aInput,
                                                 const services::CriterionConfiguration& aConfiguration)
     -> std::optional<std::set<std::size_t>>;
+
+using ConstraintTargetValue = std::variant<double, std::vector<double>>;
+
+/// @brief Creates a ConstraintTarget object based on the input contained in @a aInput and uses the component names, if
+/// necessary, in @a aConfiguration.
+/// @pre If @a aInput does not define `constraint_value`, @a aConfiguration must have a non-empty `mVectorComponents`
+/// field.
+[[nodiscard]] auto make_constraint_target_value(const input_parser::constraint& aInput,
+                                                const services::CriterionConfiguration& aConfiguration)
+    -> ConstraintTargetValue;
+
+/// @brief Creates a ConstraintTarget by mapping the targets given in @a aConstraintTargets to the names in @a
+/// aComponentNames, ensuring the targets are ordered correctly.
+/// @param aComponentIndexAssociations Defines the ordering of the components. The targets used to construct
+/// ConstraintTarget will be ordered in increasing order of ID.
+[[nodiscard]] auto make_constraint_vector_target(
+    const std::vector<std::pair<std::string, double>>& aConstraintTargets,
+    const std::map<std::size_t, std::string>& aComponentNameIndexAssociations) -> std::vector<double>;
+
 }  // namespace detail
 }  // namespace plato::criteria::library
 

@@ -2,7 +2,6 @@
 #define PLATO_CRITERIA_LIBRARY_CONSTRAINTADAPTOR
 
 #include <algorithm>
-#include <iterator>
 
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"

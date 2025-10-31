@@ -61,14 +61,10 @@ TEST_F(MassVectorConstraint, MassPropertiesVectorConstraintRegisterAndRun)
     ASSERT_EQ(tProcessManagerData.mConstraints.size(), 1U);
     const auto& tConstraint = tProcessManagerData.mConstraints.front();
 
-    // Check constraint input
-    const auto tExpectedTargets = std::vector<double>{42.0, 43.0};
-    ASSERT_EQ(tConstraint.mConstraintTarget.size(), tExpectedTargets.size());
-    EXPECT_EQ(tConstraint.mConstraintTarget.value(tExpectedTargets.size()), tExpectedTargets);
-
     // Evaluate and check size
+    const auto tExpectedTargets = std::vector<double>{42.0, 43.0};
     const auto tEvaluationResult = tConstraint.mConstraintFunction.evaluate<0>(analysis::AnalysisDomainMesh{});
-    const auto tExpectedResult = std::vector<double>{1.0, 3.0};
+    const auto tExpectedResult = std::vector<double>{1.0 - tExpectedTargets.front(), 3.0 - tExpectedTargets.back()};
     EXPECT_EQ(tEvaluationResult.stdVector(), tExpectedResult);
 }
 

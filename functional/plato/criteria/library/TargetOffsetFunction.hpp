@@ -16,7 +16,7 @@ using TargetOffsetFunction =
                                       core::MatrixOrdering::kAdjoint>>;
 
 /// @brief Creates a vector function that subtracts a vector of target values from a vector.
-[[nodiscard]] auto make_target_offset_function(linear_algebra::DynamicVector<double> aTargets) -> TargetOffsetFunction;
+[[nodiscard]] auto make_target_offset_function(std::vector<double> aTargets) -> TargetOffsetFunction;
 
 /// @brief Creates a vector function that subtracts a single scalar value from a vector.
 [[nodiscard]] auto make_target_offset_function(double aTarget) -> TargetOffsetFunction;

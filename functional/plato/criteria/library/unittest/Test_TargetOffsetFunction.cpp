@@ -29,7 +29,7 @@ void check_identity_jacobian(const TargetOffsetFunction& aTargetFunction,
 TEST(TargetOffsetFunction, EvaluateVectorTarget)
 {
     const auto tTargets = linear_algebra::DynamicVector{-1.0, 0.0, 1.0};
-    const auto tTargetOffset = make_target_offset_function(tTargets);
+    const auto tTargetOffset = make_target_offset_function(tTargets.stdVector());
 
     const auto tResult = tTargetOffset.evaluate<core::evaluation::kFunction>(tTargets);
     const auto tExpected = tTargets + (-1.0 * tTargets);
@@ -40,7 +40,7 @@ TEST(TargetOffsetFunction, EvaluateVectorTarget)
 TEST(TargetOffsetFunction, JacobianVectorTarget)
 {
     const auto tTargets = linear_algebra::DynamicVector{0.0, 1.0};
-    const auto tTargetOffset = make_target_offset_function(tTargets);
+    const auto tTargetOffset = make_target_offset_function(tTargets.stdVector());
 
     check_identity_jacobian(tTargetOffset, tTargets, TEST_CONTEXT("Vector targets"));
 }

@@ -4,16 +4,15 @@ namespace plato::third_party_integration::rol
 {
 ROLVectorConstraintFunction::ROLVectorConstraintFunction(
     criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&> aConstraint)
-    : mFunction(std::move(aConstraint.mConstraintFunction)), mConstraintTarget(aConstraint.mConstraintTarget)
+    : mFunction(std::move(aConstraint.mConstraintFunction))
 {
 }
 
 void ROLVectorConstraintFunction::value(std::vector<double>& aConstraints, const std::vector<double>& aControl, double&)
 {
-    const auto tConstraintValue =
+    auto tConstraintValue =
         mFunction.evaluate<core::evaluation::kFunction>(linear_algebra::DynamicVector<double>(aControl));
-    const auto tTargetVector = linear_algebra::DynamicVector<double>(tConstraintValue.size(), mConstraintTarget);
-    aConstraints = (tConstraintValue + (-1.0 * tTargetVector)).stdVector();
+    aConstraints = std::move(tConstraintValue).stdVector();
 }
 
 void ROLVectorConstraintFunction::applyJacobian(std::vector<double>& aJacobianTimesDirection,

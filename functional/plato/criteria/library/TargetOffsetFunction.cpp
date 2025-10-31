@@ -22,11 +22,12 @@ namespace
 
 }  // namespace
 
-auto make_target_offset_function(linear_algebra::DynamicVector<double> aTargets) -> TargetOffsetFunction
+auto make_target_offset_function(std::vector<double> aTargets) -> TargetOffsetFunction
 {
-    return TargetOffsetFunction{[mOffset = -1.0 * std::move(aTargets)](const linear_algebra::DynamicVector<double>& aX)
-                                { return aX + mOffset; }, [](const linear_algebra::DynamicVector<double>&)
-                                { return identity_operation(); }, [](const linear_algebra::DynamicVector<double>&)
+    return TargetOffsetFunction{[mOffset = -1.0 * linear_algebra::DynamicVector<double>(std::move(aTargets))](
+                                    const linear_algebra::DynamicVector<double>& aX) { return aX + mOffset; },
+                                [](const linear_algebra::DynamicVector<double>&) { return identity_operation(); },
+                                [](const linear_algebra::DynamicVector<double>&)
                                 { return linear_algebra::AdjointJacobianMultiplier{identity_operation()}; }};
 }
 

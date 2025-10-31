@@ -43,22 +43,32 @@ TEST(ConstraintFactory, SizedDualVector)
     EXPECT_EQ(tDualVector.stdVector().back(), 1.0);
 }
 
-TEST(ConstraintFactory, MakeConstraintTargets)
+TEST(ConstraintTarget, MakeConstraintTargetValue)
 {
     const auto [tScalarConstraintInput, tVectorConstraintInput, tAppConfigurations] = test_constraint_inputs();
 
+    // Vector
     {
         const auto& tScalarConfiguration = tAppConfigurations.front().mConfiguration.mCriteria.front();
-        const auto tConstraintTargets = detail::make_constraint_target(tScalarConstraintInput, tScalarConfiguration);
-        ASSERT_EQ(tConstraintTargets.size(), 1U);
-        EXPECT_EQ(tConstraintTargets.value(tConstraintTargets.size()).front(), 42.0);
+        const auto tConstraintTargets =
+            detail::make_constraint_target_value(tScalarConstraintInput, tScalarConfiguration);
+
+        ASSERT_TRUE(std::holds_alternative<double>(tConstraintTargets));
+        const auto& tResultTarget = std::get<double>(tConstraintTargets);
+        EXPECT_EQ(tResultTarget, 42.0);
     }
+    // Scalar
     {
         const auto& tVectorConfiguration = tAppConfigurations.front().mConfiguration.mCriteria.back();
-        const auto tConstraintTargets = detail::make_constraint_target(tVectorConstraintInput, tVectorConfiguration);
-        ASSERT_EQ(tConstraintTargets.size(), 2U);
-        EXPECT_EQ(tConstraintTargets.value(tConstraintTargets.size()).front(), 42.0);
-        EXPECT_EQ(tConstraintTargets.value(tConstraintTargets.size()).back(), 43.0);
+        const auto tConstraintTargets =
+            detail::make_constraint_target_value(tVectorConstraintInput, tVectorConfiguration);
+
+        ASSERT_TRUE(std::holds_alternative<std::vector<double>>(tConstraintTargets));
+        const auto& tResultTarget = std::get<std::vector<double>>(tConstraintTargets);
+
+        ASSERT_EQ(tResultTarget.size(), 2U);
+        EXPECT_EQ(tResultTarget.front(), 42.0);
+        EXPECT_EQ(tResultTarget.back(), 43.0);
     }
 }
 
@@ -79,6 +89,18 @@ TEST(ConstraintFactory, ConstraintComponentIndices)
         const auto tExpected = std::set<std::size_t>{0U, 2U};
         EXPECT_EQ(tExpected, tConstraintComponentIndices.value());
     }
+}
+
+TEST(ConstraintTarget, MakeConstraintVectorTarget)
+{
+    const auto tTargets = std::vector<std::pair<std::string, double>>{{"brick", 91.0}, {"mortar", 90.0}};
+    const auto tComponentNameIndices =
+        std::map<std::size_t, std::string>{{0U, "gravel"}, {1U, "mortar"}, {2U, "asphalt"}, {3U, "brick"}};
+    const auto tConstraintTarget = detail::make_constraint_vector_target(tTargets, tComponentNameIndices);
+
+    EXPECT_EQ(tConstraintTarget.size(), tTargets.size());
+    const auto tExpected = std::vector{90.0, 91.0};
+    EXPECT_EQ(tConstraintTarget, tExpected);
 }
 
 }  // namespace plato::criteria::library::unittest

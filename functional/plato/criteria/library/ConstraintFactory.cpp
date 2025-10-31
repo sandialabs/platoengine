@@ -6,9 +6,9 @@
 #include "plato/core/Compose.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
-#include "plato/criteria/library/ConstraintTarget.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/TargetOffsetFunction.hpp"
 #include "plato/criteria/library/VectorSubsetFunction.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
@@ -41,6 +41,17 @@ const auto kIsActive = [](const auto& aConstraint)
         return core::compose(make_vector_subset_function(tComponentIndices.value()), aFunction);
     }
     return aFunction;
+}
+
+[[nodiscard]] auto to_target_offset_function(const VectorCriterionFunction& aFunction,
+                                             const input_parser::constraint& aInput,
+                                             const services::CriterionConfiguration& aConfiguration)
+{
+    const auto tComponentTargets = detail::make_constraint_target_value(aInput, aConfiguration);
+    auto tTargetOffsetFunction = std::visit<TargetOffsetFunction>(
+        [](const auto& aTarget) { return make_target_offset_function(aTarget); }, tComponentTargets);
+
+    return core::compose(tTargetOffsetFunction, aFunction);
 }
 
 }  // namespace
@@ -83,29 +94,31 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
             ? make_criterion_function<VectorCriterionFunction, input_parser::constraint>(aConstraintInput)
             : make_vector_criterion(aConstraintInput);
 
-    auto tConstraintValue = make_constraint_target(tRawInput, tCriterionConfiguration);
-
+    const auto tConstraintWithSubset =
+        to_vector_subset_function(tCriterionFunction, tRawInput, tCriterionConfiguration);
+    auto tConstraintWithTargetOffset =
+        to_target_offset_function(tConstraintWithSubset, tRawInput, tCriterionConfiguration);
     return VectorConstraint<const analysis::AnalysisDomainMesh&>{
         .mName = tConstraintName,
-        .mConstraintFunction = to_vector_subset_function(tCriterionFunction, tRawInput, tCriterionConfiguration),
-        .mConstraintTarget = std::move(tConstraintValue),
+        .mConstraintFunction = std::move(tConstraintWithTargetOffset),
         .mLinear = tIsLinear,
         .mConstraintType = tConstraintType};
 }
 
-auto make_constraint_target(const input_parser::constraint& aInput,
-                            const services::CriterionConfiguration& aConfiguration) -> ConstraintTarget
+[[nodiscard]] auto make_constraint_target_value(const input_parser::constraint& aInput,
+                                                const services::CriterionConfiguration& aConfiguration)
+    -> ConstraintTargetValue
 {
     if (aInput.constraint_value)
     {
-        return ConstraintTarget{aInput.constraint_value.value()};
+        return aInput.constraint_value.value();
     }
 
     assert(aConfiguration.mVectorComponents);
     assert(aInput.constraint_value_list);
 
-    return criteria::library::make_constraint_target(to_vector(aInput.constraint_value_list->mList),
-                                                     aConfiguration.mVectorComponents.value());
+    return make_constraint_vector_target(to_vector(aInput.constraint_value_list->mList),
+                                         aConfiguration.mVectorComponents.value());
 }
 
 auto constraint_component_indices(const input_parser::constraint& aInput,
@@ -129,5 +142,26 @@ auto constraint_component_indices(const input_parser::constraint& aInput,
                            });
     return tIndices;
 }
+
+auto make_constraint_vector_target(const std::vector<std::pair<std::string, double>>& aConstraintTargets,
+                                   const std::map<std::size_t, std::string>& aComponentIndexNameAssociations)
+    -> std::vector<double>
+{
+    const auto tFindComponent = [&aConstraintTargets](const std::string& aComponentName)
+    {
+        return std::ranges::find_if(aConstraintTargets, [&aComponentName](const auto& aTargetValueAndName)
+                                    { return aTargetValueAndName.first == aComponentName; });
+    };
+
+    auto tTargets = utilities::reserved_container<std::vector<double>>(aConstraintTargets.size());
+    utilities::transform_if(
+        aComponentIndexNameAssociations, std::back_inserter(tTargets),
+        [&tFindComponent](const auto& aComponentIndexAndName)
+        { return tFindComponent(aComponentIndexAndName.second)->second; },
+        [&aConstraintTargets, &tFindComponent](const auto& aComponentIndexAndName)
+        { return tFindComponent(aComponentIndexAndName.second) != aConstraintTargets.end(); });
+    return tTargets;
+}
+
 }  // namespace detail
 }  // namespace plato::criteria::library

@@ -12,8 +12,8 @@ auto compose_geometry_with_vector_constraint(
     auto tComposedVectorConstraintJacobian = core::compose(aMeshConstraint.mConstraintFunction, aGeometry.mCompute);
 
     return criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
-        aMeshConstraint.mName, std::move(tComposedVectorConstraintJacobian), aMeshConstraint.mConstraintTarget,
-        aMeshConstraint.mLinear, aMeshConstraint.mConstraintType};
+        aMeshConstraint.mName, std::move(tComposedVectorConstraintJacobian), aMeshConstraint.mLinear,
+        aMeshConstraint.mConstraintType};
 }
 
 }  // namespace plato::process_manager::extension
