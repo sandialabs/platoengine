@@ -97,6 +97,39 @@ TEST(Composer, TwoDFunctions)
     }
 }
 
+TEST(Composer, ScalarTransformation)
+{
+    // Tests composition of a scalar function with a scalar transformation:
+    // f(g(tX)), with tX in R^2, g: R^2 -> R, f: R -> R
+    namespace pft = plato::test_utilities;
+
+    const auto tG = make_function_with_first_derivative(pft::TwoDScalarFunction{}, pft::TwoDScalarFunctionGradient{});
+    const auto tF = make_function_with_first_derivative([](const double aArg) { return 1.0 / aArg; },
+                                                        [](const double aArg) { return -1.0 / aArg / aArg; });
+    const auto tH = compose(tF, tG);
+    {
+        const auto tX = pft::TwoDVector{1.0, 0.0};
+        const auto tExpectedValue = 1.0;
+        const auto tExpectedDerivative = pft::makeTwoDVector(-2.0, 0.0);
+        EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedValue);
+        EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDerivative);
+    }
+    {
+        const auto tX = pft::TwoDVector{1.0, 1.0};
+        const auto tExpectedValue = 0.5;
+        const auto tExpectedDerivative = pft::makeTwoDVector(-0.5, -3.0 / 4.0);
+        EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedValue);
+        EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDerivative);
+    }
+    {
+        const auto tX = pft::TwoDVector{-4.0, 3.0};
+        const auto tExpectedValue = 1.0 / 43.0;
+        const auto tExpectedDerivative = pft::makeTwoDVector(8.0 / 43.0 / 43.0, -27.0 / 43.0 / 43.0);
+        EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedValue);
+        EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDerivative);
+    }
+}
+
 TEST(Compose, CompositionScalarFunctions)
 {
     using ScalarFInfo = FunctionInfo<double, evaluation::kFunction>;
