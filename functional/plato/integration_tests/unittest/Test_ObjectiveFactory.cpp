@@ -132,8 +132,9 @@ TEST_F(ObjectiveFactoryTestFixture, NumberOfProcessors)
 TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
 {
     constexpr auto tX = 21.0;
+    constexpr double tAggregationWeight = 2.0;
 
-    const auto tTestFunction = [](criteria::library::ObjectiveGoal aObjectiveGoal)
+    const auto tTestFunction = [tAggregationWeight](criteria::library::ObjectiveGoal aObjectiveGoal)
     {
         const auto tObjectiveInput =
             input_parser::objective{/*.name=*/std::string{"test"},
@@ -142,7 +143,7 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
                                     /*.criterion=*/input_parser::CriterionName{std::string{kLinearFunctionName}},
                                     /*.number_of_processors=*/1U,
                                     /*.input_files=*/plato::input_parser::FileList{},
-                                    /*.aggregation_weight=*/2.0,
+                                    /*.aggregation_weight=*/tAggregationWeight,
                                     /*.objective_goal*/ aObjectiveGoal};
         auto tInput = integration_tests::utilities::create_valid_example_input();
         tInput.get<components::ComponentType::kObjective>().clear();
@@ -163,14 +164,20 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
     // Minimize
     {
         const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMinimize);
-        EXPECT_EQ(2.0 * tX, tObjective);
-        EXPECT_EQ(2.0, tGradient[0]);
+        EXPECT_EQ(tAggregationWeight * tX, tObjective);
+        EXPECT_EQ(tAggregationWeight, tGradient[0]);
     }
     // Maximize
     {
         const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMaximize);
-        EXPECT_EQ(-2.0 * tX, tObjective);
-        EXPECT_EQ(-2.0, tGradient[0]);
+        EXPECT_EQ(-tAggregationWeight * tX, tObjective);
+        EXPECT_EQ(-tAggregationWeight, tGradient[0]);
+    }
+    // Minimize Reciprocal
+    {
+        const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kReciprocate);
+        EXPECT_EQ(tAggregationWeight / tX, tObjective);
+        EXPECT_EQ(-tAggregationWeight / tX / tX, tGradient[0]);
     }
 }
 

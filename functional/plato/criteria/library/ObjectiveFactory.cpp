@@ -5,6 +5,8 @@
 #include <iterator>
 #include <numeric>
 
+#include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/core/ParallelFunction.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
@@ -27,12 +29,15 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
 const auto kIsActive = [](const auto& aObjective)
 { return input_validation::is_active(input_validation::get_input_block<input_parser::objective>(aObjective)); };
 
+const auto kReciprocalFunction = core::make_function_with_first_derivative(
+    [](const double aArg) { return 1.0 / aArg; }, [](const double aArg) { return -1.0 / aArg / aArg; });
+
 [[nodiscard]] auto objective_goal_scaling(const ValidatedObjective& aObjective) -> double
 {
     return input_validation::get_input_block<input_parser::objective>(aObjective)
-                       .objective_goal.value_or(ObjectiveGoal::kMinimize) == ObjectiveGoal::kMinimize
-               ? 1.0
-               : -1.0;
+                       .objective_goal.value_or(ObjectiveGoal::kMinimize) == ObjectiveGoal::kMaximize
+               ? -1.0
+               : 1.0;
 }
 
 [[nodiscard]] bool is_parallel_objective(const ValidatedObjective& aObjective)
@@ -41,29 +46,41 @@ const auto kIsActive = [](const auto& aObjective)
            1U;
 }
 
+template <typename F>
+[[nodiscard]] auto make_reciprocal_criterion_function(F aFunction, const ValidatedObjective& aObjective)
+{
+    return input_validation::get_input_block<input_parser::objective>(aObjective)
+                       .objective_goal.value_or(ObjectiveGoal::kMinimize) == ObjectiveGoal::kReciprocate
+               ? core::compose(kReciprocalFunction, std::move(aFunction))
+               : std::move(aFunction);
+}
+
 [[nodiscard]] auto make_parallel_criterion_function(const ValidatedObjective& aObjective,
                                                     const ObjectiveComm& aObjectiveComm)
 {
     if (is_parallel_objective(aObjective))
     {
         return core::adapt_parallel_function(
-            make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue),
+            make_reciprocal_criterion_function(
+                make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue),
+                aObjective),
             aObjectiveComm.mValue);
     }
     else
     {
-        return make_criterion_function<CriterionFunction, input_parser::objective>(aObjective);
+        return make_reciprocal_criterion_function(
+            make_criterion_function<CriterionFunction, input_parser::objective>(aObjective), aObjective);
     }
 }
 
-[[nodiscard]] auto make_parallel_aggregate_impl(const std::vector<ValidatedObjective>& tObjectives,
+[[nodiscard]] auto make_parallel_aggregate_impl(const std::vector<ValidatedObjective>& aObjectives,
                                                 const AggregateComm& aAggregatorComm,
                                                 const ObjectiveComm& aObjectiveComm) -> ParallelAggregateObjective
 {
     using ObjectiveAndWeight = std::pair<ObjectiveFunction, double>;
     std::vector<ObjectiveAndWeight> tFunctionsAndWeights;
     utilities::transform_if(
-        tObjectives, std::back_inserter(tFunctionsAndWeights),
+        aObjectives, std::back_inserter(tFunctionsAndWeights),
         [&aObjectiveComm](const auto& aObjective)
         {
             const auto tWeight =
@@ -75,8 +92,7 @@ const auto kIsActive = [](const auto& aObjective)
     return ParallelAggregateObjective{std::move(tFunctionsAndWeights), aAggregatorComm.mValue};
 }
 
-[[nodiscard]]
-auto group_split_vector(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
+[[nodiscard]] auto group_split_vector(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
     const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});
