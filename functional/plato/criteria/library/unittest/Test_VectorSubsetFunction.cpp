@@ -23,7 +23,12 @@ TEST(VectorSubsetFunction, Jacobian)
     const auto tInput = linear_algebra::DynamicVector<double>{0.0, 0.0, 0.0, 0.0};
     const auto tRowVector = linear_algebra::DynamicVector<double>{10.0, 11.0, 12.0};
     const auto tResult = tRowVector * tSubsetFunction.evaluate<core::evaluation::kFirstDerivative>(tInput);
-    EXPECT_EQ(tResult, tRowVector);
+    // From matlab:
+    // A = [1 0 0 0 ; 0 1 0 0 ; 0 0 0 1];
+    // w = [10 11 12];
+    // w * A
+    const auto tExpected = linear_algebra::DynamicVector<double>{10.0, 11.0, 0.0, 12.0};
+    EXPECT_EQ(tResult.stdVector(), tExpected.stdVector());
 }
 
 TEST(VectorSubsetFunction, AdjointJacobian)
@@ -36,6 +41,10 @@ TEST(VectorSubsetFunction, AdjointJacobian)
     const auto tResult =
         tRowVector *
         tSubsetFunction.evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(tInput);
+    // From matlab:
+    // A = [0 0 1 0];
+    // w = [10 11 12 13];
+    // w * A'
     const auto tExpected = linear_algebra::DynamicVector<double>{12.0};
     EXPECT_EQ(tResult, tExpected);
 }

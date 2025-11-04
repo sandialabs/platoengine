@@ -1,6 +1,7 @@
 #include "plato/criteria/library/VectorSubsetFunction.hpp"
 
 #include "plato/utilities/ContainerHelpers.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::criteria::library
 {
@@ -23,13 +24,20 @@ namespace
     { return linear_algebra::DynamicVector<double>(vector_subset(aVector, mIndices)); };
 }
 
-[[nodiscard]] auto make_vector_subset_jacobian_product(const std::size_t aNumberOfRows)
+[[nodiscard]] auto make_vector_subset_jacobian_product(const std::set<std::size_t>& aIndices,
+                                                       const std::size_t aNumberOfColumns)  // NOLINT
 {
-    return linear_algebra::JacobianMultiplier{[aNumberOfRows](const linear_algebra::DynamicVector<double>& aRowVector)
-                                              {
-                                                  assert(aRowVector.size() == aNumberOfRows);
-                                                  return aRowVector;
-                                              }};
+    return linear_algebra::JacobianMultiplier{
+        [aIndices, aNumberOfColumns](const linear_algebra::DynamicVector<double>& aRowVector)
+        {
+            assert(aRowVector.size() == aIndices.size());
+            auto tMultiplicationResult = std::vector<double>(aNumberOfColumns, 0.0);
+            for (const auto [tRowVectorEntry, tResultIndex] : utilities::Zip{aRowVector.stdVector(), aIndices})
+            {
+                tMultiplicationResult[tResultIndex] = tRowVectorEntry;
+            }
+            return linear_algebra::DynamicVector<double>(std::move(tMultiplicationResult));
+        }};
 }
 
 }  // namespace
@@ -38,8 +46,8 @@ namespace
 {
     return VectorSubsetFunction{
         make_vector_subset_evaluation_function(aIndices),
-        [mNumberOfRows = aIndices.size()](const linear_algebra::DynamicVector<double>&)
-        { return make_vector_subset_jacobian_product(mNumberOfRows); },
+        [aIndices](const linear_algebra::DynamicVector<double>& aVector)
+        { return make_vector_subset_jacobian_product(aIndices, aVector.size()); },
         [aIndices](const linear_algebra::DynamicVector<double>&)
         { return linear_algebra::make_adjoint_jacobian_multiplier(make_vector_subset_evaluation_function(aIndices)); }};
 }
