@@ -5,6 +5,8 @@
 
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
+#include "plato/services/SystemLogger.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
 
 namespace plato::criteria::extension
 {
@@ -23,24 +25,38 @@ using SerialFunctionSignature = std::unique_ptr<library::VectorCriterionInterfac
 using ParallelFunctionSignature = std::unique_ptr<library::VectorCriterionInterface>(const std::vector<std::string>&,
                                                                                      MPI_Comm);
 
+/// @brief Writes the components of @a aVector to a string, limiting the number of components to @a aComponentLimit.
+[[nodiscard]] auto to_string(const linear_algebra::DynamicVector<double>& aVector,
+                             const std::size_t aComponentMax) -> std::string
+{
+    const auto tComponentLimit = std::min(aComponentMax, aVector.size());
+    auto tStream = std::stringstream{};
+    std::copy_n(aVector.stdVector().begin(), tComponentLimit, std::ostream_iterator<double>{tStream, " "});
+    return tStream.str();
+}
+
 }  // namespace
 
 SharedLibraryVectorCriterion::SharedLibraryVectorCriterion(
     const services::AppConfigurationWithDirectory& aAppConfiguration,
     const services::CriterionConfiguration& aCriterionConfiguration,
-    const std::vector<std::string>& aFileNames)
+    const library::CriterionInput& aCriterionInput)
     : mCriterionInterface{load_criterion_interface<SerialFunctionSignature>(
-          aAppConfiguration, aCriterionConfiguration.mFunctionName, aFileNames)}
+          aAppConfiguration, aCriterionConfiguration.mFunctionName, aCriterionInput.mInputFiles.list().mList)},
+      mComponentType{aCriterionInput.mComponentType},
+      mName{aCriterionInput.mName}
 {
 }
 
 SharedLibraryVectorCriterion::SharedLibraryVectorCriterion(
     const services::AppConfigurationWithDirectory& aAppConfiguration,
     const services::CriterionConfiguration& aCriterionConfiguration,
-    const std::vector<std::string>& aFileNames,
+    const library::CriterionInput& aCriterionInput,
     const boost::mpi::communicator& aComm)
     : mCriterionInterface{load_criterion_interface<ParallelFunctionSignature>(
-          aAppConfiguration, aCriterionConfiguration.mFunctionName, aFileNames, aComm)},
+          aAppConfiguration, aCriterionConfiguration.mFunctionName, aCriterionInput.mInputFiles.list().mList, aComm)},
+      mComponentType{aCriterionInput.mComponentType},
+      mName{aCriterionInput.mName},
       mComm{aComm}
 {
 }
@@ -48,13 +64,25 @@ SharedLibraryVectorCriterion::SharedLibraryVectorCriterion(
 auto SharedLibraryVectorCriterion::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
     -> linear_algebra::DynamicVector<double>
 {
-    return linear_algebra::DynamicVector<double>(mCriterionInterface->object()->value(aAnalysisDomainMesh));
+    auto tLogger = services::component_logger(mComponentType, mName);
+    tLogger.logInfo("Evaluating vector criterion");
+
+    auto tCriterionValue =
+        linear_algebra::DynamicVector<double>(mCriterionInterface->object()->value(aAnalysisDomainMesh));
+
+    constexpr auto tMaxNumberOfComponents = 15U;
+    tLogger.logInfo("Evaluation complete, values: \n" + to_string(tCriterionValue, tMaxNumberOfComponents));
+
+    return tCriterionValue;
 }
 
 auto SharedLibraryVectorCriterion::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     const linear_algebra::DynamicVector<double>& aDirectionVector) const -> linear_algebra::DynamicVector<double>
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        services::jacobian_task_message(), services::component_logger(mComponentType, mName)};
+
     return linear_algebra::DynamicVector<double>(
         mCriterionInterface->object()->rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector.stdVector()));
 }
@@ -63,6 +91,9 @@ auto SharedLibraryVectorCriterion::rowVectorTimesAdjointJacobian(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     const linear_algebra::DynamicVector<double>& aDualVector) const -> linear_algebra::DynamicVector<double>
 {
+    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+        services::adjoint_jacobian_task_message(), services::component_logger(mComponentType, mName)};
+
     return linear_algebra::DynamicVector<double>(
         mCriterionInterface->object()->rowVectorTimesAdjointJacobian(aAnalysisDomainMesh, aDualVector.stdVector()));
 }

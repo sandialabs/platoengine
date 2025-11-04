@@ -14,7 +14,6 @@
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"

@@ -2,17 +2,12 @@
 #define PLATO_CRITERIA_EXTENSION_SHAREDLIBRARYVECTORCRITERION
 
 #include <boost/mpi/communicator.hpp>
-#include <filesystem>
 #include <memory>
-#include <string>
-#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/VectorCriterionInterface.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/services/SharedLibraryObject.hpp"
 
 namespace plato::services
@@ -33,10 +28,10 @@ class SharedLibraryVectorCriterion
    public:
     SharedLibraryVectorCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                                  const services::CriterionConfiguration& aCriterionConfiguration,
-                                 const std::vector<std::string>& aFileNames);
+                                 const library::CriterionInput& aCriterionInput);
     SharedLibraryVectorCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                                  const services::CriterionConfiguration& aCriterionConfiguration,
-                                 const std::vector<std::string>& aFileNames,
+                                 const library::CriterionInput& aCriterionInput,
                                  const boost::mpi::communicator& aComm);
 
     /// @brief Computes the value of the criterion evaluated at the argument @a aAnalysisDomainMesh.
@@ -57,6 +52,8 @@ class SharedLibraryVectorCriterion
 
    private:
     std::shared_ptr<VectorCriterionSharedLibraryObject> mCriterionInterface;
+    components::ComponentType mComponentType;
+    std::string mName;
     boost::mpi::communicator mComm{MPI_COMM_NULL, boost::mpi::comm_attach};
 };
 
