@@ -35,15 +35,15 @@ TEST(ObjectiveModifications, MakeReciprocalCriterionFunction)
         EXPECT_EQ(tModifiedF.evaluate<core::evaluation::kFunction>(tX), tUnmodifiedValue);
         EXPECT_EQ(tModifiedF.evaluate<core::evaluation::kFirstDerivative>(tX), tUnmodifiedDerivative);
     }
-    // returns original function with kMaximize objective goal
+    // returns original function with kMinimizeNegation objective goal
     {
-        const auto tModifiedF = make_reciprocal_criterion_function(tF, ObjectiveGoal::kMaximize);
+        const auto tModifiedF = make_reciprocal_criterion_function(tF, ObjectiveGoal::kMinimizeNegation);
         EXPECT_EQ(tModifiedF.evaluate<core::evaluation::kFunction>(tX), tUnmodifiedValue);
         EXPECT_EQ(tModifiedF.evaluate<core::evaluation::kFirstDerivative>(tX), tUnmodifiedDerivative);
     }
-    // returns reciprocated function with kReciprocate objective goal
+    // returns reciprocated function with kMinimizeReciprocal objective goal
     {
-        const auto tModifiedF = make_reciprocal_criterion_function(tF, ObjectiveGoal::kReciprocate);
+        const auto tModifiedF = make_reciprocal_criterion_function(tF, ObjectiveGoal::kMinimizeReciprocal);
         EXPECT_EQ(tModifiedF.evaluate<core::evaluation::kFunction>(tX), 1.0 / tUnmodifiedValue);
         EXPECT_EQ(tModifiedF.evaluate<core::evaluation::kFirstDerivative>(tX),
                   -1.0 / tUnmodifiedValue / tUnmodifiedValue * tUnmodifiedDerivative);

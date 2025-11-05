@@ -36,7 +36,7 @@ const auto kIsActive = [](const auto& aObjective)
 
 [[nodiscard]] auto objective_goal_scaling(const ValidatedObjective& aObjective) -> double
 {
-    return get_objective_goal(aObjective) == ObjectiveGoal::kMaximize ? -1.0 : 1.0;
+    return get_objective_goal(aObjective) == ObjectiveGoal::kMinimizeNegation ? -1.0 : 1.0;
 }
 
 [[nodiscard]] bool is_parallel_objective(const ValidatedObjective& aObjective)

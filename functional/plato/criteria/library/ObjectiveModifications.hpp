@@ -10,8 +10,8 @@ namespace plato::criteria::library
 /// @brief Returns a core::Function that reciprocates an objective (given f, returns 1/f)
 [[nodiscard]] auto reciprocal_function();
 
-/// @brief If @a aObjectiveGoal is kReciprocate, composes the core::Function @a aFunction with a function that returns
-/// the reciprocal. Else, returns @a aFunction.
+/// @brief If @a aObjectiveGoal is kMinimizeReciprocal, composes the core::Function @a aFunction with a function that
+/// returns the reciprocal. Else, returns @a aFunction.
 template <typename F>
 [[nodiscard]] auto make_reciprocal_criterion_function(F aFunction, const ObjectiveGoal& aObjectiveGoal);
 
@@ -24,8 +24,9 @@ template <typename F>
 template <typename F>
 [[nodiscard]] auto make_reciprocal_criterion_function(F aFunction, const ObjectiveGoal& aObjectiveGoal)
 {
-    return aObjectiveGoal == ObjectiveGoal::kReciprocate ? core::compose(reciprocal_function(), std::move(aFunction))
-                                                         : std::move(aFunction);
+    return aObjectiveGoal == ObjectiveGoal::kMinimizeReciprocal
+               ? core::compose(reciprocal_function(), std::move(aFunction))
+               : std::move(aFunction);
 }
 
 }  // namespace plato::criteria::library

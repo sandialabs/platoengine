@@ -169,13 +169,13 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
     }
     // Maximize
     {
-        const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMaximize);
+        const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMinimizeNegation);
         EXPECT_EQ(-tAggregationWeight * tX, tObjective);
         EXPECT_EQ(-tAggregationWeight, tGradient[0]);
     }
     // Minimize Reciprocal
     {
-        const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kReciprocate);
+        const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMinimizeReciprocal);
         EXPECT_EQ(tAggregationWeight / tX, tObjective);
         EXPECT_EQ(-tAggregationWeight / tX / tX, tGradient[0]);
     }

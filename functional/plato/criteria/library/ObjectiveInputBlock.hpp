@@ -10,8 +10,8 @@
 DECLARE_ENUM_AND_ENUM_SYMBOL_TABLE(ObjectiveGoal, 
                                    plato::criteria::library, 
                                   (kMinimize, "minimize")
-                                  (kMaximize, "maximize")
-                                  (kReciprocate, "minimize reciprocal"))
+                                  (kMinimizeNegation, "minimize-negation")
+                                  (kMinimizeReciprocal, "minimize-reciprocal"))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), objective, plato::components::ComponentType::kObjective,
@@ -22,9 +22,9 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
                                          "Requires the 'plato' executable be called with mpirun.")
     (plato::input_parser::FileList, input_files, "Optional comma-separated list of files needed for the app to run.")
     (double, aggregation_weight, "Required weight used to aggregate this objective with any other objectives specified.")
-    (plato::criteria::library::ObjectiveGoal, objective_goal, "Optional field specifying whether to minimize an objective, minimize its reciprocal, or maximize it. "
-                                                              "Default is 'minimize'. Choosing 'minimize reciprocal' will maximize the objective by minimizing its reciprocal."
-                                                              "Choosing maximize will maximize the objective by negating it.")
+    (plato::criteria::library::ObjectiveGoal, objective_goal, "Optional field specifying whether to minimize an objective, minimize its negation, or minimize its reciprocal. "
+                                                              "Default is 'minimize'. Choosing 'minimize-negation' will maximize the objective by minimizing its negation. " 
+                                                              "Choosing 'minimize-reciprocal' will maximize the objective by minimizing its reciprocal.")
 )
 // clang-format off
 
