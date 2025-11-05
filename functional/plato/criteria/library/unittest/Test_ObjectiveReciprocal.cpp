@@ -2,12 +2,12 @@
 
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/criteria/library/ObjectiveModifications.hpp"
+#include "plato/criteria/library/ObjectiveReciprocal.hpp"
 #include "plato/test_utilities/TwoDTestTypes.hpp"
 
 namespace plato::criteria::library::unittest
 {
-TEST(ObjectiveModifications, ReciprocalFunction)
+TEST(ObjectiveReciprocal, ReciprocalFunction)
 {
     const auto tFunction = reciprocal_function();
     constexpr double tArg = 77.0;
@@ -16,7 +16,7 @@ TEST(ObjectiveModifications, ReciprocalFunction)
     EXPECT_EQ(tFunction.evaluate<core::evaluation::kFirstDerivative>(tArg), -1.0 / tArg / tArg);
 }
 
-TEST(ObjectiveModifications, MakeReciprocalCriterionFunction)
+TEST(ObjectiveReciprocal, MakeReciprocalCriterionFunction)
 {
     namespace pft = plato::test_utilities;
     const auto tF =

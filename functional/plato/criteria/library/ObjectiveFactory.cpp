@@ -8,7 +8,7 @@
 #include "plato/core/ParallelFunction.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
-#include "plato/criteria/library/ObjectiveModifications.hpp"
+#include "plato/criteria/library/ObjectiveReciprocal.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVectorSerialization.hpp"
 #include "plato/utilities/NamedType.hpp"
