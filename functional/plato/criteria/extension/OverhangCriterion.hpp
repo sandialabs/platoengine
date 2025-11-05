@@ -15,6 +15,7 @@ struct ParsedInputParams
     double transition_width{0.1};
     double overhang_angle_threshold{-std::sqrt(2.0) / 2.0};
     plato::third_party_integration::common::Vector3 build_direction{0, 0, 1};
+    std::vector<std::string> evaluation_sidesets;
 };
 
 /// @brief Computes a scalar value representing the amount of overhang wrt a build direction and overhang angle.
@@ -28,6 +29,7 @@ struct OverhangCriterion
     double mTransitionWidth;
     plato::third_party_integration::common::Vector3 mBuildDirection;
     double mOverhangAngleThreshold;
+    std::vector<std::string> mEvaluationSidesets;
     components::ComponentType mComponentType;
     std::string mName;
 

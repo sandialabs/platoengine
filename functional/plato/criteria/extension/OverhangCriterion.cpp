@@ -43,7 +43,18 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
     tLogger.logInfo("Evaluating criterion");
 
     const auto tMesh = mesh::MeshSidesets{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
-    const std::vector<tpistk::Triangle> tTriangles = tMesh.sidesetTriangles("surface__void");
+    std::vector<tpistk::Triangle> tTriangles;
+    std::cout << "Processing eval sidesets in f()" << std::endl;
+    for (const auto& tCurEvaluationSideset : mEvaluationSidesets)
+    {
+        std::cout << "CurEvalSideset: " << tCurEvaluationSideset << std::endl;
+        const std::vector<tpistk::Triangle> tCurTriangles = tMesh.sidesetTriangles(tCurEvaluationSideset);
+        std::cout << "Num Tris: " << tCurTriangles.size() << std::endl;
+        tTriangles.insert(tTriangles.end(), tCurTriangles.begin(), tCurTriangles.end());
+        std::cout << "Num Total Tris: " << tTriangles.size() << std::endl;
+    }
+    std::cout << "Done processing eval sidesets in f()" << std::endl;
+
     const double tReturnValue = std::accumulate(tTriangles.begin(), tTriangles.end(), 0.0,
                                                 [&](double aCurrentSum, tpistk::Triangle aCurTri)
                                                 {
@@ -62,13 +73,24 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
 linear_algebra::DynamicVector<double> OverhangCriterion::df(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
+    namespace tpistk = plato::third_party_integration::stk_io;
+
     auto tLogger = services::component_logger(mComponentType, mName);
     tLogger.logInfo("Evaluating criterion gradient");
 
     const auto tSidesetMesh = mesh::MeshSidesets{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
 
-    const std::vector<third_party_integration::stk_io::Triangle> tTriangles =
-        tSidesetMesh.sidesetTriangles("surface__void");
+    std::vector<tpistk::Triangle> tTriangles;
+    std::cout << "Processing eval sidesets in df()" << std::endl;
+    for (const auto& tCurEvaluationSideset : mEvaluationSidesets)
+    {
+        std::cout << "CurEvalSideset: " << tCurEvaluationSideset << std::endl;
+        const std::vector<tpistk::Triangle> tCurTriangles = tSidesetMesh.sidesetTriangles(tCurEvaluationSideset);
+        std::cout << "Num Tris: " << tCurTriangles.size() << std::endl;
+        tTriangles.insert(tTriangles.end(), tCurTriangles.begin(), tCurTriangles.end());
+        std::cout << "Num Total Tris: " << tTriangles.size() << std::endl;
+    }
+    std::cout << "Done processing eval sidesets in df()" << std::endl;
 
     const std::map<size_t, std::array<double, 3>> tGradientMap = detail::calculate_gradient_map_from_triangles(
         tTriangles, mOverhangAngleThreshold, mTransitionWidth, mBuildDirection);
@@ -98,6 +120,7 @@ OverhangCriterion::OverhangCriterion(const ParsedInputParams& aInputParams,
     : mTransitionWidth(aInputParams.transition_width),
       mBuildDirection(aInputParams.build_direction),
       mOverhangAngleThreshold(aInputParams.overhang_angle_threshold),
+      mEvaluationSidesets(aInputParams.evaluation_sidesets),
       mComponentType{aCriterionInput.mComponentType},
       mName{aCriterionInput.mName}
 {
@@ -372,6 +395,15 @@ ParsedInputParams parse_input_deck(const std::string& aFilename)
     tInputParams.overhang_angle_threshold =
         -std::cos(std::stod(tOverhangAngleFromHorizontal) * std::numbers::pi / 180.0);
     tInputParams.transition_width = std::stod(get_xml_node_string(tTree, "OverhangInput", "TransitionWidth"));
+
+    std::string tEvaluationSidesets = get_xml_node_string(tTree, "OverhangInput", "EvaluationSidesets");
+    std::stringstream tEvalSidesetStringStream(tEvaluationSidesets);  // Initialize stringstream with the input string
+    std::vector<std::string> tSidesetNames;
+
+    while (tEvalSidesetStringStream >> tEntry)
+    {
+        tInputParams.evaluation_sidesets.push_back(tEntry);
+    }
 
     return tInputParams;
 }

@@ -354,8 +354,15 @@ auto get_interface_triangles(const stk::mesh::BulkData& aBulkData,
                              const PartReferenceVector& aDesignDomainBlocks) -> std::vector<stk_io::Triangle>
 {
     std::vector<stk_io::Triangle> tTriList;
+    std::cout << "Looking for sideset named " << aSidesetName << std::endl;
+    const auto tSidesetPart = aBulkData.mesh_meta_data().get_part(aSidesetName);
+    if (!tSidesetPart)
+    {
+        std::cout << aSidesetName << " sideset part is null." << std::endl;
+        return tTriList;
+    }
 
-    const stk::mesh::Selector tTriSelector(*(aBulkData.mesh_meta_data().get_part(aSidesetName)));
+    const stk::mesh::Selector tTriSelector(*tSidesetPart);
     std::vector<const stk::mesh::Part*> tParts;
     for (const auto& tCurBlock : aDesignDomainBlocks)
     {
