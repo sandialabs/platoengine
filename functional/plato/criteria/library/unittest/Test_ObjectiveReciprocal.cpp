@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <stdexcept>
+
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveReciprocal.hpp"
@@ -10,10 +12,18 @@ namespace plato::criteria::library::unittest
 TEST(ObjectiveReciprocal, ReciprocalFunction)
 {
     const auto tFunction = reciprocal_function();
-    constexpr double tArg = 77.0;
-
-    EXPECT_EQ(tFunction.evaluate<core::evaluation::kFunction>(tArg), 1.0 / tArg);
-    EXPECT_EQ(tFunction.evaluate<core::evaluation::kFirstDerivative>(tArg), -1.0 / tArg / tArg);
+    {
+        constexpr double tArg = 0.0;
+        ASSERT_THROW([[maybe_unused]] auto tVal = tFunction.evaluate<core::evaluation::kFunction>(tArg),
+                     std::invalid_argument);
+        ASSERT_THROW([[maybe_unused]] auto tDVal = tFunction.evaluate<core::evaluation::kFirstDerivative>(tArg),
+                     std::invalid_argument);
+    }
+    {
+        constexpr double tArg = 77.0;
+        EXPECT_EQ(tFunction.evaluate<core::evaluation::kFunction>(tArg), 1.0 / tArg);
+        EXPECT_EQ(tFunction.evaluate<core::evaluation::kFirstDerivative>(tArg), -1.0 / tArg / tArg);
+    }
 }
 
 TEST(ObjectiveReciprocal, MakeReciprocalCriterionFunction)

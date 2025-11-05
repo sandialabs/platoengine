@@ -1,6 +1,8 @@
 #ifndef PLATO_CRITERIA_LIBRARY_OBJECTIVERECIPROCAL
 #define PLATO_CRITERIA_LIBRARY_OBJECTIVERECIPROCAL
 
+#include <stdexcept>
+
 #include "plato/core/Compose.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
@@ -17,8 +19,31 @@ template <typename F>
 
 [[nodiscard]] inline auto reciprocal_function()
 {
-    return core::make_function_with_first_derivative([](const double aArg) { return 1.0 / aArg; },
-                                                     [](const double aArg) { return -1.0 / aArg / aArg; });
+    return core::make_function_with_first_derivative(
+        [](const double aArg)
+        {
+            assert(aArg != 0);
+            if (aArg == 0)
+            {
+                throw std::invalid_argument("Reciprocal function cannot be called with a value of 0.");
+            }
+            else
+            {
+                return 1.0 / aArg;
+            }
+        },
+        [](const double aArg)
+        {
+            assert(aArg != 0);
+            if (aArg == 0)
+            {
+                throw std::invalid_argument("Reciprocal function cannot be called with a value of 0.");
+            }
+            else
+            {
+                return -1.0 / aArg / aArg;
+            }
+        });
 }
 
 template <typename F>
