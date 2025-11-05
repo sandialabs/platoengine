@@ -28,7 +28,7 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
 const auto kIsActive = [](const auto& aObjective)
 { return input_validation::is_active(input_validation::get_input_block<input_parser::objective>(aObjective)); };
 
-[[nodiscard]] auto get_objective_goal(const ValidatedObjective& aObjective) -> ObjectiveGoal
+[[nodiscard]] auto objective_goal(const ValidatedObjective& aObjective) -> ObjectiveGoal
 {
     return input_validation::get_input_block<input_parser::objective>(aObjective)
         .objective_goal.value_or(ObjectiveGoal::kMinimize);
@@ -36,7 +36,7 @@ const auto kIsActive = [](const auto& aObjective)
 
 [[nodiscard]] auto objective_goal_scaling(const ValidatedObjective& aObjective) -> double
 {
-    return get_objective_goal(aObjective) == ObjectiveGoal::kMinimizeNegation ? -1.0 : 1.0;
+    return objective_goal(aObjective) == ObjectiveGoal::kMinimizeNegation ? -1.0 : 1.0;
 }
 
 [[nodiscard]] bool is_parallel_objective(const ValidatedObjective& aObjective)
@@ -53,14 +53,14 @@ const auto kIsActive = [](const auto& aObjective)
         return core::adapt_parallel_function(
             make_reciprocal_criterion_function(
                 make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue),
-                get_objective_goal(aObjective)),
+                objective_goal(aObjective)),
             aObjectiveComm.mValue);
     }
     else
     {
         return make_reciprocal_criterion_function(
             make_criterion_function<CriterionFunction, input_parser::objective>(aObjective),
-            get_objective_goal(aObjective));
+            objective_goal(aObjective));
     }
 }
 
