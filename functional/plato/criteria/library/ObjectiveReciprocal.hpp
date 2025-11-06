@@ -22,7 +22,6 @@ template <typename F>
     return core::make_function_with_first_derivative(
         [](const double aArg)
         {
-            assert(aArg != 0);
             if (aArg == 0)
             {
                 throw std::invalid_argument("Reciprocal function cannot be called with a value of 0.");
@@ -34,7 +33,6 @@ template <typename F>
         },
         [](const double aArg)
         {
-            assert(aArg != 0);
             if (aArg == 0)
             {
                 throw std::invalid_argument("Reciprocal function cannot be called with a value of 0.");
