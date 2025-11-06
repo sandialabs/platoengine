@@ -10,7 +10,7 @@ set(headers main/IsoVolumeExtractionTool.hpp
 
 add_executable(extract_iso ${sources} ${headers})
 
-target_link_libraries(extract_iso PUBLIC IsoExtract IsoExtract)
+target_link_libraries(extract_iso PUBLIC IsoExtract IsoExtract MPI::MPI_C)
 
 install( TARGETS extract_iso EXPORT PlatoEngine
          RUNTIME DESTINATION bin)
