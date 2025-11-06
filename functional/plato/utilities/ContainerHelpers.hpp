@@ -31,9 +31,9 @@ concept MapLike = requires {
 
 /// @brief Finds the first instance of @a aValue in a map-like data structure.
 template <typename Container, typename U>
-    requires MapLike<Container> && std::convertible_to<U, typename Container::mapped_type>
-[[nodiscard]] auto find_key_with_value(const Container& aContainer,
-                                       const U& aMappedValue) -> std::optional<typename Container::key_type>;
+    requires MapLike<Container> && std::equality_comparable_with<U, typename Container::mapped_type>
+[[nodiscard]] auto key_with_value(const Container& aContainer, const U& aMappedValue)
+    -> std::optional<typename Container::key_type>;
 
 template <ReservableContainer Container>
 [[nodiscard]] constexpr auto reserved_container(const std::size_t aCapacity) -> Container
@@ -44,9 +44,9 @@ template <ReservableContainer Container>
 }
 
 template <typename Container, typename U>
-    requires MapLike<Container> && std::convertible_to<U, typename Container::mapped_type>
-[[nodiscard]] auto find_key_with_value(const Container& aContainer,
-                                       const U& aMappedValue) -> std::optional<typename Container::key_type>
+    requires MapLike<Container> && std::equality_comparable_with<U, typename Container::mapped_type>
+[[nodiscard]] auto key_with_value(const Container& aContainer, const U& aMappedValue)
+    -> std::optional<typename Container::key_type>
 {
     const auto tFoundValue =
         std::ranges::find_if(aContainer, [&aMappedValue](const auto& aEntry) { return aEntry.second == aMappedValue; });

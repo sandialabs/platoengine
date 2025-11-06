@@ -136,8 +136,8 @@ auto constraint_component_indices(const input_parser::constraint& aInput,
     std::ranges::transform(aInput.constraint_value_list.value().mList, std::inserter(tIndices, tIndices.begin()),
                            [&aConfiguration](const auto& aComponentAndTarget)
                            {
-                               return utilities::find_key_with_value(aConfiguration.mVectorComponents.value(),
-                                                                     aComponentAndTarget.component.mToken)
+                               return utilities::key_with_value(aConfiguration.mVectorComponents.value(),
+                                                                aComponentAndTarget.component.mToken)
                                    .value();
                            });
     return tIndices;
