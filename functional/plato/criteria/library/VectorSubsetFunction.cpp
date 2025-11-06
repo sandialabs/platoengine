@@ -25,7 +25,7 @@ namespace
 }
 
 [[nodiscard]] auto make_vector_subset_jacobian_product(const std::set<std::size_t>& aIndices,
-                                                       const std::size_t aNumberOfColumns)  // NOLINT
+                                                       const std::size_t aNumberOfColumns)
 {
     return linear_algebra::JacobianMultiplier{
         [aIndices, aNumberOfColumns](const linear_algebra::DynamicVector<double>& aRowVector)
