@@ -1,6 +1,8 @@
 #ifndef PLATO_CRITERIA_LIBRARY_OBJECTIVERECIPROCAL
 #define PLATO_CRITERIA_LIBRARY_OBJECTIVERECIPROCAL
 
+#include <cmath>
+#include <limits>
 #include <stdexcept>
 
 #include "plato/core/Compose.hpp"
@@ -22,7 +24,7 @@ template <typename F>
     return core::make_function_with_first_derivative(
         [](const double aArg)
         {
-            if (aArg == 0)
+            if (std::fabs(aArg) < std::numeric_limits<double>::min())
             {
                 throw std::invalid_argument("Reciprocal function cannot be called with a value of 0.");
             }
@@ -33,7 +35,7 @@ template <typename F>
         },
         [](const double aArg)
         {
-            if (aArg == 0)
+            if (std::fabs(aArg) < std::numeric_limits<double>::min())
             {
                 throw std::invalid_argument("Reciprocal function cannot be called with a value of 0.");
             }
