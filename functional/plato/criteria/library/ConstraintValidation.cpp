@@ -65,6 +65,14 @@ const auto kBindWithPluginDirectory = [](const auto& aValidationFunction,
                                { return aComponentName == aComponentIndexAndName.second; });
 }
 
+[[nodiscard]] auto component_names_for_error(const std::map<std::size_t, std::string>& aComponentIndexToName)
+    -> std::string
+{
+    return std::accumulate(aComponentIndexToName.begin(), aComponentIndexToName.end(), std::string{},
+                           [](std::string&& aAllComponents, const auto& aComponentIndexAndName)
+                           { return aAllComponents += aComponentIndexAndName.second + "\n"; });
+}
+
 }  // namespace
 
 namespace detail
@@ -158,9 +166,10 @@ auto validate_constraint_component_names(const input_parser::constraint& aInput,
             { return component_exists(tConfiguration.value(), aComponentAndTarget.component.mToken); });
         if (!tAllDefined)
         {
-            return utilities::concatenate(
-                criterion_name(aInput),
-                ": Vector constraint target components do not match those defined in the criterion.");
+            return utilities::concatenate(criterion_name(aInput),
+                                          ": Vector constraint target components do not match those defined in the "
+                                          "criterion. Valid component names are:\n",
+                                          component_names_for_error(tConfiguration.value().mVectorComponents.value()));
         }
     }
     return std::nullopt;
