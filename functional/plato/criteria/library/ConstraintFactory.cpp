@@ -5,11 +5,10 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Compose.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
+#include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
-#include "plato/criteria/library/TargetOffsetFunction.hpp"
-#include "plato/criteria/library/VectorSubsetFunction.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/TransformIf.hpp"
@@ -48,7 +47,7 @@ const auto kIsActive = [](const auto& aConstraint)
                                              const services::CriterionConfiguration& aConfiguration)
 {
     const auto tComponentTargets = detail::make_constraint_target_value(aInput, aConfiguration);
-    auto tTargetOffsetFunction = std::visit<TargetOffsetFunction>(
+    auto tTargetOffsetFunction = std::visit<ConstraintAdapterFunction>(
         [](const auto& aTarget) { return make_target_offset_function(aTarget); }, tComponentTargets);
 
     return core::compose(tTargetOffsetFunction, aFunction);

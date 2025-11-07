@@ -13,7 +13,7 @@
 
 #include "plato/core/Compose.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
-#include "plato/criteria/library/TargetOffsetFunction.hpp"
+#include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorRosenbrockFunction.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorSumConstraintUtilities.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
