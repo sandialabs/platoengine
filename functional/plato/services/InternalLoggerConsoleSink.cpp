@@ -2,7 +2,6 @@
 
 #include <boost/core/null_deleter.hpp>
 #include <iostream>
-#include <memory>
 
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
