@@ -133,16 +133,14 @@ auto validate_constraint_component_targets(
             services::CriterionName{.mAppName = aInput.app->mToken, .mCriterionName = aInput.criterion->mToken},
             aAppConfigurations);
 
-        if (const auto tHasTargetsButNoComponents =
-                aInput.constraint_value_list.has_value() && !tConfiguration->mVectorComponents.has_value())
+        if (aInput.constraint_value_list.has_value() && !tConfiguration->mVectorComponents.has_value())
         {
             return utilities::concatenate(
                 criterion_name(aInput), R"(: Vector constraint targets were defined in the input, but the criterion ")",
                 app_criterion_name(aInput), R"(" does not define any vector components)");
         }
 
-        if (const auto tHasComponentsButNoTargets =
-                tConfiguration->mVectorComponents.has_value() && !aInput.constraint_value_list.has_value())
+        if (tConfiguration->mVectorComponents.has_value() && !aInput.constraint_value_list.has_value())
         {
             return utilities::concatenate(criterion_name(aInput), R"(: Vector criterion ")", app_criterion_name(aInput),
                                           R"(" defines vector components, but no vector targets were defined.)");

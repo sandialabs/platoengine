@@ -15,7 +15,7 @@ auto MassPropertiesInterface::value(const analysis::AnalysisDomainMesh&) const -
 }
 
 auto MassPropertiesInterface::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                     const std::vector<double>& aDirectionVector) const
+                                                     [[maybe_unused]] const std::vector<double>& aDirectionVector) const
     -> std::vector<double>
 {
     assert(aAnalysisDomainMesh.mBlockScalarField.size() == 1U);
