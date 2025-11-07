@@ -35,7 +35,7 @@ function(create_plato_library_impl LIBRARY_NAME DIRECTORIES TARGET_LINK_LIST LIB
     target_include_directories(${LIBRARY_NAME} ${EXPORT_TYPE} $<BUILD_INTERFACE:${FUNCTIONAL_BASE_DIR}>)
     set_target_properties(${LIBRARY_NAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
-    target_link_libraries(${LIBRARY_NAME} ${EXPORT_TYPE} CoverageInterface ${TARGET_LINK_LIST} MPI::MPI_C)
+    target_link_libraries(${LIBRARY_NAME} ${EXPORT_TYPE} CoverageInterface ${TARGET_LINK_LIST})
     if(BUILD_WITH_CLANG_TIDY)
         set_target_properties(${LIBRARY_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
     endif()

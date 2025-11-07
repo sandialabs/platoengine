@@ -3,7 +3,8 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
 set(LINK_LIBS PlatoFunctionalCriteria
               PlatoFunctionalTestUtilities
-              PlatoFunctionalMesh)
+              PlatoFunctionalMesh
+              MPI::MPI_C)
 create_plato_library(PlatoTestMassCriteria test_mass_criteria "${LINK_LIBS}")
 
 set(LINK_LIBS PlatoFunctionalLinearAlgebra
