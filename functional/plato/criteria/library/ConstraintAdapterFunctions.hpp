@@ -21,8 +21,8 @@ using ConstraintAdapterFunction =
 /// @brief Creates a vector function that maps another vector function's output to a subset based on the component
 /// indices in @a aIndices.
 ///
-/// This is a linear mapping. For example, if the subset indices are `[1, 3]` and the input dimension is 4, then this
-/// implements:
+/// This is a linear mapping. For example, if the subset indices are 1 and 3 in 0-based indexing and the input dimension
+/// is 4, then this implements:
 /// @code
 /// A = [0 1 0 0; 0 0 0 1];
 /// y = A * x;
