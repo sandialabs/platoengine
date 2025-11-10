@@ -28,13 +28,13 @@ TEST(FileList, Insert)
 
 TEST(FileList, Iterators)
 {
-    FileList tFileList{{{"r", "a", "w", "r"}}};
+    auto tFileList = FileList{{{"arbitrary", "nonexistent", "file", "names"}}};
     test_utilities::copy_test(tFileList, TEST_CONTEXT("Iterators"));
 }
 
 TEST(FileList, ConstIterators)
 {
-    const FileList tFileList{{{"r", "a", "w", "r"}}};
+    const auto tFileList = FileList{{{"definitely", "meaningless", "strings"}}};
     test_utilities::copy_test(tFileList, TEST_CONTEXT("Const iterators"));
 }
 }  // namespace plato::input_parser::unittest
