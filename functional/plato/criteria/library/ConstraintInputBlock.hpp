@@ -32,7 +32,7 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (unsigned int, number_of_processors, "Optional parameter that will specify the number of processors used to run the app that computes this objective. "
                                          "Requires the 'plato' executable be called with mpirun.")
     (plato::input_parser::FileList, input_files, "Optional comma-separated list of files needed for the app to run.")
-    (plato::criteria::library::ConstraintValueList, constraint_value_list, "Optional list of component names and target values, in the format: "
+    (plato::criteria::library::ConstraintValueList, constraint_value_list, "Optional list of component names and target values, e.g., in the format: "
         "\"component mass target 42.0\". Only usable by vector constraints to select a subset of vector components.")
     (double, constraint_value, "Required value that the constraint is evaluated against.")
     (bool, is_linear, "Required parameter specifying whether the constraint is linear with respect to the controls.")
