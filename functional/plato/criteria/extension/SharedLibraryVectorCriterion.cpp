@@ -25,13 +25,14 @@ using SerialFunctionSignature = std::unique_ptr<library::VectorCriterionInterfac
 using ParallelFunctionSignature = std::unique_ptr<library::VectorCriterionInterface>(const std::vector<std::string>&,
                                                                                      MPI_Comm);
 
-/// @brief Writes the components of @a aVector to a string, limiting the number of components to @a aComponentLimit.
+/// @brief Writes the components of @a aVector to a string, limiting the number of components to @a
+/// aMaxNumberOfComponentsToOutput.
 [[nodiscard]] auto to_string(const linear_algebra::DynamicVector<double>& aVector,
-                             const std::size_t aComponentMax) -> std::string
+                             const std::size_t aMaxNumberOfComponentsToOutput) -> std::string
 {
-    const auto tComponentLimit = std::min(aComponentMax, aVector.size());
+    const auto tNumberOfComponents = std::min(aMaxNumberOfComponentsToOutput, aVector.size());
     auto tStream = std::stringstream{};
-    std::copy_n(aVector.stdVector().begin(), tComponentLimit, std::ostream_iterator<double>{tStream, " "});
+    std::copy_n(aVector.stdVector().begin(), tNumberOfComponents, std::ostream_iterator<double>{tStream, " "});
     return tStream.str();
 }
 
@@ -70,8 +71,8 @@ auto SharedLibraryVectorCriterion::value(const analysis::AnalysisDomainMesh& aAn
     auto tCriterionValue =
         linear_algebra::DynamicVector<double>(mCriterionInterface->object()->value(aAnalysisDomainMesh));
 
-    constexpr auto tMaxNumberOfComponents = 15U;
-    tLogger.logInfo("Evaluation complete, values: \n" + to_string(tCriterionValue, tMaxNumberOfComponents));
+    constexpr auto tMaxNumberOfComponentsToOutput = 15U;
+    tLogger.logInfo("Evaluation complete, values: \n" + to_string(tCriterionValue, tMaxNumberOfComponentsToOutput));
 
     return tCriterionValue;
 }
