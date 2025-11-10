@@ -5,7 +5,8 @@ set(LINK_LIBS GTest::GTest
               Kokkos::kokkos
               Boost::headers
               Boost::mpi
-              Boost::log)
+              Boost::log
+              MPI::MPI_C)
 
 create_plato_library(PlatoFunctionalTestUtilities "." "${LINK_LIBS}")
 
