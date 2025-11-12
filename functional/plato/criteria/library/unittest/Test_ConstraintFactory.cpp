@@ -47,7 +47,7 @@ TEST(ConstraintTarget, MakeConstraintTargetValue)
 {
     const auto [tScalarConstraintInput, tVectorConstraintInput, tAppConfigurations] = test_constraint_inputs();
 
-    // Vector
+    // Scalar
     {
         const auto& tScalarConfiguration = tAppConfigurations.front().mConfiguration.mCriteria.front();
         const auto tConstraintTargets =
@@ -57,7 +57,7 @@ TEST(ConstraintTarget, MakeConstraintTargetValue)
         const auto& tResultTarget = std::get<double>(tConstraintTargets);
         EXPECT_EQ(tResultTarget, 42.0);
     }
-    // Scalar
+    // Vector
     {
         const auto& tVectorConfiguration = tAppConfigurations.front().mConfiguration.mCriteria.back();
         const auto tConstraintTargets =

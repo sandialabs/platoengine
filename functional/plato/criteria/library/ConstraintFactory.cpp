@@ -104,22 +104,6 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
         .mConstraintType = tConstraintType};
 }
 
-[[nodiscard]] auto make_constraint_target_value(const input_parser::constraint& aInput,
-                                                const services::CriterionConfiguration& aConfiguration)
-    -> ConstraintTargetValue
-{
-    if (aInput.constraint_value)
-    {
-        return aInput.constraint_value.value();
-    }
-
-    assert(aConfiguration.mVectorComponents);
-    assert(aInput.constraint_value_list);
-
-    return make_constraint_vector_target(to_vector(aInput.constraint_value_list->mList),
-                                         aConfiguration.mVectorComponents.value());
-}
-
 auto constraint_component_indices(const input_parser::constraint& aInput,
                                   const services::CriterionConfiguration& aConfiguration)
     -> std::optional<std::set<std::size_t>>
@@ -140,6 +124,22 @@ auto constraint_component_indices(const input_parser::constraint& aInput,
                                    .value();
                            });
     return tIndices;
+}
+
+[[nodiscard]] auto make_constraint_target_value(const input_parser::constraint& aInput,
+                                                const services::CriterionConfiguration& aConfiguration)
+    -> ConstraintTargetValue
+{
+    if (aInput.constraint_value)
+    {
+        return aInput.constraint_value.value();
+    }
+
+    assert(aConfiguration.mVectorComponents);
+    assert(aInput.constraint_value_list);
+
+    return make_constraint_vector_target(to_vector(aInput.constraint_value_list->mList),
+                                         aConfiguration.mVectorComponents.value());
 }
 
 auto make_constraint_vector_target(const std::vector<std::pair<std::string, double>>& aConstraintTargets,
