@@ -1,10 +1,10 @@
 #include "plato/process_manager/extension/ParameterSweep.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <fstream>
 #include <iomanip>
 #include <iterator>
-#include <ranges>
 #include <set>
 
 #include "plato/core/Compose.hpp"

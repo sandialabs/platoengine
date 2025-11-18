@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/input_parser/InputBlockStruct.hpp"
-#include "plato/input_parser/unittest/Test_Helpers.hpp"
+#include "plato/input_parser/test_utilities/TestHelpers.hpp"
 
 // clang-format off
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
@@ -41,9 +41,9 @@ TEST(InputBlockStruct, Named)
     tTestBlock.name = "rockemsockem";
     tTestBlock.field1 = 42;
     tTestBlock.field2 = 0.5;
-    test_existence_and_equality(tTestBlock.name, "rockemsockem");
-    test_existence_and_equality(tTestBlock.field1, 42);
-    test_existence_and_equality(tTestBlock.field2, 0.5);
+    test_utilities::test_existence_and_equality(tTestBlock.name, "rockemsockem");
+    test_utilities::test_existence_and_equality(tTestBlock.field1, 42);
+    test_utilities::test_existence_and_equality(tTestBlock.field2, 0.5);
     EXPECT_TRUE(kIsNamedBlock<TestNamedBlock>);
     EXPECT_EQ(InputTypeName<TestNamedBlock>::name, "TestNamedBlock");
 }
@@ -55,9 +55,9 @@ TEST(InputBlockStruct, UnNamed)
     tTestBlock.field1 = true;
     tTestBlock.field2 = 42;
     tTestBlock.field3 = 0.5;
-    test_existence_and_equality(tTestBlock.field1, true);
-    test_existence_and_equality(tTestBlock.field2, 42);
-    test_existence_and_equality(tTestBlock.field3, 0.5);
+    test_utilities::test_existence_and_equality(tTestBlock.field1, true);
+    test_utilities::test_existence_and_equality(tTestBlock.field2, 42);
+    test_utilities::test_existence_and_equality(tTestBlock.field3, 0.5);
     EXPECT_FALSE(kIsNamedBlock<TestUnnamedBlock>);
     EXPECT_EQ(InputTypeName<TestUnnamedBlock>::name, "TestUnnamedBlock");
 }
@@ -73,7 +73,7 @@ TEST(InputBlockStruct, ProcessManager)
 {
     auto tTestBlock = TestProcessManagerBlock{};
     tTestBlock.field1 = 42;
-    test_existence_and_equality(tTestBlock.field1, 42);
+    test_utilities::test_existence_and_equality(tTestBlock.field1, 42);
 }
 
 }  // namespace plato::input_parser::unittest

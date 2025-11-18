@@ -3,9 +3,10 @@
 
 #include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
-#include "plato/geometry/library/GeometryFactory.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 
 namespace plato::process_manager::library

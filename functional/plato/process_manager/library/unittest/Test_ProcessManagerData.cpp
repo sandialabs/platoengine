@@ -3,10 +3,10 @@
 #include <filesystem>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/geometry/library/GeometryFactory.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
-#include "plato/utilities/Exception.hpp"
 
 namespace plato::process_manager::library::unittest
 {

@@ -3,6 +3,7 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <boost/optional.hpp>
+#include <concepts>
 #include <set>
 #include <string_view>
 #include <utility>
@@ -45,15 +46,26 @@ using VectorCriterionFunction =
                                       core::evaluation::kFirstDerivative,
                                       core::MatrixOrdering::kAdjoint>>;
 
+/// @brief Struct to pair a criterion function with its configuration
+template <typename Function>
+    requires std::same_as<Function, CriterionFunction> || std::same_as<Function, VectorCriterionFunction>
+struct FunctionWithConfiguration
+{
+    Function mFunction;
+    services::CriterionConfiguration mConfiguration;
+};
+
 /// @brief Factory signature types for serial scalar criteria
-using SerialCriterionRegistrationTypes = std::tuple<CriterionFunction, CriterionInput>;
+using SerialCriterionRegistrationTypes = std::tuple<FunctionWithConfiguration<CriterionFunction>, CriterionInput>;
 /// @brief Factory signature types for parallel scalar criteria
-using ParallelCriterionRegistrationTypes = std::tuple<CriterionFunction, CriterionInput, boost::mpi::communicator>;
+using ParallelCriterionRegistrationTypes =
+    std::tuple<FunctionWithConfiguration<CriterionFunction>, CriterionInput, boost::mpi::communicator>;
 /// @brief Factory signature types for serial vector criteria
-using SerialVectorCriterionRegistrationTypes = std::tuple<VectorCriterionFunction, CriterionInput>;
+using SerialVectorCriterionRegistrationTypes =
+    std::tuple<FunctionWithConfiguration<VectorCriterionFunction>, CriterionInput>;
 /// @brief Factory signature types for parallel vector criteria
 using ParallelVectorCriterionRegistrationTypes =
-    std::tuple<VectorCriterionFunction, CriterionInput, boost::mpi::communicator>;
+    std::tuple<FunctionWithConfiguration<VectorCriterionFunction>, CriterionInput, boost::mpi::communicator>;
 
 /// @brief All factory argument lists that can be registered.
 /// @note To add a new factory type, a new signature tuple should be created along with associated traits. The trait
@@ -69,8 +81,8 @@ using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
 [[nodiscard]] auto is_criterion_function_registered(const std::string_view aFunctionName) -> bool;
 
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and with traits @a aTraits.
-[[nodiscard]] auto criterion_function_has_traits(const std::string_view aFunctionName, const CriterionTraits aTraits)
-    -> bool;
+[[nodiscard]] auto criterion_function_has_traits(const std::string_view aFunctionName,
+                                                 const CriterionTraits aTraits) -> bool;
 
 /// @brief Creates a name from @a aAppConfiguration and @a aCriterionConfiguration that can be used
 /// to uniquely register a criterion function.

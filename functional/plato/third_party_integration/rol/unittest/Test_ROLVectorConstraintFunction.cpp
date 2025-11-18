@@ -3,6 +3,8 @@
 #include <ROL_StdVector.hpp>
 #include <vector>
 
+#include "plato/core/Compose.hpp"
+#include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 #include "plato/test_utilities/Himmelblau.hpp"
 #include "plato/third_party_integration/rol/ROLVectorConstraintFunction.hpp"
 #include "plato/third_party_integration/rol/unittest/DynamicVectorConstraintFunctions.hpp"
@@ -43,8 +45,11 @@ auto make_himmelblau_rol_vector_constraint() -> ROLVectorConstraintFunction
     constexpr bool tIsLinear = false;
     return ROLVectorConstraintFunction{
         criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
-            "name", make_vector_himmelblau_with_adjoint_function(), kValue, tIsLinear,
-            criteria::library::ConstraintType::kEqualTo}};
+            .mName = "name",
+            .mConstraintFunction = core::compose(criteria::library::make_target_offset_function(kValue),
+                                                 make_vector_himmelblau_with_adjoint_function()),
+            .mLinear = tIsLinear,
+            .mConstraintType = criteria::library::ConstraintType::kEqualTo}};
 }
 
 }  // namespace

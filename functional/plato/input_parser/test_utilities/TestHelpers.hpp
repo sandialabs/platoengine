@@ -1,5 +1,5 @@
-#ifndef PLATO_INPUT_PARSER_UNITTEST_TEST_HELPERS
-#define PLATO_INPUT_PARSER_UNITTEST_TEST_HELPERS
+#ifndef PLATO_INPUT_PARSER_TEST_UTILITIES_TESTHELPERS
+#define PLATO_INPUT_PARSER_TEST_UTILITIES_TESTHELPERS
 
 #include <gtest/gtest.h>
 
@@ -17,7 +17,7 @@ namespace plato::input_parser
 struct ParsedInput;
 }
 
-namespace plato::input_parser::unittest
+namespace plato::input_parser::test_utilities
 {
 /// @brief Tests that @a aOptionalValue contains a value via assertion, and that it is equal to @a aVal.
 template <typename T, typename U>
@@ -44,7 +44,7 @@ inline void test_existence_and_equality(const boost::optional<FileList>& aOption
 }
 
 template <typename T>
-void copy_test(T& aFileList, const test_utilities::TestContext& aTestContext)
+void copy_test(T& aFileList, const plato::test_utilities::TestContext& aTestContext)
 {
     std::vector<std::string> tCopy;
     std::copy(aFileList.begin(), aFileList.end(), std::back_inserter(tCopy));
@@ -66,6 +66,6 @@ template <typename ParsedType>
     return {tData, tParseResult};
 }
 
-}  // namespace plato::input_parser::unittest
+}  // namespace plato::input_parser::test_utilities
 
 #endif

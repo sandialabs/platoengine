@@ -7,14 +7,6 @@
 
 namespace plato::process_manager::extension
 {
-
-///@brief Take a Constraint<MeshDesignVariables> and compose it with a geometry to create a
-/// Constraint<DynamicVector>
-[[nodiscard]] auto compose_geometry_with_constraint(
-    const criteria::library::Constraint<const analysis::AnalysisDomainMesh&>& aMeshConstraint,
-    const plato::geometry::library::FactoryTypes& aGeometry)
-    -> criteria::library::Constraint<const linear_algebra::DynamicVector<double>&>;
-
 ///@brief Take a VectorConstraint<MeshDesignVariables> and compose it with a geometry to create a
 /// VectorConstraint<DynamicVector>
 [[nodiscard]] auto compose_geometry_with_vector_constraint(

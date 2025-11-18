@@ -4,6 +4,7 @@
 #include <boost/log/expressions/filter.hpp>
 #include <boost/log/expressions/keyword.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <boost/mpi/environment.hpp>
 #include <string_view>
 
 #include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
@@ -14,7 +15,7 @@ namespace plato::third_party_integration::boost_log
 struct MPIWorldCommRankAttribute
 {
     using AttributeType = int;
-    AttributeType mValue = boost::mpi::communicator{}.rank();
+    AttributeType mValue = boost::mpi::environment::initialized() ? boost::mpi::communicator{}.rank() : 0;
 
     [[nodiscard]] constexpr static inline auto name() -> std::string_view;
 

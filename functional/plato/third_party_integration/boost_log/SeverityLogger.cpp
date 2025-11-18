@@ -5,8 +5,6 @@
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/mpi/communicator.hpp>
 
-#include "plato/third_party_integration/boost_log/LogSource.hpp"
-#include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
 #include "plato/third_party_integration/boost_log/Severity.hpp"
 #include "plato/third_party_integration/boost_log/TimeStampAttribute.hpp"
 

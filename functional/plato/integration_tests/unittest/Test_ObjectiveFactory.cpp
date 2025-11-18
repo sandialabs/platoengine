@@ -12,8 +12,6 @@
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/utilities/Exception.hpp"
-#include "plato/utilities/Zip.hpp"
 
 namespace plato::integration_tests::serial
 {
@@ -32,9 +30,16 @@ auto make_linear_test_function() -> criteria::library::CriterionFunction
 using Registration = criteria::library::CriterionRegistration<criteria::library::Parallelization::kSerial,
                                                               criteria::library::FunctionDimension::kScalar>;
 
+const auto kConfiguration = services::CriterionConfiguration{.mName = std::string{kLinearFunctionName},
+                                                             .mIsParallelized = false,
+                                                             .mIsScalar = true,
+                                                             .mFunctionName = "",
+                                                             .mVectorComponents = std::nullopt};
+
 [[maybe_unused]] static auto kNodalSumRegistration =
     Registration{criteria::library::builtin_criterion_registration_name(kLinearFunctionName),
-                 [](const criteria::library::CriterionInput&) { return make_linear_test_function(); }};
+                 [](const criteria::library::CriterionInput&)
+                 { return criteria::library::FunctionWithConfiguration{make_linear_test_function(), kConfiguration}; }};
 
 struct ObjectiveFactoryTestFixture : public integration_tests::utilities::ValidInputTestFixture
 {

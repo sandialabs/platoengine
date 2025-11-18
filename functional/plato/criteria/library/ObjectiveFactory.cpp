@@ -52,14 +52,15 @@ const auto kIsActive = [](const auto& aObjective)
     {
         return core::adapt_parallel_function(
             make_reciprocal_criterion_function(
-                make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue),
+                make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue)
+                    .mFunction,
                 objective_goal(aObjective)),
             aObjectiveComm.mValue);
     }
     else
     {
         return make_reciprocal_criterion_function(
-            make_criterion_function<CriterionFunction, input_parser::objective>(aObjective),
+            make_criterion_function<CriterionFunction, input_parser::objective>(aObjective).mFunction,
             objective_goal(aObjective));
     }
 }

@@ -4,6 +4,7 @@
 #include <filesystem>
 
 #include "plato/services/PluginDirectoryPath.hpp"
+#include "plato/utilities/OptionalToVector.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
 namespace plato::services
@@ -11,6 +12,21 @@ namespace plato::services
 namespace
 {
 constexpr auto kConfigFileExtension = std::string_view{".config"};
+
+auto criterion_configuration_with_name(const std::string& aCriterionName,
+                                       const std::vector<CriterionConfiguration>& aCriterionConfigurations)
+    -> std::optional<CriterionConfiguration>
+{
+    const auto tCriterion =
+        std::ranges::find_if(aCriterionConfigurations, [&aCriterionName](const auto& aCriterionConfiguration)
+                             { return aCriterionConfiguration.mName == aCriterionName; });
+    if (tCriterion != aCriterionConfigurations.end())
+    {
+        return *tCriterion;
+    }
+    return std::nullopt;
+}
+
 }  // namespace
 
 std::vector<AppConfigurationWithDirectory> app_configurations(
@@ -35,9 +51,29 @@ AppConfigurationWithDirectory app_configuration_with_directory(AppConfiguration 
                                          /*.mLibraryDirectory=*/std::move(aDirectory)};
 }
 
+auto plugin_configurations() -> std::vector<AppConfigurationWithDirectory>
+{
+    return app_configurations(utilities::optional_to_vector(services::plugin_directory_path()));
+}
+
 std::filesystem::path shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration)
 {
     return aAppConfiguration.mLibraryDirectory / aAppConfiguration.mConfiguration.mLibraryFileName;
+}
+
+auto criterion_configuration_with_name(const CriterionName& aCriterionName,
+                                       const std::vector<AppConfigurationWithDirectory>& aAppConfigurations)
+    -> std::optional<CriterionConfiguration>
+{
+    const auto tAppConfiguration =
+        std::ranges::find_if(aAppConfigurations, [&aCriterionName](const auto& aAppConfiguration)
+                             { return aAppConfiguration.mConfiguration.mName == aCriterionName.mAppName; });
+    if (tAppConfiguration != aAppConfigurations.end())
+    {
+        return criterion_configuration_with_name(aCriterionName.mCriterionName,
+                                                 tAppConfiguration->mConfiguration.mCriteria);
+    }
+    return std::nullopt;
 }
 
 void AppConfigurationWriter::operator()(const std::filesystem::path& aFilePath) const

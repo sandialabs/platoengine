@@ -59,15 +59,15 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallValue)
 
 TEST_F(OneBlock3x1x1HexMesh, MakeCriterionAndCallValue)
 {
-    const auto [tTempDirector, tValidatedInput] = integration_tests::utilities::setup_mass_app_for_test(mMeshFilePath);
+    const auto [tTempDirectory, tValidatedInput] = integration_tests::utilities::setup_mass_app_for_test(mMeshFilePath);
 
     const auto tCheckMassDensities =
-        [this](const auto& aCriterionFunction, const test_utilities::TestContext& aTestContext)
+        [this](const auto& aCriterionFunction, const double aOffset, const test_utilities::TestContext& aTestContext)
     {
         const auto tMasses = aCriterionFunction.template evaluate<core::evaluation::kFunction>(
             analysis::AnalysisDomainMesh{mMeshFilePath, {}});
 
-        const auto tExpected = std::vector<double>(mExpectedNumberOfElements, test_mass_criteria::kDensity);
+        const auto tExpected = std::vector<double>(mExpectedNumberOfElements, test_mass_criteria::kDensity - aOffset);
         constexpr auto tTolerance = 1e-15;
         test_utilities::expect_container_entries_near(tExpected, tMasses.stdVector(), tTolerance, aTestContext);
     };
@@ -76,7 +76,8 @@ TEST_F(OneBlock3x1x1HexMesh, MakeCriterionAndCallValue)
         const auto tCriterion = criteria::library::make_criterion_function<criteria::library::VectorCriterionFunction,
                                                                            input_parser::constraint>(
             tValidatedInput.get<components::ComponentType::kConstraint>().rawInput().front());
-        tCheckMassDensities(tCriterion, TEST_CONTEXT("Test with make_criterion_function"));
+        constexpr auto tOffset = 0.0;
+        tCheckMassDensities(tCriterion.mFunction, tOffset, TEST_CONTEXT("Test with make_criterion_function"));
     }
     {
         const auto tConstraints =
@@ -85,7 +86,9 @@ TEST_F(OneBlock3x1x1HexMesh, MakeCriterionAndCallValue)
         constexpr auto tExpectedNumberOfConstraints = 1U;
         ASSERT_EQ(tConstraints.size(), tExpectedNumberOfConstraints);
 
-        tCheckMassDensities(tConstraints.front().mConstraintFunction, TEST_CONTEXT("Test with make_constraints"));
+        constexpr auto tOffset = 0.7;
+        tCheckMassDensities(tConstraints.front().mConstraintFunction, tOffset,
+                            TEST_CONTEXT("Test with make_constraints"));
     }
 }
 
