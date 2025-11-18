@@ -2,7 +2,6 @@
 #define PLATO_CRITERIA_LIBRARY_CONSTRAINTADAPTOR
 
 #include <algorithm>
-#include <iterator>
 
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
@@ -11,9 +10,11 @@
 
 namespace plato::criteria::library
 {
-
 template <typename FunctionArg>
-using ScalarFunction = typename Constraint<FunctionArg>::ConstraintFunction;
+using ScalarFunction =
+    core::Function<FunctionArg,
+                   core::FunctionInfo<double, core::evaluation::kFunction>,
+                   core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
 
 template <typename FunctionArg>
 using VectorFunction = typename VectorConstraint<FunctionArg>::ConstraintFunction;

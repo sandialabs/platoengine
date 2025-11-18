@@ -1,10 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "plato/core/Function.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/criteria/extension/VolumeCriterion.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
-#include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::criteria::extension::unittest
 {

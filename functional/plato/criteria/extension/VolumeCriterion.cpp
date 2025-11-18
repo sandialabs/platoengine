@@ -5,7 +5,6 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
-#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"
 
 namespace plato::criteria::extension
@@ -16,13 +15,27 @@ namespace
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
+const auto kVolumeConfiguration = services::CriterionConfiguration{
+    .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
+
 [[maybe_unused]] static auto kVolumeConstraintRegistration =
     Registration{library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
-                 [](const library::CriterionInput&) { return make_volume_constraint_function(); }};
+                 [](const library::CriterionInput&)
+                 {
+                     return library::FunctionWithConfiguration{.mFunction = make_volume_constraint_function(),
+                                                               .mConfiguration = kVolumeConfiguration};
+                 }};
+
+const auto kVolumeFractionConfiguration = services::CriterionConfiguration{
+    .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
 
 [[maybe_unused]] static auto kVolumeFractionConstraintRegistration =
     Registration{library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
-                 [](const library::CriterionInput&) { return make_volume_fraction_constraint_function(); }};
+                 [](const library::CriterionInput&)
+                 {
+                     return library::FunctionWithConfiguration{.mFunction = make_volume_fraction_constraint_function(),
+                                                               .mConfiguration = kVolumeFractionConfiguration};
+                 }};
 
 double fixed_domain_volume(const mesh::MeshQuantities& aMesh)
 {

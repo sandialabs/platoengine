@@ -2,9 +2,8 @@
 
 #include <boost/optional/optional_io.hpp>
 
+#include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
-#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
@@ -42,6 +41,21 @@ TEST_F(CriterionFactoryTestFixture, ValidObjective)
                 tData.template get<components::ComponentType::kObjective>().rawInput().front())));
 }
 
+TEST_F(CriterionFactoryTestFixture, ValidObjectiveConfiguration)
+{
+    const auto tData = input_validation::make_validated_input(parsedInput()).value();
+    ASSERT_EQ(tData.get<components::ComponentType::kObjective>().rawInput().size(), 1);
+    const auto [tFunction, tConfiguration] =
+        criteria::library::make_criterion_function<criteria::library::CriterionFunction, input_parser::objective>(
+            tData.template get<components::ComponentType::kObjective>().rawInput().front());
+
+    EXPECT_EQ(tConfiguration.mName, criteria::extension::NodalSumObjective::kCriterionName);
+    EXPECT_EQ(tConfiguration.mFunctionName, "");
+    EXPECT_FALSE(tConfiguration.mIsParallelized);
+    EXPECT_TRUE(tConfiguration.mIsScalar);
+    EXPECT_FALSE(tConfiguration.mVectorComponents);
+}
+
 TEST_F(CriterionFactoryTestFixture, ValidConstraint)
 {
     const auto tData = input_validation::make_validated_input(parsedInput()).value();
@@ -66,7 +80,6 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
           end
        )" +
         test_utilities::create_valid_density_topology_geometry_string() +
-        // test_utilities::create_valid_identity_filter_string() +
         test_utilities::create_valid_identity_filter_string() +
         test_utilities::create_valid_example_rol_optimization_string();
 

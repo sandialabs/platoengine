@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
-#include <fstream>
 
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
@@ -12,22 +11,28 @@ namespace plato::services
 {
 namespace
 {
-const auto kTestCriterionConfiguration =
-    CriterionConfiguration{/*.mName=*/"test-criterion", /*.mIsParallelized=*/true, /*.mIsScalar=*/true,
-                           /*.mFunctionName=*/"plato_test_criterion"};
+const auto kTestCriterionConfiguration = CriterionConfiguration{
+    .mName = "test-criterion", .mIsParallelized = true, .mIsScalar = true, .mFunctionName = "plato_test_criterion"};
 
-const auto kAnotherTestCriterionConfiguration =
-    CriterionConfiguration{/*.mName=*/"another_test-criterion", /*.mIsParallelized=*/false, /*.mIsScalar=*/false,
-                           /*.mFunctionName=*/"plato_another_test_criterion"};
+const auto kAnotherTestCriterionConfiguration = CriterionConfiguration{.mName = "another_test-criterion",
+                                                                       .mIsParallelized = false,
+                                                                       .mIsScalar = false,
+                                                                       .mFunctionName = "plato_another_test_criterion"};
 
-const auto kTestConfiguration = AppConfiguration{/*.mName=*/"test-app",
-                                                 /*.mLibraryFileName=*/"libtest.so",
-                                                 {kTestCriterionConfiguration}};
+const auto kVectorTestCriterionConfiguration = CriterionConfiguration{
+    .mName = "vector_test-criterion",
+    .mIsParallelized = false,
+    .mIsScalar = false,
+    .mFunctionName = "plato_vector_test_criterion",
+    .mVectorComponents = std::map<std::size_t, std::string>{{0U, "octopus"}, {1U, "cuttlefish"}}};
+
+const auto kTestConfiguration =
+    AppConfiguration{.mName = "test-app", .mLibraryFileName = "libtest.so", .mCriteria = {kTestCriterionConfiguration}};
 
 const auto kAnotherTestConfiguration =
-    AppConfiguration{/*.mName=*/"another-test-app",
-                     /*.mLibraryFileName=*/"libanothertest.so",
-                     {kTestCriterionConfiguration, kAnotherTestCriterionConfiguration}};
+    AppConfiguration{.mName = "another-test-app",
+                     .mLibraryFileName = "libanothertest.so",
+                     .mCriteria = {kTestCriterionConfiguration, kAnotherTestCriterionConfiguration}};
 
 void testSerializeRoundTrip(const AppConfiguration& aSerializable, const test_utilities::TestContext& aTestContext)
 {
@@ -45,18 +50,19 @@ void testSerializeRoundTrip(const AppConfiguration& aSerializable, const test_ut
 TEST(AppConfiguration, Serialization)
 {
     const auto tAppConfiguration =
-        services::AppConfiguration{/*.mName=*/"test-app",
-                                   /*.mLibraryFileName=*/"libtest.so",
-                                   /*.mCriteria=*/{kTestCriterionConfiguration, kAnotherTestCriterionConfiguration}};
+        services::AppConfiguration{.mName = "test-app",
+                                   .mLibraryFileName = "libtest.so",
+                                   .mCriteria = {kTestCriterionConfiguration, kAnotherTestCriterionConfiguration,
+                                                 kVectorTestCriterionConfiguration}};
     testSerializeRoundTrip(tAppConfiguration, TEST_CONTEXT("App configuration"));
 }
 
 TEST(AppConfiguration, AppConfigurationWithDirectory)
 {
     const auto tSharedLibName = std::string_view{"libappetizer.so"};
-    const auto tAppConfiguration =
-        services::AppConfiguration{/*.mName=*/"appetizer", /*.mLbraryFileName=*/std::string{tSharedLibName},
-                                   /*.mCriteria=*/{kTestCriterionConfiguration}};
+    const auto tAppConfiguration = services::AppConfiguration{.mName = "appetizer",
+                                                              .mLibraryFileName = std::string{tSharedLibName},
+                                                              .mCriteria = {kTestCriterionConfiguration}};
     const auto tDirectory = std::filesystem::path{"/path/to/food"};
 
     const auto tAppConfigurationWithDirectory = app_configuration_with_directory(tAppConfiguration, tDirectory);
@@ -74,16 +80,14 @@ TEST(AppConfiguration, AppConfigurations)
 
     EXPECT_EQ(tAppConfigurations.size(), 2u);
 
-    const auto tTestConfigurationIter =
-        std::find_if(tAppConfigurations.cbegin(), tAppConfigurations.cend(),
-                     [](const auto& aAppConfigurationWithDirectory)
-                     { return kTestConfiguration == aAppConfigurationWithDirectory.mConfiguration; });
+    const auto tTestConfigurationIter = std::find_if(
+        tAppConfigurations.cbegin(), tAppConfigurations.cend(), [](const auto& aAppConfigurationWithDirectory)
+        { return kTestConfiguration == aAppConfigurationWithDirectory.mConfiguration; });
     EXPECT_NE(tTestConfigurationIter, tAppConfigurations.cend());
 
-    const auto tAnotherTestConfigurationIter =
-        std::find_if(tAppConfigurations.cbegin(), tAppConfigurations.cend(),
-                     [](const auto& aAppConfigurationWithDirectory)
-                     { return kAnotherTestConfiguration == aAppConfigurationWithDirectory.mConfiguration; });
+    const auto tAnotherTestConfigurationIter = std::find_if(
+        tAppConfigurations.cbegin(), tAppConfigurations.cend(), [](const auto& aAppConfigurationWithDirectory)
+        { return kAnotherTestConfiguration == aAppConfigurationWithDirectory.mConfiguration; });
     EXPECT_NE(tAnotherTestConfigurationIter, tAppConfigurations.cend());
 }
 

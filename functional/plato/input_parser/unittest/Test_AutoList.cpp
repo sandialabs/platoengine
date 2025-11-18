@@ -4,7 +4,7 @@
 #include "plato/input_parser/Bounds.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_parser/UserDefinedToken.hpp"
-#include "plato/input_parser/unittest/Test_Helpers.hpp"
+#include "plato/input_parser/test_utilities/TestHelpers.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -85,7 +85,7 @@ TEST(AutoList, EndConstIterator)
 TEST(AutoList, SuccessfulParseSingleEntries)
 {
     const auto tToken1 = std::string_view{"birdo"};
-    const auto [tResult, tSuccess] = parse_input<StringListType>(tToken1);
+    const auto [tResult, tSuccess] = test_utilities::parse_input<StringListType>(tToken1);
     EXPECT_TRUE(tSuccess);
     EXPECT_EQ(tResult.mList.front().mToken, tToken1);
 }
@@ -98,7 +98,7 @@ TEST(AutoList, SuccessfulParseMultipleEntries)
     const auto tAllTokens = std::vector<std::string>{tToken1, tToken2, tToken3};
     const auto tTokenList = utilities::concatenate_container(tAllTokens, ", ");
 
-    const auto [tResult, tSuccess] = parse_input<UserDefinedTokenListType>(tTokenList);
+    const auto [tResult, tSuccess] = test_utilities::parse_input<UserDefinedTokenListType>(tTokenList);
     EXPECT_TRUE(tSuccess);
 
     ASSERT_EQ(tResult.mList.size(), tAllTokens.size());
@@ -115,7 +115,7 @@ TEST(AutoList, SuccessfulParseMultipleBounds)
 
     const auto tTokenList = std::string_view{"[0,1], [-1,1], [2,3]"};
 
-    const auto [tResult, tSuccess] = parse_input<BoundsListType>(tTokenList);
+    const auto [tResult, tSuccess] = test_utilities::parse_input<BoundsListType>(tTokenList);
     EXPECT_TRUE(tSuccess);
 
     ASSERT_EQ(tResult.mList.size(), tAllTokens.size());

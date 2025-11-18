@@ -14,6 +14,17 @@ namespace plato::analysis
 struct AnalysisDomainMesh;
 }
 
+namespace plato::input_parser
+{
+struct constraint;
+}
+
+namespace plato::services
+{
+struct AppConfigurationWithDirectory;
+struct CriterionConfiguration;
+}  // namespace plato::services
+
 namespace plato::criteria::library
 {
 using ValidatedConstraints = input_validation::ValidatedComponentType<components::ComponentType::kConstraint>;
@@ -23,24 +34,6 @@ enum class ConstraintType : std::uint8_t
     kEqualTo,
     kLessThan,
     kGreaterThan
-};
-
-/// @brief Holds members for defining a scalar constraint
-/// @tparam FunctionArg The argument of the function used to define the constraint.
-///   Typically, this is either AnalysisDomainMesh or a vector type such as DynamicVector.
-template <typename FunctionArg>
-struct Constraint
-{
-    using ConstraintFunction =
-        core::Function<FunctionArg,
-                       core::FunctionInfo<double, core::evaluation::kFunction>,
-                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
-
-    std::string mName;
-    ConstraintFunction mConstraintFunction;
-    double mConstraintTarget = 0;
-    bool mLinear = false;
-    ConstraintType mConstraintType = ConstraintType::kEqualTo;
 };
 
 /// @brief Holds members for defining a vector-valued constraint
@@ -59,7 +52,6 @@ struct VectorConstraint
 
     std::string mName;
     ConstraintFunction mConstraintFunction;
-    double mConstraintTarget = 0;
     bool mLinear = false;
     ConstraintType mConstraintType;
 };
@@ -77,6 +69,32 @@ namespace detail
 [[nodiscard]] auto make_constraint(
     const input_validation::ValidatedInputDataBlock<components::ComponentType::kConstraint>& aConstraintInput)
     -> VectorConstraint<const analysis::AnalysisDomainMesh&>;
+
+/// @brief Returns the vector indices associated with the requested constraint targets.
+///
+/// If `constraint_value` has a value, or @a aConfiguration has no value in its `mVectorComponents` member, then
+/// `std::nullopt` returned.
+[[nodiscard]] auto constraint_component_indices(const input_parser::constraint& aInput,
+                                                const services::CriterionConfiguration& aConfiguration)
+    -> std::optional<std::set<std::size_t>>;
+
+using ConstraintTargetValue = std::variant<double, std::vector<double>>;
+
+/// @brief Creates a ConstraintTarget object based on the input contained in @a aInput and uses the component names, if
+/// necessary, in @a aConfiguration.
+/// @pre If @a aInput does not define `constraint_value`, @a aConfiguration must have a non-empty `mVectorComponents`
+/// field.
+[[nodiscard]] auto make_constraint_target_value(const input_parser::constraint& aInput,
+                                                const services::CriterionConfiguration& aConfiguration)
+    -> ConstraintTargetValue;
+
+/// @brief Creates a ConstraintTarget by mapping the targets given in @a aConstraintTargets to the names in @a
+/// aComponentNames, ensuring the targets are ordered correctly.
+/// @param aComponentIndexAssociations Defines the ordering of the components. The targets used to construct
+/// ConstraintTarget will be ordered in increasing order of ID.
+[[nodiscard]] auto make_constraint_vector_target(
+    const std::vector<std::pair<std::string, double>>& aConstraintTargets,
+    const std::map<std::size_t, std::string>& aComponentNameIndexAssociations) -> std::vector<double>;
 
 }  // namespace detail
 }  // namespace plato::criteria::library

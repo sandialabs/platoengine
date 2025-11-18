@@ -116,7 +116,7 @@ const auto tConstraintTypeConversion =
                          .compatibleFunction<SNOPTConstraintFunction>();
     const auto tConstraintSize =
         tFunction.template evaluate<core::evaluation::kFunction>(aGeometry.mInitialGuess).size();
-    auto tConstraintTargets = std::vector(tConstraintSize, aConstraint.mConstraintTarget);
+    auto tConstraintTargets = std::vector(tConstraintSize, 0.0);
     return tpis::InterfaceConstraintType{std::move(tFunction), std::move(tConstraintTargets), tLinearity,
                                          tConstraintSize, tConstraintTypeConversion.at(aConstraint.mConstraintType)};
 }

@@ -3,7 +3,7 @@
 #include <string_view>
 
 #include "plato/input_parser/UserDefinedToken.hpp"
-#include "plato/input_parser/unittest/Test_Helpers.hpp"
+#include "plato/input_parser/test_utilities/TestHelpers.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -63,7 +63,7 @@ TEST(UserDefinedToken, ParseFail)
 {
     const auto tTestString = std::string_view{"1_invalid_input_0"};
 
-    const auto [tResult, tSuccess] = parse_input<LowerCaseWithUnderscoreToken>(tTestString);
+    const auto [tResult, tSuccess] = test_utilities::parse_input<LowerCaseWithUnderscoreToken>(tTestString);
     EXPECT_FALSE(tSuccess);
 }
 
@@ -71,7 +71,7 @@ TEST(UserDefinedToken, ParseSuccess)
 {
     const auto tTestString = std::string_view{"valid_input"};
 
-    const auto [tResult, tSuccess] = parse_input<LowerCaseWithUnderscoreToken>(tTestString);
+    const auto [tResult, tSuccess] = test_utilities::parse_input<LowerCaseWithUnderscoreToken>(tTestString);
     EXPECT_TRUE(tSuccess);
     EXPECT_EQ(tResult.mToken, tTestString);
 }

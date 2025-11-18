@@ -3,7 +3,7 @@ SET(SRCS
 	UnitMain.cpp )
 
 add_executable(Plato_PruneAndRefine_UnitTester ${SRCS})
-target_link_libraries(Plato_PruneAndRefine_UnitTester GTest::GTest Prune Percept::percept)
+target_link_libraries(Plato_PruneAndRefine_UnitTester GTest::GTest Prune Percept::percept MPI::MPI_C)
 
 add_test(NAME Plato_PruneAndRefine_UnitTester COMMAND Plato_PruneAndRefine_UnitTester)
 set_property(TEST Plato_PruneAndRefine_UnitTester PROPERTY LABELS "small")

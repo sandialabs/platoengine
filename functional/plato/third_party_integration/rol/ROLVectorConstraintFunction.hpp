@@ -57,7 +57,6 @@ class ROLVectorConstraintFunction : public ROL::StdConstraint<double>
 
    private:
     ROLPlatoFunction mFunction;
-    double mConstraintTarget = 0;
 };
 }  // namespace plato::third_party_integration::rol
 

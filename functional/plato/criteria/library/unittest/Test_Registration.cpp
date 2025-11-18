@@ -13,15 +13,23 @@ namespace
 [[nodiscard]] auto make_test_criterion_function() -> plato::criteria::library::CriterionFunction
 {
     return core::make_function_with_first_derivative([](const analysis::AnalysisDomainMesh&) { return 0.0; },
-                                                     [](const analysis::AnalysisDomainMesh&) {
-                                                         return linear_algebra::DynamicVector<double>{1.0, 2.0};
-                                                     });
+                                                     [](const analysis::AnalysisDomainMesh&)
+                                                     { return linear_algebra::DynamicVector<double>{1.0, 2.0}; });
 }
+
+constexpr auto kTestCriterionName = std::string_view{"test"};
+
+const auto kTestConfiguration = services::CriterionConfiguration{.mName = std::string{kTestCriterionName},
+                                                                 .mIsParallelized = false,
+                                                                 .mIsScalar = true,
+                                                                 .mFunctionName = "",
+                                                                 .mVectorComponents = std::nullopt};
 
 [[maybe_unused]] static auto kTestCriterionRegistration =
     plato::criteria::library::CriterionRegistration<library::Parallelization::kSerial,
                                                     library::FunctionDimension::kScalar>{
-        "test", [](const plato::criteria::library::CriterionInput&) { return make_test_criterion_function(); }};
+        std::string{kTestCriterionName}, [](const plato::criteria::library::CriterionInput&)
+        { return FunctionWithConfiguration{make_test_criterion_function(), kTestConfiguration}; }};
 
 }  // namespace
 
@@ -36,12 +44,10 @@ TEST(CriterionRegistration, RegistrationNameConfiguration)
 {
     constexpr auto tTestAppName = std::string_view{"moose"};
     constexpr auto tTestCriterionName = std::string_view{"squirrel"};
-    const auto tCriterionConfiguration =
-        services::CriterionConfiguration{/*.mName=*/std::string{tTestCriterionName}, /*.mIsParallelized=*/false,
-                                         /*.mIsScalar=*/true, /*.mFunctionName=*/"fun"};
-    const auto tAppConfiguration = services::AppConfiguration{/*.mName=*/std::string{tTestAppName},
-                                                              /*.mLibraryFileName=*/"lib.so",
-                                                              /*.mCriteria=*/{tCriterionConfiguration}};
+    const auto tCriterionConfiguration = services::CriterionConfiguration{
+        .mName = std::string{tTestCriterionName}, .mIsParallelized = false, .mIsScalar = true, .mFunctionName = "fun"};
+    const auto tAppConfiguration = services::AppConfiguration{
+        .mName = std::string{tTestAppName}, .mLibraryFileName = "lib.so", .mCriteria = {tCriterionConfiguration}};
 
     const auto tCriterionName = input_parser::CriterionName{std::string{tTestCriterionName}};
     const auto tAppName = input_parser::AppName{std::string{tTestAppName}};

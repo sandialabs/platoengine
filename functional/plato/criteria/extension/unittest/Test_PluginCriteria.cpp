@@ -94,12 +94,6 @@ template <typename SharedLibWriter>
 }
 }  // namespace
 
-TEST(PluginCriteria, NumberOfPluginsRegistered)
-{
-    EXPECT_EQ(services::app_configurations(utilities::optional_to_vector(services::plugin_directory_path())).size(),
-              number_of_plugins_registered_at_startup());
-}
-
 TEST(PluginCriteria, NothingRegisteredForEmptyPaths)
 {
     const auto tNumberOfRegisteredApps = register_plugin_apps({});

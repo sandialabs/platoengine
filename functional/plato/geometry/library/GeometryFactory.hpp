@@ -1,11 +1,7 @@
 #ifndef PLATO_GEOMETRY_LIBRARY_GEOMETRYFACTORY
 #define PLATO_GEOMETRY_LIBRARY_GEOMETRYFACTORY
 
-#include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/Function.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
-#include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::geometry::library
 {

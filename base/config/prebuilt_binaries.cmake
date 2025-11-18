@@ -10,7 +10,7 @@ macro( install_prebuilt_binaries )
     set(PREBUILT_BINARY_DIR  ${PROJECT_SOURCE_DIR}/../plato-prebuilt-binaries )
   endif()
   if( NOT EXISTS ${PREBUILT_BINARY_DIR} )
-    message( WARNING "Cound not find plato-prebuilt-binaries directory, some integration tests may not function." )
+    message( WARNING "Could not find plato-prebuilt-binaries directory, some integration tests may not function." )
   else()
     FetchContent_Declare(
       PlatoPrebuiltBinaries

@@ -11,12 +11,12 @@
 #include <Teuchos_GlobalMPISession.hpp>
 #include <iomanip>
 
+#include "plato/core/Compose.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
-#include "plato/geometry/library/OutputManager.hpp"
+#include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorRosenbrockFunction.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorSumConstraintUtilities.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
-#include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/test_utilities/SumConstraint.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
@@ -35,6 +35,12 @@ constexpr double kGoldYValue = 0.3812043814594129;
 constexpr double kTolerance = 1e-6;
 
 constexpr bool kPrintFlag = true;
+
+[[nodiscard]] auto composed_target_function(const criteria::library::VectorFunction<FunctionArgumentType>& aFunction,
+                                            const double aTarget)
+{
+    return core::compose(criteria::library::make_target_offset_function(aTarget), aFunction);
+}
 
 [[nodiscard]] ROL::ParameterList create_parameter_list()
 {
@@ -66,11 +72,14 @@ constexpr bool kPrintFlag = true;
     constexpr bool tLineLinear = true;
     constexpr double tSumConstraintTarget = 1.0;
 
+    const auto tConstraintFunction = criteria::library::to_vector_function<FunctionArgumentType>(
+        make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{}));
+
     auto tConstraint = criteria::library::VectorConstraint<FunctionArgumentType>{
-        "Line",
-        criteria::library::to_vector_function<FunctionArgumentType>(
-            make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{})),
-        tSumConstraintTarget, tLineLinear, criteria::library::ConstraintType::kLessThan};
+        .mName = "Line",
+        .mConstraintFunction = composed_target_function(tConstraintFunction, tSumConstraintTarget),
+        .mLinear = tLineLinear,
+        .mConstraintType = criteria::library::ConstraintType::kLessThan};
 
     auto tROLConstraint = third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
     return std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(tROLConstraint);
@@ -83,11 +92,14 @@ constexpr bool kPrintFlag = true;
     constexpr auto tCircleConstraintTarget = double{1.0};
     constexpr auto tCenter = std::make_pair(0.0, 0.0);
 
+    const auto tConstraintFunction = criteria::library::to_vector_function<FunctionArgumentType>(
+        make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{tCenter, 2}));
+
     auto tConstraint = criteria::library::VectorConstraint<FunctionArgumentType>{
-        "Circle",
-        criteria::library::to_vector_function<FunctionArgumentType>(
-            make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{tCenter, 2})),
-        tCircleConstraintTarget, tCircleLinear, criteria::library::ConstraintType::kLessThan};
+        .mName = "Circle",
+        .mConstraintFunction = composed_target_function(tConstraintFunction, tCircleConstraintTarget),
+        .mLinear = tCircleLinear,
+        .mConstraintType = criteria::library::ConstraintType::kLessThan};
     auto tROLConstraint = third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
     return std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(std::move(tROLConstraint));
 }
@@ -155,8 +167,10 @@ void add_nonlinear_constraint_rol_problem(ROL::Problem<double>& aROLProblem,
     constexpr double tTarget = 1.0;
 
     auto tConstraint = criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
-        "Circle and line", utilities::make_line_and_circle_jacobian_function(), tTarget, tIsLinear,
-        criteria::library::ConstraintType::kLessThan};
+        .mName = "Circle and line",
+        .mConstraintFunction = composed_target_function(utilities::make_line_and_circle_jacobian_function(), tTarget),
+        .mLinear = tIsLinear,
+        .mConstraintType = criteria::library::ConstraintType::kLessThan};
 
     return third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
 }

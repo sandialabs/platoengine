@@ -8,7 +8,6 @@
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
-#include "plato/services/PluginDirectoryPath.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -17,8 +16,6 @@ namespace plato::criteria::extension
 {
 namespace
 {
-static const auto kNumberOfPluginsLoaded =
-    register_plugin_apps(utilities::optional_to_vector(services::plugin_directory_path()));
 
 /// @brief Function object for generating CriterionFunction objects.
 ///
@@ -37,8 +34,10 @@ struct CreateCriterionFunction<library::FunctionDimension::kScalar>
     template <typename... Args>
     [[nodiscard]] auto operator()(const criteria::library::CriterionInput& aInput, Args&&... aAdditionalArgs) const
     {
-        return make_shared_lib_function(SharedLibCriterion{mAppConfiguration, mCriterionConfiguration, aInput,
-                                                           std::forward<Args>(aAdditionalArgs)...});
+        return library::FunctionWithConfiguration{
+            .mFunction = make_shared_lib_function(SharedLibCriterion{mAppConfiguration, mCriterionConfiguration, aInput,
+                                                                     std::forward<Args>(aAdditionalArgs)...}),
+            .mConfiguration = mCriterionConfiguration};
     }
 };
 
@@ -51,9 +50,10 @@ struct CreateCriterionFunction<library::FunctionDimension::kVector>
     template <typename... Args>
     [[nodiscard]] auto operator()(const criteria::library::CriterionInput& aInput, Args&&... aAdditionalArgs) const
     {
-        return make_shared_library_vector_function(
-            SharedLibraryVectorCriterion{mAppConfiguration, mCriterionConfiguration, aInput.mInputFiles.list().mList,
-                                         std::forward<Args>(aAdditionalArgs)...});
+        return library::FunctionWithConfiguration{
+            .mFunction = make_shared_library_vector_function(SharedLibraryVectorCriterion{
+                mAppConfiguration, mCriterionConfiguration, aInput, std::forward<Args>(aAdditionalArgs)...}),
+            .mConfiguration = mCriterionConfiguration};
     }
 };
 
@@ -103,8 +103,6 @@ void register_all_criteria(const services::AppConfigurationWithDirectory& aAppCo
 }
 }  // namespace
 
-std::size_t number_of_plugins_registered_at_startup() { return kNumberOfPluginsLoaded; }
-
 std::size_t register_plugin_apps(const std::vector<std::filesystem::path>& aSearchDirectories)
 {
     const auto tAppConfigurations = services::app_configurations(aSearchDirectories);
@@ -118,10 +116,9 @@ std::size_t register_plugin_apps(const std::vector<std::filesystem::path>& aSear
         }
         else
         {
-            services::system_logger().logWarning(
-                utilities::concatenate("Warning: The shared library ", services::shared_library_path(tAppConfiguration),
-                                       ", associated with app \"", tAppConfiguration.mConfiguration.mName,
-                                       "\", was not found and will not be available."));
+            services::system_logger().logWarning(utilities::concatenate(
+                "The shared library ", services::shared_library_path(tAppConfiguration), ", associated with app \"",
+                tAppConfiguration.mConfiguration.mName, "\", was not found and will not be available."));
         }
     }
     return tNumberOfRegisteredApps;

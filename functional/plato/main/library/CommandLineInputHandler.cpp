@@ -11,13 +11,10 @@
 #include "plato/main/library/Splash.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerFactory.hpp"
-#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/services/ExternalLoggerFileSink.hpp"
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/services/SystemLogger.hpp"
-#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
-#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::main::library
 {

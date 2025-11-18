@@ -22,19 +22,6 @@ namespace plato::integration_tests::utilities
                                           const boost::mpi::communicator& aComm = boost::mpi::communicator{})
     -> test_utilities::TestDirectorySetupTeardown;
 
-/// @brief Creates test input that has a brick shape geometry, ROL optimization, and an objective
-/// with name @a aMassAppName and number of processors @a aNumProcessors.
-[[nodiscard]] auto create_test_mass_app_input(const input_parser::AppName& aMassAppName,
-                                              const input_parser::CriterionName& aCriterionName,
-                                              unsigned int aNumProcessors) -> input_validation::ValidatedInput;
-
-/// @brief Creates test input that has a brick shape geometry, ROL optimization, ROL constraint check a mass objective,
-/// and a vector mass constraint with name @a aMassAppName
-[[nodiscard]] auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMassAppName,
-                                                            const input_parser::CriterionName& aCriterionName,
-                                                            const std::filesystem::path& aMeshName)
-    -> input_validation::ValidatedInput;
-
 /// @brief Creates arbitrary test controls with the associated total volume for a BrickShapeGeometry.
 [[nodiscard]] auto brick_shape_geometry_controls_with_volume()
     -> std::pair<linear_algebra::DynamicVector<double>, double>;

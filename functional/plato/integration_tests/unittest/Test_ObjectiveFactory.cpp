@@ -12,8 +12,6 @@
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/utilities/Exception.hpp"
-#include "plato/utilities/Zip.hpp"
 
 namespace plato::integration_tests::serial
 {
@@ -32,9 +30,16 @@ auto make_linear_test_function() -> criteria::library::CriterionFunction
 using Registration = criteria::library::CriterionRegistration<criteria::library::Parallelization::kSerial,
                                                               criteria::library::FunctionDimension::kScalar>;
 
+const auto kConfiguration = services::CriterionConfiguration{.mName = std::string{kLinearFunctionName},
+                                                             .mIsParallelized = false,
+                                                             .mIsScalar = true,
+                                                             .mFunctionName = "",
+                                                             .mVectorComponents = std::nullopt};
+
 [[maybe_unused]] static auto kNodalSumRegistration =
     Registration{criteria::library::builtin_criterion_registration_name(kLinearFunctionName),
-                 [](const criteria::library::CriterionInput&) { return make_linear_test_function(); }};
+                 [](const criteria::library::CriterionInput&)
+                 { return criteria::library::FunctionWithConfiguration{make_linear_test_function(), kConfiguration}; }};
 
 struct ObjectiveFactoryTestFixture : public integration_tests::utilities::ValidInputTestFixture
 {
@@ -132,8 +137,9 @@ TEST_F(ObjectiveFactoryTestFixture, NumberOfProcessors)
 TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
 {
     constexpr auto tX = 21.0;
+    constexpr double tAggregationWeight = 2.0;
 
-    const auto tTestFunction = [](criteria::library::ObjectiveGoal aObjectiveGoal)
+    const auto tTestFunction = [tAggregationWeight](criteria::library::ObjectiveGoal aObjectiveGoal)
     {
         const auto tObjectiveInput =
             input_parser::objective{/*.name=*/std::string{"test"},
@@ -142,7 +148,7 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
                                     /*.criterion=*/input_parser::CriterionName{std::string{kLinearFunctionName}},
                                     /*.number_of_processors=*/1U,
                                     /*.input_files=*/plato::input_parser::FileList{},
-                                    /*.aggregation_weight=*/2.0,
+                                    /*.aggregation_weight=*/tAggregationWeight,
                                     /*.objective_goal*/ aObjectiveGoal};
         auto tInput = integration_tests::utilities::create_valid_example_input();
         tInput.get<components::ComponentType::kObjective>().clear();
@@ -163,14 +169,20 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
     // Minimize
     {
         const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMinimize);
-        EXPECT_EQ(2.0 * tX, tObjective);
-        EXPECT_EQ(2.0, tGradient[0]);
+        EXPECT_EQ(tAggregationWeight * tX, tObjective);
+        EXPECT_EQ(tAggregationWeight, tGradient[0]);
     }
     // Maximize
     {
-        const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMaximize);
-        EXPECT_EQ(-2.0 * tX, tObjective);
-        EXPECT_EQ(-2.0, tGradient[0]);
+        const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMinimizeNegation);
+        EXPECT_EQ(-tAggregationWeight * tX, tObjective);
+        EXPECT_EQ(-tAggregationWeight, tGradient[0]);
+    }
+    // Minimize Reciprocal
+    {
+        const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMinimizeReciprocal);
+        EXPECT_EQ(tAggregationWeight / tX, tObjective);
+        EXPECT_EQ(-tAggregationWeight / tX / tX, tGradient[0]);
     }
 }
 

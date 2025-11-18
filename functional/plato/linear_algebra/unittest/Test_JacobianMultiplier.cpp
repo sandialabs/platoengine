@@ -85,4 +85,16 @@ TEST(AdjointJacobianMultiplier, MultiplicationWithAdjointJacobian)
     EXPECT_EQ(tExpected.stdVector(), tResult.stdVector());
 }
 
+TEST(AdjointJacobianMultiplier, MakeAdjointJacobianMultiplier)
+{
+    const auto tAdjointJacobianViaCtor =
+        AdjointJacobianMultiplier{JacobianMultiplier{[](const DynamicVector<double>& aV) { return square(aV); }}};
+    const auto tAdjointJacobianViaMake =
+        make_adjoint_jacobian_multiplier([](const DynamicVector<double>& aV) { return square(aV); });
+
+    const auto tVector = DynamicVector{-10.0, 22.0};
+    const auto tResultViaCtor = tVector * tAdjointJacobianViaCtor;
+    const auto tResultViaMake = tVector * tAdjointJacobianViaMake;
+    EXPECT_EQ(tResultViaCtor, tResultViaMake);
+}
 }  // namespace plato::linear_algebra::unittest

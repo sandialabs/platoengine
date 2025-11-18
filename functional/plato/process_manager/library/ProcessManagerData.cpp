@@ -1,5 +1,7 @@
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 
+#include "plato/geometry/library/GeometryFactory.hpp"
+
 namespace plato::process_manager::library
 {
 auto make_process_manager_data(const input_validation::ValidatedInput& aData) -> ProcessManagerData
