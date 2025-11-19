@@ -30,9 +30,16 @@ constexpr auto kCriterionValueFieldWidth = kCriterionValuePrecision + 1U;
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
-[[maybe_unused]] static auto kOverhangRegistration = Registration{
-    library::builtin_criterion_registration_name(OverhangCriterion::kCriterionName),
-    [](const library::CriterionInput& aCriterionInput) { return make_overhang_function(aCriterionInput); }};
+const auto kConfiguration = services::CriterionConfiguration{
+    .mName = std::string{OverhangCriterion::kCriterionName}, .mIsParallelized = false, .mIsScalar = true};
+
+[[maybe_unused]] static auto kOverhangRegistration =
+    Registration{library::builtin_criterion_registration_name(OverhangCriterion::kCriterionName),
+                 [](const library::CriterionInput& aCriterionInput)
+                 {
+                     return library::FunctionWithConfiguration{.mFunction = make_overhang_function(aCriterionInput),
+                                                               .mConfiguration = kConfiguration};
+                 }};
 }  // namespace
 
 double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
