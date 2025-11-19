@@ -112,7 +112,6 @@ int communicate_exit_code(const MPI_Comm& tInterComm, const int tExitStatus)
 int unit_main(int argc, char** argv)
 {
     auto tEnvironment = boost::mpi::environment{argc, argv, boost::mpi::threading::level::funneled};
-    MPI_Init(&argc, &argv);
     Kokkos::initialize(argc, argv);
     [[maybe_unused]] const auto tLogSink = null_log_sink();
 
