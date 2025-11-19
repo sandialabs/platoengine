@@ -72,10 +72,10 @@ TEST(ConstraintValidation, ConstraintComponentTargets)
     const auto [tTestDirectorySetupTeardown, tTestAppName] = test_utilities::test_configurations();
     const auto tAppConfigurations = services::app_configurations({tTestDirectorySetupTeardown.directory()});
 
-    const auto tBaseConstraint = [tTestAppName]()
+    const auto tBaseConstraint = [mTestAppName = tTestAppName]()
     {
         auto tConstraint = input_parser::constraint{};
-        tConstraint.app = input_parser::AppName{std::string{tTestAppName}};
+        tConstraint.app = input_parser::AppName{std::string{mTestAppName}};
         return tConstraint;
     }();
     const auto tConstraintList = ConstraintValueList{
@@ -129,10 +129,10 @@ TEST(ConstraintValidation, ConstraintComponentNames)
     const auto [tTestDirectorySetupTeardown, tTestAppName] = test_utilities::test_configurations();
     const auto tAppConfigurations = services::app_configurations({tTestDirectorySetupTeardown.directory()});
 
-    const auto tBaseConstraint = [tTestAppName]()
+    const auto tBaseConstraint = [mTestAppName = tTestAppName]()
     {
         auto tConstraint = input_parser::constraint{};
-        tConstraint.app = input_parser::AppName{std::string{tTestAppName}};
+        tConstraint.app = input_parser::AppName{std::string{mTestAppName}};
         tConstraint.criterion = input_parser::CriterionName{"vector-with-components"};
         return tConstraint;
     }();
