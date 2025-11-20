@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <boost/mpi/communicator.hpp>
 #include <optional>
+#include <ranges>
 
 #include "plato/analysis/Utilities.hpp"
 #include "plato/core/Compose.hpp"
@@ -26,6 +27,7 @@
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
 #include "plato/utilities/FileUtilities.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
 
 namespace plato::geometry::extension
 {
@@ -72,21 +74,6 @@ auto make_level_set_geometry(const library::ValidatedGeometryInput& aGeometryInp
         library::make_filter_from_geometry_input<input_parser::level_set_topology>(aGeometryInput));
 }
 
-[[nodiscard]] auto any_sphere_pattern_specifiers(const input_parser::level_set_topology& aInput) -> bool
-{
-    return aInput.sphere_pattern_bbox_max_x.has_value() || aInput.sphere_pattern_bbox_max_y.has_value() ||
-           aInput.sphere_pattern_bbox_max_z.has_value() || aInput.sphere_pattern_bbox_min_x.has_value() ||
-           aInput.sphere_pattern_bbox_min_y.has_value() || aInput.sphere_pattern_bbox_min_z.has_value() ||
-           aInput.sphere_pattern_radius.has_value() || aInput.sphere_pattern_spacing.has_value();
-}
-
-[[nodiscard]] auto all_sphere_pattern_bounding_box_specifiers(const input_parser::level_set_topology& aInput) -> bool
-{
-    return aInput.sphere_pattern_bbox_max_x.has_value() && aInput.sphere_pattern_bbox_max_y.has_value() &&
-           aInput.sphere_pattern_bbox_max_z.has_value() && aInput.sphere_pattern_bbox_min_x.has_value() &&
-           aInput.sphere_pattern_bbox_min_y.has_value() && aInput.sphere_pattern_bbox_min_z.has_value();
-}
-
 /// Static registration for parser
 [[maybe_unused]] static auto kLevelSetTopologyParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::level_set_topology>{};
@@ -113,10 +100,19 @@ auto make_level_set_geometry(const library::ValidatedGeometryInput& aGeometryInp
         [](const input_parser::level_set_topology& aInput) { return detail::validate_lower_bound(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_upper_bound(aInput); },
         [](const input_parser::level_set_topology& aInput)
+        {
+            return input_validation::error_message_for_empty_parameter(
+                input_parser::block_name<input_parser::level_set_topology>(), aInput.level_set_bounds,
+                "level_set_bounds");
+        },
+        [](const input_parser::level_set_topology& aInput)
         { return detail::validate_max_snapping_edge_length(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_radius(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_spacing(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_pattern_bbox(aInput); },
+        [](const input_parser::level_set_topology& aInput)
+        { return detail::validate_sphere_pattern_spacing_greater_than_twice_radius(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_list_radii(aInput); },
         [](const input_parser::level_set_topology& aInput)
         { return validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
         [](const input_parser::level_set_topology& aInput)
@@ -130,12 +126,12 @@ auto make_level_set_geometry(const library::ValidatedGeometryInput& aGeometryInp
 
 auto sphere_pattern(const input_parser::level_set_topology& aInput) -> tpik::SpherePatternData
 {
-    return tpik::SpherePatternData{{aInput.sphere_pattern_bbox_min_x.value(), aInput.sphere_pattern_bbox_min_y.value(),
-                                    aInput.sphere_pattern_bbox_min_z.value()},
-                                   {aInput.sphere_pattern_bbox_max_x.value(), aInput.sphere_pattern_bbox_max_y.value(),
-                                    aInput.sphere_pattern_bbox_max_z.value()},
-                                   aInput.sphere_pattern_radius.value(),
-                                   aInput.sphere_pattern_spacing.value()};
+    return tpik::SpherePatternData{{aInput.sphere_pattern.value().min.mX, aInput.sphere_pattern.value().min.mY,
+                                    aInput.sphere_pattern.value().min.mZ},
+                                   {aInput.sphere_pattern.value().max.mX, aInput.sphere_pattern.value().max.mY,
+                                    aInput.sphere_pattern.value().max.mZ},
+                                   aInput.sphere_pattern.value().radius,
+                                   aInput.sphere_pattern.value().spacing};
 }
 
 auto void_phase(const input_parser::level_set_topology& aInput)
@@ -157,10 +153,11 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
       mCutMesh(kKrinoCutMeshBaseName),
       mOutputMesh(aInput.output_name.value().mToken),
       mVoidRegion(void_phase(aInput)),
-      mLevelSetBounds(std::make_pair(aInput.level_set_lower_bound.value(), aInput.level_set_upper_bound.value())),
+      mLevelSetBounds(std::make_pair(aInput.level_set_bounds.value().mLower, aInput.level_set_bounds.value().mUpper)),
       mKrinoWrapperCache{
           [mFixedBlocks = fixed_blocks(aInput), mSnappingParameters = snapping_parameters_from_input(aInput)](
-              const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
+              const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+          {
               return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, mFixedBlocks,
                                                                   mSnappingParameters);
           },
@@ -189,9 +186,15 @@ auto LevelSetTopology::initialGuess() const -> linear_algebra::DynamicVector<dou
             std::move(tValuesFromMesh), detail::StartingLimits{std::make_pair(tMin, tMax)},
             detail::EndingLimits{mLevelSetBounds}));
     }
-    else
+    else if (mInput.sphere_pattern.has_value())
     {
         const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(mInput))};
+        return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
+            mBackgroundMesh.filePath(), tLevelSetPrimitives, fixed_blocks(mInput))};
+    }
+    else
+    {
+        const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, detail::generate_spheres_from_list(mInput)};
         return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
             mBackgroundMesh.filePath(), tLevelSetPrimitives, fixed_blocks(mInput))};
     }
@@ -261,7 +264,7 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
                                                       fixed_blocks(aInput),
                                                       level_set_mesh_field_name(),
                                                       filtered_level_set_mesh_field_name(),
-                                                      aInput.level_set_upper_bound.value()};
+                                                      aInput.level_set_bounds.value().mUpper};
     const auto tFilteredField = output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
 
     make_krino_wrapper_from_analysis_domain_mesh(tFilteredField, fixed_blocks(aInput),
@@ -294,18 +297,37 @@ auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::f
 namespace detail
 {
 
+namespace
+{
+
+template <typename U, typename SubAccessorFunction, typename T>
+[[nodiscard]] auto validate_bounded_subinput(const boost::optional<U>& aParameter,
+                                             const std::string& aInputName,
+                                             const utilities::ParameterBounds<T>& aParameterBounds,
+                                             const SubAccessorFunction& aSubAccessorFunction,
+                                             const std::string& aMessage) -> std::optional<std::string>
+{
+    if (aParameter && !aParameterBounds.contains(aSubAccessorFunction(aParameter.value())))
+    {
+        return utilities::concatenate(input_parser::block_name<input_parser::level_set_topology>(), " entry \"",
+                                      aInputName, "\" has value ", aSubAccessorFunction(aParameter.value()), aMessage);
+    }
+    return std::nullopt;
+}
+}  // namespace
+
 auto validate_lower_bound(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
-    return input_validation::error_message_for_parameter_out_of_bounds(
-        input_parser::block_name<input_parser::level_set_topology>(), aInput.level_set_lower_bound,
-        "level_set_lower_bound", utilities::upper_bounded(utilities::Exclusive{0.0}));
+    return validate_bounded_subinput(
+        aInput.level_set_bounds, "level_set_bounds", utilities::upper_bounded(utilities::Exclusive{0.0}),
+        [](const auto& aBounds) { return aBounds.mLower; }, " and needs to be less than zero.");
 }
 
 auto validate_upper_bound(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
-    return input_validation::error_message_for_parameter_out_of_bounds(
-        input_parser::block_name<input_parser::level_set_topology>(), aInput.level_set_upper_bound,
-        "level_set_upper_bound", utilities::lower_bounded(utilities::Exclusive{0.0}));
+    return validate_bounded_subinput(
+        aInput.level_set_bounds, "level_set_bounds", utilities::lower_bounded(utilities::Exclusive{0.0}),
+        [](const auto& aBounds) { return aBounds.mUpper; }, " and needs to be greater than zero.");
 }
 
 auto validate_max_snapping_edge_length(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
@@ -317,31 +339,27 @@ auto validate_max_snapping_edge_length(const input_parser::level_set_topology& a
 
 auto validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
-    return input_validation::error_message_for_optional_parameter_out_of_bounds(
-        input_parser::block_name<input_parser::level_set_topology>(), aInput.sphere_pattern_spacing,
-        "sphere_pattern_spacing", utilities::lower_bounded(utilities::Exclusive{1e-5}));
+    return validate_bounded_subinput(
+        aInput.sphere_pattern, "sphere_pattern", utilities::lower_bounded(utilities::Exclusive{1e-5}),
+        [](const auto& aSpherePattern) { return aSpherePattern.spacing; },
+        " and spacing needs to be greater than 1e-5.");
 }
 
 auto validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
-    return input_validation::error_message_for_optional_parameter_out_of_bounds(
-        input_parser::block_name<input_parser::level_set_topology>(), aInput.sphere_pattern_radius,
-        "sphere_pattern_radius", utilities::lower_bounded(utilities::Exclusive{1e-5}));
+    return validate_bounded_subinput(
+        aInput.sphere_pattern, "sphere_pattern", utilities::lower_bounded(utilities::Exclusive{1e-5}),
+        [](const auto& aSpherePattern) { return aSpherePattern.radius; }, " and radius needs to be greater than 1e-5.");
 }
 
 auto validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
-    if (!all_sphere_pattern_bounding_box_specifiers(aInput) && !aInput.initial_field_name.has_value())
+    if (aInput.sphere_pattern && (aInput.sphere_pattern.value().min.mX > aInput.sphere_pattern.value().max.mX ||
+                                  aInput.sphere_pattern.value().min.mY > aInput.sphere_pattern.value().max.mY ||
+                                  aInput.sphere_pattern.value().min.mZ > aInput.sphere_pattern.value().max.mZ))
     {
-        return std::string("Missing entries in sphere pattern bbox specification.");
-    }
-
-    if (all_sphere_pattern_bounding_box_specifiers(aInput) &&
-        (aInput.sphere_pattern_bbox_max_x.value() < aInput.sphere_pattern_bbox_min_x.value() ||
-         aInput.sphere_pattern_bbox_max_y.value() < aInput.sphere_pattern_bbox_min_y.value() ||
-         aInput.sphere_pattern_bbox_max_z.value() < aInput.sphere_pattern_bbox_min_z.value()))
-    {
-        return std::string("Invalid sphere pattern bounding box was specified, check limits.");
+        return utilities::concatenate(input_parser::block_name<input_parser::level_set_topology>(),
+                                      " Invalid sphere pattern bounding box was specified, check limits.");
     }
 
     return std::nullopt;
@@ -350,22 +368,65 @@ auto validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput
 std::optional<std::string> validate_exactly_one_initial_level_set_specifier(
     const input_parser::level_set_topology& aInput)
 {
-    const bool tAnySpherePatterns = any_sphere_pattern_specifiers(aInput);
-    const bool tReadFieldSpecifier = aInput.initial_field_name.has_value();
+    const int tSpherePattern = aInput.sphere_pattern.has_value() ? 1 : 0;
+    const int tReadFieldSpecifier = aInput.initial_field_name.has_value() ? 1 : 0;
+    const int tSphereList = aInput.sphere_list.has_value() ? 1 : 0;
+    const auto tTallyOfSpecifiers = tSpherePattern + tReadFieldSpecifier + tSphereList;
 
-    if (tReadFieldSpecifier && tAnySpherePatterns)
+    if (tTallyOfSpecifiers != 1)
     {
-        return std::string(
-            "Specify only one method to initialize the level set field, either a sphere pattern or "
-            "'initial_field_name'.");
+        return utilities::concatenate(input_parser::block_name<input_parser::level_set_topology>(),
+                                      " Specify exactly one method to initialize the level set field, either a "
+                                      "'sphere_pattern', 'sphere_list' or "
+                                      "'initial_field_name'.");
     }
-    if (!tReadFieldSpecifier && !tAnySpherePatterns)
+
+    return std::nullopt;
+}
+
+auto validate_sphere_pattern_spacing_greater_than_twice_radius(const input_parser::level_set_topology& aInput)
+    -> std::optional<std::string>
+{
+    if (aInput.sphere_pattern.has_value() &&
+        aInput.sphere_pattern.value().spacing < aInput.sphere_pattern.value().radius * 2.0)
     {
-        return std::string(
-            "Specify some method to initialize the level set field, either a sphere pattern or "
-            "'initial_field_name'.");
+        return utilities::concatenate(input_parser::block_name<input_parser::level_set_topology>(),
+                                      " 'sphere_pattern' contains a spacing that is less than twice the radius.");
     }
     return std::nullopt;
+}
+
+auto validate_sphere_list_radii(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
+{
+    if (aInput.sphere_list)
+    {
+        const auto tList = aInput.sphere_list.value().mList;
+        const auto tAnyInvalidRadii = std::ranges::any_of(
+            tList, [](const auto aLevelSetSphereEntry) { return aLevelSetSphereEntry.radius <= 0; });
+        if (tAnyInvalidRadii)
+        {
+            return utilities::concatenate(input_parser::block_name<input_parser::level_set_topology>(),
+                                          " 'sphere_list' contains a radius that is not greater than 0.");
+        }
+    }
+    return std::nullopt;
+}
+
+auto generate_spheres_from_list(const input_parser::level_set_topology& aInput)
+    -> std::vector<third_party_integration::krino::Sphere>
+{
+    assert(aInput.sphere_list.has_value());
+    namespace tpi = third_party_integration;
+    const auto tSphereList = aInput.sphere_list.value().mList;
+    auto tToKrinoSpheres =
+        std::views::transform(tSphereList,
+                              [](const auto& aLevelSetSphere)
+                              {
+                                  const auto tCenter = tpi::common::Coordinate{
+                                      aLevelSetSphere.center.mX, aLevelSetSphere.center.mY, aLevelSetSphere.center.mZ};
+                                  return tpi::krino::Sphere{tCenter, aLevelSetSphere.radius};
+                              });
+    return std::vector(tToKrinoSpheres.begin(), tToKrinoSpheres.end());
 }
 
 auto affine_transformation(std::vector<double> aVector,

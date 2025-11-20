@@ -70,10 +70,8 @@ class LevelSetTopologyMeshFixture : public LevelSetTopologyFixture,
     {
         auto tInput = kLevelSetInputFixture;
         tInput.mesh_name = input_parser::FileName{Tet4MeshOnDisk::mMeshFilePath};
-        tInput.sphere_pattern_bbox_max_x = 0.0;
-        tInput.sphere_pattern_bbox_max_y = 0.0;
-        tInput.sphere_pattern_bbox_max_z = 0.0;
-        tInput.sphere_pattern_radius = 1.0;
+        tInput.sphere_pattern.value().max = input_parser::Point{0, 0, 0};
+        tInput.sphere_pattern.value().radius = 1.0;
         return tInput;
     }
 
@@ -114,7 +112,7 @@ class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
         -> LevelSetTopology
     {
         auto tInput = levelSetTopologyInputWithFixedBlocks(std::move(aFixedBlocks));
-        tInput.sphere_pattern_radius = aRadius;
+        tInput.sphere_pattern.value().radius = aRadius;
         return LevelSetTopology{tInput};
     }
 };
@@ -123,12 +121,9 @@ namespace
 {
 void create_large_sphere_input(input_parser::level_set_topology& aInput, const double aSize, const double aShift)
 {
-    aInput.sphere_pattern_bbox_max_x = 0.0;
-    aInput.sphere_pattern_bbox_min_y = -aSize + aShift;
-    aInput.sphere_pattern_bbox_max_y = -aSize + aShift;
-    aInput.sphere_pattern_bbox_max_z = 0.0;
-    aInput.sphere_pattern_radius = aSize;
-    aInput.sphere_pattern_spacing = aSize * 10;
+    aInput.sphere_pattern = boost::none;
+    aInput.sphere_list = input_parser::LevelSetSphereList{
+        {input_parser::LevelSetSphere{aSize, input_parser::Point{0, -aSize + aShift, 0}}}};
     aInput.include_void_region = true;
 }
 }  // namespace

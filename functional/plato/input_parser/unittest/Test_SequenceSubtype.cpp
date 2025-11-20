@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/input_parser/SequenceSubtype.hpp"
-#include "plato/input_parser/test_utilities/SequenceSubtypeExpectHelpers.hpp"
+#include "plato/input_parser/test_utilities/TestHelpers.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 // clang-format off

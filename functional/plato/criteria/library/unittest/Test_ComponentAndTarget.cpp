@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ComponentAndTarget.hpp"
-#include "plato/input_parser/test_utilities/SequenceSubtypeExpectHelpers.hpp"
+#include "plato/input_parser/test_utilities/TestHelpers.hpp"
 
 namespace plato::criteria::library::unittest
 {
+
 TEST(ComponentAndTarget, Valid)
 {
     constexpr auto tInput = std::string_view{"component mass target 42.0"};
