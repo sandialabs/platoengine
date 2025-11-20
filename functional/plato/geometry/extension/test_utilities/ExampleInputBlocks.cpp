@@ -19,23 +19,19 @@ auto create_valid_density_topology_geometry_input() -> input_parser::density_top
 
 auto create_valid_level_set_topology_geometry_input() -> input_parser::level_set_topology
 {
-    return input_parser::level_set_topology{/*.mesh_name = */ input_parser::FileName{"bg.exo"},
-                                            /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
-                                            /*.include_void_region = */ false,
-                                            /*.max_edge_length_percentage_for_snapping = */ boost::none,
-                                            /*.sphere_pattern_bbox_min_x = */ 0.0,
-                                            /*.sphere_pattern_bbox_min_y = */ 0.0,
-                                            /*.sphere_pattern_bbox_min_z = */ 0.0,
-                                            /*.sphere_pattern_bbox_max_x = */ 1.0,
-                                            /*.sphere_pattern_bbox_max_y = */ 1.0,
-                                            /*.sphere_pattern_bbox_max_z = */ 1.0,
-                                            /*.sphere_pattern_radius = */ 0.25,
-                                            /*.sphere_pattern_spacing = */ 100.0,
-                                            /*.level_set_lower_bound = */ -1.0,
-                                            /*.level_set_upper_bound = */ 1.0,
-                                            /*.filter=*/boost::none,
-                                            /*.fixed_blocks=*/boost::none,
-                                            /*.initial_field_name=*/boost::none};
+    return input_parser::level_set_topology{
+        /*.mesh_name = */ input_parser::FileName{"bg.exo"},
+        /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
+        /*.include_void_region = */ false,
+        /*.max_edge_length_percentage_for_snapping = */ boost::none,
+        /*.sphere_pattern = */
+        input_parser::SpherePattern{/*.radius=*/0.25, /*.spacing=*/100.0, /*.min=*/input_parser::Point{0, 0, 0},
+                                    /*.max=*/input_parser::Point{1, 1, 1}},
+        /*.level_set_bounds = */ input_parser::Bounds{-1.0, 1.0},
+        /*.filter=*/boost::none,
+        /*.fixed_blocks=*/boost::none,
+        /*.initial_field_name=*/boost::none,
+        /*.sphere_list=*/boost::none};
 }
 
 auto create_valid_level_set_topology_geometry_initialize_from_field_input() -> input_parser::level_set_topology
@@ -45,18 +41,11 @@ auto create_valid_level_set_topology_geometry_initialize_from_field_input() -> i
                                             /*.output_name = */ input_parser::FileName{"level-set-output.exo"},
                                             /*.include_void_region = */ true,
                                             /*.max_edge_length_percentage_for_snapping = */ boost::none,
-                                            /*.sphere_pattern_bbox_min_x = */ boost::none,
-                                            /*.sphere_pattern_bbox_min_y = */ boost::none,
-                                            /*.sphere_pattern_bbox_min_z = */ boost::none,
-                                            /*.sphere_pattern_bbox_max_x = */ boost::none,
-                                            /*.sphere_pattern_bbox_max_y = */ boost::none,
-                                            /*.sphere_pattern_bbox_max_z = */ boost::none,
-                                            /*.sphere_pattern_radius = */ boost::none,
-                                            /*.sphere_pattern_spacing = */ boost::none,
-                                            /*.level_set_lower_bound = */ -1.0,
-                                            /*.level_set_upper_bound = */ 1.0,
+                                            /*.sphere_pattern = */ boost::none,
+                                            /*.level_set_bounds = */ input_parser::Bounds{-1.0, 1.0},
                                             /*.filter=*/boost::none,
                                             /*.fixed_blocks=*/boost::none,
-                                            /*.initial_field_name=*/input_parser::IdentifierString{"density"}};
+                                            /*.initial_field_name=*/input_parser::IdentifierString{"density"},
+                                            /*.sphere_list=*/boost::none};
 }
 }  // namespace plato::geometry::extension::test_utilities

@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-#include "plato/input_parser/test_utilities/SequenceSubtypeExpectHelpers.hpp"
+#include "plato/input_parser/test_utilities/TestHelpers.hpp"
 #include "plato/process_manager/extension/IndexAndRange.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
