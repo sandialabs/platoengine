@@ -10,15 +10,16 @@
 
 #include <mpi.h>
 
-#include <iostream>
-
 #include "STKPrune.hpp"
-
 
 using namespace prune;
 
 int main(int argc,  char **argv)
 {
+  auto tThreadsProvided = int{};
+  MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &tThreadsProvided);
+  assert(tThreadsProvided == MPI_THREAD_FUNNELED);
+
   STKPrune pruner;
   if(pruner.create_mesh_apis_stand_alone(argc, argv, "", "", "LSD", "", 1e-5,
                      0.0, 0, 1, 0, 0))
