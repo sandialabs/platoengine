@@ -24,6 +24,12 @@ struct Vector3
     auto operator==(const Vector3& aVector) const -> bool = default;
 };
 
+struct UnitVector3 : public Vector3
+{
+    UnitVector3(const double aX, const double aY, const double aZ);
+    UnitVector3(const Vector3& aVector);
+};
+
 inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContainer)
 {
     stream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
@@ -114,6 +120,21 @@ template <typename Container3>
 {
     return std::sqrt(aContainer.x * aContainer.x + aContainer.y * aContainer.y + aContainer.z * aContainer.z);
 }
+
+inline void normalize(Vector3& aVector)
+{
+    const double tMagnitude = magnitude(aVector);
+    aVector.x /= tMagnitude;
+    aVector.y /= tMagnitude;
+    aVector.z /= tMagnitude;
+}
+
+inline UnitVector3::UnitVector3(const double aX, const double aY, const double aZ) : Vector3{aX, aY, aZ}
+{
+    normalize(*this);
+}
+
+inline UnitVector3::UnitVector3(const Vector3& aVector) : Vector3(aVector) { normalize(*this); }
 
 }  // namespace plato::third_party_integration::common
 #endif

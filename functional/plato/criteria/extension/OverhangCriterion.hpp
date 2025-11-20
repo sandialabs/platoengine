@@ -85,6 +85,9 @@ using namespace plato::third_party_integration::krino;
 [[nodiscard]] auto get_full_gradient_vector_from_gradient_map(
     const std::map<size_t, std::array<double, 3>>& aGradientMap, const std::vector<size_t>& aAllNodeIds)
     -> std::vector<double>;
+[[nodiscard]] auto get_triangles_to_evaluate_over(const std::string& aMeshFileName,
+                                                  const std::vector<std::string>& aEvaluationSidesetNames)
+    -> std::vector<third_party_integration::stk_io::Triangle>;
 }  // namespace detail
 
 }  // namespace plato::criteria::extension

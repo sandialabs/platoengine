@@ -49,18 +49,8 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
     auto tLogger = services::component_logger(mComponentType, mName);
     tLogger.logInfo("Evaluating criterion");
 
-    const auto tMesh = mesh::MeshSidesets{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
-    std::vector<tpistk::Triangle> tTriangles;
-    std::cout << "Processing eval sidesets in f()" << std::endl;
-    for (const auto& tCurEvaluationSideset : mEvaluationSidesets)
-    {
-        std::cout << "CurEvalSideset: " << tCurEvaluationSideset << std::endl;
-        const std::vector<tpistk::Triangle> tCurTriangles = tMesh.sidesetTriangles(tCurEvaluationSideset);
-        std::cout << "Num Tris: " << tCurTriangles.size() << std::endl;
-        tTriangles.insert(tTriangles.end(), tCurTriangles.begin(), tCurTriangles.end());
-        std::cout << "Num Total Tris: " << tTriangles.size() << std::endl;
-    }
-    std::cout << "Done processing eval sidesets in f()" << std::endl;
+    const std::vector<tpistk::Triangle> tTriangles =
+        detail::get_triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
 
     const double tReturnValue = std::accumulate(tTriangles.begin(), tTriangles.end(), 0.0,
                                                 [&](double aCurrentSum, tpistk::Triangle aCurTri)
@@ -85,19 +75,8 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     auto tLogger = services::component_logger(mComponentType, mName);
     tLogger.logInfo("Evaluating criterion gradient");
 
-    const auto tSidesetMesh = mesh::MeshSidesets{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
-
-    std::vector<tpistk::Triangle> tTriangles;
-    std::cout << "Processing eval sidesets in df()" << std::endl;
-    for (const auto& tCurEvaluationSideset : mEvaluationSidesets)
-    {
-        std::cout << "CurEvalSideset: " << tCurEvaluationSideset << std::endl;
-        const std::vector<tpistk::Triangle> tCurTriangles = tSidesetMesh.sidesetTriangles(tCurEvaluationSideset);
-        std::cout << "Num Tris: " << tCurTriangles.size() << std::endl;
-        tTriangles.insert(tTriangles.end(), tCurTriangles.begin(), tCurTriangles.end());
-        std::cout << "Num Total Tris: " << tTriangles.size() << std::endl;
-    }
-    std::cout << "Done processing eval sidesets in df()" << std::endl;
+    const std::vector<tpistk::Triangle> tTriangles =
+        detail::get_triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
 
     const std::map<size_t, std::array<double, 3>> tGradientMap = detail::calculate_gradient_map_from_triangles(
         tTriangles, mOverhangAngleThreshold, mTransitionWidth, mBuildDirection);
@@ -106,12 +85,10 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.globalNodeIDs();
     std::sort(tAllNodeIds.begin(), tAllNodeIds.end());
 
-    std::vector<double> tGradientVector = detail::get_full_gradient_vector_from_gradient_map(tGradientMap, tAllNodeIds);
+    auto tGradientVector = detail::get_full_gradient_vector_from_gradient_map(tGradientMap, tAllNodeIds);
 
     const double tGradientNorm =
         std::sqrt(std::inner_product(tGradientVector.begin(), tGradientVector.end(), tGradientVector.begin(), 0.0));
-    std::cout << std::scientific << std::setprecision(14) << "Overhang criterion gradient norm: " << tGradientNorm
-              << std::endl;
 
     tLogger.logInfo(
         "Gradient evaluation complete. Criterion gradient norm = " +
@@ -152,6 +129,20 @@ namespace detail
 
 using namespace plato::third_party_integration::common;
 using namespace plato::third_party_integration::stk_io;
+
+[[nodiscard]] auto get_triangles_to_evaluate_over(const std::string& aMeshFileName,
+                                                  const std::vector<std::string>& aEvaluationSidesetNames)
+    -> std::vector<Triangle>
+{
+    const auto tMesh = mesh::MeshSidesets{mesh::Mesh{aMeshFileName}};
+    std::vector<third_party_integration::stk_io::Triangle> tTriangles;
+    for (const auto& tCurEvaluationSideset : aEvaluationSidesetNames)
+    {
+        const std::vector<Triangle> tCurTriangles = tMesh.sidesetTriangles(tCurEvaluationSideset);
+        tTriangles.insert(tTriangles.end(), tCurTriangles.begin(), tCurTriangles.end());
+    }
+    return tTriangles;
+}
 
 [[nodiscard]] auto calculate_gradient_map_from_triangles(const std::vector<Triangle>& aTriangles,
                                                          const double aOverhangAngleThreshold,
