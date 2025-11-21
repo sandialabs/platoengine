@@ -11,6 +11,19 @@
 
 namespace plato::criteria::library::unittest
 {
+namespace
+{
+[[nodiscard]] auto base_constraint(const std::string_view aTestAppName,
+                                   boost::optional<input_parser::CriterionName> aCriterionName = boost::none)
+    -> input_parser::constraint
+{
+    auto tConstraint = input_parser::constraint{};
+    tConstraint.app = input_parser::AppName{std::string{aTestAppName}};
+    tConstraint.criterion = std::move(aCriterionName);
+    return tConstraint;
+}
+}  // namespace
+
 TEST(ConstraintValidation, ValidateConstraintValue)
 {
     namespace pfcd = plato::criteria::library::detail;
@@ -71,13 +84,8 @@ TEST(ConstraintValidation, ConstraintComponentTargets)
 {
     const auto [tTestDirectorySetupTeardown, tTestAppName] = test_utilities::test_configurations();
     const auto tAppConfigurations = services::app_configurations({tTestDirectorySetupTeardown.directory()});
+    const auto tBaseConstraint = base_constraint(tTestAppName);
 
-    const auto tBaseConstraint = [mTestAppName = tTestAppName]()
-    {
-        auto tConstraint = input_parser::constraint{};
-        tConstraint.app = input_parser::AppName{std::string{mTestAppName}};
-        return tConstraint;
-    }();
     const auto tConstraintList = ConstraintValueList{
         {input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"america"}, /*.target=*/42.0}}};
     // Scalar criterion, no components
@@ -128,14 +136,7 @@ TEST(ConstraintValidation, ConstraintComponentNames)
 {
     const auto [tTestDirectorySetupTeardown, tTestAppName] = test_utilities::test_configurations();
     const auto tAppConfigurations = services::app_configurations({tTestDirectorySetupTeardown.directory()});
-
-    const auto tBaseConstraint = [mTestAppName = tTestAppName]()
-    {
-        auto tConstraint = input_parser::constraint{};
-        tConstraint.app = input_parser::AppName{std::string{mTestAppName}};
-        tConstraint.criterion = input_parser::CriterionName{"vector-with-components"};
-        return tConstraint;
-    }();
+    const auto tBaseConstraint = base_constraint(tTestAppName, input_parser::CriterionName{"vector-with-components"});
 
     // All components match
     {
