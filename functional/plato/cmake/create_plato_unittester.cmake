@@ -10,7 +10,8 @@ function( create_plato_unittester TEST_LIB DIRECTORIES )
     set(EXTRA_LIBS ${ARGN})
     set(TEST_EXE "${TEST_LIB}_UnitTester")
     set(TARGET_LINK_LIST "${TEST_LIB}")
-    create_plato_unittester_impl( ${TEST_EXE} "${DIRECTORIES}" ${TEST_UNIT_MAIN_INCL} "${TARGET_LINK_LIST};${EXTRA_LIBS}" )
+    set(NUM_RANKS_FOR_TEST "1")
+    create_plato_unittester_impl( ${TEST_EXE} "${DIRECTORIES}" ${TEST_UNIT_MAIN_INCL} "${TARGET_LINK_LIST};${EXTRA_LIBS}" ${NUM_RANKS_FOR_TEST} )
 
 endfunction(create_plato_unittester)
 
@@ -20,7 +21,8 @@ endfunction(create_plato_unittester)
 #   TARGET_LINK_LIST: List of targets to link with.
 function( create_plato_integration_tester TEST_EXE DIRECTORIES TARGET_LINK_LIST)
 
-    create_plato_unittester_impl( ${TEST_EXE} "${DIRECTORIES}" ${TEST_UNIT_MAIN_INCL} "${TARGET_LINK_LIST}" )
+    set(NUM_RANKS_FOR_TEST "1")
+    create_plato_unittester_impl( ${TEST_EXE} "${DIRECTORIES}" ${TEST_UNIT_MAIN_INCL} "${TARGET_LINK_LIST}" ${NUM_RANKS_FOR_TEST})
 
 endfunction(create_plato_integration_tester)
 
@@ -48,12 +50,11 @@ function( create_plato_parallel_integration_tester TEST_EXE DIRECTORIES TARGET_L
 
     configure_file(${PARALLEL_TEST_UNIT_MAIN_INCL} ${CMAKE_CURRENT_BINARY_DIR}/ParallelUnitMain.cpp)
     set( TEST_MAIN_CPP "${CMAKE_CURRENT_BINARY_DIR}/ParallelUnitMain.cpp" )
-    create_plato_unittester_impl( ${TEST_EXE} "${DIRECTORIES}" ${TEST_MAIN_CPP} "${TARGET_LINK_LIST}" )
-    set_property(TEST ${TEST_EXE} PROPERTY PROCESSORS ${NUM_RANKS_FOR_TEST})
+    create_plato_unittester_impl( ${TEST_EXE} "${DIRECTORIES}" ${TEST_MAIN_CPP} "${TARGET_LINK_LIST}" ${NUM_RANKS_FOR_TEST})
 
 endfunction(create_plato_parallel_integration_tester)
 
-function( create_plato_unittester_impl TEST_EXE DIRECTORIES TEST_MAIN_CPP TARGET_LINK_LIST)
+function( create_plato_unittester_impl TEST_EXE DIRECTORIES TEST_MAIN_CPP TARGET_LINK_LIST NUM_RANKS_FOR_TEST)
 
     unset(TEST_SRCS)
     unset(TEST_HDRS)
@@ -69,7 +70,13 @@ function( create_plato_unittester_impl TEST_EXE DIRECTORIES TEST_MAIN_CPP TARGET
 
     target_link_libraries( ${TEST_EXE} PRIVATE GTest::GTest PlatoFunctionalTestUtilities CoverageInterface ${TARGET_LINK_LIST})
     add_test(NAME ${TEST_EXE} COMMAND ${TEST_EXE} --gtest_output=xml:${TEST_EXE}.xml)
-    set_property(TEST ${TEST_EXE} PROPERTY LABELS "small")
+
+    set( NUM_THREADS "1" )
+    if( OPENMP_ENABLED )
+        set( NUM_THREADS "2" )
+    endif()
+    math(EXPR NUM_PROCESSORS "${NUM_RANKS_FOR_TEST} * ${NUM_THREADS}")
+    set_tests_properties( ${TEST_EXE} PROPERTIES LABELS "small" PROCESSORS ${NUM_PROCESSORS} ENVIRONMENT "OMP_NUM_THREADS=${NUM_THREADS};OMP_PROC_BIND=close;OMP_PLACES=threads")
 
     install( TARGETS ${TEST_EXE} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )
 
