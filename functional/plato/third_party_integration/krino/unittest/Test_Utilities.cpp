@@ -96,9 +96,9 @@ TEST_F(KrinoTestFixture, ReadAndSetupForDecomposition)
                                                          "CDFEM_UP_4_PARENT_NODE_WTS",
                                                          "DistanceCorrectionDenominator",
                                                          "DistanceCorrectionNumerator",
-                                                         "PLATO_INTERNAL_LEVEL_SET",
-                                                         "LEVEL_SET_COPYFORSNAPPING",
-                                                         "LS"};
+                                                         "LS",
+                                                         "PLATO_LS",
+                                                         "PLATO_LS_COPYFORSNAPPING"};
     EXPECT_EQ(tFieldNameGold, tFieldNames);
     std::filesystem::remove(kMeshName);
     plato::test_utilities::test_for_existence_and_remove({kWriteMeshName}, TEST_CONTEXT("Write Mesh file"));
