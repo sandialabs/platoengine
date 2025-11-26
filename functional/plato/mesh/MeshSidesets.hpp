@@ -8,7 +8,7 @@
 
 namespace plato::mesh
 {
-/// @brief A mixin class extending Mesh and providing operations on mesh blocks.
+/// @brief A mixin class extending Mesh and providing operations on mesh sidesets.
 struct MeshSidesets : public Mesh
 {
     explicit MeshSidesets(Mesh aMeshBase);
