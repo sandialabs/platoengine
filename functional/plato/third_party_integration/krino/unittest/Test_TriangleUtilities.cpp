@@ -58,7 +58,7 @@ TEST(KrinoTriangleUtilities, GetInterfaceTriangles)
     std::filesystem::remove(tMeshPath);
 }
 
-void testDFuncDCoords(const double aAbsoluteError, const auto& aF, const auto& aDF)
+void test_d_func_d_coords(const double aAbsoluteError, const auto& aF, const auto& aDF)
 {
     const auto tGradientCheckParameters =
         plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.5, .mNumSteps = 5, .mInitialStepSize = .000125};
@@ -95,7 +95,7 @@ TEST(KrinoTriangleUtilities, dAreadCoords)
         return tGradient.dot(aV);
     };
 
-    testDFuncDCoords(tAbsoluteError, tF, tDf);
+    test_d_func_d_coords(tAbsoluteError, tF, tDf);
 }
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsX)
@@ -121,7 +121,7 @@ TEST(KrinoTriangleUtilities, dNormaldCoordsX)
         return tDot;
     };
 
-    testDFuncDCoords(tAbsoluteError, tF, tDf);
+    test_d_func_d_coords(tAbsoluteError, tF, tDf);
 }
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsY)
@@ -148,7 +148,7 @@ TEST(KrinoTriangleUtilities, dNormaldCoordsY)
         return tDot;
     };
 
-    testDFuncDCoords(tAbsoluteError, tF, tDf);
+    test_d_func_d_coords(tAbsoluteError, tF, tDf);
 }
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsZ)
@@ -175,7 +175,7 @@ TEST(KrinoTriangleUtilities, dNormaldCoordsZ)
         return tDot;
     };
 
-    testDFuncDCoords(tAbsoluteError, tF, tDf);
+    test_d_func_d_coords(tAbsoluteError, tF, tDf);
 }
 
 }  // namespace plato::third_party_integration::krino::unittest
