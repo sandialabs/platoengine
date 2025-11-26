@@ -25,7 +25,7 @@ std::vector<double> get_d_area_d_nodal_coords_from_tri_coords(const std::vector<
 std::vector<double> get_d_normal_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords);
 /// @brief Given a BulkData @ aBulkData, the name of a sideset @ aSidesetName, and a list of blocks in the mesh @
 /// aDesignDomainBlocks, return a vector of triangles that are in the sideset and whose normals point away from the
-/// blocks.
+/// blocks. This function currently excludes blocks with "void" in the name.
 [[nodiscard]] auto get_interface_triangles(const stk::mesh::BulkData& aBulkData,
                                            const std::string& aSidesetName,
                                            const PartReferenceVector& aDesignDomainBlocks)
