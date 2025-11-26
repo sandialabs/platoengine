@@ -18,6 +18,7 @@
 #include "plato/third_party_integration/krino/TriangleUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
+#include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::criteria::extension
@@ -180,18 +181,18 @@ using namespace plato::third_party_integration::krino;
     // Build the gradient vector (3 entries for each node in the cut mesh) sorted by global node id
     constexpr size_t tNumDimensions{3};
     std::vector<double> tGradientVector(aAllNodeIds.size() * tNumDimensions);
-    size_t tIndex = 0;
-    for (const auto& tCurNode : aAllNodeIds)
+    auto tGradientVectorMultiView = utilities::MultiVectorView(tGradientVector, tNumDimensions);
+    for (size_t tNodeIndex = 0; tNodeIndex < aAllNodeIds.size(); ++tNodeIndex)
     {
-        if (aGradientMap.find(tCurNode) == aGradientMap.end())
+        const auto tGlobalNodeID = aAllNodeIds[tNodeIndex];
+        if (aGradientMap.find(tGlobalNodeID) != aGradientMap.end())
         {
-            tIndex += tNumDimensions;
-        }
-        else
-        {
-            tGradientVector[tIndex++] = aGradientMap.at(tCurNode).x;
-            tGradientVector[tIndex++] = aGradientMap.at(tCurNode).y;
-            tGradientVector[tIndex++] = aGradientMap.at(tCurNode).z;
+            tGradientVectorMultiView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{0}) =
+                aGradientMap.at(tGlobalNodeID).x;
+            tGradientVectorMultiView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{1}) =
+                aGradientMap.at(tGlobalNodeID).y;
+            tGradientVectorMultiView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{2}) =
+                aGradientMap.at(tGlobalNodeID).z;
         }
     }
     return tGradientVector;
