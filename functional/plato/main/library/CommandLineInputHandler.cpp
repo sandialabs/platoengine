@@ -25,8 +25,6 @@ constexpr auto kHelpKey = std::string_view{"--help"};
 
 void handle_input(const std::vector<std::string>& aArguments)
 {
-    plato::utilities::execute_on_root(boost::mpi::communicator{},
-                                      []() { std::filesystem::remove_all(plato::services::logging_directory_path()); });
     [[maybe_unused]] const auto tInternalLogSink = services::internal_logger_console_sink();
 
     if (!aArguments.empty() && aArguments.front() == std::string{kHelpKey})
@@ -64,6 +62,8 @@ void run_plato(const std::filesystem::path& aInputFile)
 
     try
     {
+        plato::utilities::execute_on_root(boost::mpi::communicator{}, []()
+                                          { std::filesystem::remove_all(plato::services::logging_directory_path()); });
         [[maybe_unused]] const auto tExternalLogSinks = services::component_external_logger_file_sinks();
 
         tExecutor.execute(tProcessManagerData);
