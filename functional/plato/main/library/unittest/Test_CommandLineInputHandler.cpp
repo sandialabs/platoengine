@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "plato/main/library/CommandLineInputHandler.hpp"
+#include "plato/services/ExternalLoggerFileSink.hpp"
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 #include "plato/test_utilities/Strings.hpp"
@@ -101,6 +102,12 @@ TEST_F(CommandLineInputHandlerCoutFixture, DetailPrintKnownInputs)
 {
     detail::print_known_inputs();
     checkRankZeroCoutStringStreamStreamForPattern(kKnownInputKeys, TEST_CONTEXT("Print known inputs."));
+}
+
+TEST_F(CommandLineInputHandlerCoutFixture, HelpDoesNotGenerateLogDirectory)
+{
+    handle_input(kPlatoArgumentsHelp);
+    EXPECT_FALSE(std::filesystem::exists(services::logging_directory_path()));
 }
 
 }  // namespace plato::main::library::unittest
