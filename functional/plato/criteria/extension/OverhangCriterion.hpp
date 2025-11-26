@@ -21,6 +21,9 @@ struct ParsedInputParams
 struct OverhangCriterion
 {
     OverhangCriterion(const ParsedInputParams& aInputParams, const library::CriterionInput& aCriterionInput);
+    OverhangCriterion(const double aTransitionWidth,
+                      const third_party_integration::common::Vector3& aBuildDirection,
+                      const double aOverhangAngleThreshold);
     [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
     [[nodiscard]] linear_algebra::DynamicVector<double> df(
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
@@ -54,35 +57,23 @@ namespace detail
 /// @brief Calculate the overhang value given the angle of the triangle normal dotted with the build direction @
 /// aAngleDotBuildDirection.
 [[nodiscard]] double overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
-                                                                    const double aOverhangAngleThreshold,
-                                                                    const double aStepTransitionWidth);
+                                                                    const OverhangCriterion& aOverhangCriterion);
 /// @brief Calculate the derivative of the overhang value given the angle of the triangle normal dotted with the build
 /// direction @ aAngleDotBuildDirection.
 [[nodiscard]] double d_overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
-                                                                      const double aOverhangAngleThreshold,
-                                                                      const double aStepTransitionWidth);
+                                                                      const OverhangCriterion& aOverhangCriterion);
 /// @brief Calculate the amount of overhang for a single triangle.
 [[nodiscard]] double overhang_from_triangle(const third_party_integration::krino::SensitivityTriangle& aTriangle,
-                                            const double aOverhangAngleThreshold,
-                                            const double aStepTransitionWidth,
-                                            const third_party_integration::common::Vector3& aBuildDirection);
+                                            const OverhangCriterion& aOverhangCriterion);
 /// @brief Calculate the derivative of the amount of overhang for a single triangle.
 [[nodiscard]] double d_overhang_from_triangle(const third_party_integration::krino::SensitivityTriangle& aTriangle,
-                                              const double aOverhangAngleThreshold,
-                                              const double aStepTransitionWidth,
-                                              const third_party_integration::common::Vector3& aBuildDirection);
+                                              const OverhangCriterion& aOverhangCriterion);
 /// @brief Calculate the area-weighted amount of overhang for a single triangle.
 [[nodiscard]] double area_weighted_overhang_from_triangle(
-    const third_party_integration::krino::SensitivityTriangle& aTriangle,
-    const double aOverhangAngleThreshold,
-    const double aStepTransitionWidth,
-    const third_party_integration::common::Vector3& aBuildDirection);
+    const third_party_integration::krino::SensitivityTriangle& aTriangle, const OverhangCriterion& aOverhangCriterion);
 /// @brief Calculate the full overhang gradient vector contribution for the nodes in a single triangle.
 [[nodiscard]] auto get_gradient_contribution_for_triangle(
-    const third_party_integration::krino::SensitivityTriangle& aTriangle,
-    const double aOverhangAngleThreshold,
-    const double aStepTransitionWidth,
-    const third_party_integration::common::Vector3& aBuildDirection)
+    const third_party_integration::krino::SensitivityTriangle& aTriangle, const OverhangCriterion& aOverhangCriterion)
     -> third_party_integration::krino::TriangleGradient;
 /// @brief Parse the overhang parameter input deck.
 [[nodiscard]] auto parse_input_deck(const std::string& aFilename) -> ParsedInputParams;
@@ -90,9 +81,7 @@ namespace detail
 /// triangles.
 [[nodiscard]] auto calculate_gradient_map_from_triangles(
     const std::vector<third_party_integration::krino::SensitivityTriangle>& aTriangles,
-    const double aOverhangAngleThreshold,
-    const double aStepTransitionWidth,
-    const third_party_integration::common::Vector3& aBuildDirection)
+    const OverhangCriterion& aOverhangCriterion)
     -> std::unordered_map<third_party_integration::krino::GlobalNodeID, third_party_integration::krino::Sensitivity>;
 /// @brief Given a sparse overhang gradient map @ aGradientMap, generate a dense overhang gradient vector for all nodes
 /// in the background mesh.

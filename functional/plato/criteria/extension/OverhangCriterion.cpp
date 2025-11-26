@@ -52,13 +52,9 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
     const std::vector<SensitivityTriangle> tTriangles =
         detail::get_triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
 
-    const double tReturnValue = std::accumulate(tTriangles.begin(), tTriangles.end(), 0.0,
-                                                [&](double aCurrentSum, SensitivityTriangle aCurTri)
-                                                {
-                                                    return aCurrentSum + detail::area_weighted_overhang_from_triangle(
-                                                                             aCurTri, mOverhangAngleThreshold,
-                                                                             mTransitionWidth, mBuildDirection);
-                                                });
+    const double tReturnValue =
+        std::accumulate(tTriangles.begin(), tTriangles.end(), 0.0, [&](double aCurrentSum, SensitivityTriangle aCurTri)
+                        { return aCurrentSum + detail::area_weighted_overhang_from_triangle(aCurTri, *this); });
     tLogger.logInfo(
         "Evaluation complete. Criterion value = " +
         utilities::to_string(
@@ -78,8 +74,8 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     const std::vector<SensitivityTriangle> tTriangles =
         detail::get_triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
 
-    const std::unordered_map<GlobalNodeID, Sensitivity> tGradientMap = detail::calculate_gradient_map_from_triangles(
-        tTriangles, mOverhangAngleThreshold, mTransitionWidth, mBuildDirection);
+    const std::unordered_map<GlobalNodeID, Sensitivity> tGradientMap =
+        detail::calculate_gradient_map_from_triangles(tTriangles, *this);
 
     const auto tEntityRetrievalMesh = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
     const std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.globalNodeIDs();
@@ -106,6 +102,15 @@ OverhangCriterion::OverhangCriterion(const ParsedInputParams& aInputParams,
       mEvaluationSidesets(aInputParams.evaluation_sidesets),
       mComponentType{aCriterionInput.mComponentType},
       mName{aCriterionInput.mName}
+{
+}
+
+OverhangCriterion::OverhangCriterion(const double aTransitionWidth,
+                                     const third_party_integration::common::Vector3& aBuildDirection,
+                                     const double aOverhangAngleThreshold)
+    : mTransitionWidth(aTransitionWidth),
+      mBuildDirection(aBuildDirection),
+      mOverhangAngleThreshold(aOverhangAngleThreshold)
 {
 }
 
@@ -144,9 +149,7 @@ using namespace plato::third_party_integration::krino;
 }
 
 [[nodiscard]] auto calculate_gradient_map_from_triangles(const std::vector<SensitivityTriangle>& aTriangles,
-                                                         const double aOverhangAngleThreshold,
-                                                         const double aStepTransitionWidth,
-                                                         const Vector3& aBuildDirection)
+                                                         const OverhangCriterion& aOverhangCriterion)
     -> std::unordered_map<GlobalNodeID, Sensitivity>
 {
     std::unordered_map<GlobalNodeID, Sensitivity> tGradientMap;
@@ -160,8 +163,8 @@ using namespace plato::third_party_integration::krino;
     //  Accumulate gradient contributions from all triangles
     for (const auto& tCurTriangle : aTriangles)
     {
-        const TriangleGradient tCurTriGradient = detail::get_gradient_contribution_for_triangle(
-            tCurTriangle, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
+        const TriangleGradient tCurTriGradient =
+            detail::get_gradient_contribution_for_triangle(tCurTriangle, aOverhangCriterion);
         for (const auto& tNodeGradient : tCurTriGradient)
         {
             tGradientMap[tNodeGradient.first] += tNodeGradient.second;
@@ -218,90 +221,77 @@ using namespace plato::third_party_integration::krino;
 }
 
 [[nodiscard]] double overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
-                                                                    const double aOverhangAngleThreshold,
-                                                                    const double aStepTransitionWidth)
+                                                                    const OverhangCriterion& aOverhangCriterion)
 {
     // The calculation of the return value will be determined by whether the input value, aAngleDotBuildDirection,
     // is in one of three ranges: 1) less than the step function transition region (return 1.0), 2) inside the step
     // function transiion region (calculate transition value), or 3) to the right of the transition region (return 0.0).
     double tReturnValue = 0.0;
-    if (aAngleDotBuildDirection <= (aOverhangAngleThreshold - aStepTransitionWidth))
+    if (aAngleDotBuildDirection <= (aOverhangCriterion.mOverhangAngleThreshold - aOverhangCriterion.mTransitionWidth))
     {
         tReturnValue = 1.0;
     }
-    else if (aAngleDotBuildDirection < aOverhangAngleThreshold)
+    else if (aAngleDotBuildDirection < aOverhangCriterion.mOverhangAngleThreshold)
     {
-        tReturnValue = smoothing_function((aOverhangAngleThreshold - aAngleDotBuildDirection) / aStepTransitionWidth);
+        tReturnValue = smoothing_function((aOverhangCriterion.mOverhangAngleThreshold - aAngleDotBuildDirection) /
+                                          aOverhangCriterion.mTransitionWidth);
     }
     return tReturnValue;
 }
 
 [[nodiscard]] double d_overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
-                                                                      const double aOverhangAngleThreshold,
-                                                                      const double aStepTransitionWidth)
+                                                                      const OverhangCriterion& aOverhangCriterion)
 {
     // The calculation of the return value will be determined by whether the input value, aAngleDotBuildDirection,
     // is in one of three ranges: 1) less than the step function transition region (return 1.0), 2) inside the step
     // function transiion region (calculate transition value), or 3) to the right of the transition region (return 0.0).
     double tReturnValue = 0.0;
-    if (aAngleDotBuildDirection <= (aOverhangAngleThreshold - aStepTransitionWidth))
+    if (aAngleDotBuildDirection <= (aOverhangCriterion.mOverhangAngleThreshold - aOverhangCriterion.mTransitionWidth))
     {
         tReturnValue = 0.0;
     }
-    else if (aAngleDotBuildDirection < aOverhangAngleThreshold)
+    else if (aAngleDotBuildDirection < aOverhangCriterion.mOverhangAngleThreshold)
     {
-        tReturnValue =
-            -d_smoothing_function((aOverhangAngleThreshold - aAngleDotBuildDirection) / aStepTransitionWidth) /
-            aStepTransitionWidth;
+        tReturnValue = -d_smoothing_function((aOverhangCriterion.mOverhangAngleThreshold - aAngleDotBuildDirection) /
+                                             aOverhangCriterion.mTransitionWidth) /
+                       aOverhangCriterion.mTransitionWidth;
     }
     return tReturnValue;
 }
 
 [[nodiscard]] double overhang_from_triangle(const SensitivityTriangle& aTriangle,
-                                            const double aOverhangAngleThreshold,
-                                            const double aStepTransitionWidth,
-                                            const Vector3& aBuildDirection)
+                                            const OverhangCriterion& aOverhangCriterion)
 {
     const Vector3 tNormal = aTriangle.normal();
-    const double tNormalDotBuildDirection = dot(tNormal, aBuildDirection);
-    return overhang_value_from_normal_and_build_direction(tNormalDotBuildDirection, aOverhangAngleThreshold,
-                                                          aStepTransitionWidth);
+    const double tNormalDotBuildDirection = dot(tNormal, aOverhangCriterion.mBuildDirection);
+    return overhang_value_from_normal_and_build_direction(tNormalDotBuildDirection, aOverhangCriterion);
 }
 
 [[nodiscard]] double d_overhang_from_triangle(const SensitivityTriangle& aTriangle,
-                                              const double aOverhangAngleThreshold,
-                                              const double aStepTransitionWidth,
-                                              const Vector3& aBuildDirection)
+                                              const OverhangCriterion& aOverhangCriterion)
 {
     const Vector3 tNormal = aTriangle.normal();
-    const double tNormalDotBuildDirection = dot(tNormal, aBuildDirection);
-    return d_overhang_value_from_normal_and_build_direction(tNormalDotBuildDirection, aOverhangAngleThreshold,
-                                                            aStepTransitionWidth);
+    const double tNormalDotBuildDirection = dot(tNormal, aOverhangCriterion.mBuildDirection);
+    return d_overhang_value_from_normal_and_build_direction(tNormalDotBuildDirection, aOverhangCriterion);
 }
 
 [[nodiscard]] double area_weighted_overhang_from_triangle(const SensitivityTriangle& aTriangle,
-                                                          const double aOverhangAngleThreshold,
-                                                          const double aStepTransitionWidth,
-                                                          const Vector3& aBuildDirection)
+                                                          const OverhangCriterion& aOverhangCriterion)
 {
     const double tArea = aTriangle.area();
-    return tArea * overhang_from_triangle(aTriangle, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
+    return tArea * overhang_from_triangle(aTriangle, aOverhangCriterion);
 }
 
 TriangleGradient get_gradient_contribution_for_triangle(const SensitivityTriangle& aTriangle,
-                                                        const double aOverhangAngleThreshold,
-                                                        const double aStepTransitionWidth,
-                                                        const Vector3& aBuildDirection)
+                                                        const OverhangCriterion& aOverhangCriterion)
 {
     namespace tpik = plato::third_party_integration::krino;
 
     constexpr size_t tNumNodesPerTriangle{3};
     const double tArea = aTriangle.area();
-    const double tOverhangPrime =
-        d_overhang_from_triangle(aTriangle, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
-    const Vector3 tScaledBuildDir = aBuildDirection * tOverhangPrime * tArea;
-    const double tOverhang =
-        overhang_from_triangle(aTriangle, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
+    const double tOverhangPrime = d_overhang_from_triangle(aTriangle, aOverhangCriterion);
+    const Vector3 tScaledBuildDir = aOverhangCriterion.mBuildDirection * tOverhangPrime * tArea;
+    const double tOverhang = overhang_from_triangle(aTriangle, aOverhangCriterion);
 
     const auto tNormalSensitivities = tpik::get_d_normal_d_tri_node(aTriangle);
     const auto tAreaSensitivities = tpik::get_d_area_d_tri_node(aTriangle);

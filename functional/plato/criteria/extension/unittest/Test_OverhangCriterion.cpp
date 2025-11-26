@@ -15,9 +15,10 @@ using namespace plato::third_party_integration::common;
 using namespace plato::third_party_integration::krino;
 
 constexpr double kTolerance{1e-14};
-constexpr Vector3 kBuildDirection{0, 0, -1};
+constexpr Vector3 kBuildDirection{.x = 0, .y = 0, .z = -1};
 constexpr double kStepTransitionWidth{0.05};
 const double kOverhangAngleThreshold{-std::sqrt(2.0) / 2.0};
+OverhangCriterion kCriterion(kStepTransitionWidth, kBuildDirection, kOverhangAngleThreshold);
 
 TEST(OverhangCriterion, ExponentialStepFunction)
 {
@@ -48,9 +49,9 @@ TEST(OverhangCriterion, Overhang)
     for (const auto& [tCurNormalDotBuildDirectionValue, tCurExpectedValue] :
          utilities::Zip{tNormalDotBuildDirectionValues, tExpectedValues})
     {
-        EXPECT_NEAR(detail::overhang_value_from_normal_and_build_direction(
-                        tCurNormalDotBuildDirectionValue, kOverhangAngleThreshold, kStepTransitionWidth),
-                    tCurExpectedValue, kTolerance);
+        EXPECT_NEAR(
+            detail::overhang_value_from_normal_and_build_direction(tCurNormalDotBuildDirectionValue, kCriterion),
+            tCurExpectedValue, kTolerance);
     }
 }
 
@@ -67,9 +68,7 @@ TEST(OverhangCriterion, OverhangFromTriangleCoords)
     {
         SensitivityTriangle tTriangle{NodeIDCoordsPair{23, tNode1}, NodeIDCoordsPair{25, tNode2},
                                       NodeIDCoordsPair{26, tCurNode3Option}};
-        EXPECT_NEAR(
-            detail::overhang_from_triangle(tTriangle, kOverhangAngleThreshold, kStepTransitionWidth, kBuildDirection),
-            tCurExpectedValue, kTolerance);
+        EXPECT_NEAR(detail::overhang_from_triangle(tTriangle, kCriterion), tCurExpectedValue, kTolerance);
     }
 }
 
@@ -79,9 +78,7 @@ TEST(OverhangCriterion, OverhangFromTriangle)
                                             NodeIDCoordsPair{6, {.x = 1, .y = 0, .z = 0}},
                                             NodeIDCoordsPair{7, {.x = 1, .y = 1, .z = 0}}};
     constexpr double tExpectedValue{0.5};
-    EXPECT_NEAR(detail::area_weighted_overhang_from_triangle(tTriangle, kOverhangAngleThreshold, kStepTransitionWidth,
-                                                             kBuildDirection),
-                tExpectedValue, kTolerance);
+    EXPECT_NEAR(detail::area_weighted_overhang_from_triangle(tTriangle, kCriterion), tExpectedValue, kTolerance);
 }
 
 TEST(OverhangCriterion, dExponentialStepFunction)
@@ -136,15 +133,9 @@ TEST(OverhangCriterion, dOverhang)
     constexpr auto tLastFiniteDifferenceError{1e-8};
     const auto tChecker = plato::test_utilities::GradientChecker{
         [](const double aNormalDotBuildDirection)
-        {
-            return detail::overhang_value_from_normal_and_build_direction(
-                aNormalDotBuildDirection, kOverhangAngleThreshold, kStepTransitionWidth);
-        },
+        { return detail::overhang_value_from_normal_and_build_direction(aNormalDotBuildDirection, kCriterion); },
         [](const double aNormalDotBuildDirection)
-        {
-            return detail::d_overhang_value_from_normal_and_build_direction(
-                aNormalDotBuildDirection, kOverhangAngleThreshold, kStepTransitionWidth);
-        }};
+        { return detail::d_overhang_value_from_normal_and_build_direction(aNormalDotBuildDirection, kCriterion); }};
     const auto tX = kOverhangAngleThreshold - (kStepTransitionWidth / 2.0);
     constexpr auto tDirection = 1.0;
 
@@ -162,26 +153,29 @@ TEST(OverhangCriterion, dOverhang)
 TEST(OverhangCriterion, SingleTriangleDerivative)
 {
     constexpr auto tAbsoluteError = 7e-3;
+    const double tOverhangThreshold = -std::sqrt(2.0) / 2.0;
+    constexpr double tTransitionWidth = 0.05;
+    constexpr Vector3 tBuildDirection = {.x = 0, .y = 0, .z = 1};
+    const OverhangCriterion tCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold);
     const auto tChecker = plato::test_utilities::GradientChecker{
-        [](const linear_algebra::DynamicVector<double>& aTriNodalCoords)
+        [tCriterion](const linear_algebra::DynamicVector<double>& aTriNodalCoords)
         {
             const Coordinate tNode1{.x = aTriNodalCoords[0], .y = aTriNodalCoords[1], .z = aTriNodalCoords[2]};
             const Coordinate tNode2{.x = aTriNodalCoords[3], .y = aTriNodalCoords[4], .z = aTriNodalCoords[5]};
             const Coordinate tNode3{.x = aTriNodalCoords[6], .y = aTriNodalCoords[7], .z = aTriNodalCoords[8]};
             SensitivityTriangle tTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2},
                                           NodeIDCoordsPair{3, tNode3}};
-            return detail::area_weighted_overhang_from_triangle(tTriangle, -std::sqrt(2.0) / 2.0, 0.05, {0, 0, 1});
+            return detail::area_weighted_overhang_from_triangle(tTriangle, tCriterion);
         },
-        [](const linear_algebra::DynamicVector<double>& aTriNodalCoords,
-           const linear_algebra::DynamicVector<double>& aDirection)
+        [tCriterion](const linear_algebra::DynamicVector<double>& aTriNodalCoords,
+                     const linear_algebra::DynamicVector<double>& aDirection)
         {
             const Coordinate tNode1{.x = aTriNodalCoords[0], .y = aTriNodalCoords[1], .z = aTriNodalCoords[2]};
             const Coordinate tNode2{.x = aTriNodalCoords[3], .y = aTriNodalCoords[4], .z = aTriNodalCoords[5]};
             const Coordinate tNode3{.x = aTriNodalCoords[6], .y = aTriNodalCoords[7], .z = aTriNodalCoords[8]};
             SensitivityTriangle tTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2},
                                           NodeIDCoordsPair{3, tNode3}};
-            const auto tSensitivities =
-                detail::get_gradient_contribution_for_triangle(tTriangle, -std::sqrt(2.0) / 2.0, 0.05, {0, 0, 1});
+            const auto tSensitivities = detail::get_gradient_contribution_for_triangle(tTriangle, tCriterion);
             std::vector<double> tGradientValues;
             for (const auto& tCurSensitivity : tSensitivities)
             {
@@ -231,7 +225,8 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
         {tNode1, tNode2, tNode4}, {tNode2, tNode3, tNode5}, {tNode2, tNode5, tNode4}, {tNode4, tNode5, tNode6}};
     const double tOverhangThreshold = -std::sqrt(2.0) / 2.0;
     constexpr double tTransitionWidth = 0.05;
-    constexpr Vector3 tBuildDirection = {0, .681189886111555, -.732106781186548};
+    constexpr Vector3 tBuildDirection = {.x = 0, .y = .681189886111555, .z = -.732106781186548};
+    const OverhangCriterion tCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold);
     constexpr size_t tNumNodes = 6;
     constexpr size_t tNumTris = 4;
 
@@ -239,12 +234,11 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
     std::vector<std::unordered_map<GlobalNodeID, Sensitivity>> tIndividualGradientMaps;
     for (size_t i = 0; i < tNumTris; ++i)
     {
-        tIndividualGradientMaps.push_back(detail::calculate_gradient_map_from_triangles(
-            {tTriangles[i]}, tOverhangThreshold, tTransitionWidth, tBuildDirection));
+        tIndividualGradientMaps.push_back(detail::calculate_gradient_map_from_triangles({tTriangles[i]}, tCriterion));
     }
     // Calculate combined triangle map from multiple tris
-    std::unordered_map<GlobalNodeID, Sensitivity> tCombinedGradientMap = detail::calculate_gradient_map_from_triangles(
-        tTriangles, tOverhangThreshold, tTransitionWidth, tBuildDirection);
+    std::unordered_map<GlobalNodeID, Sensitivity> tCombinedGradientMap =
+        detail::calculate_gradient_map_from_triangles(tTriangles, tCriterion);
 
     // Compare results
     for (size_t i = 0; i < tNumNodes; ++i)
