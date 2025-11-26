@@ -365,7 +365,7 @@ ParsedInputParams parse_input_deck(const std::string& aFilename)
 
     tInputParams.build_direction = {tValues[0], tValues[1], tValues[2]};
     std::string tOverhangAngleFromHorizontal =
-        get_xml_node_string(tTree, "OverhangInput", "OverhangAngleFromHorizontal");
+        get_xml_node_string(tTree, "OverhangInput", "OverhangAngleFromHorizontalInDegrees");
     tInputParams.overhang_angle_threshold =
         -std::cos(std::stod(tOverhangAngleFromHorizontal) * std::numbers::pi / 180.0);
     tInputParams.transition_width = std::stod(get_xml_node_string(tTree, "OverhangInput", "TransitionWidth"));

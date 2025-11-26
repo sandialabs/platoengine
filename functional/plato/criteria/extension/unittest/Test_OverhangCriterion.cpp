@@ -277,7 +277,7 @@ TEST(OverhangCriterion, ParseInputDeck_Correct)
     std::ofstream tTextFile(tMeshPath);
     tTextFile << "<OverhangInput>\n";
     tTextFile << "  <BuildDirection>0 0 1</BuildDirection>\n";
-    tTextFile << "  <OverhangAngleFromHorizontal>45</OverhangAngleFromHorizontal>\n";
+    tTextFile << "  <OverhangAngleFromHorizontalInDegrees>45</OverhangAngleFromHorizontalInDegrees>\n";
     tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
     tTextFile << "  <AdditionalEvaluationSidesets>my_sideset your_sideset</AdditionalEvaluationSidesets>\n";
     tTextFile << "</OverhangInput>";
@@ -304,7 +304,7 @@ TEST(OverhangCriterion, ParseInputDeck_Correct_NoAdditionalEvaluationSidesets)
     std::ofstream tTextFile(tMeshPath);
     tTextFile << "<OverhangInput>\n";
     tTextFile << "  <BuildDirection>0 0 1</BuildDirection>\n";
-    tTextFile << "  <OverhangAngleFromHorizontal>45</OverhangAngleFromHorizontal>\n";
+    tTextFile << "  <OverhangAngleFromHorizontalInDegrees>45</OverhangAngleFromHorizontalInDegrees>\n";
     tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
     tTextFile << "</OverhangInput>";
     tTextFile.close();
@@ -328,7 +328,7 @@ TEST(OverhangCriterion, ParseInputDeck_WrongNumberBuildDirectionParameters)
     std::ofstream tTextFile(tMeshPath);
     tTextFile << "<OverhangInput>\n";
     tTextFile << "  <BuildDirection>0</BuildDirection>\n";
-    tTextFile << "  <OverhangAngleFromHorizontal>45</OverhangAngleFromHorizontal>\n";
+    tTextFile << "  <OverhangAngleFromHorizontalInDegrees>45</OverhangAngleFromHorizontalInDegrees>\n";
     tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
     tTextFile << "</OverhangInput>";
     tTextFile.close();
@@ -343,7 +343,7 @@ TEST(OverhangCriterion, ParseInputDeck_MissingBuildDirectionParameters)
     const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
     std::ofstream tTextFile(tMeshPath);
     tTextFile << "<OverhangInput>\n";
-    tTextFile << "  <OverhangAngleFromHorizontal>45</OverhangAngleFromHorizontal>\n";
+    tTextFile << "  <OverhangAngleFromHorizontalInDegrees>45</OverhangAngleFromHorizontalInDegrees>\n";
     tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
     tTextFile << "</OverhangInput>";
     tTextFile.close();
@@ -373,7 +373,7 @@ TEST(OverhangCriterion, ParseInputDeck_MissingTransitionWidthParameter)
     const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
     std::ofstream tTextFile(tMeshPath);
     tTextFile << "<OverhangInput>\n";
-    tTextFile << "  <OverhangAngleFromHorizontal>45</OverhangAngleFromHorizontal>\n";
+    tTextFile << "  <OverhangAngleFromHorizontalInDegrees>45</OverhangAngleFromHorizontalInDegrees>\n";
     tTextFile << "  <BuildDirection>0 0 1</BuildDirection>\n";
     tTextFile << "</OverhangInput>";
     tTextFile.close();
