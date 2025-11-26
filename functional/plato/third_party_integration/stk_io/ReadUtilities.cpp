@@ -153,6 +153,7 @@ auto global_entity_ids(const stk::mesh::BulkData& aBulk,
 
     std::transform(tEntityVector.begin(), tEntityVector.end(), std::back_inserter(tIDs),
                    [&aBulk](const auto aEntity) { return aBulk.identifier(aEntity); });
+    std::sort(tIDs.begin(), tIDs.end());
     return tIDs;
 }
 

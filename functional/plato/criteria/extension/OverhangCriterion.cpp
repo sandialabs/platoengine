@@ -14,8 +14,8 @@
 #include "plato/mesh/MeshSidesets.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
-#include "plato/third_party_integration/krino/Utilities.hpp"
-#include "plato/third_party_integration/stk_io/Triangle.hpp"
+#include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
+#include "plato/third_party_integration/krino/TriangleUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -44,16 +44,16 @@ const auto kConfiguration = services::CriterionConfiguration{
 
 double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    namespace tpistk = plato::third_party_integration::stk_io;
+    using namespace plato::third_party_integration::krino;
 
     auto tLogger = services::component_logger(mComponentType, mName);
     tLogger.logInfo("Evaluating criterion");
 
-    const std::vector<tpistk::Triangle> tTriangles =
+    const std::vector<SensitivityTriangle> tTriangles =
         detail::get_triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
 
     const double tReturnValue = std::accumulate(tTriangles.begin(), tTriangles.end(), 0.0,
-                                                [&](double aCurrentSum, tpistk::Triangle aCurTri)
+                                                [&](double aCurrentSum, SensitivityTriangle aCurTri)
                                                 {
                                                     return aCurrentSum + detail::area_weighted_overhang_from_triangle(
                                                                              aCurTri, mOverhangAngleThreshold,
@@ -70,20 +70,19 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
 linear_algebra::DynamicVector<double> OverhangCriterion::df(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
-    namespace tpistk = plato::third_party_integration::stk_io;
+    using namespace plato::third_party_integration::krino;
 
     auto tLogger = services::component_logger(mComponentType, mName);
     tLogger.logInfo("Evaluating criterion gradient");
 
-    const std::vector<tpistk::Triangle> tTriangles =
+    const std::vector<SensitivityTriangle> tTriangles =
         detail::get_triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
 
-    const std::map<size_t, std::array<double, 3>> tGradientMap = detail::calculate_gradient_map_from_triangles(
+    const std::unordered_map<GlobalNodeID, Sensitivity> tGradientMap = detail::calculate_gradient_map_from_triangles(
         tTriangles, mOverhangAngleThreshold, mTransitionWidth, mBuildDirection);
 
     const auto tEntityRetrievalMesh = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
-    std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.globalNodeIDs();
-    std::sort(tAllNodeIds.begin(), tAllNodeIds.end());
+    const std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.globalNodeIDs();
 
     auto tGradientVector = detail::get_full_gradient_vector_from_gradient_map(tGradientMap, tAllNodeIds);
 
@@ -128,81 +127,68 @@ namespace detail
 {
 
 using namespace plato::third_party_integration::common;
-using namespace plato::third_party_integration::stk_io;
+using namespace plato::third_party_integration::krino;
 
 [[nodiscard]] auto get_triangles_to_evaluate_over(const std::string& aMeshFileName,
                                                   const std::vector<std::string>& aEvaluationSidesetNames)
-    -> std::vector<Triangle>
+    -> std::vector<SensitivityTriangle>
 {
     const auto tMesh = mesh::MeshSidesets{mesh::Mesh{aMeshFileName}};
-    std::vector<third_party_integration::stk_io::Triangle> tTriangles;
+    std::vector<SensitivityTriangle> tTriangles;
     for (const auto& tCurEvaluationSideset : aEvaluationSidesetNames)
     {
-        const std::vector<Triangle> tCurTriangles = tMesh.sidesetTriangles(tCurEvaluationSideset);
+        const std::vector<SensitivityTriangle> tCurTriangles = tMesh.sidesetTriangles(tCurEvaluationSideset);
         tTriangles.insert(tTriangles.end(), tCurTriangles.begin(), tCurTriangles.end());
     }
     return tTriangles;
 }
 
-[[nodiscard]] auto calculate_gradient_map_from_triangles(const std::vector<Triangle>& aTriangles,
+[[nodiscard]] auto calculate_gradient_map_from_triangles(const std::vector<SensitivityTriangle>& aTriangles,
                                                          const double aOverhangAngleThreshold,
                                                          const double aStepTransitionWidth,
                                                          const Vector3& aBuildDirection)
-    -> std::map<size_t, std::array<double, 3>>
+    -> std::unordered_map<GlobalNodeID, Sensitivity>
 {
-    constexpr size_t tNumNodesPerTriangle{3};
-    constexpr size_t tNumSpatialDimensions{3};
-
-    std::map<size_t, std::array<double, 3>> tGradientMap;
+    std::unordered_map<GlobalNodeID, Sensitivity> tGradientMap;
     //  Initialize all future map entries to 0.0
     for (const auto& tCurTriangle : aTriangles)
     {
-        for (const auto& tGlobalNodeID : tCurTriangle.global_ids)
-        {
-            tGradientMap[tGlobalNodeID] = {0.0, 0.0, 0.0};
-        }
+        tGradientMap[tCurTriangle.mNodes[0].first] = {0.0, 0.0, 0.0};
+        tGradientMap[tCurTriangle.mNodes[1].first] = {0.0, 0.0, 0.0};
+        tGradientMap[tCurTriangle.mNodes[2].first] = {0.0, 0.0, 0.0};
     }
     //  Accumulate gradient contributions from all triangles
     for (const auto& tCurTriangle : aTriangles)
     {
-        std::vector<double> tCurTriGradient = detail::get_gradient_contribution_for_triangle(
+        const TriangleGradient tCurTriGradient = detail::get_gradient_contribution_for_triangle(
             tCurTriangle, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
-        for (size_t tNodeIndex = 0; tNodeIndex < tNumNodesPerTriangle; tNodeIndex++)
+        for (const auto& tNodeGradient : tCurTriGradient)
         {
-            const size_t tCurGlobalNodeID = tCurTriangle.global_ids[tNodeIndex];
-            for (size_t tSpatialIndex = 0; tSpatialIndex < tNumSpatialDimensions; tSpatialIndex++)
-            {
-                tGradientMap[tCurGlobalNodeID][tSpatialIndex] +=
-                    tCurTriGradient[tNodeIndex * tNumSpatialDimensions + tSpatialIndex];
-            }
+            tGradientMap[tNodeGradient.first] += tNodeGradient.second;
         }
     }
     return tGradientMap;
 }
 
 [[nodiscard]] auto get_full_gradient_vector_from_gradient_map(
-    const std::map<size_t, std::array<double, 3>>& aGradientMap, const std::vector<size_t>& aAllNodeIds)
+    const std::unordered_map<GlobalNodeID, Sensitivity>& aGradientMap, const std::vector<size_t>& aAllNodeIds)
     -> std::vector<double>
 {
     // Build the gradient vector (3 entries for each node in the cut mesh) sorted by global node id
-    std::vector<double> tGradientVector(aAllNodeIds.size() * 3);
-    size_t tIndex = 0;
     constexpr size_t tNumDimensions{3};
+    std::vector<double> tGradientVector(aAllNodeIds.size() * tNumDimensions);
+    size_t tIndex = 0;
     for (const auto& tCurNode : aAllNodeIds)
     {
         if (aGradientMap.find(tCurNode) == aGradientMap.end())
         {
-            for (size_t i = 0; i < tNumDimensions; ++i)
-            {
-                tGradientVector[tIndex++] = 0.0;
-            }
+            tIndex += tNumDimensions;
         }
         else
         {
-            for (size_t i = 0; i < tNumDimensions; ++i)
-            {
-                tGradientVector[tIndex++] = aGradientMap.at(tCurNode)[i];
-            }
+            tGradientVector[tIndex++] = aGradientMap.at(tCurNode).x;
+            tGradientVector[tIndex++] = aGradientMap.at(tCurNode).y;
+            tGradientVector[tIndex++] = aGradientMap.at(tCurNode).z;
         }
     }
     return tGradientVector;
@@ -271,79 +257,67 @@ using namespace plato::third_party_integration::stk_io;
     return tReturnValue;
 }
 
-[[nodiscard]] double overhang_from_triangle_node_coordinates(const Coordinate& aNode1,
-                                                             const Coordinate& aNode2,
-                                                             const Coordinate& aNode3,
-                                                             const double aOverhangAngleThreshold,
-                                                             const double aStepTransitionWidth,
-                                                             const Vector3& aBuildDirection)
+[[nodiscard]] double overhang_from_triangle(const SensitivityTriangle& aTriangle,
+                                            const double aOverhangAngleThreshold,
+                                            const double aStepTransitionWidth,
+                                            const Vector3& aBuildDirection)
 {
-    const Triangle tTriangle{aNode1, aNode2, aNode3};
-    const Vector3 tNormal = tTriangle.normal();
+    const Vector3 tNormal = aTriangle.normal();
     const double tNormalDotBuildDirection = dot(tNormal, aBuildDirection);
     return overhang(tNormalDotBuildDirection, aOverhangAngleThreshold, aStepTransitionWidth);
 }
 
-[[nodiscard]] double d_overhang_from_triangle_node_coordinates(const Coordinate& aNode1,
-                                                               const Coordinate& aNode2,
-                                                               const Coordinate& aNode3,
-                                                               const double aOverhangAngleThreshold,
-                                                               const double aStepTransitionWidth,
-                                                               const Vector3& aBuildDirection)
+[[nodiscard]] double d_overhang_from_triangle(const SensitivityTriangle& aTriangle,
+                                              const double aOverhangAngleThreshold,
+                                              const double aStepTransitionWidth,
+                                              const Vector3& aBuildDirection)
 {
-    const Triangle tTriangle{aNode1, aNode2, aNode3};
-    const Vector3 tNormal = tTriangle.normal();
+    const Vector3 tNormal = aTriangle.normal();
     const double tNormalDotBuildDirection = dot(tNormal, aBuildDirection);
     return d_overhang(tNormalDotBuildDirection, aOverhangAngleThreshold, aStepTransitionWidth);
 }
 
-[[nodiscard]] double area_weighted_overhang_from_triangle(const Triangle& aTriangle,
+[[nodiscard]] double area_weighted_overhang_from_triangle(const SensitivityTriangle& aTriangle,
                                                           const double aOverhangAngleThreshold,
                                                           const double aStepTransitionWidth,
                                                           const Vector3& aBuildDirection)
 {
-    const double tArea = aTriangle.volume();
-    return tArea * overhang_from_triangle_node_coordinates(aTriangle.p0, aTriangle.p1, aTriangle.p2,
-                                                           aOverhangAngleThreshold, aStepTransitionWidth,
-                                                           aBuildDirection);
+    const double tArea = aTriangle.area();
+    return tArea * overhang_from_triangle(aTriangle, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
 }
 
-std::vector<double> get_gradient_contribution_for_triangle(const Triangle& aTriangle,
-                                                           const double aOverhangAngleThreshold,
-                                                           const double aStepTransitionWidth,
-                                                           const Vector3& aBuildDirection)
+TriangleGradient get_gradient_contribution_for_triangle(const SensitivityTriangle& aTriangle,
+                                                        const double aOverhangAngleThreshold,
+                                                        const double aStepTransitionWidth,
+                                                        const Vector3& aBuildDirection)
 {
     namespace tpik = plato::third_party_integration::krino;
 
     constexpr size_t tNumNodesPerTriangle{3};
-    constexpr auto tNumDimensions{3};
-    std::vector<double> tGradient(tNumNodesPerTriangle * tNumDimensions, 0.0);
-    const double tArea = aTriangle.volume();
-    const double tOverhangPrime = d_overhang_from_triangle_node_coordinates(
-        aTriangle.p0, aTriangle.p1, aTriangle.p2, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
+    const double tArea = aTriangle.area();
+    const double tOverhangPrime =
+        d_overhang_from_triangle(aTriangle, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
     const Vector3 tScaledBuildDir = aBuildDirection * tOverhangPrime * tArea;
-    const double tOverhang = overhang_from_triangle_node_coordinates(
-        aTriangle.p0, aTriangle.p1, aTriangle.p2, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
+    const double tOverhang =
+        overhang_from_triangle(aTriangle, aOverhangAngleThreshold, aStepTransitionWidth, aBuildDirection);
 
-    tpik::TriangleNormalSensitivity tTriangleNormalSensitivity = tpik::get_d_normal_d_nodal_coords_from_tri(aTriangle);
-    tpik::TriangleAreaSensitivity tTriangleAreaSensitivity = tpik::get_d_area_d_nodal_coords_from_tri(aTriangle);
+    const auto tNormalSensitivities = tpik::get_d_normal_d_tri_node(aTriangle);
+    const auto tAreaSensitivities = tpik::get_d_area_d_tri_node(aTriangle);
 
+    TriangleGradient tGradient{NodeGradient{aTriangle.mNodes[0].first, {0., 0., 0.}},
+                               NodeGradient{aTriangle.mNodes[1].first, {0., 0., 0.}},
+                               NodeGradient{aTriangle.mNodes[2].first, {0., 0., 0.}}};
     // Loop over nodes in triangle and add contributions to derivative map
     for (size_t tNodeIndex = 0; tNodeIndex < tNumNodesPerTriangle; tNodeIndex++)
     {
-        const auto tGlobalNodeId = aTriangle.global_ids[tNodeIndex];
-        for (size_t tDimIndex = 0; tDimIndex < tNumDimensions; ++tDimIndex)
-        {
-            // Add the phi*dArea contribution
-            tGradient[tNumDimensions * tNodeIndex + tDimIndex] +=
-                tOverhang * tTriangleAreaSensitivity[tGlobalNodeId][tDimIndex];
-            // Add the phi_prime*dNormal*build_direction*Area contribution
-            Vector3 tNormalSensitivity{tTriangleNormalSensitivity[tGlobalNodeId][tDimIndex][0],
-                                       tTriangleNormalSensitivity[tGlobalNodeId][tDimIndex][1],
-                                       tTriangleNormalSensitivity[tGlobalNodeId][tDimIndex][2]};
-            tGradient[tNumDimensions * tNodeIndex + tDimIndex] +=
-                third_party_integration::common::dot(tScaledBuildDir, tNormalSensitivity);
-        }
+        const Sensitivity tNormalSensitivity{
+            third_party_integration::common::dot(tScaledBuildDir,
+                                                 tNormalSensitivities[tNodeIndex][kDNormalDNodeXCoord]),
+            third_party_integration::common::dot(tScaledBuildDir,
+                                                 tNormalSensitivities[tNodeIndex][kDNormalDNodeYCoord]),
+            third_party_integration::common::dot(tScaledBuildDir,
+                                                 tNormalSensitivities[tNodeIndex][kDNormalDNodeZCoord])};
+        tGradient[tNodeIndex].second += (tAreaSensitivities[tNodeIndex] * tOverhang + tNormalSensitivity);
     }
     return tGradient;
 }
@@ -394,13 +368,16 @@ ParsedInputParams parse_input_deck(const std::string& aFilename)
         -std::cos(std::stod(tOverhangAngleFromHorizontal) * std::numbers::pi / 180.0);
     tInputParams.transition_width = std::stod(get_xml_node_string(tTree, "OverhangInput", "TransitionWidth"));
 
-    std::string tEvaluationSidesets = get_xml_node_string(tTree, "OverhangInput", "EvaluationSidesets");
-    std::stringstream tEvalSidesetStringStream(tEvaluationSidesets);  // Initialize stringstream with the input string
-    std::vector<std::string> tSidesetNames;
-
-    while (tEvalSidesetStringStream >> tEntry)
+    tInputParams.evaluation_sidesets.push_back("surface__void");
+    if (auto tValue = tTree.get_optional<std::string>("OverhangInput.AdditionalEvaluationSidesets"))
     {
-        tInputParams.evaluation_sidesets.push_back(tEntry);
+        std::string tEvaluationSidesets = tValue.value();
+        std::stringstream tEvalSidesetStringStream(
+            tEvaluationSidesets);  // Initialize stringstream with the input string
+        while (tEvalSidesetStringStream >> tEntry)
+        {
+            tInputParams.evaluation_sidesets.push_back(tEntry);
+        }
     }
 
     return tInputParams;

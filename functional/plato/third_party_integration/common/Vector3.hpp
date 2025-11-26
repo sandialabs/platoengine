@@ -22,6 +22,7 @@ struct Vector3
     double y = 0.0;
     double z = 0.0;
     auto operator==(const Vector3& aVector) const -> bool = default;
+    void operator+=(const Vector3& aVector);
 };
 
 struct UnitVector3 : public Vector3
@@ -135,6 +136,13 @@ inline UnitVector3::UnitVector3(const double aX, const double aY, const double a
 }
 
 inline UnitVector3::UnitVector3(const Vector3& aVector) : Vector3(aVector) { normalize(*this); }
+
+inline void Vector3::operator+=(const Vector3& aVector)
+{
+    x += aVector.x;
+    y += aVector.y;
+    z += aVector.z;
+}
 
 }  // namespace plato::third_party_integration::common
 #endif
