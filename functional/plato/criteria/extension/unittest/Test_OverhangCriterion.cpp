@@ -56,10 +56,12 @@ TEST(OverhangCriterion, Overhang)
 
 TEST(OverhangCriterion, OverhangFromTriangleCoords)
 {
-    constexpr Coordinate tNode1{0, 0, 0};
-    constexpr Coordinate tNode2{1, 0, 0};
-    const std::vector<Coordinate> tThirdNodeOptions{
-        {1, 1, 0}, {1, 1, -1}, {1, .732106781186548, -.681189886111555}, {1, 1, -.8}};
+    constexpr Coordinate tNode1{.x = 0, .y = 0, .z = 0};
+    constexpr Coordinate tNode2{.x = 1, .y = 0, .z = 0};
+    const std::vector<Coordinate> tThirdNodeOptions{{.x = 1, .y = 1, .z = 0},
+                                                    {.x = 1, .y = 1, .z = -1},
+                                                    {.x = 1, .y = .732106781186548, .z = -.681189886111555},
+                                                    {.x = 1, .y = 1, .z = -.8}};
     const std::vector<double> tExpectedValues{1.0, 0.0, 0.5, 1.0};
     for (const auto& [tCurNode3Option, tCurExpectedValue] : utilities::Zip{tThirdNodeOptions, tExpectedValues})
     {
@@ -73,8 +75,9 @@ TEST(OverhangCriterion, OverhangFromTriangleCoords)
 
 TEST(OverhangCriterion, OverhangFromTriangle)
 {
-    constexpr SensitivityTriangle tTriangle{NodeIDCoordsPair{5, {0, 0, 0}}, NodeIDCoordsPair{6, {1, 0, 0}},
-                                            NodeIDCoordsPair{7, {1, 1, 0}}};
+    constexpr SensitivityTriangle tTriangle{NodeIDCoordsPair{5, {.x = 0, .y = 0, .z = 0}},
+                                            NodeIDCoordsPair{6, {.x = 1, .y = 0, .z = 0}},
+                                            NodeIDCoordsPair{7, {.x = 1, .y = 1, .z = 0}}};
     constexpr double tExpectedValue{0.5};
     EXPECT_NEAR(detail::area_weighted_overhang_from_triangle(tTriangle, kOverhangAngleThreshold, kStepTransitionWidth,
                                                              kBuildDirection),
@@ -83,7 +86,8 @@ TEST(OverhangCriterion, OverhangFromTriangle)
 
 TEST(OverhangCriterion, dExponentialStepFunction)
 {
-    constexpr plato::test_utilities::GradientCheckParameters tGradCheckParams{.1, 6, .01};
+    constexpr plato::test_utilities::GradientCheckParameters tGradCheckParams{
+        .mStepDelta = .1, .mNumSteps = 6, .mInitialStepSize = .01};
     constexpr auto tFirstOrderTruncationTolerance{1e-1};
     constexpr auto tLastFiniteDifferenceError{1e-6};
     const auto tChecker =
@@ -104,7 +108,8 @@ TEST(OverhangCriterion, dExponentialStepFunction)
 
 TEST(OverhangCriterion, dSmoothingFunction)
 {
-    constexpr plato::test_utilities::GradientCheckParameters tGradCheckParams{.1, 6, .01};
+    constexpr plato::test_utilities::GradientCheckParameters tGradCheckParams{
+        .mStepDelta = .1, .mNumSteps = 6, .mInitialStepSize = .01};
     constexpr auto tFirstOrderTruncationTolerance{1e-1};
     constexpr auto tLastFiniteDifferenceError{1e-6};
     const auto tChecker =
@@ -125,7 +130,8 @@ TEST(OverhangCriterion, dSmoothingFunction)
 
 TEST(OverhangCriterion, dOverhang)
 {
-    constexpr plato::test_utilities::GradientCheckParameters tGradCheckParams{.5, 6, .0001};
+    constexpr plato::test_utilities::GradientCheckParameters tGradCheckParams{
+        .mStepDelta = .5, .mNumSteps = 6, .mInitialStepSize = .0001};
     constexpr auto tFirstOrderTruncationTolerance{6e-1};
     constexpr auto tLastFiniteDifferenceError{1e-8};
     const auto tChecker = plato::test_utilities::GradientChecker{
@@ -159,9 +165,9 @@ TEST(OverhangCriterion, SingleTriangleDerivative)
     const auto tChecker = plato::test_utilities::GradientChecker{
         [](const linear_algebra::DynamicVector<double>& aTriNodalCoords)
         {
-            const Coordinate tNode1{aTriNodalCoords[0], aTriNodalCoords[1], aTriNodalCoords[2]};
-            const Coordinate tNode2{aTriNodalCoords[3], aTriNodalCoords[4], aTriNodalCoords[5]};
-            const Coordinate tNode3{aTriNodalCoords[6], aTriNodalCoords[7], aTriNodalCoords[8]};
+            const Coordinate tNode1{.x = aTriNodalCoords[0], .y = aTriNodalCoords[1], .z = aTriNodalCoords[2]};
+            const Coordinate tNode2{.x = aTriNodalCoords[3], .y = aTriNodalCoords[4], .z = aTriNodalCoords[5]};
+            const Coordinate tNode3{.x = aTriNodalCoords[6], .y = aTriNodalCoords[7], .z = aTriNodalCoords[8]};
             SensitivityTriangle tTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2},
                                           NodeIDCoordsPair{3, tNode3}};
             return detail::area_weighted_overhang_from_triangle(tTriangle, -std::sqrt(2.0) / 2.0, 0.05, {0, 0, 1});
@@ -169,9 +175,9 @@ TEST(OverhangCriterion, SingleTriangleDerivative)
         [](const linear_algebra::DynamicVector<double>& aTriNodalCoords,
            const linear_algebra::DynamicVector<double>& aDirection)
         {
-            const Coordinate tNode1{aTriNodalCoords[0], aTriNodalCoords[1], aTriNodalCoords[2]};
-            const Coordinate tNode2{aTriNodalCoords[3], aTriNodalCoords[4], aTriNodalCoords[5]};
-            const Coordinate tNode3{aTriNodalCoords[6], aTriNodalCoords[7], aTriNodalCoords[8]};
+            const Coordinate tNode1{.x = aTriNodalCoords[0], .y = aTriNodalCoords[1], .z = aTriNodalCoords[2]};
+            const Coordinate tNode2{.x = aTriNodalCoords[3], .y = aTriNodalCoords[4], .z = aTriNodalCoords[5]};
+            const Coordinate tNode3{.x = aTriNodalCoords[6], .y = aTriNodalCoords[7], .z = aTriNodalCoords[8]};
             SensitivityTriangle tTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2},
                                           NodeIDCoordsPair{3, tNode3}};
             const auto tSensitivities =
@@ -186,7 +192,8 @@ TEST(OverhangCriterion, SingleTriangleDerivative)
             const auto tGradient = linear_algebra::DynamicVector<double>{tGradientValues};
             return tGradient.dot(aDirection);
         }};
-    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 10, .001};
+    const auto tGradientCheckParameters =
+        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.5, .mNumSteps = 10, .mInitialStepSize = .001};
     const auto tNodalCoordinates = linear_algebra::DynamicVector<double>{0, 0, 0, 0, 1, -.1, 1, 0, -.1};
     const auto tDirection = linear_algebra::DynamicVector<double>{.10, -.10, 0.05, 0.03, -0.09, 0.2, -.04, -.3, .07};
 
@@ -214,12 +221,12 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
 
     // clang-format on
 
-    const NodeIDCoordsPair tNode1{1, Coordinate{0., 0., 0.}};
-    const NodeIDCoordsPair tNode2{2, Coordinate{1., 0., 0.}};
-    const NodeIDCoordsPair tNode3{3, Coordinate{2., 0., 0.}};
-    const NodeIDCoordsPair tNode4{4, Coordinate{.5, 1., 0.}};
-    const NodeIDCoordsPair tNode5{5, Coordinate{1.5, 1., 0.}};
-    const NodeIDCoordsPair tNode6{6, Coordinate{1., 2., 0.}};
+    const NodeIDCoordsPair tNode1{1, Coordinate{.x = 0., .y = 0., .z = 0.}};
+    const NodeIDCoordsPair tNode2{2, Coordinate{.x = 1., .y = 0., .z = 0.}};
+    const NodeIDCoordsPair tNode3{3, Coordinate{.x = 2., .y = 0., .z = 0.}};
+    const NodeIDCoordsPair tNode4{4, Coordinate{.x = .5, .y = 1., .z = 0.}};
+    const NodeIDCoordsPair tNode5{5, Coordinate{.x = 1.5, .y = 1., .z = 0.}};
+    const NodeIDCoordsPair tNode6{6, Coordinate{.x = 1., .y = 2., .z = 0.}};
     const std::vector<SensitivityTriangle> tTriangles{
         {tNode1, tNode2, tNode4}, {tNode2, tNode3, tNode5}, {tNode2, tNode5, tNode4}, {tNode4, tNode5, tNode6}};
     const double tOverhangThreshold = -std::sqrt(2.0) / 2.0;
@@ -242,7 +249,7 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
     // Compare results
     for (size_t i = 0; i < tNumNodes; ++i)
     {
-        Sensitivity tCurNodeGradient = {0.0, 0.0, 0.0};
+        Sensitivity tCurNodeGradient = {.x = 0.0, .y = 0.0, .z = 0.0};
         // For this node get contributions from individual maps
         for (size_t j = 0; j < tNumTris; ++j)
         {
@@ -256,13 +263,14 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
             tCurNodeGradient, tCombinedGradientMap.at(i + 1), TEST_CONTEXT("Checking vector components"));
     }
 }
+
 using NodeGradient = std::pair<GlobalNodeID, Sensitivity>;
 using TriangleGradient = std::array<NodeGradient, 3>;
 
 TEST(OverhangCriterion, FullGradientVectorFromPartialGradientMap)
 {
     const std::unordered_map<GlobalNodeID, Sensitivity> tPartialGradientMap = {
-        {3, {.1, .2, .3}}, {5, {.9, -.1, -.2}}, {9, {-1., -2., -3.}}};
+        {3, {.x = .1, .y = .2, .z = .3}}, {5, {.x = .9, .y = -.1, .z = -.2}}, {9, {.x = -1., .y = -2., .z = -3.}}};
     const std::vector<size_t> tAllNodeIDs = {2, 3, 5, 6, 7, 9, 11, 12};
     const std::vector<double> tFullGradientVector =
         detail::get_full_gradient_vector_from_gradient_map(tPartialGradientMap, tAllNodeIDs);

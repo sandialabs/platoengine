@@ -20,7 +20,7 @@ TEST(KrinoTriangleUtilities, GetInterfaceTriangles)
     constexpr double tTolerance{1e-14};
     constexpr double tGoldArea{0.5};
     constexpr size_t tNumTris{2};
-    const std::vector<common::Vector3> tGoldNormals{{0, 0, 1}, {0, 0, -1}};
+    const std::vector<common::Vector3> tGoldNormals{{.x = 0, .y = 0, .z = 1}, {.x = 0, .y = 0, .z = -1}};
     const std::vector<std::string> tReferenceBlockNames{"block_1", "block_2"};
     const auto tMeshPath = std::filesystem::path{"temp_mesh_save.exo"};
     constexpr auto tMesh = std::string_view{
@@ -60,7 +60,8 @@ TEST(KrinoTriangleUtilities, GetInterfaceTriangles)
 
 void testDFuncDCoords(const double aAbsoluteError, const auto& aF, const auto& aDF)
 {
-    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, 5, .000125};
+    const auto tGradientCheckParameters =
+        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.5, .mNumSteps = 5, .mInitialStepSize = .000125};
     const auto tGradientCheck = plato::test_utilities::GradientChecker{aF, aDF};
     const auto tNodalCoordinates = linear_algebra::DynamicVector<double>{0.1, -0.9, .8, -.3, -.3, -.3, .5, .67, .1};
     const auto tDirection = linear_algebra::DynamicVector<double>{.10, -.10, 0.05, 0.03, -0.09, 0.2, -.04, -.3, .07};
@@ -70,16 +71,20 @@ void testDFuncDCoords(const double aAbsoluteError, const auto& aF, const auto& a
         << tGradientCheck.table(tNodalCoordinates, tDirection, tGradientCheckParameters);
 }
 
+SensitivityTriangle create_sensitivity_triangle_from_coords(const std::vector<double>& aCoords)
+{
+    const common::Coordinate tNode1{.x = aCoords[0], .y = aCoords[1], .z = aCoords[2]};
+    const common::Coordinate tNode2{.x = aCoords[3], .y = aCoords[4], .z = aCoords[5]};
+    const common::Coordinate tNode3{.x = aCoords[6], .y = aCoords[7], .z = aCoords[8]};
+    return SensitivityTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2}, NodeIDCoordsPair{3, tNode3}};
+}
+
 TEST(KrinoTriangleUtilities, dAreadCoords)
 {
     constexpr auto tAbsoluteError = 2e-4;
     const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
     {
-        const common::Coordinate tNode1{aX[0], aX[1], aX[2]};
-        const common::Coordinate tNode2{aX[3], aX[4], aX[5]};
-        const common::Coordinate tNode3{aX[6], aX[7], aX[8]};
-        SensitivityTriangle tTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2},
-                                      NodeIDCoordsPair{3, tNode3}};
+        SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
         return tTriangle.area();
     };
     const auto tDf =
@@ -100,11 +105,7 @@ TEST(KrinoTriangleUtilities, dNormaldCoordsX)
     constexpr size_t tNumNumSensComponents = 9;
     const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
     {
-        const common::Coordinate tNode1{aX[0], aX[1], aX[2]};
-        const common::Coordinate tNode2{aX[3], aX[4], aX[5]};
-        const common::Coordinate tNode3{aX[6], aX[7], aX[8]};
-        SensitivityTriangle tTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2},
-                                      NodeIDCoordsPair{3, tNode3}};
+        SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
         return tTriangle.normal().x;
     };
     const auto tDf =
@@ -131,11 +132,7 @@ TEST(KrinoTriangleUtilities, dNormaldCoordsY)
     constexpr size_t tDimensionIndex = 1;
     const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
     {
-        const common::Coordinate tNode1{aX[0], aX[1], aX[2]};
-        const common::Coordinate tNode2{aX[3], aX[4], aX[5]};
-        const common::Coordinate tNode3{aX[6], aX[7], aX[8]};
-        SensitivityTriangle tTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2},
-                                      NodeIDCoordsPair{3, tNode3}};
+        SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
         return tTriangle.normal().y;
     };
     const auto tDf =
@@ -162,11 +159,7 @@ TEST(KrinoTriangleUtilities, dNormaldCoordsZ)
     constexpr size_t tDimensionIndex = 2;
     const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
     {
-        const common::Coordinate tNode1{aX[0], aX[1], aX[2]};
-        const common::Coordinate tNode2{aX[3], aX[4], aX[5]};
-        const common::Coordinate tNode3{aX[6], aX[7], aX[8]};
-        SensitivityTriangle tTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2},
-                                      NodeIDCoordsPair{3, tNode3}};
+        SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
         return tTriangle.normal().z;
     };
     const auto tDf =
