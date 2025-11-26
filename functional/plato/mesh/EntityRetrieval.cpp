@@ -49,10 +49,10 @@ auto EntityRetrieval::designDomainNodeIDs() const -> std::vector<std::size_t>
 
 auto EntityRetrieval::globalNodeIDs() const -> std::vector<std::size_t>
 {
-    PartReferenceVector tVec1 = designDomainBlocks();
-    PartReferenceVector tVec2 = fixedDomainBlocks();
-    tVec1.insert(tVec1.end(), tVec2.begin(), tVec2.end());
-    return third_party_integration::stk_io::global_node_ids(bulkData(), tVec1);
+    auto tAllBlocks = designDomainBlocks();
+    const auto tFixedBlocks = fixedDomainBlocks();
+    tAllBlocks.insert(tAllBlocks.end(), tFixedBlocks.begin(), tFixedBlocks.end());
+    return third_party_integration::stk_io::global_node_ids(bulkData(), tAllBlocks);
 }
 
 auto EntityRetrieval::designDomainNodalField(const std::string_view aFieldName,
