@@ -48,7 +48,8 @@ TEST(OverhangCriterion, Overhang)
     for (const auto& [tCurNormalDotBuildDirectionValue, tCurExpectedValue] :
          utilities::Zip{tNormalDotBuildDirectionValues, tExpectedValues})
     {
-        EXPECT_NEAR(detail::overhang(tCurNormalDotBuildDirectionValue, kOverhangAngleThreshold, kStepTransitionWidth),
+        EXPECT_NEAR(detail::overhang_value_from_normal_and_build_direction(
+                        tCurNormalDotBuildDirectionValue, kOverhangAngleThreshold, kStepTransitionWidth),
                     tCurExpectedValue, kTolerance);
     }
 }
@@ -129,9 +130,15 @@ TEST(OverhangCriterion, dOverhang)
     constexpr auto tLastFiniteDifferenceError{1e-8};
     const auto tChecker = plato::test_utilities::GradientChecker{
         [](const double aNormalDotBuildDirection)
-        { return detail::overhang(aNormalDotBuildDirection, kOverhangAngleThreshold, kStepTransitionWidth); },
+        {
+            return detail::overhang_value_from_normal_and_build_direction(
+                aNormalDotBuildDirection, kOverhangAngleThreshold, kStepTransitionWidth);
+        },
         [](const double aNormalDotBuildDirection)
-        { return detail::d_overhang(aNormalDotBuildDirection, kOverhangAngleThreshold, kStepTransitionWidth); }};
+        {
+            return detail::d_overhang_value_from_normal_and_build_direction(
+                aNormalDotBuildDirection, kOverhangAngleThreshold, kStepTransitionWidth);
+        }};
     const auto tX = kOverhangAngleThreshold - (kStepTransitionWidth / 2.0);
     constexpr auto tDirection = 1.0;
 

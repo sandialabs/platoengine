@@ -217,9 +217,9 @@ using namespace plato::third_party_integration::krino;
            std::pow((exponential_step_function(aInput) + exponential_step_function(1.0 - aInput)), 2);
 }
 
-[[nodiscard]] double overhang(const double aAngleDotBuildDirection,
-                              const double aOverhangAngleThreshold,
-                              const double aStepTransitionWidth)
+[[nodiscard]] double overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
+                                                                    const double aOverhangAngleThreshold,
+                                                                    const double aStepTransitionWidth)
 {
     // The calculation of the return value will be determined by whether the input value, aAngleDotBuildDirection,
     // is in one of three ranges: 1) less than the step function transition region (return 1.0), 2) inside the step
@@ -236,9 +236,9 @@ using namespace plato::third_party_integration::krino;
     return tReturnValue;
 }
 
-[[nodiscard]] double d_overhang(const double aAngleDotBuildDirection,
-                                const double aOverhangAngleThreshold,
-                                const double aStepTransitionWidth)
+[[nodiscard]] double d_overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
+                                                                      const double aOverhangAngleThreshold,
+                                                                      const double aStepTransitionWidth)
 {
     // The calculation of the return value will be determined by whether the input value, aAngleDotBuildDirection,
     // is in one of three ranges: 1) less than the step function transition region (return 1.0), 2) inside the step
@@ -264,7 +264,8 @@ using namespace plato::third_party_integration::krino;
 {
     const Vector3 tNormal = aTriangle.normal();
     const double tNormalDotBuildDirection = dot(tNormal, aBuildDirection);
-    return overhang(tNormalDotBuildDirection, aOverhangAngleThreshold, aStepTransitionWidth);
+    return overhang_value_from_normal_and_build_direction(tNormalDotBuildDirection, aOverhangAngleThreshold,
+                                                          aStepTransitionWidth);
 }
 
 [[nodiscard]] double d_overhang_from_triangle(const SensitivityTriangle& aTriangle,
@@ -274,7 +275,8 @@ using namespace plato::third_party_integration::krino;
 {
     const Vector3 tNormal = aTriangle.normal();
     const double tNormalDotBuildDirection = dot(tNormal, aBuildDirection);
-    return d_overhang(tNormalDotBuildDirection, aOverhangAngleThreshold, aStepTransitionWidth);
+    return d_overhang_value_from_normal_and_build_direction(tNormalDotBuildDirection, aOverhangAngleThreshold,
+                                                            aStepTransitionWidth);
 }
 
 [[nodiscard]] double area_weighted_overhang_from_triangle(const SensitivityTriangle& aTriangle,
