@@ -17,16 +17,12 @@
 #include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
-#include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
-#include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
-#include "plato/utilities/FileUtilities.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 
 namespace plato::geometry::extension

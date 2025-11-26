@@ -14,7 +14,7 @@
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
-#include "plato/utilities/Enumerate.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::krino::unittest
 {
@@ -96,9 +96,9 @@ TEST_F(KrinoTestFixture, ReadAndSetupForDecomposition)
                                                          "CDFEM_UP_4_PARENT_NODE_WTS",
                                                          "DistanceCorrectionDenominator",
                                                          "DistanceCorrectionNumerator",
-                                                         "LEVEL_SET",
-                                                         "LEVEL_SET_COPYFORSNAPPING",
-                                                         "LS"};
+                                                         "LS",
+                                                         "PLATO_LS",
+                                                         "PLATO_LS_COPYFORSNAPPING"};
     EXPECT_EQ(tFieldNameGold, tFieldNames);
     std::filesystem::remove(kMeshName);
     plato::test_utilities::test_for_existence_and_remove({kWriteMeshName}, TEST_CONTEXT("Write Mesh file"));
@@ -126,6 +126,23 @@ TEST_F(KrinoTestFixture, BackgroundNodeIds)
     const auto tResult = background_node_ids(*tMesh, tLevelSetField);
     const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4};
     EXPECT_EQ(tGold, tResult);
+}
+
+TEST_F(KrinoTestFixture, BackgroundNodeIdsWithExistingLevelSetField)
+{
+    // This test checks that a mesh with a field named `level_set` defined on it is read correctly.
+    const auto tMeshFilePath = utilities::data_file_path("mesh_with_field.cdf");
+    ASSERT_TRUE(tMeshFilePath);
+    ASSERT_TRUE(std::filesystem::exists(tMeshFilePath.value()));
+
+    const auto tFixedBlocks = std::set<std::string>{"fixed"};
+    const auto tMesh = read_and_setup_for_decomposition(tMeshFilePath.value(), tFixedBlocks);
+    constexpr auto tDesignDomainSize = 44U;
+    const auto tLevelSetField =
+        test_utilities::make_level_set_field_from_vector(*tMesh, std::vector(tDesignDomainSize, 1.0));
+
+    const auto tResult = background_node_ids(*tMesh, tLevelSetField);
+    EXPECT_EQ(tResult.size(), tDesignDomainSize);
 }
 
 TEST_F(KrinoTestFixture, BackgroundNodeIdsFourTri)

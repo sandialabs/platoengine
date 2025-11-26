@@ -8,13 +8,11 @@
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
 #include <stk_util/environment/EnvData.hpp>  //get stk mpi env
-#include <string_view>
 #include <unordered_map>
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
-#include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
