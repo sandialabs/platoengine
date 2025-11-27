@@ -18,13 +18,16 @@
 #include <stk_mesh/base/Types.hpp>
 #include <stk_mesh/base/FieldRestriction.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
-#include "Ioss_Region.h"                // for Region, NodeSetContainer, etc
 #include "Teuchos_CommandLineProcessor.hpp"
 
 #include <iostream>
 
 int main(int argc,  char **argv)
 {
+    auto tThreadsProvided = int{};
+    MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &tThreadsProvided);
+    assert(tThreadsProvided == MPI_THREAD_FUNNELED);
+
     // Initialize communicator
     stk::ParallelMachine *comm = new stk::ParallelMachine(stk::parallel_machine_init(&argc, &argv));
     if(!comm)
