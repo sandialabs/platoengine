@@ -51,8 +51,10 @@ class ParameterSweep
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 
    private:
+    using Parameters = std::pair<std::vector<std::size_t>, std::vector<utilities::LinearSpaceGenerator>>;
+
     std::filesystem::path mOutputFileName;
-    std::pair<std::vector<std::size_t>, std::vector<utilities::LinearSpaceGenerator>> mParameters = {};
+    Parameters mParameters = {};
 };
 
 namespace detail

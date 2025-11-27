@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv)
 {
-    auto tEnvironment = boost::mpi::environment{argc, argv};
+    auto tEnvironment = boost::mpi::environment{argc, argv, boost::mpi::threading::level::funneled};
     Kokkos::initialize(argc, argv);
 
     std::vector<std::string> tArguments = plato::utilities::argc_argv_to_std_vector(argc, argv);
