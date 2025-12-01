@@ -155,22 +155,23 @@ using namespace plato::third_party_integration::krino;
 {
     std::unordered_map<GlobalNodeID, Sensitivity> tGradientMap;
     //  Initialize all future map entries to 0.0
-    for (const auto& tCurTriangle : aTriangles)
-    {
-        tGradientMap[tCurTriangle.mNodes[0].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
-        tGradientMap[tCurTriangle.mNodes[1].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
-        tGradientMap[tCurTriangle.mNodes[2].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
-    }
+    std::for_each(aTriangles.begin(), aTriangles.end(),
+                  [&tGradientMap](const auto& aCurTriangle)
+                  {
+                      tGradientMap[aCurTriangle.mNodes[0].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
+                      tGradientMap[aCurTriangle.mNodes[1].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
+                      tGradientMap[aCurTriangle.mNodes[2].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
+                  });
     //  Accumulate gradient contributions from all triangles
-    for (const auto& tCurTriangle : aTriangles)
-    {
-        const TriangleGradient tCurTriGradient =
-            detail::get_gradient_contribution_for_triangle(tCurTriangle, aOverhangCriterion);
-        for (const auto& tNodeGradient : tCurTriGradient)
-        {
-            tGradientMap[tNodeGradient.first] += tNodeGradient.second;
-        }
-    }
+    std::for_each(aTriangles.begin(), aTriangles.end(),
+                  [&tGradientMap, aOverhangCriterion](const auto& aCurTriangle)
+                  {
+                      const TriangleGradient tCurTriGradient =
+                          detail::get_gradient_contribution_for_triangle(aCurTriangle, aOverhangCriterion);
+                      std::for_each(tCurTriGradient.begin(), tCurTriGradient.end(),
+                                    [&tGradientMap](const auto& aCurNodeGradient)
+                                    { tGradientMap[aCurNodeGradient.first] += aCurNodeGradient.second; });
+                  });
     return tGradientMap;
 }
 
