@@ -7,7 +7,10 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/extension/KrinoWrapper.hpp"
+#include "plato/geometry/extension/LevelSetTopologySphereParser.hpp"
+#include "plato/geometry/extension/LevelSetTopologySpherePatternParser.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/input_parser/Bounds.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
@@ -25,22 +28,21 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (bool, include_void_region, "Required field specifying whether to include the elements of the void region when writing the cut mesh.")
     (double, max_edge_length_percentage_for_snapping, "Optional field specifying maximum fraction of an edge length that can be collapsed by snapping. "
         "Can range from 0 to 1. A value of 0 turns off snapping (only cutting), a value of 1 will collapse all edges near the level set interface (no cutting). Default is 0.15.")
-    (double, sphere_pattern_bbox_min_x, "Required field specifying the starting x-coordinate of the sphere pattern's bounding box.")
-    (double, sphere_pattern_bbox_min_y, "Required field specifying the starting y-coordinate of the sphere pattern's bounding box.")
-    (double, sphere_pattern_bbox_min_z, "Required field specifying the starting z-coordinate of the sphere pattern's bounding box.")
-    (double, sphere_pattern_bbox_max_x, "Required field specifying the ending x-coordinate of the sphere pattern's bounding box.")
-    (double, sphere_pattern_bbox_max_y, "Required field specifying the ending y-coordinate of the sphere pattern's bounding box.")
-    (double, sphere_pattern_bbox_max_z, "Required field specifying the ending z-coordinate of the sphere pattern's bounding box.")
-    (double, sphere_pattern_radius, "Required field specifying the radius of the spheres to be inserted in the bounding box. "
-                                    "This and the spacing will determine the total number of spheres added inside the bounding box.")
-    (double, sphere_pattern_spacing, "Required field specifying the center-to-center distance between adjacent spheres in the unform pattern.")
-    (double, level_set_lower_bound, "Required field specifying the value of the control that sets the lower bound of he level set cut.")
-    (double, level_set_upper_bound, "Required field specifying the value of the control that sets the upper bound of he level set cut.")
-    (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter block to apply to the controls."
+    (plato::input_parser::SpherePattern, sphere_pattern,"Method of specifying the initial level set field with a 'swiss cheese' pattern. "
+                                                        "Define a sphere pattern by specifying its radius, space between radius centers, a minimum point and a maximum point. "
+                                                        "Omit if a sphere_list or initial_field_name is specified."
+                                                        "This is an example pattern: sphere_pattern radius 1.1 spacing 2.5 min (0,0,0) max (10,10,10) ")
+    (plato::input_parser::Bounds, level_set_bounds, "Required field specifying the lower and upper bounds of the nodal design variables that define the level set field.")
+    (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter block to apply to the controls. "
                                                                                                "Only required if more than one filter is specified.")
     (plato::input_parser::FixedBlockList, fixed_blocks, "Optional list of blocks in the mesh that will have level-set fields assigned to the level_set_upper_bound value.")
     (plato::input_parser::IdentifierString, initial_field_name, "Method to read the controls from the specified field name within the 'mesh_name' exodus mesh. "
-                                                                "Omit if a sphere pattern is specified.")
+                                                                "The read in field will automatically be centered and scaled using an affine transformation to match the 'level_set_bounds'. "
+                                                                "Omit if a sphere_pattern or sphere_list is specified.")
+    (plato::input_parser::LevelSetSphereList, sphere_list, "Method of specifying the initial level set field using a list of sphere primitives. "
+                                                            "Define as many as you like, comma separated, in this manner: sphere_list radius_value (center_x,center_y,center_z), ... . "
+                                                            "Omit if a sphere_pattern or initial_field_name is specified. "
+                                                            "This is an example list: sphere_list radius 1.2 center (1,2,3), radius 0.5 center (-1,-2,-3)")
 )
 // clang-format on
 
@@ -150,16 +152,47 @@ class LevelSetTopology
 
 namespace detail
 {
+
+/// @brief Validation function that takes input @a aInput and makes sure the lower bound is specified and less than 0
 [[nodiscard]] auto validate_lower_bound(const input_parser::level_set_topology& aInput) -> std::optional<std::string>;
+
+/// @brief Validation function that takes input @a aInput and makes sure the upper bound is specified and greater than 0
 [[nodiscard]] auto validate_upper_bound(const input_parser::level_set_topology& aInput) -> std::optional<std::string>;
+
+/// @brief Validation function that takes input @a aInput and makes sure the snapping edge length is unit bounded if
+/// specified
 [[nodiscard]] auto validate_max_snapping_edge_length(const input_parser::level_set_topology& aInput)
     -> std::optional<std::string>;
+
+/// @brief Validation function that takes input @a aInput and makes sure the sphere pattern min bounds < max bounds if
+/// specified
 [[nodiscard]] auto validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput)
     -> std::optional<std::string>;
+
+/// @brief Validation function that takes input @a aInput and makes sure the sphere pattern radius > a small positive
+/// number if specified
 [[nodiscard]] auto validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput)
     -> std::optional<std::string>;
+
+/// @brief Validation function that takes input @a aInput and makes sure the sphere pattern radius > a small positive
+/// number if specified
 [[nodiscard]] auto validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput)
     -> std::optional<std::string>;
+
+/// @brief Validation function that takes input @a aInput and makes sure the sphere pattern spacing is more than twice
+/// the radius if specified
+[[nodiscard]] auto validate_sphere_pattern_spacing_greater_than_twice_radius(
+    const input_parser::level_set_topology& aInput) -> std::optional<std::string>;
+
+/// @brief Validation function that takes input @a aInput and makes sure the sphere list radii are all positive if
+/// specified
+[[nodiscard]] auto validate_sphere_list_radii(const input_parser::level_set_topology& aInput)
+    -> std::optional<std::string>;
+
+/// @brief Take the validated input @a aInput and convert the sphere_list into a vector of krino spheres
+/// @pre @a aInput has a sphere_list
+[[nodiscard]] auto generate_spheres_from_list(const input_parser::level_set_topology& aInput)
+    -> std::vector<third_party_integration::krino::Sphere>;
 
 /// @brief Validates that exactly one specifier for the intitial level set is used, either the sphere pattern
 /// commands or `initial_field_name`

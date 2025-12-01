@@ -25,13 +25,13 @@
 #include <string_view>
 
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
+#include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
 #include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/ReduceUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
-#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::krino
 {
@@ -40,7 +40,7 @@ namespace
 constexpr auto kSortByGlobalId = true;
 constexpr auto kOutputDescription = std::string_view{"out>null dout>null pout>null"};
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
-constexpr auto kLevelSetName = std::string_view{"LEVEL_SET"};
+constexpr auto kLevelSetName = std::string_view{"PLATO_LS"};
 
 [[nodiscard]] bool include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart)
 {
@@ -113,8 +113,8 @@ auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,
 {
     assert(std::filesystem::exists(aFilename));
 
-    auto tMeshFromFile = std::make_unique<::krino::MeshFromFile>(aFilename.string(), stk::EnvData::parallel_comm(),
-                                                                 std::string{kDecompositionMethod});
+    auto tMeshFromFile = std::make_unique<MeshFromFileWithoutFields>(aFilename.string(), stk::EnvData::parallel_comm(),
+                                                                     std::string{kDecompositionMethod});
 
     setup_level_sets(*tMeshFromFile, aExcludedBlocks);
 

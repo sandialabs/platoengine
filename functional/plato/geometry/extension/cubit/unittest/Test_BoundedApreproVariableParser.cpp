@@ -11,19 +11,12 @@ namespace
 
 void expect_equal(const input_parser::BoundedApreproVariable& aResult,
                   const input_parser::BoundedApreproVariable& aGold,
-                  const test_utilities::TestContext& aTestContext)
+                  const plato::test_utilities::TestContext& aTestContext)
 {
     EXPECT_EQ(aResult.mName.mToken, aGold.mName.mToken) << aTestContext;
     EXPECT_EQ(aResult.mInitialValue, aGold.mInitialValue) << aTestContext;
     EXPECT_EQ(aResult.mBounds.mLower, aGold.mBounds.mLower) << aTestContext;
     EXPECT_EQ(aResult.mBounds.mUpper, aGold.mBounds.mUpper) << aTestContext;
-}
-
-void expect_invalid_input(const std::string_view aInput, const plato::test_utilities::TestContext& aTestContext)
-{
-    const auto [tResult, tSuccess] =
-        input_parser::test_utilities::parse_input<input_parser::BoundedApreproVariable>(aInput);
-    ASSERT_FALSE(tSuccess) << aTestContext;
 }
 
 }  // namespace
@@ -44,23 +37,28 @@ TEST(BoundedApreproVariable, InvalidInputParsingTest)
 {
     {
         constexpr auto tInvalidInput = std::string_view{"width, 0.5 [0.2, 1.0]"};
-        expect_invalid_input(tInvalidInput, TEST_CONTEXT("Erroneous comma"));
+        input_parser::test_utilities::expect_invalid_input<input_parser::BoundedApreproVariable>(
+            tInvalidInput, TEST_CONTEXT("Erroneous comma"));
     }
     {
         constexpr auto tInvalidInput = std::string_view{"width 0.5 "};
-        expect_invalid_input(tInvalidInput, TEST_CONTEXT("Missing bounds"));
+        input_parser::test_utilities::expect_invalid_input<input_parser::BoundedApreproVariable>(
+            tInvalidInput, TEST_CONTEXT("Missing bounds"));
     }
     {
         constexpr auto tInvalidInput = std::string_view{"#width, 0.5 [0.2, 1.0]"};
-        expect_invalid_input(tInvalidInput, TEST_CONTEXT("Misplaced comment"));
+        input_parser::test_utilities::expect_invalid_input<input_parser::BoundedApreproVariable>(
+            tInvalidInput, TEST_CONTEXT("Misplaced comment"));
     }
     {
         constexpr auto tInvalidInput = std::string_view{" a-b  0.5 [0.2, 1.0]"};
-        expect_invalid_input(tInvalidInput, TEST_CONTEXT("Missing identifier"));
+        input_parser::test_utilities::expect_invalid_input<input_parser::BoundedApreproVariable>(
+            tInvalidInput, TEST_CONTEXT("Missing identifier"));
     }
     {
         constexpr auto tInvalidInput = std::string_view{"'width'  0.5 [0.2, 1.0]"};
-        expect_invalid_input(tInvalidInput, TEST_CONTEXT("Old syntax starter key"));
+        input_parser::test_utilities::expect_invalid_input<input_parser::BoundedApreproVariable>(
+            tInvalidInput, TEST_CONTEXT("Old syntax starter key"));
     }
 }
 

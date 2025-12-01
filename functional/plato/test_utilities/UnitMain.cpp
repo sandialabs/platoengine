@@ -9,6 +9,7 @@
 #include <boost/log/core.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>
 #include <boost/log/sinks/text_ostream_backend.hpp>
+#include <boost/mpi/environment.hpp>
 #include <string_view>
 
 #include "plato/utilities/NamedType.hpp"
@@ -110,7 +111,7 @@ int communicate_exit_code(const MPI_Comm& tInterComm, const int tExitStatus)
 
 int unit_main(int argc, char** argv)
 {
-    MPI_Init(&argc, &argv);
+    auto tEnvironment = boost::mpi::environment{argc, argv, boost::mpi::threading::level::funneled};
     Kokkos::initialize(argc, argv);
     [[maybe_unused]] const auto tLogSink = null_log_sink();
 
@@ -118,14 +119,13 @@ int unit_main(int argc, char** argv)
     const int returnVal = RUN_ALL_TESTS();
 
     Kokkos::finalize();
-    MPI_Finalize();
 
     return returnVal;
 }
 
 int parallel_unit_main(int argc, char** argv, unsigned int aNumRanks)
 {
-    MPI_Init(&argc, &argv);
+    auto tEnvironment = boost::mpi::environment{argc, argv, boost::mpi::threading::level::funneled};
     Kokkos::initialize(argc, argv);
     [[maybe_unused]] const auto tLogSink = null_log_sink();
 
@@ -146,7 +146,6 @@ int parallel_unit_main(int argc, char** argv, unsigned int aNumRanks)
     }
 
     Kokkos::finalize();
-    MPI_Finalize();
 
     return tExitStatus;
 }

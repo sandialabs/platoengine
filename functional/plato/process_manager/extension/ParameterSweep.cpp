@@ -127,11 +127,11 @@ void ParameterSweep::run(const library::ProcessManagerData& aProcessManagerData)
 
     auto tCombinationGenerator = CombinationGenerator{tStepsVector, SubIndexVector{tSubIndices}, tInitialGuess};
     std::for_each(tCombinationGenerator.begin(), tCombinationGenerator.end(),
-                  [&tObjective, &tOutFile, &tSubIndices](const auto aCombination)
+                  [&tObjective, &tOutFile, this](const auto aCombination)
                   {
                       const auto tValue = tObjective.evaluate<core::evaluation::kFunction>(
                           linear_algebra::DynamicVector<double>{aCombination});
-                      const auto tSubDomain = down_select_to_sub_entries(aCombination, tSubIndices);
+                      const auto tSubDomain = down_select_to_sub_entries(aCombination, mParameters.first);
                       write_table_row(tSubDomain, tValue, tOutFile);
                   });
 }

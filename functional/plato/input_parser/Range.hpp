@@ -17,7 +17,7 @@ BOOST_FUSION_DEFINE_STRUCT(
 namespace plato::input_parser
 {
 
-inline bool operator==(const Range& aLHS, const Range& aRHS)
+[[nodiscard]] constexpr inline bool operator==(const Range& aLHS, const Range& aRHS)
 {
     return aLHS.mLower == aRHS.mLower && aLHS.mStep == aRHS.mStep && aLHS.mUpper == aRHS.mUpper;
 }
@@ -27,7 +27,7 @@ inline bool operator==(const Range& aLHS, const Range& aRHS)
 namespace boost::spirit::traits
 {
 
-///@brief Specialization of the parser for the type Bounds. Reads in a bounds of the form "[ lower : step : upper ]".
+///@brief Specialization of the parser for the type Range. Reads in a range of the form "[ lower : step : upper ]".
 template <typename Iterator>
 struct create_parser<plato::input_parser::Range, Iterator>
 {

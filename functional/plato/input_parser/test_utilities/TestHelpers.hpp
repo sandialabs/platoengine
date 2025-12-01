@@ -66,6 +66,26 @@ template <typename ParsedType>
     return {tData, tParseResult};
 }
 
+/// @brief Helper for taking input @a aInput, and attempting to parse it using the template type PlatoInput. The line is
+/// expected to pass parsing and produce the expected gold object @a aGold.
+template <typename PlatoInput>
+    requires requires(const PlatoInput& aGold, const PlatoInput& tResult) { boost::fusion::equal_to(aGold, tResult); }
+void expect_valid_input(const std::string_view aInput,
+                        const PlatoInput aGold,
+                        const plato::test_utilities::TestContext& aTestContext)
+{
+    const auto [tResult, tSuccess] = test_utilities::parse_input<PlatoInput>(aInput);
+    ASSERT_TRUE(tSuccess) << aTestContext;
+    EXPECT_TRUE(boost::fusion::equal_to(aGold, tResult)) << aTestContext;
+}
+
+/// @brief Helper for taking input @a aInput, and expecting the parse to fail.
+template <typename PlatoInput>
+void expect_invalid_input(const std::string_view aInput, const plato::test_utilities::TestContext& aTestContext)
+{
+    const auto [tResult, tSuccess] = test_utilities::parse_input<PlatoInput>(aInput);
+    EXPECT_FALSE(tSuccess) << aTestContext;
+}
 }  // namespace plato::input_parser::test_utilities
 
 #endif
