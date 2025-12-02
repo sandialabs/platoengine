@@ -25,10 +25,7 @@ constexpr auto kHelpKey = std::string_view{"--help"};
 
 void handle_input(const std::vector<std::string>& aArguments)
 {
-    plato::utilities::execute_on_root(boost::mpi::communicator{},
-                                      []() { std::filesystem::remove_all(plato::services::logging_directory_path()); });
     [[maybe_unused]] const auto tInternalLogSink = services::internal_logger_console_sink();
-    [[maybe_unused]] const auto tExternalLogSinks = services::component_external_logger_file_sinks();
 
     if (!aArguments.empty() && aArguments.front() == std::string{kHelpKey})
     {
@@ -56,10 +53,7 @@ void run_plato(const std::filesystem::path& aInputFile)
         return;
     }
 
-    if (boost::mpi::communicator{}.rank() == 0)
-    {
-        print_splash_screen(std::cout);
-    }
+    plato::utilities::execute_on_root(boost::mpi::communicator{}, []() { print_splash_screen(std::cout); });
 
     const auto& tValidatedProcessManagers = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
     const auto tExecutor =
@@ -68,6 +62,10 @@ void run_plato(const std::filesystem::path& aInputFile)
 
     try
     {
+        plato::utilities::execute_on_root(boost::mpi::communicator{}, []()
+                                          { std::filesystem::remove_all(plato::services::logging_directory_path()); });
+        [[maybe_unused]] const auto tExternalLogSinks = services::component_external_logger_file_sinks();
+
         tExecutor.execute(tProcessManagerData);
     }
     catch (const std::exception& tError)
@@ -86,10 +84,8 @@ void print_command_line_error_message()
 
 void print_known_inputs()
 {
-    if (boost::mpi::communicator{}.rank() == 0)
-    {
-        plato::input_parser::known_inputs(std::cout);
-    }
+    plato::utilities::execute_on_root(boost::mpi::communicator{},
+                                      []() { plato::input_parser::known_inputs(std::cout); });
 }
 
 }  // namespace detail
