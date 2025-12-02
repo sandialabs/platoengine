@@ -10,7 +10,7 @@ namespace plato::third_party_integration::krino
 using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::Part>>;
 
 /// @brief Get the name of the sideset defined between void and solid regions.
-[[nodiscard]] auto get_interface_sideset_name() -> std::string_view;
+[[nodiscard]] auto get_interface_sideset_name() -> std::string;
 /// @brief Given a triangle @ aTriangle calculate the normal nodal sensitivities.
 TriangleNormalSensitivity get_d_normal_d_tri_node(const SensitivityTriangle& aTriangle);
 /// @brief Given a triangle @ aTriangle calculate the area nodal sensitivities.

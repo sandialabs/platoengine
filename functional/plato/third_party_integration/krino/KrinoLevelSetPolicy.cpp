@@ -16,6 +16,7 @@ namespace
 // can set the level-set field names for a sub-set of the blocks in the mesh. It also assumes there is only one
 // level-set field.
 
+constexpr auto kVoidPhaseName = std::string_view{"void"};
 constexpr auto kNumberOfStates = 1U;
 
 void declare_and_append_levelset_field(::krino::AuxMetaData& aAuxMeta,
@@ -63,7 +64,7 @@ void declare_and_append_levelset_field(::krino::AuxMetaData& aAuxMeta,
                        constexpr auto tLevelSetIndex = 0U;
                        tTag.add(::krino::Surface_Identifier(tLevelSetIndex), tLevelSetSign);
 
-                       auto tPhaseName = (tLevelSetIsNegative ? "void" : "");
+                       auto tPhaseName = (tLevelSetIsNegative ? kVoidPhaseName.data() : "");
                        return ::krino::NamedPhase{std::move(tPhaseName), tTag};
                    });
     return tNamedPhases;
@@ -149,5 +150,7 @@ auto all_block_parts(const ::krino::MeshInterface& aKrinoMesh) -> stk::mesh::Par
                   [&aExcludedBlocks](const auto& aPart) { return aExcludedBlocks.contains(aPart->name()); });
     return tElementBlockParts;
 }
+
+[[nodiscard]] auto get_void_phase_name() -> std::string_view { return kVoidPhaseName; }
 
 }  // namespace plato::third_party_integration::krino

@@ -6,17 +6,13 @@
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Selector.hpp>
 
+#include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 
 namespace plato::third_party_integration::krino
 {
 
-namespace
-{
-constexpr auto kInterfaceSidesetName = std::string_view{"surface__void"};
-}
-
-auto get_interface_sideset_name() -> std::string_view { return kInterfaceSidesetName; }
+auto get_interface_sideset_name() -> std::string { return "surface__" + std::string{get_void_phase_name()}; }
 
 TriangleAreaSensitivity get_d_area_d_tri_node(const SensitivityTriangle& aTriangle)
 {
@@ -101,7 +97,7 @@ auto get_interface_triangles(const stk::mesh::BulkData& aBulkData,
     std::vector<const stk::mesh::Part*> tParts;
     for (const auto& tCurBlock : aDesignDomainBlocks)
     {
-        if (tCurBlock.get().name().find("void") == std::string::npos)
+        if (tCurBlock.get().name().find(get_void_phase_name()) == std::string::npos)
         {
             tParts.push_back(&(tCurBlock.get()));
         }
