@@ -50,23 +50,25 @@ struct OverhangCriterion
 
 namespace detail
 {
-
-/// @brief Function for converting from angle in degrees to overhang threshold value.
-[[nodiscard]] double convert_angle_to_threshold_value(const double aAngle);
+// The following 3 functions--exponential_step_function, smoothing_function, and
+// overhang_value_from_normal_and_build_direction-- combine to create a smooth function in a finite interval that goes
+// from 0 to 1 over a small transition region and then outside that transition region is exactly 0 or 1. This requires
+// logic/branching but the way they are defined results in a C infinity function. There is a Wikipedia page that
+// describes it: https://en.wikipedia.org/wiki/Bump_function.
 /// @brief Exponential function used as a building block for generating a smooth overhang step function going from 0
 /// to 1.
 [[nodiscard]] double exponential_step_function(const double aInput);
-/// @brief Derivattive of exponential function used as a building block for generating a smooth overhang step function
-/// going from 0 to 1.
-[[nodiscard]] double d_exponential_step_function(const double aInput);
 /// @brief Smooth step function for transitioning overhang values from 0 to 1.
 [[nodiscard]] double smoothing_function(const double aInput);
-/// @brief Derivative of smooth step function for transitioning overhang values from 0 to 1.
-[[nodiscard]] double d_smoothing_function(const double aInput);
 /// @brief Calculate the overhang value given the angle of the triangle normal dotted with the build direction @
 /// aAngleDotBuildDirection.
 [[nodiscard]] double overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
                                                                     const OverhangCriterion& aOverhangCriterion);
+/// @brief Derivattive of exponential function used as a building block for generating a smooth overhang step function
+/// going from 0 to 1.
+[[nodiscard]] double d_exponential_step_function(const double aInput);
+/// @brief Derivative of smooth step function for transitioning overhang values from 0 to 1.
+[[nodiscard]] double d_smoothing_function(const double aInput);
 /// @brief Calculate the derivative of the overhang value given the angle of the triangle normal dotted with the build
 /// direction @ aAngleDotBuildDirection.
 [[nodiscard]] double d_overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
@@ -103,6 +105,8 @@ namespace detail
 [[nodiscard]] auto get_triangles_to_evaluate_over(const std::string& aMeshFileName,
                                                   const std::vector<std::string>& aEvaluationSidesetNames)
     -> std::vector<third_party_integration::krino::SensitivityTriangle>;
+/// @brief Function for converting from angle in degrees to overhang threshold value.
+[[nodiscard]] double convert_angle_to_threshold_value(const double aAngle);
 }  // namespace detail
 
 }  // namespace plato::criteria::extension
