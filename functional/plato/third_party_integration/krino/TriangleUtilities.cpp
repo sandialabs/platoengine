@@ -11,6 +11,13 @@
 namespace plato::third_party_integration::krino
 {
 
+namespace
+{
+constexpr auto kInterfaceSidesetName = std::string_view{"surface__void"};
+}
+
+auto get_interface_sideset_name() -> std::string_view { return kInterfaceSidesetName; }
+
 TriangleAreaSensitivity get_d_area_d_tri_node(const SensitivityTriangle& aTriangle)
 {
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)

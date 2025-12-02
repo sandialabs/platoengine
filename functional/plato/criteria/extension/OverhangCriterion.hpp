@@ -3,24 +3,31 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/Point.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
+///@brief Input struct with parser to read in overhang constraint parameters
+// clang-format off
+BOOST_FUSION_DEFINE_STRUCT(
+(plato)(input_parser),overhang_criterion,
+(boost::optional<plato::input_parser::Point>, build_direction)
+(boost::optional<double>, overhang_angle_in_degrees)
+(boost::optional<double>, transition_width)
+(boost::optional<plato::input_parser::FileList>, additional_evaluation_sidesets)
+)
+// clang-format on
+
 namespace plato::criteria::extension
 {
-struct ParsedInputParams
-{
-    double transition_width{0.1};
-    double overhang_angle_threshold{-std::sqrt(2.0) / 2.0};
-    third_party_integration::common::Vector3 build_direction{0, 0, 1};
-    std::vector<std::string> evaluation_sidesets;
-};
 
 /// @brief Computes a scalar value representing the amount of overhang wrt a build direction and overhang angle.
 struct OverhangCriterion
 {
-    OverhangCriterion(const ParsedInputParams& aInputParams, const library::CriterionInput& aCriterionInput);
+    OverhangCriterion(const input_parser::overhang_criterion& aInputParams,
+                      const library::CriterionInput& aCriterionInput);
     OverhangCriterion(const double aTransitionWidth,
                       const third_party_integration::common::Vector3& aBuildDirection,
                       const double aOverhangAngleThreshold);
@@ -44,6 +51,8 @@ struct OverhangCriterion
 namespace detail
 {
 
+/// @brief Function for converting from angle in degrees to overhang threshold value.
+[[nodiscard]] double convert_angle_to_threshold_value(const double aAngle);
 /// @brief Exponential function used as a building block for generating a smooth overhang step function going from 0
 /// to 1.
 [[nodiscard]] double exponential_step_function(const double aInput);
@@ -76,7 +85,7 @@ namespace detail
     const third_party_integration::krino::SensitivityTriangle& aTriangle, const OverhangCriterion& aOverhangCriterion)
     -> third_party_integration::krino::TriangleGradient;
 /// @brief Parse the overhang parameter input deck.
-[[nodiscard]] auto parse_input_deck(const std::string& aFilename) -> ParsedInputParams;
+[[nodiscard]] auto parse_input_deck(const std::string& aFilename) -> input_parser::overhang_criterion;
 /// @brief Given a list of triangles @ aTriangles, generate a sparse overhang gradient map for the nodes in the
 /// triangles.
 [[nodiscard]] auto calculate_gradient_map_from_triangles(

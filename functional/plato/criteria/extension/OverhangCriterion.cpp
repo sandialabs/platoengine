@@ -1,13 +1,13 @@
 #include "plato/criteria/extension/OverhangCriterion.hpp"
 
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
+#include <boost/spirit/include/qi.hpp>
 #include <filesystem>
 #include <numbers>
 #include <numeric>
 #include <vector>
 
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -20,6 +20,15 @@
 #include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/Zip.hpp"
+
+namespace plato::input_parser
+{
+template <>
+struct InputTypeName<overhang_criterion>
+{
+    static constexpr inline const char* name = "overhang";
+};
+}  // namespace plato::input_parser
 
 namespace plato::criteria::extension
 {
@@ -79,7 +88,7 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
         detail::calculate_gradient_map_from_triangles(tTriangles, *this);
 
     const auto tEntityRetrievalMesh = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
-    const std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.globalNodeIDs();
+    const std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.allNodeIDs();
 
     auto tGradientVector = detail::get_full_gradient_vector_from_gradient_map(tGradientMap, tAllNodeIds);
 
@@ -95,12 +104,43 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     return linear_algebra::DynamicVector<double>(std::move(tGradientVector));
 }
 
-OverhangCriterion::OverhangCriterion(const ParsedInputParams& aInputParams,
+namespace
+{
+constexpr double kTransitionWidth{0.1};
+constexpr double kOverhangAngleInDegrees{45.0};
+const third_party_integration::common::Vector3 kBuildDirection{0.0, 0.0, 1.0};
+
+[[nodiscard]] std::vector<std::string> to_sideset_list(
+    const boost::optional<input_parser::FileList>& aAdditionalSidesets)
+{
+    std::vector<std::string> tSidesetVector{std::string{third_party_integration::krino::get_interface_sideset_name()}};
+    if (aAdditionalSidesets.has_value())
+    {
+        tSidesetVector.insert(tSidesetVector.end(), aAdditionalSidesets.value().begin(),
+                              aAdditionalSidesets.value().end());
+    }
+    return tSidesetVector;
+}
+
+[[nodiscard]] third_party_integration::common::Vector3 to_common_vector_or_default(
+    const boost::optional<input_parser::Point>& aDirection)
+{
+    if (aDirection.has_value())
+    {
+        return third_party_integration::common::Vector3{aDirection.value().mX, aDirection.value().mY,
+                                                        aDirection.value().mZ};
+    }
+    return kBuildDirection;
+}
+}  // namespace
+
+OverhangCriterion::OverhangCriterion(const input_parser::overhang_criterion& aInputParams,
                                      const library::CriterionInput& aCriterionInput)
-    : mTransitionWidth(aInputParams.transition_width),
-      mBuildDirection(aInputParams.build_direction),
-      mOverhangAngleThreshold(aInputParams.overhang_angle_threshold),
-      mEvaluationSidesets(aInputParams.evaluation_sidesets),
+    : mTransitionWidth(aInputParams.transition_width.value_or(kTransitionWidth)),
+      mBuildDirection(to_common_vector_or_default(aInputParams.build_direction)),
+      mOverhangAngleThreshold(detail::convert_angle_to_threshold_value(
+          aInputParams.overhang_angle_in_degrees.value_or(kOverhangAngleInDegrees))),
+      mEvaluationSidesets(to_sideset_list(aInputParams.additional_evaluation_sidesets)),
       mComponentType{aCriterionInput.mComponentType},
       mName{aCriterionInput.mName}
 {
@@ -121,7 +161,7 @@ auto make_overhang_function(const library::CriterionInput& aCriterionInput) -> l
     {
         throw utilities::Exception{"You must specify an overhang criterion input file."};
     }
-    ParsedInputParams tInputParams = detail::parse_input_deck(aCriterionInput.mInputFiles.list().mList[0]);
+    const auto& tInputParams = detail::parse_input_deck(aCriterionInput.mInputFiles.list().mList[0]);
     return core::make_function_with_first_derivative(
         [tInputParams, aCriterionInput](const analysis::AnalysisDomainMesh& mesh)
         { return OverhangCriterion(tInputParams, aCriterionInput).f(mesh); },
@@ -134,6 +174,11 @@ namespace detail
 
 using namespace plato::third_party_integration::common;
 using namespace plato::third_party_integration::krino;
+
+[[nodiscard]] double convert_angle_to_threshold_value(const double aAngle)
+{
+    return -std::cos(aAngle * std::numbers::pi / 180.0);
+}
 
 [[nodiscard]] auto get_triangles_to_evaluate_over(const std::string& aMeshFileName,
                                                   const std::vector<std::string>& aEvaluationSidesetNames)
@@ -316,65 +361,30 @@ TriangleGradient get_gradient_contribution_for_triangle(const SensitivityTriangl
     return tGradient;
 }
 
-[[nodiscard]] std::string get_xml_node_string(const boost::property_tree::ptree& aTree,
-                                              const std::string& aNode,
-                                              const std::string& aNodeName)
-{
-    if (const auto tValue = aTree.get_optional<std::string>(aNode + "." + aNodeName))
-    {
-        return tValue.value();
-    }
-    else
-    {
-        throw std::runtime_error("ERROR: Node with name " + aNodeName + " was not found in input file!");
-    }
-}
-
-ParsedInputParams parse_input_deck(const std::string& aFilename)
+input_parser::overhang_criterion parse_input_deck(const std::string& aFilename)
 {
     const auto tExists = std::filesystem::exists(aFilename);
     if (!tExists)
     {
         throw utilities::Exception{"Couldn't find overhang criterion input deck " + aFilename + "."};
     }
-    boost::property_tree::ptree tTree;
-    boost::property_tree::read_xml(aFilename, tTree);
+    auto tInputStream = std::ifstream{aFilename};
+    const auto tInputFileString =
+        std::string((std::istreambuf_iterator<char>(tInputStream)), std::istreambuf_iterator<char>());
 
-    ParsedInputParams tInputParams;
-    std::string tBuildDirection = get_xml_node_string(tTree, "OverhangInput", "BuildDirection");
-    std::stringstream tStringStream(tBuildDirection);  // Initialize stringstream with the input string
-    std::string tEntry;
-    std::vector<double> tValues;
+    const auto tParser = input_parser::BlockStructRule<std::string::const_iterator, input_parser::overhang_criterion>{};
 
-    while (tStringStream >> tEntry)
+    auto tIter = tInputFileString.begin();
+    auto tData = input_parser::overhang_criterion{};
+    const auto tSkipper = input_parser::SkipperRule<std::string::const_iterator>{};
+    const auto tParseSucceeded =
+        phrase_parse(tIter, tInputFileString.cend(), tParser.mBlockRule, tSkipper.skipperRule(), tData);
+
+    if (!tParseSucceeded || tIter != tInputFileString.cend())
     {
-        tValues.push_back(std::stod(tEntry));
+        throw utilities::Exception{"Couldn't parse overhang criterion input deck " + aFilename + "."};
     }
-    if (tValues.size() != 3)
-    {
-        throw utilities::Exception{"BuildDirection parameter entered incorrectly in overhang criterion input deck."};
-    }
-
-    tInputParams.build_direction = {tValues[0], tValues[1], tValues[2]};
-    std::string tOverhangAngleFromHorizontal =
-        get_xml_node_string(tTree, "OverhangInput", "OverhangAngleFromHorizontalInDegrees");
-    tInputParams.overhang_angle_threshold =
-        -std::cos(std::stod(tOverhangAngleFromHorizontal) * std::numbers::pi / 180.0);
-    tInputParams.transition_width = std::stod(get_xml_node_string(tTree, "OverhangInput", "TransitionWidth"));
-
-    tInputParams.evaluation_sidesets.push_back("surface__void");
-    if (auto tValue = tTree.get_optional<std::string>("OverhangInput.AdditionalEvaluationSidesets"))
-    {
-        std::string tEvaluationSidesets = tValue.value();
-        std::stringstream tEvalSidesetStringStream(
-            tEvaluationSidesets);  // Initialize stringstream with the input string
-        while (tEvalSidesetStringStream >> tEntry)
-        {
-            tInputParams.evaluation_sidesets.push_back(tEntry);
-        }
-    }
-
-    return tInputParams;
+    return tData;
 }
 
 }  // namespace detail

@@ -58,10 +58,6 @@ using TimeStep = utilities::ValueOrTag<double, LastTimeStep>;
     -> std::vector<common::Coordinate>;
 
 /// @brief Returns nodal IDs associated with the parts in @a aParts in mesh @a aBulkData.
-[[nodiscard]] auto global_node_ids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
-    -> std::vector<std::size_t>;
-
-/// @brief Returns nodal IDs associated with the parts in @a aParts in mesh @a aBulkData.
 [[nodiscard]] auto node_ids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
     -> std::vector<std::size_t>;
 

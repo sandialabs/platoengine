@@ -6,6 +6,7 @@
 #include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::criteria::extension::unittest
@@ -273,116 +274,82 @@ TEST(OverhangCriterion, FullGradientVectorFromPartialGradientMap)
     EXPECT_EQ(tFullGradientVector, tGoldValues);
 }
 
+namespace
+{
+
+void create_overhang_input_file(const std::filesystem::path& aFilename,
+                                const std::vector<std::string>& aAdditionalSidesetNames)
+{
+    std::ofstream tTextFile(aFilename);
+    tTextFile << "begin overhang\n";
+    tTextFile << "build_direction (0, 0, 1)\n";
+    tTextFile << "overhang_angle_in_degrees 45\n";
+    tTextFile << "transition_width 0.1\n";
+    if (!aAdditionalSidesetNames.empty())
+    {
+        tTextFile << "additional_evaluation_sidesets "
+                  << utilities::concatenate_container(aAdditionalSidesetNames, ", ") << std::endl;
+    }
+    tTextFile << "end\n";
+    tTextFile.close();
+}
+
+}  // namespace
+
 TEST(OverhangCriterion, ParseInputDeck_Correct)
 {
-    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
-    std::ofstream tTextFile(tMeshPath);
-    tTextFile << "<OverhangInput>\n";
-    tTextFile << "  <BuildDirection>0 0 1</BuildDirection>\n";
-    tTextFile << "  <OverhangAngleFromHorizontalInDegrees>45</OverhangAngleFromHorizontalInDegrees>\n";
-    tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
-    tTextFile << "  <AdditionalEvaluationSidesets>my_sideset your_sideset</AdditionalEvaluationSidesets>\n";
-    tTextFile << "</OverhangInput>";
-    tTextFile.close();
-
-    ParsedInputParams tParams = detail::parse_input_deck(tMeshPath);
+    const std::string tFilename{"temp_input_deck.txt"};
+    const std::vector<std::string> tSidesets{"my_sideset", "your_sideset"};
+    create_overhang_input_file(tFilename, tSidesets);
+    const auto& tParams = detail::parse_input_deck(tFilename);
     constexpr auto tAbsoluteError = 1e-10;
-    EXPECT_NEAR(tParams.build_direction.x, 0.0, tAbsoluteError);
-    EXPECT_NEAR(tParams.build_direction.y, 0.0, tAbsoluteError);
-    EXPECT_NEAR(tParams.build_direction.z, 1.0, tAbsoluteError);
-    EXPECT_NEAR(tParams.overhang_angle_threshold, -std::sqrt(2.0) / 2.0, tAbsoluteError);
-    EXPECT_NEAR(tParams.transition_width, 0.1, tAbsoluteError);
-    EXPECT_EQ(tParams.evaluation_sidesets.size(), 3);
-    EXPECT_TRUE(tParams.evaluation_sidesets[0] == "surface__void");
-    EXPECT_TRUE(tParams.evaluation_sidesets[1] == "my_sideset");
-    EXPECT_TRUE(tParams.evaluation_sidesets[2] == "your_sideset");
-
-    std::filesystem::remove(tMeshPath);
+    ASSERT_TRUE(tParams.build_direction.has_value());
+    ASSERT_TRUE(tParams.overhang_angle_in_degrees.has_value());
+    ASSERT_TRUE(tParams.transition_width.has_value());
+    ASSERT_TRUE(tParams.additional_evaluation_sidesets.has_value());
+    EXPECT_NEAR(tParams.build_direction.value().mX, 0.0, tAbsoluteError);
+    EXPECT_NEAR(tParams.build_direction.value().mY, 0.0, tAbsoluteError);
+    EXPECT_NEAR(tParams.build_direction.value().mZ, 1.0, tAbsoluteError);
+    EXPECT_NEAR(tParams.overhang_angle_in_degrees.value(), 45, tAbsoluteError);
+    EXPECT_NEAR(tParams.transition_width.value(), 0.1, tAbsoluteError);
+    EXPECT_EQ(tParams.additional_evaluation_sidesets.value().list().mList, tSidesets);
+    std::filesystem::remove(tFilename);
 }
 
 TEST(OverhangCriterion, ParseInputDeck_Correct_NoAdditionalEvaluationSidesets)
 {
-    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
-    std::ofstream tTextFile(tMeshPath);
-    tTextFile << "<OverhangInput>\n";
-    tTextFile << "  <BuildDirection>0 0 1</BuildDirection>\n";
-    tTextFile << "  <OverhangAngleFromHorizontalInDegrees>45</OverhangAngleFromHorizontalInDegrees>\n";
-    tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
-    tTextFile << "</OverhangInput>";
-    tTextFile.close();
+    const std::string tFilename{"temp_input_deck.txt"};
+    create_overhang_input_file(tFilename, {});
+    const auto& tParams = detail::parse_input_deck(tFilename);
+    EXPECT_FALSE(tParams.additional_evaluation_sidesets.has_value());
+    std::filesystem::remove(tFilename);
+}
 
-    ParsedInputParams tParams = detail::parse_input_deck(tMeshPath);
+TEST(OverhangCriterion, ConstructionFromEmptyInput)
+{
+    constexpr auto tNumDefaultEvaluationSidesets{1}; /* "surface__void" is always there by default */
+    constexpr auto tDefaultTransitionWidth{0.1};
+    constexpr auto tDefaultAngle{45.0};
+    const third_party_integration::common::Vector3 tDefaultBuildDirection{0, 0, 1};
+    const auto tOverhangInput = input_parser::overhang_criterion{
+        /*build_direction*/ boost::none, /*overhang_angle_in_degrees*/ boost::none, /*transition_width*/ boost::none,
+        /*additional_evaluation_sidesets*/ boost::none};
+    const library::CriterionInput tCriterionInput{};
+    const OverhangCriterion tOverhangCriterion{tOverhangInput, tCriterionInput};
+    EXPECT_EQ(tOverhangCriterion.mOverhangAngleThreshold, detail::convert_angle_to_threshold_value(tDefaultAngle));
+    third_party_integration::common::test_utilities::test_double_equality_of_components(
+        tOverhangCriterion.mBuildDirection, tDefaultBuildDirection, TEST_CONTEXT("Checking vector components"));
+    EXPECT_EQ(tOverhangCriterion.mTransitionWidth, tDefaultTransitionWidth);
+    EXPECT_EQ(tOverhangCriterion.mEvaluationSidesets.size(), tNumDefaultEvaluationSidesets);
+}
+
+TEST(OverhangCriterion, ConvertFromAngleToThresholdValue)
+{
     constexpr auto tAbsoluteError = 1e-10;
-    EXPECT_NEAR(tParams.build_direction.x, 0.0, tAbsoluteError);
-    EXPECT_NEAR(tParams.build_direction.y, 0.0, tAbsoluteError);
-    EXPECT_NEAR(tParams.build_direction.z, 1.0, tAbsoluteError);
-    EXPECT_NEAR(tParams.overhang_angle_threshold, -std::sqrt(2.0) / 2.0, tAbsoluteError);
-    EXPECT_NEAR(tParams.transition_width, 0.1, tAbsoluteError);
-    EXPECT_EQ(tParams.evaluation_sidesets.size(), 1);
-    EXPECT_TRUE(tParams.evaluation_sidesets[0] == "surface__void");
-
-    std::filesystem::remove(tMeshPath);
-}
-
-TEST(OverhangCriterion, ParseInputDeck_WrongNumberBuildDirectionParameters)
-{
-    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
-    std::ofstream tTextFile(tMeshPath);
-    tTextFile << "<OverhangInput>\n";
-    tTextFile << "  <BuildDirection>0</BuildDirection>\n";
-    tTextFile << "  <OverhangAngleFromHorizontalInDegrees>45</OverhangAngleFromHorizontalInDegrees>\n";
-    tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
-    tTextFile << "</OverhangInput>";
-    tTextFile.close();
-
-    ParsedInputParams tParams;
-    EXPECT_THROW(tParams = detail::parse_input_deck(tMeshPath), plato::utilities::Exception);
-    std::filesystem::remove(tMeshPath);
-}
-
-TEST(OverhangCriterion, ParseInputDeck_MissingBuildDirectionParameters)
-{
-    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
-    std::ofstream tTextFile(tMeshPath);
-    tTextFile << "<OverhangInput>\n";
-    tTextFile << "  <OverhangAngleFromHorizontalInDegrees>45</OverhangAngleFromHorizontalInDegrees>\n";
-    tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
-    tTextFile << "</OverhangInput>";
-    tTextFile.close();
-
-    ParsedInputParams tParams;
-    EXPECT_THROW(tParams = detail::parse_input_deck(tMeshPath), std::runtime_error);
-    std::filesystem::remove(tMeshPath);
-}
-
-TEST(OverhangCriterion, ParseInputDeck_MissingOverhangAngleParameter)
-{
-    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
-    std::ofstream tTextFile(tMeshPath);
-    tTextFile << "<OverhangInput>\n";
-    tTextFile << "  <BuildDirection>0 0 1</BuildDirection>\n";
-    tTextFile << "  <TransitionWidth>0.1</TransitionWidth>\n";
-    tTextFile << "</OverhangInput>";
-    tTextFile.close();
-
-    ParsedInputParams tParams;
-    EXPECT_THROW(tParams = detail::parse_input_deck(tMeshPath), std::runtime_error);
-    std::filesystem::remove(tMeshPath);
-}
-
-TEST(OverhangCriterion, ParseInputDeck_MissingTransitionWidthParameter)
-{
-    const auto tMeshPath = std::filesystem::path{"temp_input_deck.txt"};
-    std::ofstream tTextFile(tMeshPath);
-    tTextFile << "<OverhangInput>\n";
-    tTextFile << "  <OverhangAngleFromHorizontalInDegrees>45</OverhangAngleFromHorizontalInDegrees>\n";
-    tTextFile << "  <BuildDirection>0 0 1</BuildDirection>\n";
-    tTextFile << "</OverhangInput>";
-    tTextFile.close();
-
-    ParsedInputParams tParams;
-    EXPECT_THROW(tParams = detail::parse_input_deck(tMeshPath), std::runtime_error);
-    std::filesystem::remove(tMeshPath);
+    constexpr auto tAngle{60.0};
+    constexpr auto tGold{-0.5};
+    const auto tConvertedValue{detail::convert_angle_to_threshold_value(tAngle)};
+    EXPECT_NEAR(tConvertedValue, tGold, tAbsoluteError);
 }
 
 }  // namespace plato::criteria::extension::unittest
