@@ -82,26 +82,41 @@ TEST(OverhangCriterion, OverhangFromTriangle)
     EXPECT_NEAR(detail::area_weighted_overhang_from_triangle(tTriangle, kCriterion), tExpectedValue, kTolerance);
 }
 
+namespace
+{
+void check_first_order_truncation_error(const auto& aF,
+                                        const auto& aDF,
+                                        const plato::test_utilities::GradientCheckParameters& aGradCheckParams,
+                                        const double aX,
+                                        const double aDirection,
+                                        const double aFirstOrderTruncationTolerance,
+                                        const double aLastFiniteDifferenceError)
+{
+    const auto tChecker = plato::test_utilities::GradientChecker{aF, aDF};
+
+    EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(aX, aDirection, aGradCheckParams), 0.0,
+                aFirstOrderTruncationTolerance)
+        << tChecker.table(aX, aDirection, aGradCheckParams);
+    const auto tErrors = tChecker.finiteDifferenceErrors(aX, aDirection, aGradCheckParams);
+    ASSERT_FALSE(tErrors.empty());
+    EXPECT_NEAR(tErrors.back().mValue, 0.0, aLastFiniteDifferenceError)
+        << "Full gradient check:\n"
+        << tChecker.table(aX, aDirection, aGradCheckParams);
+}
+}  // namespace
+
 TEST(OverhangCriterion, dExponentialStepFunction)
 {
     constexpr plato::test_utilities::GradientCheckParameters tGradCheckParams{
         .mStepDelta = .1, .mNumSteps = 6, .mInitialStepSize = .01};
     constexpr auto tFirstOrderTruncationTolerance{1e-1};
     constexpr auto tLastFiniteDifferenceError{1e-6};
-    const auto tChecker =
-        plato::test_utilities::GradientChecker{[](const double x) { return detail::exponential_step_function(x); },
-                                               [](const double x) { return detail::d_exponential_step_function(x); }};
     constexpr auto tX = 0.26;
     constexpr auto tDirection = 1.0;
-
-    EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(tX, tDirection, tGradCheckParams), 0.0,
-                tFirstOrderTruncationTolerance);
-
-    const auto tErrors = tChecker.finiteDifferenceErrors(tX, tDirection, tGradCheckParams);
-    ASSERT_FALSE(tErrors.empty());
-    EXPECT_NEAR(tErrors.back().mValue, 0.0, tLastFiniteDifferenceError)
-        << "Full gradient check:\n"
-        << tChecker.table(tX, tDirection, tGradCheckParams);
+    check_first_order_truncation_error([](const double x) { return detail::exponential_step_function(x); },
+                                       [](const double x) { return detail::d_exponential_step_function(x); },
+                                       tGradCheckParams, tX, tDirection, tFirstOrderTruncationTolerance,
+                                       tLastFiniteDifferenceError);
 }
 
 TEST(OverhangCriterion, dSmoothingFunction)
@@ -110,20 +125,11 @@ TEST(OverhangCriterion, dSmoothingFunction)
         .mStepDelta = .1, .mNumSteps = 6, .mInitialStepSize = .01};
     constexpr auto tFirstOrderTruncationTolerance{1e-1};
     constexpr auto tLastFiniteDifferenceError{1e-6};
-    const auto tChecker =
-        plato::test_utilities::GradientChecker{[](const double x) { return detail::smoothing_function(x); },
-                                               [](const double x) { return detail::d_smoothing_function(x); }};
     constexpr auto tX = 0.74;
     constexpr auto tDirection = 1.0;
-
-    EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(tX, tDirection, tGradCheckParams), 0.0,
-                tFirstOrderTruncationTolerance);
-
-    const auto tErrors = tChecker.finiteDifferenceErrors(tX, tDirection, tGradCheckParams);
-    ASSERT_FALSE(tErrors.empty());
-    EXPECT_NEAR(tErrors.back().mValue, 0.0, tLastFiniteDifferenceError)
-        << "Full gradient check:\n"
-        << tChecker.table(tX, tDirection, tGradCheckParams);
+    check_first_order_truncation_error([](const double x) { return detail::smoothing_function(x); },
+                                       [](const double x) { return detail::d_smoothing_function(x); }, tGradCheckParams,
+                                       tX, tDirection, tFirstOrderTruncationTolerance, tLastFiniteDifferenceError);
 }
 
 TEST(OverhangCriterion, dOverhang)
@@ -132,24 +138,26 @@ TEST(OverhangCriterion, dOverhang)
         .mStepDelta = .5, .mNumSteps = 6, .mInitialStepSize = .0001};
     constexpr auto tFirstOrderTruncationTolerance{6e-1};
     constexpr auto tLastFiniteDifferenceError{1e-8};
-    const auto tChecker = plato::test_utilities::GradientChecker{
+    const auto tX = kOverhangAngleThreshold - (kStepTransitionWidth / 2.0);
+    constexpr auto tDirection = 1.0;
+    check_first_order_truncation_error(
         [](const double aNormalDotBuildDirection)
         { return detail::overhang_value_from_normal_and_build_direction(aNormalDotBuildDirection, kCriterion); },
         [](const double aNormalDotBuildDirection)
-        { return detail::d_overhang_value_from_normal_and_build_direction(aNormalDotBuildDirection, kCriterion); }};
-    const auto tX = kOverhangAngleThreshold - (kStepTransitionWidth / 2.0);
-    constexpr auto tDirection = 1.0;
-
-    EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(tX, tDirection, tGradCheckParams), 0.0,
-                tFirstOrderTruncationTolerance)
-        << tChecker.table(tX, tDirection, tGradCheckParams);
-
-    const auto tErrors = tChecker.finiteDifferenceErrors(tX, tDirection, tGradCheckParams);
-    ASSERT_FALSE(tErrors.empty());
-    EXPECT_NEAR(tErrors.back().mValue, 0.0, tLastFiniteDifferenceError)
-        << "Full gradient check:\n"
-        << tChecker.table(tX, tDirection, tGradCheckParams);
+        { return detail::d_overhang_value_from_normal_and_build_direction(aNormalDotBuildDirection, kCriterion); },
+        tGradCheckParams, tX, tDirection, tFirstOrderTruncationTolerance, tLastFiniteDifferenceError);
 }
+
+namespace
+{
+[[nodiscard]] SensitivityTriangle build_single_tri_from_coords(const std::vector<double>& aCoords)
+{
+    const Coordinate tNode1{.x = aCoords[0], .y = aCoords[1], .z = aCoords[2]};
+    const Coordinate tNode2{.x = aCoords[3], .y = aCoords[4], .z = aCoords[5]};
+    const Coordinate tNode3{.x = aCoords[6], .y = aCoords[7], .z = aCoords[8]};
+    return SensitivityTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2}, NodeIDCoordsPair{3, tNode3}};
+}
+}  // namespace
 
 TEST(OverhangCriterion, SingleTriangleDerivative)
 {
@@ -161,21 +169,13 @@ TEST(OverhangCriterion, SingleTriangleDerivative)
     const auto tChecker = plato::test_utilities::GradientChecker{
         [tCriterion](const linear_algebra::DynamicVector<double>& aTriNodalCoords)
         {
-            const Coordinate tNode1{.x = aTriNodalCoords[0], .y = aTriNodalCoords[1], .z = aTriNodalCoords[2]};
-            const Coordinate tNode2{.x = aTriNodalCoords[3], .y = aTriNodalCoords[4], .z = aTriNodalCoords[5]};
-            const Coordinate tNode3{.x = aTriNodalCoords[6], .y = aTriNodalCoords[7], .z = aTriNodalCoords[8]};
-            SensitivityTriangle tTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2},
-                                          NodeIDCoordsPair{3, tNode3}};
+            const auto tTriangle = build_single_tri_from_coords(aTriNodalCoords.stdVector());
             return detail::area_weighted_overhang_from_triangle(tTriangle, tCriterion);
         },
         [tCriterion](const linear_algebra::DynamicVector<double>& aTriNodalCoords,
                      const linear_algebra::DynamicVector<double>& aDirection)
         {
-            const Coordinate tNode1{.x = aTriNodalCoords[0], .y = aTriNodalCoords[1], .z = aTriNodalCoords[2]};
-            const Coordinate tNode2{.x = aTriNodalCoords[3], .y = aTriNodalCoords[4], .z = aTriNodalCoords[5]};
-            const Coordinate tNode3{.x = aTriNodalCoords[6], .y = aTriNodalCoords[7], .z = aTriNodalCoords[8]};
-            SensitivityTriangle tTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2},
-                                          NodeIDCoordsPair{3, tNode3}};
+            const auto tTriangle = build_single_tri_from_coords(aTriNodalCoords.stdVector());
             const auto tSensitivities = detail::get_gradient_contribution_for_triangle(tTriangle, tCriterion);
             std::vector<double> tGradientValues;
             for (const auto& tCurSensitivity : tSensitivities)

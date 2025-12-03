@@ -34,12 +34,14 @@ std::vector<double> get_d_normal_d_nodal_coords_from_tri_coords(const std::vecto
     -> std::vector<SensitivityTriangle>;
 /// @brief Transform the given flat vector with area sensitivities @ aFlatAreaSensitivityVector into meaningful data
 /// structures.
-TriangleAreaSensitivity convert_area_sensitivties_from_flat_vector_to_plato_data_structure(
+[[nodiscard]] TriangleAreaSensitivity convert_area_sensitivties_from_flat_vector_to_plato_data_structure(
     const std::vector<double>& aFlatAreaSensitivityVector);
 /// @brief Transform the given flat vector with normal sensitivities @ aFlatNormalSensitivityVector into meaningful data
 /// structures.
-TriangleNormalSensitivity convert_normal_sensitivities_from_flat_vector_to_plato_data_structure(
+[[nodiscard]] TriangleNormalSensitivity convert_normal_sensitivities_from_flat_vector_to_plato_data_structure(
     const std::vector<double>& aFlatNormalSensitivityVector);
+/// @brief Given a triangle return a vector of its nodal coordinates.
+[[nodiscard]] std::vector<double> convert_tri_to_coords(const SensitivityTriangle& aTriangle);
 
 }  // end namespace detail
 

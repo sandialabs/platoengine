@@ -17,20 +17,16 @@ auto get_interface_sideset_name() -> std::string { return "surface__" + std::str
 TriangleAreaSensitivity get_d_area_d_tri_node(const SensitivityTriangle& aTriangle)
 {
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
-    const std::vector<double> tDAreaDNodalCoordinates = detail::get_d_area_d_nodal_coords_from_tri_coords(
-        {aTriangle.mNodes[0].second.x, aTriangle.mNodes[0].second.y, aTriangle.mNodes[0].second.z,
-         aTriangle.mNodes[1].second.x, aTriangle.mNodes[1].second.y, aTriangle.mNodes[1].second.z,
-         aTriangle.mNodes[2].second.x, aTriangle.mNodes[2].second.y, aTriangle.mNodes[2].second.z});
+    const std::vector<double> tDAreaDNodalCoordinates =
+        detail::get_d_area_d_nodal_coords_from_tri_coords(detail::convert_tri_to_coords(aTriangle));
     return detail::convert_area_sensitivties_from_flat_vector_to_plato_data_structure(tDAreaDNodalCoordinates);
 }
 
 TriangleNormalSensitivity get_d_normal_d_tri_node(const SensitivityTriangle& aTriangle)
 {
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
-    const std::vector<double> tDNormalDCoords = detail::get_d_normal_d_nodal_coords_from_tri_coords(
-        {aTriangle.mNodes[0].second.x, aTriangle.mNodes[0].second.y, aTriangle.mNodes[0].second.z,
-         aTriangle.mNodes[1].second.x, aTriangle.mNodes[1].second.y, aTriangle.mNodes[1].second.z,
-         aTriangle.mNodes[2].second.x, aTriangle.mNodes[2].second.y, aTriangle.mNodes[2].second.z});
+    const std::vector<double> tDNormalDCoords =
+        detail::get_d_normal_d_nodal_coords_from_tri_coords(detail::convert_tri_to_coords(aTriangle));
     return detail::convert_normal_sensitivities_from_flat_vector_to_plato_data_structure(tDNormalDCoords);
 }
 
@@ -45,11 +41,9 @@ std::vector<double> get_d_area_d_nodal_coords_from_tri_coords(const std::vector<
 
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
     std::vector<double> tDAreaDNodalCoordinates(tNumSensitivities);
-    const stk::math::Vector3d tPoint0{aNodalCoords[0], aNodalCoords[1], aNodalCoords[2]};
-    const stk::math::Vector3d tPoint1{aNodalCoords[3], aNodalCoords[4], aNodalCoords[5]};
-    const stk::math::Vector3d tPoint2{aNodalCoords[6], aNodalCoords[7], aNodalCoords[8]};
-    ::krino::TriangleWithSens::area_and_optional_sensitivities(tPoint0, tPoint1, tPoint2,
-                                                               tDAreaDNodalCoordinates.data());
+    ::krino::TriangleWithSens::area_and_optional_sensitivities(
+        {aNodalCoords[0], aNodalCoords[1], aNodalCoords[2]}, {aNodalCoords[3], aNodalCoords[4], aNodalCoords[5]},
+        {aNodalCoords[6], aNodalCoords[7], aNodalCoords[8]}, tDAreaDNodalCoordinates.data());
     return tDAreaDNodalCoordinates;
 }
 
@@ -61,11 +55,9 @@ std::vector<double> get_d_normal_d_nodal_coords_from_tri_coords(const std::vecto
 
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
     std::vector<double> tDNormalDNodalCoordinates(tNumSensitivities);
-    const stk::math::Vector3d tPoint0{aNodalCoords[0], aNodalCoords[1], aNodalCoords[2]};
-    const stk::math::Vector3d tPoint1{aNodalCoords[3], aNodalCoords[4], aNodalCoords[5]};
-    const stk::math::Vector3d tPoint2{aNodalCoords[6], aNodalCoords[7], aNodalCoords[8]};
-    ::krino::TriangleWithSens::normal_and_optional_sensitivities(tPoint0, tPoint1, tPoint2,
-                                                                 tDNormalDNodalCoordinates.data());
+    ::krino::TriangleWithSens::normal_and_optional_sensitivities(
+        {aNodalCoords[0], aNodalCoords[1], aNodalCoords[2]}, {aNodalCoords[3], aNodalCoords[4], aNodalCoords[5]},
+        {aNodalCoords[6], aNodalCoords[7], aNodalCoords[8]}, tDNormalDNodalCoordinates.data());
     return tDNormalDNodalCoordinates;
 }
 
@@ -214,6 +206,13 @@ TriangleNormalSensitivity convert_normal_sensitivities_from_flat_vector_to_plato
         tSensitivities[tNodeIndex][kDNormalDNodeZCoord] = dNormaldNodeZ;
     }
     return tSensitivities;
+}
+
+[[nodiscard]] std::vector<double> convert_tri_to_coords(const SensitivityTriangle& aTriangle)
+{
+    return {aTriangle.mNodes[0].second.x, aTriangle.mNodes[0].second.y, aTriangle.mNodes[0].second.z,
+            aTriangle.mNodes[1].second.x, aTriangle.mNodes[1].second.y, aTriangle.mNodes[1].second.z,
+            aTriangle.mNodes[2].second.x, aTriangle.mNodes[2].second.y, aTriangle.mNodes[2].second.z};
 }
 
 }  // end namespace detail

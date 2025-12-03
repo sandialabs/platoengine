@@ -164,25 +164,29 @@ TEST(Vector3, Magnitude)
     EXPECT_EQ(tGold, magnitude(tVector));
 }
 
+namespace
+{
+void test_unit_vector(const UnitVector3& aUnitVec)
+{
+    const double tMag = std::sqrt(1.0 + 4.0 + 9.0);
+    const Vector3 tGold{1.0 / tMag, 2.0 / tMag, 3.0 / tMag};
+    EXPECT_EQ(tGold.x, aUnitVec.x);
+    EXPECT_EQ(tGold.y, aUnitVec.y);
+    EXPECT_EQ(tGold.z, aUnitVec.z);
+}
+}  // namespace
+
 TEST(UnitVector3, ComponentConstructor)
 {
     const UnitVector3 tUnitVec3(1, 2, 3);
-    const double tMag = std::sqrt(1.0 + 4.0 + 9.0);
-    const Vector3 tGold{1.0 / tMag, 2.0 / tMag, 3.0 / tMag};
-    EXPECT_EQ(tGold.x, tUnitVec3.x);
-    EXPECT_EQ(tGold.y, tUnitVec3.y);
-    EXPECT_EQ(tGold.z, tUnitVec3.z);
+    test_unit_vector(tUnitVec3);
 }
 
 TEST(UnitVector3, Vector3Constructor)
 {
     constexpr Vector3 tVector{1, 2, 3};
     const UnitVector3 tUnitVec3(tVector);
-    const double tMag = std::sqrt(1.0 + 4.0 + 9.0);
-    const Vector3 tGold{1.0 / tMag, 2.0 / tMag, 3.0 / tMag};
-    EXPECT_EQ(tGold.x, tUnitVec3.x);
-    EXPECT_EQ(tGold.y, tUnitVec3.y);
-    EXPECT_EQ(tGold.z, tUnitVec3.z);
+    test_unit_vector(tUnitVec3);
 }
 
 TEST(Coordinate, EqualityOperator)

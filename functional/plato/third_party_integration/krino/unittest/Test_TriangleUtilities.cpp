@@ -98,11 +98,34 @@ TEST(KrinoTriangleUtilities, dAreadCoords)
     test_d_func_d_coords(tAbsoluteError, tF, tDf);
 }
 
-TEST(KrinoTriangleUtilities, dNormaldCoordsX)
+namespace
 {
-    constexpr auto tAbsoluteError = 1e-4;
+
+constexpr size_t kXComponent{0};
+constexpr size_t kYComponent{1};
+constexpr size_t kZComponent{2};
+constexpr double kDNormalAbsoluteError{1e-4};
+
+[[nodiscard]] double calculate_d_normal(const linear_algebra::DynamicVector<double>& aX,
+                                        const linear_algebra::DynamicVector<double>& aV,
+                                        const size_t aDimensionIndex)
+{
     constexpr size_t tNumDimensions = 3;
     constexpr size_t tNumNumSensComponents = 9;
+    const auto tGradient =
+        linear_algebra::DynamicVector<double>{detail::get_d_normal_d_nodal_coords_from_tri_coords(aX.stdVector())};
+    double tDot = 0.0;
+    for (size_t i = 0; i < tNumNumSensComponents; ++i)
+    {
+        tDot += tGradient[tNumDimensions * i + aDimensionIndex] * aV[i];
+    }
+    return tDot;
+}
+
+}  // namespace
+
+TEST(KrinoTriangleUtilities, dNormaldCoordsX)
+{
     const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
     {
         SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
@@ -110,26 +133,13 @@ TEST(KrinoTriangleUtilities, dNormaldCoordsX)
     };
     const auto tDf =
         [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
-    {
-        const auto tGradient =
-            linear_algebra::DynamicVector<double>{detail::get_d_normal_d_nodal_coords_from_tri_coords(aX.stdVector())};
-        double tDot = 0.0;
-        for (size_t i = 0; i < tNumNumSensComponents; ++i)
-        {
-            tDot += tGradient[tNumDimensions * i] * aV[i];
-        }
-        return tDot;
-    };
+    { return calculate_d_normal(aX, aV, kXComponent); };
 
-    test_d_func_d_coords(tAbsoluteError, tF, tDf);
+    test_d_func_d_coords(kDNormalAbsoluteError, tF, tDf);
 }
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsY)
 {
-    constexpr auto tAbsoluteError = 1e-4;
-    constexpr size_t tNumDimensions = 3;
-    constexpr size_t tNumNumSensComponents = 9;
-    constexpr size_t tDimensionIndex = 1;
     const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
     {
         SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
@@ -137,26 +147,13 @@ TEST(KrinoTriangleUtilities, dNormaldCoordsY)
     };
     const auto tDf =
         [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
-    {
-        const auto tGradient =
-            linear_algebra::DynamicVector<double>{detail::get_d_normal_d_nodal_coords_from_tri_coords(aX.stdVector())};
-        double tDot = 0.0;
-        for (size_t i = 0; i < tNumNumSensComponents; ++i)
-        {
-            tDot += tGradient[tNumDimensions * i + tDimensionIndex] * aV[i];
-        }
-        return tDot;
-    };
+    { return calculate_d_normal(aX, aV, kYComponent); };
 
-    test_d_func_d_coords(tAbsoluteError, tF, tDf);
+    test_d_func_d_coords(kDNormalAbsoluteError, tF, tDf);
 }
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsZ)
 {
-    constexpr auto tAbsoluteError = 1e-4;
-    constexpr size_t tNumDimensions = 3;
-    constexpr size_t tNumNumSensComponents = 9;
-    constexpr size_t tDimensionIndex = 2;
     const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
     {
         SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
@@ -164,18 +161,9 @@ TEST(KrinoTriangleUtilities, dNormaldCoordsZ)
     };
     const auto tDf =
         [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
-    {
-        const auto tGradient =
-            linear_algebra::DynamicVector<double>{detail::get_d_normal_d_nodal_coords_from_tri_coords(aX.stdVector())};
-        double tDot = 0.0;
-        for (size_t i = 0; i < tNumNumSensComponents; ++i)
-        {
-            tDot += tGradient[tNumDimensions * i + tDimensionIndex] * aV[i];
-        }
-        return tDot;
-    };
+    { return calculate_d_normal(aX, aV, kZComponent); };
 
-    test_d_func_d_coords(tAbsoluteError, tF, tDf);
+    test_d_func_d_coords(kDNormalAbsoluteError, tF, tDf);
 }
 
 }  // namespace plato::third_party_integration::krino::unittest
