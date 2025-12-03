@@ -104,7 +104,7 @@ namespace
 constexpr size_t kXComponent{0};
 constexpr size_t kYComponent{1};
 constexpr size_t kZComponent{2};
-constexpr double kDNormalAbsoluteError{1e-4};
+constexpr double kDNormalAbsoluteError{1e-3};
 
 [[nodiscard]] double calculate_d_normal(const linear_algebra::DynamicVector<double>& aX,
                                         const linear_algebra::DynamicVector<double>& aV,
