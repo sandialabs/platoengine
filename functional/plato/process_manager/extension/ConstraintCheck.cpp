@@ -1,6 +1,7 @@
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
 
 #include <ROL_Algorithm.hpp>
+#include <chrono>
 #include <fstream>
 #include <optional>
 #include <string>
@@ -57,7 +58,13 @@ namespace
         { return detail::validate_initial_direction_magnitude(aInput); },
         [](const input_parser::constraint_check& aInput)
         { return detail::validate_step_size_reduction_factor(aInput); },
-        [](const input_parser::constraint_check& aInput) { return detail::validate_random_direction_seed(aInput); }};
+        [](const input_parser::constraint_check& aInput) { return detail::validate_random_direction_seed(aInput); },
+        [](const input_parser::constraint_check& aInput)
+        {
+            return input_validation::error_message_for_empty_parameter(
+                input_parser::block_name<input_parser::constraint_check>(), aInput.direction_vector_type,
+                "direction_vector_type");
+        }};
 }  // namespace
 
 ConstraintCheck::ConstraintCheck(const library::ValidatedProcessManagerInput& aInput)
@@ -68,14 +75,16 @@ ConstraintCheck::ConstraintCheck(const library::ValidatedProcessManagerInput& aI
       mNumberOfSteps{constraint_check_input(aInput).number_of_steps.value()},
       mInitialDirectionMagnitude{constraint_check_input(aInput).initial_direction_magnitude.value()},
       mStepSizeReductionFactor{constraint_check_input(aInput).step_size_reduction_factor.value()},
-      mRandomDirectionSeed{constraint_check_input(aInput).random_direction_seed.value()}
+      mDirectionVectorType(constraint_check_input(aInput).direction_vector_type.value()),
+      mSeed(constraint_check_input(aInput).random_direction_seed.value_or(
+          std::chrono::system_clock::now().time_since_epoch().count()))
 {
 }
 
 void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData) const
 {
     [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::constraint_check>();
-
+    std::srand(mSeed);
     namespace tpir = third_party_integration::rol;
     constexpr bool tPrintOutput = true;
 
@@ -90,15 +99,13 @@ void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData
     auto tConstraint = tROLProblem->getConstraint();
     if (tConstraint)
     {
-        std::srand(mRandomDirectionSeed);
-
         auto tConstraintVectorStandIn = tROLProblem->getResidualVector();
         tConstraintVectorStandIn->randomize(-mInitialDirectionMagnitude, mInitialDirectionMagnitude);
 
         constexpr int tFiniteDifferenceOrder = 1;  // TODO: Should we make this an actual input?
         std::ofstream tCheckJacobianOutFile{mJacobianCheckOutputFileName};
         auto tDirectionVector = tROLProblem->getPrimalOptimizationVector()->clone();
-        tpir::randomize_and_normalize(*tDirectionVector);
+        make_uniform_or_random_perturbation(*tDirectionVector, mDirectionVectorType);
 
         tConstraint->checkApplyJacobian(
             *tROLProblem->getPrimalOptimizationVector(), *tDirectionVector, *tConstraintVectorStandIn,
@@ -106,7 +113,7 @@ void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData
             tPrintOutput, tCheckJacobianOutFile, tFiniteDifferenceOrder);
 
         const auto tDualVector = tROLProblem->getMultiplierVector()->clone();
-        tpir::randomize_and_normalize(*tDualVector);
+        make_uniform_or_random_perturbation(*tDualVector, mDirectionVectorType);
 
         const auto tTolerance = tConstraint->checkAdjointConsistencyJacobian(
             *tDualVector, *tDirectionVector, *tROLProblem->getPrimalOptimizationVector(), tPrintOutput);

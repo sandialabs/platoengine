@@ -12,7 +12,8 @@ auto create_valid_example_constraint_check_input() -> input_parser::constraint_c
         /*.number_of_steps*/ 10u,
         /*.initial_direction_magnitude*/ 1.0,
         /*.step_size_reduction_factor*/ 0.1,
-        /*.random_direction_seed*/ 123};
+        /*.random_direction_seed*/ 123,
+        /*.direction_vector_type = */ input_parser::DirectionVectorTypes::kRandom};
 }
 
 auto create_valid_example_gradient_check_input() -> input_parser::gradient_check
@@ -21,7 +22,8 @@ auto create_valid_example_gradient_check_input() -> input_parser::gradient_check
                                         /*.number_of_steps=*/12,
                                         /*.initial_direction_magnitude=*/0.5,
                                         /*.step_size_reduction_factor = */ 0.5,
-                                        /*.random_direction_seed = */ 42};
+                                        /*.random_direction_seed = */ 42,
+                                        /*.direction_vector_type = */ input_parser::DirectionVectorTypes::kRandom};
 }
 
 auto create_valid_example_rol_optimization_input() -> input_parser::rol_optimization

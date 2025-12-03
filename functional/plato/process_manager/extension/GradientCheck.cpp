@@ -1,8 +1,10 @@
 #include "plato/process_manager/extension/GradientCheck.hpp"
 
 #include <ROL_StdObjective.hpp>
+#include <chrono>
 #include <cstdlib>
 #include <fstream>
+#include <optional>
 
 #include "plato/geometry/library/OutputManager.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
@@ -14,7 +16,6 @@
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
-#include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/LogSpaceGenerator.hpp"
 
 namespace plato::process_manager::extension
@@ -42,7 +43,13 @@ namespace
         [](const input_parser::gradient_check& aInput) { return detail::validate_number_of_steps(aInput); },
         [](const input_parser::gradient_check& aInput) { return detail::validate_initial_direction_magnitude(aInput); },
         [](const input_parser::gradient_check& aInput) { return detail::validate_step_size_reduction_factor(aInput); },
-        [](const input_parser::gradient_check& aInput) { return detail::validate_random_direction_seed(aInput); }};
+        [](const input_parser::gradient_check& aInput) { return detail::validate_random_direction_seed(aInput); },
+        [](const input_parser::gradient_check& aInput)
+        {
+            return input_validation::error_message_for_empty_parameter(
+                input_parser::block_name<input_parser::gradient_check>(), aInput.direction_vector_type,
+                "direction_vector_type");
+        }};
 
 [[nodiscard]] auto gradient_check_input(const library::ValidatedProcessManagerInput& aValidInput)
     -> const input_parser::gradient_check&
@@ -57,14 +64,16 @@ GradientCheck::GradientCheck(const library::ValidatedProcessManagerInput& aInput
       mNumberOfSteps(gradient_check_input(aInput).number_of_steps.value()),
       mInitialDirectionMagnitude(gradient_check_input(aInput).initial_direction_magnitude.value()),
       mStepSizeReductionFactor(gradient_check_input(aInput).step_size_reduction_factor.value()),
-      mRandomDirectionSeed(gradient_check_input(aInput).random_direction_seed.value())
+      mDirectionVectorType(gradient_check_input(aInput).direction_vector_type.value()),
+      mSeed(gradient_check_input(aInput).random_direction_seed.value_or(
+          std::chrono::system_clock::now().time_since_epoch().count()))
 {
 }
 
 void GradientCheck::run(const library::ProcessManagerData& aProblem) const
 {
     [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::gradient_check>();
-
+    std::srand(mSeed);
     std::ofstream tOutFile(mOutputFileName);
     constexpr bool tPrintOutput = true;
 
@@ -72,11 +81,10 @@ void GradientCheck::run(const library::ProcessManagerData& aProblem) const
         make_rol_problem(aProblem, input_parser::block_name<input_parser::gradient_check>());
     const utilities::LogSpaceGenerator tLogspaceGenerator{mInitialDirectionMagnitude, mStepSizeReductionFactor,
                                                           mNumberOfSteps};
-    std::srand(mRandomDirectionSeed);
 
     const auto tObjective = tROLProblem->getObjective();
     auto tDirection = tROLProblem->getPrimalOptimizationVector()->clone();
-    third_party_integration::rol::randomize_and_normalize(*tDirection);
+    make_uniform_or_random_perturbation(*tDirection, mDirectionVectorType);
     tObjective->checkGradient(*tROLProblem->getPrimalOptimizationVector(), *tDirection, tLogspaceGenerator.steps(),
                               tPrintOutput, tOutFile);
 }
