@@ -7,6 +7,7 @@
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/process_manager/extension/DirectionVectorTypes.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 
 namespace plato::input_parser
@@ -26,7 +27,10 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (unsigned int, number_of_steps, "Required field specifying the number of approximations to evaluate using a finite difference.")
     (double, initial_direction_magnitude, "Required field specifying the magnitude of the perturbation of the design controls.")
     (double, step_size_reduction_factor, "Required field specifying how much the perturbation will be reduced for each step, e.g., 0.1 for log10 step sizes.")
-    (unsigned int, random_direction_seed, "Required field specifying the seed that is used to generate the random perturbation of the controls.")
+    (unsigned int, random_direction_seed, "Optional field specifying the seed that is used to generate the random perturbation of the controls. "
+                                                    "If no seed is provided, the clock will be used to generate a seed.")
+    (plato::input_parser::DirectionVectorTypes, direction_vector_type, "Required field specifying how to generate the direction vector. "
+                                                                       "Inputs can be: 'random', 'uniform_positive', or 'uniform_negative'")                                                    
 )
 // clang-format on
 
@@ -46,11 +50,14 @@ class GradientCheck
     unsigned int mNumberOfSteps = 12;
     double mInitialDirectionMagnitude = 1;
     double mStepSizeReductionFactor = 0.1;
-    unsigned int mRandomDirectionSeed = 42;
+    input_parser::DirectionVectorTypes mDirectionVectorType = input_parser::DirectionVectorTypes::kRandom;
+    unsigned int mSeed = 42;
 };
 
 namespace detail
 {
+
+/// @brief Validate that an output_file_name is specified in the input @a aInput
 [[nodiscard]] auto validate_output_file_name(const input_parser::gradient_check& aInput) -> std::optional<std::string>;
 
 }  // namespace detail

@@ -42,6 +42,15 @@ TEST(ROLUtilities, GeneratePerturbation)
     EXPECT_DOUBLE_EQ(tVector.norm(), 1.0);
 }
 
+TEST(ROLUtilities, MakeUniform)
+{
+    constexpr int tDimensions = 3;
+    auto tROLStdVector = ROL::StdVector<double>{-1.0, 2.0, -3};
+    constexpr double tValue = 42;
+    make_uniform(tROLStdVector, tValue);
+    EXPECT_EQ(*tROLStdVector.getVector(), std::vector(tDimensions, tValue));
+}
+
 TEST(ROLUtilities, RandomizeAndNormalize)
 {
     constexpr auto tComponentValue = 10.0;

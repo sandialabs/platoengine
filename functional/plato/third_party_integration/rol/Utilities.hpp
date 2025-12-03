@@ -30,6 +30,9 @@ void assign_vector(ROL::Vector<T>& aROLVector, std::vector<T> aVector);
 /// @post The returned vector has dimension @a aDimension and magnitude 1.
 [[nodiscard]] ROL::StdVector<double> generate_perturbation(const int aDimension);
 
+/// @brief Makes @a aROLVector entries all equal to @a aValue.
+void make_uniform(ROL::Vector<double>& aROLVector, const double aValue);
+
 /// @brief Randomizes @a aROLVector, but scales the result to have unit norm.
 void randomize_and_normalize(ROL::Vector<double>& aROLVector);
 
