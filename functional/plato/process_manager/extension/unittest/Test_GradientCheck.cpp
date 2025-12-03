@@ -11,6 +11,7 @@
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension::unittest
 {
@@ -19,8 +20,7 @@ template <typename BlockType>
     const std::vector<input_validation::ValidatedInputDataBlock<components::ComponentType::kProcessManager>>&
         aAllProcessManagerInputs) -> std::size_t
 {
-    return std::count_if(aAllProcessManagerInputs.cbegin(), aAllProcessManagerInputs.cend(),
-                         [](const auto& aInput)
+    return std::count_if(aAllProcessManagerInputs.cbegin(), aAllProcessManagerInputs.cend(), [](const auto& aInput)
                          { return aInput.rawInput().mBlockName == input_parser::block_name<BlockType>(); });
 }
 

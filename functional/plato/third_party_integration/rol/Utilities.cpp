@@ -10,6 +10,8 @@ ROL::StdVector<double> generate_perturbation(const int aDimension)
     return tPerturbation;
 }
 
+void make_uniform(ROL::Vector<double>& aROLVector, const double aValue) { aROLVector.setScalar(aValue); }
+
 void randomize_and_normalize(ROL::Vector<double>& aROLVector)
 {
     aROLVector.randomize(-1.0, 1.0);

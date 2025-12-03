@@ -49,7 +49,7 @@ std::optional<std::string> validate_step_size_reduction_factor(const InputBlock&
 template <typename InputBlock>
 std::optional<std::string> validate_random_direction_seed(const InputBlock& aInput)
 {
-    return input_validation::error_message_for_parameter_out_of_bounds(
+    return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<InputBlock>(), aInput.random_direction_seed, "random_direction_seed",
         utilities::lower_bounded(utilities::Inclusive{1U}));
 }
