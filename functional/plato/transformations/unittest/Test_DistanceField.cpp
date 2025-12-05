@@ -11,9 +11,8 @@ namespace tpic = third_party_integration::common;
 
 constexpr auto kTestPoint = tpic::Coordinate{.x = 10.0, .y = 11.0, .z = 12.0};
 
-class DistanceFieldHexMeshTest : public third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh
-{
-};
+using DistanceFieldHexMeshTest = third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using DistanceField2DMeshTest = third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 }  // namespace
 
@@ -29,6 +28,28 @@ TEST_F(DistanceFieldHexMeshTest, ElementCentroidDistanceField)
     EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(1U).at(0U).mValue, 0.5);
     EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(1U).at(1U).mValue, 0.5);
     EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(1U).at(2U).mValue, 0.5);
+}
+TEST_F(DistanceField2DMeshTest, ElementCentroidDistanceField)
+{
+    constexpr auto tBuildPlane = Plane{.mOriginSignedDistance = 2.0, .mNormal = {.x = -1.0, .y = 0.0, .z = 0.0}};
+    const auto tMeshWithDistanceField = element_centroid_distance_field(
+        analysis::AnalysisDomainMesh{.mFileName = mMeshFilePath, .mBlockScalarField = {}}, tBuildPlane);
+
+    ASSERT_EQ(tMeshWithDistanceField.mBlockScalarField.size(), 3U);
+    ASSERT_EQ(tMeshWithDistanceField.mBlockScalarField.at(1U).size(), 4U);
+    ASSERT_EQ(tMeshWithDistanceField.mBlockScalarField.at(2U).size(), 2U);
+    ASSERT_EQ(tMeshWithDistanceField.mBlockScalarField.at(3U).size(), 1U);
+
+    // Expected values computed via matlab
+    EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(1U).at(0U).mValue, 5.0 / 3.0);
+    EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(1U).at(1U).mValue, 1.0);
+    EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(1U).at(2U).mValue, 1.0 / 3.0);
+    EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(1U).at(3U).mValue, 1.0);
+
+    EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(2U).at(0U).mValue, 8.0 / 3.0);
+    EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(2U).at(1U).mValue, 10.0 / 3.0);
+
+    EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(3U).at(0U).mValue, 1.0);
 }
 
 TEST(DistanceField, PointPlaneDistanceZeroOffsetCartesianNormals)
