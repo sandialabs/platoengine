@@ -5,12 +5,13 @@ set(DIRECTORIES library extension)
 set(LINK_LIBS PlatoFunctionalAnalysis
               PlatoFunctionalUtilities
               PlatoFunctionalTPICommon 
-              PlatoFunctionalSTKIO)
+              PlatoFunctionalSTKIO
+              PlatoFunctionalMesh)
 
 create_plato_library(PlatoFunctionalTransformations "." "${LINK_LIBS}")
 
 if( UNIT_TESTING )
   set(DIRECTORIES unittest)
-  set(LINK_LIBS "")
+  set(LINK_LIBS "PlatoFunctionalSTKIOTestUtilities")
   create_plato_unittester(PlatoFunctionalTransformations "${DIRECTORIES}" "${LINK_LIBS}")
 endif()

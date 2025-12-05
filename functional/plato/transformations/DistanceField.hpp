@@ -1,6 +1,7 @@
 #ifndef PLATO_TRANSFORMATIONS_DISTANCEFIELD
 #define PLATO_TRANSFORMATIONS_DISTANCEFIELD
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::transformations
@@ -14,18 +15,25 @@ struct Plane
     third_party_integration::common::Vector3 mNormal;
 };
 
+/// @brief Computes a distance field on @a aMesh, giving the signed distance from each element centroid to the plane @a
+/// aPlane.
+[[nodiscard]] auto element_centroid_distance_field(const analysis::AnalysisDomainMesh& aMesh,
+                                                   const Plane& aPlane) -> analysis::AnalysisDomainMesh;
+
+namespace detail
+{
 /// @brief Computes the distance from a point @a aPoint to a plane @a aPlane.
 [[nodiscard]] constexpr auto point_plane_signed_distance(
-    const Plane aPlane, const third_party_integration::common::Coordinate& aPoint) -> double;
+    const Plane& aPlane, const third_party_integration::common::Coordinate& aPoint) -> double;
 
-constexpr auto point_plane_signed_distance(const Plane aPlane,
+constexpr auto point_plane_signed_distance(const Plane& aPlane,
                                            const third_party_integration::common::Coordinate& aPoint) -> double
 {
     namespace tpic = third_party_integration::common;
     constexpr auto tOrigin = tpic::Coordinate{0.0, 0.0, 0.0};
     return tpic::dot(aPlane.mNormal, aPoint - tOrigin) / tpic::magnitude(aPlane.mNormal) + aPlane.mOriginSignedDistance;
 }
-
+}  // namespace detail
 }  // namespace plato::transformations
 
 #endif
