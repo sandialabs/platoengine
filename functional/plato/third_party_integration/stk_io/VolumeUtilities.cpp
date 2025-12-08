@@ -1,10 +1,14 @@
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 
 #include <algorithm>
-#include <memory>
 #include <numeric>
+#include <stk_mesh/base/Bucket.hpp>
+#include <stk_mesh/base/FieldBase.hpp>
+#include <stk_mesh/base/MetaData.hpp>
+#include <stk_topology/topology.hpp>
 #include <vector>
 
+#include "plato/third_party_integration/stk_io/TesselationTraits.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"
 
 namespace plato::third_party_integration::stk_io
@@ -55,16 +59,72 @@ double compute_edge_length(const stk::mesh::BulkData& aBulk, const stk::mesh::En
     return common::magnitude(tCoord2 - tCoord1);
 }
 
+template <typename F>
+[[nodiscard]] auto zero()
+{
+    using ReturnType = std::invoke_result_t<F, std::vector<common::Coordinate>>;
+    return ReturnType{};
+}
+
+template <template <stk::topology::topology_t> typename Function, stk::topology::topology_t Topology>
+auto topology_selector_apply(const stk::mesh::Entity& aElement,
+                             const stk::mesh::BulkData& aBulk,
+                             const stk::topology::topology_t tTopologyType)
+{
+    if (tTopologyType == Topology)
+    {
+        return Function<Topology>{}(element_coordinates(aElement, aBulk));
+    }
+
+    return zero<Function<Topology>>();
+}
+
+template <template <stk::topology::topology_t> typename Function>
+auto element_apply(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
+{
+    constexpr auto tSupportedTopologies = std::array<stk::topology::topology_t, 10U>{
+        stk::topology::HEXAHEDRON_8,    stk::topology::HEXAHEDRON_20,   stk::topology::TETRAHEDRON_4,
+        stk::topology::TETRAHEDRON_10,  stk::topology::QUADRILATERAL_4, stk::topology::TRIANGLE_3,
+        stk::topology::TRIANGLE_3_2D,   stk::topology::QUAD_4_2D,       stk::topology::SHELL_QUAD_4,
+        stk::topology::SHELL_TRIANGLE_3};
+
+    return [&aElement, &aBulk, &tSupportedTopologies]<std::size_t... AllTopologiesIndices>(
+               const std::integer_sequence<std::size_t, AllTopologiesIndices...>)
+    {
+        return (topology_selector_apply<Function, tSupportedTopologies[AllTopologiesIndices]>(
+                    aElement, aBulk, aBulk.bucket(aElement).topology()()) +
+                ...);
+    }(std::make_index_sequence<tSupportedTopologies.size()>());
+}
+
+template <stk::topology::topology_t Topology>
+struct VolumeFunction
+{
+    double operator()(const std::vector<common::Coordinate>& aCoordinates) const
+    {
+        return detail::volume_impl<Topology>(aCoordinates);
+    }
+};
+
+template <stk::topology::topology_t Topology>
+struct CentroidFunction
+{
+    common::Coordinate operator()(const std::vector<common::Coordinate>& aCoordinates) const
+    {
+        return detail::centroid_impl<Topology>(aCoordinates);
+    }
+};
+
 }  // namespace
 
 double element_volume(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
 {
-    return detail::element_apply<detail::VolumeTag>(aElement, aBulk);
+    return element_apply<VolumeFunction>(aElement, aBulk);
 }
 
 common::Coordinate element_centroid(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
 {
-    return detail::element_apply<detail::CentroidTag>(aElement, aBulk);
+    return element_apply<CentroidFunction>(aElement, aBulk);
 }
 
 double element_max_edge_length(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
@@ -129,8 +189,7 @@ std::vector<common::Coordinate> element_coordinates(const stk::mesh::Entity& aEl
 double average_element_max_edge_length(const stk::mesh::BulkData& aBulk)
 {
     const stk::mesh::EntityVector tElements = element_vector(aBulk);
-    return std::accumulate(tElements.cbegin(), tElements.cend(), 0.0,
-                           [&aBulk](const double aSum, const auto& iElement)
+    return std::accumulate(tElements.cbegin(), tElements.cend(), 0.0, [&aBulk](const double aSum, const auto& iElement)
                            { return aSum + element_max_edge_length(iElement, aBulk); }) /
            static_cast<double>(tElements.size());
 }
