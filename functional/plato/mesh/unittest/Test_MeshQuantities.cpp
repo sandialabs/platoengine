@@ -1,13 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <numeric>
+#include <ranges>
 
-#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
-#include "plato/utilities/Exception.hpp"
-#include "plato/utilities/Zip.hpp"
 
 namespace plato::mesh::unittest
 {
@@ -108,6 +105,18 @@ TEST_F(TwoDThreeBlockMesh, MeshQuantitiesDesignDomainElementVolumes)
                   std::back_inserter(tExpectedElementVolumeBlocks1And2));
         EXPECT_EQ(tMesh.designDomainElementVolumes(), tExpectedElementVolumeBlocks1And2);
     }
+}
+
+TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesNodalAverage)
+{
+    const auto tMesh = MeshQuantities{Mesh{mMeshFilePath}};
+    const auto tNumberOfNodes = mCommandGenerator.numberOfNodes();
+    auto tFieldEntries = std::views::iota(0U, tNumberOfNodes);  // Matches the nodal connectivity, minus 1
+    const auto tField = std::vector<double>(tFieldEntries.begin(), tFieldEntries.end());
+
+    const auto tNodalAverage = tMesh.nodalAverage(tField);
+    const auto tExpected = std::vector{6.5, 7.5, 8.5};  // Computed via the nodal connectivity
+    EXPECT_EQ(tNodalAverage, tExpected);
 }
 
 }  // namespace plato::mesh::unittest

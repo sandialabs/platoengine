@@ -2,6 +2,7 @@
 #define PLATO_MESH_MESHQUANTITIES
 
 #include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/stk_io/MeshFieldOperations.hpp"
 
 namespace plato::mesh
 {
@@ -26,7 +27,19 @@ struct MeshQuantities : public Mesh
     ///
     /// The order is given by the order of iteration of AnalysisDomainMeshSequentialView.
     [[nodiscard]] std::vector<double> designDomainElementVolumes() const;
+
+    /// @brief Computes the nodal average of the scalar field defined by @a aNodalScalarField on each element.
+    /// @pre The size of @a aNodalScalarField must be equal to the total number of nodes on the mesh.
+    /// @post The size of the returned vector will be equal to the number of elements on the mesh.
+    [[nodiscard]] auto nodalAverage(const std::ranges::random_access_range auto& aNodalScalarField) const
+        -> std::vector<double>;
 };
+
+auto MeshQuantities::nodalAverage(const std::ranges::random_access_range auto& aScalarField) const
+    -> std::vector<double>
+{
+    return third_party_integration::stk_io::nodal_average(aScalarField, bulkData());
+}
 }  // namespace plato::mesh
 
 #endif
