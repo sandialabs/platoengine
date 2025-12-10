@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <numeric>
+#include <ranges>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/IndexRange.hpp"
@@ -8,7 +9,7 @@
 
 namespace plato::utilities::unittest
 {
-TEST(VectorView, Values)
+TEST(MultiVectorView, Values)
 {
     constexpr auto tDimension = std::size_t{2};
     constexpr auto tLength = std::size_t{5};
@@ -43,7 +44,7 @@ TEST(VectorView, Values)
     tTest(tConstView, TEST_CONTEXT("Const view"));
 }
 
-TEST(VectorView, Sizes)
+TEST(MultiVectorView, Sizes)
 {
     constexpr auto tDimension = std::size_t{3};
     constexpr auto tLength = std::size_t{2};

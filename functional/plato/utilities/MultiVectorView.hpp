@@ -2,6 +2,7 @@
 #define PLATO_UTILITIES_MULTIDIMENSIONALVECTORVIEW
 
 #include <cassert>
+#include <concepts>
 #include <functional>
 
 #include "plato/utilities/NamedType.hpp"
@@ -11,6 +12,15 @@ namespace plato::utilities
 
 using VectorIndex = NamedType<std::size_t, struct VectorIndexTag>;
 using ComponentIndex = NamedType<std::size_t, struct ComponentIndexTag>;
+
+/// Template constraint for container-like types supported by MultiVectorView
+template <typename Container>
+concept MultiVectorViewContainer = requires(Container aContainer) {
+    typename Container::value_type;
+    typename Container::size_type;
+    { aContainer.size() } -> std::convertible_to<typename Container::size_type>;
+    { aContainer[typename Container::size_type{}] } -> std::convertible_to<typename Container::value_type>;
+};
 
 /// @brief The purpose of this view type is to facilitate indexing operations into a contiguous array that represents a
 /// matrix-like 2D array of N-dimensional vectors, with dimension N known at run-time.
@@ -31,7 +41,7 @@ using ComponentIndex = NamedType<std::size_t, struct ComponentIndexTag>;
 /// vector index `m` and component index `n` indexes into the underlying container as `m * kDimensions + n`.
 ///
 /// @tparam Container Must have an `operator[]` defined.
-template <typename Container>
+template <MultiVectorViewContainer Container>
 class MultiVectorView
 {
    public:
@@ -52,7 +62,6 @@ class MultiVectorView
     /// dimensions.
     /// @pre @a aComponentIndex must be less than the size `kDimensions`
     auto& operator()(VectorIndex aVectorIndex, ComponentIndex aComponentIndex) const;
-    auto& operator()(VectorIndex aVectorIndex, ComponentIndex aComponentIndex);
 
    private:
     std::reference_wrapper<Container> mContainer;
@@ -66,38 +75,31 @@ auto make_multi_vector_view(Container& aContainer, const std::size_t aDimensions
     return MultiVectorView<Container>{aContainer, aDimensions};
 }
 
-template <typename Container>
+template <MultiVectorViewContainer Container>
 MultiVectorView<Container>::MultiVectorView(Container& aContainer, const std::size_t aDimensions)
     : mContainer{aContainer}, mDimensions(aDimensions)
 {
     assert(aContainer.size() % aDimensions == 0);
 }
 
-template <typename Container>
+template <MultiVectorViewContainer Container>
 auto MultiVectorView<Container>::numberOfVectors() const -> std::size_t
 {
     return mContainer.get().size() / mDimensions;
 }
 
-template <typename Container>
+template <MultiVectorViewContainer Container>
 auto MultiVectorView<Container>::size() const -> std::size_t
 {
     return mContainer.get().size();
 }
 
-template <typename Container>
+template <MultiVectorViewContainer Container>
 auto& MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, const ComponentIndex aComponentIndex) const
 {
     assert(aComponentIndex.mValue < mDimensions);
     assert(aVectorIndex.mValue < numberOfVectors());
     return mContainer.get()[aVectorIndex.mValue * mDimensions + aComponentIndex.mValue];
-}
-
-template <typename Container>
-auto& MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, const ComponentIndex aComponentIndex)
-{
-    const auto* const tConstThis = this;
-    return (*tConstThis)(aVectorIndex, aComponentIndex);
 }
 
 }  // namespace plato::utilities
