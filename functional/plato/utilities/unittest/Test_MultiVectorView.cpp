@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <numeric>
-#include <ranges>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/IndexRange.hpp"
@@ -44,6 +43,27 @@ TEST(MultiVectorView, Values)
     tTest(tConstView, TEST_CONTEXT("Const view"));
 }
 
+TEST(MultiVectorView, Assignment)
+{
+    constexpr auto tDimension = std::size_t{2};
+    constexpr auto tLength = std::size_t{5};
+    auto tVector = std::vector<double>(tDimension * tLength, 0.0);
+    auto tMultiVectorView = MultiVectorView{tVector, tDimension};
+
+    constexpr auto tNewValue = 42.0;
+    EXPECT_NE(tMultiVectorView(VectorIndex{0}, ComponentIndex{0}), tNewValue);
+    tMultiVectorView(VectorIndex{0}, ComponentIndex{0}) = tNewValue;
+    EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{0}), tNewValue);
+
+    EXPECT_NE(tMultiVectorView(VectorIndex{1}, ComponentIndex{0}), tNewValue);
+    tMultiVectorView(VectorIndex{1}, ComponentIndex{0}) = tNewValue;
+    EXPECT_EQ(tMultiVectorView(VectorIndex{1}, ComponentIndex{0}), tNewValue);
+
+    EXPECT_NE(tMultiVectorView(VectorIndex{0}, ComponentIndex{1}), tNewValue);
+    tMultiVectorView(VectorIndex{0}, ComponentIndex{1}) = tNewValue;
+    EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{1}), tNewValue);
+}
+
 TEST(MultiVectorView, Sizes)
 {
     constexpr auto tDimension = std::size_t{3};
@@ -53,6 +73,38 @@ TEST(MultiVectorView, Sizes)
     const auto tMultiVectorView = utilities::make_multi_vector_view(tVector, tDimension);
     EXPECT_EQ(tMultiVectorView.numberOfVectors(), tLength);
     EXPECT_EQ(tMultiVectorView.size(), tLength * tDimension);
+}
+
+TEST(MultiVectorView, EqualityComparision)
+{
+    constexpr auto tDimension = std::size_t{3};
+    constexpr auto tLength = std::size_t{2};
+    const auto tVector1 = std::vector<double>(tDimension * tLength);
+
+    const auto tMultiVectorView1 = utilities::make_multi_vector_view(tVector1, tDimension);
+
+    EXPECT_TRUE(tMultiVectorView1 == tMultiVectorView1);
+    EXPECT_FALSE(tMultiVectorView1 != tMultiVectorView1);
+
+    // Constructed with same vector and size
+    {
+        const auto tMultiVectorView2 = utilities::make_multi_vector_view(tVector1, tDimension);
+        EXPECT_TRUE(tMultiVectorView1 == tMultiVectorView2);
+        EXPECT_FALSE(tMultiVectorView1 != tMultiVectorView2);
+    }
+    // Constructed with different vector, but same size
+    {
+        const auto tVector2 = std::vector<double>(tDimension * tLength);
+        const auto tMultiVectorView2 = utilities::make_multi_vector_view(tVector2, tDimension);
+        EXPECT_FALSE(tMultiVectorView1 == tMultiVectorView2);
+        EXPECT_TRUE(tMultiVectorView1 != tMultiVectorView2);
+    }
+    // Constructed with same vector, but different dimensions
+    {
+        const auto tMultiVectorView2 = utilities::make_multi_vector_view(tVector1, tLength);
+        EXPECT_FALSE(tMultiVectorView1 == tMultiVectorView2);
+        EXPECT_TRUE(tMultiVectorView1 != tMultiVectorView2);
+    }
 }
 
 }  // namespace plato::utilities::unittest
