@@ -31,6 +31,13 @@ void check_iterator_operations(const CheckFunction& aCheckFunction, const test_u
         aCheckFunction(tIterator, tDimensionIndex, tVector, aTestContext);
     }
 }
+
+[[nodiscard]] auto copy_random_access_range(const std::ranges::random_access_range auto& aRange)
+{
+    auto tResult = std::vector<unsigned long>();
+    std::ranges::copy(aRange, std::back_inserter(tResult));
+    return tResult;
+}
 }  // namespace
 
 TEST(SingleDimensionMultiVectorView, IteratorConstDereference)
@@ -123,9 +130,12 @@ TEST(SingleDimensionMultiVectorView, IteratorIntegerPlusOperator)
            const test_utilities::TestContext& aTestContext)
         {
             constexpr auto tIncrement = 2;
-            const auto tIncrementedIterator = aIterator + tIncrement;
-            EXPECT_EQ(*tIncrementedIterator, aBaseVector.at(aDimensionIndex + tIncrement * kDimensions))
+            const auto tIncrementedIterator1 = aIterator + tIncrement;
+            EXPECT_EQ(*tIncrementedIterator1, aBaseVector.at(aDimensionIndex + tIncrement * kDimensions))
                 << aTestContext;
+
+            const auto tIncrementedIterator2 = tIncrement + aIterator;
+            EXPECT_EQ(*tIncrementedIterator2, *tIncrementedIterator1) << aTestContext;
         },
         TEST_CONTEXT("Integer plus operator"));
 }
@@ -239,6 +249,45 @@ TEST(SingleDimensionMultiVectorView, IteratorMutableAccessOperator)
         TEST_CONTEXT("Mutable access operator"));
 }
 
+TEST(SingleDimensionMultiVectorView, IteratorEquality)
+{
+    check_iterator_operations(
+        [](auto aIterator, const auto, const auto&, const test_utilities::TestContext& aTestContext)
+        {
+            EXPECT_TRUE(aIterator == aIterator) << aTestContext;
+            EXPECT_FALSE(aIterator != aIterator) << aTestContext;
+
+            const auto tIncrementedIterator = aIterator + 1;
+            EXPECT_FALSE(aIterator == tIncrementedIterator) << aTestContext;
+            EXPECT_TRUE(aIterator != tIncrementedIterator) << aTestContext;
+        },
+        TEST_CONTEXT("Iterator equality"));
+}
+
+TEST(SingleDimensionMultiVectorView, IteratorInequalities)
+{
+    check_iterator_operations(
+        [](auto aIterator, const auto, const auto&, const test_utilities::TestContext& aTestContext)
+        {
+            EXPECT_FALSE(aIterator < aIterator) << aTestContext;
+            EXPECT_TRUE(aIterator <= aIterator) << aTestContext;
+            EXPECT_FALSE(aIterator > aIterator) << aTestContext;
+            EXPECT_TRUE(aIterator >= aIterator) << aTestContext;
+
+            const auto tIncrementedIterator = aIterator + 1;
+            EXPECT_TRUE(aIterator < tIncrementedIterator) << aTestContext;
+            EXPECT_TRUE(aIterator <= tIncrementedIterator) << aTestContext;
+            EXPECT_FALSE(aIterator > tIncrementedIterator) << aTestContext;
+            EXPECT_FALSE(aIterator >= tIncrementedIterator) << aTestContext;
+
+            EXPECT_FALSE(tIncrementedIterator < aIterator) << aTestContext;
+            EXPECT_FALSE(tIncrementedIterator <= aIterator) << aTestContext;
+            EXPECT_TRUE(tIncrementedIterator > aIterator) << aTestContext;
+            EXPECT_TRUE(tIncrementedIterator >= aIterator) << aTestContext;
+        },
+        TEST_CONTEXT("Iterator inequalities"));
+}
+
 TEST(SingleDimensionMultiVectorView, IteratorSentinelEquality)
 {
     check_iterator_operations(
@@ -280,7 +329,7 @@ TEST(SingleDimensionMultiVectorView, Copy)
     constexpr auto tLength = std::size_t{5};
 
     auto tEntryGenerator = std::views::iota(0U, tLength * tDimension) | std::views::common;
-    auto tVector = std::vector(tEntryGenerator.begin(), tEntryGenerator.end());
+    const auto tVector = std::vector(tEntryGenerator.begin(), tEntryGenerator.end());
 
     const auto tTest = [&](const auto tIndex, const test_utilities::TestContext& aTestContext)
     {
@@ -292,8 +341,7 @@ TEST(SingleDimensionMultiVectorView, Copy)
             std::views::take(tLength) | std::views::common;
         const auto tExpected = std::vector(tExpectedEntries.begin(), tExpectedEntries.end());
 
-        auto tResult = std::vector<unsigned long>();
-        std::ranges::copy(tCoordinateRange, std::back_inserter(tResult));
+        const auto tResult = copy_random_access_range(tCoordinateRange);
         EXPECT_EQ(tExpected, tResult) << aTestContext;
     };
 

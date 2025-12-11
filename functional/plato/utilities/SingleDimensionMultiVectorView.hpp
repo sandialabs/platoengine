@@ -49,6 +49,7 @@ class SingleDimensionMultiVectorView : public std::ranges::view_interface<Single
         using pointer = typename Container::value_type*;
         using reference = typename Container::reference;
 
+        Iterator() = default;
         Iterator(MultiVectorView<Container> aMultiVectorView, std::size_t aDimension);
 
         [[nodiscard]] auto operator*() const -> decltype(auto);
@@ -67,11 +68,25 @@ class SingleDimensionMultiVectorView : public std::ranges::view_interface<Single
 
         [[nodiscard]] auto operator[](size_type aIndex) const -> decltype(auto);
 
-        [[nodiscard]] auto operator<=>(const Iterator&) const = default;
+        [[nodiscard]] auto operator==(const Iterator& aOther) const -> bool = default;
+        [[nodiscard]] auto operator!=(const Iterator& aOther) const -> bool = default;
+        [[nodiscard]] auto operator<(const Iterator& aOther) const -> bool;
+        [[nodiscard]] auto operator<=(const Iterator& aOther) const -> bool;
+        [[nodiscard]] auto operator>(const Iterator& aOther) const -> bool;
+        [[nodiscard]] auto operator>=(const Iterator& aOther) const -> bool;
+
         [[nodiscard]] auto operator==(const EndSentinel) const -> bool;
         [[nodiscard]] auto operator!=(const EndSentinel) const -> bool;
 
+        /// Defined inline to facilitate instantiation and look-up
+        friend auto operator+(const difference_type aIncrement, const Iterator& aIterator)
+        {
+            return aIterator + aIncrement;
+        }
+
        private:
+        [[nodiscard]] auto containersEqual(const Iterator& aOther) const -> bool;
+
         MultiVectorView<Container> mMultiVectorView;
         size_type mDimension = 0U;
         difference_type mCurrent = 0;
@@ -175,6 +190,36 @@ template <MultiVectorViewContainer Container>
 auto SingleDimensionMultiVectorView<Container>::Iterator::operator[](const size_type aIndex) const -> decltype(auto)
 {
     return mMultiVectorView(VectorIndex{aIndex}, ComponentIndex{mDimension});
+}
+
+template <MultiVectorViewContainer Container>
+auto SingleDimensionMultiVectorView<Container>::Iterator::containersEqual(const Iterator& aOther) const -> bool
+{
+    return mMultiVectorView == aOther.mMultiVectorView && mDimension == aOther.mDimension;
+}
+
+template <MultiVectorViewContainer Container>
+auto SingleDimensionMultiVectorView<Container>::Iterator::operator<(const Iterator& aOther) const -> bool
+{
+    return containersEqual(aOther) && mCurrent < aOther.mCurrent;
+}
+
+template <MultiVectorViewContainer Container>
+auto SingleDimensionMultiVectorView<Container>::Iterator::operator<=(const Iterator& aOther) const -> bool
+{
+    return operator==(aOther) || operator<(aOther);
+}
+
+template <MultiVectorViewContainer Container>
+auto SingleDimensionMultiVectorView<Container>::Iterator::operator>(const Iterator& aOther) const -> bool
+{
+    return containersEqual(aOther) && mCurrent > aOther.mCurrent;
+}
+
+template <MultiVectorViewContainer Container>
+auto SingleDimensionMultiVectorView<Container>::Iterator::operator>=(const Iterator& aOther) const -> bool
+{
+    return operator==(aOther) || operator>(aOther);
 }
 
 template <MultiVectorViewContainer Container>

@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <concepts>
-#include <functional>
 #include <span>
 
 #include "plato/utilities/NamedType.hpp"
@@ -116,7 +115,8 @@ auto MultiVectorView<Container>::size() const -> std::size_t
 }
 
 template <MultiVectorViewContainer Container>
-auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, const ComponentIndex aComponentIndex) const -> decltype(auto)
+auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, const ComponentIndex aComponentIndex) const
+    -> decltype(auto)
 {
     assert(aComponentIndex.mValue < mDimensions);
     assert(aVectorIndex.mValue < numberOfVectors());
