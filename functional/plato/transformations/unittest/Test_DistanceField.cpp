@@ -1,7 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <ranges>
+
+#include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/mesh/Mesh.hpp"
+#include "plato/test_utilities/Containers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/transformations/DistanceField.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
 
 namespace plato::transformations::unittest
 {
@@ -29,6 +35,7 @@ TEST_F(DistanceFieldHexMeshTest, ElementCentroidDistanceField)
     EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(1U).at(1U).mValue, 0.5);
     EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(1U).at(2U).mValue, 0.5);
 }
+
 TEST_F(DistanceField2DMeshTest, ElementCentroidDistanceField)
 {
     constexpr auto tBuildPlane = Plane{.mOriginSignedDistance = 2.0, .mNormal = {.x = -1.0, .y = 0.0, .z = 0.0}};
@@ -50,6 +57,46 @@ TEST_F(DistanceField2DMeshTest, ElementCentroidDistanceField)
     EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(2U).at(1U).mValue, 10.0 / 3.0);
 
     EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(3U).at(0U).mValue, 1.0);
+}
+
+TEST_F(DistanceFieldHexMeshTest, RowVectorJacobianMultiplicationDistanceField) {}
+
+TEST_F(DistanceFieldHexMeshTest, RowVectorAdjointJacobianMultiplicationDistanceField)
+{
+    // Since this is an affine transformation, the row-vector-adjoint Jacobian multiplication is the same as the
+    // function evaluation, after subtracting the offset.
+
+    // Zero offset
+    for (const auto tOffset : {0.0, 1.0, -1.0})
+    {
+        const auto tBuildPlane = Plane{.mOriginSignedDistance = tOffset, .mNormal = {.x = 0.0, .y = 1.0, .z = 0.0}};
+        const auto tMeshWithDistanceField = element_centroid_distance_field(
+            analysis::AnalysisDomainMesh{.mFileName = mMeshFilePath, .mBlockScalarField = {}}, tBuildPlane);
+
+        const auto tNodalCoordinates = mesh::EntityRetrieval{mesh::Mesh{mMeshFilePath}}.nodalCoordinates();
+
+        auto tFlattenedCoordinatesView =
+            tNodalCoordinates |
+            std::views::transform([](const auto& aCoordinate)
+                                  { return std::array{aCoordinate.x, aCoordinate.y, aCoordinate.z}; }) |
+            std::views::join | std::views::common;
+
+        const auto tFlattenedCoordinates =
+            std::vector(tFlattenedCoordinatesView.begin(), tFlattenedCoordinatesView.end());
+
+        const auto tVectorAdjointJacobianResult = row_vector_adjoint_jacobian_multiplication_distance_field(
+            tFlattenedCoordinates, tMeshWithDistanceField, tBuildPlane);
+
+        ASSERT_EQ(tMeshWithDistanceField.mBlockScalarField.size(), 1U);
+        auto tToDistanceField = tMeshWithDistanceField.mBlockScalarField.at(1U) |
+                                std::views::transform([tOffset](const auto& aScalarFieldValue)
+                                                      { return aScalarFieldValue.mValue - tOffset; });
+        const auto tDistanceField = std::vector(tToDistanceField.begin(), tToDistanceField.end());
+
+        constexpr auto tAbsoluteTolerance = 1e-15;
+        test_utilities::expect_container_entries_near(tVectorAdjointJacobianResult, tDistanceField, tAbsoluteTolerance,
+                                                      TEST_CONTEXT("Zero offset"));
+    }
 }
 
 TEST(DistanceField, PointPlaneDistanceZeroOffsetCartesianNormals)

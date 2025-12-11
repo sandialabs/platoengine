@@ -45,16 +45,17 @@ namespace detail
 }
 }  // namespace detail
 
-auto nodal_average(const std::ranges::random_access_range auto& aNodalScalarField,
-                   const stk::mesh::BulkData& aBulkData) -> std::vector<double>
+auto nodal_average(const std::ranges::random_access_range auto& aNodalScalarField, const stk::mesh::BulkData& aBulkData)
+    -> std::vector<double>
 {
     const auto tGlobalNodeIDs = node_ids(aBulkData, aBulkData.mesh_meta_data().universal_part());
-    assert(tGlobalNodeIDs.size() == aNodalScalarField.size());
+    assert(tGlobalNodeIDs.size() == static_cast<std::size_t>(aNodalScalarField.size()));
 
     auto tNodalAverage = utilities::reserved_container<std::vector<double>>(element_size(aBulkData));
     std::transform(aBulkData.begin_entities(stk::topology::ELEMENT_RANK),
                    aBulkData.end_entities(stk::topology::ELEMENT_RANK), std::back_inserter(tNodalAverage),
-                   [&](const auto& aElement) {
+                   [&](const auto& aElement)
+                   {
                        return detail::single_element_nodal_average(aElement.second, aNodalScalarField, tGlobalNodeIDs,
                                                                    aBulkData);
                    });

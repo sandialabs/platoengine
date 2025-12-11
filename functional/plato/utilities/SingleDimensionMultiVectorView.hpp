@@ -62,6 +62,7 @@ class SingleDimensionMultiVectorView : public std::ranges::view_interface<Single
         [[nodiscard]] auto operator+(difference_type aIncrement) const -> Iterator;
         [[nodiscard]] auto operator-(difference_type aDecrement) const -> Iterator;
         [[nodiscard]] auto operator-(const Iterator& aIterator) const -> difference_type;
+        [[nodiscard]] auto operator-(EndSentinel) const -> difference_type;
 
         auto operator+=(difference_type aIncrement) -> Iterator&;
         auto operator-=(difference_type aDecrement) -> Iterator&;
@@ -78,10 +79,14 @@ class SingleDimensionMultiVectorView : public std::ranges::view_interface<Single
         [[nodiscard]] auto operator==(const EndSentinel) const -> bool;
         [[nodiscard]] auto operator!=(const EndSentinel) const -> bool;
 
-        /// Defined inline to facilitate instantiation and look-up
-        friend auto operator+(const difference_type aIncrement, const Iterator& aIterator)
+        // Defined inline to facilitate instantiation and look-up
+        [[nodiscard]] friend auto operator+(const difference_type aIncrement, const Iterator& aIterator)
         {
             return aIterator + aIncrement;
+        }
+        [[nodiscard]] friend auto operator-(const EndSentinel, const Iterator& aIterator) -> difference_type
+        {
+            return -(aIterator.operator-(EndSentinel{}));
         }
 
        private:
@@ -170,6 +175,12 @@ template <MultiVectorViewContainer Container>
 auto SingleDimensionMultiVectorView<Container>::Iterator::operator-(const Iterator& aIterator) const -> difference_type
 {
     return mCurrent - aIterator.mCurrent;
+}
+
+template <MultiVectorViewContainer Container>
+auto SingleDimensionMultiVectorView<Container>::Iterator::operator-(EndSentinel) const -> difference_type
+{
+    return mCurrent - static_cast<difference_type>(mMultiVectorView.numberOfVectors());
 }
 
 template <MultiVectorViewContainer Container>

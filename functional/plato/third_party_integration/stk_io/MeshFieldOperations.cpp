@@ -6,8 +6,8 @@ namespace plato::third_party_integration::stk_io
 {
 namespace detail
 {
-auto global_to_local_node_index(const std::vector<std::size_t>& aSortedGlobalNodeIDs,
-                                const std::size_t aGlobalNodeID) -> std::size_t
+auto global_to_local_node_index(const std::vector<std::size_t>& aSortedGlobalNodeIDs, const std::size_t aGlobalNodeID)
+    -> std::size_t
 {
     assert(std::ranges::is_sorted(aSortedGlobalNodeIDs));
 

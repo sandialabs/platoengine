@@ -308,6 +308,23 @@ TEST(SingleDimensionMultiVectorView, IteratorSentinelEquality)
         TEST_CONTEXT("Sentinel equality"));
 }
 
+TEST(SingleDimensionMultiVectorView, IteratorSentinelDifference)
+{
+    check_iterator_operations(
+        [](auto aIterator, const auto, const auto&, const test_utilities::TestContext& aTestContext)
+        {
+            const auto tEndSentinel = typename SingleDimensionMultiVectorView<std::vector<unsigned int>>::EndSentinel{};
+            const auto tLengthAsInt = static_cast<int>(kLength);
+            EXPECT_EQ(aIterator - tEndSentinel, -tLengthAsInt) << aTestContext;
+            EXPECT_EQ(tEndSentinel - aIterator, tLengthAsInt) << aTestContext;
+
+            ++aIterator;
+            EXPECT_EQ(aIterator - tEndSentinel, -tLengthAsInt + 1) << aTestContext;
+            EXPECT_EQ(tEndSentinel - aIterator, tLengthAsInt - 1) << aTestContext;
+        },
+        TEST_CONTEXT("Iterator-sentinel difference"));
+}
+
 TEST(SingleDimensionMultiVectorView, BeginEndIterators)
 {
     auto tVector = test_vector();
