@@ -66,7 +66,6 @@ TEST_F(DistanceFieldHexMeshTest, RowVectorAdjointJacobianMultiplicationDistanceF
     // Since this is an affine transformation, the row-vector-adjoint Jacobian multiplication is the same as the
     // function evaluation, after subtracting the offset.
 
-    // Zero offset
     for (const auto tOffset : {0.0, 1.0, -1.0})
     {
         const auto tBuildPlane = Plane{.mOriginSignedDistance = tOffset, .mNormal = {.x = 0.0, .y = 1.0, .z = 0.0}};
