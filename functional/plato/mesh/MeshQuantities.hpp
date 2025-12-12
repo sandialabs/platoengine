@@ -33,6 +33,12 @@ struct MeshQuantities : public Mesh
     /// @post The size of the returned vector will be equal to the number of elements on the mesh.
     [[nodiscard]] auto nodalAverage(const std::ranges::random_access_range auto& aNodalScalarField) const
         -> std::vector<double>;
+
+    /// @brief Computes the projection of an element field to the nodes of a mesh using the nodal average.
+    /// @pre The size of @a aElementScalarField must be equal to the total number of elements on the mesh.
+    /// @post The size of the returned vector will be equal to the number of nodes on the mesh.
+    [[nodiscard]] auto nodalAverageElementProjection(
+        const std::ranges::random_access_range auto& aElementScalarField) const -> std::vector<double>;
 };
 
 auto MeshQuantities::nodalAverage(const std::ranges::random_access_range auto& aScalarField) const
@@ -40,6 +46,13 @@ auto MeshQuantities::nodalAverage(const std::ranges::random_access_range auto& a
 {
     return third_party_integration::stk_io::nodal_average(aScalarField, bulkData());
 }
+
+auto MeshQuantities::nodalAverageElementProjection(
+    const std::ranges::random_access_range auto& aElementScalarField) const -> std::vector<double>
+{
+    return third_party_integration::stk_io::nodal_average_element_projection(aElementScalarField, bulkData());
+}
+
 }  // namespace plato::mesh
 
 #endif
