@@ -13,15 +13,6 @@ namespace plato::utilities
 using VectorIndex = NamedType<std::size_t, struct VectorIndexTag>;
 using ComponentIndex = NamedType<std::size_t, struct ComponentIndexTag>;
 
-/// Template constraint for container-like types supported by MultiVectorView
-template <typename Container>
-concept MultiVectorViewContainer = requires(Container aContainer) {
-    typename Container::value_type;
-    typename Container::size_type;
-    { aContainer.size() } -> std::convertible_to<typename Container::size_type>;
-    { aContainer[typename Container::size_type{}] } -> std::convertible_to<typename Container::value_type>;
-};
-
 /// @brief Helper struct to propagate the constness of a container to its contained type
 template <typename Container, typename = std::true_type>
 struct ContainedTypeWithPropagatedConst
@@ -32,6 +23,19 @@ template <typename Container>
 struct ContainedTypeWithPropagatedConst<Container, std::false_type>
 {
     using value_type = typename Container::value_type;
+};
+
+template <typename Container>
+using ContainerValueTypeWithPropagatedConst =
+    typename ContainedTypeWithPropagatedConst<Container, typename std::is_const<Container>::type>::value_type;
+
+/// @brief Template constraint for container-like types supported by MultiVectorView
+template <typename Container>
+concept MultiVectorViewContainer = requires(Container aContainer) {
+    typename Container::value_type;
+    typename Container::size_type;
+    aContainer.size();
+    aContainer.data();
 };
 
 /// @brief The purpose of this view type is to facilitate indexing operations into a contiguous array that represents a
@@ -51,8 +55,6 @@ struct ContainedTypeWithPropagatedConst<Container, std::false_type>
 ///
 /// The assumption is that the entries are arranged such that the components are contiguous, i.e. indexing the view with
 /// vector index `m` and component index `n` indexes into the underlying container as `m * kDimensions + n`.
-///
-/// @tparam Container Must have an `operator[]` defined.
 template <MultiVectorViewContainer Container>
 class MultiVectorView
 {
@@ -77,12 +79,11 @@ class MultiVectorView
     /// @pre @a aComponentIndex must be less than the size `kDimensions`
     auto operator()(VectorIndex aVectorIndex, ComponentIndex aComponentIndex) const -> decltype(auto);
 
-    /// @brief Returns true if the data pointed to by this view and the dimension are equal
+    /// @brief Returns true if the data pointed to by this view and the dimensions are equal
     [[nodiscard]] auto operator==(const MultiVectorView&) const -> bool;
 
    private:
-    using value_type =
-        typename ContainedTypeWithPropagatedConst<Container, typename std::is_const<Container>::type>::value_type;
+    using value_type = ContainerValueTypeWithPropagatedConst<Container>;
 
     std::span<value_type> mContainer;
     std::size_t mDimensions = 0U;
@@ -99,6 +100,7 @@ template <MultiVectorViewContainer Container>
 MultiVectorView<Container>::MultiVectorView(Container& aContainer, const std::size_t aDimensions)
     : mContainer(aContainer.data(), aContainer.size()), mDimensions(aDimensions)
 {
+    assert(aContainer.size() % aDimensions == 0);
     static_assert(std::is_const_v<Container> == std::is_const_v<value_type>);
 }
 
@@ -115,8 +117,8 @@ auto MultiVectorView<Container>::size() const -> std::size_t
 }
 
 template <MultiVectorViewContainer Container>
-auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, const ComponentIndex aComponentIndex) const
-    -> decltype(auto)
+auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex,
+                                            const ComponentIndex aComponentIndex) const -> decltype(auto)
 {
     assert(aComponentIndex.mValue < mDimensions);
     assert(aVectorIndex.mValue < numberOfVectors());

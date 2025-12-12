@@ -70,10 +70,9 @@ auto row_vector_jacobian_multiplication_distance_field(const std::vector<double>
 
 /// @brief Computes the multiplication of a row vector @a aRowVector with the adjoint Jacobian of the element centroid
 /// distance field.
-[[nodiscard]] auto row_vector_adjoint_jacobian_multiplication_distance_field(
-    const std::vector<double>& aRowVector,
-    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-    const Plane& aBuildPlane) -> std::vector<double>
+auto row_vector_adjoint_jacobian_multiplication_distance_field(const std::vector<double>& aRowVector,
+                                                               const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                               const Plane& aBuildPlane) -> std::vector<double>
 {
     const auto tMesh = mesh::Mesh{aAnalysisDomainMesh.mFileName};
     const auto tMeshDimensions = mesh::EntityCounts{tMesh}.spatialDimensions();

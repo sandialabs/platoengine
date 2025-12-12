@@ -36,10 +36,10 @@ TEST(MultiVectorView, Values)
         }
     };
 
-    auto tNonConstView = MultiVectorView<const std::vector<double>>{tVector, tDimension};
+    auto tNonConstView = MultiVectorView{tVector, tDimension};
     tTest(tNonConstView, TEST_CONTEXT("Non-const view"));
 
-    const auto tConstView = MultiVectorView<const std::vector<double>>{tVector, tDimension};
+    const auto tConstView = MultiVectorView{tVector, tDimension};
     tTest(tConstView, TEST_CONTEXT("Const view"));
 }
 

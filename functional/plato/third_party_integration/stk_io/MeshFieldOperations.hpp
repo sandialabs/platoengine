@@ -28,12 +28,12 @@ namespace plato::third_party_integration::stk_io
 
 namespace detail
 {
-/// @brief Given a @a aGlobalNodeID and list of all global node ids sorted in ascending order @a aSortedGlobalNodeIDs,
-/// returns the index at which @a aGlobalNodeID appears in the @a aSortedGlobalNodeIDs.
-/// @pre @a aSortedGlobalNodeIDs is sorted.
-/// @pre @a aGlobalNodeID is an entry in @a aSortedGlobalNodeIDs.
-[[nodiscard]] auto global_to_local_node_index(const std::vector<std::size_t>& aSortedGlobalNodeIDs,
-                                              const std::size_t aGlobalNodeID) -> std::size_t;
+/// @brief Given a @a aGlobalID and list of all global ids sorted in ascending order @a aSortedGlobalIDs,
+/// returns the index at which @a aGlobalID appears in the @a aSortedGlobalIDs.
+/// @pre @a aSortedGlobalIDs is sorted.
+/// @pre @a aGlobalID is an entry in @a aSortedGlobalIDs.
+[[nodiscard]] auto global_to_local_index(const std::vector<std::size_t>& aSortedGlobalIDs,
+                                         const std::size_t aGlobalID) -> std::size_t;
 
 [[nodiscard]] auto single_element_nodal_average(const stk::mesh::Entity& aElement,
                                                 const std::ranges::random_access_range auto& aNodalScalarField,
@@ -46,15 +46,15 @@ namespace detail
                                            {
                                                const auto tGlobalID = aBulkData.entity_key(aNodeEntity).id();
                                                const auto tLocalIndex =
-                                                   detail::global_to_local_node_index(aGlobalNodeIDs, tGlobalID);
+                                                   detail::global_to_local_index(aGlobalNodeIDs, tGlobalID);
                                                return aCurrentAverage + aNodalScalarField[tLocalIndex];
                                            });
     return tNodalSum / static_cast<double>(tNumberOfNodes);
 }
 }  // namespace detail
 
-auto nodal_average(const std::ranges::random_access_range auto& aNodalScalarField, const stk::mesh::BulkData& aBulkData)
-    -> std::vector<double>
+auto nodal_average(const std::ranges::random_access_range auto& aNodalScalarField,
+                   const stk::mesh::BulkData& aBulkData) -> std::vector<double>
 {
     const auto tGlobalNodeIDs = node_ids(aBulkData, aBulkData.mesh_meta_data().universal_part());
     assert(tGlobalNodeIDs.size() == static_cast<std::size_t>(aNodalScalarField.size()));
@@ -62,9 +62,7 @@ auto nodal_average(const std::ranges::random_access_range auto& aNodalScalarFiel
     auto tNodalAverage = utilities::reserved_container<std::vector<double>>(element_size(aBulkData));
     std::transform(aBulkData.begin_entities(stk::topology::ELEMENT_RANK),
                    aBulkData.end_entities(stk::topology::ELEMENT_RANK), std::back_inserter(tNodalAverage),
-                   [&](const auto& aElement)
-                   {
-                       /// TODO: Does this need to be put in a vector based on global element ID?
+                   [&](const auto& aElement) {
                        return detail::single_element_nodal_average(aElement.second, aNodalScalarField, tGlobalNodeIDs,
                                                                    aBulkData);
                    });
@@ -93,11 +91,11 @@ auto nodal_average_element_projection(const std::ranges::random_access_range aut
                       [&](const auto& aNodeEntity)
                       {
                           const auto tGlobalNodeID = aBulkData.entity_key(aNodeEntity).id();
-                          const auto tLocalIndex = detail::global_to_local_node_index(tGlobalNodeIDs, tGlobalNodeID);
+                          const auto tLocalIndex = detail::global_to_local_index(tGlobalNodeIDs, tGlobalNodeID);
                           // Spurious clang-tidy warning: https://github.com/llvm/llvm-project/issues/99764
-                          tNodalProjection[tLocalIndex] +=
-                              tValue /
-                              static_cast<double>(tNumberOfNodes);  // NOLINT(clang-analyzer-core.NullDereference)
+                          // NOLINTBEGIN(clang-analyzer-core.NullDereference)
+                          tNodalProjection[tLocalIndex] += tValue / static_cast<double>(tNumberOfNodes);
+                          // NOLINTEND(clang-analyzer-core.NullDereference)
                       });
     }
     return tNodalProjection;

@@ -186,8 +186,9 @@ TEST(SingleDimensionMultiVectorView, IteratorPlusEqualOperator)
             EXPECT_EQ(*aIterator, aBaseVector.at(aDimensionIndex + tIncrement * kDimensions)) << aTestContext;
 
             aIterator += tIncrement;
+            constexpr auto tNumberOfTimesIncremented = std::size_t{2};
             EXPECT_EQ(*aIterator,
-                      aBaseVector.at(aDimensionIndex + static_cast<std::size_t>(2) * tIncrement * kDimensions))
+                      aBaseVector.at(aDimensionIndex + tNumberOfTimesIncremented * tIncrement * kDimensions))
                 << aTestContext;
         },
         TEST_CONTEXT("Plus equal operator"));
@@ -206,9 +207,9 @@ TEST(SingleDimensionMultiVectorView, IteratorMinusEqualOperator)
                 << aTestContext;
 
             aIterator -= tDecrement;
-            EXPECT_EQ(*aIterator,
-                      aBaseVector.at(aDimensionIndex +
-                                     (kLength - 1 - static_cast<std::size_t>(2) * tDecrement) * kDimensions))
+            constexpr auto tNumberOfTimesDecremented = std::size_t{2};
+            EXPECT_EQ(*aIterator, aBaseVector.at(aDimensionIndex +
+                                                 (kLength - 1 - tNumberOfTimesDecremented * tDecrement) * kDimensions))
                 << aTestContext;
         },
         TEST_CONTEXT("Minus equal operator"));

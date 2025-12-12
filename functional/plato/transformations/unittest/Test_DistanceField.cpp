@@ -6,6 +6,7 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/Containers.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/transformations/DistanceField.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
@@ -28,10 +29,11 @@ using DistanceFieldTet4MeshOnDisk = third_party_integration::stk_io::test_utilit
 using NumberOfCoordinates = utilities::NamedType<unsigned int, struct NumberOfCoordinatesTag>;
 using NumberOfElements = utilities::NamedType<unsigned int, struct NumberOfElementsTag>;
 
-[[nodiscard]] auto adjoint_consistency_inner_products(const NumberOfCoordinates aNumberOfCoordinates,
-                                                      const NumberOfElements aNumberOfElements,
-                                                      const std::filesystem::path& aMeshPath)
-    -> std::pair<double, double>
+/// @brief Tests that `w J v == v^T J^T w^T`
+void check_adjoint_consistency(const NumberOfCoordinates aNumberOfCoordinates,
+                               const NumberOfElements aNumberOfElements,
+                               const std::filesystem::path& aMeshPath,
+                               const test_utilities::TestContext& aTestContext)
 {
     auto tIotaView =
         std::views::iota(1U) | std::views::transform([](const auto aEntry) { return static_cast<double>(aEntry); });
@@ -52,7 +54,9 @@ using NumberOfElements = utilities::NamedType<unsigned int, struct NumberOfEleme
         tJacobianMultiplication.begin(), tJacobianMultiplication.end(), tNodalCoordinateVector.begin(), 0.0);
     const auto tAdjointJacobianInnerProduct = std::inner_product(
         tAdjointJacobianMultiplication.begin(), tAdjointJacobianMultiplication.end(), tElementVector.begin(), 0.0);
-    return {tJacobianInnerProduct, tAdjointJacobianInnerProduct};
+
+    constexpr auto tTolerance = 1e-14;
+    EXPECT_NEAR(tJacobianInnerProduct, tAdjointJacobianInnerProduct, tTolerance) << aTestContext;
 }
 
 }  // namespace
@@ -132,26 +136,18 @@ TEST_F(DistanceFieldTwoDTwoBlockMesh, RowVectorJacobianMultiplicationDistanceFie
 
 TEST_F(DistanceFieldTet4MeshOnDisk, AdjointConsistency)
 {
-    // Tests that w J v == v^T J^T w^T
     constexpr auto tMeshDimensions = 3U;
-    const auto [tJacobianInnerProduct, tAdjointJacobianInnerProduct] =
-        adjoint_consistency_inner_products(NumberOfCoordinates{tMeshDimensions * mExpectedNumberOfNodes},
-                                           NumberOfElements{mExpectedNumberOfElements}, mMeshFilePath);
-
-    constexpr auto tTolerance = 1e-14;
-    EXPECT_NEAR(tJacobianInnerProduct, tAdjointJacobianInnerProduct, tTolerance);
+    check_adjoint_consistency(NumberOfCoordinates{tMeshDimensions * mExpectedNumberOfNodes},
+                              NumberOfElements{mExpectedNumberOfElements}, mMeshFilePath,
+                              TEST_CONTEXT("Large tet4 mesh"));
 }
 
 TEST_F(DistanceFieldTwoDManyBlockMesh, AdjointConsistency)
 {
-    // Tests that w J v == v^T J^T w^T
     constexpr auto tMeshDimensions = 2U;
-    const auto [tJacobianInnerProduct, tAdjointJacobianInnerProduct] =
-        adjoint_consistency_inner_products(NumberOfCoordinates{tMeshDimensions * mExpectedNumberOfNodes},
-                                           NumberOfElements{mExpectedNumberOfElements}, mMeshFilePath);
-
-    constexpr auto tTolerance = 1e-14;
-    EXPECT_NEAR(tJacobianInnerProduct, tAdjointJacobianInnerProduct, tTolerance);
+    check_adjoint_consistency(NumberOfCoordinates{tMeshDimensions * mExpectedNumberOfNodes},
+                              NumberOfElements{mExpectedNumberOfElements}, mMeshFilePath,
+                              TEST_CONTEXT("Small 2d mesh"));
 }
 
 TEST_F(DistanceFieldHexMeshTest, RowVectorAdjointJacobianMultiplicationDistanceField)

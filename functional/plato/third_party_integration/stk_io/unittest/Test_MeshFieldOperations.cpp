@@ -13,12 +13,12 @@ namespace
 using MeshFieldOperationsTwoDThreeBlock = test_utilities::TwoDThreeBlockMesh;
 }
 
-TEST(MeshFieldOperations, GlobalToLocalNodeIndex)
+TEST(MeshFieldOperations, GlobalToLocalIndex)
 {
     const auto tIDs = std::vector<std::size_t>{0, 10, 11, 13, 42};
     for (const auto [tExpected, tGlobalID] : utilities::enumerate(tIDs))
     {
-        EXPECT_EQ(tExpected, detail::global_to_local_node_index(tIDs, tGlobalID));
+        EXPECT_EQ(tExpected, detail::global_to_local_index(tIDs, tGlobalID));
     }
 }
 
@@ -81,10 +81,10 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverage)
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
 
     const auto tNodalCoordinates = nodal_coordinates(*tBulkData);
-    auto tYCoordinate =
+    auto tXCoordinate =
         tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return 3.0 * aCoordinate.x; });
 
-    const auto tNodalAverage = nodal_average(tYCoordinate, *tBulkData);
+    const auto tNodalAverage = nodal_average(tXCoordinate, *tBulkData);
     // Computed by hand based on connectivity
     // This mesh also has a non-trivial element map, and so the order is based on sorted element global id
     const auto tExpected = std::vector{-2.0, -4.0, 3.0, 1.0, 3.0, 5.0, 3.0};
