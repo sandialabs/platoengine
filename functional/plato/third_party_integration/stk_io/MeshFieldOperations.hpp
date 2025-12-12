@@ -83,7 +83,6 @@ auto nodal_average_element_projection(const std::ranges::random_access_range aut
     }();
 
     assert(aElementScalarField.size() == tElementEntities.size());
-
     const auto tGlobalNodeIDs = node_ids(aBulkData, aBulkData.mesh_meta_data().universal_part());
     auto tNodalProjection = std::vector<double>(tGlobalNodeIDs.size(), 0.0);
 
@@ -95,7 +94,10 @@ auto nodal_average_element_projection(const std::ranges::random_access_range aut
                       {
                           const auto tGlobalNodeID = aBulkData.entity_key(aNodeEntity).id();
                           const auto tLocalIndex = detail::global_to_local_node_index(tGlobalNodeIDs, tGlobalNodeID);
-                          tNodalProjection[tLocalIndex] += tValue / static_cast<double>(tNumberOfNodes);
+                          // Spurious clang-tidy warning: https://github.com/llvm/llvm-project/issues/99764
+                          tNodalProjection[tLocalIndex] +=
+                              tValue /
+                              static_cast<double>(tNumberOfNodes);  // NOLINT(clang-analyzer-core.NullDereference)
                       });
     }
     return tNodalProjection;

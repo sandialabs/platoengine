@@ -86,6 +86,7 @@ class Tet4MeshOnDisk : virtual public ::testing::Test
 
     constexpr static auto mMeshFileName = std::string_view{"box_3x4x7_tet4.cdf"};
     constexpr static auto mExpectedNumberOfNodes = 389U;
+    constexpr static auto mExpectedNumberOfElements = 1520U;
 };
 
 /// @brief A mesh test fixture providing a 2D mesh with 3 blocks. The nodes and elements
@@ -212,6 +213,7 @@ class TwoDManyBlockMesh : virtual public ::testing::Test
     constexpr static auto mBlockNames = std::array{"ALPHA", "BETA", "GAMMA", "DELTA", "EPSILON", "ZETA", "ETA"};
     constexpr static auto mExpectedNumberOfBlocks = 7U;
     constexpr static auto mExpectedNumberOfElements = 7U;
+    constexpr static auto mExpectedNumberOfNodes = 9U;
     const static inline auto mBlockNameToOrdinal = std::unordered_map<std::string, unsigned int>{
         {"alpha", 20U}, {"beta", 21U}, {"gamma", 22U}, {"delta", 23U}, {"epsilon", 24U}, {"zeta", 25U}, {"eta", 26U}};
 };

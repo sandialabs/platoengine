@@ -1,6 +1,7 @@
 #include "plato/transformations/DistanceField.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <functional>
 #include <ranges>
 
@@ -14,15 +15,23 @@
 
 namespace plato::transformations
 {
+namespace
+{
+[[nodiscard]] auto normal_as_array(const Plane& aPlane) -> std::array<double, 3U>
+{
+    return std::array{aPlane.mNormal.x, aPlane.mNormal.y, aPlane.mNormal.z};
+}
+
 [[nodiscard]] auto vector_sum(const std::ranges::range auto& aLeft, std::vector<double>&& aRight) -> std::vector<double>
 {
     std::transform(aRight.begin(), aRight.end(), aLeft.begin(), aRight.begin(),
                    [](const double aLeft, const double aRight) { return aLeft + aRight; });
     return std::move(aRight);
 }
+}  // namespace
 
-auto element_centroid_distance_field(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, const Plane& aBuildPlane)
-    -> analysis::AnalysisDomainMesh
+auto element_centroid_distance_field(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                     const Plane& aBuildPlane) -> analysis::AnalysisDomainMesh
 {
     const auto tMesh = mesh::Mesh{aAnalysisDomainMesh.mFileName};
     const auto tElementCentroids = mesh::EntityRetrieval{tMesh}.elementCentroids();
@@ -36,11 +45,27 @@ auto element_centroid_distance_field(const analysis::AnalysisDomainMesh& aAnalys
         mesh::ElementFieldVectorReference{std::cref(tBuildPlaneDistances)});
 }
 
-auto row_vector_jacobian_multiplication_distance_field(const std::vector<double>&,
-                                                       const analysis::AnalysisDomainMesh&,
-                                                       const Plane&) -> std::vector<double>
+auto row_vector_jacobian_multiplication_distance_field(const std::vector<double>& aRowVector,
+                                                       const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                       const Plane& aBuildPlane) -> std::vector<double>
 {
-    return {};
+    const auto tMesh = mesh::Mesh{aAnalysisDomainMesh.mFileName};
+    const auto tMeshDimensions = mesh::EntityCounts{tMesh}.spatialDimensions();
+    const auto tNumberOfNodes = mesh::EntityCounts{tMesh}.numberOfNodes();
+
+    const auto tPlaneNormal = normal_as_array(aBuildPlane);
+    auto tFullNodalProjection = std::vector(static_cast<std::size_t>(tMeshDimensions * tNumberOfNodes), 0.0);
+    const auto tRowVectorNodalProjection = mesh::MeshQuantities{tMesh}.nodalAverageElementProjection(aRowVector);
+    for (const auto tDimension : std::views::iota(0U, tMeshDimensions))
+    {
+        const auto tCoordinateView = utilities::MultiVectorView{tFullNodalProjection, tMeshDimensions};
+        const auto tDimensionView = utilities::SingleDimensionMultiVectorView{tCoordinateView, tDimension};
+        auto tAverageTimesNormalComponent =
+            tRowVectorNodalProjection | std::views::transform([mComponent = tPlaneNormal[tDimension]](
+                                                                  const double aValue) { return mComponent * aValue; });
+        std::ranges::copy(tAverageTimesNormalComponent, tDimensionView.begin());
+    }
+    return tFullNodalProjection;
 }
 
 /// @brief Computes the multiplication of a row vector @a aRowVector with the adjoint Jacobian of the element centroid
@@ -54,8 +79,8 @@ auto row_vector_jacobian_multiplication_distance_field(const std::vector<double>
     const auto tMeshDimensions = mesh::EntityCounts{tMesh}.spatialDimensions();
     const auto tCoordinateView = utilities::MultiVectorView{aRowVector, tMeshDimensions};
 
+    const auto tPlaneNormal = normal_as_array(aBuildPlane);
     auto tResult = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfElements());
-    const auto tPlaneNormal = std::array{aBuildPlane.mNormal.x, aBuildPlane.mNormal.y, aBuildPlane.mNormal.z};
     for (const auto tDimension : std::views::iota(0U, tMeshDimensions))
     {
         const auto tDimensionAverage = mesh::MeshQuantities{tMesh}.nodalAverage(

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <numeric>
 #include <ranges>
 
 #include "plato/mesh/EntityRetrieval.hpp"
@@ -8,6 +9,7 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/transformations/DistanceField.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
+#include "plato/utilities/NamedType.hpp"
 
 namespace plato::transformations::unittest
 {
@@ -17,8 +19,41 @@ namespace tpic = third_party_integration::common;
 
 constexpr auto kTestPoint = tpic::Coordinate{.x = 10.0, .y = 11.0, .z = 12.0};
 
+using DistanceFieldTwoDTwoBlockMesh = third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
 using DistanceFieldHexMeshTest = third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 using DistanceField2DMeshTest = third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+using DistanceFieldTwoDManyBlockMesh = third_party_integration::stk_io::test_utilities::TwoDManyBlockMesh;
+using DistanceFieldTet4MeshOnDisk = third_party_integration::stk_io::test_utilities::Tet4MeshOnDisk;
+
+using NumberOfCoordinates = utilities::NamedType<unsigned int, struct NumberOfCoordinatesTag>;
+using NumberOfElements = utilities::NamedType<unsigned int, struct NumberOfElementsTag>;
+
+[[nodiscard]] auto adjoint_consistency_inner_products(const NumberOfCoordinates aNumberOfCoordinates,
+                                                      const NumberOfElements aNumberOfElements,
+                                                      const std::filesystem::path& aMeshPath)
+    -> std::pair<double, double>
+{
+    auto tIotaView =
+        std::views::iota(1U) | std::views::transform([](const auto aEntry) { return static_cast<double>(aEntry); });
+    auto tElementEntries = tIotaView | std::views::take(aNumberOfElements.mValue) | std::views::common;
+    const auto tElementVector = std::vector<double>(tElementEntries.begin(), tElementEntries.end());
+
+    auto tNodalEntries = tIotaView | std::views::take(aNumberOfCoordinates.mValue) | std::views::common;
+    const auto tNodalCoordinateVector = std::vector<double>(tNodalEntries.begin(), tNodalEntries.end());
+
+    const auto tBuildPlane = Plane{.mOriginSignedDistance = 10.0, .mNormal = {.x = -1.0, .y = 1.0, .z = 2.0}};
+    const auto tMesh = analysis::AnalysisDomainMesh{.mFileName = aMeshPath, .mBlockScalarField = {}};
+    const auto tJacobianMultiplication =
+        row_vector_jacobian_multiplication_distance_field(tElementVector, tMesh, tBuildPlane);
+    const auto tAdjointJacobianMultiplication =
+        row_vector_adjoint_jacobian_multiplication_distance_field(tNodalCoordinateVector, tMesh, tBuildPlane);
+
+    const auto tJacobianInnerProduct = std::inner_product(
+        tJacobianMultiplication.begin(), tJacobianMultiplication.end(), tNodalCoordinateVector.begin(), 0.0);
+    const auto tAdjointJacobianInnerProduct = std::inner_product(
+        tAdjointJacobianMultiplication.begin(), tAdjointJacobianMultiplication.end(), tElementVector.begin(), 0.0);
+    return {tJacobianInnerProduct, tAdjointJacobianInnerProduct};
+}
 
 }  // namespace
 
@@ -59,7 +94,65 @@ TEST_F(DistanceField2DMeshTest, ElementCentroidDistanceField)
     EXPECT_DOUBLE_EQ(tMeshWithDistanceField.mBlockScalarField.at(3U).at(0U).mValue, 1.0);
 }
 
-TEST_F(DistanceFieldHexMeshTest, RowVectorJacobianMultiplicationDistanceField) {}
+TEST_F(DistanceFieldTwoDTwoBlockMesh, RowVectorJacobianMultiplicationDistanceField)
+{
+    /* Matlab:
+    nx = -1;
+    ny = 1;
+    n = [nx ny  0  0  0  0
+          0  0 nx ny  0  0
+          0  0  0  0 nx ny];
+    ta = 1/3;
+    qa = 1/4;
+    % Nodal coordinate averages
+    C = [0  0 ta  0 ta  0 ta  0  0  0  0  0
+         0  0  0 ta  0 ta  0 ta  0  0  0  0
+         0  0 ta  0  0  0 ta  0 ta  0  0  0
+         0  0  0 ta  0  0  0 ta  0 ta  0  0
+         qa 0 qa  0  0  0  0  0 qa  0  qa 0
+         0 qa  0 qa  0  0  0  0  0 qa  0 qa ]
+    e = [1 2 3]
+    r = e * n * C;
+    % r  = [-0.75 0.75 -1.75 1.75 -1.0/3.0 1.0/3.0 -1.0 1.0 -1.416666666666667 1.416666666666667 -0.75 0.75];
+    */
+    const auto tBuildPlane = Plane{.mOriginSignedDistance = 0.0, .mNormal = {.x = -1.0, .y = 1.0, .z = 0.0}};
+    const auto tRowVector = std::vector{1.0, 2.0, 3.0};
+    ASSERT_EQ(tRowVector.size(), mExpectedNumberOfElements);
+
+    const auto tVectorJacobianResult = row_vector_jacobian_multiplication_distance_field(
+        tRowVector, analysis::AnalysisDomainMesh{.mFileName = mMeshFilePath, .mBlockScalarField = {}}, tBuildPlane);
+
+    const auto tExpected = std::vector{
+        -0.75, 0.75, -1.75, 1.75, -1.0 / 3.0, 1.0 / 3.0, -1.0, 1.0, -1.416666666666667, 1.416666666666667, -0.75, 0.75};
+
+    constexpr auto tAbsoluteTolerance = 1e-15;
+    test_utilities::expect_container_entries_near(tVectorJacobianResult, tExpected, tAbsoluteTolerance,
+                                                  TEST_CONTEXT("Row vector-Jacobian product"));
+}
+
+TEST_F(DistanceFieldTet4MeshOnDisk, AdjointConsistency)
+{
+    // Tests that w J v == v^T J^T w^T
+    constexpr auto tMeshDimensions = 3U;
+    const auto [tJacobianInnerProduct, tAdjointJacobianInnerProduct] =
+        adjoint_consistency_inner_products(NumberOfCoordinates{tMeshDimensions * mExpectedNumberOfNodes},
+                                           NumberOfElements{mExpectedNumberOfElements}, mMeshFilePath);
+
+    constexpr auto tTolerance = 1e-14;
+    EXPECT_NEAR(tJacobianInnerProduct, tAdjointJacobianInnerProduct, tTolerance);
+}
+
+TEST_F(DistanceFieldTwoDManyBlockMesh, AdjointConsistency)
+{
+    // Tests that w J v == v^T J^T w^T
+    constexpr auto tMeshDimensions = 2U;
+    const auto [tJacobianInnerProduct, tAdjointJacobianInnerProduct] =
+        adjoint_consistency_inner_products(NumberOfCoordinates{tMeshDimensions * mExpectedNumberOfNodes},
+                                           NumberOfElements{mExpectedNumberOfElements}, mMeshFilePath);
+
+    constexpr auto tTolerance = 1e-14;
+    EXPECT_NEAR(tJacobianInnerProduct, tAdjointJacobianInnerProduct, tTolerance);
+}
 
 TEST_F(DistanceFieldHexMeshTest, RowVectorAdjointJacobianMultiplicationDistanceField)
 {
@@ -94,7 +187,7 @@ TEST_F(DistanceFieldHexMeshTest, RowVectorAdjointJacobianMultiplicationDistanceF
 
         constexpr auto tAbsoluteTolerance = 1e-15;
         test_utilities::expect_container_entries_near(tVectorAdjointJacobianResult, tDistanceField, tAbsoluteTolerance,
-                                                      TEST_CONTEXT("Zero offset"));
+                                                      TEST_CONTEXT("Row vector-adjoint Jacobian product"));
     }
 }
 
