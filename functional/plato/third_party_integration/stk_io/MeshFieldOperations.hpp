@@ -4,19 +4,27 @@
 #include <numeric>
 #include <ranges>
 #include <stk_mesh/base/BulkData.hpp>
+#include <stk_mesh/base/GetEntities.hpp>
 #include <stk_mesh/base/MetaData.hpp>
 
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::stk_io
 {
-/// @brief Given a range @a aNodalScalarField, whose size corresponds to the number of nodes in @a aBulk, computes the
-/// nodal average of the field represented by the range.
+/// @brief Given a range @a aNodalScalarField, whose size corresponds to the number of nodes in @a aBulk, this computes
+/// the nodal average of the field represented by the range.
 /// @note The order of the elements in @a aNodalScalarField are assumed to be sorted in ascending order of global node
 /// id.
 [[nodiscard]] auto nodal_average(const std::ranges::random_access_range auto& aNodalScalarField,
-                                 const stk::mesh::BulkData& aBulk) -> std::vector<double>;
+                                 const stk::mesh::BulkData& aBulkData) -> std::vector<double>;
+
+/// @brief Given a range @a aElementScalarField, whose size corresponds to the number of elements in @a aBulk, this
+/// computes the projection of the element values to the nodes, using the nodal average to weight each contribution.
+/// @note This operation is essentially the adjoint of nodal_average.
+[[nodiscard]] auto nodal_average_element_projection(const std::ranges::random_access_range auto& aElementScalarField,
+                                                    const stk::mesh::BulkData& aBulkData) -> std::vector<double>;
 
 namespace detail
 {
@@ -56,10 +64,41 @@ auto nodal_average(const std::ranges::random_access_range auto& aNodalScalarFiel
                    aBulkData.end_entities(stk::topology::ELEMENT_RANK), std::back_inserter(tNodalAverage),
                    [&](const auto& aElement)
                    {
+                       /// TODO: Does this need to be put in a vector based on global element ID?
                        return detail::single_element_nodal_average(aElement.second, aNodalScalarField, tGlobalNodeIDs,
                                                                    aBulkData);
                    });
     return tNodalAverage;
+}
+
+auto nodal_average_element_projection(const std::ranges::random_access_range auto& aElementScalarField,
+                                      const stk::mesh::BulkData& aBulkData) -> std::vector<double>
+{
+    const auto tElementEntities = [&aBulkData]()
+    {
+        auto tEntities = stk::mesh::EntityVector{};
+        constexpr auto tSortedByGlobalID = true;
+        stk::mesh::get_entities(aBulkData, stk::topology::ELEMENT_RANK, tEntities, tSortedByGlobalID);
+        return tEntities;
+    }();
+
+    assert(aElementScalarField.size() == tElementEntities.size());
+
+    const auto tGlobalNodeIDs = node_ids(aBulkData, aBulkData.mesh_meta_data().universal_part());
+    auto tNodalProjection = std::vector<double>(tGlobalNodeIDs.size(), 0.0);
+
+    for (const auto [tValue, tElementEntity] : utilities::Zip{aElementScalarField, tElementEntities})
+    {
+        const auto tNumberOfNodes = aBulkData.num_nodes(tElementEntity);
+        std::for_each(aBulkData.begin_nodes(tElementEntity), aBulkData.end_nodes(tElementEntity),
+                      [&](const auto& aNodeEntity)
+                      {
+                          const auto tGlobalNodeID = aBulkData.entity_key(aNodeEntity).id();
+                          const auto tLocalIndex = detail::global_to_local_node_index(tGlobalNodeIDs, tGlobalNodeID);
+                          tNodalProjection[tLocalIndex] += tValue / static_cast<double>(tNumberOfNodes);
+                      });
+    }
+    return tNodalProjection;
 }
 }  // namespace plato::third_party_integration::stk_io
 
