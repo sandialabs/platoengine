@@ -21,13 +21,6 @@ namespace
 {
     return std::array{aPlane.mNormal.x, aPlane.mNormal.y, aPlane.mNormal.z};
 }
-
-[[nodiscard]] auto vector_sum(const std::ranges::range auto& aLeft, std::vector<double>&& aRight) -> std::vector<double>
-{
-    std::transform(aRight.begin(), aRight.end(), aLeft.begin(), aRight.begin(),
-                   [](const double aLeftEntry, const double aRightEntry) { return aLeftEntry + aRightEntry; });
-    return std::move(aRight);
-}
 }  // namespace
 
 auto element_centroid_distance_field(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
@@ -68,8 +61,6 @@ auto row_vector_jacobian_multiplication_distance_field(const std::vector<double>
     return tFullNodalProjection;
 }
 
-/// @brief Computes the multiplication of a row vector @a aRowVector with the adjoint Jacobian of the element centroid
-/// distance field.
 auto row_vector_adjoint_jacobian_multiplication_distance_field(const std::vector<double>& aRowVector,
                                                                const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                                                const Plane& aBuildPlane) -> std::vector<double>
@@ -82,12 +73,13 @@ auto row_vector_adjoint_jacobian_multiplication_distance_field(const std::vector
     auto tResult = std::vector<double>(mesh::EntityCounts{tMesh}.numberOfElements());
     for (const auto tDimension : std::views::iota(0U, tMeshDimensions))
     {
-        const auto tDimensionAverage = mesh::MeshQuantities{tMesh}.nodalAverage(
+        const auto tDimensionAverage = mesh::MeshQuantities{tMesh}.elementAveragedNodalValues(
             utilities::SingleDimensionMultiVectorView{tCoordinateView, tDimension});
         auto tAverageTimesNormalComponent =
             tDimensionAverage | std::views::transform([mComponent = tPlaneNormal[tDimension]](const double aValue)
                                                       { return mComponent * aValue; });
-        tResult = vector_sum(tAverageTimesNormalComponent, std::move(tResult));
+        std::transform(tAverageTimesNormalComponent.begin(), tAverageTimesNormalComponent.end(), tResult.begin(),
+                       tResult.begin(), std::plus<double>{});
     }
 
     return tResult;

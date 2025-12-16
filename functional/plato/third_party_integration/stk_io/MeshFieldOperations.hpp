@@ -14,15 +14,21 @@
 namespace plato::third_party_integration::stk_io
 {
 /// @brief Given a range @a aNodalScalarField, whose size corresponds to the number of nodes in @a aBulk, this computes
-/// the nodal average of the field represented by the range.
-/// @note The order of the elements in @a aNodalScalarField are assumed to be sorted in ascending order of global node
+/// the element-wise nodal average of the field represented by the range.
+/// @pre The order of the elements in @a aNodalScalarField are assumed to be sorted in ascending order of global node
 /// id.
-[[nodiscard]] auto nodal_average(const std::ranges::random_access_range auto& aNodalScalarField,
-                                 const stk::mesh::BulkData& aBulkData) -> std::vector<double>;
+/// @post The size of the returned vector will be equal to the total number of elements in @a aBulkData. The entries in
+/// the returned vector will be sorted in ascending global element ID order.
+[[nodiscard]] auto element_averaged_nodal_values(const std::ranges::random_access_range auto& aNodalScalarField,
+                                                 const stk::mesh::BulkData& aBulkData) -> std::vector<double>;
 
 /// @brief Given a range @a aElementScalarField, whose size corresponds to the number of elements in @a aBulk, this
 /// computes the projection of the element values to the nodes, using the nodal average to weight each contribution.
-/// @note This operation is essentially the adjoint of nodal_average.
+/// @note This operation is essentially the adjoint of element_averaged_nodal_value.
+/// @pre The order of the elements in @a aElementScalarField are assumed to be sorted in ascending order of global
+/// element id.
+/// @post The size of the returned vector will be equal to the total number of nodes in @a aBulkData. The entries in the
+/// returned vector will be sorted in ascending global node ID order.
 [[nodiscard]] auto nodal_average_element_projection(const std::ranges::random_access_range auto& aElementScalarField,
                                                     const stk::mesh::BulkData& aBulkData) -> std::vector<double>;
 
@@ -53,8 +59,8 @@ namespace detail
 }
 }  // namespace detail
 
-auto nodal_average(const std::ranges::random_access_range auto& aNodalScalarField,
-                   const stk::mesh::BulkData& aBulkData) -> std::vector<double>
+auto element_averaged_nodal_values(const std::ranges::random_access_range auto& aNodalScalarField,
+                                   const stk::mesh::BulkData& aBulkData) -> std::vector<double>
 {
     const auto tGlobalNodeIDs = node_ids(aBulkData, aBulkData.mesh_meta_data().universal_part());
     assert(tGlobalNodeIDs.size() == static_cast<std::size_t>(aNodalScalarField.size()));

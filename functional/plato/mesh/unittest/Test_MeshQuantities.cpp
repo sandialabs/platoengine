@@ -115,7 +115,7 @@ TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesNodalAverage)
     auto tFieldEntries = std::views::iota(0U, tNumberOfNodes);  // Matches the nodal connectivity, minus 1
     const auto tField = std::vector<double>(tFieldEntries.begin(), tFieldEntries.end());
 
-    const auto tNodalAverage = tMesh.nodalAverage(tField);
+    const auto tNodalAverage = tMesh.elementAveragedNodalValues(tField);
     const auto tExpected = std::vector{6.5, 7.5, 8.5};  // Computed via the nodal connectivity
     EXPECT_EQ(tNodalAverage, tExpected);
 }

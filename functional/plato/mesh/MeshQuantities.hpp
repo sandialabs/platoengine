@@ -29,22 +29,26 @@ struct MeshQuantities : public Mesh
     [[nodiscard]] std::vector<double> designDomainElementVolumes() const;
 
     /// @brief Computes the nodal average of the scalar field defined by @a aNodalScalarField on each element.
-    /// @pre The size of @a aNodalScalarField must be equal to the total number of nodes on the mesh.
-    /// @post The size of the returned vector will be equal to the number of elements on the mesh.
-    [[nodiscard]] auto nodalAverage(const std::ranges::random_access_range auto& aNodalScalarField) const
+    /// @pre The size of @a aNodalScalarField must be equal to the total number of nodes on the mesh and the entries are
+    /// assumed to be sorted by ascending global node ID.
+    /// @post The size of the returned vector will be equal to the number of elements on the mesh and will be sorted by
+    /// ascending global element ID.
+    [[nodiscard]] auto elementAveragedNodalValues(const std::ranges::random_access_range auto& aNodalScalarField) const
         -> std::vector<double>;
 
     /// @brief Computes the projection of an element field to the nodes of a mesh using the nodal average.
-    /// @pre The size of @a aElementScalarField must be equal to the total number of elements on the mesh.
-    /// @post The size of the returned vector will be equal to the number of nodes on the mesh.
+    /// @pre The size of @a aElementScalarField must be equal to the total number of elements on the mesh and the
+    /// entries are assumed to be sorted by ascending global element ID.
+    /// @post The size of the returned vector will be equal to the number of nodes on the mesh and the entries will be
+    /// sorted by ascending global node ID.
     [[nodiscard]] auto nodalAverageElementProjection(
         const std::ranges::random_access_range auto& aElementScalarField) const -> std::vector<double>;
 };
 
-auto MeshQuantities::nodalAverage(const std::ranges::random_access_range auto& aScalarField) const
+auto MeshQuantities::elementAveragedNodalValues(const std::ranges::random_access_range auto& aScalarField) const
     -> std::vector<double>
 {
-    return third_party_integration::stk_io::nodal_average(aScalarField, bulkData());
+    return third_party_integration::stk_io::element_averaged_nodal_values(aScalarField, bulkData());
 }
 
 auto MeshQuantities::nodalAverageElementProjection(

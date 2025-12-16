@@ -51,7 +51,7 @@ TEST(MeshFieldOperations, NodalAverageTetMesh)
 
     constexpr auto tNodalValue = 1.0;
     const auto tField = std::vector(tMeshGenerator.numberOfNodes(), tNodalValue);
-    const auto tNodalAverage = nodal_average(tField, *tMesh);
+    const auto tNodalAverage = element_averaged_nodal_values(tField, *tMesh);
 
     const auto tExpected = std::vector(tMeshGenerator.numberOfElements(), tNodalValue);
     EXPECT_EQ(tExpected, tNodalAverage);
@@ -71,7 +71,7 @@ TEST(MeshFieldOperations, NodalAverageHexMesh)
     auto tYCoordinate =
         tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return aCoordinate.y; });
 
-    const auto tNodalAverage = nodal_average(tYCoordinate, *tMesh);
+    const auto tNodalAverage = element_averaged_nodal_values(tYCoordinate, *tMesh);
     const auto tExpected = std::vector{0.5, 1.5};
     EXPECT_EQ(tNodalAverage, tExpected);
 }
@@ -84,7 +84,7 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverage)
     auto tXCoordinate =
         tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return 3.0 * aCoordinate.x; });
 
-    const auto tNodalAverage = nodal_average(tXCoordinate, *tBulkData);
+    const auto tNodalAverage = element_averaged_nodal_values(tXCoordinate, *tBulkData);
     // Computed by hand based on connectivity
     // This mesh also has a non-trivial element map, and so the order is based on sorted element global id
     const auto tExpected = std::vector{-2.0, -4.0, 3.0, 1.0, 3.0, 5.0, 3.0};
