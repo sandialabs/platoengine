@@ -355,7 +355,7 @@ TEST(SingleDimensionMultiVectorView, Copy)
 
         const auto tExpectedEntries =
             std::views::iota(0U) |
-            std::views::transform([tIndex](const auto tEntry) { return tDimension * tEntry + tIndex; }) |
+            std::views::transform([tDimension, tIndex](const auto tEntry) { return tDimension * tEntry + tIndex; }) |
             std::views::take(tLength) | std::views::common;
         const auto tExpected = std::vector(tExpectedEntries.begin(), tExpectedEntries.end());
 

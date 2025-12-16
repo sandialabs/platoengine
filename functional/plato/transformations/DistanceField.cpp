@@ -25,7 +25,7 @@ namespace
 [[nodiscard]] auto vector_sum(const std::ranges::range auto& aLeft, std::vector<double>&& aRight) -> std::vector<double>
 {
     std::transform(aRight.begin(), aRight.end(), aLeft.begin(), aRight.begin(),
-                   [](const double aLeft, const double aRight) { return aLeft + aRight; });
+                   [](const double aLeftEntry, const double aRightEntry) { return aLeftEntry + aRightEntry; });
     return std::move(aRight);
 }
 }  // namespace
