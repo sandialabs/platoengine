@@ -75,7 +75,7 @@ TEST(MultiVectorView, Sizes)
     EXPECT_EQ(tMultiVectorView.size(), tLength * tDimension);
 }
 
-TEST(MultiVectorView, EqualityComparision)
+TEST(MultiVectorView, ShallowEquality)
 {
     constexpr auto tDimension = std::size_t{3};
     constexpr auto tLength = std::size_t{2};
@@ -83,27 +83,23 @@ TEST(MultiVectorView, EqualityComparision)
 
     const auto tMultiVectorView1 = utilities::make_multi_vector_view(tVector1, tDimension);
 
-    EXPECT_TRUE(tMultiVectorView1 == tMultiVectorView1);
-    EXPECT_FALSE(tMultiVectorView1 != tMultiVectorView1);
+    EXPECT_TRUE(tMultiVectorView1.shallowEquality(tMultiVectorView1));
 
     // Constructed with same vector and size
     {
         const auto tMultiVectorView2 = utilities::make_multi_vector_view(tVector1, tDimension);
-        EXPECT_TRUE(tMultiVectorView1 == tMultiVectorView2);
-        EXPECT_FALSE(tMultiVectorView1 != tMultiVectorView2);
+        EXPECT_TRUE(tMultiVectorView1.shallowEquality(tMultiVectorView2));
     }
     // Constructed with different vector, but same size
     {
         const auto tVector2 = std::vector<double>(tDimension * tLength);
         const auto tMultiVectorView2 = utilities::make_multi_vector_view(tVector2, tDimension);
-        EXPECT_FALSE(tMultiVectorView1 == tMultiVectorView2);
-        EXPECT_TRUE(tMultiVectorView1 != tMultiVectorView2);
+        EXPECT_FALSE(tMultiVectorView1.shallowEquality(tMultiVectorView2));
     }
     // Constructed with same vector, but different dimensions
     {
         const auto tMultiVectorView2 = utilities::make_multi_vector_view(tVector1, tLength);
-        EXPECT_FALSE(tMultiVectorView1 == tMultiVectorView2);
-        EXPECT_TRUE(tMultiVectorView1 != tMultiVectorView2);
+        EXPECT_FALSE(tMultiVectorView1.shallowEquality(tMultiVectorView2));
     }
 }
 

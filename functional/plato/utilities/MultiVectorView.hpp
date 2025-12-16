@@ -79,8 +79,8 @@ class MultiVectorView
     /// @pre @a aComponentIndex must be less than the size `kDimensions`
     auto operator()(VectorIndex aVectorIndex, ComponentIndex aComponentIndex) const -> decltype(auto);
 
-    /// @brief Returns true if the data pointed to by this view and the dimensions are equal
-    [[nodiscard]] auto operator==(const MultiVectorView&) const -> bool;
+    /// @brief Returns true if the data pointers and the dimensions are equal of `this` and @a aOther.
+    [[nodiscard]] auto shallowEquality(const MultiVectorView& aOther) const -> bool;
 
    private:
     using value_type = ContainerValueTypeWithPropagatedConst<Container>;
@@ -126,7 +126,7 @@ auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex,
 }
 
 template <MultiVectorViewContainer Container>
-auto MultiVectorView<Container>::operator==(const MultiVectorView& aOtherView) const -> bool
+auto MultiVectorView<Container>::shallowEquality(const MultiVectorView& aOtherView) const -> bool
 {
     return mContainer.data() == aOtherView.mContainer.data() && mDimensions == aOtherView.mDimensions;
 }

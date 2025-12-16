@@ -69,8 +69,8 @@ class SingleDimensionMultiVectorView : public std::ranges::view_interface<Single
 
         [[nodiscard]] auto operator[](size_type aIndex) const -> decltype(auto);
 
-        [[nodiscard]] auto operator==(const Iterator& aOther) const -> bool = default;
-        [[nodiscard]] auto operator!=(const Iterator& aOther) const -> bool = default;
+        [[nodiscard]] auto operator==(const Iterator& aOther) const -> bool;
+        [[nodiscard]] auto operator!=(const Iterator& aOther) const -> bool;
         [[nodiscard]] auto operator<(const Iterator& aOther) const -> bool;
         [[nodiscard]] auto operator<=(const Iterator& aOther) const -> bool;
         [[nodiscard]] auto operator>(const Iterator& aOther) const -> bool;
@@ -90,7 +90,7 @@ class SingleDimensionMultiVectorView : public std::ranges::view_interface<Single
         }
 
        private:
-        [[nodiscard]] auto containersEqual(const Iterator& aOther) const -> bool;
+        [[nodiscard]] auto containersShallowEquality(const Iterator& aOther) const -> bool;
 
         MultiVectorView<Container> mMultiVectorView;
         size_type mDimension = 0U;
@@ -204,15 +204,28 @@ auto SingleDimensionMultiVectorView<Container>::Iterator::operator[](const size_
 }
 
 template <MultiVectorViewContainer Container>
-auto SingleDimensionMultiVectorView<Container>::Iterator::containersEqual(const Iterator& aOther) const -> bool
+auto SingleDimensionMultiVectorView<Container>::Iterator::containersShallowEquality(const Iterator& aOther) const
+    -> bool
 {
-    return mMultiVectorView == aOther.mMultiVectorView && mDimension == aOther.mDimension;
+    return mMultiVectorView.shallowEquality(aOther.mMultiVectorView) && mDimension == aOther.mDimension;
+}
+
+template <MultiVectorViewContainer Container>
+auto SingleDimensionMultiVectorView<Container>::Iterator::operator==(const Iterator& aOther) const -> bool
+{
+    return containersShallowEquality(aOther) && mCurrent == aOther.mCurrent;
+}
+
+template <MultiVectorViewContainer Container>
+auto SingleDimensionMultiVectorView<Container>::Iterator::operator!=(const Iterator& aOther) const -> bool
+{
+    return !operator==(aOther);
 }
 
 template <MultiVectorViewContainer Container>
 auto SingleDimensionMultiVectorView<Container>::Iterator::operator<(const Iterator& aOther) const -> bool
 {
-    return containersEqual(aOther) && mCurrent < aOther.mCurrent;
+    return containersShallowEquality(aOther) && mCurrent < aOther.mCurrent;
 }
 
 template <MultiVectorViewContainer Container>
@@ -224,7 +237,7 @@ auto SingleDimensionMultiVectorView<Container>::Iterator::operator<=(const Itera
 template <MultiVectorViewContainer Container>
 auto SingleDimensionMultiVectorView<Container>::Iterator::operator>(const Iterator& aOther) const -> bool
 {
-    return containersEqual(aOther) && mCurrent > aOther.mCurrent;
+    return containersShallowEquality(aOther) && mCurrent > aOther.mCurrent;
 }
 
 template <MultiVectorViewContainer Container>
