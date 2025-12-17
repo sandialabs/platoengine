@@ -22,6 +22,7 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
                                          "Requires the 'plato' executable be called with mpirun.")
     (plato::input_parser::FileList, input_files, "Optional comma-separated list of files needed for the app to run.")
     (double, aggregation_weight, "Required weight used to aggregate this objective with any other objectives specified.")
+    (bool, normalize_by_initial_value, "Optional field to normalize this objective by its value at the initial guess. Normalized value is scaled by aggregation_weight.")
     (plato::criteria::library::ObjectiveGoal, objective_goal, "Optional field specifying whether to minimize an objective, minimize its negation, or minimize its reciprocal. "
                                                               "Default is 'minimize'. Choosing 'minimize-negation' will maximize the objective by minimizing its negation. " 
                                                               "Choosing 'minimize-reciprocal' will maximize the objective by minimizing its reciprocal.")

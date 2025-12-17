@@ -149,6 +149,7 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
                                     /*.number_of_processors=*/1U,
                                     /*.input_files=*/plato::input_parser::FileList{},
                                     /*.aggregation_weight=*/tAggregationWeight,
+                                    /*.normalize_by_initial_value=*/false,
                                     /*.objective_goal*/ aObjectiveGoal};
         auto tInput = integration_tests::utilities::create_valid_example_input();
         tInput.get<components::ComponentType::kObjective>().clear();
@@ -183,6 +184,30 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
         const auto [tObjective, tGradient] = tTestFunction(criteria::library::ObjectiveGoal::kMinimizeReciprocal);
         EXPECT_EQ(tAggregationWeight / tX, tObjective);
         EXPECT_EQ(-tAggregationWeight / tX / tX, tGradient[0]);
+    }
+}
+
+TEST_F(ObjectiveFactoryTestFixture, NormalizationByInitialValueIsNeeded)
+{
+    auto tObjectiveInput = criteria::library::test_utilities::create_valid_example_objective_input();
+    auto tInput = integration_tests::utilities::create_valid_example_input();
+    tInput.get<components::ComponentType::kObjective>().clear();
+
+    tInput = tInput | tObjectiveInput;
+    {
+        const auto tValidInput = input_validation::make_validated_input(tInput).value();
+        EXPECT_EQ(criteria::library::normalization_by_initial_value_is_needed(
+                      tValidInput.get<components::ComponentType::kObjective>()),
+                  false);
+    }
+
+    tObjectiveInput.normalize_by_initial_value = true;
+    tInput = tInput | tObjectiveInput;
+    {
+        const auto tValidInput = input_validation::make_validated_input(tInput).value();
+        EXPECT_EQ(criteria::library::normalization_by_initial_value_is_needed(
+                      tValidInput.get<components::ComponentType::kObjective>()),
+                  true);
     }
 }
 

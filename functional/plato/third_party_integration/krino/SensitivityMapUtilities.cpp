@@ -57,7 +57,7 @@ auto cut_mesh_node_id_multiplicity(const SensitivityMap& aSensitivityMap)
     const auto tCommunicator = retrieve_mpi_communicator_from_krino();
 
     const auto tMergedSortedGlobalCutMeshIds =
-        utilities::merge_on_all_ranks(tCutMeshIdsFromMapOnThisRank, tCommunicator);
+        utilities::concatenate_over_all_ranks_and_sort(tCutMeshIdsFromMapOnThisRank, tCommunicator);
 
     return utilities::compute_on_root<std::unordered_map<stk::mesh::EntityId, unsigned int>>(
         tCommunicator,
