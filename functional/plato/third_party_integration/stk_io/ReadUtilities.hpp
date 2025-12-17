@@ -7,7 +7,6 @@
 #include <memory>
 #include <stk_mesh/base/Types.hpp>
 #include <string_view>
-#include <variant>
 #include <vector>
 
 #include "plato/third_party_integration/common/Vector3.hpp"

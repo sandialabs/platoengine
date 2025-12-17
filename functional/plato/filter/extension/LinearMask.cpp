@@ -3,9 +3,6 @@
 #include <Teuchos_ArrayViewDecl.hpp>
 #include <Teuchos_EReductionType.hpp>
 #include <boost/mpi/collectives.hpp>
-#include <set>
-
-#include "plato/filter/extension/LinearMaskBuilder.hpp"
 
 namespace plato::filter::extension
 {

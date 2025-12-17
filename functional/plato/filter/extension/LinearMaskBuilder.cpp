@@ -17,7 +17,6 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/utilities/IndexRange.hpp"
-#include "plato/utilities/TransformIf.hpp"
 
 namespace plato::filter::extension
 {
