@@ -58,7 +58,6 @@ void run_plato(const std::filesystem::path& aInputFile)
     const auto& tValidatedProcessManagers = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
     const auto tExecutor =
         plato::main::library::Executor{process_manager::library::make_process_managers(tValidatedProcessManagers)};
-    const auto tProcessManagerData = process_manager::library::make_process_manager_data(tValidatedInput.value());
 
     try
     {
@@ -66,6 +65,7 @@ void run_plato(const std::filesystem::path& aInputFile)
                                           { std::filesystem::remove_all(plato::services::logging_directory_path()); });
         [[maybe_unused]] const auto tExternalLogSinks = services::component_external_logger_file_sinks();
 
+        const auto tProcessManagerData = process_manager::library::make_process_manager_data(tValidatedInput.value());
         tExecutor.execute(tProcessManagerData);
     }
     catch (const std::exception& tError)
