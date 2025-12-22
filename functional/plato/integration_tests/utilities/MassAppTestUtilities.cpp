@@ -91,8 +91,8 @@ void write_mass_app_config(const std::string_view& aAppName,
 
 }  // namespace
 
-auto register_test_mass_app(const std::string_view aAppName,
-                            const boost::mpi::communicator& aComm) -> test_utilities::TestDirectorySetupTeardown
+auto register_test_mass_app(const std::string_view aAppName, const boost::mpi::communicator& aComm)
+    -> test_utilities::TestDirectorySetupTeardown
 {
     const auto tTestPluginDirectory = std::filesystem::path{"test-plugin-directory"};
     auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{tTestPluginDirectory, aComm};
@@ -179,14 +179,14 @@ void register_load_run_test(const boost::mpi::communicator& aComm, const test_ut
     const auto tCriterionName = input_parser::CriterionName{"mass"};
     const auto tValidInput = create_test_mass_app_input(tAppName, tCriterionName, aComm.size());
 
-    const auto tObjectiveFunction =
-        criteria::library::make_aggregate_objective_function(tValidInput.get<components::ComponentType::kObjective>());
+    const auto [tControls, tExpectedValue] = integration_tests::utilities::brick_shape_geometry_controls_with_volume();
     const auto tGeometry =
         geometry::extension::make_brick_shape_geometry(geometry::extension::BrickShapeGeometry{"brick.exo"});
+    const auto tDomainMesh = tGeometry.evaluate<core::evaluation::kFunction>(tControls);
+    const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
+        tValidInput.get<components::ComponentType::kObjective>(), tDomainMesh);
 
-    const auto [tControls, tExpectedValue] = integration_tests::utilities::brick_shape_geometry_controls_with_volume();
-    const auto tResult = tObjectiveFunction.evaluate<core::evaluation::kFunction>(
-        tGeometry.evaluate<core::evaluation::kFunction>(tControls));
+    const auto tResult = tObjectiveFunction.evaluate<core::evaluation::kFunction>(tDomainMesh);
     EXPECT_DOUBLE_EQ(tResult, tExpectedValue) << aTestContext;
 }
 

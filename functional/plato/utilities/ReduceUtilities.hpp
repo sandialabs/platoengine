@@ -16,27 +16,20 @@ template <typename Value, typename Function>
 /// @brief Take a vector on this rank @a aVector, and using the communicator @a aCommunicator return a reduced vector
 /// that is the same on all ranks.
 template <typename Type>
-[[nodiscard]] auto reduce_vector(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator)
-    -> std::vector<Type>;
+[[nodiscard]] auto reduce_vector(const std::vector<Type>& aVector,
+                                 const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
 
 /// @brief Take a vector on this rank @a aVector, and using the communicator @a aCommunicator gather up all the vectors,
 /// sort them, and only keep the unique entries. Return a vector that is the same on all ranks.
 template <typename Type>
-[[nodiscard]] auto unique_vector_gather(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator)
-    -> std::vector<Type>;
-
-/// @brief Take a vector on this rank @a aVector, and using the communicator @a aCommunicator gather up all the vectors
-/// into one concatenated vector. This vector can have duplicate entries.
-template <typename Type>
-[[nodiscard]] auto concatenate_over_all_ranks(const std::vector<Type>& aVector,
-                                              const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
+[[nodiscard]] auto unique_vector_gather(const std::vector<Type>& aVector,
+                                        const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
 
 /// @brief Take a vector on this rank @a aVector, and using the communicator @a aCommunicator gather up all the vectors
 /// into one sorted vector. This vector can have duplicate entries.
 template <typename Type>
-[[nodiscard]] auto concatenate_over_all_ranks_and_sort(const std::vector<Type>& aVector,
-                                                       const boost::mpi::communicator& aCommunicator)
-    -> std::vector<Type>;
+[[nodiscard]] auto merge_on_all_ranks(const std::vector<Type>& aVector,
+                                      const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
 
 /// @brief Take an unordered map @a aMap from each rank and reduce it so that all ranks in communicator @a aCommunicator
 /// have the same map.
@@ -73,10 +66,10 @@ auto reduce_vector(const std::vector<Type>& aVector, const boost::mpi::communica
 }
 
 template <typename Type>
-auto unique_vector_gather(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator)
-    -> std::vector<Type>
+auto unique_vector_gather(const std::vector<Type>& aVector,
+                          const boost::mpi::communicator& aCommunicator) -> std::vector<Type>
 {
-    auto tMergedSorted = concatenate_over_all_ranks_and_sort(aVector, aCommunicator);
+    auto tMergedSorted = merge_on_all_ranks(aVector, aCommunicator);
     return compute_on_root<std::vector<Type>>(aCommunicator,
                                               [&tMergedSorted]() -> std::vector<Type>
                                               {
@@ -88,8 +81,8 @@ auto unique_vector_gather(const std::vector<Type>& aVector, const boost::mpi::co
 }
 
 template <typename Type>
-auto concatenate_over_all_ranks(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator)
-    -> std::vector<Type>
+auto merge_on_all_ranks(const std::vector<Type>& aVector,
+                        const boost::mpi::communicator& aCommunicator) -> std::vector<Type>
 {
     std::vector<int> tSizes;
     boost::mpi::all_gather(aCommunicator, static_cast<int>(aVector.size()), tSizes);
@@ -109,21 +102,14 @@ auto concatenate_over_all_ranks(const std::vector<Type>& aVector, const boost::m
                    tOffsets.data(), MPI_UINT64_T, aCommunicator);
     // NOLINTEND(bugprone-casting-through-void)
 
-    return tConcatenatedData;
-}
+    std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
 
-template <typename Type>
-auto concatenate_over_all_ranks_and_sort(const std::vector<Type>& aVector,
-                                         const boost::mpi::communicator& aCommunicator) -> std::vector<Type>
-{
-    auto tConcatenatedData = concatenate_over_all_ranks(aVector, aCommunicator);
-    std::ranges::sort(tConcatenatedData);
     return tConcatenatedData;
 }
 
 template <typename KeyType, typename ValueType>
-auto reduce_map(const std::unordered_map<KeyType, ValueType>& aMap, const boost::mpi::communicator& aCommunicator)
-    -> std::unordered_map<KeyType, ValueType>
+auto reduce_map(const std::unordered_map<KeyType, ValueType>& aMap,
+                const boost::mpi::communicator& aCommunicator) -> std::unordered_map<KeyType, ValueType>
 {
     constexpr int tRootRank = 0;
     std::vector<std::unordered_map<KeyType, ValueType>> tGatheredMaps;
