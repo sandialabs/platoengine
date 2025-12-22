@@ -23,13 +23,13 @@ namespace plato::integration_tests::parallel
 {
 namespace
 {
-constexpr auto kMassAppName = std::string_view{"test-mass-app"};
-
-constexpr auto kNumRanks = int{4};
-
 struct ObjectiveFactoryParallelTestFixture : public utilities::ValidInputTestFixture
 {
 };
+
+constexpr auto kMassAppName = std::string_view{"test-mass-app"};
+
+constexpr auto kNumRanks = int{4};
 
 struct ObjectiveCopyTestData
 {
@@ -45,7 +45,7 @@ auto base_mass_objective() -> input_parser::objective
     return tObjective;
 }
 
-[[nodiscard]] auto one_objective_test_input() -> input_validation::ValidatedInput
+[[nodiscard]] auto create_one_objective_test_input() -> input_validation::ValidatedInput
 {
     namespace pftu = plato::test_utilities;
 
@@ -114,10 +114,11 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
 
     const auto tValidInput = input_validation::make_validated_input(tInput).value();
 
-    const auto tObjectiveFunction =
-        criteria::library::make_aggregate_objective_function(tValidInput.get<components::ComponentType::kObjective>());
-
     const auto tGeometry = brick_shape_geometry_from_input(tInput);
+    const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
+        tValidInput.get<components::ComponentType::kObjective>(),
+        tGeometry.evaluate<core::evaluation::kFunction>(test_brick_controls()));
+
     const auto tControls = test_brick_controls();
     ASSERT_EQ(tControls.size(), 6u) << aTestContext;
     const auto tExpectedValue = brick_shape_volume_from_controls(tControls) * aNumGroups;
@@ -126,74 +127,24 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
     EXPECT_EQ(tResult, tExpectedValue) << aTestContext;
 }
 
-auto validate_objective_input_with_objective_copies(const ObjectiveCopyTestData& aObjectiveCopyTestData,
-                                                    input_parser::ParsedInput aInput,
-                                                    input_parser::objective aObjective)
-{
-    aObjective.number_of_processors = static_cast<unsigned int>(aObjectiveCopyTestData.mNumProcessorsPerObjective);
-
-    for ([[maybe_unused]] const auto tIndex : plato::utilities::IndexRange{aObjectiveCopyTestData.mNumObjectiveCopies})
-    {
-        aInput = aInput | aObjective;
-    }
-    return input_validation::make_validated_input(aInput).value().template get<components::ComponentType::kObjective>();
-}
-
-void test_group_split_active_objectives_and_comm_over_ranks(const ObjectiveCopyTestData& aObjectiveCopyTestData,
-                                                            const unsigned int aNumExpectedObjectivesPerRank,
-                                                            input_parser::ParsedInput aInput,
-                                                            input_parser::objective aObjective,
-                                                            const test_utilities::TestContext& aTestContext)
-{
-    const auto tValidObjectivesInput = validate_objective_input_with_objective_copies(
-        aObjectiveCopyTestData, std::move(aInput), std::move(aObjective));
-
-    const auto [tObjectiveFunctions, tCommFromSplit] =
-        criteria::library::detail::group_split_active_objectives_and_comm(tValidObjectivesInput);
-
-    EXPECT_EQ(tCommFromSplit.mValue, boost::mpi::communicator{}) << aTestContext;
-    EXPECT_EQ(tObjectiveFunctions.size(), aNumExpectedObjectivesPerRank) << aTestContext;
-}
-
-void test_active_objective_values(const ObjectiveCopyTestData& aObjectiveCopyTestData,
-                                  input_parser::ParsedInput aInput,
-                                  input_parser::objective aObjective,
-                                  const test_utilities::TestContext& aTestContext)
-{
-    const auto tGeometry = brick_shape_geometry_from_input(aInput);
-
-    const auto tValidObjectivesInput = validate_objective_input_with_objective_copies(
-        aObjectiveCopyTestData, std::move(aInput), std::move(aObjective));
-
-    const auto tControls = test_brick_controls();
-    ASSERT_EQ(tControls.size(), 6u);
-    const auto tExpectedValue = brick_shape_volume_from_controls(tControls);
-
-    const auto tInitialValues = criteria::library::active_objective_values(
-        tValidObjectivesInput, tGeometry.evaluate<core::evaluation::kFunction>(tControls));
-
-    ASSERT_EQ(tInitialValues.size(), aObjectiveCopyTestData.mNumObjectiveCopies);
-    for (const auto tValue : tInitialValues)
-    {
-        EXPECT_EQ(tValue, tExpectedValue) << aTestContext;
-    }
-}
-
 void test_aggregate_normalized_objectives(const ObjectiveCopyTestData& aObjectiveCopyTestData,
                                           input_parser::ParsedInput aInput,
                                           input_parser::objective aObjective,
                                           const test_utilities::TestContext& aTestContext)
 {
     const auto tGeometry = brick_shape_geometry_from_input(aInput);
+
+    aObjective.number_of_processors = static_cast<unsigned int>(aObjectiveCopyTestData.mNumProcessorsPerObjective);
+    for ([[maybe_unused]] const auto tIndex : plato::utilities::IndexRange{aObjectiveCopyTestData.mNumObjectiveCopies})
+    {
+        aInput = aInput | aObjective;
+    }
+    const auto tValidObjectivesInput =
+        input_validation::make_validated_input(aInput).value().template get<components::ComponentType::kObjective>();
+
     const auto tInitialDomainMesh = tGeometry.evaluate<core::evaluation::kFunction>(test_brick_controls());
-
-    const auto tValidObjectivesInput = validate_objective_input_with_objective_copies(
-        aObjectiveCopyTestData, std::move(aInput), std::move(aObjective));
-
-    const auto tInitialValues = criteria::library::active_objective_values(tValidObjectivesInput, tInitialDomainMesh);
-
     const auto tAggregateObjectiveFunction =
-        criteria::library::make_aggregate_objective_function(tValidObjectivesInput, tInitialValues);
+        criteria::library::make_aggregate_objective_function(tValidObjectivesInput, tInitialDomainMesh);
 
     const auto tResult = tAggregateObjectiveFunction.evaluate<core::evaluation::kFunction>(tInitialDomainMesh);
     EXPECT_EQ(tResult, aObjectiveCopyTestData.mNumObjectiveCopies) << aTestContext;
@@ -209,7 +160,7 @@ TEST(ObjectiveFactory, MPISize)
 
 TEST(ObjectiveFactory, InvalidParallelAggregate)
 {
-    EXPECT_THROW([[maybe_unused]] const auto tData = one_objective_test_input(), plato::utilities::Exception);
+    EXPECT_THROW([[maybe_unused]] const auto tData = create_one_objective_test_input(), plato::utilities::Exception);
 }
 
 TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
@@ -268,66 +219,6 @@ TEST(ObjectiveFactory, EvaluateParallelMassAppOneObjective)
 {
     constexpr auto tNumGroups = 1u;
     test_parallel_mass_evaluation(tNumGroups, TEST_CONTEXT("One objective"));
-}
-
-TEST_F(ObjectiveFactoryParallelTestFixture, GroupSplitObjectives)
-{
-    const auto tConfigurationTempDirectory =
-        utilities::register_test_mass_app(kMassAppName, boost::mpi::communicator{});
-
-    auto tInputBase = parsedInput();
-    tInputBase.template get<components::ComponentType::kObjective>().clear();
-
-    const auto tObjectiveBase = base_mass_objective();
-    {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 1u, .mNumProcessorsPerObjective = 4u};
-        constexpr unsigned int tNumExpectedObjectivesPerRank{1u};
-        test_group_split_active_objectives_and_comm_over_ranks(tTestData, tNumExpectedObjectivesPerRank, tInputBase,
-                                                               tObjectiveBase,
-                                                               TEST_CONTEXT("1 objective split over the 4 ranks"));
-    }
-
-    {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 4u, .mNumProcessorsPerObjective = 1u};
-        constexpr unsigned int tNumExpectedObjectivesPerRank{1u};
-        test_group_split_active_objectives_and_comm_over_ranks(tTestData, tNumExpectedObjectivesPerRank, tInputBase,
-                                                               tObjectiveBase,
-                                                               TEST_CONTEXT("4 objectives split over the 4 ranks"));
-    }
-
-    {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 12u, .mNumProcessorsPerObjective = 1u};
-        constexpr unsigned int tNumExpectedObjectivesPerRank{3u};
-        test_group_split_active_objectives_and_comm_over_ranks(tTestData, tNumExpectedObjectivesPerRank, tInputBase,
-                                                               tObjectiveBase,
-                                                               TEST_CONTEXT("12 objectives split over the 4 ranks"));
-    }
-}
-
-TEST(ObjectiveFactory, EvaluateObjectivesOnInitialGeometry)
-{
-    const auto tComm = boost::mpi::communicator{};
-    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tComm);
-
-    const auto tInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
-                            process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
-
-    const auto tObjectiveBase = base_mass_objective();
-    {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 1u, .mNumProcessorsPerObjective = 4u};
-        test_active_objective_values(tTestData, tInputBase, tObjectiveBase,
-                                     TEST_CONTEXT("1 objective split over the 4 ranks"));
-    }
-    {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 4u, .mNumProcessorsPerObjective = 1u};
-        test_active_objective_values(tTestData, tInputBase, tObjectiveBase,
-                                     TEST_CONTEXT("4 objectives split over the 4 ranks"));
-    }
-    {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 12u, .mNumProcessorsPerObjective = 1u};
-        test_active_objective_values(tTestData, tInputBase, tObjectiveBase,
-                                     TEST_CONTEXT("12 objectives split over the 4 ranks"));
-    }
 }
 
 TEST(ObjectiveFactory, EvaluateParallelMassAppWithNormalization)

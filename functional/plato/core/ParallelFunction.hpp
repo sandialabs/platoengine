@@ -1,6 +1,7 @@
 #ifndef PLATO_CORE_PARALLELFUNCTION
 #define PLATO_CORE_PARALLELFUNCTION
 
+#include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
 
 #include "plato/core/Compose.hpp"
@@ -18,9 +19,18 @@ namespace plato::core
 template <typename F>
 [[nodiscard]] auto adapt_parallel_function(F aFun, const boost::mpi::communicator& aComm);
 
+/// @brief Given a value @a aValue computed on comm @a aComm, returns the corresponding value computed on root.
+template <typename Type>
+[[nodiscard]] Type broadcast_from_root(const boost::mpi::communicator& aComm, Type aValue);
+
 namespace detail
 {
-[[nodiscard]] inline double rank_weight(const boost::mpi::communicator& aComm) { return aComm.rank() == 0 ? 1.0 : 0.0; }
+constexpr static inline auto kRootRank = 0;
+
+[[nodiscard]] inline double rank_weight(const boost::mpi::communicator& aComm)
+{
+    return aComm.rank() == kRootRank ? 1.0 : 0.0;
+}
 }  // namespace detail
 
 template <typename F>
@@ -33,6 +43,13 @@ auto adapt_parallel_function(F aFun, const boost::mpi::communicator& aComm)
         [tComm = aComm](const FunctionReturn&) { return detail::rank_weight(tComm); });
 
     return core::compose(tParallelAdapter, std::move(aFun));
+}
+
+template <typename Type>
+Type broadcast_from_root(const boost::mpi::communicator& aComm, Type aValue)
+{
+    boost::mpi::broadcast(aComm, aValue, detail::kRootRank);
+    return aValue;
 }
 
 }  // namespace plato::core

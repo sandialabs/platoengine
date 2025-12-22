@@ -75,7 +75,7 @@ TEST(ProcessManagerData, ParsePlatoProblemEvaluateObjective)
 
     // Test Objective
     const auto tObjective = criteria::library::make_aggregate_objective_function(
-        tData.value().get<components::ComponentType::kObjective>());
+        tData.value().get<components::ComponentType::kObjective>(), tGeomProxy);
     EXPECT_EQ(tObjective.evaluate<core::evaluation::kFunction>(tGeomProxy),
               tProblem.mObjective.evaluate<core::evaluation::kFunction>(tGeomProxy));
 }
@@ -112,4 +112,5 @@ TEST(ProcessManagerData, ParsePlatoProblemEvaluateObjectivesWithNormalization)
                               1.0};  // non-normalized objective value is kConstantTestFunctionValue, normalized is 1
     EXPECT_EQ(tProblem.mObjective.evaluate<core::evaluation::kFunction>(tGeomProxy), tGoldValue);
 }
+
 }  // namespace plato::process_manager::library::unittest

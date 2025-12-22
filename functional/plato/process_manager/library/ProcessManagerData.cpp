@@ -10,16 +10,8 @@ auto make_aggregate_objective(const plato::criteria::library::ValidatedObjective
                               const plato::geometry::library::FactoryTypes& aGeometry)
     -> plato::criteria::library::ObjectiveFunction
 {
-    if (plato::criteria::library::normalization_by_initial_value_is_needed(aObjectiveInput))
-    {
-        const auto tInitialValues = criteria::library::active_objective_values(
-            aObjectiveInput, aGeometry.mCompute.evaluate<core::evaluation::kFunction>(aGeometry.mInitialGuess));
-        return plato::criteria::library::make_aggregate_objective_function(aObjectiveInput, tInitialValues);
-    }
-    else
-    {
-        return plato::criteria::library::make_aggregate_objective_function(aObjectiveInput);
-    }
+    return plato::criteria::library::make_aggregate_objective_function(
+        aObjectiveInput, aGeometry.mCompute.evaluate<core::evaluation::kFunction>(aGeometry.mInitialGuess));
 }
 }  // namespace
 
