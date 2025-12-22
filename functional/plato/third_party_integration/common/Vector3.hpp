@@ -25,10 +25,20 @@ struct Vector3
     void operator+=(const Vector3& aVector);
 };
 
-struct UnitVector3 : public Vector3
+/// @brief Unit vector class. Always guaranteed to contain
+/// a normalized vector. If construction would result in a normalized
+/// vector of length 0 an exception is thrown (this will be caught in
+/// the normalize() function that takes a Vector3 as input).
+class UnitVector3
 {
+   public:
     UnitVector3(const double aX, const double aY, const double aZ);
     UnitVector3(const Vector3& aVector);
+
+    operator Vector3() const;
+
+   private:
+    Vector3 mVector;
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContainer)
@@ -125,17 +135,23 @@ template <typename Container3>
 inline void normalize(Vector3& aVector)
 {
     const double tMagnitude = magnitude(aVector);
+    if (std::fabs(tMagnitude) < std::numeric_limits<double>::min())
+    {
+        throw std::invalid_argument("Attempting to normalize a vector with length 0.");
+    }
     aVector.x /= tMagnitude;
     aVector.y /= tMagnitude;
     aVector.z /= tMagnitude;
 }
 
-inline UnitVector3::UnitVector3(const double aX, const double aY, const double aZ) : Vector3{aX, aY, aZ}
+inline UnitVector3::UnitVector3(const double aX, const double aY, const double aZ) : mVector{aX, aY, aZ}
 {
-    normalize(*this);
+    normalize(mVector);
 }
 
-inline UnitVector3::UnitVector3(const Vector3& aVector) : Vector3(aVector) { normalize(*this); }
+inline UnitVector3::UnitVector3(const Vector3& aVector) : mVector(aVector) { normalize(mVector); }
+
+inline UnitVector3::operator Vector3() const { return mVector; }
 
 inline void Vector3::operator+=(const Vector3& aVector)
 {
