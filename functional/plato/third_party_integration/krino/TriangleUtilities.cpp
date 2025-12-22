@@ -12,28 +12,28 @@
 namespace plato::third_party_integration::krino
 {
 
-auto get_interface_sideset_name() -> std::string { return "surface__" + std::string{get_void_phase_name()}; }
+auto interface_sideset_name() -> std::string { return "surface__" + std::string{void_phase_name()}; }
 
-TriangleAreaSensitivity get_d_area_d_tri_node(const SensitivityTriangle& aTriangle)
+TriangleAreaSensitivity d_area_d_tri_node(const SensitivityTriangle& aTriangle)
 {
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
     const std::vector<double> tDAreaDNodalCoordinates =
-        detail::get_d_area_d_nodal_coords_from_tri_coords(detail::convert_tri_to_coords(aTriangle));
-    return detail::convert_area_sensitivties_from_flat_vector_to_plato_data_structure(tDAreaDNodalCoordinates);
+        detail::d_area_d_nodal_coords_from_tri_coords(detail::convert_tri_to_coords(aTriangle));
+    return detail::triangle_area_sensitivity(tDAreaDNodalCoordinates);
 }
 
-TriangleNormalSensitivity get_d_normal_d_tri_node(const SensitivityTriangle& aTriangle)
+TriangleNormalSensitivity d_normal_d_tri_node(const SensitivityTriangle& aTriangle)
 {
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
     const std::vector<double> tDNormalDCoords =
-        detail::get_d_normal_d_nodal_coords_from_tri_coords(detail::convert_tri_to_coords(aTriangle));
-    return detail::convert_normal_sensitivities_from_flat_vector_to_plato_data_structure(tDNormalDCoords);
+        detail::d_normal_d_nodal_coords_from_tri_coords(detail::convert_tri_to_coords(aTriangle));
+    return detail::triangle_normal_sensitivity(tDNormalDCoords);
 }
 
 namespace detail
 {
 
-std::vector<double> get_d_area_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords)
+std::vector<double> d_area_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords)
 {
     constexpr auto tNumberSpatialDimensions{3};
     constexpr auto tNumberNodesPerTriangle{3};
@@ -47,7 +47,7 @@ std::vector<double> get_d_area_d_nodal_coords_from_tri_coords(const std::vector<
     return tDAreaDNodalCoordinates;
 }
 
-std::vector<double> get_d_normal_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords)
+std::vector<double> d_normal_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords)
 {
     constexpr auto tNumberSpatialDimensions{3};
     constexpr auto tNumberNodesPerTriangle{3};
@@ -75,9 +75,9 @@ std::vector<stk::mesh::Entity> get_owned_interface_sides(const stk::mesh::BulkDa
     return tInterfaceSides;
 }
 
-auto get_interface_triangles(const stk::mesh::BulkData& aBulkData,
-                             const std::string& aSidesetName,
-                             const PartReferenceVector& aDesignDomainBlocks) -> std::vector<SensitivityTriangle>
+auto interface_triangles(const stk::mesh::BulkData& aBulkData,
+                         const std::string& aSidesetName,
+                         const PartReferenceVector& aDesignDomainBlocks) -> std::vector<SensitivityTriangle>
 {
     const auto tSidesetPart = aBulkData.mesh_meta_data().get_part(aSidesetName);
     if (!tSidesetPart)
@@ -89,7 +89,7 @@ auto get_interface_triangles(const stk::mesh::BulkData& aBulkData,
     std::vector<const stk::mesh::Part*> tParts;
     for (const auto& tCurBlock : aDesignDomainBlocks)
     {
-        if (tCurBlock.get().name().find(get_void_phase_name()) == std::string::npos)
+        if (tCurBlock.get().name().find(void_phase_name()) == std::string::npos)
         {
             tParts.push_back(&(tCurBlock.get()));
         }
@@ -117,8 +117,7 @@ auto get_interface_triangles(const stk::mesh::BulkData& aBulkData,
     return tTriangles;
 }
 
-TriangleAreaSensitivity convert_area_sensitivties_from_flat_vector_to_plato_data_structure(
-    const std::vector<double>& aFlatAreaSensitivityVector)
+TriangleAreaSensitivity triangle_area_sensitivity(const std::vector<double>& aFlatAreaSensitivityVector)
 {
     // The area sensitivity flat vector coming from krino is ordered in the following way (3 values for each node):
     // Node 0:
@@ -138,7 +137,7 @@ TriangleAreaSensitivity convert_area_sensitivties_from_flat_vector_to_plato_data
     TriangleAreaSensitivity tSensitivities;
     for (size_t tNodeIndex = 0; tNodeIndex < tNumberNodesPerTriangle; tNodeIndex++)
     {
-        DAreaDNode dAreadNode;
+        AreaSensitivityWRTNodalCoordinates dAreadNode;
         dAreadNode.x =
             tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{0});
         dAreadNode.y =
@@ -150,8 +149,7 @@ TriangleAreaSensitivity convert_area_sensitivties_from_flat_vector_to_plato_data
     return tSensitivities;
 }
 
-TriangleNormalSensitivity convert_normal_sensitivities_from_flat_vector_to_plato_data_structure(
-    const std::vector<double>& aFlatNormalSensitivityVector)
+TriangleNormalSensitivity triangle_normal_sensitivity(const std::vector<double>& aFlatNormalSensitivityVector)
 {
     // The flat vector coming from krino is ordered in the following way (9 values for each node):
     // Node 0:
