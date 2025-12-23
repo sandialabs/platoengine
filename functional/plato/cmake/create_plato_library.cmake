@@ -1,4 +1,5 @@
 include(${CMAKE_UTIL_DIR}/add_to_srcs_and_hdrs.cmake)
+include(${CMAKE_UTIL_DIR}/generate_pch.cmake)
 
 # create_plato_header_library 
 #  This version must be used if a library only contains header files.
@@ -44,5 +45,13 @@ function(create_plato_library_impl LIBRARY_NAME DIRECTORIES TARGET_LINK_LIST LIB
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib)
     target_include_directories(${LIBRARY_NAME} INTERFACE $<INSTALL_INTERFACE:include/>)
+
+    pch_list("${LIB_HDRS}" LIB_HDR_PCH)
+    target_precompile_headers(${LIBRARY_NAME} ${EXPORT_TYPE} $<BUILD_INTERFACE:${LIB_HDR_PCH}>)
+
+    pch_list("${LIB_SRCS}" LIB_SRC_PCH)
+    if(LIB_SRC_PCH)
+        target_precompile_headers(${LIBRARY_NAME} PRIVATE ${LIB_SRC_PCH})
+    endif()
 
 endfunction()
