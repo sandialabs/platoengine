@@ -30,7 +30,8 @@ struct OverhangCriterion
                       const library::CriterionInput& aCriterionInput);
     OverhangCriterion(const double aTransitionWidth,
                       const third_party_integration::common::Vector3& aBuildDirection,
-                      const double aOverhangAngleThreshold);
+                      const double aOverhangAngleThreshold,
+                      const std::vector<std::string>& aEvaluationSidesetNames);
     [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
     [[nodiscard]] linear_algebra::DynamicVector<double> df(
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
@@ -102,8 +103,8 @@ namespace detail
     const std::vector<size_t>& aAllNodeIds) -> std::vector<double>;
 /// @brief Given a list of sideset names @ aEvaluationSidesetNames, generate a list of triangles to calculate overhang
 /// on.
-[[nodiscard]] auto get_triangles_to_evaluate_over(const std::string& aMeshFileName,
-                                                  const std::vector<std::string>& aEvaluationSidesetNames)
+[[nodiscard]] auto triangles_to_evaluate_over(const std::string& aMeshFileName,
+                                              const std::vector<std::string>& aEvaluationSidesetNames)
     -> std::vector<third_party_integration::krino::SensitivityTriangle>;
 /// @brief Function for converting from angle in degrees to overhang threshold value.
 [[nodiscard]] double convert_angle_to_threshold_value(const double aAngle);

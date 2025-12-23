@@ -1,11 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <format>
 #include <numeric>
 #include <ranges>
 
 #include "plato/criteria/extension/OverhangCriterion.hpp"
 #include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -20,7 +23,7 @@ constexpr double kTolerance{1e-14};
 constexpr Vector3 kBuildDirection{.x = 0, .y = 0, .z = -1};
 constexpr double kStepTransitionWidth{0.05};
 const double kOverhangAngleThreshold{-std::sqrt(2.0) / 2.0};
-OverhangCriterion kCriterion(kStepTransitionWidth, kBuildDirection, kOverhangAngleThreshold);
+OverhangCriterion kCriterion(kStepTransitionWidth, kBuildDirection, kOverhangAngleThreshold, {});
 
 TEST(OverhangCriterion, ExponentialStepFunction)
 {
@@ -166,7 +169,7 @@ TEST(OverhangCriterion, SingleTriangleDerivative)
     const double tOverhangThreshold = -std::sqrt(2.0) / 2.0;
     constexpr double tTransitionWidth = 0.05;
     constexpr Vector3 tBuildDirection = {.x = 0, .y = 0, .z = 1};
-    const OverhangCriterion tCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold);
+    const OverhangCriterion tCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold, {});
     const auto tChecker = plato::test_utilities::GradientChecker{
         [tCriterion](const linear_algebra::DynamicVector<double>& aTriNodalCoords)
         {
@@ -228,7 +231,7 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
     const double tOverhangThreshold = -std::sqrt(2.0) / 2.0;
     constexpr double tTransitionWidth = 0.05;
     constexpr Vector3 tBuildDirection = {.x = 0, .y = .681189886111555, .z = -.732106781186548};
-    const OverhangCriterion tCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold);
+    const OverhangCriterion tCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold, {});
     constexpr size_t tNumNodes{6};
     constexpr size_t tNumTris{4};
 
@@ -297,6 +300,16 @@ void create_overhang_input_file(const std::filesystem::path& aFilename,
     tTextFile.close();
 }
 
+OverhangCriterion create_overhang_criterion()
+{
+    const std::vector<std::string> tSidesetNames{{"surface__void"}};
+    constexpr double tTransitionWidth{0.05};
+    constexpr double tOverhangAngleInDegrees{45.0};
+    const double tOverhangThreshold{detail::convert_angle_to_threshold_value(tOverhangAngleInDegrees)};
+    const third_party_integration::common::Vector3 tBuildDirection{.x = 0, .y = 1, .z = 0};
+    return OverhangCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold, tSidesetNames);
+}
+
 }  // namespace
 
 TEST(OverhangCriterion, ParseInputDeck_Correct)
@@ -353,6 +366,65 @@ TEST(OverhangCriterion, ConvertFromAngleToThresholdValue)
     constexpr auto tGold{-0.5};
     const auto tConvertedValue{detail::convert_angle_to_threshold_value(tAngle)};
     EXPECT_NEAR(tConvertedValue, tGold, tAbsoluteError);
+}
+
+TEST(OverhangCriterion, TrainglesToEvaluateOver)
+{
+    constexpr double tTolerance{1e-14};
+    constexpr size_t tGoldNumTris{2};
+    const third_party_integration::common::Vector3 tGoldNormal{.x = 0, .y = 0, .z = -1};
+    const auto tMeshPath = std::filesystem::path{"temp_mesh_save.exo"};
+    constexpr auto tMeshString = std::string_view{
+        "textmesh:"
+        "0,1,TET_4,5,1,2,3,block_1\n"
+        "0,2,TET_4,6,5,2,3,block_1\n"
+        "0,3,TET_4,6,7,5,3,block_1\n"
+        "0,4,TET_4,6,4,7,3,block_1\n"
+        "0,5,TET_4,6,2,4,3,block_1\n"
+        "0,6,TET_4,6,8,7,4,block_1\n"
+        "0,7,TET_4,9,5,6,7,block_2\n"
+        "0,8,TET_4,10,9,6,7,block_2\n"
+        "0,9,TET_4,10,11,9,7,block_2\n"
+        "0,10,TET_4,10,8,11,7,block_2\n"
+        "0,11,TET_4,10,6,8,7,block_2\n"
+        "0,12,TET_4,10,12,11,8,block_2\n"
+        "|coordinates: 0,-1,-1,0,0,-1,1,-1,-1,1,0,-1,0,-1,1,0,0,1,1,-1,1,1,0,1,0,-1,3,0,0,3,1,-1,3,1,0,3"
+        "|dimension:3|sideset:name=my_ss;data=7,2,11,2"};  // data=<tet_id>,<side_id>,<tet_id>,<side_id>...
+    third_party_integration::stk_io::write_mesh(tMeshPath, tMeshString);
+    const std::vector<std::string> tSidesetNames{{"MY_SS"}};
+    const std::vector<SensitivityTriangle> tSensitivityTriangles =
+        detail::triangles_to_evaluate_over(tMeshPath, tSidesetNames);
+    EXPECT_EQ(tSensitivityTriangles.size(), tGoldNumTris);
+    for (const auto tCurTriIndex : std::views::iota(0u, tGoldNumTris))
+    {
+        const third_party_integration::common::Vector3 tNormal = tSensitivityTriangles[tCurTriIndex].normal();
+        EXPECT_NEAR(tNormal.x, tGoldNormal.x, tTolerance);
+        EXPECT_NEAR(tNormal.y, tGoldNormal.y, tTolerance);
+        EXPECT_NEAR(tNormal.z, tGoldNormal.z, tTolerance);
+    }
+    std::filesystem::remove(tMeshPath);
+}
+
+TEST(OverhangCriterion, Value)
+{
+    constexpr double tExpectedValue{0.5};
+    const auto& tCriterion = create_overhang_criterion();
+    const auto tMeshPath = plato::utilities::data_file_path("one_tet_with_krino_sideset.cdf");
+    EXPECT_DOUBLE_EQ(tCriterion.f(analysis::AnalysisDomainMesh{tMeshPath.value(), {}}), tExpectedValue);
+}
+
+TEST(OverhangCriterion, Gradient)
+{
+    const std::vector<double> tExpectedGradient{0.5, 0.0, 0.0, -0.5, 0.0, -0.5, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0};
+    const auto& tCriterion = create_overhang_criterion();
+    const auto tMeshPath = plato::utilities::data_file_path("one_tet_with_krino_sideset.cdf");
+    const linear_algebra::DynamicVector<double> tGradient =
+        tCriterion.df(analysis::AnalysisDomainMesh{tMeshPath.value(), {}});
+    for (const auto& [tGradientComponent, tExpectedGradientComponent] :
+         utilities::Zip{tGradient.stdVector(), tExpectedGradient})
+    {
+        EXPECT_DOUBLE_EQ(tGradientComponent, tExpectedGradientComponent);
+    }
 }
 
 }  // namespace plato::criteria::extension::unittest

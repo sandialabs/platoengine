@@ -60,7 +60,7 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
     tLogger.logInfo("Evaluating criterion");
 
     const std::vector<SensitivityTriangle> tTriangles =
-        detail::get_triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
+        detail::triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
 
     const double tReturnValue =
         std::accumulate(tTriangles.begin(), tTriangles.end(), 0.0, [&](double aCurrentSum, SensitivityTriangle aCurTri)
@@ -82,7 +82,7 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     tLogger.logInfo("Evaluating criterion gradient");
 
     const std::vector<SensitivityTriangle> tTriangles =
-        detail::get_triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
+        detail::triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
 
     const std::unordered_map<GlobalNodeID, Sensitivity> tGradientMap =
         detail::calculate_gradient_map_from_triangles(tTriangles, *this);
@@ -145,10 +145,12 @@ OverhangCriterion::OverhangCriterion(const input_parser::overhang_criterion& aIn
 
 OverhangCriterion::OverhangCriterion(const double aTransitionWidth,
                                      const third_party_integration::common::Vector3& aBuildDirection,
-                                     const double aOverhangAngleThreshold)
+                                     const double aOverhangAngleThreshold,
+                                     const std::vector<std::string>& aEvaluationSidesetNames)
     : mTransitionWidth(aTransitionWidth),
       mBuildDirection(aBuildDirection),
-      mOverhangAngleThreshold(aOverhangAngleThreshold)
+      mOverhangAngleThreshold(aOverhangAngleThreshold),
+      mEvaluationSidesets(aEvaluationSidesetNames)
 {
 }
 
@@ -177,8 +179,8 @@ using namespace plato::third_party_integration::krino;
     return -std::cos(aAngle * std::numbers::pi / 180.0);
 }
 
-[[nodiscard]] auto get_triangles_to_evaluate_over(const std::string& aMeshFileName,
-                                                  const std::vector<std::string>& aEvaluationSidesetNames)
+[[nodiscard]] auto triangles_to_evaluate_over(const std::string& aMeshFileName,
+                                              const std::vector<std::string>& aEvaluationSidesetNames)
     -> std::vector<SensitivityTriangle>
 {
     const auto tMesh = mesh::MeshSidesets{mesh::Mesh{aMeshFileName}};
