@@ -24,7 +24,10 @@ using ObjectiveFunction =
 using ParallelAggregateObjective =
     core::ParallelAggregate<const analysis::AnalysisDomainMesh&, ObjectiveEvaluationInfo, ObjectiveGradientInfo>;
 
-/// @brief Creates the objectives function from the objectives defined in @a aInput.
+/// @brief Creates a single aggregate objective function from the objectives defined in @a aInput.
+///
+/// Evaluates objectives that are to be scaled by initial value using the geometry @a aGeometry and uses the resulting
+/// value to scale the weight used for aggregation.
 ///
 /// The objective function is the weighted sum of all objectives defined in @a aInput.
 /// There are two modes of parallelization: Fully parallel with parallel objectives, or serial objectives run in
@@ -32,7 +35,9 @@ using ParallelAggregateObjective =
 /// all objectives in parallel. For example, if there are three objectives requesting 1, 2, and 3 ranks respectively,
 /// then plato must be run with 6 ranks. If all objectives are serial, then any number of ranks may be used and
 /// objectives will be run in parallel as appropriate.
-[[nodiscard]] auto make_aggregate_objective_function(const ValidatedObjectives& aInput) -> ObjectiveFunction;
+[[nodiscard]] auto make_aggregate_objective_function(const ValidatedObjectives& aInput,
+                                                     const analysis::AnalysisDomainMesh& aGeometry)
+    -> ObjectiveFunction;
 
 /// @brief Returns the number of processors required for each objective.
 /// @post The size of the returned vector is equal to the number of active objectives in @a aInput.
@@ -41,7 +46,8 @@ using ParallelAggregateObjective =
 
 namespace detail
 {
-[[nodiscard]] auto make_parallel_aggregate(const ValidatedObjectives& aInput) -> ParallelAggregateObjective;
+[[nodiscard]] auto make_parallel_aggregate(const ValidatedObjectives& aInput,
+                                           const analysis::AnalysisDomainMesh& aGeometry) -> ParallelAggregateObjective;
 }  // namespace detail
 
 }  // namespace plato::criteria::library

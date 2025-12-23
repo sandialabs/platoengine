@@ -75,8 +75,8 @@ TEST_F(ObjectiveFactoryTestFixture, ValidParallelAggregateTwoObjectives)
     const auto tData = create_two_objective_test_input();
 
     EXPECT_EQ(tData.get<components::ComponentType::kObjective>().rawInput().size(), 2);
-    const auto tAggregate =
-        criteria::library::detail::make_parallel_aggregate(tData.get<components::ComponentType::kObjective>());
+    const auto tAggregate = criteria::library::detail::make_parallel_aggregate(
+        tData.get<components::ComponentType::kObjective>(), analysis::AnalysisDomainMesh{});
     EXPECT_EQ(tAggregate.size(), 2);
 }
 
@@ -104,8 +104,9 @@ TEST_F(ObjectiveFactoryTestFixture, ValidAggregateOneObjective)
     const auto tData = input_validation::parse_and_validate_string(tInput).value();
 
     EXPECT_EQ(tData.get<components::ComponentType::kObjective>().rawInput().size(), 2U);
-    const auto tAggregate =
-        criteria::library::detail::make_parallel_aggregate(tData.get<components::ComponentType::kObjective>());
+
+    const auto tAggregate = criteria::library::detail::make_parallel_aggregate(
+        tData.get<components::ComponentType::kObjective>(), analysis::AnalysisDomainMesh{});
     EXPECT_EQ(tAggregate.size(), 1U);
 }
 
@@ -149,6 +150,7 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
                                     /*.number_of_processors=*/1U,
                                     /*.input_files=*/plato::input_parser::FileList{},
                                     /*.aggregation_weight=*/tAggregationWeight,
+                                    /*.normalize_by_initial_value=*/false,
                                     /*.objective_goal*/ aObjectiveGoal};
         auto tInput = integration_tests::utilities::create_valid_example_input();
         tInput.get<components::ComponentType::kObjective>().clear();
@@ -156,12 +158,12 @@ TEST_F(ObjectiveFactoryTestFixture, ObjectiveGoal)
         const auto tValidInput = input_validation::make_validated_input(tInput).value();
         const auto& tObjectives = tValidInput.get<components::ComponentType::kObjective>();
 
-        const auto tObjective = criteria::library::make_aggregate_objective_function(tObjectives);
-
         const auto tMeshField = std::vector{
             analysis::ScalarFieldValue{.mGlobalMeshEntityID = 0U, .mDesignVariableVectorIndex = 0U, .mValue = tX}};
         const auto tMesh =
             analysis::AnalysisDomainMesh{.mFileName = "mesh.exo", .mBlockScalarField = {{0U, tMeshField}}};
+
+        const auto tObjective = criteria::library::make_aggregate_objective_function(tObjectives, tMesh);
         return std::make_pair(tObjective.template evaluate<core::evaluation::kFunction>(tMesh),
                               tObjective.template evaluate<core::evaluation::kFirstDerivative>(tMesh));
     };

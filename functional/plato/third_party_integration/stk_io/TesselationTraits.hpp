@@ -2,7 +2,6 @@
 #define PLATO_UTILITIES_TESSELATIONTRAITS
 
 #include <cassert>
-#include <iostream>
 #include <numeric>
 #include <stk_topology/topology.hpp>
 #include <vector>
@@ -28,7 +27,7 @@ struct TesselationTraits<stk::topology::HEXAHEDRON_8>
 {
     constexpr static auto kNumElements = 6;
     using ElementType = Tetrahedron;
-    constexpr static std::array<ElementType::Indices, kNumElements> kTesselationIdices = {
+    constexpr static std::array<ElementType::Indices, kNumElements> kTesselationIndices = {
         ElementType::Indices{4, 0, 3, 1}, ElementType::Indices{7, 4, 3, 1}, ElementType::Indices{7, 5, 4, 1},
         ElementType::Indices{7, 2, 5, 1}, ElementType::Indices{7, 3, 2, 1}, ElementType::Indices{7, 6, 5, 2}};
 };
@@ -43,7 +42,7 @@ struct TesselationTraits<stk::topology::TETRAHEDRON_4>
 {
     constexpr static auto kNumElements = 1;
     using ElementType = Tetrahedron;
-    constexpr static std::array<ElementType::Indices, kNumElements> kTesselationIdices = {
+    constexpr static std::array<ElementType::Indices, kNumElements> kTesselationIndices = {
         ElementType::Indices{0, 1, 2, 3}};
 };
 
@@ -57,7 +56,7 @@ struct TesselationTraits<stk::topology::QUAD_4>
 {
     constexpr static auto kNumElements = 2;
     using ElementType = Triangle;
-    constexpr static std::array<ElementType::Indices, kNumElements> kTesselationIdices = {
+    constexpr static std::array<ElementType::Indices, kNumElements> kTesselationIndices = {
         ElementType::Indices{0, 1, 2}, ElementType::Indices{0, 2, 3}};
 };
 
@@ -76,7 +75,7 @@ struct TesselationTraits<stk::topology::TRIANGLE_3>
 {
     constexpr static auto kNumElements = 1;
     using ElementType = Triangle;
-    constexpr static std::array<ElementType::Indices, kNumElements> kTesselationIdices = {
+    constexpr static std::array<ElementType::Indices, kNumElements> kTesselationIndices = {
         ElementType::Indices{0, 1, 2}};
 };
 
@@ -105,7 +104,7 @@ ReturnType accumulate_function_on_tesselation_impl(const std::vector<common::Coo
 {
     using TraitType = TesselationTraits<STK_TOPOLOGY>;
     std::array<typename TraitType::ElementType, TraitType::kNumElements> tTesselation;
-    std::transform(TraitType::kTesselationIdices.cbegin(), TraitType::kTesselationIdices.cend(), tTesselation.begin(),
+    std::transform(TraitType::kTesselationIndices.cbegin(), TraitType::kTesselationIndices.cend(), tTesselation.begin(),
                    [&aCoordinates](const std::array<unsigned int, TraitType::ElementType::kNumVertices>& tIndices)
                    { return from_coordinates<typename TraitType::ElementType>(tIndices, aCoordinates); });
 

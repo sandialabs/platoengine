@@ -53,4 +53,32 @@ TEST(ParallelFunction, AdaptRosenbrock)
     }
 }
 
+TEST(ParallelFunction, BroadCastFromRoot)
+{
+    namespace ptu = plato::test_utilities;
+
+    const auto tF = [](const double aArg) { return aArg * aArg; };
+    const auto tDF = [](const double aArg) { return 2.0 * aArg; };
+
+    const auto tComm = boost::mpi::communicator{};
+    EXPECT_GT(tComm.size(), 1);
+
+    const auto tAdaptedParallelFunction = core::adapt_parallel_function(
+        ptu::make_parallel_function(ptu::ParallelTestFunctionWrapper<double, double>{tF},
+                                    ptu::ParallelTestFunctionWrapper<double, double>{tDF}, tComm),
+        tComm);
+
+    const auto tArg{5.6};
+    if (tComm.rank() == 0)
+    {
+        EXPECT_EQ(tAdaptedParallelFunction.evaluate<evaluation::kFunction>(tArg), tArg * tArg);
+    }
+    else
+    {
+        EXPECT_EQ(tAdaptedParallelFunction.evaluate<evaluation::kFunction>(tArg), 0.0);
+    }
+
+    EXPECT_EQ(broadcast_from_root(tComm, tAdaptedParallelFunction.evaluate<evaluation::kFunction>(tArg)), tArg * tArg);
+}
+
 }  // namespace plato::core::parallel_unittest

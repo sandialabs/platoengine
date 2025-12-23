@@ -23,6 +23,7 @@ add_subdirectory(./geometry)
 add_subdirectory(./filter)
 add_subdirectory(./criteria)
 add_subdirectory(./process_manager)
+add_subdirectory(./transformations)
 add_subdirectory(./main)
 
 if( UNIT_TESTING )

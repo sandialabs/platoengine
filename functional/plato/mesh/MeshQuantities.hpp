@@ -2,6 +2,7 @@
 #define PLATO_MESH_MESHQUANTITIES
 
 #include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/stk_io/MeshFieldOperations.hpp"
 
 namespace plato::mesh
 {
@@ -26,7 +27,36 @@ struct MeshQuantities : public Mesh
     ///
     /// The order is given by the order of iteration of AnalysisDomainMeshSequentialView.
     [[nodiscard]] std::vector<double> designDomainElementVolumes() const;
+
+    /// @brief Computes the nodal average of the scalar field defined by @a aNodalScalarField on each element.
+    /// @pre The size of @a aNodalScalarField must be equal to the total number of nodes on the mesh and the entries are
+    /// assumed to be sorted by ascending global node ID.
+    /// @post The size of the returned vector will be equal to the number of elements on the mesh and will be sorted by
+    /// ascending global element ID.
+    [[nodiscard]] auto elementAveragedNodalValues(const std::ranges::random_access_range auto& aNodalScalarField) const
+        -> std::vector<double>;
+
+    /// @brief Computes the projection of an element field to the nodes of a mesh using the nodal average.
+    /// @pre The size of @a aElementScalarField must be equal to the total number of elements on the mesh and the
+    /// entries are assumed to be sorted by ascending global element ID.
+    /// @post The size of the returned vector will be equal to the number of nodes on the mesh and the entries will be
+    /// sorted by ascending global node ID.
+    [[nodiscard]] auto nodalAverageElementProjection(
+        const std::ranges::random_access_range auto& aElementScalarField) const -> std::vector<double>;
 };
+
+auto MeshQuantities::elementAveragedNodalValues(const std::ranges::random_access_range auto& aScalarField) const
+    -> std::vector<double>
+{
+    return third_party_integration::stk_io::element_averaged_nodal_values(aScalarField, bulkData());
+}
+
+auto MeshQuantities::nodalAverageElementProjection(
+    const std::ranges::random_access_range auto& aElementScalarField) const -> std::vector<double>
+{
+    return third_party_integration::stk_io::nodal_average_element_projection(aElementScalarField, bulkData());
+}
+
 }  // namespace plato::mesh
 
 #endif
