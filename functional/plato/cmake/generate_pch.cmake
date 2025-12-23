@@ -1,11 +1,3 @@
-
-macro(remove_pch_excludes)
-    set(PCH_EXCLUDE_LIST "boost/spirit/include/qi.hpp" "boost/spirit/home/qi/nonterminal/rule.hpp")
-    foreach(BAD_HEADER ${PCH_EXCLUDE_LIST})
-        list(FILTER RAW_HEADER_LIST EXCLUDE REGEX ${BAD_HEADER})
-    endforeach()
-endmacro(remove_pch_excludes)
-
 # Generates a list of headers to precompile. The headers are all those included with angle brackets,
 # as this is our standard for external library includes.
 function(pch_list ALL_FILES OUT_PCH_LIST)
@@ -27,8 +19,6 @@ function(pch_list ALL_FILES OUT_PCH_LIST)
     endforeach()
 
     list(REMOVE_DUPLICATES RAW_HEADER_LIST)
-
-    remove_pch_excludes()
 
     set(${OUT_PCH_LIST} "${RAW_HEADER_LIST}" PARENT_SCOPE)
 

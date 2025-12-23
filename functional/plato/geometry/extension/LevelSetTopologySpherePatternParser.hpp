@@ -1,9 +1,6 @@
 #ifndef PLATO_GEOMETRY_EXTENSION_LEVELSETSPHEREPATTERNPARSER
 #define PLATO_GEOMETRY_EXTENSION_LEVELSETSPHEREPATTERNPARSER
 
-#include <boost/fusion/include/define_struct.hpp>
-#include <boost/spirit/include/qi.hpp>
-
 #include "plato/input_parser/Point.hpp"
 #include "plato/input_parser/SequenceSubtype.hpp"
 

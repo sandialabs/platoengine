@@ -15,6 +15,9 @@ if(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
   target_compile_options(PlatoFunctionalInputParser
     PUBLIC $<$<COMPILE_LANGUAGE:CXX>:SHELL:-Xcudafe --diag_suppress=20011 -Xcudafe --diag_suppress=20012 -Wno-maybe-uninitialized>
     PRIVATE -Wno-maybe-uninitialized)
+else()
+  # The header boost/spirit/include/qi.hpp results in many uninitialized usage warnings.
+  target_compile_options(PlatoFunctionalInputParser PUBLIC -Wno-maybe-uninitialized)
 endif()
 
 if( UNIT_TESTING )
