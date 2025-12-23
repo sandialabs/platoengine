@@ -46,11 +46,10 @@ function(create_plato_library_impl LIBRARY_NAME DIRECTORIES TARGET_LINK_LIST LIB
             ARCHIVE DESTINATION lib)
     target_include_directories(${LIBRARY_NAME} INTERFACE $<INSTALL_INTERFACE:include/>)
 
-    pch_list("${LIB_HDRS}" LIB_HDR_PCH)
-    target_precompile_headers(${LIBRARY_NAME} ${EXPORT_TYPE} $<BUILD_INTERFACE:${LIB_HDR_PCH}>)
-
-    pch_list("${LIB_SRCS}" LIB_SRC_PCH)
-    if(LIB_SRC_PCH)
+    if(NOT ${EXPORT_TYPE} STREQUAL "INTERFACE")
+        pch_list("${LIB_HDRS}" LIB_HDR_PCH)
+        target_precompile_headers(${LIBRARY_NAME} PRIVATE ${LIB_HDR_PCH})
+        pch_list("${LIB_SRCS}" LIB_SRC_PCH)
         target_precompile_headers(${LIBRARY_NAME} PRIVATE ${LIB_SRC_PCH})
     endif()
 

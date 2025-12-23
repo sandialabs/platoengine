@@ -65,7 +65,7 @@ auto error_message_for_empty_parameter(const std::string_view aPrependString,
 {
     if (!aParameter)
     {
-        return std::string(aPrependString) + " missing required entry \"" + std::string{aEntryName} + "\"";
+        return utilities::concatenate(aPrependString, " missing required entry \"", aEntryName, "\"");
     }
     else
     {
