@@ -16,9 +16,10 @@ SensitivityTriangle kTriangle{NodeIDCoordsPair{23, {1., 0., 0.}}, NodeIDCoordsPa
 
 TEST(SensitivityTriangle, Normal)
 {
-    const UnitVector3 tNormal = kTriangle.normal();
+    const Vector3 tNormal = kTriangle.normal();
     const common::UnitVector3 tGold{1.0, 1.0, 0.0};
-    common::test_utilities::test_double_equality_of_components(tNormal, tGold,
+    const auto tGoldNormal = static_cast<Vector3>(tGold);
+    common::test_utilities::test_double_equality_of_components(tNormal, tGoldNormal,
                                                                TEST_CONTEXT("SensitivityTriangle normal"));
 }
 

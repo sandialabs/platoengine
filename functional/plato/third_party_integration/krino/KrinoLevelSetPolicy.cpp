@@ -151,6 +151,6 @@ auto all_block_parts(const ::krino::MeshInterface& aKrinoMesh) -> stk::mesh::Par
     return tElementBlockParts;
 }
 
-[[nodiscard]] auto get_void_phase_name() -> std::string_view { return kVoidPhaseName; }
+[[nodiscard]] auto void_phase_name() -> std::string_view { return kVoidPhaseName; }
 
 }  // namespace plato::third_party_integration::krino

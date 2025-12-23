@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <ios>
+#include <numeric>
+#include <ranges>
 
 #include "plato/criteria/extension/OverhangCriterion.hpp"
 #include "plato/test_utilities/GradientChecker.hpp"
@@ -228,34 +229,36 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
     constexpr double tTransitionWidth = 0.05;
     constexpr Vector3 tBuildDirection = {.x = 0, .y = .681189886111555, .z = -.732106781186548};
     const OverhangCriterion tCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold);
-    constexpr size_t tNumNodes = 6;
-    constexpr size_t tNumTris = 4;
+    constexpr size_t tNumNodes{6};
+    constexpr size_t tNumTris{4};
 
     // Calculate indivdual triangle maps--one for each tri
     std::vector<std::unordered_map<GlobalNodeID, Sensitivity>> tIndividualGradientMaps;
-    for (size_t i = 0; i < tNumTris; ++i)
+    for (const auto tTriIndex : std::views::iota(0u, tNumTris))
     {
-        tIndividualGradientMaps.push_back(detail::calculate_gradient_map_from_triangles({tTriangles[i]}, tCriterion));
+        tIndividualGradientMaps.push_back(
+            detail::calculate_gradient_map_from_triangles({tTriangles[tTriIndex]}, tCriterion));
     }
     // Calculate combined triangle map from multiple tris
-    std::unordered_map<GlobalNodeID, Sensitivity> tCombinedGradientMap =
+    const std::unordered_map<GlobalNodeID, Sensitivity> tCombinedGradientMap =
         detail::calculate_gradient_map_from_triangles(tTriangles, tCriterion);
 
     // Compare results
-    for (size_t i = 0; i < tNumNodes; ++i)
+    for (const auto tNodeIndex : std::views::iota(0UL, tNumNodes))
     {
-        Sensitivity tCurNodeGradient = {.x = 0.0, .y = 0.0, .z = 0.0};
-        // For this node get contributions from individual maps
-        for (size_t j = 0; j < tNumTris; ++j)
-        {
-            if (tIndividualGradientMaps[j].count(i + 1))
+        constexpr auto tRange = std::views::iota(0UL, tNumTris);
+        const Sensitivity tCurNodeGradient = std::accumulate(
+            tRange.begin(), tRange.end(), Sensitivity{0., 0., 0.},
+            [tIndividualGradientMaps, tNodeIndex](const Sensitivity aCurNodeGradient, const auto aTriIndex)
             {
-                tCurNodeGradient += tIndividualGradientMaps[j].at(i + 1);
-            }
-        }
+                return tIndividualGradientMaps[aTriIndex].count(tNodeIndex + 1)
+                           ? aCurNodeGradient + tIndividualGradientMaps[aTriIndex].at(tNodeIndex + 1)
+                           : aCurNodeGradient;
+            });
+
         // Compare against combined map
         third_party_integration::common::test_utilities::test_double_equality_of_components(
-            tCurNodeGradient, tCombinedGradientMap.at(i + 1), TEST_CONTEXT("Checking vector components"));
+            tCurNodeGradient, tCombinedGradientMap.at(tNodeIndex + 1), TEST_CONTEXT("Checking vector components"));
     }
 }
 

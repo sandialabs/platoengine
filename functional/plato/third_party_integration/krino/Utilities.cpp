@@ -9,9 +9,7 @@
 #include <Akri_LevelSetShapeSensitivities.hpp>
 #include <Akri_MeshHelpers.hpp>           //activate_all_entities
 #include <Akri_NodalSurfaceDistance.hpp>  //compute_nodal_surface_distance
-#include <Akri_OrientedSideNodes.hpp>
 #include <Akri_OutputUtils.hpp>
-#include <Akri_TriangleWithSensitivities.hpp>
 #include <iterator>
 #include <stk_io/StkMeshIoBroker.hpp>  //get_selected_entities
 #include <stk_math/StkVector.hpp>

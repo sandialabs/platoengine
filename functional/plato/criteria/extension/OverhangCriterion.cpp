@@ -108,12 +108,11 @@ namespace
 {
 constexpr double kTransitionWidth{0.1};
 constexpr double kOverhangAngleInDegrees{45.0};
-const third_party_integration::common::Vector3 kBuildDirection{0.0, 0.0, 1.0};
 
 [[nodiscard]] std::vector<std::string> to_sideset_list(
     const boost::optional<input_parser::FileList>& aAdditionalSidesets)
 {
-    std::vector<std::string> tSidesetVector{std::string{third_party_integration::krino::get_interface_sideset_name()}};
+    std::vector<std::string> tSidesetVector{std::string{third_party_integration::krino::interface_sideset_name()}};
     if (aAdditionalSidesets.has_value())
     {
         tSidesetVector.insert(tSidesetVector.end(), aAdditionalSidesets.value().begin(),
@@ -122,22 +121,20 @@ const third_party_integration::common::Vector3 kBuildDirection{0.0, 0.0, 1.0};
     return tSidesetVector;
 }
 
-[[nodiscard]] third_party_integration::common::Vector3 to_common_vector_or_default(
-    const boost::optional<input_parser::Point>& aDirection)
+[[nodiscard]] auto build_direction(const boost::optional<input_parser::Point>& aDirection)
+    -> third_party_integration::common::Vector3
 {
-    if (aDirection.has_value())
-    {
-        return third_party_integration::common::Vector3{aDirection.value().mX, aDirection.value().mY,
-                                                        aDirection.value().mZ};
-    }
-    return kBuildDirection;
+    const auto tDefaultBuildDirection = input_parser::Point{0.0, 0.0, 1.0};
+    const auto tBuildDirection = aDirection.value_or(tDefaultBuildDirection);
+    return {tBuildDirection.mX, tBuildDirection.mY, tBuildDirection.mZ};
 }
+
 }  // namespace
 
 OverhangCriterion::OverhangCriterion(const input_parser::overhang_criterion& aInputParams,
                                      const library::CriterionInput& aCriterionInput)
     : mTransitionWidth(aInputParams.transition_width.value_or(kTransitionWidth)),
-      mBuildDirection(to_common_vector_or_default(aInputParams.build_direction)),
+      mBuildDirection(build_direction(aInputParams.build_direction)),
       mOverhangAngleThreshold(detail::convert_angle_to_threshold_value(
           aInputParams.overhang_angle_in_degrees.value_or(kOverhangAngleInDegrees))),
       mEvaluationSidesets(to_sideset_list(aInputParams.additional_evaluation_sidesets)),
@@ -273,17 +270,16 @@ using namespace plato::third_party_integration::krino;
     // The calculation of the return value will be determined by whether the input value, aAngleDotBuildDirection,
     // is in one of three ranges: 1) less than the step function transition region (return 1.0), 2) inside the step
     // function transiion region (calculate transition value), or 3) to the right of the transition region (return 0.0).
-    double tReturnValue = 0.0;
     if (aAngleDotBuildDirection <= (aOverhangCriterion.mOverhangAngleThreshold - aOverhangCriterion.mTransitionWidth))
     {
-        tReturnValue = 1.0;
+        return 1.0;
     }
     else if (aAngleDotBuildDirection < aOverhangCriterion.mOverhangAngleThreshold)
     {
-        tReturnValue = smoothing_function((aOverhangCriterion.mOverhangAngleThreshold - aAngleDotBuildDirection) /
-                                          aOverhangCriterion.mTransitionWidth);
+        return smoothing_function((aOverhangCriterion.mOverhangAngleThreshold - aAngleDotBuildDirection) /
+                                  aOverhangCriterion.mTransitionWidth);
     }
-    return tReturnValue;
+    return 0.0;
 }
 
 [[nodiscard]] double d_overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
@@ -340,8 +336,8 @@ TriangleGradient get_gradient_contribution_for_triangle(const SensitivityTriangl
     const Vector3 tScaledBuildDir = aOverhangCriterion.mBuildDirection * tOverhangPrime * tArea;
     const double tOverhang = overhang_from_triangle(aTriangle, aOverhangCriterion);
 
-    const auto tNormalSensitivities = tpik::get_d_normal_d_tri_node(aTriangle);
-    const auto tAreaSensitivities = tpik::get_d_area_d_tri_node(aTriangle);
+    const auto tNormalSensitivities = tpik::d_normal_d_tri_node(aTriangle);
+    const auto tAreaSensitivities = tpik::d_area_d_tri_node(aTriangle);
 
     TriangleGradient tGradient{NodeGradient{aTriangle.mNodes[0].first, {.x = 0., .y = 0., .z = 0.}},
                                NodeGradient{aTriangle.mNodes[1].first, {.x = 0., .y = 0., .z = 0.}},
@@ -382,7 +378,7 @@ input_parser::overhang_criterion parse_input_deck(const std::string& aFilename)
 
     if (!tParseSucceeded || tIter != tInputFileString.cend())
     {
-        throw utilities::Exception{"Couldn't parse overhang criterion input deck " + aFilename + "."};
+        throw utilities::Exception{std::format("Couldn't parse overhang criterion input deck {}.", aFilename)};
     }
     return tData;
 }

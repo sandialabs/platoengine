@@ -11,7 +11,6 @@
 #include <boost/mpi/communicator.hpp>
 #include <cstdint>
 #include <filesystem>
-#include <map>
 #include <stk_mesh/base/Types.hpp>
 
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
@@ -20,8 +19,6 @@
 
 namespace plato::third_party_integration::krino
 {
-
-using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::Part>>;
 
 /// @brief Describes whether or not to include a void phase block in the generated cut mesh.
 enum struct VoidPhase : std::uint8_t

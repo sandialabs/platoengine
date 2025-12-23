@@ -41,7 +41,7 @@ TEST(MeshSidesets, SidesetTriangles)
     EXPECT_EQ(tTriangles.size(), tGoldNumTris);
     for (const auto tCurTriIndex : std::views::iota(0u, tGoldNumTris))
     {
-        const third_party_integration::common::UnitVector3 tNormal = tTriangles[tCurTriIndex].normal();
+        const third_party_integration::common::Vector3 tNormal = tTriangles[tCurTriIndex].normal();
         EXPECT_NEAR(tNormal.x, tGoldNormal.x, tTolerance);
         EXPECT_NEAR(tNormal.y, tGoldNormal.y, tTolerance);
         EXPECT_NEAR(tNormal.z, tGoldNormal.z, tTolerance);
