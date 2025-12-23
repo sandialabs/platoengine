@@ -2,12 +2,15 @@
 
 #include <Akri_OrientedSideNodes.hpp>
 #include <Akri_TriangleWithSensitivities.hpp>
+#include <ranges>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Selector.hpp>
 
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
+#include "plato/utilities/TransformIf.hpp"
 
 namespace plato::third_party_integration::krino
 {
@@ -86,34 +89,34 @@ auto interface_triangles(const stk::mesh::BulkData& aBulkData,
     }
 
     const stk::mesh::Selector tTriSelector(*tSidesetPart);
-    std::vector<const stk::mesh::Part*> tParts;
-    for (const auto& tCurBlock : aDesignDomainBlocks)
-    {
-        if (tCurBlock.get().name().find(void_phase_name()) == std::string::npos)
-        {
-            tParts.push_back(&(tCurBlock.get()));
-        }
-    }
+    auto tParts = utilities::reserved_container<std::vector<const stk::mesh::Part*>>(aDesignDomainBlocks.size());
+    utilities::transform_if(
+        aDesignDomainBlocks, std::back_inserter(tParts),
+        [](const auto& tCurrentBlock) { return &(tCurrentBlock.get()); }, [](const auto& tCurrentBlock)
+        { return tCurrentBlock.get().name().find(void_phase_name()) == std::string::npos; });
     const stk::mesh::Selector tTetSelector{stk::mesh::selectUnion(tParts)};
     const std::vector<stk::mesh::Entity> tInterfaceSides = get_owned_interface_sides(aBulkData, tTriSelector);
     const stk::mesh::FieldBase* const tCoordsField = aBulkData.mesh_meta_data().coordinate_field();
     std::vector<SensitivityTriangle> tTriangles(tInterfaceSides.size());
-    size_t tNumTris = 0;
-    for (const auto& tInterfaceSide : tInterfaceSides)
-    {
-        const std::array<stk::mesh::Entity, 3> tSideNodes =
-            ::krino::get_oriented_triangle_side_nodes(aBulkData, tTetSelector, tInterfaceSide);
-        std::array<NodeIDCoordsPair, 3> tSensNodes;
-        for (size_t i = 0; i < 3; ++i)
-        {
-            tSensNodes[i].first = aBulkData.identifier(tSideNodes[i]);
-            const double* tCoords = static_cast<const double*>(stk::mesh::field_data(*tCoordsField, tSideNodes[i]));
-            tSensNodes[i].second.x = tCoords[0];
-            tSensNodes[i].second.y = tCoords[1];
-            tSensNodes[i].second.z = tCoords[2];
-        }
-        tTriangles[tNumTris++] = SensitivityTriangle{tSensNodes[0], tSensNodes[1], tSensNodes[2]};
-    }
+    std::transform(tInterfaceSides.begin(), tInterfaceSides.end(), tTriangles.begin(),
+                   [&aBulkData, &tTetSelector, tCoordsField](const auto& aInterfaceSide)
+                   {
+                       constexpr size_t tNumNodesPerTriangle{3};
+                       const std::array<stk::mesh::Entity, 3> tSideNodes =
+                           ::krino::get_oriented_triangle_side_nodes(aBulkData, tTetSelector, aInterfaceSide);
+                       std::array<NodeIDCoordsPair, tNumNodesPerTriangle> tSensNodes;
+                       for (const auto tNodeIndex : std::views::iota(0u, tNumNodesPerTriangle))
+                       {
+                           tSensNodes[tNodeIndex].first = aBulkData.identifier(tSideNodes[tNodeIndex]);
+                           const double* tCoords =
+                               static_cast<const double*>(stk::mesh::field_data(*tCoordsField, tSideNodes[tNodeIndex]));
+                           tSensNodes[tNodeIndex].second.x = tCoords[0];
+                           tSensNodes[tNodeIndex].second.y = tCoords[1];
+                           tSensNodes[tNodeIndex].second.z = tCoords[2];
+                       }
+                       return SensitivityTriangle{tSensNodes[0], tSensNodes[1], tSensNodes[2]};
+                   });
+
     return tTriangles;
 }
 
@@ -135,17 +138,16 @@ TriangleAreaSensitivity triangle_area_sensitivity(const std::vector<double>& aFl
     const auto tAreaSensitivityMultiVectorView =
         utilities::MultiVectorView(aFlatAreaSensitivityVector, tNumberSpatialDimensions);
     TriangleAreaSensitivity tSensitivities;
-    for (size_t tNodeIndex = 0; tNodeIndex < tNumberNodesPerTriangle; tNodeIndex++)
-    {
-        AreaSensitivityWRTNodalCoordinates dAreadNode;
-        dAreadNode.x =
-            tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{0});
-        dAreadNode.y =
-            tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{1});
-        dAreadNode.z =
-            tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{2});
-        tSensitivities[tNodeIndex] = dAreadNode;
-    }
+    constexpr auto tNodeRange = std::views::iota(0UL, tNumberNodesPerTriangle);
+    std::transform(
+        tNodeRange.begin(), tNodeRange.end(), tSensitivities.begin(),
+        [&tAreaSensitivityMultiVectorView](const auto tNodeIndex)
+        {
+            return AreaSensitivityWRTNodalCoordinates{
+                tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{0}),
+                tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{1}),
+                tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{2})};
+        });
     return tSensitivities;
 }
 
@@ -176,32 +178,22 @@ TriangleNormalSensitivity triangle_normal_sensitivity(const std::vector<double>&
     const auto tNormalSensitivityMultiVectorView =
         utilities::MultiVectorView(aFlatNormalSensitivityVector, tNumNodeSensitivities);
     TriangleNormalSensitivity tSensitivities;
-    for (size_t tNodeIndex = 0; tNodeIndex < tNumberNodesPerTriangle; tNodeIndex++)
+    for (const auto tNodeIndex : std::views::iota(0UL, tNumberNodesPerTriangle))
     {
-        DNormalDNodeCoordinate dNormaldNodeX;
-        dNormaldNodeX.x =
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{0});
-        dNormaldNodeX.y =
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{1});
-        dNormaldNodeX.z =
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{2});
-        tSensitivities[tNodeIndex][kDNormalDNodeXCoord] = dNormaldNodeX;
-        DNormalDNodeCoordinate dNormaldNodeY;
-        dNormaldNodeY.x =
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{3});
-        dNormaldNodeY.y =
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{4});
-        dNormaldNodeY.z =
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{5});
-        tSensitivities[tNodeIndex][kDNormalDNodeYCoord] = dNormaldNodeY;
-        DNormalDNodeCoordinate dNormaldNodeZ;
-        dNormaldNodeZ.x =
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{6});
-        dNormaldNodeZ.y =
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{7});
-        dNormaldNodeZ.z =
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{8});
-        tSensitivities[tNodeIndex][kDNormalDNodeZCoord] = dNormaldNodeZ;
+        tSensitivities[tNodeIndex][kDNormalDNodeXCoord] = DNormalDNodeCoordinate{
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{0}),
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{1}),
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{2})};
+
+        tSensitivities[tNodeIndex][kDNormalDNodeYCoord] = DNormalDNodeCoordinate{
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{3}),
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{4}),
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{5})};
+
+        tSensitivities[tNodeIndex][kDNormalDNodeZCoord] = DNormalDNodeCoordinate{
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{6}),
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{7}),
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{8})};
     }
     return tSensitivities;
 }

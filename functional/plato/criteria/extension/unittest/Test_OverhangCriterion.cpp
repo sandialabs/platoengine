@@ -246,9 +246,9 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
     // Compare results
     for (const auto tNodeIndex : std::views::iota(0UL, tNumNodes))
     {
-        constexpr auto tRange = std::views::iota(0UL, tNumTris);
+        constexpr auto tTriangleRange = std::views::iota(0UL, tNumTris);
         const Sensitivity tCurNodeGradient = std::accumulate(
-            tRange.begin(), tRange.end(), Sensitivity{0., 0., 0.},
+            tTriangleRange.begin(), tTriangleRange.end(), Sensitivity{0., 0., 0.},
             [tIndividualGradientMaps, tNodeIndex](const Sensitivity aCurNodeGradient, const auto aTriIndex)
             {
                 return tIndividualGradientMaps[aTriIndex].count(tNodeIndex + 1)

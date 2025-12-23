@@ -1,18 +1,15 @@
 #include <gtest/gtest.h>
 
 #include <Akri_Phase_Support.hpp>
-#include <Akri_TriangleWithSensitivities.hpp>
 #include <algorithm>
 #include <filesystem>
 #include <string_view>
 
-#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
-#include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"

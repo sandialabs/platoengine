@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <ranges>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/MetaData.hpp>
 
@@ -111,59 +112,51 @@ constexpr double kDNormalAbsoluteError{1e-3};
                                         const size_t aDimensionIndex)
 {
     constexpr size_t tNumDimensions = 3;
-    constexpr size_t tNumNumSensComponents = 9;
+    constexpr size_t tNumSensitivityComponents = 9;
     const auto tGradient =
         linear_algebra::DynamicVector<double>{detail::d_normal_d_nodal_coords_from_tri_coords(aX.stdVector())};
-    double tDot = 0.0;
-    for (size_t i = 0; i < tNumNumSensComponents; ++i)
+
+    constexpr auto tSensitivityComponentRange = std::views::iota(0UL, tNumSensitivityComponents);
+    return std::accumulate(
+        tSensitivityComponentRange.begin(), tSensitivityComponentRange.end(), 0.0,
+        [&tGradient, tNumDimensions, aDimensionIndex, &aV](const double aSummation, const auto aIndex)
+        { return aSummation + tGradient[tNumDimensions * aIndex + aDimensionIndex] * aV[aIndex]; });
+}
+
+[[nodiscard]] auto normal_component(const auto& aCoordinateFunction)
+{
+    return [&aCoordinateFunction](const linear_algebra::DynamicVector<double>& aX)
     {
-        tDot += tGradient[tNumDimensions * i + aDimensionIndex] * aV[i];
-    }
-    return tDot;
+        SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
+        return aCoordinateFunction(static_cast<common::Vector3>(tTriangle.normal()));
+    };
+}
+
+template <std::size_t kComponent>
+[[nodiscard]] auto d_normal_d_component()
+{
+    return [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
+    { return calculate_d_normal(aX, aV, kComponent); };
 }
 
 }  // namespace
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsX)
 {
-    const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
-    {
-        SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
-        return static_cast<common::Vector3>(tTriangle.normal()).x;
-    };
-    const auto tDf =
-        [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
-    { return calculate_d_normal(aX, aV, kXComponent); };
-
-    test_d_func_d_coords(kDNormalAbsoluteError, tF, tDf);
+    const auto tF = normal_component([](const auto& aVector) { return aVector.x; });
+    test_d_func_d_coords(kDNormalAbsoluteError, tF, d_normal_d_component<kXComponent>());
 }
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsY)
 {
-    const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
-    {
-        SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
-        return static_cast<common::Vector3>(tTriangle.normal()).y;
-    };
-    const auto tDf =
-        [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
-    { return calculate_d_normal(aX, aV, kYComponent); };
-
-    test_d_func_d_coords(kDNormalAbsoluteError, tF, tDf);
+    const auto tF = normal_component([](const auto& aVector) { return aVector.y; });
+    test_d_func_d_coords(kDNormalAbsoluteError, tF, d_normal_d_component<kYComponent>());
 }
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsZ)
 {
-    const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
-    {
-        SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
-        return static_cast<common::Vector3>(tTriangle.normal()).z;
-    };
-    const auto tDf =
-        [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aV)
-    { return calculate_d_normal(aX, aV, kZComponent); };
-
-    test_d_func_d_coords(kDNormalAbsoluteError, tF, tDf);
+    const auto tF = normal_component([](const auto& aVector) { return aVector.z; });
+    test_d_func_d_coords(kDNormalAbsoluteError, tF, d_normal_d_component<kZComponent>());
 }
 
 }  // namespace plato::third_party_integration::krino::unittest
