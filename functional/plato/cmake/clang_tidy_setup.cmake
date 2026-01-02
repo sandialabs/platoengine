@@ -5,11 +5,18 @@ macro(clang_tidy_setup)
       message(FATAL_ERROR "Requested to build with clang-tidy, but could not find the executable. Check your path.")
     endif()
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-    # It seems like MPI_CXX_INCLUDE_DIRS should work, but it's empty.
-    # Use the parent path of the mpi compiler wrapper:
-    cmake_path(GET MPI_CXX_COMPILER PARENT_PATH MPI_COMPILER_PARENT_PATH)
-    cmake_path(GET MPI_COMPILER_PARENT_PATH PARENT_PATH MPI_PARENT_PATH)
-    set(CLANG_TIDY_EXTRA_ARGS "--extra-arg=-I${MPI_PARENT_PATH}/include")
+
+    set(CLANG_TIDY_EXTRA_ARGS "")
+
+    if(DEFINED ENV{SPACK_TARGET_ARGS_CXX})
+      # Add any spack CPU target flags that may conflict with generated PCH
+      set(SPACK_TARGET_ARGS_CXX $ENV{SPACK_TARGET_ARGS_CXX})
+      string(REPLACE " " ";" SPACK_TARGET_ARGS_LIST "${SPACK_TARGET_ARGS_CXX}")
+      foreach(FLAG ${SPACK_TARGET_ARGS_LIST})
+        list(APPEND CLANG_TIDY_EXTRA_ARGS "--extra-arg=${FLAG}")
+      endforeach()
+    endif()
+
     if(GCC_TOOLCHAIN_PATH)
       list(APPEND CLANG_TIDY_EXTRA_ARGS "--extra-arg=--gcc-toolchain=${GCC_TOOLCHAIN_PATH}")
     endif()
