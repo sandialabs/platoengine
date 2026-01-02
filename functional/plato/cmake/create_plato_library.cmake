@@ -1,5 +1,6 @@
 include(${CMAKE_UTIL_DIR}/add_to_srcs_and_hdrs.cmake)
 include(${CMAKE_UTIL_DIR}/generate_pch.cmake)
+include(${CMAKE_UTIL_DIR}/clang_tidy_setup.cmake)
 
 # create_plato_header_library 
 #  This version must be used if a library only contains header files.
@@ -38,7 +39,10 @@ function(create_plato_library_impl LIBRARY_NAME DIRECTORIES TARGET_LINK_LIST LIB
 
     target_link_libraries(${LIBRARY_NAME} ${EXPORT_TYPE} CoverageInterface ${TARGET_LINK_LIST})
     if(BUILD_WITH_CLANG_TIDY)
-        set_target_properties(${LIBRARY_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+        targets_with_arch_flags(${LIBRARY_NAME} TARGET_ARCH_LIBS)
+        set_target_properties(${LIBRARY_NAME}
+                              PROPERTIES CXX_CLANG_TIDY
+                              "${CLANG_TIDY_COMMAND}$<$<BOOL:NOT ${TARGET_ARCH_LIBS}>:;${CLANG_TIDY_EXTRA_ARCH_ARGS}>")
     endif()
 
     install( TARGETS ${LIBRARY_NAME} EXPORT PlatoEngine
