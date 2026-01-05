@@ -1,10 +1,12 @@
 #include "plato/mesh/Mesh.hpp"
 
 #include <cassert>
+#include <format>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/utilities/Exception.hpp"
 
 namespace plato::mesh
 {
@@ -19,7 +21,11 @@ template <typename T, typename FieldFunction>
     const auto tBlockDataWithField =
         std::find_if(aBlockData.cbegin(), aBlockData.cend(), [aBlockField, aFieldFunction](const auto& aBlockDatum)
                      { return aFieldFunction(aBlockDatum) == aBlockField; });
-    assert(tBlockDataWithField != aBlockData.cend());
+    if (tBlockDataWithField == aBlockData.cend())
+    {
+        throw utilities::Exception{std::format("Couldn't find block with name {}.", aBlockField)};
+    }
+    // assert(tBlockDataWithField != aBlockData.cend());
     return tBlockDataWithField->mMetaDataOrdinal;
 }
 

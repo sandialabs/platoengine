@@ -7,6 +7,7 @@
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::mesh::unittest
@@ -232,6 +233,13 @@ TEST_F(TwoDTwoBlockMesh, BlockNames)
 
     const auto tExpectedNames = std::vector<std::string>{mBlockNames[0], mBlockNames[1]};
     EXPECT_EQ(tExpectedNames, tMesh.blockNames());
+}
+
+TEST_F(TwoDTwoBlockMesh, MeshConstructionWithNonExistingFixedBlockName)
+{
+    std::set<std::string> tFixedBlockNames{"non_existing_block_name"};
+    EXPECT_THROW([[maybe_unused]] const auto tMesh = Mesh(mMeshFilePath, tFixedBlockNames),
+                 plato::utilities::Exception);
 }
 
 }  // namespace plato::mesh::unittest
