@@ -31,6 +31,18 @@ TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
     // Four objectives and three ranks
     EXPECT_FALSE(detail::validate_number_of_ranks_vs_serial_objectives({tObjective, tObjective, tObjective, tObjective})
                      .has_value());
+
+    // Test with inactive objectives
+    const auto tInactiveObjective = []()
+    {
+        auto tBaseObjective = input_parser::objective{};
+        tBaseObjective.active = false;
+        return tBaseObjective;
+    }();
+    // One active and two inactive
+    EXPECT_TRUE(
+        detail::validate_number_of_ranks_vs_serial_objectives({tObjective, tInactiveObjective, tInactiveObjective})
+            .has_value());
 }
 
 TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectivesParallelObjectives)

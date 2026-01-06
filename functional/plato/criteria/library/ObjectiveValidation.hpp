@@ -17,6 +17,9 @@ namespace plato::criteria::library
 /// Specifically, this sums all `number_of_processors` fields in each objective input.
 [[nodiscard]] auto total_number_of_processors(const std::vector<input_parser::objective>& aInput) -> unsigned int;
 
+/// @brief Returns the total number of active objectives
+[[nodiscard]] auto number_of_active_objectives(const std::vector<input_parser::objective>& aInput) -> unsigned int;
+
 namespace detail
 {
 [[nodiscard]] auto validate_aggregation_weight(const input_parser::objective& aInput) -> std::optional<std::string>;
