@@ -28,29 +28,27 @@ macro(clang_tidy_setup)
   endif()
 endmacro(clang_tidy_setup)
 
-# targets_with_arch_flags: Searches LIBRARY_TARGET and its dependencies for any target that uses march or mtune flags.
-# A list of such targets is generated in TARGETS_WITH_ARCH_FLAGS_OUT.
+# targets_arch_flags: Searches LIBRARY_TARGET and its dependencies for any march or mtune flags.
+# A list of such flags is generated in ARCH_FLAGS_OUT.
 #
 # The purpose of this is to fix issues with clang-tidy, PCH, and spack/kokkos setting of march/mtune flags. Spack sets 
 # march/mtune flags via an environment variable, but kokkos may set those flags differently. So we can't just set all targets
 # to use Spack's march/mtune flag since it may conflict with kokkos.
-function(targets_with_arch_flags LIBRARY_TARGET TARGETS_WITH_ARCH_FLAGS_OUT)
-
+function(targets_arch_flags LIBRARY_TARGET ARCH_FLAGS_OUT)
   set(VISITED_DEPENDENCIES "" CACHE INTERNAL "")
-  set(ARCH_LIBS "" CACHE INTERNAL "")
+  set(ARCH_FLAGS "" CACHE INTERNAL "")
 
-  targets_with_arch_flags_impl("${LIBRARY_TARGET}" VISITED_DEPENDENCIES ARCH_LIBS)
+  targets_arch_flags_impl("${LIBRARY_TARGET}" VISITED_DEPENDENCIES ARCH_FLAGS)
 
-  set(${TARGETS_WITH_ARCH_FLAGS_OUT} "$CACHE{ARCH_LIBS}" PARENT_SCOPE)
-
+  set(${ARCH_FLAGS_OUT} "$CACHE{ARCH_FLAGS}" PARENT_SCOPE)
 endfunction()
 
-function(targets_with_arch_flags_impl CURRENT_TARGET VISITED_INOUT ARCH_LIBS_INOUT)
-
+# Implementation detail - do not call directly
+function(targets_arch_flags_impl CURRENT_TARGET VISITED_INOUT ARCH_FLAGS_INOUT)
   set(VISITED "$CACHE{${VISITED_INOUT}}")
   list(FIND VISITED "${CURRENT_TARGET}" INDEX)
   if(NOT INDEX EQUAL -1)
-    # This dependency has been visited already
+    # This dependency has been visited already, continue
     return()
   endif()
 
@@ -59,23 +57,29 @@ function(targets_with_arch_flags_impl CURRENT_TARGET VISITED_INOUT ARCH_LIBS_INO
 
   # Check the current target's interface options
   get_target_property(CURRENT_COMPILE_OPTIONS "${CURRENT_TARGET}" INTERFACE_COMPILE_OPTIONS)
-  set(CURRENT_ARCH_LIBS "$CACHE{${ARCH_LIBS_INOUT}}")
+  set(CURRENT_ARCH_FLAGS "$CACHE{${ARCH_FLAGS_INOUT}}")
+  set(FLAG_REGEXES "-march=[^ <>]+" "-mtune=[^ <>]+")
   if(NOT CURRENT_COMPILE_OPTIONS STREQUAL "NOTFOUND")
     foreach(CURRENT_OPTION IN LISTS CURRENT_COMPILE_OPTIONS)
-      if(CURRENT_OPTION MATCHES "^-march=[^ ]+" OR CURRENT_OPTION MATCHES "^-mtune=[^ ]+")
-        list(APPEND CURRENT_ARCH_LIBS "${CURRENT_TARGET}")
-      endif()
+      foreach(FLAG_REGEX IN LISTS FLAG_REGEXES)
+        if(CURRENT_OPTION MATCHES "${FLAG_REGEX}")
+          string(REGEX MATCH "${FLAG_REGEX}" MATCHED_OPTION ${CURRENT_OPTION})
+          list(APPEND CURRENT_ARCH_FLAGS "${MATCHED_OPTION}")
+        endif()
+      endforeach()
     endforeach()
-    set(${ARCH_LIBS_INOUT} "${CURRENT_ARCH_LIBS}" CACHE INTERNAL "")
+    set(${ARCH_FLAGS_INOUT} "${CURRENT_ARCH_FLAGS}" CACHE INTERNAL "")
   endif()
+  list(REMOVE_DUPLICATES ${ARCH_FLAGS_INOUT})
 
   # Recurse through the dependencies
   get_target_property(CURRENT_DEPENDENCIES "${CURRENT_TARGET}" INTERFACE_LINK_LIBRARIES)
   if(NOT CURRENT_DEPENDENCIES STREQUAL "NOTFOUND")
     foreach(CURRENT_DEPENDENCY IN LISTS CURRENT_DEPENDENCIES)
       if(TARGET "${CURRENT_DEPENDENCY}")
-        targets_with_arch_flags_impl("${CURRENT_DEPENDENCY}" "${VISITED_INOUT}" "${ARCH_LIBS_INOUT}")
+        targets_arch_flags_impl("${CURRENT_DEPENDENCY}" "${VISITED_INOUT}" "${ARCH_FLAGS_INOUT}")
       endif()
     endforeach()
   endif()
 endfunction()
+

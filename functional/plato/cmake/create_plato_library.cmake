@@ -39,10 +39,11 @@ function(create_plato_library_impl LIBRARY_NAME DIRECTORIES TARGET_LINK_LIST LIB
 
     target_link_libraries(${LIBRARY_NAME} ${EXPORT_TYPE} CoverageInterface ${TARGET_LINK_LIST})
     if(BUILD_WITH_CLANG_TIDY)
-        targets_with_arch_flags(${LIBRARY_NAME} TARGET_ARCH_LIBS)
+        targets_arch_flags(${LIBRARY_NAME} ARCH_FLAGS)
+        list(TRANSFORM ARCH_FLAGS PREPEND "--extra-arg=")
         set_target_properties(${LIBRARY_NAME}
                               PROPERTIES CXX_CLANG_TIDY
-                              "${CLANG_TIDY_COMMAND}$<$<BOOL:NOT ${TARGET_ARCH_LIBS}>:;${CLANG_TIDY_EXTRA_ARCH_ARGS}>")
+                              "${CLANG_TIDY_COMMAND};$<IF:$<BOOL:${ARCH_FLAGS}>,${ARCH_FLAGS},${CLANG_TIDY_EXTRA_ARCH_ARGS}>")
     endif()
 
     install( TARGETS ${LIBRARY_NAME} EXPORT PlatoEngine
