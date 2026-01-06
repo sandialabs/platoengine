@@ -133,16 +133,15 @@ void add_linear_constraint_rol_problem(
     ROL::Problem<double>& aROLProblem,
     std::unique_ptr<third_party_integration::rol::ROLVectorConstraintFunction>&& aConstraint)
 {
+    namespace tpir = third_party_integration::rol;
     constexpr auto tDualVectorSize = 1U;
-    auto tInequalityBoundConstraint =
-        third_party_integration::rol::detail::create_less_than_inequality_bounds(tDualVectorSize);
+    auto tInequalityBoundConstraint = tpir::detail::create_less_than_inequality_bounds(tDualVectorSize);
     auto tMultipliers = ROL::makePtr<std::vector<double>>(tDualVectorSize, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
 
-    aROLProblem.addLinearConstraint(
-        "Line", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
-        third_party_integration::rol::make_rol_vector(criteria::library::make_dual_vector(tDualVectorSize)),
-        tInequalityBoundConstraint, tMultipliersPtr, false);
+    aROLProblem.addLinearConstraint("Line", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
+                                    tpir::make_rol_vector(tpir::make_dual_vector(tDualVectorSize)),
+                                    tInequalityBoundConstraint, tMultipliersPtr, false);
 }
 
 template <typename ConstraintType>
@@ -150,15 +149,16 @@ void add_nonlinear_constraint_rol_problem(ROL::Problem<double>& aROLProblem,
                                           std::unique_ptr<ConstraintType>&& aConstraint,
                                           const unsigned int aDualSize)
 {
+    namespace tpir = third_party_integration::rol;
+
     auto tInequalityBoundConstraint =
         third_party_integration::rol::detail::create_less_than_inequality_bounds(aDualSize);
     auto tMultipliers = ROL::makePtr<std::vector<double>>(aDualSize, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
 
-    aROLProblem.addConstraint(
-        "Sum", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
-        third_party_integration::rol::make_rol_vector(criteria::library::make_dual_vector(aDualSize)),
-        tInequalityBoundConstraint, tMultipliersPtr, false);
+    aROLProblem.addConstraint("Sum", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
+                              tpir::make_rol_vector(tpir::make_dual_vector(aDualSize)), tInequalityBoundConstraint,
+                              tMultipliersPtr, false);
 }
 
 [[nodiscard]] auto create_rol_vector_constraint_combination_line_and_circle()

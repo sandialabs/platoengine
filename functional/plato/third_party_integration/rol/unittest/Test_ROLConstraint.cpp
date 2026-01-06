@@ -47,6 +47,15 @@ TEST(ROLConstraint, CreateROLBoundConstraint)
     EXPECT_FALSE(tBounds->isFeasible(*tCompare));
 }
 
+TEST(ROLConstraint, SizedDualVector)
+{
+    constexpr unsigned int tSize = 10;
+    const linear_algebra::DynamicVector<double> tDualVector = make_dual_vector(tSize);
+    ASSERT_EQ(tDualVector.size(), tSize);
+    EXPECT_EQ(tDualVector.stdVector().front(), 1.0);
+    EXPECT_EQ(tDualVector.stdVector().back(), 1.0);
+}
+
 TEST(ROLConstraint, CreateLessThanInequalityBounds)
 {
     EXPECT_THROW([[maybe_unused]] auto tUnused = detail::create_less_than_inequality_bounds(0), utilities::Exception);

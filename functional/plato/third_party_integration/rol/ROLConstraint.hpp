@@ -32,6 +32,9 @@ void add_constraint_to_problem(ROL::Problem<double>& aProblem, ROLConstraint&& a
 [[nodiscard]] auto create_rol_bound_constraint(const std::pair<std::vector<double>, std::vector<double>>& aBounds)
     -> ROL::Ptr<ROL::Bounds<double>>;
 
+/// @brief Helper for providing ROL a dual vector for constraints sized with @a aSize.
+[[nodiscard]] auto make_dual_vector(std::size_t aSize) -> linear_algebra::DynamicVector<double>;
+
 namespace detail
 {
 void add_linear_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint);
