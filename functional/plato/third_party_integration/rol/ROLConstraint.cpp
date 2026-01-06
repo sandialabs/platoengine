@@ -12,13 +12,13 @@ constexpr bool kDontReset = false;
 
 using CreateInequalityBoundsFunction = std::function<ROL::Ptr<ROL::Bounds<double>>(const unsigned int)>;
 
-const auto kCreateInequalityBoundsMap = std::map<criteria::library::ConstraintType, CreateInequalityBoundsFunction>{
-    {criteria::library::ConstraintType::kGreaterThan,
-     CreateInequalityBoundsFunction{[](const unsigned int aNumberOfConstraints)
-                                    { return detail::create_greater_than_inequality_bounds(aNumberOfConstraints); }}},
-    {criteria::library::ConstraintType::kLessThan,
-     CreateInequalityBoundsFunction{[](const unsigned int aNumberOfConstraints)
-                                    { return detail::create_less_than_inequality_bounds(aNumberOfConstraints); }}}};
+const auto kCreateInequalityBoundsMap = std::map<ConstraintType, CreateInequalityBoundsFunction>{
+    {ConstraintType::kGreaterThan, CreateInequalityBoundsFunction{[](const unsigned int aNumberOfConstraints) {
+         return detail::create_greater_than_inequality_bounds(aNumberOfConstraints);
+     }}},
+    {ConstraintType::kLessThan, CreateInequalityBoundsFunction{[](const unsigned int aNumberOfConstraints) {
+         return detail::create_less_than_inequality_bounds(aNumberOfConstraints);
+     }}}};
 
 using AddConstraintFunction = std::function<void(ROL::Problem<double>&, ROLConstraint&&)>;
 const auto kAddConstraintMap = std::map<detail::ConstraintCombination, AddConstraintFunction>{
@@ -84,8 +84,8 @@ auto create_less_than_inequality_bounds(const unsigned int aNumberOfConstraints)
                                         std::vector<double>(aNumberOfConstraints, 0)});
 }
 
-auto create_inequality_bounds(const criteria::library::ConstraintType& aType, const unsigned int aNumberOfConstraints)
-    -> ROL::Ptr<ROL::Bounds<double>>
+auto create_inequality_bounds(const ConstraintType aType,
+                              const unsigned int aNumberOfConstraints) -> ROL::Ptr<ROL::Bounds<double>>
 {
     return kCreateInequalityBoundsMap.at(aType)(aNumberOfConstraints);
 }
@@ -130,7 +130,7 @@ void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& a
 
 auto constraint_combination(const ROLConstraint& aConstraint) -> ConstraintCombination
 {
-    if (aConstraint.mType == criteria::library::ConstraintType::kEqualTo)
+    if (aConstraint.mType == ConstraintType::kEqualTo)
     {
         if (aConstraint.mLinear)
         {

@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "plato/core/Compose.hpp"
-#include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 #include "plato/test_utilities/Himmelblau.hpp"
 #include "plato/third_party_integration/rol/ROLVectorConstraintFunction.hpp"
 #include "plato/third_party_integration/rol/unittest/DynamicVectorConstraintFunctions.hpp"

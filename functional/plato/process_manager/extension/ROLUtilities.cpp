@@ -19,6 +19,12 @@ namespace plato::process_manager::extension
 {
 namespace
 {
+const auto kConstraintTypeConversion =
+    std::map<criteria::library::ConstraintType, third_party_integration::rol::ConstraintType>{
+        {criteria::library::ConstraintType::kEqualTo, third_party_integration::rol::ConstraintType::kEqualTo},
+        {criteria::library::ConstraintType::kGreaterThan, third_party_integration::rol::ConstraintType::kGreaterThan},
+        {criteria::library::ConstraintType::kLessThan, third_party_integration::rol::ConstraintType::kLessThan}};
+
 [[nodiscard]] auto load_file_or_use_default_parameters(const input_parser::rol_optimization& aOptimizationParameters)
     -> third_party_integration::rol::OptimizationParameters
 {
@@ -83,7 +89,8 @@ auto make_rol_constraints(const library::ProcessManagerData& aProblem)
                     .size();
 
             return third_party_integration::rol::ROLConstraint{
-                aConstraintData.mName, tConstraintSize, aConstraintData.mLinear, aConstraintData.mConstraintType,
+                aConstraintData.mName, tConstraintSize, aConstraintData.mLinear,
+                kConstraintTypeConversion.at(aConstraintData.mConstraintType),
                 std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(
                     tComposedVectorConstraint.mConstraintFunction)};
         });

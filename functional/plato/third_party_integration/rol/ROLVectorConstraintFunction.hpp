@@ -6,7 +6,6 @@
 #include <ROL_Vector.hpp>
 
 #include "plato/core/Function.hpp"
-#include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
