@@ -74,7 +74,8 @@ constexpr bool kPrintFlag = true;
     const auto tConstraintFunction = criteria::library::to_vector_function<FunctionArgumentType>(
         make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{}));
 
-    auto tROLConstraint = third_party_integration::rol::ROLVectorConstraintFunction{composed_target_function(tConstraintFunction, tSumConstraintTarget)};
+    auto tROLConstraint = third_party_integration::rol::ROLVectorConstraintFunction{
+        composed_target_function(tConstraintFunction, tSumConstraintTarget)};
     return std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(tROLConstraint);
 }
 
@@ -87,7 +88,8 @@ constexpr bool kPrintFlag = true;
     const auto tConstraintFunction = criteria::library::to_vector_function<FunctionArgumentType>(
         make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{tCenter, 2}));
 
-    return std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(composed_target_function(tConstraintFunction, tCircleConstraintTarget));
+    return std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(
+        composed_target_function(tConstraintFunction, tCircleConstraintTarget));
 }
 
 [[nodiscard]] auto create_rol_bounded_rosenbrock_problem(ROL::Ptr<ROL::StdVector<double>>& aControls)
@@ -151,7 +153,8 @@ void add_nonlinear_constraint_rol_problem(ROL::Problem<double>& aROLProblem,
 {
     constexpr double tTarget = 1.0;
 
-    return third_party_integration::rol::ROLVectorConstraintFunction{composed_target_function(utilities::make_line_and_circle_jacobian_function(), tTarget)};
+    return third_party_integration::rol::ROLVectorConstraintFunction{
+        composed_target_function(utilities::make_line_and_circle_jacobian_function(), tTarget)};
 }
 
 [[nodiscard]] auto rol_constrained_rosenbrock_problem_with_two_scalar_constraints(
