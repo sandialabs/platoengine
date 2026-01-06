@@ -84,7 +84,7 @@ auto make_rol_constraints(const library::ProcessManagerData& aProblem)
 
             return third_party_integration::rol::ROLConstraint{
                 aConstraintData.mName, tConstraintSize, aConstraintData.mLinear, aConstraintData.mConstraintType,
-                std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(tComposedVectorConstraint)};
+                std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(tComposedVectorConstraint.mConstraintFunction)};
         });
     return tROLConstraints;
 }

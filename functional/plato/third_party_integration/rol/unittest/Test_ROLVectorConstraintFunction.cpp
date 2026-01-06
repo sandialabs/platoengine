@@ -42,14 +42,8 @@ auto make_vector_himmelblau_with_adjoint_function() -> VectorFunction
 
 auto make_himmelblau_rol_vector_constraint() -> ROLVectorConstraintFunction
 {
-    constexpr bool tIsLinear = false;
-    return ROLVectorConstraintFunction{
-        criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
-            .mName = "name",
-            .mConstraintFunction = core::compose(criteria::library::make_target_offset_function(kValue),
-                                                 make_vector_himmelblau_with_adjoint_function()),
-            .mLinear = tIsLinear,
-            .mConstraintType = criteria::library::ConstraintType::kEqualTo}};
+    return ROLVectorConstraintFunction{core::compose(criteria::library::make_target_offset_function(kValue),
+                                                 make_vector_himmelblau_with_adjoint_function())};
 }
 
 }  // namespace

@@ -2,9 +2,8 @@
 
 namespace plato::third_party_integration::rol
 {
-ROLVectorConstraintFunction::ROLVectorConstraintFunction(
-    criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&> aConstraint)
-    : mFunction(std::move(aConstraint.mConstraintFunction))
+ROLVectorConstraintFunction::ROLVectorConstraintFunction(ROLPlatoFunction aConstraint)
+    : mFunction(std::move(aConstraint))
 {
 }
 
