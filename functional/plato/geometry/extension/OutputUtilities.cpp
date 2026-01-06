@@ -4,9 +4,9 @@
 #include <cassert>
 #include <memory>
 
-#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/MeshOutput.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 
 namespace plato::geometry::extension
@@ -14,7 +14,7 @@ namespace plato::geometry::extension
 auto output_nodal_field(const MeshFieldOutputInfo& aMeshOutputInfo,
                         const filter::library::FilterFunction& aFilterFunction,
                         const linear_algebra::DynamicVector<double>& aSolution,
-                        const library::OutputInfo& aOutputInfo) -> analysis::AnalysisDomainMesh
+                        const output::OutputInfo& aOutputInfo) -> analysis::AnalysisDomainMesh
 {
     const auto tNodalDesignParameters =
         mesh::DesignVariablesConversion{aMeshOutputInfo.mInputMesh}.nodalFieldToAnalysisDomainMesh(

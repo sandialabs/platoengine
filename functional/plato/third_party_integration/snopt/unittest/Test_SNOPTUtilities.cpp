@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "plato/geometry/library/OutputManager.hpp"
+#include "plato/output/OutputManager.hpp"
 #include "plato/third_party_integration/snopt/DataSingleton.hpp"
 #include "plato/third_party_integration/snopt/SNOPTUtilities.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
@@ -131,7 +131,7 @@ TEST(SNOPTUtilities, EvaluateObjectiveGradient)
 {
     DataSingleton<ObjectiveType, TestTag>::instance().data() =
         core::make_function_with_first_derivative(kXSquaredFunction, kXSquaredGradientFunction);
-    DataSingleton<geometry::library::OutputManager, TestTag>::instance().data() = geometry::library::OutputManager{};
+    DataSingleton<output::OutputManager, TestTag>::instance().data() = output::OutputManager{};
 
     constexpr auto tNumberOfConstraints = ConstraintSizeType{0};
     constexpr auto tNumberOfDesignVariables = DesignVariableSizeType{2};

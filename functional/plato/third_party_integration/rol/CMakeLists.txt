@@ -9,7 +9,7 @@ copy_rol_data()
 set(LINK_LIBS ROL::rol
               $<$<BOOL:${PLATOENGINE_ENABLE_CUDA}>:CUDA::cusparse> # This is a work-around for tacho not linking cuda properly.
               PlatoFunctionalCriteria
-              PlatoFunctionalGeometry)
+              PlatoFunctionalOutput)
 
 create_plato_library(PlatoFunctionalROL "." "${LINK_LIBS}")
 

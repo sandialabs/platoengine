@@ -14,7 +14,7 @@ template <typename T>
 class DynamicVector;
 }
 
-namespace plato::geometry::library
+namespace plato::output
 {
 struct OutputInfo;
 }
@@ -40,7 +40,7 @@ struct MeshFieldOutputInfo
 auto output_nodal_field(const MeshFieldOutputInfo& aMeshOutputInfo,
                         const filter::library::FilterFunction& aFilterFunction,
                         const linear_algebra::DynamicVector<double>& aSolution,
-                        const library::OutputInfo& aOutputInfo) -> analysis::AnalysisDomainMesh;
+                        const output::OutputInfo& aOutputInfo) -> analysis::AnalysisDomainMesh;
 
 }  // namespace plato::geometry::extension
 

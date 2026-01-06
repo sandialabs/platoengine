@@ -16,7 +16,6 @@
 #include "plato/geometry/library/GeometryLogger.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
-#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
@@ -26,6 +25,7 @@
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
 
 namespace plato::geometry::extension
@@ -47,7 +47,7 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
     -> library::FactoryTypes::Output
 {
     return
-        [aGeometryInput](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
+        [aGeometryInput](const linear_algebra::DynamicVector<double>& aSolution, const output::OutputInfo& aOutputInfo)
     {
         const auto tFilter = library::make_filter_from_geometry_input<input_parser::density_topology>(aGeometryInput);
         const auto& tInput = input_validation::get_input_block<input_parser::density_topology>(aGeometryInput);
@@ -177,7 +177,7 @@ auto DensityTopology::bounds(const input_parser::density_topology& aInput)
 void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolution,
                              const filter::library::FilterFunction& aFilterFunction,
                              const input_parser::density_topology& aInput,
-                             const library::OutputInfo& aOutputInfo)
+                             const output::OutputInfo& aOutputInfo)
 {
     [[maybe_unused]] const auto tTaskLogger = library::output_task_log<input_parser::density_topology>();
 

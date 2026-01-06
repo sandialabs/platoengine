@@ -8,11 +8,11 @@
 #include <optional>
 
 #include "plato/core/Compose.hpp"
-#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/output/OutputManager.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
@@ -72,7 +72,6 @@ SNOPTOptimization::SNOPTOptimization(const library::ValidatedProcessManagerInput
 
 void SNOPTOptimization::run(const library::ProcessManagerData& aProcessManagerData) const
 {
-    namespace gl = geometry::library;
     namespace tpis = third_party_integration::snopt;
     using SNOPTObjectiveFunction = typename tpis::ObjectiveType;
 
@@ -84,9 +83,10 @@ void SNOPTOptimization::run(const library::ProcessManagerData& aProcessManagerDa
                           .compatibleFunction<SNOPTObjectiveFunction>();
     auto tConstraints = detail::make_constraints(aProcessManagerData);
 
-    const auto tOutputMode = mOptions.mOutputDesignHistory.value_or(false) ? gl::OutputMode::kEveryIterationAppend
-                                                                           : gl::OutputMode::kEveryIterationOverwrite;
-    auto tOutputManager = gl::OutputManager{aProcessManagerData.mGeometry.mOutput, tOutputMode};
+    const auto tOutputMode = mOptions.mOutputDesignHistory.value_or(false)
+                                 ? output::OutputMode::kEveryIterationAppend
+                                 : output::OutputMode::kEveryIterationOverwrite;
+    auto tOutputManager = output::OutputManager{aProcessManagerData.mGeometry.mOutput, tOutputMode};
 
     plato::utilities::execute_on_root(boost::mpi::communicator{},
                                       []() { std::filesystem::remove(kSNOPTOptimizerFileName); });

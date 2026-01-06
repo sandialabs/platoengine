@@ -3,7 +3,6 @@
 #include <boost/mpi.hpp>
 
 #include "plato/geometry/extension/cubit/test_utilities/CubitTestFixture.hpp"
-#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
@@ -35,7 +34,7 @@ void test_cubit_output_function(const input_parser::cubit_parameterized_shape& a
 {
     const auto tOutputFunction = detail::make_cubit_output(aInput);
     const auto tSolution = linear_algebra::DynamicVector<double>{0.5, 1, 1};
-    tOutputFunction(tSolution, library::kOverwriteInfo);
+    tOutputFunction(tSolution, output::kOverwriteInfo);
 
     const auto tRemoveFileList =
         aInput.output_mesh_sensitivities_name.has_value()

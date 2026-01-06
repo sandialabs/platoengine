@@ -5,11 +5,11 @@
 #include "plato/geometry/library/GeometryLogger.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
-#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/FileUtilities.hpp"
@@ -36,7 +36,7 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
 
 [[nodiscard]] library::FactoryTypes::Output make_output()
 {
-    return [](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
+    return [](const linear_algebra::DynamicVector<double>& aSolution, const output::OutputInfo& aOutputInfo)
     { return BrickShapeGeometry::output(aSolution, aOutputInfo); };
 }
 
@@ -114,7 +114,7 @@ std::pair<std::vector<double>, std::vector<double>> BrickShapeGeometry::bounds()
 }
 
 void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSolution,
-                                const library::OutputInfo& aOutputInfo)
+                                const output::OutputInfo& aOutputInfo)
 {
     using TableOutput = utilities::FixedWidthFloatingPointOutput<double, kPrecision, kPrintWidth>;
 
