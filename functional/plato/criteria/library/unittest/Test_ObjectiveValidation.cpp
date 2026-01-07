@@ -1,10 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/CriterionValidation.hpp"
 #include "plato/criteria/library/ObjectiveValidation.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/input_validation/ValidationRegistration.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 
 namespace plato::criteria::library::unittest
 {
@@ -34,6 +31,27 @@ TEST(ObjectiveValidation, ParallelObjectives)
         EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 43u);
         EXPECT_TRUE(criteria::library::has_parallel_objective(tInput));
     }
+}
+
+TEST(ObjectiveValidation, NumberOfActiveObjectives)
+{
+    auto tInput = std::vector{test_utilities::create_valid_example_objective_input()};
+    // One active
+    EXPECT_EQ(number_of_active_objectives(tInput), 1U);
+    // boost::none as the default, should be active
+    tInput.front().active = boost::none;
+    EXPECT_EQ(number_of_active_objectives(tInput), 1U);
+    // One inactive
+    tInput.front().active = false;
+    EXPECT_EQ(number_of_active_objectives(tInput), 0U);
+
+    // Add an active objective
+    tInput.push_back(test_utilities::create_valid_example_objective_input());
+    EXPECT_EQ(number_of_active_objectives(tInput), 1U);
+
+    // Reactivate the first
+    tInput.front().active = true;
+    EXPECT_EQ(number_of_active_objectives(tInput), 2U);
 }
 
 TEST(ObjectiveValidation, ValidateAggregationWeight)
