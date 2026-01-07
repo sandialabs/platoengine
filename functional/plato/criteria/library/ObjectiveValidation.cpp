@@ -48,6 +48,12 @@ auto total_number_of_processors(const std::vector<input_parser::objective>& aInp
                            { return aTotal + number_of_processors(aObjectiveInput); });
 }
 
+auto number_of_active_objectives(const std::vector<input_parser::objective>& aInput) -> unsigned int
+{
+    return std::accumulate(aInput.begin(), aInput.end(), 0U, [](const auto aTotalActive, const auto& aObjective)
+                           { return aTotalActive + (input_validation::is_active(aObjective) ? 1U : 0U); });
+}
+
 namespace detail
 {
 std::optional<std::string> validate_aggregation_weight(const input_parser::objective& aInput)
@@ -78,11 +84,11 @@ std::optional<std::string> validate_number_of_ranks_vs_serial_objectives(
     const std::vector<input_parser::objective>& aInput)
 {
     const auto tNumRanks = static_cast<std::size_t>(boost::mpi::communicator{}.size());
-    if (!has_parallel_objective(aInput) && static_cast<std::size_t>(tNumRanks) > aInput.size())
+    if (!has_parallel_objective(aInput) && static_cast<std::size_t>(tNumRanks) > number_of_active_objectives(aInput))
     {
         return std::optional<std::string>{utilities::concatenate(
             "The number of MPI ranks exceeds the number of objectives.\n Number of ranks: ", tNumRanks,
-            "\n Number of processors needed for objectives: ", aInput.size())};
+            "\n Number of processors needed for objectives: ", number_of_active_objectives(aInput))};
     }
     else
     {
