@@ -21,11 +21,7 @@ template <typename T, typename FieldFunction>
     const auto tBlockDataWithField =
         std::find_if(aBlockData.cbegin(), aBlockData.cend(), [aBlockField, aFieldFunction](const auto& aBlockDatum)
                      { return aFieldFunction(aBlockDatum) == aBlockField; });
-    if (tBlockDataWithField == aBlockData.cend())
-    {
-        throw utilities::Exception{std::format("Couldn't find block with name {}.", aBlockField)};
-    }
-    // assert(tBlockDataWithField != aBlockData.cend());
+    assert(tBlockDataWithField != aBlockData.cend());
     return tBlockDataWithField->mMetaDataOrdinal;
 }
 

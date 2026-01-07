@@ -7,6 +7,7 @@
 #include "plato/input_parser/Point.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
 ///@brief Input struct with parser to read in overhang constraint parameters
@@ -108,6 +109,13 @@ namespace detail
     -> std::vector<third_party_integration::krino::SensitivityTriangle>;
 /// @brief Function for converting from angle in degrees to overhang threshold value.
 [[nodiscard]] double convert_angle_to_threshold_value(const double aAngle);
+/// @brief Function for building the list of sideset names that should be used in overhang gradient calculations.
+[[nodiscard]] auto to_sideset_list(const boost::optional<input_parser::FileList>& aAdditionalSidesets)
+    -> std::vector<std::string>;
+/// @brief Function for either using default build direction or one passed in by caller.
+[[nodiscard]] auto build_direction(const boost::optional<input_parser::Point>& aDirection)
+    -> third_party_integration::common::Vector3;
+
 }  // namespace detail
 
 }  // namespace plato::criteria::extension

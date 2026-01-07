@@ -167,27 +167,27 @@ TEST(Vector3, Magnitude)
 
 namespace
 {
-void test_unit_vector(const UnitVector3& aUnitVec)
+void test_unit_vector(const UnitVector3& aUnitVec, const plato::test_utilities::TestContext& aTestContext)
 {
     const double tMag = std::sqrt(1.0 + 4.0 + 9.0);
     const Vector3 tGold{1.0 / tMag, 2.0 / tMag, 3.0 / tMag};
-    EXPECT_DOUBLE_EQ(tGold.x, static_cast<Vector3>(aUnitVec).x);
-    EXPECT_DOUBLE_EQ(tGold.y, static_cast<Vector3>(aUnitVec).y);
-    EXPECT_DOUBLE_EQ(tGold.z, static_cast<Vector3>(aUnitVec).z);
+    EXPECT_DOUBLE_EQ(tGold.x, static_cast<Vector3>(aUnitVec).x) << aTestContext;
+    EXPECT_DOUBLE_EQ(tGold.y, static_cast<Vector3>(aUnitVec).y) << aTestContext;
+    EXPECT_DOUBLE_EQ(tGold.z, static_cast<Vector3>(aUnitVec).z) << aTestContext;
 }
 }  // namespace
 
 TEST(UnitVector3, ComponentConstructor)
 {
     const UnitVector3 tUnitVec3(1, 2, 3);
-    test_unit_vector(tUnitVec3);
+    test_unit_vector(tUnitVec3, TEST_CONTEXT("Testing construction of unit vector with x, y, z, components."));
 }
 
 TEST(UnitVector3, Vector3Constructor)
 {
     constexpr Vector3 tVector{1, 2, 3};
     const UnitVector3 tUnitVec3(tVector);
-    test_unit_vector(tUnitVec3);
+    test_unit_vector(tUnitVec3, TEST_CONTEXT("Testing construction of unit vector with non unit vector."));
 }
 
 TEST(UnitVector3, Error_ZeroLengthVector)

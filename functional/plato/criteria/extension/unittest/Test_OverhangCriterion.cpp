@@ -7,6 +7,7 @@
 #include "plato/criteria/extension/OverhangCriterion.hpp"
 #include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/krino/TriangleUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -283,8 +284,8 @@ TEST(OverhangCriterion, FullGradientVectorFromPartialGradientMap)
 namespace
 {
 
-void create_overhang_input_file(const std::filesystem::path& aFilename,
-                                const std::vector<std::string>& aAdditionalSidesetNames)
+void create_valid_overhang_input_file(const std::filesystem::path& aFilename,
+                                      const std::vector<std::string>& aAdditionalSidesetNames)
 {
     std::ofstream tTextFile(aFilename);
     tTextFile << "begin overhang\n";
@@ -296,6 +297,15 @@ void create_overhang_input_file(const std::filesystem::path& aFilename,
         tTextFile << "additional_evaluation_sidesets "
                   << utilities::concatenate_container(aAdditionalSidesetNames, ", ") << std::endl;
     }
+    tTextFile << "end\n";
+    tTextFile.close();
+}
+
+void create_invalid_overhang_input_file(const std::filesystem::path& aFilename)
+{
+    std::ofstream tTextFile(aFilename);
+    tTextFile << "begin overhang\n";
+    tTextFile << "build_direction (0, 0)\n";
     tTextFile << "end\n";
     tTextFile.close();
 }
@@ -316,7 +326,7 @@ TEST(OverhangCriterion, ParseInputDeck_Correct)
 {
     const std::string tFilename{"temp_input_deck.txt"};
     const std::vector<std::string> tSidesets{"my_sideset", "your_sideset"};
-    create_overhang_input_file(tFilename, tSidesets);
+    create_valid_overhang_input_file(tFilename, tSidesets);
     const auto& tParams = detail::parse_input_deck(tFilename);
     constexpr auto tAbsoluteError = 1e-10;
     ASSERT_TRUE(tParams.build_direction.has_value());
@@ -335,10 +345,60 @@ TEST(OverhangCriterion, ParseInputDeck_Correct)
 TEST(OverhangCriterion, ParseInputDeck_Correct_NoAdditionalEvaluationSidesets)
 {
     const std::string tFilename{"temp_input_deck.txt"};
-    create_overhang_input_file(tFilename, {});
+    create_valid_overhang_input_file(tFilename, {});
     const auto& tParams = detail::parse_input_deck(tFilename);
     EXPECT_FALSE(tParams.additional_evaluation_sidesets.has_value());
     std::filesystem::remove(tFilename);
+}
+
+TEST(OverhangCriterion, ParseInputDeck_InCorrectInputFile)
+{
+    const std::string tFilename{"temp_input_deck.txt"};
+    create_invalid_overhang_input_file(tFilename);
+    EXPECT_THROW([[maybe_unused]] const auto& tParams = detail::parse_input_deck(tFilename),
+                 plato::utilities::Exception);
+    std::filesystem::remove(tFilename);
+}
+
+TEST(OverhangCriterion, ParseInputDeck_NonExistentInputFile)
+{
+    const std::string tFilename{"temp_input_deck.txt"};
+    EXPECT_THROW([[maybe_unused]] const auto& tParams = detail::parse_input_deck(tFilename),
+                 plato::utilities::Exception);
+}
+
+TEST(OverhangCriterion, ToSidesetList_NoAdditionalSidesetNames)
+{
+    const auto& tSidesetList = detail::to_sideset_list({});
+    EXPECT_EQ(tSidesetList.size(), 1);
+    EXPECT_STREQ(tSidesetList[0].c_str(), third_party_integration::krino::interface_sideset_name().c_str());
+}
+
+TEST(OverhangCriterion, ToSidesetList_AdditionalSidesetNames)
+{
+    input_parser::FileList tAdditionalSidesetNames{{"cat", "dog"}};
+    const auto& tSidesetList = detail::to_sideset_list(tAdditionalSidesetNames);
+    EXPECT_EQ(tSidesetList.size(), 3);
+    EXPECT_STREQ(tSidesetList[0].c_str(), third_party_integration::krino::interface_sideset_name().c_str());
+    EXPECT_STREQ(tSidesetList[1].c_str(), "cat");
+    EXPECT_STREQ(tSidesetList[2].c_str(), "dog");
+}
+
+TEST(OverhangCriterion, BuildDirection_InputProvided)
+{
+    input_parser::Point tInputDirection{2, 3, 4};
+    const auto& tBuildDirection = detail::build_direction(tInputDirection);
+    EXPECT_DOUBLE_EQ(tBuildDirection.x, 2);
+    EXPECT_DOUBLE_EQ(tBuildDirection.y, 3);
+    EXPECT_DOUBLE_EQ(tBuildDirection.z, 4);
+}
+
+TEST(OverhangCriterion, BuildDirection_NoInputProvided)
+{
+    const auto& tBuildDirection = detail::build_direction({});
+    EXPECT_DOUBLE_EQ(tBuildDirection.x, 0);
+    EXPECT_DOUBLE_EQ(tBuildDirection.y, 0);
+    EXPECT_DOUBLE_EQ(tBuildDirection.z, 1);
 }
 
 TEST(OverhangCriterion, ConstructionFromEmptyInput)

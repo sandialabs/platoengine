@@ -22,7 +22,7 @@ struct Vector3
     double y = 0.0;
     double z = 0.0;
     auto operator==(const Vector3& aVector) const -> bool = default;
-    void operator+=(const Vector3& aVector);
+    auto operator+=(const Vector3& aVector) -> Vector3&;
 };
 
 /// @brief Unit vector class. Always guaranteed to contain
@@ -153,11 +153,12 @@ inline UnitVector3::UnitVector3(const Vector3& aVector) : mVector(aVector) { nor
 
 inline UnitVector3::operator Vector3() const { return mVector; }
 
-inline void Vector3::operator+=(const Vector3& aVector)
+inline Vector3& Vector3::operator+=(const Vector3& aVector)
 {
     x += aVector.x;
     y += aVector.y;
     z += aVector.z;
+    return *this;
 }
 
 }  // namespace plato::third_party_integration::common

@@ -20,7 +20,6 @@ using ElementDensityMesh = test_utilities::MeshWithElementDensities;
 using NodalDensityMesh = test_utilities::MeshWithNodalDensities;
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
-using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::Part>>;
 
 TEST(ReadUtilities, SpatialDimensions3)
 {

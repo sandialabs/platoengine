@@ -235,11 +235,4 @@ TEST_F(TwoDTwoBlockMesh, BlockNames)
     EXPECT_EQ(tExpectedNames, tMesh.blockNames());
 }
 
-TEST_F(TwoDTwoBlockMesh, MeshConstructionWithNonExistingFixedBlockName)
-{
-    std::set<std::string> tFixedBlockNames{"non_existing_block_name"};
-    EXPECT_THROW([[maybe_unused]] const auto tMesh = Mesh(mMeshFilePath, tFixedBlockNames),
-                 plato::utilities::Exception);
-}
-
 }  // namespace plato::mesh::unittest

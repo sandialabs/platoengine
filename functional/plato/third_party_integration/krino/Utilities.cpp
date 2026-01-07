@@ -12,9 +12,7 @@
 #include <Akri_OutputUtils.hpp>
 #include <iterator>
 #include <stk_io/StkMeshIoBroker.hpp>  //get_selected_entities
-#include <stk_math/StkVector.hpp>
 #include <stk_mesh/base/Entity.hpp>
-#include <stk_mesh/base/Selector.hpp>
 #include <stk_mesh/base/Types.hpp>
 #include <stk_util/diag/WriterRegistry.hpp>
 #include <stk_util/environment/EnvData.hpp>
@@ -24,10 +22,8 @@
 
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
 #include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
-#include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
-#include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/ReduceUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 

@@ -108,36 +108,15 @@ namespace
 {
 constexpr double kTransitionWidth{0.1};
 constexpr double kOverhangAngleInDegrees{45.0};
-
-[[nodiscard]] std::vector<std::string> to_sideset_list(
-    const boost::optional<input_parser::FileList>& aAdditionalSidesets)
-{
-    std::vector<std::string> tSidesetVector{std::string{third_party_integration::krino::interface_sideset_name()}};
-    if (aAdditionalSidesets.has_value())
-    {
-        tSidesetVector.insert(tSidesetVector.end(), aAdditionalSidesets.value().begin(),
-                              aAdditionalSidesets.value().end());
-    }
-    return tSidesetVector;
-}
-
-[[nodiscard]] auto build_direction(const boost::optional<input_parser::Point>& aDirection)
-    -> third_party_integration::common::Vector3
-{
-    const auto tDefaultBuildDirection = input_parser::Point{0.0, 0.0, 1.0};
-    const auto tBuildDirection = aDirection.value_or(tDefaultBuildDirection);
-    return {tBuildDirection.mX, tBuildDirection.mY, tBuildDirection.mZ};
-}
-
 }  // namespace
 
 OverhangCriterion::OverhangCriterion(const input_parser::overhang_criterion& aInputParams,
                                      const library::CriterionInput& aCriterionInput)
     : mTransitionWidth(aInputParams.transition_width.value_or(kTransitionWidth)),
-      mBuildDirection(build_direction(aInputParams.build_direction)),
+      mBuildDirection(detail::build_direction(aInputParams.build_direction)),
       mOverhangAngleThreshold(detail::convert_angle_to_threshold_value(
           aInputParams.overhang_angle_in_degrees.value_or(kOverhangAngleInDegrees))),
-      mEvaluationSidesets(to_sideset_list(aInputParams.additional_evaluation_sidesets)),
+      mEvaluationSidesets(detail::to_sideset_list(aInputParams.additional_evaluation_sidesets)),
       mComponentType{aCriterionInput.mComponentType},
       mName{aCriterionInput.mName}
 {
@@ -173,6 +152,26 @@ namespace detail
 
 using namespace plato::third_party_integration::common;
 using namespace plato::third_party_integration::krino;
+
+[[nodiscard]] std::vector<std::string> to_sideset_list(
+    const boost::optional<input_parser::FileList>& aAdditionalSidesets)
+{
+    std::vector<std::string> tSidesetVector{std::string{third_party_integration::krino::interface_sideset_name()}};
+    if (aAdditionalSidesets.has_value())
+    {
+        tSidesetVector.insert(tSidesetVector.end(), aAdditionalSidesets.value().begin(),
+                              aAdditionalSidesets.value().end());
+    }
+    return tSidesetVector;
+}
+
+[[nodiscard]] auto build_direction(const boost::optional<input_parser::Point>& aDirection)
+    -> third_party_integration::common::Vector3
+{
+    const auto tDefaultBuildDirection = input_parser::Point{0.0, 0.0, 1.0};
+    const auto tBuildDirection = aDirection.value_or(tDefaultBuildDirection);
+    return {tBuildDirection.mX, tBuildDirection.mY, tBuildDirection.mZ};
+}
 
 [[nodiscard]] double convert_angle_to_threshold_value(const double aAngle)
 {
@@ -364,7 +363,7 @@ input_parser::overhang_criterion parse_input_deck(const std::string& aFilename)
     const auto tExists = std::filesystem::exists(aFilename);
     if (!tExists)
     {
-        throw utilities::Exception{"Couldn't find overhang criterion input deck " + aFilename + "."};
+        throw utilities::Exception{std::format("Couldn't find overhang criterion input deck {}.", aFilename)};
     }
     auto tInputStream = std::ifstream{aFilename};
     const auto tInputFileString =
@@ -375,10 +374,15 @@ input_parser::overhang_criterion parse_input_deck(const std::string& aFilename)
     auto tIter = tInputFileString.begin();
     auto tData = input_parser::overhang_criterion{};
     const auto tSkipper = input_parser::SkipperRule<std::string::const_iterator>{};
-    const auto tParseSucceeded =
-        phrase_parse(tIter, tInputFileString.cend(), tParser.mBlockRule, tSkipper.skipperRule(), tData);
-
-    if (!tParseSucceeded || tIter != tInputFileString.cend())
+    // Adding a try/catch here because whenever phrase_parse would "fail" becuase of an invalid input
+    // deck it would throw a boost exception that didn't give any meaningul information and wouldn't
+    // set the return value to anything that would suggest there was an error.
+    try
+    {
+        [[maybe_unused]] const auto tParseSucceeded =
+            phrase_parse(tIter, tInputFileString.cend(), tParser.mBlockRule, tSkipper.skipperRule(), tData);
+    }
+    catch (...)
     {
         throw utilities::Exception{std::format("Couldn't parse overhang criterion input deck {}.", aFilename)};
     }
