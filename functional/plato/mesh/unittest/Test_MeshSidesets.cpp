@@ -4,6 +4,7 @@
 
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshSidesets.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
@@ -26,9 +27,8 @@ TEST(MeshSidesets, SidesetTriangles)
     for (const auto tCurTriIndex : std::views::iota(0u, tGoldNumTris))
     {
         const third_party_integration::common::Vector3 tNormal = tTriangles[tCurTriIndex].normal();
-        EXPECT_NEAR(tNormal.x, tGoldNormal.x, tTolerance);
-        EXPECT_NEAR(tNormal.y, tGoldNormal.y, tTolerance);
-        EXPECT_NEAR(tNormal.z, tGoldNormal.z, tTolerance);
+        third_party_integration::common::test_utilities::test_near_equality_of_components(
+            tNormal, tGoldNormal, tTolerance, TEST_CONTEXT("Testing normals of sideset triangles."));
     }
 }
 
