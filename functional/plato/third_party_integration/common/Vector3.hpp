@@ -139,9 +139,7 @@ inline void normalize(Vector3& aVector)
     {
         throw std::invalid_argument("Attempting to normalize a vector with length 0.");
     }
-    aVector.x /= tMagnitude;
-    aVector.y /= tMagnitude;
-    aVector.z /= tMagnitude;
+    aVector = aVector * (1.0 / tMagnitude);
 }
 
 inline UnitVector3::UnitVector3(const double aX, const double aY, const double aZ) : mVector{aX, aY, aZ}
