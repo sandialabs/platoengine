@@ -1,10 +1,8 @@
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 
-#include "plato/geometry/library/OutputManager.hpp"
-
 namespace plato::third_party_integration::rol
 {
-ROLObjectiveFunction::ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction, OutputManager aOutputManager)
+ROLObjectiveFunction::ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction, output::OutputManager aOutputManager)
     : mFunction(std::move(aROLPlatoFunction)), mOutputManager(std::move(aOutputManager))
 {
 }

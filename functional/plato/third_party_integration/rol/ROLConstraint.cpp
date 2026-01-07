@@ -12,13 +12,13 @@ constexpr bool kDontReset = false;
 
 using CreateInequalityBoundsFunction = std::function<ROL::Ptr<ROL::Bounds<double>>(const unsigned int)>;
 
-const auto kCreateInequalityBoundsMap = std::map<criteria::library::ConstraintType, CreateInequalityBoundsFunction>{
-    {criteria::library::ConstraintType::kGreaterThan,
-     CreateInequalityBoundsFunction{[](const unsigned int aNumberOfConstraints)
-                                    { return detail::create_greater_than_inequality_bounds(aNumberOfConstraints); }}},
-    {criteria::library::ConstraintType::kLessThan,
-     CreateInequalityBoundsFunction{[](const unsigned int aNumberOfConstraints)
-                                    { return detail::create_less_than_inequality_bounds(aNumberOfConstraints); }}}};
+const auto kCreateInequalityBoundsMap = std::map<ConstraintType, CreateInequalityBoundsFunction>{
+    {ConstraintType::kGreaterThan, CreateInequalityBoundsFunction{[](const unsigned int aNumberOfConstraints) {
+         return detail::create_greater_than_inequality_bounds(aNumberOfConstraints);
+     }}},
+    {ConstraintType::kLessThan, CreateInequalityBoundsFunction{[](const unsigned int aNumberOfConstraints) {
+         return detail::create_less_than_inequality_bounds(aNumberOfConstraints);
+     }}}};
 
 using AddConstraintFunction = std::function<void(ROL::Problem<double>&, ROLConstraint&&)>;
 const auto kAddConstraintMap = std::map<detail::ConstraintCombination, AddConstraintFunction>{
@@ -50,6 +50,11 @@ auto create_rol_bound_constraint(const std::pair<std::vector<double>, std::vecto
     return ROL::makePtr<ROL::Bounds<double>>(std::move(tLowerBoundsVector), std::move(tUpperBoundsVector));
 }
 
+auto make_dual_vector(const std::size_t aSize) -> linear_algebra::DynamicVector<double>
+{
+    return linear_algebra::DynamicVector<double>{std::vector<double>(aSize, 1.0)};
+}
+
 namespace detail
 {
 
@@ -79,24 +84,23 @@ auto create_less_than_inequality_bounds(const unsigned int aNumberOfConstraints)
                                         std::vector<double>(aNumberOfConstraints, 0)});
 }
 
-auto create_inequality_bounds(const criteria::library::ConstraintType& aType, const unsigned int aNumberOfConstraints)
-    -> ROL::Ptr<ROL::Bounds<double>>
+auto create_inequality_bounds(const ConstraintType aType,
+                              const unsigned int aNumberOfConstraints) -> ROL::Ptr<ROL::Bounds<double>>
 {
     return kCreateInequalityBoundsMap.at(aType)(aNumberOfConstraints);
 }
 
 void add_linear_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint)
 {
-    aProblem.addLinearConstraint(
-        aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
-        make_rol_vector(criteria::library::make_dual_vector(aROLConstraint.mNumberOfConstraints)));
+    aProblem.addLinearConstraint(aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
+                                 make_rol_vector(make_dual_vector(aROLConstraint.mNumberOfConstraints)));
 }
 
 void add_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint)
 {
-    aProblem.addConstraint(aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
-                           third_party_integration::rol::make_rol_vector(
-                               criteria::library::make_dual_vector(aROLConstraint.mNumberOfConstraints)));
+    aProblem.addConstraint(
+        aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
+        third_party_integration::rol::make_rol_vector(make_dual_vector(aROLConstraint.mNumberOfConstraints)));
 }
 
 void add_linear_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint)
@@ -106,10 +110,9 @@ void add_linear_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstra
     auto tMultipliers = ROL::makePtr<std::vector<double>>(aROLConstraint.mNumberOfConstraints, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
 
-    aProblem.addLinearConstraint(
-        aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
-        make_rol_vector(criteria::library::make_dual_vector(aROLConstraint.mNumberOfConstraints)),
-        tInequalityBoundConstraint, tMultipliersPtr, kDontReset);
+    aProblem.addLinearConstraint(aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
+                                 make_rol_vector(make_dual_vector(aROLConstraint.mNumberOfConstraints)),
+                                 tInequalityBoundConstraint, tMultipliersPtr, kDontReset);
 }
 
 void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint)
@@ -119,15 +122,15 @@ void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& a
     auto tMultipliers = ROL::makePtr<std::vector<double>>(aROLConstraint.mNumberOfConstraints, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
 
-    aProblem.addConstraint(aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
-                           third_party_integration::rol::make_rol_vector(
-                               criteria::library::make_dual_vector(aROLConstraint.mNumberOfConstraints)),
-                           tInequalityBoundConstraint, tMultipliersPtr, kDontReset);
+    aProblem.addConstraint(
+        aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
+        third_party_integration::rol::make_rol_vector(make_dual_vector(aROLConstraint.mNumberOfConstraints)),
+        tInequalityBoundConstraint, tMultipliersPtr, kDontReset);
 }
 
 auto constraint_combination(const ROLConstraint& aConstraint) -> ConstraintCombination
 {
-    if (aConstraint.mType == criteria::library::ConstraintType::kEqualTo)
+    if (aConstraint.mType == ConstraintType::kEqualTo)
     {
         if (aConstraint.mLinear)
         {

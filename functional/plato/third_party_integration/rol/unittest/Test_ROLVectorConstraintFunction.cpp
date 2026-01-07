@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "plato/core/Compose.hpp"
-#include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 #include "plato/test_utilities/Himmelblau.hpp"
 #include "plato/third_party_integration/rol/ROLVectorConstraintFunction.hpp"
 #include "plato/third_party_integration/rol/unittest/DynamicVectorConstraintFunctions.hpp"
@@ -13,7 +12,6 @@ namespace plato::third_party_integration::rol::unittest
 {
 namespace
 {
-constexpr double kValue = 5;
 using VectorFunction = ROLVectorConstraintFunction::ROLPlatoFunction;
 
 auto make_vector_himmelblau_with_adjoint_function() -> VectorFunction
@@ -42,14 +40,7 @@ auto make_vector_himmelblau_with_adjoint_function() -> VectorFunction
 
 auto make_himmelblau_rol_vector_constraint() -> ROLVectorConstraintFunction
 {
-    constexpr bool tIsLinear = false;
-    return ROLVectorConstraintFunction{
-        criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
-            .mName = "name",
-            .mConstraintFunction = core::compose(criteria::library::make_target_offset_function(kValue),
-                                                 make_vector_himmelblau_with_adjoint_function()),
-            .mLinear = tIsLinear,
-            .mConstraintType = criteria::library::ConstraintType::kEqualTo}};
+    return ROLVectorConstraintFunction{make_vector_himmelblau_with_adjoint_function()};
 }
 
 }  // namespace
@@ -58,9 +49,7 @@ TEST(ROLVectorConstraintFunction, Value)
 {
     const auto tVectorHimmelblau = make_vector_himmelblau_with_adjoint_function();
     const auto tControlPoint = linear_algebra::DynamicVector<double>{0.5, 0.2};
-    const auto tGold = (tVectorHimmelblau.evaluate<core::evaluation::kFunction>(tControlPoint) +
-                        linear_algebra::DynamicVector<double>(1, -1.0 * kValue))
-                           .stdVector();
+    const auto tGold = tVectorHimmelblau.evaluate<core::evaluation::kFunction>(tControlPoint).stdVector();
 
     auto tROLVectorConstraintFunction = make_himmelblau_rol_vector_constraint();
 

@@ -65,7 +65,7 @@ class BrickShapeGeometry
 
     [[nodiscard]] static auto bounds() -> std::pair<std::vector<double>, std::vector<double>>;
 
-    static void output(const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo);
+    static void output(const linear_algebra::DynamicVector<double>& aSolution, const output::OutputInfo& aOutputInfo);
 
    private:
     std::filesystem::path mFileName;

@@ -13,7 +13,6 @@
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/unittest/LevelSetTopologyTestFixtures.hpp"
-#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
@@ -336,7 +335,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, OutputRoundTrip)
     const auto tInput = levelSetTopologyInputWithFixedBlocks({mBlockNames[0]});
     const auto tDesignVariablesForOutput = linear_algebra::DynamicVector<double>(mExpectedNumberOfNodesInBlock2, 0.0);
     LevelSetTopology::output(tInput, filter::extension::make_identity_filter_function(), tDesignVariablesForOutput,
-                             library::kOverwriteInfo);
+                             output::kOverwriteInfo);
 
     const auto tOutputMeshName = std::filesystem::path{tInput.output_name->mToken};
     const auto tRestartOutputMeshName = restart_file_name(tInput);
@@ -376,7 +375,7 @@ TEST_F(LevelSetTopologyTwoBlockFixture, FilteredOutputRoundTrip)
     LevelSetTopology::output(
         tInput,
         make_kernel_filter_test_function(filter::extension::FilterRadius{2.0}, tInput.mesh_name->mToken, {tFixedBlock}),
-        tDesignVariables, library::kOverwriteInfo);
+        tDesignVariables, output::kOverwriteInfo);
 
     const auto tFieldOutputMeshName = restart_file_name(tInput);
     constexpr auto tFieldName = filtered_level_set_mesh_field_name();

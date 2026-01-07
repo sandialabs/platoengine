@@ -6,8 +6,8 @@
 #include <ROL_Vector.hpp>
 
 #include "plato/core/Function.hpp"
-#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/output/OutputManager.hpp"
 
 namespace plato::third_party_integration::rol
 {
@@ -19,10 +19,9 @@ class ROLObjectiveFunction : public ROL::StdObjective<double>
         core::Function<const linear_algebra::DynamicVector<double>&,
                        core::FunctionInfo<double, core::evaluation::kFunction>,
                        core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>;
-    using OutputManager = geometry::library::OutputManager;
 
     ///@brief Construct a new ROLObjectiveFunction object
-    ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction, OutputManager aOutputManager = OutputManager{});
+    ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction, output::OutputManager aOutputManager = {});
 
     ///@brief Write geometry output
     void update(const std::vector<double>& aControls, ROL::UpdateType aIterationType, int aIteration) override;
@@ -47,7 +46,7 @@ class ROLObjectiveFunction : public ROL::StdObjective<double>
 
    private:
     ROLPlatoFunction mFunction;
-    OutputManager mOutputManager;
+    output::OutputManager mOutputManager;
 };
 }  // namespace plato::third_party_integration::rol
 

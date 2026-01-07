@@ -10,7 +10,8 @@ set(LINK_LIBS PlatoFunctionalFilter
               PlatoFunctionalKrino 
               PlatoFunctionalMesh
               PlatoFunctionalInputValidation
-              PlatoFunctionalServices )
+              PlatoFunctionalServices
+              PlatoFunctionalOutput)
 
 if (CUBIT_ENABLED)
   list(APPEND FOLDERS extension/cubit)

@@ -14,13 +14,13 @@
 #include "plato/geometry/library/GeometryLogger.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
-#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
@@ -43,7 +43,7 @@ constexpr auto kMeshNameAccessor =
     -> library::FactoryTypes::Output
 {
     return
-        [aGeometryInput](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
+        [aGeometryInput](const linear_algebra::DynamicVector<double>& aSolution, const output::OutputInfo& aOutputInfo)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
         return LevelSetTopology::output(
@@ -251,7 +251,7 @@ auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<doubl
 void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
                               const filter::library::FilterFunction& aFilterFunction,
                               const linear_algebra::DynamicVector<double>& aSolution,
-                              const library::OutputInfo& aOutputInfo)
+                              const output::OutputInfo& aOutputInfo)
 {
     [[maybe_unused]] const auto tTaskLogger = library::output_task_log<input_parser::level_set_topology>();
 

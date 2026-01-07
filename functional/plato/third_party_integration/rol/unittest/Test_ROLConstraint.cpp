@@ -47,6 +47,15 @@ TEST(ROLConstraint, CreateROLBoundConstraint)
     EXPECT_FALSE(tBounds->isFeasible(*tCompare));
 }
 
+TEST(ROLConstraint, SizedDualVector)
+{
+    constexpr unsigned int tSize = 10;
+    const linear_algebra::DynamicVector<double> tDualVector = make_dual_vector(tSize);
+    ASSERT_EQ(tDualVector.size(), tSize);
+    EXPECT_EQ(tDualVector.stdVector().front(), 1.0);
+    EXPECT_EQ(tDualVector.stdVector().back(), 1.0);
+}
+
 TEST(ROLConstraint, CreateLessThanInequalityBounds)
 {
     EXPECT_THROW([[maybe_unused]] auto tUnused = detail::create_less_than_inequality_bounds(0), utilities::Exception);
@@ -99,18 +108,16 @@ TEST(ROLConstraint, CreateInequalityBounds)
     constexpr unsigned int tNumberOfConstraints = 1;
     {
         const auto tGold = detail::create_greater_than_inequality_bounds(tNumberOfConstraints);
-        const auto tResult =
-            detail::create_inequality_bounds(criteria::library::ConstraintType::kGreaterThan, tNumberOfConstraints);
+        const auto tResult = detail::create_inequality_bounds(ConstraintType::kGreaterThan, tNumberOfConstraints);
         test_bounds_behaves_same_as_gold(tResult, tGold);
     }
     {
         const auto tGold = detail::create_less_than_inequality_bounds(tNumberOfConstraints);
-        const auto tResult =
-            detail::create_inequality_bounds(criteria::library::ConstraintType::kLessThan, tNumberOfConstraints);
+        const auto tResult = detail::create_inequality_bounds(ConstraintType::kLessThan, tNumberOfConstraints);
         test_bounds_behaves_same_as_gold(tResult, tGold);
     }
-    EXPECT_THROW([[maybe_unused]] auto tUnused = detail::create_inequality_bounds(
-                     criteria::library::ConstraintType::kEqualTo, tNumberOfConstraints),
+    EXPECT_THROW([[maybe_unused]] auto tUnused =
+                     detail::create_inequality_bounds(ConstraintType::kEqualTo, tNumberOfConstraints),
                  std::out_of_range);
 }
 
@@ -127,28 +134,28 @@ TEST(ROLConstraint, ConstraintCombination)
     auto tConstraint = ROLConstraint{};
 
     tConstraint.mLinear = true;
-    tConstraint.mType = criteria::library::ConstraintType::kEqualTo;
+    tConstraint.mType = ConstraintType::kEqualTo;
     tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kLinearEquality,
                                 TEST_CONTEXT("Linear equality"));
 
-    tConstraint.mType = criteria::library::ConstraintType::kGreaterThan;
+    tConstraint.mType = ConstraintType::kGreaterThan;
     tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kLinearInequality,
                                 TEST_CONTEXT("Linear inequality with greater than"));
 
-    tConstraint.mType = criteria::library::ConstraintType::kLessThan;
+    tConstraint.mType = ConstraintType::kLessThan;
     tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kLinearInequality,
                                 TEST_CONTEXT("Linear inequality with less than"));
 
     tConstraint.mLinear = false;
-    tConstraint.mType = criteria::library::ConstraintType::kEqualTo;
+    tConstraint.mType = ConstraintType::kEqualTo;
     tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kNonlinearEquality,
                                 TEST_CONTEXT("Non-linear equality"));
 
-    tConstraint.mType = criteria::library::ConstraintType::kGreaterThan;
+    tConstraint.mType = ConstraintType::kGreaterThan;
     tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kNonlinearInequality,
                                 TEST_CONTEXT("Non-linear inequality with greater than"));
 
-    tConstraint.mType = criteria::library::ConstraintType::kLessThan;
+    tConstraint.mType = ConstraintType::kLessThan;
     tCheckConstraintCombination(tConstraint, detail::ConstraintCombination::kNonlinearInequality,
                                 TEST_CONTEXT("Non-linear inequality with less than"));
 }

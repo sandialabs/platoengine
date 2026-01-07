@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"

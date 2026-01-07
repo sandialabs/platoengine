@@ -7,11 +7,11 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/geometry/extension/cubit/BoundedApreproVariableParser.hpp"
 #include "plato/geometry/extension/cubit/CubitWrapper.hpp"
-#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/StateCache.hpp"
 
@@ -116,7 +116,7 @@ void write_exodus_mesh(CubitWrapper& aCubit,
 
 ///@brief Given the input @a aInput, create an output function that generates the requested output when called.
 [[nodiscard]] auto make_cubit_output(const input_parser::cubit_parameterized_shape& aInput)
-    -> std::function<void(const linear_algebra::DynamicVector<double>&, const library::OutputInfo&)>;
+    -> std::function<void(const linear_algebra::DynamicVector<double>&, const output::OutputInfo&)>;
 
 }  // namespace detail
 }  // namespace plato::geometry::extension::cubit

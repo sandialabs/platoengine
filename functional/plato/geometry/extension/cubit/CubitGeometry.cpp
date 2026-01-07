@@ -375,9 +375,9 @@ std::optional<std::string> validate_mesh_journal_file(const input_parser::cubit_
 }
 
 auto make_cubit_output(const input_parser::cubit_parameterized_shape& aInput)
-    -> std::function<void(const linear_algebra::DynamicVector<double>&, const library::OutputInfo&)>
+    -> std::function<void(const linear_algebra::DynamicVector<double>&, const output::OutputInfo&)>
 {
-    return [aInput](const linear_algebra::DynamicVector<double>& aSolution, const library::OutputInfo& aOutputInfo)
+    return [aInput](const linear_algebra::DynamicVector<double>& aSolution, const output::OutputInfo& aOutputInfo)
     {
         if (aInput.output_mesh_sensitivities_name.has_value())
         {

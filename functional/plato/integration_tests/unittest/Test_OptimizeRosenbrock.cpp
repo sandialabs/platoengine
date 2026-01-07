@@ -11,7 +11,6 @@
 #include <Teuchos_GlobalMPISession.hpp>
 
 #include "plato/core/Compose.hpp"
-#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorPenaltyFunction.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorRosenbrockFunction.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"

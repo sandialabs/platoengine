@@ -7,7 +7,7 @@
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
-#include "plato/geometry/library/OutputInfo.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -40,9 +40,9 @@ TEST_F(NodalDensityMesh, ParallelOutput)
     const auto tFilter = filter::test_utilities::make_filter_function(std::make_shared<fe::KernelFilter>(
         mesh::Mesh{mMeshName}, fe::FilterRadius{3.25}, input_parser::KernelFilterCenteringTypes::kElementCentered,
         boost::mpi::communicator{}));
-    DensityTopology::output(tDesignVariables, tFilter, tDensityInput, library::kOverwriteInfo);
+    DensityTopology::output(tDesignVariables, tFilter, tDensityInput, output::kOverwriteInfo);
     constexpr auto kAppend = false;
-    DensityTopology::output(tDesignVariables, tFilter, tDensityInput, library::OutputInfo{kAppend, 2});
+    DensityTopology::output(tDesignVariables, tFilter, tDensityInput, output::OutputInfo{kAppend, 2});
 
     ASSERT_TRUE(std::filesystem::exists(tDensityInput.output_name.value().mToken));
 
