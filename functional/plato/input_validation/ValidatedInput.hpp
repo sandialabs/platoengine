@@ -23,7 +23,9 @@ class ValidatedInput
    public:
     ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey&);
 
-    /// @brief Returns the parsed input blocks corresponding to @a kComponentType
+    /// @brief Returns the parsed input blocks corresponding to @a kComponentType.
+    /// @post Each input returned is guaranteed to be `active`: If its underlying input type has an `active` member
+    /// variable, it is either `true` or `boost::none`.
     template <components::ComponentType kComponentType>
     [[nodiscard]] auto get() const;
 
@@ -90,9 +92,10 @@ auto ValidatedInput::get() const
     else
     {
         auto tValidatedInputs = std::vector<ValidatedTypeWrapperForComponent>{};
-        std::transform(mRawInput.get<kComponentType>().cbegin(), mRawInput.get<kComponentType>().cend(),
-                       std::back_inserter(tValidatedInputs),
-                       [](const auto& aInputBlock) { return ValidatedTypeWrapperForComponent{aInputBlock}; });
+        utilities::transform_if(
+            mRawInput.get<kComponentType>(), std::back_inserter(tValidatedInputs),
+            [](const auto& aInputBlock) { return ValidatedTypeWrapperForComponent{aInputBlock}; },
+            [](const auto& aInputBlock) { return aInputBlock.mInput.active(); });
         return ValidatedInputTypeWrapper<std::vector<ValidatedTypeWrapperForComponent>, kComponentType>{
             std::move(tValidatedInputs)};
     }
