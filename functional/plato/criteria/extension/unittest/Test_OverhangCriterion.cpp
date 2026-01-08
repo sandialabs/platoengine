@@ -4,6 +4,8 @@
 #include <numeric>
 #include <ranges>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/Utilities.hpp"
 #include "plato/criteria/extension/OverhangCriterion.hpp"
 #include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
@@ -25,6 +27,8 @@ constexpr Vector3 kBuildDirection{.x = 0, .y = 0, .z = -1};
 constexpr double kStepTransitionWidth{0.05};
 const double kOverhangAngleThreshold{-std::sqrt(2.0) / 2.0};
 OverhangCriterion kCriterion(kStepTransitionWidth, kBuildDirection, kOverhangAngleThreshold, {});
+const auto kBlock1 = analysis::AnalysisDomainMesh::ScalarFieldVector{{0, 0, 0.0}, {1, 1, 1.0}, {2, 2, 2.0}};
+constexpr auto kBlock1ID = 1U;
 
 TEST(OverhangCriterion, ExponentialStepFunction)
 {
@@ -468,6 +472,25 @@ TEST(OverhangCriterion, Gradient)
     {
         EXPECT_DOUBLE_EQ(tGradientComponent, tExpectedGradientComponent);
     }
+}
+
+TEST(OverhangCriterion, Value_WhenFieldPresent)
+{
+    const auto& tCriterion = create_overhang_criterion();
+    auto tAnalysisDomainMesh =
+        analysis::AnalysisDomainMesh{"fake-mesh", analysis::AnalysisDomainMesh::BlockScalarField{{kBlock1ID, kBlock1}}};
+    tAnalysisDomainMesh = zero_scalar_field(std::move(tAnalysisDomainMesh));
+    EXPECT_THROW([[maybe_unused]] const auto tValue = tCriterion.f(tAnalysisDomainMesh), plato::utilities::Exception);
+}
+
+TEST(OverhangCriterion, Gradient_WhenFieldPresent)
+{
+    const auto& tCriterion = create_overhang_criterion();
+    auto tAnalysisDomainMesh =
+        analysis::AnalysisDomainMesh{"fake-mesh", analysis::AnalysisDomainMesh::BlockScalarField{{kBlock1ID, kBlock1}}};
+    tAnalysisDomainMesh = zero_scalar_field(std::move(tAnalysisDomainMesh));
+    EXPECT_THROW([[maybe_unused]] const auto tGradient = tCriterion.df(tAnalysisDomainMesh),
+                 plato::utilities::Exception);
 }
 
 }  // namespace plato::criteria::extension::unittest
