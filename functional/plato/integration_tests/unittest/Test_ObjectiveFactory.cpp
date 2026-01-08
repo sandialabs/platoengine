@@ -103,7 +103,7 @@ TEST_F(ObjectiveFactoryTestFixture, ValidAggregateOneObjective)
 
     const auto tData = input_validation::parse_and_validate_string(tInput).value();
 
-    EXPECT_EQ(tData.get<components::ComponentType::kObjective>().rawInput().size(), 2U);
+    EXPECT_EQ(tData.get<components::ComponentType::kObjective>().rawInput().size(), 1U);
 
     const auto tAggregate = criteria::library::detail::make_parallel_aggregate(
         tData.get<components::ComponentType::kObjective>(), analysis::AnalysisDomainMesh{});
