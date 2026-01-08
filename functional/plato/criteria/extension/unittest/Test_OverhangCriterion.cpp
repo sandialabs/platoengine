@@ -217,6 +217,7 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
     /*    (0,0,0) 1-------2------ 3 (2,0,0)   */    
     /*                   (1,0,0)              */
     //
+    //
     // 4 triangles as shown above with nodes {1,2,4}, {2,3,5}, {2,5,4}, {4,5,6}
 
     // clang-format on
