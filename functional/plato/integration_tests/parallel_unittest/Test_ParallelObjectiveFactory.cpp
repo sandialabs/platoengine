@@ -1,16 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
-#include <iterator>
 
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/CheckProcessorsMatchObjectives.hpp"
-#include "plato/integration_tests/utilities/InputGeneration.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
@@ -248,6 +245,57 @@ TEST(ObjectiveFactory, EvaluateParallelMassAppWithNormalization)
         test_aggregate_normalized_objectives(tTestData, tInputBase, tObjectiveBase,
                                              TEST_CONTEXT("12 objectives split over the 4 ranks, minimize reciprocal"));
     }
+}
+
+TEST(ObjectiveFactory, ManyInactiveObjectives)
+{
+    const auto tComm = boost::mpi::communicator{};
+    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tComm);
+
+    const auto tInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
+                            process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
+
+    const auto tAppName = input_parser::AppName{std::string{kMassAppName}};
+    const auto tCriterionName = input_parser::CriterionName{"mass"};
+    const auto tOneRankActiveObjective = input_parser::objective{/*.name=*/std::string{"one_rank_active_objective"},
+                                                                 /*.active=*/true,
+                                                                 /*.app=*/tAppName,
+                                                                 /*.criterion=*/tCriterionName,
+                                                                 /*.number_of_processors=*/1U,
+                                                                 /*.input_files=*/boost::none,
+                                                                 /*.aggregation_weight=*/1.0,
+                                                                 /*.normalize_by_initial_value=*/false,
+                                                                 /*.objective_goal=*/boost::none};
+    const auto tTwoRankActiveObjective = input_parser::objective{/*.name=*/std::string{"two_rank_active_objective"},
+                                                                 /*.active=*/true,
+                                                                 /*.app=*/tAppName,
+                                                                 /*.criterion=*/tCriterionName,
+                                                                 /*.number_of_processors=*/2U,
+                                                                 /*.input_files=*/boost::none,
+                                                                 /*.aggregation_weight=*/1.0,
+                                                                 /*.normalize_by_initial_value=*/false,
+                                                                 /*.objective_goal=*/boost::none};
+    const auto tInactiveObjective = input_parser::objective{/*.name=*/std::string{"inactive_objective"},
+                                                            /*.active=*/false,
+                                                            /*.app=*/tAppName,
+                                                            /*.criterion=*/tCriterionName,
+                                                            /*.number_of_processors=*/1U,
+                                                            /*.input_files=*/boost::none,
+                                                            /*.aggregation_weight=*/1.0,
+                                                            /*.normalize_by_initial_value=*/false,
+                                                            /*.objective_goal=*/boost::none};
+    const auto tInput = tInputBase | tInactiveObjective | tInactiveObjective | tTwoRankActiveObjective |
+                        tOneRankActiveObjective | tInactiveObjective | tInactiveObjective | tOneRankActiveObjective;
+
+    const auto tValidInput = input_validation::make_validated_input(tInput).value();
+    const auto tGeometry = brick_shape_geometry_from_input(tInput);
+    const auto tMesh = tGeometry.evaluate<core::evaluation::kFunction>(test_brick_controls());
+    constexpr auto tRegressionValue = 144.0;  // Computed by running the test with no inactive objectives
+
+    const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
+        tValidInput.get<components::ComponentType::kObjective>(), tMesh);
+    const auto tResult = tObjectiveFunction.evaluate<core::evaluation::kFunction>(tMesh);
+    EXPECT_EQ(tResult, tRegressionValue);
 }
 
 }  // namespace plato::integration_tests::parallel
