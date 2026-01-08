@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "plato/geometry/library/OutputManager.hpp"
+#include "plato/output/OutputManager.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 
 namespace plato::third_party_integration::rol::unittest
@@ -62,10 +62,9 @@ void run_himmelblau_output_test(const Argument& aObjectiveFunctionArgument)
     using namespace detail;
 
     std::size_t tOutputCount = 0u;
-    auto tOutputFunction = [&tOutputCount](const linear_algebra::DynamicVector<double>&,
-                                           const geometry::library::OutputInfo&) { tOutputCount++; };
-    auto tOutputManager =
-        geometry::library::OutputManager{tOutputFunction, geometry::library::OutputMode::kEveryIterationAppend};
+    auto tOutputFunction = [&tOutputCount](const linear_algebra::DynamicVector<double>&, const output::OutputInfo&)
+    { tOutputCount++; };
+    auto tOutputManager = output::OutputManager{tOutputFunction, output::OutputMode::kEveryIterationAppend};
     auto tObjective = ROLObjectiveFunction{aObjectiveFunctionArgument, tOutputManager};
 
     const auto tControl = std::vector<double>{kControlX, kControlY};

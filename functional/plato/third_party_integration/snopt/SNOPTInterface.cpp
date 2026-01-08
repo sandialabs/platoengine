@@ -3,8 +3,8 @@
 #include <boost/numeric/conversion/cast.hpp>
 #include <snoptProblem.hpp>
 
-#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/output/OutputManager.hpp"
 #include "plato/third_party_integration/snopt/DataSingleton.hpp"
 #include "plato/third_party_integration/snopt/ObjectiveConstraintArrayView.hpp"
 #include "plato/third_party_integration/snopt/SNOPTConstraints.hpp"
@@ -156,7 +156,7 @@ void shut_down_snopt()
 {
     DataSingleton<ObjectiveType, SNOPTTag>::instance().reset();
     DataSingleton<ConstraintVectorType, SNOPTTag>::instance().reset();
-    DataSingleton<geometry::library::OutputManager, SNOPTTag>::instance().reset();
+    DataSingleton<output::OutputManager, SNOPTTag>::instance().reset();
 }
 
 }  // namespace
@@ -165,7 +165,7 @@ auto run_snopt_problem(const std::vector<double> &aInitialGuess,
                        const SNOPTBounds &aBoundConstraints,
                        ObjectiveType &&aObjective,
                        InterfaceConstraintVectorType &&aConstraints,
-                       geometry::library::OutputManager &&aOutputManager,
+                       output::OutputManager &&aOutputManager,
                        const std::filesystem::path &aLogFilePath,
                        const SNOPTOptions &aOptions) -> std::vector<double>
 {
@@ -194,7 +194,7 @@ auto run_snopt_problem(const std::vector<double> &aInitialGuess,
 
     DataSingleton<ObjectiveType, SNOPTTag>::instance().data() = std::move(aObjective);
     DataSingleton<ConstraintVectorType, SNOPTTag>::instance().data() = nonlinear_constraints(tSNOPTConstraints);
-    DataSingleton<geometry::library::OutputManager, SNOPTTag>::instance().data() = std::move(aOutputManager);
+    DataSingleton<output::OutputManager, SNOPTTag>::instance().data() = std::move(aOutputManager);
 
     auto tSolution = aInitialGuess;
 
@@ -216,7 +216,7 @@ auto run_snopt_problem(const std::vector<double> &aInitialGuess,
         tSNOPTSolverDetail.mObjectiveAndConstraintDualVariables.data(), tSNOPTSolverDetail.mNumberOfSuperBasicVariables,
         tSNOPTSolverDetail.mNumberOfInfeasibleConstraints, tSNOPTSolverDetail.mSumOfConstraintViolations);
 
-    auto &tOutputSingleton = DataSingleton<geometry::library::OutputManager, SNOPTTag>::instance();
+    auto &tOutputSingleton = DataSingleton<output::OutputManager, SNOPTTag>::instance();
     assert(tOutputSingleton.hasData());
     tOutputSingleton.data()->output(linear_algebra::DynamicVector<double>{tSolution});
 

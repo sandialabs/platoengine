@@ -1,18 +1,17 @@
 #include <gtest/gtest.h>
 
-#include "plato/geometry/library/OutputInfo.hpp"
-#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/output/OutputManager.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/IndexRange.hpp"
 #include "plato/utilities/NamedType.hpp"
 
-namespace plato::geometry::library
+namespace plato::output
 {
 struct OutputInfo;
 }
 
-namespace plato::geometry::library::unittest
+namespace plato::output::unittest
 {
 namespace
 {
@@ -30,7 +29,7 @@ void test_number_of_output_calls_matches_expected(const OutputMode aOutputMode,
     auto tNumberOfAppends = std::size_t{0U};
     auto tLoggingOutputFunction =
         [&tNumberOfAppends, &tNumberOfOverwrites](const linear_algebra::DynamicVector<double>&,
-                                                  const geometry::library::OutputInfo& aOutputInfo)
+                                                  const output::OutputInfo& aOutputInfo)
     {
         if (aOutputInfo.mOverwrite)
         {
@@ -77,4 +76,4 @@ TEST(OutputManager, WriteOnEveryIterationAndFinalOutput)
     test_number_of_output_calls_matches_expected(OutputMode::kEveryIterationAppend, tExpectedNumberOfOverwriteCalls,
                                                  tExpectedNumberOfAppendCalls, TEST_CONTEXT("Append every"));
 }
-}  // namespace plato::geometry::library::unittest
+}  // namespace plato::output::unittest

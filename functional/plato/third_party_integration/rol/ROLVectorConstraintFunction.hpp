@@ -6,7 +6,6 @@
 #include <ROL_Vector.hpp>
 
 #include "plato/core/Function.hpp"
-#include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
@@ -26,9 +25,8 @@ class ROLVectorConstraintFunction : public ROL::StdConstraint<double>
                                           core::evaluation::kFirstDerivative,
                                           core::MatrixOrdering::kAdjoint>>;
 
-    ///@brief Construct a new ROLVectorConstraintFunction object
-    ROLVectorConstraintFunction(
-        criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&> aConstraint);
+    ///@brief Construction from a Function that computes a constraint and its Jacobian.
+    ROLVectorConstraintFunction(ROLPlatoFunction aConstraint);
 
     ///@brief Evaluate and populate aConstraints with the constraints at a given control vector and tolerance
     void value(std::vector<double>& aConstraints, const std::vector<double>& aControl, double& aTolerance) override;

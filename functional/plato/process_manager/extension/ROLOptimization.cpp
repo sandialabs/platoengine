@@ -4,10 +4,10 @@
 #include <fstream>
 #include <string_view>
 
-#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/output/OutputManager.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -57,10 +57,9 @@ void ROLOptimization::run(const library::ProcessManagerData& aProcessManagerData
 {
     [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::rol_optimization>();
 
-    namespace gl = geometry::library;
-    const auto tOutputMode = mROLOptions.writeOutputHistory() ? gl::OutputMode::kEveryIterationAppend
-                                                              : gl::OutputMode::kEveryIterationOverwrite;
-    auto tOutputManager = gl::OutputManager{aProcessManagerData.mGeometry.mOutput, tOutputMode};
+    const auto tOutputMode = mROLOptions.writeOutputHistory() ? output::OutputMode::kEveryIterationAppend
+                                                              : output::OutputMode::kEveryIterationOverwrite;
+    auto tOutputManager = output::OutputManager{aProcessManagerData.mGeometry.mOutput, tOutputMode};
 
     auto tObjective = ROL::Ptr<plato::third_party_integration::rol::ROLObjectiveFunction>(
         make_rol_objective(aProcessManagerData, std::move(tOutputManager)).release());

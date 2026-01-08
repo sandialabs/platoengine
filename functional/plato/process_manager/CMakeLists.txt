@@ -5,7 +5,8 @@ set(DIRECTORIES library extension)
 set(LINK_LIBS PlatoFunctionalGeometry 
               PlatoFunctionalInputValidation
               PlatoFunctionalROL
-              PlatoFunctionalServices)
+              PlatoFunctionalServices
+              PlatoFunctionalCriteria)
 
 if (SNOPT_ENABLED)
   list(APPEND DIRECTORIES extension/snopt)

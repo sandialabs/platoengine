@@ -9,7 +9,7 @@
 
 class snoptProblemA;
 
-namespace plato::geometry::library
+namespace plato::output
 {
 class OutputManager;
 }
@@ -34,7 +34,7 @@ struct SNOPTOptions
                                      const SNOPTBounds& aBoundConstraints,
                                      ObjectiveType&& aObjective,
                                      InterfaceConstraintVectorType&& aConstraints,
-                                     geometry::library::OutputManager&& aOutputManager,
+                                     output::OutputManager&& aOutputManager,
                                      const std::filesystem::path& aLogFilePath,
                                      const SNOPTOptions& aOptions) -> std::vector<double>;
 

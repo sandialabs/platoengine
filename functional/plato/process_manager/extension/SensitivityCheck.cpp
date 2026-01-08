@@ -5,7 +5,6 @@
 
 #include "plato/core/Compose.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
-#include "plato/geometry/library/OutputManager.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"

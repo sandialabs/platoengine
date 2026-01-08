@@ -4,7 +4,7 @@
 #include <optional>
 #include <snoptProblem.hpp>
 
-#include "plato/geometry/library/OutputManager.hpp"
+#include "plato/output/OutputManager.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -119,7 +119,7 @@ void check_snopt_problem_solution(const std::vector<double>& aInitialGuess,
                                   const plato::test_utilities::TestContext& aTestContext)
 {
     const auto tSolution = run_snopt_problem(aInitialGuess, aBounds, std::move(aObjective), std::move(aConstraints),
-                                             geometry::library::OutputManager{}, kLogFilePath, SNOPTOptions{});
+                                             output::OutputManager{}, kLogFilePath, SNOPTOptions{});
 
     constexpr auto tTolerance = 1e-5;
     ASSERT_EQ(aInitialGuess.size(), aExpectedSolution.size()) << aTestContext;
@@ -139,10 +139,9 @@ TEST(SNOPTInterface, OutputFunctionGetsCalled)
         std::pair{std::vector{-kSNOPTUnbounded, -kSNOPTUnbounded}, std::vector{kSNOPTUnbounded, kSNOPTUnbounded}};
 
     int tOutputCount = 1;
-    auto tOutputFunction = [&tOutputCount](const linear_algebra::DynamicVector<double>&,
-                                           const geometry::library::OutputInfo&) { tOutputCount++; };
-    auto tOutputManager =
-        geometry::library::OutputManager{tOutputFunction, geometry::library::OutputMode::kEveryIterationAppend};
+    auto tOutputFunction = [&tOutputCount](const linear_algebra::DynamicVector<double>&, const output::OutputInfo&)
+    { tOutputCount++; };
+    auto tOutputManager = output::OutputManager{tOutputFunction, output::OutputMode::kEveryIterationAppend};
 
     const auto tSolution = run_snopt_problem(tInitialGuess, tBounds,
                                              rosenbrock_dynamic_vector_function(plato::test_utilities::Rosenbrock{}),

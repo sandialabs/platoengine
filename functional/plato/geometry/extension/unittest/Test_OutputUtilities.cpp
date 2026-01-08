@@ -3,10 +3,10 @@
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/extension/KernelFilter.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
-#include "plato/geometry/library/OutputInfo.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
@@ -62,7 +62,7 @@ TEST_F(OutputUtilitiesTest, OutputNodalFieldOneBlockMeshFiltered)
     const auto tSolution = solution_vector();
     constexpr auto tFilteredFieldValue = 0.5;
     const auto tFilteredMesh = output_nodal_field(tMeshOutputInfo, constant_value_filter_function(tFilteredFieldValue),
-                                                  tSolution, library::kOverwriteInfo);
+                                                  tSolution, output::kOverwriteInfo);
 
     const auto tReadControlField =
         third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(kTestOutputPath, kControlFieldName);

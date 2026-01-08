@@ -6,7 +6,7 @@
 #include "plato/core/Compose.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
-#include "plato/geometry/library/OutputManager.hpp"
+#include "plato/output/OutputManager.hpp"
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -19,6 +19,12 @@ namespace plato::process_manager::extension
 {
 namespace
 {
+const auto kConstraintTypeConversion =
+    std::map<criteria::library::ConstraintType, third_party_integration::rol::ConstraintType>{
+        {criteria::library::ConstraintType::kEqualTo, third_party_integration::rol::ConstraintType::kEqualTo},
+        {criteria::library::ConstraintType::kGreaterThan, third_party_integration::rol::ConstraintType::kGreaterThan},
+        {criteria::library::ConstraintType::kLessThan, third_party_integration::rol::ConstraintType::kLessThan}};
+
 [[nodiscard]] auto load_file_or_use_default_parameters(const input_parser::rol_optimization& aOptimizationParameters)
     -> third_party_integration::rol::OptimizationParameters
 {
@@ -59,7 +65,7 @@ void write_parameters(const input_parser::rol_optimization& aOptimizationParamet
 
 }  // namespace
 
-auto make_rol_objective(const library::ProcessManagerData& aProblem, geometry::library::OutputManager aOutputManager)
+auto make_rol_objective(const library::ProcessManagerData& aProblem, output::OutputManager aOutputManager)
     -> std::unique_ptr<plato::third_party_integration::rol::ROLObjectiveFunction>
 {
     return std::make_unique<plato::third_party_integration::rol::ROLObjectiveFunction>(
@@ -83,15 +89,17 @@ auto make_rol_constraints(const library::ProcessManagerData& aProblem)
                     .size();
 
             return third_party_integration::rol::ROLConstraint{
-                aConstraintData.mName, tConstraintSize, aConstraintData.mLinear, aConstraintData.mConstraintType,
-                std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(tComposedVectorConstraint)};
+                aConstraintData.mName, tConstraintSize, aConstraintData.mLinear,
+                kConstraintTypeConversion.at(aConstraintData.mConstraintType),
+                std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(
+                    tComposedVectorConstraint.mConstraintFunction)};
         });
     return tROLConstraints;
 }
 
 auto make_rol_problem(const library::ProcessManagerData& aProblem,
                       const std::string_view aProcessManagerName,
-                      geometry::library::OutputManager aOutputManager)
+                      output::OutputManager aOutputManager)
     -> std::pair<ROL::Ptr<ROL::Problem<double>>, ROL::Ptr<ROL::StdVector<double>>>
 {
     return make_rol_problem(aProblem, aProcessManagerName,

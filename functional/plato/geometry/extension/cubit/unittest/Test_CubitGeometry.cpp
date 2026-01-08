@@ -107,7 +107,7 @@ TEST_F(CubitTestFixture, SerialOutputMeshSensitivities)
     const auto tSolution = linear_algebra::DynamicVector<double>({1.5, 0.75, 1.0});
     const auto tAnalysisDomainMesh = tCubitGeometry.generateMesh(tSolution);
 
-    const auto tOutputInfo = library::OutputInfo{true, 0};
+    const auto tOutputInfo = output::OutputInfo{true, 0};
     const auto tMeshOutput = mesh::make_mesh_output(mesh::output_mode(tOutputInfo.mOverwrite),
                                                     mesh::InputFilePath{tAnalysisDomainMesh.mFileName},
                                                     mesh::OutputFilePath{tSensitivityFile}, {}, tOutputInfo.mIteration);

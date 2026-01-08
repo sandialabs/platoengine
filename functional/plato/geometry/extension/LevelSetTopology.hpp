@@ -106,7 +106,7 @@ class LevelSetTopology
     static void output(const input_parser::level_set_topology& aInput,
                        const filter::library::FilterFunction& aFilterFunction,
                        const linear_algebra::DynamicVector<double>& aSolution,
-                       const library::OutputInfo& aOutputInfo);
+                       const output::OutputInfo& aOutputInfo);
 
     /// @brief Returns a JacobianMultiplier function object that computes the row-vector-Jacobian-product of the
     /// level-set operation evaluated at @a aDesignParameter.

@@ -61,9 +61,6 @@ struct VectorConstraint
 [[nodiscard]] auto make_constraints(const ValidatedConstraints& aInput)
     -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>;
 
-/// @brief Helper for providing ROL a dual vector for constraints sized with @a aSize.
-[[nodiscard]] auto make_dual_vector(std::size_t aSize) -> linear_algebra::DynamicVector<double>;
-
 namespace detail
 {
 [[nodiscard]] auto make_constraint(

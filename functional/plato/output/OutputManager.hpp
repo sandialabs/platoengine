@@ -1,12 +1,13 @@
-#ifndef PLATO_THIRDPARTYINTEGRATION_COMMON_OutputManager
-#define PLATO_THIRDPARTYINTEGRATION_COMMON_OutputManager
+#ifndef PLATO_OUTPUT_OUTPUTMANAGER
+#define PLATO_OUTPUT_OUTPUTMANAGER
 
 #include <cstdint>
+#include <functional>
 
-#include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/output/OutputInfo.hpp"
 
-namespace plato::geometry::library
+namespace plato::output
 {
 enum struct OutputMode : std::uint8_t
 {
@@ -21,7 +22,7 @@ enum struct OutputMode : std::uint8_t
 class OutputManager
 {
    public:
-    using OutputFunction = FactoryTypes::Output;
+    using OutputFunction = std::function<void(const linear_algebra::DynamicVector<double>&, const OutputInfo&)>;
     OutputManager() = default;
 
     OutputManager(OutputFunction aOutputFunction, OutputMode aOutputMode);
@@ -34,5 +35,5 @@ class OutputManager
     OutputMode mOutputMode{OutputMode::kNever};
     std::size_t mIteration{0u};
 };
-}  // namespace plato::geometry::library
+}  // namespace plato::output
 #endif

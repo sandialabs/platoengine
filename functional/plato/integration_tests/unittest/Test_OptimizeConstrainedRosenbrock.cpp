@@ -69,39 +69,27 @@ constexpr bool kPrintFlag = true;
 [[nodiscard]] auto create_line_constraint()
     -> std::unique_ptr<third_party_integration::rol::ROLVectorConstraintFunction>
 {
-    constexpr bool tLineLinear = true;
     constexpr double tSumConstraintTarget = 1.0;
 
     const auto tConstraintFunction = criteria::library::to_vector_function<FunctionArgumentType>(
         make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{}));
 
-    auto tConstraint = criteria::library::VectorConstraint<FunctionArgumentType>{
-        .mName = "Line",
-        .mConstraintFunction = composed_target_function(tConstraintFunction, tSumConstraintTarget),
-        .mLinear = tLineLinear,
-        .mConstraintType = criteria::library::ConstraintType::kLessThan};
-
-    auto tROLConstraint = third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
+    auto tROLConstraint = third_party_integration::rol::ROLVectorConstraintFunction{
+        composed_target_function(tConstraintFunction, tSumConstraintTarget)};
     return std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(tROLConstraint);
 }
 
 [[nodiscard]] auto create_circle_constraint()
     -> std::unique_ptr<third_party_integration::rol::ROLVectorConstraintFunction>
 {
-    constexpr auto tCircleLinear = bool{false};
     constexpr auto tCircleConstraintTarget = double{1.0};
     constexpr auto tCenter = std::make_pair(0.0, 0.0);
 
     const auto tConstraintFunction = criteria::library::to_vector_function<FunctionArgumentType>(
         make_sum_constraint_dynamic_vector_function(test_utilities::SumConstraint{tCenter, 2}));
 
-    auto tConstraint = criteria::library::VectorConstraint<FunctionArgumentType>{
-        .mName = "Circle",
-        .mConstraintFunction = composed_target_function(tConstraintFunction, tCircleConstraintTarget),
-        .mLinear = tCircleLinear,
-        .mConstraintType = criteria::library::ConstraintType::kLessThan};
-    auto tROLConstraint = third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
-    return std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(std::move(tROLConstraint));
+    return std::make_unique<third_party_integration::rol::ROLVectorConstraintFunction>(
+        composed_target_function(tConstraintFunction, tCircleConstraintTarget));
 }
 
 [[nodiscard]] auto create_rol_bounded_rosenbrock_problem(ROL::Ptr<ROL::StdVector<double>>& aControls)
@@ -133,16 +121,15 @@ void add_linear_constraint_rol_problem(
     ROL::Problem<double>& aROLProblem,
     std::unique_ptr<third_party_integration::rol::ROLVectorConstraintFunction>&& aConstraint)
 {
+    namespace tpir = third_party_integration::rol;
     constexpr auto tDualVectorSize = 1U;
-    auto tInequalityBoundConstraint =
-        third_party_integration::rol::detail::create_less_than_inequality_bounds(tDualVectorSize);
+    auto tInequalityBoundConstraint = tpir::detail::create_less_than_inequality_bounds(tDualVectorSize);
     auto tMultipliers = ROL::makePtr<std::vector<double>>(tDualVectorSize, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
 
-    aROLProblem.addLinearConstraint(
-        "Line", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
-        third_party_integration::rol::make_rol_vector(criteria::library::make_dual_vector(tDualVectorSize)),
-        tInequalityBoundConstraint, tMultipliersPtr, false);
+    aROLProblem.addLinearConstraint("Line", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
+                                    tpir::make_rol_vector(tpir::make_dual_vector(tDualVectorSize)),
+                                    tInequalityBoundConstraint, tMultipliersPtr, false);
 }
 
 template <typename ConstraintType>
@@ -150,29 +137,24 @@ void add_nonlinear_constraint_rol_problem(ROL::Problem<double>& aROLProblem,
                                           std::unique_ptr<ConstraintType>&& aConstraint,
                                           const unsigned int aDualSize)
 {
+    namespace tpir = third_party_integration::rol;
+
     auto tInequalityBoundConstraint =
         third_party_integration::rol::detail::create_less_than_inequality_bounds(aDualSize);
     auto tMultipliers = ROL::makePtr<std::vector<double>>(aDualSize, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
 
-    aROLProblem.addConstraint(
-        "Sum", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
-        third_party_integration::rol::make_rol_vector(criteria::library::make_dual_vector(aDualSize)),
-        tInequalityBoundConstraint, tMultipliersPtr, false);
+    aROLProblem.addConstraint("Sum", ROL::Ptr<ROL::StdConstraint<double>>(std::move(aConstraint).release()),
+                              tpir::make_rol_vector(tpir::make_dual_vector(aDualSize)), tInequalityBoundConstraint,
+                              tMultipliersPtr, false);
 }
 
 [[nodiscard]] auto create_rol_vector_constraint_combination_line_and_circle()
 {
-    constexpr bool tIsLinear = false;
     constexpr double tTarget = 1.0;
 
-    auto tConstraint = criteria::library::VectorConstraint<const linear_algebra::DynamicVector<double>&>{
-        .mName = "Circle and line",
-        .mConstraintFunction = composed_target_function(utilities::make_line_and_circle_jacobian_function(), tTarget),
-        .mLinear = tIsLinear,
-        .mConstraintType = criteria::library::ConstraintType::kLessThan};
-
-    return third_party_integration::rol::ROLVectorConstraintFunction{std::move(tConstraint)};
+    return third_party_integration::rol::ROLVectorConstraintFunction{
+        composed_target_function(utilities::make_line_and_circle_jacobian_function(), tTarget)};
 }
 
 [[nodiscard]] auto rol_constrained_rosenbrock_problem_with_two_scalar_constraints(
