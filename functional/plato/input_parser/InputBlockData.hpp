@@ -2,6 +2,9 @@
 #define PLATO_INPUT_PARSER_INPUTBLOCKDATA
 
 #include <any>
+#include <boost/optional.hpp>
+#include <concepts>
+#include <functional>
 #include <string>
 
 #include "plato/components/ComponentType.hpp"
@@ -38,9 +41,34 @@ class InputBlockWrapper
     /// @brief Checks that the held object has a value.
     [[nodiscard]] auto hasValue() const -> bool;
 
+    /// @brief Returns true if the object held by this wrapper represents an active input.
+    ///
+    /// An input is active if: It has no public member named `active` or it has a public member `active` that is a
+    /// `boost::optional<bool>` type, and is either empty or `true`.
+    [[nodiscard]] auto active() const -> bool;
+
    private:
     std::any mInput;
+    std::function<bool(const std::any&)> mActive;
 };
+
+namespace detail
+{
+template <typename InputType>
+constexpr inline bool kHasActiveMember = requires(InputType aInput) {
+    { aInput.active } -> std::convertible_to<boost::optional<bool>>;
+};
+
+template <typename InputType>
+[[nodiscard]] auto active(const std::any& aInput) -> bool
+{
+    if constexpr (kHasActiveMember<InputType>)
+    {
+        return std::any_cast<const InputType&>(aInput).active.value_or(true);
+    }
+    return true;
+}
+}  // namespace detail
 
 /// @brief Type-erased wrapper for holding the parsed data of a component input block.
 struct InputDataBlock
@@ -51,7 +79,8 @@ struct InputDataBlock
 };
 
 template <typename T, typename>
-InputBlockWrapper::InputBlockWrapper(T&& aInitialValue) : mInput{std::forward<T>(aInitialValue)}
+InputBlockWrapper::InputBlockWrapper(T&& aInitialValue)
+    : mInput{std::forward<T>(aInitialValue)}, mActive{[](const std::any& aInput) { return detail::active<T>(aInput); }}
 {
 }
 
