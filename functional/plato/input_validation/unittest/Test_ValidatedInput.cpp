@@ -11,6 +11,7 @@
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace
 {
@@ -29,6 +30,11 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
                                (bool, superman, "")
                                (unsigned int, batman, "")
                                (GeometryCrossReference, multiverse, ""))
+
+PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
+                               dark_horse, plato::components::ComponentType::kObjective,
+                               (bool, active, "")
+                               (unsigned int, predator, ""))
 // clang-format on
 
 namespace plato::input_validation::unittest
@@ -207,6 +213,49 @@ TEST_F(ValidatedInputRegistrationFixture, ConstructionInvalidCrossLinkedInput)
 
     input_parser::registered_component_parsers().clear();
     input_parser::registered_cross_linkers().clear();
+}
+
+TEST(ValidatedInput, GetMemberWithInactiveObjectives)
+{
+    const auto tActiveObjectiveNames = std::vector<std::string>{"active", "default"};
+    const auto tActiveDarkHorse =
+        input_parser::dark_horse{/*.name=*/tActiveObjectiveNames.at(0), /*.active=*/true, /*.predator=*/10};
+    const auto tDefaultDarkHorse =
+        input_parser::dark_horse{/*.name=*/tActiveObjectiveNames.at(1), /*.active=*/boost::none, /*.predator=*/20};
+    const auto tInactiveDarkHorse =
+        input_parser::dark_horse{/*.name=*/std::string{"inactive"}, /*.active=*/false, /*.predator=*/30};
+
+    auto tInputs = std::vector<input_parser::InputDataBlock>{
+        input_parser::InputDataBlock{components::ComponentType::kObjective, "dark_horse",
+                                     input_parser::InputBlockWrapper{tActiveDarkHorse}},
+        input_parser::InputDataBlock{components::ComponentType::kObjective, "dark_horse",
+                                     input_parser::InputBlockWrapper{tDefaultDarkHorse}},
+        input_parser::InputDataBlock{components::ComponentType::kObjective, "dark_horse",
+                                     input_parser::InputBlockWrapper{tInactiveDarkHorse}}};
+
+    EXPECT_TRUE(tInputs.at(0).mInput.active());
+    EXPECT_TRUE(tInputs.at(1).mInput.active());
+    EXPECT_FALSE(tInputs.at(2).mInput.active());
+
+    const auto tParsedInput = input_parser::ParsedInput{std::move(tInputs)};
+    auto tCrossLinkedInput = input_parser::make_cross_linked_input(tParsedInput);
+    EXPECT_TRUE(tCrossLinkedInput.hasValue());
+    const auto tValidatedInputOrError = make_validated_input(tCrossLinkedInput.value());
+
+    ASSERT_TRUE(tValidatedInputOrError.hasValue()) << tValidatedInputOrError.error();
+    const auto& tValidatedInput = tValidatedInputOrError.value();
+
+    const auto tAllObjectivesInput = tValidatedInput.get<components::ComponentType::kObjective>().rawInput();
+    ASSERT_EQ(tAllObjectivesInput.size(), 2U);
+
+    for (const auto& [tObjectiveInput, tActiveObjectiveName] :
+         utilities::Zip{tAllObjectivesInput, tActiveObjectiveNames})
+    {
+        ASSERT_TRUE(tObjectiveInput.rawInput().mInput.holdsExpectedType<input_parser::dark_horse>());
+        const auto& tDarkHorseInput = tObjectiveInput.rawInput().mInput.get<input_parser::dark_horse>();
+        ASSERT_TRUE(tDarkHorseInput.name.has_value());
+        EXPECT_EQ(tDarkHorseInput.name.value(), tActiveObjectiveName);
+    }
 }
 
 TEST_F(ValidatedInputRegistrationFixture, GetMember)

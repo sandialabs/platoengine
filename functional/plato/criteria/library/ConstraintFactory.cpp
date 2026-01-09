@@ -1,6 +1,7 @@
 #include "plato/criteria/library/ConstraintFactory.hpp"
 
 #include <map>
+#include <ranges>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Compose.hpp"
@@ -9,7 +10,6 @@
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
-#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
@@ -18,9 +18,6 @@ namespace plato::criteria::library
 namespace
 {
 using ValidatedConstraint = input_validation::ValidatedInputDataBlock<components::ComponentType::kConstraint>;
-
-const auto kIsActive = [](const auto& aConstraint)
-{ return input_validation::is_active(input_validation::get_input_block<input_parser::constraint>(aConstraint)); };
 
 [[nodiscard]] auto make_vector_criterion(const ValidatedConstraint& aConstraintInput)
 {
@@ -63,12 +60,10 @@ const std::map<input_parser::ConstraintTypes, ConstraintType> kConstraintMap{
 auto make_constraints(const ValidatedConstraints& aInput)
     -> std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>
 {
-    auto tConstraints = std::vector<VectorConstraint<const analysis::AnalysisDomainMesh&>>{};
-    utilities::transform_if(
-        aInput.rawInput(), std::back_inserter(tConstraints),
-        [](const auto& aValidatedInput) { return detail::make_constraint(aValidatedInput); }, kIsActive);
-
-    return tConstraints;
+    const auto tConstraints =
+        aInput.rawInput() |
+        std::views::transform([](const auto& aValidatedInput) { return detail::make_constraint(aValidatedInput); });
+    return std::vector(tConstraints.begin(), tConstraints.end());
 }
 
 namespace detail

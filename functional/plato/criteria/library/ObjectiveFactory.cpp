@@ -3,12 +3,12 @@
 #include <boost/mpi/communicator.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #include <iterator>
+#include <ranges>
 
 #include "plato/core/ParallelFunction.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveReciprocal.hpp"
-#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVectorSerialization.hpp"
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
@@ -23,9 +23,6 @@ namespace
 using ValidatedObjective = input_validation::ValidatedInputDataBlock<components::ComponentType::kObjective>;
 using AggregateComm = utilities::NamedType<boost::mpi::communicator, struct AggregateCommTag>;
 using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct ObjectiveCommTag>;
-
-const auto kIsActive = [](const auto& aObjective)
-{ return input_validation::is_active(input_validation::get_input_block<input_parser::objective>(aObjective)); };
 
 [[nodiscard]] bool normalize_by_initial_value(const ValidatedObjective& aObjective)
 {
@@ -101,30 +98,29 @@ const auto kIsActive = [](const auto& aObjective)
                                                 const analysis::AnalysisDomainMesh& aGeometry)
     -> ParallelAggregateObjective
 {
-    using ObjectiveAndWeight = std::pair<ObjectiveFunction, double>;
-    std::vector<ObjectiveAndWeight> tFunctionsAndWeights;
-    utilities::transform_if(
-        aObjectives, std::back_inserter(tFunctionsAndWeights),
-        [&aObjectiveComm, &aGeometry](const auto& aObjectiveInput)
-        {
-            auto tFunction = make_parallel_criterion_function(aObjectiveInput, aObjectiveComm);
-            const auto tInitialNormalization = normalize_by_initial_value(aObjectiveInput)
-                                                   ? normalization_value(tFunction, aObjectiveComm, aGeometry)
-                                                   : 1.0;
-            const auto tWeight =
-                tInitialNormalization *
-                input_validation::get_input_block<input_parser::objective>(aObjectiveInput).aggregation_weight.value() *
-                objective_goal_scaling(aObjectiveInput);
+    const auto tToObjectivesAndWeights =
+        aObjectives |
+        std::views::transform(
+            [&aObjectiveComm, &aGeometry](const auto& aObjectiveInput)
+            {
+                auto tFunction = make_parallel_criterion_function(aObjectiveInput, aObjectiveComm);
+                const auto tInitialNormalization = normalize_by_initial_value(aObjectiveInput)
+                                                       ? normalization_value(tFunction, aObjectiveComm, aGeometry)
+                                                       : 1.0;
+                const auto tWeight = tInitialNormalization *
+                                     input_validation::get_input_block<input_parser::objective>(aObjectiveInput)
+                                         .aggregation_weight.value() *
+                                     objective_goal_scaling(aObjectiveInput);
 
-            return std::make_pair(std::move(tFunction), tWeight);
-        },
-        kIsActive);
+                return std::make_pair(std::move(tFunction), tWeight);
+            });
+    auto tFunctionsAndWeights = std::vector(tToObjectivesAndWeights.begin(), tToObjectivesAndWeights.end());
     return ParallelAggregateObjective{std::move(tFunctionsAndWeights), aAggregatorComm.mValue};
 }
 }  // namespace
 
-auto make_parallel_aggregate(const ValidatedObjectives& aInput, const analysis::AnalysisDomainMesh& aGeometry)
-    -> ParallelAggregateObjective
+auto make_parallel_aggregate(const ValidatedObjectives& aInput,
+                             const analysis::AnalysisDomainMesh& aGeometry) -> ParallelAggregateObjective
 {
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tObjectives = group_split_vector(aInput, tCommunicator);
@@ -141,14 +137,13 @@ auto make_aggregate_objective_function(const ValidatedObjectives& aInput, const 
 
 auto number_of_processors_per_objective(const ValidatedObjectives& aInput) -> std::vector<unsigned int>
 {
-    const auto tGetNumProcs = [](const auto& aObjective) {
-        return input_validation::get_input_block<input_parser::objective>(aObjective).number_of_processors.value_or(1U);
-    };
-
-    auto tNumberOfProcessors = std::vector<unsigned int>{};
-    utilities::transform_if(aInput.rawInput(), std::back_inserter(tNumberOfProcessors), tGetNumProcs,
-                            detail::kIsActive);
-    return tNumberOfProcessors;
+    const auto tNumberOfProcessors =
+        aInput.rawInput() | std::views::transform(
+                                [](const auto& aObjective) {
+                                    return input_validation::get_input_block<input_parser::objective>(aObjective)
+                                        .number_of_processors.value_or(1U);
+                                });
+    return std::vector(tNumberOfProcessors.begin(), tNumberOfProcessors.end());
 }
 
 }  // namespace plato::criteria::library

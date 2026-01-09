@@ -1,11 +1,21 @@
 #include <gtest/gtest.h>
 
+#include <boost/optional.hpp>
+
 #include "plato/input_parser/InputBlockData.hpp"
 #include "plato/test_utilities/CopyCounter.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::input_parser::unittest
 {
+namespace
+{
+struct Active
+{
+    boost::optional<bool> active = boost::none;
+};
+}  // namespace
+
 TEST(InputBlockWrapper, SetAndGet)
 {
     InputBlockWrapper tInput{};
@@ -94,6 +104,30 @@ TEST(InputBlockWrapper, Ctors)
         const auto tInputWithCounter2 = std::move(tInputWithCounter);
         EXPECT_EQ(tInputWithCounter2.get<test_utilities::CopyCounter>().mCopies, 0U);
         EXPECT_EQ(tInputWithCounter2.get<test_utilities::CopyCounter>().mMoves, 2U);
+    }
+}
+
+TEST(InputBlockWrapper, Active)
+{
+    // Default
+    {
+        const auto tInput = InputBlockWrapper{Active{}};
+        EXPECT_TRUE(tInput.active());
+    }
+    // True
+    {
+        const auto tInput = InputBlockWrapper{Active{true}};
+        EXPECT_TRUE(tInput.active());
+    }
+    // False
+    {
+        const auto tInput = InputBlockWrapper{Active{false}};
+        EXPECT_FALSE(tInput.active());
+    }
+    // No active field
+    {
+        const auto tInput = InputBlockWrapper{42};
+        EXPECT_TRUE(tInput.active());
     }
 }
 
