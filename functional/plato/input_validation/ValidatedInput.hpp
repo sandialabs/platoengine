@@ -2,6 +2,7 @@
 #define PLATO_INPUT_VALIDATION_VALIDATEDINPUT
 
 #include <filesystem>
+#include <ranges>
 
 #include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/CrossLinkedInput.hpp"
@@ -23,7 +24,9 @@ class ValidatedInput
    public:
     ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey&);
 
-    /// @brief Returns the parsed input blocks corresponding to @a kComponentType
+    /// @brief Returns the parsed input blocks corresponding to @a kComponentType.
+    /// @post Each input returned is guaranteed to be `active`: If its underlying input type has an `active` member
+    /// variable, it is either `true` or `boost::none`.
     template <components::ComponentType kComponentType>
     [[nodiscard]] auto get() const;
 
@@ -89,12 +92,13 @@ auto ValidatedInput::get() const
     }
     else
     {
-        auto tValidatedInputs = std::vector<ValidatedTypeWrapperForComponent>{};
-        std::transform(mRawInput.get<kComponentType>().cbegin(), mRawInput.get<kComponentType>().cend(),
-                       std::back_inserter(tValidatedInputs),
-                       [](const auto& aInputBlock) { return ValidatedTypeWrapperForComponent{aInputBlock}; });
+        auto tValidatedInputs =
+            mRawInput.get<kComponentType>() |
+            std::views::filter([](const auto& aInputBlock) { return aInputBlock.mInput.active(); }) |
+            std::views::transform([](const auto& aInputBlock)
+                                  { return ValidatedTypeWrapperForComponent{aInputBlock}; });
         return ValidatedInputTypeWrapper<std::vector<ValidatedTypeWrapperForComponent>, kComponentType>{
-            std::move(tValidatedInputs)};
+            std::vector(tValidatedInputs.begin(), tValidatedInputs.end())};
     }
 }
 
