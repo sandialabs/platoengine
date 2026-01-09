@@ -2,6 +2,7 @@
 #define PLATO_INPUT_VALIDATION_VALIDATEDINPUT
 
 #include <filesystem>
+#include <ranges>
 
 #include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/CrossLinkedInput.hpp"
@@ -91,13 +92,13 @@ auto ValidatedInput::get() const
     }
     else
     {
-        auto tValidatedInputs = std::vector<ValidatedTypeWrapperForComponent>{};
-        utilities::transform_if(
-            mRawInput.get<kComponentType>(), std::back_inserter(tValidatedInputs),
-            [](const auto& aInputBlock) { return ValidatedTypeWrapperForComponent{aInputBlock}; },
-            [](const auto& aInputBlock) { return aInputBlock.mInput.active(); });
+        auto tValidatedInputs =
+            mRawInput.get<kComponentType>() |
+            std::views::filter([](const auto& aInputBlock) { return aInputBlock.mInput.active(); }) |
+            std::views::transform([](const auto& aInputBlock)
+                                  { return ValidatedTypeWrapperForComponent{aInputBlock}; });
         return ValidatedInputTypeWrapper<std::vector<ValidatedTypeWrapperForComponent>, kComponentType>{
-            std::move(tValidatedInputs)};
+            std::vector(tValidatedInputs.begin(), tValidatedInputs.end())};
     }
 }
 
