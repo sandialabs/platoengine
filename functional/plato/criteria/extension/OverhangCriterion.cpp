@@ -56,6 +56,11 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
 {
     using namespace plato::third_party_integration::krino;
 
+    if (!aAnalysisDomainMesh.mBlockScalarField.empty())
+    {
+        throw utilities::Exception{"Criterion overhang may only be used with a non-density-based geometry."};
+    }
+
     auto tLogger = services::component_logger(mComponentType, mName);
     tLogger.logInfo("Evaluating criterion");
 
@@ -77,6 +82,11 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
 {
     using namespace plato::third_party_integration::krino;
+
+    if (!aAnalysisDomainMesh.mBlockScalarField.empty())
+    {
+        throw utilities::Exception{"Criterion overhang may only be used with a non-density-based geometry."};
+    }
 
     auto tLogger = services::component_logger(mComponentType, mName);
     tLogger.logInfo("Evaluating criterion gradient");
