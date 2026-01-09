@@ -1,6 +1,6 @@
 # Generates a list of headers to precompile. The headers are all those included with angle brackets,
 # as this is our standard for external library includes.
-function(pch_list ALL_FILES OUT_PCH_LIST)
+function(precompiled_header_list ALL_FILES OUT_precompiled_header_list)
     unset(RAW_HEADER_LIST)
     foreach(SRC ${ALL_FILES})
         if(NOT IS_ABSOLUTE ${SRC})
@@ -20,6 +20,6 @@ function(pch_list ALL_FILES OUT_PCH_LIST)
 
     list(REMOVE_DUPLICATES RAW_HEADER_LIST)
 
-    set(${OUT_PCH_LIST} "${RAW_HEADER_LIST}" PARENT_SCOPE)
+    set(${OUT_precompiled_header_list} "${RAW_HEADER_LIST}" PARENT_SCOPE)
 
-endfunction(pch_list)
+endfunction(precompiled_header_list)

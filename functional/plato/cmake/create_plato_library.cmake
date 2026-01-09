@@ -1,5 +1,5 @@
 include(${CMAKE_UTIL_DIR}/add_to_srcs_and_hdrs.cmake)
-include(${CMAKE_UTIL_DIR}/generate_pch.cmake)
+include(${CMAKE_UTIL_DIR}/generate_precompiled_headers.cmake)
 include(${CMAKE_UTIL_DIR}/clang_tidy_setup.cmake)
 
 # create_plato_header_library 
@@ -52,9 +52,9 @@ function(create_plato_library_impl LIBRARY_NAME DIRECTORIES TARGET_LINK_LIST LIB
     target_include_directories(${LIBRARY_NAME} INTERFACE $<INSTALL_INTERFACE:include/>)
 
     if(NOT ${EXPORT_TYPE} STREQUAL "INTERFACE")
-        pch_list("${LIB_HDRS}" LIB_HDR_PCH)
+        precompiled_header_list("${LIB_HDRS}" LIB_HDR_PCH)
         target_precompile_headers(${LIBRARY_NAME} PRIVATE ${LIB_HDR_PCH})
-        pch_list("${LIB_SRCS}" LIB_SRC_PCH)
+        precompiled_header_list("${LIB_SRCS}" LIB_SRC_PCH)
         target_precompile_headers(${LIBRARY_NAME} PRIVATE ${LIB_SRC_PCH})
     endif()
 

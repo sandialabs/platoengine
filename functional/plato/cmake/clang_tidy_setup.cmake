@@ -8,7 +8,7 @@ macro(clang_tidy_setup)
 
     set(CLANG_TIDY_EXTRA_ARCH_ARGS "")
     if(DEFINED ENV{SPACK_TARGET_ARGS_CXX})
-      # Add any spack CPU target flags that may conflict with generated PCH files
+      # Add any spack CPU target flags that may conflict with generated precompiled header (PCH) files
       set(SPACK_TARGET_ARGS_CXX $ENV{SPACK_TARGET_ARGS_CXX})
       string(REPLACE " " ";" SPACK_TARGET_ARGS_LIST "${SPACK_TARGET_ARGS_CXX}")
       foreach(FLAG ${SPACK_TARGET_ARGS_LIST})
@@ -31,7 +31,7 @@ endmacro(clang_tidy_setup)
 # targets_arch_flags: Searches LIBRARY_TARGET and its dependencies for any march or mtune flags.
 # A list of such flags is generated in ARCH_FLAGS_OUT.
 #
-# The purpose of this is to fix issues with clang-tidy, PCH, and spack/kokkos setting of march/mtune flags. Spack sets 
+# The purpose of this is to fix issues with clang-tidy, precompiled headers, and spack/kokkos setting of march/mtune flags. Spack sets 
 # march/mtune flags via an environment variable, but kokkos may set those flags differently. So we can't just set all targets
 # to use Spack's march/mtune flag since it may conflict with kokkos.
 function(targets_arch_flags LIBRARY_TARGET ARCH_FLAGS_OUT)
