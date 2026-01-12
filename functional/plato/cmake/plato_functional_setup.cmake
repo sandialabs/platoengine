@@ -15,6 +15,12 @@ macro(create_coverage_target)
     install( TARGETS CoverageInterface EXPORT PlatoEngine
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib)
+
+    add_custom_target(clean_coverage
+        COMMAND ${CMAKE_COMMAND} -P "${PLATO_BASE_DIR}/cmake/clean_gcda.cmake"
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+        COMMENT "Deleting all .gcda files")
+
 endmacro(create_coverage_target)
 
 macro(create_unittest_precompiled_header_target)
