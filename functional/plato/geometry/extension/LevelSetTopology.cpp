@@ -24,6 +24,7 @@
 #include "plato/output/OutputInfo.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
+#include "plato/utilities/MPIUtilities.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 
 namespace plato::geometry::extension
@@ -151,7 +152,11 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
 {
 }
 
-LevelSetTopology::~LevelSetTopology() { std::filesystem::remove(mCutMesh); }
+LevelSetTopology::~LevelSetTopology()
+{
+    utilities::execute_on_root(third_party_integration::krino::retrieve_mpi_communicator_from_krino(),
+                               [this]() { std::filesystem::remove(mCutMesh); });
+}
 
 auto bounds(const input_parser::level_set_topology& aInput) -> std::pair<std::vector<double>, std::vector<double>>
 {
