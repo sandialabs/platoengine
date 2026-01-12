@@ -58,7 +58,7 @@ TEST_F(TwoDThreeBlockMesh, NodalCoordinatesWithFixedBlocks)
     EXPECT_EQ(tExpectedNodalCoordinates, tDesignDomainNodes);
 }
 
-TEST_F(TwoDThreeBlockMesh, NodalIDsWithFixedBlocks)
+TEST_F(TwoDThreeBlockMesh, DesignDomainNodalIDsWithFixedBlocks)
 {
     const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[0]}};
     const auto tDesignDomainNodeIDs = EntityRetrieval{tMesh}.designDomainNodeIDs();
@@ -66,10 +66,18 @@ TEST_F(TwoDThreeBlockMesh, NodalIDsWithFixedBlocks)
     EXPECT_EQ(tExpectedNodalIDs, tDesignDomainNodeIDs);
 }
 
-TEST_F(TwoDThreeBlockMesh, NodalIDs)
+TEST_F(TwoDThreeBlockMesh, DesignDomainNodalIDsNoFixedBlocks)
 {
     const auto tMesh = Mesh{mMeshFilePath, {}};
     const auto tDesignDomainNodeIDs = EntityRetrieval{tMesh}.designDomainNodeIDs();
+    const auto tExpectedNodalIDs = std::vector<std::size_t>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U};
+    EXPECT_EQ(tExpectedNodalIDs, tDesignDomainNodeIDs);
+}
+
+TEST_F(TwoDThreeBlockMesh, AllNodalIDsWithFixedBlocks)
+{
+    const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[0]}};
+    const auto tDesignDomainNodeIDs = EntityRetrieval{tMesh}.allNodeIDs();
     const auto tExpectedNodalIDs = std::vector<std::size_t>{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U};
     EXPECT_EQ(tExpectedNodalIDs, tDesignDomainNodeIDs);
 }

@@ -22,6 +22,23 @@ struct Vector3
     double y = 0.0;
     double z = 0.0;
     auto operator==(const Vector3& aVector) const -> bool = default;
+    auto operator+=(const Vector3& aVector) -> Vector3&;
+};
+
+/// @brief Unit vector class. Always guaranteed to contain
+/// a normalized vector. If construction would result in a normalized
+/// vector of length 0 an exception is thrown (this will be caught in
+/// the normalize() function that takes a Vector3 as input).
+class UnitVector3
+{
+   public:
+    UnitVector3(const double aX, const double aY, const double aZ);
+    UnitVector3(const Vector3& aVector);
+
+    operator Vector3() const;
+
+   private:
+    Vector3 mVector;
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContainer)
@@ -113,6 +130,33 @@ template <typename Container3>
 [[nodiscard]] constexpr double magnitude(const Container3& aContainer)
 {
     return std::sqrt(aContainer.x * aContainer.x + aContainer.y * aContainer.y + aContainer.z * aContainer.z);
+}
+
+inline void normalize(Vector3& aVector)
+{
+    const double tMagnitude = magnitude(aVector);
+    if (std::fabs(tMagnitude) < std::numeric_limits<double>::min())
+    {
+        throw std::invalid_argument("Attempting to normalize a vector with length 0.");
+    }
+    aVector = aVector * (1.0 / tMagnitude);
+}
+
+inline UnitVector3::UnitVector3(const double aX, const double aY, const double aZ) : mVector{aX, aY, aZ}
+{
+    normalize(mVector);
+}
+
+inline UnitVector3::UnitVector3(const Vector3& aVector) : mVector(aVector) { normalize(mVector); }
+
+inline UnitVector3::operator Vector3() const { return mVector; }
+
+inline Vector3& Vector3::operator+=(const Vector3& aVector)
+{
+    x += aVector.x;
+    y += aVector.y;
+    z += aVector.z;
+    return *this;
 }
 
 }  // namespace plato::third_party_integration::common

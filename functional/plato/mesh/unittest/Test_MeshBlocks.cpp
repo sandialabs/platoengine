@@ -7,6 +7,7 @@
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::mesh::unittest

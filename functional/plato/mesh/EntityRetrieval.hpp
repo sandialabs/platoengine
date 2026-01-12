@@ -35,6 +35,9 @@ struct EntityRetrieval : public Mesh
     /// @brief Nodal Global IDs in the mesh only associated with the design domain (not fixed blocks).
     [[nodiscard]] auto designDomainNodeIDs() const -> std::vector<std::size_t>;
 
+    /// @brief All global node IDs in the mesh.
+    [[nodiscard]] auto allNodeIDs() const -> std::vector<std::size_t>;
+
     /// @brief Return a nodal field on the design domain only for a field @a aFieldName.
     /// @pre The field @a aFieldName exists on the nodes.
     /// @pre The time step @a aTimeStep exists on the mesh.

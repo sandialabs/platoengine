@@ -47,6 +47,14 @@ auto EntityRetrieval::designDomainNodeIDs() const -> std::vector<std::size_t>
     return third_party_integration::stk_io::node_ids(bulkData(), designDomainBlocks());
 }
 
+auto EntityRetrieval::allNodeIDs() const -> std::vector<std::size_t>
+{
+    auto tAllBlocks = designDomainBlocks();
+    const auto tFixedBlocks = fixedDomainBlocks();
+    tAllBlocks.insert(tAllBlocks.end(), tFixedBlocks.begin(), tFixedBlocks.end());
+    return third_party_integration::stk_io::node_ids(bulkData(), tAllBlocks);
+}
+
 auto EntityRetrieval::designDomainNodalField(const std::string_view aFieldName,
                                              const TimeStep aTimeStep) const -> std::vector<double>
 {

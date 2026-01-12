@@ -27,6 +27,9 @@ void setup_level_sets(::krino::MeshInterface& aKrinoMesh, const std::set<std::st
 [[nodiscard]] auto all_blocks_except(const ::krino::MeshInterface& aKrinoMesh,
                                      const std::set<std::string>& aExcludedBlocks) -> stk::mesh::PartVector;
 
+/// @brief Returns the string used to represent the void phase in krino.
+[[nodiscard]] auto void_phase_name() -> std::string_view;
+
 }  // namespace plato::third_party_integration::krino
 
 #endif

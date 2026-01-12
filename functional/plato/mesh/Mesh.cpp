@@ -1,10 +1,12 @@
 #include "plato/mesh/Mesh.hpp"
 
 #include <cassert>
+#include <format>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/utilities/Exception.hpp"
 
 namespace plato::mesh
 {
