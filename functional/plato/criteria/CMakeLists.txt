@@ -5,6 +5,7 @@ include(${CMAKE_UTIL_DIR}/create_plato_interface.cmake)
 set(DIRECTORIES library
                 extension)
 set(LINK_LIBS PlatoFunctionalCore
+              PlatoFunctionalInputParser 
               PlatoFunctionalLinearAlgebra
               PlatoFunctionalServices
               PlatoFunctionalMesh

@@ -7,6 +7,7 @@ set(FOLDERS library
             extension/kernel_filters)
 
 set(LINK_LIBS PlatoFunctionalCore
+              PlatoFunctionalInputParser 
               PlatoFunctionalLinearAlgebra
               PlatoFunctionalMesh
               PlatoFunctionalServices
