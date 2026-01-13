@@ -10,6 +10,8 @@
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/LoggingFunction.hpp"
+#include "plato/linear_algebra/DynamicVectorFormatter.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
@@ -83,8 +85,9 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
             ? make_criterion_function<VectorCriterionFunction, input_parser::constraint>(aConstraintInput)
             : make_vector_criterion(aConstraintInput);
 
-    const auto tConstraintWithSubset =
-        to_vector_subset_function(tCriterionFunction, tRawInput, tCriterionConfiguration);
+    const auto tConstraintWithSubset = to_vector_subset_function(
+        make_logging_function(tCriterionFunction, components::ComponentType::kConstraint, tRawInput.name.value()),
+        tRawInput, tCriterionConfiguration);
     auto tConstraintWithTargetOffset =
         to_target_offset_function(tConstraintWithSubset, tRawInput, tCriterionConfiguration);
     return VectorConstraint<const analysis::AnalysisDomainMesh&>{

@@ -2,17 +2,16 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <boost/numeric/conversion/cast.hpp>
-#include <iterator>
 #include <ranges>
 
 #include "plato/core/ParallelFunction.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/LoggingFunction.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveReciprocal.hpp"
 #include "plato/linear_algebra/DynamicVectorSerialization.hpp"
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
-#include "plato/utilities/TransformIf.hpp"
 
 namespace plato::criteria::library
 {
@@ -50,20 +49,25 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
 [[nodiscard]] auto make_parallel_criterion_function(const ValidatedObjective& aObjective,
                                                     const ObjectiveComm& aObjectiveComm)
 {
+    const auto tName = input_validation::get_input_block<input_parser::objective>(aObjective).name.value();
     if (is_parallel_objective(aObjective))
     {
+        auto tFunction = make_logging_function(
+            make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue)
+                .mFunction,
+            components::ComponentType::kObjective, tName);
+
         return core::adapt_parallel_function(
-            make_reciprocal_criterion_function(
-                make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue)
-                    .mFunction,
-                objective_goal(aObjective)),
+            make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective)),
             aObjectiveComm.mValue);
     }
     else
     {
-        return make_reciprocal_criterion_function(
+        auto tFunction = make_logging_function(
             make_criterion_function<CriterionFunction, input_parser::objective>(aObjective).mFunction,
-            objective_goal(aObjective));
+            components::ComponentType::kObjective, tName);
+
+        return make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective));
     }
 }
 
@@ -84,8 +88,8 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
     return utilities::group_split_vector(aInput.rawInput(), tGroupColor, utilities::SizeNamedType{tSplitSize});
 }
 
-[[nodiscard]] auto mpi_group(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
-    -> boost::mpi::communicator
+[[nodiscard]] auto mpi_group(const ValidatedObjectives& aInput,
+                             const boost::mpi::communicator& aComm) -> boost::mpi::communicator
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
     const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});
@@ -129,8 +133,8 @@ auto make_parallel_aggregate(const ValidatedObjectives& aInput, const analysis::
 }
 }  // namespace detail
 
-auto make_aggregate_objective_function(const ValidatedObjectives& aInput, const analysis::AnalysisDomainMesh& aGeometry)
-    -> ObjectiveFunction
+auto make_aggregate_objective_function(const ValidatedObjectives& aInput,
+                                       const analysis::AnalysisDomainMesh& aGeometry) -> ObjectiveFunction
 {
     return make_aggregate_function_with_first_derivative(detail::make_parallel_aggregate(aInput, aGeometry));
 }
