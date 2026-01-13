@@ -1,8 +1,9 @@
 #ifndef PLATO_THIRDPARTYINTEGRATION_KRINO_TRIANGLEUTILITIES
 #define PLATO_THIRDPARTYINTEGRATION_KRINO_TRIANGLEUTILITIES
 
+#include <stk_mesh/base/Types.hpp>
+
 #include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
-#include "stk_mesh/base/Types.hpp"
 
 namespace plato::third_party_integration::krino
 {
