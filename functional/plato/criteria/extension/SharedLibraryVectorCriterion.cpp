@@ -4,9 +4,8 @@
 #include <string_view>
 
 #include "plato/services/AppConfigurationUtilities.hpp"
+#include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
-#include "plato/services/SystemLogger.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 
 namespace plato::criteria::extension
 {
@@ -24,17 +23,6 @@ auto load_criterion_interface(const services::AppConfigurationWithDirectory& aAp
 using SerialFunctionSignature = std::unique_ptr<library::VectorCriterionInterface>(const std::vector<std::string>&);
 using ParallelFunctionSignature = std::unique_ptr<library::VectorCriterionInterface>(const std::vector<std::string>&,
                                                                                      MPI_Comm);
-
-/// @brief Writes the components of @a aVector to a string, limiting the number of components to @a
-/// aMaxNumberOfComponentsToOutput.
-[[nodiscard]] auto to_string(const linear_algebra::DynamicVector<double>& aVector,
-                             const std::size_t aMaxNumberOfComponentsToOutput) -> std::string
-{
-    const auto tNumberOfComponents = std::min(aMaxNumberOfComponentsToOutput, aVector.size());
-    auto tStream = std::stringstream{};
-    std::copy_n(aVector.stdVector().begin(), tNumberOfComponents, std::ostream_iterator<double>{tStream, " "});
-    return tStream.str();
-}
 
 }  // namespace
 
@@ -65,25 +53,15 @@ SharedLibraryVectorCriterion::SharedLibraryVectorCriterion(
 auto SharedLibraryVectorCriterion::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
     -> linear_algebra::DynamicVector<double>
 {
-    auto tLogger = services::component_logger(mComponentType, mName);
-    tLogger.logInfo("Evaluating vector criterion");
-
-    auto tCriterionValue =
-        linear_algebra::DynamicVector<double>(mCriterionInterface->object()->value(aAnalysisDomainMesh));
-
-    constexpr auto tMaxNumberOfComponentsToOutput = 15U;
-    tLogger.logInfo("Evaluation complete, values: \n" + to_string(tCriterionValue, tMaxNumberOfComponentsToOutput));
-
-    return tCriterionValue;
+    [[maybe_unused]] const auto tScopedLogger = services::ScopedExternalRedirectLogger{mComponentType, mName};
+    return linear_algebra::DynamicVector<double>(mCriterionInterface->object()->value(aAnalysisDomainMesh));
 }
 
 auto SharedLibraryVectorCriterion::rowVectorTimesJacobian(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     const linear_algebra::DynamicVector<double>& aDirectionVector) const -> linear_algebra::DynamicVector<double>
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        services::jacobian_task_message(), services::component_logger(mComponentType, mName)};
-
+    [[maybe_unused]] const auto tScopedLogger = services::ScopedExternalRedirectLogger{mComponentType, mName};
     return linear_algebra::DynamicVector<double>(
         mCriterionInterface->object()->rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector.stdVector()));
 }
@@ -92,9 +70,7 @@ auto SharedLibraryVectorCriterion::rowVectorTimesAdjointJacobian(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     const linear_algebra::DynamicVector<double>& aDualVector) const -> linear_algebra::DynamicVector<double>
 {
-    [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-        services::adjoint_jacobian_task_message(), services::component_logger(mComponentType, mName)};
-
+    [[maybe_unused]] const auto tScopedLogger = services::ScopedExternalRedirectLogger{mComponentType, mName};
     return linear_algebra::DynamicVector<double>(
         mCriterionInterface->object()->rowVectorTimesAdjointJacobian(aAnalysisDomainMesh, aDualVector.stdVector()));
 }
