@@ -34,9 +34,9 @@ class MeshOutput : public Mesh
     MeshOutput(Mesh aMeshBase);
     virtual ~MeshOutput() = default;
 
-    virtual void addFieldOnAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                              std::string_view aFieldName,
-                                              double aFixedValue) = 0;
+    virtual void addFieldFromAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                std::string_view aFieldName,
+                                                double aFixedValue) = 0;
 
     MeshOutput(const MeshOutput&) = delete;
     MeshOutput(MeshOutput&&) = delete;
@@ -44,21 +44,25 @@ class MeshOutput : public Mesh
     MeshOutput& operator=(MeshOutput&&) = delete;
 };
 
-using InputFilePath = utilities::NamedType<std::filesystem::path, struct InputFilePathTag>;
-using OutputFilePath = utilities::NamedType<std::filesystem::path, struct OutputFilePathTag>;
+/// @brief Given output mode @a aOutputMode, a source mesh @a aSourceAnalysisDomainMesh, the output file @a
+/// aOutputFilePath and a time step @a aTimeStep, return a MeshOutput pointer
+[[nodiscard]] auto mesh_output(OutputMode aOutputMode,
+                               analysis::AnalysisDomainMesh aSourceAnalysisDomainMesh,
+                               const std::filesystem::path& aOutputFilePath,
+                               const std::size_t aTimeStep) -> std::unique_ptr<MeshOutput>;
 
-/// @brief Factory function for creating the appropriate derived type of MeshOutput based on @a aOutputMode.
-/// @param aOutputMode Specifies whether to overwrite a mesh file or append to an existing file.
-/// @param aInputFilePath Path to an existing mesh, that will be used as the basis for the output. Not used for
-/// appending.
-/// @param aFixedBlocks A set of exodus block names, giving the fixed blocks in the mesh.
-/// @param aOutputFilePath The path at which to output the mesh data, must exist if appending.
-/// @param aTimeStep The time step at which to write the output.
-[[nodiscard]] auto make_mesh_output(OutputMode aOutputMode,
-                                    const InputFilePath& aInputFilePath,
-                                    const OutputFilePath& aOutputFilePath,
-                                    const std::set<std::string>& aFixedBlocks,
-                                    std::size_t aTimeStep = 1) -> std::unique_ptr<MeshOutput>;
+namespace detail
+{
+/// @brief return a MeshOutput ready for overwriting
+[[nodiscard]] auto overwrite_mesh_output(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                         const std::filesystem::path& aOutputFilePath,
+                                         const std::size_t aTimeStep) -> std::unique_ptr<MeshOutput>;
+
+/// @brief return a MeshOutput ready for appending
+[[nodiscard]] auto append_mesh_output(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                      const std::size_t aTimeStep) -> std::unique_ptr<MeshOutput>;
+
+}  // namespace detail
 
 }  // namespace plato::mesh
 

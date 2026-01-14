@@ -3,7 +3,7 @@
 
 #include "plato/filter/extension/HelmholtzFilter.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 
 namespace plato::filter::extension::test_utilities
 {

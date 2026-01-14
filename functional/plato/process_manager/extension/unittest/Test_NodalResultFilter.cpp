@@ -47,7 +47,7 @@ class NodalResultFilterRunFixture : public third_party_integration::stk_io::test
             mesh::NodalFieldVectorReference{tNodalField});
 
         constexpr auto tFixedValue = geometry::extension::density_fixed_value();
-        mesh::MeshFieldAppender{tMesh, kTimeSteps.back()}.addFieldOnAnalysisDomainMesh(
+        mesh::MeshFieldAppender{tMesh, kTimeSteps.back()}.addFieldFromAnalysisDomainMesh(
             tNodalAnalysisMesh, geometry::extension::density_mesh_field_name(), tFixedValue);
     }
 };

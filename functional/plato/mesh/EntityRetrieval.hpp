@@ -46,6 +46,10 @@ struct EntityRetrieval : public Mesh
 
     /// @brief Return a vector of nodal fields defined
     [[nodiscard]] auto nodalFields() const -> std::vector<std::string>;
+
+    /// @brief Return a pair containing the min coordinate and max coordinate of the bounding box of the design domain
+    [[nodiscard]] auto designDomainBoundingBox() const
+        -> std::pair<third_party_integration::common::Coordinate, third_party_integration::common::Coordinate>;
 };
 
 }  // namespace plato::mesh

@@ -8,6 +8,7 @@
 
 namespace plato::third_party_integration::common
 {
+
 struct Coordinate
 {
     double x = 0.0;
@@ -41,6 +42,9 @@ class UnitVector3
     Vector3 mVector;
 };
 
+template <typename T>
+concept Container3Type = std::is_same_v<T, Coordinate> || std::is_same_v<T, Vector3>;
+
 inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContainer)
 {
     stream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
@@ -53,7 +57,7 @@ inline std::ostream& operator<<(std::ostream& stream, const Vector3& aContainer)
     return stream;
 }
 
-template <typename Container3>
+template <Container3Type Container3>
 [[nodiscard]] constexpr Vector3 operator-(const Container3& p0, const Container3& p1)
 {
     return Vector3{/*.x=*/p0.x - p1.x,
@@ -70,7 +74,7 @@ template <typename Container3>
                    /*.z=*/a.x * b.y - a.y * b.x};
 }
 
-template <typename Container3>
+template <Container3Type Container3>
 [[nodiscard]] constexpr Container3 operator+(const Container3& p0, const Container3& p1)
 {
     return Container3{/*.x=*/p0.x + p1.x,
@@ -99,7 +103,7 @@ template <typename Container3>
                       /*.z=*/p0.z / divisor};
 }
 
-template <typename Container3>
+template <Container3Type Container3>
 [[nodiscard]] constexpr Container3 operator*(const Container3& p0, const double& scale)
 {
     return Container3{/*.x=*/p0.x * scale,
@@ -126,10 +130,26 @@ template <typename Container3>
     return Coordinate{std::floor(aInputCoord.x), std::floor(aInputCoord.y), std::floor(aInputCoord.z)};
 }
 
-template <typename Container3>
+template <Container3Type Container3>
 [[nodiscard]] constexpr double magnitude(const Container3& aContainer)
 {
     return std::sqrt(aContainer.x * aContainer.x + aContainer.y * aContainer.y + aContainer.z * aContainer.z);
+}
+
+/// @brief Return the componentwise minimum values in the two Container3s @a aContainerOne and @a aContainerTwo
+template <Container3Type Container3>
+[[nodiscard]] constexpr Container3 minimum_entries(const Container3& aContainerOne, const Container3& aContainerTwo)
+{
+    return Container3{std::min(aContainerOne.x, aContainerTwo.x), std::min(aContainerOne.y, aContainerTwo.y),
+                      std::min(aContainerOne.z, aContainerTwo.z)};
+}
+
+/// @brief Return the componentwise maximum values in the two Container3s @a aContainerOne and @a aContainerTwo
+template <Container3Type Container3>
+[[nodiscard]] constexpr Container3 maximum_entries(const Container3& aContainerOne, const Container3& aContainerTwo)
+{
+    return Container3{std::max(aContainerOne.x, aContainerTwo.x), std::max(aContainerOne.y, aContainerTwo.y),
+                      std::max(aContainerOne.z, aContainerTwo.z)};
 }
 
 inline void normalize(Vector3& aVector)

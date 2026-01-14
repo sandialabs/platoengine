@@ -38,14 +38,8 @@ template <typename Geometry>
 template <typename Geometry>
 [[nodiscard]] auto validate_mesh_file_exists(const Geometry& aInput) -> std::optional<std::string>
 {
-    const auto& tMeshFileName = aInput.mesh_name;
-    if (tMeshFileName.has_value() && !std::filesystem::exists(tMeshFileName.value().mToken))
-    {
-        return input_parser::block_name<Geometry>() +
-               ": The mesh_name entry does not refer to a valid input file. The entered path is " +
-               tMeshFileName.value().mToken;
-    }
-    return std::nullopt;
+    constexpr auto tMeshNameAccessor = [](const auto& aGeometryInput) { return aGeometryInput.mesh_name; };
+    return input_validation::error_message_for_missing_file_on_disk(aInput, tMeshNameAccessor, "mesh_name");
 }
 }  // namespace plato::geometry::library::detail
 

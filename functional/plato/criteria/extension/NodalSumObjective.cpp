@@ -19,8 +19,8 @@ const auto kConfiguration = services::CriterionConfiguration{
     .mName = std::string{NodalSumObjective::kCriterionName}, .mIsParallelized = false, .mIsScalar = true};
 
 [[maybe_unused]] static auto kNodalSumRegistration = Registration{
-    library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
-    [](const library::CriterionInput&) {
+    library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName), [](const library::CriterionInput&)
+    {
         return library::FunctionWithConfiguration{.mFunction = make_nodal_sum_function(),
                                                   .mConfiguration = kConfiguration};
     }};

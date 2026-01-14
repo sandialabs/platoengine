@@ -13,6 +13,7 @@ namespace plato::utilities
 /// @note If @a aBasePath does not contain a filename (as specified by `std::filesystem::path::has_filename`)
 /// then the path is returned without change.
 std::filesystem::path make_filename_unique(std::filesystem::path aBasePath);
+
 }  // namespace plato::utilities
 
 #endif

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <numeric>
 
+#include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -233,6 +234,23 @@ TEST_F(TwoDTwoBlockMesh, BlockNames)
 
     const auto tExpectedNames = std::vector<std::string>{mBlockNames[0], mBlockNames[1]};
     EXPECT_EQ(tExpectedNames, tMesh.blockNames());
+}
+
+TEST_F(TwoBlockMeshOnDisk, FixedBlockNames)
+{
+    const auto tFixedBlocks = std::set<std::string>{"block_1"};
+    const auto tAnalysisDomainMesh =
+        DesignVariablesConversion{Mesh{mMeshFilePath, tFixedBlocks}}.elementFieldToAnalysisDomainMesh(
+            ElementFieldVectorReference{std::vector(mExpectedNumberOfElementsInBlock2, 1.0)});
+    const auto tResultFixedBlocks = fixed_block_names(tAnalysisDomainMesh);
+    EXPECT_EQ(tResultFixedBlocks, tFixedBlocks);
+}
+
+TEST_F(TwoBlockMeshOnDisk, MeshBlockFixedBlockNames)
+{
+    const auto tFixedBlocks = std::set<std::string>{"block_1"};
+    const auto tResultFixedBlocks = MeshBlocks{Mesh{mMeshFilePath, tFixedBlocks}}.fixedBlockNames();
+    EXPECT_EQ(tResultFixedBlocks, tFixedBlocks);
 }
 
 }  // namespace plato::mesh::unittest

@@ -9,5 +9,6 @@ set(LINK_LIBS PlatoFunctionalUtilities
 create_plato_library(PlatoFunctionalMesh "." "${LINK_LIBS}")
 
 if( UNIT_TESTING )
-  create_plato_unittester(PlatoFunctionalMesh unittest PlatoFunctionalSTKIOTestUtilities)
+  set(LINK_LIBS PlatoFunctionalSTKIOTestUtilities)
+  create_plato_unittester(PlatoFunctionalMesh unittest "${LINK_LIBS}")
 endif()

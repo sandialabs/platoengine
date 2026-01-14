@@ -8,6 +8,7 @@
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Part.hpp>
 #include <stk_mesh/base/Selector.hpp>
+#include <utility>
 
 namespace plato::third_party_integration::stk_io
 {

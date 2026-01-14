@@ -1,14 +1,15 @@
 #include "plato/process_manager/extension/NodalResultFilter.hpp"
 
-#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
-#include "plato/geometry/extension/FixedBlockUtilities.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/mesh/FixedBlockUtilities.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
@@ -72,8 +73,7 @@ constexpr auto kRootRank = 0;
 [[nodiscard]] auto fixed_blocks(const library::ValidatedProcessManagerInput& aInput) -> std::set<std::string>
 {
     const auto tElementToNodeFilterInput = input_validation::get_input_block<input_parser::nodal_result_filter>(aInput);
-    return geometry::extension::fixed_blocks(
-        tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>());
+    return mesh::fixed_blocks(tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>());
 }
 
 /// @brief Splits @a aComm into one or two groups.
@@ -102,11 +102,12 @@ auto make_mesh_writer(const mesh::OutputMode aOutputMode,
     return std::make_unique<mesh::MeshFieldAppender>(mesh::Mesh{aOutputMeshPath, aFixedBlocks}, aTimeStep);
 }
 
-void write_nodal_filtered_results(const mesh::Mesh& aMesh,
-                                  const filter::extension::KernelFilter& aFilter,
-                                  const std::filesystem::path& aOutputMeshPath,
-                                  const std::set<std::string>& aFixedBlocks,
-                                  const boost::mpi::communicator& aComm)
+void write_nodal_filtered_results(
+    const mesh::Mesh& aMesh,
+    const filter::extension::kernel_filters::KernelFilter<input_parser::kernel_filter>& aFilter,
+    const std::filesystem::path& aOutputMeshPath,
+    const std::set<std::string>& aFixedBlocks,
+    const boost::mpi::communicator& aComm)
 {
     const auto tTimeSteps = mesh::EntityCounts{aMesh}.timeSteps();
     const auto tTemporaryOutputPath = utilities::make_filename_unique(aOutputMeshPath);
@@ -122,10 +123,13 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
             constexpr auto tFixedValue = geometry::extension::density_fixed_value();
             const auto tMode =
                 tTimeStep == tTimeSteps.front() ? mesh::OutputMode::kOverwrite : mesh::OutputMode::kAppend;
+
             const auto tWriter = make_mesh_writer(tMode, aMesh, tTemporaryOutputPath, aFixedBlocks, tTimeStep);
-            tWriter->addFieldOnAnalysisDomainMesh(tFilteredField, NodalResultFilter::field_name(), tFixedValue);
-            tWriter->addFieldOnAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
-                                                  tFixedValue);
+
+            tWriter->addFieldFromAnalysisDomainMesh(tFilteredField, NodalResultFilter::field_name(), tFixedValue);
+
+            tWriter->addFieldFromAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
+                                                    tFixedValue);
         }
         aComm.barrier();
     }
@@ -149,6 +153,7 @@ NodalResultFilter::NodalResultFilter(const library::ValidatedProcessManagerInput
 
 void NodalResultFilter::run() const
 {
+    namespace fek = filter::extension::kernel_filters;
     [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::nodal_result_filter>();
 
     const auto tMesh = mesh::Mesh{mInputMeshPath, mFixedBlockNames};
@@ -158,9 +163,10 @@ void NodalResultFilter::run() const
         const auto [tCommunicator, tGroupColor] = split_comm(mNumberOfProcessorsForFilter, tWorldCommunicator);
         if (tGroupColor == 0)
         {
-            const auto tFilter =
-                filter::extension::KernelFilter{tMesh, filter::extension::FilterRadius{mFilterRadius},
-                                                input_parser::KernelFilterCenteringTypes::kNodeCentered, tCommunicator};
+            const auto tKernelFilterType = fek::detail::make_kernel_filter_type(
+                mFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, tMesh);
+            const auto tFilter = fek::KernelFilter<input_parser::kernel_filter>{
+                fek::SourceMesh{tMesh}, fek::TargetMesh{tMesh}, tKernelFilterType, tCommunicator};
             write_nodal_filtered_results(tMesh, tFilter, mOutputMeshPath, mFixedBlockNames, tCommunicator);
         }
         tWorldCommunicator.barrier();

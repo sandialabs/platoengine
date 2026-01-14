@@ -119,8 +119,8 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
 }
 }  // namespace
 
-auto make_parallel_aggregate(const ValidatedObjectives& aInput,
-                             const analysis::AnalysisDomainMesh& aGeometry) -> ParallelAggregateObjective
+auto make_parallel_aggregate(const ValidatedObjectives& aInput, const analysis::AnalysisDomainMesh& aGeometry)
+    -> ParallelAggregateObjective
 {
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tObjectives = group_split_vector(aInput, tCommunicator);
@@ -139,7 +139,8 @@ auto number_of_processors_per_objective(const ValidatedObjectives& aInput) -> st
 {
     const auto tNumberOfProcessors =
         aInput.rawInput() | std::views::transform(
-                                [](const auto& aObjective) {
+                                [](const auto& aObjective)
+                                {
                                     return input_validation::get_input_block<input_parser::objective>(aObjective)
                                         .number_of_processors.value_or(1U);
                                 });

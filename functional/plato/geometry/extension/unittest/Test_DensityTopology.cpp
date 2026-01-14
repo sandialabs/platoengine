@@ -8,7 +8,8 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
@@ -18,6 +19,8 @@
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/Mesh.hpp"
+#include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -25,6 +28,7 @@
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
+#include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -48,9 +52,12 @@ void create_small_mesh(const std::string& aFileName)
 
 auto make_test_kernel_filter(const std::filesystem::path& aMeshFile)
 {
-    const auto tFilter = std::make_shared<filter::extension::KernelFilter>(
-        mesh::Mesh{aMeshFile}, filter::extension::FilterRadius{3.25},
-        input_parser::KernelFilterCenteringTypes::kElementCentered, boost::mpi::communicator{});
+    namespace fek = filter::extension::kernel_filters;
+    const auto tKernelFilterType = fek::detail::make_kernel_filter_type(
+        /*FilterRadius*/ 3.25, input_parser::KernelFilterCenteringTypes::kElementCentered, mesh::Mesh{aMeshFile});
+    const auto tFilter = std::make_shared<fek::KernelFilter<input_parser::kernel_filter>>(
+        fek::SourceMesh{mesh::Mesh{aMeshFile}}, fek::TargetMesh{mesh::Mesh{aMeshFile}}, tKernelFilterType,
+        boost::mpi::communicator{});
 
     return filter::test_utilities::make_filter_function(tFilter);
 }

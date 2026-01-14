@@ -1,9 +1,9 @@
 #ifndef PLATO_GEOMETRY_EXTENSION_MESHVALIDATIONUTILITIES
 #define PLATO_GEOMETRY_EXTENSION_MESHVALIDATIONUTILITIES
 
-#include "plato/geometry/extension/FixedBlockUtilities.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/mesh/FixedBlockUtilities.hpp"
 #include "plato/mesh/Mesh.hpp"
 
 namespace plato::geometry::extension
@@ -42,7 +42,7 @@ template <typename Geometry>
 [[nodiscard]] auto mesh_from_input(const Geometry& aInput) -> mesh::Mesh
 {
     assert(aInput.mesh_name.has_value());
-    return mesh::Mesh{aInput.mesh_name.value().mToken, fixed_blocks(aInput)};
+    return mesh::Mesh{aInput.mesh_name.value().mToken, mesh::fixed_blocks(aInput)};
 }
 
 template <typename Geometry>

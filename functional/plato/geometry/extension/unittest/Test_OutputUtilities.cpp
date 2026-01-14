@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 
 #include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/output/OutputInfo.hpp"
@@ -31,7 +33,8 @@ auto analysis_domain_mesh_with_constant_entries(analysis::AnalysisDomainMesh aAn
     for (auto& [tBlockID, tBlockEntries] : aAnalysisDomainMesh.mBlockScalarField)
     {
         std::transform(tBlockEntries.cbegin(), tBlockEntries.cend(), tBlockEntries.begin(),
-                       [aValue](const auto& aEntry) {
+                       [aValue](const auto& aEntry)
+                       {
                            return analysis::ScalarFieldValue{aEntry.mGlobalMeshEntityID,
                                                              aEntry.mDesignVariableVectorIndex, aValue};
                        });
@@ -55,30 +58,38 @@ constexpr auto kControlFieldName = std::string_view{"control"};
 constexpr auto kFilteredFieldName = std::string_view{"filtered"};
 }  // namespace
 
-TEST_F(OutputUtilitiesTest, OutputNodalFieldOneBlockMeshFiltered)
+TEST_F(OutputUtilitiesTest, OutputUnfilteredNodalField)
 {
-    const auto tMeshOutputInfo = MeshFieldOutputInfo{mesh::Mesh{mMeshFilePath}, kTestOutputPath,    {},
-                                                     kControlFieldName,         kFilteredFieldName, kFixedValue};
     const auto tSolution = solution_vector();
-    constexpr auto tFilteredFieldValue = 0.5;
-    const auto tFilteredMesh = output_nodal_field(tMeshOutputInfo, constant_value_filter_function(tFilteredFieldValue),
-                                                  tSolution, output::kOverwriteInfo);
+    const auto tAnalysisDomainMesh =
+        mesh::DesignVariablesConversion{mesh::Mesh{mMeshFilePath}}.nodalFieldToAnalysisDomainMesh(
+            mesh::NodalFieldVectorReference{tSolution.stdVector()});
 
+    output_field(tAnalysisDomainMesh, kTestOutputPath, kControlFieldName, kFixedValue, output::kOverwriteInfo);
     const auto tReadControlField =
         third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(kTestOutputPath, kControlFieldName);
     EXPECT_EQ(tReadControlField, tSolution.stdVector());
+    std::filesystem::remove(kTestOutputPath);
+}
 
+TEST_F(OutputUtilitiesTest, OutputFilteredField)
+{
+    const auto tSolution = solution_vector();
+    constexpr auto tFilteredFieldValue = 0.5;
+    const auto tFilterFunction = constant_value_filter_function(tFilteredFieldValue);
+    const auto tAnalysisDomainMesh =
+        mesh::DesignVariablesConversion{mesh::Mesh{mMeshFilePath}}.nodalFieldToAnalysisDomainMesh(
+            mesh::NodalFieldVectorReference{tSolution.stdVector()});
+    const auto tFilteredFieldAnalysisDomainMesh =
+        tFilterFunction.evaluate<core::evaluation::kFunction>(tAnalysisDomainMesh);
+
+    output_field(tFilteredFieldAnalysisDomainMesh, kTestOutputPath, kFilteredFieldName, kFixedValue,
+                 output::kOverwriteInfo);
+
+    const auto tExpectedFilteredField = std::vector<double>(mCommandGenerator.numberOfNodes(), tFilteredFieldValue);
     const auto tReadFilteredField = third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(
         kTestOutputPath, kFilteredFieldName);
-    auto tExpectedFilteredField = std::vector<double>(mCommandGenerator.numberOfNodes());
-    std::fill(tExpectedFilteredField.begin(), tExpectedFilteredField.end(), tFilteredFieldValue);
     EXPECT_EQ(tReadFilteredField, tExpectedFilteredField);
-
-    EXPECT_EQ(tFilteredMesh.mBlockScalarField.at(1U).size(), mCommandGenerator.numberOfNodes());
-    for (const auto& aScalarFieldValue : tFilteredMesh.mBlockScalarField.at(1U))
-    {
-        EXPECT_EQ(aScalarFieldValue.mValue, tFilteredFieldValue);
-    }
 
     std::filesystem::remove(kTestOutputPath);
 }

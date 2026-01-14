@@ -1,5 +1,7 @@
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 
+#include "plato/input_parser/FileList.hpp"
+
 namespace plato::filter::extension::test_utilities
 {
 auto create_valid_helmholtz_filter_input() -> input_parser::helmholtz_filter

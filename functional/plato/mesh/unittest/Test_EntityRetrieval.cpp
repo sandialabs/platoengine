@@ -5,6 +5,7 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 
@@ -15,6 +16,7 @@ namespace
 
 using third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using EntityRetrievalThreeDTwoBlockTetMesh = third_party_integration::stk_io::test_utilities::ThreeDTwoBlockTetMesh;
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
@@ -135,4 +137,52 @@ TEST_F(MeshWithNodalDensities, NodalFields)
     EXPECT_EQ(tGold, tResult);
 }
 
+namespace
+{
+
+const auto kCheckBounds = [](const auto& aResult, const auto& aGold, const test_utilities::TestContext& aTestContext)
+{
+    third_party_integration::common::test_utilities::test_double_equality_of_components(aResult.first, aGold.first,
+                                                                                        aTestContext);
+    third_party_integration::common::test_utilities::test_double_equality_of_components(aResult.second, aGold.second,
+                                                                                        aTestContext);
+};
+
+}  // namespace
+
+TEST_F(TwoDThreeBlockMesh, DesignDomainBoundingBox)
+{
+    const auto tMesh = EntityRetrieval{Mesh{mMeshFilePath}};
+    const auto tBounds = tMesh.designDomainBoundingBox();
+    const auto tBoundsGold = std::make_pair(third_party_integration::common::Coordinate{-2, -1, 0},
+                                            third_party_integration::common::Coordinate{2, 1, 0});
+    kCheckBounds(tBounds, tBoundsGold, TEST_CONTEXT("Checking bounds on entire TwoDThreeBlockMesh"));
+}
+
+TEST_F(TwoDThreeBlockMesh, DesignDomainBoundingBoxWithFixedBlocks)
+{
+    const auto tMesh = EntityRetrieval{Mesh{mMeshFilePath, {mBlockNames[0]}}};
+    const auto tBounds = tMesh.designDomainBoundingBox();
+    const auto tBoundsGold = std::make_pair(third_party_integration::common::Coordinate{-2, 0, 0},
+                                            third_party_integration::common::Coordinate{2, 1, 0});
+    kCheckBounds(tBounds, tBoundsGold, TEST_CONTEXT("Checking bounds with block_1 fixed in TwoDThreeBlockMesh"));
+}
+
+TEST_F(EntityRetrievalThreeDTwoBlockTetMesh, DesignDomainBoundingBox)
+{
+    const auto tMesh = EntityRetrieval{Mesh{mMeshFilePath}};
+    const auto tBounds = tMesh.designDomainBoundingBox();
+    const auto tBoundsGold = std::make_pair(third_party_integration::common::Coordinate{0, -1, -1},
+                                            third_party_integration::common::Coordinate{1, 0, 3});
+    kCheckBounds(tBounds, tBoundsGold, TEST_CONTEXT("Checking bounds with block_1 fixed in ThreeDTwoBlockTetMesh"));
+}
+
+TEST_F(EntityRetrievalThreeDTwoBlockTetMesh, DesignDomainBoundingBoxWithFixedBlocks)
+{
+    const auto tMesh = EntityRetrieval{Mesh{mMeshFilePath, {mBlockNames[1]}}};
+    const auto tBounds = tMesh.designDomainBoundingBox();
+    const auto tBoundsGold = std::make_pair(third_party_integration::common::Coordinate{0, -1, -1},
+                                            third_party_integration::common::Coordinate{1, 0, 1});
+    kCheckBounds(tBounds, tBoundsGold, TEST_CONTEXT("Checking bounds with block_2 fixed in ThreeDTwoBlockTetMesh"));
+}
 }  // namespace plato::mesh::unittest

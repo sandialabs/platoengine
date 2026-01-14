@@ -16,4 +16,5 @@ std::filesystem::path make_filename_unique(std::filesystem::path aBasePath)
     aBasePath.replace_filename(tNewFileName);
     return aBasePath;
 }
+
 }  // namespace plato::utilities

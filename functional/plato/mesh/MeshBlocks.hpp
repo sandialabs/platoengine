@@ -7,6 +7,11 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/common/BlockData.hpp"
 
+namespace plato::analysis
+{
+struct AnalysisDomainMesh;
+}
+
 namespace plato::mesh
 {
 /// @brief A mixin class extending Mesh and providing operations on mesh blocks.
@@ -45,13 +50,19 @@ struct MeshBlocks : public Mesh
 
     /// @brief Returns all the block names found in the mesh, which is mainly useful for error messages.
     [[nodiscard]] auto blockNames() const -> std::vector<std::string>;
+
+    /// @brief Returns all the fixed block names found in the mesh
+    [[nodiscard]] auto fixedBlockNames() const -> std::set<std::string>;
 };
 
 /// @brief Converts all ordinals @a aBlockOrdinals (which are used by stk) to block IDs, which are used by
 /// AnalysisDomainMesh.
 /// @pre All ordinals in @a aBlockOrdinals are valid block ordinals in @a aMesh. Checked by an assertion.
-auto block_ids(const Mesh& aMesh, const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)
+[[nodiscard]] auto block_ids(const Mesh& aMesh, const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)
     -> std::vector<MeshBlocks::BlockIDType>;
+
+/// @brief Return the fixed block names used in @a aAnalysisDomainMesh
+[[nodiscard]] auto fixed_block_names(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> std::set<std::string>;
 
 }  // namespace plato::mesh
 

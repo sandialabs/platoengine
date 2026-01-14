@@ -83,20 +83,10 @@ class LevelSetTopology
     LevelSetTopology& operator=(const LevelSetTopology&) = delete;
     LevelSetTopology& operator=(LevelSetTopology&&) = delete;
 
-    /// @brief Returns the bounds on the design variables.
-    /// @return Design variable bounds vectors, `.first` containing the lower bounds and `.second` containing the upper
-    /// bounds. The size of each vector will match the total number of design variables.
-    [[nodiscard]] auto bounds() const -> std::pair<std::vector<double>, std::vector<double>>;
-
-    /// @brief Returns the initial guess design variable vector.
-    /// @return The size of the returned vector is equal to the number of design variables, which will be the number of
-    /// nodes in design domain of the background mesh.
-    [[nodiscard]] auto initialGuess() const -> linear_algebra::DynamicVector<double>;
-
     /// @brief Writes a cut mesh to disk based on the design variables @a aDesignParameter.
     /// @param aDesignParameter The vector size must be equal to the number of design variables.
     /// @return An AnalysisDomainMesh, only containing the location of the cut mesh on disk.
-    [[nodiscard]] auto generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameter) const
+    [[nodiscard]] auto generateMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
         -> analysis::AnalysisDomainMesh;
 
     /// @brief Writes user output corresponding to the input parameters in @a aInput.
@@ -111,21 +101,17 @@ class LevelSetTopology
     /// @brief Returns a JacobianMultiplier function object that computes the row-vector-Jacobian-product of the
     /// level-set operation evaluated at @a aDesignParameter.
     /// @param aDesignParameter The vector size must be equal to the number of design variables.
-    [[nodiscard]] auto jacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
+    [[nodiscard]] auto jacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
         -> linear_algebra::JacobianMultiplier;
 
     /// @brief Returns an AdjointJacobianMultiplier function object that computes the
     /// row-vector-adjoint-Jacobian-product of the level-set operation evaluated at @a aDesignParameter.
     /// @param aDesignParameter The vector size must be equal to the number of design variables.
-    [[nodiscard]] auto adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameter) const
+    [[nodiscard]] auto adjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
         -> linear_algebra::AdjointJacobianMultiplier;
-
-    /// @brief Returns the background mesh on which the level-set field is defined.
-    [[nodiscard]] auto backgroundMesh() const -> const mesh::Mesh&;
 
    private:
     input_parser::level_set_topology mInput;
-    mesh::Mesh mBackgroundMesh;
     std::filesystem::path mCutMesh;
     std::filesystem::path mOutputMesh;
     third_party_integration::krino::VoidPhase mVoidRegion;
@@ -136,19 +122,30 @@ class LevelSetTopology
 };
 
 /// @brief Create a LevelSetTopology Geometry function with a filter.
-[[nodiscard]] auto make_level_set_geometry(const std::shared_ptr<LevelSetTopology>& aLevelSetTopology,
+[[nodiscard]] auto make_level_set_geometry(const input_parser::level_set_topology& aInput,
                                            const filter::library::FilterFunction& aFilterFunction)
     -> library::GeometryFunction;
-
-/// @brief The name of the output file containing the unfiltered level-set field, which may be used as a restart
-/// file.
-[[nodiscard]] auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path;
 
 /// @brief The label of the unfiltered level-set field used in the output mesh.
 [[nodiscard]] constexpr auto level_set_mesh_field_name() -> std::string_view;
 
 /// @brief The label of the filtered level-set field used in the output mesh.
 [[nodiscard]] constexpr auto filtered_level_set_mesh_field_name() -> std::string_view;
+
+[[nodiscard]] auto filtered_level_set_mesh_name(const input_parser::level_set_topology& aInput)
+    -> std::filesystem::path;
+
+/// @brief Returns the bounds on the design variables.
+/// @return Design variable bounds vectors, `.first` containing the lower bounds and `.second` containing the upper
+/// bounds. The size of each vector will match the total number of design variables.
+[[nodiscard]] auto bounds(const input_parser::level_set_topology& aInput)
+    -> std::pair<std::vector<double>, std::vector<double>>;
+
+/// @brief Returns the initial guess design variable vector.
+/// @return The size of the returned vector is equal to the number of design variables, which will be the number of
+/// nodes in design domain of the background mesh.
+[[nodiscard]] auto initial_guess(const input_parser::level_set_topology& aInput)
+    -> linear_algebra::DynamicVector<double>;
 
 namespace detail
 {

@@ -5,13 +5,6 @@
 
 namespace plato::third_party_integration::stk_search
 {
-namespace
-{
-const auto kDefaultSTKSearch = stk::search::KDTREE;
-constexpr bool kEnforceSearchSymmetry = false;
-constexpr bool kAutoSwapDomainAndRange = false;
-
-}  // namespace
 
 SearchPoint convert_coordinate(const common::Coordinate& aCoordinate)
 {
@@ -23,24 +16,16 @@ common::Coordinate convert_search_point(const SearchPoint& aSearchPoint)
     return {aSearchPoint.get_x_min(), aSearchPoint.get_y_min(), aSearchPoint.get_z_min()};
 }
 
-SearchResults perform_stk_search(const std::vector<SearchSphereWithIdentifier>& aLocalSearchSphereWithIdentifier,
-                                 const std::vector<SearchPointWithIdentifier>& aLocalSearchPointWithIdentifiers,
-                                 const boost::mpi::communicator& aCommunicator)
-{
-    if (aLocalSearchSphereWithIdentifier.empty() || aLocalSearchPointWithIdentifiers.empty())
-    {
-        return SearchResults{};
-    }
-
-    SearchResults tSearchResults;
-    stk::search::coarse_search(aLocalSearchSphereWithIdentifier, aLocalSearchPointWithIdentifiers, kDefaultSTKSearch,
-                               aCommunicator, tSearchResults, kEnforceSearchSymmetry, kAutoSwapDomainAndRange);
-    return tSearchResults;
-}
-
 SearchSphere create_sphere(const common::Coordinate& aCenter, const STKRadius aRadius)
 {
     return SearchSphere{{aCenter.x, aCenter.y, aCenter.z}, aRadius.mValue};
+}
+
+SearchBox search_box(const STKBoxCenter& aCenter, const STKBoxDimension& aDimensions)
+{
+    return SearchBox{aCenter.mValue.x - aDimensions.mValue.x / 2.0, aCenter.mValue.y - aDimensions.mValue.y / 2.0,
+                     aCenter.mValue.z - aDimensions.mValue.z / 2.0, aCenter.mValue.x + aDimensions.mValue.x / 2.0,
+                     aCenter.mValue.y + aDimensions.mValue.y / 2.0, aCenter.mValue.z + aDimensions.mValue.z / 2.0};
 }
 
 std::vector<SearchPointWithIdentifier> search_points_with_identifiers(
@@ -50,9 +35,8 @@ std::vector<SearchPointWithIdentifier> search_points_with_identifiers(
     int tIndex = -1;
     std::transform(
         aCoordinates.begin(), aCoordinates.end(), std::back_inserter(tSearchPointWithIdentifiers),
-        [tIndex](const auto& iNode) mutable {
-            return SearchPointWithIdentifier{SearchPoint{iNode.x, iNode.y, iNode.z}, Identifier{++tIndex, 0}};
-        });
+        [tIndex](const auto& iNode) mutable
+        { return SearchPointWithIdentifier{SearchPoint{iNode.x, iNode.y, iNode.z}, Identifier{++tIndex, 0}}; });
     return tSearchPointWithIdentifiers;
 }
 

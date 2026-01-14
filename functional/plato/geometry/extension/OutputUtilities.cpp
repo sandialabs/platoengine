@@ -4,39 +4,39 @@
 #include <cassert>
 #include <memory>
 
-#include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/MeshOutput.hpp"
 #include "plato/output/OutputInfo.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 
 namespace plato::geometry::extension
 {
-auto output_nodal_field(const MeshFieldOutputInfo& aMeshOutputInfo,
-                        const filter::library::FilterFunction& aFilterFunction,
-                        const linear_algebra::DynamicVector<double>& aSolution,
-                        const output::OutputInfo& aOutputInfo) -> analysis::AnalysisDomainMesh
+namespace
 {
-    const auto tNodalDesignParameters =
-        mesh::DesignVariablesConversion{aMeshOutputInfo.mInputMesh}.nodalFieldToAnalysisDomainMesh(
-            mesh::NodalFieldVectorReference{aSolution.stdVector()});
-    auto tFilteredDesignParameters = aFilterFunction.evaluate<core::evaluation::kFunction>(tNodalDesignParameters);
+void output_field_impl(const MeshFieldOutputInfo& aMeshFieldOutputInfo)
+{
+    const auto tMeshOutput = mesh::mesh_output(
+        mesh::output_mode(aMeshFieldOutputInfo.mOutputInfo.mOverwrite), aMeshFieldOutputInfo.mSourceAnalysisDomainMesh,
+        aMeshFieldOutputInfo.mOutputPath, aMeshFieldOutputInfo.mOutputInfo.mIteration);
 
-    utilities::execute_on_root(
-        boost::mpi::communicator{},
-        [&aMeshOutputInfo, &aOutputInfo, &tFilteredDesignParameters, &tNodalDesignParameters]()
-        {
-            const auto tMeshOutput = mesh::make_mesh_output(mesh::output_mode(aOutputInfo.mOverwrite),
-                                                            mesh::InputFilePath{aMeshOutputInfo.mInputMesh.filePath()},
-                                                            mesh::OutputFilePath{aMeshOutputInfo.mOutputPath},
-                                                            aMeshOutputInfo.mFixedBlocks, aOutputInfo.mIteration);
-            assert(tMeshOutput);
-
-            tMeshOutput->addFieldOnAnalysisDomainMesh(tFilteredDesignParameters, aMeshOutputInfo.mFilteredFieldName,
-                                                      aMeshOutputInfo.mFixedFieldValue);
-            tMeshOutput->addFieldOnAnalysisDomainMesh(tNodalDesignParameters, aMeshOutputInfo.mControlFieldName,
-                                                      aMeshOutputInfo.mFixedFieldValue);
-        });
-
-    return tFilteredDesignParameters;
+    assert(tMeshOutput);
+    tMeshOutput->addFieldFromAnalysisDomainMesh(aMeshFieldOutputInfo.mSourceAnalysisDomainMesh,
+                                                aMeshFieldOutputInfo.mFieldName, aMeshFieldOutputInfo.mFixedFieldValue);
 }
+}  // namespace
+
+void output_field(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                  const std::filesystem::path& aRestartFileName,
+                  const std::string_view aFieldName,
+                  const double aFixedValue,
+                  const output::OutputInfo& aOutputInfo)
+{
+    const auto tMeshFieldOutputInfo = MeshFieldOutputInfo{.mOutputPath = aRestartFileName,
+                                                          .mSourceAnalysisDomainMesh = std::cref(aAnalysisDomainMesh),
+                                                          .mFieldName = aFieldName,
+                                                          .mFixedFieldValue = aFixedValue,
+                                                          .mOutputInfo = aOutputInfo};
+    utilities::execute_on_root(boost::mpi::communicator{},
+                               [&tMeshFieldOutputInfo]() { output_field_impl(tMeshFieldOutputInfo); });
+}
+
 }  // namespace plato::geometry::extension

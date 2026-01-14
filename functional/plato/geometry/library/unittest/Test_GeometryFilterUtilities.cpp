@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "plato/filter/extension/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
@@ -32,10 +33,13 @@ auto analysis_domain_mesh_test_data(const mesh::Mesh& aMesh) -> analysis::Analys
 
 auto make_kernel_filter_test_function(const std::filesystem::path& aMeshFilePath) -> filter::library::FilterFunction
 {
-    constexpr auto tFilterRadius = filter::extension::FilterRadius{1.0};
+    namespace fek = filter::extension::kernel_filters;
+    constexpr auto tFilterRadius = 1.0;
     const auto tMesh = mesh::Mesh{aMeshFilePath};
-    const auto tKernelFilter = std::make_shared<filter::extension::KernelFilter>(
-        tMesh, tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, boost::mpi::communicator{});
+    const auto tKernelFilterType = fek::detail::make_kernel_filter_type(
+        tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, tMesh);
+    const auto tKernelFilter = std::make_shared<fek::KernelFilter<input_parser::kernel_filter>>(
+        fek::SourceMesh{tMesh}, fek::TargetMesh{tMesh}, tKernelFilterType, boost::mpi::communicator{});
 
     return filter::test_utilities::make_filter_function(tKernelFilter);
 }

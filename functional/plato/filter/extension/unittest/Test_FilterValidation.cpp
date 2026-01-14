@@ -5,6 +5,8 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::filter::extension::unittest
 {
@@ -75,11 +77,11 @@ TEST(FilterValidation, CheckFilterValuesKernelRadiusBounds)
 TEST(FilterValidation, CheckFilterValuesKernelCenteringType)
 {
     auto tFilter = test_utilities::create_valid_kernel_filter_input();
-    EXPECT_FALSE(detail::validate_kernel_filter_centering_type(tFilter).has_value());  // valid
+    EXPECT_FALSE(detail::validate_filter_centering_type(tFilter).has_value());  // valid
     tFilter.centering_type = boost::none;
-    EXPECT_TRUE(detail::validate_kernel_filter_centering_type(tFilter).has_value());  // must be defined
+    EXPECT_TRUE(detail::validate_filter_centering_type(tFilter).has_value());  // must be defined
     tFilter.centering_type = input_parser::KernelFilterCenteringTypes::kElementCentered;
-    EXPECT_FALSE(detail::validate_kernel_filter_centering_type(tFilter).has_value());  // must be defined
+    EXPECT_FALSE(detail::validate_filter_centering_type(tFilter).has_value());  // must be defined
 }
 
 TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusWithMesh)
