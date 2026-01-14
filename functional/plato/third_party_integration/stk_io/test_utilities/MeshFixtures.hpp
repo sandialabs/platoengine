@@ -229,6 +229,44 @@ constexpr auto kTwoDTriMesh = std::string_view{
     "|coordinates: 0,0,0.125,0,0,0.125,0.0625,0.125,0.125,0.125,0,0.25,0.125,0.25"
     "|dimension:2"};
 
+/// @brief A mesh test fixture providing a 3D mesh with coordinates only in the XZ plane.
+class XZPlaneMesh : virtual public ::testing::Test
+{
+   protected:
+    XZPlaneMesh();
+    ~XZPlaneMesh();
+
+    std::filesystem::path mMeshFilePath = "xz_plane_mesh.exo";
+
+    constexpr static auto mMeshDescription = std::string_view{
+        "textmesh:"
+        "0,1,SHELL_TRI_3,1,2,3,design\n"
+        "0,2,SHELL_TRI_3,1,3,4,design\n"
+        "|coordinates: 0,0,0,  1,0,0,  1,0,1,  0,0,1"
+        "|dimension:3"};
+
+    constexpr static auto mBlockNames = std::array{"DESIGN"};
+};
+
+/// @brief A mesh test fixture providing a 3D mesh with coordinates only in a 30 degree wedge in the positive octant.
+class ThirtyDegreeWedgeMesh : virtual public ::testing::Test
+{
+   protected:
+    ThirtyDegreeWedgeMesh();
+    ~ThirtyDegreeWedgeMesh();
+
+    std::filesystem::path mMeshFilePath = "thirty_degree_wedge_mesh.exo";
+
+    constexpr static auto mMeshDescription = std::string_view{
+        "textmesh:"
+        "0,1,HEX_8,1,2,3,4,5,6,7,8,design\n"
+        "|coordinates: 0,0,0,  1,0,0,  2,0.5,0,  1,0.577350269189626,0,  0,0,1,  1,0,1,  2,0.5,1,  "
+        "1,0.577350269189626,1"
+        "|dimension:3"};
+
+    constexpr static auto mBlockNames = std::array{"DESIGN"};
+};
+
 }  // namespace plato::third_party_integration::stk_io::test_utilities
 
 #endif

@@ -18,8 +18,9 @@ namespace plato::third_party_integration::stk_io::unittest
 
 using ElementDensityMesh = test_utilities::MeshWithElementDensities;
 using NodalDensityMesh = test_utilities::MeshWithNodalDensities;
-using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
-using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
+using ReadUtilitiesThreeDTwoBlockTetMesh = third_party_integration::stk_io::test_utilities::ThreeDTwoBlockTetMesh;
+using ReadUtilitiesTwoBlockMeshOnDisk = third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+using ReadUtilitiesTwoDThreeBlockMesh = third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 TEST(ReadUtilities, SpatialDimensions3)
 {
@@ -149,7 +150,7 @@ TEST_F(NodalDensityMesh, NodalFieldNames)
     EXPECT_EQ(tResult, tGold);
 }
 
-TEST_F(TwoDThreeBlockMesh, NumberOfNodesAndElementsFromBulkAndParts)
+TEST_F(ReadUtilitiesTwoDThreeBlockMesh, NumberOfNodesAndElementsFromBulkAndParts)
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
@@ -172,7 +173,7 @@ TEST_F(TwoDThreeBlockMesh, NumberOfNodesAndElementsFromBulkAndParts)
     }
 }
 
-TEST_F(TwoBlockMeshOnDisk, NumberOfNodesAndElementsFromBulkAndParts)
+TEST_F(ReadUtilitiesTwoBlockMeshOnDisk, NumberOfNodesAndElementsFromBulkAndParts)
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
@@ -205,6 +206,28 @@ TEST_F(NodalDensityMesh, TimeSteps)
     const auto tResult = time_steps(mMeshName);
     const auto tExpected = std::vector{1.0};
     EXPECT_EQ(tResult, tExpected);
+}
+
+TEST_F(ReadUtilitiesThreeDTwoBlockTetMesh, BoundingBoxInBlock)
+{
+    constexpr auto tExpectedBoundingBoxBlock1 = std::make_pair(third_party_integration::common::Coordinate{0, -1, -1},
+                                                               third_party_integration::common::Coordinate{1, 0, 1});
+    constexpr auto tExpectedBoundingBoxBlock2 = std::make_pair(third_party_integration::common::Coordinate{0, -1, 1},
+                                                               third_party_integration::common::Coordinate{1, 0, 3});
+
+    const auto tTwoBlockMesh = read_mesh_bulk_data(mMeshFilePath);
+    const auto& tParts = tTwoBlockMesh->mesh_meta_data().get_mesh_parts();
+
+    {
+        const auto tBlock1Parts = PartReferenceVector{std::cref(*tParts.front())};
+        const auto tBoundingBox = bounding_box(*tTwoBlockMesh, tBlock1Parts);
+        EXPECT_EQ(tBoundingBox, tExpectedBoundingBoxBlock1) << "Bounding box block 1";
+    }
+    {
+        const auto tBlock2Parts = PartReferenceVector{std::cref(*tParts.back())};
+        const auto tBoundingBox = bounding_box(*tTwoBlockMesh, tBlock2Parts);
+        EXPECT_EQ(tBoundingBox, tExpectedBoundingBoxBlock2) << "Bounding box block 2";
+    }
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iostream>
 
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/mesh/MeshBlocks.hpp"

@@ -38,8 +38,8 @@ TEST(STKSearchUtilities, IsInSearchResults)
     const auto tSphere = create_sphere(tCenter, STKRadius{tSearchRadius});
     const auto tIdentifier = Identifier{0, 0};
     const auto tSphereWithID = SearchSphereWithIdentifier{tSphere, tIdentifier};
-    const auto tSearchResults =
-        perform_stk_search({tSphereWithID}, tNodalCoordsWithIdentifiers, boost::mpi::communicator{});
+    const auto tSearchResults = stk_search<SearchSphereWithIdentifier>({tSphereWithID}, tNodalCoordsWithIdentifiers,
+                                                                       boost::mpi::communicator{});
 
     EXPECT_TRUE(is_in_search_results(tNodalCoordsWithIdentifiers[0].second, tSearchResults));
     EXPECT_TRUE(is_in_search_results(tNodalCoordsWithIdentifiers[1].second, tSearchResults));
@@ -70,10 +70,28 @@ TEST(STKSearchUtilities, FindPointsInSphere)
     const auto tSphereWithID = SearchSphereWithIdentifier{tSphere, tIdentifier};
 
     const auto tLocalSearchPointWithIdentifiers = create_example_search_points_with_ids(tThisRank);
-    const auto tSearchResults =
-        perform_stk_search({tSphereWithID}, tLocalSearchPointWithIdentifiers, boost::mpi::communicator{});
+    const auto tSearchResults = stk_search<SearchSphereWithIdentifier>(
+        {tSphereWithID}, tLocalSearchPointWithIdentifiers, boost::mpi::communicator{});
 
     EXPECT_EQ(tSearchResults.size(), 3u);
+}
+
+TEST(STKSearchUtilities, FindPointsInBox)
+{
+    const boost::mpi::communicator tCommunicator{};
+    constexpr common::Coordinate tCenter{0, 0, 0};
+    constexpr common::Coordinate tSides{2.1, 1.0, 1.0};
+
+    const auto tThisRank = tCommunicator.rank();
+    const auto tBox = search_box(STKBoxCenter{tCenter}, STKBoxDimension{tSides});
+    const auto tIdentifier = Identifier{0, tThisRank};
+    const auto tBoxWithID = SearchBoxWithIdentifier{tBox, tIdentifier};
+
+    const auto tLocalSearchPointWithIdentifiers = create_example_search_points_with_ids(tThisRank);
+    const auto tSearchResults =
+        stk_search<SearchBoxWithIdentifier>({tBoxWithID}, tLocalSearchPointWithIdentifiers, boost::mpi::communicator{});
+
+    EXPECT_EQ(tSearchResults.size(), 2u);
 }
 
 TEST(STKSearchUtilities, FindPointsInMultipleSpheres)
@@ -92,8 +110,8 @@ TEST(STKSearchUtilities, FindPointsInMultipleSpheres)
 
     const auto tLocalSearchPointWithIdentifiers = create_example_search_points_with_ids(tThisRank);
 
-    const auto tSearchResults =
-        perform_stk_search({tSphereWithIDOne, tSphereWithIDTwo}, tLocalSearchPointWithIdentifiers, tCommunicator);
+    const auto tSearchResults = stk_search<SearchSphereWithIdentifier>({tSphereWithIDOne, tSphereWithIDTwo},
+                                                                       tLocalSearchPointWithIdentifiers, tCommunicator);
 
     EXPECT_EQ(tSearchResults.size(), 4u);
 }

@@ -3,18 +3,21 @@
 #include <algorithm>
 #include <iterator>
 #include <numeric>
+#include <ranges>
 #include <stk_io/FillMesh.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Comm.hpp>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Field.hpp>
+#include <stk_mesh/base/FieldBase.hpp>
 #include <stk_mesh/base/GetEntities.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_topology/topology.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 
+#include "plato/third_party_integration/common/BoundingBox.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
@@ -22,6 +25,7 @@ namespace plato::third_party_integration::stk_io
 {
 namespace
 {
+
 constexpr bool kSortedByID = true;
 
 stk::mesh::Selector parts_to_selector(const PartReferenceVector& aParts)
@@ -104,8 +108,8 @@ template <stk::topology::rank_t Rank>
 }
 
 template <stk::topology::rank_t Rank>
-[[nodiscard]] auto read_field(const stk::io::StkMeshIoBroker& aIOBroker,
-                              const std::string_view aFieldName) -> std::map<std::size_t, double>
+[[nodiscard]] auto read_field(const stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName)
+    -> std::map<std::size_t, double>
 {
     auto tField = aIOBroker.meta_data().get_field(Rank, std::string{aFieldName});
 
@@ -173,26 +177,34 @@ std::vector<common::Coordinate> nodal_coordinates(const stk::mesh::BulkData& aBu
     return nodal_coordinates(aBulk, universal_part(aBulk));
 }
 
-auto nodal_coordinates(const stk::mesh::BulkData& aBulk,
-                       const PartReferenceVector& aParts) -> std::vector<common::Coordinate>
+namespace
+{
+[[nodiscard]] auto stk_nodal_coordinate_view(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
 {
     auto tNodeEntity = stk::mesh::EntityVector{};
     stk::mesh::get_entities(aBulk, stk::topology::NODE_RANK, parts_to_selector(aParts), tNodeEntity, kSortedByID);
+    const auto& tCoordinateField = *aBulk.mesh_meta_data().coordinate_field();
 
-    const stk::mesh::FieldBase* const tCoordsField = aBulk.mesh_meta_data().coordinate_field();
+    const auto tIndices = std::views::iota(0U, tNodeEntity.size());
+    return tIndices |
+           std::views::transform(
+               [tSpatialDim = spatial_dimensions(aBulk), &tCoordinateField,
+                mNodeEntity = std::move(tNodeEntity)](const auto aNodeIndex)
+               {
+                   const auto tData =
+                       static_cast<const double*>(stk::mesh::field_data(tCoordinateField, mNodeEntity[aNodeIndex]));
+                   return common::Coordinate{tData[0], tData[1], tSpatialDim == 2 ? 0 : tData[2]};
+               }) |
+           std::views::common;
+}
 
-    auto tCoordinates = std::vector<common::Coordinate>{};
-    tCoordinates.reserve(tNodeEntity.size());
+}  // namespace
 
-    const auto tIndices = utilities::IndexRange{tNodeEntity.size()};
-    std::transform(tIndices.begin(), tIndices.end(), std::back_inserter(tCoordinates),
-                   [tSpatialDim = spatial_dimensions(aBulk), tCoordsField, &tNodeEntity](const auto aNodeIndex)
-                   {
-                       const auto tData =
-                           static_cast<const double*>(stk::mesh::field_data(*tCoordsField, tNodeEntity[aNodeIndex]));
-                       return common::Coordinate{tData[0], tData[1], tSpatialDim == 2 ? 0 : tData[2]};
-                   });
-    return tCoordinates;
+auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+    -> std::vector<common::Coordinate>
+{
+    const auto tCoordinates = stk_nodal_coordinate_view(aBulk, aParts);
+    return std::vector(tCoordinates.begin(), tCoordinates.end());
 }
 
 auto node_ids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> std::vector<std::size_t>
@@ -274,4 +286,11 @@ auto time_steps(const std::filesystem::path& aInputMeshName) -> std::vector<doub
 {
     return create_reading_iobroker(aInputMeshName)->get_time_steps();
 }
+
+auto bounding_box(const stk::mesh::BulkData& aBulkData, const PartReferenceVector& aParts) -> common::BoundingBox
+{
+    const auto tCoordinates = stk_nodal_coordinate_view(aBulkData, aParts);
+    return common::bounding_box(tCoordinates);
+}
+
 }  // namespace plato::third_party_integration::stk_io

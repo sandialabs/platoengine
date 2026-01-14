@@ -9,7 +9,6 @@
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
-#include "plato/geometry/extension/FixedBlockUtilities.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
@@ -21,6 +20,7 @@
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/FixedBlockUtilities.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
@@ -91,11 +91,11 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
         { return library::validate_filter_with_mesh(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_file_exists(aInput); },
         [](const input_parser::density_topology& aInput)
-        { return validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
+        { return mesh::validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput)
-        { return validate_fixed_block_names_exist(aInput, kMeshNameAccessor); },
+        { return mesh::validate_fixed_block_names_exist(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput)
-        { return validate_at_least_one_design_block(aInput, kMeshNameAccessor); },
+        { return mesh::validate_at_least_one_design_block(aInput, kMeshNameAccessor); },
         [](const input_parser::density_topology& aInput) { return library::detail::validate_output_name(aInput); },
         [](const input_parser::density_topology& aInput) { return detail::validate_initial_density_value(aInput); },
         [](const input_parser::density_topology& aInput) { return validate_initial_field_source(aInput); },
@@ -180,14 +180,12 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
                              const output::OutputInfo& aOutputInfo)
 {
     [[maybe_unused]] const auto tTaskLogger = library::output_task_log<input_parser::density_topology>();
-
-    const auto tMeshFieldOutput = MeshFieldOutputInfo{mesh_from_input(aInput),
-                                                      output_name(aInput),
-                                                      fixed_blocks(aInput),
-                                                      density_mesh_field_name(),
-                                                      filtered_density_mesh_field_name(),
-                                                      density_fixed_value()};
-    output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
+    const auto [tAnalysisDomainMesh, tFilteredFieldAnalysisDomainMesh] =
+        solution_and_filtered_solution_mesh(aInput, aFilterFunction, aSolution);
+    output_field(tAnalysisDomainMesh, restart_file_name(aInput), density_mesh_field_name(), density_fixed_value(),
+                 aOutputInfo);
+    output_field(tFilteredFieldAnalysisDomainMesh, output_name(aInput), filtered_density_mesh_field_name(),
+                 density_fixed_value(), aOutputInfo);
 }
 
 namespace detail

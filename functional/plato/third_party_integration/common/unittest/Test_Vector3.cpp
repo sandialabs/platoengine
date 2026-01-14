@@ -240,4 +240,24 @@ TEST(Coordinate, EqualityOperator)
     EXPECT_TRUE(tCoordinate1z == tCoordinate1z);
 }
 
+TEST(Vector3, MinimimEntries)
+{
+    const auto tVectorOne = Vector3{-1, 2, -3};
+    const auto tVectorTwo = Vector3{4, -5, 6};
+
+    const auto tResult = minimum_entries(tVectorOne, tVectorTwo);
+    const auto tGold = Vector3{-1, -5, -3};
+    EXPECT_EQ(tGold, tResult);
+}
+
+TEST(Coordinate, MaximimEntries)
+{
+    const auto tCoordinateOne = Coordinate{-1, 2, -3};
+    const auto tCoordinateTwo = Coordinate{4, -5, 6};
+
+    const auto tResult = maximum_entries(tCoordinateOne, tCoordinateTwo);
+    const auto tGold = Coordinate{4, 2, 6};
+    EXPECT_EQ(tGold, tResult);
+}
+
 }  // namespace plato::third_party_integration::common::unittest

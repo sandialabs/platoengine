@@ -35,9 +35,9 @@ class [[nodiscard]] MeshFieldWriter : public MeshOutput
     /// @brief Adds the design variables in @a aAnalysisDomainMesh to the currently managed file.
     ///
     /// The type of field (node vs. element) is determined from the number of design variables.
-    void addFieldOnAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                      std::string_view aFieldName,
-                                      double aFixedValue) override;
+    void addFieldFromAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                        std::string_view aFieldName,
+                                        double aFixedValue) override;
 
     MeshFieldWriter(const MeshFieldWriter&) = delete;
     MeshFieldWriter(MeshFieldWriter&&) = delete;

@@ -169,7 +169,7 @@ void CubitGeometry::outputMeshSensitivities(mesh::MeshOutput& aMeshOutput)
                     auto tAnalysisDomainMeshSensitivity =
                         sensitivity_to_analysis_domain_mesh(tAnalysisDomainMesh, tSensitivityMap, tComponentAccessor);
                     constexpr auto tFixedValue = double{0};
-                    aMeshOutput.addFieldOnAnalysisDomainMesh(
+                    aMeshOutput.addFieldFromAnalysisDomainMesh(
                         tAnalysisDomainMeshSensitivity, mVariables.at(tDesignIndex).mName + tPostFixName, tFixedValue);
                 }
             }
@@ -383,11 +383,9 @@ auto make_cubit_output(const input_parser::cubit_parameterized_shape& aInput)
         {
             auto tCubitGeometry = CubitGeometry{aInput};
             const auto tAnalysisDomainMesh = tCubitGeometry.generateMesh(aSolution);
-
-            const auto tMeshOutput = mesh::make_mesh_output(
-                mesh::output_mode(aOutputInfo.mOverwrite), mesh::InputFilePath{tAnalysisDomainMesh.mFileName},
-                mesh::OutputFilePath{aInput.output_mesh_sensitivities_name.value().mToken}, {}, aOutputInfo.mIteration);
-
+            const auto tMeshOutput =
+                mesh::mesh_output(mesh::output_mode(aOutputInfo.mOverwrite), tAnalysisDomainMesh,
+                                  aInput.output_mesh_sensitivities_name.value().mToken, aOutputInfo.mIteration);
             tCubitGeometry.outputMeshSensitivities(*tMeshOutput);
         }
         utilities::execute_on_root(boost::mpi::communicator{},

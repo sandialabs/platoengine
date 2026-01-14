@@ -7,7 +7,6 @@
 
 #include "plato/analysis/Utilities.hpp"
 #include "plato/core/Compose.hpp"
-#include "plato/geometry/extension/FixedBlockUtilities.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
@@ -16,8 +15,10 @@
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
-#include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/FixedBlockUtilities.hpp"
+#include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/output/OutputInfo.hpp"
@@ -62,12 +63,12 @@ void initialize_krino()
     }
 }
 
-auto make_level_set_geometry(const library::ValidatedGeometryInput& aGeometryInput) -> library::GeometryFunction
+[[nodiscard]] auto make_level_set_geometry_from_input(const library::ValidatedGeometryInput& aGeometryInput)
+    -> library::GeometryFunction
 {
     const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
     return make_level_set_geometry(
-        std::make_shared<LevelSetTopology>(tInput),
-        library::make_filter_from_geometry_input<input_parser::level_set_topology>(aGeometryInput));
+        tInput, library::make_filter_from_geometry_input<input_parser::level_set_topology>(aGeometryInput));
 }
 
 /// Static registration for parser
@@ -82,8 +83,8 @@ auto make_level_set_geometry(const library::ValidatedGeometryInput& aGeometryInp
         initialize_krino();
         const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
         auto tLevelSet = LevelSetTopology{tInput};
-        return library::FactoryTypes{make_level_set_geometry(aGeometryInput), tLevelSet.initialGuess(),
-                                     tLevelSet.bounds(), make_topology_output(aGeometryInput)};
+        return library::FactoryTypes{make_level_set_geometry_from_input(aGeometryInput), initial_guess(tInput),
+                                     bounds(tInput), make_topology_output(aGeometryInput)};
     }};
 
 /// Static registration for input validation functions
@@ -110,17 +111,17 @@ auto make_level_set_geometry(const library::ValidatedGeometryInput& aGeometryInp
         { return detail::validate_sphere_pattern_spacing_greater_than_twice_radius(aInput); },
         [](const input_parser::level_set_topology& aInput) { return detail::validate_sphere_list_radii(aInput); },
         [](const input_parser::level_set_topology& aInput)
-        { return validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
+        { return mesh::validate_unique_fixed_block_names(aInput, kMeshNameAccessor); },
         [](const input_parser::level_set_topology& aInput)
-        { return validate_fixed_block_names_exist(aInput, kMeshNameAccessor); },
+        { return mesh::validate_fixed_block_names_exist(aInput, kMeshNameAccessor); },
         [](const input_parser::level_set_topology& aInput)
-        { return validate_at_least_one_design_block(aInput, kMeshNameAccessor); },
+        { return mesh::validate_at_least_one_design_block(aInput, kMeshNameAccessor); },
         [](const input_parser::level_set_topology& aInput)
         { return detail::validate_exactly_one_initial_level_set_specifier(aInput); },
         [](const input_parser::level_set_topology& aInput) { return validate_initial_field_source(aInput); },
     };
 
-auto sphere_pattern(const input_parser::level_set_topology& aInput) -> tpik::SpherePatternData
+[[nodiscard]] auto sphere_pattern(const input_parser::level_set_topology& aInput) -> tpik::SpherePatternData
 {
     return tpik::SpherePatternData{{aInput.sphere_pattern.value().min.mX, aInput.sphere_pattern.value().min.mY,
                                     aInput.sphere_pattern.value().min.mZ},
@@ -130,12 +131,13 @@ auto sphere_pattern(const input_parser::level_set_topology& aInput) -> tpik::Sph
                                    aInput.sphere_pattern.value().spacing};
 }
 
-auto void_phase(const input_parser::level_set_topology& aInput)
+[[nodiscard]] auto void_phase(const input_parser::level_set_topology& aInput)
 {
     return aInput.include_void_region.value() ? tpik::VoidPhase::kIncludeInMesh : tpik::VoidPhase::kExcludeFromMesh;
 }
 
-auto snapping_parameters_from_input(const input_parser::level_set_topology& aInput) -> tpik::SnappingParameters
+[[nodiscard]] auto snapping_parameters_from_input(const input_parser::level_set_topology& aInput)
+    -> tpik::SnappingParameters
 {
     constexpr auto tDefaultSnappingEdgeLength = tpik::SnappingParameters{}.mMaxSnappingEdgeLength;
     return tpik::SnappingParameters{
@@ -145,13 +147,12 @@ auto snapping_parameters_from_input(const input_parser::level_set_topology& aInp
 
 LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInput)
     : mInput{aInput},
-      mBackgroundMesh(mesh_from_input(aInput)),
       mCutMesh(kKrinoCutMeshBaseName),
       mOutputMesh(aInput.output_name.value().mToken),
       mVoidRegion(void_phase(aInput)),
       mLevelSetBounds(std::make_pair(aInput.level_set_bounds.value().mLower, aInput.level_set_bounds.value().mUpper)),
       mKrinoWrapperCache{
-          [mFixedBlocks = fixed_blocks(aInput), mSnappingParameters = snapping_parameters_from_input(aInput)](
+          [mFixedBlocks = mesh::fixed_blocks(aInput), mSnappingParameters = snapping_parameters_from_input(aInput)](
               const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
           {
               return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, mFixedBlocks,
@@ -164,88 +165,82 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
 
 LevelSetTopology::~LevelSetTopology() { std::filesystem::remove(mCutMesh); }
 
-auto LevelSetTopology::bounds() const -> std::pair<std::vector<double>, std::vector<double>>
+auto bounds(const input_parser::level_set_topology& aInput) -> std::pair<std::vector<double>, std::vector<double>>
 {
-    const unsigned int tNumNodes = mesh::EntityCounts{mBackgroundMesh}.numberOfDesignDomainNodes();
-    return {std::vector<double>(tNumNodes, mLevelSetBounds.first),
-            std::vector<double>(tNumNodes, mLevelSetBounds.second)};
+    const unsigned int tNumNodes = mesh::EntityCounts{mesh_from_input(aInput)}.numberOfDesignDomainNodes();
+    return {std::vector<double>(tNumNodes, aInput.level_set_bounds.value().mLower),
+            std::vector<double>(tNumNodes, aInput.level_set_bounds.value().mUpper)};
 }
 
-auto LevelSetTopology::initialGuess() const -> linear_algebra::DynamicVector<double>
+auto initial_guess(const input_parser::level_set_topology& aInput) -> linear_algebra::DynamicVector<double>
 {
-    if (mInput.initial_field_name.has_value())
+    if (aInput.initial_field_name.has_value())
     {
-        auto tValuesFromMesh = initial_field_from_mesh(mInput, mBackgroundMesh);
+        auto tValuesFromMesh = initial_field_from_mesh(aInput, mesh_from_input(aInput));
         const auto tMin = *std::min_element(tValuesFromMesh.begin(), tValuesFromMesh.end());
         const auto tMax = *std::max_element(tValuesFromMesh.begin(), tValuesFromMesh.end());
         return linear_algebra::DynamicVector<double>(detail::affine_transformation(
             std::move(tValuesFromMesh), detail::StartingLimits{std::make_pair(tMin, tMax)},
-            detail::EndingLimits{mLevelSetBounds}));
+            detail::EndingLimits{std::pair<double, double>(aInput.level_set_bounds.value().mLower,
+                                                           aInput.level_set_bounds.value().mUpper)}));
     }
-    else if (mInput.sphere_pattern.has_value())
+    else if (aInput.sphere_pattern.has_value())
     {
-        const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(mInput))};
+        const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(aInput))};
         return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-            mBackgroundMesh.filePath(), tLevelSetPrimitives, fixed_blocks(mInput))};
+            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput))};
     }
     else
     {
-        const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, detail::generate_spheres_from_list(mInput)};
+        const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, detail::generate_spheres_from_list(aInput)};
         return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-            mBackgroundMesh.filePath(), tLevelSetPrimitives, fixed_blocks(mInput))};
+            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput))};
     }
 }
 
-auto LevelSetTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+auto LevelSetTopology::generateMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
     -> analysis::AnalysisDomainMesh
 {
     [[maybe_unused]] const auto tTaskLogger = library::mesh_generation_task_log<input_parser::level_set_topology>();
-
-    const auto tAnalysisMesh = mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
-        mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
-
-    mKrinoWrapperCache.compute(tAnalysisMesh).writeCutMesh(mCutMesh, mVoidRegion);
+    mKrinoWrapperCache.compute(aAnalysisDomainMesh).writeCutMesh(mCutMesh, mVoidRegion);
     return analysis::AnalysisDomainMesh{mCutMesh, {}};
 }
 
-auto LevelSetTopology::jacobian(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+auto LevelSetTopology::jacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
     -> linear_algebra::JacobianMultiplier
 {
     return linear_algebra::JacobianMultiplier{
-        [this, aDesignParameters](
+        [this, aAnalysisDomainMesh](
             const linear_algebra::DynamicVector<double>& aVector) -> linear_algebra::DynamicVector<double>
         {
             [[maybe_unused]] const auto tTaskLogger = library::jacobian_task_log<input_parser::level_set_topology>();
 
-            auto tBackgroundMeshWithLevelSetField =
-                mesh::DesignVariablesConversion{mBackgroundMesh}.nodalFieldToAnalysisDomainMesh(
-                    mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
-
             return linear_algebra::DynamicVector<double>{
-                mKrinoWrapperCache.compute(tBackgroundMeshWithLevelSetField)
+                mKrinoWrapperCache.compute(aAnalysisDomainMesh)
                     .rowVectorJacobianProduct(aVector.stdVector(), mVoidRegion)};
         }};
 }
 
-auto LevelSetTopology::adjointJacobian(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+auto LevelSetTopology::adjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
     -> linear_algebra::AdjointJacobianMultiplier
 {
     return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{
-        [this, aDesignParameters](
+        [this, aAnalysisDomainMesh](
             const linear_algebra::DynamicVector<double>& aVector) -> linear_algebra::DynamicVector<double>
         {
             [[maybe_unused]] const auto tTaskLogger =
                 library::adjoint_jacobian_task_log<input_parser::level_set_topology>();
 
-            const auto tDesignVariableConverter = mesh::DesignVariablesConversion{mBackgroundMesh};
-
-            const auto tBackgroundMeshWithLevelSets = tDesignVariableConverter.nodalFieldToAnalysisDomainMesh(
-                mesh::NodalFieldVectorReference{aDesignParameters.stdVector()});
-
             return linear_algebra::DynamicVector<double>{
-                mKrinoWrapperCache.compute(tBackgroundMeshWithLevelSets)
+                mKrinoWrapperCache.compute(aAnalysisDomainMesh)
                     .rowVectorAdjointJacobianProduct(aVector.stdVector(), mVoidRegion)};
         }}};
+}
+
+auto filtered_level_set_mesh_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path
+{
+    constexpr auto tRestartFileNamePrefix = std::string_view{"filtered_level_set_"};
+    return std::filesystem::path{std::string{tRestartFileNamePrefix} + aInput.output_name->mToken};
 }
 
 void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
@@ -254,40 +249,43 @@ void LevelSetTopology::output(const input_parser::level_set_topology& aInput,
                               const output::OutputInfo& aOutputInfo)
 {
     [[maybe_unused]] const auto tTaskLogger = library::output_task_log<input_parser::level_set_topology>();
+    const auto [tAnalysisDomainMesh, tFilteredFieldAnalysisDomainMesh] =
+        solution_and_filtered_solution_mesh(aInput, aFilterFunction, aSolution);
+    output_field(tAnalysisDomainMesh, restart_file_name(aInput), level_set_mesh_field_name(),
+                 aInput.level_set_bounds.value().mUpper, aOutputInfo);
+    output_field(tFilteredFieldAnalysisDomainMesh, filtered_level_set_mesh_name(aInput),
+                 filtered_level_set_mesh_field_name(), aInput.level_set_bounds.value().mUpper, aOutputInfo);
 
-    const auto tMeshFieldOutput = MeshFieldOutputInfo{mesh_from_input(aInput),
-                                                      restart_file_name(aInput),
-                                                      fixed_blocks(aInput),
-                                                      level_set_mesh_field_name(),
-                                                      filtered_level_set_mesh_field_name(),
-                                                      aInput.level_set_bounds.value().mUpper};
-    const auto tFilteredField = output_nodal_field(tMeshFieldOutput, aFilterFunction, aSolution, aOutputInfo);
-
-    make_krino_wrapper_from_analysis_domain_mesh(tFilteredField, fixed_blocks(aInput),
+    const auto tFixedBlockNames = mesh::fixed_block_names(tFilteredFieldAnalysisDomainMesh);
+    make_krino_wrapper_from_analysis_domain_mesh(tFilteredFieldAnalysisDomainMesh, tFixedBlockNames,
                                                  snapping_parameters_from_input(aInput))
         .writeCutMesh(aInput.output_name->mToken, void_phase(aInput));
 }
 
-auto LevelSetTopology::backgroundMesh() const -> const mesh::Mesh& { return mBackgroundMesh; }
-
-auto make_level_set_geometry(const std::shared_ptr<LevelSetTopology>& aLevelSetTopology,
+auto make_level_set_geometry(const input_parser::level_set_topology& aInput,
                              const filter::library::FilterFunction& aFilterFunction) -> library::GeometryFunction
 {
-    auto tGeometryFunction = library::GeometryFunction{
-        [aLevelSetTopology](const linear_algebra::DynamicVector<double>& x)
-        { return aLevelSetTopology->generateMesh(x); },
-        [aLevelSetTopology](const linear_algebra::DynamicVector<double>& x) { return aLevelSetTopology->jacobian(x); },
-        [aLevelSetTopology](const linear_algebra::DynamicVector<double>& x)
-        { return linear_algebra::AdjointJacobianMultiplier{aLevelSetTopology->adjointJacobian(x)}; }};
+    const auto tLevelSetTopology = std::make_shared<LevelSetTopology>(aInput);
+    const auto tSourceMesh = mesh_from_input(aInput);
 
-    const auto tAdaptedFilter = library::adapt_filter(aFilterFunction, aLevelSetTopology->backgroundMesh());
-    return core::compose(tGeometryFunction, tAdaptedFilter);
-}
+    using LevelSetGeometryFunction =
+        core::Function<const analysis::AnalysisDomainMesh&,
+                       core::FunctionInfo<analysis::AnalysisDomainMesh, core::evaluation::kFunction>,
+                       core::FunctionInfo<linear_algebra::JacobianMultiplier, core::evaluation::kFirstDerivative>,
+                       core::FunctionInfo<linear_algebra::AdjointJacobianMultiplier, core::evaluation::kFirstDerivative,
+                                          core::MatrixOrdering::kAdjoint>>;
 
-auto restart_file_name(const input_parser::level_set_topology& aInput) -> std::filesystem::path
-{
-    constexpr auto tRestartFileNamePrefix = std::string_view{"restart_"};
-    return std::filesystem::path{std::string{tRestartFileNamePrefix} + aInput.output_name->mToken};
+    auto tGeometryFunction = LevelSetGeometryFunction{
+        [tLevelSetTopology](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        { return tLevelSetTopology->generateMesh(aAnalysisDomainMesh); },
+        [tLevelSetTopology](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        { return tLevelSetTopology->jacobian(aAnalysisDomainMesh); },
+        [tLevelSetTopology](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        { return linear_algebra::AdjointJacobianMultiplier{tLevelSetTopology->adjointJacobian(aAnalysisDomainMesh)}; }};
+
+    const auto tAdaptedFilterFunction =
+        core::compose(aFilterFunction, mesh::design_variables_to_analysis_mesh_adapter(tSourceMesh));
+    return core::compose(tGeometryFunction, tAdaptedFilterFunction);
 }
 
 namespace detail

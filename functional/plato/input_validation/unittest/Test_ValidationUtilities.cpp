@@ -5,9 +5,9 @@
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/utilities/Exception.hpp"
 
 // clang-format off
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
@@ -105,5 +105,32 @@ TEST(ValidationUtilities, ErrorMessageForMissingFileParameter)
     test_utilities::test_for_existence_and_remove({tFileName},
                                                   TEST_CONTEXT("Verifying file creation worked for this test."));
 }
+namespace
+{
+constexpr std::string_view kTestFileName = "test.txt";
+constexpr std::string_view kFieldName = "output_file_name";
+constexpr auto kOutputNameAccessor = [](const auto& aInput) { return aInput.output_file_name; };
+struct ValidationUtilitiesValidationFileFixture : public test_utilities::FileCreatingTestFixture
+{
+    ValidationUtilitiesValidationFileFixture() : FileCreatingTestFixture{kTestFileName} {}
+};
+}  // namespace
 
+TEST(ValidationUtilities, ErrorMessageForMissingFileOnDisk)
+{
+    auto tObjectiveInput = input_parser::test_objective{};
+    EXPECT_FALSE(error_message_for_missing_file_on_disk(tObjectiveInput, kOutputNameAccessor, kFieldName).has_value())
+        << "Valid: no file specified, not our error.";
+    tObjectiveInput.output_file_name = input_parser::FileName{std::string{kTestFileName}};
+    EXPECT_TRUE(error_message_for_missing_file_on_disk(tObjectiveInput, kOutputNameAccessor, kFieldName).has_value())
+        << "Invalid: file specified, but not on disk.";
+}
+
+TEST_F(ValidationUtilitiesValidationFileFixture, ErrorMessageForMissingFileOnDisk)
+{
+    auto tObjectiveInput = input_parser::test_objective{};
+    tObjectiveInput.output_file_name = input_parser::FileName{std::string{kTestFileName}};
+    EXPECT_FALSE(error_message_for_missing_file_on_disk(tObjectiveInput, kOutputNameAccessor, kFieldName).has_value())
+        << "Valid: file specified and on disk.";
+}
 }  // namespace plato::input_validation::unittest

@@ -1,6 +1,8 @@
 #include "plato/mesh/MeshBlocks.hpp"
 
 #include <cassert>
+#include <ranges>
+#include <stk_mesh/base/Part.hpp>
 
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
@@ -84,6 +86,13 @@ auto MeshBlocks::blockNames() const -> std::vector<std::string>
     return tBlockNames;
 }
 
+auto MeshBlocks::fixedBlockNames() const -> std::set<std::string>
+{
+    auto tBlockNames = fixedDomainBlocks() |
+                       std::views::transform([](const auto& aFixedBlockPart) { return aFixedBlockPart.get().name(); });
+    return std::set(tBlockNames.begin(), tBlockNames.end());
+}
+
 auto block_ids(const Mesh& aMesh, const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)
     -> std::vector<MeshBlocks::BlockIDType>
 {
@@ -97,6 +106,11 @@ auto block_ids(const Mesh& aMesh, const std::vector<Mesh::BlockOrdinalType>& aBl
                        return tBlockID.value();
                    });
     return tBlockIDs;
+}
+
+auto fixed_block_names(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> std::set<std::string>
+{
+    return MeshBlocks{Mesh{aAnalysisDomainMesh}}.fixedBlockNames();
 }
 
 }  // namespace plato::mesh

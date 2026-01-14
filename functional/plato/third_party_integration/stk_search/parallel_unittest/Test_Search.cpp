@@ -111,7 +111,7 @@ TEST(StkSearch, Search)
 {
     const auto tComm = boost::mpi::communicator{};
     const auto [tLocalSearchPoints, tLocalSearchSphereCenters] = create_search_points_and_spheres_with_ids();
-    const auto tLocalSearchResults = perform_stk_search(tLocalSearchSphereCenters, tLocalSearchPoints, tComm);
+    const auto tLocalSearchResults = stk_search(tLocalSearchSphereCenters, tLocalSearchPoints, tComm);
     verify_first_entry_belongs_to_this_rank(tLocalSearchResults, tComm);
 }
 
@@ -124,7 +124,7 @@ TEST(StkSearch, ParallelConsistency)
 
     const auto tSplitComm = split_comm_world();
 
-    const auto tLocalSearchResults = perform_stk_search(tLocalSearchSphereCenters, tLocalSearchPoints, tSplitComm);
+    const auto tLocalSearchResults = stk_search(tLocalSearchSphereCenters, tLocalSearchPoints, tSplitComm);
     unsigned int tRankZeroValue = 0;
     unsigned int tOtherRanksSumValue = tLocalSearchResults.size();
     if (tWorldComm.rank() == 0)

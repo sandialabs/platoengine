@@ -1,11 +1,13 @@
 #ifndef PLATO_INPUT_VALIDATION_VALIDATIONUTILITIES
 #define PLATO_INPUT_VALIDATION_VALIDATIONUTILITIES
 
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -47,6 +49,14 @@ template <typename Parameter>
     const std::string_view aPrependString,
     const boost::optional<input_parser::FileName>& aParameter,
     const std::string_view aEntryName);
+
+/// @return an optional error message if the file retrieved from the input @a aInput using accessor @a aFileNameAccessor
+/// doesn't point to a file on disk.
+template <typename InputBlock, typename FileNameAccessor>
+[[nodiscard]] auto error_message_for_missing_file_on_disk(const InputBlock& aInput,
+                                                          const FileNameAccessor& aFileNameAccessor,
+                                                          const std::string_view aEntryName)
+    -> std::optional<std::string>;
 
 template <typename T>
 auto error_message_for_empty_parameter(const std::string_view aPrependString,
@@ -103,6 +113,21 @@ template <typename Parameter>
 bool is_active(const Parameter& aParameter)
 {
     return !aParameter.active.has_value() || aParameter.active.value();
+}
+
+template <typename InputBlock, typename FileNameAccessor>
+[[nodiscard]] auto error_message_for_missing_file_on_disk(const InputBlock& aInput,
+                                                          const FileNameAccessor& aFileNameAccessor,
+                                                          const std::string_view aEntryName)
+    -> std::optional<std::string>
+{
+    const auto& tFileName = aFileNameAccessor(aInput);
+    if (tFileName.has_value() && !std::filesystem::exists(tFileName.value().mToken))
+    {
+        return input_parser::block_name<InputBlock>() + ": The " + std::string{aEntryName} +
+               " entry does not refer to a valid input file. The entered path is " + tFileName.value().mToken;
+    }
+    return std::nullopt;
 }
 
 }  // namespace plato::input_validation

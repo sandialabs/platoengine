@@ -72,4 +72,10 @@ auto EntityRetrieval::nodalFields() const -> std::vector<std::string>
     return third_party_integration::stk_io::nodal_field_names(filePath());
 }
 
+auto EntityRetrieval::designDomainBoundingBox() const
+    -> std::pair<third_party_integration::common::Coordinate, third_party_integration::common::Coordinate>
+{
+    return third_party_integration::stk_io::bounding_box(bulkData(), designDomainBlocks());
+}
+
 }  // namespace plato::mesh

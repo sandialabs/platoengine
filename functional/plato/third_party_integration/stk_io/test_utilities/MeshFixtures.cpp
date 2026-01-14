@@ -69,4 +69,15 @@ TwoDTwoBlockMesh::TwoDTwoBlockMesh() { third_party_integration::stk_io::write_me
 
 TwoDTwoBlockMesh::~TwoDTwoBlockMesh() { std::filesystem::remove(mMeshFilePath); }
 
+XZPlaneMesh::XZPlaneMesh() { third_party_integration::stk_io::write_mesh(mMeshFilePath, mMeshDescription); }
+
+XZPlaneMesh::~XZPlaneMesh() { std::filesystem::remove(mMeshFilePath); }
+
+ThirtyDegreeWedgeMesh::ThirtyDegreeWedgeMesh()
+{
+    third_party_integration::stk_io::write_mesh(mMeshFilePath, mMeshDescription);
+}
+
+ThirtyDegreeWedgeMesh::~ThirtyDegreeWedgeMesh() { std::filesystem::remove(mMeshFilePath); }
+
 }  // namespace plato::third_party_integration::stk_io::test_utilities

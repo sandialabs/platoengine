@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "plato/third_party_integration/common/BlockData.hpp"
-#include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace stk::mesh
 {

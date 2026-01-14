@@ -6,7 +6,9 @@
 #include "plato/geometry/extension/cubit/CubitGeometry.hpp"
 #include "plato/geometry/extension/cubit/CubitGeometryCommonUtilities.hpp"
 #include "plato/geometry/extension/cubit/test_utilities/CubitTestFixture.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
@@ -108,9 +110,8 @@ TEST_F(CubitTestFixture, SerialOutputMeshSensitivities)
     const auto tAnalysisDomainMesh = tCubitGeometry.generateMesh(tSolution);
 
     const auto tOutputInfo = output::OutputInfo{true, 0};
-    const auto tMeshOutput = mesh::make_mesh_output(mesh::output_mode(tOutputInfo.mOverwrite),
-                                                    mesh::InputFilePath{tAnalysisDomainMesh.mFileName},
-                                                    mesh::OutputFilePath{tSensitivityFile}, {}, tOutputInfo.mIteration);
+    const auto tMeshOutput = mesh::mesh_output(mesh::output_mode(tOutputInfo.mOverwrite), tAnalysisDomainMesh,
+                                               tSensitivityFile, tOutputInfo.mIteration);
 
     tCubitGeometry.outputMeshSensitivities(*tMeshOutput);
     plato::test_utilities::test_for_existence_and_remove({tSensitivityFile}, TEST_CONTEXT("Removing sensitivity file"));

@@ -42,15 +42,16 @@ MeshFieldWriter::~MeshFieldWriter()
     plato::third_party_integration::stk_io::write_fields_at_time(*mMeshIOBroker, mFileHandle, mTimeStep);
 }
 
-void MeshFieldWriter::addFieldOnAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                   const std::string_view aFieldName,
-                                                   const double aFixedValue)
+void MeshFieldWriter::addFieldFromAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                     const std::string_view aFieldName,
+                                                     const double aFixedValue)
 {
     initialize_field(*mMeshIOBroker, EntityCounts{*this}, aAnalysisDomainMesh, aFieldName);
 
     MeshFieldType tFieldType = EntityCounts{*this}.areElementDesignVariables(aAnalysisDomainMesh)
                                    ? MeshFieldType::kElement
                                    : MeshFieldType::kNode;
+
     update_output_field(*mMeshIOBroker, mFileHandle, tFieldType, aFieldName, aAnalysisDomainMesh, aFixedValue);
 }
 

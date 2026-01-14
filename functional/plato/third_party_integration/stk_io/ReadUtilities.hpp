@@ -9,6 +9,8 @@
 #include <string_view>
 #include <vector>
 
+#include "plato/third_party_integration/common/BlockData.hpp"
+#include "plato/third_party_integration/common/BoundingBox.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/utilities/ValueOrTag.hpp"
 
@@ -99,6 +101,11 @@ stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const P
 
 /// @brief Returns the time steps associated with the data in the mesh @a aInputMeshName.
 [[nodiscard]] auto time_steps(const std::filesystem::path& aInputMeshName) -> std::vector<double>;
+
+/// @brief Returns the bounding box of the part @a aPart associated with BulkData @a aBulkData.
+[[nodiscard]] auto bounding_box(const stk::mesh::BulkData& aBulkData, const PartReferenceVector& aParts)
+    -> common::BoundingBox;
+
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

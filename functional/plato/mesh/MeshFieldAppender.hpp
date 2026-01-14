@@ -36,9 +36,9 @@ class [[nodiscard]] MeshFieldAppender : public MeshOutput
     ///
     /// The type of field (node vs. element) is determined from the number of design variables.
     /// @pre @a aFieldName must exist on the mesh used on construction.
-    void addFieldOnAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                      std::string_view aFieldName,
-                                      double aFixedValue) override;
+    void addFieldFromAnalysisDomainMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                        std::string_view aFieldName,
+                                        double aFixedValue) override;
 
     MeshFieldAppender(const MeshFieldAppender&) = delete;
     MeshFieldAppender(MeshFieldAppender&&) = delete;

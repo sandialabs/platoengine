@@ -29,7 +29,7 @@ void add_element_field(MeshIO& aMeshIO,
                        double aFixedValue)
 {
     const auto tDesignVariables = DesignVariablesConversion{aMeshIO}.elementFieldToAnalysisDomainMesh(aScalarField);
-    aMeshIO.addFieldOnAnalysisDomainMesh(tDesignVariables, aFieldName, aFixedValue);
+    aMeshIO.addFieldFromAnalysisDomainMesh(tDesignVariables, aFieldName, aFixedValue);
 }
 
 template <typename MeshIO>
@@ -39,7 +39,7 @@ void add_nodal_field(MeshIO& aMeshIO,
                      double aFixedValue)
 {
     const auto tDesignVariables = DesignVariablesConversion{aMeshIO}.nodalFieldToAnalysisDomainMesh(aScalarField);
-    aMeshIO.addFieldOnAnalysisDomainMesh(tDesignVariables, aFieldName, aFixedValue);
+    aMeshIO.addFieldFromAnalysisDomainMesh(tDesignVariables, aFieldName, aFixedValue);
 }
 
 void check_read_write_nodal_round_trip(const std::vector<double>& aFieldToWrite,
@@ -120,7 +120,7 @@ TEST_F(MeshFieldWriterTestMesh, WriteFieldsFromDesignVariables)
         const auto tBlockField = analysis::AnalysisDomainMesh::BlockScalarField{{1, aFieldVector1}, {2, aFieldVector2}};
         const auto tDesignVariables = analysis::AnalysisDomainMesh{mMeshFilePath, tBlockField};
         auto tMesh = MeshFieldWriter{Mesh{mMeshFilePath}, kOutputMeshPath};
-        tMesh.addFieldOnAnalysisDomainMesh(tDesignVariables, aFieldName, kFixedValue);
+        tMesh.addFieldFromAnalysisDomainMesh(tDesignVariables, aFieldName, kFixedValue);
     };
 
     // Nodal field

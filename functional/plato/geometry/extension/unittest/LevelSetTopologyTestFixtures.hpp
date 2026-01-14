@@ -5,6 +5,7 @@
 
 #include <filesystem>
 
+#include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
