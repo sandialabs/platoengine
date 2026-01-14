@@ -20,12 +20,6 @@ namespace plato::input_parser
 namespace bsq = boost::spirit::qi;
 namespace bsa = boost::spirit::ascii;
 
-template <typename Iterator>
-const bsq::rule<Iterator, std::string(), SkipperType<Iterator>> kIdentifierRule = bsq::lexeme[+bsq::graph];
-}  // namespace plato::input_parser
-
-namespace plato::input_parser
-{
 namespace detail
 {
 template <typename BlockStruct, std::size_t Index>
@@ -71,15 +65,27 @@ using BlockRuleTuple = decltype(rule_tuple<Iterator, BlockStruct>());
 
 namespace detail
 {
+template <typename Iterator>
+using NameRule = bsq::rule<Iterator, std::string(), SkipperType<Iterator>>;
+
+template <typename Iterator>
+[[nodiscard]] auto name_identifier_rule() -> NameRule<Iterator>
+{
+    constexpr auto tValidIdentifierChars = "-a-zA-Z0-9_";
+    return NameRule<Iterator>{bsq::lexeme[+bsq::char_(tValidIdentifierChars)]};
+}
+
 template <typename Iterator, typename BlockStruct, typename AllBlockRules, std::size_t... Is>
-auto block_or_rule_impl(const AllBlockRules& aAllBlockRules, std::integer_sequence<std::size_t, Is...>)
+auto block_or_rule_impl(const AllBlockRules& aAllBlockRules,
+                        const detail::NameRule<Iterator>& aNameRule,
+                        std::integer_sequence<std::size_t, Is...>)
     -> bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>>
 {
     namespace bp = boost::phoenix;
     if constexpr (kIsNamedBlock<BlockStruct>)
     {
         bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> tRule =
-            kIdentifierRule<Iterator>[bp::at_c<0>(bsq::_val) = bsq::_1] >
+            aNameRule[bp::at_c<0>(bsq::_val) = bsq::_1] >
             *((std::get<Is>(aAllBlockRules)[bp::at_c<Is>(bsq::_val) = bsq::_1] | ...));
         return tRule;
     }
@@ -94,10 +100,12 @@ auto block_or_rule_impl(const AllBlockRules& aAllBlockRules, std::integer_sequen
 }  // namespace detail
 
 template <typename Iterator, typename BlockStruct, typename AllBlockRules>
-auto block_or_rule(const AllBlockRules& aAllBlockRules) -> bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>>
+auto block_or_rule(const AllBlockRules& aAllBlockRules, const detail::NameRule<Iterator>& aNameRule)
+    -> bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>>
 {
     constexpr auto tNumRules = std::tuple_size<AllBlockRules>::value;
-    return detail::block_or_rule_impl<Iterator, BlockStruct>(aAllBlockRules, std::make_index_sequence<tNumRules>{});
+    return detail::block_or_rule_impl<Iterator, BlockStruct>(aAllBlockRules, aNameRule,
+                                                             std::make_index_sequence<tNumRules>{});
 }
 
 /// Generates key-value-pair rules for fields in @a BlockStruct
@@ -109,12 +117,13 @@ struct BlockStructRule
 
     std::string mBlockType = InputTypeName<BlockStruct>::name;
 
+    detail::NameRule<Iterator> mNameRule = detail::name_identifier_rule<Iterator>();
     bsq::rule<Iterator, void(), SkipperType<Iterator>> mPreambleRule =
         bsq::lit("begin") >> bsq::lexeme[bsq::lit(mBlockType) >> !bsq::graph];
     bsq::rule<Iterator, void(), SkipperType<Iterator>> mPostambleRule = bsq::lit("end");
     BlockRuleTuple<Iterator, BlockStruct> mAllBlockRules = rule_tuple<Iterator, BlockStruct>();
     bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockOrRule =
-        block_or_rule<Iterator, BlockStruct>(mAllBlockRules);
+        block_or_rule<Iterator, BlockStruct>(mAllBlockRules, mNameRule);
 
     bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockRule =
         mPreambleRule > mBlockOrRule[bsq::_val = bsq::_1] > mPostambleRule;  // NOLINT(bugprone-chained-comparison)
@@ -147,9 +156,10 @@ struct ComponentBlockRule
 
     std::string mBlockType = InputTypeName<BlockStruct>::name;
 
+    detail::NameRule<Iterator> mNameRule = detail::name_identifier_rule<Iterator>();
     BlockRuleTuple<Iterator, BlockStruct> mAllBlockRules = rule_tuple<Iterator, BlockStruct>();
     bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockOrRule =
-        block_or_rule<Iterator, BlockStruct>(mAllBlockRules);
+        block_or_rule<Iterator, BlockStruct>(mAllBlockRules, mNameRule);
 
     bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> mBlockRule = mBlockOrRule[bsq::_val = bsq::_1];
 };
