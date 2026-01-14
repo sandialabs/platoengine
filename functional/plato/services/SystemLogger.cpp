@@ -33,11 +33,14 @@ SystemLogger::SystemLogger()
 {
 }
 
-SystemLogger::SystemLogger(components::ComponentType aComponentType, std::string_view aComponentName)
-    : mImpl{make_system_logger_impl(tpi_bl::SeverityLogger{
-          tpi_bl::ComponentTypeAndNameAttribute{tpi_bl::ComponentTypeAndName{
-              .mComponentType = aComponentType, .mComponentName = std::string{aComponentName}}},
-          tpi_bl::MPIWorldCommRankAttribute{}, tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>{}})}
+SystemLogger::SystemLogger(components::ComponentType aComponentType,
+                           std::string_view aComponentName,
+                           const boost::mpi::communicator& aCommunicator)
+    : mImpl{make_system_logger_impl(
+          tpi_bl::SeverityLogger{tpi_bl::ComponentTypeAndNameAttribute{tpi_bl::ComponentTypeAndName{
+                                     .mComponentType = aComponentType, .mComponentName = std::string{aComponentName}}},
+                                 tpi_bl::MPIWorldCommRankAttribute{.mValue = aCommunicator.rank()},
+                                 tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>{}})}
 {
 }
 
@@ -63,9 +66,11 @@ void SystemLogger::logError(const std::string_view aMessage)
 
 auto system_logger() -> SystemLogger { return SystemLogger{}; }
 
-auto component_logger(components::ComponentType aComponentType, std::string_view aComponentName) -> SystemLogger
+auto component_logger(components::ComponentType aComponentType,
+                      std::string_view aComponentName,
+                      const boost::mpi::communicator& aCommunicator) -> SystemLogger
 {
-    return SystemLogger{aComponentType, aComponentName};
+    return SystemLogger{aComponentType, aComponentName, aCommunicator};
 }
 
 }  // namespace plato::services

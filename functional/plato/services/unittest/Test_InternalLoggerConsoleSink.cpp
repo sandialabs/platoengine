@@ -9,7 +9,6 @@
 #include "plato/test_utilities/Strings.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
-#include "plato/third_party_integration/boost_log/Severity.hpp"
 
 namespace plato::services::unittest
 {

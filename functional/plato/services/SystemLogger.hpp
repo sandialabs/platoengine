@@ -2,6 +2,7 @@
 #define PLATO_SERVICES_SYSTEMLOGGER
 
 #include <any>
+#include <boost/mpi/communicator.hpp>
 #include <string_view>
 
 #include "plato/components/ComponentType.hpp"
@@ -17,9 +18,12 @@ class SystemLogger
     SystemLogger();
 
     /// @brief Creates a logger that will log the component type and name as an attribute along with the log message.
-    /// Prefer this logger, which provides more context to messages.
+    /// Prefer this logger, which provides more context to messages. Messages will only be output on rank 0 of @a
+    /// aCommunicator.
     /// @sa component_logger
-    SystemLogger(components::ComponentType aComponentType, std::string_view aComponentName);
+    SystemLogger(components::ComponentType aComponentType,
+                 std::string_view aComponentName,
+                 const boost::mpi::communicator& aCommunicator = {});
 
     /// @brief Log a debug message.
     ///
@@ -51,8 +55,9 @@ class SystemLogger
 [[nodiscard]] auto system_logger() -> SystemLogger;
 
 /// @brief Helper function for constructing a SystemLogger with component context.
-[[nodiscard]] auto component_logger(components::ComponentType aComponentType, std::string_view aComponentName)
-    -> SystemLogger;
+[[nodiscard]] auto component_logger(components::ComponentType aComponentType,
+                                    std::string_view aComponentName,
+                                    const boost::mpi::communicator& aCommunicator = {}) -> SystemLogger;
 
 }  // namespace plato::services
 
