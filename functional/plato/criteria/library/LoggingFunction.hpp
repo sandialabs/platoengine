@@ -1,6 +1,7 @@
 #ifndef PLATO_CRITERIA_LIBRARY_LOGGINGFUNCTION
 #define PLATO_CRITERIA_LIBRARY_LOGGINGFUNCTION
 
+#include <boost/mpi/communicator.hpp>
 #include <format>
 #include <string>
 
@@ -23,7 +24,8 @@ namespace plato::criteria::library
 template <typename Domain, typename... Info>
 [[nodiscard]] auto make_logging_function(const core::Function<Domain, Info...>& aFunction,
                                          components::ComponentType aComponentType,
-                                         std::string_view aName);
+                                         std::string_view aName,
+                                         const boost::mpi::communicator& aCommunicator = {});
 
 namespace detail
 {
@@ -40,14 +42,15 @@ constexpr inline auto kFormatSpecification<linear_algebra::DynamicVector<double>
 template <typename Domain, typename... Info>
 [[nodiscard]] auto make_logging_function(const core::Function<Domain, Info...>& aFunction,
                                          components::ComponentType aComponentType,
-                                         std::string_view aName)
+                                         std::string_view aName,
+                                         const boost::mpi::communicator& aCommunicator)
 {
     return core::Function<Domain, Info...>{
-        [mLocalFunction = aFunction, aComponentType, mName = std::string{aName}](Domain aArgument)
+        [mLocalFunction = aFunction, aComponentType, mName = std::string{aName}, aCommunicator](Domain aArgument)
         {
             if constexpr (Info::order == core::evaluation::kFunction)
             {
-                [[maybe_unused]] auto tLogger = services::component_logger(aComponentType, mName);
+                [[maybe_unused]] auto tLogger = services::component_logger(aComponentType, mName, aCommunicator);
                 tLogger.logInfo("Evaluating criterion");
                 auto tResult = mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
                 const auto tLogMessage = std::string{"Evaluation complete. Criterion value = "} +
@@ -55,13 +58,16 @@ template <typename Domain, typename... Info>
                 tLogger.logInfo(std::vformat(tLogMessage, std::make_format_args(tResult)));
                 return tResult;
             }
-            else if (Info::order == core::evaluation::kFirstDerivative)
+            else if constexpr (Info::order == core::evaluation::kFirstDerivative)
             {
-                [[maybe_unused]] const auto tTaskLogger =
-                    services::TaskLogSetupTeardown{"Gradient", services::component_logger(aComponentType, mName)};
+                [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
+                    "Gradient", services::component_logger(aComponentType, mName, aCommunicator)};
                 return mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
             }
-            return mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
+            else
+            {
+                return mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
+            }
         }...};
 }
 }  // namespace plato::criteria::library

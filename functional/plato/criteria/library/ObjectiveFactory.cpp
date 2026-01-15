@@ -55,7 +55,7 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
         auto tFunction = make_logging_function(
             make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue)
                 .mFunction,
-            components::ComponentType::kObjective, tName);
+            components::ComponentType::kObjective, tName, aObjectiveComm.mValue);
 
         return core::adapt_parallel_function(
             make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective)),
@@ -65,7 +65,7 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
     {
         auto tFunction = make_logging_function(
             make_criterion_function<CriterionFunction, input_parser::objective>(aObjective).mFunction,
-            components::ComponentType::kObjective, tName);
+            components::ComponentType::kObjective, tName, aObjectiveComm.mValue);
 
         return make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective));
     }
