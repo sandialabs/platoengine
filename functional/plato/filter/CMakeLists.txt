@@ -24,7 +24,9 @@ if( UNIT_TESTING )
   set(FOLDERS test_utilities
               extension/test_utilities
               extension/kernel_filters/test_utilities)
-  create_plato_library(PlatoFunctionalFilterTestUtilities "${FOLDERS}" PlatoFunctionalFilter)
+  set(LINK_LIBS GTest::GTest
+                PlatoFunctionalFilter)
+  create_plato_library(PlatoFunctionalFilterTestUtilities "${FOLDERS}" "${LINK_LIBS}")
 
   # Build test filter shared libs
   create_plato_library(PlatoIdentityFilter test_identity_filter PlatoFunctionalFilter)
