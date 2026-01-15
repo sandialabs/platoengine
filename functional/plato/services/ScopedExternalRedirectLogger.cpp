@@ -25,7 +25,7 @@ void make_severity_logger_impl(const components::ComponentType aComponentType,
             std::in_place_t{},
             tpi_bl::ComponentTypeAndNameAttribute{
                 tpi_bl::ComponentTypeAndName{.mComponentType = aComponentType, .mComponentName = aComponentName}},
-            tpi_bl::MPIWorldCommRankAttribute{}, tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kExternal>{},
+            tpi_bl::MPIRankAttribute{}, tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kExternal>{},
             tpi_bl::ComponentTypeFilterAttribute<kComponentType>{}};
     }
 }

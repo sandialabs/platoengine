@@ -25,7 +25,7 @@ class InternalLoggerConsoleSinkCoutRedirect : public plato::test_utilities::Cout
     auto tLogger = boost::log::sources::logger{};
     tLogger.add_attribute(tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>::name().data(),
                           boost::log::attributes::constant<tpi_bl::LogSource>(tpi_bl::LogSource::kInternal));
-    tLogger.add_attribute(tpi_bl::MPIWorldCommRankAttribute::name().data(), boost::log::attributes::constant<int>(0));
+    tLogger.add_attribute(tpi_bl::MPIRankAttribute::name().data(), boost::log::attributes::constant<int>(0));
     return tLogger;
 }
 }  // namespace

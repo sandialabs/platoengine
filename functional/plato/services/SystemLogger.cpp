@@ -28,7 +28,7 @@ struct SystemLoggerImpl
 }  // namespace
 
 SystemLogger::SystemLogger()
-    : mImpl{make_system_logger_impl(tpi_bl::SeverityLogger{tpi_bl::MPIWorldCommRankAttribute{},
+    : mImpl{make_system_logger_impl(tpi_bl::SeverityLogger{tpi_bl::MPIRankAttribute{},
                                                            tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>{}})}
 {
 }
@@ -39,7 +39,7 @@ SystemLogger::SystemLogger(components::ComponentType aComponentType,
     : mImpl{make_system_logger_impl(
           tpi_bl::SeverityLogger{tpi_bl::ComponentTypeAndNameAttribute{tpi_bl::ComponentTypeAndName{
                                      .mComponentType = aComponentType, .mComponentName = std::string{aComponentName}}},
-                                 tpi_bl::MPIWorldCommRankAttribute{.mValue = aCommunicator.rank()},
+                                 tpi_bl::MPIRankAttribute{.mValue = aCommunicator.rank()},
                                  tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>{}})}
 {
 }
