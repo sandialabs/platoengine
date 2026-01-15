@@ -2,8 +2,8 @@
 
 #include <dlfcn.h>
 
-#include "AppConfigurationUtilities.hpp"
 #include "plato/services/AppConfiguration.hpp"
+#include "plato/services/AppConfigurationUtilities.hpp"
 
 namespace plato::services
 {

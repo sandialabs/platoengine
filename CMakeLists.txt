@@ -4,6 +4,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.21)
 
 set (CMAKE_CXX_STANDARD 20)
 
+cmake_policy(SET CMP0144 NEW) # Ignores BOOST_ROOT
+
 include( ${CMAKE_SOURCE_DIR}/base/config/tools.cmake )
 include( ${CMAKE_SOURCE_DIR}/base/config/prebuilt_binaries.cmake )
 include( ${CMAKE_SOURCE_DIR}/base/config/integration_tests_dir.cmake )
@@ -45,7 +47,7 @@ endif()
 
 find_package(Trilinos REQUIRED)
 
-find_package(Boost REQUIRED COMPONENTS serialization filesystem system program_options regex mpi log)
+find_package(Boost CONFIG REQUIRED COMPONENTS serialization filesystem system program_options regex mpi log)
 
 if( LINK_WITH_PYTHON )
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)

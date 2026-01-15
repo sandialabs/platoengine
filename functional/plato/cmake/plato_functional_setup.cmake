@@ -16,3 +16,8 @@ macro(create_coverage_target)
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib)
 endmacro(create_coverage_target)
+
+macro(create_unittest_precompiled_header_target)
+    add_library(UnitTestPrecompiledHeaderInterface INTERFACE)
+    target_precompile_headers(UnitTestPrecompiledHeaderInterface INTERFACE "<gtest/gtest.h>")
+endmacro(create_unittest_precompiled_header_target)

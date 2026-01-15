@@ -5,11 +5,18 @@ macro(clang_tidy_setup)
       message(FATAL_ERROR "Requested to build with clang-tidy, but could not find the executable. Check your path.")
     endif()
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-    # It seems like MPI_CXX_INCLUDE_DIRS should work, but it's empty.
-    # Use the parent path of the mpi compiler wrapper:
-    cmake_path(GET MPI_CXX_COMPILER PARENT_PATH MPI_COMPILER_PARENT_PATH)
-    cmake_path(GET MPI_COMPILER_PARENT_PATH PARENT_PATH MPI_PARENT_PATH)
-    set(CLANG_TIDY_EXTRA_ARGS "--extra-arg=-I${MPI_PARENT_PATH}/include")
+
+    set(CLANG_TIDY_EXTRA_ARCH_ARGS "")
+    if(DEFINED ENV{SPACK_TARGET_ARGS_CXX})
+      # Add any spack CPU target flags that may conflict with generated precompiled header (PCH) files
+      set(SPACK_TARGET_ARGS_CXX $ENV{SPACK_TARGET_ARGS_CXX})
+      string(REPLACE " " ";" SPACK_TARGET_ARGS_LIST "${SPACK_TARGET_ARGS_CXX}")
+      foreach(FLAG ${SPACK_TARGET_ARGS_LIST})
+        list(APPEND CLANG_TIDY_EXTRA_ARCH_ARGS "--extra-arg=${FLAG}")
+      endforeach()
+    endif()
+
+    set(CLANG_TIDY_EXTRA_ARGS "")
     if(GCC_TOOLCHAIN_PATH)
       list(APPEND CLANG_TIDY_EXTRA_ARGS "--extra-arg=--gcc-toolchain=${GCC_TOOLCHAIN_PATH}")
     endif()
@@ -20,3 +27,59 @@ macro(clang_tidy_setup)
     message(STATUS "Clang-tidy command: ${CLANG_TIDY_COMMAND}")
   endif()
 endmacro(clang_tidy_setup)
+
+# targets_arch_flags: Searches LIBRARY_TARGET and its dependencies for any march or mtune flags.
+# A list of such flags is generated in ARCH_FLAGS_OUT.
+#
+# The purpose of this is to fix issues with clang-tidy, precompiled headers, and spack/kokkos setting of march/mtune flags. Spack sets 
+# march/mtune flags via an environment variable, but kokkos may set those flags differently. So we can't just set all targets
+# to use Spack's march/mtune flag since it may conflict with kokkos.
+function(targets_arch_flags LIBRARY_TARGET ARCH_FLAGS_OUT)
+  set(VISITED_DEPENDENCIES "" CACHE INTERNAL "")
+  set(ARCH_FLAGS "" CACHE INTERNAL "")
+
+  targets_arch_flags_impl("${LIBRARY_TARGET}" VISITED_DEPENDENCIES ARCH_FLAGS)
+
+  set(${ARCH_FLAGS_OUT} "$CACHE{ARCH_FLAGS}" PARENT_SCOPE)
+endfunction()
+
+# Implementation detail - do not call directly
+function(targets_arch_flags_impl CURRENT_TARGET VISITED_INOUT ARCH_FLAGS_INOUT)
+  set(VISITED "$CACHE{${VISITED_INOUT}}")
+  list(FIND VISITED "${CURRENT_TARGET}" INDEX)
+  if(NOT INDEX EQUAL -1)
+    # This dependency has been visited already, continue
+    return()
+  endif()
+
+  list(APPEND VISITED "${CURRENT_TARGET}")
+  set(${VISITED_INOUT} "${VISITED}" CACHE INTERNAL "")
+
+  # Check the current target's interface options
+  get_target_property(CURRENT_COMPILE_OPTIONS "${CURRENT_TARGET}" INTERFACE_COMPILE_OPTIONS)
+  set(CURRENT_ARCH_FLAGS "$CACHE{${ARCH_FLAGS_INOUT}}")
+  set(FLAG_REGEXES "-march=[^ <>]+" "-mtune=[^ <>]+")
+  if(NOT CURRENT_COMPILE_OPTIONS STREQUAL "NOTFOUND")
+    foreach(CURRENT_OPTION IN LISTS CURRENT_COMPILE_OPTIONS)
+      foreach(FLAG_REGEX IN LISTS FLAG_REGEXES)
+        if(CURRENT_OPTION MATCHES "${FLAG_REGEX}")
+          string(REGEX MATCH "${FLAG_REGEX}" MATCHED_OPTION ${CURRENT_OPTION})
+          list(APPEND CURRENT_ARCH_FLAGS "${MATCHED_OPTION}")
+        endif()
+      endforeach()
+    endforeach()
+    set(${ARCH_FLAGS_INOUT} "${CURRENT_ARCH_FLAGS}" CACHE INTERNAL "")
+  endif()
+  list(REMOVE_DUPLICATES ${ARCH_FLAGS_INOUT})
+
+  # Recurse through the dependencies
+  get_target_property(CURRENT_DEPENDENCIES "${CURRENT_TARGET}" INTERFACE_LINK_LIBRARIES)
+  if(NOT CURRENT_DEPENDENCIES STREQUAL "NOTFOUND")
+    foreach(CURRENT_DEPENDENCY IN LISTS CURRENT_DEPENDENCIES)
+      if(TARGET "${CURRENT_DEPENDENCY}")
+        targets_arch_flags_impl("${CURRENT_DEPENDENCY}" "${VISITED_INOUT}" "${ARCH_FLAGS_INOUT}")
+      endif()
+    endforeach()
+  endif()
+endfunction()
+

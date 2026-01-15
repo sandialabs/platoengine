@@ -1,4 +1,6 @@
 include(${CMAKE_UTIL_DIR}/add_to_srcs_and_hdrs.cmake)
+include(${CMAKE_UTIL_DIR}/generate_precompiled_headers.cmake)
+include(${CMAKE_UTIL_DIR}/clang_tidy_setup.cmake)
 
 # create_plato_header_library 
 #  This version must be used if a library only contains header files.
@@ -37,12 +39,23 @@ function(create_plato_library_impl LIBRARY_NAME DIRECTORIES TARGET_LINK_LIST LIB
 
     target_link_libraries(${LIBRARY_NAME} ${EXPORT_TYPE} CoverageInterface ${TARGET_LINK_LIST})
     if(BUILD_WITH_CLANG_TIDY)
-        set_target_properties(${LIBRARY_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+        targets_arch_flags(${LIBRARY_NAME} ARCH_FLAGS)
+        list(TRANSFORM ARCH_FLAGS PREPEND "--extra-arg=")
+        set_target_properties(${LIBRARY_NAME}
+                              PROPERTIES CXX_CLANG_TIDY
+                              "${CLANG_TIDY_COMMAND};$<IF:$<BOOL:${ARCH_FLAGS}>,${ARCH_FLAGS},${CLANG_TIDY_EXTRA_ARCH_ARGS}>")
     endif()
 
     install( TARGETS ${LIBRARY_NAME} EXPORT PlatoEngine
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib)
     target_include_directories(${LIBRARY_NAME} INTERFACE $<INSTALL_INTERFACE:include/>)
+
+    if(NOT ${EXPORT_TYPE} STREQUAL "INTERFACE")
+        precompiled_header_list("${LIB_HDRS}" LIB_HDR_PCH)
+        target_precompile_headers(${LIBRARY_NAME} PRIVATE ${LIB_HDR_PCH})
+        precompiled_header_list("${LIB_SRCS}" LIB_SRC_PCH)
+        target_precompile_headers(${LIBRARY_NAME} PRIVATE ${LIB_SRC_PCH})
+    endif()
 
 endfunction()

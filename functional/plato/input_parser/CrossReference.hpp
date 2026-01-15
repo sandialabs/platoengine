@@ -1,7 +1,6 @@
 #ifndef PLATO_INPUT_PARSER_CROSSREFERENCE
 #define PLATO_INPUT_PARSER_CROSSREFERENCE
 
-#include <any>
 #include <boost/spirit/include/qi.hpp>
 #include <string>
 
