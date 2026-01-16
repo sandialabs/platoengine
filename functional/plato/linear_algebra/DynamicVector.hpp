@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <numeric>
 #include <vector>
 
@@ -41,6 +42,11 @@ class DynamicVector
    private:
     std::vector<T> mVector;
 };
+
+/// @brief Computes the L2 norm of @a aVector.
+template <typename T>
+    requires std::convertible_to<T, double>
+[[nodiscard]] auto norm(const DynamicVector<T>& aVector) -> double;
 
 template <typename T>
 [[nodiscard]] DynamicVector<T> operator+(DynamicVector<T>&& aLeft, const DynamicVector<T>& aRight)
@@ -152,6 +158,15 @@ template <typename T>
 [[nodiscard]] bool DynamicVector<T>::operator==(const DynamicVector<T>& aRight) const
 {
     return mVector == aRight.mVector;
+}
+
+template <typename T>
+    requires std::convertible_to<T, double>
+auto norm(const DynamicVector<T>& aVector) -> double
+{
+    const auto tSumOfSquares = std::transform_reduce(aVector.stdVector().begin(), aVector.stdVector().end(), 0.0,
+                                                     std::plus{}, [](const double aEntry) { return aEntry * aEntry; });
+    return std::sqrt(tSumOfSquares);
 }
 
 }  // namespace plato::linear_algebra
