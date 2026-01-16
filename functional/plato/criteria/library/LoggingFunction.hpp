@@ -7,14 +7,9 @@
 
 #include "plato/components/ComponentType.hpp"
 #include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
-
-namespace plato::linear_algebra
-{
-template <typename T>
-class DynamicVector;
-}
 
 namespace plato::criteria::library
 {
@@ -51,17 +46,30 @@ template <typename Domain, typename... Info>
             if constexpr (Info::order == core::evaluation::kFunction)
             {
                 [[maybe_unused]] auto tLogger = services::component_logger(aComponentType, mName, aCommunicator);
-                tLogger.logInfo("Evaluating criterion");
+                tLogger.logInfo("Criterion evaluation");
                 auto tResult = mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
-                const auto tLogMessage = std::string{"Evaluation complete. Criterion value = "} +
+                const auto tLogMessage = std::string{"Criterion evaluation complete. Result: "} +
                                          std::string{detail::kFormatSpecification<typename Info::Codomain>};
                 tLogger.logInfo(std::vformat(tLogMessage, std::make_format_args(tResult)));
                 return tResult;
             }
+            else if constexpr (Info::order == core::evaluation::kFirstDerivative &&
+                               std::same_as<std::remove_cvref_t<typename Info::Codomain>,
+                                            std::remove_cvref_t<linear_algebra::DynamicVector<double>>>)
+            {
+                auto tLogger = services::component_logger(aComponentType, mName, aCommunicator);
+                tLogger.logInfo("Gradient evaluation");
+                auto tGradient = mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
+                const auto tLogMessage = std::string{"Gradient evaluation complete. Result norm: "} +
+                                         std::string{detail::kFormatSpecification<double>};
+                const auto tGradientNorm = linear_algebra::norm(tGradient);
+                tLogger.logInfo(std::vformat(tLogMessage, std::make_format_args(tGradientNorm)));
+                return tGradient;
+            }
             else if constexpr (Info::order == core::evaluation::kFirstDerivative)
             {
                 [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-                    "Gradient", services::component_logger(aComponentType, mName, aCommunicator)};
+                    "Gradient evaluation", services::component_logger(aComponentType, mName, aCommunicator)};
                 return mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
             }
             else

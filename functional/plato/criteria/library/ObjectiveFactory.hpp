@@ -49,7 +49,7 @@ using ParallelAggregateObjective =
 
 namespace detail
 {
-/// @brief Holds all aggregation data needed to compute total weight.
+/// @brief Holds all data needed to compute the total aggregation weight.
 struct AggregationData
 {
     std::string mName;
@@ -80,7 +80,7 @@ void log_aggregate_data(const std::ranges::range auto& aLogData, const boost::mp
     {
         auto tLogger = services::component_logger(components::ComponentType::kObjective, tLogData.mName,
                                                   boost::mpi::communicator{MPI_COMM_SELF, boost::mpi::comm_attach});
-        tLogger.logInfo(std::format("Aggregation weight: {: 8.7e} = {:2} * {} / {}", total_weight(tLogData),
+        tLogger.logInfo(std::format("Aggregation weight = {: 8.7e} = {:2} * {} / {}", total_weight(tLogData),
                                     tLogData.mGoalScaling, tLogData.mWeight, tLogData.mNormalization.value_or(1.0)));
     }
     aAggregatorComm.barrier();
