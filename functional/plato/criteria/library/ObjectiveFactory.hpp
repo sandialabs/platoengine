@@ -9,6 +9,7 @@
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/services/SystemLogger.hpp"
+#include "plato/utilities/NamedType.hpp"
 
 namespace plato::analysis
 {
@@ -27,6 +28,9 @@ using ObjectiveFunction =
     core::Function<const analysis::AnalysisDomainMesh&, ObjectiveEvaluationInfo, ObjectiveGradientInfo>;
 using ParallelAggregateObjective =
     core::ParallelAggregate<const analysis::AnalysisDomainMesh&, ObjectiveEvaluationInfo, ObjectiveGradientInfo>;
+
+using AggregateComm = utilities::NamedType<boost::mpi::communicator, struct AggregateCommTag>;
+using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct ObjectiveCommTag>;
 
 /// @brief Creates a single aggregate objective function from the objectives defined in @a aInput.
 ///
@@ -65,25 +69,29 @@ struct AggregationData
 [[nodiscard]] auto total_weight(const AggregationData& aAggregationData) -> double;
 
 /// @brief Logs a summary of the aggregation weights to the console.
-void log_aggregate_data(const std::ranges::range auto& aLogData, const boost::mpi::communicator& aAggregatorComm);
+void log_aggregate_data(const std::ranges::range auto& aLogData,
+                        const AggregateComm& aAggregatorComm,
+                        const ObjectiveComm& aObjectiveComm);
 
-void log_aggregate_data(const std::ranges::range auto& aLogData, const boost::mpi::communicator& aAggregatorComm)
+void log_aggregate_data(const std::ranges::range auto& aLogData,
+                        const AggregateComm& aAggregatorComm,
+                        const ObjectiveComm& aObjectiveComm)
 {
-    aAggregatorComm.barrier();
+    aAggregatorComm.mValue.barrier();
 
     auto tWorldLogger = services::component_logger(components::ComponentType::kObjective, "aggregator");
     tWorldLogger.logInfo("Aggregation weight = goal scaling * weight / normalization");
 
-    aAggregatorComm.barrier();
+    aAggregatorComm.mValue.barrier();
 
     for (const auto& tLogData : aLogData)
     {
-        auto tLogger = services::component_logger(components::ComponentType::kObjective, tLogData.mName,
-                                                  boost::mpi::communicator{MPI_COMM_SELF, boost::mpi::comm_attach});
+        auto tLogger =
+            services::component_logger(components::ComponentType::kObjective, tLogData.mName, aObjectiveComm.mValue);
         tLogger.logInfo(std::format("Aggregation weight = {: 8.7e} = {:2} * {} / {}", total_weight(tLogData),
                                     tLogData.mGoalScaling, tLogData.mWeight, tLogData.mNormalization.value_or(1.0)));
     }
-    aAggregatorComm.barrier();
+    aAggregatorComm.mValue.barrier();
 }
 
 }  // namespace detail

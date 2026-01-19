@@ -12,7 +12,6 @@
 #include "plato/criteria/library/ObjectiveReciprocal.hpp"
 #include "plato/linear_algebra/DynamicVectorSerialization.hpp"
 #include "plato/services/SystemLogger.hpp"
-#include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::criteria::library
@@ -22,8 +21,6 @@ namespace detail
 namespace
 {
 using ValidatedObjective = input_validation::ValidatedInputDataBlock<components::ComponentType::kObjective>;
-using AggregateComm = utilities::NamedType<boost::mpi::communicator, struct AggregateCommTag>;
-using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct ObjectiveCommTag>;
 
 [[nodiscard]] auto objective_name(const ValidatedObjective& aObjective) -> std::string
 {
@@ -137,7 +134,7 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
     const auto tAggregateData =
         tFunctionsAndAggregateData | std::views::transform([](const auto& aFunctionAndData) -> const AggregationData&
                                                            { return aFunctionAndData.second; });
-    log_aggregate_data(tAggregateData, aAggregatorComm.mValue);
+    log_aggregate_data(tAggregateData, aAggregatorComm, aObjectiveComm);
 
     auto tFunctionsAndWeights =
         tFunctionsAndAggregateData | std::views::transform(
