@@ -47,13 +47,14 @@ TEST(LoggingFunction, MakeLoggingFunction)
     using GradientInfo = core::FunctionInfo<int, core::evaluation::kFirstDerivative>;
     using TestFunction = core::Function<int, FunctionInfo, GradientInfo>;
 
-    const auto tFunction =
-        TestFunction{[](const int aArgument) { return aArgument; }, [](const int aArgument) { return 2 * aArgument; }};
+    const auto tFunction = TestFunction{[](const int aArgument) { return aArgument * aArgument; },
+                                        [](const int aArgument) { return 2 * aArgument; }};
     const auto tArgument = 67;
     const auto tLogText = log_output(tFunction, tArgument, TEST_CONTEXT("Int function"));
 
-    test_utilities::expect_string_contains_substring(tLogText, std::to_string(tArgument),
-                                                     TEST_CONTEXT("Checking for result"));
+    test_utilities::expect_string_contains_substring(
+        tLogText, std::to_string(tFunction.evaluate<core::evaluation::kFunction>(tArgument)),
+        TEST_CONTEXT("Checking for result"));
 }
 
 TEST(LoggingFunction, GradientNorm)
