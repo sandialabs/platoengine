@@ -5,17 +5,11 @@
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
-#include "plato/services/SystemLogger.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
-#include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
 
 namespace plato::criteria::extension
 {
 namespace
 {
-constexpr auto kCriterionValuePrecision = 8U;
-constexpr auto kCriterionValueFieldWidth = kCriterionValuePrecision + 1U;
-
 template <typename FunctionSignature, typename... Args>
 auto load_criterion_interface(const services::AppConfigurationWithDirectory& aAppConfiguration,
                               const std::string_view aCreateCriterionFunctionName,
@@ -64,28 +58,13 @@ SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirec
 
 double SharedLibCriterion::f(const analysis::AnalysisDomainMesh& aMesh) const
 {
-    auto tLogger = services::component_logger(mComponentType, mName);
-    tLogger.logInfo("Evaluating criterion");
-
-    const auto tValue = [&aMesh, this]()
-    {
-        [[maybe_unused]] const auto tScopedLogger = services::ScopedExternalRedirectLogger{mComponentType, mName};
-        return mCriterionInterface->object()->value(aMesh);
-    }();
-
-    tLogger.logInfo(
-        "Evaluation complete. Criterion value = " +
-        utilities::to_string(
-            utilities::FixedWidthFloatingPointOutput<double, kCriterionValuePrecision, kCriterionValueFieldWidth>{
-                tValue}));
-    return tValue;
+    [[maybe_unused]] const auto tScopedLogger = services::ScopedExternalRedirectLogger{mComponentType, mName};
+    return mCriterionInterface->object()->value(aMesh);
 }
 
 linear_algebra::DynamicVector<double> SharedLibCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisMesh) const
 {
-    [[maybe_unused]] const auto tTaskLogger =
-        services::TaskLogSetupTeardown{"Gradient", services::component_logger(mComponentType, mName)};
-
+    [[maybe_unused]] const auto tScopedLogger = services::ScopedExternalRedirectLogger{mComponentType, mName};
     return linear_algebra::DynamicVector<double>(mCriterionInterface->object()->gradient(aAnalysisMesh));
 }
 

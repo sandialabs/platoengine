@@ -66,6 +66,7 @@ function( create_plato_unittester_impl TEST_EXE DIRECTORIES TEST_MAIN_CPP TARGET
     list(APPEND TEST_SRCS ${TEST_MAIN_CPP})
 
     add_executable(${TEST_EXE} ${TEST_SRCS} ${TEST_HDRS})
+    add_dependencies(${TEST_EXE} clean_coverage)
     target_compile_options(${TEST_EXE} PRIVATE "-fPIC")
 
     target_link_libraries( ${TEST_EXE} PRIVATE GTest::GTest PlatoFunctionalTestUtilities CoverageInterface UnitTestPrecompiledHeaderInterface ${TARGET_LINK_LIST})

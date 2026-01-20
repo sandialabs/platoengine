@@ -2,6 +2,7 @@
 
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <cmath>
 #include <sstream>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -163,6 +164,36 @@ TEST(DynamicVector, Serialization)
     for (std::size_t k = 0; k < tStoredVector.size(); ++k)
     {
         EXPECT_EQ(tStoredVector[k], tLoadedVector[k]);
+    }
+}
+
+TEST(DynamicVector, Norm)
+{
+    // empty
+    {
+        const auto tVector = DynamicVector<double>{};
+        EXPECT_EQ(norm(tVector), 0.0);
+    }
+    // single entry
+    {
+        const auto tVector = DynamicVector<double>{16.0};
+        EXPECT_EQ(norm(tVector), 16.0);
+    }
+    // ints
+    {
+        const auto tVector = DynamicVector{1, 2, 3};
+        EXPECT_DOUBLE_EQ(std::sqrt(1.0 + 4.0 + 9.0), norm(tVector));
+    }
+    // double
+    {
+        const auto tVector = DynamicVector{3.0, -4.0};
+        EXPECT_DOUBLE_EQ(5.0, norm(tVector));
+    }
+    // longer vector
+    {
+        const auto tVector = DynamicVector{1.5, -2.5, 3.5, -4.5, 5.5, -6.5, 7.5, -8.5, 9.5};
+        constexpr auto tExpected = 1.822772613355819e+01;  // From matlab
+        EXPECT_DOUBLE_EQ(tExpected, norm(tVector));
     }
 }
 

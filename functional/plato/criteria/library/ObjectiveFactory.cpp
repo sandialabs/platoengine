@@ -2,17 +2,17 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <boost/numeric/conversion/cast.hpp>
-#include <iterator>
+#include <optional>
 #include <ranges>
 
 #include "plato/core/ParallelFunction.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/LoggingFunction.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveReciprocal.hpp"
 #include "plato/linear_algebra/DynamicVectorSerialization.hpp"
-#include "plato/utilities/NamedType.hpp"
+#include "plato/services/SystemLogger.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
-#include "plato/utilities/TransformIf.hpp"
 
 namespace plato::criteria::library
 {
@@ -21,8 +21,16 @@ namespace detail
 namespace
 {
 using ValidatedObjective = input_validation::ValidatedInputDataBlock<components::ComponentType::kObjective>;
-using AggregateComm = utilities::NamedType<boost::mpi::communicator, struct AggregateCommTag>;
-using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct ObjectiveCommTag>;
+
+[[nodiscard]] auto objective_name(const ValidatedObjective& aObjective) -> std::string
+{
+    return input_validation::get_input_block<input_parser::objective>(aObjective).name.value();
+}
+
+[[nodiscard]] auto aggregation_weight(const ValidatedObjective& aObjective) -> double
+{
+    return input_validation::get_input_block<input_parser::objective>(aObjective).aggregation_weight.value();
+}
 
 [[nodiscard]] bool normalize_by_initial_value(const ValidatedObjective& aObjective)
 {
@@ -50,29 +58,38 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
 [[nodiscard]] auto make_parallel_criterion_function(const ValidatedObjective& aObjective,
                                                     const ObjectiveComm& aObjectiveComm)
 {
+    const auto tName = input_validation::get_input_block<input_parser::objective>(aObjective).name.value();
     if (is_parallel_objective(aObjective))
     {
+        auto tFunction = make_logging_function(
+            make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue)
+                .mFunction,
+            components::ComponentType::kObjective, tName, aObjectiveComm.mValue);
+
         return core::adapt_parallel_function(
-            make_reciprocal_criterion_function(
-                make_criterion_function<CriterionFunction, input_parser::objective>(aObjective, aObjectiveComm.mValue)
-                    .mFunction,
-                objective_goal(aObjective)),
+            make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective)),
             aObjectiveComm.mValue);
     }
     else
     {
-        return make_reciprocal_criterion_function(
+        auto tFunction = make_logging_function(
             make_criterion_function<CriterionFunction, input_parser::objective>(aObjective).mFunction,
-            objective_goal(aObjective));
+            components::ComponentType::kObjective, tName, aObjectiveComm.mValue);
+
+        return make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective));
     }
 }
 
-[[nodiscard]] double normalization_value(const ObjectiveFunction& aFunction,
-                                         const ObjectiveComm& aObjectiveComm,
-                                         const analysis::AnalysisDomainMesh& aGeometry)
+[[nodiscard]] auto normalization_value(const ValidatedObjective& aObjectiveInput,
+                                       const ObjectiveFunction& aFunction,
+                                       const ObjectiveComm& aObjectiveComm,
+                                       const analysis::AnalysisDomainMesh& aGeometry) -> std::optional<double>
 
 {
-    return 1.0 / core::broadcast_from_root(aObjectiveComm.mValue, aFunction.template evaluate<0>(aGeometry));
+    return normalize_by_initial_value(aObjectiveInput)
+               ? std::make_optional(
+                     core::broadcast_from_root(aObjectiveComm.mValue, aFunction.template evaluate<0>(aGeometry)))
+               : std::optional<double>{};
 }
 
 [[nodiscard]] auto group_split_vector(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
@@ -84,8 +101,8 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
     return utilities::group_split_vector(aInput.rawInput(), tGroupColor, utilities::SizeNamedType{tSplitSize});
 }
 
-[[nodiscard]] auto mpi_group(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
-    -> boost::mpi::communicator
+[[nodiscard]] auto mpi_group(const ValidatedObjectives& aInput,
+                             const boost::mpi::communicator& aComm) -> boost::mpi::communicator
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
     const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});
@@ -98,39 +115,59 @@ using ObjectiveComm = utilities::NamedType<boost::mpi::communicator, struct Obje
                                                 const analysis::AnalysisDomainMesh& aGeometry)
     -> ParallelAggregateObjective
 {
-    const auto tToObjectivesAndWeights =
+    auto tToObjectivesAndAggregateData =
         aObjectives |
         std::views::transform(
             [&aObjectiveComm, &aGeometry](const auto& aObjectiveInput)
             {
                 auto tFunction = make_parallel_criterion_function(aObjectiveInput, aObjectiveComm);
-                const auto tInitialNormalization = normalize_by_initial_value(aObjectiveInput)
-                                                       ? normalization_value(tFunction, aObjectiveComm, aGeometry)
-                                                       : 1.0;
-                const auto tWeight = tInitialNormalization *
-                                     input_validation::get_input_block<input_parser::objective>(aObjectiveInput)
-                                         .aggregation_weight.value() *
-                                     objective_goal_scaling(aObjectiveInput);
-
-                return std::make_pair(std::move(tFunction), tWeight);
+                auto tLogData = AggregationData{
+                    .mName = objective_name(aObjectiveInput),
+                    .mWeight = aggregation_weight(aObjectiveInput),
+                    .mNormalization = normalization_value(aObjectiveInput, tFunction, aObjectiveComm, aGeometry),
+                    .mGoalScaling = objective_goal_scaling(aObjectiveInput)};
+                return std::make_pair(std::move(tFunction), std::move(tLogData));
             });
-    auto tFunctionsAndWeights = std::vector(tToObjectivesAndWeights.begin(), tToObjectivesAndWeights.end());
-    return ParallelAggregateObjective{std::move(tFunctionsAndWeights), aAggregatorComm.mValue};
+
+    auto tFunctionsAndAggregateData =
+        std::vector(tToObjectivesAndAggregateData.begin(), tToObjectivesAndAggregateData.end());
+    const auto tAggregateData =
+        tFunctionsAndAggregateData | std::views::transform([](const auto& aFunctionAndData) -> const AggregationData&
+                                                           { return aFunctionAndData.second; });
+    log_aggregate_data(tAggregateData, aAggregatorComm, aObjectiveComm);
+
+    auto tFunctionsAndWeights =
+        tFunctionsAndAggregateData | std::views::transform(
+                                         [](auto&& aFunctionAndData)
+                                         {
+                                             using PairType = std::remove_cvref_t<decltype(aFunctionAndData)>;
+                                             return std::make_pair(std::forward<PairType>(aFunctionAndData).first,
+                                                                   total_weight(aFunctionAndData.second));
+                                         });
+
+    return ParallelAggregateObjective{std::vector(tFunctionsAndWeights.begin(), tFunctionsAndWeights.end()),
+                                      aAggregatorComm.mValue};
 }
 }  // namespace
 
-auto make_parallel_aggregate(const ValidatedObjectives& aInput, const analysis::AnalysisDomainMesh& aGeometry)
-    -> ParallelAggregateObjective
+auto make_parallel_aggregate(const ValidatedObjectives& aInput,
+                             const analysis::AnalysisDomainMesh& aGeometry) -> ParallelAggregateObjective
 {
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tObjectives = group_split_vector(aInput, tCommunicator);
     return make_parallel_aggregate_impl(tObjectives, AggregateComm{tCommunicator},
                                         ObjectiveComm{mpi_group(aInput, tCommunicator)}, aGeometry);
 }
+
+auto total_weight(const AggregationData& aAggregationData) -> double
+{
+    return aAggregationData.mWeight * aAggregationData.mGoalScaling / aAggregationData.mNormalization.value_or(1.0);
+}
+
 }  // namespace detail
 
-auto make_aggregate_objective_function(const ValidatedObjectives& aInput, const analysis::AnalysisDomainMesh& aGeometry)
-    -> ObjectiveFunction
+auto make_aggregate_objective_function(const ValidatedObjectives& aInput,
+                                       const analysis::AnalysisDomainMesh& aGeometry) -> ObjectiveFunction
 {
     return make_aggregate_function_with_first_derivative(detail::make_parallel_aggregate(aInput, aGeometry));
 }
@@ -139,8 +176,7 @@ auto number_of_processors_per_objective(const ValidatedObjectives& aInput) -> st
 {
     const auto tNumberOfProcessors =
         aInput.rawInput() | std::views::transform(
-                                [](const auto& aObjective)
-                                {
+                                [](const auto& aObjective) {
                                     return input_validation::get_input_block<input_parser::objective>(aObjective)
                                         .number_of_processors.value_or(1U);
                                 });

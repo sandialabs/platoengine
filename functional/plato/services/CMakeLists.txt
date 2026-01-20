@@ -18,4 +18,7 @@ if( UNIT_TESTING )
   create_plato_library(PlatoServicesTestSharedLib test_shared_lib "")
   create_plato_library(PlatoServicesTestBogusSharedLib test_bogus_shared_lib "")
   create_plato_unittester(PlatoFunctionalServices unittest)
+
+  set(NUM_RANKS_FOR_TEST 4)
+  create_plato_parallel_unittester(PlatoFunctionalServices parallel_unittest ${NUM_RANKS_FOR_TEST})
 endif()

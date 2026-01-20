@@ -12,14 +12,10 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshSidesets.hpp"
-#include "plato/services/SystemLogger.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
 #include "plato/third_party_integration/krino/TriangleUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
-#include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
-#include "plato/utilities/Zip.hpp"
 
 namespace plato::input_parser
 {
@@ -34,9 +30,6 @@ namespace plato::criteria::extension
 {
 namespace
 {
-constexpr auto kCriterionValuePrecision = 8U;
-constexpr auto kCriterionValueFieldWidth = kCriterionValuePrecision + 1U;
-
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
@@ -61,21 +54,12 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
         throw utilities::Exception{"Criterion overhang may only be used with a non-density-based geometry."};
     }
 
-    auto tLogger = services::component_logger(mComponentType, mName);
-    tLogger.logInfo("Evaluating criterion");
-
     const std::vector<SensitivityTriangle> tTriangles =
         detail::triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
 
-    const double tReturnValue =
-        std::accumulate(tTriangles.begin(), tTriangles.end(), 0.0, [&](double aCurrentSum, SensitivityTriangle aCurTri)
-                        { return aCurrentSum + detail::area_weighted_overhang_from_triangle(aCurTri, *this); });
-    tLogger.logInfo(
-        "Evaluation complete. Criterion value = " +
-        utilities::to_string(
-            utilities::FixedWidthFloatingPointOutput<double, kCriterionValuePrecision, kCriterionValueFieldWidth>{
-                tReturnValue}));
-    return tReturnValue;
+    return std::accumulate(tTriangles.begin(), tTriangles.end(), 0.0,
+                           [&](double aCurrentSum, SensitivityTriangle aCurTri)
+                           { return aCurrentSum + detail::area_weighted_overhang_from_triangle(aCurTri, *this); });
 }
 
 linear_algebra::DynamicVector<double> OverhangCriterion::df(
@@ -88,9 +72,6 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
         throw utilities::Exception{"Criterion overhang may only be used with a non-density-based geometry."};
     }
 
-    auto tLogger = services::component_logger(mComponentType, mName);
-    tLogger.logInfo("Evaluating criterion gradient");
-
     const std::vector<SensitivityTriangle> tTriangles =
         detail::triangles_to_evaluate_over(aAnalysisDomainMesh.mFileName, mEvaluationSidesets);
 
@@ -101,15 +82,6 @@ linear_algebra::DynamicVector<double> OverhangCriterion::df(
     const std::vector<size_t> tAllNodeIds = tEntityRetrievalMesh.allNodeIDs();
 
     auto tGradientVector = detail::get_full_gradient_vector_from_gradient_map(tGradientMap, tAllNodeIds);
-
-    const double tGradientNorm =
-        std::sqrt(std::inner_product(tGradientVector.begin(), tGradientVector.end(), tGradientVector.begin(), 0.0));
-
-    tLogger.logInfo(
-        "Gradient evaluation complete. Criterion gradient norm = " +
-        utilities::to_string(
-            utilities::FixedWidthFloatingPointOutput<double, kCriterionValuePrecision, kCriterionValueFieldWidth>{
-                tGradientNorm}));
 
     return linear_algebra::DynamicVector<double>(std::move(tGradientVector));
 }

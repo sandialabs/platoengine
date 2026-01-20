@@ -19,7 +19,7 @@ auto internal_logger_console_sink(const boost::shared_ptr<std::ostream>& aStream
 
     return tpi_bl::sink_with_attribute_formatters_and_filters<
         tpi_bl::TimeStampAttribute, tpi_bl::SeverityAttribute, tpi_bl::ComponentTypeAndNameAttribute,
-        tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>, tpi_bl::MPIWorldCommRankAttribute>(aStreamSink);
+        tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kInternal>, tpi_bl::MPIRankAttribute>(aStreamSink);
 }
 
 auto internal_logger_console_sink() -> third_party_integration::boost_log::LoggerSinkSetupTeardown
