@@ -32,9 +32,6 @@ namespace plato::geometry::extension
 namespace
 {
 namespace tpik = third_party_integration::krino;
-constexpr auto kXComponent = utilities::ComponentIndex{0};
-constexpr auto kYComponent = utilities::ComponentIndex{1};
-constexpr auto kZComponent = utilities::ComponentIndex{2};
 
 void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
                           std::vector<::krino::LS_Field>& aLevelSetFields,
@@ -116,17 +113,10 @@ const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<doub
                                      const CutMeshIndex aCutMeshIndex,
                                      const double aMultiplicityMultiplier,
                                      const third_party_integration::common::Vector3& aSensitivity,
-                                     const unsigned int aSpatialDimension)
+                                     const unsigned int /*aSpatialDimension*/)
 {
-    aResultVectorView(utilities::VectorIndex{aCutMeshIndex.mValue}, kXComponent) +=
-        aRowVector[aParentIndex.mValue] * aSensitivity.x * aMultiplicityMultiplier;
-    aResultVectorView(utilities::VectorIndex{aCutMeshIndex.mValue}, kYComponent) +=
-        aRowVector[aParentIndex.mValue] * aSensitivity.y * aMultiplicityMultiplier;
-    if (aSpatialDimension == 3U)
-    {
-        aResultVectorView(utilities::VectorIndex{aCutMeshIndex.mValue}, kZComponent) +=
-            aRowVector[aParentIndex.mValue] * aSensitivity.z * aMultiplicityMultiplier;
-    }
+    aResultVectorView(utilities::VectorIndex{aCutMeshIndex.mValue}) +=
+        aSensitivity * aRowVector[aParentIndex.mValue] * aMultiplicityMultiplier;
 };
 
 using ResultSize = utilities::NamedType<long unsigned int, struct ResultSizeTag>;
@@ -307,11 +297,7 @@ auto row_vector_to_vector3(const std::vector<double>& aRowVector,
                            const std::size_t aDimensions) -> third_party_integration::common::Vector3
 {
     const auto tRowVectorView = utilities::make_multi_vector_view(aRowVector, aDimensions);
-    const auto tRowVector3 = third_party_integration::common::Vector3{
-        tRowVectorView(aVectorIndex, kXComponent), tRowVectorView(aVectorIndex, kYComponent),
-        aDimensions == 3U ? tRowVectorView(aVectorIndex, kZComponent) : 0.0};
-
-    return tRowVector3;
+    return tRowVectorView(aVectorIndex);
 }
 
 }  // namespace detail

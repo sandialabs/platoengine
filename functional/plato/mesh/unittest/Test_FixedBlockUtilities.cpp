@@ -11,7 +11,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser),
     test_geometry,
     (plato::input_parser::FileName, mesh_name, "")
-    (plato::input_parser::FixedBlockList, fixed_blocks, "")
+    (plato::input_parser::BlockList, fixed_blocks, "")
     )
 // clang-format on
 
@@ -33,14 +33,14 @@ TEST(FixedBlockUtilities, UniqueFixedBlockNames)
     const auto tBlockName2 = std::string{"some-other-block"};
     {
         auto tGeometryInputWithFixedBlocks = kTestGeometry;
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tBlockName1}};
         const auto tUniqueFixedBlocks = fixed_blocks(tGeometryInputWithFixedBlocks);
         EXPECT_EQ(tUniqueFixedBlocks.count(tBlockName1), 1U);
     }
     {
         auto tGeometryInputWithFixedBlocks = kTestGeometry;
         tGeometryInputWithFixedBlocks.fixed_blocks =
-            input_parser::FixedBlockList{{tBlockName1, tBlockName2, tBlockName1, tBlockName2}};
+            input_parser::BlockList{{tBlockName1, tBlockName2, tBlockName1, tBlockName2}};
         const auto tUniqueFixedBlocks = fixed_blocks(tGeometryInputWithFixedBlocks);
         EXPECT_EQ(tUniqueFixedBlocks.count(tBlockName1), 1U);
         EXPECT_EQ(tUniqueFixedBlocks.count(tBlockName2), 1U);
@@ -55,32 +55,30 @@ TEST(FixedBlockUtilities, ValidateUniqueBlockNames)
     // Valid cases
     {
         auto tGeometryInputWithFixedBlocks = kTestGeometry;
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{}};
         EXPECT_FALSE(validate_unique_fixed_block_names(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor)
                          .has_value());
 
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tBlockName1}};
         EXPECT_FALSE(validate_unique_fixed_block_names(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor)
                          .has_value());
 
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1, tBlockName2}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tBlockName1, tBlockName2}};
         EXPECT_FALSE(validate_unique_fixed_block_names(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor)
                          .has_value());
     }
     // Invalid
     {
         auto tGeometryInputWithFixedBlocks = kTestGeometry;
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBlockName1, tBlockName1}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tBlockName1, tBlockName1}};
         EXPECT_TRUE(validate_unique_fixed_block_names(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor)
                         .has_value());
 
-        tGeometryInputWithFixedBlocks.fixed_blocks =
-            input_parser::FixedBlockList{{tBlockName1, tBlockName2, tBlockName1}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tBlockName1, tBlockName2, tBlockName1}};
         EXPECT_TRUE(validate_unique_fixed_block_names(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor)
                         .has_value());
 
-        tGeometryInputWithFixedBlocks.fixed_blocks =
-            input_parser::FixedBlockList{{tBlockName2, tBlockName2, tBlockName1}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tBlockName2, tBlockName2, tBlockName1}};
         EXPECT_TRUE(validate_unique_fixed_block_names(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor)
                         .has_value());
     }
@@ -97,24 +95,24 @@ TEST_F(TwoDTwoBlockMesh, ValidateBlockNamesExist)
 
     // Valid
     {
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{}};
         const auto tErrorMessageForNoFixedBlocks =
             validate_fixed_block_names_exist(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor);
         EXPECT_FALSE(tErrorMessageForNoFixedBlocks.has_value()) << tErrorMessageForNoFixedBlocks.value();
 
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tFixedBlockName}};
         const auto tErrorMessageForOneFixedBlock =
             validate_fixed_block_names_exist(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor);
         EXPECT_FALSE(tErrorMessageForOneFixedBlock.has_value()) << tErrorMessageForOneFixedBlock.value();
 
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName, tDesignBlockName}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tFixedBlockName, tDesignBlockName}};
         const auto tErrorMessageForTwoFixedBlocks =
             validate_fixed_block_names_exist(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor);
         EXPECT_FALSE(tErrorMessageForTwoFixedBlocks.has_value()) << tErrorMessageForTwoFixedBlocks.value();
     }
     // Invalid
     {
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tBogusBlockName}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tBogusBlockName}};
         EXPECT_TRUE(
             validate_fixed_block_names_exist(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor).has_value());
     }
@@ -129,19 +127,19 @@ TEST_F(TwoDTwoBlockMesh, ValidateAtLeastOneDesignBlock)
 
     // Valid
     {
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{}};
         const auto tErrorMessageForNoFixedBlocks =
             validate_at_least_one_design_block(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor);
         EXPECT_FALSE(tErrorMessageForNoFixedBlocks.has_value()) << tErrorMessageForNoFixedBlocks.value();
 
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tFixedBlockName}};
         const auto tErrorMessageForOneFixedBlock =
             validate_at_least_one_design_block(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor);
         EXPECT_FALSE(tErrorMessageForOneFixedBlock.has_value()) << tErrorMessageForOneFixedBlock.value();
     }
     // Invalid
     {
-        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::FixedBlockList{{tFixedBlockName, tDesignBlockName}};
+        tGeometryInputWithFixedBlocks.fixed_blocks = input_parser::BlockList{{tFixedBlockName, tDesignBlockName}};
         const auto tErrorMessageForAllFixedBlock =
             validate_at_least_one_design_block(tGeometryInputWithFixedBlocks, kTestGeometryMeshNameAccessor);
         EXPECT_TRUE(tErrorMessageForAllFixedBlock.has_value()) << tErrorMessageForAllFixedBlock.value();

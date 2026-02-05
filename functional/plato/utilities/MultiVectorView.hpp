@@ -38,6 +38,18 @@ concept MultiVectorViewContainer = requires(Container aContainer) {
     aContainer.data();
 };
 
+/// @brief Template constraint for vector-like types supported by MultiVectorView
+template <typename V, typename T>
+concept VectorLike = requires(V aVector) {
+    { aVector.x } -> std::convertible_to<T>;
+    { aVector.y } -> std::convertible_to<T>;
+    { aVector.z } -> std::convertible_to<T>;
+};
+
+/// @brief Proxy class representing an underlying vector stored in MultiVectorView
+template <typename T>
+struct VectorProxy;
+
 /// @brief The purpose of this view type is to facilitate indexing operations into a contiguous array that represents a
 /// matrix-like 2D array of N-dimensional vectors, with dimension N known at run-time.
 ///
@@ -73,11 +85,23 @@ class MultiVectorView
     /// @brief The total size of all entries, i.e., `mDimensions` times numberOfVectors.
     auto size() const -> std::size_t;
 
+    /// @brief The number of vector dimensions.
+    auto dimensions() const -> std::size_t;
+
     /// @brief Accessor for the @a aComponentIndex component of the @a aVectorIndex vector.
     /// @pre @a aVectorIndex must be less than the size of the container held by the view times the number of
     /// dimensions.
     /// @pre @a aComponentIndex must be less than the size `kDimensions`
     auto operator()(VectorIndex aVectorIndex, ComponentIndex aComponentIndex) const -> decltype(auto);
+
+    /// @brief Accessor for the vector data stored at @a aVectorIndex
+    template <typename T = Container>
+        requires(!std::is_const_v<ContainerValueTypeWithPropagatedConst<T>>)
+    auto operator()(VectorIndex aVectorIndex) const -> VectorProxy<T>;
+
+    /// @brief Const accessor for the vector data stored at @a aVectorIndex
+    template <typename T = Container>
+    auto operator()(VectorIndex aVectorIndex) const -> const VectorProxy<T>;
 
     /// @brief Returns true if the data pointers and the dimensions are equal of `this` and @a aOther.
     [[nodiscard]] auto shallowEquality(const MultiVectorView& aOther) const -> bool;
@@ -117,8 +141,14 @@ auto MultiVectorView<Container>::size() const -> std::size_t
 }
 
 template <MultiVectorViewContainer Container>
-auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex,
-                                            const ComponentIndex aComponentIndex) const -> decltype(auto)
+auto MultiVectorView<Container>::dimensions() const -> std::size_t
+{
+    return mDimensions;
+}
+
+template <MultiVectorViewContainer Container>
+auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, const ComponentIndex aComponentIndex) const
+    -> decltype(auto)
 {
     assert(aComponentIndex.mValue < mDimensions);
     assert(aVectorIndex.mValue < numberOfVectors());
@@ -126,10 +156,71 @@ auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex,
 }
 
 template <MultiVectorViewContainer Container>
+template <typename T>
+    requires(!std::is_const_v<ContainerValueTypeWithPropagatedConst<T>>)
+auto MultiVectorView<Container>::operator()(VectorIndex aVectorIndex) const -> VectorProxy<T>
+{
+    return VectorProxy<T>{*this, aVectorIndex};
+}
+
+template <MultiVectorViewContainer Container>
+template <typename T>
+auto MultiVectorView<Container>::operator()(VectorIndex aVectorIndex) const -> const VectorProxy<T>
+{
+    return VectorProxy<T>{*this, aVectorIndex};
+}
+
+template <MultiVectorViewContainer Container>
 auto MultiVectorView<Container>::shallowEquality(const MultiVectorView& aOtherView) const -> bool
 {
     return mContainer.data() == aOtherView.mContainer.data() && mDimensions == aOtherView.mDimensions;
 }
+
+template <typename Container>
+struct VectorProxy
+{
+    using value_type = ContainerValueTypeWithPropagatedConst<Container>;
+
+    VectorProxy(MultiVectorView<Container> aView, VectorIndex aIndex) : mView{aView}, mVectorIndex{aIndex} {}
+
+    template <VectorLike<value_type> V>
+    VectorProxy& operator+=(const V& aVector)
+    {
+        mView(mVectorIndex, ComponentIndex{0}) += aVector.x;
+        mView(mVectorIndex, ComponentIndex{1}) += aVector.y;
+        if (mView.dimensions() == 3)
+        {
+            mView(mVectorIndex, ComponentIndex{2}) += aVector.z;
+        }
+        return *this;
+    }
+
+    template <VectorLike<value_type> V>
+    VectorProxy& operator=(const V& aVector)
+    {
+        mView(mVectorIndex, ComponentIndex{0}) = aVector.x;
+        mView(mVectorIndex, ComponentIndex{1}) = aVector.y;
+        if (mView.dimensions() == 3)
+        {
+            mView(mVectorIndex, ComponentIndex{2}) = aVector.z;
+        }
+        return *this;
+    }
+
+    /// @brief type conversion operator for constructing VectorLike objects from a VectorProxy
+    template <VectorLike<value_type> V>
+    operator V() const
+    {
+        const auto tZValue = mView.dimensions() == 3 ? mView(mVectorIndex, ComponentIndex{2}) : 0.0;
+        return V{
+            .x = mView(mVectorIndex, ComponentIndex{0}), .y = mView(mVectorIndex, ComponentIndex{1}), .z = tZValue};
+    }
+
+   private:
+    MultiVectorView<Container> mView;
+    VectorIndex mVectorIndex;
+};
+
 }  // namespace plato::utilities
 
 #endif

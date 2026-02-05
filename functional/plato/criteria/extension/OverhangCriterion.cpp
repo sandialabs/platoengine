@@ -213,12 +213,7 @@ using namespace plato::third_party_integration::krino;
         const auto tGlobalNodeID = aAllNodeIds[tNodeIndex];
         if (aGradientMap.find(tGlobalNodeID) != aGradientMap.end())
         {
-            tGradientVectorMultiView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{0}) =
-                aGradientMap.at(tGlobalNodeID).x;
-            tGradientVectorMultiView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{1}) =
-                aGradientMap.at(tGlobalNodeID).y;
-            tGradientVectorMultiView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{2}) =
-                aGradientMap.at(tGlobalNodeID).z;
+            tGradientVectorMultiView(utilities::VectorIndex{tNodeIndex}) = aGradientMap.at(tGlobalNodeID);
         }
     }
     return tGradientVector;

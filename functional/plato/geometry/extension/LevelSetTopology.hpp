@@ -35,7 +35,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato::input_parser::Bounds, level_set_bounds, "Required field specifying the lower and upper bounds of the nodal design variables that define the level set field.")
     (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter block to apply to the controls. "
                                                                                                "Only required if more than one filter is specified.")
-    (plato::input_parser::FixedBlockList, fixed_blocks, "Optional list of blocks in the mesh that will have level-set fields assigned to the level_set_upper_bound value.")
+    (plato::input_parser::BlockList, fixed_blocks, "Optional list of blocks in the mesh that will have level-set fields assigned to the level_set_upper_bound value.")
     (plato::input_parser::IdentifierString, initial_field_name, "Method to read the controls from the specified field name within the 'mesh_name' exodus mesh. "
                                                                 "The read in field will automatically be centered and scaled using an affine transformation to match the 'level_set_bounds'. "
                                                                 "Omit if a sphere_pattern or sphere_list is specified.")

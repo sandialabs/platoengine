@@ -26,7 +26,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato::input_parser::FileName, target_mesh_name, "Required field specifying the file name of the 3D exodus mesh to map controls onto using the wedge symmetry operation.")
     (unsigned int, number_of_processors, plato::filter::extension::kernel_filters::kKernelFilterNumberOfProcessorsHelpText)
     (double, wedge_angle, "Required field specifying the angle in degrees of the wedge (the space between the x-plane and a rotated x-plane).")
-    (plato::input_parser::FixedBlockList, fixed_blocks, plato::filter::extension::kernel_filters::kKernelFilterFixedBlockHelpText)
+    (plato::input_parser::BlockList, fixed_blocks, plato::filter::extension::kernel_filters::kKernelFilterFixedBlockHelpText)
 )
 // clang-format on
 // CPD-ON

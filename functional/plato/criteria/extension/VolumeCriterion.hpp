@@ -1,11 +1,20 @@
 #ifndef PLATO_CRITERIA_EXTENSION_VOLUMECRITERION
 #define PLATO_CRITERIA_EXTENSION_VOLUMECRITERION
 
+#include <boost/fusion/include/define_struct.hpp>
 #include <string_view>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+
+///@brief Input struct for specifying blocks over which volume should be computed
+// clang-format off
+BOOST_FUSION_DEFINE_STRUCT(
+(plato)(input_parser),volume_criterion,
+(bool, ignore_void_blocks)
+)
+// clang-format on
 
 namespace plato::criteria::extension
 {
@@ -22,13 +31,19 @@ struct VolumeCriterion
     static constexpr auto kVolumeFractionCriterionName = std::string_view{"volume_fraction"};
 
     double mScaleFactor = 1;
+    bool mIgnoreVoidBlocks;
 };
 
 /// @brief Creates a Function object from a VolumeCriterion
-[[nodiscard]] auto make_volume_constraint_function() -> library::CriterionFunction;
+[[nodiscard]] auto make_volume_constraint_function(const bool aIgnoreVoidBlocks) -> library::CriterionFunction;
 
 /// @brief Creates a Function object from a VolumeCriterion
-[[nodiscard]] auto make_volume_fraction_constraint_function() -> library::CriterionFunction;
+[[nodiscard]] auto make_volume_fraction_constraint_function(const bool aIgnoreVoidBlocks) -> library::CriterionFunction;
+
+namespace detail
+{
+auto parse_input_block(const std::filesystem::path& aFilename) -> input_parser::volume_criterion;
+}
 
 }  // namespace plato::criteria::extension
 

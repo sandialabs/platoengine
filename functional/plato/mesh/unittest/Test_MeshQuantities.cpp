@@ -2,9 +2,17 @@
 
 #include <ranges>
 
-#include "plato/mesh/Mesh.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/mesh/CoordinateUtilities.hpp"
+#include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
+#include "plato/mesh/test_utilities/MutableCoordinateMesh.hpp"
+#include "plato/test_utilities/GradientChecker.hpp"
+#include "plato/test_utilities/RandomPerturbationVector.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/utilities/PairWiseAccumulate.hpp"
 
 namespace plato::mesh::unittest
 {
@@ -19,6 +27,42 @@ using MeshQuantitiesThreeDTwoBlockTetMesh = third_party_integration::stk_io::tes
 constexpr auto kExpectedElementVolumeBlock1 = double{0.5};
 constexpr auto kExpectedElementVolumeBlock2 = double{1.0};
 constexpr auto kExpectedElementVolumeBlock3 = double{2.0};
+
+void check_gradient_of_volume(test_utilities::MutableCoordinateMesh aMesh,
+                              const plato::test_utilities::GradientCheckParameters& aGradientCheckParameters,
+                              const double aFirstOrderTruncationErrorTolerance)
+{
+    const auto tNumNodes = EntityCounts{aMesh}.numberOfNodes();
+    const auto tSpatialDimensions = mesh::EntityCounts{aMesh}.spatialDimensions();
+    const auto tOriginalCoordinates =
+        nodal_vector_field_to_dynamic_vector(mesh::EntityRetrieval{aMesh}.nodalCoordinates(), tSpatialDimensions);
+    auto tRandomEngine = std::default_random_engine{123};
+    const auto tDirection =
+        plato::test_utilities::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
+
+    const auto tBlockNamesVector = MeshBlocks{aMesh}.blockNames();
+    const auto tAllBlockNames = std::set<std::string>{tBlockNamesVector.begin(), tBlockNamesVector.end()};
+
+    const auto tChecker = plato::test_utilities::GradientChecker{
+        [&aMesh, &tAllBlockNames, tSpatialDimensions](const linear_algebra::DynamicVector<double>& aCoordinates)
+        {
+            aMesh.updateNodalCoordinates(dynamic_vector_to_nodal_coordinates(aCoordinates, tSpatialDimensions));
+            return MeshQuantities{aMesh}.volume();
+            return utilities::pair_wise_accumulate(MeshQuantities{aMesh}.specifiedDomainElementVolumes(tAllBlockNames));
+        },
+        [&aMesh, &tAllBlockNames, tSpatialDimensions](const linear_algebra::DynamicVector<double>& aCoordinates,
+                                                      const linear_algebra::DynamicVector<double>& aDirection)
+        {
+            aMesh.updateNodalCoordinates(dynamic_vector_to_nodal_coordinates(aCoordinates, tSpatialDimensions));
+            const auto tGradient = nodal_vector_field_to_dynamic_vector(
+                MeshQuantities{aMesh}.volumeNodalSensitivities(tAllBlockNames), tSpatialDimensions);
+            return tGradient.dot(aDirection);
+        }};
+
+    EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(tOriginalCoordinates, tDirection, aGradientCheckParameters), 0.0,
+                aFirstOrderTruncationErrorTolerance)
+        << tChecker.table(tOriginalCoordinates, tDirection, aGradientCheckParameters);
+}
 }  // namespace
 
 TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesVolume)
@@ -108,6 +152,28 @@ TEST_F(TwoDThreeBlockMesh, MeshQuantitiesDesignDomainElementVolumes)
     }
 }
 
+TEST_F(TwoDThreeBlockMesh, MeshQuantitiesSpecifiedDomainElementVolumes)
+{
+    const auto tExpectedVolumesBlock2 =
+        std::vector<double>(mExpectedNumberOfElementsInBlock2, kExpectedElementVolumeBlock2);
+    const auto tExpectedVolumesBlock3 =
+        std::vector<double>(mExpectedNumberOfElementsInBlock3, kExpectedElementVolumeBlock3);
+
+    {
+        const std::set<std::string> tSpecifiedBlocks{mBlockNames[1]};
+        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath}};
+        EXPECT_EQ(tMesh.specifiedDomainElementVolumes(tSpecifiedBlocks), tExpectedVolumesBlock2);
+    }
+    {
+        const std::set<std::string> tSpecifiedBlocks{mBlockNames[1], mBlockNames[2]};
+        const auto tMesh = MeshQuantities{Mesh{mMeshFilePath}};
+        auto tExpectedElementVolumeBlocks2And3 = tExpectedVolumesBlock2;
+        std::copy(tExpectedVolumesBlock3.cbegin(), tExpectedVolumesBlock3.cend(),
+                  std::back_inserter(tExpectedElementVolumeBlocks2And3));
+        EXPECT_EQ(tMesh.specifiedDomainElementVolumes(tSpecifiedBlocks), tExpectedElementVolumeBlocks2And3);
+    }
+}
+
 TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesNodalAverage)
 {
     const auto tMesh = MeshQuantities{Mesh{mMeshFilePath}};
@@ -157,4 +223,48 @@ TEST_F(MeshQuantitiesThreeDTwoBlockTetMesh, MeshQuantitiesNodalAverageElementPro
     EXPECT_EQ(tNodalAverage, tExpected);
 }
 
+TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
+{
+    const auto tGradientCheckParameters =
+        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
+    constexpr auto tFirstOrderTruncationErrorTolerance = 5e-2;
+    check_gradient_of_volume(test_utilities::MutableCoordinateMesh{Mesh{mMeshFilePath}}, tGradientCheckParameters,
+                             tFirstOrderTruncationErrorTolerance);
+}
+
+TEST_F(TwoBlockMeshOnDisk, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
+{
+    const auto tGradientCheckParameters =
+        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 6, .mInitialStepSize = 1.0};
+    constexpr auto tFirstOrderTruncationErrorTolerance = 1e-2;
+    check_gradient_of_volume(test_utilities::MutableCoordinateMesh{Mesh{mMeshFilePath}}, tGradientCheckParameters,
+                             tFirstOrderTruncationErrorTolerance);
+}
+
+TEST_F(TwoDNonUniformHexMesh, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
+{
+    const auto tGradientCheckParameters =
+        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 6, .mInitialStepSize = 1.0};
+    constexpr auto tFirstOrderTruncationErrorTolerance = 1e-2;
+    check_gradient_of_volume(test_utilities::MutableCoordinateMesh{Mesh{mMeshFilePath}}, tGradientCheckParameters,
+                             tFirstOrderTruncationErrorTolerance);
+}
+
+TEST_F(TwoDThreeBlockMesh, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
+{
+    const auto tGradientCheckParameters =
+        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
+    constexpr auto tFirstOrderTruncationErrorTolerance = 5e-2;
+    check_gradient_of_volume(test_utilities::MutableCoordinateMesh{Mesh{mMeshFilePath}}, tGradientCheckParameters,
+                             tFirstOrderTruncationErrorTolerance);
+}
+
+TEST_F(MeshQuantitiesThreeDTwoBlockTetMesh, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
+{
+    const auto tGradientCheckParameters =
+        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
+    constexpr auto tFirstOrderTruncationErrorTolerance = 5e-2;
+    check_gradient_of_volume(test_utilities::MutableCoordinateMesh{Mesh{mMeshFilePath}}, tGradientCheckParameters,
+                             tFirstOrderTruncationErrorTolerance);
+}
 }  // namespace plato::mesh::unittest

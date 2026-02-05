@@ -26,6 +26,7 @@ if( UNIT_TESTING )
   set(DIRECTORIES library/unittest
                   extension/unittest)
   set(LINK_LIBS PlatoFunctionalCriteriaTestUtilities 
+                PlatoFunctionalMeshTestUtilities
                 PlatoFunctionalSTKIOTestUtilities)
   create_plato_unittester(PlatoFunctionalCriteria "${DIRECTORIES}" "${LINK_LIBS}")
 

@@ -11,6 +11,7 @@ struct Triangle
 {
     constexpr static auto kNumVertices = unsigned{3};
     using Indices = std::array<unsigned int, kNumVertices>;
+    using VertexSensitivities = std::array<common::Vector3, kNumVertices>;
 
     common::Coordinate p0;
     common::Coordinate p1;
@@ -19,6 +20,10 @@ struct Triangle
     [[nodiscard]] double volume() const;
     [[nodiscard]] common::Vector3 normal() const;
     [[nodiscard]] common::Coordinate centroid() const;
+    [[nodiscard]] auto volumeVertexSensitivities() const -> VertexSensitivities;
+
+   private:
+    [[nodiscard]] common::Vector3 areaVector() const;
 };
 
 }  // namespace plato::third_party_integration::stk_io
