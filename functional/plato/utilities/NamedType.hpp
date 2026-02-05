@@ -33,10 +33,11 @@ namespace plato::utilities
 template <typename T, typename NameTag>
 struct NamedType
 {
+    constexpr NamedType() = default;
     constexpr explicit NamedType(const T& value) : mValue(value) {}
     constexpr explicit NamedType(T&& value) : mValue(std::move(value)) {}
 
-    T mValue;
+    T mValue{};
 };
 
 }  // namespace plato::utilities

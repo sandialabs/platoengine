@@ -36,7 +36,7 @@ void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDe
 [[nodiscard]] std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator);
 
 /// @brief Given a pathname  @a aMeshName and the STK Bulk data @a aBulk, write to disk the data in exodus format
-void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk);
+void write_bulk_data(const std::filesystem::path& aMeshName, stk::mesh::BulkData& aBulk);
 
 /// @brief Creates a StkMeshIoBroker by reading the contents of the file at @a aInputMeshPath.
 ///
@@ -76,6 +76,12 @@ void populate_element_scalar_field_values(stk::io::StkMeshIoBroker& aIOBroker,
 void populate_nodal_scalar_field_values(stk::io::StkMeshIoBroker& aIOBroker,
                                         const std::string_view aFieldName,
                                         const ScalarFieldFunction& aScalarField);
+
+/// @brief Replaces the nodal coordinate values in the mesh represented by @a aBulkData with @a aCoordinates
+/// @pre The size of @a aCoordinates must be equal to the total number of nodes in the mesh.
+/// @pre The coordinates in @a aCoordinates are sorted by global node ID in ascending order.
+void replace_nodal_coordinate_values(stk::mesh::BulkData& aBulkData,
+                                     const std::vector<common::Coordinate>& aCoordinates);
 
 /// @brief Adds the field with name @a aFieldName to the mesh associated with @a aFileHandle using @a aIOBroker
 void add_nodal_field_to_output_file(stk::io::StkMeshIoBroker& aIOBroker,

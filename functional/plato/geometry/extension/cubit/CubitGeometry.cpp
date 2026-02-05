@@ -178,19 +178,12 @@ void CubitGeometry::outputMeshSensitivities(mesh::MeshOutput& aMeshOutput)
 
 namespace
 {
-
-constexpr auto kXComponent = utilities::ComponentIndex{0};
-constexpr auto kYComponent = utilities::ComponentIndex{1};
-constexpr auto kZComponent = utilities::ComponentIndex{2};
-
 [[nodiscard]] auto row_vector_to_vector3(const std::vector<double>& aRowVector,
                                          const utilities::VectorIndex aVectorIndex,
                                          const std::size_t aDimensions) -> third_party_integration::common::Vector3
 {
     const auto tRowVectorView = utilities::make_multi_vector_view(aRowVector, aDimensions);
-    return third_party_integration::common::Vector3{
-        tRowVectorView(aVectorIndex, kXComponent), tRowVectorView(aVectorIndex, kYComponent),
-        aDimensions == 3U ? tRowVectorView(aVectorIndex, kZComponent) : 0.0};
+    return tRowVectorView(aVectorIndex);
 }
 
 using ResultSize = utilities::NamedType<long unsigned int, struct ResultSizeTag>;
@@ -218,18 +211,8 @@ const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<doub
                                      const DesignIndex aDesignIndex,
                                      const MeshIndex aMeshIndex,
                                      const third_party_integration::common::Vector3& aSensitivity,
-                                     const SpatialDimensions aSpatialDimensions)
-{
-    aResultVectorView(utilities::VectorIndex{aMeshIndex.mValue}, kXComponent) +=
-        aRowVector[aDesignIndex.mValue] * aSensitivity.x;
-    aResultVectorView(utilities::VectorIndex{aMeshIndex.mValue}, kYComponent) +=
-        aRowVector[aDesignIndex.mValue] * aSensitivity.y;
-    if (aSpatialDimensions.mValue == 3U)
-    {
-        aResultVectorView(utilities::VectorIndex{aMeshIndex.mValue}, kZComponent) +=
-            aRowVector[aDesignIndex.mValue] * aSensitivity.z;
-    }
-};
+                                     const SpatialDimensions /*aSpatialDimensions*/)
+{ aResultVectorView(utilities::VectorIndex{aMeshIndex.mValue}) += aSensitivity * aRowVector[aDesignIndex.mValue]; };
 
 template <typename Function>
 concept JacobianOrAdjointJacobianFunction = requires(Function aFunction,

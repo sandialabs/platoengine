@@ -174,6 +174,11 @@ Mesh::PartReferenceVector Mesh::designDomainBlocks() const
     return parts_from_block_ordinals(bulkData(), mDesignBlockOrdinals);
 }
 
+Mesh::PartReferenceVector Mesh::specifiedDomainBlocks(const std::set<std::string>& aBlockNames) const
+{
+    return parts_from_block_ordinals(bulkData(), block_ordinals_from_names(mBulk, aBlockNames));
+}
+
 auto Mesh::valid() const -> bool { return mBulk != nullptr; }
 
 }  // namespace plato::mesh

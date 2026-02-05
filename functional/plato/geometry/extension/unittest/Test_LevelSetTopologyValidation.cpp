@@ -177,19 +177,17 @@ TEST_F(LevelSetTopologyValidationTwoBlockFixture, FixedBlockValidation)
 
     {
         auto tLevelSetInput = tLevelSetInputBase;
-        tLevelSetInput.fixed_blocks =
-            input_parser::FixedBlockList{std::vector<std::string>{mBlockNames[0], mBlockNames[1]}};
+        tLevelSetInput.fixed_blocks = input_parser::BlockList{std::vector<std::string>{mBlockNames[0], mBlockNames[1]}};
         tCheckForErrors(tLevelSetInput, TEST_CONTEXT("No design domain"));
     }
     {
         auto tLevelSetInput = tLevelSetInputBase;
-        tLevelSetInput.fixed_blocks = input_parser::FixedBlockList{std::vector<std::string>{"block_42"}};
+        tLevelSetInput.fixed_blocks = input_parser::BlockList{std::vector<std::string>{"block_42"}};
         tCheckForErrors(tLevelSetInput, TEST_CONTEXT("Fixed block doesn't exist"));
     }
     {
         auto tLevelSetInput = tLevelSetInputBase;
-        tLevelSetInput.fixed_blocks =
-            input_parser::FixedBlockList{std::vector<std::string>{mBlockNames[1], mBlockNames[1]}};
+        tLevelSetInput.fixed_blocks = input_parser::BlockList{std::vector<std::string>{mBlockNames[1], mBlockNames[1]}};
         tCheckForErrors(tLevelSetInput, TEST_CONTEXT("Fixed blocks not unique."));
     }
 }

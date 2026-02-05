@@ -8,6 +8,16 @@
 
 namespace plato::utilities::unittest
 {
+namespace
+{
+struct TestVector
+{
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
+};
+}  // namespace
+
 TEST(MultiVectorView, Values)
 {
     constexpr auto tDimension = std::size_t{2};
@@ -73,6 +83,7 @@ TEST(MultiVectorView, Sizes)
     const auto tMultiVectorView = utilities::make_multi_vector_view(tVector, tDimension);
     EXPECT_EQ(tMultiVectorView.numberOfVectors(), tLength);
     EXPECT_EQ(tMultiVectorView.size(), tLength * tDimension);
+    EXPECT_EQ(tMultiVectorView.dimensions(), tDimension);
 }
 
 TEST(MultiVectorView, ShallowEquality)
@@ -100,6 +111,72 @@ TEST(MultiVectorView, ShallowEquality)
     {
         const auto tMultiVectorView2 = utilities::make_multi_vector_view(tVector1, tLength);
         EXPECT_FALSE(tMultiVectorView1.shallowEquality(tMultiVectorView2));
+    }
+}
+
+TEST(MultiVectorView, VectorAssignment)
+{
+    constexpr auto tLength = std::size_t{2};
+
+    // 2D view
+    {
+        constexpr auto tDimension = std::size_t{2};
+        auto tVector = std::vector<double>(tDimension * tLength, 0.0);
+        auto tMultiVectorView = MultiVectorView{tVector, tDimension};
+
+        tMultiVectorView(VectorIndex{0}) = TestVector{1., 2.};
+        EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{0}), 1.0);
+        EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{1}), 2.0);
+
+        tMultiVectorView(VectorIndex{1}) += TestVector{5., 6., 7.};
+        EXPECT_EQ(tMultiVectorView(VectorIndex{1}, ComponentIndex{0}), 5.0);
+        EXPECT_EQ(tMultiVectorView(VectorIndex{1}, ComponentIndex{1}), 6.0);
+
+        tMultiVectorView(VectorIndex{1}) += TestVector{5., 6., 7.};
+        EXPECT_EQ(tMultiVectorView(VectorIndex{1}, ComponentIndex{0}), 10.0);
+        EXPECT_EQ(tMultiVectorView(VectorIndex{1}, ComponentIndex{1}), 12.0);
+    }
+
+    // 3D view
+    {
+        constexpr auto tDimension = std::size_t{3};
+        auto tVector = std::vector<double>(tDimension * tLength, 0.0);
+        auto tMultiVectorView = MultiVectorView{tVector, tDimension};
+
+        tMultiVectorView(VectorIndex{0}) = TestVector{1., 2., 3.};
+        EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{0}), 1.0);
+        EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{1}), 2.0);
+        EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{2}), 3.0);
+
+        tMultiVectorView(VectorIndex{0}) = TestVector{21., 72., 34.};
+        EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{0}), 21.0);
+        EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{1}), 72.0);
+        EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{2}), 34.0);
+    }
+}
+
+TEST(MultiVectorView, VectorObjectFromVectorIndex)
+{
+    // 2D from a non-const vector
+    {
+        constexpr auto tDimension = std::size_t{2};
+        auto tVector = std::vector<double>{1.0, 2.0, 3.0, 4.0};
+        const auto tMultiVectorView = MultiVectorView{tVector, tDimension};
+        const TestVector tVectorObject = tMultiVectorView(VectorIndex{0});
+        EXPECT_EQ(tVectorObject.x, 1.0);
+        EXPECT_EQ(tVectorObject.y, 2.0);
+        EXPECT_EQ(tVectorObject.z, 0.0);
+    }
+
+    // 3D from a const vector
+    {
+        constexpr auto tDimension = std::size_t{3};
+        const auto tVector = std::vector<double>{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        const auto tMultiVectorView = MultiVectorView{tVector, tDimension};
+        const TestVector tVectorObject = tMultiVectorView(VectorIndex{1});
+        EXPECT_EQ(tVectorObject.x, 4.0);
+        EXPECT_EQ(tVectorObject.y, 5.0);
+        EXPECT_EQ(tVectorObject.z, 6.0);
     }
 }
 

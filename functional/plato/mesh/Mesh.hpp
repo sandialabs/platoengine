@@ -82,6 +82,9 @@ class Mesh
     /// @brief Returns a vector of stk::mesh::Parts associated with the design (optimizable) domain
     [[nodiscard]] auto designDomainBlocks() const -> PartReferenceVector;
 
+    /// @brief Returns a vector of stk::mesh::Parts associated with the block names in @a aBlockNames
+    [[nodiscard]] auto specifiedDomainBlocks(const std::set<std::string>& aBlockNames) const -> PartReferenceVector;
+
    private:
     std::filesystem::path mFilePath;
     std::shared_ptr<stk::mesh::BulkData> mBulk;

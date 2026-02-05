@@ -139,15 +139,9 @@ TriangleAreaSensitivity triangle_area_sensitivity(const std::vector<double>& aFl
         utilities::MultiVectorView(aFlatAreaSensitivityVector, tNumberSpatialDimensions);
     TriangleAreaSensitivity tSensitivities;
     constexpr auto tNodeRange = std::views::iota(0UL, tNumberNodesPerTriangle);
-    std::transform(
-        tNodeRange.begin(), tNodeRange.end(), tSensitivities.begin(),
-        [&tAreaSensitivityMultiVectorView](const auto tNodeIndex)
-        {
-            return AreaSensitivityWRTNodalCoordinates{
-                tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{0}),
-                tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{1}),
-                tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{2})};
-        });
+    std::transform(tNodeRange.begin(), tNodeRange.end(), tSensitivities.begin(),
+                   [&tAreaSensitivityMultiVectorView](const auto tNodeIndex)
+                   { return tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}); });
     return tSensitivities;
 }
 
@@ -180,20 +174,14 @@ TriangleNormalSensitivity triangle_normal_sensitivity(const std::vector<double>&
     TriangleNormalSensitivity tSensitivities;
     for (const auto tNodeIndex : std::views::iota(0UL, tNumberNodesPerTriangle))
     {
-        tSensitivities[tNodeIndex][kDNormalDNodeXCoord] = DNormalDNodeCoordinate{
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{0}),
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{1}),
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{2})};
+        tSensitivities[tNodeIndex][kDNormalDNodeXCoord] =
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex});
 
-        tSensitivities[tNodeIndex][kDNormalDNodeYCoord] = DNormalDNodeCoordinate{
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{3}),
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{4}),
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{5})};
+        tSensitivities[tNodeIndex][kDNormalDNodeYCoord] =
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex});
 
-        tSensitivities[tNodeIndex][kDNormalDNodeZCoord] = DNormalDNodeCoordinate{
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{6}),
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{7}),
-            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}, utilities::ComponentIndex{8})};
+        tSensitivities[tNodeIndex][kDNormalDNodeZCoord] =
+            tNormalSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex});
     }
     return tSensitivities;
 }

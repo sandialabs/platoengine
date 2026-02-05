@@ -29,6 +29,11 @@ struct PublicPartVectorMixin : public Mesh
     Mesh::PartReferenceVector publicFixedDomainBlocks() const { return Mesh::fixedDomainBlocks(); }
 
     Mesh::PartReferenceVector publicDesignDomainBlocks() const { return Mesh::designDomainBlocks(); }
+
+    Mesh::PartReferenceVector publicSpecifiedDomainBlocks(const std::set<std::string>& aBlockNames) const
+    {
+        return Mesh::specifiedDomainBlocks(aBlockNames);
+    }
 };
 }  // namespace
 
@@ -156,6 +161,12 @@ TEST_F(TwoDThreeBlockMesh, PartVectors)
     const auto& tDesignBlockOrdinals = tMesh.designBlockOrdinals();
     ASSERT_EQ(tDesignParts.size(), tDesignBlockOrdinals.size());
     EXPECT_EQ(tDesignParts.front().get().mesh_meta_data_ordinal(), tDesignBlockOrdinals.front());
+
+    const auto tSpecifiedBlockNames = std::set<std::string>{mBlockNames[0], mBlockNames[2]};
+    const auto tSpecifiedParts = PublicPartVectorMixin{tMesh}.publicSpecifiedDomainBlocks(tSpecifiedBlockNames);
+    ASSERT_EQ(tSpecifiedParts.size(), 2U);
+    EXPECT_EQ(tSpecifiedParts.front().get().mesh_meta_data_ordinal(), tDesignBlockOrdinals.front());
+    EXPECT_EQ(tSpecifiedParts.back().get().mesh_meta_data_ordinal(), tFixedBlockOrdinals.back());
 }
 
 TEST_F(TwoDThreeBlockMesh, ConstructionFromAnalysisDomainMesh)

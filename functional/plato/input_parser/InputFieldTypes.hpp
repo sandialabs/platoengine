@@ -24,7 +24,7 @@ struct ValidIdentifierCharacters
 using AppName = UserDefinedToken<ValidNameCharacters>;
 using CriterionName = UserDefinedToken<ValidNameCharacters>;
 using BlockName = UserDefinedToken<ValidNameCharacters>;
-using FixedBlockList = UserDefinedTokenList<ValidIdentifierCharacters>;
+using BlockList = UserDefinedTokenList<ValidIdentifierCharacters>;
 using IdentifierString = UserDefinedToken<ValidIdentifierCharacters>;
 
 }  // namespace plato::input_parser

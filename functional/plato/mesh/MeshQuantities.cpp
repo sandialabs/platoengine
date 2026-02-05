@@ -1,5 +1,8 @@
 #include "plato/mesh/MeshQuantities.hpp"
 
+#include <vector>
+
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
@@ -30,6 +33,12 @@ MeshQuantities::MeshQuantities(Mesh aMeshBase) : Mesh{std::move(aMeshBase)} {}
 
 double MeshQuantities::volume() const { return third_party_integration::stk_io::mesh_volume(bulkData()); }
 
+auto MeshQuantities::volumeNodalSensitivities(const std::set<std::string>& aBlockNames) const
+    -> std::vector<third_party_integration::common::Vector3>
+{
+    return third_party_integration::stk_io::volume_nodal_sensitivities(bulkData(), specifiedDomainBlocks(aBlockNames));
+}
+
 double MeshQuantities::averageNodalDensity() const
 {
     const auto tTotalNumberOfNodes = third_party_integration::stk_io::node_size(bulkData());
@@ -44,6 +53,11 @@ std::vector<double> MeshQuantities::fixedDomainElementVolumes() const
 std::vector<double> MeshQuantities::designDomainElementVolumes() const
 {
     return element_volumes(designDomainBlocks(), bulkData());
+}
+
+std::vector<double> MeshQuantities::specifiedDomainElementVolumes(const std::set<std::string>& aBlockNames) const
+{
+    return element_volumes(specifiedDomainBlocks(aBlockNames), bulkData());
 }
 
 }  // namespace plato::mesh

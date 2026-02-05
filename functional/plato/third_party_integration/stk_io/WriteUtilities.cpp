@@ -12,6 +12,8 @@
 #include <stk_topology/topology.hpp>
 #include <stk_util/parallel/Parallel.hpp>
 
+#include "plato/utilities/IndexRange.hpp"
+
 namespace plato::third_party_integration::stk_io
 {
 namespace
@@ -86,12 +88,12 @@ auto create_output_mesh(const std::filesystem::path& aOutputMeshPath, stk::io::S
 
 void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& aCommandGenerator)
 {
-    write_bulk_data(aMeshName, generate_bulk_data(aCommandGenerator));
+    write_bulk_data(aMeshName, *generate_bulk_data(aCommandGenerator));
 }
 
 void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDescription)
 {
-    write_bulk_data(aMeshName, bulk_data_from_description(aMeshDescription));
+    write_bulk_data(aMeshName, *bulk_data_from_description(aMeshDescription));
 }
 
 std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator)
@@ -99,10 +101,10 @@ std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& 
     return bulk_data_from_description(aCommandGenerator.toString());
 }
 
-void write_bulk_data(const std::filesystem::path& aMeshName, std::shared_ptr<stk::mesh::BulkData> aBulk)
+void write_bulk_data(const std::filesystem::path& aMeshName, stk::mesh::BulkData& aBulk)
 {
     stk::io::StkMeshIoBroker tIOBroker;
-    tIOBroker.set_bulk_data(std::move(aBulk));
+    tIOBroker.set_bulk_data(aBulk);
     const size_t outputFileIndex = tIOBroker.create_output_mesh(aMeshName.string(), stk::io::WRITE_RESULTS);
     tIOBroker.write_output_mesh(outputFileIndex);
     tIOBroker.write_defined_output_fields(outputFileIndex);
@@ -139,6 +141,29 @@ void populate_nodal_scalar_field_values(stk::io::StkMeshIoBroker& aIOBroker,
                                         const ScalarFieldFunction& aScalarField)
 {
     populate_scalar_field_values_impl<stk::topology::NODE_RANK>(aIOBroker, aFieldName, aScalarField);
+}
+
+void replace_nodal_coordinate_values(stk::mesh::BulkData& aBulkData,
+                                     const std::vector<common::Coordinate>& aCoordinates)
+{
+    auto tNodeEntity = stk::mesh::EntityVector{};
+    constexpr auto tSortedByGlobalID = true;
+    stk::mesh::get_entities(aBulkData, stk::topology::NODE_RANK, tNodeEntity, tSortedByGlobalID);
+
+    const stk::mesh::FieldBase* const tCoordinateField = aBulkData.mesh_meta_data().coordinate_field();
+
+    assert(tNodeEntity.size() == aCoordinates.size());
+    const auto tIndices = utilities::IndexRange{tNodeEntity.size()};
+
+    std::for_each(tIndices.begin(), tIndices.end(),
+                  [tCoordinateField, &tNodeEntity, &aCoordinates](const auto aNodeIndex)
+                  {
+                      auto tData =
+                          static_cast<double*>(stk::mesh::field_data(*tCoordinateField, tNodeEntity[aNodeIndex]));
+                      tData[0] = aCoordinates[aNodeIndex].x;
+                      tData[1] = aCoordinates[aNodeIndex].y;
+                      tData[2] = aCoordinates[aNodeIndex].z;
+                  });
 }
 
 void add_nodal_field_to_output_file(stk::io::StkMeshIoBroker& aIOBroker,

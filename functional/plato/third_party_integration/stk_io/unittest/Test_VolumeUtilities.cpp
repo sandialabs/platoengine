@@ -9,6 +9,7 @@
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/SensitivityTestUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -33,7 +34,7 @@ void create_single_element_mesh_test_centroid(const CommandGenerator& aCommandGe
     const auto tElements = element_vector(*tMesh);
     ASSERT_EQ(tElements.size(), 1u);
 
-    const common::Coordinate tElemCentroid = element_centroid(tElements[0], *tMesh);
+    const common::Coordinate tElemCentroid = element_centroid(tElements.at(0), *tMesh);
     common::test_utilities::test_double_equality_of_components(tElemCentroid, aGold,
                                                                TEST_CONTEXT("Single element centroid"));
 }
@@ -53,7 +54,7 @@ void test_first_element_volume_and_coordinates(const CommandGenerator& aCommandG
     const auto tBulk = generate_bulk_data(aCommandGenerator);
     const stk::mesh::EntityVector tElements = element_vector(*tBulk);
     ASSERT_FALSE(tElements.empty());
-    const auto tOnlyElement = tElements[0];
+    const auto tOnlyElement = tElements.at(0);
     const double tVolume = element_volume(tOnlyElement, *tBulk);
     EXPECT_DOUBLE_EQ(tVolume, aGoldVolume);
     std::vector<common::Coordinate> tCoordinates = element_coordinates(tOnlyElement, *tBulk);
@@ -75,7 +76,7 @@ void test_first_element_max_edge_length(const CommandGenerator& aCommandGenerato
     const stk::mesh::EntityVector tElements = element_vector(*tBulkData);
     ASSERT_FALSE(tElements.empty()) << aTestContext;
 
-    const double tMaxLength = element_max_edge_length(tElements[0], *tBulkData);
+    const double tMaxLength = element_max_edge_length(tElements.at(0), *tBulkData);
     EXPECT_DOUBLE_EQ(tMaxLength, aGoldEdgeLength) << aTestContext;
 }
 
@@ -90,7 +91,7 @@ void test_first_element_max_edge_length(const std::filesystem::path& aFilePath,
     const stk::mesh::EntityVector tElements = element_vector(*tBulkData);
     ASSERT_FALSE(tElements.empty()) << aTestContext;
 
-    const double tMaxLength = element_max_edge_length(tElements[0], *tBulkData);
+    const double tMaxLength = element_max_edge_length(tElements.at(0), *tBulkData);
     EXPECT_NEAR(tMaxLength, aGoldEdgeLength, aTol) << aTestContext;
 }
 
@@ -124,6 +125,15 @@ void test_average_element_max_edge_length(const CommandGenerator& aCommandGenera
 
     const double tAverageLength = average_element_max_edge_length(*tBulkData);
     EXPECT_DOUBLE_EQ(tAverageLength, aGoldEdgeLength);
+}
+
+auto first_element_volume_nodal_sensitivities(const stk::mesh::BulkData& aBulkData) -> ElementNodalSensitivities
+{
+    const stk::mesh::EntityVector tElements = element_vector(aBulkData);
+    EXPECT_FALSE(tElements.empty());
+    const auto tFirstElement = tElements.at(0);
+
+    return element_volume_nodal_sensitivities(tFirstElement, aBulkData);
 }
 
 }  // namespace
@@ -369,6 +379,137 @@ TEST(STKVolumeUtilities, AverageEdgeLength_BoxWithTets)
     const double tGoldLength = common::magnitude(tBoxLengths / tNumElementsPerDim);
 
     test_average_element_max_edge_length(tCommandGenerator, tGoldLength);
+}
+
+TEST(STKVolumeUtilities, ElementVolumeNodalSensitivities_SingleTri)
+{
+    const auto tFilePath = plato::utilities::data_file_path("one_tri.cdf");
+    ASSERT_TRUE(tFilePath);
+    const auto tBulkData = read_mesh_bulk_data(tFilePath.value());
+
+    const auto tSensitivities = first_element_volume_nodal_sensitivities(*tBulkData);
+
+    // Tri coordinates are: [(0,0,0), (1,0,0), (1,1,0)]
+    constexpr auto tBase{1.0};
+    constexpr auto tHeight{1.0};
+    const std::array<common::Vector3, 3> tExpectedSensitivities = {
+        common::Vector3{.x = -tHeight, .y = 0, .z = 0} / 2, common::Vector3{.x = tHeight, .y = -tBase, .z = 0} / 2,
+        common::Vector3{.x = 0, .y = tBase, .z = 0} / 2};
+
+    test_utilities::test_nodal_sensitivities_with_expected(tSensitivities.mValue, tExpectedSensitivities,
+                                                           TEST_CONTEXT("Triangle volume nodal sensitivity"));
+}
+
+TEST(STKVolumeUtilities, ElementVolumeNodalSensitivities_SingleQuad)
+{
+    const auto tFilePath = plato::utilities::data_file_path("one_quad.cdf");
+    ASSERT_TRUE(tFilePath);
+    const auto tBulkData = read_mesh_bulk_data(tFilePath.value());
+
+    const auto tSensitivities = first_element_volume_nodal_sensitivities(*tBulkData);
+
+    // Quad coordinates are: [(0.5,0.5,0), (-0.5,0.5,0), (-0.5,-0.5,0), (0,-0.5,0)]
+    constexpr auto tBase{1.0};
+    constexpr auto tHeight{1.0};
+
+    const std::array<common::Vector3, 4> tExpectedSensitivities = {
+        common::Vector3{.x = tHeight, .y = tBase, .z = 0} / 2, common::Vector3{.x = -tHeight, .y = tBase, .z = 0} / 2,
+        common::Vector3{.x = -tHeight, .y = -tBase, .z = 0} / 2,
+        common::Vector3{.x = tHeight, .y = -tBase, .z = 0} / 2};
+
+    test_utilities::test_nodal_sensitivities_with_expected(tSensitivities.mValue, tExpectedSensitivities,
+                                                           TEST_CONTEXT("Quadrilateral volume nodal sensitivity"));
+}
+
+TEST(STKVolumeUtilities, ElementVolumeNodalSensitivities_SingleHex)
+{
+    constexpr auto tBase{17.0};
+    constexpr auto tWidth{59.0};
+    constexpr auto tHeight{37.0};
+    const CommandGenerator tCommandGenerator{.mElements = {.mX = 1, .mY = 1, .mZ = 1},
+                                             .mLowerBounds = {.x = 0, .y = 0, .z = 0},
+                                             .mUpperBounds = {.x = tBase, .y = tWidth, .z = tHeight}};
+    const auto tBulkData = generate_bulk_data(tCommandGenerator);
+
+    const auto tSensitivities = first_element_volume_nodal_sensitivities(*tBulkData);
+    const auto tExpectedSensitivities = test_utilities::axes_aligned_hex_volume_sensitivities(
+        test_utilities::Cuboid{.mLength = tBase, .mWidth = tWidth, .mHeight = tHeight});
+
+    test_utilities::test_nodal_sensitivities_with_expected(tSensitivities.mValue, tExpectedSensitivities,
+                                                           TEST_CONTEXT("Hexahedron volume nodal sensitivity"));
+}
+
+TEST(STKVolumeUtilities, ElementVolumeNodalSensitivities_SingleTet)
+{
+    constexpr auto tBase{86.0};
+    constexpr auto tWidth{38.0};
+    constexpr auto tHeight{21.0};
+    const CommandGenerator tCommandGenerator{.mElements = {.mX = 1, .mY = 1, .mZ = 1},
+                                             .mLowerBounds = {.x = 0, .y = 0, .z = 0},
+                                             .mUpperBounds = {.x = tBase, .y = tWidth, .z = tHeight},
+                                             .mType = CommandElementType::Tet};
+
+    const auto tBulkData = generate_bulk_data(tCommandGenerator);
+
+    const auto tSensitivities = first_element_volume_nodal_sensitivities(*tBulkData);
+
+    // Tet coordinates are: [(0,0,0), (tBase, tWidth, 0), (0, tWidth, 0), (tBase, tWidth, tHeight)]
+    const std::array<common::Vector3, 4> tExpectedSensitivities = {
+        common::Vector3{.x = 0.0, .y = -tBase * tHeight, .z = 0.0} * 1. / 6.,
+        common::Vector3{.x = tWidth * tHeight, .y = 0, .z = -tBase * tWidth} * 1. / 6.,
+        common::Vector3{.x = -tWidth * tHeight, .y = tBase * tHeight, .z = 0} * 1. / 6.,
+        common::Vector3{.x = 0, .y = 0, .z = tBase * tWidth} * 1. / 6.};
+
+    test_utilities::test_nodal_sensitivities_with_expected(tSensitivities.mValue, tExpectedSensitivities,
+                                                           TEST_CONTEXT("Tetrahedron volume nodal sensitivity"));
+}
+
+TEST(STKVolumeUtilities, VolumeNodalSensitivities_3HexMesh)
+{
+    // Dimensions of a single hex in the mesh
+    constexpr auto tBase{1.0};
+    constexpr auto tWidth{1.0};
+    constexpr auto tHeight{1.0};
+
+    constexpr unsigned int tNumHexesInXDirection{3};
+    const CommandGenerator tCommandGenerator{
+        .mElements = {.mX = tNumHexesInXDirection, .mY = 1, .mZ = 1},
+        .mLowerBounds = {.x = 0, .y = 0, .z = 0},
+        .mUpperBounds = {.x = tNumHexesInXDirection * tBase, .y = tWidth, .z = tHeight},
+        .mType = CommandElementType::Hex};
+
+    const auto tBulkData = generate_bulk_data(tCommandGenerator);
+
+    // Hex mesh coordinates are: (0,0,0), (1,0,0), (2,0,0), (3,0,0)
+    //                           (0,1,0), (1,1,0), (2,1,0), (3,1,0)
+    //                           (0,0,1), (1,0,1), (2,0,1), (3,0,1)
+    //                           (0,1,1), (1,1,1), (2,1,1), (3,1,1)
+    const std::array tExpectedSensitivities = {
+        common::Vector3{.x = -tWidth * tHeight, .y = -tBase * tHeight, .z = -tBase * tWidth} / 4.0,
+        common::Vector3{.x = 0.0, .y = -tBase * tHeight, .z = -tBase * tWidth} / 2.0,
+        common::Vector3{.x = 0.0, .y = -tBase * tHeight, .z = -tBase * tWidth} / 2.0,
+        common::Vector3{.x = tWidth * tHeight, .y = -tBase * tHeight, .z = -tBase * tWidth} / 4.0,
+
+        common::Vector3{.x = -tWidth * tHeight, .y = tBase * tHeight, .z = -tBase * tWidth} / 4.0,
+        common::Vector3{.x = 0.0, .y = tBase * tHeight, .z = -tBase * tWidth} / 2.0,
+        common::Vector3{.x = 0.0, .y = tBase * tHeight, .z = -tBase * tWidth} / 2.0,
+        common::Vector3{.x = tWidth * tHeight, .y = tBase * tHeight, .z = -tBase * tWidth} / 4.0,
+
+        common::Vector3{.x = -tWidth * tHeight, .y = -tBase * tHeight, .z = tBase * tWidth} / 4.0,
+        common::Vector3{.x = 0.0, .y = -tBase * tHeight, .z = tBase * tWidth} / 2.0,
+        common::Vector3{.x = 0.0, .y = -tBase * tHeight, .z = tBase * tWidth} / 2.0,
+        common::Vector3{.x = tWidth * tHeight, .y = -tBase * tHeight, .z = tBase * tWidth} / 4.0,
+
+        common::Vector3{.x = -tWidth * tHeight, .y = tBase * tHeight, .z = tBase * tWidth} / 4.0,
+        common::Vector3{.x = 0.0, .y = tBase * tHeight, .z = tBase * tWidth} / 2.0,
+        common::Vector3{.x = 0.0, .y = tBase * tHeight, .z = tBase * tWidth} / 2.0,
+        common::Vector3{.x = tWidth * tHeight, .y = tBase * tHeight, .z = tBase * tWidth} / 4.0};
+
+    const auto tSensitivities =
+        volume_nodal_sensitivities(*tBulkData, PartReferenceVector{tBulkData->mesh_meta_data().universal_part()});
+
+    test_utilities::test_nodal_sensitivities_with_expected(tSensitivities, tExpectedSensitivities,
+                                                           TEST_CONTEXT("3x1x1 hex mesh volume nodal sensitivities"));
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

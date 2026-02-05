@@ -1,8 +1,15 @@
 #ifndef PLATO_MESH_MESHQUANTITIES
 #define PLATO_MESH_MESHQUANTITIES
 
+#include <vector>
+
 #include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/stk_io/MeshFieldOperations.hpp"
+
+namespace plato::third_party_integration::common
+{
+struct Vector3;
+}
 
 namespace plato::mesh
 {
@@ -13,6 +20,12 @@ struct MeshQuantities : public Mesh
 
     /// @brief Returns the total volume of the mesh.
     [[nodiscard]] double volume() const;
+
+    /// @brief Returns the sensitivities of the volume of the mesh with respect to nodal coordinates for elements in
+    /// blocks with names @a aBlockNames.
+    /// @post The sensitivities are stored in a std::vector that is sorted by global node ID in ascending order.
+    [[nodiscard]] auto volumeNodalSensitivities(const std::set<std::string>& aBlockNames) const
+        -> std::vector<plato::third_party_integration::common::Vector3>;
 
     /// @brief Returns the average nodal density of the mesh, computed as the total number of nodes divided by the
     /// volume.
@@ -27,6 +40,12 @@ struct MeshQuantities : public Mesh
     ///
     /// The order is given by the order of iteration of AnalysisDomainMeshSequentialView.
     [[nodiscard]] std::vector<double> designDomainElementVolumes() const;
+
+    /// @brief Returns a vector of element volumes corresponding to the elements in blocks with names @a aBlockNames
+    /// only.
+    ///
+    /// The order is given by the order of iteration of AnalysisDomainMeshSequentialView.
+    [[nodiscard]] std::vector<double> specifiedDomainElementVolumes(const std::set<std::string>& aBlockNames) const;
 
     /// @brief Computes the nodal average of the scalar field defined by @a aNodalScalarField on each element.
     /// @pre The size of @a aNodalScalarField must be equal to the total number of nodes on the mesh and the entries are

@@ -12,10 +12,13 @@
 #include <string_view>
 
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
@@ -45,14 +48,14 @@ void check_write_scalar_field(const std::filesystem::path& aInputFileName,
     constexpr auto tFieldName = std::string_view{"Topology"};
     // Nodal
     {
-        write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{}));
+        write_bulk_data(aInputFileName, *generate_bulk_data(CommandGenerator{}));
         test_utilities::write_nodal_scalar_field(aInputFileName, MapField{aData}, tFieldName, aOutputFileName);
         const auto tResult = test_utilities::read_nodal_field_as_vector(aOutputFileName, kTopologyFieldName);
         EXPECT_EQ(tResult, aExpected) << aTestContext;
     }
     // Element
     {
-        write_bulk_data(aInputFileName, generate_bulk_data(CommandGenerator{{2, 2, 2}}));
+        write_bulk_data(aInputFileName, *generate_bulk_data(CommandGenerator{{2, 2, 2}}));
         test_utilities::write_element_scalar_field(aInputFileName, MapField{aData}, tFieldName, aOutputFileName);
         const auto tResult = test_utilities::read_element_field_as_vector(aOutputFileName, kTopologyFieldName);
         EXPECT_EQ(tResult, aExpected) << aTestContext;
@@ -130,7 +133,7 @@ TEST(WriteUtilities, WriteDensityFieldSomeMissing)
 TEST(WriteUtilities, WriteTwoFields)
 {
     constexpr auto tInputFileName = std::string_view{"brick.exo"};
-    write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{}));
+    write_bulk_data(tInputFileName, *generate_bulk_data(CommandGenerator{}));
 
     constexpr auto tField1Name = std::string_view{"aardvark"};
     constexpr auto tNumberOfNodes = 8U;
@@ -174,7 +177,7 @@ TEST(WriteUtilities, WriteMultipleTimeSteps)
     // write mesh
     constexpr auto tInputFileName = std::string_view{"brick.exo"};
     constexpr auto tOutputFileName = std::string_view{"brick-out.exo"};
-    write_bulk_data(tInputFileName, generate_bulk_data(CommandGenerator{}));
+    write_bulk_data(tInputFileName, *generate_bulk_data(CommandGenerator{}));
     constexpr auto tNumberOfNodes = 8U;
 
     // define field for first time step
@@ -229,6 +232,32 @@ TEST(WriteUtilities, WriteMultipleTimeSteps)
 
     const auto tReadField2 = test_utilities::read_nodal_field_as_vector(tOutputFileName, tField1Name, tTime2);
     EXPECT_EQ(tReadField2, tExpectedField2);
+}
+
+TEST(WriteUtilities, ReplaceNodalCoordinateValues)
+{
+    const CommandGenerator tCommandGenerator{{1, 1, 1}};
+    auto tBulkData = generate_bulk_data(tCommandGenerator);
+    const auto tOriginalCoordinates = nodal_coordinates(*tBulkData);
+
+    const std::vector<common::Coordinate> tPerturbation{{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 1.0, 1.0},
+                                                        {1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 1.0, 1.0},
+                                                        {1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}};
+
+    auto tNewCoordinates = utilities::reserved_container<std::vector<common::Coordinate>>(tOriginalCoordinates.size());
+    std::transform(tOriginalCoordinates.begin(), tOriginalCoordinates.end(), tPerturbation.begin(),
+                   std::back_inserter(tNewCoordinates),
+                   [](const auto& aCoord1, const auto& aCoord2) { return aCoord1 + aCoord2; });
+
+    replace_nodal_coordinate_values(*tBulkData, tNewCoordinates);
+    const auto tUpdatedCoordinates = nodal_coordinates(*tBulkData);
+
+    ASSERT_EQ(tUpdatedCoordinates.size(), tNewCoordinates.size());
+    for (const auto& [tResult, tExpected] : utilities::Zip{tUpdatedCoordinates, tNewCoordinates})
+    {
+        common::test_utilities::test_double_equality_of_components(tResult, tExpected,
+                                                                   TEST_CONTEXT("Replacing nodal coordinates"));
+    }
 }
 
 }  // namespace plato::third_party_integration::stk_io::unittest

@@ -100,7 +100,7 @@ class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
     {
         auto tInput = kLevelSetInputFixture;
         tInput.mesh_name = input_parser::FileName{mMeshFilePath};
-        tInput.fixed_blocks = input_parser::FixedBlockList{std::move(aFixedBlocks)};
+        tInput.fixed_blocks = input_parser::BlockList{std::move(aFixedBlocks)};
         return tInput;
     }
 
