@@ -29,15 +29,22 @@ namespace plato::criteria::extension
 {
 namespace
 {
-[[nodiscard]] auto parse_ignore_void_blocks(const library::CriterionInput& aCriterionInput) -> bool
+[[nodiscard]] auto parse_volume_constraint_inputs(const library::CriterionInput& aCriterionInput)
+    -> input_parser::volume_criterion
 {
-    bool tIgnoreVoid = true;
     if (aCriterionInput.mInputFiles.size() > 0)
     {
-        tIgnoreVoid = detail::parse_input_block(aCriterionInput.mInputFiles.list().mList[0]).ignore_void_blocks;
+        return detail::parse_input_block(aCriterionInput.mInputFiles.list().mList[0]);
     }
+    return input_parser::volume_criterion{};
+}
 
-    if (tIgnoreVoid == true)
+[[nodiscard]] auto parse_ignore_void_blocks(const input_parser::volume_criterion& aVolumeCriterionInput,
+                                            const library::CriterionInput& aCriterionInput) -> bool
+{
+    const bool tIgnoreVoids =
+        aVolumeCriterionInput.ignore_void_blocks.has_value() ? aVolumeCriterionInput.ignore_void_blocks.value() : true;
+    if (tIgnoreVoids)
     {
         auto tLogger = services::component_logger(aCriterionInput.mComponentType, aCriterionInput.mName);
         tLogger.logWarning(std::format(
@@ -47,8 +54,39 @@ namespace
             "volume \n  ignore_void_blocks false\nend",
             aCriterionInput.mName));
     }
+    return tIgnoreVoids;
+}
 
-    return tIgnoreVoid;
+[[nodiscard]] auto parse_reference_volume(const input_parser::volume_criterion& aVolumeCriterionInput,
+                                          const library::CriterionInput& aCriterionInput) -> boost::optional<double>
+{
+    if (aVolumeCriterionInput.reference_volume.has_value())
+    {
+        auto tLogger = services::component_logger(aCriterionInput.mComponentType, aCriterionInput.mName);
+        tLogger.logWarning(
+            std::format("\nWarning: reference_volume was specified in the input file for volume_fraction criterion. "
+                        "This value will be used instead of the full domain volume. If the full domain volume is to be "
+                        "used, remove reference_volume from the input file.",
+                        aCriterionInput.mName));
+    }
+    return aVolumeCriterionInput.reference_volume;
+}
+
+void check_valid_reference_volume(const boost::optional<double> aReferenceVolume,
+                                  const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+{
+    if (aAnalysisDomainMesh.mBlockScalarField.empty() && !aReferenceVolume.has_value())
+    {
+        throw utilities::Exception{
+            "If volume_fraction is specified for a geometry that is not density_topology, reference_volume must be "
+            "added to an input file with the form: \nbegin "
+            "volume \n  reference_volume double\nend"};
+    }
+    if (aReferenceVolume.has_value() && aReferenceVolume.value() <= 0.0)
+    {
+        throw utilities::Exception{
+            "in volume_fraction criterion, reference_volume specified in input file must be greater than zero"};
+    }
 }
 
 using Registration =
@@ -57,14 +95,15 @@ using Registration =
 const auto kVolumeConfiguration = services::CriterionConfiguration{
     .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
 
-[[maybe_unused]] static auto kVolumeConstraintRegistration =
-    Registration{library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
-                 [](const library::CriterionInput& aCriterionInput)
-                 {
-                     return library::FunctionWithConfiguration{
-                         .mFunction = make_volume_constraint_function(parse_ignore_void_blocks(aCriterionInput)),
-                         .mConfiguration = kVolumeConfiguration};
-                 }};
+[[maybe_unused]] static auto kVolumeConstraintRegistration = Registration{
+    library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
+    [](const library::CriterionInput& aCriterionInput)
+    {
+        const auto tVolumeCriterionInputs = parse_volume_constraint_inputs(aCriterionInput);
+        return library::FunctionWithConfiguration{.mFunction = make_volume_constraint_function(parse_ignore_void_blocks(
+                                                      tVolumeCriterionInputs, aCriterionInput)),
+                                                  .mConfiguration = kVolumeConfiguration};
+    }};
 
 const auto kVolumeFractionConfiguration = services::CriterionConfiguration{
     .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
@@ -73,9 +112,11 @@ const auto kVolumeFractionConfiguration = services::CriterionConfiguration{
     library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
     [](const library::CriterionInput& aCriterionInput)
     {
-        return library::FunctionWithConfiguration{
-            .mFunction = make_volume_fraction_constraint_function(parse_ignore_void_blocks(aCriterionInput)),
-            .mConfiguration = kVolumeFractionConfiguration};
+        const auto tVolumeCriterionInputs = parse_volume_constraint_inputs(aCriterionInput);
+        return library::FunctionWithConfiguration{.mFunction = make_volume_fraction_constraint_function(
+                                                      parse_ignore_void_blocks(tVolumeCriterionInputs, aCriterionInput),
+                                                      parse_reference_volume(tVolumeCriterionInputs, aCriterionInput)),
+                                                  .mConfiguration = kVolumeFractionConfiguration};
     }};
 
 [[nodiscard]] auto all_block_names(const mesh::Mesh& aMesh) -> std::set<std::string>
@@ -164,26 +205,30 @@ linear_algebra::DynamicVector<double> VolumeCriterion::df(const analysis::Analys
 auto make_volume_constraint_function(const bool aIgnoreVoidBlocks) -> library::CriterionFunction
 {
     return core::make_function_with_first_derivative(
-        [aIgnoreVoidBlocks](const analysis::AnalysisDomainMesh& mesh)
-        { return VolumeCriterion{.mScaleFactor = 1.0, .mIgnoreVoidBlocks = aIgnoreVoidBlocks}.f(mesh); },
-        [aIgnoreVoidBlocks](const analysis::AnalysisDomainMesh& mesh)
-        { return VolumeCriterion{.mScaleFactor = 1.0, .mIgnoreVoidBlocks = aIgnoreVoidBlocks}.df(mesh); });
+        [aIgnoreVoidBlocks](const analysis::AnalysisDomainMesh& aMesh)
+        { return VolumeCriterion{.mScaleFactor = 1.0, .mIgnoreVoidBlocks = aIgnoreVoidBlocks}.f(aMesh); },
+        [aIgnoreVoidBlocks](const analysis::AnalysisDomainMesh& aMesh)
+        { return VolumeCriterion{.mScaleFactor = 1.0, .mIgnoreVoidBlocks = aIgnoreVoidBlocks}.df(aMesh); });
 }
 
-auto make_volume_fraction_constraint_function(const bool aIgnoreVoidBlocks) -> library::CriterionFunction
+auto make_volume_fraction_constraint_function(const bool aIgnoreVoidBlocks,
+                                              const boost::optional<double> aReferenceVolume)
+    -> library::CriterionFunction
 {
     return core::make_function_with_first_derivative(
-        [aIgnoreVoidBlocks](const analysis::AnalysisDomainMesh& mesh)
+        [aIgnoreVoidBlocks, aReferenceVolume](const analysis::AnalysisDomainMesh& aMesh)
         {
-            const double tVolumeTotal = third_party_integration::stk_io::mesh_volume(
-                *third_party_integration::stk_io::read_mesh_bulk_data(mesh.mFileName));
-            return VolumeCriterion{.mScaleFactor = 1.0 / tVolumeTotal, .mIgnoreVoidBlocks = aIgnoreVoidBlocks}.f(mesh);
+            check_valid_reference_volume(aReferenceVolume, aMesh);
+            return VolumeCriterion{.mScaleFactor = 1.0 / detail::reference_volume(aReferenceVolume, aMesh),
+                                   .mIgnoreVoidBlocks = aIgnoreVoidBlocks}
+                .f(aMesh);
         },
-        [aIgnoreVoidBlocks](const analysis::AnalysisDomainMesh& mesh)
+        [aIgnoreVoidBlocks, aReferenceVolume](const analysis::AnalysisDomainMesh& aMesh)
         {
-            const double tVolumeTotal = third_party_integration::stk_io::mesh_volume(
-                *third_party_integration::stk_io::read_mesh_bulk_data(mesh.mFileName));
-            return VolumeCriterion{.mScaleFactor = 1.0 / tVolumeTotal, .mIgnoreVoidBlocks = aIgnoreVoidBlocks}.df(mesh);
+            check_valid_reference_volume(aReferenceVolume, aMesh);
+            return VolumeCriterion{.mScaleFactor = 1.0 / detail::reference_volume(aReferenceVolume, aMesh),
+                                   .mIgnoreVoidBlocks = aIgnoreVoidBlocks}
+                .df(aMesh);
         });
 }
 
@@ -191,13 +236,6 @@ namespace detail
 {
 auto parse_input_block(const std::filesystem::path& aFilePath) -> input_parser::volume_criterion
 {
-    if (!std::filesystem::exists(aFilePath))
-    {
-        auto tReturn = input_parser::volume_criterion{};
-        tReturn.ignore_void_blocks = true;
-        return tReturn;
-    }
-
     auto tInputs = input_parser::volume_criterion{};
     auto tInputStream = std::ifstream{aFilePath};
     const auto tInputFileString =
@@ -211,6 +249,22 @@ auto parse_input_block(const std::filesystem::path& aFilePath) -> input_parser::
         phrase_parse(tInputIterator, tInputFileString.cend(), tParser.mBlockRule, tSkipper.skipperRule(), tInputs);
 
     return tInputs;
+}
+
+double reference_volume(const boost::optional<double> aReferenceVolume,
+                        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+{
+    if (aAnalysisDomainMesh.mBlockScalarField.empty())
+    {
+        return aReferenceVolume.value();
+    }
+    else
+    {
+        return aReferenceVolume.has_value()
+                   ? aReferenceVolume.value()
+                   : third_party_integration::stk_io::mesh_volume(
+                         *third_party_integration::stk_io::read_mesh_bulk_data(aAnalysisDomainMesh.mFileName));
+    }
 }
 }  // namespace detail
 
