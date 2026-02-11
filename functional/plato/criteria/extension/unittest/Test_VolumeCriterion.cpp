@@ -25,16 +25,20 @@ using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 constexpr std::string_view kMeshFile = "brick.exo";
 
+[[nodiscard]] auto mesh_with_constant_controls(const double aControlValue) -> analysis::AnalysisDomainMesh
+{
+    const auto tMesh = mesh::EntityCounts{mesh::Mesh{kMeshFile}};
+    const auto tControls = std::vector<double>(tMesh.numberOfElements(), aControlValue);
+    return mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
+        mesh::ElementFieldVectorReference{std::cref(tControls)});
+}
+
 void test_volume_criteria_from_ctor_and_function(const VolumeCriterion& aVolumeCriterion,
                                                  const library::CriterionFunction& aFunction,
                                                  const double aGoldVolume)
 {
     constexpr double tConstantControls = 0.75;
-
-    const auto tMesh = mesh::EntityCounts{mesh::Mesh{kMeshFile}};
-    const auto tControls = std::vector<double>(tMesh.numberOfElements(), tConstantControls);
-    const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
-        mesh::ElementFieldVectorReference{std::cref(tControls)});
+    const auto tAnalysisDomainMesh = mesh_with_constant_controls(tConstantControls);
 
     EXPECT_EQ(aVolumeCriterion.f(tAnalysisDomainMesh), aGoldVolume * tConstantControls);
     EXPECT_EQ(aVolumeCriterion.f(tAnalysisDomainMesh),
@@ -49,7 +53,9 @@ void test_scaled_and_unscaled_on_ctor_and_function(
         VolumeCriterion{}, make_volume_constraint_function(/*aIgnoreVoidBlocks=*/true), aCommandGenerator.volume());
     test_volume_criteria_from_ctor_and_function(
         VolumeCriterion{.mScaleFactor = 1.0 / aCommandGenerator.volume(), .mIgnoreVoidBlocks = true},
-        make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true), 1);
+        make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true,
+                                                 /*aReferenceVolume=*/aCommandGenerator.volume()),
+        1);
 
     EXPECT_TRUE(std::filesystem::remove(kMeshFile));
 }
@@ -87,6 +93,27 @@ void write_perturbed_mesh_to_file(const linear_algebra::DynamicVector<double>& a
     tMesh.writeMeshToDisk(kPerturbedMeshFilePath);
 }
 
+struct InputFileIO
+{
+    InputFileIO(const std::vector<std::string>& aFileLines)
+    {
+        std::ofstream tTextFile(mFileName);
+        tTextFile << "begin volume\n";
+        for (const auto& tLine : aFileLines)
+        {
+            tTextFile << "  ";
+            tTextFile << tLine;
+            tTextFile << "\n";
+        }
+        tTextFile << "end\n";
+        tTextFile.close();
+    }
+
+    ~InputFileIO() { std::filesystem::remove(mFileName); }
+
+    std::filesystem::path mFileName{"dummy_input.i"};
+};
+
 }  // namespace
 
 TEST(VolumeCriterion, Volume)
@@ -113,14 +140,11 @@ TEST(VolumeCriterion, VolumeDifferentiatesBetweenNodalAndDensityDesignVariables)
         .mUpperBounds = {.x = tLength, .y = tWidth, .z = tHeight},
         .mType = third_party_integration::stk_io::CommandElementType::Tet};
     third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
-    const auto tMesh = mesh::EntityCounts{mesh::Mesh{kMeshFile}};
 
     // with control field (density topology)
     {
         constexpr double tConstantControlValue{0.5};
-        const auto tControls = std::vector<double>(tMesh.numberOfElements(), tConstantControlValue);
-        const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
-            mesh::ElementFieldVectorReference{std::cref(tControls)});
+        const auto tAnalysisDomainMesh = mesh_with_constant_controls(tConstantControlValue);
         EXPECT_DOUBLE_EQ(VolumeCriterion{}.f(tAnalysisDomainMesh), tConstantControlValue * tVolume);
     }
 
@@ -149,7 +173,9 @@ TEST(VolumeCriterion, DerivativeOfScaledVolumeOnControls)
         const std::vector<double> tGold(3, tHexVolume * tOneOverVolume);
         test_volume_criteria_derivative_from_ctor_and_function(
             VolumeCriterion{.mScaleFactor = tOneOverVolume, .mIgnoreVoidBlocks = true},
-            make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true), tGold);
+            make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true,
+                                                     /*aReferenceVolume=*/1. / tOneOverVolume),
+            tGold);
     }
 
     EXPECT_TRUE(std::filesystem::remove(kMeshFile));
@@ -223,25 +249,112 @@ TEST_F(TwoDThreeBlockMesh, VolumeCriterionNodalCoordinateGradientCheck)
 
 TEST(VolumeCriterion, ParseInputBlock)
 {
-    // nonexistant file defaults to true
+    // nonexistant file defaults
     {
         const auto tParams = detail::parse_input_block(std::string{"does-not-exist.xml"});
-        EXPECT_TRUE(tParams.ignore_void_blocks);
+        EXPECT_FALSE(tParams.ignore_void_blocks.has_value());
+        EXPECT_FALSE(tParams.reference_volume.has_value());
     }
 
-    // file with specification
+    // file with just ignore_void_blocks specified
     {
-        const std::filesystem::path tInputFileName{"dummy_blocks.txt"};
-        std::ofstream tTextFile(tInputFileName);
-        tTextFile << "begin volume\n";
-        tTextFile << "  ignore_void_blocks false\n";
-        tTextFile << "end\n";
-        tTextFile.close();
+        const auto tInputFileIO = InputFileIO({"ignore_void_blocks false"});
+        const auto tParams = detail::parse_input_block(tInputFileIO.mFileName);
+        EXPECT_TRUE(tParams.ignore_void_blocks.has_value());
+        EXPECT_FALSE(tParams.ignore_void_blocks.value());
+        EXPECT_FALSE(tParams.reference_volume.has_value());
+    }
 
-        const auto tParams = detail::parse_input_block(tInputFileName);
-        EXPECT_FALSE(tParams.ignore_void_blocks);
+    // file with just reference_volume specified
+    {
+        const auto tInputFileIO = InputFileIO({"reference_volume 1.86"});
+        const auto tParams = detail::parse_input_block(tInputFileIO.mFileName);
+        EXPECT_FALSE(tParams.ignore_void_blocks.has_value());
+        EXPECT_TRUE(tParams.reference_volume.has_value());
+        EXPECT_EQ(tParams.reference_volume.value(), 1.86);
+    }
 
-        std::filesystem::remove(tInputFileName);
+    // file with both specified
+    {
+        const auto tInputFileIO = InputFileIO({"ignore_void_blocks false", "reference_volume 1.86"});
+        const auto tParams = detail::parse_input_block(tInputFileIO.mFileName);
+        EXPECT_TRUE(tParams.ignore_void_blocks.has_value());
+        EXPECT_FALSE(tParams.ignore_void_blocks.value());
+        EXPECT_TRUE(tParams.reference_volume.has_value());
+        EXPECT_EQ(tParams.reference_volume.value(), 1.86);
+    }
+}
+
+TEST(VolumeFractionCriterion, ReferenceVolume)
+{
+    const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{};
+    third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
+    const auto tDomainVolume = tCommandGenerator.volume();
+
+    constexpr double tConstantControls = 0.86;
+    const auto tAnalysisDomainMesh = mesh_with_constant_controls(tConstantControls);
+
+    EXPECT_EQ(detail::reference_volume(/*aReferenceVolume=*/boost::none, /*aAnalysisDomainMesh=*/tAnalysisDomainMesh),
+              tDomainVolume);
+
+    constexpr double tReferenceVolume = 450.0;
+    EXPECT_EQ(
+        detail::reference_volume(/*aReferenceVolume=*/tReferenceVolume, /*aAnalysisDomainMesh=*/tAnalysisDomainMesh),
+        tReferenceVolume);
+}
+
+TEST(VolumeFractionCriterion, ThrowsIfNoReferenceVolumeGivenForNonDensityTopology)
+{
+    third_party_integration::stk_io::write_mesh(kMeshFile, third_party_integration::stk_io::CommandGenerator{});
+    const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{.mFileName = kMeshFile, .mBlockScalarField = {}};
+
+    const auto tCriterion = make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true,
+                                                                     /*aReferenceVolume=*/boost::none);
+
+    EXPECT_THROW([[maybe_unused]] auto tValue = tCriterion.evaluate<core::evaluation::kFunction>(tAnalysisDomainMesh);
+                 , std::runtime_error);
+
+    EXPECT_THROW(
+        [[maybe_unused]] auto tValue = tCriterion.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh);
+        , std::runtime_error);
+}
+
+TEST(VolumeFractionCriterion, ThrowsIfReferenceVolumeLessThanOrEqualToZero)
+{
+    third_party_integration::stk_io::write_mesh(kMeshFile, third_party_integration::stk_io::CommandGenerator{});
+    const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{.mFileName = kMeshFile, .mBlockScalarField = {}};
+
+    {
+        const auto tCriterion = make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true,
+                                                                         /*aReferenceVolume=*/0.0);
+        EXPECT_THROW(
+            [[maybe_unused]] auto tValue = tCriterion.evaluate<core::evaluation::kFunction>(tAnalysisDomainMesh);
+            , std::runtime_error);
+    }
+    {
+        const auto tCriterion = make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true,
+                                                                         /*aReferenceVolume=*/-1.0);
+        EXPECT_THROW(
+            [[maybe_unused]] auto tValue = tCriterion.evaluate<core::evaluation::kFunction>(tAnalysisDomainMesh);
+            , std::runtime_error);
+    }
+}
+
+TEST(VolumeFractionCriterion, ReferenceVolumeScalesAsExpected)
+{
+    third_party_integration::stk_io::write_mesh(kMeshFile, third_party_integration::stk_io::CommandGenerator{});
+    const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{.mFileName = kMeshFile, .mBlockScalarField = {}};
+    {
+        constexpr double tReferenceVolume{1.0};
+        const auto tCriterion = make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true,
+                                                                         /*aReferenceVolume=*/tReferenceVolume);
+        EXPECT_EQ(tCriterion.evaluate<core::evaluation::kFunction>(tAnalysisDomainMesh), 1.0);
+    }
+    {
+        constexpr double tReferenceVolume{1.25};
+        const auto tCriterion = make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true,
+                                                                         /*aReferenceVolume=*/tReferenceVolume);
+        EXPECT_EQ(tCriterion.evaluate<core::evaluation::kFunction>(tAnalysisDomainMesh), 0.8);
     }
 }
 

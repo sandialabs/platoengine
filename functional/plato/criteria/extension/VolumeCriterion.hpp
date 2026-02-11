@@ -12,7 +12,8 @@
 // clang-format off
 BOOST_FUSION_DEFINE_STRUCT(
 (plato)(input_parser),volume_criterion,
-(bool, ignore_void_blocks)
+(boost::optional<bool>, ignore_void_blocks)
+(boost::optional<double>, reference_volume)
 )
 // clang-format on
 
@@ -38,12 +39,17 @@ struct VolumeCriterion
 [[nodiscard]] auto make_volume_constraint_function(const bool aIgnoreVoidBlocks) -> library::CriterionFunction;
 
 /// @brief Creates a Function object from a VolumeCriterion
-[[nodiscard]] auto make_volume_fraction_constraint_function(const bool aIgnoreVoidBlocks) -> library::CriterionFunction;
+[[nodiscard]] auto make_volume_fraction_constraint_function(const bool aIgnoreVoidBlocks,
+                                                            const boost::optional<double> aReferenceVolume)
+    -> library::CriterionFunction;
 
 namespace detail
 {
 auto parse_input_block(const std::filesystem::path& aFilename) -> input_parser::volume_criterion;
-}
+
+[[nodiscard]] double reference_volume(const boost::optional<double> aReferenceVolume,
+                                      const analysis::AnalysisDomainMesh& aAnalysisDomainMesh);
+}  // namespace detail
 
 }  // namespace plato::criteria::extension
 
