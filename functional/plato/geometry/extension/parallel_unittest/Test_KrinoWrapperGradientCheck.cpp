@@ -4,6 +4,7 @@
 #include <boost/mpi/communicator.hpp>
 #include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/vector.hpp>
+#include <cstddef>
 #include <stk_util/environment/EnvData.hpp>  //get stk mpi env
 #include <vector>
 
@@ -76,7 +77,8 @@ namespace
         mesh::DesignVariablesConversion{mesh::Mesh{kRectangleMeshFilePath.value()}}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tX});
 
-    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
+    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks,
+                                                        tpik::VoidPhase::kIncludeInMesh, tpik::SnappingParameters{});
 }
 
 [[nodiscard]] auto make_iota_vector(const std::size_t aSize, const double aShift) -> std::vector<double>
@@ -138,21 +140,20 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
             mesh::DesignVariablesConversion{mesh::Mesh{tMeshFile.value()}}.nodalFieldToAnalysisDomainMesh(
                 mesh::NodalFieldVectorReference{aX.stdVector()});
 
-        const auto tWrapper =
-            make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
-        tWrapper.writeCutMesh(tFileName, third_party_integration::krino::VoidPhase::kIncludeInMesh);
+        const auto tWrapper = make_krino_wrapper_from_analysis_domain_mesh(
+            tAnalysisDomainMesh, tFixedBlocks, tpik::VoidPhase::kIncludeInMesh, tpik::SnappingParameters{});
+        tWrapper.writeCutMesh(tFileName);
         const auto tMesh = mesh::Mesh{tFileName};
-        const auto tCutMeshNodeSize = mesh::EntityCounts{tMesh}.numberOfNodes();
+        const auto tCutMeshNodeSize = static_cast<std::size_t>(mesh::EntityCounts{tMesh}.numberOfNodes());
         const auto tOnesVector = std::vector<double>(tCutMeshNodeSize * 2, 1.0);
         const auto tCommunicator = boost::mpi::communicator{};
         utilities::execute_on_root(tCommunicator, [&tFileName]() { std::filesystem::remove(tFileName); });
-        const auto tRowVectorJacobianResult = linear_algebra::DynamicVector<double>{
-            tWrapper.rowVectorJacobianProduct(tOnesVector, third_party_integration::krino::VoidPhase::kIncludeInMesh)};
+        const auto tRowVectorJacobianResult =
+            linear_algebra::DynamicVector<double>{tWrapper.rowVectorJacobianProduct(tOnesVector)};
         const auto tXJV = tRowVectorJacobianResult.dot(aV);
 
         const auto tRowVectorAdjointJacobianResult =
-            linear_algebra::DynamicVector<double>{tWrapper.rowVectorAdjointJacobianProduct(
-                aV.stdVector(), third_party_integration::krino::VoidPhase::kIncludeInMesh)};
+            linear_algebra::DynamicVector<double>{tWrapper.rowVectorAdjointJacobianProduct(aV.stdVector())};
         const auto tVJTX = tRowVectorAdjointJacobianResult.dot(linear_algebra::DynamicVector<double>{tOnesVector});
         EXPECT_DOUBLE_EQ(tXJV, tVJTX);
 

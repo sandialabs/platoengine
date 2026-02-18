@@ -30,32 +30,27 @@ namespace plato::geometry::extension
 class KrinoWrapper
 {
    public:
-    /// @brief Construct a KrinoWrapper from its data type members. Use free make functions below instead.
+    /// @brief Construct a KrinoWrapper from its data type members. Use free make functions below instead. The parameter
+    /// @a aVoidPhase specifies at construction whether to include or exclude the void region in sensitivities and in
+    /// writing the mesh to disk.
+    /// @note See helper functions for the most common methods to create a KrinoWrapper
     KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInterface,
                  std::vector<::krino::LS_Field> aLevelSetField,
+                 const third_party_integration::krino::VoidPhase aVoidPhase,
                  const third_party_integration::krino::SnappingParameters aSnappingParameters);
 
-    /// @brief Write a cut mesh to the file @a aFileName with the void region specifier @a aVoidPhase.
-    void writeCutMesh(const std::filesystem::path& aFileName,
-                      const third_party_integration::krino::VoidPhase aVoidPhase) const;
+    /// @brief Write a cut mesh to the file @a aFileName.
+    void writeCutMesh(const std::filesystem::path& aFileName) const;
 
     /// @brief Return the sensitivity map determined after the cut procedure. Used for unit testing.
     [[nodiscard]] auto sensitivities() const -> const third_party_integration::krino::SensitivityMap&;
 
     /// @brief Compute the row vector jacobian product for the cut mesh row vector @a aCutMeshRowVector.
-    ///
-    /// Background nodes that would be part of the void are not in the row vector. Whether they are in the row vector or
-    /// not is specified by @a aVoidPhase.
-    [[nodiscard]] auto rowVectorJacobianProduct(const std::vector<double>& aCutMeshRowVector,
-                                                const third_party_integration::krino::VoidPhase aVoidPhase) const
+    [[nodiscard]] auto rowVectorJacobianProduct(const std::vector<double>& aCutMeshRowVector) const
         -> std::vector<double>;
 
     /// @brief Compute the row vector jacobian product for the background mesh row vector @a aBackgroundMeshRowVector.
-    ///
-    /// Background nodes that would be part of the void are not in the row vector. Whether they are in the row vector or
-    /// not is specified by @a aVoidPhase.
-    [[nodiscard]] auto rowVectorAdjointJacobianProduct(const std::vector<double>& aBackgroundMeshRowVector,
-                                                       const third_party_integration::krino::VoidPhase aVoidPhase) const
+    [[nodiscard]] auto rowVectorAdjointJacobianProduct(const std::vector<double>& aBackgroundMeshRowVector) const
         -> std::vector<double>;
 
    private:
@@ -63,6 +58,8 @@ class KrinoWrapper
     std::vector<::krino::LS_Field> mLevelSetFields;
     std::size_t mNumberOfDesignDomainBackgroundNodes;
     third_party_integration::krino::SensitivityMap mSensitivityMap;
+    stk::mesh::Selector mSelector;
+    third_party_integration::krino::VoidPhase mVoidPhase;
 };
 
 /// @brief Free function to facilitate making an initial guess.
@@ -82,6 +79,7 @@ class KrinoWrapper
 [[nodiscard]] auto make_krino_wrapper_from_analysis_domain_mesh(
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     const std::set<std::string>& aFixedBlocks,
+    const third_party_integration::krino::VoidPhase& aVoidPhase,
     const third_party_integration::krino::SnappingParameters aSnappingParameters) -> KrinoWrapper;
 
 namespace detail

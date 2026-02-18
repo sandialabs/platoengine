@@ -45,7 +45,8 @@ using tpik::test_utilities::KrinoTestFixture;
 [[nodiscard]] auto retrieve_sensitivities(const std::vector<double>& aPerturbedField) -> std::vector<double>
 {
     const auto tWrapper = test_utilities::make_krino_wrapper_from_vector_values(
-        kRectangleMeshFilePath.value(), test_utilities::InitialLevelSetValues{aPerturbedField});
+        kRectangleMeshFilePath.value(), test_utilities::InitialLevelSetValues{aPerturbedField},
+        third_party_integration::krino::VoidPhase::kIncludeInMesh);
     return flatten_sensitivities(tWrapper.sensitivities());
 }
 

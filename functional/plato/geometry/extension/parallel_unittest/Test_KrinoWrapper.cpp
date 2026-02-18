@@ -33,7 +33,8 @@ const auto kFourTriSensitivityMapRankOne =
                          {11, tpik::LevelSetJacobianColumn{{1, 2}, {{0.25, 0.0, 0}, {0.75, 0, 0}}, {0, 1}}},
                          {8, tpik::LevelSetJacobianColumn{{1, 4}, {{.25, 0.25, 0}, {0.75, 0.75, 0}}, {0, 2}}}};
 
-[[nodiscard]] auto create_example_krino_wrapper_for_regression_test() -> KrinoWrapper
+[[nodiscard]] auto create_example_krino_wrapper_for_regression_test(
+    const third_party_integration::krino::VoidPhase& aVoidPhase) -> KrinoWrapper
 {
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
@@ -42,7 +43,8 @@ const auto kFourTriSensitivityMapRankOne =
     const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tInitialGuess});
-    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, tpik::SnappingParameters{});
+    return make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks, aVoidPhase,
+                                                        tpik::SnappingParameters{});
 }
 
 }  // namespace
@@ -58,9 +60,9 @@ TEST_F(KrinoTestFixture, KrinoWrapperParallel)
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tDesignVariable});
     const auto tFixedBlocks = std::set<std::string>{};
-    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks,
-                                                                            tpik::snapping_off_parameters());
-    const auto tSensitivity = tKrinoWrapper.sensitivities();
+    const auto tKrinoWrapper = make_krino_wrapper_from_analysis_domain_mesh(
+        tAnalysisDomainMesh, tFixedBlocks, tpik::VoidPhase::kExcludeFromMesh, tpik::snapping_off_parameters());
+    const auto& tSensitivity = tKrinoWrapper.sensitivities();
 
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tRank = tCommunicator.rank();
@@ -80,9 +82,9 @@ TEST_F(KrinoTestFixture, KrinoWrapperParallel)
 TEST_F(KrinoTestFixture, FourTriSensitivityMap)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test();
+    const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test(tpik::VoidPhase::kIncludeInMesh);
 
-    const auto tSensitivity = tKrinoWrapper.sensitivities();
+    const auto& tSensitivity = tKrinoWrapper.sensitivities();
 
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tRank = tCommunicator.rank();
@@ -115,14 +117,13 @@ TEST_F(KrinoTestFixture, MakeInitialGuessFromLevelSetPrimitives)
 TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test();
+    const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test(tpik::VoidPhase::kExcludeFromMesh);
 
     const auto tNumberOfCutMeshNodes = 9;
     const auto tDimensions = 2;
     std::vector<double> tRowVector(tNumberOfCutMeshNodes * tDimensions, 1.0);
 
-    [[maybe_unused]] const auto tResult =
-        tKrinoWrapper.rowVectorJacobianProduct(tRowVector, tpik::VoidPhase::kExcludeFromMesh);
+    [[maybe_unused]] const auto tResult = tKrinoWrapper.rowVectorJacobianProduct(tRowVector);
 
     const auto tGold = std::vector<double>{0.75, 2.25, 2.25, 0.25, 0, 0.5};
     EXPECT_EQ(tGold, tResult);
@@ -131,12 +132,11 @@ TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
 TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test();
+    const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test(tpik::VoidPhase::kExcludeFromMesh);
     const auto tNumberOfBackgroundNodes = 6;
     std::vector<double> tRowVector(tNumberOfBackgroundNodes, 1.0);
 
-    [[maybe_unused]] const auto tResult =
-        tKrinoWrapper.rowVectorAdjointJacobianProduct(tRowVector, tpik::VoidPhase::kExcludeFromMesh);
+    [[maybe_unused]] const auto tResult = tKrinoWrapper.rowVectorAdjointJacobianProduct(tRowVector);
 
     const auto tGold = std::vector<double>{0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, -1, 1, 0, 1, 1};
     EXPECT_EQ(tGold, tResult);

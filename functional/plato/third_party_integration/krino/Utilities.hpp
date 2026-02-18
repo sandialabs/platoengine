@@ -107,6 +107,11 @@ template <typename LevelSetFieldVector>
                                          const std::vector<::krino::LS_Field>& aLevelSetFields)
     -> stk::mesh::EntityVector;
 
+/// @brief Given a modifiable bulk data @a aBulkData and specified void phase @a aVoidPhase, create a valid
+/// stk::mesh::Selector for the cut mesh. Also apply the Krino fixes for errors in parallel writing a cut mesh.
+[[nodiscard]] auto create_output_selector(stk::mesh::BulkData& aBulkData, const VoidPhase aVoidPhase)
+    -> stk::mesh::Selector;
+
 /// @brief Take a krino mesh's bulk data @a aBulkData and write it to the file specified in @a aOutputFileName. The void
 /// phase @a aVoidPhase specifies whether to include the void region or not when writing to disk.
 /// @pre the environment for krino was initialized by calling 'initialize_environment_for_krino', followed by
@@ -114,7 +119,7 @@ template <typename LevelSetFieldVector>
 /// the level set field values, followed by a call to 'cut_mesh'.
 void write_mesh(const stk::mesh::BulkData& aBulkData,
                 const std::filesystem::path& aOutputFileName,
-                const VoidPhase aVoidPhase);
+                const stk::mesh::Selector& aSelector);
 
 template <typename LevelSetFieldVector>
 [[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields, const stk::mesh::Entity& aNode)

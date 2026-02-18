@@ -62,7 +62,7 @@ void create_mesh()
     return stk_io::read_nodal_field(aFilePath, get_level_set_field_name());
 }
 
-void run_cut_and_write_test(const VoidPhase& aVoidPhase,
+void run_cut_and_write_test(const VoidPhase aVoidPhase,
                             const std::map<std::size_t, double>& aGold,
                             const plato::test_utilities::TestContext& aTestContext)
 {
@@ -70,7 +70,8 @@ void run_cut_and_write_test(const VoidPhase& aVoidPhase,
     const auto tMesh = read_and_setup_for_decomposition(kMeshName);
     const auto tLevelSetField = make_test_level_set_field(*tMesh);
     cut_mesh(tMesh->bulk_data(), tLevelSetField, SnappingParameters{});
-    write_mesh(tMesh->bulk_data(), kWriteMeshName, aVoidPhase);
+    const auto tSelector = create_output_selector(tMesh->bulk_data(), aVoidPhase);
+    write_mesh(tMesh->bulk_data(), kWriteMeshName, tSelector);
 
     const auto tCutLevelSetField = read_coordinates_and_level_sets(kWriteMeshName);
     EXPECT_EQ(tCutLevelSetField, aGold) << aTestContext;
@@ -84,8 +85,8 @@ TEST_F(KrinoTestFixture, ReadAndSetupForDecomposition)
 {
     create_mesh();
     const auto tMesh = read_and_setup_for_decomposition(kMeshName);
-
-    write_mesh(tMesh->bulk_data(), kWriteMeshName, VoidPhase::kIncludeInMesh);
+    const auto tSelector = create_output_selector(tMesh->bulk_data(), VoidPhase::kIncludeInMesh);
+    write_mesh(tMesh->bulk_data(), kWriteMeshName, tSelector);
 
     const auto tFieldNames = stk_io::nodal_field_names(kWriteMeshName);
 

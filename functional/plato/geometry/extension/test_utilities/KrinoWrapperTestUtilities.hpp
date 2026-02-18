@@ -16,18 +16,22 @@ using InitialLevelSetValues = utilities::NamedType<std::vector<double>, struct I
 /// @brief Helper function to facilitate making a KrinoWrapper.
 ///
 /// Read a mesh from @a aFileName, and use the level set values specified in @a aInitialLevelSetValues to assign the
-/// level set field.
+/// level set field. @a aVoidPhase specifies whether to include the void in the cut mesh operation.
 /// @pre the size of @a aInitialLevelSetValues must equal the total number of background nodes in the mesh.
-[[nodiscard]] auto make_krino_wrapper_from_vector_values(
-    const std::filesystem::path& aFileName, const InitialLevelSetValues& aInitialLevelSetValues) -> KrinoWrapper;
+[[nodiscard]] auto make_krino_wrapper_from_vector_values(const std::filesystem::path& aFileName,
+                                                         const InitialLevelSetValues& aInitialLevelSetValues,
+                                                         const third_party_integration::krino::VoidPhase& aVoidPhase)
+    -> KrinoWrapper;
 
 /// @brief Helper function to facilitate making a KrinoWrapper.
 ///
 /// Read a mesh from @a aFileName, and use the level set primitives @a aLevelSetPrimitives. This is primarily used to
-/// specify a starting point for a level set optimization.
+/// specify a starting point for a level set optimization. @a aVoidPhase specifies whether to include the void in the
+/// cut mesh operation.
 [[nodiscard]] auto make_krino_wrapper_from_level_set_primitives(
     const std::filesystem::path& aFileName,
     const third_party_integration::krino::LevelSetPrimitives& aLevelSetPrimitives,
+    const third_party_integration::krino::VoidPhase& aVoidPhase,
     const std::set<std::string>& aFixedBlockNames = {}) -> KrinoWrapper;
 
 }  // namespace plato::geometry::extension::test_utilities

@@ -226,15 +226,24 @@ auto node_entities_in_mesh(const ::krino::MeshInterface& aKrinoMesh,
     return tNodes;
 }
 
-void write_mesh(const stk::mesh::BulkData& aBulkData,
-                const std::filesystem::path& aOutputFileName,
-                const VoidPhase aVoidPhase)
+auto create_output_selector(stk::mesh::BulkData& aBulkData, const VoidPhase aVoidPhase) -> stk::mesh::Selector
 {
     const auto tOutputSelector = output_selector(
         aBulkData.mesh_meta_data(), ::krino::AuxMetaData::get(aBulkData.mesh_meta_data()).active_part(), aVoidPhase);
+
+    ::krino::fix_face_and_edge_ownership_to_assure_selected_owned_element(aBulkData, tOutputSelector);
+    ::krino::fix_node_ownership_to_assure_selected_owned_element(aBulkData, tOutputSelector);
+
+    return tOutputSelector;
+}
+
+void write_mesh(const stk::mesh::BulkData& aBulkData,
+                const std::filesystem::path& aOutputFileName,
+                const stk::mesh::Selector& aSelector)
+{
     constexpr auto tStepIndex = int{1};
     constexpr auto tTime = double{0.0};
-    ::krino::output_composed_mesh_with_fields(aBulkData, tOutputSelector, aOutputFileName.string(), tStepIndex, tTime);
+    ::krino::output_composed_mesh_with_fields(aBulkData, aSelector, aOutputFileName.string(), tStepIndex, tTime);
 }
 
 }  // namespace plato::third_party_integration::krino
