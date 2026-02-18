@@ -6,10 +6,9 @@
 #include "plato/filter/extension/kernel_filters/KernelFilterInputUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/ReflectFilter.hpp"
 #include "plato/filter/extension/kernel_filters/RevolveFilter.hpp"
+#include "plato/filter/extension/kernel_filters/test_utilities/ReflectionMeshTestUtility.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/SymmetryFilterTestUtilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters::unittest
@@ -37,16 +36,22 @@ TEST(RevolveFilterDetail, ValidateTargetMeshExists)
     }
 }
 
-TEST(KernelFilterInputUtilitiesDetail, SearchResultsContainAllRowIDs)
+TEST(KernelFilterInputUtilitiesDetail, SearchResultIDs)
 {
     namespace tpis = third_party_integration::stk_search;
-    const auto tSize = std::size_t{3};
-    const auto tSearchResultsMissingID2 = std::vector<std::pair<tpis::Identifier, tpis::Identifier>>{
-        {{0, 0}, {1, 2}}, {{0, 1}, {3, 4}}, {{1, 0}, {5, 6}}, {{1, 0}, {7, 8}}, {{0, 10}, {9, 10}},
-    };
-    const auto tSearchResultsAllID = std::vector<std::pair<tpis::Identifier, tpis::Identifier>>{
+    const auto tSearchResults = std::vector<std::pair<tpis::Identifier, tpis::Identifier>>{
         {{2, 0}, {1, 2}}, {{1, 1}, {3, 4}}, {{0, 0}, {5, 6}}, {{1, 0}, {7, 8}}, {{0, 10}, {9, 10}},
     };
+    const auto tUniqueIDs = detail::search_result_ids(tSearchResults);
+    const auto tGold = std::vector<int>{0, 1, 2};
+    EXPECT_EQ(tUniqueIDs, tGold);
+}
+
+TEST(KernelFilterInputUtilitiesDetail, SearchResultsContainAllRowIDs)
+{
+    const auto tSize = std::size_t{3};
+    const auto tSearchResultsMissingID2 = std::vector<int>{0, 1, 1};
+    const auto tSearchResultsAllID = std::vector<int>{0, 1, 2, 1, 0};
     {
         const auto tAllFound = detail::search_results_contain_all_row_ids(tSearchResultsMissingID2, tSize);
         EXPECT_FALSE(tAllFound);
@@ -61,17 +66,6 @@ namespace
 {
 const auto kSourceMeshFile = std::filesystem::path{"source.exo"};
 
-void create_mesh(const std::filesystem::path& aMeshFile,
-                 const third_party_integration::stk_io::CommandBounds& aLowerBounds)
-{
-    namespace tpis = third_party_integration::stk_io;
-    const auto tCommandGenerator = tpis::CommandGenerator{.mElements = {10, 10, 10},
-                                                          .mLowerBounds = aLowerBounds,
-                                                          .mUpperBounds = {1, 1, 1},
-                                                          .mType = tpis::CommandElementType::Hex};
-    tpis::write_mesh(aMeshFile, tCommandGenerator.toString());
-}
-
 [[nodiscard]] auto run_validation_test(const third_party_integration::stk_io::CommandBounds& aLowerBounds,
                                        const input_parser::KernelFilterCenteringTypes& aCentering)
     -> std::optional<std::string>
@@ -79,15 +73,15 @@ void create_mesh(const std::filesystem::path& aMeshFile,
     const auto tReflectInput =
         test_utilities::make_filter_input<input_parser::positive_octant_reflect_filter>(1.5, aCentering);
 
-    create_mesh(kSourceMeshFile, {0, 0, 0});
-    create_mesh(tReflectInput.target_mesh_name.value().mToken, aLowerBounds);
-
+    test_utilities::create_mesh_for_reflection_filter(kSourceMeshFile, {0, 0, 0});
+    test_utilities::create_mesh_for_reflection_filter(tReflectInput.target_mesh_name.value().mToken, aLowerBounds);
+    const auto tCommunicator = boost::mpi::communicator{};
     const auto tErrorMessage = validate_all_target_domain_find_source_domain(
         tReflectInput, kSourceMeshFile,
         [](const input_parser::positive_octant_reflect_filter& aInput,
            const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> ReflectFilterType
         { return make_positive_octant_reflect_filter_type(aInput, aAnalysisDomainMesh); },
-        boost::mpi::communicator{});
+        tCommunicator);
 
     std::filesystem::remove(kSourceMeshFile);
     std::filesystem::remove(tReflectInput.target_mesh_name.value().mToken);

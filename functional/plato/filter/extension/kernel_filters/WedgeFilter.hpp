@@ -51,6 +51,11 @@ namespace detail
 [[nodiscard]] auto validate_wedge_angle_commensurate_with_360(const input_parser::wedge_filter& aInput)
     -> std::optional<std::string>;
 
+///@brief Validate that the wedge angle is specified in @a aInput and that it subdivides 360  into an even number of
+/// wedges for mirror symmetry to make sense.
+[[nodiscard]] auto validate_wedge_angle_even_dihedral(const input_parser::wedge_filter& aInput)
+    -> std::optional<std::string>;
+
 ///@brief Validate that the source mesh @a aSourceMeshFileName has nodes within the wedge angle is specified in @a
 /// aInput.
 [[nodiscard]] auto validate_source_mesh_matches_wedge_angle(const input_parser::wedge_filter& aInput,

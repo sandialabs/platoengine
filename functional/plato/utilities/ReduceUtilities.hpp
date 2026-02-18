@@ -16,20 +16,20 @@ template <typename Value, typename Function>
 /// @brief Take a vector on this rank @a aVector, and using the communicator @a aCommunicator return a reduced vector
 /// that is the same on all ranks.
 template <typename Type>
-[[nodiscard]] auto reduce_vector(const std::vector<Type>& aVector,
-                                 const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
+[[nodiscard]] auto reduce_vector(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator)
+    -> std::vector<Type>;
 
 /// @brief Take a vector on this rank @a aVector, and using the communicator @a aCommunicator gather up all the vectors,
 /// sort them, and only keep the unique entries. Return a vector that is the same on all ranks.
 template <typename Type>
-[[nodiscard]] auto unique_vector_gather(const std::vector<Type>& aVector,
-                                        const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
+[[nodiscard]] auto unique_vector_gather(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator)
+    -> std::vector<Type>;
 
 /// @brief Take a vector on this rank @a aVector, and using the communicator @a aCommunicator gather up all the vectors
 /// into one sorted vector. This vector can have duplicate entries.
 template <typename Type>
-[[nodiscard]] auto merge_on_all_ranks(const std::vector<Type>& aVector,
-                                      const boost::mpi::communicator& aCommunicator) -> std::vector<Type>;
+[[nodiscard]] auto merge_on_all_ranks(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator)
+    -> std::vector<Type>;
 
 /// @brief Take an unordered map @a aMap from each rank and reduce it so that all ranks in communicator @a aCommunicator
 /// have the same map.
@@ -66,8 +66,8 @@ auto reduce_vector(const std::vector<Type>& aVector, const boost::mpi::communica
 }
 
 template <typename Type>
-auto unique_vector_gather(const std::vector<Type>& aVector,
-                          const boost::mpi::communicator& aCommunicator) -> std::vector<Type>
+auto unique_vector_gather(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator)
+    -> std::vector<Type>
 {
     auto tMergedSorted = merge_on_all_ranks(aVector, aCommunicator);
     return compute_on_root<std::vector<Type>>(aCommunicator,
@@ -81,8 +81,8 @@ auto unique_vector_gather(const std::vector<Type>& aVector,
 }
 
 template <typename Type>
-auto merge_on_all_ranks(const std::vector<Type>& aVector,
-                        const boost::mpi::communicator& aCommunicator) -> std::vector<Type>
+auto merge_on_all_ranks(const std::vector<Type>& aVector, const boost::mpi::communicator& aCommunicator)
+    -> std::vector<Type>
 {
     std::vector<int> tSizes;
     boost::mpi::all_gather(aCommunicator, static_cast<int>(aVector.size()), tSizes);
@@ -98,8 +98,9 @@ auto merge_on_all_ranks(const std::vector<Type>& aVector,
     std::vector<Type> tConcatenatedData(tTotalSize);
     auto* tSendBuffer = aVector.empty() ? nullptr : aVector.data();
     // NOLINTBEGIN(bugprone-casting-through-void)
-    MPI_Allgatherv(tSendBuffer, tSizes[aCommunicator.rank()], MPI_UINT64_T, tConcatenatedData.data(), tSizes.data(),
-                   tOffsets.data(), MPI_UINT64_T, aCommunicator);
+    const auto tMPIType = boost::mpi::get_mpi_datatype<Type>();
+    MPI_Allgatherv(tSendBuffer, tSizes[aCommunicator.rank()], tMPIType, tConcatenatedData.data(), tSizes.data(),
+                   tOffsets.data(), tMPIType, aCommunicator);
     // NOLINTEND(bugprone-casting-through-void)
 
     std::sort(tConcatenatedData.begin(), tConcatenatedData.end());
@@ -108,8 +109,8 @@ auto merge_on_all_ranks(const std::vector<Type>& aVector,
 }
 
 template <typename KeyType, typename ValueType>
-auto reduce_map(const std::unordered_map<KeyType, ValueType>& aMap,
-                const boost::mpi::communicator& aCommunicator) -> std::unordered_map<KeyType, ValueType>
+auto reduce_map(const std::unordered_map<KeyType, ValueType>& aMap, const boost::mpi::communicator& aCommunicator)
+    -> std::unordered_map<KeyType, ValueType>
 {
     constexpr int tRootRank = 0;
     std::vector<std::unordered_map<KeyType, ValueType>> tGatheredMaps;

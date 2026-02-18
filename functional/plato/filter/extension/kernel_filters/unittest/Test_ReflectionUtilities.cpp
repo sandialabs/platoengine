@@ -5,6 +5,7 @@
 
 #include "plato/filter/extension/kernel_filters/Plane.hpp"
 #include "plato/filter/extension/kernel_filters/ReflectionUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/Wedge.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -22,6 +23,9 @@ const auto kNegativeZPlane = Plane{{0, 0, 0}, {0, 0, -1}};
 const auto kSqrtTwoOverTwo = std::sqrt(2.0) / 2.0;
 const auto kPointWithID = third_party_integration::stk_search::SearchPointWithIdentifier{
     third_party_integration::stk_search::SearchPoint{1, 2, 3}, third_party_integration::stk_search::Identifier{2, 3}};
+const auto kThirtyDegrees = 30.0 * std::numbers::pi / 180.0;
+const auto kCosineThirty = std::cos(kThirtyDegrees);
+const auto kSineThirty = std::sin(kThirtyDegrees);
 
 }  // namespace
 
@@ -31,11 +35,12 @@ void check_reflected_points_against_gold(const std::vector<third_party_integrati
                                          const std::vector<third_party_integration::common::Coordinate>& aGoldPoints,
                                          const test_utilities::TestContext& aTestContext)
 {
+    constexpr auto tTolerance = 2e-15;
     ASSERT_EQ(aResultPoints.size(), aGoldPoints.size());
     for (const auto& [tResult, tGold] : utilities::Zip(aResultPoints, aGoldPoints))
     {
-        third_party_integration::common::test_utilities::test_double_equality_of_components(tResult, tGold,
-                                                                                            aTestContext);
+        third_party_integration::common::test_utilities::test_near_equality_of_components(tResult, tGold, tTolerance,
+                                                                                          aTestContext);
     }
 }
 
@@ -113,7 +118,7 @@ TEST(ReflectionUtilities, ReflectedPointsInMirroredWedge)
         {kPoint, kPointTwo}, tWedge);
 
     const std::vector<third_party_integration::common::Coordinate> tGoldCoordinates = {
-        {1, 2, 3}, {-4, -5, -6}, {1, -2, 3}, {-4, 5, -6}, {-1, -2, 3}, {4, 5, -6}, {-1, 2, 3}, {4, -5, -6}};
+        {1, 2, 3}, {-4, -5, -6}, {-1, 2, 3}, {4, -5, -6}, {-1, -2, 3}, {4, 5, -6}, {1, -2, 3}, {-4, 5, -6}};
 
     check_reflected_points_against_gold(tResultPoints, tGoldCoordinates, TEST_CONTEXT("Y, X plane reflections"));
 }
@@ -144,6 +149,25 @@ TEST(ReflectionUtilities, MinimumDistanceReflectedPointsPlaneList)
         const auto tGold = 1.0;
         EXPECT_EQ(tResult, tGold);
     }
+}
+
+TEST(ReflectionUtilities, SixtyWedge)
+{
+    namespace tpic = third_party_integration::common;
+    const auto tWedgeAngle = 60.0;
+    const auto tWedge = positive_quadrant_wedge(tWedgeAngle);
+    const auto tPoint = tpic::Coordinate{kCosineThirty, kSineThirty, 0};
+
+    const auto tReflectedPoints = detail::reflect_points_in_mirrored_wedge<tpic::Coordinate>({tPoint}, tWedge);
+
+    const auto tGold = std::vector<tpic::Coordinate>{tPoint,
+                                                     {0, 1, 0},
+                                                     {-kCosineThirty, kSineThirty, 0},
+                                                     {-kCosineThirty, -kSineThirty, 0},
+                                                     {0, -1, 0},
+                                                     {kCosineThirty, -kSineThirty}};
+
+    check_reflected_points_against_gold(tReflectedPoints, tGold, TEST_CONTEXT("Sixty degree wedge points."));
 }
 
 }  // namespace plato::filter::extension::kernel_filters::unittest
