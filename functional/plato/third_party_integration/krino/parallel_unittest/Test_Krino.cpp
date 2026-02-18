@@ -77,7 +77,8 @@ TEST_F(ParallelKrinoFixture, InitializeKrino)
     const auto tLevelSetField =
         make_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tKrinoMesh->bulk_data());
     cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
-    write_mesh(tKrinoMesh->bulk_data(), kWriteMeshName, VoidPhase::kIncludeInMesh);
+    const auto tSelector = create_output_selector(tKrinoMesh->bulk_data(), VoidPhase::kIncludeInMesh);
+    write_mesh(tKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
     remove_file_on_rank_zero();
 }
 
@@ -107,13 +108,14 @@ void read_mesh_check_ids(const std::vector<stk::mesh::EntityId>& aCutMeshNodeIds
     EXPECT_EQ(tNodeIds, aCutMeshNodeIds);
 }
 
-void test_cut_mesh_node_ids_parallel_consistent(const ::krino::MeshInterface& aKrinoMesh,
-                                                const VoidPhase& aVoidPhase,
+void test_cut_mesh_node_ids_parallel_consistent(::krino::MeshInterface& aKrinoMesh,
+                                                const VoidPhase aVoidPhase,
                                                 const plato::test_utilities::TestContext& aTestContext)
 {
     const auto tCutMeshNodeIds = cut_mesh_node_ids(aKrinoMesh, aVoidPhase);
     check_vector_same_on_all_ranks(tCutMeshNodeIds, aTestContext);
-    write_mesh(aKrinoMesh.bulk_data(), kWriteMeshName, aVoidPhase);
+    const auto tSelector = create_output_selector(aKrinoMesh.bulk_data(), aVoidPhase);
+    write_mesh(aKrinoMesh.bulk_data(), kWriteMeshName, tSelector);
     read_mesh_check_ids(tCutMeshNodeIds);
     remove_file_on_rank_zero();
 }

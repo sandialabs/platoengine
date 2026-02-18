@@ -118,7 +118,8 @@ const auto kUnitCubeLambda = []() -> KrinoWrapper
                                                 create_krino_wrapper_test_command_generator());
     return test_utilities::make_krino_wrapper_from_vector_values(
         kTemporaryMeshFile,
-        test_utilities::InitialLevelSetValues{std::vector{-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0}});
+        test_utilities::InitialLevelSetValues{std::vector{-1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0}},
+        tpik::VoidPhase::kExcludeFromMesh);
 };
 
 const auto kUnitCubeInputs = KrinoWrapperTestFixtureInputs{.mFileName = std::string{kTemporaryMeshFile},
@@ -140,7 +141,8 @@ const auto kOneTriLambda = []() -> KrinoWrapper
 {
     initialize_krino();
     return test_utilities::make_krino_wrapper_from_level_set_primitives(
-        kOneTriMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}});
+        kOneTriMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
+        tpik::VoidPhase::kIncludeInMesh);
 };
 
 const auto kOneTriInputs = KrinoWrapperTestFixtureInputs{.mFileName = std::string{kOneTriMeshFilePath.value()},
@@ -162,7 +164,7 @@ const auto kFourTriLambda = []() -> KrinoWrapper
     const auto tFixedBlockNames = std::set<std::string>{"block_2"};
     return test_utilities::make_krino_wrapper_from_level_set_primitives(
         kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-        tFixedBlockNames);
+        tpik::VoidPhase::kExcludeFromMesh, tFixedBlockNames);
 };
 
 const auto kFourTriInputs = KrinoWrapperTestFixtureInputs{
@@ -186,7 +188,7 @@ const auto kFourTriInterfaceNearNodeLambda = []() -> KrinoWrapper
     const auto tFixedBlockNames = std::set<std::string>{"block_2"};
     return test_utilities::make_krino_wrapper_from_level_set_primitives(
         kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kPlaneNearBackgroundNode}, {}},
-        tFixedBlockNames);
+        tpik::VoidPhase::kExcludeFromMesh, tFixedBlockNames);
 };
 
 const auto kFourTriInterfaceNearNodeInputs =
@@ -226,15 +228,15 @@ class KrinoWrapperTestFixtureBase : virtual public ::testing::Test, public Krino
     {
         EXPECT_EQ(mKrinoWrapper.value().sensitivities().size(), mGoldValues.mSensitivityMapSize) << aTestContext;
         const auto tJacobianRowVectorProduct =
-            mKrinoWrapper.value().rowVectorJacobianProduct(mInputValues.mCutMeshRowVector, mInputValues.mVoidPhase);
+            mKrinoWrapper.value().rowVectorJacobianProduct(mInputValues.mCutMeshRowVector);
         ASSERT_EQ(tJacobianRowVectorProduct.size(), mGoldValues.mNumberBackgroundNodes) << aTestContext;
         EXPECT_EQ(tJacobianRowVectorProduct, mGoldValues.mJacobianGold) << aTestContext;
     }
 
     void runAdjointJacobianTest(const plato::test_utilities::TestContext& aTestContext)
     {
-        const auto tRowVectorAdjointJacobianProduct = mKrinoWrapper.value().rowVectorAdjointJacobianProduct(
-            mInputValues.mBackgroundRowVector, mInputValues.mVoidPhase);
+        const auto tRowVectorAdjointJacobianProduct =
+            mKrinoWrapper.value().rowVectorAdjointJacobianProduct(mInputValues.mBackgroundRowVector);
         ASSERT_EQ(tRowVectorAdjointJacobianProduct.size(), mGoldValues.mNumberCutNodes * mGoldValues.mSpatialDimensions)
             << aTestContext;
         EXPECT_EQ(tRowVectorAdjointJacobianProduct, mGoldValues.mAdjointJacobianGold) << aTestContext;
@@ -245,7 +247,7 @@ class KrinoWrapperTestFixtureBase : virtual public ::testing::Test, public Krino
         EXPECT_EQ(mKrinoWrapper.value().sensitivities().size(), mGoldValues.mSensitivityMapSize) << aTestContext;
 
         const auto tJacobianRowVectorProduct =
-            mKrinoWrapper.value().rowVectorJacobianProduct(mInputValues.mCutMeshRowVector, mInputValues.mVoidPhase);
+            mKrinoWrapper.value().rowVectorJacobianProduct(mInputValues.mCutMeshRowVector);
         ASSERT_EQ(tJacobianRowVectorProduct.size(), mGoldValues.mJacobianGold.size());
         for (const auto [tJacobianRowVectorProductValue, tGoldValue] :
              utilities::Zip{tJacobianRowVectorProduct, mGoldValues.mJacobianGold})
@@ -307,8 +309,8 @@ TEST_F(OneBlockMeshKrinoFixture, CutSphereOutOfBackgroundMesh)
 
     const auto tSphere = tpik::LevelSetPrimitives{
         .mPlanes = {}, .mSpheres = {tpik::Sphere{.mCenter = {0., 0., 0.}, .mRadius = tRadius}}};
-    test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tSphere)
-        .writeCutMesh(tCutFilename, tpik::VoidPhase::kExcludeFromMesh);
+    test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tSphere, tpik::VoidPhase::kExcludeFromMesh)
+        .writeCutMesh(tCutFilename);
 
     const auto tBulkData = third_party_integration::stk_io::read_mesh_bulk_data(tCutFilename);
     const auto tCoordinates = third_party_integration::stk_io::nodal_coordinates(*tBulkData);
@@ -344,8 +346,8 @@ TEST_F(OneBlockMeshKrinoFixture, CutPlaneBackgroundMesh)
     const auto tCutFilename = std::filesystem::path{"cut_mesh.exo"};
     constexpr double tOffset = -.5;
     const auto tPlane = tpik::LevelSetPrimitives{.mPlanes = {tpik::Plane{{0, 1, 0}, tOffset}}, .mSpheres = {}};
-    test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tPlane)
-        .writeCutMesh(tCutFilename, tpik::VoidPhase::kIncludeInMesh);
+    test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tPlane, tpik::VoidPhase::kIncludeInMesh)
+        .writeCutMesh(tCutFilename);
 
     const auto tBulkData = third_party_integration::stk_io::read_mesh_bulk_data(tCutFilename);
     const auto tCoordinates = third_party_integration::stk_io::nodal_coordinates(*tBulkData);
@@ -357,8 +359,9 @@ TEST_F(OneBlockMeshKrinoFixture, CutPlaneBackgroundMesh)
 TEST_F(OneBlockMeshKrinoFixture, PlaneSensitivities)
 {
     const auto tPlane = tpik::LevelSetPrimitives{.mPlanes = {kThreeQuarterOffsetXHatPlane}, .mSpheres = {}};
-    const auto tSensitivities =
-        test_utilities::make_krino_wrapper_from_level_set_primitives(mFileName, tPlane).sensitivities();
+    const auto tSensitivities = test_utilities::make_krino_wrapper_from_level_set_primitives(
+                                    mFileName, tPlane, tpik::VoidPhase::kExcludeFromMesh)
+                                    .sensitivities();
     ASSERT_EQ(tSensitivities.size(), 9U);
 
     compareMapAgainstBuiltInGold(tSensitivities, TEST_CONTEXT("One block mesh sensitivity check"));

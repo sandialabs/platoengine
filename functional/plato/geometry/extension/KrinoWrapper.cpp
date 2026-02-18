@@ -67,6 +67,7 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
 
 KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInterface,
                            std::vector<::krino::LS_Field> aLevelSetField,
+                           const third_party_integration::krino::VoidPhase aVoidPhase,
                            const tpik::SnappingParameters aSnappingParameters)
     : mKrinoMesh(std::move(aKrinoMeshInterface)),
       mLevelSetFields(std::move(aLevelSetField)),
@@ -74,14 +75,16 @@ KrinoWrapper::KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInt
       mSensitivityMap(cut_mesh_compute_sensitivities(mKrinoMesh->bulk_data(),
                                                      mLevelSetFields,
                                                      tpik::background_node_ids(*mKrinoMesh, mLevelSetFields),
-                                                     aSnappingParameters))
+                                                     aSnappingParameters)),
+      mSelector(tpik::create_output_selector(mKrinoMesh->bulk_data(), aVoidPhase)),
+      mVoidPhase(aVoidPhase)
 
 {
 }
 
-void KrinoWrapper::writeCutMesh(const std::filesystem::path& aFileName, const tpik::VoidPhase aVoidPhase) const
+void KrinoWrapper::writeCutMesh(const std::filesystem::path& aFileName) const
 {
-    tpik::write_mesh(mKrinoMesh->bulk_data(), aFileName, aVoidPhase);
+    tpik::write_mesh(mKrinoMesh->bulk_data(), aFileName, mSelector);
 }
 
 auto KrinoWrapper::sensitivities() const -> const tpik::SensitivityMap& { return mSensitivityMap; }
@@ -167,21 +170,20 @@ template <typename Lambda>
 
 }  // namespace
 
-auto KrinoWrapper::rowVectorJacobianProduct(const std::vector<double>& aCutMeshRowVector,
-                                            const tpik::VoidPhase aVoidPhase) const -> std::vector<double>
+auto KrinoWrapper::rowVectorJacobianProduct(const std::vector<double>& aCutMeshRowVector) const -> std::vector<double>
 {
     const auto tViewDimension = 1U;
     const auto tResultSize = mNumberOfDesignDomainBackgroundNodes;
-    return transformSensitivityMap(aCutMeshRowVector, mSensitivityMap, *mKrinoMesh, aVoidPhase, ResultSize{tResultSize},
+    return transformSensitivityMap(aCutMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase, ResultSize{tResultSize},
                                    ResultViewDimensionality{tViewDimension}, kJacobianImpl);
 }
 
-auto KrinoWrapper::rowVectorAdjointJacobianProduct(const std::vector<double>& aBackgroundMeshRowVector,
-                                                   const tpik::VoidPhase aVoidPhase) const -> std::vector<double>
+auto KrinoWrapper::rowVectorAdjointJacobianProduct(const std::vector<double>& aBackgroundMeshRowVector) const
+    -> std::vector<double>
 {
     const auto tViewDimension = third_party_integration::stk_io::spatial_dimensions(mKrinoMesh->bulk_data());
-    const auto tResultSize = tpik::cut_mesh_node_ids(*mKrinoMesh, aVoidPhase).size() * tViewDimension;
-    return transformSensitivityMap(aBackgroundMeshRowVector, mSensitivityMap, *mKrinoMesh, aVoidPhase,
+    const auto tResultSize = tpik::cut_mesh_node_ids(*mKrinoMesh, mVoidPhase).size() * tViewDimension;
+    return transformSensitivityMap(aBackgroundMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase,
                                    ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension},
                                    kAdjointJacobianImpl);
 }
@@ -220,12 +222,13 @@ auto make_initial_guess_from_level_set_primitives(const std::filesystem::path& a
 
 auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                                   const std::set<std::string>& aFixedBlocks,
+                                                  const tpik::VoidPhase& aVoidPhase,
                                                   const tpik::SnappingParameters aSnappingParameters) -> KrinoWrapper
 {
     auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aAnalysisDomainMesh.mFileName, aFixedBlocks);
     auto tLevelSet = tpik::get_level_set_fields(*tKrinoMesh);
     set_level_set_fields(*tKrinoMesh, tLevelSet, aAnalysisDomainMesh);
-    return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), aSnappingParameters};
+    return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), aVoidPhase, aSnappingParameters};
 }
 
 namespace detail

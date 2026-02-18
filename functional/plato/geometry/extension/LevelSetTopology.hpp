@@ -114,7 +114,6 @@ class LevelSetTopology
     input_parser::level_set_topology mInput;
     std::filesystem::path mCutMesh;
     std::filesystem::path mOutputMesh;
-    third_party_integration::krino::VoidPhase mVoidRegion;
     std::pair<double, double> mLevelSetBounds = std::make_pair(-1.0, 1.0);
 
     using KrinoWrapperCache = utilities::StateCache<KrinoWrapper, const analysis::AnalysisDomainMesh&>;
