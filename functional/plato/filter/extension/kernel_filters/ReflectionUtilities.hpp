@@ -107,16 +107,14 @@ auto reflect_point_in_single_plane(std::vector<PointType> aPoints, const Plane& 
 template <typename PointType>
 auto reflect_points_in_mirrored_wedge(std::vector<PointType> aPoints, const Wedge& aWedge) -> std::vector<PointType>
 {
-    const auto tSelector = [aWedge](const auto tIndex)
-    { return tIndex % 2 == 0 ? aWedge.mFirstPlane : aWedge.mSecondPlane; };
-
+    const auto tPlanes = wedge_to_planes(aWedge);
     auto tReflectedPoints =
         utilities::reserved_container<std::vector<PointType>>((aWedge.mRepeats + 1) * aPoints.size());
     tReflectedPoints.insert(tReflectedPoints.end(), aPoints.begin(), aPoints.end());
 
-    for (const auto tCounter : std::views::iota(0U, aWedge.mRepeats))
+    for (const auto& tPlane : tPlanes)
     {
-        auto tLocalReflectedPoints = reflect_point_in_single_plane_impl(std::move(aPoints), tSelector(tCounter));
+        auto tLocalReflectedPoints = reflect_point_in_single_plane_impl(aPoints, tPlane);
         tReflectedPoints.insert(tReflectedPoints.end(), tLocalReflectedPoints.begin(), tLocalReflectedPoints.end());
         aPoints = std::move(tLocalReflectedPoints);
     }

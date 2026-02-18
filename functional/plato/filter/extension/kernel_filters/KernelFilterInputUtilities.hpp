@@ -8,6 +8,7 @@
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/FixedBlockUtilities.hpp"
+#include "plato/utilities/ReduceUtilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
 {
@@ -58,9 +59,14 @@ template <typename InputParserType>
 
 namespace detail
 {
+
+///@brief Function that takes stk search results @a aSearchResults and returns only the unique ids
+[[nodiscard]] auto search_result_ids(const third_party_integration::stk_search::SearchResults& aSearchResults)
+    -> std::vector<int>;
+
 ///@brief Function that checks the search results @a aSearchResults to make sure it has all of the ids up to @a aSize
-[[nodiscard]] auto search_results_contain_all_row_ids(
-    const third_party_integration::stk_search::SearchResults& aSearchResults, const std::size_t aSize) -> bool;
+[[nodiscard]] auto search_results_contain_all_row_ids(const std::vector<int>& aSearchResultIDs, const std::size_t aSize)
+    -> bool;
 }  // namespace detail
 
 template <typename InputParserType>
@@ -129,14 +135,16 @@ template <typename InputParserType>
             mesh::Mesh{tTargetMeshName.value().mToken, mesh::fixed_blocks(aInput)}, tFilterType.mFilterCentering);
         const auto tSearchResults = tFilterType.mSearchFunction(TargetRowVector{tTargetCoordinates},
                                                                 SourceColumnVector{tSourceCoordinates}, aCommunicator);
-
-        const bool tAllFound = detail::search_results_contain_all_row_ids(tSearchResults, tTargetCoordinates.size());
+        const auto tLocalSearchResultGlobalIDs = detail::search_result_ids(tSearchResults);
+        const auto tGatheredSearchResults = utilities::unique_vector_gather(tLocalSearchResultGlobalIDs, aCommunicator);
+        const auto tAllFound =
+            detail::search_results_contain_all_row_ids(tGatheredSearchResults, tTargetCoordinates.size());
 
         if (!tAllFound)
         {
             return utilities::concatenate(input_parser::block_name<InputParserType>(),
                                           ": Target mesh nodes or centroids are not properly mapped to a source mesh "
-                                          "node under the symmetry operation requested.",
+                                          "node under the symmetry operation requested. ",
                                           "Check 'fixed_blocks' specification for both source and target mesh in the "
                                           "geometry specification and symmetry filter, respectively.");
         }

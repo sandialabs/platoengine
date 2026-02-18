@@ -93,7 +93,7 @@ TEST(WedgeFilter, MakeWedgeFilterTypeTargetMeshFunction)
                                                TEST_CONTEXT("Wedge filter target mesh name check."));
 }
 
-TEST(WedgeFilter, MakeWedgeFilterType)
+TEST(WedgeFilter, MakeWedgeFilterTypeTetSource)
 {
     test_utilities::check_make_function_from_input_against_parameter_function(
         kWedgeInputNodeCentered, kWedgeLambdaDetail, kWedgeLambda,
@@ -121,6 +121,24 @@ TEST(WedgeFilterDetail, ValidateWedgeAngleCommensurateWith360)
         tInput.wedge_angle = boost::none;
         const auto tErrorMessage = detail::validate_wedge_angle_commensurate_with_360(tInput);
         EXPECT_TRUE(tErrorMessage.has_value()) << "No angle specified.";
+    }
+}
+TEST(WedgeFilterDetail, ValidateWedgeAngleEvenDihedral)
+{
+    auto tInput = kWedgeInputElementCentered;
+    {
+        const auto tErrorMessage = detail::validate_wedge_angle_even_dihedral(tInput);
+        EXPECT_FALSE(tErrorMessage.has_value()) << "Valid angle specified.";
+    }
+    {
+        tInput.wedge_angle = 360.0 / 5.0;
+        const auto tErrorMessage = detail::validate_wedge_angle_even_dihedral(tInput);
+        EXPECT_TRUE(tErrorMessage.has_value()) << "Invalid angle specified, does not create even number of wedges.";
+    }
+    {
+        tInput.wedge_angle = 360 / 10.0;
+        const auto tErrorMessage = detail::validate_wedge_angle_even_dihedral(tInput);
+        EXPECT_FALSE(tErrorMessage.has_value()) << "Valid angle specified, does create even number of wedges.";
     }
 }
 

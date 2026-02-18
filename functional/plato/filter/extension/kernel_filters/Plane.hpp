@@ -10,8 +10,8 @@ namespace plato::filter::extension::kernel_filters
 /// @brief Defines a plane given a center and unit normal and allows for points to be relfected in the plane.
 struct Plane
 {
-    third_party_integration::common::Coordinate mCenter;
-    third_party_integration::common::UnitVector3 mUnitNormal;
+    third_party_integration::common::Coordinate mCenter = {0, 0, 0};
+    third_party_integration::common::UnitVector3 mUnitNormal = {0, 1, 0};
 
     ///@brief Take a coordinate @a aCoordinate and return a point reflected in the plane
     [[nodiscard]] auto reflect(const third_party_integration::common::Coordinate& aCoordinate) const

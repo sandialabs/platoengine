@@ -16,6 +16,7 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/FixedBlockUtilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
@@ -49,6 +50,7 @@ const auto kMakeWedgeFilterInfo = [](const input_parser::wedge_filter& aInput,
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::wedge_filter& aInput)
         { return detail::validate_wedge_angle_commensurate_with_360(aInput); },
+        [](const input_parser::wedge_filter& aInput) { return detail::validate_wedge_angle_even_dihedral(aInput); },
         [](const input_parser::wedge_filter& aInput)
         {
             return input_validation::error_message_for_parameter_out_of_bounds(
@@ -126,6 +128,21 @@ auto validate_wedge_angle_commensurate_with_360(const input_parser::wedge_filter
     return std::nullopt;
 }
 
+auto validate_wedge_angle_even_dihedral(const input_parser::wedge_filter& aInput) -> std::optional<std::string>
+{
+    if (!aInput.wedge_angle)
+    {
+        return std::nullopt;  // Not our error
+    }
+    if (static_cast<int>(360 / aInput.wedge_angle.value()) % 2 != 0)
+    {
+        return std::optional<std::string>{
+            utilities::concatenate(input_parser::block_name<input_parser::wedge_filter>(),
+                                   " wedge angle must divide 360 degrees in an even number of wedges.")};
+    }
+    return std::nullopt;
+}
+
 auto validate_source_mesh_matches_wedge_angle(const input_parser::wedge_filter& aInput,
                                               const std::filesystem::path& aSourceMeshFileName)
     -> std::optional<std::string>
@@ -162,7 +179,7 @@ auto validate_source_mesh_wedge_positive_y(const input_parser::wedge_filter& aIn
     const auto tBoundingBox = third_party_integration::common::bounding_box(tCoordinates);
     const auto tMinimumYValue = tBoundingBox.first.y;
 
-    if (tMinimumYValue < 0)
+    if (constexpr auto tMeshReliabilityThreshold = 1e-6; tMinimumYValue < -tMeshReliabilityThreshold)
     {
         return std::optional<std::string>{utilities::concatenate(
             input_parser::block_name<input_parser::wedge_filter>(),
