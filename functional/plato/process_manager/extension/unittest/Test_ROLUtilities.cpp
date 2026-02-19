@@ -24,7 +24,6 @@ TEST(ProcessManagerData, InputFileToROLObjective)
                                " active true"
                                " criterion nodal_sum"
                                " number_of_processors 1"
-                               " input_files test-input.inp"
                                " aggregation_weight " +
                                std::to_string(tWeight) + " end" +
                                test_utilities::create_valid_example_rol_optimization_string();

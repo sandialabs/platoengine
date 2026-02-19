@@ -6,6 +6,8 @@
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::criteria::library
 {
@@ -17,6 +19,10 @@ template <typename Criteria>
     const std::string tName = aInput.name.value_or("unnamed");
     return input_parser::block_name<Criteria>() + " " + tName;
 }
+
+/// @brief Helper function that validates @a aInput input_files. If a list is specified, the files must exist on disk.
+template <typename Criteria>
+[[nodiscard]] auto validate_criterion_files_exist(const Criteria& aInput) -> std::optional<std::string>;
 
 template <typename Criteria>
 [[nodiscard]] std::optional<std::string> validate_criterion_is_registered(const Criteria& aInput)
@@ -50,6 +56,27 @@ template <typename Criteria>
         criterion_name(aInput), aInput.number_of_processors, "number_of_processors",
         utilities::lower_bounded(utilities::Inclusive{1u}));
 }
+
+template <typename Criteria>
+[[nodiscard]] auto validate_criterion_files_exist(const Criteria& aInput) -> std::optional<std::string>
+{
+    if (aInput.input_files.has_value())
+    {
+        auto tMissingFiles = utilities::reserved_container<std::vector<std::string>>(aInput.input_files->size());
+        std::ranges::copy_if(aInput.input_files.value(), std::back_inserter(tMissingFiles),
+                             [](const auto& aFileName) { return !std::filesystem::exists(aFileName); });
+
+        if (!tMissingFiles.empty())
+        {
+            return criterion_name(aInput) +
+                   ": app/criterion could not find all files listed in 'input_files'. The following files were "
+                   "missing: " +
+                   utilities::concatenate_container(tMissingFiles);
+        }
+    }
+    return std::nullopt;
+}
+
 }  // namespace detail
 
 }  // namespace plato::criteria::library
