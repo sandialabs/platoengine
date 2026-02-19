@@ -12,7 +12,7 @@ auto create_valid_example_constraint_input() -> input_parser::constraint
                                     /*.app=*/input_parser::AppName{std::string{input_parser::kBuiltinAppName}},
                                     /*.criterion=*/input_parser::CriterionName{"nodal_sum"},
                                     /*.number_of_processors=*/1U,
-                                    /*.input_files=*/input_parser::FileList{{"brown.txt", "butter.txt", "sauce.txt"}},
+                                    /*.input_files=*/boost::none,
                                     /*.constraint_value_list=*/boost::none,
                                     /*.constraint_value=*/0.0,
                                     /*.is_linear=*/true,
@@ -26,7 +26,7 @@ auto create_valid_example_constraint_input() -> input_parser::constraint
                                    /*.app=*/input_parser::AppName{std::string{input_parser::kBuiltinAppName}},
                                    /*.criterion=*/input_parser::CriterionName{"nodal_sum"},
                                    /*.number_of_processors=*/1u,
-                                   /*.input_files=*/input_parser::FileList{{"brown.txt", "butter.txt", "sauce.txt"}},
+                                   /*.input_files=*/boost::none,
                                    /*.aggregation_weight=*/13.0,
                                    /*.normalize_by_initial_value=*/false,
                                    /*.objective_goal=*/boost::none};

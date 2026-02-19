@@ -46,7 +46,6 @@ std::string test_objective_string(const std::string& aName, const bool aIsActive
         "   app platoengine\n"
         "   criterion {}\n"
         "   number_of_processors 1\n"
-        "   input_files test-input.inp\n"
         "   aggregation_weight 1.0\n"
         "   active {}\n"
         "   normalize_by_initial_value {}\n"

@@ -30,7 +30,7 @@ std::string create_valid_example_constraint_string()
             app platoengine
             criterion nodal_sum
             number_of_processors 1
-            input_files test-input.inp
+            input_files dummy.txt
             constraint_value 13
             is_linear true
             constraint_type equal_to
@@ -46,7 +46,6 @@ std::string create_valid_example_objective_string()
             app platoengine
             criterion nodal_sum
             number_of_processors 1
-            input_files test-input.inp
             aggregation_weight 42.0
           end
        )";

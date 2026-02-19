@@ -25,6 +25,15 @@ using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 constexpr std::string_view kMeshFile = "brick.exo";
 
+class VolumeFractionCriterionHex : public third_party_integration::stk_io::test_utilities::MeshGeneratingTestFixture
+{
+   protected:
+    VolumeFractionCriterionHex()
+        : MeshGeneratingTestFixture(kMeshFile, third_party_integration::stk_io::CommandGenerator{})
+    {
+    }
+};
+
 [[nodiscard]] auto mesh_with_constant_controls(const double aControlValue) -> analysis::AnalysisDomainMesh
 {
     const auto tMesh = mesh::EntityCounts{mesh::Mesh{kMeshFile}};
@@ -153,6 +162,7 @@ TEST(VolumeCriterion, VolumeDifferentiatesBetweenNodalAndDensityDesignVariables)
         const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{.mFileName = kMeshFile, .mBlockScalarField = {}};
         EXPECT_DOUBLE_EQ(VolumeCriterion{}.f(tAnalysisDomainMesh), tVolume);
     }
+    std::filesystem::remove(kMeshFile);
 }
 
 TEST(VolumeCriterion, DerivativeOfScaledVolumeOnControls)
@@ -245,6 +255,7 @@ TEST_F(TwoDThreeBlockMesh, VolumeCriterionNodalCoordinateGradientCheck)
     EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(tOriginalCoordinates, tDirection, tGradientCheckParameters), 0.0,
                 tFirstOrderTruncationErrorTolerance)
         << tChecker.table(tOriginalCoordinates, tDirection, tGradientCheckParameters);
+    std::filesystem::remove(kPerturbedMeshFilePath);
 }
 
 TEST(VolumeCriterion, ParseInputBlock)
@@ -285,11 +296,9 @@ TEST(VolumeCriterion, ParseInputBlock)
     }
 }
 
-TEST(VolumeFractionCriterion, ReferenceVolume)
+TEST_F(VolumeFractionCriterionHex, ReferenceVolume)
 {
-    const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{};
-    third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
-    const auto tDomainVolume = tCommandGenerator.volume();
+    const auto tDomainVolume = third_party_integration::stk_io::CommandGenerator{}.volume();
 
     constexpr double tConstantControls = 0.86;
     const auto tAnalysisDomainMesh = mesh_with_constant_controls(tConstantControls);
@@ -303,9 +312,8 @@ TEST(VolumeFractionCriterion, ReferenceVolume)
         tReferenceVolume);
 }
 
-TEST(VolumeFractionCriterion, ThrowsIfNoReferenceVolumeGivenForNonDensityTopology)
+TEST_F(VolumeFractionCriterionHex, ThrowsIfNoReferenceVolumeGivenForNonDensityTopology)
 {
-    third_party_integration::stk_io::write_mesh(kMeshFile, third_party_integration::stk_io::CommandGenerator{});
     const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{.mFileName = kMeshFile, .mBlockScalarField = {}};
 
     const auto tCriterion = make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true,
@@ -319,9 +327,8 @@ TEST(VolumeFractionCriterion, ThrowsIfNoReferenceVolumeGivenForNonDensityTopolog
         , std::runtime_error);
 }
 
-TEST(VolumeFractionCriterion, ThrowsIfReferenceVolumeLessThanOrEqualToZero)
+TEST_F(VolumeFractionCriterionHex, ThrowsIfReferenceVolumeLessThanOrEqualToZero)
 {
-    third_party_integration::stk_io::write_mesh(kMeshFile, third_party_integration::stk_io::CommandGenerator{});
     const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{.mFileName = kMeshFile, .mBlockScalarField = {}};
 
     {
@@ -340,9 +347,8 @@ TEST(VolumeFractionCriterion, ThrowsIfReferenceVolumeLessThanOrEqualToZero)
     }
 }
 
-TEST(VolumeFractionCriterion, ReferenceVolumeScalesAsExpected)
+TEST_F(VolumeFractionCriterionHex, ReferenceVolumeScalesAsExpected)
 {
-    third_party_integration::stk_io::write_mesh(kMeshFile, third_party_integration::stk_io::CommandGenerator{});
     const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{.mFileName = kMeshFile, .mBlockScalarField = {}};
     {
         constexpr double tReferenceVolume{1.0};

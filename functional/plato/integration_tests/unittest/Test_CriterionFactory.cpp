@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <boost/optional/optional_io.hpp>
+#include <fstream>
 
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
+#include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -13,7 +15,13 @@ namespace plato::integration_tests::serial
 {
 namespace
 {
-struct CriterionFactoryTestFixture : public utilities::ValidInputTestFixture
+constexpr std::string_view kTestFileName = "dummy.txt";
+struct InputFilesCreatingTestFixture : public plato::test_utilities::FileCreatingTestFixture
+{
+    InputFilesCreatingTestFixture() : FileCreatingTestFixture{kTestFileName} {}
+};
+
+struct CriterionFactoryTestFixture : public utilities::ValidInputTestFixture, public InputFilesCreatingTestFixture
 {
 };
 }  // namespace
@@ -75,7 +83,7 @@ TEST_F(CriterionFactoryTestFixture, ConvertObjectiveInput)
             active true
             criterion nodal_sum
             number_of_processors 1
-            input_files test-input.inp
+            input_files dummy.txt
             aggregation_weight 42.0
           end
        )" +

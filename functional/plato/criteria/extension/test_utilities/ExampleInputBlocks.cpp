@@ -12,7 +12,7 @@ auto create_valid_example_nodal_sum_objective_input() -> input_parser::objective
                                    /*.app=*/input_parser::AppName{std::string{input_parser::kBuiltinAppName}},
                                    /*.criterion=*/input_parser::CriterionName{"nodal_sum"},
                                    /*.number_of_processors=*/1u,
-                                   /*.input_files=*/input_parser::FileList{{"my_mesh.exo"}},
+                                   /*.input_files=*/boost::none,
                                    /*.aggregation_weight=*/1.0,
                                    /*.normalize_by_initial_value=*/false,
                                    /*.objecive_goal=*/boost::none};

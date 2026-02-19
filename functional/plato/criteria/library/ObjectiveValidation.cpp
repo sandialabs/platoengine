@@ -18,7 +18,8 @@ namespace
 [[maybe_unused]] static auto kObjectiveValidationRegistration = input_validation::InputBlockValidationRegistration<>{
     [](const input_parser::objective& aInput) { return detail::validate_criterion_is_registered(aInput); },
     [](const input_parser::objective& aInput) { return detail::validate_number_of_processors(aInput); },
-    [](const input_parser::objective& aInput) { return detail::validate_aggregation_weight(aInput); }};
+    [](const input_parser::objective& aInput) { return detail::validate_aggregation_weight(aInput); },
+    [](const input_parser::objective& aInput) { return detail::validate_criterion_files_exist(aInput); }};
 
 [[maybe_unused]] static auto kListObjectivesValidationRegistration =
     input_validation::ParsedInputValidationRegistration<>{
@@ -43,8 +44,7 @@ auto has_parallel_objective(const std::vector<input_parser::objective>& aInput) 
 
 auto total_number_of_processors(const std::vector<input_parser::objective>& aInput) -> unsigned int
 {
-    return std::accumulate(aInput.begin(), aInput.end(), 0u,
-                           [](const unsigned int aTotal, const auto& aObjectiveInput)
+    return std::accumulate(aInput.begin(), aInput.end(), 0u, [](const unsigned int aTotal, const auto& aObjectiveInput)
                            { return aTotal + number_of_processors(aObjectiveInput); });
 }
 

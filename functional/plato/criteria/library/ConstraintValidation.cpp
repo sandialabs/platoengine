@@ -25,6 +25,7 @@ const auto kBindWithPluginDirectory = [](const auto& aValidationFunction,
 [[maybe_unused]] static auto kConstraintValidationRegistration = input_validation::InputBlockValidationRegistration<>{
     [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
     [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
+    [](const input_parser::constraint& aInput) { return detail::validate_criterion_files_exist(aInput); },
     [](const input_parser::constraint& aInput) { return detail::validate_constraint_value(aInput); },
     [](const input_parser::constraint& aInput) { return detail::validate_constraint_type(aInput); },
     [](const input_parser::constraint& aInput)
