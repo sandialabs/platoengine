@@ -90,16 +90,7 @@ TEST_F(KrinoTestFixture, ReadAndSetupForDecomposition)
 
     const auto tFieldNames = stk_io::nodal_field_names(kWriteMeshName);
 
-    const auto tFieldNameGold = std::vector<std::string>{"coordinates",
-                                                         "CDFEM_SNAP_DISPLACEMENTS",
-                                                         "CDFEM_SNAP_DISPLACEMENTS_STKFS_O",
-                                                         "CDFEM_UP_4_PARENT_NODE_IDS",
-                                                         "CDFEM_UP_4_PARENT_NODE_WTS",
-                                                         "DistanceCorrectionDenominator",
-                                                         "DistanceCorrectionNumerator",
-                                                         "LS",
-                                                         "PLATO_LS",
-                                                         "PLATO_LS_COPYFORSNAPPING"};
+    const auto tFieldNameGold = std::vector<std::string>{"coordinates", "LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
     EXPECT_EQ(tFieldNameGold, tFieldNames);
     std::filesystem::remove(kMeshName);
     plato::test_utilities::test_for_existence_and_remove({kWriteMeshName}, TEST_CONTEXT("Write Mesh file"));
