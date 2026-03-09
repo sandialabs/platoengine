@@ -149,11 +149,7 @@ auto entity_ids(const stk::mesh::BulkData& aBulk,
 
 std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::path& aMeshName)
 {
-    std::shared_ptr<stk::mesh::BulkData> tBulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
-    stk::mesh::MetaData& tMeta = tBulk->mesh_meta_data();
-    tMeta.use_simple_fields();
-    stk::io::fill_mesh(aMeshName.string(), *tBulk);
-    return tBulk;
+    return create_reading_iobroker(aMeshName)->bulk_data_ptr();
 }
 
 unsigned int node_size(const stk::mesh::BulkData& aBulk) { return node_size(aBulk, universal_part(aBulk)); }

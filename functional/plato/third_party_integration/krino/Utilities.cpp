@@ -35,6 +35,7 @@ constexpr auto kSortByGlobalId = true;
 constexpr auto kOutputDescription = std::string_view{"out>null dout>null pout>null"};
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"PLATO_LS"};
+const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
 
 [[nodiscard]] bool include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart)
 {
@@ -243,7 +244,8 @@ void write_mesh(const stk::mesh::BulkData& aBulkData,
 {
     constexpr auto tStepIndex = int{1};
     constexpr auto tTime = double{0.0};
-    ::krino::output_composed_mesh_with_fields(aBulkData, aSelector, aOutputFileName.string(), tStepIndex, tTime);
+    ::krino::output_composed_mesh_with_fields(aBulkData, aSelector, aOutputFileName.string(), tStepIndex, tTime,
+                                              stk::io::WRITE_RESULTS, kLevelSetFields);
 }
 
 }  // namespace plato::third_party_integration::krino
