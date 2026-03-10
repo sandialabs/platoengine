@@ -420,7 +420,7 @@ TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
         test_sensitivity_parent_nodes_against_expected(tWrapper, tExpectedParentNodesWhenInterfaceMoves);
     }
 
-    // Offset 1e-4
+    // Offset 1e-4 - Here the parent nodes change. This is probably not the desired behavior.
     {
         constexpr double tOffset = 1.0e-4;
         const auto tPlane = tpik::LevelSetPrimitives{
@@ -434,7 +434,8 @@ TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
         test_sensitivity_parent_nodes_against_expected(tWrapper, tExpectedParentNodes);
     }
 
-    // Offset 1e-4, no snapping
+    // Offset 1e-4, no snapping - The parent nodes also change but in a different way. Again, likely not the desired
+    // behavior.
     {
         const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
         constexpr double tOffset = 1.0e-4;
