@@ -12,6 +12,7 @@ using PartReferenceVector = std::vector<std::reference_wrapper<const stk::mesh::
 
 /// @brief Get the name of the sideset defined between void and solid regions.
 [[nodiscard]] auto interface_sideset_name() -> std::string;
+
 /// @brief Given a triangle @ aTriangle calculate the normal nodal sensitivities.
 [[nodiscard]] TriangleNormalSensitivity d_normal_d_tri_node(const SensitivityTriangle& aTriangle);
 /// @brief Given a triangle @ aTriangle calculate the area nodal sensitivities.
@@ -23,9 +24,11 @@ namespace detail
 /// @brief Given the nodal coordinates of a triangle @ aNodalCoords calculate the area sensitivities to changes in nodal
 /// coordinates.
 [[nodiscard]] std::vector<double> d_area_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords);
+
 /// @brief Given the nodal coordinates of a triangle @ aNodalCoords calculate the normal sensitivities to changes in
 /// nodal coordinates.
 [[nodiscard]] std::vector<double> d_normal_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords);
+
 /// @brief Given a BulkData @ aBulkData, the name of a sideset @ aSidesetName, and a list of blocks in the mesh @
 /// aDesignDomainBlocks, return a vector of triangles that are in the sideset and whose normals point away from the
 /// blocks. This function currently excludes blocks with "void" in the name.
