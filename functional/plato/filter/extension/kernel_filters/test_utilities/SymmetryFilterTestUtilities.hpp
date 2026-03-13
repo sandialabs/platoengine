@@ -33,8 +33,8 @@ concept HasAllOptionalMembers =
 /// @brief Use a radius @a aRadius and a centering type @a aCenteringType to create a generic symmetry filter input.
 template <typename InputFilterType>
     requires HasAllOptionalMembers<InputFilterType>
-[[nodiscard]] auto make_filter_input(const double aRadius, const input_parser::KernelFilterCenteringTypes& aCentering)
-    -> InputFilterType;
+[[nodiscard]] auto make_filter_input(const double aRadius,
+                                     const input_parser::KernelFilterCenteringTypes& aCentering) -> InputFilterType;
 
 /// @brief A test funtion that uses the input @a aInput to call a @a aModifiedMakeFunctionLabmda and verify radius and
 /// centering are correctly assigned.
@@ -63,8 +63,8 @@ void check_make_function_from_input_against_parameter_function(const InputParser
 
 template <typename InputFilterType>
     requires HasAllOptionalMembers<InputFilterType>
-auto make_filter_input(const double aRadius, const input_parser::KernelFilterCenteringTypes& aCentering)
-    -> InputFilterType
+auto make_filter_input(const double aRadius,
+                       const input_parser::KernelFilterCenteringTypes& aCentering) -> InputFilterType
 {
     return InputFilterType{/*.filter_radius=*/aRadius,
                            /*.centering_type=*/aCentering,
@@ -81,8 +81,8 @@ void check_make_filter_type_radius_and_centering(const InputParserType& aInput,
                                                  const plato::test_utilities::TestContext& aTestContext)
 {
     const auto tFilterType = aModifiedMakeFunctionLambda(aInput.filter_radius.value(), aInput.centering_type.value());
-    EXPECT_EQ(tFilterType.mRadius, aInput.filter_radius.value()) << aTestContext;
-    EXPECT_EQ(tFilterType.mFilterCentering, aInput.centering_type.value()) << aTestContext;
+    EXPECT_EQ(tFilterType.mKernelFilterFunctions.mRadius, aInput.filter_radius.value()) << aTestContext;
+    EXPECT_EQ(tFilterType.mKernelFilterFunctions.mFilterCentering, aInput.centering_type.value()) << aTestContext;
 }
 
 template <typename InputParserType>
@@ -111,8 +111,11 @@ void check_make_function_from_input_against_parameter_function(const InputParser
         aDetailMakeFunctionLambda(aInput.filter_radius.value(), aInput.centering_type.value());
     const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{"dummySourceMesh", {}};
     const auto tFilterTypeFromInputAndAnalysisDomainMesh = aInputMakeFunctionLambda(aInput, tAnalysisDomainMesh);
-    EXPECT_EQ(tFilterTypeFromDetail.mRadius, tFilterTypeFromInputAndAnalysisDomainMesh.mRadius) << aTestContext;
-    EXPECT_EQ(tFilterTypeFromDetail.mFilterCentering, tFilterTypeFromInputAndAnalysisDomainMesh.mFilterCentering)
+    EXPECT_EQ(tFilterTypeFromDetail.mKernelFilterFunctions.mRadius,
+              tFilterTypeFromInputAndAnalysisDomainMesh.mKernelFilterFunctions.mRadius)
+        << aTestContext;
+    EXPECT_EQ(tFilterTypeFromDetail.mKernelFilterFunctions.mFilterCentering,
+              tFilterTypeFromInputAndAnalysisDomainMesh.mKernelFilterFunctions.mFilterCentering)
         << aTestContext;
     EXPECT_EQ(tFilterTypeFromDetail.mTargetMeshFunction(aInput).filePath(),
               tFilterTypeFromInputAndAnalysisDomainMesh.mTargetMeshFunction(aInput).filePath())

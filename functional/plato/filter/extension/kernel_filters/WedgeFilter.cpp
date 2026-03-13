@@ -109,8 +109,14 @@ auto make_wedge_filter_type(const double aRadius,
         return mesh::Mesh{aInput.target_mesh_name.value().mToken, tFixedBlocks};
     };
 
-    return WedgeFilterType{aRadius, aFilterCentering, tSearchFunction, tUnnormalizedWeightFunction,
-                           tTargetMeshFunction};
+    return WedgeFilterType{
+        .mKernelFilterFunctions =
+            KernelFilterFunctions{.mRadius = aRadius,
+                                  .mFilterCentering = aFilterCentering,
+                                  .mSearchFunction = tSearchFunction,
+                                  .mUnnormalizedWeightFunction = tUnnormalizedWeightFunction,
+                                  .mLoggingName = input_parser::block_name<input_parser::wedge_filter>()},
+        .mTargetMeshFunction = tTargetMeshFunction};
 }
 
 auto validate_wedge_angle_commensurate_with_360(const input_parser::wedge_filter& aInput) -> std::optional<std::string>

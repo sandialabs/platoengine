@@ -33,7 +33,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 namespace plato::filter::extension::kernel_filters
 {
 ///@brief A specialized filter type based on the wedge_filter input
-using WedgeFilterType = KernelFilterFunctions<input_parser::wedge_filter>;
+using WedgeFilterType = KernelFilterAndMeshFunctions<input_parser::wedge_filter>;
 
 ///@brief Extract the input from @a aInput and @a aAnalysisDomainMesh to create a filter type using the detail function
 [[nodiscard]] auto make_wedge_filter_type(const input_parser::wedge_filter& aInput,

@@ -50,11 +50,10 @@ auto make_test_z_swept_filter()
     const auto tSweptFilterType = filter::extension::kernel_filters::make_z_swept_filter_type(
         tSweptInput, analysis::AnalysisDomainMesh{kSquareSourceMeshFile.value(), {}});
 
-    const auto tFilter =
-        std::make_shared<filter::extension::kernel_filters::KernelFilter<input_parser::z_swept_filter>>(
-            filter::extension::kernel_filters::SourceMesh{mesh::Mesh{kSquareSourceMeshFile.value()}},
-            filter::extension::kernel_filters::TargetMesh{mesh::Mesh{kBarTargetMeshFile}}, tSweptFilterType,
-            boost::mpi::communicator{});
+    const auto tFilter = std::make_shared<filter::extension::kernel_filters::KernelFilter>(
+        filter::extension::kernel_filters::SourceMesh{mesh::Mesh{kSquareSourceMeshFile.value()}},
+        filter::extension::kernel_filters::TargetMesh{mesh::Mesh{kBarTargetMeshFile}},
+        tSweptFilterType.mKernelFilterFunctions, boost::mpi::communicator{});
 
     return filter::test_utilities::make_filter_function(tFilter);
 }

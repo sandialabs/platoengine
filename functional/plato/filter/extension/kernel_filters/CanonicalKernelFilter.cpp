@@ -81,8 +81,14 @@ auto make_kernel_filter_type(const double aRadius,
     const auto tTargetMeshFunction = [aTargetMesh](const input_parser::kernel_filter&) -> mesh::Mesh
     { return aTargetMesh; };
 
-    return KernelFilterType{aRadius, aFilterCentering, tSearchFunction, tUnnormalizedWeightFunction,
-                            tTargetMeshFunction};
+    return KernelFilterType{
+        .mKernelFilterFunctions =
+            KernelFilterFunctions{.mRadius = aRadius,
+                                  .mFilterCentering = aFilterCentering,
+                                  .mSearchFunction = tSearchFunction,
+                                  .mUnnormalizedWeightFunction = tUnnormalizedWeightFunction,
+                                  .mLoggingName = input_parser::block_name<input_parser::kernel_filter>()},
+        .mTargetMeshFunction = tTargetMeshFunction};
 }
 
 }  // namespace detail

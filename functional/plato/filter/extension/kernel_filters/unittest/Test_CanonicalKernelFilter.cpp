@@ -52,7 +52,7 @@ TEST(CanonicalKernelFilter, MakeKernelFilterTypeSearchFunction)
     const std::vector<tpic::Coordinate> tCoordinates{kZerothCoordinate, {2, 0, 0}, kSecondCoordinate};
     const auto tSearchResultsGold = distribute_search_vectors_and_stk_search_with_spheres(
         TargetRowVector{tCoordinates}, SourceColumnVector{tCoordinates}, kRadius, boost::mpi::communicator{});
-    const auto tFilterInfoSearchResults = tFilterType.mSearchFunction(
+    const auto tFilterInfoSearchResults = tFilterType.mKernelFilterFunctions.mSearchFunction(
         TargetRowVector{tCoordinates}, SourceColumnVector{tCoordinates}, boost::mpi::communicator{});
     EXPECT_EQ(tSearchResultsGold, tFilterInfoSearchResults);
 }
@@ -64,8 +64,8 @@ TEST(CanonicalKernelFilter, MakeKernelFilterTypeUnnormalizedWeightFunction)
 
     const auto tDistance = tpic::magnitude(kZerothCoordinate - kSecondCoordinate);
     const auto tUnnormalizedWeightGold = detail::linear_ramp_weight(Distance{tDistance}, SearchRadius{kRadius});
-    const auto tFilterInfoUnnormalizedWeight =
-        tFilterType.mUnnormalizedWeightFunction(SourcePoint{kZerothCoordinate}, TargetPoint{kSecondCoordinate});
+    const auto tFilterInfoUnnormalizedWeight = tFilterType.mKernelFilterFunctions.mUnnormalizedWeightFunction(
+        SourcePoint{kZerothCoordinate}, TargetPoint{kSecondCoordinate});
     EXPECT_EQ(tUnnormalizedWeightGold, tFilterInfoUnnormalizedWeight);
 }
 
@@ -83,8 +83,10 @@ TEST(CanonicalKernelFilter, MakeKernelFilterType)
         detail::make_kernel_filter_type(kRadius, kNodeCentering, mesh::Mesh{kMeshFile});
     const auto tFilterTypeFromInputAndAnalysisDomainMesh =
         make_kernel_filter_type(kKernelInputNodeCentered, analysis::AnalysisDomainMesh{kMeshFile, {}});
-    EXPECT_EQ(tFilterTypeFromParameters.mRadius, tFilterTypeFromInputAndAnalysisDomainMesh.mRadius);
-    EXPECT_EQ(tFilterTypeFromParameters.mFilterCentering, tFilterTypeFromInputAndAnalysisDomainMesh.mFilterCentering);
+    EXPECT_EQ(tFilterTypeFromParameters.mKernelFilterFunctions.mRadius,
+              tFilterTypeFromInputAndAnalysisDomainMesh.mKernelFilterFunctions.mRadius);
+    EXPECT_EQ(tFilterTypeFromParameters.mKernelFilterFunctions.mFilterCentering,
+              tFilterTypeFromInputAndAnalysisDomainMesh.mKernelFilterFunctions.mFilterCentering);
     EXPECT_EQ(tFilterTypeFromParameters.mTargetMeshFunction(kKernelInputNodeCentered).filePath(),
               tFilterTypeFromInputAndAnalysisDomainMesh.mTargetMeshFunction(kKernelInputNodeCentered).filePath());
 }

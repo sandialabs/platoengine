@@ -54,8 +54,8 @@ TEST(SweptFilter, FilterRegression)
     const auto tCommunicator = boost::mpi::communicator{};
     const auto tFilterType =
         detail::make_z_swept_filter_type(tRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, kZHat);
-    const auto tFilter = KernelFilter<input_parser::z_swept_filter>{SourceMesh{tSourceMesh}, TargetMesh{tTargetMesh},
-                                                                    tFilterType, tCommunicator};
+    const auto tFilter = KernelFilter{SourceMesh{tSourceMesh}, TargetMesh{tTargetMesh},
+                                      tFilterType.mKernelFilterFunctions, tCommunicator};
     auto tUnfiltered = std::vector<double>(mesh::EntityCounts{tSourceMesh}.numberOfDesignDomainNodes(), 0.0);
     tUnfiltered[26] = 1;
 
@@ -130,8 +130,8 @@ TEST(SweptFilterDetail, CreateLinearMask)
     const auto tFilterType =
         detail::make_z_swept_filter_type(tRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, kZHat);
 
-    const auto tLinearMask = detail::create_linear_mask<input_parser::z_swept_filter>(
-        SourceMesh{tSourceMesh}, TargetMesh{tTargetMesh}, tFilterType, boost::mpi::communicator{});
+    const auto tLinearMask = detail::create_linear_mask(SourceMesh{tSourceMesh}, TargetMesh{tTargetMesh},
+                                                        tFilterType.mKernelFilterFunctions, boost::mpi::communicator{});
     const auto tFieldValues = std::vector{10.0, 7.5, 5.0};
     const auto tFilteredValues = tLinearMask.matrixMultiply(tFieldValues);
     ASSERT_EQ(tFilteredValues.size(), 1U);

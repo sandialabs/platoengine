@@ -112,8 +112,14 @@ auto make_y_axis_revolve_filter_type(const double aRadius,
         return mesh::Mesh{aInput.target_mesh_name.value().mToken, tFixedBlocks};
     };
 
-    return RevolveFilterType{aRadius, aFilterCentering, tSearchFunction, tUnnormalizedWeightFunction,
-                             tTargetMeshFunction};
+    return RevolveFilterType{
+        .mKernelFilterFunctions =
+            KernelFilterFunctions{.mRadius = aRadius,
+                                  .mFilterCentering = aFilterCentering,
+                                  .mSearchFunction = tSearchFunction,
+                                  .mUnnormalizedWeightFunction = tUnnormalizedWeightFunction,
+                                  .mLoggingName = input_parser::block_name<input_parser::y_axis_revolve_filter>()},
+        .mTargetMeshFunction = tTargetMeshFunction};
 }
 
 auto validate_source_mesh_in_xz_plane(const input_parser::y_axis_revolve_filter& /*aInput*/,

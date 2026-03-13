@@ -41,9 +41,8 @@ const auto kKernelFilterMakeInfoLambda =
 
     const auto tKernelFilterType =
         detail::make_kernel_filter_type(/*aRadius=*/1.1, aFilterCentering, mesh::Mesh{kMeshFile});
-    const KernelFilter<input_parser::kernel_filter> tKernelFilter{SourceMesh{mesh::Mesh{kMeshFile}},
-                                                                  TargetMesh{mesh::Mesh{kMeshFile}}, tKernelFilterType,
-                                                                  boost::mpi::communicator{}};
+    const KernelFilter tKernelFilter{SourceMesh{mesh::Mesh{kMeshFile}}, TargetMesh{mesh::Mesh{kMeshFile}},
+                                     tKernelFilterType.mKernelFilterFunctions, boost::mpi::communicator{}};
 
     std::vector<double> tNodalDensities(tCommandGenerator.numberOfNodes(), 0);
     const int tHalfNode = tNodalDensities.size() / 2;
@@ -204,9 +203,9 @@ TEST(KernelFilterDetail, FilterCache_DummyCallCounts)
             ++tCallCount;
             const auto tKernelFilterType = detail::make_kernel_filter_type(
                 1.0, input_parser::KernelFilterCenteringTypes::kElementCentered, mesh::Mesh{aAnalysisDomainMesh});
-            return std::make_shared<KernelFilter<input_parser::kernel_filter>>(
-                SourceMesh{mesh::Mesh{aAnalysisDomainMesh}}, TargetMesh{mesh::Mesh{aAnalysisDomainMesh}},
-                tKernelFilterType, boost::mpi::communicator{});
+            return std::make_shared<KernelFilter>(SourceMesh{mesh::Mesh{aAnalysisDomainMesh}},
+                                                  TargetMesh{mesh::Mesh{aAnalysisDomainMesh}},
+                                                  tKernelFilterType.mKernelFilterFunctions, boost::mpi::communicator{});
         },
         [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
         { return mesh::hash_mesh_coordinates(aAnalysisDomainMesh); }};

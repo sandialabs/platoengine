@@ -38,8 +38,9 @@ auto make_kernel_filter_test_function(const std::filesystem::path& aMeshFilePath
     const auto tMesh = mesh::Mesh{aMeshFilePath};
     const auto tKernelFilterType = fek::detail::make_kernel_filter_type(
         tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, tMesh);
-    const auto tKernelFilter = std::make_shared<fek::KernelFilter<input_parser::kernel_filter>>(
-        fek::SourceMesh{tMesh}, fek::TargetMesh{tMesh}, tKernelFilterType, boost::mpi::communicator{});
+    const auto tKernelFilter =
+        std::make_shared<fek::KernelFilter>(fek::SourceMesh{tMesh}, fek::TargetMesh{tMesh},
+                                            tKernelFilterType.mKernelFilterFunctions, boost::mpi::communicator{});
 
     return filter::test_utilities::make_filter_function(tKernelFilter);
 }
