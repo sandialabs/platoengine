@@ -16,7 +16,7 @@ template <input_parser::InputBlockOfComponent<components::ComponentType::kFilter
 template <input_parser::InputBlockOfComponent<components::ComponentType::kFilter> Input>
 [[nodiscard]] auto jacobian_task_log() -> services::TaskLogSetupTeardown;
 
-/// @brief Creates a TaskLogger for the vector-Jacobian multiplication step of a filter component.
+/// @brief Creates a TaskLogger for the vector-adjoint Jacobian multiplication step of a filter component.
 template <input_parser::InputBlockOfComponent<components::ComponentType::kFilter> Input>
 [[nodiscard]] auto adjoint_jacobian_task_log() -> services::TaskLogSetupTeardown;
 
@@ -26,7 +26,7 @@ template <input_parser::InputBlockOfComponent<components::ComponentType::kFilter
 /// @brief Creates a TaskLogger for the vector-Jacobian multiplication step of a filter component.
 [[nodiscard]] auto jacobian_task_log(std::string_view aFilterName) -> services::TaskLogSetupTeardown;
 
-/// @brief Creates a TaskLogger for the vector-Jacobian multiplication step of a filter component.
+/// @brief Creates a TaskLogger for the vector-adjoint Jacobian multiplication step of a filter component.
 [[nodiscard]] auto adjoint_jacobian_task_log(std::string_view aFilterName) -> services::TaskLogSetupTeardown;
 
 namespace detail
