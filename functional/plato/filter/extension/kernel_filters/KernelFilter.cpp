@@ -65,10 +65,9 @@ auto create_linear_mask(const SourceMesh& aSourceMesh,
 {
     [[maybe_unused]] const auto tTaskLogger =
         services::TaskLogSetupTeardown{"Building filter", library::detail::filter_logger(aFilterType.mLoggingName)};
-    return LinearMask{LinearMaskBuilder{SourceMesh{aSourceMesh}, TargetMesh{aTargetMesh}, aFilterType.mFilterCentering,
-                                        aFilterType, aCommunicator}
-                          .mask(),
-                      aCommunicator};
+    return LinearMask{
+        LinearMaskBuilder{SourceMesh{aSourceMesh}, TargetMesh{aTargetMesh}, aFilterType, aCommunicator}.mask(),
+        aCommunicator};
 }
 }  // namespace detail
 

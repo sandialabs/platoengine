@@ -66,7 +66,6 @@ class LinearMaskBuilder
     /// element centroids as given by @a aCenteringType.
     LinearMaskBuilder(const SourceMesh& aSourceMesh,
                       const TargetMesh& aTargetMesh,
-                      input_parser::KernelFilterCenteringTypes aCenteringType,
                       const KernelFilterFunctions& aFilterType,
                       const boost::mpi::communicator& aCommunicator);
 

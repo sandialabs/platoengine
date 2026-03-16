@@ -8,14 +8,12 @@
 
 namespace plato::filter::extension::kernel_filters
 {
-LinearMaskBuilder::LinearMaskBuilder(
-    const SourceMesh& aSourceMesh,
-    const TargetMesh& aTargetMesh,
-    const input_parser::KernelFilterCenteringTypes aCenteringType,  // @todo Do we need this? It's in aFilterType
-    const KernelFilterFunctions& aFilterType,
-    const boost::mpi::communicator& aCommunicator)
+LinearMaskBuilder::LinearMaskBuilder(const SourceMesh& aSourceMesh,
+                                     const TargetMesh& aTargetMesh,
+                                     const KernelFilterFunctions& aFilterType,
+                                     const boost::mpi::communicator& aCommunicator)
     : mCommunicator(aCommunicator),
-      mGlobalRowCenterCoordinates(detail::center_coordinates(aTargetMesh.mValue, aCenteringType)),
+      mGlobalRowCenterCoordinates(detail::center_coordinates(aTargetMesh.mValue, aFilterType.mFilterCentering)),
       mGlobalColumnCenterCoordinates(mesh::EntityRetrieval{aSourceMesh.mValue}.designDomainNodalCoordinates()),
       mMaximumConnectivityEstimate(
           detail::average_nodes_in_filter_radius_estimate(aSourceMesh.mValue, SearchRadius{aFilterType.mRadius})),
