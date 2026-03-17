@@ -32,7 +32,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 namespace plato::filter::extension::kernel_filters
 {
 ///@brief A specialized filter type based on the y_axis_revolve_filter input
-using RevolveFilterType = KernelFilterFunctions<input_parser::y_axis_revolve_filter>;
+using RevolveFilterType = KernelFilterAndMeshFunctions<input_parser::y_axis_revolve_filter>;
 
 ///@brief Extract the input from @a aInput and @a aAnalysisDomainMesh to create a filter type using the detail function
 [[nodiscard]] auto make_y_axis_revolve_filter_type(const input_parser::y_axis_revolve_filter& aInput,

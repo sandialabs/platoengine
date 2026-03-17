@@ -58,7 +58,7 @@ TEST(ReflectFilter, MakeReflectFilterTypeSearchFunction)
         TargetRowVector{tTargetCoordinates}, SourceColumnVector{tSourceCoordinates}, kRadius,
         boost::mpi::communicator{}, kPositiveXPlane, kPositiveYPlane, kPositiveZPlane);
 
-    const auto tFilterInfoSearchResults = tFilterType.mSearchFunction(
+    const auto tFilterInfoSearchResults = tFilterType.mKernelFilterFunctions.mSearchFunction(
         TargetRowVector{tTargetCoordinates}, SourceColumnVector{tSourceCoordinates}, boost::mpi::communicator{});
     EXPECT_EQ(tSearchResultsGold, tFilterInfoSearchResults);
 }
@@ -69,8 +69,8 @@ TEST(ReflectFilter, MakeReflectFilterTypeUnnormalizedWeightFunction)
     const double tDistance = minimum_distance_reflected_points_planes_list(
         SourcePoint{kSourcePoint}, TargetPoint{kTargetPoint}, kPositiveXPlane, kPositiveYPlane, kPositiveZPlane);
     const auto tUnnormalizedWeightGold = detail::linear_ramp_weight(Distance{tDistance}, SearchRadius{kRadius});
-    const auto tFilterInfoUnnormalizedWeight =
-        tFilterType.mUnnormalizedWeightFunction(SourcePoint{kSourcePoint}, TargetPoint{kTargetPoint});
+    const auto tFilterInfoUnnormalizedWeight = tFilterType.mKernelFilterFunctions.mUnnormalizedWeightFunction(
+        SourcePoint{kSourcePoint}, TargetPoint{kTargetPoint});
     EXPECT_EQ(tUnnormalizedWeightGold, tFilterInfoUnnormalizedWeight);
 }
 

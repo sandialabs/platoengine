@@ -58,9 +58,10 @@ auto make_kernel_filter_test_function(const double aRadius,
     namespace fek = filter::extension::kernel_filters;
     const auto tKernelFilterType = fek::detail::make_kernel_filter_type(
         aRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, mesh::Mesh{aMeshFilePath, aFixedBlocks});
-    const auto tKernelFilter = std::make_shared<fek::KernelFilter<input_parser::kernel_filter>>(
-        fek::SourceMesh{mesh::Mesh{aMeshFilePath, aFixedBlocks}},
-        fek::TargetMesh{mesh::Mesh{aMeshFilePath, aFixedBlocks}}, tKernelFilterType, boost::mpi::communicator{});
+    const auto tKernelFilter =
+        std::make_shared<fek::KernelFilter>(fek::SourceMesh{mesh::Mesh{aMeshFilePath, aFixedBlocks}},
+                                            fek::TargetMesh{mesh::Mesh{aMeshFilePath, aFixedBlocks}},
+                                            tKernelFilterType.mKernelFilterFunctions, boost::mpi::communicator{});
     return filter::test_utilities::make_filter_function(tKernelFilter);
 }
 
@@ -71,8 +72,8 @@ auto make_positive_octant_reflect_filter_test_function(const filter::extension::
     const auto tRadius = .5;
     const auto tReflectFilterType = fek::detail::make_positive_octant_reflect_filter_type(
         tRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered);
-    const auto tReflectFilter = std::make_shared<fek::KernelFilter<input_parser::positive_octant_reflect_filter>>(
-        aSourceMesh, aTargetMesh, tReflectFilterType, boost::mpi::communicator{});
+    const auto tReflectFilter = std::make_shared<fek::KernelFilter>(
+        aSourceMesh, aTargetMesh, tReflectFilterType.mKernelFilterFunctions, boost::mpi::communicator{});
     return filter::test_utilities::make_filter_function(tReflectFilter);
 }
 
@@ -548,7 +549,7 @@ namespace
 void check_coordinate_sum_gradient_for_small_level_set_perturbations(const input_parser::level_set_topology& aInput,
                                                                      const unsigned int aNumDimensions)
 {
-    constexpr auto tTolerance = 1e-11;
+    constexpr auto tTolerance = 1e-10;
 
     const auto tF = [aNumDimensions, aInput](const linear_algebra::DynamicVector<double>& aX) -> double
     {

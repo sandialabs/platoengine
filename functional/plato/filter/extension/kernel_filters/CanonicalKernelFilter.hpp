@@ -26,7 +26,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 // CPD-ON
 namespace plato::filter::extension::kernel_filters
 {
-using KernelFilterType = KernelFilterFunctions<input_parser::kernel_filter>;
+using KernelFilterType = KernelFilterAndMeshFunctions<input_parser::kernel_filter>;
 
 ///@brief Extract the input from @a aInput and @a aAnalysisDomainMesh to create a filter type using the detail function
 [[nodiscard]] auto make_kernel_filter_type(const input_parser::kernel_filter& aInput,

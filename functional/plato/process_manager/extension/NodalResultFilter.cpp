@@ -102,12 +102,11 @@ auto make_mesh_writer(const mesh::OutputMode aOutputMode,
     return std::make_unique<mesh::MeshFieldAppender>(mesh::Mesh{aOutputMeshPath, aFixedBlocks}, aTimeStep);
 }
 
-void write_nodal_filtered_results(
-    const mesh::Mesh& aMesh,
-    const filter::extension::kernel_filters::KernelFilter<input_parser::kernel_filter>& aFilter,
-    const std::filesystem::path& aOutputMeshPath,
-    const std::set<std::string>& aFixedBlocks,
-    const boost::mpi::communicator& aComm)
+void write_nodal_filtered_results(const mesh::Mesh& aMesh,
+                                  const filter::extension::kernel_filters::KernelFilter& aFilter,
+                                  const std::filesystem::path& aOutputMeshPath,
+                                  const std::set<std::string>& aFixedBlocks,
+                                  const boost::mpi::communicator& aComm)
 {
     const auto tTimeSteps = mesh::EntityCounts{aMesh}.timeSteps();
     const auto tTemporaryOutputPath = utilities::make_filename_unique(aOutputMeshPath);
@@ -165,8 +164,8 @@ void NodalResultFilter::run() const
         {
             const auto tKernelFilterType = fek::detail::make_kernel_filter_type(
                 mFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, tMesh);
-            const auto tFilter = fek::KernelFilter<input_parser::kernel_filter>{
-                fek::SourceMesh{tMesh}, fek::TargetMesh{tMesh}, tKernelFilterType, tCommunicator};
+            const auto tFilter = fek::KernelFilter{fek::SourceMesh{tMesh}, fek::TargetMesh{tMesh},
+                                                   tKernelFilterType.mKernelFilterFunctions, tCommunicator};
             write_nodal_filtered_results(tMesh, tFilter, mOutputMeshPath, mFixedBlockNames, tCommunicator);
         }
         tWorldCommunicator.barrier();

@@ -101,8 +101,14 @@ auto make_z_swept_filter_type(const double aRadius,
         return mesh::Mesh{aInput.target_mesh_name.value().mToken, tFixedBlocks};
     };
 
-    return SweptFilterType{aRadius, aFilterCentering, tSearchFunction, tUnnormalizedWeightFunction,
-                           tTargetMeshFunction};
+    return SweptFilterType{
+        .mKernelFilterFunctions =
+            KernelFilterFunctions{.mRadius = aRadius,
+                                  .mFilterCentering = aFilterCentering,
+                                  .mSearchFunction = tSearchFunction,
+                                  .mUnnormalizedWeightFunction = tUnnormalizedWeightFunction,
+                                  .mLoggingName = input_parser::block_name<input_parser::z_swept_filter>()},
+        .mTargetMeshFunction = tTargetMeshFunction};
 }
 
 auto validate_source_mesh_in_xy_plane(const input_parser::z_swept_filter& /*aInput*/,

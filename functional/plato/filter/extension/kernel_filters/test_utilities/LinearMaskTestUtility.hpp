@@ -13,8 +13,7 @@ constexpr int kMaximumConnectivity = 4;
 ///
 /// If @a aCentroids is empty, the LinearMask will use the nodes as the filter range.
 [[nodiscard]] auto create_simple_linear_mask_builder(
-    const std::vector<third_party_integration::common::Coordinate>& aCentroids = {})
-    -> LinearMaskBuilder<input_parser::kernel_filter>;
+    const std::vector<third_party_integration::common::Coordinate>& aCentroids = {}) -> LinearMaskBuilder;
 
 /// @brief Creates a LinearMask with a small number of nodes for testing.
 ///

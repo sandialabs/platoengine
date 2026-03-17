@@ -65,7 +65,7 @@ TEST(RevolveFilter, MakeRevolveFilterTypeSearchFunction)
         tCylindricalPolarTargets, tCylindricalPolarSources, CylinderAxis{kThetaDirection * tDimension},
         CylinderRadius{kRadius}, boost::mpi::communicator{});
 
-    const auto tFilterInfoSearchResults = tFilterType.mSearchFunction(
+    const auto tFilterInfoSearchResults = tFilterType.mKernelFilterFunctions.mSearchFunction(
         TargetRowVector{tTargetCoordinates}, SourceColumnVector{tSourceCoordinates}, boost::mpi::communicator{});
     EXPECT_EQ(tSearchResultsGold, tFilterInfoSearchResults);
 }
@@ -79,8 +79,8 @@ TEST(RevolveFilter, MakeRevolveFilterTypeUnnormalizedWeightFunction)
         CylinderAxis{kThetaDirection}, CylinderRadius{kRadius},
         detail::QueryLocation{detail::cylindrical_polar_coordinates(kTestPoint).mValue});
 
-    const auto tFilterInfoUnnormalizedWeight =
-        tFilterType.mUnnormalizedWeightFunction(SourcePoint{kTestPoint}, TargetPoint{kTargetFirstCoordinate});
+    const auto tFilterInfoUnnormalizedWeight = tFilterType.mKernelFilterFunctions.mUnnormalizedWeightFunction(
+        SourcePoint{kTestPoint}, TargetPoint{kTargetFirstCoordinate});
     EXPECT_EQ(tUnnormalizedWeightGold, tFilterInfoUnnormalizedWeight);
 }
 

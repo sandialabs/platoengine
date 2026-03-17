@@ -105,8 +105,8 @@ auto test_filter_evaluation(const third_party_integration::stk_io::CommandGenera
     const auto tFilterRadius = 1.0;
     const auto tKernelFilterType = detail::make_kernel_filter_type(
         tFilterRadius, input_parser::KernelFilterCenteringTypes::kElementCentered, mesh::Mesh{kMeshFile});
-    const KernelFilter<input_parser::kernel_filter> tKernelFilter{
-        SourceMesh{mesh::Mesh{kMeshFile}}, TargetMesh{mesh::Mesh{kMeshFile}}, tKernelFilterType, aCommunicator};
+    const KernelFilter tKernelFilter{SourceMesh{mesh::Mesh{kMeshFile}}, TargetMesh{mesh::Mesh{kMeshFile}},
+                                     tKernelFilterType.mKernelFilterFunctions, aCommunicator};
 
     const std::vector<double> tNodalDensities = create_linear_space_vector(aCommandGenerator.numberOfNodes());
     const std::vector<double> tStdVectorSensitivities =
@@ -222,8 +222,8 @@ TEST(KernelFilterDetail, CreateLinearMask)
     {
         const auto tKernelFilterType = detail::make_kernel_filter_type(
             tFilterRadius, input_parser::KernelFilterCenteringTypes::kElementCentered, mesh::Mesh{kMeshFile});
-        const LinearMask tLinearMask = detail::create_linear_mask<input_parser::kernel_filter>(
-            SourceMesh{tMesh}, TargetMesh{tMesh}, tKernelFilterType, tWorldComm);
+        const LinearMask tLinearMask = detail::create_linear_mask(SourceMesh{tMesh}, TargetMesh{tMesh},
+                                                                  tKernelFilterType.mKernelFilterFunctions, tWorldComm);
         const auto [tRows, tCols] = tLinearMask.size();
         EXPECT_EQ(tRows, tCommandGenerator.numberOfElements());
         EXPECT_EQ(tCols, tCommandGenerator.numberOfNodes());
@@ -231,8 +231,8 @@ TEST(KernelFilterDetail, CreateLinearMask)
     {
         const auto tKernelFilterType = detail::make_kernel_filter_type(
             tFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered, mesh::Mesh{kMeshFile});
-        const LinearMask tLinearMask = detail::create_linear_mask<input_parser::kernel_filter>(
-            SourceMesh{tMesh}, TargetMesh{tMesh}, tKernelFilterType, tWorldComm);
+        const LinearMask tLinearMask = detail::create_linear_mask(SourceMesh{tMesh}, TargetMesh{tMesh},
+                                                                  tKernelFilterType.mKernelFilterFunctions, tWorldComm);
         const auto [tRows, tCols] = tLinearMask.size();
         EXPECT_EQ(tRows, tCommandGenerator.numberOfNodes());
         EXPECT_EQ(tCols, tCommandGenerator.numberOfNodes());

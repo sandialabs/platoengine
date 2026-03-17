@@ -104,8 +104,15 @@ auto make_positive_octant_reflect_filter_type(const double aRadius,
         return mesh::Mesh{aInput.target_mesh_name.value().mToken, tFixedBlocks};
     };
 
-    return ReflectFilterType{aRadius, aFilterCentering, tSearchFunction, tUnnormalizedWeightFunction,
-                             tTargetMeshFunction};
+    return ReflectFilterType{
+        .mKernelFilterFunctions =
+            KernelFilterFunctions{
+                .mRadius = aRadius,
+                .mFilterCentering = aFilterCentering,
+                .mSearchFunction = tSearchFunction,
+                .mUnnormalizedWeightFunction = tUnnormalizedWeightFunction,
+                .mLoggingName = input_parser::block_name<input_parser::positive_octant_reflect_filter>()},
+        .mTargetMeshFunction = tTargetMeshFunction};
 }
 
 auto validate_source_mesh_in_positive_octant(const input_parser::positive_octant_reflect_filter& /*aInput*/,

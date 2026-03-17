@@ -7,7 +7,7 @@ namespace plato::filter::extension::kernel_filters::test_utilities
 {
 
 auto create_simple_linear_mask_builder(const std::vector<third_party_integration::common::Coordinate>& aCentroids)
-    -> LinearMaskBuilder<input_parser::kernel_filter>
+    -> LinearMaskBuilder
 {
     const auto tCentering = aCentroids.empty() ? input_parser::KernelFilterCenteringTypes::kNodeCentered
                                                : input_parser::KernelFilterCenteringTypes::kElementCentered;
@@ -20,14 +20,14 @@ auto create_simple_linear_mask_builder(const std::vector<third_party_integration
         std::vector<third_party_integration::common::Coordinate>{{0, 0, 0}, {1, 0, 0}, {2, 0, 0}, {3, 0, 0}};
     if (!aCentroids.empty())
     {
-        return LinearMaskBuilder<input_parser::kernel_filter>(SourceColumnVector{tCoordinates},
-                                                              TargetRowVector{aCentroids}, tKernelFilterType,
-                                                              kMaximumConnectivity, boost::mpi::communicator{});
+        return LinearMaskBuilder(SourceColumnVector{tCoordinates}, TargetRowVector{aCentroids},
+                                 tKernelFilterType.mKernelFilterFunctions, kMaximumConnectivity,
+                                 boost::mpi::communicator{});
     }
 
-    return LinearMaskBuilder<input_parser::kernel_filter>(SourceColumnVector{tCoordinates},
-                                                          TargetRowVector{tCoordinates}, tKernelFilterType,
-                                                          kMaximumConnectivity, boost::mpi::communicator{});
+    return LinearMaskBuilder(SourceColumnVector{tCoordinates}, TargetRowVector{tCoordinates},
+                             tKernelFilterType.mKernelFilterFunctions, kMaximumConnectivity,
+                             boost::mpi::communicator{});
 }
 
 LinearMask create_simple_linear_mask(const std::vector<third_party_integration::common::Coordinate>& aCentroids)

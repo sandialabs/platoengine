@@ -65,8 +65,8 @@ namespace detail
     -> std::vector<int>;
 
 ///@brief Function that checks the search results @a aSearchResults to make sure it has all of the ids up to @a aSize
-[[nodiscard]] auto search_results_contain_all_row_ids(const std::vector<int>& aSearchResultIDs, const std::size_t aSize)
-    -> bool;
+[[nodiscard]] auto search_results_contain_all_row_ids(const std::vector<int>& aSearchResultIDs,
+                                                      const std::size_t aSize) -> bool;
 }  // namespace detail
 
 template <typename InputParserType>
@@ -131,10 +131,11 @@ template <typename InputParserType>
         const auto tFilterType = aMakeFunctionLambda(aInput, analysis::AnalysisDomainMesh{aSourceMeshFileName, {}});
         const auto tSourceCoordinates =
             mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.designDomainNodalCoordinates();
-        const auto tTargetCoordinates = detail::center_coordinates(
-            mesh::Mesh{tTargetMeshName.value().mToken, mesh::fixed_blocks(aInput)}, tFilterType.mFilterCentering);
-        const auto tSearchResults = tFilterType.mSearchFunction(TargetRowVector{tTargetCoordinates},
-                                                                SourceColumnVector{tSourceCoordinates}, aCommunicator);
+        const auto tTargetCoordinates =
+            detail::center_coordinates(mesh::Mesh{tTargetMeshName.value().mToken, mesh::fixed_blocks(aInput)},
+                                       tFilterType.mKernelFilterFunctions.mFilterCentering);
+        const auto tSearchResults = tFilterType.mKernelFilterFunctions.mSearchFunction(
+            TargetRowVector{tTargetCoordinates}, SourceColumnVector{tSourceCoordinates}, aCommunicator);
         const auto tLocalSearchResultGlobalIDs = detail::search_result_ids(tSearchResults);
         const auto tGatheredSearchResults = utilities::unique_vector_gather(tLocalSearchResultGlobalIDs, aCommunicator);
         const auto tAllFound =
