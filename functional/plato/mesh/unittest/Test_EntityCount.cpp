@@ -14,6 +14,7 @@ namespace
 
 using third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using third_party_integration::stk_io::test_utilities::Tet4MeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
@@ -167,6 +168,30 @@ TEST_F(MeshWithNodalDensities, TimeSteps)
     const auto tResult = EntityCounts{Mesh{mMeshName}}.timeSteps();
     const auto tExpected = std::vector{1.0};
     EXPECT_EQ(tResult, tExpected);
+}
+
+TEST_F(TwoDNonUniformHexMesh, IsAllTetAndTri)
+{
+    const auto tResult = EntityCounts{Mesh{mMeshFilePath}}.isAllTetAndTri();
+    EXPECT_FALSE(tResult);
+}
+
+TEST_F(TwoDThreeBlockMesh, IsAllTetAndTri)
+{
+    const auto tResult = EntityCounts{Mesh{mMeshFilePath}}.isAllTetAndTri();
+    EXPECT_FALSE(tResult);
+}
+
+TEST_F(TwoBlockMeshOnDisk, IsAllTetAndTri)
+{
+    const auto tResult = EntityCounts{Mesh{mMeshFilePath}}.isAllTetAndTri();
+    EXPECT_FALSE(tResult);
+}
+
+TEST_F(Tet4MeshOnDisk, IsAllTetAndTri)
+{
+    const auto tResult = EntityCounts{Mesh{mMeshFilePath}}.isAllTetAndTri();
+    EXPECT_TRUE(tResult);
 }
 
 }  // namespace plato::mesh::unittest

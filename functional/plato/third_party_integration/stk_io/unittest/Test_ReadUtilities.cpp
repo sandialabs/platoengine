@@ -12,6 +12,7 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 #include "plato/utilities/DataFilePath.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
@@ -150,6 +151,27 @@ TEST_F(NodalDensityMesh, NodalFieldNames)
     EXPECT_EQ(tResult, tGold);
 }
 
+TEST_F(ReadUtilitiesTwoDThreeBlockMesh, UniversalPart)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    const auto& tUniversalPart = universal_part(*tBulkData);
+    ASSERT_EQ(tUniversalPart.size(), 1U) << "Universal part is one big part.";
+    const auto tUniversalPartIDs = node_ids(*tBulkData, tUniversalPart.front());
+
+    const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
+    std::set<std::size_t> tPartNodeIDs;
+    for (const auto& tPart : tParts)
+    {
+        const auto tPartIDs = node_ids(*tBulkData, *tPart);
+        tPartNodeIDs.insert(tPartIDs.begin(), tPartIDs.end());
+    }
+
+    for (const auto& [tPartID, tUniversalID] : utilities::Zip(tPartNodeIDs, tUniversalPartIDs))
+    {
+        EXPECT_EQ(tPartID, tUniversalID);
+    }
+}
+
 TEST_F(ReadUtilitiesTwoDThreeBlockMesh, NumberOfNodesAndElementsFromBulkAndParts)
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
@@ -171,6 +193,43 @@ TEST_F(ReadUtilitiesTwoDThreeBlockMesh, NumberOfNodesAndElementsFromBulkAndParts
         const std::vector<std::size_t> tGold{1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 9U};
         EXPECT_EQ(tGold, tNodalIDs);
     }
+}
+
+TEST_F(ReadUtilitiesTwoDThreeBlockMesh, AllTetOrTri)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
+
+    EXPECT_TRUE(all_tet_or_tri_elements(*tParts.front()));
+    EXPECT_FALSE(all_tet_or_tri_elements(*tParts.back()));
+    EXPECT_FALSE(all_tet_or_tri_elements(*tBulkData));
+}
+
+TEST(ReadUtilities, AllTetOrTriRectangleTriMesh)
+{
+    const auto tBulk = read_mesh_bulk_data(plato::utilities::data_file_path("rectangle_3x4_tri3.cdf").value());
+    EXPECT_TRUE(all_tet_or_tri_elements(*tBulk));
+}
+
+TEST(ReadUtilities, AllTetOrTriBoxHex)
+{
+    const auto tBulk = read_mesh_bulk_data(plato::utilities::data_file_path("box_2x4x8_hex.cdf").value());
+    EXPECT_FALSE(all_tet_or_tri_elements(*tBulk));
+}
+
+TEST(ReadUtilities, AllTetOrTriBoxHexAndTet)
+{
+    const auto tBulk = read_mesh_bulk_data(plato::utilities::data_file_path("box_2x4x10_hex_and_tet.cdf").value());
+    EXPECT_FALSE(all_tet_or_tri_elements(*tBulk));
+    const auto& tParts = tBulk->mesh_meta_data().get_mesh_parts();
+    EXPECT_TRUE(all_tet_or_tri_elements(*tParts.front()));
+    EXPECT_FALSE(all_tet_or_tri_elements(*tParts.back()));
+}
+
+TEST(ReadUtilities, AllTetOrTriBoxTet10)
+{
+    const auto tBulk = read_mesh_bulk_data(plato::utilities::data_file_path("box_3x4x7_tet10.cdf").value());
+    EXPECT_TRUE(all_tet_or_tri_elements(*tBulk));
 }
 
 TEST_F(ReadUtilitiesTwoBlockMeshOnDisk, NumberOfNodesAndElementsFromBulkAndParts)

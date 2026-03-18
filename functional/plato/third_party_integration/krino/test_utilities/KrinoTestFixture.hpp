@@ -3,23 +3,12 @@
 
 #include <gtest/gtest.h>
 
-#include <filesystem>
-
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace plato::third_party_integration::krino::test_utilities
 {
-
-namespace detail
-{
-
-[[nodiscard]] auto get_log_file_name() -> std::string_view;
-
-void initialize_krino();
-
-}  // namespace detail
 
 void test_sensitivity_map(const SensitivityMap& aResult,
                           const SensitivityMap& aGold,
@@ -30,7 +19,7 @@ void four_tri_test_on_background_node_ids(const plato::test_utilities::TestConte
 
 /// @brief Takes a vector of doubles value @a aVector along with a KrinoMesh @a aKrinoMesh and sets the level set field
 /// for all background nodes (fixed or design) to the values in the vector in order of GID.
-/// @pre the environment for krino was initialized by calling 'initialize_environment_for_krino', followed by
+/// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
 /// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh.
 /// @pre Size of `MPI_COMM_WORLD` must be 1.
 [[nodiscard]] auto make_level_set_field_from_vector(
@@ -39,8 +28,10 @@ void four_tri_test_on_background_node_ids(const plato::test_utilities::TestConte
 class KrinoTestFixture : virtual public ::testing::Test
 {
    protected:
-    void SetUp() override { detail::initialize_krino(); }
-    void TearDown() override { std::filesystem::remove(std::filesystem::path{detail::get_log_file_name()}); }
+    void SetUp() override
+    {
+        set_stk_communicator_for_krino(boost::mpi::communicator{MPI_COMM_WORLD, boost::mpi::comm_attach});
+    }
 };
 
 class SensitivityTestKrinoFixture : public KrinoTestFixture

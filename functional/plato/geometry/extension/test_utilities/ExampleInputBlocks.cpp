@@ -14,7 +14,8 @@ auto create_valid_density_topology_geometry_input() -> input_parser::density_top
                                           /*.fixed_blocks=*/{},
                                           /*.filter=*/boost::none,
                                           /*.initial_density_value=*/0.5,
-                                          /*.initial_density_field_name=*/boost::none};
+                                          /*.initial_density_field_name=*/boost::none,
+                                          /*.cut_mesh_density_threshold=*/boost::none};
 }
 
 auto create_valid_level_set_topology_geometry_input() -> input_parser::level_set_topology

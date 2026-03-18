@@ -106,6 +106,21 @@ stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const P
 [[nodiscard]] auto bounding_box(const stk::mesh::BulkData& aBulkData, const PartReferenceVector& aParts)
     -> common::BoundingBox;
 
+/// @brief Returns the part associated with the entire @a aBulk data.
+[[nodiscard]] auto universal_part(const stk::mesh::BulkData& aBulk) -> PartReferenceVector;
+
+/// @brief Returns true if all the elements in the bulk data @a aBulk are tet or tri types.
+[[nodiscard]] auto all_tet_or_tri_elements(const stk::mesh::BulkData& aBulk) -> bool;
+
+/// @brief Returns true if the part @a aPart has a topology type of tet or tri.
+[[nodiscard]] auto all_tet_or_tri_elements(const stk::mesh::Part& aPart) -> bool;
+
+namespace detail
+{
+/// @brief Returns the mesh selector for the given PartReferenceVector @a aParts.
+[[nodiscard]] auto parts_to_selector(const PartReferenceVector& aParts) -> stk::mesh::Selector;
+}  // namespace detail
+
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

@@ -19,7 +19,6 @@ namespace
 {
 const auto kLevelSetInputFixture =
     geometry::extension::test_utilities::create_valid_level_set_topology_geometry_input();
-const auto kKrinoLogFileName = std::filesystem::path{"Krino_Output.txt"};
 
 }  // namespace
 
@@ -28,14 +27,10 @@ class LevelSetTopologyBaseFixture : virtual public ::testing::Test
    protected:
     void SetUp() override
     {
-        static bool tFirstTime{true};
-        if (tFirstTime)
-        {
-            third_party_integration::krino::initialize_environment_for_krino(kKrinoLogFileName, MPI_COMM_SELF);
-            tFirstTime = false;
-        }
+        third_party_integration::krino::set_stk_communicator_for_krino(
+            boost::mpi::communicator{MPI_COMM_WORLD, boost::mpi::comm_attach});
     }
-    void TearDown() override { std::filesystem::remove(kKrinoLogFileName); }
+    void TearDown() override {}
 };
 
 class LevelSetTopologyFixture : public LevelSetTopologyBaseFixture

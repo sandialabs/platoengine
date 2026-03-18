@@ -33,7 +33,6 @@ namespace
 {
 namespace tpik = third_party_integration::krino;
 
-constexpr auto kKrinoLogFileName = std::string_view{"Krino_Output.txt"};
 constexpr auto kKrinoCutMeshBaseName = std::string_view{"krino_cut_mesh.exo"};
 
 constexpr auto kMeshNameAccessor =
@@ -53,16 +52,6 @@ constexpr auto kMeshNameAccessor =
     };
 }
 
-void initialize_krino()
-{
-    static bool tIsInitialized = false;
-    if (!tIsInitialized)
-    {
-        tIsInitialized = true;
-        tpik::initialize_environment_for_krino(kKrinoLogFileName, MPI_COMM_WORLD);
-    }
-}
-
 [[nodiscard]] auto make_level_set_geometry_from_input(const library::ValidatedGeometryInput& aGeometryInput)
     -> library::GeometryFunction
 {
@@ -80,7 +69,7 @@ void initialize_krino()
     input_parser::block_name<input_parser::level_set_topology>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
     {
-        initialize_krino();
+        tpik::set_stk_communicator_for_krino(boost::mpi::communicator{MPI_COMM_WORLD, boost::mpi::comm_attach});
         const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
         return library::FactoryTypes{make_level_set_geometry_from_input(aGeometryInput), initial_guess(tInput),
                                      bounds(tInput), make_topology_output(aGeometryInput)};
@@ -118,6 +107,7 @@ void initialize_krino()
         [](const input_parser::level_set_topology& aInput)
         { return detail::validate_exactly_one_initial_level_set_specifier(aInput); },
         [](const input_parser::level_set_topology& aInput) { return validate_initial_field_source(aInput); },
+        [](const input_parser::level_set_topology& aInput) { return detail::validate_mesh_is_tet_or_tri(aInput); },
     };
 
 [[nodiscard]] auto sphere_pattern(const input_parser::level_set_topology& aInput) -> tpik::SpherePatternData
@@ -371,6 +361,16 @@ std::optional<std::string> validate_exactly_one_initial_level_set_specifier(
                                       "'initial_field_name'.");
     }
 
+    return std::nullopt;
+}
+
+auto validate_mesh_is_tet_or_tri(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
+{
+    if (aInput.mesh_name.has_value() && std::filesystem::exists(aInput.mesh_name.value().mToken))
+    {
+        const auto tMesh = mesh::Mesh{aInput.mesh_name.value().mToken, {}};
+        return validate_mesh_is_tris_or_tets<input_parser::level_set_topology>(tMesh);
+    }
     return std::nullopt;
 }
 

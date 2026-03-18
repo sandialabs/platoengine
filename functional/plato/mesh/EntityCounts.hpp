@@ -54,6 +54,9 @@ struct EntityCounts : public Mesh
 
     /// @brief Returns a vector of the time steps contained in the mesh.
     [[nodiscard]] auto timeSteps() const -> std::vector<double>;
+
+    /// @brief Returns `true` if the mesh contains only tet or tri type elements.
+    [[nodiscard]] auto isAllTetAndTri() const -> bool;
 };
 
 }  // namespace plato::mesh

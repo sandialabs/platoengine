@@ -49,17 +49,17 @@ struct LevelSetPrimitives
 };
 
 ///@brief Initializes the krino composite surface so that primitive surface types can be added to it
-///@pre krino has been initialized using 'initialize_environment_for_krino'
+///@pre krino has been initialized using 'set_stk_communicator_for_krino'
 [[nodiscard]] auto make_krino_composite_surface() -> ::krino::Composite_Surface;
 
 ///@brief Take a vector of Spheres @a aSpheres and convert them to a krino native type and add them to the krino
 /// composite surface @a aSurfaces.
-///@pre krino has been initialized using 'initialize_environment_for_krino'
+///@pre krino has been initialized using 'set_stk_communicator_for_krino'
 void append_spheres(::krino::Composite_Surface& aSurfaces, const std::vector<Sphere>& aSpheres);
 
 ///@brief Take a vector of Planes @a aPlanes and convert them to a krino native type and add them to the krino composite
 /// surface @a aSurfaces.
-///@pre krino has been initialized using 'initialize_environment_for_krino'
+///@pre krino has been initialized using 'set_stk_communicator_for_krino'
 void append_planes(::krino::Composite_Surface& aSurfaces, const std::vector<Plane>& aPlanes);
 
 }  // namespace plato::third_party_integration::krino
