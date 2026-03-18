@@ -2,13 +2,12 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <optional>
-#include <variant>
 
-#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/geometry/extension/DensityResultToCutMesh.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
@@ -100,7 +99,9 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
         [](const input_parser::density_topology& aInput) { return detail::validate_initial_density_value(aInput); },
         [](const input_parser::density_topology& aInput) { return validate_initial_field_source(aInput); },
         [](const input_parser::density_topology& aInput)
-        { return detail::validate_exactly_one_initial_topology_specifier(aInput); }};
+        { return detail::validate_exactly_one_initial_topology_specifier(aInput); },
+        [](const input_parser::density_topology& aInput)
+        { return detail::validate_mesh_is_tet_or_tri_when_cutting(aInput); }};
 
 }  // namespace
 
@@ -180,12 +181,18 @@ void DensityTopology::output(const linear_algebra::DynamicVector<double>& aSolut
                              const output::OutputInfo& aOutputInfo)
 {
     [[maybe_unused]] const auto tTaskLogger = library::output_task_log<input_parser::density_topology>();
-    const auto [tAnalysisDomainMesh, tFilteredFieldAnalysisDomainMesh] =
+    auto [tAnalysisDomainMesh, tFilteredFieldAnalysisDomainMesh] =
         solution_and_filtered_solution_mesh(aInput, aFilterFunction, aSolution);
     output_field(tAnalysisDomainMesh, restart_file_name(aInput), density_mesh_field_name(), density_fixed_value(),
                  aOutputInfo);
     output_field(tFilteredFieldAnalysisDomainMesh, output_name(aInput), filtered_density_mesh_field_name(),
                  density_fixed_value(), aOutputInfo);
+
+    if (aInput.cut_mesh_name.has_value())
+    {
+        write_density_result_as_cut_mesh(std::move(tFilteredFieldAnalysisDomainMesh), aInput,
+                                         boost::mpi::communicator{});
+    }
 }
 
 namespace detail
@@ -209,6 +216,18 @@ auto validate_exactly_one_initial_topology_specifier(const input_parser::density
         return utilities::concatenate(input_parser::block_name<input_parser::density_topology>(),
                                       ": You must specify exactly one initial topology value. Either "
                                       "'initial_density_value' or 'initial_field_name'.");
+    }
+    return std::nullopt;
+}
+
+auto validate_mesh_is_tet_or_tri_when_cutting(const input_parser::density_topology& aInput)
+    -> std::optional<std::string>
+{
+    if (aInput.mesh_name.has_value() && std::filesystem::exists(aInput.mesh_name.value().mToken) &&
+        aInput.cut_mesh_name.has_value())
+    {
+        const auto tMesh = mesh::Mesh{aInput.mesh_name.value().mToken, {}};
+        return validate_mesh_is_tris_or_tets<input_parser::density_topology>(tMesh);
     }
     return std::nullopt;
 }

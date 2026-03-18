@@ -32,7 +32,6 @@ namespace plato::third_party_integration::krino
 namespace
 {
 constexpr auto kSortByGlobalId = true;
-constexpr auto kOutputDescription = std::string_view{"out>null dout>null pout>null"};
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"PLATO_LS"};
 const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
@@ -85,16 +84,9 @@ void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData& aMeta)
 
 }  // namespace
 
-void initialize_environment_for_krino(const std::filesystem::path& aLogFile, const MPI_Comm& aComm)
+void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicator)
 {
-    // Initialize STK environment
-    stk::EnvData::instance().m_parallelComm = aComm;
-    MPI_Comm_size(stk::EnvData::parallel_comm(), &stk::EnvData::instance().m_parallelSize);
-    MPI_Comm_rank(stk::EnvData::parallel_comm(), &stk::EnvData::instance().m_parallelRank);
-
-    // Initialize krino logging
-    sierra::Diag::registerWriter(std::string{aLogFile}, ::krinolog, ::krino::theDiagWriterParser());
-    stk::bind_output_streams(std::string{kOutputDescription});
+    stk::EnvData::instance().initialize(aCommunicator);
 }
 
 auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator

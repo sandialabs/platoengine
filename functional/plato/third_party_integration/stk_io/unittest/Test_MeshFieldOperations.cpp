@@ -132,4 +132,33 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverageElementProjection)
     EXPECT_EQ(tNodalProjection, tExpected);
 }
 
+TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverageElementProjectionOnPart)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    const auto tPart = tBulkData->mesh_meta_data().get_mesh_parts().front();
+    const auto tPartReferenceVector = PartReferenceVector{{std::cref(*tPart)}};
+    const auto tElementValues = std::vector{3.0, 6.0, 9.0, 12.0};
+
+    const auto tNodalProjection = nodal_average_element_projection(tElementValues, *tBulkData, tPartReferenceVector);
+    // Block 1 is 4 tris aligned with cardinal directions W,S,E,N that make a rectangle. The nodes in order go: NW, NE,
+    // SW, SE, Center. Nodal average element projection divides the element value by the number of nodes (3) and
+    // accumulates the element contributions to that node.
+    const auto tExpected = std::vector{5.0, 7.0, 3.0, 5.0, 10.0};
+    EXPECT_EQ(tNodalProjection, tExpected);
+}
+
+TEST_F(MeshFieldOperationsTwoDThreeBlock, ElementAveragedNodalValues)
+{
+    const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
+    const auto tPart = tBulkData->mesh_meta_data().get_mesh_parts().front();
+    const auto tPartReferenceVector = PartReferenceVector{{std::cref(*tPart)}};
+    const auto tNodalValues = std::vector{3.0, 6.0, 9.0, 12.0, 15.0};
+
+    const auto tElementAveragedNodalValues =
+        element_averaged_nodal_values(tNodalValues, *tBulkData, tPartReferenceVector);
+    // Block 1 is 4 tris aligned with cardinal directions W,S,E,N that make a rectangle. The nodes in order go: NW, NE,
+    // SW, SE, Center.
+    const auto tExpected = std::vector{9.0, 12.0, 11.0, 8.0};
+    EXPECT_EQ(tElementAveragedNodalValues, tExpected);
+}
 }  // namespace plato::third_party_integration::stk_io::unittest

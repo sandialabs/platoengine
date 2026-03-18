@@ -28,28 +28,13 @@ namespace
 
 constexpr bool kSortedByID = true;
 
-stk::mesh::Selector parts_to_selector(const PartReferenceVector& aParts)
-{
-    return std::accumulate(aParts.cbegin(), aParts.cend(), stk::mesh::Selector{},
-                           [](stk::mesh::Selector aSelector, const auto tPart)
-                           {
-                               aSelector |= tPart.get();
-                               return aSelector;
-                           });
-}
-
 template <stk::topology::rank_t Rank>
 unsigned int size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
 {
     std::vector<size_t> tEntityCounts;
-    const auto tSelector = parts_to_selector(aParts);
+    const auto tSelector = detail::parts_to_selector(aParts);
     stk::mesh::comm_mesh_counts(aBulk, tEntityCounts, &tSelector);
     return tEntityCounts[Rank];
-}
-
-PartReferenceVector universal_part(const stk::mesh::BulkData& aBulk)
-{
-    return PartReferenceVector{std::cref(aBulk.mesh_meta_data().universal_part())};
 }
 
 [[nodiscard]] auto create_reading_iobroker(const std::filesystem::path& aInputMeshName)
@@ -135,7 +120,7 @@ auto entity_ids(const stk::mesh::BulkData& aBulk,
                 const stk::topology::rank_t aEntityType) -> std::vector<std::size_t>
 {
     auto tEntityVector = stk::mesh::EntityVector{};
-    stk::mesh::get_entities(aBulk, aEntityType, parts_to_selector(aParts), tEntityVector, kSortedByID);
+    stk::mesh::get_entities(aBulk, aEntityType, detail::parts_to_selector(aParts), tEntityVector, kSortedByID);
 
     auto tIDs = std::vector<std::size_t>{};
     tIDs.reserve(tEntityVector.size());
@@ -178,7 +163,8 @@ namespace
 [[nodiscard]] auto stk_nodal_coordinate_view(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
 {
     auto tNodeEntity = stk::mesh::EntityVector{};
-    stk::mesh::get_entities(aBulk, stk::topology::NODE_RANK, parts_to_selector(aParts), tNodeEntity, kSortedByID);
+    stk::mesh::get_entities(aBulk, stk::topology::NODE_RANK, detail::parts_to_selector(aParts), tNodeEntity,
+                            kSortedByID);
     const auto& tCoordinateField = *aBulk.mesh_meta_data().coordinate_field();
 
     const auto tIndices = std::views::iota(0U, tNodeEntity.size());
@@ -231,7 +217,7 @@ stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const s
 stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
 {
     stk::mesh::EntityVector tElements;
-    stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, parts_to_selector(aParts), tElements, kSortedByID);
+    stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, detail::parts_to_selector(aParts), tElements, kSortedByID);
     return tElements;
 }
 
@@ -289,4 +275,34 @@ auto bounding_box(const stk::mesh::BulkData& aBulkData, const PartReferenceVecto
     return common::bounding_box(tCoordinates);
 }
 
+auto universal_part(const stk::mesh::BulkData& aBulk) -> PartReferenceVector
+{
+    return PartReferenceVector{std::cref(aBulk.mesh_meta_data().universal_part())};
+}
+
+auto all_tet_or_tri_elements(const stk::mesh::BulkData& aBulk) -> bool
+{
+    const auto tParts = aBulk.mesh_meta_data().get_mesh_parts();
+    return std::all_of(tParts.begin(), tParts.end(), [](const auto& aPart) { return all_tet_or_tri_elements(*aPart); });
+}
+
+auto all_tet_or_tri_elements(const stk::mesh::Part& aPart) -> bool
+{
+    const auto tTopology = aPart.topology();
+    return !stk::isQuadrilateralElement(tTopology) && !stk::isHexahedronElement(tTopology) &&
+           !stk::is_quad_side(tTopology);
+}
+
+namespace detail
+{
+auto parts_to_selector(const PartReferenceVector& aParts) -> stk::mesh::Selector
+{
+    return std::accumulate(aParts.cbegin(), aParts.cend(), stk::mesh::Selector{},
+                           [](stk::mesh::Selector aSelector, const auto tPart)
+                           {
+                               aSelector |= tPart.get();
+                               return aSelector;
+                           });
+}
+}  // namespace detail
 }  // namespace plato::third_party_integration::stk_io

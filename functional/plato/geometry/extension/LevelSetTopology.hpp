@@ -195,6 +195,10 @@ namespace detail
 [[nodiscard]] std::optional<std::string> validate_exactly_one_initial_level_set_specifier(
     const input_parser::level_set_topology& aInput);
 
+/// @brief Validates that the mesh in 'mesh_name' is a tet or tri mesh
+[[nodiscard]] auto validate_mesh_is_tet_or_tri(const input_parser::level_set_topology& aInput)
+    -> std::optional<std::string>;
+
 using StartingLimits = utilities::NamedType<std::pair<double, double>, struct StartingLimitsTag>;
 using EndingLimits = utilities::NamedType<std::pair<double, double>, struct EndingLimitsTag>;
 

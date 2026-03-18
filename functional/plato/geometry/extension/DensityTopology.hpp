@@ -26,6 +26,8 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (double, initial_density_value, "Method to specify a uniform initial density value to give to the controls. Omit if 'initial_density_field_name' is specified.")
     (plato::input_parser::IdentifierString, initial_field_name, "Method to read the controls from the specified field name within the 'mesh_name' exodus mesh. "
                                                                 "Omit if 'initial_density_value' is specified.")
+    (plato::input_parser::FileName, cut_mesh_name, "Optional field specifying the name of the exodus file to create when creating a conforming cut mesh of the density field. "
+                                                    "A value of 0.5 is used as the threshold for an iso-surface. This option only works with tet and tri meshes.") 
 )
 // clang-format on
 
@@ -79,13 +81,17 @@ class DensityTopology
 namespace detail
 {
 
-/// @brief Validates that the `initial_density_value` field in @a aInput has a value.
+/// @brief Validates that the `initial_density_value` field in @a aInput if it has a value.
 [[nodiscard]] auto validate_initial_density_value(const input_parser::density_topology& aInput)
     -> std::optional<std::string>;
 
 /// @brief Validates that exactly one specifier for the initial topology is used, the `initial_density_value` or
 /// `initial_field_name`
 [[nodiscard]] auto validate_exactly_one_initial_topology_specifier(const input_parser::density_topology& aInput)
+    -> std::optional<std::string>;
+
+/// @brief Validates that the mesh in 'mesh_name' is a tet or tri mesh when using a 'cut_mesh_density_threshold'
+[[nodiscard]] auto validate_mesh_is_tet_or_tri_when_cutting(const input_parser::density_topology& aInput)
     -> std::optional<std::string>;
 
 }  // namespace detail

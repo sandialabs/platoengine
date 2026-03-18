@@ -39,7 +39,7 @@ using LevelSetFieldReference = utilities::NamedType<::krino::FieldRef, struct Le
 ///
 /// @pre The environment for krino must be initialized and set up as follows:
 /// @code{.cpp}
-/// initialize_environment_for_krino(...);
+/// set_stk_communicator_for_krino(...);
 /// read_and_setup_for_decomposition(...);
 /// cut_mesh(...);
 /// @endcode

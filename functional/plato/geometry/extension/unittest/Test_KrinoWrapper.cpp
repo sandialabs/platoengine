@@ -34,18 +34,12 @@ const auto kPlaneNearBackgroundNode = tpik::Plane{{-1, -1, 0}, 1.0e-4};
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 
 constexpr auto kTemporaryMeshFile = std::string_view{"tmp.exo"};
-const std::string_view kLogFile = "Krino_Test.txt";
 
 using tpik::test_utilities::KrinoTestFixture;
 
 void initialize_krino()
 {
-    static bool tFirstTime{true};
-    if (tFirstTime)
-    {
-        tpik::initialize_environment_for_krino(kLogFile, MPI_COMM_SELF);
-        tFirstTime = false;
-    }
+    tpik::set_stk_communicator_for_krino(boost::mpi::communicator{MPI_COMM_WORLD, boost::mpi::comm_attach});
 }
 
 [[nodiscard]] auto create_krino_wrapper_test_command_generator() -> third_party_integration::stk_io::CommandGenerator

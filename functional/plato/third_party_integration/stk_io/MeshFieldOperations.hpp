@@ -22,6 +22,12 @@ namespace plato::third_party_integration::stk_io
 [[nodiscard]] auto element_averaged_nodal_values(const std::ranges::random_access_range auto& aNodalScalarField,
                                                  const stk::mesh::BulkData& aBulkData) -> std::vector<double>;
 
+/// @brief Given a range @a aNodalScalarField, whose size corresponds to the number of nodes the parts reference
+/// vector @a aParts for a bulk data @a aBulk, compute the element-wise nodal average of the field.
+[[nodiscard]] auto element_averaged_nodal_values(const std::ranges::random_access_range auto& aNodalScalarField,
+                                                 const stk::mesh::BulkData& aBulkData,
+                                                 const PartReferenceVector& aParts) -> std::vector<double>;
+
 /// @brief Given a range @a aElementScalarField, whose size corresponds to the number of elements in @a aBulk, this
 /// computes the projection of the element values to the nodes, using the nodal average to weight each contribution.
 /// @note This operation is essentially the adjoint of element_averaged_nodal_value.
@@ -31,6 +37,13 @@ namespace plato::third_party_integration::stk_io
 /// returned vector will be sorted in ascending global node ID order.
 [[nodiscard]] auto nodal_average_element_projection(const std::ranges::random_access_range auto& aElementScalarField,
                                                     const stk::mesh::BulkData& aBulkData) -> std::vector<double>;
+
+/// @brief Given a range @a aElementScalarField, whose size corresponds to the number of elements in the parts reference
+/// vector @a aParts for a bulk data @a aBulk, this computes the projection of the element values to the nodes, using
+/// the nodal average to weight each contribution.
+[[nodiscard]] auto nodal_average_element_projection(const std::ranges::random_access_range auto& aElementScalarField,
+                                                    const stk::mesh::BulkData& aBulkData,
+                                                    const PartReferenceVector& aParts) -> std::vector<double>;
 
 namespace detail
 {
@@ -59,35 +72,54 @@ namespace detail
 }
 }  // namespace detail
 
+namespace
+{
+/// @brief Return the element entities associated with the parts in @a aParts and the bulk data @a aBulkData
+[[nodiscard]] inline auto element_entities(const stk::mesh::BulkData& aBulkData, const PartReferenceVector& aParts)
+    -> stk::mesh::EntityVector
+{
+    auto tEntities = stk::mesh::EntityVector{};
+    constexpr auto tSortedByGlobalID = true;
+    stk::mesh::get_entities(aBulkData, stk::topology::ELEMENT_RANK, detail::parts_to_selector(aParts), tEntities,
+                            tSortedByGlobalID);
+    return tEntities;
+}
+}  // namespace
+
 auto element_averaged_nodal_values(const std::ranges::random_access_range auto& aNodalScalarField,
                                    const stk::mesh::BulkData& aBulkData) -> std::vector<double>
 {
-    const auto tGlobalNodeIDs = node_ids(aBulkData, aBulkData.mesh_meta_data().universal_part());
+    return element_averaged_nodal_values(aNodalScalarField, aBulkData, universal_part(aBulkData));
+}
+
+auto element_averaged_nodal_values(const std::ranges::random_access_range auto& aNodalScalarField,
+                                   const stk::mesh::BulkData& aBulkData,
+                                   const PartReferenceVector& aParts) -> std::vector<double>
+{
+    const auto tGlobalNodeIDs = node_ids(aBulkData, aParts);
     assert(tGlobalNodeIDs.size() == static_cast<std::size_t>(aNodalScalarField.size()));
 
-    auto tNodalAverage = utilities::reserved_container<std::vector<double>>(element_size(aBulkData));
-    std::transform(aBulkData.begin_entities(stk::topology::ELEMENT_RANK),
-                   aBulkData.end_entities(stk::topology::ELEMENT_RANK), std::back_inserter(tNodalAverage),
-                   [&](const auto& aElement) {
-                       return detail::single_element_nodal_average(aElement.second, aNodalScalarField, tGlobalNodeIDs,
-                                                                   aBulkData);
-                   });
+    auto tNodalAverage = utilities::reserved_container<std::vector<double>>(element_size(aBulkData, aParts));
+    const auto tElementEntities = element_entities(aBulkData, aParts);
+    std::transform(
+        tElementEntities.begin(), tElementEntities.end(), std::back_inserter(tNodalAverage), [&](const auto& aElement)
+        { return detail::single_element_nodal_average(aElement, aNodalScalarField, tGlobalNodeIDs, aBulkData); });
     return tNodalAverage;
 }
 
 auto nodal_average_element_projection(const std::ranges::random_access_range auto& aElementScalarField,
                                       const stk::mesh::BulkData& aBulkData) -> std::vector<double>
 {
-    const auto tElementEntities = [&aBulkData]()
-    {
-        auto tEntities = stk::mesh::EntityVector{};
-        constexpr auto tSortedByGlobalID = true;
-        stk::mesh::get_entities(aBulkData, stk::topology::ELEMENT_RANK, tEntities, tSortedByGlobalID);
-        return tEntities;
-    }();
+    return nodal_average_element_projection(aElementScalarField, aBulkData, universal_part(aBulkData));
+}
 
+auto nodal_average_element_projection(const std::ranges::random_access_range auto& aElementScalarField,
+                                      const stk::mesh::BulkData& aBulkData,
+                                      const PartReferenceVector& aParts) -> std::vector<double>
+{
+    const auto tElementEntities = element_entities(aBulkData, aParts);
     assert(aElementScalarField.size() == tElementEntities.size());
-    const auto tGlobalNodeIDs = node_ids(aBulkData, aBulkData.mesh_meta_data().universal_part());
+    const auto tGlobalNodeIDs = node_ids(aBulkData, aParts);
     auto tNodalProjection = std::vector<double>(tGlobalNodeIDs.size(), 0.0);
 
     for (const auto [tValue, tElementEntity] : utilities::Zip{aElementScalarField, tElementEntities})
