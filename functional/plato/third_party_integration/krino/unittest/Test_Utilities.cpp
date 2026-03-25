@@ -206,4 +206,19 @@ TEST_F(KrinoTestFixture, GetLevelSetValuesMakeFromVector)
     std::filesystem::remove(kMeshName);
 }
 
+TEST_F(KrinoTestFixture, MakeLevelSetFieldFromPrimitives)
+{
+    const auto tKrinoMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
+
+    const auto tDownwardPlanePrimitives =
+        LevelSetPrimitives{.mPlanes = {Plane{.mNormal = {0, -1, 0}, .mOffset = 0.5}}, .mSpheres = {}};
+
+    const auto tLevelSetField = make_level_set_field_from_primitives(tDownwardPlanePrimitives, tKrinoMesh->bulk_data());
+
+    const auto tLevelSetValues = get_level_set_values(*tKrinoMesh, tLevelSetField);
+    const auto tGoldLevelSetValues = std::unordered_map<std::size_t, double>{
+        {1, 0.5}, {2, 0.5}, {4, -0.5}, {5, -0.5}, {6, -1.5}, {7, 1.5}};  // distances of nodes on the mesh from plane
+    EXPECT_EQ(tLevelSetValues, tGoldLevelSetValues);
+}
+
 }  // namespace plato::third_party_integration::krino::unittest
