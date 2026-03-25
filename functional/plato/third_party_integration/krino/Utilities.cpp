@@ -8,6 +8,7 @@
 #include <Akri_LevelSetPolicy.hpp>  //LSPerInterfacePolicy
 #include <Akri_LevelSetShapeSensitivities.hpp>
 #include <Akri_MeshHelpers.hpp>           //activate_all_entities
+#include <Akri_NodalGradient.hpp>         // get_nodal_gradient_field_name
 #include <Akri_NodalSurfaceDistance.hpp>  //compute_nodal_surface_distance
 #include <Akri_OutputUtils.hpp>
 #include <iterator>
@@ -31,10 +32,12 @@ namespace plato::third_party_integration::krino
 {
 namespace
 {
+constexpr bool kDoNormalGradients = true;
 constexpr auto kSortByGlobalId = true;
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"PLATO_LS"};
-const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
+// const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
+const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS"};
 
 [[nodiscard]] bool include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart)
 {
@@ -56,7 +59,7 @@ const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS", "PLATO_L
     return aActivePart & stk::mesh::selectUnion(tOutputParts);
 }
 
-void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData& aMeta)
+void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta)
 {
     ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aMeta);
     const ::krino::FieldRef tCoordsField = aMeta.coordinate_field();
@@ -64,9 +67,29 @@ void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData& aMeta)
     tCdfemSupport.set_coords_field(tCoordsField);
     tCdfemSupport.add_edge_interpolation_field(tCoordsField);
     tCdfemSupport.register_parent_node_ids_field();
-    ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta,
-                                                                  ::krino::Phase_Support::get_levelset_fields(aMeta));
+
+    if (kDoNormalGradients)
+    {
+        for (auto& lsField : ::krino::Phase_Support::get_levelset_fields(aMeta))
+        {
+            // ::krino::FieldRef nodalGrad = ::krino::register_nodal_gradient_for_scalar_field(aMeta, lsField.isovar);
+            const ::krino::FieldType& vecType =
+                (aMeta.spatial_dimension() == 3) ? ::krino::FieldType::VECTOR_3D : ::krino::FieldType::VECTOR_2D;
+            ::krino::AuxMetaData& auxMeta = ::krino::AuxMetaData::get(aMeta);
+            ::krino::FieldRef nodalGrad =
+                auxMeta.register_stk_field(::krino::get_nodal_gradient_field_name(lsField.isovar.name()), vecType,
+                                           stk::topology::NODE_RANK, 1, 1, stk::mesh::selectField(lsField.isovar));
+
+            tCdfemSupport.add_interpolation_field(nodalGrad);
+        }
+    }
+    else
+    {
+        ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(
+            aMeta, ::krino::Phase_Support::get_levelset_fields(aMeta));
+    }
     tCdfemSupport.register_cdfem_snap_displacements_field();
+
     tCdfemSupport.finalize_fields();
 }
 
@@ -178,10 +201,27 @@ void cut_mesh(stk::mesh::BulkData& aBulkData,
     tCdfemSupport.set_snapping_sharp_feature_angle_in_degrees(aSnappingParameters.mSharpFeatureAngle);
     tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength);
     auto& tPhaseSupport = ::krino::Phase_Support::get(tMeta);
-    const auto tSnapLevelSetFields = ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aLevelSetFields);
-    auto tInterfaceGeometry =
-        ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
-                                          tCdfemSupport, tPhaseSupport, tSnapLevelSetFields);
+
+    std::unique_ptr<::krino::InterfaceGeometry> tInterfaceGeometry;
+    if (kDoNormalGradients)
+    {
+        for (auto& lsField : ::krino::Phase_Support::get_levelset_fields(tMeta))
+        {
+            ::krino::update_nodal_gradient(aBulkData, tCdfemSupport.get_coords_field(), lsField.isovar);
+        }
+        tInterfaceGeometry =
+            ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
+                                              tCdfemSupport, tPhaseSupport, aLevelSetFields);
+    }
+    else
+    {
+        const auto tSnapLevelSetFields =
+            ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aLevelSetFields);
+        tInterfaceGeometry =
+            ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
+                                              tCdfemSupport, tPhaseSupport, tSnapLevelSetFields);
+    }
+
     tAuxMeta.clear_force_64bit_flag();
     ::krino::CDMesh::decompose_mesh(aBulkData, *tInterfaceGeometry);
 }
