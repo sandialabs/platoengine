@@ -62,6 +62,10 @@ struct MeshQuantities : public Mesh
     /// sorted by ascending global node ID.
     [[nodiscard]] auto nodalAverageElementProjection(
         const std::ranges::random_access_range auto& aElementScalarField) const -> std::vector<double>;
+
+    /// @brief Computes the projection of an element field to the nodes of a mesh using the nodal average.
+    [[nodiscard]] auto designDomainNodalAverageElementProjection(
+        const std::ranges::random_access_range auto& aElementScalarField) const -> std::vector<double>;
 };
 
 auto MeshQuantities::elementAveragedNodalValues(const std::ranges::random_access_range auto& aScalarField) const
@@ -74,6 +78,13 @@ auto MeshQuantities::nodalAverageElementProjection(
     const std::ranges::random_access_range auto& aElementScalarField) const -> std::vector<double>
 {
     return third_party_integration::stk_io::nodal_average_element_projection(aElementScalarField, bulkData());
+}
+
+auto MeshQuantities::designDomainNodalAverageElementProjection(
+    const std::ranges::random_access_range auto& aElementScalarField) const -> std::vector<double>
+{
+    return third_party_integration::stk_io::nodal_average_element_projection(aElementScalarField, bulkData(),
+                                                                             designDomainBlocks());
 }
 
 }  // namespace plato::mesh

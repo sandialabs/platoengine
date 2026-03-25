@@ -57,7 +57,7 @@ TEST(SweptFilter, MakeSweptFilterTypeSearchFunction)
         TargetRowVector{tCoordinates}, SourceColumnVector{tCoordinates}, CylinderAxis{kDirection * tDimension},
         CylinderRadius{kRadius}, boost::mpi::communicator{});
 
-    const auto tFilterInfoSearchResults = tFilterType.mSearchFunction(
+    const auto tFilterInfoSearchResults = tFilterType.mKernelFilterFunctions.mSearchFunction(
         TargetRowVector{tCoordinates}, SourceColumnVector{tCoordinates}, boost::mpi::communicator{});
     EXPECT_EQ(tSearchResultsGold, tFilterInfoSearchResults);
 }
@@ -70,8 +70,8 @@ TEST(SweptFilter, MakeSweptFilterTypeUnnormalizedWeightFunction)
         detail::cylinder_ramp_weight(detail::CylinderCenter{kSecondCoordinate}, CylinderAxis{kDirection},
                                      CylinderRadius{kRadius}, detail::QueryLocation{kZerothCoordinate});
 
-    const auto tFilterInfoUnnormalizedWeight =
-        tFilterType.mUnnormalizedWeightFunction(SourcePoint{kZerothCoordinate}, TargetPoint{kSecondCoordinate});
+    const auto tFilterInfoUnnormalizedWeight = tFilterType.mKernelFilterFunctions.mUnnormalizedWeightFunction(
+        SourcePoint{kZerothCoordinate}, TargetPoint{kSecondCoordinate});
     EXPECT_EQ(tUnnormalizedWeightGold, tFilterInfoUnnormalizedWeight);
 }
 

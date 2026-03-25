@@ -223,6 +223,18 @@ TEST_F(MeshQuantitiesThreeDTwoBlockTetMesh, MeshQuantitiesNodalAverageElementPro
     EXPECT_EQ(tNodalAverage, tExpected);
 }
 
+TEST_F(TwoDThreeBlockMesh, MeshQuantitiesNodalAverageElementProjectionOnPart)
+{
+    const auto tMesh = MeshQuantities{Mesh{mMeshFilePath, {mBlockNames.at(1), mBlockNames.at(2)}}};
+    const auto tElementValues = std::vector{3.0, 6.0, 9.0, 12.0};
+    const auto tNodalProjection = tMesh.designDomainNodalAverageElementProjection(tElementValues);
+    // Block 1 is 4 tris aligned with cardinal directions W,S,E,N that make a rectangle. The nodes in order go: NW, NE,
+    // SW, SE, Center. Nodal average element projection divides the element value by the number of nodes (3) and
+    // accumulates the element contributions to that node.
+    const auto tExpected = std::vector{5.0, 7.0, 3.0, 5.0, 10.0};
+    EXPECT_EQ(tNodalProjection, tExpected);
+}
+
 TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
 {
     const auto tGradientCheckParameters =
@@ -232,7 +244,7 @@ TEST_F(OneBlock3x1x1HexMesh, MeshQuantitiesVolumeNodalSensitivities_GradientChec
                              tFirstOrderTruncationErrorTolerance);
 }
 
-TEST_F(TwoBlockMeshOnDisk, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
+TEST_F(TwoBlockMeshOnDisk, MeshQuantitiesVolumeNodalSensitivitiesGradientCheck)
 {
     const auto tGradientCheckParameters =
         plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 6, .mInitialStepSize = 1.0};
@@ -241,7 +253,7 @@ TEST_F(TwoBlockMeshOnDisk, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
                              tFirstOrderTruncationErrorTolerance);
 }
 
-TEST_F(TwoDNonUniformHexMesh, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
+TEST_F(TwoDNonUniformHexMesh, MeshQuantitiesVolumeNodalSensitivitiesGradientCheck)
 {
     const auto tGradientCheckParameters =
         plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 6, .mInitialStepSize = 1.0};
@@ -250,7 +262,7 @@ TEST_F(TwoDNonUniformHexMesh, MeshQuantitiesVolumeNodalSensitivities_GradientChe
                              tFirstOrderTruncationErrorTolerance);
 }
 
-TEST_F(TwoDThreeBlockMesh, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
+TEST_F(TwoDThreeBlockMesh, MeshQuantitiesVolumeNodalSensitivitiesGradientCheck)
 {
     const auto tGradientCheckParameters =
         plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
@@ -259,7 +271,7 @@ TEST_F(TwoDThreeBlockMesh, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
                              tFirstOrderTruncationErrorTolerance);
 }
 
-TEST_F(MeshQuantitiesThreeDTwoBlockTetMesh, MeshQuantitiesVolumeNodalSensitivities_GradientCheck)
+TEST_F(MeshQuantitiesThreeDTwoBlockTetMesh, MeshQuantitiesVolumeNodalSensitivitiesGradientCheck)
 {
     const auto tGradientCheckParameters =
         plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};

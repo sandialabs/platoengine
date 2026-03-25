@@ -14,7 +14,6 @@ namespace plato::third_party_integration::krino::test_utilities
 
 namespace
 {
-const std::string_view kLogFile = "Krino_Test.txt";
 
 const auto kThreeQuarterOffsetXHatPlane = Plane{{-1, 0, 0}, 0.75};
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
@@ -65,22 +64,5 @@ auto make_level_set_field_from_vector(::krino::MeshInterface& aKrinoMesh, const 
     }
     return tField;
 }
-
-namespace detail
-{
-
-[[nodiscard]] auto get_log_file_name() -> std::string_view { return kLogFile; }
-
-void initialize_krino()
-{
-    static bool tFirstTime{true};
-    if (tFirstTime)
-    {
-        initialize_environment_for_krino(get_log_file_name(), MPI_COMM_WORLD);
-        tFirstTime = false;
-    }
-}
-
-}  // namespace detail
 
 }  // namespace plato::third_party_integration::krino::test_utilities

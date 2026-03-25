@@ -30,7 +30,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 namespace plato::filter::extension::kernel_filters
 {
 ///@brief A specialized filter type based on the positive_octant_reflect_filter input
-using ReflectFilterType = KernelFilterFunctions<input_parser::positive_octant_reflect_filter>;
+using ReflectFilterType = KernelFilterAndMeshFunctions<input_parser::positive_octant_reflect_filter>;
 
 ///@brief Extract the input from @a aInput and @a aAnalysisDomainMesh to create a filter type using the detail function
 [[nodiscard]] auto make_positive_octant_reflect_filter_type(const input_parser::positive_octant_reflect_filter& aInput,

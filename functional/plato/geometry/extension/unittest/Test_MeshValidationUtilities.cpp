@@ -8,6 +8,7 @@
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -16,6 +17,8 @@ namespace plato::geometry::extension::unittest
 
 namespace
 {
+using MeshValidationTet4Fixture = third_party_integration::stk_io::test_utilities::Tet4MeshOnDisk;
+
 [[nodiscard]] auto create_density_geometry_input(const std::filesystem::path& aPath, const std::string& aField)
     -> input_parser::density_topology
 {
@@ -37,6 +40,7 @@ namespace
 }  // namespace
 
 using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
+using HexMeshWithNodalDensityValues = third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
 
 TEST_F(NodalDensityMesh, DensityMeshFromInput)
 {
@@ -52,6 +56,21 @@ TEST_F(NodalDensityMesh, LevelSetMeshFromInput)
     const auto tMesh = mesh_from_input(tInput);
     const auto tTotalNodes = mesh::EntityCounts{tMesh}.numberOfNodes();
     EXPECT_EQ(mGoldNumbering.size(), tTotalNodes);
+}
+
+TEST_F(HexMeshWithNodalDensityValues, ValidateMeshIsTrisOrTets)
+{
+    const auto tInput = create_level_set_geometry_input(mMeshName, mFieldName);
+    const auto tMesh = mesh_from_input(tInput);
+    const auto tMessage = validate_mesh_is_tris_or_tets<input_parser::density_topology>(tMesh);
+    EXPECT_TRUE(tMessage.has_value());
+}
+
+TEST_F(MeshValidationTet4Fixture, ValidateMeshIsTrisOrTets)
+{
+    const auto tMesh = mesh::Mesh{mMeshFilePath};
+    const auto tMessage = validate_mesh_is_tris_or_tets<input_parser::density_topology>(tMesh);
+    EXPECT_FALSE(tMessage.has_value()) << tMessage.value();
 }
 
 namespace

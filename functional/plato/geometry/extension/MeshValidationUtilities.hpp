@@ -11,6 +11,7 @@ namespace plato::geometry::extension
 
 /// @brief Creates a Mesh from an Geometry input block.
 /// @pre The mesh_name field in @a aInput has a value. Checked with an assertion.
+/// @pre The input @a aInput must be validated.
 template <typename Geometry>
 [[nodiscard]] auto mesh_from_input(const Geometry& aInput) -> mesh::Mesh;
 
@@ -37,6 +38,10 @@ template <typename Geometry>
 /// `mesh_name` has a Topology field to be read.
 template <typename Geometry>
 [[nodiscard]] std::optional<std::string> validate_initial_field_source(const Geometry& aInput);
+
+/// @brief Validates that the mesh specified in @a aMesh is all tris or tets.
+template <typename Geometry>
+[[nodiscard]] auto validate_mesh_is_tris_or_tets(const mesh::Mesh& aMesh) -> std::optional<std::string>;
 
 template <typename Geometry>
 [[nodiscard]] auto mesh_from_input(const Geometry& aInput) -> mesh::Mesh
@@ -86,6 +91,17 @@ template <typename Geometry>
                                           " does not have a nodal field called '", tFieldName, "'.",
                                           mesh_field_names_for_error_message(aInput));
         }
+    }
+    return std::nullopt;
+}
+
+template <typename Geometry>
+[[nodiscard]] auto validate_mesh_is_tris_or_tets(const mesh::Mesh& aMesh) -> std::optional<std::string>
+{
+    if (!mesh::EntityCounts{aMesh}.isAllTetAndTri())
+    {
+        return utilities::concatenate(input_parser::block_name<Geometry>(),
+                                      ": Cutting a density field mesh requires that the mesh is only tets or tris.");
     }
     return std::nullopt;
 }

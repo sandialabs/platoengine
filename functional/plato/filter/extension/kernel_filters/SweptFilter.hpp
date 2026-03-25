@@ -31,7 +31,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 namespace plato::filter::extension::kernel_filters
 {
 ///@brief A specialized filter type based on the z_swept_filter input
-using SweptFilterType = KernelFilterFunctions<input_parser::z_swept_filter>;
+using SweptFilterType = KernelFilterAndMeshFunctions<input_parser::z_swept_filter>;
 
 ///@brief Extract the input from @a aInput and @a aAnalysisDomainMesh to create a filter type using the detail function
 [[nodiscard]] auto make_z_swept_filter_type(const input_parser::z_swept_filter& aInput,

@@ -68,7 +68,7 @@ TEST(WedgeFilter, MakeWedgeFilterTypeSearchFunction)
         TargetRowVector{tTargetCoordinates}, SourceColumnVector{tSourceCoordinates}, kRadius,
         boost::mpi::communicator{}, tWedge);
 
-    const auto tFilterInfoSearchResults = tFilterType.mSearchFunction(
+    const auto tFilterInfoSearchResults = tFilterType.mKernelFilterFunctions.mSearchFunction(
         TargetRowVector{tTargetCoordinates}, SourceColumnVector{tSourceCoordinates}, boost::mpi::communicator{});
     EXPECT_EQ(tSearchResultsGold, tFilterInfoSearchResults);
 }
@@ -82,8 +82,8 @@ TEST(WedgeFilter, MakeWedgeFilterTypeUnnormalizedWeightFunction)
         minimum_distance_reflected_points_wedge(SourcePoint{kSourcePoint}, TargetPoint{kTargetPoint}, tWedge);
     const auto tUnnormalizedWeightGold = detail::linear_ramp_weight(Distance{tDistance}, SearchRadius{kRadius});
 
-    const auto tFilterInfoUnnormalizedWeight =
-        tFilterType.mUnnormalizedWeightFunction(SourcePoint{kSourcePoint}, TargetPoint{kTargetPoint});
+    const auto tFilterInfoUnnormalizedWeight = tFilterType.mKernelFilterFunctions.mUnnormalizedWeightFunction(
+        SourcePoint{kSourcePoint}, TargetPoint{kTargetPoint});
     EXPECT_EQ(tUnnormalizedWeightGold, tFilterInfoUnnormalizedWeight);
 }
 

@@ -5,6 +5,8 @@
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -207,4 +209,18 @@ TEST(LevelSetTopologyDetail, GenerateSpheresFromList)
         EXPECT_EQ(tKrinoSphere.mCenter.z, tLevelSetSphere.center.mZ);
     }
 }
+
+TEST(LevelSetTopology, ValidateMeshIsTrisOrTets)
+{
+    const auto tLevelSetTopology = kLevelSetTopology;
+    namespace tpis = third_party_integration::stk_io;
+    tpis::write_mesh(tLevelSetTopology.mesh_name->mToken, tpis::CommandGenerator{});
+    EXPECT_TRUE(detail::validate_mesh_is_tet_or_tri(tLevelSetTopology).has_value())
+        << "Can't use a hex mesh with krino.";
+    tpis::write_mesh(tLevelSetTopology.mesh_name->mToken,
+                     tpis::CommandGenerator{.mType = tpis::CommandElementType::Tet});
+    EXPECT_FALSE(detail::validate_mesh_is_tet_or_tri(tLevelSetTopology).has_value()) << "Can use a tet mesh though.";
+    std::filesystem::remove(tLevelSetTopology.mesh_name->mToken);
+}
+
 }  // namespace plato::geometry::extension::unittest

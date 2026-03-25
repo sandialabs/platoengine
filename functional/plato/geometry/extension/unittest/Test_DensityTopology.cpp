@@ -55,9 +55,9 @@ auto make_test_kernel_filter(const std::filesystem::path& aMeshFile)
     namespace fek = filter::extension::kernel_filters;
     const auto tKernelFilterType = fek::detail::make_kernel_filter_type(
         /*FilterRadius*/ 3.25, input_parser::KernelFilterCenteringTypes::kElementCentered, mesh::Mesh{aMeshFile});
-    const auto tFilter = std::make_shared<fek::KernelFilter<input_parser::kernel_filter>>(
-        fek::SourceMesh{mesh::Mesh{aMeshFile}}, fek::TargetMesh{mesh::Mesh{aMeshFile}}, tKernelFilterType,
-        boost::mpi::communicator{});
+    const auto tFilter = std::make_shared<fek::KernelFilter>(
+        fek::SourceMesh{mesh::Mesh{aMeshFile}}, fek::TargetMesh{mesh::Mesh{aMeshFile}},
+        tKernelFilterType.mKernelFilterFunctions, boost::mpi::communicator{});
 
     return filter::test_utilities::make_filter_function(tFilter);
 }
@@ -72,7 +72,7 @@ TEST(DensityTopology, Jacobian)
 
     const std::vector<double> tDesignVars = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
     const linear_algebra::DynamicVector<double> tDesignVec(tDesignVars);
-    const int tNumDesignParameters = tDesignVec.size();
+    const auto tNumDesignParameters = tDesignVec.size();
 
     const linear_algebra::JacobianMultiplier tJacobian = tDensityTopology.jacobian(tDesignVec);
 

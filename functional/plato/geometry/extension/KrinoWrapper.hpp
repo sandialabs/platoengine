@@ -25,7 +25,7 @@ namespace plato::geometry::extension
 /// Three make functions are provided to create the required krino objects and auxiliary objects for the KrinoWrapper
 /// constructor. Once constructed, the KrinoWrapper can evaluate the row vector Jacobian product or the row vector
 /// Adjoint Jacobian product
-/// @pre the environment for krino was initialized by calling 'initialize_environment_for_krino' in
+/// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino' in
 /// third_party_integration\krino\Utilities.hpp
 class KrinoWrapper
 {
@@ -90,7 +90,7 @@ namespace detail
 /// a fixed node and not part of the @a aDesignDomainBackgroundNodes it is not included in the sensitivty map.
 /// @pre The environment for krino must be initialized and set up as follows:
 /// @code{.cpp}
-/// initialize_environment_for_krino(...);
+/// set_stk_communicator_for_krino(...);
 /// read_and_setup_for_decomposition(...);
 /// cut_mesh(...);
 /// @endcode

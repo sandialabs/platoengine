@@ -11,6 +11,7 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
@@ -65,6 +66,25 @@ TEST(DensityTopologyValidation, ValidateInitialDensity)
     EXPECT_FALSE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "1 value is valid";
     tDensityTopology.initial_density_value = 1.5;
     EXPECT_TRUE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "1.5 value is invalid";
+}
+
+TEST(DensityTopologyValidation, ValidateMeshIsTrisOrTetsIfCutting)
+{
+    auto tDensityTopology = kDensityTopology;
+    namespace tpis = third_party_integration::stk_io;
+    tpis::write_mesh(tDensityTopology.mesh_name->mToken, tpis::CommandGenerator{});
+
+    EXPECT_FALSE(detail::validate_mesh_is_tet_or_tri_when_cutting(tDensityTopology).has_value())
+        << "No cutting, doesn't matter the type.";
+    tDensityTopology.cut_mesh_name = input_parser::FileName{"cut_mesh.exo"};
+    EXPECT_TRUE(detail::validate_mesh_is_tet_or_tri_when_cutting(tDensityTopology).has_value())
+        << "When cutting, mesh must be tet or tri.";
+
+    tpis::write_mesh(tDensityTopology.mesh_name->mToken,
+                     tpis::CommandGenerator{.mType = tpis::CommandElementType::Tet});
+    EXPECT_FALSE(detail::validate_mesh_is_tet_or_tri_when_cutting(tDensityTopology).has_value())
+        << "When cutting, mesh must be tet or tri.";
+    std::filesystem::remove(tDensityTopology.mesh_name->mToken);
 }
 
 TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)

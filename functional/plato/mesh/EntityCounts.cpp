@@ -58,4 +58,9 @@ auto EntityCounts::timeSteps() const -> std::vector<double>
     return third_party_integration::stk_io::time_steps(filePath());
 }
 
+auto EntityCounts::isAllTetAndTri() const -> bool
+{
+    return third_party_integration::stk_io::all_tet_or_tri_elements(bulkData());
+}
+
 }  // namespace plato::mesh

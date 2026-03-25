@@ -5,9 +5,7 @@
 #include <stk_mesh/base/MetaData.hpp>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/GradientChecker.hpp"
-#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/TriangleUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
@@ -157,6 +155,64 @@ TEST(KrinoTriangleUtilities, dNormaldCoordsZ)
 {
     const auto tF = normal_component([](const auto& aVector) { return aVector.z; });
     test_d_func_d_coords(kDNormalAbsoluteError, tF, d_normal_d_component<kZComponent>());
+}
+
+TEST(KrinoTriangleUtilities, dAreaDTriNode)
+{
+    const auto tAreaFunction = [](const linear_algebra::DynamicVector<double>& aX)
+    {
+        const auto tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
+        return tTriangle.area();
+    };
+    const auto tAreaJacobian =
+        [](const linear_algebra::DynamicVector<double>& aX, const linear_algebra::DynamicVector<double>& aDirection)
+    {
+        const auto tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
+        const auto tJacobian = d_area_d_tri_node(tTriangle);
+        const auto tJacobianArray = linear_algebra::DynamicVector{tJacobian[0U].x, tJacobian[0U].y, tJacobian[0U].z,
+                                                                  tJacobian[1U].x, tJacobian[1U].y, tJacobian[1U].z,
+                                                                  tJacobian[2U].x, tJacobian[2U].y, tJacobian[2U].z};
+        return aDirection.dot(tJacobianArray);
+    };
+
+    constexpr auto tSlopeTolerance = 1e-3;
+    test_d_func_d_coords(tSlopeTolerance, tAreaFunction, tAreaJacobian);
+}
+
+TEST(KrinoTriangleUtilities, dNormalDTriNode)
+{
+    const auto tNormalComponentSum = [](const linear_algebra::DynamicVector<double>& aNodalCoordinates)
+    {
+        const auto tTriangle = create_sensitivity_triangle_from_coords(aNodalCoordinates.stdVector());
+        const auto tNormal = static_cast<common::Vector3>(tTriangle.normal());
+        return tNormal.x + tNormal.y + tNormal.z;
+    };
+
+    const auto tNormalJacobian = [](const linear_algebra::DynamicVector<double>& aNodalCoordinates,
+                                    const linear_algebra::DynamicVector<double>& aDirection)
+    {
+        const auto tTriangle = create_sensitivity_triangle_from_coords(aNodalCoordinates.stdVector());
+        const auto tJacobian = d_normal_d_tri_node(tTriangle);
+
+        const auto tFlattenJacobian = [](const auto& aJacobian, const auto aComponentAccessor)
+        {
+            auto tToJacobianComponent = aJacobian | std::views::join |
+                                        std::views::transform([aComponentAccessor](const auto& aVector) -> double
+                                                              { return aComponentAccessor(aVector); }) |
+                                        std::views::common;
+
+            return linear_algebra::DynamicVector(
+                std::vector<double>(tToJacobianComponent.begin(), tToJacobianComponent.end()));
+        };
+        const auto tJacobianXComponent = tFlattenJacobian(tJacobian, [](const auto& aVector) { return aVector.x; });
+        const auto tJacobianYComponent = tFlattenJacobian(tJacobian, [](const auto& aVector) { return aVector.y; });
+        const auto tJacobianZComponent = tFlattenJacobian(tJacobian, [](const auto& aVector) { return aVector.z; });
+
+        return aDirection.dot(tJacobianXComponent + tJacobianYComponent + tJacobianZComponent);
+    };
+
+    constexpr auto tSlopeTolerance = 1e-3;
+    test_d_func_d_coords(tSlopeTolerance, tNormalComponentSum, tNormalJacobian);
 }
 
 }  // namespace plato::third_party_integration::krino::unittest

@@ -41,10 +41,9 @@ TEST_F(NodalDensityMesh, ParallelOutput)
     const auto tDesignVariables = DensityTopology::initialGuess(tDensityInput);
     const auto tKernelFilterType = fek::detail::make_kernel_filter_type(
         /*FilterRadius*/ 3.25, input_parser::KernelFilterCenteringTypes::kElementCentered, mesh::Mesh{mMeshName});
-    const auto tFilter =
-        filter::test_utilities::make_filter_function(std::make_shared<fek::KernelFilter<input_parser::kernel_filter>>(
-            fek::SourceMesh{mesh::Mesh{mMeshName}}, fek::TargetMesh{mesh::Mesh{mMeshName}}, tKernelFilterType,
-            boost::mpi::communicator{}));
+    const auto tFilter = filter::test_utilities::make_filter_function(std::make_shared<fek::KernelFilter>(
+        fek::SourceMesh{mesh::Mesh{mMeshName}}, fek::TargetMesh{mesh::Mesh{mMeshName}},
+        tKernelFilterType.mKernelFilterFunctions, boost::mpi::communicator{}));
 
     DensityTopology::output(tDesignVariables, tFilter, tDensityInput, output::kOverwriteInfo);
 
