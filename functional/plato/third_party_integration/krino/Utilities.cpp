@@ -32,7 +32,6 @@ namespace plato::third_party_integration::krino
 {
 namespace
 {
-constexpr bool kDoNormalGradients = true;
 constexpr auto kSortByGlobalId = true;
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"PLATO_LS"};
@@ -68,7 +67,7 @@ void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta)
     tCdfemSupport.add_edge_interpolation_field(tCoordsField);
     tCdfemSupport.register_parent_node_ids_field();
 
-    if (kDoNormalGradients)
+    if (kDoNormalSensitivities)
     {
         for (auto& lsField : ::krino::Phase_Support::get_levelset_fields(aMeta))
         {
@@ -203,7 +202,7 @@ void cut_mesh(stk::mesh::BulkData& aBulkData,
     auto& tPhaseSupport = ::krino::Phase_Support::get(tMeta);
 
     std::unique_ptr<::krino::InterfaceGeometry> tInterfaceGeometry;
-    if (kDoNormalGradients)
+    if (kDoNormalSensitivities)
     {
         for (auto& lsField : ::krino::Phase_Support::get_levelset_fields(tMeta))
         {
