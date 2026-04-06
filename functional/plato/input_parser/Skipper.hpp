@@ -17,11 +17,17 @@ class SkipperRule
 
    private:
     constexpr static std::string_view kCommentCharacter = "#";
+    constexpr static std::string_view kBlockCommentStartCharacters = "/*";
+    constexpr static std::string_view kBlockCommentEndCharacters = "*/";
 
     Rule mWhiteSpaceSkipper = boost::spirit::qi::ascii::space;
     Rule mCommentSkipper = kCommentCharacter.data() >> *(boost::spirit::qi::char_ - boost::spirit::qi::eol) >>
                            (boost::spirit::qi::eol | boost::spirit::qi::eoi);
-    Rule mAllRules = mWhiteSpaceSkipper | mCommentSkipper;
+    Rule mBlockCommentSkipper =
+        boost::spirit::qi::lexeme[kBlockCommentStartCharacters.data() >>
+                                  *(boost::spirit::qi::char_ - kBlockCommentEndCharacters.data()) >>
+                                  kBlockCommentEndCharacters.data()];
+    Rule mAllRules = mWhiteSpaceSkipper | mCommentSkipper | mBlockCommentSkipper;
 };
 
 template <typename Iterator>

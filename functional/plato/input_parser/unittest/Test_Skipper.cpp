@@ -43,4 +43,14 @@ TEST(Skipper, SkipsComments)
     check_parsed_integers(tTestText, tExpectedData, TEST_CONTEXT("With comments"));
 }
 
+TEST(Skipper, SkipsBlockComments)
+{
+    constexpr auto tTestText = std::string_view{
+        R"(1 /*2*/  3 /* -1  #10
+         50
+        30/**/  42)"};
+    const auto tExpectedData = std::vector{1, 3, 42};
+    check_parsed_integers(tTestText, tExpectedData, TEST_CONTEXT("With block comments"));
+}
+
 }  // namespace plato::input_parser::unittest
