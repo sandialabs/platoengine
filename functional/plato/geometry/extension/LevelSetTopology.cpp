@@ -24,6 +24,7 @@
 #include "plato/output/OutputInfo.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 
@@ -133,6 +134,15 @@ constexpr auto kMeshNameAccessor =
     return tpik::SnappingParameters{
         .mMaxSnappingEdgeLength = aInput.max_edge_length_percentage_for_snapping.value_or(tDefaultSnappingEdgeLength)};
 }
+
+[[nodiscard]] auto clamp_to_bounds(const std::vector<double>& aValues, const plato::input_parser::Bounds& aBounds)
+    -> linear_algebra::DynamicVector<double>
+{
+    auto tClamped = utilities::reserved_container<std::vector<double>>(aValues.size());
+    std::ranges::transform(aValues, std::back_inserter(tClamped), [&aBounds](const auto aValue)
+                           { return std::max(aBounds.mLower, std::min(aBounds.mUpper, aValue)); });
+    return linear_algebra::DynamicVector<double>(tClamped);
+}
 }  // namespace
 
 LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInput)
@@ -180,14 +190,16 @@ auto initial_guess(const input_parser::level_set_topology& aInput) -> linear_alg
     else if (aInput.sphere_pattern.has_value())
     {
         const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(aInput))};
-        return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput))};
+        const auto tLevelSetValues = make_initial_guess_from_level_set_primitives(
+            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput));
+        return linear_algebra::DynamicVector<double>(clamp_to_bounds(tLevelSetValues, aInput.level_set_bounds.value()));
     }
     else
     {
         const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, detail::generate_spheres_from_list(aInput)};
-        return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput))};
+        const auto tLevelSetValues = make_initial_guess_from_level_set_primitives(
+            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput));
+        return linear_algebra::DynamicVector<double>(clamp_to_bounds(tLevelSetValues, aInput.level_set_bounds.value()));
     }
 }
 
