@@ -213,6 +213,9 @@ using EndingLimits = utilities::NamedType<std::pair<double, double>, struct Endi
                                          const StartingLimits& aStartingLimits,
                                          const EndingLimits& aEndingLimits) -> std::vector<double>;
 
+/// @brief Takes a vector of doubles @a aValues and clamps the values to bounds defined by @a aBounds.
+[[nodiscard]] auto clamp_to_bounds(const std::vector<double>& aValues, const plato::input_parser::Bounds& aBounds)
+    -> linear_algebra::DynamicVector<double>;
 }  // namespace detail
 
 constexpr auto level_set_mesh_field_name() -> std::string_view { return std::string_view{"level_set"}; }

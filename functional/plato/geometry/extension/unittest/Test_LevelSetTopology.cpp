@@ -527,6 +527,24 @@ TEST(LevelSetTopology, DetailAffineTransformation)
     EXPECT_DOUBLE_EQ(tResult.at(2), 1.0);
 }
 
+TEST(LevelSetTopology, DetailClampToBounds)
+{
+    const auto tVector = std::vector<double>{-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0};
+
+    // within bounds - no change
+    {
+        const auto tBounds = input_parser::Bounds{-2.0, 2.0};
+        EXPECT_EQ(detail::clamp_to_bounds(tVector, tBounds).stdVector(), tVector);
+    }
+
+    // outside of bounds - clamped
+    {
+        const auto tBounds = input_parser::Bounds{-1.0, 1.0};
+        const auto tGoldClamped = std::vector<double>{-1.0, -1.0, -0.5, 0.0, 0.5, 1.0, 1.0};
+        EXPECT_EQ(detail::clamp_to_bounds(tVector, tBounds).stdVector(), tGoldClamped);
+    }
+}
+
 TEST_F(NodalDensityMesh, InitialGuessFromField)
 {
     auto tInput = test_utilities::create_valid_level_set_topology_geometry_initialize_from_field_input();
