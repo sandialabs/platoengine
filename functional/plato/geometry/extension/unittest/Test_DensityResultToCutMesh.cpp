@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <filesystem>
 
 #include "plato/geometry/extension/DensityResultToCutMesh.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
@@ -31,12 +32,13 @@ const auto kDensityInput =
                                    /*.initial_density_field_name=*/boost::none,
                                    /*.cut_mesh_file_name=*/input_parser::FileName{kOutputFileOnDisk}};
 
-[[nodiscard]] auto create_nodal_centered_analysis_domain_mesh() -> analysis::AnalysisDomainMesh
+[[nodiscard]] auto create_nodal_centered_analysis_domain_mesh(const std::vector<double>& aDensities)
+    -> analysis::AnalysisDomainMesh
 {
+    EXPECT_EQ(aDensities.size(), 4U);
     const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value(), std::set<std::string>{kFixedBlock}};
-    const auto tDensities = std::vector<double>{0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0};
     return mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
-        mesh::NodalFieldVectorReference{tDensities});
+        mesh::NodalFieldVectorReference{aDensities});
 }
 
 [[nodiscard]] auto create_element_centered_analysis_domain_mesh() -> analysis::AnalysisDomainMesh
@@ -51,9 +53,45 @@ const auto kDensityInput =
 
 TEST(DensityResultToCutMesh, WriteDensityResultAsCutMeshNodeCentered)
 {
-    write_density_result_as_cut_mesh(create_nodal_centered_analysis_domain_mesh(), kDensityInput,
+    const auto tDensities = std::vector<double>{0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0};
+    write_density_result_as_cut_mesh(create_nodal_centered_analysis_domain_mesh(tDensities), kDensityInput,
                                      boost::mpi::communicator{});
     test_utilities::test_for_existence_and_remove({kOutputFileOnDisk}, TEST_CONTEXT("Node centered cut mesh exists"));
+}
+
+TEST(DensityResultToCutMesh, WriteDensityResultAsCutMeshNodeCenteredNoMeshWritten)
+{
+    const auto tDensities = std::vector<double>{0.0, 0.0, 0.0, 0.0};
+    auto tDensityInput = kDensityInput;
+    tDensityInput.fixed_blocks = boost::none;
+    write_density_result_as_cut_mesh(create_nodal_centered_analysis_domain_mesh(tDensities), tDensityInput,
+                                     boost::mpi::communicator{});
+    EXPECT_FALSE(std::filesystem::exists(kOutputFileOnDisk)) << "No zero crossing, no mesh written.";
+}
+
+TEST(DensityResultToCutMesh, ZeroCrossingExists)
+{
+    {
+        const auto tLevelSetValues = std::vector<double>{1.0, 1.0, 1.0, 1.0};
+        EXPECT_FALSE(detail::zero_crossing_exists(tLevelSetValues)) << "All ones";
+    }
+
+    {
+        const auto tLevelSetValues = std::vector<double>{0.0, 0.0, 1.0, 1.0};
+        EXPECT_TRUE(detail::zero_crossing_exists(tLevelSetValues)) << "Zeros and ones";
+    }
+    {
+        const auto tLevelSetValues = std::vector<double>{0.0, 0.0, 0.0, 0.0};
+        EXPECT_FALSE(detail::zero_crossing_exists(tLevelSetValues)) << "All zeros";
+    }
+    {
+        const auto tLevelSetValues = std::vector<double>{-1.0, -1.0, 0.0, 0.0};
+        EXPECT_FALSE(detail::zero_crossing_exists(tLevelSetValues)) << "Negative ones and zeros";
+    }
+    {
+        const auto tLevelSetValues = std::vector<double>{-1.0, -1.0, 1.0, 1.0};
+        EXPECT_TRUE(detail::zero_crossing_exists(tLevelSetValues)) << "Negative ones and ones";
+    }
 }
 
 TEST(DensityResultToCutMesh, WriteDensityResultAsCutMeshElementCentered)
@@ -79,7 +117,8 @@ TEST(DensityResultToCutMesh, TransformToLevelSetField)
 {
     constexpr auto tThreshold = 0.5;
     const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value(), std::set<std::string>{kFixedBlock}};
-    const auto tAnalysisDomainMesh = create_nodal_centered_analysis_domain_mesh();
+    const auto tDensities = std::vector<double>{0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0};
+    const auto tAnalysisDomainMesh = create_nodal_centered_analysis_domain_mesh(tDensities);
     const auto tShiftedAnalysisDomainMesh = detail::transform_to_level_set_field(tAnalysisDomainMesh, tThreshold);
 
     const auto tOriginalValues =
