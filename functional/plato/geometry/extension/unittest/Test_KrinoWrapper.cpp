@@ -400,17 +400,15 @@ TEST(KrinoWrapper, DetailClampToBounds)
 {
     const auto tVector = std::vector<double>{-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0};
 
-    // within bounds - no change
     {
         const auto tBounds = LevelSetBounds{std::pair{-2.0, 2.0}};
-        EXPECT_EQ(detail::clamp_to_bounds(tVector, tBounds), tVector);
+        EXPECT_EQ(detail::clamp_to_bounds(tVector, tBounds), tVector) << "within bounds - no change";
     }
 
-    // outside of bounds - clamped
     {
         const auto tBounds = LevelSetBounds{std::pair{-1.0, 1.0}};
         const auto tGoldClamped = std::vector<double>{-1.0, -1.0, -0.5, 0.0, 0.5, 1.0, 1.0};
-        EXPECT_EQ(detail::clamp_to_bounds(tVector, tBounds), tGoldClamped);
+        EXPECT_EQ(detail::clamp_to_bounds(tVector, tBounds), tGoldClamped) << "outside of bounds - clamped";
     }
 }
 
