@@ -39,7 +39,7 @@ const auto kFourTriSensitivityMapRankOne =
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
         kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-        tFixedBlocks);
+        tFixedBlocks, LevelSetBounds{std::pair{-1.0, 1.0}});
     const auto tMesh = mesh::Mesh{kFourTriTwoBlockMeshFilePath.value()};
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tInitialGuess});
@@ -107,8 +107,9 @@ TEST_F(KrinoTestFixture, MakeInitialGuessFromLevelSetPrimitives)
     const auto tMesh = mesh::Mesh{kBoxFilePath.value()};
 
     const auto tFixedBlocks = std::set<std::string>{};
-    const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
-        kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}}, tFixedBlocks);
+    const auto tInitialGuess =
+        make_initial_guess_from_level_set_primitives(kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}},
+                                                     tFixedBlocks, LevelSetBounds{std::pair{-1.0, 1.0}});
 
     const auto tExpectedInitialGuessSize = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
     ASSERT_EQ(tInitialGuess.size(), tExpectedInitialGuessSize);

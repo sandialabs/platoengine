@@ -48,8 +48,8 @@ TEST(KrinoWrapperGradientCheck, MeshFilePath) { ASSERT_TRUE(kRectangleMeshFilePa
 TEST_F(KrinoTestFixture, AccumulateInitialGuess)
 {
     const auto tFixedBlocks = std::set<std::string>{};
-    const auto tX =
-        make_initial_guess_from_level_set_primitives(kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks);
+    const auto tX = make_initial_guess_from_level_set_primitives(kRectangleMeshFilePath.value(), kLevelSetPrimitives,
+                                                                 tFixedBlocks, LevelSetBounds{std::pair{-10.0, 10.0}});
     const auto tResultantSum = std::accumulate(tX.begin(), tX.end(), 0.0);
 
     EXPECT_NEAR(tResultantSum, 21.62420765215437, kMPISummedTolerance);
@@ -59,7 +59,7 @@ TEST_F(KrinoTestFixture, AccumulateCutNodeCoordinates)
 {
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-        kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks)};
+        kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks, LevelSetBounds{std::pair{-1.0, 1.0}})};
     const auto tResultantSum =
         test_utilities::accumulate_cut_node_coordinates(kRectangleMeshFilePath.value(), tX.stdVector());
 
@@ -71,8 +71,8 @@ namespace
 [[nodiscard]] auto make_example_krino_wrapper()
 {
     const auto tFixedBlocks = std::set<std::string>{};
-    const auto tX =
-        make_initial_guess_from_level_set_primitives(kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks);
+    const auto tX = make_initial_guess_from_level_set_primitives(kRectangleMeshFilePath.value(), kLevelSetPrimitives,
+                                                                 tFixedBlocks, LevelSetBounds{std::pair{-1.0, 1.0}});
     const auto tAnalysisDomainMesh =
         mesh::DesignVariablesConversion{mesh::Mesh{kRectangleMeshFilePath.value()}}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tX});
@@ -109,7 +109,7 @@ TEST_F(KrinoTestFixture, RowVectorToVector3)
     const auto tKrinoWrapper = make_example_krino_wrapper();
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-        kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks)};
+        kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks, LevelSetBounds{std::pair{-1.0, 1.0}})};
     const auto tIota = make_iota_vector(tX.size(), 0.0);
 
     check_row_vector_vector3(0U, tIota, TEST_CONTEXT("Checking index 0"));
@@ -126,8 +126,8 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
 
     const auto tMeshFile = kRectangleMeshFilePath;
     const auto tFixedBlocks = std::set<std::string>{};
-    const auto tX = linear_algebra::DynamicVector<double>{
-        make_initial_guess_from_level_set_primitives(tMeshFile.value(), tLevelSetPrimitives, tFixedBlocks)};
+    const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
+        tMeshFile.value(), tLevelSetPrimitives, tFixedBlocks, LevelSetBounds{std::pair{-1.0, 1.0}})};
     const auto tDirection = linear_algebra::DynamicVector<double>{make_iota_vector(tX.size(), 0.5)};
 
     const auto tF = [&tMeshFile](const linear_algebra::DynamicVector<double>& aX) -> double

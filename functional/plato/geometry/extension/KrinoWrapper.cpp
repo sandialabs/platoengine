@@ -5,6 +5,7 @@
 #include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/vector.hpp>
 #include <cstddef>
+#include <ranges>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
 #include <stk_util/environment/EnvData.hpp>  //get stk mpi env
@@ -210,14 +211,15 @@ namespace
 
 auto make_initial_guess_from_level_set_primitives(const std::filesystem::path& aFileName,
                                                   const tpik::LevelSetPrimitives& aLevelSetPrimitives,
-                                                  const std::set<std::string>& aFixedBlocks) -> std::vector<double>
+                                                  const std::set<std::string>& aFixedBlocks,
+                                                  const LevelSetBounds& aBounds) -> std::vector<double>
 {
     auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aFileName, aFixedBlocks);
     auto tLevelSetFields = tpik::make_level_set_field_from_primitives(aLevelSetPrimitives, tKrinoMesh->bulk_data());
     const auto tLevelSetValuesMap = tpik::get_level_set_values(*tKrinoMesh, tLevelSetFields);
     const auto tBackgroundNodeIds = tpik::background_node_ids(*tKrinoMesh, tLevelSetFields);
 
-    return down_select_to_design_domain(tLevelSetValuesMap, tBackgroundNodeIds);
+    return detail::clamp_to_bounds(down_select_to_design_domain(tLevelSetValuesMap, tBackgroundNodeIds), aBounds);
 }
 
 auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
@@ -301,6 +303,14 @@ auto row_vector_to_vector3(const std::vector<double>& aRowVector,
 {
     const auto tRowVectorView = utilities::make_multi_vector_view(aRowVector, aDimensions);
     return tRowVectorView(aVectorIndex);
+}
+
+auto clamp_to_bounds(const std::vector<double>& aValues, const LevelSetBounds& aBounds) -> std::vector<double>
+{
+    auto tClamped = utilities::reserved_container<std::vector<double>>(aValues.size());
+    std::ranges::transform(aValues, std::back_inserter(tClamped), [&aBounds](const auto aValue)
+                           { return std::max(aBounds.mValue.first, std::min(aBounds.mValue.second, aValue)); });
+    return tClamped;
 }
 
 }  // namespace detail

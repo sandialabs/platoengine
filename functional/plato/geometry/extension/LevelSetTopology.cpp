@@ -24,7 +24,6 @@
 #include "plato/output/OutputInfo.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
-#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 
@@ -168,6 +167,8 @@ auto bounds(const input_parser::level_set_topology& aInput) -> std::pair<std::ve
 
 auto initial_guess(const input_parser::level_set_topology& aInput) -> linear_algebra::DynamicVector<double>
 {
+    const auto tLevelSetBounds =
+        LevelSetBounds{std::pair{aInput.level_set_bounds->mLower, aInput.level_set_bounds->mUpper}};
     if (aInput.initial_field_name.has_value())
     {
         auto tValuesFromMesh = initial_field_from_mesh(aInput, mesh_from_input(aInput));
@@ -181,16 +182,14 @@ auto initial_guess(const input_parser::level_set_topology& aInput) -> linear_alg
     else if (aInput.sphere_pattern.has_value())
     {
         const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(aInput))};
-        const auto tLevelSetValues = make_initial_guess_from_level_set_primitives(
-            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput));
-        return detail::clamp_to_bounds(tLevelSetValues, aInput.level_set_bounds.value());
+        return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
+            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput), tLevelSetBounds)};
     }
     else
     {
         const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, detail::generate_spheres_from_list(aInput)};
-        const auto tLevelSetValues = make_initial_guess_from_level_set_primitives(
-            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput));
-        return detail::clamp_to_bounds(tLevelSetValues, aInput.level_set_bounds.value());
+        return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
+            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput), tLevelSetBounds)};
     }
 }
 
@@ -443,15 +442,6 @@ auto affine_transformation(std::vector<double> aVector,
                    { return (tEntry - tStartingMin) / tStartingScale * tEndingScale + tEndingMin; });
 
     return aVector;
-}
-
-auto clamp_to_bounds(const std::vector<double>& aValues, const plato::input_parser::Bounds& aBounds)
-    -> linear_algebra::DynamicVector<double>
-{
-    auto tClamped = utilities::reserved_container<std::vector<double>>(aValues.size());
-    std::ranges::transform(aValues, std::back_inserter(tClamped), [&aBounds](const auto aValue)
-                           { return std::max(aBounds.mLower, std::min(aBounds.mUpper, aValue)); });
-    return linear_algebra::DynamicVector<double>(tClamped);
 }
 }  // namespace detail
 
