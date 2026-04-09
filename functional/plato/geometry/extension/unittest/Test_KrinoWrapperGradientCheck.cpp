@@ -74,7 +74,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
 
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-        kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks)};
+        kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks, LevelSetBounds{std::pair{-1.0, 1.0}})};
 
     const auto tDirection = linear_algebra::DynamicVector(std::vector<double>(tX.size(), 0.1));
 

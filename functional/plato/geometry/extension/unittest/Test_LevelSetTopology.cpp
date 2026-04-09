@@ -118,6 +118,8 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
 {
     auto tInput = singleSphereInput();
     tInput.max_edge_length_percentage_for_snapping = 0.0;  // turn snapping off for regression
+    tInput.level_set_bounds =
+        input_parser::Bounds{-4.0, 4.0};  // make sure initial guess is within bounds to avoid clamping
 
     const auto tOnesVectorJacobianProductSum = [this](const library::GeometryFunction& aLevelSetTopologyFunction,
                                                       const linear_algebra::DynamicVector<double>& aArgument)
@@ -190,6 +192,8 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianTransposeRegression)
 {
     auto tInput = singleSphereInput();
     tInput.max_edge_length_percentage_for_snapping = 0.0;  // turn snapping off for regression
+    tInput.level_set_bounds =
+        input_parser::Bounds{-4.0, 4.0};  // make sure initial guess is within bounds to avoid clamping
 
     const auto tOnesVectorJacobianProductSum = [](const library::GeometryFunction& aLevelSetTopology,
                                                   const linear_algebra::DynamicVector<double>& aDesignVariables)
@@ -288,7 +292,6 @@ TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
 {
     third_party_integration::stk_io::write_mesh(kLevelSetInput.mesh_name->mToken, create_background_mesh());
 
-    const auto tLevelSetTopology = LevelSetTopology{kLevelSetInput};
     const auto tInitialGuess = initial_guess(kLevelSetInput);
 
     const auto tExpectedInitialGuess = std::vector<double>{
@@ -302,6 +305,22 @@ TEST_F(LevelSetTopologyFixture, InitialGuessRegression)
     constexpr auto tTolerance = 1e-14;
     plato::test_utilities::expect_container_entries_near(tExpectedInitialGuess, tInitialGuess.stdVector(), tTolerance,
                                                          TEST_CONTEXT("Initial guess"));
+}
+
+TEST_F(LevelSetTopologyFixture, InitialGuessRespectsBounds)
+{
+    auto tLevelSetInput = geometry::extension::test_utilities::create_valid_level_set_topology_geometry_input();
+    third_party_integration::stk_io::write_mesh(kLevelSetInput.mesh_name->mToken, create_background_mesh());
+
+    constexpr double tLevelSetBound = 0.2;
+    tLevelSetInput.level_set_bounds = input_parser::Bounds{-tLevelSetBound, tLevelSetBound};
+    const auto tInitialGuess = initial_guess(tLevelSetInput);
+
+    const auto tMin = *std::min_element(tInitialGuess.stdVector().begin(), tInitialGuess.stdVector().end());
+    const auto tMax = *std::max_element(tInitialGuess.stdVector().begin(), tInitialGuess.stdVector().end());
+
+    EXPECT_LE(tMax, tLevelSetBound);
+    EXPECT_GE(tMin, -tLevelSetBound);
 }
 
 TEST_F(LevelSetTopologyTwoBlockFixture, InitialGuessOneBlockResultSize)

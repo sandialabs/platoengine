@@ -167,6 +167,8 @@ auto bounds(const input_parser::level_set_topology& aInput) -> std::pair<std::ve
 
 auto initial_guess(const input_parser::level_set_topology& aInput) -> linear_algebra::DynamicVector<double>
 {
+    const auto tLevelSetBounds =
+        LevelSetBounds{std::pair{aInput.level_set_bounds->mLower, aInput.level_set_bounds->mUpper}};
     if (aInput.initial_field_name.has_value())
     {
         auto tValuesFromMesh = initial_field_from_mesh(aInput, mesh_from_input(aInput));
@@ -181,13 +183,13 @@ auto initial_guess(const input_parser::level_set_topology& aInput) -> linear_alg
     {
         const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(aInput))};
         return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput))};
+            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput), tLevelSetBounds)};
     }
     else
     {
         const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, detail::generate_spheres_from_list(aInput)};
         return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput))};
+            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput), tLevelSetBounds)};
     }
 }
 
@@ -441,7 +443,6 @@ auto affine_transformation(std::vector<double> aVector,
 
     return aVector;
 }
-
 }  // namespace detail
 
 }  // namespace plato::geometry::extension
