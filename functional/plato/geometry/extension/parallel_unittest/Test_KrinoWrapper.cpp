@@ -107,12 +107,17 @@ TEST_F(KrinoTestFixture, MakeInitialGuessFromLevelSetPrimitives)
     const auto tMesh = mesh::Mesh{kBoxFilePath.value()};
 
     const auto tFixedBlocks = std::set<std::string>{};
-    const auto tInitialGuess =
-        make_initial_guess_from_level_set_primitives(kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}},
-                                                     tFixedBlocks, LevelSetBounds{std::pair{-1.0, 1.0}});
+    const auto tLevelSetBounds = LevelSetBounds{std::pair{-1.0, 1.0}};
+    const auto tInitialGuess = make_initial_guess_from_level_set_primitives(
+        kBoxFilePath.value(), tpik::LevelSetPrimitives{{}, {kUnitSphere}}, tFixedBlocks, tLevelSetBounds);
 
     const auto tExpectedInitialGuessSize = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
     ASSERT_EQ(tInitialGuess.size(), tExpectedInitialGuessSize);
+
+    const auto tMin = *std::min_element(tInitialGuess.begin(), tInitialGuess.end());
+    const auto tMax = *std::max_element(tInitialGuess.begin(), tInitialGuess.end());
+    ASSERT_GE(tMin, tLevelSetBounds.mValue.first);
+    ASSERT_LE(tMax, tLevelSetBounds.mValue.second);
 }
 
 TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
