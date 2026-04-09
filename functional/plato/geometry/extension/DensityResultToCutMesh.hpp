@@ -25,6 +25,10 @@ namespace detail
 /// a density threshold @a aDensityThreshold
 [[nodiscard]] auto transform_to_level_set_field(analysis::AnalysisDomainMesh aAnalysisDomainMesh,
                                                 const double aDensityThreshold) -> analysis::AnalysisDomainMesh;
+
+/// @brief Take a vector of doubles and check the bounds to determine if a zero crossing exists
+[[nodiscard]] auto zero_crossing_exists(const std::vector<double>& aVector) -> bool;
+
 }  // namespace detail
 
 }  // namespace plato::geometry::extension

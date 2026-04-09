@@ -28,6 +28,17 @@ void generate_cut_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
         .writeCutMesh(aInput.cut_mesh_name.value().mToken);
 }
 
+[[nodiscard]] auto nodal_analysis_domain_mesh(analysis::AnalysisDomainMesh aAnalysisDomainMesh)
+    -> analysis::AnalysisDomainMesh
+{
+    if (const auto tMesh = mesh::Mesh{aAnalysisDomainMesh};
+        mesh::EntityCounts{tMesh}.areElementDesignVariables(aAnalysisDomainMesh))
+    {
+        return detail::convert_to_nodal(aAnalysisDomainMesh, tMesh);
+    }
+    return aAnalysisDomainMesh;
+}
+
 }  // namespace
 
 void write_density_result_as_cut_mesh(analysis::AnalysisDomainMesh aAnalysisDomainMesh,
@@ -37,13 +48,12 @@ void write_density_result_as_cut_mesh(analysis::AnalysisDomainMesh aAnalysisDoma
     constexpr auto tThreshold = 0.5;
     aAnalysisDomainMesh = detail::transform_to_level_set_field(std::move(aAnalysisDomainMesh), tThreshold);
 
-    if (const auto tMesh = mesh::Mesh{aAnalysisDomainMesh};
-        mesh::EntityCounts{tMesh}.areElementDesignVariables(aAnalysisDomainMesh))
-    {
-        const auto tNodalProjectionsAnalysisDomainMesh = detail::convert_to_nodal(aAnalysisDomainMesh, tMesh);
-        generate_cut_mesh(tNodalProjectionsAnalysisDomainMesh, aInput, aCommunicator);
-    }
-    else
+    aAnalysisDomainMesh = nodal_analysis_domain_mesh(std::move(aAnalysisDomainMesh));
+
+    if (aInput.fixed_blocks.has_value() ||
+        detail::zero_crossing_exists(mesh::DesignVariablesConversion{mesh::Mesh{aAnalysisDomainMesh}}
+                                         .analysisDomainMeshToNodalFieldVector(aAnalysisDomainMesh)
+                                         .mValue))
     {
         generate_cut_mesh(aAnalysisDomainMesh, aInput, aCommunicator);
     }
@@ -76,6 +86,18 @@ auto transform_to_level_set_field(analysis::AnalysisDomainMesh aAnalysisDomainMe
                        return tEntryField;
                    });
     return aAnalysisDomainMesh;
+}
+
+auto zero_crossing_exists(const std::vector<double>& aVector) -> bool
+{
+    const auto tMininum = *std::min_element(aVector.begin(), aVector.end());
+    const auto tMaximum = *std::max_element(aVector.begin(), aVector.end());
+
+    if (tMaximum > 0 && tMininum <= 0)
+    {
+        return true;
+    }
+    return false;
 }
 
 }  // namespace detail

@@ -5,12 +5,15 @@
 #include <Akri_LevelSetPolicy.hpp>
 #include <filesystem>
 #include <memory>
+#include <utility>
+#include <vector>
 
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
+#include "plato/utilities/NamedType.hpp"
 
 namespace plato::analysis
 {
@@ -62,6 +65,8 @@ class KrinoWrapper
     third_party_integration::krino::VoidPhase mVoidPhase;
 };
 
+using LevelSetBounds = utilities::NamedType<std::pair<double, double>, struct LevelSetBoundsTag>;
+
 /// @brief Free function to facilitate making an initial guess.
 ///
 /// Read a mesh from @a aFileName, and use the level set primitives @a aLevelSetPrimitives, along with
@@ -70,7 +75,8 @@ class KrinoWrapper
 [[nodiscard]] auto make_initial_guess_from_level_set_primitives(
     const std::filesystem::path& aFileName,
     const third_party_integration::krino::LevelSetPrimitives& aLevelSetPrimitives,
-    const std::set<std::string>& aFixedBlocks) -> std::vector<double>;
+    const std::set<std::string>& aFixedBlocks,
+    const LevelSetBounds& aBounds) -> std::vector<double>;
 
 /// @brief Helper function to facilitate making a KrinoWrapper.
 ///
@@ -109,6 +115,9 @@ namespace detail
                                          const utilities::VectorIndex aVectorIndex,
                                          const std::size_t aDimensions) -> third_party_integration::common::Vector3;
 
+/// @brief Takes a vector of doubles @a aValues and clamps the values to bounds defined by @a aBounds.
+[[nodiscard]] auto clamp_to_bounds(const std::vector<double>& aValues, const LevelSetBounds& aBounds)
+    -> std::vector<double>;
 }  // namespace detail
 
 }  // namespace plato::geometry::extension
