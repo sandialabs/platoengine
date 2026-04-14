@@ -1,0 +1,31 @@
+#include "plato/process_manager/extension/InitialGeometryWriter.hpp"
+
+#include "plato/output/OutputManager.hpp"
+#include "plato/process_manager/library/ProcessManagerData.hpp"
+
+namespace plato::process_manager::extension
+{
+namespace
+{
+[[nodiscard]] auto make_conforming_density_mesh_generator_process_manager() -> library::StageAndProcessManager
+{
+    return {library::RunStage::kValidate, [](const library::ProcessManagerData& aProcessManagerData)
+            { InitialGeometryWriter{}.run(aProcessManagerData); }};
+}
+
+[[maybe_unused]] static const auto kConformingDensityMeshGeneratorParserRegistration =
+    input_parser::ComponentParserRegistration<input_parser::initial_geometry_writer>{};
+
+[[maybe_unused]] static const auto kConformingDensityMeshGeneratorRegistration =
+    library::ProcessManagerRegistration{input_parser::block_name<input_parser::initial_geometry_writer>(),
+                                        [](const library::ValidatedProcessManagerInput& /*aValidInput*/)
+                                        { return make_conforming_density_mesh_generator_process_manager(); }};
+}  // namespace
+
+void InitialGeometryWriter::run(const library::ProcessManagerData& aProcessManagerData) const
+{
+    auto tOutputManager =
+        output::OutputManager{aProcessManagerData.mGeometry.mOutput, output::OutputMode::kEveryIterationOverwrite};
+    tOutputManager.output(aProcessManagerData.mGeometry.mInitialGuess);
+}
+}  // namespace plato::process_manager::extension

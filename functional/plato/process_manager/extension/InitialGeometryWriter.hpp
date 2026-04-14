@@ -1,0 +1,35 @@
+#ifndef PLATO_PROCESS_MANAGER_EXTENSION_INITIALGEOMETRYWRITER
+#define PLATO_PROCESS_MANAGER_EXTENSION_INITIALGEOMETRYWRITER
+
+#include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
+
+// clang-format off
+PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
+    (plato)(input_parser), initial_geometry_writer,
+    (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter to apply. "
+                                                                                               "Only required if more than one filter is specified.")
+    (plato::input_parser::CrossReference<plato::components::ComponentType::kGeometry>, geometry, "Name of the geometry whose output mesh will be used. "
+                                                                                                   "Only required if more than one geometry is specified.")
+
+)
+// clang-format on
+
+namespace plato::process_manager::library
+{
+struct ProcessManagerData;
+}
+
+namespace plato::process_manager::extension
+{
+class InitialGeometryWriter
+{
+   public:
+    explicit InitialGeometryWriter() = default;
+
+    void run(const library::ProcessManagerData& aProcessManagerData) const;
+};
+
+}  // namespace plato::process_manager::extension
+
+#endif
