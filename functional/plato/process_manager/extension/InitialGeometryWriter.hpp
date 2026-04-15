@@ -22,11 +22,16 @@ struct ProcessManagerData;
 
 namespace plato::process_manager::extension
 {
+/// @brief process manager that runs the output function for the problem geometry using the initial guess.
+///
+/// This can be helpful to verify that an initial guess has resulted in the correct geometry.
 class InitialGeometryWriter
 {
    public:
     explicit InitialGeometryWriter() = default;
 
+    /// @brief calls the output function for the geometry stored in @a aProcessManagerData using the geometry's initial
+    /// guess.
     void run(const library::ProcessManagerData& aProcessManagerData) const;
 };
 
