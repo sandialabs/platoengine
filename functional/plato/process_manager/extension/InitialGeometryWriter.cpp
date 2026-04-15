@@ -7,7 +7,7 @@ namespace plato::process_manager::extension
 {
 namespace
 {
-[[nodiscard]] auto make_conforming_density_mesh_generator_process_manager() -> library::StageAndProcessManager
+[[nodiscard]] auto make_initial_geometry_writer_process_manager() -> library::StageAndProcessManager
 {
     return {library::RunStage::kValidate, [](const library::ProcessManagerData& aProcessManagerData)
             { InitialGeometryWriter{}.run(aProcessManagerData); }};
@@ -19,7 +19,7 @@ namespace
 [[maybe_unused]] static const auto kConformingDensityMeshGeneratorRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::initial_geometry_writer>(),
                                         [](const library::ValidatedProcessManagerInput& /*aValidInput*/)
-                                        { return make_conforming_density_mesh_generator_process_manager(); }};
+                                        { return make_initial_geometry_writer_process_manager(); }};
 }  // namespace
 
 void InitialGeometryWriter::run(const library::ProcessManagerData& aProcessManagerData) const
