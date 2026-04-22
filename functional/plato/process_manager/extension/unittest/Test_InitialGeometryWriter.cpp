@@ -6,6 +6,7 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/process_manager/extension/InitialGeometryWriter.hpp"
+#include "plato/process_manager/extension/test_utilities/CrossReferenceUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -38,6 +39,8 @@ void write_mesh_with_density_field()
 
 void validate_and_run(const plato::input_parser::ParsedInput& aInput)
 {
+    write_mesh_with_density_field();
+
     const auto tValidatedInput = input_validation::make_validated_input(aInput);
     ASSERT_TRUE(tValidatedInput.hasValue()) << tValidatedInput.error();
 
@@ -48,13 +51,14 @@ void validate_and_run(const plato::input_parser::ParsedInput& aInput)
 
     const auto tInitialGeometryWriter = InitialGeometryWriter{};
     tInitialGeometryWriter.run(tProblem);
+
+    std::filesystem::remove(kDensityMeshName);
 }
+
 }  // namespace
 
 TEST(InitialGeometryWriter, GenerateOutputMeshLevelSetTO)
 {
-    write_mesh_with_density_field();
-
     auto tGeometryInput = geometry::extension::test_utilities::create_valid_level_set_topology_geometry_input();
     tGeometryInput.mesh_name = input_parser::FileName{kDensityMeshName};
     tGeometryInput.sphere_pattern = boost::none;
@@ -67,11 +71,12 @@ TEST(InitialGeometryWriter, GenerateOutputMeshLevelSetTO)
 
     validate_and_run(tInput);
 
-    test_utilities::test_for_existence_and_remove({kLevelSetOutputName}, TEST_CONTEXT("Level set output: cut mesh"));
-    test_utilities::test_for_existence_and_remove(
+    plato::test_utilities::test_for_existence_and_remove({kLevelSetOutputName},
+                                                         TEST_CONTEXT("Level set output: cut mesh"));
+    plato::test_utilities::test_for_existence_and_remove(
         {"restart_" + kLevelSetOutputName},
         TEST_CONTEXT("Level set output: unfiltered level set field on background mesh"));
-    test_utilities::test_for_existence_and_remove(
+    plato::test_utilities::test_for_existence_and_remove(
         {"filtered_level_set_" + kLevelSetOutputName},
         TEST_CONTEXT("Level set output: filtered level set field on background mesh"));
 }
@@ -85,11 +90,33 @@ TEST(InitialGeometryWriter, GenerateOutputMeshDensityTO)
 
     validate_and_run(tInput);
 
-    test_utilities::test_for_existence_and_remove({kDensityOutputName},
-                                                  TEST_CONTEXT("Density output: filtered density field"));
+    plato::test_utilities::test_for_existence_and_remove({kDensityOutputName},
+                                                         TEST_CONTEXT("Density output: filtered density field"));
 
-    test_utilities::test_for_existence_and_remove({"restart_" + kDensityOutputName},
-                                                  TEST_CONTEXT("Density output: unfiltered density field"));
+    plato::test_utilities::test_for_existence_and_remove({"restart_" + kDensityOutputName},
+                                                         TEST_CONTEXT("Density output: unfiltered density field"));
+}
+
+TEST(InitialGeometryWriter, CrossReferenceIdentityFilter)
+{
+    auto tInitialGeometryWriter = input_parser::initial_geometry_writer{};
+    tInitialGeometryWriter.filter = test_utilities::cross_reference<input_parser::identity_filter>();
+
+    auto tDensityTopologyInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
+    tDensityTopologyInput.filter = test_utilities::cross_reference<input_parser::kernel_filter>();
+
+    const auto tInput = tInitialGeometryWriter | tDensityTopologyInput |
+                        criteria::library::test_utilities::create_valid_example_objective_input() |
+                        filter::extension::test_utilities::create_valid_identity_filter_input() |
+                        filter::extension::test_utilities::create_valid_kernel_filter_input();
+
+    validate_and_run(tInput);
+
+    plato::test_utilities::test_for_existence_and_remove({kDensityOutputName},
+                                                         TEST_CONTEXT("Density output: filtered density field"));
+
+    plato::test_utilities::test_for_existence_and_remove({"restart_" + kDensityOutputName},
+                                                         TEST_CONTEXT("Density output: unfiltered density field"));
 }
 
 TEST(InitialGeometryWriter, Registration)
