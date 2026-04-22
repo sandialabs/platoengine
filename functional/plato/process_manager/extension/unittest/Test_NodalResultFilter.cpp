@@ -10,6 +10,7 @@
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/process_manager/extension/NodalResultFilter.hpp"
+#include "plato/process_manager/extension/test_utilities/CrossReferenceUtilities.hpp"
 #include "plato/process_manager/extension/test_utilities/NodalResultFilterUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
@@ -51,13 +52,6 @@ class NodalResultFilterRunFixture : public third_party_integration::stk_io::test
             tNodalAnalysisMesh, geometry::extension::density_mesh_field_name(), tFixedValue);
     }
 };
-
-template <typename ComponentInput>
-[[nodiscard]] auto cross_reference()
-{
-    return input_parser::CrossReference<input_parser::ComponentTypeOfInputBlock<ComponentInput>::value>{
-        input_parser::block_name<ComponentInput>(), input_parser::InputBlockWrapper{ComponentInput{}}};
-}
 }  // namespace
 
 TEST_F(NodalResultFilterRunFixture, CreateAndRunSeparateOutputFile)
@@ -93,13 +87,13 @@ TEST(NodalResultFilter, ValidateFilterIsKernelFilter)
     {
         // Wrong filter
         auto tInput = input_parser::nodal_result_filter{};
-        tInput.filter = cross_reference<input_parser::identity_filter>();
+        tInput.filter = test_utilities::cross_reference<input_parser::identity_filter>();
         EXPECT_TRUE(detail::validate_filter_is_kernel_filter(tInput));
     }
     {
         // Correct filter
         auto tInput = input_parser::nodal_result_filter{};
-        tInput.filter = cross_reference<input_parser::kernel_filter>();
+        tInput.filter = test_utilities::cross_reference<input_parser::kernel_filter>();
         const auto tErrorMessage = detail::validate_filter_is_kernel_filter(tInput);
         EXPECT_FALSE(tErrorMessage) << tErrorMessage.value();
     }
@@ -123,13 +117,13 @@ TEST(NodalResultFilter, ValidateGeometryIsDensityTopology)
     {
         // Wrong geometry
         auto tInput = input_parser::nodal_result_filter{};
-        tInput.geometry = cross_reference<input_parser::brick_shape_geometry>();
+        tInput.geometry = test_utilities::cross_reference<input_parser::brick_shape_geometry>();
         EXPECT_TRUE(detail::validate_geometry_is_density_topology(tInput));
     }
     {
         // Correct geometry
         auto tInput = input_parser::nodal_result_filter{};
-        tInput.geometry = cross_reference<input_parser::density_topology>();
+        tInput.geometry = test_utilities::cross_reference<input_parser::density_topology>();
         const auto tErrorMessage = detail::validate_geometry_is_density_topology(tInput);
         EXPECT_FALSE(tErrorMessage) << tErrorMessage.value();
     }
