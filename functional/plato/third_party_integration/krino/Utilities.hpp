@@ -102,6 +102,17 @@ template <typename LevelSetFieldVector>
 [[nodiscard]] auto create_output_selector(stk::mesh::BulkData& aBulkData, const VoidPhase aVoidPhase)
     -> stk::mesh::Selector;
 
+/// @brief Returns the blocks contained in @a aKrinoMesh as a PartVector, excluding any irrelevant, Krino-added blocks.
+[[nodiscard]] auto all_block_parts(const ::krino::MeshInterface& aKrinoMesh) -> stk::mesh::PartVector;
+
+/// @brief Returns the blocks contained in @a aKrinoMesh as a PartVector, excluding any irrelevant, Krino-added blocks
+/// and all blocks with names in @a aExcludedBlocks.
+[[nodiscard]] auto all_blocks_except(const ::krino::MeshInterface& aKrinoMesh,
+                                     const std::set<std::string>& aExcludedBlocks) -> stk::mesh::PartVector;
+
+/// @brief Returns the string used to represent the void phase in krino.
+[[nodiscard]] auto void_phase_name() -> std::string_view;
+
 /// @brief Take a krino mesh's bulk data @a aBulkData and write it to the file specified in @a aOutputFileName. The void
 /// phase @a aVoidPhase specifies whether to include the void region or not when writing to disk.
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by

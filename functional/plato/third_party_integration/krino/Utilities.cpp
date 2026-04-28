@@ -22,7 +22,6 @@
 #include <string_view>
 
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
-#include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
 #include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
@@ -36,6 +35,7 @@ namespace
 constexpr auto kSortByGlobalId = true;
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"LS"};
+constexpr auto kVoidPhaseName = std::string_view{"void"};
 const auto kLevelSetFields = std::vector<std::string>{"LS", "LS_COPYFORSNAPPING"};
 constexpr auto kNumberOfLevelSets = 1U;
 
@@ -257,6 +257,30 @@ auto create_output_selector(stk::mesh::BulkData& aBulkData, const VoidPhase aVoi
 
     return tOutputSelector;
 }
+
+auto all_block_parts(const ::krino::MeshInterface& aKrinoMesh) -> stk::mesh::PartVector
+{
+    auto tBlockParts = stk::mesh::PartVector{};
+    std::ranges::copy_if(aKrinoMesh.meta_data().get_parts(), std::back_inserter(tBlockParts),
+                         [](const auto* aPart)
+                         {
+                             return aPart->primary_entity_rank() == stk::topology::ELEMENT_RANK &&
+                                    aPart->subsets().empty() && aPart->topology() != stk::topology::INVALID_TOPOLOGY &&
+                                    !stk::mesh::is_auto_declared_part(*aPart);
+                         });
+    return tBlockParts;
+}
+
+auto all_blocks_except(const ::krino::MeshInterface& aKrinoMesh, const std::set<std::string>& aExcludedBlocks)
+    -> stk::mesh::PartVector
+{
+    auto tElementBlockParts = all_block_parts(aKrinoMesh);
+    std::erase_if(tElementBlockParts,
+                  [&aExcludedBlocks](const auto& aPart) { return aExcludedBlocks.contains(aPart->name()); });
+    return tElementBlockParts;
+}
+
+auto void_phase_name() -> std::string_view { return kVoidPhaseName; }
 
 void write_mesh(const stk::mesh::BulkData& aBulkData,
                 const std::filesystem::path& aOutputFileName,
