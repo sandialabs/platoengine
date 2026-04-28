@@ -44,7 +44,7 @@ void create_mesh()
 
 void make_test_level_set_field(const BackgroundMesh& aBackgroundMesh)
 {
-    const auto tNodes = node_entities_in_mesh(*aBackgroundMesh.mKrinoMesh, aBackgroundMesh.mLevelSetFields);
+    const auto tNodes = node_entities_in_mesh(aBackgroundMesh);
 
     std::vector<double> tVector(tNodes.size(), 1);
     auto tGenerator = [N = tNodes.size(), i = 0UL]() mutable -> double { return (i++ < N / 2) ? -1.0 : 1.0; };
@@ -68,7 +68,7 @@ void run_cut_and_write_test(const VoidPhase aVoidPhase,
     create_mesh();
     const auto tBackgroundMesh = initialize_background_mesh(kMeshName);
     make_test_level_set_field(tBackgroundMesh);
-    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
+    cut_mesh(tBackgroundMesh, SnappingParameters{});
     const auto tSelector = create_output_selector(tBackgroundMesh.mKrinoMesh->bulk_data(), aVoidPhase);
     write_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
 
@@ -123,9 +123,9 @@ TEST_F(KrinoTestFixture, BackgroundNodeIds)
 {
     const auto tBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
     test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25});
-    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
+    cut_mesh(tBackgroundMesh, SnappingParameters{});
 
-    const auto tResult = background_node_ids(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
+    const auto tResult = background_node_ids(tBackgroundMesh);
     const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4};
     EXPECT_EQ(tGold, tResult);
 }
@@ -142,7 +142,7 @@ TEST_F(KrinoTestFixture, BackgroundNodeIdsWithExistingLevelSetField)
     constexpr auto tDesignDomainSize = 44U;
     test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, std::vector(tDesignDomainSize, 1.0));
 
-    const auto tResult = background_node_ids(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
+    const auto tResult = background_node_ids(tBackgroundMesh);
     EXPECT_EQ(tResult.size(), tDesignDomainSize);
 }
 
@@ -155,7 +155,7 @@ TEST_F(KrinoTestFixture, CutMeshNodeIds)
 {
     const auto tBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
     test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25});
-    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
+    cut_mesh(tBackgroundMesh, SnappingParameters{});
     {
         const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6};
@@ -172,7 +172,7 @@ TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTri)
 {
     const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
     test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25, 0.75, 0.75, 0.75});
-    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
+    cut_mesh(tBackgroundMesh, SnappingParameters{});
     {
         const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12};
@@ -193,7 +193,7 @@ TEST_F(KrinoTestFixture, GetLevelSetValuesMakeFromVector)
     const auto tVector = std::vector<double>{1., 2, 3, 4, 5, 6, 7, 8};
     test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, tVector);
 
-    const auto tLevelSetValues = get_level_set_values(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
+    const auto tLevelSetValues = get_level_set_values(tBackgroundMesh);
     for (const auto& [tId, tValue] : tLevelSetValues)
     {
         EXPECT_EQ(tValue, tId);

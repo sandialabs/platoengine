@@ -44,9 +44,9 @@ void four_tri_test_on_background_node_ids(const plato::test_utilities::TestConte
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
     const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
     populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tBackgroundMesh);
-    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
+    cut_mesh(tBackgroundMesh, SnappingParameters{});
 
-    const auto tResult = background_node_ids(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
+    const auto tResult = background_node_ids(tBackgroundMesh);
     const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6, 7};
     EXPECT_EQ(tGold, tResult) << aTestContext;
 }
@@ -56,7 +56,7 @@ void populate_level_set_field_from_vector(const BackgroundMesh& aBackgroundMesh,
     assert(boost::mpi::communicator{}.size() == 1);
     // std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data()); //
     // using this is BAD!
-    const auto tNodes = node_entities_in_mesh(*aBackgroundMesh.mKrinoMesh, aBackgroundMesh.mLevelSetFields);
+    const auto tNodes = node_entities_in_mesh(aBackgroundMesh);
     assert(tNodes.size() == aVector.size());
     for (const auto [tNode, tValue] : utilities::Zip(tNodes, aVector))
     {

@@ -149,12 +149,12 @@ void populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSe
                                             aBackgroundMesh.mLevelSetFields.front().isovar, tInitializationSurfaces);
 }
 
-auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
-                         const std::vector<::krino::LS_Field>& aLevelSetFields) -> std::vector<stk::mesh::EntityId>
+auto background_node_ids(const BackgroundMesh& aBackgroundMesh) -> std::vector<stk::mesh::EntityId>
 {
-    const auto tBackgroundNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
-    return utilities::unique_vector_gather(get_ids_from_entities(tBackgroundNodes, aKrinoMesh.bulk_data()),
-                                           retrieve_mpi_communicator_from_krino());
+    const auto tBackgroundNodes = node_entities_in_mesh(aBackgroundMesh);
+    return utilities::unique_vector_gather(
+        get_ids_from_entities(tBackgroundNodes, aBackgroundMesh.mKrinoMesh->bulk_data()),
+        retrieve_mpi_communicator_from_krino());
 }
 
 namespace
@@ -181,11 +181,9 @@ auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase
                                            retrieve_mpi_communicator_from_krino());
 }
 
-void cut_mesh(stk::mesh::BulkData& aBulkData,
-              const std::vector<::krino::LS_Field>& aLevelSetFields,
-              const SnappingParameters aSnappingParameters)
+void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aSnappingParameters)
 {
-    const auto& tMeta = aBulkData.mesh_meta_data();
+    const auto& tMeta = aBackgroundMesh.mKrinoMesh->bulk_data().mesh_meta_data();
     auto& tAuxMeta = ::krino::AuxMetaData::get(tMeta);
     auto& tCdfemSupport = ::krino::CDFEM_Support::get(tMeta);
     tCdfemSupport.set_cdfem_edge_degeneracy_handling(
@@ -197,57 +195,55 @@ void cut_mesh(stk::mesh::BulkData& aBulkData,
     std::unique_ptr<::krino::InterfaceGeometry> tInterfaceGeometry;
     if (kDoNormalSensitivities)
     {
-        for (auto& lsField : aLevelSetFields)
+        for (auto& lsField : aBackgroundMesh.mLevelSetFields)
         {
-            ::krino::update_nodal_gradient(aBulkData, tCdfemSupport.get_coords_field(), lsField.isovar);
+            ::krino::update_nodal_gradient(aBackgroundMesh.mKrinoMesh->bulk_data(), tCdfemSupport.get_coords_field(),
+                                           lsField.isovar);
         }
         tInterfaceGeometry =
             ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
-                                              tCdfemSupport, tPhaseSupport, aLevelSetFields);
+                                              tCdfemSupport, tPhaseSupport, aBackgroundMesh.mLevelSetFields);
     }
     else
     {
         const auto tSnapLevelSetFields =
-            ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aLevelSetFields);
+            ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.mLevelSetFields);
         tInterfaceGeometry =
             ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
                                               tCdfemSupport, tPhaseSupport, tSnapLevelSetFields);
     }
 
     tAuxMeta.clear_force_64bit_flag();
-    ::krino::CDMesh::decompose_mesh(aBulkData, *tInterfaceGeometry);
+    ::krino::CDMesh::decompose_mesh(aBackgroundMesh.mKrinoMesh->bulk_data(), *tInterfaceGeometry);
 }
 
 auto get_level_set_field_name() -> std::string { return std::string{kLevelSetName}; }
 
-auto get_level_set_values(const ::krino::MeshInterface& aKrinoMesh,
-                          const std::vector<::krino::LS_Field>& aLevelSetFields)
-    -> std::unordered_map<stk::mesh::EntityId, double>
+auto get_level_set_values(const BackgroundMesh& aBackgroundMesh) -> std::unordered_map<stk::mesh::EntityId, double>
 {
-    const auto tNodes = node_entities_in_mesh(aKrinoMesh, aLevelSetFields);
+    const auto tNodes = node_entities_in_mesh(aBackgroundMesh);
 
     auto tLevelSetValues =
         utilities::reserved_container<std::unordered_map<stk::mesh::EntityId, double>>(tNodes.size());
 
     std::ranges::transform(tNodes, std::inserter(tLevelSetValues, tLevelSetValues.begin()),
-                           [&aKrinoMesh, &aLevelSetFields](const auto& aNode)
+                           [&aBackgroundMesh](const auto& aNode)
                            {
-                               const auto tId = aKrinoMesh.bulk_data().entity_key(aNode).id();
-                               return std::make_pair(tId, level_set_value(aLevelSetFields, aNode));
+                               const auto tId = aBackgroundMesh.mKrinoMesh->bulk_data().entity_key(aNode).id();
+                               return std::make_pair(tId, level_set_value(aBackgroundMesh.mLevelSetFields, aNode));
                            });
 
     return utilities::reduce_map(tLevelSetValues, retrieve_mpi_communicator_from_krino());
 }
 
-auto node_entities_in_mesh(const ::krino::MeshInterface& aKrinoMesh,
-                           const std::vector<::krino::LS_Field>& aLevelSetFields) -> stk::mesh::EntityVector
+auto node_entities_in_mesh(const BackgroundMesh& aBackgroundMesh) -> stk::mesh::EntityVector
 {
-    ::krino::CDFEM_Support& cdfemSupport = ::krino::CDFEM_Support::get(aKrinoMesh.meta_data());
+    ::krino::CDFEM_Support& cdfemSupport = ::krino::CDFEM_Support::get(aBackgroundMesh.mKrinoMesh->meta_data());
     const stk::mesh::Selector tSelector =
-        stk::mesh::selectField(aLevelSetFields.front().isovar) & !cdfemSupport.get_child_node_part();
+        stk::mesh::selectField(aBackgroundMesh.mLevelSetFields.front().isovar) & !cdfemSupport.get_child_node_part();
     stk::mesh::EntityVector tNodes;
-    stk::mesh::get_selected_entities(tSelector, aKrinoMesh.bulk_data().buckets(stk::topology::NODE_RANK), tNodes,
-                                     kSortByGlobalId);
+    stk::mesh::get_selected_entities(
+        tSelector, aBackgroundMesh.mKrinoMesh->bulk_data().buckets(stk::topology::NODE_RANK), tNodes, kSortByGlobalId);
     return tNodes;
 }
 

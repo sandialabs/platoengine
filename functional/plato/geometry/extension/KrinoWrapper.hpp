@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
@@ -37,8 +38,7 @@ class KrinoWrapper
     /// @a aVoidPhase specifies at construction whether to include or exclude the void region in sensitivities and in
     /// writing the mesh to disk.
     /// @note See helper functions for the most common methods to create a KrinoWrapper
-    KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInterface,
-                 std::vector<::krino::LS_Field> aLevelSetField,
+    KrinoWrapper(third_party_integration::krino::BackgroundMesh aBackgroundMesh,
                  const third_party_integration::krino::VoidPhase aVoidPhase,
                  const third_party_integration::krino::SnappingParameters aSnappingParameters);
 
@@ -57,8 +57,7 @@ class KrinoWrapper
         -> std::vector<double>;
 
    private:
-    std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
-    std::vector<::krino::LS_Field> mLevelSetFields;
+    third_party_integration::krino::BackgroundMesh mBackgroundMesh;
     std::size_t mNumberOfDesignDomainBackgroundNodes;
     third_party_integration::krino::SensitivityMap mSensitivityMap;
     stk::mesh::Selector mSelector;
@@ -101,8 +100,7 @@ namespace detail
 /// cut_mesh(...);
 /// @endcode
 [[nodiscard]] auto compute_sensitivities(
-    const stk::mesh::BulkData& aBulkData,
-    const std::vector<::krino::LS_Field>& aLevelSetFields,
+    const third_party_integration::krino::BackgroundMesh& aBackgroundMesh,
     const std::vector<third_party_integration::krino::BackgroundMeshNodeId>& aDesignDomainBackgroundNodes)
     -> third_party_integration::krino::SensitivityMap;
 

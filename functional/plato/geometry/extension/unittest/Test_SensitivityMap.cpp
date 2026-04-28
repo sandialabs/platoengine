@@ -57,10 +57,8 @@ class OneTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrino
         mBackgroundMesh = tpik::initialize_background_mesh(mFileName);
         tpik::populate_level_set_field_from_primitives(tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
                                                        mBackgroundMesh);
-        mDesignDomainBackgroundNodes =
-            tpik::background_node_ids(*mBackgroundMesh.mKrinoMesh, mBackgroundMesh.mLevelSetFields);
-        tpik::cut_mesh(mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields,
-                       tpik::SnappingParameters{});
+        mDesignDomainBackgroundNodes = tpik::background_node_ids(mBackgroundMesh);
+        tpik::cut_mesh(mBackgroundMesh, tpik::SnappingParameters{});
     }
 
    protected:
@@ -82,8 +80,7 @@ class FourTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrin
         tpik::populate_level_set_field_from_primitives(tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
                                                        mBackgroundMesh);
         mDesignDomainBackgroundNodes = std::vector<tpik::BackgroundMeshNodeId>{1U, 2U, 4U, 7U};
-        tpik::cut_mesh(mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields,
-                       tpik::SnappingParameters{});
+        tpik::cut_mesh(mBackgroundMesh, tpik::SnappingParameters{});
     }
 
    protected:
@@ -93,23 +90,20 @@ class FourTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrin
 
 TEST_F(OneTriMeshKrinoFixture, OneTriMesh)
 {
-    const auto tSensitivities = detail::compute_sensitivities(
-        mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields, mDesignDomainBackgroundNodes);
+    const auto tSensitivities = detail::compute_sensitivities(mBackgroundMesh, mDesignDomainBackgroundNodes);
     compareMapAgainstBuiltInGold(tSensitivities, TEST_CONTEXT("OneTriMesh Sensitivities"));
 }
 
 TEST_F(FourTriMeshKrinoFixture, FourTriMesh)
 {
-    const auto tSensitivities = detail::compute_sensitivities(
-        mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields, mDesignDomainBackgroundNodes);
+    const auto tSensitivities = detail::compute_sensitivities(mBackgroundMesh, mDesignDomainBackgroundNodes);
     compareMapAgainstBuiltInGold(tSensitivities, TEST_CONTEXT("FourTriMesh Sensitivities"));
 }
 
 TEST_F(OneTriMeshKrinoFixture, OneTriMeshNodeFourFixed)
 {
     mDesignDomainBackgroundNodes = std::vector<tpik::BackgroundMeshNodeId>{1U, 2U};
-    const auto tSensitivities = detail::compute_sensitivities(
-        mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields, mDesignDomainBackgroundNodes);
+    const auto tSensitivities = detail::compute_sensitivities(mBackgroundMesh, mDesignDomainBackgroundNodes);
 
     tpik::test_utilities::test_sensitivity_map(tSensitivities, kOneTriSensitivityMapNodeFourFixed,
                                                TEST_CONTEXT("OneTriMesh Sensitivities Fixed Node 4"));
@@ -118,8 +112,7 @@ TEST_F(OneTriMeshKrinoFixture, OneTriMeshNodeFourFixed)
 TEST_F(OneTriMeshKrinoFixture, OneTriMeshNodeOneAndTwoFixed)
 {
     mDesignDomainBackgroundNodes = std::vector<tpik::BackgroundMeshNodeId>{4U};
-    const auto tSensitivities = detail::compute_sensitivities(
-        mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields, mDesignDomainBackgroundNodes);
+    const auto tSensitivities = detail::compute_sensitivities(mBackgroundMesh, mDesignDomainBackgroundNodes);
 
     tpik::test_utilities::test_sensitivity_map(tSensitivities, kOneTriSensitivityMapNodeOneAndTwoFixed,
                                                TEST_CONTEXT("OneTriMesh Sensitivities Fixed Nodes 1 and 2"));
@@ -128,8 +121,7 @@ TEST_F(OneTriMeshKrinoFixture, OneTriMeshNodeOneAndTwoFixed)
 TEST_F(OneTriMeshKrinoFixture, OneTriMeshNodeAllFixed)
 {
     mDesignDomainBackgroundNodes = std::vector<tpik::BackgroundMeshNodeId>{};
-    const auto tSensitivities = detail::compute_sensitivities(
-        mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields, mDesignDomainBackgroundNodes);
+    const auto tSensitivities = detail::compute_sensitivities(mBackgroundMesh, mDesignDomainBackgroundNodes);
     tpik::test_utilities::test_sensitivity_map(tSensitivities, kOneTriSensitivityMapAllNodesFixed,
                                                TEST_CONTEXT("OneTriMesh Sensitivities All Fixed Nodes"));
 }

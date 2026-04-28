@@ -18,17 +18,16 @@
 #include <stk_mesh/base/Types.hpp>
 #include <stk_util/environment/EnvData.hpp>
 
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
-#include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/ReduceUtilities.hpp"
 
 namespace plato::third_party_integration::krino
 {
-auto get_krino_sensitivities(const stk::mesh::BulkData& aBulkData,
-                             const std::vector<::krino::LS_Field>& aLevelSetFields)
-    -> std::vector<::krino::LevelSetShapeSensitivity>
+auto get_krino_sensitivities(const BackgroundMesh& aBackgroundMesh) -> std::vector<::krino::LevelSetShapeSensitivity>
 {
-    return ::krino::get_levelset_shape_sensitivities(aBulkData, aLevelSetFields, kDoNormalSensitivities);
+    return ::krino::get_levelset_shape_sensitivities(aBackgroundMesh.mKrinoMesh->bulk_data(),
+                                                     aBackgroundMesh.mLevelSetFields, kDoNormalSensitivities);
 }
 
 auto coordinate_level_set_sensitivity(const ::krino::LevelSetShapeSensitivity& aLevelSetSensitivity,

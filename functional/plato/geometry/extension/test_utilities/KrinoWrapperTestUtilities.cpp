@@ -19,8 +19,7 @@ auto make_krino_wrapper_from_vector_values(const std::filesystem::path& aFileNam
 {
     auto tBackgroundMesh = tpik::initialize_background_mesh(aFileName);
     tpik::test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, aInitialLevelSetValues.mValue);
-    return KrinoWrapper{std::move(tBackgroundMesh.mKrinoMesh), std::move(tBackgroundMesh.mLevelSetFields), aVoidPhase,
-                        tpik::SnappingParameters{}};
+    return KrinoWrapper{std::move(tBackgroundMesh), aVoidPhase, tpik::SnappingParameters{}};
 }
 
 auto make_krino_wrapper_from_level_set_primitives(const std::filesystem::path& aFileName,
@@ -30,8 +29,7 @@ auto make_krino_wrapper_from_level_set_primitives(const std::filesystem::path& a
 {
     auto tBackgroundMesh = tpik::initialize_background_mesh(aFileName, aFixedBlockNames);
     tpik::populate_level_set_field_from_primitives(aLevelSetPrimitives, tBackgroundMesh);
-    return KrinoWrapper{std::move(tBackgroundMesh.mKrinoMesh), std::move(tBackgroundMesh.mLevelSetFields), aVoidPhase,
-                        tpik::SnappingParameters{}};
+    return KrinoWrapper{std::move(tBackgroundMesh), aVoidPhase, tpik::SnappingParameters{}};
 }
 
 }  // namespace plato::geometry::extension::test_utilities

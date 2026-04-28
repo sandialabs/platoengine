@@ -5,6 +5,7 @@
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -25,7 +26,7 @@ class SensitivityMapUtilitiesFixture : public KrinoTestFixture
     {
         mBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
         test_utilities::populate_level_set_field_from_vector(mBackgroundMesh, {1, -1, -1});
-        cut_mesh(mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields, SnappingParameters{});
+        cut_mesh(mBackgroundMesh, SnappingParameters{});
     }
 
    protected:
@@ -39,8 +40,7 @@ TEST(SensitivityMapUtilities, OneTriMeshPath) { ASSERT_TRUE(kOneTriMeshFilePath.
 TEST_F(SensitivityMapUtilitiesFixture, ParentNodeIDsFromGetKrinoSensitivities)
 {
     initialize();
-    const auto tSensitvitiesFromKrino =
-        get_krino_sensitivities(mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields);
+    const auto tSensitvitiesFromKrino = get_krino_sensitivities(mBackgroundMesh);
     constexpr unsigned int tNumberOfInterfaceNodes{2U};
     ASSERT_EQ(tSensitvitiesFromKrino.size(), tNumberOfInterfaceNodes);
 
@@ -57,8 +57,7 @@ TEST_F(SensitivityMapUtilitiesFixture, ParentNodeIDsFromGetKrinoSensitivities)
 TEST_F(SensitivityMapUtilitiesFixture, CoordinateLevelSetSensitivity)
 {
     initialize();
-    const auto tSensitvitiesFromKrino =
-        get_krino_sensitivities(mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields);
+    const auto tSensitvitiesFromKrino = get_krino_sensitivities(mBackgroundMesh);
     const auto tSecondSensitivity = tSensitvitiesFromKrino.back();
     const auto tSpatialDimension = 2U;
     const auto tSensitivityVector = coordinate_level_set_sensitivity(tSecondSensitivity, tSpatialDimension);
