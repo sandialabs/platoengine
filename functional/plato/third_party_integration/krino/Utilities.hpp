@@ -20,6 +20,8 @@ namespace plato::third_party_integration::krino
 {
 static constexpr bool kDoNormalSensitivities = false;  // TODO: remove this and come up with a better solution
 
+struct BackgroundMesh;
+
 /// @brief Describes whether or not to include a void phase block in the generated cut mesh.
 enum struct VoidPhase : std::uint8_t
 {
@@ -32,6 +34,16 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 
 /// @brief Create a comm duplicate of the communicator that Krino has
 [[nodiscard]] auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator;
+
+/// @brief Creates and initializes a BackgroundMesh object from a mesh on disk at @a aFilename that excludes blocks with
+/// names given in
+/// @a aExcludedBlocks. Typically, @a aExcludedBlocks will be the fixed (non-design) blocks.
+/// This function sets up the appropriate level set fields and also activates the mesh, both of which are stored in the
+/// BackgroundMesh struct.
+/// @pre The environment for krino was initialized.
+/// @pre @a aFileName is a valid exodus mesh file on disk.
+[[nodiscard]] auto initialize_background_mesh(const std::filesystem::path& aFilename,
+                                              const std::set<std::string>& aExcludedBlocks = {}) -> BackgroundMesh;
 
 /// @brief Creates a Krino mesh from a mesh on disk at @a aFilename that excludes blocks with names given in @a
 /// aExcludedBlocks. Typically, @a aExcludedBlocks will be the fixed (non-design) blocks.

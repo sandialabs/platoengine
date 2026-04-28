@@ -7,6 +7,7 @@
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
@@ -79,6 +80,19 @@ void run_cut_and_write_test(const VoidPhase aVoidPhase,
     plato::test_utilities::test_for_existence_and_remove({kWriteMeshName}, TEST_CONTEXT("Write Mesh file"));
 }
 
+void populate_level_set_field_from_vector(const BackgroundMesh& aBackgroundMesh, const std::vector<double>& aVector)
+{
+    assert(boost::mpi::communicator{}.size() == 1);
+    // std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data()); //
+    // using this is BAD!
+    const auto tNodes = node_entities_in_mesh(*aBackgroundMesh.mKrinoMesh, aBackgroundMesh.mLevelSetFields);
+    assert(tNodes.size() == aVector.size());
+    for (const auto [tNode, tValue] : utilities::Zip(tNodes, aVector))
+    {
+        level_set_value(aBackgroundMesh.mLevelSetFields, tNode) = tValue;
+    }
+}
+
 }  // namespace
 
 TEST_F(KrinoTestFixture, ReadAndSetupForDecomposition)
@@ -111,11 +125,11 @@ TEST_F(KrinoTestFixture, CutMeshExcludeVoid)
 
 TEST_F(KrinoTestFixture, BackgroundNodeIds)
 {
-    const auto tMesh = read_and_setup_for_decomposition(kOneTriMeshFilePath.value());
-    const auto tLevelSetField = test_utilities::make_level_set_field_from_vector(*tMesh, {.75, -.25, -.25});
-    cut_mesh(tMesh->bulk_data(), tLevelSetField, SnappingParameters{});
+    const auto tBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
+    populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25});
+    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
 
-    const auto tResult = background_node_ids(*tMesh, tLevelSetField);
+    const auto tResult = background_node_ids(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
     const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4};
     EXPECT_EQ(tGold, tResult);
 }

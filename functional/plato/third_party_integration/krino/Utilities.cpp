@@ -1,11 +1,11 @@
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
-#include <Akri_AuxMetaData.hpp>     // AuxMetaData::get
-#include <Akri_CDFEM_Support.hpp>   //CDFEM_Support
-#include <Akri_CDMesh.hpp>          //sierraTimer
-#include <Akri_DiagWriter.hpp>      //initialize environment
-#include <Akri_LevelSet.hpp>        //LevelSet
-#include <Akri_LevelSetPolicy.hpp>  //LSPerInterfacePolicy
+#include <Akri_AuxMetaData.hpp>    // AuxMetaData::get
+#include <Akri_CDFEM_Support.hpp>  //CDFEM_Support
+#include <Akri_CDMesh.hpp>         //sierraTimer
+#include <Akri_DiagWriter.hpp>     //initialize environment
+#include <Akri_LevelSet.hpp>       //LevelSet
+#include <Akri_LevelSetPolicy.hpp>  //LSPerInterfacePolicy, setup_levelsets_on_blocks_with_void_phase_for_any_negative_levelset
 #include <Akri_LevelSetShapeSensitivities.hpp>
 #include <Akri_MeshHelpers.hpp>           //activate_all_entities
 #include <Akri_NodalGradient.hpp>         // get_nodal_gradient_field_name
@@ -21,6 +21,7 @@
 #include <stk_util/parallel/OutputStreams.hpp>
 #include <string_view>
 
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
 #include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
@@ -37,6 +38,7 @@ constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"PLATO_LS"};
 // const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
 const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS"};
+constexpr auto kNumberOfLevelSets = 1U;
 
 [[nodiscard]] bool include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart)
 {
@@ -58,7 +60,7 @@ const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS"};
     return aActivePart & stk::mesh::selectUnion(tOutputParts);
 }
 
-void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta)
+void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData& aMeta)
 {
     ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aMeta);
     const ::krino::FieldRef tCoordsField = aMeta.coordinate_field();
@@ -66,29 +68,43 @@ void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta)
     tCdfemSupport.set_coords_field(tCoordsField);
     tCdfemSupport.add_edge_interpolation_field(tCoordsField);
     tCdfemSupport.register_parent_node_ids_field();
+    ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta,
+                                                                  ::krino::Phase_Support::get_levelset_fields(aMeta));
+    tCdfemSupport.register_cdfem_snap_displacements_field();
+    tCdfemSupport.finalize_fields();
+}
 
-    if (kDoNormalSensitivities)
+// TODO: make this a krino API call?
+void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta,
+                                               const std::vector<::krino::LS_Field>& aLevelSetFields,
+                                               const bool aSetupSnapping,
+                                               const bool aSetupNodalLevelsetGradient)
+{
+    ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aMeta);
+    const ::krino::FieldRef tCoordsField = aMeta.coordinate_field();
+
+    if (aSetupSnapping)
     {
-        for (auto& lsField : ::krino::Phase_Support::get_levelset_fields(aMeta))
+        tCdfemSupport.register_cdfem_snap_displacements_field();
+        if (!aSetupNodalLevelsetGradient)
         {
-            // ::krino::FieldRef nodalGrad = ::krino::register_nodal_gradient_for_scalar_field(aMeta, lsField.isovar);
-            const ::krino::FieldType& vecType =
-                (aMeta.spatial_dimension() == 3) ? ::krino::FieldType::VECTOR_3D : ::krino::FieldType::VECTOR_2D;
-            ::krino::AuxMetaData& auxMeta = ::krino::AuxMetaData::get(aMeta);
-            ::krino::FieldRef nodalGrad =
-                auxMeta.register_stk_field(::krino::get_nodal_gradient_field_name(lsField.isovar.name()), vecType,
-                                           stk::topology::NODE_RANK, 1, 1, stk::mesh::selectField(lsField.isovar));
-
-            tCdfemSupport.add_interpolation_field(nodalGrad);
+            ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta, aLevelSetFields);
         }
     }
-    else
-    {
-        ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(
-            aMeta, ::krino::Phase_Support::get_levelset_fields(aMeta));
-    }
-    tCdfemSupport.register_cdfem_snap_displacements_field();
 
+    if (aSetupNodalLevelsetGradient)
+    {
+        for (auto& tLevelSetField : aLevelSetFields)
+        {
+            ::krino::FieldRef tNodalLevelSetGradient =
+                ::krino::register_nodal_gradient_for_scalar_field(aMeta, tLevelSetField.isovar);
+            tCdfemSupport.add_interpolation_field(tNodalLevelSetGradient);
+        }
+    }
+
+    tCdfemSupport.set_coords_field(tCoordsField);
+    tCdfemSupport.add_edge_interpolation_field(tCoordsField);
+    tCdfemSupport.register_parent_node_ids_field();
     tCdfemSupport.finalize_fields();
 }
 
@@ -114,6 +130,26 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
 {
     return boost::mpi::communicator(stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate);
+}
+
+auto initialize_background_mesh(const std::filesystem::path& aFilename, const std::set<std::string>& aExcludedBlocks)
+    -> BackgroundMesh
+{
+    assert(std::filesystem::exists(aFilename));
+
+    auto tMeshFromFile = std::make_unique<MeshFromFileWithoutFields>(aFilename.string(), stk::EnvData::parallel_comm(),
+                                                                     std::string{kDecompositionMethod});
+
+    auto tLevelSetFields =
+        ::krino::LSPerInterfacePolicy::setup_levelsets_on_blocks_with_void_phase_for_any_negative_levelset(
+            tMeshFromFile->meta_data(), kNumberOfLevelSets, all_blocks_except(*tMeshFromFile, aExcludedBlocks));
+
+    setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data(), tLevelSetFields, /*aSetupSnapping=*/true,
+                                              kDoNormalSensitivities);
+    tMeshFromFile->populate_mesh();
+    ::krino::activate_all_entities(tMeshFromFile->bulk_data(),
+                                   ::krino::AuxMetaData::get(tMeshFromFile->meta_data()).active_part());
+    return BackgroundMesh{.mKrinoMesh = std::move(tMeshFromFile), .mLevelSetFields = std::move(tLevelSetFields)};
 }
 
 auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,
@@ -204,7 +240,7 @@ void cut_mesh(stk::mesh::BulkData& aBulkData,
     std::unique_ptr<::krino::InterfaceGeometry> tInterfaceGeometry;
     if (kDoNormalSensitivities)
     {
-        for (auto& lsField : ::krino::Phase_Support::get_levelset_fields(tMeta))
+        for (auto& lsField : aLevelSetFields)
         {
             ::krino::update_nodal_gradient(aBulkData, tCdfemSupport.get_coords_field(), lsField.isovar);
         }
