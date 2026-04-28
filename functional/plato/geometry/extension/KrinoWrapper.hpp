@@ -97,7 +97,7 @@ namespace detail
 /// @pre The environment for krino must be initialized and set up as follows:
 /// @code{.cpp}
 /// set_stk_communicator_for_krino(...);
-/// read_and_setup_for_decomposition(...);
+/// initialize_background_mesh(...);
 /// cut_mesh(...);
 /// @endcode
 [[nodiscard]] auto compute_sensitivities(

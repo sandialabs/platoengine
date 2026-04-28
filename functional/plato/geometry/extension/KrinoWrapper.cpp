@@ -16,6 +16,7 @@
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
@@ -214,10 +215,12 @@ auto make_initial_guess_from_level_set_primitives(const std::filesystem::path& a
                                                   const std::set<std::string>& aFixedBlocks,
                                                   const LevelSetBounds& aBounds) -> std::vector<double>
 {
-    auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aFileName, aFixedBlocks);
-    auto tLevelSetFields = tpik::make_level_set_field_from_primitives(aLevelSetPrimitives, tKrinoMesh->bulk_data());
-    const auto tLevelSetValuesMap = tpik::get_level_set_values(*tKrinoMesh, tLevelSetFields);
-    const auto tBackgroundNodeIds = tpik::background_node_ids(*tKrinoMesh, tLevelSetFields);
+    auto tBackgroundMesh = tpik::initialize_background_mesh(aFileName, aFixedBlocks);
+    tpik::populate_level_set_field_from_primitives(aLevelSetPrimitives, tBackgroundMesh);
+    const auto tLevelSetValuesMap =
+        tpik::get_level_set_values(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
+    const auto tBackgroundNodeIds =
+        tpik::background_node_ids(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
 
     return detail::clamp_to_bounds(down_select_to_design_domain(tLevelSetValuesMap, tBackgroundNodeIds), aBounds);
 }
@@ -227,10 +230,10 @@ auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomain
                                                   const tpik::VoidPhase& aVoidPhase,
                                                   const tpik::SnappingParameters aSnappingParameters) -> KrinoWrapper
 {
-    auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aAnalysisDomainMesh.mFileName, aFixedBlocks);
-    auto tLevelSet = tpik::get_level_set_fields(*tKrinoMesh);
-    set_level_set_fields(*tKrinoMesh, tLevelSet, aAnalysisDomainMesh);
-    return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), aVoidPhase, aSnappingParameters};
+    auto tBackgroundMesh = tpik::initialize_background_mesh(aAnalysisDomainMesh.mFileName, aFixedBlocks);
+    set_level_set_fields(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields, aAnalysisDomainMesh);
+    return KrinoWrapper{std::move(tBackgroundMesh.mKrinoMesh), std::move(tBackgroundMesh.mLevelSetFields), aVoidPhase,
+                        aSnappingParameters};
 }
 
 namespace detail

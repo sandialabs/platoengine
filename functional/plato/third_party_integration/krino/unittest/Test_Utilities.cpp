@@ -42,10 +42,9 @@ void create_mesh()
                                                                                   stk_io::CommandElementType::Tet});
 }
 
-[[nodiscard]] auto make_test_level_set_field(::krino::MeshInterface& aKrinoMesh) -> std::vector<::krino::LS_Field>
+void make_test_level_set_field(const BackgroundMesh& aBackgroundMesh)
 {
-    std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data());
-    const auto tNodes = node_entities_in_mesh(aKrinoMesh, tField);
+    const auto tNodes = node_entities_in_mesh(*aBackgroundMesh.mKrinoMesh, aBackgroundMesh.mLevelSetFields);
 
     std::vector<double> tVector(tNodes.size(), 1);
     auto tGenerator = [N = tNodes.size(), i = 0UL]() mutable -> double { return (i++ < N / 2) ? -1.0 : 1.0; };
@@ -53,9 +52,8 @@ void create_mesh()
 
     for (const auto [tNode, tValue] : utilities::Zip(tNodes, tVector))
     {
-        level_set_value(tField, tNode) = tValue;
+        level_set_value(aBackgroundMesh.mLevelSetFields, tNode) = tValue;
     }
-    return tField;
 }
 
 [[nodiscard]] auto read_coordinates_and_level_sets(const std::filesystem::path& aFilePath)
@@ -68,46 +66,44 @@ void run_cut_and_write_test(const VoidPhase aVoidPhase,
                             const plato::test_utilities::TestContext& aTestContext)
 {
     create_mesh();
-    const auto tMesh = read_and_setup_for_decomposition(kMeshName);
-    const auto tLevelSetField = make_test_level_set_field(*tMesh);
-    cut_mesh(tMesh->bulk_data(), tLevelSetField, SnappingParameters{});
-    const auto tSelector = create_output_selector(tMesh->bulk_data(), aVoidPhase);
-    write_mesh(tMesh->bulk_data(), kWriteMeshName, tSelector);
+    const auto tBackgroundMesh = initialize_background_mesh(kMeshName);
+    make_test_level_set_field(tBackgroundMesh);
+    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
+    const auto tSelector = create_output_selector(tBackgroundMesh.mKrinoMesh->bulk_data(), aVoidPhase);
+    write_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
 
     const auto tCutLevelSetField = read_coordinates_and_level_sets(kWriteMeshName);
     EXPECT_EQ(tCutLevelSetField, aGold) << aTestContext;
 
     plato::test_utilities::test_for_existence_and_remove({kWriteMeshName}, TEST_CONTEXT("Write Mesh file"));
 }
-
-void populate_level_set_field_from_vector(const BackgroundMesh& aBackgroundMesh, const std::vector<double>& aVector)
-{
-    assert(boost::mpi::communicator{}.size() == 1);
-    // std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data()); //
-    // using this is BAD!
-    const auto tNodes = node_entities_in_mesh(*aBackgroundMesh.mKrinoMesh, aBackgroundMesh.mLevelSetFields);
-    assert(tNodes.size() == aVector.size());
-    for (const auto [tNode, tValue] : utilities::Zip(tNodes, aVector))
-    {
-        level_set_value(aBackgroundMesh.mLevelSetFields, tNode) = tValue;
-    }
-}
-
 }  // namespace
 
-TEST_F(KrinoTestFixture, ReadAndSetupForDecomposition)
+TEST_F(KrinoTestFixture, InitializeBackgroundMesh_FieldNames)
 {
     create_mesh();
-    const auto tMesh = read_and_setup_for_decomposition(kMeshName);
-    const auto tSelector = create_output_selector(tMesh->bulk_data(), VoidPhase::kIncludeInMesh);
-    write_mesh(tMesh->bulk_data(), kWriteMeshName, tSelector);
+    const auto tBackgroundMesh = initialize_background_mesh(kMeshName);
+    const auto tSelector = create_output_selector(tBackgroundMesh.mKrinoMesh->bulk_data(), VoidPhase::kIncludeInMesh);
+    write_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
 
     const auto tFieldNames = stk_io::nodal_field_names(kWriteMeshName);
 
-    const auto tFieldNameGold = std::vector<std::string>{"coordinates", "LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
+    const auto tFieldNameGold = std::vector<std::string>{"coordinates", "LS", "LS_COPYFORSNAPPING"};
     EXPECT_EQ(tFieldNameGold, tFieldNames);
     std::filesystem::remove(kMeshName);
     plato::test_utilities::test_for_existence_and_remove({kWriteMeshName}, TEST_CONTEXT("Write Mesh file"));
+}
+
+TEST_F(KrinoTestFixture, InitializeBackgroundMesh_LevelSetFields)
+{
+    create_mesh();
+    const auto tBackgroundMesh = initialize_background_mesh(kMeshName);
+
+    ASSERT_EQ(tBackgroundMesh.mLevelSetFields.size(), 1U);
+    EXPECT_EQ(tBackgroundMesh.mLevelSetFields.front().name, get_level_set_field_name());
+    EXPECT_EQ(tBackgroundMesh.mLevelSetFields.front().isoval, 0.0);
+
+    std::filesystem::remove(kMeshName);
 }
 
 TEST_F(KrinoTestFixture, CutMeshIncludeVoid)
@@ -126,7 +122,7 @@ TEST_F(KrinoTestFixture, CutMeshExcludeVoid)
 TEST_F(KrinoTestFixture, BackgroundNodeIds)
 {
     const auto tBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
-    populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25});
+    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25});
     cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
 
     const auto tResult = background_node_ids(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
@@ -142,12 +138,11 @@ TEST_F(KrinoTestFixture, BackgroundNodeIdsWithExistingLevelSetField)
     ASSERT_TRUE(std::filesystem::exists(tMeshFilePath.value()));
 
     const auto tFixedBlocks = std::set<std::string>{"fixed"};
-    const auto tMesh = read_and_setup_for_decomposition(tMeshFilePath.value(), tFixedBlocks);
+    const auto tBackgroundMesh = initialize_background_mesh(tMeshFilePath.value(), tFixedBlocks);
     constexpr auto tDesignDomainSize = 44U;
-    const auto tLevelSetField =
-        test_utilities::make_level_set_field_from_vector(*tMesh, std::vector(tDesignDomainSize, 1.0));
+    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, std::vector(tDesignDomainSize, 1.0));
 
-    const auto tResult = background_node_ids(*tMesh, tLevelSetField);
+    const auto tResult = background_node_ids(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
     EXPECT_EQ(tResult.size(), tDesignDomainSize);
 }
 
@@ -158,16 +153,16 @@ TEST_F(KrinoTestFixture, BackgroundNodeIdsFourTri)
 
 TEST_F(KrinoTestFixture, CutMeshNodeIds)
 {
-    const auto tMesh = read_and_setup_for_decomposition(kOneTriMeshFilePath.value());
-    const auto tLevelSetField = test_utilities::make_level_set_field_from_vector(*tMesh, {.75, -.25, -.25});
-    cut_mesh(tMesh->bulk_data(), tLevelSetField, SnappingParameters{});
+    const auto tBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
+    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25});
+    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
     {
-        const auto tResult = cut_mesh_node_ids(*tMesh, VoidPhase::kIncludeInMesh);
+        const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6};
         EXPECT_EQ(tGold, tResult) << "Include void.";
     }
     {
-        const auto tResult = cut_mesh_node_ids(*tMesh, VoidPhase::kExcludeFromMesh);
+        const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kExcludeFromMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 5, 6};
         EXPECT_EQ(tGold, tResult) << "Exclude void.";
     }
@@ -175,43 +170,30 @@ TEST_F(KrinoTestFixture, CutMeshNodeIds)
 
 TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTri)
 {
-    const auto tMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
-    const auto tLevelSetField =
-        test_utilities::make_level_set_field_from_vector(*tMesh, {.75, -.25, -.25, 0.75, 0.75, 0.75});
-    cut_mesh(tMesh->bulk_data(), tLevelSetField, SnappingParameters{});
+    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
+    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25, 0.75, 0.75, 0.75});
+    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
     {
-        const auto tResult = cut_mesh_node_ids(*tMesh, VoidPhase::kIncludeInMesh);
+        const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12};
         EXPECT_EQ(tGold, tResult) << "Include void.";
     }
     {
-        const auto tResult = cut_mesh_node_ids(*tMesh, VoidPhase::kExcludeFromMesh);
+        const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kExcludeFromMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 5, 6, 7, 8, 9, 10, 11, 12};
         EXPECT_EQ(tGold, tResult) << "Exclude void.";
     }
 }
 
-TEST_F(KrinoTestFixture, GetLevelSetFields)
-{
-    create_mesh();
-    const auto tMesh = read_and_setup_for_decomposition(kMeshName);
-    const auto tLevelSetFields = get_level_set_fields(*tMesh);
-
-    ASSERT_EQ(tLevelSetFields.size(), 1U);
-    EXPECT_EQ(tLevelSetFields.front().name, get_level_set_field_name());
-    EXPECT_EQ(tLevelSetFields.front().isoval, 0.0);
-
-    std::filesystem::remove(kMeshName);
-}
-
 TEST_F(KrinoTestFixture, GetLevelSetValuesMakeFromVector)
 {
     create_mesh();
-    const auto tMesh = read_and_setup_for_decomposition(kMeshName);
+    const auto tBackgroundMesh = initialize_background_mesh(kMeshName);
 
     const auto tVector = std::vector<double>{1., 2, 3, 4, 5, 6, 7, 8};
-    const auto tLevelSetFields = test_utilities::make_level_set_field_from_vector(*tMesh, tVector);
-    const auto tLevelSetValues = get_level_set_values(*tMesh, tLevelSetFields);
+    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, tVector);
+
+    const auto tLevelSetValues = get_level_set_values(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
     for (const auto& [tId, tValue] : tLevelSetValues)
     {
         EXPECT_EQ(tValue, tId);

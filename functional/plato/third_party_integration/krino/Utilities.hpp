@@ -45,31 +45,17 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 [[nodiscard]] auto initialize_background_mesh(const std::filesystem::path& aFilename,
                                               const std::set<std::string>& aExcludedBlocks = {}) -> BackgroundMesh;
 
-/// @brief Creates a Krino mesh from a mesh on disk at @a aFilename that excludes blocks with names given in @a
-/// aExcludedBlocks. Typically, @a aExcludedBlocks will be the fixed (non-design) blocks.
-/// @pre The environment for krino was initialized.
-/// @pre @a aFileName is a valid exodus mesh file on disk.
-[[nodiscard]] auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,
-                                                    const std::set<std::string>& aExcludedBlocks = {})
-    -> std::unique_ptr<::krino::MeshInterface>;
-
-/// @brief Takes a LevelSetPrimitives specification @a aLevelSetPrimitives along with a bulk data @a aBulkData from a
-/// KrinoMesh and sets the level set field based on the primitives specified required fields and other setup for cutting
+/// @brief Takes a LevelSetPrimitives specification @a aLevelSetPrimitives along with a background mesh @a
+/// aBackgroundMesh and sets the level set field based on the primitives.
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
-/// 'read_and_setup_for_decomposition' to setup the level set fields in the mesh where the bulk data came from.
-[[nodiscard]] auto make_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPrimitives,
-                                                        const stk::mesh::BulkData& aBulkData)
-    -> std::vector<::krino::LS_Field>;
-
-/// @brief Returns all level-set fields defined on @a aKrinoMesh.
-/// @pre The environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
-/// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh.
-[[nodiscard]] auto get_level_set_fields(::krino::MeshInterface& aKrinoMesh) -> std::vector<::krino::LS_Field>;
+/// 'initialize_background_mesh' to setup the level set fields in the background mesh.
+void populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPrimitives,
+                                              const BackgroundMesh& aBackgroundMesh);
 
 /// @brief Takes a KrinoMesh @a aKrinoMesh and a level set field @a aLevelSetFields and determines the background node
 /// ids in the cut mesh.
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
-/// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh,  followed by a call to set up
+/// 'initialize_background_mesh' to setup the level set fields in the krino mesh, followed by a call to set up
 /// the level set field values, followed by a call to 'cut_mesh'.
 [[nodiscard]] auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,
                                        const std::vector<::krino::LS_Field>& aLevelSetFields)
@@ -79,7 +65,7 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 /// cut mesh. This includes the new nodes on the cut mesh surface as well as the background nodes. Background nodes that
 /// would be eliminated from a cut_mesh operation are NOT included.
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
-/// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh,  followed by a call to set up
+/// 'initialize_background_mesh' to setup the level set fields in the krino mesh, followed by a call to set up
 /// the level set field values, followed by a call to 'cut_mesh'.
 [[nodiscard]] auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
     -> std::vector<stk::mesh::EntityId>;
@@ -89,7 +75,7 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 /// only two parents and those parents are background nodes. The reverse procedure for cut_mesh is:
 ///    ::krino::CDMesh::reset_mesh_to_original_undecomposed_state(mKrinoMesh->bulk_data());
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
-/// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh, followed by a call to set up the
+/// 'initialize_background_mesh' to setup the level set fields in the krino mesh, followed by a call to set up the
 /// level set field values
 void cut_mesh(stk::mesh::BulkData& aBulkData,
               const std::vector<::krino::LS_Field>& aLevelSetFields,
@@ -97,7 +83,7 @@ void cut_mesh(stk::mesh::BulkData& aBulkData,
 
 /// @brief Take a level set field vector @a aLevelSetFields and a node @a aNode and return the data stored in the mesh
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
-/// 'read_and_setup_for_decomposition'
+/// 'initialize_background_mesh'
 template <typename LevelSetFieldVector>
 [[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields, const stk::mesh::Entity& aNode)
     -> decltype(auto);
@@ -114,7 +100,7 @@ template <typename LevelSetFieldVector>
 /// @brief Take a krino mesh @a aKrinoMesh along with a level set field specification @a aLevelSetFields and
 /// return the background nodes after a cut operation.
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
-/// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh, followed by a call to set up the
+/// 'initialize_background_mesh' to setup the level set fields in the krino mesh, followed by a call to set up the
 /// level set field values
 [[nodiscard]] auto node_entities_in_mesh(const ::krino::MeshInterface& aKrinoMesh,
                                          const std::vector<::krino::LS_Field>& aLevelSetFields)
@@ -128,7 +114,7 @@ template <typename LevelSetFieldVector>
 /// @brief Take a krino mesh's bulk data @a aBulkData and write it to the file specified in @a aOutputFileName. The void
 /// phase @a aVoidPhase specifies whether to include the void region or not when writing to disk.
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
-/// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh,  followed by a call to set up
+/// 'initialize_background_mesh' to setup the level set fields in the krino mesh,  followed by a call to set up
 /// the level set field values, followed by a call to 'cut_mesh'.
 void write_mesh(const stk::mesh::BulkData& aBulkData,
                 const std::filesystem::path& aOutputFileName,

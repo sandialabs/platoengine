@@ -35,9 +35,8 @@ namespace
 {
 constexpr auto kSortByGlobalId = true;
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
-constexpr auto kLevelSetName = std::string_view{"PLATO_LS"};
-// const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
-const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS"};
+constexpr auto kLevelSetName = std::string_view{"LS"};
+const auto kLevelSetFields = std::vector<std::string>{"LS", "LS_COPYFORSNAPPING"};
 constexpr auto kNumberOfLevelSets = 1U;
 
 [[nodiscard]] bool include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart)
@@ -58,20 +57,6 @@ constexpr auto kNumberOfLevelSets = 1U;
         tOutputCondition);
 
     return aActivePart & stk::mesh::selectUnion(tOutputParts);
-}
-
-void setup_fields_for_conforming_decomposition(const stk::mesh::MetaData& aMeta)
-{
-    ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aMeta);
-    const ::krino::FieldRef tCoordsField = aMeta.coordinate_field();
-
-    tCdfemSupport.set_coords_field(tCoordsField);
-    tCdfemSupport.add_edge_interpolation_field(tCoordsField);
-    tCdfemSupport.register_parent_node_ids_field();
-    ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta,
-                                                                  ::krino::Phase_Support::get_levelset_fields(aMeta));
-    tCdfemSupport.register_cdfem_snap_displacements_field();
-    tCdfemSupport.finalize_fields();
 }
 
 // TODO: make this a krino API call?
@@ -152,44 +137,16 @@ auto initialize_background_mesh(const std::filesystem::path& aFilename, const st
     return BackgroundMesh{.mKrinoMesh = std::move(tMeshFromFile), .mLevelSetFields = std::move(tLevelSetFields)};
 }
 
-auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,
-                                      const std::set<std::string>& aExcludedBlocks)
-    -> std::unique_ptr<::krino::MeshInterface>
-{
-    assert(std::filesystem::exists(aFilename));
-
-    auto tMeshFromFile = std::make_unique<MeshFromFileWithoutFields>(aFilename.string(), stk::EnvData::parallel_comm(),
-                                                                     std::string{kDecompositionMethod});
-
-    setup_level_sets(*tMeshFromFile, aExcludedBlocks);
-
-    auto& tLevelSet =
-        ::krino::LevelSet::build(tMeshFromFile->meta_data(), std::string{kLevelSetName}, sierra::Diag::sierraTimer());
-    tLevelSet.set_levelset_field_name(std::string{kLevelSetName});
-    tLevelSet.setup();
-    setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data());
-    tMeshFromFile->populate_mesh();
-    ::krino::activate_all_entities(tMeshFromFile->bulk_data(),
-                                   ::krino::AuxMetaData::get(tMeshFromFile->meta_data()).active_part());
-    return tMeshFromFile;
-}
-
-auto make_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPrimitives,
-                                          const stk::mesh::BulkData& aBulkData) -> std::vector<::krino::LS_Field>
+void populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPrimitives,
+                                              const BackgroundMesh& aBackgroundMesh)
 {
     auto tInitializationSurfaces = make_krino_composite_surface();
     append_spheres(tInitializationSurfaces, aLevelSetPrimitives.mSpheres);
     append_planes(tInitializationSurfaces, aLevelSetPrimitives.mPlanes);
 
-    std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aBulkData.mesh_meta_data());
-    ::krino::compute_nodal_surface_distance(aBulkData, aBulkData.mesh_meta_data().coordinate_field(),
-                                            tField.front().isovar, tInitializationSurfaces);
-    return tField;
-}
-
-auto get_level_set_fields(::krino::MeshInterface& aKrinoMesh) -> std::vector<::krino::LS_Field>
-{
-    return ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data());
+    ::krino::compute_nodal_surface_distance(aBackgroundMesh.mKrinoMesh->bulk_data(),
+                                            aBackgroundMesh.mKrinoMesh->bulk_data().mesh_meta_data().coordinate_field(),
+                                            aBackgroundMesh.mLevelSetFields.front().isovar, tInitializationSurfaces);
 }
 
 auto background_node_ids(const ::krino::MeshInterface& aKrinoMesh,

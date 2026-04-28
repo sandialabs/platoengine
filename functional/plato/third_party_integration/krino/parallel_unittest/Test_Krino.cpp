@@ -9,6 +9,7 @@
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
@@ -73,24 +74,22 @@ TEST(Krino, MPISize)
 TEST_F(ParallelKrinoFixture, InitializeKrino)
 {
     ASSERT_TRUE(kTetBoxFilePath.has_value());
-    const auto tKrinoMesh = read_and_setup_for_decomposition(kTetBoxFilePath.value());
-    const auto tLevelSetField =
-        make_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tKrinoMesh->bulk_data());
-    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
-    const auto tSelector = create_output_selector(tKrinoMesh->bulk_data(), VoidPhase::kIncludeInMesh);
-    write_mesh(tKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
+    const auto tBackgroundMesh = initialize_background_mesh(kTetBoxFilePath.value());
+    populate_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tBackgroundMesh);
+    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
+    const auto tSelector = create_output_selector(tBackgroundMesh.mKrinoMesh->bulk_data(), VoidPhase::kIncludeInMesh);
+    write_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
     remove_file_on_rank_zero();
 }
 
 TEST_F(ParallelKrinoFixture, CutMeshNodeIds)
 {
     ASSERT_TRUE(kTetBoxFilePath.has_value());
-    const auto tKrinoMesh = read_and_setup_for_decomposition(kTetBoxFilePath.value());
-    const auto tLevelSetField =
-        make_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tKrinoMesh->bulk_data());
-    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
+    const auto tBackgroundMesh = initialize_background_mesh(kTetBoxFilePath.value());
+    populate_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tBackgroundMesh);
+    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
 
-    const auto tCutMeshNodeIds = cut_mesh_node_ids(*tKrinoMesh, VoidPhase::kExcludeFromMesh);
+    const auto tCutMeshNodeIds = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kExcludeFromMesh);
 
     check_vector_same_on_all_ranks(tCutMeshNodeIds, TEST_CONTEXT("Cut mesh node ids same on all ranks 3d sphere"));
 }
@@ -125,27 +124,25 @@ void test_cut_mesh_node_ids_parallel_consistent(::krino::MeshInterface& aKrinoMe
 TEST_F(ParallelKrinoFixture, CutMeshNodeIdsFourTriParallelConsistent)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tKrinoMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
-    const auto tLevelSetField = make_level_set_field_from_primitives(
-        LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tKrinoMesh->bulk_data());
-    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
+    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
+    populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tBackgroundMesh);
+    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
 
-    test_cut_mesh_node_ids_parallel_consistent(*tKrinoMesh, VoidPhase::kIncludeInMesh,
+    test_cut_mesh_node_ids_parallel_consistent(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh,
                                                TEST_CONTEXT("Cut nodes consistency using Include void region"));
 
-    test_cut_mesh_node_ids_parallel_consistent(*tKrinoMesh, VoidPhase::kExcludeFromMesh,
+    test_cut_mesh_node_ids_parallel_consistent(*tBackgroundMesh.mKrinoMesh, VoidPhase::kExcludeFromMesh,
                                                TEST_CONTEXT("Cut nodes consistency using Exclude void region"));
 }
 
 TEST_F(ParallelKrinoFixture, BackgroundMeshNodeIds)
 {
     ASSERT_TRUE(kTetBoxFilePath.has_value());
-    const auto tKrinoMesh = read_and_setup_for_decomposition(kTetBoxFilePath.value());
-    const auto tLevelSetField =
-        make_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tKrinoMesh->bulk_data());
-    cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
+    const auto tBackgroundMesh = initialize_background_mesh(kTetBoxFilePath.value());
+    populate_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tBackgroundMesh);
+    cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
 
-    const auto tBackgroundNodeIds = background_node_ids(*tKrinoMesh, tLevelSetField);
+    const auto tBackgroundNodeIds = background_node_ids(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
 
     check_vector_same_on_all_ranks(tBackgroundNodeIds,
                                    TEST_CONTEXT("Background mesh node ids same on all ranks 3d sphere"));
@@ -165,11 +162,10 @@ TEST_F(ParallelKrinoFixture, BackgroundNodeIdsFourTri)
 TEST_F(ParallelKrinoFixture, GetLevelSetValues)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tKrinoMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value());
-    const auto tLevelSetField = make_level_set_field_from_primitives(
-        LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tKrinoMesh->bulk_data());
+    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
+    populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tBackgroundMesh);
 
-    const auto tLevelSetValues = get_level_set_values(*tKrinoMesh, tLevelSetField);
+    const auto tLevelSetValues = get_level_set_values(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
 
     const auto tGold = std::unordered_map<stk::mesh::EntityId, double>{{1, .75}, {2, -.25}, {4, -0.25},
                                                                        {5, .75}, {6, 0.75}, {7, 0.75}};
@@ -179,27 +175,26 @@ TEST_F(ParallelKrinoFixture, GetLevelSetValues)
 TEST_F(ParallelKrinoFixture, FixedBlock)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tKrinoMesh = read_and_setup_for_decomposition(kFourTriTwoBlockMeshFilePath.value(), {"block_2"});
-    const auto tLevelSetField = make_level_set_field_from_primitives(
-        LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tKrinoMesh->bulk_data());
+    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value(), {"block_2"});
+    populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tBackgroundMesh);
 
     // Level-set values
     {
-        const auto tLevelSetValues = get_level_set_values(*tKrinoMesh, tLevelSetField);
+        const auto tLevelSetValues = get_level_set_values(*tBackgroundMesh.mKrinoMesh, tBackgroundMesh.mLevelSetFields);
         const auto tExpected =
             std::unordered_map<stk::mesh::EntityId, double>{{1, .75}, {2, -.25}, {4, -0.25}, {7, 0.75}};
         EXPECT_EQ(tLevelSetValues, tExpected);
     }
     // Cut mesh node ids
     {
-        cut_mesh(tKrinoMesh->bulk_data(), tLevelSetField, SnappingParameters{});
-        const auto tCutMeshNodeIds = cut_mesh_node_ids(*tKrinoMesh, VoidPhase::kIncludeInMesh);
+        cut_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), tBackgroundMesh.mLevelSetFields, SnappingParameters{});
+        const auto tCutMeshNodeIds = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
         constexpr auto tExpectedNumberOfCutMeshNodes = 9U;  // For both blocks, this would be 11
         EXPECT_EQ(tCutMeshNodeIds.size(), tExpectedNumberOfCutMeshNodes);
     }
     // Blocks
     {
-        const auto tAllBlocks = all_block_parts(*tKrinoMesh);
+        const auto tAllBlocks = all_block_parts(*tBackgroundMesh.mKrinoMesh);
         auto tBlockNames = utilities::reserved_container<std::vector<std::string>>(tAllBlocks.size());
         std::ranges::transform(tAllBlocks, std::back_inserter(tBlockNames),
                                [](const auto& aBlockPart) { return aBlockPart->name(); });

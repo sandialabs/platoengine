@@ -2,6 +2,7 @@
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
@@ -22,14 +23,13 @@ class SensitivityMapUtilitiesFixture : public KrinoTestFixture
    public:
     void initialize()
     {
-        mKrinoMesh = read_and_setup_for_decomposition(kOneTriMeshFilePath.value());
-        mLevelSetFields = test_utilities::make_level_set_field_from_vector(*mKrinoMesh, {1, -1, -1});
-        cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields, SnappingParameters{});
+        mBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
+        test_utilities::populate_level_set_field_from_vector(mBackgroundMesh, {1, -1, -1});
+        cut_mesh(mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields, SnappingParameters{});
     }
 
    protected:
-    std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
-    std::vector<::krino::LS_Field> mLevelSetFields;
+    BackgroundMesh mBackgroundMesh;
 };
 
 }  // namespace
@@ -39,7 +39,8 @@ TEST(SensitivityMapUtilities, OneTriMeshPath) { ASSERT_TRUE(kOneTriMeshFilePath.
 TEST_F(SensitivityMapUtilitiesFixture, ParentNodeIDsFromGetKrinoSensitivities)
 {
     initialize();
-    const auto tSensitvitiesFromKrino = get_krino_sensitivities(mKrinoMesh->bulk_data(), mLevelSetFields);
+    const auto tSensitvitiesFromKrino =
+        get_krino_sensitivities(mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields);
     constexpr unsigned int tNumberOfInterfaceNodes{2U};
     ASSERT_EQ(tSensitvitiesFromKrino.size(), tNumberOfInterfaceNodes);
 
@@ -56,7 +57,8 @@ TEST_F(SensitivityMapUtilitiesFixture, ParentNodeIDsFromGetKrinoSensitivities)
 TEST_F(SensitivityMapUtilitiesFixture, CoordinateLevelSetSensitivity)
 {
     initialize();
-    const auto tSensitvitiesFromKrino = get_krino_sensitivities(mKrinoMesh->bulk_data(), mLevelSetFields);
+    const auto tSensitvitiesFromKrino =
+        get_krino_sensitivities(mBackgroundMesh.mKrinoMesh->bulk_data(), mBackgroundMesh.mLevelSetFields);
     const auto tSecondSensitivity = tSensitvitiesFromKrino.back();
     const auto tSpatialDimension = 2U;
     const auto tSensitivityVector = coordinate_level_set_sensitivity(tSecondSensitivity, tSpatialDimension);
