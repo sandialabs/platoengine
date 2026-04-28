@@ -97,28 +97,6 @@ TEST(InitialGeometryWriter, GenerateOutputMeshDensityTO)
                                                          TEST_CONTEXT("Density output: unfiltered density field"));
 }
 
-TEST(InitialGeometryWriter, CrossReferenceIdentityFilter)
-{
-    auto tInitialGeometryWriter = input_parser::initial_geometry_writer{};
-    tInitialGeometryWriter.filter = test_utilities::cross_reference<input_parser::identity_filter>();
-
-    auto tDensityTopologyInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
-    tDensityTopologyInput.filter = test_utilities::cross_reference<input_parser::kernel_filter>();
-
-    const auto tInput = tInitialGeometryWriter | tDensityTopologyInput |
-                        criteria::library::test_utilities::create_valid_example_objective_input() |
-                        filter::extension::test_utilities::create_valid_identity_filter_input() |
-                        filter::extension::test_utilities::create_valid_kernel_filter_input();
-
-    validate_and_run(tInput);
-
-    plato::test_utilities::test_for_existence_and_remove({kDensityOutputName},
-                                                         TEST_CONTEXT("Density output: filtered density field"));
-
-    plato::test_utilities::test_for_existence_and_remove({"restart_" + kDensityOutputName},
-                                                         TEST_CONTEXT("Density output: unfiltered density field"));
-}
-
 TEST(InitialGeometryWriter, Registration)
 {
     EXPECT_TRUE(library::is_process_manager_function_registered("initial_geometry_writer"));

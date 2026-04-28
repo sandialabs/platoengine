@@ -2,6 +2,7 @@
 
 #include "plato/output/OutputManager.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerLogger.hpp"
 
 namespace plato::process_manager::extension
 {
@@ -24,6 +25,7 @@ namespace
 
 void InitialGeometryWriter::run(const library::ProcessManagerData& aProcessManagerData) const
 {
+    [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::initial_geometry_writer>();
     auto tOutputManager =
         output::OutputManager{aProcessManagerData.mGeometry.mOutput, output::OutputMode::kEveryIterationOverwrite};
     tOutputManager.output(aProcessManagerData.mGeometry.mInitialGuess);

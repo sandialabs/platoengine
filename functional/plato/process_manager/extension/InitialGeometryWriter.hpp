@@ -1,14 +1,14 @@
-#ifndef PLATO_PROCESS_MANAGER_EXTENSION_INITIALGEOMETRYWRITER
-#define PLATO_PROCESS_MANAGER_EXTENSION_INITIALGEOMETRYWRITER
+#ifndef PLATO_PROCESSMANAGER_EXTENSION_INITIALGEOMETRYWRITER
+#define PLATO_PROCESSMANAGER_EXTENSION_INITIALGEOMETRYWRITER
 
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), initial_geometry_writer,
-    (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter to apply. "
-                                                                                               "Only required if more than one filter is specified.")
+    (plato::input_parser::FileName, file_name, "Optional: do not use.")
 )
 // clang-format on
 
