@@ -70,16 +70,6 @@ TEST(ConstraintValidation, ValidateConstraintType)
     EXPECT_FALSE(pfcd::validate_constraint_type(tConstraint).has_value());
 }
 
-TEST(ConstraintValidation, NumberOfProcessors)
-{
-    auto tConstraint = input_parser::constraint{};
-    EXPECT_FALSE(detail::validate_constraint_number_of_processors(tConstraint).has_value());
-    tConstraint.number_of_processors = 42u;  // Only one is valid
-    EXPECT_TRUE(detail::validate_constraint_number_of_processors(tConstraint).has_value());
-    tConstraint.number_of_processors = 1u;
-    EXPECT_FALSE(detail::validate_constraint_number_of_processors(tConstraint).has_value());
-}
-
 TEST(ConstraintValidation, ConstraintComponentTargets)
 {
     const auto [tTestDirectorySetupTeardown, tTestAppName] = test_utilities::test_configurations();

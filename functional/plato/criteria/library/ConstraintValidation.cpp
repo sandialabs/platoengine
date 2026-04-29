@@ -97,13 +97,16 @@ auto validate_constraint_value(const input_parser::constraint& aInput) -> std::o
 
 auto validate_constraint_number_of_processors(const input_parser::constraint& aInput) -> std::optional<std::string>
 {
-    constexpr auto kSupportedNumberOfProcessorsForConstraint = unsigned{1};
+    using MPISizeType = decltype(boost::mpi::communicator{}.size());
+    const auto tNumberOfWorldRanks = boost::mpi::communicator{}.size();
+
     if (aInput.number_of_processors.has_value() &&
-        aInput.number_of_processors.value() != kSupportedNumberOfProcessorsForConstraint)
+        static_cast<MPISizeType>(aInput.number_of_processors.value()) > tNumberOfWorldRanks)
     {
         return std::optional<std::string>{
-            utilities::concatenate("Constraints currently only support serial evaluation. ", criterion_name(aInput),
-                                   " requested ", aInput.number_of_processors.value(), " number_of_processors.")};
+            std::format("Constraints must use a number of processors less than or equal to the total number of ranks. "
+                        "{} requested {} number_of_processors, while {} are available ",
+                        criterion_name(aInput), aInput.number_of_processors.value(), tNumberOfWorldRanks)};
     }
     else
     {
