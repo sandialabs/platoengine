@@ -1,6 +1,7 @@
 #ifndef PLATO_CRITERIA_LIBRARY_CRITERIONVALIDATION
 #define PLATO_CRITERIA_LIBRARY_CRITERIONVALIDATION
 
+#include <format>
 #include <optional>
 
 #include "plato/criteria/library/CriterionRegistration.hpp"
@@ -9,9 +10,7 @@
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
-namespace plato::criteria::library
-{
-namespace detail
+namespace plato::criteria::library::detail
 {
 template <typename Criteria>
 [[nodiscard]] std::string criterion_name(const Criteria& aInput)
@@ -77,8 +76,30 @@ template <typename Criteria>
     return std::nullopt;
 }
 
-}  // namespace detail
+/// @brief Checks that, if more than one processor is requested, that the criterion is registered as being parallelized.
+template <typename Criteria>
+[[nodiscard]] auto validate_criterion_supports_requested_number_of_processors(const Criteria& aInput)
+    -> std::optional<std::string>
+{
+    if (aInput.criterion)
+    {
+        const auto tRegistrationName = criterion_registration_name(aInput.app, aInput.criterion.value());
+        const auto tNumberOfProcessorsRequested = aInput.number_of_processors.value_or(1U);
+        const auto tParallelAndNotRegistered =
+            tNumberOfProcessorsRequested > 1U &&
+            !criterion_function_has_trait(tRegistrationName, Parallelization::kParallel);
+        const auto tSerialAndNotRegistered = tNumberOfProcessorsRequested == 1U &&
+                                             !criterion_function_has_trait(tRegistrationName, Parallelization::kSerial);
+        if (tParallelAndNotRegistered || tSerialAndNotRegistered)
+        {
+            auto tErrorMessage = std::format("{}: app/criterion dose not support requested number of processors ({}), or it does not exist.\n",
+                                             criterion_name(aInput), tNumberOfProcessorsRequested);
+            return std::optional<std::string>{std::move(tErrorMessage)};
+        }
+    }
+    return std::nullopt;
+}
 
-}  // namespace plato::criteria::library
+}  // namespace plato::criteria::library::detail
 
 #endif
