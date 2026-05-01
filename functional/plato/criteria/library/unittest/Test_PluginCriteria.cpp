@@ -111,10 +111,12 @@ TEST(PluginCriteria, NonexistentSharedLibrary)
     const auto tSerialScalarTraits =
         library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar};
     EXPECT_FALSE(library::criterion_function_has_traits(tFunctionName, tSerialScalarTraits));
+    EXPECT_FALSE(library::criterion_function_has_trait(tFunctionName, library::Parallelization::kSerial));
 
     const auto tParallelScalarTraits =
         library::CriterionTraits{library::Parallelization::kParallel, library::FunctionDimension::kScalar};
     EXPECT_FALSE(library::criterion_function_has_traits(tFunctionName, tParallelScalarTraits));
+    EXPECT_FALSE(library::criterion_function_has_trait(tFunctionName, library::Parallelization::kParallel));
 
     EXPECT_FALSE(library::is_criterion_function_registered(tFunctionName));
 }
@@ -141,10 +143,21 @@ TEST(PluginCriteria, RegisterApps)
     {
         EXPECT_TRUE(library::is_criterion_function_registered(aFunctionName)) << aTestContext;
         EXPECT_TRUE(library::criterion_function_has_traits(aFunctionName, aRegisteredTraits)) << aTestContext;
+        EXPECT_TRUE(library::criterion_function_has_trait(aFunctionName, aRegisteredTraits.mDimension)) << aTestContext;
+        EXPECT_TRUE(library::criterion_function_has_trait(aFunctionName, aRegisteredTraits.mParallelization))
+            << aTestContext;
         for (const auto& tUnregisteredTrait : aUnregisteredTraits)
         {
             EXPECT_FALSE(library::criterion_function_has_traits(aFunctionName, tUnregisteredTrait)) << aTestContext;
         }
+        EXPECT_FALSE(library::criterion_function_has_trait(
+            aFunctionName, aRegisteredTraits.mDimension == FunctionDimension::kScalar ? FunctionDimension::kVector
+                                                                                      : FunctionDimension::kScalar))
+            << aTestContext;
+        EXPECT_FALSE(library::criterion_function_has_trait(
+            aFunctionName, aRegisteredTraits.mParallelization == Parallelization::kSerial ? Parallelization::kParallel
+                                                                                          : Parallelization::kSerial))
+            << aTestContext;
     };
 
     const auto tVampireFunctionName = library::criterion_registration_name(
