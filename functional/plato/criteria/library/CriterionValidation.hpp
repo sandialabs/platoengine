@@ -92,8 +92,9 @@ template <typename Criteria>
                                              !criterion_function_has_trait(tRegistrationName, Parallelization::kSerial);
         if (tParallelAndNotRegistered || tSerialAndNotRegistered)
         {
-            auto tErrorMessage = std::format("{}: app/criterion dose not support requested number of processors ({}), or it does not exist.\n",
-                                             criterion_name(aInput), tNumberOfProcessorsRequested);
+            auto tErrorMessage = std::format(
+                "{}: app/criterion dose not support requested number of processors ({}), or it does not exist.\n",
+                criterion_name(aInput), tNumberOfProcessorsRequested);
             return std::optional<std::string>{std::move(tErrorMessage)};
         }
     }
