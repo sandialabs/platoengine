@@ -1,5 +1,5 @@
-#ifndef PLATO_CRITERIA_EXTENSION_SHAREDLIBRARYVECTORCRITERION
-#define PLATO_CRITERIA_EXTENSION_SHAREDLIBRARYVECTORCRITERION
+#ifndef PLATO_CRITERIA_LIBRARY_SHAREDLIBRARYVECTORCRITERION
+#define PLATO_CRITERIA_LIBRARY_SHAREDLIBRARYVECTORCRITERION
 
 #include <boost/mpi/communicator.hpp>
 #include <memory>
@@ -15,7 +15,7 @@ namespace plato::services
 struct AppConfigurationWithDirectory;
 }
 
-namespace plato::criteria::extension
+namespace plato::criteria::library
 {
 using VectorCriterionSharedLibraryObject =
     services::SharedLibraryObject<std::unique_ptr<library::VectorCriterionInterface>>;
@@ -60,6 +60,6 @@ class SharedLibraryVectorCriterion
 [[nodiscard]] auto make_shared_library_vector_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
     -> library::VectorCriterionFunction;
 
-}  // namespace plato::criteria::extension
+}  // namespace plato::criteria::library
 
 #endif

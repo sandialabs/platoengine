@@ -5,10 +5,10 @@
 #include <filesystem>
 #include <optional>
 
-#include "plato/criteria/extension/PluginCriteria.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/PluginCriteria.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
@@ -91,15 +91,15 @@ void write_mass_app_config(const std::string_view& aAppName,
 
 }  // namespace
 
-auto register_test_mass_app(const std::string_view aAppName, const boost::mpi::communicator& aComm)
-    -> test_utilities::TestDirectorySetupTeardown
+auto register_test_mass_app(const std::string_view aAppName,
+                            const boost::mpi::communicator& aComm) -> test_utilities::TestDirectorySetupTeardown
 {
     const auto tTestPluginDirectory = std::filesystem::path{"test-plugin-directory"};
     auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{tTestPluginDirectory, aComm};
 
     write_mass_app_config(aAppName, tTestPluginDirectory, tConfigurationTempDirectory, aComm);
 
-    criteria::extension::register_plugin_apps({tTestPluginDirectory});
+    criteria::library::register_plugin_apps({tTestPluginDirectory});
     return tConfigurationTempDirectory;
 }
 

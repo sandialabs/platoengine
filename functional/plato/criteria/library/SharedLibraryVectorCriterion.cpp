@@ -1,4 +1,4 @@
-#include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
+#include "plato/criteria/library/SharedLibraryVectorCriterion.hpp"
 
 #include <boost/mpi/communicator.hpp>
 #include <string_view>
@@ -7,7 +7,7 @@
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
 
-namespace plato::criteria::extension
+namespace plato::criteria::library
 {
 namespace
 {
@@ -110,4 +110,4 @@ auto make_shared_library_vector_function(const SharedLibraryVectorCriterion& aSh
         }};  // namespace plato::criteria::extension
 }
 
-}  // namespace plato::criteria::extension
+}  // namespace plato::criteria::library

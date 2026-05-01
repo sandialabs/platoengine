@@ -5,7 +5,7 @@
 #include <string_view>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/criteria/extension/SharedLibCriterion.hpp"
+#include "plato/criteria/library/SharedLibCriterion.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -32,7 +32,7 @@ TEST(ParallelMassObjective, CallValueAndGradient)
                                                  tTestConfiguration.mConfiguration.mCriteria.cend(),
                                                  [](const auto& tCriterion) { return tCriterion.mIsParallelized; });
     ASSERT_NE(tParallelCriterion, tTestConfiguration.mConfiguration.mCriteria.cend());
-    const auto tSharedLib = criteria::extension::SharedLibCriterion{tTestConfiguration, *tParallelCriterion, {}, tComm};
+    const auto tSharedLib = criteria::library::SharedLibCriterion{tTestConfiguration, *tParallelCriterion, {}, tComm};
 
     const auto tRankMeshName = plato::utilities::concatenate(kMeshName, '.', tComm.rank());
     third_party_integration::stk_io::write_mesh(tRankMeshName, kMeshGenerator);

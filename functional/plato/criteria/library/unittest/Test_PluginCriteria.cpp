@@ -2,23 +2,21 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iterator>
 #include <string_view>
 
-#include "plato/criteria/extension/PluginCriteria.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/PluginCriteria.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
-#include "plato/services/PluginDirectoryPath.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
-namespace plato::criteria::extension::unittest
+namespace plato::criteria::library::unittest
 {
 namespace
 {
@@ -236,4 +234,4 @@ TEST(CriterionRegistration, RegisterAppsList)
     EXPECT_TRUE(tCriterionIsInRegisteredNames(tLurchAppName));
 }
 
-}  // namespace plato::criteria::extension::unittest
+}  // namespace plato::criteria::library::unittest

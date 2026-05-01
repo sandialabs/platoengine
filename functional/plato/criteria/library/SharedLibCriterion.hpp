@@ -1,11 +1,9 @@
-#ifndef PLATO_CRITERIA_EXTENSION_SHAREDLIBCRITERION
-#define PLATO_CRITERIA_EXTENSION_SHAREDLIBCRITERION
+#ifndef PLATO_CRITERIA_LIBRARY_SHAREDLIBCRITERION
+#define PLATO_CRITERIA_LIBRARY_SHAREDLIBCRITERION
 
 #include <boost/mpi/communicator.hpp>
-#include <filesystem>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/library/CriterionInterface.hpp"
@@ -18,7 +16,7 @@ namespace plato::services
 struct AppConfigurationWithDirectory;
 }
 
-namespace plato::criteria::extension
+namespace plato::criteria::library
 {
 using CriterionSharedLibraryObject = services::SharedLibraryObject<std::unique_ptr<library::CriterionInterface>>;
 
@@ -51,6 +49,6 @@ class SharedLibCriterion
 [[nodiscard]] auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion)
     -> library::CriterionFunction;
 
-}  // namespace plato::criteria::extension
+}  // namespace plato::criteria::library
 
 #endif
