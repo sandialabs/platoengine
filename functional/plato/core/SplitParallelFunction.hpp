@@ -4,6 +4,7 @@
 #include <boost/mpi/communicator.hpp>
 
 #include "plato/core/Function.hpp"
+#include "plato/core/ParallelFunction.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::core
