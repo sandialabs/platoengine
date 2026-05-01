@@ -38,7 +38,8 @@ TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
     tInput = tInput | tConstraint;
 
     const auto tData = input_validation::make_validated_input(tInput).value();
-    auto tConstraints = plato::criteria::library::make_constraints(tData.get<components::ComponentType::kConstraint>());
+    const auto tConstraints =
+        plato::criteria::library::make_constraints(tData.get<components::ComponentType::kConstraint>());
     ASSERT_EQ(tConstraints.size(), 3U);
 
     EXPECT_TRUE(tConstraints[0].mLinear);

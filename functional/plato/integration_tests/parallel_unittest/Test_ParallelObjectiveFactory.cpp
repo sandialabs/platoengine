@@ -1,12 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
-
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/integration_tests/utilities/BrickShapeHelpers.hpp"
 #include "plato/integration_tests/utilities/CheckProcessorsMatchObjectives.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
@@ -64,29 +63,6 @@ auto base_mass_objective() -> input_parser::objective
         .value();
 }
 
-linear_algebra::DynamicVector<double> test_brick_controls()
-{
-    constexpr auto tX = double{2.0};
-    constexpr auto tY = double{4.0};
-    constexpr auto tZ = double{6.0};
-    constexpr auto tCenterCoordinate = double{0.0};
-    return linear_algebra::DynamicVector<double>{tCenterCoordinate, tCenterCoordinate, tCenterCoordinate, tX, tY, tZ};
-}
-
-double brick_shape_volume_from_controls(const linear_algebra::DynamicVector<double>& aControls)
-{
-    const auto tDimensionX = aControls[3];
-    const auto tDimensionY = aControls[4];
-    const auto tDimensionZ = aControls[5];
-    return tDimensionX * tDimensionY * tDimensionZ;
-}
-
-auto brick_shape_geometry_from_input(const input_parser::ParsedInput& aInput) -> geometry::library::GeometryFunction
-{
-    const auto tMeshFileName = aInput.get<input_parser::brick_shape_geometry>().front().mesh_name.value().mToken;
-    return geometry::extension::make_brick_shape_geometry(geometry::extension::BrickShapeGeometry{tMeshFileName});
-}
-
 void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_utilities::TestContext& aTestContext)
 {
     const auto tComm = boost::mpi::communicator{};
@@ -111,14 +87,14 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
 
     const auto tValidInput = input_validation::make_validated_input(tInput).value();
 
-    const auto tGeometry = brick_shape_geometry_from_input(tInput);
+    const auto tGeometry = utilities::brick_shape_geometry_from_input(tInput);
     const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
         tValidInput.get<components::ComponentType::kObjective>(),
-        tGeometry.evaluate<core::evaluation::kFunction>(test_brick_controls()));
+        tGeometry.evaluate<core::evaluation::kFunction>(utilities::test_brick_controls()));
 
-    const auto tControls = test_brick_controls();
+    const auto tControls = utilities::test_brick_controls();
     ASSERT_EQ(tControls.size(), 6u) << aTestContext;
-    const auto tExpectedValue = brick_shape_volume_from_controls(tControls) * aNumGroups;
+    const auto tExpectedValue = utilities::brick_shape_volume_from_controls(tControls) * aNumGroups;
     const auto tResult = tObjectiveFunction.evaluate<core::evaluation::kFunction>(
         tGeometry.evaluate<core::evaluation::kFunction>(tControls));
     EXPECT_EQ(tResult, tExpectedValue) << aTestContext;
@@ -129,7 +105,7 @@ void test_aggregate_normalized_objectives(const ObjectiveCopyTestData& aObjectiv
                                           input_parser::objective aObjective,
                                           const test_utilities::TestContext& aTestContext)
 {
-    const auto tGeometry = brick_shape_geometry_from_input(aInput);
+    const auto tGeometry = utilities::brick_shape_geometry_from_input(aInput);
 
     aObjective.number_of_processors = static_cast<unsigned int>(aObjectiveCopyTestData.mNumProcessorsPerObjective);
     for ([[maybe_unused]] const auto tIndex : plato::utilities::IndexRange{aObjectiveCopyTestData.mNumObjectiveCopies})
@@ -139,7 +115,7 @@ void test_aggregate_normalized_objectives(const ObjectiveCopyTestData& aObjectiv
     const auto tValidObjectivesInput =
         input_validation::make_validated_input(aInput).value().template get<components::ComponentType::kObjective>();
 
-    const auto tInitialDomainMesh = tGeometry.evaluate<core::evaluation::kFunction>(test_brick_controls());
+    const auto tInitialDomainMesh = tGeometry.evaluate<core::evaluation::kFunction>(utilities::test_brick_controls());
     const auto tAggregateObjectiveFunction =
         criteria::library::make_aggregate_objective_function(tValidObjectivesInput, tInitialDomainMesh);
 
@@ -288,8 +264,8 @@ TEST(ObjectiveFactory, ManyInactiveObjectives)
                         tOneRankActiveObjective | tInactiveObjective | tInactiveObjective | tOneRankActiveObjective;
 
     const auto tValidInput = input_validation::make_validated_input(tInput).value();
-    const auto tGeometry = brick_shape_geometry_from_input(tInput);
-    const auto tMesh = tGeometry.evaluate<core::evaluation::kFunction>(test_brick_controls());
+    const auto tGeometry = utilities::brick_shape_geometry_from_input(tInput);
+    const auto tMesh = tGeometry.evaluate<core::evaluation::kFunction>(utilities::test_brick_controls());
     constexpr auto tRegressionValue = 144.0;  // Computed by running the test with no inactive objectives
 
     const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
