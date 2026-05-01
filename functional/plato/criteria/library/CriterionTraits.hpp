@@ -27,6 +27,10 @@ enum struct FunctionDimension : std::uint8_t
     kNumberOfEnumerates
 };
 
+/// @brief Concept that requires a type to be one of the criterion traits
+template <typename Trait>
+concept CriterionTrait = std::same_as<Trait, Parallelization> || std::same_as<Trait, FunctionDimension>;
+
 /// @brief Properties a criterion may have.
 struct CriterionTraits
 {
@@ -51,6 +55,10 @@ struct CriterionTraits
 
 /// @brief Returns the number of combinations of criterion factories (all combinations of criterion traits)
 [[nodiscard]] constexpr auto number_of_traits() -> std::size_t;
+
+/// @brief Returns true if @a aTraits has a trait that matches @a aTrait.
+template <CriterionTrait Trait>
+[[nodiscard]] constexpr auto has_trait(const CriterionTraits aTraits, const Trait aTrait) -> bool;
 
 constexpr auto to_parallelization(const bool aIsParallel) -> Parallelization
 {
@@ -81,6 +89,20 @@ constexpr auto traits_from_index(const std::size_t aFactoryIndex) -> CriterionTr
 constexpr auto number_of_traits() -> std::size_t
 {
     return utilities::number_of_enumerates<Parallelization, FunctionDimension>();
+}
+
+template <CriterionTrait Trait>
+constexpr auto has_trait(const CriterionTraits aTraits, const Trait aTrait) -> bool
+{
+    if constexpr (std::is_same_v<Trait, Parallelization>)
+    {
+        return aTraits.mParallelization == aTrait;
+    }
+    else if constexpr (std::is_same_v<Trait, FunctionDimension>)
+    {
+        return aTraits.mDimension == aTrait;
+    }
+    // return false;
 }
 
 }  // namespace plato::criteria::library
