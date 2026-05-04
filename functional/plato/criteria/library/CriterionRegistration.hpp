@@ -104,7 +104,7 @@ using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
 /// @brief Returns the full list of registered criteria, useful for error messages.
 [[nodiscard]] std::set<std::string> registered_criteria_names();
 
-/// @brief Checks if a criterion function is registered with name @a aFunctionName and with traits @a aTraits.
+/// @brief Checks if a criterion function is registered with name @a aFunctionName and has trait @a aTrait.
 [[nodiscard]] auto criterion_function_has_trait(const std::string_view aFunctionName,
                                                 const CriterionTrait auto aTrait) -> bool;
 
