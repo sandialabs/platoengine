@@ -1,11 +1,10 @@
 #ifndef PLATO_CRITERIA_LIBRARY_CRITERIONFACTORY
 #define PLATO_CRITERIA_LIBRARY_CRITERIONFACTORY
 
-#include <concepts>
-
 #include "plato/components/ComponentType.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
+#include "plato/criteria/library/CriterionInput.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
@@ -14,14 +13,6 @@
 
 namespace plato::criteria::library
 {
-namespace detail
-{
-/// @brief Constrains templates to be instantiable only with either `input_parser::constraint` or
-/// `input_parser::objective`.
-template <typename Input>
-concept CriterionInput = std::same_as<Input, input_parser::constraint> || std::same_as<Input, input_parser::objective>;
-}  // namespace detail
-
 /// @brief Converts either objective or constraint input objects to a common CriterionInput struct
 /// @tparam Input Must be either input_parser::objective or input_parser::constraint input structs
 template <detail::CriterionInput Input>

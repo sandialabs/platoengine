@@ -22,16 +22,19 @@ const auto kBindWithPluginDirectory = [](const auto& aValidationFunction,
     return std::nullopt;
 };
 
-[[maybe_unused]] static auto kConstraintValidationRegistration = input_validation::InputBlockValidationRegistration<>{
-    [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
-    [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
-    [](const input_parser::constraint& aInput) { return detail::validate_criterion_files_exist(aInput); },
-    [](const input_parser::constraint& aInput) { return detail::validate_constraint_value(aInput); },
-    [](const input_parser::constraint& aInput) { return detail::validate_constraint_type(aInput); },
-    [](const input_parser::constraint& aInput)
-    { return kBindWithPluginDirectory(detail::validate_constraint_component_names, aInput); },
-    [](const input_parser::constraint& aInput)
-    { return kBindWithPluginDirectory(detail::validate_constraint_component_targets, aInput); }};
+[[maybe_unused]] static const auto kConstraintValidationRegistration =
+    input_validation::InputBlockValidationRegistration<>{
+        [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_criterion_files_exist(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_constraint_value(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_constraint_type(aInput); },
+        [](const input_parser::constraint& aInput)
+        { return kBindWithPluginDirectory(detail::validate_constraint_component_names, aInput); },
+        [](const input_parser::constraint& aInput)
+        { return kBindWithPluginDirectory(detail::validate_constraint_component_targets, aInput); },
+        [](const input_parser::constraint& aInput)
+        { return detail::validate_criterion_supports_requested_number_of_processors(aInput); }};
 
 /// @brief Returns an app/criterion name combination for error messages.
 [[nodiscard]] auto app_criterion_name(const input_parser::constraint& aConstraintInput) -> std::string
