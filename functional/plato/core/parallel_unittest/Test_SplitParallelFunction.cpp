@@ -2,6 +2,7 @@
 
 #include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <ranges>
 
 #include "plato/core/Function.hpp"
 #include "plato/core/ParallelFunction.hpp"
@@ -47,11 +48,12 @@ constexpr auto kRosenbrock = plato::test_utilities::Rosenbrock{kRosenbrockA, kRo
 
 TEST(SplitParallelFunction, Evaluate)
 {
-    for (const auto tNumberOfProcessorsForSplit : {1U, 2U, 3U})
+    const auto tParentCommunicator = boost::mpi::communicator{};
+    for (const auto tNumberOfProcessorsForSplit : std::views::iota(1, tParentCommunicator.size() + 1))
     {
-        const auto tSplitFunction = make_split_parallel_function(
-            boost::mpi::communicator{}, tNumberOfProcessorsForSplit,
-            [](const boost::mpi::communicator& aGroupCommunicator) { return parallel_rosenbrock(aGroupCommunicator); });
+        const auto tSplitFunction = make_split_parallel_function(tParentCommunicator, tNumberOfProcessorsForSplit,
+                                                                 [](const boost::mpi::communicator& aGroupCommunicator)
+                                                                 { return parallel_rosenbrock(aGroupCommunicator); });
 
         constexpr auto tEvaluationPoint = test_utilities::TwoDVector{-1.0, 2.0};
         const auto tFunctionEvaluation = tSplitFunction.evaluate<evaluation::kFunction>(tEvaluationPoint);
