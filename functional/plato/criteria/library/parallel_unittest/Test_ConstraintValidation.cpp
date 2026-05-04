@@ -14,11 +14,10 @@ TEST(ConstraintValidation, NumberOfProcessors)
     EXPECT_FALSE(detail::validate_constraint_number_of_processors(tConstraint).has_value())
         << "Default, assumes one rank";
 
-    tConstraint.number_of_processors = tNumberOfWorldRanks + 10U;
+    constexpr auto tAdditionalRanks = 10U;
+    tConstraint.number_of_processors = tNumberOfWorldRanks + tAdditionalRanks;
     EXPECT_TRUE(detail::validate_constraint_number_of_processors(tConstraint).has_value())
         << "Exceeds number of ranks on comm world";
-
-    std::cout << "Message: " << detail::validate_constraint_number_of_processors(tConstraint).value() << std::endl;
 
     tConstraint.number_of_processors = tNumberOfWorldRanks;
     EXPECT_FALSE(detail::validate_constraint_number_of_processors(tConstraint).has_value()) << "Uses all ranks";

@@ -5,6 +5,7 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Compose.hpp"
+#include "plato/core/SplitParallelFunction.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
@@ -12,6 +13,7 @@
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/LoggingFunction.hpp"
 #include "plato/linear_algebra/DynamicVectorFormatter.hpp"
+#include "plato/linear_algebra/ParallelJacobianMultiplier.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
@@ -21,12 +23,36 @@ namespace
 {
 using ValidatedConstraint = input_validation::ValidatedInputDataBlock<components::ComponentType::kConstraint>;
 
-[[nodiscard]] auto make_vector_criterion(const ValidatedConstraint& aConstraintInput)
+template <typename... Args>
+[[nodiscard]] auto make_criterion_impl(const ValidatedConstraint& aConstraintInput, Args&&... aAdditionalArgs)
 {
-    auto [tFunction, tConfiguration] =
-        make_criterion_function<CriterionFunction, input_parser::constraint>(aConstraintInput);
+    const auto& tRawInput = input_validation::get_input_block<input_parser::constraint>(aConstraintInput);
+    const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
+
+    if (criterion_function_has_trait(tRegistrationName, FunctionDimension::kVector))
+    {
+        return make_criterion_function<VectorCriterionFunction, input_parser::constraint>(
+            aConstraintInput, std::forward<Args>(aAdditionalArgs)...);
+    }
+
+    auto [tFunction, tConfiguration] = make_criterion_function<CriterionFunction, input_parser::constraint>(
+        aConstraintInput, std::forward<Args>(aAdditionalArgs)...);
     return FunctionWithConfiguration{.mFunction = to_vector_function<const analysis::AnalysisDomainMesh&>(tFunction),
                                      .mConfiguration = std::move(tConfiguration)};
+}
+
+[[nodiscard]] auto make_criterion(const boost::mpi::communicator& aCommunicator,
+                                  const ValidatedConstraint& aConstraintInput)
+{
+    const auto& tRawInput = input_validation::get_input_block<input_parser::constraint>(aConstraintInput);
+    const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
+    const auto tNumberOfProcessors = tRawInput.number_of_processors.value_or(1U);
+
+    if (tNumberOfProcessors > 1U && criterion_function_has_trait(tRegistrationName, Parallelization::kParallel))
+    {
+        return make_criterion_impl(aConstraintInput, aCommunicator);
+    }
+    return make_criterion_impl(aConstraintInput);
 }
 
 [[nodiscard]] auto to_vector_subset_function(const VectorCriterionFunction& aFunction,
@@ -75,15 +101,19 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
 {
     const auto& tRawInput = input_validation::get_input_block<input_parser::constraint>(aConstraintInput);
     const auto tIsLinear = tRawInput.is_linear.value_or(false);
-    const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
     const auto tConstraintType = kConstraintMap.at(tRawInput.constraint_type.value());
     const auto tConstraintName = tRawInput.name.value_or("Unnamed Constraint");
 
-    constexpr auto tVectorTraits = CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector};
-    auto [tCriterionFunction, tCriterionConfiguration] =
-        criterion_function_has_traits(tRegistrationName, tVectorTraits)
-            ? make_criterion_function<VectorCriterionFunction, input_parser::constraint>(aConstraintInput)
-            : make_vector_criterion(aConstraintInput);
+    const auto tBaseCommunicator = boost::mpi::communicator{};
+    auto tCriterionConfiguration = services::CriterionConfiguration{};
+    const auto tCriterionFunction = core::make_split_parallel_function(
+        tBaseCommunicator, tRawInput.number_of_processors.value_or(1U),
+        [&aConstraintInput, &tCriterionConfiguration](const boost::mpi::communicator& aCommunicator)
+        {
+            auto tCriterion = make_criterion(aCommunicator, aConstraintInput);
+            tCriterionConfiguration = tCriterion.mConfiguration;
+            return tCriterion.mFunction;
+        });
 
     const auto tConstraintWithSubset = to_vector_subset_function(
         make_logging_function(tCriterionFunction, components::ComponentType::kConstraint, tRawInput.name.value()),

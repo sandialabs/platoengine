@@ -32,15 +32,25 @@ namespace
                                           /*.target=*/42.0}}};
     return std::make_tuple(std::move(tScalarConstraintInput), std::move(tVectorConstraintInput), tAppConfigurations);
 }
+
+[[nodiscard]] auto configuration_with_name(const std::string_view aName,
+                                           const std::vector<services::CriterionConfiguration>& aConfigurations)
+{
+    const auto& tConfigurationWithName = std::ranges::find_if(
+        aConfigurations, [aName](const auto& aConfiguration) { return aConfiguration.mName == aName; });
+    assert(tConfigurationWithName != aConfigurations.end());
+    return *tConfigurationWithName;
+}
+
 }  // namespace
 
 TEST(ConstraintTarget, MakeConstraintTargetValue)
 {
     const auto [tScalarConstraintInput, tVectorConstraintInput, tAppConfigurations] = test_constraint_inputs();
-
     // Scalar
     {
-        const auto& tScalarConfiguration = tAppConfigurations.front().mConfiguration.mCriteria.front();
+        const auto& tScalarConfiguration =
+            configuration_with_name("scalar", tAppConfigurations.front().mConfiguration.mCriteria);
         const auto tConstraintTargets =
             detail::make_constraint_target_value(tScalarConstraintInput, tScalarConfiguration);
 
@@ -50,7 +60,8 @@ TEST(ConstraintTarget, MakeConstraintTargetValue)
     }
     // Vector
     {
-        const auto& tVectorConfiguration = tAppConfigurations.front().mConfiguration.mCriteria.back();
+        const auto& tVectorConfiguration =
+            configuration_with_name("vector-with-components", tAppConfigurations.front().mConfiguration.mCriteria);
         const auto tConstraintTargets =
             detail::make_constraint_target_value(tVectorConstraintInput, tVectorConfiguration);
 
@@ -67,13 +78,16 @@ TEST(ConstraintFactory, ConstraintComponentIndices)
 {
     const auto [tScalarConstraintInput, tVectorConstraintInput, tAppConfigurations] = test_constraint_inputs();
     {
-        const auto& tScalarConfiguration = tAppConfigurations.front().mConfiguration.mCriteria.front();
+        const auto& tScalarConfiguration =
+            configuration_with_name("scalar", tAppConfigurations.front().mConfiguration.mCriteria);
         const auto tConstraintComponentIndices =
             detail::constraint_component_indices(tScalarConstraintInput, tScalarConfiguration);
         EXPECT_FALSE(tConstraintComponentIndices);
     }
     {
-        const auto& tVectorConfiguration = tAppConfigurations.front().mConfiguration.mCriteria.back();
+        const auto& tVectorConfiguration =
+            configuration_with_name("vector-with-components", tAppConfigurations.front().mConfiguration.mCriteria);
+
         const auto tConstraintComponentIndices =
             detail::constraint_component_indices(tVectorConstraintInput, tVectorConfiguration);
         ASSERT_TRUE(tConstraintComponentIndices);
