@@ -8,4 +8,7 @@ create_plato_interface(PlatoLinearAlgebraInterface DynamicVector.hpp "")
 
 if( UNIT_TESTING )
   create_plato_unittester(PlatoFunctionalLinearAlgebra unittest)
+
+  set(NUM_RANKS_FOR_TEST 4)
+  create_plato_parallel_unittester(PlatoFunctionalLinearAlgebra "parallel_unittest" ${NUM_RANKS_FOR_TEST})
 endif()
