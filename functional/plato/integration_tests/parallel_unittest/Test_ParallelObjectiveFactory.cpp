@@ -139,11 +139,24 @@ TEST(ObjectiveFactory, InvalidParallelAggregate)
 TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
 {
     namespace pitu = plato::integration_tests::utilities;
+    constexpr auto tMassAppName = "phony-mass-app";
+    const auto tTestPluginDirectory = utilities::register_test_mass_app(tMassAppName, boost::mpi::communicator{});
+
     auto tInputBase = parsedInput();
     tInputBase.template get<components::ComponentType::kObjective>().clear();
+
+    const auto tObjectiveBase = input_parser::objective{/*.name=*/std::string{tMassAppName},
+                                                        /*.active=*/true,
+                                                        /*.app=*/input_parser::AppName{std::string{tMassAppName}},
+                                                        /*.criterion=*/input_parser::CriterionName{"mass"},
+                                                        /*.number_of_processors=*/1U,
+                                                        /*.input_files=*/boost::none,
+                                                        /*.aggregation_weight=*/1.0,
+                                                        /*.normalize_by_initial_value=*/boost::none,
+                                                        /*.objective_goal=*/boost::none};
     {
         // Set number_of_processors to 4
-        auto tObjective = criteria::library::test_utilities::create_valid_example_objective_input();
+        auto tObjective = tObjectiveBase;
         tObjective.number_of_processors = static_cast<unsigned int>(kNumRanks);
         const auto tInput = tInputBase | tObjective;
         const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
@@ -155,7 +168,7 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
     }
     {
         // Add another objective with 1 processor
-        auto tObjective = criteria::library::test_utilities::create_valid_example_objective_input();
+        auto tObjective = tObjectiveBase;
         tObjective.number_of_processors = static_cast<unsigned int>(kNumRanks) - 1U;
         const auto tInput =
             tInputBase | tObjective | criteria::library::test_utilities::create_valid_example_objective_input();
@@ -168,9 +181,9 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
     }
     {
         // Deactivate one objective
-        auto tObjective1 = criteria::library::test_utilities::create_valid_example_objective_input();
+        auto tObjective1 = tObjectiveBase;
         tObjective1.number_of_processors = static_cast<unsigned int>(kNumRanks);
-        auto tObjective2 = criteria::library::test_utilities::create_valid_example_objective_input();
+        auto tObjective2 = tObjectiveBase;
         tObjective2.active = false;
         const auto tInput = tInputBase | tObjective1 | tObjective2;
         const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
