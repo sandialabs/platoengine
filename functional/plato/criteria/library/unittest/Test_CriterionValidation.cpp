@@ -9,6 +9,7 @@
 #include "plato/criteria/library/test_utilities/TestAppConfigurations.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/test_utilities/ValidationTestUtilities.hpp"
 
 namespace plato::criteria::library::unittest
 {
@@ -87,26 +88,29 @@ TEST(CriterionValidation, CheckValidationParallelCriterion)
     tCriterion.app = input_parser::AppName{std::string{tAppName}};
     tCriterion.criterion = input_parser::CriterionName{"scalar"};
 
+    const auto tValidateNumberOfProcessors = [](const auto& aCriterion)
+    { return detail::validate_criterion_supports_requested_number_of_processors(aCriterion); };
+
     {
-        const auto tError = detail::validate_criterion_supports_requested_number_of_processors(tCriterion);
-        EXPECT_TRUE(tError.has_value()) << "Error, using serial criterion with >1 number of processors";
+        plato::test_utilities::expect_input_is_invalid(TEST_CONTEXT("Two processors with serial criterion"),
+                                                       tValidateNumberOfProcessors, tCriterion);
     }
     {
         tCriterion.number_of_processors = 1U;
-        const auto tError = detail::validate_criterion_supports_requested_number_of_processors(tCriterion);
-        EXPECT_FALSE(tError.has_value()) << "Expected no error, but got: " << tError.value();
+        plato::test_utilities::expect_input_is_valid(TEST_CONTEXT("One processor with serial criterion"),
+                                                     tValidateNumberOfProcessors, tCriterion);
     }
     {
         tCriterion.number_of_processors = 2U;
         tCriterion.criterion = input_parser::CriterionName{"parallel"};
-        const auto tError = detail::validate_criterion_supports_requested_number_of_processors(tCriterion);
-        EXPECT_FALSE(tError.has_value()) << "Expected no error, but got: " << tError.value();
+        plato::test_utilities::expect_input_is_valid(TEST_CONTEXT("Two processors with parallel criterion"),
+                                                     tValidateNumberOfProcessors, tCriterion);
     }
     {
         tCriterion.number_of_processors = 1U;
         tCriterion.criterion = input_parser::CriterionName{"parallel"};
-        const auto tError = detail::validate_criterion_supports_requested_number_of_processors(tCriterion);
-        EXPECT_TRUE(tError.has_value()) << "Error, using parallel criterion with 1 processor";
+        plato::test_utilities::expect_input_is_invalid(TEST_CONTEXT("One processor with parallel criterion"),
+                                                       tValidateNumberOfProcessors, tCriterion);
     }
 }
 }  // namespace plato::criteria::library::unittest
