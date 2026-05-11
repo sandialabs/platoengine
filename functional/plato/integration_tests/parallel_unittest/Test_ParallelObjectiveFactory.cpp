@@ -65,8 +65,8 @@ auto base_mass_objective() -> input_parser::objective
 
 void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_utilities::TestContext& aTestContext)
 {
-    const auto tComm = boost::mpi::communicator{};
-    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tComm);
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tCommunicator);
 
     const auto tObjective = input_parser::objective{/*.name=*/std::string{"test_1"},
                                                     /*.active=*/true,
@@ -127,8 +127,8 @@ void test_aggregate_normalized_objectives(const ObjectiveCopyTestData& aObjectiv
 
 TEST(ObjectiveFactory, MPISize)
 {
-    auto tComm = boost::mpi::communicator{};
-    EXPECT_EQ(tComm.size(), kNumRanks);
+    auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_EQ(tCommunicator.size(), kNumRanks);
 }
 
 TEST(ObjectiveFactory, InvalidParallelAggregate)
@@ -209,8 +209,8 @@ TEST(ObjectiveFactory, EvaluateParallelMassAppOneObjective)
 
 TEST(ObjectiveFactory, EvaluateParallelMassAppWithNormalization)
 {
-    const auto tComm = boost::mpi::communicator{};
-    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tComm);
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tCommunicator);
 
     const auto tInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
@@ -238,8 +238,8 @@ TEST(ObjectiveFactory, EvaluateParallelMassAppWithNormalization)
 
 TEST(ObjectiveFactory, ManyInactiveObjectives)
 {
-    const auto tComm = boost::mpi::communicator{};
-    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tComm);
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tCommunicator);
 
     const auto tInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();

@@ -92,21 +92,23 @@ using ValidatedObjective = input_validation::ValidatedInputDataBlock<components:
                : std::optional<double>{};
 }
 
-[[nodiscard]] auto group_split_vector(const ValidatedObjectives& aInput, const boost::mpi::communicator& aComm)
+[[nodiscard]] auto group_split_vector(const ValidatedObjectives& aInput, const boost::mpi::communicator& aCommunicator)
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
-    const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});
+    const auto tGroupColor =
+        utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aCommunicator.rank()});
     const auto tNumberOfGroups = boost::numeric_cast<int>(tNumberOfProcessors.size());
-    const auto tSplitSize = std::min(aComm.size(), tNumberOfGroups);
+    const auto tSplitSize = std::min(aCommunicator.size(), tNumberOfGroups);
     return utilities::group_split_vector(aInput.rawInput(), tGroupColor, utilities::SizeNamedType{tSplitSize});
 }
 
 [[nodiscard]] auto mpi_group(const ValidatedObjectives& aInput,
-                             const boost::mpi::communicator& aComm) -> boost::mpi::communicator
+                             const boost::mpi::communicator& aCommunicator) -> boost::mpi::communicator
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
-    const auto tGroupColor = utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aComm.rank()});
-    return aComm.split(tGroupColor.mValue);
+    const auto tGroupColor =
+        utilities::rank_group_color(tNumberOfProcessors, utilities::RankNamedType{aCommunicator.rank()});
+    return aCommunicator.split(tGroupColor.mValue);
 }
 
 [[nodiscard]] auto make_parallel_aggregate_impl(const std::vector<ValidatedObjective>& aObjectives,

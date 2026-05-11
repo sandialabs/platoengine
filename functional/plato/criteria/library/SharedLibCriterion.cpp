@@ -44,13 +44,13 @@ SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirec
 SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                                        const services::CriterionConfiguration& aCriterionConfiguration,
                                        const library::CriterionInput& aCriterionInput,
-                                       const boost::mpi::communicator& aComm)
+                                       const boost::mpi::communicator& aCommunicator)
     : mCriterionInterface{load_criterion_interface<ParallelFunctionSignature>(aAppConfiguration,
                                                                               aCriterionConfiguration.mFunctionName,
                                                                               aCriterionInput,
                                                                               aCriterionInput.mInputFiles.list().mList,
-                                                                              aComm)},
-      mComm{aComm},
+                                                                              aCommunicator)},
+      mComm{aCommunicator},
       mComponentType{aCriterionInput.mComponentType},
       mName{aCriterionInput.mName}
 {

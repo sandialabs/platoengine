@@ -41,12 +41,14 @@ SharedLibraryVectorCriterion::SharedLibraryVectorCriterion(
     const services::AppConfigurationWithDirectory& aAppConfiguration,
     const services::CriterionConfiguration& aCriterionConfiguration,
     const library::CriterionInput& aCriterionInput,
-    const boost::mpi::communicator& aComm)
-    : mCriterionInterface{load_criterion_interface<ParallelFunctionSignature>(
-          aAppConfiguration, aCriterionConfiguration.mFunctionName, aCriterionInput.mInputFiles.list().mList, aComm)},
+    const boost::mpi::communicator& aCommunicator)
+    : mCriterionInterface{load_criterion_interface<ParallelFunctionSignature>(aAppConfiguration,
+                                                                              aCriterionConfiguration.mFunctionName,
+                                                                              aCriterionInput.mInputFiles.list().mList,
+                                                                              aCommunicator)},
       mComponentType{aCriterionInput.mComponentType},
       mName{aCriterionInput.mName},
-      mComm{aComm}
+      mComm{aCommunicator}
 {
 }
 

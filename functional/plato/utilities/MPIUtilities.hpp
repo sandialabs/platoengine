@@ -7,17 +7,18 @@
 namespace plato::utilities
 {
 
-///@brief Utility function that takes a communicator @a aComm and only performs the function @a aFunction with arguments
+///@brief Utility function that takes a communicator @a aCommunicator and only performs the function @a aFunction with
+/// arguments
 ///@a aArgs on the root rank.
 template <typename F, typename... Args>
-void execute_on_root(const boost::mpi::communicator& aComm, const F& aFunction, Args&&... aArgs)
+void execute_on_root(const boost::mpi::communicator& aCommunicator, const F& aFunction, Args&&... aArgs)
 {
-    aComm.barrier();
-    if (aComm.rank() == 0)
+    aCommunicator.barrier();
+    if (aCommunicator.rank() == 0)
     {
         aFunction(std::forward<Args>(aArgs)...);
     }
-    aComm.barrier();
+    aCommunicator.barrier();
 }
 
 }  // namespace plato::utilities

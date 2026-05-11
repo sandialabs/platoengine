@@ -9,30 +9,30 @@ namespace plato::test_utilities
 namespace
 {
 
-MPI_File open_file_with_mpi(const boost::mpi::communicator& aComm,
+MPI_File open_file_with_mpi(const boost::mpi::communicator& aCommunicator,
                             const std::filesystem::path& aFilePath,
                             const int aFileMode)
 {
     auto tMPIFileHandle = MPI_File{};
-    MPI_Comm tComm = aComm;
-    const auto tErrorCode = MPI_File_open(tComm, aFilePath.c_str(), aFileMode, MPI_INFO_NULL, &tMPIFileHandle);
-    if (tErrorCode != MPI_SUCCESS && aComm.rank() == 0)
+    MPI_Comm tCommunicator = aCommunicator;
+    const auto tErrorCode = MPI_File_open(tCommunicator, aFilePath.c_str(), aFileMode, MPI_INFO_NULL, &tMPIFileHandle);
+    if (tErrorCode != MPI_SUCCESS && aCommunicator.rank() == 0)
     {
         std::cerr << "FileCreatingTestFixture non-zero mpi error code on file operation: " << tErrorCode << std::endl;
     }
-    aComm.barrier();
+    aCommunicator.barrier();
     return tMPIFileHandle;
 }
 
-void create_file_with_mpi(const boost::mpi::communicator& aComm, const std::filesystem::path& aFilePath)
+void create_file_with_mpi(const boost::mpi::communicator& aCommunicator, const std::filesystem::path& aFilePath)
 {
-    auto tMPIFileHandle = open_file_with_mpi(aComm, aFilePath, MPI_MODE_RDWR | MPI_MODE_CREATE);
+    auto tMPIFileHandle = open_file_with_mpi(aCommunicator, aFilePath, MPI_MODE_RDWR | MPI_MODE_CREATE);
     MPI_File_close(&tMPIFileHandle);
 }
 
-void remove_file_with_mpi(const boost::mpi::communicator& aComm, const std::filesystem::path& aFilePath)
+void remove_file_with_mpi(const boost::mpi::communicator& aCommunicator, const std::filesystem::path& aFilePath)
 {
-    auto tMPIFileHandle = open_file_with_mpi(aComm, aFilePath, MPI_MODE_RDWR | MPI_MODE_DELETE_ON_CLOSE);
+    auto tMPIFileHandle = open_file_with_mpi(aCommunicator, aFilePath, MPI_MODE_RDWR | MPI_MODE_DELETE_ON_CLOSE);
     MPI_File_close(&tMPIFileHandle);
 }
 }  // namespace

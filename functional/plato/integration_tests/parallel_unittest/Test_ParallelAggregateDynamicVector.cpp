@@ -64,7 +64,7 @@ TEST(ParallelAggregateDynamicVector, ParallelAggregateParallelRosenbrock)
     // Make mpi groups by even and odd ranks
     const auto tWorld = boost::mpi::communicator{};
     constexpr auto kNumGroups = 3;
-    const auto tComm = tWorld.split(tWorld.rank() % kNumGroups);
+    const auto tCommunicator = tWorld.split(tWorld.rank() % kNumGroups);
 
     // Make a phony parallel Rosenbrock
     const auto tRosenbrock = ptu::Rosenbrock{};
@@ -74,8 +74,8 @@ TEST(ParallelAggregateDynamicVector, ParallelAggregateParallelRosenbrock)
         [tRosenbrock = tRosenbrock](const ArgType& x) { return ptu::to_dynamic_vector(tRosenbrock.df(x[0], x[1])); }};
 
     const auto tParallelFunction =
-        ptu::make_parallel_function(tParallelRosenbrock, tDerivativeParallelRosenbrock, tComm);
-    const auto tAdaptedParallelFunction = core::adapt_parallel_function(tParallelFunction, tComm);
+        ptu::make_parallel_function(tParallelRosenbrock, tDerivativeParallelRosenbrock, tCommunicator);
+    const auto tAdaptedParallelFunction = core::adapt_parallel_function(tParallelFunction, tCommunicator);
 
     // Use in parallel aggregate
     using RosenbrockF = std::decay_t<decltype(tAdaptedParallelFunction)>;

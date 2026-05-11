@@ -12,8 +12,8 @@ namespace
 
 TEST(MassAppRegistration, RegisterLoadAndRun)
 {
-    const auto tComm = boost::mpi::communicator{};
-    EXPECT_EQ(tComm.size(), 1u);
-    utilities::register_load_run_test(tComm, TEST_CONTEXT("Serial mass app test"));
+    const auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_EQ(tCommunicator.size(), 1u);
+    utilities::register_load_run_test(tCommunicator, TEST_CONTEXT("Serial mass app test"));
 }
 }  // namespace plato::integration_tests::serial

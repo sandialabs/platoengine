@@ -19,8 +19,8 @@ constexpr double kSearchRadius = 3.0;
     -> std::pair<std::vector<SearchPointWithIdentifier>, std::vector<SearchSphereWithIdentifier>>
 {
     constexpr unsigned int tLocalSize = 4;
-    const auto tComm = boost::mpi::communicator{};
-    const auto tRank = tComm.rank();
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tRank = tCommunicator.rank();
 
     std::vector<SearchPointWithIdentifier> tSearchPoints;
     tSearchPoints.reserve(tLocalSize);
@@ -103,16 +103,16 @@ void verify_first_entry_belongs_to_this_rank(const SearchResults& aSearchResults
 
 TEST(StkSearch, MPISize)
 {
-    const auto tComm = boost::mpi::communicator{};
-    EXPECT_EQ(tComm.size(), kNumRanks);
+    const auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_EQ(tCommunicator.size(), kNumRanks);
 }
 
 TEST(StkSearch, Search)
 {
-    const auto tComm = boost::mpi::communicator{};
+    const auto tCommunicator = boost::mpi::communicator{};
     const auto [tLocalSearchPoints, tLocalSearchSphereCenters] = create_search_points_and_spheres_with_ids();
-    const auto tLocalSearchResults = stk_search(tLocalSearchSphereCenters, tLocalSearchPoints, tComm);
-    verify_first_entry_belongs_to_this_rank(tLocalSearchResults, tComm);
+    const auto tLocalSearchResults = stk_search(tLocalSearchSphereCenters, tLocalSearchPoints, tCommunicator);
+    verify_first_entry_belongs_to_this_rank(tLocalSearchResults, tCommunicator);
 }
 
 TEST(StkSearch, ParallelConsistency)

@@ -23,8 +23,8 @@ const auto kMeshGenerator = third_party_integration::stk_io::CommandGenerator{
 
 TEST(ParallelMassObjective, CallValueAndGradient)
 {
-    auto tComm = boost::mpi::communicator{};
-    EXPECT_GT(tComm.size(), 1u);
+    auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_GT(tCommunicator.size(), 1u);
 
     const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
     // Get parallel criterion:
@@ -32,9 +32,10 @@ TEST(ParallelMassObjective, CallValueAndGradient)
                                                  tTestConfiguration.mConfiguration.mCriteria.cend(),
                                                  [](const auto& tCriterion) { return tCriterion.mIsParallelized; });
     ASSERT_NE(tParallelCriterion, tTestConfiguration.mConfiguration.mCriteria.cend());
-    const auto tSharedLib = criteria::library::SharedLibCriterion{tTestConfiguration, *tParallelCriterion, {}, tComm};
+    const auto tSharedLib =
+        criteria::library::SharedLibCriterion{tTestConfiguration, *tParallelCriterion, {}, tCommunicator};
 
-    const auto tRankMeshName = plato::utilities::concatenate(kMeshName, '.', tComm.rank());
+    const auto tRankMeshName = plato::utilities::concatenate(kMeshName, '.', tCommunicator.rank());
     third_party_integration::stk_io::write_mesh(tRankMeshName, kMeshGenerator);
 
     const double tMass = tSharedLib.f(analysis::AnalysisDomainMesh{tRankMeshName, {}});

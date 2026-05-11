@@ -32,7 +32,7 @@ class SharedLibraryVectorCriterion
     SharedLibraryVectorCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                                  const services::CriterionConfiguration& aCriterionConfiguration,
                                  const library::CriterionInput& aCriterionInput,
-                                 const boost::mpi::communicator& aComm);
+                                 const boost::mpi::communicator& aCommunicator);
 
     /// @brief Computes the value of the criterion evaluated at the argument @a aAnalysisDomainMesh.
     [[nodiscard]] auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const

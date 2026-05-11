@@ -33,7 +33,7 @@ class SharedLibCriterion
     SharedLibCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                        const services::CriterionConfiguration& aCriterionConfiguration,
                        const library::CriterionInput& aCriterionInput,
-                       const boost::mpi::communicator& aComm);
+                       const boost::mpi::communicator& aCommunicator);
 
     [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aMesh) const;
 
