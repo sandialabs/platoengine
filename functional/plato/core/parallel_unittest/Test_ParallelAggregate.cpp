@@ -29,20 +29,20 @@ TEST(ParallelAggregate, EvaluateSame)
     // Each rank constructs a `ParallelAggregate` object with a single function, so that
     // the resulting aggregation should be the evaluation of one function times the number
     // of ranks.
-    const auto tF = test_utilities::make_two_d_function(pft::Rosenbrock{});
-    const auto tW = 1.0 / static_cast<double>(tNumberOfRanks);
-    using RosenbrockF = std::decay_t<decltype(tF)>;
+    const auto tRosenbrockFunction = test_utilities::make_two_d_function(pft::Rosenbrock{});
+    const auto tWeight = 1.0 / static_cast<double>(tNumberOfRanks);
+    using RosenbrockF = std::decay_t<decltype(tRosenbrockFunction)>;
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
     const auto tAggregate = ParallelAggregate<Domain, EvaluationInfo, GradientInfo>(
-        FunctionAndWeight{std::make_pair(tF, tW)}, boost::mpi::communicator{});
+        FunctionAndWeight{std::make_pair(tRosenbrockFunction, tWeight)}, boost::mpi::communicator{});
 
     EXPECT_EQ(tAggregate.size(), 1);
 
-    const auto tArg = pft::TwoDVector{2.0, -1.0};
-    const auto tExpectedF = tF.evaluate<evaluation::kFunction>(tArg);
-    EXPECT_EQ(tAggregate.evaluate<evaluation::kFunction>(tArg), tExpectedF);
-    const auto tExpectedDF = tF.evaluate<evaluation::kFirstDerivative>(tArg);
-    EXPECT_EQ(tAggregate.evaluate<evaluation::kFirstDerivative>(tArg), tExpectedDF);
+    const auto tFunctionArgument = pft::TwoDVector{2.0, -1.0};
+    const auto tExpectedFunctionEvaluation = tRosenbrockFunction.evaluate<evaluation::kFunction>(tFunctionArgument);
+    EXPECT_EQ(tAggregate.evaluate<evaluation::kFunction>(tFunctionArgument), tExpectedFunctionEvaluation);
+    const auto tExpectedDF = tRosenbrockFunction.evaluate<evaluation::kFirstDerivative>(tFunctionArgument);
+    EXPECT_EQ(tAggregate.evaluate<evaluation::kFirstDerivative>(tFunctionArgument), tExpectedDF);
 }
 
 TEST(ParallelAggregate, EvaluateDifferent)
@@ -58,26 +58,31 @@ TEST(ParallelAggregate, EvaluateDifferent)
 
     constexpr double tA = 2.0;
     constexpr double tB = 50.0;
-    const auto tFNonDefault = test_utilities::make_two_d_function(pft::Rosenbrock{tA, tB});
-    const auto tFDefault = test_utilities::make_two_d_function(pft::Rosenbrock{});
+    const auto tRosenbrockFunctionNonDefault = test_utilities::make_two_d_function(pft::Rosenbrock{tA, tB});
+    const auto tRosenbrockFunctionDefault = test_utilities::make_two_d_function(pft::Rosenbrock{});
 
-    using RosenbrockF = std::decay_t<decltype(tFNonDefault)>;
+    using RosenbrockF = std::decay_t<decltype(tRosenbrockFunctionNonDefault)>;
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
-    constexpr auto tW = double{0.5};
-    const auto tFunctionAndWeight = tCommunicator.rank() == 0 ? FunctionAndWeight{std::make_pair(tFDefault, tW)}
-                                                              : FunctionAndWeight{std::make_pair(tFNonDefault, tW)};
-    const auto tAggregate = ParallelAggregate<Domain, EvaluationInfo, GradientInfo>(tFunctionAndWeight, tCommunicator);
+    constexpr auto tWeight = double{0.5};
+    const auto tRosenbrockFunctionunctionAndWeight =
+        tCommunicator.rank() == 0 ? FunctionAndWeight{std::make_pair(tRosenbrockFunctionDefault, tWeight)}
+                                  : FunctionAndWeight{std::make_pair(tRosenbrockFunctionNonDefault, tWeight)};
+    const auto tAggregate =
+        ParallelAggregate<Domain, EvaluationInfo, GradientInfo>(tRosenbrockFunctionunctionAndWeight, tCommunicator);
 
     EXPECT_EQ(tAggregate.size(), 1);
 
-    const auto tArg = pft::TwoDVector{2.0, -1.0};
-    const double tExpectedF = tW * ((tNumberOfRanks - 1) * tFNonDefault.evaluate<evaluation::kFunction>(tArg) +
-                                    tFDefault.evaluate<evaluation::kFunction>(tArg));
-    EXPECT_EQ(tAggregate.evaluate<evaluation::kFunction>(tArg), tExpectedF);
+    const auto tFunctionArgument = pft::TwoDVector{2.0, -1.0};
+    const double tExpectedFunctionEvaluation =
+        tWeight *
+        ((tNumberOfRanks - 1) * tRosenbrockFunctionNonDefault.evaluate<evaluation::kFunction>(tFunctionArgument) +
+         tRosenbrockFunctionDefault.evaluate<evaluation::kFunction>(tFunctionArgument));
+    EXPECT_EQ(tAggregate.evaluate<evaluation::kFunction>(tFunctionArgument), tExpectedFunctionEvaluation);
 
     const pft::TwoDVector tExpectedDF =
-        tW * ((tNumberOfRanks - 1) * tFNonDefault.evaluate<evaluation::kFirstDerivative>(tArg) +
-              tFDefault.evaluate<evaluation::kFirstDerivative>(tArg));
-    EXPECT_EQ(tAggregate.evaluate<evaluation::kFirstDerivative>(tArg), tExpectedDF);
+        tWeight * ((tNumberOfRanks - 1) *
+                       tRosenbrockFunctionNonDefault.evaluate<evaluation::kFirstDerivative>(tFunctionArgument) +
+                   tRosenbrockFunctionDefault.evaluate<evaluation::kFirstDerivative>(tFunctionArgument));
+    EXPECT_EQ(tAggregate.evaluate<evaluation::kFirstDerivative>(tFunctionArgument), tExpectedDF);
 }
 }  // namespace plato::core::parallel_unittest
