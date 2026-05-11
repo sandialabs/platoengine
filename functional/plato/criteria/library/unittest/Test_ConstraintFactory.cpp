@@ -4,6 +4,7 @@
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/TestAppConfigurations.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::criteria::library::unittest
 {
@@ -47,30 +48,32 @@ namespace
 TEST(ConstraintTarget, MakeConstraintTargetValue)
 {
     const auto [tScalarConstraintInput, tVectorConstraintInput, tAppConfigurations] = test_constraint_inputs();
-    // Scalar
     {
+        const auto tTestContext = TEST_CONTEXT("Scalar");
+
         const auto& tScalarConfiguration =
             configuration_with_name("scalar", tAppConfigurations.front().mConfiguration.mCriteria);
         const auto tConstraintTargets =
             detail::make_constraint_target_value(tScalarConstraintInput, tScalarConfiguration);
 
-        ASSERT_TRUE(std::holds_alternative<double>(tConstraintTargets));
+        ASSERT_TRUE(std::holds_alternative<double>(tConstraintTargets)) << tTestContext;
         const auto& tResultTarget = std::get<double>(tConstraintTargets);
-        EXPECT_EQ(tResultTarget, 42.0);
+        EXPECT_EQ(tResultTarget, 42.0) << tTestContext;
     }
-    // Vector
     {
+        const auto tTestContext = TEST_CONTEXT("Vector");
+
         const auto& tVectorConfiguration =
             configuration_with_name("vector-with-components", tAppConfigurations.front().mConfiguration.mCriteria);
         const auto tConstraintTargets =
             detail::make_constraint_target_value(tVectorConstraintInput, tVectorConfiguration);
 
-        ASSERT_TRUE(std::holds_alternative<std::vector<double>>(tConstraintTargets));
+        ASSERT_TRUE(std::holds_alternative<std::vector<double>>(tConstraintTargets)) << tTestContext;
         const auto& tResultTarget = std::get<std::vector<double>>(tConstraintTargets);
 
-        ASSERT_EQ(tResultTarget.size(), 2U);
-        EXPECT_EQ(tResultTarget.front(), 42.0);
-        EXPECT_EQ(tResultTarget.back(), 43.0);
+        ASSERT_EQ(tResultTarget.size(), 2U) << tTestContext;
+        EXPECT_EQ(tResultTarget.front(), 42.0) << tTestContext;
+        EXPECT_EQ(tResultTarget.back(), 43.0) << tTestContext;
     }
 }
 
