@@ -23,6 +23,14 @@ namespace
 {
 using ValidatedConstraint = input_validation::ValidatedInputDataBlock<components::ComponentType::kConstraint>;
 
+constexpr auto kDefaultNumberOfProcessors = 1U;
+
+[[nodiscard]] auto is_parallel(const input_parser::constraint& aRawInput)
+{
+    constexpr auto tSerialNumberOfProcessors = 1U;
+    return aRawInput.number_of_processors.value_or(kDefaultNumberOfProcessors) > tSerialNumberOfProcessors;
+}
+
 template <typename... Args>
 [[nodiscard]] auto make_criterion_impl(const ValidatedConstraint& aConstraintInput, Args&&... aAdditionalArgs)
 {
@@ -46,9 +54,8 @@ template <typename... Args>
 {
     const auto& tRawInput = input_validation::get_input_block<input_parser::constraint>(aConstraintInput);
     const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
-    const auto tNumberOfProcessors = tRawInput.number_of_processors.value_or(1U);
 
-    if (tNumberOfProcessors > 1U && criterion_function_has_trait(tRegistrationName, Parallelization::kParallel))
+    if (is_parallel(tRawInput) && criterion_function_has_trait(tRegistrationName, Parallelization::kParallel))
     {
         return make_criterion_impl(aConstraintInput, aCommunicator);
     }
@@ -107,7 +114,7 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
     const auto tBaseCommunicator = boost::mpi::communicator{};
     auto tCriterionConfiguration = services::CriterionConfiguration{};
     const auto tCriterionFunction = core::make_split_parallel_function(
-        tBaseCommunicator, tRawInput.number_of_processors.value_or(1U),
+        tBaseCommunicator, tRawInput.number_of_processors.value_or(kDefaultNumberOfProcessors),
         [&aConstraintInput, &tCriterionConfiguration](const boost::mpi::communicator& aCommunicator)
         {
             auto tCriterion = make_criterion(aCommunicator, aConstraintInput);
