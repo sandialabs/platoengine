@@ -151,12 +151,12 @@ TEST(PluginCriteria, RegisterApps)
             EXPECT_FALSE(library::criterion_function_has_traits(aFunctionName, tUnregisteredTrait)) << aTestContext;
         }
         EXPECT_FALSE(library::criterion_function_has_trait(
-            aFunctionName, aRegisteredTraits.mDimension == FunctionDimension::kScalar ? FunctionDimension::kVector
-                                                                                      : FunctionDimension::kScalar))
+            aFunctionName, (aRegisteredTraits.mDimension == FunctionDimension::kScalar) ? FunctionDimension::kVector
+                                                                                        : FunctionDimension::kScalar))
             << aTestContext;
         EXPECT_FALSE(library::criterion_function_has_trait(
-            aFunctionName, aRegisteredTraits.mParallelization == Parallelization::kSerial ? Parallelization::kParallel
-                                                                                          : Parallelization::kSerial))
+            aFunctionName, (aRegisteredTraits.mParallelization == Parallelization::kSerial) ? Parallelization::kParallel
+                                                                                            : Parallelization::kSerial))
             << aTestContext;
     };
 
