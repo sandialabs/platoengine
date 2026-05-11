@@ -40,8 +40,8 @@ concept ParallelMakeFunction =
         return std::make_tuple(
             [=, mLocalFunction = aMakeFunction(tSplitCommunicator)](auto&& aDomain)
             {
-                constexpr auto kIndex = kIndices;
-                using Info = std::tuple_element_t<kIndex, FunctionInfoTuple>;
+                constexpr auto tIndex = kIndices;
+                using Info = std::tuple_element_t<tIndex, FunctionInfoTuple>;
 
                 auto tResult = typename Info::Codomain{};
                 if (tGroupColor.mValue == 0)
