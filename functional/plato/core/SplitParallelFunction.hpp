@@ -4,8 +4,7 @@
 #include <boost/mpi/communicator.hpp>
 
 #include "plato/core/Function.hpp"
-#include "plato/core/ParallelSync.hpp"
-#include "plato/utilities/RankSplitVector.hpp"
+#include "plato/utilities/MPIUtilities.hpp"
 
 namespace plato::core
 {
@@ -30,28 +29,24 @@ concept ParallelMakeFunction =
 
     const auto tFunctionTuple = [=]<std::size_t... kIndices>(std::index_sequence<kIndices...>)
     {
-        const auto tGroupSizes =
-            std::vector{static_cast<unsigned int>(aNumberOfProcessors),
-                        static_cast<unsigned int>(aParentCommunicator.size() - aNumberOfProcessors)};
-        const auto tGroupColor =
-            utilities::rank_group_color(tGroupSizes, utilities::RankNamedType{aParentCommunicator.rank()});
-        const auto tSplitCommunicator = aParentCommunicator.split(tGroupColor.mValue);
+        const auto tMPIGroupCommunicator =
+            utilities::group_split_communicator(aParentCommunicator, aNumberOfProcessors);
 
         return std::make_tuple(
-            [=, mLocalFunction = aMakeFunction(tSplitCommunicator)](auto&& aDomain)
+            [=, mLocalFunction = aMakeFunction(tMPIGroupCommunicator.mSplitCommunicator)](auto&& aDomain)
             {
                 constexpr auto tIndex = kIndices;
                 using Info = std::tuple_element_t<tIndex, FunctionInfoTuple>;
 
-                auto tResult = typename Info::Codomain{};
-                if (tGroupColor.mValue == 0)
-                {
-                    tResult = mLocalFunction.template evaluate<Info::order, Info::ordering>(aDomain);
-                }
                 constexpr auto tParentCommunicatorBroadcastRank = 0;
-                return parallel_sync(
-                    std::move(tResult), ParentCommunicator{aParentCommunicator}, SplitCommunicator{tSplitCommunicator},
-                    ParentBroadcastRank{tParentCommunicatorBroadcastRank}, GroupColor{tGroupColor.mValue});
+
+                const auto tEvaluateFunction = [&mLocalFunction](const boost::mpi::communicator&, auto&& aDomain) {
+                    return mLocalFunction.template evaluate<Info::order, Info::ordering>(
+                        std::forward<decltype(aDomain)>(aDomain));
+                };
+
+                return utilities::compute_on_root_group(tMPIGroupCommunicator, tParentCommunicatorBroadcastRank,
+                                                        tEvaluateFunction, std::forward<decltype(aDomain)>(aDomain));
             }...);
     }(std::make_index_sequence<std::tuple_size_v<FunctionInfoTuple>>());
 

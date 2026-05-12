@@ -3,8 +3,7 @@
 namespace plato::utilities
 {
 auto group_split_communicator(const boost::mpi::communicator& aParentCommunicator,
-                              const std::size_t aNumberOfProcessors)
-    -> std::pair<boost::mpi::communicator, ColorNamedType>
+                              const std::size_t aNumberOfProcessors) -> MPIGroupCommunicator
 {
     assert(aNumberOfProcessors <= static_cast<std::size_t>(aParentCommunicator.size()));
 
@@ -13,6 +12,8 @@ auto group_split_communicator(const boost::mpi::communicator& aParentCommunicato
     const auto tGroupColor =
         utilities::rank_group_color(tGroupSizes, utilities::RankNamedType{aParentCommunicator.rank()});
     const auto tSplitCommunicator = aParentCommunicator.split(tGroupColor.mValue);
-    return {tSplitCommunicator, tGroupColor};
+    return {.mParentCommunicator = aParentCommunicator,
+            .mSplitCommunicator = tSplitCommunicator,
+            .mGroupColor = tGroupColor};
 }
 }  // namespace plato::utilities

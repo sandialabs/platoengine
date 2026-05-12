@@ -32,9 +32,12 @@ void check_parallel_jacobian_multiplier(const MultiplierType& aMultiplierObject,
             tMultiplierBase = aMultiplierObject;
         }
         constexpr auto tBroadcastRank = 0;
-        tMultiplierBase = core::parallel_sync(tMultiplierBase, core::ParentCommunicator{tParentCommunicator},
-                                              core::SplitCommunicator{tSplitCommunicator},
-                                              core::ParentBroadcastRank{tBroadcastRank}, core::GroupColor{tGroupColor});
+        tMultiplierBase = utilities::customization::group_synchronized_object(
+            tMultiplierBase,
+            utilities::MPIGroupCommunicator{.mParentCommunicator = tParentCommunicator,
+                                            .mSplitCommunicator = tSplitCommunicator,
+                                            .mGroupColor = utilities::ColorNamedType{tGroupColor}},
+            tBroadcastRank);
 
         const auto tVector = DynamicVector{-1.0, 1.0, 2.0};
         const auto tExpected = DynamicVector{-1.0, 1.0, 8.0};
