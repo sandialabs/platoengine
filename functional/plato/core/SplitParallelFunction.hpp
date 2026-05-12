@@ -40,9 +40,11 @@ concept ParallelMakeFunction =
 
                 constexpr auto tParentCommunicatorBroadcastRank = 0;
 
-                const auto tEvaluateFunction = [&mLocalFunction](const boost::mpi::communicator&, auto&& aDomain) {
+                const auto tEvaluateFunction =
+                    [&mLocalFunction](const boost::mpi::communicator&, auto&& aDomainForEvaluation)
+                {
                     return mLocalFunction.template evaluate<Info::order, Info::ordering>(
-                        std::forward<decltype(aDomain)>(aDomain));
+                        std::forward<decltype(aDomainForEvaluation)>(aDomainForEvaluation));
                 };
 
                 return utilities::compute_on_root_group(tMPIGroupCommunicator, tParentCommunicatorBroadcastRank,
