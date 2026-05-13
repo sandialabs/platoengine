@@ -2,9 +2,7 @@
 
 #include <algorithm>
 
-namespace plato::third_party_integration::stk_io
-{
-namespace detail
+namespace plato::third_party_integration::stk_io::detail
 {
 auto global_to_local_index(const std::vector<std::size_t>& aSortedGlobalIDs, const std::size_t aGlobalID) -> std::size_t
 {
@@ -17,5 +15,14 @@ auto global_to_local_index(const std::vector<std::size_t>& aSortedGlobalIDs, con
 
     return std::distance(aSortedGlobalIDs.begin(), tLowerBoundIterator);
 }
-}  // namespace detail
-}  // namespace plato::third_party_integration::stk_io
+auto element_entities(const stk::mesh::BulkData& aBulkData,
+                      const PartReferenceVector& aParts) -> stk::mesh::EntityVector
+{
+    auto tEntities = stk::mesh::EntityVector{};
+    constexpr auto tSortedByGlobalID = true;
+    stk::mesh::get_entities(aBulkData, stk::topology::ELEMENT_RANK, detail::parts_to_selector(aParts), tEntities,
+                            tSortedByGlobalID);
+    return tEntities;
+}
+
+}  // namespace plato::third_party_integration::stk_io::detail

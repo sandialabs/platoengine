@@ -6,6 +6,10 @@ CopyCounter::CopyCounter(const CopyCounter& aCopy) : mCopies{aCopy.mCopies}, mMo
 
 CopyCounter& CopyCounter::operator=(const CopyCounter& aCopy)
 {
+    if (&aCopy == this)
+    {
+        return *this;
+    }
     mCopies = aCopy.mCopies;
     mMoves = aCopy.mMoves;
     ++mCopies;
