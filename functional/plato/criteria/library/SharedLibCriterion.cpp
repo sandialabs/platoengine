@@ -1,4 +1,4 @@
-#include "plato/criteria/extension/SharedLibCriterion.hpp"
+#include "plato/criteria/library/SharedLibCriterion.hpp"
 
 #include <boost/mpi/communicator.hpp>
 
@@ -6,7 +6,7 @@
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
 
-namespace plato::criteria::extension
+namespace plato::criteria::library
 {
 namespace
 {
@@ -44,13 +44,13 @@ SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirec
 SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                                        const services::CriterionConfiguration& aCriterionConfiguration,
                                        const library::CriterionInput& aCriterionInput,
-                                       const boost::mpi::communicator& aComm)
+                                       const boost::mpi::communicator& aCommunicator)
     : mCriterionInterface{load_criterion_interface<ParallelFunctionSignature>(aAppConfiguration,
                                                                               aCriterionConfiguration.mFunctionName,
                                                                               aCriterionInput,
                                                                               aCriterionInput.mInputFiles.list().mList,
-                                                                              aComm)},
-      mComm{aComm},
+                                                                              aCommunicator)},
+      mComm{aCommunicator},
       mComponentType{aCriterionInput.mComponentType},
       mName{aCriterionInput.mName}
 {
@@ -77,4 +77,4 @@ auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion) -> 
         { return aSharedLibCriterion.df(aAnalysisMesh); });
 }
 
-}  // namespace plato::criteria::extension
+}  // namespace plato::criteria::library

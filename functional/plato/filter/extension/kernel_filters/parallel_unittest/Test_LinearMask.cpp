@@ -19,8 +19,8 @@ constexpr auto kNumRanks = int{4};
 
 TEST(LinearMaskDetail, MPISize)
 {
-    const auto tComm = boost::mpi::communicator{};
-    EXPECT_EQ(tComm.size(), kNumRanks);
+    const auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_EQ(tCommunicator.size(), kNumRanks);
 }
 
 TEST(LinearMask, Apply)

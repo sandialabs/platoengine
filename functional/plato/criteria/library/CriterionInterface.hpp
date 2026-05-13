@@ -22,7 +22,7 @@ namespace plato::criteria::library
 /// @endcode
 /// and for parallel criteria:
 /// @code{.cpp}
-/// extern "C" auto plato_create_parallel_criterion(const std::vector<std::string>& aFileNames, MPI_Comm aComm)
+/// extern "C" auto plato_create_parallel_criterion(const std::vector<std::string>& aFileNames, MPI_Comm aCommunicator)
 ///  -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 /// @endcode
 /// `extern "C"` ensures that the function name is not mangled in the shared library symbols.

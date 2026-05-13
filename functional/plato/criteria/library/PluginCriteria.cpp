@@ -1,18 +1,17 @@
-#include "plato/criteria/extension/PluginCriteria.hpp"
+#include "plato/criteria/library/PluginCriteria.hpp"
 
 #include <filesystem>
 #include <utility>
 
-#include "plato/criteria/extension/SharedLibCriterion.hpp"
-#include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/SharedLibCriterion.hpp"
+#include "plato/criteria/library/SharedLibraryVectorCriterion.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
-#include "plato/utilities/StringUtilities.hpp"
 
-namespace plato::criteria::extension
+namespace plato::criteria::library
 {
 namespace
 {
@@ -124,4 +123,4 @@ std::size_t register_plugin_apps(const std::vector<std::filesystem::path>& aSear
     return tNumberOfRegisteredApps;
 }
 
-}  // namespace plato::criteria::extension
+}  // namespace plato::criteria::library

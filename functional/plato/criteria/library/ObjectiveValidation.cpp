@@ -15,13 +15,16 @@ namespace plato::criteria::library
 {
 namespace
 {
-[[maybe_unused]] static auto kObjectiveValidationRegistration = input_validation::InputBlockValidationRegistration<>{
-    [](const input_parser::objective& aInput) { return detail::validate_criterion_is_registered(aInput); },
-    [](const input_parser::objective& aInput) { return detail::validate_number_of_processors(aInput); },
-    [](const input_parser::objective& aInput) { return detail::validate_aggregation_weight(aInput); },
-    [](const input_parser::objective& aInput) { return detail::validate_criterion_files_exist(aInput); }};
+[[maybe_unused]] static const auto kObjectiveValidationRegistration =
+    input_validation::InputBlockValidationRegistration<>{
+        [](const input_parser::objective& aInput) { return detail::validate_criterion_is_registered(aInput); },
+        [](const input_parser::objective& aInput) { return detail::validate_number_of_processors(aInput); },
+        [](const input_parser::objective& aInput) { return detail::validate_aggregation_weight(aInput); },
+        [](const input_parser::objective& aInput) { return detail::validate_criterion_files_exist(aInput); },
+        [](const input_parser::objective& aInput)
+        { return detail::validate_criterion_supports_requested_number_of_processors(aInput); }};
 
-[[maybe_unused]] static auto kListObjectivesValidationRegistration =
+[[maybe_unused]] static const auto kListObjectivesValidationRegistration =
     input_validation::ParsedInputValidationRegistration<>{
         [](const input_parser::ParsedInput& aInput)
         { return detail::validate_at_least_one_objective(aInput.get<input_parser::objective>()); },

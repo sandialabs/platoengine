@@ -81,11 +81,11 @@ TEST(CylindricalMaskUtilitiesDetail, DistributeSearchVectorsAndStkSearch)
     const auto tTargetMeshNodes = mesh::EntityRetrieval{mesh::Mesh{kTargetMeshFile.value()}}.nodalCoordinates();
     constexpr auto tRadius = 3.0;
     constexpr auto tAxis = third_party_integration::common::Vector3{0, 0, 1};
-    const auto tComm = boost::mpi::communicator{};
+    const auto tCommunicator = boost::mpi::communicator{};
 
     const auto tSearchResults = detail::distribute_search_vectors_and_stk_search_with_cylinders(
         TargetRowVector{tTargetMeshNodes}, SourceColumnVector{tSourceMeshNodes}, CylinderAxis{tAxis},
-        CylinderRadius{tRadius}, tComm);
+        CylinderRadius{tRadius}, tCommunicator);
 
     constexpr auto tRankZero = 0;
     ASSERT_EQ(tSearchResults.size(), 3U);

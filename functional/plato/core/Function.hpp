@@ -93,6 +93,13 @@ class Function
     FunctionTuple mFunctions;
 };
 
+/// @brief Type trait for checking that a type is an instantiation of Function
+template <typename>
+constexpr inline auto kIsFunction = bool{false};
+
+template <typename DomainType, typename... Info>
+constexpr inline auto kIsFunction<Function<DomainType, Info...>> = bool{true};
+
 template <typename Domain, typename... Info>
 template <typename... Functions, typename>
 Function<Domain, Info...>::Function(Functions&&... aFunctions) : mFunctions{std::forward_as_tuple(aFunctions...)}

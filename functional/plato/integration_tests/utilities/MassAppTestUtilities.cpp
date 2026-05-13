@@ -5,10 +5,10 @@
 #include <filesystem>
 #include <optional>
 
-#include "plato/criteria/extension/PluginCriteria.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/criteria/library/PluginCriteria.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
@@ -53,7 +53,7 @@ namespace
 void write_mass_app_config(const std::string_view& aAppName,
                            const std::filesystem::path& aTestPluginDirectory,
                            const test_utilities::TestDirectorySetupTeardown& aConfigurationTempDirectory,
-                           const boost::mpi::communicator& aComm)
+                           const boost::mpi::communicator& aCommunicator)
 {
     const auto tMassLibPath = std::filesystem::relative(mass_app_lib_path(), aTestPluginDirectory);
     const auto tCriterionSerialConfiguration =
@@ -86,20 +86,20 @@ void write_mass_app_config(const std::string_view& aAppName,
                       tCriterionVectorWithComponentsConfiguration}};
     aConfigurationTempDirectory.writeFile(services::AppConfigurationWriter{std::move(tAppConfiguration)},
                                           "test-mass-app.config");
-    aComm.barrier();
+    aCommunicator.barrier();
 }
 
 }  // namespace
 
-auto register_test_mass_app(const std::string_view aAppName, const boost::mpi::communicator& aComm)
-    -> test_utilities::TestDirectorySetupTeardown
+auto register_test_mass_app(const std::string_view aAppName,
+                            const boost::mpi::communicator& aCommunicator) -> test_utilities::TestDirectorySetupTeardown
 {
     const auto tTestPluginDirectory = std::filesystem::path{"test-plugin-directory"};
-    auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{tTestPluginDirectory, aComm};
+    auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{tTestPluginDirectory, aCommunicator};
 
-    write_mass_app_config(aAppName, tTestPluginDirectory, tConfigurationTempDirectory, aComm);
+    write_mass_app_config(aAppName, tTestPluginDirectory, tConfigurationTempDirectory, aCommunicator);
 
-    criteria::extension::register_plugin_apps({tTestPluginDirectory});
+    criteria::library::register_plugin_apps({tTestPluginDirectory});
     return tConfigurationTempDirectory;
 }
 
@@ -170,14 +170,15 @@ auto brick_shape_geometry_controls_with_volume() -> std::pair<linear_algebra::Dy
     return std::make_pair(linear_algebra::DynamicVector<double>{tCenter, tCenter, tCenter, tX, tY, tZ}, tX * tY * tZ);
 }
 
-void register_load_run_test(const boost::mpi::communicator& aComm, const test_utilities::TestContext& aTestContext)
+void register_load_run_test(const boost::mpi::communicator& aCommunicator,
+                            const test_utilities::TestContext& aTestContext)
 {
     ASSERT_TRUE(std::filesystem::exists(mass_app_lib_path())) << aTestContext;
 
     const auto tAppName = input_parser::AppName{"test-mass-app"};
-    const auto tConfigurationTempDirectory = register_test_mass_app(tAppName.mToken, aComm);
+    const auto tConfigurationTempDirectory = register_test_mass_app(tAppName.mToken, aCommunicator);
     const auto tCriterionName = input_parser::CriterionName{"mass"};
-    const auto tValidInput = create_test_mass_app_input(tAppName, tCriterionName, aComm.size());
+    const auto tValidInput = create_test_mass_app_input(tAppName, tCriterionName, aCommunicator.size());
 
     const auto [tControls, tExpectedValue] = integration_tests::utilities::brick_shape_geometry_controls_with_volume();
     const auto tGeometry =

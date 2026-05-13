@@ -1,7 +1,9 @@
 #include "plato/criteria/library/CriterionRegistration.hpp"
 
+#include <algorithm>
 #include <boost/mpi/communicator.hpp>
 #include <iterator>
+#include <ranges>
 #include <set>
 
 #include "plato/input_parser/InputDefinitions.hpp"
@@ -109,5 +111,20 @@ std::set<std::string> registered_criteria_names()
 {
     return registered_criteria_names_impl(kFactoryRegistrationTypesSequence);
 }
+
+auto criterion_function_has_trait(const std::string_view aFunctionName, const CriterionTrait auto aTrait) -> bool
+{
+    const auto tToTraits =
+        std::views::iota(0U, number_of_traits()) |
+        std::views::transform([=](const auto tTraitIndex) { return traits_from_index(tTraitIndex); });
+
+    return std::ranges::any_of(
+        tToTraits, [=](const auto tTraits)
+        { return has_trait(tTraits, aTrait) && criterion_function_has_traits(aFunctionName, tTraits); });
+}
+
+template auto criterion_function_has_trait(const std::string_view aFunctionName,
+                                           const FunctionDimension aTrait) -> bool;
+template auto criterion_function_has_trait(const std::string_view aFunctionName, const Parallelization aTrait) -> bool;
 
 }  // namespace plato::criteria::library
