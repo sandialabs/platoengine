@@ -1,5 +1,6 @@
 #include "plato/criteria/library/test_utilities/TestAppConfigurations.hpp"
 
+#include <fstream>
 #include <string_view>
 
 #include "plato/services/AppConfiguration.hpp"
@@ -28,13 +29,22 @@ void write_app_config(const std::string_view& aAppName,
         .mFunctionName = "test_vector_with_components_criterion",
         .mVectorComponents = std::map<std::size_t, std::string>{{0U, "america"}, {1U, "europe"}, {2U, "asia"}}};
 
-    auto tAppConfiguration =
-        services::AppConfiguration{.mName = std::string{aAppName},
-                                   .mLibraryFileName = std::filesystem::path{"phony-library.so"},
-                                   .mCriteria = {tCriterionSerialConfiguration, tCriterionVectorConfiguration,
-                                                 tCriterionVectorWithComponentsConfiguration}};
-    aConfigurationTempDirectory.writeFile(services::AppConfigurationWriter{std::move(tAppConfiguration)},
-                                          "test-mass-app.config");
+    const auto tCriterionParallelConfiguration = services::CriterionConfiguration{
+        .mName = "parallel", .mIsParallelized = true, .mIsScalar = true, .mFunctionName = "test_parallel_criterion"};
+
+    const auto tAppConfiguration = services::AppConfiguration{
+        .mName = std::string{aAppName},
+        .mLibraryFileName = std::filesystem::path{"phony-library.so"},
+        .mCriteria = {tCriterionSerialConfiguration, tCriterionVectorConfiguration,
+                      tCriterionVectorWithComponentsConfiguration, tCriterionParallelConfiguration}};
+    aConfigurationTempDirectory.writeFile(services::AppConfigurationWriter{tAppConfiguration}, "test-mass-app.config");
+    aConfigurationTempDirectory.writeFile(
+        [](const std::filesystem::path& aPath)
+        {
+            auto tStream = std::ofstream{aPath};
+            tStream << "not a library.";
+        },
+        tAppConfiguration.mLibraryFileName);
 }
 
 }  // namespace

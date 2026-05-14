@@ -18,8 +18,9 @@ class [[nodiscard]] TestDirectorySetupTeardown
     /// @param aDirectory The directory to create, can be an absolute or relative path. For relative paths, it is
     /// created
     ///  relative to the current working directory.
-    /// @param aComm For parallelized applications, only rank 0 will create the directory and write files.
-    explicit TestDirectorySetupTeardown(std::filesystem::path aDirectory, const boost::mpi::communicator& aComm = {});
+    /// @param aCommunicator For parallelized applications, only rank 0 will create the directory and write files.
+    explicit TestDirectorySetupTeardown(std::filesystem::path aDirectory,
+                                        const boost::mpi::communicator& aCommunicator = {});
     ~TestDirectorySetupTeardown();
 
     TestDirectorySetupTeardown(const TestDirectorySetupTeardown&) = delete;

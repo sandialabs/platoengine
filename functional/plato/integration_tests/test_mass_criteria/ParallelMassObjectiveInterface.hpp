@@ -20,7 +20,7 @@ namespace plato::integration_tests::test_mass_criteria
 class ParallelMassObjectiveInterface : public criteria::library::CriterionInterface
 {
    public:
-    explicit ParallelMassObjectiveInterface(MPI_Comm aComm);
+    explicit ParallelMassObjectiveInterface(MPI_Comm aCommunicator);
 
     ///@brief required by the CriterionInterface, return the value of the criterion evaluated at the controls specified
     /// by the AnalysisDomainMesh
@@ -36,9 +36,9 @@ class ParallelMassObjectiveInterface : public criteria::library::CriterionInterf
 }  // namespace plato::integration_tests::test_mass_criteria
 
 extern "C" std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_parallel_criterion(
-    const std::vector<std::string>&, const MPI_Comm aComm);
+    const std::vector<std::string>&, const MPI_Comm aCommunicator);
 
 extern "C" std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_parallel_test_mass_criterion(
-    const std::vector<std::string>&, const MPI_Comm aComm);
+    const std::vector<std::string>&, const MPI_Comm aCommunicator);
 
 #endif

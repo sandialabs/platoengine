@@ -22,16 +22,19 @@ const auto kBindWithPluginDirectory = [](const auto& aValidationFunction,
     return std::nullopt;
 };
 
-[[maybe_unused]] static auto kConstraintValidationRegistration = input_validation::InputBlockValidationRegistration<>{
-    [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
-    [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
-    [](const input_parser::constraint& aInput) { return detail::validate_criterion_files_exist(aInput); },
-    [](const input_parser::constraint& aInput) { return detail::validate_constraint_value(aInput); },
-    [](const input_parser::constraint& aInput) { return detail::validate_constraint_type(aInput); },
-    [](const input_parser::constraint& aInput)
-    { return kBindWithPluginDirectory(detail::validate_constraint_component_names, aInput); },
-    [](const input_parser::constraint& aInput)
-    { return kBindWithPluginDirectory(detail::validate_constraint_component_targets, aInput); }};
+[[maybe_unused]] static const auto kConstraintValidationRegistration =
+    input_validation::InputBlockValidationRegistration<>{
+        [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_criterion_files_exist(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_constraint_value(aInput); },
+        [](const input_parser::constraint& aInput) { return detail::validate_constraint_type(aInput); },
+        [](const input_parser::constraint& aInput)
+        { return kBindWithPluginDirectory(detail::validate_constraint_component_names, aInput); },
+        [](const input_parser::constraint& aInput)
+        { return kBindWithPluginDirectory(detail::validate_constraint_component_targets, aInput); },
+        [](const input_parser::constraint& aInput)
+        { return detail::validate_criterion_supports_requested_number_of_processors(aInput); }};
 
 /// @brief Returns an app/criterion name combination for error messages.
 [[nodiscard]] auto app_criterion_name(const input_parser::constraint& aConstraintInput) -> std::string
@@ -97,13 +100,16 @@ auto validate_constraint_value(const input_parser::constraint& aInput) -> std::o
 
 auto validate_constraint_number_of_processors(const input_parser::constraint& aInput) -> std::optional<std::string>
 {
-    constexpr auto kSupportedNumberOfProcessorsForConstraint = unsigned{1};
+    using MPISizeType = decltype(boost::mpi::communicator{}.size());
+    const auto tNumberOfWorldRanks = boost::mpi::communicator{}.size();
+
     if (aInput.number_of_processors.has_value() &&
-        aInput.number_of_processors.value() != kSupportedNumberOfProcessorsForConstraint)
+        static_cast<MPISizeType>(aInput.number_of_processors.value()) > tNumberOfWorldRanks)
     {
         return std::optional<std::string>{
-            utilities::concatenate("Constraints currently only support serial evaluation. ", criterion_name(aInput),
-                                   " requested ", aInput.number_of_processors.value(), " number_of_processors.")};
+            std::format("Constraints must use a number of processors less than or equal to the total number of ranks. "
+                        "{} requested {} number_of_processors, while {} are available ",
+                        criterion_name(aInput), aInput.number_of_processors.value(), tNumberOfWorldRanks)};
     }
     else
     {

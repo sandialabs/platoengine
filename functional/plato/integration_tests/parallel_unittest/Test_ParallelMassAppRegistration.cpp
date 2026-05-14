@@ -9,8 +9,8 @@ namespace plato::integration_tests::parallel
 
 TEST(ParallelMassAppRegistration, RegisterLoadAndRun)
 {
-    const auto tComm = boost::mpi::communicator{};
-    EXPECT_GT(tComm.size(), 1u);
-    utilities::register_load_run_test(tComm, TEST_CONTEXT("Parallel mass app test"));
+    const auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_GT(tCommunicator.size(), 1u);
+    utilities::register_load_run_test(tCommunicator, TEST_CONTEXT("Parallel mass app test"));
 }
 }  // namespace plato::integration_tests::parallel

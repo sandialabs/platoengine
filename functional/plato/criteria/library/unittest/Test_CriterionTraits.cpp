@@ -61,4 +61,15 @@ TEST(CriterionRegistration, NumberOfTraits)
     EXPECT_EQ(tExpectedNumberOfTraits, number_of_traits());
 }
 
+TEST(CriterionTraits, HasTrait)
+{
+    constexpr auto tTraits =
+        CriterionTraits{.mParallelization = Parallelization::kParallel, .mDimension = FunctionDimension::kScalar};
+    EXPECT_TRUE(has_trait(tTraits, Parallelization::kParallel));
+    EXPECT_TRUE(has_trait(tTraits, FunctionDimension::kScalar));
+
+    EXPECT_FALSE(has_trait(tTraits, Parallelization::kSerial));
+    EXPECT_FALSE(has_trait(tTraits, FunctionDimension::kVector));
+}
+
 }  // namespace plato::criteria::library::unittest

@@ -76,17 +76,17 @@ constexpr auto kRootRank = 0;
     return mesh::fixed_blocks(tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>());
 }
 
-/// @brief Splits @a aComm into one or two groups.
+/// @brief Splits @a aCommunicator into one or two groups.
 ///
 /// If @a aNumberOfProcessors is equal to the number of ranks on comm world, then all ranks are allocated to the same
 /// group. If it is smaller, then two groups are formed, one with @a aNumberOfProcessors and one with the remainder.
-[[nodiscard]] auto split_comm(const unsigned int aNumberOfProcessors, const boost::mpi::communicator& aComm)
+[[nodiscard]] auto split_comm(const unsigned int aNumberOfProcessors, const boost::mpi::communicator& aCommunicator)
     -> std::pair<boost::mpi::communicator, utilities::ColorType>
 {
-    const auto tCommunicatorSize = aComm.size();
+    const auto tCommunicatorSize = aCommunicator.size();
     const auto tGroupColor = utilities::rank_group_color({aNumberOfProcessors, tCommunicatorSize - aNumberOfProcessors},
-                                                         utilities::RankNamedType{aComm.rank()});
-    return {aComm.split(tGroupColor.mValue), tGroupColor.mValue};
+                                                         utilities::RankNamedType{aCommunicator.rank()});
+    return {aCommunicator.split(tGroupColor.mValue), tGroupColor.mValue};
 }
 
 auto make_mesh_writer(const mesh::OutputMode aOutputMode,
@@ -106,7 +106,7 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
                                   const filter::extension::kernel_filters::KernelFilter& aFilter,
                                   const std::filesystem::path& aOutputMeshPath,
                                   const std::set<std::string>& aFixedBlocks,
-                                  const boost::mpi::communicator& aComm)
+                                  const boost::mpi::communicator& aCommunicator)
 {
     const auto tTimeSteps = mesh::EntityCounts{aMesh}.timeSteps();
     const auto tTemporaryOutputPath = utilities::make_filename_unique(aOutputMeshPath);
@@ -117,7 +117,7 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
         const auto tFieldAnalysisMesh = mesh::DesignVariablesConversion{aMesh}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tNodalFieldToFilter});
         const auto tFilteredField = aFilter.filter(tFieldAnalysisMesh);
-        if (aComm.rank() == kRootRank)
+        if (aCommunicator.rank() == kRootRank)
         {
             constexpr auto tFixedValue = geometry::extension::density_fixed_value();
             const auto tMode =
@@ -130,9 +130,9 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
             tWriter->addFieldFromAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
                                                     tFixedValue);
         }
-        aComm.barrier();
+        aCommunicator.barrier();
     }
-    if (aComm.rank() == kRootRank)
+    if (aCommunicator.rank() == kRootRank)
     {
         std::filesystem::copy_file(tTemporaryOutputPath, aOutputMeshPath,
                                    std::filesystem::copy_options::overwrite_existing);

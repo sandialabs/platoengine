@@ -12,6 +12,20 @@ TEST(CriterionRegistration, NodalSum)
     EXPECT_TRUE(library::criterion_function_has_traits(
         library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
         library::CriterionTraits{library::Parallelization::kSerial, library::FunctionDimension::kScalar}));
+
+    EXPECT_TRUE(library::criterion_function_has_trait(
+        library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
+        library::Parallelization::kSerial));
+    EXPECT_TRUE(library::criterion_function_has_trait(
+        library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
+        library::FunctionDimension::kScalar));
+
+    EXPECT_FALSE(library::criterion_function_has_trait(
+        library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
+        library::Parallelization::kParallel));
+    EXPECT_FALSE(library::criterion_function_has_trait(
+        library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
+        library::FunctionDimension::kVector));
 }
 
 TEST(CriterionRegistration, Volume)

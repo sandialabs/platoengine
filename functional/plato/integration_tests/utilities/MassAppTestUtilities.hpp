@@ -19,7 +19,7 @@ namespace plato::integration_tests::utilities
 /// @note This assumes that the actual shared library is in the current working directory, which
 ///  will be the case for any unit tests run from the build directory.
 [[nodiscard]] auto register_test_mass_app(std::string_view aAppName,
-                                          const boost::mpi::communicator& aComm = boost::mpi::communicator{})
+                                          const boost::mpi::communicator& aCommunicator = boost::mpi::communicator{})
     -> test_utilities::TestDirectorySetupTeardown;
 
 /// @brief Creates arbitrary test controls with the associated total volume for a BrickShapeGeometry.
@@ -27,7 +27,8 @@ namespace plato::integration_tests::utilities
     -> std::pair<linear_algebra::DynamicVector<double>, double>;
 
 /// @brief Function that tests registration, loading, and running of the test mass app shared library.
-void register_load_run_test(const boost::mpi::communicator& aComm, const test_utilities::TestContext& aTestContext);
+void register_load_run_test(const boost::mpi::communicator& aCommunicator,
+                            const test_utilities::TestContext& aTestContext);
 
 /// @brief Function that tests registration of the test mass vector constraint shared library.
 void register_load_vector_constraint(const test_utilities::TestContext& aTestContext);

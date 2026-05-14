@@ -212,7 +212,6 @@ using EndingLimits = utilities::NamedType<std::pair<double, double>, struct Endi
 [[nodiscard]] auto affine_transformation(std::vector<double> aVector,
                                          const StartingLimits& aStartingLimits,
                                          const EndingLimits& aEndingLimits) -> std::vector<double>;
-
 }  // namespace detail
 
 constexpr auto level_set_mesh_field_name() -> std::string_view { return std::string_view{"level_set"}; }

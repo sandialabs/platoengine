@@ -4,9 +4,9 @@
 #include <iterator>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/SharedLibraryVectorCriterion.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassConstraintVectorInterface.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
@@ -19,14 +19,14 @@ namespace plato::integration_tests::serial
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 namespace
 {
-[[nodiscard]] auto test_shared_library_criterion() -> criteria::extension::SharedLibraryVectorCriterion
+[[nodiscard]] auto test_shared_library_criterion() -> criteria::library::SharedLibraryVectorCriterion
 {
     const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
     const auto tVectorCriterion = std::find_if(tTestConfiguration.mConfiguration.mCriteria.cbegin(),
                                                tTestConfiguration.mConfiguration.mCriteria.cend(),
                                                [](const auto& tCriterion) { return !tCriterion.mIsScalar; });
     assert(tVectorCriterion != tTestConfiguration.mConfiguration.mCriteria.cend());
-    return criteria::extension::SharedLibraryVectorCriterion{tTestConfiguration, *tVectorCriterion, {}};
+    return criteria::library::SharedLibraryVectorCriterion{tTestConfiguration, *tVectorCriterion, {}};
 }
 
 [[nodiscard]] auto create_n_step_vector(const unsigned int aSize) -> linear_algebra::DynamicVector<double>

@@ -14,8 +14,8 @@ constexpr auto kNumRanks = int{3};
 
 TEST(ParallelObjectiveValidation, MPISize)
 {
-    auto tComm = boost::mpi::communicator{};
-    EXPECT_EQ(tComm.size(), kNumRanks);
+    auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_EQ(tCommunicator.size(), kNumRanks);
 }
 
 TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)

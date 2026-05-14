@@ -13,7 +13,7 @@ if( UNIT_TESTING )
 
   set(FOLDERS test_utilities
               parallel_unittest)
-  set(NUM_RANKS_FOR_TEST 2)
+  set(NUM_RANKS_FOR_TEST 3)
   create_plato_parallel_unittester(PlatoFunctionalCore "${FOLDERS}" ${NUM_RANKS_FOR_TEST})
 
 endif()
