@@ -20,6 +20,11 @@ class FileCreatingTestFixture : virtual public ::testing::Test
     FileCreatingTestFixture(std::filesystem::path aFilePath);
     ~FileCreatingTestFixture();
 
+    FileCreatingTestFixture(const FileCreatingTestFixture&) = delete;
+    FileCreatingTestFixture(FileCreatingTestFixture&&) = delete;
+    auto operator=(const FileCreatingTestFixture&) -> FileCreatingTestFixture& = delete;
+    auto operator=(FileCreatingTestFixture&&) -> FileCreatingTestFixture& = delete;
+
     const std::filesystem::path& filePath() const;
 
    private:

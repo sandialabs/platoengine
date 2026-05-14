@@ -4,16 +4,22 @@
 #include <stack>
 #include <string>
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 /// Convenience macro for instantiating a TestContext object. The file and line are added automatically.
+/// @note This macros can be replaced using std::stacktrace in c++23
 #define TEST_CONTEXT(MESSAGE)                   \
     plato::test_utilities::extend_test_context( \
         plato::test_utilities::TestContext::SingleTestContext{__FILE__, __LINE__, (MESSAGE)})
 
 /// Convenience macro for extending a TestContext object by adding a new context. The file and line are added
 /// automatically.
+/// @note This macros can be replaced using std::stacktrace in c++23
 #define EXTEND_CONTEXT(MESSAGE, EXISTING_CONTEXT) \
     plato::test_utilities::extend_test_context(   \
         plato::test_utilities::TestContext::SingleTestContext{__FILE__, __LINE__, (MESSAGE)}, (EXISTING_CONTEXT))
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 namespace plato::test_utilities
 {

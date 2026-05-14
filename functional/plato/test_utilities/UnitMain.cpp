@@ -10,6 +10,7 @@
 #include <boost/log/sinks/sync_frontend.hpp>
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/mpi/environment.hpp>
+#include <ranges>
 #include <string_view>
 
 #include "plato/utilities/NamedType.hpp"
@@ -48,17 +49,21 @@ void output_xml(const RankExitCode aMyExitCode, const GroupExitCode aGroupExitCo
     if (tShouldSilenceOutput)
     {
         ::testing::TestEventListeners& tListeners = ::testing::UnitTest::GetInstance()->listeners();
-        delete tListeners.Release(tListeners.default_xml_generator());
+        [[maybe_unused]] const auto tListenersXMLGenerator =
+            std::unique_ptr<testing::TestEventListener>{tListeners.Release(tListeners.default_xml_generator())};
     }
 }
 
-auto program_name_and_arguments_for_mpi(const int argc, char** argv) -> std::pair<std::string_view, std::vector<char*>>
+auto program_name_and_arguments_for_mpi(const int aArgc,
+                                        char* const* const aArgv) -> std::pair<std::string_view, std::vector<char*>>
 {
-    const auto tProgramName = std::string_view{argv[0]};
-    auto tArguments = std::vector<char*>{};
-    std::copy(argv + 1, argv + argc, std::back_inserter(tArguments));
-    tArguments.push_back(nullptr);  // MPI lists are null-terminated
-    return {tProgramName, tArguments};
+    const auto tArgvSpan = std::span(aArgv, static_cast<std::size_t>(aArgc));
+    const auto tProgramName = std::string_view{tArgvSpan[0]};
+    const auto tProgramArguments = tArgvSpan | std::views::drop(1U);
+
+    auto tArgumentsAsVector = std::vector<char*>(tProgramArguments.begin(), tProgramArguments.end());
+    tArgumentsAsVector.push_back(nullptr);  // MPI lists are null-terminated
+    return {tProgramName, tArgumentsAsVector};
 }
 
 /// @brief Spawns child processes if necessary.
@@ -73,9 +78,9 @@ MPI_Comm setup_children(int argc, char** argv, unsigned int aNumRanks)
     if (tNumRanks == 1)
     {
         std::vector<int> tErrorCodes(aNumRanks);
-        MPI_Comm tParentComm;
-        MPI_Comm_get_parent(&tParentComm);
-        if (tParentComm == MPI_COMM_NULL)
+        MPI_Comm tParentCommunicator = MPI_COMM_NULL;
+        MPI_Comm_get_parent(&tParentCommunicator);
+        if (tParentCommunicator == MPI_COMM_NULL)
         {
             std::cout << "Spawning " << aNumRanks << " new ranks\n";
             auto [tProgramName, tArguments] = program_name_and_arguments_for_mpi(argc, argv);
@@ -97,11 +102,11 @@ int communicate_exit_code(const MPI_Comm& tInterComm, const int tExitStatus)
     }
     else
     {
-        MPI_Comm tParentComm;
-        MPI_Comm_get_parent(&tParentComm);
-        if (tParentComm != MPI_COMM_NULL)
+        MPI_Comm tParentCommunicator = MPI_COMM_NULL;
+        MPI_Comm_get_parent(&tParentCommunicator);
+        if (tParentCommunicator != MPI_COMM_NULL)
         {
-            MPI_Allreduce(&tExitStatus, &tMaxExitStatus, 1, MPI_INT, MPI_MAX, tParentComm);
+            MPI_Allreduce(&tExitStatus, &tMaxExitStatus, 1, MPI_INT, MPI_MAX, tParentCommunicator);
         }
     }
     return tMaxExitStatus;

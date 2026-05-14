@@ -2,9 +2,9 @@
 
 namespace plato::test_utilities
 {
-double TwoDVector::operator()(const unsigned int index) const { return mData[index]; }
+double TwoDVector::operator()(const unsigned int index) const { return mData.at(index); }
 
-double TwoDMatrix::operator()(const unsigned int i, const unsigned int j) const { return mData[i][j]; }
+double TwoDMatrix::operator()(const unsigned int i, const unsigned int j) const { return mData.at(i).at(j); }
 
 TwoDMatrix makeTwoDMatrix(const double x00, const double x01, const double x10, const double x11)
 {

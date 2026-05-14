@@ -13,6 +13,7 @@ struct CopyCounter
     unsigned int mMoves = 0;
 
     CopyCounter() = default;
+    ~CopyCounter() = default;
 
     CopyCounter(const CopyCounter& aCopy);
     CopyCounter& operator=(const CopyCounter& aCopy);

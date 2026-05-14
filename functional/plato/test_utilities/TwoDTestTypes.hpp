@@ -64,7 +64,9 @@ struct TwoDScalarFunctionGradient
 {
     [[nodiscard]] TwoDVector operator()(const TwoDVector& x) const
     {
-        return makeTwoDVector(2.0 * x(0), 3 * x(1) * x(1));
+        constexpr auto tSquarePower = 2.0;
+        constexpr auto tCubePower = 3.0;
+        return makeTwoDVector(tSquarePower * x(0), tCubePower * x(1) * x(1));
     }
 };
 
