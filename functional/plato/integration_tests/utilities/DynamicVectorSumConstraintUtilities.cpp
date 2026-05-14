@@ -1,6 +1,9 @@
 #include "plato/integration_tests/utilities/DynamicVectorSumConstraintUtilities.hpp"
 
-#include "plato/core/Function.hpp"
+#include <utility>
+#include <vector>
+
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/test_utilities/SumConstraint.hpp"
 #include "plato/test_utilities/TwoDTestTypesToDynamicVector.hpp"

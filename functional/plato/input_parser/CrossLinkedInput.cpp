@@ -1,6 +1,18 @@
 #include "plato/input_parser/CrossLinkedInput.hpp"
 
+#include <cstddef>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/CrossLinker.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
+#include "plato/utilities/EnumIndexing.hpp"
+#include "plato/utilities/Expected.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::input_parser
 {

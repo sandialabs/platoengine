@@ -3,6 +3,7 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/core/nvp.hpp>
+#include <filesystem>
 #include <fstream>
 
 namespace plato::services

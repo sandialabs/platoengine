@@ -1,14 +1,18 @@
 
 #include "plato/filter/extension/kernel_filters/CylindricalMaskUtilities.hpp"
 
-#include <boost/math/constants/constants.hpp>
+#include <algorithm>
+#include <boost/mpi/communicator.hpp>
 #include <cmath>
+#include <iterator>
 #include <ranges>
+#include <vector>
 
-#include "plato/mesh/EntityCounts.hpp"
-#include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
 {

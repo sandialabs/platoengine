@@ -1,7 +1,20 @@
 #include "plato/input_parser/ParsedInput.hpp"
 
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <iterator>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/GenericBlockRule.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
+#include "plato/utilities/EnumIndexing.hpp"
+#include "plato/utilities/Expected.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 

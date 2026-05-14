@@ -1,6 +1,9 @@
 #include "plato/third_party_integration/stk_io/Triangle.hpp"
 
+#include <array>
 #include <cmath>
+
+#include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::third_party_integration::stk_io
 {

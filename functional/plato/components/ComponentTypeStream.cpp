@@ -1,5 +1,14 @@
 #include "plato/components/ComponentTypeStream.hpp"
 
+#include <cassert>
+#include <cstddef>
+#include <iterator>
+#include <ostream>
+#include <string>
+#include <utility>
+
+#include "plato/components/ComponentType.hpp"
+#include "plato/utilities/EnumIndexing.hpp"
 #include "plato/utilities/EnumTable.hpp"
 
 namespace plato::components

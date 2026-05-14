@@ -1,7 +1,14 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <map>
 #include <numeric>
+#include <string_view>
+#include <vector>
 
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 

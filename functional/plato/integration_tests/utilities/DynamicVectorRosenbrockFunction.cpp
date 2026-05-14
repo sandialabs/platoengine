@@ -1,9 +1,11 @@
 #include "plato/integration_tests/utilities/DynamicVectorRosenbrockFunction.hpp"
 
+#include <cassert>
+
 #include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
-#include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/test_utilities/TwoDTestTypesToDynamicVector.hpp"
 
 namespace plato::integration_tests::utilities

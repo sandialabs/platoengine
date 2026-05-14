@@ -1,12 +1,17 @@
 #include "plato/mesh/MeshQuantities.hpp"
 
+#include <algorithm>
+#include <iterator>
+#include <set>
+#include <string>
+#include <utility>
 #include <vector>
 
+#include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
-#include "plato/utilities/Exception.hpp"
 
 namespace plato::mesh
 {

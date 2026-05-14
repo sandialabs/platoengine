@@ -1,9 +1,10 @@
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
 
+#include <bits/dlfcn.h>
 #include <dlfcn.h>
 
-#include "plato/services/AppConfiguration.hpp"
-#include "plato/services/AppConfigurationUtilities.hpp"
+#include <filesystem>
+#include <utility>
 
 namespace plato::services
 {

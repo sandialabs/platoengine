@@ -1,8 +1,12 @@
 #include "plato/filter/library/FilterSharedLibraryDecorator.hpp"
 
-#include <iostream>
+#include <memory>
+#include <utility>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/filter/library/FilterInterface.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/services/SharedLibraryObject.hpp"
 
 namespace plato::filter::library
 {

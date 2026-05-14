@@ -1,6 +1,14 @@
 #include "plato/input_parser/GenericBlockRule.hpp"
 
+#include <boost/spirit/home/qi/parse.hpp>
+#include <numeric>
+#include <string>
+#include <string_view>
+#include <vector>
+
 #include "plato/input_parser/ParseErrorUtilities.hpp"
+#include "plato/input_parser/Skipper.hpp"
+#include "plato/utilities/Expected.hpp"
 
 namespace plato::input_parser
 {

@@ -1,6 +1,10 @@
 #include "plato/mesh/DesignVariableAdapter.hpp"
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/Mesh.hpp"
 
 namespace plato::mesh
 {

@@ -1,6 +1,11 @@
 #include "plato/mesh/EntityCounts.hpp"
 
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 

@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include <vector>
+
+#include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/test_utilities/TestContext.hpp"

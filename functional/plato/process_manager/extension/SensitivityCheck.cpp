@@ -1,11 +1,16 @@
 #include "plato/process_manager/extension/SensitivityCheck.hpp"
 
 #include <fstream>
+#include <memory>
+#include <optional>
+#include <string>
 #include <string_view>
 
 #include "plato/core/Compose.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
@@ -13,8 +18,7 @@
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/services/SystemLogger.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
+#include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension

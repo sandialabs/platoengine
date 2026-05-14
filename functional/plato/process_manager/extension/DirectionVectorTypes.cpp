@@ -1,5 +1,6 @@
 #include "plato/process_manager/extension/DirectionVectorTypes.hpp"
 
+#include "plato/input_parser/EnumTypeHelpers.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 DEFINE_ENUM_SYMBOL_TABLE(DirectionVectorTypes, plato::input_parser)

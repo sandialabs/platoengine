@@ -1,7 +1,15 @@
 #include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <iterator>
+#include <set>
+#include <utility>
+#include <vector>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/Zip.hpp"
 

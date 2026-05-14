@@ -1,12 +1,20 @@
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 
+#include <cassert>
+#include <cstddef>
+#include <iostream>
 #include <optional>
+#include <string>
+#include <utility>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
+#include "plato/third_party_integration/boost_log/Severity.hpp"
 #include "plato/third_party_integration/boost_log/SeverityLogger.hpp"
+#include "plato/utilities/EnumIndexing.hpp"
 
 namespace plato::services
 {

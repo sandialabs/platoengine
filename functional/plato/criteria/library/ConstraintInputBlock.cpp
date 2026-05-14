@@ -1,6 +1,10 @@
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 
+#include <algorithm>
+#include <iterator>
+
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/EnumTypeHelpers.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 
 DEFINE_ENUM_SYMBOL_TABLE(ConstraintTypes, plato::input_parser)

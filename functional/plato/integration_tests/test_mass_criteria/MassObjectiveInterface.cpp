@@ -1,5 +1,10 @@
 #include "plato/integration_tests/test_mass_criteria/MassObjectiveInterface.hpp"
 
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "plato/criteria/library/CriterionInterface.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassObjective.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"

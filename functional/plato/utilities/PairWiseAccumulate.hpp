@@ -6,26 +6,45 @@
 
 namespace plato::utilities
 {
-
 namespace detail
 {
 template <typename Iter>
-double pair_wise_accumulate_impl(const Iter aBegin, const Iter aEnd)
+    requires std::is_floating_point_v<typename std::iterator_traits<Iter>::value_type>
+[[nodiscard]] auto pair_wise_accumulate_impl(const Iter aBegin, const Iter aEnd)
 {
     using DistanceType = typename std::iterator_traits<Iter>::difference_type;
     using ValueType = typename std::iterator_traits<Iter>::value_type;
-    constexpr auto kMinSizeWhereAccumulateAccurate =
-        DistanceType{32};  // 32 was empirically determined as the transition for summing double precision numbers where
-                           // accumulate would produce round off errors. Since this algorithm splits the container in
-                           // two, this number should be a multiple of 2.
+
+    constexpr auto kMinSizeWhereAccumulateAccurate = DistanceType{32};
+
     const auto tNumElements = std::distance(aBegin, aEnd);
+
     if (tNumElements <= kMinSizeWhereAccumulateAccurate)
     {
         return std::accumulate(aBegin, aEnd, ValueType{});
     }
-    const auto tNumSplit = tNumElements / 2;
-    const auto tSplitIter = std::next(aBegin, tNumSplit);
-    return pair_wise_accumulate_impl(aBegin, tSplitIter) + pair_wise_accumulate_impl(tSplitIter, aEnd);
+
+    auto tBuffer = std::vector<ValueType>{};
+    tBuffer.reserve(static_cast<std::size_t>(tNumElements));
+    std::copy(aBegin, aEnd, std::back_inserter(tBuffer));
+
+    auto tCurrentSize = tBuffer.size();
+    while (tCurrentSize > 1)
+    {
+        auto tWriteIndex = std::size_t{0};
+        auto tReadIndex = std::size_t{0};
+        for (; (tReadIndex + 1) < tCurrentSize; tReadIndex += 2, ++tWriteIndex)
+        {
+            tBuffer[tWriteIndex] = tBuffer[tReadIndex] + tBuffer[tReadIndex + 1];
+        }
+        if (tReadIndex < tCurrentSize)
+        {
+            tBuffer[tWriteIndex] = tBuffer[tReadIndex];
+            ++tWriteIndex;
+        }
+        tCurrentSize = tWriteIndex;
+    }
+    return tBuffer.front();
 }
 }  // namespace detail
 

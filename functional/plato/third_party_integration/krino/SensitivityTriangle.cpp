@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "plato/third_party_integration/common/Vector3.hpp"
+
 namespace plato::third_party_integration::krino
 {
 

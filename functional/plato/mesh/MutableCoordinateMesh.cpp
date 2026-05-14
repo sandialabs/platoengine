@@ -1,5 +1,10 @@
 #include "plato/mesh/MutableCoordinateMesh.hpp"
 
+#include <filesystem>
+#include <utility>
+#include <vector>
+
+#include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 

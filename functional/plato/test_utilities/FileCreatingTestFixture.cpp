@@ -2,7 +2,10 @@
 
 #include <mpi.h>
 
+#include <boost/mpi/communicator.hpp>
+#include <filesystem>
 #include <iostream>
+#include <utility>
 
 namespace plato::test_utilities
 {

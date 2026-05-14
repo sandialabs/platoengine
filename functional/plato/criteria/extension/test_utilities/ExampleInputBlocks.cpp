@@ -1,6 +1,10 @@
 #include "plato/criteria/extension/test_utilities/ExampleInputBlocks.hpp"
 
+#include <boost/none.hpp>
+
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 
 namespace plato::criteria::extension::test_utilities
 {

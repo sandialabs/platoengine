@@ -1,7 +1,7 @@
 #include "plato/utilities/FileUtilities.hpp"
 
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <filesystem>
 
 namespace plato::utilities
 {

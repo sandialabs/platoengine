@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <functional>
 #include <numeric>
+#include <utility>
+#include <vector>
 
 namespace plato::utilities
 {
@@ -21,8 +23,8 @@ CartesianProductIterator::CartesianProductIterator(std::vector<std::size_t> aSiz
 CartesianProductIterator CartesianProductIterator::end(const std::vector<std::size_t>& aSizes)
 {
     CartesianProductIterator tIterator(aSizes);
-    std::size_t tProduct = std::accumulate(tIterator.mMaxSizes.begin(), tIterator.mMaxSizes.end(), std::size_t{1},
-                                           std::multiplies<std::size_t>());
+    const auto tProduct = std::accumulate(tIterator.mMaxSizes.begin(), tIterator.mMaxSizes.end(), std::size_t{1},
+                                          std::multiplies<std::size_t>());
     tIterator.mCurrentLinearIndex = tProduct;
     return tIterator;
 }

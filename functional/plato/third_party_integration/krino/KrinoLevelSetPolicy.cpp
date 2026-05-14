@@ -2,9 +2,19 @@
 
 #include <Akri_AuxMetaData.hpp>
 #include <Akri_CDFEM_Support.hpp>
+#include <Akri_IO_Helpers.hpp>
 #include <Akri_MeshInterface.hpp>
+#include <Akri_PhaseTag.hpp>
 #include <Akri_Phase_Support.hpp>
+#include <Akri_Surface_Identifier.hpp>
 #include <algorithm>
+#include <iterator>
+#include <set>
+#include <stk_mesh/base/MetaData.hpp>
+#include <stk_mesh/base/Types.hpp>
+#include <stk_topology/topology_decl.hpp>
+#include <string>
+#include <vector>
 
 #include "plato/utilities/IndexRange.hpp"
 

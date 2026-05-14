@@ -2,9 +2,12 @@
 
 #include <ROL_Ptr.hpp>
 #include <fstream>
+#include <optional>
 #include <string_view>
+#include <utility>
 
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/output/OutputManager.hpp"
@@ -16,6 +19,8 @@
 #include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
+#include "plato/utilities/BoundClusivity.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::extension

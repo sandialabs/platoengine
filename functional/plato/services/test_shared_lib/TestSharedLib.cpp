@@ -1,6 +1,7 @@
 #include "plato/services/test_shared_lib/TestSharedLib.hpp"
 
 #include <cmath>
+#include <memory>
 
 namespace plato::services::test_shared_lib
 {

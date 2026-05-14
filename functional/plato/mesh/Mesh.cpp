@@ -1,12 +1,19 @@
 #include "plato/mesh/Mesh.hpp"
 
+#include <algorithm>
 #include <cassert>
-#include <format>
+#include <filesystem>
+#include <iterator>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/third_party_integration/common/BlockData.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
-#include "plato/utilities/Exception.hpp"
 
 namespace plato::mesh
 {

@@ -3,6 +3,8 @@
 
 #include <algorithm>
 #include <iterator>
+#include <string_view>
+#include <vector>
 
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"

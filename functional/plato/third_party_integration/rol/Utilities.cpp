@@ -1,5 +1,8 @@
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
+#include <ROL_StdVector.hpp>
+#include <ROL_Vector.hpp>
+
 namespace plato::third_party_integration::rol
 {
 

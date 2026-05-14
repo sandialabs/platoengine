@@ -1,12 +1,19 @@
 #include "plato/criteria/library/CriterionRegistration.hpp"
 
 #include <algorithm>
-#include <boost/mpi/communicator.hpp>
+#include <boost/optional/optional.hpp>
+#include <cstddef>
 #include <iterator>
 #include <ranges>
 #include <set>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <utility>
 
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/services/AppConfiguration.hpp"
 
 namespace plato::criteria::library

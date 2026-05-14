@@ -1,7 +1,13 @@
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 
+#include <gtest/gtest.h>
+
 #include <boost/mpi/communicator.hpp>
+#include <iostream>
 #include <regex>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 

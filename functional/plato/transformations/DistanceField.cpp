@@ -1,9 +1,11 @@
 #include "plato/transformations/DistanceField.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <functional>
 #include <ranges>
+#include <vector>
 
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"

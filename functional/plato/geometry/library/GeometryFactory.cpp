@@ -1,5 +1,8 @@
 #include "plato/geometry/library/GeometryFactory.hpp"
 
+#include <utility>
+
+#include "plato/core/FactoryRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/utilities/Exception.hpp"
 

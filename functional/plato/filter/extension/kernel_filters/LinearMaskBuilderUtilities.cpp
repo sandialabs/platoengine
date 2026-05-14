@@ -2,13 +2,22 @@
 
 #include <assert.h>
 
+#include <Teuchos_DefaultMpiComm.hpp>
+#include <Teuchos_RCP.hpp>
 #include <algorithm>
 #include <boost/mpi/collectives.hpp>
-#include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <numbers>
+#include <boost/mpi/inplace.hpp>
+#include <cstddef>
+#include <functional>
+#include <iterator>
+#include <memory>
 #include <ranges>
+#include <vector>
 
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::filter::extension::kernel_filters
@@ -45,7 +54,7 @@ auto distribute_and_label_search_vector(const SourceColumnVector& aSourceColumnV
                                         const boost::mpi::communicator& aCommunicator)
     -> std::vector<third_party_integration::stk_search::SearchPointWithIdentifier>
 {
-    third_party_integration::tpetra::TpetraMultiVector tDistributedNodalCoordinates(
+    const third_party_integration::tpetra::TpetraMultiVector tDistributedNodalCoordinates(
         detail::create_tpetravector_coordinates(aSourceColumnVector.mValue, aCommunicator));
     return detail::stk_search_points(tDistributedNodalCoordinates, aCommunicator.rank());
 }

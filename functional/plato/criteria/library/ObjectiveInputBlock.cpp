@@ -1,6 +1,7 @@
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/EnumTypeHelpers.hpp"
 
 DEFINE_ENUM_SYMBOL_TABLE(ObjectiveGoal, plato::criteria::library)
 

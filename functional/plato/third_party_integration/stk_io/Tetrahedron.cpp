@@ -1,5 +1,9 @@
 #include "plato/third_party_integration/stk_io/Tetrahedron.hpp"
 
+#include <array>
+
+#include "plato/third_party_integration/common/Vector3.hpp"
+
 namespace plato::third_party_integration::stk_io
 {
 

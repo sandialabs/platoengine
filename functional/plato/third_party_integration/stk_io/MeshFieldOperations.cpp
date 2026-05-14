@@ -1,6 +1,18 @@
 #include "plato/third_party_integration/stk_io/MeshFieldOperations.hpp"
 
+#include <bits/ranges_algo.h>
+
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <iterator>
+#include <stk_mesh/base/BulkData.hpp>
+#include <stk_mesh/base/GetEntities.hpp>
+#include <stk_mesh/base/Types.hpp>
+#include <stk_topology/topology_decl.hpp>
+#include <vector>
+
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 
 namespace plato::third_party_integration::stk_io::detail
 {

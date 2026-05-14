@@ -1,6 +1,7 @@
 #include "plato/integration_tests/test_mass_criteria/MassObjective.hpp"
 
 #include <numeric>
+#include <string_view>
 
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"

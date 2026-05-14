@@ -3,7 +3,7 @@
 #include <boost/log/attributes/constant.hpp>
 #include <boost/log/attributes/scoped_attribute.hpp>
 #include <boost/log/sources/record_ostream.hpp>
-#include <boost/mpi/communicator.hpp>
+#include <string_view>
 
 #include "plato/third_party_integration/boost_log/Severity.hpp"
 #include "plato/third_party_integration/boost_log/TimeStampAttribute.hpp"

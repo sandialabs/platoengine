@@ -1,10 +1,14 @@
 #include "plato/mesh/MeshFieldAppender.hpp"
 
+#include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
+#include <string_view>
+#include <utility>
 
-#include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshFieldOutputUtilities.hpp"
+#include "plato/mesh/MeshOutput.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::mesh

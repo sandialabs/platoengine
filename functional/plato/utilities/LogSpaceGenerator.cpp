@@ -1,8 +1,7 @@
 #include "plato/utilities/LogSpaceGenerator.hpp"
 
 #include <algorithm>
-#include <iostream>
-#include <numeric>
+#include <vector>
 
 namespace plato::utilities
 {

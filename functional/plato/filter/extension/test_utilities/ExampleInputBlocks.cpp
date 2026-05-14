@@ -1,6 +1,11 @@
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 
-#include "plato/input_parser/FileList.hpp"
+#include <boost/none.hpp>
+
+#include "plato/filter/extension/HelmholtzFilter.hpp"
+#include "plato/filter/extension/IdentityFilter.hpp"
+#include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 
 namespace plato::filter::extension::test_utilities
 {

@@ -3,15 +3,25 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
-#include <Kokkos_Core.hpp>
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/attributes/attribute_value_set.hpp>
-#include <boost/log/core.hpp>
+#include <boost/log/core.hpp>  // NOLINT(misc-include-cleaner)
 #include <boost/log/sinks/sync_frontend.hpp>
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/mpi/environment.hpp>
+#include <boost/smart_ptr/make_shared_object.hpp>
+#include <boost/smart_ptr/shared_ptr.hpp>
+#include <cstddef>
+#include <cstdlib>
+#include <impl/Kokkos_InitializeFinalize.hpp>
+#include <iostream>
+#include <memory>
+#include <ostream>
 #include <ranges>
+#include <span>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "plato/utilities/NamedType.hpp"
 
@@ -135,7 +145,7 @@ int parallel_unit_main(int argc, char** argv, unsigned int aNumRanks)
     [[maybe_unused]] const auto tLogSink = null_log_sink();
 
     int tExitStatus = EXIT_SUCCESS;
-    const MPI_Comm tInterComm = setup_children(argc, argv, aNumRanks);
+    MPI_Comm tInterComm = setup_children(argc, argv, aNumRanks);
     if (rank_should_run_tests(tInterComm))
     {
         testing::InitGoogleTest(&argc, argv);

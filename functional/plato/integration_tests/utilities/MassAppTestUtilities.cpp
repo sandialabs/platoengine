@@ -2,19 +2,32 @@
 
 #include <gtest/gtest.h>
 
+#include <boost/mpi/communicator.hpp>
+#include <cstddef>
 #include <filesystem>
+#include <map>
 #include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/PluginCriteria.hpp"
+#include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
 
 namespace plato::integration_tests::utilities

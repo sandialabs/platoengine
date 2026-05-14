@@ -1,21 +1,29 @@
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 
+#include <Akri_MeshInterface.hpp>
+#include <Akri_Phase_Support.hpp>
+#include <algorithm>
 #include <boost/mpi/collectives.hpp>
-#include <boost/mpi/communicator.hpp>
-#include <boost/serialization/unordered_map.hpp>
-#include <boost/serialization/vector.hpp>
 #include <cstddef>
-#include <ranges>
+#include <filesystem>
+#include <iterator>
+#include <memory>
+#include <optional>
+#include <set>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_util/environment/EnvData.hpp>  //get stk mpi env
+#include <stk_topology/topology_decl.hpp>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"

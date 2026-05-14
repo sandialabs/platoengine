@@ -1,8 +1,18 @@
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 
+#include <ROL_Bounds.hpp>
+#include <ROL_Problem.hpp>
+#include <ROL_Ptr.hpp>
+#include <ROL_StdVector.hpp>
+#include <ROL_Types.hpp>
+#include <Teuchos_RCP.hpp>
+#include <cstddef>
 #include <functional>
 #include <map>
+#include <utility>
+#include <vector>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
 

@@ -2,6 +2,9 @@
 
 #include <unordered_map>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/utilities/Colorize.hpp"
+
 namespace plato::components
 {
 auto component_text_color(ComponentType aComponentType) -> utilities::TextColor

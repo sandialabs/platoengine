@@ -1,10 +1,22 @@
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
 
+#include <Teuchos_ArrayViewDecl.hpp>
+#include <Teuchos_DefaultMpiComm.hpp>
+#include <Teuchos_RCP.hpp>
+#include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <cstddef>
+#include <memory>
+#include <utility>
 #include <vector>
 
 #include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
+#include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
 {

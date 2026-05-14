@@ -2,6 +2,9 @@
 
 #include <Akri_AnalyticSurf.hpp>
 #include <Akri_Composite_Surface.hpp>
+#include <array>
+#include <memory>
+#include <vector>
 
 namespace plato::third_party_integration::krino
 {

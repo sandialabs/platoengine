@@ -2,10 +2,13 @@
 
 #include <algorithm>
 #include <cassert>
+#include <utility>
+#include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 
 namespace plato::mesh
 {

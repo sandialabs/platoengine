@@ -1,6 +1,7 @@
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
 
-#include <boost/log/expressions.hpp>
+#include <boost/log/expressions/filter.hpp>
+#include <boost/log/expressions/predicates/has_attr.hpp>
 
 namespace plato::third_party_integration::boost_log
 {

@@ -1,21 +1,23 @@
 #include "plato/process_manager/extension/GradientCheck.hpp"
 
-#include <ROL_StdObjective.hpp>
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
 #include <optional>
+#include <string>
 
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
-#include "plato/output/OutputManager.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
+#include "plato/process_manager/extension/DirectionVectorTypes.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/utilities/LogSpaceGenerator.hpp"
 
 namespace plato::process_manager::extension

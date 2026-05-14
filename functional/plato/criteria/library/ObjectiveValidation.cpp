@@ -2,13 +2,19 @@
 
 #include <algorithm>
 #include <boost/mpi/communicator.hpp>
+#include <cstddef>
 #include <numeric>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include "plato/criteria/library/CriterionValidation.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/utilities/BoundClusivity.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::criteria::library

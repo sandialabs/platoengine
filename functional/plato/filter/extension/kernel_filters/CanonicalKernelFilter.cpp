@@ -1,20 +1,24 @@
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 
-#include <boost/mpi.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <boost/serialization/vector.hpp>
+#include <filesystem>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterInputUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
 {

@@ -1,6 +1,7 @@
 #include "plato/third_party_integration/stk_io/Hexahedron.hpp"
 
 #include "plato/third_party_integration/common/QuadratureRules.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::third_party_integration::stk_io
 {

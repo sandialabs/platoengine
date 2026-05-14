@@ -1,5 +1,6 @@
 #include "plato/third_party_integration/rol/ParameterBuilder.hpp"
 
+#include <optional>
 #include <string_view>
 
 namespace plato::third_party_integration::rol

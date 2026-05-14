@@ -1,8 +1,13 @@
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <optional>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/analysis/SharedValueProxy.hpp"
 
 namespace plato::analysis
 {

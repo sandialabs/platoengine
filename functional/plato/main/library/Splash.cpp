@@ -1,5 +1,8 @@
 #include "plato/main/library/Splash.hpp"
 
+#include <ostream>
+#include <string_view>
+
 #include "plato/utilities/Colorize.hpp"
 
 namespace plato::main::library

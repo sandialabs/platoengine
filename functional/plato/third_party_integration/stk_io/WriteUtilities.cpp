@@ -1,18 +1,29 @@
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
-#include <Ioss_NodeBlock.h>
+#include <mpi.h>
 
+#include <algorithm>
 #include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <cstddef>
+#include <filesystem>
+#include <memory>
+#include <span>
+#include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/FillMesh.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Field.hpp>
+#include <stk_mesh/base/FieldBase.hpp>
 #include <stk_mesh/base/GetEntities.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
 #include <stk_mesh/base/MetaData.hpp>
-#include <stk_topology/topology.hpp>
-#include <stk_util/parallel/Parallel.hpp>
+#include <stk_topology/topology_decl.hpp>
+#include <string_view>
+#include <vector>
 
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::third_party_integration::stk_io

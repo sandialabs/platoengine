@@ -1,5 +1,9 @@
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 
+#include <utility>
+#include <vector>
+
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::linear_algebra

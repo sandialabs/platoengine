@@ -1,7 +1,18 @@
 #include "plato/criteria/library/SharedLibCriterion.hpp"
 
-#include <boost/mpi/communicator.hpp>
+#include <mpi.h>
 
+#include <boost/mpi/communicator.hpp>
+#include <memory>
+#include <string_view>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/criteria/library/CriterionInterface.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/services/SharedLibrarySetupTeardown.hpp"

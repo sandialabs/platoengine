@@ -1,16 +1,26 @@
 #include "plato/process_manager/extension/ParameterSweep.hpp"
 
 #include <algorithm>
+#include <cassert>
+#include <concepts>
 #include <cstddef>
 #include <fstream>
 #include <iomanip>
 #include <iterator>
+#include <optional>
+#include <ostream>
 #include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "plato/core/Compose.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/CombinationGenerator.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"

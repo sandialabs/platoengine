@@ -1,6 +1,13 @@
 #include "plato/third_party_integration/boost_log/test_utilities/TestAttributes.hpp"
 
-#include <boost/log/expressions.hpp>
+#include <boost/log/expressions.hpp>  // NOLINT(misc-include-cleaner)
+#include <boost/log/expressions/filter.hpp>
+#include <boost/log/expressions/formatter.hpp>
+#include <boost/log/expressions/formatters/if.hpp>
+#include <boost/log/expressions/formatters/stream.hpp>
+#include <boost/log/expressions/predicates/has_attr.hpp>
+
+#include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
 
 namespace plato::third_party_integration::boost_log::test_utilities
 {

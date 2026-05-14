@@ -41,7 +41,7 @@ using RuleAtIndex =
 template <typename Iterator, typename BlockStruct, std::size_t Index>
 RuleAtIndex<Iterator, BlockStruct, Index> rule_at_index()
 {
-    RuleAtIndex<Iterator, BlockStruct, Index> rule = bsq::lit(member_name<BlockStruct, Index>()) > bsq::auto_;
+    const RuleAtIndex<Iterator, BlockStruct, Index> rule = bsq::lit(member_name<BlockStruct, Index>()) > bsq::auto_;
     return rule;
 }
 
@@ -84,16 +84,14 @@ auto block_or_rule_impl(const AllBlockRules& aAllBlockRules,
     namespace bp = boost::phoenix;
     if constexpr (kIsNamedBlock<BlockStruct>)
     {
-        bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> tRule =
+        return bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>>{
             aNameRule[bp::at_c<0>(bsq::_val) = bsq::_1] >
-            *((std::get<Is>(aAllBlockRules)[bp::at_c<Is>(bsq::_val) = bsq::_1] | ...));
-        return tRule;
+            *((std::get<Is>(aAllBlockRules)[bp::at_c<Is>(bsq::_val) = bsq::_1] | ...))};
     }
     else
     {
-        bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>> tRule =
-            *((std::get<Is>(aAllBlockRules)[bp::at_c<Is>(bsq::_val) = bsq::_1] | ...));
-        return tRule;
+        return bsq::rule<Iterator, BlockStruct(), SkipperType<Iterator>>{
+            *((std::get<Is>(aAllBlockRules)[bp::at_c<Is>(bsq::_val) = bsq::_1] | ...))};
     }
 }
 

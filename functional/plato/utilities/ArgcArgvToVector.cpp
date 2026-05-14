@@ -1,5 +1,11 @@
 #include "plato/utilities/ArgcArgvToVector.hpp"
 
+#include <cstddef>
+#include <ranges>
+#include <span>
+#include <string>
+#include <vector>
+
 namespace plato::utilities
 {
 

@@ -1,5 +1,18 @@
 #include "plato/third_party_integration/tpetra/Utilities.hpp"
 
+#include <Teuchos_Comm.hpp>
+#include <Teuchos_CommHelpers.hpp>
+#include <Teuchos_EReductionType.hpp>
+#include <Teuchos_PtrDecl.hpp>
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_RCPDecl.hpp>
+#include <cassert>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "plato/third_party_integration/common/Vector3.hpp"
+
 namespace plato::third_party_integration::tpetra
 {
 
@@ -37,7 +50,7 @@ std::vector<double> reduce_tpetra_vector(const TpetraVector& aVector,
          tGlobalIndex < static_cast<TpetraGlobalOrdinal>(aVector.getMap()->getGlobalNumElements()); ++tGlobalIndex)
     {
         const auto tLocalIndex = aVector.getMap()->getLocalElement(tGlobalIndex);
-        double tLocalValue = tLocalIndex >= 0 ? aVector.getData()[tLocalIndex] : 0.0;
+        const double tLocalValue = tLocalIndex >= 0 ? aVector.getData()[tLocalIndex] : 0.0;
         Teuchos::reduceAll<TeuchosCommOrdinal, double>(*aCommunicator, Teuchos::REDUCE_SUM, tLocalValue,
                                                        Teuchos::outArg(tResult[tGlobalIndex]));
     }

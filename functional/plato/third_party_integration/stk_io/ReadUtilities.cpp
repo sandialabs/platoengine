@@ -1,23 +1,33 @@
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 
+#include <mpi.h>
+
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <filesystem>
+#include <functional>
 #include <iterator>
+#include <map>
+#include <memory>
 #include <numeric>
 #include <ranges>
+#include <span>
+#include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/FillMesh.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Comm.hpp>
-#include <stk_mesh/base/Entity.hpp>
-#include <stk_mesh/base/Field.hpp>
 #include <stk_mesh/base/FieldBase.hpp>
 #include <stk_mesh/base/GetEntities.hpp>
-#include <stk_mesh/base/MeshBuilder.hpp>
 #include <stk_mesh/base/MetaData.hpp>
-#include <stk_topology/topology.hpp>
-#include <stk_util/parallel/Parallel.hpp>
+#include <stk_topology/topology_decl.hpp>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "plato/third_party_integration/common/BoundingBox.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/utilities/IndexRange.hpp"
 

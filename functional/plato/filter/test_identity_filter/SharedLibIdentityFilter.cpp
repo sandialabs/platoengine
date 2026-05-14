@@ -1,6 +1,10 @@
 #include "plato/filter/test_identity_filter/SharedLibIdentityFilter.hpp"
 
+#include <memory>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/filter/library/FilterInterface.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::filter::test_identity_filter
 {

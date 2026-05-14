@@ -1,5 +1,14 @@
 #include "plato/third_party_integration/tpetra/TestUtilities.hpp"
 
+#include <Teuchos_Comm.hpp>
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_RCPDecl.hpp>
+#include <Tpetra_ConfigDefs.hpp>
+#include <Tpetra_Core.hpp>
+#include <memory>
+
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
+
 namespace plato::third_party_integration::tpetra
 {
 Teuchos::RCP<const TpetraMap> create_contiguous_map(const Tpetra::global_size_t aSize,

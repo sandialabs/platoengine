@@ -1,15 +1,20 @@
 #include "plato/criteria/library/PluginCriteria.hpp"
 
+#include <cstddef>
 #include <filesystem>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/criteria/library/SharedLibCriterion.hpp"
 #include "plato/criteria/library/SharedLibraryVectorCriterion.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::criteria::library
 {

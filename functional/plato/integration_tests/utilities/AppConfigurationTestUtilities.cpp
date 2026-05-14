@@ -1,5 +1,10 @@
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 
+#include <filesystem>
+#include <utility>
+
+#include "plato/services/AppConfiguration.hpp"
+
 namespace plato::integration_tests::utilities
 {
 namespace

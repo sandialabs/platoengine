@@ -1,6 +1,13 @@
 #include "plato/geometry/extension/DensityResultToCutMesh.hpp"
 
+#include <algorithm>
+#include <boost/mpi/communicator.hpp>
+#include <utility>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"

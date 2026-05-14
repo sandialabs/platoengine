@@ -1,6 +1,9 @@
 #include "plato/geometry/library/GeometryValidation.hpp"
 
-#include "plato/geometry/library/GeometryRegistration.hpp"
+#include <optional>
+#include <string>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 
 namespace plato::geometry::library

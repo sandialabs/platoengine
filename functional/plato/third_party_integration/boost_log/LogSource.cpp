@@ -1,6 +1,9 @@
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 
-#include <boost/log/expressions.hpp>
+#include <boost/log/expressions/filter.hpp>
+#include <boost/log/expressions/predicates/has_attr.hpp>
+#include <cassert>
+#include <ostream>
 
 #include "plato/utilities/EnumTable.hpp"
 

@@ -2,8 +2,13 @@
 
 #include <algorithm>
 #include <boost/math/special_functions/sign.hpp>
+#include <cassert>
 #include <cmath>
+#include <utility>
+#include <vector>
 
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"
 
 namespace plato::criteria::extension

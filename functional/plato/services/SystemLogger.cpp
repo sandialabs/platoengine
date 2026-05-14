@@ -1,8 +1,15 @@
 #include "plato/services/SystemLogger.hpp"
 
+#include <any>
+#include <boost/mpi/communicator.hpp>
+#include <string_view>
+#include <utility>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
+#include "plato/third_party_integration/boost_log/Severity.hpp"
 #include "plato/third_party_integration/boost_log/SeverityLogger.hpp"
 
 namespace plato::services

@@ -1,11 +1,17 @@
 #include "plato/geometry/extension/DensityTopology.hpp"
 
 #include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <filesystem>
+#include <memory>
 #include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "plato/filter/library/FilterFactory.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
-#include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/extension/DensityResultToCutMesh.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
@@ -15,8 +21,11 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/FixedBlockUtilities.hpp"
@@ -25,7 +34,9 @@
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/output/OutputInfo.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
+#include "plato/utilities/BoundClusivity.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::geometry::extension
 {

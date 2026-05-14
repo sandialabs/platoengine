@@ -1,15 +1,28 @@
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 
 #include <algorithm>
+#include <array>
+#include <cassert>
+#include <cstddef>
+#include <functional>
+#include <iterator>
 #include <numeric>
+#include <ranges>
+#include <span>
 #include <stk_mesh/base/Bucket.hpp>
+#include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/FieldBase.hpp>
 #include <stk_mesh/base/MetaData.hpp>
-#include <stk_topology/topology.hpp>
+#include <stk_mesh/base/Types.hpp>
+#include <stk_topology/topology_decl.hpp>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/ElementTraits.hpp"
 #include "plato/third_party_integration/stk_io/MeshFieldOperations.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"
 
 namespace plato::third_party_integration::stk_io

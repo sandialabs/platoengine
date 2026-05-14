@@ -1,13 +1,19 @@
 #include "plato/services/ExternalLoggerFileSink.hpp"
 
+#include <algorithm>
+#include <array>
 #include <boost/mpi/communicator.hpp>
-#include <boost/shared_ptr.hpp>
-#include <fstream>
+#include <cstddef>
+#include <filesystem>
 #include <string>
 #include <string_view>
+#include <utility>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/components/ComponentTypeStream.hpp"
 #include "plato/services/ExternalLoggerFileSinkDetail.hpp"
+#include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
+#include "plato/utilities/EnumIndexing.hpp"
 
 namespace plato::services
 {

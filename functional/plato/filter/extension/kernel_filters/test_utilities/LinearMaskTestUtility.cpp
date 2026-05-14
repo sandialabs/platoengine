@@ -1,7 +1,12 @@
 #include "plato/filter/extension/kernel_filters/test_utilities/LinearMaskTestUtility.hpp"
 
+#include <vector>
+
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
+#include "plato/filter/extension/kernel_filters/LinearMask.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::filter::extension::kernel_filters::test_utilities
 {

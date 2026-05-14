@@ -1,17 +1,34 @@
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 
-#include <ROL_Bounds.hpp>
+#include <ROL_Problem.hpp>
+#include <ROL_Ptr.hpp>
+#include <ROL_Solver.hpp>
+#include <ROL_StdObjective.hpp>
+#include <ROL_StdVector.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include <algorithm>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <string_view>
+#include <utility>
+#include <vector>
 
-#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/core/Compose.hpp"
-#include "plato/criteria/library/ConstraintAdapter.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/output/OutputManager.hpp"
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/services/SystemLogger.hpp"
+#include "plato/third_party_integration/rol/OptimizationParameters.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
+#include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
+#include "plato/third_party_integration/rol/ROLVectorConstraintFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
 

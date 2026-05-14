@@ -1,5 +1,14 @@
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 
+#include <boost/none.hpp>
+
+#include "plato/input_parser/FileList.hpp"
+#include "plato/process_manager/extension/ConstraintCheck.hpp"
+#include "plato/process_manager/extension/DirectionVectorTypes.hpp"
+#include "plato/process_manager/extension/GradientCheck.hpp"
+#include "plato/process_manager/extension/ROLOptimization.hpp"
+#include "plato/process_manager/extension/SensitivityCheck.hpp"
+
 namespace plato::process_manager::extension::test_utilities
 {
 auto create_valid_example_constraint_check_input() -> input_parser::constraint_check

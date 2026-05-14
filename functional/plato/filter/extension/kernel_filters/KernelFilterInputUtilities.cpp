@@ -1,7 +1,16 @@
 #include "plato/filter/extension/kernel_filters/KernelFilterInputUtilities.hpp"
 
 #include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <numeric>
+#include <ranges>
+#include <set>
 #include <unordered_set>
+#include <vector>
+
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
 {

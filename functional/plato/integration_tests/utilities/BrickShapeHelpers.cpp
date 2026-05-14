@@ -1,7 +1,9 @@
 #include "plato/integration_tests/utilities/BrickShapeHelpers.hpp"
 
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::integration_tests::utilities
 {

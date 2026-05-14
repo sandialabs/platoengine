@@ -1,17 +1,24 @@
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 
+#include <algorithm>
 #include <boost/mpi/communicator.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #include <optional>
 #include <ranges>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/core/Aggregate.hpp"
 #include "plato/core/ParallelFunction.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/LoggingFunction.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveReciprocal.hpp"
-#include "plato/linear_algebra/DynamicVectorSerialization.hpp"
-#include "plato/services/SystemLogger.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::criteria::library

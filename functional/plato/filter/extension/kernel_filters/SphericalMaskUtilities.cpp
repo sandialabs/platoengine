@@ -1,21 +1,24 @@
 #include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 
-#include <Teuchos_ArrayViewDecl.hpp>
-#include <Teuchos_EReductionType.hpp>
 #include <algorithm>
 #include <boost/math/constants/constants.hpp>
 #include <boost/mpi/collectives.hpp>
-#include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <cmath>
-#include <iterator>
+#include <numbers>
 #include <ranges>
 #include <utility>
+#include <vector>
 
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/ReflectionUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/Wedge.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
 {

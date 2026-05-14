@@ -1,6 +1,13 @@
 #include "plato/input_validation/ValidationUtilities.hpp"
 
+#include <boost/optional/optional.hpp>
 #include <filesystem>
+#include <optional>
+#include <string>
+#include <string_view>
+
+#include "plato/input_parser/FileList.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::input_validation
 {

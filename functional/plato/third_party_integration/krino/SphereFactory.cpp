@@ -1,7 +1,10 @@
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
 
-#include <cstddef>
+#include <algorithm>
+#include <vector>
 
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/utilities/MultidimensionalRange.hpp"
 #include "plato/utilities/NamedType.hpp"
 
@@ -9,7 +12,7 @@ namespace plato::third_party_integration::krino
 {
 std::vector<Sphere> generate_spheres(const SpherePatternData &aData)
 {
-    SphereLocatorData tLocatorData = detail::calculate_sphere_locator_data(aData);
+    const SphereLocatorData tLocatorData = detail::calculate_sphere_locator_data(aData);
 
     std::vector<double> tXValues = detail::create_sphere_spacing_vector(
         tLocatorData.mSphereCounts.mX, detail::SphereStart{tLocatorData.mSpherePatternStart.x},
@@ -82,7 +85,7 @@ std::vector<double> create_sphere_spacing_vector(const unsigned int aNumValues,
     std::generate(tValues.begin(), tValues.end(),
                   [&tStart, &aStep]
                   {
-                      double tRet = tStart;
+                      const double tRet = tStart;
                       tStart += aStep.mValue;
                       return tRet;
                   });

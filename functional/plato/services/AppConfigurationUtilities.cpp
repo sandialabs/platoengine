@@ -2,7 +2,13 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iterator>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
 #include "plato/utilities/TransformIf.hpp"

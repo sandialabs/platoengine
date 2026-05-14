@@ -1,5 +1,12 @@
 #include "plato/utilities/MPIUtilities.hpp"
 
+#include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <cstddef>
+#include <vector>
+
+#include "plato/utilities/RankSplitVector.hpp"
+
 namespace plato::utilities
 {
 auto group_split_communicator(const boost::mpi::communicator& aParentCommunicator,

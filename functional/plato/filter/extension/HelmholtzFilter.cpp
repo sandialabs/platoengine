@@ -2,6 +2,8 @@
 
 #include <filesystem>
 #include <memory>
+#include <optional>
+#include <string>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
@@ -9,11 +11,13 @@
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/mesh/HashGeneration.hpp"
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
 
 namespace plato::filter::extension
 {

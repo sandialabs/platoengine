@@ -1,5 +1,8 @@
 #include "plato/filter/extension/kernel_filters/test_utilities/ReflectionMeshTestUtility.hpp"
 
+#include <filesystem>
+
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::filter::extension::kernel_filters::test_utilities

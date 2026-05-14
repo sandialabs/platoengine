@@ -2,12 +2,22 @@
 
 #include <Akri_OrientedSideNodes.hpp>
 #include <Akri_TriangleWithSensitivities.hpp>
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <iterator>
 #include <ranges>
+#include <span>
 #include <stk_mesh/base/BulkData.hpp>
+#include <stk_mesh/base/Entity.hpp>
+#include <stk_mesh/base/FieldBase.hpp>
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Selector.hpp>
+#include <string>
+#include <vector>
 
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
+#include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/MultidimensionalRange.hpp"

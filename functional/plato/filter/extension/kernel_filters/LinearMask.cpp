@@ -1,10 +1,16 @@
 #include "plato/filter/extension/kernel_filters/LinearMask.hpp"
 
-#include <Teuchos_ArrayViewDecl.hpp>
-#include <Teuchos_EReductionType.hpp>
+#include <Teuchos_BLAS_types.hpp>
+#include <Teuchos_DefaultMpiComm.hpp>
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_RCPDecl.hpp>
 #include <boost/mpi/collectives.hpp>
+#include <boost/mpi/communicator.hpp>
+#include <memory>
+#include <utility>
+#include <vector>
 
-#include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
 {

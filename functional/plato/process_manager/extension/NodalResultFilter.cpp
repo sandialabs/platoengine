@@ -1,22 +1,36 @@
 #include "plato/process_manager/extension/NodalResultFilter.hpp"
 
+#include <boost/mpi/communicator.hpp>
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <utility>
+
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/FixedBlockUtilities.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/mesh/MeshOutput.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
+#include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/services/SystemLogger.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/utilities/FileUtilities.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 #include "plato/utilities/StringUtilities.hpp"

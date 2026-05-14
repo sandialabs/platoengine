@@ -1,15 +1,32 @@
 #include "plato/criteria/extension/VolumeCriterion.hpp"
 
+#include <algorithm>
+#include <boost/optional/optional.hpp>
+#include <boost/spirit/home/qi/parse.hpp>
+#include <format>
+#include <iterator>
+#include <set>
+#include <utility>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/input_parser/BlockStructRule.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/input_parser/Skipper.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/CoordinateUtilities.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/Exception.hpp"

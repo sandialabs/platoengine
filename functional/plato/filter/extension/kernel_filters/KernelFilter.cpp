@@ -1,6 +1,13 @@
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
 
+#include <boost/mpi/communicator.hpp>
+#include <functional>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
+#include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
 #include "plato/filter/library/FilterLogger.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
 

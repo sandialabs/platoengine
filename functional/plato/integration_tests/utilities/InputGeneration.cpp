@@ -1,9 +1,15 @@
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
 
+#include <filesystem>
+
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 
 namespace plato::integration_tests::utilities

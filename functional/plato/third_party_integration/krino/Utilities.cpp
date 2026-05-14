@@ -1,26 +1,38 @@
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
-#include <Akri_AuxMetaData.hpp>     // AuxMetaData::get
-#include <Akri_CDFEM_Support.hpp>   //CDFEM_Support
-#include <Akri_CDMesh.hpp>          //sierraTimer
-#include <Akri_DiagWriter.hpp>      //initialize environment
-#include <Akri_LevelSet.hpp>        //LevelSet
-#include <Akri_LevelSetPolicy.hpp>  //LSPerInterfacePolicy
+#include <Akri_AuxMetaData.hpp>    // AuxMetaData::get
+#include <Akri_CDFEM_Support.hpp>  //CDFEM_Support
+#include <Akri_CDMesh.hpp>         //sierraTimer
+#include <Akri_CreateInterfaceGeometry.hpp>
+#include <Akri_LevelSet.hpp>  //LevelSet
 #include <Akri_LevelSetShapeSensitivities.hpp>
 #include <Akri_MeshHelpers.hpp>           //activate_all_entities
 #include <Akri_NodalSurfaceDistance.hpp>  //compute_nodal_surface_distance
 #include <Akri_OutputUtils.hpp>
+#include <Akri_Phase_Support.hpp>
+#include <algorithm>
+#include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <filesystem>
 #include <iterator>
+#include <memory>
+#include <set>
+#include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>  //get_selected_entities
 #include <stk_mesh/base/Entity.hpp>
+#include <stk_mesh/base/GetEntities.hpp>
+#include <stk_mesh/base/Selector.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_util/diag/WriterRegistry.hpp>
+#include <stk_topology/topology_decl.hpp>
+#include <stk_util/diag/Timer.hpp>
 #include <stk_util/environment/EnvData.hpp>
-#include <stk_util/environment/OutputLog.hpp>
-#include <stk_util/parallel/OutputStreams.hpp>
+#include <string>
 #include <string_view>
+#include <unordered_map>
+#include <vector>
 
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
@@ -210,7 +222,7 @@ auto get_level_set_values(const ::krino::MeshInterface& aKrinoMesh,
 auto node_entities_in_mesh(const ::krino::MeshInterface& aKrinoMesh,
                            const std::vector<::krino::LS_Field>& aLevelSetFields) -> stk::mesh::EntityVector
 {
-    ::krino::CDFEM_Support& cdfemSupport = ::krino::CDFEM_Support::get(aKrinoMesh.meta_data());
+    const ::krino::CDFEM_Support& cdfemSupport = ::krino::CDFEM_Support::get(aKrinoMesh.meta_data());
     const stk::mesh::Selector tSelector =
         stk::mesh::selectField(aLevelSetFields.front().isovar) & !cdfemSupport.get_child_node_part();
     stk::mesh::EntityVector tNodes;

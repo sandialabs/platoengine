@@ -1,5 +1,10 @@
 #include "plato/test_utilities/TwoDTestTypesToDynamicVector.hpp"
 
+#include <vector>
+
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/test_utilities/TwoDTestTypes.hpp"
+
 namespace plato::test_utilities
 {
 auto to_dynamic_vector(const TwoDVector& aX) -> linear_algebra::DynamicVector<double>

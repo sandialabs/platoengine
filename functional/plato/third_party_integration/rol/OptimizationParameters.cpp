@@ -1,7 +1,14 @@
 #include "plato/third_party_integration/rol/OptimizationParameters.hpp"
 
-#include <ROL_LineSearchStep.hpp>
-#include <ROL_StatusTest.hpp>
+#include <ROL_ParameterList.hpp>
+#include <Teuchos_VerbosityLevel.hpp>
+#include <cassert>
+#include <filesystem>
+#include <functional>
+#include <iterator>
+#include <optional>
+#include <string>
+#include <vector>
 
 #include "plato/third_party_integration/rol/ParameterBuilder.hpp"
 #include "plato/utilities/DataFilePath.hpp"

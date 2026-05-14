@@ -1,12 +1,24 @@
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 
+#include <mpi.h>
+
 #include <algorithm>
 #include <boost/mpi/communicator.hpp>
+#include <boost/optional/optional.hpp>
+#include <cassert>
+#include <filesystem>
+#include <memory>
 #include <optional>
 #include <ranges>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/Utilities.hpp"
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
@@ -14,7 +26,12 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/FixedBlockUtilities.hpp"
@@ -22,8 +39,12 @@
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/output/OutputInfo.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
+#include "plato/utilities/BoundClusivity.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 

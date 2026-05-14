@@ -1,18 +1,34 @@
 #include "plato/criteria/extension/OverhangCriterion.hpp"
 
-#include <boost/spirit/include/qi.hpp>
+#include <algorithm>
+#include <boost/optional/optional.hpp>
+#include <boost/spirit/home/qi/parse.hpp>
+#include <cmath>
+#include <cstddef>
 #include <filesystem>
+#include <format>
 #include <fstream>
+#include <iterator>
 #include <numbers>
 #include <numeric>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
-#include "plato/input_parser/ComponentBlockParser.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
+#include "plato/input_parser/BlockStructRule.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/input_parser/Point.hpp"
+#include "plato/input_parser/Skipper.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshSidesets.hpp"
+#include "plato/services/AppConfiguration.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
 #include "plato/third_party_integration/krino/TriangleUtilities.hpp"
 #include "plato/utilities/Exception.hpp"

@@ -1,7 +1,10 @@
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 
+#include <algorithm>
 #include <iterator>
-#include <stk_search/SearchMethod.hpp>
+#include <vector>
+
+#include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::third_party_integration::stk_search
 {

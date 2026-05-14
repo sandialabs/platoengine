@@ -1,9 +1,20 @@
 #include "plato/mesh/MeshBlocks.hpp"
 
+#include <algorithm>
 #include <cassert>
+#include <cstddef>
+#include <iterator>
+#include <optional>
 #include <ranges>
-#include <stk_mesh/base/Part.hpp>
+#include <set>
+#include <string>
+#include <string_view>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
+#include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/common/BlockData.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 

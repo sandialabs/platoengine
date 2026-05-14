@@ -1,6 +1,8 @@
 #include "plato/third_party_integration/stk_io/Quadrilateral.hpp"
 
+#include <array>
 #include <cassert>
+#include <cmath>
 
 #include "plato/third_party_integration/common/QuadratureRules.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"

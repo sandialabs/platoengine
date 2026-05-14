@@ -1,5 +1,8 @@
 #include "plato/test_utilities/TwoDTestTypes.hpp"
 
+#include <array>
+#include <ostream>
+
 namespace plato::test_utilities
 {
 double TwoDVector::operator()(const unsigned int index) const { return mData.at(index); }

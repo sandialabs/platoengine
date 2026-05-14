@@ -1,10 +1,16 @@
 #include "plato/integration_tests/test_mass_criteria/ParallelMassObjectiveInterface.hpp"
 
-#include <boost/mpi/communicator.hpp>
+#include <mpi.h>
 
+#include <boost/mpi/communicator.hpp>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/criteria/library/CriterionInterface.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassObjectiveInterface.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/linear_algebra/DynamicVectorSerialization.hpp"
 #include "plato/test_utilities/ParallelTestWrapper.hpp"
 
 namespace plato::integration_tests::test_mass_criteria
@@ -40,14 +46,14 @@ std::vector<double> ParallelMassObjectiveInterface::gradient(
 }  // namespace plato::integration_tests::test_mass_criteria
 
 std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_parallel_criterion(
-    const std::vector<std::string>&, const MPI_Comm aCommunicator)
+    const std::vector<std::string>&, MPI_Comm aCommunicator)
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::ParallelMassObjectiveInterface>(
         aCommunicator);
 }
 
 std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_parallel_test_mass_criterion(
-    const std::vector<std::string>&, const MPI_Comm aCommunicator)
+    const std::vector<std::string>&, MPI_Comm aCommunicator)
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::ParallelMassObjectiveInterface>(
         aCommunicator);

@@ -1,8 +1,12 @@
 #include "plato/utilities/Colorize.hpp"
 
+#include <stdio.h>
 #include <unistd.h>
 
+#include <cassert>
+#include <cstdio>
 #include <iostream>
+#include <string>
 
 #include "plato/utilities/EnumTable.hpp"
 #include "plato/utilities/StringUtilities.hpp"

@@ -1,8 +1,12 @@
 #include "plato/process_manager/extension/InitialGeometryWriter.hpp"
 
+#include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/output/OutputManager.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
+#include "plato/process_manager/library/StageOrdering.hpp"
 
 namespace plato::process_manager::extension
 {

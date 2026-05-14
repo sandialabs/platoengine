@@ -1,8 +1,12 @@
-#include <algorithm>
-
 #include "plato/analysis/Utilities.hpp"
 
+#include <algorithm>
+#include <boost/container_hash/hash.hpp>
 #include <boost/functional/hash.hpp>
+#include <cstddef>
+#include <filesystem>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"

@@ -1,8 +1,10 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
+#include <cassert>
 #include <filesystem>
+#include <string_view>
 
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/FileUtilities.hpp"

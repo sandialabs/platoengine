@@ -1,5 +1,12 @@
 #include "plato/utilities/RankSplitVector.hpp"
 
+#include <algorithm>
+#include <boost/numeric/conversion/cast.hpp>
+#include <cassert>
+#include <iterator>
+#include <numeric>
+#include <vector>
+
 namespace plato::utilities
 {
 

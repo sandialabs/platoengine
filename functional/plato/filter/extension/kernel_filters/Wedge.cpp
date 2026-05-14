@@ -1,8 +1,12 @@
 #include "plato/filter/extension/kernel_filters/Wedge.hpp"
 
+#include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <numbers>
+#include <vector>
 
+#include "plato/filter/extension/kernel_filters/Plane.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::filter::extension::kernel_filters

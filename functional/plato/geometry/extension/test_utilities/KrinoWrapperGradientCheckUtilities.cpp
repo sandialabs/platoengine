@@ -2,14 +2,16 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <filesystem>
+#include <set>
+#include <string>
+#include <vector>
 
-#include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/geometry/extension/test_utilities/KrinoWrapperTestUtilities.hpp"
+#include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
-#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"

@@ -10,11 +10,13 @@ namespace plato::core
 {
 namespace detail
 {
+// NOLINTBEGIN(misc-redundant-expression)
 /// @brief Requirement for the number of functions implemented in the outer and inner functions for compose.
 template <typename FunctionTypeOuter, typename FunctionTypeInner>
 constexpr bool kFunctionCompositionSizesRequirement =
     std::tuple_size_v<typename FunctionTypeOuter::TupleHelper::InfoTuple> <=
     std::tuple_size_v<typename FunctionTypeInner::TupleHelper::InfoTuple>;
+// NOLINTEND(misc-redundant-expression)
 }  // namespace detail
 
 /// @brief Generates a new Function that is the composition of @a aFunctionOuter and @a aFunctionInner, i.e.

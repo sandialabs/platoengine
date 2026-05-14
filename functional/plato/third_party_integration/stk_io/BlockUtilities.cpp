@@ -1,5 +1,10 @@
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 
+#include <algorithm>
+#include <cstddef>
+#include <functional>
+#include <iterator>
+#include <optional>
 #include <stk_mesh/base/Bucket.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Comm.hpp>
@@ -8,7 +13,10 @@
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Part.hpp>
 #include <stk_mesh/base/Selector.hpp>
-#include <utility>
+#include <stk_topology/topology_decl.hpp>
+#include <vector>
+
+#include "plato/third_party_integration/common/BlockData.hpp"
 
 namespace plato::third_party_integration::stk_io
 {

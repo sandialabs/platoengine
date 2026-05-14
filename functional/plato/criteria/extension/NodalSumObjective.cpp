@@ -1,12 +1,18 @@
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 
 #include <numeric>
+#include <utility>
 #include <vector>
 
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/services/AppConfiguration.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::criteria::extension
 {

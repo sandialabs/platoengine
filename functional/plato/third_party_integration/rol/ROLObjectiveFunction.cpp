@@ -1,5 +1,13 @@
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 
+#include <ROL_UpdateType.hpp>
+#include <utility>
+#include <vector>
+
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/output/OutputManager.hpp"
+
 namespace plato::third_party_integration::rol
 {
 ROLObjectiveFunction::ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction, output::OutputManager aOutputManager)

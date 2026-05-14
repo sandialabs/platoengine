@@ -1,9 +1,21 @@
 #include "plato/criteria/library/ConstraintFactory.hpp"
 
+#include <algorithm>
+#include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <cstddef>
+#include <iterator>
 #include <map>
+#include <optional>
 #include <ranges>
+#include <set>
+#include <string>
+#include <utility>
+#include <variant>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/core/Compose.hpp"
 #include "plato/core/SplitParallelFunction.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
@@ -11,9 +23,11 @@
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/criteria/library/LoggingFunction.hpp"
-#include "plato/linear_algebra/DynamicVectorFormatter.hpp"
-#include "plato/linear_algebra/ParallelJacobianMultiplier.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/linear_algebra/DynamicVectorFormatter.hpp"      // NOLINT(misc-include-cleaner)
+#include "plato/linear_algebra/ParallelJacobianMultiplier.hpp"  // NOLINT(misc-include-cleaner)
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/TransformIf.hpp"
 

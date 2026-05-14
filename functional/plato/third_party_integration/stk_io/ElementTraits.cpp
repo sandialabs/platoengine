@@ -1,6 +1,13 @@
-#include "plato/third_party_integration/stk_io/ElementTraits.hpp"
+#include "plato/third_party_integration/stk_io/ElementTraits.hpp"  // NOLINT(misc-include-cleaner)
 
-#include <stk_topology/topology.hpp>
+#include <array>
+#include <cstddef>
+
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_io/Hexahedron.hpp"
+#include "plato/third_party_integration/stk_io/Quadrilateral.hpp"
+#include "plato/third_party_integration/stk_io/Tetrahedron.hpp"
+#include "plato/third_party_integration/stk_io/Triangle.hpp"
 
 namespace plato::third_party_integration::stk_io
 {
@@ -9,10 +16,10 @@ namespace detail
 {
 namespace
 {
-constexpr auto kNumberOfHexahedronNodes = 8;
-constexpr auto kNumberOfTetrahedronNodes = 4;
-constexpr auto kNumberOfTriangleNodes = 3;
-constexpr auto kNumberOfQuadrilateralNodes = 4;
+constexpr auto kNumberOfHexahedronNodes = std::size_t{8};
+constexpr auto kNumberOfTetrahedronNodes = std::size_t{4};
+constexpr auto kNumberOfTriangleNodes = std::size_t{3};
+constexpr auto kNumberOfQuadrilateralNodes = std::size_t{4};
 }  // namespace
 
 template <>

@@ -1,6 +1,12 @@
 #include "plato/integration_tests/test_mass_criteria/MassPropertiesVectorInterface.hpp"
 
 #include <cassert>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/criteria/library/VectorCriterionInterface.hpp"
 
 namespace plato::integration_tests::test_mass_criteria
 {

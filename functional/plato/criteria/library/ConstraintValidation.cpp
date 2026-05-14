@@ -1,11 +1,26 @@
 #include "plato/criteria/library/ConstraintValidation.hpp"
 
+#include <algorithm>
+#include <boost/optional/optional.hpp>
+#include <cstddef>
+#include <format>
+#include <map>
+#include <numeric>
+#include <optional>
 #include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
+#include "plato/utilities/EnumTable.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::criteria::library

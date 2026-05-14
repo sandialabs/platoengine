@@ -1,5 +1,13 @@
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 
+#include <boost/none.hpp>
+
+#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/extension/LevelSetTopology.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+
 namespace plato::geometry::extension::test_utilities
 {
 auto create_valid_brick_shape_geometry_input() -> input_parser::brick_shape_geometry

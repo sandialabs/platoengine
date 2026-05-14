@@ -1,9 +1,13 @@
 #include "plato/linear_algebra/RandomPerturbationVector.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstdlib>
+#include <iterator>
 #include <random>
+#include <utility>
+#include <vector>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"

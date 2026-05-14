@@ -1,8 +1,13 @@
 #include "plato/integration_tests/test_mass_criteria/MassConstraintVectorInterface.hpp"
 
+#include <algorithm>
 #include <cassert>
-#include <numeric>
+#include <memory>
+#include <string>
+#include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/criteria/library/VectorCriterionInterface.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassConstraint.hpp"
 
 namespace plato::integration_tests::test_mass_criteria

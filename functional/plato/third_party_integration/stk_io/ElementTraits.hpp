@@ -9,6 +9,7 @@
 #include "plato/third_party_integration/stk_io/Quadrilateral.hpp"
 #include "plato/third_party_integration/stk_io/Tetrahedron.hpp"
 #include "plato/third_party_integration/stk_io/Triangle.hpp"
+
 namespace plato::third_party_integration::stk_io
 {
 

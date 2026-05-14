@@ -1,6 +1,7 @@
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
 
 #include "plato/core/Compose.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/Mesh.hpp"
 

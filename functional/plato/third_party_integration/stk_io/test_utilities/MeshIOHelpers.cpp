@@ -1,7 +1,14 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
+#include <algorithm>
+#include <cstddef>
+#include <filesystem>
+#include <iterator>
 #include <map>
-#include <stk_io/StkMeshIoBroker.hpp>
+#include <stk_io/StkMeshIoBroker.hpp>  // NOLINT(misc-include-cleaner)
+#include <stk_topology/topology_decl.hpp>
+#include <string_view>
+#include <vector>
 
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
@@ -45,8 +52,9 @@ void write_mesh_scalar_field_impl(const std::filesystem::path& aInputMeshName,
 
 }  // namespace
 
-auto read_nodal_field_as_vector(const std::filesystem::path& aMeshName, std::string_view aFieldName, const double aTime)
-    -> std::vector<double>
+auto read_nodal_field_as_vector(const std::filesystem::path& aMeshName,
+                                std::string_view aFieldName,
+                                const double aTime) -> std::vector<double>
 {
     const auto tField = stk_io::read_nodal_field(aMeshName, aFieldName, aTime);
     return convert_map_sorted_vector(tField);

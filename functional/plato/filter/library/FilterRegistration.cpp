@@ -1,5 +1,9 @@
 #include "plato/filter/library/FilterRegistration.hpp"
 
+#include <filesystem>
+#include <memory>
+
+#include "plato/core/FactoryRegistration.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterSharedLibraryDecorator.hpp"
 #include "plato/services/SharedLibraryObject.hpp"

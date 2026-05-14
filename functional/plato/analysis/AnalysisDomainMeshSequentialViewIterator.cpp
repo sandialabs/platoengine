@@ -1,5 +1,13 @@
 #include "plato/analysis/AnalysisDomainMeshSequentialViewIterator.hpp"
 
+#include <algorithm>
+#include <iterator>
+#include <optional>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/utilities/Zip.hpp"
+
 namespace plato::analysis
 {
 template <typename InnerIteratorType, typename IteratorCategory>

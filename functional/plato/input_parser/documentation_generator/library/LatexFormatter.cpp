@@ -2,8 +2,12 @@
 
 #include <algorithm>
 #include <iterator>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
+#include "plato/input_parser/HelpDocumentationRegistration.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::input_parser::documentation_generator::library

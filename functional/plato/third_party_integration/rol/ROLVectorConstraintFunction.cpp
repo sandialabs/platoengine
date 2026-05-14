@@ -1,5 +1,12 @@
 #include "plato/third_party_integration/rol/ROLVectorConstraintFunction.hpp"
 
+#include <utility>
+#include <vector>
+
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+
 namespace plato::third_party_integration::rol
 {
 ROLVectorConstraintFunction::ROLVectorConstraintFunction(ROLPlatoFunction aConstraint)
