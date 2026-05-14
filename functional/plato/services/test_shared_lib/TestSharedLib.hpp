@@ -13,7 +13,13 @@ extern "C" long int my_round(double aValue);
 class TestInterface
 {
    public:
+    TestInterface() = default;
     virtual ~TestInterface() = default;
+
+    TestInterface(const TestInterface&) = delete;
+    TestInterface(TestInterface&&) = delete;
+    auto operator=(const TestInterface&) -> TestInterface& = delete;
+    auto operator=(TestInterface&&) -> TestInterface& = delete;
 
     virtual auto testRound() const -> long int = 0;
 };
