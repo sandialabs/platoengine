@@ -26,9 +26,9 @@ void MeshFieldAppender::addFieldFromAnalysisDomainMesh(const analysis::AnalysisD
                                                        const std::string_view aFieldName,
                                                        const double aFixedValue)
 {
-    MeshFieldType tFieldType = EntityCounts{*this}.areElementDesignVariables(aAnalysisDomainMesh)
-                                   ? MeshFieldType::kElement
-                                   : MeshFieldType::kNode;
+    const auto tFieldType = EntityCounts{copy_as_mesh(*this)}.areElementDesignVariables(aAnalysisDomainMesh)
+                                ? MeshFieldType::kElement
+                                : MeshFieldType::kNode;
 
     update_output_field(*mMeshIOBroker, mFileHandle, tFieldType, aFieldName, aAnalysisDomainMesh, aFixedValue);
 }

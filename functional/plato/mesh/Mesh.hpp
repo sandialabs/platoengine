@@ -92,6 +92,19 @@ class Mesh
     std::vector<BlockOrdinalType> mDesignBlockOrdinals;
 };
 
+/// @brief Copies the base class data to a new Mesh, permitting slicing.
+///
+/// Some derived types may need to use other mixin derived types, however, the ctors in Mesh can result in object
+/// slicing. The purpose of this is so that a mixin type can use another mixin type with the explicit knowledge that the
+/// resulting object will be sliced. This is generally fine because the two derived mixins shouldn't know
+/// anything about each other.
+template <typename MeshConvertible>
+    requires std::is_base_of_v<Mesh, std::remove_cvref_t<MeshConvertible>>
+[[nodiscard]] auto copy_as_mesh(const MeshConvertible& aMeshConvertible) -> Mesh
+{
+    return Mesh(static_cast<const Mesh&>(aMeshConvertible));
+}
+
 }  // namespace plato::mesh
 
 #endif

@@ -5,7 +5,6 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::mesh::unittest
@@ -265,6 +264,20 @@ TEST(Mesh, NonExistentMesh)
         const auto tMesh = Mesh{analysis::AnalysisDomainMesh{tBogusFilePath, {}}};
         EXPECT_FALSE(tMesh.valid());
     }
+}
+
+TEST_F(TwoBlockMeshOnDisk, CopyAsMesh)
+{
+    const auto tMesh = Mesh{mMeshFilePath, {"block_1", "block_2"}};
+    const auto tPublicPart = PublicPartVectorMixin{tMesh};
+    const auto tMeshFromDerived = copy_as_mesh(tMesh);
+
+    EXPECT_EQ(tMesh.fixedBlockOrdinals(), tMeshFromDerived.fixedBlockOrdinals());
+    EXPECT_EQ(tMesh.designBlockOrdinals(), tMeshFromDerived.designBlockOrdinals());
+    EXPECT_EQ(tMesh.filePath(), tMeshFromDerived.filePath());
+
+    EXPECT_TRUE(tMesh.valid());
+    EXPECT_TRUE(tMeshFromDerived.valid());
 }
 
 }  // namespace plato::mesh::unittest
