@@ -39,9 +39,14 @@ struct ValidateKey
     friend auto make_validated_input(const input_parser::CrossLinkedInput& input)
         -> utilities::Expected<ValidatedInput, std::string>;
 
+    ~ValidateKey() = default;
+
    private:
-    ValidateKey() {}
-    ValidateKey(const ValidateKey&) {}
+    ValidateKey() = default;
+    ValidateKey(const ValidateKey&) = default;
+    ValidateKey(ValidateKey&&) = default;
+    auto operator=(const ValidateKey&) -> ValidateKey& = default;
+    auto operator=(ValidateKey&&) -> ValidateKey& = default;
 };
 
 ValidatedInput::ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey&) : mRawInput{std::move(aInput)} {}

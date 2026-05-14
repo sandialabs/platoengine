@@ -10,12 +10,14 @@
 #include "plato/test_utilities/TestContext.hpp"
 
 // clang-format off
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), test_objective, plato::components::ComponentType::kObjective,
     (bool, active, "")
     (double, aggregation_weight, "")
     (plato::input_parser::FileName, output_file_name, "")
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_validation::unittest

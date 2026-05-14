@@ -15,17 +15,17 @@ std::optional<std::string> test_double_function(const double) { return "error me
 std::optional<std::string> test_double_function_two(const double) { return std::nullopt; }
 std::optional<std::string> test_double_function_int_argument(const double, const int) { return "error cruel int arg"; }
 
-[[maybe_unused]] static auto kValidationRegistrationIntegers =
+[[maybe_unused]] static const auto kValidationRegistrationIntegers =
     ValidationRegistration<int>{[](const int aInput) { return test_integer_function(aInput); },
                                 [](const int aInput) { return test_integer_function_two(aInput); }};
 
-[[maybe_unused]] static auto kValidationRegistrationDoubles =
+[[maybe_unused]] static const auto kValidationRegistrationDoubles =
     ValidationRegistration<double>{[](const double aInput) { return test_double_function(aInput); }};
 
-[[maybe_unused]] static auto kValidationRegistrationDoublesSecondIntentionalSplitForCTOR =
+[[maybe_unused]] static const auto kValidationRegistrationDoublesSecondIntentionalSplitForCTOR =
     ValidationRegistration<double>{[](const double aInput) { return test_double_function_two(aInput); }};
 
-[[maybe_unused]] static auto kValidationRegistrationDoublesWithIntArgument = ValidationRegistration<double, int>{
+[[maybe_unused]] static const auto kValidationRegistrationDoublesWithIntArgument = ValidationRegistration<double, int>{
     [](const double aInput, const int aArg) { return test_double_function_int_argument(aInput, aArg); }};
 
 }  // namespace

@@ -14,6 +14,7 @@ using FilterCrossReference = plato::input_parser::CrossReference<plato::componen
 }
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          land_creatures,
                          plato::components::ComponentType::kGeometry,
@@ -23,6 +24,7 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          sea_creatures, plato::components::ComponentType::kFilter,
                          (double, octopus, "")
                          (unsigned int, squid, ""))
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_validation::unittest

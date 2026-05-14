@@ -20,6 +20,7 @@ using GeometryCrossReference = plato::input_parser::CrossReference<plato::compon
 
 // Define input structs
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          marvel, components::ComponentType::kGeometry,
                          (double, cyclops, "")
@@ -35,6 +36,7 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
                                dark_horse, plato::components::ComponentType::kObjective,
                                (bool, active, "")
                                (unsigned int, predator, ""))
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_validation::unittest
