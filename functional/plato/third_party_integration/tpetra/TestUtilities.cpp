@@ -5,7 +5,7 @@ namespace plato::third_party_integration::tpetra
 Teuchos::RCP<const TpetraMap> create_contiguous_map(const Tpetra::global_size_t aSize,
                                                     const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
 {
-    return Teuchos::rcp(new TpetraMap(aSize, kIndexBase, aCommunicator));
+    return Teuchos::rcp(std::make_unique<TpetraMap>(aSize, kIndexBase, aCommunicator).release());
 }
 
 TpetraVector create_projection_vector(const VectorSize aSize, const TpetraGlobalOrdinal aGlobalIndex)

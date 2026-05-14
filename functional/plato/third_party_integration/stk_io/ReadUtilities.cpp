@@ -28,6 +28,12 @@ namespace
 
 constexpr bool kSortedByID = true;
 
+template <std::size_t kFieldSize>
+[[nodiscard]] auto to_span(void* const aStkField)
+{
+    return std::span<double, kFieldSize>(static_cast<double*>(aStkField), kFieldSize);
+}
+
 template <stk::topology::rank_t Rank>
 unsigned int size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
 {
@@ -108,8 +114,10 @@ template <stk::topology::rank_t Rank>
                    [tField, &tEntities, &tBulk = aIOBroker.bulk_data()](const auto aEntityIndex)
                    {
                        const auto tGlobalID = tBulk.entity_key(tEntities[aEntityIndex]).id();
-                       return std::make_pair(tGlobalID, static_cast<const double*>(stk::mesh::field_data(
-                                                            *tField, tEntities[aEntityIndex]))[0]);
+                       constexpr auto tFieldSize = std::size_t{1U};
+                       const auto tFieldData =
+                           to_span<tFieldSize>(stk::mesh::field_data(*tField, tEntities[aEntityIndex]));
+                       return std::make_pair(tGlobalID, tFieldData[0]);
                    });
 
     return tFieldFromFile;
@@ -173,8 +181,9 @@ namespace
                [tSpatialDim = spatial_dimensions(aBulk), &tCoordinateField,
                 mNodeEntity = std::move(tNodeEntity)](const auto aNodeIndex)
                {
+                   constexpr auto tCoordinateFieldSize = std::size_t{3U};
                    const auto tData =
-                       static_cast<const double*>(stk::mesh::field_data(tCoordinateField, mNodeEntity[aNodeIndex]));
+                       to_span<tCoordinateFieldSize>(stk::mesh::field_data(tCoordinateField, mNodeEntity[aNodeIndex]));
                    return common::Coordinate{tData[0], tData[1], tSpatialDim == 2 ? 0 : tData[2]};
                }) |
            std::views::common;

@@ -47,9 +47,7 @@ class SensitivityTestKrinoFixture : public KrinoTestFixture
         test_sensitivity_map(aResult, mGoldSensitivityMap, aTestContext);
     }
 
-   protected:
     std::string mFileName;
-
     SensitivityMap mGoldSensitivityMap;
 };
 

@@ -21,6 +21,12 @@ namespace
 {
 constexpr bool kUnsorted = false;
 
+template <std::size_t kFieldSize>
+[[nodiscard]] auto to_span(void* const aStkField)
+{
+    return std::span<double, kFieldSize>(static_cast<double*>(aStkField), kFieldSize);
+}
+
 std::shared_ptr<stk::mesh::BulkData> bulk_data_from_description(const std::string_view aMeshDescription)
 {
     std::shared_ptr<stk::mesh::BulkData> bulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
@@ -158,8 +164,9 @@ void replace_nodal_coordinate_values(stk::mesh::BulkData& aBulkData,
     std::for_each(tIndices.begin(), tIndices.end(),
                   [tCoordinateField, &tNodeEntity, &aCoordinates](const auto aNodeIndex)
                   {
-                      auto tData =
-                          static_cast<double*>(stk::mesh::field_data(*tCoordinateField, tNodeEntity[aNodeIndex]));
+                      constexpr auto tCoordinateFieldSize = std::size_t{3U};
+                      auto tData = to_span<tCoordinateFieldSize>(
+                          stk::mesh::field_data(*tCoordinateField, tNodeEntity[aNodeIndex]));
                       tData[0] = aCoordinates[aNodeIndex].x;
                       tData[1] = aCoordinates[aNodeIndex].y;
                       tData[2] = aCoordinates[aNodeIndex].z;

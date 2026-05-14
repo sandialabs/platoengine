@@ -43,16 +43,18 @@ TEST(ParameterBuilder, MakeStatusTestIterationLimit)
 
 TEST(ParameterBuilder, MakeStatusTestGradientTolerance)
 {
+    constexpr auto tDefaultGradientTolerance = 1e-12;
     test_make_parameter_function<double>(
         [](const std::optional<double> aValue) { return make_status_test_gradient_tolerance(aValue); }, {"Status Test"},
-        "Gradient Tolerance", 1e-12, TEST_CONTEXT("Gradient Tolerance"));
+        "Gradient Tolerance", tDefaultGradientTolerance, TEST_CONTEXT("Gradient Tolerance"));
 }
 
 TEST(ParameterBuilder, MakeStatusTestStepTolerance)
 {
+    constexpr auto tDefaultStepTolerance = 1e-14;
     test_make_parameter_function<double>([](const std::optional<double> aValue)
-                                         { return make_status_test_step_tolerance(aValue); },
-                                         {"Status Test"}, "Step Tolerance", 1e-14, TEST_CONTEXT("Step Tolerance"));
+                                         { return make_status_test_step_tolerance(aValue); }, {"Status Test"},
+                                         "Step Tolerance", tDefaultStepTolerance, TEST_CONTEXT("Step Tolerance"));
 }
 
 TEST(ParameterBuilder, MakeGeneralOutputLevel)

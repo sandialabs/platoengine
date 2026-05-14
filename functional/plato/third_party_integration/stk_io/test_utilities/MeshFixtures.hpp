@@ -16,11 +16,19 @@ namespace plato::third_party_integration::stk_io::test_utilities
 /// destruction.
 class MeshGeneratingTestFixture : virtual public ::testing::Test
 {
+   public:
+    ~MeshGeneratingTestFixture();
+
    protected:
     MeshGeneratingTestFixture(const std::filesystem::path& aMeshName,
                               const third_party_integration::stk_io::CommandGenerator& aCommandGenerator);
-    ~MeshGeneratingTestFixture();
 
+    MeshGeneratingTestFixture(const MeshGeneratingTestFixture&) = delete;
+    MeshGeneratingTestFixture(MeshGeneratingTestFixture&&) = delete;
+    auto operator=(const MeshGeneratingTestFixture&) -> MeshGeneratingTestFixture& = delete;
+    auto operator=(MeshGeneratingTestFixture&&) -> MeshGeneratingTestFixture& = delete;
+
+   public:
     std::filesystem::path mMeshFilePath;
     third_party_integration::stk_io::CommandGenerator mCommandGenerator;
 };
@@ -47,8 +55,6 @@ class TwoBlockMeshOnDisk : virtual public ::testing::Test
    protected:
     TwoBlockMeshOnDisk();
 
-    std::filesystem::path mMeshFilePath;
-
     constexpr static auto mMeshFileName = std::string_view{"box_2x4x10_hex_and_tet.cdf"};
     constexpr static auto mExpectedNumberOfBlocks = 2U;
     constexpr static auto mExpectedNumberOfElementsInBlock1 = 273U;
@@ -57,6 +63,9 @@ class TwoBlockMeshOnDisk : virtual public ::testing::Test
     constexpr static auto mExpectedNumberOfNodesInBlock2 = 90U;
     constexpr static auto mExpectedVolume = 80.0;
     constexpr static auto mSmallestElementVolume = 0.080348748056025029;
+
+   public:
+    std::filesystem::path mMeshFilePath;
 };
 
 /// @brief A mesh test fixture that provides the path to a 2D, non-uniform hex mesh
@@ -66,14 +75,15 @@ class TwoDNonUniformHexMesh : virtual public ::testing::Test
    protected:
     TwoDNonUniformHexMesh();
 
-    std::filesystem::path mMeshFilePath;
-
     constexpr static auto mMeshFileName = std::string_view{"rectangle_3x4_quad4.cdf"};
     constexpr static auto mExpectedNumberOfBlocks = 1U;
     constexpr static auto mExpectedNumberOfElements = 29U;
     constexpr static auto mExpectedNumberOfNodes = 41U;
     constexpr static auto mExpectedArea = 12.0;
     constexpr static auto mExpectedSmallestElementArea = 0.15715566967755179;
+
+   public:
+    std::filesystem::path mMeshFilePath;
 };
 
 /// @brief A mesh test fixture that provides the path to a mesh composed of tet4 elements.
@@ -82,22 +92,28 @@ class Tet4MeshOnDisk : virtual public ::testing::Test
    protected:
     Tet4MeshOnDisk();
 
-    std::filesystem::path mMeshFilePath;
-
     constexpr static auto mMeshFileName = std::string_view{"box_3x4x7_tet4.cdf"};
     constexpr static auto mExpectedNumberOfNodes = 389U;
     constexpr static auto mExpectedNumberOfElements = 1520U;
+
+   public:
+    std::filesystem::path mMeshFilePath;
 };
 
 /// @brief A mesh test fixture providing a 2D mesh with 3 blocks. The nodes and elements
 /// are ordered so that the first nodes/elements do not belong to the first block.
 class TwoDThreeBlockMesh : virtual public ::testing::Test
 {
-   protected:
-    TwoDThreeBlockMesh();
+   public:
     ~TwoDThreeBlockMesh();
 
-    std::filesystem::path mMeshFilePath = "two_d_three_block.exo";
+   protected:
+    TwoDThreeBlockMesh();
+
+    TwoDThreeBlockMesh(const TwoDThreeBlockMesh&) = delete;
+    TwoDThreeBlockMesh(TwoDThreeBlockMesh&&) = delete;
+    auto operator=(const TwoDThreeBlockMesh&) -> TwoDThreeBlockMesh& = delete;
+    auto operator=(TwoDThreeBlockMesh&&) -> TwoDThreeBlockMesh& = delete;
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -124,16 +140,24 @@ class TwoDThreeBlockMesh : virtual public ::testing::Test
     constexpr static auto mBlock1Ordinal = 20U;
     constexpr static auto mBlock2Ordinal = 21U;
     constexpr static auto mBlock3Ordinal = 22U;
+
+   public:
+    std::filesystem::path mMeshFilePath = "two_d_three_block.exo";
 };
 
 /// @brief A mesh test fixture providing a 3D tet mesh with 2 blocks.
 class ThreeDTwoBlockTetMesh : virtual public ::testing::Test
 {
-   protected:
-    ThreeDTwoBlockTetMesh();
+   public:
     ~ThreeDTwoBlockTetMesh();
 
-    std::filesystem::path mMeshFilePath = "three_d_two_block_tets.exo";
+   protected:
+    ThreeDTwoBlockTetMesh();
+
+    ThreeDTwoBlockTetMesh(const ThreeDTwoBlockTetMesh&) = delete;
+    ThreeDTwoBlockTetMesh(ThreeDTwoBlockTetMesh&&) = delete;
+    auto operator=(const ThreeDTwoBlockTetMesh&) -> ThreeDTwoBlockTetMesh& = delete;
+    auto operator=(ThreeDTwoBlockTetMesh&&) -> ThreeDTwoBlockTetMesh& = delete;
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -160,16 +184,24 @@ class ThreeDTwoBlockTetMesh : virtual public ::testing::Test
     constexpr static auto mExpectedNumberOfNodes = 12U;
     constexpr static auto mExpectedNumberOfNodesInBlock1 = 8U;
     constexpr static auto mExpectedNumberOfNodesInBlock2 = 8U;
+
+   public:
+    std::filesystem::path mMeshFilePath = "three_d_two_block_tets.exo";
 };
 
 /// @brief A mesh test fixture providing a 2D mesh with 2 blocks with non-standard block names.
 class TwoDTwoBlockMesh : virtual public ::testing::Test
 {
-   protected:
-    TwoDTwoBlockMesh();
+   public:
     ~TwoDTwoBlockMesh();
 
-    std::filesystem::path mMeshFilePath = "two_d_two_block.exo";
+   protected:
+    TwoDTwoBlockMesh();
+
+    TwoDTwoBlockMesh(const TwoDTwoBlockMesh&) = delete;
+    TwoDTwoBlockMesh(TwoDTwoBlockMesh&&) = delete;
+    auto operator=(const TwoDTwoBlockMesh&) -> TwoDTwoBlockMesh& = delete;
+    auto operator=(TwoDTwoBlockMesh&&) -> TwoDTwoBlockMesh& = delete;
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -187,16 +219,24 @@ class TwoDTwoBlockMesh : virtual public ::testing::Test
     constexpr static auto mExpectedNumberOfNodes = 6U;
     constexpr static auto mExpectedNumberOfNodesInBlock1 = 4U;
     constexpr static auto mExpectedNumberOfNodesInBlock2 = 4U;
+
+   public:
+    std::filesystem::path mMeshFilePath = "three_d_two_block_tets.exo";
 };
 
 /// @brief A 2D mesh with many blocks, useful for testing fixed blocks.
 class TwoDManyBlockMesh : virtual public ::testing::Test
 {
-   protected:
-    TwoDManyBlockMesh();
+   public:
     ~TwoDManyBlockMesh();
 
-    std::filesystem::path mMeshFilePath = "two_d_many_block.exo";
+   protected:
+    TwoDManyBlockMesh();
+
+    TwoDManyBlockMesh(const TwoDManyBlockMesh&) = delete;
+    TwoDManyBlockMesh(TwoDManyBlockMesh&&) = delete;
+    auto operator=(const TwoDManyBlockMesh&) -> TwoDManyBlockMesh& = delete;
+    auto operator=(TwoDManyBlockMesh&&) -> TwoDManyBlockMesh& = delete;
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -216,9 +256,12 @@ class TwoDManyBlockMesh : virtual public ::testing::Test
     constexpr static auto mExpectedNumberOfNodes = 9U;
     const static inline auto mBlockNameToOrdinal = std::unordered_map<std::string, unsigned int>{
         {"alpha", 20U}, {"beta", 21U}, {"gamma", 22U}, {"delta", 23U}, {"epsilon", 24U}, {"zeta", 25U}, {"eta", 26U}};
+
+   public:
+    std::filesystem::path mMeshFilePath = "three_d_two_block_tets.exo";
 };
 
-constexpr auto kTwoDTriMesh = std::string_view{
+constexpr inline auto kTwoDTriMesh = std::string_view{
     "textmesh:"
     "0,1,TRI_3_2D,3,1,4,block_1\n"
     "0,2,TRI_3_2D,1,2,4,block_1\n"
@@ -232,11 +275,16 @@ constexpr auto kTwoDTriMesh = std::string_view{
 /// @brief A mesh test fixture providing a 3D mesh with coordinates only in the XZ plane.
 class XZPlaneMesh : virtual public ::testing::Test
 {
-   protected:
-    XZPlaneMesh();
+   public:
     ~XZPlaneMesh();
 
-    std::filesystem::path mMeshFilePath = "xz_plane_mesh.exo";
+   protected:
+    XZPlaneMesh();
+
+    XZPlaneMesh(const XZPlaneMesh&) = delete;
+    XZPlaneMesh(XZPlaneMesh&&) = delete;
+    auto operator=(const XZPlaneMesh&) -> XZPlaneMesh& = delete;
+    auto operator=(XZPlaneMesh&&) -> XZPlaneMesh& = delete;
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -246,16 +294,24 @@ class XZPlaneMesh : virtual public ::testing::Test
         "|dimension:3"};
 
     constexpr static auto mBlockNames = std::array{"DESIGN"};
+
+   public:
+    std::filesystem::path mMeshFilePath = "three_d_two_block_tets.exo";
 };
 
 /// @brief A mesh test fixture providing a 3D mesh with coordinates only in a 30 degree wedge in the positive octant.
 class ThirtyDegreeWedgeMesh : virtual public ::testing::Test
 {
-   protected:
-    ThirtyDegreeWedgeMesh();
+   public:
     ~ThirtyDegreeWedgeMesh();
 
-    std::filesystem::path mMeshFilePath = "thirty_degree_wedge_mesh.exo";
+   protected:
+    ThirtyDegreeWedgeMesh();
+
+    ThirtyDegreeWedgeMesh(const ThirtyDegreeWedgeMesh&) = delete;
+    ThirtyDegreeWedgeMesh(ThirtyDegreeWedgeMesh&&) = delete;
+    auto operator=(const ThirtyDegreeWedgeMesh&) -> ThirtyDegreeWedgeMesh& = delete;
+    auto operator=(ThirtyDegreeWedgeMesh&&) -> ThirtyDegreeWedgeMesh& = delete;
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -265,6 +321,9 @@ class ThirtyDegreeWedgeMesh : virtual public ::testing::Test
         "|dimension:3"};
 
     constexpr static auto mBlockNames = std::array{"DESIGN"};
+
+   public:
+    std::filesystem::path mMeshFilePath = "thirty_degree_wedge_mesh.exo";
 };
 
 }  // namespace plato::third_party_integration::stk_io::test_utilities

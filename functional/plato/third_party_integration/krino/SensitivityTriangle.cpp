@@ -19,8 +19,9 @@ double SensitivityTriangle::area() const
     const common::Vector3 a = mNodes[1].second - mNodes[0].second;
     const common::Vector3 b = mNodes[2].second - mNodes[0].second;
     const common::Vector3 tACrossB = cross(a, b);
+    constexpr auto tTriangleAreaFactor = 0.5;
 
-    return 0.5 * magnitude(tACrossB);
+    return magnitude(tACrossB) * tTriangleAreaFactor;
 }
 
 }  // namespace plato::third_party_integration::krino

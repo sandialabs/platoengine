@@ -20,7 +20,9 @@ void append_spheres(::krino::Composite_Surface& aSurfaces, const std::vector<Sph
 {
     for (const auto& tSphere : aSpheres)
     {
-        aSurfaces.add(new ::krino::Sphere({tSphere.mCenter.x, tSphere.mCenter.y, tSphere.mCenter.z}, tSphere.mRadius));
+        aSurfaces.add(std::make_unique<::krino::Sphere>(
+                          stk::math::Vector3d{tSphere.mCenter.x, tSphere.mCenter.y, tSphere.mCenter.z}, tSphere.mRadius)
+                          .release());
     }
 }
 
@@ -29,7 +31,7 @@ void append_planes(::krino::Composite_Surface& aSurfaces, const std::vector<Plan
     for (const auto& tPlane : aPlanes)
     {
         const auto tNormal = std::array{tPlane.mNormal.x, tPlane.mNormal.y, tPlane.mNormal.z};
-        aSurfaces.add(new ::krino::Plane(tNormal.data(), tPlane.mOffset, 1.0));
+        aSurfaces.add(std::make_unique<::krino::Plane>(tNormal.data(), tPlane.mOffset, 1.0).release());
     }
 }
 

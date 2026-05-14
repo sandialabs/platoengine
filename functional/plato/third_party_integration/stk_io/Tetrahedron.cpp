@@ -8,7 +8,8 @@ double Tetrahedron::volume() const
     const common::Vector3 a = p1 - p0;
     const common::Vector3 b = p2 - p0;
     const common::Vector3 c = p3 - p0;
-    return dot(a, cross(b, c)) / 6.0;
+    constexpr auto tVolumeFactor = 1.0 / 6.0;
+    return dot(a, cross(b, c)) * tVolumeFactor;
 }
 
 common::Coordinate Tetrahedron::centroid() const { return (p0 + p1 + p2 + p3) / 4; }
@@ -23,8 +24,9 @@ auto Tetrahedron::volumeVertexSensitivities() const -> VertexSensitivities
     const auto tDvolDp1 = tCross32 * -1.0;
     const auto tDvolDp2 = tCross31 * -1.0;
     const auto tDvolDp3 = tCross21 * -1.0;
-
-    return std::array{tDvolDp0 * 1. / 6., tDvolDp1 * 1. / 6., tDvolDp2 * 1. / 6., tDvolDp3 * 1. / 6.};
+    constexpr auto tVolumeFactor = 1.0 / 6.0;
+    return std::array{tDvolDp0 * tVolumeFactor, tDvolDp1 * tVolumeFactor, tDvolDp2 * tVolumeFactor,
+                      tDvolDp3 * tVolumeFactor};
 }
 
 }  // namespace plato::third_party_integration::stk_io

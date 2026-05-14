@@ -6,7 +6,8 @@
 
 namespace plato::third_party_integration::stk_io::test_utilities
 {
-auto axes_aligned_hex_volume_sensitivities(const Cuboid& aCuboid) -> std::array<common::Vector3, 8>
+auto axes_aligned_hex_volume_sensitivities(const Cuboid& aCuboid)
+    -> std::array<common::Vector3, primitives::kNumberOfHexahedronNodes>
 {
     return std::array{common::Vector3{.x = -aCuboid.mWidth * aCuboid.mHeight,
                                       .y = -aCuboid.mLength * aCuboid.mHeight,
@@ -42,25 +43,29 @@ auto axes_aligned_hex_volume_sensitivities(const Cuboid& aCuboid) -> std::array<
                           4};
 }
 
-auto axes_aligned_tet_volume_sensitivities(const Cuboid& aCuboid) -> std::array<common::Vector3, 4>
+auto axes_aligned_tet_volume_sensitivities(const Cuboid& aCuboid)
+    -> std::array<common::Vector3, primitives::kNumberOfTetrahedronNodes>
 {
+    constexpr auto tTetrahedronVolumeScale = 1.0 / 6.0;
     return std::array{common::Vector3{.x = -aCuboid.mWidth * aCuboid.mHeight,
                                       .y = -aCuboid.mLength * aCuboid.mHeight,
-                                      .z = -aCuboid.mLength * aCuboid.mWidth} /
-                          6,
-                      common::Vector3{.x = aCuboid.mWidth * aCuboid.mHeight, .y = 0, .z = 0} / 6,
-                      common::Vector3{.x = 0, .y = aCuboid.mLength * aCuboid.mHeight, .z = 0} / 6,
-                      common::Vector3{.x = 0, .y = 0, .z = aCuboid.mLength * aCuboid.mWidth} / 6};
+                                      .z = -aCuboid.mLength * aCuboid.mWidth} *
+                          tTetrahedronVolumeScale,
+                      common::Vector3{.x = aCuboid.mWidth * aCuboid.mHeight, .y = 0, .z = 0} * tTetrahedronVolumeScale,
+                      common::Vector3{.x = 0, .y = aCuboid.mLength * aCuboid.mHeight, .z = 0} * tTetrahedronVolumeScale,
+                      common::Vector3{.x = 0, .y = 0, .z = aCuboid.mLength * aCuboid.mWidth} * tTetrahedronVolumeScale};
 }
 
-auto axes_aligned_tri_volume_sensitivities(const Rectangle& aRectangle) -> std::array<common::Vector3, 3>
+auto axes_aligned_tri_volume_sensitivities(const Rectangle& aRectangle)
+    -> std::array<common::Vector3, primitives::kNumberOfTriangleNodes>
 {
     return std::array{common::Vector3{.x = -aRectangle.mWidth, .y = -aRectangle.mLength, .z = 0.0} / 2,
                       common::Vector3{.x = aRectangle.mWidth, .y = 0.0, .z = 0.0} / 2,
                       common::Vector3{.x = 0.0, .y = aRectangle.mLength, .z = 0.0} / 2};
 }
 
-auto axes_aligned_quad_volume_sensitivities(const Rectangle& aRectangle) -> std::array<common::Vector3, 4>
+auto axes_aligned_quad_volume_sensitivities(const Rectangle& aRectangle)
+    -> std::array<common::Vector3, primitives::kNumberOfQuadrilateralNodes>
 {
     return std::array{common::Vector3{.x = -aRectangle.mWidth, .y = -aRectangle.mLength, .z = 0.0} / 2,
                       common::Vector3{.x = aRectangle.mWidth, .y = -aRectangle.mLength, .z = 0.0} / 2,

@@ -47,13 +47,15 @@ struct NodeSetSideSetIdentifiers
 /// @brief Struct to bundle the common operations needed to work with STK "generate" command
 struct CommandGenerator
 {
+    constexpr static inline auto mDefaultPrecision = 8;
+
     CommandNumberOfElements mElements = {1u, 1u, 1u};
     CommandBounds mLowerBounds = {0, 0, 0};
     CommandBounds mUpperBounds = {1, 1, 1};
     CommandElementType mType = CommandElementType::Hex;
     NodeSetSideSetIdentifiers mNodeset{};
     NodeSetSideSetIdentifiers mSideset{};
-    int mPrecision = 8;
+    int mPrecision = mDefaultPrecision;
 
     /// @brief Take the struct data and return a string with the STK "generate" command
     [[nodiscard]] std::string toString() const;

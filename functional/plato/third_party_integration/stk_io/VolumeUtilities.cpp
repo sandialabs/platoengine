@@ -16,19 +16,15 @@ namespace plato::third_party_integration::stk_io
 {
 namespace
 {
-common::Coordinate coordinate_from_data_array(const double* aData, const unsigned int aNumDimensions)
+[[nodiscard]] auto coordinate_from_data_array(const std::span<const double> aCoordinate) -> common::Coordinate
 {
-    if (aNumDimensions == 3)
+    if (aCoordinate.size() == 3U)
     {
-        return common::Coordinate{/*.x=*/aData[0],
-                                  /*.y=*/aData[1],
-                                  /*.z=*/aData[2]};
+        return common::Coordinate{.x = aCoordinate[0], .y = aCoordinate[1], .z = aCoordinate[2]};
     }
     else
     {
-        return common::Coordinate{/*.x=*/aData[0],
-                                  /*.y=*/aData[1],
-                                  /*.z=*/0};
+        return common::Coordinate{.x = aCoordinate[0], .y = aCoordinate[1], .z = 0};
     }
 }
 
@@ -38,7 +34,7 @@ stk::mesh::EntityVector get_edge_nodes(const stk::topology& aElementTopology,
 {
     const stk::topology tEdgeTopology = aElementTopology.edge_topology(aEdgeOrdinal);
     stk::mesh::EntityVector tEdgeNodes(tEdgeTopology.num_nodes());
-    aElementTopology.edge_nodes(&aElemNodes[0], aEdgeOrdinal, tEdgeNodes.data());
+    aElementTopology.edge_nodes(aElemNodes, aEdgeOrdinal, tEdgeNodes.data());
     return tEdgeNodes;
 }
 
@@ -49,12 +45,12 @@ double compute_edge_length(const stk::mesh::BulkData& aBulk, const stk::mesh::En
     const stk::mesh::FieldBase* const tCoords = aBulk.mesh_meta_data().coordinate_field();
 
     constexpr unsigned int tVertex1Index = 0;
-    const common::Coordinate tCoord1 = coordinate_from_data_array(
-        static_cast<const double*>(stk::mesh::field_data(*tCoords, aEdgeNodes[tVertex1Index])), tNumDimensions);
+    const common::Coordinate tCoord1 = coordinate_from_data_array(std::span(
+        static_cast<const double*>(stk::mesh::field_data(*tCoords, aEdgeNodes[tVertex1Index])), tNumDimensions));
 
     constexpr unsigned int tVertex2Index = 1;
-    const common::Coordinate tCoord2 = coordinate_from_data_array(
-        static_cast<const double*>(stk::mesh::field_data(*tCoords, aEdgeNodes[tVertex2Index])), tNumDimensions);
+    const common::Coordinate tCoord2 = coordinate_from_data_array(std::span(
+        static_cast<const double*>(stk::mesh::field_data(*tCoords, aEdgeNodes[tVertex2Index])), tNumDimensions));
 
     return common::magnitude(tCoord2 - tCoord1);
 }
@@ -249,7 +245,7 @@ std::vector<common::Coordinate> element_coordinates(const stk::mesh::Entity& aEl
                    [tNumDimensions, tCoords](const stk::mesh::Entity& aNode)
                    {
                        const auto tData = static_cast<const double*>(stk::mesh::field_data(*tCoords, aNode));
-                       return coordinate_from_data_array(tData, tNumDimensions);
+                       return coordinate_from_data_array(std::span(tData, tNumDimensions));
                    });
     return tCoordinates;
 }

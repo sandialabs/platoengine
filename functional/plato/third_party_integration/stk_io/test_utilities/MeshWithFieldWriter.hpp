@@ -7,7 +7,6 @@
 #include <map>
 
 #include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
-#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 
 namespace plato::third_party_integration::stk_io::test_utilities
 {
@@ -20,7 +19,6 @@ class MeshWithDensities : public ::testing::Test
                       const std::filesystem::path& aMeshName,
                       std::string_view aFieldName);
 
-   protected:
     std::string mFieldName;
     std::map<std::size_t, double> mGoldNumbering;
     plato::test_utilities::TestDirectorySetupTeardown mDirectory;

@@ -122,11 +122,11 @@ void write_mesh(const stk::mesh::BulkData& aBulkData,
                 const stk::mesh::Selector& aSelector);
 
 template <typename LevelSetFieldVector>
-[[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields, const stk::mesh::Entity& aNode)
-    -> decltype(auto)
+[[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields,
+                                   const stk::mesh::Entity& aNode) -> decltype(auto)
 {
     assert(!aLevelSetFields.empty());
-    return *::krino::field_data<double>(aLevelSetFields.front().isovar, aNode);
+    return *::krino::field_data<double>(std::forward<LevelSetFieldVector>(aLevelSetFields).front().isovar, aNode);
 }
 
 }  // namespace plato::third_party_integration::krino

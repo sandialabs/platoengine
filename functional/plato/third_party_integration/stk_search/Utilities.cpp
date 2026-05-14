@@ -23,9 +23,11 @@ SearchSphere create_sphere(const common::Coordinate& aCenter, const STKRadius aR
 
 SearchBox search_box(const STKBoxCenter& aCenter, const STKBoxDimension& aDimensions)
 {
-    return SearchBox{aCenter.mValue.x - aDimensions.mValue.x / 2.0, aCenter.mValue.y - aDimensions.mValue.y / 2.0,
-                     aCenter.mValue.z - aDimensions.mValue.z / 2.0, aCenter.mValue.x + aDimensions.mValue.x / 2.0,
-                     aCenter.mValue.y + aDimensions.mValue.y / 2.0, aCenter.mValue.z + aDimensions.mValue.z / 2.0};
+    const auto tXExtent = aDimensions.mValue.x / 2.0;
+    const auto tYExtent = aDimensions.mValue.y / 2.0;
+    const auto tZExtent = aDimensions.mValue.z / 2.0;
+    return SearchBox{aCenter.mValue.x - tXExtent, aCenter.mValue.y - tYExtent, aCenter.mValue.z - tZExtent,
+                     aCenter.mValue.x + tXExtent, aCenter.mValue.y + tYExtent, aCenter.mValue.z + tZExtent};
 }
 
 std::vector<SearchPointWithIdentifier> search_points_with_identifiers(

@@ -15,6 +15,7 @@ const auto kSourceMeshPath = std::filesystem::path{kTestDirectoryName} / std::fi
 constexpr std::string_view kFieldName = "Topology";
 constexpr std::string_view kNodalMeshName = "nodal_density.exo";
 constexpr std::string_view kElementMeshName = "element_density.exo";
+const auto kFieldToNodeMap = std::map<std::size_t, double>{{1U, 1.0}, {2U, 2.0}, {3U, 3.0}};
 
 [[nodiscard]] auto create_nodal_gold() -> std::map<std::size_t, double>
 {
@@ -61,8 +62,7 @@ MeshWithDensities::MeshWithDensities(const std::map<std::size_t, double>& aGoldN
 {
 }
 
-MeshWithElementDensities::MeshWithElementDensities()
-    : MeshWithDensities({{1U, 1.0}, {2U, 2.0}, {3U, 3.0}}, kElementMeshName, kFieldName)
+MeshWithElementDensities::MeshWithElementDensities() : MeshWithDensities(kFieldToNodeMap, kElementMeshName, kFieldName)
 {
     mDirectory.writeFile([this](const std::filesystem::path& aPath)
                          { create_element_density_field_mesh_for_reading(kCommandGenerator, aPath, mFieldName); },

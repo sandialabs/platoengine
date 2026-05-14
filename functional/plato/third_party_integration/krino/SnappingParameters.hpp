@@ -6,13 +6,16 @@ namespace plato::third_party_integration::krino
 /// @brief Struct to hold parameters controlling how krino does snapping
 struct SnappingParameters
 {
-    double mMaxSnappingEdgeLength{0.15};
-    double mSharpFeatureAngle{135.0};
+    constexpr static inline auto mDefaultMaxSnappingEdgeLength = 0.15;
+    constexpr static inline auto mDefaultSharpFeatureAngle = 135.0;
+
+    double mMaxSnappingEdgeLength{mDefaultMaxSnappingEdgeLength};
+    double mSharpFeatureAngle{mDefaultSharpFeatureAngle};
 };
 
 [[nodiscard]] constexpr auto snapping_off_parameters() -> SnappingParameters
 {
-    return SnappingParameters{.mMaxSnappingEdgeLength = 0.0, .mSharpFeatureAngle = 135.0};
+    return SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
 }
 
 }  // namespace plato::third_party_integration::krino

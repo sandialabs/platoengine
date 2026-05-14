@@ -22,7 +22,8 @@ MeshFromFileWithoutFields::MeshFromFileWithoutFields(const std::filesystem::path
                                                      const std::string& aDecompositionMethod)
     : mCommunicator{aCommunicator}, mIOBroker{std::make_unique<stk::io::StkMeshIoBroker>(aCommunicator)}
 {
-    mIOBroker->property_add(Ioss::Property("MAXIMUM_NAME_LENGTH", 180));
+    constexpr auto tMaximumNameLength = 180;
+    mIOBroker->property_add(Ioss::Property("MAXIMUM_NAME_LENGTH", tMaximumNameLength));
 
     if (!aDecompositionMethod.empty())
     {

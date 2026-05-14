@@ -18,6 +18,12 @@ namespace plato::third_party_integration::krino
 
 namespace
 {
+template <std::size_t kFieldSize>
+[[nodiscard]] auto to_span(void* const aStkField)
+{
+    return std::span<double, kFieldSize>(static_cast<double*>(aStkField), kFieldSize);
+}
+
 /// @brief Given a triangle return a vector of its nodal coordinates.
 [[nodiscard]] auto convert_tri_to_coords(const SensitivityTriangle& aTriangle) -> std::vector<double>
 {
@@ -87,10 +93,19 @@ namespace
     for (const auto& [tNodeIndex, tComponentIndex] :
          utilities::MultidimensionalRange{tNumberNodesPerTriangle, tNumberSpatialDimensions})
     {
-        tSensitivities[tNodeIndex][tComponentIndex] = tNormalSensitivityMultiVectorView(
+        tSensitivities.at(tNodeIndex).at(tComponentIndex) = tNormalSensitivityMultiVectorView(
             utilities::VectorIndex{tNodeIndex * tNumberNodesPerTriangle + tComponentIndex});
     }
     return tSensitivities;
+}
+
+template <std::size_t kVectorIndex>
+[[nodiscard]] auto to_stk_vector_at_index(const std::vector<double>& aNodalCoordinates)
+{
+    constexpr auto tNumberOfNodesPerTriangle = std::size_t{3U};
+    return stk::math::Vector3d{aNodalCoordinates[kVectorIndex * tNumberOfNodesPerTriangle + 0U],
+                               aNodalCoordinates[kVectorIndex * tNumberOfNodesPerTriangle + 1U],
+                               aNodalCoordinates[kVectorIndex * tNumberOfNodesPerTriangle + 2U]};
 }
 
 }  // namespace
@@ -125,8 +140,8 @@ std::vector<double> d_area_d_nodal_coords_from_tri_coords(const std::vector<doub
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
     std::vector<double> tDAreaDNodalCoordinates(tNumSensitivities);
     ::krino::TriangleWithSens::area_and_optional_sensitivities(
-        {aNodalCoords[0], aNodalCoords[1], aNodalCoords[2]}, {aNodalCoords[3], aNodalCoords[4], aNodalCoords[5]},
-        {aNodalCoords[6], aNodalCoords[7], aNodalCoords[8]}, tDAreaDNodalCoordinates.data());
+        to_stk_vector_at_index<0U>(aNodalCoords), to_stk_vector_at_index<1U>(aNodalCoords),
+        to_stk_vector_at_index<2U>(aNodalCoords), tDAreaDNodalCoordinates.data());
     return tDAreaDNodalCoordinates;
 }
 
@@ -139,8 +154,8 @@ std::vector<double> d_normal_d_nodal_coords_from_tri_coords(const std::vector<do
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
     std::vector<double> tDNormalDNodalCoordinates(tNumSensitivities);
     ::krino::TriangleWithSens::normal_and_optional_sensitivities(
-        {aNodalCoords[0], aNodalCoords[1], aNodalCoords[2]}, {aNodalCoords[3], aNodalCoords[4], aNodalCoords[5]},
-        {aNodalCoords[6], aNodalCoords[7], aNodalCoords[8]}, tDNormalDNodalCoordinates.data());
+        to_stk_vector_at_index<0U>(aNodalCoords), to_stk_vector_at_index<1U>(aNodalCoords),
+        to_stk_vector_at_index<2U>(aNodalCoords), tDNormalDNodalCoordinates.data());
     return tDNormalDNodalCoordinates;
 }
 
@@ -187,12 +202,13 @@ auto interface_triangles(const stk::mesh::BulkData& aBulkData,
                        std::array<NodeIDCoordsPair, tNumNodesPerTriangle> tSensNodes;
                        for (const auto tNodeIndex : std::views::iota(0u, tNumNodesPerTriangle))
                        {
-                           tSensNodes[tNodeIndex].first = aBulkData.identifier(tSideNodes[tNodeIndex]);
-                           const double* tCoords =
-                               static_cast<const double*>(stk::mesh::field_data(*tCoordsField, tSideNodes[tNodeIndex]));
-                           tSensNodes[tNodeIndex].second.x = tCoords[0];
-                           tSensNodes[tNodeIndex].second.y = tCoords[1];
-                           tSensNodes[tNodeIndex].second.z = tCoords[2];
+                           tSensNodes.at(tNodeIndex).first = aBulkData.identifier(tSideNodes.at(tNodeIndex));
+                           constexpr auto tCoordinateFieldSize = std::size_t{3U};
+                           const auto tCoordinates = to_span<tCoordinateFieldSize>(
+                               stk::mesh::field_data(*tCoordsField, tSideNodes.at(tNodeIndex)));
+                           tSensNodes.at(tNodeIndex).second.x = tCoordinates[0];
+                           tSensNodes.at(tNodeIndex).second.y = tCoordinates[1];
+                           tSensNodes.at(tNodeIndex).second.z = tCoordinates[2];
                        }
                        return SensitivityTriangle{tSensNodes[0], tSensNodes[1], tSensNodes[2]};
                    });

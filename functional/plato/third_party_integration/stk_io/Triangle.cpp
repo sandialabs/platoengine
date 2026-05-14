@@ -8,7 +8,8 @@ namespace plato::third_party_integration::stk_io
 double Triangle::volume() const
 {
     const auto tAreaVector = areaVector();
-    return std::sqrt(dot(tAreaVector, tAreaVector)) * 0.5;
+    constexpr auto tAreaFactor = 0.5;
+    return std::sqrt(dot(tAreaVector, tAreaVector)) * tAreaFactor;
 }
 
 common::Vector3 Triangle::normal() const
@@ -20,7 +21,11 @@ common::Vector3 Triangle::normal() const
     return tACrossB * (1.0 / magnitude(tACrossB));
 }
 
-common::Coordinate Triangle::centroid() const { return (p0 + p1 + p2) / 3; }
+auto Triangle::centroid() const -> common::Coordinate
+{
+    constexpr auto tNumberOfPoints = 3.0;
+    return (p0 + p1 + p2) / tNumberOfPoints;
+}
 
 auto Triangle::volumeVertexSensitivities() const -> VertexSensitivities
 {

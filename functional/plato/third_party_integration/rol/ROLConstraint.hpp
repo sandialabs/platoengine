@@ -43,13 +43,13 @@ void add_constraint_to_problem(ROL::Problem<double>& aProblem, ROLConstraint&& a
 
 namespace detail
 {
-void add_linear_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint);
+void add_linear_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLConstraint);
 
-void add_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint);
+void add_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLConstraint);
 
-void add_linear_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint);
+void add_linear_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLConstraint);
 
-void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint);
+void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLConstraint);
 
 /// @brief Helper function that creates a bounds object sized to @a aNumberofConstraints that will work for vector
 /// valued constraints all less/greater than or equal to 0

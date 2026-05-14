@@ -12,9 +12,9 @@ std::pair<TpetraVector, TpetraVector> create_zeroed_row_and_column_vectors_from_
     const TpetraCRSMatrix& aCRSMatrix, const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
 {
     const auto tRowContiguousMap =
-        Teuchos::rcp(new TpetraMap(aCRSMatrix.getGlobalNumRows(), kIndexBase, aCommunicator));
+        Teuchos::rcp(std::make_unique<TpetraMap>(aCRSMatrix.getGlobalNumRows(), kIndexBase, aCommunicator).release());
     const auto tColumnContiguousMap =
-        Teuchos::rcp(new TpetraMap(aCRSMatrix.getGlobalNumCols(), kIndexBase, aCommunicator));
+        Teuchos::rcp(std::make_unique<TpetraMap>(aCRSMatrix.getGlobalNumCols(), kIndexBase, aCommunicator).release());
     constexpr bool tZeroOut = true;
     return {TpetraVector(tRowContiguousMap, tZeroOut), TpetraVector(tColumnContiguousMap, tZeroOut)};
 }

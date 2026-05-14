@@ -15,12 +15,11 @@ namespace
 constexpr auto kNumRanks = int{4};
 constexpr int kNumSpatialDimensions{3};
 
-[[nodiscard]] Teuchos::RCP<const TpetraMap> create_contiguous_map(const Tpetra::global_size_t aSize,
-                                                                  Teuchos::RCP<const Teuchos::Comm<int>> aCommunicator)
+[[nodiscard]] Teuchos::RCP<const TpetraMap> create_contiguous_map(
+    const Tpetra::global_size_t aSize, const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
 {
-    return Teuchos::rcp(new TpetraMap(aSize, kIndexBase, std::move(aCommunicator)));
+    return Teuchos::rcp(std::make_unique<TpetraMap>(aSize, kIndexBase, aCommunicator).release());
 }
-
 }  // namespace
 
 TEST(TpetraHelpers, MPISize)
@@ -74,7 +73,7 @@ TEST(TpetraHelpers, PutStdVectorOfCoordOnTPetraMultiVector)
                                                   {10, 20, 30}
                                                   };
     // clang-format on
-    const int tSize = tCoordinates.size();
+    const auto tSize = tCoordinates.size();
     const auto tContiguousMap = create_contiguous_map(tSize, tCommunicator);
 
     constexpr bool tZeroOut = true;
