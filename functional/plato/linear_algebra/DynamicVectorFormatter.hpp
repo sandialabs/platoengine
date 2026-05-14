@@ -50,8 +50,9 @@ constexpr auto to_int(Iterator aFirst, const Iterator aLast) -> std::optional<st
         return std::nullopt;
     }
 
-    return std::accumulate(aFirst, aLast, std::size_t{0U},
-                           [](const std::size_t aValue, const auto aChar) { return aValue * 10 + (aChar - '0'); });
+    constexpr auto tDecimalBase = 10;
+    return std::accumulate(aFirst, aLast, std::size_t{0U}, [](const std::size_t aValue, const auto aChar)
+                           { return aValue * tDecimalBase + (aChar - '0'); });
 }
 }  // namespace plato::linear_algebra::detail
 

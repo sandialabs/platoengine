@@ -62,12 +62,15 @@ template <typename T>
     return std::move(aRight);
 }
 
+// NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved)
+// This overload only exists to prevent ambiguous overloads when two r-values are used to call this operator.
 template <typename T>
 [[nodiscard]] DynamicVector<T> operator+(DynamicVector<T>&& aLeft, DynamicVector<T>&& aRight)
 {
     aLeft += aRight;
     return std::move(aLeft);
 }
+// NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved)
 
 template <typename T>
 [[nodiscard]] DynamicVector<T> operator+(const DynamicVector<T>& aLeft, const DynamicVector<T>& aRight)
