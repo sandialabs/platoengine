@@ -28,15 +28,15 @@ namespace
             { SensitivityCheck{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static auto kSensitivityCheckParserRegistration =
+[[maybe_unused]] static const auto kSensitivityCheckParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::sensitivity_check>{};
 
-[[maybe_unused]] static auto kSensitivityCheckProcessManagerRegistration =
+[[maybe_unused]] static const auto kSensitivityCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::sensitivity_check>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_rol_sensitivity_check_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kSensitivityCheckValidationRegistration =
+[[maybe_unused]] static const auto kSensitivityCheckValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{[](const input_parser::sensitivity_check& aInput)
                                                          { return detail::validate_output_file_name(aInput); }};
 

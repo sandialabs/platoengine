@@ -37,15 +37,15 @@ namespace
     return input_validation::get_input_block<input_parser::constraint_check>(aValidInput);
 }
 
-[[maybe_unused]] static auto kConstraintCheckParserRegistration =
+[[maybe_unused]] static const auto kConstraintCheckParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::constraint_check>{};
 
-[[maybe_unused]] static auto kConstraintCheckProcessManagerRegistration =
+[[maybe_unused]] static const auto kConstraintCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::constraint_check>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_constraint_check_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kConstraintCheckValidationRegistration =
+[[maybe_unused]] static const auto kConstraintCheckValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::constraint_check& aInput)
         { return detail::validate_linearity_check_output_file_name(aInput); },

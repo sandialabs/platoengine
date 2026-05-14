@@ -22,6 +22,7 @@ struct ProcessManagerData;
 }
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), snopt_optimization,
     (plato::input_parser::FileName, input_file_name, "Optional filename of the SNOpt input file to set optimization parameters not otherwise available here.")
@@ -29,6 +30,7 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (unsigned int, time_limit_in_minutes, "Optional command to override the time limit in minutes for this optimization as an additional stopping criteria for the optimization.")
     (bool, output_design_history, "Optional command to write the entire design history to output file. Default is to only write the final design.")
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::process_manager::extension::snopt

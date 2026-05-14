@@ -7,6 +7,7 @@
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), nodal_result_filter,
     (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter to apply. "
@@ -15,6 +16,7 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
                                                                                                    "Only required if more than one geometry is specified.")
     (plato::input_parser::FileName, output_file_name, "Optional: If omitted, the output file from density_topology will be used and overwritten.")
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::process_manager::library

@@ -21,6 +21,7 @@ struct ProcessManagerData;
 }
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), gradient_check,
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the gradient check.")
@@ -32,6 +33,7 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato::input_parser::DirectionVectorTypes, direction_vector_type, "Required field specifying how to generate the direction vector. "
                                                                        "Inputs can be: 'random', 'uniform_positive', or 'uniform_negative'")                                                    
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::process_manager::extension
@@ -47,11 +49,11 @@ class GradientCheck
 
    private:
     std::filesystem::path mOutputFileName;
-    unsigned int mNumberOfSteps = 12;
-    double mInitialDirectionMagnitude = 1;
-    double mStepSizeReductionFactor = 0.1;
+    unsigned int mNumberOfSteps = 1;
+    double mInitialDirectionMagnitude = 1.0;
+    double mStepSizeReductionFactor = 1.0;
     input_parser::DirectionVectorTypes mDirectionVectorType = input_parser::DirectionVectorTypes::kRandom;
-    unsigned int mSeed = 42;
+    unsigned int mSeed = 1;
 };
 
 namespace detail

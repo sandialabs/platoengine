@@ -15,7 +15,7 @@ namespace
     return {RunStage::kValidate, [](const ProcessManagerData&) {}};
 }
 
-[[maybe_unused]] static auto kTestProcessManagerRegistration =
+[[maybe_unused]] static const auto kTestProcessManagerRegistration =
     ProcessManagerRegistration{"test", [](const ValidatedProcessManagerInput& aValidInput)
                                { return make_test_process_manager_function(aValidInput); }};
 }  // namespace

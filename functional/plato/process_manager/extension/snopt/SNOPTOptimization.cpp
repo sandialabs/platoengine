@@ -37,15 +37,15 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
             { SNOPTOptimization{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static auto kSNOPTOptimizerParserRegistration =
+[[maybe_unused]] static const auto kSNOPTOptimizerParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::snopt_optimization>{};
 
-[[maybe_unused]] static auto kSNOPTOptimizerProcessManagerRegistration =
+[[maybe_unused]] static const auto kSNOPTOptimizerProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::snopt_optimization>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_snopt_optimization_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kSNOPTOptimizerValidationRegistration =
+[[maybe_unused]] static const auto kSNOPTOptimizerValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::snopt_optimization& aInput) { return detail::validate_time_limit_in_minutes(aInput); },
         [](const input_parser::snopt_optimization& aInput)

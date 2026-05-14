@@ -34,7 +34,7 @@ const auto kConfiguration = services::CriterionConfiguration{.mName = std::strin
                                                              .mFunctionName = "",
                                                              .mVectorComponents = std::nullopt};
 
-[[maybe_unused]] static auto kConstantFunctionRegistration = Registration{
+[[maybe_unused]] static const auto kConstantFunctionRegistration = Registration{
     criteria::library::builtin_criterion_registration_name(kConstantFunctionName),
     [](const criteria::library::CriterionInput&)
     { return criteria::library::FunctionWithConfiguration{make_constant_test_function(), kConfiguration}; }};

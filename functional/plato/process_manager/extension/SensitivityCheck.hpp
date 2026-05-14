@@ -20,10 +20,12 @@ struct ProcessManagerData;
 }
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), sensitivity_check,
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the sensitivity check.")
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::process_manager::extension

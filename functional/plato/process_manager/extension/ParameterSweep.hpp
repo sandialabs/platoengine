@@ -27,12 +27,14 @@ struct ProcessManagerData;
 }
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), parameter_sweep,
     (plato::input_parser::FileName, output_file_name, "Required filename specifying where to output the results.")
     (plato::input_parser::IndexAndRangeList, indices_and_ranges,"Required input specifying a comma separated list of indices and ranges."
                                                               " e.g. index 0 range [0:1:2], index 1 range [-1:1:1]  Runs variable at index 0 from 0 to 2 with a step of 1, cross the space with variable 1 going from -1 to 1 by 1.")
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::process_manager::extension
