@@ -10,6 +10,7 @@ using GeometryCrossReference = plato::input_parser::CrossReference<plato::compon
 }
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          block_with_geometry_cross_reference,
                          plato::components::ComponentType::kProcessManager,
@@ -18,6 +19,7 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          geometry_block,
                          plato::components::ComponentType::kGeometry,
                          (int, a_parameter, "help"))
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format off
 
 namespace plato::input_parser::unittest

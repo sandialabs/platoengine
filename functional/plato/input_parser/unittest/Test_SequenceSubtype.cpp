@@ -5,12 +5,14 @@
 #include "plato/test_utilities/TestContext.hpp"
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_SEQUENCE_SUBTYPE(
 (plato)(input_parser),SNLEmployee,
 (int, age)
 (bool, meets_expectations)
 (double, salary)
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_parser::unittest

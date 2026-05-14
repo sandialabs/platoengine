@@ -52,8 +52,7 @@ template <typename IteratorArray, std::size_t... kIndices>
     return partitioned_vector_to_array(tPartitionIterators, tComponentIndices);
 }
 
-[[nodiscard]] auto parsed_input_or_errors(
-    std::vector<ComponentBlockParser::ParsedDataOrError>&& aParsedComponentsOrError)
+[[nodiscard]] auto parsed_input_or_errors(std::vector<ComponentBlockParser::ParsedDataOrError> aParsedComponentsOrError)
     -> utilities::Expected<ParsedInput, std::string>
 {
     const auto tComponentHasParseError = [](const auto& aParsedComponentOrError)
@@ -64,9 +63,8 @@ template <typename IteratorArray, std::size_t... kIndices>
         auto tErrorMessages = std::vector<std::string>{};
         tErrorMessages.reserve(aParsedComponentsOrError.size());
         utilities::transform_if(
-            aParsedComponentsOrError, std::back_inserter(tErrorMessages),
-            [](const auto& aParsedComponentOrError) { return aParsedComponentOrError.error(); },
-            tComponentHasParseError);
+            aParsedComponentsOrError, std::back_inserter(tErrorMessages), [](const auto& aParsedComponentOrError)
+            { return aParsedComponentOrError.error(); }, tComponentHasParseError);
         return utilities::unexpected(utilities::concatenate_container(tErrorMessages, "\n"));
     }
 

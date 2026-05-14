@@ -6,12 +6,14 @@
 
 ///@brief Input struct with parser to read in a cartesian point from the input deck
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 BOOST_FUSION_DEFINE_STRUCT(
 (plato)(input_parser),Point,
 (double, mX)
 (double, mY)
 (double, mZ)
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_parser

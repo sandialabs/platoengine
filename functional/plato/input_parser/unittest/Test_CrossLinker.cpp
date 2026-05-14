@@ -12,6 +12,7 @@ using FilterCrossReference = plato::input_parser::CrossReference<plato::componen
 }
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          uninspired_thing,
                          plato::components::ComponentType::kGeometry,
@@ -31,6 +32,7 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          plato::components::ComponentType::kGeometry,
                          (double, a_number, "help")
                          (int, another_number, "help"))
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_parser::unittest

@@ -4,6 +4,7 @@
 #include "plato/input_parser/test_utilities/TestHelpers.hpp"
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestNamedBlock, plato::components::ComponentType::kConstraint,
     (int, field1, "help")
@@ -31,6 +32,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestFilterBlock, 
     (double, field1, "help")
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 namespace plato::input_parser::unittest
 {

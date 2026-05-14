@@ -15,9 +15,14 @@ struct CrossLinkKey
     friend auto make_cross_linked_input(input_parser::ParsedInput input)
         -> utilities::Expected<CrossLinkedInput, std::string>;
 
+    ~CrossLinkKey() = default;
+
    private:
-    CrossLinkKey() {}
-    CrossLinkKey(const CrossLinkKey&) {}
+    CrossLinkKey() = default;
+    CrossLinkKey(const CrossLinkKey&) = default;
+    CrossLinkKey(CrossLinkKey&&) = default;
+    auto operator=(const CrossLinkKey&) -> CrossLinkKey& = default;
+    auto operator=(CrossLinkKey&&) -> CrossLinkKey& = default;
 };
 
 /// @brief A class that takes @a ParsedInput and links cross references for use in validation.

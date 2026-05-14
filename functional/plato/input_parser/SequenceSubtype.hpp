@@ -22,6 +22,7 @@ constexpr inline bool kIsInputSequenceSubtype = false;
 /// @endcode
 /// This will create a BoundedVariable struct and associated parser that can parse "name TheName bounds [0,1]".
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define PLATO_INPUT_SEQUENCE_SUBTYPE(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                            \
 BOOST_FUSION_DEFINE_STRUCT(                                                                             \
     NAMESPACE_SEQ,                                                                                      \
@@ -33,6 +34,7 @@ template<>                                                                      
 constexpr inline bool kIsInputSequenceSubtype<STRUCT_NAME> = true;                                      \
 }
 
+// NOLINTEND(cppcoreguidelines-macro-usage)
 // clang-format on
 
 namespace boost::spirit::traits

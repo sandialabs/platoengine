@@ -12,6 +12,7 @@
 #include "plato/utilities/EnumTable.hpp"
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define ENUMERATE(a) BOOST_PP_TUPLE_ELEM(2, 0, a)
 #define ENUM_STRING(a) BOOST_PP_TUPLE_ELEM(2, 1, a)
 #define ENUMERATE_WITH_COMMA(r,data,a) ENUMERATE(a),
@@ -123,6 +124,7 @@ namespace ENUM_NAMESPACE                                                        
         return aStream;                                                                                         \
     }                                                                                                           \
 }
+// NOLINTEND(cppcoreguidelines-macro-usage)
 // clang-format on
 
 #endif

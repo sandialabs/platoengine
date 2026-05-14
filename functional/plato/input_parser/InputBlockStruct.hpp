@@ -54,6 +54,8 @@ void register_help_documentation();
 }  // namespace plato::input_parser
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #define OPTIONAL_TYPE(r, data, elem) boost::optional<BOOST_PP_TUPLE_ELEM(0, elem)>, BOOST_PP_TUPLE_ELEM(1, elem)
 #define PLATO_BOOST_FUSION_NAME_FIELD (std::string, name)
 #define ATTRIBUTES_WITH_NAME(ATTRIBUTES) BOOST_PP_SEQ_PUSH_FRONT(ATTRIBUTES, PLATO_BOOST_FUSION_NAME_FIELD)
@@ -163,6 +165,7 @@ struct ComponentTypeOfInputBlock<STRUCT_NAME>                                   
 };                                                                                              \
 }
 
+// NOLINTEND(cppcoreguidelines-macro-usage)
 // clang-format on
 
 #endif

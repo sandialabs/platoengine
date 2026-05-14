@@ -24,10 +24,10 @@ auto help_documentation_function_two() -> Documentation
     return {tCommand, tCommand};
 }
 
-[[maybe_unused]] static auto kNewHelpDocumentationRegistrationOne =
+[[maybe_unused]] static const auto kNewHelpDocumentationRegistrationOne =
     HelpDocumentationRegistration{"key_one", []() { return help_documentation_function_one(); }};
 
-[[maybe_unused]] static auto kNewHelpDocumentationRegistrationTwo =
+[[maybe_unused]] static const auto kNewHelpDocumentationRegistrationTwo =
     HelpDocumentationRegistration{"key_two", []() { return help_documentation_function_two(); }};
 
 }  // namespace

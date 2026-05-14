@@ -6,12 +6,14 @@
 #include "plato/input_parser/test_utilities/TestHelpers.hpp"
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestFileTypes, plato::components::ComponentType::kProcessManager,
     (plato::input_parser::FileName, file_name, "help")
     (plato::input_parser::FileList, file_list, "help")
     (plato::input_parser::IdentifierString, exodus_name, "help")
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_parser::unittest
