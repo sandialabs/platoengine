@@ -29,8 +29,8 @@ class Penalty
     }
 
    private:
-    double mXMin = 1e-3;
-    double mPower = 3.0;
+    double mXMin{};
+    double mPower{};
 };
 
 }  // namespace plato::test_utilities

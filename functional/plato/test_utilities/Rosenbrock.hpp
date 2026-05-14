@@ -23,7 +23,11 @@ class Rosenbrock
 
     [[nodiscard]] constexpr auto df(const double aX, const double aY) const -> TwoDVector
     {
-        return makeTwoDVector(-2.0 * (mA - aX) - 4.0 * mB * aX * (aY - aX * aX), 2.0 * mB * (aY - aX * aX));
+        constexpr auto tSquarePower = 2.0;
+        constexpr auto tQuarticPower = 4.0;
+
+        return makeTwoDVector(-tSquarePower * (mA - aX) - tQuarticPower * mB * aX * (aY - aX * aX),
+                              tSquarePower * mB * (aY - aX * aX));
     }
 
    private:

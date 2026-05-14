@@ -26,7 +26,7 @@ using FactoryFunction = std::function<Return(const Input&...)>;
 /// a new filter is:
 /// @code
 /// namespace{
-/// [[maybe_unused]] static auto kFilterRegistration = FilterRegistration{
+/// [[maybe_unused]] static const auto kFilterRegistration = FilterRegistration{
 ///   "filter-type", // Must match the name used in the input block
 ///    [](){ return make_filter(); // Must be a function that creates the desired filter
 /// };

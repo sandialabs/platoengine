@@ -16,7 +16,7 @@ namespace
                           [](const analysis::AnalysisDomainMesh&) { return FilterAdjointJacobian{FilterJacobian{}}; });
 }
 
-[[maybe_unused]] static auto kTestFilterRegistration =
+[[maybe_unused]] static const auto kTestFilterRegistration =
     FilterRegistration{"test", [](const ValidatedFilterInput&) { return make_test_filter_function(); }};
 }  // namespace
 

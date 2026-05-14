@@ -7,11 +7,13 @@
 
 /// @brief a LevelSetSphere is a void sphere that can be read in from the input
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_SEQUENCE_SUBTYPE(
 (plato)(input_parser),LevelSetSphere,
 (double, radius)
 (plato::input_parser::Point, center)
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_parser

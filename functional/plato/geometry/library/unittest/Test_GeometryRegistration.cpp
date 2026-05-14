@@ -22,7 +22,7 @@ namespace
         { return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{}}; }};
 }
 
-[[maybe_unused]] static auto kTestGeometryRegistration = GeometryRegistration{
+[[maybe_unused]] static const auto kTestGeometryRegistration = GeometryRegistration{
     "test", [](const ValidatedGeometryInput&)
     {
         return FactoryTypes{

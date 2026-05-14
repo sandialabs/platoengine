@@ -16,6 +16,7 @@
 #include "plato/mesh/Mesh.hpp"
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), density_topology,
     (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
@@ -29,6 +30,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato::input_parser::FileName, cut_mesh_name, "Optional field specifying the name of the exodus file to create when creating a conforming cut mesh of the density field. "
                                                     "A value of 0.5 is used as the threshold for an iso-surface. This option only works with tet and tri meshes.") 
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::geometry::extension

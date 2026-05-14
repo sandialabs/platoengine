@@ -54,10 +54,10 @@ const auto kComputeMesh = third_party_integration::cubit::ApreproVariable{"compu
 }
 
 /// Static registration for the input parser
-[[maybe_unused]] static auto kCubitGeometryParserRegistration =
+[[maybe_unused]] static const auto kCubitGeometryParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::cubit_parameterized_shape>{};
 
-[[maybe_unused]] static auto kCubitGeometryRegistration = geometry::library::GeometryRegistration{
+[[maybe_unused]] static const auto kCubitGeometryRegistration = geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::cubit_parameterized_shape>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
     {
@@ -66,7 +66,7 @@ const auto kComputeMesh = third_party_integration::cubit::ApreproVariable{"compu
                                      detail::make_cubit_output(tInput)};
     }};
 
-[[maybe_unused]] static auto kCubitGeometryValidationRegistration =
+[[maybe_unused]] static const auto kCubitGeometryValidationRegistration =
     input_validation::ValidationRegistration<input_parser::cubit_parameterized_shape>{
         [](const input_parser::cubit_parameterized_shape& aInput)
         { return detail::validate_mesh_journal_file(aInput); },

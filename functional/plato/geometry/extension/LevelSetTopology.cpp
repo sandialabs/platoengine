@@ -62,11 +62,11 @@ constexpr auto kMeshNameAccessor =
 }
 
 /// Static registration for parser
-[[maybe_unused]] static auto kLevelSetTopologyParserRegistration =
+[[maybe_unused]] static const auto kLevelSetTopologyParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::level_set_topology>{};
 
 /// Static registration for library
-[[maybe_unused]] static auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
+[[maybe_unused]] static const auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::level_set_topology>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
     {
@@ -77,7 +77,7 @@ constexpr auto kMeshNameAccessor =
     }};
 
 /// Static registration for input validation functions
-[[maybe_unused]] static auto kLevelSetTopologyValidationRegistration =
+[[maybe_unused]] static const auto kLevelSetTopologyValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::level_set_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
         [](const input_parser::level_set_topology& aInput)
@@ -326,16 +326,19 @@ auto validate_max_snapping_edge_length(const input_parser::level_set_topology& a
 
 auto validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
+    constexpr auto tSpherePatternMinimumSpacing = 1e-5;
     return validate_bounded_subinput(
-        aInput.sphere_pattern, "sphere_pattern", utilities::lower_bounded(utilities::Exclusive{1e-5}),
-        [](const auto& aSpherePattern) { return aSpherePattern.spacing; },
-        " and spacing needs to be greater than 1e-5.");
+        aInput.sphere_pattern, "sphere_pattern",
+        utilities::lower_bounded(utilities::Exclusive{tSpherePatternMinimumSpacing}), [](const auto& aSpherePattern)
+        { return aSpherePattern.spacing; }, " and spacing needs to be greater than 1e-5.");
 }
 
 auto validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
+    constexpr auto tSpherePatternMinimumRadius = 1e-5;
     return validate_bounded_subinput(
-        aInput.sphere_pattern, "sphere_pattern", utilities::lower_bounded(utilities::Exclusive{1e-5}),
+        aInput.sphere_pattern, "sphere_pattern",
+        utilities::lower_bounded(utilities::Exclusive{tSpherePatternMinimumRadius}),
         [](const auto& aSpherePattern) { return aSpherePattern.radius; }, " and radius needs to be greater than 1e-5.");
 }
 
@@ -384,8 +387,9 @@ auto validate_mesh_is_tet_or_tri(const input_parser::level_set_topology& aInput)
 auto validate_sphere_pattern_spacing_greater_than_twice_radius(const input_parser::level_set_topology& aInput)
     -> std::optional<std::string>
 {
+    constexpr auto tRadiusToDiameter = 2.0;
     if (aInput.sphere_pattern.has_value() &&
-        aInput.sphere_pattern.value().spacing < aInput.sphere_pattern.value().radius * 2.0)
+        aInput.sphere_pattern.value().spacing < aInput.sphere_pattern.value().radius * tRadiusToDiameter)
     {
         return utilities::concatenate(input_parser::block_name<input_parser::level_set_topology>(),
                                       " 'sphere_pattern' contains a spacing that is less than twice the radius.");

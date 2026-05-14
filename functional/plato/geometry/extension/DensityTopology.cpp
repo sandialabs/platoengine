@@ -69,11 +69,11 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
 }
 
 /// Static registration for the input parser
-[[maybe_unused]] static auto kDensityTopologyParserRegistration =
+[[maybe_unused]] static const auto kDensityTopologyParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::density_topology>{};
 
 /// Static registration for library
-[[maybe_unused]] static auto kDensityTopologyRegistration = plato::geometry::library::GeometryRegistration{
+[[maybe_unused]] static const auto kDensityTopologyRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::density_topology>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
     {
@@ -83,7 +83,7 @@ constexpr auto kMeshNameAccessor = [](const input_parser::density_topology& aInp
     }};
 
 /// Static registration for validation functions
-[[maybe_unused]] static auto kDensityTopologyInputValidationRegistration =
+[[maybe_unused]] static const auto kDensityTopologyInputValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::density_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
         [](const input_parser::density_topology& aInput)

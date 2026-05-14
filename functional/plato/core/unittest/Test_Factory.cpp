@@ -20,15 +20,13 @@ struct TestFactoryObject
 using TestFactoryInput = std::string;
 using TestFactoryRegistration = FactoryRegistration<TestFactoryObject, TestFactoryInput>;
 
-[[maybe_unused]] static auto kFactoryTestRegistrationONegative =
-    TestFactoryRegistration{std::string{kONegative}, [](const std::string& aName) {
-                                return TestFactoryObject{std::string{kONegative}, aName};
-                            }};
+[[maybe_unused]] static const auto kFactoryTestRegistrationONegative =
+    TestFactoryRegistration{std::string{kONegative},
+                            [](const std::string& aName) { return TestFactoryObject{std::string{kONegative}, aName}; }};
 
-[[maybe_unused]] static auto kFactoryTestRegistrationBPositive =
-    TestFactoryRegistration{std::string{kBPositive}, [](const std::string& aName) {
-                                return TestFactoryObject{std::string{kBPositive}, aName};
-                            }};
+[[maybe_unused]] static const auto kFactoryTestRegistrationBPositive =
+    TestFactoryRegistration{std::string{kBPositive},
+                            [](const std::string& aName) { return TestFactoryObject{std::string{kBPositive}, aName}; }};
 
 struct TestFactoryObjectForMultipleArgs
 {
@@ -40,10 +38,9 @@ struct TestFactoryObjectForMultipleArgs
 using TestFactoryInputSecondArg = int;
 using TestFactoryRegistrationMultipleArgs =
     FactoryRegistration<TestFactoryObjectForMultipleArgs, TestFactoryInput, TestFactoryInputSecondArg>;
-[[maybe_unused]] static auto kFactoryTestRegistrationMultipleArgs = TestFactoryRegistrationMultipleArgs{
-    std::string{kBPositive}, [](const std::string& aName, const int& aNumber) {
-        return TestFactoryObjectForMultipleArgs{std::string{kBPositive}, aName, aNumber};
-    }};
+[[maybe_unused]] static const auto kFactoryTestRegistrationMultipleArgs = TestFactoryRegistrationMultipleArgs{
+    std::string{kBPositive}, [](const std::string& aName, const int& aNumber)
+    { return TestFactoryObjectForMultipleArgs{std::string{kBPositive}, aName, aNumber}; }};
 
 }  // namespace
 

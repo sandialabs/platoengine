@@ -135,12 +135,8 @@ TEST(BrickSensitivities, JacobianEvaluator)
 
 TEST(Brick, ABrick)
 {
-    constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
-                                               /*.center_y = */ -2,
-                                               /*.center_z = */ -3,
-                                               /*.dimension_x = */ 2,
-                                               /*.dimension_y = */ 4,
-                                               /*.dimension_z = */ 6};
+    constexpr BrickDesign tDesignParameters = {
+        .center_x = 1, .center_y = -2, .center_z = -3, .dimension_x = 2, .dimension_y = 4, .dimension_z = 6};
 
     constexpr double tDiscretizationSize = 1.0;
     auto tUniqueFileName = std::filesystem::path{kBrickFileName};
@@ -238,6 +234,48 @@ TEST(Brick, AdjointJacobian)
             EXPECT_EQ(tAdjointColumn[tAdjointRowIndex], tJacobianAsDenseMatrix[tAdjointRowIndex][tAdjointColumnIndex])
                 << "Adjoint row: " << tAdjointRowIndex << ", col: " << tAdjointColumnIndex;
         }
+    }
+}
+
+TEST(Brick, FileName)
+{
+    const auto tFileName = std::filesystem::path{kBrickFileName};
+    const auto tBrick = BrickShapeGeometry{kBrickFileName};
+    EXPECT_TRUE(tBrick.file_name().filename().string().starts_with(tFileName.stem().string()));
+}
+
+TEST(Brick, CopyCtors)
+{
+    const auto tBrick = BrickShapeGeometry{kBrickFileName};
+    {
+        const auto tBrickCopy = BrickShapeGeometry{tBrick};
+        EXPECT_NE(tBrick.file_name(), tBrickCopy.file_name()) << "Copy ctor";
+    }
+    {
+        auto tBrickCopy = BrickShapeGeometry{kBrickFileName};
+        tBrickCopy = tBrick;
+        EXPECT_NE(tBrick.file_name(), tBrickCopy.file_name()) << "Copy assignment";
+    }
+}
+
+TEST(Brick, MoveCtors)
+{
+    const auto tFileName = std::filesystem::path{kBrickFileName};
+    {
+        auto tBrick = BrickShapeGeometry{kBrickFileName};
+        const auto tBrickCopy = BrickShapeGeometry{std::move(tBrick)};
+
+        EXPECT_TRUE(tBrickCopy.file_name().filename().string().starts_with(tFileName.stem().string())) << "Move ctor";
+        EXPECT_TRUE(tBrick.file_name().empty());
+    }
+    {
+        auto tBrick = BrickShapeGeometry{kBrickFileName};
+        auto tBrickCopy = BrickShapeGeometry{tFileName};
+        tBrickCopy = std::move(tBrick);
+
+        EXPECT_TRUE(tBrickCopy.file_name().filename().string().starts_with(tFileName.stem().string()))
+            << "Move assignment";
+        EXPECT_TRUE(tBrick.file_name().empty());
     }
 }
 

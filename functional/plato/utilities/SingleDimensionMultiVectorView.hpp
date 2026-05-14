@@ -115,7 +115,7 @@ SingleDimensionMultiVectorView<Container>::SingleDimensionMultiVectorView(MultiV
 template <MultiVectorViewContainer Container>
 SingleDimensionMultiVectorView<Container>::Iterator::Iterator(MultiVectorView<Container> aMultiVectorView,
                                                               const std::size_t aDimension)
-    : mMultiVectorView{std::move(aMultiVectorView)}, mDimension{aDimension}, mCurrent{0U}
+    : mMultiVectorView{std::move(aMultiVectorView)}, mDimension{aDimension}
 {
 }
 

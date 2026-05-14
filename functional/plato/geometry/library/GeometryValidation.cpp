@@ -5,8 +5,9 @@
 
 namespace plato::geometry::library
 {
-[[maybe_unused]] static auto kGeometryValidationRegistration = input_validation::ParsedInputValidationRegistration<>{
-    [](const input_parser::ParsedInput& aInput) { return detail::validate_only_one_geometry(aInput); }};
+[[maybe_unused]] static const auto kGeometryValidationRegistration =
+    input_validation::ParsedInputValidationRegistration<>{[](const input_parser::ParsedInput& aInput)
+                                                          { return detail::validate_only_one_geometry(aInput); }};
 
 namespace detail
 {

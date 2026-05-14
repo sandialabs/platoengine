@@ -25,7 +25,7 @@ const auto kTestConfiguration = services::CriterionConfiguration{.mName = std::s
                                                                  .mFunctionName = "",
                                                                  .mVectorComponents = std::nullopt};
 
-[[maybe_unused]] static auto kTestCriterionRegistration =
+[[maybe_unused]] static const auto kTestCriterionRegistration =
     plato::criteria::library::CriterionRegistration<library::Parallelization::kSerial,
                                                     library::FunctionDimension::kScalar>{
         std::string{kTestCriterionName}, [](const plato::criteria::library::CriterionInput&)

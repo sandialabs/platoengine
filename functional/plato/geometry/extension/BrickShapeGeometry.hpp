@@ -10,13 +10,14 @@
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
-#include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser),
     brick_shape_geometry,
     (plato::input_parser::FileName, mesh_name, "Required field specifying the exodus mesh file name to which the the brick mesh output is written."))
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::geometry::extension
@@ -54,12 +55,21 @@ class BrickShapeGeometry
 
     ~BrickShapeGeometry();
 
+    BrickShapeGeometry(const BrickShapeGeometry& aBrickShapeGeometry);
+    BrickShapeGeometry(BrickShapeGeometry&& aBrickShapeGeometry) noexcept;
+    auto operator=(const BrickShapeGeometry& aBrickShapeGeometry) -> BrickShapeGeometry&;
+    auto operator=(BrickShapeGeometry&& aBrickShapeGeometry) noexcept -> BrickShapeGeometry&;
+
     [[nodiscard]] auto generateMesh(const BrickDesign& aDesignParameters) const -> analysis::AnalysisDomainMesh;
 
     [[nodiscard]] auto jacobian(const BrickDesign& aDesignParameters) const -> linear_algebra::JacobianColumnEvaluator;
 
     [[nodiscard]] auto adjointJacobian(const BrickDesign& aDesignParameters) const
         -> linear_algebra::JacobianColumnEvaluator;
+
+    /// @brief Returns the file name at which that this object will write its mesh.
+    /// @note This is different than the file passed on construction, it will have a unique string appended.
+    [[nodiscard]] auto file_name() const -> const std::filesystem::path&;
 
     [[nodiscard]] static auto initialGuess() -> linear_algebra::DynamicVector<double>;
 

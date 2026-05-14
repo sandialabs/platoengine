@@ -22,9 +22,10 @@ void generate_cut_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     third_party_integration::krino::set_stk_communicator_for_krino(
         boost::mpi::communicator{aCommunicator, boost::mpi::comm_attach});
     namespace tpik = third_party_integration::krino;
-    make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, mesh::fixed_blocks(aInput),
-                                                 tpik::VoidPhase::kExcludeFromMesh,
-                                                 tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.5})
+    constexpr auto tSnappingEdgeLengthForOutput = 0.5;
+    make_krino_wrapper_from_analysis_domain_mesh(
+        aAnalysisDomainMesh, mesh::fixed_blocks(aInput), tpik::VoidPhase::kExcludeFromMesh,
+        tpik::SnappingParameters{.mMaxSnappingEdgeLength = tSnappingEdgeLengthForOutput})
         .writeCutMesh(aInput.cut_mesh_name.value().mToken);
 }
 
