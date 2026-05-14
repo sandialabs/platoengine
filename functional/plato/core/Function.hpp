@@ -102,7 +102,8 @@ constexpr inline auto kIsFunction<Function<DomainType, Info...>> = bool{true};
 
 template <typename Domain, typename... Info>
 template <typename... Functions, typename>
-Function<Domain, Info...>::Function(Functions&&... aFunctions) : mFunctions{std::forward_as_tuple(aFunctions...)}
+Function<Domain, Info...>::Function(Functions&&... aFunctions)
+    : mFunctions{std::forward_as_tuple(std::forward<Functions>(aFunctions)...)}
 {
     static_assert(sizeof...(Functions) == std::tuple_size_v<FunctionTuple>,
                   "Mismatch in number of functions passed to Function constructor.");
