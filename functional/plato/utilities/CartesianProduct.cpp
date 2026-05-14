@@ -14,7 +14,7 @@ auto CartesianProduct::begin() const -> CartesianProductIterator { return Cartes
 auto CartesianProduct::end() const -> CartesianProductIterator { return CartesianProductIterator::end(mMaxSizes); }
 
 CartesianProductIterator::CartesianProductIterator(std::vector<std::size_t> aSizes)
-    : mMaxSizes(std::move(aSizes)), mCurrentState(mMaxSizes.size(), 0), mCurrentLinearIndex(0)
+    : mMaxSizes(std::move(aSizes)), mCurrentState(mMaxSizes.size(), 0)
 {
 }
 

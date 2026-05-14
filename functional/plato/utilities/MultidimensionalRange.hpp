@@ -107,13 +107,13 @@ constexpr bool allOf(const Tuple& t1, const Tuple& t2, const BinaryOp& op)
 
 template <typename... Ts>
 constexpr MultidimensionalIterator<Ts...>::MultidimensionalIterator(const std::tuple<Ts...> dimensions)
-    : mCounts{}, mDimensions{dimensions}
+    : mDimensions{dimensions}
 {
 }
 
 template <typename... Ts>
 constexpr MultidimensionalIterator<Ts...>::MultidimensionalIterator(EndTag, const std::tuple<Ts...> dimensions)
-    : mCounts{}, mDimensions{dimensions}
+    : mDimensions{dimensions}
 {
     std::get<0>(mCounts) = std::get<0>(mDimensions);
 }

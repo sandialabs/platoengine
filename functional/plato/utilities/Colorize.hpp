@@ -4,7 +4,6 @@
 #include <concepts>
 #include <cstdint>
 #include <ostream>
-#include <string_view>
 
 namespace plato::utilities
 {
@@ -42,9 +41,7 @@ namespace detail
 /// @brief Concept for the policy that will be checked to determine if color output should be used.
 template <typename F>
 concept UseColorPolicy = requires(F aF, const std::ostream& aStream) {
-    {
-        aF(aStream)
-    } -> std::convertible_to<bool>;
+    { aF(aStream) } -> std::convertible_to<bool>;
 };
 
 /// @brief The default policy to use for Colorize and colorize, checks @a aStream with `isatty`.
@@ -63,7 +60,7 @@ concept Streamable = requires(const T& aT, std::ostream& aStream) { aStream << a
 template <Streamable T, detail::UseColorPolicy ColorPolicy = detail::DefaultColorPolicy>
 struct Colorize
 {
-    const T& mObjectToStream;
+    std::reference_wrapper<const T> mObjectToStream;
     TextColor mTextColor;
 };
 
@@ -80,12 +77,12 @@ auto operator<<(std::ostream& aStream, Colorize<T, ColorPolicy> aColorizedText) 
 {
     if (ColorPolicy{}(aStream))
     {
-        aStream << color_code(aColorizedText.mTextColor) << aColorizedText.mObjectToStream
+        aStream << color_code(aColorizedText.mTextColor) << aColorizedText.mObjectToStream.get()
                 << color_code(TextColor::kDefault);
     }
     else
     {
-        aStream << aColorizedText.mObjectToStream;
+        aStream << aColorizedText.mObjectToStream.get();
     }
     return aStream;
 }

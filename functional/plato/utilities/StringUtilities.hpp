@@ -4,7 +4,6 @@
 #include <numeric>
 #include <string>
 #include <string_view>
-#include <vector>
 
 namespace plato::utilities
 {
@@ -23,7 +22,7 @@ namespace detail
 template <typename T>
 [[nodiscard]] decltype(auto) convert_to_string(T&& t)
 {
-    using DecayedT = std::decay_t<T>;
+    using DecayedT = std::remove_cvref_t<T>;
     if constexpr (std::is_arithmetic_v<DecayedT> && !std::is_same_v<char, DecayedT>)
     {
         return std::to_string(t);
@@ -31,6 +30,10 @@ template <typename T>
     else if constexpr (std::is_same_v<DecayedT, std::string>)
     {
         return std::forward<T>(t);
+    }
+    else if constexpr (std::is_array_v<DecayedT> && std::is_same_v<char, std::remove_extent_t<DecayedT>>)
+    {
+        return std::string(std::data(t));
     }
     else
     {

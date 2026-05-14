@@ -316,14 +316,14 @@ TEST(Zip, NoCopiesForLValues)
     EXPECT_EQ(tCopyCount, 0);
 }
 
-TEST(Zip, CopiesForRValues)
+TEST(Zip, NoCopiesForPRValues)
 {
     auto tCopyCount = unsigned{0u};
     for (const auto [tValue1] : Zip{std::vector<test_utilities::CopyCounter>(3)})
     {
         tCopyCount += tValue1.mCopies;
     }
-    EXPECT_EQ(tCopyCount, 3);
+    EXPECT_EQ(tCopyCount, 0);
 }
 
 }  // namespace plato::utilities::unittest
