@@ -1,6 +1,5 @@
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 
-#include <numeric>
 #include <algorithm>
 
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
@@ -15,14 +14,14 @@ struct ScalarFieldValueFromMesh
 };
 
 template <>
-struct ScalarFieldValueFromMesh<AnalysisDomainMesh&>
+struct ScalarFieldValueFromMesh<AnalysisDomainMesh>
 {
     using type = AnalysisDomainMesh::ScalarFieldVector::value_type;
     using iterator = AnalysisDomainMesh::ScalarFieldVector::iterator;
 };
 
 template <>
-struct ScalarFieldValueFromMesh<const AnalysisDomainMesh&>
+struct ScalarFieldValueFromMesh<const AnalysisDomainMesh>
 {
     using type = const AnalysisDomainMesh::ScalarFieldVector::value_type;
     using iterator = AnalysisDomainMesh::ScalarFieldVector::const_iterator;
@@ -34,11 +33,10 @@ using SharedProxyType = SharedValueProxy<ScalarFieldValue,
                                          typename AnalysisDomainMeshMutableRandomAccessView::AssignDensity>;
 
 template <typename AnalysisDomainMeshVectorType>
-auto vector_element_with_global_index(AnalysisDomainMeshVectorType&& aScalarField,
+auto vector_element_with_global_index(AnalysisDomainMeshVectorType& aScalarField,
                                       const ScalarFieldValue::IndexType aIndex)
 {
-    assert(std::is_sorted(aScalarField.begin(), aScalarField.end(),
-                          [](const auto& aEntryLeft, const auto& aEntryRight)
+    assert(std::is_sorted(aScalarField.begin(), aScalarField.end(), [](const auto& aEntryLeft, const auto& aEntryRight)
                           { return aEntryLeft.mGlobalMeshEntityID < aEntryRight.mGlobalMeshEntityID; }));
 
     const auto tEntryToFind = ScalarFieldValue{aIndex, 0, 0.0};
@@ -59,7 +57,7 @@ auto analysis_domain_mesh_size(const AnalysisDomainMesh& aAnalysisDomainMesh) ->
 }
 
 template <typename AnalysisDomainMeshType>
-auto mesh_element_with_global_index(AnalysisDomainMeshType&& aAnalysisDomainMesh,
+auto mesh_element_with_global_index(AnalysisDomainMeshType& aAnalysisDomainMesh,
                                     const ScalarFieldValue::IndexType aIndex)
 {
     auto tSharedValueProxy = SharedProxyType<AnalysisDomainMeshType>{};

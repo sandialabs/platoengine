@@ -30,14 +30,15 @@ struct SharedValueProxy
     ///
     /// Disabled for const objects.
     template <typename Iterator = InnerIteratorType>
-    auto operator=(const Value& aValue) -> std::enable_if_t<!kIsConstIterator<Iterator>, SharedValueProxy&>;
+        requires(!kIsConstIterator<Iterator>)
+    auto operator=(const Value& aValue) -> SharedValueProxy&;
 
     /// @brief Overloaded assignment operator that uses the AssignmentPolicy
     ///
     /// This can be used to assign to a member of a struct without having to unwrap the proxy object.
     template <typename Arg, typename Iterator = InnerIteratorType>
-    auto operator=(Arg&& aValue)
-        -> std::enable_if_t<!kIsConstIterator<Iterator> && !std::is_same_v<AssignmentPolicy, void>, SharedValueProxy&>;
+        requires(!kIsConstIterator<Iterator> && !std::is_same_v<AssignmentPolicy, void>)
+    auto operator=(Arg&& aValue) -> SharedValueProxy&;
 
     /// @brief Conversion to a Value, the object that this proxy object represents.
     /// @pre This object must hold valid iterators.
@@ -51,8 +52,8 @@ struct SharedValueProxy
 
 template <typename Value, typename InnerIteratorType, typename AssignmentPolicy>
 template <typename Iterator>
-auto SharedValueProxy<Value, InnerIteratorType, AssignmentPolicy>::operator=(const Value& aValue)
-    -> std::enable_if_t<!kIsConstIterator<Iterator>, SharedValueProxy&>
+    requires(!kIsConstIterator<Iterator>)
+auto SharedValueProxy<Value, InnerIteratorType, AssignmentPolicy>::operator=(const Value& aValue) -> SharedValueProxy&
 {
     for (auto& tValue : mIterators)
     {
@@ -63,15 +64,15 @@ auto SharedValueProxy<Value, InnerIteratorType, AssignmentPolicy>::operator=(con
 
 template <typename Value, typename InnerIteratorType, typename AssignmentPolicy>
 template <typename Arg, typename Iterator>
-auto SharedValueProxy<Value, InnerIteratorType, AssignmentPolicy>::operator=(Arg&& aValue)
-    -> std::enable_if_t<!kIsConstIterator<Iterator> && !std::is_same_v<AssignmentPolicy, void>, SharedValueProxy&>
+    requires(!kIsConstIterator<Iterator> && !std::is_same_v<AssignmentPolicy, void>)
+auto SharedValueProxy<Value, InnerIteratorType, AssignmentPolicy>::operator=(Arg&& aValue) -> SharedValueProxy&
 {
     static_assert(std::is_convertible_v<Arg, typename utilities::FunctionArgType<AssignmentPolicy>::template arg<1U>>);
 
     auto tAssignmentFunction = AssignmentPolicy{};
     for (auto& tValue : mIterators)
     {
-        tAssignmentFunction(*tValue, aValue);
+        tAssignmentFunction(*tValue, std::forward<Arg>(aValue));
     }
     return *this;
 }
