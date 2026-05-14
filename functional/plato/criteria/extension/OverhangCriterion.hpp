@@ -8,10 +8,10 @@
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
-#include "plato/third_party_integration/krino/Utilities.hpp"
 
 ///@brief Input struct with parser to read in overhang constraint parameters
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 BOOST_FUSION_DEFINE_STRUCT(
 (plato)(input_parser),overhang_criterion,
 (boost::optional<plato::input_parser::Point>, build_direction)
@@ -19,6 +19,7 @@ BOOST_FUSION_DEFINE_STRUCT(
 (boost::optional<double>, transition_width)
 (boost::optional<plato::input_parser::FileList>, additional_evaluation_sidesets)
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::criteria::extension
@@ -37,12 +38,12 @@ struct OverhangCriterion
     [[nodiscard]] linear_algebra::DynamicVector<double> df(
         const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
 
-    double mTransitionWidth;
+    double mTransitionWidth{};
     third_party_integration::common::Vector3 mBuildDirection;
-    double mOverhangAngleThreshold;
-    std::vector<std::string> mEvaluationSidesets;
-    components::ComponentType mComponentType;
-    std::string mName;
+    double mOverhangAngleThreshold{};
+    std::vector<std::string> mEvaluationSidesets{};
+    components::ComponentType mComponentType = components::ComponentType::kConstraint;
+    std::string mName{};
 
     static constexpr auto kCriterionName = std::string_view{"overhang"};
 };

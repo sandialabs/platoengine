@@ -13,6 +13,7 @@ DECLARE_ENUM_AND_ENUM_SYMBOL_TABLE(ObjectiveGoal,
                                   (kMinimizeNegation, "minimize-negation")
                                   (kMinimizeReciprocal, "minimize-reciprocal"))
 
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), objective, plato::components::ComponentType::kObjective,
     (bool, active, "Optional field to de/activate this objective.")
@@ -27,6 +28,7 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
                                                               "Default is 'minimize'. Choosing 'minimize-negation' will maximize the objective by minimizing its negation. " 
                                                               "Choosing 'minimize-reciprocal' will maximize the objective by minimizing its reciprocal.")
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format off
 
 #endif

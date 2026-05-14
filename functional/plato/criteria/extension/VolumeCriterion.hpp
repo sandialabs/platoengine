@@ -10,11 +10,13 @@
 
 ///@brief Input struct for specifying blocks over which volume should be computed
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 BOOST_FUSION_DEFINE_STRUCT(
 (plato)(input_parser),volume_criterion,
 (boost::optional<bool>, ignore_void_blocks)
 (boost::optional<double>, reference_volume)
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::criteria::extension
@@ -32,7 +34,7 @@ struct VolumeCriterion
     static constexpr auto kVolumeFractionCriterionName = std::string_view{"volume_fraction"};
 
     double mScaleFactor = 1;
-    bool mIgnoreVoidBlocks;
+    bool mIgnoreVoidBlocks = true;
 };
 
 /// @brief Creates a Function object from a VolumeCriterion

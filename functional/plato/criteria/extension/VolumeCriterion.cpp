@@ -95,7 +95,7 @@ using Registration =
 const auto kVolumeConfiguration = services::CriterionConfiguration{
     .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
 
-[[maybe_unused]] static auto kVolumeConstraintRegistration = Registration{
+[[maybe_unused]] static const auto kVolumeConstraintRegistration = Registration{
     library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
     [](const library::CriterionInput& aCriterionInput)
     {
@@ -108,7 +108,7 @@ const auto kVolumeConfiguration = services::CriterionConfiguration{
 const auto kVolumeFractionConfiguration = services::CriterionConfiguration{
     .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
 
-[[maybe_unused]] static auto kVolumeFractionConstraintRegistration = Registration{
+[[maybe_unused]] static const auto kVolumeFractionConstraintRegistration = Registration{
     library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
     [](const library::CriterionInput& aCriterionInput)
     {

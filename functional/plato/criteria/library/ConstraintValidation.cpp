@@ -74,7 +74,10 @@ const auto kBindWithPluginDirectory = [](const auto& aValidationFunction,
 {
     return std::accumulate(aComponentIndexToName.begin(), aComponentIndexToName.end(), std::string{},
                            [](std::string&& aAllComponents, const auto& aComponentIndexAndName)
-                           { return aAllComponents += aComponentIndexAndName.second + "\n"; });
+                           {
+                               aAllComponents += aComponentIndexAndName.second + "\n";
+                               return std::move(aAllComponents);
+                           });
 }
 
 }  // namespace

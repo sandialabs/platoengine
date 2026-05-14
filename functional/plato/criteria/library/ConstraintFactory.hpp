@@ -53,7 +53,7 @@ struct VectorConstraint
     std::string mName;
     ConstraintFunction mConstraintFunction;
     bool mLinear = false;
-    ConstraintType mConstraintType;
+    ConstraintType mConstraintType = ConstraintType::kEqualTo;
 };
 
 /// @brief Factory to create Constraint objects from input data.

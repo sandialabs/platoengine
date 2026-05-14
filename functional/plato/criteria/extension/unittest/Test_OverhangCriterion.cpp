@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <format>
+#include <fstream>
 #include <numeric>
 #include <ranges>
 

@@ -21,13 +21,14 @@ auto create_valid_example_constraint_input() -> input_parser::constraint
 
 [[nodiscard]] auto create_valid_example_objective_input() -> input_parser::objective
 {
+    constexpr auto tArbitraryAggregationWeight = 13.0;
     return input_parser::objective{/*.name=*/std::string{"bike-shed"},
                                    /*.active=*/true,
                                    /*.app=*/input_parser::AppName{std::string{input_parser::kBuiltinAppName}},
                                    /*.criterion=*/input_parser::CriterionName{"nodal_sum"},
-                                   /*.number_of_processors=*/1u,
+                                   /*.number_of_processors=*/1U,
                                    /*.input_files=*/boost::none,
-                                   /*.aggregation_weight=*/13.0,
+                                   /*.aggregation_weight=*/tArbitraryAggregationWeight,
                                    /*.normalize_by_initial_value=*/false,
                                    /*.objective_goal=*/boost::none};
 }

@@ -2,6 +2,7 @@
 
 #include <boost/spirit/include/qi.hpp>
 #include <filesystem>
+#include <fstream>
 #include <numbers>
 #include <numeric>
 #include <vector>
@@ -36,13 +37,19 @@ using Registration =
 const auto kConfiguration = services::CriterionConfiguration{
     .mName = std::string{OverhangCriterion::kCriterionName}, .mIsParallelized = false, .mIsScalar = true};
 
-[[maybe_unused]] static auto kOverhangRegistration =
+[[maybe_unused]] static const auto kOverhangRegistration =
     Registration{library::builtin_criterion_registration_name(OverhangCriterion::kCriterionName),
                  [](const library::CriterionInput& aCriterionInput)
                  {
                      return library::FunctionWithConfiguration{.mFunction = make_overhang_function(aCriterionInput),
                                                                .mConfiguration = kConfiguration};
                  }};
+
+[[nodiscard]] constexpr auto degrees_to_radians(const double aAngleInRadians) -> double
+{
+    constexpr auto tDegreesPerHalfCircle = 180.0;
+    return aAngleInRadians * std::numbers::pi / tDegreesPerHalfCircle;
+}
 }  // namespace
 
 double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
@@ -157,7 +164,7 @@ using namespace plato::third_party_integration::krino;
 
 [[nodiscard]] double convert_angle_to_threshold_value(const double aAngle)
 {
-    return -std::cos(aAngle * std::numbers::pi / 180.0);
+    return -std::cos(degrees_to_radians(aAngle));
 }
 
 [[nodiscard]] auto triangles_to_evaluate_over(const std::string& aMeshFileName,
@@ -325,12 +332,12 @@ TriangleGradient get_gradient_contribution_for_triangle(const SensitivityTriangl
     {
         const Sensitivity tNormalSensitivity{
             third_party_integration::common::dot(tScaledBuildDir,
-                                                 tNormalSensitivities[tNodeIndex][kDNormalDNodeXCoord]),
+                                                 tNormalSensitivities.at(tNodeIndex)[kDNormalDNodeXCoord]),
             third_party_integration::common::dot(tScaledBuildDir,
-                                                 tNormalSensitivities[tNodeIndex][kDNormalDNodeYCoord]),
+                                                 tNormalSensitivities.at(tNodeIndex)[kDNormalDNodeYCoord]),
             third_party_integration::common::dot(tScaledBuildDir,
-                                                 tNormalSensitivities[tNodeIndex][kDNormalDNodeZCoord])};
-        tGradient[tNodeIndex].second += (tAreaSensitivities[tNodeIndex] * tOverhang + tNormalSensitivity);
+                                                 tNormalSensitivities.at(tNodeIndex)[kDNormalDNodeZCoord])};
+        tGradient.at(tNodeIndex).second += (tAreaSensitivities.at(tNodeIndex) * tOverhang + tNormalSensitivity);
     }
     return tGradient;
 }
