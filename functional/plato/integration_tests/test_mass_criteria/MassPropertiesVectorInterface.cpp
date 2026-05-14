@@ -7,11 +7,12 @@ namespace plato::integration_tests::test_mass_criteria
 namespace
 {
 constexpr auto kCriterionDimension = 4U;
+const auto kArbitraryMassProperties = std::vector{0.0, 1.0, 2.0, 3.0};
 }
 
 auto MassPropertiesInterface::value(const analysis::AnalysisDomainMesh&) const -> std::vector<double>
 {
-    return {0.0, 1.0, 2.0, 3.0};
+    return kArbitraryMassProperties;
 }
 
 auto MassPropertiesInterface::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,

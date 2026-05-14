@@ -36,7 +36,7 @@ const auto kConfiguration = services::CriterionConfiguration{.mName = std::strin
                                                              .mFunctionName = "",
                                                              .mVectorComponents = std::nullopt};
 
-[[maybe_unused]] static auto kNodalSumRegistration =
+[[maybe_unused]] static const auto kNodalSumRegistration =
     Registration{criteria::library::builtin_criterion_registration_name(kLinearFunctionName),
                  [](const criteria::library::CriterionInput&)
                  { return criteria::library::FunctionWithConfiguration{make_linear_test_function(), kConfiguration}; }};

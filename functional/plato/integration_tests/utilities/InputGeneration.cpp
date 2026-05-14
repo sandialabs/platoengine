@@ -12,7 +12,8 @@ namespace
 {
 [[nodiscard]] auto create_valid_element_centered_kernel_filter() -> input_parser::kernel_filter
 {
-    return input_parser::kernel_filter{/*.filter_radius=*/2.0,
+    constexpr auto tArbitraryFilterRadius = 2.0;
+    return input_parser::kernel_filter{/*.filter_radius=*/tArbitraryFilterRadius,
                                        /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kElementCentered,
                                        /*.use_relative_radius=*/false,
                                        /*.number_of_processors*/ 1U};

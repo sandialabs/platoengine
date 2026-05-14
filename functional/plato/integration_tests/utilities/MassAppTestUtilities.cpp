@@ -131,7 +131,8 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
     tConstraint.criterion = aConstraintName;
     tConstraint.name = "test_2";
     tConstraint.constraint_type = input_parser::ConstraintTypes::kGreaterThan;
-    tConstraint.constraint_value = 0.7;
+    constexpr auto tArbitraryConstraintValue = 0.7;
+    tConstraint.constraint_value = tArbitraryConstraintValue;
 
     const auto tObjectiveName = input_parser::CriterionName{"mass"};
     const auto tObjective = create_mass_objective(aMassAppName, tObjectiveName, 1U);

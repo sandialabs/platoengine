@@ -47,16 +47,15 @@ TEST(ParallelKrino, NodalSumObjectivesRegression)
     const auto tFunction = core::compose(tProcessManagerData.mObjective, tProcessManagerData.mGeometry.mCompute);
 
     const auto tInitialGuess = tProcessManagerData.mGeometry.mInitialGuess;
-    const auto tDesignVariables = tInitialGuess;
 
     // Regression values were computed on a single processor.
     // This checks the parallel consistency and can be run on any number of ranks.
-    const auto tObjective = tFunction.evaluate<core::evaluation::kFunction>(tDesignVariables);
+    const auto tObjective = tFunction.evaluate<core::evaluation::kFunction>(tInitialGuess);
     constexpr auto tExpectedNodalSum = -2.6252168254382302;
     constexpr auto tTolerance = 1e-14;
     EXPECT_NEAR(tObjective, tExpectedNodalSum, tTolerance);
 
-    const auto tGradient = tFunction.evaluate<core::evaluation::kFirstDerivative>(tDesignVariables);
+    const auto tGradient = tFunction.evaluate<core::evaluation::kFirstDerivative>(tInitialGuess);
     const auto tOnes = linear_algebra::DynamicVector<double>(std::vector<double>(tInitialGuess.size(), 1.0));
     constexpr auto tExpectedGradientSum = -15.7396954226510886;
     EXPECT_NEAR(tGradient.dot(tOnes), tExpectedGradientSum, tTolerance);
