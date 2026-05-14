@@ -30,23 +30,23 @@ library::FilterParameters to_filter_parameters(const input_parser::helmholtz_fil
 }
 
 // Static registration of input parser
-[[maybe_unused]] static auto kHelmholtzFilterParserRegistration =
+[[maybe_unused]] static const auto kHelmholtzFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::helmholtz_filter>{};
 
-[[maybe_unused]] static auto kHelmholtzFilterRegistration = library::FilterRegistration{
+[[maybe_unused]] static const auto kHelmholtzFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::helmholtz_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::helmholtz_filter>(aInput);
         return library::make_filter_function_from_cache([&tInput]() { return detail::create_filter_cache(tInput); });
     }};
 
-[[maybe_unused]] static auto kHelmholtzFilterValidationRegistration =
+[[maybe_unused]] static const auto kHelmholtzFilterValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::helmholtz_filter& aInput) { return detail::validate_filter_radius_bounds(aInput); },
         [](const input_parser::helmholtz_filter& aInput)
         { return validate_helmholtz_filter_boundary_sticking_penalty(aInput); }};
 
-[[maybe_unused]] static auto kHelmholtzFilterMeshBasedValidationRegistration =
+[[maybe_unused]] static const auto kHelmholtzFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::helmholtz_filter& aInput, const std::filesystem::path& aMeshPath)
         { return detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};

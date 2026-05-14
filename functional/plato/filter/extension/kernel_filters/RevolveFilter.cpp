@@ -31,10 +31,10 @@ const auto kMakeRevolveFilterInfo = [](const input_parser::y_axis_revolve_filter
                                        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> RevolveFilterType
 { return make_y_axis_revolve_filter_type(aInput, aAnalysisDomainMesh); };
 
-[[maybe_unused]] static auto kRevolveFilterParserRegistration =
+[[maybe_unused]] static const auto kRevolveFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::y_axis_revolve_filter>{};
 
-[[maybe_unused]] static auto kRevolveFilterRegistration = library::FilterRegistration{
+[[maybe_unused]] static const auto kRevolveFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::y_axis_revolve_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::y_axis_revolve_filter>(aInput);
@@ -46,13 +46,13 @@ const auto kMakeRevolveFilterInfo = [](const input_parser::y_axis_revolve_filter
             });
     }};
 
-[[maybe_unused]] static auto kRevolveFilterValidationRegistration =
+[[maybe_unused]] static const auto kRevolveFilterValidationRegistration =
     validation_for_all_kernel_filters<input_parser::y_axis_revolve_filter>();
 
-[[maybe_unused]] static auto kRevolveFilterTargetMeshValidationRegistration =
+[[maybe_unused]] static const auto kRevolveFilterTargetMeshValidationRegistration =
     target_mesh_validation_for_all_kernel_filters<input_parser::y_axis_revolve_filter>();
 
-[[maybe_unused]] static auto kRevolveFilterMeshBasedValidationRegistration =
+[[maybe_unused]] static const auto kRevolveFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::y_axis_revolve_filter& aInput, const std::filesystem::path& aMeshPath)
         { return extension::detail::validate_filter_radius_with_mesh(aInput, aMeshPath); },

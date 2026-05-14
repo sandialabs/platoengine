@@ -26,10 +26,10 @@ const auto kMakeReflectFilterInfo = [](const input_parser::positive_octant_refle
                                        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> ReflectFilterType
 { return make_positive_octant_reflect_filter_type(aInput, aAnalysisDomainMesh); };
 
-[[maybe_unused]] static auto kReflectFilterParserRegistration =
+[[maybe_unused]] static const auto kReflectFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::positive_octant_reflect_filter>{};
 
-[[maybe_unused]] static auto kReflectFilterRegistration = library::FilterRegistration{
+[[maybe_unused]] static const auto kReflectFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::positive_octant_reflect_filter>(),
     [](const library::ValidatedFilterInput& aInput)
     {
@@ -42,13 +42,13 @@ const auto kMakeReflectFilterInfo = [](const input_parser::positive_octant_refle
             });
     }};
 
-[[maybe_unused]] static auto kReflectFilterValidationRegistration =
+[[maybe_unused]] static const auto kReflectFilterValidationRegistration =
     validation_for_all_kernel_filters<input_parser::positive_octant_reflect_filter>();
 
-[[maybe_unused]] static auto kReflectFilterTargetMeshValidationRegistration =
+[[maybe_unused]] static const auto kReflectFilterTargetMeshValidationRegistration =
     target_mesh_validation_for_all_kernel_filters<input_parser::positive_octant_reflect_filter>();
 
-[[maybe_unused]] static auto kReflectFilterMeshBasedValidationRegistration =
+[[maybe_unused]] static const auto kReflectFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::positive_octant_reflect_filter& aInput, const std::filesystem::path& aMeshPath)
         { return extension::detail::validate_filter_radius_with_mesh(aInput, aMeshPath); },

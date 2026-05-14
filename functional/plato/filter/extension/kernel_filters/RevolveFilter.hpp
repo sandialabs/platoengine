@@ -18,6 +18,7 @@ struct AnalysisDomainMesh;
 }
 // CPD-OFF
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), y_axis_revolve_filter,
     (double, filter_radius, plato::filter::extension::kernel_filters::kKernelFilterRadiusHelpText)
@@ -27,8 +28,10 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (unsigned int, number_of_processors, plato::filter::extension::kernel_filters::kKernelFilterNumberOfProcessorsHelpText)
     (plato::input_parser::BlockList, fixed_blocks, plato::filter::extension::kernel_filters::kKernelFilterFixedBlockHelpText)
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 // CPD-ON
+
 namespace plato::filter::extension::kernel_filters
 {
 ///@brief A specialized filter type based on the y_axis_revolve_filter input

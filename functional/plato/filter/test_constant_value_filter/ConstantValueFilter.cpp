@@ -22,14 +22,16 @@ auto ConstantValueFilter::rowVectorTimesJacobian(const analysis::AnalysisDomainM
                                                  const linear_algebra::DynamicVector<double>& /*aV*/) const
     -> linear_algebra::DynamicVector<double>
 {
-    return linear_algebra::DynamicVector{10.0, 11.0, 12.0};
+    const auto tArbitraryVector = linear_algebra::DynamicVector{10.0, 11.0, 12.0};
+    return tArbitraryVector;
 }
 
 auto ConstantValueFilter::rowVectorTimesAdjointJacobian(
     const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/,
     const plato::linear_algebra::DynamicVector<double>& /*aV*/) const -> plato::linear_algebra::DynamicVector<double>
 {
-    return linear_algebra::DynamicVector{9.0, 8.0, 7.0};
+    const auto tArbitraryVector = linear_algebra::DynamicVector{9.0, 8.0, 7.0};
+    return tArbitraryVector;
 }
 
 }  // namespace plato::filter::test_constant_value_filter

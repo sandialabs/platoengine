@@ -6,10 +6,12 @@
 #include "plato/input_parser/InputBlockStruct.hpp"
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), identity_filter,
     (double, filter_radius, "Do not use - Identity filter cannot have a filter radius.")
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::analysis

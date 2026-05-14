@@ -56,8 +56,10 @@ auto create_tpetravector_coordinates(const std::vector<third_party_integration::
 {
     namespace tpi = third_party_integration;
 
-    const auto tCommunicator = Teuchos::rcp(new Teuchos::MpiComm<int>(aCommunicator));
-    auto tMap = Teuchos::rcp(new tpi::tpetra::TpetraMap(aCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator));
+    const auto tCommunicator = Teuchos::rcp(std::make_unique<Teuchos::MpiComm<int>>(aCommunicator).release());
+    auto tMap = Teuchos::rcp(
+        std::make_unique<tpi::tpetra::TpetraMap>(aCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator)
+            .release());
     auto tCoordinates = tpi::tpetra::TpetraMultiVector(tMap, tpi::tpetra::kNumberOfCartesianDimensions, kZeroOut);
     tpi::tpetra::distribute_on_tpetra_multivector(aCoordinates, tCoordinates);
     return tCoordinates;

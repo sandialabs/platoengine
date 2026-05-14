@@ -49,8 +49,8 @@ double linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRa
 
 double filter_volume(const SearchRadius aFilterRadius)
 {
-    return 4.0 / 3.0 * boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue *
-           aFilterRadius.mValue;
+    constexpr auto tUnitSphereVolume = 4.0 * std::numbers::pi / 3.0;
+    return tUnitSphereVolume * aFilterRadius.mValue * aFilterRadius.mValue * aFilterRadius.mValue;
 }
 
 double filter_area(const SearchRadius aFilterRadius)

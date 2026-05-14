@@ -18,6 +18,7 @@ struct AnalysisDomainMesh;
 }
 // CPD-OFF
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), wedge_filter,
     (double, filter_radius, plato::filter::extension::kernel_filters::kKernelFilterRadiusHelpText)
@@ -28,6 +29,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (double, wedge_angle, "Required field specifying the angle in degrees of the wedge (the space between the x-plane and a rotated x-plane).")
     (plato::input_parser::BlockList, fixed_blocks, plato::filter::extension::kernel_filters::kKernelFilterFixedBlockHelpText)
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 // CPD-ON
 namespace plato::filter::extension::kernel_filters

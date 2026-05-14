@@ -26,10 +26,10 @@ const auto kKernelFilterLambda = [](const input_parser::kernel_filter& aInput,
                                     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> KernelFilterType
 { return make_kernel_filter_type(aInput, aAnalysisDomainMesh); };
 
-[[maybe_unused]] static auto kKernelFilterParserRegistration =
+[[maybe_unused]] static const auto kKernelFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::kernel_filter>{};
 
-[[maybe_unused]] static auto kKernelFilterRegistration = library::FilterRegistration{
+[[maybe_unused]] static const auto kKernelFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::kernel_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::kernel_filter>(aInput);
@@ -38,10 +38,10 @@ const auto kKernelFilterLambda = [](const input_parser::kernel_filter& aInput,
             { return detail::create_kernel_filter_cache<input_parser::kernel_filter>(tInput, kKernelFilterLambda); });
     }};
 
-[[maybe_unused]] static auto kKernelFilterValidationRegistration =
+[[maybe_unused]] static const auto kKernelFilterValidationRegistration =
     validation_for_all_kernel_filters<input_parser::kernel_filter>();
 
-[[maybe_unused]] static auto kKernelFilterMeshBasedValidationRegistration =
+[[maybe_unused]] static const auto kKernelFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::kernel_filter& aInput, const std::filesystem::path& aMeshPath)
         { return extension::detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};

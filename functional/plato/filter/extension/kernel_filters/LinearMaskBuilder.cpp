@@ -41,11 +41,13 @@ auto LinearMaskBuilder::mask() const -> const third_party_integration::tpetra::T
 void LinearMaskBuilder::create_linear_mask(const RowMap& aRowMap)
 {
     namespace tpi = third_party_integration;
-    const auto tCommunicator = Teuchos::rcp(new Teuchos::MpiComm<int>(mCommunicator));
-    auto tCrsRowMap = Teuchos::rcp(
-        new tpi::tpetra::TpetraMap(mGlobalRowCenterCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator));
-    auto tCrsDomainMap = Teuchos::rcp(
-        new tpi::tpetra::TpetraMap(mGlobalColumnCenterCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator));
+    const auto tCommunicator = Teuchos::rcp(std::make_unique<Teuchos::MpiComm<int>>(mCommunicator).release());
+    auto tCrsRowMap = Teuchos::rcp(std::make_unique<tpi::tpetra::TpetraMap>(mGlobalRowCenterCoordinates.size(),
+                                                                            tpi::tpetra::kIndexBase, tCommunicator)
+                                       .release());
+    auto tCrsDomainMap = Teuchos::rcp(std::make_unique<tpi::tpetra::TpetraMap>(mGlobalColumnCenterCoordinates.size(),
+                                                                               tpi::tpetra::kIndexBase, tCommunicator)
+                                          .release());
 
     mLinearMask = std::make_unique<tpi::tpetra::TpetraCRSMatrix>(
         tCrsRowMap, Teuchos::ArrayView<const std::size_t>{detail::number_of_column_entries_per_row(aRowMap)});

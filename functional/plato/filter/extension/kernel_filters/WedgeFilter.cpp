@@ -24,14 +24,17 @@ namespace plato::filter::extension::kernel_filters
 
 namespace
 {
+constexpr auto kDegreesPerCircle = 360.0;
+constexpr auto kDegreesPerRadian = 180.0 / std::numbers::pi;
+
 const auto kMakeWedgeFilterInfo = [](const input_parser::wedge_filter& aInput,
                                      const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> WedgeFilterType
 { return make_wedge_filter_type(aInput, aAnalysisDomainMesh); };
 
-[[maybe_unused]] static auto kWedgeFilterParserRegistration =
+[[maybe_unused]] static const auto kWedgeFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::wedge_filter>{};
 
-[[maybe_unused]] static auto kWedgeFilterRegistration = library::FilterRegistration{
+[[maybe_unused]] static const auto kWedgeFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::wedge_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::wedge_filter>(aInput);
@@ -40,13 +43,13 @@ const auto kMakeWedgeFilterInfo = [](const input_parser::wedge_filter& aInput,
             { return detail::create_kernel_filter_cache<input_parser::wedge_filter>(tInput, kMakeWedgeFilterInfo); });
     }};
 
-[[maybe_unused]] static auto kWedgeFilterValidationRegistration =
+[[maybe_unused]] static const auto kWedgeFilterValidationRegistration =
     validation_for_all_kernel_filters<input_parser::wedge_filter>();
 
-[[maybe_unused]] static auto kWedgeFilterTargetMeshValidationRegistration =
+[[maybe_unused]] static const auto kWedgeFilterTargetMeshValidationRegistration =
     target_mesh_validation_for_all_kernel_filters<input_parser::wedge_filter>();
 
-[[maybe_unused]] static auto kWedgeFilterValidationRegistrationSpecialized =
+[[maybe_unused]] static const auto kWedgeFilterValidationRegistrationSpecialized =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::wedge_filter& aInput)
         { return detail::validate_wedge_angle_commensurate_with_360(aInput); },
@@ -57,7 +60,7 @@ const auto kMakeWedgeFilterInfo = [](const input_parser::wedge_filter& aInput,
                 "wedge_filter", aInput.wedge_angle, "wedge_angle", utilities::lower_bounded(utilities::Exclusive{0.0}));
         }};
 
-[[maybe_unused]] static auto kWedgeFilterMeshBasedValidationRegistration =
+[[maybe_unused]] static const auto kWedgeFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::wedge_filter& aInput, const std::filesystem::path& aMeshPath)
         { return extension::detail::validate_filter_radius_with_mesh(aInput, aMeshPath); },
@@ -126,7 +129,7 @@ auto validate_wedge_angle_commensurate_with_360(const input_parser::wedge_filter
         return input_validation::error_message_for_empty_parameter(
             input_parser::block_name<input_parser::wedge_filter>(), aInput.wedge_angle, "wedge_angle");
     }
-    if (std::fmod(360, aInput.wedge_angle.value()) != 0)
+    if (std::fmod(kDegreesPerCircle, aInput.wedge_angle.value()) != 0)
     {
         return std::optional<std::string>{utilities::concatenate(input_parser::block_name<input_parser::wedge_filter>(),
                                                                  " wedge angle must evenly divide 360 degrees.")};
@@ -140,7 +143,7 @@ auto validate_wedge_angle_even_dihedral(const input_parser::wedge_filter& aInput
     {
         return std::nullopt;  // Not our error
     }
-    if (static_cast<int>(360 / aInput.wedge_angle.value()) % 2 != 0)
+    if (static_cast<int>(kDegreesPerCircle / aInput.wedge_angle.value()) % 2 != 0)
     {
         return std::optional<std::string>{
             utilities::concatenate(input_parser::block_name<input_parser::wedge_filter>(),
@@ -160,7 +163,7 @@ auto validate_source_mesh_matches_wedge_angle(const input_parser::wedge_filter& 
     const auto tPolarCoordinates =
         cylindrical_polar_coordinates(mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.nodalCoordinates()).mValue;
     const auto tBoundingBox = third_party_integration::common::bounding_box(tPolarCoordinates);
-    const auto tMaximumAngleInDegrees = tBoundingBox.second.y * 180.0 / std::numbers::pi;
+    const auto tMaximumAngleInDegrees = tBoundingBox.second.y * kDegreesPerRadian;
     if (constexpr auto tAngleTolerance = 1e-6;
         std::fabs(tMaximumAngleInDegrees - aInput.wedge_angle.value()) >= tAngleTolerance)
     {

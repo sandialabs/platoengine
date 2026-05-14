@@ -13,14 +13,14 @@ namespace plato::filter::extension
 {
 namespace
 {
-[[maybe_unused]] static auto kIdentityFilterParserRegistration =
+[[maybe_unused]] static const auto kIdentityFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::identity_filter>{};
 
-[[maybe_unused]] static auto kIdentityFilterRegistration =
+[[maybe_unused]] static const auto kIdentityFilterRegistration =
     library::FilterRegistration{input_parser::block_name<input_parser::identity_filter>(),
                                 [](const library::ValidatedFilterInput&) { return make_identity_filter_function(); }};
 
-[[maybe_unused]] static auto kIdentityFilterValidationRegistration =
+[[maybe_unused]] static const auto kIdentityFilterValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{[](const input_parser::identity_filter& aInput)
                                                          { return validate_identity_filter(aInput); }};
 }  // namespace
