@@ -47,10 +47,9 @@ const auto kConstraintTypeConversion =
 {
     if (aOptimizationParameters.input_file_name)
     {
-        return third_party_integration::rol::OptimizationParameters(
-            aOptimizationParameters.input_file_name.value().mToken);
+        return {aOptimizationParameters.input_file_name.value().mToken};
     }
-    return third_party_integration::rol::OptimizationParameters();
+    return {};
 }
 
 void apply_verbose_output(const input_parser::rol_optimization& aOptimizationParameters,

@@ -1,6 +1,6 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,cert-*,cppcoreguidelines-*,misc-*,-clang-analyzer-cplusplus.NewDeleteLeaks,-bugprone-unchecked-optional-access,-performance-avoid-endl,-cert-dcl21-cpp,-cert-dcl58-cpp,-cert-err58-cpp,-misc-non-private-member-variables-in-classes'
-WarningsAsErrors: 'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,cert-*,cppcoreguidelines-*,misc-*'
+Checks:          'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,cert-*,cppcoreguidelines-*,misc-*,modernize-*,-clang-analyzer-cplusplus.NewDeleteLeaks,-bugprone-unchecked-optional-access,-performance-avoid-endl,-cert-dcl21-cpp,-cert-dcl58-cpp,-cert-err58-cpp,-misc-non-private-member-variables-in-classes'
+WarningsAsErrors: 'clang-diagnostic-*,clang-analyzer-*,performance-*,bugprone-*,cert-*,cppcoreguidelines-*,misc-*,modernize-*'
 HeaderFilterRegex: functional
 FormatStyle:     none
 CheckOptions:

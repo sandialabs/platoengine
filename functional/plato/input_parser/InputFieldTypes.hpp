@@ -11,14 +11,14 @@ namespace plato::input_parser
 /// This should be used for the names of input blocks and apps in a plato input deck.
 struct ValidNameCharacters
 {
-    constexpr const char* operator()() const { return "-a-zA-Z_"; }
+    constexpr auto operator()() const -> const char* { return "-a-zA-Z_"; }
 };
 
 /// @brief Provides valid characters for an identifier, which are hyphen, underscore, all letters, and all
 /// numbers.
 struct ValidIdentifierCharacters
 {
-    constexpr const char* operator()() const { return "-a-zA-Z0-9_"; }
+    constexpr auto operator()() const -> const char* { return "-a-zA-Z0-9_"; }
 };
 
 using AppName = UserDefinedToken<ValidNameCharacters>;

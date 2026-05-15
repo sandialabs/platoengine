@@ -30,7 +30,7 @@ class ParallelAggregate
     [[nodiscard]] auto evaluate(Argument&& aArgument) const;
 
     /// @return The number of Function objects used on construction.
-    [[nodiscard]] std::size_t size() const;
+    [[nodiscard]] auto size() const -> std::size_t;
 
    private:
     Aggregate<DomainType, Info...> mAggregateFunction;

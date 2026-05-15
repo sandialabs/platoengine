@@ -16,13 +16,14 @@
 namespace plato::third_party_integration::tpetra
 {
 
-TpetraLocalOrdinal number_of_local_elements(const Teuchos::RCP<const TpetraMap>& aTpetraMap)
+auto number_of_local_elements(const Teuchos::RCP<const TpetraMap>& aTpetraMap) -> TpetraLocalOrdinal
 {
     return static_cast<TpetraLocalOrdinal>(aTpetraMap->getLocalNumElements());
 }
 
-std::pair<TpetraVector, TpetraVector> create_zeroed_row_and_column_vectors_from_crs_map(
-    const TpetraCRSMatrix& aCRSMatrix, const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+auto create_zeroed_row_and_column_vectors_from_crs_map(const TpetraCRSMatrix& aCRSMatrix,
+                                                       const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+    -> std::pair<TpetraVector, TpetraVector>
 {
     const auto tRowContiguousMap =
         Teuchos::rcp(std::make_unique<TpetraMap>(aCRSMatrix.getGlobalNumRows(), kIndexBase, aCommunicator).release());
@@ -42,8 +43,8 @@ void distribute_on_tpetra_vector(const std::vector<double>& aSerialVector, Tpetr
     }
 }
 
-std::vector<double> reduce_tpetra_vector(const TpetraVector& aVector,
-                                         const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+auto reduce_tpetra_vector(const TpetraVector& aVector,
+                          const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator) -> std::vector<double>
 {
     std::vector<double> tResult(aVector.getMap()->getGlobalNumElements(), 0);
     for (TpetraGlobalOrdinal tGlobalIndex = 0;
@@ -58,7 +59,7 @@ std::vector<double> reduce_tpetra_vector(const TpetraVector& aVector,
     return tResult;
 }
 
-common::Coordinate multivector_coordinate(const TpetraMultiVector& aMultiVector, const TpetraLocalOrdinal aRow)
+auto multivector_coordinate(const TpetraMultiVector& aMultiVector, const TpetraLocalOrdinal aRow) -> common::Coordinate
 {
     assert(aMultiVector.getNumVectors() == kNumberOfCartesianDimensions);
     return {aMultiVector.getVector(0)->getData()[aRow], aMultiVector.getVector(1)->getData()[aRow],

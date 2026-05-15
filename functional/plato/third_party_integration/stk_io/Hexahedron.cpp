@@ -10,7 +10,7 @@ namespace
 constexpr auto kHexahedronVolumeFactor = 1.0 / 12.0;
 }
 
-double Hexahedron::volume() const
+auto Hexahedron::volume() const -> double
 {
     return ((p000.x * p110.y * p100.z) - (p000.x * p100.y * p110.z) + (p100.x * p000.y * p110.z) -
             (p100.x * p110.y * p000.z) - (p110.x * p000.y * p100.z) + (p110.x * p100.y * p000.z) -
@@ -63,7 +63,7 @@ double Hexahedron::volume() const
            kHexahedronVolumeFactor;
 }
 
-common::Coordinate Hexahedron::centroid() const
+auto Hexahedron::centroid() const -> common::Coordinate
 {
     constexpr int kDimensions{3};
     constexpr auto kQuadraturePoints = common::kDegree3OneDimensionalQuadraturePoints;

@@ -17,22 +17,23 @@ namespace plato::filter::extension::detail
 /// @brief Validate that filter radius is positive
 template <typename FilterInput>
     requires input_parser::InputBlockOfComponent<FilterInput, components::ComponentType::kFilter>
-std::optional<std::string> validate_filter_radius_bounds(const FilterInput& aInput);
+auto validate_filter_radius_bounds(const FilterInput& aInput) -> std::optional<std::string>;
 
 /// @brief Validate that filter radius is larger than the average of all element maximum edge lengths
 template <typename FilterInput>
     requires input_parser::InputBlockOfComponent<FilterInput, components::ComponentType::kFilter>
-std::optional<std::string> validate_filter_radius_with_mesh(const FilterInput& aInput);
+auto validate_filter_radius_with_mesh(const FilterInput& aInput) -> std::optional<std::string>;
 
 /// @brief Validate 'number_of_processors' an optional input is within bounds
 template <typename FilterInput>
     requires input_parser::InputBlockOfComponent<FilterInput, components::ComponentType::kFilter>
-[[nodiscard]] std::optional<std::string> validate_number_of_processors(const FilterInput& aInput);
+[[nodiscard]] auto validate_number_of_processors(const FilterInput& aInput) -> std::optional<std::string>;
 
 /// @brief Validate 'number_of_processors' is a common factor of comm world
 template <typename FilterInput>
     requires input_parser::InputBlockOfComponent<FilterInput, components::ComponentType::kFilter>
-[[nodiscard]] std::optional<std::string> validate_number_of_processors_factor_of_comm_world(const FilterInput& aInput);
+[[nodiscard]] auto validate_number_of_processors_factor_of_comm_world(const FilterInput& aInput)
+    -> std::optional<std::string>;
 
 /// @brief Validate 'centering_type' is not empty
 template <typename FilterInput>
@@ -41,7 +42,7 @@ template <typename FilterInput>
 
 template <typename FilterInput>
     requires input_parser::InputBlockOfComponent<FilterInput, components::ComponentType::kFilter>
-std::optional<std::string> validate_filter_radius_bounds(const FilterInput& aInput)
+auto validate_filter_radius_bounds(const FilterInput& aInput) -> std::optional<std::string>
 {
     namespace pfu = plato::utilities;
     return input_validation::error_message_for_parameter_out_of_bounds(input_parser::block_name<FilterInput>(),
@@ -51,8 +52,8 @@ std::optional<std::string> validate_filter_radius_bounds(const FilterInput& aInp
 
 template <typename FilterInput>
     requires input_parser::InputBlockOfComponent<FilterInput, components::ComponentType::kFilter>
-std::optional<std::string> validate_filter_radius_with_mesh(const FilterInput& aInput,
-                                                            const std::filesystem::path& aMeshFileName)
+auto validate_filter_radius_with_mesh(const FilterInput& aInput,
+                                      const std::filesystem::path& aMeshFileName) -> std::optional<std::string>
 {
     if (!std::filesystem::exists(aMeshFileName))
     {
@@ -77,7 +78,7 @@ std::optional<std::string> validate_filter_radius_with_mesh(const FilterInput& a
 
 template <typename FilterInput>
     requires input_parser::InputBlockOfComponent<FilterInput, components::ComponentType::kFilter>
-std::optional<std::string> validate_number_of_processors(const FilterInput& aInput)
+auto validate_number_of_processors(const FilterInput& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<FilterInput>(), aInput.number_of_processors, "number_of_processors",
@@ -86,7 +87,7 @@ std::optional<std::string> validate_number_of_processors(const FilterInput& aInp
 
 template <typename FilterInput>
     requires input_parser::InputBlockOfComponent<FilterInput, components::ComponentType::kFilter>
-std::optional<std::string> validate_number_of_processors_factor_of_comm_world(const FilterInput& aInput)
+auto validate_number_of_processors_factor_of_comm_world(const FilterInput& aInput) -> std::optional<std::string>
 {
     const auto tRequestedRanks = aInput.number_of_processors.value_or(1u);
     const auto tTotalRanks = static_cast<std::size_t>(boost::mpi::communicator{}.size());

@@ -67,7 +67,7 @@ void OptimizationParameters::writeOutputHistory(const std::optional<bool> aWrite
     mWriteOutputHistory = aWriteOutputHistory ? aWriteOutputHistory.value() : false;
 }
 
-const ROL::ParameterList& OptimizationParameters::parameters() const { return mParameterList; }
+auto OptimizationParameters::parameters() const -> const ROL::ParameterList& { return mParameterList; }
 
 void OptimizationParameters::writeParameters(const std::filesystem::path& aPath) const
 {
@@ -91,7 +91,7 @@ void approximate_hessian(ROL::ParameterList& aParameterList)
     detail::set_parameter(aParameterList, make_general_inexact_hessian(true));
 }
 
-ROL::ParameterList load_from_file(const std::filesystem::path& aInputFile)
+auto load_from_file(const std::filesystem::path& aInputFile) -> ROL::ParameterList
 {
     return *ROL::getParametersFromXmlFile(aInputFile);
 }

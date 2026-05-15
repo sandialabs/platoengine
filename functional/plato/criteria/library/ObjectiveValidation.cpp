@@ -65,7 +65,7 @@ auto number_of_active_objectives(const std::vector<input_parser::objective>& aIn
 
 namespace detail
 {
-std::optional<std::string> validate_aggregation_weight(const input_parser::objective& aInput)
+auto validate_aggregation_weight(const input_parser::objective& aInput) -> std::optional<std::string>
 {
     namespace pfu = plato::utilities;
     return input_validation::error_message_for_parameter_out_of_bounds(criterion_name(aInput),
@@ -73,7 +73,7 @@ std::optional<std::string> validate_aggregation_weight(const input_parser::objec
                                                                        pfu::lower_bounded(pfu::Exclusive{0.0}));
 }
 
-std::optional<std::string> validate_at_least_one_objective(const std::vector<input_parser::objective>& aInput)
+auto validate_at_least_one_objective(const std::vector<input_parser::objective>& aInput) -> std::optional<std::string>
 {
     const bool tAnyActiveObjectives =
         std::any_of(aInput.begin(), aInput.end(),
@@ -89,8 +89,8 @@ std::optional<std::string> validate_at_least_one_objective(const std::vector<inp
     }
 }
 
-std::optional<std::string> validate_number_of_ranks_vs_serial_objectives(
-    const std::vector<input_parser::objective>& aInput)
+auto validate_number_of_ranks_vs_serial_objectives(const std::vector<input_parser::objective>& aInput)
+    -> std::optional<std::string>
 {
     const auto tNumRanks = static_cast<std::size_t>(boost::mpi::communicator{}.size());
     if (!has_parallel_objective(aInput) && static_cast<std::size_t>(tNumRanks) > number_of_active_objectives(aInput))
@@ -105,8 +105,8 @@ std::optional<std::string> validate_number_of_ranks_vs_serial_objectives(
     }
 }
 
-std::optional<std::string> validate_number_of_ranks_vs_parallel_objectives(
-    const std::vector<input_parser::objective>& aInput)
+auto validate_number_of_ranks_vs_parallel_objectives(const std::vector<input_parser::objective>& aInput)
+    -> std::optional<std::string>
 {
     const auto tNumRanks = static_cast<std::size_t>(boost::mpi::communicator{}.size());
     const auto tTotalProcessors = total_number_of_processors(aInput);

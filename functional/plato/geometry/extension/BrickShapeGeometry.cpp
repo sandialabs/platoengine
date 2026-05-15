@@ -50,7 +50,7 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
     return tInput.mesh_name.value().mToken;
 }
 
-[[nodiscard]] library::FactoryTypes::Output make_output()
+[[nodiscard]] auto make_output() -> library::FactoryTypes::Output
 {
     return [](const linear_algebra::DynamicVector<double>& aSolution, const output::OutputInfo& aOutputInfo)
     { return BrickShapeGeometry::output(aSolution, aOutputInfo); };
@@ -125,7 +125,7 @@ auto BrickShapeGeometry::operator=(BrickShapeGeometry&& aBrickShapeGeometry) noe
     return *this;
 }
 
-analysis::AnalysisDomainMesh BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
+auto BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const -> analysis::AnalysisDomainMesh
 {
     [[maybe_unused]] const auto tTaskLogger = library::mesh_generation_task_log<input_parser::brick_shape_geometry>();
 
@@ -133,7 +133,7 @@ analysis::AnalysisDomainMesh BrickShapeGeometry::generateMesh(const BrickDesign&
     return analysis::AnalysisDomainMesh{mFileName, {}};
 }
 
-linear_algebra::JacobianColumnEvaluator BrickShapeGeometry::jacobian(const BrickDesign& aDesignParameters) const
+auto BrickShapeGeometry::jacobian(const BrickDesign& aDesignParameters) const -> linear_algebra::JacobianColumnEvaluator
 {
     return linear_algebra::JacobianColumnEvaluator{
         /*.mColumns=*/kNumDesignParameters,
@@ -164,12 +164,12 @@ auto BrickShapeGeometry::adjointJacobian(const BrickDesign& aDesignParameters) c
         }};
 }
 
-linear_algebra::DynamicVector<double> BrickShapeGeometry::initialGuess()
+auto BrickShapeGeometry::initialGuess() -> linear_algebra::DynamicVector<double>
 {
     return detail::to_dynamic_vector(BrickDesign{});
 }
 
-std::pair<std::vector<double>, std::vector<double>> BrickShapeGeometry::bounds()
+auto BrickShapeGeometry::bounds() -> std::pair<std::vector<double>, std::vector<double>>
 {
     return {kLowerBounds, kUpperBounds};
 }
@@ -243,7 +243,7 @@ void create_mesh(const BrickDesign& aDesign,
     tpistkio::write_mesh(aOutputFile, tGenerator);
 }
 
-std::vector<double> sensitivities(const unsigned int aParameterIndex)
+auto sensitivities(const unsigned int aParameterIndex) -> std::vector<double>
 {
     assert(aParameterIndex < kNumDesignParameters);
     // design parameters are center (x,y,z), dimension (x,y,z)
@@ -278,14 +278,14 @@ std::vector<double> sensitivities(const unsigned int aParameterIndex)
     return sensitive;
 }
 
-linear_algebra::DynamicVector<double> to_dynamic_vector(const BrickDesign& aDesignParameters)
+auto to_dynamic_vector(const BrickDesign& aDesignParameters) -> linear_algebra::DynamicVector<double>
 {
     return linear_algebra::DynamicVector<double>{aDesignParameters.center_x,    aDesignParameters.center_y,
                                                  aDesignParameters.center_z,    aDesignParameters.dimension_x,
                                                  aDesignParameters.dimension_y, aDesignParameters.dimension_z};
 }
 
-BrickDesign to_design_parameters(const linear_algebra::DynamicVector<double>& aDesignParameter)
+auto to_design_parameters(const linear_algebra::DynamicVector<double>& aDesignParameter) -> BrickDesign
 {
     assert(aDesignParameter.size() == kNumDesignParameters);
     return BrickDesign{.center_x = aDesignParameter[kXCenterIndex],

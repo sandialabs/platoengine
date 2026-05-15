@@ -47,8 +47,9 @@ class Function
     using TupleHelper = detail::MakeTupleHelper<DomainType, Info...>;
     using FunctionTuple = typename TupleHelper::FunctionTuple;
 
-    template <typename... Functions, typename = std::enable_if_t<!detail::is_only_member<Function, Functions...>()>>
-    Function(Functions&&... aFunctions);
+    template <typename... Functions>
+    Function(Functions&&... aFunctions)
+        requires(!detail::is_only_member<Function, Functions...>());
 
     /// @brief Converts (with copy semantics) to a Function with possibly different functions implemented.
     /// @tparam LHSDomainType The domain type of the function to convert to, must be the same as DomainType of this
@@ -100,9 +101,10 @@ constexpr inline auto kIsFunction = bool{false};
 template <typename DomainType, typename... Info>
 constexpr inline auto kIsFunction<Function<DomainType, Info...>> = bool{true};
 
-template <typename Domain, typename... Info>
-template <typename... Functions, typename>
-Function<Domain, Info...>::Function(Functions&&... aFunctions)
+template <typename DomainType, typename... Info>
+template <typename... Functions>
+Function<DomainType, Info...>::Function(Functions&&... aFunctions)
+    requires(!detail::is_only_member<Function, Functions...>())
     : mFunctions{std::forward_as_tuple(std::forward<Functions>(aFunctions)...)}
 {
     static_assert(sizeof...(Functions) == std::tuple_size_v<FunctionTuple>,

@@ -9,7 +9,7 @@ namespace plato::integration_tests::utilities
 {
 struct DynamicVectorJacobian
 {
-    linear_algebra::DynamicVector<double> column(const int aIndex) const;
+    [[nodiscard]] auto column(const int aIndex) const -> linear_algebra::DynamicVector<double>;
     test_utilities::TwoDMatrix mJacobian;
 };
 

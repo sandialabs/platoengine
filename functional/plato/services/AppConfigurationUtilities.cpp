@@ -35,8 +35,8 @@ auto criterion_configuration_with_name(const std::string& aCriterionName,
 
 }  // namespace
 
-std::vector<AppConfigurationWithDirectory> app_configurations(
-    const std::vector<std::filesystem::path>& aSearchDirectories)
+auto app_configurations(const std::vector<std::filesystem::path>& aSearchDirectories)
+    -> std::vector<AppConfigurationWithDirectory>
 {
     auto tAppConfigurations = std::vector<AppConfigurationWithDirectory>{};
     for (const auto& tDirectory : aSearchDirectories)
@@ -50,8 +50,8 @@ std::vector<AppConfigurationWithDirectory> app_configurations(
     return tAppConfigurations;
 }
 
-AppConfigurationWithDirectory app_configuration_with_directory(AppConfiguration aAppConfiguration,
-                                                               std::filesystem::path aDirectory)
+auto app_configuration_with_directory(AppConfiguration aAppConfiguration,
+                                      std::filesystem::path aDirectory) -> AppConfigurationWithDirectory
 {
     return AppConfigurationWithDirectory{/*.mConfiguration=*/std::move(aAppConfiguration),
                                          /*.mLibraryDirectory=*/std::move(aDirectory)};
@@ -62,7 +62,7 @@ auto plugin_configurations() -> std::vector<AppConfigurationWithDirectory>
     return app_configurations(utilities::optional_to_vector(services::plugin_directory_path()));
 }
 
-std::filesystem::path shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration)
+auto shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration) -> std::filesystem::path
 {
     return aAppConfiguration.mLibraryDirectory / aAppConfiguration.mConfiguration.mLibraryFileName;
 }

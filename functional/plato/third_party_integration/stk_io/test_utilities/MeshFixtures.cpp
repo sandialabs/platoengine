@@ -13,7 +13,7 @@ namespace plato::third_party_integration::stk_io::test_utilities
 {
 namespace
 {
-std::filesystem::path affirm_test_file_path(const std::string_view tMeshFileName)
+auto affirm_test_file_path(const std::string_view tMeshFileName) -> std::filesystem::path
 {
     const auto tMeshFilePath = plato::utilities::data_file_path(tMeshFileName);
     assert(tMeshFilePath);

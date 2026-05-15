@@ -7,7 +7,7 @@ namespace plato::services::test_shared_lib
 {
 /// @brief Rounds @a aValue to the nearest integer.
 /// @note This is only for testing shared library loading.
-extern "C" long int my_round(double aValue);
+extern "C" auto my_round(double aValue) -> long int;
 
 /// @brief A test interface class for testing SharedLibraryObject.
 class TestInterface
@@ -21,7 +21,7 @@ class TestInterface
     auto operator=(const TestInterface&) -> TestInterface& = delete;
     auto operator=(TestInterface&&) -> TestInterface& = delete;
 
-    virtual auto testRound() const -> long int = 0;
+    [[nodiscard]] virtual auto testRound() const -> long int = 0;
 };
 
 /// @brief Creates an instance of TestRound, a derived class of TestInterface.

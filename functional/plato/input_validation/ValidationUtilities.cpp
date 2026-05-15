@@ -11,10 +11,9 @@
 
 namespace plato::input_validation
 {
-std::optional<std::string> error_message_for_missing_file_parameter(
-    const std::string_view aPrependString,
-    const boost::optional<input_parser::FileName>& aParameter,
-    const std::string_view aEntryName)
+auto error_message_for_missing_file_parameter(const std::string_view aPrependString,
+                                              const boost::optional<input_parser::FileName>& aParameter,
+                                              const std::string_view aEntryName) -> std::optional<std::string>
 {
     if (aParameter)
     {

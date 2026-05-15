@@ -45,7 +45,7 @@ template <std::size_t kFieldSize>
 }
 
 template <stk::topology::rank_t Rank>
-unsigned int size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+auto size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> unsigned int
 {
     std::vector<size_t> tEntityCounts;
     const auto tSelector = detail::parts_to_selector(aParts);
@@ -66,7 +66,7 @@ unsigned int size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& a
 }
 
 template <stk::topology::rank_t Rank>
-[[nodiscard]] bool field_exists(const stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName)
+[[nodiscard]] auto field_exists(const stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName) -> bool
 {
     const auto tField = aIOBroker.meta_data().get_field(Rank, std::string{aFieldName});
     return tField;
@@ -85,7 +85,7 @@ template <stk::topology::rank_t Rank>
         });
 }
 
-[[nodiscard]] bool time_step_exists(const stk::io::StkMeshIoBroker& aIOBroker, const TimeStep aTimeStep)
+[[nodiscard]] auto time_step_exists(const stk::io::StkMeshIoBroker& aIOBroker, const TimeStep aTimeStep) -> bool
 {
     if (aIOBroker.get_time_steps().empty())
     {
@@ -150,28 +150,34 @@ auto entity_ids(const stk::mesh::BulkData& aBulk,
 
 }  // namespace
 
-std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::path& aMeshName)
+auto read_mesh_bulk_data(const std::filesystem::path& aMeshName) -> std::shared_ptr<stk::mesh::BulkData>
 {
     return create_reading_iobroker(aMeshName)->bulk_data_ptr();
 }
 
-unsigned int node_size(const stk::mesh::BulkData& aBulk) { return node_size(aBulk, universal_part(aBulk)); }
+auto node_size(const stk::mesh::BulkData& aBulk) -> unsigned int { return node_size(aBulk, universal_part(aBulk)); }
 
-unsigned int node_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+auto node_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> unsigned int
 {
     return size<stk::topology::NODE_RANK>(aBulk, aParts);
 }
 
-unsigned int element_size(const stk::mesh::BulkData& aBulk) { return element_size(aBulk, universal_part(aBulk)); }
+auto element_size(const stk::mesh::BulkData& aBulk) -> unsigned int
+{
+    return element_size(aBulk, universal_part(aBulk));
+}
 
-unsigned int element_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+auto element_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> unsigned int
 {
     return size<stk::topology::ELEM_RANK>(aBulk, aParts);
 }
 
-unsigned int spatial_dimensions(const stk::mesh::BulkData& aBulk) { return aBulk.mesh_meta_data().spatial_dimension(); }
+auto spatial_dimensions(const stk::mesh::BulkData& aBulk) -> unsigned int
+{
+    return aBulk.mesh_meta_data().spatial_dimension();
+}
 
-std::vector<common::Coordinate> nodal_coordinates(const stk::mesh::BulkData& aBulk)
+auto nodal_coordinates(const stk::mesh::BulkData& aBulk) -> std::vector<common::Coordinate>
 {
     return nodal_coordinates(aBulk, universal_part(aBulk));
 }
@@ -205,7 +211,7 @@ auto nodal_coordinates(const stk::mesh::BulkData& aBulk, const PartReferenceVect
     -> std::vector<common::Coordinate>
 {
     const auto tCoordinates = stk_nodal_coordinate_view(aBulk, aParts);
-    return std::vector(tCoordinates.begin(), tCoordinates.end());
+    return {tCoordinates.begin(), tCoordinates.end()};
 }
 
 auto node_ids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> std::vector<std::size_t>
@@ -223,30 +229,30 @@ auto element_ids(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart)
     return entity_ids(aBulk, {std::cref(aPart)}, stk::topology::ELEMENT_RANK);
 }
 
-stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk)
+auto element_vector(const stk::mesh::BulkData& aBulk) -> stk::mesh::EntityVector
 {
     return element_vector(aBulk, aBulk.mesh_meta_data().universal_part());
 }
 
-stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart)
+auto element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart) -> stk::mesh::EntityVector
 {
     return element_vector(aBulk, PartReferenceVector{std::cref(aPart)});
 }
 
-stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+auto element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> stk::mesh::EntityVector
 {
     stk::mesh::EntityVector tElements;
     stk::mesh::get_entities(aBulk, stk::topology::ELEM_RANK, detail::parts_to_selector(aParts), tElements, kSortedByID);
     return tElements;
 }
 
-bool element_field_exists(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName)
+auto element_field_exists(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName) -> bool
 {
     const auto tIOBroker = create_reading_iobroker(aInputMeshName);
     return field_exists<stk::topology::ELEMENT_RANK>(*tIOBroker, aFieldName);
 }
 
-bool nodal_field_exists(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName)
+auto nodal_field_exists(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName) -> bool
 {
     const auto tIOBroker = create_reading_iobroker(aInputMeshName);
     return field_exists<stk::topology::NODE_RANK>(*tIOBroker, aFieldName);

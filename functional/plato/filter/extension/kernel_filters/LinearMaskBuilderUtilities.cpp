@@ -1,13 +1,12 @@
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 
-#include <assert.h>
-
 #include <Teuchos_DefaultMpiComm.hpp>
 #include <Teuchos_RCP.hpp>
 #include <algorithm>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <boost/mpi/inplace.hpp>
+#include <cassert>
 #include <cstddef>
 #include <functional>
 #include <iterator>
@@ -108,15 +107,15 @@ void add_weight_from_search_result_to_map(RowMap& aRowMap,
     }
 }
 
-unsigned int reduce_search_result_size(const third_party_integration::stk_search::SearchResults& aSearchResults,
-                                       const boost::mpi::communicator& aCommunicator)
+auto reduce_search_result_size(const third_party_integration::stk_search::SearchResults& aSearchResults,
+                               const boost::mpi::communicator& aCommunicator) -> unsigned int
 {
     unsigned int tResultSize = aSearchResults.size();
-    boost::mpi::all_reduce(aCommunicator, boost::mpi::inplace(tResultSize), std::plus<unsigned int>());
+    boost::mpi::all_reduce(aCommunicator, boost::mpi::inplace(tResultSize), std::plus<>());
     return tResultSize;
 }
 
-boost::mpi::communicator subdivide_world_comm_into_groups(const unsigned int aGroupSize)
+auto subdivide_world_comm_into_groups(const unsigned int aGroupSize) -> boost::mpi::communicator
 {
     auto tWorldComm = boost::mpi::communicator{};
 

@@ -376,8 +376,8 @@ auto validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput
     return std::nullopt;
 }
 
-std::optional<std::string> validate_exactly_one_initial_level_set_specifier(
-    const input_parser::level_set_topology& aInput)
+auto validate_exactly_one_initial_level_set_specifier(const input_parser::level_set_topology& aInput)
+    -> std::optional<std::string>
 {
     const int tSpherePattern = aInput.sphere_pattern.has_value() ? 1 : 0;
     const int tReadFieldSpecifier = aInput.initial_field_name.has_value() ? 1 : 0;
@@ -448,7 +448,7 @@ auto generate_spheres_from_list(const input_parser::level_set_topology& aInput)
                                       aLevelSetSphere.center.mX, aLevelSetSphere.center.mY, aLevelSetSphere.center.mZ};
                                   return tpi::krino::Sphere{tCenter, aLevelSetSphere.radius};
                               });
-    return std::vector(tToKrinoSpheres.begin(), tToKrinoSpheres.end());
+    return {tToKrinoSpheres.begin(), tToKrinoSpheres.end()};
 }
 
 auto affine_transformation(std::vector<double> aVector,

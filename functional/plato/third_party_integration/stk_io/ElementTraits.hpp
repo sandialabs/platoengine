@@ -102,15 +102,15 @@ concept GeometricPrimitiveType = requires(T aPrimitive) {
 /// @brief Create a ReturnObject from the coordinates specified in @a aCoordinates according to the tesselation indices
 /// @a aIndices
 template <GeometricPrimitiveType ReturnObject, std::size_t NumberOfNodes>
-ReturnObject from_coordinates(const std::array<common::Coordinate, NumberOfNodes>& aCoordinates);
+auto from_coordinates(const std::array<common::Coordinate, NumberOfNodes>& aCoordinates) -> ReturnObject;
 
 /// @brief Determine the volume of a single element with coordinates @a aCoordinates as dictated by the Tesselation
 /// TraitType
 template <stk::topology::topology_t kStkTopology>
-double volume_impl(const std::vector<common::Coordinate>& aCoordinates)
+auto volume_impl(const std::vector<common::Coordinate>& aCoordinates) -> double
 {
     using ElementType = ElementTraits<kStkTopology>::ElementType;
-    const ElementType tElement = from_coordinates<ElementType, ElementTraits<kStkTopology>::kNumNodes>(
+    const auto tElement = from_coordinates<ElementType, ElementTraits<kStkTopology>::kNumNodes>(
         coordinate_vector_to_array<kStkTopology, ElementTraits<kStkTopology>::kNumNodes>(aCoordinates));
     return tElement.volume();
 }
@@ -118,10 +118,10 @@ double volume_impl(const std::vector<common::Coordinate>& aCoordinates)
 /// @brief Determine the centroid of a single element with coordinates @a aCoordinates as dictated by the Tesselation
 /// TraitType
 template <stk::topology::topology_t kStkTopology>
-common::Coordinate centroid_impl(const std::vector<common::Coordinate>& aCoordinates)
+auto centroid_impl(const std::vector<common::Coordinate>& aCoordinates) -> common::Coordinate
 {
     using ElementType = ElementTraits<kStkTopology>::ElementType;
-    const ElementType tElement = from_coordinates<ElementType>(
+    const auto tElement = from_coordinates<ElementType>(
         coordinate_vector_to_array<kStkTopology, ElementTraits<kStkTopology>::kNumNodes>(aCoordinates));
     return tElement.centroid();
 }
@@ -133,7 +133,7 @@ auto volume_nodal_sensitivities_impl(const std::vector<common::Coordinate>& aCoo
     -> std::array<common::Vector3, ElementTraits<kStkTopology>::kNumNodes>
 {
     using ElementType = ElementTraits<kStkTopology>::ElementType;
-    const ElementType tElement = from_coordinates<ElementType>(
+    const auto tElement = from_coordinates<ElementType>(
         coordinate_vector_to_array<kStkTopology, ElementTraits<kStkTopology>::kNumNodes>(aCoordinates));
     return tElement.volumeVertexSensitivities();
 }

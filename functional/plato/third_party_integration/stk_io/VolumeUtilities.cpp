@@ -41,9 +41,9 @@ namespace
     }
 }
 
-stk::mesh::EntityVector get_edge_nodes(const stk::topology& aElementTopology,
-                                       const stk::mesh::Entity* const aElemNodes,
-                                       const unsigned int aEdgeOrdinal)
+auto get_edge_nodes(const stk::topology& aElementTopology,
+                    const stk::mesh::Entity* const aElemNodes,
+                    const unsigned int aEdgeOrdinal) -> stk::mesh::EntityVector
 {
     const stk::topology tEdgeTopology = aElementTopology.edge_topology(aEdgeOrdinal);
     stk::mesh::EntityVector tEdgeNodes(tEdgeTopology.num_nodes());
@@ -51,7 +51,7 @@ stk::mesh::EntityVector get_edge_nodes(const stk::topology& aElementTopology,
     return tEdgeNodes;
 }
 
-double compute_edge_length(const stk::mesh::BulkData& aBulk, const stk::mesh::EntityVector& aEdgeNodes)
+auto compute_edge_length(const stk::mesh::BulkData& aBulk, const stk::mesh::EntityVector& aEdgeNodes) -> double
 {
     assert(aEdgeNodes.size() >= 2);
     const unsigned int tNumDimensions = spatial_dimensions(aBulk);
@@ -90,20 +90,20 @@ auto topology_selector_apply(const stk::mesh::Entity& aElement,
 
 /// @brief overloaded operator+ so that element_apply works for return types of std::vector<Vector3>. Is implemented
 /// specifically to work with how element_apply is implemented.
-ElementNodalSensitivities operator+(const ElementNodalSensitivities& aLeftHandSideVector,
-                                    const ElementNodalSensitivities& aRightHandSideVector)
+auto operator+(const ElementNodalSensitivities& aLeftHandSideVector,
+               const ElementNodalSensitivities& aRightHandSideVector) -> ElementNodalSensitivities
 {
     if (!aLeftHandSideVector.mValue.empty() && aRightHandSideVector.mValue.empty())
     {
-        return ElementNodalSensitivities(aLeftHandSideVector);
+        return {aLeftHandSideVector};
     }
     else if (aLeftHandSideVector.mValue.empty() && !aRightHandSideVector.mValue.empty())
     {
-        return ElementNodalSensitivities(aRightHandSideVector);
+        return {aRightHandSideVector};
     }
     else
     {
-        return ElementNodalSensitivities{{}};
+        return {};
     }
 }
 
@@ -128,7 +128,7 @@ auto element_apply(const stk::mesh::Entity& aElement, const stk::mesh::BulkData&
 template <stk::topology::topology_t Topology>
 struct VolumeFunction
 {
-    double operator()(const std::vector<common::Coordinate>& aCoordinates) const
+    auto operator()(const std::vector<common::Coordinate>& aCoordinates) const -> double
     {
         return detail::volume_impl<Topology>(aCoordinates);
     }
@@ -137,7 +137,7 @@ struct VolumeFunction
 template <stk::topology::topology_t Topology>
 struct VolumeNodalSensitivitiesFunction
 {
-    ElementNodalSensitivities operator()(const std::vector<common::Coordinate>& aCoordinates) const
+    auto operator()(const std::vector<common::Coordinate>& aCoordinates) const -> ElementNodalSensitivities
     {
         const auto tSensitivityArray = detail::volume_nodal_sensitivities_impl<Topology>(aCoordinates);
         return ElementNodalSensitivities{
@@ -148,7 +148,7 @@ struct VolumeNodalSensitivitiesFunction
 template <stk::topology::topology_t Topology>
 struct CentroidFunction
 {
-    common::Coordinate operator()(const std::vector<common::Coordinate>& aCoordinates) const
+    auto operator()(const std::vector<common::Coordinate>& aCoordinates) const -> common::Coordinate
     {
         return detail::centroid_impl<Topology>(aCoordinates);
     }
@@ -173,23 +173,23 @@ void assemble_element_volume_nodal_sensitivity(const stk::mesh::BulkData& aBulk,
 
 }  // namespace
 
-double element_volume(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
+auto element_volume(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk) -> double
 {
     return element_apply<VolumeFunction>(aElement, aBulk);
 }
 
-common::Coordinate element_centroid(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
+auto element_centroid(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk) -> common::Coordinate
 {
     return element_apply<CentroidFunction>(aElement, aBulk);
 }
 
-ElementNodalSensitivities element_volume_nodal_sensitivities(const stk::mesh::Entity& aElement,
-                                                             const stk::mesh::BulkData& aBulk)
+auto element_volume_nodal_sensitivities(const stk::mesh::Entity& aElement,
+                                        const stk::mesh::BulkData& aBulk) -> ElementNodalSensitivities
 {
     return element_apply<VolumeNodalSensitivitiesFunction>(aElement, aBulk);
 }
 
-double element_max_edge_length(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
+auto element_max_edge_length(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk) -> double
 {
     const stk::mesh::Entity* tElemNodes = aBulk.begin(aElement, stk::topology::NODE_RANK);
     const stk::topology tElementTopology = aBulk.bucket(aElement).topology();
@@ -207,12 +207,13 @@ double element_max_edge_length(const stk::mesh::Entity& aElement, const stk::mes
     return tMaxIterator == tEdgeLengths.end() ? 0 : *tMaxIterator;
 }
 
-std::vector<common::Coordinate> element_centroids(const stk::mesh::BulkData& aBulk)
+auto element_centroids(const stk::mesh::BulkData& aBulk) -> std::vector<common::Coordinate>
 {
     return element_centroids(aBulk, PartReferenceVector{std::cref(aBulk.mesh_meta_data().universal_part())});
 }
 
-std::vector<common::Coordinate> element_centroids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
+auto element_centroids(const stk::mesh::BulkData& aBulk,
+                       const PartReferenceVector& aParts) -> std::vector<common::Coordinate>
 {
     const stk::mesh::EntityVector tElements = element_vector(aBulk, aParts);
     std::vector<common::Coordinate> tCentroids;
@@ -223,7 +224,7 @@ std::vector<common::Coordinate> element_centroids(const stk::mesh::BulkData& aBu
     return tCentroids;
 }
 
-double mesh_volume(const stk::mesh::BulkData& aBulk)
+auto mesh_volume(const stk::mesh::BulkData& aBulk) -> double
 {
     const auto tElements = element_vector(aBulk);
 
@@ -249,7 +250,8 @@ auto volume_nodal_sensitivities(const stk::mesh::BulkData& aBulk, const PartRefe
     return tNodalSensitivities;
 }
 
-std::vector<common::Coordinate> element_coordinates(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
+auto element_coordinates(const stk::mesh::Entity& aElement,
+                         const stk::mesh::BulkData& aBulk) -> std::vector<common::Coordinate>
 {
     std::vector<common::Coordinate> tCoordinates;
     const unsigned int tNumDimensions = spatial_dimensions(aBulk);
@@ -263,7 +265,7 @@ std::vector<common::Coordinate> element_coordinates(const stk::mesh::Entity& aEl
     return tCoordinates;
 }
 
-double average_element_max_edge_length(const stk::mesh::BulkData& aBulk)
+auto average_element_max_edge_length(const stk::mesh::BulkData& aBulk) -> double
 {
     const stk::mesh::EntityVector tElements = element_vector(aBulk);
     return std::accumulate(tElements.cbegin(), tElements.cend(), 0.0, [&aBulk](const double aSum, const auto& iElement)

@@ -25,7 +25,7 @@ void ROLObjectiveFunction::update(const std::vector<double>& aControls,
     }
 }
 
-double ROLObjectiveFunction::value(const std::vector<double>& aControls, double&)
+auto ROLObjectiveFunction::value(const std::vector<double>& aControls, double&) -> double
 {
     return mFunction.evaluate<core::evaluation::kFunction>(linear_algebra::DynamicVector<double>{aControls});
 }

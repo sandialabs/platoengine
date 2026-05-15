@@ -4,7 +4,7 @@ namespace plato::test_utilities
 {
 CopyCounter::CopyCounter(const CopyCounter& aCopy) : mCopies{aCopy.mCopies}, mMoves{aCopy.mMoves} { ++mCopies; }
 
-CopyCounter& CopyCounter::operator=(const CopyCounter& aCopy)
+auto CopyCounter::operator=(const CopyCounter& aCopy) -> CopyCounter&
 {
     if (&aCopy == this)
     {
@@ -18,7 +18,7 @@ CopyCounter& CopyCounter::operator=(const CopyCounter& aCopy)
 
 CopyCounter::CopyCounter(CopyCounter&& aCopy) noexcept : mCopies{aCopy.mCopies}, mMoves{aCopy.mMoves} { ++mMoves; }
 
-CopyCounter& CopyCounter::operator=(CopyCounter&& aCopy) noexcept
+auto CopyCounter::operator=(CopyCounter&& aCopy) noexcept -> CopyCounter&
 {
     mCopies = aCopy.mCopies;
     mMoves = aCopy.mMoves;

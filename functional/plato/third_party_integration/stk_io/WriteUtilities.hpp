@@ -34,7 +34,8 @@ void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& 
 void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDescription);
 
 /// @brief Use a STK @a aGenerationCommand, e.g., "generated:1x1x1" to create and return a shared pointer to a STK Bulk
-[[nodiscard]] std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator);
+[[nodiscard]] auto generate_bulk_data(const CommandGenerator& aCommandGenerator)
+    -> std::shared_ptr<stk::mesh::BulkData>;
 
 /// @brief Given a pathname  @a aMeshName and the STK Bulk data @a aBulk, write to disk the data in exodus format
 void write_bulk_data(const std::filesystem::path& aMeshName, stk::mesh::BulkData& aBulk);

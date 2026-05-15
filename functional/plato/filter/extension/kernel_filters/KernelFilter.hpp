@@ -63,10 +63,10 @@ namespace detail
 
 /// @brief Create a LinearMask object from mesh @a aMesh, with a filter sphere with radius @a aFilterRadius,
 /// centered on the elements or nodes determined by @a aFilterType, using a communicator @a aCommunicator
-[[nodiscard]] LinearMask create_linear_mask(const SourceMesh& aSourceMesh,
-                                            const TargetMesh& aTargetMesh,
-                                            const KernelFilterFunctions& aFilterType,
-                                            const boost::mpi::communicator& aCommunicator);
+[[nodiscard]] auto create_linear_mask(const SourceMesh& aSourceMesh,
+                                      const TargetMesh& aTargetMesh,
+                                      const KernelFilterFunctions& aFilterType,
+                                      const boost::mpi::communicator& aCommunicator) -> LinearMask;
 
 /// @brief Create a StateCache object for constructing a shared pointer to a KernelFilter if the mesh coordinates have
 /// changed (i.e. the mesh has changed)

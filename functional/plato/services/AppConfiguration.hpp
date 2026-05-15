@@ -55,7 +55,7 @@ struct AppConfigurationWithDirectory
 void save_configuration(const AppConfiguration& aAppConfiguration, const std::filesystem::path& aFilename);
 
 /// @brief Reads an AppConfiguration from disk, at path @a aFilename.
-[[nodiscard]] AppConfiguration load_configuration(const std::filesystem::path& aFilename);
+[[nodiscard]] auto load_configuration(const std::filesystem::path& aFilename) -> AppConfiguration;
 
 template <class Archive>
 void serialize(Archive& aArchive, CriterionConfiguration& aAppConfiguration, const unsigned int /*version*/)

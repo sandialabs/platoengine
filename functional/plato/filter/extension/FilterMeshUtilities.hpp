@@ -11,10 +11,10 @@ namespace plato::filter::extension::detail
 /// @brief Compute filter radius relative to average element maximum edge length if use_relative_radius is specified,
 /// return the specified radius value otherwise
 template <typename Filter>
-double get_filter_radius(const Filter& aInput, const std::filesystem::path& aMeshFileName);
+auto get_filter_radius(const Filter& aInput, const std::filesystem::path& aMeshFileName) -> double;
 
 template <typename Filter>
-double get_filter_radius(const Filter& aInput, const std::filesystem::path& aMeshFileName)
+auto get_filter_radius(const Filter& aInput, const std::filesystem::path& aMeshFileName) -> double
 {
     if (aInput.use_relative_radius && aInput.use_relative_radius.value() == true)
     {

@@ -6,11 +6,11 @@
 
 namespace plato::test_utilities
 {
-[[nodiscard]] std::string create_valid_brick_shape_geometry_string();
-[[nodiscard]] std::string create_valid_density_topology_geometry_string();
-[[nodiscard]] std::string create_valid_example_objective_string();
-[[nodiscard]] std::string create_valid_example_constraint_string();
-[[nodiscard]] std::string create_valid_example_rol_optimization_string();
-[[nodiscard]] std::string create_valid_identity_filter_string();
+[[nodiscard]] auto create_valid_brick_shape_geometry_string() -> std::string;
+[[nodiscard]] auto create_valid_density_topology_geometry_string() -> std::string;
+[[nodiscard]] auto create_valid_example_objective_string() -> std::string;
+[[nodiscard]] auto create_valid_example_constraint_string() -> std::string;
+[[nodiscard]] auto create_valid_example_rol_optimization_string() -> std::string;
+[[nodiscard]] auto create_valid_identity_filter_string() -> std::string;
 }  // namespace plato::test_utilities
 #endif

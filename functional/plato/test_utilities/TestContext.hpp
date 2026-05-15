@@ -62,15 +62,15 @@ struct TestContext
     std::stack<SingleTestContext> mTestContexts;
 };
 
-[[nodiscard]] inline TestContext extend_test_context(const TestContext::SingleTestContext& aNewContext,
-                                                     TestContext aExistingContext = TestContext{})
+[[nodiscard]] inline auto extend_test_context(const TestContext::SingleTestContext& aNewContext,
+                                              TestContext aExistingContext = TestContext{}) -> TestContext
 {
     aExistingContext.mTestContexts.push(aNewContext);
     return aExistingContext;
 }
 
 template <typename OutStream>
-OutStream& operator<<(OutStream& aOutStream, const TestContext::SingleTestContext& aSingleTestContext)
+auto operator<<(OutStream& aOutStream, const TestContext::SingleTestContext& aSingleTestContext) -> OutStream&
 {
     aOutStream << "Source file: " << aSingleTestContext.mFileName << ":" << aSingleTestContext.mLineNumber << ": "
                << aSingleTestContext.mMessage;
@@ -78,7 +78,7 @@ OutStream& operator<<(OutStream& aOutStream, const TestContext::SingleTestContex
 }
 
 template <typename OutStream>
-OutStream& operator<<(OutStream& aOutStream, TestContext aTestContext)
+auto operator<<(OutStream& aOutStream, TestContext aTestContext) -> OutStream&
 {
     while (!aTestContext.mTestContexts.empty())
     {

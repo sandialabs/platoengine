@@ -63,9 +63,9 @@ namespace boost::spirit::traits
 template <plato::components::ComponentType kComponentType>
 struct create_parser<plato::input_parser::CrossReference<kComponentType>>
 {
-    typedef proto::result_of::deep_copy<BOOST_TYPEOF((qi::lexeme[+qi::graph]))>::type type;
+    using type = proto::result_of::deep_copy<boost::type_of::remove_cv_ref_t<decltype((qi::lexeme[+qi::graph]))>>::type;
 
-    static type call() { return proto::deep_copy((qi::lexeme[+qi::graph])); }
+    static auto call() -> type { return proto::deep_copy((qi::lexeme[+qi::graph])); }
 };
 }  // namespace boost::spirit::traits
 

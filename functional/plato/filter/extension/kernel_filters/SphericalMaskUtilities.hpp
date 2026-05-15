@@ -57,13 +57,13 @@ using RowSum = utilities::NamedType<double, struct RowSumTag>;
 using EstimatedConnectivity = utilities::NamedType<unsigned int, struct EstimatedConnectivityTag>;
 
 /// @brief Computes the linear top hat function based on a distance @a aDistance and a search radius @a aSearchRadius
-[[nodiscard]] double linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRadius);
+[[nodiscard]] auto linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRadius) -> double;
 
 /// @brief Compute the volume of a sphere with radius @a aFilterRadius
-[[nodiscard]] double filter_volume(const SearchRadius aSearchRadius);
+[[nodiscard]] auto filter_volume(const SearchRadius aSearchRadius) -> double;
 
 /// @brief Compute the area of a circle with radius @a aFilterRadius
-[[nodiscard]] double filter_area(const SearchRadius aSearchRadius);
+[[nodiscard]] auto filter_area(const SearchRadius aSearchRadius) -> double;
 
 /// @brief Take a tpetra center vector @a aCenteringCoordinates and create stk_search objects that are search spheres
 /// with radii @a aRadius and assigned the proper identifier based on the rank @a aRank.

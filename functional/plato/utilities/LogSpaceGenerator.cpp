@@ -5,7 +5,7 @@
 
 namespace plato::utilities
 {
-std::vector<double> LogSpaceGenerator::steps() const
+auto LogSpaceGenerator::steps() const -> std::vector<double>
 {
     if (mNumberOfSteps == 0)
     {

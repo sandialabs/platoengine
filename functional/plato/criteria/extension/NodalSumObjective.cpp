@@ -32,7 +32,7 @@ const auto kConfiguration = services::CriterionConfiguration{
     }};
 }  // namespace
 
-double NodalSumObjective::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto NodalSumObjective::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double
 {
     namespace tpi = plato::third_party_integration;
 
@@ -42,13 +42,13 @@ double NodalSumObjective::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
     return tCoordinateSum.x + tCoordinateSum.y + tCoordinateSum.z;
 }
 
-linear_algebra::DynamicVector<double> NodalSumObjective::df(
-    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto NodalSumObjective::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+    -> linear_algebra::DynamicVector<double>
 {
     const auto tMesh = mesh::EntityCounts{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
     const unsigned int tSpatialDim = tMesh.spatialDimensions();
     const unsigned int tNumberOfNodes = tMesh.numberOfNodes();
-    const unsigned int tSize = static_cast<unsigned int>(tSpatialDim * tNumberOfNodes);
+    const auto tSize = static_cast<unsigned int>(tSpatialDim * tNumberOfNodes);
     std::vector<double> tCoordinates(tSize, 1);
     return linear_algebra::DynamicVector<double>(std::move(tCoordinates));
 }

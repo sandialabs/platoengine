@@ -59,10 +59,12 @@ class Expected
    public:
     constexpr Expected() = default;
 
-    template <typename U, typename = std::enable_if_t<std::is_convertible_v<U, T>>>
+    template <typename U>
+        requires(std::is_convertible_v<U, T>)
     constexpr Expected(U&& aU);
 
-    template <typename E, typename = std::enable_if_t<std::is_convertible_v<E, Error>>>
+    template <typename E>
+        requires(std::is_convertible_v<E, Error>)
     constexpr Expected(Unexpected<E>&& aError);
 
     template <typename E, typename = std::enable_if_t<std::is_convertible_v<E, Error>>>
@@ -104,13 +106,15 @@ class Expected
 };
 
 template <typename T, typename Error>
-template <typename U, typename>
+template <typename U>
+    requires(std::is_convertible_v<U, T>)
 constexpr Expected<T, Error>::Expected(U&& aU) : mValue{std::forward<U>(aU)}
 {
 }
 
 template <typename T, typename Error>
-template <typename E, typename>
+template <typename E>
+    requires(std::is_convertible_v<E, Error>)
 constexpr Expected<T, Error>::Expected(Unexpected<E>&& aError) : mValue{Unexpected<Error>{std::move(aError).mError}}
 {
 }

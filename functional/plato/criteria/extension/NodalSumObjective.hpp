@@ -13,9 +13,9 @@ namespace plato::criteria::extension
 ///  class is for implementing a geometry sensitivity check.
 struct NodalSumObjective
 {
-    [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
-    [[nodiscard]] linear_algebra::DynamicVector<double> df(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
+    [[nodiscard]] auto f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double;
+    [[nodiscard]] auto df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> linear_algebra::DynamicVector<double>;
 
     static constexpr auto kCriterionName = std::string_view{"nodal_sum"};
 };

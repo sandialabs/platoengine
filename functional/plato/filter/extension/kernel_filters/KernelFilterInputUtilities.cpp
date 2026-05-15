@@ -12,10 +12,7 @@
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 #include "plato/third_party_integration/tpetra/Utilities.hpp"
 
-namespace plato::filter::extension::kernel_filters
-{
-
-namespace detail
+namespace plato::filter::extension::kernel_filters::detail
 {
 
 auto search_result_ids(const third_party_integration::stk_search::SearchResults& aSearchResults) -> std::vector<int>
@@ -23,7 +20,7 @@ auto search_result_ids(const third_party_integration::stk_search::SearchResults&
     const auto tIDView = aSearchResults | std::ranges::views::transform([](const auto& aSearchResult)
                                                                         { return aSearchResult.first.id(); });
     const auto tUniqueIds = std::set<int>(tIDView.begin(), tIDView.end());
-    return std::vector<int>(tUniqueIds.begin(), tUniqueIds.end());
+    return {tUniqueIds.begin(), tUniqueIds.end()};
 }
 
 auto search_results_contain_all_row_ids(const std::vector<int>& aSearchResults, const std::size_t aSize) -> bool
@@ -40,5 +37,4 @@ auto search_results_contain_all_row_ids(const std::vector<int>& aSearchResults, 
                        { return tSearchResultsSet.find(aID) != tSearchResultsSet.end(); });
 }
 
-}  // namespace detail
-}  // namespace plato::filter::extension::kernel_filters
+}  // namespace plato::filter::extension::kernel_filters::detail

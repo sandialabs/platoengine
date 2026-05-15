@@ -20,7 +20,7 @@ namespace plato::utilities
 /// @endcode
 /// The index starts at 0.
 template <typename... Containers>
-Zip<std::vector<std::size_t>, Containers...> enumerate(Containers&&... containers)
+auto enumerate(Containers&&... containers) -> Zip<std::vector<std::size_t>, Containers...>
 {
     const auto min_size = std::min({containers.size()...});
     auto enumerates = std::vector<std::size_t>(min_size);

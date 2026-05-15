@@ -34,14 +34,14 @@ constexpr SumConstraint::SumConstraint(const std::pair<double, double> aCenter, 
     assert(mPower != 0);
 }
 
-constexpr double SumConstraint::f(const double aX, const double aY) const
+constexpr auto SumConstraint::f(const double aX, const double aY) const -> double
 {
     const double tXTerm = aX - mCenter.first;
     const double tYTerm = aY - mCenter.second;
     return std::pow(tXTerm, mPower) + std::pow(tYTerm, mPower);
 }
 
-constexpr TwoDVector SumConstraint::df(const double aX, const double aY) const
+constexpr auto SumConstraint::df(const double aX, const double aY) const -> TwoDVector
 {
     const double tXTerm = (aX - mCenter.first);
     const double tYTerm = (aY - mCenter.second);

@@ -30,10 +30,8 @@ constexpr bool kFunctionCompositionSizesRequirement =
 /// function evaluation, that will result in a compilation error. However, if the inner function implements evaluation,
 /// first derivative, and first derivative with adjoint ordering, then the resulting composed function will only
 /// implement evaluation and first derivative.
-template <
-    typename FunctionTypeOuter,
-    typename FunctionTypeInner,
-    typename = std::enable_if_t<detail::kFunctionCompositionSizesRequirement<FunctionTypeOuter, FunctionTypeInner>>>
+template <typename FunctionTypeOuter, typename FunctionTypeInner>
+    requires(detail::kFunctionCompositionSizesRequirement<FunctionTypeOuter, FunctionTypeInner>)
 auto compose(const FunctionTypeOuter& aFunctionOuter, const FunctionTypeInner& aFunctionInner);
 
 namespace detail
@@ -128,7 +126,8 @@ template <typename Domain, typename InfoTuple, typename FunctionTuple, std::size
 }
 }  // namespace detail
 
-template <typename FunctionTypeOuter, typename FunctionTypeInner, typename>
+template <typename FunctionTypeOuter, typename FunctionTypeInner>
+    requires(detail::kFunctionCompositionSizesRequirement<FunctionTypeOuter, FunctionTypeInner>)
 auto compose(const FunctionTypeOuter& aFunctionOuter, const FunctionTypeInner& aFunctionInner)
 {
     constexpr auto tStartingIndex = int{0};

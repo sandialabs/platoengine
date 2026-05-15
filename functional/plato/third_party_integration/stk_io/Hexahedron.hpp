@@ -25,8 +25,8 @@ struct Hexahedron
     common::Coordinate p111;
     common::Coordinate p011;
 
-    [[nodiscard]] double volume() const;
-    [[nodiscard]] common::Coordinate centroid() const;
+    [[nodiscard]] auto volume() const -> double;
+    [[nodiscard]] auto centroid() const -> common::Coordinate;
     [[nodiscard]] auto volumeVertexSensitivities() const -> VertexSensitivities;
 };
 }  // namespace plato::third_party_integration::stk_io

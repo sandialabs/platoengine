@@ -14,7 +14,7 @@ namespace plato::integration_tests::test_mass_criteria
 
 MassConstraint::MassConstraint(const double aDensity) : mDensity(aDensity) {}
 
-std::vector<double> MassConstraint::masses(std::string_view aMeshFileName) const
+auto MassConstraint::masses(std::string_view aMeshFileName) const -> std::vector<double>
 {
     const auto tMesh = mesh::Mesh{aMeshFileName};
     const auto tVolumes = mesh::MeshQuantities{tMesh}.designDomainElementVolumes();

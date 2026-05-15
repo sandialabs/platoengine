@@ -29,7 +29,7 @@ struct MemberTypeAt
 };
 
 template <typename BlockStruct, std::size_t Index>
-std::string member_name()
+auto member_name() -> std::string
 {
     return boost::fusion::extension::struct_member_name<BlockStruct, Index>::call();
 }
@@ -39,7 +39,7 @@ using RuleAtIndex =
     boost::spirit::qi::rule<Iterator, typename MemberTypeAt<BlockStruct, Index>::type(), SkipperType<Iterator>>;
 
 template <typename Iterator, typename BlockStruct, std::size_t Index>
-RuleAtIndex<Iterator, BlockStruct, Index> rule_at_index()
+auto rule_at_index() -> RuleAtIndex<Iterator, BlockStruct, Index>
 {
     const RuleAtIndex<Iterator, BlockStruct, Index> rule = bsq::lit(member_name<BlockStruct, Index>()) > bsq::auto_;
     return rule;

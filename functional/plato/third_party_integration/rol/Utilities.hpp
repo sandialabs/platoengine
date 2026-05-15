@@ -11,15 +11,15 @@ namespace plato::third_party_integration::rol
 
 /// @brief Converts @a aROLVector to a DynamicVector using a `dynamic_cast` to `ROL::StdVector`.
 template <typename T>
-[[nodiscard]] linear_algebra::DynamicVector<T> to_dynamic_vector(const ROL::Vector<T>& aROLVector);
+[[nodiscard]] auto to_dynamic_vector(const ROL::Vector<T>& aROLVector) -> linear_algebra::DynamicVector<T>;
 
 /// @brief Converts @a aDynamicVector to a `ROL::StdVector`.
 template <typename T>
-[[nodiscard]] ROL::StdVector<T> to_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector);
+[[nodiscard]] auto to_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector) -> ROL::StdVector<T>;
 
 /// @brief Converts @a aDynamicVector to a `ROL::Vector` managed pointer.
 template <typename T>
-[[nodiscard]] ROL::Ptr<ROL::StdVector<T>> make_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector);
+[[nodiscard]] auto make_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector) -> ROL::Ptr<ROL::StdVector<T>>;
 
 /// @brief Copies @a aVector into the storage of @a aROLVector using a `dynamic_cast` to `ROL::StdVector`.
 template <typename T>
@@ -28,7 +28,7 @@ void assign_vector(ROL::Vector<T>& aROLVector, std::vector<T> aVector);
 /// @brief Helper function that creates a random direction for use in diagnostic checks.
 ///
 /// @post The returned vector has dimension @a aDimension and magnitude 1.
-[[nodiscard]] ROL::StdVector<double> generate_perturbation(const int aDimension);
+[[nodiscard]] auto generate_perturbation(const int aDimension) -> ROL::StdVector<double>;
 
 /// @brief Makes @a aROLVector entries all equal to @a aValue.
 void make_uniform(ROL::Vector<double>& aROLVector, const double aValue);
@@ -37,20 +37,20 @@ void make_uniform(ROL::Vector<double>& aROLVector, const double aValue);
 void randomize_and_normalize(ROL::Vector<double>& aROLVector);
 
 template <typename T>
-linear_algebra::DynamicVector<T> to_dynamic_vector(const ROL::Vector<T>& aROLVector)
+auto to_dynamic_vector(const ROL::Vector<T>& aROLVector) -> linear_algebra::DynamicVector<T>
 {
     const auto& tROLStdVector = dynamic_cast<const ROL::StdVector<T>&>(aROLVector);
     return linear_algebra::DynamicVector(*tROLStdVector.getVector());
 }
 
 template <typename T>
-ROL::StdVector<T> to_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector)
+auto to_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector) -> ROL::StdVector<T>
 {
     return ROL::StdVector<double>(ROL::makePtr<std::vector<T>>(std::move(aDynamicVector).stdVector()));
 }
 
 template <typename T>
-ROL::Ptr<ROL::StdVector<T>> make_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector)
+auto make_rol_vector(linear_algebra::DynamicVector<T> aDynamicVector) -> ROL::Ptr<ROL::StdVector<T>>
 {
     return ROL::makePtr<ROL::StdVector<double>>(to_rol_vector(std::move(aDynamicVector)));
 }

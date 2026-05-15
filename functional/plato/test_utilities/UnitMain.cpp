@@ -80,7 +80,7 @@ auto program_name_and_arguments_for_mpi(const int aArgc,
 ///
 /// This will spawn child processes if test suite was launched with only one rank.
 /// @return The intercomm created when calling `MPI_Comm_spawn` for parents, `MPI_COMM_NULL` otherwise.
-MPI_Comm setup_children(int argc, char** argv, unsigned int aNumRanks)
+auto setup_children(int argc, char** argv, unsigned int aNumRanks) -> MPI_Comm
 {
     MPI_Comm tInterComm = MPI_COMM_NULL;
     int tNumRanks = 0;
@@ -101,9 +101,9 @@ MPI_Comm setup_children(int argc, char** argv, unsigned int aNumRanks)
     return tInterComm;
 }
 
-bool rank_should_run_tests(const MPI_Comm& tInterComm) { return tInterComm == MPI_COMM_NULL; }
+auto rank_should_run_tests(const MPI_Comm& tInterComm) -> bool { return tInterComm == MPI_COMM_NULL; }
 
-int communicate_exit_code(const MPI_Comm& tInterComm, const int tExitStatus)
+auto communicate_exit_code(const MPI_Comm& tInterComm, const int tExitStatus) -> int
 {
     int tMaxExitStatus = tExitStatus;
     if (tInterComm != MPI_COMM_NULL)
@@ -124,7 +124,7 @@ int communicate_exit_code(const MPI_Comm& tInterComm, const int tExitStatus)
 
 }  // namespace
 
-int unit_main(int argc, char** argv)
+auto unit_main(int argc, char** argv) -> int
 {
     auto tEnvironment = boost::mpi::environment{argc, argv, boost::mpi::threading::level::funneled};
     Kokkos::initialize(argc, argv);
@@ -138,7 +138,7 @@ int unit_main(int argc, char** argv)
     return returnVal;
 }
 
-int parallel_unit_main(int argc, char** argv, unsigned int aNumRanks)
+auto parallel_unit_main(int argc, char** argv, unsigned int aNumRanks) -> int
 {
     auto tEnvironment = boost::mpi::environment{argc, argv, boost::mpi::threading::level::funneled};
     Kokkos::initialize(argc, argv);

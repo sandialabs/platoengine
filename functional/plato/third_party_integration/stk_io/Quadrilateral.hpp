@@ -22,13 +22,13 @@ struct Quadrilateral
         utilities::NamedType<std::array<common::Vector3, kNumVertices>, struct VertexSensitivitiesTag>;
 
    public:
-    [[nodiscard]] double volume() const;
-    [[nodiscard]] common::Coordinate centroid() const;
+    [[nodiscard]] auto volume() const -> double;
+    [[nodiscard]] auto centroid() const -> common::Coordinate;
     [[nodiscard]] auto volumeVertexSensitivities() const -> std::array<common::Vector3, kNumVertices>;
 
    private:
-    [[nodiscard]] common::Vector3 etaTangentVector(const double aCoordinate) const;
-    [[nodiscard]] common::Vector3 xiTangentVector(const double aCoordinate) const;
+    [[nodiscard]] auto etaTangentVector(const double aCoordinate) const -> common::Vector3;
+    [[nodiscard]] auto xiTangentVector(const double aCoordinate) const -> common::Vector3;
 
    public:
     common::Coordinate p00;
@@ -37,11 +37,12 @@ struct Quadrilateral
     common::Coordinate p01;
 };
 
-[[nodiscard]] Quadrilateral::VertexSensitivities operator+(const Quadrilateral::VertexSensitivities& aLeftHandSide,
-                                                           const Quadrilateral::VertexSensitivities& aRightHandSide);
+[[nodiscard]] auto operator+(const Quadrilateral::VertexSensitivities& aLeftHandSide,
+                             const Quadrilateral::VertexSensitivities& aRightHandSide)
+    -> Quadrilateral::VertexSensitivities;
 
-[[nodiscard]] Quadrilateral::VertexSensitivities operator*(const Quadrilateral::VertexSensitivities& aSensitivities,
-                                                           const double aScalar);
+[[nodiscard]] auto operator*(const Quadrilateral::VertexSensitivities& aSensitivities,
+                             const double aScalar) -> Quadrilateral::VertexSensitivities;
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

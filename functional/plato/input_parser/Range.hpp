@@ -19,7 +19,7 @@ BOOST_FUSION_DEFINE_STRUCT(
 namespace plato::input_parser
 {
 
-[[nodiscard]] constexpr inline bool operator==(const Range& aLHS, const Range& aRHS)
+[[nodiscard]] constexpr inline auto operator==(const Range& aLHS, const Range& aRHS) -> bool
 {
     return aLHS.mLower == aRHS.mLower && aLHS.mStep == aRHS.mStep && aLHS.mUpper == aRHS.mUpper;
 }

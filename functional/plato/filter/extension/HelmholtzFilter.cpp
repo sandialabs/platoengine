@@ -25,8 +25,8 @@ namespace
 {
 const auto kHelmholtzFilterLibName = std::filesystem::path{"libAnalyzeFunctionalInterface.so"};
 
-library::FilterParameters to_filter_parameters(const input_parser::helmholtz_filter& aInput,
-                                               const std::filesystem::path& aMeshFileName)
+auto to_filter_parameters(const input_parser::helmholtz_filter& aInput,
+                          const std::filesystem::path& aMeshFileName) -> library::FilterParameters
 {
     return library::FilterParameters{
         /*.mFilterRadius=*/detail::get_filter_radius(aInput, aMeshFileName),
@@ -67,7 +67,7 @@ auto validate_helmholtz_filter_boundary_sticking_penalty(const input_parser::hel
 
 namespace detail
 {
-library::FilterCache create_filter_cache(const input_parser::helmholtz_filter& aInput)
+auto create_filter_cache(const input_parser::helmholtz_filter& aInput) -> library::FilterCache
 {
     return library::FilterCache{
         [aInput](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)

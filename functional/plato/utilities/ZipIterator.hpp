@@ -23,12 +23,12 @@ class ZipIterator
     constexpr explicit ZipIterator(const Iterators&... iterators);
     constexpr explicit ZipIterator(std::tuple<Iterators...> iterators);
 
-    [[nodiscard]] constexpr reference operator*();
-    [[nodiscard]] constexpr const_reference operator*() const;
-    constexpr ZipIterator& operator++();
+    [[nodiscard]] constexpr auto operator*() -> reference;
+    [[nodiscard]] constexpr auto operator*() const -> const_reference;
+    constexpr auto operator++() -> ZipIterator&;
 
-    [[nodiscard]] constexpr bool operator!=(const ZipIterator& iterator) const noexcept;
-    [[nodiscard]] constexpr bool operator==(const ZipIterator& iterator) const noexcept;
+    [[nodiscard]] constexpr auto operator!=(const ZipIterator& iterator) const noexcept -> bool;
+    [[nodiscard]] constexpr auto operator==(const ZipIterator& iterator) const noexcept -> bool;
 
    private:
     std::tuple<Iterators...> mIterators{};
@@ -37,19 +37,20 @@ class ZipIterator
 namespace detail
 {
 template <typename Tuple, typename BinaryOp, std::size_t... Is>
-constexpr bool any_of_comparison_impl(const Tuple& t1, const Tuple& t2, const BinaryOp& op, std::index_sequence<Is...>)
+constexpr auto any_of_comparison_impl(const Tuple& t1, const Tuple& t2, const BinaryOp& op, std::index_sequence<Is...>)
+    -> bool
 {
     return (op(std::get<Is>(t1), std::get<Is>(t2)) || ...);
 }
 
 template <typename ReferenceTuple, typename IteratorTuple, std::size_t... Is>
-constexpr decltype(auto) dereference(const IteratorTuple& iterator_tuple, std::index_sequence<Is...>)
+constexpr auto dereference(const IteratorTuple& iterator_tuple, std::index_sequence<Is...>) -> decltype(auto)
 {
     return ReferenceTuple(*std::get<Is>(iterator_tuple)...);
 }
 
 template <typename ReferenceTuple, typename IteratorTuple, std::size_t... Is>
-constexpr decltype(auto) const_dereference(const IteratorTuple& iterator_tuple, std::index_sequence<Is...>)
+constexpr auto const_dereference(const IteratorTuple& iterator_tuple, std::index_sequence<Is...>) -> decltype(auto)
 {
     return ReferenceTuple(std::as_const(*std::get<Is>(iterator_tuple))...);
 }
@@ -62,7 +63,7 @@ constexpr void increment(IteratorTuple& iterator_tuple, std::index_sequence<Is..
 }  // namespace detail
 
 template <typename Tuple, typename BinaryOp>
-constexpr bool any_of_comparison(const Tuple& t1, const Tuple& t2, const BinaryOp& op)
+constexpr auto any_of_comparison(const Tuple& t1, const Tuple& t2, const BinaryOp& op) -> bool
 {
     return detail::any_of_comparison_impl(t1, t2, op, std::make_index_sequence<std::tuple_size_v<Tuple> >());
 }
@@ -91,20 +92,20 @@ constexpr auto ZipIterator<Iterators...>::operator*() const -> ZipIterator<Itera
 }
 
 template <typename... Iterators>
-constexpr ZipIterator<Iterators...>& ZipIterator<Iterators...>::operator++()
+constexpr auto ZipIterator<Iterators...>::operator++() -> ZipIterator<Iterators...>&
 {
     detail::increment(mIterators, std::make_index_sequence<std::tuple_size_v<value_type> >());
     return *this;
 }
 
 template <typename... Iterators>
-constexpr bool ZipIterator<Iterators...>::operator!=(const ZipIterator<Iterators...>& iterator) const noexcept
+constexpr auto ZipIterator<Iterators...>::operator!=(const ZipIterator<Iterators...>& iterator) const noexcept -> bool
 {
     return !any_of_comparison(mIterators, iterator.mIterators, std::equal_to{});
 }
 
 template <typename... Iterators>
-constexpr bool ZipIterator<Iterators...>::operator==(const ZipIterator<Iterators...>& iterator) const noexcept
+constexpr auto ZipIterator<Iterators...>::operator==(const ZipIterator<Iterators...>& iterator) const noexcept -> bool
 {
     return any_of_comparison(mIterators, iterator.mIterators, std::equal_to{});
 }

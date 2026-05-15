@@ -25,17 +25,15 @@ auto create_simple_linear_mask_builder(const std::vector<third_party_integration
         std::vector<third_party_integration::common::Coordinate>{{0, 0, 0}, {1, 0, 0}, {2, 0, 0}, {3, 0, 0}};
     if (!aCentroids.empty())
     {
-        return LinearMaskBuilder(SourceColumnVector{tCoordinates}, TargetRowVector{aCentroids},
-                                 tKernelFilterType.mKernelFilterFunctions, kMaximumConnectivity,
-                                 boost::mpi::communicator{});
+        return {SourceColumnVector{tCoordinates}, TargetRowVector{aCentroids}, tKernelFilterType.mKernelFilterFunctions,
+                kMaximumConnectivity, boost::mpi::communicator{}};
     }
 
-    return LinearMaskBuilder(SourceColumnVector{tCoordinates}, TargetRowVector{tCoordinates},
-                             tKernelFilterType.mKernelFilterFunctions, kMaximumConnectivity,
-                             boost::mpi::communicator{});
+    return {SourceColumnVector{tCoordinates}, TargetRowVector{tCoordinates}, tKernelFilterType.mKernelFilterFunctions,
+            kMaximumConnectivity, boost::mpi::communicator{}};
 }
 
-LinearMask create_simple_linear_mask(const std::vector<third_party_integration::common::Coordinate>& aCentroids)
+auto create_simple_linear_mask(const std::vector<third_party_integration::common::Coordinate>& aCentroids) -> LinearMask
 {
     return LinearMask{create_simple_linear_mask_builder(aCentroids).mask(), boost::mpi::communicator{}};
 }

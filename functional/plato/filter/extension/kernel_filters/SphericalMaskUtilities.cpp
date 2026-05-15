@@ -45,18 +45,18 @@ auto distribute_search_vectors_and_stk_search_with_spheres(const TargetRowVector
 namespace detail
 {
 
-double linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRadius)
+auto linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRadius) -> double
 {
     return std::max(0.0, 1.0 - aDistance.mValue / aSearchRadius.mValue);
 }
 
-double filter_volume(const SearchRadius aFilterRadius)
+auto filter_volume(const SearchRadius aFilterRadius) -> double
 {
     constexpr auto tUnitSphereVolume = 4.0 * std::numbers::pi / 3.0;
     return tUnitSphereVolume * aFilterRadius.mValue * aFilterRadius.mValue * aFilterRadius.mValue;
 }
 
-double filter_area(const SearchRadius aFilterRadius)
+auto filter_area(const SearchRadius aFilterRadius) -> double
 {
     return boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue;
 }

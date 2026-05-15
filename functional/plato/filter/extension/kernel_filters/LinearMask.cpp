@@ -24,12 +24,12 @@ namespace
 }  // namespace
 
 LinearMask::LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask,
-                       const boost::mpi::communicator& aCommunicator)
-    : mCommunicator{aCommunicator}, mLinearMask{std::move(aLinearMask)}
+                       boost::mpi::communicator aCommunicator)
+    : mCommunicator{std::move(aCommunicator)}, mLinearMask{std::move(aLinearMask)}
 {
 }
 
-std::vector<double> LinearMask::matrixMultiply(const std::vector<double>& aValues) const
+auto LinearMask::matrixMultiply(const std::vector<double>& aValues) const -> std::vector<double>
 {
     const auto tTeuchosCommunicator = to_teuchos_communicator(mCommunicator);
     auto [tRowVector, tColumnVector] =
@@ -42,7 +42,7 @@ std::vector<double> LinearMask::matrixMultiply(const std::vector<double>& aValue
     return third_party_integration::tpetra::reduce_tpetra_vector(tRowVector, tTeuchosCommunicator);
 }
 
-std::vector<double> LinearMask::transposeMatrixMultiply(const std::vector<double>& aValues) const
+auto LinearMask::transposeMatrixMultiply(const std::vector<double>& aValues) const -> std::vector<double>
 {
     const auto tTeuchosCommunicator = to_teuchos_communicator(mCommunicator);
     auto [tRowVector, tColumnVector] =
@@ -55,8 +55,8 @@ std::vector<double> LinearMask::transposeMatrixMultiply(const std::vector<double
     return third_party_integration::tpetra::reduce_tpetra_vector(tColumnVector, tTeuchosCommunicator);
 }
 
-std::pair<third_party_integration::tpetra::TpetraGlobalOrdinal, third_party_integration::tpetra::TpetraGlobalOrdinal>
-LinearMask::size() const
+auto LinearMask::size() const -> std::pair<third_party_integration::tpetra::TpetraGlobalOrdinal,
+                                           third_party_integration::tpetra::TpetraGlobalOrdinal>
 {
     return {mLinearMask.getGlobalNumRows(), mLinearMask.getGlobalNumCols()};
 }

@@ -39,7 +39,7 @@ using ValidatedObjective = input_validation::ValidatedInputDataBlock<components:
     return input_validation::get_input_block<input_parser::objective>(aObjective).aggregation_weight.value();
 }
 
-[[nodiscard]] bool normalize_by_initial_value(const ValidatedObjective& aObjective)
+[[nodiscard]] auto normalize_by_initial_value(const ValidatedObjective& aObjective) -> bool
 {
     const auto& tInput = input_validation::get_input_block<input_parser::objective>(aObjective);
     return tInput.normalize_by_initial_value.value_or(false);
@@ -56,7 +56,7 @@ using ValidatedObjective = input_validation::ValidatedInputDataBlock<components:
     return objective_goal(aObjective) == ObjectiveGoal::kMinimizeNegation ? -1.0 : 1.0;
 }
 
-[[nodiscard]] bool is_parallel_objective(const ValidatedObjective& aObjective)
+[[nodiscard]] auto is_parallel_objective(const ValidatedObjective& aObjective) -> bool
 {
     return input_validation::get_input_block<input_parser::objective>(aObjective).number_of_processors.value_or(1U) >
            1U;
@@ -189,7 +189,7 @@ auto number_of_processors_per_objective(const ValidatedObjectives& aInput) -> st
                                     return input_validation::get_input_block<input_parser::objective>(aObjective)
                                         .number_of_processors.value_or(1U);
                                 });
-    return std::vector(tNumberOfProcessors.begin(), tNumberOfProcessors.end());
+    return {tNumberOfProcessors.begin(), tNumberOfProcessors.end()};
 }
 
 }  // namespace plato::criteria::library

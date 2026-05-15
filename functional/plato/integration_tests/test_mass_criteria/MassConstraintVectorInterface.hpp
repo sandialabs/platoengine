@@ -13,17 +13,20 @@ class MassConstraintInterface : public criteria::library::VectorCriterionInterfa
    public:
     ///@brief Required by the VectorCriterionInterface, returns the value of the constraint evaluated at the controls
     /// specified by the MeshDesignVariables
-    std::vector<double> value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
+    [[nodiscard]] auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> std::vector<double> override;
 
     ///@brief Required by the VectorCriterionInterface, returns the product of a row vector @a aDirectionVector with the
     /// Jacobian evaluated at the controls specified by @a aAnalysisDomainMesh.
-    std::vector<double> rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                               const std::vector<double>& aDirectionVector) const override;
+    [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                              const std::vector<double>& aDirectionVector) const
+        -> std::vector<double> override;
 
     ///@brief Required by the VectorCriterionInterface, return the adjoint jacobian times a dual vector of the
     /// constraint evaluated at the controls specified by the MeshDesignVariables and the supplied direction vector
-    std::vector<double> rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                      const std::vector<double>& aDualVector) const override;
+    [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                     const std::vector<double>& aDualVector) const
+        -> std::vector<double> override;
 };
 }  // namespace plato::integration_tests::test_mass_criteria
 

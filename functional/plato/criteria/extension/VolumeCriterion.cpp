@@ -158,13 +158,13 @@ const auto kVolumeFractionConfiguration = services::CriterionConfiguration{
     return std::set<std::string>{tEvaluationBlocks.begin(), tEvaluationBlocks.end()};
 }
 
-double fixed_domain_volume(const mesh::MeshQuantities& aMesh)
+auto fixed_domain_volume(const mesh::MeshQuantities& aMesh) -> double
 {
     const auto tElementVolumes = aMesh.fixedDomainElementVolumes();
     return utilities::pair_wise_accumulate(tElementVolumes);
 }
 
-bool is_element_based_density_topology(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+auto is_element_based_density_topology(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> bool
 {
     if (aAnalysisDomainMesh.mBlockScalarField.empty())
     {
@@ -183,7 +183,7 @@ bool is_element_based_density_topology(const analysis::AnalysisDomainMesh& aAnal
 }
 }  // namespace
 
-double VolumeCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto VolumeCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double
 {
     const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aAnalysisDomainMesh}};
     if (is_element_based_density_topology(aAnalysisDomainMesh))
@@ -203,7 +203,8 @@ double VolumeCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMes
     }
 }
 
-linear_algebra::DynamicVector<double> VolumeCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto VolumeCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+    -> linear_algebra::DynamicVector<double>
 {
     const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aAnalysisDomainMesh}};
     if (is_element_based_density_topology(aAnalysisDomainMesh))
@@ -268,8 +269,8 @@ auto parse_input_block(const std::filesystem::path& aFilePath) -> input_parser::
     return tInputs;
 }
 
-double reference_volume(const boost::optional<double> aReferenceVolume,
-                        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+auto reference_volume(const boost::optional<double> aReferenceVolume,
+                      const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> double
 {
     if (aAnalysisDomainMesh.mBlockScalarField.empty())
     {

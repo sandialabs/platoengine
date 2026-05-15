@@ -19,8 +19,8 @@ struct Tetrahedron
     common::Coordinate p2;
     common::Coordinate p3;
 
-    [[nodiscard]] double volume() const;
-    [[nodiscard]] common::Coordinate centroid() const;
+    [[nodiscard]] auto volume() const -> double;
+    [[nodiscard]] auto centroid() const -> common::Coordinate;
     [[nodiscard]] auto volumeVertexSensitivities() const -> VertexSensitivities;
 };
 

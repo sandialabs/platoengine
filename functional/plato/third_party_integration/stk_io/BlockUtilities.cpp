@@ -22,9 +22,9 @@ namespace plato::third_party_integration::stk_io
 {
 namespace
 {
-std::size_t entity_size(const stk::mesh::BulkData& aBulkData,
-                        const stk::mesh::Part& aPart,
-                        const stk::topology::rank_t aEntityType)
+auto entity_size(const stk::mesh::BulkData& aBulkData,
+                 const stk::mesh::Part& aPart,
+                 const stk::topology::rank_t aEntityType) -> std::size_t
 {
     const auto tSelector = stk::mesh::Selector{aPart};
     auto tEntityCounts = std::vector<std::size_t>{};
@@ -34,9 +34,9 @@ std::size_t entity_size(const stk::mesh::BulkData& aBulkData,
 
 }  // namespace
 
-unsigned int block_size(const stk::mesh::BulkData& aBulk) { return element_blocks_parts(aBulk).size(); }
+auto block_size(const stk::mesh::BulkData& aBulk) -> unsigned int { return element_blocks_parts(aBulk).size(); }
 
-std::vector<common::BlockData> block_data(const stk::mesh::BulkData& aBulk)
+auto block_data(const stk::mesh::BulkData& aBulk) -> std::vector<common::BlockData>
 {
     const auto tParts = element_blocks_parts(aBulk);
     auto tBlockData = std::vector<common::BlockData>{};
@@ -65,12 +65,12 @@ auto part_with_block_meta_data_ordinal(const stk::mesh::BulkData& aBulkData,
     }
 }
 
-std::size_t element_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart)
+auto element_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart) -> std::size_t
 {
     return entity_size(aBulkData, aPart, stk::topology::ELEM_RANK);
 }
 
-std::size_t node_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart)
+auto node_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart) -> std::size_t
 {
     return entity_size(aBulkData, aPart, stk::topology::NODE_RANK);
 }

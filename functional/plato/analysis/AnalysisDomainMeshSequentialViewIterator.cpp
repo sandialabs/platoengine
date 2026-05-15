@@ -37,8 +37,8 @@ auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategor
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
-bool AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator==(
-    const AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const
+auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator==(
+    const AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const -> bool
 {
     auto tAllEqual = true;
     for (const auto& [tLeftIterator, tRightIterator] :
@@ -50,8 +50,8 @@ bool AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategor
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
-bool AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator!=(
-    const AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const
+auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator!=(
+    const AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const -> bool
 {
     return !(*this == aRHSIterator);
 }

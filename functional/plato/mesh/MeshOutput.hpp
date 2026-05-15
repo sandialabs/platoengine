@@ -40,8 +40,8 @@ class MeshOutput : public Mesh
 
     MeshOutput(const MeshOutput&) = delete;
     MeshOutput(MeshOutput&&) = delete;
-    MeshOutput& operator=(const MeshOutput&) = delete;
-    MeshOutput& operator=(MeshOutput&&) = delete;
+    auto operator=(const MeshOutput&) -> MeshOutput& = delete;
+    auto operator=(MeshOutput&&) -> MeshOutput& = delete;
 };
 
 /// @brief Given output mode @a aOutputMode, a source mesh @a aSourceAnalysisDomainMesh, the output file @a

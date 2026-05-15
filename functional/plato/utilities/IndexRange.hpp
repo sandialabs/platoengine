@@ -24,11 +24,11 @@ class IndexIterator
     constexpr IndexIterator(const T aDimensions);
     constexpr IndexIterator(EndTag, const T aDimensions);
 
-    [[nodiscard]] constexpr reference operator*() const;
-    constexpr IndexIterator& operator++();
+    [[nodiscard]] constexpr auto operator*() const -> reference;
+    constexpr auto operator++() -> IndexIterator&;
 
-    [[nodiscard]] constexpr bool operator!=(const IndexIterator& aIterator) const noexcept;
-    [[nodiscard]] constexpr bool operator==(const IndexIterator& aIterator) const noexcept;
+    [[nodiscard]] constexpr auto operator!=(const IndexIterator& aIterator) const noexcept -> bool;
+    [[nodiscard]] constexpr auto operator==(const IndexIterator& aIterator) const noexcept -> bool;
 
    private:
     MultidimensionalIterator<T> mIterator;
@@ -47,8 +47,8 @@ class IndexRange
     /// @pre All values of @a dimensions must greater than 0.
     constexpr IndexRange(T aDimensions);
 
-    [[nodiscard]] constexpr IndexIterator<T> begin() const;
-    [[nodiscard]] constexpr IndexIterator<T> end() const;
+    [[nodiscard]] constexpr auto begin() const -> IndexIterator<T>;
+    [[nodiscard]] constexpr auto end() const -> IndexIterator<T>;
 
    private:
     T mDimensions;
@@ -72,20 +72,20 @@ constexpr auto IndexIterator<T>::operator*() const -> typename IndexIterator<T>:
 }
 
 template <typename T>
-constexpr IndexIterator<T>& IndexIterator<T>::operator++()
+constexpr auto IndexIterator<T>::operator++() -> IndexIterator<T>&
 {
     ++mIterator;
     return *this;
 }
 
 template <typename T>
-constexpr bool IndexIterator<T>::operator!=(const IndexIterator<T>& aIterator) const noexcept
+constexpr auto IndexIterator<T>::operator!=(const IndexIterator<T>& aIterator) const noexcept -> bool
 {
     return mIterator != aIterator.mIterator;
 }
 
 template <typename T>
-constexpr bool IndexIterator<T>::operator==(const IndexIterator<T>& aIterator) const noexcept
+constexpr auto IndexIterator<T>::operator==(const IndexIterator<T>& aIterator) const noexcept -> bool
 {
     return mIterator == aIterator.mIterator;
 }
@@ -96,13 +96,13 @@ constexpr IndexRange<T>::IndexRange(T aDimensions) : mDimensions{aDimensions}
 }
 
 template <typename T>
-constexpr IndexIterator<T> IndexRange<T>::begin() const
+constexpr auto IndexRange<T>::begin() const -> IndexIterator<T>
 {
     return IndexIterator<T>{mDimensions};
 }
 
 template <typename T>
-constexpr IndexIterator<T> IndexRange<T>::end() const
+constexpr auto IndexRange<T>::end() const -> IndexIterator<T>
 {
     return IndexIterator<T>{typename IndexIterator<T>::EndTag{}, mDimensions};
 }

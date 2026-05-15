@@ -11,7 +11,7 @@
 namespace plato::analysis
 {
 template <typename AnalysisDomainMeshType>
-std::size_t AnalysisDomainMeshSequentialViewTemplate<AnalysisDomainMeshType>::size() const
+auto AnalysisDomainMeshSequentialViewTemplate<AnalysisDomainMeshType>::size() const -> std::size_t
 {
     return std::distance(begin(), end());
 }

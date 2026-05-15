@@ -23,7 +23,7 @@ namespace detail
 
 /// @brief Returns the value of the p-norm applied to a vector @a aVector with power with power @a aPower
 /// @pre @a aVector is not empty and @a Power >= 1
-[[nodiscard]] double p_norm_value(std::vector<double> aVector, const double aPower);
+[[nodiscard]] auto p_norm_value(std::vector<double> aVector, const double aPower) -> double;
 
 /// @brief Returns a vector containing the gradient of the p-norm applied to a vector @a aVector with power with power
 /// @a aPower

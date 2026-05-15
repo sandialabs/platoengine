@@ -107,7 +107,7 @@ void register_all_criteria(const services::AppConfigurationWithDirectory& aAppCo
 }
 }  // namespace
 
-std::size_t register_plugin_apps(const std::vector<std::filesystem::path>& aSearchDirectories)
+auto register_plugin_apps(const std::vector<std::filesystem::path>& aSearchDirectories) -> std::size_t
 {
     const auto tAppConfigurations = services::app_configurations(aSearchDirectories);
     auto tNumberOfRegisteredApps = std::size_t{0};

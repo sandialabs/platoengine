@@ -26,9 +26,9 @@ namespace plato::criteria::extension
 /// centered controls and not nodal
 struct VolumeCriterion
 {
-    [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
-    [[nodiscard]] linear_algebra::DynamicVector<double> df(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
+    [[nodiscard]] auto f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double;
+    [[nodiscard]] auto df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> linear_algebra::DynamicVector<double>;
 
     static constexpr auto kVolumeCriterionName = std::string_view{"volume"};
     static constexpr auto kVolumeFractionCriterionName = std::string_view{"volume_fraction"};
@@ -49,8 +49,8 @@ namespace detail
 {
 auto parse_input_block(const std::filesystem::path& aFilename) -> input_parser::volume_criterion;
 
-[[nodiscard]] double reference_volume(const boost::optional<double> aReferenceVolume,
-                                      const analysis::AnalysisDomainMesh& aAnalysisDomainMesh);
+[[nodiscard]] auto reference_volume(const boost::optional<double> aReferenceVolume,
+                                    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> double;
 }  // namespace detail
 
 }  // namespace plato::criteria::extension

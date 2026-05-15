@@ -46,10 +46,10 @@ class OptimizationParameters
     void writeOutputHistory(const std::optional<bool> aWriteOutputHistory);
 
     ///@brief Returns the parameter that specifies whether to write the output for each optimization iteration
-    bool writeOutputHistory() const { return mWriteOutputHistory; };
+    [[nodiscard]] auto writeOutputHistory() const -> bool { return mWriteOutputHistory; };
 
     ///@brief Return the ROL::ParameterList stored in the class member mParameterList
-    [[nodiscard]] const ROL::ParameterList& parameters() const;
+    [[nodiscard]] auto parameters() const -> const ROL::ParameterList&;
 
     ///@brief Write the ROL::ParameterList stored in the class member mParameterList to file @a aPath
     void writeParameters(const std::filesystem::path& aPath) const;
@@ -69,7 +69,7 @@ void make_verbose(ROL::ParameterList& aParameterList);
 void approximate_hessian(ROL::ParameterList& aParameterList);
 
 ///@brief Load a ParameterList from file @a aInputFile
-[[nodiscard]] ROL::ParameterList load_from_file(const std::filesystem::path& aInputFile);
+[[nodiscard]] auto load_from_file(const std::filesystem::path& aInputFile) -> ROL::ParameterList;
 
 ///@brief Traverse the parameter list @a aParlist and set the value specified by ParameterAndValue @a aParameterAndValue
 template <typename Type>

@@ -17,7 +17,7 @@ class CoutCerrPrintTestFixture : public ::testing::Test
 {
    public:
     CoutCerrPrintTestFixture();
-    ~CoutCerrPrintTestFixture();
+    ~CoutCerrPrintTestFixture() override;
 
     CoutCerrPrintTestFixture(const CoutCerrPrintTestFixture&) = delete;
     CoutCerrPrintTestFixture(CoutCerrPrintTestFixture&&) = delete;

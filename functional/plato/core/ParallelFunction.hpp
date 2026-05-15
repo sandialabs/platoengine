@@ -21,13 +21,13 @@ template <typename F>
 
 /// @brief Given a value @a aValue computed on comm @a aCommunicator, returns the corresponding value computed on root.
 template <typename Type>
-[[nodiscard]] Type broadcast_from_root(const boost::mpi::communicator& aCommunicator, Type aValue);
+[[nodiscard]] auto broadcast_from_root(const boost::mpi::communicator& aCommunicator, Type aValue) -> Type;
 
 namespace detail
 {
 constexpr static inline auto kRootRank = 0;
 
-[[nodiscard]] inline double rank_weight(const boost::mpi::communicator& aCommunicator)
+[[nodiscard]] inline auto rank_weight(const boost::mpi::communicator& aCommunicator) -> double
 {
     return aCommunicator.rank() == kRootRank ? 1.0 : 0.0;
 }
@@ -47,7 +47,7 @@ auto adapt_parallel_function(F aFun, const boost::mpi::communicator& aCommunicat
 }
 
 template <typename Type>
-Type broadcast_from_root(const boost::mpi::communicator& aCommunicator, Type aValue)
+auto broadcast_from_root(const boost::mpi::communicator& aCommunicator, Type aValue) -> Type
 {
     boost::mpi::broadcast(aCommunicator, aValue, detail::kRootRank);
     return aValue;

@@ -33,22 +33,22 @@ struct LastTimeStep
 using TimeStep = utilities::ValueOrTag<double, LastTimeStep>;
 
 /// @brief Given a pathname  @a aMeshName, read from disk and return a shared pointer to the STK Bulk data.
-[[nodiscard]] std::shared_ptr<stk::mesh::BulkData> read_mesh_bulk_data(const std::filesystem::path& aMeshName);
+[[nodiscard]] auto read_mesh_bulk_data(const std::filesystem::path& aMeshName) -> std::shared_ptr<stk::mesh::BulkData>;
 
 /// @brief Given a STK Bulk data  @a aBulk, return the total number of nodes.
-[[nodiscard]] unsigned int node_size(const stk::mesh::BulkData& aBulk);
+[[nodiscard]] auto node_size(const stk::mesh::BulkData& aBulk) -> unsigned int;
 
 /// @brief Given a STK Bulk data  @a aBulk, return the total number of nodes only in the parts list @a aParts.
-[[nodiscard]] unsigned int node_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts);
+[[nodiscard]] auto node_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> unsigned int;
 
 /// @brief Given a STK Bulk data  @a aBulk, return the total number of elements.
-[[nodiscard]] unsigned int element_size(const stk::mesh::BulkData& aBulk);
+[[nodiscard]] auto element_size(const stk::mesh::BulkData& aBulk) -> unsigned int;
 
 /// @brief Given a STK Bulk data @a aBulk, return the total number of elements only in the parts list @a aParts.
-[[nodiscard]] unsigned int element_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts);
+[[nodiscard]] auto element_size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> unsigned int;
 
 /// @brief Given a STK Bulk data @a aBulk, return the spatial dimensions of the mesh.
-[[nodiscard]] unsigned int spatial_dimensions(const stk::mesh::BulkData& aBulk);
+[[nodiscard]] auto spatial_dimensions(const stk::mesh::BulkData& aBulk) -> unsigned int;
 
 /// @brief Given a STK Bulk data @a aBulk, return a std::vector of Coordinates
 /// For 2D, z values of Coordinates are set to 0.
@@ -70,19 +70,21 @@ using TimeStep = utilities::ValueOrTag<double, LastTimeStep>;
     -> std::vector<std::size_t>;
 
 /// @brief Given a STK Bulk data @a aBulk, return the STK element container
-stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk);
+auto element_vector(const stk::mesh::BulkData& aBulk) -> stk::mesh::EntityVector;
 
 /// @brief Given a STK bulk data @a aBulk and part @a aPart, returns the STK element container.
-stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart);
+auto element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPart) -> stk::mesh::EntityVector;
 
 /// @brief Given a STK bulk data @a aBulk and parts @a aParts, returns the STK element container.
-stk::mesh::EntityVector element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts);
+auto element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> stk::mesh::EntityVector;
 
 /// @brief Given a pathname @a aInputMeshName, check if the field @a aFieldName exists on the elements
-[[nodiscard]] bool element_field_exists(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName);
+[[nodiscard]] auto element_field_exists(const std::filesystem::path& aInputMeshName,
+                                        const std::string_view aFieldName) -> bool;
 
 /// @brief Given a pathname @a aInputMeshName, check if the field @a aFieldName exists on the nodes
-[[nodiscard]] bool nodal_field_exists(const std::filesystem::path& aInputMeshName, const std::string_view aFieldName);
+[[nodiscard]] auto nodal_field_exists(const std::filesystem::path& aInputMeshName,
+                                      const std::string_view aFieldName) -> bool;
 
 /// @brief Given a pathname @a aInputMeshName, return a list of all the field names defined on the nodes
 [[nodiscard]] auto nodal_field_names(const std::filesystem::path& aInputMeshName) -> std::vector<std::string>;

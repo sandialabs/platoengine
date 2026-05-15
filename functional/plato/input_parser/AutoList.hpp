@@ -26,10 +26,10 @@ struct AutoList
     AutoList() = default;
     AutoList(std::vector<ParsableType> aList);
 
-    [[nodiscard]] iterator begin();
-    [[nodiscard]] iterator end();
-    [[nodiscard]] const_iterator begin() const;
-    [[nodiscard]] const_iterator end() const;
+    [[nodiscard]] auto begin() -> iterator;
+    [[nodiscard]] auto end() -> iterator;
+    [[nodiscard]] auto begin() const -> const_iterator;
+    [[nodiscard]] auto end() const -> const_iterator;
 
     void insert(std::vector<ParsableType>::iterator aIter, ParsableType aVal);
 

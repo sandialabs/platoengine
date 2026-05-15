@@ -80,13 +80,13 @@ class MultiVectorView
     MultiVectorView(Container& aContainer, const std::size_t aDimensions);
 
     /// @brief The number of vectors.
-    auto numberOfVectors() const -> std::size_t;
+    [[nodiscard]] auto numberOfVectors() const -> std::size_t;
 
     /// @brief The total size of all entries, i.e., `mDimensions` times numberOfVectors.
-    auto size() const -> std::size_t;
+    [[nodiscard]] auto size() const -> std::size_t;
 
     /// @brief The number of vector dimensions.
-    auto dimensions() const -> std::size_t;
+    [[nodiscard]] auto dimensions() const -> std::size_t;
 
     /// @brief Accessor for the @a aComponentIndex component of the @a aVectorIndex vector.
     /// @pre @a aVectorIndex must be less than the size of the container held by the view times the number of
@@ -184,7 +184,7 @@ struct VectorProxy
     VectorProxy(MultiVectorView<Container> aView, VectorIndex aIndex) : mView{aView}, mVectorIndex{aIndex} {}
 
     template <VectorLike<value_type> V>
-    VectorProxy& operator+=(const V& aVector)
+    auto operator+=(const V& aVector) -> VectorProxy&
     {
         mView(mVectorIndex, ComponentIndex{0}) += aVector.x;
         mView(mVectorIndex, ComponentIndex{1}) += aVector.y;
@@ -196,7 +196,7 @@ struct VectorProxy
     }
 
     template <VectorLike<value_type> V>
-    VectorProxy& operator=(const V& aVector)
+    auto operator=(const V& aVector) -> VectorProxy&
     {
         mView(mVectorIndex, ComponentIndex{0}) = aVector.x;
         mView(mVectorIndex, ComponentIndex{1}) = aVector.y;

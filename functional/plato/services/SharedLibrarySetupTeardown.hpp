@@ -26,9 +26,9 @@ class [[nodiscard]] SharedLibrarySetupTeardown
     ~SharedLibrarySetupTeardown();
 
     SharedLibrarySetupTeardown(const SharedLibrarySetupTeardown&) = delete;
-    SharedLibrarySetupTeardown& operator=(const SharedLibrarySetupTeardown&) = delete;
+    auto operator=(const SharedLibrarySetupTeardown&) -> SharedLibrarySetupTeardown& = delete;
     SharedLibrarySetupTeardown(SharedLibrarySetupTeardown&&) noexcept;
-    SharedLibrarySetupTeardown& operator=(SharedLibrarySetupTeardown&&) noexcept;
+    auto operator=(SharedLibrarySetupTeardown&&) noexcept -> SharedLibrarySetupTeardown&;
 
     /// @brief Calls function with name @a aFunction name and arguments @a aArgs from the shared library loaded on
     /// construction.

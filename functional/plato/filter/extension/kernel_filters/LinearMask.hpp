@@ -20,16 +20,15 @@ class LinearMask
 {
    public:
     /// @brief Constructs a LinearMask from a TpetraCRSMatrix, which may be constructed from LinearMaskBuilder.
-    LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask,
-               const boost::mpi::communicator& mCommunicator);
+    LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask, boost::mpi::communicator mCommunicator);
 
     /// @brief Return the size of the distance mask. The first entry is the number of rows and the second is the number
     /// of columns.
     [[nodiscard]] auto size() const -> std::pair<third_party_integration::tpetra::TpetraGlobalOrdinal,
                                                  third_party_integration::tpetra::TpetraGlobalOrdinal>;
 
-    [[nodiscard]] std::vector<double> matrixMultiply(const std::vector<double>& aValues) const;
-    [[nodiscard]] std::vector<double> transposeMatrixMultiply(const std::vector<double>& aValues) const;
+    [[nodiscard]] auto matrixMultiply(const std::vector<double>& aValues) const -> std::vector<double>;
+    [[nodiscard]] auto transposeMatrixMultiply(const std::vector<double>& aValues) const -> std::vector<double>;
 
    private:
     boost::mpi::communicator mCommunicator;

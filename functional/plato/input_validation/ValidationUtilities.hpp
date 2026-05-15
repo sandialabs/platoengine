@@ -45,10 +45,10 @@ template <typename Parameter>
 
 /// @return an optional error message if optional @a aParameter of type FileName does not contain a value or that value
 /// doesn't point to a file on disk
-[[nodiscard]] std::optional<std::string> error_message_for_missing_file_parameter(
-    const std::string_view aPrependString,
-    const boost::optional<input_parser::FileName>& aParameter,
-    const std::string_view aEntryName);
+[[nodiscard]] auto error_message_for_missing_file_parameter(const std::string_view aPrependString,
+                                                            const boost::optional<input_parser::FileName>& aParameter,
+                                                            const std::string_view aEntryName)
+    -> std::optional<std::string>;
 
 /// @return an optional error message if the file retrieved from the input @a aInput using accessor @a aFileNameAccessor
 /// doesn't point to a file on disk.
@@ -110,7 +110,7 @@ auto error_message_for_optional_parameter_out_of_bounds(const std::string_view a
 }
 
 template <typename Parameter>
-bool is_active(const Parameter& aParameter)
+auto is_active(const Parameter& aParameter) -> bool
 {
     return !aParameter.active.has_value() || aParameter.active.value();
 }

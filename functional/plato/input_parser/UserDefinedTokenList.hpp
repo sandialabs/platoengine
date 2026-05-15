@@ -45,7 +45,7 @@ class UserDefinedTokenList
 };
 
 template <typename ValidCharFunction>
-std::ostream& operator<<(std::ostream& stream, const UserDefinedTokenList<ValidCharFunction>& aTokenList);
+auto operator<<(std::ostream& stream, const UserDefinedTokenList<ValidCharFunction>& aTokenList) -> std::ostream&;
 
 template <typename ValidCharFunction>
 [[nodiscard]] auto operator==(const UserDefinedTokenList<ValidCharFunction>& aUserDefinedTokenList,
@@ -100,7 +100,7 @@ auto UserDefinedTokenList<ValidCharFunction>::size() const -> std::size_t
 }
 
 template <typename ValidCharFunction>
-std::ostream& operator<<(std::ostream& stream, const UserDefinedTokenList<ValidCharFunction>& aTokenList)
+auto operator<<(std::ostream& stream, const UserDefinedTokenList<ValidCharFunction>& aTokenList) -> std::ostream&
 {
     constexpr auto tDelimiter = std::string_view{", "};
     stream << utilities::concatenate_container(aTokenList.list().mList, tDelimiter);

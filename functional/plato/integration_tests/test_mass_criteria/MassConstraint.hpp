@@ -14,7 +14,7 @@ class MassConstraint
     explicit MassConstraint(const double aDensity);
 
     ///@brief return the vector of the individual masses of the elements in a mesh @a aMeshFileName
-    [[nodiscard]] std::vector<double> masses(std::string_view aMeshFileName) const;
+    [[nodiscard]] auto masses(std::string_view aMeshFileName) const -> std::vector<double>;
 
    private:
     double mDensity = 1;

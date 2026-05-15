@@ -122,7 +122,7 @@ template <std::size_t kVectorIndex>
 
 auto interface_sideset_name() -> std::string { return "surface__" + std::string{void_phase_name()}; }
 
-TriangleAreaSensitivity d_area_d_tri_node(const SensitivityTriangle& aTriangle)
+auto d_area_d_tri_node(const SensitivityTriangle& aTriangle) -> TriangleAreaSensitivity
 {
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
     const std::vector<double> tDAreaDNodalCoordinates =
@@ -130,7 +130,7 @@ TriangleAreaSensitivity d_area_d_tri_node(const SensitivityTriangle& aTriangle)
     return triangle_area_sensitivity(tDAreaDNodalCoordinates);
 }
 
-TriangleNormalSensitivity d_normal_d_tri_node(const SensitivityTriangle& aTriangle)
+auto d_normal_d_tri_node(const SensitivityTriangle& aTriangle) -> TriangleNormalSensitivity
 {
     // Get the change in triangle area and normal with changes in triangle nodal coordinates (3 triplets)
     const std::vector<double> tDNormalDCoords =
@@ -141,7 +141,7 @@ TriangleNormalSensitivity d_normal_d_tri_node(const SensitivityTriangle& aTriang
 namespace detail
 {
 
-std::vector<double> d_area_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords)
+auto d_area_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords) -> std::vector<double>
 {
     constexpr auto tNumberSpatialDimensions{3};
     constexpr auto tNumberNodesPerTriangle{3};
@@ -155,7 +155,7 @@ std::vector<double> d_area_d_nodal_coords_from_tri_coords(const std::vector<doub
     return tDAreaDNodalCoordinates;
 }
 
-std::vector<double> d_normal_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords)
+auto d_normal_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCoords) -> std::vector<double>
 {
     constexpr auto tNumberSpatialDimensions{3};
     constexpr auto tNumberNodesPerTriangle{3};
@@ -169,8 +169,8 @@ std::vector<double> d_normal_d_nodal_coords_from_tri_coords(const std::vector<do
     return tDNormalDNodalCoordinates;
 }
 
-std::vector<stk::mesh::Entity> get_owned_interface_sides(const stk::mesh::BulkData& aBulkData,
-                                                         const stk::mesh::Selector& aInterfaceSelector)
+auto get_owned_interface_sides(const stk::mesh::BulkData& aBulkData,
+                               const stk::mesh::Selector& aInterfaceSelector) -> std::vector<stk::mesh::Entity>
 {
     std::vector<stk::mesh::Entity> tInterfaceSides;
 
@@ -190,7 +190,7 @@ auto interface_triangles(const stk::mesh::BulkData& aBulkData,
     const auto tSidesetPart = aBulkData.mesh_meta_data().get_part(aSidesetName);
     if (!tSidesetPart)
     {
-        return std::vector<SensitivityTriangle>();
+        return {};
     }
 
     const stk::mesh::Selector tTriSelector(*tSidesetPart);

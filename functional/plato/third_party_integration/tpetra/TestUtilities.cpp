@@ -11,13 +11,13 @@
 
 namespace plato::third_party_integration::tpetra
 {
-Teuchos::RCP<const TpetraMap> create_contiguous_map(const Tpetra::global_size_t aSize,
-                                                    const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+auto create_contiguous_map(const Tpetra::global_size_t aSize,
+                           const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator) -> Teuchos::RCP<const TpetraMap>
 {
     return Teuchos::rcp(std::make_unique<TpetraMap>(aSize, kIndexBase, aCommunicator).release());
 }
 
-TpetraVector create_projection_vector(const VectorSize aSize, const TpetraGlobalOrdinal aGlobalIndex)
+auto create_projection_vector(const VectorSize aSize, const TpetraGlobalOrdinal aGlobalIndex) -> TpetraVector
 {
     const auto tCommunicator = Tpetra::getDefaultComm();
     const auto tContiguousMap = create_contiguous_map(aSize.mValue, tCommunicator);
@@ -27,9 +27,9 @@ TpetraVector create_projection_vector(const VectorSize aSize, const TpetraGlobal
     return tVector;
 }
 
-TpetraScalar get_entry(const TpetraCRSMatrix& aMatrix,
-                       const TpetraGlobalOrdinal aGlobalIndexI,
-                       const TpetraGlobalOrdinal aGlobalIndexJ)
+auto get_entry(const TpetraCRSMatrix& aMatrix,
+               const TpetraGlobalOrdinal aGlobalIndexI,
+               const TpetraGlobalOrdinal aGlobalIndexJ) -> TpetraScalar
 {
     const auto tNRows = aMatrix.getGlobalNumRows();
     const auto tMColumns = aMatrix.getGlobalNumCols();

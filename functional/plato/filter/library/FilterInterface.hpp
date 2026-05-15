@@ -51,16 +51,16 @@ class FilterInterface
         const -> plato::linear_algebra::DynamicVector<double> = 0;
 
     FilterInterface(const FilterInterface&) = delete;
-    FilterInterface& operator=(const FilterInterface&) = delete;
+    auto operator=(const FilterInterface&) -> FilterInterface& = delete;
     FilterInterface(FilterInterface&&) = delete;
-    FilterInterface& operator=(FilterInterface&&) = delete;
+    auto operator=(FilterInterface&&) -> FilterInterface& = delete;
 };
 
 }  // namespace plato::filter::library
 
 namespace plato
 {
-extern "C" std::unique_ptr<filter::library::FilterInterface> plato_create_filter(
-    const filter::library::FilterParameters& aFilterParameters);
+extern "C" auto plato_create_filter(const filter::library::FilterParameters& aFilterParameters)
+    -> std::unique_ptr<filter::library::FilterInterface>;
 }
 #endif

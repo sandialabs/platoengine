@@ -16,13 +16,13 @@ class Penalty
    public:
     Penalty(const XMin aXMin, const Exponent aPower) : mXMin(aXMin.mValue), mPower(aPower.mValue) {}
 
-    [[nodiscard]] TwoDVector f(const double aX, const double aY) const
+    [[nodiscard]] auto f(const double aX, const double aY) const -> TwoDVector
     {
         return makeTwoDVector(mXMin + (1.0 - mXMin) * std::pow(aX, mPower),
                               mXMin + (1.0 - mXMin) * std::pow(aY, mPower));
     }
 
-    [[nodiscard]] TwoDMatrix df(const double aX, const double aY) const
+    [[nodiscard]] auto df(const double aX, const double aY) const -> TwoDMatrix
     {
         return makeTwoDMatrix(mPower * (1.0 - mXMin) * std::pow(aX, mPower - 1.0), 0.0, 0.0,
                               mPower * (1.0 - mXMin) * std::pow(aY, mPower - 1.0));

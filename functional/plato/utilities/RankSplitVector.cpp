@@ -10,7 +10,7 @@
 namespace plato::utilities
 {
 
-ColorNamedType rank_group_color(const std::vector<unsigned int>& aGroupSizes, const RankNamedType aRank)
+auto rank_group_color(const std::vector<unsigned int>& aGroupSizes, const RankNamedType aRank) -> ColorNamedType
 {
     assert(aRank.mValue >= 0);
     const auto tUnsignedRank = boost::numeric_cast<unsigned int>(aRank.mValue);

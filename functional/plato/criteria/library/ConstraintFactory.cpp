@@ -112,7 +112,7 @@ auto make_constraints(const ValidatedConstraints& aInput)
     const auto tConstraints =
         aInput.rawInput() |
         std::views::transform([](const auto& aValidatedInput) { return detail::make_constraint(aValidatedInput); });
-    return std::vector(tConstraints.begin(), tConstraints.end());
+    return {tConstraints.begin(), tConstraints.end()};
 }
 
 namespace detail

@@ -19,7 +19,7 @@ struct MeshQuantities : public Mesh
     explicit MeshQuantities(Mesh aMeshBase);
 
     /// @brief Returns the total volume of the mesh.
-    [[nodiscard]] double volume() const;
+    [[nodiscard]] auto volume() const -> double;
 
     /// @brief Returns the sensitivities of the volume of the mesh with respect to nodal coordinates for elements in
     /// blocks with names @a aBlockNames.
@@ -29,23 +29,24 @@ struct MeshQuantities : public Mesh
 
     /// @brief Returns the average nodal density of the mesh, computed as the total number of nodes divided by the
     /// volume.
-    [[nodiscard]] double averageNodalDensity() const;
+    [[nodiscard]] auto averageNodalDensity() const -> double;
 
     /// @brief Returns a vector of element volumes corresponding to the fixed domain only.
     ///
     /// The order is given by the order of iteration of AnalysisDomainMeshSequentialView.
-    [[nodiscard]] std::vector<double> fixedDomainElementVolumes() const;
+    [[nodiscard]] auto fixedDomainElementVolumes() const -> std::vector<double>;
 
     /// @brief Returns a vector of element volumes corresponding to the elements in the design domain only.
     ///
     /// The order is given by the order of iteration of AnalysisDomainMeshSequentialView.
-    [[nodiscard]] std::vector<double> designDomainElementVolumes() const;
+    [[nodiscard]] auto designDomainElementVolumes() const -> std::vector<double>;
 
     /// @brief Returns a vector of element volumes corresponding to the elements in blocks with names @a aBlockNames
     /// only.
     ///
     /// The order is given by the order of iteration of AnalysisDomainMeshSequentialView.
-    [[nodiscard]] std::vector<double> specifiedDomainElementVolumes(const std::set<std::string>& aBlockNames) const;
+    [[nodiscard]] auto specifiedDomainElementVolumes(const std::set<std::string>& aBlockNames) const
+        -> std::vector<double>;
 
     /// @brief Computes the nodal average of the scalar field defined by @a aNodalScalarField on each element.
     /// @pre The size of @a aNodalScalarField must be equal to the total number of nodes on the mesh and the entries are

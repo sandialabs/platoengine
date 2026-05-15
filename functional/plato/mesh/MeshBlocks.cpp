@@ -101,7 +101,7 @@ auto MeshBlocks::fixedBlockNames() const -> std::set<std::string>
 {
     auto tBlockNames = fixedDomainBlocks() |
                        std::views::transform([](const auto& aFixedBlockPart) { return aFixedBlockPart.get().name(); });
-    return std::set(tBlockNames.begin(), tBlockNames.end());
+    return {tBlockNames.begin(), tBlockNames.end()};
 }
 
 auto block_ids(const Mesh& aMesh, const std::vector<Mesh::BlockOrdinalType>& aBlockOrdinals)

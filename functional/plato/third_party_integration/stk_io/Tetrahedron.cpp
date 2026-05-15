@@ -7,7 +7,7 @@
 namespace plato::third_party_integration::stk_io
 {
 
-double Tetrahedron::volume() const
+auto Tetrahedron::volume() const -> double
 {
     const common::Vector3 a = p1 - p0;
     const common::Vector3 b = p2 - p0;
@@ -16,7 +16,7 @@ double Tetrahedron::volume() const
     return dot(a, cross(b, c)) * tVolumeFactor;
 }
 
-common::Coordinate Tetrahedron::centroid() const { return (p0 + p1 + p2 + p3) / 4; }
+auto Tetrahedron::centroid() const -> common::Coordinate { return (p0 + p1 + p2 + p3) / 4; }
 
 auto Tetrahedron::volumeVertexSensitivities() const -> VertexSensitivities
 {

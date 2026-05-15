@@ -33,27 +33,31 @@ class ValueOrTag
     [[nodiscard]] auto hasValue() const -> bool;
 
     /// @brief Returns whether or not no value is held.
-    template <typename T, typename = std::enable_if_t<std::is_same_v<T, Tag>>>
+    template <typename T>
+        requires(std::is_same_v<T, Tag>)
     [[nodiscard]] auto has() const -> bool;
 
     /// @brief Returns a copy of the current value if a value is held, or @a aTagValue.
-    template <typename U, typename = std::enable_if_t<std::is_convertible_v<U, Value>>>
+    template <typename U>
+        requires(std::is_convertible_v<U, Value>)
     [[nodiscard]] auto valueOr(U&& aTagValue) const& -> Value;
 
     /// @brief Moves the current value if a value is held, or returns @a aTagValue.
-    template <typename U, typename = std::enable_if_t<std::is_convertible_v<U, Value>>>
+    template <typename U>
+        requires(std::is_convertible_v<U, Value>)
     [[nodiscard]] auto valueOr(U&& aTagValue) && -> Value;
 
     /// @brief Returns the current value, or the result of invoking @a aFunction.
     ///
     /// The function will only be invoked if no value is held.
-    template <typename F, typename = std::enable_if_t<std::is_convertible_v<std::invoke_result_t<F>, Value>>>
+    template <typename F>
     [[nodiscard]] auto valueOrInvoke(const F& aFunction) const& -> Value;
 
     /// @brief Moves the current value, or the result of invoking @a aFunction.
     ///
     /// The function will only be invoked if no value is held.
-    template <typename F, typename = std::enable_if_t<std::is_convertible_v<std::invoke_result_t<F>, Value>>>
+    template <typename F>
+        requires(std::is_convertible_v<std::invoke_result_t<F>, Value>)
     [[nodiscard]] auto valueOrInvoke(const F& aFunction) && -> Value;
 
    private:
@@ -77,28 +81,31 @@ auto ValueOrTag<Value, Tag>::hasValue() const -> bool
 }
 
 template <typename Value, typename Tag>
-template <typename T, typename>
+template <typename T>
+    requires(std::is_same_v<T, Tag>)
 auto ValueOrTag<Value, Tag>::has() const -> bool
 {
     return std::holds_alternative<Tag>(mValue);
 }
 
 template <typename Value, typename Tag>
-template <typename U, typename>
+template <typename U>
+    requires(std::is_convertible_v<U, Value>)
 auto ValueOrTag<Value, Tag>::valueOr(U&& aTagValue) const& -> Value
 {
     return valueOrInvoke([&aTagValue]() { return std::forward<U>(aTagValue); });
 }
 
 template <typename Value, typename Tag>
-template <typename U, typename>
+template <typename U>
+    requires(std::is_convertible_v<U, Value>)
 auto ValueOrTag<Value, Tag>::valueOr(U&& aTagValue) && -> Value
 {
     return std::move(*this).valueOrInvoke([&aTagValue]() { return std::forward<U>(aTagValue); });
 }
 
 template <typename Value, typename Tag>
-template <typename F, typename>
+template <typename F>
 auto ValueOrTag<Value, Tag>::valueOrInvoke(const F& aFunction) const& -> Value
 {
     if (hasValue())
@@ -109,7 +116,8 @@ auto ValueOrTag<Value, Tag>::valueOrInvoke(const F& aFunction) const& -> Value
 }
 
 template <typename Value, typename Tag>
-template <typename F, typename>
+template <typename F>
+    requires(std::is_convertible_v<std::invoke_result_t<F>, Value>)
 auto ValueOrTag<Value, Tag>::valueOrInvoke(const F& aFunction) && -> Value
 {
     if (hasValue())

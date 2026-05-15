@@ -4,7 +4,7 @@
 
 namespace plato::test_utilities
 {
-std::string create_valid_brick_shape_geometry_string()
+auto create_valid_brick_shape_geometry_string() -> std::string
 {
     return R"(
         begin brick_shape_geometry
@@ -13,7 +13,7 @@ std::string create_valid_brick_shape_geometry_string()
         )";
 }
 
-std::string create_valid_density_topology_geometry_string()
+auto create_valid_density_topology_geometry_string() -> std::string
 {
     return R"(
         begin density_topology
@@ -24,7 +24,7 @@ std::string create_valid_density_topology_geometry_string()
         )";
 }
 
-std::string create_valid_example_constraint_string()
+auto create_valid_example_constraint_string() -> std::string
 {
     return R"(
           begin constraint test
@@ -40,7 +40,7 @@ std::string create_valid_example_constraint_string()
        )";
 }
 
-std::string create_valid_example_objective_string()
+auto create_valid_example_objective_string() -> std::string
 {
     return R"(
           begin objective test
@@ -53,7 +53,7 @@ std::string create_valid_example_objective_string()
        )";
 }
 
-std::string create_valid_example_rol_optimization_string()
+auto create_valid_example_rol_optimization_string() -> std::string
 {
     return R"(
           begin rol_optimization
@@ -64,7 +64,7 @@ std::string create_valid_example_rol_optimization_string()
        )";
 }
 
-std::string create_valid_identity_filter_string()
+auto create_valid_identity_filter_string() -> std::string
 {
     return R"(
           begin identity_filter

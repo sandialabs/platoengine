@@ -18,14 +18,14 @@ class FileCreatingTestFixture : virtual public ::testing::Test
 {
    public:
     FileCreatingTestFixture(std::filesystem::path aFilePath);
-    ~FileCreatingTestFixture();
+    ~FileCreatingTestFixture() override;
 
     FileCreatingTestFixture(const FileCreatingTestFixture&) = delete;
     FileCreatingTestFixture(FileCreatingTestFixture&&) = delete;
     auto operator=(const FileCreatingTestFixture&) -> FileCreatingTestFixture& = delete;
     auto operator=(FileCreatingTestFixture&&) -> FileCreatingTestFixture& = delete;
 
-    const std::filesystem::path& filePath() const;
+    [[nodiscard]] auto filePath() const -> const std::filesystem::path&;
 
    private:
     std::filesystem::path mFilePath{};

@@ -40,14 +40,14 @@ template <CriterionInput Criteria>
     -> std::optional<std::string>;
 
 template <CriterionInput Criteria>
-[[nodiscard]] std::string criterion_name(const Criteria& aInput)
+[[nodiscard]] auto criterion_name(const Criteria& aInput) -> std::string
 {
     const std::string tName = aInput.name.value_or("unnamed");
     return input_parser::block_name<Criteria>() + " " + tName;
 }
 
 template <CriterionInput Criteria>
-[[nodiscard]] std::optional<std::string> validate_criterion_is_registered(const Criteria& aInput)
+[[nodiscard]] auto validate_criterion_is_registered(const Criteria& aInput) -> std::optional<std::string>
 {
     if (aInput.criterion.has_value())
     {
@@ -72,7 +72,7 @@ template <CriterionInput Criteria>
 }
 
 template <CriterionInput Criteria>
-[[nodiscard]] std::optional<std::string> validate_number_of_processors(const Criteria& aInput)
+[[nodiscard]] auto validate_number_of_processors(const Criteria& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
         criterion_name(aInput), aInput.number_of_processors, "number_of_processors",

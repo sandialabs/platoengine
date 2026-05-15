@@ -17,16 +17,16 @@ namespace plato::third_party_integration::stk_io::test_utilities
 class MeshGeneratingTestFixture : virtual public ::testing::Test
 {
    public:
-    ~MeshGeneratingTestFixture();
-
-   protected:
-    MeshGeneratingTestFixture(const std::filesystem::path& aMeshName,
-                              const third_party_integration::stk_io::CommandGenerator& aCommandGenerator);
+    ~MeshGeneratingTestFixture() override;
 
     MeshGeneratingTestFixture(const MeshGeneratingTestFixture&) = delete;
     MeshGeneratingTestFixture(MeshGeneratingTestFixture&&) = delete;
     auto operator=(const MeshGeneratingTestFixture&) -> MeshGeneratingTestFixture& = delete;
     auto operator=(MeshGeneratingTestFixture&&) -> MeshGeneratingTestFixture& = delete;
+
+   protected:
+    MeshGeneratingTestFixture(const std::filesystem::path& aMeshName,
+                              const third_party_integration::stk_io::CommandGenerator& aCommandGenerator);
 
    public:
     std::filesystem::path mMeshFilePath;
@@ -105,15 +105,15 @@ class Tet4MeshOnDisk : virtual public ::testing::Test
 class TwoDThreeBlockMesh : virtual public ::testing::Test
 {
    public:
-    ~TwoDThreeBlockMesh();
-
-   protected:
-    TwoDThreeBlockMesh();
+    ~TwoDThreeBlockMesh() override;
 
     TwoDThreeBlockMesh(const TwoDThreeBlockMesh&) = delete;
     TwoDThreeBlockMesh(TwoDThreeBlockMesh&&) = delete;
     auto operator=(const TwoDThreeBlockMesh&) -> TwoDThreeBlockMesh& = delete;
     auto operator=(TwoDThreeBlockMesh&&) -> TwoDThreeBlockMesh& = delete;
+
+   protected:
+    TwoDThreeBlockMesh();
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -149,15 +149,15 @@ class TwoDThreeBlockMesh : virtual public ::testing::Test
 class ThreeDTwoBlockTetMesh : virtual public ::testing::Test
 {
    public:
-    ~ThreeDTwoBlockTetMesh();
-
-   protected:
-    ThreeDTwoBlockTetMesh();
+    ~ThreeDTwoBlockTetMesh() override;
 
     ThreeDTwoBlockTetMesh(const ThreeDTwoBlockTetMesh&) = delete;
     ThreeDTwoBlockTetMesh(ThreeDTwoBlockTetMesh&&) = delete;
     auto operator=(const ThreeDTwoBlockTetMesh&) -> ThreeDTwoBlockTetMesh& = delete;
     auto operator=(ThreeDTwoBlockTetMesh&&) -> ThreeDTwoBlockTetMesh& = delete;
+
+   protected:
+    ThreeDTwoBlockTetMesh();
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -193,15 +193,15 @@ class ThreeDTwoBlockTetMesh : virtual public ::testing::Test
 class TwoDTwoBlockMesh : virtual public ::testing::Test
 {
    public:
-    ~TwoDTwoBlockMesh();
-
-   protected:
-    TwoDTwoBlockMesh();
+    ~TwoDTwoBlockMesh() override;
 
     TwoDTwoBlockMesh(const TwoDTwoBlockMesh&) = delete;
     TwoDTwoBlockMesh(TwoDTwoBlockMesh&&) = delete;
     auto operator=(const TwoDTwoBlockMesh&) -> TwoDTwoBlockMesh& = delete;
     auto operator=(TwoDTwoBlockMesh&&) -> TwoDTwoBlockMesh& = delete;
+
+   protected:
+    TwoDTwoBlockMesh();
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -228,15 +228,15 @@ class TwoDTwoBlockMesh : virtual public ::testing::Test
 class TwoDManyBlockMesh : virtual public ::testing::Test
 {
    public:
-    ~TwoDManyBlockMesh();
-
-   protected:
-    TwoDManyBlockMesh();
+    ~TwoDManyBlockMesh() override;
 
     TwoDManyBlockMesh(const TwoDManyBlockMesh&) = delete;
     TwoDManyBlockMesh(TwoDManyBlockMesh&&) = delete;
     auto operator=(const TwoDManyBlockMesh&) -> TwoDManyBlockMesh& = delete;
     auto operator=(TwoDManyBlockMesh&&) -> TwoDManyBlockMesh& = delete;
+
+   protected:
+    TwoDManyBlockMesh();
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -276,15 +276,15 @@ constexpr inline auto kTwoDTriMesh = std::string_view{
 class XZPlaneMesh : virtual public ::testing::Test
 {
    public:
-    ~XZPlaneMesh();
-
-   protected:
-    XZPlaneMesh();
+    ~XZPlaneMesh() override;
 
     XZPlaneMesh(const XZPlaneMesh&) = delete;
     XZPlaneMesh(XZPlaneMesh&&) = delete;
     auto operator=(const XZPlaneMesh&) -> XZPlaneMesh& = delete;
     auto operator=(XZPlaneMesh&&) -> XZPlaneMesh& = delete;
+
+   protected:
+    XZPlaneMesh();
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"
@@ -303,15 +303,15 @@ class XZPlaneMesh : virtual public ::testing::Test
 class ThirtyDegreeWedgeMesh : virtual public ::testing::Test
 {
    public:
-    ~ThirtyDegreeWedgeMesh();
-
-   protected:
-    ThirtyDegreeWedgeMesh();
+    ~ThirtyDegreeWedgeMesh() override;
 
     ThirtyDegreeWedgeMesh(const ThirtyDegreeWedgeMesh&) = delete;
     ThirtyDegreeWedgeMesh(ThirtyDegreeWedgeMesh&&) = delete;
     auto operator=(const ThirtyDegreeWedgeMesh&) -> ThirtyDegreeWedgeMesh& = delete;
     auto operator=(ThirtyDegreeWedgeMesh&&) -> ThirtyDegreeWedgeMesh& = delete;
+
+   protected:
+    ThirtyDegreeWedgeMesh();
 
     constexpr static auto mMeshDescription = std::string_view{
         "textmesh:"

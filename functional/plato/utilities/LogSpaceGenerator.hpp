@@ -14,7 +14,7 @@ struct LogSpaceGenerator
     double mStepRatio = 1.0;
     unsigned int mNumberOfSteps = 1;
 
-    [[nodiscard]] std::vector<double> steps() const;
+    [[nodiscard]] auto steps() const -> std::vector<double>;
 };
 }  // namespace plato::utilities
 

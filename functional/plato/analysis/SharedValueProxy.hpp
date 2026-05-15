@@ -45,7 +45,7 @@ struct SharedValueProxy
     operator Value() const;
 
     /// @brief Returns whether or not this object holds any iterators.
-    auto empty() const -> bool;
+    [[nodiscard]] auto empty() const -> bool;
 
     std::vector<InnerIteratorType> mIterators;
 };

@@ -13,47 +13,53 @@ namespace plato::mesh
 {
 EntityCounts::EntityCounts(Mesh aMeshBase) : Mesh{std::move(aMeshBase)} {}
 
-unsigned int EntityCounts::numberOfElements() const
+auto EntityCounts::numberOfElements() const -> unsigned int
 {
     return third_party_integration::stk_io::element_size(bulkData());
 }
 
-unsigned int EntityCounts::numberOfDesignDomainElements() const
+auto EntityCounts::numberOfDesignDomainElements() const -> unsigned int
 {
     return third_party_integration::stk_io::element_size(bulkData(), designDomainBlocks());
 }
 
-unsigned int EntityCounts::numberOfNodes() const { return third_party_integration::stk_io::node_size(bulkData()); }
+auto EntityCounts::numberOfNodes() const -> unsigned int
+{
+    return third_party_integration::stk_io::node_size(bulkData());
+}
 
-unsigned int EntityCounts::numberOfDesignDomainNodes() const
+auto EntityCounts::numberOfDesignDomainNodes() const -> unsigned int
 {
     return third_party_integration::stk_io::node_size(bulkData(), designDomainBlocks());
 }
 
-unsigned int EntityCounts::numberOfBlocks() const { return third_party_integration::stk_io::block_size(bulkData()); }
+auto EntityCounts::numberOfBlocks() const -> unsigned int
+{
+    return third_party_integration::stk_io::block_size(bulkData());
+}
 
-unsigned int EntityCounts::spatialDimensions() const
+auto EntityCounts::spatialDimensions() const -> unsigned int
 {
     return third_party_integration::stk_io::spatial_dimensions(bulkData());
 }
 
-bool EntityCounts::is2D() const { return spatialDimensions() == 2u; }
+auto EntityCounts::is2D() const -> bool { return spatialDimensions() == 2u; }
 
-bool EntityCounts::is3D() const { return spatialDimensions() == 3u; }
+auto EntityCounts::is3D() const -> bool { return spatialDimensions() == 3u; }
 
-bool EntityCounts::areNodalDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto EntityCounts::areNodalDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> bool
 {
     const auto tAnalysisDomainMeshView = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh};
     return numberOfDesignDomainNodes() == tAnalysisDomainMeshView.size();
 }
 
-bool EntityCounts::areElementDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto EntityCounts::areElementDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> bool
 {
     const auto tAnalysisDomainMeshView = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh};
     return numberOfDesignDomainElements() == tAnalysisDomainMeshView.size();
 }
 
-bool EntityCounts::hasNodalFieldVariable(const std::string_view aFieldName) const
+auto EntityCounts::hasNodalFieldVariable(const std::string_view aFieldName) const -> bool
 {
     return third_party_integration::stk_io::nodal_field_exists(filePath(), aFieldName);
 }

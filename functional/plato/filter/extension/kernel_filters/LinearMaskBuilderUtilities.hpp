@@ -74,9 +74,8 @@ void add_weight_from_search_result_to_map(RowMap& aRowMap,
                                           const unsigned int aMaximumSize);
 
 /// @brief Tally up the size of search results @a aSearchResults across the comms in @a aCommunicator
-[[nodiscard]] unsigned int reduce_search_result_size(
-    const third_party_integration::stk_search::SearchResults& aSearchResults,
-    const boost::mpi::communicator& aCommunicator);
+[[nodiscard]] auto reduce_search_result_size(const third_party_integration::stk_search::SearchResults& aSearchResults,
+                                             const boost::mpi::communicator& aCommunicator) -> unsigned int;
 
 [[nodiscard]] auto subdivide_world_comm_into_groups(const unsigned int aGroupSize) -> boost::mpi::communicator;
 

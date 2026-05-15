@@ -8,12 +8,12 @@
 
 namespace plato::linear_algebra
 {
-DynamicVector<double> JacobianColumnEvaluator::column(const unsigned int aIndex) const
+auto JacobianColumnEvaluator::column(const unsigned int aIndex) const -> DynamicVector<double>
 {
     return mColumnFunction(aIndex, mX);
 }
 
-DynamicVector<double> operator*(const DynamicVector<double>& aX, const JacobianColumnEvaluator& aA)
+auto operator*(const DynamicVector<double>& aX, const JacobianColumnEvaluator& aA) -> DynamicVector<double>
 {
     auto tResult = std::vector<double>(aA.mColumns);
     for (unsigned int i = 0; i < aA.mColumns; ++i)
@@ -23,7 +23,7 @@ DynamicVector<double> operator*(const DynamicVector<double>& aX, const JacobianC
     return DynamicVector<double>(std::move(tResult));
 }
 
-JacobianMultiplier to_jacobian_multiplier(JacobianColumnEvaluator aJacobianColumnEvaluator)
+auto to_jacobian_multiplier(JacobianColumnEvaluator aJacobianColumnEvaluator) -> JacobianMultiplier
 {
     return JacobianMultiplier{/*.mJacobianTimesVector=*/
                               [tColumnEvaluator = std::move(aJacobianColumnEvaluator)](const DynamicVector<double>& aX)

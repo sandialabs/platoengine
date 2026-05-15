@@ -38,7 +38,7 @@ template <std::size_t kFieldSize>
     return std::span<double, kFieldSize>(static_cast<double*>(aStkField), kFieldSize);
 }
 
-std::shared_ptr<stk::mesh::BulkData> bulk_data_from_description(const std::string_view aMeshDescription)
+auto bulk_data_from_description(const std::string_view aMeshDescription) -> std::shared_ptr<stk::mesh::BulkData>
 {
     std::shared_ptr<stk::mesh::BulkData> bulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
     bulk->mesh_meta_data().use_simple_fields();
@@ -114,7 +114,7 @@ void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDe
     write_bulk_data(aMeshName, *bulk_data_from_description(aMeshDescription));
 }
 
-std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator)
+auto generate_bulk_data(const CommandGenerator& aCommandGenerator) -> std::shared_ptr<stk::mesh::BulkData>
 {
     return bulk_data_from_description(aCommandGenerator.toString());
 }

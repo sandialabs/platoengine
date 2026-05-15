@@ -12,9 +12,9 @@ namespace plato::test_utilities
 namespace
 {
 
-MPI_File open_file_with_mpi(const boost::mpi::communicator& aCommunicator,
-                            const std::filesystem::path& aFilePath,
-                            const int aFileMode)
+auto open_file_with_mpi(const boost::mpi::communicator& aCommunicator,
+                        const std::filesystem::path& aFilePath,
+                        const int aFileMode) -> MPI_File
 {
     auto tMPIFileHandle = MPI_File{};
     MPI_Comm tCommunicator = aCommunicator;
@@ -47,6 +47,6 @@ FileCreatingTestFixture::FileCreatingTestFixture(std::filesystem::path aFilePath
 
 FileCreatingTestFixture::~FileCreatingTestFixture() { remove_file_with_mpi(mComm, mFilePath); }
 
-const std::filesystem::path& FileCreatingTestFixture::filePath() const { return mFilePath; }
+auto FileCreatingTestFixture::filePath() const -> const std::filesystem::path& { return mFilePath; }
 
 }  // namespace plato::test_utilities

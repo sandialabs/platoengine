@@ -6,7 +6,7 @@
 namespace plato::third_party_integration::rol
 {
 
-ROL::StdVector<double> generate_perturbation(const int aDimension)
+auto generate_perturbation(const int aDimension) -> ROL::StdVector<double>
 {
     ROL::StdVector<double> tPerturbation(aDimension);
     randomize_and_normalize(tPerturbation);

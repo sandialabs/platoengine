@@ -16,41 +16,41 @@ struct EntityCounts : public Mesh
     explicit EntityCounts(Mesh aMeshBase);
 
     /// @brief The total number of elements in the mesh
-    [[nodiscard]] unsigned int numberOfElements() const;
+    [[nodiscard]] auto numberOfElements() const -> unsigned int;
 
     /// @brief The number of elements in the design domain.
-    [[nodiscard]] unsigned int numberOfDesignDomainElements() const;
+    [[nodiscard]] auto numberOfDesignDomainElements() const -> unsigned int;
 
     /// @brief The total number of nodes in the mesh
-    [[nodiscard]] unsigned int numberOfNodes() const;
+    [[nodiscard]] auto numberOfNodes() const -> unsigned int;
 
     /// @brief The number of nodes in the design domain.
-    [[nodiscard]] unsigned int numberOfDesignDomainNodes() const;
+    [[nodiscard]] auto numberOfDesignDomainNodes() const -> unsigned int;
 
     /// @brief The total number of blocks in the mesh
-    [[nodiscard]] unsigned int numberOfBlocks() const;
+    [[nodiscard]] auto numberOfBlocks() const -> unsigned int;
 
     /// @brief The dimensions of the mesh (2 or 3).
-    [[nodiscard]] unsigned int spatialDimensions() const;
+    [[nodiscard]] auto spatialDimensions() const -> unsigned int;
 
     /// @brief Returns whether or not the mesh is 2D.
     ///
     /// Equivalent to `spatialDimentions() == 2u`
-    [[nodiscard]] bool is2D() const;
+    [[nodiscard]] auto is2D() const -> bool;
 
     /// @brief Returns whether or not the mesh is 3D.
     ///
     /// Equivalent to `spatialDimentions() == 3u`
-    [[nodiscard]] bool is3D() const;
+    [[nodiscard]] auto is3D() const -> bool;
 
     /// @brief Returns `true` if @a aAnalysisDomainMesh contains a design variable field associated with nodes.
-    [[nodiscard]] bool areNodalDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
+    [[nodiscard]] auto areNodalDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> bool;
 
     /// @brief Returns `true` if @a aAnalysisDomainMesh contains a design variable field associated with elements.
-    [[nodiscard]] bool areElementDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
+    [[nodiscard]] auto areElementDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> bool;
 
     /// @brief Returns `true` if the field name @a aFieldName exists on the nodes in the mesh
-    [[nodiscard]] bool hasNodalFieldVariable(const std::string_view aFieldName) const;
+    [[nodiscard]] auto hasNodalFieldVariable(const std::string_view aFieldName) const -> bool;
 
     /// @brief Returns a vector of the time steps contained in the mesh.
     [[nodiscard]] auto timeSteps() const -> std::vector<double>;

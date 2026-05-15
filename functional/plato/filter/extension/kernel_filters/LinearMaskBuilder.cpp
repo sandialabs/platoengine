@@ -23,8 +23,8 @@ namespace plato::filter::extension::kernel_filters
 LinearMaskBuilder::LinearMaskBuilder(const SourceMesh& aSourceMesh,
                                      const TargetMesh& aTargetMesh,
                                      const KernelFilterFunctions& aFilterType,
-                                     const boost::mpi::communicator& aCommunicator)
-    : mCommunicator(aCommunicator),
+                                     boost::mpi::communicator aCommunicator)
+    : mCommunicator(std::move(aCommunicator)),
       mGlobalRowCenterCoordinates(detail::center_coordinates(aTargetMesh.mValue, aFilterType.mFilterCentering)),
       mGlobalColumnCenterCoordinates(mesh::EntityRetrieval{aSourceMesh.mValue}.designDomainNodalCoordinates()),
       mMaximumConnectivityEstimate(
@@ -36,14 +36,14 @@ LinearMaskBuilder::LinearMaskBuilder(const SourceMesh& aSourceMesh,
 
 LinearMaskBuilder::LinearMaskBuilder(const SourceColumnVector& aNodalCoordinates,
                                      TargetRowVector aCenters,
-                                     const KernelFilterFunctions& aFilterType,
+                                     KernelFilterFunctions aFilterType,
                                      const int aMaximumConnectivityEstimate,
-                                     const boost::mpi::communicator& aCommunicator)
-    : mCommunicator(aCommunicator),
+                                     boost::mpi::communicator aCommunicator)
+    : mCommunicator(std::move(aCommunicator)),
       mGlobalRowCenterCoordinates(std::move(aCenters.mValue)),
       mGlobalColumnCenterCoordinates(aNodalCoordinates.mValue),
       mMaximumConnectivityEstimate(aMaximumConnectivityEstimate),
-      mFilterType(aFilterType)
+      mFilterType(std::move(aFilterType))
 {
     generateDistanceMap();
 }
@@ -80,8 +80,8 @@ void LinearMaskBuilder::create_linear_mask(const RowMap& aRowMap)
     mLinearMask->fillComplete(tCrsDomainMap, tCrsRowMap);
 }
 
-RowMap LinearMaskBuilder::create_normalized_row_map(
-    const third_party_integration::stk_search::SearchResults& aSearchResults)
+auto LinearMaskBuilder::create_normalized_row_map(
+    const third_party_integration::stk_search::SearchResults& aSearchResults) -> RowMap
 {
     RowMap tRowMap;
     tRowMap.reserve(mGlobalRowCenterCoordinates.size());
@@ -97,7 +97,8 @@ RowMap LinearMaskBuilder::create_normalized_row_map(
     return tRowMap;
 }
 
-double LinearMaskBuilder::unnormalized_weight(const RowSearchEntityGlobalID aSphereID, const ColumnNodeGlobalID aNodeID)
+auto LinearMaskBuilder::unnormalized_weight(const RowSearchEntityGlobalID aSphereID,
+                                            const ColumnNodeGlobalID aNodeID) -> double
 {
     const auto tSphereCoordinate = mGlobalRowCenterCoordinates[aSphereID.mValue];
     const auto tNodalCoordinate = mGlobalColumnCenterCoordinates[aNodeID.mValue];

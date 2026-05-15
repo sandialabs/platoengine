@@ -10,13 +10,13 @@
 
 namespace plato::integration_tests::utilities
 {
-linear_algebra::DynamicVector<double> DynamicVectorJacobian::column(const int aIndex) const
+auto DynamicVectorJacobian::column(const int aIndex) const -> linear_algebra::DynamicVector<double>
 {
     return linear_algebra::DynamicVector<double>{mJacobian(0, aIndex), mJacobian(1, aIndex)};
 }
 
-linear_algebra::DynamicVector<double> operator*(const linear_algebra::DynamicVector<double>& aX,
-                                                const DynamicVectorJacobian& aJacobian)
+auto operator*(const linear_algebra::DynamicVector<double>& aX,
+               const DynamicVectorJacobian& aJacobian) -> linear_algebra::DynamicVector<double>
 {
     assert(aX.size() == 2u);
     return linear_algebra::DynamicVector<double>{aX.dot(aJacobian.column(0)), aX.dot(aJacobian.column(1))};

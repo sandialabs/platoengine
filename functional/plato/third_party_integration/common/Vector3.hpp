@@ -47,83 +47,87 @@ class UnitVector3
 template <typename T>
 concept Container3Type = std::is_same_v<T, Coordinate> || std::is_same_v<T, Vector3>;
 
-inline std::ostream& operator<<(std::ostream& stream, const Coordinate& aContainer)
+inline auto operator<<(std::ostream& stream, const Coordinate& aContainer) -> std::ostream&
 {
     stream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
     return stream;
 }
 
-inline std::ostream& operator<<(std::ostream& stream, const Vector3& aContainer)
+inline auto operator<<(std::ostream& stream, const Vector3& aContainer) -> std::ostream&
 {
     stream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
     return stream;
 }
 
 template <Container3Type Container3>
-[[nodiscard]] constexpr Vector3 operator-(const Container3& p0, const Container3& p1)
+[[nodiscard]] constexpr auto operator-(const Container3& p0, const Container3& p1) -> Vector3
 {
     return Vector3{.x = p0.x - p1.x, .y = p0.y - p1.y, .z = p0.z - p1.z};
 }
 
-[[nodiscard]] constexpr double dot(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+[[nodiscard]] constexpr auto dot(const Vector3& a, const Vector3& b) -> double
+{
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
 
-[[nodiscard]] constexpr Vector3 cross(const Vector3& a, const Vector3& b)
+[[nodiscard]] constexpr auto cross(const Vector3& a, const Vector3& b) -> Vector3
 {
     return Vector3{.x = a.y * b.z - a.z * b.y, .y = a.z * b.x - a.x * b.z, .z = a.x * b.y - a.y * b.x};
 }
 
 template <Container3Type Container3>
-[[nodiscard]] constexpr Container3 operator+(const Container3& p0, const Container3& p1)
+[[nodiscard]] constexpr auto operator+(const Container3& p0, const Container3& p1) -> Container3
 {
     return Container3{.x = p0.x + p1.x, .y = p0.y + p1.y, .z = p0.z + p1.z};
 }
 
-[[nodiscard]] constexpr Coordinate operator+(const Coordinate& p0, const double scalar)
+[[nodiscard]] constexpr auto operator+(const Coordinate& p0, const double scalar) -> Coordinate
 {
     return Coordinate{.x = p0.x + scalar, .y = p0.y + scalar, .z = p0.z + scalar};
 }
 
-[[nodiscard]] constexpr Coordinate operator/(const Coordinate& p0, const Coordinate& divisor)
+[[nodiscard]] constexpr auto operator/(const Coordinate& p0, const Coordinate& divisor) -> Coordinate
 {
     return Coordinate{.x = p0.x / divisor.x, .y = p0.y / divisor.y, .z = p0.z / divisor.z};
 }
 
 template <typename Container3>
-[[nodiscard]] constexpr Container3 operator/(const Container3& p0, const double& divisor)
+[[nodiscard]] constexpr auto operator/(const Container3& p0, const double& divisor) -> Container3
 {
     return Container3{.x = p0.x / divisor, .y = p0.y / divisor, .z = p0.z / divisor};
 }
 
 template <Container3Type Container3>
-[[nodiscard]] constexpr Container3 operator*(const Container3& p0, const double& scale)
+[[nodiscard]] constexpr auto operator*(const Container3& p0, const double& scale) -> Container3
 {
     return Container3{.x = p0.x * scale, .y = p0.y * scale, .z = p0.z * scale};
 }
 
-[[nodiscard]] constexpr Coordinate operator*(const Coordinate& p0, const Coordinate& p1)
+[[nodiscard]] constexpr auto operator*(const Coordinate& p0, const Coordinate& p1) -> Coordinate
 {
     return Coordinate{.x = p0.x * p1.x, .y = p0.y * p1.y, .z = p0.z * p1.z};
 }
 
-[[nodiscard]] constexpr Coordinate operator/(const double& scalar, const Coordinate& p0)
+[[nodiscard]] constexpr auto operator/(const double& scalar, const Coordinate& p0) -> Coordinate
 {
     return Coordinate{.x = scalar / p0.x, .y = scalar / p0.y, .z = scalar / p0.z};
 }
 
-[[nodiscard]] constexpr Coordinate floor(const Coordinate& aInputCoord)
+[[nodiscard]] constexpr auto floor(const Coordinate& aInputCoord) -> Coordinate
 {
     return Coordinate{std::floor(aInputCoord.x), std::floor(aInputCoord.y), std::floor(aInputCoord.z)};
 }
 
 template <Container3Type Container3>
-[[nodiscard]] constexpr double magnitude(const Container3& aContainer)
+[[nodiscard]] constexpr auto magnitude(const Container3& aContainer) -> double
 {
     return std::sqrt(aContainer.x * aContainer.x + aContainer.y * aContainer.y + aContainer.z * aContainer.z);
 }
 
 /// @brief Return the componentwise minimum values in the two Container3s @a aContainerOne and @a aContainerTwo
 template <Container3Type Container3>
-[[nodiscard]] constexpr Container3 minimum_entries(const Container3& aContainerOne, const Container3& aContainerTwo)
+[[nodiscard]] constexpr auto minimum_entries(const Container3& aContainerOne,
+                                             const Container3& aContainerTwo) -> Container3
 {
     return Container3{std::min(aContainerOne.x, aContainerTwo.x), std::min(aContainerOne.y, aContainerTwo.y),
                       std::min(aContainerOne.z, aContainerTwo.z)};
@@ -131,7 +135,8 @@ template <Container3Type Container3>
 
 /// @brief Return the componentwise maximum values in the two Container3s @a aContainerOne and @a aContainerTwo
 template <Container3Type Container3>
-[[nodiscard]] constexpr Container3 maximum_entries(const Container3& aContainerOne, const Container3& aContainerTwo)
+[[nodiscard]] constexpr auto maximum_entries(const Container3& aContainerOne,
+                                             const Container3& aContainerTwo) -> Container3
 {
     return Container3{std::max(aContainerOne.x, aContainerTwo.x), std::max(aContainerOne.y, aContainerTwo.y),
                       std::max(aContainerOne.z, aContainerTwo.z)};
@@ -156,7 +161,7 @@ inline UnitVector3::UnitVector3(const Vector3& aVector) : mVector(aVector) { nor
 
 inline UnitVector3::operator Vector3() const { return mVector; }
 
-inline Vector3& Vector3::operator+=(const Vector3& aVector)
+inline auto Vector3::operator+=(const Vector3& aVector) -> Vector3&
 {
     x += aVector.x;
     y += aVector.y;

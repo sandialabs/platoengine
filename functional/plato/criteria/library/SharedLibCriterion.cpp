@@ -67,13 +67,14 @@ SharedLibCriterion::SharedLibCriterion(const services::AppConfigurationWithDirec
 {
 }
 
-double SharedLibCriterion::f(const analysis::AnalysisDomainMesh& aMesh) const
+auto SharedLibCriterion::f(const analysis::AnalysisDomainMesh& aMesh) const -> double
 {
     [[maybe_unused]] const auto tScopedLogger = services::ScopedExternalRedirectLogger{mComponentType, mName};
     return mCriterionInterface->object()->value(aMesh);
 }
 
-linear_algebra::DynamicVector<double> SharedLibCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisMesh) const
+auto SharedLibCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisMesh) const
+    -> linear_algebra::DynamicVector<double>
 {
     [[maybe_unused]] const auto tScopedLogger = services::ScopedExternalRedirectLogger{mComponentType, mName};
     return linear_algebra::DynamicVector<double>(mCriterionInterface->object()->gradient(aAnalysisMesh));

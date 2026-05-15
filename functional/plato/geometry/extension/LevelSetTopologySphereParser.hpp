@@ -19,7 +19,7 @@ PLATO_INPUT_SEQUENCE_SUBTYPE(
 namespace plato::input_parser
 {
 
-[[nodiscard]] constexpr inline bool operator==(const LevelSetSphere& aLHS, const LevelSetSphere& aRHS)
+[[nodiscard]] constexpr inline auto operator==(const LevelSetSphere& aLHS, const LevelSetSphere& aRHS) -> bool
 {
     return aLHS.radius == aRHS.radius && aLHS.center == aRHS.center;
 }

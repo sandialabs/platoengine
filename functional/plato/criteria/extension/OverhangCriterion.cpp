@@ -68,7 +68,7 @@ const auto kConfiguration = services::CriterionConfiguration{
 }
 }  // namespace
 
-double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double
 {
     using namespace plato::third_party_integration::krino;
 
@@ -85,8 +85,8 @@ double OverhangCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainM
                            { return aCurrentSum + detail::area_weighted_overhang_from_triangle(aCurTri, *this); });
 }
 
-linear_algebra::DynamicVector<double> OverhangCriterion::df(
-    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto OverhangCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+    -> linear_algebra::DynamicVector<double>
 {
     using namespace plato::third_party_integration::krino;
 
@@ -158,8 +158,8 @@ namespace detail
 using namespace plato::third_party_integration::common;
 using namespace plato::third_party_integration::krino;
 
-[[nodiscard]] std::vector<std::string> to_sideset_list(
-    const boost::optional<input_parser::FileList>& aAdditionalSidesets)
+[[nodiscard]] auto to_sideset_list(const boost::optional<input_parser::FileList>& aAdditionalSidesets)
+    -> std::vector<std::string>
 {
     std::vector<std::string> tSidesetVector{std::string{third_party_integration::krino::interface_sideset_name()}};
     if (aAdditionalSidesets.has_value())
@@ -178,7 +178,7 @@ using namespace plato::third_party_integration::krino;
     return {tBuildDirection.mX, tBuildDirection.mY, tBuildDirection.mZ};
 }
 
-[[nodiscard]] double convert_angle_to_threshold_value(const double aAngle)
+[[nodiscard]] auto convert_angle_to_threshold_value(const double aAngle) -> double
 {
     return -std::cos(degrees_to_radians(aAngle));
 }
@@ -242,31 +242,31 @@ using namespace plato::third_party_integration::krino;
     return tGradientVector;
 }
 
-[[nodiscard]] double exponential_step_function(const double aInput)
+[[nodiscard]] auto exponential_step_function(const double aInput) -> double
 {
     return aInput > 0.0 ? std::exp(-1.0 / aInput) : 0.0;
 }
 
-[[nodiscard]] double d_exponential_step_function(const double aInput)
+[[nodiscard]] auto d_exponential_step_function(const double aInput) -> double
 {
     return aInput > 0.0 ? std::exp(-1.0 / aInput) / (aInput * aInput) : 0.0;
 }
 
-[[nodiscard]] double smoothing_function(const double aInput)
+[[nodiscard]] auto smoothing_function(const double aInput) -> double
 {
     return exponential_step_function(aInput) /
            (exponential_step_function(aInput) + exponential_step_function(1.0 - aInput));
 }
 
-[[nodiscard]] double d_smoothing_function(const double aInput)
+[[nodiscard]] auto d_smoothing_function(const double aInput) -> double
 {
     return (d_exponential_step_function(aInput) * exponential_step_function(1.0 - aInput) +
             d_exponential_step_function(1.0 - aInput) * exponential_step_function(aInput)) /
            std::pow((exponential_step_function(aInput) + exponential_step_function(1.0 - aInput)), 2);
 }
 
-[[nodiscard]] double overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
-                                                                    const OverhangCriterion& aOverhangCriterion)
+[[nodiscard]] auto overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
+                                                                  const OverhangCriterion& aOverhangCriterion) -> double
 {
     // The calculation of the return value will be determined by whether the input value, aAngleDotBuildDirection,
     // is in one of three ranges: 1) less than the step function transition region (return 1.0), 2) inside the step
@@ -283,8 +283,8 @@ using namespace plato::third_party_integration::krino;
     return 0.0;
 }
 
-[[nodiscard]] double d_overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
-                                                                      const OverhangCriterion& aOverhangCriterion)
+[[nodiscard]] auto d_overhang_value_from_normal_and_build_direction(
+    const double aAngleDotBuildDirection, const OverhangCriterion& aOverhangCriterion) -> double
 {
     // The calculation of the return value will be determined by whether the input value, aAngleDotBuildDirection,
     // is in one of three ranges: 1) less than the step function transition region (return 1.0), 2) inside the step
@@ -303,31 +303,31 @@ using namespace plato::third_party_integration::krino;
     return tReturnValue;
 }
 
-[[nodiscard]] double overhang_from_triangle(const SensitivityTriangle& aTriangle,
-                                            const OverhangCriterion& aOverhangCriterion)
+[[nodiscard]] auto overhang_from_triangle(const SensitivityTriangle& aTriangle,
+                                          const OverhangCriterion& aOverhangCriterion) -> double
 {
     const Vector3 tNormal = aTriangle.normal();
     const double tNormalDotBuildDirection = dot(tNormal, aOverhangCriterion.mBuildDirection);
     return overhang_value_from_normal_and_build_direction(tNormalDotBuildDirection, aOverhangCriterion);
 }
 
-[[nodiscard]] double d_overhang_from_triangle(const SensitivityTriangle& aTriangle,
-                                              const OverhangCriterion& aOverhangCriterion)
+[[nodiscard]] auto d_overhang_from_triangle(const SensitivityTriangle& aTriangle,
+                                            const OverhangCriterion& aOverhangCriterion) -> double
 {
     const Vector3 tNormal = aTriangle.normal();
     const double tNormalDotBuildDirection = dot(tNormal, aOverhangCriterion.mBuildDirection);
     return d_overhang_value_from_normal_and_build_direction(tNormalDotBuildDirection, aOverhangCriterion);
 }
 
-[[nodiscard]] double area_weighted_overhang_from_triangle(const SensitivityTriangle& aTriangle,
-                                                          const OverhangCriterion& aOverhangCriterion)
+[[nodiscard]] auto area_weighted_overhang_from_triangle(const SensitivityTriangle& aTriangle,
+                                                        const OverhangCriterion& aOverhangCriterion) -> double
 {
     const double tArea = aTriangle.area();
     return tArea * overhang_from_triangle(aTriangle, aOverhangCriterion);
 }
 
-TriangleGradient get_gradient_contribution_for_triangle(const SensitivityTriangle& aTriangle,
-                                                        const OverhangCriterion& aOverhangCriterion)
+auto get_gradient_contribution_for_triangle(const SensitivityTriangle& aTriangle,
+                                            const OverhangCriterion& aOverhangCriterion) -> TriangleGradient
 {
     namespace tpik = plato::third_party_integration::krino;
 
@@ -358,7 +358,7 @@ TriangleGradient get_gradient_contribution_for_triangle(const SensitivityTriangl
     return tGradient;
 }
 
-input_parser::overhang_criterion parse_input_deck(const std::string& aFilename)
+auto parse_input_deck(const std::string& aFilename) -> input_parser::overhang_criterion
 {
     const auto tExists = std::filesystem::exists(aFilename);
     if (!tExists)

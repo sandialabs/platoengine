@@ -48,7 +48,7 @@ constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"PLATO_LS"};
 const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
 
-[[nodiscard]] bool include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart)
+[[nodiscard]] auto include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart) -> bool
 {
     return (aVoidPhase == VoidPhase::kIncludeInMesh || aPart->name().find("_void") == std::string::npos);
 }
@@ -103,7 +103,7 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 
 auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
 {
-    return boost::mpi::communicator(stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate);
+    return {stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate};
 }
 
 auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,

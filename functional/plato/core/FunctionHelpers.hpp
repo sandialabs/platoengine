@@ -60,7 +60,7 @@ struct MakeTupleHelper
 template <typename T, typename... TList>
 constexpr auto is_only_member()
 {
-    if constexpr (std::tuple_size_v<std::tuple<TList...>> == 1)
+    if constexpr (sizeof...(TList) == 1)
     {
         return std::is_same_v<T, std::decay_t<std::tuple_element_t<0, std::tuple<TList...>>>>;
     }

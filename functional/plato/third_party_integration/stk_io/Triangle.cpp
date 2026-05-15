@@ -8,14 +8,14 @@
 namespace plato::third_party_integration::stk_io
 {
 
-double Triangle::volume() const
+auto Triangle::volume() const -> double
 {
     const auto tAreaVector = areaVector();
     constexpr auto tAreaFactor = 0.5;
     return std::sqrt(dot(tAreaVector, tAreaVector)) * tAreaFactor;
 }
 
-common::Vector3 Triangle::normal() const
+auto Triangle::normal() const -> common::Vector3
 {
     const common::Vector3 a = p1 - p0;
     const common::Vector3 b = p2 - p0;
@@ -40,7 +40,7 @@ auto Triangle::volumeVertexSensitivities() const -> VertexSensitivities
     return std::array{tDvolDp0, tDvolDp1, tDvolDp2};
 }
 
-common::Vector3 Triangle::areaVector() const
+auto Triangle::areaVector() const -> common::Vector3
 {
     const auto a = p1 - p0;
     const auto b = p2 - p0;

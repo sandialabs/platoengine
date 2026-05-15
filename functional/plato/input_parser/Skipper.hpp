@@ -13,7 +13,7 @@ class SkipperRule
    public:
     using Rule = boost::spirit::qi::rule<Iterator>;
 
-    const Rule& skipperRule() const { return mAllRules; }
+    auto skipperRule() const -> const Rule& { return mAllRules; }
 
    private:
     constexpr static std::string_view kCommentCharacter = "#";

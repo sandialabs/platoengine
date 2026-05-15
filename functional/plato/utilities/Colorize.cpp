@@ -1,6 +1,6 @@
 #include "plato/utilities/Colorize.hpp"
 
-#include <stdio.h>
+#include <stdio.h>  // NOLINT(modernize-deprecated-headers)
 #include <unistd.h>
 
 #include <cassert>

@@ -19,7 +19,7 @@ BOOST_FUSION_DEFINE_STRUCT(
 namespace plato::input_parser
 {
 
-[[nodiscard]] constexpr inline bool operator==(const Point& aLHS, const Point& aRHS)
+[[nodiscard]] constexpr inline auto operator==(const Point& aLHS, const Point& aRHS) -> bool
 {
     return aLHS.mX == aRHS.mX && aLHS.mY == aRHS.mY && aLHS.mZ == aRHS.mZ;
 }

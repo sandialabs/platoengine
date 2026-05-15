@@ -28,10 +28,10 @@ using CylindricalPolarCoordinates = utilities::NamedType<std::vector<third_party
 
 /// @brief Computes the linear top hat function based on an infinitely long cylinder defined with center @a
 /// aCylinderCenter and axis @a aCylinderAxis with radius @a aCylinderRadius to a query point @a aQueryLocation.
-[[nodiscard]] double cylinder_ramp_weight(const CylinderCenter& aCylinderCenter,
-                                          const CylinderAxis& aCylinderAxis,
-                                          const CylinderRadius aCylinderRadius,
-                                          const QueryLocation& aQueryLocation);
+[[nodiscard]] auto cylinder_ramp_weight(const CylinderCenter& aCylinderCenter,
+                                        const CylinderAxis& aCylinderAxis,
+                                        const CylinderRadius aCylinderRadius,
+                                        const QueryLocation& aQueryLocation) -> double;
 
 /// @brief Take a tpetra center vector @a aCenteringCoordinates and create stk_search objects that are search boxes with
 /// a long dimension equal to the largest size of the domain and equal sides that are equal to the search radius @a

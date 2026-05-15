@@ -27,7 +27,7 @@ template <std::size_t kIndex>
 constexpr auto kFactorySignatureSequence =
     std::make_index_sequence<std::tuple_size_v<std::tuple_element_t<kIndex, FactoryRegistrationTypes>>>();
 
-std::string criterion_registration_name(const std::string_view aAppName, const std::string_view aCriterionName)
+auto criterion_registration_name(const std::string_view aAppName, const std::string_view aCriterionName) -> std::string
 {
     return std::string{aAppName} + ":" + std::string{aCriterionName};
 }
@@ -96,25 +96,25 @@ auto criterion_function_has_traits(const std::string_view aFunctionName, const C
                                                                   kFactoryRegistrationTypesSequence);
 }
 
-std::string criterion_registration_name(const services::AppConfiguration& aAppConfiguration,
-                                        const services::CriterionConfiguration& aCriterionConfiguration)
+auto criterion_registration_name(const services::AppConfiguration& aAppConfiguration,
+                                 const services::CriterionConfiguration& aCriterionConfiguration) -> std::string
 {
     return criterion_registration_name(aAppConfiguration.mName, aCriterionConfiguration.mName);
 }
 
-std::string criterion_registration_name(const boost::optional<input_parser::AppName>& aAppName,
-                                        const input_parser::CriterionName& aCriterionName)
+auto criterion_registration_name(const boost::optional<input_parser::AppName>& aAppName,
+                                 const input_parser::CriterionName& aCriterionName) -> std::string
 {
     return criterion_registration_name(aAppName ? aAppName->mToken : input_parser::kBuiltinAppName,
                                        aCriterionName.mToken);
 }
 
-std::string builtin_criterion_registration_name(const std::string_view aCriterionName)
+auto builtin_criterion_registration_name(const std::string_view aCriterionName) -> std::string
 {
     return criterion_registration_name(input_parser::kBuiltinAppName, aCriterionName);
 }
 
-std::set<std::string> registered_criteria_names()
+auto registered_criteria_names() -> std::set<std::string>
 {
     return registered_criteria_names_impl(kFactoryRegistrationTypesSequence);
 }

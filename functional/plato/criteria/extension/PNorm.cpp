@@ -26,7 +26,7 @@ auto make_p_norm_function(const double aPower) -> PNormFunction
 namespace detail
 {
 
-double p_norm_value(std::vector<double> aVector, const double aPower)
+auto p_norm_value(std::vector<double> aVector, const double aPower) -> double
 {
     assert(aPower >= 1.0);
     assert(!aVector.empty());

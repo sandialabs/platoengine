@@ -17,13 +17,13 @@ struct Triangle
     common::Coordinate p1;
     common::Coordinate p2;
 
-    [[nodiscard]] double volume() const;
-    [[nodiscard]] common::Vector3 normal() const;
-    [[nodiscard]] common::Coordinate centroid() const;
+    [[nodiscard]] auto volume() const -> double;
+    [[nodiscard]] auto normal() const -> common::Vector3;
+    [[nodiscard]] auto centroid() const -> common::Coordinate;
     [[nodiscard]] auto volumeVertexSensitivities() const -> VertexSensitivities;
 
    private:
-    [[nodiscard]] common::Vector3 areaVector() const;
+    [[nodiscard]] auto areaVector() const -> common::Vector3;
 };
 
 }  // namespace plato::third_party_integration::stk_io

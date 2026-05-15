@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+#include <utility>
+
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
@@ -37,8 +39,8 @@ class KrinoTestFixture : virtual public ::testing::Test
 class SensitivityTestKrinoFixture : public KrinoTestFixture
 {
    public:
-    SensitivityTestKrinoFixture(const std::string& aFileName, const SensitivityMap& aSensitivityMap)
-        : mFileName(aFileName), mGoldSensitivityMap(aSensitivityMap)
+    SensitivityTestKrinoFixture(std::string aFileName, SensitivityMap aSensitivityMap)
+        : mFileName(std::move(aFileName)), mGoldSensitivityMap(std::move(aSensitivityMap))
     {
     }
     void compareMapAgainstBuiltInGold(const SensitivityMap& aResult,

@@ -20,7 +20,7 @@ namespace plato::utilities
 template <typename Enum>
 class EnumTable
 {
-    static_assert(std::is_enum<Enum>::value, "EnumTable must be instantiated with an enum type.");
+    static_assert(std::is_enum_v<Enum>, "EnumTable must be instantiated with an enum type.");
 
     using MapType = boost::bimap<boost::bimaps::unordered_set_of<Enum>, boost::bimaps::unordered_set_of<std::string>>;
     using ValueType = typename MapType::value_type;

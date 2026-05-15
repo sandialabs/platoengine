@@ -5,7 +5,7 @@
 
 namespace plato::utilities
 {
-std::filesystem::path make_filename_unique(std::filesystem::path aBasePath)
+auto make_filename_unique(std::filesystem::path aBasePath) -> std::filesystem::path
 {
     if (!aBasePath.has_filename())
     {

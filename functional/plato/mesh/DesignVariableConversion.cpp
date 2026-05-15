@@ -52,7 +52,7 @@ auto entity_field_to_analysis_domain_mesh(const std::vector<double>& aScalarFiel
     return tAnalysisDomainMesh;
 }
 
-std::vector<double> analysis_domain_mesh_to_vector(const analysis::AnalysisDomainMesh& tAnalysisDomainMesh)
+auto analysis_domain_mesh_to_vector(const analysis::AnalysisDomainMesh& tAnalysisDomainMesh) -> std::vector<double>
 {
     const auto aAnalysisDomainMeshView = analysis::AnalysisDomainMeshSequentialView{tAnalysisDomainMesh};
     auto tNodalField = std::vector<double>(aAnalysisDomainMeshView.size());
@@ -84,14 +84,14 @@ auto DesignVariablesConversion::elementFieldToAnalysisDomainMesh(const ElementFi
     return entity_field_to_analysis_domain_mesh(aScalarField.mValue.get(), *this, tElementIDs);
 }
 
-NodalFieldVector DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(
-    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> NodalFieldVector
 {
     return NodalFieldVector{analysis_domain_mesh_to_vector(aAnalysisDomainMesh)};
 }
 
-ElementFieldVector DesignVariablesConversion::analysisDomainMeshToElementFieldVector(
-    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto DesignVariablesConversion::analysisDomainMeshToElementFieldVector(
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> ElementFieldVector
 {
     return ElementFieldVector{analysis_domain_mesh_to_vector(aAnalysisDomainMesh)};
 }

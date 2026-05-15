@@ -43,7 +43,7 @@ auto ConstantValueFilter::rowVectorTimesAdjointJacobian(
 
 namespace plato
 {
-std::unique_ptr<filter::library::FilterInterface> plato_create_filter(const filter::library::FilterParameters&)
+auto plato_create_filter(const filter::library::FilterParameters&) -> std::unique_ptr<filter::library::FilterInterface>
 {
     return std::make_unique<filter::test_constant_value_filter::ConstantValueFilter>();
 }

@@ -17,7 +17,8 @@ class InputBlockWrapper
    public:
     InputBlockWrapper() = default;
 
-    template <typename T, typename = std::enable_if_t<!std::is_convertible_v<T, InputBlockWrapper>>>
+    template <typename T>
+        requires(!std::is_convertible_v<T, InputBlockWrapper>)
     explicit InputBlockWrapper(T&& aInitialValue);
 
     /// @brief Returns the held object
@@ -78,7 +79,8 @@ struct InputDataBlock
     InputBlockWrapper mInput;
 };
 
-template <typename T, typename>
+template <typename T>
+    requires(!std::is_convertible_v<T, InputBlockWrapper>)
 InputBlockWrapper::InputBlockWrapper(T&& aInitialValue)
     : mInput{std::forward<T>(aInitialValue)}, mActive{[](const std::any& aInput) { return detail::active<T>(aInput); }}
 {

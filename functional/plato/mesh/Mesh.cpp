@@ -153,35 +153,35 @@ Mesh::Mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
 {
 }
 
-const std::filesystem::path& Mesh::filePath() const { return mFilePath; }
+auto Mesh::filePath() const -> const std::filesystem::path& { return mFilePath; }
 
-const std::vector<Mesh::BlockOrdinalType>& Mesh::fixedBlockOrdinals() const { return mFixedBlockOrdinals; }
+auto Mesh::fixedBlockOrdinals() const -> const std::vector<Mesh::BlockOrdinalType>& { return mFixedBlockOrdinals; }
 
-const std::vector<Mesh::BlockOrdinalType>& Mesh::designBlockOrdinals() const { return mDesignBlockOrdinals; }
+auto Mesh::designBlockOrdinals() const -> const std::vector<Mesh::BlockOrdinalType>& { return mDesignBlockOrdinals; }
 
-const stk::mesh::BulkData& Mesh::bulkData() const
+auto Mesh::bulkData() const -> const stk::mesh::BulkData&
 {
     assert(mBulk);
     return *mBulk;
 }
 
-stk::mesh::BulkData& Mesh::bulkData()
+auto Mesh::bulkData() -> stk::mesh::BulkData&
 {
     assert(mBulk);
     return *mBulk;
 }
 
-Mesh::PartReferenceVector Mesh::fixedDomainBlocks() const
+auto Mesh::fixedDomainBlocks() const -> Mesh::PartReferenceVector
 {
     return parts_from_block_ordinals(bulkData(), mFixedBlockOrdinals);
 }
 
-Mesh::PartReferenceVector Mesh::designDomainBlocks() const
+auto Mesh::designDomainBlocks() const -> Mesh::PartReferenceVector
 {
     return parts_from_block_ordinals(bulkData(), mDesignBlockOrdinals);
 }
 
-Mesh::PartReferenceVector Mesh::specifiedDomainBlocks(const std::set<std::string>& aBlockNames) const
+auto Mesh::specifiedDomainBlocks(const std::set<std::string>& aBlockNames) const -> Mesh::PartReferenceVector
 {
     return parts_from_block_ordinals(bulkData(), block_ordinals_from_names(mBulk, aBlockNames));
 }

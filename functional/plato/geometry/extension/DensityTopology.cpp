@@ -122,8 +122,8 @@ DensityTopology::DensityTopology(const input_parser::density_topology& aInput,
 {
 }
 
-analysis::AnalysisDomainMesh DensityTopology::generateMesh(
-    const linear_algebra::DynamicVector<double>& aDesignParameters) const
+auto DensityTopology::generateMesh(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+    -> analysis::AnalysisDomainMesh
 {
     [[maybe_unused]] const auto tTaskLogger = library::mesh_generation_task_log<input_parser::density_topology>();
 
@@ -132,8 +132,8 @@ analysis::AnalysisDomainMesh DensityTopology::generateMesh(
     return mFilter.evaluate<core::evaluation::kFunction>(tNodalDesignParameters);
 }
 
-linear_algebra::JacobianMultiplier DensityTopology::jacobian(
-    const linear_algebra::DynamicVector<double>& aDesignParameters) const
+auto DensityTopology::jacobian(const linear_algebra::DynamicVector<double>& aDesignParameters) const
+    -> linear_algebra::JacobianMultiplier
 {
     const auto tDesignVariableConverter = mesh::DesignVariablesConversion{mMesh};
     const auto tNodalDesignParameters = mesh::NodalFieldVectorReference{aDesignParameters.stdVector()};
@@ -173,8 +173,10 @@ auto DensityTopology::initialGuess(const input_parser::density_topology& aInput)
     {
         const auto tMesh = mesh_from_input(aInput);
         const unsigned int tNumNodes = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
+        // NOLINTNEXTLINE(modernize-return-braced-init-list)
         return linear_algebra::DynamicVector<double>(tNumNodes, aInput.initial_density_value.value());
     }
+    // NOLINTNEXTLINE(modernize-return-braced-init-list)
     return linear_algebra::DynamicVector<double>(initial_field_from_mesh(aInput));
 }
 

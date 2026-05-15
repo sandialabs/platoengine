@@ -31,13 +31,15 @@ namespace
                                                          { return validate_identity_filter(aInput); }};
 }  // namespace
 
-analysis::AnalysisDomainMesh IdentityFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto IdentityFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+    -> analysis::AnalysisDomainMesh
 {
     return aAnalysisDomainMesh;
 }
 
-linear_algebra::DynamicVector<double> IdentityFilter::rowVectorTimesJacobian(
-    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, const linear_algebra::DynamicVector<double>& aV) const
+auto IdentityFilter::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                            const linear_algebra::DynamicVector<double>& aV) const
+    -> linear_algebra::DynamicVector<double>
 {
     const auto tVectorDimension = static_cast<std::size_t>(aV.size());
     const std::size_t tDensityDimension = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh}.size();

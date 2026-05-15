@@ -15,10 +15,10 @@ namespace plato::input_parser
 struct GenericToken
 {
     using value_type = char;
-    [[nodiscard]] std::string::const_iterator begin() const { return mToken.begin(); }
-    [[nodiscard]] std::string::const_iterator end() const { return mToken.end(); }
-    [[nodiscard]] std::string::iterator begin() { return mToken.begin(); }
-    [[nodiscard]] std::string::iterator end() { return mToken.end(); }
+    [[nodiscard]] auto begin() const -> std::string::const_iterator { return mToken.begin(); }
+    [[nodiscard]] auto end() const -> std::string::const_iterator { return mToken.end(); }
+    [[nodiscard]] auto begin() -> std::string::iterator { return mToken.begin(); }
+    [[nodiscard]] auto end() -> std::string::iterator { return mToken.end(); }
     void insert(std::string::iterator aIter, char aVal) { mToken.insert(aIter, aVal); }
 
     std::string mToken;
@@ -30,9 +30,10 @@ namespace boost::spirit::traits
 template <>
 struct create_parser<plato::input_parser::GenericToken>
 {
-    typedef proto::result_of::deep_copy<BOOST_TYPEOF((qi::lexeme[+qi::graph] - qi::lit("end")))>::type type;
+    using type = proto::result_of::deep_copy<
+        boost::type_of::remove_cv_ref_t<decltype((qi::lexeme[+qi::graph] - qi::lit("end")))>>::type;
 
-    static type call() { return proto::deep_copy((qi::lexeme[+qi::graph] - qi::lit("end"))); }
+    static auto call() -> type { return proto::deep_copy((qi::lexeme[+qi::graph] - qi::lit("end"))); }
 };
 }  // namespace boost::spirit::traits
 

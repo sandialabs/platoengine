@@ -14,8 +14,8 @@ namespace
 constexpr int kDimensions{2};
 constexpr auto kQuadraturePoints = common::kDegree3OneDimensionalQuadraturePoints;
 
-[[nodiscard]] double change_of_area_factor(const common::Vector3& aEtaTangentVector,
-                                           const common::Vector3& aXiTangentVector)
+[[nodiscard]] auto change_of_area_factor(const common::Vector3& aEtaTangentVector,
+                                         const common::Vector3& aXiTangentVector) -> double
 {
     const double tA11 = aXiTangentVector.x * aXiTangentVector.x + aXiTangentVector.y * aXiTangentVector.y +
                         aXiTangentVector.z * aXiTangentVector.z;
@@ -42,23 +42,23 @@ auto vector_with_zeroed_components(const V& aVector)
 }
 }  // namespace
 
-Quadrilateral::VertexSensitivities operator+(const Quadrilateral::VertexSensitivities& aLeftHandSide,
-                                             const Quadrilateral::VertexSensitivities& aRightHandSide)
+auto operator+(const Quadrilateral::VertexSensitivities& aLeftHandSide,
+               const Quadrilateral::VertexSensitivities& aRightHandSide) -> Quadrilateral::VertexSensitivities
 {
     return Quadrilateral::VertexSensitivities{std::array{
         aLeftHandSide.mValue[0] + aRightHandSide.mValue[0], aLeftHandSide.mValue[1] + aRightHandSide.mValue[1],
         aLeftHandSide.mValue[2] + aRightHandSide.mValue[2], aLeftHandSide.mValue[3] + aRightHandSide.mValue[3]}};
 }
 
-Quadrilateral::VertexSensitivities operator*(const Quadrilateral::VertexSensitivities& aSensitivities,
-                                             const double aScalar)
+auto operator*(const Quadrilateral::VertexSensitivities& aSensitivities,
+               const double aScalar) -> Quadrilateral::VertexSensitivities
 {
     return Quadrilateral::VertexSensitivities{
         std::array{aSensitivities.mValue[0] * aScalar, aSensitivities.mValue[1] * aScalar,
                    aSensitivities.mValue[2] * aScalar, aSensitivities.mValue[3] * aScalar}};
 }
 
-common::Vector3 Quadrilateral::etaTangentVector(const double aXiCoordinate) const
+auto Quadrilateral::etaTangentVector(const double aXiCoordinate) const -> common::Vector3
 {
     return {.x = ((p00.x * (aXiCoordinate - 1)) - (p10.x * (aXiCoordinate + 1)) + (p11.x * (aXiCoordinate + 1)) -
                   (p01.x * (aXiCoordinate - 1))) /
@@ -71,7 +71,7 @@ common::Vector3 Quadrilateral::etaTangentVector(const double aXiCoordinate) cons
                  4};
 }
 
-common::Vector3 Quadrilateral::xiTangentVector(const double aEtaCoordinate) const
+auto Quadrilateral::xiTangentVector(const double aEtaCoordinate) const -> common::Vector3
 {
     return {.x = ((p00.x * (aEtaCoordinate - 1)) - (p10.x * (aEtaCoordinate - 1)) + (p11.x * (aEtaCoordinate + 1)) -
                   (p01.x * (aEtaCoordinate + 1))) /
@@ -84,14 +84,14 @@ common::Vector3 Quadrilateral::xiTangentVector(const double aEtaCoordinate) cons
                  4};
 }
 
-double Quadrilateral::volume() const
+auto Quadrilateral::volume() const -> double
 {
     return common::tensor_product_unit_integral<kDimensions, kQuadraturePoints.size(), kQuadraturePoints>(
         [*this](const auto tXi, const auto tEta)
         { return change_of_area_factor(etaTangentVector(tXi), xiTangentVector(tEta)); });
 }
 
-common::Coordinate Quadrilateral::centroid() const
+auto Quadrilateral::centroid() const -> common::Coordinate
 {
     return common::tensor_product_unit_integral<kDimensions, kQuadraturePoints.size(), kQuadraturePoints>(
                [*this](const auto tXi, const auto tEta)

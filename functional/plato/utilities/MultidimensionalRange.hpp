@@ -27,11 +27,11 @@ class MultidimensionalIterator
     constexpr MultidimensionalIterator(const std::tuple<Ts...> dimensions);
     constexpr MultidimensionalIterator(EndTag, const std::tuple<Ts...> dimensions);
 
-    [[nodiscard]] constexpr reference operator*() const;
-    constexpr MultidimensionalIterator& operator++();
+    [[nodiscard]] constexpr auto operator*() const -> reference;
+    constexpr auto operator++() -> MultidimensionalIterator&;
 
-    [[nodiscard]] constexpr bool operator!=(const MultidimensionalIterator& iterator) const noexcept;
-    [[nodiscard]] constexpr bool operator==(const MultidimensionalIterator& iterator) const noexcept;
+    [[nodiscard]] constexpr auto operator!=(const MultidimensionalIterator& iterator) const noexcept -> bool;
+    [[nodiscard]] constexpr auto operator==(const MultidimensionalIterator& iterator) const noexcept -> bool;
 
    private:
     std::tuple<Ts...> mCounts{};
@@ -64,8 +64,8 @@ class MultidimensionalRange
     /// @pre All values of @a dimensions must greater than 0.
     constexpr MultidimensionalRange(Ts... dimensions);
 
-    [[nodiscard]] constexpr MultidimensionalIterator<Ts...> begin() const;
-    [[nodiscard]] constexpr MultidimensionalIterator<Ts...> end() const;
+    [[nodiscard]] constexpr auto begin() const -> MultidimensionalIterator<Ts...>;
+    [[nodiscard]] constexpr auto end() const -> MultidimensionalIterator<Ts...>;
 
    private:
     std::tuple<Ts...> mDimensions{};
@@ -73,7 +73,7 @@ class MultidimensionalRange
 
 /// @brief Checks that all entries in tuples @a t1 and @a t2 satisfy the binary predicate @a op.
 template <typename Tuple, typename BinaryOp>
-constexpr bool allOf(const Tuple& t1, const Tuple& t2, const BinaryOp& op);
+constexpr auto allOf(const Tuple& t1, const Tuple& t2, const BinaryOp& op) -> bool;
 
 namespace detail
 {
@@ -93,14 +93,14 @@ void incrementAndCarry(Tuple& count, const Tuple& dimensions)
 }
 
 template <typename Tuple, typename BinaryOp, std::size_t... Is>
-constexpr bool allOfImpl(const Tuple& t1, const Tuple& t2, const BinaryOp& op, std::index_sequence<Is...>)
+constexpr auto allOfImpl(const Tuple& t1, const Tuple& t2, const BinaryOp& op, std::index_sequence<Is...>) -> bool
 {
     return (op(std::get<Is>(t1), std::get<Is>(t2)) && ...);
 }
 }  // namespace detail
 
 template <typename Tuple, typename BinaryOp>
-constexpr bool allOf(const Tuple& t1, const Tuple& t2, const BinaryOp& op)
+constexpr auto allOf(const Tuple& t1, const Tuple& t2, const BinaryOp& op) -> bool
 {
     return detail::allOfImpl(t1, t2, op, std::make_index_sequence<std::tuple_size_v<Tuple> >());
 }
@@ -133,13 +133,15 @@ constexpr auto MultidimensionalIterator<Ts...>::operator++() -> Multidimensional
 }
 
 template <typename... Ts>
-constexpr bool MultidimensionalIterator<Ts...>::operator!=(const MultidimensionalIterator& iterator) const noexcept
+constexpr auto MultidimensionalIterator<Ts...>::operator!=(const MultidimensionalIterator& iterator) const noexcept
+    -> bool
 {
     return mCounts != iterator.mCounts;
 }
 
 template <typename... Ts>
-constexpr bool MultidimensionalIterator<Ts...>::operator==(const MultidimensionalIterator& iterator) const noexcept
+constexpr auto MultidimensionalIterator<Ts...>::operator==(const MultidimensionalIterator& iterator) const noexcept
+    -> bool
 {
     return mCounts == iterator.mCounts;
 }
@@ -159,13 +161,13 @@ constexpr MultidimensionalRange<Ts...>::MultidimensionalRange(Ts... dimensions) 
 }
 
 template <typename... Ts>
-constexpr MultidimensionalIterator<Ts...> MultidimensionalRange<Ts...>::begin() const
+constexpr auto MultidimensionalRange<Ts...>::begin() const -> MultidimensionalIterator<Ts...>
 {
     return MultidimensionalIterator<Ts...>{mDimensions};
 }
 
 template <typename... Ts>
-constexpr MultidimensionalIterator<Ts...> MultidimensionalRange<Ts...>::end() const
+constexpr auto MultidimensionalRange<Ts...>::end() const -> MultidimensionalIterator<Ts...>
 {
     return MultidimensionalIterator<Ts...>{typename MultidimensionalIterator<Ts...>::EndTag{}, mDimensions};
 }

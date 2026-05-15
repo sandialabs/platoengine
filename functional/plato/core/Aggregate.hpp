@@ -29,9 +29,9 @@ class Aggregate
     [[nodiscard]] auto evaluate(const Argument& aArgument) const;
 
     /// @return The number of Function objects used on construction.
-    [[nodiscard]] std::size_t size() const;
+    [[nodiscard]] auto size() const -> std::size_t;
 
-    [[nodiscard]] std::vector<double> weights() const;
+    [[nodiscard]] auto weights() const -> std::vector<double>;
 
    private:
     using FunctionAndWeight = std::pair<AggregateFunction, double>;
