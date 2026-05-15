@@ -114,11 +114,12 @@ void test_sensitivity_parent_nodes_against_expected(
     aWrapper.writeCutMesh(tCutFilename);
     const auto& tSensitivities = aWrapper.sensitivities();
 
-    std::unordered_map<std::size_t, std::vector<std::size_t>> tParentNodes;
-    for (const auto& tInterfaceNode : tSensitivities)
-    {
-        tParentNodes.insert({tInterfaceNode.first, tInterfaceNode.second.mBackgroundMeshNodeIDs});
-    }
+    const auto tToMap =
+        tSensitivities |
+        std::views::transform(
+            [](const auto& tInterfaceNode)
+            { return std::make_pair(tInterfaceNode.first, tInterfaceNode.second.mBackgroundMeshNodeIDs); });
+    const auto tParentNodes = std::unordered_map<std::size_t, std::vector<std::size_t>>{tToMap.begin(), tToMap.end()};
 
     EXPECT_EQ(tParentNodes, aExpectedParentNodes) << aTestContext;
     std::filesystem::remove(tCutFilename);
@@ -425,8 +426,8 @@ TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
             tExpectedParentNodesWhenInterfaceMoves, TEST_CONTEXT("Offset 1E-3"));
     }
 
+    constexpr double tOffset = 1.0e-4;
     {
-        constexpr double tOffset = 1.0e-4;
         const auto tExpectedParentNodes =
             std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 7}}, {2, {2, 4}}};
         test_sensitivity_parent_nodes_against_expected(
@@ -436,7 +437,6 @@ TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
     }
 
     {
-        constexpr double tOffset = 1.0e-4;
         const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
         const auto tExpectedParentNodes =
             std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 7}}, {2, {2, 7}}};
