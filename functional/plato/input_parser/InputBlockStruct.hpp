@@ -101,11 +101,13 @@ inline void register_help_documentation<STRUCT_NAME>() {                        
 /// end service
 /// @endcode
 #define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, ATTRIBUTES)                \
+/* NOLINTBEGIN(cppcoreguidelines-special-member-functions) */                                           \
 BOOST_FUSION_DEFINE_STRUCT(                                                                             \
     NAMESPACE_SEQ,                                                                                      \
     STRUCT_NAME,                                                                                        \
     TYPES_AS_OPTIONAL(ATTRIBUTES_WITHOUT_COMMENTS(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))            \
 )                                                                                                       \
+/* NOLINTEND(cppcoreguidelines-special-member-functions) */                                             \
 CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)                          \
 namespace plato::input_parser{                                                                          \
 template<>                                                                                              \
@@ -145,11 +147,13 @@ PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::
 /// end service
 /// @endcode
 #define PLATO_NAMED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, ATTRIBUTES)  \
+/* NOLINTBEGIN(cppcoreguidelines-special-member-functions) */                                   \
 BOOST_FUSION_DEFINE_STRUCT(                                                                     \
     NAMESPACE_SEQ,                                                                              \
     STRUCT_NAME,                                                                                \
     TYPES_AS_OPTIONAL(ATTRIBUTES_WITH_NAME(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))           \
 )                                                                                               \
+/* NOLINTEND(cppcoreguidelines-special-member-functions) */                                     \
 CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)                  \
 namespace plato::input_parser{                                                                  \
 template<>                                                                                      \

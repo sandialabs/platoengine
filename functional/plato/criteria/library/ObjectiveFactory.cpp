@@ -19,6 +19,7 @@
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveReciprocal.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/linear_algebra/DynamicVectorSerialization.hpp"  // NOLINT(misc-include-cleaner)
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::criteria::library

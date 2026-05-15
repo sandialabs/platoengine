@@ -4,7 +4,6 @@
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          registration_test_block,
                          plato::components::ComponentType::kGeometry,
@@ -21,7 +20,6 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          another_filter,
                          plato::components::ComponentType::kFilter,
                          (int, dark_roast, "no comment"))
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 
 // clang-format on
 

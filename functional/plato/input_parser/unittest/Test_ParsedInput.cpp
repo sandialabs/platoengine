@@ -13,7 +13,6 @@
 #include "plato/utilities/NamedType.hpp"
 
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          fruits, plato::components::ComponentType::kGeometry,
                          (int, banana, "It's a yellow oblong fruit.")
@@ -27,8 +26,6 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          rocks, plato::components::ComponentType::kFilter,
                          (int, shininess, ""))
-
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_parser::unittest

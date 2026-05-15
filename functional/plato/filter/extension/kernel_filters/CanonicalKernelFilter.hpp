@@ -15,7 +15,6 @@ struct AnalysisDomainMesh;
 }
 // CPD-OFF
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), kernel_filter,
     (double, filter_radius, plato::filter::extension::kernel_filters::kKernelFilterRadiusHelpText)
@@ -23,7 +22,6 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (bool, use_relative_radius, plato::filter::extension::kernel_filters::kKernelFilterRelativeRadiusHelpText)
     (unsigned int, number_of_processors, plato::filter::extension::kernel_filters::kKernelFilterNumberOfProcessorsHelpText)
 )
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 // CPD-ON
 namespace plato::filter::extension::kernel_filters

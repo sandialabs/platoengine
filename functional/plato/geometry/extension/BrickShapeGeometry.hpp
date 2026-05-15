@@ -12,12 +12,10 @@
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser),
     brick_shape_geometry,
     (plato::input_parser::FileName, mesh_name, "Required field specifying the exodus mesh file name to which the the brick mesh output is written."))
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::geometry::extension

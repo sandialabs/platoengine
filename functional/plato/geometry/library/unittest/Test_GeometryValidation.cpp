@@ -11,7 +11,6 @@
 #include "plato/test_utilities/InputGeneration.hpp"
 
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser),
     test_geometry,
@@ -21,7 +20,6 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser),
     another_test_geometry,
     (int, number_of_sides, ""))
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::geometry::library::unittest

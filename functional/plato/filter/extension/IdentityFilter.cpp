@@ -76,7 +76,7 @@ auto validate_identity_filter(const input_parser::identity_filter& aInput) -> st
     if (aInput.filter_radius.has_value())
     {
         return input_parser::block_name<input_parser::identity_filter>() +
-               R"( identity filter cannot have "filter_radius" defined.)";
+               std::string{R"( identity filter cannot have "filter_radius" defined.)"};
     }
     return std::nullopt;
 }

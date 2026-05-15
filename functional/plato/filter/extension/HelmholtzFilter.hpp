@@ -8,7 +8,6 @@
 #include "plato/input_parser/InputBlockStruct.hpp"
 
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser),
     helmholtz_filter,
@@ -16,7 +15,6 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (bool, use_relative_radius, "Optional field that can convert the filter radius specified into a radius relative to the average element size.")
     (double, boundary_sticking_penalty, "Optional field specifying the penalization of material that sticks to boundaries of the design "
                                         "domain as an artifact of filtering. Unit bounded: a value of 1 applies maximum penalization."))
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::filter::extension

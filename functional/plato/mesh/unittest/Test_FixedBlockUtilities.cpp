@@ -7,14 +7,12 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser),
     test_geometry,
     (plato::input_parser::FileName, mesh_name, "")
     (plato::input_parser::BlockList, fixed_blocks, "")
     )
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::mesh::unittest

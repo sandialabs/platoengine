@@ -5,12 +5,10 @@
 #include "plato/input_parser/GenericBlockRule.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          interface_test_block,
                          plato::components::ComponentType::kGeometry,
                          (int, arabica, "a caffeinated comment")(double, robusta, "a very caffeinated comment"))
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 
 namespace plato::input_parser::unittest
 {

@@ -5,12 +5,10 @@
 #include "plato/input_parser/BlockStructRule.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          test_block,
                          plato::components::ComponentType::kGeometry,
                          (bool, field1, "a helpful comment")(int, field2, "a very helpful comment"))
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 
 namespace plato::input_parser::unittest
 {

@@ -21,7 +21,6 @@
 #include "plato/utilities/StateCache.hpp"
 
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), level_set_topology,
     (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
@@ -45,7 +44,6 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
                                                             "Omit if a sphere_pattern or initial_field_name is specified. "
                                                             "This is an example list: sphere_list radius 1.2 center (1,2,3), radius 0.5 center (-1,-2,-3)")
 )
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_parser

@@ -24,7 +24,6 @@ DECLARE_ENUM_AND_ENUM_SYMBOL_TABLE(ConstraintTypes,
                                   (kLessThan, "less_than")
                                   (kGreaterThan, "greater_than"))
 
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), constraint, plato::components::ComponentType::kConstraint,
     (bool, active, "Optional field to de/activate this constraint.")
@@ -39,7 +38,6 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (bool, is_linear, "Required parameter specifying whether the constraint is linear with respect to the controls.")
     (plato::input_parser::ConstraintTypes, constraint_type, "Required parameter specifying the type of constraint to enforce, 'equal_to', 'less_than', or 'greater_than'.")
 )
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 #endif

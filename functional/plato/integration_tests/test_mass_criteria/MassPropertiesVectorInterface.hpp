@@ -5,6 +5,7 @@
 
 namespace plato::integration_tests::test_mass_criteria
 {
+// CPD-OFF
 /// @brief A made-up vector interface for testing the named vector component features.
 /// @note This does not actually compute any mass properties!
 class MassPropertiesInterface : public criteria::library::VectorCriterionInterface
@@ -24,6 +25,7 @@ class MassPropertiesInterface : public criteria::library::VectorCriterionInterfa
    private:
     std::vector<std::size_t> mComponentIndices;
 };
+// CPD-ON
 }  // namespace plato::integration_tests::test_mass_criteria
 
 extern "C" auto plato_create_mass_properties_vector_criterion(const std::vector<std::string>&)

@@ -5,14 +5,12 @@
 #include "plato/input_parser/SequenceSubtype.hpp"
 
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 ///@brief Input struct with parser to read in an index followed by a range definition
 PLATO_INPUT_SEQUENCE_SUBTYPE(
 (plato)(input_parser), ComponentAndTarget,
 (plato::input_parser::IdentifierString, component)
 (double, target)
 )
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 #endif

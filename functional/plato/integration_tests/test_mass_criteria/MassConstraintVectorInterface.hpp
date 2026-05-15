@@ -7,6 +7,7 @@ namespace plato::integration_tests::test_mass_criteria
 {
 constexpr inline double kDensity = 2.5;
 
+// CPD-OFF
 /// @brief Serial version of a test constraint that bounds a 2D solution within a number of constraints
 class MassConstraintInterface : public criteria::library::VectorCriterionInterface
 {
@@ -28,6 +29,7 @@ class MassConstraintInterface : public criteria::library::VectorCriterionInterfa
                                                      const std::vector<double>& aDualVector) const
         -> std::vector<double> override;
 };
+// CPD-ON
 }  // namespace plato::integration_tests::test_mass_criteria
 
 extern "C" auto plato_create_vector_criterion(const std::vector<std::string>&)

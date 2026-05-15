@@ -8,7 +8,6 @@
 #include "plato/test_utilities/TestContext.hpp"
 
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestGeometryBlock, 
     (int, field1, "help")
@@ -31,7 +30,6 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
     plato::components::ComponentType::kConstraint,
     (int, field1, "help")
 )
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_parser::unittest
