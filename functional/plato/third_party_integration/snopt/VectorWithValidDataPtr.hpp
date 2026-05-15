@@ -32,7 +32,7 @@ class VectorWithValidDataPtr
     void pushBack(U&& aU);
 
     /// @brief The size of the vector.
-    auto size() const -> std::size_t;
+    [[nodiscard]] auto size() const -> std::size_t;
 
     /// @brief Const accessor for the vector's entries.
     /// @param aIndex must be less than the vector's size.
@@ -44,7 +44,7 @@ class VectorWithValidDataPtr
 
     /// @brief Pointer to the first element as with `vector::data`.
     /// Guaranteed to be valid even if size is 0.
-    auto data() const -> const T*;
+    [[nodiscard]] auto data() const -> const T*;
 
     /// @brief Pointer to the first element as with `vector::data`.
     /// Guaranteed to be valid even if size is 0.

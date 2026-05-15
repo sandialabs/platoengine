@@ -35,7 +35,7 @@ class SparseMatrixBuilder
     void appendRow(Row aRowIndex, const std::vector<EntryType>& aRow);
 
     /// @brief Const access to the sparsity pattern.
-    auto sparsityPattern() const -> const SparsityPattern<IndexType>&;
+    [[nodiscard]] auto sparsityPattern() const -> const SparsityPattern<IndexType>&;
     /// @brief Non-const access to the sparsity pattern.
     auto sparsityPattern() -> SparsityPattern<IndexType>&;
 

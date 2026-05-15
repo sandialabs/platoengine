@@ -1,14 +1,25 @@
 #include "plato/third_party_integration/snopt/SNOPTInterface.hpp"
 
+#include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
+#include <cassert>
+#include <cstddef>
+#include <filesystem>
+#include <iterator>
 #include <snoptProblem.hpp>
+#include <utility>
+#include <vector>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/output/OutputManager.hpp"
 #include "plato/third_party_integration/snopt/DataSingleton.hpp"
 #include "plato/third_party_integration/snopt/ObjectiveConstraintArrayView.hpp"
+#include "plato/third_party_integration/snopt/ObjectiveConstraintGradientArrayView.hpp"
 #include "plato/third_party_integration/snopt/SNOPTConstraints.hpp"
+#include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/third_party_integration/snopt/SNOPTUtilities.hpp"
+#include "plato/third_party_integration/snopt/SparseMatrixBuilder.hpp"
+#include "plato/third_party_integration/snopt/SparsityPattern.hpp"
 
 namespace plato::third_party_integration::snopt
 {

@@ -1,7 +1,15 @@
 #include "plato/third_party_integration/snopt/SNOPTConstraints.hpp"
 
 #include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <numeric>
+#include <utility>
+#include <vector>
 
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::third_party_integration::snopt

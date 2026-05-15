@@ -34,8 +34,8 @@ class DataSingleton
 
    private:
     DataSingleton() = default;
-    DataSingleton &operator=(const DataSingleton &) = delete;
-    DataSingleton &operator=(DataSingleton &&) = delete;
+    auto operator=(const DataSingleton &) -> DataSingleton & = delete;
+    auto operator=(DataSingleton &&) -> DataSingleton & = delete;
     DataSingleton(const DataSingleton &) = delete;
     DataSingleton(DataSingleton &&) = delete;
 
