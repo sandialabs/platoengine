@@ -17,6 +17,7 @@ struct UserDefinedToken
 {
     static constexpr std::string_view kValidChars = ValidCharFunction{}();
 
+    // CPD-OFF
     using value_type = char;
 
     [[nodiscard]] auto begin() const -> std::string::const_iterator;
@@ -25,6 +26,7 @@ struct UserDefinedToken
     [[nodiscard]] auto end() -> std::string::iterator;
 
     void insert(std::string::iterator aIter, char aVal);
+    // CPD-ON
 
     [[nodiscard]] auto operator==(const UserDefinedToken&) const -> bool = default;
 

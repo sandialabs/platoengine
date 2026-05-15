@@ -14,12 +14,14 @@ namespace plato::input_parser
 template <components::ComponentType kComponentType>
 struct CrossReference
 {
+    // CPD-OFF
     using value_type = char;
     [[nodiscard]] auto begin() const -> std::string::const_iterator;
     [[nodiscard]] auto end() const -> std::string::const_iterator;
     [[nodiscard]] auto begin() -> std::string::iterator;
     [[nodiscard]] auto end() -> std::string::iterator;
     void insert(std::string::iterator aIter, char aVal);
+    // CPD-ON
 
     std::string mName;
     InputBlockWrapper mInputBlock;
