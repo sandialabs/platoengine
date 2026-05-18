@@ -24,11 +24,12 @@ auto make_krino_wrapper_from_vector_values(const std::filesystem::path& aFileNam
 auto make_krino_wrapper_from_level_set_primitives(const std::filesystem::path& aFileName,
                                                   const tpik::LevelSetPrimitives& aLevelSetPrimitives,
                                                   const third_party_integration::krino::VoidPhase& aVoidPhase,
-                                                  const std::set<std::string>& aFixedBlockNames) -> KrinoWrapper
+                                                  const std::set<std::string>& aFixedBlockNames,
+                                                  const tpik::SnappingParameters& aSnappingParameters) -> KrinoWrapper
 {
     auto tKrinoMesh = tpik::read_and_setup_for_decomposition(aFileName, aFixedBlockNames);
     auto tLevelSet = tpik::make_level_set_field_from_primitives(aLevelSetPrimitives, tKrinoMesh->bulk_data());
-    return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), aVoidPhase, tpik::SnappingParameters{}};
+    return KrinoWrapper{std::move(tKrinoMesh), std::move(tLevelSet), aVoidPhase, aSnappingParameters};
 }
 
 }  // namespace plato::geometry::extension::test_utilities

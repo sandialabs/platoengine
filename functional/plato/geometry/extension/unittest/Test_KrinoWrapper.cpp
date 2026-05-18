@@ -84,6 +84,47 @@ class OneBlockMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKri
     }
 };
 
+class FourTriTwoBlockKrinoFixture : public tpik::test_utilities::KrinoTestFixture
+{
+   public:
+    FourTriTwoBlockKrinoFixture() : mFilePath(utilities::data_file_path("four_tri_two_block.cdf").value()) {}
+
+    auto makeKrinoWrapperFromDownwardPlane(const double aPlaneOffset,
+                                           const tpik::VoidPhase& aVoidPhase,
+                                           const std::set<std::string>& aFixedBlocks,
+                                           const tpik::SnappingParameters& aSnappingParameters) -> KrinoWrapper
+    {
+        const auto tDownwardPlaneNormal = third_party_integration::common::Vector3{.x = 0, .y = -1, .z = 0};
+        const auto tPlane = tpik::LevelSetPrimitives{
+            .mPlanes = {tpik::Plane{.mNormal = tDownwardPlaneNormal, .mOffset = aPlaneOffset}}, .mSpheres = {}};
+        return test_utilities::make_krino_wrapper_from_level_set_primitives(mFilePath, tPlane, aVoidPhase, aFixedBlocks,
+                                                                            aSnappingParameters);
+    }
+
+   private:
+    std::filesystem::path mFilePath;
+};
+
+void test_sensitivity_parent_nodes_against_expected(
+    const KrinoWrapper& aWrapper,
+    const std::unordered_map<std::size_t, std::vector<std::size_t>>& aExpectedParentNodes,
+    const plato::test_utilities::TestContext& aTestContext)
+{
+    const auto tCutFilename = std::filesystem::path{"cut_mesh.exo"};
+    aWrapper.writeCutMesh(tCutFilename);
+    const auto& tSensitivities = aWrapper.sensitivities();
+
+    const auto tToMap =
+        tSensitivities |
+        std::views::transform(
+            [](const auto& tInterfaceNode)
+            { return std::make_pair(tInterfaceNode.first, tInterfaceNode.second.mBackgroundMeshNodeIDs); });
+    const auto tParentNodes = std::unordered_map<std::size_t, std::vector<std::size_t>>{tToMap.begin(), tToMap.end()};
+
+    EXPECT_EQ(tParentNodes, aExpectedParentNodes) << aTestContext;
+    std::filesystem::remove(tCutFilename);
+}
+
 struct KrinoWrapperGoldValues
 {
     unsigned int mSpatialDimensions;
@@ -359,6 +400,52 @@ TEST_F(OneBlockMeshKrinoFixture, PlaneSensitivities)
     ASSERT_EQ(tSensitivities.size(), 9U);
 
     compareMapAgainstBuiltInGold(tSensitivities, TEST_CONTEXT("One block mesh sensitivity check"));
+}
+
+TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
+{
+    const auto tMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
+    const auto tFixedBlocks = std::set<std::string>{};
+    const auto tDefaultSnappingParameters = tpik::SnappingParameters{};
+    const auto tVoidPhase = third_party_integration::krino::VoidPhase::kIncludeInMesh;
+
+    const auto tExpectedParentNodesWhenInterfaceMoves =
+        std::unordered_map<std::size_t, std::vector<std::size_t>>{{8, {4, 1}}, {9, {5, 1}}, {2, {2, 4}}};
+
+    {
+        constexpr double tOffset = 1.0e-1;
+        test_sensitivity_parent_nodes_against_expected(
+            makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
+            tExpectedParentNodesWhenInterfaceMoves, TEST_CONTEXT("Offset 1E-1"));
+    }
+
+    {
+        constexpr double tOffset = 1.0e-3;
+        test_sensitivity_parent_nodes_against_expected(
+            makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
+            tExpectedParentNodesWhenInterfaceMoves, TEST_CONTEXT("Offset 1E-3"));
+    }
+
+    constexpr double tOffset = 1.0e-4;
+    {
+        const auto tExpectedParentNodes =
+            std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 7}}, {2, {2, 4}}};
+        test_sensitivity_parent_nodes_against_expected(
+            makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
+            tExpectedParentNodes,
+            TEST_CONTEXT("Offset 1e-4 - Here the parent nodes change. This is probably not the desired behavior."));
+    }
+
+    {
+        const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
+        const auto tExpectedParentNodes =
+            std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 7}}, {2, {2, 7}}};
+        test_sensitivity_parent_nodes_against_expected(
+            makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tSnappingParameters),
+            tExpectedParentNodes,
+            TEST_CONTEXT("Offset 1e-4, no snapping - The parent nodes also change but in a different way. Again, "
+                         "likely not the desired behavior."));
+    }
 }
 
 TEST_F(KrinoWrapperTestFixtureUnitCube, Jacobian)

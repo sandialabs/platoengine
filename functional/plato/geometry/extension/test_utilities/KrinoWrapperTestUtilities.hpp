@@ -7,6 +7,7 @@
 
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
+#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/utilities/NamedType.hpp"
 
 namespace plato::geometry::extension::test_utilities
@@ -32,7 +33,9 @@ using InitialLevelSetValues = utilities::NamedType<std::vector<double>, struct I
     const std::filesystem::path& aFileName,
     const third_party_integration::krino::LevelSetPrimitives& aLevelSetPrimitives,
     const third_party_integration::krino::VoidPhase& aVoidPhase,
-    const std::set<std::string>& aFixedBlockNames = {}) -> KrinoWrapper;
+    const std::set<std::string>& aFixedBlockNames = {},
+    const third_party_integration::krino::SnappingParameters& aSnappingParameters =
+        third_party_integration::krino::SnappingParameters{}) -> KrinoWrapper;
 
 }  // namespace plato::geometry::extension::test_utilities
 
