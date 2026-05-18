@@ -13,7 +13,8 @@ auto LogSpaceGenerator::steps() const -> std::vector<double>
     }
     std::vector<double> tLogspace(mNumberOfSteps, mStartingMagnitude);
     std::generate_n(tLogspace.begin() + 1, tLogspace.size() - 1,
-                    [n = mStartingMagnitude, r = mStepRatio]() mutable { return n = n * r; });
+                    [tCurrentMagnitude = mStartingMagnitude, tRatio = mStepRatio]() mutable
+                    { return tCurrentMagnitude = tCurrentMagnitude * tRatio; });
     return tLogspace;
 }
 
