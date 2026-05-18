@@ -43,12 +43,12 @@ class ParameterBounds
 /// @brief Helper for constructing a ParameterBounds object with a defined lower bound
 ///  and is unbounded above.
 template <typename Bound>
-[[nodiscard]] auto lower_bounded(const Bound aLowerBound) -> ParameterBounds<typename Bound::type>;
+[[nodiscard]] auto lower_bounded(Bound aLowerBound) -> ParameterBounds<typename Bound::type>;
 
 /// @brief Helper for constructing a ParameterBounds object with a defined upper bound
 ///  and is unbounded below.
 template <typename Bound>
-[[nodiscard]] auto upper_bounded(const Bound aUpperBound) -> ParameterBounds<typename Bound::type>;
+[[nodiscard]] auto upper_bounded(Bound aUpperBound) -> ParameterBounds<typename Bound::type>;
 
 /// @brief Helper for constructing a ParameterBounds object with no bounds, so
 ///  calling `contains` is always `true`.
@@ -118,7 +118,7 @@ auto lower_description(const T aValue, const Clusivity aClusivity) -> std::strin
     {
         return "[" + std::to_string(aValue);
     }
-    else if (aClusivity == Clusivity::kExclusive)
+    if (aClusivity == Clusivity::kExclusive)
     {
         return "(" + std::to_string(aValue);
     }
@@ -135,7 +135,7 @@ auto upper_description(const T aValue, const Clusivity aClusivity) -> std::strin
     {
         return std::to_string(aValue) + "]";
     }
-    else if (aClusivity == Clusivity::kExclusive)
+    if (aClusivity == Clusivity::kExclusive)
     {
         return std::to_string(aValue) + ")";
     }
