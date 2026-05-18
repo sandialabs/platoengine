@@ -15,29 +15,29 @@ auto concatenate_container(const Container<std::string>& aStrings, std::string_v
 /// @tparam StringConvertible Any type that std::string is constructable from or any arithmetic type that
 ///  can be converted to a string with `std::to_string`.
 template <typename... StringConvertible>
-[[nodiscard]] auto concatenate(StringConvertible&&... strings) -> std::string;
+[[nodiscard]] auto concatenate(StringConvertible&&... aStrings) -> std::string;
 
 namespace detail
 {
 template <typename T>
-[[nodiscard]] auto convert_to_string(T&& t) -> decltype(auto)
+[[nodiscard]] auto convert_to_string(T&& aVariableToConvert) -> decltype(auto)
 {
     using DecayedT = std::remove_cvref_t<T>;
     if constexpr (std::is_arithmetic_v<DecayedT> && !std::is_same_v<char, DecayedT>)
     {
-        return std::to_string(t);
+        return std::to_string(aVariableToConvert);
     }
     else if constexpr (std::is_same_v<DecayedT, std::string>)
     {
-        return std::forward<T>(t);
+        return std::forward<T>(aVariableToConvert);
     }
     else if constexpr (std::is_array_v<DecayedT> && std::is_same_v<char, std::remove_extent_t<DecayedT>>)
     {
-        return std::string(std::data(t));
+        return std::string(std::data(aVariableToConvert));
     }
     else
     {
-        return std::string{std::forward<T>(t)};
+        return std::string{std::forward<T>(aVariableToConvert)};
     }
 }
 }  // namespace detail
@@ -55,9 +55,9 @@ auto concatenate_container(const Container<std::string>& aStrings, const std::st
 }
 
 template <typename... StringConvertible>
-auto concatenate(StringConvertible&&... strings) -> std::string
+auto concatenate(StringConvertible&&... aStrings) -> std::string
 {
-    return (detail::convert_to_string(std::forward<StringConvertible>(strings)) + ...);
+    return (detail::convert_to_string(std::forward<StringConvertible>(aStrings)) + ...);
 }
 
 }  // namespace plato::utilities

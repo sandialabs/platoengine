@@ -15,7 +15,7 @@ void word_block_justify(const std::string& aString,
                         const TextIndent aIndent,
                         std::ostream& aOutputStream)
 {
-    assert(aString.length() > 0);
+    assert(!aString.empty());
     assert(aWidth.mValue > 0);
     assert(aIndent.mValue > 0);
     std::string tIndent(aIndent.mValue, ' ');
