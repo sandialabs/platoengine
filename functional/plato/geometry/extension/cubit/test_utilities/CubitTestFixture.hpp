@@ -37,7 +37,7 @@ class CubitTestFixture : public ::testing::Test
 [[nodiscard]] auto create_cubit_input_for_test_fixture() -> plato::input_parser::cubit_parameterized_shape;
 
 ///@brief Helper function that creates the journal file needed for this example
-[[nodiscard]] auto create_meshing_journal_file() -> std::filesystem::path;
+void create_meshing_journal_file(const std::filesystem::path& aJournalFilePath);
 
 }  // namespace plato::geometry::extension::cubit::test_utilities
 

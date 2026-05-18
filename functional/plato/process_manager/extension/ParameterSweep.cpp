@@ -88,7 +88,7 @@ void write_table_row(const std::vector<double>& aControls, const double aValue, 
 {
     std::for_each(aControls.begin(), aControls.end(),
                   [&aOutFile](const auto aControl) { aOutFile << std::setw(kWidth) << aControl << ","; });
-    aOutFile << std::setw(kWidth) << aValue << std::endl;
+    aOutFile << FixedFormatNumber{aValue} << std::endl;
 }
 
 [[nodiscard]] auto transform_to_steps_vectors(

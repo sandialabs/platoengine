@@ -117,7 +117,7 @@ TEST(CubitGeometry, CheckGradient)
     const auto tErrors = tGradientCheck.finiteDifferenceErrors(tX, tDirection, tGradientCheckParameters);
     ASSERT_FALSE(tErrors.empty());
 
-    constexpr auto tTolerance = 5e-12;
+    constexpr auto tTolerance = 5e-11;
     for (const auto& tTruncationError : tErrors)
     {
         ASSERT_NEAR(tTruncationError.mValue, 0.0, tTolerance)

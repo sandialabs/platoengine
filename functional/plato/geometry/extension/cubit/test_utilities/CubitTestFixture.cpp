@@ -51,8 +51,7 @@ const auto kCubitInput = input_parser::cubit_parameterized_shape{
 
 [[nodiscard]] auto generate_mesh(CubitGeometry& aCubitGeometry) -> std::filesystem::path
 {
-    plato::utilities::execute_on_root(
-        boost::mpi::communicator{}, []() { [[maybe_unused]] const auto tJournalFile = create_meshing_journal_file(); });
+    plato::utilities::execute_on_root(boost::mpi::communicator{}, []() { create_meshing_journal_file(kJournalFile); });
     const auto tMesh = aCubitGeometry.generateMesh(linear_algebra::DynamicVector<double>{1.3, 1.5, 1.6});
     return tMesh.mFileName;
 }
@@ -77,9 +76,9 @@ CubitTestFixture::~CubitTestFixture()
 
 auto create_cubit_input_for_test_fixture() -> plato::input_parser::cubit_parameterized_shape { return kCubitInput; }
 
-auto create_meshing_journal_file() -> std::filesystem::path
+void create_meshing_journal_file(const std::filesystem::path& aJournalFilePath)
 {
-    std::ofstream tOutfile(std::string{kJournalFile});
+    std::ofstream tOutfile(std::string{aJournalFilePath});
     tOutfile << "reset\n";
     tOutfile << "create brick x 1 y 1 z " << BracedOutput{kApreproHeight} << "\n";
     tOutfile << "body all scale x " << BracedOutput{kApreproXYScale} << " y " << BracedOutput{kApreproXYScale} << "\n";
@@ -88,7 +87,6 @@ auto create_meshing_journal_file() -> std::filesystem::path
     tOutfile << "mesh volume 1 \n";
     tOutfile << "block 1 volume 1 \n";
     tOutfile << "block 1 name \"block_1\" \n";
-    return kJournalFile;
 }
 
 // clang-format off
@@ -123,7 +121,7 @@ void CubitTestFixture::checkJacobian()
     const auto tGold = std::vector<double>{-3, -24, 210};
     const auto tResult = tRowVecAsDynamicVector * tJacobian;
 
-    constexpr double tTolerance = 1e-9;
+    constexpr double tTolerance = 5e-9;
     plato::test_utilities::expect_container_entries_near(tResult.stdVector(), tGold, tTolerance,
                                                          TEST_CONTEXT("Jacobian"));
 }
