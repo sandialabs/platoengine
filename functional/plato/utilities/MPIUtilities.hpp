@@ -19,9 +19,9 @@ void execute_on_root(const boost::mpi::communicator& aCommunicator, const F& aFu
 /// @brief Groups an MPI communicator that was split from a parent communicator with its group color.
 struct MPIGroupCommunicator
 {
-    boost::mpi::communicator mParentCommunicator{};
-    boost::mpi::communicator mSplitCommunicator{};
-    ColorNamedType mGroupColor{};
+    boost::mpi::communicator mParentCommunicator;
+    boost::mpi::communicator mSplitCommunicator;
+    ColorNamedType mGroupColor;
 };
 
 /// @brief Given a parent communicator @a aParentCommunicator and a number of processors @a aNumberOfProcessors, splits
@@ -39,7 +39,7 @@ template <typename F, typename... Args>
     requires std::is_invocable_v<F, boost::mpi::communicator, Args...> &&
              std::is_default_constructible_v<std::invoke_result_t<F, boost::mpi::communicator, Args...>>
 [[nodiscard]] auto compute_on_root_group(const MPIGroupCommunicator& aGroupCommunicator,
-                                         const int aParentBroadcastRank,
+                                         int aParentBroadcastRank,
                                          const F& aFunction,
                                          Args&&... aArgs);
 

@@ -33,8 +33,8 @@ using ColorNamedType = NamedType<ColorType, struct ColorTypeTag>;
 /// @pre @a aGroupColor must be less than @a aSize
 template <typename T>
 [[nodiscard]] auto group_split_vector(const std::vector<T>& aVector,
-                                      const ColorNamedType aGroupColor,
-                                      const SizeNamedType aSize) -> std::vector<T>;
+                                      ColorNamedType aGroupColor,
+                                      SizeNamedType aSize) -> std::vector<T>;
 
 /// @brief Determines the group color (ID) corresponding to @a aRank.
 ///
@@ -47,7 +47,7 @@ template <typename T>
 /// @pre All entries of @a aGroupSizes must be 1 or greater.
 /// @post The returned color will be less than the size of @a aGroupSizes
 [[nodiscard]] auto rank_group_color(const std::vector<unsigned int>& aGroupSizes,
-                                    const RankNamedType aRank) -> ColorNamedType;
+                                    RankNamedType aRank) -> ColorNamedType;
 
 namespace detail
 {
