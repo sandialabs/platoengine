@@ -122,10 +122,8 @@ auto lower_description(const T aValue, const Clusivity aClusivity) -> std::strin
     {
         return "(" + std::to_string(aValue);
     }
-    else
-    {
-        return "(-inf";
-    }
+
+    return "(-inf";
 }
 
 template <typename T>
@@ -139,10 +137,8 @@ auto upper_description(const T aValue, const Clusivity aClusivity) -> std::strin
     {
         return std::to_string(aValue) + ")";
     }
-    else
-    {
-        return "inf)";
-    }
+
+    return "inf)";
 }
 
 }  // namespace detail
