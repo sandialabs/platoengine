@@ -67,21 +67,22 @@ struct SNOPTSolverDetail
     double mSumOfConstraintViolations = 0.0;
 };
 
-void evaluation_callback(int * /*Status*/,
-                         int *aNumberOfDesignVariables,
+// NOLINTBEGIN(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+void evaluation_callback(int* /*Status*/,
+                         int* aNumberOfDesignVariables,
                          double aDesignVariableArray[],
-                         int *aEvaluateFunctions,                 // NOLINT
-                         int *aNumberOfObjectivesAndConstraints,  // NOLINT
+                         int* aEvaluateFunctions,                 // NOLINT
+                         int* aNumberOfObjectivesAndConstraints,  // NOLINT
                          double aObjectiveAndConstraintValues[],
-                         int *aEvaluateGradients,
-                         int * /*neG*/,
+                         int* aEvaluateGradients,
+                         int* /*neG*/,
                          double aObjectiveAndConstraintGradients[],
-                         char * /*cu*/,
-                         int * /*lencu*/,
-                         int * /*iu[]*/,
-                         int * /*leniu*/,
-                         double * /*ru[]*/,
-                         int * /*lenru*/)
+                         char* /*cu*/,
+                         int* /*lencu*/,
+                         int* /*iu[]*/,
+                         int* /*leniu*/,
+                         double* /*ru[]*/,
+                         int* /*lenru*/)
 {
     const auto tNumberOfDesignVariables = *aNumberOfDesignVariables;
     const auto tDesignVariables = linear_algebra::DynamicVector<double>{
@@ -105,14 +106,15 @@ void evaluation_callback(int * /*Status*/,
         evaluateConstraintGradient<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintGradientsView);
     }
 }
+// NOLINTEND(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 
-[[nodiscard]] auto linear_constraint_row_offset(const SNOPTConstraints &aConstraints) -> SparsityPattern<IndexType>::Row
+[[nodiscard]] auto linear_constraint_row_offset(const SNOPTConstraints& aConstraints) -> SparsityPattern<IndexType>::Row
 {
     return SparsityPattern<IndexType>::Row{
         boost::numeric_cast<IndexType>(aConstraints.numberOfNonlinearConstraints() + kNumberOfObjectives)};
 }
 
-[[nodiscard]] auto number_of_rows_for_g_matrix(const SNOPTConstraints &aConstraints) -> SparsityPattern<IndexType>::Row
+[[nodiscard]] auto number_of_rows_for_g_matrix(const SNOPTConstraints& aConstraints) -> SparsityPattern<IndexType>::Row
 {
     return SparsityPattern<IndexType>::Row{
         boost::numeric_cast<IndexType>(aConstraints.numberOfNonlinearConstraints() + kNumberOfObjectives)};
@@ -124,7 +126,7 @@ void evaluation_callback(int * /*Status*/,
     return SparsityPattern<IndexType>::Column{boost::numeric_cast<IndexType>(aNumberOfDesignVariables)};
 }
 
-[[nodiscard]] auto nonlinear_constraints(const SNOPTConstraints &aSNOPTConstraints) -> ConstraintVectorType
+[[nodiscard]] auto nonlinear_constraints(const SNOPTConstraints& aSNOPTConstraints) -> ConstraintVectorType
 {
     auto tNonlinearConstraints = ConstraintVectorType{};
     tNonlinearConstraints.reserve(aSNOPTConstraints.numberOfNonlinearConstraints());
@@ -133,10 +135,10 @@ void evaluation_callback(int * /*Status*/,
     return tNonlinearConstraints;
 }
 
-[[nodiscard]] auto make_snopt_sizes(const SNOPTConstraints &aSNOPTConstraints,
+[[nodiscard]] auto make_snopt_sizes(const SNOPTConstraints& aSNOPTConstraints,
                                     const std::size_t aNumberOfDesignVariables,
-                                    const SparseMatrixBuilder<IndexType, double> &aLinearConstraintJacobian,
-                                    const SparsityPattern<IndexType> &aNonlinearConstraintSparsityPattern) -> SNOPTSizes
+                                    const SparseMatrixBuilder<IndexType, double>& aLinearConstraintJacobian,
+                                    const SparsityPattern<IndexType>& aNonlinearConstraintSparsityPattern) -> SNOPTSizes
 {
     return {
         /*.mNumberOfObjectivesAndConstraints=*/boost::numeric_cast<IndexType>(kNumberOfObjectives +
@@ -147,8 +149,8 @@ void evaluation_callback(int * /*Status*/,
         boost::numeric_cast<IndexType>(aNonlinearConstraintSparsityPattern.size())};
 }
 
-[[nodiscard]] auto make_snopt_solver_detail(const SNOPTSizes &aSNOPTSizes, const SNOPTBounds &aBoundConstraints)
-    -> SNOPTSolverDetail
+[[nodiscard]] auto make_snopt_solver_detail(const SNOPTSizes& aSNOPTSizes,
+                                            const SNOPTBounds& aBoundConstraints) -> SNOPTSolverDetail
 {
     return {
         /*.mLowerDesignVariableBounds=*/aBoundConstraints.first,
@@ -172,18 +174,18 @@ void shut_down_snopt()
 
 }  // namespace
 
-auto run_snopt_problem(const std::vector<double> &aInitialGuess,
-                       const SNOPTBounds &aBoundConstraints,
-                       ObjectiveType &&aObjective,
-                       InterfaceConstraintVectorType &&aConstraints,
-                       output::OutputManager &&aOutputManager,
-                       const std::filesystem::path &aLogFilePath,
-                       const SNOPTOptions &aOptions) -> std::vector<double>
+auto run_snopt_problem(const std::vector<double>& aInitialGuess,
+                       const SNOPTBounds& aBoundConstraints,
+                       ObjectiveType&& aObjective,
+                       const InterfaceConstraintVectorType& aConstraints,
+                       output::OutputManager&& aOutputManager,
+                       const std::filesystem::path& aLogFilePath,
+                       const SNOPTOptions& aOptions) -> std::vector<double>
 {
     assert(aInitialGuess.size() == aBoundConstraints.first.size());
     assert(aInitialGuess.size() == aBoundConstraints.second.size());
 
-    auto tSNOPTConstraints = SNOPTConstraints{std::move(aConstraints), aInitialGuess.size()};
+    auto tSNOPTConstraints = SNOPTConstraints{aConstraints, aInitialGuess.size()};
 
     auto tObjectiveAndConstraintBounds = constraint_bounds_with_unbounded_objective(tSNOPTConstraints);
 
@@ -227,7 +229,7 @@ auto run_snopt_problem(const std::vector<double> &aInitialGuess,
         tSNOPTSolverDetail.mObjectiveAndConstraintDualVariables.data(), tSNOPTSolverDetail.mNumberOfSuperBasicVariables,
         tSNOPTSolverDetail.mNumberOfInfeasibleConstraints, tSNOPTSolverDetail.mSumOfConstraintViolations);
 
-    auto &tOutputSingleton = DataSingleton<output::OutputManager, SNOPTTag>::instance();
+    auto& tOutputSingleton = DataSingleton<output::OutputManager, SNOPTTag>::instance();
     assert(tOutputSingleton.hasData());
     tOutputSingleton.data()->output(linear_algebra::DynamicVector<double>{tSolution});
 
@@ -239,7 +241,7 @@ auto run_snopt_problem(const std::vector<double> &aInitialGuess,
 namespace detail
 {
 
-void apply_options(snoptProblemA &aProblem, const SNOPTOptions &aOptions)
+void apply_options(snoptProblemA& aProblem, const SNOPTOptions& aOptions)
 {
     [[maybe_unused]] const int tErrorTally = aProblem.setIntParameter(kDerivativeOptionName.data(), kUseDerivatives);
     assert(tErrorTally == 0);

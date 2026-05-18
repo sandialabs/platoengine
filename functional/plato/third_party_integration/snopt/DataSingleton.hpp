@@ -32,12 +32,14 @@ class DataSingleton
 
     void reset();
 
-   private:
-    DataSingleton() = default;
+    ~DataSingleton() = default;
     auto operator=(const DataSingleton &) -> DataSingleton & = delete;
     auto operator=(DataSingleton &&) -> DataSingleton & = delete;
     DataSingleton(const DataSingleton &) = delete;
     DataSingleton(DataSingleton &&) = delete;
+
+   private:
+    DataSingleton() = default;
 
     std::optional<T> mData;
 };

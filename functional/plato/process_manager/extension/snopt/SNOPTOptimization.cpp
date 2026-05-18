@@ -1,14 +1,22 @@
 #include "plato/process_manager/extension/snopt/SNOPTOptimization.hpp"
 
+#include <algorithm>
 #include <boost/mpi/communicator.hpp>
-#include <boost/numeric/conversion/cast.hpp>
 #include <filesystem>
 #include <iterator>
 #include <map>
 #include <optional>
+#include <string_view>
+#include <utility>
+#include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -18,11 +26,12 @@
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/snopt/SNOPTInterface.hpp"
 #include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
+#include "plato/utilities/BoundClusivity.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
 
 namespace plato::process_manager::extension::snopt
 {
@@ -91,8 +100,8 @@ void SNOPTOptimization::run(const library::ProcessManagerData& aProcessManagerDa
     plato::utilities::execute_on_root(boost::mpi::communicator{},
                                       []() { std::filesystem::remove(kSNOPTOptimizerFileName); });
     const auto tSolution =
-        tpis::run_snopt_problem(tInitialGuess, tBounds, std::move(tObjective), std::move(tConstraints),
-                                std::move(tOutputManager), std::string{kSNOPTOptimizerFileName}, mOptions);
+        tpis::run_snopt_problem(tInitialGuess, tBounds, std::move(tObjective), tConstraints, std::move(tOutputManager),
+                                std::string{kSNOPTOptimizerFileName}, mOptions);
 }
 
 namespace detail

@@ -56,24 +56,24 @@ class Function
     /// object.
     /// @tparam LHSInfo The function info for the function to convert to. This must be a subset of the function info for
     /// this object.
-    template <typename CompatibleFunction,
-              typename = std::enable_if_t<detail::is_copyable<typename CompatibleFunction::Domain,
-                                                              typename CompatibleFunction::TupleHelper::InfoTuple,
-                                                              DomainType,
-                                                              std::tuple<Info...>>()>>
-    [[nodiscard]] auto compatibleFunction() const& -> CompatibleFunction;
+    template <typename CompatibleFunction>
+    [[nodiscard]] auto compatibleFunction() const& -> CompatibleFunction
+        requires(detail::is_copyable<typename CompatibleFunction::Domain,
+                                     typename CompatibleFunction::TupleHelper::InfoTuple,
+                                     DomainType,
+                                     std::tuple<Info...>>());
 
     /// @brief Converts (with move semantics) to a Function with possibly different functions implemented.
     /// @tparam LHSDomainType The domain type of the function to convert to, must be the same as DomainType of this
     /// object.
     /// @tparam LHSInfo The function info for the function to convert to. This must be a subset of the function info for
     /// this object.
-    template <typename CompatibleFunction,
-              typename = std::enable_if_t<detail::is_copyable<typename CompatibleFunction::Domain,
-                                                              typename CompatibleFunction::TupleHelper::InfoTuple,
-                                                              DomainType,
-                                                              std::tuple<Info...>>()>>
-    [[nodiscard]] auto compatibleFunction() && -> CompatibleFunction;
+    template <typename CompatibleFunction>
+    [[nodiscard]] auto compatibleFunction() && -> CompatibleFunction
+        requires(detail::is_copyable<typename CompatibleFunction::Domain,
+                                     typename CompatibleFunction::TupleHelper::InfoTuple,
+                                     DomainType,
+                                     std::tuple<Info...>>());
 
     /// @brief Evaluates a function with derivative order @a Order with matrix ordering @a Ordering.
     template <int Order, MatrixOrdering Ordering = MatrixOrdering::kOriginal, typename Argument>
@@ -141,18 +141,26 @@ auto compatible_functions(AllFunctionsTuple&& aAllFunctionsTuple, std::index_seq
 }
 }  // namespace detail
 
-template <typename Domain, typename... Info>
-template <typename CompatibleFunction, typename>
-auto Function<Domain, Info...>::compatibleFunction() const& -> CompatibleFunction
+template <typename DomainType, typename... Info>
+template <typename CompatibleFunction>
+auto Function<DomainType, Info...>::compatibleFunction() const& -> CompatibleFunction
+    requires(detail::is_copyable<typename CompatibleFunction::Domain,
+                                 typename CompatibleFunction::TupleHelper::InfoTuple,
+                                 DomainType,
+                                 std::tuple<Info...>>())
 {
     using CompatibleInfoTuple = typename CompatibleFunction::TupleHelper::InfoTuple;
     return std::make_from_tuple<CompatibleFunction>(detail::compatible_functions<CompatibleFunction, Function>(
         mFunctions, std::make_index_sequence<std::tuple_size_v<CompatibleInfoTuple>>()));
 }
 
-template <typename Domain, typename... Info>
-template <typename CompatibleFunction, typename>
-auto Function<Domain, Info...>::compatibleFunction() && -> CompatibleFunction
+template <typename DomainType, typename... Info>
+template <typename CompatibleFunction>
+auto Function<DomainType, Info...>::compatibleFunction() && -> CompatibleFunction
+    requires(detail::is_copyable<typename CompatibleFunction::Domain,
+                                 typename CompatibleFunction::TupleHelper::InfoTuple,
+                                 DomainType,
+                                 std::tuple<Info...>>())
 {
     using CompatibleInfoTuple = typename CompatibleFunction::TupleHelper::InfoTuple;
     return std::make_from_tuple<CompatibleFunction>(detail::compatible_functions<CompatibleFunction, Function>(

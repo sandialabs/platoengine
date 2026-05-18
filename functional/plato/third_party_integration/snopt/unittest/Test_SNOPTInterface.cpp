@@ -97,16 +97,21 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 /// @brief Components of constraint are \f$x^2 = y\f$ and \f$(x - 2)^2 = y\f$
 [[nodiscard]] auto nonlinear_vector_constraint()
 {
+    constexpr auto tOffset = 2.0;
+    constexpr auto tSquarePower = 2.0;
     return typename InterfaceConstraintData::ConstraintFunction{
-        [](const linear_algebra::DynamicVector<double>& aX)
-        { return linear_algebra::DynamicVector<double>{aX[0] * aX[0] - aX[1], (aX[0] - 2.0) * (aX[0] - 2.0) - aX[1]}; },
+        [](const linear_algebra::DynamicVector<double>& aX) {
+            return linear_algebra::DynamicVector<double>{aX[0] * aX[0] - aX[1],
+                                                         (aX[0] - tOffset) * (aX[0] - tOffset) - aX[1]};
+        },
         [](const linear_algebra::DynamicVector<double>& aX)
         {
             return linear_algebra::JacobianMultiplier{
                 [aX](const linear_algebra::DynamicVector<double>& aVector)
                 {
                     return linear_algebra::DynamicVector<double>{
-                        2.0 * aX[0] * aVector[0] + 2.0 * (aX[0] - 2.0) * aVector[1], -1.0 * (aVector[0] + aVector[1])};
+                        tSquarePower * aX[0] * aVector[0] + tSquarePower * (aX[0] - tOffset) * aVector[1],
+                        -1.0 * (aVector[0] + aVector[1])};
                 }};
         }};
 }
@@ -114,11 +119,11 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 void check_snopt_problem_solution(const std::vector<double>& aInitialGuess,
                                   const SNOPTBounds& aBounds,
                                   ObjectiveType&& aObjective,
-                                  InterfaceConstraintVectorType&& aConstraints,
+                                  const InterfaceConstraintVectorType& aConstraints,
                                   const std::vector<double>& aExpectedSolution,
                                   const plato::test_utilities::TestContext& aTestContext)
 {
-    const auto tSolution = run_snopt_problem(aInitialGuess, aBounds, std::move(aObjective), std::move(aConstraints),
+    const auto tSolution = run_snopt_problem(aInitialGuess, aBounds, std::move(aObjective), aConstraints,
                                              output::OutputManager{}, kLogFilePath, SNOPTOptions{});
 
     constexpr auto tTolerance = 1e-5;

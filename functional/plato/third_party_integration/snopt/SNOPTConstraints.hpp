@@ -26,7 +26,7 @@ class SNOPTConstraints
     /// @brief Construction from an unpartitioned vector of Constraint objects, which will be partitioned by linearity.
     /// @post The vector returned by release and constraint member functions will be partitioned such that all
     /// non-linear constraints are ordered before linear constraints.
-    SNOPTConstraints(InterfaceConstraintVectorType&& aConstraints, const std::size_t aNumberOfDesignVariables);
+    SNOPTConstraints(const InterfaceConstraintVectorType& aConstraints, const std::size_t aNumberOfDesignVariables);
 
     [[nodiscard]] auto numberOfLinearConstraints() const -> std::size_t;
     [[nodiscard]] auto numberOfNonlinearConstraints() const -> std::size_t;
@@ -64,7 +64,7 @@ class SNOPTConstraints
 ///
 /// The purpose of this function is to adapt the plato interface that uses vector constraints for all constraint types
 /// to scalar constraints, which is what snopt assumes.
-[[nodiscard]] auto constraints_with_vectors_expanded(InterfaceConstraintVectorType&& aConstraints)
+[[nodiscard]] auto constraints_with_vectors_expanded(const InterfaceConstraintVectorType& aConstraints)
     -> ConstraintVectorType;
 
 namespace detail
