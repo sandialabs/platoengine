@@ -57,8 +57,16 @@ void aprepro_variable_output(const std::filesystem::path& aFileName,
 [[nodiscard]] std::optional<std::string> validate_aprepro_variables_exists(
     const input_parser::cubit_parameterized_shape& aInput);
 
+///@brief Given an input deck @a aInput, ensure that the perturbation scale from an Aprepro variable does not drop below
+/// the truncation floor.
+[[nodiscard]] std::optional<std::string> validate_aprepro_variables_perturbation_scale(
+    const input_parser::cubit_parameterized_shape& aInput);
+
 ///@brief Given a bounded aprepro variable @a aBoundedApreproVariable compute the perturbation scale that will be used
 [[nodiscard]] auto perturbation_scale(const input_parser::BoundedApreproVariable& aBoundedApreproVariable) -> double;
+
+///@brief Accessor for constant defining the perturbation scale used on aprepro variables
+[[nodiscard]] auto perturbation_scale_multiplier() -> double;
 
 }  // namespace plato::geometry::extension::cubit
 

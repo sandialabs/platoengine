@@ -1,10 +1,11 @@
 #include "plato/geometry/extension/cubit/CubitGeometryCommonUtilities.hpp"
 
 #include <algorithm>
+#include <format>
 #include <iterator>
 
 #include "plato/geometry/extension/cubit/BracedOutput.hpp"
-#include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
@@ -13,9 +14,13 @@ namespace plato::geometry::extension::cubit
 
 namespace
 {
-
-constexpr auto kPerturbationScale = 1e-4;
-constexpr auto kPerturbationACISFloor = 1e-6;
+/// Each aprepro variable is defined with a valid range. kPerturbationScale is used to take this range and come up with
+/// a suitable perturbation that can be communicated to Cubit with enough digits that it is a meaningful perturbation
+/// but also not so large that the nearest node projection gives erroneous results.
+constexpr auto kPerturbationScale = 1e-5;
+/// After a variable scaling is determined from the perturbation scale, it is compared against the ACIS floor. If the
+/// perturbation size is below the floor, it is brought back up to the floor.
+constexpr auto kPerturbationACISFloor = 1e-5;
 
 }  // namespace
 
@@ -86,10 +91,11 @@ void aprepro_variable_output(const std::filesystem::path& aFileName,
                              const linear_algebra::DynamicVector<double>& aSolution,
                              const std::vector<PerturbableApreproVariable>& aVariables)
 {
-    std::ofstream tOutfile(aFileName);
+    std::ofstream tOutfile(aFileName, std::ios::app);
     for (const auto& [tVariable, tValue] : utilities::Zip(aVariables, aSolution.stdVector()))
     {
-        tOutfile << "# " << BracedOutput{utilities::concatenate(tVariable.mName, " = ", tValue)} << std::endl;
+        tOutfile << "# " << BracedOutput{utilities::concatenate(tVariable.mName, " = ", std::format("{:.16g}", tValue))}
+                 << std::endl;
     }
 }
 
@@ -138,12 +144,45 @@ std::optional<std::string> validate_aprepro_variables_exists(const input_parser:
     return std::nullopt;
 }
 
+namespace
+{
+const auto kErrorMessageStringForApreproVariableScaling = [](const auto& aBoundedApreproVariable)
+{
+    return utilities::concatenate(
+        "Aprepro variable '", aBoundedApreproVariable.mName.mToken,
+        "' is too small or has a range that is too small. The range (", aBoundedApreproVariable.mBounds.mUpper, "-",
+        aBoundedApreproVariable.mBounds.mLower, ") times ", kPerturbationScale, " must be larger than ",
+        kPerturbationACISFloor, ". Calculated a value of: ", perturbation_scale(aBoundedApreproVariable),
+        ". For accurate results, change your unit system to make all design variables larger than 1.");
+};
+
+const auto kPredicateTestForApreproVariableScale = [](const auto& aBoundedApreproVariable)
+{ return perturbation_scale(aBoundedApreproVariable) < kPerturbationACISFloor; };
+
+}  // namespace
+
+std::optional<std::string> validate_aprepro_variables_perturbation_scale(
+    const input_parser::cubit_parameterized_shape& aInput)
+{
+    if (aInput.aprepro_variables)
+    {
+        auto tTruncationErrorMessages =
+            utilities::reserved_container<std::vector<std::string>>(aInput.aprepro_variables.value().mList.size());
+        utilities::transform_if(aInput.aprepro_variables.value().mList, std::back_inserter(tTruncationErrorMessages),
+                                kErrorMessageStringForApreproVariableScaling, kPredicateTestForApreproVariableScale);
+        if (!tTruncationErrorMessages.empty())
+        {
+            return utilities::concatenate_container(tTruncationErrorMessages, std::string_view{"\n"});
+        }
+    }
+    return std::nullopt;
+}
+
 auto perturbation_scale(const input_parser::BoundedApreproVariable& aBoundedApreproVariable) -> double
 {
-    const auto tUpper = std::abs(aBoundedApreproVariable.mBounds.mUpper);
-    const auto tLower = std::abs(aBoundedApreproVariable.mBounds.mLower);
-    const auto tMinimum = std::min(tUpper, tLower);
-    return std::max(tMinimum * kPerturbationScale, kPerturbationACISFloor);
+    return (aBoundedApreproVariable.mBounds.mUpper - aBoundedApreproVariable.mBounds.mLower) * kPerturbationScale;
 }
+
+auto perturbation_scale_multiplier() -> double { return kPerturbationScale; }
 
 }  // namespace plato::geometry::extension::cubit
