@@ -11,6 +11,7 @@
 #include "plato/criteria/library/CriterionInterface.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassObjectiveInterface.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/DynamicVectorSerialization.hpp"  // NOLINT(misc-include-cleaner)
 #include "plato/test_utilities/ParallelTestWrapper.hpp"
 
 namespace plato::integration_tests::test_mass_criteria
