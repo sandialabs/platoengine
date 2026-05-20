@@ -72,9 +72,8 @@ auto make_positive_octant_reflect_filter_type(const input_parser::positive_octan
 
 namespace detail
 {
-auto make_positive_octant_reflect_filter_type(const double aRadius,
-                                              const input_parser::KernelFilterCenteringTypes aFilterCentering)
-    -> ReflectFilterType
+auto make_positive_octant_reflect_filter_type(
+    const double aRadius, const input_parser::KernelFilterCenteringTypes aFilterCentering) -> ReflectFilterType
 {
     const auto tPositiveXPlane = Plane({0, 0, 0}, {1, 0, 0});
     const auto tPositiveYPlane = Plane({0, 0, 0}, {0, 1, 0});
@@ -124,8 +123,9 @@ auto validate_source_mesh_in_positive_octant(const input_parser::positive_octant
         return std::nullopt;  // Not our error
     }
     const auto tBoundingBox = mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.designDomainBoundingBox();
-
-    if (tBoundingBox.first.x != 0 || tBoundingBox.first.y != 0 || tBoundingBox.first.z != 0)
+    constexpr auto tNegativeNearZero = -1e-6;
+    if (tBoundingBox.first.x < tNegativeNearZero || tBoundingBox.first.y < tNegativeNearZero ||
+        tBoundingBox.first.z < tNegativeNearZero)
     {
         return std::optional<std::string>{
             utilities::concatenate(input_parser::block_name<input_parser::positive_octant_reflect_filter>(),
