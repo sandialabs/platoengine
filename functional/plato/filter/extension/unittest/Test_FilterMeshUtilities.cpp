@@ -20,7 +20,7 @@ TEST(FilterMeshUtilities, GetFilterRadius)
         {1, 1, 1},
         {-tElementLength / 2, -tElementLength / 2, -tElementLength / 2},
         {tElementLength / 2, tElementLength / 2, tElementLength / 2},
-        third_party_integration::stk_io::CommandElementType::Hex};
+        third_party_integration::stk_io::CommandElementType::kHex};
     third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
 
     auto tFilter = test_utilities::create_valid_helmholtz_filter_input();

@@ -41,9 +41,9 @@ concept MultiVectorViewContainer = requires(Container aContainer) {
 /// @brief Template constraint for vector-like types supported by MultiVectorView
 template <typename V, typename T>
 concept VectorLike = requires(V aVector) {
-    { aVector.x } -> std::convertible_to<T>;
-    { aVector.y } -> std::convertible_to<T>;
-    { aVector.z } -> std::convertible_to<T>;
+    { aVector.mX } -> std::convertible_to<T>;
+    { aVector.mY } -> std::convertible_to<T>;
+    { aVector.mZ } -> std::convertible_to<T>;
 };
 
 /// @brief Proxy class representing an underlying vector stored in MultiVectorView
@@ -77,7 +77,7 @@ class MultiVectorView
     /// @note This class holds a reference to @a aContainer, and so the lifetime of @a aContainer must exceed the
     /// lifetime of this object.
     /// @pre The size of the container must be an integer multiple of @a aDimensions.
-    MultiVectorView(Container& aContainer, const std::size_t aDimensions);
+    MultiVectorView(Container& aContainer, std::size_t aDimensions);
 
     /// @brief The number of vectors.
     [[nodiscard]] auto numberOfVectors() const -> std::size_t;
@@ -101,7 +101,7 @@ class MultiVectorView
 
     /// @brief Const accessor for the vector data stored at @a aVectorIndex
     template <typename T = Container>
-    auto operator()(VectorIndex aVectorIndex) const -> const VectorProxy<T>;
+    auto operator()(VectorIndex aVectorIndex) const -> VectorProxy<const T>;
 
     /// @brief Returns true if the data pointers and the dimensions are equal of `this` and @a aOther.
     [[nodiscard]] auto shallowEquality(const MultiVectorView& aOther) const -> bool;
@@ -158,16 +158,16 @@ auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, cons
 template <MultiVectorViewContainer Container>
 template <typename T>
     requires(!std::is_const_v<ContainerValueTypeWithPropagatedConst<T>>)
-auto MultiVectorView<Container>::operator()(VectorIndex aVectorIndex) const -> VectorProxy<T>
+auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex) const -> VectorProxy<T>
 {
     return VectorProxy<T>{*this, aVectorIndex};
 }
 
 template <MultiVectorViewContainer Container>
 template <typename T>
-auto MultiVectorView<Container>::operator()(VectorIndex aVectorIndex) const -> const VectorProxy<T>
+auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex) const -> VectorProxy<const T>
 {
-    return VectorProxy<T>{*this, aVectorIndex};
+    return VectorProxy<const T>{*this, aVectorIndex};
 }
 
 template <MultiVectorViewContainer Container>
@@ -186,11 +186,11 @@ struct VectorProxy
     template <VectorLike<value_type> V>
     auto operator+=(const V& aVector) -> VectorProxy&
     {
-        mView(mVectorIndex, ComponentIndex{0}) += aVector.x;
-        mView(mVectorIndex, ComponentIndex{1}) += aVector.y;
+        mView(mVectorIndex, ComponentIndex{0}) += aVector.mX;
+        mView(mVectorIndex, ComponentIndex{1}) += aVector.mY;
         if (mView.dimensions() == 3)
         {
-            mView(mVectorIndex, ComponentIndex{2}) += aVector.z;
+            mView(mVectorIndex, ComponentIndex{2}) += aVector.mZ;
         }
         return *this;
     }
@@ -198,11 +198,11 @@ struct VectorProxy
     template <VectorLike<value_type> V>
     auto operator=(const V& aVector) -> VectorProxy&
     {
-        mView(mVectorIndex, ComponentIndex{0}) = aVector.x;
-        mView(mVectorIndex, ComponentIndex{1}) = aVector.y;
+        mView(mVectorIndex, ComponentIndex{0}) = aVector.mX;
+        mView(mVectorIndex, ComponentIndex{1}) = aVector.mY;
         if (mView.dimensions() == 3)
         {
-            mView(mVectorIndex, ComponentIndex{2}) = aVector.z;
+            mView(mVectorIndex, ComponentIndex{2}) = aVector.mZ;
         }
         return *this;
     }
@@ -213,7 +213,7 @@ struct VectorProxy
     {
         const auto tZValue = mView.dimensions() == 3 ? mView(mVectorIndex, ComponentIndex{2}) : 0.0;
         return V{
-            .x = mView(mVectorIndex, ComponentIndex{0}), .y = mView(mVectorIndex, ComponentIndex{1}), .z = tZValue};
+            .mX = mView(mVectorIndex, ComponentIndex{0}), .mY = mView(mVectorIndex, ComponentIndex{1}), .mZ = tZValue};
     }
 
    private:

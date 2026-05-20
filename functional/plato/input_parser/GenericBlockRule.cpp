@@ -17,7 +17,7 @@ auto parse_generic_blocks(const std::string_view aInput)
 {
     using Iterator = std::string_view::const_iterator;
 
-    auto tInputIterator = aInput.begin();
+    const auto* tInputIterator = aInput.begin();
     auto tData = std::vector<GenericBlockData>{};
     const auto tParser = GenericBlockParser<Iterator>{};
     const auto tSkipper = SkipperRule<Iterator>{};

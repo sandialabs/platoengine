@@ -14,28 +14,29 @@ namespace
 {
 Quadrilateral create_planar_quadrilateral_from_dimensions(const double aLength, const double aHeight)
 {
-    return Quadrilateral{.p00 = common::Coordinate{.x = 0.0, .y = 0.0, .z = 0.0},
-                         .p10 = common::Coordinate{.x = aLength, .y = 0.0, .z = 0.0},
-                         .p11 = common::Coordinate{.x = aLength, .y = aHeight, .z = 0.0},
-                         .p01 = common::Coordinate{.x = 0.0, .y = aHeight, .z = 0.0}};
+    return Quadrilateral{.mP00 = common::Coordinate{.mX = 0.0, .mY = 0.0, .mZ = 0.0},
+                         .mP10 = common::Coordinate{.mX = aLength, .mY = 0.0, .mZ = 0.0},
+                         .mP11 = common::Coordinate{.mX = aLength, .mY = aHeight, .mZ = 0.0},
+                         .mP01 = common::Coordinate{.mX = 0.0, .mY = aHeight, .mZ = 0.0}};
 }
 
 Quadrilateral quadrilateral_from_coordinates(const std::valarray<double>& aCoordinates)
 {
     assert(aCoordinates.size() == 12);
     return Quadrilateral{
-        .p00 = common::Coordinate{.x = aCoordinates[0], .y = aCoordinates[1], .z = aCoordinates[2]},
-        .p10 = common::Coordinate{.x = aCoordinates[3], .y = aCoordinates[4], .z = aCoordinates[5]},
-        .p11 = common::Coordinate{.x = aCoordinates[6], .y = aCoordinates[7], .z = aCoordinates[8]},
-        .p01 = common::Coordinate{.x = aCoordinates[9], .y = aCoordinates[10], .z = aCoordinates[11]},
+        .mP00 = common::Coordinate{.mX = aCoordinates[0], .mY = aCoordinates[1], .mZ = aCoordinates[2]},
+        .mP10 = common::Coordinate{.mX = aCoordinates[3], .mY = aCoordinates[4], .mZ = aCoordinates[5]},
+        .mP11 = common::Coordinate{.mX = aCoordinates[6], .mY = aCoordinates[7], .mZ = aCoordinates[8]},
+        .mP01 = common::Coordinate{.mX = aCoordinates[9], .mY = aCoordinates[10], .mZ = aCoordinates[11]},
     };
 }
 
 std::valarray<double> valarray_from_sensitivities(const std::array<common::Vector3, 4>& aSensitivities)
 {
-    return std::valarray<double>{aSensitivities[0].x, aSensitivities[0].y, aSensitivities[0].z, aSensitivities[1].x,
-                                 aSensitivities[1].y, aSensitivities[1].z, aSensitivities[2].x, aSensitivities[2].y,
-                                 aSensitivities[2].z, aSensitivities[3].x, aSensitivities[3].y, aSensitivities[3].z};
+    return std::valarray<double>{aSensitivities[0].mX, aSensitivities[0].mY, aSensitivities[0].mZ,
+                                 aSensitivities[1].mX, aSensitivities[1].mY, aSensitivities[1].mZ,
+                                 aSensitivities[2].mX, aSensitivities[2].mY, aSensitivities[2].mZ,
+                                 aSensitivities[3].mX, aSensitivities[3].mY, aSensitivities[3].mZ};
 }
 
 void check_gradient_of_volume(const std::valarray<double>& aInitialCoordinates,
@@ -111,10 +112,10 @@ TEST(Quadrilateral, VolumeNotInXYPlane)
 {
     constexpr double tLength{86.0};
     constexpr double tHeight{51.0};
-    const Quadrilateral tQuad = Quadrilateral{.p00 = common::Coordinate{.x = 0.0, .y = 0.0, .z = 0.0},
-                                              .p10 = common::Coordinate{.x = 0.0, .y = tLength, .z = 0.0},
-                                              .p11 = common::Coordinate{.x = 0.0, .y = tLength, .z = tHeight},
-                                              .p01 = common::Coordinate{.x = 0.0, .y = 0.0, .z = tHeight}};
+    const Quadrilateral tQuad = Quadrilateral{.mP00 = common::Coordinate{.mX = 0.0, .mY = 0.0, .mZ = 0.0},
+                                              .mP10 = common::Coordinate{.mX = 0.0, .mY = tLength, .mZ = 0.0},
+                                              .mP11 = common::Coordinate{.mX = 0.0, .mY = tLength, .mZ = tHeight},
+                                              .mP01 = common::Coordinate{.mX = 0.0, .mY = 0.0, .mZ = tHeight}};
     const double tResult = tQuad.volume();
     constexpr double tGold = tLength * tHeight;
 
@@ -126,7 +127,7 @@ TEST(Quadrilateral, VolumeOfPerturbedUnitQuad)
     constexpr double tLength{1.0};
     constexpr double tHeight{1.0};
     Quadrilateral tQuad = create_planar_quadrilateral_from_dimensions(tLength, tHeight);
-    tQuad.p10.x += 0.1;
+    tQuad.mP10.mX += 0.1;
     const double tResult = tQuad.volume();
     constexpr double tGold = 21. / 20;  // computed via matlab
 
@@ -146,15 +147,15 @@ TEST(Quadrilateral, Centroid)
 
 TEST(Quadrilateral, CentroidOfParallelogram)
 {
-    const common::Coordinate tCornerPoint{.x = 0.0, .y = 0.0, .z = 0.0};
-    const common::Coordinate tVector1{.x = 21.0, .y = 12.0, .z = 0.0};
-    const common::Coordinate tVector2{.x = 39.0, .y = 71.0, .z = 0.0};
-    const Quadrilateral tQuad{.p00 = tCornerPoint,
-                              .p10 = tCornerPoint + tVector1,
-                              .p11 = tCornerPoint + tVector1 + tVector2,
-                              .p01 = tCornerPoint + tVector2};
+    const common::Coordinate tCornerPoint{.mX = 0.0, .mY = 0.0, .mZ = 0.0};
+    const common::Coordinate tVector1{.mX = 21.0, .mY = 12.0, .mZ = 0.0};
+    const common::Coordinate tVector2{.mX = 39.0, .mY = 71.0, .mZ = 0.0};
+    const Quadrilateral tQuad{.mP00 = tCornerPoint,
+                              .mP10 = tCornerPoint + tVector1,
+                              .mP11 = tCornerPoint + tVector1 + tVector2,
+                              .mP01 = tCornerPoint + tVector2};
     const auto tResult = tQuad.centroid();
-    const common::Coordinate tGold{(tQuad.p00 + tQuad.p10 + tQuad.p11 + tQuad.p01) / 4.};
+    const common::Coordinate tGold{(tQuad.mP00 + tQuad.mP10 + tQuad.mP11 + tQuad.mP01) / 4.};
 
     common::test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Parallelepiped Centroid"));
 }

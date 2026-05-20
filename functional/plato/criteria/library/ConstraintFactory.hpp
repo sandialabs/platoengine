@@ -87,11 +87,11 @@ using ConstraintTargetValue = std::variant<double, std::vector<double>>;
 
 /// @brief Creates a ConstraintTarget by mapping the targets given in @a aConstraintTargets to the names in @a
 /// aComponentNames, ensuring the targets are ordered correctly.
-/// @param aComponentIndexAssociations Defines the ordering of the components. The targets used to construct
+/// @param aComponentIndexNameAssociations Defines the ordering of the components. The targets used to construct
 /// ConstraintTarget will be ordered in increasing order of ID.
 [[nodiscard]] auto make_constraint_vector_target(
     const std::vector<std::pair<std::string, double>>& aConstraintTargets,
-    const std::map<std::size_t, std::string>& aComponentNameIndexAssociations) -> std::vector<double>;
+    const std::map<std::size_t, std::string>& aComponentIndexNameAssociations) -> std::vector<double>;
 
 }  // namespace detail
 }  // namespace plato::criteria::library

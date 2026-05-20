@@ -112,9 +112,9 @@ auto CubitGeometry::generateMesh(const linear_algebra::DynamicVector<double>& aD
 namespace
 {
 
-const auto kXAccessor = [](const third_party_integration::common::Vector3& aVector3) { return aVector3.x; };
-const auto kYAccessor = [](const third_party_integration::common::Vector3& aVector3) { return aVector3.y; };
-const auto kZAccessor = [](const third_party_integration::common::Vector3& aVector3) { return aVector3.z; };
+const auto kXAccessor = [](const third_party_integration::common::Vector3& aVector3) { return aVector3.mX; };
+const auto kYAccessor = [](const third_party_integration::common::Vector3& aVector3) { return aVector3.mY; };
+const auto kZAccessor = [](const third_party_integration::common::Vector3& aVector3) { return aVector3.mZ; };
 
 template <typename Function>
 concept AccessorFunction = requires(Function aFunction) {

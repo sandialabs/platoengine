@@ -21,28 +21,30 @@ namespace
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
-const auto kConfiguration = services::CriterionConfiguration{
-    .mName = std::string{NodalSumObjective::kCriterionName}, .mIsParallelized = false, .mIsScalar = true};
+const auto kConfiguration = services::CriterionConfiguration{.mName = std::string{NodalSumObjective::mCriterionName},
+                                                             .mIsParallelized = false,
+                                                             .mIsScalar = true,
+                                                             .mFunctionName = ""};
 
-[[maybe_unused]] static const auto kNodalSumRegistration = Registration{
-    library::builtin_criterion_registration_name(NodalSumObjective::kCriterionName),
+[[maybe_unused]] const auto kNodalSumRegistration = Registration{
+    library::builtin_criterion_registration_name(NodalSumObjective::mCriterionName),
     [](const library::CriterionInput&) {
         return library::FunctionWithConfiguration{.mFunction = make_nodal_sum_function(),
                                                   .mConfiguration = kConfiguration};
     }};
 }  // namespace
 
-auto NodalSumObjective::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double
+auto NodalSumObjective::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> double
 {
     namespace tpi = plato::third_party_integration;
 
     const auto tMesh = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
     const auto tCoordinates = tMesh.nodalCoordinates();
     const auto tCoordinateSum = std::accumulate(tCoordinates.begin(), tCoordinates.end(), tpi::common::Coordinate{});
-    return tCoordinateSum.x + tCoordinateSum.y + tCoordinateSum.z;
+    return tCoordinateSum.mX + tCoordinateSum.mY + tCoordinateSum.mZ;
 }
 
-auto NodalSumObjective::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto NodalSumObjective::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
     -> linear_algebra::DynamicVector<double>
 {
     const auto tMesh = mesh::EntityCounts{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
@@ -56,7 +58,7 @@ auto NodalSumObjective::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMe
 auto make_nodal_sum_function() -> library::CriterionFunction
 {
     return core::make_function_with_first_derivative(
-        [](const analysis::AnalysisDomainMesh& mesh) { return NodalSumObjective{}.f(mesh); },
-        [](const analysis::AnalysisDomainMesh& mesh) { return NodalSumObjective{}.df(mesh); });
+        [](const analysis::AnalysisDomainMesh& aMesh) { return NodalSumObjective::f(aMesh); },
+        [](const analysis::AnalysisDomainMesh& aMesh) { return NodalSumObjective::df(aMesh); });
 }
 }  // namespace plato::criteria::extension

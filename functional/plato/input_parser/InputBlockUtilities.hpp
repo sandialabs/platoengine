@@ -12,33 +12,33 @@ template <typename BlockStruct>
 
 /// @brief Overloaded pipe operator for composing input blocks into a full ParsedInput struct.
 template <typename Input>
-[[nodiscard]] auto operator|(ParsedInput aParsedInput, const Input& aInput)
-    -> std::enable_if_t<IsInputBlock<Input>::value, ParsedInput>;
+[[nodiscard]] auto operator|(ParsedInput aParsedInput,
+                             const Input& aInput) -> std::enable_if_t<IsInputBlock<Input>::mValue, ParsedInput>;
 
 /// @brief Overload to construct initial empty ParsedInput struct.
 template <typename InputOne, typename InputTwo>
-[[nodiscard]] auto operator|(const InputOne& aInputOne, const InputTwo& aInputTwo)
-    -> std::enable_if_t<IsInputBlock<InputOne>::value && IsInputBlock<InputTwo>::value, ParsedInput>;
+    requires(IsInputBlock<InputOne>::mValue && IsInputBlock<InputTwo>::mValue)
+[[nodiscard]] auto operator|(const InputOne& aInputOne, const InputTwo& aInputTwo) -> ParsedInput;
 
 template <typename BlockStruct>
 auto block_name() -> std::string
 {
-    return InputTypeName<BlockStruct>::name;
+    return InputTypeName<BlockStruct>::mName;
 }
 
 template <typename Input>
-[[nodiscard]] auto operator|(ParsedInput aParsedInput, const Input& aInput)
-    -> std::enable_if_t<IsInputBlock<Input>::value, ParsedInput>
+[[nodiscard]] auto operator|(ParsedInput aParsedInput,
+                             const Input& aInput) -> std::enable_if_t<IsInputBlock<Input>::mValue, ParsedInput>
 {
-    constexpr auto tComponentType = ComponentTypeOfInputBlock<Input>::value;
+    constexpr auto tComponentType = ComponentTypeOfInputBlock<Input>::mValue;
     aParsedInput.get<tComponentType>().push_back(
         InputDataBlock{tComponentType, block_name<Input>(), InputBlockWrapper{aInput}});
     return aParsedInput;
 }
 
 template <typename InputOne, typename InputTwo>
-[[nodiscard]] auto operator|(const InputOne& aInputOne, const InputTwo& aInputTwo)
-    -> std::enable_if_t<IsInputBlock<InputOne>::value && IsInputBlock<InputTwo>::value, ParsedInput>
+    requires(IsInputBlock<InputOne>::mValue && IsInputBlock<InputTwo>::mValue)
+[[nodiscard]] auto operator|(const InputOne& aInputOne, const InputTwo& aInputTwo) -> ParsedInput
 {
     return ParsedInput{} | aInputOne | aInputTwo;
 }

@@ -32,10 +32,10 @@ auto coordinate_level_set_sensitivity(const ::krino::LevelSetShapeSensitivity& a
     std::vector<common::Vector3> tSensitivityVector;
     std::transform(aLevelSetSensitivity.dCoordsdParentLevelSets.begin(),
                    aLevelSetSensitivity.dCoordsdParentLevelSets.end(), std::back_inserter(tSensitivityVector),
-                   [aSpatialDimension](const auto& tSensitivity)
+                   [aSpatialDimension](const auto& aSensitivity)
                    {
-                       const auto tZComponent = aSpatialDimension == 3U ? tSensitivity[2] : 0.0;
-                       return common::Vector3{tSensitivity[0], tSensitivity[1], tZComponent};
+                       const auto tZComponent = aSpatialDimension == 3U ? aSensitivity[2] : 0.0;
+                       return common::Vector3{aSensitivity[0], aSensitivity[1], tZComponent};
                    });
     return tSensitivityVector;
 }

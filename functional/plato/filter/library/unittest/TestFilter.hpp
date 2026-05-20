@@ -22,20 +22,24 @@ class TestFilter : public FilterInterface
         return aAnalysisDomainMesh;
     }
 
-    /// @brief Returns a vector with all ones and size equal to the sum of the size of @a aAnalysisDomainMesh and @a aV.
+    /// @brief Returns a vector with all ones and size equal to the sum of the size of @a aAnalysisDomainMesh and @a
+    /// aRowVector.
     [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                              const linear_algebra::DynamicVector<double>& aV) const
+                                              const linear_algebra::DynamicVector<double>& aRowVector) const
         -> linear_algebra::DynamicVector<double> override
     {
-        return linear_algebra::DynamicVector<double>(aV.size() + analysis_domain_mesh_size(aAnalysisDomainMesh), 1.0);
+        return linear_algebra::DynamicVector<double>(aRowVector.size() + analysis_domain_mesh_size(aAnalysisDomainMesh),
+                                                     1.0);
     }
 
-    /// @brief Returns a vector with all twos and size equal to the sum of the size of @a aAnalysisDomainMesh and @a aV.
+    /// @brief Returns a vector with all twos and size equal to the sum of the size of @a aAnalysisDomainMesh and @a
+    /// aRowVector.
     [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                     const plato::linear_algebra::DynamicVector<double>& aV) const
-        -> plato::linear_algebra::DynamicVector<double> override
+                                                     const plato::linear_algebra::DynamicVector<double>& aRowVector)
+        const -> plato::linear_algebra::DynamicVector<double> override
     {
-        return linear_algebra::DynamicVector<double>(aV.size() + analysis_domain_mesh_size(aAnalysisDomainMesh), 2.0);
+        return linear_algebra::DynamicVector<double>(aRowVector.size() + analysis_domain_mesh_size(aAnalysisDomainMesh),
+                                                     2.0);
     }
 };
 

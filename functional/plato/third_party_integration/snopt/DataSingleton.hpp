@@ -47,8 +47,8 @@ class DataSingleton
 template <typename T, typename Tag>
 auto DataSingleton<T, Tag>::instance() -> DataSingleton<T, Tag> &
 {
-    static DataSingleton sInstance;
-    return sInstance;
+    static DataSingleton tInstance;
+    return tInstance;
 }
 
 template <typename T, typename Tag>

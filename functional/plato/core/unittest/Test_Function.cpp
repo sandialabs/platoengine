@@ -63,17 +63,17 @@ TEST(Function, TwoD)
 
     {
         const auto tX = pft::TwoDVector{0.0, 0.0};
-        const auto tExpectedF = pft::makeTwoDVector(0.0, 0.0);
-        const auto tExpectedDF = pft::makeTwoDMatrix(0.0, 0.0, 1.0, 1.0);
+        const auto tExpectedF = pft::make_two_d_vector(0.0, 0.0);
+        const auto tExpectedDF = pft::make_two_d_matrix(0.0, 0.0, 1.0, 1.0);
         EXPECT_EQ(tF.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tF.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
         EXPECT_EQ((tF.evaluate<evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>(tX)),
                   pft::transpose(tExpectedDF));
     }
     {
-        const auto tX = pft::makeTwoDVector(2.0, 1.0);
-        const auto tExpectedF = pft::makeTwoDVector(2.0, 3.0);
-        const auto tExpectedDF = pft::makeTwoDMatrix(1.0, 2.0, 1.0, 1.0);
+        const auto tX = pft::make_two_d_vector(2.0, 1.0);
+        const auto tExpectedF = pft::make_two_d_vector(2.0, 3.0);
+        const auto tExpectedDF = pft::make_two_d_matrix(1.0, 2.0, 1.0, 1.0);
         EXPECT_EQ(tF.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tF.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
         EXPECT_EQ((tF.evaluate<evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>(tX)),

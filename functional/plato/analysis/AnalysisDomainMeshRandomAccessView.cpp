@@ -83,10 +83,10 @@ auto AnalysisDomainMeshRandomAccessView::size() const -> std::size_t
     return analysis_domain_mesh_size(mAnalysisDomainMesh.get());
 }
 
-auto AnalysisDomainMeshRandomAccessView::operator[](const ScalarFieldValue::IndexType aIndex) const
+auto AnalysisDomainMeshRandomAccessView::operator[](const ScalarFieldValue::IndexType aGlobalID) const
     -> std::optional<ScalarFieldValue>
 {
-    const auto tEntries = mesh_element_with_global_index(mAnalysisDomainMesh.get(), aIndex);
+    const auto tEntries = mesh_element_with_global_index(mAnalysisDomainMesh.get(), aGlobalID);
     if (tEntries.mIterators.empty())
     {
         return std::nullopt;
@@ -99,10 +99,10 @@ auto AnalysisDomainMeshMutableRandomAccessView::size() const -> std::size_t
     return analysis_domain_mesh_size(mAnalysisDomainMesh.get());
 }
 
-auto AnalysisDomainMeshMutableRandomAccessView::operator[](const ScalarFieldValue::IndexType aIndex) const
+auto AnalysisDomainMeshMutableRandomAccessView::operator[](const ScalarFieldValue::IndexType aGlobalID) const
     -> SharedValueProxy<ScalarFieldValue, AnalysisDomainMesh::ScalarFieldVector::iterator, AssignDensity>
 {
-    return mesh_element_with_global_index(mAnalysisDomainMesh.get(), aIndex);
+    return mesh_element_with_global_index(mAnalysisDomainMesh.get(), aGlobalID);
 }
 
 }  // namespace plato::analysis

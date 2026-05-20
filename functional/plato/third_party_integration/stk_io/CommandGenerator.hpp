@@ -20,8 +20,8 @@ using UseUpperZ = utilities::NamedType<bool, struct UseUpperZTag>;
 /// this enum class.
 enum class CommandElementType : std::uint8_t
 {
-    Hex,
-    Tet
+    kHex,
+    kTet
 };
 
 using CommandBounds = common::Coordinate;
@@ -29,9 +29,9 @@ using CommandBounds = common::Coordinate;
 /// @brief Struct to bundle the number of elements in a STK generate command
 struct CommandNumberOfElements
 {
-    unsigned int mX = 1u;
-    unsigned int mY = 1u;
-    unsigned int mZ = 1u;
+    unsigned int mX = 1U;
+    unsigned int mY = 1U;
+    unsigned int mZ = 1U;
 };
 
 struct NodeSetSideSetIdentifiers
@@ -47,12 +47,12 @@ struct NodeSetSideSetIdentifiers
 /// @brief Struct to bundle the common operations needed to work with STK "generate" command
 struct CommandGenerator
 {
-    constexpr static inline auto mDefaultPrecision = 8;
+    constexpr static auto mDefaultPrecision = 8;
 
-    CommandNumberOfElements mElements = {1u, 1u, 1u};
+    CommandNumberOfElements mElements = {1U, 1U, 1U};
     CommandBounds mLowerBounds = {0, 0, 0};
     CommandBounds mUpperBounds = {1, 1, 1};
-    CommandElementType mType = CommandElementType::Hex;
+    CommandElementType mType = CommandElementType::kHex;
     NodeSetSideSetIdentifiers mNodeset{};
     NodeSetSideSetIdentifiers mSideset{};
     int mPrecision = mDefaultPrecision;

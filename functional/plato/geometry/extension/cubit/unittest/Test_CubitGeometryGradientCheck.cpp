@@ -84,7 +84,7 @@ TEST(CubitGeometry, CheckGradient)
         const auto tCoordinates = mesh::EntityRetrieval{mesh::Mesh{tAnalysisDomainMesh.mFileName}}.nodalCoordinates();
         const auto tSumCoordinate = std::accumulate(tCoordinates.begin(), tCoordinates.end(),
                                                     third_party_integration::common::Coordinate{0, 0, 0});
-        return tSumCoordinate.x + tSumCoordinate.y + tSumCoordinate.z;
+        return tSumCoordinate.mX + tSumCoordinate.mY + tSumCoordinate.mZ;
     };
 
     const auto tDf = [&tCubitGeometry](const linear_algebra::DynamicVector<double>& aX,

@@ -11,9 +11,9 @@ void test_double_equality_of_components(const Container3& aResult,
                                         const Container3& aGold,
                                         const plato::test_utilities::TestContext& aTestContext)
 {
-    EXPECT_DOUBLE_EQ(aResult.x, aGold.x) << aTestContext;
-    EXPECT_DOUBLE_EQ(aResult.y, aGold.y) << aTestContext;
-    EXPECT_DOUBLE_EQ(aResult.z, aGold.z) << aTestContext;
+    EXPECT_DOUBLE_EQ(aResult.mX, aGold.mX) << aTestContext;
+    EXPECT_DOUBLE_EQ(aResult.mY, aGold.mY) << aTestContext;
+    EXPECT_DOUBLE_EQ(aResult.mZ, aGold.mZ) << aTestContext;
 }
 
 template <typename Container3>
@@ -22,9 +22,9 @@ void test_near_equality_of_components(const Container3& aResult,
                                       const double aTolerance,
                                       const plato::test_utilities::TestContext& aTestContext)
 {
-    EXPECT_NEAR(aResult.x, aGold.x, aTolerance) << aTestContext;
-    EXPECT_NEAR(aResult.y, aGold.y, aTolerance) << aTestContext;
-    EXPECT_NEAR(aResult.z, aGold.z, aTolerance) << aTestContext;
+    EXPECT_NEAR(aResult.mX, aGold.mX, aTolerance) << aTestContext;
+    EXPECT_NEAR(aResult.mY, aGold.mY, aTolerance) << aTestContext;
+    EXPECT_NEAR(aResult.mZ, aGold.mZ, aTolerance) << aTestContext;
 }
 
 }  // namespace plato::third_party_integration::common::test_utilities

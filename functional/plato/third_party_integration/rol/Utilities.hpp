@@ -28,10 +28,10 @@ void assign_vector(ROL::Vector<T>& aROLVector, std::vector<T> aVector);
 /// @brief Helper function that creates a random direction for use in diagnostic checks.
 ///
 /// @post The returned vector has dimension @a aDimension and magnitude 1.
-[[nodiscard]] auto generate_perturbation(const int aDimension) -> ROL::StdVector<double>;
+[[nodiscard]] auto generate_perturbation(int aDimension) -> ROL::StdVector<double>;
 
 /// @brief Makes @a aROLVector entries all equal to @a aValue.
-void make_uniform(ROL::Vector<double>& aROLVector, const double aValue);
+void make_uniform(ROL::Vector<double>& aROLVector, double aValue);
 
 /// @brief Randomizes @a aROLVector, but scales the result to have unit norm.
 void randomize_and_normalize(ROL::Vector<double>& aROLVector);

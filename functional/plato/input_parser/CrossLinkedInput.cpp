@@ -23,12 +23,12 @@ auto apply_cross_linker(const CrossLinker& aCrossLinker,
                         std::vector<InputDataBlock>& aInputBlocksForSingleComponent,
                         std::vector<std::string>&& aErrorMessages) -> std::vector<std::string>
 {
-    for (auto& aInputBlock : aInputBlocksForSingleComponent)
+    for (auto& tInputBlock : aInputBlocksForSingleComponent)
     {
-        auto tLinkedBlockOrError = aCrossLinker.crossLink(aInputBlock, aParsedInput);
+        auto tLinkedBlockOrError = aCrossLinker.crossLink(tInputBlock, aParsedInput);
         if (tLinkedBlockOrError.hasValue())
         {
-            aInputBlock = std::move(tLinkedBlockOrError).value();
+            tInputBlock = std::move(tLinkedBlockOrError).value();
         }
         else
         {
@@ -42,7 +42,7 @@ template <std::size_t... kComponentIndices>
 auto apply_cross_linker(const CrossLinker& aCrossLinker,
                         ParsedInput& aParsedInput,
                         std::vector<std::string>&& aErrorMessages,
-                        std::index_sequence<kComponentIndices...>) -> std::vector<std::string>
+                        std::index_sequence<kComponentIndices...> /*unused*/) -> std::vector<std::string>
 {
     ((aErrorMessages = apply_cross_linker(
           aCrossLinker, aParsedInput, aParsedInput.get<components::component_type_from_index<kComponentIndices>()>(),
@@ -52,17 +52,17 @@ auto apply_cross_linker(const CrossLinker& aCrossLinker,
 }
 }  // namespace
 
-CrossLinkedInput::CrossLinkedInput(ParsedInput aInput, const CrossLinkKey&) : mInput{std::move(aInput)} {}
+CrossLinkedInput::CrossLinkedInput(ParsedInput aInput, const CrossLinkKey& /*unused*/) : mInput{std::move(aInput)} {}
 
 auto CrossLinkedInput::rawInput() const -> const input_parser::ParsedInput& { return mInput; };
 
 auto make_cross_linked_input(input_parser::ParsedInput aInput) -> utilities::Expected<CrossLinkedInput, std::string>
 {
     auto tErrorMessages = std::vector<std::string>{};
-    for (const auto& aCrossLinker : registered_cross_linkers())
+    for (const auto& tCrossLinker : registered_cross_linkers())
     {
         tErrorMessages = apply_cross_linker(
-            aCrossLinker, aInput, std::move(tErrorMessages),
+            tCrossLinker, aInput, std::move(tErrorMessages),
             std::make_index_sequence<utilities::number_of_enumerates<components::ComponentType>()>());
     }
     if (tErrorMessages.empty())

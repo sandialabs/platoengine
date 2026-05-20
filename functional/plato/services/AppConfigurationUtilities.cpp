@@ -43,9 +43,9 @@ auto app_configurations(const std::vector<std::filesystem::path>& aSearchDirecto
     {
         utilities::transform_if(
             std::filesystem::directory_iterator{tDirectory}, std::back_inserter(tAppConfigurations),
-            [&tDirectory](const auto& tDirectoryEntry)
-            { return app_configuration_with_directory(load_configuration(tDirectoryEntry.path()), tDirectory); },
-            [](const auto& tDirectoryEntry) { return tDirectoryEntry.path().extension() == kConfigFileExtension; });
+            [&tDirectory](const auto& aDirectoryEntry)
+            { return app_configuration_with_directory(load_configuration(aDirectoryEntry.path()), tDirectory); },
+            [](const auto& aDirectoryEntry) { return aDirectoryEntry.path().extension() == kConfigFileExtension; });
     }
     return tAppConfigurations;
 }
@@ -53,8 +53,8 @@ auto app_configurations(const std::vector<std::filesystem::path>& aSearchDirecto
 auto app_configuration_with_directory(AppConfiguration aAppConfiguration,
                                       std::filesystem::path aDirectory) -> AppConfigurationWithDirectory
 {
-    return AppConfigurationWithDirectory{/*.mConfiguration=*/std::move(aAppConfiguration),
-                                         /*.mLibraryDirectory=*/std::move(aDirectory)};
+    return AppConfigurationWithDirectory{.mConfiguration = std::move(aAppConfiguration),
+                                         .mLibraryDirectory = std::move(aDirectory)};
 }
 
 auto plugin_configurations() -> std::vector<AppConfigurationWithDirectory>

@@ -26,24 +26,24 @@ class OptimizationParameters
     void approximateHessian();
 
     ///@brief Changes the parameter for that specifies the maximum iteration in an optimization to @a aMaximumIterations
-    void maximumIterations(const std::optional<unsigned int> aMaximumIterations);
+    void maximumIterations(std::optional<unsigned int> aMaximumIterations);
 
     ///@brief Changes the parameter for that specifies the gradient tolerance in an optimization to @a
     /// aGradientTolerance
     ///@note Convergence in ROL is dictated by the norm of the gradient which grows with controls like sqrt(N)
-    void gradientTolerance(const std::optional<double> aGradientTolerance);
+    void gradientTolerance(std::optional<double> aGradientTolerance);
 
     ///@brief Changes the parameter for that specifies the step tolerance in an optimization to @a aStepTolerance
     ///@note Convergence in ROL is dictated by the norm of the step tolerance which grows with controls like sqrt(N)
-    void stepTolerance(const std::optional<double> aStepTolerance);
+    void stepTolerance(std::optional<double> aStepTolerance);
 
     ///@brief Changes the parameter for that specifies the initial search radius in an optimization to @a
     /// aInitialSearchRadius
     ///@note Search radius in ROL is dictated by the norm of the gradient which grows with controls like sqrt(N)
-    void initialSearchRadius(const std::optional<double> aInitialSearchRadius);
+    void initialSearchRadius(std::optional<double> aInitialSearchRadius);
 
     ///@brief Stores the parameter that specifies whether to write the output for each optimization iteration
-    void writeOutputHistory(const std::optional<bool> aWriteOutputHistory);
+    void writeOutputHistory(std::optional<bool> aWriteOutputHistory);
 
     ///@brief Returns the parameter that specifies whether to write the output for each optimization iteration
     [[nodiscard]] auto writeOutputHistory() const -> bool { return mWriteOutputHistory; };

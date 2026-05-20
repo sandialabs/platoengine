@@ -16,15 +16,15 @@ namespace plato::input_validation
 {
 /// @return an optional error message if @a aParameter does not contain a value.
 template <typename T>
-[[nodiscard]] auto error_message_for_empty_parameter(const std::string_view aPrependString,
+[[nodiscard]] auto error_message_for_empty_parameter(std::string_view aPrependString,
                                                      const boost::optional<T>& aParameter,
-                                                     const std::string_view aEntryName) -> std::optional<std::string>;
+                                                     std::string_view aEntryName) -> std::optional<std::string>;
 
 /// @return an optional error message if @a aParameter does not fall between @a aLowerBound and @a aUpperBound
 template <typename T>
-[[nodiscard]] auto error_message_for_parameter_out_of_bounds(const std::string_view aPrependString,
+[[nodiscard]] auto error_message_for_parameter_out_of_bounds(std::string_view aPrependString,
                                                              const boost::optional<T>& aParameter,
-                                                             const std::string_view aEntryName,
+                                                             std::string_view aEntryName,
                                                              const plato::utilities::ParameterBounds<T>& aBounds)
     -> std::optional<std::string>;
 
@@ -33,9 +33,9 @@ template <typename T>
 /// No error message if aParameter doesn't exist
 template <typename T>
 [[nodiscard]] auto error_message_for_optional_parameter_out_of_bounds(
-    const std::string_view aPrependString,
+    std::string_view aPrependString,
     const boost::optional<T>& aParameter,
-    const std::string_view aEntryName,
+    std::string_view aEntryName,
     const plato::utilities::ParameterBounds<T>& aBounds) -> std::optional<std::string>;
 
 /// @brief Checks if the objective or constraint given by @a aParameter should be included in the optimization problem.
@@ -45,18 +45,16 @@ template <typename Parameter>
 
 /// @return an optional error message if optional @a aParameter of type FileName does not contain a value or that value
 /// doesn't point to a file on disk
-[[nodiscard]] auto error_message_for_missing_file_parameter(const std::string_view aPrependString,
+[[nodiscard]] auto error_message_for_missing_file_parameter(std::string_view aPrependString,
                                                             const boost::optional<input_parser::FileName>& aParameter,
-                                                            const std::string_view aEntryName)
-    -> std::optional<std::string>;
+                                                            std::string_view aEntryName) -> std::optional<std::string>;
 
 /// @return an optional error message if the file retrieved from the input @a aInput using accessor @a aFileNameAccessor
 /// doesn't point to a file on disk.
 template <typename InputBlock, typename FileNameAccessor>
 [[nodiscard]] auto error_message_for_missing_file_on_disk(const InputBlock& aInput,
                                                           const FileNameAccessor& aFileNameAccessor,
-                                                          const std::string_view aEntryName)
-    -> std::optional<std::string>;
+                                                          std::string_view aEntryName) -> std::optional<std::string>;
 
 template <typename T>
 auto error_message_for_empty_parameter(const std::string_view aPrependString,
@@ -67,10 +65,8 @@ auto error_message_for_empty_parameter(const std::string_view aPrependString,
     {
         return utilities::concatenate(aPrependString, " missing required entry \"", aEntryName, "\"");
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 template <typename T>
@@ -85,10 +81,8 @@ auto error_message_for_parameter_out_of_bounds(const std::string_view aPrependSt
         return utilities::concatenate(aPrependString, " entry \"", aEntryName, "\" has value ", aParameter.value(),
                                       " and is outside the expected bounds ", aBounds.description());
     }
-    else
-    {
-        return error_message_for_empty_parameter(aPrependString, aParameter, aEntryName);
-    }
+
+    return error_message_for_empty_parameter(aPrependString, aParameter, aEntryName);
 }
 
 template <typename T>
@@ -103,10 +97,8 @@ auto error_message_for_optional_parameter_out_of_bounds(const std::string_view a
         return input_validation::error_message_for_parameter_out_of_bounds(aPrependString, aParameter, aEntryName,
                                                                            aBounds);
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 template <typename Parameter>

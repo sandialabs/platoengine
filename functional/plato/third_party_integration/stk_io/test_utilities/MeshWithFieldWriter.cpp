@@ -16,7 +16,7 @@ namespace plato::third_party_integration::stk_io::test_utilities
 {
 namespace
 {
-constexpr CommandGenerator kCommandGenerator{{3, 1, 1}, {0, 0, 0}, {1, 1, 1}, CommandElementType::Hex};
+constexpr CommandGenerator kCommandGenerator{{3, 1, 1}, {0, 0, 0}, {1, 1, 1}, CommandElementType::kHex};
 constexpr std::string_view kTestDirectoryName = "test";
 const auto kSourceMeshPath = std::filesystem::path{kTestDirectoryName} / std::filesystem::path{"source.exo"};
 constexpr std::string_view kFieldName = "Topology";

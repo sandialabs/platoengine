@@ -30,10 +30,6 @@ template <CriterionInput Criteria>
 template <CriterionInput Criteria>
 [[nodiscard]] auto validate_number_of_processors(const Criteria& aInput) -> std::optional<std::string>;
 
-/// @brief Validates that the input files specified in @a aInput exist on disk.
-template <CriterionInput Criteria>
-[[nodiscard]] auto validate_criterion_files_exist(const Criteria& aInput) -> std::optional<std::string>;
-
 /// @brief Checks that, if more than one processor is requested, that the criterion is registered as being parallelized.
 template <CriterionInput Criteria>
 [[nodiscard]] auto validate_criterion_supports_requested_number_of_processors(const Criteria& aInput)
@@ -56,19 +52,14 @@ template <CriterionInput Criteria>
         {
             return std::nullopt;
         }
-        else
-        {
-            auto tErrorMessage = criterion_name(aInput) + ": app/criterion not found: " + tRegistrationName +
-                                 "\nThe following criteria are available: \n" +
-                                 utilities::concatenate_container(registered_criteria_names(), "\n");
-            return std::optional<std::string>{std::in_place_t{}, std::move(tErrorMessage)};
-        }
+
+        auto tErrorMessage = criterion_name(aInput) + ": app/criterion not found: " + tRegistrationName +
+                             "\nThe following criteria are available: \n" +
+                             utilities::concatenate_container(registered_criteria_names(), "\n");
+        return std::optional<std::string>{std::in_place_t{}, std::move(tErrorMessage)};
     }
-    else
-    {
-        return input_validation::error_message_for_empty_parameter(criterion_name(aInput), aInput.criterion,
-                                                                   "criterion");
-    }
+
+    return input_validation::error_message_for_empty_parameter(criterion_name(aInput), aInput.criterion, "criterion");
 }
 
 template <CriterionInput Criteria>
@@ -76,7 +67,7 @@ template <CriterionInput Criteria>
 {
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
         criterion_name(aInput), aInput.number_of_processors, "number_of_processors",
-        utilities::lower_bounded(utilities::Inclusive{1u}));
+        utilities::lower_bounded(utilities::Inclusive{1U}));
 }
 
 template <CriterionInput Criteria>

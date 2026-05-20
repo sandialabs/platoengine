@@ -10,7 +10,7 @@ namespace plato::process_manager::extension::test_utilities
 template <typename ComponentInput>
 [[nodiscard]] auto cross_reference()
 {
-    return input_parser::CrossReference<input_parser::ComponentTypeOfInputBlock<ComponentInput>::value>{
+    return input_parser::CrossReference<input_parser::ComponentTypeOfInputBlock<ComponentInput>::mValue>{
         input_parser::block_name<ComponentInput>(), input_parser::InputBlockWrapper{ComponentInput{}}};
 }
 }  // namespace plato::process_manager::extension::test_utilities

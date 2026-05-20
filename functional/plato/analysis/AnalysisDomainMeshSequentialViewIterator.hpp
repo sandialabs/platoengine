@@ -25,7 +25,7 @@ struct AnalysisDomainMeshSequentialViewIterator
     using reference = SharedValueProxy<ScalarFieldValue, InnerIteratorType>;
 
     auto operator++() -> AnalysisDomainMeshSequentialViewIterator&;
-    [[nodiscard]] auto operator*() const -> const reference;
+    [[nodiscard]] auto operator*() const -> reference;
 
     template <typename Iterator = InnerIteratorType>
     [[nodiscard]] auto operator*() -> std::enable_if_t<!kIsConstIterator<Iterator>, reference>;

@@ -42,10 +42,8 @@ namespace
     {
         return std::move(tPluginPath).value() / ".." / "lib";
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 /// Attempts to find the test mass app shared lib. If the test calling this function is running
@@ -177,11 +175,13 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
 
 auto brick_shape_geometry_controls_with_volume() -> std::pair<linear_algebra::DynamicVector<double>, double>
 {
-    constexpr auto tX = double{2.0};
-    constexpr auto tY = double{4.0};
-    constexpr auto tZ = double{6.0};
-    constexpr auto tCenter = double{0.0};
-    return std::make_pair(linear_algebra::DynamicVector<double>{tCenter, tCenter, tCenter, tX, tY, tZ}, tX * tY * tZ);
+    constexpr auto tDimensionX = 2.0;
+    constexpr auto tDimensionY = 4.0;
+    constexpr auto tDimensionZ = 6.0;
+    constexpr auto tCenter = 0.0;
+    return std::make_pair(
+        linear_algebra::DynamicVector<double>{tCenter, tCenter, tCenter, tDimensionX, tDimensionY, tDimensionZ},
+        tDimensionX * tDimensionY * tDimensionZ);
 }
 
 void register_load_run_test(const boost::mpi::communicator& aCommunicator,

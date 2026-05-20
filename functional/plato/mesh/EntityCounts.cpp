@@ -43,9 +43,9 @@ auto EntityCounts::spatialDimensions() const -> unsigned int
     return third_party_integration::stk_io::spatial_dimensions(bulkData());
 }
 
-auto EntityCounts::is2D() const -> bool { return spatialDimensions() == 2u; }
+auto EntityCounts::is2D() const -> bool { return spatialDimensions() == 2U; }
 
-auto EntityCounts::is3D() const -> bool { return spatialDimensions() == 3u; }
+auto EntityCounts::is3D() const -> bool { return spatialDimensions() == 3U; }
 
 auto EntityCounts::areNodalDesignVariables(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> bool
 {

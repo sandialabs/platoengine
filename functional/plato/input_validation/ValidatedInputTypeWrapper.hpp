@@ -23,7 +23,7 @@ class ValidatedInputTypeWrapper
 {
    public:
     using RawInputType = InputType;
-    constexpr static inline components::ComponentType mComponentType = kComponentType;
+    constexpr static components::ComponentType mComponentType = kComponentType;
 
     [[nodiscard]] auto rawInput() const -> const InputType&;
 

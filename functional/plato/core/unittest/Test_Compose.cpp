@@ -77,21 +77,21 @@ TEST(Composer, TwoDFunctions)
     {
         const auto tX = pft::TwoDVector{0.0, 0.0};
         const auto tExpectedF = 0.0;
-        const auto tExpectedDF = pft::makeTwoDVector(0.0, 0.0);
+        const auto tExpectedDF = pft::make_two_d_vector(0.0, 0.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
     }
     {
         const auto tX = pft::TwoDVector{1.0, -1.0};
         const auto tExpectedF = 1.0;
-        const auto tExpectedDF = pft::makeTwoDVector(2.0, -2.0);
+        const auto tExpectedDF = pft::make_two_d_vector(2.0, -2.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
     }
     {
         const auto tX = pft::TwoDVector{2.0, 4.0};
         const auto tExpectedF = 280.0;
-        const auto tExpectedDF = pft::makeTwoDVector(172.0, 140.0);
+        const auto tExpectedDF = pft::make_two_d_vector(172.0, 140.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
     }
@@ -110,21 +110,21 @@ TEST(Composer, ScalarTransformation)
     {
         const auto tX = pft::TwoDVector{1.0, 0.0};
         const auto tExpectedValue = 1.0;
-        const auto tExpectedDerivative = pft::makeTwoDVector(-2.0, 0.0);
+        const auto tExpectedDerivative = pft::make_two_d_vector(-2.0, 0.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedValue);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDerivative);
     }
     {
         const auto tX = pft::TwoDVector{1.0, 1.0};
         const auto tExpectedValue = 0.5;
-        const auto tExpectedDerivative = pft::makeTwoDVector(-0.5, -3.0 / 4.0);
+        const auto tExpectedDerivative = pft::make_two_d_vector(-0.5, -3.0 / 4.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedValue);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDerivative);
     }
     {
         const auto tX = pft::TwoDVector{-4.0, 3.0};
         const auto tExpectedValue = 1.0 / 43.0;
-        const auto tExpectedDerivative = pft::makeTwoDVector(8.0 / 43.0 / 43.0, -27.0 / 43.0 / 43.0);
+        const auto tExpectedDerivative = pft::make_two_d_vector(8.0 / 43.0 / 43.0, -27.0 / 43.0 / 43.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedValue);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDerivative);
     }
@@ -175,9 +175,9 @@ TEST(Compose, CompositionVectorFunctions)
 
     {
         const auto tX = pft::TwoDVector{0.0, 0.0};
-        const auto tExpectedF = pft::makeTwoDVector(0.0, 0.0);
-        const auto tExpectedDF = pft::makeTwoDMatrix(0.0, 0.0, 1.0, 1.0);
-        const auto tExpectedAdjointDF = pft::makeTwoDMatrix(0.0, 1.0, 0.0, 1.0);
+        const auto tExpectedF = pft::make_two_d_vector(0.0, 0.0);
+        const auto tExpectedDF = pft::make_two_d_matrix(0.0, 0.0, 1.0, 1.0);
+        const auto tExpectedAdjointDF = pft::make_two_d_matrix(0.0, 1.0, 0.0, 1.0);
         EXPECT_EQ(tComposition.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tComposition.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
         EXPECT_EQ((tComposition.evaluate<evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>(tX)),
@@ -185,9 +185,9 @@ TEST(Compose, CompositionVectorFunctions)
     }
     {
         const auto tX = pft::TwoDVector{1.0, 0.5};
-        const auto tExpectedF = pft::makeTwoDVector(0.75, 2.0);
-        const auto tExpectedDF = pft::makeTwoDMatrix(1.25, 2.0, 1.5, 2.0);
-        const auto tExpectedAdjointDF = pft::makeTwoDMatrix(1.25, 1.5, 2.0, 2.0);
+        const auto tExpectedF = pft::make_two_d_vector(0.75, 2.0);
+        const auto tExpectedDF = pft::make_two_d_matrix(1.25, 2.0, 1.5, 2.0);
+        const auto tExpectedAdjointDF = pft::make_two_d_matrix(1.25, 1.5, 2.0, 2.0);
         EXPECT_EQ(tComposition.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tComposition.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
         EXPECT_EQ((tComposition.evaluate<evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>(tX)),

@@ -47,11 +47,11 @@ auto sink_with_attribute_formatters_and_filters(const boost::shared_ptr<std::ost
         boost::log::formatter{boost::log::expressions::stream << boost::log::expressions::smessage};
 
     auto tFormatter =
-        [mAttributeFormatter = std::move(tAttributeFormatter), mMessageFormatter = std::move(tMessageFormatter)](
+        [tAttributeFormatter = std::move(tAttributeFormatter), tMessageFormatter = std::move(tMessageFormatter)](
             const boost::log::record_view& aRecord, boost::log::formatter::stream_type& aStream)
     {
-        mAttributeFormatter(aRecord, aStream);
-        mMessageFormatter(aRecord, aStream);
+        tAttributeFormatter(aRecord, aStream);
+        tMessageFormatter(aRecord, aStream);
     };
 
     return LoggerSinkSetupTeardown{aStreamSink, boost::log::formatter{std::move(tFormatter)},

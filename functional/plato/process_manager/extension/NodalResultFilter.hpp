@@ -38,7 +38,7 @@ class NodalResultFilter
     void run() const;
 
     /// @brief Returns the name of the filtered field that is inserted into the output mesh.
-    [[nodiscard]] static auto field_name() -> std::string_view;
+    [[nodiscard]] static auto fieldName() -> std::string_view;
 
    private:
     std::filesystem::path mInputMeshPath;

@@ -9,7 +9,7 @@ class MassObjective
 {
    public:
     ///@brief Construct a new Mass Objective object
-    explicit MassObjective(const double aDensity);
+    explicit MassObjective(double aDensity);
 
     ///@brief return the total mass of the mesh
     [[nodiscard]] auto mass(std::string_view aMeshFileName) const -> double;

@@ -54,7 +54,7 @@ void distribute_on_tpetra_multivector(const std::vector<common::Coordinate>& aSe
 
 /// @brief Helper function to retrieve a Coordinate stored in @a aMultiVector at row @a aRow
 [[nodiscard]] auto multivector_coordinate(const TpetraMultiVector& aMultiVector,
-                                          const TpetraLocalOrdinal aRow) -> common::Coordinate;
+                                          TpetraLocalOrdinal aRow) -> common::Coordinate;
 
 }  // namespace plato::third_party_integration::tpetra
 

@@ -41,13 +41,10 @@ auto block_data(const stk::mesh::BulkData& aBulk) -> std::vector<common::BlockDa
     const auto tParts = element_blocks_parts(aBulk);
     auto tBlockData = std::vector<common::BlockData>{};
     tBlockData.reserve(tParts.size());
-    std::transform(tParts.cbegin(), tParts.cend(), std::back_inserter(tBlockData),
-                   [](const auto& aPart) {
-                       return common::BlockData{aPart->id(), aPart->mesh_meta_data_ordinal(), aPart->name()};
-                   });
-    std::sort(tBlockData.begin(), tBlockData.end(),
-              [](const auto& tBlockDataLeft, const auto& tBlockDataRight)
-              { return tBlockDataLeft.mID < tBlockDataRight.mID; });
+    std::transform(tParts.cbegin(), tParts.cend(), std::back_inserter(tBlockData), [](const auto& aPart)
+                   { return common::BlockData{aPart->id(), aPart->mesh_meta_data_ordinal(), aPart->name()}; });
+    std::sort(tBlockData.begin(), tBlockData.end(), [](const auto& aBlockDataLeft, const auto& aBlockDataRight)
+              { return aBlockDataLeft.mID < aBlockDataRight.mID; });
     return tBlockData;
 }
 
@@ -59,10 +56,8 @@ auto part_with_block_meta_data_ordinal(const stk::mesh::BulkData& aBulkData,
         const auto& tPart = aBulkData.mesh_meta_data().get_part(aBlockOrdinal);
         return std::make_optional(std::cref(tPart));
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 auto element_size(const stk::mesh::BulkData& aBulkData, const stk::mesh::Part& aPart) -> std::size_t

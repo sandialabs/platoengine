@@ -15,7 +15,7 @@ TEST(Vector3Serialization, Test)
     auto tStream = std::stringstream{};
     auto tSaveArchive = boost::archive::binary_oarchive{tStream};
 
-    const auto tStoredVector = Vector3{.x = 1, .y = 2, .z = 3};
+    const auto tStoredVector = Vector3{.mX = 1, .mY = 2, .mZ = 3};
     tSaveArchive << tStoredVector;
 
     auto tLoadedVector = Vector3{};

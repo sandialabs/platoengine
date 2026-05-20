@@ -31,7 +31,7 @@ auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategor
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
-auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator*() const -> const reference
+auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator*() const -> reference
 {
     return detail::dereferenced_proxy(mCurrentIterators, mEndIterators);
 }
@@ -62,13 +62,13 @@ auto min_id_iterator(const std::vector<std::optional<ScalarFieldValue>>& aScalar
     typename std::vector<std::optional<ScalarFieldValue>>::const_iterator
 {
     return std::min_element(aScalarField.cbegin(), aScalarField.cend(),
-                            [](const auto& tLeftValue, const auto& tRightValue)
+                            [](const auto& aLeftValue, const auto& aRightValue)
                             {
-                                if (tLeftValue && tRightValue)
+                                if (aLeftValue && aRightValue)
                                 {
-                                    return tLeftValue->mGlobalMeshEntityID < tRightValue->mGlobalMeshEntityID;
+                                    return aLeftValue->mGlobalMeshEntityID < aRightValue->mGlobalMeshEntityID;
                                 }
-                                return tLeftValue.has_value();
+                                return aLeftValue.has_value();
                             });
 }
 

@@ -2,7 +2,6 @@
 #define PLATO_FILTER_EXTENSION_KERNELFILTERS_LINEARMASK
 
 #include <boost/mpi/communicator.hpp>
-#include <optional>
 
 #include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 #include "plato/third_party_integration/tpetra/Utilities.hpp"
@@ -20,7 +19,7 @@ class LinearMask
 {
    public:
     /// @brief Constructs a LinearMask from a TpetraCRSMatrix, which may be constructed from LinearMaskBuilder.
-    LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask, boost::mpi::communicator mCommunicator);
+    LinearMask(third_party_integration::tpetra::TpetraCRSMatrix aLinearMask, boost::mpi::communicator aCommunicator);
 
     /// @brief Return the size of the distance mask. The first entry is the number of rows and the second is the number
     /// of columns.

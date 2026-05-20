@@ -109,13 +109,13 @@ TEST(MultidimensionalIterator, AllOf)
     const auto tOne = std::make_tuple(1, 2, 3);
     const auto tTwo = std::make_tuple(2, 3, 4);
 
-    EXPECT_TRUE(allOf(tOne, tTwo, std::less{}));
-    EXPECT_TRUE(allOf(tOne, tTwo, std::less_equal{}));
-    EXPECT_FALSE(allOf(tOne, tTwo, std::greater{}));
-    EXPECT_FALSE(allOf(tOne, tTwo, std::greater_equal{}));
-    EXPECT_TRUE(allOf(tOne, tTwo, std::not_equal_to{}));
-    EXPECT_FALSE(allOf(tOne, tTwo, std::equal_to{}));
-    EXPECT_TRUE(allOf(tOne, tOne, std::equal_to{}));
+    EXPECT_TRUE(tuple_all_of(tOne, tTwo, std::less{}));
+    EXPECT_TRUE(tuple_all_of(tOne, tTwo, std::less_equal{}));
+    EXPECT_FALSE(tuple_all_of(tOne, tTwo, std::greater{}));
+    EXPECT_FALSE(tuple_all_of(tOne, tTwo, std::greater_equal{}));
+    EXPECT_TRUE(tuple_all_of(tOne, tTwo, std::not_equal_to{}));
+    EXPECT_FALSE(tuple_all_of(tOne, tTwo, std::equal_to{}));
+    EXPECT_TRUE(tuple_all_of(tOne, tOne, std::equal_to{}));
 }
 
 }  // namespace plato::utilities::unittest

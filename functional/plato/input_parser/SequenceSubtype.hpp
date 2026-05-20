@@ -24,13 +24,13 @@ constexpr inline bool kIsInputSequenceSubtype = false;
 // clang-format off
 // NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define PLATO_INPUT_SEQUENCE_SUBTYPE(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                            \
-/* NOLINTBEGIN(cppcoreguidelines-special-member-functions) */                                           \
+/* NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */         \
 BOOST_FUSION_DEFINE_STRUCT(                                                                             \
     NAMESPACE_SEQ,                                                                                      \
     STRUCT_NAME,                                                                                        \
     ATTRIBUTES                                                                                          \
 )                                                                                                       \
-/* NOLINTEND(cppcoreguidelines-special-member-functions) */                                           \
+/* NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */           \
 namespace plato::input_parser{                                                                          \
 template<>                                                                                              \
 constexpr inline bool kIsInputSequenceSubtype<STRUCT_NAME> = true;                                      \

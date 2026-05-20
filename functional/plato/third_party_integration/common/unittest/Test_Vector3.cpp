@@ -19,9 +19,9 @@ constexpr Vector3 k123{1, 2, 3};
 
 TEST(Vector3, CoordinateSubtraction)
 {
-    constexpr Coordinate p1{1, 2, 3};
-    constexpr Coordinate p2{4, 5, 6};
-    constexpr Vector3 tResult = p2 - p1;
+    constexpr Coordinate tP1{1, 2, 3};
+    constexpr Coordinate tP2{4, 5, 6};
+    constexpr Vector3 tResult = tP2 - tP1;
     constexpr Vector3 tGold{3, 3, 3};
 
     test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Vector3 subtraction"));
@@ -29,16 +29,16 @@ TEST(Vector3, CoordinateSubtraction)
 
 TEST(Vector3, CoordinateAddition)
 {
-    constexpr Coordinate p1{38, 21, 86};
-    constexpr Coordinate p2{71, 91, 10};
+    constexpr Coordinate tP1{38, 21, 86};
+    constexpr Coordinate tP2{71, 91, 10};
     {
-        constexpr Coordinate tResult = p1 + p2;
+        constexpr Coordinate tResult = tP1 + tP2;
         constexpr Coordinate tGold{109, 112, 96};
         test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Coordinate addition"));
     }
 
     {
-        constexpr Coordinate tResult = p1 + p2 + p1;
+        constexpr Coordinate tResult = tP1 + tP2 + tP1;
         constexpr Coordinate tGold{147, 133, 182};
         test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Coordinate addition"));
     }
@@ -46,9 +46,9 @@ TEST(Vector3, CoordinateAddition)
 
 TEST(Vector3, CoordinateScalarMultiplication)
 {
-    constexpr Coordinate p1{1, 2, 3};
+    constexpr Coordinate tP1{1, 2, 3};
     constexpr double tScale{10};
-    constexpr Coordinate tResult = p1 * tScale;
+    constexpr Coordinate tResult = tP1 * tScale;
     constexpr Coordinate tGold{10, 20, 30};
 
     test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Coordinate multiplication"));
@@ -56,9 +56,9 @@ TEST(Vector3, CoordinateScalarMultiplication)
 
 TEST(Vector3, CoordinateScalarDivision)
 {
-    constexpr Coordinate p1{10, 20, 30};
+    constexpr Coordinate tP1{10, 20, 30};
     constexpr double tDivisor{10};
-    constexpr Coordinate tResult = p1 / tDivisor;
+    constexpr Coordinate tResult = tP1 / tDivisor;
     constexpr Coordinate tGold{1, 2, 3};
 
     test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Vector3 scalar division"));
@@ -66,9 +66,9 @@ TEST(Vector3, CoordinateScalarDivision)
 
 TEST(Vector3, CoordinateScalarAddition)
 {
-    constexpr Coordinate p1{10, 20, 30};
+    constexpr Coordinate tP1{10, 20, 30};
     constexpr double tScalar{10};
-    constexpr Coordinate tResult = p1 + tScalar;
+    constexpr Coordinate tResult = tP1 + tScalar;
     constexpr Coordinate tGold{20, 30, 40};
 
     test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Vector3 scalar addition"));
@@ -76,9 +76,9 @@ TEST(Vector3, CoordinateScalarAddition)
 
 TEST(Vector3, CoordinateCoordinateDivision)
 {
-    constexpr Coordinate p1{10, 20, 30};
+    constexpr Coordinate tP1{10, 20, 30};
     constexpr Coordinate tDivisor{2.0, 4.0, 10.0};
-    constexpr Coordinate tResult = p1 / tDivisor;
+    constexpr Coordinate tResult = tP1 / tDivisor;
     constexpr Coordinate tGold{5.0, 5.0, 3.0};
 
     test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Coordinate coordinate division"));
@@ -86,9 +86,9 @@ TEST(Vector3, CoordinateCoordinateDivision)
 
 TEST(Vector3, ScalarCoordinateDivision)
 {
-    constexpr double scalar{10};
+    constexpr double tScalar{10};
     constexpr Coordinate tDivisor{2.0, 5.0, 1.0};
-    constexpr Coordinate tResult = scalar / tDivisor;
+    constexpr Coordinate tResult = tScalar / tDivisor;
     constexpr Coordinate tGold{5.0, 2.0, 10.0};
 
     test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Scalar coordinate division"));
@@ -96,9 +96,9 @@ TEST(Vector3, ScalarCoordinateDivision)
 
 TEST(Vector3, CoordinateCoordinateMultiply)
 {
-    constexpr Coordinate p1{10, 20, 30};
+    constexpr Coordinate tP1{10, 20, 30};
     constexpr Coordinate tMultiplier{2.0, 4.0, 10.0};
-    constexpr Coordinate tResult = p1 * tMultiplier;
+    constexpr Coordinate tResult = tP1 * tMultiplier;
     constexpr Coordinate tGold{20.0, 80.0, 300.0};
 
     test_utilities::test_double_equality_of_components(tResult, tGold,
@@ -171,9 +171,9 @@ void test_unit_vector(const UnitVector3& aUnitVec, const plato::test_utilities::
 {
     const double tMag = std::sqrt(1.0 + 4.0 + 9.0);
     const Vector3 tGold{1.0 / tMag, 2.0 / tMag, 3.0 / tMag};
-    EXPECT_DOUBLE_EQ(tGold.x, static_cast<Vector3>(aUnitVec).x) << aTestContext;
-    EXPECT_DOUBLE_EQ(tGold.y, static_cast<Vector3>(aUnitVec).y) << aTestContext;
-    EXPECT_DOUBLE_EQ(tGold.z, static_cast<Vector3>(aUnitVec).z) << aTestContext;
+    EXPECT_DOUBLE_EQ(tGold.mX, static_cast<Vector3>(aUnitVec).mX) << aTestContext;
+    EXPECT_DOUBLE_EQ(tGold.mY, static_cast<Vector3>(aUnitVec).mY) << aTestContext;
+    EXPECT_DOUBLE_EQ(tGold.mZ, static_cast<Vector3>(aUnitVec).mZ) << aTestContext;
 }
 }  // namespace
 
@@ -202,9 +202,9 @@ TEST(UnitVector3, Vector3ConversionOperator)
     const auto tMagnitude = std::sqrt(3.0);
     const auto tNormalizedComponent = tComponent / tMagnitude;
     const UnitVector3 tUnitVector{tComponent, tComponent, tComponent};
-    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).x, tNormalizedComponent);
-    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).y, tNormalizedComponent);
-    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).z, tNormalizedComponent);
+    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).mX, tNormalizedComponent);
+    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).mY, tNormalizedComponent);
+    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).mZ, tNormalizedComponent);
 }
 
 TEST(Coordinate, EqualityOperator)

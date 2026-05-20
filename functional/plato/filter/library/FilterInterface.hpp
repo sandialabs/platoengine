@@ -39,16 +39,17 @@ class FilterInterface
     [[nodiscard]] virtual auto filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
         -> analysis::AnalysisDomainMesh = 0;
 
-    /// @brief Implements multiplication of row vector @a aV and the Jacobian of the
+    /// @brief Implements multiplication of row vector @a aRowVector and the Jacobian of the
     ///  filter computed at the argument @a aAnalysisDomainMesh.
     [[nodiscard]] virtual auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                      const linear_algebra::DynamicVector<double>& aV) const
+                                                      const linear_algebra::DynamicVector<double>& aRowVector) const
         -> linear_algebra::DynamicVector<double> = 0;
 
     ///@brief Evaluate the product of a row vector with the transpose of the Jacobian matrix.
-    [[nodiscard]] virtual auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                             const plato::linear_algebra::DynamicVector<double>& aV)
-        const -> plato::linear_algebra::DynamicVector<double> = 0;
+    [[nodiscard]] virtual auto rowVectorTimesAdjointJacobian(
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+        const plato::linear_algebra::DynamicVector<double>& aRowVector) const
+        -> plato::linear_algebra::DynamicVector<double> = 0;
 
     FilterInterface(const FilterInterface&) = delete;
     auto operator=(const FilterInterface&) -> FilterInterface& = delete;

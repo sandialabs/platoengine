@@ -12,7 +12,7 @@ class CrossLinkedInput;
 /// @brief Implementation of the pass-key idiom for limiting construction of CrossLinkedInput.
 struct CrossLinkKey
 {
-    friend auto make_cross_linked_input(input_parser::ParsedInput input)
+    friend auto make_cross_linked_input(input_parser::ParsedInput aInput)
         -> utilities::Expected<CrossLinkedInput, std::string>;
 
     ~CrossLinkKey() = default;
@@ -29,7 +29,7 @@ struct CrossLinkKey
 class CrossLinkedInput
 {
    public:
-    CrossLinkedInput(input_parser::ParsedInput aInput, const CrossLinkKey&);
+    CrossLinkedInput(input_parser::ParsedInput aInput, const CrossLinkKey& /*unused*/);
 
     [[nodiscard]] auto rawInput() const -> const input_parser::ParsedInput&;
 

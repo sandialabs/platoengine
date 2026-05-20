@@ -14,7 +14,7 @@ void create_mesh_for_reflection_filter(const std::filesystem::path& aMeshFile,
     const auto tCommandGenerator = tpis::CommandGenerator{.mElements = {10, 10, 10},
                                                           .mLowerBounds = aLowerBounds,
                                                           .mUpperBounds = {1, 1, 1},
-                                                          .mType = tpis::CommandElementType::Hex};
+                                                          .mType = tpis::CommandElementType::kHex};
     tpis::write_mesh(aMeshFile, tCommandGenerator.toString());
 }
 }  // namespace plato::filter::extension::kernel_filters::test_utilities

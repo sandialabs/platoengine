@@ -9,8 +9,8 @@ namespace plato::third_party_integration::rol
 namespace
 {
 
-const auto kVerboseDefault = int{1};
-const auto kCompositeStepVerboseDefault = int{0};
+const auto kVerboseDefault = 1;
+const auto kCompositeStepVerboseDefault = 0;
 
 constexpr std::string_view kStatusTest = "Status Test";
 constexpr std::string_view kGeneral = "General";

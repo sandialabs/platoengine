@@ -52,7 +52,7 @@ namespace plato::process_manager::extension
 
 ///@brief Create a ROL solver based on the ROL problem and the ROL options specified in the solver parameter list
 [[nodiscard]] auto make_rol_solver(Teuchos::ParameterList& aROLOptions,
-                                   const ROL::Ptr<ROL::Problem<double>>& aProblem) -> ROL::Solver<double>;
+                                   const ROL::Ptr<ROL::Problem<double>>& aROLProblem) -> ROL::Solver<double>;
 
 ///@brief Generate a Parameters for ROL. Either from input deck or file.
 [[nodiscard]] auto make_optimization_parameters(const library::ValidatedProcessManagerInput& aOptimizationParameters)

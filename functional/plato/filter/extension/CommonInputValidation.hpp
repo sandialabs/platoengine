@@ -82,14 +82,14 @@ auto validate_number_of_processors(const FilterInput& aInput) -> std::optional<s
 {
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<FilterInput>(), aInput.number_of_processors, "number_of_processors",
-        utilities::lower_bounded(utilities::Inclusive{1u}));
+        utilities::lower_bounded(utilities::Inclusive{1U}));
 }
 
 template <typename FilterInput>
     requires input_parser::InputBlockOfComponent<FilterInput, components::ComponentType::kFilter>
 auto validate_number_of_processors_factor_of_comm_world(const FilterInput& aInput) -> std::optional<std::string>
 {
-    const auto tRequestedRanks = aInput.number_of_processors.value_or(1u);
+    const auto tRequestedRanks = aInput.number_of_processors.value_or(1U);
     const auto tTotalRanks = static_cast<std::size_t>(boost::mpi::communicator{}.size());
     if (tRequestedRanks > tTotalRanks)
     {

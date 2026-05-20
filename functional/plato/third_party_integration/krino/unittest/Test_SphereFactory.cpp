@@ -24,18 +24,18 @@ void check_all_coordinates_equal_to(const common::Coordinate& aCoordinate,
                                     const double aExpected,
                                     const test_utilities::TestContext& aTestContext)
 {
-    EXPECT_DOUBLE_EQ(aCoordinate.x, aExpected) << aTestContext;
-    EXPECT_DOUBLE_EQ(aCoordinate.y, aExpected) << aTestContext;
-    EXPECT_DOUBLE_EQ(aCoordinate.z, aExpected) << aTestContext;
+    EXPECT_DOUBLE_EQ(aCoordinate.mX, aExpected) << aTestContext;
+    EXPECT_DOUBLE_EQ(aCoordinate.mY, aExpected) << aTestContext;
+    EXPECT_DOUBLE_EQ(aCoordinate.mZ, aExpected) << aTestContext;
 }
 
 void check_spheres_equal(const Sphere& aSphere1,
                          const Sphere& aSphere2,
                          const test_utilities::TestContext& aTestContext)
 {
-    EXPECT_DOUBLE_EQ(aSphere1.mCenter.x, aSphere2.mCenter.x) << aTestContext;
-    EXPECT_DOUBLE_EQ(aSphere1.mCenter.y, aSphere2.mCenter.y) << aTestContext;
-    EXPECT_DOUBLE_EQ(aSphere1.mCenter.z, aSphere2.mCenter.z) << aTestContext;
+    EXPECT_DOUBLE_EQ(aSphere1.mCenter.mX, aSphere2.mCenter.mX) << aTestContext;
+    EXPECT_DOUBLE_EQ(aSphere1.mCenter.mY, aSphere2.mCenter.mY) << aTestContext;
+    EXPECT_DOUBLE_EQ(aSphere1.mCenter.mZ, aSphere2.mCenter.mZ) << aTestContext;
     EXPECT_DOUBLE_EQ(aSphere1.mRadius, aSphere2.mRadius) << aTestContext;
 }
 }  // namespace

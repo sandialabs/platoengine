@@ -46,15 +46,15 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
             { SNOPTOptimization{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static const auto kSNOPTOptimizerParserRegistration =
+[[maybe_unused]] const auto kSNOPTOptimizerParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::snopt_optimization>{};
 
-[[maybe_unused]] static const auto kSNOPTOptimizerProcessManagerRegistration =
+[[maybe_unused]] const auto kSNOPTOptimizerProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::snopt_optimization>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_snopt_optimization_process_manager(aValidInput); }};
 
-[[maybe_unused]] static const auto kSNOPTOptimizerValidationRegistration =
+[[maybe_unused]] const auto kSNOPTOptimizerValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::snopt_optimization& aInput) { return detail::validate_time_limit_in_minutes(aInput); },
         [](const input_parser::snopt_optimization& aInput)
@@ -108,7 +108,7 @@ namespace detail
 {
 namespace
 {
-const auto tConstraintTypeConversion =
+const auto kConstraintTypeConversion =
     std::map<criteria::library::ConstraintType, third_party_integration::snopt::ConstraintType>{
         {criteria::library::ConstraintType::kEqualTo, third_party_integration::snopt::ConstraintType::kEqualTo},
         {criteria::library::ConstraintType::kGreaterThan, third_party_integration::snopt::ConstraintType::kGreaterThan},
@@ -127,7 +127,7 @@ const auto tConstraintTypeConversion =
         tFunction.template evaluate<core::evaluation::kFunction>(aGeometry.mInitialGuess).size();
     auto tConstraintTargets = std::vector(tConstraintSize, 0.0);
     return tpis::InterfaceConstraintType{std::move(tFunction), std::move(tConstraintTargets), tLinearity,
-                                         tConstraintSize, tConstraintTypeConversion.at(aConstraint.mConstraintType)};
+                                         tConstraintSize, kConstraintTypeConversion.at(aConstraint.mConstraintType)};
 }
 
 }  // namespace

@@ -28,10 +28,9 @@ template <typename F>
             {
                 throw std::invalid_argument("Reciprocal function cannot be called with a value of 0.");
             }
-            else
-            {
-                return 1.0 / aArg;
-            }
+
+            return 1.0 / aArg;
+           
         },
         [](const double aArg)
         {
@@ -39,10 +38,9 @@ template <typename F>
             {
                 throw std::invalid_argument("Reciprocal function cannot be called with a value of 0.");
             }
-            else
-            {
-                return -1.0 / aArg / aArg;
-            }
+
+            return -1.0 / aArg / aArg;
+           
         });
 }
 

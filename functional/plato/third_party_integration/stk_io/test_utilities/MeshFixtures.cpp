@@ -13,9 +13,9 @@ namespace plato::third_party_integration::stk_io::test_utilities
 {
 namespace
 {
-auto affirm_test_file_path(const std::string_view tMeshFileName) -> std::filesystem::path
+auto affirm_test_file_path(const std::string_view aMeshFileName) -> std::filesystem::path
 {
-    const auto tMeshFilePath = plato::utilities::data_file_path(tMeshFileName);
+    const auto tMeshFilePath = plato::utilities::data_file_path(aMeshFileName);
     assert(tMeshFilePath);
     return tMeshFilePath.value();  // NOLINT
 }
@@ -40,7 +40,7 @@ OneBlock3x1x1HexMeshWithNodeSets::OneBlock3x1x1HexMeshWithNodeSets()
     : MeshGeneratingTestFixture(
           "one_block_3x1x1_hex_nodesets.exo",
           third_party_integration::stk_io::CommandGenerator{
-              {3, 1, 1}, {0, 0, 0}, {3, 1, 1}, CommandElementType::Hex, {UseLowerX{true}, UseUpperX{true}}, {}})
+              {3, 1, 1}, {0, 0, 0}, {3, 1, 1}, CommandElementType::kHex, {UseLowerX{true}, UseUpperX{true}}, {}})
 {
 }
 

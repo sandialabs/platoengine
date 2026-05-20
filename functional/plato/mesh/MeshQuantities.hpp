@@ -69,10 +69,10 @@ struct MeshQuantities : public Mesh
         const std::ranges::random_access_range auto& aElementScalarField) const -> std::vector<double>;
 };
 
-auto MeshQuantities::elementAveragedNodalValues(const std::ranges::random_access_range auto& aScalarField) const
+auto MeshQuantities::elementAveragedNodalValues(const std::ranges::random_access_range auto& aNodalScalarField) const
     -> std::vector<double>
 {
-    return third_party_integration::stk_io::element_averaged_nodal_values(aScalarField, bulkData());
+    return third_party_integration::stk_io::element_averaged_nodal_values(aNodalScalarField, bulkData());
 }
 
 auto MeshQuantities::nodalAverageElementProjection(

@@ -84,7 +84,7 @@ void register_criterion_impl(const std::size_t aFactoryIndexToInstantiate,
                              const std::string& aNameForRegistration,
                              const services::AppConfigurationWithDirectory& aAppConfiguration,
                              const services::CriterionConfiguration& aCriterionConfiguration,
-                             const std::index_sequence<kIndices...>)
+                             const std::index_sequence<kIndices...> /*unused*/)
 {
     (register_criterion_impl<kIndices>(aFactoryIndexToInstantiate, aNameForRegistration, aAppConfiguration,
                                        aCriterionConfiguration) ||

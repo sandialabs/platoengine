@@ -57,7 +57,7 @@ TEST_F(CriterionFactoryTestFixture, ValidObjectiveConfiguration)
         criteria::library::make_criterion_function<criteria::library::CriterionFunction, input_parser::objective>(
             tData.template get<components::ComponentType::kObjective>().rawInput().front());
 
-    EXPECT_EQ(tConfiguration.mName, criteria::extension::NodalSumObjective::kCriterionName);
+    EXPECT_EQ(tConfiguration.mName, criteria::extension::NodalSumObjective::mCriterionName);
     EXPECT_EQ(tConfiguration.mFunctionName, "");
     EXPECT_FALSE(tConfiguration.mIsParallelized);
     EXPECT_TRUE(tConfiguration.mIsScalar);

@@ -26,22 +26,22 @@ void make_severity_logger_impl(const components::ComponentType aComponentType,
                                std::optional<third_party_integration::boost_log::SeverityLogger>& aExistingLog)
 {
     namespace tpi_bl = third_party_integration::boost_log;
-    constexpr auto kComponentType = components::component_type_from_index<kComponentIndex>();
-    if (aComponentType == kComponentType)
+    constexpr auto tComponentType = components::component_type_from_index<kComponentIndex>();
+    if (aComponentType == tComponentType)
     {
         aExistingLog = std::optional<tpi_bl::SeverityLogger>{
             std::in_place_t{},
             tpi_bl::ComponentTypeAndNameAttribute{
                 tpi_bl::ComponentTypeAndName{.mComponentType = aComponentType, .mComponentName = aComponentName}},
             tpi_bl::MPIRankAttribute{}, tpi_bl::LogSourceAttribute<tpi_bl::LogSource::kExternal>{},
-            tpi_bl::ComponentTypeFilterAttribute<kComponentType>{}};
+            tpi_bl::ComponentTypeFilterAttribute<tComponentType>{}};
     }
 }
 
 template <std::size_t... kComponentIndices>
 [[nodiscard]] auto make_severity_logger_impl(const components::ComponentType aComponentType,
                                              const std::string& aComponentName,
-                                             std::integer_sequence<std::size_t, kComponentIndices...>)
+                                             std::integer_sequence<std::size_t, kComponentIndices...> /*unused*/)
 {
     auto tLogger = std::optional<third_party_integration::boost_log::SeverityLogger>{};
     ((make_severity_logger_impl<kComponentIndices>(aComponentType, aComponentName, tLogger)), ...);

@@ -20,12 +20,12 @@ namespace plato::utilities
 /// @endcode
 /// The index starts at 0.
 template <typename... Containers>
-auto enumerate(Containers&&... containers) -> Zip<std::vector<std::size_t>, Containers...>
+auto enumerate(Containers&&... aContainers) -> Zip<std::vector<std::size_t>, Containers...>
 {
-    const auto min_size = std::min({containers.size()...});
-    auto enumerates = std::vector<std::size_t>(min_size);
-    std::iota(enumerates.begin(), enumerates.end(), 0U);
-    return Zip{std::move(enumerates), std::forward<Containers>(containers)...};
+    const auto tMinSize = std::min({aContainers.size()...});
+    auto tEnumerates = std::vector<std::size_t>(tMinSize);
+    std::iota(tEnumerates.begin(), tEnumerates.end(), 0U);
+    return Zip{std::move(tEnumerates), std::forward<Containers>(aContainers)...};
 }
 }  // namespace plato::utilities
 

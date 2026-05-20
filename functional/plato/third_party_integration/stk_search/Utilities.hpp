@@ -46,7 +46,7 @@ template <STKSearchGeometry SearchGeometry>
 
 /// @brief Take a a center coordinate @a aCenter, and a strongly typed double @a aRadius to create a stk search sphere
 /// object
-[[nodiscard]] auto create_sphere(const common::Coordinate& aCenter, const STKRadius aRadius) -> SearchSphere;
+[[nodiscard]] auto create_sphere(const common::Coordinate& aCenter, STKRadius aRadius) -> SearchSphere;
 
 /// @brief Take a a center coordinate @a aCenter, dimensions @a aDimensions to create a stk search box
 [[nodiscard]] auto search_box(const STKBoxCenter& aCenter, const STKBoxDimension& aDimensions) -> SearchBox;
@@ -57,7 +57,7 @@ template <STKSearchGeometry SearchGeometry>
     -> std::vector<SearchPointWithIdentifier>;
 
 /// @brief Determine whether a specific identifier @a aIdentifier is within the search results @a aSearchResults
-[[nodiscard]] auto is_in_search_results(const Identifier aIdentifier, const SearchResults& aSearchResults) -> bool;
+[[nodiscard]] auto is_in_search_results(Identifier aIdentifier, const SearchResults& aSearchResults) -> bool;
 
 template <STKSearchGeometry SearchGeometry>
 auto stk_search(const std::vector<SearchGeometry>& aLocalSearchGeometryWithIdentifier,

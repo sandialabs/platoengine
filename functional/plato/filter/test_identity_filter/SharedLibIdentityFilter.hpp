@@ -23,12 +23,12 @@ class SharedLibIdentityFilter : public library::FilterInterface
         -> analysis::AnalysisDomainMesh override;
 
     [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                              const linear_algebra::DynamicVector<double>& aV) const
+                                              const linear_algebra::DynamicVector<double>& aRowVector) const
         -> linear_algebra::DynamicVector<double> override;
 
     [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                     const plato::linear_algebra::DynamicVector<double>& aV) const
-        -> plato::linear_algebra::DynamicVector<double> override;
+                                                     const plato::linear_algebra::DynamicVector<double>& aRowVector)
+        const -> plato::linear_algebra::DynamicVector<double> override;
 };
 // CPD-ON
 }  // namespace plato::filter::test_identity_filter

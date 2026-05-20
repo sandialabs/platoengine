@@ -34,8 +34,8 @@ using tpik::test_utilities::KrinoTestFixture;
     {
         for (const auto& tNodalSensitivity : tEntry.second.mNodalSensitivities)
         {
-            tFlattenedSensitivity.push_back(tNodalSensitivity.x);
-            tFlattenedSensitivity.push_back(tNodalSensitivity.y);
+            tFlattenedSensitivity.push_back(tNodalSensitivity.mX);
+            tFlattenedSensitivity.push_back(tNodalSensitivity.mY);
         }
     }
 

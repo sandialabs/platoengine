@@ -125,9 +125,8 @@ TEST(BrickSensitivities, JacobianEvaluator)
     const linear_algebra::JacobianColumnEvaluator tJacobian = {
         /*.mColumns=*/6,
         /*.mX=*/linear_algebra::DynamicVector<double>{1.0, 2.0, 3.0, 4.0, 5.0, 6.0},
-        /*.mColumnFunction=*/[](unsigned int i, linear_algebra::DynamicVector<double>) {
-            return linear_algebra::DynamicVector<double>(detail::sensitivities(i));
-        }};
+        /*.mColumnFunction=*/[](unsigned int i, linear_algebra::DynamicVector<double>)
+        { return linear_algebra::DynamicVector<double>(detail::sensitivities(i)); }};
 
     const std::vector<double> tGold{92, 100, 108, 6, 12, 24};
     run_test_of_iota_vector_result(tJacobian, tGold);
@@ -136,7 +135,7 @@ TEST(BrickSensitivities, JacobianEvaluator)
 TEST(Brick, ABrick)
 {
     constexpr BrickDesign tDesignParameters = {
-        .center_x = 1, .center_y = -2, .center_z = -3, .dimension_x = 2, .dimension_y = 4, .dimension_z = 6};
+        .mCenterX = 1, .mCenterY = -2, .mCenterZ = -3, .mDimensionX = 2, .mDimensionY = 4, .mDimensionZ = 6};
 
     constexpr double tDiscretizationSize = 1.0;
     auto tUniqueFileName = std::filesystem::path{kBrickFileName};
@@ -155,29 +154,29 @@ TEST(Brick, ABrick)
 
 TEST(Brick, ConvertDesignParametersToDynamicVector)
 {
-    constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
-                                               /*.center_y = */ -2,
-                                               /*.center_z = */ -3,
-                                               /*.dimension_x = */ 2,
-                                               /*.dimension_y = */ 4,
-                                               /*.dimension_z = */ 6};
+    constexpr BrickDesign tDesignParameters = {/*.mCenterX = */ 1,
+                                               /*.mCenterY = */ -2,
+                                               /*.mCenterZ = */ -3,
+                                               /*.mDimensionX = */ 2,
+                                               /*.mDimensionY = */ 4,
+                                               /*.mDimensionZ = */ 6};
     const linear_algebra::DynamicVector<double> tResult = detail::to_dynamic_vector(tDesignParameters);
 
-    const std::vector<double> tGold{tDesignParameters.center_x,    tDesignParameters.center_y,
-                                    tDesignParameters.center_z,    tDesignParameters.dimension_x,
-                                    tDesignParameters.dimension_y, tDesignParameters.dimension_z};
+    const std::vector<double> tGold{tDesignParameters.mCenterX,    tDesignParameters.mCenterY,
+                                    tDesignParameters.mCenterZ,    tDesignParameters.mDimensionX,
+                                    tDesignParameters.mDimensionY, tDesignParameters.mDimensionZ};
 
     EXPECT_EQ(tResult.stdVector(), tGold);
 }
 
 TEST(Brick, Jacobian)
 {
-    constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
-                                               /*.center_y = */ -2,
-                                               /*.center_z = */ -3,
-                                               /*.dimension_x = */ 2,
-                                               /*.dimension_y = */ 4,
-                                               /*.dimension_z = */ 6};
+    constexpr BrickDesign tDesignParameters = {/*.mCenterX = */ 1,
+                                               /*.mCenterY = */ -2,
+                                               /*.mCenterZ = */ -3,
+                                               /*.mDimensionX = */ 2,
+                                               /*.mDimensionY = */ 4,
+                                               /*.mDimensionZ = */ 6};
 
     const BrickShapeGeometry tBrick(kBrickFileName);
     const linear_algebra::JacobianColumnEvaluator tJacobian = tBrick.jacobian(tDesignParameters);
@@ -188,30 +187,30 @@ TEST(Brick, Jacobian)
 
 TEST(Brick, ToDynamicVector)
 {
-    constexpr BrickDesign tDesignParameters = {/*.center_x = */ 1,
-                                               /*.center_y = */ -2,
-                                               /*.center_z = */ -3,
-                                               /*.dimension_x = */ 2,
-                                               /*.dimension_y = */ 4,
-                                               /*.dimension_z = */ 6};
+    constexpr BrickDesign tDesignParameters = {/*.mCenterX = */ 1,
+                                               /*.mCenterY = */ -2,
+                                               /*.mCenterZ = */ -3,
+                                               /*.mDimensionX = */ 2,
+                                               /*.mDimensionY = */ 4,
+                                               /*.mDimensionZ = */ 6};
 
     const linear_algebra::DynamicVector<double> tAsDynamicVector = detail::to_dynamic_vector(tDesignParameters);
-    EXPECT_EQ(tDesignParameters.center_x, tAsDynamicVector.stdVector().at(0));
-    EXPECT_EQ(tDesignParameters.center_y, tAsDynamicVector.stdVector().at(1));
-    EXPECT_EQ(tDesignParameters.center_z, tAsDynamicVector.stdVector().at(2));
-    EXPECT_EQ(tDesignParameters.dimension_x, tAsDynamicVector.stdVector().at(3));
-    EXPECT_EQ(tDesignParameters.dimension_y, tAsDynamicVector.stdVector().at(4));
-    EXPECT_EQ(tDesignParameters.dimension_z, tAsDynamicVector.stdVector().at(5));
+    EXPECT_EQ(tDesignParameters.mCenterX, tAsDynamicVector.stdVector().at(0));
+    EXPECT_EQ(tDesignParameters.mCenterY, tAsDynamicVector.stdVector().at(1));
+    EXPECT_EQ(tDesignParameters.mCenterZ, tAsDynamicVector.stdVector().at(2));
+    EXPECT_EQ(tDesignParameters.mDimensionX, tAsDynamicVector.stdVector().at(3));
+    EXPECT_EQ(tDesignParameters.mDimensionY, tAsDynamicVector.stdVector().at(4));
+    EXPECT_EQ(tDesignParameters.mDimensionZ, tAsDynamicVector.stdVector().at(5));
 }
 
 TEST(Brick, AdjointJacobian)
 {
-    constexpr auto tDesignParameters = BrickDesign{/*.center_x=*/1.0,
-                                                   /*.center_y=*/-2.0,
-                                                   /*.center_z=*/-3.0,
-                                                   /*.dimension_x=*/2.0,
-                                                   /*.dimension_y=*/4.0,
-                                                   /*.dimension_z=*/6.0};
+    constexpr auto tDesignParameters = BrickDesign{/*.mCenterX=*/1.0,
+                                                   /*.mCenterY=*/-2.0,
+                                                   /*.mCenterZ=*/-3.0,
+                                                   /*.mDimensionX=*/2.0,
+                                                   /*.mDimensionY=*/4.0,
+                                                   /*.mDimensionZ=*/6.0};
 
     const auto tBrick = BrickShapeGeometry{kBrickFileName};
     const auto tJacobian = tBrick.jacobian(tDesignParameters);
@@ -241,7 +240,7 @@ TEST(Brick, FileName)
 {
     const auto tFileName = std::filesystem::path{kBrickFileName};
     const auto tBrick = BrickShapeGeometry{kBrickFileName};
-    EXPECT_TRUE(tBrick.file_name().filename().string().starts_with(tFileName.stem().string()));
+    EXPECT_TRUE(tBrick.fileName().filename().string().starts_with(tFileName.stem().string()));
 }
 
 TEST(Brick, CopyCtors)
@@ -249,12 +248,12 @@ TEST(Brick, CopyCtors)
     const auto tBrick = BrickShapeGeometry{kBrickFileName};
     {
         const auto tBrickCopy = BrickShapeGeometry{tBrick};
-        EXPECT_NE(tBrick.file_name(), tBrickCopy.file_name()) << "Copy ctor";
+        EXPECT_NE(tBrick.fileName(), tBrickCopy.fileName()) << "Copy ctor";
     }
     {
         auto tBrickCopy = BrickShapeGeometry{kBrickFileName};
         tBrickCopy = tBrick;
-        EXPECT_NE(tBrick.file_name(), tBrickCopy.file_name()) << "Copy assignment";
+        EXPECT_NE(tBrick.fileName(), tBrickCopy.fileName()) << "Copy assignment";
     }
 }
 
@@ -265,17 +264,17 @@ TEST(Brick, MoveCtors)
         auto tBrick = BrickShapeGeometry{kBrickFileName};
         const auto tBrickCopy = BrickShapeGeometry{std::move(tBrick)};
 
-        EXPECT_TRUE(tBrickCopy.file_name().filename().string().starts_with(tFileName.stem().string())) << "Move ctor";
-        EXPECT_TRUE(tBrick.file_name().empty());
+        EXPECT_TRUE(tBrickCopy.fileName().filename().string().starts_with(tFileName.stem().string())) << "Move ctor";
+        EXPECT_TRUE(tBrick.fileName().empty());
     }
     {
         auto tBrick = BrickShapeGeometry{kBrickFileName};
         auto tBrickCopy = BrickShapeGeometry{tFileName};
         tBrickCopy = std::move(tBrick);
 
-        EXPECT_TRUE(tBrickCopy.file_name().filename().string().starts_with(tFileName.stem().string()))
+        EXPECT_TRUE(tBrickCopy.fileName().filename().string().starts_with(tFileName.stem().string()))
             << "Move assignment";
-        EXPECT_TRUE(tBrick.file_name().empty());
+        EXPECT_TRUE(tBrick.fileName().empty());
     }
 }
 

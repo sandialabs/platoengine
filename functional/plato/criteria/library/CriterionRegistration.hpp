@@ -78,11 +78,10 @@ using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
 
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and with any factory (any set of
 /// traits).
-[[nodiscard]] auto is_criterion_function_registered(const std::string_view aFunctionName) -> bool;
+[[nodiscard]] auto is_criterion_function_registered(std::string_view aFunctionName) -> bool;
 
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and with traits @a aTraits.
-[[nodiscard]] auto criterion_function_has_traits(const std::string_view aFunctionName,
-                                                 const CriterionTraits aTraits) -> bool;
+[[nodiscard]] auto criterion_function_has_traits(std::string_view aFunctionName, CriterionTraits aTraits) -> bool;
 
 /// @brief Creates a name from @a aAppConfiguration and @a aCriterionConfiguration that can be used
 /// to uniquely register a criterion function.
@@ -106,8 +105,7 @@ using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
 [[nodiscard]] auto registered_criteria_names() -> std::set<std::string>;
 
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and has trait @a aTrait.
-[[nodiscard]] auto criterion_function_has_trait(const std::string_view aFunctionName,
-                                                const CriterionTrait auto aTrait) -> bool;
+[[nodiscard]] auto criterion_function_has_trait(std::string_view aFunctionName, CriterionTrait auto aTrait) -> bool;
 
 namespace detail
 {

@@ -15,7 +15,7 @@ namespace plato::input_parser
 template <typename ValidCharFunction>
 struct UserDefinedToken
 {
-    static constexpr std::string_view kValidChars = ValidCharFunction{}();
+    static constexpr std::string_view mValidChars = ValidCharFunction{}();
 
     // CPD-OFF
     using value_type = char;
@@ -64,10 +64,10 @@ void UserDefinedToken<ValidCharFunction>::insert(const std::string::iterator aIt
 }
 
 template <typename ValidCharFunction>
-auto operator<<(std::ostream& stream, const UserDefinedToken<ValidCharFunction>& aUserDefinedToken) -> std::ostream&
+auto operator<<(std::ostream& aStream, const UserDefinedToken<ValidCharFunction>& aUserDefinedToken) -> std::ostream&
 {
-    stream << aUserDefinedToken.mToken;
-    return stream;
+    aStream << aUserDefinedToken.mToken;
+    return aStream;
 }
 }  // namespace plato::input_parser
 
@@ -76,12 +76,12 @@ namespace boost::spirit::traits
 template <typename ValidCharFunction>
 struct create_parser<plato::input_parser::UserDefinedToken<ValidCharFunction>>
 {
-    static constexpr std::string_view kValidChars =
-        plato::input_parser::UserDefinedToken<ValidCharFunction>::kValidChars;
+    static constexpr std::string_view mValidChars =
+        plato::input_parser::UserDefinedToken<ValidCharFunction>::mValidChars;
 
     static auto call()
     {
-        return boost::proto::deep_copy((boost::spirit::qi::lexeme[+boost::spirit::qi::char_(kValidChars.data())]));
+        return boost::proto::deep_copy((boost::spirit::qi::lexeme[+boost::spirit::qi::char_(mValidChars.data())]));
     }
     using type = decltype(call());
 };

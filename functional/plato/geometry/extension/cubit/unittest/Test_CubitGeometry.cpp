@@ -69,28 +69,28 @@ TEST(CubitDetail, DetermineSensitivities)
         const auto& tSensitivity = tSensitivities[0];
         for (const auto tValue : tSensitivity)
         {
-            EXPECT_NEAR(std::abs(tValue.second.x), 0.5, kTolerance);
-            EXPECT_NEAR(std::abs(tValue.second.y), 0.5, kTolerance);
-            EXPECT_NEAR(tValue.second.z, 0.0, kTolerance);
+            EXPECT_NEAR(std::abs(tValue.second.mX), 0.5, kTolerance);
+            EXPECT_NEAR(std::abs(tValue.second.mY), 0.5, kTolerance);
+            EXPECT_NEAR(tValue.second.mZ, 0.0, kTolerance);
         }
     }
     {
         const auto& tSensitivity = tSensitivities[1];
         for (const auto tValue : tSensitivity)
         {
-            const auto tAbsoluteZ = std::abs(tValue.second.z);
+            const auto tAbsoluteZ = std::abs(tValue.second.mZ);
             EXPECT_NEAR(tAbsoluteZ, 0.5, kTolerance) << "Height expansion";
-            EXPECT_NEAR(tValue.second.x, 0., kTolerance);
-            EXPECT_NEAR(tValue.second.y, 0., kTolerance);
+            EXPECT_NEAR(tValue.second.mX, 0., kTolerance);
+            EXPECT_NEAR(tValue.second.mY, 0., kTolerance);
         }
     }
     {
         const auto& tSensitivity = tSensitivities[2];
         for (const auto tValue : tSensitivity)
         {
-            EXPECT_NEAR(tValue.second.x, 1., kTolerance) << "X Shift";
-            EXPECT_NEAR(tValue.second.y, 0., kTolerance);
-            EXPECT_NEAR(tValue.second.z, 0., kTolerance);
+            EXPECT_NEAR(tValue.second.mX, 1., kTolerance) << "X Shift";
+            EXPECT_NEAR(tValue.second.mY, 0., kTolerance);
+            EXPECT_NEAR(tValue.second.mZ, 0., kTolerance);
         }
     }
     plato::test_utilities::test_for_existence_and_remove({tCubitInput.mesh_journal_file.value().mToken, kCubitLogFile},

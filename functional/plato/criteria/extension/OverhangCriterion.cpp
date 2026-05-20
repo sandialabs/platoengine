@@ -39,7 +39,7 @@ namespace plato::input_parser
 template <>
 struct InputTypeName<overhang_criterion>
 {
-    static constexpr inline const char* name = "overhang";
+    static constexpr const char* mName = "overhang";
 };
 }  // namespace plato::input_parser
 
@@ -50,11 +50,13 @@ namespace
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
-const auto kConfiguration = services::CriterionConfiguration{
-    .mName = std::string{OverhangCriterion::kCriterionName}, .mIsParallelized = false, .mIsScalar = true};
+const auto kConfiguration = services::CriterionConfiguration{.mName = std::string{OverhangCriterion::mCriterionName},
+                                                             .mIsParallelized = false,
+                                                             .mIsScalar = true,
+                                                             .mFunctionName = ""};
 
-[[maybe_unused]] static const auto kOverhangRegistration =
-    Registration{library::builtin_criterion_registration_name(OverhangCriterion::kCriterionName),
+[[maybe_unused]] const auto kOverhangRegistration =
+    Registration{library::builtin_criterion_registration_name(OverhangCriterion::mCriterionName),
                  [](const library::CriterionInput& aCriterionInput)
                  {
                      return library::FunctionWithConfiguration{.mFunction = make_overhang_function(aCriterionInput),
@@ -140,16 +142,16 @@ OverhangCriterion::OverhangCriterion(const double aTransitionWidth,
 
 auto make_overhang_function(const library::CriterionInput& aCriterionInput) -> library::CriterionFunction
 {
-    if (aCriterionInput.mInputFiles.list().mList.size() == 0)
+    if (aCriterionInput.mInputFiles.list().mList.empty())
     {
         throw utilities::Exception{"You must specify an overhang criterion input file."};
     }
     const auto& tInputParams = detail::parse_input_deck(aCriterionInput.mInputFiles.list().mList[0]);
     return core::make_function_with_first_derivative(
-        [tInputParams, aCriterionInput](const analysis::AnalysisDomainMesh& mesh)
-        { return OverhangCriterion(tInputParams, aCriterionInput).f(mesh); },
-        [tInputParams, aCriterionInput](const analysis::AnalysisDomainMesh& mesh)
-        { return OverhangCriterion(tInputParams, aCriterionInput).df(mesh); });
+        [tInputParams, aCriterionInput](const analysis::AnalysisDomainMesh& aMesh)
+        { return OverhangCriterion(tInputParams, aCriterionInput).f(aMesh); },
+        [tInputParams, aCriterionInput](const analysis::AnalysisDomainMesh& aMesh)
+        { return OverhangCriterion(tInputParams, aCriterionInput).df(aMesh); });
 }
 
 namespace detail
@@ -206,9 +208,9 @@ using namespace plato::third_party_integration::krino;
     std::for_each(aTriangles.begin(), aTriangles.end(),
                   [&tGradientMap](const auto& aCurTriangle)
                   {
-                      tGradientMap[aCurTriangle.mNodes[0].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
-                      tGradientMap[aCurTriangle.mNodes[1].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
-                      tGradientMap[aCurTriangle.mNodes[2].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
+                      tGradientMap[aCurTriangle.mNodes[0].first] = {.mX = 0.0, .mY = 0.0, .mZ = 0.0};
+                      tGradientMap[aCurTriangle.mNodes[1].first] = {.mX = 0.0, .mY = 0.0, .mZ = 0.0};
+                      tGradientMap[aCurTriangle.mNodes[2].first] = {.mX = 0.0, .mY = 0.0, .mZ = 0.0};
                   });
     //  Accumulate gradient contributions from all triangles
     std::for_each(aTriangles.begin(), aTriangles.end(),
@@ -224,8 +226,8 @@ using namespace plato::third_party_integration::krino;
 }
 
 [[nodiscard]] auto get_full_gradient_vector_from_gradient_map(
-    const std::unordered_map<GlobalNodeID, Sensitivity>& aGradientMap, const std::vector<size_t>& aAllNodeIds)
-    -> std::vector<double>
+    const std::unordered_map<GlobalNodeID, Sensitivity>& aGradientMap,
+    const std::vector<size_t>& aAllNodeIds) -> std::vector<double>
 {
     // Build the gradient vector (3 entries for each node in the cut mesh) sorted by global node id
     constexpr size_t tNumDimensions{3};
@@ -275,7 +277,7 @@ using namespace plato::third_party_integration::krino;
     {
         return 1.0;
     }
-    else if (aAngleDotBuildDirection < aOverhangCriterion.mOverhangAngleThreshold)
+    if (aAngleDotBuildDirection < aOverhangCriterion.mOverhangAngleThreshold)
     {
         return smoothing_function((aOverhangCriterion.mOverhangAngleThreshold - aAngleDotBuildDirection) /
                                   aOverhangCriterion.mTransitionWidth);
@@ -340,9 +342,9 @@ auto get_gradient_contribution_for_triangle(const SensitivityTriangle& aTriangle
     const auto tNormalSensitivities = tpik::d_normal_d_tri_node(aTriangle);
     const auto tAreaSensitivities = tpik::d_area_d_tri_node(aTriangle);
 
-    TriangleGradient tGradient{NodeGradient{aTriangle.mNodes[0].first, {.x = 0., .y = 0., .z = 0.}},
-                               NodeGradient{aTriangle.mNodes[1].first, {.x = 0., .y = 0., .z = 0.}},
-                               NodeGradient{aTriangle.mNodes[2].first, {.x = 0., .y = 0., .z = 0.}}};
+    TriangleGradient tGradient{NodeGradient{aTriangle.mNodes[0].first, {.mX = 0., .mY = 0., .mZ = 0.}},
+                               NodeGradient{aTriangle.mNodes[1].first, {.mX = 0., .mY = 0., .mZ = 0.}},
+                               NodeGradient{aTriangle.mNodes[2].first, {.mX = 0., .mY = 0., .mZ = 0.}}};
     // Loop over nodes in triangle and add contributions to derivative map
     for (size_t tNodeIndex = 0; tNodeIndex < tNumNodesPerTriangle; tNodeIndex++)
     {

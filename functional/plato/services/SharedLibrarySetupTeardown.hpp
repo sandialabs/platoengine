@@ -27,8 +27,8 @@ class [[nodiscard]] SharedLibrarySetupTeardown
 
     SharedLibrarySetupTeardown(const SharedLibrarySetupTeardown&) = delete;
     auto operator=(const SharedLibrarySetupTeardown&) -> SharedLibrarySetupTeardown& = delete;
-    SharedLibrarySetupTeardown(SharedLibrarySetupTeardown&&) noexcept;
-    auto operator=(SharedLibrarySetupTeardown&&) noexcept -> SharedLibrarySetupTeardown&;
+    SharedLibrarySetupTeardown(SharedLibrarySetupTeardown&& /*aSharedLibrary*/) noexcept;
+    auto operator=(SharedLibrarySetupTeardown&& /*aSharedLibrary*/) noexcept -> SharedLibrarySetupTeardown&;
 
     /// @brief Calls function with name @a aFunction name and arguments @a aArgs from the shared library loaded on
     /// construction.
@@ -44,9 +44,8 @@ class [[nodiscard]] SharedLibrarySetupTeardown
     /// match the signature of the actual function.
     /// @throw plato::utilities::Exception On error loading the shared library function.
     template <typename FunctionSignature>
-    [[nodiscard]] auto loadFunction(const std::string_view aFunctionName);
+    [[nodiscard]] auto loadFunction(std::string_view aFunctionName);
 
-   private:
     std::filesystem::path mSharedLibraryPath;
     void* mSharedLibrary = nullptr;
 };

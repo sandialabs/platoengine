@@ -17,7 +17,7 @@ namespace
 // These tests use the mass objective library but through the shared library interface so they are testing the
 // shared library more generically
 const auto kMeshGenerator = third_party_integration::stk_io::CommandGenerator{
-    {1, 1, 1}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
+    {1, 1, 1}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::kHex};
 
 void generate_bad_library_and_do_nothing()
 {

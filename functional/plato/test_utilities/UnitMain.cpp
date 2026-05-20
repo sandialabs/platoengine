@@ -80,7 +80,7 @@ auto program_name_and_arguments_for_mpi(const int aArgc,
 ///
 /// This will spawn child processes if test suite was launched with only one rank.
 /// @return The intercomm created when calling `MPI_Comm_spawn` for parents, `MPI_COMM_NULL` otherwise.
-auto setup_children(int argc, char** argv, unsigned int aNumRanks) -> MPI_Comm
+auto setup_children(int aArgc, char** aArgv, unsigned int aNumRanks) -> MPI_Comm
 {
     MPI_Comm tInterComm = MPI_COMM_NULL;
     int tNumRanks = 0;
@@ -93,7 +93,7 @@ auto setup_children(int argc, char** argv, unsigned int aNumRanks) -> MPI_Comm
         if (tParentCommunicator == MPI_COMM_NULL)
         {
             std::cout << "Spawning " << aNumRanks << " new ranks\n";
-            auto [tProgramName, tArguments] = program_name_and_arguments_for_mpi(argc, argv);
+            auto [tProgramName, tArguments] = program_name_and_arguments_for_mpi(aArgc, aArgv);
             MPI_Comm_spawn(tProgramName.data(), tArguments.data(), static_cast<int>(aNumRanks), MPI_INFO_NULL, 0,
                            MPI_COMM_WORLD, &tInterComm, tErrorCodes.data());
         }
@@ -101,14 +101,14 @@ auto setup_children(int argc, char** argv, unsigned int aNumRanks) -> MPI_Comm
     return tInterComm;
 }
 
-auto rank_should_run_tests(const MPI_Comm& tInterComm) -> bool { return tInterComm == MPI_COMM_NULL; }
+auto rank_should_run_tests(const MPI_Comm& aInterCommunicator) -> bool { return aInterCommunicator == MPI_COMM_NULL; }
 
-auto communicate_exit_code(const MPI_Comm& tInterComm, const int tExitStatus) -> int
+auto communicate_exit_code(const MPI_Comm& aInterCommunicator, const int aTExitStatus) -> int
 {
-    int tMaxExitStatus = tExitStatus;
-    if (tInterComm != MPI_COMM_NULL)
+    int tMaxExitStatus = aTExitStatus;
+    if (aInterCommunicator != MPI_COMM_NULL)
     {
-        MPI_Allreduce(&tExitStatus, &tMaxExitStatus, 1, MPI_INT, MPI_MAX, tInterComm);
+        MPI_Allreduce(&aTExitStatus, &tMaxExitStatus, 1, MPI_INT, MPI_MAX, aInterCommunicator);
     }
     else
     {
@@ -116,7 +116,7 @@ auto communicate_exit_code(const MPI_Comm& tInterComm, const int tExitStatus) ->
         MPI_Comm_get_parent(&tParentCommunicator);
         if (tParentCommunicator != MPI_COMM_NULL)
         {
-            MPI_Allreduce(&tExitStatus, &tMaxExitStatus, 1, MPI_INT, MPI_MAX, tParentCommunicator);
+            MPI_Allreduce(&aTExitStatus, &tMaxExitStatus, 1, MPI_INT, MPI_MAX, tParentCommunicator);
         }
     }
     return tMaxExitStatus;
@@ -131,24 +131,24 @@ auto unit_main(int argc, char** argv) -> int
     [[maybe_unused]] const auto tLogSink = null_log_sink();
 
     testing::InitGoogleTest(&argc, argv);
-    const int returnVal = RUN_ALL_TESTS();
+    const int tReturnVal = RUN_ALL_TESTS();
 
     Kokkos::finalize();
 
-    return returnVal;
+    return tReturnVal;
 }
 
-auto parallel_unit_main(int argc, char** argv, unsigned int aNumRanks) -> int
+auto parallel_unit_main(int aArgc, char** aArgv, unsigned int aNumRanks) -> int
 {
-    auto tEnvironment = boost::mpi::environment{argc, argv, boost::mpi::threading::level::funneled};
-    Kokkos::initialize(argc, argv);
+    auto tEnvironment = boost::mpi::environment{aArgc, aArgv, boost::mpi::threading::level::funneled};
+    Kokkos::initialize(aArgc, aArgv);
     [[maybe_unused]] const auto tLogSink = null_log_sink();
 
     int tExitStatus = EXIT_SUCCESS;
-    MPI_Comm tInterComm = setup_children(argc, argv, aNumRanks);
+    MPI_Comm tInterComm = setup_children(aArgc, aArgv, aNumRanks);
     if (rank_should_run_tests(tInterComm))
     {
-        testing::InitGoogleTest(&argc, argv);
+        testing::InitGoogleTest(&aArgc, aArgv);
         const int tMyExitStatus = RUN_ALL_TESTS();
         const int tGroupExitStatus = communicate_exit_code(tInterComm, tMyExitStatus);
         output_xml(RankExitCode{tMyExitStatus}, GroupExitCode{tGroupExitStatus});

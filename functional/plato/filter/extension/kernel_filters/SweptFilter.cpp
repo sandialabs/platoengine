@@ -34,10 +34,10 @@ const auto kMakeSweptFilterInfo = [](const input_parser::z_swept_filter& aInput,
                                      const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> SweptFilterType
 { return make_z_swept_filter_type(aInput, aAnalysisDomainMesh); };
 
-[[maybe_unused]] static const auto kSweptFilterParserRegistration =
+[[maybe_unused]] const auto kSweptFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::z_swept_filter>{};
 
-[[maybe_unused]] static const auto kSweptFilterRegistration = library::FilterRegistration{
+[[maybe_unused]] const auto kSweptFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::z_swept_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::z_swept_filter>(aInput);
@@ -46,13 +46,13 @@ const auto kMakeSweptFilterInfo = [](const input_parser::z_swept_filter& aInput,
             { return detail::create_kernel_filter_cache<input_parser::z_swept_filter>(tInput, kMakeSweptFilterInfo); });
     }};
 
-[[maybe_unused]] static const auto kSweptFilterValidationRegistration =
+[[maybe_unused]] const auto kSweptFilterValidationRegistration =
     validation_for_all_kernel_filters<input_parser::z_swept_filter>();
 
-[[maybe_unused]] static const auto kSweptFilterTargetMeshValidationRegistration =
+[[maybe_unused]] const auto kSweptFilterTargetMeshValidationRegistration =
     target_mesh_validation_for_all_kernel_filters<input_parser::z_swept_filter>();
 
-[[maybe_unused]] static const auto kSweptFilterMeshBasedValidationRegistration =
+[[maybe_unused]] const auto kSweptFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::z_swept_filter& aInput, const std::filesystem::path& aMeshPath)
         { return extension::detail::validate_filter_radius_with_mesh(aInput, aMeshPath); },
@@ -127,7 +127,7 @@ auto validate_source_mesh_in_xy_plane(const input_parser::z_swept_filter& /*aInp
         return std::nullopt;  // Not our error
     }
     const auto tBoundingBox = mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.designDomainBoundingBox();
-    if (tBoundingBox.first.z != tBoundingBox.second.z)
+    if (tBoundingBox.first.mZ != tBoundingBox.second.mZ)
     {
         return std::optional<std::string>{utilities::concatenate(
             input_parser::block_name<input_parser::z_swept_filter>(), ": source mesh must exist in the XY plane.")};

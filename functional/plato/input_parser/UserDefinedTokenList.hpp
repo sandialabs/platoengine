@@ -22,7 +22,7 @@ template <typename ValidCharFunction>
 class UserDefinedTokenList
 {
    public:
-    static constexpr std::string_view kValidChars = ValidCharFunction{}();
+    static constexpr std::string_view mValidChars = ValidCharFunction{}();
     UserDefinedTokenList() = default;
     UserDefinedTokenList(std::vector<std::string> aStringList);
 
@@ -45,7 +45,7 @@ class UserDefinedTokenList
 };
 
 template <typename ValidCharFunction>
-auto operator<<(std::ostream& stream, const UserDefinedTokenList<ValidCharFunction>& aTokenList) -> std::ostream&;
+auto operator<<(std::ostream& aStream, const UserDefinedTokenList<ValidCharFunction>& aTokenList) -> std::ostream&;
 
 template <typename ValidCharFunction>
 [[nodiscard]] auto operator==(const UserDefinedTokenList<ValidCharFunction>& aUserDefinedTokenList,
@@ -100,11 +100,11 @@ auto UserDefinedTokenList<ValidCharFunction>::size() const -> std::size_t
 }
 
 template <typename ValidCharFunction>
-auto operator<<(std::ostream& stream, const UserDefinedTokenList<ValidCharFunction>& aTokenList) -> std::ostream&
+auto operator<<(std::ostream& aStream, const UserDefinedTokenList<ValidCharFunction>& aTokenList) -> std::ostream&
 {
     constexpr auto tDelimiter = std::string_view{", "};
-    stream << utilities::concatenate_container(aTokenList.list().mList, tDelimiter);
-    return stream;
+    aStream << utilities::concatenate_container(aTokenList.list().mList, tDelimiter);
+    return aStream;
 }
 
 template <typename ValidCharFunction>
@@ -122,9 +122,9 @@ namespace boost::spirit::traits
 template <typename ValidCharFunction>
 struct create_parser<plato::input_parser::UserDefinedTokenList<ValidCharFunction>>
 {
-    static constexpr auto kValidChars = plato::input_parser::UserDefinedTokenList<ValidCharFunction>::kValidChars;
+    static constexpr auto mValidChars = plato::input_parser::UserDefinedTokenList<ValidCharFunction>::mValidChars;
 
-    static auto call() { return proto::deep_copy((qi::lexeme[+qi::char_(kValidChars.data())] % ',')); }
+    static auto call() { return proto::deep_copy((qi::lexeme[+qi::char_(mValidChars.data())] % ',')); }
     using type = decltype(call());
 };
 }  // namespace boost::spirit::traits

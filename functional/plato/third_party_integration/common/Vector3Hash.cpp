@@ -11,9 +11,9 @@ namespace plato::third_party_integration::common
 auto hash_value(const Coordinate& aCoordinate) -> std::size_t
 {
     auto tHash = std::size_t{0};
-    boost::hash_combine(tHash, aCoordinate.x);
-    boost::hash_combine(tHash, aCoordinate.y);
-    boost::hash_combine(tHash, aCoordinate.z);
+    boost::hash_combine(tHash, aCoordinate.mX);
+    boost::hash_combine(tHash, aCoordinate.mY);
+    boost::hash_combine(tHash, aCoordinate.mZ);
     return tHash;
 }
 }  // namespace plato::third_party_integration::common

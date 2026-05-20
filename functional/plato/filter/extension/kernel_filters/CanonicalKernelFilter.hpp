@@ -37,8 +37,8 @@ namespace detail
 ///@brief A helper constructor for creating the KernelFilterType needed to construct a simple KernelFilter. It takes
 /// a radius @a aRadius and the centering type @a aFilterCentering. This assigns the compute functions with the proper
 /// utilities.
-[[nodiscard]] auto make_kernel_filter_type(const double aRadius,
-                                           const input_parser::KernelFilterCenteringTypes aFilterCentering,
+[[nodiscard]] auto make_kernel_filter_type(double aRadius,
+                                           input_parser::KernelFilterCenteringTypes aFilterCentering,
                                            const mesh::Mesh& aTargetMesh) -> KernelFilterType;
 }  // namespace detail
 

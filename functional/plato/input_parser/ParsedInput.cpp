@@ -31,7 +31,7 @@ auto partition_by_component_type(const Iterator aBegin, const Iterator aEnd)
 
 template <std::size_t... kIndices>
 [[nodiscard]] auto partition_inputs_by_component_impl(std::vector<InputDataBlock>& aRawInput,
-                                                      std::index_sequence<kIndices...>)
+                                                      std::index_sequence<kIndices...> /*unused*/)
 {
     using Iterator = typename std::vector<InputDataBlock>::iterator;
     auto tPartitionIterators = std::array<Iterator, sizeof...(kIndices) + 1>{};
@@ -48,7 +48,7 @@ template <std::size_t... kIndices>
 
 template <typename IteratorArray, std::size_t... kIndices>
 [[nodiscard]] auto partitioned_vector_to_array(const IteratorArray& aPartitionIterators,
-                                               std::index_sequence<kIndices...>)
+                                               std::index_sequence<kIndices...> /*unused*/)
 {
     auto tPartitionedInput = std::array<std::vector<InputDataBlock>, sizeof...(kIndices)>{};
     (std::move(std::get<kIndices>(aPartitionIterators), std::get<kIndices + 1>(aPartitionIterators),

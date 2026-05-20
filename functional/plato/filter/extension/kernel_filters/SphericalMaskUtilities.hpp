@@ -25,7 +25,7 @@ using SearchRadius = utilities::NamedType<double, struct SearchRadiusTag>;
 /// radius @a aSearchRadius. Return the stk search results.
 [[nodiscard]] auto distribute_search_vectors_and_stk_search_with_spheres(const TargetRowVector& aTargetRowVector,
                                                                          const SourceColumnVector& aSourceColumnVector,
-                                                                         const double aSearchRadius,
+                                                                         double aSearchRadius,
                                                                          const boost::mpi::communicator& aCommunicator)
     -> third_party_integration::stk_search::SearchResults;
 
@@ -34,7 +34,7 @@ using SearchRadius = utilities::NamedType<double, struct SearchRadiusTag>;
 /// of radius @a aRadius is used in conjunction with the reflections
 [[nodiscard]] auto distribute_search_vectors_and_stk_search_with_spheres(const TargetRowVector& aTargetRowVector,
                                                                          const SourceColumnVector& aSourceColumnVector,
-                                                                         const double aRadius,
+                                                                         double aRadius,
                                                                          const boost::mpi::communicator& aCommunicator,
                                                                          const Wedge& aWedge)
     -> third_party_integration::stk_search::SearchResults;
@@ -45,7 +45,7 @@ using SearchRadius = utilities::NamedType<double, struct SearchRadiusTag>;
 template <typename... ReflectionPlanes>
 [[nodiscard]] auto distribute_search_vectors_and_stk_search_with_spheres(const TargetRowVector& aTargetRowVector,
                                                                          const SourceColumnVector& aSourceColumnVector,
-                                                                         const double aRadius,
+                                                                         double aRadius,
                                                                          const boost::mpi::communicator& aCommunicator,
                                                                          const ReflectionPlanes&... aPlanes)
     -> third_party_integration::stk_search::SearchResults;
@@ -57,19 +57,19 @@ using RowSum = utilities::NamedType<double, struct RowSumTag>;
 using EstimatedConnectivity = utilities::NamedType<unsigned int, struct EstimatedConnectivityTag>;
 
 /// @brief Computes the linear top hat function based on a distance @a aDistance and a search radius @a aSearchRadius
-[[nodiscard]] auto linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRadius) -> double;
+[[nodiscard]] auto linear_ramp_weight(Distance aDistance, SearchRadius aSearchRadius) -> double;
 
 /// @brief Compute the volume of a sphere with radius @a aFilterRadius
-[[nodiscard]] auto filter_volume(const SearchRadius aSearchRadius) -> double;
+[[nodiscard]] auto filter_volume(SearchRadius aFilterRadius) -> double;
 
 /// @brief Compute the area of a circle with radius @a aFilterRadius
-[[nodiscard]] auto filter_area(const SearchRadius aSearchRadius) -> double;
+[[nodiscard]] auto filter_area(SearchRadius aFilterRadius) -> double;
 
 /// @brief Take a tpetra center vector @a aCenteringCoordinates and create stk_search objects that are search spheres
 /// with radii @a aRadius and assigned the proper identifier based on the rank @a aRank.
 [[nodiscard]] auto stk_search_spheres(const third_party_integration::tpetra::TpetraMultiVector& aCenteringCoordinates,
-                                      const SearchRadius aRadius,
-                                      const int aRank)
+                                      SearchRadius aRadius,
+                                      int aRank)
     -> std::vector<third_party_integration::stk_search::SearchSphereWithIdentifier>;
 
 /// @brief Estimates the the number of nodes within a filter radius @a aFilterRadius based on the average nodal

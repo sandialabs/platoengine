@@ -12,9 +12,9 @@ namespace
 {
 struct TestVector
 {
-    double x = 0.0;
-    double y = 0.0;
-    double z = 0.0;
+    double mX = 0.0;
+    double mY = 0.0;
+    double mZ = 0.0;
 };
 }  // namespace
 
@@ -163,9 +163,9 @@ TEST(MultiVectorView, VectorObjectFromVectorIndex)
         auto tVector = std::vector<double>{1.0, 2.0, 3.0, 4.0};
         const auto tMultiVectorView = MultiVectorView{tVector, tDimension};
         const TestVector tVectorObject = tMultiVectorView(VectorIndex{0});
-        EXPECT_EQ(tVectorObject.x, 1.0);
-        EXPECT_EQ(tVectorObject.y, 2.0);
-        EXPECT_EQ(tVectorObject.z, 0.0);
+        EXPECT_EQ(tVectorObject.mX, 1.0);
+        EXPECT_EQ(tVectorObject.mY, 2.0);
+        EXPECT_EQ(tVectorObject.mZ, 0.0);
     }
 
     // 3D from a const vector
@@ -174,9 +174,9 @@ TEST(MultiVectorView, VectorObjectFromVectorIndex)
         const auto tVector = std::vector<double>{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
         const auto tMultiVectorView = MultiVectorView{tVector, tDimension};
         const TestVector tVectorObject = tMultiVectorView(VectorIndex{1});
-        EXPECT_EQ(tVectorObject.x, 4.0);
-        EXPECT_EQ(tVectorObject.y, 5.0);
-        EXPECT_EQ(tVectorObject.z, 6.0);
+        EXPECT_EQ(tVectorObject.mX, 4.0);
+        EXPECT_EQ(tVectorObject.mY, 5.0);
+        EXPECT_EQ(tVectorObject.mZ, 6.0);
     }
 }
 

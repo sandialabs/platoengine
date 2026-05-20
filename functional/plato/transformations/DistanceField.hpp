@@ -15,24 +15,25 @@ struct Plane
     third_party_integration::common::Vector3 mNormal;
 };
 
-/// @brief Computes an element-wise distance field on @a aMesh, giving the signed distance from each element centroid to
-/// the plane @a aPlane.
+/// @brief Computes an element-wise distance field on @a aAnalysisDomainMesh, giving the signed distance from each
+/// element centroid to the plane @a aBuildPlane.
 /// @note This transformation is affine in the nodal coordinates.
-[[nodiscard]] auto element_centroid_distance_field(const analysis::AnalysisDomainMesh& aMesh,
-                                                   const Plane& aPlane) -> analysis::AnalysisDomainMesh;
+[[nodiscard]] auto element_centroid_distance_field(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                   const Plane& aBuildPlane) -> analysis::AnalysisDomainMesh;
 
 /// @brief Computes the multiplication of a row vector @a aRowVector with the Jacobian of the element centroid distance
 /// field.
-[[nodiscard]] auto row_vector_jacobian_multiplication_distance_field(const std::vector<double>& aRowVector,
-                                                                     const analysis::AnalysisDomainMesh& aMesh,
-                                                                     const Plane& aPlane) -> std::vector<double>;
+[[nodiscard]] auto row_vector_jacobian_multiplication_distance_field(
+    const std::vector<double>& aRowVector,
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+    const Plane& aBuildPlane) -> std::vector<double>;
 
 /// @brief Computes the multiplication of a row vector @a aRowVector with the adjoint Jacobian of the element centroid
 /// distance field.
-[[nodiscard]] auto row_vector_adjoint_jacobian_multiplication_distance_field(const std::vector<double>& aRowVector,
-                                                                             const analysis::AnalysisDomainMesh& aMesh,
-                                                                             const Plane& aPlane)
-    -> std::vector<double>;
+[[nodiscard]] auto row_vector_adjoint_jacobian_multiplication_distance_field(
+    const std::vector<double>& aRowVector,
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+    const Plane& aBuildPlane) -> std::vector<double>;
 
 namespace detail
 {

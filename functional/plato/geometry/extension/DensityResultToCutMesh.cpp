@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <boost/mpi/communicator.hpp>
+#include <cassert>
 #include <utility>
 #include <vector>
 
@@ -59,9 +60,8 @@ void write_density_result_as_cut_mesh(analysis::AnalysisDomainMesh aAnalysisDoma
     aAnalysisDomainMesh = nodal_analysis_domain_mesh(std::move(aAnalysisDomainMesh));
 
     if (aInput.fixed_blocks.has_value() ||
-        detail::zero_crossing_exists(mesh::DesignVariablesConversion{mesh::Mesh{aAnalysisDomainMesh}}
-                                         .analysisDomainMeshToNodalFieldVector(aAnalysisDomainMesh)
-                                         .mValue))
+        detail::zero_crossing_exists(
+            mesh::DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(aAnalysisDomainMesh).mValue))
     {
         generate_cut_mesh(aAnalysisDomainMesh, aInput, aCommunicator);
     }
@@ -70,26 +70,25 @@ void write_density_result_as_cut_mesh(analysis::AnalysisDomainMesh aAnalysisDoma
 namespace detail
 {
 
-auto convert_to_nodal(const analysis::AnalysisDomainMesh& aElementAnalysisDomainMesh, const mesh::Mesh& aMesh)
-    -> analysis::AnalysisDomainMesh
+auto convert_to_nodal(const analysis::AnalysisDomainMesh& aElementAnalysisDomainMesh,
+                      const mesh::Mesh& aMesh) -> analysis::AnalysisDomainMesh
 {
-    const auto tElementDesignVariables = mesh::DesignVariablesConversion{aMesh}
-                                             .analysisDomainMeshToElementFieldVector(aElementAnalysisDomainMesh)
-                                             .mValue;
+    const auto tElementDesignVariables =
+        mesh::DesignVariablesConversion::analysisDomainMeshToElementFieldVector(aElementAnalysisDomainMesh).mValue;
     const auto tNodalAverageElementProjectedVariables =
         mesh::MeshQuantities{aMesh}.designDomainNodalAverageElementProjection(tElementDesignVariables);
     return mesh::DesignVariablesConversion{aMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tNodalAverageElementProjectedVariables});
 }
 
-auto transform_to_level_set_field(analysis::AnalysisDomainMesh aAnalysisDomainMesh, const double aDensityThreshold)
-    -> analysis::AnalysisDomainMesh
+auto transform_to_level_set_field(analysis::AnalysisDomainMesh aAnalysisDomainMesh,
+                                  const double aDensityThreshold) -> analysis::AnalysisDomainMesh
 {
     const auto tMutableView = analysis::AnalysisDomainMeshMutableSequentialView{aAnalysisDomainMesh};
     std::transform(tMutableView.begin(), tMutableView.end(), tMutableView.begin(),
-                   [aDensityThreshold](const auto& tEntry)
+                   [aDensityThreshold](const auto& aEntry)
                    {
-                       auto tEntryField = static_cast<analysis::ScalarFieldValue>(tEntry);
+                       auto tEntryField = static_cast<analysis::ScalarFieldValue>(aEntry);
                        tEntryField.mValue -= aDensityThreshold;
                        return tEntryField;
                    });
@@ -98,14 +97,12 @@ auto transform_to_level_set_field(analysis::AnalysisDomainMesh aAnalysisDomainMe
 
 auto zero_crossing_exists(const std::vector<double>& aVector) -> bool
 {
-    const auto tMininum = *std::min_element(aVector.begin(), aVector.end());
+    assert(!aVector.empty());
+
+    const auto tMinimum = *std::min_element(aVector.begin(), aVector.end());
     const auto tMaximum = *std::max_element(aVector.begin(), aVector.end());
 
-    if (tMaximum > 0 && tMininum <= 0)
-    {
-        return true;
-    }
-    return false;
+    return tMaximum > 0 && tMinimum <= 0;
 }
 
 }  // namespace detail

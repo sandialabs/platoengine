@@ -43,7 +43,7 @@ namespace detail
 /// @brief Helper function to take a multivector @a aNodalCoordinates and a given rank @a aRank will generate the STK
 /// formatted Search point equal to the node and assigned a local id and rank.
 [[nodiscard]] auto stk_search_points(const third_party_integration::tpetra::TpetraMultiVector& aNodalCoordinates,
-                                     const int aRank)
+                                     int aRank)
     -> std::vector<third_party_integration::stk_search::SearchPointWithIdentifier>;
 
 /// @brief Helper function to take a nodal vector @a aSourceColumnVector and the communicator @a aCommunicator and
@@ -60,7 +60,7 @@ namespace detail
 /// @brief Transform entries in vector @a aVector by dividing by @a aNormalization
 ///
 /// @pre @a aNormalization is > 0
-void normalize_vector(std::vector<double>& aVector, const double aNormalization);
+void normalize_vector(std::vector<double>& aVector, double aNormalization);
 
 /// @brief Iterate through the row map @a aRowMap and normalize the detail struct so that the entires sum to 1.
 void normalize_rows_in_map(RowMap& aRowMap);
@@ -70,14 +70,14 @@ void normalize_rows_in_map(RowMap& aRowMap);
 void add_weight_from_search_result_to_map(RowMap& aRowMap,
                                           const RowSearchEntityGlobalID& aSphereID,
                                           const ColumnNodeGlobalID& aNodeID,
-                                          const Weight aWeight,
-                                          const unsigned int aMaximumSize);
+                                          Weight aWeight,
+                                          unsigned int aMaximumSize);
 
 /// @brief Tally up the size of search results @a aSearchResults across the comms in @a aCommunicator
 [[nodiscard]] auto reduce_search_result_size(const third_party_integration::stk_search::SearchResults& aSearchResults,
                                              const boost::mpi::communicator& aCommunicator) -> unsigned int;
 
-[[nodiscard]] auto subdivide_world_comm_into_groups(const unsigned int aGroupSize) -> boost::mpi::communicator;
+[[nodiscard]] auto subdivide_world_comm_into_groups(unsigned int aGroupSize) -> boost::mpi::communicator;
 
 /// @brief Creates a vector containing the number of columns in each row, sorted by global row ID.
 ///

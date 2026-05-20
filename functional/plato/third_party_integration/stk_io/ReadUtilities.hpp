@@ -80,11 +80,10 @@ auto element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector&
 
 /// @brief Given a pathname @a aInputMeshName, check if the field @a aFieldName exists on the elements
 [[nodiscard]] auto element_field_exists(const std::filesystem::path& aInputMeshName,
-                                        const std::string_view aFieldName) -> bool;
+                                        std::string_view aFieldName) -> bool;
 
 /// @brief Given a pathname @a aInputMeshName, check if the field @a aFieldName exists on the nodes
-[[nodiscard]] auto nodal_field_exists(const std::filesystem::path& aInputMeshName,
-                                      const std::string_view aFieldName) -> bool;
+[[nodiscard]] auto nodal_field_exists(const std::filesystem::path& aInputMeshName, std::string_view aFieldName) -> bool;
 
 /// @brief Given a pathname @a aInputMeshName, return a list of all the field names defined on the nodes
 [[nodiscard]] auto nodal_field_names(const std::filesystem::path& aInputMeshName) -> std::vector<std::string>;
@@ -92,13 +91,13 @@ auto element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector&
 /// @brief Given a pathname @a aInputMeshName, read the field @a aFieldName at time step @a aTime
 /// @pre The element field exists on the mesh otherwise an empty map is returned
 [[nodiscard]] auto read_element_field(const std::filesystem::path& aInputMeshName,
-                                      const std::string_view aFieldName,
+                                      std::string_view aFieldName,
                                       TimeStep aTime = LastTimeStep{}) -> std::map<std::size_t, double>;
 
 /// @brief Given a pathname @a aInputMeshName, read the field @a aFieldName at time step @a aTime
 /// @pre The nodal field exists on the mesh otherwise an empty map is returned
 [[nodiscard]] auto read_nodal_field(const std::filesystem::path& aInputMeshName,
-                                    const std::string_view aFieldName,
+                                    std::string_view aFieldName,
                                     TimeStep aTime = LastTimeStep{}) -> std::map<std::size_t, double>;
 
 /// @brief Returns the time steps associated with the data in the mesh @a aInputMeshName.

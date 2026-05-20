@@ -25,7 +25,7 @@ struct CrossReference
 
     std::string mName;
     InputBlockWrapper mInputBlock;
-    constexpr static inline components::ComponentType mComponentType = kComponentType;
+    constexpr static components::ComponentType mComponentType = kComponentType;
 };
 
 template <components::ComponentType kComponentType>

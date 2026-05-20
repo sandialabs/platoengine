@@ -24,7 +24,7 @@ namespace detail
 /// @brief Take an analysis domain mesh @a aAnalysisDomainMesh from a density result that goes from 0 -> 1, and subtract
 /// a density threshold @a aDensityThreshold
 [[nodiscard]] auto transform_to_level_set_field(analysis::AnalysisDomainMesh aAnalysisDomainMesh,
-                                                const double aDensityThreshold) -> analysis::AnalysisDomainMesh;
+                                                double aDensityThreshold) -> analysis::AnalysisDomainMesh;
 
 /// @brief Take a vector of doubles and check the bounds to determine if a zero crossing exists
 [[nodiscard]] auto zero_crossing_exists(const std::vector<double>& aVector) -> bool;

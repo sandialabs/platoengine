@@ -133,7 +133,7 @@ TEST(VolumeCriterion, Volume)
 {
     test_scaled_and_unscaled_on_ctor_and_function(
         third_party_integration::stk_io::CommandGenerator{
-            {4, 4, 4}, {0, 0, 0}, {2.0, 2.0, 3.0}, third_party_integration::stk_io::CommandElementType::Hex},
+            {4, 4, 4}, {0, 0, 0}, {2.0, 2.0, 3.0}, third_party_integration::stk_io::CommandElementType::kHex},
         kMeshFile);
 }
 
@@ -141,7 +141,7 @@ TEST(VolumeCriterion, VolumeTetMesh)
 {
     test_scaled_and_unscaled_on_ctor_and_function(
         third_party_integration::stk_io::CommandGenerator{
-            {4, 4, 4}, {0, 0, 0}, {1.0, 2.0, 3.0}, third_party_integration::stk_io::CommandElementType::Tet},
+            {4, 4, 4}, {0, 0, 0}, {1.0, 2.0, 3.0}, third_party_integration::stk_io::CommandElementType::kTet},
         kMeshFile);
 }
 
@@ -153,9 +153,9 @@ TEST(VolumeCriterion, VolumeDifferentiatesBetweenNodalAndDensityDesignVariables)
     constexpr double tVolume{tLength * tWidth * tHeight};
     const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{
         .mElements = {.mX = 4, .mY = 5, .mZ = 3},
-        .mLowerBounds = {.x = 0, .y = 0, .z = 0},
-        .mUpperBounds = {.x = tLength, .y = tWidth, .z = tHeight},
-        .mType = third_party_integration::stk_io::CommandElementType::Tet};
+        .mLowerBounds = {.mX = 0, .mY = 0, .mZ = 0},
+        .mUpperBounds = {.mX = tLength, .mY = tWidth, .mZ = tHeight},
+        .mType = third_party_integration::stk_io::CommandElementType::kTet};
     third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
 
     // with control field (density topology)
@@ -176,7 +176,7 @@ TEST(VolumeCriterion, VolumeDifferentiatesBetweenNodalAndDensityDesignVariables)
 TEST(VolumeCriterion, DerivativeOfScaledVolumeOnControls)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
-        {1, 1, 3}, {0, 0, 0}, {2.0, 1.0, 3.0}, third_party_integration::stk_io::CommandElementType::Hex};
+        {1, 1, 3}, {0, 0, 0}, {2.0, 1.0, 3.0}, third_party_integration::stk_io::CommandElementType::kHex};
     third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
 
     {

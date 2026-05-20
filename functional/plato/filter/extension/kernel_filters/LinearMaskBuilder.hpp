@@ -79,7 +79,7 @@ class LinearMaskBuilder
     LinearMaskBuilder(const SourceColumnVector& aNodalCoordinates,
                       TargetRowVector aCenters,
                       KernelFilterFunctions aFilterType,
-                      const int aMaximumConnectivityEstimate,
+                      int aMaximumConnectivityEstimate,
                       boost::mpi::communicator aCommunicator);
 
     /// @brief Return a reference to the distance mask.
@@ -91,16 +91,15 @@ class LinearMaskBuilder
 
     /// @brief Given a sphere ID @a aSphereID and a node entry @a aNodeID call the detail functions to determine the
     /// weight with the filter parameters
-    [[nodiscard]] auto unnormalized_weight(const RowSearchEntityGlobalID aSphereID,
-                                           const ColumnNodeGlobalID aNodeID) -> double;
+    [[nodiscard]] auto unnormalizedWeight(RowSearchEntityGlobalID aSphereID, ColumnNodeGlobalID aNodeID) -> double;
 
     /// @brief Take the RowMap data structure @a aRowMap and convert it to a CRS matrix
-    void create_linear_mask(const RowMap& aRowMap);
+    void createLinearMask(const RowMap& aRowMap);
 
     /// @brief Take the search results from STK @a aSearchResults and convert them to a RowMap, a map that takes Tpetra
     /// global ID and maps it to the details regarding that row (nonzero entries, their values, and their total)
-    [[nodiscard]] auto create_normalized_row_map(
-        const third_party_integration::stk_search::SearchResults& aSearchResults) -> RowMap;
+    [[nodiscard]] auto createNormalizedRowMap(const third_party_integration::stk_search::SearchResults& aSearchResults)
+        -> RowMap;
 
     boost::mpi::communicator mCommunicator;
     std::vector<third_party_integration::common::Coordinate> mGlobalRowCenterCoordinates;

@@ -38,7 +38,7 @@ namespace plato::input_parser
 template <>
 struct InputTypeName<volume_criterion>
 {
-    static constexpr inline const char* name = "volume";
+    static constexpr const char* mName = "volume";
 };
 }  // namespace plato::input_parser
 
@@ -109,11 +109,14 @@ void check_valid_reference_volume(const boost::optional<double> aReferenceVolume
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
-const auto kVolumeConfiguration = services::CriterionConfiguration{
-    .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
+const auto kVolumeConfiguration =
+    services::CriterionConfiguration{.mName = std::string{VolumeCriterion::mVolumeCriterionName},
+                                     .mIsParallelized = false,
+                                     .mIsScalar = true,
+                                     .mFunctionName = ""};
 
-[[maybe_unused]] static const auto kVolumeConstraintRegistration = Registration{
-    library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
+[[maybe_unused]] const auto kVolumeConstraintRegistration = Registration{
+    library::builtin_criterion_registration_name(VolumeCriterion::mVolumeCriterionName),
     [](const library::CriterionInput& aCriterionInput)
     {
         const auto tVolumeCriterionInputs = parse_volume_constraint_inputs(aCriterionInput);
@@ -122,11 +125,14 @@ const auto kVolumeConfiguration = services::CriterionConfiguration{
                                                   .mConfiguration = kVolumeConfiguration};
     }};
 
-const auto kVolumeFractionConfiguration = services::CriterionConfiguration{
-    .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
+const auto kVolumeFractionConfiguration =
+    services::CriterionConfiguration{.mName = std::string{VolumeCriterion::mVolumeCriterionName},
+                                     .mIsParallelized = false,
+                                     .mIsScalar = true,
+                                     .mFunctionName = ""};
 
-[[maybe_unused]] static const auto kVolumeFractionConstraintRegistration = Registration{
-    library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
+[[maybe_unused]] const auto kVolumeFractionConstraintRegistration = Registration{
+    library::builtin_criterion_registration_name(VolumeCriterion::mVolumeFractionCriterionName),
     [](const library::CriterionInput& aCriterionInput)
     {
         const auto tVolumeCriterionInputs = parse_volume_constraint_inputs(aCriterionInput);
@@ -153,8 +159,8 @@ const auto kVolumeFractionConfiguration = services::CriterionConfiguration{
     auto tEvaluationBlocks = utilities::reserved_container<std::vector<std::string>>(tAllBlocks.size());
     utilities::transform_if(
         tAllBlocks, std::back_inserter(tEvaluationBlocks), [](const auto& aBlockName) { return aBlockName; },
-        [](const auto& tBlockName)
-        { return tBlockName.find(third_party_integration::krino::void_phase_name()) == std::string::npos; });
+        [](const auto& aBlockName)
+        { return aBlockName.find(third_party_integration::krino::void_phase_name()) == std::string::npos; });
     return std::set<std::string>{tEvaluationBlocks.begin(), tEvaluationBlocks.end()};
 }
 
@@ -170,10 +176,10 @@ auto is_element_based_density_topology(const analysis::AnalysisDomainMesh& aAnal
     {
         return false;
     }
-    else if (const bool tMeshFieldIsNotElementSized =
-                 (analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh}.size() !=
-                  mesh::EntityCounts{mesh::Mesh{aAnalysisDomainMesh}}.numberOfDesignDomainElements());
-             tMeshFieldIsNotElementSized)
+    if (const bool tMeshFieldIsNotElementSized =
+            (analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh}.size() !=
+             mesh::EntityCounts{mesh::Mesh{aAnalysisDomainMesh}}.numberOfDesignDomainElements());
+        tMeshFieldIsNotElementSized)
     {
         throw utilities::Exception{
             "Error: 'volume' and 'volume_fraction' criteria for density topology are currently only implemented for "
@@ -196,11 +202,9 @@ auto VolumeCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
 
         return mScaleFactor * (utilities::pair_wise_accumulate(tScaledVolumes) + fixed_domain_volume(tMesh));
     }
-    else
-    {
-        return mScaleFactor * utilities::pair_wise_accumulate(tMesh.specifiedDomainElementVolumes(
-                                  evaluation_block_names(tMesh, mIgnoreVoidBlocks)));
-    }
+
+    return mScaleFactor * utilities::pair_wise_accumulate(
+                              tMesh.specifiedDomainElementVolumes(evaluation_block_names(tMesh, mIgnoreVoidBlocks)));
 }
 
 auto VolumeCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
@@ -212,12 +216,10 @@ auto VolumeCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh
         auto tJacobian = linear_algebra::DynamicVector<double>{tMesh.designDomainElementVolumes()};
         return mScaleFactor * std::move(tJacobian);
     }
-    else
-    {
-        return mScaleFactor * mesh::nodal_vector_field_to_dynamic_vector(
-                                  tMesh.volumeNodalSensitivities(evaluation_block_names(tMesh, mIgnoreVoidBlocks)),
-                                  mesh::EntityCounts{tMesh}.spatialDimensions());
-    }
+
+    return mScaleFactor * mesh::nodal_vector_field_to_dynamic_vector(
+                              tMesh.volumeNodalSensitivities(evaluation_block_names(tMesh, mIgnoreVoidBlocks)),
+                              mesh::EntityCounts{tMesh}.spatialDimensions());
 }
 
 auto make_volume_constraint_function(const bool aIgnoreVoidBlocks) -> library::CriterionFunction
@@ -229,9 +231,8 @@ auto make_volume_constraint_function(const bool aIgnoreVoidBlocks) -> library::C
         { return VolumeCriterion{.mScaleFactor = 1.0, .mIgnoreVoidBlocks = aIgnoreVoidBlocks}.df(aMesh); });
 }
 
-auto make_volume_fraction_constraint_function(const bool aIgnoreVoidBlocks,
-                                              const boost::optional<double> aReferenceVolume)
-    -> library::CriterionFunction
+auto make_volume_fraction_constraint_function(
+    const bool aIgnoreVoidBlocks, const boost::optional<double> aReferenceVolume) -> library::CriterionFunction
 {
     return core::make_function_with_first_derivative(
         [aIgnoreVoidBlocks, aReferenceVolume](const analysis::AnalysisDomainMesh& aMesh)
@@ -276,13 +277,10 @@ auto reference_volume(const boost::optional<double> aReferenceVolume,
     {
         return aReferenceVolume.value();
     }
-    else
-    {
-        return aReferenceVolume.has_value()
-                   ? aReferenceVolume.value()
-                   : third_party_integration::stk_io::mesh_volume(
-                         *third_party_integration::stk_io::read_mesh_bulk_data(aAnalysisDomainMesh.mFileName));
-    }
+    return aReferenceVolume.has_value()
+               ? aReferenceVolume.value()
+               : third_party_integration::stk_io::mesh_volume(
+                     *third_party_integration::stk_io::read_mesh_bulk_data(aAnalysisDomainMesh.mFileName));
 }
 }  // namespace detail
 

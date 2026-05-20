@@ -20,7 +20,7 @@ using LowerCaseWithUnderscoreToken = UserDefinedToken<LowerCaseWithUnderscore>;
 TEST(UserDefinedToken, ValidChars)
 {
     const auto tToken = UserDefinedToken<LowerCaseWithUnderscore>{};
-    EXPECT_EQ(tToken.kValidChars, LowerCaseWithUnderscore{}());
+    EXPECT_EQ(tToken.mValidChars, LowerCaseWithUnderscore{}());
 }
 
 TEST(UserDefinedToken, Insert)

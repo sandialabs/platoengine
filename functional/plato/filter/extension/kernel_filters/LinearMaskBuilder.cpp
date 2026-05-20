@@ -50,7 +50,7 @@ LinearMaskBuilder::LinearMaskBuilder(const SourceColumnVector& aNodalCoordinates
 
 auto LinearMaskBuilder::mask() const -> const third_party_integration::tpetra::TpetraCRSMatrix& { return *mLinearMask; }
 
-void LinearMaskBuilder::create_linear_mask(const RowMap& aRowMap)
+void LinearMaskBuilder::createLinearMask(const RowMap& aRowMap)
 {
     namespace tpi = third_party_integration;
     const auto tCommunicator = Teuchos::rcp(std::make_unique<Teuchos::MpiComm<int>>(mCommunicator).release());
@@ -80,8 +80,8 @@ void LinearMaskBuilder::create_linear_mask(const RowMap& aRowMap)
     mLinearMask->fillComplete(tCrsDomainMap, tCrsRowMap);
 }
 
-auto LinearMaskBuilder::create_normalized_row_map(
-    const third_party_integration::stk_search::SearchResults& aSearchResults) -> RowMap
+auto LinearMaskBuilder::createNormalizedRowMap(const third_party_integration::stk_search::SearchResults& aSearchResults)
+    -> RowMap
 {
     RowMap tRowMap;
     tRowMap.reserve(mGlobalRowCenterCoordinates.size());
@@ -89,7 +89,7 @@ auto LinearMaskBuilder::create_normalized_row_map(
     {
         const auto tSphereID = RowSearchEntityGlobalID{tSearchResult.first.id()};
         const auto tNodeId = ColumnNodeGlobalID{tSearchResult.second.id()};
-        const double tWeight = unnormalized_weight(tSphereID, tNodeId);
+        const double tWeight = unnormalizedWeight(tSphereID, tNodeId);
         detail::add_weight_from_search_result_to_map(tRowMap, tSphereID, tNodeId, Weight{tWeight},
                                                      mMaximumConnectivityEstimate);
     }
@@ -97,8 +97,8 @@ auto LinearMaskBuilder::create_normalized_row_map(
     return tRowMap;
 }
 
-auto LinearMaskBuilder::unnormalized_weight(const RowSearchEntityGlobalID aSphereID,
-                                            const ColumnNodeGlobalID aNodeID) -> double
+auto LinearMaskBuilder::unnormalizedWeight(const RowSearchEntityGlobalID aSphereID,
+                                           const ColumnNodeGlobalID aNodeID) -> double
 {
     const auto tSphereCoordinate = mGlobalRowCenterCoordinates[aSphereID.mValue];
     const auto tNodalCoordinate = mGlobalColumnCenterCoordinates[aNodeID.mValue];
@@ -114,8 +114,8 @@ void LinearMaskBuilder::generateDistanceMap()
 
     assert(detail::reduce_search_result_size(tSearchResults, mCommunicator) >= mGlobalRowCenterCoordinates.size());
 
-    const auto tRowMap = create_normalized_row_map(tSearchResults);
-    create_linear_mask(tRowMap);
+    const auto tRowMap = createNormalizedRowMap(tSearchResults);
+    createLinearMask(tRowMap);
 }
 
 namespace detail
@@ -127,10 +127,7 @@ auto center_coordinates(const mesh::Mesh& aMesh, input_parser::KernelFilterCente
     {
         return mesh::EntityRetrieval{aMesh}.designDomainElementCentroids();
     }
-    else
-    {
-        return mesh::EntityRetrieval{aMesh}.designDomainNodalCoordinates();
-    }
+    return mesh::EntityRetrieval{aMesh}.designDomainNodalCoordinates();
 }
 }  // namespace detail
 

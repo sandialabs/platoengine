@@ -45,13 +45,13 @@ struct FactoryRegistration
 /// @return If the function is not registered, returns `std::nullopt`.
 // template <typename FactoryReturn, typename FactoryInput, typename... Input>
 template <typename FactoryReturn, typename... FactoryInput>
-[[nodiscard]] auto create_object_from_factory(const std::string_view aFunctionName,
+[[nodiscard]] auto create_object_from_factory(std::string_view aFunctionName,
                                               const FactoryInput&... aInput) -> std::optional<FactoryReturn>;
 
 /// @brief Checks if the function labeled with name @a aFunctionName is registered with the
 ///  factory associated with template types @a FactoryReturn and @a FactoryInput.
 template <typename FactoryReturn, typename... FactoryInput>
-[[nodiscard]] auto is_factory_function_registered(const std::string_view aFunctionName) -> bool;
+[[nodiscard]] auto is_factory_function_registered(std::string_view aFunctionName) -> bool;
 
 /// @brief Returns the names of all registered functions, useful for error messages.
 template <typename FactoryReturn, typename... FactoryInput>
@@ -87,10 +87,8 @@ template <typename FactoryReturn, typename... FactoryInput>
     {
         return tIter->second(aInput...);
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 template <typename FactoryReturn, typename... FactoryInput>
@@ -107,7 +105,7 @@ auto registered_function_names() -> std::set<std::string>
     auto tFunctionNames = std::set<std::string>{};
     std::transform(tFactoryFunctions.cbegin(), tFactoryFunctions.cend(),
                    std::inserter(tFunctionNames, tFunctionNames.begin()),
-                   [](const auto& tMapEntry) { return tMapEntry.first; });
+                   [](const auto& aMapEntry) { return aMapEntry.first; });
     return tFunctionNames;
 }
 

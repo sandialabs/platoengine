@@ -35,7 +35,7 @@ struct FunctionArgType
     template <unsigned int kArg>
     using arg = typename detail::FunctionArgTypeImpl<decltype(&Function::operator())>::template arg<kArg>;
 
-    constexpr static inline std::size_t kNumberOfArgs = std::tuple_size_v<args>;
+    constexpr static std::size_t mNumberOfArgs = std::tuple_size_v<args>;
 };
 
 namespace detail

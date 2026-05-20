@@ -34,10 +34,10 @@ const auto kMakeReflectFilterInfo = [](const input_parser::positive_octant_refle
                                        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> ReflectFilterType
 { return make_positive_octant_reflect_filter_type(aInput, aAnalysisDomainMesh); };
 
-[[maybe_unused]] static const auto kReflectFilterParserRegistration =
+[[maybe_unused]] const auto kReflectFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::positive_octant_reflect_filter>{};
 
-[[maybe_unused]] static const auto kReflectFilterRegistration = library::FilterRegistration{
+[[maybe_unused]] const auto kReflectFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::positive_octant_reflect_filter>(),
     [](const library::ValidatedFilterInput& aInput)
     {
@@ -50,13 +50,13 @@ const auto kMakeReflectFilterInfo = [](const input_parser::positive_octant_refle
             });
     }};
 
-[[maybe_unused]] static const auto kReflectFilterValidationRegistration =
+[[maybe_unused]] const auto kReflectFilterValidationRegistration =
     validation_for_all_kernel_filters<input_parser::positive_octant_reflect_filter>();
 
-[[maybe_unused]] static const auto kReflectFilterTargetMeshValidationRegistration =
+[[maybe_unused]] const auto kReflectFilterTargetMeshValidationRegistration =
     target_mesh_validation_for_all_kernel_filters<input_parser::positive_octant_reflect_filter>();
 
-[[maybe_unused]] static const auto kReflectFilterMeshBasedValidationRegistration =
+[[maybe_unused]] const auto kReflectFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::positive_octant_reflect_filter& aInput, const std::filesystem::path& aMeshPath)
         { return extension::detail::validate_filter_radius_with_mesh(aInput, aMeshPath); },
@@ -132,14 +132,14 @@ auto validate_source_mesh_in_positive_octant(const input_parser::positive_octant
     }
     const auto tBoundingBox = mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.designDomainBoundingBox();
     constexpr auto tNegativeNearZero = -1e-6;
-    if (tBoundingBox.first.x < tNegativeNearZero || tBoundingBox.first.y < tNegativeNearZero ||
-        tBoundingBox.first.z < tNegativeNearZero)
+    if (tBoundingBox.first.mX < tNegativeNearZero || tBoundingBox.first.mY < tNegativeNearZero ||
+        tBoundingBox.first.mZ < tNegativeNearZero)
     {
         return std::optional<std::string>{
             utilities::concatenate(input_parser::block_name<input_parser::positive_octant_reflect_filter>(),
                                    ": source mesh must be in the positive octant. Found this as the lower bounds: ",
-                                   std::to_string(tBoundingBox.first.x), " ", std::to_string(tBoundingBox.first.y), " ",
-                                   std::to_string(tBoundingBox.first.z), ".")};
+                                   std::to_string(tBoundingBox.first.mX), " ", std::to_string(tBoundingBox.first.mY),
+                                   " ", std::to_string(tBoundingBox.first.mZ), ".")};
     }
     return std::nullopt;
 }

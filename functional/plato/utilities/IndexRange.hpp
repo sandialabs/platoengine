@@ -21,8 +21,8 @@ class IndexIterator
     using pointer = const T*;
     using reference = const T&;
 
-    constexpr IndexIterator(const T aDimensions);
-    constexpr IndexIterator(EndTag, const T aDimensions);
+    constexpr IndexIterator(T aDimensions);
+    constexpr IndexIterator(EndTag /*unused*/, T aDimensions);
 
     [[nodiscard]] constexpr auto operator*() const -> reference;
     constexpr auto operator++() -> IndexIterator&;
@@ -60,7 +60,7 @@ constexpr IndexIterator<T>::IndexIterator(const T aDimensions) : mIterator{aDime
 }
 
 template <typename T>
-constexpr IndexIterator<T>::IndexIterator(EndTag, const T aDimensions)
+constexpr IndexIterator<T>::IndexIterator(EndTag /*unused*/, const T aDimensions)
     : mIterator{typename MultidimensionalIterator<T>::EndTag{}, aDimensions}
 {
 }

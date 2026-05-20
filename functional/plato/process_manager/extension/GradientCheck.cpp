@@ -31,15 +31,15 @@ namespace
             { GradientCheck{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static const auto kGradientCheckParserRegistration =
+[[maybe_unused]] const auto kGradientCheckParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::gradient_check>{};
 
-[[maybe_unused]] static const auto kGradientCheckProcessManagerRegistration =
+[[maybe_unused]] const auto kGradientCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::gradient_check>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_gradient_check_process_manager(aValidInput); }};
 
-[[maybe_unused]] static const auto kGradientCheckValidationRegistration =
+[[maybe_unused]] const auto kGradientCheckValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::gradient_check& aInput) { return detail::validate_output_file_name(aInput); },
         [](const input_parser::gradient_check& aInput) { return detail::validate_number_of_steps(aInput); },

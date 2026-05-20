@@ -33,11 +33,11 @@ class DynamicVector
 
     /// @pre The size of @a aRightOperand must be equal to this object's size. Checked with an assertion.
     auto operator+=(const DynamicVector<T>& aRightOperand) -> DynamicVector<T>&;
-    auto operator*=(const T aScalar) -> DynamicVector<T>&;
+    auto operator*=(T aScalar) -> DynamicVector<T>&;
     [[nodiscard]] auto operator==(const DynamicVector<T>& aRight) const -> bool;
 
     template <typename Archive, typename U>
-    friend void serialize(Archive& aArchive, DynamicVector<U>& aVector, const unsigned int /*aVersion*/);
+    friend void serialize(Archive& aArchive, DynamicVector<U>& aVector, unsigned int /*aVersion*/);
 
    private:
     std::vector<T> mVector;

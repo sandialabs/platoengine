@@ -14,25 +14,26 @@ auto SharedLibIdentityFilter::filter(const analysis::AnalysisDomainMesh& aAnalys
     return aAnalysisDomainMesh;
 }
 
-auto SharedLibIdentityFilter::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh&,
-                                                     const linear_algebra::DynamicVector<double>& aV) const
+auto SharedLibIdentityFilter::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/,
+                                                     const linear_algebra::DynamicVector<double>& aRowVector) const
     -> linear_algebra::DynamicVector<double>
 {
-    return aV;
+    return aRowVector;
 }
 
-auto SharedLibIdentityFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aMesh,
-                                                            const linear_algebra::DynamicVector<double>& aV) const
-    -> linear_algebra::DynamicVector<double>
+auto SharedLibIdentityFilter::rowVectorTimesAdjointJacobian(
+    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+    const linear_algebra::DynamicVector<double>& aRowVector) const -> linear_algebra::DynamicVector<double>
 {
-    return rowVectorTimesJacobian(aMesh, aV);
+    return rowVectorTimesJacobian(aAnalysisDomainMesh, aRowVector);
 }
 
 }  // namespace plato::filter::test_identity_filter
 
 namespace plato
 {
-auto plato_create_filter(const filter::library::FilterParameters&) -> std::unique_ptr<filter::library::FilterInterface>
+auto plato_create_filter(const filter::library::FilterParameters& /*unused*/)
+    -> std::unique_ptr<filter::library::FilterInterface>
 {
     return std::make_unique<filter::test_identity_filter::SharedLibIdentityFilter>();
 }

@@ -52,7 +52,7 @@ namespace detail
 /// @pre @a aSortedGlobalIDs is sorted.
 /// @pre @a aGlobalID is an entry in @a aSortedGlobalIDs.
 [[nodiscard]] auto global_to_local_index(const std::vector<std::size_t>& aSortedGlobalIDs,
-                                         const std::size_t aGlobalID) -> std::size_t;
+                                         std::size_t aGlobalID) -> std::size_t;
 
 [[nodiscard]] auto single_element_nodal_average(const stk::mesh::Entity& aElement,
                                                 const std::ranges::random_access_range auto& aNodalScalarField,

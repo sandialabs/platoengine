@@ -28,7 +28,7 @@ class MassPropertiesInterface : public criteria::library::VectorCriterionInterfa
 // CPD-ON
 }  // namespace plato::integration_tests::test_mass_criteria
 
-extern "C" auto plato_create_mass_properties_vector_criterion(const std::vector<std::string>&)
+extern "C" auto plato_create_mass_properties_vector_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>;
 
 #endif

@@ -120,8 +120,8 @@ TEST(SNOPTUtilities, EvaluateObjective)
     auto tResult = std::vector<double>(kNumberOfObjectives);
     constexpr auto tX = 0.5;
     constexpr auto tNumberOfConstraints = ConstraintSizeType{0};
-    evaluateObjective<TestTag>(linear_algebra::DynamicVector{tX},
-                               ObjectiveConstraintArrayView{tResult.data(), tNumberOfConstraints});
+    evaluate_objective<TestTag>(linear_algebra::DynamicVector{tX},
+                                ObjectiveConstraintArrayView{tResult.data(), tNumberOfConstraints});
 
     constexpr auto tExpected = 0.25;
     EXPECT_EQ(tResult.front(), tExpected);
@@ -137,7 +137,7 @@ TEST(SNOPTUtilities, EvaluateObjectiveGradient)
     constexpr auto tNumberOfDesignVariables = DesignVariableSizeType{2};
     auto tResult = std::vector<double>(tNumberOfDesignVariables.mValue);
     const auto tX = linear_algebra::DynamicVector{0.5, 2.0};
-    evaluateObjectiveGradient<TestTag>(
+    evaluate_objective_gradient<TestTag>(
         tX, ObjectiveConstraintGradientArrayView{tResult.data(), tNumberOfConstraints, tNumberOfDesignVariables});
 
     const auto tExpected = std::vector{1.0, 4.0};
@@ -151,8 +151,8 @@ TEST(SNOPTUtilities, EvaluateConstraints)
     constexpr auto tNumberOfConstraints = ConstraintSizeType{2};
     auto tResult = std::vector<double>(kNumberOfObjectives + tNumberOfConstraints.mValue);
     constexpr auto tX = 0.5;
-    evaluateConstraints<TestTag>(linear_algebra::DynamicVector{tX},
-                                 ObjectiveConstraintArrayView{tResult.data(), tNumberOfConstraints});
+    evaluate_constraints<TestTag>(linear_algebra::DynamicVector{tX},
+                                  ObjectiveConstraintArrayView{tResult.data(), tNumberOfConstraints});
 
     constexpr auto tExpected0 = 0.25;
     constexpr auto tExpected1 = 0.125;
@@ -175,10 +175,11 @@ TEST(SNOPTUtilities, EvaluateConstraintGradients)
     constexpr auto tArraySize = (kNumberOfObjectives + tNumberOfConstraints.mValue) * tNumberOfDesignVariables.mValue;
     auto tResult = std::vector<double>(tArraySize);
 
-    const auto tX = linear_algebra::DynamicVector{-1.0, 10.0};
+    const auto tDesignVariables = linear_algebra::DynamicVector{-1.0, 10.0};
 
-    evaluateConstraintGradient<TestTag>(
-        tX, ObjectiveConstraintGradientArrayView{tResult.data(), tNumberOfConstraints, tNumberOfDesignVariables});
+    evaluate_constraint_gradient<TestTag>(
+        tDesignVariables,
+        ObjectiveConstraintGradientArrayView{tResult.data(), tNumberOfConstraints, tNumberOfDesignVariables});
 
     const auto tExpected = std::vector{-2.0, 20.0, -3.0, 30.0};
     auto tConstraintsResult = std::vector<double>(2 * tNumberOfDesignVariables.mValue);

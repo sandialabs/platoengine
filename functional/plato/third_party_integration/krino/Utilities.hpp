@@ -68,8 +68,8 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
 /// 'read_and_setup_for_decomposition' to setup the level set fields in the krino mesh,  followed by a call to set up
 /// the level set field values, followed by a call to 'cut_mesh'.
-[[nodiscard]] auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
-    -> std::vector<stk::mesh::EntityId>;
+[[nodiscard]] auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh,
+                                     VoidPhase aVoidPhase) -> std::vector<stk::mesh::EntityId>;
 
 /// @brief Take a krino mesh's bulk data @a aBulkData along with a level set field specification @a aLevelSetFields and
 /// perform the cutting of the mesh and creation of child nodes. Each child node generated in the cut operation have
@@ -80,7 +80,7 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 /// level set field values
 void cut_mesh(stk::mesh::BulkData& aBulkData,
               const std::vector<::krino::LS_Field>& aLevelSetFields,
-              const SnappingParameters aSnappingParameters);
+              SnappingParameters aSnappingParameters);
 
 /// @brief Take a level set field vector @a aLevelSetFields and a node @a aNode and return the data stored in the mesh
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
@@ -109,8 +109,7 @@ template <typename LevelSetFieldVector>
 
 /// @brief Given a modifiable bulk data @a aBulkData and specified void phase @a aVoidPhase, create a valid
 /// stk::mesh::Selector for the cut mesh. Also apply the Krino fixes for errors in parallel writing a cut mesh.
-[[nodiscard]] auto create_output_selector(stk::mesh::BulkData& aBulkData, const VoidPhase aVoidPhase)
-    -> stk::mesh::Selector;
+[[nodiscard]] auto create_output_selector(stk::mesh::BulkData& aBulkData, VoidPhase aVoidPhase) -> stk::mesh::Selector;
 
 /// @brief Take a krino mesh's bulk data @a aBulkData and write it to the file specified in @a aOutputFileName. The void
 /// phase @a aVoidPhase specifies whether to include the void region or not when writing to disk.

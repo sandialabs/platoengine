@@ -28,8 +28,8 @@ class FileCreatingTestFixture : virtual public ::testing::Test
     [[nodiscard]] auto filePath() const -> const std::filesystem::path&;
 
    private:
-    std::filesystem::path mFilePath{};
-    boost::mpi::communicator mComm{};
+    std::filesystem::path mFilePath;
+    boost::mpi::communicator mComm;
 };
 }  // namespace plato::test_utilities
 

@@ -20,7 +20,7 @@ struct Wedge
 /// @brief Using @a aWedgeAngle in degrees, create a Wedge object in the positive quadrant using the xplane and a second
 /// plane at the wedge angle. The number of repeats is set to fill the 360 degree space
 ///@pre @a aWedgeAngle must be commensurate with 360 degrees
-[[nodiscard]] auto positive_quadrant_wedge(const double aWedgeAngle) -> Wedge;
+[[nodiscard]] auto positive_quadrant_wedge(double aWedgeAngle) -> Wedge;
 
 /// @brief Take a wedge description in @a aWedge and convert it to a vector of planes that points can be reflected in.
 /// @pre mRepeats in aWedge must not be zero

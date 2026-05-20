@@ -39,13 +39,13 @@ struct CriterionTraits
 };
 
 /// @brief Converts a bool to a Parallelization enum, with `true` corresponding to `kParallel`.
-[[nodiscard]] constexpr auto to_parallelization(const bool aIsParallel) -> Parallelization;
+[[nodiscard]] constexpr auto to_parallelization(bool aIsParallel) -> Parallelization;
 
 /// @brief Converts a bool to a FunctionDimension enum, with `true` corresponding to `kScalar`.
-[[nodiscard]] constexpr auto to_function_dimension(const bool aIsScalar) -> FunctionDimension;
+[[nodiscard]] constexpr auto to_function_dimension(bool aIsScalar) -> FunctionDimension;
 
 /// @brief Returns an index into FactoryRegistrars corresponding to the traits in @a aCriterionTraits.
-[[nodiscard]] constexpr auto trait_index(const CriterionTraits aCriterionTraits) -> std::size_t;
+[[nodiscard]] constexpr auto trait_index(CriterionTraits aCriterionTraits) -> std::size_t;
 
 /// @brief Returns an index into FactoryRegistrars corresponding to the traits @a aParallelization and @a aDimension.
 [[nodiscard]] constexpr auto trait_index(Parallelization aParallelization, FunctionDimension aDimension) -> std::size_t;
@@ -58,7 +58,7 @@ struct CriterionTraits
 
 /// @brief Returns true if @a aTraits has a trait that matches @a aTrait.
 template <CriterionTrait Trait>
-[[nodiscard]] constexpr auto has_trait(const CriterionTraits aTraits, const Trait aTrait) -> bool;
+[[nodiscard]] constexpr auto has_trait(CriterionTraits aTraits, Trait aTrait) -> bool;
 
 constexpr auto to_parallelization(const bool aIsParallel) -> Parallelization
 {

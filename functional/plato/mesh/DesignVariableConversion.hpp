@@ -50,16 +50,16 @@ struct DesignVariablesConversion : public Mesh
     /// @verbatim
     /// [0, 1, 0, 1, 0.5, 0.5]
     /// @endverbatim
-    [[nodiscard]] auto analysisDomainMeshToNodalFieldVector(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> NodalFieldVector;
+    [[nodiscard]] static auto analysisDomainMeshToNodalFieldVector(
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> NodalFieldVector;
 
     /// @brief Maps the nodal scalar field contained in @a aAnalysisDomainMesh to a vector.
     ///
     /// The ordering of the resulting vector will be sorted by global element ID. See
     /// analysisDomainMeshToNodalFieldVector for an example.
     /// @sa analysisDomainMeshToNodalFieldVector
-    [[nodiscard]] auto analysisDomainMeshToElementFieldVector(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> ElementFieldVector;
+    [[nodiscard]] static auto analysisDomainMeshToElementFieldVector(
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> ElementFieldVector;
 };
 
 }  // namespace plato::mesh

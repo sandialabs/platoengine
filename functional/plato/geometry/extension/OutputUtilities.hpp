@@ -33,18 +33,18 @@ struct MeshFieldOutputInfo
 /// @brief Appends or overwrites the field provided to the mesh specified.
 void output_field(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                   const std::filesystem::path& aRestartFileName,
-                  const std::string_view aFieldName,
-                  const double aFixedValue,
+                  std::string_view aFieldName,
+                  double aFixedValue,
                   const output::OutputInfo& aOutputInfo);
 
 template <typename T>
-concept HasBoostOptionalOutputNameMember = requires(T a) {
-    { a.output_name } -> std::same_as<boost::optional<input_parser::FileName>&>;
+concept HasBoostOptionalOutputNameMember = requires(T aInput) {
+    { aInput.output_name } -> std::same_as<boost::optional<input_parser::FileName>&>;
 };
 
 template <typename T>
-concept HasBoostOptionalMeshNameMember = requires(T a) {
-    { a.mesh_name } -> std::same_as<boost::optional<input_parser::FileName>&>;
+concept HasBoostOptionalMeshNameMember = requires(T aInput) {
+    { aInput.mesh_name } -> std::same_as<boost::optional<input_parser::FileName>&>;
 };
 
 /// @brief The name of the output file containing the unfiltered control field, which may be used as a restart

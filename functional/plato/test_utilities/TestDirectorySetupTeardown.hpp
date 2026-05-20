@@ -26,8 +26,8 @@ class [[nodiscard]] TestDirectorySetupTeardown
     TestDirectorySetupTeardown(const TestDirectorySetupTeardown&) = delete;
     auto operator=(const TestDirectorySetupTeardown&) -> TestDirectorySetupTeardown& = delete;
 
-    TestDirectorySetupTeardown(TestDirectorySetupTeardown&&) noexcept;
-    auto operator=(TestDirectorySetupTeardown&&) noexcept -> TestDirectorySetupTeardown&;
+    TestDirectorySetupTeardown(TestDirectorySetupTeardown&& /*aOther*/) noexcept;
+    auto operator=(TestDirectorySetupTeardown&& /*aOther*/) noexcept -> TestDirectorySetupTeardown&;
 
     /// @brief Write a file with name @a aFilename in the directory specified at construction.
     /// @param aWriteFunction Must be callable and have the signature `void(const std::filesystem::path&)` and is
@@ -47,7 +47,7 @@ class [[nodiscard]] TestDirectorySetupTeardown
 
     std::optional<std::filesystem::path> mDirectory;
     std::optional<boost::mpi::communicator> mComm;
-    static constexpr int kRootRank = 0;
+    static constexpr int mRootRank = 0;
 };
 
 template <typename WriteFunction>
@@ -68,7 +68,7 @@ void TestDirectorySetupTeardown::executeOnRootIfValid(const Function& aFunction,
         return;
     }
     mComm->barrier();
-    if (mComm->rank() == kRootRank)
+    if (mComm->rank() == mRootRank)
     {
         aFunction(std::forward<Args>(aArgs)...);
     }

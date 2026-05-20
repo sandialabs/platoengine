@@ -11,9 +11,9 @@ template <typename Enum>
 auto make_enum_symbols(const utilities::EnumTable<Enum>& aTable) -> boost::spirit::qi::symbols<char, Enum>
 {
     const boost::spirit::qi::symbols<char, Enum> tSymbols;
-    for (const auto& entry : aTable)
+    for (const auto& tEntry : aTable)
     {
-        tSymbols.add(entry.second, entry.first);
+        tSymbols.add(tEntry.second, tEntry.first);
     }
     return tSymbols;
 }

@@ -222,9 +222,9 @@ auto get_level_set_values(const ::krino::MeshInterface& aKrinoMesh,
 auto node_entities_in_mesh(const ::krino::MeshInterface& aKrinoMesh,
                            const std::vector<::krino::LS_Field>& aLevelSetFields) -> stk::mesh::EntityVector
 {
-    const ::krino::CDFEM_Support& cdfemSupport = ::krino::CDFEM_Support::get(aKrinoMesh.meta_data());
+    const ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aKrinoMesh.meta_data());
     const stk::mesh::Selector tSelector =
-        stk::mesh::selectField(aLevelSetFields.front().isovar) & !cdfemSupport.get_child_node_part();
+        stk::mesh::selectField(aLevelSetFields.front().isovar) & !tCdfemSupport.get_child_node_part();
     stk::mesh::EntityVector tNodes;
     stk::mesh::get_selected_entities(tSelector, aKrinoMesh.bulk_data().buckets(stk::topology::NODE_RANK), tNodes,
                                      kSortByGlobalId);
@@ -246,8 +246,8 @@ void write_mesh(const stk::mesh::BulkData& aBulkData,
                 const std::filesystem::path& aOutputFileName,
                 const stk::mesh::Selector& aSelector)
 {
-    constexpr auto tStepIndex = int{1};
-    constexpr auto tTime = double{0.0};
+    constexpr auto tStepIndex = 1;
+    constexpr auto tTime = 0.0;
     ::krino::output_composed_mesh_with_fields(aBulkData, aSelector, aOutputFileName.string(), tStepIndex, tTime,
                                               stk::io::WRITE_RESULTS, kLevelSetFields);
 }

@@ -38,14 +38,14 @@ struct create_parser<plato::input_parser::GenericToken>
 }  // namespace boost::spirit::traits
 
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init)
 BOOST_FUSION_DEFINE_STRUCT(
     (plato)(input_parser),
     GenericBlockData,
     (plato::input_parser::BlockName, mName)
     (std::vector<plato::input_parser::GenericToken>, mInput)
 )
-// NOLINTEND(cppcoreguidelines-special-member-functions)
+// NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init)
 // clang-format on
 
 namespace plato::input_parser

@@ -20,14 +20,14 @@ namespace plato::filter::extension
 {
 namespace
 {
-[[maybe_unused]] static const auto kIdentityFilterParserRegistration =
+[[maybe_unused]] const auto kIdentityFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::identity_filter>{};
 
-[[maybe_unused]] static const auto kIdentityFilterRegistration =
+[[maybe_unused]] const auto kIdentityFilterRegistration =
     library::FilterRegistration{input_parser::block_name<input_parser::identity_filter>(),
                                 [](const library::ValidatedFilterInput&) { return make_identity_filter_function(); }};
 
-[[maybe_unused]] static const auto kIdentityFilterValidationRegistration =
+[[maybe_unused]] const auto kIdentityFilterValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{[](const input_parser::identity_filter& aInput)
                                                          { return validate_identity_filter(aInput); }};
 }  // namespace
@@ -39,10 +39,10 @@ auto IdentityFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainM
 }
 
 auto IdentityFilter::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                            const linear_algebra::DynamicVector<double>& aV) const
+                                            const linear_algebra::DynamicVector<double>& aRowVector) const
     -> linear_algebra::DynamicVector<double>
 {
-    const auto tVectorDimension = static_cast<std::size_t>(aV.size());
+    const auto tVectorDimension = static_cast<std::size_t>(aRowVector.size());
     const std::size_t tDensityDimension = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh}.size();
     if (tVectorDimension != tDensityDimension)
     {
@@ -51,14 +51,14 @@ auto IdentityFilter::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& 
             "dimension: " +
             std::to_string(tVectorDimension) + ", density dimension: " + std::to_string(tDensityDimension)};
     }
-    return aV;
+    return aRowVector;
 }
 
 auto IdentityFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                   const linear_algebra::DynamicVector<double>& aV) const
+                                                   const linear_algebra::DynamicVector<double>& aRowVector) const
     -> linear_algebra::DynamicVector<double>
 {
-    return rowVectorTimesJacobian(aAnalysisDomainMesh, aV);
+    return rowVectorTimesJacobian(aAnalysisDomainMesh, aRowVector);
 }
 
 auto make_identity_filter_function() -> library::FilterFunction

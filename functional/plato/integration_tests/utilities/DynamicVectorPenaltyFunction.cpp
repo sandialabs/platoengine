@@ -15,11 +15,12 @@ auto DynamicVectorJacobian::column(const int aIndex) const -> linear_algebra::Dy
     return linear_algebra::DynamicVector<double>{mJacobian(0, aIndex), mJacobian(1, aIndex)};
 }
 
-auto operator*(const linear_algebra::DynamicVector<double>& aX,
+auto operator*(const linear_algebra::DynamicVector<double>& aRowVector,
                const DynamicVectorJacobian& aJacobian) -> linear_algebra::DynamicVector<double>
 {
-    assert(aX.size() == 2u);
-    return linear_algebra::DynamicVector<double>{aX.dot(aJacobian.column(0)), aX.dot(aJacobian.column(1))};
+    assert(aRowVector.size() == 2U);
+    return linear_algebra::DynamicVector<double>{aRowVector.dot(aJacobian.column(0)),
+                                                 aRowVector.dot(aJacobian.column(1))};
 }
 
 auto make_penalty_dynamic_vector_function(const test_utilities::Penalty& aPenalty)
@@ -27,10 +28,11 @@ auto make_penalty_dynamic_vector_function(const test_utilities::Penalty& aPenalt
                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFunction>,
                       core::FunctionInfo<DynamicVectorJacobian, core::evaluation::kFirstDerivative>>
 {
-    return core::make_function_with_first_derivative([p = aPenalty](const linear_algebra::DynamicVector<double>& x)
-                                                     { return to_dynamic_vector(p.f(x[0], x[1])); },
-                                                     [p = aPenalty](const linear_algebra::DynamicVector<double>& x)
-                                                     { return DynamicVectorJacobian{p.df(x[0], x[1])}; });
+    return core::make_function_with_first_derivative(
+        [tPenalty = aPenalty](const linear_algebra::DynamicVector<double>& aVector)
+        { return to_dynamic_vector(tPenalty.f(aVector[0], aVector[1])); },
+        [tPenalty = aPenalty](const linear_algebra::DynamicVector<double>& aVector)
+        { return DynamicVectorJacobian{tPenalty.df(aVector[0], aVector[1])}; });
 }
 
 }  // namespace plato::integration_tests::utilities

@@ -48,20 +48,18 @@ constexpr auto kRootRank = 0;
             [aValidInput](const library::ProcessManagerData&) { NodalResultFilter{aValidInput}.run(); }};
 }
 
-[[maybe_unused]] static const auto kElementToNodeParserRegistration =
+[[maybe_unused]] const auto kElementToNodeParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::nodal_result_filter>{};
 
-[[maybe_unused]] static const auto kElementToNodeProcessManagerRegistration =
+[[maybe_unused]] const auto kElementToNodeProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::nodal_result_filter>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_nodal_result_filter_process_manager(aValidInput); }};
 
-[[maybe_unused]] static const auto kElementToNodeValidationRegistration =
-    input_validation::InputBlockValidationRegistration<>{
-        [](const input_parser::nodal_result_filter& aInput)
-        { return detail::validate_filter_is_kernel_filter(aInput); },
-        [](const input_parser::nodal_result_filter& aInput)
-        { return detail::validate_geometry_is_density_topology(aInput); }};
+[[maybe_unused]] const auto kElementToNodeValidationRegistration = input_validation::InputBlockValidationRegistration<>{
+    [](const input_parser::nodal_result_filter& aInput) { return detail::validate_filter_is_kernel_filter(aInput); },
+    [](const input_parser::nodal_result_filter& aInput)
+    { return detail::validate_geometry_is_density_topology(aInput); }};
 
 [[nodiscard]] auto filter_input(const library::ValidatedProcessManagerInput& aInput)
     -> const input_parser::kernel_filter&
@@ -143,7 +141,7 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
 
             const auto tWriter = make_mesh_writer(tMode, aMesh, tTemporaryOutputPath, aFixedBlocks, tTimeStep);
 
-            tWriter->addFieldFromAnalysisDomainMesh(tFilteredField, NodalResultFilter::field_name(), tFixedValue);
+            tWriter->addFieldFromAnalysisDomainMesh(tFilteredField, NodalResultFilter::fieldName(), tFixedValue);
 
             tWriter->addFieldFromAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
                                                     tFixedValue);
@@ -197,7 +195,7 @@ void NodalResultFilter::run() const
     }
 }
 
-auto NodalResultFilter::field_name() -> std::string_view { return "nodal_filtered_result"; }
+auto NodalResultFilter::fieldName() -> std::string_view { return "nodal_filtered_result"; }
 
 namespace detail
 {

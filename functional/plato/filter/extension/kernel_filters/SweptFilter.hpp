@@ -42,8 +42,8 @@ namespace detail
 ///@brief A helper constructor for creating the SweptFilterType needed to construct a SweptFilter. It takes a
 /// radius @a aRadius and the centering type @a aFilterCentering and sweep direction @a aDirection. This assigns the
 /// compute functions with the proper utilities.
-[[nodiscard]] auto make_z_swept_filter_type(const double aRadius,
-                                            const input_parser::KernelFilterCenteringTypes aFilterCentering,
+[[nodiscard]] auto make_z_swept_filter_type(double aRadius,
+                                            input_parser::KernelFilterCenteringTypes aFilterCentering,
                                             const third_party_integration::common::Vector3& aDirection)
     -> SweptFilterType;
 

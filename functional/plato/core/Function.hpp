@@ -13,9 +13,9 @@ namespace plato::core
 /// Convenience variables for working with Function.
 namespace evaluation
 {
-static constexpr auto kFunction = int{0};
-static constexpr auto kFirstDerivative = int{1};
-static constexpr auto kSecondDerivative = int{2};
+static constexpr auto kFunction = 0;
+static constexpr auto kFirstDerivative = 1;
+static constexpr auto kSecondDerivative = 2;
 }  // namespace evaluation
 
 /// @brief Helper function template for constructing a Function object.
@@ -23,7 +23,7 @@ static constexpr auto kSecondDerivative = int{2};
 /// The main purpose of this function is for constructing Function objects
 /// using template argument deduction. Prefer usage of this over Function's ctor.
 template <typename F, typename G>
-auto make_function_with_first_derivative(F aF, G aG);
+auto make_function_with_first_derivative(F aFunction, G aDerivative);
 
 /// @brief A wrapper for a function with its derivatives.
 ///
@@ -76,18 +76,18 @@ class Function
                                      std::tuple<Info...>>());
 
     /// @brief Evaluates a function with derivative order @a Order with matrix ordering @a Ordering.
-    template <int Order, MatrixOrdering Ordering = MatrixOrdering::kOriginal, typename Argument>
+    template <int kOrder, MatrixOrdering kOrdering = MatrixOrdering::kOriginal, typename Argument>
     [[nodiscard]] auto evaluate(Argument&& aArgument) const;
 
     /// @brief Returns true if this instantiation of Function implements the derivative order @a Order and
     ///  with matrix ordering @a Ordering.
-    template <int Order, MatrixOrdering Ordering>
+    template <int kOrder, MatrixOrdering kOrdering>
     [[nodiscard]] constexpr static auto isImplemented() -> bool;
 
     /// @brief The return type of the function associated with derivative order @a Order with matrix ordering @a
     /// Ordering.
-    template <int Order, MatrixOrdering Ordering = MatrixOrdering::kOriginal>
-    using Codomain = typename std::tuple_element_t<TupleHelper::template index<Order, Ordering>(),
+    template <int kOrder, MatrixOrdering kOrdering = MatrixOrdering::kOriginal>
+    using Codomain = typename std::tuple_element_t<TupleHelper::template index<kOrder, kOrdering>(),
                                                    typename TupleHelper::InfoTuple>::Codomain;
 
    private:
@@ -96,10 +96,10 @@ class Function
 
 /// @brief Type trait for checking that a type is an instantiation of Function
 template <typename>
-constexpr inline auto kIsFunction = bool{false};
+constexpr inline auto kIsFunction = false;
 
 template <typename DomainType, typename... Info>
-constexpr inline auto kIsFunction<Function<DomainType, Info...>> = bool{true};
+constexpr inline auto kIsFunction<Function<DomainType, Info...>> = true;
 
 template <typename DomainType, typename... Info>
 template <typename... Functions>
@@ -121,8 +121,8 @@ template <std::size_t kIndex,
 void assign_function(ToFunctionsTuple& aToFunctions, AllFunctionsTuple&& aAllFunctionsTuple)
 {
     using ToInfoTuple = typename ToFunction::TupleHelper::InfoTuple;
-    constexpr auto tOrder = std::tuple_element_t<kIndex, ToInfoTuple>::order;
-    constexpr auto tOrdering = std::tuple_element_t<kIndex, ToInfoTuple>::ordering;
+    constexpr auto tOrder = std::tuple_element_t<kIndex, ToInfoTuple>::mOrder;
+    constexpr auto tOrdering = std::tuple_element_t<kIndex, ToInfoTuple>::mOrdering;
     constexpr auto tToFunctionIndex = ToFunction::TupleHelper::template index<tOrder, tOrdering>();
     constexpr auto tFromFunctionIndex = FromFunction::TupleHelper::template index<tOrder, tOrdering>();
     std::get<tToFunctionIndex>(aToFunctions) =
@@ -130,7 +130,8 @@ void assign_function(ToFunctionsTuple& aToFunctions, AllFunctionsTuple&& aAllFun
 }
 
 template <typename ToFunction, typename FromFunction, typename AllFunctionsTuple, std::size_t... kCompatibleInfoIndices>
-auto compatible_functions(AllFunctionsTuple&& aAllFunctionsTuple, std::index_sequence<kCompatibleInfoIndices...>)
+auto compatible_functions(AllFunctionsTuple&& aAllFunctionsTuple,
+                          std::index_sequence<kCompatibleInfoIndices...> /*unused*/)
 {
     using ToFunctionTuple = typename ToFunction::FunctionTuple;
     auto tToFunctions = ToFunctionTuple{};
@@ -168,26 +169,26 @@ auto Function<DomainType, Info...>::compatibleFunction() && -> CompatibleFunctio
 }
 
 template <typename Domain, typename... Info>
-template <int Order, MatrixOrdering Ordering, typename Argument>
+template <int kOrder, MatrixOrdering kOrdering, typename Argument>
 auto Function<Domain, Info...>::evaluate(Argument&& aArgument) const
 {
-    static_assert(isImplemented<Order, Ordering>(),
+    static_assert(isImplemented<kOrder, kOrdering>(),
                   "Requested function derivative order or matrix ordering not implemented.");
 
-    constexpr auto tIndex = TupleHelper::template index<Order, Ordering>();
+    constexpr auto tIndex = TupleHelper::template index<kOrder, kOrdering>();
     const auto& tFunction = std::get<tIndex>(mFunctions);
     return tFunction(std::forward<Argument>(aArgument));
 }
 
 template <typename Domain, typename... Info>
-template <int Order, MatrixOrdering Ordering>
+template <int kOrder, MatrixOrdering kOrdering>
 constexpr auto Function<Domain, Info...>::isImplemented() -> bool
 {
-    return TupleHelper::template is_implemented<Order, Ordering>();
+    return TupleHelper::template isImplemented<kOrder, kOrdering>();
 }
 
 template <typename F, typename G>
-auto make_function_with_first_derivative(F aF, G aG)
+auto make_function_with_first_derivative(F aFunction, G aDerivative)
 {
     using ArgF = typename utilities::FunctionArgType<F>::template arg<0U>;
     using ArgG = typename utilities::FunctionArgType<G>::template arg<0U>;
@@ -201,7 +202,7 @@ auto make_function_with_first_derivative(F aF, G aG)
     using FunctionFirstDerivativeInfo = FunctionInfo<dR, evaluation::kFirstDerivative>;
     using FunctionType = Function<ArgF, FunctionEvaluationInfo, FunctionFirstDerivativeInfo>;
 
-    return FunctionType{std::move(aF), std::move(aG)};
+    return FunctionType{std::move(aFunction), std::move(aDerivative)};
 }
 
 }  // namespace plato::core

@@ -38,15 +38,17 @@ auto to_vector_function(const ScalarFunction<FunctionArg>& aScalarFunction) -> V
     auto tJacobian = [aScalarFunction](FunctionArg aFunctionArg)
     {
         auto tGradient = aScalarFunction.template evaluate<core::evaluation::kFirstDerivative>(aFunctionArg);
-        auto tMultiplierFunction = [tGradient = std::move(tGradient)](const linear_algebra::DynamicVector<double>& aV)
-        { return tGradient * aV.stdVector()[0]; };
+        auto tMultiplierFunction =
+            [tGradient = std::move(tGradient)](const linear_algebra::DynamicVector<double>& aRowVector)
+        { return tGradient * aRowVector.stdVector()[0]; };
         return linear_algebra::JacobianMultiplier{std::move(tMultiplierFunction)};
     };
     auto tAdjointJacobian = [aScalarFunction](FunctionArg aFunctionArg)
     {
         auto tGradient = aScalarFunction.template evaluate<core::evaluation::kFirstDerivative>(aFunctionArg);
-        auto tMultiplierFunction = [tGradient = std::move(tGradient)](const linear_algebra::DynamicVector<double>& aV)
-        { return linear_algebra::DynamicVector{tGradient.dot(aV)}; };
+        auto tMultiplierFunction =
+            [tGradient = std::move(tGradient)](const linear_algebra::DynamicVector<double>& aRowVector)
+        { return linear_algebra::DynamicVector{tGradient.dot(aRowVector)}; };
         return linear_algebra::AdjointJacobianMultiplier{
             linear_algebra::JacobianMultiplier{std::move(tMultiplierFunction)}};
     };

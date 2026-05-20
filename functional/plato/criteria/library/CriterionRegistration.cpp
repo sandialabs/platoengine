@@ -32,11 +32,11 @@ auto criterion_registration_name(const std::string_view aAppName, const std::str
     return std::string{aAppName} + ":" + std::string{aCriterionName};
 }
 
-template <typename Tuple, std::size_t... Indices>
-constexpr auto is_criterion_function_registered_in_specific_factory_impl(const std::string_view aFunctionName,
-                                                                         const std::index_sequence<Indices...>)
+template <typename Tuple, std::size_t... kIndices>
+constexpr auto is_criterion_function_registered_in_specific_factory_impl(
+    const std::string_view aFunctionName, const std::index_sequence<kIndices...> /*unused*/)
 {
-    return core::is_factory_function_registered<std::tuple_element_t<Indices, Tuple>...>(aFunctionName);
+    return core::is_factory_function_registered<std::tuple_element_t<kIndices, Tuple>...>(aFunctionName);
 }
 
 template <std::size_t kFactoryIndex>
@@ -48,10 +48,10 @@ constexpr auto is_criterion_function_registered_in_specific_factory(const std::s
 }
 
 template <std::size_t... kIndices>
-[[nodiscard]] auto is_criterion_function_registered_in_factory_with_index(const std::string_view aFunctionName,
-                                                                          const std::size_t aFactoryIndex,
-                                                                          const std::index_sequence<kIndices...>)
-    -> bool
+[[nodiscard]] auto is_criterion_function_registered_in_factory_with_index(
+    const std::string_view aFunctionName,
+    const std::size_t aFactoryIndex,
+    const std::index_sequence<kIndices...> /*unused*/) -> bool
 {
     return (
         (aFactoryIndex == kIndices && is_criterion_function_registered_in_specific_factory<kIndices>(aFunctionName)) ||
@@ -59,22 +59,23 @@ template <std::size_t... kIndices>
 }
 
 template <std::size_t... kIndices>
-[[nodiscard]] auto is_criterion_function_registered_in_any_factory(const std::string_view aFunctionName,
-                                                                   const std::index_sequence<kIndices...>) -> bool
+[[nodiscard]] auto is_criterion_function_registered_in_any_factory(
+    const std::string_view aFunctionName, const std::index_sequence<kIndices...> /*unused*/) -> bool
 {
     return (is_criterion_function_registered_in_specific_factory<kIndices>(aFunctionName) || ...);
 }
 
 template <typename FactorySignatureTuple, std::size_t... kIndices>
 void registered_criteria_names_from_single_factory(std::set<std::string>& aAllCriteria,
-                                                   const std::index_sequence<kIndices...>)
+                                                   const std::index_sequence<kIndices...> /*unused*/)
 {
     auto tFunctionNames = core::registered_function_names<std::tuple_element_t<kIndices, FactorySignatureTuple>...>();
     std::move(tFunctionNames.begin(), tFunctionNames.end(), std::inserter(aAllCriteria, aAllCriteria.begin()));
 }
 
 template <std::size_t... kIndices>
-[[nodiscard]] auto registered_criteria_names_impl(const std::index_sequence<kIndices...>) -> std::set<std::string>
+[[nodiscard]] auto registered_criteria_names_impl(const std::index_sequence<kIndices...> /*unused*/)
+    -> std::set<std::string>
 {
     auto tAllCriteria = std::set<std::string>{};
     (registered_criteria_names_from_single_factory<std::tuple_element_t<kIndices, FactoryRegistrationTypes>>(
@@ -123,11 +124,11 @@ auto criterion_function_has_trait(const std::string_view aFunctionName, const Cr
 {
     const auto tToTraits =
         std::views::iota(0U, number_of_traits()) |
-        std::views::transform([=](const auto tTraitIndex) { return traits_from_index(tTraitIndex); });
+        std::views::transform([=](const auto aTraitIndex) { return traits_from_index(aTraitIndex); });
 
     return std::ranges::any_of(
-        tToTraits, [=](const auto tTraits)
-        { return has_trait(tTraits, aTrait) && criterion_function_has_traits(aFunctionName, tTraits); });
+        tToTraits, [=](const auto aTraits)
+        { return has_trait(aTraits, aTrait) && criterion_function_has_traits(aFunctionName, aTraits); });
 }
 
 template auto criterion_function_has_trait(const std::string_view aFunctionName,

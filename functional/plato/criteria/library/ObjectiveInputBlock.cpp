@@ -9,7 +9,7 @@ namespace plato::criteria::library
 {
 namespace
 {
-[[maybe_unused]] static const auto kObjectiveParserRegistration =
+[[maybe_unused]] const auto kObjectiveParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::objective>{};
 }
 }  // namespace plato::criteria::library

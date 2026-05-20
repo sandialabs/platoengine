@@ -23,7 +23,7 @@ TEST(CommandGenerator, CustomHexBox)
     const CommandBounds tLowerBounds{-1, -2, -3};
     const CommandBounds tUpperBounds{1, 2, 3};
     const CommandNumberOfElements tElements{3, 4, 1};
-    const auto tCommandGenerator = CommandGenerator{tElements, tLowerBounds, tUpperBounds, CommandElementType::Hex};
+    const auto tCommandGenerator = CommandGenerator{tElements, tLowerBounds, tUpperBounds, CommandElementType::kHex};
     constexpr std::string_view tGold{"generated:3x4x1|bbox:-1,-2,-3,1,2,3"};
     EXPECT_EQ(tCommandGenerator.toString(), tGold);
     EXPECT_DOUBLE_EQ(tCommandGenerator.volume(), 2 * 4 * 6);
@@ -36,7 +36,7 @@ TEST(CommandGenerator, CustomTetBox)
     const CommandBounds tLowerBounds{0, 0, 0};
     const CommandBounds tUpperBounds{4, 4, 4};
     const CommandNumberOfElements tElements{2, 2, 2};
-    const auto tCommandGenerator = CommandGenerator{tElements, tLowerBounds, tUpperBounds, CommandElementType::Tet};
+    const auto tCommandGenerator = CommandGenerator{tElements, tLowerBounds, tUpperBounds, CommandElementType::kTet};
     constexpr std::string_view tGold{"generated:2x2x2|bbox:0,0,0,4,4,4|tets"};
     EXPECT_EQ(tCommandGenerator.toString(), tGold);
     EXPECT_DOUBLE_EQ(tCommandGenerator.volume(), 4 * 4 * 4);
@@ -50,7 +50,7 @@ TEST(CommandGenerator, CustomHexWithPrecision)
     const CommandBounds tUpperBounds{4.12345678901234567, 4.12345678901234567, 4.12345678901234567};
     const CommandNumberOfElements tElements{2, 2, 2};
     const auto tCommandGenerator =
-        CommandGenerator{tElements, tLowerBounds, tUpperBounds, CommandElementType::Tet, {}, {}, 16};
+        CommandGenerator{tElements, tLowerBounds, tUpperBounds, CommandElementType::kTet, {}, {}, 16};
     constexpr std::string_view tGold{
         "generated:2x2x2|bbox:0.1234567890123457,0.1234567890123457,0.1234567890123457,4.123456789012345,4."
         "123456789012345,4.123456789012345|tets"};
@@ -70,7 +70,7 @@ TEST(CommandGenerator, SideSets)
         tElements,
         tLowerBounds,
         tUpperBounds,
-        CommandElementType::Hex,
+        CommandElementType::kHex,
         {},
         {UseLowerX{true}, UseUpperX{true}, UseLowerY{true}, UseUpperY{true}, UseLowerZ{true}, UseUpperZ{true}}};
     constexpr std::string_view tGold{"generated:1x1x1|bbox:0,0,0,1,1,1|sideset:xXyYzZ"};
@@ -86,7 +86,7 @@ TEST(CommandGenerator, NodeSets)
         tElements,
         tLowerBounds,
         tUpperBounds,
-        CommandElementType::Hex,
+        CommandElementType::kHex,
         {UseLowerX{true}, UseUpperX{true}, UseLowerY{true}, UseUpperY{true}, UseLowerZ{true}, UseUpperZ{true}},
         {}};
 

@@ -56,10 +56,10 @@ void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aRO
 [[nodiscard]] auto create_inequality_bounds(ConstraintType aType,
                                             unsigned int aNumberOfConstraints) -> ROL::Ptr<ROL::Bounds<double>>;
 
-[[nodiscard]] auto create_greater_than_inequality_bounds(const unsigned int aNumberOfConstraints)
+[[nodiscard]] auto create_greater_than_inequality_bounds(unsigned int aNumberOfConstraints)
     -> ROL::Ptr<ROL::Bounds<double>>;
 
-[[nodiscard]] auto create_less_than_inequality_bounds(const unsigned int aNumberOfConstraints)
+[[nodiscard]] auto create_less_than_inequality_bounds(unsigned int aNumberOfConstraints)
     -> ROL::Ptr<ROL::Bounds<double>>;
 
 enum class ConstraintCombination : std::uint8_t

@@ -12,7 +12,7 @@
 namespace plato::third_party_integration::snopt
 {
 /// @brief Value that SNOPT uses to denote unbounded domains
-constexpr static auto kSNOPTUnbounded = double{1e20};
+constexpr static inline auto kSNOPTUnbounded = 1e20;
 
 using IndexType = int;
 

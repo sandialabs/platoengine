@@ -23,12 +23,12 @@ namespace plato::geometry::extension
 /// @brief Design parameters for BrickShapeGeometry
 struct BrickDesign
 {
-    double center_x = 0.0;
-    double center_y = 0.0;
-    double center_z = 0.0;
-    double dimension_x = 1.0;
-    double dimension_y = 1.0;
-    double dimension_z = 1.0;
+    double mCenterX = 0.0;
+    double mCenterY = 0.0;
+    double mCenterZ = 0.0;
+    double mDimensionX = 1.0;
+    double mDimensionY = 1.0;
+    double mDimensionZ = 1.0;
 };
 
 /// @brief Prototype example of a geometry function that maps a center location and dimensions to a brick.
@@ -60,14 +60,14 @@ class BrickShapeGeometry
 
     [[nodiscard]] auto generateMesh(const BrickDesign& aDesignParameters) const -> analysis::AnalysisDomainMesh;
 
-    [[nodiscard]] auto jacobian(const BrickDesign& aDesignParameters) const -> linear_algebra::JacobianColumnEvaluator;
+    [[nodiscard]] static auto jacobian(const BrickDesign& aDesignParameters) -> linear_algebra::JacobianColumnEvaluator;
 
-    [[nodiscard]] auto adjointJacobian(const BrickDesign& aDesignParameters) const
+    [[nodiscard]] static auto adjointJacobian(const BrickDesign& aDesignParameters)
         -> linear_algebra::JacobianColumnEvaluator;
 
     /// @brief Returns the file name at which that this object will write its mesh.
     /// @note This is different than the file passed on construction, it will have a unique string appended.
-    [[nodiscard]] auto file_name() const -> const std::filesystem::path&;
+    [[nodiscard]] auto fileName() const -> const std::filesystem::path&;
 
     [[nodiscard]] static auto initialGuess() -> linear_algebra::DynamicVector<double>;
 

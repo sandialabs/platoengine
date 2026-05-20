@@ -68,7 +68,7 @@ constexpr auto kMeshNameAccessor =
         [aGeometryInput](const linear_algebra::DynamicVector<double>& aSolution, const output::OutputInfo& aOutputInfo)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
-        return LevelSetTopology::output(
+        LevelSetTopology::output(
             tInput, library::make_filter_from_geometry_input<input_parser::level_set_topology>(aGeometryInput),
             aSolution, aOutputInfo);
     };
@@ -83,11 +83,11 @@ constexpr auto kMeshNameAccessor =
 }
 
 /// Static registration for parser
-[[maybe_unused]] static const auto kLevelSetTopologyParserRegistration =
+[[maybe_unused]] const auto kLevelSetTopologyParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::level_set_topology>{};
 
 /// Static registration for library
-[[maybe_unused]] static const auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
+[[maybe_unused]] const auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::level_set_topology>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
     {
@@ -98,7 +98,7 @@ constexpr auto kMeshNameAccessor =
     }};
 
 /// Static registration for input validation functions
-[[maybe_unused]] static const auto kLevelSetTopologyValidationRegistration =
+[[maybe_unused]] const auto kLevelSetTopologyValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::level_set_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
         [](const input_parser::level_set_topology& aInput)
@@ -161,12 +161,12 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
       mCutMesh(kKrinoCutMeshBaseName),
       mOutputMesh(aInput.output_name.value().mToken),
       mLevelSetBounds(std::make_pair(aInput.level_set_bounds.value().mLower, aInput.level_set_bounds.value().mUpper)),
-      mKrinoWrapperCache{[mFixedBlocks = mesh::fixed_blocks(aInput),
-                          mSnappingParameters = snapping_parameters_from_input(aInput),
-                          mVoidRegion = void_phase(aInput)](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+      mKrinoWrapperCache{[tFixedBlocks = mesh::fixed_blocks(aInput),
+                          tSnappingParameters = snapping_parameters_from_input(aInput),
+                          tVoidRegion = void_phase(aInput)](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
                          {
-                             return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, mFixedBlocks,
-                                                                                 mVoidRegion, mSnappingParameters);
+                             return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, tFixedBlocks,
+                                                                                 tVoidRegion, tSnappingParameters);
                          },
                          [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
                          { return analysis::hash_value(aAnalysisDomainMesh); }}
@@ -200,18 +200,16 @@ auto initial_guess(const input_parser::level_set_topology& aInput) -> linear_alg
             detail::EndingLimits{std::pair<double, double>(aInput.level_set_bounds.value().mLower,
                                                            aInput.level_set_bounds.value().mUpper)}));
     }
-    else if (aInput.sphere_pattern.has_value())
+    if (aInput.sphere_pattern.has_value())
     {
         const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(aInput))};
         return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
             mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput), tLevelSetBounds)};
     }
-    else
-    {
-        const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, detail::generate_spheres_from_list(aInput)};
-        return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput), tLevelSetBounds)};
-    }
+
+    const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, detail::generate_spheres_from_list(aInput)};
+    return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
+        mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput), tLevelSetBounds)};
 }
 
 auto LevelSetTopology::generateMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
@@ -463,8 +461,8 @@ auto affine_transformation(std::vector<double> aVector,
     const double tEndingMin = aEndingLimits.mValue.first;
 
     std::transform(aVector.begin(), aVector.end(), aVector.begin(),
-                   [tStartingMin, tStartingScale, tEndingScale, tEndingMin](const auto tEntry)
-                   { return (tEntry - tStartingMin) / tStartingScale * tEndingScale + tEndingMin; });
+                   [tStartingMin, tStartingScale, tEndingScale, tEndingMin](const auto aEntry)
+                   { return (aEntry - tStartingMin) / tStartingScale * tEndingScale + tEndingMin; });
 
     return aVector;
 }

@@ -96,7 +96,7 @@ void NodalResultFilterRunFixture::run_and_check_nodal_filter_result(
     // Retrieve nodal fields names from the mesh and check that the expected field name is found.
     const auto tMeshRetrieval =
         mesh::EntityCounts{mesh::Mesh{aNodalResultOutMeshPath.value_or(mDirectory.directory() / kRestartMeshPath)}};
-    EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(NodalResultFilter::field_name())) << aTestContext;
+    EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(NodalResultFilter::fieldName())) << aTestContext;
     EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(geometry::extension::density_mesh_field_name())) << aTestContext;
     EXPECT_EQ(mesh::EntityCounts{tMeshRetrieval}.timeSteps(), kTimeSteps) << aTestContext;
 }

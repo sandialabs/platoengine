@@ -37,9 +37,9 @@ template <std::size_t kFieldSize>
 /// @brief Given a triangle return a vector of its nodal coordinates.
 [[nodiscard]] auto convert_tri_to_coords(const SensitivityTriangle& aTriangle) -> std::vector<double>
 {
-    return {aTriangle.mNodes[0].second.x, aTriangle.mNodes[0].second.y, aTriangle.mNodes[0].second.z,
-            aTriangle.mNodes[1].second.x, aTriangle.mNodes[1].second.y, aTriangle.mNodes[1].second.z,
-            aTriangle.mNodes[2].second.x, aTriangle.mNodes[2].second.y, aTriangle.mNodes[2].second.z};
+    return {aTriangle.mNodes[0].second.mX, aTriangle.mNodes[0].second.mY, aTriangle.mNodes[0].second.mZ,
+            aTriangle.mNodes[1].second.mX, aTriangle.mNodes[1].second.mY, aTriangle.mNodes[1].second.mZ,
+            aTriangle.mNodes[2].second.mX, aTriangle.mNodes[2].second.mY, aTriangle.mNodes[2].second.mZ};
 }
 
 /// @brief Transform the given flat vector with area sensitivities @ aFlatAreaSensitivityVector into meaningful data
@@ -65,8 +65,8 @@ template <std::size_t kFieldSize>
     TriangleAreaSensitivity tSensitivities;
     constexpr auto tNodeRange = std::views::iota(0UL, tNumberNodesPerTriangle);
     std::transform(tNodeRange.begin(), tNodeRange.end(), tSensitivities.begin(),
-                   [&tAreaSensitivityMultiVectorView](const auto tNodeIndex)
-                   { return tAreaSensitivityMultiVectorView(utilities::VectorIndex{tNodeIndex}); });
+                   [&tAreaSensitivityMultiVectorView](const auto aNodeIndex)
+                   { return tAreaSensitivityMultiVectorView(utilities::VectorIndex{aNodeIndex}); });
     return tSensitivities;
 }
 
@@ -187,8 +187,8 @@ auto interface_triangles(const stk::mesh::BulkData& aBulkData,
                          const std::string& aSidesetName,
                          const PartReferenceVector& aDesignDomainBlocks) -> std::vector<SensitivityTriangle>
 {
-    const auto tSidesetPart = aBulkData.mesh_meta_data().get_part(aSidesetName);
-    if (!tSidesetPart)
+    auto* const tSidesetPart = aBulkData.mesh_meta_data().get_part(aSidesetName);
+    if (tSidesetPart == nullptr)
     {
         return {};
     }
@@ -197,8 +197,8 @@ auto interface_triangles(const stk::mesh::BulkData& aBulkData,
     auto tParts = utilities::reserved_container<std::vector<const stk::mesh::Part*>>(aDesignDomainBlocks.size());
     utilities::transform_if(
         aDesignDomainBlocks, std::back_inserter(tParts),
-        [](const auto& tCurrentBlock) { return &(tCurrentBlock.get()); }, [](const auto& tCurrentBlock)
-        { return tCurrentBlock.get().name().find(void_phase_name()) == std::string::npos; });
+        [](const auto& aTCurrentBlock) { return &(aTCurrentBlock.get()); }, [](const auto& aCurrentBlock)
+        { return aCurrentBlock.get().name().find(void_phase_name()) == std::string::npos; });
     const stk::mesh::Selector tTetSelector{stk::mesh::selectUnion(tParts)};
     const std::vector<stk::mesh::Entity> tInterfaceSides = get_owned_interface_sides(aBulkData, tTriSelector);
     const stk::mesh::FieldBase* const tCoordsField = aBulkData.mesh_meta_data().coordinate_field();
@@ -210,15 +210,15 @@ auto interface_triangles(const stk::mesh::BulkData& aBulkData,
                        const std::array<stk::mesh::Entity, 3> tSideNodes =
                            ::krino::get_oriented_triangle_side_nodes(aBulkData, tTetSelector, aInterfaceSide);
                        std::array<NodeIDCoordsPair, tNumNodesPerTriangle> tSensNodes;
-                       for (const auto tNodeIndex : std::views::iota(0u, tNumNodesPerTriangle))
+                       for (const auto tNodeIndex : std::views::iota(0U, tNumNodesPerTriangle))
                        {
                            tSensNodes.at(tNodeIndex).first = aBulkData.identifier(tSideNodes.at(tNodeIndex));
                            constexpr auto tCoordinateFieldSize = std::size_t{3U};
                            const auto tCoordinates = to_span<tCoordinateFieldSize>(
                                stk::mesh::field_data(*tCoordsField, tSideNodes.at(tNodeIndex)));
-                           tSensNodes.at(tNodeIndex).second.x = tCoordinates[0];
-                           tSensNodes.at(tNodeIndex).second.y = tCoordinates[1];
-                           tSensNodes.at(tNodeIndex).second.z = tCoordinates[2];
+                           tSensNodes.at(tNodeIndex).second.mX = tCoordinates[0];
+                           tSensNodes.at(tNodeIndex).second.mY = tCoordinates[1];
+                           tSensNodes.at(tNodeIndex).second.mZ = tCoordinates[2];
                        }
                        return SensitivityTriangle{tSensNodes[0], tSensNodes[1], tSensNodes[2]};
                    });

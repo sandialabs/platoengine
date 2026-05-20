@@ -11,7 +11,7 @@
 
 ///@brief Input struct with parser to read in overhang constraint parameters
 // clang-format off
-// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init)
 BOOST_FUSION_DEFINE_STRUCT(
 (plato)(input_parser),overhang_criterion,
 (boost::optional<plato::input_parser::Point>, build_direction)
@@ -19,7 +19,7 @@ BOOST_FUSION_DEFINE_STRUCT(
 (boost::optional<double>, transition_width)
 (boost::optional<plato::input_parser::FileList>, additional_evaluation_sidesets)
 )
-// NOLINTEND(cppcoreguidelines-special-member-functions)
+// NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init)
 // clang-format on
 
 namespace plato::criteria::extension
@@ -30,9 +30,9 @@ struct OverhangCriterion
 {
     OverhangCriterion(const input_parser::overhang_criterion& aInputParams,
                       const library::CriterionInput& aCriterionInput);
-    OverhangCriterion(const double aTransitionWidth,
+    OverhangCriterion(double aTransitionWidth,
                       const third_party_integration::common::Vector3& aBuildDirection,
-                      const double aOverhangAngleThreshold,
+                      double aOverhangAngleThreshold,
                       const std::vector<std::string>& aEvaluationSidesetNames);
     [[nodiscard]] auto f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double;
     [[nodiscard]] auto df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
@@ -41,11 +41,11 @@ struct OverhangCriterion
     double mTransitionWidth{};
     third_party_integration::common::Vector3 mBuildDirection;
     double mOverhangAngleThreshold{};
-    std::vector<std::string> mEvaluationSidesets{};
+    std::vector<std::string> mEvaluationSidesets;
     components::ComponentType mComponentType = components::ComponentType::kConstraint;
-    std::string mName{};
+    std::string mName;
 
-    static constexpr auto kCriterionName = std::string_view{"overhang"};
+    static constexpr auto mCriterionName = std::string_view{"overhang"};
 };
 
 /// @brief Creates a Function object from a OverhangCriterion
@@ -60,22 +60,22 @@ namespace detail
 // describes it: https://en.wikipedia.org/wiki/Bump_function.
 /// @brief Exponential function used as a building block for generating a smooth overhang step function going from 0
 /// to 1.
-[[nodiscard]] auto exponential_step_function(const double aInput) -> double;
+[[nodiscard]] auto exponential_step_function(double aInput) -> double;
 /// @brief Smooth step function for transitioning overhang values from 0 to 1.
-[[nodiscard]] auto smoothing_function(const double aInput) -> double;
+[[nodiscard]] auto smoothing_function(double aInput) -> double;
 /// @brief Calculate the overhang value given the angle of the triangle normal dotted with the build direction @
 /// aAngleDotBuildDirection.
 [[nodiscard]] auto overhang_value_from_normal_and_build_direction(
-    const double aAngleDotBuildDirection, const OverhangCriterion& aOverhangCriterion) -> double;
+    double aAngleDotBuildDirection, const OverhangCriterion& aOverhangCriterion) -> double;
 /// @brief Derivattive of exponential function used as a building block for generating a smooth overhang step function
 /// going from 0 to 1.
-[[nodiscard]] auto d_exponential_step_function(const double aInput) -> double;
+[[nodiscard]] auto d_exponential_step_function(double aInput) -> double;
 /// @brief Derivative of smooth step function for transitioning overhang values from 0 to 1.
-[[nodiscard]] auto d_smoothing_function(const double aInput) -> double;
+[[nodiscard]] auto d_smoothing_function(double aInput) -> double;
 /// @brief Calculate the derivative of the overhang value given the angle of the triangle normal dotted with the build
 /// direction @ aAngleDotBuildDirection.
 [[nodiscard]] auto d_overhang_value_from_normal_and_build_direction(
-    const double aAngleDotBuildDirection, const OverhangCriterion& aOverhangCriterion) -> double;
+    double aAngleDotBuildDirection, const OverhangCriterion& aOverhangCriterion) -> double;
 /// @brief Calculate the amount of overhang for a single triangle.
 [[nodiscard]] auto overhang_from_triangle(const third_party_integration::krino::SensitivityTriangle& aTriangle,
                                           const OverhangCriterion& aOverhangCriterion) -> double;
@@ -110,7 +110,7 @@ namespace detail
                                               const std::vector<std::string>& aEvaluationSidesetNames)
     -> std::vector<third_party_integration::krino::SensitivityTriangle>;
 /// @brief Function for converting from angle in degrees to overhang threshold value.
-[[nodiscard]] auto convert_angle_to_threshold_value(const double aAngle) -> double;
+[[nodiscard]] auto convert_angle_to_threshold_value(double aAngle) -> double;
 /// @brief Function for building the list of sideset names that should be used in overhang gradient calculations.
 [[nodiscard]] auto to_sideset_list(const boost::optional<input_parser::FileList>& aAdditionalSidesets)
     -> std::vector<std::string>;

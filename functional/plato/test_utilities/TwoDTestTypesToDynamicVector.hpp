@@ -7,7 +7,7 @@
 namespace plato::test_utilities
 {
 /// @brief Converts @a aX to a DynamicVector
-[[nodiscard]] auto to_dynamic_vector(const TwoDVector& aX) -> linear_algebra::DynamicVector<double>;
+[[nodiscard]] auto to_dynamic_vector(const TwoDVector& aTwoDVector) -> linear_algebra::DynamicVector<double>;
 
 }  // namespace plato::test_utilities
 

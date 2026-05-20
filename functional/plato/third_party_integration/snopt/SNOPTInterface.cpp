@@ -26,19 +26,19 @@ namespace plato::third_party_integration::snopt
 
 namespace
 {
-constexpr auto kObjectiveRow = int{0};
+constexpr auto kObjectiveRow = 0;
 constexpr auto kNumberOfObjectives = std::size_t{1};
-constexpr auto kUseDerivatives = int{1};
-constexpr auto kSummaryFileOff = int{0};
-constexpr auto kPrintFileFortranUnitNumber = int{181};  // Arbitrary file number for fortran
-constexpr auto kColdStart = int{0};
-constexpr auto kObjectiveValueAddition = double{0.0};
-constexpr auto kNoSpecialBoundsInformation = int{0};
+constexpr auto kUseDerivatives = 1;
+constexpr auto kSummaryFileOff = 0;
+constexpr auto kPrintFileFortranUnitNumber = 181;  // Arbitrary file number for fortran
+constexpr auto kColdStart = 0;
+constexpr auto kObjectiveValueAddition = 0.0;
+constexpr auto kNoSpecialBoundsInformation = 0;
 constexpr auto kDerivativeOptionName = std::string_view{"Derivative option"};
 
-[[maybe_unused]] constexpr auto kSuccessfulSpecFileRead = int{101};
-[[maybe_unused]] constexpr auto kSuccessfulParameterSet = int{0};
-constexpr auto kMinutesToSeconds = int{60};
+[[maybe_unused]] constexpr auto kSuccessfulSpecFileRead = 101;
+[[maybe_unused]] constexpr auto kSuccessfulParameterSet = 0;
+constexpr auto kMinutesToSeconds = 60;
 
 struct SNOPTTag
 {
@@ -67,14 +67,14 @@ struct SNOPTSolverDetail
     double mSumOfConstraintViolations = 0.0;
 };
 
-// NOLINTBEGIN(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+// NOLINTBEGIN(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,readability-non-const-parameter)
 void evaluation_callback(int* /*Status*/,
-                         int* aNumberOfDesignVariables,
+                         int* const aNumberOfDesignVariables,
                          double aDesignVariableArray[],
                          int* aEvaluateFunctions,                 // NOLINT
                          int* aNumberOfObjectivesAndConstraints,  // NOLINT
                          double aObjectiveAndConstraintValues[],
-                         int* aEvaluateGradients,
+                         int* const aEvaluateGradients,
                          int* /*neG*/,
                          double aObjectiveAndConstraintGradients[],
                          char* /*cu*/,
@@ -93,8 +93,8 @@ void evaluation_callback(int* /*Status*/,
         auto tObjectiveAndConstraintsView = ObjectiveConstraintArrayView<double>{
             aObjectiveAndConstraintValues,
             ConstraintSizeType{boost::numeric_cast<unsigned long>(*aNumberOfObjectivesAndConstraints)}};
-        evaluateObjective<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintsView);
-        evaluateConstraints<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintsView);
+        evaluate_objective<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintsView);
+        evaluate_constraints<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintsView);
     }
     if (*aEvaluateGradients > 0)
     {
@@ -102,11 +102,11 @@ void evaluation_callback(int* /*Status*/,
             aObjectiveAndConstraintGradients,
             ConstraintSizeType{boost::numeric_cast<unsigned long>(*aNumberOfObjectivesAndConstraints)},
             DesignVariableSizeType{boost::numeric_cast<unsigned long>(tNumberOfDesignVariables)}};
-        evaluateObjectiveGradient<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintGradientsView);
-        evaluateConstraintGradient<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintGradientsView);
+        evaluate_objective_gradient<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintGradientsView);
+        evaluate_constraint_gradient<SNOPTTag>(tDesignVariables, tObjectiveAndConstraintGradientsView);
     }
 }
-// NOLINTEND(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+// NOLINTEND(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,readability-non-const-parameter)
 
 [[nodiscard]] auto linear_constraint_row_offset(const SNOPTConstraints& aConstraints) -> SparsityPattern<IndexType>::Row
 {

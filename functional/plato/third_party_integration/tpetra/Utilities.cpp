@@ -73,9 +73,9 @@ void distribute_on_tpetra_multivector(const std::vector<common::Coordinate>& aSe
     for (TpetraLocalOrdinal tIndex = 0; tIndex < number_of_local_elements(aMultiVector.getMap()); ++tIndex)
     {
         const auto tGlobalID = aMultiVector.getMap()->getGlobalElement(tIndex);
-        aMultiVector.replaceLocalValue(tIndex, 0, aSerialVector[tGlobalID].x);
-        aMultiVector.replaceLocalValue(tIndex, 1, aSerialVector[tGlobalID].y);
-        aMultiVector.replaceLocalValue(tIndex, 2, aSerialVector[tGlobalID].z);
+        aMultiVector.replaceLocalValue(tIndex, 0, aSerialVector[tGlobalID].mX);
+        aMultiVector.replaceLocalValue(tIndex, 1, aSerialVector[tGlobalID].mY);
+        aMultiVector.replaceLocalValue(tIndex, 2, aSerialVector[tGlobalID].mZ);
     }
 }
 

@@ -48,15 +48,15 @@ using FixedFormatNumber = utilities::FixedWidthFloatingPointOutput<double, kPrec
             { ParameterSweep{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static const auto kParameterSweepParserRegistration =
+[[maybe_unused]] const auto kParameterSweepParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::parameter_sweep>{};
 
-[[maybe_unused]] static const auto kParameterSweepProcessManagerRegistration =
+[[maybe_unused]] const auto kParameterSweepProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::parameter_sweep>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_parameter_sweep_process_manager(aValidInput); }};
 
-[[maybe_unused]] static const auto kParameterSweepValidationRegistration =
+[[maybe_unused]] const auto kParameterSweepValidationRegistration =
     input_validation::ValidationRegistration<input_parser::parameter_sweep>{
         [](const input_parser::parameter_sweep& aInput) { return detail::validate_output_file_name(aInput); },
         [](const input_parser::parameter_sweep& aInput) { return detail::validate_indices_and_ranges(aInput); },

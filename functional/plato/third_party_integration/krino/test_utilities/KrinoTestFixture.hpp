@@ -44,7 +44,7 @@ class SensitivityTestKrinoFixture : public KrinoTestFixture
     {
     }
     void compareMapAgainstBuiltInGold(const SensitivityMap& aResult,
-                                      const plato::test_utilities::TestContext& aTestContext)
+                                      const plato::test_utilities::TestContext& aTestContext) const
     {
         test_sensitivity_map(aResult, mGoldSensitivityMap, aTestContext);
     }

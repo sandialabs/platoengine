@@ -150,14 +150,12 @@ auto constraint_combination(const ROLConstraint& aConstraint) -> ConstraintCombi
         }
         return ConstraintCombination::kNonlinearEquality;
     }
-    else
+
+    if (aConstraint.mLinear)
     {
-        if (aConstraint.mLinear)
-        {
-            return ConstraintCombination::kLinearInequality;
-        }
-        return ConstraintCombination::kNonlinearInequality;
+        return ConstraintCombination::kLinearInequality;
     }
+    return ConstraintCombination::kNonlinearInequality;
 }
 
 }  // namespace detail

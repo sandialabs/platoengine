@@ -204,9 +204,9 @@ TEST(LevelSetTopologyDetail, GenerateSpheresFromList)
     for (const auto& [tKrinoSphere, tLevelSetSphere] : utilities::Zip(tKrinoList, kSphereList.mList))
     {
         EXPECT_EQ(tKrinoSphere.mRadius, tLevelSetSphere.radius);
-        EXPECT_EQ(tKrinoSphere.mCenter.x, tLevelSetSphere.center.mX);
-        EXPECT_EQ(tKrinoSphere.mCenter.y, tLevelSetSphere.center.mY);
-        EXPECT_EQ(tKrinoSphere.mCenter.z, tLevelSetSphere.center.mZ);
+        EXPECT_EQ(tKrinoSphere.mCenter.mX, tLevelSetSphere.center.mX);
+        EXPECT_EQ(tKrinoSphere.mCenter.mY, tLevelSetSphere.center.mY);
+        EXPECT_EQ(tKrinoSphere.mCenter.mZ, tLevelSetSphere.center.mZ);
     }
 }
 
@@ -218,7 +218,7 @@ TEST(LevelSetTopology, ValidateMeshIsTrisOrTets)
     EXPECT_TRUE(detail::validate_mesh_is_tet_or_tri(tLevelSetTopology).has_value())
         << "Can't use a hex mesh with krino.";
     tpis::write_mesh(tLevelSetTopology.mesh_name->mToken,
-                     tpis::CommandGenerator{.mType = tpis::CommandElementType::Tet});
+                     tpis::CommandGenerator{.mType = tpis::CommandElementType::kTet});
     EXPECT_FALSE(detail::validate_mesh_is_tet_or_tri(tLevelSetTopology).has_value()) << "Can use a tet mesh though.";
     std::filesystem::remove(tLevelSetTopology.mesh_name->mToken);
 }

@@ -44,7 +44,7 @@ TEST(MeshFieldOperations, NodalAverageTetMesh)
     constexpr auto tMeshGenerator = CommandGenerator{.mElements = {1, 1, 1},
                                                      .mLowerBounds = {0.0, 0.0, 0.0},
                                                      .mUpperBounds = {1.0, 1.0, 1.0},
-                                                     .mType = CommandElementType::Tet};
+                                                     .mType = CommandElementType::kTet};
 
     const auto tMesh = generate_bulk_data(tMeshGenerator);
     ASSERT_TRUE(tMesh);
@@ -62,14 +62,14 @@ TEST(MeshFieldOperations, NodalAverageHexMesh)
     constexpr auto tMeshGenerator = CommandGenerator{.mElements = {1, 2, 1},
                                                      .mLowerBounds = {0.0, 0.0, 0.0},
                                                      .mUpperBounds = {2.0, 2.0, 2.0},
-                                                     .mType = CommandElementType::Hex};
+                                                     .mType = CommandElementType::kHex};
 
     const auto tMesh = generate_bulk_data(tMeshGenerator);
     ASSERT_TRUE(tMesh);
 
     const auto tNodalCoordinates = nodal_coordinates(*tMesh);
     auto tYCoordinate =
-        tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return aCoordinate.y; });
+        tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return aCoordinate.mY; });
 
     const auto tNodalAverage = element_averaged_nodal_values(tYCoordinate, *tMesh);
     const auto tExpected = std::vector{0.5, 1.5};
@@ -82,7 +82,7 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverage)
 
     const auto tNodalCoordinates = nodal_coordinates(*tBulkData);
     auto tXCoordinate =
-        tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return 3.0 * aCoordinate.x; });
+        tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return 3.0 * aCoordinate.mX; });
 
     const auto tNodalAverage = element_averaged_nodal_values(tXCoordinate, *tBulkData);
     // Computed by hand based on connectivity
@@ -96,7 +96,7 @@ TEST(MeshFieldOperations, NodalAverageElementProjectionHexMesh)
     constexpr auto tMeshGenerator = CommandGenerator{.mElements = {1, 2, 1},
                                                      .mLowerBounds = {0.0, 0.0, 0.0},
                                                      .mUpperBounds = {2.0, 2.0, 2.0},
-                                                     .mType = CommandElementType::Hex};
+                                                     .mType = CommandElementType::kHex};
 
     const auto tMesh = generate_bulk_data(tMeshGenerator);
     ASSERT_TRUE(tMesh);

@@ -25,12 +25,14 @@ void ROLObjectiveFunction::update(const std::vector<double>& aControls,
     }
 }
 
-auto ROLObjectiveFunction::value(const std::vector<double>& aControls, double&) -> double
+auto ROLObjectiveFunction::value(const std::vector<double>& aControls, double& /*tol*/) -> double
 {
     return mFunction.evaluate<core::evaluation::kFunction>(linear_algebra::DynamicVector<double>{aControls});
 }
 
-void ROLObjectiveFunction::gradient(std::vector<double>& aGradient, const std::vector<double>& aControls, double&)
+void ROLObjectiveFunction::gradient(std::vector<double>& aGradient,
+                                    const std::vector<double>& aControls,
+                                    double& /*tol*/)
 {
     aGradient = mFunction.evaluate<core::evaluation::kFirstDerivative>(linear_algebra::DynamicVector<double>{aControls})
                     .stdVector();

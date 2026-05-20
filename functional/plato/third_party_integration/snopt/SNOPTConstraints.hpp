@@ -26,7 +26,7 @@ class SNOPTConstraints
     /// @brief Construction from an unpartitioned vector of Constraint objects, which will be partitioned by linearity.
     /// @post The vector returned by release and constraint member functions will be partitioned such that all
     /// non-linear constraints are ordered before linear constraints.
-    SNOPTConstraints(const InterfaceConstraintVectorType& aConstraints, const std::size_t aNumberOfDesignVariables);
+    SNOPTConstraints(const InterfaceConstraintVectorType& aConstraints, std::size_t aNumberOfDesignVariables);
 
     [[nodiscard]] auto numberOfLinearConstraints() const -> std::size_t;
     [[nodiscard]] auto numberOfNonlinearConstraints() const -> std::size_t;
@@ -56,15 +56,14 @@ class SNOPTConstraints
 /// @brief Remove affine term from the constraint bounds to conform to SNOPT's interface
 /// Example: \f$c(x) = ax + b, l \leq c(x) \leq u \rightarrow l - c(0) \leq a*x \leq u - c(0)\f$
 [[nodiscard]] auto constraints_with_affine_offset_removed(ConstraintVectorType&& aConstraints,
-                                                          const std::size_t aNumberOfDesignVariables)
-    -> ConstraintVectorType;
+                                                          std::size_t aNumberOfDesignVariables) -> ConstraintVectorType;
 
 /// @brief Expands any vector constraints into individual scalar constraints, converting all Jacobian types to
 /// gradients.
 ///
 /// The purpose of this function is to adapt the plato interface that uses vector constraints for all constraint types
 /// to scalar constraints, which is what snopt assumes.
-[[nodiscard]] auto constraints_with_vectors_expanded(const InterfaceConstraintVectorType& aConstraints)
+[[nodiscard]] auto constraints_with_vectors_expanded(const InterfaceConstraintVectorType& aVectorConstraints)
     -> ConstraintVectorType;
 
 namespace detail
@@ -75,7 +74,8 @@ namespace detail
     -> std::size_t;
 
 /// @brief Expands a single vector constraint into a vector of scalar constraints.
-[[nodiscard]] auto constraint_with_vectors_expanded(const InterfaceConstraintType& aConstraint) -> ConstraintVectorType;
+[[nodiscard]] auto constraint_with_vectors_expanded(const InterfaceConstraintType& aVectorConstraint)
+    -> ConstraintVectorType;
 }  // namespace detail
 
 }  // namespace plato::third_party_integration::snopt

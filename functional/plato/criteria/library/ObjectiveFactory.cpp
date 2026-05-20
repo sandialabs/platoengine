@@ -78,14 +78,12 @@ using ValidatedObjective = input_validation::ValidatedInputDataBlock<components:
             make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective)),
             aObjectiveComm.mValue);
     }
-    else
-    {
-        auto tFunction = make_logging_function(
-            make_criterion_function<CriterionFunction, input_parser::objective>(aObjective).mFunction,
-            components::ComponentType::kObjective, tName, aObjectiveComm.mValue);
 
-        return make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective));
-    }
+    auto tFunction =
+        make_logging_function(make_criterion_function<CriterionFunction, input_parser::objective>(aObjective).mFunction,
+                              components::ComponentType::kObjective, tName, aObjectiveComm.mValue);
+
+    return make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective));
 }
 
 [[nodiscard]] auto normalization_value(const ValidatedObjective& aObjectiveInput,

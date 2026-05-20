@@ -44,13 +44,13 @@ template <std::size_t kFieldSize>
     return std::span<double, kFieldSize>(static_cast<double*>(aStkField), kFieldSize);
 }
 
-template <stk::topology::rank_t Rank>
+template <stk::topology::rank_t kRank>
 auto size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> unsigned int
 {
     std::vector<size_t> tEntityCounts;
     const auto tSelector = detail::parts_to_selector(aParts);
     stk::mesh::comm_mesh_counts(aBulk, tEntityCounts, &tSelector);
-    return tEntityCounts[Rank];
+    return tEntityCounts[kRank];
 }
 
 [[nodiscard]] auto create_reading_iobroker(const std::filesystem::path& aInputMeshName)
@@ -65,10 +65,10 @@ auto size(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -
     return tIOBroker;
 }
 
-template <stk::topology::rank_t Rank>
+template <stk::topology::rank_t kRank>
 [[nodiscard]] auto field_exists(const stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName) -> bool
 {
-    const auto tField = aIOBroker.meta_data().get_field(Rank, std::string{aFieldName});
+    auto* const tField = aIOBroker.meta_data().get_field(kRank, std::string{aFieldName});
     return tField;
 }
 
@@ -96,11 +96,11 @@ template <stk::topology::rank_t Rank>
     return std::find(tTimeSteps.begin(), tTimeSteps.end(), tTimeStep) != tTimeSteps.end();
 }
 
-template <stk::topology::rank_t Rank>
+template <stk::topology::rank_t kRank>
 [[nodiscard]] auto get_all_field_names(const std::filesystem::path& aInputMeshName) -> std::vector<std::string>
 {
     const auto tIOBroker = create_reading_iobroker(aInputMeshName);
-    const auto tFieldVector = tIOBroker->meta_data().get_fields(Rank);
+    const auto tFieldVector = tIOBroker->meta_data().get_fields(kRank);
     std::vector<std::string> tFieldNames;
     tFieldNames.reserve(tFieldVector.size());
     std::transform(tFieldVector.begin(), tFieldVector.end(), std::back_inserter(tFieldNames),
@@ -108,15 +108,15 @@ template <stk::topology::rank_t Rank>
     return tFieldNames;
 }
 
-template <stk::topology::rank_t Rank>
-[[nodiscard]] auto read_field(const stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName)
-    -> std::map<std::size_t, double>
+template <stk::topology::rank_t kRank>
+[[nodiscard]] auto read_field(const stk::io::StkMeshIoBroker& aIOBroker,
+                              const std::string_view aFieldName) -> std::map<std::size_t, double>
 {
-    auto tField = aIOBroker.meta_data().get_field(Rank, std::string{aFieldName});
+    auto* tField = aIOBroker.meta_data().get_field(kRank, std::string{aFieldName});
 
     auto tEntities = stk::mesh::EntityVector{};
     constexpr auto tSorted = true;
-    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntities, tSorted);
+    stk::mesh::get_entities(aIOBroker.bulk_data(), kRank, tEntities, tSorted);
 
     auto tFieldFromFile = std::map<std::size_t, double>{};
     const auto tIndices = utilities::IndexRange{tEntities.size()};
@@ -195,11 +195,11 @@ namespace
     return tIndices |
            std::views::transform(
                [tSpatialDim = spatial_dimensions(aBulk), &tCoordinateField,
-                mNodeEntity = std::move(tNodeEntity)](const auto aNodeIndex)
+                tMNodeEntity = std::move(tNodeEntity)](const auto aNodeIndex)
                {
                    constexpr auto tCoordinateFieldSize = std::size_t{3U};
                    const auto tData =
-                       to_span<tCoordinateFieldSize>(stk::mesh::field_data(tCoordinateField, mNodeEntity[aNodeIndex]));
+                       to_span<tCoordinateFieldSize>(stk::mesh::field_data(tCoordinateField, tMNodeEntity[aNodeIndex]));
                    return common::Coordinate{tData[0], tData[1], tSpatialDim == 2 ? 0 : tData[2]};
                }) |
            std::views::common;
@@ -323,9 +323,9 @@ namespace detail
 auto parts_to_selector(const PartReferenceVector& aParts) -> stk::mesh::Selector
 {
     return std::accumulate(aParts.cbegin(), aParts.cend(), stk::mesh::Selector{},
-                           [](stk::mesh::Selector aSelector, const auto tPart)
+                           [](stk::mesh::Selector aSelector, const auto aPart)
                            {
-                               aSelector |= tPart.get();
+                               aSelector |= aPart.get();
                                return aSelector;
                            });
 }

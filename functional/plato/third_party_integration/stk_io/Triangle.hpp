@@ -9,13 +9,13 @@ namespace plato::third_party_integration::stk_io
 {
 struct Triangle
 {
-    constexpr static auto kNumVertices = unsigned{3};
-    using Indices = std::array<unsigned int, kNumVertices>;
-    using VertexSensitivities = std::array<common::Vector3, kNumVertices>;
+    constexpr static auto mNumVertices = unsigned{3};
+    using Indices = std::array<unsigned int, mNumVertices>;
+    using VertexSensitivities = std::array<common::Vector3, mNumVertices>;
 
-    common::Coordinate p0;
-    common::Coordinate p1;
-    common::Coordinate p2;
+    common::Coordinate mP0;
+    common::Coordinate mP1;
+    common::Coordinate mP2;
 
     [[nodiscard]] auto volume() const -> double;
     [[nodiscard]] auto normal() const -> common::Vector3;

@@ -39,14 +39,14 @@ class KernelFilter : public library::FilterInterface
     [[nodiscard]] auto filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
         -> analysis::AnalysisDomainMesh override;
 
-    /// @brief Return the multiplication of row vector @a aV with the Jacobian of the filter.
+    /// @brief Return the multiplication of row vector @a aRowVector with the Jacobian of the filter.
     [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                              const linear_algebra::DynamicVector<double>& aV) const
+                                              const linear_algebra::DynamicVector<double>& aRowVector) const
         -> linear_algebra::DynamicVector<double> override;
 
-    /// @brief Return the multiplication of row vector @a aV with the transpose Jacobian of the filter.
+    /// @brief Return the multiplication of row vector @a aRowVector with the transpose Jacobian of the filter.
     [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                     const linear_algebra::DynamicVector<double>& aV) const
+                                                     const linear_algebra::DynamicVector<double>& aRowVector) const
         -> linear_algebra::DynamicVector<double> override;
 
    private:

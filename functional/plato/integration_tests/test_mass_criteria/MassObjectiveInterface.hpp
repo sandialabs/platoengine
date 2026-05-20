@@ -27,10 +27,10 @@ class MassObjectiveInterface : public criteria::library::CriterionInterface
 };
 }  // namespace plato::integration_tests::test_mass_criteria
 
-extern "C" auto plato_create_criterion(const std::vector<std::string>&)
+extern "C" auto plato_create_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 
-extern "C" auto plato_create_test_mass_criterion(const std::vector<std::string>&)
+extern "C" auto plato_create_test_mass_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 
 #endif

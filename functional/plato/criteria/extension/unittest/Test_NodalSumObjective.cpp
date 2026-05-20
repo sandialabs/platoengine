@@ -38,7 +38,7 @@ TEST(NodalSumObjective, Value211)
 TEST(NodalSumObjective, Value0)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
-        {1, 1, 1}, {-2, -1, -3}, {2, 1, 3}, third_party_integration::stk_io::CommandElementType::Hex};
+        {1, 1, 1}, {-2, -1, -3}, {2, 1, 3}, third_party_integration::stk_io::CommandElementType::kHex};
     third_party_integration::stk_io::write_mesh(kTestFile, tCommandGenerator);
 
     constexpr double tExpectedValue = 0.0;
@@ -49,7 +49,7 @@ TEST(NodalSumObjective, Value0)
 TEST(NodalSumObjective, Gradient111)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
-        {1, 2, 3}, {0, 0, 0}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
+        {1, 2, 3}, {0, 0, 0}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::kHex};
     third_party_integration::stk_io::write_mesh(kTestFile, tCommandGenerator);
 
     const auto tNodalSum = NodalSumObjective{};

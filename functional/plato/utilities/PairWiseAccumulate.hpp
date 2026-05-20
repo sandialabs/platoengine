@@ -16,12 +16,12 @@ auto pair_wise_accumulate_impl(const Iter aBegin, const Iter aEnd)
 {
     using DistanceType = typename std::iterator_traits<Iter>::difference_type;
     using ValueType = typename std::iterator_traits<Iter>::value_type;
-    constexpr auto kMinSizeWhereAccumulateAccurate =
+    constexpr auto tMinSizeWhereAccumulateAccurate =
         DistanceType{32};  // 32 was empirically determined as the transition for summing double precision numbers where
                            // accumulate would produce round off errors. Since this algorithm splits the container in
                            // two, this number should be a multiple of 2.
     const auto tNumElements = std::distance(aBegin, aEnd);
-    if (tNumElements <= kMinSizeWhereAccumulateAccurate)
+    if (tNumElements <= tMinSizeWhereAccumulateAccurate)
     {
         return std::accumulate(aBegin, aEnd, ValueType{});
     }

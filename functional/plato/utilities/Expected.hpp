@@ -61,7 +61,7 @@ class Expected
 
     template <typename U>
         requires(std::is_convertible_v<U, T>)
-    constexpr Expected(U&& aU);
+    constexpr Expected(U&& aValue);
 
     template <typename E>
         requires(std::is_convertible_v<E, Error>)
@@ -108,7 +108,7 @@ class Expected
 template <typename T, typename Error>
 template <typename U>
     requires(std::is_convertible_v<U, T>)
-constexpr Expected<T, Error>::Expected(U&& aU) : mValue{std::forward<U>(aU)}
+constexpr Expected<T, Error>::Expected(U&& aValue) : mValue{std::forward<U>(aValue)}
 {
 }
 

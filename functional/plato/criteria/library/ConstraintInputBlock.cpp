@@ -13,7 +13,7 @@ namespace plato::criteria::library
 {
 namespace
 {
-[[maybe_unused]] static const auto kConstraintParserRegistration =
+[[maybe_unused]] const auto kConstraintParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::constraint>{};
 }
 

@@ -38,7 +38,7 @@ void create_mesh()
     const stk_io::CommandNumberOfElements tElements{1, 1, 1};
 
     stk_io::write_mesh(std::filesystem::path{kMeshName}, stk_io::CommandGenerator{tElements, tLowerBounds, tUpperBounds,
-                                                                                  stk_io::CommandElementType::Tet});
+                                                                                  stk_io::CommandElementType::kTet});
 }
 
 [[nodiscard]] auto make_test_level_set_field(::krino::MeshInterface& aKrinoMesh) -> std::vector<::krino::LS_Field>

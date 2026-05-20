@@ -159,20 +159,20 @@ auto make_rol_solver(Teuchos::ParameterList& aROLOptions, const ROL::Ptr<ROL::Pr
 auto make_optimization_parameters(const library::ValidatedProcessManagerInput& aOptimizationParameters)
     -> third_party_integration::rol::OptimizationParameters
 {
-    const auto& aROLParameters =
+    const auto& tRolParameters =
         input_validation::get_input_block<input_parser::rol_optimization>(aOptimizationParameters);
 
-    auto tParameters = load_file_or_use_default_parameters(aROLParameters);
+    auto tParameters = load_file_or_use_default_parameters(tRolParameters);
 
-    tParameters.maximumIterations(utilities::to_std_optional(aROLParameters.max_iterations));
-    tParameters.gradientTolerance(utilities::to_std_optional(aROLParameters.gradient_tolerance));
-    tParameters.stepTolerance(utilities::to_std_optional(aROLParameters.step_tolerance));
-    tParameters.initialSearchRadius(utilities::to_std_optional(aROLParameters.initial_search_radius));
-    tParameters.writeOutputHistory(utilities::to_std_optional(aROLParameters.output_design_history));
+    tParameters.maximumIterations(utilities::to_std_optional(tRolParameters.max_iterations));
+    tParameters.gradientTolerance(utilities::to_std_optional(tRolParameters.gradient_tolerance));
+    tParameters.stepTolerance(utilities::to_std_optional(tRolParameters.step_tolerance));
+    tParameters.initialSearchRadius(utilities::to_std_optional(tRolParameters.initial_search_radius));
+    tParameters.writeOutputHistory(utilities::to_std_optional(tRolParameters.output_design_history));
 
-    apply_verbose_output(aROLParameters, tParameters);
-    apply_approximate_hessian(aROLParameters, tParameters);
-    write_parameters(aROLParameters, tParameters);
+    apply_verbose_output(tRolParameters, tParameters);
+    apply_approximate_hessian(tRolParameters, tParameters);
+    write_parameters(tRolParameters, tParameters);
 
     return tParameters;
 }

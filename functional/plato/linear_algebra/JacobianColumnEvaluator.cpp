@@ -13,20 +13,21 @@ auto JacobianColumnEvaluator::column(const unsigned int aIndex) const -> Dynamic
     return mColumnFunction(aIndex, mX);
 }
 
-auto operator*(const DynamicVector<double>& aX, const JacobianColumnEvaluator& aA) -> DynamicVector<double>
+auto operator*(const DynamicVector<double>& aRowVector,
+               const JacobianColumnEvaluator& aJacobian) -> DynamicVector<double>
 {
-    auto tResult = std::vector<double>(aA.mColumns);
-    for (unsigned int i = 0; i < aA.mColumns; ++i)
+    auto tResult = std::vector<double>(aJacobian.mColumns);
+    for (unsigned int tColumnIndex = 0; tColumnIndex < aJacobian.mColumns; ++tColumnIndex)
     {
-        tResult[i] = aX.dot(aA.column(i));
+        tResult[tColumnIndex] = aRowVector.dot(aJacobian.column(tColumnIndex));
     }
     return DynamicVector<double>(std::move(tResult));
 }
 
 auto to_jacobian_multiplier(JacobianColumnEvaluator aJacobianColumnEvaluator) -> JacobianMultiplier
 {
-    return JacobianMultiplier{/*.mJacobianTimesVector=*/
-                              [tColumnEvaluator = std::move(aJacobianColumnEvaluator)](const DynamicVector<double>& aX)
-                              { return aX * tColumnEvaluator; }};
+    return JacobianMultiplier{.mVectorTimesJacobianFunction = [tColumnEvaluator = std::move(aJacobianColumnEvaluator)](
+                                                                  const DynamicVector<double>& aRowVector)
+                              { return aRowVector * tColumnEvaluator; }};
 }
 }  // namespace plato::linear_algebra

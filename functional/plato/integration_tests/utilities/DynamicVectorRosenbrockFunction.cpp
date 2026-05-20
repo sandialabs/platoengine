@@ -16,15 +16,15 @@ auto make_rosenbrock_dynamic_vector_function(const test_utilities::Rosenbrock& a
                       core::FunctionInfo<linear_algebra::DynamicVector<double>, core::evaluation::kFirstDerivative>>
 {
     return core::make_function_with_first_derivative(
-        [rosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& x)
+        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& aVector)
         {
-            assert(x.size() == 2);
-            return rosenbrock.f(x[0], x[1]);
+            assert(aVector.size() == 2);
+            return tRosenbrock.f(aVector[0], aVector[1]);
         },
-        [rosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& x)
+        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& aVector)
         {
-            assert(x.size() == 2);
-            return to_dynamic_vector(rosenbrock.df(x[0], x[1]));
+            assert(aVector.size() == 2);
+            return to_dynamic_vector(tRosenbrock.df(aVector[0], aVector[1]));
         });
 }
 

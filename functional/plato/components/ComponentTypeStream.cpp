@@ -15,13 +15,12 @@ namespace plato::components
 {
 namespace
 {
-const static auto kComponentNameTable =
+const auto kComponentNameTable =
     utilities::EnumTable<ComponentType>{{ComponentType::kConstraint, "constraint"},
                                         {ComponentType::kFilter, "filter"},
                                         {ComponentType::kGeometry, "geometry"},
                                         {ComponentType::kObjective, "objective"},
                                         {ComponentType::kProcessManager, "process manager"}};
-
 }
 
 auto operator<<(std::ostream& aStream, const ComponentType aComponentType) -> std::ostream&

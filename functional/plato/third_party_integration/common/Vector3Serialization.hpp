@@ -10,9 +10,9 @@ namespace plato::third_party_integration::common
 template <typename Archive>
 void serialize(Archive& aArchive, Vector3& aVector, const unsigned int /*aVersion*/)
 {
-    aArchive & aVector.x;
-    aArchive & aVector.y;
-    aArchive & aVector.z;
+    aArchive & aVector.mX;
+    aArchive & aVector.mY;
+    aArchive & aVector.mZ;
 }
 }  // namespace plato::third_party_integration::common
 #endif

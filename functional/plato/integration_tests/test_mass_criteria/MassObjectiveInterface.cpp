@@ -30,13 +30,13 @@ auto MassObjectiveInterface::gradient(const analysis::AnalysisDomainMesh& aAnaly
 }
 }  // namespace plato::integration_tests::test_mass_criteria
 
-auto plato_create_criterion(const std::vector<std::string>&)
+auto plato_create_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::CriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::MassObjectiveInterface>();
 }
 
-auto plato_create_test_mass_criterion(const std::vector<std::string>&)
+auto plato_create_test_mass_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::CriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::MassObjectiveInterface>();

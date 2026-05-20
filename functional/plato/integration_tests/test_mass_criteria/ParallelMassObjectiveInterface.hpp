@@ -36,10 +36,11 @@ class ParallelMassObjectiveInterface : public criteria::library::CriterionInterf
 };
 }  // namespace plato::integration_tests::test_mass_criteria
 
-extern "C" auto plato_create_parallel_criterion(const std::vector<std::string>&, MPI_Comm aCommunicator)
+extern "C" auto plato_create_parallel_criterion(const std::vector<std::string>& /*unused*/, MPI_Comm aCommunicator)
     -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 
-extern "C" auto plato_create_parallel_test_mass_criterion(const std::vector<std::string>&, MPI_Comm aCommunicator)
+extern "C" auto plato_create_parallel_test_mass_criterion(const std::vector<std::string>& /*unused*/,
+                                                          MPI_Comm aCommunicator)
     -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 
 #endif

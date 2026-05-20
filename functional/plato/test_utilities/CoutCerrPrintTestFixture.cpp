@@ -15,9 +15,9 @@ namespace plato::test_utilities
 {
 namespace
 {
-void checkRankZeroStringStream(const std::ostringstream& aStreamWithOutput,
-                               const std::string& aGold,
-                               const TestContext& aTestContext)
+void check_rank_zero_string_stream(const std::ostringstream& aStreamWithOutput,
+                                   const std::string& aGold,
+                                   const TestContext& aTestContext)
 {
     if (boost::mpi::communicator{}.rank() == 0)
     {
@@ -25,9 +25,9 @@ void checkRankZeroStringStream(const std::ostringstream& aStreamWithOutput,
     }
 }
 
-void checkRankZeroStringStreamStreamForPattern(const std::ostringstream& aStreamWithOutput,
-                                               const std::vector<std::string>& aKeyList,
-                                               const TestContext& aTestContext)
+void check_rank_zero_string_stream_stream_for_pattern(const std::ostringstream& aStreamWithOutput,
+                                                      const std::vector<std::string>& aKeyList,
+                                                      const TestContext& aTestContext)
 {
     const auto tString = aStreamWithOutput.str();
     if (boost::mpi::communicator{}.rank() == 0)
@@ -58,25 +58,25 @@ CoutCerrPrintTestFixture::~CoutCerrPrintTestFixture()
 void CoutCerrPrintTestFixture::checkRankZeroCoutStringStream(const std::string& aGold,
                                                              const TestContext& aTestContext) const
 {
-    checkRankZeroStringStream(mCoutStringStream, aGold, aTestContext);
+    check_rank_zero_string_stream(mCoutStringStream, aGold, aTestContext);
 }
 
 void CoutCerrPrintTestFixture::checkRankZeroCerrStringStream(const std::string& aGold,
                                                              const TestContext& aTestContext) const
 {
-    checkRankZeroStringStream(mCerrStringStream, aGold, aTestContext);
+    check_rank_zero_string_stream(mCerrStringStream, aGold, aTestContext);
 }
 
 void CoutCerrPrintTestFixture::checkRankZeroCoutStringStreamStreamForPattern(const std::vector<std::string>& aKeyList,
                                                                              const TestContext& aTestContext) const
 {
-    checkRankZeroStringStreamStreamForPattern(mCoutStringStream, aKeyList, aTestContext);
+    check_rank_zero_string_stream_stream_for_pattern(mCoutStringStream, aKeyList, aTestContext);
 }
 
 void CoutCerrPrintTestFixture::checkRankZeroCerrStringStreamStreamForPattern(const std::vector<std::string>& aKeyList,
                                                                              const TestContext& aTestContext) const
 {
-    checkRankZeroStringStreamStreamForPattern(mCerrStringStream, aKeyList, aTestContext);
+    check_rank_zero_string_stream_stream_for_pattern(mCerrStringStream, aKeyList, aTestContext);
 }
 
 void CoutCerrPrintTestFixture::clearStreams()

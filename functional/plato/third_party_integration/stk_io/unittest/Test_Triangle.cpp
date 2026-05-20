@@ -12,11 +12,11 @@ namespace
 {
 Triangle create_unit_triangle()
 {
-    const common::Coordinate tPointA{.x = 1, .y = 0, .z = 0};
-    const common::Coordinate tPointB{.x = 0, .y = 1, .z = 0};
-    const common::Coordinate tPointC{.x = 0, .y = 0, .z = 1};
+    const common::Coordinate tPointA{.mX = 1, .mY = 0, .mZ = 0};
+    const common::Coordinate tPointB{.mX = 0, .mY = 1, .mZ = 0};
+    const common::Coordinate tPointC{.mX = 0, .mY = 0, .mZ = 1};
 
-    return Triangle{.p0 = tPointA, .p1 = tPointB, .p2 = tPointC};
+    return Triangle{.mP0 = tPointA, .mP1 = tPointB, .mP2 = tPointC};
 }
 }  // namespace
 
@@ -25,8 +25,8 @@ TEST(Triangle, Volume)
     const Triangle tTri = create_unit_triangle();
     const double tResult = tTri.volume();
 
-    const common::Vector3 tVectorA{tTri.p1 - tTri.p0};
-    const common::Vector3 tVectorB{tTri.p2 - tTri.p0};
+    const common::Vector3 tVectorA{tTri.mP1 - tTri.mP0};
+    const common::Vector3 tVectorB{tTri.mP2 - tTri.mP0};
     const common::Vector3 tCrossBA = cross(tVectorB, tVectorA);
     const double tGold = std::sqrt(dot(tCrossBA, tCrossBA)) * 0.5;
 
@@ -38,7 +38,7 @@ TEST(Triangle, Centroid)
     const Triangle tTri = create_unit_triangle();
     const common::Coordinate tResult = tTri.centroid();
 
-    const common::Coordinate tGold{.x = 1.0 / 3.0, .y = 1.0 / 3.0, .z = 1.0 / 3.0};
+    const common::Coordinate tGold{.mX = 1.0 / 3.0, .mY = 1.0 / 3.0, .mZ = 1.0 / 3.0};
     common::test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Triangle centroid"));
 }
 
@@ -46,9 +46,9 @@ TEST(Triangle, VolumeVertexSensitivities)
 {
     constexpr double tBase{4.0};
     constexpr double tHeight{24.0};
-    const auto tPlanarTri = Triangle{.p0 = common::Coordinate{.x = 0, .y = 0, .z = 0},
-                                     .p1 = common::Coordinate{.x = tBase, .y = 0, .z = 0},
-                                     .p2 = common::Coordinate{.x = 0, .y = tHeight, .z = 0}};
+    const auto tPlanarTri = Triangle{.mP0 = common::Coordinate{.mX = 0, .mY = 0, .mZ = 0},
+                                     .mP1 = common::Coordinate{.mX = tBase, .mY = 0, .mZ = 0},
+                                     .mP2 = common::Coordinate{.mX = 0, .mY = tHeight, .mZ = 0}};
 
     const auto tVertexSensitivities = tPlanarTri.volumeVertexSensitivities();
     const auto tExpectedSensitivities = test_utilities::axes_aligned_tri_volume_sensitivities(

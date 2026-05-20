@@ -49,8 +49,8 @@ template <typename T, typename FieldFunction>
     auto tBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
     tBlockIDs.reserve(aBlockNames.size());
     std::transform(aBlockNames.cbegin(), aBlockNames.cend(), std::back_inserter(tBlockIDs),
-                   [&tBlockData, &tNameField](const std::string& tBlockName)
-                   { return block_meta_data_ordinal(tBlockName, tNameField, tBlockData); });
+                   [&tBlockData, &tNameField](const std::string& aBlockName)
+                   { return block_meta_data_ordinal(aBlockName, tNameField, tBlockData); });
     return tBlockIDs;
 }
 
@@ -60,7 +60,7 @@ template <typename T, typename FieldFunction>
     auto tBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
     tBlockIDs.reserve(tBlockData.size());
     std::transform(tBlockData.cbegin(), tBlockData.cend(), std::back_inserter(tBlockIDs),
-                   [](const auto& tBlockDatum) { return tBlockDatum.mMetaDataOrdinal; });
+                   [](const auto& aBlockDatum) { return aBlockDatum.mMetaDataOrdinal; });
     return tBlockIDs;
 }
 
@@ -101,8 +101,8 @@ template <typename T, typename FieldFunction>
     auto tDesignBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
     tDesignBlockIDs.reserve(aAnalysisDomainMesh.mBlockScalarField.size());
     std::transform(aAnalysisDomainMesh.mBlockScalarField.cbegin(), aAnalysisDomainMesh.mBlockScalarField.cend(),
-                   std::back_inserter(tDesignBlockIDs), [&tBlockData, &tIDField](const auto& tBlockScalarField)
-                   { return block_meta_data_ordinal(tBlockScalarField.first, tIDField, tBlockData); });
+                   std::back_inserter(tDesignBlockIDs), [&tBlockData, &tIDField](const auto& aBlockScalarField)
+                   { return block_meta_data_ordinal(aBlockScalarField.first, tIDField, tBlockData); });
 
     return set_difference_block_ordinals(aBulkData, std::move(tDesignBlockIDs));
 }

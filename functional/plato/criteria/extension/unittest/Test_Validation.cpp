@@ -16,7 +16,7 @@ void check_validation_app(const test_utilities::TestContext& aTestContext)
 {
     Criteria tCriteria;
     tCriteria.app = input_parser::AppName{std::string{input_parser::kBuiltinAppName}};
-    tCriteria.criterion = input_parser::CriterionName{std::string{NodalSumObjective::kCriterionName}};
+    tCriteria.criterion = input_parser::CriterionName{std::string{NodalSumObjective::mCriterionName}};
     EXPECT_FALSE(library::detail::validate_criterion_is_registered(tCriteria).has_value()) << aTestContext;
 
     tCriteria.app = boost::none;

@@ -37,7 +37,7 @@ TEST(FunctionArgType, Arg)
 
 TEST(FunctionArgType, NumberOfArgs)
 {
-    static_assert(FunctionArgType<Paladin>::kNumberOfArgs == 3U);
-    static_assert(FunctionArgType<Rogue>::kNumberOfArgs == 2U);
+    static_assert(FunctionArgType<Paladin>::mNumberOfArgs == 3U);
+    static_assert(FunctionArgType<Rogue>::mNumberOfArgs == 2U);
 }
 }  // namespace plato::utilities::unittest

@@ -25,9 +25,9 @@ namespace
 using BlockDataIteratorType = std::vector<third_party_integration::common::BlockData>::const_iterator;
 
 template <typename Predicate, typename FieldAccessor>
-auto blockDataMatchingPredicate(const std::vector<third_party_integration::common::BlockData>& aBlockData,
-                                const Predicate& aPredicate,
-                                const FieldAccessor& aResultField)
+auto block_data_matching_predicate(const std::vector<third_party_integration::common::BlockData>& aBlockData,
+                                   const Predicate& aPredicate,
+                                   const FieldAccessor& aResultField)
     -> std::optional<std::invoke_result_t<FieldAccessor, const BlockDataIteratorType>>
 {
     const auto tDataIterator = std::find_if(aBlockData.cbegin(), aBlockData.cend(), aPredicate);
@@ -43,21 +43,21 @@ MeshBlocks::MeshBlocks(Mesh aMeshBase) : Mesh{std::move(aMeshBase)} {}
 
 auto MeshBlocks::blockOrdinal(std::string_view aBlockName) const -> std::optional<Mesh::BlockOrdinalType>
 {
-    return blockDataMatchingPredicate(
+    return block_data_matching_predicate(
         blockData(), [aBlockName](const auto& aData) { return aData.mName == aBlockName; },
         [](const auto aIterator) { return aIterator->mMetaDataOrdinal; });
 }
 
 auto MeshBlocks::blockID(const std::string_view aBlockName) const -> std::optional<MeshBlocks::BlockIDType>
 {
-    return blockDataMatchingPredicate(
+    return block_data_matching_predicate(
         blockData(), [aBlockName](const auto& aData) { return aData.mName == aBlockName; },
         [](const auto aIterator) { return aIterator->mID; });
 }
 
 auto MeshBlocks::blockID(const Mesh::BlockOrdinalType aBlockOrdinal) const -> std::optional<MeshBlocks::BlockIDType>
 {
-    return blockDataMatchingPredicate(
+    return block_data_matching_predicate(
         blockData(), [aBlockOrdinal](const auto& aData) { return aData.mMetaDataOrdinal == aBlockOrdinal; },
         [](const auto aIterator) { return aIterator->mID; });
 }
@@ -93,7 +93,7 @@ auto MeshBlocks::blockNames() const -> std::vector<std::string>
     auto tBlockNames = std::vector<std::string>{};
     tBlockNames.reserve(tBlockNames.size());
     std::transform(tBlockData.cbegin(), tBlockData.cend(), std::back_inserter(tBlockNames),
-                   [](const auto& tBlockDatum) { return tBlockDatum.mName; });
+                   [](const auto& aBlockDatum) { return aBlockDatum.mName; });
     return tBlockNames;
 }
 

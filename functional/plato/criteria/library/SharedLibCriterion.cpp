@@ -73,11 +73,10 @@ auto SharedLibCriterion::f(const analysis::AnalysisDomainMesh& aMesh) const -> d
     return mCriterionInterface->object()->value(aMesh);
 }
 
-auto SharedLibCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisMesh) const
-    -> linear_algebra::DynamicVector<double>
+auto SharedLibCriterion::df(const analysis::AnalysisDomainMesh& aMesh) const -> linear_algebra::DynamicVector<double>
 {
     [[maybe_unused]] const auto tScopedLogger = services::ScopedExternalRedirectLogger{mComponentType, mName};
-    return linear_algebra::DynamicVector<double>(mCriterionInterface->object()->gradient(aAnalysisMesh));
+    return linear_algebra::DynamicVector<double>(mCriterionInterface->object()->gradient(aMesh));
 }
 
 auto make_shared_lib_function(const SharedLibCriterion& aSharedLibCriterion) -> library::CriterionFunction

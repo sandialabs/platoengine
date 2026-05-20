@@ -10,9 +10,9 @@ namespace plato::mesh
 {
 namespace
 {
-const auto tIdentityJacobian =
+const auto kIdentityJacobian =
     linear_algebra::JacobianMultiplier{[](const linear_algebra::DynamicVector<double>& aVector) { return aVector; }};
-const auto tIdentityAdjointJacobian = linear_algebra::AdjointJacobianMultiplier{tIdentityJacobian};
+const auto kIdentityAdjointJacobian = linear_algebra::AdjointJacobianMultiplier{kIdentityJacobian};
 }  // namespace
 
 auto design_variables_to_analysis_mesh_adapter(const mesh::Mesh& aMesh) -> DesignVariableToAnalysisMeshAdapterFunction
@@ -23,8 +23,8 @@ auto design_variables_to_analysis_mesh_adapter(const mesh::Mesh& aMesh) -> Desig
             return mesh::DesignVariablesConversion{aMesh}.nodalFieldToAnalysisDomainMesh(
                 mesh::NodalFieldVectorReference{aNodalField.stdVector()});
         },
-        [](const linear_algebra::DynamicVector<double>&) { return tIdentityJacobian; },
-        [](const linear_algebra::DynamicVector<double>&) { return tIdentityAdjointJacobian; }};
+        [](const linear_algebra::DynamicVector<double>&) { return kIdentityJacobian; },
+        [](const linear_algebra::DynamicVector<double>&) { return kIdentityAdjointJacobian; }};
 }
 
 auto analysis_mesh_to_design_variables_adapter(const mesh::Mesh& aMesh) -> AnalysisMeshToDesignVariablesAdapterFunction
@@ -32,12 +32,11 @@ auto analysis_mesh_to_design_variables_adapter(const mesh::Mesh& aMesh) -> Analy
     return AnalysisMeshToDesignVariablesAdapterFunction{
         [aMesh](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
         {
-            return linear_algebra::DynamicVector<double>{mesh::DesignVariablesConversion{aMesh}
-                                                             .analysisDomainMeshToNodalFieldVector(aAnalysisDomainMesh)
-                                                             .mValue};
+            return linear_algebra::DynamicVector<double>{
+                mesh::DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(aAnalysisDomainMesh).mValue};
         },
-        [](const analysis::AnalysisDomainMesh&) { return tIdentityJacobian; },
-        [](const analysis::AnalysisDomainMesh&) { return tIdentityAdjointJacobian; }};
+        [](const analysis::AnalysisDomainMesh&) { return kIdentityJacobian; },
+        [](const analysis::AnalysisDomainMesh&) { return kIdentityAdjointJacobian; }};
 }
 
 }  // namespace plato::mesh

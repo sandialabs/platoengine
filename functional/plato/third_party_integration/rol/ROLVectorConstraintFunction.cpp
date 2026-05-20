@@ -14,7 +14,9 @@ ROLVectorConstraintFunction::ROLVectorConstraintFunction(ROLPlatoFunction aConst
 {
 }
 
-void ROLVectorConstraintFunction::value(std::vector<double>& aConstraints, const std::vector<double>& aControl, double&)
+void ROLVectorConstraintFunction::value(std::vector<double>& aConstraints,
+                                        const std::vector<double>& aControl,
+                                        double& /*tol*/)
 {
     auto tConstraintValue =
         mFunction.evaluate<core::evaluation::kFunction>(linear_algebra::DynamicVector<double>(aControl));

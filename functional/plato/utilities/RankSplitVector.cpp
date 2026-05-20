@@ -14,7 +14,7 @@ auto rank_group_color(const std::vector<unsigned int>& aGroupSizes, const RankNa
 {
     assert(aRank.mValue >= 0);
     const auto tUnsignedRank = boost::numeric_cast<unsigned int>(aRank.mValue);
-    [[maybe_unused]] const auto tTotalSize = std::accumulate(aGroupSizes.cbegin(), aGroupSizes.cend(), 0u);
+    [[maybe_unused]] const auto tTotalSize = std::accumulate(aGroupSizes.cbegin(), aGroupSizes.cend(), 0U);
     assert(tUnsignedRank < tTotalSize);
 
     auto tPartialSums = std::vector<unsigned int>{};

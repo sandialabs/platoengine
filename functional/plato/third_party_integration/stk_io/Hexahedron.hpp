@@ -9,21 +9,21 @@ namespace plato::third_party_integration::stk_io
 {
 /// @brief struct representing a primitive hexahedron for computing geometric quantities.
 /// Vertices in the hexahedron are labeled based on their ordering relative to a unit hex aligned with the Cartesian
-/// coordinate axes, e.g. p010 refers to the vertex at point (0,1,0).
+/// coordinate axes, e.g. mP010 refers to the vertex at point (0,1,0).
 struct Hexahedron
 {
-    constexpr static auto kNumVertices = unsigned{8};
-    using Indices = std::array<unsigned int, kNumVertices>;
-    using VertexSensitivities = std::array<common::Vector3, kNumVertices>;
+    constexpr static auto mNumVertices = unsigned{8};
+    using Indices = std::array<unsigned int, mNumVertices>;
+    using VertexSensitivities = std::array<common::Vector3, mNumVertices>;
 
-    common::Coordinate p000;
-    common::Coordinate p100;
-    common::Coordinate p110;
-    common::Coordinate p010;
-    common::Coordinate p001;
-    common::Coordinate p101;
-    common::Coordinate p111;
-    common::Coordinate p011;
+    common::Coordinate mP000;
+    common::Coordinate mP100;
+    common::Coordinate mP110;
+    common::Coordinate mP010;
+    common::Coordinate mP001;
+    common::Coordinate mP101;
+    common::Coordinate mP111;
+    common::Coordinate mP011;
 
     [[nodiscard]] auto volume() const -> double;
     [[nodiscard]] auto centroid() const -> common::Coordinate;

@@ -46,14 +46,14 @@ auto ParallelMassObjectiveInterface::gradient(const analysis::AnalysisDomainMesh
 
 }  // namespace plato::integration_tests::test_mass_criteria
 
-auto plato_create_parallel_criterion(const std::vector<std::string>&, MPI_Comm aCommunicator)
+auto plato_create_parallel_criterion(const std::vector<std::string>& /*unused*/, MPI_Comm aCommunicator)
     -> std::unique_ptr<::plato::criteria::library::CriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::ParallelMassObjectiveInterface>(
         aCommunicator);
 }
 
-auto plato_create_parallel_test_mass_criterion(const std::vector<std::string>&, MPI_Comm aCommunicator)
+auto plato_create_parallel_test_mass_criterion(const std::vector<std::string>& /*unused*/, MPI_Comm aCommunicator)
     -> std::unique_ptr<::plato::criteria::library::CriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::ParallelMassObjectiveInterface>(

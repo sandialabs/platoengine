@@ -67,7 +67,7 @@ using ParsedInputValidationRegistration = ValidationRegistration<input_parser::P
 template <typename ValidationInput, typename... AdditionalArgs>
 [[nodiscard]] auto validate(const ValidationInput& aInput,
                             std::vector<std::string>&& aCurrentMessageList,
-                            const AdditionalArgs&...) -> std::vector<std::string>;
+                            const AdditionalArgs&... /*aArgs*/) -> std::vector<std::string>;
 
 namespace detail
 {

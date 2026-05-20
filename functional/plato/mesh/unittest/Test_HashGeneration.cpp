@@ -22,7 +22,7 @@ TEST(HashGeneration, HashMesh)
     // initial mesh
     {
         const stk_io::CommandGenerator tCommandGenerator{
-            {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::Tet};
+            {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::kTet};
         stk_io::write_mesh(fileName, tCommandGenerator);
     }
 
@@ -35,7 +35,7 @@ TEST(HashGeneration, HashMesh)
     // change mesh
     {
         const stk_io::CommandGenerator tCommandGenerator{
-            {3, 3, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::Tet};
+            {3, 3, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::kTet};
         stk_io::write_mesh(fileName, tCommandGenerator);
     }
     EXPECT_NE(tInitialHash, hash_mesh_coordinates(tAnalysisDomainMesh));

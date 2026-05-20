@@ -66,10 +66,10 @@ void declare_and_append_levelset_field(::krino::AuxMetaData& aAuxMeta,
     constexpr auto tNumberOfPhases = 2U;
     const auto tIndices = utilities::IndexRange{tNumberOfPhases};
     std::transform(tIndices.begin(), tIndices.end(), std::back_inserter(tNamedPhases),
-                   [](const auto tPhaseIndex)
+                   [](const auto aPhaseIndex)
                    {
                        auto tTag = ::krino::PhaseTag{};
-                       const auto tLevelSetIsNegative = tPhaseIndex % 2 == 0;
+                       const auto tLevelSetIsNegative = aPhaseIndex % 2 == 0;
                        const auto tLevelSetSign = tLevelSetIsNegative ? -1 : 1;
                        constexpr auto tLevelSetIndex = 0U;
                        tTag.add(::krino::Surface_Identifier(tLevelSetIndex), tLevelSetSign);
@@ -100,7 +100,7 @@ void register_levelset_fields(stk::mesh::MetaData& aMetaData,
                               const std::vector<::krino::LS_Field>& aLevelSetFields)
 {
     auto& tAuxMeta = ::krino::AuxMetaData::get(aMetaData);
-    for (auto& tField : aLevelSetFields)
+    for (const auto& tField : aLevelSetFields)
     {
         const auto tBlockOrdinals = aPhaseSupport.get_levelset_decomposed_block_ordinals(tField.identifier);
         for (const auto tBlockOrdinal : tBlockOrdinals)

@@ -1,11 +1,9 @@
-#ifndef PLATO_SERVICES_TaskLogSetupTeardown
-#define PLATO_SERVICES_TaskLogSetupTeardown
+#ifndef PLATO_SERVICES_TASK_LOG_SETUP_TEARDOWN
+#define PLATO_SERVICES_TASK_LOG_SETUP_TEARDOWN
 
 #include <string>
-#include <string_view>
 
 #include "plato/services/SystemLogger.hpp"
-#include "plato/utilities/NamedType.hpp"
 
 namespace plato::services
 {

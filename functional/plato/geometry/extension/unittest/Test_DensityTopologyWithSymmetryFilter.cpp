@@ -37,7 +37,7 @@ void create_bar_mesh()
 {
     namespace tpis = third_party_integration::stk_io;
     const auto tCommandGenerator =
-        tpis::CommandGenerator{{10, 10, 5}, {-5, -5, 0}, {5, 5, 5}, tpis::CommandElementType::Hex};
+        tpis::CommandGenerator{{10, 10, 5}, {-5, -5, 0}, {5, 5, 5}, tpis::CommandElementType::kHex};
     tpis::write_mesh(kBarTargetMeshFile, tCommandGenerator.toString());
 }
 

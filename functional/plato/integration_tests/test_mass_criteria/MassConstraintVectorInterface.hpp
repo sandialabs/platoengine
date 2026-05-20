@@ -32,10 +32,10 @@ class MassConstraintInterface : public criteria::library::VectorCriterionInterfa
 // CPD-ON
 }  // namespace plato::integration_tests::test_mass_criteria
 
-extern "C" auto plato_create_vector_criterion(const std::vector<std::string>&)
+extern "C" auto plato_create_vector_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>;
 
-extern "C" auto plato_create_vector_test_mass_criterion(const std::vector<std::string>&)
+extern "C" auto plato_create_vector_test_mass_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>;
 
 #endif

@@ -15,10 +15,8 @@ auto make_geometry_data(const ValidatedGeometryInput& aGeometryInput) -> Factory
     {
         return std::move(tGeometry).value();
     }
-    else
-    {
-        throw utilities::Exception{"Unknown geometry"};
-    }
+
+    throw utilities::Exception{"Unknown geometry"};
 }
 
 }  // namespace plato::geometry::library

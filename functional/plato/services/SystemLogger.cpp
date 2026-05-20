@@ -53,22 +53,22 @@ SystemLogger::SystemLogger(components::ComponentType aComponentType,
 
 void SystemLogger::logDebugMessage(const std::string_view aMessage)
 {
-    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kDebug);
+    system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kDebug);
 }
 
 void SystemLogger::logInfo(const std::string_view aMessage)
 {
-    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kInfo);
+    system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kInfo);
 }
 
 void SystemLogger::logWarning(const std::string_view aMessage)
 {
-    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kWarning);
+    system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kWarning);
 }
 
 void SystemLogger::logError(const std::string_view aMessage)
 {
-    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kError);
+    system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kError);
 }
 
 auto system_logger() -> SystemLogger { return SystemLogger{}; }

@@ -46,7 +46,7 @@ TEST(InputBlockStruct, Named)
     test_utilities::test_existence_and_equality(tTestBlock.field1, 42);
     test_utilities::test_existence_and_equality(tTestBlock.field2, 0.5);
     EXPECT_TRUE(kIsNamedBlock<TestNamedBlock>);
-    EXPECT_EQ(InputTypeName<TestNamedBlock>::name, "TestNamedBlock");
+    EXPECT_EQ(InputTypeName<TestNamedBlock>::mName, "TestNamedBlock");
 }
 
 TEST(InputBlockStruct, UnNamed)
@@ -60,14 +60,14 @@ TEST(InputBlockStruct, UnNamed)
     test_utilities::test_existence_and_equality(tTestBlock.field2, 42);
     test_utilities::test_existence_and_equality(tTestBlock.field3, 0.5);
     EXPECT_FALSE(kIsNamedBlock<TestUnnamedBlock>);
-    EXPECT_EQ(InputTypeName<TestUnnamedBlock>::name, "TestUnnamedBlock");
+    EXPECT_EQ(InputTypeName<TestUnnamedBlock>::mName, "TestUnnamedBlock");
 }
 
 TEST(InputBlockStruct, ComponentTypeOfInputBlock)
 {
-    EXPECT_EQ(ComponentTypeOfInputBlock<TestGeometryBlock>::value, components::ComponentType::kGeometry);
-    EXPECT_EQ(ComponentTypeOfInputBlock<TestProcessManagerBlock>::value, components::ComponentType::kProcessManager);
-    EXPECT_EQ(ComponentTypeOfInputBlock<TestFilterBlock>::value, components::ComponentType::kFilter);
+    EXPECT_EQ(ComponentTypeOfInputBlock<TestGeometryBlock>::mValue, components::ComponentType::kGeometry);
+    EXPECT_EQ(ComponentTypeOfInputBlock<TestProcessManagerBlock>::mValue, components::ComponentType::kProcessManager);
+    EXPECT_EQ(ComponentTypeOfInputBlock<TestFilterBlock>::mValue, components::ComponentType::kFilter);
 }
 
 TEST(InputBlockStruct, ProcessManager)

@@ -28,7 +28,7 @@ struct FilterValidationTestFixture : public testing::Test
     FilterValidationTestFixture()
     {
         const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{
-            {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
+            {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::kHex};
         third_party_integration::stk_io::write_mesh(mMeshPath, tCommandGenerator);
     }
 

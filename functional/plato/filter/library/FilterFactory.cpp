@@ -18,10 +18,8 @@ auto make_filter_function(const ValidatedFilterInput& aInput) -> FilterFunction
     {
         return std::move(tFilter).value();
     }
-    else
-    {
-        throw plato::utilities::Exception{"Unknown filter_type. Requested name: " + aInput.rawInput().mBlockName};
-    }
+
+    throw plato::utilities::Exception{"Unknown filter_type. Requested name: " + aInput.rawInput().mBlockName};
 }
 
 }  // namespace plato::filter::library

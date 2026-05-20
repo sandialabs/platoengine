@@ -11,7 +11,7 @@ namespace plato::criteria::extension::unittest
 namespace
 {
 const auto kHimmelblauOne = test_utilities::Himmelblau{};
-const auto kHimmelblauTwo = test_utilities::Himmelblau{2, 20};
+const auto kHimmelblauTwo = test_utilities::Himmelblau{.mAParameter = 2, .mBParameter = 20};
 const auto kVectorHimmelblau = make_vector_himmelblau_dynamic_vector_objective_function(
     FirstHimmelblau{kHimmelblauOne}, SecondHimmelblau{kHimmelblauTwo});
 

@@ -110,7 +110,7 @@ TEST(RevolveFilterDetail, ValidateSourceMeshInXZPlane)
         const auto tThreeDFilePath = std::filesystem::path{"three_d.exo"};
         namespace tpis = third_party_integration::stk_io;
         const auto tCommandGenerator =
-            tpis::CommandGenerator{{10, 10, 10}, {-5, -5, -5}, {5, 5, 5}, tpis::CommandElementType::Tet};
+            tpis::CommandGenerator{{10, 10, 10}, {-5, -5, -5}, {5, 5, 5}, tpis::CommandElementType::kTet};
         tpis::write_mesh(tThreeDFilePath, tCommandGenerator.toString());
         const auto tErrorMessage =
             detail::validate_source_mesh_in_xz_plane(input_parser::y_axis_revolve_filter{}, tThreeDFilePath);

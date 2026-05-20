@@ -27,7 +27,7 @@ struct ComponentTypeAndNameAttribute
     using AttributeType = ComponentTypeAndName;
     AttributeType mValue;
 
-    [[nodiscard]] constexpr static inline auto name() -> std::string_view;
+    [[nodiscard]] constexpr static auto name() -> std::string_view;
 
     [[nodiscard]] static auto formatter(FormattingStyle aFormattingStyle) -> boost::log::formatter;
 };
@@ -39,7 +39,7 @@ struct ComponentTypeFilterAttribute
     using AttributeType = components::ComponentType;
     AttributeType mValue = kIncludedComponent;
 
-    [[nodiscard]] constexpr static inline auto name() -> std::string_view;
+    [[nodiscard]] constexpr static auto name() -> std::string_view;
 
     [[nodiscard]] static auto filter() -> boost::log::filter;
 };
@@ -47,13 +47,10 @@ struct ComponentTypeFilterAttribute
 /// @brief Stream insertion operator for a component type and name. Inserts a colon in between the type and name.
 auto operator<<(std::ostream& aStream, const ComponentTypeAndName& aComponentTypeAndName) -> std::ostream&;
 
-constexpr inline auto ComponentTypeAndNameAttribute::name() -> std::string_view
-{
-    return std::string_view{"Component"};
-}
+constexpr auto ComponentTypeAndNameAttribute::name() -> std::string_view { return std::string_view{"Component"}; }
 
 template <components::ComponentType kIncludedComponent>
-constexpr inline auto ComponentTypeFilterAttribute<kIncludedComponent>::name() -> std::string_view
+constexpr auto ComponentTypeFilterAttribute<kIncludedComponent>::name() -> std::string_view
 {
     return std::string_view{"Component type"};
 }

@@ -45,10 +45,10 @@ const auto kLevelSetInput = geometry::extension::test_utilities::create_valid_le
     namespace tskio = third_party_integration::stk_io;
     const tskio::CommandBounds tLowerBounds{aLowerBound, aLowerBound, aLowerBound};
     const tskio::CommandBounds tUpperBounds{1, 1, 1};
-    const auto tDimension = tUpperBounds.x - tLowerBounds.x;
+    const auto tDimension = tUpperBounds.mX - tLowerBounds.mX;
     const auto tNumberOfElements = static_cast<unsigned int>(tDimension * 2);
     const tskio::CommandNumberOfElements tElements{tNumberOfElements, tNumberOfElements, tNumberOfElements};
-    return tskio::CommandGenerator{tElements, tLowerBounds, tUpperBounds, tskio::CommandElementType::Tet};
+    return tskio::CommandGenerator{tElements, tLowerBounds, tUpperBounds, tskio::CommandElementType::kTet};
 }
 
 auto make_kernel_filter_test_function(const double aRadius,
@@ -559,11 +559,11 @@ namespace
     tFlattenedCoordinates.reserve(tCutCoordinates.size() * aDimension);
     for (const auto& tCutCoordinate : tCutCoordinates)
     {
-        tFlattenedCoordinates.push_back(tCutCoordinate.x);
-        tFlattenedCoordinates.push_back(tCutCoordinate.y);
+        tFlattenedCoordinates.push_back(tCutCoordinate.mX);
+        tFlattenedCoordinates.push_back(tCutCoordinate.mY);
         if (aDimension == 3)
         {
-            tFlattenedCoordinates.push_back(tCutCoordinate.z);
+            tFlattenedCoordinates.push_back(tCutCoordinate.mZ);
         }
     }
 

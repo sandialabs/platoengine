@@ -36,10 +36,10 @@ const auto kMakeRevolveFilterInfo = [](const input_parser::y_axis_revolve_filter
                                        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> RevolveFilterType
 { return make_y_axis_revolve_filter_type(aInput, aAnalysisDomainMesh); };
 
-[[maybe_unused]] static const auto kRevolveFilterParserRegistration =
+[[maybe_unused]] const auto kRevolveFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::y_axis_revolve_filter>{};
 
-[[maybe_unused]] static const auto kRevolveFilterRegistration = library::FilterRegistration{
+[[maybe_unused]] const auto kRevolveFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::y_axis_revolve_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::y_axis_revolve_filter>(aInput);
@@ -51,13 +51,13 @@ const auto kMakeRevolveFilterInfo = [](const input_parser::y_axis_revolve_filter
             });
     }};
 
-[[maybe_unused]] static const auto kRevolveFilterValidationRegistration =
+[[maybe_unused]] const auto kRevolveFilterValidationRegistration =
     validation_for_all_kernel_filters<input_parser::y_axis_revolve_filter>();
 
-[[maybe_unused]] static const auto kRevolveFilterTargetMeshValidationRegistration =
+[[maybe_unused]] const auto kRevolveFilterTargetMeshValidationRegistration =
     target_mesh_validation_for_all_kernel_filters<input_parser::y_axis_revolve_filter>();
 
-[[maybe_unused]] static const auto kRevolveFilterMeshBasedValidationRegistration =
+[[maybe_unused]] const auto kRevolveFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::y_axis_revolve_filter& aInput, const std::filesystem::path& aMeshPath)
         { return extension::detail::validate_filter_radius_with_mesh(aInput, aMeshPath); },
@@ -136,12 +136,12 @@ auto validate_source_mesh_in_xz_plane(const input_parser::y_axis_revolve_filter&
     }
     const auto tBoundingBox = mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.designDomainBoundingBox();
     const auto tDimensions = tBoundingBox.second - tBoundingBox.first;
-    if (tDimensions.y != 0 || tDimensions.x == 0 || tDimensions.z == 0)
+    if (tDimensions.mY != 0 || tDimensions.mX == 0 || tDimensions.mZ == 0)
     {
         return std::optional<std::string>{utilities::concatenate(
             input_parser::block_name<input_parser::y_axis_revolve_filter>(),
-            ": source mesh must exist only in the XZ plane. Your mesh has dimensions: ", std::to_string(tDimensions.x),
-            ", ", std::to_string(tDimensions.y), ", ", std::to_string(tDimensions.z))};
+            ": source mesh must exist only in the XZ plane. Your mesh has dimensions: ", std::to_string(tDimensions.mX),
+            ", ", std::to_string(tDimensions.mY), ", ", std::to_string(tDimensions.mZ))};
     }
     return std::nullopt;
 }

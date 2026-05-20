@@ -15,7 +15,7 @@ namespace plato::third_party_integration::stk_io
 
 /// @brief ElementTraits is a templated struct that stores all the information defining how an element type
 /// from STK relates to its geometric primitive. ElementType specifies the geometric primitive, e.g. Triangle,
-/// Tetrahedron. kNumNodes the number of nodes in the element.
+/// Tetrahedron. mNumNodes the number of nodes in the element.
 template <stk::topology::topology_t kStkTopology>
 struct ElementTraits
 {
@@ -24,7 +24,7 @@ struct ElementTraits
 template <>
 struct ElementTraits<stk::topology::HEXAHEDRON_8>
 {
-    constexpr static auto kNumNodes = 8;
+    constexpr static auto mNumNodes = 8;
     using ElementType = Hexahedron;
 };
 
@@ -36,7 +36,7 @@ struct ElementTraits<stk::topology::HEXAHEDRON_20> : public ElementTraits<stk::t
 template <>
 struct ElementTraits<stk::topology::TETRAHEDRON_4>
 {
-    constexpr static auto kNumNodes = 4;
+    constexpr static auto mNumNodes = 4;
     using ElementType = Tetrahedron;
 };
 
@@ -48,7 +48,7 @@ struct ElementTraits<stk::topology::TETRAHEDRON_10> : public ElementTraits<stk::
 template <>
 struct ElementTraits<stk::topology::QUAD_4>
 {
-    constexpr static auto kNumNodes = 4;
+    constexpr static auto mNumNodes = 4;
     using ElementType = Quadrilateral;
 };
 
@@ -65,7 +65,7 @@ struct ElementTraits<stk::topology::QUAD_4_2D> : public ElementTraits<stk::topol
 template <>
 struct ElementTraits<stk::topology::TRIANGLE_3>
 {
-    constexpr static auto kNumNodes = 3;
+    constexpr static auto mNumNodes = 3;
     using ElementType = Triangle;
 };
 
@@ -82,12 +82,12 @@ struct ElementTraits<stk::topology::SHELL_TRIANGLE_3> : public ElementTraits<stk
 namespace detail
 {
 /// @brief copies the coordinates in @a aCoordinates into an array with size @tparam NumberOfNodes
-template <stk::topology::topology_t kStkTopology, std::size_t NumberOfNodes>
+template <stk::topology::topology_t kStkTopology, std::size_t kNumberOfNodes>
 [[nodiscard]] auto coordinate_vector_to_array(const std::vector<common::Coordinate>& aCoordinates)
-    -> std::array<common::Coordinate, NumberOfNodes>
+    -> std::array<common::Coordinate, kNumberOfNodes>
 {
-    std::array<common::Coordinate, ElementTraits<kStkTopology>::kNumNodes> tCoordinateArray;
-    std::copy_n(aCoordinates.begin(), ElementTraits<kStkTopology>::kNumNodes, tCoordinateArray.begin());
+    std::array<common::Coordinate, ElementTraits<kStkTopology>::mNumNodes> tCoordinateArray;
+    std::copy_n(aCoordinates.begin(), ElementTraits<kStkTopology>::mNumNodes, tCoordinateArray.begin());
     return tCoordinateArray;
 }
 
@@ -101,8 +101,8 @@ concept GeometricPrimitiveType = requires(T aPrimitive) {
 
 /// @brief Create a ReturnObject from the coordinates specified in @a aCoordinates according to the tesselation indices
 /// @a aIndices
-template <GeometricPrimitiveType ReturnObject, std::size_t NumberOfNodes>
-auto from_coordinates(const std::array<common::Coordinate, NumberOfNodes>& aCoordinates) -> ReturnObject;
+template <GeometricPrimitiveType ReturnObject, std::size_t kNumberOfNodes>
+auto from_coordinates(const std::array<common::Coordinate, kNumberOfNodes>& aCoordinates) -> ReturnObject;
 
 /// @brief Determine the volume of a single element with coordinates @a aCoordinates as dictated by the Tesselation
 /// TraitType
@@ -110,8 +110,8 @@ template <stk::topology::topology_t kStkTopology>
 auto volume_impl(const std::vector<common::Coordinate>& aCoordinates) -> double
 {
     using ElementType = ElementTraits<kStkTopology>::ElementType;
-    const auto tElement = from_coordinates<ElementType, ElementTraits<kStkTopology>::kNumNodes>(
-        coordinate_vector_to_array<kStkTopology, ElementTraits<kStkTopology>::kNumNodes>(aCoordinates));
+    const auto tElement = from_coordinates<ElementType, ElementTraits<kStkTopology>::mNumNodes>(
+        coordinate_vector_to_array<kStkTopology, ElementTraits<kStkTopology>::mNumNodes>(aCoordinates));
     return tElement.volume();
 }
 
@@ -122,7 +122,7 @@ auto centroid_impl(const std::vector<common::Coordinate>& aCoordinates) -> commo
 {
     using ElementType = ElementTraits<kStkTopology>::ElementType;
     const auto tElement = from_coordinates<ElementType>(
-        coordinate_vector_to_array<kStkTopology, ElementTraits<kStkTopology>::kNumNodes>(aCoordinates));
+        coordinate_vector_to_array<kStkTopology, ElementTraits<kStkTopology>::mNumNodes>(aCoordinates));
     return tElement.centroid();
 }
 
@@ -130,11 +130,11 @@ auto centroid_impl(const std::vector<common::Coordinate>& aCoordinates) -> commo
 /// aCoordinates as dictated by the Tesselation TraitType
 template <stk::topology::topology_t kStkTopology>
 auto volume_nodal_sensitivities_impl(const std::vector<common::Coordinate>& aCoordinates)
-    -> std::array<common::Vector3, ElementTraits<kStkTopology>::kNumNodes>
+    -> std::array<common::Vector3, ElementTraits<kStkTopology>::mNumNodes>
 {
     using ElementType = ElementTraits<kStkTopology>::ElementType;
     const auto tElement = from_coordinates<ElementType>(
-        coordinate_vector_to_array<kStkTopology, ElementTraits<kStkTopology>::kNumNodes>(aCoordinates));
+        coordinate_vector_to_array<kStkTopology, ElementTraits<kStkTopology>::mNumNodes>(aCoordinates));
     return tElement.volumeVertexSensitivities();
 }
 }  // namespace detail

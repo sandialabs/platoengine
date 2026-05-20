@@ -28,7 +28,7 @@ void create_bar_mesh()
     const tpis::CommandBounds tUpperBounds{5, 5, 5};
     const tpis::CommandNumberOfElements tElements{10, 10, 5};
     const auto tCommunicatorandGenerator =
-        tpis::CommandGenerator{tElements, tLowerBounds, tUpperBounds, tpis::CommandElementType::Hex};
+        tpis::CommandGenerator{tElements, tLowerBounds, tUpperBounds, tpis::CommandElementType::kHex};
     tpis::write_mesh(kBarTargetMeshFile, tCommunicatorandGenerator.toString());
 }
 auto create_valid_symmetry_filter() -> input_parser::z_swept_filter

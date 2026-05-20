@@ -34,11 +34,11 @@ constexpr auto transform_if(const Container& aContainer,
     static_assert(std::is_convertible_v<PredicateReturnType, bool>);
     static_assert(std::is_assignable_v<IteratorDereferenceType, TransformReturnType>);
 
-    for (const auto& aValue : aContainer)
+    for (const auto& tValue : aContainer)
     {
-        if (aPredicate(aValue))
+        if (aPredicate(tValue))
         {
-            *aNewRange = aTransformFunction(aValue);
+            *aNewRange = aTransformFunction(tValue);
             ++aNewRange;
         }
     }

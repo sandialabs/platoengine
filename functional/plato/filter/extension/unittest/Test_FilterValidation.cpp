@@ -89,7 +89,7 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusWithMesh)
     const auto tMeshFileName = std::filesystem::path{"test.exo"};
 
     const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{
-        {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
+        {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::kHex};
     third_party_integration::stk_io::write_mesh(tMeshFileName, tCommandGenerator);
 
     auto tHelmholtzFilter = test_utilities::create_valid_helmholtz_filter_input();

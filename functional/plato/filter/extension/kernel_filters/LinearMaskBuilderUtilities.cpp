@@ -135,8 +135,8 @@ auto number_of_column_entries_per_row(const RowMap& aRowMap) -> std::vector<std:
 
     auto tNumberOfColumnsPerRow = std::vector<std::size_t>{};
     tNumberOfColumnsPerRow.reserve(aRowMap.size());
-    std::ranges::transform(tGlobalIDs, std::back_inserter(tNumberOfColumnsPerRow), [&aRowMap](const auto tGlobalID)
-                           { return aRowMap.at(tGlobalID).mNonzeroColumnGlobalIDs.size(); });
+    std::ranges::transform(tGlobalIDs, std::back_inserter(tNumberOfColumnsPerRow), [&aRowMap](const auto aGlobalId)
+                           { return aRowMap.at(aGlobalId).mNonzeroColumnGlobalIDs.size(); });
 
     return tNumberOfColumnsPerRow;
 }

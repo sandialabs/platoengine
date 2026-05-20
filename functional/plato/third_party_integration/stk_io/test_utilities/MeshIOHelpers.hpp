@@ -25,14 +25,14 @@ using ScalarFieldFunction = std::function<double(std::size_t)>;
 /// nodal field stored in the name and populated with the data in @a aScalarField.
 void write_nodal_scalar_field(const std::filesystem::path& aInputMeshName,
                               const ScalarFieldFunction& aScalarField,
-                              const std::string_view aFieldName,
+                              std::string_view aFieldName,
                               const std::filesystem::path& aOutputMeshName);
 
 /// @brief Given a pathname  @a aInputMeshName, create a new mesh on disk @a aOutputMeshName that has an additional
 /// element field stored in the name and populated with the data in @a aScalarField.
 void write_element_scalar_field(const std::filesystem::path& aInputMeshName,
                                 const ScalarFieldFunction& aScalarField,
-                                const std::string_view aFieldName,
+                                std::string_view aFieldName,
                                 const std::filesystem::path& aOutputMeshName);
 
 }  // namespace plato::third_party_integration::stk_io::test_utilities

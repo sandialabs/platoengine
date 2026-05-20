@@ -111,12 +111,12 @@ const auto kJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& a
                               const third_party_integration::common::Vector3& aSensitivity,
                               const unsigned int aSpatialDimension)
 {
-    constexpr auto kScalarViewComponent = utilities::ComponentIndex{0};
+    constexpr auto tScalarViewComponent = utilities::ComponentIndex{0};
     const auto tRowvector3 =
         detail::row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension);
     const auto tDotProduct = third_party_integration::common::dot(tRowvector3, aSensitivity) * aMultiplicityMultiplier;
 
-    aResultVectorView(utilities::VectorIndex{aParentIndex.mValue}, kScalarViewComponent) += tDotProduct;
+    aResultVectorView(utilities::VectorIndex{aParentIndex.mValue}, tScalarViewComponent) += tDotProduct;
 };
 
 const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& aResultVectorView,
@@ -137,13 +137,13 @@ using ResultViewDimensionality = utilities::NamedType<unsigned int, struct Resul
 /// @brief Computes a row vector product based on the ApplyFunction @a aApplyFunction which will either be the
 /// Jacobian or the Adjoint Jacobian
 template <typename Lambda>
-[[nodiscard]] auto transformSensitivityMap(const std::vector<double>& aRowVector,
-                                           const tpik::SensitivityMap& aSensitivityMap,
-                                           const ::krino::MeshInterface& aKrinoMesh,
-                                           const tpik::VoidPhase aVoidPhase,
-                                           const ResultSize aResultSize,
-                                           const ResultViewDimensionality aResultViewDimensionality,
-                                           const Lambda& aApplyFunction) -> std::vector<double>
+[[nodiscard]] auto transform_sensitivity_map(const std::vector<double>& aRowVector,
+                                             const tpik::SensitivityMap& aSensitivityMap,
+                                             const ::krino::MeshInterface& aKrinoMesh,
+                                             const tpik::VoidPhase aVoidPhase,
+                                             const ResultSize aResultSize,
+                                             const ResultViewDimensionality aResultViewDimensionality,
+                                             const Lambda& aApplyFunction) -> std::vector<double>
 {
     const auto tSpatialDimensions = third_party_integration::stk_io::spatial_dimensions(aKrinoMesh.bulk_data());
     const auto tCutMeshNodeIds = tpik::cut_mesh_node_ids(aKrinoMesh, aVoidPhase);
@@ -183,8 +183,8 @@ auto KrinoWrapper::rowVectorJacobianProduct(const std::vector<double>& aCutMeshR
 {
     const auto tViewDimension = 1U;
     const auto tResultSize = mNumberOfDesignDomainBackgroundNodes;
-    return transformSensitivityMap(aCutMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase, ResultSize{tResultSize},
-                                   ResultViewDimensionality{tViewDimension}, kJacobianImpl);
+    return transform_sensitivity_map(aCutMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase,
+                                     ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension}, kJacobianImpl);
 }
 
 auto KrinoWrapper::rowVectorAdjointJacobianProduct(const std::vector<double>& aBackgroundMeshRowVector) const
@@ -192,9 +192,9 @@ auto KrinoWrapper::rowVectorAdjointJacobianProduct(const std::vector<double>& aB
 {
     const auto tViewDimension = third_party_integration::stk_io::spatial_dimensions(mKrinoMesh->bulk_data());
     const auto tResultSize = tpik::cut_mesh_node_ids(*mKrinoMesh, mVoidPhase).size() * tViewDimension;
-    return transformSensitivityMap(aBackgroundMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase,
-                                   ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension},
-                                   kAdjointJacobianImpl);
+    return transform_sensitivity_map(aBackgroundMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase,
+                                     ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension},
+                                     kAdjointJacobianImpl);
 }
 
 namespace

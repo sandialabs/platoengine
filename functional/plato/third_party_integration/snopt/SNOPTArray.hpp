@@ -13,7 +13,7 @@ template <typename T>
 class SNOPTArray
 {
    public:
-    SNOPTArray(T* const aArrayPtr, const std::size_t aSize);
+    SNOPTArray(T* aArrayPtr, std::size_t aSize);
 
     /// @brief The size of the array set on construction.
     [[nodiscard]] auto size() const -> std::size_t;
@@ -21,11 +21,11 @@ class SNOPTArray
     /// @brief Non-const access to the entry in the array at index @a aIndex.
     /// @pre @a aIndex must be less than the size set on construction, enforced with an assertion.
     template <typename U = T>
-    [[nodiscard]] auto operator[](const std::size_t aIndex) -> std::enable_if_t<!std::is_const_v<U>, T&>;
+    [[nodiscard]] auto operator[](std::size_t aIndex) -> std::enable_if_t<!std::is_const_v<U>, T&>;
 
     /// @brief Const access to the entry in the array at index @a aIndex.
     /// @pre @a aIndex must be less than the size set on construction, enforced with an assertion.
-    [[nodiscard]] auto operator[](const std::size_t aIndex) const -> const T&;
+    [[nodiscard]] auto operator[](std::size_t aIndex) const -> const T&;
 
     /// @brief Const begin iterator
     [[nodiscard]] auto begin() const -> const T*;

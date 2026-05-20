@@ -21,7 +21,8 @@ auto MassConstraintInterface::value(const analysis::AnalysisDomainMesh& aAnalysi
 }
 
 auto MassConstraintInterface::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                     const std::vector<double>&) const -> std::vector<double>
+                                                     const std::vector<double>& /*aDirectionVector*/) const
+    -> std::vector<double>
 {
     auto tMasses = value(aAnalysisDomainMesh);
     std::fill(tMasses.begin(), tMasses.end(), 0.0);
@@ -29,7 +30,8 @@ auto MassConstraintInterface::rowVectorTimesJacobian(const analysis::AnalysisDom
 }
 
 auto MassConstraintInterface::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                            const std::vector<double>&) const -> std::vector<double>
+                                                            const std::vector<double>& /*aDualVector*/) const
+    -> std::vector<double>
 {
     assert(aAnalysisDomainMesh.mBlockScalarField.size() == 1U);
     const auto tOptimizationVectorDimension = aAnalysisDomainMesh.mBlockScalarField.begin()->second.size();
@@ -38,13 +40,13 @@ auto MassConstraintInterface::rowVectorTimesAdjointJacobian(const analysis::Anal
 
 }  // namespace plato::integration_tests::test_mass_criteria
 
-auto plato_create_vector_criterion(const std::vector<std::string>&)
+auto plato_create_vector_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::MassConstraintInterface>();
 }
 
-auto plato_create_vector_test_mass_criterion(const std::vector<std::string>&)
+auto plato_create_vector_test_mass_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::MassConstraintInterface>();

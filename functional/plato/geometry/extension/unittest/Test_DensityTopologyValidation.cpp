@@ -81,7 +81,7 @@ TEST(DensityTopologyValidation, ValidateMeshIsTrisOrTetsIfCutting)
         << "When cutting, mesh must be tet or tri.";
 
     tpis::write_mesh(tDensityTopology.mesh_name->mToken,
-                     tpis::CommandGenerator{.mType = tpis::CommandElementType::Tet});
+                     tpis::CommandGenerator{.mType = tpis::CommandElementType::kTet});
     EXPECT_FALSE(detail::validate_mesh_is_tet_or_tri_when_cutting(tDensityTopology).has_value())
         << "When cutting, mesh must be tet or tri.";
     std::filesystem::remove(tDensityTopology.mesh_name->mToken);

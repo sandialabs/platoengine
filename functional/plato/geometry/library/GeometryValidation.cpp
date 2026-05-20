@@ -20,10 +20,8 @@ auto validate_only_one_geometry(const input_parser::ParsedInput& aInput) -> std:
     {
         return "Only define exactly one geometry block. There were " + std::to_string(tTally) + " found.";
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 }  // namespace detail

@@ -15,19 +15,19 @@ namespace
 [[nodiscard]] auto make_initial_geometry_writer_process_manager() -> library::StageAndProcessManager
 {
     return {library::RunStage::kValidate, [](const library::ProcessManagerData& aProcessManagerData)
-            { InitialGeometryWriter{}.run(aProcessManagerData); }};
+            { plato::process_manager::extension::InitialGeometryWriter::run(aProcessManagerData); }};
 }
 
-[[maybe_unused]] static const auto kConformingDensityMeshGeneratorParserRegistration =
+[[maybe_unused]] const auto kConformingDensityMeshGeneratorParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::initial_geometry_writer>{};
 
-[[maybe_unused]] static const auto kConformingDensityMeshGeneratorRegistration =
+[[maybe_unused]] const auto kConformingDensityMeshGeneratorRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::initial_geometry_writer>(),
                                         [](const library::ValidatedProcessManagerInput& /*aValidInput*/)
                                         { return make_initial_geometry_writer_process_manager(); }};
 }  // namespace
 
-void InitialGeometryWriter::run(const library::ProcessManagerData& aProcessManagerData) const
+void InitialGeometryWriter::run(const library::ProcessManagerData& aProcessManagerData)
 {
     [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::initial_geometry_writer>();
     auto tOutputManager =

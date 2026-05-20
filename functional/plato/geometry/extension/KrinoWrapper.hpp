@@ -39,8 +39,8 @@ class KrinoWrapper
     /// @note See helper functions for the most common methods to create a KrinoWrapper
     KrinoWrapper(std::unique_ptr<::krino::MeshInterface> aKrinoMeshInterface,
                  std::vector<::krino::LS_Field> aLevelSetField,
-                 const third_party_integration::krino::VoidPhase aVoidPhase,
-                 const third_party_integration::krino::SnappingParameters aSnappingParameters);
+                 third_party_integration::krino::VoidPhase aVoidPhase,
+                 third_party_integration::krino::SnappingParameters aSnappingParameters);
 
     /// @brief Write a cut mesh to the file @a aFileName.
     void writeCutMesh(const std::filesystem::path& aFileName) const;
@@ -86,7 +86,7 @@ using LevelSetBounds = utilities::NamedType<std::pair<double, double>, struct Le
     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
     const std::set<std::string>& aFixedBlocks,
     const third_party_integration::krino::VoidPhase& aVoidPhase,
-    const third_party_integration::krino::SnappingParameters aSnappingParameters) -> KrinoWrapper;
+    third_party_integration::krino::SnappingParameters aSnappingParameters) -> KrinoWrapper;
 
 namespace detail
 {
@@ -112,8 +112,8 @@ namespace detail
 /// For example, if a row vector input is: {x0, y0, z0, x1, y1, z1, x2, y2, z2}, and index is 1
 /// the return will be {x1, y1, z1}.
 [[nodiscard]] auto row_vector_to_vector3(const std::vector<double>& aRowVector,
-                                         const utilities::VectorIndex aVectorIndex,
-                                         const std::size_t aDimensions) -> third_party_integration::common::Vector3;
+                                         utilities::VectorIndex aVectorIndex,
+                                         std::size_t aDimensions) -> third_party_integration::common::Vector3;
 
 /// @brief Takes a vector of doubles @a aValues and clamps the values to bounds defined by @a aBounds.
 [[nodiscard]] auto clamp_to_bounds(const std::vector<double>& aValues, const LevelSetBounds& aBounds)

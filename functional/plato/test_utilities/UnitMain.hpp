@@ -20,7 +20,7 @@ auto unit_main(int argc, char **argv) -> int;
 /// test suite in parallel. The purpose of this behavior is to simplify usage in CI, so
 /// that no special launch commands are needed, while also allowing the use of different
 /// number of ranks during development.
-auto parallel_unit_main(int argc, char **argv, unsigned int aNumRanks) -> int;
+auto parallel_unit_main(int aArgc, char **aArgv, unsigned int aNumRanks) -> int;
 }  // namespace plato::test_utilities
 
 #endif

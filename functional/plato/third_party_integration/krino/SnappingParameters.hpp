@@ -6,8 +6,8 @@ namespace plato::third_party_integration::krino
 /// @brief Struct to hold parameters controlling how krino does snapping
 struct SnappingParameters
 {
-    constexpr static inline auto mDefaultMaxSnappingEdgeLength = 0.15;
-    constexpr static inline auto mDefaultSharpFeatureAngle = 135.0;
+    constexpr static auto mDefaultMaxSnappingEdgeLength = 0.15;
+    constexpr static auto mDefaultSharpFeatureAngle = 135.0;
 
     double mMaxSnappingEdgeLength{mDefaultMaxSnappingEdgeLength};
     double mSharpFeatureAngle{mDefaultSharpFeatureAngle};
