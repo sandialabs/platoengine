@@ -23,10 +23,10 @@ auto make_adjoint_jacobian_multiplier(const linear_algebra::DynamicVector<double
 
     auto tVectorTimesAdjointJacobianFunction = linear_algebra::JacobianMultiplier::VectorTimesJacobianFunction{
         [tDerivativeFunctionEvaluationZero,
-         tDerivativeFunctionEvaluationOne](const linear_algebra::DynamicVector<double>& aVector)
+         tDerivativeFunctionEvaluationOne](const linear_algebra::DynamicVector<double>& aRowVector)
         {
-            return linear_algebra::DynamicVector<double>{tDerivativeFunctionEvaluationZero.dot(aVector),
-                                                         tDerivativeFunctionEvaluationOne.dot(aVector)};
+            return linear_algebra::DynamicVector<double>{tDerivativeFunctionEvaluationZero.dot(aRowVector),
+                                                         tDerivativeFunctionEvaluationOne.dot(aRowVector)};
         }};
 
     return linear_algebra::AdjointJacobianMultiplier{
