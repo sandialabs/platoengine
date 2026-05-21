@@ -86,11 +86,10 @@ auto transform_to_level_set_field(analysis::AnalysisDomainMesh aAnalysisDomainMe
 {
     const auto tMutableView = analysis::AnalysisDomainMeshMutableSequentialView{aAnalysisDomainMesh};
     std::transform(tMutableView.begin(), tMutableView.end(), tMutableView.begin(),
-                   [aDensityThreshold](const auto& aEntry)
+                   [aDensityThreshold](analysis::ScalarFieldValue aEntryField)
                    {
-                       auto tEntryField = static_cast<analysis::ScalarFieldValue>(aEntry);
-                       tEntryField.mValue -= aDensityThreshold;
-                       return tEntryField;
+                       aEntryField.mValue -= aDensityThreshold;
+                       return aEntryField;
                    });
     return aAnalysisDomainMesh;
 }

@@ -46,9 +46,9 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
                           std::vector<::krino::LS_Field>& aLevelSetFields,
                           const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
 {
-    for (const auto& tScalarFieldValueProxy : analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
+    for (const analysis::ScalarFieldValue tScalarFieldValue :
+         analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
     {
-        const auto& tScalarFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValueProxy);
         const auto tStkEntity =
             aKrinoMesh.bulk_data().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
 

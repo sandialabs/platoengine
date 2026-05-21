@@ -41,13 +41,10 @@ auto entity_field_to_analysis_domain_mesh(const std::vector<double>& aScalarFiel
 
     auto tMeshView = analysis::AnalysisDomainMeshMutableSequentialView{tAnalysisDomainMesh};
     assert(aScalarField.size() == tMeshView.size());
-    std::transform(
-        aScalarField.cbegin(), aScalarField.cend(), tMeshView.begin(), tMeshView.begin(),
-        [tVectorIndex = analysis::ScalarFieldValue::IndexType{0}](const double aField, const auto& aFieldID) mutable
-        {
-            const auto& tFieldIndices = static_cast<analysis::ScalarFieldValue>(aFieldID);
-            return analysis::ScalarFieldValue{tFieldIndices.mGlobalMeshEntityID, tVectorIndex++, aField};
-        });
+    std::transform(aScalarField.cbegin(), aScalarField.cend(), tMeshView.begin(), tMeshView.begin(),
+                   [tVectorIndex = analysis::ScalarFieldValue::IndexType{0}](
+                       const double aField, const analysis::ScalarFieldValue& aFieldID) mutable
+                   { return analysis::ScalarFieldValue{aFieldID.mGlobalMeshEntityID, tVectorIndex++, aField}; });
 
     return tAnalysisDomainMesh;
 }
