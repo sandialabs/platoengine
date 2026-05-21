@@ -56,9 +56,8 @@ auto analysis_domain_mesh_to_vector(const analysis::AnalysisDomainMesh& aAnalysi
 {
     const auto tAnalysisDomainMeshView = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh};
     auto tNodalField = std::vector<double>(tAnalysisDomainMeshView.size());
-    for (const auto& tFieldProxy : tAnalysisDomainMeshView)
+    for (const analysis::ScalarFieldValue tField : tAnalysisDomainMeshView)
     {
-        const auto& tField = static_cast<analysis::ScalarFieldValue>(tFieldProxy);
         tNodalField[tField.mDesignVariableVectorIndex] = tField.mValue;
     }
     return tNodalField;
