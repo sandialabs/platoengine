@@ -179,9 +179,9 @@ void replace_nodal_coordinate_values(stk::mesh::BulkData& aBulkData,
                       constexpr auto tCoordinateFieldSize = std::size_t{3U};
                       auto tData = to_span<tCoordinateFieldSize>(
                           stk::mesh::field_data(*tCoordinateField, tNodeEntity[aNodeIndex]));
-                      tData[0] = aCoordinates[aNodeIndex].mX;
-                      tData[1] = aCoordinates[aNodeIndex].mY;
-                      tData[2] = aCoordinates[aNodeIndex].mZ;
+                      tData[0] = aCoordinates[aNodeIndex].x;
+                      tData[1] = aCoordinates[aNodeIndex].y;
+                      tData[2] = aCoordinates[aNodeIndex].z;
                   });
 }
 

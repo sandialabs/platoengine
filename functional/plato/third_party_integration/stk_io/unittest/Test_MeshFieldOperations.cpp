@@ -69,7 +69,7 @@ TEST(MeshFieldOperations, NodalAverageHexMesh)
 
     const auto tNodalCoordinates = nodal_coordinates(*tMesh);
     auto tYCoordinate =
-        tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return aCoordinate.mY; });
+        tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return aCoordinate.y; });
 
     const auto tNodalAverage = element_averaged_nodal_values(tYCoordinate, *tMesh);
     const auto tExpected = std::vector{0.5, 1.5};
@@ -82,7 +82,7 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverage)
 
     const auto tNodalCoordinates = nodal_coordinates(*tBulkData);
     auto tXCoordinate =
-        tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return 3.0 * aCoordinate.mX; });
+        tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return 3.0 * aCoordinate.x; });
 
     const auto tNodalAverage = element_averaged_nodal_values(tXCoordinate, *tBulkData);
     // Computed by hand based on connectivity

@@ -37,9 +37,9 @@ template <std::size_t kFieldSize>
 /// @brief Given a triangle return a vector of its nodal coordinates.
 [[nodiscard]] auto convert_tri_to_coords(const SensitivityTriangle& aTriangle) -> std::vector<double>
 {
-    return {aTriangle.mNodes[0].second.mX, aTriangle.mNodes[0].second.mY, aTriangle.mNodes[0].second.mZ,
-            aTriangle.mNodes[1].second.mX, aTriangle.mNodes[1].second.mY, aTriangle.mNodes[1].second.mZ,
-            aTriangle.mNodes[2].second.mX, aTriangle.mNodes[2].second.mY, aTriangle.mNodes[2].second.mZ};
+    return {aTriangle.mNodes[0].second.x, aTriangle.mNodes[0].second.y, aTriangle.mNodes[0].second.z,
+            aTriangle.mNodes[1].second.x, aTriangle.mNodes[1].second.y, aTriangle.mNodes[1].second.z,
+            aTriangle.mNodes[2].second.x, aTriangle.mNodes[2].second.y, aTriangle.mNodes[2].second.z};
 }
 
 /// @brief Transform the given flat vector with area sensitivities @ aFlatAreaSensitivityVector into meaningful data
@@ -216,9 +216,9 @@ auto interface_triangles(const stk::mesh::BulkData& aBulkData,
                            constexpr auto tCoordinateFieldSize = std::size_t{3U};
                            const auto tCoordinates = to_span<tCoordinateFieldSize>(
                                stk::mesh::field_data(*tCoordsField, tSideNodes.at(tNodeIndex)));
-                           tSensNodes.at(tNodeIndex).second.mX = tCoordinates[0];
-                           tSensNodes.at(tNodeIndex).second.mY = tCoordinates[1];
-                           tSensNodes.at(tNodeIndex).second.mZ = tCoordinates[2];
+                           tSensNodes.at(tNodeIndex).second.x = tCoordinates[0];
+                           tSensNodes.at(tNodeIndex).second.y = tCoordinates[1];
+                           tSensNodes.at(tNodeIndex).second.z = tCoordinates[2];
                        }
                        return SensitivityTriangle{tSensNodes[0], tSensNodes[1], tSensNodes[2]};
                    });

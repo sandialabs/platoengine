@@ -12,9 +12,9 @@ TEST(CoordinateUtilities, NodalFieldToDynamicVector)
 {
     namespace tpi = third_party_integration;
     const std::vector<tpi::common::Coordinate> tCoordinates{
-        {.mX = 0, .mY = 1, .mZ = 2},
-        {.mX = 3, .mY = 4, .mZ = 5},
-        {.mX = 6, .mY = 7, .mZ = 8},
+        {.x = 0, .y = 1, .z = 2},
+        {.x = 3, .y = 4, .z = 5},
+        {.x = 6, .y = 7, .z = 8},
     };
 
     constexpr auto tSpatialDimensions{3};
@@ -30,7 +30,7 @@ TEST(CoordinateUtilities, DynamicVectorToNodalCoordinates)
     namespace tpi = third_party_integration;
     const auto tDynamicVector = linear_algebra::DynamicVector<double>{{0, 1, 2, 3, 4, 5}};
     const auto tGoldCoordinates =
-        std::vector<tpi::common::Coordinate>{{.mX = 0, .mY = 1, .mZ = 2}, {.mX = 3, .mY = 4, .mZ = 5}};
+        std::vector<tpi::common::Coordinate>{{.x = 0, .y = 1, .z = 2}, {.x = 3, .y = 4, .z = 5}};
 
     constexpr auto tSpatialDimensions{3};
     const auto tCoordinates = dynamic_vector_to_nodal_coordinates(tDynamicVector, tSpatialDimensions);
@@ -59,9 +59,9 @@ TEST(CoordinateUtilities, NodalCoordinatesRoundTrip)
 {
     namespace tpi = third_party_integration;
     const std::vector<tpi::common::Coordinate> tCoordinates{
-        {.mX = 88, .mY = 51, .mZ = 59},
-        {.mX = 86, .mY = 77, .mZ = 21},
-        {.mX = 16, .mY = 37, .mZ = 38},
+        {.x = 88, .y = 51, .z = 59},
+        {.x = 86, .y = 77, .z = 21},
+        {.x = 16, .y = 37, .z = 38},
     };
     constexpr auto tSpatialDimensions{3};
     const auto tDynamicVector = nodal_vector_field_to_dynamic_vector(tCoordinates, tSpatialDimensions);

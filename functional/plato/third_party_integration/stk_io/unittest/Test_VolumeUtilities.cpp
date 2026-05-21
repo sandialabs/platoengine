@@ -295,8 +295,8 @@ TEST_F(TwoDThreeBlockMesh, ElementCentroidsOnParts)
 TEST(STKVolumeUtilities, MaxElementEdgeLength_SingleHex)
 {
     const common::Coordinate tBoxLengths{1, 86, 1};
-    const CommandGenerator tCommandGenerator{{1, 1, 1}, {0, 0, 0}, {tBoxLengths.mX, tBoxLengths.mY, tBoxLengths.mZ}};
-    const double tGoldLength = tBoxLengths.mY;
+    const CommandGenerator tCommandGenerator{{1, 1, 1}, {0, 0, 0}, {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z}};
+    const double tGoldLength = tBoxLengths.y;
     test_first_element_max_edge_length(tCommandGenerator, tGoldLength,
                                        TEST_CONTEXT("Test first element max edge length"));
 }
@@ -305,7 +305,7 @@ TEST(STKVolumeUtilities, MaxElementEdgeLength_BoxWithTets)
 {
     const common::Coordinate tBoxLengths{10, 1, 1};
     const CommandGenerator tCommandGenerator{
-        {1, 1, 1}, {0, 0, 0}, {tBoxLengths.mX, tBoxLengths.mY, tBoxLengths.mZ}, CommandElementType::kTet};
+        {1, 1, 1}, {0, 0, 0}, {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z}, CommandElementType::kTet};
     const double tGoldLength = common::magnitude(tBoxLengths);
     test_first_element_max_edge_length(tCommandGenerator, tGoldLength,
                                        TEST_CONTEXT("Test first element max edge length"));
@@ -362,8 +362,8 @@ TEST(STKVolumeUtilities, AverageEdgeLength_BoxWithHexes)
     constexpr unsigned int tNumElementsPerDim = 4;
     const CommandGenerator tCommandGenerator{{tNumElementsPerDim, tNumElementsPerDim, tNumElementsPerDim},
                                              {0, 0, 0},
-                                             {tBoxLengths.mX, tBoxLengths.mY, tBoxLengths.mZ}};
-    const double tGoldLength = tBoxLengths.mY / tNumElementsPerDim;
+                                             {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z}};
+    const double tGoldLength = tBoxLengths.y / tNumElementsPerDim;
 
     test_average_element_max_edge_length(tCommandGenerator, tGoldLength);
 }
@@ -374,7 +374,7 @@ TEST(STKVolumeUtilities, AverageEdgeLength_BoxWithTets)
     constexpr unsigned int tNumElementsPerDim = 2;
     const CommandGenerator tCommandGenerator{{tNumElementsPerDim, tNumElementsPerDim, tNumElementsPerDim},
                                              {0, 0, 0},
-                                             {tBoxLengths.mX, tBoxLengths.mY, tBoxLengths.mZ},
+                                             {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z},
                                              CommandElementType::kTet};
     const double tGoldLength = common::magnitude(tBoxLengths / tNumElementsPerDim);
 
@@ -393,8 +393,8 @@ TEST(STKVolumeUtilities, ElementVolumeNodalSensitivities_SingleTri)
     constexpr auto tBase{1.0};
     constexpr auto tHeight{1.0};
     const std::array<common::Vector3, 3> tExpectedSensitivities = {
-        common::Vector3{.mX = -tHeight, .mY = 0, .mZ = 0} / 2,
-        common::Vector3{.mX = tHeight, .mY = -tBase, .mZ = 0} / 2, common::Vector3{.mX = 0, .mY = tBase, .mZ = 0} / 2};
+        common::Vector3{.x = -tHeight, .y = 0, .z = 0} / 2, common::Vector3{.x = tHeight, .y = -tBase, .z = 0} / 2,
+        common::Vector3{.x = 0, .y = tBase, .z = 0} / 2};
 
     test_utilities::test_nodal_sensitivities_with_expected(tSensitivities.mValue, tExpectedSensitivities,
                                                            TEST_CONTEXT("Triangle volume nodal sensitivity"));
@@ -413,10 +413,9 @@ TEST(STKVolumeUtilities, ElementVolumeNodalSensitivities_SingleQuad)
     constexpr auto tHeight{1.0};
 
     const std::array<common::Vector3, 4> tExpectedSensitivities = {
-        common::Vector3{.mX = tHeight, .mY = tBase, .mZ = 0} / 2,
-        common::Vector3{.mX = -tHeight, .mY = tBase, .mZ = 0} / 2,
-        common::Vector3{.mX = -tHeight, .mY = -tBase, .mZ = 0} / 2,
-        common::Vector3{.mX = tHeight, .mY = -tBase, .mZ = 0} / 2};
+        common::Vector3{.x = tHeight, .y = tBase, .z = 0} / 2, common::Vector3{.x = -tHeight, .y = tBase, .z = 0} / 2,
+        common::Vector3{.x = -tHeight, .y = -tBase, .z = 0} / 2,
+        common::Vector3{.x = tHeight, .y = -tBase, .z = 0} / 2};
 
     test_utilities::test_nodal_sensitivities_with_expected(tSensitivities.mValue, tExpectedSensitivities,
                                                            TEST_CONTEXT("Quadrilateral volume nodal sensitivity"));
@@ -428,8 +427,8 @@ TEST(STKVolumeUtilities, ElementVolumeNodalSensitivities_SingleHex)
     constexpr auto tWidth{59.0};
     constexpr auto tHeight{37.0};
     const CommandGenerator tCommandGenerator{.mElements = {.mX = 1, .mY = 1, .mZ = 1},
-                                             .mLowerBounds = {.mX = 0, .mY = 0, .mZ = 0},
-                                             .mUpperBounds = {.mX = tBase, .mY = tWidth, .mZ = tHeight}};
+                                             .mLowerBounds = {.x = 0, .y = 0, .z = 0},
+                                             .mUpperBounds = {.x = tBase, .y = tWidth, .z = tHeight}};
     const auto tBulkData = generate_bulk_data(tCommandGenerator);
 
     const auto tSensitivities = first_element_volume_nodal_sensitivities(*tBulkData);
@@ -446,8 +445,8 @@ TEST(STKVolumeUtilities, ElementVolumeNodalSensitivities_SingleTet)
     constexpr auto tWidth{38.0};
     constexpr auto tHeight{21.0};
     const CommandGenerator tCommandGenerator{.mElements = {.mX = 1, .mY = 1, .mZ = 1},
-                                             .mLowerBounds = {.mX = 0, .mY = 0, .mZ = 0},
-                                             .mUpperBounds = {.mX = tBase, .mY = tWidth, .mZ = tHeight},
+                                             .mLowerBounds = {.x = 0, .y = 0, .z = 0},
+                                             .mUpperBounds = {.x = tBase, .y = tWidth, .z = tHeight},
                                              .mType = CommandElementType::kTet};
 
     const auto tBulkData = generate_bulk_data(tCommandGenerator);
@@ -456,10 +455,10 @@ TEST(STKVolumeUtilities, ElementVolumeNodalSensitivities_SingleTet)
 
     // Tet coordinates are: [(0,0,0), (tBase, tWidth, 0), (0, tWidth, 0), (tBase, tWidth, tHeight)]
     const std::array<common::Vector3, 4> tExpectedSensitivities = {
-        common::Vector3{.mX = 0.0, .mY = -tBase * tHeight, .mZ = 0.0} * 1. / 6.,
-        common::Vector3{.mX = tWidth * tHeight, .mY = 0, .mZ = -tBase * tWidth} * 1. / 6.,
-        common::Vector3{.mX = -tWidth * tHeight, .mY = tBase * tHeight, .mZ = 0} * 1. / 6.,
-        common::Vector3{.mX = 0, .mY = 0, .mZ = tBase * tWidth} * 1. / 6.};
+        common::Vector3{.x = 0.0, .y = -tBase * tHeight, .z = 0.0} * 1. / 6.,
+        common::Vector3{.x = tWidth * tHeight, .y = 0, .z = -tBase * tWidth} * 1. / 6.,
+        common::Vector3{.x = -tWidth * tHeight, .y = tBase * tHeight, .z = 0} * 1. / 6.,
+        common::Vector3{.x = 0, .y = 0, .z = tBase * tWidth} * 1. / 6.};
 
     test_utilities::test_nodal_sensitivities_with_expected(tSensitivities.mValue, tExpectedSensitivities,
                                                            TEST_CONTEXT("Tetrahedron volume nodal sensitivity"));
@@ -475,8 +474,8 @@ TEST(STKVolumeUtilities, VolumeNodalSensitivities_3HexMesh)
     constexpr unsigned int tNumHexesInXDirection{3};
     const CommandGenerator tCommandGenerator{
         .mElements = {.mX = tNumHexesInXDirection, .mY = 1, .mZ = 1},
-        .mLowerBounds = {.mX = 0, .mY = 0, .mZ = 0},
-        .mUpperBounds = {.mX = tNumHexesInXDirection * tBase, .mY = tWidth, .mZ = tHeight},
+        .mLowerBounds = {.x = 0, .y = 0, .z = 0},
+        .mUpperBounds = {.x = tNumHexesInXDirection * tBase, .y = tWidth, .z = tHeight},
         .mType = CommandElementType::kHex};
 
     const auto tBulkData = generate_bulk_data(tCommandGenerator);
@@ -486,25 +485,25 @@ TEST(STKVolumeUtilities, VolumeNodalSensitivities_3HexMesh)
     //                           (0,0,1), (1,0,1), (2,0,1), (3,0,1)
     //                           (0,1,1), (1,1,1), (2,1,1), (3,1,1)
     const std::array tExpectedSensitivities = {
-        common::Vector3{.mX = -tWidth * tHeight, .mY = -tBase * tHeight, .mZ = -tBase * tWidth} / 4.0,
-        common::Vector3{.mX = 0.0, .mY = -tBase * tHeight, .mZ = -tBase * tWidth} / 2.0,
-        common::Vector3{.mX = 0.0, .mY = -tBase * tHeight, .mZ = -tBase * tWidth} / 2.0,
-        common::Vector3{.mX = tWidth * tHeight, .mY = -tBase * tHeight, .mZ = -tBase * tWidth} / 4.0,
+        common::Vector3{.x = -tWidth * tHeight, .y = -tBase * tHeight, .z = -tBase * tWidth} / 4.0,
+        common::Vector3{.x = 0.0, .y = -tBase * tHeight, .z = -tBase * tWidth} / 2.0,
+        common::Vector3{.x = 0.0, .y = -tBase * tHeight, .z = -tBase * tWidth} / 2.0,
+        common::Vector3{.x = tWidth * tHeight, .y = -tBase * tHeight, .z = -tBase * tWidth} / 4.0,
 
-        common::Vector3{.mX = -tWidth * tHeight, .mY = tBase * tHeight, .mZ = -tBase * tWidth} / 4.0,
-        common::Vector3{.mX = 0.0, .mY = tBase * tHeight, .mZ = -tBase * tWidth} / 2.0,
-        common::Vector3{.mX = 0.0, .mY = tBase * tHeight, .mZ = -tBase * tWidth} / 2.0,
-        common::Vector3{.mX = tWidth * tHeight, .mY = tBase * tHeight, .mZ = -tBase * tWidth} / 4.0,
+        common::Vector3{.x = -tWidth * tHeight, .y = tBase * tHeight, .z = -tBase * tWidth} / 4.0,
+        common::Vector3{.x = 0.0, .y = tBase * tHeight, .z = -tBase * tWidth} / 2.0,
+        common::Vector3{.x = 0.0, .y = tBase * tHeight, .z = -tBase * tWidth} / 2.0,
+        common::Vector3{.x = tWidth * tHeight, .y = tBase * tHeight, .z = -tBase * tWidth} / 4.0,
 
-        common::Vector3{.mX = -tWidth * tHeight, .mY = -tBase * tHeight, .mZ = tBase * tWidth} / 4.0,
-        common::Vector3{.mX = 0.0, .mY = -tBase * tHeight, .mZ = tBase * tWidth} / 2.0,
-        common::Vector3{.mX = 0.0, .mY = -tBase * tHeight, .mZ = tBase * tWidth} / 2.0,
-        common::Vector3{.mX = tWidth * tHeight, .mY = -tBase * tHeight, .mZ = tBase * tWidth} / 4.0,
+        common::Vector3{.x = -tWidth * tHeight, .y = -tBase * tHeight, .z = tBase * tWidth} / 4.0,
+        common::Vector3{.x = 0.0, .y = -tBase * tHeight, .z = tBase * tWidth} / 2.0,
+        common::Vector3{.x = 0.0, .y = -tBase * tHeight, .z = tBase * tWidth} / 2.0,
+        common::Vector3{.x = tWidth * tHeight, .y = -tBase * tHeight, .z = tBase * tWidth} / 4.0,
 
-        common::Vector3{.mX = -tWidth * tHeight, .mY = tBase * tHeight, .mZ = tBase * tWidth} / 4.0,
-        common::Vector3{.mX = 0.0, .mY = tBase * tHeight, .mZ = tBase * tWidth} / 2.0,
-        common::Vector3{.mX = 0.0, .mY = tBase * tHeight, .mZ = tBase * tWidth} / 2.0,
-        common::Vector3{.mX = tWidth * tHeight, .mY = tBase * tHeight, .mZ = tBase * tWidth} / 4.0};
+        common::Vector3{.x = -tWidth * tHeight, .y = tBase * tHeight, .z = tBase * tWidth} / 4.0,
+        common::Vector3{.x = 0.0, .y = tBase * tHeight, .z = tBase * tWidth} / 2.0,
+        common::Vector3{.x = 0.0, .y = tBase * tHeight, .z = tBase * tWidth} / 2.0,
+        common::Vector3{.x = tWidth * tHeight, .y = tBase * tHeight, .z = tBase * tWidth} / 4.0};
 
     const auto tSensitivities =
         volume_nodal_sensitivities(*tBulkData, PartReferenceVector{tBulkData->mesh_meta_data().universal_part()});

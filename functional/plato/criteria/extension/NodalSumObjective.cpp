@@ -41,7 +41,7 @@ auto NodalSumObjective::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMes
     const auto tMesh = mesh::EntityRetrieval{mesh::Mesh{aAnalysisDomainMesh.mFileName}};
     const auto tCoordinates = tMesh.nodalCoordinates();
     const auto tCoordinateSum = std::accumulate(tCoordinates.begin(), tCoordinates.end(), tpi::common::Coordinate{});
-    return tCoordinateSum.mX + tCoordinateSum.mY + tCoordinateSum.mZ;
+    return tCoordinateSum.x + tCoordinateSum.y + tCoordinateSum.z;
 }
 
 auto NodalSumObjective::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)

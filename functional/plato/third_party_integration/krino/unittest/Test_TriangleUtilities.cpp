@@ -19,7 +19,7 @@ TEST(KrinoTriangleUtilities, GetInterfaceTriangles)
     constexpr double tTolerance{1e-14};
     constexpr double tGoldArea{0.5};
     constexpr size_t tNumTris{2};
-    const std::vector<common::Vector3> tGoldNormals{{.mX = 0, .mY = 0, .mZ = 1}, {.mX = 0, .mY = 0, .mZ = -1}};
+    const std::vector<common::Vector3> tGoldNormals{{.x = 0, .y = 0, .z = 1}, {.x = 0, .y = 0, .z = -1}};
     const std::vector<std::string> tReferenceBlockNames{"block_1", "block_2"};
     const auto tMeshPath = std::filesystem::path{"temp_mesh_save.exo"};
     constexpr auto tMesh = std::string_view{
@@ -49,9 +49,9 @@ TEST(KrinoTriangleUtilities, GetInterfaceTriangles)
         {
             EXPECT_NEAR(tTriangles[i].area(), tGoldArea, tTolerance);
             const common::Vector3 tNormal = tTriangles[i].normal();
-            EXPECT_NEAR(tNormal.mX, tGoldNormal.mX, tTolerance);
-            EXPECT_NEAR(tNormal.mY, tGoldNormal.mY, tTolerance);
-            EXPECT_NEAR(tNormal.mZ, tGoldNormal.mZ, tTolerance);
+            EXPECT_NEAR(tNormal.x, tGoldNormal.x, tTolerance);
+            EXPECT_NEAR(tNormal.y, tGoldNormal.y, tTolerance);
+            EXPECT_NEAR(tNormal.z, tGoldNormal.z, tTolerance);
         }
     }
     std::filesystem::remove(tMeshPath);
@@ -72,9 +72,9 @@ void test_d_func_d_coords(const double aAbsoluteError, const auto& aF, const aut
 
 SensitivityTriangle create_sensitivity_triangle_from_coords(const std::vector<double>& aCoords)
 {
-    const common::Coordinate tNode1{.mX = aCoords[0], .mY = aCoords[1], .mZ = aCoords[2]};
-    const common::Coordinate tNode2{.mX = aCoords[3], .mY = aCoords[4], .mZ = aCoords[5]};
-    const common::Coordinate tNode3{.mX = aCoords[6], .mY = aCoords[7], .mZ = aCoords[8]};
+    const common::Coordinate tNode1{.x = aCoords[0], .y = aCoords[1], .z = aCoords[2]};
+    const common::Coordinate tNode2{.x = aCoords[3], .y = aCoords[4], .z = aCoords[5]};
+    const common::Coordinate tNode3{.x = aCoords[6], .y = aCoords[7], .z = aCoords[8]};
     return SensitivityTriangle{NodeIDCoordsPair{1, tNode1}, NodeIDCoordsPair{2, tNode2}, NodeIDCoordsPair{3, tNode3}};
 }
 
@@ -141,19 +141,19 @@ template <std::size_t kComponent>
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsX)
 {
-    const auto tF = normal_component([](const auto& aVector) { return aVector.mX; });
+    const auto tF = normal_component([](const auto& aVector) { return aVector.x; });
     test_d_func_d_coords(kDNormalAbsoluteError, tF, d_normal_d_component<kXComponent>());
 }
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsY)
 {
-    const auto tF = normal_component([](const auto& aVector) { return aVector.mY; });
+    const auto tF = normal_component([](const auto& aVector) { return aVector.y; });
     test_d_func_d_coords(kDNormalAbsoluteError, tF, d_normal_d_component<kYComponent>());
 }
 
 TEST(KrinoTriangleUtilities, dNormaldCoordsZ)
 {
-    const auto tF = normal_component([](const auto& aVector) { return aVector.mZ; });
+    const auto tF = normal_component([](const auto& aVector) { return aVector.z; });
     test_d_func_d_coords(kDNormalAbsoluteError, tF, d_normal_d_component<kZComponent>());
 }
 
@@ -169,9 +169,9 @@ TEST(KrinoTriangleUtilities, dAreaDTriNode)
     {
         const auto tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
         const auto tJacobian = d_area_d_tri_node(tTriangle);
-        const auto tJacobianArray = linear_algebra::DynamicVector{tJacobian[0U].mX, tJacobian[0U].mY, tJacobian[0U].mZ,
-                                                                  tJacobian[1U].mX, tJacobian[1U].mY, tJacobian[1U].mZ,
-                                                                  tJacobian[2U].mX, tJacobian[2U].mY, tJacobian[2U].mZ};
+        const auto tJacobianArray = linear_algebra::DynamicVector{tJacobian[0U].x, tJacobian[0U].y, tJacobian[0U].z,
+                                                                  tJacobian[1U].x, tJacobian[1U].y, tJacobian[1U].z,
+                                                                  tJacobian[2U].x, tJacobian[2U].y, tJacobian[2U].z};
         return aDirection.dot(tJacobianArray);
     };
 
@@ -185,7 +185,7 @@ TEST(KrinoTriangleUtilities, dNormalDTriNode)
     {
         const auto tTriangle = create_sensitivity_triangle_from_coords(aNodalCoordinates.stdVector());
         const auto tNormal = static_cast<common::Vector3>(tTriangle.normal());
-        return tNormal.mX + tNormal.mY + tNormal.mZ;
+        return tNormal.x + tNormal.y + tNormal.z;
     };
 
     const auto tNormalJacobian = [](const linear_algebra::DynamicVector<double>& aNodalCoordinates,
@@ -204,9 +204,9 @@ TEST(KrinoTriangleUtilities, dNormalDTriNode)
             return linear_algebra::DynamicVector(
                 std::vector<double>(tToJacobianComponent.begin(), tToJacobianComponent.end()));
         };
-        const auto tJacobianXComponent = tFlattenJacobian(tJacobian, [](const auto& aVector) { return aVector.mX; });
-        const auto tJacobianYComponent = tFlattenJacobian(tJacobian, [](const auto& aVector) { return aVector.mY; });
-        const auto tJacobianZComponent = tFlattenJacobian(tJacobian, [](const auto& aVector) { return aVector.mZ; });
+        const auto tJacobianXComponent = tFlattenJacobian(tJacobian, [](const auto& aVector) { return aVector.x; });
+        const auto tJacobianYComponent = tFlattenJacobian(tJacobian, [](const auto& aVector) { return aVector.y; });
+        const auto tJacobianZComponent = tFlattenJacobian(tJacobian, [](const auto& aVector) { return aVector.z; });
 
         return aDirection.dot(tJacobianXComponent + tJacobianYComponent + tJacobianZComponent);
     };

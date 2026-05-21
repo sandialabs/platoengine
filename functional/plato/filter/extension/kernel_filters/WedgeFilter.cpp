@@ -177,7 +177,7 @@ auto validate_source_mesh_matches_wedge_angle(const input_parser::wedge_filter& 
     const auto tPolarCoordinates =
         cylindrical_polar_coordinates(mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.nodalCoordinates()).mValue;
     const auto tBoundingBox = third_party_integration::common::bounding_box(tPolarCoordinates);
-    const auto tMaximumAngleInDegrees = tBoundingBox.second.mY * kDegreesPerRadian;
+    const auto tMaximumAngleInDegrees = tBoundingBox.second.y * kDegreesPerRadian;
     if (constexpr auto tAngleTolerance = 1e-6;
         std::fabs(tMaximumAngleInDegrees - aInput.wedge_angle.value()) >= tAngleTolerance)
     {
@@ -200,7 +200,7 @@ auto validate_source_mesh_wedge_positive_y(const input_parser::wedge_filter& aIn
     }
     const auto tCoordinates = mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.nodalCoordinates();
     const auto tBoundingBox = third_party_integration::common::bounding_box(tCoordinates);
-    const auto tMinimumYValue = tBoundingBox.first.mY;
+    const auto tMinimumYValue = tBoundingBox.first.y;
 
     if (constexpr auto tMeshReliabilityThreshold = 1e-6; tMinimumYValue < -tMeshReliabilityThreshold)
     {

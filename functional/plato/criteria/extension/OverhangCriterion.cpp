@@ -208,9 +208,9 @@ using namespace plato::third_party_integration::krino;
     std::for_each(aTriangles.begin(), aTriangles.end(),
                   [&tGradientMap](const auto& aCurTriangle)
                   {
-                      tGradientMap[aCurTriangle.mNodes[0].first] = {.mX = 0.0, .mY = 0.0, .mZ = 0.0};
-                      tGradientMap[aCurTriangle.mNodes[1].first] = {.mX = 0.0, .mY = 0.0, .mZ = 0.0};
-                      tGradientMap[aCurTriangle.mNodes[2].first] = {.mX = 0.0, .mY = 0.0, .mZ = 0.0};
+                      tGradientMap[aCurTriangle.mNodes[0].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
+                      tGradientMap[aCurTriangle.mNodes[1].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
+                      tGradientMap[aCurTriangle.mNodes[2].first] = {.x = 0.0, .y = 0.0, .z = 0.0};
                   });
     //  Accumulate gradient contributions from all triangles
     std::for_each(aTriangles.begin(), aTriangles.end(),
@@ -342,9 +342,9 @@ auto get_gradient_contribution_for_triangle(const SensitivityTriangle& aTriangle
     const auto tNormalSensitivities = tpik::d_normal_d_tri_node(aTriangle);
     const auto tAreaSensitivities = tpik::d_area_d_tri_node(aTriangle);
 
-    TriangleGradient tGradient{NodeGradient{aTriangle.mNodes[0].first, {.mX = 0., .mY = 0., .mZ = 0.}},
-                               NodeGradient{aTriangle.mNodes[1].first, {.mX = 0., .mY = 0., .mZ = 0.}},
-                               NodeGradient{aTriangle.mNodes[2].first, {.mX = 0., .mY = 0., .mZ = 0.}}};
+    TriangleGradient tGradient{NodeGradient{aTriangle.mNodes[0].first, {.x = 0., .y = 0., .z = 0.}},
+                               NodeGradient{aTriangle.mNodes[1].first, {.x = 0., .y = 0., .z = 0.}},
+                               NodeGradient{aTriangle.mNodes[2].first, {.x = 0., .y = 0., .z = 0.}}};
     // Loop over nodes in triangle and add contributions to derivative map
     for (size_t tNodeIndex = 0; tNodeIndex < tNumNodesPerTriangle; tNodeIndex++)
     {

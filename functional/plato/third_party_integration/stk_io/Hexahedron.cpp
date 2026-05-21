@@ -12,54 +12,54 @@ constexpr auto kHexahedronVolumeFactor = 1.0 / 12.0;
 
 auto Hexahedron::volume() const -> double
 {
-    return ((mP000.mX * mP110.mY * mP100.mZ) - (mP000.mX * mP100.mY * mP110.mZ) + (mP100.mX * mP000.mY * mP110.mZ) -
-            (mP100.mX * mP110.mY * mP000.mZ) - (mP110.mX * mP000.mY * mP100.mZ) + (mP110.mX * mP100.mY * mP000.mZ) -
-            (mP000.mX * mP100.mY * mP010.mZ) + (mP000.mX * mP010.mY * mP100.mZ) + (mP100.mX * mP000.mY * mP010.mZ) -
-            (mP100.mX * mP010.mY * mP000.mZ) - (mP010.mX * mP000.mY * mP100.mZ) + (mP010.mX * mP100.mY * mP000.mZ) +
-            (mP000.mX * mP100.mY * mP001.mZ) - (mP000.mX * mP110.mY * mP010.mZ) + (mP000.mX * mP010.mY * mP110.mZ) -
-            (mP000.mX * mP001.mY * mP100.mZ) - (mP100.mX * mP000.mY * mP001.mZ) + (mP100.mX * mP001.mY * mP000.mZ) +
-            (mP110.mX * mP000.mY * mP010.mZ) - (mP110.mX * mP010.mY * mP000.mZ) - (mP010.mX * mP000.mY * mP110.mZ) +
-            (mP010.mX * mP110.mY * mP000.mZ) + (mP001.mX * mP000.mY * mP100.mZ) - (mP001.mX * mP100.mY * mP000.mZ) +
-            (mP000.mX * mP100.mY * mP101.mZ) - (mP000.mX * mP101.mY * mP100.mZ) - (mP100.mX * mP000.mY * mP101.mZ) -
-            (mP100.mX * mP110.mY * mP010.mZ) + (mP100.mX * mP010.mY * mP110.mZ) + (mP100.mX * mP101.mY * mP000.mZ) +
-            (mP110.mX * mP100.mY * mP010.mZ) - (mP110.mX * mP010.mY * mP100.mZ) - (mP010.mX * mP100.mY * mP110.mZ) +
-            (mP010.mX * mP110.mY * mP100.mZ) + (mP101.mX * mP000.mY * mP100.mZ) - (mP101.mX * mP100.mY * mP000.mZ) -
-            (mP000.mX * mP010.mY * mP001.mZ) + (mP000.mX * mP001.mY * mP010.mZ) + (mP010.mX * mP000.mY * mP001.mZ) -
-            (mP010.mX * mP001.mY * mP000.mZ) - (mP001.mX * mP000.mY * mP010.mZ) + (mP001.mX * mP010.mY * mP000.mZ) +
-            (mP100.mX * mP110.mY * mP101.mZ) - (mP100.mX * mP101.mY * mP110.mZ) - (mP110.mX * mP100.mY * mP101.mZ) +
-            (mP110.mX * mP101.mY * mP100.mZ) + (mP101.mX * mP100.mY * mP110.mZ) - (mP101.mX * mP110.mY * mP100.mZ) -
-            (mP000.mX * mP001.mY * mP101.mZ) + (mP000.mX * mP101.mY * mP001.mZ) + (mP100.mX * mP110.mY * mP111.mZ) -
-            (mP100.mX * mP111.mY * mP110.mZ) - (mP110.mX * mP100.mY * mP111.mZ) + (mP110.mX * mP111.mY * mP100.mZ) +
-            (mP001.mX * mP000.mY * mP101.mZ) - (mP001.mX * mP101.mY * mP000.mZ) - (mP101.mX * mP000.mY * mP001.mZ) +
-            (mP101.mX * mP001.mY * mP000.mZ) + (mP111.mX * mP100.mY * mP110.mZ) - (mP111.mX * mP110.mY * mP100.mZ) -
-            (mP000.mX * mP010.mY * mP011.mZ) + (mP000.mX * mP011.mY * mP010.mZ) - (mP100.mX * mP001.mY * mP101.mZ) +
-            (mP100.mX * mP101.mY * mP001.mZ) + (mP010.mX * mP000.mY * mP011.mZ) - (mP010.mX * mP011.mY * mP000.mZ) +
-            (mP001.mX * mP100.mY * mP101.mZ) - (mP001.mX * mP101.mY * mP100.mZ) - (mP101.mX * mP100.mY * mP001.mZ) +
-            (mP101.mX * mP001.mY * mP100.mZ) - (mP011.mX * mP000.mY * mP010.mZ) + (mP011.mX * mP010.mY * mP000.mZ) +
-            (mP000.mX * mP001.mY * mP011.mZ) - (mP000.mX * mP011.mY * mP001.mZ) + (mP110.mX * mP010.mY * mP111.mZ) -
-            (mP110.mX * mP111.mY * mP010.mZ) - (mP010.mX * mP110.mY * mP111.mZ) + (mP010.mX * mP111.mY * mP110.mZ) -
-            (mP001.mX * mP000.mY * mP011.mZ) + (mP001.mX * mP011.mY * mP000.mZ) + (mP111.mX * mP110.mY * mP010.mZ) -
-            (mP111.mX * mP010.mY * mP110.mZ) + (mP011.mX * mP000.mY * mP001.mZ) - (mP011.mX * mP001.mY * mP000.mZ) -
-            (mP100.mX * mP101.mY * mP111.mZ) + (mP100.mX * mP111.mY * mP101.mZ) + (mP110.mX * mP010.mY * mP011.mZ) -
-            (mP110.mX * mP011.mY * mP010.mZ) - (mP010.mX * mP110.mY * mP011.mZ) + (mP010.mX * mP011.mY * mP110.mZ) +
-            (mP101.mX * mP100.mY * mP111.mZ) - (mP101.mX * mP111.mY * mP100.mZ) - (mP111.mX * mP100.mY * mP101.mZ) +
-            (mP111.mX * mP101.mY * mP100.mZ) + (mP011.mX * mP110.mY * mP010.mZ) - (mP011.mX * mP010.mY * mP110.mZ) -
-            (mP110.mX * mP101.mY * mP111.mZ) + (mP110.mX * mP111.mY * mP101.mZ) + (mP101.mX * mP110.mY * mP111.mZ) -
-            (mP101.mX * mP111.mY * mP110.mZ) - (mP111.mX * mP110.mY * mP101.mZ) + (mP111.mX * mP101.mY * mP110.mZ) +
-            (mP010.mX * mP001.mY * mP011.mZ) - (mP010.mX * mP011.mY * mP001.mZ) - (mP001.mX * mP010.mY * mP011.mZ) +
-            (mP001.mX * mP011.mY * mP010.mZ) + (mP011.mX * mP010.mY * mP001.mZ) - (mP011.mX * mP001.mY * mP010.mZ) -
-            (mP110.mX * mP111.mY * mP011.mZ) + (mP110.mX * mP011.mY * mP111.mZ) + (mP001.mX * mP101.mY * mP111.mZ) -
-            (mP001.mX * mP111.mY * mP101.mZ) - (mP101.mX * mP001.mY * mP111.mZ) + (mP101.mX * mP111.mY * mP001.mZ) +
-            (mP111.mX * mP110.mY * mP011.mZ) + (mP111.mX * mP001.mY * mP101.mZ) - (mP111.mX * mP101.mY * mP001.mZ) -
-            (mP111.mX * mP011.mY * mP110.mZ) - (mP011.mX * mP110.mY * mP111.mZ) + (mP011.mX * mP111.mY * mP110.mZ) -
-            (mP010.mX * mP111.mY * mP011.mZ) + (mP010.mX * mP011.mY * mP111.mZ) + (mP001.mX * mP101.mY * mP011.mZ) -
-            (mP001.mX * mP011.mY * mP101.mZ) - (mP101.mX * mP001.mY * mP011.mZ) + (mP101.mX * mP011.mY * mP001.mZ) +
-            (mP111.mX * mP010.mY * mP011.mZ) - (mP111.mX * mP011.mY * mP010.mZ) - (mP011.mX * mP010.mY * mP111.mZ) +
-            (mP011.mX * mP001.mY * mP101.mZ) - (mP011.mX * mP101.mY * mP001.mZ) + (mP011.mX * mP111.mY * mP010.mZ) +
-            (mP001.mX * mP111.mY * mP011.mZ) - (mP001.mX * mP011.mY * mP111.mZ) - (mP111.mX * mP001.mY * mP011.mZ) +
-            (mP111.mX * mP011.mY * mP001.mZ) + (mP011.mX * mP001.mY * mP111.mZ) - (mP011.mX * mP111.mY * mP001.mZ) +
-            (mP101.mX * mP111.mY * mP011.mZ) - (mP101.mX * mP011.mY * mP111.mZ) - (mP111.mX * mP101.mY * mP011.mZ) +
-            (mP111.mX * mP011.mY * mP101.mZ) + (mP011.mX * mP101.mY * mP111.mZ) - (mP011.mX * mP111.mY * mP101.mZ)) *
+    return ((mP000.x * mP110.y * mP100.z) - (mP000.x * mP100.y * mP110.z) + (mP100.x * mP000.y * mP110.z) -
+            (mP100.x * mP110.y * mP000.z) - (mP110.x * mP000.y * mP100.z) + (mP110.x * mP100.y * mP000.z) -
+            (mP000.x * mP100.y * mP010.z) + (mP000.x * mP010.y * mP100.z) + (mP100.x * mP000.y * mP010.z) -
+            (mP100.x * mP010.y * mP000.z) - (mP010.x * mP000.y * mP100.z) + (mP010.x * mP100.y * mP000.z) +
+            (mP000.x * mP100.y * mP001.z) - (mP000.x * mP110.y * mP010.z) + (mP000.x * mP010.y * mP110.z) -
+            (mP000.x * mP001.y * mP100.z) - (mP100.x * mP000.y * mP001.z) + (mP100.x * mP001.y * mP000.z) +
+            (mP110.x * mP000.y * mP010.z) - (mP110.x * mP010.y * mP000.z) - (mP010.x * mP000.y * mP110.z) +
+            (mP010.x * mP110.y * mP000.z) + (mP001.x * mP000.y * mP100.z) - (mP001.x * mP100.y * mP000.z) +
+            (mP000.x * mP100.y * mP101.z) - (mP000.x * mP101.y * mP100.z) - (mP100.x * mP000.y * mP101.z) -
+            (mP100.x * mP110.y * mP010.z) + (mP100.x * mP010.y * mP110.z) + (mP100.x * mP101.y * mP000.z) +
+            (mP110.x * mP100.y * mP010.z) - (mP110.x * mP010.y * mP100.z) - (mP010.x * mP100.y * mP110.z) +
+            (mP010.x * mP110.y * mP100.z) + (mP101.x * mP000.y * mP100.z) - (mP101.x * mP100.y * mP000.z) -
+            (mP000.x * mP010.y * mP001.z) + (mP000.x * mP001.y * mP010.z) + (mP010.x * mP000.y * mP001.z) -
+            (mP010.x * mP001.y * mP000.z) - (mP001.x * mP000.y * mP010.z) + (mP001.x * mP010.y * mP000.z) +
+            (mP100.x * mP110.y * mP101.z) - (mP100.x * mP101.y * mP110.z) - (mP110.x * mP100.y * mP101.z) +
+            (mP110.x * mP101.y * mP100.z) + (mP101.x * mP100.y * mP110.z) - (mP101.x * mP110.y * mP100.z) -
+            (mP000.x * mP001.y * mP101.z) + (mP000.x * mP101.y * mP001.z) + (mP100.x * mP110.y * mP111.z) -
+            (mP100.x * mP111.y * mP110.z) - (mP110.x * mP100.y * mP111.z) + (mP110.x * mP111.y * mP100.z) +
+            (mP001.x * mP000.y * mP101.z) - (mP001.x * mP101.y * mP000.z) - (mP101.x * mP000.y * mP001.z) +
+            (mP101.x * mP001.y * mP000.z) + (mP111.x * mP100.y * mP110.z) - (mP111.x * mP110.y * mP100.z) -
+            (mP000.x * mP010.y * mP011.z) + (mP000.x * mP011.y * mP010.z) - (mP100.x * mP001.y * mP101.z) +
+            (mP100.x * mP101.y * mP001.z) + (mP010.x * mP000.y * mP011.z) - (mP010.x * mP011.y * mP000.z) +
+            (mP001.x * mP100.y * mP101.z) - (mP001.x * mP101.y * mP100.z) - (mP101.x * mP100.y * mP001.z) +
+            (mP101.x * mP001.y * mP100.z) - (mP011.x * mP000.y * mP010.z) + (mP011.x * mP010.y * mP000.z) +
+            (mP000.x * mP001.y * mP011.z) - (mP000.x * mP011.y * mP001.z) + (mP110.x * mP010.y * mP111.z) -
+            (mP110.x * mP111.y * mP010.z) - (mP010.x * mP110.y * mP111.z) + (mP010.x * mP111.y * mP110.z) -
+            (mP001.x * mP000.y * mP011.z) + (mP001.x * mP011.y * mP000.z) + (mP111.x * mP110.y * mP010.z) -
+            (mP111.x * mP010.y * mP110.z) + (mP011.x * mP000.y * mP001.z) - (mP011.x * mP001.y * mP000.z) -
+            (mP100.x * mP101.y * mP111.z) + (mP100.x * mP111.y * mP101.z) + (mP110.x * mP010.y * mP011.z) -
+            (mP110.x * mP011.y * mP010.z) - (mP010.x * mP110.y * mP011.z) + (mP010.x * mP011.y * mP110.z) +
+            (mP101.x * mP100.y * mP111.z) - (mP101.x * mP111.y * mP100.z) - (mP111.x * mP100.y * mP101.z) +
+            (mP111.x * mP101.y * mP100.z) + (mP011.x * mP110.y * mP010.z) - (mP011.x * mP010.y * mP110.z) -
+            (mP110.x * mP101.y * mP111.z) + (mP110.x * mP111.y * mP101.z) + (mP101.x * mP110.y * mP111.z) -
+            (mP101.x * mP111.y * mP110.z) - (mP111.x * mP110.y * mP101.z) + (mP111.x * mP101.y * mP110.z) +
+            (mP010.x * mP001.y * mP011.z) - (mP010.x * mP011.y * mP001.z) - (mP001.x * mP010.y * mP011.z) +
+            (mP001.x * mP011.y * mP010.z) + (mP011.x * mP010.y * mP001.z) - (mP011.x * mP001.y * mP010.z) -
+            (mP110.x * mP111.y * mP011.z) + (mP110.x * mP011.y * mP111.z) + (mP001.x * mP101.y * mP111.z) -
+            (mP001.x * mP111.y * mP101.z) - (mP101.x * mP001.y * mP111.z) + (mP101.x * mP111.y * mP001.z) +
+            (mP111.x * mP110.y * mP011.z) + (mP111.x * mP001.y * mP101.z) - (mP111.x * mP101.y * mP001.z) -
+            (mP111.x * mP011.y * mP110.z) - (mP011.x * mP110.y * mP111.z) + (mP011.x * mP111.y * mP110.z) -
+            (mP010.x * mP111.y * mP011.z) + (mP010.x * mP011.y * mP111.z) + (mP001.x * mP101.y * mP011.z) -
+            (mP001.x * mP011.y * mP101.z) - (mP101.x * mP001.y * mP011.z) + (mP101.x * mP011.y * mP001.z) +
+            (mP111.x * mP010.y * mP011.z) - (mP111.x * mP011.y * mP010.z) - (mP011.x * mP010.y * mP111.z) +
+            (mP011.x * mP001.y * mP101.z) - (mP011.x * mP101.y * mP001.z) + (mP011.x * mP111.y * mP010.z) +
+            (mP001.x * mP111.y * mP011.z) - (mP001.x * mP011.y * mP111.z) - (mP111.x * mP001.y * mP011.z) +
+            (mP111.x * mP011.y * mP001.z) + (mP011.x * mP001.y * mP111.z) - (mP011.x * mP111.y * mP001.z) +
+            (mP101.x * mP111.y * mP011.z) - (mP101.x * mP011.y * mP111.z) - (mP111.x * mP101.y * mP011.z) +
+            (mP111.x * mP011.y * mP101.z) + (mP011.x * mP101.y * mP111.z) - (mP011.x * mP111.y * mP101.z)) *
            kHexahedronVolumeFactor;
 }
 
@@ -71,77 +71,77 @@ auto Hexahedron::centroid() const -> common::Coordinate
     return common::tensor_product_unit_integral<tDimensions, tQuadraturePoints.size(), tQuadraturePoints>(
                [*this](const auto aXi, const auto aEta, const auto aMu)
                {
-                   const double tJ11 = ((mP100.mX * (aEta - 1) * (aMu - 1)) - (mP000.mX * (aEta - 1) * (aMu - 1)) -
-                                        (mP110.mX * (aEta + 1) * (aMu - 1)) + (mP010.mX * (aEta + 1) * (aMu - 1)) +
-                                        (mP001.mX * (aEta - 1) * (aMu + 1)) - (mP101.mX * (aEta - 1) * (aMu + 1)) +
-                                        (mP111.mX * (aEta + 1) * (aMu + 1)) - (mP011.mX * (aEta + 1) * (aMu + 1))) /
+                   const double tJ11 = ((mP100.x * (aEta - 1) * (aMu - 1)) - (mP000.x * (aEta - 1) * (aMu - 1)) -
+                                        (mP110.x * (aEta + 1) * (aMu - 1)) + (mP010.x * (aEta + 1) * (aMu - 1)) +
+                                        (mP001.x * (aEta - 1) * (aMu + 1)) - (mP101.x * (aEta - 1) * (aMu + 1)) +
+                                        (mP111.x * (aEta + 1) * (aMu + 1)) - (mP011.x * (aEta + 1) * (aMu + 1))) /
                                        tNumberOfPoints;
-                   const double tJ12 = ((mP100.mY * (aEta - 1) * (aMu - 1)) - (mP000.mY * (aEta - 1) * (aMu - 1)) -
-                                        (mP110.mY * (aEta + 1) * (aMu - 1)) + (mP010.mY * (aEta + 1) * (aMu - 1)) +
-                                        (mP001.mY * (aEta - 1) * (aMu + 1)) - (mP101.mY * (aEta - 1) * (aMu + 1)) +
-                                        (mP111.mY * (aEta + 1) * (aMu + 1)) - (mP011.mY * (aEta + 1) * (aMu + 1))) /
+                   const double tJ12 = ((mP100.y * (aEta - 1) * (aMu - 1)) - (mP000.y * (aEta - 1) * (aMu - 1)) -
+                                        (mP110.y * (aEta + 1) * (aMu - 1)) + (mP010.y * (aEta + 1) * (aMu - 1)) +
+                                        (mP001.y * (aEta - 1) * (aMu + 1)) - (mP101.y * (aEta - 1) * (aMu + 1)) +
+                                        (mP111.y * (aEta + 1) * (aMu + 1)) - (mP011.y * (aEta + 1) * (aMu + 1))) /
                                        tNumberOfPoints;
-                   const double tJ13 = ((mP100.mZ * (aEta - 1) * (aMu - 1)) - (mP000.mZ * (aEta - 1) * (aMu - 1)) -
-                                        (mP110.mZ * (aEta + 1) * (aMu - 1)) + (mP010.mZ * (aEta + 1) * (aMu - 1)) +
-                                        (mP001.mZ * (aEta - 1) * (aMu + 1)) - (mP101.mZ * (aEta - 1) * (aMu + 1)) +
-                                        (mP111.mZ * (aEta + 1) * (aMu + 1)) - (mP011.mZ * (aEta + 1) * (aMu + 1))) /
+                   const double tJ13 = ((mP100.z * (aEta - 1) * (aMu - 1)) - (mP000.z * (aEta - 1) * (aMu - 1)) -
+                                        (mP110.z * (aEta + 1) * (aMu - 1)) + (mP010.z * (aEta + 1) * (aMu - 1)) +
+                                        (mP001.z * (aEta - 1) * (aMu + 1)) - (mP101.z * (aEta - 1) * (aMu + 1)) +
+                                        (mP111.z * (aEta + 1) * (aMu + 1)) - (mP011.z * (aEta + 1) * (aMu + 1))) /
                                        tNumberOfPoints;
-                   const double tJ21 = ((mP100.mX * (aMu - 1) * (aXi + 1)) - (mP000.mX * (aMu - 1) * (aXi - 1)) -
-                                        (mP110.mX * (aMu - 1) * (aXi + 1)) + (mP010.mX * (aMu - 1) * (aXi - 1)) +
-                                        (mP001.mX * (aMu + 1) * (aXi - 1)) - (mP101.mX * (aMu + 1) * (aXi + 1)) +
-                                        (mP111.mX * (aMu + 1) * (aXi + 1)) - (mP011.mX * (aMu + 1) * (aXi - 1))) /
+                   const double tJ21 = ((mP100.x * (aMu - 1) * (aXi + 1)) - (mP000.x * (aMu - 1) * (aXi - 1)) -
+                                        (mP110.x * (aMu - 1) * (aXi + 1)) + (mP010.x * (aMu - 1) * (aXi - 1)) +
+                                        (mP001.x * (aMu + 1) * (aXi - 1)) - (mP101.x * (aMu + 1) * (aXi + 1)) +
+                                        (mP111.x * (aMu + 1) * (aXi + 1)) - (mP011.x * (aMu + 1) * (aXi - 1))) /
                                        tNumberOfPoints;
-                   const double tJ22 = ((mP100.mY * (aMu - 1) * (aXi + 1)) - (mP000.mY * (aMu - 1) * (aXi - 1)) -
-                                        (mP110.mY * (aMu - 1) * (aXi + 1)) + (mP010.mY * (aMu - 1) * (aXi - 1)) +
-                                        (mP001.mY * (aMu + 1) * (aXi - 1)) - (mP101.mY * (aMu + 1) * (aXi + 1)) +
-                                        (mP111.mY * (aMu + 1) * (aXi + 1)) - (mP011.mY * (aMu + 1) * (aXi - 1))) /
+                   const double tJ22 = ((mP100.y * (aMu - 1) * (aXi + 1)) - (mP000.y * (aMu - 1) * (aXi - 1)) -
+                                        (mP110.y * (aMu - 1) * (aXi + 1)) + (mP010.y * (aMu - 1) * (aXi - 1)) +
+                                        (mP001.y * (aMu + 1) * (aXi - 1)) - (mP101.y * (aMu + 1) * (aXi + 1)) +
+                                        (mP111.y * (aMu + 1) * (aXi + 1)) - (mP011.y * (aMu + 1) * (aXi - 1))) /
                                        tNumberOfPoints;
-                   const double tJ23 = ((mP100.mZ * (aMu - 1) * (aXi + 1)) - (mP000.mZ * (aMu - 1) * (aXi - 1)) -
-                                        (mP110.mZ * (aMu - 1) * (aXi + 1)) + (mP010.mZ * (aMu - 1) * (aXi - 1)) +
-                                        (mP001.mZ * (aMu + 1) * (aXi - 1)) - (mP101.mZ * (aMu + 1) * (aXi + 1)) +
-                                        (mP111.mZ * (aMu + 1) * (aXi + 1)) - (mP011.mZ * (aMu + 1) * (aXi - 1))) /
+                   const double tJ23 = ((mP100.z * (aMu - 1) * (aXi + 1)) - (mP000.z * (aMu - 1) * (aXi - 1)) -
+                                        (mP110.z * (aMu - 1) * (aXi + 1)) + (mP010.z * (aMu - 1) * (aXi - 1)) +
+                                        (mP001.z * (aMu + 1) * (aXi - 1)) - (mP101.z * (aMu + 1) * (aXi + 1)) +
+                                        (mP111.z * (aMu + 1) * (aXi + 1)) - (mP011.z * (aMu + 1) * (aXi - 1))) /
                                        tNumberOfPoints;
-                   const double tJ31 = ((mP100.mX * (aEta - 1) * (aXi + 1)) - (mP000.mX * (aEta - 1) * (aXi - 1)) -
-                                        (mP110.mX * (aEta + 1) * (aXi + 1)) + (mP010.mX * (aEta + 1) * (aXi - 1)) +
-                                        (mP001.mX * (aEta - 1) * (aXi - 1)) - (mP101.mX * (aEta - 1) * (aXi + 1)) +
-                                        (mP111.mX * (aEta + 1) * (aXi + 1)) - (mP011.mX * (aEta + 1) * (aXi - 1))) /
+                   const double tJ31 = ((mP100.x * (aEta - 1) * (aXi + 1)) - (mP000.x * (aEta - 1) * (aXi - 1)) -
+                                        (mP110.x * (aEta + 1) * (aXi + 1)) + (mP010.x * (aEta + 1) * (aXi - 1)) +
+                                        (mP001.x * (aEta - 1) * (aXi - 1)) - (mP101.x * (aEta - 1) * (aXi + 1)) +
+                                        (mP111.x * (aEta + 1) * (aXi + 1)) - (mP011.x * (aEta + 1) * (aXi - 1))) /
                                        tNumberOfPoints;
-                   const double tJ32 = ((mP100.mY * (aEta - 1) * (aXi + 1)) - (mP000.mY * (aEta - 1) * (aXi - 1)) -
-                                        (mP110.mY * (aEta + 1) * (aXi + 1)) + (mP010.mY * (aEta + 1) * (aXi - 1)) +
-                                        (mP001.mY * (aEta - 1) * (aXi - 1)) - (mP101.mY * (aEta - 1) * (aXi + 1)) +
-                                        (mP111.mY * (aEta + 1) * (aXi + 1)) - (mP011.mY * (aEta + 1) * (aXi - 1))) /
+                   const double tJ32 = ((mP100.y * (aEta - 1) * (aXi + 1)) - (mP000.y * (aEta - 1) * (aXi - 1)) -
+                                        (mP110.y * (aEta + 1) * (aXi + 1)) + (mP010.y * (aEta + 1) * (aXi - 1)) +
+                                        (mP001.y * (aEta - 1) * (aXi - 1)) - (mP101.y * (aEta - 1) * (aXi + 1)) +
+                                        (mP111.y * (aEta + 1) * (aXi + 1)) - (mP011.y * (aEta + 1) * (aXi - 1))) /
                                        tNumberOfPoints;
-                   const double tJ33 = ((mP100.mZ * (aEta - 1) * (aXi + 1)) - (mP000.mZ * (aEta - 1) * (aXi - 1)) -
-                                        (mP110.mZ * (aEta + 1) * (aXi + 1)) + (mP010.mZ * (aEta + 1) * (aXi - 1)) +
-                                        (mP001.mZ * (aEta - 1) * (aXi - 1)) - (mP101.mZ * (aEta - 1) * (aXi + 1)) +
-                                        (mP111.mZ * (aEta + 1) * (aXi + 1)) - (mP011.mZ * (aEta + 1) * (aXi - 1))) /
+                   const double tJ33 = ((mP100.z * (aEta - 1) * (aXi + 1)) - (mP000.z * (aEta - 1) * (aXi - 1)) -
+                                        (mP110.z * (aEta + 1) * (aXi + 1)) + (mP010.z * (aEta + 1) * (aXi - 1)) +
+                                        (mP001.z * (aEta - 1) * (aXi - 1)) - (mP101.z * (aEta - 1) * (aXi + 1)) +
+                                        (mP111.z * (aEta + 1) * (aXi + 1)) - (mP011.z * (aEta + 1) * (aXi - 1))) /
                                        tNumberOfPoints;
-                   const double tM1 = ((mP100.mX * (aEta - 1) * (aMu - 1) * (aXi + 1)) -
-                                       (mP000.mX * (aEta - 1) * (aMu - 1) * (aXi - 1)) -
-                                       (mP110.mX * (aEta + 1) * (aMu - 1) * (aXi + 1)) +
-                                       (mP010.mX * (aEta + 1) * (aMu - 1) * (aXi - 1)) +
-                                       (mP001.mX * (aEta - 1) * (aMu + 1) * (aXi - 1)) -
-                                       (mP101.mX * (aEta - 1) * (aMu + 1) * (aXi + 1)) +
-                                       (mP111.mX * (aEta + 1) * (aMu + 1) * (aXi + 1)) -
-                                       (mP011.mX * (aEta + 1) * (aMu + 1) * (aXi - 1))) /
+                   const double tM1 = ((mP100.x * (aEta - 1) * (aMu - 1) * (aXi + 1)) -
+                                       (mP000.x * (aEta - 1) * (aMu - 1) * (aXi - 1)) -
+                                       (mP110.x * (aEta + 1) * (aMu - 1) * (aXi + 1)) +
+                                       (mP010.x * (aEta + 1) * (aMu - 1) * (aXi - 1)) +
+                                       (mP001.x * (aEta - 1) * (aMu + 1) * (aXi - 1)) -
+                                       (mP101.x * (aEta - 1) * (aMu + 1) * (aXi + 1)) +
+                                       (mP111.x * (aEta + 1) * (aMu + 1) * (aXi + 1)) -
+                                       (mP011.x * (aEta + 1) * (aMu + 1) * (aXi - 1))) /
                                       tNumberOfPoints;
-                   const double tM2 = ((mP100.mY * (aEta - 1) * (aMu - 1) * (aXi + 1)) -
-                                       (mP000.mY * (aEta - 1) * (aMu - 1) * (aXi - 1)) -
-                                       (mP110.mY * (aEta + 1) * (aMu - 1) * (aXi + 1)) +
-                                       (mP010.mY * (aEta + 1) * (aMu - 1) * (aXi - 1)) +
-                                       (mP001.mY * (aEta - 1) * (aMu + 1) * (aXi - 1)) -
-                                       (mP101.mY * (aEta - 1) * (aMu + 1) * (aXi + 1)) +
-                                       (mP111.mY * (aEta + 1) * (aMu + 1) * (aXi + 1)) -
-                                       (mP011.mY * (aEta + 1) * (aMu + 1) * (aXi - 1))) /
+                   const double tM2 = ((mP100.y * (aEta - 1) * (aMu - 1) * (aXi + 1)) -
+                                       (mP000.y * (aEta - 1) * (aMu - 1) * (aXi - 1)) -
+                                       (mP110.y * (aEta + 1) * (aMu - 1) * (aXi + 1)) +
+                                       (mP010.y * (aEta + 1) * (aMu - 1) * (aXi - 1)) +
+                                       (mP001.y * (aEta - 1) * (aMu + 1) * (aXi - 1)) -
+                                       (mP101.y * (aEta - 1) * (aMu + 1) * (aXi + 1)) +
+                                       (mP111.y * (aEta + 1) * (aMu + 1) * (aXi + 1)) -
+                                       (mP011.y * (aEta + 1) * (aMu + 1) * (aXi - 1))) /
                                       tNumberOfPoints;
-                   const double tM3 = ((mP100.mZ * (aEta - 1) * (aMu - 1) * (aXi + 1)) -
-                                       (mP000.mZ * (aEta - 1) * (aMu - 1) * (aXi - 1)) -
-                                       (mP110.mZ * (aEta + 1) * (aMu - 1) * (aXi + 1)) +
-                                       (mP010.mZ * (aEta + 1) * (aMu - 1) * (aXi - 1)) +
-                                       (mP001.mZ * (aEta - 1) * (aMu + 1) * (aXi - 1)) -
-                                       (mP101.mZ * (aEta - 1) * (aMu + 1) * (aXi + 1)) +
-                                       (mP111.mZ * (aEta + 1) * (aMu + 1) * (aXi + 1)) -
-                                       (mP011.mZ * (aEta + 1) * (aMu + 1) * (aXi - 1))) /
+                   const double tM3 = ((mP100.z * (aEta - 1) * (aMu - 1) * (aXi + 1)) -
+                                       (mP000.z * (aEta - 1) * (aMu - 1) * (aXi - 1)) -
+                                       (mP110.z * (aEta + 1) * (aMu - 1) * (aXi + 1)) +
+                                       (mP010.z * (aEta + 1) * (aMu - 1) * (aXi - 1)) +
+                                       (mP001.z * (aEta - 1) * (aMu + 1) * (aXi - 1)) -
+                                       (mP101.z * (aEta - 1) * (aMu + 1) * (aXi + 1)) +
+                                       (mP111.z * (aEta + 1) * (aMu + 1) * (aXi + 1)) -
+                                       (mP011.z * (aEta + 1) * (aMu + 1) * (aXi - 1))) /
                                       tNumberOfPoints;
 
                    const double tDetJ = tJ11 * tJ22 * tJ33 - tJ11 * tJ23 * tJ32 - tJ12 * tJ21 * tJ33 +
@@ -155,141 +155,133 @@ auto Hexahedron::centroid() const -> common::Coordinate
 auto Hexahedron::volumeVertexSensitivities() const -> VertexSensitivities
 {
     return VertexSensitivities{
-        common::Vector3{
-            (mP110.mY * mP100.mZ) - (mP100.mY * mP110.mZ) - (mP100.mY * mP010.mZ) + (mP010.mY * mP100.mZ) +
-                (mP100.mY * mP001.mZ) - (mP110.mY * mP010.mZ) + (mP010.mY * mP110.mZ) - (mP001.mY * mP100.mZ) +
-                (mP100.mY * mP101.mZ) - (mP101.mY * mP100.mZ) - (mP010.mY * mP001.mZ) + (mP001.mY * mP010.mZ) -
-                (mP001.mY * mP101.mZ) + (mP101.mY * mP001.mZ) - (mP010.mY * mP011.mZ) + (mP011.mY * mP010.mZ) +
-                (mP001.mY * mP011.mZ) - (mP011.mY * mP001.mZ),
-            (mP100.mX * mP110.mZ) - (mP110.mX * mP100.mZ) + (mP100.mX * mP010.mZ) - (mP010.mX * mP100.mZ) -
-                (mP100.mX * mP001.mZ) + (mP110.mX * mP010.mZ) - (mP010.mX * mP110.mZ) + (mP001.mX * mP100.mZ) -
-                (mP100.mX * mP101.mZ) + (mP101.mX * mP100.mZ) + (mP010.mX * mP001.mZ) - (mP001.mX * mP010.mZ) +
-                (mP001.mX * mP101.mZ) - (mP101.mX * mP001.mZ) + (mP010.mX * mP011.mZ) - (mP011.mX * mP010.mZ) -
-                (mP001.mX * mP011.mZ) + (mP011.mX * mP001.mZ),
-            (mP110.mX * mP100.mY) - (mP100.mX * mP110.mY) - (mP100.mX * mP010.mY) + (mP010.mX * mP100.mY) +
-                (mP100.mX * mP001.mY) - (mP110.mX * mP010.mY) + (mP010.mX * mP110.mY) - (mP001.mX * mP100.mY) +
-                (mP100.mX * mP101.mY) - (mP101.mX * mP100.mY) - (mP010.mX * mP001.mY) + (mP001.mX * mP010.mY) -
-                (mP001.mX * mP101.mY) + (mP101.mX * mP001.mY) - (mP010.mX * mP011.mY) + (mP011.mX * mP010.mY) +
-                (mP001.mX * mP011.mY) - (mP011.mX * mP001.mY)} *
+        common::Vector3{(mP110.y * mP100.z) - (mP100.y * mP110.z) - (mP100.y * mP010.z) + (mP010.y * mP100.z) +
+                            (mP100.y * mP001.z) - (mP110.y * mP010.z) + (mP010.y * mP110.z) - (mP001.y * mP100.z) +
+                            (mP100.y * mP101.z) - (mP101.y * mP100.z) - (mP010.y * mP001.z) + (mP001.y * mP010.z) -
+                            (mP001.y * mP101.z) + (mP101.y * mP001.z) - (mP010.y * mP011.z) + (mP011.y * mP010.z) +
+                            (mP001.y * mP011.z) - (mP011.y * mP001.z),
+                        (mP100.x * mP110.z) - (mP110.x * mP100.z) + (mP100.x * mP010.z) - (mP010.x * mP100.z) -
+                            (mP100.x * mP001.z) + (mP110.x * mP010.z) - (mP010.x * mP110.z) + (mP001.x * mP100.z) -
+                            (mP100.x * mP101.z) + (mP101.x * mP100.z) + (mP010.x * mP001.z) - (mP001.x * mP010.z) +
+                            (mP001.x * mP101.z) - (mP101.x * mP001.z) + (mP010.x * mP011.z) - (mP011.x * mP010.z) -
+                            (mP001.x * mP011.z) + (mP011.x * mP001.z),
+                        (mP110.x * mP100.y) - (mP100.x * mP110.y) - (mP100.x * mP010.y) + (mP010.x * mP100.y) +
+                            (mP100.x * mP001.y) - (mP110.x * mP010.y) + (mP010.x * mP110.y) - (mP001.x * mP100.y) +
+                            (mP100.x * mP101.y) - (mP101.x * mP100.y) - (mP010.x * mP001.y) + (mP001.x * mP010.y) -
+                            (mP001.x * mP101.y) + (mP101.x * mP001.y) - (mP010.x * mP011.y) + (mP011.x * mP010.y) +
+                            (mP001.x * mP011.y) - (mP011.x * mP001.y)} *
             kHexahedronVolumeFactor,
-        common::Vector3{
-            (mP000.mY * mP110.mZ) - (mP110.mY * mP000.mZ) + (mP000.mY * mP010.mZ) - (mP010.mY * mP000.mZ) -
-                (mP000.mY * mP001.mZ) + (mP001.mY * mP000.mZ) - (mP000.mY * mP101.mZ) - (mP110.mY * mP010.mZ) +
-                (mP010.mY * mP110.mZ) + (mP101.mY * mP000.mZ) + (mP110.mY * mP101.mZ) - (mP101.mY * mP110.mZ) +
-                (mP110.mY * mP111.mZ) - (mP111.mY * mP110.mZ) - (mP001.mY * mP101.mZ) + (mP101.mY * mP001.mZ) -
-                (mP101.mY * mP111.mZ) + (mP111.mY * mP101.mZ),
-            (mP110.mX * mP000.mZ) - (mP000.mX * mP110.mZ) - (mP000.mX * mP010.mZ) + (mP010.mX * mP000.mZ) +
-                (mP000.mX * mP001.mZ) - (mP001.mX * mP000.mZ) + (mP000.mX * mP101.mZ) + (mP110.mX * mP010.mZ) -
-                (mP010.mX * mP110.mZ) - (mP101.mX * mP000.mZ) - (mP110.mX * mP101.mZ) + (mP101.mX * mP110.mZ) -
-                (mP110.mX * mP111.mZ) + (mP111.mX * mP110.mZ) + (mP001.mX * mP101.mZ) - (mP101.mX * mP001.mZ) +
-                (mP101.mX * mP111.mZ) - (mP111.mX * mP101.mZ),
-            (mP000.mX * mP110.mY) - (mP110.mX * mP000.mY) + (mP000.mX * mP010.mY) - (mP010.mX * mP000.mY) -
-                (mP000.mX * mP001.mY) + (mP001.mX * mP000.mY) - (mP000.mX * mP101.mY) - (mP110.mX * mP010.mY) +
-                (mP010.mX * mP110.mY) + (mP101.mX * mP000.mY) + (mP110.mX * mP101.mY) - (mP101.mX * mP110.mY) +
-                (mP110.mX * mP111.mY) - (mP111.mX * mP110.mY) - (mP001.mX * mP101.mY) + (mP101.mX * mP001.mY) -
-                (mP101.mX * mP111.mY) + (mP111.mX * mP101.mY)} *
+        common::Vector3{(mP000.y * mP110.z) - (mP110.y * mP000.z) + (mP000.y * mP010.z) - (mP010.y * mP000.z) -
+                            (mP000.y * mP001.z) + (mP001.y * mP000.z) - (mP000.y * mP101.z) - (mP110.y * mP010.z) +
+                            (mP010.y * mP110.z) + (mP101.y * mP000.z) + (mP110.y * mP101.z) - (mP101.y * mP110.z) +
+                            (mP110.y * mP111.z) - (mP111.y * mP110.z) - (mP001.y * mP101.z) + (mP101.y * mP001.z) -
+                            (mP101.y * mP111.z) + (mP111.y * mP101.z),
+                        (mP110.x * mP000.z) - (mP000.x * mP110.z) - (mP000.x * mP010.z) + (mP010.x * mP000.z) +
+                            (mP000.x * mP001.z) - (mP001.x * mP000.z) + (mP000.x * mP101.z) + (mP110.x * mP010.z) -
+                            (mP010.x * mP110.z) - (mP101.x * mP000.z) - (mP110.x * mP101.z) + (mP101.x * mP110.z) -
+                            (mP110.x * mP111.z) + (mP111.x * mP110.z) + (mP001.x * mP101.z) - (mP101.x * mP001.z) +
+                            (mP101.x * mP111.z) - (mP111.x * mP101.z),
+                        (mP000.x * mP110.y) - (mP110.x * mP000.y) + (mP000.x * mP010.y) - (mP010.x * mP000.y) -
+                            (mP000.x * mP001.y) + (mP001.x * mP000.y) - (mP000.x * mP101.y) - (mP110.x * mP010.y) +
+                            (mP010.x * mP110.y) + (mP101.x * mP000.y) + (mP110.x * mP101.y) - (mP101.x * mP110.y) +
+                            (mP110.x * mP111.y) - (mP111.x * mP110.y) - (mP001.x * mP101.y) + (mP101.x * mP001.y) -
+                            (mP101.x * mP111.y) + (mP111.x * mP101.y)} *
             kHexahedronVolumeFactor,
-        common::Vector3{
-            (mP100.mY * mP000.mZ) - (mP000.mY * mP100.mZ) + (mP000.mY * mP010.mZ) - (mP010.mY * mP000.mZ) +
-                (mP100.mY * mP010.mZ) - (mP010.mY * mP100.mZ) - (mP100.mY * mP101.mZ) + (mP101.mY * mP100.mZ) -
-                (mP100.mY * mP111.mZ) + (mP111.mY * mP100.mZ) + (mP010.mY * mP111.mZ) - (mP111.mY * mP010.mZ) +
-                (mP010.mY * mP011.mZ) - (mP011.mY * mP010.mZ) - (mP101.mY * mP111.mZ) + (mP111.mY * mP101.mZ) -
-                (mP111.mY * mP011.mZ) + (mP011.mY * mP111.mZ),
-            (mP000.mX * mP100.mZ) - (mP100.mX * mP000.mZ) - (mP000.mX * mP010.mZ) + (mP010.mX * mP000.mZ) -
-                (mP100.mX * mP010.mZ) + (mP010.mX * mP100.mZ) + (mP100.mX * mP101.mZ) - (mP101.mX * mP100.mZ) +
-                (mP100.mX * mP111.mZ) - (mP111.mX * mP100.mZ) - (mP010.mX * mP111.mZ) + (mP111.mX * mP010.mZ) -
-                (mP010.mX * mP011.mZ) + (mP011.mX * mP010.mZ) + (mP101.mX * mP111.mZ) - (mP111.mX * mP101.mZ) +
-                (mP111.mX * mP011.mZ) - (mP011.mX * mP111.mZ),
-            (mP100.mX * mP000.mY) - (mP000.mX * mP100.mY) + (mP000.mX * mP010.mY) - (mP010.mX * mP000.mY) +
-                (mP100.mX * mP010.mY) - (mP010.mX * mP100.mY) - (mP100.mX * mP101.mY) + (mP101.mX * mP100.mY) -
-                (mP100.mX * mP111.mY) + (mP111.mX * mP100.mY) + (mP010.mX * mP111.mY) - (mP111.mX * mP010.mY) +
-                (mP010.mX * mP011.mY) - (mP011.mX * mP010.mY) - (mP101.mX * mP111.mY) + (mP111.mX * mP101.mY) -
-                (mP111.mX * mP011.mY) + (mP011.mX * mP111.mY)} *
+        common::Vector3{(mP100.y * mP000.z) - (mP000.y * mP100.z) + (mP000.y * mP010.z) - (mP010.y * mP000.z) +
+                            (mP100.y * mP010.z) - (mP010.y * mP100.z) - (mP100.y * mP101.z) + (mP101.y * mP100.z) -
+                            (mP100.y * mP111.z) + (mP111.y * mP100.z) + (mP010.y * mP111.z) - (mP111.y * mP010.z) +
+                            (mP010.y * mP011.z) - (mP011.y * mP010.z) - (mP101.y * mP111.z) + (mP111.y * mP101.z) -
+                            (mP111.y * mP011.z) + (mP011.y * mP111.z),
+                        (mP000.x * mP100.z) - (mP100.x * mP000.z) - (mP000.x * mP010.z) + (mP010.x * mP000.z) -
+                            (mP100.x * mP010.z) + (mP010.x * mP100.z) + (mP100.x * mP101.z) - (mP101.x * mP100.z) +
+                            (mP100.x * mP111.z) - (mP111.x * mP100.z) - (mP010.x * mP111.z) + (mP111.x * mP010.z) -
+                            (mP010.x * mP011.z) + (mP011.x * mP010.z) + (mP101.x * mP111.z) - (mP111.x * mP101.z) +
+                            (mP111.x * mP011.z) - (mP011.x * mP111.z),
+                        (mP100.x * mP000.y) - (mP000.x * mP100.y) + (mP000.x * mP010.y) - (mP010.x * mP000.y) +
+                            (mP100.x * mP010.y) - (mP010.x * mP100.y) - (mP100.x * mP101.y) + (mP101.x * mP100.y) -
+                            (mP100.x * mP111.y) + (mP111.x * mP100.y) + (mP010.x * mP111.y) - (mP111.x * mP010.y) +
+                            (mP010.x * mP011.y) - (mP011.x * mP010.y) - (mP101.x * mP111.y) + (mP111.x * mP101.y) -
+                            (mP111.x * mP011.y) + (mP011.x * mP111.y)} *
             kHexahedronVolumeFactor,
-        common::Vector3{
-            (mP100.mY * mP000.mZ) - (mP000.mY * mP100.mZ) - (mP000.mY * mP110.mZ) + (mP110.mY * mP000.mZ) -
-                (mP100.mY * mP110.mZ) + (mP110.mY * mP100.mZ) + (mP000.mY * mP001.mZ) - (mP001.mY * mP000.mZ) +
-                (mP000.mY * mP011.mZ) - (mP011.mY * mP000.mZ) - (mP110.mY * mP111.mZ) + (mP111.mY * mP110.mZ) -
-                (mP110.mY * mP011.mZ) + (mP011.mY * mP110.mZ) + (mP001.mY * mP011.mZ) - (mP011.mY * mP001.mZ) -
-                (mP111.mY * mP011.mZ) + (mP011.mY * mP111.mZ),
-            (mP000.mX * mP100.mZ) - (mP100.mX * mP000.mZ) + (mP000.mX * mP110.mZ) - (mP110.mX * mP000.mZ) +
-                (mP100.mX * mP110.mZ) - (mP110.mX * mP100.mZ) - (mP000.mX * mP001.mZ) + (mP001.mX * mP000.mZ) -
-                (mP000.mX * mP011.mZ) + (mP011.mX * mP000.mZ) + (mP110.mX * mP111.mZ) - (mP111.mX * mP110.mZ) +
-                (mP110.mX * mP011.mZ) - (mP011.mX * mP110.mZ) - (mP001.mX * mP011.mZ) + (mP011.mX * mP001.mZ) +
-                (mP111.mX * mP011.mZ) - (mP011.mX * mP111.mZ),
-            (mP100.mX * mP000.mY) - (mP000.mX * mP100.mY) - (mP000.mX * mP110.mY) + (mP110.mX * mP000.mY) -
-                (mP100.mX * mP110.mY) + (mP110.mX * mP100.mY) + (mP000.mX * mP001.mY) - (mP001.mX * mP000.mY) +
-                (mP000.mX * mP011.mY) - (mP011.mX * mP000.mY) - (mP110.mX * mP111.mY) + (mP111.mX * mP110.mY) -
-                (mP110.mX * mP011.mY) + (mP011.mX * mP110.mY) + (mP001.mX * mP011.mY) - (mP011.mX * mP001.mY) -
-                (mP111.mX * mP011.mY) + (mP011.mX * mP111.mY)} *
+        common::Vector3{(mP100.y * mP000.z) - (mP000.y * mP100.z) - (mP000.y * mP110.z) + (mP110.y * mP000.z) -
+                            (mP100.y * mP110.z) + (mP110.y * mP100.z) + (mP000.y * mP001.z) - (mP001.y * mP000.z) +
+                            (mP000.y * mP011.z) - (mP011.y * mP000.z) - (mP110.y * mP111.z) + (mP111.y * mP110.z) -
+                            (mP110.y * mP011.z) + (mP011.y * mP110.z) + (mP001.y * mP011.z) - (mP011.y * mP001.z) -
+                            (mP111.y * mP011.z) + (mP011.y * mP111.z),
+                        (mP000.x * mP100.z) - (mP100.x * mP000.z) + (mP000.x * mP110.z) - (mP110.x * mP000.z) +
+                            (mP100.x * mP110.z) - (mP110.x * mP100.z) - (mP000.x * mP001.z) + (mP001.x * mP000.z) -
+                            (mP000.x * mP011.z) + (mP011.x * mP000.z) + (mP110.x * mP111.z) - (mP111.x * mP110.z) +
+                            (mP110.x * mP011.z) - (mP011.x * mP110.z) - (mP001.x * mP011.z) + (mP011.x * mP001.z) +
+                            (mP111.x * mP011.z) - (mP011.x * mP111.z),
+                        (mP100.x * mP000.y) - (mP000.x * mP100.y) - (mP000.x * mP110.y) + (mP110.x * mP000.y) -
+                            (mP100.x * mP110.y) + (mP110.x * mP100.y) + (mP000.x * mP001.y) - (mP001.x * mP000.y) +
+                            (mP000.x * mP011.y) - (mP011.x * mP000.y) - (mP110.x * mP111.y) + (mP111.x * mP110.y) -
+                            (mP110.x * mP011.y) + (mP011.x * mP110.y) + (mP001.x * mP011.y) - (mP011.x * mP001.y) -
+                            (mP111.x * mP011.y) + (mP011.x * mP111.y)} *
             kHexahedronVolumeFactor,
-        common::Vector3{
-            (mP000.mY * mP100.mZ) - (mP100.mY * mP000.mZ) - (mP000.mY * mP010.mZ) + (mP010.mY * mP000.mZ) +
-                (mP000.mY * mP101.mZ) - (mP101.mY * mP000.mZ) + (mP100.mY * mP101.mZ) - (mP101.mY * mP100.mZ) -
-                (mP000.mY * mP011.mZ) + (mP011.mY * mP000.mZ) - (mP010.mY * mP011.mZ) + (mP011.mY * mP010.mZ) +
-                (mP101.mY * mP111.mZ) - (mP111.mY * mP101.mZ) + (mP101.mY * mP011.mZ) - (mP011.mY * mP101.mZ) +
-                (mP111.mY * mP011.mZ) - (mP011.mY * mP111.mZ),
-            (mP100.mX * mP000.mZ) - (mP000.mX * mP100.mZ) + (mP000.mX * mP010.mZ) - (mP010.mX * mP000.mZ) -
-                (mP000.mX * mP101.mZ) + (mP101.mX * mP000.mZ) - (mP100.mX * mP101.mZ) + (mP101.mX * mP100.mZ) +
-                (mP000.mX * mP011.mZ) - (mP011.mX * mP000.mZ) + (mP010.mX * mP011.mZ) - (mP011.mX * mP010.mZ) -
-                (mP101.mX * mP111.mZ) + (mP111.mX * mP101.mZ) - (mP101.mX * mP011.mZ) + (mP011.mX * mP101.mZ) -
-                (mP111.mX * mP011.mZ) + (mP011.mX * mP111.mZ),
-            (mP000.mX * mP100.mY) - (mP100.mX * mP000.mY) - (mP000.mX * mP010.mY) + (mP010.mX * mP000.mY) +
-                (mP000.mX * mP101.mY) - (mP101.mX * mP000.mY) + (mP100.mX * mP101.mY) - (mP101.mX * mP100.mY) -
-                (mP000.mX * mP011.mY) + (mP011.mX * mP000.mY) - (mP010.mX * mP011.mY) + (mP011.mX * mP010.mY) +
-                (mP101.mX * mP111.mY) - (mP111.mX * mP101.mY) + (mP101.mX * mP011.mY) - (mP011.mX * mP101.mY) +
-                (mP111.mX * mP011.mY) - (mP011.mX * mP111.mY)} *
+        common::Vector3{(mP000.y * mP100.z) - (mP100.y * mP000.z) - (mP000.y * mP010.z) + (mP010.y * mP000.z) +
+                            (mP000.y * mP101.z) - (mP101.y * mP000.z) + (mP100.y * mP101.z) - (mP101.y * mP100.z) -
+                            (mP000.y * mP011.z) + (mP011.y * mP000.z) - (mP010.y * mP011.z) + (mP011.y * mP010.z) +
+                            (mP101.y * mP111.z) - (mP111.y * mP101.z) + (mP101.y * mP011.z) - (mP011.y * mP101.z) +
+                            (mP111.y * mP011.z) - (mP011.y * mP111.z),
+                        (mP100.x * mP000.z) - (mP000.x * mP100.z) + (mP000.x * mP010.z) - (mP010.x * mP000.z) -
+                            (mP000.x * mP101.z) + (mP101.x * mP000.z) - (mP100.x * mP101.z) + (mP101.x * mP100.z) +
+                            (mP000.x * mP011.z) - (mP011.x * mP000.z) + (mP010.x * mP011.z) - (mP011.x * mP010.z) -
+                            (mP101.x * mP111.z) + (mP111.x * mP101.z) - (mP101.x * mP011.z) + (mP011.x * mP101.z) -
+                            (mP111.x * mP011.z) + (mP011.x * mP111.z),
+                        (mP000.x * mP100.y) - (mP100.x * mP000.y) - (mP000.x * mP010.y) + (mP010.x * mP000.y) +
+                            (mP000.x * mP101.y) - (mP101.x * mP000.y) + (mP100.x * mP101.y) - (mP101.x * mP100.y) -
+                            (mP000.x * mP011.y) + (mP011.x * mP000.y) - (mP010.x * mP011.y) + (mP011.x * mP010.y) +
+                            (mP101.x * mP111.y) - (mP111.x * mP101.y) + (mP101.x * mP011.y) - (mP011.x * mP101.y) +
+                            (mP111.x * mP011.y) - (mP011.x * mP111.y)} *
             kHexahedronVolumeFactor,
-        common::Vector3{
-            (mP000.mY * mP100.mZ) - (mP100.mY * mP000.mZ) + (mP100.mY * mP110.mZ) - (mP110.mY * mP100.mZ) -
-                (mP000.mY * mP001.mZ) + (mP001.mY * mP000.mZ) - (mP100.mY * mP001.mZ) + (mP001.mY * mP100.mZ) +
-                (mP100.mY * mP111.mZ) - (mP111.mY * mP100.mZ) + (mP110.mY * mP111.mZ) - (mP111.mY * mP110.mZ) -
-                (mP001.mY * mP111.mZ) + (mP111.mY * mP001.mZ) - (mP001.mY * mP011.mZ) + (mP011.mY * mP001.mZ) +
-                (mP111.mY * mP011.mZ) - (mP011.mY * mP111.mZ),
-            (mP100.mX * mP000.mZ) - (mP000.mX * mP100.mZ) - (mP100.mX * mP110.mZ) + (mP110.mX * mP100.mZ) +
-                (mP000.mX * mP001.mZ) - (mP001.mX * mP000.mZ) + (mP100.mX * mP001.mZ) - (mP001.mX * mP100.mZ) -
-                (mP100.mX * mP111.mZ) + (mP111.mX * mP100.mZ) - (mP110.mX * mP111.mZ) + (mP111.mX * mP110.mZ) +
-                (mP001.mX * mP111.mZ) - (mP111.mX * mP001.mZ) + (mP001.mX * mP011.mZ) - (mP011.mX * mP001.mZ) -
-                (mP111.mX * mP011.mZ) + (mP011.mX * mP111.mZ),
-            (mP000.mX * mP100.mY) - (mP100.mX * mP000.mY) + (mP100.mX * mP110.mY) - (mP110.mX * mP100.mY) -
-                (mP000.mX * mP001.mY) + (mP001.mX * mP000.mY) - (mP100.mX * mP001.mY) + (mP001.mX * mP100.mY) +
-                (mP100.mX * mP111.mY) - (mP111.mX * mP100.mY) + (mP110.mX * mP111.mY) - (mP111.mX * mP110.mY) -
-                (mP001.mX * mP111.mY) + (mP111.mX * mP001.mY) - (mP001.mX * mP011.mY) + (mP011.mX * mP001.mY) +
-                (mP111.mX * mP011.mY) - (mP011.mX * mP111.mY)} *
+        common::Vector3{(mP000.y * mP100.z) - (mP100.y * mP000.z) + (mP100.y * mP110.z) - (mP110.y * mP100.z) -
+                            (mP000.y * mP001.z) + (mP001.y * mP000.z) - (mP100.y * mP001.z) + (mP001.y * mP100.z) +
+                            (mP100.y * mP111.z) - (mP111.y * mP100.z) + (mP110.y * mP111.z) - (mP111.y * mP110.z) -
+                            (mP001.y * mP111.z) + (mP111.y * mP001.z) - (mP001.y * mP011.z) + (mP011.y * mP001.z) +
+                            (mP111.y * mP011.z) - (mP011.y * mP111.z),
+                        (mP100.x * mP000.z) - (mP000.x * mP100.z) - (mP100.x * mP110.z) + (mP110.x * mP100.z) +
+                            (mP000.x * mP001.z) - (mP001.x * mP000.z) + (mP100.x * mP001.z) - (mP001.x * mP100.z) -
+                            (mP100.x * mP111.z) + (mP111.x * mP100.z) - (mP110.x * mP111.z) + (mP111.x * mP110.z) +
+                            (mP001.x * mP111.z) - (mP111.x * mP001.z) + (mP001.x * mP011.z) - (mP011.x * mP001.z) -
+                            (mP111.x * mP011.z) + (mP011.x * mP111.z),
+                        (mP000.x * mP100.y) - (mP100.x * mP000.y) + (mP100.x * mP110.y) - (mP110.x * mP100.y) -
+                            (mP000.x * mP001.y) + (mP001.x * mP000.y) - (mP100.x * mP001.y) + (mP001.x * mP100.y) +
+                            (mP100.x * mP111.y) - (mP111.x * mP100.y) + (mP110.x * mP111.y) - (mP111.x * mP110.y) -
+                            (mP001.x * mP111.y) + (mP111.x * mP001.y) - (mP001.x * mP011.y) + (mP011.x * mP001.y) +
+                            (mP111.x * mP011.y) - (mP011.x * mP111.y)} *
             kHexahedronVolumeFactor,
-        common::Vector3{
-            (mP100.mY * mP110.mZ) - (mP110.mY * mP100.mZ) + (mP110.mY * mP010.mZ) - (mP010.mY * mP110.mZ) -
-                (mP100.mY * mP101.mZ) + (mP101.mY * mP100.mZ) - (mP110.mY * mP101.mZ) + (mP101.mY * mP110.mZ) +
-                (mP110.mY * mP011.mZ) + (mP001.mY * mP101.mZ) - (mP101.mY * mP001.mZ) - (mP011.mY * mP110.mZ) +
-                (mP010.mY * mP011.mZ) - (mP011.mY * mP010.mZ) - (mP001.mY * mP011.mZ) + (mP011.mY * mP001.mZ) -
-                (mP101.mY * mP011.mZ) + (mP011.mY * mP101.mZ),
-            (mP110.mX * mP100.mZ) - (mP100.mX * mP110.mZ) - (mP110.mX * mP010.mZ) + (mP010.mX * mP110.mZ) +
-                (mP100.mX * mP101.mZ) - (mP101.mX * mP100.mZ) + (mP110.mX * mP101.mZ) - (mP101.mX * mP110.mZ) -
-                (mP110.mX * mP011.mZ) - (mP001.mX * mP101.mZ) + (mP101.mX * mP001.mZ) + (mP011.mX * mP110.mZ) -
-                (mP010.mX * mP011.mZ) + (mP011.mX * mP010.mZ) + (mP001.mX * mP011.mZ) - (mP011.mX * mP001.mZ) +
-                (mP101.mX * mP011.mZ) - (mP011.mX * mP101.mZ),
-            (mP100.mX * mP110.mY) - (mP110.mX * mP100.mY) + (mP110.mX * mP010.mY) - (mP010.mX * mP110.mY) -
-                (mP100.mX * mP101.mY) + (mP101.mX * mP100.mY) - (mP110.mX * mP101.mY) + (mP101.mX * mP110.mY) +
-                (mP110.mX * mP011.mY) + (mP001.mX * mP101.mY) - (mP101.mX * mP001.mY) - (mP011.mX * mP110.mY) +
-                (mP010.mX * mP011.mY) - (mP011.mX * mP010.mY) - (mP001.mX * mP011.mY) + (mP011.mX * mP001.mY) -
-                (mP101.mX * mP011.mY) + (mP011.mX * mP101.mY)} *
+        common::Vector3{(mP100.y * mP110.z) - (mP110.y * mP100.z) + (mP110.y * mP010.z) - (mP010.y * mP110.z) -
+                            (mP100.y * mP101.z) + (mP101.y * mP100.z) - (mP110.y * mP101.z) + (mP101.y * mP110.z) +
+                            (mP110.y * mP011.z) + (mP001.y * mP101.z) - (mP101.y * mP001.z) - (mP011.y * mP110.z) +
+                            (mP010.y * mP011.z) - (mP011.y * mP010.z) - (mP001.y * mP011.z) + (mP011.y * mP001.z) -
+                            (mP101.y * mP011.z) + (mP011.y * mP101.z),
+                        (mP110.x * mP100.z) - (mP100.x * mP110.z) - (mP110.x * mP010.z) + (mP010.x * mP110.z) +
+                            (mP100.x * mP101.z) - (mP101.x * mP100.z) + (mP110.x * mP101.z) - (mP101.x * mP110.z) -
+                            (mP110.x * mP011.z) - (mP001.x * mP101.z) + (mP101.x * mP001.z) + (mP011.x * mP110.z) -
+                            (mP010.x * mP011.z) + (mP011.x * mP010.z) + (mP001.x * mP011.z) - (mP011.x * mP001.z) +
+                            (mP101.x * mP011.z) - (mP011.x * mP101.z),
+                        (mP100.x * mP110.y) - (mP110.x * mP100.y) + (mP110.x * mP010.y) - (mP010.x * mP110.y) -
+                            (mP100.x * mP101.y) + (mP101.x * mP100.y) - (mP110.x * mP101.y) + (mP101.x * mP110.y) +
+                            (mP110.x * mP011.y) + (mP001.x * mP101.y) - (mP101.x * mP001.y) - (mP011.x * mP110.y) +
+                            (mP010.x * mP011.y) - (mP011.x * mP010.y) - (mP001.x * mP011.y) + (mP011.x * mP001.y) -
+                            (mP101.x * mP011.y) + (mP011.x * mP101.y)} *
             kHexahedronVolumeFactor,
-        common::Vector3{
-            (mP010.mY * mP000.mZ) - (mP000.mY * mP010.mZ) + (mP000.mY * mP001.mZ) - (mP001.mY * mP000.mZ) +
-                (mP110.mY * mP010.mZ) - (mP010.mY * mP110.mZ) + (mP010.mY * mP001.mZ) - (mP001.mY * mP010.mZ) -
-                (mP110.mY * mP111.mZ) + (mP111.mY * mP110.mZ) - (mP010.mY * mP111.mZ) + (mP001.mY * mP101.mZ) -
-                (mP101.mY * mP001.mZ) + (mP111.mY * mP010.mZ) + (mP001.mY * mP111.mZ) - (mP111.mY * mP001.mZ) +
-                (mP101.mY * mP111.mZ) - (mP111.mY * mP101.mZ),
-            (mP000.mX * mP010.mZ) - (mP010.mX * mP000.mZ) - (mP000.mX * mP001.mZ) + (mP001.mX * mP000.mZ) -
-                (mP110.mX * mP010.mZ) + (mP010.mX * mP110.mZ) - (mP010.mX * mP001.mZ) + (mP001.mX * mP010.mZ) +
-                (mP110.mX * mP111.mZ) - (mP111.mX * mP110.mZ) + (mP010.mX * mP111.mZ) - (mP001.mX * mP101.mZ) +
-                (mP101.mX * mP001.mZ) - (mP111.mX * mP010.mZ) - (mP001.mX * mP111.mZ) + (mP111.mX * mP001.mZ) -
-                (mP101.mX * mP111.mZ) + (mP111.mX * mP101.mZ),
-            (mP010.mX * mP000.mY) - (mP000.mX * mP010.mY) + (mP000.mX * mP001.mY) - (mP001.mX * mP000.mY) +
-                (mP110.mX * mP010.mY) - (mP010.mX * mP110.mY) + (mP010.mX * mP001.mY) - (mP001.mX * mP010.mY) -
-                (mP110.mX * mP111.mY) + (mP111.mX * mP110.mY) - (mP010.mX * mP111.mY) + (mP001.mX * mP101.mY) -
-                (mP101.mX * mP001.mY) + (mP111.mX * mP010.mY) + (mP001.mX * mP111.mY) - (mP111.mX * mP001.mY) +
-                (mP101.mX * mP111.mY) - (mP111.mX * mP101.mY)} *
+        common::Vector3{(mP010.y * mP000.z) - (mP000.y * mP010.z) + (mP000.y * mP001.z) - (mP001.y * mP000.z) +
+                            (mP110.y * mP010.z) - (mP010.y * mP110.z) + (mP010.y * mP001.z) - (mP001.y * mP010.z) -
+                            (mP110.y * mP111.z) + (mP111.y * mP110.z) - (mP010.y * mP111.z) + (mP001.y * mP101.z) -
+                            (mP101.y * mP001.z) + (mP111.y * mP010.z) + (mP001.y * mP111.z) - (mP111.y * mP001.z) +
+                            (mP101.y * mP111.z) - (mP111.y * mP101.z),
+                        (mP000.x * mP010.z) - (mP010.x * mP000.z) - (mP000.x * mP001.z) + (mP001.x * mP000.z) -
+                            (mP110.x * mP010.z) + (mP010.x * mP110.z) - (mP010.x * mP001.z) + (mP001.x * mP010.z) +
+                            (mP110.x * mP111.z) - (mP111.x * mP110.z) + (mP010.x * mP111.z) - (mP001.x * mP101.z) +
+                            (mP101.x * mP001.z) - (mP111.x * mP010.z) - (mP001.x * mP111.z) + (mP111.x * mP001.z) -
+                            (mP101.x * mP111.z) + (mP111.x * mP101.z),
+                        (mP010.x * mP000.y) - (mP000.x * mP010.y) + (mP000.x * mP001.y) - (mP001.x * mP000.y) +
+                            (mP110.x * mP010.y) - (mP010.x * mP110.y) + (mP010.x * mP001.y) - (mP001.x * mP010.y) -
+                            (mP110.x * mP111.y) + (mP111.x * mP110.y) - (mP010.x * mP111.y) + (mP001.x * mP101.y) -
+                            (mP101.x * mP001.y) + (mP111.x * mP010.y) + (mP001.x * mP111.y) - (mP111.x * mP001.y) +
+                            (mP101.x * mP111.y) - (mP111.x * mP101.y)} *
             kHexahedronVolumeFactor};
 }
 }  // namespace plato::third_party_integration::stk_io

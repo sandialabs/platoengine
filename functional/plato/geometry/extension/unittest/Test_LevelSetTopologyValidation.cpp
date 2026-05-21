@@ -204,9 +204,9 @@ TEST(LevelSetTopologyDetail, GenerateSpheresFromList)
     for (const auto& [tKrinoSphere, tLevelSetSphere] : utilities::Zip(tKrinoList, kSphereList.mList))
     {
         EXPECT_EQ(tKrinoSphere.mRadius, tLevelSetSphere.radius);
-        EXPECT_EQ(tKrinoSphere.mCenter.mX, tLevelSetSphere.center.mX);
-        EXPECT_EQ(tKrinoSphere.mCenter.mY, tLevelSetSphere.center.mY);
-        EXPECT_EQ(tKrinoSphere.mCenter.mZ, tLevelSetSphere.center.mZ);
+        EXPECT_EQ(tKrinoSphere.mCenter.x, tLevelSetSphere.center.mX);
+        EXPECT_EQ(tKrinoSphere.mCenter.y, tLevelSetSphere.center.mY);
+        EXPECT_EQ(tKrinoSphere.mCenter.z, tLevelSetSphere.center.mZ);
     }
 }
 

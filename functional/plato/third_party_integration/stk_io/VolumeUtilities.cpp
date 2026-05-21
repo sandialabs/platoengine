@@ -33,10 +33,10 @@ namespace
 {
     if (aCoordinate.size() == 3U)
     {
-        return common::Coordinate{.mX = aCoordinate[0], .mY = aCoordinate[1], .mZ = aCoordinate[2]};
+        return common::Coordinate{.x = aCoordinate[0], .y = aCoordinate[1], .z = aCoordinate[2]};
     }
 
-    return common::Coordinate{.mX = aCoordinate[0], .mY = aCoordinate[1], .mZ = 0};
+    return common::Coordinate{.x = aCoordinate[0], .y = aCoordinate[1], .z = 0};
 }
 
 auto get_edge_nodes(const stk::topology& aElementTopology,

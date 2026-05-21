@@ -10,14 +10,14 @@ namespace
 {
 [[nodiscard]] Hexahedron create_coordinate_axis_aligned_hexahedron_from_cuboid(const test_utilities::Cuboid& aCuboid)
 {
-    const common::Coordinate tPoint0{.mX = 0, .mY = 0, .mZ = 0};
-    const common::Coordinate tPoint1{.mX = aCuboid.mLength, .mY = 0, .mZ = 0};
-    const common::Coordinate tPoint2{.mX = aCuboid.mLength, .mY = aCuboid.mWidth, .mZ = 0};
-    const common::Coordinate tPoint3{.mX = 0, .mY = aCuboid.mWidth, .mZ = 0};
-    const common::Coordinate tPoint4{.mX = 0, .mY = 0, .mZ = aCuboid.mHeight};
-    const common::Coordinate tPoint5{.mX = aCuboid.mLength, .mY = 0, .mZ = aCuboid.mHeight};
-    const common::Coordinate tPoint6{.mX = aCuboid.mLength, .mY = aCuboid.mWidth, .mZ = aCuboid.mHeight};
-    const common::Coordinate tPoint7{.mX = 0, .mY = aCuboid.mWidth, .mZ = aCuboid.mHeight};
+    const common::Coordinate tPoint0{.x = 0, .y = 0, .z = 0};
+    const common::Coordinate tPoint1{.x = aCuboid.mLength, .y = 0, .z = 0};
+    const common::Coordinate tPoint2{.x = aCuboid.mLength, .y = aCuboid.mWidth, .z = 0};
+    const common::Coordinate tPoint3{.x = 0, .y = aCuboid.mWidth, .z = 0};
+    const common::Coordinate tPoint4{.x = 0, .y = 0, .z = aCuboid.mHeight};
+    const common::Coordinate tPoint5{.x = aCuboid.mLength, .y = 0, .z = aCuboid.mHeight};
+    const common::Coordinate tPoint6{.x = aCuboid.mLength, .y = aCuboid.mWidth, .z = aCuboid.mHeight};
+    const common::Coordinate tPoint7{.x = 0, .y = aCuboid.mWidth, .z = aCuboid.mHeight};
 
     return Hexahedron{.mP000 = tPoint0,
                       .mP100 = tPoint1,
@@ -45,7 +45,7 @@ TEST(Hexahedron, VolumeOfPerturbedUnitHex)
     Hexahedron tHex = create_coordinate_axis_aligned_hexahedron_from_cuboid(
         test_utilities::Cuboid{.mLength = 1.0, .mWidth = 1.0, .mHeight = 1.0});
 
-    tHex.mP100.mX += 0.1;
+    tHex.mP100.x += 0.1;
     const double tResult = tHex.volume();
     constexpr double tGold = 41. / 40;  // computed via matlab
 
@@ -65,10 +65,10 @@ TEST(Hexahedron, Centroid)
 
 TEST(Hexahedron, CentroidOfParallelepiped)
 {
-    const common::Coordinate tCornerPoint{.mX = 0.0, .mY = 0.0, .mZ = 0.0};
-    const common::Coordinate tVector1{.mX = 21.0, .mY = 12.0, .mZ = 91.0};
-    const common::Coordinate tVector2{.mX = 39.0, .mY = 71.0, .mZ = 12.0};
-    const common::Coordinate tVector3{.mX = 88.0, .mY = 35.0, .mZ = 84.0};
+    const common::Coordinate tCornerPoint{.x = 0.0, .y = 0.0, .z = 0.0};
+    const common::Coordinate tVector1{.x = 21.0, .y = 12.0, .z = 91.0};
+    const common::Coordinate tVector2{.x = 39.0, .y = 71.0, .z = 12.0};
+    const common::Coordinate tVector3{.x = 88.0, .y = 35.0, .z = 84.0};
     const Hexahedron tHex{.mP000 = tCornerPoint,
                           .mP100 = tCornerPoint + tVector1,
                           .mP110 = tCornerPoint + tVector1 + tVector2,

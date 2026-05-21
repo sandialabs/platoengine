@@ -127,7 +127,7 @@ auto validate_source_mesh_in_xy_plane(const input_parser::z_swept_filter& /*aInp
         return std::nullopt;  // Not our error
     }
     const auto tBoundingBox = mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.designDomainBoundingBox();
-    if (tBoundingBox.first.mZ != tBoundingBox.second.mZ)
+    if (tBoundingBox.first.z != tBoundingBox.second.z)
     {
         return std::optional<std::string>{utilities::concatenate(
             input_parser::block_name<input_parser::z_swept_filter>(), ": source mesh must exist in the XY plane.")};

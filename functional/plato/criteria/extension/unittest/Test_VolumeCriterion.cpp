@@ -153,8 +153,8 @@ TEST(VolumeCriterion, VolumeDifferentiatesBetweenNodalAndDensityDesignVariables)
     constexpr double tVolume{tLength * tWidth * tHeight};
     const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{
         .mElements = {.mX = 4, .mY = 5, .mZ = 3},
-        .mLowerBounds = {.mX = 0, .mY = 0, .mZ = 0},
-        .mUpperBounds = {.mX = tLength, .mY = tWidth, .mZ = tHeight},
+        .mLowerBounds = {.x = 0, .y = 0, .z = 0},
+        .mUpperBounds = {.x = tLength, .y = tWidth, .z = tHeight},
         .mType = third_party_integration::stk_io::CommandElementType::kTet};
     third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
 

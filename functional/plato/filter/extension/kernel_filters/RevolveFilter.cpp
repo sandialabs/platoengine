@@ -44,8 +44,7 @@ const auto kMakeRevolveFilterInfo = [](const input_parser::y_axis_revolve_filter
     {
         const auto& tInput = input_validation::get_input_block<input_parser::y_axis_revolve_filter>(aInput);
         return library::make_filter_function_from_cache(
-            [&tInput]()
-            {
+            [&tInput]() {
                 return detail::create_kernel_filter_cache<input_parser::y_axis_revolve_filter>(tInput,
                                                                                                kMakeRevolveFilterInfo);
             });
@@ -80,9 +79,8 @@ auto make_y_axis_revolve_filter_type(const input_parser::y_axis_revolve_filter& 
 
 namespace detail
 {
-auto make_y_axis_revolve_filter_type(const double aRadius,
-                                     const input_parser::KernelFilterCenteringTypes aFilterCentering)
-    -> RevolveFilterType
+auto make_y_axis_revolve_filter_type(
+    const double aRadius, const input_parser::KernelFilterCenteringTypes aFilterCentering) -> RevolveFilterType
 {
     const auto tThetaHat = third_party_integration::common::Vector3{0, 1, 0};
     const auto tSearchFunction =
@@ -136,12 +134,12 @@ auto validate_source_mesh_in_xz_plane(const input_parser::y_axis_revolve_filter&
     }
     const auto tBoundingBox = mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.designDomainBoundingBox();
     const auto tDimensions = tBoundingBox.second - tBoundingBox.first;
-    if (tDimensions.mY != 0 || tDimensions.mX == 0 || tDimensions.mZ == 0)
+    if (tDimensions.y != 0 || tDimensions.x == 0 || tDimensions.z == 0)
     {
         return std::optional<std::string>{utilities::concatenate(
             input_parser::block_name<input_parser::y_axis_revolve_filter>(),
-            ": source mesh must exist only in the XZ plane. Your mesh has dimensions: ", std::to_string(tDimensions.mX),
-            ", ", std::to_string(tDimensions.mY), ", ", std::to_string(tDimensions.mZ))};
+            ": source mesh must exist only in the XZ plane. Your mesh has dimensions: ", std::to_string(tDimensions.x),
+            ", ", std::to_string(tDimensions.y), ", ", std::to_string(tDimensions.z))};
     }
     return std::nullopt;
 }

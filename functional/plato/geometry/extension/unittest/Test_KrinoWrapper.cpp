@@ -94,7 +94,7 @@ class FourTriTwoBlockKrinoFixture : public tpik::test_utilities::KrinoTestFixtur
                                            const std::set<std::string>& aFixedBlocks,
                                            const tpik::SnappingParameters& aSnappingParameters) -> KrinoWrapper
     {
-        const auto tDownwardPlaneNormal = third_party_integration::common::Vector3{.mX = 0, .mY = -1, .mZ = 0};
+        const auto tDownwardPlaneNormal = third_party_integration::common::Vector3{.x = 0, .y = -1, .z = 0};
         const auto tPlane = tpik::LevelSetPrimitives{
             .mPlanes = {tpik::Plane{.mNormal = tDownwardPlaneNormal, .mOffset = aPlaneOffset}}, .mSpheres = {}};
         return test_utilities::make_krino_wrapper_from_level_set_primitives(mFilePath, tPlane, aVoidPhase, aFixedBlocks,

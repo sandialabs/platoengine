@@ -46,8 +46,8 @@ auto stk_search_boxes(const third_party_integration::tpetra::TpetraMultiVector& 
         const tpi::common::Coordinate tCoordinate =
             tpi::tpetra::multivector_coordinate(aCenteringCoordinates, tLocalIndex);
         const auto tDimension =
-            tpi::common::Coordinate{aRadius.mValue + aAxis.mValue.mX, aRadius.mValue + aAxis.mValue.mY,
-                                    aRadius.mValue + aAxis.mValue.mZ} *
+            tpi::common::Coordinate{aRadius.mValue + aAxis.mValue.x, aRadius.mValue + aAxis.mValue.y,
+                                    aRadius.mValue + aAxis.mValue.z} *
             2.0;
         tLocalSearchBoxesWithIdentifier[tLocalIndex] = tpi::stk_search::SearchBoxWithIdentifier(
             {tpi::stk_search::search_box(tpi::stk_search::STKBoxCenter{tCoordinate},
@@ -81,10 +81,10 @@ auto distribute_search_vectors_and_stk_search_with_cylinders(const TargetRowVect
 auto cylindrical_polar_coordinates(const third_party_integration::common::Coordinate& aCoordinate)
     -> CylindricalPolarCoordinate
 {
-    const auto tRadialValue = std::sqrt(aCoordinate.mX * aCoordinate.mX + aCoordinate.mY * aCoordinate.mY);
-    const auto tThetaValue = std::atan2(aCoordinate.mY, aCoordinate.mX);
+    const auto tRadialValue = std::sqrt(aCoordinate.x * aCoordinate.x + aCoordinate.y * aCoordinate.y);
+    const auto tThetaValue = std::atan2(aCoordinate.y, aCoordinate.x);
     return CylindricalPolarCoordinate{
-        third_party_integration::common::Coordinate{tRadialValue, tThetaValue, aCoordinate.mZ}};
+        third_party_integration::common::Coordinate{tRadialValue, tThetaValue, aCoordinate.z}};
 }
 
 auto cylindrical_polar_coordinates(const std::vector<third_party_integration::common::Coordinate>& aCoordinates)

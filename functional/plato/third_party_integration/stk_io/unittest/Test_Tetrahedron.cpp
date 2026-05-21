@@ -8,12 +8,12 @@ namespace plato::third_party_integration::stk_io::unittest
 {
 namespace
 {
-Tetrahedron create_unit_tetrahedron()
+[[nodiscard]] auto create_unit_tetrahedron() -> Tetrahedron
 {
-    const common::Coordinate tPointA{.mX = 0, .mY = 0, .mZ = 0};
-    const common::Coordinate tPointB{.mX = 1, .mY = 0, .mZ = 0};
-    const common::Coordinate tPointC{.mX = 0, .mY = 1, .mZ = 0};
-    const common::Coordinate tPointD{.mX = 0, .mY = 0, .mZ = 1};
+    const common::Coordinate tPointA{.x = 0, .y = 0, .z = 0};
+    const common::Coordinate tPointB{.x = 1, .y = 0, .z = 0};
+    const common::Coordinate tPointC{.x = 0, .y = 1, .z = 0};
+    const common::Coordinate tPointD{.x = 0, .y = 0, .z = 1};
 
     return Tetrahedron{.mP0 = tPointA, .mP1 = tPointB, .mP2 = tPointC, .mP3 = tPointD};
 }
@@ -44,10 +44,10 @@ TEST(Tetrahedron, VolumeVertexSensitivities)
     constexpr double tWidth{71.0};
     constexpr double tHeight{21.0};
 
-    const auto tAxesAlignedTet = Tetrahedron{.mP0 = common::Coordinate{.mX = 0, .mY = 0, .mZ = 0},
-                                             .mP1 = common::Coordinate{.mX = tBase, .mY = 0, .mZ = 0},
-                                             .mP2 = common::Coordinate{.mX = 0, .mY = tWidth, .mZ = 0},
-                                             .mP3 = common::Coordinate{.mX = 0, .mY = 0, .mZ = tHeight}};
+    const auto tAxesAlignedTet = Tetrahedron{.mP0 = common::Coordinate{.x = 0, .y = 0, .z = 0},
+                                             .mP1 = common::Coordinate{.x = tBase, .y = 0, .z = 0},
+                                             .mP2 = common::Coordinate{.x = 0, .y = tWidth, .z = 0},
+                                             .mP3 = common::Coordinate{.x = 0, .y = 0, .z = tHeight}};
 
     const auto tVertexSensitivities = tAxesAlignedTet.volumeVertexSensitivities();
 

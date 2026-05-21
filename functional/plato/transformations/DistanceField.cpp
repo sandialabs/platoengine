@@ -21,7 +21,7 @@ namespace
 {
 [[nodiscard]] auto normal_as_array(const Plane& aPlane) -> std::array<double, 3U>
 {
-    return std::array{aPlane.mNormal.mX, aPlane.mNormal.mY, aPlane.mNormal.mZ};
+    return std::array{aPlane.mNormal.x, aPlane.mNormal.y, aPlane.mNormal.z};
 }
 }  // namespace
 

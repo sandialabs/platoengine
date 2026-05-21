@@ -14,15 +14,15 @@ auto generate_spheres(const SpherePatternData &aData) -> std::vector<Sphere>
 {
     const SphereLocatorData tLocatorData = detail::calculate_sphere_locator_data(aData);
 
-    std::vector<double> tXValues = detail::create_sphere_spacing_vector(
-        tLocatorData.mSphereCounts.mX, detail::SphereStart{tLocatorData.mSpherePatternStart.mX},
-        detail::SphereStep{aData.mSphereSpacing});
-    std::vector<double> tYValues = detail::create_sphere_spacing_vector(
-        tLocatorData.mSphereCounts.mY, detail::SphereStart{tLocatorData.mSpherePatternStart.mY},
-        detail::SphereStep{aData.mSphereSpacing});
-    std::vector<double> tZValues = detail::create_sphere_spacing_vector(
-        tLocatorData.mSphereCounts.mZ, detail::SphereStart{tLocatorData.mSpherePatternStart.mZ},
-        detail::SphereStep{aData.mSphereSpacing});
+    const auto tXValues = detail::create_sphere_spacing_vector(tLocatorData.mSphereCounts.mX,
+                                                               detail::SphereStart{tLocatorData.mSpherePatternStart.x},
+                                                               detail::SphereStep{aData.mSphereSpacing});
+    const auto tYValues = detail::create_sphere_spacing_vector(tLocatorData.mSphereCounts.mY,
+                                                               detail::SphereStart{tLocatorData.mSpherePatternStart.y},
+                                                               detail::SphereStep{aData.mSphereSpacing});
+    const auto tZValues = detail::create_sphere_spacing_vector(tLocatorData.mSphereCounts.mZ,
+                                                               detail::SphereStart{tLocatorData.mSpherePatternStart.z},
+                                                               detail::SphereStep{aData.mSphereSpacing});
 
     // Loop to create 3D array of spheres
     std::vector<Sphere> tSpheres;
@@ -48,8 +48,8 @@ using IntegerCoordinate = utilities::NamedType<common::Coordinate, struct Intege
 {
     return SphereLocatorData{
         aStartLocations,
-        {static_cast<unsigned int>(aNumSpheres.mValue.mX), static_cast<unsigned int>(aNumSpheres.mValue.mY),
-         static_cast<unsigned int>(aNumSpheres.mValue.mZ)}};
+        {static_cast<unsigned int>(aNumSpheres.mValue.x), static_cast<unsigned int>(aNumSpheres.mValue.y),
+         static_cast<unsigned int>(aNumSpheres.mValue.z)}};
 }
 }  // namespace
 

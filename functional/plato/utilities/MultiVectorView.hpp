@@ -41,9 +41,9 @@ concept MultiVectorViewContainer = requires(Container aContainer) {
 /// @brief Template constraint for vector-like types supported by MultiVectorView
 template <typename V, typename T>
 concept VectorLike = requires(V aVector) {
-    { aVector.mX } -> std::convertible_to<T>;
-    { aVector.mY } -> std::convertible_to<T>;
-    { aVector.mZ } -> std::convertible_to<T>;
+    { aVector.x } -> std::convertible_to<T>;
+    { aVector.y } -> std::convertible_to<T>;
+    { aVector.z } -> std::convertible_to<T>;
 };
 
 /// @brief Proxy class representing an underlying vector stored in MultiVectorView
@@ -147,8 +147,8 @@ auto MultiVectorView<Container>::dimensions() const -> std::size_t
 }
 
 template <MultiVectorViewContainer Container>
-auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, const ComponentIndex aComponentIndex) const
-    -> decltype(auto)
+auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex,
+                                            const ComponentIndex aComponentIndex) const -> decltype(auto)
 {
     assert(aComponentIndex.mValue < mDimensions);
     assert(aVectorIndex.mValue < numberOfVectors());
@@ -186,11 +186,11 @@ struct VectorProxy
     template <VectorLike<value_type> V>
     auto operator+=(const V& aVector) -> VectorProxy&
     {
-        mView(mVectorIndex, ComponentIndex{0}) += aVector.mX;
-        mView(mVectorIndex, ComponentIndex{1}) += aVector.mY;
+        mView(mVectorIndex, ComponentIndex{0}) += aVector.x;
+        mView(mVectorIndex, ComponentIndex{1}) += aVector.y;
         if (mView.dimensions() == 3)
         {
-            mView(mVectorIndex, ComponentIndex{2}) += aVector.mZ;
+            mView(mVectorIndex, ComponentIndex{2}) += aVector.z;
         }
         return *this;
     }
@@ -198,11 +198,11 @@ struct VectorProxy
     template <VectorLike<value_type> V>
     auto operator=(const V& aVector) -> VectorProxy&
     {
-        mView(mVectorIndex, ComponentIndex{0}) = aVector.mX;
-        mView(mVectorIndex, ComponentIndex{1}) = aVector.mY;
+        mView(mVectorIndex, ComponentIndex{0}) = aVector.x;
+        mView(mVectorIndex, ComponentIndex{1}) = aVector.y;
         if (mView.dimensions() == 3)
         {
-            mView(mVectorIndex, ComponentIndex{2}) = aVector.mZ;
+            mView(mVectorIndex, ComponentIndex{2}) = aVector.z;
         }
         return *this;
     }
@@ -213,7 +213,7 @@ struct VectorProxy
     {
         const auto tZValue = mView.dimensions() == 3 ? mView(mVectorIndex, ComponentIndex{2}) : 0.0;
         return V{
-            .mX = mView(mVectorIndex, ComponentIndex{0}), .mY = mView(mVectorIndex, ComponentIndex{1}), .mZ = tZValue};
+            .x = mView(mVectorIndex, ComponentIndex{0}), .y = mView(mVectorIndex, ComponentIndex{1}), .z = tZValue};
     }
 
    private:

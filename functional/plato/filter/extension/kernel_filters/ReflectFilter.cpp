@@ -132,14 +132,14 @@ auto validate_source_mesh_in_positive_octant(const input_parser::positive_octant
     }
     const auto tBoundingBox = mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.designDomainBoundingBox();
     constexpr auto tNegativeNearZero = -1e-6;
-    if (tBoundingBox.first.mX < tNegativeNearZero || tBoundingBox.first.mY < tNegativeNearZero ||
-        tBoundingBox.first.mZ < tNegativeNearZero)
+    if (tBoundingBox.first.x < tNegativeNearZero || tBoundingBox.first.y < tNegativeNearZero ||
+        tBoundingBox.first.z < tNegativeNearZero)
     {
         return std::optional<std::string>{
             utilities::concatenate(input_parser::block_name<input_parser::positive_octant_reflect_filter>(),
                                    ": source mesh must be in the positive octant. Found this as the lower bounds: ",
-                                   std::to_string(tBoundingBox.first.mX), " ", std::to_string(tBoundingBox.first.mY),
-                                   " ", std::to_string(tBoundingBox.first.mZ), ".")};
+                                   std::to_string(tBoundingBox.first.x), " ", std::to_string(tBoundingBox.first.y), " ",
+                                   std::to_string(tBoundingBox.first.z), ".")};
     }
     return std::nullopt;
 }

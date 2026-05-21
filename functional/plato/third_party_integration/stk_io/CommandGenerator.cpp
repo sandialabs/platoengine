@@ -12,8 +12,8 @@ auto CommandGenerator::toString() const -> std::string
     tStringStream << "generated:";
     tStringStream << std::setprecision(mPrecision);
     tStringStream << mElements.mX << "x" << mElements.mY << "x" << mElements.mZ;
-    tStringStream << "|bbox:" << mLowerBounds.mX << "," << mLowerBounds.mY << "," << mLowerBounds.mZ << ",";
-    tStringStream << mUpperBounds.mX << "," << mUpperBounds.mY << "," << mUpperBounds.mZ;
+    tStringStream << "|bbox:" << mLowerBounds.x << "," << mLowerBounds.y << "," << mLowerBounds.z << ",";
+    tStringStream << mUpperBounds.x << "," << mUpperBounds.y << "," << mUpperBounds.z;
     if (mType == CommandElementType::kTet)
     {
         tStringStream << "|tets";
@@ -25,8 +25,7 @@ auto CommandGenerator::toString() const -> std::string
 
 auto CommandGenerator::volume() const -> double
 {
-    return (mUpperBounds.mX - mLowerBounds.mX) * (mUpperBounds.mY - mLowerBounds.mY) *
-           (mUpperBounds.mZ - mLowerBounds.mZ);
+    return (mUpperBounds.x - mLowerBounds.x) * (mUpperBounds.y - mLowerBounds.y) * (mUpperBounds.z - mLowerBounds.z);
 }
 
 auto CommandGenerator::numberOfElements() const -> unsigned int

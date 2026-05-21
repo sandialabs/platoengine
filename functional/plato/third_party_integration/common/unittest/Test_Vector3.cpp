@@ -171,9 +171,9 @@ void test_unit_vector(const UnitVector3& aUnitVec, const plato::test_utilities::
 {
     const double tMag = std::sqrt(1.0 + 4.0 + 9.0);
     const Vector3 tGold{1.0 / tMag, 2.0 / tMag, 3.0 / tMag};
-    EXPECT_DOUBLE_EQ(tGold.mX, static_cast<Vector3>(aUnitVec).mX) << aTestContext;
-    EXPECT_DOUBLE_EQ(tGold.mY, static_cast<Vector3>(aUnitVec).mY) << aTestContext;
-    EXPECT_DOUBLE_EQ(tGold.mZ, static_cast<Vector3>(aUnitVec).mZ) << aTestContext;
+    EXPECT_DOUBLE_EQ(tGold.x, static_cast<Vector3>(aUnitVec).x) << aTestContext;
+    EXPECT_DOUBLE_EQ(tGold.y, static_cast<Vector3>(aUnitVec).y) << aTestContext;
+    EXPECT_DOUBLE_EQ(tGold.z, static_cast<Vector3>(aUnitVec).z) << aTestContext;
 }
 }  // namespace
 
@@ -202,9 +202,9 @@ TEST(UnitVector3, Vector3ConversionOperator)
     const auto tMagnitude = std::sqrt(3.0);
     const auto tNormalizedComponent = tComponent / tMagnitude;
     const UnitVector3 tUnitVector{tComponent, tComponent, tComponent};
-    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).mX, tNormalizedComponent);
-    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).mY, tNormalizedComponent);
-    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).mZ, tNormalizedComponent);
+    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).x, tNormalizedComponent);
+    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).y, tNormalizedComponent);
+    EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).z, tNormalizedComponent);
 }
 
 TEST(Coordinate, EqualityOperator)

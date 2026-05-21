@@ -16,7 +16,7 @@ TEST(MeshSidesets, SidesetTriangles)
 {
     constexpr double tTolerance{1e-14};
     constexpr size_t tGoldNumTris{2};
-    const third_party_integration::common::Vector3 tGoldNormal{.mX = 0, .mY = 0, .mZ = -1};
+    const third_party_integration::common::Vector3 tGoldNormal{.x = 0, .y = 0, .z = -1};
     const auto tMeshPath = plato::utilities::data_file_path("two_block_one_interior_sideset_tet.cdf");
     std::set<std::string> tFixedBlockNames{"block_1"};
     const auto tMesh = MeshSidesets{Mesh{tMeshPath.value(), tFixedBlockNames}};

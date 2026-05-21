@@ -15,10 +15,10 @@ auto Plane::reflect(const third_party_integration::common::Coordinate& aCoordina
     assert(tpic::magnitude(static_cast<tpic::Vector3>(mUnitNormal)) == 1);
     const auto tDistanceFromCoordinateToPlane =
         tpic::dot((aCoordinate - mCenter), static_cast<tpic::Vector3>(mUnitNormal));
-    const auto tNewPoint = tpic::Vector3{aCoordinate.mX, aCoordinate.mY, aCoordinate.mZ} -
+    const auto tNewPoint = tpic::Vector3{aCoordinate.x, aCoordinate.y, aCoordinate.z} -
                            static_cast<tpic::Vector3>(mUnitNormal) * tDistanceFromCoordinateToPlane * 2.0;
 
-    return tpic::Coordinate{tNewPoint.mX, tNewPoint.mY, tNewPoint.mZ};
+    return tpic::Coordinate{tNewPoint.x, tNewPoint.y, tNewPoint.z};
 }
 
 auto Plane::reflect(const third_party_integration::stk_search::SearchPointWithIdentifier& aSearchPointWithIdentifier)
@@ -35,11 +35,11 @@ auto Plane::reflect(const Plane& aPlane) const -> Plane
 {
     namespace tpic = third_party_integration::common;
     const auto& tUnitNormal = static_cast<tpic::Vector3>(aPlane.mUnitNormal);
-    const auto tNormal = tpic::Coordinate{tUnitNormal.mX, tUnitNormal.mY, tUnitNormal.mZ};
+    const auto tNormal = tpic::Coordinate{tUnitNormal.x, tUnitNormal.y, tUnitNormal.z};
     const auto tReflectedNormal = this->reflect(tNormal);
     const auto tReflectedCenter = this->reflect(aPlane.mCenter);
 
-    return Plane(tReflectedCenter, tpic::UnitVector3{tReflectedNormal.mX, tReflectedNormal.mY, tReflectedNormal.mZ});
+    return Plane(tReflectedCenter, tpic::UnitVector3{tReflectedNormal.x, tReflectedNormal.y, tReflectedNormal.z});
 }
 
 }  // namespace plato::filter::extension::kernel_filters

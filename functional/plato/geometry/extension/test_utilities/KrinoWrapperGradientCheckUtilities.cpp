@@ -45,8 +45,8 @@ auto accumulate_cut_node_coordinates(const std::filesystem::path& aMeshToLoad,
         utilities::reserved_container<std::vector<double>>(tCutCoordinates.size() * tDimensions);
     for (const auto& tCutCoordinate : tCutCoordinates)
     {
-        tFlattenedCoordinates.push_back(tCutCoordinate.mX);
-        tFlattenedCoordinates.push_back(tCutCoordinate.mY);
+        tFlattenedCoordinates.push_back(tCutCoordinate.x);
+        tFlattenedCoordinates.push_back(tCutCoordinate.y);
     }
 
     return utilities::pair_wise_accumulate(tFlattenedCoordinates);

@@ -11,7 +11,7 @@ namespace plato::third_party_integration::stk_search
 
 auto convert_coordinate(const common::Coordinate& aCoordinate) -> SearchPoint
 {
-    return {aCoordinate.mX, aCoordinate.mY, aCoordinate.mZ};
+    return {aCoordinate.x, aCoordinate.y, aCoordinate.z};
 }
 
 auto convert_search_point(const SearchPoint& aSearchPoint) -> common::Coordinate
@@ -21,16 +21,16 @@ auto convert_search_point(const SearchPoint& aSearchPoint) -> common::Coordinate
 
 auto create_sphere(const common::Coordinate& aCenter, const STKRadius aRadius) -> SearchSphere
 {
-    return SearchSphere{{aCenter.mX, aCenter.mY, aCenter.mZ}, aRadius.mValue};
+    return SearchSphere{{aCenter.x, aCenter.y, aCenter.z}, aRadius.mValue};
 }
 
 auto search_box(const STKBoxCenter& aCenter, const STKBoxDimension& aDimensions) -> SearchBox
 {
-    const auto tXExtent = aDimensions.mValue.mX / 2.0;
-    const auto tYExtent = aDimensions.mValue.mY / 2.0;
-    const auto tZExtent = aDimensions.mValue.mZ / 2.0;
-    return SearchBox{aCenter.mValue.mX - tXExtent, aCenter.mValue.mY - tYExtent, aCenter.mValue.mZ - tZExtent,
-                     aCenter.mValue.mX + tXExtent, aCenter.mValue.mY + tYExtent, aCenter.mValue.mZ + tZExtent};
+    const auto tXExtent = aDimensions.mValue.x / 2.0;
+    const auto tYExtent = aDimensions.mValue.y / 2.0;
+    const auto tZExtent = aDimensions.mValue.z / 2.0;
+    return SearchBox{aCenter.mValue.x - tXExtent, aCenter.mValue.y - tYExtent, aCenter.mValue.z - tZExtent,
+                     aCenter.mValue.x + tXExtent, aCenter.mValue.y + tYExtent, aCenter.mValue.z + tZExtent};
 }
 
 auto search_points_with_identifiers(const std::vector<common::Coordinate>& aCoordinates)
@@ -40,7 +40,7 @@ auto search_points_with_identifiers(const std::vector<common::Coordinate>& aCoor
     std::transform(
         aCoordinates.begin(), aCoordinates.end(), std::back_inserter(tSearchPointWithIdentifiers),
         [tIndex = -1](const auto& aNode) mutable
-        { return SearchPointWithIdentifier{SearchPoint{aNode.mX, aNode.mY, aNode.mZ}, Identifier{++tIndex, 0}}; });
+        { return SearchPointWithIdentifier{SearchPoint{aNode.x, aNode.y, aNode.z}, Identifier{++tIndex, 0}}; });
     return tSearchPointWithIdentifiers;
 }
 
