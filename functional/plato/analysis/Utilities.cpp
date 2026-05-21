@@ -49,10 +49,11 @@ auto renumber_vector_entries(AnalysisDomainMesh&& aAnalysisDomainMesh) -> Analys
 
 auto zero_scalar_field(AnalysisDomainMesh&& aAnalysisDomainMesh) -> AnalysisDomainMesh
 {
-    for (analysis::ScalarFieldValue tScalarFieldValue : AnalysisDomainMeshMutableSequentialView{aAnalysisDomainMesh})
+    for (auto tScalarFieldValue : AnalysisDomainMeshMutableSequentialView{aAnalysisDomainMesh})
     {
-        tScalarFieldValue = analysis::ScalarFieldValue{tScalarFieldValue.mGlobalMeshEntityID,
-                                                       tScalarFieldValue.mDesignVariableVectorIndex, 0.0};
+        const auto& tFieldIndices = static_cast<analysis::ScalarFieldValue>(tScalarFieldValue);
+        tScalarFieldValue = analysis::ScalarFieldValue{tFieldIndices.mGlobalMeshEntityID,
+                                                       tFieldIndices.mDesignVariableVectorIndex, 0.0};
     }
     return std::move(aAnalysisDomainMesh);
 }
