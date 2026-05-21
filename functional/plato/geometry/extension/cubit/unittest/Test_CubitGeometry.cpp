@@ -71,14 +71,14 @@ TEST(CubitDetail, DetermineSensitivities)
         {
             EXPECT_NEAR(std::abs(tValue.second.x), 0.5, kTolerance);
             EXPECT_NEAR(std::abs(tValue.second.y), 0.5, kTolerance);
-            EXPECT_NEAR(tValue.second.mZ, 0.0, kTolerance);
+            EXPECT_NEAR(tValue.second.z, 0.0, kTolerance);
         }
     }
     {
         const auto& tSensitivity = tSensitivities[1];
         for (const auto tValue : tSensitivity)
         {
-            const auto tAbsoluteZ = std::abs(tValue.second.mZ);
+            const auto tAbsoluteZ = std::abs(tValue.second.z);
             EXPECT_NEAR(tAbsoluteZ, 0.5, kTolerance) << "Height expansion";
             EXPECT_NEAR(tValue.second.x, 0., kTolerance);
             EXPECT_NEAR(tValue.second.y, 0., kTolerance);
