@@ -77,8 +77,8 @@ auto make_positive_octant_reflect_filter_test_function(const filter::extension::
     return filter::test_utilities::make_filter_function(tReflectFilter);
 }
 
-auto ones_vector_times_jacobian(const std::size_t aNumberOfNodes, const linear_algebra::JacobianMultiplier& aJacobian)
-    -> double
+auto ones_vector_times_jacobian(const std::size_t aNumberOfNodes,
+                                const linear_algebra::JacobianMultiplier& aJacobian) -> double
 {
     const auto tOnesVector = linear_algebra::DynamicVector(aNumberOfNodes, 1.0);
     const auto tResult = tOnesVector * aJacobian;
@@ -513,6 +513,11 @@ TEST(LevelSetTopology, OutputFileNames)
     const auto tRestartPrefix = std::string{"restart_"};
     const auto tRestartOutputMeshName = std::filesystem::path{tRestartPrefix + kLevelSetInput.output_name->mToken};
     EXPECT_EQ(tRestartOutputMeshName, restart_file_name(kLevelSetInput));
+
+    auto tLevelSetInput = kLevelSetInput;
+    const auto tDirectory = std::filesystem::path{"directory"};
+    tLevelSetInput.output_name = input_parser::FileName{tDirectory / kLevelSetInput.output_name->mToken};
+    EXPECT_EQ(tDirectory / tRestartOutputMeshName, restart_file_name(tLevelSetInput));
 }
 
 TEST(LevelSetTopology, DetailAffineTransformation)

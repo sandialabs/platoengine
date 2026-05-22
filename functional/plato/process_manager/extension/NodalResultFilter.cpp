@@ -3,6 +3,7 @@
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
@@ -57,7 +58,8 @@ constexpr auto kRootRank = 0;
 [[nodiscard]] auto mesh_input_path(const library::ValidatedProcessManagerInput& aInput) -> std::filesystem::path
 {
     const auto tElementToNodeFilterInput = input_validation::get_input_block<input_parser::nodal_result_filter>(aInput);
-    return tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>().output_name->mToken;
+    return geometry::extension::restart_file_name(
+        tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>());
 }
 
 [[nodiscard]] auto mesh_output_path(const library::ValidatedProcessManagerInput& aInput) -> std::filesystem::path
@@ -67,7 +69,8 @@ constexpr auto kRootRank = 0;
     {
         return tElementToNodeFilterInput.output_file_name->mToken;
     }
-    return tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>().output_name->mToken;
+    return geometry::extension::restart_file_name(
+        tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>());
 }
 
 [[nodiscard]] auto fixed_blocks(const library::ValidatedProcessManagerInput& aInput) -> std::set<std::string>

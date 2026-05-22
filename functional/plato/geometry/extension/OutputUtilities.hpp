@@ -67,7 +67,8 @@ template <typename GeometryInput>
 auto restart_file_name(const GeometryInput& aInput) -> std::filesystem::path
 {
     constexpr auto tRestartFileNamePrefix = std::string_view{"restart_"};
-    return std::filesystem::path{std::string{tRestartFileNamePrefix} + aInput.output_name->mToken};
+    auto tOutputPath = std::filesystem::path{aInput.output_name->mToken};
+    return tOutputPath.replace_filename(std::string{tRestartFileNamePrefix} + tOutputPath.filename().string());
 }
 
 template <typename GeometryInput>

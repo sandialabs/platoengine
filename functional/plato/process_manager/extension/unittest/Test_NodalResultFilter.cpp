@@ -4,82 +4,37 @@
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
-#include "plato/mesh/DesignVariableConversion.hpp"
-#include "plato/mesh/EntityCounts.hpp"
-#include "plato/mesh/EntityRetrieval.hpp"
-#include "plato/mesh/MeshFieldAppender.hpp"
-#include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/process_manager/extension/NodalResultFilter.hpp"
 #include "plato/process_manager/extension/test_utilities/CrossReferenceUtilities.hpp"
 #include "plato/process_manager/extension/test_utilities/NodalResultFilterUtilities.hpp"
-#include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
-#include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 
 namespace plato::process_manager::extension::unittest
 {
 namespace
 {
-const auto kTimeSteps = std::vector{1.0, 10.0};
-
-const auto kMeshPath =
-    geometry::extension::test_utilities::create_valid_density_topology_geometry_input().mesh_name.value().mToken;
 
 class NodalResultFilterValidationFixture : public plato::test_utilities::FileCreatingTestFixture
 {
    public:
-    NodalResultFilterValidationFixture() : FileCreatingTestFixture{kMeshPath} {}
-};
-
-class NodalResultFilterRunFixture : public third_party_integration::stk_io::test_utilities::MeshWithNodalDensities
-{
-   public:
-    NodalResultFilterRunFixture() : MeshWithNodalDensities{kMeshPath, geometry::extension::density_mesh_field_name()}
+    NodalResultFilterValidationFixture()
+        : FileCreatingTestFixture{
+              geometry::extension::test_utilities::create_valid_density_topology_geometry_input().output_name->mToken}
     {
-        // Add another field time step
-        const auto tMesh = mesh::Mesh{mMeshName};
-        const auto tNodalField =
-            mesh::EntityRetrieval{tMesh}.designDomainNodalField(geometry::extension::density_mesh_field_name());
-        const auto tNodalAnalysisMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
-            mesh::NodalFieldVectorReference{tNodalField});
-
-        constexpr auto tFixedValue = geometry::extension::density_fixed_value();
-        mesh::MeshFieldAppender{tMesh, kTimeSteps.back()}.addFieldFromAnalysisDomainMesh(
-            tNodalAnalysisMesh, geometry::extension::density_mesh_field_name(), tFixedValue);
     }
 };
+
+using NodalResultSerialFixture = test_utilities::NodalResultFilterRunFixture;
+
 }  // namespace
 
-TEST_F(NodalResultFilterRunFixture, CreateAndRunSeparateOutputFile)
+TEST_F(NodalResultSerialFixture, CreateAndRunSeparateOutputFile)
 {
-    const auto tCheckNodalFilter = [this](const std::optional<std::filesystem::path>& aOutputMeshPath,
-                                          const plato::test_utilities::TestContext& aTestContext)
-    {
-        auto tGeometryInput = geometry::extension::test_utilities::create_valid_density_topology_geometry_input();
-        tGeometryInput.mesh_name = input_parser::FileName{mMeshName};
-        tGeometryInput.output_name = input_parser::FileName{mMeshName};
-
-        auto tNodalResultFilter = input_parser::nodal_result_filter{};
-        if (aOutputMeshPath)
-        {
-            tNodalResultFilter.output_file_name = input_parser::FileName{aOutputMeshPath.value()};
-        }
-
-        const auto tInput = tNodalResultFilter | tGeometryInput |
-                            criteria::library::test_utilities::create_valid_example_objective_input() |
-                            filter::extension::test_utilities::create_valid_kernel_filter_input();
-
-        test_utilities::run_and_check_nodal_filter_result(tInput, kTimeSteps, aOutputMeshPath.value_or(mMeshName),
-                                                          EXTEND_CONTEXT("Serial test", aTestContext));
-    };
-
     const auto tOutputMeshPath = mDirectory.directory() / std::filesystem::path{"output.exo"};
-    tCheckNodalFilter(tOutputMeshPath, TEST_CONTEXT("With a new output file"));
-    tCheckNodalFilter(std::nullopt, TEST_CONTEXT("Overwrite existing output file"));
+    run_and_check_nodal_filter_result(tOutputMeshPath, TEST_CONTEXT("With a new output file"));
+    run_and_check_nodal_filter_result(std::nullopt, TEST_CONTEXT("Overwrite existing output file"));
 }
 
 TEST(NodalResultFilter, ValidateFilterIsKernelFilter)
