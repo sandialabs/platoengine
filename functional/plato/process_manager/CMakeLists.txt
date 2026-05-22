@@ -18,7 +18,11 @@ create_plato_library(PlatoFunctionalProcessManager "${DIRECTORIES}" "${LINK_LIBS
 if( UNIT_TESTING )
   set(LINK_LIBS GTest::GTest
                 PlatoFunctionalProcessManager
-                PlatoFunctionalTestUtilities)
+                PlatoFunctionalTestUtilities
+                PlatoFunctionalSTKIOTestUtilities
+                PlatoFunctionalCriteriaTestUtilities
+                PlatoFunctionalFilterTestUtilities
+                PlatoFunctionalGeometryTestUtilities)
   create_plato_library(PlatoFunctionalProcessManagerTestUtilities "extension/test_utilities" "${LINK_LIBS}")
 
   # Build unit tester
