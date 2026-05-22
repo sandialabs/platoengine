@@ -10,7 +10,7 @@ namespace plato::services
 {
 namespace
 {
-constexpr auto kUsingSanitizer = true;
+constexpr auto kUsingSanitizer = static_cast<bool>(BUILD_WITH_SANITIZER_FLAGS);  // NOLINT(modernize-use-bool-literals)
 
 auto load_shared_library(const std::filesystem::path& aSharedLibPath) -> void*
 {
