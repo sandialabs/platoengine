@@ -9,10 +9,15 @@
 
 namespace plato::utilities
 {
-namespace
+namespace impl
 {
-constexpr int kTableEntryWidth = 24;
-constexpr int kPrecision = 16;
+constexpr inline int kTableEntryWidth = 24;
+constexpr inline int kPrecision = 16;
+
+template <typename ArgType>
+using Argument = utilities::NamedType<ArgType, struct ArgumentTag>;
+template <typename ArgType>
+using Direction = utilities::NamedType<ArgType, struct DirectionTag>;
 
 template <typename ArgType>
 using Argument = utilities::NamedType<ArgType, struct ArgumentTag>;
@@ -155,7 +160,7 @@ template <typename F, typename ArgType>
     return 0.0;  // Suppress nvcc spurious warning
 }
 
-}  // namespace
+}  // namespace impl
 
 template <typename ArgType>
 template <typename F, typename dF>
@@ -226,8 +231,8 @@ auto GradientChecker<ArgType>::table(const ArgType& aArgument,
     const auto tTable = print_table(tAnalyticValue, tFiniteDifferences, tErrors);
 
     auto tStream = std::stringstream{};
-    tStream << std::setprecision(15);
-    std::copy(tTable.cbegin(), tTable.cend(), std::ostream_iterator<PrintTableRow>{tStream, "\n"});
+    tStream << std::setprecision(impl::kPrecision);
+    std::copy(tTable.cbegin(), tTable.cend(), std::ostream_iterator<impl::PrintTableRow>{tStream, "\n"});
     return tStream.str();
 }
 

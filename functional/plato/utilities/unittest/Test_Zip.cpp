@@ -195,7 +195,7 @@ TEST(Zip, ZipTypes)
     {
         const auto tVector3 = Vector1{1, 2, 3};
         auto tTestZip = Zip{tVector1, tVector3};
-        auto tBeginIter = tTestZip.begin(); // NOLINT(clang-analyzer-deadcode.DeadStores)
+        auto tBeginIter = tTestZip.begin();  // NOLINT(clang-analyzer-deadcode.DeadStores)
         using BeginIter = decltype(tBeginIter);
         EXPECT_TRUE((std::is_same_v<BeginIter, ZipIterator<Vector1::iterator, Vector1::const_iterator>>));
     }

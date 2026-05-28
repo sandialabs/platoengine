@@ -56,7 +56,7 @@ TEST(RankSplitVector, DividesUnevenlyOneRemaining)
 
     const auto tExpected1 = std::vector{3, 4};
     split_vector_and_check(tValues, 1, tExpected1);
-    
+
     const auto tExpected2 = std::vector{5, 6};
     split_vector_and_check(tValues, 2, tExpected2);
 }

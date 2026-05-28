@@ -49,6 +49,7 @@ TEST(TestDirectorySetupTeardown, MoveCtor)
         auto tDirectory1 = TestDirectorySetupTeardown(tDirectoryPath);
         const auto tDirectory2 = std::move(tDirectory1);
 
+        // NOLINTNEXTLINE(bugprone-use-after-move,clang-analyzer-cplusplus.Move)
         tDirectory1.writeFile(tWriteFunction, tFileName);
         auto tExpectedWriteCount = 0U;
         EXPECT_EQ(tWriteCount, tExpectedWriteCount);  // No increment to tWriteCount on call to moved-from object
@@ -78,6 +79,7 @@ TEST(TestDirectorySetupTeardown, MoveAssignment)
         auto tExpectedWriteCount = 1U;
         EXPECT_EQ(tWriteCount, tExpectedWriteCount);  // Move assignment swaps, so still expect a write call
 
+        // NOLINTNEXTLINE(bugprone-use-after-move,clang-analyzer-cplusplus.Move)
         tDirectory2.writeFile(tWriteFunction, tFileName);
         ++tExpectedWriteCount;
         EXPECT_EQ(tWriteCount, tExpectedWriteCount);
