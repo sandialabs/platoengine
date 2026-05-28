@@ -36,25 +36,43 @@ TEST(RankSplitVector, NumElementsPerRank)
 TEST(RankSplitVector, DividesEvenly)
 {
     const auto tValues = std::vector<int>{1, 2, 3, 4, 5, 6};
-    split_vector_and_check(tValues, 0, {1, 2});
-    split_vector_and_check(tValues, 1, {3, 4});
-    split_vector_and_check(tValues, 2, {5, 6});
+
+    const auto tExpected0 = std::vector{1, 2};
+    split_vector_and_check(tValues, 0, tExpected0);
+
+    const auto tExpected1 = std::vector{3, 4};
+    split_vector_and_check(tValues, 1, tExpected1);
+
+    const auto tExpected2 = std::vector{5, 6};
+    split_vector_and_check(tValues, 2, tExpected2);
 }
 
 TEST(RankSplitVector, DividesUnevenlyOneRemaining)
 {
     const auto tValues = std::vector<int>{1, 2, 3, 4, 5, 6, 7};
-    split_vector_and_check(tValues, 0, {1, 2, 7});
-    split_vector_and_check(tValues, 1, {3, 4});
-    split_vector_and_check(tValues, 2, {5, 6});
+
+    const auto tExpected0 = std::vector{1, 2, 7};
+    split_vector_and_check(tValues, 0, tExpected0);
+
+    const auto tExpected1 = std::vector{3, 4};
+    split_vector_and_check(tValues, 1, tExpected1);
+    
+    const auto tExpected2 = std::vector{5, 6};
+    split_vector_and_check(tValues, 2, tExpected2);
 }
 
 TEST(RankSplitVector, DividesUnevenlyTwoRemaining)
 {
     const auto tValues = std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8};
-    split_vector_and_check(tValues, 0, {1, 2, 7});
-    split_vector_and_check(tValues, 1, {3, 4, 8});
-    split_vector_and_check(tValues, 2, {5, 6});
+
+    const auto tExpected0 = std::vector{1, 2, 7};
+    split_vector_and_check(tValues, 0, tExpected0);
+
+    const auto tExpected1 = std::vector{3, 4, 8};
+    split_vector_and_check(tValues, 1, tExpected1);
+
+    const auto tExpected2 = std::vector{5, 6};
+    split_vector_and_check(tValues, 2, tExpected2);
 }
 
 TEST(RankSplitVector, MoreRanksThanElements)

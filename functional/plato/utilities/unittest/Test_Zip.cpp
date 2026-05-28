@@ -119,8 +119,9 @@ TEST(Zip, ModifyThroughIterator)
     auto tZipIterator = ZipIterator{tVector1.begin(), tVector2.rbegin()};
 
     auto [tValue1, tValue2] = *tZipIterator;
-    tValue1 = 42;
-    EXPECT_EQ(tVector1.front(), 42);
+    constexpr auto tArbitraryValue = 42;
+    tValue1 = tArbitraryValue;
+    EXPECT_EQ(tVector1.front(), tArbitraryValue);
     tValue2 = 'z';
     EXPECT_EQ(tVector2.back(), 'z');
 }
@@ -194,7 +195,7 @@ TEST(Zip, ZipTypes)
     {
         const auto tVector3 = Vector1{1, 2, 3};
         auto tTestZip = Zip{tVector1, tVector3};
-        auto tBeginIter = tTestZip.begin();
+        auto tBeginIter = tTestZip.begin(); // NOLINT(clang-analyzer-deadcode.DeadStores)
         using BeginIter = decltype(tBeginIter);
         EXPECT_TRUE((std::is_same_v<BeginIter, ZipIterator<Vector1::iterator, Vector1::const_iterator>>));
     }
@@ -261,9 +262,11 @@ TEST(Zip, VectorsSameLengthConst)
 
 TEST(Zip, VectorsSameLengthModifying)
 {
-    auto tDoubleVector = std::vector<double>{1.0, 2.0, 3.0};
-    auto tIntVector = std::vector<int>{4, 5, 6};
-    auto tCount = 100;
+    constexpr auto tVectorLength = 3U;
+    auto tDoubleVector = std::vector<double>(tVectorLength, 0.0);
+    auto tIntVector = std::vector<int>(tVectorLength, 0);
+    constexpr auto tCountStart = 100;
+    auto tCount = tCountStart;
     for (auto [tValue1, tValue2] : Zip{tDoubleVector, tIntVector})
     {
         tValue1 = tCount;
@@ -278,7 +281,7 @@ TEST(Zip, VectorsSameLengthModifying)
 
 TEST(Zip, VectorsDifferentLengthTemporary)
 {
-    auto tDoubleVector = std::vector<double>{1.0, 2.0, 3.0};
+    const auto tDoubleVector = std::vector<double>{1.0, 2.0, 3.0};
     auto tResultDoubleVector = std::vector<double>{};
     auto tResultIntVector = std::vector<int>{};
     for (const auto [tValue1, tValue2] : Zip{tDoubleVector, std::vector<int>{4, 5, 6, 7}})

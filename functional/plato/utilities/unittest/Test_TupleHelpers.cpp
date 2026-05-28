@@ -30,9 +30,10 @@ TEST(TupleHelpers, MakeIndexSequenceStartingFrom)
     }
     {
         constexpr auto tTestSequence = detail::make_index_sequence_starting_from<5>(std::make_index_sequence<2>());
-        static_assert(std::index_sequence<5UL + 0UL, 5UL + 1UL>::size() == 2);
-        static_assert(index_from_index_sequence<0>(tTestSequence) == 5);
-        static_assert(index_from_index_sequence<1>(tTestSequence) == 6);
+        constexpr auto tOffset = 5UL;
+        static_assert(std::index_sequence<tOffset + 0UL, tOffset + 1UL>::size() == 2);
+        static_assert(index_from_index_sequence<0>(tTestSequence) == tOffset);
+        static_assert(index_from_index_sequence<1>(tTestSequence) == tOffset + 1UL);
     }
 }
 

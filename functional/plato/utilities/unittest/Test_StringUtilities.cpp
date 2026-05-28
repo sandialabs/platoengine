@@ -83,9 +83,9 @@ TEST(Utilities, ConcatenateStringsAndNumbers)
 
 TEST(Utilities, ConcatenateStringsChar)
 {
-    const auto tF = 'f';
-    const auto tI = 'i';
-    const auto tResult = concatenate(tF, tI, 's', 'h');
+    const auto tFLetter = 'f';
+    const auto tILetter = 'i';
+    const auto tResult = concatenate(tFLetter, tILetter, 's', 'h');
     EXPECT_EQ(tResult, "fish");
 }
 
