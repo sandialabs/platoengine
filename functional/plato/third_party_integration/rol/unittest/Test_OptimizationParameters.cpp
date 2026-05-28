@@ -2,7 +2,12 @@
 
 #include <ROL_ParameterList.hpp>
 #include <Teuchos_VerbosityLevel.hpp>
+#include <cassert>
 #include <filesystem>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -17,7 +22,7 @@ namespace
 {
 
 template <typename Type>
-Type get_parameter(const ROL::ParameterList& aParlist, const ParameterAndValue<Type>& aParameterAndValue)
+auto get_parameter(const ROL::ParameterList& aParlist, const ParameterAndValue<Type>& aParameterAndValue) -> Type
 {
     auto tParlist = aParlist;
     auto tCurrentSublist = detail::retrieve_sublist_from_sequence(tParlist, aParameterAndValue.mSublistNames);
@@ -38,10 +43,10 @@ void compare_field_result_to_gold_list(const ROL::ParameterList& aResult,
     for (const auto& tGoldField : aGoldFields)
     {
         std::visit(
-            [&](const auto& tGoldParameter)
+            [&](const auto& aGoldParameter)
             {
-                const auto tResult = get_parameter(aResult, tGoldParameter);
-                EXPECT_EQ(tResult, tGoldParameter.mValue) << aContext;
+                const auto tResult = get_parameter(aResult, aGoldParameter);
+                EXPECT_EQ(tResult, aGoldParameter.mValue) << aContext;
             },
             tGoldField);
     }

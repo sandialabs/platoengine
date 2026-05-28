@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <boost/container_hash/hash.hpp>
 #include <boost/functional/hash.hpp>
+#include <cstddef>
 
 #include "plato/utilities/StateCache.hpp"
 

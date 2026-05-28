@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <vector>
+
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters::unittest
 {
@@ -73,9 +77,9 @@ TEST(LinearMaskBuilderUtilitiesDetail, AddWeightFromSearchResultToMap)
         detail::add_weight_from_search_result_to_map(tRowMap, RowSearchEntityGlobalID{kSphereID},
                                                      ColumnNodeGlobalID{tID}, Weight{tWeight}, tMaxSize);
 
-        ASSERT_EQ(tRowMap[kSphereID].mColumnEntryWeights.size(), 4u);
+        ASSERT_EQ(tRowMap[kSphereID].mColumnEntryWeights.size(), 4U);
         EXPECT_EQ(tRowMap[kSphereID].mColumnEntryWeights[3], tWeight);
-        ASSERT_EQ(tRowMap[kSphereID].mNonzeroColumnGlobalIDs.size(), 4u);
+        ASSERT_EQ(tRowMap[kSphereID].mNonzeroColumnGlobalIDs.size(), 4U);
         EXPECT_EQ(tRowMap[kSphereID].mNonzeroColumnGlobalIDs[3], tID);
         EXPECT_EQ(tRowMap[kSphereID].mColumnEntryWeights.capacity(), tMaxSize);
         EXPECT_EQ(tRowMap[kSphereID].mNonzeroColumnGlobalIDs.capacity(), tMaxSize);
@@ -85,9 +89,9 @@ TEST(LinearMaskBuilderUtilitiesDetail, AddWeightFromSearchResultToMap)
         detail::add_weight_from_search_result_to_map(tRowMap, RowSearchEntityGlobalID{tSphereIDTwo},
                                                      ColumnNodeGlobalID{tID}, Weight{tWeight}, tMaxSize);
 
-        ASSERT_EQ(tRowMap[tSphereIDTwo].mColumnEntryWeights.size(), 1u);
+        ASSERT_EQ(tRowMap[tSphereIDTwo].mColumnEntryWeights.size(), 1U);
         EXPECT_EQ(tRowMap[tSphereIDTwo].mColumnEntryWeights[0], tWeight);
-        ASSERT_EQ(tRowMap[tSphereIDTwo].mNonzeroColumnGlobalIDs.size(), 1u);
+        ASSERT_EQ(tRowMap[tSphereIDTwo].mNonzeroColumnGlobalIDs.size(), 1U);
         EXPECT_EQ(tRowMap[tSphereIDTwo].mNonzeroColumnGlobalIDs[0], tID);
         EXPECT_EQ(tRowMap[tSphereIDTwo].mColumnEntryWeights.capacity(), tMaxSize);
         EXPECT_EQ(tRowMap[tSphereIDTwo].mNonzeroColumnGlobalIDs.capacity(), tMaxSize);
@@ -105,7 +109,7 @@ TEST(LinearMaskBuilderUtilitiesDetail, AddWeightFromSearchResultToMapDuplicateGl
         detail::add_weight_from_search_result_to_map(tRowMap, RowSearchEntityGlobalID{kSphereID},
                                                      ColumnNodeGlobalID{tRepeatedID}, Weight{tWeight}, tMaxSize);
 
-        EXPECT_EQ(tRowMap[kSphereID].mColumnEntryWeights.size(), 3u);
+        EXPECT_EQ(tRowMap[kSphereID].mColumnEntryWeights.size(), 3U);
         EXPECT_EQ(tRowMap[kSphereID].mRowSum, 3);
     }
 }

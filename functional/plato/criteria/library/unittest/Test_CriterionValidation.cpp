@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <fstream>
+#include <ostream>
 
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
@@ -8,6 +10,7 @@
 #include "plato/criteria/library/PluginCriteria.hpp"
 #include "plato/criteria/library/test_utilities/TestAppConfigurations.hpp"
 #include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/ValidationTestUtilities.hpp"
 

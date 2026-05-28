@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
 #include <filesystem>
+#include <map>
+#include <string>
 
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
@@ -34,7 +38,7 @@ const auto kAnotherTestConfiguration =
                      .mLibraryFileName = "libanothertest.so",
                      .mCriteria = {kTestCriterionConfiguration, kAnotherTestCriterionConfiguration}};
 
-void testSerializeRoundTrip(const AppConfiguration& aSerializable, const test_utilities::TestContext& aTestContext)
+void test_serialize_round_trip(const AppConfiguration& aSerializable, const test_utilities::TestContext& aTestContext)
 {
     const auto tFilename = std::filesystem::path{"out.config"};
     save_configuration(aSerializable, tFilename);
@@ -54,7 +58,7 @@ TEST(AppConfiguration, Serialization)
                                    .mLibraryFileName = "libtest.so",
                                    .mCriteria = {kTestCriterionConfiguration, kAnotherTestCriterionConfiguration,
                                                  kVectorTestCriterionConfiguration}};
-    testSerializeRoundTrip(tAppConfiguration, TEST_CONTEXT("App configuration"));
+    test_serialize_round_trip(tAppConfiguration, TEST_CONTEXT("App configuration"));
 }
 
 TEST(AppConfiguration, AppConfigurationWithDirectory)
@@ -78,7 +82,7 @@ TEST(AppConfiguration, AppConfigurations)
         .writeFile(services::AppConfigurationWriter{kAnotherTestConfiguration}, "test-2.config");
     const auto tAppConfigurations = app_configurations({tConfigurationTempDirectory.directory()});
 
-    EXPECT_EQ(tAppConfigurations.size(), 2u);
+    EXPECT_EQ(tAppConfigurations.size(), 2U);
 
     const auto tTestConfigurationIter = std::find_if(
         tAppConfigurations.cbegin(), tAppConfigurations.cend(), [](const auto& aAppConfigurationWithDirectory)

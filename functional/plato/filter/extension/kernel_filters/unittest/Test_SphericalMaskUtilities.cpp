@@ -1,14 +1,16 @@
 #include <gtest/gtest.h>
 
 #include <numbers>
+#include <string_view>
+#include <vector>
 
 #include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/LinearMaskTestUtility.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/tpetra/TestUtilities.hpp"
 
@@ -40,7 +42,7 @@ TEST(LinearMaskBuilder, GenerateDistanceMapGivenCentroid)
     const std::vector<third_party_integration::common::Coordinate> tRelativeToCoordinate{{1, 0, 0}};
     const auto tLinearMaskBuilder = test_utilities::create_simple_linear_mask_builder(tRelativeToCoordinate);
 
-    const auto tDistanceMap = tLinearMaskBuilder.mask();
+    const auto& tDistanceMap = tLinearMaskBuilder.mask();
     /*
            1/4         1/2            1/4        0
     */

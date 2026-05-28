@@ -1,14 +1,18 @@
 #include <gtest/gtest.h>
 
-#include <numeric>
-#include <stk_math/StkVector.hpp>
+#include <Akri_Phase_Support.hpp>
+#include <memory>
+#include <set>
 #include <string>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
+#include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 

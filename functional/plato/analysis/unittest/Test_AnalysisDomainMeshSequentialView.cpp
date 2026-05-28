@@ -1,11 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <boost/core/ignore_unused.hpp>
-#include <numeric>
+#include <cstddef>
+#include <iterator>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/analysis/AnalysisDomainMeshOperators.hpp"
+#include "plato/analysis/AnalysisDomainMeshOperators.hpp"  // NOLINT(misc-include-cleaner)
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/analysis/SharedValueProxy.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/Zip.hpp"

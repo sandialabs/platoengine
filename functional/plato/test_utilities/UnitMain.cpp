@@ -103,12 +103,12 @@ auto setup_children(int aArgc, char** aArgv, unsigned int aNumRanks) -> MPI_Comm
 
 auto rank_should_run_tests(const MPI_Comm& aInterCommunicator) -> bool { return aInterCommunicator == MPI_COMM_NULL; }
 
-auto communicate_exit_code(const MPI_Comm& aInterCommunicator, const int aTExitStatus) -> int
+auto communicate_exit_code(const MPI_Comm& aInterCommunicator, const int aExitStatus) -> int
 {
-    int tMaxExitStatus = aTExitStatus;
+    int tMaxExitStatus = aExitStatus;
     if (aInterCommunicator != MPI_COMM_NULL)
     {
-        MPI_Allreduce(&aTExitStatus, &tMaxExitStatus, 1, MPI_INT, MPI_MAX, aInterCommunicator);
+        MPI_Allreduce(&aExitStatus, &tMaxExitStatus, 1, MPI_INT, MPI_MAX, aInterCommunicator);
     }
     else
     {
@@ -116,7 +116,7 @@ auto communicate_exit_code(const MPI_Comm& aInterCommunicator, const int aTExitS
         MPI_Comm_get_parent(&tParentCommunicator);
         if (tParentCommunicator != MPI_COMM_NULL)
         {
-            MPI_Allreduce(&aTExitStatus, &tMaxExitStatus, 1, MPI_INT, MPI_MAX, tParentCommunicator);
+            MPI_Allreduce(&aExitStatus, &tMaxExitStatus, 1, MPI_INT, MPI_MAX, tParentCommunicator);
         }
     }
     return tMaxExitStatus;

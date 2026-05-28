@@ -1,11 +1,19 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
+#include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/geometry/extension/test_utilities/KrinoWrapperGradientCheckUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/KrinoWrapperTestUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
+#include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/DataFilePath.hpp"

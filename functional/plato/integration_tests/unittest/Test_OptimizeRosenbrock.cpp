@@ -1,14 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <ROL_Algorithm.hpp>
-#include <ROL_Bounds.hpp>
 #include <ROL_LineSearchStep.hpp>
+#include <ROL_ParameterList.hpp>
 #include <ROL_Ptr.hpp>
-#include <ROL_RandomVector.hpp>
 #include <ROL_StatusTest.hpp>
 #include <ROL_StdVector.hpp>
-#include <ROL_Stream.hpp>
-#include <Teuchos_GlobalMPISession.hpp>
+#include <iostream>
+#include <ostream>
 
 #include "plato/core/Compose.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorPenaltyFunction.hpp"
@@ -21,7 +20,7 @@ namespace
 {
 constexpr bool kPrintFlag = true;
 
-[[nodiscard]] ROL::ParameterList create_parameter_list()
+[[nodiscard]] auto create_parameter_list() -> ROL::ParameterList
 {
     ROL::ParameterList tParlist;
     tParlist.sublist("Status Test").set("Gradient Tolerance", 1.e-12);
@@ -30,7 +29,7 @@ constexpr bool kPrintFlag = true;
     return tParlist;
 }
 
-[[nodiscard]] ROL::Algorithm<double> rol_algorithm()
+[[nodiscard]] auto rol_algorithm() -> ROL::Algorithm<double>
 {
     // Set parameters.
     ROL::ParameterList tParlist = create_parameter_list();
@@ -45,7 +44,7 @@ constexpr bool kPrintFlag = true;
 
 TEST(Optimize, Rosenbrock)
 {
-    ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
+    const ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
     auto tControl = ROL::StdVector<double>{-1.2, 1.0};
     auto tObjective = third_party_integration::rol::ROLObjectiveFunction{
         utilities::make_rosenbrock_dynamic_vector_function(test_utilities::Rosenbrock{})};
@@ -60,7 +59,7 @@ TEST(Optimize, Rosenbrock)
 
 TEST(Optimize, RosenbrockPenaltyComposition)
 {
-    ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
+    const ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
     auto tControl = ROL::StdVector<double>{1.5, 0.5};
     constexpr auto tXMin = test_utilities::XMin{0.0};
     constexpr auto tPower = test_utilities::Exponent{3.0};

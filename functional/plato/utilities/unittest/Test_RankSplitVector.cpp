@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <numeric>
+#include <vector>
 
 #include "plato/utilities/RankSplitVector.hpp"
 
@@ -8,13 +8,13 @@ namespace plato::utilities::unittest
 {
 namespace
 {
-constexpr auto kMPISize = int{3};
+constexpr auto kMPISize = 3;
 
-void split_vector_and_check(const std::vector<int>& aVector, int aRankNamedTypeNumber, const std::vector<int>& tGold)
+void split_vector_and_check(const std::vector<int>& aVector, int aRankNamedTypeNumber, const std::vector<int>& aGold)
 {
     const std::vector<int> tDistributedValues =
         group_split_vector(aVector, ColorNamedType{aRankNamedTypeNumber}, SizeNamedType{kMPISize});
-    EXPECT_EQ(tDistributedValues, tGold);
+    EXPECT_EQ(tDistributedValues, aGold);
 }
 
 }  // namespace
@@ -77,21 +77,21 @@ TEST(RankGroupColor, OneRankPerGroup)
 
 TEST(RankGroupColor, IncreasingGroupSize)
 {
-    const auto tGroups = std::vector{1u, 2u, 3u};
+    const auto tGroups = std::vector{1U, 2U, 3U};
     {
         const ColorNamedType tColor = utilities::rank_group_color(tGroups, RankNamedType{0});
-        constexpr auto tExpectedColor = int{0};
+        constexpr auto tExpectedColor = 0;
         EXPECT_EQ(tColor.mValue, tExpectedColor);
     }
     for (const auto tRank : {1, 2})
     {
-        constexpr auto tExpectedColor = int{1};
+        constexpr auto tExpectedColor = 1;
         const ColorNamedType tColor = utilities::rank_group_color(tGroups, RankNamedType{tRank});
         EXPECT_EQ(tColor.mValue, tExpectedColor);
     }
     for (const auto tRank : {3, 4, 5})
     {
-        constexpr auto tExpectedColor = int{2};
+        constexpr auto tExpectedColor = 2;
         const ColorNamedType tColor = utilities::rank_group_color(tGroups, RankNamedType{tRank});
         EXPECT_EQ(tColor.mValue, tExpectedColor);
     }

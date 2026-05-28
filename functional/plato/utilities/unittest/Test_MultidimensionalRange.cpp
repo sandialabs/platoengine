@@ -2,6 +2,8 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <functional>
+#include <tuple>
 
 #include "plato/utilities/MultidimensionalRange.hpp"
 
@@ -9,8 +11,8 @@ namespace plato::utilities::unittest
 {
 TEST(MultidimensionalIterator, IteratorIncrement)
 {
-    constexpr auto tNumDimZero = int{2};
-    constexpr auto tNumDimOne = int{3};
+    constexpr auto tNumDimZero = 2;
+    constexpr auto tNumDimOne = 3;
     auto tIterator = MultidimensionalIterator{std::make_tuple(tNumDimZero, tNumDimOne)};
 
     {
@@ -40,8 +42,8 @@ TEST(MultidimensionalIterator, IteratorIncrement)
 
 TEST(MultidimensionalIterator, IteratorEnd)
 {
-    constexpr auto tNumDimZero = int{2};
-    constexpr auto tNumDimOne = int{3};
+    constexpr auto tNumDimZero = 2;
+    constexpr auto tNumDimOne = 3;
     using iterator_type = MultidimensionalIterator<int, int>;
     auto tIterator = MultidimensionalIterator{iterator_type::EndTag{}, std::make_tuple(tNumDimZero, tNumDimOne)};
 
@@ -52,8 +54,8 @@ TEST(MultidimensionalIterator, IteratorEnd)
 
 TEST(MultidimensionalIterator, IteratorEquality)
 {
-    constexpr auto tNumDimZero = int{2};
-    constexpr auto tNumDimOne = int{3};
+    constexpr auto tNumDimZero = 2;
+    constexpr auto tNumDimOne = 3;
     using iterator_type = MultidimensionalIterator<int, int>;
     auto tBeginIterator = MultidimensionalIterator{std::make_tuple(tNumDimZero, tNumDimOne)};
     auto tEndIterator = MultidimensionalIterator{iterator_type::EndTag{}, std::make_tuple(tNumDimZero, tNumDimOne)};
@@ -61,7 +63,7 @@ TEST(MultidimensionalIterator, IteratorEquality)
     EXPECT_NE(tBeginIterator, tEndIterator);
 
     // Increment enough times to reach the end
-    for (int i = 0; i < tNumDimZero * tNumDimOne; ++i)
+    for (int tI = 0; tI < tNumDimZero * tNumDimOne; ++tI)
     {
         ++tBeginIterator;
     }
@@ -71,14 +73,14 @@ TEST(MultidimensionalIterator, IteratorEquality)
 
 TEST(MultidimensionalIterator, BeginAndEndFunctions)
 {
-    constexpr auto tNumDimZero = int{2};
+    constexpr auto tNumDimZero = 2;
     using iterator_type = MultidimensionalIterator<int>;
     const auto tBeginIteratorFromClass = MultidimensionalIterator{std::make_tuple(tNumDimZero)};
     const auto tEndIteratorFromClass = MultidimensionalIterator{iterator_type::EndTag{}, std::make_tuple(tNumDimZero)};
 
-    const auto range = MultidimensionalRange{tNumDimZero};
-    const auto tBeginIteratorFromRange = range.begin();
-    const auto tEndIteratorFromRange = range.end();
+    const auto tRange = MultidimensionalRange{tNumDimZero};
+    const auto tBeginIteratorFromRange = tRange.begin();
+    const auto tEndIteratorFromRange = tRange.end();
 
     EXPECT_EQ(tBeginIteratorFromClass, tBeginIteratorFromRange);
     EXPECT_EQ(tEndIteratorFromClass, tEndIteratorFromRange);
@@ -86,10 +88,10 @@ TEST(MultidimensionalIterator, BeginAndEndFunctions)
 
 TEST(MultidimensionalIterator, TwoDims)
 {
-    constexpr auto tNumDimZero = int{2};
-    constexpr auto tNumDimOne = int{3};
-    auto tManualCountZero = int{0};
-    auto tManualCountOne = int{0};
+    constexpr auto tNumDimZero = 2;
+    constexpr auto tNumDimOne = 3;
+    auto tManualCountZero = 0;
+    auto tManualCountOne = 0;
 
     for (const auto& [tIteratorCountZero, tIteratorCountOne] : MultidimensionalRange{tNumDimZero, tNumDimOne})
     {

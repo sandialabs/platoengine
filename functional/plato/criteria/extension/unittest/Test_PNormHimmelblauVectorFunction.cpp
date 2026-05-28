@@ -1,8 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/criteria/extension/PNorm.hpp"
 #include "plato/criteria/extension/unittest/HimmelblauVectorFunction.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/Himmelblau.hpp"
 
 namespace plato::criteria::extension::unittest

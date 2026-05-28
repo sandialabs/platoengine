@@ -1,15 +1,18 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/filter/library/FilterFactory.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
-#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -41,8 +44,6 @@ TEST_F(FilterFactoryTestFixture, HelmholtzFilterThrows)
 
     const auto tValidatedGeometry =
         input_validation::make_validated_input(tInput).value().get<components::ComponentType::kGeometry>();
-
-    namespace pff = plato::filter;
 
     bool tCreationSuccessful = false;
     bool tCorrectException = false;

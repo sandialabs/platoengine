@@ -38,14 +38,14 @@ void run_rosenbrock_aggregator_test(const F& aGenerateCommand)
         detail::FunctionAndWeight{std::make_pair(tF1, tWeights.first), std::make_pair(tF2, tWeights.second)};
     const auto tAggregate = aGenerateCommand(tFunctionAndWeight);
 
-    for (auto aTestPoint : {pft::TwoDVector{0.0, 1.0}, pft::TwoDVector{1.0, 1.0}, pft::TwoDVector{-1.0, 2.0}})
+    for (auto tTestPoint : {pft::TwoDVector{0.0, 1.0}, pft::TwoDVector{1.0, 1.0}, pft::TwoDVector{-1.0, 2.0}})
     {
-        EXPECT_EQ(tAggregate.template evaluate<evaluation::kFunction>(aTestPoint),
-                  tWeights.first * tF1.evaluate<evaluation::kFunction>(aTestPoint) +
-                      tWeights.second * tF2.evaluate<evaluation::kFunction>(aTestPoint));
-        EXPECT_EQ(tAggregate.template evaluate<evaluation::kFirstDerivative>(aTestPoint),
-                  tWeights.first * tF1.evaluate<evaluation::kFirstDerivative>(aTestPoint) +
-                      tWeights.second * tF2.evaluate<evaluation::kFirstDerivative>(aTestPoint));
+        EXPECT_EQ(tAggregate.template evaluate<evaluation::kFunction>(tTestPoint),
+                  tWeights.first * tF1.evaluate<evaluation::kFunction>(tTestPoint) +
+                      tWeights.second * tF2.evaluate<evaluation::kFunction>(tTestPoint));
+        EXPECT_EQ(tAggregate.template evaluate<evaluation::kFirstDerivative>(tTestPoint),
+                  tWeights.first * tF1.evaluate<evaluation::kFirstDerivative>(tTestPoint) +
+                      tWeights.second * tF2.evaluate<evaluation::kFirstDerivative>(tTestPoint));
     }
 }
 

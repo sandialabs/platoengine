@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <iostream>
+#include <ostream>
 
 #include "plato/services/PluginDirectoryPath.hpp"
 

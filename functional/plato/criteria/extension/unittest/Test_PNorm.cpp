@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <vector>
 
+#include "plato/core/Function.hpp"
 #include "plato/criteria/extension/PNorm.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/Containers.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/GradientChecker.hpp"
 
 namespace plato::criteria::extension::unittest

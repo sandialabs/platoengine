@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <cstddef>
 #include <filesystem>
+#include <string>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
@@ -8,6 +12,8 @@
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -116,11 +122,11 @@ TEST_F(TwoDThreeBlockMesh, MeshFromInput)
         std::size_t mNumberOfDesignDomainElements = 0U;
     };
 
-    const auto tTestFunction = [](const input_parser::density_topology& tDensityInput,
+    const auto tTestFunction = [](const input_parser::density_topology& aDensityInput,
                                   const ExpectedSizes& aExpectedSizes,
                                   const plato::test_utilities::TestContext& aTestContext)
     {
-        const auto tMesh = mesh_from_input(tDensityInput);
+        const auto tMesh = mesh_from_input(aDensityInput);
         EXPECT_EQ(tMesh.fixedBlockOrdinals().size(), aExpectedSizes.mNumberOfFixedBlocks) << aTestContext;
         EXPECT_EQ(tMesh.designBlockOrdinals().size(), aExpectedSizes.mNumberOfDesignBlocks) << aTestContext;
         EXPECT_EQ(mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes(), aExpectedSizes.mNumberOfDesignDomainNodes)

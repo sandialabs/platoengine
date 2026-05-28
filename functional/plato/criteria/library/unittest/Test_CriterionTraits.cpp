@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "plato/criteria/library/CriterionTraits.hpp"
 
 namespace plato::criteria::library::unittest

@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::criteria::extension::unittest

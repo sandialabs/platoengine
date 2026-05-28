@@ -2,6 +2,7 @@
 
 #include "plato/input_parser/UserDefinedTokenList.hpp"
 #include "plato/input_parser/test_utilities/TestHelpers.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::input_parser::unittest
 {

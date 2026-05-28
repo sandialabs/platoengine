@@ -1,14 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <memory>
 #include <string_view>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/Zip.hpp"

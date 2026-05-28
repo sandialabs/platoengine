@@ -1,10 +1,16 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/core/ParallelAggregate.hpp"
 #include "plato/core/test_utilities/Utilities.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
+#include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/test_utilities/TwoDTestTypesSerialization.hpp"
 
 namespace plato::core::parallel_unittest
@@ -63,7 +69,7 @@ TEST(ParallelAggregate, EvaluateDifferent)
 
     using RosenbrockF = std::decay_t<decltype(tRosenbrockFunctionNonDefault)>;
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
-    constexpr auto tWeight = double{0.5};
+    constexpr auto tWeight = 0.5;
     const auto tRosenbrockFunctionAndWeight =
         tCommunicator.rank() == 0 ? FunctionAndWeight{std::make_pair(tRosenbrockFunctionDefault, tWeight)}
                                   : FunctionAndWeight{std::make_pair(tRosenbrockFunctionNonDefault, tWeight)};

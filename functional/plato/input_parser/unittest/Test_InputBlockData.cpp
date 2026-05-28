@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <boost/optional.hpp>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <utility>
 
 #include "plato/input_parser/InputBlockData.hpp"
 #include "plato/test_utilities/CopyCounter.hpp"
@@ -12,7 +14,7 @@ namespace
 {
 struct Active
 {
-    boost::optional<bool> active = boost::none;
+    boost::optional<bool> mActive = boost::none;
 };
 }  // namespace
 
@@ -72,7 +74,7 @@ TEST(InputBlockWrapper, MutatingGet)
 
 TEST(InputBlockWrapper, Ctors)
 {
-    constexpr auto tValue = int{42};
+    constexpr auto tValue = 42;
     auto tInput = InputBlockWrapper{tValue};
     const auto tCheckCrossReference =
         [tValue](const InputBlockWrapper& aInput, const test_utilities::TestContext& aTestContext)

@@ -5,13 +5,13 @@
 
 namespace plato::analysis
 {
-[[nodiscard]] inline bool operator==(const ScalarFieldValue& aLHS, const ScalarFieldValue& aRHS)
+[[nodiscard]] inline auto operator==(const ScalarFieldValue& aLHS, const ScalarFieldValue& aRHS) -> bool
 {
     return aLHS.mValue == aRHS.mValue && aLHS.mGlobalMeshEntityID == aRHS.mGlobalMeshEntityID &&
            aLHS.mDesignVariableVectorIndex == aRHS.mDesignVariableVectorIndex;
 }
 
-[[nodiscard]] inline bool operator!=(const ScalarFieldValue& aLHS, const ScalarFieldValue& aRHS)
+[[nodiscard]] inline auto operator!=(const ScalarFieldValue& aLHS, const ScalarFieldValue& aRHS) -> bool
 {
     return !(aLHS == aRHS);
 }

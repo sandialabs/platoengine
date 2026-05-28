@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <string_view>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -26,7 +29,7 @@ TEST(ROLOptimization, Create)
     ASSERT_TRUE(tValidatedInput.hasValue());
     const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
     const auto tAllProcessManagerInputs = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
-    ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1u);
+    ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1U);
     const auto tROLOptimization = ROLOptimization{tAllProcessManagerInputs.rawInput().front()};
     tROLOptimization.run(tProblem);
     EXPECT_TRUE(std::filesystem::exists(kROLOptimizerFileName));

@@ -1,15 +1,20 @@
 #include <gtest/gtest.h>
 
+#include <numeric>
+#include <utility>
+#include <vector>
+
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
-#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/utilities/DataFilePath.hpp"
-#include "plato/utilities/IndexRange.hpp"
 
 namespace plato::integration_test::parallel_unittest
 {
@@ -33,8 +38,8 @@ TEST(ParallelKrino, NodalSumObjectivesRegression)
 
     auto tCriteria = std::vector(boost::mpi::communicator{}.size(), tNodalSumInput);
     const auto tAllCriteria = std::accumulate(tCriteria.begin(), tCriteria.end(), input_parser::ParsedInput{},
-                                              [](input_parser::ParsedInput tAllInput, const auto& aCriterion)
-                                              { return std::move(tAllInput) | aCriterion; });
+                                              [](input_parser::ParsedInput aAllInput, const auto& aCriterion)
+                                              { return std::move(aAllInput) | aCriterion; });
 
     const auto tInput = tAllCriteria | tGeometryInput |
                         filter::extension::test_utilities::create_valid_identity_filter_input() |

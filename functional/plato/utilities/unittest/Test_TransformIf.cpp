@@ -2,7 +2,10 @@
 
 #include <algorithm>
 #include <iterator>
+#include <map>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "plato/utilities/TransformIf.hpp"
 

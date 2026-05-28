@@ -1,26 +1,29 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <boost/serialization/unordered_map.hpp>
-#include <boost/serialization/vector.hpp>
 #include <cstddef>
-#include <stk_util/environment/EnvData.hpp>  //get stk mpi env
+#include <filesystem>
+#include <numeric>
+#include <set>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/geometry/extension/test_utilities/KrinoWrapperGradientCheckUtilities.hpp"
-#include "plato/geometry/extension/test_utilities/KrinoWrapperTestUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
-#include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/GradientChecker.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
@@ -86,7 +89,7 @@ namespace
     auto tIota = std::vector<double>(aSize, 0.0);
     std::iota(tIota.begin(), tIota.end(), 1.0);
     std::transform(tIota.begin(), tIota.end(), tIota.begin(),
-                   [tScale = aSize, aShift](const auto tValue) { return tValue / tScale - aShift; });
+                   [tScale = aSize, aShift](const auto aValue) { return aValue / tScale - aShift; });
     return tIota;
 }
 

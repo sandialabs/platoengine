@@ -1,8 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <filesystem>
+#include <string>
+#include <vector>
+
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"

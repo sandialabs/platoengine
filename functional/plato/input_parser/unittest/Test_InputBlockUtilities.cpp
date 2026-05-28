@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <boost/optional/optional_io.hpp>
+#include <boost/optional/optional_io.hpp>  // NOLINT(misc-include-cleaner)
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/ParsedInput.hpp"

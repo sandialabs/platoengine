@@ -4,6 +4,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <sstream>
 
+#include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/test_utilities/TwoDTestTypesSerialization.hpp"
 
 namespace plato::integration_tests::serial

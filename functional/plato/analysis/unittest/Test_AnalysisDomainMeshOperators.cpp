@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "plato/analysis/AnalysisDomainMeshOperators.hpp"
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshOperators.hpp"  // NOLINT(misc-include-cleaner)
 
 namespace plato::analysis::unittest
 {

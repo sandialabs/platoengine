@@ -1,12 +1,18 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <filesystem>
 #include <numeric>
+#include <set>
+#include <string>
+#include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 

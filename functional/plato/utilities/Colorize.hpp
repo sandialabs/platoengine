@@ -4,6 +4,7 @@
 #include <concepts>
 #include <cstdint>
 #include <ostream>
+#include <string_view>
 
 namespace plato::utilities
 {
@@ -77,12 +78,15 @@ auto operator<<(std::ostream& aStream, Colorize<T, ColorPolicy> aColorizedText) 
 {
     if (ColorPolicy{}(aStream))
     {
+        // clang-tidy issues a warning for const char[] decay
+        // NOLINTBEGIN(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
         aStream << color_code(aColorizedText.mTextColor) << aColorizedText.mObjectToStream.get()
                 << color_code(TextColor::kDefault);
+        // NOLINTEND(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     }
     else
     {
-        aStream << aColorizedText.mObjectToStream.get();
+        aStream << aColorizedText.mObjectToStream.get();  // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     }
     return aStream;
 }

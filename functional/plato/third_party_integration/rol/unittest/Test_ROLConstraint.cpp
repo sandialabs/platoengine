@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <ROL_Bounds.hpp>
+#include <ROL_Ptr.hpp>
 #include <ROL_StdVector.hpp>
+#include <stdexcept>
 #include <vector>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -13,7 +17,7 @@ namespace plato::third_party_integration::rol::unittest
 namespace
 {
 
-ROL::Ptr<ROL::StdVector<double>> to_rol_std_vector_ptr(const std::vector<double>& aVector)
+auto to_rol_std_vector_ptr(const std::vector<double>& aVector) -> ROL::Ptr<ROL::StdVector<double>>
 {
     auto tVector = ROL::makePtr<std::vector<double>>(aVector);
     return ROL::makePtr<ROL::StdVector<double>>(tVector);

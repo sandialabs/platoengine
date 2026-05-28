@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <string>
+#include <utility>
+
 #include "plato/test_utilities/CopyCounter.hpp"
 #include "plato/utilities/ValueOrTag.hpp"
 

@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <utility>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryFactory.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
@@ -17,7 +20,7 @@ TEST(GeometryFactory, BrickGeometry)
     const auto tInput = input_validation::make_validated_input(tRawInput).value();
     const auto tData = geometry::library::make_geometry_data(tInput.get<components::ComponentType::kGeometry>());
 
-    constexpr auto tExpectedBrickShapeDimensions = int{6};
+    constexpr auto tExpectedBrickShapeDimensions = 6;
     EXPECT_EQ(tData.mInitialGuess.size(), tExpectedBrickShapeDimensions);
     EXPECT_EQ(tData.mBounds.first.size(), tExpectedBrickShapeDimensions);
     EXPECT_EQ(tData.mBounds.second.size(), tExpectedBrickShapeDimensions);

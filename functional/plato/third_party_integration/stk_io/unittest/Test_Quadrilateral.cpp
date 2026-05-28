@@ -1,8 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <array>
+#include <cassert>
+#include <iterator>
+#include <numeric>
 #include <valarray>
 
 #include "plato/linear_algebra/RandomPerturbationVector.hpp"
+#include "plato/test_utilities/RandomPerturbationVector.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Quadrilateral.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/SensitivityTestUtilities.hpp"
@@ -12,7 +19,7 @@ namespace plato::third_party_integration::stk_io::unittest
 {
 namespace
 {
-Quadrilateral create_planar_quadrilateral_from_dimensions(const double aLength, const double aHeight)
+auto create_planar_quadrilateral_from_dimensions(const double aLength, const double aHeight) -> Quadrilateral
 {
     return Quadrilateral{.mP00 = common::Coordinate{.x = 0.0, .y = 0.0, .z = 0.0},
                          .mP10 = common::Coordinate{.x = aLength, .y = 0.0, .z = 0.0},
@@ -20,7 +27,7 @@ Quadrilateral create_planar_quadrilateral_from_dimensions(const double aLength, 
                          .mP01 = common::Coordinate{.x = 0.0, .y = aHeight, .z = 0.0}};
 }
 
-Quadrilateral quadrilateral_from_coordinates(const std::valarray<double>& aCoordinates)
+auto quadrilateral_from_coordinates(const std::valarray<double>& aCoordinates) -> Quadrilateral
 {
     assert(aCoordinates.size() == 12);
     return Quadrilateral{
@@ -31,7 +38,7 @@ Quadrilateral quadrilateral_from_coordinates(const std::valarray<double>& aCoord
     };
 }
 
-std::valarray<double> valarray_from_sensitivities(const std::array<common::Vector3, 4>& aSensitivities)
+auto valarray_from_sensitivities(const std::array<common::Vector3, 4>& aSensitivities) -> std::valarray<double>
 {
     return std::valarray<double>{aSensitivities[0].x, aSensitivities[0].y, aSensitivities[0].z, aSensitivities[1].x,
                                  aSensitivities[1].y, aSensitivities[1].z, aSensitivities[2].x, aSensitivities[2].y,

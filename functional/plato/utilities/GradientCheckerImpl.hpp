@@ -94,11 +94,11 @@ template <typename ArgType>
                                               const Direction<ArgType>& aDirection,
                                               const GradientCheckParameters& aParameters) -> std::vector<StepAndValue>
 {
-    auto aFiniteDifferences = std::vector<StepAndValue>{};
-    aFiniteDifferences.reserve(aParameters.mNumSteps);
-    std::generate_n(std::back_inserter(aFiniteDifferences), aParameters.mNumSteps,
+    auto tFiniteDifferences = std::vector<StepAndValue>{};
+    tFiniteDifferences.reserve(aParameters.mNumSteps);
+    std::generate_n(std::back_inserter(tFiniteDifferences), aParameters.mNumSteps,
                     FiniteDifferenceGenerator{aFunction, aArgument, aDirection, aParameters});
-    return aFiniteDifferences;
+    return tFiniteDifferences;
 }
 
 [[nodiscard]] [[maybe_unused]] auto finite_difference_error_vs_analytic(
@@ -251,6 +251,6 @@ using CallableArg = typename CallableArgImpl<decltype(&F::operator())>::ArgType;
 /// Deduction guide for deducing GradientChecker argument type from the function passed to the ctor.
 /// Assumes F has a `const` `operator()` member.
 template <typename F, typename dF>
-GradientChecker(F f, dF df) -> GradientChecker<std::remove_cv_t<std::remove_reference_t<detail::CallableArg<F>>>>;
+GradientChecker(F aF, dF aDf) -> GradientChecker<std::remove_cv_t<std::remove_reference_t<detail::CallableArg<F>>>>;
 
 }  // namespace plato::utilities

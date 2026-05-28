@@ -90,7 +90,7 @@ class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
         ThreeDTwoBlockTetMesh::TearDown();
     }
 
-    auto levelSetTopologyInputWithFixedBlocks(std::vector<std::string> aFixedBlocks) const
+    [[nodiscard]] auto levelSetTopologyInputWithFixedBlocks(std::vector<std::string> aFixedBlocks) const
         -> input_parser::level_set_topology
     {
         auto tInput = kLevelSetInputFixture;
@@ -99,13 +99,13 @@ class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
         return tInput;
     }
 
-    auto levelSetTopologyWithFixedBlocks(std::vector<std::string> aFixedBlocks) const -> LevelSetTopology
+    [[nodiscard]] auto levelSetTopologyWithFixedBlocks(std::vector<std::string> aFixedBlocks) const -> LevelSetTopology
     {
         return LevelSetTopology{levelSetTopologyInputWithFixedBlocks(std::move(aFixedBlocks))};
     }
 
-    auto levelSetTopologyWithRadiusAndFixedBlocks(const double aRadius, std::vector<std::string> aFixedBlocks) const
-        -> LevelSetTopology
+    [[nodiscard]] auto levelSetTopologyWithRadiusAndFixedBlocks(
+        const double aRadius, std::vector<std::string> aFixedBlocks) const -> LevelSetTopology
     {
         auto tInput = levelSetTopologyInputWithFixedBlocks(std::move(aFixedBlocks));
         tInput.sphere_pattern.value().radius = aRadius;
@@ -129,7 +129,7 @@ class LevelSetTopology2DFixture : public LevelSetTopologyBaseFixture
    protected:
     void SetUp() override { LevelSetTopologyBaseFixture::SetUp(); }
     void TearDown() override { LevelSetTopologyBaseFixture::TearDown(); }
-    [[nodiscard]] auto levelSetTopologyInputFor2D() const -> input_parser::level_set_topology
+    [[nodiscard]] static auto levelSetTopologyInputFor2D() -> input_parser::level_set_topology
     {
         const auto tFilePath = utilities::data_file_path("rectangle_3x4_tri3.cdf");
         assert(tFilePath.has_value());
@@ -149,7 +149,7 @@ class LevelSetTopologyLargeSphereFixture : public LevelSetTopologyBaseFixture
    protected:
     void SetUp() override { LevelSetTopologyBaseFixture::SetUp(); }
     void TearDown() override { LevelSetTopologyBaseFixture::TearDown(); }
-    [[nodiscard]] auto levelSetTopologyInputForLargeSphere() const -> input_parser::level_set_topology
+    [[nodiscard]] static auto levelSetTopologyInputForLargeSphere() -> input_parser::level_set_topology
     {
         const auto tFilePath = utilities::data_file_path("box_3x4x7_tet4.cdf");
         assert(tFilePath.has_value());
@@ -169,7 +169,7 @@ class LevelSetTopology2DOneTriFixture : public LevelSetTopologyBaseFixture
    protected:
     void SetUp() override { LevelSetTopologyBaseFixture::SetUp(); }
     void TearDown() override { LevelSetTopologyBaseFixture::TearDown(); }
-    [[nodiscard]] auto levelSetTopologyInputFor2D() const -> input_parser::level_set_topology
+    [[nodiscard]] static auto levelSetTopologyInputFor2D() -> input_parser::level_set_topology
     {
         const auto tFilePath = utilities::data_file_path("one_tri.cdf");
         assert(tFilePath.has_value());

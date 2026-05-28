@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "plato/third_party_integration/snopt/NonNullPtr.hpp"
 
 namespace plato::third_party_integration::snopt::unittest

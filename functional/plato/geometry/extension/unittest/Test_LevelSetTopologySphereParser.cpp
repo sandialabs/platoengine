@@ -52,7 +52,7 @@ TEST(LevelSetSphere, ValidInputParsingTestTwoEntries)
 
 TEST(LevelSetSphereListParser, ValidInputParsingTestEmptyList)
 {
-    constexpr auto tValidInput = std::string_view{""};
+    constexpr auto tValidInput = std::string_view{};
     const auto [tResult, tSuccess] =
         input_parser::test_utilities::parse_input<input_parser::LevelSetSphereList>(tValidInput);
     EXPECT_FALSE(tSuccess) << "Invalid input, empty list";

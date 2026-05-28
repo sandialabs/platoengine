@@ -2,6 +2,8 @@
 
 #include <functional>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/rol/ParameterBuilder.hpp"

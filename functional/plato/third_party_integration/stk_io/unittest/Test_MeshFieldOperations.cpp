@@ -1,10 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <functional>
+#include <ranges>
+#include <vector>
+
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/MeshFieldOperations.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/utilities/Enumerate.hpp"
+#include "stk_topology/topology.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
@@ -135,7 +142,7 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverageElementProjection)
 TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverageElementProjectionOnPart)
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
-    const auto tPart = tBulkData->mesh_meta_data().get_mesh_parts().front();
+    auto* const tPart = tBulkData->mesh_meta_data().get_mesh_parts().front();
     const auto tPartReferenceVector = PartReferenceVector{{std::cref(*tPart)}};
     const auto tElementValues = std::vector{3.0, 6.0, 9.0, 12.0};
 
@@ -150,7 +157,7 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverageElementProjectionOnPart)
 TEST_F(MeshFieldOperationsTwoDThreeBlock, ElementAveragedNodalValues)
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
-    const auto tPart = tBulkData->mesh_meta_data().get_mesh_parts().front();
+    auto* const tPart = tBulkData->mesh_meta_data().get_mesh_parts().front();
     const auto tPartReferenceVector = PartReferenceVector{{std::cref(*tPart)}};
     const auto tNodalValues = std::vector{3.0, 6.0, 9.0, 12.0, 15.0};
 

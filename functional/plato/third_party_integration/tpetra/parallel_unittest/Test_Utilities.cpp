@@ -1,8 +1,16 @@
 #include <gtest/gtest.h>
 
-#include <Tpetra_KokkosCompat_DefaultNode.hpp>
+#include <Teuchos_Comm.hpp>
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_RCPDecl.hpp>
+#include <Tpetra_ConfigDefs.hpp>
+#include <Tpetra_Core.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <memory>
+#include <vector>
 
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/tpetra/Utilities.hpp"
 
@@ -12,11 +20,12 @@ namespace plato::third_party_integration::tpetra::unittest
 namespace
 {
 
-constexpr auto kNumRanks = int{4};
+constexpr auto kNumRanks = 4;
 constexpr int kNumSpatialDimensions{3};
 
-[[nodiscard]] Teuchos::RCP<const TpetraMap> create_contiguous_map(
-    const Tpetra::global_size_t aSize, const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+[[nodiscard]] auto create_contiguous_map(const Tpetra::global_size_t aSize,
+                                         const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+    -> Teuchos::RCP<const TpetraMap>
 {
     return Teuchos::rcp(std::make_unique<TpetraMap>(aSize, kIndexBase, aCommunicator).release());
 }

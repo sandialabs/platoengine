@@ -1,5 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <tuple>
+#include <vector>
+
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/SparseMatrixBuilder.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"

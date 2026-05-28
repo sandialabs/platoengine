@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <functional>
+
 #include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/core/unittest/TestHelpers.hpp"
 #include "plato/test_utilities/TwoDTestTypes.hpp"
 
@@ -39,8 +42,8 @@ TEST(Function, Scalar)
     using ScalarFirstDerivativeInfo = FunctionInfo<double, evaluation::kFirstDerivative>;
     using ScalarFunctionWithFirstDerivative = Function<double, ScalarFInfo, ScalarFirstDerivativeInfo>;
 
-    const auto tFunction =
-        ScalarFunctionWithFirstDerivative{[](const double x) { return x * x; }, [](const double x) { return 2.0 * x; }};
+    const auto tFunction = ScalarFunctionWithFirstDerivative{[](const double aX) { return aX * aX; },
+                                                             [](const double aX) { return 2.0 * aX; }};
 
     EXPECT_EQ(tFunction.evaluate<evaluation::kFunction>(3.0), 3.0 * 3.0);
     EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(3.0), 2.0 * 3.0);
@@ -83,10 +86,10 @@ TEST(Function, TwoD)
 
 TEST(Function, ScalarUsingMakeFunction)
 {
-    const auto tFunction = make_function_with_first_derivative([](const double x) { return x * x * x; },
-                                                               [](const double x) { return 3.0 * x * x; });
+    const auto tFunction = make_function_with_first_derivative([](const double aX) { return aX * aX * aX; },
+                                                               [](const double aX) { return 3.0 * aX * aX; });
 
-    constexpr auto tArgument = double{3.0};
+    constexpr auto tArgument = 3.0;
     EXPECT_EQ(tFunction.evaluate<evaluation::kFunction>(tArgument), tArgument * tArgument * tArgument);
     EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(tArgument), 3.0 * tArgument * tArgument);
 
@@ -98,13 +101,13 @@ TEST(Function, ScalarUsingMakeFunction)
 
 TEST(Function, SpecialCtors)
 {
-    auto tFunction = make_function_with_first_derivative([](const double x) { return x * x * x * x; },
-                                                         [](const double x) { return 4.0 * x * x * x; });
+    auto tFunction = make_function_with_first_derivative([](const double aX) { return aX * aX * aX * aX; },
+                                                         [](const double aX) { return 4.0 * aX * aX * aX; });
     // Copy
     {
         const auto tFunctionCopy = tFunction;  // NOLINT
 
-        constexpr auto tArgument = double{2.0};
+        constexpr auto tArgument = 2.0;
         EXPECT_EQ(tFunctionCopy.evaluate<evaluation::kFunction>(tArgument),
                   tArgument * tArgument * tArgument * tArgument);
         EXPECT_EQ(tFunctionCopy.evaluate<evaluation::kFirstDerivative>(tArgument),
@@ -114,7 +117,7 @@ TEST(Function, SpecialCtors)
     {
         const auto tFunctionMove = std::move(tFunction);  // NOLINT
 
-        constexpr auto tArgument = double{-2.0};
+        constexpr auto tArgument = (-2.0);
         EXPECT_EQ(tFunctionMove.evaluate<evaluation::kFunction>(tArgument),
                   tArgument * tArgument * tArgument * tArgument);
         EXPECT_EQ(tFunctionMove.evaluate<evaluation::kFirstDerivative>(tArgument),

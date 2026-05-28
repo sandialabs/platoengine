@@ -1,8 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 
 namespace plato::integration_tests::unittest

@@ -1,14 +1,17 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <numeric>
+#include <set>
+#include <string>
+#include <vector>
 
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
-#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::mesh::unittest
@@ -21,7 +24,7 @@ using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
 
-std::vector<std::size_t> sequential_vector(const std::size_t aStart, const std::size_t aSize)
+auto sequential_vector(const std::size_t aStart, const std::size_t aSize) -> std::vector<std::size_t>
 {
     auto tIndices = std::vector<std::size_t>(aSize);
     std::iota(tIndices.begin(), tIndices.end(), aStart);
@@ -35,12 +38,12 @@ TEST_F(TwoBlockMeshOnDisk, BlockOrdinals)
 
     const auto tBlock1Ordinal = tMesh.blockOrdinal("block_1");
     ASSERT_TRUE(tBlock1Ordinal);
-    constexpr auto tExpectedBlock1Ordinal = 45u;
+    constexpr auto tExpectedBlock1Ordinal = 45U;
     EXPECT_EQ(tBlock1Ordinal.value(), tExpectedBlock1Ordinal);
 
     const auto tBlock2Ordinal = tMesh.blockOrdinal("block_2");
     ASSERT_TRUE(tBlock2Ordinal);
-    constexpr auto tExpectedBlock2Ordinal = 46u;
+    constexpr auto tExpectedBlock2Ordinal = 46U;
     EXPECT_EQ(tBlock2Ordinal.value(), tExpectedBlock2Ordinal);
 
     // Non-exestent block
@@ -130,7 +133,7 @@ TEST_F(OneBlock3x1x1HexMesh, BlockNodeIDs)
     ASSERT_TRUE(tBlock1Ordinal);
     const auto tResultNodeIDs = tMesh.nodeIDs(tBlock1Ordinal.value());
     EXPECT_EQ(tResultNodeIDs.size(), mCommandGenerator.numberOfNodes());
-    constexpr auto tStartNodeID = 1u;
+    constexpr auto tStartNodeID = 1U;
     const auto tExpectedNodeIDs = sequential_vector(tStartNodeID, mCommandGenerator.numberOfNodes());
     EXPECT_EQ(tResultNodeIDs, tExpectedNodeIDs);
 
@@ -146,7 +149,7 @@ TEST_F(TwoBlockMeshOnDisk, BlockNodeIDs)
     ASSERT_TRUE(tBlock1Ordinal);
     const auto tResultNodeIDsBlock1 = tMesh.nodeIDs(tBlock1Ordinal.value());
     EXPECT_EQ(tResultNodeIDsBlock1.size(), mExpectedNumberOfNodesInBlock1);
-    constexpr auto tStartNodeIDBlock1 = 1u;
+    constexpr auto tStartNodeIDBlock1 = 1U;
     const auto tExpectedNodeIDsBlock1 = sequential_vector(tStartNodeIDBlock1, mExpectedNumberOfNodesInBlock1);
     EXPECT_EQ(tExpectedNodeIDsBlock1, tResultNodeIDsBlock1);
 
@@ -154,7 +157,7 @@ TEST_F(TwoBlockMeshOnDisk, BlockNodeIDs)
     ASSERT_TRUE(tBlock2Ordinal);
     const auto tResultNodeIDsBlock2 = tMesh.nodeIDs(tBlock2Ordinal.value());
     EXPECT_EQ(tResultNodeIDsBlock2.size(), mExpectedNumberOfNodesInBlock2);
-    constexpr auto tStartNodeIDBlock2 = mExpectedNumberOfNodesInBlock1 + 1u;
+    constexpr auto tStartNodeIDBlock2 = mExpectedNumberOfNodesInBlock1 + 1U;
     const auto tExpectedNodeIDsBlock2 = sequential_vector(tStartNodeIDBlock2, mExpectedNumberOfNodesInBlock2);
     EXPECT_EQ(tExpectedNodeIDsBlock2, tResultNodeIDsBlock2);
 }
@@ -168,7 +171,7 @@ TEST_F(OneBlock3x1x1HexMesh, BlockElementIDs)
     ASSERT_TRUE(tBlock1Ordinal);
     const auto tResultNodeIDs = tMesh.elementIDs(tBlock1Ordinal.value());
     EXPECT_EQ(tResultNodeIDs.size(), mCommandGenerator.numberOfElements());
-    constexpr auto tStartNodeID = 1u;
+    constexpr auto tStartNodeID = 1U;
     const auto tExpectedNodeIDs = sequential_vector(tStartNodeID, mCommandGenerator.numberOfElements());
     EXPECT_EQ(tResultNodeIDs, tExpectedNodeIDs);
 
@@ -184,7 +187,7 @@ TEST_F(TwoBlockMeshOnDisk, BlockElementIDs)
     ASSERT_TRUE(tBlock1Ordinal);
     const auto tResultElementIDsBlock1 = tMesh.elementIDs(tBlock1Ordinal.value());
     EXPECT_EQ(tResultElementIDsBlock1.size(), mExpectedNumberOfElementsInBlock1);
-    constexpr auto tStartElementIDBlock1 = 1u;
+    constexpr auto tStartElementIDBlock1 = 1U;
     const auto tExpectedElementIDsBlock1 = sequential_vector(tStartElementIDBlock1, mExpectedNumberOfElementsInBlock1);
     EXPECT_EQ(tExpectedElementIDsBlock1, tResultElementIDsBlock1);
 
@@ -192,7 +195,7 @@ TEST_F(TwoBlockMeshOnDisk, BlockElementIDs)
     ASSERT_TRUE(tBlock2Ordinal);
     const auto tResultElementIDsBlock2 = tMesh.elementIDs(tBlock2Ordinal.value());
     EXPECT_EQ(tResultElementIDsBlock2.size(), mExpectedNumberOfElementsInBlock2);
-    constexpr auto tStartElementIDBlock2 = mExpectedNumberOfElementsInBlock1 + 1u;
+    constexpr auto tStartElementIDBlock2 = mExpectedNumberOfElementsInBlock1 + 1U;
     const auto tExpectedElementIDsBlock2 = sequential_vector(tStartElementIDBlock2, mExpectedNumberOfElementsInBlock2);
     EXPECT_EQ(tExpectedElementIDsBlock2, tResultElementIDsBlock2);
 }

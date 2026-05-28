@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Triangle.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/SensitivityTestUtilities.hpp"

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"

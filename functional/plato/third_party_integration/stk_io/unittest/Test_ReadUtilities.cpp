@@ -1,12 +1,20 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <filesystem>
+#include <functional>
+#include <set>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/MetaData.hpp>
-#include <unordered_map>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
@@ -28,14 +36,14 @@ TEST(ReadUtilities, SpatialDimensions3)
     const CommandGenerator tCommandGenerator{{2, 2, 2}};
     const auto tMesh = generate_bulk_data(tCommandGenerator);
     ASSERT_TRUE(tMesh);
-    EXPECT_EQ(spatial_dimensions(*tMesh), 3u);
+    EXPECT_EQ(spatial_dimensions(*tMesh), 3U);
 }
 
 TEST(ReadUtilities, SpatialDimensions2)
 {
     const auto tMesh = read_mesh_bulk_data(plato::utilities::data_file_path("rectangle_3x4_tri3.cdf").value());
     ASSERT_TRUE(tMesh);
-    EXPECT_EQ(spatial_dimensions(*tMesh), 2u);
+    EXPECT_EQ(spatial_dimensions(*tMesh), 2U);
 }
 
 TEST(ReadUtilities, ReadCoordinatesCoordinate)
@@ -62,7 +70,7 @@ TEST(ReadUtilities, EntityIDs)
     write_mesh(tMeshPath, test_utilities::kTwoDTriMesh);
     const auto tBulkData = read_mesh_bulk_data(tMeshPath);
     {
-        constexpr auto tBlock1Ordinal = 20u;
+        constexpr auto tBlock1Ordinal = 20U;
         const auto tBlock1 = part_with_block_meta_data_ordinal(*tBulkData, tBlock1Ordinal);
         ASSERT_TRUE(tBlock1);
         const auto tResultElementIDs = element_ids(*tBulkData, tBlock1->get());
@@ -74,7 +82,7 @@ TEST(ReadUtilities, EntityIDs)
         EXPECT_EQ(tResultNodeIDs, tExpectedNodeIDs);
     }
     {
-        constexpr auto tBlock2Ordinal = 21u;
+        constexpr auto tBlock2Ordinal = 21U;
         const auto tBlock2 = part_with_block_meta_data_ordinal(*tBulkData, tBlock2Ordinal);
         ASSERT_TRUE(tBlock2);
         const auto tResultElementIDs = element_ids(*tBulkData, tBlock2->get());
@@ -176,7 +184,7 @@ TEST_F(ReadUtilitiesTwoDThreeBlockMesh, NumberOfNodesAndElementsFromBulkAndParts
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
-    constexpr auto tExpectedNumberOfParts = 3u;
+    constexpr auto tExpectedNumberOfParts = 3U;
     ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
 
     {
@@ -236,7 +244,7 @@ TEST_F(ReadUtilitiesTwoBlockMeshOnDisk, NumberOfNodesAndElementsFromBulkAndParts
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
-    constexpr auto tExpectedNumberOfParts = 2u;
+    constexpr auto tExpectedNumberOfParts = 2U;
     ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
 
     const auto tCheckCounts = [&tBulkData](const unsigned int aExpectedNodeSize,

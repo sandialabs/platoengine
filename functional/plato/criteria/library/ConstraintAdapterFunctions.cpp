@@ -78,9 +78,9 @@ auto make_vector_subset_function(const std::set<std::size_t>& aIndices) -> Const
 
 auto make_target_offset_function(std::vector<double> aTargets) -> ConstraintAdapterFunction
 {
-    return ConstraintAdapterFunction{[tMOffset = -1.0 * linear_algebra::DynamicVector<double>(std::move(aTargets))](
+    return ConstraintAdapterFunction{[tOffset = -1.0 * linear_algebra::DynamicVector<double>(std::move(aTargets))](
                                          const linear_algebra::DynamicVector<double>& aVector)
-                                     { return aVector + tMOffset; },
+                                     { return aVector + tOffset; },
                                      [](const linear_algebra::DynamicVector<double>&) { return identity_operation(); },
                                      [](const linear_algebra::DynamicVector<double>&)
                                      { return linear_algebra::AdjointJacobianMultiplier{identity_operation()}; }};

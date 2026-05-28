@@ -2,22 +2,23 @@
 
 #include <fstream>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/BoundClusivity.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
 
 // clang-format off
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), test_objective, plato::components::ComponentType::kObjective,
     (bool, active, "")
     (double, aggregation_weight, "")
     (plato::input_parser::FileName, output_file_name, "")
 )
-// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_validation::unittest
@@ -99,7 +100,7 @@ TEST(ValidationUtilities, ErrorMessageForMissingFileParameter)
             .has_value())
         << "Invalid: file specified not on disk";
 
-    [[maybe_unused]] std::ofstream tOutfile(std::string{tFileName});
+    [[maybe_unused]] const std::ofstream tOutfile(std::string{tFileName});
     EXPECT_FALSE(
         error_message_for_missing_file_parameter("Objective: ", tObjectiveInput.output_file_name, "output_file_name")
             .has_value())

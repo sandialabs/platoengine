@@ -1,8 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <iostream>
+#include <ostream>
+#include <string_view>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/SharedLibCriterion.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
@@ -28,7 +33,7 @@ void generate_bad_library_and_do_nothing()
     std::cout << tBad.f(analysis::AnalysisDomainMesh{"dne.exo", {}}) << std::endl;
 }
 
-criteria::library::SharedLibCriterion test_shared_lib_criterion()
+auto test_shared_lib_criterion() -> criteria::library::SharedLibCriterion
 {
     const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
     return criteria::library::SharedLibCriterion{

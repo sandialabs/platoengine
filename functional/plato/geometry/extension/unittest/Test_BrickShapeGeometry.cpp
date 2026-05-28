@@ -1,18 +1,22 @@
 #include <gtest/gtest.h>
+#include <mpi.h>
 
 #include <cmath>
+#include <cstddef>
 #include <filesystem>
 #include <numeric>
 #include <stk_util/parallel/Parallel.hpp>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::geometry::extension::unittest
@@ -125,8 +129,8 @@ TEST(BrickSensitivities, JacobianEvaluator)
     const linear_algebra::JacobianColumnEvaluator tJacobian = {
         /*.mColumns=*/6,
         /*.mX=*/linear_algebra::DynamicVector<double>{1.0, 2.0, 3.0, 4.0, 5.0, 6.0},
-        /*.mColumnFunction=*/[](unsigned int i, linear_algebra::DynamicVector<double>)
-        { return linear_algebra::DynamicVector<double>(detail::sensitivities(i)); }};
+        /*.mColumnFunction=*/[](unsigned int aI, const linear_algebra::DynamicVector<double>&)
+        { return linear_algebra::DynamicVector<double>(detail::sensitivities(aI)); }};
 
     const std::vector<double> tGold{92, 100, 108, 6, 12, 24};
     run_test_of_iota_vector_result(tJacobian, tGold);
@@ -140,7 +144,7 @@ TEST(Brick, ABrick)
     constexpr double tDiscretizationSize = 1.0;
     auto tUniqueFileName = std::filesystem::path{kBrickFileName};
     {
-        BrickShapeGeometry tBrick(kBrickFileName, tDiscretizationSize);
+        const BrickShapeGeometry tBrick(kBrickFileName, tDiscretizationSize);
 
         const analysis::AnalysisDomainMesh tMP = tBrick.generateMesh(tDesignParameters);
         tUniqueFileName = tMP.mFileName;
@@ -179,7 +183,8 @@ TEST(Brick, Jacobian)
                                                /*.mDimensionZ = */ 6};
 
     const BrickShapeGeometry tBrick(kBrickFileName);
-    const linear_algebra::JacobianColumnEvaluator tJacobian = tBrick.jacobian(tDesignParameters);
+    const linear_algebra::JacobianColumnEvaluator tJacobian =
+        plato::geometry::extension::BrickShapeGeometry::jacobian(tDesignParameters);
 
     const std::vector<double> tGold{92, 100, 108, 6, 12, 24};
     run_test_of_iota_vector_result(tJacobian, tGold);
@@ -213,8 +218,8 @@ TEST(Brick, AdjointJacobian)
                                                    /*.mDimensionZ=*/6.0};
 
     const auto tBrick = BrickShapeGeometry{kBrickFileName};
-    const auto tJacobian = tBrick.jacobian(tDesignParameters);
-    const auto tAdjointJacobian = tBrick.adjointJacobian(tDesignParameters);
+    const auto tJacobian = plato::geometry::extension::BrickShapeGeometry::jacobian(tDesignParameters);
+    const auto tAdjointJacobian = plato::geometry::extension::BrickShapeGeometry::adjointJacobian(tDesignParameters);
 
     // Store the Jacobian in a dense matrix and check that the transpose is consistent
     auto tJacobianAsDenseMatrix = std::vector<std::vector<double>>(tJacobian.mColumns);

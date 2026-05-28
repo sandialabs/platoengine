@@ -1,6 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <memory>
 #include <numeric>
+#include <vector>
 
 #include "plato/third_party_integration/snopt/SNOPTArray.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
@@ -70,11 +75,11 @@ TEST(SNOPTArray, BeginAndEndConstIterators)
 TEST(SNOPTArray, BeginAndEndIterators)
 {
     constexpr auto tSize = std::size_t{4};
-    auto tArray = std::make_unique<int[]>(tSize);
-    auto tSNOPTArray = SNOPTArray{tArray.get(), tSize};
+    auto tArray = std::array<int, tSize>{};
+    auto tSNOPTArray = SNOPTArray{tArray.data(), tSize};
 
-    EXPECT_EQ(tSNOPTArray.begin(), tArray.get());
-    EXPECT_EQ(tSNOPTArray.end(), tArray.get() + tSize);
+    EXPECT_EQ(tSNOPTArray.begin(), tArray.data());
+    EXPECT_EQ(tSNOPTArray.end(), tArray.data() + tSize);
 
     std::iota(tSNOPTArray.begin(), tSNOPTArray.end(), 0);
     for (const auto tIndex : utilities::IndexRange{tSize})

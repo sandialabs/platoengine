@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <boost/fusion/adapted/std_pair.hpp>
-#include <boost/fusion/include/std_pair.hpp>
+#include <boost/spirit/home/qi/auto/auto.hpp>
 #include <string_view>
+#include <vector>
 
 #include "plato/input_parser/GenericBlockRule.hpp"
+#include "plato/input_parser/Skipper.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 #include "plato/utilities/Zip.hpp"

@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <cmath>
+#include <utility>
+#include <vector>
 
 #include "plato/filter/extension/kernel_filters/CylindricalMaskUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
@@ -9,6 +12,7 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::filter::extension::kernel_filters::unittest

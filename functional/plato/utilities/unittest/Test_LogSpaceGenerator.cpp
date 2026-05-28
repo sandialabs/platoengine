@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "plato/utilities/LogSpaceGenerator.hpp"
 
 namespace plato::utilities::unittest

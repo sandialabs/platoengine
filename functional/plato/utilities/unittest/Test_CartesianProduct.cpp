@@ -1,7 +1,10 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cstddef>
+#include <iterator>
 #include <string>
+#include <vector>
 
 #include "plato/utilities/CartesianProduct.hpp"
 
@@ -27,7 +30,8 @@ TEST(CartesianProduct, End)
     const auto tCartesianProduct = kCartesianProduct;
     const auto tCartesianProductIteratorEnd = tCartesianProduct.end();
     auto tCartesianProductIterator = tCartesianProduct.begin();
-    for (unsigned int tCounter = 0; tCounter < 6; ++tCounter)
+    constexpr auto tExpectedCartesianProductSize = 6U;
+    for (unsigned int tCounter = 0; tCounter < tExpectedCartesianProductSize; ++tCounter)
     {
         tCartesianProductIterator++;
     }
@@ -43,7 +47,7 @@ TEST(CartesianProduct, NotEquals)
 TEST(CartesianProduct, For)
 {
     auto tCartesianProduct = kCartesianProduct;
-    std::string tString = "";
+    std::string tString;
     for (const auto& tProduct : tCartesianProduct)
     {
         tString += std::to_string(tProduct.front()) + std::to_string(tProduct.back());
@@ -56,10 +60,11 @@ TEST(CartesianProduct, Transform)
 {
     auto tCartesianProduct = kCartesianProduct;
     std::vector<std::size_t> tFirstIndexValues;
-    tFirstIndexValues.reserve(12);
+    const auto tGold = std::vector<std::size_t>{0, 1, 0, 1, 0, 1};
+
+    tFirstIndexValues.reserve(tGold.size());
     std::transform(tCartesianProduct.begin(), tCartesianProduct.end(), std::back_inserter(tFirstIndexValues),
                    [](const auto aSizeVector) { return aSizeVector.front(); });
-    const auto tGold = std::vector<std::size_t>{0, 1, 0, 1, 0, 1};
     EXPECT_EQ(tGold, tFirstIndexValues);
 }
 
@@ -75,7 +80,7 @@ TEST(CartesianProduct, ForEach)
 
 TEST(CartesianProductIterator, PostIncrement)
 {
-    std::vector<std::size_t> tSizes = {2, 2};
+    const std::vector<std::size_t> tSizes = {2, 2};
     plato::utilities::CartesianProductIterator tIterator(tSizes);
 
     const auto tZeroZero = std::vector<std::size_t>{0, 0};

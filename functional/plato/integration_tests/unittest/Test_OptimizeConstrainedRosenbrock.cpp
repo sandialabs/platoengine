@@ -1,23 +1,29 @@
 #include <gtest/gtest.h>
 
-#include <ROL_Bounds.hpp>
-#include <ROL_LineSearchStep.hpp>
+#include <ROL_ParameterList.hpp>
 #include <ROL_Problem.hpp>
 #include <ROL_Ptr.hpp>
-#include <ROL_RandomVector.hpp>
-#include <ROL_StatusTest.hpp>
+#include <ROL_StdConstraint.hpp>
+#include <ROL_StdObjective.hpp>
 #include <ROL_StdVector.hpp>
-#include <ROL_Stream.hpp>
-#include <Teuchos_GlobalMPISession.hpp>
+#include <functional>
 #include <iomanip>
+#include <iostream>
+#include <memory>
+#include <ostream>
+#include <utility>
+#include <vector>
 
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorRosenbrockFunction.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorSumConstraintUtilities.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/test_utilities/SumConstraint.hpp"
+#include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/ROLVectorConstraintFunction.hpp"
@@ -42,7 +48,7 @@ constexpr bool kPrintFlag = true;
     return core::compose(criteria::library::make_target_offset_function(aTarget), aFunction);
 }
 
-[[nodiscard]] ROL::ParameterList create_parameter_list()
+[[nodiscard]] auto create_parameter_list() -> ROL::ParameterList
 {
     ROL::ParameterList tParlist;
     tParlist.sublist("Step").set("Type", "Augmented Lagrangian");
@@ -60,10 +66,10 @@ constexpr bool kPrintFlag = true;
 
 [[nodiscard]] auto make_sum_constraint_dynamic_vector_function(const test_utilities::SumConstraint& aSumConstraint)
 {
-    return core::make_function_with_first_derivative([aSumConstraint](const linear_algebra::DynamicVector<double>& x)
-                                                     { return aSumConstraint.f(x[0], x[1]); },
-                                                     [aSumConstraint](const linear_algebra::DynamicVector<double>& x)
-                                                     { return to_dynamic_vector(aSumConstraint.df(x[0], x[1])); });
+    return core::make_function_with_first_derivative([aSumConstraint](const linear_algebra::DynamicVector<double>& aX)
+                                                     { return aSumConstraint.f(aX[0], aX[1]); },
+                                                     [aSumConstraint](const linear_algebra::DynamicVector<double>& aX)
+                                                     { return to_dynamic_vector(aSumConstraint.df(aX[0], aX[1])); });
 }
 
 [[nodiscard]] auto create_line_constraint()
@@ -82,7 +88,7 @@ constexpr bool kPrintFlag = true;
 [[nodiscard]] auto create_circle_constraint()
     -> std::unique_ptr<third_party_integration::rol::ROLVectorConstraintFunction>
 {
-    constexpr auto tCircleConstraintTarget = double{1.0};
+    constexpr auto tCircleConstraintTarget = 1.0;
     constexpr auto tCenter = std::make_pair(0.0, 0.0);
 
     const auto tConstraintFunction = criteria::library::to_vector_function<FunctionArgumentType>(
@@ -113,7 +119,7 @@ constexpr bool kPrintFlag = true;
 void finalize_rol_problem(ROL::Problem<double>& aROLProblem)
 {
     constexpr bool tLumpConstraints = false;
-    ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
+    const ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
     aROLProblem.finalize(tLumpConstraints, kPrintFlag, *tOutStream);
 }
 
@@ -201,7 +207,7 @@ auto operator<<(OutStream& aOutStream, const SolutionForStream& aSolution) -> Ou
 void print_and_test_solution(const linear_algebra::DynamicVector<double>& aSolution)
 {
     const auto tSolutionForStream = SolutionForStream{std::ref(aSolution)};
-    ASSERT_EQ(aSolution.size(), 2u) << tSolutionForStream;
+    ASSERT_EQ(aSolution.size(), 2U) << tSolutionForStream;
     EXPECT_NEAR(aSolution[0], kGoldXValue, kTolerance) << tSolutionForStream;
     EXPECT_NEAR(aSolution[1], kGoldYValue, kTolerance) << tSolutionForStream;
 }
@@ -213,7 +219,7 @@ void check_rol_optimization(std::unique_ptr<ROL::Problem<double>>&& aROLProblem,
     auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(aROLProblem.release());
 
     auto tROLSolver = process_manager::extension::make_rol_solver(tROLInputs, tROLProblem);
-    ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
+    const ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
     tROLSolver.solve(*tOutStream);
     const auto tSolution = third_party_integration::rol::to_dynamic_vector(aControls);
     print_and_test_solution(tSolution);

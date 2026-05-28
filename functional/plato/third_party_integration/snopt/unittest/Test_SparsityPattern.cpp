@@ -1,5 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <tuple>
+#include <utility>
+#include <vector>
+
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/SparsityPattern.hpp"
 #include "plato/utilities/Enumerate.hpp"

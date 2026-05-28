@@ -1,38 +1,47 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <filesystem>
+#include <iterator>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/FileUtilities.hpp"
+#include "plato/utilities/NamedReference.hpp"
 
 namespace plato::utilities::unittest
 {
 namespace
 {
-void test_filename_and_path(const std::filesystem::path& aTestPath,
-                            const std::filesystem::path& aUniquePath,
+using TestPath = utilities::NamedReference<const std::filesystem::path, struct TestPathTag>;
+using UniquePath = utilities::NamedReference<const std::filesystem::path, struct UniquePathTag>;
+
+void test_filename_and_path(const TestPath& aTestPath,
+                            const UniquePath& aUniquePath,
                             const test_utilities::TestContext& aTestContext)
 {
-    EXPECT_NE(aTestPath, aUniquePath) << aTestContext;
+    EXPECT_NE(aTestPath.mValue, aUniquePath.mValue) << aTestContext;
     // The parent path should be unchanged, only the filename itself should change
-    EXPECT_EQ(aTestPath.parent_path(), aUniquePath.parent_path()) << aTestContext;
-    EXPECT_NE(aTestPath.filename(), aUniquePath.filename()) << aTestContext;
+    EXPECT_EQ(aTestPath.mValue.get().parent_path(), aUniquePath.mValue.get().parent_path()) << aTestContext;
+    EXPECT_NE(aTestPath.mValue.get().filename(), aUniquePath.mValue.get().filename()) << aTestContext;
 }
 
 void test_unique_filename(const std::filesystem::path& aTestPath, const test_utilities::TestContext& aTestContext)
 {
     const auto tUniquePath = make_filename_unique(aTestPath);
-    test_filename_and_path(aTestPath, tUniquePath, EXTEND_CONTEXT("Unique file vs original", aTestContext));
+    test_filename_and_path(TestPath{aTestPath}, UniquePath{tUniquePath},
+                           EXTEND_CONTEXT("Unique file vs original", aTestContext));
     // Make many more and check that they're all different from the previous
-    constexpr auto kNumFilesToCheck = unsigned{100};
+    constexpr auto tNumFilesToCheck = unsigned{100};
     auto tUniquePaths = std::vector<std::filesystem::path>{};
-    tUniquePaths.reserve(kNumFilesToCheck);
-    std::generate_n(std::back_inserter(tUniquePaths), kNumFilesToCheck,
+    tUniquePaths.reserve(tNumFilesToCheck);
+    std::generate_n(std::back_inserter(tUniquePaths), tNumFilesToCheck,
                     [&aTestPath]() { return make_filename_unique(aTestPath); });
     for (const auto& tCurrentPath : tUniquePaths)
     {
-        test_filename_and_path(aTestPath, tCurrentPath, EXTEND_CONTEXT("Unique file vs. original", aTestContext));
-        test_filename_and_path(tUniquePath, tCurrentPath,
+        test_filename_and_path(TestPath{aTestPath}, UniquePath{tCurrentPath},
+                               EXTEND_CONTEXT("Unique file vs. original", aTestContext));
+        test_filename_and_path(TestPath{tUniquePath}, UniquePath{tCurrentPath},
                                EXTEND_CONTEXT("Unique file vs. another unique file", aTestContext));
     }
 }

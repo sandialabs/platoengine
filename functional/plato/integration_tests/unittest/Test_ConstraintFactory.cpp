@@ -1,8 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <functional>
 #include <ranges>
 
 #include "plato/utilities/MPIUtilities.hpp"

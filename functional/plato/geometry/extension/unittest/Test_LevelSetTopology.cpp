@@ -1,32 +1,47 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <boost/none.hpp>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
+#include <iterator>
+#include <memory>
+#include <numbers>
 #include <numeric>
+#include <set>
+#include <string>
+#include <utility>
 #include <vector>
 
-#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/ReflectFilter.hpp"
-#include "plato/filter/extension/kernel_filters/test_utilities/SymmetryFilterTestUtilities.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/unittest/LevelSetTopologyTestFixtures.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 #include "plato/utilities/GradientChecker.hpp"
@@ -172,14 +187,14 @@ TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
     // performing the transpose matrix vector multiplication in Matlab.
     // clang-format off
     auto tExpected = std::vector(78,0.0);
-    const auto tValuesInExpected = std::vector{0.5773502691896257, 0.5773502691896257, 0.5773502691896257, 0.0, 0.0, 1.0000000000000000, 
+    const auto tValuesInExpected = std::vector{std::numbers::inv_sqrt3, std::numbers::inv_sqrt3, std::numbers::inv_sqrt3, 0.0, 0.0, 1.0000000000000000, 
                                                                  0.7071067811865475, 0.0, 0.7071067811865475, 1.0000000000000000, 0.0, 0.0, 
                                                                  0.7071067811865475, 0.7071067811865475, 0.0, 0.0, 1.0000000000000000, 0.0, 
                                                                  0.0, 0.7071067811865475, 0.7071067811865475, -1.0000000000000000, 0.0, 0.0, 
                                                                  0.0, -1.0000000000000000, 0.0, -0.7071067811865475, -0.7071067811865475, 
                                                                  0.0, 0.0, 0.0, -1.0000000000000000, -0.7071067811865475, 0.0, 
                                                                  -0.7071067811865475, 0.0, -0.7071067811865475, -0.7071067811865475, 
-                                                                 -0.5773502691896257, -0.5773502691896257, -0.5773502691896257};
+                                                                 -std::numbers::inv_sqrt3, -std::numbers::inv_sqrt3, -std::numbers::inv_sqrt3};
 
     tExpected.insert(tExpected.end(), tValuesInExpected.begin(), tValuesInExpected.end());
     // clang-format on
@@ -486,11 +501,11 @@ TEST_F(LevelSetTopologyTwoBlockFixture, FilteredOutputRoundTrip)
     constexpr auto tFieldName = filtered_level_set_mesh_field_name();
     const auto tReadDesignVariables =
         third_party_integration::stk_io::test_utilities::read_nodal_field_as_vector(tFieldOutputMeshName, tFieldName);
-    const auto tNormalization = 3.0 - 0.5 * std::sqrt(2.0);  // Sum of filter values: 1, 0.5, 0.5, 1 - sqrt(2)/2
+    const auto tNormalization = 3.0 - 0.5 * std::numbers::sqrt2;  // Sum of filter values: 1, 0.5, 0.5, 1 - sqrt(2)/2
     const auto tExpected = std::vector{1.0 / tNormalization,
                                        0.5 / tNormalization,
                                        0.5 / tNormalization,
-                                       (1.0 - 0.5 * std::sqrt(2.0)) / tNormalization,
+                                       (1.0 - 0.5 * std::numbers::sqrt2) / tNormalization,
                                        0.0,
                                        0.0,
                                        0.0,

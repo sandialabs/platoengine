@@ -1,8 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <format>
 #include <numeric>
+#include <optional>
+#include <ranges>
+#include <string>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/DynamicVectorFormatter.hpp"
 
 namespace plato::linear_algebra::unittest

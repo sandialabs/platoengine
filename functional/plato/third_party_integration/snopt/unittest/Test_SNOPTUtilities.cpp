@@ -1,8 +1,22 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <utility>
+#include <vector>
+
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/output/OutputManager.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/DataSingleton.hpp"
+#include "plato/third_party_integration/snopt/ObjectiveConstraintArrayView.hpp"
+#include "plato/third_party_integration/snopt/ObjectiveConstraintGradientArrayView.hpp"
+#include "plato/third_party_integration/snopt/SNOPTConstraints.hpp"
+#include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/third_party_integration/snopt/SNOPTUtilities.hpp"
+#include "plato/third_party_integration/snopt/SparseMatrixBuilder.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
 #include "plato/utilities/Enumerate.hpp"
 
@@ -98,7 +112,7 @@ TEST(SNOPTUtilities, LinearConstraintJacobians)
                                       test_linear_interface_constraint(tObjective, tGradient2)};
 
     const auto tSparseMatrix = linear_constraint_jacobian_sparse_matrix(
-        SNOPTConstraints{std::move(tConstraintFunctions), tNumberOfDesignVariables}, tNumberOfDesignVariables);
+        SNOPTConstraints{tConstraintFunctions, tNumberOfDesignVariables}, tNumberOfDesignVariables);
     constexpr auto tExpectedNumberOfNonZero = std::size_t{3};
     ASSERT_EQ(tSparseMatrix.size(), tExpectedNumberOfNonZero);
 

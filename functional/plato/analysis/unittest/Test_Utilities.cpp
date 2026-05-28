@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <utility>
+#include <vector>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshOperators.hpp"
 #include "plato/analysis/Utilities.hpp"
@@ -79,7 +82,8 @@ TEST(Utilities, AnalysisDomainMeshHashValue)
     const auto tAnalysisDomainMesh = AnalysisDomainMesh{
         "fake-mesh", AnalysisDomainMesh::BlockScalarField{{kBlock1ID, kBlock1}, {kBlock2ID, kBlock2}}};
     {
-        const auto tAnalysisDomainMeshCopy = tAnalysisDomainMesh;
+        const auto tAnalysisDomainMeshCopy =
+            tAnalysisDomainMesh;  // NOLINT(performance-unnecessary-copy-initialization)
         EXPECT_EQ(hash_value(tAnalysisDomainMesh), hash_value(tAnalysisDomainMeshCopy)) << "Exact copy";
     }
     {

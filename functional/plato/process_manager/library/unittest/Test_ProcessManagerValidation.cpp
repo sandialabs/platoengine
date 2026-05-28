@@ -1,8 +1,5 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/input_parser/InputBlockUtilities.hpp"
-#include "plato/process_manager/extension/GradientCheck.hpp"
 #include "plato/process_manager/library/ProcessManagerValidation.hpp"
 
 namespace plato::process_manager::library::unittest

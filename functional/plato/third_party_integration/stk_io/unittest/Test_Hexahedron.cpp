@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Hexahedron.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/SensitivityTestUtilities.hpp"
@@ -8,7 +10,8 @@ namespace plato::third_party_integration::stk_io::unittest
 {
 namespace
 {
-[[nodiscard]] Hexahedron create_coordinate_axis_aligned_hexahedron_from_cuboid(const test_utilities::Cuboid& aCuboid)
+[[nodiscard]] auto create_coordinate_axis_aligned_hexahedron_from_cuboid(const test_utilities::Cuboid& aCuboid)
+    -> Hexahedron
 {
     const common::Coordinate tPoint0{.x = 0, .y = 0, .z = 0};
     const common::Coordinate tPoint1{.x = aCuboid.mLength, .y = 0, .z = 0};

@@ -1,9 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <utility>
+#include <vector>
+
 #include "plato/core/Function.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/SNOPTConstraints.hpp"
+#include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/IndexRange.hpp"
@@ -158,27 +166,27 @@ TEST(Constraints, ConstructionPartitioning)
 
 TEST(Constraints, RemoveAffineOffset)
 {
-    const auto kLinearTestFunction = plato::core::make_function_with_first_derivative(
+    const auto tLinearTestFunction = plato::core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX) { return linear_function(aX); },
         [](const linear_algebra::DynamicVector<double>&) { return linear_function_gradient(); });
 
-    const auto kAffineLinearTestFunction = plato::core::make_function_with_first_derivative(
+    const auto tAffineLinearTestFunction = plato::core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX) { return affine_linear_function(aX); },
         [](const linear_algebra::DynamicVector<double>&) { return linear_function_gradient(); });
 
-    const auto kArbitraryTestFunction = plato::core::make_function_with_first_derivative(
+    const auto tArbitraryTestFunction = plato::core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>&) { return 1.0; },
         [](const linear_algebra::DynamicVector<double>& aX) { return aX; });
 
-    const auto kLinearConstraint =
-        ConstraintData{kLinearTestFunction, kLinearConstraintTarget.front(), Linearity::kLinear};
-    const auto kAffineConstraint =
-        ConstraintData{kAffineLinearTestFunction, kLinearConstraintTarget.front(), Linearity::kLinear};
-    const auto kNonlinearConstraint =
-        ConstraintData{kArbitraryTestFunction, kNonlinearConstraintTarget.front(), Linearity::kNonlinear};
+    const auto tLinearConstraint =
+        ConstraintData{tLinearTestFunction, kLinearConstraintTarget.front(), Linearity::kLinear};
+    const auto tAffineConstraint =
+        ConstraintData{tAffineLinearTestFunction, kLinearConstraintTarget.front(), Linearity::kLinear};
+    const auto tNonlinearConstraint =
+        ConstraintData{tArbitraryTestFunction, kNonlinearConstraintTarget.front(), Linearity::kNonlinear};
 
-    const auto tConstraintsWithOffsets = std::vector{kLinearConstraint, kNonlinearConstraint, kAffineConstraint,
-                                                     kNonlinearConstraint, kLinearConstraint};
+    const auto tConstraintsWithOffsets = std::vector{tLinearConstraint, tNonlinearConstraint, tAffineConstraint,
+                                                     tNonlinearConstraint, tLinearConstraint};
 
     const auto tResultConstraints =
         constraints_with_affine_offset_removed(ConstraintVectorType{tConstraintsWithOffsets}, kNumberOfDesignVariables);
@@ -210,7 +218,7 @@ TEST(Constraints, LinearConstraintIterators)
               kNumberOfLinearConstraints);
     // Check that they're all linear
     std::for_each(tSNOPTConstraints.linearConstraintsBegin(), tSNOPTConstraints.linearConstraintsEnd(),
-                  [](const auto& tLinearConstraint) { EXPECT_EQ(tLinearConstraint.mLinearity, Linearity::kLinear); });
+                  [](const auto& aLinearConstraint) { EXPECT_EQ(aLinearConstraint.mLinearity, Linearity::kLinear); });
 }
 
 TEST(Constraints, NonlinearConstraintIterators)
@@ -222,8 +230,8 @@ TEST(Constraints, NonlinearConstraintIterators)
               kNumberOfNonlinearConstraints);
     // Check that they're all nonlinear
     std::for_each(tSNOPTConstraints.nonlinearConstraintsBegin(), tSNOPTConstraints.nonlinearConstraintsEnd(),
-                  [](const auto& tLinearConstraint)
-                  { EXPECT_EQ(tLinearConstraint.mLinearity, Linearity::kNonlinear); });
+                  [](const auto& aLinearConstraint)
+                  { EXPECT_EQ(aLinearConstraint.mLinearity, Linearity::kNonlinear); });
 }
 
 TEST(Constraints, ConstraintBoundsEquality)

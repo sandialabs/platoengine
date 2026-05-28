@@ -1,7 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <optional>
+
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/filter/extension/IdentityFilter.hpp"
+#include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/NodalResultFilter.hpp"

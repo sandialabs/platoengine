@@ -1,8 +1,20 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <map>
+#include <set>
+#include <string_view>
+#include <tuple>
+#include <utility>
+#include <variant>
+#include <vector>
+
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/TestAppConfigurations.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 

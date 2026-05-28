@@ -1,8 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <functional>
+#include <iterator>
 #include <list>
 #include <numeric>
 #include <set>
+#include <tuple>
+#include <type_traits>
+#include <vector>
 
 #include "plato/test_utilities/CopyCounter.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -87,17 +92,17 @@ TEST(Zip, DereferencingIteratorDoesNotCopy)
     }
     {
         const auto tZipIterator = ZipIterator{tVector1.cbegin()};
-        const auto& value = *tZipIterator;
-        EXPECT_EQ(std::get<0>(value).mCopies, 0);
+        const auto& tValue = *tZipIterator;
+        EXPECT_EQ(std::get<0>(tValue).mCopies, 0);
     }
 
     // Copies these on construction, so expect 1 copy
     auto tVector2 = std::vector<test_utilities::CopyCounter>(3, test_utilities::CopyCounter{});
     {
         auto tZipIterator = ZipIterator{tVector1.rbegin(), tVector2.begin()};
-        auto values = *tZipIterator;
-        EXPECT_EQ(std::get<0>(values).mCopies, 0);
-        EXPECT_EQ(std::get<1>(values).mCopies, 1);
+        auto tValues = *tZipIterator;
+        EXPECT_EQ(std::get<0>(tValues).mCopies, 0);
+        EXPECT_EQ(std::get<1>(tValues).mCopies, 1);
     }
     {
         auto tZipIterator = ZipIterator{tVector1.rbegin(), tVector2.begin()};
@@ -258,7 +263,7 @@ TEST(Zip, VectorsSameLengthModifying)
 {
     auto tDoubleVector = std::vector<double>{1.0, 2.0, 3.0};
     auto tIntVector = std::vector<int>{4, 5, 6};
-    auto tCount = int{100};
+    auto tCount = 100;
     for (auto [tValue1, tValue2] : Zip{tDoubleVector, tIntVector})
     {
         tValue1 = tCount;
@@ -308,7 +313,7 @@ TEST(Zip, NoCopiesForLValues)
     tVector1.reserve(2);
     tVector1.emplace_back();
     tVector1.emplace_back();
-    auto tCopyCount = unsigned{0u};
+    auto tCopyCount = 0U;
     for (const auto [tValue1] : Zip{tVector1})
     {
         tCopyCount += tValue1.mCopies;
@@ -318,7 +323,7 @@ TEST(Zip, NoCopiesForLValues)
 
 TEST(Zip, NoCopiesForPRValues)
 {
-    auto tCopyCount = unsigned{0u};
+    auto tCopyCount = 0U;
     for (const auto [tValue1] : Zip{std::vector<test_utilities::CopyCounter>(3)})
     {
         tCopyCount += tValue1.mCopies;

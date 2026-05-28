@@ -1,5 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <ROL_StdVector.hpp>
+#include <vector>
+
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::third_party_integration::rol::unittest

@@ -1,7 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <iterator>
+#include <utility>
+#include <vector>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::linear_algebra::unittest
@@ -18,22 +22,22 @@ TEST(JacobianMultiplier, Identity)
 
 namespace
 {
-DynamicVector<double> square(const DynamicVector<double>& aDynamicVector)
+auto square(const DynamicVector<double>& aDynamicVector) -> DynamicVector<double>
 {
     std::vector<double> tSquare;
     tSquare.reserve(aDynamicVector.size());
     std::transform(aDynamicVector.stdVector().begin(), aDynamicVector.stdVector().end(), std::back_inserter(tSquare),
-                   [](const auto& x) { return x * x; });
+                   [](const auto& aX) { return aX * aX; });
 
     return DynamicVector<double>{std::move(tSquare)};
 }
 
-DynamicVector<double> double_value(const DynamicVector<double>& aDynamicVector)
+auto double_value(const DynamicVector<double>& aDynamicVector) -> DynamicVector<double>
 {
     std::vector<double> tDouble;
     tDouble.reserve(aDynamicVector.size());
     std::transform(aDynamicVector.stdVector().begin(), aDynamicVector.stdVector().end(), std::back_inserter(tDouble),
-                   [](const auto& x) { return 2.0 * x; });
+                   [](const auto& aX) { return 2.0 * aX; });
 
     return DynamicVector<double>{std::move(tDouble)};
 }

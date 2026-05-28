@@ -197,7 +197,7 @@ auto interface_triangles(const stk::mesh::BulkData& aBulkData,
     auto tParts = utilities::reserved_container<std::vector<const stk::mesh::Part*>>(aDesignDomainBlocks.size());
     utilities::transform_if(
         aDesignDomainBlocks, std::back_inserter(tParts),
-        [](const auto& aTCurrentBlock) { return &(aTCurrentBlock.get()); }, [](const auto& aCurrentBlock)
+        [](const auto& aCurrentBlock) { return &(aCurrentBlock.get()); }, [](const auto& aCurrentBlock)
         { return aCurrentBlock.get().name().find(void_phase_name()) == std::string::npos; });
     const stk::mesh::Selector tTetSelector{stk::mesh::selectUnion(tParts)};
     const std::vector<stk::mesh::Entity> tInterfaceSides = get_owned_interface_sides(aBulkData, tTriSelector);

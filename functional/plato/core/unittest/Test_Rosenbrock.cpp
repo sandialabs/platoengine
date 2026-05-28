@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/core/test_utilities/Utilities.hpp"
 #include "plato/test_utilities/Penalty.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"

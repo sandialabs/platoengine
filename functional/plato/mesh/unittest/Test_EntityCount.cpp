@@ -1,5 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -21,10 +27,10 @@ using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 struct ExpectedCounts
 {
-    std::size_t mNumberOfElements = 0u;
-    std::size_t mNumberOfNodes = 0u;
-    std::size_t mNumberOfBlocks = 0u;
-    std::size_t mSpatialDimensions = 0u;
+    std::size_t mNumberOfElements = 0U;
+    std::size_t mNumberOfNodes = 0U;
+    std::size_t mNumberOfBlocks = 0U;
+    std::size_t mSpatialDimensions = 0U;
 };
 
 void check_counts(const Mesh& aMesh, const ExpectedCounts& aCounts, const test_utilities::TestContext& aTestContext)
@@ -34,7 +40,7 @@ void check_counts(const Mesh& aMesh, const ExpectedCounts& aCounts, const test_u
     EXPECT_EQ(tMeshWithEntityCount.numberOfNodes(), aCounts.mNumberOfNodes) << aTestContext;
     EXPECT_EQ(tMeshWithEntityCount.numberOfBlocks(), aCounts.mNumberOfBlocks) << aTestContext;
     EXPECT_EQ(tMeshWithEntityCount.spatialDimensions(), aCounts.mSpatialDimensions) << aTestContext;
-    if (aCounts.mSpatialDimensions == 2u)
+    if (aCounts.mSpatialDimensions == 2U)
     {
         EXPECT_TRUE(tMeshWithEntityCount.is2D()) << aTestContext;
         EXPECT_FALSE(tMeshWithEntityCount.is3D()) << aTestContext;
@@ -52,7 +58,7 @@ TEST_F(OneBlock3x1x1HexMesh, OneBlockCounts)
     const auto tMesh = Mesh{mMeshFilePath};
     const auto tExpectedCounts = ExpectedCounts{/*.mNumberOfElements=*/mCommandGenerator.numberOfElements(),
                                                 /*.mNumberOfNodes=*/mCommandGenerator.numberOfNodes(),
-                                                /*.mNumberOfBlocks=*/1u, /*.mSpatialDimensions=*/3u};
+                                                /*.mNumberOfBlocks=*/1U, /*.mSpatialDimensions=*/3U};
     check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("One block"));
 }
 
@@ -62,7 +68,7 @@ TEST_F(TwoBlockMeshOnDisk, TwoBlockCounts)
     const auto tExpectedCounts =
         ExpectedCounts{/*.mNumberOfElements=*/mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock2,
                        /*.mNumberOfNodes=*/mExpectedNumberOfNodesInBlock1 + mExpectedNumberOfNodesInBlock2,
-                       /*.mNumberOfBlocks=*/mExpectedNumberOfBlocks, /*.mSpatialDimensions=*/3u};
+                       /*.mNumberOfBlocks=*/mExpectedNumberOfBlocks, /*.mSpatialDimensions=*/3U};
     check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("Two blocks"));
 }
 
@@ -72,7 +78,7 @@ TEST_F(TwoDNonUniformHexMesh, TwoDCounts)
     const auto tExpectedCounts =
         ExpectedCounts{/*.mNumberOfElements=*/mExpectedNumberOfElements,
                        /*.mNumberOfNodes=*/mExpectedNumberOfNodes,
-                       /*.mNumberOfBlocks=*/mExpectedNumberOfBlocks, /*.mSpatialDimensions=*/2u};
+                       /*.mNumberOfBlocks=*/mExpectedNumberOfBlocks, /*.mSpatialDimensions=*/2U};
     check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("Two dimensional mesh"));
 }
 
@@ -83,7 +89,7 @@ TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockCounts)
         ExpectedCounts{/*.mNumberOfElements=*/mExpectedNumberOfElementsInBlock1 + mExpectedNumberOfElementsInBlock2 +
                            mExpectedNumberOfElementsInBlock3,
                        /*.mNumberOfNodes=*/mExpectedNumberOfNodes,
-                       /*.mNumberOfBlocks=*/mExpectedNumberOfBlocks, /*.mSpatialDimensions=*/2u};
+                       /*.mNumberOfBlocks=*/mExpectedNumberOfBlocks, /*.mSpatialDimensions=*/2U};
     check_counts(tMesh, tExpectedCounts, TEST_CONTEXT("Two dimensional mesh with three blocks"));
 }
 
@@ -94,14 +100,14 @@ TEST_F(TwoDThreeBlockMesh, TwoDThreeBlockDesignVariableCounts)
     const auto tNumberOfElementsInDesignDomain = EntityCounts{tMesh}.numberOfDesignDomainElements();
     EXPECT_EQ(tNumberOfElementsInDesignDomain, tExpectedNumberOfElements);
 
-    constexpr auto tExpectedNumberOfNodes = 7u;
+    constexpr auto tExpectedNumberOfNodes = 7U;
     const auto tNumberOfNodesInDesignDomain = EntityCounts{tMesh}.numberOfDesignDomainNodes();
     EXPECT_EQ(tNumberOfNodesInDesignDomain, tExpectedNumberOfNodes);
 }
 
 TEST_F(OneBlock3x1x1HexMesh, OneBlockHexAreDesignVariablesElementOrNodal)
 {
-    const auto setupDesignVariables =
+    const auto tSetupDesignVariables =
         [this](const std::size_t aNumberOfEntities) -> std::pair<analysis::AnalysisDomainMesh, EntityCounts>
     {
         const auto tFieldVector =
@@ -114,13 +120,13 @@ TEST_F(OneBlock3x1x1HexMesh, OneBlockHexAreDesignVariablesElementOrNodal)
 
     // Nodes
     {
-        const auto [tDesignVariables, tMesh] = setupDesignVariables(mCommandGenerator.numberOfNodes());
+        const auto [tDesignVariables, tMesh] = tSetupDesignVariables(mCommandGenerator.numberOfNodes());
         EXPECT_TRUE(tMesh.areNodalDesignVariables(tDesignVariables));
         EXPECT_FALSE(tMesh.areElementDesignVariables(tDesignVariables));
     }
     // Elements
     {
-        const auto [tDesignVariables, tMesh] = setupDesignVariables(mCommandGenerator.numberOfElements());
+        const auto [tDesignVariables, tMesh] = tSetupDesignVariables(mCommandGenerator.numberOfElements());
         EXPECT_FALSE(tMesh.areNodalDesignVariables(tDesignVariables));
         EXPECT_TRUE(tMesh.areElementDesignVariables(tDesignVariables));
     }

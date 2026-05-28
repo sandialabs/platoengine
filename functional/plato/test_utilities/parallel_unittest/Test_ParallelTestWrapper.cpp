@@ -8,7 +8,7 @@ namespace plato::test_utilities::parallel_unittest
 {
 TEST(ParallelTestFunctionWrapper, MatchesSerialQuadratic)
 {
-    const auto tQuadraticFunction = [](const double x) { return x * x; };
+    const auto tQuadraticFunction = [](const double aX) { return aX * aX; };
     const auto tParallelQuadratic = test_utilities::ParallelTestFunctionWrapper<double, double>{tQuadraticFunction};
 
     const auto tCommunicator = boost::mpi::communicator{};

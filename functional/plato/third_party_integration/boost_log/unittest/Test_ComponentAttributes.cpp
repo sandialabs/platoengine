@@ -1,11 +1,15 @@
 #include <gtest/gtest.h>
 
 #include <boost/log/attributes/constant.hpp>
-#include <boost/log/expressions/formatters/stream.hpp>
 #include <boost/log/sources/logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
+#include <boost/smart_ptr/make_shared_object.hpp>
+#include <sstream>
+#include <string_view>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
 #include "plato/third_party_integration/boost_log/test_utilities/TestUtilities.hpp"

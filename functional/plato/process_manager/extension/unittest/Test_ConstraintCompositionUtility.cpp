@@ -1,9 +1,16 @@
 #include <gtest/gtest.h>
 
-#include "plato/criteria/library/ConstraintAdapter.hpp"
+#include <utility>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
+#include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"

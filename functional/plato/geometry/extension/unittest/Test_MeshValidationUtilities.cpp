@@ -1,11 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <filesystem>
+#include <map>
+#include <string>
+#include <vector>
 
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"

@@ -1,9 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <utility>
+
 #include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/CrossLinker.hpp"
 #include "plato/input_parser/CrossReference.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace
@@ -55,7 +59,7 @@ const auto kVeryInspiredFilterInputBlock =
 template <typename CrossReferenceType>
 void check_cross_linked_field(const ParsedInput& aParsedInput,
                               const InputDataBlock& aBlockToLink,
-                              const double tExpectedFilterValue,
+                              const double aExpectedFilterValue,
                               const test_utilities::TestContext& aTestContext)
 {
     const auto tCrossLinker = make_cross_linker<uninspired_thing>();
@@ -72,13 +76,13 @@ void check_cross_linked_field(const ParsedInput& aParsedInput,
     if constexpr (std::is_same_v<CrossReferenceType, uninspired_filter>)
     {
         EXPECT_EQ(tUninspiredInput.my_filter.value().mInputBlock.template get<CrossReferenceType>().filteriness.value(),
-                  tExpectedFilterValue)
+                  aExpectedFilterValue)
             << aTestContext;
     }
     else
     {
         EXPECT_EQ(tUninspiredInput.my_filter.value().mInputBlock.template get<CrossReferenceType>().filteritude.value(),
-                  tExpectedFilterValue)
+                  aExpectedFilterValue)
             << aTestContext;
     }
 }

@@ -1,12 +1,22 @@
 #include <gtest/gtest.h>
 
+#include <Akri_MeshFromFile.hpp>
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <memory>
+#include <set>
+#include <stk_mesh/base/Types.hpp>
 #include <stk_util/environment/EnvData.hpp>
+#include <string>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/DataFilePath.hpp"
+#include "stk_topology/topology.hpp"
 
 namespace plato::third_party_integration::krino::unittest
 {
@@ -65,10 +75,10 @@ TEST_F(KrinoLevelSetPolicyFixture, SetupLevelSets)
 
 TEST_F(KrinoLevelSetPolicyFixture, BlockParts)
 {
-    const auto kFourBlockMeshFilePath = utilities::data_file_path("four_block_rect_with_circ.cdf");
-    ASSERT_TRUE(kFourBlockMeshFilePath.has_value());
+    const auto tFourBlockMeshFilePath = utilities::data_file_path("four_block_rect_with_circ.cdf");
+    ASSERT_TRUE(tFourBlockMeshFilePath.has_value());
     auto tMeshFromFile = std::make_unique<::krino::MeshFromFile>(
-        kFourBlockMeshFilePath.value().string(), stk::EnvData::parallel_comm(), std::string{kDecompositionMethod});
+        tFourBlockMeshFilePath.value().string(), stk::EnvData::parallel_comm(), std::string{kDecompositionMethod});
 
     const auto tToBlockNames = [](const stk::mesh::PartVector& aBlockParts)
     {

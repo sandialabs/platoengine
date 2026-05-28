@@ -1,5 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <array>
+#include <cstddef>
+#include <tuple>
+#include <utility>
+#include <vector>
+
 #include "plato/utilities/TupleHelpers.hpp"
 
 namespace plato::utilities::unittest
@@ -7,7 +13,7 @@ namespace plato::utilities::unittest
 namespace
 {
 template <std::size_t kIndex, std::size_t... kIndices>
-constexpr auto index_from_index_sequence(std::index_sequence<kIndices...>)
+constexpr auto index_from_index_sequence(std::index_sequence<kIndices...> /*unused*/)
 {
     constexpr auto tArray = std::array<std::size_t, sizeof...(kIndices)>{kIndices...};
     return tArray[kIndex];
@@ -18,13 +24,13 @@ TEST(TupleHelpers, MakeIndexSequenceStartingFrom)
 {
     {
         constexpr auto tTestSequence = detail::make_index_sequence_starting_from<0>(std::make_index_sequence<2>());
-        static_assert(tTestSequence.size() == 2);
+        static_assert(std::index_sequence<0UL + 0UL, 0UL + 1UL>::size() == 2);
         static_assert(index_from_index_sequence<0>(tTestSequence) == 0);
         static_assert(index_from_index_sequence<1>(tTestSequence) == 1);
     }
     {
         constexpr auto tTestSequence = detail::make_index_sequence_starting_from<5>(std::make_index_sequence<2>());
-        static_assert(tTestSequence.size() == 2);
+        static_assert(std::index_sequence<5UL + 0UL, 5UL + 1UL>::size() == 2);
         static_assert(index_from_index_sequence<0>(tTestSequence) == 5);
         static_assert(index_from_index_sequence<1>(tTestSequence) == 6);
     }

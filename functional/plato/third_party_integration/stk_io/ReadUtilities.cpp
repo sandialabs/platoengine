@@ -195,11 +195,11 @@ namespace
     return tIndices |
            std::views::transform(
                [tSpatialDim = spatial_dimensions(aBulk), &tCoordinateField,
-                tMNodeEntity = std::move(tNodeEntity)](const auto aNodeIndex)
+                tNodeEntity = std::move(tNodeEntity)](const auto aNodeIndex)
                {
                    constexpr auto tCoordinateFieldSize = std::size_t{3U};
                    const auto tData =
-                       to_span<tCoordinateFieldSize>(stk::mesh::field_data(tCoordinateField, tMNodeEntity[aNodeIndex]));
+                       to_span<tCoordinateFieldSize>(stk::mesh::field_data(tCoordinateField, tNodeEntity[aNodeIndex]));
                    return common::Coordinate{tData[0], tData[1], tSpatialDim == 2 ? 0 : tData[2]};
                }) |
            std::views::common;

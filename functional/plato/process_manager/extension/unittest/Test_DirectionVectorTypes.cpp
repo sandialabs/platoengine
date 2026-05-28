@@ -1,9 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <ROL_StdVector.hpp>
 #include <cstddef>
+#include <vector>
 
 #include "plato/process_manager/extension/DirectionVectorTypes.hpp"
-#include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension::unittest
 {

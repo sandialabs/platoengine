@@ -67,7 +67,8 @@ class Expected
         requires(std::is_convertible_v<E, Error>)
     constexpr Expected(Unexpected<E>&& aError);
 
-    template <typename E, typename = std::enable_if_t<std::is_convertible_v<E, Error>>>
+    template <typename E>
+        requires(std::is_convertible_v<E, Error>)
     constexpr auto operator=(Unexpected<E>&& aError) -> Expected&;
 
     /// @brief Returns whether or not an expected object is held (not the error type)
@@ -120,7 +121,8 @@ constexpr Expected<T, Error>::Expected(Unexpected<E>&& aError) : mValue{Unexpect
 }
 
 template <typename T, typename Error>
-template <typename E, typename>
+template <typename E>
+    requires(std::is_convertible_v<E, Error>)
 constexpr auto Expected<T, Error>::operator=(Unexpected<E>&& aError) -> Expected&
 {
     mValue = Unexpected<Error>{std::move(aError).mError};

@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <fstream>
+#include <utility>
 
 #include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
 

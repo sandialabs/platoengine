@@ -1,11 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <filesystem>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
-#include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -32,7 +37,7 @@ struct FilterValidationTestFixture : public testing::Test
         third_party_integration::stk_io::write_mesh(mMeshPath, tCommandGenerator);
     }
 
-    ~FilterValidationTestFixture()
+    ~FilterValidationTestFixture() override
     {
         test_utilities::test_for_existence_and_remove({mMeshPath}, TEST_CONTEXT("Checking existence of mesh file"));
     }

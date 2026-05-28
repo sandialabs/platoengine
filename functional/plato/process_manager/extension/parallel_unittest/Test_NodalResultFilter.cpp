@@ -1,5 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/process_manager/extension/NodalResultFilter.hpp"
 #include "plato/process_manager/extension/test_utilities/NodalResultFilterUtilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 

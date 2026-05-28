@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <boost/spirit/home/qi/auto/auto.hpp>
+#include <boost/spirit/home/support/common_terminals.hpp>
 #include <cstdint>
+#include <vector>
 
 #include "plato/input_parser/EnumTypeHelpers.hpp"
 
@@ -23,7 +26,7 @@ namespace
 {
 /// Assumes an auto-parser has been defined for `EnumType` via create_parser
 template <typename Iterator, typename EnumType>
-bool parse_symbol_table(Iterator aBegin, Iterator aEnd, std::vector<EnumType>& aEnums)
+auto parse_symbol_table(Iterator aBegin, Iterator aEnd, std::vector<EnumType>& aEnums) -> bool
 {
     namespace bsq = boost::spirit::qi;
     namespace bsa = boost::spirit::ascii;

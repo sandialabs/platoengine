@@ -1,12 +1,14 @@
 #include <gtest/gtest.h>
 
-#include <ranges>
+#include <cstddef>
 #include <stk_mesh/base/Comm.hpp>
 #include <stk_util/environment/EnvData.hpp>
+#include <vector>
 
 #include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/DataFilePath.hpp"
+#include "stk_topology/topology.hpp"
 
 namespace plato::third_party_integration::krino::unittest
 {
@@ -19,12 +21,12 @@ class MeshFromFileWithoutReadFixture : public krino::test_utilities::KrinoTestFi
 {
 };
 
-template <stk::topology::rank_t Rank>
+template <stk::topology::rank_t kRank>
 [[nodiscard]] auto entity_size(const stk::mesh::BulkData& aBulk) -> unsigned int
 {
     std::vector<size_t> tEntityCounts;
     stk::mesh::comm_mesh_counts(aBulk, tEntityCounts);
-    return tEntityCounts[Rank];
+    return tEntityCounts[kRank];
 }
 
 }  // namespace

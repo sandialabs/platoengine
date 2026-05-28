@@ -1,10 +1,16 @@
 #include <gtest/gtest.h>
 
-#include <fstream>
+#include <string_view>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/core/FactoryRegistration.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/snopt/SNOPTOptimization.hpp"
 #include "plato/process_manager/extension/snopt/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -12,6 +18,7 @@
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputValidation.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 
 namespace plato::process_manager::extension::snopt::unittest
 {

@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <string>
+#include <utility>
+
 #include "plato/test_utilities/CopyCounter.hpp"
+#include "plato/utilities/Exception.hpp"
 #include "plato/utilities/Expected.hpp"
 
 namespace plato::utilities::unittest
@@ -59,7 +63,7 @@ TEST(Expected, ValueNonconstRef)
     {
         constexpr auto tValue = 42;
         auto tExpected = Expected<int, std::string>{-1};
-        tExpected.value() = 42;
+        tExpected.value() = tValue;
         EXPECT_EQ(tExpected.value(), tValue);
     }
     {
@@ -76,9 +80,9 @@ TEST(Expected, BadAccessException)
         const auto tExpected = Expected<int, std::string>{Unexpected<std::string>{tErrorMessage}};
         [[maybe_unused]] const auto& tResult = tExpected.value();
     }
-    catch (const Exception& aError)
+    catch (const Exception& tError)
     {
-        EXPECT_EQ(aError.what(), tErrorMessage);
+        EXPECT_EQ(tError.what(), tErrorMessage);
     }
 }
 
@@ -91,8 +95,9 @@ TEST(Expected, Error)
 
 TEST(Expected, AssignFromUnexpected)
 {
-    const auto tErrorMessage = "Error!";
-    auto tExpected = Expected<int, std::string>{42};
+    const auto tErrorMessage = std::string{"Error!"};
+    constexpr auto tValue = 42;
+    auto tExpected = Expected<int, std::string>{tValue};
     tExpected = unexpected(tErrorMessage);
     EXPECT_FALSE(tExpected.hasValue());
     EXPECT_EQ(tExpected.error(), tErrorMessage);

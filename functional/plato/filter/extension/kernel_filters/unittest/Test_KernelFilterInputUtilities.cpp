@@ -1,14 +1,22 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <cstddef>
+#include <filesystem>
 #include <fstream>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterInputUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/ReflectFilter.hpp"
 #include "plato/filter/extension/kernel_filters/RevolveFilter.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/ReflectionMeshTestUtility.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/SymmetryFilterTestUtilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters::unittest

@@ -1,8 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <boost/mpi/communicator.hpp>
+#include <boost/smart_ptr/make_shared_object.hpp>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include "plato/main/library/CommandLineInputHandler.hpp"
 #include "plato/services/ExternalLoggerFileSink.hpp"

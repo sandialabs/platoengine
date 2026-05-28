@@ -1,14 +1,17 @@
 #include <gtest/gtest.h>
 
-#include <stk_io/FillMesh.hpp>
+#include <algorithm>
+#include <cstddef>
+#include <filesystem>
+#include <functional>
 #include <stk_io/StkMeshIoBroker.hpp>
+#include <vector>
 
-#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
-#include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
@@ -18,10 +21,10 @@ using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMeshWithN
 using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
-constexpr auto kExpectedNumberOfElementsInBlock1 = 273u;
-constexpr auto kExpectedNumberOfElementsInBlock2 = 40u;
-constexpr auto kExpectedNumberOfNodesInBlock1 = 93u;
-constexpr auto kExpectedNumberOfNodesInBlock2 = 90u;
+constexpr auto kExpectedNumberOfElementsInBlock1 = 273U;
+constexpr auto kExpectedNumberOfElementsInBlock2 = 40U;
+constexpr auto kExpectedNumberOfNodesInBlock1 = 93U;
+constexpr auto kExpectedNumberOfNodesInBlock2 = 90U;
 
 }  // namespace
 
@@ -40,10 +43,10 @@ TEST_F(TwoBlockMeshOnDisk, BlockData)
     ASSERT_EQ(tBlockIDsAndNames.size(), mExpectedNumberOfBlocks);
 
     EXPECT_EQ(tBlockIDsAndNames.front().mID, 1);
-    EXPECT_EQ(tBlockIDsAndNames.front().mMetaDataOrdinal, 45u);
+    EXPECT_EQ(tBlockIDsAndNames.front().mMetaDataOrdinal, 45U);
     EXPECT_EQ(tBlockIDsAndNames.front().mName, "block_1");
     EXPECT_EQ(tBlockIDsAndNames.back().mID, 2);
-    EXPECT_EQ(tBlockIDsAndNames.back().mMetaDataOrdinal, 46u);
+    EXPECT_EQ(tBlockIDsAndNames.back().mMetaDataOrdinal, 46U);
     EXPECT_EQ(tBlockIDsAndNames.back().mName, "block_2");
 
     // Check sorted post-condition

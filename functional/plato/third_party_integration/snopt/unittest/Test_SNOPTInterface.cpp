@@ -1,15 +1,25 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <fstream>
 #include <optional>
 #include <snoptProblem.hpp>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/output/OutputManager.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/third_party_integration/snopt/SNOPTInterface.hpp"
+#include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -32,10 +42,10 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 [[nodiscard]] auto rosenbrock_dynamic_vector_function(const plato::test_utilities::Rosenbrock& aRosenbrock)
 {
     return core::make_function_with_first_derivative(
-        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& x)
-        { return tRosenbrock.f(x[0], x[1]); },
-        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& x)
-        { return to_dynamic_vector(tRosenbrock.df(x[0], x[1])); });
+        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& aX)
+        { return tRosenbrock.f(aX[0], aX[1]); },
+        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& aX)
+        { return to_dynamic_vector(tRosenbrock.df(aX[0], aX[1])); });
 }
 
 [[nodiscard]] auto linear_constraint_function()
@@ -286,7 +296,7 @@ TEST(SNOPTInterface, RosenbrockLesserThanConstraint)
 namespace
 {
 
-const auto kSuccessfulGetParameterCode = int{0};
+const auto kSuccessfulGetParameterCode = 0;
 
 void write_snoptions_file(const std::string& aFileName)
 {
@@ -303,9 +313,9 @@ void write_snoptions_file(const std::string& aFileName)
 void get_parameter_and_test_value(snoptProblemA& aProblem,
                                   const std::string_view aParameter,
                                   const int aGold,
-                                  const plato::test_utilities::TestContext aTestContext)
+                                  const plato::test_utilities::TestContext& aTestContext)
 {
-    int tParameter;
+    int tParameter = 0;
     const int tReturnCode = aProblem.getIntParameter(aParameter.data(), tParameter);
     EXPECT_EQ(tReturnCode, kSuccessfulGetParameterCode);
     EXPECT_EQ(tParameter, aGold) << aTestContext;
@@ -313,7 +323,7 @@ void get_parameter_and_test_value(snoptProblemA& aProblem,
 
 [[nodiscard]] auto create_problem_and_apply_options(const SNOPTOptions& aOptions) -> snoptProblemA
 {
-    constexpr auto tUseSummaryFile = int{1};
+    constexpr auto tUseSummaryFile = 1;
     snoptProblemA tProblem{};
     tProblem.initialize(kLogFilePath.c_str(), tUseSummaryFile);
     detail::apply_options(tProblem, aOptions);

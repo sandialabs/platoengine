@@ -1,14 +1,21 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <cstddef>
+#include <memory>
+#include <string_view>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/HashGeneration.hpp"
@@ -105,10 +112,10 @@ TEST(KernelFilter, SingleHexElementCentered)
     const auto [tResultFilter, tResultJV, tResultAdjointJV] =
         test_filter_evaluation(input_parser::KernelFilterCenteringTypes::kElementCentered);
 
-    ASSERT_EQ(tResultFilter.size(), 1u);
+    ASSERT_EQ(tResultFilter.size(), 1U);
     EXPECT_NEAR(tResultFilter[0], 1.0 / 4.0, kTolerance);
 
-    ASSERT_EQ(tResultJV.size(), 8u);
+    ASSERT_EQ(tResultJV.size(), 8U);
     const auto tExpectedVectorJacobianProduct = std::vector<double>(8U, 1.0 / 8.0);
     plato::test_utilities::expect_container_entries_near(tExpectedVectorJacobianProduct, tResultJV, kTolerance,
                                                          TEST_CONTEXT("Vector Jacobian product"));

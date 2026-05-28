@@ -21,14 +21,14 @@ template <>
     {
         return aObject;
     }
-    aObject.mVectorTimesJacobianFunction = [aGroupCommunicator, aParentBroadcastRank,
-                                            tMVectorTimesJacobianFunction = aObject.mVectorTimesJacobianFunction](
-                                               const linear_algebra::DynamicVector<double>& aRowVector)
+    aObject.mVectorTimesJacobianFunction =
+        [aGroupCommunicator, aParentBroadcastRank, tVectorTimesJacobianFunction = aObject.mVectorTimesJacobianFunction](
+            const linear_algebra::DynamicVector<double>& aRowVector)
     {
         auto tResult = linear_algebra::DynamicVector<double>{};
         if (aGroupCommunicator.mGroupColor.mValue == 0)
         {
-            tResult = tMVectorTimesJacobianFunction(aRowVector);
+            tResult = tVectorTimesJacobianFunction(aRowVector);
         }
         return group_synchronized_object(tResult, aGroupCommunicator, aParentBroadcastRank);
     };

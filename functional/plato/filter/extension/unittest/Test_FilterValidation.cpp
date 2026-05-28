@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
 #include "plato/filter/extension/CommonInputValidation.hpp"
+#include "plato/filter/extension/HelmholtzFilter.hpp"
+#include "plato/filter/extension/IdentityFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"

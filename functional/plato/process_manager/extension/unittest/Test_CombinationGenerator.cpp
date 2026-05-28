@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <iterator>
+#include <vector>
 
 #include "plato/process_manager/extension/CombinationGenerator.hpp"
 

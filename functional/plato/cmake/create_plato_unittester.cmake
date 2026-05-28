@@ -1,4 +1,5 @@
 include(${CMAKE_UTIL_DIR}/add_to_srcs_and_hdrs.cmake)
+include(${CMAKE_UTIL_DIR}/clang_tidy_setup.cmake)
 
 # create_plato_unittester
 #   TEST_LIB: The name of the library to create a unit tester for. The test exe name will be
@@ -70,6 +71,15 @@ function( create_plato_unittester_impl TEST_EXE DIRECTORIES TEST_MAIN_CPP TARGET
     target_compile_options(${TEST_EXE} PRIVATE "-fPIC")
 
     target_link_libraries( ${TEST_EXE} PRIVATE GTest::GTest PlatoFunctionalTestUtilities CoverageInterface UnitTestPrecompiledHeaderInterface ${TARGET_LINK_LIST})
+
+    if(BUILD_WITH_CLANG_TIDY)
+        targets_arch_flags(${TEST_EXE} ARCH_FLAGS)
+        list(TRANSFORM ARCH_FLAGS PREPEND "--extra-arg=")
+        set_target_properties(${TEST_EXE}
+                              PROPERTIES CXX_CLANG_TIDY
+                              "${CLANG_TIDY_COMMAND};$<IF:$<BOOL:${ARCH_FLAGS}>,${ARCH_FLAGS},${CLANG_TIDY_EXTRA_ARCH_ARGS}>")
+    endif()
+
     add_test(NAME ${TEST_EXE} COMMAND ${TEST_EXE} --gtest_output=xml:${TEST_EXE}.xml)
 
     set( NUM_THREADS "1" )

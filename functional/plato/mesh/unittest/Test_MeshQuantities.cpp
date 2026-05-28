@@ -1,6 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <iterator>
 #include <ranges>
+#include <set>
+#include <string>
+#include <vector>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/RandomPerturbationVector.hpp"
@@ -24,9 +29,9 @@ using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 using MeshQuantitiesThreeDTwoBlockTetMesh = third_party_integration::stk_io::test_utilities::ThreeDTwoBlockTetMesh;
 
-constexpr auto kExpectedElementVolumeBlock1 = double{0.5};
-constexpr auto kExpectedElementVolumeBlock2 = double{1.0};
-constexpr auto kExpectedElementVolumeBlock3 = double{2.0};
+constexpr auto kExpectedElementVolumeBlock1 = 0.5;
+constexpr auto kExpectedElementVolumeBlock2 = 1.0;
+constexpr auto kExpectedElementVolumeBlock3 = 2.0;
 
 void check_gradient_of_volume(MutableCoordinateMesh aMesh,
                               const plato::utilities::GradientCheckParameters& aGradientCheckParameters,

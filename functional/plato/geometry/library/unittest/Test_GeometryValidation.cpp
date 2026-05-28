@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <fstream>
+#include <boost/none.hpp>
 
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_parser/FileList.hpp"
@@ -8,7 +8,6 @@
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(

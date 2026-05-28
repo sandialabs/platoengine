@@ -1,11 +1,18 @@
 #include <gtest/gtest.h>
 
+#include <array>
 #include <filesystem>
+#include <functional>
 #include <stk_mesh/base/MetaData.hpp>
+#include <stk_mesh/base/Types.hpp>
+#include <string_view>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
@@ -32,16 +39,16 @@ void create_single_element_mesh_test_centroid(const CommandGenerator& aCommandGe
     ASSERT_TRUE(tMesh);
 
     const auto tElements = element_vector(*tMesh);
-    ASSERT_EQ(tElements.size(), 1u);
+    ASSERT_EQ(tElements.size(), 1U);
 
     const common::Coordinate tElemCentroid = element_centroid(tElements.at(0), *tMesh);
     common::test_utilities::test_double_equality_of_components(tElemCentroid, aGold,
                                                                TEST_CONTEXT("Single element centroid"));
 }
 
-void read_mesh_and_test_volume(const std::string_view tMeshFileName, const double aGold)
+void read_mesh_and_test_volume(const std::string_view aMeshFileName, const double aGold)
 {
-    const auto tFilePath = plato::utilities::data_file_path(tMeshFileName);
+    const auto tFilePath = plato::utilities::data_file_path(aMeshFileName);
     ASSERT_TRUE(tFilePath);
     const double tResult = mesh_volume(*read_mesh_bulk_data(tFilePath.value()));
     EXPECT_DOUBLE_EQ(tResult, aGold);
@@ -227,11 +234,11 @@ TEST(STKVolumeUtilities, ElementCentroid_Hex)
 
 TEST(STKVolumeUtilities, ElementCentroids)
 {
-    CommandGenerator tCommandGenerator{{4, 1, 1}, {0, 0, 0}, {4, 1, 1}};
+    const CommandGenerator tCommandGenerator{{4, 1, 1}, {0, 0, 0}, {4, 1, 1}};
 
     const auto tBulk = generate_bulk_data(tCommandGenerator);
     const auto tCentroids = element_centroids(*tBulk);
-    ASSERT_EQ(tCentroids.size(), 4u);
+    ASSERT_EQ(tCentroids.size(), 4U);
 
     common::test_utilities::test_double_equality_of_components(tCentroids[0], {0.5, 0.5, 0.5},
                                                                TEST_CONTEXT("Element centroids 0"));
@@ -247,7 +254,7 @@ TEST_F(TwoDThreeBlockMesh, ElementCentroidsOnParts)
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
-    constexpr auto tExpectedNumberOfParts = 3u;
+    constexpr auto tExpectedNumberOfParts = 3U;
     ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
 
     const auto tAllElementCentroids = element_centroids(*tBulkData);

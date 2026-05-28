@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <numeric>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/IndexRange.hpp"
@@ -32,17 +34,17 @@ TEST(MultiVectorView, Values)
         return tTempVector;
     }();
 
-    const auto tTest = [&tVector, tLength](auto& tMultiVectorView, const test_utilities::TestContext& aTestContext)
+    const auto tTest = [&tVector, tLength](auto& aMultiVectorView, const test_utilities::TestContext& aTestContext)
     {
         auto tIndex = std::size_t{0};
-        ASSERT_EQ(tMultiVectorView.size(), tLength * tDimension) << aTestContext;
-        ASSERT_EQ(tMultiVectorView.numberOfVectors(), tLength) << aTestContext;
+        ASSERT_EQ(aMultiVectorView.size(), tLength * tDimension) << aTestContext;
+        ASSERT_EQ(aMultiVectorView.numberOfVectors(), tLength) << aTestContext;
         // Check in expected order
         for (const auto tLengthIndex : IndexRange{tLength})
         {
             for (const auto tDimensionIndex : IndexRange{tDimension})
             {
-                EXPECT_EQ(tMultiVectorView(VectorIndex{tLengthIndex}, ComponentIndex{tDimensionIndex}), tVector[tIndex])
+                EXPECT_EQ(aMultiVectorView(VectorIndex{tLengthIndex}, ComponentIndex{tDimensionIndex}), tVector[tIndex])
                     << aTestContext;
                 ++tIndex;
             }

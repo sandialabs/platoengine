@@ -3,12 +3,14 @@
 #include <filesystem>
 #include <fstream>
 
+#include "plato/input_parser/FileList.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
 #include "plato/process_manager/extension/GradientCheck.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/InputValidation.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::process_manager::extension::unittest
 {

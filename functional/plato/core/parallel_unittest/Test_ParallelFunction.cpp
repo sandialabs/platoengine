@@ -4,7 +4,6 @@
 
 #include "plato/core/Function.hpp"
 #include "plato/core/ParallelFunction.hpp"
-#include "plato/core/test_utilities/Utilities.hpp"
 #include "plato/test_utilities/ParallelFunction.hpp"
 #include "plato/test_utilities/ParallelTestWrapper.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
@@ -17,8 +16,8 @@ TEST(ParallelFunction, AdaptRosenbrock)
 {
     namespace ptu = plato::test_utilities;
 
-    const auto tA = double{1.0};
-    const auto tB = double{10.0};
+    const auto tA = 1.0;
+    const auto tB = 10.0;
     const auto tRosenbrock = ptu::Rosenbrock{tA, tB};
     // Serial
     const auto tF = [tRosenbrock](const ptu::TwoDVector& aVector)

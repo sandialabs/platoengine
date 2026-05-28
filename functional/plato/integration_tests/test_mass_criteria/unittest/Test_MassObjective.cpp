@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <string_view>
 
 #include "plato/integration_tests/test_mass_criteria/MassObjective.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"

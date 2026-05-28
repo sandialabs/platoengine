@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
 #include <cmath>
+#include <string>
+#include <vector>
 
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"

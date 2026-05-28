@@ -1,8 +1,11 @@
 
 #include <gtest/gtest.h>  // for AssertHelper, TEST, etc
 
+#include <vector>
+
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -14,8 +17,8 @@ namespace
 constexpr common::Coordinate kZeroCoordinate{0, 0, 0};
 constexpr common::Coordinate kTenCoordinate{10, 10, 10};
 
-[[nodiscard]] SpherePatternData calculate_sphere_pattern_data_on_zero_ten_mesh(const double aSphereRadius,
-                                                                               const double aSphereSpacing)
+[[nodiscard]] auto calculate_sphere_pattern_data_on_zero_ten_mesh(const double aSphereRadius,
+                                                                  const double aSphereSpacing) -> SpherePatternData
 {
     return SpherePatternData{kZeroCoordinate, kTenCoordinate, aSphereRadius, aSphereSpacing};
 }

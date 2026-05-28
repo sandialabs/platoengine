@@ -1,17 +1,22 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
+#include <cstddef>
+#include <vector>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/GradientCheck.hpp"
+#include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension::unittest
 {

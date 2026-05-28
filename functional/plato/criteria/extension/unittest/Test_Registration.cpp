@@ -3,6 +3,7 @@
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/criteria/extension/VolumeCriterion.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 
 namespace plato::criteria::extension::unittest
 {
@@ -45,9 +46,9 @@ TEST(CriterionRegistration, VolumeFraction)
 TEST(CriterionRegistration, BuiltinRegisterAppsList)
 {
     const auto tRegisteredApps = library::registered_criteria_names();
-    const auto tCriterionIsInRegisteredNames = [&tRegisteredApps](const std::string_view tCriterionName)
+    const auto tCriterionIsInRegisteredNames = [&tRegisteredApps](const std::string_view aCriterionName)
     {
-        const auto tRegistrationName = library::builtin_criterion_registration_name(tCriterionName);
+        const auto tRegistrationName = library::builtin_criterion_registration_name(aCriterionName);
         return tRegisteredApps.count(tRegistrationName) == 1U;
     };
 

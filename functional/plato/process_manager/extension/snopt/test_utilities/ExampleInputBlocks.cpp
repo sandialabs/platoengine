@@ -1,5 +1,9 @@
 #include "plato/process_manager/extension/snopt/test_utilities/ExampleInputBlocks.hpp"
 
+#include <boost/none.hpp>
+
+#include "plato/process_manager/extension/snopt/SNOPTOptimization.hpp"
+
 namespace plato::process_manager::extension::snopt::test_utilities
 {
 

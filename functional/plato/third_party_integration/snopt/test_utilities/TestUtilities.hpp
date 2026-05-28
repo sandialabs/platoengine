@@ -34,7 +34,7 @@ using Triple = std::tuple<typename SparseMatrixBuilder<IndexType, EntryType>::Ro
 
 /// @brief Creates a dynamic array with size @a aSize, and fills it using `iota` starting at 0.
 template <typename T>
-auto array_with_iota(const std::size_t aSize) -> std::unique_ptr<T[]>;
+auto array_with_iota(std::size_t aSize) -> std::unique_ptr<T[]>;
 
 /// @brief Checks each entry in @a aLeft and @a aRight for equality.
 template <typename IndexType, typename EntryType>

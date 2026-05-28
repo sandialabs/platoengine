@@ -1,10 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <boost/none.hpp>
 #include <filesystem>
+#include <set>
+#include <vector>
 
 #include "plato/geometry/extension/DensityResultToCutMesh.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"

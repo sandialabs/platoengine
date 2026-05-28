@@ -1,9 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <memory>
+#include <utility>
+#include <vector>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshOperators.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterSharedLibraryDecorator.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/services/SharedLibraryObject.hpp"
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
 
 namespace plato::filter::library::unittest

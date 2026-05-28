@@ -48,8 +48,11 @@ template <typename Container, typename U>
 [[nodiscard]] auto key_with_value(const Container& aContainer, const U& aMappedValue)
     -> std::optional<typename Container::key_type>
 {
+    // clang-tidy issues warnings for const char[] decay
+    // NOLINTBEGIN(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     const auto tFoundValue =
         std::ranges::find_if(aContainer, [&aMappedValue](const auto& aEntry) { return aEntry.second == aMappedValue; });
+    // NOLINTEND(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     if (tFoundValue == aContainer.end())
     {
         return std::nullopt;

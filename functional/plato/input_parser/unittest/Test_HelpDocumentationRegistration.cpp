@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <iterator>
 #include <regex>
 #include <sstream>
 
@@ -14,20 +15,20 @@ namespace
 
 auto help_documentation_function_one() -> Documentation
 {
-    HelpDocumentation tCommand{"name_1", "type_1", "comment_1"};
+    const HelpDocumentation tCommand{"name_1", "type_1", "comment_1"};
     return {tCommand};
 }
 
 auto help_documentation_function_two() -> Documentation
 {
-    HelpDocumentation tCommand{"name_2", "type_2", "comment_2"};
+    const HelpDocumentation tCommand{"name_2", "type_2", "comment_2"};
     return {tCommand, tCommand};
 }
 
-[[maybe_unused]] static const auto kNewHelpDocumentationRegistrationOne =
+[[maybe_unused]] const auto kNewHelpDocumentationRegistrationOne =
     HelpDocumentationRegistration{"key_one", []() { return help_documentation_function_one(); }};
 
-[[maybe_unused]] static const auto kNewHelpDocumentationRegistrationTwo =
+[[maybe_unused]] const auto kNewHelpDocumentationRegistrationTwo =
     HelpDocumentationRegistration{"key_two", []() { return help_documentation_function_two(); }};
 
 }  // namespace
@@ -48,7 +49,7 @@ void check_for_key(const std::string& aKey,
                    const unsigned int aCount,
                    const test_utilities::TestContext& aTestContext)
 {
-    std::regex tPattern(aKey);
+    const std::regex tPattern(aKey);
     auto tRegexIterator = std::sregex_iterator(aString.begin(), aString.end(), tPattern);
     EXPECT_EQ(std::distance(tRegexIterator, std::sregex_iterator()), aCount) << aTestContext;
 }

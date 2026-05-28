@@ -1,12 +1,15 @@
 #include <gtest/gtest.h>
 
-#include <boost/optional/optional_io.hpp>
+#include <algorithm>
+#include <boost/optional/optional_io.hpp>  // NOLINT(misc-include-cleaner)
+#include <string>
 #include <unordered_map>
+#include <vector>
 
-#include "plato/input_parser/BlockStructRule.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/ComponentBlockParser.hpp"
-#include "plato/input_parser/GenericBlockRule.hpp"
 #include "plato/input_parser/InputBlockData.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/test_utilities/Strings.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -40,9 +43,9 @@ void check_component_type(const std::vector<InputDataBlock>& aInputsForComponent
                           const components::ComponentType aComponentType,
                           const test_utilities::TestContext& aTestContext)
 {
-    for (const auto& aInput : aInputsForComponent)
+    for (const auto& tInput : aInputsForComponent)
     {
-        EXPECT_EQ(aInput.mComponentType, aComponentType) << aTestContext;
+        EXPECT_EQ(tInput.mComponentType, aComponentType) << aTestContext;
     }
 }
 

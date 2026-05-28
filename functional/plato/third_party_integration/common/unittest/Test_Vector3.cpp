@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
+#include <cmath>
 #include <stdexcept>
 
 #include "plato/test_utilities/TestContext.hpp"
@@ -199,7 +199,7 @@ TEST(UnitVector3, Error_ZeroLengthVector)
 TEST(UnitVector3, Vector3ConversionOperator)
 {
     constexpr auto tComponent{1.0};
-    const auto tMagnitude = std::sqrt(3.0);
+    const auto tMagnitude = std::numbers::sqrt3;
     const auto tNormalizedComponent = tComponent / tMagnitude;
     const UnitVector3 tUnitVector{tComponent, tComponent, tComponent};
     EXPECT_DOUBLE_EQ(static_cast<Vector3>(tUnitVector).x, tNormalizedComponent);

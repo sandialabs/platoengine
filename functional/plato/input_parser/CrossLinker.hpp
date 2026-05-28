@@ -120,8 +120,8 @@ struct ApplyCrossLink
             // Component to link was specified, find the input with the matching name
             const auto tCrossReferenceBlock =
                 std::find_if(aAllComponentsOfMatchingType.begin(), aAllComponentsOfMatchingType.end(),
-                             [&aComponentToLink](const auto& aTComponent)
-                             { return aTComponent.mBlockName == aComponentToLink->mName; });
+                             [&aComponentToLink](const auto& aComponent)
+                             { return aComponent.mBlockName == aComponentToLink->mName; });
             assert(tCrossReferenceBlock != aAllComponentsOfMatchingType.end());
             aComponentToLink->mInputBlock = tCrossReferenceBlock->mInput;
         }

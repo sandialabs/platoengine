@@ -77,8 +77,8 @@ template <typename PointType>
                              ReflectionFunction<PointType> aOuter) -> ReflectionFunction<PointType>
 {
     return ReflectionFunction<PointType>{
-        [tMOuter = std::move(aOuter), tMInner = std::move(aInner)](const std::vector<PointType>& aPoints)
-        { return tMOuter.mValue(tMInner.mValue(aPoints)); }};
+        [tOuter = std::move(aOuter), tInner = std::move(aInner)](const std::vector<PointType>& aPoints)
+        { return tOuter.mValue(tInner.mValue(aPoints)); }};
 }
 
 template <typename PointType>

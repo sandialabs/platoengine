@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <map>
+#include <string>
 #include <unordered_set>
 #include <vector>
 

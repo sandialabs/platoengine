@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <string_view>
 
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::filter::extension::unittest

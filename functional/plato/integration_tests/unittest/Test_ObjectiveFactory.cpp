@@ -1,15 +1,25 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <optional>
+#include <utility>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/components/ComponentType.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/CheckProcessorsMatchObjectives.hpp"
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
@@ -36,7 +46,7 @@ const auto kConfiguration = services::CriterionConfiguration{.mName = std::strin
                                                              .mFunctionName = "",
                                                              .mVectorComponents = std::nullopt};
 
-[[maybe_unused]] static const auto kNodalSumRegistration =
+[[maybe_unused]] const auto kNodalSumRegistration =
     Registration{criteria::library::builtin_criterion_registration_name(kLinearFunctionName),
                  [](const criteria::library::CriterionInput&)
                  { return criteria::library::FunctionWithConfiguration{make_linear_test_function(), kConfiguration}; }};
@@ -47,8 +57,6 @@ struct ObjectiveFactoryTestFixture : public integration_tests::utilities::ValidI
 
 auto create_two_objective_test_input() -> input_validation::ValidatedInput
 {
-    namespace pftu = plato::test_utilities;
-
     // Input for the actual test
     const std::string tInput =
         R"(
@@ -82,8 +90,6 @@ TEST_F(ObjectiveFactoryTestFixture, ValidParallelAggregateTwoObjectives)
 
 TEST_F(ObjectiveFactoryTestFixture, ValidAggregateOneObjective)
 {
-    namespace pftu = plato::test_utilities;
-
     const std::string tInput =
         R"(
           begin objective test1

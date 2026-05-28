@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "plato/utilities/LinearSpaceGenerator.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -34,9 +36,9 @@ TEST(LinearSpaceGenerator, Quarters)
     const std::vector<double> tGold = {0, .25, 0.5, 0.75, 1};
     ASSERT_EQ(tResult.size(), tGold.size());
 
-    for (unsigned int iIndex = 0; iIndex < tGold.size(); iIndex++)
+    for (unsigned int tIIndex = 0; tIIndex < tGold.size(); tIIndex++)
     {
-        EXPECT_DOUBLE_EQ(tResult[iIndex], tGold[iIndex]);
+        EXPECT_DOUBLE_EQ(tResult[tIIndex], tGold[tIIndex]);
     }
 }
 

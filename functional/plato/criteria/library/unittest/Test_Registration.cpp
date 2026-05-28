@@ -1,8 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <optional>
+
 #include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/services/AppConfiguration.hpp"
 
@@ -25,7 +30,7 @@ const auto kTestConfiguration = services::CriterionConfiguration{.mName = std::s
                                                                  .mFunctionName = "",
                                                                  .mVectorComponents = std::nullopt};
 
-[[maybe_unused]] static const auto kTestCriterionRegistration =
+[[maybe_unused]] const auto kTestCriterionRegistration =
     plato::criteria::library::CriterionRegistration<library::Parallelization::kSerial,
                                                     library::FunctionDimension::kScalar>{
         std::string{kTestCriterionName}, [](const plato::criteria::library::CriterionInput&)

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "plato/utilities/NamedType.hpp"
 
 namespace plato::utilities::unittest
@@ -24,8 +26,8 @@ using NamedDefaultConstructable = NamedType<DefaultConstructable, struct Default
 
 TEST(NamedType, Creation)
 {
-    Input tInput{3.0, "invalid name"};
-    ValidatedInput tValid{tInput};
+    const Input tInput{3.0, "invalid name"};
+    const ValidatedInput tValid{tInput};
     EXPECT_EQ(tValid.mValue.mValue, tInput.mValue);
     EXPECT_EQ(tValid.mValue.mName, tInput.mName);
 }

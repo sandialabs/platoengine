@@ -1,9 +1,20 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <filesystem>
+#include <fstream>
+#include <functional>
 #include <random>
+#include <set>
+#include <stdexcept>
 #include <string>
+#include <string_view>
+#include <vector>
 
+#include "plato/core/Function.hpp"
 #include "plato/criteria/extension/VolumeCriterion.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/RandomPerturbationVector.hpp"
 #include "plato/mesh/CoordinateUtilities.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
@@ -73,7 +84,7 @@ void test_scaled_and_unscaled_on_ctor_and_function(
     EXPECT_TRUE(std::filesystem::remove(kMeshFile));
 }
 
-void test_volume_criteria_derivative_from_ctor_and_function(const VolumeCriterion& tVolumeCriterion,
+void test_volume_criteria_derivative_from_ctor_and_function(const VolumeCriterion& aVolumeCriterion,
                                                             const library::CriterionFunction& aFunction,
                                                             const std::vector<double>& aGold)
 {
@@ -82,17 +93,17 @@ void test_volume_criteria_derivative_from_ctor_and_function(const VolumeCriterio
         std::vector<double>{0.5, 0.4, 0.3};  // Not 1 to make certain DF does not depend on them
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{std::cref(tAssignedDensities)});
-    const auto tResult = tVolumeCriterion.df(tAnalysisDomainMesh);
+    const auto tResult = aVolumeCriterion.df(tAnalysisDomainMesh);
     const auto tResultFromFunction = aFunction.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh);
 
     ASSERT_EQ(tResult.size(), mesh::EntityCounts{tMesh}.numberOfElements());
     ASSERT_EQ(tResult.size(), aGold.size());
     ASSERT_EQ(tResult.size(), tResultFromFunction.size());
 
-    for (unsigned int iIndex = 0; iIndex < tResult.size(); ++iIndex)
+    for (unsigned int tIIndex = 0; tIIndex < tResult.size(); ++tIIndex)
     {
-        EXPECT_DOUBLE_EQ(tResult[iIndex], aGold[iIndex]);
-        EXPECT_DOUBLE_EQ(tResultFromFunction[iIndex], aGold[iIndex]);
+        EXPECT_DOUBLE_EQ(tResult[tIIndex], aGold[tIIndex]);
+        EXPECT_DOUBLE_EQ(tResultFromFunction[tIIndex], aGold[tIIndex]);
     }
 }
 
@@ -202,21 +213,21 @@ TEST(VolumeCriterion, DerivativeOfScaledVolumeOnControls)
 TEST_F(TwoDThreeBlockMesh, VolumeCriterionWithFixedBlocks_Density)
 {
     auto tFixedBlockNames = std::set<std::string>{mBlockNames[0]};
-    const auto tMesh = mesh::Mesh{mMeshFilePath, std::move(tFixedBlockNames)};
+    const auto tMesh = mesh::Mesh{mMeshFilePath, tFixedBlockNames};
 
     const auto tDensityVector = std::vector<double>{0.25, 0.25, 1.0};
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{tDensityVector});
 
     const auto tResult = VolumeCriterion{}.f(tAnalysisDomainMesh);
-    constexpr auto tExpected = double{4.5};
+    constexpr auto tExpected = 4.5;
     EXPECT_DOUBLE_EQ(tExpected, tResult);
 }
 
 TEST_F(TwoDThreeBlockMesh, GradientVolumeCriterionWithFixedBlocks)
 {
     auto tFixedBlockNames = std::set<std::string>{mBlockNames[0], mBlockNames[2]};
-    const auto tMesh = mesh::Mesh{mMeshFilePath, std::move(tFixedBlockNames)};
+    const auto tMesh = mesh::Mesh{mMeshFilePath, tFixedBlockNames};
     constexpr auto tNumberOfNodalDensities = 2U;
     const auto tDensityVector = std::vector<double>(tNumberOfNodalDensities, 1.0);
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
@@ -239,17 +250,17 @@ TEST_F(TwoDThreeBlockMesh, VolumeCriterionNodalCoordinateGradientCheck)
     const auto tDirection = linear_algebra::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
 
     const auto tChecker = plato::utilities::GradientChecker{
-        [mMeshFilePath{mMeshFilePath}](const linear_algebra::DynamicVector<double>& aCoordinates)
+        [tMeshFilePath = mMeshFilePath](const linear_algebra::DynamicVector<double>& aCoordinates)
         {
-            write_perturbed_mesh_to_file(aCoordinates, mMeshFilePath);
+            write_perturbed_mesh_to_file(aCoordinates, tMeshFilePath);
             const auto tAnalysisDomainMesh =
                 analysis::AnalysisDomainMesh{.mFileName = kPerturbedMeshFilePath, .mBlockScalarField = {}};
             return VolumeCriterion{}.f(tAnalysisDomainMesh);
         },
-        [mMeshFilePath{mMeshFilePath}](const linear_algebra::DynamicVector<double>& aCoordinates,
+        [tMeshFilePath{mMeshFilePath}](const linear_algebra::DynamicVector<double>& aCoordinates,
                                        const linear_algebra::DynamicVector<double>& aDirection)
         {
-            write_perturbed_mesh_to_file(aCoordinates, mMeshFilePath);
+            write_perturbed_mesh_to_file(aCoordinates, tMeshFilePath);
             const auto tAnalysisDomainMesh =
                 analysis::AnalysisDomainMesh{.mFileName = kPerturbedMeshFilePath, .mBlockScalarField = {}};
             const auto tGradient = VolumeCriterion{}.df(tAnalysisDomainMesh);

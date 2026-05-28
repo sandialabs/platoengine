@@ -1,6 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <memory>
+#include <numeric>
+#include <vector>
+
 #include "plato/third_party_integration/snopt/ObjectiveConstraintArrayView.hpp"
+#include "plato/third_party_integration/snopt/ViewSizeTypes.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
 #include "plato/utilities/IndexRange.hpp"
 

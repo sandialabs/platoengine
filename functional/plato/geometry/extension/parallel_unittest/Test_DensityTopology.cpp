@@ -3,15 +3,18 @@
 #include <filesystem>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/output/OutputInfo.hpp"
 #include "plato/test_utilities/Containers.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
@@ -47,9 +50,9 @@ TEST_F(NodalDensityMesh, ParallelOutput)
 
     DensityTopology::output(tDesignVariables, tFilter, tDensityInput, output::kOverwriteInfo);
 
-    constexpr auto kAppend = false;
+    constexpr auto tAppend = false;
 
-    DensityTopology::output(tDesignVariables, tFilter, tDensityInput, output::OutputInfo{kAppend, 2});
+    DensityTopology::output(tDesignVariables, tFilter, tDensityInput, output::OutputInfo{tAppend, 2});
 
     ASSERT_TRUE(std::filesystem::exists(tDensityInput.output_name.value().mToken));
     ASSERT_TRUE(std::filesystem::exists(restart_file_name(tDensityInput)));

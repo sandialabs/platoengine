@@ -1,17 +1,18 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
-#include <filesystem>
 #include <string_view>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 
 namespace plato::integration_tests::parallel
 {
@@ -33,7 +34,6 @@ constexpr auto kMassAppName = std::string_view{"test-mass-app"};
 
 TEST(CriterionFactory, ValidObjective)
 {
-    namespace ptu = plato::test_utilities;
     namespace pcl = plato::criteria::library;
 
     const auto tCommunicator = boost::mpi::communicator{};

@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <utility>
 
 #include "plato/core/Compose.hpp"
 #include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/core/unittest/TestHelpers.hpp"
 #include "plato/test_utilities/TwoDTestTypes.hpp"
 
@@ -137,10 +139,10 @@ TEST(Compose, CompositionScalarFunctions)
     using ScalarFunctionWithFirstDerivative = Function<double, ScalarFInfo, ScalarFirstDerivativeInfo>;
 
     const auto tFunction1 =
-        ScalarFunctionWithFirstDerivative{[](const double x) { return x + 1; }, [](const double) { return 1.0; }};
+        ScalarFunctionWithFirstDerivative{[](const double aX) { return aX + 1; }, [](const double) { return 1.0; }};
 
-    const auto tFunction2 =
-        ScalarFunctionWithFirstDerivative{[](const double x) { return x * x; }, [](const double x) { return 2.0 * x; }};
+    const auto tFunction2 = ScalarFunctionWithFirstDerivative{[](const double aX) { return aX * aX; },
+                                                              [](const double aX) { return 2.0 * aX; }};
 
     {
         // x^2 + 1
@@ -197,7 +199,6 @@ TEST(Compose, CompositionVectorFunctions)
 
 TEST(Compose, FunctionSizesRequirement)
 {
-    namespace pft = plato::test_utilities;
     using VectorFunctionNoAdjoint = Function<plato::test_utilities::TwoDVector, VectorFInfo, VectorFirstDerivativeInfo>;
 
     static_assert(plato::core::detail::kFunctionCompositionSizesRequirement<VectorFunctionNoAdjoint, VectorFunction>);

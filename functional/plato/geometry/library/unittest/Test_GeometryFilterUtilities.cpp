@@ -1,10 +1,19 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
+#include <memory>
+#include <numeric>
+#include <vector>
+
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
-#include "plato/filter/library/FilterFactory.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"

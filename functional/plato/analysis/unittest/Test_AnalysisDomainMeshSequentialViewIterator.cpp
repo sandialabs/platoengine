@@ -1,7 +1,11 @@
 #include <gtest/gtest.h>
 
 #include <boost/core/ignore_unused.hpp>
+#include <cstddef>
+#include <iterator>
+#include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialViewIterator.hpp"
 #include "plato/utilities/IndexRange.hpp"
@@ -28,7 +32,7 @@ TEST(AnalysisDomainMeshViews, IncrementIterator)
         const auto tIteratorBeforeIncrement = tIterator;
         ++tIterator;
         const auto tDistance = std::distance(tIteratorBeforeIncrement, tIterator);
-        EXPECT_EQ(tDistance, 1u);
+        EXPECT_EQ(tDistance, 1U);
     }
 }
 

@@ -1,10 +1,19 @@
 #include <gtest/gtest.h>
 
+#include <ROL_ParameterList.hpp>
+#include <Teuchos_XMLParameterListCoreHelpers.hpp>
+#include <filesystem>
+#include <string>
+#include <utility>
+
+#include "plato/components/ComponentType.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/rol/OptimizationParameters.hpp"
 
 namespace plato::process_manager::extension::unittest
 {
@@ -62,19 +71,19 @@ TEST(OptimizerFactory, ParlistGenerationFromInput)
 
 TEST(OptimizerFactory, ParlistGenerationFromFile)
 {
-    const std::string kFileName = "test.xml";
+    const std::string tFileName = "test.xml";
 
     ROL::ParameterList tParameterListOnDisk("ROL");
     tParameterListOnDisk.sublist("Status Test").set<int>("Iteration Limit", 42);
     tParameterListOnDisk.sublist("Status Test").set<double>("Gradient Tolerance", 0.5);
     tParameterListOnDisk.sublist("Status Test").set<double>("Step Tolerance", 0.25);
-    Teuchos::writeParameterListToXmlFile(tParameterListOnDisk, kFileName);
+    Teuchos::writeParameterListToXmlFile(tParameterListOnDisk, tFileName);
 
     const std::string tInput = plato::test_utilities::create_valid_brick_shape_geometry_string() +
                                plato::test_utilities::create_valid_example_objective_string() +
                                "begin rol_optimization"
                                " input_file_name" +
-                               kFileName + " step_tolerance 10" + " end";
+                               tFileName + " step_tolerance 10" + " end";
 
     const auto tData = input_validation::parse_and_validate_string(tInput);
     ASSERT_TRUE(tData.hasValue()) << tData.error();
@@ -86,7 +95,7 @@ TEST(OptimizerFactory, ParlistGenerationFromFile)
               tParameterListOnDisk.sublist("Status Test").get<double>("Gradient Tolerance"));
     EXPECT_EQ(tParameterListFromFactory.sublist("Status Test").get<double>("Step Tolerance"), 10.0);
 
-    std::filesystem::remove(kFileName);
+    std::filesystem::remove(tFileName);
 }
 
 }  // namespace plato::process_manager::extension::unittest

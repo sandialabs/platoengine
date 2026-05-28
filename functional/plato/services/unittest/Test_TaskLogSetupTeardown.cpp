@@ -1,10 +1,14 @@
 #include <gtest/gtest.h>
 
-#include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr/make_shared_object.hpp>
+#include <sstream>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/services/InternalLoggerConsoleSink.hpp"
+#include "plato/services/SystemLogger.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/test_utilities/Strings.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::services::unittest
 {

@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <cstdint>
+#include <tuple>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/EnumIndexing.hpp"

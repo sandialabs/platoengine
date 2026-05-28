@@ -1,15 +1,18 @@
 #include <gtest/gtest.h>
 
+#include <array>
+#include <filesystem>
 #include <numeric>
 #include <ranges>
+#include <vector>
 
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/transformations/DistanceField.hpp"
-#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/NamedType.hpp"
 
 namespace plato::transformations::unittest
