@@ -138,7 +138,7 @@ TEST(StkSearch, ParallelConsistency)
     }
     else
     {
-        boost::mpi::all_reduce(tSplitComm, boost::mpi::inplace(tOtherRanksSumValue), std::plus<unsigned int>());
+        boost::mpi::all_reduce(tSplitComm, boost::mpi::inplace(tOtherRanksSumValue), std::plus<>());
     }
     boost::mpi::broadcast(tWorldComm, tRankZeroValue, 0);
     EXPECT_EQ(tOtherRanksSumValue, tRankZeroValue);
