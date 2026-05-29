@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <numbers>
 #include <stdexcept>
 
 #include "plato/test_utilities/TestContext.hpp"
@@ -11,9 +12,9 @@ namespace plato::third_party_integration::common::unittest
 {
 namespace
 {
-constexpr Vector3 kX{1, 0, 0};
-constexpr Vector3 kY{0, 1, 0};
-constexpr Vector3 kZ{0, 0, 1};
+constexpr Vector3 kUnitX{1, 0, 0};
+constexpr Vector3 kUnitY{0, 1, 0};
+constexpr Vector3 kUnitZ{0, 0, 1};
 constexpr Vector3 k123{1, 2, 3};
 }  // namespace
 
@@ -117,12 +118,12 @@ TEST(Vector3, CoordinateFloor)
 TEST(Vector3, Dot)
 {
     {
-        constexpr double tResult = dot(kX, kY);
+        constexpr double tResult = dot(kUnitX, kUnitY);
         constexpr double tGold = 0.0;
         EXPECT_DOUBLE_EQ(tResult, tGold);
     }
     {
-        constexpr double tResult = dot(kZ, k123);
+        constexpr double tResult = dot(kUnitZ, k123);
         constexpr double tGold = 3.0;
         EXPECT_DOUBLE_EQ(tResult, tGold);
     }
@@ -136,11 +137,11 @@ TEST(Vector3, Dot)
 TEST(Vector3, Cross)
 {
     {
-        constexpr Vector3 tResult = cross(kX, kY);
-        test_utilities::test_double_equality_of_components(tResult, kZ, TEST_CONTEXT("Vector3 cross product"));
+        constexpr Vector3 tResult = cross(kUnitX, kUnitY);
+        test_utilities::test_double_equality_of_components(tResult, kUnitZ, TEST_CONTEXT("Vector3 cross product"));
     }
     {
-        constexpr Vector3 tResult = cross(kY, k123);
+        constexpr Vector3 tResult = cross(kUnitY, k123);
         constexpr Vector3 tGold{3, 0, -1};
         test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Vector3 cross product"));
     }
