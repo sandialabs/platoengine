@@ -59,29 +59,32 @@ TEST(Validation, NumberOfRegisteredFunctionsDoubleWithIntArg)
 TEST(Validation, ValidateInputOnIntegers)
 {
     std::vector<std::string> tMessages;
-    tMessages = validate<int>(666, std::move(tMessages));
+    constexpr auto tArbitraryValue = 666;
+    tMessages = validate<int>(tArbitraryValue, std::move(tMessages));
     EXPECT_EQ(tMessages.size(), 1U);
 }
 
 TEST(Validation, ValidateInputOnDoubles)
 {
     std::vector<std::string> tMessages;
-    tMessages = validate<double>(1.123, std::move(tMessages));
+    constexpr auto tArbitraryValue = 1.123;
+    tMessages = validate<double>(tArbitraryValue, std::move(tMessages));
     EXPECT_EQ(tMessages.size(), 1U);
 }
 
 TEST(Validation, ValidateInputOnDoublesWithIntArgument)
 {
-    std::vector<std::string> tMessages;
-    tMessages = validate<double, int>(77.86, std::move(tMessages), 88);
-    EXPECT_EQ(tMessages.size(), 1U);
-}
-
-TEST(Validation, ValidateInputOnDoublesWithIntArgument_TypesDeduced)
-{
-    std::vector<std::string> tMessages;
-    tMessages = validate(77.86, std::move(tMessages), 88);
-    EXPECT_EQ(tMessages.size(), 1U);
+    constexpr auto tArbitraryValue = 77.86;
+    constexpr auto tArbitraryAdditionalArgument = 88;
+    {
+        const auto tMessages =
+            validate<double, int>(tArbitraryValue, std::vector<std::string>{}, tArbitraryAdditionalArgument);
+        EXPECT_EQ(tMessages.size(), 1U) << "Explicit types";
+    }
+    {
+        const auto tMessages = validate(tArbitraryValue, std::vector<std::string>{}, tArbitraryAdditionalArgument);
+        EXPECT_EQ(tMessages.size(), 1U) << "Deduced types";
+    }
 }
 
 TEST(Validation, ValidateInputObjectiveList_EmptyNoneDefined)

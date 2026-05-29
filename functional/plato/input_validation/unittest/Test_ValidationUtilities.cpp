@@ -44,7 +44,8 @@ TEST(ValidateUtilities, ValidateParameterExistsWhenParameterDoesNotExist)
 TEST(ValidateUtilities, ValidateParameterExistsDoesExist)
 {
     auto tObjectiveInput = input_parser::test_objective{};
-    tObjectiveInput.aggregation_weight = 23;
+    constexpr auto tArbitraryValue = 23.0;
+    tObjectiveInput.aggregation_weight = tArbitraryValue;
     EXPECT_FALSE(
         error_message_for_empty_parameter("Objective: ", tObjectiveInput.aggregation_weight, "aggregation_weight")
             .has_value());
@@ -63,9 +64,9 @@ TEST(ValidateUtilities, ValidateParameterExistsWithinBounds)
 {
     namespace pfu = plato::utilities;
     auto tObjectiveInput = input_parser::test_objective{};
-    constexpr double tLowerBound = 0;
-
-    tObjectiveInput.aggregation_weight = 23;
+    constexpr auto tLowerBound = 0.0;
+    constexpr auto tArbitraryValueInBounds = tLowerBound + 23.0;
+    tObjectiveInput.aggregation_weight = tArbitraryValueInBounds;
     EXPECT_FALSE(error_message_for_parameter_out_of_bounds("Objective: ", tObjectiveInput.aggregation_weight,
                                                            "aggregation_weight",
                                                            pfu::lower_bounded(pfu::Inclusive{tLowerBound}))
@@ -76,9 +77,9 @@ TEST(ValidateUtilities, ValidateParameterExistsOutOfBounds)
 {
     namespace pfu = plato::utilities;
     auto tObjectiveInput = input_parser::test_objective{};
-    constexpr double tLowerBound = 0;
-
-    tObjectiveInput.aggregation_weight = -23;
+    constexpr auto tLowerBound = 0.0;
+    constexpr auto tArbitraryValueOutOfBounds = tLowerBound - 23.0;
+    tObjectiveInput.aggregation_weight = tArbitraryValueOutOfBounds;
     EXPECT_TRUE(error_message_for_parameter_out_of_bounds("Objective: ", tObjectiveInput.aggregation_weight,
                                                           "aggregation_weight",
                                                           pfu::lower_bounded(pfu::Inclusive{tLowerBound}))

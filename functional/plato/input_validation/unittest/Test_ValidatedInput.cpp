@@ -61,7 +61,8 @@ const auto kValidDC = input_parser::dc{/*.name=*/std::string{"tv-show"}, /*.supe
 
 [[nodiscard]] auto validate_wolverine(const boost::optional<int> aWolverine) -> std::optional<std::string>
 {
-    if (aWolverine.has_value() && aWolverine != 100)
+    constexpr auto tArbitraryValue = 100;
+    if (aWolverine.has_value() && aWolverine != tArbitraryValue)
     {
         return std::string{kMarvelValidationErrorMessage};
     }
@@ -105,6 +106,11 @@ class ValidatedInputRegistrationFixture : virtual public ::testing::Test
         detail::registered_validation_functions<input_parser::InputBlockWrapper>().clear();
         detail::registered_validation_functions<input_parser::ParsedInput>().clear();
     }
+
+    ValidatedInputRegistrationFixture(const ValidatedInputRegistrationFixture&) = delete;
+    ValidatedInputRegistrationFixture(ValidatedInputRegistrationFixture&&) = delete;
+    auto operator=(const ValidatedInputRegistrationFixture&) -> ValidatedInputRegistrationFixture& = delete;
+    auto operator=(ValidatedInputRegistrationFixture&&) -> ValidatedInputRegistrationFixture& = delete;
 };
 
 class ValidatedInputFileFixture : public test_utilities::FileCreatingTestFixture,
