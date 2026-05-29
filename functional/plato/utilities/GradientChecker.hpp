@@ -12,9 +12,13 @@ namespace plato::utilities
 /// ratio used to reduce the step size at each iteration.
 struct GradientCheckParameters
 {
-    double mStepDelta = 0.1;
-    unsigned int mNumSteps = 8;
-    double mInitialStepSize = 1.0;
+    static constexpr auto mStepDeltaDefault = 0.1;
+    static constexpr auto mNumStepsDefault = 8;
+    static constexpr auto mInitialStepSizeDefault = 1.0;
+
+    double mStepDelta = mStepDeltaDefault;
+    unsigned int mNumSteps = mNumStepsDefault;
+    double mInitialStepSize = mInitialStepSizeDefault;
 };
 
 /// @brief A finite difference result pairing the step size and value.
