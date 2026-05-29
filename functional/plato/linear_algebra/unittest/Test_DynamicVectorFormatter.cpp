@@ -15,8 +15,9 @@ namespace plato::linear_algebra::unittest
 TEST(DynamicVectorFormatter, ParseInt)
 {
     {
+        constexpr auto tTestNumber = std::size_t{123};
         static constexpr auto tTest = std::string{"123"};
-        static_assert(detail::to_int(tTest.begin(), tTest.end()) == std::size_t{123});
+        static_assert(detail::to_int(tTest.begin(), tTest.end()) == tTestNumber);
     }
     {
         static constexpr auto tTest = std::string{"1a3"};
