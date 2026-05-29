@@ -48,7 +48,8 @@ TEST(Hexahedron, VolumeOfPerturbedUnitHex)
     Hexahedron tHex = create_coordinate_axis_aligned_hexahedron_from_cuboid(
         test_utilities::Cuboid{.mLength = 1.0, .mWidth = 1.0, .mHeight = 1.0});
 
-    tHex.mP100.x += 0.1;
+    constexpr auto tPerturbation = 0.1;
+    tHex.mP100.x += tPerturbation;
     const double tResult = tHex.volume();
     constexpr double tGold = 41. / 40;  // computed via matlab
 

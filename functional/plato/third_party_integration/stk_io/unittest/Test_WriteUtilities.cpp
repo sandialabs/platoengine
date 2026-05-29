@@ -187,11 +187,12 @@ TEST(WriteUtilities, WriteMultipleTimeSteps)
     // define field for first time step
     constexpr auto tField1Name = std::string_view{"ether"};
     auto tExpectedField1 = std::vector<double>(tNumberOfNodes);
-    std::iota(tExpectedField1.begin(), tExpectedField1.end(), 10.0);
+    constexpr auto tStart = 10.0;
+    std::iota(tExpectedField1.begin(), tExpectedField1.end(), tStart);
     const auto tData1 = full_map_from_vector(tExpectedField1);
 
     // define field for second time step
-    auto tExpectedField2 = std::vector<double>{54, 21, 86, 77, 88, 38, 71, 20};
+    const auto tExpectedField2 = std::vector<double>{54, 21, 86, 77, 88, 38, 71, 20};
     const auto tData2 = full_map_from_vector(tExpectedField2);
 
     // write inital time step

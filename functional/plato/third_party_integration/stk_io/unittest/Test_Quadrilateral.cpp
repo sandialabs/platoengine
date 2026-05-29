@@ -30,11 +30,19 @@ auto create_planar_quadrilateral_from_dimensions(const double aLength, const dou
 auto quadrilateral_from_coordinates(const std::valarray<double>& aCoordinates) -> Quadrilateral
 {
     assert(aCoordinates.size() == 12);
+    constexpr auto tNumberOfDimensions = 3U;
+
     return Quadrilateral{
         .mP00 = common::Coordinate{.x = aCoordinates[0], .y = aCoordinates[1], .z = aCoordinates[2]},
-        .mP10 = common::Coordinate{.x = aCoordinates[3], .y = aCoordinates[4], .z = aCoordinates[5]},
-        .mP11 = common::Coordinate{.x = aCoordinates[6], .y = aCoordinates[7], .z = aCoordinates[8]},
-        .mP01 = common::Coordinate{.x = aCoordinates[9], .y = aCoordinates[10], .z = aCoordinates[11]},
+        .mP10 = common::Coordinate{.x = aCoordinates[tNumberOfDimensions * 1U + 0U],
+                                   .y = aCoordinates[tNumberOfDimensions * 1U + 1U],
+                                   .z = aCoordinates[tNumberOfDimensions * 1U + 2U]},
+        .mP11 = common::Coordinate{.x = aCoordinates[tNumberOfDimensions * 2U + 0U],
+                                   .y = aCoordinates[tNumberOfDimensions * 2U + 1U],
+                                   .z = aCoordinates[tNumberOfDimensions * 2U + 2U]},
+        .mP01 = common::Coordinate{.x = aCoordinates[tNumberOfDimensions * 3U + 0U],
+                                   .y = aCoordinates[tNumberOfDimensions * 3U + 1U],
+                                   .z = aCoordinates[tNumberOfDimensions * 3U + 2U]},
     };
 }
 
@@ -58,9 +66,11 @@ void check_gradient_of_volume(const std::valarray<double>& aInitialCoordinates,
             return std::inner_product(begin(tSensitivities), end(tSensitivities), begin(aDirection), 0.0);
         }};
 
-    auto tRandomEngine = std::default_random_engine{123};
+    constexpr auto tRandomSeed = 123;
+    auto tRandomEngine = std::default_random_engine{tRandomSeed};  // NOLINT(cert-msc51-cpp,cert-msc32-c)
     const auto tRandomPerturbation = linear_algebra::random_perturbation_vector(12, tRandomEngine);
-    std::valarray<double> tDirection(tRandomPerturbation.stdVector().data(), tRandomPerturbation.stdVector().size());
+    const std::valarray<double> tDirection(tRandomPerturbation.stdVector().data(),
+                                           tRandomPerturbation.stdVector().size());
 
     EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(aInitialCoordinates, tDirection, aGradientCheckParameters), 0.0,
                 aFirstOrderTruncationErrorTolerance)
@@ -133,7 +143,8 @@ TEST(Quadrilateral, VolumeOfPerturbedUnitQuad)
     constexpr double tLength{1.0};
     constexpr double tHeight{1.0};
     Quadrilateral tQuad = create_planar_quadrilateral_from_dimensions(tLength, tHeight);
-    tQuad.mP10.x += 0.1;
+    constexpr auto tPerturbation = 0.1;
+    tQuad.mP10.x += tPerturbation;
     const double tResult = tQuad.volume();
     constexpr double tGold = 21. / 20;  // computed via matlab
 

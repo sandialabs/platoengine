@@ -88,8 +88,12 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverage)
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
 
     const auto tNodalCoordinates = nodal_coordinates(*tBulkData);
-    auto tXCoordinate =
-        tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return 3.0 * aCoordinate.x; });
+    auto tXCoordinate = tNodalCoordinates | std::views::transform(
+                                                [](const auto& aCoordinate)
+                                                {
+                                                    constexpr auto tArbitraryMultiplier = 3.0;
+                                                    return tArbitraryMultiplier * aCoordinate.x;
+                                                });
 
     const auto tNodalAverage = element_averaged_nodal_values(tXCoordinate, *tBulkData);
     // Computed by hand based on connectivity
@@ -130,7 +134,12 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverageElementProjection)
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
 
     auto tIota = std::views::iota(1U, mExpectedNumberOfElements + 1U) |
-                 std::views::transform([](const auto aIndex) { return 3.0 * static_cast<double>(aIndex); });
+                 std::views::transform(
+                     [](const auto aIndex)
+                     {
+                         constexpr auto tArbitraryMultiplier = 3.0;
+                         return tArbitraryMultiplier * static_cast<double>(aIndex);
+                     });
     const auto tElementValues = std::vector(tIota.begin(), tIota.end());
 
     const auto tNodalProjection = nodal_average_element_projection(tElementValues, *tBulkData);

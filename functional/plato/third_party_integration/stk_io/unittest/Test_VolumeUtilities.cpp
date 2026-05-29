@@ -154,8 +154,9 @@ TEST(STKVolumeUtilities, HexVolumeAndCoordinates)
 
 TEST(STKVolumeUtilities, TetVolumeAndCoordinates)
 {
+    constexpr auto tTetVolumeFactor = 6.0;
     test_first_element_volume_and_coordinates(
-        CommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}, CommandElementType::kTet}, 1.0 / 6.0,
+        CommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}, CommandElementType::kTet}, 1.0 / tTetVolumeFactor,
         {{0, 0, 0}, {1, 1, 0}, {0, 1, 0}, {1, 1, 1}});
 }
 
@@ -196,40 +197,48 @@ TEST(STKVolumeUtilities, ExternalMeshVolume_Box_3x4x7_tet)
 
 TEST(STKVolumeUtilities, ExternalMeshVolume_Box_2x4x10_hex_and_tet)
 {
-    read_mesh_and_test_volume("box_2x4x10_hex_and_tet.cdf", 2 * 4 * 10);
+    constexpr auto tExpectedVolume = 2.0 * 4.0 * 10.0;
+    read_mesh_and_test_volume("box_2x4x10_hex_and_tet.cdf", tExpectedVolume);
 }
 
 TEST(STKVolumeUtilities, ExternalMeshVolume_Rectangle_3x4_quad)
 {
-    read_mesh_and_test_volume("rectangle_3x4_quad4.cdf", 3 * 4);
+    constexpr auto tExpectedVolume = 3.0 * 4.0;
+    read_mesh_and_test_volume("rectangle_3x4_quad4.cdf", tExpectedVolume);
 }
 
 TEST(STKVolumeUtilities, ExternalMeshVolume_Rectangle_3x4_shell)
 {
-    read_mesh_and_test_volume("rectangle_3x4_shell4.cdf", 3 * 4);
+    constexpr auto tExpectedVolume = 3.0 * 4.0;
+    read_mesh_and_test_volume("rectangle_3x4_shell4.cdf", tExpectedVolume);
 }
 
 TEST(STKVolumeUtilities, ExternalMeshVolume_Rectangle_3x4_tri)
 {
-    read_mesh_and_test_volume("rectangle_3x4_tri3.cdf", 3 * 4);
+    constexpr auto tExpectedVolume = 3.0 * 4.0;
+    read_mesh_and_test_volume("rectangle_3x4_tri3.cdf", tExpectedVolume);
 }
 
 TEST(STKVolumeUtilities, ExternalMeshVolume_Rectangle_4x10_tri_and_shell)
 {
-    read_mesh_and_test_volume("rectangle_4x10_tri_and_shell.cdf", 4 * 10);
+    constexpr auto tExpectedVolume = 4.0 * 10.0;
+    read_mesh_and_test_volume("rectangle_4x10_tri_and_shell.cdf", tExpectedVolume);
 }
 
 TEST(STKVolumeUtilities, ElementCentroid_Hex)
 {
     // unit hex
-    create_single_element_mesh_test_centroid(CommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}},
-                                             common::Coordinate{0.5, 0.5, 0.5});
-
+    {
+        constexpr auto tExpectedCentroid = common::Coordinate{0.5, 0.5, 0.5};
+        create_single_element_mesh_test_centroid(CommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}}, tExpectedCentroid);
+    }
     // scaled hex
-    constexpr common::Coordinate tLower{-1.0, -2.0, -4.0};
-    constexpr common::Coordinate tUpper{6.0, 8.0, 2.0};
-    constexpr common::Coordinate tCentroid = (tLower + tUpper) / 2.0;
-    create_single_element_mesh_test_centroid(CommandGenerator{{1, 1, 1}, tLower, tUpper}, tCentroid);
+    {
+        constexpr common::Coordinate tLower{-1.0, -2.0, -4.0};
+        constexpr common::Coordinate tUpper{6.0, 8.0, 2.0};
+        constexpr common::Coordinate tCentroid = (tLower + tUpper) / 2.0;
+        create_single_element_mesh_test_centroid(CommandGenerator{{1, 1, 1}, tLower, tUpper}, tCentroid);
+    }
 }
 
 TEST(STKVolumeUtilities, ElementCentroids)
@@ -240,13 +249,18 @@ TEST(STKVolumeUtilities, ElementCentroids)
     const auto tCentroids = element_centroids(*tBulk);
     ASSERT_EQ(tCentroids.size(), 4U);
 
-    common::test_utilities::test_double_equality_of_components(tCentroids[0], {0.5, 0.5, 0.5},
+    constexpr auto tExpectedCentroid0 = common::Coordinate{0.5, 0.5, 0.5};
+    common::test_utilities::test_double_equality_of_components(tCentroids[0], tExpectedCentroid0,
                                                                TEST_CONTEXT("Element centroids 0"));
-    common::test_utilities::test_double_equality_of_components(tCentroids[1], {1.5, 0.5, 0.5},
+
+    constexpr auto tExpectedCentroid1 = common::Coordinate{1.5, 0.5, 0.5};
+    common::test_utilities::test_double_equality_of_components(tCentroids[1], tExpectedCentroid1,
                                                                TEST_CONTEXT("Element centroids 1"));
-    common::test_utilities::test_double_equality_of_components(tCentroids[2], {2.5, 0.5, 0.5},
+    constexpr auto tExpectedCentroid2 = common::Coordinate{2.5, 0.5, 0.5};
+    common::test_utilities::test_double_equality_of_components(tCentroids[2], tExpectedCentroid2,
                                                                TEST_CONTEXT("Element centroids 2"));
-    common::test_utilities::test_double_equality_of_components(tCentroids[3], {3.5, 0.5, 0.5},
+    constexpr auto tExpectedCentroid3 = common::Coordinate{3.5, 0.5, 0.5};
+    common::test_utilities::test_double_equality_of_components(tCentroids[3], tExpectedCentroid3,
                                                                TEST_CONTEXT("Element centroids 3"));
 }
 
