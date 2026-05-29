@@ -57,7 +57,8 @@ void create_mesh()
     const auto tNodes = node_entities_in_mesh(aKrinoMesh, tField);
 
     std::vector<double> tVector(tNodes.size(), 1);
-    auto tGenerator = [tN = tNodes.size(), tI = 0UL]() mutable -> double { return (tI++ < tN / 2) ? -1.0 : 1.0; };
+    auto tGenerator = [tSize = tNodes.size(), tIndex = 0UL]() mutable -> double
+    { return (tIndex++ < tSize / 2) ? -1.0 : 1.0; };
     std::generate_n(tVector.begin(), tNodes.size(), tGenerator);
 
     for (const auto [tNode, tValue] : utilities::Zip(tNodes, tVector))

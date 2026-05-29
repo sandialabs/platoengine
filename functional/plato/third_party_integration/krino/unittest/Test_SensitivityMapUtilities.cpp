@@ -35,7 +35,6 @@ class SensitivityMapUtilitiesFixture : public KrinoTestFixture
         cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields, SnappingParameters{});
     }
 
-   protected:
     std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
     std::vector<::krino::LS_Field> mLevelSetFields;
 };
