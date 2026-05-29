@@ -103,8 +103,8 @@ TEST(TpetraHelpers, CreateZeroedRowAndColumnVectorsFromCRSMatrix)
     const auto tCommunicator = Tpetra::getDefaultComm();
     constexpr int tNumberOfRows = 4;
     constexpr int tNumberOfColumns = 2;
-    const auto tCrsRowMap = Teuchos::rcp(new TpetraMap(tNumberOfColumns, 0, tCommunicator));
-    const auto tCrsDomainMap = Teuchos::rcp(new TpetraMap(tNumberOfRows, 0, tCommunicator));
+    const auto tCrsRowMap = Teuchos::rcp(std::make_unique<TpetraMap>(tNumberOfColumns, 0, tCommunicator).release());
+    const auto tCrsDomainMap = Teuchos::rcp(std::make_unique<TpetraMap>(tNumberOfRows, 0, tCommunicator).release());
 
     TpetraCRSMatrix tMatrix(tCrsRowMap, 3);
     tMatrix.fillComplete(tCrsDomainMap, tCrsRowMap);
