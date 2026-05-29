@@ -32,7 +32,8 @@ TEST(VectorWithValidDataPtr, ConstructionWithSize)
         EXPECT_NE(tVector.data(), nullptr) << aTestContext;
     };
     tCheckSizeAndDataPtr(0U, TEST_CONTEXT("Construction with zero size"));
-    tCheckSizeAndDataPtr(42U, TEST_CONTEXT("Construction with non-zero size"));
+    constexpr auto tArbitrarySize = 42U;
+    tCheckSizeAndDataPtr(tArbitrarySize, TEST_CONTEXT("Construction with non-zero size"));
 }
 
 TEST(VectorWithValidDataPtr, PushBack)
@@ -43,7 +44,7 @@ TEST(VectorWithValidDataPtr, PushBack)
 
     EXPECT_EQ(tVector.size(), 1U);
     ASSERT_NE(tVector.data(), nullptr);
-    EXPECT_EQ(tVector.data()[0], tEntry);
+    EXPECT_EQ(*tVector.data(), tEntry);
 }
 
 TEST(VectorWithValidDataPtr, EntryAccessor)

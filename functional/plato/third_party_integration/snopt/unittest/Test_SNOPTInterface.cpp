@@ -74,20 +74,29 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 
 [[nodiscard]] auto affine_linear_constraint_function()
 {
+    constexpr auto tCoefficient0 = 2.0;
+    constexpr auto tCoefficient1 = -1.0;
     return core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX)
-        { return test_utilities::vector_from_scalar(2.0 * aX[0] - aX[1] - 1.0); },
+        { return test_utilities::vector_from_scalar(tCoefficient0 * aX[0] + tCoefficient1 * aX[1] - 1.0); },
         [](const linear_algebra::DynamicVector<double>&)
-        { return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{2.0, -1.0}); });
+        {
+            return test_utilities::jacobian_from_gradient(
+                linear_algebra::DynamicVector<double>{tCoefficient0, tCoefficient1});
+        });
 }
 
 [[nodiscard]] auto nonlinear_constraint_function()
 {
+    constexpr auto tArbitraryMultiplier = -2.0;
     return core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX)
         { return test_utilities::vector_from_scalar(aX[1] - aX[0] * aX[0]); },
         [](const linear_algebra::DynamicVector<double>& aX)
-        { return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{-2.0 * aX[0], 1.0}); });
+        {
+            return test_utilities::jacobian_from_gradient(
+                linear_algebra::DynamicVector<double>{tArbitraryMultiplier * aX[0], 1.0});
+        });
 }
 
 /// @brief Components of constraint are \f$x = y\f$ and \f$x = 1\f$

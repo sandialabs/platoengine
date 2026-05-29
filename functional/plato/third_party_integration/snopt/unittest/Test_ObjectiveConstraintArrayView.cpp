@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <iterator>
-#include <memory>
 #include <numeric>
+#include <span>
 #include <vector>
 
 #include "plato/third_party_integration/snopt/ObjectiveConstraintArrayView.hpp"
@@ -28,11 +29,11 @@ constexpr auto kNumberOfObjectives = std::size_t{1};
 TEST(ObjectiveConstraintArrayView, ConstObjective)
 {
     constexpr auto tNumberOfConstraints = ConstraintSizeType{3};
-    const auto tArray = std::make_unique<int[]>(array_size(tNumberOfConstraints));
+    auto tArray = std::array<int, array_size(tNumberOfConstraints)>{};
 
     constexpr auto tExpectedObjective = 42;
     tArray[kObjectiveArrayIndex] = tExpectedObjective;
-    const auto tObjectiveConstraintArray = ObjectiveConstraintArrayView{tArray.get(), tNumberOfConstraints};
+    const auto tObjectiveConstraintArray = ObjectiveConstraintArrayView{tArray.data(), tNumberOfConstraints};
 
     EXPECT_EQ(tObjectiveConstraintArray.objective(), tExpectedObjective);
 }
@@ -40,8 +41,8 @@ TEST(ObjectiveConstraintArrayView, ConstObjective)
 TEST(ObjectiveConstraintArrayView, Objective)
 {
     constexpr auto tNumberOfConstraints = ConstraintSizeType{3};
-    const auto tArray = std::make_unique<int[]>(array_size(tNumberOfConstraints));
-    auto tObjectiveConstraintArray = ObjectiveConstraintArrayView{tArray.get(), tNumberOfConstraints};
+    auto tArray = std::array<int, array_size(tNumberOfConstraints)>{};
+    auto tObjectiveConstraintArray = ObjectiveConstraintArrayView{tArray.data(), tNumberOfConstraints};
 
     constexpr auto tExpectedObjective = 13;
     tObjectiveConstraintArray.objective() = tExpectedObjective;
@@ -52,15 +53,17 @@ TEST(ObjectiveConstraintArrayView, Objective)
 TEST(ObjectiveConstraintArrayView, ConstConstraintIterators)
 {
     constexpr auto tNumberOfConstraints = ConstraintSizeType{3};
-    const auto tArray = test_utilities::array_with_iota<int>(array_size(tNumberOfConstraints));
-    const auto tObjectiveConstraintArray = ObjectiveConstraintArrayView{tArray.get(), tNumberOfConstraints};
+    auto tArray = test_utilities::array_with_iota<int>(array_size(tNumberOfConstraints));
+    const auto tObjectiveConstraintArray = ObjectiveConstraintArrayView{tArray.data(), tNumberOfConstraints};
 
     EXPECT_EQ(
         std::distance(tObjectiveConstraintArray.constraints().begin(), tObjectiveConstraintArray.constraints().end()),
         tNumberOfConstraints.mValue);
 
-    EXPECT_EQ(tObjectiveConstraintArray.constraints().begin(), tArray.get() + kNumberOfObjectives);
-    EXPECT_EQ(tObjectiveConstraintArray.constraints().end(), tArray.get() + array_size(tNumberOfConstraints));
+    EXPECT_EQ(tObjectiveConstraintArray.constraints().begin(),
+              std::next(std::span<const int>{tArray}.begin(), kNumberOfObjectives));
+    EXPECT_EQ(tObjectiveConstraintArray.constraints().end(),
+              std::next(std::span<const int>{tArray}.begin(), array_size(tNumberOfConstraints)));
 
     auto tVectorFromIterators = std::vector<int>(tNumberOfConstraints.mValue);
     std::copy(tObjectiveConstraintArray.constraints().begin(), tObjectiveConstraintArray.constraints().end(),
@@ -75,14 +78,14 @@ TEST(ObjectiveConstraintArrayView, ConstraintIterators)
 {
     constexpr auto tNumberOfConstraints = ConstraintSizeType{3};
     constexpr auto tSize = array_size(tNumberOfConstraints);
-    const auto tArray = std::make_unique<int[]>(tSize);
-    auto tObjectiveConstraintArray = ObjectiveConstraintArrayView{tArray.get(), tNumberOfConstraints};
+    auto tArray = std::array<int, tSize>{};
+    auto tObjectiveConstraintArray = ObjectiveConstraintArrayView{tArray.data(), tNumberOfConstraints};
 
     std::iota(tObjectiveConstraintArray.constraints().begin(), tObjectiveConstraintArray.constraints().end(), 0);
 
     for (const auto tIndex : utilities::IndexRange{tNumberOfConstraints.mValue})
     {
-        EXPECT_EQ(tArray[tIndex + kNumberOfObjectives], tIndex);
+        EXPECT_EQ(tArray.at(tIndex + kNumberOfObjectives), tIndex);
     }
 }
 

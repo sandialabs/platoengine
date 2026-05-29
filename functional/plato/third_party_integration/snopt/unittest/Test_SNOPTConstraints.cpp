@@ -22,17 +22,19 @@ namespace plato::third_party_integration::snopt::unittest
 namespace
 {
 constexpr auto kScalarConstraintDimension = std::size_t{1U};
+constexpr auto kConstantTwo = 2.0;
+constexpr auto kConstantThree = 3.0;
 
-auto linear_function(const linear_algebra::DynamicVector<double>& aX) -> double { return 2.0 * aX[0] - aX[1]; }
+auto linear_function(const linear_algebra::DynamicVector<double>& aX) -> double { return kConstantTwo * aX[0] - aX[1]; }
 
 auto affine_linear_function(const linear_algebra::DynamicVector<double>& aX) -> double
 {
-    return 2.0 * aX[0] - aX[1] - 1.0;
+    return kConstantTwo * aX[0] - aX[1] - 1.0;
 }
 
 auto linear_function_gradient() -> linear_algebra::DynamicVector<double>
 {
-    return linear_algebra::DynamicVector<double>{2.0, -1.0};
+    return linear_algebra::DynamicVector<double>{kConstantTwo, -1.0};
 }
 
 const auto kLinearTestInterfaceFunction = plato::core::make_function_with_first_derivative(
@@ -66,28 +68,35 @@ const auto kInterfaceConstraints =
                 kNonlinearInterfaceConstraint, kLinearInterfaceConstraint};
 
 const auto kAffineLinearVectorTestFunction = plato::core::make_function_with_first_derivative(
-    [](const linear_algebra::DynamicVector<double>& aX) {
-        return linear_algebra::DynamicVector<double>{2.0 * aX[0] - aX[1], -2.0 * aX[0] + 3.0 * aX[1] + 2.0};
+    [](const linear_algebra::DynamicVector<double>& aX)
+    {
+        return linear_algebra::DynamicVector<double>{kConstantTwo * aX[0] - aX[1],
+                                                     -kConstantTwo * aX[0] + kConstantThree * aX[1] + kConstantTwo};
     },
     [](const linear_algebra::DynamicVector<double>&)
     {
         return linear_algebra::JacobianMultiplier{[](const linear_algebra::DynamicVector<double>& aVector)
                                                   {
                                                       return linear_algebra::DynamicVector<double>{
-                                                          2.0 * aVector[0] - 2.0 * aVector[1],
-                                                          -1.0 * aVector[0] + 3.0 * aVector[1]};
+                                                          kConstantTwo * aVector[0] - kConstantTwo * aVector[1],
+                                                          -1.0 * aVector[0] + kConstantThree * aVector[1]};
                                                   }};
     });
 
 const auto kArbitraryVectorTestFunction = plato::core::make_function_with_first_derivative(
-    [](const linear_algebra::DynamicVector<double>&) {
-        return linear_algebra::DynamicVector<double>{1.0, 2.0};
+    [](const linear_algebra::DynamicVector<double>&)
+    {
+        const auto tArbitraryVector = linear_algebra::DynamicVector<double>{1.0, 2.0};
+        return tArbitraryVector;
     },
     [](const linear_algebra::DynamicVector<double>&)
     {
-        return linear_algebra::JacobianMultiplier{[](const linear_algebra::DynamicVector<double>&) {
-            return linear_algebra::DynamicVector<double>{-1.0, -2.0};
-        }};
+        return linear_algebra::JacobianMultiplier{[](const linear_algebra::DynamicVector<double>&)
+                                                  {
+                                                      const auto tArbitraryVector =
+                                                          linear_algebra::DynamicVector<double>{-1.0, -2.0};
+                                                      return tArbitraryVector;
+                                                  }};
     });
 
 const auto kVectorConstraintDimension = std::size_t{2U};
