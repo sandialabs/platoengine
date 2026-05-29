@@ -14,7 +14,8 @@ namespace
 {
 struct Active
 {
-    boost::optional<bool> mActive = boost::none;
+    // Uses `active` instead of `mActive` to match input blocks
+    boost::optional<bool> active = boost::none;  // NOLINT(readability-identifier-naming)
 };
 }  // namespace
 
@@ -23,9 +24,10 @@ TEST(InputBlockWrapper, SetAndGet)
     InputBlockWrapper tInput{};
     // r-value
     {
-        tInput.set(88);
+        constexpr auto tArbitraryValue = 88;
+        tInput.set(tArbitraryValue);
         ASSERT_NO_THROW([[maybe_unused]] const auto tObject = tInput.get<int>());
-        EXPECT_EQ(tInput.get<int>(), 88);
+        EXPECT_EQ(tInput.get<int>(), tArbitraryValue);
     }
     // l-value
     {
@@ -47,8 +49,9 @@ TEST(InputBlockWrapper, SetAndGet)
 
 TEST(InputBlockWrapper, HoldsExpectedType)
 {
+    constexpr auto tArbitraryValue = 86;
     InputBlockWrapper tInput{};
-    tInput.set(86);
+    tInput.set(tArbitraryValue);
     EXPECT_FALSE(tInput.holdsExpectedType<double>());
     EXPECT_FALSE(tInput.holdsExpectedType<unsigned int>());
     EXPECT_FALSE(tInput.holdsExpectedType<char>());
@@ -59,13 +62,15 @@ TEST(InputBlockWrapper, HasValue)
 {
     InputBlockWrapper tInput{};
     EXPECT_FALSE(tInput.hasValue());
-    tInput.set(38);
+    constexpr auto tArbitraryValue = 38;
+    tInput.set(tArbitraryValue);
     EXPECT_TRUE(tInput.hasValue());
 }
 
 TEST(InputBlockWrapper, MutatingGet)
 {
-    auto tInput = InputBlockWrapper{101};
+    constexpr auto tArbitraryInitialValue = 101;
+    auto tInput = InputBlockWrapper{tArbitraryInitialValue};
     ASSERT_TRUE(tInput.holdsExpectedType<int>());
     constexpr auto tNewValue = 42;
     tInput.get<int>() = tNewValue;

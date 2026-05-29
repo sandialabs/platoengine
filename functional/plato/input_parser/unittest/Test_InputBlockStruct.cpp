@@ -36,16 +36,22 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 
 namespace plato::input_parser::unittest
 {
+namespace
+{
+constexpr auto kArbitraryInt = 42;
+constexpr auto kArbitraryDouble = 0.5;
+}  // namespace
+
 TEST(InputBlockStruct, Named)
 {
     // These are mostly compile-time checks
     TestNamedBlock tTestBlock;
     tTestBlock.name = "rockemsockem";
-    tTestBlock.field1 = 42;
-    tTestBlock.field2 = 0.5;
+    tTestBlock.field1 = kArbitraryInt;
+    tTestBlock.field2 = kArbitraryDouble;
     test_utilities::test_existence_and_equality(tTestBlock.name, "rockemsockem");
-    test_utilities::test_existence_and_equality(tTestBlock.field1, 42);
-    test_utilities::test_existence_and_equality(tTestBlock.field2, 0.5);
+    test_utilities::test_existence_and_equality(tTestBlock.field1, kArbitraryInt);
+    test_utilities::test_existence_and_equality(tTestBlock.field2, kArbitraryDouble);
     EXPECT_TRUE(kIsNamedBlock<TestNamedBlock>);
     EXPECT_EQ(InputTypeName<TestNamedBlock>::mName, "TestNamedBlock");
 }
@@ -55,11 +61,11 @@ TEST(InputBlockStruct, UnNamed)
     // These are mostly compile-time checks
     TestUnnamedBlock tTestBlock;
     tTestBlock.field1 = true;
-    tTestBlock.field2 = 42;
-    tTestBlock.field3 = 0.5;
+    tTestBlock.field2 = kArbitraryInt;
+    tTestBlock.field3 = kArbitraryDouble;
     test_utilities::test_existence_and_equality(tTestBlock.field1, true);
-    test_utilities::test_existence_and_equality(tTestBlock.field2, 42);
-    test_utilities::test_existence_and_equality(tTestBlock.field3, 0.5);
+    test_utilities::test_existence_and_equality(tTestBlock.field2, kArbitraryInt);
+    test_utilities::test_existence_and_equality(tTestBlock.field3, kArbitraryDouble);
     EXPECT_FALSE(kIsNamedBlock<TestUnnamedBlock>);
     EXPECT_EQ(InputTypeName<TestUnnamedBlock>::mName, "TestUnnamedBlock");
 }
@@ -74,8 +80,8 @@ TEST(InputBlockStruct, ComponentTypeOfInputBlock)
 TEST(InputBlockStruct, ProcessManager)
 {
     auto tTestBlock = TestProcessManagerBlock{};
-    tTestBlock.field1 = 42;
-    test_utilities::test_existence_and_equality(tTestBlock.field1, 42);
+    tTestBlock.field1 = kArbitraryInt;
+    test_utilities::test_existence_and_equality(tTestBlock.field1, kArbitraryInt);
 }
 
 }  // namespace plato::input_parser::unittest
