@@ -19,7 +19,11 @@ namespace
 {
     return core::make_function_with_first_derivative([](const analysis::AnalysisDomainMesh&) { return 0.0; },
                                                      [](const analysis::AnalysisDomainMesh&)
-                                                     { return linear_algebra::DynamicVector<double>{1.0, 2.0}; });
+                                                     {
+                                                         const auto tArbitraryGradient =
+                                                             linear_algebra::DynamicVector<double>{1.0, 2.0};
+                                                         return tArbitraryGradient;
+                                                     });
 }
 
 constexpr auto kTestCriterionName = std::string_view{"test"};

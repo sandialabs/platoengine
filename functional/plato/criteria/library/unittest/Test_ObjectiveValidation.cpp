@@ -22,16 +22,17 @@ TEST(ObjectiveValidation, ParallelObjectives)
         EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 1U);
         EXPECT_FALSE(criteria::library::has_parallel_objective(tInput));
     }
+    constexpr auto tArbitraryNumberOfProcessors = 42U;
     {
         // Set number_of_processors to 42
-        tInput.front().number_of_processors = 42U;
-        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 42U);
+        tInput.front().number_of_processors = tArbitraryNumberOfProcessors;
+        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), tArbitraryNumberOfProcessors);
         EXPECT_TRUE(criteria::library::has_parallel_objective(tInput));
     }
     {
         // Add another objective with 1 processor
         tInput.push_back(test_utilities::create_valid_example_objective_input());
-        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 43U);
+        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), tArbitraryNumberOfProcessors + 1U);
         EXPECT_TRUE(criteria::library::has_parallel_objective(tInput));
     }
 }
@@ -62,9 +63,10 @@ TEST(ObjectiveValidation, ValidateAggregationWeight)
     namespace pfcd = plato::criteria::library::detail;
     auto tObjective = input_parser::objective{};
     EXPECT_TRUE(pfcd::validate_aggregation_weight(tObjective).has_value());
-    tObjective.aggregation_weight = 13.0;
+    constexpr auto tValidAggregationWeight = 13.0;
+    tObjective.aggregation_weight = tValidAggregationWeight;
     EXPECT_FALSE(pfcd::validate_aggregation_weight(tObjective).has_value());
-    tObjective.aggregation_weight = -13.0;
+    tObjective.aggregation_weight = -tValidAggregationWeight;
     EXPECT_TRUE(pfcd::validate_aggregation_weight(tObjective).has_value());
 }
 

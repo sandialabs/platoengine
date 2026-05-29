@@ -340,7 +340,7 @@ auto create_overhang_criterion() -> OverhangCriterion
     constexpr double tOverhangAngleInDegrees{45.0};
     const double tOverhangThreshold{detail::convert_angle_to_threshold_value(tOverhangAngleInDegrees)};
     const third_party_integration::common::Vector3 tBuildDirection{.x = 0, .y = 1, .z = 0};
-    return OverhangCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold, tSidesetNames);
+    return {tTransitionWidth, tBuildDirection, tOverhangThreshold, tSidesetNames};
 }
 
 }  // namespace

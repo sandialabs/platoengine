@@ -130,11 +130,12 @@ TEST(ConstraintValidation, ConstraintComponentNames)
     const auto tAppConfigurations = services::app_configurations({tTestDirectorySetupTeardown.directory()});
     const auto tBaseConstraint = base_constraint(tTestAppName, input_parser::CriterionName{"vector-with-components"});
 
+    constexpr auto tArbitraryComponentTarget = 42.0;
     // All components match
     {
         auto tConstraint = tBaseConstraint;
         tConstraint.constraint_value_list = ConstraintValueList{{input_parser::ComponentAndTarget{
-            /*.component=*/input_parser::IdentifierString{"europe"}, /*.target=*/42.0}}};
+            /*.component=*/input_parser::IdentifierString{"europe"}, /*.target=*/tArbitraryComponentTarget}}};
         EXPECT_FALSE(detail::validate_constraint_component_names(tConstraint, tAppConfigurations).has_value());
     }
     // Misspelled component
@@ -142,7 +143,7 @@ TEST(ConstraintValidation, ConstraintComponentNames)
         auto tConstraint = tBaseConstraint;
 
         tConstraint.constraint_value_list = ConstraintValueList{{input_parser::ComponentAndTarget{
-            /*.component=*/input_parser::IdentifierString{"murica"}, /*.target=*/42.0}}};
+            /*.component=*/input_parser::IdentifierString{"murica"}, /*.target=*/tArbitraryComponentTarget}}};
         EXPECT_TRUE(detail::validate_constraint_component_names(tConstraint, tAppConfigurations).has_value());
     }
 }

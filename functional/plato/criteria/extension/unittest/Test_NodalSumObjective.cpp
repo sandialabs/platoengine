@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <string_view>
 #include <vector>
 
@@ -53,7 +54,7 @@ TEST(NodalSumObjective, Gradient111)
         {1, 2, 3}, {0, 0, 0}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::kHex};
     third_party_integration::stk_io::write_mesh(kTestFile, tCommandGenerator);
 
-    constexpr int tNumCoordsPerNode = 3;
+    constexpr auto tNumCoordsPerNode = std::size_t{3};
     const auto tExpected = std::vector<double>(tNumCoordsPerNode * tCommandGenerator.numberOfNodes(), 1.0);
     const std::vector tComputed =
         plato::criteria::extension::NodalSumObjective::df(analysis::AnalysisDomainMesh{kTestFile, {}}).stdVector();

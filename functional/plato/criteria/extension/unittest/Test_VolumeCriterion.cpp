@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <boost/none.hpp>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -119,7 +120,7 @@ void write_perturbed_mesh_to_file(const linear_algebra::DynamicVector<double>& a
 
 struct InputFileIO
 {
-    InputFileIO(const std::vector<std::string>& aFileLines)
+    explicit InputFileIO(const std::vector<std::string>& aFileLines)
     {
         std::ofstream tTextFile(mFileName);
         tTextFile << "begin volume\n";
@@ -135,6 +136,11 @@ struct InputFileIO
 
     ~InputFileIO() { std::filesystem::remove(mFileName); }
 
+    InputFileIO(const InputFileIO&) = delete;
+    InputFileIO(InputFileIO&&) = delete;
+    auto operator=(const InputFileIO&) -> InputFileIO& = delete;
+    auto operator=(InputFileIO&&) -> InputFileIO& = delete;
+
     std::filesystem::path mFileName{"dummy_input.i"};
 };
 
@@ -142,17 +148,19 @@ struct InputFileIO
 
 TEST(VolumeCriterion, Volume)
 {
+    constexpr auto tUpperBounds = third_party_integration::common::Coordinate{2.0, 2.0, 3.0};
     test_scaled_and_unscaled_on_ctor_and_function(
         third_party_integration::stk_io::CommandGenerator{
-            {4, 4, 4}, {0, 0, 0}, {2.0, 2.0, 3.0}, third_party_integration::stk_io::CommandElementType::kHex},
+            {4, 4, 4}, {0, 0, 0}, tUpperBounds, third_party_integration::stk_io::CommandElementType::kHex},
         kMeshFile);
 }
 
 TEST(VolumeCriterion, VolumeTetMesh)
 {
+    constexpr auto tUpperBounds = third_party_integration::common::Coordinate{1.0, 2.0, 3.0};
     test_scaled_and_unscaled_on_ctor_and_function(
         third_party_integration::stk_io::CommandGenerator{
-            {4, 4, 4}, {0, 0, 0}, {1.0, 2.0, 3.0}, third_party_integration::stk_io::CommandElementType::kTet},
+            {4, 4, 4}, {0, 0, 0}, tUpperBounds, third_party_integration::stk_io::CommandElementType::kTet},
         kMeshFile);
 }
 
@@ -242,12 +250,19 @@ TEST_F(TwoDThreeBlockMesh, GradientVolumeCriterionWithFixedBlocks)
 TEST_F(TwoDThreeBlockMesh, VolumeCriterionNodalCoordinateGradientCheck)
 {
     auto tMesh = mesh::Mesh{mMeshFilePath};
-    const auto tSpatialDimensions = mesh::EntityCounts{tMesh}.spatialDimensions();
+    const auto tSpatialDimensions = static_cast<std::size_t>(mesh::EntityCounts{tMesh}.spatialDimensions());
     const auto tOriginalCoordinates =
         mesh::nodal_vector_field_to_dynamic_vector(mesh::EntityRetrieval{tMesh}.nodalCoordinates(), tSpatialDimensions);
+<<<<<<< HEAD
     const auto tNumNodes = mesh::EntityCounts{tMesh}.numberOfNodes();
     auto tRandomEngine = std::default_random_engine{123};
     const auto tDirection = linear_algebra::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
+=======
+    const auto tNumNodes = static_cast<std::size_t>(mesh::EntityCounts{tMesh}.numberOfNodes());
+    constexpr auto tRandomSeed = 123;
+    auto tRandomEngine = std::default_random_engine{tRandomSeed};  // NOLINT(cert-msc51-cpp,cert-msc32-c)
+    const auto tDirection = test_utilities::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
+>>>>>>> 1d9ebcc9f7 (Fixes clang-tidy errors in criteria unit tests)
 
     const auto tChecker = plato::utilities::GradientChecker{
         [tMeshFilePath = mMeshFilePath](const linear_algebra::DynamicVector<double>& aCoordinates)
