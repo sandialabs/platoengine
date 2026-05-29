@@ -14,13 +14,16 @@ namespace plato::core::unittest
 
 namespace
 {
+constexpr auto kQuadraticExponent = 2.0;
+
 // Tests f(g(tX)) and g(f(x)), with f(x) = x^2 and g(x) = 2x
 auto create_pair_of_compositions_of_quadratic_and_linear()
 {
     const auto tF = make_function_with_first_derivative([](const double aX) { return aX * aX; },
-                                                        [](const double aX) { return 2.0 * aX; });
-    const auto tG =
-        make_function_with_first_derivative([](const double aX) { return 2.0 * aX; }, [](const double) { return 2.0; });
+                                                        [](const double aX) { return kQuadraticExponent * aX; });
+    constexpr auto tArbitraryMultiplier = 2.0;
+    const auto tG = make_function_with_first_derivative([](const double aX) { return tArbitraryMultiplier * aX; },
+                                                        [](const double) { return tArbitraryMultiplier; });
 
     return std::make_pair(compose(tF, tG), compose(tG, tF));
 }
@@ -54,11 +57,15 @@ TEST(Composer, EvaluateCompositionThreeFunctions)
     //  g(tX) = sin(x)
     //  h(tX) = x^2
     const auto tF = make_function_with_first_derivative([](const double aX) { return std::sqrt(aX); },
-                                                        [](const double aX) { return 0.5 / std::sqrt(aX); });
+                                                        [](const double aX)
+                                                        {
+                                                            constexpr auto tConstant = 0.5;
+                                                            return tConstant / std::sqrt(aX);
+                                                        });
     const auto tG = make_function_with_first_derivative([](const double aX) { return std::sin(aX); },
                                                         [](const double aX) { return std::cos(aX); });
     const auto tH = make_function_with_first_derivative([](const double aX) { return aX * aX; },
-                                                        [](const double aX) { return 2.0 * aX; });
+                                                        [](const double aX) { return kQuadraticExponent * aX; });
 
     const auto tHOfGOfF = compose(tH, compose(tG, tF));
     constexpr double tExpectedValue = 7.080734182735712e-01;  // From Matlab
@@ -142,7 +149,7 @@ TEST(Compose, CompositionScalarFunctions)
         ScalarFunctionWithFirstDerivative{[](const double aX) { return aX + 1; }, [](const double) { return 1.0; }};
 
     const auto tFunction2 = ScalarFunctionWithFirstDerivative{[](const double aX) { return aX * aX; },
-                                                              [](const double aX) { return 2.0 * aX; }};
+                                                              [](const double aX) { return kQuadraticExponent * aX; }};
 
     {
         // x^2 + 1

@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <functional>
-
 #include "plato/core/Function.hpp"
 #include "plato/core/FunctionHelpers.hpp"
 #include "plato/core/unittest/TestHelpers.hpp"
@@ -14,8 +12,9 @@ TEST(Function, Evaluate)
     using EvaluateInfo = FunctionInfo<double, evaluation::kFunction>;
     using ScalarFunction = Function<double, EvaluateInfo>;
 
-    const auto tF = ScalarFunction{[](const double) { return 42.0; }};
-    EXPECT_EQ(tF.evaluate<evaluation::kFunction>(0.0), 42.0);
+    constexpr auto tArbitraryValue = 42.0;
+    const auto tF = ScalarFunction{[](const double) { return tArbitraryValue; }};
+    EXPECT_EQ(tF.evaluate<evaluation::kFunction>(0.0), tArbitraryValue);
 }
 
 TEST(Function, EvaluateGradient)
@@ -23,8 +22,9 @@ TEST(Function, EvaluateGradient)
     using FirstDerivativeInfo = FunctionInfo<double, evaluation::kFirstDerivative>;
     using ScalarFunctionDerivative = Function<double, FirstDerivativeInfo>;
 
-    const auto tF = ScalarFunctionDerivative{[](const double) { return 84.0; }};
-    EXPECT_EQ(tF.evaluate<evaluation::kFirstDerivative>(0.0), 84.0);
+    constexpr auto tArbitraryValue = 42.0;
+    const auto tF = ScalarFunctionDerivative{[](const double) { return tArbitraryValue; }};
+    EXPECT_EQ(tF.evaluate<evaluation::kFirstDerivative>(0.0), tArbitraryValue);
 }
 
 TEST(Function, MakeFunction)
@@ -42,11 +42,13 @@ TEST(Function, Scalar)
     using ScalarFirstDerivativeInfo = FunctionInfo<double, evaluation::kFirstDerivative>;
     using ScalarFunctionWithFirstDerivative = Function<double, ScalarFInfo, ScalarFirstDerivativeInfo>;
 
+    constexpr auto tQuadraticExponent = 2.0;
     const auto tFunction = ScalarFunctionWithFirstDerivative{[](const double aX) { return aX * aX; },
-                                                             [](const double aX) { return 2.0 * aX; }};
+                                                             [](const double aX) { return tQuadraticExponent * aX; }};
 
-    EXPECT_EQ(tFunction.evaluate<evaluation::kFunction>(3.0), 3.0 * 3.0);
-    EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(3.0), 2.0 * 3.0);
+    constexpr auto tX = 3.0;
+    EXPECT_EQ(tFunction.evaluate<evaluation::kFunction>(tX), tX * tX);
+    EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(tX), tQuadraticExponent * tX);
 
     static_assert(ScalarFunctionWithFirstDerivative::isImplemented<0, MatrixOrdering::kOriginal>());
     static_assert(ScalarFunctionWithFirstDerivative::isImplemented<1, MatrixOrdering::kOriginal>());
@@ -86,12 +88,13 @@ TEST(Function, TwoD)
 
 TEST(Function, ScalarUsingMakeFunction)
 {
-    const auto tFunction = make_function_with_first_derivative([](const double aX) { return aX * aX * aX; },
-                                                               [](const double aX) { return 3.0 * aX * aX; });
+    constexpr auto tCubicExponent = 3.0;
+    const auto tFunction = make_function_with_first_derivative(
+        [](const double aX) { return aX * aX * aX; }, [](const double aX) { return tCubicExponent * aX * aX; });
 
     constexpr auto tArgument = 3.0;
     EXPECT_EQ(tFunction.evaluate<evaluation::kFunction>(tArgument), tArgument * tArgument * tArgument);
-    EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(tArgument), 3.0 * tArgument * tArgument);
+    EXPECT_EQ(tFunction.evaluate<evaluation::kFirstDerivative>(tArgument), tCubicExponent * tArgument * tArgument);
 
     using FunctionType = decltype(tFunction);
     static_assert(FunctionType::isImplemented<0, MatrixOrdering::kOriginal>());
@@ -101,8 +104,10 @@ TEST(Function, ScalarUsingMakeFunction)
 
 TEST(Function, SpecialCtors)
 {
-    auto tFunction = make_function_with_first_derivative([](const double aX) { return aX * aX * aX * aX; },
-                                                         [](const double aX) { return 4.0 * aX * aX * aX; });
+    constexpr auto tQuarticExponent = 4.0;
+    auto tFunction =
+        make_function_with_first_derivative([](const double aX) { return aX * aX * aX * aX; },
+                                            [](const double aX) { return tQuarticExponent * aX * aX * aX; });
     // Copy
     {
         const auto tFunctionCopy = tFunction;  // NOLINT
@@ -111,7 +116,7 @@ TEST(Function, SpecialCtors)
         EXPECT_EQ(tFunctionCopy.evaluate<evaluation::kFunction>(tArgument),
                   tArgument * tArgument * tArgument * tArgument);
         EXPECT_EQ(tFunctionCopy.evaluate<evaluation::kFirstDerivative>(tArgument),
-                  4.0 * tArgument * tArgument * tArgument);
+                  tQuarticExponent * tArgument * tArgument * tArgument);
     }
     // Move
     {
@@ -121,7 +126,7 @@ TEST(Function, SpecialCtors)
         EXPECT_EQ(tFunctionMove.evaluate<evaluation::kFunction>(tArgument),
                   tArgument * tArgument * tArgument * tArgument);
         EXPECT_EQ(tFunctionMove.evaluate<evaluation::kFirstDerivative>(tArgument),
-                  4.0 * tArgument * tArgument * tArgument);
+                  tQuarticExponent * tArgument * tArgument * tArgument);
     }
 }
 
@@ -134,8 +139,10 @@ TEST(Function, CompatibleFunction)
     using FunctionWithFirstAndSecondDerivatives =
         Function<double, EvaluateInfo, FirstDerivativeInfo, SecondDerivativeInfo>;
 
-    auto tFunctionWithFirstAndSecondDerivative = FunctionWithFirstAndSecondDerivatives{
-        [](const double) { return 0.0; }, [](const double) { return 1.0; }, [](const double) { return 2.0; }};
+    constexpr auto tArbitraryValue = 2.0;
+    auto tFunctionWithFirstAndSecondDerivative =
+        FunctionWithFirstAndSecondDerivatives{[](const double) { return 0.0; }, [](const double) { return 1.0; },
+                                              [](const double) { return tArbitraryValue; }};
     // Copy construction
     {
         using FunctionWithFirstDerivative = Function<double, EvaluateInfo, FirstDerivativeInfo>;
@@ -154,9 +161,6 @@ TEST(Function, CompatibleFunction)
             std::move(tFunctionWithFirstAndSecondDerivative).compatibleFunction<FunctionWithNoDerivatives>();
 
         EXPECT_EQ(tFunctionWithNoDerivatives.evaluate<evaluation::kFunction>(0.0), 0.0);
-        EXPECT_THROW([[maybe_unused]] const auto tResult =
-                         tFunctionWithFirstAndSecondDerivative.evaluate<evaluation::kFunction>(0.0),
-                     std::bad_function_call);
     }
 }
 

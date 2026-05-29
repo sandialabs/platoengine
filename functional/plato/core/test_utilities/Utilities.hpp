@@ -15,8 +15,8 @@ template <typename FunctionObject>
 {
     namespace pftu = plato::test_utilities;
     return make_function_with_first_derivative(
-        [aFunctionObject](const pftu::TwoDVector& aX) { return aFunctionObject.f(aX(0), aX(1)); },
-        [aFunctionObject](const pftu::TwoDVector& aX) { return aFunctionObject.df(aX(0), aX(1)); });
+        [aFunctionObject](const pftu::TwoDVector& aVector) { return aFunctionObject.f(aVector(0), aVector(1)); },
+        [aFunctionObject](const pftu::TwoDVector& aVector) { return aFunctionObject.df(aVector(0), aVector(1)); });
 }
 
 }  // namespace plato::core::test_utilities

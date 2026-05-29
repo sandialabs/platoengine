@@ -62,9 +62,10 @@ TEST(ParallelAggregate, EvaluateDifferent)
         GTEST_SKIP() << "Test requires more than 1 rank.";
     }
 
-    constexpr double tA = 2.0;
-    constexpr double tB = 50.0;
-    const auto tRosenbrockFunctionNonDefault = test_utilities::make_two_d_function(pft::Rosenbrock{tA, tB});
+    constexpr double tAParameter = 2.0;
+    constexpr double tBParameter = 50.0;
+    const auto tRosenbrockFunctionNonDefault =
+        test_utilities::make_two_d_function(pft::Rosenbrock{tAParameter, tBParameter});
     const auto tRosenbrockFunctionDefault = test_utilities::make_two_d_function(pft::Rosenbrock{});
 
     using RosenbrockF = std::decay_t<decltype(tRosenbrockFunctionNonDefault)>;
