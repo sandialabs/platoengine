@@ -285,5 +285,5 @@ CheckOptions:
   - key:             readability-identifier-length.IgnoredVariableNames
     value:           'tX|tY|tZ|tF|tG|tH'
   - key:             readability-identifier-length.IgnoredParameterNames
-    value:           'aX|aV|aF|aG'
+    value:           'aX|aY|aZ|aV|aF|aG'
 ...
