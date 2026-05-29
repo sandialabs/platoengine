@@ -68,7 +68,7 @@ TEST(ParameterBuilder, MakeGeneralOutputLevel)
 
 TEST(ParameterBuilder, MakeStepCompositeStepOutputLevel)
 {
-    const auto tVerboseDefault = 0;
+    constexpr auto tVerboseDefault = 0;
     test_make_parameter_function<int>(
         [](const std::optional<int> aValue) { return make_step_composite_step_output_level(aValue); },
         {"Step", "Composite Step"}, "Output Level", tVerboseDefault, TEST_CONTEXT("Composite step output"));
@@ -76,9 +76,10 @@ TEST(ParameterBuilder, MakeStepCompositeStepOutputLevel)
 
 TEST(ParameterBuilder, MakeTrustRegionInitialRadius)
 {
-    test_make_parameter_function<double>(
-        [](const std::optional<double> aValue) { return make_trust_region_initial_radius(aValue); },
-        {"Step", "Trust Region"}, "Initial Radius", 15, TEST_CONTEXT("Trust region radius"));
+    constexpr auto tDefaultValue = 15;
+    test_make_parameter_function<double>([](const std::optional<double> aValue)
+                                         { return make_trust_region_initial_radius(aValue); }, {"Step", "Trust Region"},
+                                         "Initial Radius", tDefaultValue, TEST_CONTEXT("Trust region radius"));
 }
 
 TEST(ParameterBuilder, MakeGeneralInexactHessian)

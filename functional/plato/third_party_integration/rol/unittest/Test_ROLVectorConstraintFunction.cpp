@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <math.h>
 
+#include <cmath>
 #include <utility>
 #include <vector>
 
@@ -103,7 +103,8 @@ TEST(ROLVectorConstraintFunction, Hessian)
 
     constexpr auto tArbitraryControlValue = 10.0;
     const auto tControls = std::vector<double>{tArbitraryControlValue, tArbitraryControlValue};
-    auto tHessianUV = std::vector{10.0, 11.0};
+    const auto tArbitraryInitialHessian = std::vector{10.0, 11.0};
+    auto tHessianUV = tArbitraryInitialHessian;
     const auto tDirection = std::vector{1.0, 1.0};
     double tTolerance = NAN;
     tROLVectorConstraintFunction.applyAdjointHessian(tHessianUV, tDirection, tDirection, tControls, tTolerance);

@@ -76,7 +76,7 @@ template <typename MemberFunction, typename MakeFunction, typename T>
 void test_generic_set_and_member_function(const MemberFunction& aMemberFunction,
                                           const MakeFunction& aMakeFunction,
                                           const T aGoldSetValue,
-                                          const test_utilities::TestContext aTestContext)
+                                          const test_utilities::TestContext& aTestContext)
 {
     const auto tDefault = aMakeFunction(std::nullopt);
     const auto tSetValue = aMakeFunction(aGoldSetValue);
@@ -170,34 +170,37 @@ TEST(ROLOptimizationParameters, ApproximateHessian)
 
 TEST(ROLOptimizationParameters, GradientTolerance)
 {
+    constexpr auto tParameterValue = 1e-3;
     test_generic_set_and_member_function(
         [](OptimizationParameters& aParameter, const double aSetValue) { aParameter.gradientTolerance(aSetValue); },
-        [](const std::optional<double> aValue) { return make_status_test_gradient_tolerance(aValue); }, 1e-3,
+        [](const std::optional<double> aValue) { return make_status_test_gradient_tolerance(aValue); }, tParameterValue,
         TEST_CONTEXT("Gradient Tolerance"));
 }
 
 TEST(ROLOptimizationParameters, StepTolerance)
 {
+    constexpr auto tParameterValue = 1e-2;
     test_generic_set_and_member_function(
         [](OptimizationParameters& aParameter, const double aSetValue) { aParameter.stepTolerance(aSetValue); },
-        [](const std::optional<double> aValue) { return make_status_test_step_tolerance(aValue); }, 1e-2,
+        [](const std::optional<double> aValue) { return make_status_test_step_tolerance(aValue); }, tParameterValue,
         TEST_CONTEXT("Step Tolerance"));
 }
 
 TEST(ROLOptimizationParameters, InitialSearchRadius)
 {
+    constexpr auto tParameterValue = 13;
     test_generic_set_and_member_function(
         [](OptimizationParameters& aParameter, const double aSetValue) { aParameter.initialSearchRadius(aSetValue); },
-        [](const std::optional<double> aValue) { return make_trust_region_initial_radius(aValue); }, 13,
+        [](const std::optional<double> aValue) { return make_trust_region_initial_radius(aValue); }, tParameterValue,
         TEST_CONTEXT("Initial search radius"));
 }
 
 TEST(ROLOptimizationParameters, MaximumIterations)
 {
-    test_generic_set_and_member_function([](OptimizationParameters& aParameter, const int aSetValue)
-                                         { aParameter.maximumIterations(static_cast<unsigned>(aSetValue)); },
-                                         [](const std::optional<int> aValue)
-                                         { return make_status_test_iteration_limit(aValue); },
-                                         13, TEST_CONTEXT("Iteration limit"));
+    constexpr auto tParameterValue = 13;
+    test_generic_set_and_member_function(
+        [](OptimizationParameters& aParameter, const int aSetValue)
+        { aParameter.maximumIterations(static_cast<unsigned>(aSetValue)); }, [](const std::optional<int> aValue)
+        { return make_status_test_iteration_limit(aValue); }, tParameterValue, TEST_CONTEXT("Iteration limit"));
 }
 }  // namespace plato::third_party_integration::rol::unittest

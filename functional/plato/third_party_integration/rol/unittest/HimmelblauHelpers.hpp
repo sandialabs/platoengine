@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/output/OutputManager.hpp"
+#include "plato/test_utilities/Himmelblau.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 
 namespace plato::third_party_integration::rol::unittest
@@ -11,26 +12,12 @@ namespace plato::third_party_integration::rol::unittest
 namespace detail
 {
 
-constexpr double kControlX = 1.2;
-constexpr double kControlY = .5;
-[[nodiscard]] constexpr auto himmelblau_term_one(double aX, double aY) -> double { return aX * aX + aY - 11.0; }
-[[nodiscard]] constexpr auto himmelblau_term_two(double aX, double aY) -> double { return aX + aY * aY - 7.0; }
-[[nodiscard]] constexpr auto himmelblau_value(double aX, double aY) -> double
-{
-    return himmelblau_term_one(aX, aY) * himmelblau_term_one(aX, aY) +
-           himmelblau_term_two(aX, aY) * himmelblau_term_two(aX, aY);
-}
-[[nodiscard]] constexpr auto himmelblau_derivative_x(double aX, double aY) -> double
-{
-    return 4 * aX * himmelblau_term_one(aX, aY) + 2 * himmelblau_term_two(aX, aY);
-}
-[[nodiscard]] constexpr auto himmelblau_derivative_y(double aX, double aY) -> double
-{
-    return 2 * himmelblau_term_one(aX, aY) + 4 * aY * himmelblau_term_two(aX, aY);
-}
-constexpr double kGoldValue = himmelblau_value(kControlX, kControlY);
-constexpr double kGoldGradientX = himmelblau_derivative_x(kControlX, kControlY);
-constexpr double kGoldGradientY = himmelblau_derivative_y(kControlX, kControlY);
+constexpr auto kControlX = 1.2;
+constexpr auto kControlY = 0.5;
+
+constexpr auto kGoldValue = test_utilities::Himmelblau{}.f(kControlX, kControlY);
+constexpr auto kGoldGradientX = test_utilities::Himmelblau{}.df(kControlX, kControlY).mData.at(0);
+constexpr auto kGoldGradientY = test_utilities::Himmelblau{}.df(kControlX, kControlY).mData.at(1);
 
 }  // namespace detail
 
@@ -49,7 +36,8 @@ void run_himmelblau_objective_test(const Argument& aObjectiveFunctionArgument)
     EXPECT_DOUBLE_EQ(tGradient[0], kGoldGradientX);
     EXPECT_DOUBLE_EQ(tGradient[1], kGoldGradientY);
 
-    auto tHessian = std::vector<double>{10.0, 10.0};
+    constexpr auto tGradientSize = 2U;
+    auto tHessian = std::vector<double>(tGradientSize);
     auto tDirection = std::vector<double>{1.0, 1.0};
     tObjective.hessVec(tHessian, tDirection, tControl, tTolerance);
     EXPECT_EQ(tHessian[0], 0.0);

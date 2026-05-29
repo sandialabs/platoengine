@@ -41,14 +41,22 @@ TEST(ROLConstraint, CreateROLBoundConstraint)
     const std::vector<double> tLower(2, 0);
     const std::vector<double> tUpper{1, 2};
     const auto tBounds = create_rol_bound_constraint({tLower, tUpper});
-    auto tCompare = to_rol_std_vector_ptr({0.4, 0.5});
-    EXPECT_TRUE(tBounds->isFeasible(*tCompare));
-    tCompare = to_rol_std_vector_ptr({-0.4, 0.5});
-    EXPECT_FALSE(tBounds->isFeasible(*tCompare));
-    tCompare = to_rol_std_vector_ptr({0.4, -0.5});
-    EXPECT_FALSE(tBounds->isFeasible(*tCompare));
-    tCompare = to_rol_std_vector_ptr({4, -5});
-    EXPECT_FALSE(tBounds->isFeasible(*tCompare));
+    {
+        const auto tFeasible = to_rol_std_vector_ptr({0.4, 0.5});
+        EXPECT_TRUE(tBounds->isFeasible(*tFeasible));
+    }
+    {
+        const auto tInfeasible = to_rol_std_vector_ptr({-0.4, 0.5});
+        EXPECT_FALSE(tBounds->isFeasible(*tInfeasible));
+    }
+    {
+        const auto tInfeasible = to_rol_std_vector_ptr({0.4, -0.5});
+        EXPECT_FALSE(tBounds->isFeasible(*tInfeasible));
+    }
+    {
+        const auto tInfeasible = to_rol_std_vector_ptr({4, -5});
+        EXPECT_FALSE(tBounds->isFeasible(*tInfeasible));
+    }
 }
 
 TEST(ROLConstraint, SizedDualVector)
