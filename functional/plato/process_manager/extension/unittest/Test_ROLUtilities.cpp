@@ -35,8 +35,9 @@ TEST(ProcessManagerData, InputFileToROLObjective)
     const auto tProblem = library::make_process_manager_data(tData.value());
     const auto tObjectiveFunction = make_rol_objective(tProblem);
     const auto tBoundingBox = std::vector<double>{0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
-    double tTolerance = 1e-8;
 
+    constexpr auto tDefaultTolerance = 1e-8;
+    double tTolerance = tDefaultTolerance;
     constexpr double tNodalSum = 12.0;
     EXPECT_DOUBLE_EQ(tObjectiveFunction->value(tBoundingBox, tTolerance), tWeight * tNodalSum);
 
@@ -70,7 +71,8 @@ TEST(ProcessManagerData, InputFileToROLConstraint)
     const std::vector<double> tBoundingBox{0, 0, 0, 1, 1, 1};
     std::vector<double> tResult{0};
     const auto tGold = std::vector{-2.0};
-    double tTolerance = 1e-8;
+    constexpr auto tDefaultTolerance = 1e-8;
+    double tTolerance = tDefaultTolerance;
 
     ASSERT_EQ(tConstraints.size(), 1U);
     ASSERT_NE(tConstraints.front().mConstraintFunction, nullptr);

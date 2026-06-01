@@ -110,8 +110,9 @@ TEST(ParameterSweepDetail, ValidateIndicesAndRanges)
     input_parser::parameter_sweep tParameterSweep;
     EXPECT_TRUE(detail::validate_indices_and_ranges(tParameterSweep).has_value()) << "Required input.";
 
+    const auto tValidRange = input_parser::Range{0.0, 10.0, 100.0};
     tParameterSweep.indices_and_ranges =
-        input_parser::IndexAndRangeList{{input_parser::IndexAndRange{1U, input_parser::Range{0.0, 10.0, 100.0}}}};
+        input_parser::IndexAndRangeList{{input_parser::IndexAndRange{1U, tValidRange}}};
     EXPECT_FALSE(detail::validate_indices_and_ranges(tParameterSweep).has_value()) << "Valid range.";
 }
 
@@ -119,7 +120,8 @@ TEST(ParameterSweepDetail, ValidateControlIndices)
 {
     auto tParameterSweep = create_valid_example_parameter_sweep();
     EXPECT_FALSE(detail::validate_control_indices(tParameterSweep).has_value()) << "Valid control indices.";
-    tParameterSweep.indices_and_ranges.value().mList.emplace_back(-1, input_parser::Range{0.0, 10.0, 100.0});
+    const auto tValidRange = input_parser::Range{0.0, 10.0, 100.0};
+    tParameterSweep.indices_and_ranges.value().mList.emplace_back(-1, tValidRange);
     EXPECT_TRUE(detail::validate_control_indices(tParameterSweep).has_value()) << "Invalid control index.";
 }
 
@@ -128,7 +130,8 @@ TEST(ParameterSweepDetail, ValidateControlIndicesNoDuplicates)
     auto tParameterSweep = create_valid_example_parameter_sweep();
     EXPECT_FALSE(detail::validate_control_indices_no_duplicates(tParameterSweep).has_value())
         << "Valid control indices.";
-    tParameterSweep.indices_and_ranges.value().mList.emplace_back(1U, input_parser::Range{0.0, 10.0, 100.0});
+    const auto tValidRange = input_parser::Range{0.0, 10.0, 100.0};
+    tParameterSweep.indices_and_ranges.value().mList.emplace_back(1U, tValidRange);
     EXPECT_TRUE(detail::validate_control_indices_no_duplicates(tParameterSweep).has_value())
         << "Invalid control indices, duplicate found.";
 }
@@ -137,8 +140,8 @@ TEST(ParameterSweepDetail, ValidateRangeLimits)
 {
     auto tParameterSweep = create_valid_example_parameter_sweep();
     EXPECT_FALSE(detail::validate_range_limits(tParameterSweep).has_value()) << "Valid range limits.";
-    tParameterSweep.indices_and_ranges.value().mList = {
-        input_parser::IndexAndRange{1U, input_parser::Range{100.0, 10.0, 0.0}}};
+    const auto tInvalidRange = input_parser::Range{100.0, 10.0, 0.0};
+    tParameterSweep.indices_and_ranges.value().mList = {input_parser::IndexAndRange{1U, tInvalidRange}};
     EXPECT_TRUE(detail::validate_range_limits(tParameterSweep).has_value())
         << "Invalid range, start is larger than end.";
 }
@@ -148,8 +151,8 @@ TEST(ParameterSweepDetail, ValidateRangeSteps)
     auto tParameterSweep = create_valid_example_parameter_sweep();
     EXPECT_FALSE(detail::validate_range_steps(tParameterSweep).has_value()) << "Valid range limits.";
 
-    tParameterSweep.indices_and_ranges.value().mList.front() =
-        input_parser::IndexAndRange{1U, input_parser::Range{0.0, -10.0, 100.0}};
+    const auto tInvalidRange = input_parser::Range{0.0, -10.0, 100.0};
+    tParameterSweep.indices_and_ranges.value().mList.front() = input_parser::IndexAndRange{1U, tInvalidRange};
     EXPECT_TRUE(detail::validate_range_steps(tParameterSweep).has_value()) << "Invalid range, negative step size.";
 }
 

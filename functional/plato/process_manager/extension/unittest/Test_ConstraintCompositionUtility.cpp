@@ -69,16 +69,17 @@ TEST(ConstraintComposition, ComposeGeometryWithVectorConstraint)
         // Checking product of: v \nabla f J_x(g)
         // v \in R^1
         // Result should have size 6
-        const auto tV = linear_algebra::DynamicVector{0.1};
+        const auto tRowVector = linear_algebra::DynamicVector{0.1};
         const auto tConstraintJacobian =
-            tV *
+            tRowVector *
             tMeshDesignConstraint.mConstraintFunction.evaluate<core::evaluation::kFirstDerivative>(tAnalysisDomainMesh);
         const auto tJacobianTimesVectorGeometry =
             tConstraintJacobian * tGeometry.mCompute.evaluate<core::evaluation::kFirstDerivative>(tParameters);
 
         const auto tCompositionJacobianTimesVector =
-            tV * tComposedDynamicVectorConstraint.mConstraintFunction.evaluate<core::evaluation::kFirstDerivative>(
-                     tParameters);
+            tRowVector *
+            tComposedDynamicVectorConstraint.mConstraintFunction.evaluate<core::evaluation::kFirstDerivative>(
+                tParameters);
 
         EXPECT_EQ(tCompositionJacobianTimesVector.size(), 6U);
         EXPECT_EQ(tJacobianTimesVectorGeometry.stdVector(), tCompositionJacobianTimesVector.stdVector());
@@ -94,12 +95,12 @@ TEST(ConstraintComposition, ComposeGeometryWithVectorConstraint)
         const auto tAdjointConstraintGradient =
             tMeshDesignConstraint.mConstraintFunction
                 .evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(tAnalysisDomainMesh);
-        const auto tU = linear_algebra::DynamicVector(6U, 0.1);
-        const auto tExpectedAdjointProduct = (tU * tAdjointGeometryMultiplier) * tAdjointConstraintGradient;
+        const auto tRowVector = linear_algebra::DynamicVector(6U, 0.1);
+        const auto tExpectedAdjointProduct = (tRowVector * tAdjointGeometryMultiplier) * tAdjointConstraintGradient;
 
         const auto tCompositionAdjoint =
-            tU * tComposedDynamicVectorConstraint.mConstraintFunction
-                     .evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(tParameters);
+            tRowVector * tComposedDynamicVectorConstraint.mConstraintFunction
+                             .evaluate<core::evaluation::kFirstDerivative, core::MatrixOrdering::kAdjoint>(tParameters);
 
         EXPECT_EQ(tCompositionAdjoint.size(), 1U);
         EXPECT_EQ(tCompositionAdjoint.stdVector(), tExpectedAdjointProduct.stdVector());

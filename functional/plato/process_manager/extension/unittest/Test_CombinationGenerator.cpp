@@ -34,7 +34,7 @@ TEST(CombinationGenerator, Transform)
     auto tCombinationGenerator = kCombinationGenerator;
 
     std::transform(tCombinationGenerator.begin(), tCombinationGenerator.end(), std::back_inserter(tStates),
-                   [](const auto aCombination) { return aCombination; });
+                   [](auto aCombination) { return aCombination; });
 
     ASSERT_EQ(tStates.size(), kStepsVector.front().size() * kStepsVector.back().size());
 

@@ -74,9 +74,14 @@ TEST(OptimizerFactory, ParlistGenerationFromFile)
     const std::string tFileName = "test.xml";
 
     ROL::ParameterList tParameterListOnDisk("ROL");
-    tParameterListOnDisk.sublist("Status Test").set<int>("Iteration Limit", 42);
-    tParameterListOnDisk.sublist("Status Test").set<double>("Gradient Tolerance", 0.5);
-    tParameterListOnDisk.sublist("Status Test").set<double>("Step Tolerance", 0.25);
+    constexpr auto tArbitraryIterationLimit = 42;
+    tParameterListOnDisk.sublist("Status Test").set<int>("Iteration Limit", tArbitraryIterationLimit);
+
+    constexpr auto tArbitraryGradientTolerance = 0.5;
+    tParameterListOnDisk.sublist("Status Test").set<double>("Gradient Tolerance", tArbitraryGradientTolerance);
+
+    constexpr auto tArbitraryStepTolerance = 0.25;
+    tParameterListOnDisk.sublist("Status Test").set<double>("Step Tolerance", tArbitraryStepTolerance);
     Teuchos::writeParameterListToXmlFile(tParameterListOnDisk, tFileName);
 
     const std::string tInput = plato::test_utilities::create_valid_brick_shape_geometry_string() +
