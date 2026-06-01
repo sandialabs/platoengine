@@ -157,7 +157,8 @@ TEST(DensityTopology, InitialGuess)
     }
     {
         auto tDensityInput = kDensityInput;
-        tDensityInput.initial_density_value = 0.3;
+        constexpr auto tNonDefaultInitialDensity = 0.3;
+        tDensityInput.initial_density_value = tNonDefaultInitialDensity;
         const linear_algebra::DynamicVector<double> tInitialGuess = DensityTopology::initialGuess(tDensityInput);
         test_uniform_initial_guess_against_gold(tInitialGuess, tDensityInput.initial_density_value.value(),
                                                 TEST_CONTEXT("Given 0.3 in input"));

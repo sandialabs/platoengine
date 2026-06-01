@@ -27,7 +27,7 @@ const auto kTestOutputPath = std::filesystem::path{"test-result.exo"};
 class OutputUtilitiesTest : public third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh
 {
    public:
-    [[nodiscard]] auto solutionVector() -> linear_algebra::DynamicVector<double>
+    [[nodiscard]] auto solutionVector()
     {
         constexpr auto tFieldValue = 0.25;
         return linear_algebra::DynamicVector<double>(mCommandGenerator.numberOfNodes(), tFieldValue);

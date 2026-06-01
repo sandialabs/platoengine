@@ -168,10 +168,14 @@ const auto kUnitCubeLambda = []() -> KrinoWrapper
         tpik::VoidPhase::kExcludeFromMesh);
 };
 
-const auto kUnitCubeInputs = KrinoWrapperTestFixtureInputs{.mFileName = std::string{kTemporaryMeshFile},
-                                                           .mCutMeshRowVector = std::vector<double>(17U * 3U, 1.0),
-                                                           .mBackgroundRowVector = std::vector<double>(8U * 3U, 1.0),
-                                                           .mVoidPhase = tpik::VoidPhase::kExcludeFromMesh};
+constexpr auto kNumberOfCutMeshNodes = std::size_t{17};
+constexpr auto kNumberOfBackgroundMeshNodes = std::size_t{8};
+
+const auto kUnitCubeInputs =
+    KrinoWrapperTestFixtureInputs{.mFileName = std::string{kTemporaryMeshFile},
+                                  .mCutMeshRowVector = std::vector<double>(kNumberOfCutMeshNodes * 3U, 1.0),
+                                  .mBackgroundRowVector = std::vector<double>(kNumberOfBackgroundMeshNodes * 3U, 1.0),
+                                  .mVoidPhase = tpik::VoidPhase::kExcludeFromMesh};
 
 const auto kUnitCubeGoldValues = KrinoWrapperGoldValues{
     .mSpatialDimensions = 3U,

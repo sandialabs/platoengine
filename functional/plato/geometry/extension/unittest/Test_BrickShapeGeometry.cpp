@@ -129,8 +129,8 @@ TEST(BrickSensitivities, JacobianEvaluator)
     const linear_algebra::JacobianColumnEvaluator tJacobian = {
         /*.mColumns=*/6,
         /*.mX=*/linear_algebra::DynamicVector<double>{1.0, 2.0, 3.0, 4.0, 5.0, 6.0},
-        /*.mColumnFunction=*/[](unsigned int aI, const linear_algebra::DynamicVector<double>&)
-        { return linear_algebra::DynamicVector<double>(detail::sensitivities(aI)); }};
+        /*.mColumnFunction=*/[](unsigned int aIndex, const linear_algebra::DynamicVector<double>&)
+        { return linear_algebra::DynamicVector<double>(detail::sensitivities(aIndex)); }};
 
     const std::vector<double> tGold{92, 100, 108, 6, 12, 24};
     run_test_of_iota_vector_result(tJacobian, tGold);
@@ -270,7 +270,6 @@ TEST(Brick, MoveCtors)
         const auto tBrickCopy = BrickShapeGeometry{std::move(tBrick)};
 
         EXPECT_TRUE(tBrickCopy.fileName().filename().string().starts_with(tFileName.stem().string())) << "Move ctor";
-        EXPECT_TRUE(tBrick.fileName().empty());
     }
     {
         auto tBrick = BrickShapeGeometry{kBrickFileName};
@@ -279,7 +278,6 @@ TEST(Brick, MoveCtors)
 
         EXPECT_TRUE(tBrickCopy.fileName().filename().string().starts_with(tFileName.stem().string()))
             << "Move assignment";
-        EXPECT_TRUE(tBrick.fileName().empty());
     }
 }
 

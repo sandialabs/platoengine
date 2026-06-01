@@ -65,7 +65,8 @@ TEST_F(KrinoTestFixture, KrinoWrapperParallel)
     const auto tMesh = mesh::Mesh{kBoxFilePath.value()};
     const auto tNumberOfDesignNodes = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
     std::vector<double> tDesignVariable(tNumberOfDesignNodes);
-    std::iota(tDesignVariable.begin(), tDesignVariable.end(), -static_cast<double>(tNumberOfDesignNodes) / 2.0);
+    constexpr auto tMultiplier = -0.5;
+    std::iota(tDesignVariable.begin(), tDesignVariable.end(), static_cast<double>(tNumberOfDesignNodes) * tMultiplier);
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tDesignVariable});
     const auto tFixedBlocks = std::set<std::string>{};
@@ -135,7 +136,7 @@ TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
     const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test(tpik::VoidPhase::kExcludeFromMesh);
 
     const auto tNumberOfCutMeshNodes = 9;
-    const auto tDimensions = 2;
+    const auto tDimensions = std::size_t{2};
     const std::vector<double> tRowVector(tNumberOfCutMeshNodes * tDimensions, 1.0);
 
     [[maybe_unused]] const auto tResult = tKrinoWrapper.rowVectorJacobianProduct(tRowVector);

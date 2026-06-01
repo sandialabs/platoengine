@@ -68,7 +68,7 @@ TEST_F(GeometryFilterUtilitiesMeshFixture, AdaptedFilterMatchesOriginalFilter)
     {
         const auto tPlainFilterResultOnMesh = tKernelFilter.evaluate<core::evaluation::kFunction>(tTestDataOnMesh);
         const auto tPlainFilterResult =
-            mesh::DesignVariablesConversion{tMesh}.analysisDomainMeshToNodalFieldVector(tPlainFilterResultOnMesh);
+            mesh::DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(tPlainFilterResultOnMesh);
         const auto tAdaptedFilterResult = tAdaptedFilter.evaluate<core::evaluation::kFunction>(tTestData);
         EXPECT_EQ(tPlainFilterResult.mValue, tAdaptedFilterResult.stdVector());
     }

@@ -45,6 +45,7 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 #include "plato/utilities/GradientChecker.hpp"
+#include "plato/utilities/NamedType.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -84,7 +85,7 @@ auto make_positive_octant_reflect_filter_test_function(const filter::extension::
                                                        const filter::extension::kernel_filters::TargetMesh& aTargetMesh)
 {
     namespace fek = filter::extension::kernel_filters;
-    const auto tRadius = .5;
+    constexpr auto tRadius = .5;
     const auto tReflectFilterType = fek::detail::make_positive_octant_reflect_filter_type(
         tRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered);
     const auto tReflectFilter = std::make_shared<fek::KernelFilter>(
@@ -133,11 +134,12 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianRegression)
 {
     auto tInput = singleSphereInput();
     tInput.max_edge_length_percentage_for_snapping = 0.0;  // turn snapping off for regression
+    const auto tBoundsEnclosingInitialGuess = input_parser::Bounds{-4.0, 4.0};
     tInput.level_set_bounds =
-        input_parser::Bounds{-4.0, 4.0};  // make sure initial guess is within bounds to avoid clamping
+        tBoundsEnclosingInitialGuess;  // make sure initial guess is within bounds to avoid clamping
 
-    const auto tOnesVectorJacobianProductSum = [this](const library::GeometryFunction& aLevelSetTopologyFunction,
-                                                      const linear_algebra::DynamicVector<double>& aArgument)
+    const auto tOnesVectorJacobianProductSum = [](const library::GeometryFunction& aLevelSetTopologyFunction,
+                                                  const linear_algebra::DynamicVector<double>& aArgument)
     {
         const auto tJacobian = aLevelSetTopologyFunction.evaluate<core::evaluation::kFirstDerivative>(aArgument);
         const auto tCutMesh = aLevelSetTopologyFunction.evaluate<core::evaluation::kFunction>(aArgument);
@@ -186,7 +188,8 @@ TEST_F(LevelSetTopologyFixture, JacobianTransposeRegression)
     // Regression result computed by outputting the entire Jacobian matrix using the `jacobian` function, and
     // performing the transpose matrix vector multiplication in Matlab.
     // clang-format off
-    auto tExpected = std::vector(78,0.0);
+    constexpr auto tExpectedNumberOfZeros = 78U;
+    auto tExpected = std::vector(tExpectedNumberOfZeros,0.0);
     const auto tValuesInExpected = std::vector{std::numbers::inv_sqrt3, std::numbers::inv_sqrt3, std::numbers::inv_sqrt3, 0.0, 0.0, 1.0000000000000000, 
                                                                  0.7071067811865475, 0.0, 0.7071067811865475, 1.0000000000000000, 0.0, 0.0, 
                                                                  0.7071067811865475, 0.7071067811865475, 0.0, 0.0, 1.0000000000000000, 0.0, 
@@ -207,8 +210,8 @@ TEST_F(LevelSetTopologyMeshFixture, JacobianTransposeRegression)
 {
     auto tInput = singleSphereInput();
     tInput.max_edge_length_percentage_for_snapping = 0.0;  // turn snapping off for regression
-    tInput.level_set_bounds =
-        input_parser::Bounds{-4.0, 4.0};  // make sure initial guess is within bounds to avoid clamping
+    const auto tBoundsEnclosingInitialGuess = input_parser::Bounds{-4.0, 4.0};
+    tInput.level_set_bounds = tBoundsEnclosingInitialGuess;
 
     const auto tOnesVectorJacobianProductSum = [](const library::GeometryFunction& aLevelSetTopology,
                                                   const linear_algebra::DynamicVector<double>& aDesignVariables)
@@ -280,8 +283,8 @@ TEST_F(LevelSetTopologyBaseFixture, GenerateMeshWithSymmetryFilter)
     auto tLevelSetInput = kLevelSetInput;
     tLevelSetInput.mesh_name = input_parser::FileName{tSourceFile};
     tLevelSetInput.sphere_pattern = boost::none;
-    tLevelSetInput.sphere_list = input_parser::LevelSetSphereList{
-        {input_parser::LevelSetSphere{/*.radius=*/0.55, /*.center=*/{0.75, 0.75, 0.75}}}};
+    const auto tInitialSphere = input_parser::LevelSetSphere{/*.radius=*/0.55, /*.center=*/{0.75, 0.75, 0.75}};
+    tLevelSetInput.sphere_list = input_parser::LevelSetSphereList{{tInitialSphere}};
     tLevelSetInput.include_void_region = true;
 
     third_party_integration::stk_io::write_mesh(tSourceFile, create_background_mesh());
@@ -494,7 +497,8 @@ TEST_F(LevelSetTopologyTwoBlockFixture, FilteredOutputRoundTrip)
     auto tDesignVariableVector = std::vector<double>(mExpectedNumberOfNodesInBlock1, 0.0);
     tDesignVariableVector.front() = 1.0;
     const auto tDesignVariables = linear_algebra::DynamicVector<double>(std::move(tDesignVariableVector));
-    LevelSetTopology::output(tInput, make_kernel_filter_test_function(2.0, tInput.mesh_name->mToken, {tFixedBlock}),
+    constexpr auto tRadius = 2.0;
+    LevelSetTopology::output(tInput, make_kernel_filter_test_function(tRadius, tInput.mesh_name->mToken, {tFixedBlock}),
                              tDesignVariables, output::kOverwriteInfo);
 
     const auto tFieldOutputMeshName = filtered_level_set_mesh_name(tInput);
@@ -558,7 +562,8 @@ TEST_F(NodalDensityMesh, InitialGuessFromField)
         linear_algebra::DynamicVector<double>{-30, -26, -22, -18, -14, -10, -6, -2, 2, 6, 10, 14, 18, 22, 26, 30} *
         (1.0 / 30.0);
 
-    plato::test_utilities::expect_container_entries_near(tInitialGuess.stdVector(), tGoldVector.stdVector(), 1e-15,
+    constexpr auto tTolerance = 1e-15;
+    plato::test_utilities::expect_container_entries_near(tInitialGuess.stdVector(), tGoldVector.stdVector(), tTolerance,
                                                          TEST_CONTEXT("Initial guess affine transformation"));
 }
 
@@ -652,9 +657,12 @@ TEST_F(LevelSetTopologyLargeSphereFixture, JacobianWithoutTopologicalChanges)
 
 namespace
 {
+using Dimensions = utilities::NamedType<unsigned int, struct DimensionsTag>;
+using Tolerance = utilities::NamedType<double, struct ToleranceTag>;
+
 void check_jacobian_adjoint_jacobian_consistency(const input_parser::level_set_topology& aInput,
-                                                 const unsigned int aNumDimensions,
-                                                 const double aTolerance)
+                                                 const Dimensions aNumDimensions,
+                                                 const Tolerance aTolerance)
 {
     const auto tLevelSetTopology = LevelSetTopology{aInput};
     const auto tInitialGuess = initial_guess(aInput);
@@ -665,7 +673,7 @@ void check_jacobian_adjoint_jacobian_consistency(const input_parser::level_set_t
     const auto tAdjointJacobian = tLevelSetTopology.adjointJacobian(tSourceAnalysisMesh);
 
     const auto tCutMesh = tLevelSetTopology.generateMesh(tSourceAnalysisMesh);
-    const auto tCoordinates = retrieve_flattened_cut_node_coordinates(tCutMesh.mFileName, aNumDimensions);
+    const auto tCoordinates = retrieve_flattened_cut_node_coordinates(tCutMesh.mFileName, aNumDimensions.mValue);
     const auto tRowVectorSize = tCoordinates.size();
     const auto tRowVectorForJacobian = linear_algebra::DynamicVector<double>(tRowVectorSize, 1.0);
 
@@ -679,7 +687,7 @@ void check_jacobian_adjoint_jacobian_consistency(const input_parser::level_set_t
 
     const auto tResult = std::abs(tRowVectorForAdjointJacobianTimesAdjointDotRowVectorForJacobian -
                                   tRowVectorTimesJacobianDotRowVectorForAdjointJacobian);
-    EXPECT_NEAR(tResult, 0.0, aTolerance);
+    EXPECT_NEAR(tResult, 0.0, aTolerance.mValue);
 }
 
 }  // namespace
@@ -688,14 +696,14 @@ TEST_F(LevelSetTopology2DFixture, JacobianAdjointJacobianConsistency)
 {
     const auto tInput = levelSetTopologyInputFor2D();
     const auto tTolerance = 5e-15;
-    check_jacobian_adjoint_jacobian_consistency(tInput, mNumDimensions, tTolerance);
+    check_jacobian_adjoint_jacobian_consistency(tInput, Dimensions{mNumDimensions}, Tolerance{tTolerance});
 }
 
 TEST_F(LevelSetTopologyMeshFixture, JacobianAdjointJacobianConsistency)
 {
     const auto tInput = singleSphereInput();
     const auto tTolerance = 8e-14;
-    check_jacobian_adjoint_jacobian_consistency(tInput, mNumDimensions, tTolerance);
+    check_jacobian_adjoint_jacobian_consistency(tInput, Dimensions{mNumDimensions}, Tolerance{tTolerance});
 }
 
 TEST(LevelSetTopology, Registration) { EXPECT_TRUE(library::is_geometry_function_registered("level_set_topology")); }

@@ -87,9 +87,10 @@ TEST(DensityTopology, GenerateMeshWithSymmetryFilter)
     const auto tDensityTopology = DensityTopology{tInput, tFilter};
 
     auto tUnfiltered = std::vector<double>(kNumberOfDesignNodes, 0.0);
-    tUnfiltered[26] = 1;
-    tUnfiltered[27] = 1;
-    tUnfiltered[25] = 1;
+    constexpr auto tDesignVariableIndex = 26U;
+    tUnfiltered[tDesignVariableIndex - 1] = 1;
+    tUnfiltered[tDesignVariableIndex] = 1;
+    tUnfiltered[tDesignVariableIndex + 1] = 1;
     const auto tThreeDAnalysisDomainMesh =
         tDensityTopology.generateMesh(linear_algebra::DynamicVector<double>{tUnfiltered});
 

@@ -27,6 +27,7 @@
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/GradientChecker.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
+#include "plato/utilities/NamedType.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -84,12 +85,15 @@ namespace
                                                         tpik::VoidPhase::kIncludeInMesh, tpik::SnappingParameters{});
 }
 
-[[nodiscard]] auto make_iota_vector(const std::size_t aSize, const double aShift) -> std::vector<double>
+using Size = utilities::NamedType<std::size_t, struct SizeTag>;
+using Shift = utilities::NamedType<double, struct ShiftTag>;
+
+[[nodiscard]] auto make_iota_vector(const Size aSize, const Shift aShift) -> std::vector<double>
 {
-    auto tIota = std::vector<double>(aSize, 0.0);
+    auto tIota = std::vector<double>(aSize.mValue, 0.0);
     std::iota(tIota.begin(), tIota.end(), 1.0);
     std::transform(tIota.begin(), tIota.end(), tIota.begin(),
-                   [tScale = aSize, aShift](const auto aValue) { return aValue / tScale - aShift; });
+                   [tScale = aSize.mValue, aShift](const auto aValue) { return aValue / tScale - aShift.mValue; });
     return tIota;
 }
 
@@ -100,8 +104,9 @@ void check_row_vector_vector3(const unsigned int aIndex,
     const auto tSpatialDimension = 2U;
     const auto tResult =
         extension::detail::row_vector_to_vector3(aSourceVector, utilities::VectorIndex{aIndex}, tSpatialDimension);
-    const auto tGold =
-        third_party_integration::common::Vector3{aSourceVector[2 * aIndex], aSourceVector[2 * aIndex + 1], 0.0};
+    constexpr auto tDimensions = std::size_t{2};
+    const auto tGold = third_party_integration::common::Vector3{aSourceVector[tDimensions * aIndex],
+                                                                aSourceVector[tDimensions * aIndex + 1], 0.0};
     third_party_integration::common::test_utilities::test_double_equality_of_components(tResult, tGold, aTestContext);
 }
 
@@ -113,7 +118,7 @@ TEST_F(KrinoTestFixture, RowVectorToVector3)
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
         kRectangleMeshFilePath.value(), kLevelSetPrimitives, tFixedBlocks, LevelSetBounds{std::pair{-1.0, 1.0}})};
-    const auto tIota = make_iota_vector(tX.size(), 0.0);
+    const auto tIota = make_iota_vector(Size{tX.size()}, Shift{0.0});
 
     check_row_vector_vector3(0U, tIota, TEST_CONTEXT("Checking index 0"));
     check_row_vector_vector3(4U, tIota, TEST_CONTEXT("Checking index 4"));
@@ -131,7 +136,7 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
         tMeshFile.value(), tLevelSetPrimitives, tFixedBlocks, LevelSetBounds{std::pair{-1.0, 1.0}})};
-    const auto tDirection = linear_algebra::DynamicVector<double>{make_iota_vector(tX.size(), 0.5)};
+    const auto tDirection = linear_algebra::DynamicVector<double>{make_iota_vector(Size{tX.size()}, Shift{0.5})};
 
     const auto tF = [&tMeshFile](const linear_algebra::DynamicVector<double>& aX) -> double
     { return test_utilities::accumulate_cut_node_coordinates(tMeshFile.value(), aX.stdVector()); };

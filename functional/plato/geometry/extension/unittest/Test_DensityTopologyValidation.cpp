@@ -26,8 +26,7 @@ namespace plato::geometry::extension::unittest
 {
 namespace
 {
-using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
-using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
+using DensityTopologyValidationTwoDThreeBlockMesh = third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
 
@@ -66,11 +65,14 @@ TEST(DensityTopologyValidation, ValidateInitialDensity)
     EXPECT_TRUE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "-1 value is invalid";
     tDensityTopology.initial_density_value = 0;
     EXPECT_TRUE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "0 value is invalid";
-    tDensityTopology.initial_density_value = 0.5;
+    constexpr auto tValidInRangeInitialDensity = 0.5;
+    tDensityTopology.initial_density_value = tValidInRangeInitialDensity;
     EXPECT_FALSE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "0.5 value is valid";
-    tDensityTopology.initial_density_value = 1.0;
+    constexpr auto tValidOnBoundsInitialDensity = 1.0;
+    tDensityTopology.initial_density_value = tValidOnBoundsInitialDensity;
     EXPECT_FALSE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "1 value is valid";
-    tDensityTopology.initial_density_value = 1.5;
+    constexpr auto tInvalidInitialDensity = 1.5;
+    tDensityTopology.initial_density_value = tInvalidInitialDensity;
     EXPECT_TRUE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "1.5 value is invalid";
 }
 
@@ -99,7 +101,8 @@ TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
     EXPECT_TRUE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
         << "Missing both specifiers";
 
-    tDensityTopology.initial_density_value = 0.5;
+    constexpr auto tValidInRangeInitialDensity = 0.5;
+    tDensityTopology.initial_density_value = tValidInRangeInitialDensity;
     EXPECT_FALSE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
         << "Valid, has initial_density_value";
 
@@ -112,7 +115,7 @@ TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
         << "Only field specifier is used, valid.";
 }
 
-TEST_F(TwoDThreeBlockMesh, MeshFromInput)
+TEST_F(DensityTopologyValidationTwoDThreeBlockMesh, MeshFromInput)
 {
     struct ExpectedSizes
     {
@@ -158,7 +161,7 @@ TEST_F(TwoDThreeBlockMesh, MeshFromInput)
     }
 }
 
-TEST_F(TwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
+TEST_F(DensityTopologyValidationTwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
 {
     auto tDensityInputWithFixedBlocks = kDensityTopology;
     tDensityInputWithFixedBlocks.mesh_name = input_parser::FileName{mMeshFilePath.string()};

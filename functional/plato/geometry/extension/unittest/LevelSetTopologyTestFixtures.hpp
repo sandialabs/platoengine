@@ -15,12 +15,10 @@
 namespace plato::geometry::extension::unittest
 {
 
-namespace
+[[nodiscard]] inline auto level_set_input_fixture()
 {
-const auto kLevelSetInputFixture =
-    geometry::extension::test_utilities::create_valid_level_set_topology_geometry_input();
-
-}  // namespace
+    return geometry::extension::test_utilities::create_valid_level_set_topology_geometry_input();
+}
 
 class LevelSetTopologyBaseFixture : virtual public ::testing::Test
 {
@@ -39,11 +37,13 @@ class LevelSetTopologyFixture : public LevelSetTopologyBaseFixture
     void SetUp() override { LevelSetTopologyBaseFixture::SetUp(); }
     void TearDown() override
     {
-        std::filesystem::remove(kLevelSetInputFixture.mesh_name->mToken);
+        std::filesystem::remove(level_set_input_fixture().mesh_name->mToken);
         LevelSetTopologyBaseFixture::TearDown();
     }
-    unsigned int mExpectedBackgroundLevelSetSize = 27U;
-    std::size_t mNumDimensions = std::size_t{3};
+
+   public:
+    constexpr static unsigned int mExpectedBackgroundLevelSetSize = 27U;
+    constexpr static std::size_t mNumDimensions = std::size_t{3};
 };
 
 /// @brief The purpose of this fixture is to provide a mesh with a non-trivial node map.
@@ -64,15 +64,16 @@ class LevelSetTopologyMeshFixture : public LevelSetTopologyFixture,
 
     auto singleSphereInput() -> input_parser::level_set_topology
     {
-        auto tInput = kLevelSetInputFixture;
+        auto tInput = level_set_input_fixture();
         tInput.mesh_name = input_parser::FileName{Tet4MeshOnDisk::mMeshFilePath};
         tInput.sphere_pattern.value().max = input_parser::Point{0, 0, 0};
         tInput.sphere_pattern.value().radius = 1.0;
         return tInput;
     }
 
-    double mExpectedJacobianSum = -43.3185837663019484;
-    double mExpectedFilteredJacobianSum = -72.780945645414576;
+   public:
+    constexpr static double mExpectedJacobianSum = -43.3185837663019484;
+    constexpr static double mExpectedFilteredJacobianSum = -72.780945645414576;
 };
 
 class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
@@ -93,7 +94,7 @@ class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
     [[nodiscard]] auto levelSetTopologyInputWithFixedBlocks(std::vector<std::string> aFixedBlocks) const
         -> input_parser::level_set_topology
     {
-        auto tInput = kLevelSetInputFixture;
+        auto tInput = level_set_input_fixture();
         tInput.mesh_name = input_parser::FileName{mMeshFilePath};
         tInput.fixed_blocks = input_parser::BlockList{std::move(aFixedBlocks)};
         return tInput;
@@ -113,16 +114,13 @@ class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
     }
 };
 
-namespace
-{
-void create_large_sphere_input(input_parser::level_set_topology& aInput, const double aSize, const double aShift)
+inline void create_large_sphere_input(input_parser::level_set_topology& aInput, const double aSize, const double aShift)
 {
     aInput.sphere_pattern = boost::none;
     aInput.sphere_list = input_parser::LevelSetSphereList{
         {input_parser::LevelSetSphere{aSize, input_parser::Point{0, -aSize + aShift, 0}}}};
     aInput.include_void_region = true;
 }
-}  // namespace
 
 class LevelSetTopology2DFixture : public LevelSetTopologyBaseFixture
 {
@@ -133,14 +131,16 @@ class LevelSetTopology2DFixture : public LevelSetTopologyBaseFixture
     {
         const auto tFilePath = utilities::data_file_path("rectangle_3x4_tri3.cdf");
         assert(tFilePath.has_value());
-        auto tInput = kLevelSetInputFixture;
+        auto tInput = level_set_input_fixture();
         constexpr double tSize = 100;
         constexpr double tShift = 0.95;
         create_large_sphere_input(tInput, tSize, tShift);
         tInput.mesh_name = input_parser::FileName{tFilePath.value()};
         return tInput;
     }
-    std::size_t mNumDimensions = std::size_t{2};
+
+   public:
+    constexpr static std::size_t mNumDimensions = std::size_t{2};
     std::filesystem::path mFileName = utilities::data_file_path("rectangle_3x4_tri3.cdf").value();
 };
 
@@ -153,14 +153,16 @@ class LevelSetTopologyLargeSphereFixture : public LevelSetTopologyBaseFixture
     {
         const auto tFilePath = utilities::data_file_path("box_3x4x7_tet4.cdf");
         assert(tFilePath.has_value());
-        auto tInput = kLevelSetInputFixture;
+        auto tInput = level_set_input_fixture();
         constexpr double tSize = 500;
         constexpr double tShift = 0.95;
         create_large_sphere_input(tInput, tSize, tShift);
         tInput.mesh_name = input_parser::FileName{tFilePath.value()};
         return tInput;
     }
-    std::size_t mNumDimensions = std::size_t{3};
+
+   public:
+    constexpr static std::size_t mNumDimensions = std::size_t{3};
     std::filesystem::path mFileName = utilities::data_file_path("box_3x4x7_tet4.cdf").value();
 };
 
@@ -173,7 +175,7 @@ class LevelSetTopology2DOneTriFixture : public LevelSetTopologyBaseFixture
     {
         const auto tFilePath = utilities::data_file_path("one_tri.cdf");
         assert(tFilePath.has_value());
-        auto tInput = kLevelSetInputFixture;
+        auto tInput = level_set_input_fixture();
         tInput.include_void_region = true;
         constexpr double tSize = 100000;
         constexpr double tShift = 0.75;
@@ -181,7 +183,9 @@ class LevelSetTopology2DOneTriFixture : public LevelSetTopologyBaseFixture
         tInput.mesh_name = input_parser::FileName{tFilePath.value()};
         return tInput;
     }
-    std::size_t mNumDimensions = std::size_t{2};
+
+   public:
+    constexpr static std::size_t mNumDimensions = std::size_t{2};
     std::filesystem::path mFileName = utilities::data_file_path("one_tri.cdf").value();
 };
 
