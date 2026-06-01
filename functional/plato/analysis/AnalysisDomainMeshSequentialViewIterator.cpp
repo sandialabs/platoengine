@@ -16,15 +16,16 @@ auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategor
 {
     const auto tValues = detail::dereference_all(mCurrentIterators, mEndIterators);
     const auto tMinIDIterator = detail::min_id_iterator(tValues);
-    if (tMinIDIterator != tValues.cend() && tMinIDIterator->has_value())
+    if (tMinIDIterator == tValues.cend() || !tMinIDIterator->has_value())
     {
-        const auto tMinGlobalID = tMinIDIterator->value().mGlobalMeshEntityID;  // NOLINT
-        for (const auto& [tCurrentIterator, tEndIterator] : utilities::Zip{mCurrentIterators, mEndIterators})
+        return *this;
+    }
+    const auto tMinGlobalID = tMinIDIterator->value().mGlobalMeshEntityID;  // NOLINT
+    for (const auto& [tCurrentIterator, tEndIterator] : utilities::Zip{mCurrentIterators, mEndIterators})
+    {
+        if (tCurrentIterator != tEndIterator && tCurrentIterator->mGlobalMeshEntityID == tMinGlobalID)
         {
-            if (tCurrentIterator != tEndIterator && tCurrentIterator->mGlobalMeshEntityID == tMinGlobalID)
-            {
-                ++tCurrentIterator;
-            }
+            ++tCurrentIterator;
         }
     }
     return *this;

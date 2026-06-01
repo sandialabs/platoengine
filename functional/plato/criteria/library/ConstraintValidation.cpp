@@ -149,24 +149,26 @@ auto validate_constraint_component_targets(
     const input_parser::constraint& aInput,
     const std::vector<services::AppConfigurationWithDirectory>& aAppConfigurations) -> std::optional<std::string>
 {
-    if (criterion_exists(aInput.app, aInput.criterion, aAppConfigurations))
+    if (!criterion_exists(aInput.app, aInput.criterion, aAppConfigurations))
     {
-        const auto tConfiguration = services::criterion_configuration_with_name(
-            services::CriterionName{.mAppName = aInput.app->mToken, .mCriterionName = aInput.criterion->mToken},
-            aAppConfigurations);
+        return std::nullopt;
+    }
 
-        if (aInput.constraint_value_list.has_value() && !tConfiguration->mVectorComponents.has_value())
-        {
-            return utilities::concatenate(
-                criterion_name(aInput), R"(: Vector constraint targets were defined in the input, but the criterion ")",
-                app_criterion_name(aInput), R"(" does not define any vector components)");
-        }
+    const auto tConfiguration = services::criterion_configuration_with_name(
+        services::CriterionName{.mAppName = aInput.app->mToken, .mCriterionName = aInput.criterion->mToken},
+        aAppConfigurations);
 
-        if (tConfiguration->mVectorComponents.has_value() && !aInput.constraint_value_list.has_value())
-        {
-            return utilities::concatenate(criterion_name(aInput), R"(: Vector criterion ")", app_criterion_name(aInput),
-                                          R"(" defines vector components, but no vector targets were defined.)");
-        }
+    if (aInput.constraint_value_list.has_value() && !tConfiguration->mVectorComponents.has_value())
+    {
+        return utilities::concatenate(criterion_name(aInput),
+                                      R"(: Vector constraint targets were defined in the input, but the criterion ")",
+                                      app_criterion_name(aInput), R"(" does not define any vector components)");
+    }
+
+    if (tConfiguration->mVectorComponents.has_value() && !aInput.constraint_value_list.has_value())
+    {
+        return utilities::concatenate(criterion_name(aInput), R"(: Vector criterion ")", app_criterion_name(aInput),
+                                      R"(" defines vector components, but no vector targets were defined.)");
     }
     return std::nullopt;
 }
