@@ -34,7 +34,8 @@ void add_element_field(MeshIO& aMeshIO,
                        std::string_view aFieldName,
                        double aFixedValue)
 {
-    const auto tDesignVariables = DesignVariablesConversion{aMeshIO}.elementFieldToAnalysisDomainMesh(aScalarField);
+    const auto tDesignVariables =
+        DesignVariablesConversion{copy_as_mesh(aMeshIO)}.elementFieldToAnalysisDomainMesh(aScalarField);
     aMeshIO.addFieldFromAnalysisDomainMesh(tDesignVariables, aFieldName, aFixedValue);
 }
 
@@ -44,7 +45,8 @@ void add_nodal_field(MeshIO& aMeshIO,
                      std::string_view aFieldName,
                      double aFixedValue)
 {
-    const auto tDesignVariables = DesignVariablesConversion{aMeshIO}.nodalFieldToAnalysisDomainMesh(aScalarField);
+    const auto tDesignVariables =
+        DesignVariablesConversion{copy_as_mesh(aMeshIO)}.nodalFieldToAnalysisDomainMesh(aScalarField);
     aMeshIO.addFieldFromAnalysisDomainMesh(tDesignVariables, aFieldName, aFixedValue);
 }
 
@@ -194,7 +196,8 @@ TEST_F(MeshFieldWriterTestMesh, WriteFieldsForTwoTimeSteps)
 
     // write first time step
     auto tFirstElementField = std::vector<double>(mExpectedNumberOfElements);
-    std::fill(tFirstElementField.begin(), tFirstElementField.end(), 71.0);
+    constexpr auto tArbitraryElementFillTimeStep1 = 71.0;
+    std::fill(tFirstElementField.begin(), tFirstElementField.end(), tArbitraryElementFillTimeStep1);
     auto tFirstNodalField = std::vector<double>(mExpectedNumberOfNodes);
     std::iota(tFirstNodalField.begin(), tFirstNodalField.end(), 1.0);
     constexpr double tFirstTimeStep = 1.0;
@@ -206,10 +209,12 @@ TEST_F(MeshFieldWriterTestMesh, WriteFieldsForTwoTimeSteps)
 
     // write second time step
     constexpr double tSecondTimeStep = 2.0;
+    constexpr auto tArbitraryElementFillTimeStep2 = 86.0;
     auto tSecondElementField = std::vector<double>(mExpectedNumberOfElements);
-    std::fill(tSecondElementField.begin(), tSecondElementField.end(), 86.0);
+    std::fill(tSecondElementField.begin(), tSecondElementField.end(), tArbitraryElementFillTimeStep2);
     auto tSecondNodalField = std::vector<double>(mExpectedNumberOfNodes);
-    std::iota(tSecondNodalField.begin(), tSecondNodalField.end(), 59.0);
+    constexpr auto tArbitraryNodalFillTimeStep2 = 59.0;
+    std::iota(tSecondNodalField.begin(), tSecondNodalField.end(), tArbitraryNodalFillTimeStep2);
     {
         auto tMeshAppender = MeshFieldAppender{Mesh{kOutputMeshPath}, tSecondTimeStep};
         add_element_field(tMeshAppender, ElementFieldVectorReference{tSecondElementField}, tElementFieldName,

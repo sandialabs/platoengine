@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <iterator>
 #include <ranges>
 #include <set>
@@ -37,11 +38,12 @@ void check_gradient_of_volume(MutableCoordinateMesh aMesh,
                               const plato::utilities::GradientCheckParameters& aGradientCheckParameters,
                               const double aFirstOrderTruncationErrorTolerance)
 {
-    const auto tNumNodes = EntityCounts{aMesh}.numberOfNodes();
+    const auto tNumNodes = std::size_t{EntityCounts{aMesh}.numberOfNodes()};
     const auto tSpatialDimensions = mesh::EntityCounts{aMesh}.spatialDimensions();
     const auto tOriginalCoordinates =
         nodal_vector_field_to_dynamic_vector(mesh::EntityRetrieval{aMesh}.nodalCoordinates(), tSpatialDimensions);
-    auto tRandomEngine = std::default_random_engine{123};
+    constexpr auto tRandomSeed = 123;
+    auto tRandomEngine = std::default_random_engine{tRandomSeed};  // NOLINT(cert-msc32-c,cert-msc51-cpp)
     const auto tDirection = linear_algebra::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
 
     const auto tBlockNamesVector = MeshBlocks{aMesh}.blockNames();

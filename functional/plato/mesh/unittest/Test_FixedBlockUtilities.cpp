@@ -53,7 +53,6 @@ TEST(FixedBlockUtilities, ValidateUniqueBlockNames)
 {
     const auto tBlockName1 = std::string{"fixed-block-1"};
     const auto tBlockName2 = std::string{"fixed-block-2"};
-    const auto tBlockName3 = std::string{"design-block"};
     // Valid cases
     {
         auto tGeometryInputWithFixedBlocks = kTestGeometry;
