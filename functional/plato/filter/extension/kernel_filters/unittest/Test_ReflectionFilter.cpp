@@ -114,10 +114,12 @@ namespace
 void write_test_mesh(const third_party_integration::stk_io::CommandBounds& aLowerBounds,
                      const std::filesystem::path& aFilePath)
 {
+    constexpr auto tUpperBound = 10.0;
     third_party_integration::stk_io::write_mesh(
         aFilePath,
-        third_party_integration::stk_io::CommandGenerator{
-            .mElements = {1, 1, 1}, .mLowerBounds = aLowerBounds, .mUpperBounds = {10, 10, 10}}
+        third_party_integration::stk_io::CommandGenerator{.mElements = {1, 1, 1},
+                                                          .mLowerBounds = aLowerBounds,
+                                                          .mUpperBounds = {tUpperBound, tUpperBound, tUpperBound}}
             .toString());
 }
 

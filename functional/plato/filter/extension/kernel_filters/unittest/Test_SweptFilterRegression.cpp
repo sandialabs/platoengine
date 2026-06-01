@@ -38,7 +38,8 @@ void create_bar_mesh()
 }
 auto create_valid_symmetry_filter() -> input_parser::z_swept_filter
 {
-    return input_parser::z_swept_filter{/*.filter_radius=*/17.0,
+    constexpr auto tArbitraryFilterRadius = 17.0;
+    return input_parser::z_swept_filter{/*.filter_radius=*/tArbitraryFilterRadius,
                                         /*.centering_type=*/input_parser::KernelFilterCenteringTypes::kNodeCentered,
                                         /*.use_relative_radius=*/boost::none,
                                         /*.target_mesh_name=*/
@@ -62,15 +63,15 @@ TEST(SweptFilter, FilterRegression)
     const auto tFilter = KernelFilter{SourceMesh{tSourceMesh}, TargetMesh{tTargetMesh},
                                       tFilterType.mKernelFilterFunctions, tCommunicator};
     auto tUnfiltered = std::vector<double>(mesh::EntityCounts{tSourceMesh}.numberOfDesignDomainNodes(), 0.0);
-    tUnfiltered[26] = 1;
+    constexpr auto tArbitraryIndex = 26U;
+    tUnfiltered[tArbitraryIndex] = 1.0;
 
     const auto tSourceAnalysisDomainMesh = mesh::DesignVariablesConversion{tSourceMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tUnfiltered});
     const auto tFilteredAnalysisDomainMesh = tFilter.filter(tSourceAnalysisDomainMesh);
     EXPECT_EQ(tFilteredAnalysisDomainMesh.mFileName, kBarTargetMeshFile);
-    const auto tFilteredResult = mesh::DesignVariablesConversion{tTargetMesh}
-                                     .analysisDomainMeshToNodalFieldVector(tFilteredAnalysisDomainMesh)
-                                     .mValue;
+    const auto tFilteredResult =
+        mesh::DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(tFilteredAnalysisDomainMesh).mValue;
     ASSERT_EQ(tFilteredResult.size(), mesh::EntityCounts{tTargetMesh}.numberOfDesignDomainNodes());
     ASSERT_EQ(tFilteredResult.size(), 726U);
 
@@ -110,9 +111,8 @@ TEST(SweptFilterDetail, CreateFilterCache)
     const auto tFilteredAnalysisDomainMesh = tFilterCache.compute(tAnalysisDomainMesh)->filter(tAnalysisDomainMesh);
 
     const auto tTargetMesh = mesh::Mesh{kBarTargetMeshFile};
-    const auto tResult = mesh::DesignVariablesConversion{tTargetMesh}
-                             .analysisDomainMeshToNodalFieldVector(tFilteredAnalysisDomainMesh)
-                             .mValue;
+    const auto tResult =
+        mesh::DesignVariablesConversion ::analysisDomainMeshToNodalFieldVector(tFilteredAnalysisDomainMesh).mValue;
 
     const auto tGoldSize = mesh::EntityCounts{tTargetMesh}.numberOfNodes();
     EXPECT_EQ(tResult.size(), tGoldSize);

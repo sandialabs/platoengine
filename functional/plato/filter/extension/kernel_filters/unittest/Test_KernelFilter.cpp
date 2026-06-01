@@ -52,10 +52,11 @@ const auto kKernelFilterMakeInfoLambda =
                                      tKernelFilterType.mKernelFilterFunctions, boost::mpi::communicator{}};
 
     std::vector<double> tNodalDensities(tCommandGenerator.numberOfNodes(), 0);
-    const int tHalfNode = tNodalDensities.size() / 2;
+    const auto tHalfNode = tNodalDensities.size() / 2;
     tNodalDensities[tHalfNode] = 1;
-    tNodalDensities[tHalfNode - 1] = .5;
-    tNodalDensities[tHalfNode + 1] = .5;
+    constexpr auto tDensityValue = 0.5;
+    tNodalDensities[tHalfNode - 1] = tDensityValue;
+    tNodalDensities[tHalfNode + 1] = tDensityValue;
 
     const auto tMesh = mesh::DesignVariablesConversion{mesh::Mesh{kMeshFile}};
     const auto tAnalysisDomainMesh =
@@ -69,8 +70,10 @@ const auto kKernelFilterMakeInfoLambda =
     {
         auto tSensitivities = std::vector<double>(tCommandGenerator.numberOfNodes(), 0);
         tSensitivities[0] = 1;
-        tSensitivities[1] = .5;
-        tSensitivities[2] = .25;
+        constexpr auto tRowVectorEntry1 = 0.5;
+        tSensitivities[1] = tRowVectorEntry1;
+        constexpr auto tRowVectorEntry2 = 0.25;
+        tSensitivities[2] = tRowVectorEntry2;
         return linear_algebra::DynamicVector<double>(std::move(tSensitivities));
     }();
     const auto tElementSensitivities = linear_algebra::DynamicVector<double>(tCommandGenerator.numberOfElements(), 1);
@@ -185,7 +188,8 @@ TEST(KernelFilter, SingleHexNodalCentered)
 TEST(KernelFilter, ProperlyAllocatesMemoryFor2DMesh)
 {
     auto tInput = test_utilities::create_valid_kernel_filter_input();
-    tInput.filter_radius = 5e-1;
+    constexpr auto tTestFilterRadius = 0.5;
+    tInput.filter_radius = tTestFilterRadius;
     auto tFilterCache =
         detail::create_kernel_filter_cache<input_parser::kernel_filter>(tInput, kKernelFilterMakeInfoLambda);
 

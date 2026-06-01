@@ -28,8 +28,10 @@ class TestFilter : public FilterInterface
                                               const linear_algebra::DynamicVector<double>& aRowVector) const
         -> linear_algebra::DynamicVector<double> override
     {
+        constexpr auto tArbitraryFillValue = 1.0;
+        // NOLINTNEXTLINE(modernize-return-braced-init-list)
         return linear_algebra::DynamicVector<double>(aRowVector.size() + analysis_domain_mesh_size(aAnalysisDomainMesh),
-                                                     1.0);
+                                                     tArbitraryFillValue);
     }
 
     /// @brief Returns a vector with all twos and size equal to the sum of the size of @a aAnalysisDomainMesh and @a
@@ -38,8 +40,10 @@ class TestFilter : public FilterInterface
                                                      const plato::linear_algebra::DynamicVector<double>& aRowVector)
         const -> plato::linear_algebra::DynamicVector<double> override
     {
+        constexpr auto tArbitraryFillValue = 2.0;
+        // NOLINTNEXTLINE(modernize-return-braced-init-list)
         return linear_algebra::DynamicVector<double>(aRowVector.size() + analysis_domain_mesh_size(aAnalysisDomainMesh),
-                                                     2.0);
+                                                     tArbitraryFillValue);
     }
 };
 

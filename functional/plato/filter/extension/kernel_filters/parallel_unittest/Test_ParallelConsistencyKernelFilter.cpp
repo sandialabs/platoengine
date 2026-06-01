@@ -66,14 +66,15 @@ class ParallelConsistencyTest : public ::testing::Test
         : mSplitComm(split_comm_world()), mMesh(write_generic_mesh_and_load(kBaseSizeParallelTest, mWorldComm))
     {
     }
-    ~ParallelConsistencyTest() override = default;
+
     void TearDown() override
     {
         utilities::execute_on_root(
             mWorldComm, []()
             { test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files.")); });
     }
-    void checkParallelConsistencyOfSum(const unsigned int aSum, const test_utilities::TestContext& aTestContext)
+
+    void checkParallelConsistencyOfSum(const unsigned int aSum, const test_utilities::TestContext& aTestContext) const
     {
         auto tOtherRanksSumValue = aSum;
         unsigned int tRankZeroValue = 0;
@@ -83,13 +84,12 @@ class ParallelConsistencyTest : public ::testing::Test
         }
         else
         {
-            boost::mpi::all_reduce(mSplitComm, boost::mpi::inplace(tOtherRanksSumValue), std::plus<unsigned int>());
+            boost::mpi::all_reduce(mSplitComm, boost::mpi::inplace(tOtherRanksSumValue), std::plus<>());
         }
         boost::mpi::broadcast(mWorldComm, tRankZeroValue, 0);
         EXPECT_EQ(tRankZeroValue, tOtherRanksSumValue) << aTestContext;
     }
 
-   protected:
     boost::mpi::communicator mWorldComm;
     boost::mpi::communicator mSplitComm;
     mesh::Mesh mMesh;
@@ -104,8 +104,8 @@ auto create_linear_space_vector(unsigned int aSize) -> std::vector<double>
     const double tStepSize = 1.0 / aSize;
 
     std::vector<double> tVector(aSize, tStepSize);
-    std::generate_n(tVector.begin() + 1, tVector.size() - 1,
-                    [tN = tStepSize, tDn = tStepSize]() mutable { return tN = tN + tDn; });
+    std::generate_n(tVector.begin() + 1, tVector.size() - 1, [tCurrentValue = tStepSize, tStepSize]() mutable
+                    { return tCurrentValue = tCurrentValue + tStepSize; });
     return tVector;
 }
 

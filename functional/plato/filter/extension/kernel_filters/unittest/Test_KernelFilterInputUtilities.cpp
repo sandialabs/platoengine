@@ -117,14 +117,26 @@ void expect_invalid_source_and_target(const third_party_integration::stk_io::Com
 
 TEST(KernelFilterInputUtilities, ValidateAllTargetDomainFindSourceDomain)
 {
-    expect_valid_source_and_target({-1, -1, -1}, input_parser::KernelFilterCenteringTypes::kNodeCentered,
-                                   TEST_CONTEXT("Target nodal domain should find all source entries."));
-    expect_valid_source_and_target({-1, -1, -1}, input_parser::KernelFilterCenteringTypes::kElementCentered,
-                                   TEST_CONTEXT("Target elemental domain should find all source entries."));
-    expect_invalid_source_and_target({-6, -7, -5}, input_parser::KernelFilterCenteringTypes::kNodeCentered,
-                                     TEST_CONTEXT("Target nodal domain should not find all source entries."));
-    expect_invalid_source_and_target({-6, -7, -5}, input_parser::KernelFilterCenteringTypes::kElementCentered,
-                                     TEST_CONTEXT("Target elemental domain should not find all source entries."));
+    {
+        const auto tValidLowerBounds = third_party_integration::stk_io::CommandBounds{-1, -1, -1};
+        expect_valid_source_and_target(tValidLowerBounds, input_parser::KernelFilterCenteringTypes::kNodeCentered,
+                                       TEST_CONTEXT("Target nodal domain should find all source entries."));
+    }
+    {
+        const auto tValidLowerBounds = third_party_integration::stk_io::CommandBounds{-1, -1, -1};
+        expect_valid_source_and_target(tValidLowerBounds, input_parser::KernelFilterCenteringTypes::kElementCentered,
+                                       TEST_CONTEXT("Target elemental domain should find all source entries."));
+    }
+    {
+        const auto tValidLowerBounds = third_party_integration::stk_io::CommandBounds{-6, -7, -5};
+        expect_invalid_source_and_target(tValidLowerBounds, input_parser::KernelFilterCenteringTypes::kNodeCentered,
+                                         TEST_CONTEXT("Target nodal domain should not find all source entries."));
+    }
+    {
+        const auto tValidLowerBounds = third_party_integration::stk_io::CommandBounds{-6, -7, -5};
+        expect_invalid_source_and_target(tValidLowerBounds, input_parser::KernelFilterCenteringTypes::kElementCentered,
+                                         TEST_CONTEXT("Target elemental domain should not find all source entries."));
+    }
 }
 
 }  // namespace plato::filter::extension::kernel_filters::unittest

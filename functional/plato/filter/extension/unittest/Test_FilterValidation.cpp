@@ -49,9 +49,11 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusBounds)
 
     tHelmholtzFilter.filter_radius = boost::none;
     EXPECT_TRUE(detail::validate_filter_radius_bounds(tHelmholtzFilter).has_value());
-    tHelmholtzFilter.filter_radius = 86.0;
+    constexpr auto tValidFilterRadius = 86.0;
+    tHelmholtzFilter.filter_radius = tValidFilterRadius;
     EXPECT_FALSE(detail::validate_filter_radius_bounds(tHelmholtzFilter).has_value());
-    tHelmholtzFilter.filter_radius = -1;
+    constexpr auto tInvalidFilterRadius = -1.0;
+    tHelmholtzFilter.filter_radius = tInvalidFilterRadius;
     EXPECT_TRUE(detail::validate_filter_radius_bounds(tHelmholtzFilter).has_value());
 }
 
@@ -72,9 +74,11 @@ TEST(FilterValidation, CheckFilterValuesKernelRadiusBounds)
 
     tFilter.filter_radius = boost::none;
     EXPECT_TRUE(detail::validate_filter_radius_bounds(tFilter).has_value());
-    tFilter.filter_radius = 68.0;
+    constexpr auto tValidRadius = 68.0;
+    tFilter.filter_radius = tValidRadius;
     EXPECT_FALSE(detail::validate_filter_radius_bounds(tFilter).has_value());
-    tFilter.filter_radius = -0.1;
+    constexpr auto tInvalidRadius = -0.1;
+    tFilter.filter_radius = tInvalidRadius;
     EXPECT_TRUE(detail::validate_filter_radius_bounds(tFilter).has_value());
 }
 
@@ -97,13 +101,16 @@ TEST(FilterValidation, CheckFilterValuesHelmholtzRadiusWithMesh)
     third_party_integration::stk_io::write_mesh(tMeshFileName, tCommandGenerator);
 
     auto tHelmholtzFilter = test_utilities::create_valid_helmholtz_filter_input();
-    tHelmholtzFilter.filter_radius = 0.5;
+    constexpr auto tRadiusSmallerThanEdgeLength = 0.5;
+    tHelmholtzFilter.filter_radius = tRadiusSmallerThanEdgeLength;
     EXPECT_TRUE(detail::validate_filter_radius_with_mesh(tHelmholtzFilter, tMeshFileName)
                     .has_value());  // radius smaller than element edge length of 1
-    tHelmholtzFilter.filter_radius = 1.0;
+    constexpr auto tRadiusEqualToEdgeLength = 1.0;
+    tHelmholtzFilter.filter_radius = tRadiusEqualToEdgeLength;
     EXPECT_TRUE(detail::validate_filter_radius_with_mesh(tHelmholtzFilter, tMeshFileName)
                     .has_value());  // radius equal to element edge length of 1
-    tHelmholtzFilter.filter_radius = 1.5;
+    constexpr auto tRadiusGreaterThanEdgeLength = 1.5;
+    tHelmholtzFilter.filter_radius = tRadiusGreaterThanEdgeLength;
     EXPECT_FALSE(detail::validate_filter_radius_with_mesh(tHelmholtzFilter, tMeshFileName)
                      .has_value());  // radius greater than element edge length of 1
 

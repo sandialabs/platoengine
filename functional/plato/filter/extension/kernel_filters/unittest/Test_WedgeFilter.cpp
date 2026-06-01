@@ -115,12 +115,14 @@ TEST(WedgeFilterDetail, ValidateWedgeAngleCommensurateWith360)
         EXPECT_FALSE(tErrorMessage.has_value()) << "Valid angle specified.";
     }
     {
-        tInput.wedge_angle = 23;
+        constexpr auto tInvalidWedgeAngle = 23.0;
+        tInput.wedge_angle = tInvalidWedgeAngle;
         const auto tErrorMessage = detail::validate_wedge_angle_commensurate_with_360(tInput);
         EXPECT_TRUE(tErrorMessage.has_value()) << "Invalid angle specified, does not evenly divide 360.";
     }
     {
-        tInput.wedge_angle = 45 / 2.0;
+        constexpr auto tValidWedgeAngle = 45.0 / 2.0;
+        tInput.wedge_angle = tValidWedgeAngle;
         const auto tErrorMessage = detail::validate_wedge_angle_commensurate_with_360(tInput);
         EXPECT_FALSE(tErrorMessage.has_value()) << "Valid angle specified, does rationally divide 360.";
     }
@@ -132,18 +134,21 @@ TEST(WedgeFilterDetail, ValidateWedgeAngleCommensurateWith360)
 }
 TEST(WedgeFilterDetail, ValidateWedgeAngleEvenDihedral)
 {
+    constexpr auto tDegreesInCircle = 360.0;
     auto tInput = kWedgeInputElementCentered;
     {
         const auto tErrorMessage = detail::validate_wedge_angle_even_dihedral(tInput);
         EXPECT_FALSE(tErrorMessage.has_value()) << "Valid angle specified.";
     }
     {
-        tInput.wedge_angle = 360.0 / 5.0;
+        constexpr auto tInvalidWedgeAngle = tDegreesInCircle / 5.0;
+        tInput.wedge_angle = tInvalidWedgeAngle;
         const auto tErrorMessage = detail::validate_wedge_angle_even_dihedral(tInput);
         EXPECT_TRUE(tErrorMessage.has_value()) << "Invalid angle specified, does not create even number of wedges.";
     }
     {
-        tInput.wedge_angle = 360 / 10.0;
+        constexpr auto tValidWedgeAngle = tDegreesInCircle / 10.0;
+        tInput.wedge_angle = tValidWedgeAngle;
         const auto tErrorMessage = detail::validate_wedge_angle_even_dihedral(tInput);
         EXPECT_FALSE(tErrorMessage.has_value()) << "Valid angle specified, does create even number of wedges.";
     }
