@@ -23,9 +23,13 @@ constexpr bool kPrintFlag = true;
 [[nodiscard]] auto create_parameter_list() -> ROL::ParameterList
 {
     ROL::ParameterList tParlist;
-    tParlist.sublist("Status Test").set("Gradient Tolerance", 1.e-12);
-    tParlist.sublist("Status Test").set("Step Tolerance", 1.e-14);
-    tParlist.sublist("Status Test").set("Iteration Limit", 100);
+    constexpr auto tGradientTolerance = 1e-12;
+    tParlist.sublist("Status Test").set("Gradient Tolerance", tGradientTolerance);
+    constexpr auto tStepTolerance = 1e-14;
+    tParlist.sublist("Status Test").set("Step Tolerance", tStepTolerance);
+    constexpr auto tIterationLimit = 100;
+    tParlist.sublist("Status Test").set("Iteration Limit", tIterationLimit);
+
     return tParlist;
 }
 
@@ -45,7 +49,9 @@ constexpr bool kPrintFlag = true;
 TEST(Optimize, Rosenbrock)
 {
     const ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
-    auto tControl = ROL::StdVector<double>{-1.2, 1.0};
+    constexpr auto tInitialGuessX = -1.2;
+    constexpr auto tInitialGuessY = 1.0;
+    auto tControl = ROL::StdVector<double>{tInitialGuessX, tInitialGuessY};
     auto tObjective = third_party_integration::rol::ROLObjectiveFunction{
         utilities::make_rosenbrock_dynamic_vector_function(test_utilities::Rosenbrock{})};
 
@@ -60,7 +66,9 @@ TEST(Optimize, Rosenbrock)
 TEST(Optimize, RosenbrockPenaltyComposition)
 {
     const ROL::Ptr<std::ostream> tOutStream = ROL::makePtrFromRef(std::cout);
-    auto tControl = ROL::StdVector<double>{1.5, 0.5};
+    constexpr auto tInitialGuessX = 1.5;
+    constexpr auto tInitialGuessY = 0.5;
+    auto tControl = ROL::StdVector<double>{tInitialGuessX, tInitialGuessY};
     constexpr auto tXMin = test_utilities::XMin{0.0};
     constexpr auto tPower = test_utilities::Exponent{3.0};
     auto tObjective = third_party_integration::rol::ROLObjectiveFunction{

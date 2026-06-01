@@ -27,7 +27,8 @@ constexpr auto kMassAppName = std::string_view{"test-mass-app"};
     tInput.app = input_parser::AppName{std::string{kMassAppName}};
     tInput.criterion = input_parser::CriterionName{"mass"};
     tInput.number_of_processors = aCommunicator.size();
-    tInput.aggregation_weight = 42.0;
+    constexpr auto tArbitraryAggregationWeight = 42.0;
+    tInput.aggregation_weight = tArbitraryAggregationWeight;
     return tInput;
 }
 }  // namespace

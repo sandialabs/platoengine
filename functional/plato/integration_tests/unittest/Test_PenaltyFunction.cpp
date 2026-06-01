@@ -47,10 +47,10 @@ TEST(PenaltyFunction, Multiplication)
     namespace pft = plato::test_utilities;
 
     const auto tX = linear_algebra::DynamicVector{1.0, 2.0};
-    const auto tA = utilities::DynamicVectorJacobian{pft::make_two_d_matrix(1.0, 2.0, 3.0, 4.0)};
-    const auto tB = tX * tA;
-    EXPECT_EQ(tB[0], 7.0);
-    EXPECT_EQ(tB[1], 10.0);
+    const auto tAParameter = utilities::DynamicVectorJacobian{pft::make_two_d_matrix(1.0, 2.0, 3.0, 4.0)};
+    const auto tBParameter = tX * tAParameter;
+    EXPECT_EQ(tBParameter[0], 7.0);
+    EXPECT_EQ(tBParameter[1], 10.0);
 }
 
 TEST(PenaltyFunction, Composition)

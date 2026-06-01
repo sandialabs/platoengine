@@ -253,16 +253,10 @@ TEST_F(TwoDThreeBlockMesh, VolumeCriterionNodalCoordinateGradientCheck)
     const auto tSpatialDimensions = static_cast<std::size_t>(mesh::EntityCounts{tMesh}.spatialDimensions());
     const auto tOriginalCoordinates =
         mesh::nodal_vector_field_to_dynamic_vector(mesh::EntityRetrieval{tMesh}.nodalCoordinates(), tSpatialDimensions);
-<<<<<<< HEAD
-    const auto tNumNodes = mesh::EntityCounts{tMesh}.numberOfNodes();
-    auto tRandomEngine = std::default_random_engine{123};
-    const auto tDirection = linear_algebra::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
-=======
     const auto tNumNodes = static_cast<std::size_t>(mesh::EntityCounts{tMesh}.numberOfNodes());
     constexpr auto tRandomSeed = 123;
     auto tRandomEngine = std::default_random_engine{tRandomSeed};  // NOLINT(cert-msc51-cpp,cert-msc32-c)
-    const auto tDirection = test_utilities::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
->>>>>>> 1d9ebcc9f7 (Fixes clang-tidy errors in criteria unit tests)
+    const auto tDirection = linear_algebra::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
 
     const auto tChecker = plato::utilities::GradientChecker{
         [tMeshFilePath = mMeshFilePath](const linear_algebra::DynamicVector<double>& aCoordinates)

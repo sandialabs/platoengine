@@ -63,7 +63,8 @@ TEST(VolumeCriterionIntegration, BrickShapeGeometry)
             return tGradient.dot(aDirection);
         }};
 
-    auto tRandomEngine = std::default_random_engine{123};
+    constexpr auto tRandomSeed = 123;
+    auto tRandomEngine = std::default_random_engine{tRandomSeed};  // NOLINT(cert-msc32-c,cert-msc51-cpp)
     const auto tDirection = linear_algebra::random_perturbation_vector(tControls.size(), tRandomEngine);
 
     const auto tGradientCheckParameters =

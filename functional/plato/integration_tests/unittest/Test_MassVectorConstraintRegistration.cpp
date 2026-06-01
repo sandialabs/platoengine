@@ -36,6 +36,8 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
     tObjective.criterion = input_parser::CriterionName{"mass"};
     tObjective.name = "test_1";
 
+    constexpr auto tArbitraryCGXTarget = 42.0;
+    constexpr auto tArbitraryCGZTarget = 43.0;
     auto tConstraint = input_parser::constraint{};
     tConstraint.number_of_processors = 1U;
     tConstraint.app = aMassAppName;
@@ -43,8 +45,10 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
     tConstraint.name = "test_2";
     tConstraint.constraint_type = input_parser::ConstraintTypes::kGreaterThan;
     tConstraint.constraint_value_list = criteria::library::ConstraintValueList{
-        {input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_x"}, /*.target=*/42.0},
-         input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_z"}, /*.target=*/43.0}}};
+        {input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_x"},
+                                          /*.target=*/tArbitraryCGXTarget},
+         input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_z"},
+                                          /*.target=*/tArbitraryCGZTarget}}};
 
     const auto tInput = tObjective | tConstraint |
                         geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |

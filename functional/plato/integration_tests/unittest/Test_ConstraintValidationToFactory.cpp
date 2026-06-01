@@ -22,20 +22,23 @@ TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
     auto tInput = parsedInput();
     tInput.get<components::ComponentType::kConstraint>().clear();
 
+    constexpr auto tArbitraryConstraintTargetEq = 13.0;
     auto tConstraint = criteria::library::test_utilities::create_valid_example_constraint_input();
     tConstraint.name = "eq";
-    tConstraint.constraint_value = 13;
+    tConstraint.constraint_value = tArbitraryConstraintTargetEq;
     tConstraint.constraint_type = input_parser::ConstraintTypes::kEqualTo;
     tInput = tInput | tConstraint;
 
+    constexpr auto tArbitraryConstraintTargetLe = 17.0;
     tConstraint.name = "le";
-    tConstraint.constraint_value = 17;
+    tConstraint.constraint_value = tArbitraryConstraintTargetLe;
     tConstraint.is_linear = false;
     tConstraint.constraint_type = input_parser::ConstraintTypes::kGreaterThan;
     tInput = tInput | tConstraint;
 
+    constexpr auto tArbitraryConstraintTargetGe = 10.0;
     tConstraint.name = "ge";
-    tConstraint.constraint_value = 10;
+    tConstraint.constraint_value = tArbitraryConstraintTargetGe;
     tConstraint.is_linear = false;
     tConstraint.constraint_type = input_parser::ConstraintTypes::kLessThan;
     tInput = tInput | tConstraint;

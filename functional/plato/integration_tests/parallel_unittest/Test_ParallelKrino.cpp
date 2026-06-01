@@ -29,9 +29,15 @@ TEST(ParallelKrino, NodalSumObjectivesRegression)
     auto tGeometryInput = geometry::extension::test_utilities::create_valid_level_set_topology_geometry_input();
     tGeometryInput.mesh_name = input_parser::FileName{*kRectangleMeshFilePath};
     tGeometryInput.max_edge_length_percentage_for_snapping = 0.0;  // turns off snapping for regression
-    tGeometryInput.sphere_pattern.value().min = input_parser::Point{-1.5, -2, -1};
-    tGeometryInput.sphere_pattern.value().max = input_parser::Point{1.5, 2, 1};
-    tGeometryInput.sphere_pattern.value().radius = 0.5;
+
+    const auto tSpherePatternBoundingBoxMin = input_parser::Point{-1.5, -2, -1};
+    tGeometryInput.sphere_pattern.value().min = tSpherePatternBoundingBoxMin;
+
+    const auto tSpherePatternBoundingBoxMax = input_parser::Point{1.5, 2, 1};
+    tGeometryInput.sphere_pattern.value().max = tSpherePatternBoundingBoxMax;
+
+    constexpr auto tSphereRadius = 0.5;
+    tGeometryInput.sphere_pattern.value().radius = tSphereRadius;
 
     auto tNodalSumInput = criteria::library::test_utilities::create_valid_example_objective_input();
     tNodalSumInput.aggregation_weight = 1.0 / static_cast<double>(boost::mpi::communicator{}.size());

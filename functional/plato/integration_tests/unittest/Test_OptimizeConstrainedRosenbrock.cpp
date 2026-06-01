@@ -196,7 +196,8 @@ template <typename OutStream>
 auto operator<<(OutStream& aOutStream, const SolutionForStream& aSolution) -> OutStream&
 {
     const auto& tVector = aSolution.mSolution.get();
-    aOutStream << std::setprecision(16) << "tSolution[0]" << tVector[0] << "\n";
+    constexpr auto tOutputPrecision = 16;
+    aOutStream << std::setprecision(tOutputPrecision) << "tSolution[0]" << tVector[0] << "\n";
     aOutStream << "tSolution[1]" << tVector[1] << "\n";
     aOutStream << "tSolution[0]+tSolution[1] = " << tVector[0] + tVector[1] << "\n";
     aOutStream << "tSolution[0]^2+tSolution[1]^2  = " << tVector[0] * tVector[0] + tVector[1] * tVector[1] << "\n";
@@ -212,8 +213,7 @@ void print_and_test_solution(const linear_algebra::DynamicVector<double>& aSolut
     EXPECT_NEAR(aSolution[1], kGoldYValue, kTolerance) << tSolutionForStream;
 }
 
-void check_rol_optimization(std::unique_ptr<ROL::Problem<double>>&& aROLProblem,
-                            const ROL::StdVector<double>& aControls)
+void check_rol_optimization(std::unique_ptr<ROL::Problem<double>> aROLProblem, const ROL::StdVector<double>& aControls)
 {
     auto tROLInputs = create_parameter_list();
     auto tROLProblem = ROL::Ptr<ROL::Problem<double>>(aROLProblem.release());

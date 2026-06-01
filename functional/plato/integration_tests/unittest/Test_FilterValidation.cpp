@@ -41,6 +41,11 @@ struct FilterValidationTestFixture : public testing::Test
     {
         test_utilities::test_for_existence_and_remove({mMeshPath}, TEST_CONTEXT("Checking existence of mesh file"));
     }
+
+    FilterValidationTestFixture(const FilterValidationTestFixture&) = delete;
+    FilterValidationTestFixture(FilterValidationTestFixture&&) = delete;
+    auto operator=(const FilterValidationTestFixture&) -> FilterValidationTestFixture& = delete;
+    auto operator=(FilterValidationTestFixture&&) -> FilterValidationTestFixture& = delete;
 };
 }  // namespace
 
@@ -96,7 +101,8 @@ TEST_F(FilterValidationTestFixture, ValidKernelFilter)
 TEST_F(FilterValidationTestFixture, CheckFilterValuesKernelRadiusBounds)
 {
     auto tFilter = filter::extension::test_utilities::create_valid_kernel_filter_input();
-    tFilter.filter_radius = -0.1;
+    constexpr auto tInvalidNegativeRadius = -0.1;
+    tFilter.filter_radius = tInvalidNegativeRadius;
 
     check_filter_validation(tFilter, TEST_CONTEXT("Kernel filter radius bounds"));
 }
@@ -111,7 +117,8 @@ TEST_F(FilterValidationTestFixture, CheckFilterValuesKernelCenteringType)
 TEST_F(FilterValidationTestFixture, CheckFilterValuesHelmholtzRadiusWithMesh)
 {
     auto tHelmholtzFilter = filter::extension::test_utilities::create_valid_helmholtz_filter_input();
-    tHelmholtzFilter.filter_radius = 0.5;
+    constexpr auto tInvalidSmallRadius = 0.5;
+    tHelmholtzFilter.filter_radius = tInvalidSmallRadius;
 
     check_filter_validation(tHelmholtzFilter, TEST_CONTEXT("Filter radius too small"));
 }

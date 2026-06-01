@@ -20,13 +20,15 @@ using VectorFunction =
 
 namespace
 {
+constexpr auto kQuadraticExponent = 2.0;
+
 const auto kFirstFunction = [](const double& aX, const double& aY) { return aX * aX + aY * aX; };
 
 const auto kFirstFunctionGrad = [](const DynamicVector<double>& aV)
 {
     const double tX = aV[0];
     const double tY = aV[1];
-    return DynamicVector{{2.0 * tX + tY, tX}};
+    return DynamicVector{{kQuadraticExponent * tX + tY, tX}};
 };
 
 const auto kSecondFunction = [](const double& aX, const double& aY) { return aY * aY + aX; };
@@ -34,7 +36,7 @@ const auto kSecondFunction = [](const double& aX, const double& aY) { return aY 
 const auto kSecondFunctionGrad = [](const DynamicVector<double>& aV)
 {
     const double tY = aV[1];
-    return DynamicVector({1.0, 2.0 * tY});
+    return DynamicVector({1.0, kQuadraticExponent * tY});
 };
 
 const auto kThirdFunction = [](const double& aX, const double& aY) { return aY * aY + aX * aX; };
@@ -43,7 +45,7 @@ const auto kThirdFunctionGrad = [](const DynamicVector<double>& aV)
 {
     const double tX = aV[0];
     const double tY = aV[1];
-    return DynamicVector({2.0 * tX, 2.0 * tY});
+    return DynamicVector({kQuadraticExponent * tX, kQuadraticExponent * tY});
 };
 
 const auto kForthFunction = [](const double& aX, const double& aY, const double& aZ)
@@ -53,7 +55,7 @@ const auto kForthFunctionGrad = [](const DynamicVector<double>& aV)
     const double tX = aV[0];
     const double tY = aV[1];
     const double tZ = aV[2];
-    return DynamicVector({2.0 * tX, 2.0 * tY, 2.0 * tZ});
+    return DynamicVector({kQuadraticExponent * tX, kQuadraticExponent * tY, kQuadraticExponent * tZ});
 };
 
 auto make_jacobian_multiplier_two_to_three(const DynamicVector<double>& aX) -> JacobianMultiplier
