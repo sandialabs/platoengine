@@ -1,9 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/InitialGeometryWriter.hpp"
 #include "plato/process_manager/extension/NodalResultFilter.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -46,8 +52,7 @@ TEST_F(NodalResultFilterMesh, DensityTopology)
     const auto tAllProcessManagerInputs = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
     ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 2U);
 
-    const auto tInitialGuessWriter = process_manager::extension::InitialGeometryWriter{};
-    tInitialGuessWriter.run(tProblem);
+    plato::process_manager::extension::InitialGeometryWriter::run(tProblem);
     const auto tNodalResultFilter =
         process_manager::extension::NodalResultFilter{tAllProcessManagerInputs.rawInput().back()};
     tNodalResultFilter.run();

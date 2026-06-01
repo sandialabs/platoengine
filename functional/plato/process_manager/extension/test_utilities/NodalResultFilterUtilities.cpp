@@ -4,6 +4,7 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <filesystem>
+#include <optional>
 #include <vector>
 
 #include "plato/components/ComponentType.hpp"
@@ -12,6 +13,7 @@
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
@@ -21,6 +23,7 @@
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/process_manager/extension/NodalResultFilter.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 #include "plato/utilities/IndexRange.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 
@@ -62,7 +65,7 @@ NodalResultFilterRunFixture::~NodalResultFilterRunFixture()
                                [this]() { std::filesystem::remove(mDirectory.directory() / kRestartMeshPath); });
 }
 
-void NodalResultFilterRunFixture::run_and_check_nodal_filter_result(
+void NodalResultFilterRunFixture::runAndCheckNodalFilterResult(
     const std::optional<std::filesystem::path>& aNodalResultOutMeshPath,
     const plato::test_utilities::TestContext& aTestContext,
     const unsigned int aNumberOfProcessorsForFilter)

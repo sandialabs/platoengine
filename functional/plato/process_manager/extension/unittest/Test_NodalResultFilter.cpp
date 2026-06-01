@@ -39,8 +39,8 @@ using NodalResultSerialFixture = test_utilities::NodalResultFilterRunFixture;
 TEST_F(NodalResultSerialFixture, CreateAndRunSeparateOutputFile)
 {
     const auto tOutputMeshPath = mDirectory.directory() / std::filesystem::path{"output.exo"};
-    run_and_check_nodal_filter_result(tOutputMeshPath, TEST_CONTEXT("With a new output file"));
-    run_and_check_nodal_filter_result(std::nullopt, TEST_CONTEXT("Overwrite existing output file"));
+    runAndCheckNodalFilterResult(tOutputMeshPath, TEST_CONTEXT("With a new output file"));
+    runAndCheckNodalFilterResult(std::nullopt, TEST_CONTEXT("Overwrite existing output file"));
 }
 
 TEST(NodalResultFilter, ValidateFilterIsKernelFilter)

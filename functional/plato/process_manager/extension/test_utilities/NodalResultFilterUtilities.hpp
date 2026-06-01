@@ -20,13 +20,19 @@ class NodalResultFilterRunFixture : public third_party_integration::stk_io::test
 {
    public:
     NodalResultFilterRunFixture();
-    ~NodalResultFilterRunFixture();
+    ~NodalResultFilterRunFixture() override;
+
     /// @brief Creates an input and runs a nodal_result_filter. If @a aNodalResultOutMeshPath is specified, it will
     /// check that file for the nodal result. If @a aNumberOfProcessorsForFilter is specified, it will use that for the
     /// filter.
-    void run_and_check_nodal_filter_result(const std::optional<std::filesystem::path>& aNodalResultOutMeshPath,
-                                           const plato::test_utilities::TestContext& aTestContext,
-                                           const unsigned int aNumberOfProcessorsForFilter = 1U);
+    void runAndCheckNodalFilterResult(const std::optional<std::filesystem::path>& aNodalResultOutMeshPath,
+                                      const plato::test_utilities::TestContext& aTestContext,
+                                      unsigned int aNumberOfProcessorsForFilter = 1U);
+
+    NodalResultFilterRunFixture(const NodalResultFilterRunFixture&) = delete;
+    NodalResultFilterRunFixture(NodalResultFilterRunFixture&&) = delete;
+    auto operator=(const NodalResultFilterRunFixture&) -> NodalResultFilterRunFixture& = delete;
+    auto operator=(NodalResultFilterRunFixture&&) -> NodalResultFilterRunFixture& = delete;
 };
 
 }  // namespace plato::process_manager::extension::test_utilities
