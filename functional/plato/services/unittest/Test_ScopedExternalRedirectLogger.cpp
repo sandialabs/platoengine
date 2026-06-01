@@ -82,7 +82,7 @@ TEST(ScopedExternalRedirectLogger, ExceptionBehavior)
             std::cout << kTestMessage;
             throw std::runtime_error{"Throwing before redirect closes"};
         }
-        catch (const std::runtime_error& tTestException)
+        catch (const std::runtime_error& tTestException)  // NOLINT(bugprone-empty-catch)
         {
         }
     }
