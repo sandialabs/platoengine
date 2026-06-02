@@ -5,7 +5,9 @@ set(LINK_LIBS PlatoFunctionalUtilities STKIO::stk_io PlatoFunctionalTPICommon)
 create_plato_library(PlatoFunctionalSTKIO "." "${LINK_LIBS}")
 
 if( UNIT_TESTING )
-  set(LINK_LIBS PlatoFunctionalSTKIO PlatoFunctionalTestUtilities)
+  set(LINK_LIBS PlatoFunctionalSTKIO 
+                PlatoFunctionalTestUtilities
+                PlatoFunctionalLinearAlgebra)
   create_plato_library(PlatoFunctionalSTKIOTestUtilities "test_utilities" "${LINK_LIBS}")
   create_plato_unittester(
     PlatoFunctionalSTKIO unittest PlatoFunctionalSTKIOTestUtilities PlatoFunctionalTPICommonTestUtilities)

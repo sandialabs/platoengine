@@ -15,7 +15,6 @@
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
@@ -23,6 +22,7 @@
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 
 namespace plato::geometry::extension::unittest
@@ -160,8 +160,8 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
         return tXJV;
     };
     constexpr auto tNumSteps = 10;
-    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.5, tNumSteps, 0.125};
-    const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
+    const auto tGradientCheckParameters = plato::utilities::GradientCheckParameters{0.5, tNumSteps, 0.125};
+    const auto tGradientCheck = plato::utilities::GradientChecker{tF, tDf};
 
     const auto tMaxError = tGradientCheck.maxFirstOrderTruncationError(tX, tDirection, tGradientCheckParameters);
     EXPECT_NEAR(tMaxError, 0.0, 5e-2) << tGradientCheck.table(tX, tDirection, tGradientCheckParameters);

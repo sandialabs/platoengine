@@ -1,16 +1,23 @@
 #include <cmath>
+#include <format>
 #include <iterator>
 #include <numeric>
 #include <type_traits>
 
 #include "plato/utilities/FixedWidthFloatingPointOutput.hpp"
+#include "plato/utilities/NamedType.hpp"
 
-namespace plato::test_utilities
+namespace plato::utilities
 {
 namespace
 {
 constexpr int kTableEntryWidth = 24;
 constexpr int kPrecision = 16;
+
+template <typename ArgType>
+using Argument = utilities::NamedType<ArgType, struct ArgumentTag>;
+template <typename ArgType>
+using Direction = utilities::NamedType<ArgType, struct DirectionTag>;
 
 /// @brief Generates a sequence of first-order finite difference approximations
 ///
@@ -22,19 +29,22 @@ template <typename ArgType>
 class FiniteDifferenceGenerator
 {
    public:
-    /// @param aF Function whose derivative will be approximated by finite differences
-    /// @param aX The point at which to compute the finite difference approximation
+    /// @param aFunction Function whose derivative will be approximated by finite differences
+    /// @param aArgument The point at which to compute the finite difference approximation
     /// @param aParameters The finite difference parameters for the sequence, such as initial step size and step
     /// reduction.
     template <typename F>
-    FiniteDifferenceGenerator(F aF, ArgType aX, ArgType aDirection, const GradientCheckParameters& aParameters);
+    FiniteDifferenceGenerator(F aFunction,
+                              Argument<ArgType> aArgument,
+                              Direction<ArgType> aDirection,
+                              const GradientCheckParameters& aParameters);
 
     [[nodiscard]] auto operator()() -> StepAndValue;
 
    private:
     std::function<double(ArgType)> mFunction;
     GradientCheckParameters mParameters;
-    ArgType mX = 0.0;
+    ArgType mArgument = 0.0;
     ArgType mDirection = 1.0;
     double mFAtX = 0.0;
     unsigned int mIndex = 0;
@@ -42,23 +52,23 @@ class FiniteDifferenceGenerator
 
 template <typename ArgType>
 template <typename F>
-FiniteDifferenceGenerator<ArgType>::FiniteDifferenceGenerator(F aF,
-                                                              ArgType aX,
-                                                              ArgType aDirection,
+FiniteDifferenceGenerator<ArgType>::FiniteDifferenceGenerator(F aFunction,
+                                                              Argument<ArgType> aArgument,
+                                                              Direction<ArgType> aDirection,
                                                               const GradientCheckParameters& aParameters)
-    : mFunction{std::move(aF)},
+    : mFunction{std::move(aFunction)},
       mParameters{aParameters},
-      mX{std::move(aX)},
-      mDirection{std::move(aDirection)},
-      mFAtX{mFunction(mX)}
+      mArgument{std::move(aArgument.mValue)},
+      mDirection{std::move(aDirection.mValue)},
+      mFAtX{mFunction(mArgument)}
 {
 }
 
 template <typename ArgType>
 auto FiniteDifferenceGenerator<ArgType>::operator()() -> StepAndValue
 {
-    const double tH = mParameters.mInitialStepSize * std::pow(mParameters.mStepDelta, mIndex++);
-    return {tH, (mFunction(mX + tH * mDirection) - mFAtX) / tH};
+    const double tStep = mParameters.mInitialStepSize * std::pow(mParameters.mStepDelta, mIndex++);
+    return {tStep, (mFunction(mArgument + tStep * mDirection) - mFAtX) / tStep};
 }
 
 struct PrintTableRow
@@ -79,21 +89,20 @@ auto operator<<(Stream& aStream, const PrintTableRow& aTableRow) -> Stream&
 }
 
 template <typename ArgType>
-[[nodiscard]] auto finite_difference_sequence(const std::function<double(ArgType)>& aF,
-                                              const ArgType& aX,
-                                              const ArgType& aDirection,
+[[nodiscard]] auto finite_difference_sequence(const std::function<double(ArgType)>& aFunction,
+                                              const Argument<ArgType>& aArgument,
+                                              const Direction<ArgType>& aDirection,
                                               const GradientCheckParameters& aParameters) -> std::vector<StepAndValue>
 {
     auto aFiniteDifferences = std::vector<StepAndValue>{};
     aFiniteDifferences.reserve(aParameters.mNumSteps);
     std::generate_n(std::back_inserter(aFiniteDifferences), aParameters.mNumSteps,
-                    FiniteDifferenceGenerator{aF, aX, aDirection, aParameters});
+                    FiniteDifferenceGenerator{aFunction, aArgument, aDirection, aParameters});
     return aFiniteDifferences;
 }
 
-[[nodiscard]] auto finite_difference_error_vs_analytic(const double aAnalyticValue,
-                                                       const std::vector<StepAndValue>& aFiniteDifferences)
-    -> std::vector<StepAndValue>
+[[nodiscard]] [[maybe_unused]] auto finite_difference_error_vs_analytic(
+    const double aAnalyticValue, const std::vector<StepAndValue>& aFiniteDifferences) -> std::vector<StepAndValue>
 {
     auto tErrors = std::vector<StepAndValue>{};
     tErrors.reserve(aFiniteDifferences.size());
@@ -106,9 +115,9 @@ template <typename ArgType>
     return tErrors;
 }
 
-[[nodiscard]] auto print_table(const double aAnalyticValue,
-                               const std::vector<StepAndValue>& aFiniteDifferences,
-                               const std::vector<StepAndValue>& aErrors) -> std::vector<PrintTableRow>
+[[nodiscard]] [[maybe_unused]] auto print_table(const double aAnalyticValue,
+                                                const std::vector<StepAndValue>& aFiniteDifferences,
+                                                const std::vector<StepAndValue>& aErrors) -> std::vector<PrintTableRow>
 {
     auto tTable = std::vector<PrintTableRow>{};
     tTable.reserve(aFiniteDifferences.size());
@@ -123,24 +132,24 @@ template <typename ArgType>
 }
 
 template <typename F, typename ArgType>
-[[nodiscard]] auto directional_derivative(const F& aF, const ArgType& aArg, const ArgType& aDirection) -> double
+[[nodiscard]] auto directional_derivative(const F& aFunction, const ArgType& aArg, const ArgType& aDirection) -> double
 {
     if constexpr (std::is_arithmetic_v<ArgType>)
     {
         // Scalar type
-        return aDirection * aF(aArg);
+        return aDirection * aFunction(aArg);
     }
     else if constexpr (std::is_invocable_v<F, ArgType, ArgType>)
     {
         // Custom implementation of directional derivative
-        return aF(aArg, aDirection);
+        return aFunction(aArg, aDirection);
     }
     else
     {
         // Non-scalar
         using std::begin;
         using std::end;
-        const auto tResult = aF(aArg);
+        const auto tResult = aFunction(aArg);
         return std::inner_product(begin(tResult), end(tResult), begin(aDirection), 0.0);
     }
     return 0.0;  // Suppress nvcc spurious warning
@@ -150,29 +159,31 @@ template <typename F, typename ArgType>
 
 template <typename ArgType>
 template <typename F, typename dF>
-GradientChecker<ArgType>::GradientChecker(F aF, dF aDf)
-    : mFunction{std::move(aF)},
+GradientChecker<ArgType>::GradientChecker(F aFunction, dF aDf)
+    : mFunction{std::move(aFunction)},
       mFunctionDirectionalDerivative{[mDf = std::move(aDf)](const ArgType& aArg, const ArgType& aDirection)
                                      { return directional_derivative(mDf, aArg, aDirection); }}
 {
 }
 
 template <typename ArgType>
-auto GradientChecker<ArgType>::finiteDifferenceErrors(const ArgType& aX,
+auto GradientChecker<ArgType>::finiteDifferenceErrors(const ArgType& aArgument,
                                                       const ArgType& aDirection,
                                                       const GradientCheckParameters& aParameters) const
     -> std::vector<StepAndValue>
 {
-    const auto tFiniteDifferences = finite_difference_sequence(mFunction, aX, aDirection, aParameters);
-    return finite_difference_error_vs_analytic(mFunctionDirectionalDerivative(aX, aDirection), tFiniteDifferences);
+    const auto tFiniteDifferences = finite_difference_sequence(mFunction, Argument<ArgType>{aArgument},
+                                                               Direction<ArgType>{aDirection}, aParameters);
+    return finite_difference_error_vs_analytic(mFunctionDirectionalDerivative(aArgument, aDirection),
+                                               tFiniteDifferences);
 }
 
 template <typename ArgType>
-double GradientChecker<ArgType>::maxFirstOrderTruncationError(const ArgType& aX,
+double GradientChecker<ArgType>::maxFirstOrderTruncationError(const ArgType& aArgument,
                                                               const ArgType& aDirection,
                                                               const GradientCheckParameters& aParameters) const
 {
-    const auto tErrors = finiteDifferenceErrors(aX, aDirection, aParameters);
+    const auto tErrors = finiteDifferenceErrors(aArgument, aDirection, aParameters);
     auto tAdjacentQuotients = std::vector<StepAndValue>{};
     tAdjacentQuotients.reserve(tErrors.size());
     std::adjacent_difference(tErrors.cbegin(), tErrors.cend(), std::back_inserter(tAdjacentQuotients),
@@ -192,12 +203,25 @@ double GradientChecker<ArgType>::maxFirstOrderTruncationError(const ArgType& aX,
 }
 
 template <typename ArgType>
-auto GradientChecker<ArgType>::table(const ArgType& aX,
+auto GradientChecker<ArgType>::header() const -> std::string
+{
+    constexpr auto tStepLabel = std::string_view{"Step"};
+    constexpr auto tAnalyticLabel = std::string_view{"Gradient*Direction"};
+    constexpr auto tFiniteDifferenceLabel = std::string_view{"Finite Difference"};
+    constexpr auto tErrorLabel = std::string_view{"Relative Error"};
+
+    return std::format("{0:<{4}}{1:<{4}}{2:<{4}}{3:<{4}}", tStepLabel, tAnalyticLabel, tFiniteDifferenceLabel,
+                       tErrorLabel, kTableEntryWidth);
+}
+
+template <typename ArgType>
+auto GradientChecker<ArgType>::table(const ArgType& aArgument,
                                      const ArgType& aDirection,
                                      const GradientCheckParameters& aParameters) const -> std::string
 {
-    const auto tFiniteDifferences = finite_difference_sequence(mFunction, aX, aDirection, aParameters);
-    const auto tAnalyticValue = mFunctionDirectionalDerivative(aX, aDirection);
+    const auto tFiniteDifferences = finite_difference_sequence(mFunction, Argument<ArgType>{aArgument},
+                                                               Direction<ArgType>{aDirection}, aParameters);
+    const auto tAnalyticValue = mFunctionDirectionalDerivative(aArgument, aDirection);
     const auto tErrors = finite_difference_error_vs_analytic(tAnalyticValue, tFiniteDifferences);
     const auto tTable = print_table(tAnalyticValue, tFiniteDifferences, tErrors);
 
@@ -229,4 +253,4 @@ using CallableArg = typename CallableArgImpl<decltype(&F::operator())>::ArgType;
 template <typename F, typename dF>
 GradientChecker(F f, dF df) -> GradientChecker<std::remove_cv_t<std::remove_reference_t<detail::CallableArg<F>>>>;
 
-}  // namespace plato::test_utilities
+}  // namespace plato::utilities

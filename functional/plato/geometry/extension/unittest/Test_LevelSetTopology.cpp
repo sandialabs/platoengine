@@ -23,13 +23,13 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
-#include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -604,10 +604,10 @@ void check_coordinate_sum_gradient_for_small_level_set_perturbations(const input
         return tResult.dot(aV);
     };
 
-    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{
+    const auto tGradientCheckParameters = plato::utilities::GradientCheckParameters{
         0.5, 8, 0.0125};  // set the initial step size such that mesh topological changes are not by the level
                           // set perturbation
-    const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
+    const auto tGradientCheck = plato::utilities::GradientChecker{tF, tDf};
 
     const auto tLevelSetTopology = LevelSetTopology{aInput};
     const auto tInitialGuess = initial_guess(aInput);

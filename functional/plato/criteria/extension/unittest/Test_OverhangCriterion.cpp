@@ -7,12 +7,12 @@
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/Utilities.hpp"
 #include "plato/criteria/extension/OverhangCriterion.hpp"
-#include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/TriangleUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/Exception.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -95,13 +95,13 @@ namespace
 {
 void check_first_order_truncation_error(const auto& aF,
                                         const auto& aDF,
-                                        const plato::test_utilities::GradientCheckParameters& aGradCheckParams,
+                                        const plato::utilities::GradientCheckParameters& aGradCheckParams,
                                         const double aX,
                                         const double aDirection,
                                         const double aFirstOrderTruncationTolerance,
                                         const double aLastFiniteDifferenceError)
 {
-    const auto tChecker = plato::test_utilities::GradientChecker{aF, aDF};
+    const auto tChecker = plato::utilities::GradientChecker{aF, aDF};
 
     EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(aX, aDirection, aGradCheckParams), 0.0,
                 aFirstOrderTruncationTolerance)
@@ -116,7 +116,7 @@ void check_first_order_truncation_error(const auto& aF,
 
 TEST(OverhangCriterion, dExponentialStepFunction)
 {
-    constexpr plato::test_utilities::GradientCheckParameters tGradCheckParams{
+    constexpr plato::utilities::GradientCheckParameters tGradCheckParams{
         .mStepDelta = .1, .mNumSteps = 6, .mInitialStepSize = .01};
     constexpr auto tFirstOrderTruncationTolerance{1e-1};
     constexpr auto tLastFiniteDifferenceError{1e-6};
@@ -130,7 +130,7 @@ TEST(OverhangCriterion, dExponentialStepFunction)
 
 TEST(OverhangCriterion, dSmoothingFunction)
 {
-    constexpr plato::test_utilities::GradientCheckParameters tGradCheckParams{
+    constexpr plato::utilities::GradientCheckParameters tGradCheckParams{
         .mStepDelta = .1, .mNumSteps = 6, .mInitialStepSize = .01};
     constexpr auto tFirstOrderTruncationTolerance{1e-1};
     constexpr auto tLastFiniteDifferenceError{1e-6};
@@ -143,7 +143,7 @@ TEST(OverhangCriterion, dSmoothingFunction)
 
 TEST(OverhangCriterion, dOverhang)
 {
-    constexpr plato::test_utilities::GradientCheckParameters tGradCheckParams{
+    constexpr plato::utilities::GradientCheckParameters tGradCheckParams{
         .mStepDelta = .5, .mNumSteps = 6, .mInitialStepSize = .0001};
     constexpr auto tFirstOrderTruncationTolerance{6e-1};
     constexpr auto tLastFiniteDifferenceError{1e-8};
@@ -175,7 +175,7 @@ TEST(OverhangCriterion, SingleTriangleDerivative)
     constexpr double tTransitionWidth = 0.05;
     constexpr Vector3 tBuildDirection = {.x = 0, .y = 0, .z = 1};
     const OverhangCriterion tCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold, {});
-    const auto tChecker = plato::test_utilities::GradientChecker{
+    const auto tChecker = plato::utilities::GradientChecker{
         [tCriterion](const linear_algebra::DynamicVector<double>& aTriNodalCoords)
         {
             const auto tTriangle = build_single_tri_from_coords(aTriNodalCoords.stdVector());
@@ -197,7 +197,7 @@ TEST(OverhangCriterion, SingleTriangleDerivative)
             return tGradient.dot(aDirection);
         }};
     const auto tGradientCheckParameters =
-        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.5, .mNumSteps = 10, .mInitialStepSize = .001};
+        plato::utilities::GradientCheckParameters{.mStepDelta = 0.5, .mNumSteps = 10, .mInitialStepSize = .001};
     const auto tNodalCoordinates = linear_algebra::DynamicVector<double>{0, 0, 0, 0, 1, -.1, 1, 0, -.1};
     const auto tDirection = linear_algebra::DynamicVector<double>{.10, -.10, 0.05, 0.03, -0.09, 0.2, -.04, -.3, .07};
 

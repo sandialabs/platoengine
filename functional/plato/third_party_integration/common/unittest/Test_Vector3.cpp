@@ -260,4 +260,12 @@ TEST(Coordinate, MaximimEntries)
     EXPECT_EQ(tGold, tResult);
 }
 
+TEST(Coordinate, Flatten)
+{
+    const auto tVector = std::vector<Coordinate>{{1, 2, 3}, {4, 5, 6}};
+    const auto tGoldVector = std::vector<double>{1, 2, 3, 4, 5, 6};
+    const auto tResult = flatten(tVector);
+    EXPECT_EQ(tResult, tGoldVector);
+}
+
 }  // namespace plato::third_party_integration::common::unittest

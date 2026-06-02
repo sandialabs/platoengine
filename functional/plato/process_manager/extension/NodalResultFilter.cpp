@@ -13,6 +13,7 @@
 #include "plato/mesh/FixedBlockUtilities.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
@@ -188,13 +189,15 @@ namespace detail
 {
 auto validate_filter_is_kernel_filter(const input_parser::nodal_result_filter& aInput) -> std::optional<std::string>
 {
-    return validate_expected_cross_reference_type<input_parser::kernel_filter>(aInput.filter);
+    return validate_expected_cross_reference_type<input_parser::kernel_filter>(
+        aInput.filter, input_parser::block_name<input_parser::nodal_result_filter>());
 }
 
 auto validate_geometry_is_density_topology(const input_parser::nodal_result_filter& aInput)
     -> std::optional<std::string>
 {
-    return validate_expected_cross_reference_type<input_parser::density_topology>(aInput.geometry);
+    return validate_expected_cross_reference_type<input_parser::density_topology>(
+        aInput.geometry, input_parser::block_name<input_parser::nodal_result_filter>());
 }
 
 }  // namespace detail

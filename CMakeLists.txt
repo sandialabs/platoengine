@@ -33,7 +33,7 @@ option( BUILD_WITH_SANITIZER_FLAGS "Builds platoengine with sanitizers"    OFF )
 ###############################################################################
 ###############################################################################
 
-project(PlatoEngine LANGUAGES CXX C)
+project(PlatoEngine VERSION 2.1.0 LANGUAGES CXX C)
 
 find_package(MPI REQUIRED COMPONENTS CXX)
 

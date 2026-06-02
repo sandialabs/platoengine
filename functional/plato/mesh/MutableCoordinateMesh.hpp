@@ -1,5 +1,7 @@
-#ifndef PLATO_MESH_TESTUTILITIES_MUTABLECOORDINATEMESH
-#define PLATO_MESH_TESTUTILITIES_MUTABLECOORDINATEMESH
+#ifndef PLATO_MESH_MUTABLECOORDINATEMESH
+#define PLATO_MESH_MUTABLECOORDINATEMESH
+
+#include <boost/mpi/communicator.hpp>
 
 #include "plato/mesh/Mesh.hpp"
 
@@ -10,7 +12,7 @@ struct Coordinate;
 
 /// @brief mixin extension for Mesh that provides a function for overwriting nodal coordinates. This is used for
 /// checking the gradient of functions with respect to nodal coordinates.
-namespace plato::mesh::test_utilities
+namespace plato::mesh
 {
 struct MutableCoordinateMesh : public Mesh
 {
@@ -23,6 +25,6 @@ struct MutableCoordinateMesh : public Mesh
     /// @brief writes the mesh with new nodal coordinates to disp at the path @a aMeshFilePath.
     void writeMeshToDisk(const std::filesystem::path& aMeshFilePath);
 };
-}  // namespace plato::mesh::test_utilities
+}  // namespace plato::mesh
 
 #endif

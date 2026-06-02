@@ -4,18 +4,18 @@
 #include <string>
 
 #include "plato/criteria/extension/VolumeCriterion.hpp"
+#include "plato/linear_algebra/RandomPerturbationVector.hpp"
 #include "plato/mesh/CoordinateUtilities.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
-#include "plato/mesh/test_utilities/MutableCoordinateMesh.hpp"
-#include "plato/test_utilities/GradientChecker.hpp"
-#include "plato/test_utilities/RandomPerturbationVector.hpp"
+#include "plato/mesh/MutableCoordinateMesh.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 
 namespace plato::criteria::extension::unittest
 {
@@ -34,9 +34,10 @@ class VolumeFractionCriterionHex : public third_party_integration::stk_io::test_
     }
 };
 
-[[nodiscard]] auto mesh_with_constant_controls(const double aControlValue) -> analysis::AnalysisDomainMesh
+[[nodiscard]] auto mesh_with_constant_controls(const double aControlValue, const std::filesystem::path& aMeshFilePath)
+    -> analysis::AnalysisDomainMesh
 {
-    const auto tMesh = mesh::EntityCounts{mesh::Mesh{kMeshFile}};
+    const auto tMesh = mesh::EntityCounts{mesh::Mesh{aMeshFilePath}};
     const auto tControls = std::vector<double>(tMesh.numberOfElements(), aControlValue);
     return mesh::DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         mesh::ElementFieldVectorReference{std::cref(tControls)});
@@ -44,10 +45,11 @@ class VolumeFractionCriterionHex : public third_party_integration::stk_io::test_
 
 void test_volume_criteria_from_ctor_and_function(const VolumeCriterion& aVolumeCriterion,
                                                  const library::CriterionFunction& aFunction,
-                                                 const double aGoldVolume)
+                                                 const double aGoldVolume,
+                                                 const std::filesystem::path& aMeshFilePath)
 {
     constexpr double tConstantControls = 0.75;
-    const auto tAnalysisDomainMesh = mesh_with_constant_controls(tConstantControls);
+    const auto tAnalysisDomainMesh = mesh_with_constant_controls(tConstantControls, aMeshFilePath);
 
     EXPECT_EQ(aVolumeCriterion.f(tAnalysisDomainMesh), aGoldVolume * tConstantControls);
     EXPECT_EQ(aVolumeCriterion.f(tAnalysisDomainMesh),
@@ -55,16 +57,18 @@ void test_volume_criteria_from_ctor_and_function(const VolumeCriterion& aVolumeC
 }
 
 void test_scaled_and_unscaled_on_ctor_and_function(
-    const third_party_integration::stk_io::CommandGenerator& aCommandGenerator)
+    const third_party_integration::stk_io::CommandGenerator& aCommandGenerator,
+    const std::filesystem::path& aMeshFilePath)
 {
     third_party_integration::stk_io::write_mesh(kMeshFile, aCommandGenerator);
-    test_volume_criteria_from_ctor_and_function(
-        VolumeCriterion{}, make_volume_constraint_function(/*aIgnoreVoidBlocks=*/true), aCommandGenerator.volume());
+    test_volume_criteria_from_ctor_and_function(VolumeCriterion{},
+                                                make_volume_constraint_function(/*aIgnoreVoidBlocks=*/true),
+                                                aCommandGenerator.volume(), aMeshFilePath);
     test_volume_criteria_from_ctor_and_function(
         VolumeCriterion{.mScaleFactor = 1.0 / aCommandGenerator.volume(), .mIgnoreVoidBlocks = true},
         make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true,
                                                  /*aReferenceVolume=*/aCommandGenerator.volume()),
-        1);
+        1, aMeshFilePath);
 
     EXPECT_TRUE(std::filesystem::remove(kMeshFile));
 }
@@ -96,7 +100,7 @@ const std::filesystem::path kPerturbedMeshFilePath{"perturbed_mesh.exo"};
 void write_perturbed_mesh_to_file(const linear_algebra::DynamicVector<double>& aPerturbedCoordinates,
                                   const std::filesystem::path& aMeshFilePath)
 {
-    auto tMesh = mesh::test_utilities::MutableCoordinateMesh{mesh::Mesh{aMeshFilePath}};
+    auto tMesh = mesh::MutableCoordinateMesh{mesh::Mesh{aMeshFilePath}};
     tMesh.updateNodalCoordinates(mesh::dynamic_vector_to_nodal_coordinates(
         aPerturbedCoordinates, mesh::EntityCounts{tMesh}.spatialDimensions()));
     tMesh.writeMeshToDisk(kPerturbedMeshFilePath);
@@ -127,14 +131,18 @@ struct InputFileIO
 
 TEST(VolumeCriterion, Volume)
 {
-    test_scaled_and_unscaled_on_ctor_and_function(third_party_integration::stk_io::CommandGenerator{
-        {4, 4, 4}, {0, 0, 0}, {2.0, 2.0, 3.0}, third_party_integration::stk_io::CommandElementType::Hex});
+    test_scaled_and_unscaled_on_ctor_and_function(
+        third_party_integration::stk_io::CommandGenerator{
+            {4, 4, 4}, {0, 0, 0}, {2.0, 2.0, 3.0}, third_party_integration::stk_io::CommandElementType::Hex},
+        kMeshFile);
 }
 
 TEST(VolumeCriterion, VolumeTetMesh)
 {
-    test_scaled_and_unscaled_on_ctor_and_function(third_party_integration::stk_io::CommandGenerator{
-        {4, 4, 4}, {0, 0, 0}, {1.0, 2.0, 3.0}, third_party_integration::stk_io::CommandElementType::Tet});
+    test_scaled_and_unscaled_on_ctor_and_function(
+        third_party_integration::stk_io::CommandGenerator{
+            {4, 4, 4}, {0, 0, 0}, {1.0, 2.0, 3.0}, third_party_integration::stk_io::CommandElementType::Tet},
+        kMeshFile);
 }
 
 TEST(VolumeCriterion, VolumeDifferentiatesBetweenNodalAndDensityDesignVariables)
@@ -153,7 +161,7 @@ TEST(VolumeCriterion, VolumeDifferentiatesBetweenNodalAndDensityDesignVariables)
     // with control field (density topology)
     {
         constexpr double tConstantControlValue{0.5};
-        const auto tAnalysisDomainMesh = mesh_with_constant_controls(tConstantControlValue);
+        const auto tAnalysisDomainMesh = mesh_with_constant_controls(tConstantControlValue, kMeshFile);
         EXPECT_DOUBLE_EQ(VolumeCriterion{}.f(tAnalysisDomainMesh), tConstantControlValue * tVolume);
     }
 
@@ -228,9 +236,9 @@ TEST_F(TwoDThreeBlockMesh, VolumeCriterionNodalCoordinateGradientCheck)
         mesh::nodal_vector_field_to_dynamic_vector(mesh::EntityRetrieval{tMesh}.nodalCoordinates(), tSpatialDimensions);
     const auto tNumNodes = mesh::EntityCounts{tMesh}.numberOfNodes();
     auto tRandomEngine = std::default_random_engine{123};
-    const auto tDirection = test_utilities::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
+    const auto tDirection = linear_algebra::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
 
-    const auto tChecker = plato::test_utilities::GradientChecker{
+    const auto tChecker = plato::utilities::GradientChecker{
         [mMeshFilePath{mMeshFilePath}](const linear_algebra::DynamicVector<double>& aCoordinates)
         {
             write_perturbed_mesh_to_file(aCoordinates, mMeshFilePath);
@@ -249,7 +257,7 @@ TEST_F(TwoDThreeBlockMesh, VolumeCriterionNodalCoordinateGradientCheck)
         }};
 
     const auto tGradientCheckParameters =
-        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
+        plato::utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
     constexpr auto tFirstOrderTruncationErrorTolerance = 5e-2;
 
     EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(tOriginalCoordinates, tDirection, tGradientCheckParameters), 0.0,
@@ -301,7 +309,7 @@ TEST_F(VolumeFractionCriterionHex, ReferenceVolume)
     const auto tDomainVolume = third_party_integration::stk_io::CommandGenerator{}.volume();
 
     constexpr double tConstantControls = 0.86;
-    const auto tAnalysisDomainMesh = mesh_with_constant_controls(tConstantControls);
+    const auto tAnalysisDomainMesh = mesh_with_constant_controls(tConstantControls, mMeshFilePath);
 
     EXPECT_EQ(detail::reference_volume(/*aReferenceVolume=*/boost::none, /*aAnalysisDomainMesh=*/tAnalysisDomainMesh),
               tDomainVolume);
@@ -349,7 +357,7 @@ TEST_F(VolumeFractionCriterionHex, ThrowsIfReferenceVolumeLessThanOrEqualToZero)
 
 TEST_F(VolumeFractionCriterionHex, ReferenceVolumeScalesAsExpected)
 {
-    const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{.mFileName = kMeshFile, .mBlockScalarField = {}};
+    const auto tAnalysisDomainMesh = analysis::AnalysisDomainMesh{.mFileName = mMeshFilePath, .mBlockScalarField = {}};
     {
         constexpr double tReferenceVolume{1.0};
         const auto tCriterion = make_volume_fraction_constraint_function(/*aIgnoreVoidBlocks=*/true,

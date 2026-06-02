@@ -5,11 +5,11 @@
 #include "plato/geometry/extension/test_utilities/KrinoWrapperGradientCheckUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/KrinoWrapperTestUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/DataFilePath.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -69,8 +69,8 @@ TEST_F(KrinoTestFixture, CheckGradientForPerturbationOfLevelSetPlane)
         return tSensitivities.dot(aV);
     };
 
-    const auto tGradientCheckParameters = plato::test_utilities::GradientCheckParameters{0.1, 7, 0.1};
-    const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
+    const auto tGradientCheckParameters = plato::utilities::GradientCheckParameters{0.1, 7, 0.1};
+    const auto tGradientCheck = plato::utilities::GradientChecker{tF, tDf};
 
     const auto tFixedBlocks = std::set<std::string>{};
     const auto tX = linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(

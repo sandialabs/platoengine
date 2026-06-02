@@ -5,10 +5,10 @@
 #include <stk_mesh/base/MetaData.hpp>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/third_party_integration/krino/TriangleUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::third_party_integration::krino::unittest
@@ -60,8 +60,8 @@ TEST(KrinoTriangleUtilities, GetInterfaceTriangles)
 void test_d_func_d_coords(const double aAbsoluteError, const auto& aF, const auto& aDF)
 {
     const auto tGradientCheckParameters =
-        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.5, .mNumSteps = 5, .mInitialStepSize = .000125};
-    const auto tGradientCheck = plato::test_utilities::GradientChecker{aF, aDF};
+        plato::utilities::GradientCheckParameters{.mStepDelta = 0.5, .mNumSteps = 5, .mInitialStepSize = .000125};
+    const auto tGradientCheck = plato::utilities::GradientChecker{aF, aDF};
     const auto tNodalCoordinates = linear_algebra::DynamicVector<double>{0.1, -0.9, .8, -.3, -.3, -.3, .5, .67, .1};
     const auto tDirection = linear_algebra::DynamicVector<double>{.10, -.10, 0.05, 0.03, -0.09, 0.2, -.04, -.3, .07};
 

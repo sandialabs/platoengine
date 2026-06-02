@@ -5,6 +5,7 @@
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
+#include "plato/utilities/FileUtilities.hpp"
 
 namespace plato::third_party_integration::stk_io::test_utilities
 {
@@ -20,9 +21,9 @@ std::filesystem::path affirm_test_file_path(const std::string_view tMeshFileName
 
 MeshGeneratingTestFixture::MeshGeneratingTestFixture(
     const std::filesystem::path& aMeshName, const third_party_integration::stk_io::CommandGenerator& aCommandGenerator)
-    : mMeshFilePath{aMeshName}, mCommandGenerator{aCommandGenerator}
+    : mMeshFilePath{utilities::make_filename_unique(aMeshName)}, mCommandGenerator{aCommandGenerator}
 {
-    third_party_integration::stk_io::write_mesh(aMeshName, aCommandGenerator);
+    third_party_integration::stk_io::write_mesh(mMeshFilePath, aCommandGenerator);
 }
 
 MeshGeneratingTestFixture::~MeshGeneratingTestFixture() { std::filesystem::remove(mMeshFilePath); }

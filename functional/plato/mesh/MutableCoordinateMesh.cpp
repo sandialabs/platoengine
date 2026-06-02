@@ -1,9 +1,9 @@
-#include "plato/mesh/test_utilities/MutableCoordinateMesh.hpp"
+#include "plato/mesh/MutableCoordinateMesh.hpp"
 
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
-namespace plato::mesh::test_utilities
+namespace plato::mesh
 {
 MutableCoordinateMesh::MutableCoordinateMesh(Mesh aMeshBase) : Mesh{std::move(aMeshBase)} {}
 
@@ -17,4 +17,4 @@ void MutableCoordinateMesh::writeMeshToDisk(const std::filesystem::path& aMeshFi
 {
     third_party_integration::stk_io::write_bulk_data(aMeshFilePath, bulkData());
 }
-}  // namespace plato::mesh::test_utilities
+}  // namespace plato::mesh

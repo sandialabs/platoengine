@@ -5,7 +5,7 @@
 #include "plato/criteria/extension/PNorm.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/Containers.hpp"
-#include "plato/test_utilities/GradientChecker.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 
 namespace plato::criteria::extension::unittest
 {
@@ -132,8 +132,8 @@ TEST(PNorm, GradientCheck)
         return tGradient.dot(aV);
     };
 
-    const auto tGradientCheckParameters = test_utilities::GradientCheckParameters{0.5, 10, .050};
-    const auto tGradientCheck = test_utilities::GradientChecker{tF, tDf};
+    const auto tGradientCheckParameters = utilities::GradientCheckParameters{0.5, 10, .050};
+    const auto tGradientCheck = utilities::GradientChecker{tF, tDf};
     const auto tX = linear_algebra::DynamicVector<double>{1.0, 2.0, -4.0, 0.0, -10.0};
     const auto tDirection = linear_algebra::DynamicVector<double>{.10, -.10, 0.05, 0.03, -0.09};
 

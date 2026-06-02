@@ -10,7 +10,7 @@ set(LINK_LIBS GTest::GTest
 
 create_plato_library(PlatoFunctionalTestUtilities "." "${LINK_LIBS}")
 
-set(INTERFACE_FILES TestContext.hpp GradientChecker.hpp GradientCheckerImpl.hpp)
+set(INTERFACE_FILES TestContext.hpp GradientChecker.hpp)
 create_plato_interface(PlatoTestUtilitiesInterface "${INTERFACE_FILES}" "")
 
 if(UNIT_TESTING)
