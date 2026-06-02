@@ -3,7 +3,6 @@
 #include <mpi.h>
 
 #include <algorithm>
-#include <boost/mpi/communicator.hpp>
 #include <cassert>
 #include <cstddef>
 #include <filesystem>

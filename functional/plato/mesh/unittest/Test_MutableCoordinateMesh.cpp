@@ -1,7 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <filesystem>
+
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/MutableCoordinateMesh.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/utilities/Zip.hpp"

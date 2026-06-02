@@ -1,23 +1,37 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <boost/none.hpp>
+#include <cstddef>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
+#include <numeric>
+#include <string>
+#include <vector>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/process_manager/extension/DesignVariableTypes.hpp"
+#include "plato/process_manager/extension/DirectionVectorTypes.hpp"
 #include "plato/process_manager/extension/ObjectiveGradientCheck.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/ValidationTestUtilities.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -31,13 +45,17 @@ using ObjectiveGradientCheckFixture = third_party_integration::stk_io::test_util
                                                        const input_parser::DirectionVectorTypes& aDirectionVectorType)
     -> input_parser::objective_gradient_check
 {
+    constexpr auto tDefaultNumberOfSteps = 10U;
+    constexpr auto tDefaultInitialDirectionMagnitude = 0.1;
+    constexpr auto tDefaultStepSizeReduction = 0.1;
+    constexpr auto tDefaultRandomSeed = 42U;
     return input_parser::objective_gradient_check{input_parser::FileName{aMeshFile},
                                                   input_parser::FileName{"output.txt"},
                                                   aDesignVariableType,
-                                                  /*number_of_steps*/ 10U,
-                                                  /*initial_direction_magnitude*/ 0.1,
-                                                  /*step_size_reduction_factor*/ 0.1,
-                                                  /*random_direction_seed*/ 42U,
+                                                  /*number_of_steps*/ tDefaultNumberOfSteps,
+                                                  /*initial_direction_magnitude*/ tDefaultInitialDirectionMagnitude,
+                                                  /*step_size_reduction_factor*/ tDefaultStepSizeReduction,
+                                                  /*random_direction_seed*/ tDefaultRandomSeed,
                                                   aDirectionVectorType};
 }
 
@@ -65,7 +83,7 @@ TEST(ObjectiveGradientCheck, DetailValidateInputFileName)
     auto tInput = input_parser::objective_gradient_check{};
     plato::test_utilities::expect_input_is_invalid(TEST_CONTEXT("No input file is an error"), tValidateInputMeshName,
                                                    tInput);
-    const auto tFileName = "dummy.exo";
+    const auto* const tFileName = "dummy.exo";
     tInput.input_mesh_name = input_parser::FileName{tFileName};
     plato::test_utilities::expect_input_is_invalid(
         TEST_CONTEXT("Output file specified but missing from disk is an error"), tValidateInputMeshName, tInput);
@@ -237,7 +255,7 @@ const auto kPlatoEngineQuadraticObjectiveInput =
                             /*.active=*/true,
                             /*.app=*/input_parser::AppName{std::string{input_parser::kBuiltinAppName}},
                             /*.criterion=*/input_parser::CriterionName{"quadratic"},
-                            /*.number_of_processors=*/1u,
+                            /*.number_of_processors=*/1U,
                             /*.input_files=*/boost::none,
                             /*.aggregation_weight=*/1.0,
                             /*.normalize_by_initial_value=*/false,
@@ -251,7 +269,10 @@ void expect_first_data_row_matches_analytic_quadratic_objective(const std::files
     std::ifstream tInFile(aFilePath);
     std::string tHeader;
     std::getline(tInFile, tHeader);
-    double tStepFromFile = 0.0, tAnalyticFromFile = 0.0, tFiniteDifferenceFromFile = 0.0, tRelativeErrorFromFile = 0.0;
+    double tStepFromFile = 0.0;
+    double tAnalyticFromFile = 0.0;
+    double tFiniteDifferenceFromFile = 0.0;
+    double tRelativeErrorFromFile = 0.0;
     tInFile >> tStepFromFile >> tAnalyticFromFile >> tFiniteDifferenceFromFile >> tRelativeErrorFromFile;
 
     const auto tDensities = std::vector<double>(aVectorSize, detail::default_starting_density());
@@ -284,9 +305,13 @@ void run_density_gradient_check(const input_parser::objective_gradient_check& aC
     const auto tObjectiveGradientCheck = ObjectiveGradientCheck{tValidatedCriteriaGradientInput};
     tObjectiveGradientCheck.run(tProblem);
 
+    constexpr auto tElementDensitySize = 3U;
+    constexpr auto tNodalCoordinateSize = 16U;
     expect_first_data_row_matches_analytic_quadratic_objective(
         aCriteriaGradientInput.output_file_name.value().mToken,
-        aCriteriaGradientInput.design_variable_type == input_parser::DesignVariableTypes::kElementDensity ? 3U : 16U,
+        aCriteriaGradientInput.design_variable_type == input_parser::DesignVariableTypes::kElementDensity
+            ? tElementDensitySize
+            : tNodalCoordinateSize,
         aCriteriaGradientInput.design_variable_type == input_parser::DesignVariableTypes::kElementDensity ? -1.0 : 1.0,
         aTestContext);
     plato::test_utilities::test_for_existence_and_remove({aCriteriaGradientInput.output_file_name.value().mToken},

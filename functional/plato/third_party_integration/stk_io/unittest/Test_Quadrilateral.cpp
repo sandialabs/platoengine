@@ -2,12 +2,10 @@
 
 #include <array>
 #include <cassert>
-#include <iterator>
 #include <numeric>
 #include <valarray>
 
 #include "plato/linear_algebra/RandomPerturbationVector.hpp"
-#include "plato/test_utilities/RandomPerturbationVector.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"

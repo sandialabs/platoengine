@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <array>
 #include <filesystem>
 #include <numeric>
 #include <ranges>

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <numbers>
 #include <stdexcept>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"

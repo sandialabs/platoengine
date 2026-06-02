@@ -1,17 +1,20 @@
 #include "plato/process_manager/extension/ObjectiveGradientCheck.hpp"
 
-#include <algorithm>
-#include <boost/mpi/collectives/broadcast.hpp>
-#include <boost/mpi/communicator.hpp>
 #include <chrono>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <optional>
 #include <random>
 #include <string>
+#include <vector>
 
+#include "plato/core/Function.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/DynamicVectorSerialization.hpp"
 #include "plato/linear_algebra/RandomPerturbationVector.hpp"
@@ -20,13 +23,17 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/NodalCoordinateGradientChecker.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
+#include "plato/process_manager/extension/DesignVariableTypes.hpp"
+#include "plato/process_manager/extension/DirectionVectorTypes.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::extension
 {
@@ -42,15 +49,15 @@ constexpr auto kDefaultDensityValue = 0.5;
             { ObjectiveGradientCheck{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static auto kObjectiveGradientCheckParserRegistration =
+[[maybe_unused]] const auto kObjectiveGradientCheckParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::objective_gradient_check>{};
 
-[[maybe_unused]] static auto kObjectiveGradientCheckProcessManagerRegistration =
+[[maybe_unused]] const auto kObjectiveGradientCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::objective_gradient_check>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_objective_gradient_check_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kObjectiveGradientCheckValidationRegistration =
+[[maybe_unused]] const auto kObjectiveGradientCheckValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::objective_gradient_check& aInput) { return detail::validate_output_file_name(aInput); },
         [](const input_parser::objective_gradient_check& aInput) { return detail::validate_input_mesh_name(aInput); },
@@ -164,9 +171,9 @@ void ObjectiveGradientCheck::run(const library::ProcessManagerData& aProblem) co
                                     : runDensityImpl(aProblem, mInputMeshName, tDesignVariables);
 
     utilities::execute_on_root(mCommunicator,
-                               [&tGradientCheck, mFileName = mOutputFileName]()
+                               [&tGradientCheck, tFileName = mOutputFileName]()
                                {
-                                   std::ofstream tOutFile(mFileName);
+                                   std::ofstream tOutFile(tFileName);
                                    tOutFile << tGradientCheck;
                                });
 }
