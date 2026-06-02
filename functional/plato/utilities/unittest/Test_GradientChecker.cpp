@@ -3,9 +3,9 @@
 #include <cmath>
 #include <valarray>
 
-#include "plato/test_utilities/GradientChecker.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 
-namespace plato::test_utilities::unittest
+namespace plato::utilities::unittest
 {
 namespace
 {
@@ -55,4 +55,4 @@ TEST(GradientCheckerTests, QuadraticVectorFunction)
                                                         << tChecker.table(tV, tDirection, tParameters);
 }
 
-}  // namespace plato::test_utilities::unittest
+}  // namespace plato::utilities::unittest

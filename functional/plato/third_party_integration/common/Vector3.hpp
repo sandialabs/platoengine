@@ -5,6 +5,8 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <ranges>
+#include <vector>
 
 namespace plato::third_party_integration::common
 {
@@ -160,6 +162,19 @@ inline Vector3& Vector3::operator+=(const Vector3& aVector)
     y += aVector.y;
     z += aVector.z;
     return *this;
+}
+
+/// @brief Take a std::vector of Container3 @a aContainerVector and return a flattened vector of values
+/// (x0,y0,z0,x1,y1,z1...xN-1,yN-1,zN-1)
+template <Container3Type Container3>
+[[nodiscard]] auto flatten(const std::vector<Container3>& aContainerVector) -> std::vector<double>
+{
+    auto tFlattenedView = aContainerVector |
+                          std::views::transform([](const auto& aContainer3)
+                                                { return std::array{aContainer3.x, aContainer3.y, aContainer3.z}; }) |
+                          std::views::join | std::views::common;
+
+    return std::vector(tFlattenedView.begin(), tFlattenedView.end());
 }
 
 }  // namespace plato::third_party_integration::common

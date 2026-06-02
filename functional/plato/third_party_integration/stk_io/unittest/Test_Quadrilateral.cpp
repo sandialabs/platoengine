@@ -2,11 +2,11 @@
 
 #include <valarray>
 
-#include "plato/test_utilities/GradientChecker.hpp"
-#include "plato/test_utilities/RandomPerturbationVector.hpp"
+#include "plato/linear_algebra/RandomPerturbationVector.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Quadrilateral.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/SensitivityTestUtilities.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
@@ -39,10 +39,10 @@ std::valarray<double> valarray_from_sensitivities(const std::array<common::Vecto
 }
 
 void check_gradient_of_volume(const std::valarray<double>& aInitialCoordinates,
-                              const plato::test_utilities::GradientCheckParameters& aGradientCheckParameters,
+                              const plato::utilities::GradientCheckParameters& aGradientCheckParameters,
                               const double aFirstOrderTruncationErrorTolerance)
 {
-    const auto tChecker = plato::test_utilities::GradientChecker{
+    const auto tChecker = plato::utilities::GradientChecker{
         [](const std::valarray<double>& aCoordinates) { return quadrilateral_from_coordinates(aCoordinates).volume(); },
         [](const std::valarray<double>& aCoordinates, const std::valarray<double>& aDirection)
         {
@@ -52,7 +52,7 @@ void check_gradient_of_volume(const std::valarray<double>& aInitialCoordinates,
         }};
 
     auto tRandomEngine = std::default_random_engine{123};
-    const auto tRandomPerturbation = plato::test_utilities::random_perturbation_vector(12, tRandomEngine);
+    const auto tRandomPerturbation = linear_algebra::random_perturbation_vector(12, tRandomEngine);
     std::valarray<double> tDirection(tRandomPerturbation.stdVector().data(), tRandomPerturbation.stdVector().size());
 
     EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(aInitialCoordinates, tDirection, aGradientCheckParameters), 0.0,
@@ -178,7 +178,7 @@ TEST(Quadrilateral, VolumeVertexSensitivities_PlanarQuadGradientCheck)
     const auto tOriginalCoordinates = std::valarray<double>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0};
 
     const auto tGradientCheckParameters =
-        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 6, .mInitialStepSize = 0.1};
+        plato::utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 6, .mInitialStepSize = 0.1};
     constexpr auto tFirstOrderTruncationErrorTolerance = 8e-2;
     check_gradient_of_volume(tOriginalCoordinates, tGradientCheckParameters, tFirstOrderTruncationErrorTolerance);
 }
@@ -191,7 +191,7 @@ TEST(Quadrilateral, VolumeVertexSensitivities_NonPlanarQuadGradientCheck)
                               1.438380292815098,  0.325190539456198,  -0.754928319169703, 1.370298540095228};
 
     const auto tGradientCheckParameters =
-        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
+        plato::utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
     constexpr auto tFirstOrderTruncationErrorTolerance = 1e-1;
     check_gradient_of_volume(tOriginalCoordinates, tGradientCheckParameters, tFirstOrderTruncationErrorTolerance);
 }

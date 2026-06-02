@@ -2,9 +2,9 @@
 
 #include <cmath>
 
-#include "plato/test_utilities/RandomPerturbationVector.hpp"
+#include "plato/linear_algebra/RandomPerturbationVector.hpp"
 
-namespace plato::test_utilities::unittest
+namespace plato::linear_algebra::unittest
 {
 TEST(RandomPerturbationVector, IsNormalVector)
 {
@@ -20,4 +20,4 @@ TEST(RandomPerturbationVector, IsNormalVector)
     EXPECT_NEAR(std::sqrt(tRandomPerturbation.dot(tRandomPerturbation)), 1.0, tTolerance);
 }
 
-}  // namespace plato::test_utilities::unittest
+}  // namespace plato::linear_algebra::unittest

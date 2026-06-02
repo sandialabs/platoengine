@@ -2,6 +2,7 @@
 
 #include <Ioss_NodeBlock.h>
 
+#include <boost/mpi/communicator.hpp>
 #include <stk_io/FillMesh.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
@@ -80,8 +81,8 @@ auto create_io_broker_from_input_file(const std::filesystem::path& aInputMeshPat
     return tIOBroker;
 }
 
-auto create_output_mesh(const std::filesystem::path& aOutputMeshPath, stk::io::StkMeshIoBroker& aIOBroker)
-    -> std::size_t
+auto create_output_mesh(const std::filesystem::path& aOutputMeshPath,
+                        stk::io::StkMeshIoBroker& aIOBroker) -> std::size_t
 {
     return aIOBroker.create_output_mesh(aOutputMeshPath.string(), stk::io::WRITE_RESULTS);
 }
@@ -103,11 +104,10 @@ std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& 
 
 void write_bulk_data(const std::filesystem::path& aMeshName, stk::mesh::BulkData& aBulk)
 {
-    stk::io::StkMeshIoBroker tIOBroker;
-    tIOBroker.set_bulk_data(aBulk);
-    const size_t outputFileIndex = tIOBroker.create_output_mesh(aMeshName.string(), stk::io::WRITE_RESULTS);
-    tIOBroker.write_output_mesh(outputFileIndex);
-    tIOBroker.write_defined_output_fields(outputFileIndex);
+    const auto tIOBroker = create_io_broker_from_bulk(aBulk);
+    const size_t outputFileIndex = tIOBroker->create_output_mesh(aMeshName.string(), stk::io::WRITE_RESULTS);
+    tIOBroker->write_output_mesh(outputFileIndex);
+    tIOBroker->write_defined_output_fields(outputFileIndex);
 }
 
 auto create_io_broker_from_bulk(stk::mesh::BulkData& aBulk) -> std::unique_ptr<stk::io::StkMeshIoBroker>
