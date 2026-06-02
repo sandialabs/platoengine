@@ -23,10 +23,10 @@ namespace
 const auto kQuadraticCoordinateSumFunction = [](const std::filesystem::path& aMeshFilePath) -> double
 {
     const auto tCoordinates = mesh::EntityRetrieval{mesh::Mesh{aMeshFilePath}}.nodalCoordinates();
-    constexpr auto tNormalization = 0.5;
     return std::accumulate(tCoordinates.begin(), tCoordinates.end(), 0.0,
                            [](const auto aSum, const auto aCoordinate)
                            {
+                               constexpr auto tNormalization = 0.5;
                                return aSum + tNormalization * aCoordinate.x * aCoordinate.x +
                                       tNormalization * aCoordinate.y * aCoordinate.y +
                                       tNormalization * aCoordinate.z * aCoordinate.z;

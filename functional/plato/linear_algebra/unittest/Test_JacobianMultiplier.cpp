@@ -36,9 +36,12 @@ auto double_value(const DynamicVector<double>& aDynamicVector) -> DynamicVector<
 {
     std::vector<double> tDouble;
     tDouble.reserve(aDynamicVector.size());
-    constexpr auto tMultiplier = 2.0;
     std::transform(aDynamicVector.stdVector().begin(), aDynamicVector.stdVector().end(), std::back_inserter(tDouble),
-                   [](const auto& aX) { return tMultiplier * aX; });
+                   [](const auto& aX)
+                   {
+                       constexpr auto tMultiplier = 2.0;
+                       return tMultiplier * aX;
+                   });
 
     return DynamicVector<double>{std::move(tDouble)};
 }
