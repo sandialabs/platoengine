@@ -28,7 +28,7 @@ template <typename Geometry>
 
 /// @brief Checks that the `output_name` field has a value.
 template <typename Geometry>
-[[nodiscard]] std::optional<std::string> validate_output_name(const Geometry& aInput)
+[[nodiscard]] auto validate_output_name(const Geometry& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_empty_parameter(input_parser::block_name<Geometry>(), aInput.output_name,
                                                                "output_name");

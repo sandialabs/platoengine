@@ -1,20 +1,24 @@
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 
-#include <boost/mpi.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <boost/serialization/vector.hpp>
+#include <filesystem>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterInputUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
 {
@@ -26,10 +30,10 @@ const auto kKernelFilterLambda = [](const input_parser::kernel_filter& aInput,
                                     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> KernelFilterType
 { return make_kernel_filter_type(aInput, aAnalysisDomainMesh); };
 
-[[maybe_unused]] static auto kKernelFilterParserRegistration =
+[[maybe_unused]] const auto kKernelFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::kernel_filter>{};
 
-[[maybe_unused]] static auto kKernelFilterRegistration = library::FilterRegistration{
+[[maybe_unused]] const auto kKernelFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::kernel_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::kernel_filter>(aInput);
@@ -38,10 +42,10 @@ const auto kKernelFilterLambda = [](const input_parser::kernel_filter& aInput,
             { return detail::create_kernel_filter_cache<input_parser::kernel_filter>(tInput, kKernelFilterLambda); });
     }};
 
-[[maybe_unused]] static auto kKernelFilterValidationRegistration =
+[[maybe_unused]] const auto kKernelFilterValidationRegistration =
     validation_for_all_kernel_filters<input_parser::kernel_filter>();
 
-[[maybe_unused]] static auto kKernelFilterMeshBasedValidationRegistration =
+[[maybe_unused]] const auto kKernelFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::kernel_filter& aInput, const std::filesystem::path& aMeshPath)
         { return extension::detail::validate_filter_radius_with_mesh(aInput, aMeshPath); }};

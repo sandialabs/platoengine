@@ -3,14 +3,18 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <cstddef>
+#include <filesystem>
+#include <numeric>
 #include <random>
 
-#include "plato/criteria/extension/QuadraticObjective.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/RandomPerturbationVector.hpp"
+#include "plato/mesh/CoordinateUtilities.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/NodalCoordinateGradientChecker.hpp"
-#include "plato/mesh/test_utilities/NodalCoordinateGradientCheckerUtilities.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 
 namespace plato::mesh::test_utilities
 {
@@ -22,8 +26,10 @@ const auto kQuadraticCoordinateSumFunction = [](const std::filesystem::path& aMe
     return std::accumulate(tCoordinates.begin(), tCoordinates.end(), 0.0,
                            [](const auto aSum, const auto aCoordinate)
                            {
-                               return aSum + 0.5 * aCoordinate.x * aCoordinate.x + 0.5 * aCoordinate.y * aCoordinate.y +
-                                      0.5 * aCoordinate.z * aCoordinate.z;
+                               constexpr auto tNormalization = 0.5;
+                               return aSum + tNormalization * aCoordinate.x * aCoordinate.x +
+                                      tNormalization * aCoordinate.y * aCoordinate.y +
+                                      tNormalization * aCoordinate.z * aCoordinate.z;
                            });
 };
 
@@ -70,7 +76,8 @@ auto gradient_size(const std::filesystem::path& aFilePath) -> std::size_t
 
 auto random_direction(const std::filesystem::path& aMeshFilePath) -> linear_algebra::DynamicVector<double>
 {
-    auto tRandomEngine = std::default_random_engine{123};
+    constexpr auto tRandomSeed = 123;
+    auto tRandomEngine = std::default_random_engine{tRandomSeed};  // NOLINT(cert-msc51-cpp,cert-msc32-c)
     return linear_algebra::random_perturbation_vector(gradient_size(aMeshFilePath), tRandomEngine);
 }
 

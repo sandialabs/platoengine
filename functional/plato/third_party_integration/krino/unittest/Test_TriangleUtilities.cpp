@@ -1,10 +1,18 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <filesystem>
+#include <functional>
+#include <numeric>
 #include <ranges>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/MetaData.hpp>
+#include <string>
+#include <vector>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
 #include "plato/third_party_integration/krino/TriangleUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
@@ -45,10 +53,10 @@ TEST(KrinoTriangleUtilities, GetInterfaceTriangles)
         const std::vector<SensitivityTriangle> tTriangles = detail::interface_triangles(
             *tBulkData, "my_ss", PartReferenceVector{std::cref(*tBulkData->mesh_meta_data().get_part(tBlockName))});
         EXPECT_EQ(tTriangles.size(), tNumTris);
-        for (size_t i = 0; i < tNumTris; ++i)
+        for (size_t tI = 0; tI < tNumTris; ++tI)
         {
-            EXPECT_NEAR(tTriangles[i].area(), tGoldArea, tTolerance);
-            const common::Vector3 tNormal = tTriangles[i].normal();
+            EXPECT_NEAR(tTriangles[tI].area(), tGoldArea, tTolerance);
+            const common::Vector3 tNormal = tTriangles[tI].normal();
             EXPECT_NEAR(tNormal.x, tGoldNormal.x, tTolerance);
             EXPECT_NEAR(tNormal.y, tGoldNormal.y, tTolerance);
             EXPECT_NEAR(tNormal.z, tGoldNormal.z, tTolerance);
@@ -70,7 +78,7 @@ void test_d_func_d_coords(const double aAbsoluteError, const auto& aF, const aut
         << tGradientCheck.table(tNodalCoordinates, tDirection, tGradientCheckParameters);
 }
 
-SensitivityTriangle create_sensitivity_triangle_from_coords(const std::vector<double>& aCoords)
+auto create_sensitivity_triangle_from_coords(const std::vector<double>& aCoords) -> SensitivityTriangle
 {
     const common::Coordinate tNode1{.x = aCoords[0], .y = aCoords[1], .z = aCoords[2]};
     const common::Coordinate tNode2{.x = aCoords[3], .y = aCoords[4], .z = aCoords[5]};
@@ -83,7 +91,7 @@ TEST(KrinoTriangleUtilities, dAreadCoords)
     constexpr auto tAbsoluteError = 2e-4;
     const auto tF = [](const linear_algebra::DynamicVector<double>& aX)
     {
-        SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
+        const SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
         return tTriangle.area();
     };
     const auto tDf =
@@ -105,9 +113,9 @@ constexpr size_t kYComponent{1};
 constexpr size_t kZComponent{2};
 constexpr double kDNormalAbsoluteError{1e-3};
 
-[[nodiscard]] double calculate_d_normal(const linear_algebra::DynamicVector<double>& aX,
-                                        const linear_algebra::DynamicVector<double>& aV,
-                                        const size_t aDimensionIndex)
+[[nodiscard]] auto calculate_d_normal(const linear_algebra::DynamicVector<double>& aX,
+                                      const linear_algebra::DynamicVector<double>& aV,
+                                      const size_t aDimensionIndex) -> double
 {
     constexpr size_t tNumDimensions = 3;
     constexpr size_t tNumSensitivityComponents = 9;
@@ -125,7 +133,7 @@ constexpr double kDNormalAbsoluteError{1e-3};
 {
     return [&aCoordinateFunction](const linear_algebra::DynamicVector<double>& aX)
     {
-        SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
+        const SensitivityTriangle tTriangle = create_sensitivity_triangle_from_coords(aX.stdVector());
         return aCoordinateFunction(static_cast<common::Vector3>(tTriangle.normal()));
     };
 }

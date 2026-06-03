@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "plato/input_parser/BlockStructRule.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/ComponentBlockParser.hpp"
 #include "plato/input_parser/GenericBlockRule.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
@@ -16,14 +18,14 @@ void check_parsed_data(const ComponentBlockParser::ParsedDataOrError& aParsedDat
                        const test_utilities::TestContext& aTestContext)
 {
     ASSERT_TRUE(aParsedDataOrError.hasValue());
-    const auto& aParsedData = aParsedDataOrError.value();
+    const auto& tParsedData = aParsedDataOrError.value();
 
-    EXPECT_EQ(aParsedData.mComponentType, components::ComponentType::kGeometry) << aTestContext;
-    EXPECT_EQ(aParsedData.mBlockName, "interface_test_block") << aTestContext;
-    EXPECT_TRUE(aParsedData.mInput.hasValue()) << aTestContext;
-    ASSERT_TRUE(aParsedData.mInput.holdsExpectedType<interface_test_block>()) << aTestContext;
+    EXPECT_EQ(tParsedData.mComponentType, components::ComponentType::kGeometry) << aTestContext;
+    EXPECT_EQ(tParsedData.mBlockName, "interface_test_block") << aTestContext;
+    EXPECT_TRUE(tParsedData.mInput.hasValue()) << aTestContext;
+    ASSERT_TRUE(tParsedData.mInput.holdsExpectedType<interface_test_block>()) << aTestContext;
 
-    const auto tResultData = aParsedData.mInput.get<interface_test_block>();
+    const auto tResultData = tParsedData.mInput.get<interface_test_block>();
     EXPECT_TRUE(tResultData.arabica.has_value()) << aTestContext;
     EXPECT_EQ(tResultData.arabica.value(), 42) << aTestContext;
     EXPECT_TRUE(tResultData.robusta.has_value()) << aTestContext;

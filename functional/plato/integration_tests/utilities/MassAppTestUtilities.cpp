@@ -2,19 +2,32 @@
 
 #include <gtest/gtest.h>
 
+#include <boost/mpi/communicator.hpp>
+#include <cstddef>
 #include <filesystem>
+#include <map>
 #include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/PluginCriteria.hpp"
+#include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
 
 namespace plato::integration_tests::utilities
@@ -29,10 +42,8 @@ namespace
     {
         return std::move(tPluginPath).value() / ".." / "lib";
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 /// Attempts to find the test mass app shared lib. If the test calling this function is running
@@ -131,7 +142,8 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
     tConstraint.criterion = aConstraintName;
     tConstraint.name = "test_2";
     tConstraint.constraint_type = input_parser::ConstraintTypes::kGreaterThan;
-    tConstraint.constraint_value = 0.7;
+    constexpr auto tArbitraryConstraintValue = 0.7;
+    tConstraint.constraint_value = tArbitraryConstraintValue;
 
     const auto tObjectiveName = input_parser::CriterionName{"mass"};
     const auto tObjective = create_mass_objective(aMassAppName, tObjectiveName, 1U);
@@ -163,11 +175,13 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
 
 auto brick_shape_geometry_controls_with_volume() -> std::pair<linear_algebra::DynamicVector<double>, double>
 {
-    constexpr auto tX = double{2.0};
-    constexpr auto tY = double{4.0};
-    constexpr auto tZ = double{6.0};
-    constexpr auto tCenter = double{0.0};
-    return std::make_pair(linear_algebra::DynamicVector<double>{tCenter, tCenter, tCenter, tX, tY, tZ}, tX * tY * tZ);
+    constexpr auto tDimensionX = 2.0;
+    constexpr auto tDimensionY = 4.0;
+    constexpr auto tDimensionZ = 6.0;
+    constexpr auto tCenter = 0.0;
+    return std::make_pair(
+        linear_algebra::DynamicVector<double>{tCenter, tCenter, tCenter, tDimensionX, tDimensionY, tDimensionZ},
+        tDimensionX * tDimensionY * tDimensionZ);
 }
 
 void register_load_run_test(const boost::mpi::communicator& aCommunicator,

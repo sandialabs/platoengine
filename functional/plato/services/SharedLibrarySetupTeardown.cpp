@@ -1,17 +1,18 @@
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
 
+#include <bits/dlfcn.h>
 #include <dlfcn.h>
 
-#include "plato/services/AppConfiguration.hpp"
-#include "plato/services/AppConfigurationUtilities.hpp"
+#include <filesystem>
+#include <utility>
 
 namespace plato::services
 {
 namespace
 {
-constexpr auto kUsingSanitizer = static_cast<bool>(BUILD_WITH_SANITIZER_FLAGS);
+constexpr auto kUsingSanitizer = static_cast<bool>(BUILD_WITH_SANITIZER_FLAGS);  // NOLINT(modernize-use-bool-literals)
 
-void* load_shared_library(const std::filesystem::path& aSharedLibPath)
+auto load_shared_library(const std::filesystem::path& aSharedLibPath) -> void*
 {
     // RTLD_DEEPBIND is not compatible with building with sanitizer flags.
     // RTLD_DEEPBIND is required for external shared libraries to be opened correctly.
@@ -48,7 +49,8 @@ SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(SharedLibrarySetupTeardow
     aSharedLibrary.mSharedLibrary = nullptr;
 }
 
-SharedLibrarySetupTeardown& SharedLibrarySetupTeardown::operator=(SharedLibrarySetupTeardown&& aSharedLibrary) noexcept
+auto SharedLibrarySetupTeardown::operator=(SharedLibrarySetupTeardown&& aSharedLibrary) noexcept
+    -> SharedLibrarySetupTeardown&
 {
     if (this != &aSharedLibrary)
     {

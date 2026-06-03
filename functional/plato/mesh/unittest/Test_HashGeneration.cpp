@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <string>
+#include <string_view>
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
@@ -17,16 +17,16 @@ TEST(HashGeneration, HashMesh)
 {
     namespace stk_io = plato::third_party_integration::stk_io;
 
-    constexpr std::string_view fileName = "test.exo";
+    constexpr std::string_view tFileName = "test.exo";
 
     // initial mesh
     {
         const stk_io::CommandGenerator tCommandGenerator{
-            {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::Tet};
-        stk_io::write_mesh(fileName, tCommandGenerator);
+            {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::kTet};
+        stk_io::write_mesh(tFileName, tCommandGenerator);
     }
 
-    const analysis::AnalysisDomainMesh tAnalysisDomainMesh{fileName, {}};
+    const analysis::AnalysisDomainMesh tAnalysisDomainMesh{tFileName, {}};
     const auto tInitialHash = hash_mesh_coordinates(tAnalysisDomainMesh);
 
     // reload mesh and rehash
@@ -35,12 +35,12 @@ TEST(HashGeneration, HashMesh)
     // change mesh
     {
         const stk_io::CommandGenerator tCommandGenerator{
-            {3, 3, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::Tet};
-        stk_io::write_mesh(fileName, tCommandGenerator);
+            {3, 3, 2}, {-1, -1, -1}, {1, 1, 1}, stk_io::CommandElementType::kTet};
+        stk_io::write_mesh(tFileName, tCommandGenerator);
     }
     EXPECT_NE(tInitialHash, hash_mesh_coordinates(tAnalysisDomainMesh));
 
-    test_utilities::test_for_existence_and_remove({fileName}, TEST_CONTEXT("Removing temporary files."));
+    test_utilities::test_for_existence_and_remove({tFileName}, TEST_CONTEXT("Removing temporary files."));
 }
 
 TEST(HashGeneration, HashStoredMesh)

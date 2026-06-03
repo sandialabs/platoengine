@@ -36,26 +36,38 @@ void test_nodal_sensitivities_with_expected(const ComputedContainer& aComputedSe
                                             const ExpectedContainer& aExpectedSensitivities,
                                             const plato::test_utilities::TestContext& aTestContext);
 
+namespace primitives
+{
+constexpr static inline auto kNumberOfHexahedronNodes = 8U;
+constexpr static inline auto kNumberOfTetrahedronNodes = 4U;
+constexpr static inline auto kNumberOfTriangleNodes = 3U;
+constexpr static inline auto kNumberOfQuadrilateralNodes = 4U;
+}  // namespace primitives
+
 /// @brief Computes an array of sensitivities for a single hex aligned with the coordinate axes
 /// @post The nodal sensitivities are returned for nodes ordered as follows:
 //                           (0,0,0), (1,0,0), (1,1,0), (0,1,0)
 //                           (0,0,1), (1,0,1), (1,1,1), (0,1,1)
-auto axes_aligned_hex_volume_sensitivities(const Cuboid& aCuboid) -> std::array<common::Vector3, 8>;
+auto axes_aligned_hex_volume_sensitivities(const Cuboid& aCuboid)
+    -> std::array<common::Vector3, primitives::kNumberOfHexahedronNodes>;
 
 /// @brief Computes an array of sensitivities for a single tet aligned with the coordinate axes
 /// @post The nodal sensitivities are returned for nodes ordered as follows:
 //                           (0,0,0), (1,0,0), (0,1,0), (0,0,1)
-auto axes_aligned_tet_volume_sensitivities(const Cuboid& aCuboid) -> std::array<common::Vector3, 4>;
+auto axes_aligned_tet_volume_sensitivities(const Cuboid& aCuboid)
+    -> std::array<common::Vector3, primitives::kNumberOfTetrahedronNodes>;
 
 /// @brief Computes an array of sensitivities for a single tri aligned with the coordinate axes
 /// @post The nodal sensitivities are returned for nodes ordered as follows:
 //                           (0,0,0), (1,0,0), (0,1,0)
-auto axes_aligned_tri_volume_sensitivities(const Rectangle& aRectangle) -> std::array<common::Vector3, 3>;
+auto axes_aligned_tri_volume_sensitivities(const Rectangle& aRectangle)
+    -> std::array<common::Vector3, primitives::kNumberOfTriangleNodes>;
 
 /// @brief Computes an array of sensitivities for a single quad aligned with the coordinate axes
 /// @post The nodal sensitivities are returned for nodes ordered as follows:
 //                           (0,0,0), (1,0,0), (1,1,0), (0,1,0)
-auto axes_aligned_quad_volume_sensitivities(const Rectangle& aRectangle) -> std::array<common::Vector3, 4>;
+auto axes_aligned_quad_volume_sensitivities(const Rectangle& aRectangle)
+    -> std::array<common::Vector3, primitives::kNumberOfQuadrilateralNodes>;
 
 template <typename ComputedContainer, typename ExpectedContainer>
 void test_nodal_sensitivities_with_expected(const ComputedContainer& aComputedSensitivities,

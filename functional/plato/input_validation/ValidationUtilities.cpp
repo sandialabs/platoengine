@@ -1,13 +1,19 @@
 #include "plato/input_validation/ValidationUtilities.hpp"
 
+#include <boost/optional/optional.hpp>
 #include <filesystem>
+#include <optional>
+#include <string>
+#include <string_view>
+
+#include "plato/input_parser/FileList.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::input_validation
 {
-std::optional<std::string> error_message_for_missing_file_parameter(
-    const std::string_view aPrependString,
-    const boost::optional<input_parser::FileName>& aParameter,
-    const std::string_view aEntryName)
+auto error_message_for_missing_file_parameter(const std::string_view aPrependString,
+                                              const boost::optional<input_parser::FileName>& aParameter,
+                                              const std::string_view aEntryName) -> std::optional<std::string>
 {
     if (aParameter)
     {

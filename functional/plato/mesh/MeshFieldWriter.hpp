@@ -41,8 +41,8 @@ class [[nodiscard]] MeshFieldWriter : public MeshOutput
 
     MeshFieldWriter(const MeshFieldWriter&) = delete;
     MeshFieldWriter(MeshFieldWriter&&) = delete;
-    MeshFieldWriter& operator=(const MeshFieldWriter&) = delete;
-    MeshFieldWriter& operator=(MeshFieldWriter&&) = delete;
+    auto operator=(const MeshFieldWriter&) -> MeshFieldWriter& = delete;
+    auto operator=(MeshFieldWriter&&) -> MeshFieldWriter& = delete;
 
    private:
     double mTimeStep;

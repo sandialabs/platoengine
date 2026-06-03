@@ -1,8 +1,12 @@
-#include <algorithm>
-
 #include "plato/analysis/Utilities.hpp"
 
+#include <algorithm>
+#include <boost/container_hash/hash.hpp>
 #include <boost/functional/hash.hpp>
+#include <cstddef>
+#include <filesystem>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
@@ -39,7 +43,7 @@ auto renumber_vector_entries(AnalysisDomainMesh&& aAnalysisDomainMesh) -> Analys
         const auto& tFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValue);
         tScalarFieldValue = analysis::ScalarFieldValue{tFieldValue.mGlobalMeshEntityID, tIndex, tFieldValue.mValue};
     }
-    return aAnalysisDomainMesh;
+    return std::move(aAnalysisDomainMesh);
 }
 }  // namespace
 
@@ -51,7 +55,7 @@ auto zero_scalar_field(AnalysisDomainMesh&& aAnalysisDomainMesh) -> AnalysisDoma
         tScalarFieldValue = analysis::ScalarFieldValue{tFieldIndices.mGlobalMeshEntityID,
                                                        tFieldIndices.mDesignVariableVectorIndex, 0.0};
     }
-    return aAnalysisDomainMesh;
+    return std::move(aAnalysisDomainMesh);
 }
 
 auto remove_block_fields(AnalysisDomainMesh&& aAnalysisDomainMesh,
@@ -61,7 +65,7 @@ auto remove_block_fields(AnalysisDomainMesh&& aAnalysisDomainMesh,
     { return std::find(aBlockIDs.cbegin(), aBlockIDs.cend(), aBlockIDToCheck) != aBlockIDs.cend(); };
     auto tMeshName = aAnalysisDomainMesh.mFileName;
     auto tBlockScalarFields =
-        remove_entries_matching_predicate(std::move(aAnalysisDomainMesh.mBlockScalarField), tShouldRemoveBlock);
+        remove_entries_matching_predicate(std::move(aAnalysisDomainMesh).mBlockScalarField, tShouldRemoveBlock);
     return renumber_vector_entries(AnalysisDomainMesh{std::move(tMeshName), std::move(tBlockScalarFields)});
 }
 

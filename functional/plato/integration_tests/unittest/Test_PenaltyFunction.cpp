@@ -1,9 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorPenaltyFunction.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorRosenbrockFunction.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/Penalty.hpp"
+#include "plato/test_utilities/TwoDTestTypes.hpp"
 
 namespace plato::integration_tests::serial
 {
@@ -22,17 +27,17 @@ TEST(PenaltyFunction, ValueAndJacobian)
     EXPECT_EQ(tFOfControl[0], 1.0);
     EXPECT_EQ(tFOfControl[1], tXMin.mValue);
 
-    const auto tdFOfControl = tPenalty.evaluate<core::evaluation::kFirstDerivative>(tControl);
-    EXPECT_EQ(tdFOfControl.mJacobian(0, 0), tPower.mValue * (1.0 - tXMin.mValue));
-    EXPECT_EQ(tdFOfControl.mJacobian(0, 1), 0.0);
-    EXPECT_EQ(tdFOfControl.mJacobian(1, 0), 0.0);
-    EXPECT_EQ(tdFOfControl.mJacobian(1, 1), 0.0);
+    const auto tDFOfControl = tPenalty.evaluate<core::evaluation::kFirstDerivative>(tControl);
+    EXPECT_EQ(tDFOfControl.mJacobian(0, 0), tPower.mValue * (1.0 - tXMin.mValue));
+    EXPECT_EQ(tDFOfControl.mJacobian(0, 1), 0.0);
+    EXPECT_EQ(tDFOfControl.mJacobian(1, 0), 0.0);
+    EXPECT_EQ(tDFOfControl.mJacobian(1, 1), 0.0);
 
-    const linear_algebra::DynamicVector tColumn0 = tdFOfControl.column(0);
+    const linear_algebra::DynamicVector tColumn0 = tDFOfControl.column(0);
     EXPECT_EQ(tColumn0[0], tPower.mValue * (1.0 - tXMin.mValue));
     EXPECT_EQ(tColumn0[1], 0.0);
 
-    const linear_algebra::DynamicVector tColumn1 = tdFOfControl.column(1);
+    const linear_algebra::DynamicVector tColumn1 = tDFOfControl.column(1);
     EXPECT_EQ(tColumn1[0], 0.0);
     EXPECT_EQ(tColumn1[1], 0.0);
 }
@@ -42,10 +47,10 @@ TEST(PenaltyFunction, Multiplication)
     namespace pft = plato::test_utilities;
 
     const auto tX = linear_algebra::DynamicVector{1.0, 2.0};
-    const auto tA = utilities::DynamicVectorJacobian{pft::makeTwoDMatrix(1.0, 2.0, 3.0, 4.0)};
-    const auto tb = tX * tA;
-    EXPECT_EQ(tb[0], 7.0);
-    EXPECT_EQ(tb[1], 10.0);
+    const auto tAParameter = utilities::DynamicVectorJacobian{pft::make_two_d_matrix(1.0, 2.0, 3.0, 4.0)};
+    const auto tBParameter = tX * tAParameter;
+    EXPECT_EQ(tBParameter[0], 7.0);
+    EXPECT_EQ(tBParameter[1], 10.0);
 }
 
 TEST(PenaltyFunction, Composition)

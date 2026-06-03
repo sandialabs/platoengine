@@ -1,12 +1,14 @@
 #include <gtest/gtest.h>
 
-#include <ROL_Algorithm.hpp>
 #include <ROL_Solver.hpp>
-#include <ROL_StdVector.hpp>
 #include <filesystem>
 #include <memory>
+#include <string>
+#include <vector>
 
-#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/components/ComponentType.hpp"
+#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
@@ -33,12 +35,13 @@ TEST(ProcessManagerData, InputFileToROLObjective)
     const auto tProblem = library::make_process_manager_data(tData.value());
     const auto tObjectiveFunction = make_rol_objective(tProblem);
     const auto tBoundingBox = std::vector<double>{0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
-    double tTolerance = 1e-8;
 
+    constexpr auto tDefaultTolerance = 1e-8;
+    double tTolerance = tDefaultTolerance;
     constexpr double tNodalSum = 12.0;
     EXPECT_DOUBLE_EQ(tObjectiveFunction->value(tBoundingBox, tTolerance), tWeight * tNodalSum);
 
-    geometry::extension::BrickDesign tDesign;
+    const geometry::extension::BrickDesign tDesign;
     EXPECT_EQ(tProblem.mGeometry.mInitialGuess.stdVector(),
               geometry::extension::detail::to_dynamic_vector(tDesign).stdVector());
 
@@ -63,14 +66,15 @@ TEST(ProcessManagerData, InputFileToROLConstraint)
     ASSERT_TRUE(tData.hasValue()) << tData.error();
     auto tProblem = library::make_process_manager_data(tData.value());
     const auto tConstraints = make_rol_constraints(tProblem);
-    ASSERT_EQ(tConstraints.size(), 1u);
+    ASSERT_EQ(tConstraints.size(), 1U);
 
     const std::vector<double> tBoundingBox{0, 0, 0, 1, 1, 1};
     std::vector<double> tResult{0};
     const auto tGold = std::vector{-2.0};
-    double tTolerance = 1e-8;
+    constexpr auto tDefaultTolerance = 1e-8;
+    double tTolerance = tDefaultTolerance;
 
-    ASSERT_EQ(tConstraints.size(), 1u);
+    ASSERT_EQ(tConstraints.size(), 1U);
     ASSERT_NE(tConstraints.front().mConstraintFunction, nullptr);
     tConstraints.front().mConstraintFunction->value(tResult, tBoundingBox, tTolerance);
 

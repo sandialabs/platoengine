@@ -7,7 +7,7 @@
 
 namespace plato::test_utilities
 {
-class Rosenbrock;
+struct Rosenbrock;
 }
 
 namespace plato::integration_tests::utilities

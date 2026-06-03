@@ -27,8 +27,8 @@ class ParameterBounds
     template <typename Lower, typename Upper>
     ParameterBounds(Lower aLower, Upper aUpper);
 
-    [[nodiscard]] bool contains(const T& aValue) const;
-    [[nodiscard]] std::string description() const;
+    [[nodiscard]] auto contains(const T& aValue) const -> bool;
+    [[nodiscard]] auto description() const -> std::string;
 
    private:
     T mLowerBound{};
@@ -43,12 +43,12 @@ class ParameterBounds
 /// @brief Helper for constructing a ParameterBounds object with a defined lower bound
 ///  and is unbounded above.
 template <typename Bound>
-[[nodiscard]] auto lower_bounded(const Bound aLowerBound) -> ParameterBounds<typename Bound::type>;
+[[nodiscard]] auto lower_bounded(Bound aLowerBound) -> ParameterBounds<typename Bound::type>;
 
 /// @brief Helper for constructing a ParameterBounds object with a defined upper bound
 ///  and is unbounded below.
 template <typename Bound>
-[[nodiscard]] auto upper_bounded(const Bound aUpperBound) -> ParameterBounds<typename Bound::type>;
+[[nodiscard]] auto upper_bounded(Bound aUpperBound) -> ParameterBounds<typename Bound::type>;
 
 /// @brief Helper for constructing a ParameterBounds object with no bounds, so
 ///  calling `contains` is always `true`.
@@ -77,7 +77,8 @@ ParameterBounds<T>::ParameterBounds(Lower aLower, Upper aUpper)
 namespace detail
 {
 template <typename T, typename Comparison>
-bool bound_satisfied(const T aValue, const detail::Clusivity aClusivity, const T aBound, const Comparison& aComparison)
+auto bound_satisfied(const T aValue, const detail::Clusivity aClusivity, const T aBound, const Comparison& aComparison)
+    -> bool
 {
     const bool tUnbounded = aClusivity == detail::Clusivity::kUnbounded;
     const bool tExclusivelySatisfied = aComparison(aValue, aBound);
@@ -88,20 +89,20 @@ bool bound_satisfied(const T aValue, const detail::Clusivity aClusivity, const T
 }
 
 template <typename T>
-bool lower_bound_satisfied(const T aValue, const detail::Clusivity aClusivity, const T aBound)
+auto lower_bound_satisfied(const T aValue, const detail::Clusivity aClusivity, const T aBound) -> bool
 {
     return bound_satisfied(aValue, aClusivity, aBound, std::greater{});
 }
 
 template <typename T>
-bool upper_bound_satisfied(const T aValue, const detail::Clusivity aClusivity, const T aBound)
+auto upper_bound_satisfied(const T aValue, const detail::Clusivity aClusivity, const T aBound) -> bool
 {
     return bound_satisfied(aValue, aClusivity, aBound, std::less{});
 }
 }  // namespace detail
 
 template <typename T>
-bool ParameterBounds<T>::contains(const T& aValue) const
+auto ParameterBounds<T>::contains(const T& aValue) const -> bool
 {
     const bool tLowerSatisfied = detail::lower_bound_satisfied(aValue, mLowerClusivity, mLowerBound);
     const bool tUpperSatisfied = detail::upper_bound_satisfied(aValue, mUpperClusivity, mUpperBound);
@@ -111,43 +112,39 @@ bool ParameterBounds<T>::contains(const T& aValue) const
 namespace detail
 {
 template <typename T>
-std::string lower_description(const T aValue, const Clusivity aClusivity)
+auto lower_description(const T aValue, const Clusivity aClusivity) -> std::string
 {
     if (aClusivity == Clusivity::kInclusive)
     {
         return "[" + std::to_string(aValue);
     }
-    else if (aClusivity == Clusivity::kExclusive)
+    if (aClusivity == Clusivity::kExclusive)
     {
         return "(" + std::to_string(aValue);
     }
-    else
-    {
-        return "(-inf";
-    }
+
+    return "(-inf";
 }
 
 template <typename T>
-std::string upper_description(const T aValue, const Clusivity aClusivity)
+auto upper_description(const T aValue, const Clusivity aClusivity) -> std::string
 {
     if (aClusivity == Clusivity::kInclusive)
     {
         return std::to_string(aValue) + "]";
     }
-    else if (aClusivity == Clusivity::kExclusive)
+    if (aClusivity == Clusivity::kExclusive)
     {
         return std::to_string(aValue) + ")";
     }
-    else
-    {
-        return "inf)";
-    }
+
+    return "inf)";
 }
 
 }  // namespace detail
 
 template <typename T>
-std::string ParameterBounds<T>::description() const
+auto ParameterBounds<T>::description() const -> std::string
 {
     return lower_description(mLowerBound, mLowerClusivity) + ", " + upper_description(mUpperBound, mUpperClusivity);
 }

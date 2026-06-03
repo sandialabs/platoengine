@@ -8,3 +8,4 @@ TabWidth: 4
 InsertNewlineAtEOF: true
 PointerAlignment: Left
 ReferenceAlignment: Left
+QualifierAlignment: Left

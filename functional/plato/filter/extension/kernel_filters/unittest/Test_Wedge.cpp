@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <numbers>
+#include <vector>
 
+#include "plato/filter/extension/kernel_filters/Plane.hpp"
 #include "plato/filter/extension/kernel_filters/Wedge.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/utilities/Zip.hpp"
 

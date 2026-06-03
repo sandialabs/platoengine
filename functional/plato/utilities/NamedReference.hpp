@@ -14,7 +14,7 @@ namespace plato::utilities
 template <typename T, typename NameTag>
 struct NamedReference
 {
-    constexpr explicit NamedReference(T& value) : mValue{std::ref(value)} {}
+    constexpr explicit NamedReference(T& aValue) : mValue{std::ref(aValue)} {}
 
     std::reference_wrapper<T> mValue;
 };

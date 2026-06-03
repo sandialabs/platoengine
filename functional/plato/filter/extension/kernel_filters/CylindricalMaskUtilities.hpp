@@ -28,19 +28,19 @@ using CylindricalPolarCoordinates = utilities::NamedType<std::vector<third_party
 
 /// @brief Computes the linear top hat function based on an infinitely long cylinder defined with center @a
 /// aCylinderCenter and axis @a aCylinderAxis with radius @a aCylinderRadius to a query point @a aQueryLocation.
-[[nodiscard]] double cylinder_ramp_weight(const CylinderCenter& aCylinderCenter,
-                                          const CylinderAxis& aCylinderAxis,
-                                          const CylinderRadius aCylinderRadius,
-                                          const QueryLocation& aQueryLocation);
+[[nodiscard]] auto cylinder_ramp_weight(const CylinderCenter& aCylinderCenter,
+                                        const CylinderAxis& aCylinderAxis,
+                                        CylinderRadius aCylinderRadius,
+                                        const QueryLocation& aQueryLocation) -> double;
 
 /// @brief Take a tpetra center vector @a aCenteringCoordinates and create stk_search objects that are search boxes with
 /// a long dimension equal to the largest size of the domain and equal sides that are equal to the search radius @a
 /// aRadius, oriented by specific axis @a aAxis with radii  and assigned the proper identifier based on the rank @a
 /// aRank.
 [[nodiscard]] auto stk_search_boxes(const third_party_integration::tpetra::TpetraMultiVector& aCenteringCoordinates,
-                                    const CylinderRadius aRadius,
+                                    CylinderRadius aRadius,
                                     const CylinderAxis& aAxis,
-                                    const int aRank)
+                                    int aRank)
     -> std::vector<third_party_integration::stk_search::SearchBoxWithIdentifier>;
 
 /// @brief Take a center vector @a aTargetRowVector and a nodal vector @a aSourceColumnVector and distribute them using
@@ -53,7 +53,7 @@ using CylindricalPolarCoordinates = utilities::NamedType<std::vector<third_party
     const TargetRowVector& aTargetRowVector,
     const SourceColumnVector& aSourceColumnVector,
     const CylinderAxis& aCylinderAxis,
-    const CylinderRadius aCylinderRadius,
+    CylinderRadius aCylinderRadius,
     const boost::mpi::communicator& aCommunicator) -> third_party_integration::stk_search::SearchResults;
 
 ///@brief Take a coordinate @a aCoordinate and convert it to cylindrical polar coordinates

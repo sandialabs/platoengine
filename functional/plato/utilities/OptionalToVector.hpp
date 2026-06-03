@@ -29,9 +29,7 @@ auto optional_to_vector(OptionalT&& aOptional)
         tVector.emplace_back(std::forward<OptionalT>(aOptional).value());  // NOLINT
         return tVector;
     }
-    else
-    {
-        return std::vector<T>{};
-    }
+
+    return std::vector<T>{};
 }
 }  // namespace plato::utilities

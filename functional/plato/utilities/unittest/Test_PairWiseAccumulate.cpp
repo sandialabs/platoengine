@@ -2,6 +2,7 @@
 
 #include <array>
 #include <list>
+#include <vector>
 
 #include "plato/utilities/PairWiseAccumulate.hpp"
 
@@ -56,9 +57,10 @@ TEST(PairWiseAccumulate, PairWiseAccumulateList)
 TEST(PairWiseAccumulate, PairWiseAccumulateArray)
 {
     {
-        std::array<double, 40> tArray;
+        constexpr auto tArraySize = 40;
+        std::array<double, tArraySize> tArray{};
         tArray.fill(1);
-        EXPECT_DOUBLE_EQ(pair_wise_accumulate(tArray), 40);
+        EXPECT_DOUBLE_EQ(pair_wise_accumulate(tArray), tArraySize);
     }
 }
 }  // namespace plato::utilities::unittest

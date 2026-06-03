@@ -1,10 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <iterator>
+#include <vector>
+
 #include "plato/input_parser/AutoList.hpp"
 #include "plato/input_parser/Bounds.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_parser/UserDefinedToken.hpp"
 #include "plato/input_parser/test_utilities/TestHelpers.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -18,7 +22,7 @@ using IntListType = AutoList<int>;
 
 struct LowerCaseOnly
 {
-    constexpr const char* operator()() const { return "a-z"; }
+    constexpr auto operator()() const -> const char* { return "a-z"; }
 };
 
 using UserDefinedTokenListType = AutoList<UserDefinedToken<LowerCaseOnly>>;

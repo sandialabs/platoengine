@@ -1,17 +1,20 @@
 #include "plato/integration_tests/utilities/BrickShapeHelpers.hpp"
 
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::integration_tests::utilities
 {
 auto test_brick_controls() -> linear_algebra::DynamicVector<double>
 {
-    constexpr auto tX = double{2.0};
-    constexpr auto tY = double{4.0};
-    constexpr auto tZ = double{6.0};
-    constexpr auto tCenterCoordinate = double{0.0};
-    return linear_algebra::DynamicVector<double>{tCenterCoordinate, tCenterCoordinate, tCenterCoordinate, tX, tY, tZ};
+    constexpr auto tDimensionX = 2.0;
+    constexpr auto tDimensionY = 4.0;
+    constexpr auto tDimensionZ = 6.0;
+    constexpr auto tCenterCoordinate = 0.0;
+    return linear_algebra::DynamicVector<double>{tCenterCoordinate, tCenterCoordinate, tCenterCoordinate,
+                                                 tDimensionX,       tDimensionY,       tDimensionZ};
 }
 
 auto brick_shape_volume_from_controls(const linear_algebra::DynamicVector<double>& aControls) -> double

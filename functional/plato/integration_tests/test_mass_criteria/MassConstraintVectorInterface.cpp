@@ -1,29 +1,37 @@
 #include "plato/integration_tests/test_mass_criteria/MassConstraintVectorInterface.hpp"
 
+#include <algorithm>
 #include <cassert>
-#include <numeric>
+#include <memory>
+#include <string>
+#include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/criteria/library/VectorCriterionInterface.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassConstraint.hpp"
 
 namespace plato::integration_tests::test_mass_criteria
 {
 
-std::vector<double> MassConstraintInterface::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto MassConstraintInterface::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+    -> std::vector<double>
 {
     const MassConstraint tMassConstraint{kDensity};
     return tMassConstraint.masses(std::string{aAnalysisDomainMesh.mFileName});
 }
 
-std::vector<double> MassConstraintInterface::rowVectorTimesJacobian(
-    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, const std::vector<double>&) const
+auto MassConstraintInterface::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                     const std::vector<double>& /*aDirectionVector*/) const
+    -> std::vector<double>
 {
     auto tMasses = value(aAnalysisDomainMesh);
     std::fill(tMasses.begin(), tMasses.end(), 0.0);
     return tMasses;
 }
 
-std::vector<double> MassConstraintInterface::rowVectorTimesAdjointJacobian(
-    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, const std::vector<double>&) const
+auto MassConstraintInterface::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                            const std::vector<double>& /*aDualVector*/) const
+    -> std::vector<double>
 {
     assert(aAnalysisDomainMesh.mBlockScalarField.size() == 1U);
     const auto tOptimizationVectorDimension = aAnalysisDomainMesh.mBlockScalarField.begin()->second.size();
@@ -32,13 +40,13 @@ std::vector<double> MassConstraintInterface::rowVectorTimesAdjointJacobian(
 
 }  // namespace plato::integration_tests::test_mass_criteria
 
-auto plato_create_vector_criterion(const std::vector<std::string>&)
+auto plato_create_vector_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::MassConstraintInterface>();
 }
 
-auto plato_create_vector_test_mass_criterion(const std::vector<std::string>&)
+auto plato_create_vector_test_mass_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::MassConstraintInterface>();

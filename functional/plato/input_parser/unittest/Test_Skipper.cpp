@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <boost/spirit/home/qi/numeric/int.hpp>
+#include <boost/spirit/home/qi/parse.hpp>
 #include <string_view>
+#include <vector>
 
 #include "plato/input_parser/Skipper.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -13,13 +16,13 @@ void check_parsed_integers(const std::string_view aTestText,
                            const std::vector<int>& aExpectedData,
                            const test_utilities::TestContext& aTestContext)
 {
-    auto tTestIter = aTestText.cbegin();
+    const auto* tTestIter = aTestText.cbegin();
     const auto tIntParser = *boost::spirit::qi::int_;
     std::vector<int> tData;
     const auto tSkipper = SkipperRule<std::string_view::const_iterator>{};
-    const auto parsed =
+    const auto tParsed =
         boost::spirit::qi::phrase_parse(tTestIter, aTestText.cend(), tIntParser, tSkipper.skipperRule(), tData);
-    EXPECT_TRUE(parsed) << aTestContext;
+    EXPECT_TRUE(tParsed) << aTestContext;
     EXPECT_EQ(tTestIter, aTestText.cend()) << aTestContext;
     EXPECT_EQ(tData.size(), aExpectedData.size()) << aTestContext;
     EXPECT_EQ(tData, aExpectedData) << aTestContext;

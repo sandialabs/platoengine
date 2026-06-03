@@ -1,14 +1,22 @@
 #include "plato/process_manager/extension/snopt/SNOPTOptimization.hpp"
 
+#include <algorithm>
 #include <boost/mpi/communicator.hpp>
-#include <boost/numeric/conversion/cast.hpp>
 #include <filesystem>
 #include <iterator>
 #include <map>
 #include <optional>
+#include <string_view>
+#include <utility>
+#include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
@@ -18,11 +26,12 @@
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/third_party_integration/snopt/SNOPTInterface.hpp"
 #include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
+#include "plato/utilities/BoundClusivity.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
 
 namespace plato::process_manager::extension::snopt
 {
@@ -37,15 +46,15 @@ constexpr std::string_view kSNOPTOptimizerFileName = "SNOPT_Optimization.txt";
             { SNOPTOptimization{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static auto kSNOPTOptimizerParserRegistration =
+[[maybe_unused]] const auto kSNOPTOptimizerParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::snopt_optimization>{};
 
-[[maybe_unused]] static auto kSNOPTOptimizerProcessManagerRegistration =
+[[maybe_unused]] const auto kSNOPTOptimizerProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::snopt_optimization>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_snopt_optimization_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kSNOPTOptimizerValidationRegistration =
+[[maybe_unused]] const auto kSNOPTOptimizerValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::snopt_optimization& aInput) { return detail::validate_time_limit_in_minutes(aInput); },
         [](const input_parser::snopt_optimization& aInput)
@@ -91,15 +100,15 @@ void SNOPTOptimization::run(const library::ProcessManagerData& aProcessManagerDa
     plato::utilities::execute_on_root(boost::mpi::communicator{},
                                       []() { std::filesystem::remove(kSNOPTOptimizerFileName); });
     const auto tSolution =
-        tpis::run_snopt_problem(tInitialGuess, tBounds, std::move(tObjective), std::move(tConstraints),
-                                std::move(tOutputManager), std::string{kSNOPTOptimizerFileName}, mOptions);
+        tpis::run_snopt_problem(tInitialGuess, tBounds, std::move(tObjective), tConstraints, std::move(tOutputManager),
+                                std::string{kSNOPTOptimizerFileName}, mOptions);
 }
 
 namespace detail
 {
 namespace
 {
-const auto tConstraintTypeConversion =
+const auto kConstraintTypeConversion =
     std::map<criteria::library::ConstraintType, third_party_integration::snopt::ConstraintType>{
         {criteria::library::ConstraintType::kEqualTo, third_party_integration::snopt::ConstraintType::kEqualTo},
         {criteria::library::ConstraintType::kGreaterThan, third_party_integration::snopt::ConstraintType::kGreaterThan},
@@ -118,7 +127,7 @@ const auto tConstraintTypeConversion =
         tFunction.template evaluate<core::evaluation::kFunction>(aGeometry.mInitialGuess).size();
     auto tConstraintTargets = std::vector(tConstraintSize, 0.0);
     return tpis::InterfaceConstraintType{std::move(tFunction), std::move(tConstraintTargets), tLinearity,
-                                         tConstraintSize, tConstraintTypeConversion.at(aConstraint.mConstraintType)};
+                                         tConstraintSize, kConstraintTypeConversion.at(aConstraint.mConstraintType)};
 }
 
 }  // namespace

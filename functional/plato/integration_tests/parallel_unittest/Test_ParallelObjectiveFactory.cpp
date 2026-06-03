@@ -1,9 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
+#include "plato/components/ComponentType.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/BrickShapeHelpers.hpp"
 #include "plato/integration_tests/utilities/CheckProcessorsMatchObjectives.hpp"
@@ -25,7 +31,7 @@ struct ObjectiveFactoryParallelTestFixture : public utilities::ValidInputTestFix
 
 constexpr auto kMassAppName = std::string_view{"test-mass-app"};
 
-constexpr auto kNumRanks = int{4};
+constexpr auto kNumRanks = 4;
 
 struct ObjectiveCopyTestData
 {
@@ -93,7 +99,7 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
         tGeometry.evaluate<core::evaluation::kFunction>(utilities::test_brick_controls()));
 
     const auto tControls = utilities::test_brick_controls();
-    ASSERT_EQ(tControls.size(), 6u) << aTestContext;
+    ASSERT_EQ(tControls.size(), 6U) << aTestContext;
     const auto tExpectedValue = utilities::brick_shape_volume_from_controls(tControls) * aNumGroups;
     const auto tResult = tObjectiveFunction.evaluate<core::evaluation::kFunction>(
         tGeometry.evaluate<core::evaluation::kFunction>(tControls));
@@ -197,13 +203,13 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
 
 TEST(ObjectiveFactory, EvaluateParallelMassAppTwoObjectives)
 {
-    constexpr auto tNumGroups = 2u;
+    constexpr auto tNumGroups = 2U;
     test_parallel_mass_evaluation(tNumGroups, TEST_CONTEXT("Two objectives"));
 }
 
 TEST(ObjectiveFactory, EvaluateParallelMassAppOneObjective)
 {
-    constexpr auto tNumGroups = 1u;
+    constexpr auto tNumGroups = 1U;
     test_parallel_mass_evaluation(tNumGroups, TEST_CONTEXT("One objective"));
 }
 
@@ -219,17 +225,17 @@ TEST(ObjectiveFactory, EvaluateParallelMassAppWithNormalization)
     tObjectiveBase.aggregation_weight = 1.0;
     tObjectiveBase.normalize_by_initial_value = true;
     {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 1u, .mNumProcessorsPerObjective = 4u};
+        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 1U, .mNumProcessorsPerObjective = 4U};
         test_aggregate_normalized_objectives(tTestData, tInputBase, tObjectiveBase,
                                              TEST_CONTEXT("1 objective split over the 4 ranks"));
     }
     {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 2u, .mNumProcessorsPerObjective = 2u};
+        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 2U, .mNumProcessorsPerObjective = 2U};
         test_aggregate_normalized_objectives(tTestData, tInputBase, tObjectiveBase,
                                              TEST_CONTEXT("2 objectives using 2 ranks each"));
     }
     {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 12u, .mNumProcessorsPerObjective = 1u};
+        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 12U, .mNumProcessorsPerObjective = 1U};
         tObjectiveBase.objective_goal = criteria::library::ObjectiveGoal::kMinimizeReciprocal;
         test_aggregate_normalized_objectives(tTestData, tInputBase, tObjectiveBase,
                                              TEST_CONTEXT("12 objectives split over the 4 ranks, minimize reciprocal"));

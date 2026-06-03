@@ -1,7 +1,8 @@
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 
-#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/integration_tests/utilities/InputGeneration.hpp"
+#include "plato/test_utilities/FileCreatingTestFixture.hpp"
 
 namespace plato::integration_tests::utilities
 {

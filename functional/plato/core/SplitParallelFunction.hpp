@@ -11,7 +11,7 @@ namespace plato::core
 /// @brief Requirements for a function that generates a parallel Function.
 template <typename F>
 concept ParallelMakeFunction =
-    requires(const F& aF) { requires kIsFunction<decltype(aF(boost::mpi::communicator{}))>; };
+    requires(const F& aFunction) { requires kIsFunction<decltype(aFunction(boost::mpi::communicator{}))>; };
 
 /// @brief Creates a parallelized function in which all ranks on @a aParentCommunicator participate, but only @a
 /// aNumberOfProcessors actually do any computation. The remaining ranks block.
@@ -33,7 +33,7 @@ concept ParallelMakeFunction =
             utilities::group_split_communicator(aParentCommunicator, aNumberOfProcessors);
 
         return std::make_tuple(
-            [=, mLocalFunction = aMakeFunction(tMPIGroupCommunicator.mSplitCommunicator)](auto&& aDomain)
+            [=, tLocalFunction = aMakeFunction(tMPIGroupCommunicator.mSplitCommunicator)](auto&& aDomain)
             {
                 constexpr auto tIndex = kIndices;
                 using Info = std::tuple_element_t<tIndex, FunctionInfoTuple>;
@@ -41,9 +41,9 @@ concept ParallelMakeFunction =
                 constexpr auto tParentCommunicatorBroadcastRank = 0;
 
                 const auto tEvaluateFunction =
-                    [&mLocalFunction](const boost::mpi::communicator&, auto&& aDomainForEvaluation)
+                    [&tLocalFunction](const boost::mpi::communicator&, auto&& aDomainForEvaluation)
                 {
-                    return mLocalFunction.template evaluate<Info::order, Info::ordering>(
+                    return tLocalFunction.template evaluate<Info::mOrder, Info::mOrdering>(
                         std::forward<decltype(aDomainForEvaluation)>(aDomainForEvaluation));
                 };
 

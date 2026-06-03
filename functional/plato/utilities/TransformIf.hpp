@@ -13,16 +13,16 @@ namespace plato::utilities
 /// @tparam TransformFunction Return type must be assignable to @a Iterator
 /// @tparam Predicate Return type must be convertible to `bool`.
 template <typename Container, typename Iterator, typename TransformFunction, typename Predicate>
-constexpr Iterator transform_if(const Container& aContainer,
-                                Iterator aNewRange,
-                                const TransformFunction& aTransformFunction,
-                                const Predicate& aPredicate);
+constexpr auto transform_if(const Container& aContainer,
+                            Iterator aNewRange,
+                            const TransformFunction& aTransformFunction,
+                            const Predicate& aPredicate) -> Iterator;
 
 template <typename Container, typename Iterator, typename TransformFunction, typename Predicate>
-constexpr Iterator transform_if(const Container& aContainer,
-                                Iterator aNewRange,
-                                const TransformFunction& aTransformFunction,
-                                const Predicate& aPredicate)
+constexpr auto transform_if(const Container& aContainer,
+                            Iterator aNewRange,
+                            const TransformFunction& aTransformFunction,
+                            const Predicate& aPredicate) -> Iterator
 {
     using ContainedType = typename Container::value_type;
     static_assert(std::is_invocable_v<Predicate, ContainedType>);
@@ -34,11 +34,11 @@ constexpr Iterator transform_if(const Container& aContainer,
     static_assert(std::is_convertible_v<PredicateReturnType, bool>);
     static_assert(std::is_assignable_v<IteratorDereferenceType, TransformReturnType>);
 
-    for (const auto& aValue : aContainer)
+    for (const auto& tValue : aContainer)
     {
-        if (aPredicate(aValue))
+        if (aPredicate(tValue))
         {
-            *aNewRange = aTransformFunction(aValue);
+            *aNewRange = aTransformFunction(tValue);
             ++aNewRange;
         }
     }

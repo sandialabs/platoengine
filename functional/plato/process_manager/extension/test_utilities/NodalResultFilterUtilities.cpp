@@ -3,12 +3,17 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <filesystem>
+#include <optional>
+#include <vector>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
@@ -18,6 +23,7 @@
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/process_manager/extension/NodalResultFilter.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 #include "plato/utilities/IndexRange.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 
@@ -59,7 +65,7 @@ NodalResultFilterRunFixture::~NodalResultFilterRunFixture()
                                [this]() { std::filesystem::remove(mDirectory.directory() / kRestartMeshPath); });
 }
 
-void NodalResultFilterRunFixture::run_and_check_nodal_filter_result(
+void NodalResultFilterRunFixture::runAndCheckNodalFilterResult(
     const std::optional<std::filesystem::path>& aNodalResultOutMeshPath,
     const plato::test_utilities::TestContext& aTestContext,
     const unsigned int aNumberOfProcessorsForFilter)
@@ -93,7 +99,7 @@ void NodalResultFilterRunFixture::run_and_check_nodal_filter_result(
     // Retrieve nodal fields names from the mesh and check that the expected field name is found.
     const auto tMeshRetrieval =
         mesh::EntityCounts{mesh::Mesh{aNodalResultOutMeshPath.value_or(mDirectory.directory() / kRestartMeshPath)}};
-    EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(NodalResultFilter::field_name())) << aTestContext;
+    EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(NodalResultFilter::fieldName())) << aTestContext;
     EXPECT_TRUE(tMeshRetrieval.hasNodalFieldVariable(geometry::extension::density_mesh_field_name())) << aTestContext;
     EXPECT_EQ(mesh::EntityCounts{tMeshRetrieval}.timeSteps(), kTimeSteps) << aTestContext;
 }

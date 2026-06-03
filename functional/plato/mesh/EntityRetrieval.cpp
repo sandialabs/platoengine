@@ -1,6 +1,16 @@
 #include "plato/mesh/EntityRetrieval.hpp"
 
-#include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <map>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
+#include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 

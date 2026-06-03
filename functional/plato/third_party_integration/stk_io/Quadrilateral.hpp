@@ -10,38 +10,39 @@ namespace plato::third_party_integration::stk_io
 {
 /// @brief struct representing a primitive quadrilateral for computing geometric quantities.
 /// Vertices in the quadrilateral are labeled based on their ordering relative to a unit quad in a Cartesian plane
-/// aligned with the coordinate axes, e.g. p01 refers to the vertex at point (0,1) in the plane.
+/// aligned with the coordinate axes, e.g. mP01 refers to the vertex at point (0,1) in the plane.
 
 /// @note The implementation currently uses a third order quadrature rule for integration. This will be exact for planar
 /// quadrilaterals but there will be errors for quadrilaterals with non-constant metric.
 struct Quadrilateral
 {
-    constexpr static auto kNumVertices = unsigned{4};
-    using Indices = std::array<unsigned int, kNumVertices>;
+    constexpr static auto mNumVertices = unsigned{4};
+    using Indices = std::array<unsigned int, mNumVertices>;
     using VertexSensitivities =
-        utilities::NamedType<std::array<common::Vector3, kNumVertices>, struct VertexSensitivitiesTag>;
+        utilities::NamedType<std::array<common::Vector3, mNumVertices>, struct VertexSensitivitiesTag>;
 
    public:
-    [[nodiscard]] double volume() const;
-    [[nodiscard]] common::Coordinate centroid() const;
-    [[nodiscard]] auto volumeVertexSensitivities() const -> std::array<common::Vector3, kNumVertices>;
+    [[nodiscard]] auto volume() const -> double;
+    [[nodiscard]] auto centroid() const -> common::Coordinate;
+    [[nodiscard]] auto volumeVertexSensitivities() const -> std::array<common::Vector3, mNumVertices>;
 
    private:
-    [[nodiscard]] common::Vector3 etaTangentVector(const double aCoordinate) const;
-    [[nodiscard]] common::Vector3 xiTangentVector(const double aCoordinate) const;
+    [[nodiscard]] auto etaTangentVector(double aXiCoordinate) const -> common::Vector3;
+    [[nodiscard]] auto xiTangentVector(double aEtaCoordinate) const -> common::Vector3;
 
    public:
-    common::Coordinate p00;
-    common::Coordinate p10;
-    common::Coordinate p11;
-    common::Coordinate p01;
+    common::Coordinate mP00;
+    common::Coordinate mP10;
+    common::Coordinate mP11;
+    common::Coordinate mP01;
 };
 
-[[nodiscard]] Quadrilateral::VertexSensitivities operator+(const Quadrilateral::VertexSensitivities& aLeftHandSide,
-                                                           const Quadrilateral::VertexSensitivities& aRightHandSide);
+[[nodiscard]] auto operator+(const Quadrilateral::VertexSensitivities& aLeftHandSide,
+                             const Quadrilateral::VertexSensitivities& aRightHandSide)
+    -> Quadrilateral::VertexSensitivities;
 
-[[nodiscard]] Quadrilateral::VertexSensitivities operator*(const Quadrilateral::VertexSensitivities& aSensitivities,
-                                                           const double aScalar);
+[[nodiscard]] auto operator*(const Quadrilateral::VertexSensitivities& aSensitivities,
+                             double aScalar) -> Quadrilateral::VertexSensitivities;
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

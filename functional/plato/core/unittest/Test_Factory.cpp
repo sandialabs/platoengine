@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <optional>
+#include <string>
 #include <string_view>
 
 #include "plato/core/FactoryRegistration.hpp"
@@ -20,15 +22,13 @@ struct TestFactoryObject
 using TestFactoryInput = std::string;
 using TestFactoryRegistration = FactoryRegistration<TestFactoryObject, TestFactoryInput>;
 
-[[maybe_unused]] static auto kFactoryTestRegistrationONegative =
-    TestFactoryRegistration{std::string{kONegative}, [](const std::string& aName) {
-                                return TestFactoryObject{std::string{kONegative}, aName};
-                            }};
+[[maybe_unused]] const auto kFactoryTestRegistrationONegative =
+    TestFactoryRegistration{std::string{kONegative},
+                            [](const std::string& aName) { return TestFactoryObject{std::string{kONegative}, aName}; }};
 
-[[maybe_unused]] static auto kFactoryTestRegistrationBPositive =
-    TestFactoryRegistration{std::string{kBPositive}, [](const std::string& aName) {
-                                return TestFactoryObject{std::string{kBPositive}, aName};
-                            }};
+[[maybe_unused]] const auto kFactoryTestRegistrationBPositive =
+    TestFactoryRegistration{std::string{kBPositive},
+                            [](const std::string& aName) { return TestFactoryObject{std::string{kBPositive}, aName}; }};
 
 struct TestFactoryObjectForMultipleArgs
 {
@@ -40,10 +40,9 @@ struct TestFactoryObjectForMultipleArgs
 using TestFactoryInputSecondArg = int;
 using TestFactoryRegistrationMultipleArgs =
     FactoryRegistration<TestFactoryObjectForMultipleArgs, TestFactoryInput, TestFactoryInputSecondArg>;
-[[maybe_unused]] static auto kFactoryTestRegistrationMultipleArgs = TestFactoryRegistrationMultipleArgs{
-    std::string{kBPositive}, [](const std::string& aName, const int& aNumber) {
-        return TestFactoryObjectForMultipleArgs{std::string{kBPositive}, aName, aNumber};
-    }};
+[[maybe_unused]] const auto kFactoryTestRegistrationMultipleArgs = TestFactoryRegistrationMultipleArgs{
+    std::string{kBPositive}, [](const std::string& aName, const int& aNumber)
+    { return TestFactoryObjectForMultipleArgs{std::string{kBPositive}, aName, aNumber}; }};
 
 }  // namespace
 
@@ -87,7 +86,7 @@ TEST(FactoryRegistration, CreateObjectB)
 TEST(FactoryRegistration, CreateObjectMultipleArgs)
 {
     const auto tName = std::string{"king henry"};
-    const auto tNumber = int{42};
+    const auto tNumber = 42;
     const std::optional<TestFactoryObjectForMultipleArgs> tTestObjectB =
         create_object_from_factory<TestFactoryObjectForMultipleArgs, TestFactoryInput, TestFactoryInputSecondArg>(
             kBPositive, tName, tNumber);
@@ -100,9 +99,9 @@ TEST(FactoryRegistration, CreateObjectMultipleArgs)
 TEST(FactoryRegistration, RegisteredFunctionNames)
 {
     const auto tRegisteredFunctionNames = registered_function_names<TestFactoryObject, TestFactoryInput>();
-    EXPECT_EQ(tRegisteredFunctionNames.size(), 2u);
-    EXPECT_EQ(tRegisteredFunctionNames.count(std::string{kONegative}), 1u);
-    EXPECT_EQ(tRegisteredFunctionNames.count(std::string{kBPositive}), 1u);
+    EXPECT_EQ(tRegisteredFunctionNames.size(), 2U);
+    EXPECT_EQ(tRegisteredFunctionNames.count(std::string{kONegative}), 1U);
+    EXPECT_EQ(tRegisteredFunctionNames.count(std::string{kBPositive}), 1U);
 }
 
 }  // namespace plato::core::unittest

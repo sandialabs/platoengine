@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <numeric>
 #include <unordered_map>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/ReduceUtilities.hpp"
@@ -66,7 +68,7 @@ TEST(ReduceUtilities, MergeOnAllRanks)
 
 TEST(ReduceUtilities, MergeOnAllRanksDoubles)
 {
-    constexpr auto tOffset = double{1.1};
+    constexpr auto tOffset = 1.1;
     test_reduce_on_vector_type<double>(TEST_CONTEXT("Reduce on long unsigned int"), tOffset);
 }
 

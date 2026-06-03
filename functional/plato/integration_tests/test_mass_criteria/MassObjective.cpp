@@ -1,6 +1,7 @@
 #include "plato/integration_tests/test_mass_criteria/MassObjective.hpp"
 
 #include <numeric>
+#include <string_view>
 
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
@@ -10,7 +11,7 @@ namespace plato::integration_tests::test_mass_criteria
 
 MassObjective::MassObjective(const double aDensity) : mDensity(aDensity) {}
 
-double MassObjective::mass(const std::string_view aMeshFileName) const
+auto MassObjective::mass(const std::string_view aMeshFileName) const -> double
 {
     const auto tMesh = mesh::Mesh{aMeshFileName};
     const auto tVolumes = mesh::MeshQuantities{tMesh}.designDomainElementVolumes();

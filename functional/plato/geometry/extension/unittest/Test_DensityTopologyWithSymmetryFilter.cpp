@@ -2,17 +2,20 @@
 
 #include <cmath>
 #include <filesystem>
+#include <memory>
 #include <numeric>
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/SweptFilter.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/SymmetryFilterTestUtilities.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/FileList.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -37,7 +40,7 @@ void create_bar_mesh()
 {
     namespace tpis = third_party_integration::stk_io;
     const auto tCommandGenerator =
-        tpis::CommandGenerator{{10, 10, 5}, {-5, -5, 0}, {5, 5, 5}, tpis::CommandElementType::Hex};
+        tpis::CommandGenerator{{10, 10, 5}, {-5, -5, 0}, {5, 5, 5}, tpis::CommandElementType::kHex};
     tpis::write_mesh(kBarTargetMeshFile, tCommandGenerator.toString());
 }
 
@@ -84,9 +87,10 @@ TEST(DensityTopology, GenerateMeshWithSymmetryFilter)
     const auto tDensityTopology = DensityTopology{tInput, tFilter};
 
     auto tUnfiltered = std::vector<double>(kNumberOfDesignNodes, 0.0);
-    tUnfiltered[26] = 1;
-    tUnfiltered[27] = 1;
-    tUnfiltered[25] = 1;
+    constexpr auto tDesignVariableIndex = 26U;
+    tUnfiltered[tDesignVariableIndex - 1] = 1;
+    tUnfiltered[tDesignVariableIndex] = 1;
+    tUnfiltered[tDesignVariableIndex + 1] = 1;
     const auto tThreeDAnalysisDomainMesh =
         tDensityTopology.generateMesh(linear_algebra::DynamicVector<double>{tUnfiltered});
 

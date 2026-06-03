@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <map>
+#include <vector>
+
 #include "plato/process_manager/library/StageOrdering.hpp"
 
 namespace plato::process_manager::library::unittest

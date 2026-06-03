@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Tetrahedron.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/SensitivityTestUtilities.hpp"
@@ -8,14 +10,14 @@ namespace plato::third_party_integration::stk_io::unittest
 {
 namespace
 {
-Tetrahedron create_unit_tetrahedron()
+[[nodiscard]] auto create_unit_tetrahedron() -> Tetrahedron
 {
     const common::Coordinate tPointA{.x = 0, .y = 0, .z = 0};
     const common::Coordinate tPointB{.x = 1, .y = 0, .z = 0};
     const common::Coordinate tPointC{.x = 0, .y = 1, .z = 0};
     const common::Coordinate tPointD{.x = 0, .y = 0, .z = 1};
 
-    return Tetrahedron{.p0 = tPointA, .p1 = tPointB, .p2 = tPointC, .p3 = tPointD};
+    return Tetrahedron{.mP0 = tPointA, .mP1 = tPointB, .mP2 = tPointC, .mP3 = tPointD};
 }
 
 }  // namespace
@@ -44,10 +46,10 @@ TEST(Tetrahedron, VolumeVertexSensitivities)
     constexpr double tWidth{71.0};
     constexpr double tHeight{21.0};
 
-    const auto tAxesAlignedTet = Tetrahedron{.p0 = common::Coordinate{.x = 0, .y = 0, .z = 0},
-                                             .p1 = common::Coordinate{.x = tBase, .y = 0, .z = 0},
-                                             .p2 = common::Coordinate{.x = 0, .y = tWidth, .z = 0},
-                                             .p3 = common::Coordinate{.x = 0, .y = 0, .z = tHeight}};
+    const auto tAxesAlignedTet = Tetrahedron{.mP0 = common::Coordinate{.x = 0, .y = 0, .z = 0},
+                                             .mP1 = common::Coordinate{.x = tBase, .y = 0, .z = 0},
+                                             .mP2 = common::Coordinate{.x = 0, .y = tWidth, .z = 0},
+                                             .mP3 = common::Coordinate{.x = 0, .y = 0, .z = tHeight}};
 
     const auto tVertexSensitivities = tAxesAlignedTet.volumeVertexSensitivities();
 

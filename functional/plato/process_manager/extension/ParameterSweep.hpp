@@ -54,7 +54,7 @@ class ParameterSweep
     using Parameters = std::pair<std::vector<std::size_t>, std::vector<utilities::LinearSpaceGenerator>>;
 
     std::filesystem::path mOutputFileName;
-    Parameters mParameters = {};
+    Parameters mParameters;
 };
 
 namespace detail

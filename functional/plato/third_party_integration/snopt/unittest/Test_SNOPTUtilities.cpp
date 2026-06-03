@@ -1,8 +1,21 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <vector>
+
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/output/OutputManager.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/DataSingleton.hpp"
+#include "plato/third_party_integration/snopt/ObjectiveConstraintArrayView.hpp"
+#include "plato/third_party_integration/snopt/ObjectiveConstraintGradientArrayView.hpp"
+#include "plato/third_party_integration/snopt/SNOPTConstraints.hpp"
+#include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/third_party_integration/snopt/SNOPTUtilities.hpp"
+#include "plato/third_party_integration/snopt/SparseMatrixBuilder.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
 #include "plato/utilities/Enumerate.hpp"
 
@@ -13,13 +26,21 @@ namespace
 constexpr auto kNumberOfObjectives = std::size_t{1};
 
 const auto kXSquaredFunction = [](const linear_algebra::DynamicVector<double>& aX) { return aX.dot(aX); };
-const auto kXSquaredGradientFunction = [](const linear_algebra::DynamicVector<double>& aX) { return 2.0 * aX; };
+const auto kXSquaredGradientFunction = [](const linear_algebra::DynamicVector<double>& aX)
+{
+    constexpr auto tQuadraticPower = 2.0;
+    return tQuadraticPower * aX;
+};
 const auto kXCubedFunction = [](const linear_algebra::DynamicVector<double>& aX)
 {
     const auto tValue = aX.stdVector().front();
     return tValue * tValue * tValue;
 };
-const auto kXCubedGradientFunction = [](const linear_algebra::DynamicVector<double>& aX) { return 3.0 * aX; };
+const auto kXCubedGradientFunction = [](const linear_algebra::DynamicVector<double>& aX)
+{
+    constexpr auto tCubedPower = 3.0;
+    return tCubedPower * aX;
+};
 
 struct TestTag
 {
@@ -35,8 +56,8 @@ const auto kXCubedConstraint =
                    /*.mTarget=*/0.0, /*.mLinearity=*/Linearity::kNonlinear};
 
 template <typename EvaluationFunction, typename GradientFunction>
-auto test_linear_interface_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
-    -> InterfaceConstraintType
+auto test_linear_interface_constraint(EvaluationFunction aEvaluationFunction,
+                                      GradientFunction aGradientFunction) -> InterfaceConstraintType
 {
     return InterfaceConstraintType{
         /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
@@ -46,8 +67,8 @@ auto test_linear_interface_constraint(EvaluationFunction aEvaluationFunction, Gr
 }
 
 template <typename EvaluationFunction, typename GradientFunction>
-auto test_nonlinear_interface_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
-    -> InterfaceConstraintType
+auto test_nonlinear_interface_constraint(EvaluationFunction aEvaluationFunction,
+                                         GradientFunction aGradientFunction) -> InterfaceConstraintType
 {
     return InterfaceConstraintType{
         /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
@@ -57,8 +78,8 @@ auto test_nonlinear_interface_constraint(EvaluationFunction aEvaluationFunction,
 }
 
 template <typename EvaluationFunction, typename GradientFunction>
-auto test_linear_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
-    -> ConstraintData
+auto test_linear_constraint(EvaluationFunction aEvaluationFunction,
+                            GradientFunction aGradientFunction) -> ConstraintData
 {
     return ConstraintData{
         /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
@@ -67,8 +88,8 @@ auto test_linear_constraint(EvaluationFunction aEvaluationFunction, GradientFunc
 }
 
 template <typename EvaluationFunction, typename GradientFunction>
-auto test_nonlinear_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
-    -> ConstraintData
+auto test_nonlinear_constraint(EvaluationFunction aEvaluationFunction,
+                               GradientFunction aGradientFunction) -> ConstraintData
 {
     return ConstraintData{
         /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
@@ -86,24 +107,28 @@ TEST(SNOPTUtilities, LinearConstraintJacobians)
     constexpr auto tNumberOfDesignVariables = std::size_t{3};
     const auto tObjective = [](const linear_algebra::DynamicVector<double>&)
     { return test_utilities::vector_from_scalar(0.0); };
-    const auto tGradient1 = [](const linear_algebra::DynamicVector<double>&) {
-        return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{1.0, 0.0, 2.0});
+    constexpr auto tCoefficient00 = 1.0;
+    constexpr auto tCoefficient02 = 2.0;
+    const auto tGradient1 = [](const linear_algebra::DynamicVector<double>&)
+    {
+        return test_utilities::jacobian_from_gradient(
+            linear_algebra::DynamicVector<double>{tCoefficient00, 0.0, tCoefficient02});
     };
-    const auto tGradient2 = [](const linear_algebra::DynamicVector<double>&) {
-        return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{0.0, -1.0, 0.0});
-    };
+    constexpr auto tCoefficient11 = -1.0;
+    const auto tGradient2 = [](const linear_algebra::DynamicVector<double>&)
+    { return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{0.0, tCoefficient11, 0.0}); };
     auto tConstraintFunctions =
         InterfaceConstraintVectorType{test_linear_interface_constraint(tObjective, tGradient1),
                                       test_nonlinear_interface_constraint(tObjective, tGradient2),
                                       test_linear_interface_constraint(tObjective, tGradient2)};
 
     const auto tSparseMatrix = linear_constraint_jacobian_sparse_matrix(
-        SNOPTConstraints{std::move(tConstraintFunctions), tNumberOfDesignVariables}, tNumberOfDesignVariables);
+        SNOPTConstraints{tConstraintFunctions, tNumberOfDesignVariables}, tNumberOfDesignVariables);
     constexpr auto tExpectedNumberOfNonZero = std::size_t{3};
     ASSERT_EQ(tSparseMatrix.size(), tExpectedNumberOfNonZero);
 
     const auto tExpectedTriples = std::vector<test_utilities::Triple<int, double>>{
-        {Row{0}, Column{0}, 1.0}, {Row{0}, Column{2}, 2.0}, {Row{1}, Column{1}, -1.0}};
+        {Row{0}, Column{0}, tCoefficient00}, {Row{0}, Column{2}, tCoefficient02}, {Row{1}, Column{1}, tCoefficient11}};
 
     for (const auto [tEntryIndex, tExpectedTriple] : utilities::enumerate(tExpectedTriples))
     {
@@ -120,8 +145,8 @@ TEST(SNOPTUtilities, EvaluateObjective)
     auto tResult = std::vector<double>(kNumberOfObjectives);
     constexpr auto tX = 0.5;
     constexpr auto tNumberOfConstraints = ConstraintSizeType{0};
-    evaluateObjective<TestTag>(linear_algebra::DynamicVector{tX},
-                               ObjectiveConstraintArrayView{tResult.data(), tNumberOfConstraints});
+    evaluate_objective<TestTag>(linear_algebra::DynamicVector{tX},
+                                ObjectiveConstraintArrayView{tResult.data(), tNumberOfConstraints});
 
     constexpr auto tExpected = 0.25;
     EXPECT_EQ(tResult.front(), tExpected);
@@ -137,7 +162,7 @@ TEST(SNOPTUtilities, EvaluateObjectiveGradient)
     constexpr auto tNumberOfDesignVariables = DesignVariableSizeType{2};
     auto tResult = std::vector<double>(tNumberOfDesignVariables.mValue);
     const auto tX = linear_algebra::DynamicVector{0.5, 2.0};
-    evaluateObjectiveGradient<TestTag>(
+    evaluate_objective_gradient<TestTag>(
         tX, ObjectiveConstraintGradientArrayView{tResult.data(), tNumberOfConstraints, tNumberOfDesignVariables});
 
     const auto tExpected = std::vector{1.0, 4.0};
@@ -151,8 +176,8 @@ TEST(SNOPTUtilities, EvaluateConstraints)
     constexpr auto tNumberOfConstraints = ConstraintSizeType{2};
     auto tResult = std::vector<double>(kNumberOfObjectives + tNumberOfConstraints.mValue);
     constexpr auto tX = 0.5;
-    evaluateConstraints<TestTag>(linear_algebra::DynamicVector{tX},
-                                 ObjectiveConstraintArrayView{tResult.data(), tNumberOfConstraints});
+    evaluate_constraints<TestTag>(linear_algebra::DynamicVector{tX},
+                                  ObjectiveConstraintArrayView{tResult.data(), tNumberOfConstraints});
 
     constexpr auto tExpected0 = 0.25;
     constexpr auto tExpected1 = 0.125;
@@ -164,8 +189,16 @@ TEST(SNOPTUtilities, EvaluateConstraints)
 TEST(SNOPTUtilities, EvaluateConstraintGradients)
 {
     const auto tObjective = [](const linear_algebra::DynamicVector<double>&) { return 0.0; };
-    const auto tXTimesTwo = [](const linear_algebra::DynamicVector<double>& aX) { return 2.0 * aX; };
-    const auto tXTimesThree = [](const linear_algebra::DynamicVector<double>& aX) { return 3.0 * aX; };
+    const auto tXTimesTwo = [](const linear_algebra::DynamicVector<double>& aX)
+    {
+        constexpr auto tMultiplier = 2.0;
+        return tMultiplier * aX;
+    };
+    const auto tXTimesThree = [](const linear_algebra::DynamicVector<double>& aX)
+    {
+        constexpr auto tMultiplier = 3.0;
+        return tMultiplier * aX;
+    };
 
     DataSingleton<ConstraintVectorType, TestTag>::instance().data() = {
         test_linear_constraint(tObjective, tXTimesTwo), test_linear_constraint(tObjective, tXTimesThree)};
@@ -175,10 +208,11 @@ TEST(SNOPTUtilities, EvaluateConstraintGradients)
     constexpr auto tArraySize = (kNumberOfObjectives + tNumberOfConstraints.mValue) * tNumberOfDesignVariables.mValue;
     auto tResult = std::vector<double>(tArraySize);
 
-    const auto tX = linear_algebra::DynamicVector{-1.0, 10.0};
+    const auto tDesignVariables = linear_algebra::DynamicVector{-1.0, 10.0};
 
-    evaluateConstraintGradient<TestTag>(
-        tX, ObjectiveConstraintGradientArrayView{tResult.data(), tNumberOfConstraints, tNumberOfDesignVariables});
+    evaluate_constraint_gradient<TestTag>(
+        tDesignVariables,
+        ObjectiveConstraintGradientArrayView{tResult.data(), tNumberOfConstraints, tNumberOfDesignVariables});
 
     const auto tExpected = std::vector{-2.0, 20.0, -3.0, 30.0};
     auto tConstraintsResult = std::vector<double>(2 * tNumberOfDesignVariables.mValue);

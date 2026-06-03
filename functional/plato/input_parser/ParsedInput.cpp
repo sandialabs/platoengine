@@ -1,7 +1,20 @@
 #include "plato/input_parser/ParsedInput.hpp"
 
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <iterator>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/GenericBlockRule.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
+#include "plato/utilities/EnumIndexing.hpp"
+#include "plato/utilities/Expected.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
@@ -18,7 +31,7 @@ auto partition_by_component_type(const Iterator aBegin, const Iterator aEnd)
 
 template <std::size_t... kIndices>
 [[nodiscard]] auto partition_inputs_by_component_impl(std::vector<InputDataBlock>& aRawInput,
-                                                      std::index_sequence<kIndices...>)
+                                                      std::index_sequence<kIndices...> /*unused*/)
 {
     using Iterator = typename std::vector<InputDataBlock>::iterator;
     auto tPartitionIterators = std::array<Iterator, sizeof...(kIndices) + 1>{};
@@ -35,7 +48,7 @@ template <std::size_t... kIndices>
 
 template <typename IteratorArray, std::size_t... kIndices>
 [[nodiscard]] auto partitioned_vector_to_array(const IteratorArray& aPartitionIterators,
-                                               std::index_sequence<kIndices...>)
+                                               std::index_sequence<kIndices...> /*unused*/)
 {
     auto tPartitionedInput = std::array<std::vector<InputDataBlock>, sizeof...(kIndices)>{};
     (std::move(std::get<kIndices>(aPartitionIterators), std::get<kIndices + 1>(aPartitionIterators),
@@ -52,8 +65,7 @@ template <typename IteratorArray, std::size_t... kIndices>
     return partitioned_vector_to_array(tPartitionIterators, tComponentIndices);
 }
 
-[[nodiscard]] auto parsed_input_or_errors(
-    std::vector<ComponentBlockParser::ParsedDataOrError>&& aParsedComponentsOrError)
+[[nodiscard]] auto parsed_input_or_errors(std::vector<ComponentBlockParser::ParsedDataOrError> aParsedComponentsOrError)
     -> utilities::Expected<ParsedInput, std::string>
 {
     const auto tComponentHasParseError = [](const auto& aParsedComponentOrError)
@@ -64,9 +76,8 @@ template <typename IteratorArray, std::size_t... kIndices>
         auto tErrorMessages = std::vector<std::string>{};
         tErrorMessages.reserve(aParsedComponentsOrError.size());
         utilities::transform_if(
-            aParsedComponentsOrError, std::back_inserter(tErrorMessages),
-            [](const auto& aParsedComponentOrError) { return aParsedComponentOrError.error(); },
-            tComponentHasParseError);
+            aParsedComponentsOrError, std::back_inserter(tErrorMessages), [](const auto& aParsedComponentOrError)
+            { return aParsedComponentOrError.error(); }, tComponentHasParseError);
         return utilities::unexpected(utilities::concatenate_container(tErrorMessages, "\n"));
     }
 

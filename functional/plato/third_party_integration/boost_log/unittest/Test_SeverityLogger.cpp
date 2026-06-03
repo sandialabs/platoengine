@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <boost/log/expressions.hpp>
+#include <boost/smart_ptr/make_shared_object.hpp>
+#include <sstream>
 
 #include "plato/test_utilities/Strings.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -13,7 +14,7 @@ namespace plato::third_party_integration::boost_log::unittest
 {
 namespace
 {
-void checkLogMessage(const Severity aSeverity, const plato::test_utilities::TestContext& aTestContext)
+void check_log_message(const Severity aSeverity, const plato::test_utilities::TestContext& aTestContext)
 {
     const auto tStream = boost::make_shared<std::stringstream>();
     [[maybe_unused]] const auto tLogSink =
@@ -33,10 +34,10 @@ void checkLogMessage(const Severity aSeverity, const plato::test_utilities::Test
 
 TEST(SeverityLogger, LogMembers)
 {
-    checkLogMessage(Severity::kDebug, TEST_CONTEXT("Debug log member"));
-    checkLogMessage(Severity::kInfo, TEST_CONTEXT("Info log member"));
-    checkLogMessage(Severity::kWarning, TEST_CONTEXT("Warning log member"));
-    checkLogMessage(Severity::kError, TEST_CONTEXT("Error log member"));
+    check_log_message(Severity::kDebug, TEST_CONTEXT("Debug log member"));
+    check_log_message(Severity::kInfo, TEST_CONTEXT("Info log member"));
+    check_log_message(Severity::kWarning, TEST_CONTEXT("Warning log member"));
+    check_log_message(Severity::kError, TEST_CONTEXT("Error log member"));
 }
 
 }  // namespace plato::third_party_integration::boost_log::unittest

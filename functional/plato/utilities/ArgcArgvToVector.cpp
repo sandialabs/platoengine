@@ -1,16 +1,18 @@
 #include "plato/utilities/ArgcArgvToVector.hpp"
 
+#include <cstddef>
+#include <ranges>
+#include <span>
+#include <string>
+#include <vector>
+
 namespace plato::utilities
 {
 
-std::vector<std::string> argc_argv_to_std_vector(int aArgc, char** aArgv)
+auto argc_argv_to_std_vector(const int aArgc, const char* const* const aArgv) -> std::vector<std::string>
 {
-    std::vector<std::string> tArguments;
-    for (int tIndex = 1; tIndex < aArgc; ++tIndex)
-    {
-        tArguments.emplace_back(aArgv[tIndex]);
-    }
-    return tArguments;
+    const auto tProgramArguments = std::span(aArgv, static_cast<std::size_t>(aArgc)) | std::views::drop(1U);
+    return {tProgramArguments.begin(), tProgramArguments.end()};
 }
 
 }  // namespace plato::utilities

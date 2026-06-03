@@ -1,8 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
+#include <numeric>
+#include <utility>
+#include <vector>
+
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::mesh::unittest

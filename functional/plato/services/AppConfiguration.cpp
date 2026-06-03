@@ -3,6 +3,7 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/core/nvp.hpp>
+#include <filesystem>
 #include <fstream>
 
 namespace plato::services
@@ -19,7 +20,7 @@ void save_configuration(const AppConfiguration& aAppConfiguration, const std::fi
     tOutputArchive << boost::serialization::make_nvp(kXMLName.data(), aAppConfiguration);
 }
 
-AppConfiguration load_configuration(const std::filesystem::path& aFilename)
+auto load_configuration(const std::filesystem::path& aFilename) -> AppConfiguration
 {
     auto tInFileStream = std::ifstream{aFilename};
     auto tInputArchive = boost::archive::xml_iarchive{tInFileStream};

@@ -1,8 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <filesystem>
+#include <string>
+#include <vector>
+
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -70,11 +77,17 @@ TEST(LevelSetTopologyValidation, ValidateUpperBound)
 TEST(LevelSetTopologyValidation, ValidateMaxSnappingEdgeLength)
 {
     auto tLevelSetTopology = kLevelSetTopology;
-    tLevelSetTopology.max_edge_length_percentage_for_snapping = -0.1;
+
+    constexpr auto tInvalidNegativeSnappingPercentage = -0.1;
+    tLevelSetTopology.max_edge_length_percentage_for_snapping = tInvalidNegativeSnappingPercentage;
     EXPECT_TRUE(detail::validate_max_snapping_edge_length(tLevelSetTopology).has_value());
-    tLevelSetTopology.max_edge_length_percentage_for_snapping = 1.1;
+
+    constexpr auto tInvalidGreaterThanOneSnappingPercentage = 1.1;
+    tLevelSetTopology.max_edge_length_percentage_for_snapping = tInvalidGreaterThanOneSnappingPercentage;
     EXPECT_TRUE(detail::validate_max_snapping_edge_length(tLevelSetTopology).has_value());
-    tLevelSetTopology.max_edge_length_percentage_for_snapping = 0.15;
+
+    constexpr auto tValidSnappingPercentage = 0.15;
+    tLevelSetTopology.max_edge_length_percentage_for_snapping = tValidSnappingPercentage;
     EXPECT_FALSE(detail::validate_max_snapping_edge_length(tLevelSetTopology).has_value());
 }
 
@@ -94,10 +107,16 @@ TEST(LevelSetTopologyValidation, ValidateSpherePatternSpacing)
 TEST(LevelSetTopologyValidation, ValidateSpherePatternSpacingGreaterThanTwiceRadius)
 {
     auto tLevelSetTopology = kLevelSetTopology;
-    tLevelSetTopology.sphere_pattern.value().spacing = tLevelSetTopology.sphere_pattern.value().radius * 0.8;
+
+    constexpr auto tSmallSpacingMultiplier = 0.8;
+    tLevelSetTopology.sphere_pattern.value().spacing =
+        tLevelSetTopology.sphere_pattern.value().radius * tSmallSpacingMultiplier;
     EXPECT_TRUE(detail::validate_sphere_pattern_spacing_greater_than_twice_radius(tLevelSetTopology).has_value())
         << "Spacing way too small";
-    tLevelSetTopology.sphere_pattern.value().spacing = tLevelSetTopology.sphere_pattern.value().radius * 2;
+
+    constexpr auto tValidSpacingMultiplier = 2.0;
+    tLevelSetTopology.sphere_pattern.value().spacing =
+        tLevelSetTopology.sphere_pattern.value().radius * tValidSpacingMultiplier;
     EXPECT_FALSE(detail::validate_sphere_pattern_spacing_greater_than_twice_radius(tLevelSetTopology).has_value())
         << "Spacing right at 2x radius and is ok";
 }
@@ -120,13 +139,17 @@ TEST(LevelSetTopologyValidation, ValidateSpherePatternBoundingBox)
     auto tLevelSetTopology = kLevelSetTopology;
     EXPECT_FALSE(detail::validate_sphere_pattern_bbox(tLevelSetTopology).has_value())
         << detail::validate_sphere_pattern_bbox(tLevelSetTopology).value();
-    tLevelSetTopology.sphere_pattern.value().min.mX = 2.0;
+
+    constexpr auto tInvalidBoundingBoxMin = 2.0;
+    tLevelSetTopology.sphere_pattern.value().min.mX = tInvalidBoundingBoxMin;
     EXPECT_TRUE(detail::validate_sphere_pattern_bbox(tLevelSetTopology).has_value());
+
     tLevelSetTopology.sphere_pattern.value().min.mX = 0.0;
-    tLevelSetTopology.sphere_pattern.value().min.mY = 2.0;
+    tLevelSetTopology.sphere_pattern.value().min.mY = tInvalidBoundingBoxMin;
     EXPECT_TRUE(detail::validate_sphere_pattern_bbox(tLevelSetTopology).has_value());
+
     tLevelSetTopology.sphere_pattern.value().min.mY = 0.0;
-    tLevelSetTopology.sphere_pattern.value().min.mZ = 2.0;
+    tLevelSetTopology.sphere_pattern.value().min.mZ = tInvalidBoundingBoxMin;
     EXPECT_TRUE(detail::validate_sphere_pattern_bbox(tLevelSetTopology).has_value());
 
     EXPECT_FALSE(detail::validate_sphere_pattern_bbox(kLevelSetWithoutSpherePattern).has_value());
@@ -218,7 +241,7 @@ TEST(LevelSetTopology, ValidateMeshIsTrisOrTets)
     EXPECT_TRUE(detail::validate_mesh_is_tet_or_tri(tLevelSetTopology).has_value())
         << "Can't use a hex mesh with krino.";
     tpis::write_mesh(tLevelSetTopology.mesh_name->mToken,
-                     tpis::CommandGenerator{.mType = tpis::CommandElementType::Tet});
+                     tpis::CommandGenerator{.mType = tpis::CommandElementType::kTet});
     EXPECT_FALSE(detail::validate_mesh_is_tet_or_tri(tLevelSetTopology).has_value()) << "Can use a tet mesh though.";
     std::filesystem::remove(tLevelSetTopology.mesh_name->mToken);
 }

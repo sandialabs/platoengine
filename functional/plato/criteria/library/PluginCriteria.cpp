@@ -1,15 +1,20 @@
 #include "plato/criteria/library/PluginCriteria.hpp"
 
+#include <cstddef>
 #include <filesystem>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/criteria/library/SharedLibCriterion.hpp"
 #include "plato/criteria/library/SharedLibraryVectorCriterion.hpp"
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::criteria::library
 {
@@ -79,7 +84,7 @@ void register_criterion_impl(const std::size_t aFactoryIndexToInstantiate,
                              const std::string& aNameForRegistration,
                              const services::AppConfigurationWithDirectory& aAppConfiguration,
                              const services::CriterionConfiguration& aCriterionConfiguration,
-                             const std::index_sequence<kIndices...>)
+                             const std::index_sequence<kIndices...> /*unused*/)
 {
     (register_criterion_impl<kIndices>(aFactoryIndexToInstantiate, aNameForRegistration, aAppConfiguration,
                                        aCriterionConfiguration) ||
@@ -102,7 +107,7 @@ void register_all_criteria(const services::AppConfigurationWithDirectory& aAppCo
 }
 }  // namespace
 
-std::size_t register_plugin_apps(const std::vector<std::filesystem::path>& aSearchDirectories)
+auto register_plugin_apps(const std::vector<std::filesystem::path>& aSearchDirectories) -> std::size_t
 {
     const auto tAppConfigurations = services::app_configurations(aSearchDirectories);
     auto tNumberOfRegisteredApps = std::size_t{0};

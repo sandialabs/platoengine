@@ -37,26 +37,29 @@ class VectorCriterionInterface
     /// @note When implementing a constraint, the target value will be subtracted in the optimizer interface.
     /// A criterion that is a constraint should then just evaluate without considering any target value.
     /// Vector constraints share the same target value.
-    virtual auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> std::vector<double> = 0;
+    [[nodiscard]] virtual auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> std::vector<double> = 0;
 
     /// @brief Computes the left multiplication of a row vector @a aDirectionVector with the Jacobian matrix, evaluated
     /// at the argument @a aAnalysisDomainMesh.
     /// @note This should implement left multiplication with a row vector, not right multiplication with a column
     /// vector.
-    virtual auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                        const std::vector<double>& aDirectionVector) const -> std::vector<double> = 0;
+    [[nodiscard]] virtual auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                      const std::vector<double>& aDirectionVector) const
+        -> std::vector<double> = 0;
 
     /// @brief Computes the left multiplication of a row vector @a aDualVector with the adjoint of the Jacobian matrix,
     /// evaluated at the argument @a aAnalysisDomainMesh..
     /// @note This should implement left multiplication with a row vector, not right multiplication with a column
     /// vector.
-    virtual auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                               const std::vector<double>& aDualVector) const -> std::vector<double> = 0;
+    [[nodiscard]] virtual auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                                             const std::vector<double>& aDualVector) const
+        -> std::vector<double> = 0;
 
     VectorCriterionInterface(const VectorCriterionInterface&) = delete;
-    VectorCriterionInterface& operator=(const VectorCriterionInterface&) = delete;
+    auto operator=(const VectorCriterionInterface&) -> VectorCriterionInterface& = delete;
     VectorCriterionInterface(VectorCriterionInterface&&) = delete;
-    VectorCriterionInterface& operator=(VectorCriterionInterface&&) = delete;
+    auto operator=(VectorCriterionInterface&&) -> VectorCriterionInterface& = delete;
 };
 
 }  // namespace plato::criteria::library

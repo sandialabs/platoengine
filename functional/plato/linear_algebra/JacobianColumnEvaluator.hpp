@@ -16,7 +16,7 @@ struct JacobianMultiplier;
 struct JacobianColumnEvaluator
 {
     /// @return Column with index @a aIndex.
-    [[nodiscard]] DynamicVector<double> column(const unsigned int aIndex) const;
+    [[nodiscard]] auto column(unsigned int aIndex) const -> DynamicVector<double>;
 
     using ColumnFunction = std::function<DynamicVector<double>(unsigned int, const DynamicVector<double>&)>;
 
@@ -26,10 +26,11 @@ struct JacobianColumnEvaluator
 };
 
 /// Implements multiplication of a row vector @a aX with the Jacobian matrix represented by @a aA
-[[nodiscard]] DynamicVector<double> operator*(const DynamicVector<double>& aX, const JacobianColumnEvaluator& aA);
+[[nodiscard]] auto operator*(const DynamicVector<double>& aRowVector,
+                             const JacobianColumnEvaluator& aJacobian) -> DynamicVector<double>;
 
 /// @brief Creates a JacobianMultiplier from @a aJacobianColumnEvaluator
-JacobianMultiplier to_jacobian_multiplier(JacobianColumnEvaluator aJacobianColumnEvaluator);
+auto to_jacobian_multiplier(JacobianColumnEvaluator aJacobianColumnEvaluator) -> JacobianMultiplier;
 
 }  // namespace plato::linear_algebra
 

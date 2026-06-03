@@ -53,11 +53,11 @@ namespace plato::mesh
     };
 
     return plato::utilities::GradientChecker{
-        [tComputeFunction, mF = std::move(aF)](const linear_algebra::DynamicVector<double>& aCoordinates)
-        { return tComputeFunction(mF, aCoordinates); },
-        [tComputeFunction, mDf = std::move(aDf)](const linear_algebra::DynamicVector<double>& aCoordinates,
+        [tComputeFunction, tF = std::move(aF)](const linear_algebra::DynamicVector<double>& aCoordinates)
+        { return tComputeFunction(tF, aCoordinates); },
+        [tComputeFunction, tDf = std::move(aDf)](const linear_algebra::DynamicVector<double>& aCoordinates,
                                                  const linear_algebra::DynamicVector<double>& aDirection)
-        { return aDirection.dot(tComputeFunction(mDf, aCoordinates)); }};
+        { return aDirection.dot(tComputeFunction(tDf, aCoordinates)); }};
 }
 }  // namespace plato::mesh
 

@@ -36,13 +36,13 @@ class CartesianProductIterator
     using reference = const value_type&;
 
     CartesianProductIterator(std::vector<std::size_t> aSizes);
-    static CartesianProductIterator end(const std::vector<std::size_t>& aSizes);
+    static auto end(const std::vector<std::size_t>& aSizes) -> CartesianProductIterator;
 
-    [[nodiscard]] reference operator*() const;
-    [[nodiscard]] pointer operator->() const;
+    [[nodiscard]] auto operator*() const -> reference;
+    [[nodiscard]] auto operator->() const -> pointer;
 
-    CartesianProductIterator& operator++();
-    CartesianProductIterator operator++(int);
+    auto operator++() -> CartesianProductIterator&;
+    auto operator++(int) -> CartesianProductIterator;
     [[nodiscard]] auto operator<=>(const CartesianProductIterator&) const = default;
 
    private:

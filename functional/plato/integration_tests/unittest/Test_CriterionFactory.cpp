@@ -1,10 +1,15 @@
 #include <gtest/gtest.h>
 
-#include <boost/optional/optional_io.hpp>
-#include <fstream>
+#include <boost/optional/optional_io.hpp>  // NOLINT(misc-include-cleaner)
+#include <string>
+#include <string_view>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
@@ -28,7 +33,7 @@ struct CriterionFactoryTestFixture : public utilities::ValidInputTestFixture, pu
 
 namespace
 {
-[[nodiscard]] std::string create_valid_example_input_string()
+[[nodiscard]] auto create_valid_example_input_string() -> std::string
 {
     return test_utilities::create_valid_example_constraint_string() +
            test_utilities::create_valid_example_objective_string() +
@@ -57,7 +62,7 @@ TEST_F(CriterionFactoryTestFixture, ValidObjectiveConfiguration)
         criteria::library::make_criterion_function<criteria::library::CriterionFunction, input_parser::objective>(
             tData.template get<components::ComponentType::kObjective>().rawInput().front());
 
-    EXPECT_EQ(tConfiguration.mName, criteria::extension::NodalSumObjective::kCriterionName);
+    EXPECT_EQ(tConfiguration.mName, criteria::extension::NodalSumObjective::mCriterionName);
     EXPECT_EQ(tConfiguration.mFunctionName, "");
     EXPECT_FALSE(tConfiguration.mIsParallelized);
     EXPECT_TRUE(tConfiguration.mIsScalar);

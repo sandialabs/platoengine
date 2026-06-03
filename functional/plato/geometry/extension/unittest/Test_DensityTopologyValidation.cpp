@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <cstddef>
 #include <filesystem>
+#include <string>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
@@ -8,6 +12,8 @@
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -20,8 +26,7 @@ namespace plato::geometry::extension::unittest
 {
 namespace
 {
-using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
-using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
+using DensityTopologyValidationTwoDThreeBlockMesh = third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 using NodalDensityMesh = third_party_integration::stk_io::test_utilities::MeshWithNodalDensities;
 
@@ -60,11 +65,14 @@ TEST(DensityTopologyValidation, ValidateInitialDensity)
     EXPECT_TRUE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "-1 value is invalid";
     tDensityTopology.initial_density_value = 0;
     EXPECT_TRUE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "0 value is invalid";
-    tDensityTopology.initial_density_value = 0.5;
+    constexpr auto tValidInRangeInitialDensity = 0.5;
+    tDensityTopology.initial_density_value = tValidInRangeInitialDensity;
     EXPECT_FALSE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "0.5 value is valid";
-    tDensityTopology.initial_density_value = 1.0;
+    constexpr auto tValidOnBoundsInitialDensity = 1.0;
+    tDensityTopology.initial_density_value = tValidOnBoundsInitialDensity;
     EXPECT_FALSE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "1 value is valid";
-    tDensityTopology.initial_density_value = 1.5;
+    constexpr auto tInvalidInitialDensity = 1.5;
+    tDensityTopology.initial_density_value = tInvalidInitialDensity;
     EXPECT_TRUE(detail::validate_initial_density_value(tDensityTopology).has_value()) << "1.5 value is invalid";
 }
 
@@ -81,7 +89,7 @@ TEST(DensityTopologyValidation, ValidateMeshIsTrisOrTetsIfCutting)
         << "When cutting, mesh must be tet or tri.";
 
     tpis::write_mesh(tDensityTopology.mesh_name->mToken,
-                     tpis::CommandGenerator{.mType = tpis::CommandElementType::Tet});
+                     tpis::CommandGenerator{.mType = tpis::CommandElementType::kTet});
     EXPECT_FALSE(detail::validate_mesh_is_tet_or_tri_when_cutting(tDensityTopology).has_value())
         << "When cutting, mesh must be tet or tri.";
     std::filesystem::remove(tDensityTopology.mesh_name->mToken);
@@ -93,7 +101,8 @@ TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
     EXPECT_TRUE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
         << "Missing both specifiers";
 
-    tDensityTopology.initial_density_value = 0.5;
+    constexpr auto tValidInRangeInitialDensity = 0.5;
+    tDensityTopology.initial_density_value = tValidInRangeInitialDensity;
     EXPECT_FALSE(detail::validate_exactly_one_initial_topology_specifier(tDensityTopology).has_value())
         << "Valid, has initial_density_value";
 
@@ -106,7 +115,7 @@ TEST(DensityTopologyValidation, ValidateExactlyOneInitialTopologySpecifier)
         << "Only field specifier is used, valid.";
 }
 
-TEST_F(TwoDThreeBlockMesh, MeshFromInput)
+TEST_F(DensityTopologyValidationTwoDThreeBlockMesh, MeshFromInput)
 {
     struct ExpectedSizes
     {
@@ -116,11 +125,11 @@ TEST_F(TwoDThreeBlockMesh, MeshFromInput)
         std::size_t mNumberOfDesignDomainElements = 0U;
     };
 
-    const auto tTestFunction = [](const input_parser::density_topology& tDensityInput,
+    const auto tTestFunction = [](const input_parser::density_topology& aDensityInput,
                                   const ExpectedSizes& aExpectedSizes,
                                   const plato::test_utilities::TestContext& aTestContext)
     {
-        const auto tMesh = mesh_from_input(tDensityInput);
+        const auto tMesh = mesh_from_input(aDensityInput);
         EXPECT_EQ(tMesh.fixedBlockOrdinals().size(), aExpectedSizes.mNumberOfFixedBlocks) << aTestContext;
         EXPECT_EQ(tMesh.designBlockOrdinals().size(), aExpectedSizes.mNumberOfDesignBlocks) << aTestContext;
         EXPECT_EQ(mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes(), aExpectedSizes.mNumberOfDesignDomainNodes)
@@ -152,7 +161,7 @@ TEST_F(TwoDThreeBlockMesh, MeshFromInput)
     }
 }
 
-TEST_F(TwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
+TEST_F(DensityTopologyValidationTwoDThreeBlockMesh, NumberOfDesignVariablesWithFixedBlocks)
 {
     auto tDensityInputWithFixedBlocks = kDensityTopology;
     tDensityInputWithFixedBlocks.mesh_name = input_parser::FileName{mMeshFilePath.string()};

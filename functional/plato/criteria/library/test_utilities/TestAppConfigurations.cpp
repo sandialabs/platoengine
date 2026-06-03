@@ -1,10 +1,15 @@
 #include "plato/criteria/library/test_utilities/TestAppConfigurations.hpp"
 
+#include <cstddef>
 #include <fstream>
+#include <map>
+#include <string>
 #include <string_view>
+#include <utility>
 
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
+#include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
 
 namespace plato::criteria::library::test_utilities
 {

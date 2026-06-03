@@ -2,6 +2,11 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+#include <string_view>
+
+#include "plato/test_utilities/TestContext.hpp"
+
 namespace plato::test_utilities
 {
 void expect_string_contains_substring(const std::string& aStringUnderTest,

@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <utility>
+#include <vector>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshOperators.hpp"
 #include "plato/analysis/Utilities.hpp"
@@ -56,7 +59,8 @@ TEST(Utilities, RemoveBlockFieldsNoBlocks)
 {
     auto tAnalysisDomainMesh = AnalysisDomainMesh{
         "fake-mesh", AnalysisDomainMesh::BlockScalarField{{kBlock1ID, kBlock1}, {kBlock2ID, kBlock2}}};
-    tAnalysisDomainMesh = remove_block_fields(std::move(tAnalysisDomainMesh), {42U});
+    constexpr auto tNonexistentBlock = 42U;
+    tAnalysisDomainMesh = remove_block_fields(std::move(tAnalysisDomainMesh), {tNonexistentBlock});
 
     EXPECT_EQ(tAnalysisDomainMesh.mBlockScalarField.count(kBlock1ID), 1U);
     EXPECT_EQ(tAnalysisDomainMesh.mBlockScalarField.at(kBlock1ID), kBlock1);
@@ -79,6 +83,7 @@ TEST(Utilities, AnalysisDomainMeshHashValue)
     const auto tAnalysisDomainMesh = AnalysisDomainMesh{
         "fake-mesh", AnalysisDomainMesh::BlockScalarField{{kBlock1ID, kBlock1}, {kBlock2ID, kBlock2}}};
     {
+        // NOLINTNEXTLINE(performance-unnecessary-copy-initialization)
         const auto tAnalysisDomainMeshCopy = tAnalysisDomainMesh;
         EXPECT_EQ(hash_value(tAnalysisDomainMesh), hash_value(tAnalysisDomainMeshCopy)) << "Exact copy";
     }

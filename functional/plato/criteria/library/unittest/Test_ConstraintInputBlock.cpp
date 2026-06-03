@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/input_parser/test_utilities/ParseSingleInputBlock.hpp"
 #include "plato/input_parser/test_utilities/TestHelpers.hpp"

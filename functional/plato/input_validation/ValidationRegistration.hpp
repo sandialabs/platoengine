@@ -27,7 +27,7 @@ namespace plato::input_validation
 /// For example, registering a new validation function for density topology is:
 /// @code
 /// namespace{
-/// [[maybe_unused]] static auto kValidationRegistration =
+/// [[maybe_unused]] static const auto kValidationRegistration =
 ///   plato::input_validation::ValidationRegistration<input_parser::density_topology>{
 ///    [](const input_parser::density_topology& aInput){ return validate_foo_parameter(aInput); }
 /// };
@@ -67,7 +67,7 @@ using ParsedInputValidationRegistration = ValidationRegistration<input_parser::P
 template <typename ValidationInput, typename... AdditionalArgs>
 [[nodiscard]] auto validate(const ValidationInput& aInput,
                             std::vector<std::string>&& aCurrentMessageList,
-                            const AdditionalArgs&...) -> std::vector<std::string>;
+                            const AdditionalArgs&... /*aArgs*/) -> std::vector<std::string>;
 
 namespace detail
 {

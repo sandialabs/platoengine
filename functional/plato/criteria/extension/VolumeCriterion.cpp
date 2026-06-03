@@ -1,15 +1,32 @@
 #include "plato/criteria/extension/VolumeCriterion.hpp"
 
+#include <algorithm>
+#include <boost/optional/optional.hpp>
+#include <boost/spirit/home/qi/parse.hpp>
+#include <format>
+#include <iterator>
+#include <set>
+#include <utility>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/input_parser/BlockStructRule.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/input_parser/Skipper.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/CoordinateUtilities.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/services/SystemLogger.hpp"
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -21,7 +38,7 @@ namespace plato::input_parser
 template <>
 struct InputTypeName<volume_criterion>
 {
-    static constexpr inline const char* name = "volume";
+    static constexpr const char* mName = "volume";
 };
 }  // namespace plato::input_parser
 
@@ -92,11 +109,14 @@ void check_valid_reference_volume(const boost::optional<double> aReferenceVolume
 using Registration =
     library::CriterionRegistration<library::Parallelization::kSerial, library::FunctionDimension::kScalar>;
 
-const auto kVolumeConfiguration = services::CriterionConfiguration{
-    .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
+const auto kVolumeConfiguration =
+    services::CriterionConfiguration{.mName = std::string{VolumeCriterion::mVolumeCriterionName},
+                                     .mIsParallelized = false,
+                                     .mIsScalar = true,
+                                     .mFunctionName = ""};
 
-[[maybe_unused]] static auto kVolumeConstraintRegistration = Registration{
-    library::builtin_criterion_registration_name(VolumeCriterion::kVolumeCriterionName),
+[[maybe_unused]] const auto kVolumeConstraintRegistration = Registration{
+    library::builtin_criterion_registration_name(VolumeCriterion::mVolumeCriterionName),
     [](const library::CriterionInput& aCriterionInput)
     {
         const auto tVolumeCriterionInputs = parse_volume_constraint_inputs(aCriterionInput);
@@ -105,11 +125,14 @@ const auto kVolumeConfiguration = services::CriterionConfiguration{
                                                   .mConfiguration = kVolumeConfiguration};
     }};
 
-const auto kVolumeFractionConfiguration = services::CriterionConfiguration{
-    .mName = std::string{VolumeCriterion::kVolumeCriterionName}, .mIsParallelized = false, .mIsScalar = true};
+const auto kVolumeFractionConfiguration =
+    services::CriterionConfiguration{.mName = std::string{VolumeCriterion::mVolumeCriterionName},
+                                     .mIsParallelized = false,
+                                     .mIsScalar = true,
+                                     .mFunctionName = ""};
 
-[[maybe_unused]] static auto kVolumeFractionConstraintRegistration = Registration{
-    library::builtin_criterion_registration_name(VolumeCriterion::kVolumeFractionCriterionName),
+[[maybe_unused]] const auto kVolumeFractionConstraintRegistration = Registration{
+    library::builtin_criterion_registration_name(VolumeCriterion::mVolumeFractionCriterionName),
     [](const library::CriterionInput& aCriterionInput)
     {
         const auto tVolumeCriterionInputs = parse_volume_constraint_inputs(aCriterionInput);
@@ -136,27 +159,27 @@ const auto kVolumeFractionConfiguration = services::CriterionConfiguration{
     auto tEvaluationBlocks = utilities::reserved_container<std::vector<std::string>>(tAllBlocks.size());
     utilities::transform_if(
         tAllBlocks, std::back_inserter(tEvaluationBlocks), [](const auto& aBlockName) { return aBlockName; },
-        [](const auto& tBlockName)
-        { return tBlockName.find(third_party_integration::krino::void_phase_name()) == std::string::npos; });
+        [](const auto& aBlockName)
+        { return aBlockName.find(third_party_integration::krino::void_phase_name()) == std::string::npos; });
     return std::set<std::string>{tEvaluationBlocks.begin(), tEvaluationBlocks.end()};
 }
 
-double fixed_domain_volume(const mesh::MeshQuantities& aMesh)
+auto fixed_domain_volume(const mesh::MeshQuantities& aMesh) -> double
 {
     const auto tElementVolumes = aMesh.fixedDomainElementVolumes();
     return utilities::pair_wise_accumulate(tElementVolumes);
 }
 
-bool is_element_based_density_topology(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+auto is_element_based_density_topology(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> bool
 {
     if (aAnalysisDomainMesh.mBlockScalarField.empty())
     {
         return false;
     }
-    else if (const bool tMeshFieldIsNotElementSized =
-                 (analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh}.size() !=
-                  mesh::EntityCounts{mesh::Mesh{aAnalysisDomainMesh}}.numberOfDesignDomainElements());
-             tMeshFieldIsNotElementSized)
+    if (const bool tMeshFieldIsNotElementSized =
+            (analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh}.size() !=
+             mesh::EntityCounts{mesh::Mesh{aAnalysisDomainMesh}}.numberOfDesignDomainElements());
+        tMeshFieldIsNotElementSized)
     {
         throw utilities::Exception{
             "Error: 'volume' and 'volume_fraction' criteria for density topology are currently only implemented for "
@@ -166,7 +189,7 @@ bool is_element_based_density_topology(const analysis::AnalysisDomainMesh& aAnal
 }
 }  // namespace
 
-double VolumeCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto VolumeCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double
 {
     const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aAnalysisDomainMesh}};
     if (is_element_based_density_topology(aAnalysisDomainMesh))
@@ -179,14 +202,13 @@ double VolumeCriterion::f(const analysis::AnalysisDomainMesh& aAnalysisDomainMes
 
         return mScaleFactor * (utilities::pair_wise_accumulate(tScaledVolumes) + fixed_domain_volume(tMesh));
     }
-    else
-    {
-        return mScaleFactor * utilities::pair_wise_accumulate(tMesh.specifiedDomainElementVolumes(
-                                  evaluation_block_names(tMesh, mIgnoreVoidBlocks)));
-    }
+
+    return mScaleFactor * utilities::pair_wise_accumulate(
+                              tMesh.specifiedDomainElementVolumes(evaluation_block_names(tMesh, mIgnoreVoidBlocks)));
 }
 
-linear_algebra::DynamicVector<double> VolumeCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto VolumeCriterion::df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+    -> linear_algebra::DynamicVector<double>
 {
     const auto tMesh = mesh::MeshQuantities{mesh::Mesh{aAnalysisDomainMesh}};
     if (is_element_based_density_topology(aAnalysisDomainMesh))
@@ -194,12 +216,10 @@ linear_algebra::DynamicVector<double> VolumeCriterion::df(const analysis::Analys
         auto tJacobian = linear_algebra::DynamicVector<double>{tMesh.designDomainElementVolumes()};
         return mScaleFactor * std::move(tJacobian);
     }
-    else
-    {
-        return mScaleFactor * mesh::nodal_vector_field_to_dynamic_vector(
-                                  tMesh.volumeNodalSensitivities(evaluation_block_names(tMesh, mIgnoreVoidBlocks)),
-                                  mesh::EntityCounts{tMesh}.spatialDimensions());
-    }
+
+    return mScaleFactor * mesh::nodal_vector_field_to_dynamic_vector(
+                              tMesh.volumeNodalSensitivities(evaluation_block_names(tMesh, mIgnoreVoidBlocks)),
+                              mesh::EntityCounts{tMesh}.spatialDimensions());
 }
 
 auto make_volume_constraint_function(const bool aIgnoreVoidBlocks) -> library::CriterionFunction
@@ -211,9 +231,8 @@ auto make_volume_constraint_function(const bool aIgnoreVoidBlocks) -> library::C
         { return VolumeCriterion{.mScaleFactor = 1.0, .mIgnoreVoidBlocks = aIgnoreVoidBlocks}.df(aMesh); });
 }
 
-auto make_volume_fraction_constraint_function(const bool aIgnoreVoidBlocks,
-                                              const boost::optional<double> aReferenceVolume)
-    -> library::CriterionFunction
+auto make_volume_fraction_constraint_function(
+    const bool aIgnoreVoidBlocks, const boost::optional<double> aReferenceVolume) -> library::CriterionFunction
 {
     return core::make_function_with_first_derivative(
         [aIgnoreVoidBlocks, aReferenceVolume](const analysis::AnalysisDomainMesh& aMesh)
@@ -251,20 +270,17 @@ auto parse_input_block(const std::filesystem::path& aFilePath) -> input_parser::
     return tInputs;
 }
 
-double reference_volume(const boost::optional<double> aReferenceVolume,
-                        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+auto reference_volume(const boost::optional<double> aReferenceVolume,
+                      const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> double
 {
     if (aAnalysisDomainMesh.mBlockScalarField.empty())
     {
         return aReferenceVolume.value();
     }
-    else
-    {
-        return aReferenceVolume.has_value()
-                   ? aReferenceVolume.value()
-                   : third_party_integration::stk_io::mesh_volume(
-                         *third_party_integration::stk_io::read_mesh_bulk_data(aAnalysisDomainMesh.mFileName));
-    }
+    return aReferenceVolume.has_value()
+               ? aReferenceVolume.value()
+               : third_party_integration::stk_io::mesh_volume(
+                     *third_party_integration::stk_io::read_mesh_bulk_data(aAnalysisDomainMesh.mFileName));
 }
 }  // namespace detail
 

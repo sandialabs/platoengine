@@ -26,30 +26,30 @@ class OptimizationParameters
     void approximateHessian();
 
     ///@brief Changes the parameter for that specifies the maximum iteration in an optimization to @a aMaximumIterations
-    void maximumIterations(const std::optional<unsigned int> aMaximumIterations);
+    void maximumIterations(std::optional<unsigned int> aMaximumIterations);
 
     ///@brief Changes the parameter for that specifies the gradient tolerance in an optimization to @a
     /// aGradientTolerance
     ///@note Convergence in ROL is dictated by the norm of the gradient which grows with controls like sqrt(N)
-    void gradientTolerance(const std::optional<double> aGradientTolerance);
+    void gradientTolerance(std::optional<double> aGradientTolerance);
 
     ///@brief Changes the parameter for that specifies the step tolerance in an optimization to @a aStepTolerance
     ///@note Convergence in ROL is dictated by the norm of the step tolerance which grows with controls like sqrt(N)
-    void stepTolerance(const std::optional<double> aStepTolerance);
+    void stepTolerance(std::optional<double> aStepTolerance);
 
     ///@brief Changes the parameter for that specifies the initial search radius in an optimization to @a
     /// aInitialSearchRadius
     ///@note Search radius in ROL is dictated by the norm of the gradient which grows with controls like sqrt(N)
-    void initialSearchRadius(const std::optional<double> aInitialSearchRadius);
+    void initialSearchRadius(std::optional<double> aInitialSearchRadius);
 
     ///@brief Stores the parameter that specifies whether to write the output for each optimization iteration
-    void writeOutputHistory(const std::optional<bool> aWriteOutputHistory);
+    void writeOutputHistory(std::optional<bool> aWriteOutputHistory);
 
     ///@brief Returns the parameter that specifies whether to write the output for each optimization iteration
-    bool writeOutputHistory() const { return mWriteOutputHistory; };
+    [[nodiscard]] auto writeOutputHistory() const -> bool { return mWriteOutputHistory; };
 
     ///@brief Return the ROL::ParameterList stored in the class member mParameterList
-    [[nodiscard]] const ROL::ParameterList& parameters() const;
+    [[nodiscard]] auto parameters() const -> const ROL::ParameterList&;
 
     ///@brief Write the ROL::ParameterList stored in the class member mParameterList to file @a aPath
     void writeParameters(const std::filesystem::path& aPath) const;
@@ -69,7 +69,7 @@ void make_verbose(ROL::ParameterList& aParameterList);
 void approximate_hessian(ROL::ParameterList& aParameterList);
 
 ///@brief Load a ParameterList from file @a aInputFile
-[[nodiscard]] ROL::ParameterList load_from_file(const std::filesystem::path& aInputFile);
+[[nodiscard]] auto load_from_file(const std::filesystem::path& aInputFile) -> ROL::ParameterList;
 
 ///@brief Traverse the parameter list @a aParlist and set the value specified by ParameterAndValue @a aParameterAndValue
 template <typename Type>

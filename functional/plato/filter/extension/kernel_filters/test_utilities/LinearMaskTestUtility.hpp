@@ -18,7 +18,8 @@ constexpr int kMaximumConnectivity = 4;
 /// @brief Creates a LinearMask with a small number of nodes for testing.
 ///
 /// If @a aCentroids is empty, the LinearMask will use the nodes as the filter range.
-LinearMask create_simple_linear_mask(const std::vector<third_party_integration::common::Coordinate>& aCentroids = {});
+auto create_simple_linear_mask(const std::vector<third_party_integration::common::Coordinate>& aCentroids = {})
+    -> LinearMask;
 
 }  // namespace plato::filter::extension::kernel_filters::test_utilities
 

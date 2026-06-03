@@ -1,18 +1,28 @@
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
-#include <Ioss_NodeBlock.h>
+#include <mpi.h>
 
-#include <boost/mpi/communicator.hpp>
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <filesystem>
+#include <memory>
+#include <span>
+#include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/FillMesh.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 #include <stk_mesh/base/Field.hpp>
+#include <stk_mesh/base/FieldBase.hpp>
 #include <stk_mesh/base/GetEntities.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
 #include <stk_mesh/base/MetaData.hpp>
-#include <stk_topology/topology.hpp>
-#include <stk_util/parallel/Parallel.hpp>
+#include <stk_topology/topology_decl.hpp>
+#include <string_view>
+#include <vector>
 
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::third_party_integration::stk_io
@@ -21,32 +31,39 @@ namespace
 {
 constexpr bool kUnsorted = false;
 
-std::shared_ptr<stk::mesh::BulkData> bulk_data_from_description(const std::string_view aMeshDescription)
+template <std::size_t kFieldSize>
+[[nodiscard]] auto to_span(void* const aStkField)
 {
-    std::shared_ptr<stk::mesh::BulkData> bulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
-    bulk->mesh_meta_data().use_simple_fields();
-    stk::io::fill_mesh(std::string{aMeshDescription}, *bulk);
-    return bulk;
+    return std::span<double, kFieldSize>(static_cast<double*>(aStkField), kFieldSize);
 }
 
-template <stk::topology::rank_t Rank>
+auto bulk_data_from_description(const std::string_view aMeshDescription) -> std::shared_ptr<stk::mesh::BulkData>
+{
+    std::shared_ptr<stk::mesh::BulkData> tBulk = stk::mesh::MeshBuilder(MPI_COMM_SELF).create();
+    tBulk->mesh_meta_data().use_simple_fields();
+    stk::io::fill_mesh(std::string{aMeshDescription}, *tBulk);
+    return tBulk;
+}
+
+template <stk::topology::rank_t kRank>
 void initialize_scalar_output_field_impl(stk::mesh::MetaData& aMetaData, const std::string_view aFieldName)
 {
     constexpr int tScalarFieldSize = 1;
-    stk::mesh::Field<double>& tField = aMetaData.declare_field<double>(Rank, std::string{aFieldName}, tScalarFieldSize);
+    stk::mesh::Field<double>& tField =
+        aMetaData.declare_field<double>(kRank, std::string{aFieldName}, tScalarFieldSize);
     constexpr double tInitialValue = 0;
     stk::mesh::put_field_on_mesh(tField, aMetaData.universal_part(), &tInitialValue);
 }
 
-template <stk::topology::rank_t Rank>
+template <stk::topology::rank_t kRank>
 void populate_scalar_field_values_impl(stk::io::StkMeshIoBroker& aIOBroker,
                                        const std::string_view aFieldName,
                                        const ScalarFieldFunction& aScalarField)
 {
     auto tEntityVector = std::vector<stk::mesh::Entity>{};
-    stk::mesh::get_entities(aIOBroker.bulk_data(), Rank, tEntityVector, kUnsorted);
+    stk::mesh::get_entities(aIOBroker.bulk_data(), kRank, tEntityVector, kUnsorted);
 
-    const stk::mesh::Field<double>* tField = aIOBroker.meta_data().get_field<double>(Rank, std::string{aFieldName});
+    const stk::mesh::Field<double>* tField = aIOBroker.meta_data().get_field<double>(kRank, std::string{aFieldName});
 
     for (const auto& tEntity : tEntityVector)
     {
@@ -56,13 +73,13 @@ void populate_scalar_field_values_impl(stk::io::StkMeshIoBroker& aIOBroker,
     }
 }
 
-template <stk::topology::rank_t Rank>
+template <stk::topology::rank_t kRank>
 void add_field_to_output_file_impl(stk::io::StkMeshIoBroker& aIOBroker,
                                    const size_t aFileHandle,
                                    const std::string_view aFieldName)
 
 {
-    stk::mesh::Field<double>* tField = aIOBroker.meta_data().get_field<double>(Rank, std::string{aFieldName});
+    stk::mesh::Field<double>* tField = aIOBroker.meta_data().get_field<double>(kRank, std::string{aFieldName});
     aIOBroker.add_field(aFileHandle, *tField);
 }
 }  // namespace
@@ -97,7 +114,7 @@ void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDe
     write_bulk_data(aMeshName, *bulk_data_from_description(aMeshDescription));
 }
 
-std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator)
+auto generate_bulk_data(const CommandGenerator& aCommandGenerator) -> std::shared_ptr<stk::mesh::BulkData>
 {
     return bulk_data_from_description(aCommandGenerator.toString());
 }
@@ -105,9 +122,9 @@ std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& 
 void write_bulk_data(const std::filesystem::path& aMeshName, stk::mesh::BulkData& aBulk)
 {
     const auto tIOBroker = create_io_broker_from_bulk(aBulk);
-    const size_t outputFileIndex = tIOBroker->create_output_mesh(aMeshName.string(), stk::io::WRITE_RESULTS);
-    tIOBroker->write_output_mesh(outputFileIndex);
-    tIOBroker->write_defined_output_fields(outputFileIndex);
+    const auto tOutputFileIndex = tIOBroker->create_output_mesh(aMeshName.string(), stk::io::WRITE_RESULTS);
+    tIOBroker->write_output_mesh(tOutputFileIndex);
+    tIOBroker->write_defined_output_fields(tOutputFileIndex);
 }
 
 auto create_io_broker_from_bulk(stk::mesh::BulkData& aBulk) -> std::unique_ptr<stk::io::StkMeshIoBroker>
@@ -158,8 +175,9 @@ void replace_nodal_coordinate_values(stk::mesh::BulkData& aBulkData,
     std::for_each(tIndices.begin(), tIndices.end(),
                   [tCoordinateField, &tNodeEntity, &aCoordinates](const auto aNodeIndex)
                   {
-                      auto tData =
-                          static_cast<double*>(stk::mesh::field_data(*tCoordinateField, tNodeEntity[aNodeIndex]));
+                      constexpr auto tCoordinateFieldSize = std::size_t{3U};
+                      auto tData = to_span<tCoordinateFieldSize>(
+                          stk::mesh::field_data(*tCoordinateField, tNodeEntity[aNodeIndex]));
                       tData[0] = aCoordinates[aNodeIndex].x;
                       tData[1] = aCoordinates[aNodeIndex].y;
                       tData[2] = aCoordinates[aNodeIndex].z;

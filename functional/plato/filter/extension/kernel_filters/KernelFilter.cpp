@@ -1,6 +1,13 @@
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
 
+#include <boost/mpi/communicator.hpp>
+#include <functional>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
+#include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
 #include "plato/filter/library/FilterLogger.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/services/TaskLogSetupTeardown.hpp"
 
@@ -26,7 +33,7 @@ auto KernelFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMes
     const auto tSourceMesh = mesh::Mesh{aAnalysisDomainMesh};
 
     const auto tFieldValues =
-        mesh::DesignVariablesConversion{tSourceMesh}.analysisDomainMeshToNodalFieldVector(aAnalysisDomainMesh);
+        mesh::DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(aAnalysisDomainMesh);
 
     const auto tFilteredField = mLinearMask.matrixMultiply(tFieldValues.mValue);
     if (mFilterCentering == input_parser::KernelFilterCenteringTypes::kNodeCentered)
@@ -39,21 +46,21 @@ auto KernelFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMes
 }
 
 auto KernelFilter::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/,
-                                          const linear_algebra::DynamicVector<double>& aV) const
+                                          const linear_algebra::DynamicVector<double>& aRowVector) const
     -> linear_algebra::DynamicVector<double>
 {
     [[maybe_unused]] const auto tTaskLogger = library::jacobian_task_log(mLoggingName);
 
-    return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aV.stdVector())};
+    return linear_algebra::DynamicVector<double>{mLinearMask.transposeMatrixMultiply(aRowVector.stdVector())};
 }
 
-auto KernelFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh&,
-                                                 const linear_algebra::DynamicVector<double>& aV) const
+auto KernelFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/,
+                                                 const linear_algebra::DynamicVector<double>& aRowVector) const
     -> linear_algebra::DynamicVector<double>
 {
     [[maybe_unused]] const auto tTaskLogger = library::adjoint_jacobian_task_log(mLoggingName);
 
-    return linear_algebra::DynamicVector<double>{mLinearMask.matrixMultiply(aV.stdVector())};
+    return linear_algebra::DynamicVector<double>{mLinearMask.matrixMultiply(aRowVector.stdVector())};
 }
 
 namespace detail

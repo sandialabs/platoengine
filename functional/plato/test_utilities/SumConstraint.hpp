@@ -18,14 +18,14 @@ class SumConstraint
     /// @brief Initializes exponent \f$p\f$ to @a aPower and centers \f$a\f$ and \f$b\f$ to `first` and `second` of @a
     /// aCenter respectively.
     /// @pre @a aPower must not be 0.
-    constexpr SumConstraint(const std::pair<double, double> aCenter, const unsigned int aPower);
+    constexpr SumConstraint(std::pair<double, double> aCenter, unsigned int aPower);
 
-    [[nodiscard]] constexpr auto f(const double aX, const double aY) const -> double;
-    [[nodiscard]] constexpr auto df(const double aX, const double aY) const -> TwoDVector;
+    [[nodiscard]] constexpr auto f(double aXComponent, double aYComponent) const -> double;
+    [[nodiscard]] constexpr auto df(double aXComponent, double aYComponent) const -> TwoDVector;
 
    private:
     std::pair<double, double> mCenter{0, 0};
-    unsigned int mPower = 1u;
+    unsigned int mPower = 1U;
 };
 
 constexpr SumConstraint::SumConstraint(const std::pair<double, double> aCenter, const unsigned int aPower)
@@ -34,20 +34,22 @@ constexpr SumConstraint::SumConstraint(const std::pair<double, double> aCenter, 
     assert(mPower != 0);
 }
 
-constexpr double SumConstraint::f(const double aX, const double aY) const
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
+constexpr auto SumConstraint::f(const double aXComponent, const double aYComponent) const -> double
 {
-    const double tXTerm = aX - mCenter.first;
-    const double tYTerm = aY - mCenter.second;
+    const double tXTerm = aXComponent - mCenter.first;
+    const double tYTerm = aYComponent - mCenter.second;
     return std::pow(tXTerm, mPower) + std::pow(tYTerm, mPower);
 }
 
-constexpr TwoDVector SumConstraint::df(const double aX, const double aY) const
+constexpr auto SumConstraint::df(const double aXComponent, const double aYComponent) const -> TwoDVector
 {
-    const double tXTerm = (aX - mCenter.first);
-    const double tYTerm = (aY - mCenter.second);
+    const double tXTerm = (aXComponent - mCenter.first);
+    const double tYTerm = (aYComponent - mCenter.second);
 
-    return makeTwoDVector(mPower * std::pow(tXTerm, mPower - 1), mPower * std::pow(tYTerm, mPower - 1));
+    return make_two_d_vector(mPower * std::pow(tXTerm, mPower - 1), mPower * std::pow(tYTerm, mPower - 1));
 }
+// NOLINTEND(bugprone-easily-swappable-parameters)
 
 }  // namespace plato::test_utilities
 

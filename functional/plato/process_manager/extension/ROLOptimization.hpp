@@ -46,7 +46,7 @@ class ROLOptimization
 
    private:
     third_party_integration::rol::OptimizationParameters mROLOptions;
-    boost::mpi::communicator mCommunicator{};
+    boost::mpi::communicator mCommunicator;
 };
 
 namespace detail

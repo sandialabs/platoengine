@@ -12,11 +12,11 @@ namespace plato::criteria::extension
 /// @brief Computes the quadratic sum of all nodal or element centered densities.
 struct QuadraticObjective
 {
-    [[nodiscard]] auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double;
-    [[nodiscard]] auto gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+    [[nodiscard]] static auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> double;
+    [[nodiscard]] static auto gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
         -> linear_algebra::DynamicVector<double>;
 
-    static constexpr auto kCriterionName = std::string_view{"quadratic"};
+    static constexpr auto mCriterionName = std::string_view{"quadratic"};
 };
 
 /// @brief Creates a Function object from a QuadraticObjective

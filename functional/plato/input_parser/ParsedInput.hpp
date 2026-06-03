@@ -48,9 +48,8 @@ class ParsedInput
     [[nodiscard]] auto get() const -> std::vector<InputType>;
 
    private:
-    static constexpr inline std::size_t kNumberOfComponents =
-        utilities::number_of_enumerates<components::ComponentType>();
-    std::array<std::vector<InputDataBlock>, kNumberOfComponents> mInputBlocks;
+    static constexpr std::size_t mNumberOfComponents = utilities::number_of_enumerates<components::ComponentType>();
+    std::array<std::vector<InputDataBlock>, mNumberOfComponents> mInputBlocks;
 };
 
 /// @brief Parse the string @a aInput to a ParsedInput object using the registered parsers.
@@ -80,7 +79,7 @@ auto ParsedInput::get() const -> const std::vector<InputDataBlock>&
 template <typename InputType>
 auto ParsedInput::get() const -> std::vector<InputType>
 {
-    constexpr auto tComponentType = ComponentTypeOfInputBlock<InputType>::value;
+    constexpr auto tComponentType = ComponentTypeOfInputBlock<InputType>::mValue;
     const auto& tInputsWithComponentType = get<tComponentType>();
 
     auto tInputsWithType = std::vector<InputType>{};

@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/Function.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 
@@ -16,7 +15,7 @@ namespace
                           [](const analysis::AnalysisDomainMesh&) { return FilterAdjointJacobian{FilterJacobian{}}; });
 }
 
-[[maybe_unused]] static auto kTestFilterRegistration =
+[[maybe_unused]] const auto kTestFilterRegistration =
     FilterRegistration{"test", [](const ValidatedFilterInput&) { return make_test_filter_function(); }};
 }  // namespace
 

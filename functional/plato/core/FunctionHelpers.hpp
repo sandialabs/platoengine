@@ -24,8 +24,8 @@ template <typename CodomainType, int kOrder, MatrixOrdering kOrdering = MatrixOr
 struct FunctionInfo
 {
     using Codomain = CodomainType;
-    constexpr static int order = kOrder;
-    constexpr static MatrixOrdering ordering = kOrdering;
+    constexpr static int mOrder = kOrder;
+    constexpr static MatrixOrdering mOrdering = kOrdering;
 };
 
 namespace detail
@@ -38,29 +38,29 @@ struct MakeTupleHelper
     using InfoTuple = std::tuple<Info...>;
 
     template <int kOrder, MatrixOrdering kOrdering, std::size_t kIndex>
-    [[nodiscard]] static constexpr auto get_index_impl() -> std::size_t;
+    [[nodiscard]] static constexpr auto getIndexImpl() -> std::size_t;
 
     template <int kOrder, MatrixOrdering kOrdering, std::size_t... kIndices>
-    [[nodiscard]] static constexpr auto get_index(std::index_sequence<kIndices...>) -> std::size_t;
+    [[nodiscard]] static constexpr auto getIndex(std::index_sequence<kIndices...> /*unused*/) -> std::size_t;
 
     template <int kOrder, MatrixOrdering kOrdering>
     [[nodiscard]] static constexpr auto index() -> std::size_t;
 
     template <int kOrder, MatrixOrdering kOrdering, std::size_t kIndex>
-    [[nodiscard]] static constexpr auto is_implemented_impl() -> bool;
+    [[nodiscard]] static constexpr auto isImplementedImpl() -> bool;
 
     template <int kOrder, MatrixOrdering kOrdering, std::size_t... kIndices>
-    [[nodiscard]] static constexpr auto is_implemented_seq(std::index_sequence<kIndices...>) -> bool;
+    [[nodiscard]] static constexpr auto isImplementedSeq(std::index_sequence<kIndices...> /*unused*/) -> bool;
 
     template <int kOrder, MatrixOrdering kOrdering>
-    [[nodiscard]] static constexpr auto is_implemented() -> bool;
+    [[nodiscard]] static constexpr auto isImplemented() -> bool;
 };
 
 /// @brief Returns `true` if @a TList has size 1 and the only type contained in it is @a T.
 template <typename T, typename... TList>
 constexpr auto is_only_member()
 {
-    if constexpr (std::tuple_size_v<std::tuple<TList...>> == 1)
+    if constexpr (sizeof...(TList) == 1)
     {
         return std::is_same_v<T, std::decay_t<std::tuple_element_t<0, std::tuple<TList...>>>>;
     }
@@ -83,9 +83,9 @@ constexpr auto is_copyable() -> bool;
 
 template <typename Domain, typename... Info>
 template <int kOrder, MatrixOrdering kOrdering, std::size_t kIndex>
-constexpr auto MakeTupleHelper<Domain, Info...>::get_index_impl() -> std::size_t
+constexpr auto MakeTupleHelper<Domain, Info...>::getIndexImpl() -> std::size_t
 {
-    if constexpr (is_implemented_impl<kOrder, kOrdering, kIndex>())
+    if constexpr (isImplementedImpl<kOrder, kOrdering, kIndex>())
     {
         return kIndex;
     }
@@ -97,38 +97,38 @@ constexpr auto MakeTupleHelper<Domain, Info...>::get_index_impl() -> std::size_t
 
 template <typename Domain, typename... Info>
 template <int kOrder, MatrixOrdering kOrdering, std::size_t... kIndices>
-constexpr auto MakeTupleHelper<Domain, Info...>::get_index(std::index_sequence<kIndices...>) -> std::size_t
+constexpr auto MakeTupleHelper<Domain, Info...>::getIndex(std::index_sequence<kIndices...> /*unused*/) -> std::size_t
 {
-    return (get_index_impl<kOrder, kOrdering, kIndices>() + ...);
+    return (getIndexImpl<kOrder, kOrdering, kIndices>() + ...);
 }
 
 template <typename Domain, typename... Info>
 template <int kOrder, MatrixOrdering kOrdering>
 constexpr auto MakeTupleHelper<Domain, Info...>::index() -> std::size_t
 {
-    return get_index<kOrder, kOrdering>(std::make_index_sequence<std::tuple_size_v<InfoTuple>>());
+    return getIndex<kOrder, kOrdering>(std::make_index_sequence<std::tuple_size_v<InfoTuple>>());
 }
 
 template <typename Domain, typename... Info>
 template <int kOrder, MatrixOrdering kOrdering, std::size_t kIndex>
-constexpr auto MakeTupleHelper<Domain, Info...>::is_implemented_impl() -> bool
+constexpr auto MakeTupleHelper<Domain, Info...>::isImplementedImpl() -> bool
 {
     using InfoAtIndex = std::tuple_element_t<kIndex, InfoTuple>;
-    return InfoAtIndex::order == kOrder && InfoAtIndex::ordering == kOrdering;
+    return InfoAtIndex::mOrder == kOrder && InfoAtIndex::mOrdering == kOrdering;
 }
 
 template <typename Domain, typename... Info>
 template <int kOrder, MatrixOrdering kOrdering, std::size_t... kIndices>
-constexpr auto MakeTupleHelper<Domain, Info...>::is_implemented_seq(std::index_sequence<kIndices...>) -> bool
+constexpr auto MakeTupleHelper<Domain, Info...>::isImplementedSeq(std::index_sequence<kIndices...> /*unused*/) -> bool
 {
-    return (is_implemented_impl<kOrder, kOrdering, kIndices>() || ...);
+    return (isImplementedImpl<kOrder, kOrdering, kIndices>() || ...);
 }
 
 template <typename Domain, typename... Info>
 template <int kOrder, MatrixOrdering kOrdering>
-constexpr auto MakeTupleHelper<Domain, Info...>::is_implemented() -> bool
+constexpr auto MakeTupleHelper<Domain, Info...>::isImplemented() -> bool
 {
-    return is_implemented_seq<kOrder, kOrdering>(std::make_index_sequence<std::tuple_size_v<InfoTuple>>());
+    return isImplementedSeq<kOrder, kOrdering>(std::make_index_sequence<std::tuple_size_v<InfoTuple>>());
 }
 
 template <typename DomainTypeLHS, typename InfoTupleLHS, typename DomainTypeRHS, typename InfoTupleRHS>

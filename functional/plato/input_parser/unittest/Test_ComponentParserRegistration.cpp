@@ -1,7 +1,11 @@
 #include <gtest/gtest.h>
 
-#include "plato/input_parser/ComponentBlockParser.hpp"
+#include <string>
+#include <vector>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
 
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
@@ -27,7 +31,7 @@ namespace plato::input_parser::unittest
 {
 namespace
 {
-[[maybe_unused]] const auto tRegisteredParser = ComponentParserRegistration<statically_registered_test_block>{};
+[[maybe_unused]] const auto kRegisteredParser = ComponentParserRegistration<statically_registered_test_block>{};
 }
 
 TEST(ComponentParserRegistration, RegisterInline)

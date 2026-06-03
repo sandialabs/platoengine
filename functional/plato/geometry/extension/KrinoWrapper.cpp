@@ -1,21 +1,29 @@
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 
+#include <Akri_MeshInterface.hpp>
+#include <Akri_Phase_Support.hpp>
+#include <algorithm>
 #include <boost/mpi/collectives.hpp>
-#include <boost/mpi/communicator.hpp>
-#include <boost/serialization/unordered_map.hpp>
-#include <boost/serialization/vector.hpp>
 #include <cstddef>
-#include <ranges>
+#include <filesystem>
+#include <iterator>
+#include <memory>
+#include <optional>
+#include <set>
 #include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_util/environment/EnvData.hpp>  //get stk mpi env
+#include <stk_topology/topology_decl.hpp>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
@@ -38,9 +46,9 @@ void set_level_set_fields(::krino::MeshInterface& aKrinoMesh,
                           std::vector<::krino::LS_Field>& aLevelSetFields,
                           const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
 {
-    for (const auto& tScalarFieldValueProxy : analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
+    for (const analysis::ScalarFieldValue tScalarFieldValue :
+         analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
     {
-        const auto& tScalarFieldValue = static_cast<analysis::ScalarFieldValue>(tScalarFieldValueProxy);
         const auto tStkEntity =
             aKrinoMesh.bulk_data().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
 
@@ -103,12 +111,12 @@ const auto kJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& a
                               const third_party_integration::common::Vector3& aSensitivity,
                               const unsigned int aSpatialDimension)
 {
-    constexpr auto kScalarViewComponent = utilities::ComponentIndex{0};
+    constexpr auto tScalarViewComponent = utilities::ComponentIndex{0};
     const auto tRowvector3 =
         detail::row_vector_to_vector3(aRowVector, utilities::VectorIndex{aCutMeshIndex.mValue}, aSpatialDimension);
     const auto tDotProduct = third_party_integration::common::dot(tRowvector3, aSensitivity) * aMultiplicityMultiplier;
 
-    aResultVectorView(utilities::VectorIndex{aParentIndex.mValue}, kScalarViewComponent) += tDotProduct;
+    aResultVectorView(utilities::VectorIndex{aParentIndex.mValue}, tScalarViewComponent) += tDotProduct;
 };
 
 const auto kAdjointJacobianImpl = [](utilities::MultiVectorView<std::vector<double>>& aResultVectorView,
@@ -129,13 +137,13 @@ using ResultViewDimensionality = utilities::NamedType<unsigned int, struct Resul
 /// @brief Computes a row vector product based on the ApplyFunction @a aApplyFunction which will either be the
 /// Jacobian or the Adjoint Jacobian
 template <typename Lambda>
-[[nodiscard]] auto transformSensitivityMap(const std::vector<double>& aRowVector,
-                                           const tpik::SensitivityMap& aSensitivityMap,
-                                           const ::krino::MeshInterface& aKrinoMesh,
-                                           const tpik::VoidPhase aVoidPhase,
-                                           const ResultSize aResultSize,
-                                           const ResultViewDimensionality aResultViewDimensionality,
-                                           const Lambda& aApplyFunction) -> std::vector<double>
+[[nodiscard]] auto transform_sensitivity_map(const std::vector<double>& aRowVector,
+                                             const tpik::SensitivityMap& aSensitivityMap,
+                                             const ::krino::MeshInterface& aKrinoMesh,
+                                             const tpik::VoidPhase aVoidPhase,
+                                             const ResultSize aResultSize,
+                                             const ResultViewDimensionality aResultViewDimensionality,
+                                             const Lambda& aApplyFunction) -> std::vector<double>
 {
     const auto tSpatialDimensions = third_party_integration::stk_io::spatial_dimensions(aKrinoMesh.bulk_data());
     const auto tCutMeshNodeIds = tpik::cut_mesh_node_ids(aKrinoMesh, aVoidPhase);
@@ -175,8 +183,8 @@ auto KrinoWrapper::rowVectorJacobianProduct(const std::vector<double>& aCutMeshR
 {
     const auto tViewDimension = 1U;
     const auto tResultSize = mNumberOfDesignDomainBackgroundNodes;
-    return transformSensitivityMap(aCutMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase, ResultSize{tResultSize},
-                                   ResultViewDimensionality{tViewDimension}, kJacobianImpl);
+    return transform_sensitivity_map(aCutMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase,
+                                     ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension}, kJacobianImpl);
 }
 
 auto KrinoWrapper::rowVectorAdjointJacobianProduct(const std::vector<double>& aBackgroundMeshRowVector) const
@@ -184,9 +192,9 @@ auto KrinoWrapper::rowVectorAdjointJacobianProduct(const std::vector<double>& aB
 {
     const auto tViewDimension = third_party_integration::stk_io::spatial_dimensions(mKrinoMesh->bulk_data());
     const auto tResultSize = tpik::cut_mesh_node_ids(*mKrinoMesh, mVoidPhase).size() * tViewDimension;
-    return transformSensitivityMap(aBackgroundMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase,
-                                   ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension},
-                                   kAdjointJacobianImpl);
+    return transform_sensitivity_map(aBackgroundMeshRowVector, mSensitivityMap, *mKrinoMesh, mVoidPhase,
+                                     ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension},
+                                     kAdjointJacobianImpl);
 }
 
 namespace

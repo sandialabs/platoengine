@@ -35,9 +35,9 @@ class SharedLibCriterion
                        const library::CriterionInput& aCriterionInput,
                        const boost::mpi::communicator& aCommunicator);
 
-    [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aMesh) const;
+    [[nodiscard]] auto f(const analysis::AnalysisDomainMesh& aMesh) const -> double;
 
-    [[nodiscard]] linear_algebra::DynamicVector<double> df(const analysis::AnalysisDomainMesh& aMesh) const;
+    [[nodiscard]] auto df(const analysis::AnalysisDomainMesh& aMesh) const -> linear_algebra::DynamicVector<double>;
 
    private:
     std::shared_ptr<CriterionSharedLibraryObject> mCriterionInterface;

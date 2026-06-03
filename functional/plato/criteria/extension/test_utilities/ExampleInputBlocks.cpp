@@ -1,6 +1,10 @@
 #include "plato/criteria/extension/test_utilities/ExampleInputBlocks.hpp"
 
+#include <boost/none.hpp>
+
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 
 namespace plato::criteria::extension::test_utilities
 {
@@ -11,7 +15,7 @@ auto create_valid_example_nodal_sum_objective_input() -> input_parser::objective
                                    /*.active=*/true,
                                    /*.app=*/input_parser::AppName{std::string{input_parser::kBuiltinAppName}},
                                    /*.criterion=*/input_parser::CriterionName{"nodal_sum"},
-                                   /*.number_of_processors=*/1u,
+                                   /*.number_of_processors=*/1U,
                                    /*.input_files=*/boost::none,
                                    /*.aggregation_weight=*/1.0,
                                    /*.normalize_by_initial_value=*/false,

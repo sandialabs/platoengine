@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <boost/log/attributes/constant.hpp>
 #include <sstream>
+#include <string_view>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"

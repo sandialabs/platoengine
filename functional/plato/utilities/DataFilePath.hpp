@@ -12,7 +12,7 @@ namespace plato::utilities
 ///
 /// CMAKE variables FUNCTIONAL_TEST_DATA_BUILD_PATH, FUNCTIONAL_TEST_DATA_INSTALL_PATH give the location on disk for the
 /// file given in @a aFileName in the folder `data`
-std::optional<std::filesystem::path> data_file_path(const std::string_view aFileName);
+auto data_file_path(std::string_view aFileName) -> std::optional<std::filesystem::path>;
 
 }  // namespace plato::utilities
 

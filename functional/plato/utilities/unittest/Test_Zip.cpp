@@ -1,8 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <functional>
+#include <iterator>
 #include <list>
 #include <numeric>
 #include <set>
+#include <tuple>
+#include <type_traits>
+#include <vector>
 
 #include "plato/test_utilities/CopyCounter.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -87,17 +92,17 @@ TEST(Zip, DereferencingIteratorDoesNotCopy)
     }
     {
         const auto tZipIterator = ZipIterator{tVector1.cbegin()};
-        const auto& value = *tZipIterator;
-        EXPECT_EQ(std::get<0>(value).mCopies, 0);
+        const auto& tValue = *tZipIterator;
+        EXPECT_EQ(std::get<0>(tValue).mCopies, 0);
     }
 
     // Copies these on construction, so expect 1 copy
     auto tVector2 = std::vector<test_utilities::CopyCounter>(3, test_utilities::CopyCounter{});
     {
         auto tZipIterator = ZipIterator{tVector1.rbegin(), tVector2.begin()};
-        auto values = *tZipIterator;
-        EXPECT_EQ(std::get<0>(values).mCopies, 0);
-        EXPECT_EQ(std::get<1>(values).mCopies, 1);
+        auto tValues = *tZipIterator;
+        EXPECT_EQ(std::get<0>(tValues).mCopies, 0);
+        EXPECT_EQ(std::get<1>(tValues).mCopies, 1);
     }
     {
         auto tZipIterator = ZipIterator{tVector1.rbegin(), tVector2.begin()};
@@ -114,8 +119,9 @@ TEST(Zip, ModifyThroughIterator)
     auto tZipIterator = ZipIterator{tVector1.begin(), tVector2.rbegin()};
 
     auto [tValue1, tValue2] = *tZipIterator;
-    tValue1 = 42;
-    EXPECT_EQ(tVector1.front(), 42);
+    constexpr auto tArbitraryValue = 42;
+    tValue1 = tArbitraryValue;
+    EXPECT_EQ(tVector1.front(), tArbitraryValue);
     tValue2 = 'z';
     EXPECT_EQ(tVector2.back(), 'z');
 }
@@ -189,7 +195,7 @@ TEST(Zip, ZipTypes)
     {
         const auto tVector3 = Vector1{1, 2, 3};
         auto tTestZip = Zip{tVector1, tVector3};
-        auto tBeginIter = tTestZip.begin();
+        auto tBeginIter = tTestZip.begin();  // NOLINT(clang-analyzer-deadcode.DeadStores)
         using BeginIter = decltype(tBeginIter);
         EXPECT_TRUE((std::is_same_v<BeginIter, ZipIterator<Vector1::iterator, Vector1::const_iterator>>));
     }
@@ -256,9 +262,11 @@ TEST(Zip, VectorsSameLengthConst)
 
 TEST(Zip, VectorsSameLengthModifying)
 {
-    auto tDoubleVector = std::vector<double>{1.0, 2.0, 3.0};
-    auto tIntVector = std::vector<int>{4, 5, 6};
-    auto tCount = int{100};
+    constexpr auto tVectorLength = 3U;
+    auto tDoubleVector = std::vector<double>(tVectorLength, 0.0);
+    auto tIntVector = std::vector<int>(tVectorLength, 0);
+    constexpr auto tCountStart = 100;
+    auto tCount = tCountStart;
     for (auto [tValue1, tValue2] : Zip{tDoubleVector, tIntVector})
     {
         tValue1 = tCount;
@@ -273,7 +281,7 @@ TEST(Zip, VectorsSameLengthModifying)
 
 TEST(Zip, VectorsDifferentLengthTemporary)
 {
-    auto tDoubleVector = std::vector<double>{1.0, 2.0, 3.0};
+    const auto tDoubleVector = std::vector<double>{1.0, 2.0, 3.0};
     auto tResultDoubleVector = std::vector<double>{};
     auto tResultIntVector = std::vector<int>{};
     for (const auto [tValue1, tValue2] : Zip{tDoubleVector, std::vector<int>{4, 5, 6, 7}})
@@ -308,7 +316,7 @@ TEST(Zip, NoCopiesForLValues)
     tVector1.reserve(2);
     tVector1.emplace_back();
     tVector1.emplace_back();
-    auto tCopyCount = unsigned{0u};
+    auto tCopyCount = 0U;
     for (const auto [tValue1] : Zip{tVector1})
     {
         tCopyCount += tValue1.mCopies;
@@ -316,14 +324,14 @@ TEST(Zip, NoCopiesForLValues)
     EXPECT_EQ(tCopyCount, 0);
 }
 
-TEST(Zip, CopiesForRValues)
+TEST(Zip, NoCopiesForPRValues)
 {
-    auto tCopyCount = unsigned{0u};
+    auto tCopyCount = 0U;
     for (const auto [tValue1] : Zip{std::vector<test_utilities::CopyCounter>(3)})
     {
         tCopyCount += tValue1.mCopies;
     }
-    EXPECT_EQ(tCopyCount, 3);
+    EXPECT_EQ(tCopyCount, 0);
 }
 
 }  // namespace plato::utilities::unittest

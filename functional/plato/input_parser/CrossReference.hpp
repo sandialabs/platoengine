@@ -14,16 +14,18 @@ namespace plato::input_parser
 template <components::ComponentType kComponentType>
 struct CrossReference
 {
+    // CPD-OFF
     using value_type = char;
     [[nodiscard]] auto begin() const -> std::string::const_iterator;
     [[nodiscard]] auto end() const -> std::string::const_iterator;
     [[nodiscard]] auto begin() -> std::string::iterator;
     [[nodiscard]] auto end() -> std::string::iterator;
     void insert(std::string::iterator aIter, char aVal);
+    // CPD-ON
 
     std::string mName;
     InputBlockWrapper mInputBlock;
-    constexpr static inline components::ComponentType mComponentType = kComponentType;
+    constexpr static components::ComponentType mComponentType = kComponentType;
 };
 
 template <components::ComponentType kComponentType>
@@ -63,9 +65,9 @@ namespace boost::spirit::traits
 template <plato::components::ComponentType kComponentType>
 struct create_parser<plato::input_parser::CrossReference<kComponentType>>
 {
-    typedef proto::result_of::deep_copy<BOOST_TYPEOF((qi::lexeme[+qi::graph]))>::type type;
+    using type = proto::result_of::deep_copy<boost::type_of::remove_cv_ref_t<decltype((qi::lexeme[+qi::graph]))>>::type;
 
-    static type call() { return proto::deep_copy((qi::lexeme[+qi::graph])); }
+    static auto call() -> type { return proto::deep_copy((qi::lexeme[+qi::graph])); }
 };
 }  // namespace boost::spirit::traits
 

@@ -1,8 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <format>
 #include <numeric>
+#include <optional>
+#include <ranges>
+#include <string>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/DynamicVectorFormatter.hpp"
 
 namespace plato::linear_algebra::unittest
@@ -10,8 +15,9 @@ namespace plato::linear_algebra::unittest
 TEST(DynamicVectorFormatter, ParseInt)
 {
     {
+        constexpr auto tTestNumber = std::size_t{123};
         static constexpr auto tTest = std::string{"123"};
-        static_assert(detail::to_int(tTest.begin(), tTest.end()) == std::size_t{123});
+        static_assert(detail::to_int(tTest.begin(), tTest.end()) == tTestNumber);
     }
     {
         static constexpr auto tTest = std::string{"1a3"};

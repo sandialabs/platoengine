@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <string>
+#include <vector>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassConstraint.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassConstraintVectorInterface.hpp"

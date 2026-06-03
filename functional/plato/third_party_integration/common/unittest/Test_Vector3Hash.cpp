@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <cmath>
+
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/Vector3Hash.hpp"
 
 namespace plato::third_party_integration::common::unittest

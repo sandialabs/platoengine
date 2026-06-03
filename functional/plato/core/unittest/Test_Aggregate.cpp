@@ -1,9 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <type_traits>
+#include <utility>
+#include <vector>
+
 #include "plato/core/Aggregate.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/core/test_utilities/Utilities.hpp"
 #include "plato/core/unittest/TestHelpers.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
+#include "plato/test_utilities/TwoDTestTypes.hpp"
 
 namespace plato::core::unittest
 {
@@ -16,14 +23,14 @@ using GradientInfo = FunctionInfo<plato::test_utilities::TwoDVector, evaluation:
 
 TEST(Aggregate, DirectConstruction)
 {
-    run_rosenbrock_aggregator_test([](const detail::FunctionAndWeight& tFunctionAndWeight)
-                                   { return Aggregate<Domain, EvaluationInfo, GradientInfo>(tFunctionAndWeight); });
+    run_rosenbrock_aggregator_test([](const detail::FunctionAndWeight& aFunctionAndWeight)
+                                   { return Aggregate<Domain, EvaluationInfo, GradientInfo>(aFunctionAndWeight); });
 }
 
 TEST(Aggregate, UsingMakeFunction)
 {
-    run_rosenbrock_aggregator_test([](const detail::FunctionAndWeight& tFunctionAndWeight)
-                                   { return make_aggregate_function_with_first_derivative(tFunctionAndWeight); });
+    run_rosenbrock_aggregator_test([](const detail::FunctionAndWeight& aFunctionAndWeight)
+                                   { return make_aggregate_function_with_first_derivative(aFunctionAndWeight); });
 }
 
 TEST(Aggregate, OneFunction)

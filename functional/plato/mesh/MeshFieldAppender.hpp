@@ -42,8 +42,8 @@ class [[nodiscard]] MeshFieldAppender : public MeshOutput
 
     MeshFieldAppender(const MeshFieldAppender&) = delete;
     MeshFieldAppender(MeshFieldAppender&&) = delete;
-    MeshFieldAppender& operator=(const MeshFieldAppender&) = delete;
-    MeshFieldAppender& operator=(MeshFieldAppender&&) = delete;
+    auto operator=(const MeshFieldAppender&) -> MeshFieldAppender& = delete;
+    auto operator=(MeshFieldAppender&&) -> MeshFieldAppender& = delete;
 
    private:
     double mTimeStep;

@@ -1,17 +1,17 @@
 #include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
 
-#include <Ioss_IOFactory.h>
 #include <Ioss_Utils.h>
 
-#include <Akri_AllReduce.hpp>
 #include <Akri_AuxMetaData.hpp>
-#include <Akri_DiagWriter.hpp>
 #include <Akri_MeshFromFile.hpp>
 #include <boost/core/null_deleter.hpp>
+#include <filesystem>
 #include <memory>
+#include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/MeshBuilder.hpp>
 #include <stk_mesh/base/SkinBoundary.hpp>
+#include <stk_util/parallel/Parallel.hpp>
 #include <string>
 
 namespace plato::third_party_integration::krino
@@ -22,7 +22,8 @@ MeshFromFileWithoutFields::MeshFromFileWithoutFields(const std::filesystem::path
                                                      const std::string& aDecompositionMethod)
     : mCommunicator{aCommunicator}, mIOBroker{std::make_unique<stk::io::StkMeshIoBroker>(aCommunicator)}
 {
-    mIOBroker->property_add(Ioss::Property("MAXIMUM_NAME_LENGTH", 180));
+    constexpr auto tMaximumNameLength = 180;
+    mIOBroker->property_add(Ioss::Property("MAXIMUM_NAME_LENGTH", tMaximumNameLength));
 
     if (!aDecompositionMethod.empty())
     {

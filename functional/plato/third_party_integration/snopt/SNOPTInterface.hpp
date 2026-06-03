@@ -33,7 +33,7 @@ struct SNOPTOptions
 [[nodiscard]] auto run_snopt_problem(const std::vector<double>& aInitialGuess,
                                      const SNOPTBounds& aBoundConstraints,
                                      ObjectiveType&& aObjective,
-                                     InterfaceConstraintVectorType&& aConstraints,
+                                     const InterfaceConstraintVectorType& aConstraints,
                                      output::OutputManager&& aOutputManager,
                                      const std::filesystem::path& aLogFilePath,
                                      const SNOPTOptions& aOptions) -> std::vector<double>;

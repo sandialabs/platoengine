@@ -1,8 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/CrossLinkedInput.hpp"
 #include "plato/input_parser/CrossReference.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
+#include "plato/input_parser/InputBlockStruct.hpp"
 
 namespace
 {
@@ -24,7 +27,7 @@ namespace plato::input_parser::unittest
 {
 namespace
 {
-[[maybe_unused]] static const auto kCrossLinkerRegistration = plato::input_parser::ComponentParserRegistration<block_with_geometry_cross_reference>{};
+[[maybe_unused]] const auto kCrossLinkerRegistration = plato::input_parser::ComponentParserRegistration<block_with_geometry_cross_reference>{};
 }
 
 TEST(CrossLinkedInput, MakeCrossLinkedInput)

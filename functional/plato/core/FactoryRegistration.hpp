@@ -26,7 +26,7 @@ using FactoryFunction = std::function<Return(const Input&...)>;
 /// a new filter is:
 /// @code
 /// namespace{
-/// [[maybe_unused]] static auto kFilterRegistration = FilterRegistration{
+/// [[maybe_unused]] static const auto kFilterRegistration = FilterRegistration{
 ///   "filter-type", // Must match the name used in the input block
 ///    [](){ return make_filter(); // Must be a function that creates the desired filter
 /// };
@@ -45,17 +45,17 @@ struct FactoryRegistration
 /// @return If the function is not registered, returns `std::nullopt`.
 // template <typename FactoryReturn, typename FactoryInput, typename... Input>
 template <typename FactoryReturn, typename... FactoryInput>
-[[nodiscard]] std::optional<FactoryReturn> create_object_from_factory(const std::string_view aFunctionName,
-                                                                      const FactoryInput&... aInput);
+[[nodiscard]] auto create_object_from_factory(std::string_view aFunctionName,
+                                              const FactoryInput&... aInput) -> std::optional<FactoryReturn>;
 
 /// @brief Checks if the function labeled with name @a aFunctionName is registered with the
 ///  factory associated with template types @a FactoryReturn and @a FactoryInput.
 template <typename FactoryReturn, typename... FactoryInput>
-[[nodiscard]] bool is_factory_function_registered(const std::string_view aFunctionName);
+[[nodiscard]] auto is_factory_function_registered(std::string_view aFunctionName) -> bool;
 
 /// @brief Returns the names of all registered functions, useful for error messages.
 template <typename FactoryReturn, typename... FactoryInput>
-[[nodiscard]] std::set<std::string> registered_function_names();
+[[nodiscard]] auto registered_function_names() -> std::set<std::string>;
 
 namespace detail
 {
@@ -79,35 +79,33 @@ FactoryRegistration<FactoryReturn, FactoryInput...>::FactoryRegistration(
 }
 
 template <typename FactoryReturn, typename... FactoryInput>
-[[nodiscard]] std::optional<FactoryReturn> create_object_from_factory(const std::string_view aFunctionName,
-                                                                      const FactoryInput&... aInput)
+[[nodiscard]] auto create_object_from_factory(const std::string_view aFunctionName,
+                                              const FactoryInput&... aInput) -> std::optional<FactoryReturn>
 {
     const auto tFunctions = detail::registered_factory_functions<FactoryReturn, FactoryInput...>();
     if (const auto tIter = tFunctions.find(std::string{aFunctionName}); tIter != tFunctions.end())
     {
         return tIter->second(aInput...);
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 template <typename FactoryReturn, typename... FactoryInput>
-bool is_factory_function_registered(const std::string_view aFunctionName)
+auto is_factory_function_registered(const std::string_view aFunctionName) -> bool
 {
     return detail::registered_factory_functions<FactoryReturn, FactoryInput...>().count(std::string{aFunctionName}) ==
            1;
 }
 
 template <typename FactoryReturn, typename... FactoryInput>
-std::set<std::string> registered_function_names()
+auto registered_function_names() -> std::set<std::string>
 {
     const auto& tFactoryFunctions = detail::registered_factory_functions<FactoryReturn, FactoryInput...>();
     auto tFunctionNames = std::set<std::string>{};
     std::transform(tFactoryFunctions.cbegin(), tFactoryFunctions.cend(),
                    std::inserter(tFunctionNames, tFunctionNames.begin()),
-                   [](const auto& tMapEntry) { return tMapEntry.first; });
+                   [](const auto& aMapEntry) { return aMapEntry.first; });
     return tFunctionNames;
 }
 

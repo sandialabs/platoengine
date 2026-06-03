@@ -39,7 +39,7 @@ class Zip
 {
    public:
     template <typename... CtorContainers>
-    constexpr explicit Zip(CtorContainers&&... containers);
+    constexpr explicit Zip(CtorContainers&&... aContainers);
 
     [[nodiscard]] constexpr auto begin();
     [[nodiscard]] constexpr auto begin() const;
@@ -56,39 +56,40 @@ Zip(Containers&&...) -> Zip<Containers...>;
 
 namespace detail
 {
-template <typename ContainerTuple, std::size_t... Is>
-constexpr auto begin_iterators(ContainerTuple&& containers, std::index_sequence<Is...>)
+template <typename ContainerTuple, std::size_t... kIs>
+constexpr auto begin_iterators(ContainerTuple&& aContainers, std::index_sequence<kIs...> /*unused*/)
 {
     using std::begin;
-    return std::make_tuple(begin(std::get<Is>(std::forward<ContainerTuple>(containers)))...);
+    return std::make_tuple(begin(std::get<kIs>(std::forward<ContainerTuple>(aContainers)))...);
 }
 
-template <typename ContainerTuple, std::size_t... Is>
-constexpr auto const_begin_iterators(ContainerTuple&& containers, std::index_sequence<Is...>)
+template <typename ContainerTuple, std::size_t... kIs>
+constexpr auto const_begin_iterators(ContainerTuple&& aContainers, std::index_sequence<kIs...> /*unused*/)
 {
     using std::cbegin;
-    return std::make_tuple(cbegin(std::get<Is>(std::forward<ContainerTuple>(containers)))...);
+    return std::make_tuple(cbegin(std::get<kIs>(std::forward<ContainerTuple>(aContainers)))...);
 }
 
-template <typename ContainerTuple, std::size_t... Is>
-constexpr auto end_iterators(ContainerTuple&& containers, std::index_sequence<Is...>)
+template <typename ContainerTuple, std::size_t... kIs>
+constexpr auto end_iterators(ContainerTuple&& aContainers, std::index_sequence<kIs...> /*unused*/)
 {
     using std::end;
-    return std::make_tuple(end(std::get<Is>(std::forward<ContainerTuple>(containers)))...);
+    return std::make_tuple(end(std::get<kIs>(std::forward<ContainerTuple>(aContainers)))...);
 }
 
-template <typename ContainerTuple, std::size_t... Is>
-constexpr auto const_end_iterators(ContainerTuple&& containers, std::index_sequence<Is...>)
+template <typename ContainerTuple, std::size_t... kIs>
+constexpr auto const_end_iterators(ContainerTuple&& aContainers, std::index_sequence<kIs...> /*unused*/)
 {
     using std::cend;
-    return std::make_tuple(cend(std::get<Is>(std::forward<ContainerTuple>(containers)))...);
+    return std::make_tuple(cend(std::get<kIs>(std::forward<ContainerTuple>(aContainers)))...);
 }
 
 }  // namespace detail
 
 template <typename... Containers>
 template <typename... CtorContainers>
-constexpr Zip<Containers...>::Zip(CtorContainers&&... containers) : mContainers{std::forward_as_tuple(containers...)}
+constexpr Zip<Containers...>::Zip(CtorContainers&&... aContainers)
+    : mContainers{std::forward_as_tuple(std::forward<CtorContainers>(aContainers)...)}
 {
 }
 

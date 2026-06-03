@@ -3,12 +3,14 @@
 #include <filesystem>
 #include <fstream>
 
+#include "plato/input_parser/FileList.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
 #include "plato/process_manager/extension/GradientCheck.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/InputValidation.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::process_manager::extension::unittest
 {
@@ -54,13 +56,16 @@ TEST(ValidateCommonInput, ValidateInitialDirectionMagnitude)
     auto tConstraintCheck = input_parser::constraint_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 
-    tGradientCheck.initial_direction_magnitude = 0.0;  // out of bounds
+    constexpr auto tEqualToLowerBound = 0.0;
+    tGradientCheck.initial_direction_magnitude = tEqualToLowerBound;  // out of bounds
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tGradientCheck).has_value());
 
-    tConstraintCheck.initial_direction_magnitude = 10.0;  // in bounds
+    constexpr auto tValidPositive = 10.0;
+    tConstraintCheck.initial_direction_magnitude = tValidPositive;  // in bounds
     EXPECT_FALSE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 
-    tConstraintCheck.initial_direction_magnitude = -1.0;  // out of bounds
+    constexpr auto tInvalidNegative = -1.0;
+    tConstraintCheck.initial_direction_magnitude = tInvalidNegative;  // out of bounds
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 }
 
@@ -72,13 +77,16 @@ TEST(ValidateCommonInput, ValidateStepSizeReductionFactor)
     auto tConstraintCheck = input_parser::constraint_check{};
     EXPECT_TRUE(detail::validate_initial_direction_magnitude(tConstraintCheck).has_value());
 
-    tConstraintCheck.step_size_reduction_factor = 0.5;  // in bounds
+    constexpr auto tValid = 0.5;
+    tConstraintCheck.step_size_reduction_factor = tValid;  // in bounds
     EXPECT_FALSE(detail::validate_step_size_reduction_factor(tConstraintCheck).has_value());
 
-    tGradientCheck.step_size_reduction_factor = 10;  // out of bounds
+    constexpr auto tInvalidGreaterThanOne = 10.0;
+    tGradientCheck.step_size_reduction_factor = tInvalidGreaterThanOne;  // out of bounds
     EXPECT_TRUE(detail::validate_step_size_reduction_factor(tGradientCheck).has_value());
 
-    tConstraintCheck.step_size_reduction_factor = -0.1;  // out of bounds
+    constexpr auto tInvalidNegative = -0.1;
+    tConstraintCheck.step_size_reduction_factor = tInvalidNegative;  // out of bounds
     EXPECT_TRUE(detail::validate_step_size_reduction_factor(tConstraintCheck).has_value());
 }
 
@@ -96,7 +104,8 @@ TEST(ValidateCommonInput, ValidateRandomDirectionSeed)
     tGradientCheck.random_direction_seed = 0;  // out of bounds
     EXPECT_TRUE(detail::validate_random_direction_seed(tGradientCheck).has_value());
 
-    tConstraintCheck.random_direction_seed = 1234567;  // in bounds
+    constexpr auto tValid = 1234567;
+    tConstraintCheck.random_direction_seed = tValid;  // in bounds
     EXPECT_FALSE(detail::validate_random_direction_seed(tConstraintCheck).has_value());
 }
 

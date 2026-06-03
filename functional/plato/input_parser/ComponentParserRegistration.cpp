@@ -1,5 +1,12 @@
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "plato/input_parser/ComponentBlockParser.hpp"
+#include "plato/input_parser/CrossLinker.hpp"
+
 namespace plato::input_parser
 {
 auto registered_component_parsers() -> std::unordered_map<std::string, ComponentBlockParser>&

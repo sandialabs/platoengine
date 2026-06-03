@@ -1,13 +1,20 @@
 #include "plato/utilities/RankSplitVector.hpp"
 
+#include <algorithm>
+#include <boost/numeric/conversion/cast.hpp>
+#include <cassert>
+#include <iterator>
+#include <numeric>
+#include <vector>
+
 namespace plato::utilities
 {
 
-ColorNamedType rank_group_color(const std::vector<unsigned int>& aGroupSizes, const RankNamedType aRank)
+auto rank_group_color(const std::vector<unsigned int>& aGroupSizes, const RankNamedType aRank) -> ColorNamedType
 {
     assert(aRank.mValue >= 0);
     const auto tUnsignedRank = boost::numeric_cast<unsigned int>(aRank.mValue);
-    [[maybe_unused]] const auto tTotalSize = std::accumulate(aGroupSizes.cbegin(), aGroupSizes.cend(), 0u);
+    [[maybe_unused]] const auto tTotalSize = std::accumulate(aGroupSizes.cbegin(), aGroupSizes.cend(), 0U);
     assert(tUnsignedRank < tTotalSize);
 
     auto tPartialSums = std::vector<unsigned int>{};

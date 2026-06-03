@@ -1,7 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <optional>
+
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/filter/extension/IdentityFilter.hpp"
+#include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/NodalResultFilter.hpp"
@@ -33,8 +39,8 @@ using NodalResultSerialFixture = test_utilities::NodalResultFilterRunFixture;
 TEST_F(NodalResultSerialFixture, CreateAndRunSeparateOutputFile)
 {
     const auto tOutputMeshPath = mDirectory.directory() / std::filesystem::path{"output.exo"};
-    run_and_check_nodal_filter_result(tOutputMeshPath, TEST_CONTEXT("With a new output file"));
-    run_and_check_nodal_filter_result(std::nullopt, TEST_CONTEXT("Overwrite existing output file"));
+    runAndCheckNodalFilterResult(tOutputMeshPath, TEST_CONTEXT("With a new output file"));
+    runAndCheckNodalFilterResult(std::nullopt, TEST_CONTEXT("Overwrite existing output file"));
 }
 
 TEST(NodalResultFilter, ValidateFilterIsKernelFilter)

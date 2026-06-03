@@ -1,6 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
 #include <ranges>
+#include <set>
+#include <string>
+#include <vector>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/RandomPerturbationVector.hpp"
@@ -24,19 +30,20 @@ using third_party_integration::stk_io::test_utilities::TwoDNonUniformHexMesh;
 using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 using MeshQuantitiesThreeDTwoBlockTetMesh = third_party_integration::stk_io::test_utilities::ThreeDTwoBlockTetMesh;
 
-constexpr auto kExpectedElementVolumeBlock1 = double{0.5};
-constexpr auto kExpectedElementVolumeBlock2 = double{1.0};
-constexpr auto kExpectedElementVolumeBlock3 = double{2.0};
+constexpr auto kExpectedElementVolumeBlock1 = 0.5;
+constexpr auto kExpectedElementVolumeBlock2 = 1.0;
+constexpr auto kExpectedElementVolumeBlock3 = 2.0;
 
 void check_gradient_of_volume(MutableCoordinateMesh aMesh,
                               const plato::utilities::GradientCheckParameters& aGradientCheckParameters,
                               const double aFirstOrderTruncationErrorTolerance)
 {
-    const auto tNumNodes = EntityCounts{aMesh}.numberOfNodes();
+    const auto tNumNodes = std::size_t{EntityCounts{aMesh}.numberOfNodes()};
     const auto tSpatialDimensions = mesh::EntityCounts{aMesh}.spatialDimensions();
     const auto tOriginalCoordinates =
         nodal_vector_field_to_dynamic_vector(mesh::EntityRetrieval{aMesh}.nodalCoordinates(), tSpatialDimensions);
-    auto tRandomEngine = std::default_random_engine{123};
+    constexpr auto tRandomSeed = 123;
+    auto tRandomEngine = std::default_random_engine{tRandomSeed};  // NOLINT(cert-msc32-c,cert-msc51-cpp)
     const auto tDirection = linear_algebra::random_perturbation_vector(tNumNodes * tSpatialDimensions, tRandomEngine);
 
     const auto tBlockNamesVector = MeshBlocks{aMesh}.blockNames();

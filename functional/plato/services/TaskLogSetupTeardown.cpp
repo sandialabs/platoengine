@@ -1,5 +1,10 @@
 #include "plato/services/TaskLogSetupTeardown.hpp"
 
+#include <string>
+#include <utility>
+
+#include "plato/services/SystemLogger.hpp"
+
 namespace plato::services
 {
 

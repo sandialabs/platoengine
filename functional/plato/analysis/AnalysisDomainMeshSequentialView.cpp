@@ -2,14 +2,16 @@
 
 #include <algorithm>
 #include <cassert>
-#include <numeric>
+#include <cstddef>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 
 namespace plato::analysis
 {
 template <typename AnalysisDomainMeshType>
-std::size_t AnalysisDomainMeshSequentialViewTemplate<AnalysisDomainMeshType>::size() const
+auto AnalysisDomainMeshSequentialViewTemplate<AnalysisDomainMeshType>::size() const -> std::size_t
 {
     return std::distance(begin(), end());
 }
@@ -23,11 +25,11 @@ auto AnalysisDomainMeshSequentialViewTemplate<AnalysisDomainMeshType>::begin() c
 
     auto tBlockFieldBeginIterators = std::vector<InnerIteratorType>{};
     std::transform(tBlockScalarField.begin(), tBlockScalarField.end(), std::back_inserter(tBlockFieldBeginIterators),
-                   [](auto& tBlockField) { return tBlockField.second.begin(); });
+                   [](auto& aBlockFeild) { return aBlockFeild.second.begin(); });
 
     auto tBlockFieldEndIterators = std::vector<InnerIteratorType>{};
     std::transform(tBlockScalarField.begin(), tBlockScalarField.end(), std::back_inserter(tBlockFieldEndIterators),
-                   [](auto& tBlockField) { return tBlockField.second.end(); });
+                   [](auto& aBlockFeild) { return aBlockFeild.second.end(); });
 
     return IteratorType{tBlockFieldBeginIterators, tBlockFieldEndIterators};
 }
@@ -41,7 +43,7 @@ auto AnalysisDomainMeshSequentialViewTemplate<AnalysisDomainMeshType>::end() con
 
     auto tBlockFieldEndIterators = std::vector<InnerIteratorType>{};
     std::transform(tBlockScalarField.begin(), tBlockScalarField.end(), std::back_inserter(tBlockFieldEndIterators),
-                   [](auto& tBlockField) { return tBlockField.second.end(); });
+                   [](auto& aBlockFeild) { return aBlockFeild.second.end(); });
 
     return IteratorType{tBlockFieldEndIterators, tBlockFieldEndIterators};
 }

@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
-#include <fstream>
+#include <string>
 
-#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/components/ComponentType.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
+#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
-#include "plato/integration_tests/utilities/InputGeneration.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 
 namespace plato::integration_tests::serial
 {

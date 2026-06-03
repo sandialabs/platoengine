@@ -2,8 +2,13 @@
 
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <boost/mpi/inplace.hpp>
+#include <cmath>
+#include <functional>
+#include <utility>
+#include <vector>
 
-#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
@@ -13,7 +18,7 @@ namespace plato::third_party_integration::stk_search::parallel_unittest
 namespace
 {
 
-constexpr auto kNumRanks = int{4};
+constexpr auto kNumRanks = 4;
 constexpr double kSearchRadius = 3.0;
 [[nodiscard]] auto create_search_points_and_spheres_with_ids()
     -> std::pair<std::vector<SearchPointWithIdentifier>, std::vector<SearchSphereWithIdentifier>>
@@ -30,12 +35,12 @@ constexpr double kSearchRadius = 3.0;
 
     for (unsigned int tIndex = 0; tIndex < tLocalSize; ++tIndex)
     {
-        Identifier tIdentifier{static_cast<int>(tLocalSize * tRank + tIndex), tRank};
+        const Identifier tIdentifier{static_cast<int>(tLocalSize * tRank + tIndex), tRank};
         const double tX = tRank;
         const double tY = tIndex;
         const double tZ = 0;
 
-        SearchPointWithIdentifier tPoint{convert_coordinate(common::Coordinate{tX, tY, tZ}), tIdentifier};
+        const SearchPointWithIdentifier tPoint{convert_coordinate(common::Coordinate{tX, tY, tZ}), tIdentifier};
         tSearchPoints.push_back(tPoint);
 
         const auto tSphere = SearchSphereWithIdentifier{
@@ -45,7 +50,7 @@ constexpr double kSearchRadius = 3.0;
     return {tSearchPoints, tSearchSphereCenters};
 }
 
-[[nodiscard]] auto create_parallel_consistency_search_points_and_spheres_with_ids(const int tWorldRank)
+[[nodiscard]] auto create_parallel_consistency_search_points_and_spheres_with_ids(const int aWorldRank)
     -> std::pair<std::vector<SearchPointWithIdentifier>, std::vector<SearchSphereWithIdentifier>>
 {
     constexpr unsigned int tFullSize = 1037;
@@ -58,20 +63,20 @@ constexpr double kSearchRadius = 3.0;
 
     unsigned int tStartIndex = 0;
     unsigned int tStep = 1;
-    if (tWorldRank > 0)
+    if (aWorldRank > 0)
     {
-        tStartIndex = tWorldRank - 1;
+        tStartIndex = aWorldRank - 1;
         tStep = 3;
     }
 
     for (unsigned int tIndex = tStartIndex; tIndex < tFullSize; tIndex = tIndex + tStep)
     {
-        Identifier tIdentifier{static_cast<int>(tIndex), tWorldRank};
+        const Identifier tIdentifier{static_cast<int>(tIndex), aWorldRank};
         const double tX = tIndex % 10;
         const double tY = std::ceil(tIndex / 10);
         const double tZ = std::ceil(tIndex / 100);
 
-        SearchPointWithIdentifier tPoint{convert_coordinate(common::Coordinate{tX, tY, tZ}), tIdentifier};
+        const SearchPointWithIdentifier tPoint{convert_coordinate(common::Coordinate{tX, tY, tZ}), tIdentifier};
 
         tSearchPoints.push_back(tPoint);
         const auto tSphere = SearchSphereWithIdentifier{
@@ -82,7 +87,7 @@ constexpr double kSearchRadius = 3.0;
     return {tSearchPoints, tSearchSphereCenters};
 }
 
-boost::mpi::communicator split_comm_world()
+auto split_comm_world() -> boost::mpi::communicator
 {
     auto tWorldComm = boost::mpi::communicator{};
     const auto tRank = tWorldComm.rank();
@@ -93,9 +98,9 @@ boost::mpi::communicator split_comm_world()
 void verify_first_entry_belongs_to_this_rank(const SearchResults& aSearchResults,
                                              const boost::mpi::communicator& aCommunicator)
 {
-    for (const auto& x : aSearchResults)
+    for (const auto& tX : aSearchResults)
     {
-        EXPECT_EQ(x.first.proc(), aCommunicator.rank());
+        EXPECT_EQ(tX.first.proc(), aCommunicator.rank());
     }
 }
 
@@ -133,7 +138,7 @@ TEST(StkSearch, ParallelConsistency)
     }
     else
     {
-        boost::mpi::all_reduce(tSplitComm, boost::mpi::inplace(tOtherRanksSumValue), std::plus<unsigned int>());
+        boost::mpi::all_reduce(tSplitComm, boost::mpi::inplace(tOtherRanksSumValue), std::plus<>());
     }
     boost::mpi::broadcast(tWorldComm, tRankZeroValue, 0);
     EXPECT_EQ(tOtherRanksSumValue, tRankZeroValue);

@@ -2,12 +2,15 @@
 
 #include <fstream>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/test_utilities/FileCreatingTestFixture.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/BoundClusivity.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
 
 // clang-format off
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
@@ -41,7 +44,8 @@ TEST(ValidateUtilities, ValidateParameterExistsWhenParameterDoesNotExist)
 TEST(ValidateUtilities, ValidateParameterExistsDoesExist)
 {
     auto tObjectiveInput = input_parser::test_objective{};
-    tObjectiveInput.aggregation_weight = 23;
+    constexpr auto tArbitraryValue = 23.0;
+    tObjectiveInput.aggregation_weight = tArbitraryValue;
     EXPECT_FALSE(
         error_message_for_empty_parameter("Objective: ", tObjectiveInput.aggregation_weight, "aggregation_weight")
             .has_value());
@@ -60,9 +64,9 @@ TEST(ValidateUtilities, ValidateParameterExistsWithinBounds)
 {
     namespace pfu = plato::utilities;
     auto tObjectiveInput = input_parser::test_objective{};
-    constexpr double tLowerBound = 0;
-
-    tObjectiveInput.aggregation_weight = 23;
+    constexpr auto tLowerBound = 0.0;
+    constexpr auto tArbitraryValueInBounds = tLowerBound + 23.0;
+    tObjectiveInput.aggregation_weight = tArbitraryValueInBounds;
     EXPECT_FALSE(error_message_for_parameter_out_of_bounds("Objective: ", tObjectiveInput.aggregation_weight,
                                                            "aggregation_weight",
                                                            pfu::lower_bounded(pfu::Inclusive{tLowerBound}))
@@ -73,9 +77,9 @@ TEST(ValidateUtilities, ValidateParameterExistsOutOfBounds)
 {
     namespace pfu = plato::utilities;
     auto tObjectiveInput = input_parser::test_objective{};
-    constexpr double tLowerBound = 0;
-
-    tObjectiveInput.aggregation_weight = -23;
+    constexpr auto tLowerBound = 0.0;
+    constexpr auto tArbitraryValueOutOfBounds = tLowerBound - 23.0;
+    tObjectiveInput.aggregation_weight = tArbitraryValueOutOfBounds;
     EXPECT_TRUE(error_message_for_parameter_out_of_bounds("Objective: ", tObjectiveInput.aggregation_weight,
                                                           "aggregation_weight",
                                                           pfu::lower_bounded(pfu::Inclusive{tLowerBound}))
@@ -97,7 +101,7 @@ TEST(ValidationUtilities, ErrorMessageForMissingFileParameter)
             .has_value())
         << "Invalid: file specified not on disk";
 
-    [[maybe_unused]] std::ofstream tOutfile(std::string{tFileName});
+    [[maybe_unused]] const std::ofstream tOutfile(std::string{tFileName});
     EXPECT_FALSE(
         error_message_for_missing_file_parameter("Objective: ", tObjectiveInput.output_file_name, "output_file_name")
             .has_value())

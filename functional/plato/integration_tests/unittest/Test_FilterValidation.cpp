@@ -1,11 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <filesystem>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_parser/ParsedInput.hpp"
-#include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -28,14 +33,19 @@ struct FilterValidationTestFixture : public testing::Test
     FilterValidationTestFixture()
     {
         const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{
-            {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
+            {2, 2, 2}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::kHex};
         third_party_integration::stk_io::write_mesh(mMeshPath, tCommandGenerator);
     }
 
-    ~FilterValidationTestFixture()
+    ~FilterValidationTestFixture() override
     {
         test_utilities::test_for_existence_and_remove({mMeshPath}, TEST_CONTEXT("Checking existence of mesh file"));
     }
+
+    FilterValidationTestFixture(const FilterValidationTestFixture&) = delete;
+    FilterValidationTestFixture(FilterValidationTestFixture&&) = delete;
+    auto operator=(const FilterValidationTestFixture&) -> FilterValidationTestFixture& = delete;
+    auto operator=(FilterValidationTestFixture&&) -> FilterValidationTestFixture& = delete;
 };
 }  // namespace
 
@@ -91,7 +101,8 @@ TEST_F(FilterValidationTestFixture, ValidKernelFilter)
 TEST_F(FilterValidationTestFixture, CheckFilterValuesKernelRadiusBounds)
 {
     auto tFilter = filter::extension::test_utilities::create_valid_kernel_filter_input();
-    tFilter.filter_radius = -0.1;
+    constexpr auto tInvalidNegativeRadius = -0.1;
+    tFilter.filter_radius = tInvalidNegativeRadius;
 
     check_filter_validation(tFilter, TEST_CONTEXT("Kernel filter radius bounds"));
 }
@@ -106,7 +117,8 @@ TEST_F(FilterValidationTestFixture, CheckFilterValuesKernelCenteringType)
 TEST_F(FilterValidationTestFixture, CheckFilterValuesHelmholtzRadiusWithMesh)
 {
     auto tHelmholtzFilter = filter::extension::test_utilities::create_valid_helmholtz_filter_input();
-    tHelmholtzFilter.filter_radius = 0.5;
+    constexpr auto tInvalidSmallRadius = 0.5;
+    tHelmholtzFilter.filter_radius = tInvalidSmallRadius;
 
     check_filter_validation(tHelmholtzFilter, TEST_CONTEXT("Filter radius too small"));
 }

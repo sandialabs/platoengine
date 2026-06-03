@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/core/test_utilities/Utilities.hpp"
 #include "plato/test_utilities/Penalty.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
@@ -21,9 +22,9 @@ TEST(Rosenbrock, MakeRosenbrock)
 {
     namespace pft = plato::test_utilities;
 
-    constexpr double tA = 2.0;
-    constexpr double tB = 50.0;
-    const auto tRosenbrock = pft::Rosenbrock{tA, tB};
+    constexpr double tAParameter = 2.0;
+    constexpr double tBParameter = 50.0;
+    const auto tRosenbrock = pft::Rosenbrock{.mA = tAParameter, .mB = tBParameter};
     const auto tRosenbrockFunction = test_utilities::make_two_d_function(tRosenbrock);
 
     {

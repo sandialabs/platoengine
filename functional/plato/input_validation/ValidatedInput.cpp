@@ -1,8 +1,21 @@
 #include "plato/input_validation/ValidatedInput.hpp"
 
+#include <cstddef>
+#include <filesystem>
 #include <fstream>
+#include <iterator>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/input_parser/CrossLinkedInput.hpp"
+#include "plato/input_parser/InputBlockData.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/utilities/EnumIndexing.hpp"
+#include "plato/utilities/Expected.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::input_validation
@@ -13,16 +26,16 @@ auto append_validation_errors(std::vector<std::string>&& aErrorMessages,
                               const std::vector<input_parser::InputDataBlock>& aInputDataBlocks)
     -> std::vector<std::string>
 {
-    for (const auto& aInputDataBlock : aInputDataBlocks)
+    for (const auto& tInputDataBlock : aInputDataBlocks)
     {
-        aErrorMessages = validate(aInputDataBlock.mInput, std::move(aErrorMessages));
+        aErrorMessages = validate(tInputDataBlock.mInput, std::move(aErrorMessages));
     }
     return std::move(aErrorMessages);
 }
 
 template <std::size_t... kIndices>
-[[nodiscard]] auto validate_components(const input_parser::ParsedInput& aInput, std::index_sequence<kIndices...>)
-    -> std::vector<std::string>
+[[nodiscard]] auto validate_components(const input_parser::ParsedInput& aInput,
+                                       std::index_sequence<kIndices...> /*unused*/) -> std::vector<std::string>
 {
     auto tErrorMessages = std::vector<std::string>{};
     ((tErrorMessages = append_validation_errors(std::move(tErrorMessages),
@@ -36,15 +49,23 @@ template <std::size_t... kIndices>
 /// make_validated_input.
 struct ValidateKey
 {
-    friend auto make_validated_input(const input_parser::CrossLinkedInput& input)
+    friend auto make_validated_input(const input_parser::CrossLinkedInput& aInput)
         -> utilities::Expected<ValidatedInput, std::string>;
 
+    ~ValidateKey() = default;
+
    private:
-    ValidateKey() {}
-    ValidateKey(const ValidateKey&) {}
+    ValidateKey() = default;
+    ValidateKey(const ValidateKey&) = default;
+    ValidateKey(ValidateKey&&) = default;
+    auto operator=(const ValidateKey&) -> ValidateKey& = default;
+    auto operator=(ValidateKey&&) -> ValidateKey& = default;
 };
 
-ValidatedInput::ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey&) : mRawInput{std::move(aInput)} {}
+ValidatedInput::ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey& /*unused*/)
+    : mRawInput{std::move(aInput)}
+{
+}
 
 auto parse_and_validate_string(const std::string_view aInput) -> utilities::Expected<ValidatedInput, std::string>
 {

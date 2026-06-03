@@ -43,9 +43,9 @@ namespace detail
 {
 ///@brief A helper constructor for creating the WedgeFilterType. It takes a radius @a aRadius and the centering type
 ///@a aFilterCentering and a @a aWedgeAngle. This assigns the compute functions with the proper utilities.
-[[nodiscard]] auto make_wedge_filter_type(const double aRadius,
-                                          const input_parser::KernelFilterCenteringTypes aFilterCentering,
-                                          const double aWedgeAngle) -> WedgeFilterType;
+[[nodiscard]] auto make_wedge_filter_type(double aRadius,
+                                          input_parser::KernelFilterCenteringTypes aFilterCentering,
+                                          double aWedgeAngle) -> WedgeFilterType;
 
 ///@brief Validate that the wedge angle is specified in @a aInput and that it evenly divides 360.
 [[nodiscard]] auto validate_wedge_angle_commensurate_with_360(const input_parser::wedge_filter& aInput)

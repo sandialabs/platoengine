@@ -1,9 +1,11 @@
 #include "plato/transformations/DistanceField.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <functional>
 #include <ranges>
+#include <vector>
 
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
@@ -54,8 +56,8 @@ auto row_vector_jacobian_multiplication_distance_field(const std::vector<double>
         const auto tCoordinateView = utilities::MultiVectorView{tFullNodalProjection, tMeshDimensions};
         const auto tDimensionView = utilities::SingleDimensionMultiVectorView{tCoordinateView, tDimension};
         auto tAverageTimesNormalComponent =
-            tRowVectorNodalProjection | std::views::transform([mComponent = tPlaneNormal[tDimension]](
-                                                                  const double aValue) { return mComponent * aValue; });
+            tRowVectorNodalProjection | std::views::transform([tComponent = tPlaneNormal.at(tDimension)](
+                                                                  const double aValue) { return tComponent * aValue; });
         std::ranges::copy(tAverageTimesNormalComponent, tDimensionView.begin());
     }
     return tFullNodalProjection;
@@ -76,8 +78,8 @@ auto row_vector_adjoint_jacobian_multiplication_distance_field(const std::vector
         const auto tDimensionAverage = mesh::MeshQuantities{tMesh}.elementAveragedNodalValues(
             utilities::SingleDimensionMultiVectorView{tCoordinateView, tDimension});
         auto tAverageTimesNormalComponent =
-            tDimensionAverage | std::views::transform([mComponent = tPlaneNormal[tDimension]](const double aValue)
-                                                      { return mComponent * aValue; });
+            tDimensionAverage | std::views::transform([tComponent = tPlaneNormal.at(tDimension)](const double aValue)
+                                                      { return tComponent * aValue; });
         std::transform(tAverageTimesNormalComponent.begin(), tAverageTimesNormalComponent.end(), tResult.begin(),
                        tResult.begin(), std::plus<double>{});
     }

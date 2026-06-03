@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <any>
+#include <boost/spirit/home/qi/parse.hpp>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/BlockStructRule.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
+#include "plato/input_parser/Skipper.hpp"
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          test_block,

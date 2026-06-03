@@ -1,16 +1,26 @@
 #include "plato/process_manager/extension/ParameterSweep.hpp"
 
 #include <algorithm>
+#include <cassert>
+#include <concepts>
 #include <cstddef>
 #include <fstream>
 #include <iomanip>
 #include <iterator>
+#include <optional>
+#include <ostream>
 #include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "plato/core/Compose.hpp"
 #include "plato/core/Function.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/extension/CombinationGenerator.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
@@ -38,15 +48,15 @@ using FixedFormatNumber = utilities::FixedWidthFloatingPointOutput<double, kPrec
             { ParameterSweep{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static auto kParameterSweepParserRegistration =
+[[maybe_unused]] const auto kParameterSweepParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::parameter_sweep>{};
 
-[[maybe_unused]] static auto kParameterSweepProcessManagerRegistration =
+[[maybe_unused]] const auto kParameterSweepProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::parameter_sweep>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_parameter_sweep_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kParameterSweepValidationRegistration =
+[[maybe_unused]] const auto kParameterSweepValidationRegistration =
     input_validation::ValidationRegistration<input_parser::parameter_sweep>{
         [](const input_parser::parameter_sweep& aInput) { return detail::validate_output_file_name(aInput); },
         [](const input_parser::parameter_sweep& aInput) { return detail::validate_indices_and_ranges(aInput); },

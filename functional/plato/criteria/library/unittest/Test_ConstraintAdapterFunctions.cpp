@@ -1,6 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <set>
+
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::criteria::library::unittest

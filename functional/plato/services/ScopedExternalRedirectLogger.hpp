@@ -16,7 +16,7 @@ namespace plato::services
 class ScopedExternalRedirectLogger
 {
    public:
-    ScopedExternalRedirectLogger(components::ComponentType, std::string aComponentName);
+    ScopedExternalRedirectLogger(components::ComponentType /*aComponentType*/, std::string aComponentName);
     ~ScopedExternalRedirectLogger();
 
     ScopedExternalRedirectLogger(const ScopedExternalRedirectLogger&) = delete;

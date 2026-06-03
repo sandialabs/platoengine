@@ -2,6 +2,8 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <cassert>
+#include <filesystem>
+#include <functional>
 #include <memory>
 
 #include "plato/mesh/MeshOutput.hpp"

@@ -1,25 +1,19 @@
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 
-#include <mpi.h>
-
-#include <Akri_CDFEM_Support.hpp>     //CDFEM_Support
 #include <Akri_ChildNodeStencil.hpp>  //ChildNodeStencil
 #include <Akri_LevelSet.hpp>          //LevelSet
-#include <Akri_LevelSetPolicy.hpp>    //LSPerInterfacePolicy
 #include <Akri_LevelSetShapeSensitivities.hpp>
+#include <Akri_Phase_Support.hpp>
 #include <algorithm>
 #include <boost/mpi/collectives.hpp>
-#include <boost/mpi/collectives/all_gather.hpp>
-#include <boost/mpi/communicator.hpp>
-#include <boost/serialization/unordered_map.hpp>
-#include <boost/serialization/vector.hpp>
+#include <cassert>
 #include <iterator>
-#include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_util/environment/EnvData.hpp>
+#include <unordered_map>
+#include <vector>
 
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
-#include "plato/utilities/NamedType.hpp"
 #include "plato/utilities/ReduceUtilities.hpp"
 
 namespace plato::third_party_integration::krino
@@ -38,10 +32,10 @@ auto coordinate_level_set_sensitivity(const ::krino::LevelSetShapeSensitivity& a
     std::vector<common::Vector3> tSensitivityVector;
     std::transform(aLevelSetSensitivity.dCoordsdParentLevelSets.begin(),
                    aLevelSetSensitivity.dCoordsdParentLevelSets.end(), std::back_inserter(tSensitivityVector),
-                   [aSpatialDimension](const auto& tSensitivity)
+                   [aSpatialDimension](const auto& aSensitivity)
                    {
-                       const auto tZComponent = aSpatialDimension == 3U ? tSensitivity[2] : 0.0;
-                       return common::Vector3{tSensitivity[0], tSensitivity[1], tZComponent};
+                       const auto tZComponent = aSpatialDimension == 3U ? aSensitivity[2] : 0.0;
+                       return common::Vector3{aSensitivity[0], aSensitivity[1], tZComponent};
                    });
     return tSensitivityVector;
 }
@@ -79,7 +73,7 @@ auto compute_histogram(const std::vector<stk::mesh::EntityId>& aGatheredSortedCu
         const auto tLast = std::find_if(tFirst, aGatheredSortedCutMeshNodeIDs.end(),
                                         [tFirst](const unsigned int aID) { return aID != *tFirst; });
 
-        if (unsigned int tCount = std::distance(tFirst, tLast); tCount > 1)
+        if (const auto tCount = std::distance(tFirst, tLast); tCount > 1U)
         {
             tHistogram[*tFirst] = tCount;
         }

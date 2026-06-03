@@ -1,10 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
+#include "plato/components/ComponentType.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/BrickShapeHelpers.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
@@ -19,15 +25,15 @@ using ParallelConstraintFactoryFixture = utilities::ValidInputTestFixture;
 TEST_F(ParallelConstraintFactoryFixture, OneConstraint)
 {
     const auto tCommunicator = boost::mpi::communicator{};
-    constexpr auto kMassAppName = std::string_view{"test-mass-app"};
-    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tCommunicator);
+    constexpr auto tMassAppName = std::string_view{"test-mass-app"};
+    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(tMassAppName, tCommunicator);
 
     auto tInput = parsedInput();
     tInput.get<components::ComponentType::kConstraint>().clear();
 
     const auto tConstraint = input_parser::constraint{/*.name=*/std::string{"parallel-mass"},
                                                       /*.active=*/true,
-                                                      /*.app=*/input_parser::AppName{std::string{kMassAppName}},
+                                                      /*.app=*/input_parser::AppName{std::string{tMassAppName}},
                                                       /*.criterion=*/input_parser::CriterionName{"mass"},
                                                       /*.number_of_processors=*/3U,
                                                       /*.input_files=*/boost::none,

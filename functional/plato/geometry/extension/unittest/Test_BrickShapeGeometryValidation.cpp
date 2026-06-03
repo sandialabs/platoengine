@@ -3,7 +3,6 @@
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
-#include "plato/utilities/Exception.hpp"
 
 namespace plato::geometry::extension::unittest
 {

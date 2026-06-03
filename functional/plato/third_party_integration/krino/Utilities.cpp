@@ -1,26 +1,38 @@
 #include "plato/third_party_integration/krino/Utilities.hpp"
 
-#include <Akri_AuxMetaData.hpp>     // AuxMetaData::get
-#include <Akri_CDFEM_Support.hpp>   //CDFEM_Support
-#include <Akri_CDMesh.hpp>          //sierraTimer
-#include <Akri_DiagWriter.hpp>      //initialize environment
-#include <Akri_LevelSet.hpp>        //LevelSet
-#include <Akri_LevelSetPolicy.hpp>  //LSPerInterfacePolicy
+#include <Akri_AuxMetaData.hpp>    // AuxMetaData::get
+#include <Akri_CDFEM_Support.hpp>  //CDFEM_Support
+#include <Akri_CDMesh.hpp>         //sierraTimer
+#include <Akri_CreateInterfaceGeometry.hpp>
+#include <Akri_LevelSet.hpp>  //LevelSet
 #include <Akri_LevelSetShapeSensitivities.hpp>
 #include <Akri_MeshHelpers.hpp>           //activate_all_entities
 #include <Akri_NodalSurfaceDistance.hpp>  //compute_nodal_surface_distance
 #include <Akri_OutputUtils.hpp>
+#include <Akri_Phase_Support.hpp>
+#include <algorithm>
+#include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <filesystem>
 #include <iterator>
+#include <memory>
+#include <set>
+#include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>  //get_selected_entities
 #include <stk_mesh/base/Entity.hpp>
+#include <stk_mesh/base/GetEntities.hpp>
+#include <stk_mesh/base/Selector.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_util/diag/WriterRegistry.hpp>
+#include <stk_topology/topology_decl.hpp>
+#include <stk_util/diag/Timer.hpp>
 #include <stk_util/environment/EnvData.hpp>
-#include <stk_util/environment/OutputLog.hpp>
-#include <stk_util/parallel/OutputStreams.hpp>
+#include <string>
 #include <string_view>
+#include <unordered_map>
+#include <vector>
 
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
@@ -36,7 +48,7 @@ constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"PLATO_LS"};
 const auto kLevelSetFields = std::vector<std::string>{"LS", "PLATO_LS", "PLATO_LS_COPYFORSNAPPING"};
 
-[[nodiscard]] bool include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart)
+[[nodiscard]] auto include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart) -> bool
 {
     return (aVoidPhase == VoidPhase::kIncludeInMesh || aPart->name().find("_void") == std::string::npos);
 }
@@ -91,7 +103,7 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 
 auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
 {
-    return boost::mpi::communicator(stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate);
+    return {stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate};
 }
 
 auto read_and_setup_for_decomposition(const std::filesystem::path& aFilename,
@@ -210,9 +222,9 @@ auto get_level_set_values(const ::krino::MeshInterface& aKrinoMesh,
 auto node_entities_in_mesh(const ::krino::MeshInterface& aKrinoMesh,
                            const std::vector<::krino::LS_Field>& aLevelSetFields) -> stk::mesh::EntityVector
 {
-    ::krino::CDFEM_Support& cdfemSupport = ::krino::CDFEM_Support::get(aKrinoMesh.meta_data());
+    const ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aKrinoMesh.meta_data());
     const stk::mesh::Selector tSelector =
-        stk::mesh::selectField(aLevelSetFields.front().isovar) & !cdfemSupport.get_child_node_part();
+        stk::mesh::selectField(aLevelSetFields.front().isovar) & !tCdfemSupport.get_child_node_part();
     stk::mesh::EntityVector tNodes;
     stk::mesh::get_selected_entities(tSelector, aKrinoMesh.bulk_data().buckets(stk::topology::NODE_RANK), tNodes,
                                      kSortByGlobalId);
@@ -234,8 +246,8 @@ void write_mesh(const stk::mesh::BulkData& aBulkData,
                 const std::filesystem::path& aOutputFileName,
                 const stk::mesh::Selector& aSelector)
 {
-    constexpr auto tStepIndex = int{1};
-    constexpr auto tTime = double{0.0};
+    constexpr auto tStepIndex = 1;
+    constexpr auto tTime = 0.0;
     ::krino::output_composed_mesh_with_fields(aBulkData, aSelector, aOutputFileName.string(), tStepIndex, tTime,
                                               stk::io::WRITE_RESULTS, kLevelSetFields);
 }

@@ -1,17 +1,25 @@
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 
+#include <algorithm>
 #include <boost/mpi/communicator.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #include <optional>
 #include <ranges>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/core/Aggregate.hpp"
 #include "plato/core/ParallelFunction.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/LoggingFunction.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveReciprocal.hpp"
-#include "plato/linear_algebra/DynamicVectorSerialization.hpp"
-#include "plato/services/SystemLogger.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/linear_algebra/DynamicVectorSerialization.hpp"  // NOLINT(misc-include-cleaner)
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::criteria::library
@@ -32,7 +40,7 @@ using ValidatedObjective = input_validation::ValidatedInputDataBlock<components:
     return input_validation::get_input_block<input_parser::objective>(aObjective).aggregation_weight.value();
 }
 
-[[nodiscard]] bool normalize_by_initial_value(const ValidatedObjective& aObjective)
+[[nodiscard]] auto normalize_by_initial_value(const ValidatedObjective& aObjective) -> bool
 {
     const auto& tInput = input_validation::get_input_block<input_parser::objective>(aObjective);
     return tInput.normalize_by_initial_value.value_or(false);
@@ -49,7 +57,7 @@ using ValidatedObjective = input_validation::ValidatedInputDataBlock<components:
     return objective_goal(aObjective) == ObjectiveGoal::kMinimizeNegation ? -1.0 : 1.0;
 }
 
-[[nodiscard]] bool is_parallel_objective(const ValidatedObjective& aObjective)
+[[nodiscard]] auto is_parallel_objective(const ValidatedObjective& aObjective) -> bool
 {
     return input_validation::get_input_block<input_parser::objective>(aObjective).number_of_processors.value_or(1U) >
            1U;
@@ -70,14 +78,12 @@ using ValidatedObjective = input_validation::ValidatedInputDataBlock<components:
             make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective)),
             aObjectiveComm.mValue);
     }
-    else
-    {
-        auto tFunction = make_logging_function(
-            make_criterion_function<CriterionFunction, input_parser::objective>(aObjective).mFunction,
-            components::ComponentType::kObjective, tName, aObjectiveComm.mValue);
 
-        return make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective));
-    }
+    auto tFunction =
+        make_logging_function(make_criterion_function<CriterionFunction, input_parser::objective>(aObjective).mFunction,
+                              components::ComponentType::kObjective, tName, aObjectiveComm.mValue);
+
+    return make_reciprocal_criterion_function(std::move(tFunction), objective_goal(aObjective));
 }
 
 [[nodiscard]] auto normalization_value(const ValidatedObjective& aObjectiveInput,
@@ -182,7 +188,7 @@ auto number_of_processors_per_objective(const ValidatedObjectives& aInput) -> st
                                     return input_validation::get_input_block<input_parser::objective>(aObjective)
                                         .number_of_processors.value_or(1U);
                                 });
-    return std::vector(tNumberOfProcessors.begin(), tNumberOfProcessors.end());
+    return {tNumberOfProcessors.begin(), tNumberOfProcessors.end()};
 }
 
 }  // namespace plato::criteria::library

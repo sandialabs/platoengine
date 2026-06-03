@@ -1,14 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <memory>
 #include <string_view>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
-#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
-#include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -23,7 +26,7 @@ const auto kIDs = std::vector<std::size_t>{0, 1, 2};
 const auto kMeshArgument = analysis::AnalysisDomainMesh{
     kMeshName,
     analysis::AnalysisDomainMesh::BlockScalarField{{1, analysis::combine_scalar_field_values_and_ids(kRho, kIDs)}}};
-const auto kV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
+const auto kRowVector = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
 
 void test_filtered_results(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                            const test_utilities::TestContext& aTestContext)
@@ -44,24 +47,25 @@ TEST(IdentityFilter, Filter)
 
 TEST(IdentityFilter, JacobianTimesVector)
 {
-    const auto tV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
-    const linear_algebra::DynamicVector<double> tResult = IdentityFilter{}.rowVectorTimesJacobian(kMeshArgument, tV);
-    EXPECT_EQ(tResult.stdVector(), tV.stdVector());
+    const auto tRowVector = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
+    const linear_algebra::DynamicVector<double> tResult =
+        IdentityFilter{}.rowVectorTimesJacobian(kMeshArgument, tRowVector);
+    EXPECT_EQ(tResult.stdVector(), tRowVector.stdVector());
 }
 
 TEST(IdentityFilter, AdjointJacobianTimesVector)
 {
-    const auto tV = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
+    const auto tRowVector = linear_algebra::DynamicVector<double>{-2.0, -1.0, 42.0};
     const linear_algebra::DynamicVector<double> tResult =
-        IdentityFilter{}.rowVectorTimesAdjointJacobian(kMeshArgument, tV);
-    EXPECT_EQ(tResult.stdVector(), tV.stdVector());
+        IdentityFilter{}.rowVectorTimesAdjointJacobian(kMeshArgument, tRowVector);
+    EXPECT_EQ(tResult.stdVector(), tRowVector.stdVector());
 }
 
 TEST(IdentityFilter, JacobianMultiplication)
 {
     const auto tFilterJacobian = library::make_filter_jacobian(std::make_unique<IdentityFilter>(), kMeshArgument);
-    const linear_algebra::DynamicVector<double> tResult = kV * tFilterJacobian;
-    EXPECT_EQ(tResult.stdVector(), kV.stdVector());
+    const linear_algebra::DynamicVector<double> tResult = kRowVector * tFilterJacobian;
+    EXPECT_EQ(tResult.stdVector(), kRowVector.stdVector());
 }
 
 TEST(IdentityFilter, JacobianBadDimensions)
@@ -82,8 +86,8 @@ TEST(IdentityFilter, Function)
     test_filtered_results(tAnalysisDomainMeshResult, TEST_CONTEXT("Filter via filter function"));
 
     const linear_algebra::DynamicVector<double> tResult =
-        kV * tFilterFunction.evaluate<core::evaluation::kFirstDerivative>(kMeshArgument);
-    EXPECT_EQ(tResult.stdVector(), kV.stdVector());
+        kRowVector * tFilterFunction.evaluate<core::evaluation::kFirstDerivative>(kMeshArgument);
+    EXPECT_EQ(tResult.stdVector(), kRowVector.stdVector());
 }
 
 TEST(IdentityFilter, Registration) { EXPECT_TRUE(library::is_filter_function_registered("identity_filter")); }

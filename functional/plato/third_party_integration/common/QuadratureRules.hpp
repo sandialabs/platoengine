@@ -48,8 +48,8 @@ template <int kDimensions, int kPoints, std::array<common::QuadraturePoint1D, kP
                    std::apply(
                        [&aFunction](const auto... aCurrentIndices)
                        {
-                           const double tTotalWeight = (kQuadratureRule[aCurrentIndices].mWeight * ...);
-                           return aFunction(kQuadratureRule[aCurrentIndices].mPoint...) * tTotalWeight;
+                           const double tTotalWeight = (kQuadratureRule.at(aCurrentIndices).mWeight * ...);
+                           return aFunction(kQuadratureRule.at(aCurrentIndices).mPoint...) * tTotalWeight;
                        },
                        aIndices);
         });

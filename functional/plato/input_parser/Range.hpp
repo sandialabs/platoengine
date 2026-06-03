@@ -6,18 +6,20 @@
 
 ///@brief Input struct with parser to read in inclusive bounds from the input deck
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions)
 BOOST_FUSION_DEFINE_STRUCT(
 (plato)(input_parser),Range,
 (double, mLower)
 (double, mStep)
 (double, mUpper)
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
 namespace plato::input_parser
 {
 
-[[nodiscard]] constexpr inline bool operator==(const Range& aLHS, const Range& aRHS)
+[[nodiscard]] constexpr auto operator==(const Range& aLHS, const Range& aRHS) -> bool
 {
     return aLHS.mLower == aRHS.mLower && aLHS.mStep == aRHS.mStep && aLHS.mUpper == aRHS.mUpper;
 }

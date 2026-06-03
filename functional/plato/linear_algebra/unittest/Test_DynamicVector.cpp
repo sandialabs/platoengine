@@ -3,7 +3,11 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <cmath>
+#include <cstddef>
+#include <numeric>
 #include <sstream>
+#include <utility>
+#include <vector>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/DynamicVectorSerialization.hpp"
@@ -92,7 +96,7 @@ TEST(DynamicVector, TimesEqual)
 {
     const auto tVector = std::vector{1.0, 2.0, 3.0};
     auto tDynamicVector = DynamicVector(tVector);
-    const auto tScalar = double{2.0};
+    const auto tScalar = 2.0;
     tDynamicVector *= tScalar;
 
     for (std::size_t tIndex = 0; tIndex < tDynamicVector.size(); ++tIndex)
@@ -105,7 +109,7 @@ TEST(DynamicVector, ScalarLeftMultiply)
 {
     const auto tVector = std::vector{1.0, 2.0, 3.0};
     auto tDynamicVector1 = DynamicVector(tVector);
-    const auto tScalar = double{2.0};
+    const auto tScalar = 2.0;
     const auto tDynamicVector2 = tScalar * std::move(tDynamicVector1);
 
     for (std::size_t tIndex = 0; tIndex < tDynamicVector2.size(); ++tIndex)
@@ -118,7 +122,7 @@ TEST(DynamicVector, ScalarRightMultiply)
 {
     const auto tVector = std::vector{1.0, 2.0, 3.0};
     auto tDynamicVector1 = DynamicVector(tVector);
-    const auto tScalar = double{2.0};
+    const auto tScalar = 2.0;
     const auto tDynamicVector2 = std::move(tDynamicVector1) * tScalar;
 
     for (std::size_t tIndex = 0; tIndex < tDynamicVector2.size(); ++tIndex)
@@ -161,9 +165,9 @@ TEST(DynamicVector, Serialization)
     auto tLoadedVector = DynamicVector<double>{};
     auto tLoadArchive = boost::archive::binary_iarchive{tStream};
     tLoadArchive >> tLoadedVector;
-    for (std::size_t k = 0; k < tStoredVector.size(); ++k)
+    for (std::size_t tK = 0; tK < tStoredVector.size(); ++tK)
     {
-        EXPECT_EQ(tStoredVector[k], tLoadedVector[k]);
+        EXPECT_EQ(tStoredVector[tK], tLoadedVector[tK]);
     }
 }
 

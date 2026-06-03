@@ -26,15 +26,15 @@ enum class RunStage : std::uint8_t
 /// according to its RunStage. The order within stages is not guaranteed, only that all, e.g.,
 /// RunStage::kValidate items are before all RunStage::kExecute items.
 template <typename T>
-[[nodiscard]] std::vector<T> to_stage_ordered_vector(std::multimap<RunStage, T> aStageMap);
+[[nodiscard]] auto to_stage_ordered_vector(std::multimap<RunStage, T> aStageMap) -> std::vector<T>;
 
 template <typename T>
-std::vector<T> to_stage_ordered_vector(std::multimap<RunStage, T> aStageMap)
+auto to_stage_ordered_vector(std::multimap<RunStage, T> aStageMap) -> std::vector<T>
 {
     std::vector<T> tResult;
     tResult.reserve(aStageMap.size());
     std::transform(aStageMap.begin(), aStageMap.end(), std::back_inserter(tResult),
-                   [](auto& tStageAndItem) { return std::move(tStageAndItem.second); });
+                   [](auto& aStageAndItem) { return std::move(aStageAndItem.second); });
     return tResult;
 }
 }  // namespace plato::process_manager::library

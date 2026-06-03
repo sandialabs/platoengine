@@ -1,22 +1,27 @@
 #include <gtest/gtest.h>
 
+#include <tuple>
+#include <type_traits>
+
 #include "plato/utilities/FunctionArgType.hpp"
 
 namespace plato::utilities::unittest
 {
 namespace
 {
+constexpr auto kArbitraryValue = 42;
+
 struct Bard
 {
-    int operator()(int, double, char) { return 42; }
+    auto operator()(int /*unused*/, double /*unused*/, char /*unused*/) -> int { return kArbitraryValue; }
 };
 struct Paladin
 {
-    int operator()(int, double, char) const { return 42; }
+    auto operator()(int /*unused*/, double /*unused*/, char /*unused*/) const -> int { return kArbitraryValue; }
 };
 struct Rogue
 {
-    int operator()(int, char) const { return 42; }
+    auto operator()(int /*unused*/, char /*unused*/) const -> int { return kArbitraryValue; }
 };
 }  // namespace
 
@@ -37,7 +42,7 @@ TEST(FunctionArgType, Arg)
 
 TEST(FunctionArgType, NumberOfArgs)
 {
-    static_assert(FunctionArgType<Paladin>::kNumberOfArgs == 3U);
-    static_assert(FunctionArgType<Rogue>::kNumberOfArgs == 2U);
+    static_assert(FunctionArgType<Paladin>::mNumberOfArgs == 3U);
+    static_assert(FunctionArgType<Rogue>::mNumberOfArgs == 2U);
 }
 }  // namespace plato::utilities::unittest

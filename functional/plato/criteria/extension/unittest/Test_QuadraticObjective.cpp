@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <string_view>
+#include <cstddef>
+#include <numeric>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/extension/QuadraticObjective.hpp"
-#include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
@@ -13,8 +14,6 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
-#include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
-#include "plato/utilities/ContainerHelpers.hpp"
 
 namespace plato::criteria::extension::unittest
 {
@@ -34,9 +33,9 @@ void check_value_and_gradient_of_quadratic_objective(const analysis::AnalysisDom
                                                      const std::vector<double>& aGoldGradient,
                                                      const test_utilities::TestContext& aTestContext)
 {
-    const auto tValue = QuadraticObjective{}.value(aAnalysisDomainMesh);
+    const auto tValue = QuadraticObjective::value(aAnalysisDomainMesh);
     EXPECT_DOUBLE_EQ(tValue, aGoldValue) << aTestContext;
-    const auto tGradient = QuadraticObjective{}.gradient(aAnalysisDomainMesh).stdVector();
+    const auto tGradient = QuadraticObjective::gradient(aAnalysisDomainMesh).stdVector();
     EXPECT_EQ(tGradient, aGoldGradient) << aTestContext;
 }
 

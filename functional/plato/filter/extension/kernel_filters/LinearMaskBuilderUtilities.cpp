@@ -1,14 +1,22 @@
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 
-#include <assert.h>
-
+#include <Teuchos_DefaultMpiComm.hpp>
+#include <Teuchos_RCP.hpp>
 #include <algorithm>
 #include <boost/mpi/collectives.hpp>
-#include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <numbers>
+#include <boost/mpi/inplace.hpp>
+#include <cassert>
+#include <cstddef>
+#include <functional>
+#include <iterator>
+#include <memory>
 #include <ranges>
+#include <vector>
 
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 
 namespace plato::filter::extension::kernel_filters
@@ -45,7 +53,7 @@ auto distribute_and_label_search_vector(const SourceColumnVector& aSourceColumnV
                                         const boost::mpi::communicator& aCommunicator)
     -> std::vector<third_party_integration::stk_search::SearchPointWithIdentifier>
 {
-    third_party_integration::tpetra::TpetraMultiVector tDistributedNodalCoordinates(
+    const third_party_integration::tpetra::TpetraMultiVector tDistributedNodalCoordinates(
         detail::create_tpetravector_coordinates(aSourceColumnVector.mValue, aCommunicator));
     return detail::stk_search_points(tDistributedNodalCoordinates, aCommunicator.rank());
 }
@@ -56,8 +64,10 @@ auto create_tpetravector_coordinates(const std::vector<third_party_integration::
 {
     namespace tpi = third_party_integration;
 
-    const auto tCommunicator = Teuchos::rcp(new Teuchos::MpiComm<int>(aCommunicator));
-    auto tMap = Teuchos::rcp(new tpi::tpetra::TpetraMap(aCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator));
+    const auto tCommunicator = Teuchos::rcp(std::make_unique<Teuchos::MpiComm<int>>(aCommunicator).release());
+    auto tMap = Teuchos::rcp(
+        std::make_unique<tpi::tpetra::TpetraMap>(aCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator)
+            .release());
     auto tCoordinates = tpi::tpetra::TpetraMultiVector(tMap, tpi::tpetra::kNumberOfCartesianDimensions, kZeroOut);
     tpi::tpetra::distribute_on_tpetra_multivector(aCoordinates, tCoordinates);
     return tCoordinates;
@@ -97,15 +107,15 @@ void add_weight_from_search_result_to_map(RowMap& aRowMap,
     }
 }
 
-unsigned int reduce_search_result_size(const third_party_integration::stk_search::SearchResults& aSearchResults,
-                                       const boost::mpi::communicator& aCommunicator)
+auto reduce_search_result_size(const third_party_integration::stk_search::SearchResults& aSearchResults,
+                               const boost::mpi::communicator& aCommunicator) -> unsigned int
 {
     unsigned int tResultSize = aSearchResults.size();
-    boost::mpi::all_reduce(aCommunicator, boost::mpi::inplace(tResultSize), std::plus<unsigned int>());
+    boost::mpi::all_reduce(aCommunicator, boost::mpi::inplace(tResultSize), std::plus<>());
     return tResultSize;
 }
 
-boost::mpi::communicator subdivide_world_comm_into_groups(const unsigned int aGroupSize)
+auto subdivide_world_comm_into_groups(const unsigned int aGroupSize) -> boost::mpi::communicator
 {
     auto tWorldComm = boost::mpi::communicator{};
 
@@ -125,8 +135,8 @@ auto number_of_column_entries_per_row(const RowMap& aRowMap) -> std::vector<std:
 
     auto tNumberOfColumnsPerRow = std::vector<std::size_t>{};
     tNumberOfColumnsPerRow.reserve(aRowMap.size());
-    std::ranges::transform(tGlobalIDs, std::back_inserter(tNumberOfColumnsPerRow), [&aRowMap](const auto tGlobalID)
-                           { return aRowMap.at(tGlobalID).mNonzeroColumnGlobalIDs.size(); });
+    std::ranges::transform(tGlobalIDs, std::back_inserter(tNumberOfColumnsPerRow), [&aRowMap](const auto aGlobalId)
+                           { return aRowMap.at(aGlobalId).mNonzeroColumnGlobalIDs.size(); });
 
     return tNumberOfColumnsPerRow;
 }

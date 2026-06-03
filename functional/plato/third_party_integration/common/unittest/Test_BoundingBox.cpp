@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "plato/third_party_integration/common/BoundingBox.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 

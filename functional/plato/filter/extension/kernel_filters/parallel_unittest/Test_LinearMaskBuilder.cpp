@@ -1,15 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <Tpetra_Core.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <optional>
+#include <vector>
 
+#include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/LinearMaskTestUtility.hpp"
-#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
-#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 #include "plato/third_party_integration/tpetra/TestUtilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters::parallel_unittest
 {
@@ -17,7 +18,7 @@ namespace plato::filter::extension::kernel_filters::parallel_unittest
 namespace
 {
 
-constexpr auto kNumRanks = int{4};
+constexpr auto kNumRanks = 4;
 constexpr int kNumSpatialDimensions{3};
 
 }  // namespace
@@ -88,7 +89,7 @@ TEST(LinearMaskBuilderDetail, MakeSearchPointsWithIdentifiers)
 
         const auto tSearchPoints = detail::stk_search_points(tMultiVector, tThisRank);
 
-        ASSERT_EQ(tSearchPoints.size(), 1u);
+        ASSERT_EQ(tSearchPoints.size(), 1U);
         EXPECT_EQ(tGoldLocalSearchPointWithIdentifiers[0].first, tSearchPoints[0].first);
         EXPECT_EQ(tGoldLocalSearchPointWithIdentifiers[0].second, tSearchPoints[0].second);
     }
@@ -111,7 +112,7 @@ TEST(LinearMaskBuilder, GenerateDistanceMapNodal)
     namespace tpit = third_party_integration::tpetra;
     const auto tLinearMaskBuilder = test_utilities::create_simple_linear_mask_builder();
 
-    const auto tDistanceMap = tLinearMaskBuilder.mask();
+    const auto& tDistanceMap = tLinearMaskBuilder.mask();
 
     /* 2/3          1/3             0           0
        1/4         1/2            1/4        0

@@ -37,7 +37,7 @@ template <typename Geometry>
 /// @brief Validates that the `initial_field_name` field in @a aInput has a value or that the mesh in
 /// `mesh_name` has a Topology field to be read.
 template <typename Geometry>
-[[nodiscard]] std::optional<std::string> validate_initial_field_source(const Geometry& aInput);
+[[nodiscard]] auto validate_initial_field_source(const Geometry& aInput) -> std::optional<std::string>;
 
 /// @brief Validates that the mesh specified in @a aMesh is all tris or tets.
 template <typename Geometry>
@@ -75,7 +75,7 @@ template <typename Geometry>
 }
 
 template <typename Geometry>
-[[nodiscard]] std::optional<std::string> validate_initial_field_source(const Geometry& aInput)
+[[nodiscard]] auto validate_initial_field_source(const Geometry& aInput) -> std::optional<std::string>
 {
     if (aInput.initial_field_name.has_value() && aInput.mesh_name.has_value() &&
         std::filesystem::exists(aInput.mesh_name.value().mToken))

@@ -1,8 +1,6 @@
 #ifndef PLATO_UTILITIES_LINEARSPACEGENERATOR
 #define PLATO_UTILITIES_LINEARSPACEGENERATOR
 
-#include <string>
-#include <string_view>
 #include <vector>
 
 namespace plato::utilities
@@ -15,7 +13,7 @@ struct LinearSpaceGenerator
 {
     double mStartingValue = 1;
     double mStep = 1;
-    double mEndingValue = 10;
+    double mEndingValue = mStartingValue + 1.0;
 
     ///@brief Compute the vector of steps for the linear space
     [[nodiscard]] auto steps() const -> std::vector<double>;

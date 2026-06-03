@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <map>
+#include <string>
+
 #include "plato/input_parser/documentation_generator/library/LatexFormatter.hpp"
 
 namespace plato::input_parser::documentation_generator::library::unittest

@@ -20,10 +20,10 @@ namespace plato::services
 /// as if the function has serial or parallel implementations and is a vector or scalar function.
 struct CriterionConfiguration
 {
-    std::string mName{};
+    std::string mName;
     bool mIsParallelized = false;
     bool mIsScalar = true;
-    std::string mFunctionName{};
+    std::string mFunctionName;
     std::optional<std::map<std::size_t, std::string>> mVectorComponents = std::nullopt;
 
     auto operator==(const CriterionConfiguration& aCriterionConfiguration) const -> bool = default;
@@ -35,9 +35,9 @@ struct CriterionConfiguration
 /// shared library containing an app.
 struct AppConfiguration
 {
-    std::string mName{};
-    std::string mLibraryFileName{};
-    std::vector<CriterionConfiguration> mCriteria{};
+    std::string mName;
+    std::string mLibraryFileName;
+    std::vector<CriterionConfiguration> mCriteria;
     auto operator==(const AppConfiguration& aAppConfiguration) const -> bool = default;
 };
 
@@ -55,7 +55,7 @@ struct AppConfigurationWithDirectory
 void save_configuration(const AppConfiguration& aAppConfiguration, const std::filesystem::path& aFilename);
 
 /// @brief Reads an AppConfiguration from disk, at path @a aFilename.
-[[nodiscard]] AppConfiguration load_configuration(const std::filesystem::path& aFilename);
+[[nodiscard]] auto load_configuration(const std::filesystem::path& aFilename) -> AppConfiguration;
 
 template <class Archive>
 void serialize(Archive& aArchive, CriterionConfiguration& aAppConfiguration, const unsigned int /*version*/)

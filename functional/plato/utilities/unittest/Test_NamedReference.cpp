@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 #include "plato/utilities/NamedReference.hpp"
 
 namespace plato::utilities::unittest
@@ -13,7 +15,7 @@ using NamedReferenceToConstInt = NamedReference<const int, struct NamedReference
 
 TEST(NamedReference, Constness)
 {
-    constexpr auto tInitialValue = int{42};
+    constexpr auto tInitialValue = 42;
     auto tAnInt = tInitialValue;
     auto tNamedReference = NamedReferenceToConstInt{tAnInt};
     EXPECT_EQ(tNamedReference.mValue.get(), tInitialValue);
@@ -25,7 +27,7 @@ TEST(NamedReference, Mutability)
 {
     auto tAnInt = 0;
     auto tNamedReference = NamedReferenceToInt{tAnInt};
-    constexpr auto tNewValue = int{42};
+    constexpr auto tNewValue = 42;
     tNamedReference.mValue.get() = tNewValue;
     EXPECT_EQ(tNamedReference.mValue.get(), tNewValue);
 

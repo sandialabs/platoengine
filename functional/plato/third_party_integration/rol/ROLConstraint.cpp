@@ -1,8 +1,18 @@
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
 
+#include <ROL_Bounds.hpp>
+#include <ROL_Problem.hpp>
+#include <ROL_Ptr.hpp>
+#include <ROL_StdVector.hpp>
+#include <ROL_Types.hpp>
+#include <Teuchos_RCP.hpp>
+#include <cstddef>
 #include <functional>
 #include <map>
+#include <utility>
+#include <vector>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -90,32 +100,34 @@ auto create_inequality_bounds(const ConstraintType aType,
     return kCreateInequalityBoundsMap.at(aType)(aNumberOfConstraints);
 }
 
-void add_linear_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint)
+void add_linear_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLConstraint)
 {
-    aProblem.addLinearConstraint(aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
+    aProblem.addLinearConstraint(std::move(aROLConstraint.mName),
+                                 Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
                                  make_rol_vector(make_dual_vector(aROLConstraint.mNumberOfConstraints)));
 }
 
-void add_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint)
+void add_equality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLConstraint)
 {
     aProblem.addConstraint(
-        aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
+        std::move(aROLConstraint.mName), Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
         third_party_integration::rol::make_rol_vector(make_dual_vector(aROLConstraint.mNumberOfConstraints)));
 }
 
-void add_linear_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint)
+void add_linear_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLConstraint)
 {
     auto tInequalityBoundConstraint =
         create_inequality_bounds(aROLConstraint.mType, aROLConstraint.mNumberOfConstraints);
     auto tMultipliers = ROL::makePtr<std::vector<double>>(aROLConstraint.mNumberOfConstraints, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
 
-    aProblem.addLinearConstraint(aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
+    aProblem.addLinearConstraint(std::move(aROLConstraint.mName),
+                                 Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
                                  make_rol_vector(make_dual_vector(aROLConstraint.mNumberOfConstraints)),
                                  tInequalityBoundConstraint, tMultipliersPtr, kDontReset);
 }
 
-void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& aROLConstraint)
+void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint aROLConstraint)
 {
     auto tInequalityBoundConstraint =
         create_inequality_bounds(aROLConstraint.mType, aROLConstraint.mNumberOfConstraints);
@@ -123,7 +135,7 @@ void add_inequality_constraint(ROL::Problem<double>& aProblem, ROLConstraint&& a
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
 
     aProblem.addConstraint(
-        aROLConstraint.mName, Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
+        std::move(aROLConstraint.mName), Teuchos::rcp(aROLConstraint.mConstraintFunction.release()),
         third_party_integration::rol::make_rol_vector(make_dual_vector(aROLConstraint.mNumberOfConstraints)),
         tInequalityBoundConstraint, tMultipliersPtr, kDontReset);
 }
@@ -138,14 +150,12 @@ auto constraint_combination(const ROLConstraint& aConstraint) -> ConstraintCombi
         }
         return ConstraintCombination::kNonlinearEquality;
     }
-    else
+
+    if (aConstraint.mLinear)
     {
-        if (aConstraint.mLinear)
-        {
-            return ConstraintCombination::kLinearInequality;
-        }
-        return ConstraintCombination::kNonlinearInequality;
+        return ConstraintCombination::kLinearInequality;
     }
+    return ConstraintCombination::kNonlinearInequality;
 }
 
 }  // namespace detail

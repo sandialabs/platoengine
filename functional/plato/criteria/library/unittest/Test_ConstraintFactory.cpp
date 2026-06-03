@@ -1,8 +1,20 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <map>
+#include <set>
+#include <string_view>
+#include <tuple>
+#include <utility>
+#include <variant>
+#include <vector>
+
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/TestAppConfigurations.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
@@ -10,6 +22,10 @@ namespace plato::criteria::library::unittest
 {
 namespace
 {
+constexpr auto kArbitraryScalarConstraintTarget = 42.0;
+constexpr auto kArbitraryAsiaConstraintTarget = 43.0;
+constexpr auto kArbitraryAmericaConstraintTarget = 42.0;
+
 [[nodiscard]] auto test_constraint_inputs() -> std::tuple<input_parser::constraint,
                                                           input_parser::constraint,
                                                           std::vector<services::AppConfigurationWithDirectory>>
@@ -22,15 +38,16 @@ namespace
 
     auto tScalarConstraintInput = tBaseConstraint;
     tScalarConstraintInput.criterion = input_parser::CriterionName{"scalar"};
-    tScalarConstraintInput.constraint_value = 42.0;
+    tScalarConstraintInput.constraint_value = kArbitraryScalarConstraintTarget;
 
     auto tVectorConstraintInput = tBaseConstraint;
     tVectorConstraintInput.app = input_parser::AppName{std::string{tTestAppName}};
     tVectorConstraintInput.criterion = input_parser::CriterionName{"vector-with-components"};
-    tVectorConstraintInput.constraint_value_list = ConstraintValueList{
-        {input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"asia"}, /*.target=*/43.0},
-         input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"america"},
-                                          /*.target=*/42.0}}};
+    tVectorConstraintInput.constraint_value_list =
+        ConstraintValueList{{input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"asia"},
+                                                              /*.target=*/kArbitraryAsiaConstraintTarget},
+                             input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"america"},
+                                                              /*.target=*/kArbitraryAmericaConstraintTarget}}};
     return std::make_tuple(std::move(tScalarConstraintInput), std::move(tVectorConstraintInput), tAppConfigurations);
 }
 
@@ -58,7 +75,7 @@ TEST(ConstraintTarget, MakeConstraintTargetValue)
 
         ASSERT_TRUE(std::holds_alternative<double>(tConstraintTargets)) << tTestContext;
         const auto& tResultTarget = std::get<double>(tConstraintTargets);
-        EXPECT_EQ(tResultTarget, 42.0) << tTestContext;
+        EXPECT_EQ(tResultTarget, kArbitraryScalarConstraintTarget) << tTestContext;
     }
     {
         const auto tTestContext = TEST_CONTEXT("Vector");
@@ -72,8 +89,8 @@ TEST(ConstraintTarget, MakeConstraintTargetValue)
         const auto& tResultTarget = std::get<std::vector<double>>(tConstraintTargets);
 
         ASSERT_EQ(tResultTarget.size(), 2U) << tTestContext;
-        EXPECT_EQ(tResultTarget.front(), 42.0) << tTestContext;
-        EXPECT_EQ(tResultTarget.back(), 43.0) << tTestContext;
+        EXPECT_EQ(tResultTarget.front(), kArbitraryAmericaConstraintTarget) << tTestContext;
+        EXPECT_EQ(tResultTarget.back(), kArbitraryAsiaConstraintTarget) << tTestContext;
     }
 }
 

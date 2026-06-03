@@ -2,7 +2,10 @@
 
 #include <algorithm>
 #include <iterator>
+#include <map>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "plato/utilities/TransformIf.hpp"
 
@@ -23,9 +26,10 @@ TEST(TransformIf, SquarePositiveInts)
     EXPECT_EQ(tSquaredPositiveInts.back(), 9);
 
     // Check that the iterator is still valid:
-    tEndIterator = 42;
+    constexpr auto tArbitraryValue = 42;
+    tEndIterator = tArbitraryValue;
     ASSERT_EQ(tSquaredPositiveInts.size(), tNumPositiveInts + 1);
-    EXPECT_EQ(tSquaredPositiveInts.back(), 42);
+    EXPECT_EQ(tSquaredPositiveInts.back(), tArbitraryValue);
 }
 
 TEST(TransformIf, MapSum)

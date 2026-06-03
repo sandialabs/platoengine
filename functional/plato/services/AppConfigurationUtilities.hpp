@@ -15,18 +15,18 @@ struct CriterionName
 };
 
 /// @brief Returns all app configurations found in the directory at paths @a aSearchDirectories.
-[[nodiscard]] std::vector<AppConfigurationWithDirectory> app_configurations(
-    const std::vector<std::filesystem::path>& aSearchDirectories);
+[[nodiscard]] auto app_configurations(const std::vector<std::filesystem::path>& aSearchDirectories)
+    -> std::vector<AppConfigurationWithDirectory>;
 
 /// @brief Adds the directory @a aDirectory to the app configuration for generating absolute paths.
-[[nodiscard]] AppConfigurationWithDirectory app_configuration_with_directory(AppConfiguration aAppConfiguration,
-                                                                             std::filesystem::path aDirectory);
+[[nodiscard]] auto app_configuration_with_directory(AppConfiguration aAppConfiguration,
+                                                    std::filesystem::path aDirectory) -> AppConfigurationWithDirectory;
 
 /// @brief Returns all app configurations found in the plugins directory.
 [[nodiscard]] auto plugin_configurations() -> std::vector<AppConfigurationWithDirectory>;
 
 /// @brief Returns the path to the shared library contained in @a aAppConfiguration.
-[[nodiscard]] std::filesystem::path shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration);
+[[nodiscard]] auto shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration) -> std::filesystem::path;
 
 /// @brief Returns the CriterionRegistration with name @a aCriterionName.
 [[nodiscard]] auto criterion_configuration_with_name(

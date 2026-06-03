@@ -2,11 +2,15 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <filesystem>
+#include <numbers>
+#include <vector>
 
 #include "plato/filter/extension/kernel_filters/CylindricalMaskUtilities.hpp"
-#include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/RevolveFilter.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/SymmetryFilterTestUtilities.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
@@ -99,18 +103,18 @@ TEST(RevolveFilter, MakeRevolveFilterType)
 
 TEST(RevolveFilterDetail, ValidateSourceMeshInXZPlane)
 {
-    const auto t2DXYSourceFilePath = utilities::data_file_path("four_tri_two_block.cdf");
-    ASSERT_TRUE(t2DXYSourceFilePath.has_value());
+    const auto t2DxySourceFilePath = utilities::data_file_path("four_tri_two_block.cdf");
+    ASSERT_TRUE(t2DxySourceFilePath.has_value());
     {
         const auto tErrorMessage = detail::validate_source_mesh_in_xz_plane(input_parser::y_axis_revolve_filter{},
-                                                                            t2DXYSourceFilePath.value());
+                                                                            t2DxySourceFilePath.value());
         EXPECT_TRUE(tErrorMessage.has_value()) << "Four tri is in XY plane but revolve needs XZ plane only";
     }
     {
         const auto tThreeDFilePath = std::filesystem::path{"three_d.exo"};
         namespace tpis = third_party_integration::stk_io;
         const auto tCommandGenerator =
-            tpis::CommandGenerator{{10, 10, 10}, {-5, -5, -5}, {5, 5, 5}, tpis::CommandElementType::Tet};
+            tpis::CommandGenerator{{10, 10, 10}, {-5, -5, -5}, {5, 5, 5}, tpis::CommandElementType::kTet};
         tpis::write_mesh(tThreeDFilePath, tCommandGenerator.toString());
         const auto tErrorMessage =
             detail::validate_source_mesh_in_xz_plane(input_parser::y_axis_revolve_filter{}, tThreeDFilePath);

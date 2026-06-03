@@ -1,5 +1,8 @@
 #include "plato/mesh/MeshFieldOutputUtilities.hpp"
 
+#include <cstddef>
+#include <string_view>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"

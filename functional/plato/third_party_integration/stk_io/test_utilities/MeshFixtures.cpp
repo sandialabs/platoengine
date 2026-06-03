@@ -1,8 +1,10 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
+#include <cassert>
 #include <filesystem>
+#include <string_view>
 
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/FileUtilities.hpp"
@@ -11,9 +13,9 @@ namespace plato::third_party_integration::stk_io::test_utilities
 {
 namespace
 {
-std::filesystem::path affirm_test_file_path(const std::string_view tMeshFileName)
+auto affirm_test_file_path(const std::string_view aMeshFileName) -> std::filesystem::path
 {
-    const auto tMeshFilePath = plato::utilities::data_file_path(tMeshFileName);
+    const auto tMeshFilePath = plato::utilities::data_file_path(aMeshFileName);
     assert(tMeshFilePath);
     return tMeshFilePath.value();  // NOLINT
 }
@@ -38,7 +40,7 @@ OneBlock3x1x1HexMeshWithNodeSets::OneBlock3x1x1HexMeshWithNodeSets()
     : MeshGeneratingTestFixture(
           "one_block_3x1x1_hex_nodesets.exo",
           third_party_integration::stk_io::CommandGenerator{
-              {3, 1, 1}, {0, 0, 0}, {3, 1, 1}, CommandElementType::Hex, {UseLowerX{true}, UseUpperX{true}}, {}})
+              {3, 1, 1}, {0, 0, 0}, {3, 1, 1}, CommandElementType::kHex, {UseLowerX{true}, UseUpperX{true}}, {}})
 {
 }
 

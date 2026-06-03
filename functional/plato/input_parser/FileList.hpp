@@ -10,7 +10,7 @@ namespace plato::input_parser
 ///  from https://en.wikipedia.org/wiki/Filename
 struct ValidFilenameCharacters
 {
-    constexpr const char* operator()() { return "-a-zA-Z0-9._/"; }
+    constexpr auto operator()() -> const char* { return "-a-zA-Z0-9._/"; }
 };
 
 using FileName = UserDefinedToken<ValidFilenameCharacters>;

@@ -1,17 +1,34 @@
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 
-#include <ROL_Bounds.hpp>
+#include <ROL_Problem.hpp>
+#include <ROL_Ptr.hpp>
+#include <ROL_Solver.hpp>
+#include <ROL_StdObjective.hpp>
+#include <ROL_StdVector.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include <algorithm>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <string_view>
+#include <utility>
+#include <vector>
 
-#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/core/Compose.hpp"
-#include "plato/criteria/library/ConstraintAdapter.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/output/OutputManager.hpp"
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/services/SystemLogger.hpp"
+#include "plato/third_party_integration/rol/OptimizationParameters.hpp"
 #include "plato/third_party_integration/rol/ROLConstraint.hpp"
+#include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
+#include "plato/third_party_integration/rol/ROLVectorConstraintFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
 
@@ -30,10 +47,9 @@ const auto kConstraintTypeConversion =
 {
     if (aOptimizationParameters.input_file_name)
     {
-        return third_party_integration::rol::OptimizationParameters(
-            aOptimizationParameters.input_file_name.value().mToken);
+        return {aOptimizationParameters.input_file_name.value().mToken};
     }
-    return third_party_integration::rol::OptimizationParameters();
+    return {};
 }
 
 void apply_verbose_output(const input_parser::rol_optimization& aOptimizationParameters,
@@ -143,20 +159,20 @@ auto make_rol_solver(Teuchos::ParameterList& aROLOptions, const ROL::Ptr<ROL::Pr
 auto make_optimization_parameters(const library::ValidatedProcessManagerInput& aOptimizationParameters)
     -> third_party_integration::rol::OptimizationParameters
 {
-    const auto& aROLParameters =
+    const auto& tRolParameters =
         input_validation::get_input_block<input_parser::rol_optimization>(aOptimizationParameters);
 
-    auto tParameters = load_file_or_use_default_parameters(aROLParameters);
+    auto tParameters = load_file_or_use_default_parameters(tRolParameters);
 
-    tParameters.maximumIterations(utilities::to_std_optional(aROLParameters.max_iterations));
-    tParameters.gradientTolerance(utilities::to_std_optional(aROLParameters.gradient_tolerance));
-    tParameters.stepTolerance(utilities::to_std_optional(aROLParameters.step_tolerance));
-    tParameters.initialSearchRadius(utilities::to_std_optional(aROLParameters.initial_search_radius));
-    tParameters.writeOutputHistory(utilities::to_std_optional(aROLParameters.output_design_history));
+    tParameters.maximumIterations(utilities::to_std_optional(tRolParameters.max_iterations));
+    tParameters.gradientTolerance(utilities::to_std_optional(tRolParameters.gradient_tolerance));
+    tParameters.stepTolerance(utilities::to_std_optional(tRolParameters.step_tolerance));
+    tParameters.initialSearchRadius(utilities::to_std_optional(tRolParameters.initial_search_radius));
+    tParameters.writeOutputHistory(utilities::to_std_optional(tRolParameters.output_design_history));
 
-    apply_verbose_output(aROLParameters, tParameters);
-    apply_approximate_hessian(aROLParameters, tParameters);
-    write_parameters(aROLParameters, tParameters);
+    apply_verbose_output(tRolParameters, tParameters);
+    apply_approximate_hessian(tRolParameters, tParameters);
+    write_parameters(tRolParameters, tParameters);
 
     return tParameters;
 }

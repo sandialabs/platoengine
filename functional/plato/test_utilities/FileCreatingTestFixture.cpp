@@ -2,18 +2,21 @@
 
 #include <mpi.h>
 
+#include <boost/mpi/communicator.hpp>
+#include <filesystem>
 #include <iostream>
+#include <utility>
 
 namespace plato::test_utilities
 {
 namespace
 {
 
-MPI_File open_file_with_mpi(const boost::mpi::communicator& aCommunicator,
-                            const std::filesystem::path& aFilePath,
-                            const int aFileMode)
+auto open_file_with_mpi(const boost::mpi::communicator& aCommunicator,
+                        const std::filesystem::path& aFilePath,
+                        const int aFileMode) -> MPI_File
 {
-    auto tMPIFileHandle = MPI_File{};
+    auto* tMPIFileHandle = MPI_File{};
     MPI_Comm tCommunicator = aCommunicator;
     const auto tErrorCode = MPI_File_open(tCommunicator, aFilePath.c_str(), aFileMode, MPI_INFO_NULL, &tMPIFileHandle);
     if (tErrorCode != MPI_SUCCESS && aCommunicator.rank() == 0)
@@ -26,13 +29,13 @@ MPI_File open_file_with_mpi(const boost::mpi::communicator& aCommunicator,
 
 void create_file_with_mpi(const boost::mpi::communicator& aCommunicator, const std::filesystem::path& aFilePath)
 {
-    auto tMPIFileHandle = open_file_with_mpi(aCommunicator, aFilePath, MPI_MODE_RDWR | MPI_MODE_CREATE);
+    auto* tMPIFileHandle = open_file_with_mpi(aCommunicator, aFilePath, MPI_MODE_RDWR | MPI_MODE_CREATE);
     MPI_File_close(&tMPIFileHandle);
 }
 
 void remove_file_with_mpi(const boost::mpi::communicator& aCommunicator, const std::filesystem::path& aFilePath)
 {
-    auto tMPIFileHandle = open_file_with_mpi(aCommunicator, aFilePath, MPI_MODE_RDWR | MPI_MODE_DELETE_ON_CLOSE);
+    auto* tMPIFileHandle = open_file_with_mpi(aCommunicator, aFilePath, MPI_MODE_RDWR | MPI_MODE_DELETE_ON_CLOSE);
     MPI_File_close(&tMPIFileHandle);
 }
 }  // namespace
@@ -44,6 +47,6 @@ FileCreatingTestFixture::FileCreatingTestFixture(std::filesystem::path aFilePath
 
 FileCreatingTestFixture::~FileCreatingTestFixture() { remove_file_with_mpi(mComm, mFilePath); }
 
-const std::filesystem::path& FileCreatingTestFixture::filePath() const { return mFilePath; }
+auto FileCreatingTestFixture::filePath() const -> const std::filesystem::path& { return mFilePath; }
 
 }  // namespace plato::test_utilities

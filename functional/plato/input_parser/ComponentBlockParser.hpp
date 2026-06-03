@@ -29,7 +29,7 @@ class ComponentBlockParser
     using ParsedDataOrError = utilities::Expected<InputDataBlock, std::string>;
 
     template <typename InputType, components::ComponentType kComponentType>
-    ComponentBlockParser(const InputType&, ComponentTypeHelper<kComponentType>);
+    ComponentBlockParser(const InputType& /*unused*/, ComponentTypeHelper<kComponentType> /*unused*/);
 
     /// @brief Parses @a aData into the struct provided to the constructor.
     ///
@@ -49,7 +49,7 @@ template <typename InputType, components::ComponentType kComponentType>
 [[nodiscard]] auto make_component_block_parser() -> ComponentBlockParser;
 
 template <typename InputType, components::ComponentType kComponentType>
-ComponentBlockParser::ComponentBlockParser(const InputType&, ComponentTypeHelper<kComponentType>)
+ComponentBlockParser::ComponentBlockParser(const InputType& /*unused*/, ComponentTypeHelper<kComponentType> /*unused*/)
     : mComponentType{kComponentType},
       mParseFunction{
           [](const GenericBlockData& aData) -> ParsedDataOrError

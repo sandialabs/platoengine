@@ -1,8 +1,12 @@
 #include "plato/utilities/Colorize.hpp"
 
+#include <stdio.h>  // NOLINT(modernize-deprecated-headers)
 #include <unistd.h>
 
+#include <cassert>
+#include <cstdio>
 #include <iostream>
+#include <string>
 
 #include "plato/utilities/EnumTable.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -18,7 +22,7 @@ namespace
     {
         return stdout;
     }
-    else if (tStreamBuffer == std::cerr.rdbuf())
+    if (tStreamBuffer == std::cerr.rdbuf())
     {
         return stderr;
     }
@@ -28,8 +32,8 @@ namespace
 
 [[nodiscard]] auto stream_supports_color(const std::ostream& aStream) -> bool
 {
-    const auto tFile = stream_buffer_as_file(aStream);
-    return tFile == nullptr ? false : isatty(fileno(tFile));
+    auto* const tFile = stream_buffer_as_file(aStream);
+    return (tFile == nullptr ? 0 : isatty(fileno(tFile))) != 0;
 }
 
 [[nodiscard]] auto color_code(const TextColor aTextColor) -> std::string

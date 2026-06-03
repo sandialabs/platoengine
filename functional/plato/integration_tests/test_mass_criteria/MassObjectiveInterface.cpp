@@ -1,19 +1,25 @@
 #include "plato/integration_tests/test_mass_criteria/MassObjectiveInterface.hpp"
 
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "plato/criteria/library/CriterionInterface.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassObjective.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 
 namespace plato::integration_tests::test_mass_criteria
 {
-double MassObjectiveInterface::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto MassObjectiveInterface::value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double
 {
     constexpr double tDensity = 1.0;
     const auto tMassObjective = MassObjective{tDensity};
     return tMassObjective.mass(aAnalysisDomainMesh.mFileName.string());
 }
 
-std::vector<double> MassObjectiveInterface::gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto MassObjectiveInterface::gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+    -> std::vector<double>
 {
     ///@todo Populate the gradient with actual values
     constexpr unsigned int tNumDimensions = 3;
@@ -24,13 +30,14 @@ std::vector<double> MassObjectiveInterface::gradient(const analysis::AnalysisDom
 }
 }  // namespace plato::integration_tests::test_mass_criteria
 
-std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_criterion(const std::vector<std::string>&)
+auto plato_create_criterion(const std::vector<std::string>& /*unused*/)
+    -> std::unique_ptr<::plato::criteria::library::CriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::MassObjectiveInterface>();
 }
 
-std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_test_mass_criterion(
-    const std::vector<std::string>&)
+auto plato_create_test_mass_criterion(const std::vector<std::string>& /*unused*/)
+    -> std::unique_ptr<::plato::criteria::library::CriterionInterface>
 {
     return std::make_unique<::plato::integration_tests::test_mass_criteria::MassObjectiveInterface>();
 }

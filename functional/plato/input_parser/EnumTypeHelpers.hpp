@@ -12,6 +12,7 @@
 #include "plato/utilities/EnumTable.hpp"
 
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define ENUMERATE(a) BOOST_PP_TUPLE_ELEM(2, 0, a)
 #define ENUM_STRING(a) BOOST_PP_TUPLE_ELEM(2, 1, a)
 #define ENUMERATE_WITH_COMMA(r,data,a) ENUMERATE(a),
@@ -38,7 +39,7 @@ BOOST_PP_SEQ_FOR_EACH(ENUM_TABLE_ENTRY, ENUM_NAME, SEQ)                         
 namespace ENUM_NAMESPACE                                                                        \
 {                                                                                               \
     ENUM_TABLE_DEFINE(ENUM_NAME, SEQ)                                                           \
-    std::ostream& operator<<(std::ostream& aStream, ENUM_NAME aOption);                         \
+    auto operator<<(std::ostream& aStream, ENUM_NAME aOption) -> std::ostream&;                 \
 }
 
 #define PLATO_ENUM_STRUCT(ENUM_NAME, ENUM_NAMESPACE, SEQ)                                       \
@@ -56,7 +57,7 @@ struct create_parser<ENUM_NAMESPACE::ENUM_NAME>                                 
     static const boost::spirit::qi::symbols<char, ENUM_NAMESPACE::ENUM_NAME>                    \
                                             mSymbolTable;                                       \
     using type = typename boost::proto::result_of::deep_copy<BOOST_TYPEOF(mSymbolTable)>::type; \
-    static type call()                                                                          \
+    static auto call() -> type                                                                  \
     {                                                                                           \
         return boost::proto::deep_copy(mSymbolTable);                                           \
     }                                                                                           \
@@ -117,12 +118,13 @@ const boost::spirit::qi::symbols<char, ENUM_NAMESPACE::ENUM_NAME>               
 }                                                                                                               \
 namespace ENUM_NAMESPACE                                                                                        \
 {                                                                                                               \
-    std::ostream& operator<<(std::ostream& aStream, const ENUM_NAME aOption)                                    \
+    auto operator<<(std::ostream& aStream, const ENUM_NAME aOption) -> std::ostream&                            \
     {                                                                                                           \
         aStream << *TABLE_NAME_FROM_ENUM_NAME(ENUM_NAME).toString(aOption);                                     \
         return aStream;                                                                                         \
     }                                                                                                           \
 }
+// NOLINTEND(cppcoreguidelines-macro-usage)
 // clang-format on
 
 #endif

@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <boost/log/expressions.hpp>
+#include <boost/log/attributes/constant.hpp>
+#include <boost/log/expressions.hpp>  // NOLINT(misc-include-cleaner)
+#include <boost/log/expressions/filter.hpp>
 #include <boost/log/expressions/keyword.hpp>
 
 #include "plato//test_utilities/TestContext.hpp"
@@ -30,35 +32,35 @@ namespace plato::third_party_integration::boost_log::unittest
 {
 namespace
 {
-[[nodiscard]] auto filter_for_attribute(const auto& test_attribute_keyword, const int aAttribute) -> boost::log::filter
+[[nodiscard]] auto filter_for_attribute(const auto& aTestAttributeKeyword, const int aAttribute) -> boost::log::filter
 {
-    return boost::log::filter{boost::log::expressions::has_attr(test_attribute_keyword) &&
-                              test_attribute_keyword == aAttribute};
+    return boost::log::filter{boost::log::expressions::has_attr(aTestAttributeKeyword) &&
+                              aTestAttributeKeyword == aAttribute};
 }
 
-template <int FilterValue>
+template <int kFilterValue>
 struct TestFilterAttribute1
 {
     using AttributeType = int;
     AttributeType mValue;
 
-    [[nodiscard]] constexpr static inline auto name() -> std::string_view { return kTestAttribute1Name; };
+    [[nodiscard]] constexpr static auto name() -> std::string_view { return kTestAttribute1Name; };
     [[nodiscard]] static auto filter() -> boost::log::filter
     {
-        return filter_for_attribute(test_attribute_1, FilterValue);
+        return filter_for_attribute(test_attribute_1, kFilterValue);
     }
 };
 
-template <int FilterValue>
+template <int kFilterValue>
 struct TestFilterAttribute2
 {
     using AttributeType = int;
     AttributeType mValue;
 
-    [[nodiscard]] constexpr static inline auto name() -> std::string_view { return kTestAttribute2Name; };
+    [[nodiscard]] constexpr static auto name() -> std::string_view { return kTestAttribute2Name; };
     [[nodiscard]] static auto filter() -> boost::log::filter
     {
-        return filter_for_attribute(test_attribute_2, FilterValue);
+        return filter_for_attribute(test_attribute_2, kFilterValue);
     }
 };
 

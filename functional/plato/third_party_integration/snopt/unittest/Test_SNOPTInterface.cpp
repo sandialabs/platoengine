@@ -1,15 +1,25 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <fstream>
 #include <optional>
 #include <snoptProblem.hpp>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/output/OutputInfo.hpp"
 #include "plato/output/OutputManager.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/third_party_integration/snopt/SNOPTInterface.hpp"
+#include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -32,10 +42,10 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 [[nodiscard]] auto rosenbrock_dynamic_vector_function(const plato::test_utilities::Rosenbrock& aRosenbrock)
 {
     return core::make_function_with_first_derivative(
-        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& x)
-        { return tRosenbrock.f(x[0], x[1]); },
-        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& x)
-        { return to_dynamic_vector(tRosenbrock.df(x[0], x[1])); });
+        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& aX)
+        { return tRosenbrock.f(aX[0], aX[1]); },
+        [tRosenbrock = aRosenbrock](const linear_algebra::DynamicVector<double>& aX)
+        { return to_dynamic_vector(tRosenbrock.df(aX[0], aX[1])); });
 }
 
 [[nodiscard]] auto linear_constraint_function()
@@ -64,20 +74,29 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 
 [[nodiscard]] auto affine_linear_constraint_function()
 {
+    constexpr auto tCoefficient0 = 2.0;
+    constexpr auto tCoefficient1 = -1.0;
     return core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX)
-        { return test_utilities::vector_from_scalar(2.0 * aX[0] - aX[1] - 1.0); },
+        { return test_utilities::vector_from_scalar(tCoefficient0 * aX[0] + tCoefficient1 * aX[1] - 1.0); },
         [](const linear_algebra::DynamicVector<double>&)
-        { return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{2.0, -1.0}); });
+        {
+            return test_utilities::jacobian_from_gradient(
+                linear_algebra::DynamicVector<double>{tCoefficient0, tCoefficient1});
+        });
 }
 
 [[nodiscard]] auto nonlinear_constraint_function()
 {
+    constexpr auto tArbitraryMultiplier = -2.0;
     return core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX)
         { return test_utilities::vector_from_scalar(aX[1] - aX[0] * aX[0]); },
         [](const linear_algebra::DynamicVector<double>& aX)
-        { return test_utilities::jacobian_from_gradient(linear_algebra::DynamicVector<double>{-2.0 * aX[0], 1.0}); });
+        {
+            return test_utilities::jacobian_from_gradient(
+                linear_algebra::DynamicVector<double>{tArbitraryMultiplier * aX[0], 1.0});
+        });
 }
 
 /// @brief Components of constraint are \f$x = y\f$ and \f$x = 1\f$
@@ -97,16 +116,21 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 /// @brief Components of constraint are \f$x^2 = y\f$ and \f$(x - 2)^2 = y\f$
 [[nodiscard]] auto nonlinear_vector_constraint()
 {
+    constexpr auto tOffset = 2.0;
+    constexpr auto tSquarePower = 2.0;
     return typename InterfaceConstraintData::ConstraintFunction{
-        [](const linear_algebra::DynamicVector<double>& aX)
-        { return linear_algebra::DynamicVector<double>{aX[0] * aX[0] - aX[1], (aX[0] - 2.0) * (aX[0] - 2.0) - aX[1]}; },
+        [](const linear_algebra::DynamicVector<double>& aX) {
+            return linear_algebra::DynamicVector<double>{aX[0] * aX[0] - aX[1],
+                                                         (aX[0] - tOffset) * (aX[0] - tOffset) - aX[1]};
+        },
         [](const linear_algebra::DynamicVector<double>& aX)
         {
             return linear_algebra::JacobianMultiplier{
                 [aX](const linear_algebra::DynamicVector<double>& aVector)
                 {
                     return linear_algebra::DynamicVector<double>{
-                        2.0 * aX[0] * aVector[0] + 2.0 * (aX[0] - 2.0) * aVector[1], -1.0 * (aVector[0] + aVector[1])};
+                        tSquarePower * aX[0] * aVector[0] + tSquarePower * (aX[0] - tOffset) * aVector[1],
+                        -1.0 * (aVector[0] + aVector[1])};
                 }};
         }};
 }
@@ -114,11 +138,11 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
 void check_snopt_problem_solution(const std::vector<double>& aInitialGuess,
                                   const SNOPTBounds& aBounds,
                                   ObjectiveType&& aObjective,
-                                  InterfaceConstraintVectorType&& aConstraints,
+                                  const InterfaceConstraintVectorType& aConstraints,
                                   const std::vector<double>& aExpectedSolution,
                                   const plato::test_utilities::TestContext& aTestContext)
 {
-    const auto tSolution = run_snopt_problem(aInitialGuess, aBounds, std::move(aObjective), std::move(aConstraints),
+    const auto tSolution = run_snopt_problem(aInitialGuess, aBounds, std::move(aObjective), aConstraints,
                                              output::OutputManager{}, kLogFilePath, SNOPTOptions{});
 
     constexpr auto tTolerance = 1e-5;
@@ -281,7 +305,7 @@ TEST(SNOPTInterface, RosenbrockLesserThanConstraint)
 namespace
 {
 
-const auto kSuccessfulGetParameterCode = int{0};
+const auto kSuccessfulGetParameterCode = 0;
 
 void write_snoptions_file(const std::string& aFileName)
 {
@@ -298,9 +322,9 @@ void write_snoptions_file(const std::string& aFileName)
 void get_parameter_and_test_value(snoptProblemA& aProblem,
                                   const std::string_view aParameter,
                                   const int aGold,
-                                  const plato::test_utilities::TestContext aTestContext)
+                                  const plato::test_utilities::TestContext& aTestContext)
 {
-    int tParameter;
+    int tParameter = 0;
     const int tReturnCode = aProblem.getIntParameter(aParameter.data(), tParameter);
     EXPECT_EQ(tReturnCode, kSuccessfulGetParameterCode);
     EXPECT_EQ(tParameter, aGold) << aTestContext;
@@ -308,7 +332,7 @@ void get_parameter_and_test_value(snoptProblemA& aProblem,
 
 [[nodiscard]] auto create_problem_and_apply_options(const SNOPTOptions& aOptions) -> snoptProblemA
 {
-    constexpr auto tUseSummaryFile = int{1};
+    constexpr auto tUseSummaryFile = 1;
     snoptProblemA tProblem{};
     tProblem.initialize(kLogFilePath.c_str(), tUseSummaryFile);
     detail::apply_options(tProblem, aOptions);

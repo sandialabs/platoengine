@@ -1,14 +1,19 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <utility>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/services/ExternalLoggerFileSink.hpp"
 #include "plato/services/ExternalLoggerFileSinkDetail.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/Strings.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
+#include "plato/third_party_integration/boost_log/Severity.hpp"
 #include "plato/third_party_integration/boost_log/SeverityLogger.hpp"
 #include "plato/utilities/EnumIndexing.hpp"
 

@@ -1,5 +1,10 @@
 #include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
 
+#include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <filesystem>
+#include <utility>
+
 namespace plato::test_utilities
 {
 TestDirectorySetupTeardown::TestDirectorySetupTeardown(std::filesystem::path aDirectory,

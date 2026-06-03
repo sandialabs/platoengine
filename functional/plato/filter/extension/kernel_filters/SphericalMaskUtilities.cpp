@@ -1,21 +1,24 @@
 #include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 
-#include <Teuchos_ArrayViewDecl.hpp>
-#include <Teuchos_EReductionType.hpp>
 #include <algorithm>
 #include <boost/math/constants/constants.hpp>
 #include <boost/mpi/collectives.hpp>
-#include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <cmath>
-#include <iterator>
+#include <numbers>
 #include <ranges>
 #include <utility>
+#include <vector>
 
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/ReflectionUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/Wedge.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
 {
@@ -42,18 +45,18 @@ auto distribute_search_vectors_and_stk_search_with_spheres(const TargetRowVector
 namespace detail
 {
 
-double linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRadius)
+auto linear_ramp_weight(const Distance aDistance, const SearchRadius aSearchRadius) -> double
 {
     return std::max(0.0, 1.0 - aDistance.mValue / aSearchRadius.mValue);
 }
 
-double filter_volume(const SearchRadius aFilterRadius)
+auto filter_volume(const SearchRadius aFilterRadius) -> double
 {
-    return 4.0 / 3.0 * boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue *
-           aFilterRadius.mValue;
+    constexpr auto tUnitSphereVolume = 4.0 * std::numbers::pi / 3.0;
+    return tUnitSphereVolume * aFilterRadius.mValue * aFilterRadius.mValue * aFilterRadius.mValue;
 }
 
-double filter_area(const SearchRadius aFilterRadius)
+auto filter_area(const SearchRadius aFilterRadius) -> double
 {
     return boost::math::constants::pi<double>() * aFilterRadius.mValue * aFilterRadius.mValue;
 }

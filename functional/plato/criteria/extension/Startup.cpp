@@ -1,5 +1,6 @@
 #include "plato/criteria/extension/Startup.hpp"
 
+#include <cstddef>
 #include <format>
 
 #include "plato/criteria/library/PluginCriteria.hpp"

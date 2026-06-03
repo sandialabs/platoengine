@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <boost/mpi/communicator.hpp>
 #include <filesystem>
 #include <string_view>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/library/SharedLibCriterion.hpp"
@@ -18,19 +20,19 @@ namespace
 {
 constexpr auto kMeshName = std::string_view{"massTest.exo"};
 const auto kMeshGenerator = third_party_integration::stk_io::CommandGenerator{
-    /*.mElements=*/{1u, 1u, 1u}, /*.mLowerBounds=*/{-1.0, -1.0, -1.0}, /*.mUpperBounds=*/{1.0, 1.0, 1.0}};
+    /*.mElements=*/{1U, 1U, 1U}, /*.mLowerBounds=*/{-1.0, -1.0, -1.0}, /*.mUpperBounds=*/{1.0, 1.0, 1.0}};
 }  // namespace
 
 TEST(ParallelMassObjective, CallValueAndGradient)
 {
     auto tCommunicator = boost::mpi::communicator{};
-    EXPECT_GT(tCommunicator.size(), 1u);
+    EXPECT_GT(tCommunicator.size(), 1U);
 
     const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
     // Get parallel criterion:
     const auto tParallelCriterion = std::find_if(tTestConfiguration.mConfiguration.mCriteria.cbegin(),
                                                  tTestConfiguration.mConfiguration.mCriteria.cend(),
-                                                 [](const auto& tCriterion) { return tCriterion.mIsParallelized; });
+                                                 [](const auto& aCriterion) { return aCriterion.mIsParallelized; });
     ASSERT_NE(tParallelCriterion, tTestConfiguration.mConfiguration.mCriteria.cend());
     const auto tSharedLib =
         criteria::library::SharedLibCriterion{tTestConfiguration, *tParallelCriterion, {}, tCommunicator};

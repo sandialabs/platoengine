@@ -1,11 +1,11 @@
 #include "plato/utilities/FileUtilities.hpp"
 
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <filesystem>
 
 namespace plato::utilities
 {
-std::filesystem::path make_filename_unique(std::filesystem::path aBasePath)
+auto make_filename_unique(std::filesystem::path aBasePath) -> std::filesystem::path
 {
     if (!aBasePath.has_filename())
     {

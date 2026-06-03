@@ -2,10 +2,13 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <ranges>
+#include <vector>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/linear_algebra/ParallelJacobianMultiplier.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/MPIUtilities.hpp"
 
 namespace plato::linear_algebra::parallel_unittest
 {
@@ -13,7 +16,7 @@ namespace
 {
 [[nodiscard]] auto cube(const DynamicVector<double>& aDynamicVector) -> DynamicVector<double>
 {
-    auto tToCube = aDynamicVector.stdVector() | std::views::transform([](const auto& x) { return x * x * x; });
+    auto tToCube = aDynamicVector.stdVector() | std::views::transform([](const auto& aX) { return aX * aX * aX; });
     return DynamicVector<double>{std::vector(tToCube.begin(), tToCube.end())};
 }
 

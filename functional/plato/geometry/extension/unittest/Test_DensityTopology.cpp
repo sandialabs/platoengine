@@ -1,34 +1,38 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <boost/none.hpp>
 #include <cmath>
 #include <filesystem>
+#include <memory>
 #include <numeric>
+#include <string>
+#include <string_view>
 #include <vector>
 
-#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
-#include "plato/filter/library/FilterFactory.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
-#include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
-#include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
-#include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::geometry::extension::unittest
 {
@@ -45,7 +49,7 @@ constexpr unsigned int kExpectedDensitySize = 8;  // Based on mesh generation co
 void create_small_mesh(const std::string& aFileName)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
-        {1, 1, 1}, {-1, -2, -1}, {2, 1, 2}, third_party_integration::stk_io::CommandElementType::Hex};
+        {1, 1, 1}, {-1, -2, -1}, {2, 1, 2}, third_party_integration::stk_io::CommandElementType::kHex};
 
     third_party_integration::stk_io::write_mesh(aFileName, tCommandGenerator);
 }
@@ -100,7 +104,7 @@ TEST(DensityTopology, AdjointJacobian)
 
     // Since adjointJacobian implements v * J', the expected result is then just the same as the filter application,
     // which is J * v.
-    const auto tExpected = tMesh.analysisDomainMeshToNodalFieldVector(
+    const auto tExpected = plato::mesh::DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(
         tFilter.template evaluate<core::evaluation::kFunction>(tNodalDesignParameters));
     const auto tResult = tDesignVariables * tDensityTopology.adjointJacobian(tDesignVariables);
     constexpr auto tTolerance = 1e-14;
@@ -134,9 +138,9 @@ void test_uniform_initial_guess_against_gold(const linear_algebra::DynamicVector
 {
     EXPECT_EQ(aInitialGuess.size(), kExpectedDensitySize) << aTestContext;
 
-    for (const double val : aInitialGuess.stdVector())
+    for (const double tVal : aInitialGuess.stdVector())
     {
-        EXPECT_EQ(val, aGold) << aTestContext;
+        EXPECT_EQ(tVal, aGold) << aTestContext;
     }
 }
 
@@ -153,7 +157,8 @@ TEST(DensityTopology, InitialGuess)
     }
     {
         auto tDensityInput = kDensityInput;
-        tDensityInput.initial_density_value = 0.3;
+        constexpr auto tNonDefaultInitialDensity = 0.3;
+        tDensityInput.initial_density_value = tNonDefaultInitialDensity;
         const linear_algebra::DynamicVector<double> tInitialGuess = DensityTopology::initialGuess(tDensityInput);
         test_uniform_initial_guess_against_gold(tInitialGuess, tDensityInput.initial_density_value.value(),
                                                 TEST_CONTEXT("Given 0.3 in input"));

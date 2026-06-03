@@ -1,10 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/RandomPerturbationVector.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
@@ -14,10 +20,10 @@ namespace plato::integration_tests::unittest
 {
 TEST(VolumeCriterionIntegration, BrickShapeGeometry)
 {
-    constexpr auto tX = double{2.0};
-    constexpr auto tY = double{4.0};
-    constexpr auto tZ = double{6.0};
-    constexpr auto tCenter = double{0.0};
+    constexpr auto tX = 2.0;
+    constexpr auto tY = 4.0;
+    constexpr auto tZ = 6.0;
+    constexpr auto tCenter = 0.0;
     const auto tControls = linear_algebra::DynamicVector<double>{tCenter, tCenter, tCenter, tX, tY, tZ};
 
     const auto tVolumeObjective = input_parser::objective{/*.name=*/std::string{"volume_criterion"},
@@ -57,7 +63,8 @@ TEST(VolumeCriterionIntegration, BrickShapeGeometry)
             return tGradient.dot(aDirection);
         }};
 
-    auto tRandomEngine = std::default_random_engine{123};
+    constexpr auto tRandomSeed = 123;
+    auto tRandomEngine = std::default_random_engine{tRandomSeed};  // NOLINT(cert-msc32-c,cert-msc51-cpp)
     const auto tDirection = linear_algebra::random_perturbation_vector(tControls.size(), tRandomEngine);
 
     const auto tGradientCheckParameters =

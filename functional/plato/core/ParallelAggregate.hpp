@@ -26,15 +26,15 @@ class ParallelAggregate
 
     /// @brief Computes the weighted sum of functions owned by this object and
     ///  then performs a blocking all reduce operation on the result.
-    template <int Order, MatrixOrdering Ordering = MatrixOrdering::kOriginal, typename Argument>
+    template <int kOrder, MatrixOrdering kOrdering = MatrixOrdering::kOriginal, typename Argument>
     [[nodiscard]] auto evaluate(Argument&& aArgument) const;
 
     /// @return The number of Function objects used on construction.
-    [[nodiscard]] std::size_t size() const;
+    [[nodiscard]] auto size() const -> std::size_t;
 
    private:
     Aggregate<DomainType, Info...> mAggregateFunction;
-    boost::mpi::communicator mCommunicator{};
+    boost::mpi::communicator mCommunicator;
 };
 
 template <typename DomainType, typename... Info>
@@ -45,10 +45,10 @@ ParallelAggregate<DomainType, Info...>::ParallelAggregate(
 }
 
 template <typename DomainType, typename... Info>
-template <int Order, MatrixOrdering Ordering, typename Argument>
+template <int kOrder, MatrixOrdering kOrdering, typename Argument>
 auto ParallelAggregate<DomainType, Info...>::evaluate(Argument&& aArgument) const
 {
-    auto tResult = mAggregateFunction.template evaluate<Order, Ordering>(std::forward<Argument>(aArgument));
+    auto tResult = mAggregateFunction.template evaluate<kOrder, kOrdering>(std::forward<Argument>(aArgument));
     boost::mpi::all_reduce(mCommunicator, boost::mpi::inplace(tResult), std::plus<decltype(tResult)>());
     return tResult;
 }

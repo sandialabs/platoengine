@@ -4,16 +4,22 @@
 #include <stack>
 #include <string>
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 /// Convenience macro for instantiating a TestContext object. The file and line are added automatically.
+/// @note This macros can be replaced using std::stacktrace in c++23
 #define TEST_CONTEXT(MESSAGE)                   \
     plato::test_utilities::extend_test_context( \
         plato::test_utilities::TestContext::SingleTestContext{__FILE__, __LINE__, (MESSAGE)})
 
 /// Convenience macro for extending a TestContext object by adding a new context. The file and line are added
 /// automatically.
+/// @note This macros can be replaced using std::stacktrace in c++23
 #define EXTEND_CONTEXT(MESSAGE, EXISTING_CONTEXT) \
     plato::test_utilities::extend_test_context(   \
         plato::test_utilities::TestContext::SingleTestContext{__FILE__, __LINE__, (MESSAGE)}, (EXISTING_CONTEXT))
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 namespace plato::test_utilities
 {
@@ -56,15 +62,15 @@ struct TestContext
     std::stack<SingleTestContext> mTestContexts;
 };
 
-[[nodiscard]] inline TestContext extend_test_context(const TestContext::SingleTestContext& aNewContext,
-                                                     TestContext aExistingContext = TestContext{})
+[[nodiscard]] inline auto extend_test_context(const TestContext::SingleTestContext& aNewContext,
+                                              TestContext aExistingContext = TestContext{}) -> TestContext
 {
     aExistingContext.mTestContexts.push(aNewContext);
     return aExistingContext;
 }
 
 template <typename OutStream>
-OutStream& operator<<(OutStream& aOutStream, const TestContext::SingleTestContext& aSingleTestContext)
+auto operator<<(OutStream& aOutStream, const TestContext::SingleTestContext& aSingleTestContext) -> OutStream&
 {
     aOutStream << "Source file: " << aSingleTestContext.mFileName << ":" << aSingleTestContext.mLineNumber << ": "
                << aSingleTestContext.mMessage;
@@ -72,7 +78,7 @@ OutStream& operator<<(OutStream& aOutStream, const TestContext::SingleTestContex
 }
 
 template <typename OutStream>
-OutStream& operator<<(OutStream& aOutStream, TestContext aTestContext)
+auto operator<<(OutStream& aOutStream, TestContext aTestContext) -> OutStream&
 {
     while (!aTestContext.mTestContexts.empty())
     {

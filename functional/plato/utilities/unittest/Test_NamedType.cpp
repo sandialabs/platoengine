@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "plato/utilities/NamedType.hpp"
 
 namespace plato::utilities::unittest
@@ -15,8 +17,11 @@ using ValidatedInput = NamedType<Input, struct ValidatedInputTag>;
 
 struct DefaultConstructable
 {
-    double mDouble = 21.0;
-    int mInt = 3;
+    static constexpr auto mDefaultDouble = 21.0;
+    static constexpr auto mDefaultInt = 3;
+
+    double mDouble = mDefaultDouble;
+    int mInt = mDefaultInt;
 };
 using NamedDefaultConstructable = NamedType<DefaultConstructable, struct DefaultConstructableTag>;
 
@@ -24,8 +29,8 @@ using NamedDefaultConstructable = NamedType<DefaultConstructable, struct Default
 
 TEST(NamedType, Creation)
 {
-    Input tInput{3.0, "invalid name"};
-    ValidatedInput tValid{tInput};
+    const Input tInput{3.0, "invalid name"};
+    const ValidatedInput tValid{tInput};
     EXPECT_EQ(tValid.mValue.mValue, tInput.mValue);
     EXPECT_EQ(tValid.mValue.mName, tInput.mName);
 }
@@ -33,7 +38,7 @@ TEST(NamedType, Creation)
 TEST(NamedType, DefaultConstructor)
 {
     constexpr NamedDefaultConstructable tWrapped{};
-    EXPECT_EQ(tWrapped.mValue.mDouble, 21.0);
-    EXPECT_EQ(tWrapped.mValue.mInt, 3);
+    EXPECT_EQ(tWrapped.mValue.mDouble, DefaultConstructable::mDefaultDouble);
+    EXPECT_EQ(tWrapped.mValue.mInt, DefaultConstructable::mDefaultInt);
 }
 }  // namespace plato::utilities::unittest

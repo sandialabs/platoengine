@@ -24,14 +24,14 @@ struct AnalysisDomainMeshSequentialViewIterator
     using pointer = typename std::iterator_traits<InnerIteratorType>::pointer;
     using reference = SharedValueProxy<ScalarFieldValue, InnerIteratorType>;
 
-    AnalysisDomainMeshSequentialViewIterator& operator++();
-    [[nodiscard]] const reference operator*() const;
+    auto operator++() -> AnalysisDomainMeshSequentialViewIterator&;
+    [[nodiscard]] auto operator*() const -> reference;
 
     template <typename Iterator = InnerIteratorType>
     [[nodiscard]] auto operator*() -> std::enable_if_t<!kIsConstIterator<Iterator>, reference>;
 
-    [[nodiscard]] bool operator==(const AnalysisDomainMeshSequentialViewIterator& aRHSIterator) const;
-    [[nodiscard]] bool operator!=(const AnalysisDomainMeshSequentialViewIterator& aRHSIterator) const;
+    [[nodiscard]] auto operator==(const AnalysisDomainMeshSequentialViewIterator& aRHSIterator) const -> bool;
+    [[nodiscard]] auto operator!=(const AnalysisDomainMeshSequentialViewIterator& aRHSIterator) const -> bool;
 
     std::vector<InnerIteratorType> mCurrentIterators;
     std::vector<InnerIteratorType> mEndIterators;

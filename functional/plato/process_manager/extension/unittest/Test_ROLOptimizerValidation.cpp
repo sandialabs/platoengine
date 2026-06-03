@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
 #include <cmath>
+#include <string>
+#include <vector>
 
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/process_manager/extension/ROLOptimization.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
@@ -37,13 +41,18 @@ void test_optional_generic_tolerance(input_parser::rol_optimization& aOptimizati
 {
     aField = boost::none;
     EXPECT_FALSE(aValidationFunction(aOptimizationParameters).has_value()) << aTestContext;
+
     aField = -1.0;
     EXPECT_TRUE(aValidationFunction(aOptimizationParameters).has_value()) << aTestContext;
+
     aField = .0;
     EXPECT_TRUE(aValidationFunction(aOptimizationParameters).has_value()) << aTestContext;
+
     aField = std::nextafter(0.0, 1.0);
     EXPECT_FALSE(aValidationFunction(aOptimizationParameters).has_value()) << aTestContext;
-    aField = 1e-8;
+
+    constexpr auto tArbitrarySmallValidValue = 1e-8;
+    aField = tArbitrarySmallValidValue;
     EXPECT_FALSE(aValidationFunction(aOptimizationParameters).has_value()) << aTestContext;
 }
 

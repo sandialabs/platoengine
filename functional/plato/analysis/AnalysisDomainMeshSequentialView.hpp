@@ -24,11 +24,11 @@ struct AnalysisDomainMeshSequentialViewTemplate
 {
     std::reference_wrapper<AnalysisDomainMeshType> mAnalysisDomainMesh;
 
-    [[nodiscard]] std::size_t size() const;
+    [[nodiscard]] auto size() const -> std::size_t;
 
     using IteratorType = typename detail::IteratorType<AnalysisDomainMeshType>::type;
-    [[nodiscard]] IteratorType begin() const;
-    [[nodiscard]] IteratorType end() const;
+    [[nodiscard]] auto begin() const -> IteratorType;
+    [[nodiscard]] auto end() const -> IteratorType;
 };
 
 using AnalysisDomainMeshSequentialView = AnalysisDomainMeshSequentialViewTemplate<const AnalysisDomainMesh>;

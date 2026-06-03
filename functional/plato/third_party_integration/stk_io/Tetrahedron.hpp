@@ -10,17 +10,17 @@ namespace plato::third_party_integration::stk_io
 
 struct Tetrahedron
 {
-    constexpr static auto kNumVertices = unsigned{4};
-    using Indices = std::array<unsigned int, kNumVertices>;
-    using VertexSensitivities = std::array<common::Vector3, kNumVertices>;
+    constexpr static auto mNumVertices = unsigned{4};
+    using Indices = std::array<unsigned int, mNumVertices>;
+    using VertexSensitivities = std::array<common::Vector3, mNumVertices>;
 
-    common::Coordinate p0;
-    common::Coordinate p1;
-    common::Coordinate p2;
-    common::Coordinate p3;
+    common::Coordinate mP0;
+    common::Coordinate mP1;
+    common::Coordinate mP2;
+    common::Coordinate mP3;
 
-    [[nodiscard]] double volume() const;
-    [[nodiscard]] common::Coordinate centroid() const;
+    [[nodiscard]] auto volume() const -> double;
+    [[nodiscard]] auto centroid() const -> common::Coordinate;
     [[nodiscard]] auto volumeVertexSensitivities() const -> VertexSensitivities;
 };
 

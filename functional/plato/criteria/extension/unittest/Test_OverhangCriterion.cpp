@@ -1,15 +1,31 @@
 #include <gtest/gtest.h>
 
-#include <format>
+#include <array>
+#include <boost/none.hpp>
+#include <cmath>
+#include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <numbers>
 #include <numeric>
+#include <ostream>
 #include <ranges>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/Utilities.hpp"
 #include "plato/criteria/extension/OverhangCriterion.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
 #include "plato/third_party_integration/krino/TriangleUtilities.hpp"
-#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/Exception.hpp"
 #include "plato/utilities/GradientChecker.hpp"
@@ -25,8 +41,8 @@ using namespace plato::third_party_integration::krino;
 constexpr double kTolerance{1e-14};
 constexpr Vector3 kBuildDirection{.x = 0, .y = 0, .z = -1};
 constexpr double kStepTransitionWidth{0.05};
-const double kOverhangAngleThreshold{-std::sqrt(2.0) / 2.0};
-OverhangCriterion kCriterion(kStepTransitionWidth, kBuildDirection, kOverhangAngleThreshold, {});
+const double kOverhangAngleThreshold{-std::numbers::sqrt2 / 2.0};
+const OverhangCriterion kCriterion(kStepTransitionWidth, kBuildDirection, kOverhangAngleThreshold, {});
 const auto kBlock1 = analysis::AnalysisDomainMesh::ScalarFieldVector{{0, 0, 0.0}, {1, 1, 1.0}, {2, 2, 2.0}};
 constexpr auto kBlock1ID = 1U;
 
@@ -76,8 +92,8 @@ TEST(OverhangCriterion, OverhangFromTriangleCoords)
     const std::vector<double> tExpectedValues{1.0, 0.0, 0.5, 1.0};
     for (const auto& [tCurNode3Option, tCurExpectedValue] : utilities::Zip{tThirdNodeOptions, tExpectedValues})
     {
-        SensitivityTriangle tTriangle{NodeIDCoordsPair{23, tNode1}, NodeIDCoordsPair{25, tNode2},
-                                      NodeIDCoordsPair{26, tCurNode3Option}};
+        const SensitivityTriangle tTriangle{NodeIDCoordsPair{23, tNode1}, NodeIDCoordsPair{25, tNode2},
+                                            NodeIDCoordsPair{26, tCurNode3Option}};
         EXPECT_NEAR(detail::overhang_from_triangle(tTriangle, kCriterion), tCurExpectedValue, kTolerance);
     }
 }
@@ -122,8 +138,8 @@ TEST(OverhangCriterion, dExponentialStepFunction)
     constexpr auto tLastFiniteDifferenceError{1e-6};
     constexpr auto tX = 0.26;
     constexpr auto tDirection = 1.0;
-    check_first_order_truncation_error([](const double x) { return detail::exponential_step_function(x); },
-                                       [](const double x) { return detail::d_exponential_step_function(x); },
+    check_first_order_truncation_error([](const double aX) { return detail::exponential_step_function(aX); },
+                                       [](const double aX) { return detail::d_exponential_step_function(aX); },
                                        tGradCheckParams, tX, tDirection, tFirstOrderTruncationTolerance,
                                        tLastFiniteDifferenceError);
 }
@@ -136,9 +152,10 @@ TEST(OverhangCriterion, dSmoothingFunction)
     constexpr auto tLastFiniteDifferenceError{1e-6};
     constexpr auto tX = 0.74;
     constexpr auto tDirection = 1.0;
-    check_first_order_truncation_error([](const double x) { return detail::smoothing_function(x); },
-                                       [](const double x) { return detail::d_smoothing_function(x); }, tGradCheckParams,
-                                       tX, tDirection, tFirstOrderTruncationTolerance, tLastFiniteDifferenceError);
+    check_first_order_truncation_error([](const double aX) { return detail::smoothing_function(aX); },
+                                       [](const double aX) { return detail::d_smoothing_function(aX); },
+                                       tGradCheckParams, tX, tDirection, tFirstOrderTruncationTolerance,
+                                       tLastFiniteDifferenceError);
 }
 
 TEST(OverhangCriterion, dOverhang)
@@ -159,7 +176,7 @@ TEST(OverhangCriterion, dOverhang)
 
 namespace
 {
-[[nodiscard]] SensitivityTriangle build_single_tri_from_coords(const std::vector<double>& aCoords)
+[[nodiscard]] auto build_single_tri_from_coords(const std::vector<double>& aCoords) -> SensitivityTriangle
 {
     const Coordinate tNode1{.x = aCoords[0], .y = aCoords[1], .z = aCoords[2]};
     const Coordinate tNode2{.x = aCoords[3], .y = aCoords[4], .z = aCoords[5]};
@@ -171,7 +188,7 @@ namespace
 TEST(OverhangCriterion, SingleTriangleDerivative)
 {
     constexpr auto tAbsoluteError = 7e-3;
-    const double tOverhangThreshold = -std::sqrt(2.0) / 2.0;
+    const double tOverhangThreshold = -std::numbers::sqrt2 / 2.0;
     constexpr double tTransitionWidth = 0.05;
     constexpr Vector3 tBuildDirection = {.x = 0, .y = 0, .z = 1};
     const OverhangCriterion tCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold, {});
@@ -234,7 +251,7 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
     const NodeIDCoordsPair tNode6{6, Coordinate{.x = 1., .y = 2., .z = 0.}};
     const std::vector<SensitivityTriangle> tTriangles{
         {tNode1, tNode2, tNode4}, {tNode2, tNode3, tNode5}, {tNode2, tNode5, tNode4}, {tNode4, tNode5, tNode6}};
-    const double tOverhangThreshold = -std::sqrt(2.0) / 2.0;
+    const double tOverhangThreshold = -std::numbers::sqrt2 / 2.0;
     constexpr double tTransitionWidth = 0.05;
     constexpr Vector3 tBuildDirection = {.x = 0, .y = .681189886111555, .z = -.732106781186548};
     const OverhangCriterion tCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold, {});
@@ -243,7 +260,7 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
 
     // Calculate indivdual triangle maps--one for each tri
     std::vector<std::unordered_map<GlobalNodeID, Sensitivity>> tIndividualGradientMaps;
-    for (const auto tTriIndex : std::views::iota(0u, tNumTris))
+    for (const auto tTriIndex : std::views::iota(0U, tNumTris))
     {
         tIndividualGradientMaps.push_back(
             detail::calculate_gradient_map_from_triangles({tTriangles[tTriIndex]}, tCriterion));
@@ -260,7 +277,7 @@ TEST(OverhangCriterion, GradientMapFromMulitpleTriangles)
             tTriangleRange.begin(), tTriangleRange.end(), Sensitivity{0., 0., 0.},
             [tIndividualGradientMaps, tNodeIndex](const Sensitivity aCurNodeGradient, const auto aTriIndex)
             {
-                return tIndividualGradientMaps[aTriIndex].count(tNodeIndex + 1)
+                return tIndividualGradientMaps[aTriIndex].contains(tNodeIndex + 1)
                            ? aCurNodeGradient + tIndividualGradientMaps[aTriIndex].at(tNodeIndex + 1)
                            : aCurNodeGradient;
             });
@@ -315,14 +332,14 @@ void create_invalid_overhang_input_file(const std::filesystem::path& aFilename)
     tTextFile.close();
 }
 
-OverhangCriterion create_overhang_criterion()
+auto create_overhang_criterion() -> OverhangCriterion
 {
     const std::vector<std::string> tSidesetNames{{"surface__void"}};
     constexpr double tTransitionWidth{0.05};
     constexpr double tOverhangAngleInDegrees{45.0};
     const double tOverhangThreshold{detail::convert_angle_to_threshold_value(tOverhangAngleInDegrees)};
     const third_party_integration::common::Vector3 tBuildDirection{.x = 0, .y = 1, .z = 0};
-    return OverhangCriterion(tTransitionWidth, tBuildDirection, tOverhangThreshold, tSidesetNames);
+    return {tTransitionWidth, tBuildDirection, tOverhangThreshold, tSidesetNames};
 }
 
 }  // namespace
@@ -381,7 +398,7 @@ TEST(OverhangCriterion, ToSidesetList_NoAdditionalSidesetNames)
 
 TEST(OverhangCriterion, ToSidesetList_AdditionalSidesetNames)
 {
-    input_parser::FileList tAdditionalSidesetNames{{"cat", "dog"}};
+    const input_parser::FileList tAdditionalSidesetNames{{"cat", "dog"}};
     const auto& tSidesetList = detail::to_sideset_list(tAdditionalSidesetNames);
     EXPECT_EQ(tSidesetList.size(), 3);
     EXPECT_STREQ(tSidesetList[0].c_str(), third_party_integration::krino::interface_sideset_name().c_str());
@@ -391,7 +408,7 @@ TEST(OverhangCriterion, ToSidesetList_AdditionalSidesetNames)
 
 TEST(OverhangCriterion, BuildDirection_InputProvided)
 {
-    input_parser::Point tInputDirection{2, 3, 4};
+    const input_parser::Point tInputDirection{2, 3, 4};
     const auto& tBuildDirection = detail::build_direction(tInputDirection);
     EXPECT_DOUBLE_EQ(tBuildDirection.x, 2);
     EXPECT_DOUBLE_EQ(tBuildDirection.y, 3);
@@ -443,7 +460,7 @@ TEST(OverhangCriterion, TrainglesToEvaluateOver)
     const std::vector<SensitivityTriangle> tSensitivityTriangles =
         detail::triangles_to_evaluate_over(tMeshPath.value(), tSidesetNames);
     EXPECT_EQ(tSensitivityTriangles.size(), tGoldNumTris);
-    for (const auto tCurTriIndex : std::views::iota(0u, tGoldNumTris))
+    for (const auto tCurTriIndex : std::views::iota(0U, tGoldNumTris))
     {
         const third_party_integration::common::Vector3 tNormal = tSensitivityTriangles[tCurTriIndex].normal();
         EXPECT_NEAR(tNormal.x, tGoldNormal.x, tTolerance);

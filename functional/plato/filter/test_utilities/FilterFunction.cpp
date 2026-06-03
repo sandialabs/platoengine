@@ -1,6 +1,11 @@
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 
+#include <memory>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/filter/library/FilterInterface.hpp"
+#include "plato/filter/library/FilterJacobian.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 
 namespace plato::filter::test_utilities
 {

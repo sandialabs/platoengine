@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <optional>
+
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 
 namespace plato::criteria::library::parallel_unittest

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <utility>
+
 #include "plato/test_utilities/SumConstraint.hpp"
 
 namespace plato::core::unittest

@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <variant>
-
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
 
@@ -9,13 +7,13 @@ namespace plato::process_manager::library::unittest
 {
 namespace
 {
-[[nodiscard]] auto make_test_process_manager_function(const library::ValidatedProcessManagerInput&)
+[[nodiscard]] auto make_test_process_manager_function(const library::ValidatedProcessManagerInput& /*unused*/)
     -> StageAndProcessManager
 {
     return {RunStage::kValidate, [](const ProcessManagerData&) {}};
 }
 
-[[maybe_unused]] static auto kTestProcessManagerRegistration =
+[[maybe_unused]] const auto kTestProcessManagerRegistration =
     ProcessManagerRegistration{"test", [](const ValidatedProcessManagerInput& aValidInput)
                                { return make_test_process_manager_function(aValidInput); }};
 }  // namespace

@@ -2,12 +2,14 @@
 
 #include <boost/mpi/communicator.hpp>
 
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterInputUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/ReflectFilter.hpp"
 #include "plato/filter/extension/kernel_filters/RevolveFilter.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/ReflectionMeshTestUtility.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/SymmetryFilterTestUtilities.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 
 namespace plato::filter::extension::kernel_filters::parallel_unittest
@@ -15,7 +17,7 @@ namespace plato::filter::extension::kernel_filters::parallel_unittest
 
 TEST(ParallelKernelFilterInputUtilities, ValidateAllTargetDomainFindSourceDomain)
 {
-    constexpr auto tNumRanks = int{4};
+    constexpr auto tNumRanks = 4;
     const auto tCommunicator = boost::mpi::communicator{};
     ASSERT_EQ(tNumRanks, tCommunicator.size());
     const auto tSourceMeshFile = std::filesystem::path{"source.exo"};

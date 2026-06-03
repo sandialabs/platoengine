@@ -2,8 +2,13 @@
 
 #include <algorithm>
 #include <boost/math/special_functions/sign.hpp>
+#include <cassert>
 #include <cmath>
+#include <utility>
+#include <vector>
 
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/PairWiseAccumulate.hpp"
 
 namespace plato::criteria::extension
@@ -21,7 +26,7 @@ auto make_p_norm_function(const double aPower) -> PNormFunction
 namespace detail
 {
 
-double p_norm_value(std::vector<double> aVector, const double aPower)
+auto p_norm_value(std::vector<double> aVector, const double aPower) -> double
 {
     assert(aPower >= 1.0);
     assert(!aVector.empty());

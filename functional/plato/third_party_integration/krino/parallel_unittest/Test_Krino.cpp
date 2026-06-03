@@ -3,14 +3,16 @@
 #include <algorithm>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <boost/serialization/vector.hpp>
+#include <boost/serialization/vector.hpp>  // NOLINT(misc-include-cleaner)
 #include <iterator>
+#include <stk_mesh/base/Types.hpp>
 #include <unordered_map>
+#include <vector>
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/KrinoLevelSetPolicy.hpp"
-#include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
@@ -29,7 +31,7 @@ class ParallelKrinoFixture : public krino::test_utilities::KrinoTestFixture
 namespace
 {
 
-constexpr auto kNumRanks = int{4};
+constexpr auto kNumRanks = 4;
 constexpr auto kWriteMeshName = std::string_view{"levelset_mesh.exo"};
 const auto kTetBoxFilePath = utilities::data_file_path("box_3x4x7_tet4.cdf");
 const auto kUnitSphere = Sphere{{0, 0, 0}, 1.0};

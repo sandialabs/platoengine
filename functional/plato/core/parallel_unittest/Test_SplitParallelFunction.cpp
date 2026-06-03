@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <boost/mpi/collectives/broadcast.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <ranges>
 
@@ -8,14 +7,15 @@
 #include "plato/core/ParallelFunction.hpp"
 #include "plato/core/SplitParallelFunction.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
+#include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/test_utilities/TwoDTestTypesSerialization.hpp"
 
 namespace plato::core::parallel_unittest
 {
 namespace
 {
-constexpr auto kRosenbrockA = double{1.0};
-constexpr auto kRosenbrockB = double{10.0};
+constexpr auto kRosenbrockA = 1.0;
+constexpr auto kRosenbrockB = 10.0;
 constexpr auto kRosenbrock = plato::test_utilities::Rosenbrock{kRosenbrockA, kRosenbrockB};
 
 /// @brief Returns a Function that computes the Rosenbrock function using a communicator for testing parallelization.

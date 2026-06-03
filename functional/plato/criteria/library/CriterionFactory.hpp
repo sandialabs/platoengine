@@ -29,7 +29,7 @@ auto to_criterion_input(const Input& aInput) -> CriterionInput
 {
     return CriterionInput{.mNumberOfProcessors = aInput.number_of_processors.value_or(1),
                           .mInputFiles = aInput.input_files.value_or(input_parser::FileList{}),
-                          .mComponentType = input_parser::ComponentTypeOfInputBlock<Input>::value,
+                          .mComponentType = input_parser::ComponentTypeOfInputBlock<Input>::mValue,
                           .mName = aInput.name.value()};
 }
 
@@ -52,11 +52,9 @@ auto make_criterion_function(const Input& aValidatedInput,
     {
         return std::move(tCriterion).value();
     }
-    else
-    {
-        throw utilities::Exception("App/criterion \"" + tRegistrationName + "\" not found. Available criteria are:\n" +
-                                   utilities::concatenate_container(registered_criteria_names(), "\n"));
-    }
+
+    throw utilities::Exception("App/criterion \"" + tRegistrationName + "\" not found. Available criteria are:\n" +
+                               utilities::concatenate_container(registered_criteria_names(), "\n"));
 }
 }  // namespace plato::criteria::library
 

@@ -18,7 +18,7 @@ class ValidInputTestFixture : public test_utilities::FileCreatingTestFixture
 
    private:
     input_parser::ParsedInput mInput;
-    std::filesystem::path mFilePath{};
+    std::filesystem::path mFilePath;
 };
 }  // namespace plato::integration_tests::utilities
 

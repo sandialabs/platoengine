@@ -1,7 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/core/ParallelAggregate.hpp"
 #include "plato/core/ParallelFunction.hpp"
 #include "plato/integration_tests/utilities/DynamicVectorRosenbrockFunction.hpp"
@@ -32,7 +37,7 @@ TEST(ParallelAggregateDynamicVector, ParallelAggregateOneRosenbrockPerRank)
     // of ranks.
     const auto tRosenbrockFunction = utilities::make_rosenbrock_dynamic_vector_function(ptu::Rosenbrock{});
     using RosenbrockF = std::decay_t<decltype(tRosenbrockFunction)>;
-    constexpr auto tWeight = double{0.5};
+    constexpr auto tWeight = 0.5;
 
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
     const auto tWorld = boost::mpi::communicator{};
@@ -63,15 +68,17 @@ TEST(ParallelAggregateDynamicVector, ParallelAggregateParallelRosenbrock)
 
     // Make mpi groups by even and odd ranks
     const auto tWorld = boost::mpi::communicator{};
-    constexpr auto kNumGroups = 3;
-    const auto tCommunicator = tWorld.split(tWorld.rank() % kNumGroups);
+    constexpr auto tNumGroups = 3;
+    const auto tCommunicator = tWorld.split(tWorld.rank() % tNumGroups);
 
     // Make a phony parallel Rosenbrock
     const auto tRosenbrock = ptu::Rosenbrock{};
     const auto tParallelRosenbrock = ptu::ParallelTestFunctionWrapper<double, const ArgType&>{
-        [tRosenbrock = tRosenbrock](const ArgType& x) { return tRosenbrock.f(x[0], x[1]); }};
-    const auto tDerivativeParallelRosenbrock = ptu::ParallelTestFunctionWrapper<GradientType, const ArgType&>{
-        [tRosenbrock = tRosenbrock](const ArgType& x) { return ptu::to_dynamic_vector(tRosenbrock.df(x[0], x[1])); }};
+        [tRosenbrock = tRosenbrock](const ArgType& aX) { return tRosenbrock.f(aX[0], aX[1]); }};
+    const auto tDerivativeParallelRosenbrock =
+        ptu::ParallelTestFunctionWrapper<GradientType, const ArgType&>{[tRosenbrock = tRosenbrock](const ArgType& aX) {
+            return ptu::to_dynamic_vector(tRosenbrock.df(aX[0], aX[1]));
+        }};
 
     const auto tParallelFunction =
         ptu::make_parallel_function(tParallelRosenbrock, tDerivativeParallelRosenbrock, tCommunicator);
@@ -80,7 +87,7 @@ TEST(ParallelAggregateDynamicVector, ParallelAggregateParallelRosenbrock)
     // Use in parallel aggregate
     using RosenbrockF = std::decay_t<decltype(tAdaptedParallelFunction)>;
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
-    constexpr auto tWeight = double{0.5};
+    constexpr auto tWeight = 0.5;
     const auto tAggregate =
         TestParallelAggregate(FunctionAndWeight{std::make_pair(tAdaptedParallelFunction, tWeight)}, tWorld);
 
@@ -89,7 +96,7 @@ TEST(ParallelAggregateDynamicVector, ParallelAggregateParallelRosenbrock)
     const auto tNumRanks = tWorld.size();
     ASSERT_GT(tNumRanks, 3) << "Test uses three groups and so it requires at least three ranks.";
 
-    const auto tExpectedF = kNumGroups * tWeight * tRosenbrock.f(tControl[0], tControl[1]);
+    const auto tExpectedF = tNumGroups * tWeight * tRosenbrock.f(tControl[0], tControl[1]);
     EXPECT_EQ(tAggregate.evaluate<core::evaluation::kFunction>(tControl), tExpectedF);
 }
 

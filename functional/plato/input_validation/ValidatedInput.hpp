@@ -22,7 +22,7 @@ struct ValidateKey;
 class ValidatedInput
 {
    public:
-    ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey&);
+    ValidatedInput(input_parser::ParsedInput aInput, const ValidateKey& /*unused*/);
 
     /// @brief Returns the parsed input blocks corresponding to @a kComponentType.
     /// @post Each input returned is guaranteed to be `active`: If its underlying input type has an `active` member

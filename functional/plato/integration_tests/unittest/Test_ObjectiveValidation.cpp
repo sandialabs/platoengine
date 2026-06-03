@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"

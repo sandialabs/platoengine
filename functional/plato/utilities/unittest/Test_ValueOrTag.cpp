@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <string>
+#include <utility>
+
 #include "plato/test_utilities/CopyCounter.hpp"
 #include "plato/utilities/ValueOrTag.hpp"
 
@@ -49,7 +52,7 @@ TEST(ValueOrTag, ValueOrWithValue)
 {
     const auto tLich = std::string{"lich"};
     const auto tValue = MaybeMonster{tLich};
-    const auto tResult = tValue.valueOr("Hero");
+    const auto tResult = tValue.valueOr(std::string{"Hero"});
     EXPECT_EQ(tResult, tLich);
 }
 
@@ -80,7 +83,7 @@ TEST(ValueOrTag, ValueOrInvokeWithTag)
 {
     const auto tValue = MaybeMonster{Hero{}};
     const auto tHero = std::string{"Hero"};
-    const auto tResult = tValue.valueOrInvoke([&tHero]() { return tHero; });
+    const auto tResult = tValue.valueOrInvoke([tHeroCopy = tHero]() { return tHeroCopy; });
     EXPECT_EQ(tResult, tHero);
 }
 
@@ -108,16 +111,20 @@ TEST(ValueOrTag, Copy)
 
 TEST(ValueOrTag, Move)
 {
-    auto tValue = MaybeCopyCounter{test_utilities::CopyCounter{}};
-    const auto tResult = std::move(tValue).valueOr(test_utilities::CopyCounter{});
     constexpr auto tExpectedNumberOfCopies = 0U;
-    EXPECT_EQ(tResult.mCopies, tExpectedNumberOfCopies);
     constexpr auto tExpectedNumberOfMoves = 2U;
-    EXPECT_EQ(tResult.mMoves, tExpectedNumberOfMoves);
-
-    const auto tInvokeResult = std::move(tValue).valueOrInvoke([]() { return test_utilities::CopyCounter{}; });
-    EXPECT_EQ(tInvokeResult.mCopies, tExpectedNumberOfCopies);
-    EXPECT_EQ(tInvokeResult.mMoves, tExpectedNumberOfMoves);
+    {
+        auto tValue = MaybeCopyCounter{test_utilities::CopyCounter{}};
+        const auto tResult = std::move(tValue).valueOr(test_utilities::CopyCounter{});
+        EXPECT_EQ(tResult.mCopies, tExpectedNumberOfCopies) << "valueOr";
+        EXPECT_EQ(tResult.mMoves, tExpectedNumberOfMoves) << "valueOr";
+    }
+    {
+        auto tValue = MaybeCopyCounter{test_utilities::CopyCounter{}};
+        const auto tInvokeResult = std::move(tValue).valueOrInvoke([]() { return test_utilities::CopyCounter{}; });
+        EXPECT_EQ(tInvokeResult.mCopies, tExpectedNumberOfCopies) << "valueOrInvoke";
+        EXPECT_EQ(tInvokeResult.mMoves, tExpectedNumberOfMoves) << "valueOrInvoke";
+    }
 }
 
 }  // namespace plato::utilities::unittest

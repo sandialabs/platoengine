@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <numeric>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/IndexRange.hpp"
@@ -10,12 +12,15 @@ namespace plato::utilities::unittest
 {
 namespace
 {
+// This must remain be with Vector3 and Coordinate
+// NOLINTBEGIN(readability-identifier-naming)
 struct TestVector
 {
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
 };
+// NOLINTEND(readability-identifier-naming)
 }  // namespace
 
 TEST(MultiVectorView, Values)
@@ -29,17 +34,17 @@ TEST(MultiVectorView, Values)
         return tTempVector;
     }();
 
-    const auto tTest = [&tVector, tLength](auto& tMultiVectorView, const test_utilities::TestContext& aTestContext)
+    const auto tTest = [&tVector, tLength](auto& aMultiVectorView, const test_utilities::TestContext& aTestContext)
     {
         auto tIndex = std::size_t{0};
-        ASSERT_EQ(tMultiVectorView.size(), tLength * tDimension) << aTestContext;
-        ASSERT_EQ(tMultiVectorView.numberOfVectors(), tLength) << aTestContext;
+        ASSERT_EQ(aMultiVectorView.size(), tLength * tDimension) << aTestContext;
+        ASSERT_EQ(aMultiVectorView.numberOfVectors(), tLength) << aTestContext;
         // Check in expected order
         for (const auto tLengthIndex : IndexRange{tLength})
         {
             for (const auto tDimensionIndex : IndexRange{tDimension})
             {
-                EXPECT_EQ(tMultiVectorView(VectorIndex{tLengthIndex}, ComponentIndex{tDimensionIndex}), tVector[tIndex])
+                EXPECT_EQ(aMultiVectorView(VectorIndex{tLengthIndex}, ComponentIndex{tDimensionIndex}), tVector[tIndex])
                     << aTestContext;
                 ++tIndex;
             }
@@ -124,15 +129,18 @@ TEST(MultiVectorView, VectorAssignment)
         auto tVector = std::vector<double>(tDimension * tLength, 0.0);
         auto tMultiVectorView = MultiVectorView{tVector, tDimension};
 
-        tMultiVectorView(VectorIndex{0}) = TestVector{1., 2.};
+        const auto tTestVector1 = TestVector{1., 2.};
+        tMultiVectorView(VectorIndex{0}) = tTestVector1;
         EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{0}), 1.0);
         EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{1}), 2.0);
 
-        tMultiVectorView(VectorIndex{1}) += TestVector{5., 6., 7.};
+        const auto tTestVector2 = TestVector{5., 6., 7.};
+        tMultiVectorView(VectorIndex{1}) += tTestVector2;
         EXPECT_EQ(tMultiVectorView(VectorIndex{1}, ComponentIndex{0}), 5.0);
         EXPECT_EQ(tMultiVectorView(VectorIndex{1}, ComponentIndex{1}), 6.0);
 
-        tMultiVectorView(VectorIndex{1}) += TestVector{5., 6., 7.};
+        const auto tTestVector3 = TestVector{5., 6., 7.};
+        tMultiVectorView(VectorIndex{1}) += tTestVector3;
         EXPECT_EQ(tMultiVectorView(VectorIndex{1}, ComponentIndex{0}), 10.0);
         EXPECT_EQ(tMultiVectorView(VectorIndex{1}, ComponentIndex{1}), 12.0);
     }
@@ -143,12 +151,14 @@ TEST(MultiVectorView, VectorAssignment)
         auto tVector = std::vector<double>(tDimension * tLength, 0.0);
         auto tMultiVectorView = MultiVectorView{tVector, tDimension};
 
-        tMultiVectorView(VectorIndex{0}) = TestVector{1., 2., 3.};
+        const auto tTestVector1 = TestVector{1., 2., 3.};
+        tMultiVectorView(VectorIndex{0}) = tTestVector1;
         EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{0}), 1.0);
         EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{1}), 2.0);
         EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{2}), 3.0);
 
-        tMultiVectorView(VectorIndex{0}) = TestVector{21., 72., 34.};
+        const auto tTestVector2 = TestVector{21., 72., 34.};
+        tMultiVectorView(VectorIndex{0}) = tTestVector2;
         EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{0}), 21.0);
         EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{1}), 72.0);
         EXPECT_EQ(tMultiVectorView(VectorIndex{0}, ComponentIndex{2}), 34.0);
@@ -160,7 +170,7 @@ TEST(MultiVectorView, VectorObjectFromVectorIndex)
     // 2D from a non-const vector
     {
         constexpr auto tDimension = std::size_t{2};
-        auto tVector = std::vector<double>{1.0, 2.0, 3.0, 4.0};
+        const auto tVector = std::vector<double>{1.0, 2.0, 3.0, 4.0};
         const auto tMultiVectorView = MultiVectorView{tVector, tDimension};
         const TestVector tVectorObject = tMultiVectorView(VectorIndex{0});
         EXPECT_EQ(tVectorObject.x, 1.0);

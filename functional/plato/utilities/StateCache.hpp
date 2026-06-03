@@ -21,7 +21,7 @@ class StateCache
 
     StateCache(StateComputationFunction aStateFunction, HashingFunction aHashFunction);
 
-    auto compute(Args...) -> const State&;
+    auto compute(Args... /*aArgs*/) -> const State&;
 
     /// @brief Returns `true` if compute has been called at least once, initializing the cache.
     [[nodiscard]] auto isInitialized() const -> bool;

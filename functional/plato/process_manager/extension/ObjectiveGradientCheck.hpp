@@ -46,8 +46,8 @@ class ObjectiveGradientCheck
    public:
     explicit ObjectiveGradientCheck(const library::ValidatedProcessManagerInput& aInput);
 
-    /// @brief Take the process manager data @a aProcessManagerData and run the objective gradient check.
-    void run(const library::ProcessManagerData& aProcessManagerData) const;
+    /// @brief Take the process manager data @a aProblem and run the objective gradient check.
+    void run(const library::ProcessManagerData& aProblem) const;
 
    private:
     /// @brief Using the process manager data @a aProblem, a given mesh @a aInputMeshName, and design variables defined
@@ -72,13 +72,15 @@ class ObjectiveGradientCheck
                                           const linear_algebra::DynamicVector<double>& aDesignVariables) const
         -> std::string;
 
+    constexpr static auto mDefaultRandomSeed = 42U;
+
     std::filesystem::path mInputMeshName;
     std::filesystem::path mOutputFileName;
     input_parser::DesignVariableTypes mDesignVariableType;
     utilities::GradientCheckParameters mGradientCheckParameters;
     input_parser::DirectionVectorTypes mDirectionVectorType;
-    unsigned int mSeed = 42;
-    boost::mpi::communicator mCommunicator = boost::mpi::communicator{};
+    unsigned int mSeed = mDefaultRandomSeed;
+    boost::mpi::communicator mCommunicator;
 };
 
 namespace detail
@@ -104,8 +106,8 @@ using Seed = utilities::NamedType<unsigned int, struct SeedTag>;
 
 /// @brief Generate a perturbation vector sized @a aSize and populated based on @a aDirectionVectorType
 [[nodiscard]] auto perturbation(const input_parser::DirectionVectorTypes& aDirectionVectorType,
-                                const std::size_t aSize,
-                                const Seed aSeed) -> linear_algebra::DynamicVector<double>;
+                                std::size_t aSize,
+                                Seed aSeed) -> linear_algebra::DynamicVector<double>;
 
 }  // namespace detail
 

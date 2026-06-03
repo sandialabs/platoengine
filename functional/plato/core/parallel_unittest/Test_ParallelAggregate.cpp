@@ -1,10 +1,16 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/core/ParallelAggregate.hpp"
 #include "plato/core/test_utilities/Utilities.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
+#include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/test_utilities/TwoDTestTypesSerialization.hpp"
 
 namespace plato::core::parallel_unittest
@@ -56,14 +62,15 @@ TEST(ParallelAggregate, EvaluateDifferent)
         GTEST_SKIP() << "Test requires more than 1 rank.";
     }
 
-    constexpr double tA = 2.0;
-    constexpr double tB = 50.0;
-    const auto tRosenbrockFunctionNonDefault = test_utilities::make_two_d_function(pft::Rosenbrock{tA, tB});
+    constexpr double tAParameter = 2.0;
+    constexpr double tBParameter = 50.0;
+    const auto tRosenbrockFunctionNonDefault =
+        test_utilities::make_two_d_function(pft::Rosenbrock{tAParameter, tBParameter});
     const auto tRosenbrockFunctionDefault = test_utilities::make_two_d_function(pft::Rosenbrock{});
 
     using RosenbrockF = std::decay_t<decltype(tRosenbrockFunctionNonDefault)>;
     using FunctionAndWeight = std::vector<std::pair<RosenbrockF, double>>;
-    constexpr auto tWeight = double{0.5};
+    constexpr auto tWeight = 0.5;
     const auto tRosenbrockFunctionAndWeight =
         tCommunicator.rank() == 0 ? FunctionAndWeight{std::make_pair(tRosenbrockFunctionDefault, tWeight)}
                                   : FunctionAndWeight{std::make_pair(tRosenbrockFunctionNonDefault, tWeight)};

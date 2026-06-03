@@ -1,25 +1,28 @@
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
 
-#include <cstddef>
+#include <algorithm>
+#include <vector>
 
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/utilities/MultidimensionalRange.hpp"
 #include "plato/utilities/NamedType.hpp"
 
 namespace plato::third_party_integration::krino
 {
-std::vector<Sphere> generate_spheres(const SpherePatternData &aData)
+auto generate_spheres(const SpherePatternData &aData) -> std::vector<Sphere>
 {
-    SphereLocatorData tLocatorData = detail::calculate_sphere_locator_data(aData);
+    const SphereLocatorData tLocatorData = detail::calculate_sphere_locator_data(aData);
 
-    std::vector<double> tXValues = detail::create_sphere_spacing_vector(
-        tLocatorData.mSphereCounts.mX, detail::SphereStart{tLocatorData.mSpherePatternStart.x},
-        detail::SphereStep{aData.mSphereSpacing});
-    std::vector<double> tYValues = detail::create_sphere_spacing_vector(
-        tLocatorData.mSphereCounts.mY, detail::SphereStart{tLocatorData.mSpherePatternStart.y},
-        detail::SphereStep{aData.mSphereSpacing});
-    std::vector<double> tZValues = detail::create_sphere_spacing_vector(
-        tLocatorData.mSphereCounts.mZ, detail::SphereStart{tLocatorData.mSpherePatternStart.z},
-        detail::SphereStep{aData.mSphereSpacing});
+    const auto tXValues = detail::create_sphere_spacing_vector(tLocatorData.mSphereCounts.mX,
+                                                               detail::SphereStart{tLocatorData.mSpherePatternStart.x},
+                                                               detail::SphereStep{aData.mSphereSpacing});
+    const auto tYValues = detail::create_sphere_spacing_vector(tLocatorData.mSphereCounts.mY,
+                                                               detail::SphereStart{tLocatorData.mSpherePatternStart.y},
+                                                               detail::SphereStep{aData.mSphereSpacing});
+    const auto tZValues = detail::create_sphere_spacing_vector(tLocatorData.mSphereCounts.mZ,
+                                                               detail::SphereStart{tLocatorData.mSpherePatternStart.z},
+                                                               detail::SphereStep{aData.mSphereSpacing});
 
     // Loop to create 3D array of spheres
     std::vector<Sphere> tSpheres;
@@ -50,7 +53,7 @@ using IntegerCoordinate = utilities::NamedType<common::Coordinate, struct Intege
 }
 }  // namespace
 
-common::Coordinate calculate_num_spheres_in_each_direction(const SpherePatternData &aData)
+auto calculate_num_spheres_in_each_direction(const SpherePatternData &aData) -> common::Coordinate
 {
     constexpr double tNumDirectionsFromCenterSphere = 2.0;
     constexpr double tCenterSphere = 1.0;
@@ -64,7 +67,8 @@ common::Coordinate calculate_num_spheres_in_each_direction(const SpherePatternDa
         tCenterSphere};
 }
 
-common::Coordinate calculate_sphere_pattern_start(const common::Coordinate &aNumSpheres, const SpherePatternData &aData)
+auto calculate_sphere_pattern_start(const common::Coordinate &aNumSpheres,
+                                    const SpherePatternData &aData) -> common::Coordinate
 {
     constexpr double tNumDirectionsFromCenterSphere = 2.0;
     constexpr double tCenterSphere = 1.0;
@@ -73,23 +77,23 @@ common::Coordinate calculate_sphere_pattern_start(const common::Coordinate &aNum
                                                 aData.mSphereSpacing * (-1.0)};
 }
 
-std::vector<double> create_sphere_spacing_vector(const unsigned int aNumValues,
-                                                 const SphereStart aStart,
-                                                 const SphereStep aStep)
+auto create_sphere_spacing_vector(const unsigned int aNumValues,
+                                  const SphereStart aStart,
+                                  const SphereStep aStep) -> std::vector<double>
 {
     auto tStart = aStart.mValue;
     std::vector<double> tValues(aNumValues);
     std::generate(tValues.begin(), tValues.end(),
                   [&tStart, &aStep]
                   {
-                      double tRet = tStart;
+                      const double tRet = tStart;
                       tStart += aStep.mValue;
                       return tRet;
                   });
     return tValues;
 }
 
-SphereLocatorData calculate_sphere_locator_data(const SpherePatternData &aData)
+auto calculate_sphere_locator_data(const SpherePatternData &aData) -> SphereLocatorData
 {
     const common::Coordinate tNumSpheres = calculate_num_spheres_in_each_direction(aData);
     const common::Coordinate tSpherePatternStart = calculate_sphere_pattern_start(tNumSpheres, aData);

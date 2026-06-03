@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
 
-#include <variant>
+#include <functional>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/core/Function.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
-#include "plato/utilities/Exception.hpp"
+#include "plato/output/OutputInfo.hpp"
 
 namespace plato::geometry::library::unittest
 {
@@ -22,7 +23,7 @@ namespace
         { return linear_algebra::AdjointJacobianMultiplier{linear_algebra::JacobianMultiplier{}}; }};
 }
 
-[[maybe_unused]] static auto kTestGeometryRegistration = GeometryRegistration{
+[[maybe_unused]] const auto kTestGeometryRegistration = GeometryRegistration{
     "test", [](const ValidatedGeometryInput&)
     {
         return FactoryTypes{

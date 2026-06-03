@@ -1,6 +1,10 @@
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 
+#include <algorithm>
+#include <iterator>
+
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/EnumTypeHelpers.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 
 DEFINE_ENUM_SYMBOL_TABLE(ConstraintTypes, plato::input_parser)
@@ -9,7 +13,7 @@ namespace plato::criteria::library
 {
 namespace
 {
-[[maybe_unused]] static auto kConstraintParserRegistration =
+[[maybe_unused]] const auto kConstraintParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::constraint>{};
 }
 

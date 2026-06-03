@@ -8,27 +8,27 @@ namespace plato::test_utilities
 /// @brief Implementation of the 2D Rosenbrock function
 ///
 /// This is mainly useful for testing optimization problems.
-class Rosenbrock
+struct Rosenbrock
 {
-   public:
-    constexpr Rosenbrock() noexcept = default;
-    constexpr Rosenbrock(const double aA, const double aB) noexcept : mA(aA), mB(aB) {}
-
-    [[nodiscard]] constexpr auto f(const double aX, const double aY) const -> double
-    {
-        const double aMinusX = mA - aX;
-        const double yMinusX2 = aY - aX * aX;
-        return aMinusX * aMinusX + mB * yMinusX2 * yMinusX2;
-    }
-
-    [[nodiscard]] constexpr auto df(const double aX, const double aY) const -> TwoDVector
-    {
-        return makeTwoDVector(-2.0 * (mA - aX) - 4.0 * mB * aX * (aY - aX * aX), 2.0 * mB * (aY - aX * aX));
-    }
-
-   private:
     double mA = 1.0;
     double mB = 100.0;
+
+    [[nodiscard]] constexpr auto f(const double aXComponent, const double aYComponent) const -> double
+    {
+        const double tAMinusX = mA - aXComponent;
+        const double tYMinusX2 = aYComponent - aXComponent * aXComponent;
+        return tAMinusX * tAMinusX + mB * tYMinusX2 * tYMinusX2;
+    }
+
+    [[nodiscard]] constexpr auto df(const double aXComponent, const double aYComponent) const -> TwoDVector
+    {
+        constexpr auto tSquarePower = 2.0;
+        constexpr auto tQuarticPower = 4.0;
+
+        return make_two_d_vector(-tSquarePower * (mA - aXComponent) -
+                                     tQuarticPower * mB * aXComponent * (aYComponent - aXComponent * aXComponent),
+                                 tSquarePower * mB * (aYComponent - aXComponent * aXComponent));
+    }
 };
 
 }  // namespace plato::test_utilities

@@ -1,10 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <boost/none.hpp>
 #include <filesystem>
+#include <set>
+#include <vector>
 
 #include "plato/geometry/extension/DensityResultToCutMesh.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
@@ -108,7 +112,7 @@ TEST(DensityResultToCutMesh, ConvertToNodal)
     const auto tAnalysisDomainMesh = create_element_centered_analysis_domain_mesh();
     const auto tNodalAnalysisDomainMesh = detail::convert_to_nodal(tAnalysisDomainMesh, tMesh);
     const auto tNodalValues =
-        mesh::DesignVariablesConversion{tMesh}.analysisDomainMeshToNodalFieldVector(tNodalAnalysisDomainMesh).mValue;
+        mesh::DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(tNodalAnalysisDomainMesh).mValue;
     const auto tGoldValues = std::vector<double>{0, 1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0};
     EXPECT_EQ(tNodalValues, tGoldValues);
 }
@@ -122,9 +126,9 @@ TEST(DensityResultToCutMesh, TransformToLevelSetField)
     const auto tShiftedAnalysisDomainMesh = detail::transform_to_level_set_field(tAnalysisDomainMesh, tThreshold);
 
     const auto tOriginalValues =
-        mesh::DesignVariablesConversion{tMesh}.analysisDomainMeshToNodalFieldVector(tAnalysisDomainMesh).mValue;
+        mesh::DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(tAnalysisDomainMesh).mValue;
     const auto tShiftedValues =
-        mesh::DesignVariablesConversion{tMesh}.analysisDomainMeshToNodalFieldVector(tShiftedAnalysisDomainMesh).mValue;
+        mesh::DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(tShiftedAnalysisDomainMesh).mValue;
 
     for (const auto& [tOriginal, tShifted] : utilities::Zip{tOriginalValues, tShiftedValues})
     {

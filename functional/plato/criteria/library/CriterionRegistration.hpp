@@ -78,35 +78,34 @@ using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
 
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and with any factory (any set of
 /// traits).
-[[nodiscard]] auto is_criterion_function_registered(const std::string_view aFunctionName) -> bool;
+[[nodiscard]] auto is_criterion_function_registered(std::string_view aFunctionName) -> bool;
 
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and with traits @a aTraits.
-[[nodiscard]] auto criterion_function_has_traits(const std::string_view aFunctionName,
-                                                 const CriterionTraits aTraits) -> bool;
+[[nodiscard]] auto criterion_function_has_traits(std::string_view aFunctionName, CriterionTraits aTraits) -> bool;
 
 /// @brief Creates a name from @a aAppConfiguration and @a aCriterionConfiguration that can be used
 /// to uniquely register a criterion function.
 ///
 /// This overload is for registering plugins.
-[[nodiscard]] std::string criterion_registration_name(const services::AppConfiguration& aAppConfiguration,
-                                                      const services::CriterionConfiguration& aCriterionConfiguration);
+[[nodiscard]] auto criterion_registration_name(const services::AppConfiguration& aAppConfiguration,
+                                               const services::CriterionConfiguration& aCriterionConfiguration)
+    -> std::string;
 
 /// @brief Creates a name from @a aAppName and @a aCriterionName that can be used
 /// to find a registered a criterion function.
 ///
 /// This overload is for finding a registered app/criterion using user input.
-[[nodiscard]] std::string criterion_registration_name(const boost::optional<input_parser::AppName>& aAppName,
-                                                      const input_parser::CriterionName& aCriterionName);
+[[nodiscard]] auto criterion_registration_name(const boost::optional<input_parser::AppName>& aAppName,
+                                               const input_parser::CriterionName& aCriterionName) -> std::string;
 
 /// @brief Creates a unique name from @a aCriterionName that can be used uniquely register a built-in criterion.
-[[nodiscard]] std::string builtin_criterion_registration_name(std::string_view aCriterionName);
+[[nodiscard]] auto builtin_criterion_registration_name(std::string_view aCriterionName) -> std::string;
 
 /// @brief Returns the full list of registered criteria, useful for error messages.
-[[nodiscard]] std::set<std::string> registered_criteria_names();
+[[nodiscard]] auto registered_criteria_names() -> std::set<std::string>;
 
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and has trait @a aTrait.
-[[nodiscard]] auto criterion_function_has_trait(const std::string_view aFunctionName,
-                                                const CriterionTrait auto aTrait) -> bool;
+[[nodiscard]] auto criterion_function_has_trait(std::string_view aFunctionName, CriterionTrait auto aTrait) -> bool;
 
 namespace detail
 {

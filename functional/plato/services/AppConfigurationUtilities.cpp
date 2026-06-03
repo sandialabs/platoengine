@@ -2,7 +2,13 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iterator>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
 #include "plato/utilities/TransformIf.hpp"
@@ -29,26 +35,26 @@ auto criterion_configuration_with_name(const std::string& aCriterionName,
 
 }  // namespace
 
-std::vector<AppConfigurationWithDirectory> app_configurations(
-    const std::vector<std::filesystem::path>& aSearchDirectories)
+auto app_configurations(const std::vector<std::filesystem::path>& aSearchDirectories)
+    -> std::vector<AppConfigurationWithDirectory>
 {
     auto tAppConfigurations = std::vector<AppConfigurationWithDirectory>{};
     for (const auto& tDirectory : aSearchDirectories)
     {
         utilities::transform_if(
             std::filesystem::directory_iterator{tDirectory}, std::back_inserter(tAppConfigurations),
-            [&tDirectory](const auto& tDirectoryEntry)
-            { return app_configuration_with_directory(load_configuration(tDirectoryEntry.path()), tDirectory); },
-            [](const auto& tDirectoryEntry) { return tDirectoryEntry.path().extension() == kConfigFileExtension; });
+            [&tDirectory](const auto& aDirectoryEntry)
+            { return app_configuration_with_directory(load_configuration(aDirectoryEntry.path()), tDirectory); },
+            [](const auto& aDirectoryEntry) { return aDirectoryEntry.path().extension() == kConfigFileExtension; });
     }
     return tAppConfigurations;
 }
 
-AppConfigurationWithDirectory app_configuration_with_directory(AppConfiguration aAppConfiguration,
-                                                               std::filesystem::path aDirectory)
+auto app_configuration_with_directory(AppConfiguration aAppConfiguration,
+                                      std::filesystem::path aDirectory) -> AppConfigurationWithDirectory
 {
-    return AppConfigurationWithDirectory{/*.mConfiguration=*/std::move(aAppConfiguration),
-                                         /*.mLibraryDirectory=*/std::move(aDirectory)};
+    return AppConfigurationWithDirectory{.mConfiguration = std::move(aAppConfiguration),
+                                         .mLibraryDirectory = std::move(aDirectory)};
 }
 
 auto plugin_configurations() -> std::vector<AppConfigurationWithDirectory>
@@ -56,7 +62,7 @@ auto plugin_configurations() -> std::vector<AppConfigurationWithDirectory>
     return app_configurations(utilities::optional_to_vector(services::plugin_directory_path()));
 }
 
-std::filesystem::path shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration)
+auto shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration) -> std::filesystem::path
 {
     return aAppConfiguration.mLibraryDirectory / aAppConfiguration.mConfiguration.mLibraryFileName;
 }

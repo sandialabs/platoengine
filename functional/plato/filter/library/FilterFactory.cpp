@@ -1,7 +1,9 @@
 #include "plato/filter/library/FilterFactory.hpp"
 
 #include <type_traits>
+#include <utility>
 
+#include "plato/core/FactoryRegistration.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -16,10 +18,8 @@ auto make_filter_function(const ValidatedFilterInput& aInput) -> FilterFunction
     {
         return std::move(tFilter).value();
     }
-    else
-    {
-        throw plato::utilities::Exception{"Unknown filter_type. Requested name: " + aInput.rawInput().mBlockName};
-    }
+
+    throw plato::utilities::Exception{"Unknown filter_type. Requested name: " + aInput.rawInput().mBlockName};
 }
 
 }  // namespace plato::filter::library

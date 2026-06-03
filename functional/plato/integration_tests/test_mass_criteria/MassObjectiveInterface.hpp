@@ -18,18 +18,19 @@ class MassObjectiveInterface : public criteria::library::CriterionInterface
    public:
     ///@brief required by the CriterionInterface, return the value of the criterion evaluated at the controls specified
     /// by the AnalysisDomainMesh
-    double value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
+    [[nodiscard]] auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double override;
 
     ///@brief required by the CriterionInterface, return the gradient of the criterion evaluated at the controls
     /// specified by the AnalysisDomainMesh
-    std::vector<double> gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
+    [[nodiscard]] auto gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> std::vector<double> override;
 };
 }  // namespace plato::integration_tests::test_mass_criteria
 
-extern "C" std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_criterion(
-    const std::vector<std::string>&);
+extern "C" auto plato_create_criterion(const std::vector<std::string>& /*unused*/)
+    -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 
-extern "C" std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_test_mass_criterion(
-    const std::vector<std::string>&);
+extern "C" auto plato_create_test_mass_criterion(const std::vector<std::string>& /*unused*/)
+    -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 
 #endif

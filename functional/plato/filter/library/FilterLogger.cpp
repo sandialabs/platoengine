@@ -1,5 +1,11 @@
 #include "plato/filter/library/FilterLogger.hpp"
 
+#include <string_view>
+
+#include "plato/components/ComponentType.hpp"
+#include "plato/services/SystemLogger.hpp"
+#include "plato/services/TaskLogSetupTeardown.hpp"
+
 namespace plato::filter::library
 {
 auto filter_field_task_log(std::string_view aFilterName) -> services::TaskLogSetupTeardown

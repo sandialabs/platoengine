@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 
-#include <boost/optional/optional_io.hpp>
+#include <boost/optional/optional_io.hpp>  // NOLINT(misc-include-cleaner)
+#include <vector>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/CrossLinkedInput.hpp"
+#include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
@@ -29,10 +33,10 @@ namespace plato::input_validation::unittest
 {
 TEST(ValidatedInputTypeWrapper, GetCrossReference)
 {
-    [[maybe_unused]] const auto kLandCreaturesParserRegistration =
+    [[maybe_unused]] const auto tLandCreaturesParserRegistration =
         input_parser::ComponentParserRegistration<input_parser::land_creatures>{};
 
-    [[maybe_unused]] const auto kSeaCreaturesParserRegistration =
+    [[maybe_unused]] const auto tSeaCreaturesParserRegistration =
         input_parser::ComponentParserRegistration<input_parser::sea_creatures>{};
 
     const auto tLandCreature = plato::input_parser::land_creatures{};

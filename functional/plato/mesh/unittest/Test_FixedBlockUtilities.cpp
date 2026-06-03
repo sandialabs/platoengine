@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
@@ -51,7 +53,6 @@ TEST(FixedBlockUtilities, ValidateUniqueBlockNames)
 {
     const auto tBlockName1 = std::string{"fixed-block-1"};
     const auto tBlockName2 = std::string{"fixed-block-2"};
-    const auto tBlockName3 = std::string{"design-block"};
     // Valid cases
     {
         auto tGeometryInputWithFixedBlocks = kTestGeometry;

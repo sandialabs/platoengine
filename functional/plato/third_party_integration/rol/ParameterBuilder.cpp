@@ -1,5 +1,6 @@
 #include "plato/third_party_integration/rol/ParameterBuilder.hpp"
 
+#include <optional>
 #include <string_view>
 
 namespace plato::third_party_integration::rol
@@ -8,8 +9,8 @@ namespace plato::third_party_integration::rol
 namespace
 {
 
-const auto kVerboseDefault = int{1};
-const auto kCompositeStepVerboseDefault = int{0};
+const auto kVerboseDefault = 1;
+const auto kCompositeStepVerboseDefault = 0;
 
 constexpr std::string_view kStatusTest = "Status Test";
 constexpr std::string_view kGeneral = "General";
@@ -35,13 +36,16 @@ auto make_status_test_iteration_limit(const std::optional<int> aValue) -> Parame
 
 auto make_status_test_gradient_tolerance(const std::optional<double> aValue) -> ParameterAndValue<double>
 {
+    constexpr auto tDefaultGradientTolerance = 1.e-12;
     return ParameterAndValue<double>{
-        {std::string{kStatusTest}}, std::string{kGradientTolerance}, aValue.value_or(1.e-12)};
+        {std::string{kStatusTest}}, std::string{kGradientTolerance}, aValue.value_or(tDefaultGradientTolerance)};
 }
 
 auto make_status_test_step_tolerance(const std::optional<double> aValue) -> ParameterAndValue<double>
 {
-    return ParameterAndValue<double>{{std::string{kStatusTest}}, std::string{kStepTolerance}, aValue.value_or(1.e-14)};
+    constexpr auto tDefaultStepTolerance = 1.e-14;
+    return ParameterAndValue<double>{
+        {std::string{kStatusTest}}, std::string{kStepTolerance}, aValue.value_or(tDefaultStepTolerance)};
 }
 
 auto make_general_output_level(const std::optional<int> aValue) -> ParameterAndValue<int>
@@ -58,8 +62,10 @@ auto make_step_composite_step_output_level(const std::optional<int> aValue) -> P
 
 auto make_trust_region_initial_radius(const std::optional<double> aValue) -> ParameterAndValue<double>
 {
-    return ParameterAndValue<double>{
-        {std::string{kStep}, std::string{kTrustRegion}}, std::string{kInitialRadius}, aValue.value_or(15)};
+    constexpr auto tDefaultTrustRegionRadius = 15.0;
+    return ParameterAndValue<double>{{std::string{kStep}, std::string{kTrustRegion}},
+                                     std::string{kInitialRadius},
+                                     aValue.value_or(tDefaultTrustRegionRadius)};
 }
 
 auto make_general_inexact_hessian(const std::optional<bool> aValue) -> ParameterAndValue<bool>

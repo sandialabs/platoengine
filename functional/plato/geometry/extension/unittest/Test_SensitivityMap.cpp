@@ -1,14 +1,19 @@
 #include <gtest/gtest.h>
 
-#include <numeric>
-#include <stk_math/StkVector.hpp>
+#include <Akri_Phase_Support.hpp>
+#include <array>
+#include <memory>
+#include <set>
 #include <string>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
+#include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
@@ -60,7 +65,6 @@ class OneTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrino
         tpik::cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields, tpik::SnappingParameters{});
     }
 
-   protected:
     std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
     std::vector<::krino::LS_Field> mLevelSetFields;
     std::vector<tpik::BackgroundMeshNodeId> mDesignDomainBackgroundNodes;
@@ -79,14 +83,13 @@ class FourTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrin
         mKrinoMesh = tpik::read_and_setup_for_decomposition(mFileName);
         mLevelSetFields = make_level_set_field_from_primitives(
             tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, mKrinoMesh->bulk_data());
-        mDesignDomainBackgroundNodes = std::vector<tpik::BackgroundMeshNodeId>{1U, 2U, 4U, 7U};
         tpik::cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields, tpik::SnappingParameters{});
     }
 
-   protected:
+    static constexpr auto mDesignDomainBackgroundNodes = std::array<tpik::BackgroundMeshNodeId, 4>{1U, 2U, 4U, 7U};
+
     std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
     std::vector<::krino::LS_Field> mLevelSetFields;
-    std::vector<tpik::BackgroundMeshNodeId> mDesignDomainBackgroundNodes;
 };
 
 TEST_F(OneTriMeshKrinoFixture, OneTriMesh)
@@ -99,7 +102,8 @@ TEST_F(OneTriMeshKrinoFixture, OneTriMesh)
 TEST_F(FourTriMeshKrinoFixture, FourTriMesh)
 {
     const auto tSensitivities =
-        detail::compute_sensitivities(mKrinoMesh->bulk_data(), mLevelSetFields, mDesignDomainBackgroundNodes);
+        detail::compute_sensitivities(mKrinoMesh->bulk_data(), mLevelSetFields,
+                                      {mDesignDomainBackgroundNodes.begin(), mDesignDomainBackgroundNodes.end()});
     compareMapAgainstBuiltInGold(tSensitivities, TEST_CONTEXT("FourTriMesh Sensitivities"));
 }
 

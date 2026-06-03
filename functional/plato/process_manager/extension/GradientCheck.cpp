@@ -1,21 +1,23 @@
 #include "plato/process_manager/extension/GradientCheck.hpp"
 
-#include <ROL_StdObjective.hpp>
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
 #include <optional>
+#include <string>
 
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
-#include "plato/output/OutputManager.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
+#include "plato/process_manager/extension/DirectionVectorTypes.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/utilities/LogSpaceGenerator.hpp"
 
 namespace plato::process_manager::extension
@@ -29,15 +31,15 @@ namespace
             { GradientCheck{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static auto kGradientCheckParserRegistration =
+[[maybe_unused]] const auto kGradientCheckParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::gradient_check>{};
 
-[[maybe_unused]] static auto kGradientCheckProcessManagerRegistration =
+[[maybe_unused]] const auto kGradientCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::gradient_check>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_gradient_check_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kGradientCheckValidationRegistration =
+[[maybe_unused]] const auto kGradientCheckValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::gradient_check& aInput) { return detail::validate_output_file_name(aInput); },
         [](const input_parser::gradient_check& aInput) { return detail::validate_number_of_steps(aInput); },

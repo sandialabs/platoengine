@@ -1,9 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <Akri_Phase_Support.hpp>
+#include <memory>
+#include <stk_mesh/base/Types.hpp>
+#include <unordered_map>
+#include <vector>
+
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -27,7 +35,6 @@ class SensitivityMapUtilitiesFixture : public KrinoTestFixture
         cut_mesh(mKrinoMesh->bulk_data(), mLevelSetFields, SnappingParameters{});
     }
 
-   protected:
     std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
     std::vector<::krino::LS_Field> mLevelSetFields;
 };
@@ -57,7 +64,7 @@ TEST_F(SensitivityMapUtilitiesFixture, CoordinateLevelSetSensitivity)
 {
     initialize();
     const auto tSensitvitiesFromKrino = get_krino_sensitivities(mKrinoMesh->bulk_data(), mLevelSetFields);
-    const auto tSecondSensitivity = tSensitvitiesFromKrino.back();
+    const auto& tSecondSensitivity = tSensitvitiesFromKrino.back();
     const auto tSpatialDimension = 2U;
     const auto tSensitivityVector = coordinate_level_set_sensitivity(tSecondSensitivity, tSpatialDimension);
     const auto tGold = std::vector<common::Vector3>{{0.25, 0.25, 0}, {0.25, 0.25, 0}};

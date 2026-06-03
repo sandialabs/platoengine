@@ -3,6 +3,7 @@
 #include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/UserDefinedTokenList.hpp"
 #include "plato/input_parser/test_utilities/TestHelpers.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -13,14 +14,14 @@ TEST(FileList, Insert)
 
     // Check insert
     tFileList.insert(tFileList.end(), "a");
-    ASSERT_EQ(tFileList.size(), 1u);
+    ASSERT_EQ(tFileList.size(), 1U);
     EXPECT_EQ(tFileList.list().mList.front(), "a");
     tFileList.insert(tFileList.end(), "b");
-    ASSERT_EQ(tFileList.size(), 2u);
+    ASSERT_EQ(tFileList.size(), 2U);
     EXPECT_EQ(tFileList.list().mList.front(), "a");
     EXPECT_EQ(tFileList.list().mList.back(), "b");
     tFileList.insert(tFileList.begin(), "b");
-    ASSERT_EQ(tFileList.size(), 3u);
+    ASSERT_EQ(tFileList.size(), 3U);
     EXPECT_EQ(tFileList.list().mList.at(0), "b");
     EXPECT_EQ(tFileList.list().mList.at(1), "a");
     EXPECT_EQ(tFileList.list().mList.at(2), "b");

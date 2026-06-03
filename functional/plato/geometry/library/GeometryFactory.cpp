@@ -1,5 +1,8 @@
 #include "plato/geometry/library/GeometryFactory.hpp"
 
+#include <utility>
+
+#include "plato/core/FactoryRegistration.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/utilities/Exception.hpp"
 
@@ -12,10 +15,8 @@ auto make_geometry_data(const ValidatedGeometryInput& aGeometryInput) -> Factory
     {
         return std::move(tGeometry).value();
     }
-    else
-    {
-        throw utilities::Exception{"Unknown geometry"};
-    }
+
+    throw utilities::Exception{"Unknown geometry"};
 }
 
 }  // namespace plato::geometry::library

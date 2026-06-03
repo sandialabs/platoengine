@@ -1,12 +1,22 @@
 #include <gtest/gtest.h>
 
+#include <Akri_MeshInterface.hpp>
 #include <Akri_Phase_Support.hpp>
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
+#include <iterator>
+#include <map>
+#include <set>
+#include <stk_mesh/base/Types.hpp>
+#include <string>
 #include <string_view>
+#include <unordered_map>
+#include <vector>
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
@@ -38,7 +48,7 @@ void create_mesh()
     const stk_io::CommandNumberOfElements tElements{1, 1, 1};
 
     stk_io::write_mesh(std::filesystem::path{kMeshName}, stk_io::CommandGenerator{tElements, tLowerBounds, tUpperBounds,
-                                                                                  stk_io::CommandElementType::Tet});
+                                                                                  stk_io::CommandElementType::kTet});
 }
 
 [[nodiscard]] auto make_test_level_set_field(::krino::MeshInterface& aKrinoMesh) -> std::vector<::krino::LS_Field>
@@ -47,7 +57,8 @@ void create_mesh()
     const auto tNodes = node_entities_in_mesh(aKrinoMesh, tField);
 
     std::vector<double> tVector(tNodes.size(), 1);
-    auto tGenerator = [N = tNodes.size(), i = 0UL]() mutable -> double { return (i++ < N / 2) ? -1.0 : 1.0; };
+    auto tGenerator = [tSize = tNodes.size(), tIndex = 0UL]() mutable -> double
+    { return (tIndex++ < tSize / 2) ? -1.0 : 1.0; };
     std::generate_n(tVector.begin(), tNodes.size(), tGenerator);
 
     for (const auto [tNode, tValue] : utilities::Zip(tNodes, tVector))

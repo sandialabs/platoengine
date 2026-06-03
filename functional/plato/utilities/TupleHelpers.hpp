@@ -30,19 +30,19 @@ template <typename T, typename Tuple, std::size_t kIndex>
 }
 
 template <typename T, typename Tuple, std::size_t... kIndices>
-[[nodiscard]] constexpr auto has_type(std::index_sequence<kIndices...>) -> bool
+[[nodiscard]] constexpr auto has_type(std::index_sequence<kIndices...> /*unused*/) -> bool
 {
     return (has_type_impl<T, Tuple, kIndices>() || ...);
 }
 
 template <std::size_t kStart, std::size_t... kIndices>
-[[nodiscard]] constexpr auto make_index_sequence_starting_from(std::index_sequence<kIndices...>)
+[[nodiscard]] constexpr auto make_index_sequence_starting_from(std::index_sequence<kIndices...> /*unused*/)
 {
     return std::index_sequence<kStart + kIndices...>{};
 }
 
 template <typename Tuple, std::size_t... kIndices>
-[[nodiscard]] constexpr auto has_unique_types_seq(std::index_sequence<kIndices...>) -> bool
+[[nodiscard]] constexpr auto has_unique_types_seq(std::index_sequence<kIndices...> /*unused*/) -> bool
 {
     return !(has_type<std::tuple_element_t<kIndices, Tuple>, Tuple>(make_index_sequence_starting_from<kIndices + 1>(
                  std::make_index_sequence<sizeof...(kIndices) - kIndices>())) ||
@@ -56,7 +56,7 @@ template <typename Tuple>
 }
 
 template <typename ToTuple, typename FromTuple, std::size_t... kLHSIndices>
-[[nodiscard]] constexpr auto tuple_is_subset_seq(std::index_sequence<kLHSIndices...>) -> bool
+[[nodiscard]] constexpr auto tuple_is_subset_seq(std::index_sequence<kLHSIndices...> /*unused*/) -> bool
 {
     return (has_type<std::tuple_element_t<kLHSIndices, ToTuple>, FromTuple>(
                 std::make_index_sequence<std::tuple_size_v<FromTuple>>()) &&

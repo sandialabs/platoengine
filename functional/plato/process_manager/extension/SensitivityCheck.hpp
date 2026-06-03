@@ -39,7 +39,7 @@ class SensitivityCheck
    public:
     explicit SensitivityCheck(const library::ValidatedProcessManagerInput& aInput);
 
-    void run(const library::ProcessManagerData& aProcessManagerData) const;
+    void run(const library::ProcessManagerData& aProblem) const;
 
    private:
     std::filesystem::path mOutputFileName;

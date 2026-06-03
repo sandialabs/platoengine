@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <utility>
 
 #include "plato/core/Compose.hpp"
 #include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/core/unittest/TestHelpers.hpp"
 #include "plato/test_utilities/TwoDTestTypes.hpp"
 
@@ -12,13 +14,16 @@ namespace plato::core::unittest
 
 namespace
 {
+constexpr auto kQuadraticExponent = 2.0;
+
 // Tests f(g(tX)) and g(f(x)), with f(x) = x^2 and g(x) = 2x
 auto create_pair_of_compositions_of_quadratic_and_linear()
 {
     const auto tF = make_function_with_first_derivative([](const double aX) { return aX * aX; },
-                                                        [](const double aX) { return 2.0 * aX; });
-    const auto tG =
-        make_function_with_first_derivative([](const double aX) { return 2.0 * aX; }, [](const double) { return 2.0; });
+                                                        [](const double aX) { return kQuadraticExponent * aX; });
+    constexpr auto tArbitraryMultiplier = 2.0;
+    const auto tG = make_function_with_first_derivative([](const double aX) { return tArbitraryMultiplier * aX; },
+                                                        [](const double) { return tArbitraryMultiplier; });
 
     return std::make_pair(compose(tF, tG), compose(tG, tF));
 }
@@ -52,11 +57,15 @@ TEST(Composer, EvaluateCompositionThreeFunctions)
     //  g(tX) = sin(x)
     //  h(tX) = x^2
     const auto tF = make_function_with_first_derivative([](const double aX) { return std::sqrt(aX); },
-                                                        [](const double aX) { return 0.5 / std::sqrt(aX); });
+                                                        [](const double aX)
+                                                        {
+                                                            constexpr auto tConstant = 0.5;
+                                                            return tConstant / std::sqrt(aX);
+                                                        });
     const auto tG = make_function_with_first_derivative([](const double aX) { return std::sin(aX); },
                                                         [](const double aX) { return std::cos(aX); });
     const auto tH = make_function_with_first_derivative([](const double aX) { return aX * aX; },
-                                                        [](const double aX) { return 2.0 * aX; });
+                                                        [](const double aX) { return kQuadraticExponent * aX; });
 
     const auto tHOfGOfF = compose(tH, compose(tG, tF));
     constexpr double tExpectedValue = 7.080734182735712e-01;  // From Matlab
@@ -77,21 +86,21 @@ TEST(Composer, TwoDFunctions)
     {
         const auto tX = pft::TwoDVector{0.0, 0.0};
         const auto tExpectedF = 0.0;
-        const auto tExpectedDF = pft::makeTwoDVector(0.0, 0.0);
+        const auto tExpectedDF = pft::make_two_d_vector(0.0, 0.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
     }
     {
         const auto tX = pft::TwoDVector{1.0, -1.0};
         const auto tExpectedF = 1.0;
-        const auto tExpectedDF = pft::makeTwoDVector(2.0, -2.0);
+        const auto tExpectedDF = pft::make_two_d_vector(2.0, -2.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
     }
     {
         const auto tX = pft::TwoDVector{2.0, 4.0};
         const auto tExpectedF = 280.0;
-        const auto tExpectedDF = pft::makeTwoDVector(172.0, 140.0);
+        const auto tExpectedDF = pft::make_two_d_vector(172.0, 140.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
     }
@@ -110,21 +119,21 @@ TEST(Composer, ScalarTransformation)
     {
         const auto tX = pft::TwoDVector{1.0, 0.0};
         const auto tExpectedValue = 1.0;
-        const auto tExpectedDerivative = pft::makeTwoDVector(-2.0, 0.0);
+        const auto tExpectedDerivative = pft::make_two_d_vector(-2.0, 0.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedValue);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDerivative);
     }
     {
         const auto tX = pft::TwoDVector{1.0, 1.0};
         const auto tExpectedValue = 0.5;
-        const auto tExpectedDerivative = pft::makeTwoDVector(-0.5, -3.0 / 4.0);
+        const auto tExpectedDerivative = pft::make_two_d_vector(-0.5, -3.0 / 4.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedValue);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDerivative);
     }
     {
         const auto tX = pft::TwoDVector{-4.0, 3.0};
         const auto tExpectedValue = 1.0 / 43.0;
-        const auto tExpectedDerivative = pft::makeTwoDVector(8.0 / 43.0 / 43.0, -27.0 / 43.0 / 43.0);
+        const auto tExpectedDerivative = pft::make_two_d_vector(8.0 / 43.0 / 43.0, -27.0 / 43.0 / 43.0);
         EXPECT_EQ(tH.evaluate<evaluation::kFunction>(tX), tExpectedValue);
         EXPECT_EQ(tH.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDerivative);
     }
@@ -137,10 +146,10 @@ TEST(Compose, CompositionScalarFunctions)
     using ScalarFunctionWithFirstDerivative = Function<double, ScalarFInfo, ScalarFirstDerivativeInfo>;
 
     const auto tFunction1 =
-        ScalarFunctionWithFirstDerivative{[](const double x) { return x + 1; }, [](const double) { return 1.0; }};
+        ScalarFunctionWithFirstDerivative{[](const double aX) { return aX + 1; }, [](const double) { return 1.0; }};
 
-    const auto tFunction2 =
-        ScalarFunctionWithFirstDerivative{[](const double x) { return x * x; }, [](const double x) { return 2.0 * x; }};
+    const auto tFunction2 = ScalarFunctionWithFirstDerivative{[](const double aX) { return aX * aX; },
+                                                              [](const double aX) { return kQuadraticExponent * aX; }};
 
     {
         // x^2 + 1
@@ -175,9 +184,9 @@ TEST(Compose, CompositionVectorFunctions)
 
     {
         const auto tX = pft::TwoDVector{0.0, 0.0};
-        const auto tExpectedF = pft::makeTwoDVector(0.0, 0.0);
-        const auto tExpectedDF = pft::makeTwoDMatrix(0.0, 0.0, 1.0, 1.0);
-        const auto tExpectedAdjointDF = pft::makeTwoDMatrix(0.0, 1.0, 0.0, 1.0);
+        const auto tExpectedF = pft::make_two_d_vector(0.0, 0.0);
+        const auto tExpectedDF = pft::make_two_d_matrix(0.0, 0.0, 1.0, 1.0);
+        const auto tExpectedAdjointDF = pft::make_two_d_matrix(0.0, 1.0, 0.0, 1.0);
         EXPECT_EQ(tComposition.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tComposition.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
         EXPECT_EQ((tComposition.evaluate<evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>(tX)),
@@ -185,9 +194,9 @@ TEST(Compose, CompositionVectorFunctions)
     }
     {
         const auto tX = pft::TwoDVector{1.0, 0.5};
-        const auto tExpectedF = pft::makeTwoDVector(0.75, 2.0);
-        const auto tExpectedDF = pft::makeTwoDMatrix(1.25, 2.0, 1.5, 2.0);
-        const auto tExpectedAdjointDF = pft::makeTwoDMatrix(1.25, 1.5, 2.0, 2.0);
+        const auto tExpectedF = pft::make_two_d_vector(0.75, 2.0);
+        const auto tExpectedDF = pft::make_two_d_matrix(1.25, 2.0, 1.5, 2.0);
+        const auto tExpectedAdjointDF = pft::make_two_d_matrix(1.25, 1.5, 2.0, 2.0);
         EXPECT_EQ(tComposition.evaluate<evaluation::kFunction>(tX), tExpectedF);
         EXPECT_EQ(tComposition.evaluate<evaluation::kFirstDerivative>(tX), tExpectedDF);
         EXPECT_EQ((tComposition.evaluate<evaluation::kFirstDerivative, MatrixOrdering::kAdjoint>(tX)),
@@ -197,7 +206,6 @@ TEST(Compose, CompositionVectorFunctions)
 
 TEST(Compose, FunctionSizesRequirement)
 {
-    namespace pft = plato::test_utilities;
     using VectorFunctionNoAdjoint = Function<plato::test_utilities::TwoDVector, VectorFInfo, VectorFirstDerivativeInfo>;
 
     static_assert(plato::core::detail::kFunctionCompositionSizesRequirement<VectorFunctionNoAdjoint, VectorFunction>);

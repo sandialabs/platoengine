@@ -1,8 +1,6 @@
 #ifndef PLATO_CRITERIA_LIBRARY_COMPONENTANDTARGET
 #define PLATO_CRITERIA_LIBRARY_COMPONENTANDTARGET
 
-#include <string>
-
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_parser/SequenceSubtype.hpp"
 

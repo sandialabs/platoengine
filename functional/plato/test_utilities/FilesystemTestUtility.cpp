@@ -4,6 +4,8 @@
 
 #include <filesystem>
 #include <fstream>
+#include <string>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 

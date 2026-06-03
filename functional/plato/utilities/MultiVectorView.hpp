@@ -77,16 +77,16 @@ class MultiVectorView
     /// @note This class holds a reference to @a aContainer, and so the lifetime of @a aContainer must exceed the
     /// lifetime of this object.
     /// @pre The size of the container must be an integer multiple of @a aDimensions.
-    MultiVectorView(Container& aContainer, const std::size_t aDimensions);
+    MultiVectorView(Container& aContainer, std::size_t aDimensions);
 
     /// @brief The number of vectors.
-    auto numberOfVectors() const -> std::size_t;
+    [[nodiscard]] auto numberOfVectors() const -> std::size_t;
 
     /// @brief The total size of all entries, i.e., `mDimensions` times numberOfVectors.
-    auto size() const -> std::size_t;
+    [[nodiscard]] auto size() const -> std::size_t;
 
     /// @brief The number of vector dimensions.
-    auto dimensions() const -> std::size_t;
+    [[nodiscard]] auto dimensions() const -> std::size_t;
 
     /// @brief Accessor for the @a aComponentIndex component of the @a aVectorIndex vector.
     /// @pre @a aVectorIndex must be less than the size of the container held by the view times the number of
@@ -101,7 +101,7 @@ class MultiVectorView
 
     /// @brief Const accessor for the vector data stored at @a aVectorIndex
     template <typename T = Container>
-    auto operator()(VectorIndex aVectorIndex) const -> const VectorProxy<T>;
+    auto operator()(VectorIndex aVectorIndex) const -> VectorProxy<const T>;
 
     /// @brief Returns true if the data pointers and the dimensions are equal of `this` and @a aOther.
     [[nodiscard]] auto shallowEquality(const MultiVectorView& aOther) const -> bool;
@@ -147,8 +147,8 @@ auto MultiVectorView<Container>::dimensions() const -> std::size_t
 }
 
 template <MultiVectorViewContainer Container>
-auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, const ComponentIndex aComponentIndex) const
-    -> decltype(auto)
+auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex,
+                                            const ComponentIndex aComponentIndex) const -> decltype(auto)
 {
     assert(aComponentIndex.mValue < mDimensions);
     assert(aVectorIndex.mValue < numberOfVectors());
@@ -158,16 +158,16 @@ auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex, cons
 template <MultiVectorViewContainer Container>
 template <typename T>
     requires(!std::is_const_v<ContainerValueTypeWithPropagatedConst<T>>)
-auto MultiVectorView<Container>::operator()(VectorIndex aVectorIndex) const -> VectorProxy<T>
+auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex) const -> VectorProxy<T>
 {
     return VectorProxy<T>{*this, aVectorIndex};
 }
 
 template <MultiVectorViewContainer Container>
 template <typename T>
-auto MultiVectorView<Container>::operator()(VectorIndex aVectorIndex) const -> const VectorProxy<T>
+auto MultiVectorView<Container>::operator()(const VectorIndex aVectorIndex) const -> VectorProxy<const T>
 {
-    return VectorProxy<T>{*this, aVectorIndex};
+    return VectorProxy<const T>{*this, aVectorIndex};
 }
 
 template <MultiVectorViewContainer Container>
@@ -184,7 +184,7 @@ struct VectorProxy
     VectorProxy(MultiVectorView<Container> aView, VectorIndex aIndex) : mView{aView}, mVectorIndex{aIndex} {}
 
     template <VectorLike<value_type> V>
-    VectorProxy& operator+=(const V& aVector)
+    auto operator+=(const V& aVector) -> VectorProxy&
     {
         mView(mVectorIndex, ComponentIndex{0}) += aVector.x;
         mView(mVectorIndex, ComponentIndex{1}) += aVector.y;
@@ -196,7 +196,7 @@ struct VectorProxy
     }
 
     template <VectorLike<value_type> V>
-    VectorProxy& operator=(const V& aVector)
+    auto operator=(const V& aVector) -> VectorProxy&
     {
         mView(mVectorIndex, ComponentIndex{0}) = aVector.x;
         mView(mVectorIndex, ComponentIndex{1}) = aVector.y;

@@ -1,5 +1,9 @@
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 
+#include <string_view>
+
+#include "plato/core/FactoryRegistration.hpp"
+
 namespace plato::process_manager::library
 {
 auto is_process_manager_function_registered(const std::string_view aFunctionName) -> bool
