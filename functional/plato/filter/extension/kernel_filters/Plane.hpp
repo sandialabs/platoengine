@@ -27,6 +27,10 @@ struct Plane
     [[nodiscard]] auto reflect(const Plane& aPlane) const -> Plane;
 };
 
+/// @brief Compute the signed distance of a coordinate @a aCoordinate to a plane @a aPlane.
+[[nodiscard]] auto signed_distance_to_plane(const third_party_integration::common::Coordinate& aCoordinate,
+                                            const Plane& aPlane) -> double;
+
 }  // namespace plato::filter::extension::kernel_filters
 
 #endif

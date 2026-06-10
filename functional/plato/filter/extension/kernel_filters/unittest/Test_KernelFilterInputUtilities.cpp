@@ -11,7 +11,7 @@
 
 #include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterInputUtilities.hpp"
-#include "plato/filter/extension/kernel_filters/ReflectFilter.hpp"
+#include "plato/filter/extension/kernel_filters/PositiveOctantReflectFilter.hpp"
 #include "plato/filter/extension/kernel_filters/RevolveFilter.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/ReflectionMeshTestUtility.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/SymmetryFilterTestUtilities.hpp"

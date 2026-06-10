@@ -1,19 +1,20 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <cmath>
 #include <filesystem>
 #include <vector>
 
 #include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/Plane.hpp"
-#include "plato/filter/extension/kernel_filters/ReflectFilter.hpp"
+#include "plato/filter/extension/kernel_filters/PositiveOctantReflectFilter.hpp"
 #include "plato/filter/extension/kernel_filters/ReflectionUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/ReliableMeshZeroValue.hpp"
 #include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/test_utilities/ReflectionMeshTestUtility.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/SymmetryFilterTestUtilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
-#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
-#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::filter::extension::kernel_filters::unittest
@@ -109,49 +110,33 @@ TEST_F(TwoDThreeBlockMesh, ValidateSourceMeshInPositiveOctantInvalid)
     EXPECT_TRUE(tErrorMessage.has_value()) << "Invalid source mesh, has extents in z.";
 }
 
-namespace
-{
-void write_test_mesh(const third_party_integration::stk_io::CommandBounds& aLowerBounds,
-                     const std::filesystem::path& aFilePath)
-{
-    constexpr auto tUpperBound = 10.0;
-    third_party_integration::stk_io::write_mesh(
-        aFilePath,
-        third_party_integration::stk_io::CommandGenerator{.mElements = {1, 1, 1},
-                                                          .mLowerBounds = aLowerBounds,
-                                                          .mUpperBounds = {tUpperBound, tUpperBound, tUpperBound}}
-            .toString());
-}
-
-}  // namespace
-
 TEST(ReflectFilter, ValidateSourceMeshInPositiveOctantOffOriginCases)
 {
-    constexpr auto tAcceptableSmallNegative = -1.0e-6;
+    constexpr auto tAcceptableSmallNegative = -reliable_mesh_zero_value();
     constexpr auto tOne = 1.0;
     constexpr auto tZero = 0.0;
     const auto tMeshFilePath = std::filesystem::path{"candidate_mesh.exo"};
     const auto tInput = input_parser::positive_octant_reflect_filter{};
     {
-        write_test_mesh({tAcceptableSmallNegative, tZero, tZero}, tMeshFilePath);
+        test_utilities::create_mesh_for_reflection_filter(tMeshFilePath, {tAcceptableSmallNegative, tZero, tZero});
         const auto tErrorMessage = detail::validate_source_mesh_in_positive_octant(
             input_parser::positive_octant_reflect_filter{}, tMeshFilePath);
         EXPECT_FALSE(tErrorMessage.has_value()) << "Valid source mesh, small negative in x is ok.";
     }
     {
-        write_test_mesh({tZero, tAcceptableSmallNegative, tZero}, tMeshFilePath);
+        test_utilities::create_mesh_for_reflection_filter(tMeshFilePath, {tZero, tAcceptableSmallNegative, tZero});
         const auto tErrorMessage = detail::validate_source_mesh_in_positive_octant(
             input_parser::positive_octant_reflect_filter{}, tMeshFilePath);
         EXPECT_FALSE(tErrorMessage.has_value()) << "Valid source mesh, small negative in y is ok.";
     }
     {
-        write_test_mesh({tZero, tZero, tAcceptableSmallNegative}, tMeshFilePath);
+        test_utilities::create_mesh_for_reflection_filter(tMeshFilePath, {tZero, tZero, tAcceptableSmallNegative});
         const auto tErrorMessage = detail::validate_source_mesh_in_positive_octant(
             input_parser::positive_octant_reflect_filter{}, tMeshFilePath);
         EXPECT_FALSE(tErrorMessage.has_value()) << "Valid source mesh, small negative in z is ok.";
     }
     {
-        write_test_mesh({tOne, tOne, tOne}, tMeshFilePath);
+        test_utilities::create_mesh_for_reflection_filter(tMeshFilePath, {tOne, tOne, tOne});
         const auto tErrorMessage = detail::validate_source_mesh_in_positive_octant(
             input_parser::positive_octant_reflect_filter{}, tMeshFilePath);
         EXPECT_FALSE(tErrorMessage.has_value()) << "Valid source mesh, floating all positive domain is ok.";

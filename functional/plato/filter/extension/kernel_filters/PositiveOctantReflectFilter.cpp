@@ -1,4 +1,4 @@
-#include "plato/filter/extension/kernel_filters/ReflectFilter.hpp"
+#include "plato/filter/extension/kernel_filters/PositiveOctantReflectFilter.hpp"
 
 #include <boost/mpi/communicator.hpp>
 #include <filesystem>
@@ -15,6 +15,7 @@
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/Plane.hpp"
 #include "plato/filter/extension/kernel_filters/ReflectionUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/ReliableMeshZeroValue.hpp"
 #include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
@@ -131,7 +132,7 @@ auto validate_source_mesh_in_positive_octant(const input_parser::positive_octant
         return std::nullopt;  // Not our error
     }
     const auto tBoundingBox = mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.designDomainBoundingBox();
-    constexpr auto tNegativeNearZero = -1e-6;
+    constexpr auto tNegativeNearZero = -reliable_mesh_zero_value();
     if (tBoundingBox.first.x < tNegativeNearZero || tBoundingBox.first.y < tNegativeNearZero ||
         tBoundingBox.first.z < tNegativeNearZero)
     {
