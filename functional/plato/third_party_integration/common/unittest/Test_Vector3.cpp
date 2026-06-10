@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <numbers>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -76,7 +77,7 @@ TEST(Vector3, CoordinateScalarAddition)
     test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Vector3 scalar addition"));
 }
 
-TEST(Vector3, CoordinateCoordinateDivision)
+TEST(Coordinate, CoordinateCoordinateDivision)
 {
     constexpr Coordinate tP1{10, 20, 30};
     constexpr Coordinate tDivisor{2.0, 4.0, 10.0};
@@ -114,6 +115,25 @@ TEST(Vector3, CoordinateFloor)
     constexpr Coordinate tGold{2.0, 5.0, 1.0};
 
     test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Coordinate floor"));
+}
+
+TEST(Coordinate, OutstreamOperator)
+{
+    const auto tCoordinate = Coordinate{1, 2, 3};
+    std::stringstream tStringStream;
+    tStringStream << tCoordinate;
+    const auto tString = tStringStream.str();
+    const auto tGoldString = std::string{"1\t2\t3"};
+    EXPECT_EQ(tString, tGoldString);
+}
+
+TEST(Coordinate, String)
+{
+    const auto tCoordinate = Coordinate{1.123456789, 2.123456789, 3.123456789};
+    const auto tPrecision = 4U;
+    const auto tString = string(tCoordinate, tPrecision);
+    const auto tGold = std::string{"(1.1235, 2.1235, 3.1235)"};
+    EXPECT_EQ(tString, tGold);
 }
 
 TEST(Vector3, Dot)
@@ -155,46 +175,54 @@ TEST(Vector3, Cross)
 
 TEST(Coordinate, Magnitude)
 {
-    constexpr Coordinate tCoordinate{-1, -2, -3};
-    const double tGold = std::sqrt(1 + 4 + 9);
+    constexpr auto tCoordinate = Coordinate{-1, -2, -3};
+    const auto tGold = std::sqrt(1 + 4 + 9);
     EXPECT_EQ(tGold, magnitude(tCoordinate));
 }
 
 TEST(Vector3, Magnitude)
 {
-    constexpr Vector3 tVector{1, 2, 3};
-    const double tGold = std::sqrt(1 + 4 + 9);
+    constexpr auto tVector = Vector3{1, 2, 3};
+    const auto tGold = std::sqrt(1 + 4 + 9);
     EXPECT_EQ(tGold, magnitude(tVector));
+}
+
+TEST(Vector3, Normalize)
+{
+    auto tVector = Vector3{1, 2, 4};
+    const auto tGold = tVector / magnitude(tVector);
+    normalize(tVector);
+    EXPECT_EQ(tGold, tVector);
 }
 
 namespace
 {
-void test_unit_vector(const UnitVector3& aUnitVec, const plato::test_utilities::TestContext& aTestContext)
+void test_unit_vector(const UnitVector3& aUnitVector, const plato::test_utilities::TestContext& aTestContext)
 {
-    const double tMag = std::sqrt(1.0 + 4.0 + 9.0);
-    const Vector3 tGold{1.0 / tMag, 2.0 / tMag, 3.0 / tMag};
-    EXPECT_DOUBLE_EQ(tGold.x, static_cast<Vector3>(aUnitVec).x) << aTestContext;
-    EXPECT_DOUBLE_EQ(tGold.y, static_cast<Vector3>(aUnitVec).y) << aTestContext;
-    EXPECT_DOUBLE_EQ(tGold.z, static_cast<Vector3>(aUnitVec).z) << aTestContext;
+    const auto tMagnitude = std::sqrt(1.0 + 4.0 + 9.0);
+    const auto tGold = Vector3{1.0 / tMagnitude, 2.0 / tMagnitude, 3.0 / tMagnitude};
+    EXPECT_DOUBLE_EQ(tGold.x, static_cast<Vector3>(aUnitVector).x) << aTestContext;
+    EXPECT_DOUBLE_EQ(tGold.y, static_cast<Vector3>(aUnitVector).y) << aTestContext;
+    EXPECT_DOUBLE_EQ(tGold.z, static_cast<Vector3>(aUnitVector).z) << aTestContext;
 }
 }  // namespace
 
 TEST(UnitVector3, ComponentConstructor)
 {
-    const UnitVector3 tUnitVec3(1, 2, 3);
-    test_unit_vector(tUnitVec3, TEST_CONTEXT("Testing construction of unit vector with x, y, z, components."));
+    const auto tUnitVector3 = UnitVector3(1, 2, 3);
+    test_unit_vector(tUnitVector3, TEST_CONTEXT("Testing construction of unit vector with x, y, z, components."));
 }
 
 TEST(UnitVector3, Vector3Constructor)
 {
-    constexpr Vector3 tVector{1, 2, 3};
-    const UnitVector3 tUnitVec3(tVector);
-    test_unit_vector(tUnitVec3, TEST_CONTEXT("Testing construction of unit vector with non unit vector."));
+    constexpr auto tVector = Vector3{1, 2, 3};
+    const auto tUnitVector3 = UnitVector3(tVector);
+    test_unit_vector(tUnitVector3, TEST_CONTEXT("Testing construction of unit vector with non unit vector."));
 }
 
-TEST(UnitVector3, Error_ZeroLengthVector)
+TEST(UnitVector3, ErrorZeroLengthVector)
 {
-    constexpr Vector3 tVector{0, 0, 0};
+    constexpr auto tVector = Vector3{0, 0, 0};
     EXPECT_THROW([[maybe_unused]] const UnitVector3 tUnitVector{tVector}, std::invalid_argument);
 }
 

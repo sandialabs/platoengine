@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <format>
 #include <iostream>
 #include <ranges>
 #include <vector>
@@ -49,29 +50,40 @@ class UnitVector3
 template <typename T>
 concept Container3Type = std::is_same_v<T, Coordinate> || std::is_same_v<T, Vector3>;
 
-inline auto operator<<(std::ostream& aStream, const Coordinate& aContainer) -> std::ostream&
-{
-    aStream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
-    return aStream;
-}
-
-inline auto operator<<(std::ostream& aStream, const Vector3& aContainer) -> std::ostream&
-{
-    aStream << aContainer.x << '\t' << aContainer.y << '\t' << aContainer.z;
-    return aStream;
-}
-
+/// @brief Output operator overload for a container3 type. Prints the entries of @a aContainer3 tab delimited to the
+/// stream @a aStream.
 template <Container3Type Container3>
-[[nodiscard]] constexpr auto operator-(const Container3& aP0, const Container3& aP1) -> Vector3
+auto operator<<(std::ostream& aStream, const Container3& aContainer3) -> std::ostream&
 {
-    return Vector3{.x = aP0.x - aP1.x, .y = aP0.y - aP1.y, .z = aP0.z - aP1.z};
+    aStream << aContainer3.x << '\t' << aContainer3.y << '\t' << aContainer3.z;
+    return aStream;
 }
 
+/// @brief Convert @a aContainer3 to a fancy formatted string with precision @a aPrecision. The string will be in the
+/// format (x,y,z) where the values have the precision specified. stream @a aStream.
+template <Container3Type Container3>
+[[nodiscard]] auto string(const Container3& aContainer3, unsigned int aPrecision) -> std::string
+{
+    return std::format("({:.{}f}, {:.{}f}, {:.{}f})", aContainer3.x, aPrecision, aContainer3.y, aPrecision,
+                       aContainer3.z, aPrecision);
+}
+
+/// @brief Operator overload for subtraction, computes @a aLeftHandSide - @a aRightHandSide
+template <Container3Type Container3>
+[[nodiscard]] constexpr auto operator-(const Container3& aLeftHandSide, const Container3& aRightHandSide) -> Vector3
+{
+    return Vector3{.x = aLeftHandSide.x - aRightHandSide.x,
+                   .y = aLeftHandSide.y - aRightHandSide.y,
+                   .z = aLeftHandSide.z - aRightHandSide.z};
+}
+
+/// @brief Compute the dot product of @a aLeft and @a aRight
 [[nodiscard]] constexpr auto dot(const Vector3& aLeft, const Vector3& aRight) -> double
 {
     return aLeft.x * aRight.x + aLeft.y * aRight.y + aLeft.z * aRight.z;
 }
 
+/// @brief Compute the cross product of @a aLeft and @a aRight
 [[nodiscard]] constexpr auto cross(const Vector3& aLeft, const Vector3& aRight) -> Vector3
 {
     return Vector3{.x = aLeft.y * aRight.z - aLeft.z * aRight.y,
@@ -79,53 +91,69 @@ template <Container3Type Container3>
                    .z = aLeft.x * aRight.y - aLeft.y * aRight.x};
 }
 
+/// @brief Operator overload for addition, computes @a aLeftHandSide + @a aRightHandSide
 template <Container3Type Container3>
-[[nodiscard]] constexpr auto operator+(const Container3& aP0, const Container3& aP1) -> Container3
+[[nodiscard]] constexpr auto operator+(const Container3& aLeftHandSide, const Container3& aRightHandSide) -> Container3
 {
-    return Container3{.x = aP0.x + aP1.x, .y = aP0.y + aP1.y, .z = aP0.z + aP1.z};
+    return Container3{.x = aLeftHandSide.x + aRightHandSide.x,
+                      .y = aLeftHandSide.y + aRightHandSide.y,
+                      .z = aLeftHandSide.z + aRightHandSide.z};
 }
 
-[[nodiscard]] constexpr auto operator+(const Coordinate& aP0, const double aScalar) -> Coordinate
+/// @brief Operator overload for addition of a Coordinate @a aCoordinate and a scalar @a aScalar
+[[nodiscard]] constexpr auto operator+(const Coordinate& aCoordinate, const double aScalar) -> Coordinate
 {
-    return Coordinate{.x = aP0.x + aScalar, .y = aP0.y + aScalar, .z = aP0.z + aScalar};
+    return Coordinate{.x = aCoordinate.x + aScalar, .y = aCoordinate.y + aScalar, .z = aCoordinate.z + aScalar};
 }
 
-[[nodiscard]] constexpr auto operator/(const Coordinate& aP0, const Coordinate& aDivisor) -> Coordinate
-{
-    return Coordinate{.x = aP0.x / aDivisor.x, .y = aP0.y / aDivisor.y, .z = aP0.z / aDivisor.z};
-}
-
+/// @brief Operator overload for component-wise division of a Container3 @a aNumerator a Container3 @a aDenominator
 template <typename Container3>
-[[nodiscard]] constexpr auto operator/(const Container3& aP0, const double& aDivisor) -> Container3
+[[nodiscard]] constexpr auto operator/(const Container3& aNumerator, const Container3& aDenominator) -> Container3
 {
-    return Container3{.x = aP0.x / aDivisor, .y = aP0.y / aDivisor, .z = aP0.z / aDivisor};
+    return Container3{
+        .x = aNumerator.x / aDenominator.x, .y = aNumerator.y / aDenominator.y, .z = aNumerator.z / aDenominator.z};
 }
 
+/// @brief Operator overload for component-wise division of a Container3 @a aContainer3 by a scalar @a aScalar
+template <typename Container3>
+[[nodiscard]] constexpr auto operator/(const Container3& aContainer3, const double& aDivisor) -> Container3
+{
+    return Container3{.x = aContainer3.x / aDivisor, .y = aContainer3.y / aDivisor, .z = aContainer3.z / aDivisor};
+}
+
+/// @brief Operator overload for component-wise multiplication of two Container3s @a aLeftHandSide and @a aRightHandSide
 template <Container3Type Container3>
-[[nodiscard]] constexpr auto operator*(const Container3& aP0, const double& aScale) -> Container3
+[[nodiscard]] constexpr auto operator*(const Container3& aLeftHandSide, const Container3& aRightHandSide) -> Container3
 {
-    return Container3{.x = aP0.x * aScale, .y = aP0.y * aScale, .z = aP0.z * aScale};
+    return Container3{.x = aLeftHandSide.x * aRightHandSide.x,
+                      .y = aLeftHandSide.y * aRightHandSide.y,
+                      .z = aLeftHandSide.z * aRightHandSide.z};
 }
 
-[[nodiscard]] constexpr auto operator*(const Coordinate& aP0, const Coordinate& aP1) -> Coordinate
-{
-    return Coordinate{.x = aP0.x * aP1.x, .y = aP0.y * aP1.y, .z = aP0.z * aP1.z};
-}
-
-[[nodiscard]] constexpr auto operator/(const double& aScalar, const Coordinate& aP0) -> Coordinate
-{
-    return Coordinate{.x = aScalar / aP0.x, .y = aScalar / aP0.y, .z = aScalar / aP0.z};
-}
-
-[[nodiscard]] constexpr auto floor(const Coordinate& aInputCoord) -> Coordinate
-{
-    return Coordinate{std::floor(aInputCoord.x), std::floor(aInputCoord.y), std::floor(aInputCoord.z)};
-}
-
+/// @brief Operator overload for component-wise multiplication of a Container3 @a aContainer3 by a scalar @a aScalar
 template <Container3Type Container3>
-[[nodiscard]] constexpr auto magnitude(const Container3& aContainer) -> double
+[[nodiscard]] constexpr auto operator*(const Container3& aContainer3, const double& aScalar) -> Container3
 {
-    return std::sqrt(aContainer.x * aContainer.x + aContainer.y * aContainer.y + aContainer.z * aContainer.z);
+    return Container3{.x = aContainer3.x * aScalar, .y = aContainer3.y * aScalar, .z = aContainer3.z * aScalar};
+}
+
+/// @brief Operator overload for component-wise division of a scalar @a aScalar by Coordinate @a aCoordinate
+[[nodiscard]] constexpr auto operator/(const double& aScalar, const Coordinate& aCoordinate) -> Coordinate
+{
+    return Coordinate{.x = aScalar / aCoordinate.x, .y = aScalar / aCoordinate.y, .z = aScalar / aCoordinate.z};
+}
+
+/// @brief Apply the floor operation to each component of @a aCoordinate
+[[nodiscard]] constexpr auto floor(const Coordinate& aCoordinate) -> Coordinate
+{
+    return Coordinate{std::floor(aCoordinate.x), std::floor(aCoordinate.y), std::floor(aCoordinate.z)};
+}
+
+/// @brief Determine the magnitude of a Container3 @a aContainer3
+template <Container3Type Container3>
+[[nodiscard]] constexpr auto magnitude(const Container3& aContainer3) -> double
+{
+    return std::sqrt(aContainer3.x * aContainer3.x + aContainer3.y * aContainer3.y + aContainer3.z * aContainer3.z);
 }
 
 /// @brief Return the componentwise minimum values in the two Container3s @a aContainerOne and @a aContainerTwo
@@ -146,18 +174,20 @@ template <Container3Type Container3>
                       std::max(aContainerOne.z, aContainerTwo.z)};
 }
 
-inline void normalize(Vector3& aVector)
+/// @brief Normalize the Container3 @a aContainer3
+template <Container3Type Container3>
+constexpr void normalize(Container3& aContainer3)
 {
-    const double tMagnitude = magnitude(aVector);
+    const double tMagnitude = magnitude(aContainer3);
     if (std::fabs(tMagnitude) < std::numeric_limits<double>::min())
     {
         throw std::invalid_argument("Attempting to normalize a vector with length 0.");
     }
-    aVector = aVector * (1.0 / tMagnitude);
+    aContainer3 = aContainer3 / tMagnitude;
 }
 
-inline UnitVector3::UnitVector3(const double aXComponent, const double aYComponent, const double aZComponent)
-    : mVector{aXComponent, aYComponent, aZComponent}
+inline UnitVector3::UnitVector3(double aXComponent, double aYComponent, double aZComponent)
+    : mVector({aXComponent, aYComponent, aZComponent})
 {
     normalize(mVector);
 }

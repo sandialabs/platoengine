@@ -1,6 +1,7 @@
 #include "plato/filter/extension/kernel_filters/Plane.hpp"
 
 #include <cassert>
+#include <cmath>
 
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
@@ -12,12 +13,10 @@ auto Plane::reflect(const third_party_integration::common::Coordinate& aCoordina
     -> third_party_integration::common::Coordinate
 {
     namespace tpic = third_party_integration::common;
-    assert(tpic::magnitude(static_cast<tpic::Vector3>(mUnitNormal)) == 1);
     const auto tDistanceFromCoordinateToPlane =
         tpic::dot((aCoordinate - mCenter), static_cast<tpic::Vector3>(mUnitNormal));
     const auto tNewPoint = tpic::Vector3{aCoordinate.x, aCoordinate.y, aCoordinate.z} -
                            static_cast<tpic::Vector3>(mUnitNormal) * tDistanceFromCoordinateToPlane * 2.0;
-
     return tpic::Coordinate{tNewPoint.x, tNewPoint.y, tNewPoint.z};
 }
 
@@ -40,6 +39,13 @@ auto Plane::reflect(const Plane& aPlane) const -> Plane
     const auto tReflectedCenter = this->reflect(aPlane.mCenter);
 
     return Plane(tReflectedCenter, tpic::UnitVector3{tReflectedNormal.x, tReflectedNormal.y, tReflectedNormal.z});
+}
+
+auto signed_distance_to_plane(const third_party_integration::common::Coordinate& aCoordinate,
+                              const Plane& aPlane) -> double
+{
+    namespace tpic = third_party_integration::common;
+    return tpic::dot(aCoordinate - aPlane.mCenter, static_cast<tpic::Vector3>(aPlane.mUnitNormal));
 }
 
 }  // namespace plato::filter::extension::kernel_filters
