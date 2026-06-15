@@ -24,6 +24,7 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), snopt_optimization,
+    "Placeholder description for snopt_optimization",
     (plato::input_parser::FileName, input_file_name, "Optional filename of the SNOpt input file to set optimization parameters not otherwise available here.")
     (unsigned int, max_iterations, "Optional command to override the maximum number of outer iterations given in an input file.")
     (unsigned int, time_limit_in_minutes, "Optional command to override the time limit in minutes for this optimization as an additional stopping criteria for the optimization.")

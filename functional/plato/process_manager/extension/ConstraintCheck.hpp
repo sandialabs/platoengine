@@ -23,6 +23,7 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), constraint_check,
+    "Placeholder description for constraint_check",
     (plato::input_parser::FileName, linearity_check_output_file_name, "Required filename to use to report the results of the linearity check.")
     (plato::input_parser::FileName, jacobian_check_output_file_name, "Required filename to use to report the results of the Jacobian check.")
     (plato::input_parser::FileName, jacobian_adjoint_consistency_output_file_name, "Required filename to use to report the results of the Jacobian and adjoint Jacobian consistency check.")

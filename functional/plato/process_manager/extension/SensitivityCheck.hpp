@@ -22,6 +22,7 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), sensitivity_check,
+    "Placeholder description for sensitivity_check",
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the sensitivity check.")
 )
 // clang-format on

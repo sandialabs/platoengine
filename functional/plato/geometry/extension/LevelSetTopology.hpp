@@ -23,6 +23,7 @@
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), level_set_topology,
+    "Help placeholder for level_set_topology",
     (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
     (plato::input_parser::FileName, output_name, "Required field specifying the exodus output file name to use when writing results.")
     (bool, include_void_region, "Required field specifying whether to include the elements of the void region when writing the cut mesh.")

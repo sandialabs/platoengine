@@ -23,6 +23,7 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), objective_gradient_check,
+    "Placeholder description for objective_gradient_check",
     (plato::input_parser::FileName, input_mesh_name, "Required filename of the mesh to use to compute the gradient check.")
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the gradient check.")
     (plato::input_parser::DesignVariableTypes, design_variable_type, "Required field specifying what type of design variable to use for the gradient check. "

@@ -11,14 +11,17 @@
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestGeometryBlock, 
+    "Description",
     (int, field1, "help")
 )
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestProcessManagerBlock, 
+    "Description",
     (int, field1, "help")
 )
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestFilterBlock, 
+    "Description",
     (int, field1, "help")
 )
 PLATO_NAMED_INPUT_BLOCK_STRUCT(

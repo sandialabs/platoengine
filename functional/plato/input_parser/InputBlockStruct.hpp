@@ -122,14 +122,14 @@ struct ComponentTypeOfInputBlock<STRUCT_NAME>                                   
 };                                                                                                      \
 } 
 
-#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                  \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kGeometry, "Geometry", ATTRIBUTES) \
+#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                      \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kGeometry, DESCRIPTION, ATTRIBUTES) \
 
-#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                        \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kProcessManager, "Process manager", ATTRIBUTES) \
+#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                      \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kProcessManager, DESCRIPTION, ATTRIBUTES)  \
 
-#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                   \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kFilter, "Filter", ATTRIBUTES)    \
+#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                         \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kFilter, DESCRIPTION, ATTRIBUTES)    \
 
 /// Macro for generating an adapted struct that can be used for input parsing. The format
 /// is the same as BOOST_FUSION_DEFINE_STRUCT and the resulting struct has all the same

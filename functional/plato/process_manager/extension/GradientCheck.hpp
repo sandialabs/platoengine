@@ -23,6 +23,7 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), gradient_check,
+    "Placeholder description for gradient_check",
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the gradient check.")
     (unsigned int, number_of_steps, "Required field specifying the number of approximations to evaluate using a finite difference.")
     (double, initial_direction_magnitude, "Required field specifying the magnitude of the perturbation of the design controls.")
