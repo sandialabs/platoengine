@@ -16,10 +16,12 @@ using GeometryCrossReference = plato::input_parser::CrossReference<plato::compon
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          block_with_geometry_cross_reference,
                          plato::components::ComponentType::kProcessManager,
+                         "A test process manager",
                          (GeometryCrossReference, my_geom, "help"))
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          geometry_block,
                          plato::components::ComponentType::kGeometry,
+                         "A test geometry",
                          (int, a_parameter, "help"))
 // clang-format off
 

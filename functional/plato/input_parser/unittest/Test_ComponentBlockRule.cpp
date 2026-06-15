@@ -11,6 +11,7 @@
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          test_block,
                          plato::components::ComponentType::kGeometry,
+                         "A test geometry",
                          (bool, field1, "a helpful comment")(int, field2, "a very helpful comment"))
 
 namespace plato::input_parser::unittest

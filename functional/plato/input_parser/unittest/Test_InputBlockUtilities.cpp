@@ -24,11 +24,13 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestObjectiveBlock,
     plato::components::ComponentType::kObjective,
+    "A test objective",
     (int, field1, "help")
 )
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestConstraintBlock,
     plato::components::ComponentType::kConstraint,
+    "A test constraint",
     (int, field1, "help")
 )
 // clang-format on

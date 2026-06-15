@@ -15,6 +15,7 @@ DECLARE_ENUM_AND_ENUM_SYMBOL_TABLE(ObjectiveGoal,
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), objective, plato::components::ComponentType::kObjective,
+    "Defines objectives (placeholder)",
     (bool, active, "Optional field to de/activate this objective.")
     (plato::input_parser::AppName, app, "Required field specifying the app to use for this objective.") 
     (plato::input_parser::CriterionName, criterion, "Required field specifying the name of the criterion to be evaluated.")

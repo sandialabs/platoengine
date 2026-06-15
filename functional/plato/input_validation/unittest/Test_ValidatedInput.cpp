@@ -30,17 +30,20 @@ using GeometryCrossReference = plato::input_parser::CrossReference<plato::compon
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          marvel, components::ComponentType::kGeometry,
+                         "A test geometry",
                          (double, cyclops, "")
                          (int, wolverine, ""))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
                                dc, plato::components::ComponentType::kConstraint,
+                               "A test constraint",
                                (bool, superman, "")
                                (unsigned int, batman, "")
                                (GeometryCrossReference, multiverse, ""))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
                                dark_horse, plato::components::ComponentType::kObjective,
+                               "A test objective",
                                (bool, active, "")
                                (unsigned int, predator, ""))
 // clang-format on

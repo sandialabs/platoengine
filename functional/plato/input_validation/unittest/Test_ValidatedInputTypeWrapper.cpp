@@ -21,10 +21,12 @@ using FilterCrossReference = plato::input_parser::CrossReference<plato::componen
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          land_creatures,
                          plato::components::ComponentType::kGeometry,
+                         "Help description",
                          (FilterCrossReference, my_sea_creature, ""))
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          sea_creatures, plato::components::ComponentType::kFilter,
+                         "Help description",
                          (double, octopus, "")
                          (unsigned int, squid, ""))
 // clang-format on

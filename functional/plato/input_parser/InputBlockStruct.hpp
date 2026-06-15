@@ -71,13 +71,13 @@ void register_help_documentation();
     .mComment = BOOST_PP_TUPLE_ELEM(2, elem)}                                       \
     );
 
-#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, ATTRIBUTES)                                            \
+#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                               \
 namespace plato::input_parser {                                                                                                  \
 template<>                                                                                                                       \
 inline void register_help_documentation<STRUCT_NAME>() {                                                                         \
     [[maybe_unused]] const auto tRegistration = HelpDocumentationRegistration{ BOOST_PP_STRINGIZE(STRUCT_NAME),                  \
     [](){                                                                                                                        \
-        auto tCommands = ComponentDocumentation{};                                                                               \
+        auto tCommands = ComponentDocumentation{.mDescription = (DESCRIPTION), .mInputs = {}};                                   \
         BOOST_PP_SEQ_FOR_EACH(UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR, _, BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))  \
         return tCommands;                                                                                                        \
     }};                                                                                                                          \
@@ -92,6 +92,7 @@ inline void register_help_documentation<STRUCT_NAME>() {                        
 /// @code 
 /// PLATO_INPUT_BLOCK_STRUCT(
 ///    (plato)(input_parser), service, components::ComponentType::kProcessManager,
+///    "Component description for documentation",
 ///    (unsigned int, number_processors))
 /// @endcode
 /// parses the following block:
@@ -100,7 +101,7 @@ inline void register_help_documentation<STRUCT_NAME>() {                        
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, ATTRIBUTES)                \
+#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES)   \
 /* NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */         \
 BOOST_FUSION_DEFINE_STRUCT(                                                                             \
     NAMESPACE_SEQ,                                                                                      \
@@ -108,7 +109,7 @@ BOOST_FUSION_DEFINE_STRUCT(                                                     
     TYPES_AS_OPTIONAL(ATTRIBUTES_WITHOUT_COMMENTS(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))            \
 )                                                                                                       \
 /* NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */           \
-CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)                          \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, DESCRIPTION, ATTRIBUTES)              \
 namespace plato::input_parser{                                                                          \
 template<>                                                                                              \
 struct InputTypeName<STRUCT_NAME>                                                                       \
@@ -121,14 +122,14 @@ struct ComponentTypeOfInputBlock<STRUCT_NAME>                                   
 };                                                                                                      \
 } 
 
-#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                      \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kGeometry, ATTRIBUTES) \
+#define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                  \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kGeometry, "Geometry", ATTRIBUTES) \
 
-#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                     \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kProcessManager, ATTRIBUTES) \
+#define PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                        \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kProcessManager, "Process manager", ATTRIBUTES) \
 
-#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                         \
-PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kFilter, ATTRIBUTES)    \
+#define PLATO_FILTER_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, ATTRIBUTES)                                   \
+PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::kFilter, "Filter", ATTRIBUTES)    \
 
 /// Macro for generating an adapted struct that can be used for input parsing. The format
 /// is the same as BOOST_FUSION_DEFINE_STRUCT and the resulting struct has all the same
@@ -137,7 +138,8 @@ PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::
 /// For example, a struct of the form:
 /// @code 
 /// PLATO_NAMED_INPUT_BLOCK_STRUCT(
-///    (plato)(input_parser), service, plato::componenets::ComponentType::kObjective
+///    (plato)(input_parser), service, plato::componenets::ComponentType::kObjective,
+///    "Component description for documentation",
 ///    (unsigned int, number_processors))
 /// @endcode
 /// parses the following block:
@@ -146,27 +148,27 @@ PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, components::ComponentType::
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_NAMED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, ATTRIBUTES)  \
-/* NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */ \
-BOOST_FUSION_DEFINE_STRUCT(                                                                     \
-    NAMESPACE_SEQ,                                                                              \
-    STRUCT_NAME,                                                                                \
-    TYPES_AS_OPTIONAL(ATTRIBUTES_WITH_NAME(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))           \
-)                                                                                               \
-/* NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */   \
-CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME,  ATTRIBUTES)                  \
-namespace plato::input_parser{                                                                  \
-template<>                                                                                      \
-struct InputTypeName<STRUCT_NAME>                                                               \
-{   static constexpr const char* mName = #STRUCT_NAME;                                          \
-};                                                                                              \
-template<>                                                                                      \
-constexpr inline bool kIsNamedBlock<STRUCT_NAME> = true;                                        \
-template<>                                                                                      \
-struct ComponentTypeOfInputBlock<STRUCT_NAME>                                                   \
-{                                                                                               \
-    constexpr static inline components::ComponentType mValue = COMPONENT_TYPE;                  \
-};                                                                                              \
+#define PLATO_NAMED_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES) \
+/* NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */             \
+BOOST_FUSION_DEFINE_STRUCT(                                                                                 \
+    NAMESPACE_SEQ,                                                                                          \
+    STRUCT_NAME,                                                                                            \
+    TYPES_AS_OPTIONAL(ATTRIBUTES_WITH_NAME(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))                       \
+)                                                                                                           \
+/* NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */               \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                  \
+namespace plato::input_parser{                                                                              \
+template<>                                                                                                  \
+struct InputTypeName<STRUCT_NAME>                                                                           \
+{   static constexpr const char* mName = #STRUCT_NAME;                                                      \
+};                                                                                                          \
+template<>                                                                                                  \
+constexpr inline bool kIsNamedBlock<STRUCT_NAME> = true;                                                    \
+template<>                                                                                                  \
+struct ComponentTypeOfInputBlock<STRUCT_NAME>                                                               \
+{                                                                                                           \
+    constexpr static inline components::ComponentType mValue = COMPONENT_TYPE;                              \
+};                                                                                                          \
 }
 
 // NOLINTEND(cppcoreguidelines-macro-usage)
