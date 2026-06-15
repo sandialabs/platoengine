@@ -9,10 +9,11 @@ namespace plato::input_parser::documentation_generator::library::unittest
 {
 namespace
 {
-const auto kDocOne = Documentation{{"a", "b", "c"}};
-const auto kDocTwo = Documentation{{"d", "e", "f"}, {"g", "h", "i"}};
-const std::map<std::string, Documentation> kDocumentation = {{"one", kDocOne}, {"two", kDocTwo}};
+const auto kDocOne = ComponentDocumentation{.mDescription = "", .mInputs = {{"a", "b", "c"}}};
+const auto kDocTwo = ComponentDocumentation{.mDescription = "", .mInputs = {{"d", "e", "f"}, {"g", "h", "i"}}};
+const std::map<std::string, ComponentDocumentation> kDocumentation = {{"one", kDocOne}, {"two", kDocTwo}};
 }  // namespace
+
 TEST(LatexFormatter, FormatLatex)
 {
     const auto tDocumentation = kDocumentation;

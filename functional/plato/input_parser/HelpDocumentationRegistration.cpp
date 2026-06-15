@@ -30,14 +30,13 @@ HelpDocumentationRegistration::HelpDocumentationRegistration(const std::string& 
     detail::registered_help_documentation_functions()[aKey] = std::move(aFunction);
 }
 
-auto generate_documentation() -> std::map<std::string, Documentation>
+auto generate_documentation() -> std::map<std::string, ComponentDocumentation>
 {
     const auto tFunctions = detail::registered_help_documentation_functions();
-    std::map<std::string, Documentation> tFullDocumentation;
+    std::map<std::string, ComponentDocumentation> tFullDocumentation;
     for (const auto& tFunction : tFunctions)
     {
-        auto tDocumentation = tFunction.second();
-        tFullDocumentation[tFunction.first] = tDocumentation;
+        tFullDocumentation[tFunction.first] = tFunction.second();
     }
 
     return tFullDocumentation;
@@ -52,16 +51,17 @@ void known_inputs(std::ostream& aOutputStream)
     for (const auto& tEntry : tDocumentation)
     {
         const auto tFirstIndentSize = static_cast<int>(tEntry.first.length());
-        aOutputStream << tEntry.first << std::endl;
-        for (const auto& tInputs : tEntry.second)
+        aOutputStream << tEntry.first << "\n";
+        aOutputStream << tEntry.second.mDescription << "\n";
+        for (const auto& tInputs : tEntry.second.mInputs)
         {
             aOutputStream << std::left << std::setw(tFirstIndentSize) << "" << tInputs.mName << "\t [" << tInputs.mType
-                          << "] " << std::endl;
+                          << "] " << "\n";
             plato::utilities::word_block_justify(tInputs.mComment, utilities::TextWidth{tColumnWidth},
                                                  utilities::TextIndent{tFirstIndentSize + tAdditionalIndent},
                                                  aOutputStream);
         }
-        aOutputStream << std::endl;
+        aOutputStream << "\n";
     }
     aOutputStream << std::endl;
 }

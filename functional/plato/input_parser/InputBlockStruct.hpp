@@ -47,7 +47,7 @@ concept InputBlockOfComponent = InputBlock<T> && kComponentType == ComponentType
 template <typename InputStruct>
 constexpr inline bool kIsNamedBlock = false;
 
-/// @brief A helper function template for registering HelpDocumentation object generation.
+/// @brief A helper function template for registering InputKeywordDocumentation object generation.
 /// @note This is specialized in the parser macros and does not need to be called by client code.
 template <typename InputStruct>
 void register_help_documentation();
@@ -64,11 +64,11 @@ void register_help_documentation();
 #define STRIP_COMMENT(r, data, elem) (BOOST_PP_TUPLE_ELEM(0, elem), BOOST_PP_TUPLE_ELEM(1, elem))
 #define ATTRIBUTES_WITHOUT_COMMENTS(ATTRIBUTES) BOOST_PP_SEQ_TRANSFORM(STRIP_COMMENT, _, ATTRIBUTES)
 
-#define UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR(r, data, elem) \
-    tCommands.emplace_back(plato::input_parser::HelpDocumentation{         \
-    BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(1, elem)),                      \
-    BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, elem)),                      \
-    BOOST_PP_TUPLE_ELEM(2, elem)}                                          \
+#define UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR(r, data, elem)          \
+    tCommands.mInputs.emplace_back(plato::input_parser::InputKeywordDocumentation{  \
+    .mName = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(1, elem)),                      \
+    .mType = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, elem)),                      \
+    .mComment = BOOST_PP_TUPLE_ELEM(2, elem)}                                       \
     );
 
 #define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, ATTRIBUTES)                                            \
@@ -77,7 +77,7 @@ template<>                                                                      
 inline void register_help_documentation<STRUCT_NAME>() {                                                                         \
     [[maybe_unused]] const auto tRegistration = HelpDocumentationRegistration{ BOOST_PP_STRINGIZE(STRUCT_NAME),                  \
     [](){                                                                                                                        \
-        Documentation tCommands;                                                                                                 \
+        auto tCommands = ComponentDocumentation{};                                                                               \
         BOOST_PP_SEQ_FOR_EACH(UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR, _, BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))  \
         return tCommands;                                                                                                        \
     }};                                                                                                                          \

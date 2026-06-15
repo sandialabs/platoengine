@@ -11,15 +11,20 @@ namespace plato::input_parser
 
 /// @brief Helper struct used to hold the string forms of a plato input block
 /// @note Not indented for use besides documentation.
-struct HelpDocumentation
+struct InputKeywordDocumentation
 {
     std::string mName = "Default Name";
     std::string mType = "Default Type";
     std::string mComment = "Default Comment";
 };
 
-using Documentation = std::vector<HelpDocumentation>;
-using HelpDocumentationFunction = std::function<Documentation()>;
+struct ComponentDocumentation
+{
+    std::string mDescription = "Component description";
+    std::vector<InputKeywordDocumentation> mInputs;
+};
+
+using HelpDocumentationFunction = std::function<ComponentDocumentation()>;
 
 /// @brief Object used for static registration of help documentation functions
 ///
@@ -40,7 +45,7 @@ struct HelpDocumentationRegistration
 };
 
 /// @brief Generates the list of all documentation available
-[[nodiscard]] auto generate_documentation() -> std::map<std::string, Documentation>;
+[[nodiscard]] auto generate_documentation() -> std::map<std::string, ComponentDocumentation>;
 
 /// @brief Generate the list of documentation and format the text and print it in the given output stream @a
 /// aOutputStream

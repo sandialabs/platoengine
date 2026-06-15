@@ -10,7 +10,7 @@
 namespace plato::input_parser::documentation_generator::library
 {
 using BlockCommands = std::map<std::string, std::vector<std::string>>;
-using HelpDocumentationMap = std::map<std::string, Documentation>;
+using HelpDocumentationMap = std::map<std::string, ComponentDocumentation>;
 
 ///@brief Take help documentation @a aHelpDocumentation and convert it from vectors of functions to vectors of the
 /// string data that is formatted into a latex command that can be defined and adapted as we need.
