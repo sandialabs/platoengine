@@ -71,13 +71,14 @@ void register_help_documentation();
     .mComment = BOOST_PP_TUPLE_ELEM(2, elem)}                                       \
     );
 
-#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                               \
+#define CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES)               \
 namespace plato::input_parser {                                                                                                  \
 template<>                                                                                                                       \
 inline void register_help_documentation<STRUCT_NAME>() {                                                                         \
     [[maybe_unused]] const auto tRegistration = documentation::HelpDocumentationRegistration{ BOOST_PP_STRINGIZE(STRUCT_NAME),   \
     [](){                                                                                                                        \
-        auto tCommands = documentation::ComponentDocumentation{.mDescription = (DESCRIPTION), .mInputs = {}};                    \
+        auto tCommands = documentation::ComponentDocumentation{                                                                  \
+            .mComponentType = (COMPONENT_TYPE), .mDescription = (DESCRIPTION), .mInputs = {}};                                   \
         BOOST_PP_SEQ_FOR_EACH(UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR, _, BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))  \
         return tCommands;                                                                                                        \
     }};                                                                                                                          \
@@ -101,25 +102,25 @@ inline void register_help_documentation<STRUCT_NAME>() {                        
 ///   number_processors 10
 /// end service
 /// @endcode
-#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES)   \
-/* NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */         \
-BOOST_FUSION_DEFINE_STRUCT(                                                                             \
-    NAMESPACE_SEQ,                                                                                      \
-    STRUCT_NAME,                                                                                        \
-    TYPES_AS_OPTIONAL(ATTRIBUTES_WITHOUT_COMMENTS(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))            \
-)                                                                                                       \
-/* NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */           \
-CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, DESCRIPTION, ATTRIBUTES)              \
-namespace plato::input_parser{                                                                          \
-template<>                                                                                              \
-struct InputTypeName<STRUCT_NAME>                                                                       \
-{   static constexpr const char* mName = #STRUCT_NAME;                                                  \
-};                                                                                                      \
-template<>                                                                                              \
-struct ComponentTypeOfInputBlock<STRUCT_NAME>                                                           \
-{                                                                                                       \
-    constexpr static inline components::ComponentType mValue = COMPONENT_TYPE;                          \
-};                                                                                                      \
+#define PLATO_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES)      \
+/* NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */            \
+BOOST_FUSION_DEFINE_STRUCT(                                                                                \
+    NAMESPACE_SEQ,                                                                                         \
+    STRUCT_NAME,                                                                                           \
+    TYPES_AS_OPTIONAL(ATTRIBUTES_WITHOUT_COMMENTS(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))               \
+)                                                                                                          \
+/* NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */              \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES) \
+namespace plato::input_parser{                                                                             \
+template<>                                                                                                 \
+struct InputTypeName<STRUCT_NAME>                                                                          \
+{   static constexpr const char* mName = #STRUCT_NAME;                                                     \
+};                                                                                                         \
+template<>                                                                                                 \
+struct ComponentTypeOfInputBlock<STRUCT_NAME>                                                              \
+{                                                                                                          \
+    constexpr static inline components::ComponentType mValue = COMPONENT_TYPE;                             \
+};                                                                                                         \
 } 
 
 #define PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(NAMESPACE_SEQ, STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                      \
@@ -156,7 +157,7 @@ BOOST_FUSION_DEFINE_STRUCT(                                                     
     TYPES_AS_OPTIONAL(ATTRIBUTES_WITH_NAME(BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES)))                       \
 )                                                                                                           \
 /* NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init) */               \
-CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, DESCRIPTION, ATTRIBUTES)                  \
+CREATE_STATIC_REGISTRATION_OF_DOCUMENTATION_FUNCTION(STRUCT_NAME, COMPONENT_TYPE, DESCRIPTION, ATTRIBUTES)  \
 namespace plato::input_parser{                                                                              \
 template<>                                                                                                  \
 struct InputTypeName<STRUCT_NAME>                                                                           \

@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/NamedType.hpp"
@@ -19,13 +20,16 @@ using Key = utilities::NamedType<std::string, struct KeyTag>;
 auto help_documentation_function_one() -> ComponentDocumentation
 {
     const InputKeywordDocumentation tCommand{"name_1", "type_1", "comment_1"};
-    return {.mDescription = "description_1", .mInputs = {tCommand}};
+    return {
+        .mComponentType = components::ComponentType::kGeometry, .mDescription = "description_1", .mInputs = {tCommand}};
 }
 
 auto help_documentation_function_two() -> ComponentDocumentation
 {
     const InputKeywordDocumentation tCommand{"name_2", "type_2", "comment_2"};
-    return {.mDescription = "description_2", .mInputs = {tCommand, tCommand}};
+    return {.mComponentType = components::ComponentType::kFilter,
+            .mDescription = "description_2",
+            .mInputs = {tCommand, tCommand}};
 }
 
 [[maybe_unused]] const auto kNewHelpDocumentationRegistrationOne =
@@ -43,10 +47,12 @@ TEST(HelpDocumentationRegistration, GenerateDocumentation)
     EXPECT_GE(tDocumentation.size(), 2U);
 
     ASSERT_EQ(tDocumentation.at("key_one").mInputs.size(), 1U);
+    EXPECT_EQ(tDocumentation.at("key_one").mComponentType, components::ComponentType::kGeometry);
     EXPECT_EQ(tDocumentation.at("key_one").mDescription, "description_1");
     EXPECT_EQ(tDocumentation.at("key_one").mInputs.front().mType, "type_1");
 
     ASSERT_EQ(tDocumentation.at("key_two").mInputs.size(), 2U);
+    EXPECT_EQ(tDocumentation.at("key_two").mComponentType, components::ComponentType::kFilter);
     EXPECT_EQ(tDocumentation.at("key_two").mDescription, "description_2");
     EXPECT_EQ(tDocumentation.at("key_two").mInputs.front().mComment, "comment_2");
     EXPECT_EQ(tDocumentation.at("key_two").mInputs.back().mName, "name_2");

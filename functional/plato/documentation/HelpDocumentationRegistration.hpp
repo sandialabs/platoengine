@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "plato/components/ComponentType.hpp"
+
 namespace plato::documentation
 {
 
@@ -20,6 +22,7 @@ struct InputKeywordDocumentation
 
 struct ComponentDocumentation
 {
+    components::ComponentType mComponentType = components::ComponentType::kObjective;
     std::string mDescription = "Component description";
     std::vector<InputKeywordDocumentation> mInputs;
 };
