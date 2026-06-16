@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <utility>
+
 #include "plato/components/ComponentType.hpp"
 #include "plato/components/Documentation.hpp"
 #include "plato/utilities/EnumIndexing.hpp"
@@ -16,5 +19,7 @@ TEST(Documentation, AllExist)
          std::string{ComponentTypeDocumentation<component_type_from_index<kIndices>()>::mDocumentation});
         return tAllDocumentation;
     }(std::make_index_sequence<tNumberOfComponents>());
+
+    EXPECT_FALSE(tDocumentation.empty());
 }
 }  // namespace plato::components::unittest
