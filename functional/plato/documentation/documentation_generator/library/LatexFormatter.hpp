@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include "plato/input_parser/HelpDocumentationRegistration.hpp"
+#include "plato/documentation/HelpDocumentationRegistration.hpp"
 
-namespace plato::input_parser::documentation_generator::library
+namespace plato::documentation::documentation_generator::library
 {
 using BlockCommands = std::map<std::string, std::vector<std::string>>;
 using HelpDocumentationMap = std::map<std::string, ComponentDocumentation>;
@@ -16,6 +16,6 @@ using HelpDocumentationMap = std::map<std::string, ComponentDocumentation>;
 /// string data that is formatted into a latex command that can be defined and adapted as we need.
 [[nodiscard]] auto format_command_latex(const HelpDocumentationMap& aHelpDocumentationMap) -> BlockCommands;
 
-}  // namespace plato::input_parser::documentation_generator::library
+}  // namespace plato::documentation::documentation_generator::library
 
 #endif

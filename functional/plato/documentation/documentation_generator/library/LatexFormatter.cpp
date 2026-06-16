@@ -1,4 +1,4 @@
-#include "plato/input_parser/documentation_generator/library/LatexFormatter.hpp"
+#include "plato/documentation/documentation_generator/library/LatexFormatter.hpp"
 
 #include <algorithm>
 #include <iterator>
@@ -7,10 +7,10 @@
 #include <utility>
 #include <vector>
 
-#include "plato/input_parser/HelpDocumentationRegistration.hpp"
+#include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
-namespace plato::input_parser::documentation_generator::library
+namespace plato::documentation::documentation_generator::library
 {
 
 namespace
@@ -50,4 +50,4 @@ auto format_command_latex(const HelpDocumentationMap& aHelpDocumentationMap) -> 
     return tBlockCommands;
 }
 
-}  // namespace plato::input_parser::documentation_generator::library
+}  // namespace plato::documentation::documentation_generator::library

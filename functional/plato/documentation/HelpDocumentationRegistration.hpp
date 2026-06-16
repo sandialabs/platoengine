@@ -1,12 +1,12 @@
-#ifndef PLATO_INPUTPARSER_HELPDOCUMENTATIONREGISTRATION
-#define PLATO_INPUTPARSER_HELPDOCUMENTATIONREGISTRATION
+#ifndef PLATO_DOCUMENTATION_HELPDOCUMENTATIONREGISTRATION
+#define PLATO_DOCUMENTATION_HELPDOCUMENTATIONREGISTRATION
 
 #include <functional>
 #include <map>
 #include <string>
 #include <vector>
 
-namespace plato::input_parser
+namespace plato::documentation
 {
 
 /// @brief Helper struct used to hold the string forms of a plato input block
@@ -33,7 +33,7 @@ using HelpDocumentationFunction = std::function<ComponentDocumentation()>;
 /// @code
 /// namespace{
 /// [[maybe_unused]] static const auto kNewHelpDocumentationRegistration =
-///   plato::input_parser::HelpDocumentationRegistration{
+///   plato::documentation::HelpDocumentationRegistration{
 ///    [](){ return help_documentation_function(); }
 /// };
 /// }
@@ -59,6 +59,6 @@ namespace detail
 
 }  // namespace detail
 
-}  // namespace plato::input_parser
+}  // namespace plato::documentation
 
 #endif

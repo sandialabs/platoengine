@@ -5,11 +5,11 @@
 #include <sstream>
 #include <string>
 
-#include "plato/input_parser/HelpDocumentationRegistration.hpp"
+#include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/NamedType.hpp"
 
-namespace plato::input_parser
+namespace plato::documentation::unittest
 {
 
 namespace
@@ -82,4 +82,4 @@ TEST(HelpDocumentationRegistration, KnownInputs)
     check_for_key(Key{"comment_2"}, tString, 2U, TEST_CONTEXT("Key comment_2"));
 }
 
-}  // namespace plato::input_parser
+}  // namespace plato::documentation::unittest

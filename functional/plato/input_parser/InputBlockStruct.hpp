@@ -11,7 +11,7 @@
 #include <boost/preprocessor/tuple/elem.hpp>
 
 #include "plato/components/ComponentType.hpp"
-#include "plato/input_parser/HelpDocumentationRegistration.hpp"
+#include "plato/documentation/HelpDocumentationRegistration.hpp"
 
 namespace plato::input_parser
 {
@@ -65,7 +65,7 @@ void register_help_documentation();
 #define ATTRIBUTES_WITHOUT_COMMENTS(ATTRIBUTES) BOOST_PP_SEQ_TRANSFORM(STRIP_COMMENT, _, ATTRIBUTES)
 
 #define UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR(r, data, elem)          \
-    tCommands.mInputs.emplace_back(plato::input_parser::InputKeywordDocumentation{  \
+    tCommands.mInputs.emplace_back(plato::documentation::InputKeywordDocumentation{ \
     .mName = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(1, elem)),                      \
     .mType = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, elem)),                      \
     .mComment = BOOST_PP_TUPLE_ELEM(2, elem)}                                       \
@@ -75,9 +75,9 @@ void register_help_documentation();
 namespace plato::input_parser {                                                                                                  \
 template<>                                                                                                                       \
 inline void register_help_documentation<STRUCT_NAME>() {                                                                         \
-    [[maybe_unused]] const auto tRegistration = HelpDocumentationRegistration{ BOOST_PP_STRINGIZE(STRUCT_NAME),                  \
+    [[maybe_unused]] const auto tRegistration = documentation::HelpDocumentationRegistration{ BOOST_PP_STRINGIZE(STRUCT_NAME),   \
     [](){                                                                                                                        \
-        auto tCommands = ComponentDocumentation{.mDescription = (DESCRIPTION), .mInputs = {}};                                   \
+        auto tCommands = documentation::ComponentDocumentation{.mDescription = (DESCRIPTION), .mInputs = {}};                    \
         BOOST_PP_SEQ_FOR_EACH(UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR, _, BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))  \
         return tCommands;                                                                                                        \
     }};                                                                                                                          \

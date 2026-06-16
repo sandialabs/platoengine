@@ -1,4 +1,4 @@
-#include "plato/input_parser/HelpDocumentationRegistration.hpp"
+#include "plato/documentation/HelpDocumentationRegistration.hpp"
 
 #include <sys/types.h>
 
@@ -10,7 +10,8 @@
 #include <utility>
 
 #include "plato/utilities/FormatText.hpp"
-namespace plato::input_parser
+
+namespace plato::documentation
 {
 
 namespace detail
@@ -46,7 +47,7 @@ void known_inputs(std::ostream& aOutputStream)
 {
     constexpr auto tColumnWidth = ulong{80};
     constexpr auto tAdditionalIndent = ulong{5};
-    const auto tDocumentation = plato::input_parser::generate_documentation();
+    const auto tDocumentation = plato::documentation::generate_documentation();
     aOutputStream << "\nKnown inputs:" << std::endl;
     for (const auto& tEntry : tDocumentation)
     {
@@ -66,4 +67,4 @@ void known_inputs(std::ostream& aOutputStream)
     aOutputStream << std::endl;
 }
 
-}  // namespace plato::input_parser
+}  // namespace plato::documentation

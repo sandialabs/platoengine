@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "plato/components/ComponentType.hpp"
-#include "plato/input_parser/HelpDocumentationRegistration.hpp"
+#include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/main/library/Executor.hpp"
 #include "plato/main/library/Splash.hpp"
@@ -89,7 +89,7 @@ void print_command_line_error_message()
 void print_known_inputs()
 {
     plato::utilities::execute_on_root(boost::mpi::communicator{},
-                                      []() { plato::input_parser::known_inputs(std::cout); });
+                                      []() { plato::documentation::known_inputs(std::cout); });
 }
 
 }  // namespace detail

@@ -3,9 +3,9 @@
 #include <map>
 #include <string>
 
-#include "plato/input_parser/documentation_generator/library/LatexFormatter.hpp"
+#include "plato/documentation/documentation_generator/library/LatexFormatter.hpp"
 
-namespace plato::input_parser::documentation_generator::library::unittest
+namespace plato::documentation::documentation_generator::library::unittest
 {
 namespace
 {
@@ -23,4 +23,4 @@ TEST(LatexFormatter, FormatLatex)
     EXPECT_EQ(tResult.at("two").front(), "\\PlatoCommand{two}{d}{e}{f}");
     EXPECT_EQ(tResult.at("two").back(), "\\PlatoCommand{two}{g}{h}{i}");
 }
-}  // namespace plato::input_parser::documentation_generator::library::unittest
+}  // namespace plato::documentation::documentation_generator::library::unittest
