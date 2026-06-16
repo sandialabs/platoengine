@@ -12,8 +12,15 @@
 namespace plato::process_manager::extension::detail
 {
 
+/// @brief Checks that the cross-reference @a aCrossReference is the expected type, given by @a ExpectedCrossReference.
+/// Error message will use the input block name given in @a aInputBlockName.
+template <typename ExpectedCrossReference, components::ComponentType kComponentType>
+[[nodiscard]] auto validate_expected_cross_reference_type(
+    const input_parser::CrossReference<kComponentType>& aCrossReference, const std::string& aInputBlockName)
+    -> std::optional<std::string>;
+
 template <typename InputBlock>
-[[nodiscard]] std::optional<std::string> validate_max_iterations(const InputBlock& aInput)
+[[nodiscard]] auto validate_max_iterations(const InputBlock& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<InputBlock>(), aInput.max_iterations, "max_iterations",
@@ -21,7 +28,7 @@ template <typename InputBlock>
 }
 
 template <typename InputBlock>
-[[nodiscard]] std::optional<std::string> validate_number_of_steps(const InputBlock& aInput)
+[[nodiscard]] auto validate_number_of_steps(const InputBlock& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_parameter_out_of_bounds(
         input_parser::block_name<InputBlock>(), aInput.number_of_steps, "number_of_steps",
@@ -29,7 +36,7 @@ template <typename InputBlock>
 }
 
 template <typename InputBlock>
-std::optional<std::string> validate_initial_direction_magnitude(const InputBlock& aInput)
+auto validate_initial_direction_magnitude(const InputBlock& aInput) -> std::optional<std::string>
 {
     namespace pfu = plato::utilities;
     return input_validation::error_message_for_parameter_out_of_bounds(
@@ -38,7 +45,7 @@ std::optional<std::string> validate_initial_direction_magnitude(const InputBlock
 }
 
 template <typename InputBlock>
-std::optional<std::string> validate_step_size_reduction_factor(const InputBlock& aInput)
+auto validate_step_size_reduction_factor(const InputBlock& aInput) -> std::optional<std::string>
 {
     namespace pfu = plato::utilities;
     return input_validation::error_message_for_parameter_out_of_bounds(
@@ -47,7 +54,7 @@ std::optional<std::string> validate_step_size_reduction_factor(const InputBlock&
 }
 
 template <typename InputBlock>
-std::optional<std::string> validate_random_direction_seed(const InputBlock& aInput)
+auto validate_random_direction_seed(const InputBlock& aInput) -> std::optional<std::string>
 {
     return input_validation::error_message_for_optional_parameter_out_of_bounds(
         input_parser::block_name<InputBlock>(), aInput.random_direction_seed, "random_direction_seed",
@@ -55,7 +62,7 @@ std::optional<std::string> validate_random_direction_seed(const InputBlock& aInp
 }
 
 template <typename InputBlock>
-std::optional<std::string> validate_optional_input_file_name(const InputBlock& aInput)
+auto validate_optional_input_file_name(const InputBlock& aInput) -> std::optional<std::string>
 {
     if (aInput.input_file_name && !std::filesystem::exists(aInput.input_file_name->mToken))
     {
@@ -63,6 +70,20 @@ std::optional<std::string> validate_optional_input_file_name(const InputBlock& a
                                       aInput.input_file_name->mToken);
     }
     return std::nullopt;
+}
+
+template <typename ExpectedCrossReference, components::ComponentType kComponentType>
+auto validate_expected_cross_reference_type(
+    const boost::optional<input_parser::CrossReference<kComponentType>>& aCrossReference,
+    const std::string& aInputBlockName) -> std::optional<std::string>
+{
+    if (aCrossReference && !aCrossReference->mInputBlock.template holdsExpectedType<ExpectedCrossReference>())
+    {
+        return std::optional<std::string>{
+            aInputBlockName + " requires that a " + input_parser::block_name<ExpectedCrossReference>() +
+            " component be used. The incorrect component type is: " + aCrossReference->mName};
+    }
+    return {};
 }
 
 }  // namespace plato::process_manager::extension::detail

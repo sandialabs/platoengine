@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <cstddef>
 #include <string>
 
 #include "plato/utilities/BoostOptionalToStdOptional.hpp"
@@ -19,7 +22,7 @@ struct Wrapper
 TEST(Utilities, BoostOptionalToStdOptional)
 {
     {
-        constexpr auto tGold = int{3};
+        constexpr auto tGold = 3;
         boost::optional<int> tBoostOptional = tGold;
         const auto tStdOptional = to_std_optional(tBoostOptional);
 
@@ -49,8 +52,8 @@ TEST(Utilities, ToUnwrappedOptionalEmpty)
 
 TEST(Utilities, ToUnwrappedOptional)
 {
-    constexpr auto tChocolate = int{10};
-    constexpr auto tPeanuts = double{0.5};
+    constexpr auto tChocolate = 10;
+    constexpr auto tPeanuts = 0.5;
     constexpr auto tCaramel = std::size_t{42};
     auto tBoostOptionalWrapper = boost::optional<Wrapper>{Wrapper{tChocolate, tPeanuts, tCaramel}};
 

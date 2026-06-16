@@ -2,9 +2,11 @@
 
 #include <cmath>
 #include <string_view>
+#include <utility>
 
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/Exception.hpp"
 
 namespace plato::services::unittest
 {
@@ -12,7 +14,7 @@ namespace
 {
 constexpr auto kSharedLibraryName = "libPlatoServicesTestSharedLib.so";
 constexpr auto kBogusSharedLibraryName = "libPlatoServicesTestBogusSharedLib.so";
-constexpr auto kDoubleValue = double{42.2};
+constexpr auto kDoubleValue = 42.2;
 
 void check_shared_lib_function(SharedLibrarySetupTeardown& aSharedLibrary,
                                const test_utilities::TestContext& aTestContext)

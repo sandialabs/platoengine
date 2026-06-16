@@ -29,13 +29,14 @@ struct DesignVariablesConversion : public Mesh
     /// analysisDomainMeshToNodalFieldVector.
     /// @pre The size of @a aScalarField must be equal to the total number of nodes in the design domain of @a aMesh,
     /// which is given by numberOfDesignDomainElements in EntityCounts.
-    auto nodalFieldToAnalysisDomainMesh(NodalFieldVectorReference aScalarField) const -> analysis::AnalysisDomainMesh;
+    [[nodiscard]] auto nodalFieldToAnalysisDomainMesh(NodalFieldVectorReference aScalarField) const
+        -> analysis::AnalysisDomainMesh;
 
     /// @brief Maps the element scalar field in @a aScalarField to a AnalysisDomainMesh object using
     /// the node, element, and block info in the mesh.
     /// @pre The size of @a aScalarField must be equal to the total number of elements in the design domain of @a aMesh,
     /// which is given by numberOfDesignDomainElements in EntityCounts.
-    auto elementFieldToAnalysisDomainMesh(ElementFieldVectorReference aScalarField) const
+    [[nodiscard]] auto elementFieldToAnalysisDomainMesh(ElementFieldVectorReference aScalarField) const
         -> analysis::AnalysisDomainMesh;
 
     /// @brief Maps the nodal scalar field contained in @a aAnalysisDomainMesh to a vector.
@@ -49,16 +50,16 @@ struct DesignVariablesConversion : public Mesh
     /// @verbatim
     /// [0, 1, 0, 1, 0.5, 0.5]
     /// @endverbatim
-    NodalFieldVector analysisDomainMeshToNodalFieldVector(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
+    [[nodiscard]] static auto analysisDomainMeshToNodalFieldVector(
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> NodalFieldVector;
 
     /// @brief Maps the nodal scalar field contained in @a aAnalysisDomainMesh to a vector.
     ///
     /// The ordering of the resulting vector will be sorted by global element ID. See
     /// analysisDomainMeshToNodalFieldVector for an example.
     /// @sa analysisDomainMeshToNodalFieldVector
-    ElementFieldVector analysisDomainMeshToElementFieldVector(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
+    [[nodiscard]] static auto analysisDomainMeshToElementFieldVector(
+        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> ElementFieldVector;
 };
 
 }  // namespace plato::mesh

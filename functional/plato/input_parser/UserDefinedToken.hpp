@@ -15,16 +15,18 @@ namespace plato::input_parser
 template <typename ValidCharFunction>
 struct UserDefinedToken
 {
-    static constexpr std::string_view kValidChars = ValidCharFunction{}();
+    static constexpr std::string_view mValidChars = ValidCharFunction{}();
 
+    // CPD-OFF
     using value_type = char;
 
-    [[nodiscard]] std::string::const_iterator begin() const;
-    [[nodiscard]] std::string::const_iterator end() const;
-    [[nodiscard]] std::string::iterator begin();
-    [[nodiscard]] std::string::iterator end();
+    [[nodiscard]] auto begin() const -> std::string::const_iterator;
+    [[nodiscard]] auto end() const -> std::string::const_iterator;
+    [[nodiscard]] auto begin() -> std::string::iterator;
+    [[nodiscard]] auto end() -> std::string::iterator;
 
     void insert(std::string::iterator aIter, char aVal);
+    // CPD-ON
 
     [[nodiscard]] auto operator==(const UserDefinedToken&) const -> bool = default;
 
@@ -32,25 +34,25 @@ struct UserDefinedToken
 };
 
 template <typename ValidCharFunction>
-std::string::const_iterator UserDefinedToken<ValidCharFunction>::begin() const
+auto UserDefinedToken<ValidCharFunction>::begin() const -> std::string::const_iterator
 {
     return mToken.begin();
 }
 
 template <typename ValidCharFunction>
-std::string::const_iterator UserDefinedToken<ValidCharFunction>::end() const
+auto UserDefinedToken<ValidCharFunction>::end() const -> std::string::const_iterator
 {
     return mToken.end();
 }
 
 template <typename ValidCharFunction>
-std::string::iterator UserDefinedToken<ValidCharFunction>::begin()
+auto UserDefinedToken<ValidCharFunction>::begin() -> std::string::iterator
 {
     return mToken.begin();
 }
 
 template <typename ValidCharFunction>
-std::string::iterator UserDefinedToken<ValidCharFunction>::end()
+auto UserDefinedToken<ValidCharFunction>::end() -> std::string::iterator
 {
     return mToken.end();
 }
@@ -62,10 +64,10 @@ void UserDefinedToken<ValidCharFunction>::insert(const std::string::iterator aIt
 }
 
 template <typename ValidCharFunction>
-std::ostream& operator<<(std::ostream& stream, const UserDefinedToken<ValidCharFunction>& aUserDefinedToken)
+auto operator<<(std::ostream& aStream, const UserDefinedToken<ValidCharFunction>& aUserDefinedToken) -> std::ostream&
 {
-    stream << aUserDefinedToken.mToken;
-    return stream;
+    aStream << aUserDefinedToken.mToken;
+    return aStream;
 }
 }  // namespace plato::input_parser
 
@@ -74,12 +76,12 @@ namespace boost::spirit::traits
 template <typename ValidCharFunction>
 struct create_parser<plato::input_parser::UserDefinedToken<ValidCharFunction>>
 {
-    static constexpr std::string_view kValidChars =
-        plato::input_parser::UserDefinedToken<ValidCharFunction>::kValidChars;
+    static constexpr std::string_view mValidChars =
+        plato::input_parser::UserDefinedToken<ValidCharFunction>::mValidChars;
 
     static auto call()
     {
-        return boost::proto::deep_copy((boost::spirit::qi::lexeme[+boost::spirit::qi::char_(kValidChars.data())]));
+        return boost::proto::deep_copy((boost::spirit::qi::lexeme[+boost::spirit::qi::char_(mValidChars.data())]));
     }
     using type = decltype(call());
 };

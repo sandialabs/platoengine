@@ -1,11 +1,26 @@
 #include "plato/criteria/library/ConstraintValidation.hpp"
 
+#include <algorithm>
+#include <boost/optional/optional.hpp>
+#include <cstddef>
+#include <format>
+#include <map>
+#include <numeric>
+#include <optional>
 #include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
+#include "plato/utilities/EnumTable.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::criteria::library
@@ -22,7 +37,7 @@ const auto kBindWithPluginDirectory = [](const auto& aValidationFunction,
     return std::nullopt;
 };
 
-[[maybe_unused]] static auto kConstraintValidationRegistration = input_validation::InputBlockValidationRegistration<>{
+[[maybe_unused]] const auto kConstraintValidationRegistration = input_validation::InputBlockValidationRegistration<>{
     [](const input_parser::constraint& aInput) { return detail::validate_criterion_is_registered(aInput); },
     [](const input_parser::constraint& aInput) { return detail::validate_constraint_number_of_processors(aInput); },
     [](const input_parser::constraint& aInput) { return detail::validate_criterion_files_exist(aInput); },
@@ -31,7 +46,9 @@ const auto kBindWithPluginDirectory = [](const auto& aValidationFunction,
     [](const input_parser::constraint& aInput)
     { return kBindWithPluginDirectory(detail::validate_constraint_component_names, aInput); },
     [](const input_parser::constraint& aInput)
-    { return kBindWithPluginDirectory(detail::validate_constraint_component_targets, aInput); }};
+    { return kBindWithPluginDirectory(detail::validate_constraint_component_targets, aInput); },
+    [](const input_parser::constraint& aInput)
+    { return detail::validate_criterion_supports_requested_number_of_processors(aInput); }};
 
 /// @brief Returns an app/criterion name combination for error messages.
 [[nodiscard]] auto app_criterion_name(const input_parser::constraint& aConstraintInput) -> std::string
@@ -71,7 +88,10 @@ const auto kBindWithPluginDirectory = [](const auto& aValidationFunction,
 {
     return std::accumulate(aComponentIndexToName.begin(), aComponentIndexToName.end(), std::string{},
                            [](std::string&& aAllComponents, const auto& aComponentIndexAndName)
-                           { return aAllComponents += aComponentIndexAndName.second + "\n"; });
+                           {
+                               aAllComponents += aComponentIndexAndName.second + "\n";
+                               return std::move(aAllComponents);
+                           });
 }
 
 }  // namespace
@@ -86,7 +106,7 @@ auto validate_constraint_value(const input_parser::constraint& aInput) -> std::o
             criterion_name(aInput),
             " defines both scalar and vector constraint targets. Only one target definition is allowed.")};
     }
-    else if (!aInput.constraint_value && !aInput.constraint_value_list)
+    if (!aInput.constraint_value && !aInput.constraint_value_list)
     {
         return std::optional<std::string>{utilities::concatenate(
             criterion_name(aInput),
@@ -97,18 +117,19 @@ auto validate_constraint_value(const input_parser::constraint& aInput) -> std::o
 
 auto validate_constraint_number_of_processors(const input_parser::constraint& aInput) -> std::optional<std::string>
 {
-    constexpr auto kSupportedNumberOfProcessorsForConstraint = unsigned{1};
+    using MPISizeType = decltype(boost::mpi::communicator{}.size());
+    const auto tNumberOfWorldRanks = boost::mpi::communicator{}.size();
+
     if (aInput.number_of_processors.has_value() &&
-        aInput.number_of_processors.value() != kSupportedNumberOfProcessorsForConstraint)
+        static_cast<MPISizeType>(aInput.number_of_processors.value()) > tNumberOfWorldRanks)
     {
         return std::optional<std::string>{
-            utilities::concatenate("Constraints currently only support serial evaluation. ", criterion_name(aInput),
-                                   " requested ", aInput.number_of_processors.value(), " number_of_processors.")};
+            std::format("Constraints must use a number of processors less than or equal to the total number of ranks. "
+                        "{} requested {} number_of_processors, while {} are available ",
+                        criterion_name(aInput), aInput.number_of_processors.value(), tNumberOfWorldRanks)};
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 auto validate_constraint_type(const input_parser::constraint& aInput) -> std::optional<std::string>
@@ -128,24 +149,26 @@ auto validate_constraint_component_targets(
     const input_parser::constraint& aInput,
     const std::vector<services::AppConfigurationWithDirectory>& aAppConfigurations) -> std::optional<std::string>
 {
-    if (criterion_exists(aInput.app, aInput.criterion, aAppConfigurations))
+    if (!criterion_exists(aInput.app, aInput.criterion, aAppConfigurations))
     {
-        const auto tConfiguration = services::criterion_configuration_with_name(
-            services::CriterionName{.mAppName = aInput.app->mToken, .mCriterionName = aInput.criterion->mToken},
-            aAppConfigurations);
+        return std::nullopt;
+    }
 
-        if (aInput.constraint_value_list.has_value() && !tConfiguration->mVectorComponents.has_value())
-        {
-            return utilities::concatenate(
-                criterion_name(aInput), R"(: Vector constraint targets were defined in the input, but the criterion ")",
-                app_criterion_name(aInput), R"(" does not define any vector components)");
-        }
+    const auto tConfiguration = services::criterion_configuration_with_name(
+        services::CriterionName{.mAppName = aInput.app->mToken, .mCriterionName = aInput.criterion->mToken},
+        aAppConfigurations);
 
-        if (tConfiguration->mVectorComponents.has_value() && !aInput.constraint_value_list.has_value())
-        {
-            return utilities::concatenate(criterion_name(aInput), R"(: Vector criterion ")", app_criterion_name(aInput),
-                                          R"(" defines vector components, but no vector targets were defined.)");
-        }
+    if (aInput.constraint_value_list.has_value() && !tConfiguration->mVectorComponents.has_value())
+    {
+        return utilities::concatenate(criterion_name(aInput),
+                                      R"(: Vector constraint targets were defined in the input, but the criterion ")",
+                                      app_criterion_name(aInput), R"(" does not define any vector components)");
+    }
+
+    if (tConfiguration->mVectorComponents.has_value() && !aInput.constraint_value_list.has_value())
+    {
+        return utilities::concatenate(criterion_name(aInput), R"(: Vector criterion ")", app_criterion_name(aInput),
+                                      R"(" defines vector components, but no vector targets were defined.)");
     }
     return std::nullopt;
 }

@@ -1,13 +1,24 @@
-#include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
+#include "plato/criteria/library/SharedLibraryVectorCriterion.hpp"
+
+#include <mpi.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <memory>
+#include <string>
 #include <string_view>
+#include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/VectorCriterionInterface.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/services/SharedLibrarySetupTeardown.hpp"
 
-namespace plato::criteria::extension
+namespace plato::criteria::library
 {
 namespace
 {
@@ -41,12 +52,14 @@ SharedLibraryVectorCriterion::SharedLibraryVectorCriterion(
     const services::AppConfigurationWithDirectory& aAppConfiguration,
     const services::CriterionConfiguration& aCriterionConfiguration,
     const library::CriterionInput& aCriterionInput,
-    const boost::mpi::communicator& aComm)
-    : mCriterionInterface{load_criterion_interface<ParallelFunctionSignature>(
-          aAppConfiguration, aCriterionConfiguration.mFunctionName, aCriterionInput.mInputFiles.list().mList, aComm)},
+    const boost::mpi::communicator& aCommunicator)
+    : mCriterionInterface{load_criterion_interface<ParallelFunctionSignature>(aAppConfiguration,
+                                                                              aCriterionConfiguration.mFunctionName,
+                                                                              aCriterionInput.mInputFiles.list().mList,
+                                                                              aCommunicator)},
       mComponentType{aCriterionInput.mComponentType},
       mName{aCriterionInput.mName},
-      mComm{aComm}
+      mComm{aCommunicator}
 {
 }
 
@@ -81,9 +94,9 @@ auto make_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCrit
                               const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
     -> linear_algebra::JacobianMultiplier
 {
-    return linear_algebra::JacobianMultiplier{[aSharedLibCriterion, aAnalysisDomainMesh](const auto aDirectionVector) {
-        return aSharedLibCriterion.rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector);
-    }};
+    return linear_algebra::JacobianMultiplier{
+        [aSharedLibCriterion, aAnalysisDomainMesh](const auto aDirectionVector)
+        { return aSharedLibCriterion.rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector); }};
 }
 
 auto make_adjoint_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCriterion,
@@ -105,9 +118,10 @@ auto make_shared_library_vector_function(const SharedLibraryVectorCriterion& aSh
         { return aSharedLibCriterion.value(aAnalysisDomainMesh); },
         [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
         { return make_jacobian_multiplier(aSharedLibCriterion, aAnalysisDomainMesh); },
-        [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
+        [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+        {
             return make_adjoint_jacobian_multiplier(aSharedLibCriterion, aAnalysisDomainMesh);
         }};  // namespace plato::criteria::extension
 }
 
-}  // namespace plato::criteria::extension
+}  // namespace plato::criteria::library

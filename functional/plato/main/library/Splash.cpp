@@ -1,5 +1,8 @@
 #include "plato/main/library/Splash.hpp"
 
+#include <ostream>
+#include <string_view>
+
 #include "plato/utilities/Colorize.hpp"
 
 namespace plato::main::library
@@ -9,13 +12,13 @@ namespace
 template <utilities::TextColor kTextColor>
 struct ColorizedLogo
 {
-    std::string_view aText;
+    std::string_view mText;
 };
 
 template <utilities::TextColor kTextColor>
 auto operator<<(std::ostream& aStream, const ColorizedLogo<kTextColor> aBorder) -> std::ostream&
 {
-    aStream << utilities::colorize(aBorder.aText, kTextColor);
+    aStream << utilities::colorize(aBorder.mText, kTextColor);
     return aStream;
 }
 

@@ -1,5 +1,7 @@
 #include "plato/output/OutputManager.hpp"
 
+#include <utility>
+
 #include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::output

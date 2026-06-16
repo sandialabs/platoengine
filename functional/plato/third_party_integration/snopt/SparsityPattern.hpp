@@ -78,7 +78,7 @@ void SparsityPattern<IndexType>::append(const Row aRow, const Column aColumn)
 template <typename IndexType>
 void SparsityPattern<IndexType>::offsetRows(Row aRowOffset)
 {
-    std::transform(mRows.data(), mRows.data() + mRows.size(), mRows.data(),
+    std::transform(mRows.data(), std::next(mRows.data(), mRows.size()), mRows.data(),
                    [aRowOffset](const auto& aRow) { return aRow + aRowOffset.mValue; });
 }
 

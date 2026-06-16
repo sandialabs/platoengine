@@ -20,25 +20,27 @@ namespace plato::integration_tests::test_mass_criteria
 class ParallelMassObjectiveInterface : public criteria::library::CriterionInterface
 {
    public:
-    explicit ParallelMassObjectiveInterface(MPI_Comm aComm);
+    explicit ParallelMassObjectiveInterface(MPI_Comm aCommunicator);
 
     ///@brief required by the CriterionInterface, return the value of the criterion evaluated at the controls specified
     /// by the AnalysisDomainMesh
-    [[nodiscard]] double value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
+    [[nodiscard]] auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double override;
 
     ///@brief required by the CriterionInterface, return the gradient of the criterion evaluated at the controls
     /// specified by the AnalysisDomainMesh
-    [[nodiscard]] std::vector<double> gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const override;
+    [[nodiscard]] auto gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> std::vector<double> override;
 
    private:
     boost::mpi::communicator mComm;
 };
 }  // namespace plato::integration_tests::test_mass_criteria
 
-extern "C" std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_parallel_criterion(
-    const std::vector<std::string>&, const MPI_Comm aComm);
+extern "C" auto plato_create_parallel_criterion(const std::vector<std::string>& /*unused*/, MPI_Comm aCommunicator)
+    -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 
-extern "C" std::unique_ptr<::plato::criteria::library::CriterionInterface> plato_create_parallel_test_mass_criterion(
-    const std::vector<std::string>&, const MPI_Comm aComm);
+extern "C" auto plato_create_parallel_test_mass_criterion(const std::vector<std::string>& /*unused*/,
+                                                          MPI_Comm aCommunicator)
+    -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 
 #endif

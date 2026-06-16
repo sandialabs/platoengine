@@ -1,15 +1,18 @@
 #include <gtest/gtest.h>
 
-#include <numeric>
-#include <stk_math/StkVector.hpp>
+#include <array>
+#include <set>
 #include <string>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/test_utilities/TestContext.hpp"
-#include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
+#include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
@@ -61,7 +64,6 @@ class OneTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrino
         tpik::cut_mesh(mBackgroundMesh, tpik::SnappingParameters{});
     }
 
-   protected:
     tpik::BackgroundMesh mBackgroundMesh;
     std::vector<tpik::BackgroundMeshNodeId> mDesignDomainBackgroundNodes;
 };
@@ -79,13 +81,11 @@ class FourTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrin
         mBackgroundMesh = tpik::initialize_background_mesh(mFileName);
         tpik::populate_level_set_field_from_primitives(tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
                                                        mBackgroundMesh);
-        mDesignDomainBackgroundNodes = std::vector<tpik::BackgroundMeshNodeId>{1U, 2U, 4U, 7U};
         tpik::cut_mesh(mBackgroundMesh, tpik::SnappingParameters{});
     }
 
-   protected:
     tpik::BackgroundMesh mBackgroundMesh;
-    std::vector<tpik::BackgroundMeshNodeId> mDesignDomainBackgroundNodes;
+    static constexpr auto mDesignDomainBackgroundNodes = std::array<tpik::BackgroundMeshNodeId, 4>{1U, 2U, 4U, 7U};
 };
 
 TEST_F(OneTriMeshKrinoFixture, OneTriMesh)
@@ -96,7 +96,8 @@ TEST_F(OneTriMeshKrinoFixture, OneTriMesh)
 
 TEST_F(FourTriMeshKrinoFixture, FourTriMesh)
 {
-    const auto tSensitivities = detail::compute_sensitivities(mBackgroundMesh, mDesignDomainBackgroundNodes);
+    const auto tSensitivities = detail::compute_sensitivities(
+        mBackgroundMesh, {mDesignDomainBackgroundNodes.begin(), mDesignDomainBackgroundNodes.end()});
     compareMapAgainstBuiltInGold(tSensitivities, TEST_CONTEXT("FourTriMesh Sensitivities"));
 }
 

@@ -1,7 +1,11 @@
 #include "plato/filter/extension/kernel_filters/ReflectionUtilities.hpp"
 
-#include <iterator>
+#include <algorithm>
+#include <ranges>
+#include <vector>
 
+#include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/Wedge.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::filter::extension::kernel_filters

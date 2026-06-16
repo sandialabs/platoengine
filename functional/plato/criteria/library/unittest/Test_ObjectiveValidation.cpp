@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <vector>
+
 #include "plato/criteria/library/ObjectiveValidation.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 
@@ -10,25 +13,26 @@ TEST(ObjectiveValidation, ParallelObjectives)
     auto tInput = std::vector{test_utilities::create_valid_example_objective_input()};
     {
         // Check example, which sets number_of_processors to 1
-        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 1u);
+        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 1U);
         EXPECT_FALSE(criteria::library::has_parallel_objective(tInput));
     }
     {
         // Set number_of_processors to boost::none, default is 1
         tInput.front().number_of_processors = boost::none;
-        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 1u);
+        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 1U);
         EXPECT_FALSE(criteria::library::has_parallel_objective(tInput));
     }
+    constexpr auto tArbitraryNumberOfProcessors = 42U;
     {
         // Set number_of_processors to 42
-        tInput.front().number_of_processors = 42u;
-        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 42u);
+        tInput.front().number_of_processors = tArbitraryNumberOfProcessors;
+        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), tArbitraryNumberOfProcessors);
         EXPECT_TRUE(criteria::library::has_parallel_objective(tInput));
     }
     {
         // Add another objective with 1 processor
         tInput.push_back(test_utilities::create_valid_example_objective_input());
-        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), 43u);
+        EXPECT_EQ(criteria::library::total_number_of_processors(tInput), tArbitraryNumberOfProcessors + 1U);
         EXPECT_TRUE(criteria::library::has_parallel_objective(tInput));
     }
 }
@@ -59,9 +63,10 @@ TEST(ObjectiveValidation, ValidateAggregationWeight)
     namespace pfcd = plato::criteria::library::detail;
     auto tObjective = input_parser::objective{};
     EXPECT_TRUE(pfcd::validate_aggregation_weight(tObjective).has_value());
-    tObjective.aggregation_weight = 13.0;
+    constexpr auto tValidAggregationWeight = 13.0;
+    tObjective.aggregation_weight = tValidAggregationWeight;
     EXPECT_FALSE(pfcd::validate_aggregation_weight(tObjective).has_value());
-    tObjective.aggregation_weight = -13.0;
+    tObjective.aggregation_weight = -tValidAggregationWeight;
     EXPECT_TRUE(pfcd::validate_aggregation_weight(tObjective).has_value());
 }
 
@@ -96,7 +101,7 @@ TEST(ObjectiveValidation, ValidateMPIRanksVsNumberOfParallelObjectives)
     auto tObjective = input_parser::objective{};
     EXPECT_FALSE(detail::validate_number_of_ranks_vs_parallel_objectives({tObjective}).has_value());
     // Change to 2, should now be invalid
-    tObjective.number_of_processors = 2u;
+    tObjective.number_of_processors = 2U;
     EXPECT_TRUE(detail::validate_number_of_ranks_vs_parallel_objectives({tObjective}).has_value());
 }
 }  // namespace plato::criteria::library::unittest

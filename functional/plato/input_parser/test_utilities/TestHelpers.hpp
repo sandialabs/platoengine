@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <boost/optional.hpp>
-#include <boost/optional/optional_io.hpp>
+#include <boost/optional/optional_io.hpp>  // NOLINT(misc-include-cleaner)
 #include <boost/spirit/include/qi.hpp>
 #include <string>
 #include <vector>
@@ -53,7 +53,7 @@ void copy_test(T& aFileList, const plato::test_utilities::TestContext& aTestCont
 
 /// @brief Helper for parsing individual entries, such as UserDefinedToken or UserDefinedTokenList.
 template <typename ParsedType>
-[[nodiscard]] std::pair<ParsedType, bool> parse_input(const std::string_view aInput)
+[[nodiscard]] auto parse_input(const std::string_view aInput) -> std::pair<ParsedType, bool>
 {
     namespace bs = boost::spirit;
     using Iterator = std::string_view::const_iterator;
@@ -69,7 +69,7 @@ template <typename ParsedType>
 /// @brief Helper for taking input @a aInput, and attempting to parse it using the template type PlatoInput. The line is
 /// expected to pass parsing and produce the expected gold object @a aGold.
 template <typename PlatoInput>
-    requires requires(const PlatoInput& aGold, const PlatoInput& tResult) { boost::fusion::equal_to(aGold, tResult); }
+    requires requires(const PlatoInput& aGold, const PlatoInput& aResult) { boost::fusion::equal_to(aGold, aResult); }
 void expect_valid_input(const std::string_view aInput,
                         const PlatoInput aGold,
                         const plato::test_utilities::TestContext& aTestContext)

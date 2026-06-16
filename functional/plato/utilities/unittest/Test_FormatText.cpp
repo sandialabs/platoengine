@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <sstream>
+#include <string>
 #include <string_view>
 #include <vector>
 
 #include "plato/utilities/FormatText.hpp"
+
 namespace plato::utilities::unittest
 {
 
@@ -29,9 +31,9 @@ constexpr auto kTestStringTwo = std::string_view{"Now I am become death the dest
 
 void verify_line_split_correctly(const std::string& aString, const TextWidth aWidth, const TextIndent aIndent)
 {
-    std::stringstream aStringStream;
-    utilities::word_block_justify(aString, aWidth, aIndent, aStringStream);
-    const auto tTokenizedString = tokenize_by_return_line(aStringStream.str());
+    std::stringstream tStringStream;
+    utilities::word_block_justify(aString, aWidth, aIndent, tStringStream);
+    const auto tTokenizedString = tokenize_by_return_line(tStringStream.str());
     for (const auto& tLine : tTokenizedString)
     {
         EXPECT_LE(tLine.length(), aWidth.mValue + aIndent.mValue);
@@ -44,9 +46,17 @@ void verify_line_split_correctly(const std::string& aString, const TextWidth aWi
 
 TEST(FormatText, WordBlockJustify)
 {
-    verify_line_split_correctly(std::string{kTestString}, TextWidth{55}, TextIndent{10});
-
-    verify_line_split_correctly(std::string{kTestStringTwo}, TextWidth{50}, TextIndent{5});
+    {
+        constexpr auto tArbitraryWidth = 55;
+        constexpr auto tArbitraryIndent = 10;
+        verify_line_split_correctly(std::string{kTestString}, TextWidth{tArbitraryWidth}, TextIndent{tArbitraryIndent});
+    }
+    {
+        constexpr auto tArbitraryWidth = 50;
+        constexpr auto tArbitraryIndent = 5;
+        verify_line_split_correctly(std::string{kTestStringTwo}, TextWidth{tArbitraryWidth},
+                                    TextIndent{tArbitraryIndent});
+    }
 }
 
 }  // namespace plato::utilities::unittest

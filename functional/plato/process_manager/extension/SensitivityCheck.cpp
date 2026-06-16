@@ -1,11 +1,16 @@
 #include "plato/process_manager/extension/SensitivityCheck.hpp"
 
 #include <fstream>
+#include <memory>
+#include <optional>
+#include <string>
 #include <string_view>
 
 #include "plato/core/Compose.hpp"
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
@@ -13,8 +18,7 @@
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/services/SystemLogger.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
+#include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::process_manager::extension
@@ -28,15 +32,15 @@ namespace
             { SensitivityCheck{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static auto kSensitivityCheckParserRegistration =
+[[maybe_unused]] const auto kSensitivityCheckParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::sensitivity_check>{};
 
-[[maybe_unused]] static auto kSensitivityCheckProcessManagerRegistration =
+[[maybe_unused]] const auto kSensitivityCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::sensitivity_check>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_rol_sensitivity_check_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kSensitivityCheckValidationRegistration =
+[[maybe_unused]] const auto kSensitivityCheckValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{[](const input_parser::sensitivity_check& aInput)
                                                          { return detail::validate_output_file_name(aInput); }};
 

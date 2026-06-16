@@ -1,6 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <stk_mesh/base/Types.hpp>
+#include <unordered_map>
+#include <vector>
+
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
@@ -29,7 +34,6 @@ class SensitivityMapUtilitiesFixture : public KrinoTestFixture
         cut_mesh(mBackgroundMesh, SnappingParameters{});
     }
 
-   protected:
     BackgroundMesh mBackgroundMesh;
 };
 
@@ -58,7 +62,7 @@ TEST_F(SensitivityMapUtilitiesFixture, CoordinateLevelSetSensitivity)
 {
     initialize();
     const auto tSensitvitiesFromKrino = get_krino_sensitivities(mBackgroundMesh);
-    const auto tSecondSensitivity = tSensitvitiesFromKrino.back();
+    const auto& tSecondSensitivity = tSensitvitiesFromKrino.back();
     const auto tSpatialDimension = 2U;
     const auto tSensitivityVector = coordinate_level_set_sensitivity(tSecondSensitivity, tSpatialDimension);
     const auto tGold = std::vector<common::Vector3>{{0.25, 0.25, 0}, {0.25, 0.25, 0}};

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
 #include "plato/third_party_integration/boost_log/FormattingUtilities.hpp"
 #include "plato/utilities/Colorize.hpp"
 

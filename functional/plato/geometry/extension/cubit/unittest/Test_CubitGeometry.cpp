@@ -1,8 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <string_view>
-#include <unordered_map>
-
 #include "plato/geometry/extension/cubit/CubitGeometry.hpp"
 #include "plato/geometry/extension/cubit/CubitGeometryCommonUtilities.hpp"
 #include "plato/geometry/extension/cubit/test_utilities/CubitTestFixture.hpp"
@@ -29,26 +26,28 @@ TEST(CubitDetail, ValidateMeshJournalFile)
     auto tInput = test_utilities::create_cubit_input_for_test_fixture();
     EXPECT_TRUE(detail::validate_mesh_journal_file(tInput).has_value())
         << "Invalid: File specified but missing from disk.";
-    const auto tJournalFile = test_utilities::create_meshing_journal_file();
+    test_utilities::create_meshing_journal_file(tInput.mesh_journal_file.value().mToken);
     EXPECT_FALSE(detail::validate_mesh_journal_file(tInput).has_value()) << "Valid: File specified and on disk.";
+    plato::test_utilities::test_for_existence_and_remove({tInput.mesh_journal_file.value().mToken},
+                                                         TEST_CONTEXT("Removing journal file"));
     tInput.mesh_journal_file = boost::none;
     EXPECT_TRUE(detail::validate_mesh_journal_file(tInput).has_value()) << "Invalid: missing required parameter.";
-    plato::test_utilities::test_for_existence_and_remove({tJournalFile}, TEST_CONTEXT("Removing journal file"));
 }
 
 TEST(CubitDetail, WriteExodusMesh)
 {
-    const auto tJournalFile = test_utilities::create_meshing_journal_file();
     auto tCubit = CubitWrapper{};
     const auto tCubitInput = test_utilities::create_cubit_input_for_test_fixture();
+    test_utilities::create_meshing_journal_file(tCubitInput.mesh_journal_file.value().mToken);
     const auto tExodusMeshName = std::filesystem::path{tCubitInput.mesh_file_name.value().mToken};
 
     const auto tVariables = initialize_variables(tCubitInput);
 
-    detail::write_exodus_mesh(tCubit, tVariables, detail::JournalFile{tJournalFile},
+    detail::write_exodus_mesh(tCubit, tVariables, detail::JournalFile{tCubitInput.mesh_journal_file.value().mToken},
                               detail::ExodusFile{tExodusMeshName});
-    plato::test_utilities::test_for_existence_and_remove({tExodusMeshName, tJournalFile},
-                                                         TEST_CONTEXT("Remove journal file and exodus mesh."));
+    plato::test_utilities::test_for_existence_and_remove(
+        {tExodusMeshName, tCubitInput.mesh_journal_file.value().mToken},
+        TEST_CONTEXT("Remove journal file and exodus mesh."));
     const auto tStepFile = std::filesystem::path{"StepFile.stp"};
     tCubit.exportStepFile(tStepFile);
     plato::test_utilities::test_for_existence_and_remove({tStepFile, "step_export.log", kCubitLogFile},
@@ -57,17 +56,17 @@ TEST(CubitDetail, WriteExodusMesh)
 
 TEST(CubitDetail, DetermineSensitivities)
 {
-    const auto tJournalFile = test_utilities::create_meshing_journal_file();
     auto tCubit = CubitWrapper{};
-    const auto tCubiInput = test_utilities::create_cubit_input_for_test_fixture();
-    const auto tVariables = initialize_variables(tCubiInput);
+    const auto tCubitInput = test_utilities::create_cubit_input_for_test_fixture();
+    test_utilities::create_meshing_journal_file(tCubitInput.mesh_journal_file.value().mToken);
+    const auto tVariables = initialize_variables(tCubitInput);
     restore_aprepro_variables(tCubit, tVariables);
-    const auto tSensitivities = detail::sensitivities(tCubit, tVariables, tJournalFile);
+    const auto tSensitivities = detail::sensitivities(tCubit, tVariables, tCubitInput.mesh_journal_file.value().mToken);
 
     ASSERT_EQ(tSensitivities.size(), tVariables.size());
 
     {
-        const auto tSensitivity = tSensitivities[0];
+        const auto& tSensitivity = tSensitivities[0];
         for (const auto tValue : tSensitivity)
         {
             EXPECT_NEAR(std::abs(tValue.second.x), 0.5, kTolerance);
@@ -76,7 +75,7 @@ TEST(CubitDetail, DetermineSensitivities)
         }
     }
     {
-        const auto tSensitivity = tSensitivities[1];
+        const auto& tSensitivity = tSensitivities[1];
         for (const auto tValue : tSensitivity)
         {
             const auto tAbsoluteZ = std::abs(tValue.second.z);
@@ -86,7 +85,7 @@ TEST(CubitDetail, DetermineSensitivities)
         }
     }
     {
-        const auto tSensitivity = tSensitivities[2];
+        const auto& tSensitivity = tSensitivities[2];
         for (const auto tValue : tSensitivity)
         {
             EXPECT_NEAR(tValue.second.x, 1., kTolerance) << "X Shift";
@@ -94,7 +93,7 @@ TEST(CubitDetail, DetermineSensitivities)
             EXPECT_NEAR(tValue.second.z, 0., kTolerance);
         }
     }
-    plato::test_utilities::test_for_existence_and_remove({tJournalFile, kCubitLogFile},
+    plato::test_utilities::test_for_existence_and_remove({tCubitInput.mesh_journal_file.value().mToken, kCubitLogFile},
                                                          TEST_CONTEXT("Removing journal file"));
 }
 

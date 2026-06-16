@@ -1,6 +1,8 @@
 #include "plato/third_party_integration/stk_io/Quadrilateral.hpp"
 
+#include <array>
 #include <cassert>
+#include <cmath>
 
 #include "plato/third_party_integration/common/QuadratureRules.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
@@ -12,8 +14,8 @@ namespace
 constexpr int kDimensions{2};
 constexpr auto kQuadraturePoints = common::kDegree3OneDimensionalQuadraturePoints;
 
-[[nodiscard]] double change_of_area_factor(const common::Vector3& aEtaTangentVector,
-                                           const common::Vector3& aXiTangentVector)
+[[nodiscard]] auto change_of_area_factor(const common::Vector3& aEtaTangentVector,
+                                         const common::Vector3& aXiTangentVector) -> double
 {
     const double tA11 = aXiTangentVector.x * aXiTangentVector.x + aXiTangentVector.y * aXiTangentVector.y +
                         aXiTangentVector.z * aXiTangentVector.z;
@@ -40,89 +42,89 @@ auto vector_with_zeroed_components(const V& aVector)
 }
 }  // namespace
 
-Quadrilateral::VertexSensitivities operator+(const Quadrilateral::VertexSensitivities& aLeftHandSide,
-                                             const Quadrilateral::VertexSensitivities& aRightHandSide)
+auto operator+(const Quadrilateral::VertexSensitivities& aLeftHandSide,
+               const Quadrilateral::VertexSensitivities& aRightHandSide) -> Quadrilateral::VertexSensitivities
 {
     return Quadrilateral::VertexSensitivities{std::array{
         aLeftHandSide.mValue[0] + aRightHandSide.mValue[0], aLeftHandSide.mValue[1] + aRightHandSide.mValue[1],
         aLeftHandSide.mValue[2] + aRightHandSide.mValue[2], aLeftHandSide.mValue[3] + aRightHandSide.mValue[3]}};
 }
 
-Quadrilateral::VertexSensitivities operator*(const Quadrilateral::VertexSensitivities& aSensitivities,
-                                             const double aScalar)
+auto operator*(const Quadrilateral::VertexSensitivities& aSensitivities, const double aScalar)
+    -> Quadrilateral::VertexSensitivities
 {
     return Quadrilateral::VertexSensitivities{
         std::array{aSensitivities.mValue[0] * aScalar, aSensitivities.mValue[1] * aScalar,
                    aSensitivities.mValue[2] * aScalar, aSensitivities.mValue[3] * aScalar}};
 }
 
-common::Vector3 Quadrilateral::etaTangentVector(const double aXiCoordinate) const
+auto Quadrilateral::etaTangentVector(const double aXiCoordinate) const -> common::Vector3
 {
-    return {.x = ((p00.x * (aXiCoordinate - 1)) - (p10.x * (aXiCoordinate + 1)) + (p11.x * (aXiCoordinate + 1)) -
-                  (p01.x * (aXiCoordinate - 1))) /
+    return {.x = ((mP00.x * (aXiCoordinate - 1)) - (mP10.x * (aXiCoordinate + 1)) + (mP11.x * (aXiCoordinate + 1)) -
+                  (mP01.x * (aXiCoordinate - 1))) /
                  4,
-            .y = ((p00.y * (aXiCoordinate - 1)) - (p10.y * (aXiCoordinate + 1)) + (p11.y * (aXiCoordinate + 1)) -
-                  (p01.y * (aXiCoordinate - 1))) /
+            .y = ((mP00.y * (aXiCoordinate - 1)) - (mP10.y * (aXiCoordinate + 1)) + (mP11.y * (aXiCoordinate + 1)) -
+                  (mP01.y * (aXiCoordinate - 1))) /
                  4,
-            .z = ((p00.z * (aXiCoordinate - 1)) - (p10.z * (aXiCoordinate + 1)) + (p11.z * (aXiCoordinate + 1)) -
-                  (p01.z * (aXiCoordinate - 1))) /
+            .z = ((mP00.z * (aXiCoordinate - 1)) - (mP10.z * (aXiCoordinate + 1)) + (mP11.z * (aXiCoordinate + 1)) -
+                  (mP01.z * (aXiCoordinate - 1))) /
                  4};
 }
 
-common::Vector3 Quadrilateral::xiTangentVector(const double aEtaCoordinate) const
+auto Quadrilateral::xiTangentVector(const double aEtaCoordinate) const -> common::Vector3
 {
-    return {.x = ((p00.x * (aEtaCoordinate - 1)) - (p10.x * (aEtaCoordinate - 1)) + (p11.x * (aEtaCoordinate + 1)) -
-                  (p01.x * (aEtaCoordinate + 1))) /
+    return {.x = ((mP00.x * (aEtaCoordinate - 1)) - (mP10.x * (aEtaCoordinate - 1)) + (mP11.x * (aEtaCoordinate + 1)) -
+                  (mP01.x * (aEtaCoordinate + 1))) /
                  4,
-            .y = ((p00.y * (aEtaCoordinate - 1)) - (p10.y * (aEtaCoordinate - 1)) + (p11.y * (aEtaCoordinate + 1)) -
-                  (p01.y * (aEtaCoordinate + 1))) /
+            .y = ((mP00.y * (aEtaCoordinate - 1)) - (mP10.y * (aEtaCoordinate - 1)) + (mP11.y * (aEtaCoordinate + 1)) -
+                  (mP01.y * (aEtaCoordinate + 1))) /
                  4,
-            .z = ((p00.z * (aEtaCoordinate - 1)) - (p10.z * (aEtaCoordinate - 1)) + (p11.z * (aEtaCoordinate + 1)) -
-                  (p01.z * (aEtaCoordinate + 1))) /
+            .z = ((mP00.z * (aEtaCoordinate - 1)) - (mP10.z * (aEtaCoordinate - 1)) + (mP11.z * (aEtaCoordinate + 1)) -
+                  (mP01.z * (aEtaCoordinate + 1))) /
                  4};
 }
 
-double Quadrilateral::volume() const
+auto Quadrilateral::volume() const -> double
 {
     return common::tensor_product_unit_integral<kDimensions, kQuadraturePoints.size(), kQuadraturePoints>(
-        [*this](const auto tXi, const auto tEta)
-        { return change_of_area_factor(etaTangentVector(tXi), xiTangentVector(tEta)); });
+        [*this](const auto aXi, const auto aEta)
+        { return change_of_area_factor(etaTangentVector(aXi), xiTangentVector(aEta)); });
 }
 
-common::Coordinate Quadrilateral::centroid() const
+auto Quadrilateral::centroid() const -> common::Coordinate
 {
     return common::tensor_product_unit_integral<kDimensions, kQuadraturePoints.size(), kQuadraturePoints>(
-               [*this](const auto tXi, const auto tEta)
+               [*this](const auto aXi, const auto aEta)
                {
-                   const double tM1 = ((p00.x * (tEta - 1) * (tXi - 1)) - (p10.x * (tEta - 1) * (tXi + 1)) +
-                                       (p01.x * (tEta + 1) * (tXi + 1)) - (p11.x * (tEta + 1) * (tXi - 1))) /
+                   const double tM1 = ((mP00.x * (aEta - 1) * (aXi - 1)) - (mP10.x * (aEta - 1) * (aXi + 1)) +
+                                       (mP01.x * (aEta + 1) * (aXi + 1)) - (mP11.x * (aEta + 1) * (aXi - 1))) /
                                       4;
-                   const double tM2 = ((p00.y * (tEta - 1) * (tXi - 1)) - (p10.y * (tEta - 1) * (tXi + 1)) +
-                                       (p01.y * (tEta + 1) * (tXi + 1)) - (p11.y * (tEta + 1) * (tXi - 1))) /
+                   const double tM2 = ((mP00.y * (aEta - 1) * (aXi - 1)) - (mP10.y * (aEta - 1) * (aXi + 1)) +
+                                       (mP01.y * (aEta + 1) * (aXi + 1)) - (mP11.y * (aEta + 1) * (aXi - 1))) /
                                       4;
-                   const double tM3 = ((p00.z * (tEta - 1) * (tXi - 1)) - (p10.z * (tEta - 1) * (tXi + 1)) +
-                                       (p11.z * (tEta + 1) * (tXi + 1)) - (p11.z * (tEta + 1) * (tXi - 1))) /
+                   const double tM3 = ((mP00.z * (aEta - 1) * (aXi - 1)) - (mP10.z * (aEta - 1) * (aXi + 1)) +
+                                       (mP11.z * (aEta + 1) * (aXi + 1)) - (mP11.z * (aEta + 1) * (aXi - 1))) /
                                       4;
 
                    return common::Coordinate{tM1, tM2, tM3} *
-                          change_of_area_factor(etaTangentVector(tXi), xiTangentVector(tEta));
+                          change_of_area_factor(etaTangentVector(aXi), xiTangentVector(aEta));
                }) /
            volume();
 }
 
-auto Quadrilateral::volumeVertexSensitivities() const -> std::array<common::Vector3, kNumVertices>
+auto Quadrilateral::volumeVertexSensitivities() const -> std::array<common::Vector3, mNumVertices>
 {
     return common::tensor_product_unit_integral<kDimensions, kQuadraturePoints.size(), kQuadraturePoints>(
-               [*this](const auto tXi, const auto tEta)
+               [*this](const auto aXi, const auto aEta)
                {
-                   const common::Vector3 tEtaTangentVector = etaTangentVector(tXi);
+                   const common::Vector3 tEtaTangentVector = etaTangentVector(aXi);
 
-                   const common::Vector3 tDa2dp00{(tXi - 1) / 4, (tXi - 1) / 4, (tXi - 1) / 4};
-                   const common::Vector3 tDa2dp10{-(tXi + 1) / 4, -(tXi + 1) / 4, -(tXi + 1) / 4};
-                   const common::Vector3 tDa2dp11{(tXi + 1) / 4, (tXi + 1) / 4, (tXi + 1) / 4};
-                   const common::Vector3 tDa2dp01{-(tXi - 1) / 4, -(tXi - 1) / 4, -(tXi - 1) / 4};
+                   const common::Vector3 tDa2dmP00{(aXi - 1) / 4, (aXi - 1) / 4, (aXi - 1) / 4};
+                   const common::Vector3 tDa2dmP10{-(aXi + 1) / 4, -(aXi + 1) / 4, -(aXi + 1) / 4};
+                   const common::Vector3 tDa2dmP11{(aXi + 1) / 4, (aXi + 1) / 4, (aXi + 1) / 4};
+                   const common::Vector3 tDa2dmP01{-(aXi - 1) / 4, -(aXi - 1) / 4, -(aXi - 1) / 4};
 
-                   const auto tXiTangentVector = xiTangentVector(tEta);
+                   const auto tXiTangentVector = xiTangentVector(aEta);
 
                    const double tA11 = tXiTangentVector.x * tXiTangentVector.x +
                                        tXiTangentVector.y * tXiTangentVector.y +
@@ -134,10 +136,10 @@ auto Quadrilateral::volumeVertexSensitivities() const -> std::array<common::Vect
                                        tEtaTangentVector.y * tEtaTangentVector.y +
                                        tEtaTangentVector.z * tEtaTangentVector.z;
 
-                   const common::Vector3 tDa1dp00{(tEta - 1) / 4, (tEta - 1) / 4, (tEta - 1) / 4};
-                   const common::Vector3 tDa1dp10{-(tEta - 1) / 4, -(tEta - 1) / 4, -(tEta - 1) / 4};
-                   const common::Vector3 tDa1dp11{(tEta + 1) / 4, (tEta + 1) / 4, (tEta + 1) / 4};
-                   const common::Vector3 tDa1dp01{-(tEta + 1) / 4, -(tEta + 1) / 4, -(tEta + 1) / 4};
+                   const common::Vector3 tDa1dmP00{(aEta - 1) / 4, (aEta - 1) / 4, (aEta - 1) / 4};
+                   const common::Vector3 tDa1dmP10{-(aEta - 1) / 4, -(aEta - 1) / 4, -(aEta - 1) / 4};
+                   const common::Vector3 tDa1dmP11{(aEta + 1) / 4, (aEta + 1) / 4, (aEta + 1) / 4};
+                   const common::Vector3 tDa1dmP01{-(aEta + 1) / 4, -(aEta + 1) / 4, -(aEta + 1) / 4};
 
                    const auto tGetSensitivityComponent =
                        [&tA22, &tA11, &tA12, &tXiTangentVector, &tEtaTangentVector]<int kIndex>(common::Vector3 aDa1,
@@ -151,23 +153,23 @@ auto Quadrilateral::volumeVertexSensitivities() const -> std::array<common::Vect
 
                    const double tScale = 1.0 / change_of_area_factor(tEtaTangentVector, tXiTangentVector);
 
-                   return VertexSensitivities{
-                       std::array{common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dp00, tDa2dp00),
-                                                  tGetSensitivityComponent.template operator()<1>(tDa1dp00, tDa2dp00),
-                                                  tGetSensitivityComponent.template operator()<2>(tDa1dp00, tDa2dp00)} *
-                                      tScale,
-                                  common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dp10, tDa2dp10),
-                                                  tGetSensitivityComponent.template operator()<1>(tDa1dp10, tDa2dp10),
-                                                  tGetSensitivityComponent.template operator()<2>(tDa1dp10, tDa2dp10)} *
-                                      tScale,
-                                  common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dp11, tDa2dp11),
-                                                  tGetSensitivityComponent.template operator()<1>(tDa1dp11, tDa2dp11),
-                                                  tGetSensitivityComponent.template operator()<2>(tDa1dp11, tDa2dp11)} *
-                                      tScale,
-                                  common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dp01, tDa2dp01),
-                                                  tGetSensitivityComponent.template operator()<1>(tDa1dp01, tDa2dp01),
-                                                  tGetSensitivityComponent.template operator()<2>(tDa1dp01, tDa2dp01)} *
-                                      tScale}};
+                   return VertexSensitivities{std::array{
+                       common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP00, tDa2dmP00),
+                                       tGetSensitivityComponent.template operator()<1>(tDa1dmP00, tDa2dmP00),
+                                       tGetSensitivityComponent.template operator()<2>(tDa1dmP00, tDa2dmP00)} *
+                           tScale,
+                       common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP10, tDa2dmP10),
+                                       tGetSensitivityComponent.template operator()<1>(tDa1dmP10, tDa2dmP10),
+                                       tGetSensitivityComponent.template operator()<2>(tDa1dmP10, tDa2dmP10)} *
+                           tScale,
+                       common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP11, tDa2dmP11),
+                                       tGetSensitivityComponent.template operator()<1>(tDa1dmP11, tDa2dmP11),
+                                       tGetSensitivityComponent.template operator()<2>(tDa1dmP11, tDa2dmP11)} *
+                           tScale,
+                       common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP01, tDa2dmP01),
+                                       tGetSensitivityComponent.template operator()<1>(tDa1dmP01, tDa2dmP01),
+                                       tGetSensitivityComponent.template operator()<2>(tDa1dmP01, tDa2dmP01)} *
+                           tScale}};
                })
         .mValue;
 }

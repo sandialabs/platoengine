@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::utilities::unittest

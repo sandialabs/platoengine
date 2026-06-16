@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <ROL_StdVector.hpp>
-#include <memory>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #include "plato/core/Aggregate.hpp"
 #include "plato/test_utilities/Himmelblau.hpp"

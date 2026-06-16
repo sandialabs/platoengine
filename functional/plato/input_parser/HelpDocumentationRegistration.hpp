@@ -27,7 +27,7 @@ using HelpDocumentationFunction = std::function<Documentation()>;
 /// For example,
 /// @code
 /// namespace{
-/// [[maybe_unused]] static auto kNewHelpDocumentationRegistration =
+/// [[maybe_unused]] static const auto kNewHelpDocumentationRegistration =
 ///   plato::input_parser::HelpDocumentationRegistration{
 ///    [](){ return help_documentation_function(); }
 /// };

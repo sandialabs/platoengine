@@ -1,17 +1,23 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
+#include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <filesystem>
+#include <iterator>
+#include <memory>
 #include <numeric>
+#include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/BulkData.hpp>
-#include <stk_mesh/base/Comm.hpp>
-#include <stk_mesh/base/MetaData.hpp>
-#include <stk_util/parallel/Parallel.hpp>
 #include <string_view>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
@@ -26,7 +32,7 @@ namespace
 {
 
 constexpr auto kTopologyFieldName = std::string_view{"topology"};
-constexpr auto kFixedValue = double{42.0};
+constexpr auto kFixedValue = 42.0;
 
 struct MapField
 {
@@ -71,9 +77,7 @@ auto full_map_from_vector(const std::vector<double>& aVector) -> std::unordered_
 
     std::size_t tGlobalID = 1;
     std::transform(aVector.begin(), aVector.end(), std::inserter(tMap, tMap.begin()),
-                   [&tGlobalID](const auto& tVal) {
-                       return std::pair{tGlobalID++, tVal};
-                   });
+                   [&tGlobalID](const auto& aVal) { return std::pair{tGlobalID++, aVal}; });
     return tMap;
 }
 
@@ -183,11 +187,12 @@ TEST(WriteUtilities, WriteMultipleTimeSteps)
     // define field for first time step
     constexpr auto tField1Name = std::string_view{"ether"};
     auto tExpectedField1 = std::vector<double>(tNumberOfNodes);
-    std::iota(tExpectedField1.begin(), tExpectedField1.end(), 10.0);
+    constexpr auto tStart = 10.0;
+    std::iota(tExpectedField1.begin(), tExpectedField1.end(), tStart);
     const auto tData1 = full_map_from_vector(tExpectedField1);
 
     // define field for second time step
-    auto tExpectedField2 = std::vector<double>{54, 21, 86, 77, 88, 38, 71, 20};
+    const auto tExpectedField2 = std::vector<double>{54, 21, 86, 77, 88, 38, 71, 20};
     const auto tData2 = full_map_from_vector(tExpectedField2);
 
     // write inital time step

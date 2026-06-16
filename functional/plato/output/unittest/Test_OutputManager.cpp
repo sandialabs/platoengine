@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/output/OutputManager.hpp"
 #include "plato/test_utilities/TestContext.hpp"

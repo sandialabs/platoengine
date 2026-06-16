@@ -2,6 +2,7 @@
 
 #include "plato/input_parser/UserDefinedTokenList.hpp"
 #include "plato/input_parser/test_utilities/TestHelpers.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -9,7 +10,7 @@ namespace
 {
 struct LowerCaseOnly
 {
-    constexpr const char* operator()() const { return "a-z "; }
+    constexpr auto operator()() const -> const char* { return "a-z "; }
 };
 
 using ListType = UserDefinedTokenList<LowerCaseOnly>;
@@ -18,7 +19,7 @@ using ListType = UserDefinedTokenList<LowerCaseOnly>;
 TEST(UserDefinedTokenList, ValidChars)
 {
     const auto tToken = UserDefinedTokenList<LowerCaseOnly>{};
-    EXPECT_EQ(tToken.kValidChars, LowerCaseOnly{}());
+    EXPECT_EQ(tToken.mValidChars, LowerCaseOnly{}());
 }
 
 TEST(UserDefinedTokenList, StreamInsertion)

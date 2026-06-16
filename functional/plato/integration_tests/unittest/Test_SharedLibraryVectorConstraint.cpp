@@ -1,17 +1,25 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cassert>
 #include <filesystem>
 #include <iterator>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/criteria/extension/SharedLibraryVectorCriterion.hpp"
+#include "plato/components/ComponentType.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
-#include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/SharedLibraryVectorCriterion.hpp"
 #include "plato/integration_tests/test_mass_criteria/MassConstraintVectorInterface.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/Containers.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::integration_tests::serial
@@ -19,14 +27,14 @@ namespace plato::integration_tests::serial
 using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 namespace
 {
-[[nodiscard]] auto test_shared_library_criterion() -> criteria::extension::SharedLibraryVectorCriterion
+[[nodiscard]] auto test_shared_library_criterion() -> criteria::library::SharedLibraryVectorCriterion
 {
     const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
     const auto tVectorCriterion = std::find_if(tTestConfiguration.mConfiguration.mCriteria.cbegin(),
                                                tTestConfiguration.mConfiguration.mCriteria.cend(),
-                                               [](const auto& tCriterion) { return !tCriterion.mIsScalar; });
+                                               [](const auto& aCriterion) { return !aCriterion.mIsScalar; });
     assert(tVectorCriterion != tTestConfiguration.mConfiguration.mCriteria.cend());
-    return criteria::extension::SharedLibraryVectorCriterion{tTestConfiguration, *tVectorCriterion, {}};
+    return criteria::library::SharedLibraryVectorCriterion{tTestConfiguration, *tVectorCriterion, {}};
 }
 
 [[nodiscard]] auto create_n_step_vector(const unsigned int aSize) -> linear_algebra::DynamicVector<double>
@@ -36,10 +44,10 @@ namespace
     const double tStep = 1.0 / aSize;
     const double tStart = 0;
     std::generate_n(std::back_inserter(tVector), aSize,
-                    [tStart, tStep, aN = 0]() mutable
+                    [tStart, tStep, tAN = 0]() mutable
                     {
-                        aN++;
-                        return tStart + tStep * aN;
+                        tAN++;
+                        return tStart + tStep * tAN;
                     });
     return linear_algebra::DynamicVector<double>(std::move(tVector));
 }

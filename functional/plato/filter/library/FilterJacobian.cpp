@@ -1,8 +1,12 @@
 #include "plato/filter/library/FilterJacobian.hpp"
 
 #include <cassert>
+#include <memory>
+#include <utility>
 
 #include "plato/filter/library/FilterInterface.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::filter::library
 {

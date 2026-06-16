@@ -1,17 +1,25 @@
 #include "plato/integration_tests/test_mass_criteria/MassPropertiesVectorInterface.hpp"
 
 #include <cassert>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/criteria/library/VectorCriterionInterface.hpp"
 
 namespace plato::integration_tests::test_mass_criteria
 {
 namespace
 {
 constexpr auto kCriterionDimension = 4U;
+const auto kArbitraryMassProperties = std::vector{0.0, 1.0, 2.0, 3.0};
 }
 
-auto MassPropertiesInterface::value(const analysis::AnalysisDomainMesh&) const -> std::vector<double>
+auto MassPropertiesInterface::value(const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/) const
+    -> std::vector<double>
 {
-    return {0.0, 1.0, 2.0, 3.0};
+    return kArbitraryMassProperties;
 }
 
 auto MassPropertiesInterface::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
@@ -25,14 +33,15 @@ auto MassPropertiesInterface::rowVectorTimesJacobian(const analysis::AnalysisDom
     return std::vector<double>(tOptimizationVectorDimension);
 }
 
-auto MassPropertiesInterface::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh&,
-                                                            const std::vector<double>&) const -> std::vector<double>
+auto MassPropertiesInterface::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& /*aAnalysisDomainMesh*/,
+                                                            const std::vector<double>& /*aDualVector*/) const
+    -> std::vector<double>
 {
     return std::vector<double>(kCriterionDimension);
 }
 
 }  // namespace plato::integration_tests::test_mass_criteria
-auto plato_create_mass_properties_vector_criterion(const std::vector<std::string>&)
+auto plato_create_mass_properties_vector_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::VectorCriterionInterface>
 {
     return std::make_unique<plato::integration_tests::test_mass_criteria::MassPropertiesInterface>();

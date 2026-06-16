@@ -49,10 +49,10 @@ using FilterRegistration = core::FactoryRegistration<FilterFunction, ValidatedFi
 /// changed.
 /// @param aCacheFunction a callable that constructs the specified @a FilterCache object.
 template <typename CacheFunction>
-FilterFunction make_filter_function_from_cache(const CacheFunction& aCacheFunction);
+auto make_filter_function_from_cache(const CacheFunction& aCacheFunction) -> FilterFunction;
 
 template <typename CacheFunction>
-FilterFunction make_filter_function_from_cache(const CacheFunction& aCacheFunction)
+auto make_filter_function_from_cache(const CacheFunction& aCacheFunction) -> FilterFunction
 {
     auto tFilterCache = aCacheFunction();
     return FilterFunction{

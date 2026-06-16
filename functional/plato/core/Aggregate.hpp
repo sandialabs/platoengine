@@ -25,13 +25,13 @@ class Aggregate
 
     /// @brief Computes a weighted sum of all Function object held by this object, evaluated
     /// for the derivative @a Order and matrix ordering @a Ordering.
-    template <int Order, MatrixOrdering Ordering = MatrixOrdering::kOriginal, typename Argument>
+    template <int kOrder, MatrixOrdering kOrdering = MatrixOrdering::kOriginal, typename Argument>
     [[nodiscard]] auto evaluate(const Argument& aArgument) const;
 
     /// @return The number of Function objects used on construction.
-    [[nodiscard]] std::size_t size() const;
+    [[nodiscard]] auto size() const -> std::size_t;
 
-    [[nodiscard]] std::vector<double> weights() const;
+    [[nodiscard]] auto weights() const -> std::vector<double>;
 
    private:
     using FunctionAndWeight = std::pair<AggregateFunction, double>;
@@ -63,23 +63,23 @@ Aggregate<DomainType, Info...>::Aggregate(
 }
 
 template <typename DomainType, typename... Info>
-template <int Order, MatrixOrdering Ordering, typename Argument>
+template <int kOrder, MatrixOrdering kOrdering, typename Argument>
 auto Aggregate<DomainType, Info...>::evaluate(const Argument& aArgument) const
 {
     if (mFunctionsAndWeights.empty())
     {
-        using ReturnType = typename AggregateFunction::template Codomain<Order, Ordering>;
+        using ReturnType = typename AggregateFunction::template Codomain<kOrder, kOrdering>;
         return ReturnType{};
     }
 
     auto tResult = mFunctionsAndWeights.front().second *
-                   mFunctionsAndWeights.front().first.template evaluate<Order, Ordering>(aArgument);
+                   mFunctionsAndWeights.front().first.template evaluate<kOrder, kOrdering>(aArgument);
 
     return std::accumulate(std::next(mFunctionsAndWeights.cbegin()), mFunctionsAndWeights.cend(), std::move(tResult),
                            [&aArgument](const auto& aResult, const FunctionAndWeight& aFunctionAndWeight)
                            {
                                const auto& [tFunction, tWeight] = aFunctionAndWeight;
-                               return aResult + tWeight * tFunction.template evaluate<Order, Ordering>(aArgument);
+                               return aResult + tWeight * tFunction.template evaluate<kOrder, kOrdering>(aArgument);
                            });
 }
 

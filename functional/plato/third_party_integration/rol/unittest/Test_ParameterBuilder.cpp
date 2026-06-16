@@ -2,6 +2,8 @@
 
 #include <functional>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/rol/ParameterBuilder.hpp"
@@ -43,16 +45,18 @@ TEST(ParameterBuilder, MakeStatusTestIterationLimit)
 
 TEST(ParameterBuilder, MakeStatusTestGradientTolerance)
 {
+    constexpr auto tDefaultGradientTolerance = 1e-12;
     test_make_parameter_function<double>(
         [](const std::optional<double> aValue) { return make_status_test_gradient_tolerance(aValue); }, {"Status Test"},
-        "Gradient Tolerance", 1e-12, TEST_CONTEXT("Gradient Tolerance"));
+        "Gradient Tolerance", tDefaultGradientTolerance, TEST_CONTEXT("Gradient Tolerance"));
 }
 
 TEST(ParameterBuilder, MakeStatusTestStepTolerance)
 {
+    constexpr auto tDefaultStepTolerance = 1e-14;
     test_make_parameter_function<double>([](const std::optional<double> aValue)
-                                         { return make_status_test_step_tolerance(aValue); },
-                                         {"Status Test"}, "Step Tolerance", 1e-14, TEST_CONTEXT("Step Tolerance"));
+                                         { return make_status_test_step_tolerance(aValue); }, {"Status Test"},
+                                         "Step Tolerance", tDefaultStepTolerance, TEST_CONTEXT("Step Tolerance"));
 }
 
 TEST(ParameterBuilder, MakeGeneralOutputLevel)
@@ -64,7 +68,7 @@ TEST(ParameterBuilder, MakeGeneralOutputLevel)
 
 TEST(ParameterBuilder, MakeStepCompositeStepOutputLevel)
 {
-    const auto tVerboseDefault = 0;
+    constexpr auto tVerboseDefault = 0;
     test_make_parameter_function<int>(
         [](const std::optional<int> aValue) { return make_step_composite_step_output_level(aValue); },
         {"Step", "Composite Step"}, "Output Level", tVerboseDefault, TEST_CONTEXT("Composite step output"));
@@ -72,9 +76,10 @@ TEST(ParameterBuilder, MakeStepCompositeStepOutputLevel)
 
 TEST(ParameterBuilder, MakeTrustRegionInitialRadius)
 {
-    test_make_parameter_function<double>(
-        [](const std::optional<double> aValue) { return make_trust_region_initial_radius(aValue); },
-        {"Step", "Trust Region"}, "Initial Radius", 15, TEST_CONTEXT("Trust region radius"));
+    constexpr auto tDefaultValue = 15;
+    test_make_parameter_function<double>([](const std::optional<double> aValue)
+                                         { return make_trust_region_initial_radius(aValue); }, {"Step", "Trust Region"},
+                                         "Initial Radius", tDefaultValue, TEST_CONTEXT("Trust region radius"));
 }
 
 TEST(ParameterBuilder, MakeGeneralInexactHessian)

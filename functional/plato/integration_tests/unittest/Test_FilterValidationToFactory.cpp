@@ -1,13 +1,10 @@
 #include <gtest/gtest.h>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/filter/library/FilterFactory.hpp"
-#include "plato/filter/library/FilterRegistration.hpp"
-#include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/geometry/library/GeometryRegistration.hpp"
-#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
-#include "plato/input_validation/ValidationUtilities.hpp"
-#include "plato/integration_tests/utilities/InputGeneration.hpp"
+#include "plato/input_validation/ValidatedInputTypeWrapper.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 
 namespace plato::integration_tests::unittest

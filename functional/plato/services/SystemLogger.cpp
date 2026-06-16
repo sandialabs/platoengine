@@ -1,8 +1,15 @@
 #include "plato/services/SystemLogger.hpp"
 
+#include <any>
+#include <boost/mpi/communicator.hpp>
+#include <string_view>
+#include <utility>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
+#include "plato/third_party_integration/boost_log/Severity.hpp"
 #include "plato/third_party_integration/boost_log/SeverityLogger.hpp"
 
 namespace plato::services
@@ -46,22 +53,22 @@ SystemLogger::SystemLogger(components::ComponentType aComponentType,
 
 void SystemLogger::logDebugMessage(const std::string_view aMessage)
 {
-    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kDebug);
+    system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kDebug);
 }
 
 void SystemLogger::logInfo(const std::string_view aMessage)
 {
-    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kInfo);
+    system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kInfo);
 }
 
 void SystemLogger::logWarning(const std::string_view aMessage)
 {
-    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kWarning);
+    system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kWarning);
 }
 
 void SystemLogger::logError(const std::string_view aMessage)
 {
-    return system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kError);
+    system_logger(mImpl).logMessage(aMessage, tpi_bl::Severity::kError);
 }
 
 auto system_logger() -> SystemLogger { return SystemLogger{}; }

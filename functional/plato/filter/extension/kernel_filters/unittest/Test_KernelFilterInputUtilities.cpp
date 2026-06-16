@@ -1,14 +1,22 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <cstddef>
+#include <filesystem>
 #include <fstream>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterInputUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/ReflectFilter.hpp"
 #include "plato/filter/extension/kernel_filters/RevolveFilter.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/ReflectionMeshTestUtility.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/SymmetryFilterTestUtilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters::unittest
@@ -109,14 +117,26 @@ void expect_invalid_source_and_target(const third_party_integration::stk_io::Com
 
 TEST(KernelFilterInputUtilities, ValidateAllTargetDomainFindSourceDomain)
 {
-    expect_valid_source_and_target({-1, -1, -1}, input_parser::KernelFilterCenteringTypes::kNodeCentered,
-                                   TEST_CONTEXT("Target nodal domain should find all source entries."));
-    expect_valid_source_and_target({-1, -1, -1}, input_parser::KernelFilterCenteringTypes::kElementCentered,
-                                   TEST_CONTEXT("Target elemental domain should find all source entries."));
-    expect_invalid_source_and_target({-6, -7, -5}, input_parser::KernelFilterCenteringTypes::kNodeCentered,
-                                     TEST_CONTEXT("Target nodal domain should not find all source entries."));
-    expect_invalid_source_and_target({-6, -7, -5}, input_parser::KernelFilterCenteringTypes::kElementCentered,
-                                     TEST_CONTEXT("Target elemental domain should not find all source entries."));
+    {
+        const auto tValidLowerBounds = third_party_integration::stk_io::CommandBounds{-1, -1, -1};
+        expect_valid_source_and_target(tValidLowerBounds, input_parser::KernelFilterCenteringTypes::kNodeCentered,
+                                       TEST_CONTEXT("Target nodal domain should find all source entries."));
+    }
+    {
+        const auto tValidLowerBounds = third_party_integration::stk_io::CommandBounds{-1, -1, -1};
+        expect_valid_source_and_target(tValidLowerBounds, input_parser::KernelFilterCenteringTypes::kElementCentered,
+                                       TEST_CONTEXT("Target elemental domain should find all source entries."));
+    }
+    {
+        const auto tValidLowerBounds = third_party_integration::stk_io::CommandBounds{-6, -7, -5};
+        expect_invalid_source_and_target(tValidLowerBounds, input_parser::KernelFilterCenteringTypes::kNodeCentered,
+                                         TEST_CONTEXT("Target nodal domain should not find all source entries."));
+    }
+    {
+        const auto tValidLowerBounds = third_party_integration::stk_io::CommandBounds{-6, -7, -5};
+        expect_invalid_source_and_target(tValidLowerBounds, input_parser::KernelFilterCenteringTypes::kElementCentered,
+                                         TEST_CONTEXT("Target elemental domain should not find all source entries."));
+    }
 }
 
 }  // namespace plato::filter::extension::kernel_filters::unittest

@@ -1,7 +1,14 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
+#include <algorithm>
+#include <cstddef>
+#include <filesystem>
+#include <iterator>
 #include <map>
-#include <stk_io/StkMeshIoBroker.hpp>
+#include <stk_io/StkMeshIoBroker.hpp>  // NOLINT(misc-include-cleaner)
+#include <stk_topology/topology_decl.hpp>
+#include <string_view>
+#include <vector>
 
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
@@ -20,7 +27,7 @@ namespace
     return tVector;
 }
 
-template <stk::topology::rank_t Rank>
+template <stk::topology::rank_t kRank>
 void write_mesh_scalar_field_impl(const std::filesystem::path& aInputMeshName,
                                   const ScalarFieldFunction& aScalarField,
                                   const std::string_view aFieldName,
@@ -28,7 +35,7 @@ void write_mesh_scalar_field_impl(const std::filesystem::path& aInputMeshName,
 {
     auto tIOBroker = create_io_broker_from_input_file(aInputMeshName);
     const auto tFileHandle = create_output_mesh(aOutputMeshName, *tIOBroker);
-    if constexpr (Rank == stk::topology::ELEM_RANK)
+    if constexpr (kRank == stk::topology::ELEM_RANK)
     {
         stk_io::initialize_element_scalar_field(*tIOBroker, aFieldName);
         stk_io::populate_element_scalar_field_values(*tIOBroker, aFieldName, aScalarField);
@@ -45,18 +52,18 @@ void write_mesh_scalar_field_impl(const std::filesystem::path& aInputMeshName,
 
 }  // namespace
 
-auto read_nodal_field_as_vector(const std::filesystem::path& aMeshName, std::string_view aFieldName, const double aTime)
+auto read_nodal_field_as_vector(const std::filesystem::path& aMeshPath, std::string_view aFieldName, const double aTime)
     -> std::vector<double>
 {
-    const auto tField = stk_io::read_nodal_field(aMeshName, aFieldName, aTime);
+    const auto tField = stk_io::read_nodal_field(aMeshPath, aFieldName, aTime);
     return convert_map_sorted_vector(tField);
 }
 
-auto read_element_field_as_vector(const std::filesystem::path& aMeshName,
+auto read_element_field_as_vector(const std::filesystem::path& aMeshPath,
                                   std::string_view aFieldName,
                                   const double aTime) -> std::vector<double>
 {
-    const auto tField = stk_io::read_element_field(aMeshName, aFieldName, aTime);
+    const auto tField = stk_io::read_element_field(aMeshPath, aFieldName, aTime);
     return convert_map_sorted_vector(tField);
 }
 

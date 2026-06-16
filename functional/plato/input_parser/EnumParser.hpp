@@ -10,10 +10,10 @@ namespace plato::input_parser
 template <typename Enum>
 auto make_enum_symbols(const utilities::EnumTable<Enum>& aTable) -> boost::spirit::qi::symbols<char, Enum>
 {
-    boost::spirit::qi::symbols<char, Enum> tSymbols;
-    for (const auto& entry : aTable)
+    const boost::spirit::qi::symbols<char, Enum> tSymbols;
+    for (const auto& tEntry : aTable)
     {
-        tSymbols.add(entry.second, entry.first);
+        tSymbols.add(tEntry.second, tEntry.first);
     }
     return tSymbols;
 }

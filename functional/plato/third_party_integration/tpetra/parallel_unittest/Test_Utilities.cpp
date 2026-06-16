@@ -1,8 +1,16 @@
 #include <gtest/gtest.h>
 
-#include <Tpetra_KokkosCompat_DefaultNode.hpp>
+#include <Teuchos_Comm.hpp>
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_RCPDecl.hpp>
+#include <Tpetra_ConfigDefs.hpp>
+#include <Tpetra_Core.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <memory>
+#include <vector>
 
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/tpetra/Utilities.hpp"
 
@@ -12,21 +20,21 @@ namespace plato::third_party_integration::tpetra::unittest
 namespace
 {
 
-constexpr auto kNumRanks = int{4};
+constexpr auto kNumRanks = 4;
 constexpr int kNumSpatialDimensions{3};
 
-[[nodiscard]] Teuchos::RCP<const TpetraMap> create_contiguous_map(const Tpetra::global_size_t aSize,
-                                                                  Teuchos::RCP<const Teuchos::Comm<int>> aCommunicator)
+[[nodiscard]] auto create_contiguous_map(const Tpetra::global_size_t aSize,
+                                         const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+    -> Teuchos::RCP<const TpetraMap>
 {
-    return Teuchos::rcp(new TpetraMap(aSize, kIndexBase, std::move(aCommunicator)));
+    return Teuchos::rcp(std::make_unique<TpetraMap>(aSize, kIndexBase, aCommunicator).release());
 }
-
 }  // namespace
 
 TEST(TpetraHelpers, MPISize)
 {
-    const auto tComm = boost::mpi::communicator{};
-    EXPECT_EQ(tComm.size(), kNumRanks);
+    const auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_EQ(tCommunicator.size(), kNumRanks);
 }
 
 TEST(TpetraHelpers, PutStdVectorTPetraVector)
@@ -74,7 +82,7 @@ TEST(TpetraHelpers, PutStdVectorOfCoordOnTPetraMultiVector)
                                                   {10, 20, 30}
                                                   };
     // clang-format on
-    const int tSize = tCoordinates.size();
+    const auto tSize = tCoordinates.size();
     const auto tContiguousMap = create_contiguous_map(tSize, tCommunicator);
 
     constexpr bool tZeroOut = true;
@@ -95,8 +103,8 @@ TEST(TpetraHelpers, CreateZeroedRowAndColumnVectorsFromCRSMatrix)
     const auto tCommunicator = Tpetra::getDefaultComm();
     constexpr int tNumberOfRows = 4;
     constexpr int tNumberOfColumns = 2;
-    const auto tCrsRowMap = Teuchos::rcp(new TpetraMap(tNumberOfColumns, 0, tCommunicator));
-    const auto tCrsDomainMap = Teuchos::rcp(new TpetraMap(tNumberOfRows, 0, tCommunicator));
+    const auto tCrsRowMap = Teuchos::rcp(std::make_unique<TpetraMap>(tNumberOfColumns, 0, tCommunicator).release());
+    const auto tCrsDomainMap = Teuchos::rcp(std::make_unique<TpetraMap>(tNumberOfRows, 0, tCommunicator).release());
 
     TpetraCRSMatrix tMatrix(tCrsRowMap, 3);
     tMatrix.fillComplete(tCrsDomainMap, tCrsRowMap);

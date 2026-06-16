@@ -36,7 +36,7 @@ struct Unexpected
 /// }
 /// @endcode
 template <typename Error>
-constexpr auto unexpected(Error&& aError) -> Unexpected<Error>;
+constexpr auto unexpected(Error&& aError);
 
 template <typename T>
 constexpr bool kIsUnexpected = false;
@@ -59,13 +59,16 @@ class Expected
    public:
     constexpr Expected() = default;
 
-    template <typename U, typename = std::enable_if_t<std::is_convertible_v<U, T>>>
-    constexpr Expected(U&& aU);
+    template <typename U>
+        requires(std::is_convertible_v<U, T>)
+    constexpr Expected(U&& aValue);
 
-    template <typename E, typename = std::enable_if_t<std::is_convertible_v<E, Error>>>
+    template <typename E>
+        requires(std::is_convertible_v<E, Error>)
     constexpr Expected(Unexpected<E>&& aError);
 
-    template <typename E, typename = std::enable_if_t<std::is_convertible_v<E, Error>>>
+    template <typename E>
+        requires(std::is_convertible_v<E, Error>)
     constexpr auto operator=(Unexpected<E>&& aError) -> Expected&;
 
     /// @brief Returns whether or not an expected object is held (not the error type)
@@ -104,23 +107,25 @@ class Expected
 };
 
 template <typename T, typename Error>
-template <typename U, typename>
-constexpr Expected<T, Error>::Expected(U&& aU) : mValue{std::forward<U>(aU)}
+template <typename U>
+    requires(std::is_convertible_v<U, T>)
+constexpr Expected<T, Error>::Expected(U&& aValue) : mValue{std::forward<U>(aValue)}
 {
 }
 
 template <typename T, typename Error>
-template <typename E, typename>
-constexpr Expected<T, Error>::Expected(Unexpected<E>&& aError)
-    : mValue{Unexpected<Error>{std::forward<Unexpected<E>>(aError).mError}}
+template <typename E>
+    requires(std::is_convertible_v<E, Error>)
+constexpr Expected<T, Error>::Expected(Unexpected<E>&& aError) : mValue{Unexpected<Error>{std::move(aError).mError}}
 {
 }
 
 template <typename T, typename Error>
-template <typename E, typename>
+template <typename E>
+    requires(std::is_convertible_v<E, Error>)
 constexpr auto Expected<T, Error>::operator=(Unexpected<E>&& aError) -> Expected&
 {
-    mValue = Unexpected<Error>{std::forward<Unexpected<E>>(aError).mError};
+    mValue = Unexpected<Error>{std::move(aError).mError};
     return *this;
 }
 
@@ -193,9 +198,9 @@ constexpr auto Expected<T, Error>::error() const -> const Error&
 }
 
 template <typename Error>
-constexpr auto unexpected(Error&& aError) -> Unexpected<Error>
+constexpr auto unexpected(Error&& aError)
 {
-    return Unexpected<Error>{std::forward<Error>(aError)};
+    return Unexpected<std::remove_cvref_t<Error>>{std::forward<Error>(aError)};
 }
 
 }  // namespace plato::utilities

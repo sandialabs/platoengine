@@ -1,7 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <filesystem>
+#include <functional>
+#include <iterator>
 #include <numeric>
 #include <set>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
@@ -9,6 +15,7 @@
 #include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshBlocks.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -17,10 +24,10 @@ namespace plato::mesh::unittest
 {
 namespace
 {
-using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
-using third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
-using third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
-using third_party_integration::stk_io::test_utilities::TwoDTwoBlockMesh;
+using DesignVariableConversionOneBlock3x1x1HexMesh =
+    third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using DesignVariableConversionTwoBlockMeshOnDisk = third_party_integration::stk_io::test_utilities::TwoBlockMeshOnDisk;
+using DesignVariableConversionTwoDThreeBlockMesh = third_party_integration::stk_io::test_utilities::TwoDThreeBlockMesh;
 
 void check_sizes(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                  const std::vector<unsigned int>& aExpectedEntitySizes,
@@ -57,7 +64,7 @@ void check_vector_index_matches_view_index(const analysis::AnalysisDomainMesh& a
     }
 }
 
-std::vector<double> entity_ids_to_field(const std::vector<std::size_t>& aEntityIDs)
+auto entity_ids_to_field(const std::vector<std::size_t>& aEntityIDs) -> std::vector<double>
 {
     auto tUniqueIDs = std::set<std::size_t>{};
     std::copy(aEntityIDs.cbegin(), aEntityIDs.cend(), std::inserter(tUniqueIDs, tUniqueIDs.begin()));
@@ -84,9 +91,8 @@ void check_map_consistency(const std::size_t aNumberOfDesignNodes,
     }
 }
 
-analysis::AnalysisDomainMesh one_block_mesh_analysis_for_tests(
-    const third_party_integration::stk_io::CommandGenerator& aCommandGenerator,
-    const std::filesystem::path& aMeshFilePath)
+auto one_block_mesh_analysis_for_tests(const third_party_integration::stk_io::CommandGenerator& aCommandGenerator,
+                                       const std::filesystem::path& aMeshFilePath) -> analysis::AnalysisDomainMesh
 {
     auto tDesignVariables = std::vector<analysis::ScalarFieldValue>{};
     tDesignVariables.reserve(aCommandGenerator.numberOfNodes());
@@ -101,11 +107,11 @@ analysis::AnalysisDomainMesh one_block_mesh_analysis_for_tests(
 
 }  // namespace
 
-TEST_F(TwoBlockMeshOnDisk, NodalScalarFieldToAnalysisDomainMesh)
+TEST_F(DesignVariableConversionTwoBlockMeshOnDisk, NodalScalarFieldToAnalysisDomainMesh)
 {
     const auto tMesh = Mesh{mMeshFilePath};
     auto tScalarField = std::vector<double>(EntityCounts{tMesh}.numberOfNodes());
-    constexpr auto tStartField = double{1.0};
+    constexpr auto tStartField = 1.0;
     std::iota(tScalarField.begin(), tScalarField.end(), tStartField);
     const auto tAnalysisDomainMesh = DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         NodalFieldVectorReference{std::cref(tScalarField)});
@@ -116,11 +122,11 @@ TEST_F(TwoBlockMeshOnDisk, NodalScalarFieldToAnalysisDomainMesh)
     check_vector_index_matches_view_index(tAnalysisDomainMesh, TEST_CONTEXT("Nodal design variables"));
 }
 
-TEST_F(TwoBlockMeshOnDisk, ElementScalarFieldToAnalysisDomainMesh)
+TEST_F(DesignVariableConversionTwoBlockMeshOnDisk, ElementScalarFieldToAnalysisDomainMesh)
 {
     const auto tMesh = Mesh{mMeshFilePath};
     auto tScalarField = std::vector<double>(EntityCounts{tMesh}.numberOfElements());
-    constexpr auto tStartField = double{1.0};
+    constexpr auto tStartField = 1.0;
     std::iota(tScalarField.begin(), tScalarField.end(), tStartField);
 
     const auto tAnalysisDomainMesh =
@@ -132,7 +138,7 @@ TEST_F(TwoBlockMeshOnDisk, ElementScalarFieldToAnalysisDomainMesh)
     check_vector_index_matches_view_index(tAnalysisDomainMesh, TEST_CONTEXT("Element design variables"));
 }
 
-TEST_F(TwoDThreeBlockMesh, NodeScalarFieldToDesignVariablesWithFixedBlocks)
+TEST_F(DesignVariableConversionTwoDThreeBlockMesh, NodeScalarFieldToDesignVariablesWithFixedBlocks)
 {
     const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[2]}};
     auto tNodeIds = MeshBlocks{tMesh}.nodeIDs(mBlock1Ordinal);
@@ -149,7 +155,7 @@ TEST_F(TwoDThreeBlockMesh, NodeScalarFieldToDesignVariablesWithFixedBlocks)
     check_vector_index_matches_view_index(tAnalysisDomainMesh, TEST_CONTEXT("Nodal design variables"));
 }
 
-TEST_F(TwoDThreeBlockMesh, ElementScalarFieldToDesignVariablesWithFixedBlocks)
+TEST_F(DesignVariableConversionTwoDThreeBlockMesh, ElementScalarFieldToDesignVariablesWithFixedBlocks)
 {
     const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[0], mBlockNames[1]}};
     const auto tElementIds = MeshBlocks{tMesh}.elementIDs(mBlock3Ordinal);
@@ -162,13 +168,13 @@ TEST_F(TwoDThreeBlockMesh, ElementScalarFieldToDesignVariablesWithFixedBlocks)
     check_vector_index_matches_view_index(tAnalysisDomainMesh, TEST_CONTEXT("Element design variables"));
 }
 
-TEST_F(OneBlock3x1x1HexMesh, AnalysisDomainMeshToNodalScalarField)
+TEST_F(DesignVariableConversionOneBlock3x1x1HexMesh, AnalysisDomainMeshToNodalScalarField)
 {
     const auto tAnalysisDomainMesh = one_block_mesh_analysis_for_tests(mCommandGenerator, mMeshFilePath);
 
     const auto tMesh = Mesh{mMeshFilePath, {}};
     const auto tDesignVariableVector =
-        DesignVariablesConversion{tMesh}.analysisDomainMeshToNodalFieldVector(tAnalysisDomainMesh);
+        DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(tAnalysisDomainMesh);
 
     auto tExpectedIndices = std::vector<analysis::ScalarFieldValue::IndexType>(mCommandGenerator.numberOfNodes());
     constexpr auto tStartIndex = analysis::ScalarFieldValue::IndexType{1};
@@ -181,12 +187,12 @@ TEST_F(OneBlock3x1x1HexMesh, AnalysisDomainMeshToNodalScalarField)
     }
 }
 
-TEST_F(TwoDThreeBlockMesh, AnalysisDomainMeshToElementScalarField)
+TEST_F(DesignVariableConversionTwoDThreeBlockMesh, AnalysisDomainMeshToElementScalarField)
 {
     // Set up to assume blocks 1 and 2 are fixed
     constexpr auto tBlock3ElementGlobalID = analysis::ScalarFieldValue::IndexType{3};
     constexpr auto tVectorIndex = analysis::ScalarFieldValue::IndexType{0};
-    constexpr auto tArbitraryField = double{0.5};
+    constexpr auto tArbitraryField = 0.5;
     const auto tDesignVariables =
         std::vector<analysis::ScalarFieldValue>{{tBlock3ElementGlobalID, tVectorIndex, tArbitraryField}};
     constexpr auto tBlock3ID = analysis::AnalysisDomainMesh::BlockIDType{3};
@@ -194,38 +200,38 @@ TEST_F(TwoDThreeBlockMesh, AnalysisDomainMeshToElementScalarField)
 
     const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[0], mBlockNames[1]}};
     const auto tResultDesignVariableVector =
-        DesignVariablesConversion{tMesh}.analysisDomainMeshToElementFieldVector(tAnalysisDomainMesh);
+        DesignVariablesConversion::analysisDomainMeshToElementFieldVector(tAnalysisDomainMesh);
 
     const auto tExpectedDesignVariableVector = std::vector{tArbitraryField};
     EXPECT_EQ(tResultDesignVariableVector.mValue, tExpectedDesignVariableVector);
 }
 
-TEST_F(TwoDThreeBlockMesh, MeshNodalDesignVariablesRoundTrip)
+TEST_F(DesignVariableConversionTwoDThreeBlockMesh, MeshNodalDesignVariablesRoundTrip)
 {
     const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[2]}};
     auto tNodalDesignVariables = std::vector<double>(EntityCounts{tMesh}.numberOfDesignDomainNodes());
-    constexpr auto tStartField = double{1.0};
+    constexpr auto tStartField = 1.0;
     std::iota(tNodalDesignVariables.begin(), tNodalDesignVariables.end(), tStartField);
 
     const auto tAnalysisDomainMesh = DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         NodalFieldVectorReference{tNodalDesignVariables});
     const auto tRoundTripNodalDesignVariables =
-        DesignVariablesConversion{tMesh}.analysisDomainMeshToNodalFieldVector(tAnalysisDomainMesh);
+        DesignVariablesConversion::analysisDomainMeshToNodalFieldVector(tAnalysisDomainMesh);
 
     EXPECT_EQ(tNodalDesignVariables, tRoundTripNodalDesignVariables.mValue);
 }
 
-TEST_F(TwoDThreeBlockMesh, MeshElementDesignVariablesRoundTrip)
+TEST_F(DesignVariableConversionTwoDThreeBlockMesh, MeshElementDesignVariablesRoundTrip)
 {
     const auto tMesh = Mesh{mMeshFilePath, {mBlockNames[0]}};
     auto tElementDesignVariables = std::vector<double>(EntityCounts{tMesh}.numberOfDesignDomainElements());
-    constexpr auto tStartField = double{1.0};
+    constexpr auto tStartField = 1.0;
     std::iota(tElementDesignVariables.begin(), tElementDesignVariables.end(), tStartField);
 
     const auto tAnalysisDomainMesh = DesignVariablesConversion{tMesh}.elementFieldToAnalysisDomainMesh(
         ElementFieldVectorReference{tElementDesignVariables});
     const auto tRoundTripElementDesignVariables =
-        DesignVariablesConversion{tMesh}.analysisDomainMeshToElementFieldVector(tAnalysisDomainMesh);
+        DesignVariablesConversion::analysisDomainMeshToElementFieldVector(tAnalysisDomainMesh);
 
     EXPECT_EQ(tElementDesignVariables, tRoundTripElementDesignVariables.mValue);
 }

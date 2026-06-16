@@ -1,9 +1,9 @@
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
 
-#include <boost/log/core.hpp>
-#include <boost/log/expressions.hpp>
+#include <boost/log/expressions/filter.hpp>
+#include <boost/log/expressions/formatter.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>
-#include <boost/log/sinks/text_ostream_backend.hpp>
+#include <boost/smart_ptr/shared_ptr.hpp>
 #include <iostream>
 
 namespace plato::third_party_integration::boost_log

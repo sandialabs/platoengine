@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Hexahedron.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/SensitivityTestUtilities.hpp"
@@ -8,7 +10,8 @@ namespace plato::third_party_integration::stk_io::unittest
 {
 namespace
 {
-[[nodiscard]] Hexahedron create_coordinate_axis_aligned_hexahedron_from_cuboid(const test_utilities::Cuboid& aCuboid)
+[[nodiscard]] auto create_coordinate_axis_aligned_hexahedron_from_cuboid(const test_utilities::Cuboid& aCuboid)
+    -> Hexahedron
 {
     const common::Coordinate tPoint0{.x = 0, .y = 0, .z = 0};
     const common::Coordinate tPoint1{.x = aCuboid.mLength, .y = 0, .z = 0};
@@ -19,14 +22,14 @@ namespace
     const common::Coordinate tPoint6{.x = aCuboid.mLength, .y = aCuboid.mWidth, .z = aCuboid.mHeight};
     const common::Coordinate tPoint7{.x = 0, .y = aCuboid.mWidth, .z = aCuboid.mHeight};
 
-    return Hexahedron{.p000 = tPoint0,
-                      .p100 = tPoint1,
-                      .p110 = tPoint2,
-                      .p010 = tPoint3,
-                      .p001 = tPoint4,
-                      .p101 = tPoint5,
-                      .p111 = tPoint6,
-                      .p011 = tPoint7};
+    return Hexahedron{.mP000 = tPoint0,
+                      .mP100 = tPoint1,
+                      .mP110 = tPoint2,
+                      .mP010 = tPoint3,
+                      .mP001 = tPoint4,
+                      .mP101 = tPoint5,
+                      .mP111 = tPoint6,
+                      .mP011 = tPoint7};
 }
 }  // namespace
 
@@ -45,7 +48,8 @@ TEST(Hexahedron, VolumeOfPerturbedUnitHex)
     Hexahedron tHex = create_coordinate_axis_aligned_hexahedron_from_cuboid(
         test_utilities::Cuboid{.mLength = 1.0, .mWidth = 1.0, .mHeight = 1.0});
 
-    tHex.p100.x += 0.1;
+    constexpr auto tPerturbation = 0.1;
+    tHex.mP100.x += tPerturbation;
     const double tResult = tHex.volume();
     constexpr double tGold = 41. / 40;  // computed via matlab
 
@@ -69,17 +73,17 @@ TEST(Hexahedron, CentroidOfParallelepiped)
     const common::Coordinate tVector1{.x = 21.0, .y = 12.0, .z = 91.0};
     const common::Coordinate tVector2{.x = 39.0, .y = 71.0, .z = 12.0};
     const common::Coordinate tVector3{.x = 88.0, .y = 35.0, .z = 84.0};
-    const Hexahedron tHex{.p000 = tCornerPoint,
-                          .p100 = tCornerPoint + tVector1,
-                          .p110 = tCornerPoint + tVector1 + tVector2,
-                          .p010 = tCornerPoint + tVector2,
-                          .p001 = tCornerPoint + tVector3,
-                          .p101 = tCornerPoint + tVector1 + tVector3,
-                          .p111 = tCornerPoint + tVector1 + tVector2 + tVector3,
-                          .p011 = tCornerPoint + tVector2 + tVector3};
+    const Hexahedron tHex{.mP000 = tCornerPoint,
+                          .mP100 = tCornerPoint + tVector1,
+                          .mP110 = tCornerPoint + tVector1 + tVector2,
+                          .mP010 = tCornerPoint + tVector2,
+                          .mP001 = tCornerPoint + tVector3,
+                          .mP101 = tCornerPoint + tVector1 + tVector3,
+                          .mP111 = tCornerPoint + tVector1 + tVector2 + tVector3,
+                          .mP011 = tCornerPoint + tVector2 + tVector3};
     const auto tResult = tHex.centroid();
     const common::Coordinate tGold{
-        (tHex.p000 + tHex.p100 + tHex.p110 + tHex.p010 + tHex.p001 + tHex.p101 + tHex.p111 + tHex.p011) / 8};
+        (tHex.mP000 + tHex.mP100 + tHex.mP110 + tHex.mP010 + tHex.mP001 + tHex.mP101 + tHex.mP111 + tHex.mP011) / 8};
 
     common::test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Parallelepiped Centroid"));
 }

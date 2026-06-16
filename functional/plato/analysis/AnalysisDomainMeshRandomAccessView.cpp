@@ -1,9 +1,13 @@
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 
-#include <numeric>
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <optional>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
+#include "plato/analysis/SharedValueProxy.hpp"
 
 namespace plato::analysis
 {
@@ -15,14 +19,14 @@ struct ScalarFieldValueFromMesh
 };
 
 template <>
-struct ScalarFieldValueFromMesh<AnalysisDomainMesh&>
+struct ScalarFieldValueFromMesh<AnalysisDomainMesh>
 {
     using type = AnalysisDomainMesh::ScalarFieldVector::value_type;
     using iterator = AnalysisDomainMesh::ScalarFieldVector::iterator;
 };
 
 template <>
-struct ScalarFieldValueFromMesh<const AnalysisDomainMesh&>
+struct ScalarFieldValueFromMesh<const AnalysisDomainMesh>
 {
     using type = const AnalysisDomainMesh::ScalarFieldVector::value_type;
     using iterator = AnalysisDomainMesh::ScalarFieldVector::const_iterator;
@@ -34,11 +38,10 @@ using SharedProxyType = SharedValueProxy<ScalarFieldValue,
                                          typename AnalysisDomainMeshMutableRandomAccessView::AssignDensity>;
 
 template <typename AnalysisDomainMeshVectorType>
-auto vector_element_with_global_index(AnalysisDomainMeshVectorType&& aScalarField,
+auto vector_element_with_global_index(AnalysisDomainMeshVectorType& aScalarField,
                                       const ScalarFieldValue::IndexType aIndex)
 {
-    assert(std::is_sorted(aScalarField.begin(), aScalarField.end(),
-                          [](const auto& aEntryLeft, const auto& aEntryRight)
+    assert(std::is_sorted(aScalarField.begin(), aScalarField.end(), [](const auto& aEntryLeft, const auto& aEntryRight)
                           { return aEntryLeft.mGlobalMeshEntityID < aEntryRight.mGlobalMeshEntityID; }));
 
     const auto tEntryToFind = ScalarFieldValue{aIndex, 0, 0.0};
@@ -59,7 +62,7 @@ auto analysis_domain_mesh_size(const AnalysisDomainMesh& aAnalysisDomainMesh) ->
 }
 
 template <typename AnalysisDomainMeshType>
-auto mesh_element_with_global_index(AnalysisDomainMeshType&& aAnalysisDomainMesh,
+auto mesh_element_with_global_index(AnalysisDomainMeshType& aAnalysisDomainMesh,
                                     const ScalarFieldValue::IndexType aIndex)
 {
     auto tSharedValueProxy = SharedProxyType<AnalysisDomainMeshType>{};
@@ -80,10 +83,10 @@ auto AnalysisDomainMeshRandomAccessView::size() const -> std::size_t
     return analysis_domain_mesh_size(mAnalysisDomainMesh.get());
 }
 
-auto AnalysisDomainMeshRandomAccessView::operator[](const ScalarFieldValue::IndexType aIndex) const
+auto AnalysisDomainMeshRandomAccessView::operator[](const ScalarFieldValue::IndexType aGlobalID) const
     -> std::optional<ScalarFieldValue>
 {
-    const auto tEntries = mesh_element_with_global_index(mAnalysisDomainMesh.get(), aIndex);
+    const auto tEntries = mesh_element_with_global_index(mAnalysisDomainMesh.get(), aGlobalID);
     if (tEntries.mIterators.empty())
     {
         return std::nullopt;
@@ -96,10 +99,10 @@ auto AnalysisDomainMeshMutableRandomAccessView::size() const -> std::size_t
     return analysis_domain_mesh_size(mAnalysisDomainMesh.get());
 }
 
-auto AnalysisDomainMeshMutableRandomAccessView::operator[](const ScalarFieldValue::IndexType aIndex) const
+auto AnalysisDomainMeshMutableRandomAccessView::operator[](const ScalarFieldValue::IndexType aGlobalID) const
     -> SharedValueProxy<ScalarFieldValue, AnalysisDomainMesh::ScalarFieldVector::iterator, AssignDensity>
 {
-    return mesh_element_with_global_index(mAnalysisDomainMesh.get(), aIndex);
+    return mesh_element_with_global_index(mAnalysisDomainMesh.get(), aGlobalID);
 }
 
 }  // namespace plato::analysis

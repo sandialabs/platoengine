@@ -1,10 +1,12 @@
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 
 #include <boost/core/null_deleter.hpp>
+#include <boost/smart_ptr/shared_ptr.hpp>
 #include <iostream>
 
 #include "plato/third_party_integration/boost_log/ComponentAttributes.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
+#include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
 #include "plato/third_party_integration/boost_log/Severity.hpp"
 #include "plato/third_party_integration/boost_log/SinkWithAttributeFormattersAndFilters.hpp"

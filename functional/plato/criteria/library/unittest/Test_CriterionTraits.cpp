@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "plato/criteria/library/CriterionTraits.hpp"
 
 namespace plato::criteria::library::unittest
@@ -59,6 +61,17 @@ TEST(CriterionRegistration, NumberOfTraits)
     constexpr auto tExpectedNumberOfTraits = static_cast<std::size_t>(Parallelization::kNumberOfEnumerates) *
                                              static_cast<std::size_t>(FunctionDimension::kNumberOfEnumerates);
     EXPECT_EQ(tExpectedNumberOfTraits, number_of_traits());
+}
+
+TEST(CriterionTraits, HasTrait)
+{
+    constexpr auto tTraits =
+        CriterionTraits{.mParallelization = Parallelization::kParallel, .mDimension = FunctionDimension::kScalar};
+    EXPECT_TRUE(has_trait(tTraits, Parallelization::kParallel));
+    EXPECT_TRUE(has_trait(tTraits, FunctionDimension::kScalar));
+
+    EXPECT_FALSE(has_trait(tTraits, Parallelization::kSerial));
+    EXPECT_FALSE(has_trait(tTraits, FunctionDimension::kVector));
 }
 
 }  // namespace plato::criteria::library::unittest

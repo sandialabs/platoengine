@@ -1,11 +1,18 @@
 #include <gtest/gtest.h>
 
+#include <array>
 #include <filesystem>
+#include <functional>
 #include <stk_mesh/base/MetaData.hpp>
+#include <stk_mesh/base/Types.hpp>
+#include <string_view>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
@@ -32,16 +39,16 @@ void create_single_element_mesh_test_centroid(const CommandGenerator& aCommandGe
     ASSERT_TRUE(tMesh);
 
     const auto tElements = element_vector(*tMesh);
-    ASSERT_EQ(tElements.size(), 1u);
+    ASSERT_EQ(tElements.size(), 1U);
 
     const common::Coordinate tElemCentroid = element_centroid(tElements.at(0), *tMesh);
     common::test_utilities::test_double_equality_of_components(tElemCentroid, aGold,
                                                                TEST_CONTEXT("Single element centroid"));
 }
 
-void read_mesh_and_test_volume(const std::string_view tMeshFileName, const double aGold)
+void read_mesh_and_test_volume(const std::string_view aMeshFileName, const double aGold)
 {
-    const auto tFilePath = plato::utilities::data_file_path(tMeshFileName);
+    const auto tFilePath = plato::utilities::data_file_path(aMeshFileName);
     ASSERT_TRUE(tFilePath);
     const double tResult = mesh_volume(*read_mesh_bulk_data(tFilePath.value()));
     EXPECT_DOUBLE_EQ(tResult, aGold);
@@ -147,8 +154,9 @@ TEST(STKVolumeUtilities, HexVolumeAndCoordinates)
 
 TEST(STKVolumeUtilities, TetVolumeAndCoordinates)
 {
+    constexpr auto tTetVolumeFactor = 6.0;
     test_first_element_volume_and_coordinates(
-        CommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}, CommandElementType::Tet}, 1.0 / 6.0,
+        CommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}, CommandElementType::kTet}, 1.0 / tTetVolumeFactor,
         {{0, 0, 0}, {1, 1, 0}, {0, 1, 0}, {1, 1, 1}});
 }
 
@@ -159,16 +167,16 @@ TEST(STKVolumeUtilities, MeshVolume)
         create_mesh_test_volume(tCommandGenerator);
     }
     {
-        const CommandGenerator tCommandGenerator{{3, 4, 5}, {}, {3, 4, 5}, CommandElementType::Tet};
+        const CommandGenerator tCommandGenerator{{3, 4, 5}, {}, {3, 4, 5}, CommandElementType::kTet};
         create_mesh_test_volume(tCommandGenerator);
     }
     {
-        const CommandGenerator tCommandGenerator{{1, 1, 1}, {}, {}, CommandElementType::Tet};
+        const CommandGenerator tCommandGenerator{{1, 1, 1}, {}, {}, CommandElementType::kTet};
         create_mesh_test_volume(tCommandGenerator);
     }
 
     {
-        const CommandGenerator tCommandGenerator{{20, 2, 3}, {}, {20, 2, 3}, CommandElementType::Tet};
+        const CommandGenerator tCommandGenerator{{20, 2, 3}, {}, {20, 2, 3}, CommandElementType::kTet};
         create_mesh_test_volume(tCommandGenerator);
     }
 }
@@ -189,57 +197,70 @@ TEST(STKVolumeUtilities, ExternalMeshVolume_Box_3x4x7_tet)
 
 TEST(STKVolumeUtilities, ExternalMeshVolume_Box_2x4x10_hex_and_tet)
 {
-    read_mesh_and_test_volume("box_2x4x10_hex_and_tet.cdf", 2 * 4 * 10);
+    constexpr auto tExpectedVolume = 2.0 * 4.0 * 10.0;
+    read_mesh_and_test_volume("box_2x4x10_hex_and_tet.cdf", tExpectedVolume);
 }
 
 TEST(STKVolumeUtilities, ExternalMeshVolume_Rectangle_3x4_quad)
 {
-    read_mesh_and_test_volume("rectangle_3x4_quad4.cdf", 3 * 4);
+    constexpr auto tExpectedVolume = 3.0 * 4.0;
+    read_mesh_and_test_volume("rectangle_3x4_quad4.cdf", tExpectedVolume);
 }
 
 TEST(STKVolumeUtilities, ExternalMeshVolume_Rectangle_3x4_shell)
 {
-    read_mesh_and_test_volume("rectangle_3x4_shell4.cdf", 3 * 4);
+    constexpr auto tExpectedVolume = 3.0 * 4.0;
+    read_mesh_and_test_volume("rectangle_3x4_shell4.cdf", tExpectedVolume);
 }
 
 TEST(STKVolumeUtilities, ExternalMeshVolume_Rectangle_3x4_tri)
 {
-    read_mesh_and_test_volume("rectangle_3x4_tri3.cdf", 3 * 4);
+    constexpr auto tExpectedVolume = 3.0 * 4.0;
+    read_mesh_and_test_volume("rectangle_3x4_tri3.cdf", tExpectedVolume);
 }
 
 TEST(STKVolumeUtilities, ExternalMeshVolume_Rectangle_4x10_tri_and_shell)
 {
-    read_mesh_and_test_volume("rectangle_4x10_tri_and_shell.cdf", 4 * 10);
+    constexpr auto tExpectedVolume = 4.0 * 10.0;
+    read_mesh_and_test_volume("rectangle_4x10_tri_and_shell.cdf", tExpectedVolume);
 }
 
 TEST(STKVolumeUtilities, ElementCentroid_Hex)
 {
     // unit hex
-    create_single_element_mesh_test_centroid(CommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}},
-                                             common::Coordinate{0.5, 0.5, 0.5});
-
+    {
+        constexpr auto tExpectedCentroid = common::Coordinate{0.5, 0.5, 0.5};
+        create_single_element_mesh_test_centroid(CommandGenerator{{1, 1, 1}, {0, 0, 0}, {1, 1, 1}}, tExpectedCentroid);
+    }
     // scaled hex
-    constexpr common::Coordinate tLower{-1.0, -2.0, -4.0};
-    constexpr common::Coordinate tUpper{6.0, 8.0, 2.0};
-    constexpr common::Coordinate tCentroid = (tLower + tUpper) / 2.0;
-    create_single_element_mesh_test_centroid(CommandGenerator{{1, 1, 1}, tLower, tUpper}, tCentroid);
+    {
+        constexpr common::Coordinate tLower{-1.0, -2.0, -4.0};
+        constexpr common::Coordinate tUpper{6.0, 8.0, 2.0};
+        constexpr common::Coordinate tCentroid = (tLower + tUpper) / 2.0;
+        create_single_element_mesh_test_centroid(CommandGenerator{{1, 1, 1}, tLower, tUpper}, tCentroid);
+    }
 }
 
 TEST(STKVolumeUtilities, ElementCentroids)
 {
-    CommandGenerator tCommandGenerator{{4, 1, 1}, {0, 0, 0}, {4, 1, 1}};
+    const CommandGenerator tCommandGenerator{{4, 1, 1}, {0, 0, 0}, {4, 1, 1}};
 
     const auto tBulk = generate_bulk_data(tCommandGenerator);
     const auto tCentroids = element_centroids(*tBulk);
-    ASSERT_EQ(tCentroids.size(), 4u);
+    ASSERT_EQ(tCentroids.size(), 4U);
 
-    common::test_utilities::test_double_equality_of_components(tCentroids[0], {0.5, 0.5, 0.5},
+    constexpr auto tExpectedCentroid0 = common::Coordinate{0.5, 0.5, 0.5};
+    common::test_utilities::test_double_equality_of_components(tCentroids[0], tExpectedCentroid0,
                                                                TEST_CONTEXT("Element centroids 0"));
-    common::test_utilities::test_double_equality_of_components(tCentroids[1], {1.5, 0.5, 0.5},
+
+    constexpr auto tExpectedCentroid1 = common::Coordinate{1.5, 0.5, 0.5};
+    common::test_utilities::test_double_equality_of_components(tCentroids[1], tExpectedCentroid1,
                                                                TEST_CONTEXT("Element centroids 1"));
-    common::test_utilities::test_double_equality_of_components(tCentroids[2], {2.5, 0.5, 0.5},
+    constexpr auto tExpectedCentroid2 = common::Coordinate{2.5, 0.5, 0.5};
+    common::test_utilities::test_double_equality_of_components(tCentroids[2], tExpectedCentroid2,
                                                                TEST_CONTEXT("Element centroids 2"));
-    common::test_utilities::test_double_equality_of_components(tCentroids[3], {3.5, 0.5, 0.5},
+    constexpr auto tExpectedCentroid3 = common::Coordinate{3.5, 0.5, 0.5};
+    common::test_utilities::test_double_equality_of_components(tCentroids[3], tExpectedCentroid3,
                                                                TEST_CONTEXT("Element centroids 3"));
 }
 
@@ -247,7 +268,7 @@ TEST_F(TwoDThreeBlockMesh, ElementCentroidsOnParts)
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
     const auto& tParts = tBulkData->mesh_meta_data().get_mesh_parts();
-    constexpr auto tExpectedNumberOfParts = 3u;
+    constexpr auto tExpectedNumberOfParts = 3U;
     ASSERT_EQ(tParts.size(), tExpectedNumberOfParts);
 
     const auto tAllElementCentroids = element_centroids(*tBulkData);
@@ -305,7 +326,7 @@ TEST(STKVolumeUtilities, MaxElementEdgeLength_BoxWithTets)
 {
     const common::Coordinate tBoxLengths{10, 1, 1};
     const CommandGenerator tCommandGenerator{
-        {1, 1, 1}, {0, 0, 0}, {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z}, CommandElementType::Tet};
+        {1, 1, 1}, {0, 0, 0}, {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z}, CommandElementType::kTet};
     const double tGoldLength = common::magnitude(tBoxLengths);
     test_first_element_max_edge_length(tCommandGenerator, tGoldLength,
                                        TEST_CONTEXT("Test first element max edge length"));
@@ -375,7 +396,7 @@ TEST(STKVolumeUtilities, AverageEdgeLength_BoxWithTets)
     const CommandGenerator tCommandGenerator{{tNumElementsPerDim, tNumElementsPerDim, tNumElementsPerDim},
                                              {0, 0, 0},
                                              {tBoxLengths.x, tBoxLengths.y, tBoxLengths.z},
-                                             CommandElementType::Tet};
+                                             CommandElementType::kTet};
     const double tGoldLength = common::magnitude(tBoxLengths / tNumElementsPerDim);
 
     test_average_element_max_edge_length(tCommandGenerator, tGoldLength);
@@ -447,7 +468,7 @@ TEST(STKVolumeUtilities, ElementVolumeNodalSensitivities_SingleTet)
     const CommandGenerator tCommandGenerator{.mElements = {.mX = 1, .mY = 1, .mZ = 1},
                                              .mLowerBounds = {.x = 0, .y = 0, .z = 0},
                                              .mUpperBounds = {.x = tBase, .y = tWidth, .z = tHeight},
-                                             .mType = CommandElementType::Tet};
+                                             .mType = CommandElementType::kTet};
 
     const auto tBulkData = generate_bulk_data(tCommandGenerator);
 
@@ -476,7 +497,7 @@ TEST(STKVolumeUtilities, VolumeNodalSensitivities_3HexMesh)
         .mElements = {.mX = tNumHexesInXDirection, .mY = 1, .mZ = 1},
         .mLowerBounds = {.x = 0, .y = 0, .z = 0},
         .mUpperBounds = {.x = tNumHexesInXDirection * tBase, .y = tWidth, .z = tHeight},
-        .mType = CommandElementType::Hex};
+        .mType = CommandElementType::kHex};
 
     const auto tBulkData = generate_bulk_data(tCommandGenerator);
 

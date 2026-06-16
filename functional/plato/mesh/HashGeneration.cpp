@@ -1,9 +1,11 @@
 #include "plato/mesh/HashGeneration.hpp"
 
+#include <cstddef>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/third_party_integration/common/Vector3Hash.hpp"
+#include "plato/third_party_integration/common/Vector3Hash.hpp"  // NOLINT(misc-include-cleaner)
 #include "plato/utilities/HashUtilities.hpp"
 
 namespace plato::mesh

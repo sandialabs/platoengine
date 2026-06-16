@@ -1,8 +1,9 @@
 #include "plato/process_manager/extension/CombinationGenerator.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <ranges>
+#include <iterator>
 #include <vector>
 
 #include "plato/utilities/Enumerate.hpp"

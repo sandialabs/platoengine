@@ -66,25 +66,20 @@ template <typename PointType>
     const third_party_integration::common::Coordinate& aTestPoint,
     const std::vector<third_party_integration::common::Coordinate>& aSearchPoints) -> double;
 
-namespace
-{
-
-/// @brief This is a operator that allows for the composition of multiple planes and computing the mirroring that
-/// occurs from a list of planes
 template <typename PointType>
 using ReflectionFunction = utilities::NamedType<std::function<std::vector<PointType>(const std::vector<PointType>&)>,
                                                 struct ReflectionFunctionTag>;
 
+/// @brief This is an operator that allows for the composition of multiple planes and computing the mirroring that
+/// occurs from a list of planes
 template <typename PointType>
 [[nodiscard]] auto operator|(ReflectionFunction<PointType> aInner, ReflectionFunction<PointType> aOuter)
     -> ReflectionFunction<PointType>
 {
     return ReflectionFunction<PointType>{
-        [mOuter = std::move(aOuter), mInner = std::move(aInner)](const std::vector<PointType>& aX)
-        { return mOuter.mValue(mInner.mValue(aX)); }};
+        [tOuter = std::move(aOuter), tInner = std::move(aInner)](const std::vector<PointType>& aPoints)
+        { return tOuter.mValue(tInner.mValue(aPoints)); }};
 }
-
-}  // namespace
 
 template <typename PointType>
 auto reflect_point_in_single_plane_impl(std::vector<PointType> aPoints, const Plane& aPlane) -> std::vector<PointType>
@@ -127,9 +122,8 @@ auto reflect_points_in_planes(std::vector<PointType> aPoints, const Planes&... a
 {
     const auto tSingleReflectionLambda = [](const Plane& aPlane)
     {
-        return ReflectionFunction<PointType>(
-            [=](const std::vector<PointType>& aVector)
-            { return detail::reflect_point_in_single_plane<PointType>(aVector, aPlane); });
+        return ReflectionFunction<PointType>([=](const std::vector<PointType>& aVector)
+                                             { return reflect_point_in_single_plane<PointType>(aVector, aPlane); });
     };
     const auto tComposed = (tSingleReflectionLambda(aPlanes) | ...);
     return tComposed.mValue(std::move(aPoints));

@@ -20,7 +20,7 @@ namespace plato::utilities
 template <typename Enum>
 class EnumTable
 {
-    static_assert(std::is_enum<Enum>::value, "EnumTable must be instantiated with an enum type.");
+    static_assert(std::is_enum_v<Enum>, "EnumTable must be instantiated with an enum type.");
 
     using MapType = boost::bimap<boost::bimaps::unordered_set_of<Enum>, boost::bimaps::unordered_set_of<std::string>>;
     using ValueType = typename MapType::value_type;
@@ -38,7 +38,7 @@ class EnumTable
 
     /// @brief Converts an enumerate to the associated string.
     /// @return `std::nullopt` if @a aEnum does not match any enumerate given on construction.
-    [[nodiscard]] auto toString(const Enum aEnum) const -> std::optional<std::string>;
+    [[nodiscard]] auto toString(Enum aEnum) const -> std::optional<std::string>;
 
     [[nodiscard]] auto begin() const -> typename MapType::left_map::const_iterator;
     [[nodiscard]] auto end() const -> typename MapType::left_map::const_iterator;
@@ -71,10 +71,8 @@ auto EnumTable<Enum>::toEnum(const std::string& aString) const -> std::optional<
     {
         return tIter->second;
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 template <typename Enum>
@@ -85,10 +83,8 @@ auto EnumTable<Enum>::toString(const Enum aEnum) const -> std::optional<std::str
     {
         return tIter->second;
     }
-    else
-    {
-        return std::nullopt;
-    }
+
+    return std::nullopt;
 }
 
 template <typename Enum>
@@ -109,7 +105,7 @@ auto all_strings_from_table(const EnumTable<Enum>& aEnumTable) -> std::vector<st
     auto tAllEntries = std::vector<std::string>{};
     tAllEntries.reserve(std::distance(aEnumTable.begin(), aEnumTable.end()));
     std::transform(aEnumTable.begin(), aEnumTable.end(), std::back_inserter(tAllEntries),
-                   [](const auto& tTableEntry) { return tTableEntry.second; });
+                   [](const auto& aTableEntry) { return aTableEntry.second; });
     return tAllEntries;
 }
 }  // namespace plato::utilities

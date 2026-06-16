@@ -1,5 +1,5 @@
-#ifndef PLATO_CRITERIA_EXTENSION_SHAREDLIBRARYVECTORCRITERION
-#define PLATO_CRITERIA_EXTENSION_SHAREDLIBRARYVECTORCRITERION
+#ifndef PLATO_CRITERIA_LIBRARY_SHAREDLIBRARYVECTORCRITERION
+#define PLATO_CRITERIA_LIBRARY_SHAREDLIBRARYVECTORCRITERION
 
 #include <boost/mpi/communicator.hpp>
 #include <memory>
@@ -15,7 +15,7 @@ namespace plato::services
 struct AppConfigurationWithDirectory;
 }
 
-namespace plato::criteria::extension
+namespace plato::criteria::library
 {
 using VectorCriterionSharedLibraryObject =
     services::SharedLibraryObject<std::unique_ptr<library::VectorCriterionInterface>>;
@@ -32,7 +32,7 @@ class SharedLibraryVectorCriterion
     SharedLibraryVectorCriterion(const services::AppConfigurationWithDirectory& aAppConfiguration,
                                  const services::CriterionConfiguration& aCriterionConfiguration,
                                  const library::CriterionInput& aCriterionInput,
-                                 const boost::mpi::communicator& aComm);
+                                 const boost::mpi::communicator& aCommunicator);
 
     /// @brief Computes the value of the criterion evaluated at the argument @a aAnalysisDomainMesh.
     [[nodiscard]] auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
@@ -60,6 +60,6 @@ class SharedLibraryVectorCriterion
 [[nodiscard]] auto make_shared_library_vector_function(const SharedLibraryVectorCriterion& aSharedLibCriterion)
     -> library::VectorCriterionFunction;
 
-}  // namespace plato::criteria::extension
+}  // namespace plato::criteria::library
 
 #endif

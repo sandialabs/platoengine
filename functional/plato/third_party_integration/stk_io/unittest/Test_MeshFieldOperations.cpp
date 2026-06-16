@@ -1,10 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <functional>
+#include <ranges>
+#include <vector>
+
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/MeshFieldOperations.hpp"
+#include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/utilities/Enumerate.hpp"
+#include "stk_topology/topology.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
@@ -44,7 +51,7 @@ TEST(MeshFieldOperations, NodalAverageTetMesh)
     constexpr auto tMeshGenerator = CommandGenerator{.mElements = {1, 1, 1},
                                                      .mLowerBounds = {0.0, 0.0, 0.0},
                                                      .mUpperBounds = {1.0, 1.0, 1.0},
-                                                     .mType = CommandElementType::Tet};
+                                                     .mType = CommandElementType::kTet};
 
     const auto tMesh = generate_bulk_data(tMeshGenerator);
     ASSERT_TRUE(tMesh);
@@ -62,7 +69,7 @@ TEST(MeshFieldOperations, NodalAverageHexMesh)
     constexpr auto tMeshGenerator = CommandGenerator{.mElements = {1, 2, 1},
                                                      .mLowerBounds = {0.0, 0.0, 0.0},
                                                      .mUpperBounds = {2.0, 2.0, 2.0},
-                                                     .mType = CommandElementType::Hex};
+                                                     .mType = CommandElementType::kHex};
 
     const auto tMesh = generate_bulk_data(tMeshGenerator);
     ASSERT_TRUE(tMesh);
@@ -81,8 +88,12 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverage)
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
 
     const auto tNodalCoordinates = nodal_coordinates(*tBulkData);
-    auto tXCoordinate =
-        tNodalCoordinates | std::views::transform([](const auto& aCoordinate) { return 3.0 * aCoordinate.x; });
+    auto tXCoordinate = tNodalCoordinates | std::views::transform(
+                                                [](const auto& aCoordinate)
+                                                {
+                                                    constexpr auto tArbitraryMultiplier = 3.0;
+                                                    return tArbitraryMultiplier * aCoordinate.x;
+                                                });
 
     const auto tNodalAverage = element_averaged_nodal_values(tXCoordinate, *tBulkData);
     // Computed by hand based on connectivity
@@ -96,7 +107,7 @@ TEST(MeshFieldOperations, NodalAverageElementProjectionHexMesh)
     constexpr auto tMeshGenerator = CommandGenerator{.mElements = {1, 2, 1},
                                                      .mLowerBounds = {0.0, 0.0, 0.0},
                                                      .mUpperBounds = {2.0, 2.0, 2.0},
-                                                     .mType = CommandElementType::Hex};
+                                                     .mType = CommandElementType::kHex};
 
     const auto tMesh = generate_bulk_data(tMeshGenerator);
     ASSERT_TRUE(tMesh);
@@ -123,7 +134,12 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverageElementProjection)
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
 
     auto tIota = std::views::iota(1U, mExpectedNumberOfElements + 1U) |
-                 std::views::transform([](const auto aIndex) { return 3.0 * static_cast<double>(aIndex); });
+                 std::views::transform(
+                     [](const auto aIndex)
+                     {
+                         constexpr auto tArbitraryMultiplier = 3.0;
+                         return tArbitraryMultiplier * static_cast<double>(aIndex);
+                     });
     const auto tElementValues = std::vector(tIota.begin(), tIota.end());
 
     const auto tNodalProjection = nodal_average_element_projection(tElementValues, *tBulkData);
@@ -135,7 +151,7 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverageElementProjection)
 TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverageElementProjectionOnPart)
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
-    const auto tPart = tBulkData->mesh_meta_data().get_mesh_parts().front();
+    auto* const tPart = tBulkData->mesh_meta_data().get_mesh_parts().front();
     const auto tPartReferenceVector = PartReferenceVector{{std::cref(*tPart)}};
     const auto tElementValues = std::vector{3.0, 6.0, 9.0, 12.0};
 
@@ -150,7 +166,7 @@ TEST_F(MeshFieldOperationsTwoDThreeBlock, NodalAverageElementProjectionOnPart)
 TEST_F(MeshFieldOperationsTwoDThreeBlock, ElementAveragedNodalValues)
 {
     const auto tBulkData = read_mesh_bulk_data(mMeshFilePath);
-    const auto tPart = tBulkData->mesh_meta_data().get_mesh_parts().front();
+    auto* const tPart = tBulkData->mesh_meta_data().get_mesh_parts().front();
     const auto tPartReferenceVector = PartReferenceVector{{std::cref(*tPart)}};
     const auto tNodalValues = std::vector{3.0, 6.0, 9.0, 12.0, 15.0};
 

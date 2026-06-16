@@ -17,9 +17,10 @@ namespace plato::third_party_integration::rol::unittest
 [[nodiscard]] inline auto make_himmelblau_dynamic_vector_function(const test_utilities::Himmelblau& aHimmelblau)
 {
     return core::make_function_with_first_derivative(
-        [himmelblau = aHimmelblau](const linear_algebra::DynamicVector<double>& x) { return himmelblau.f(x[0], x[1]); },
-        [himmelblau = aHimmelblau](const linear_algebra::DynamicVector<double>& x)
-        { return two_d_vector_to_dynamic_vector(himmelblau.df(x[0], x[1])); });
+        [tHimmelblau = aHimmelblau](const linear_algebra::DynamicVector<double>& aVector)
+        { return tHimmelblau.f(aVector[0], aVector[1]); },
+        [tHimmelblau = aHimmelblau](const linear_algebra::DynamicVector<double>& aVector)
+        { return two_d_vector_to_dynamic_vector(tHimmelblau.df(aVector[0], aVector[1])); });
 }
 
 }  // namespace plato::third_party_integration::rol::unittest

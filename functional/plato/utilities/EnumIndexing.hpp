@@ -38,7 +38,7 @@ template <typename... Enums>
 namespace detail
 {
 template <typename Tuple, std::size_t... kIndices>
-[[nodiscard]] constexpr auto dimension_stride_impl(std::index_sequence<kIndices...>) -> std::size_t
+[[nodiscard]] constexpr auto dimension_stride_impl(std::index_sequence<kIndices...> /*unused*/) -> std::size_t
 {
     return (static_cast<std::size_t>(std::tuple_element_t<kIndices, Tuple>::kNumberOfEnumerates) * ...);
 }
@@ -57,7 +57,7 @@ template <std::size_t kIndex, typename... Enums>
 }
 
 template <typename EnumTuple, std::size_t... kIndices>
-[[nodiscard]] constexpr auto enum_index_impl(const EnumTuple& aEnumTuple, std::index_sequence<kIndices...>)
+[[nodiscard]] constexpr auto enum_index_impl(const EnumTuple& aEnumTuple, std::index_sequence<kIndices...> /*unused*/)
 {
     return ((static_cast<std::size_t>(std::get<kIndices>(aEnumTuple)) *
              dimension_stride<kIndices, std::tuple_element_t<kIndices, EnumTuple>...>()) +
@@ -84,7 +84,7 @@ template <typename AllEnumsTuple, std::size_t kDimension>
 }
 
 template <typename EnumTuple, std::size_t... kIndices>
-constexpr auto number_of_enumerates_impl(const std::index_sequence<kIndices...>)
+constexpr auto number_of_enumerates_impl(const std::index_sequence<kIndices...> /*unused*/)
 {
     return (static_cast<std::size_t>(std::tuple_element_t<kIndices, EnumTuple>::kNumberOfEnumerates) * ...);
 }

@@ -1,12 +1,16 @@
 #include <gtest/gtest.h>
 
-#include <boost/math/constants/constants.hpp>
 #include <cmath>
+#include <numbers>
+#include <vector>
 
 #include "plato/filter/extension/kernel_filters/Plane.hpp"
 #include "plato/filter/extension/kernel_filters/ReflectionUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/Wedge.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::filter::extension::kernel_filters::unittest
@@ -20,7 +24,6 @@ const auto kPositiveXPlane = Plane{{0, 0, 0}, {1, 0, 0}};
 const auto kPositiveYPlane = Plane{{0, 0, 0}, {0, 1, 0}};
 
 const auto kNegativeZPlane = Plane{{0, 0, 0}, {0, 0, -1}};
-const auto kSqrtTwoOverTwo = std::sqrt(2.0) / 2.0;
 const auto kPointWithID = third_party_integration::stk_search::SearchPointWithIdentifier{
     third_party_integration::stk_search::SearchPoint{1, 2, 3}, third_party_integration::stk_search::Identifier{2, 3}};
 const auto kThirtyDegrees = 30.0 * std::numbers::pi / 180.0;

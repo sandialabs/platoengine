@@ -1,5 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <ROL_StdVector.hpp>
+#include <vector>
+
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
 
 namespace plato::third_party_integration::rol::unittest
@@ -29,7 +33,8 @@ TEST(ROLUtilities, MakeROLVector)
 TEST(ROLUtilities, AssignVector)
 {
     const auto tVector = std::vector{1.0, 2.0, 3.0};
-    auto tROLStdVector = ROL::StdVector<double>{-1.0, -2.0};
+    constexpr auto tInitialSize = 2U;
+    auto tROLStdVector = ROL::StdVector<double>(tInitialSize, 0.0);
     assign_vector(tROLStdVector, tVector);
     EXPECT_EQ(*tROLStdVector.getVector(), tVector);
 }
@@ -45,7 +50,7 @@ TEST(ROLUtilities, GeneratePerturbation)
 TEST(ROLUtilities, MakeUniform)
 {
     constexpr int tDimensions = 3;
-    auto tROLStdVector = ROL::StdVector<double>{-1.0, 2.0, -3};
+    auto tROLStdVector = ROL::StdVector<double>(tDimensions, 0.0);
     constexpr double tValue = 42;
     make_uniform(tROLStdVector, tValue);
     EXPECT_EQ(*tROLStdVector.getVector(), std::vector(tDimensions, tValue));

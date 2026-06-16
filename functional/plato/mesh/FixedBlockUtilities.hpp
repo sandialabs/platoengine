@@ -17,8 +17,8 @@ namespace plato::mesh
 {
 
 template <typename T>
-concept HasBoostOptionalFixedBlocksMember = requires(T a) {
-    { a.fixed_blocks } -> std::same_as<boost::optional<input_parser::BlockList>&>;
+concept HasBoostOptionalFixedBlocksMember = requires(T aInput) {
+    { aInput.fixed_blocks } -> std::same_as<boost::optional<input_parser::BlockList>&>;
 };
 
 /// @brief Converts the vector of fixed block names in @a aInput to a set.

@@ -27,10 +27,10 @@ enum struct MeshFieldType : std::uint8_t
 /// aAnalysisDomainMesh and add the fields to output file defined by handle @a aOutputFileHandle.
 /// The parameter @a aFieldOnElements is used to determine whether the field is an element or nodal field.
 void update_output_field(stk::io::StkMeshIoBroker& aIOBroker,
-                         const std::size_t aOutputFileHandle,
-                         const MeshFieldType aFieldType,
-                         const std::string_view aFieldName,
+                         std::size_t aOutputFileHandle,
+                         MeshFieldType aFieldType,
+                         std::string_view aFieldName,
                          const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                         const double aFixedValue);
+                         double aFixedValue);
 }  // namespace plato::mesh
 #endif

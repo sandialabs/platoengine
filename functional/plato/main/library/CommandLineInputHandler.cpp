@@ -1,10 +1,14 @@
 #include "plato/main/library/CommandLineInputHandler.hpp"
 
 #include <boost/mpi/communicator.hpp>
+#include <exception>
 #include <filesystem>
 #include <iostream>
+#include <string>
 #include <string_view>
+#include <vector>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/input_parser/HelpDocumentationRegistration.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/main/library/Executor.hpp"

@@ -1,18 +1,30 @@
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
 
+#include <Teuchos_ArrayViewDecl.hpp>
+#include <Teuchos_DefaultMpiComm.hpp>
+#include <Teuchos_RCP.hpp>
+#include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <cstddef>
+#include <memory>
+#include <utility>
 #include <vector>
 
 #include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
+#include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
 {
 LinearMaskBuilder::LinearMaskBuilder(const SourceMesh& aSourceMesh,
                                      const TargetMesh& aTargetMesh,
                                      const KernelFilterFunctions& aFilterType,
-                                     const boost::mpi::communicator& aCommunicator)
-    : mCommunicator(aCommunicator),
+                                     boost::mpi::communicator aCommunicator)
+    : mCommunicator(std::move(aCommunicator)),
       mGlobalRowCenterCoordinates(detail::center_coordinates(aTargetMesh.mValue, aFilterType.mFilterCentering)),
       mGlobalColumnCenterCoordinates(mesh::EntityRetrieval{aSourceMesh.mValue}.designDomainNodalCoordinates()),
       mMaximumConnectivityEstimate(
@@ -24,28 +36,30 @@ LinearMaskBuilder::LinearMaskBuilder(const SourceMesh& aSourceMesh,
 
 LinearMaskBuilder::LinearMaskBuilder(const SourceColumnVector& aNodalCoordinates,
                                      TargetRowVector aCenters,
-                                     const KernelFilterFunctions& aFilterType,
+                                     KernelFilterFunctions aFilterType,
                                      const int aMaximumConnectivityEstimate,
-                                     const boost::mpi::communicator& aCommunicator)
-    : mCommunicator(aCommunicator),
+                                     boost::mpi::communicator aCommunicator)
+    : mCommunicator(std::move(aCommunicator)),
       mGlobalRowCenterCoordinates(std::move(aCenters.mValue)),
       mGlobalColumnCenterCoordinates(aNodalCoordinates.mValue),
       mMaximumConnectivityEstimate(aMaximumConnectivityEstimate),
-      mFilterType(aFilterType)
+      mFilterType(std::move(aFilterType))
 {
     generateDistanceMap();
 }
 
 auto LinearMaskBuilder::mask() const -> const third_party_integration::tpetra::TpetraCRSMatrix& { return *mLinearMask; }
 
-void LinearMaskBuilder::create_linear_mask(const RowMap& aRowMap)
+void LinearMaskBuilder::createLinearMask(const RowMap& aRowMap)
 {
     namespace tpi = third_party_integration;
-    const auto tCommunicator = Teuchos::rcp(new Teuchos::MpiComm<int>(mCommunicator));
-    auto tCrsRowMap = Teuchos::rcp(
-        new tpi::tpetra::TpetraMap(mGlobalRowCenterCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator));
-    auto tCrsDomainMap = Teuchos::rcp(
-        new tpi::tpetra::TpetraMap(mGlobalColumnCenterCoordinates.size(), tpi::tpetra::kIndexBase, tCommunicator));
+    const auto tCommunicator = Teuchos::rcp(std::make_unique<Teuchos::MpiComm<int>>(mCommunicator).release());
+    auto tCrsRowMap = Teuchos::rcp(std::make_unique<tpi::tpetra::TpetraMap>(mGlobalRowCenterCoordinates.size(),
+                                                                            tpi::tpetra::kIndexBase, tCommunicator)
+                                       .release());
+    auto tCrsDomainMap = Teuchos::rcp(std::make_unique<tpi::tpetra::TpetraMap>(mGlobalColumnCenterCoordinates.size(),
+                                                                               tpi::tpetra::kIndexBase, tCommunicator)
+                                          .release());
 
     mLinearMask = std::make_unique<tpi::tpetra::TpetraCRSMatrix>(
         tCrsRowMap, Teuchos::ArrayView<const std::size_t>{detail::number_of_column_entries_per_row(aRowMap)});
@@ -66,8 +80,8 @@ void LinearMaskBuilder::create_linear_mask(const RowMap& aRowMap)
     mLinearMask->fillComplete(tCrsDomainMap, tCrsRowMap);
 }
 
-RowMap LinearMaskBuilder::create_normalized_row_map(
-    const third_party_integration::stk_search::SearchResults& aSearchResults)
+auto LinearMaskBuilder::createNormalizedRowMap(const third_party_integration::stk_search::SearchResults& aSearchResults)
+    -> RowMap
 {
     RowMap tRowMap;
     tRowMap.reserve(mGlobalRowCenterCoordinates.size());
@@ -75,7 +89,7 @@ RowMap LinearMaskBuilder::create_normalized_row_map(
     {
         const auto tSphereID = RowSearchEntityGlobalID{tSearchResult.first.id()};
         const auto tNodeId = ColumnNodeGlobalID{tSearchResult.second.id()};
-        const double tWeight = unnormalized_weight(tSphereID, tNodeId);
+        const double tWeight = unnormalizedWeight(tSphereID, tNodeId);
         detail::add_weight_from_search_result_to_map(tRowMap, tSphereID, tNodeId, Weight{tWeight},
                                                      mMaximumConnectivityEstimate);
     }
@@ -83,7 +97,8 @@ RowMap LinearMaskBuilder::create_normalized_row_map(
     return tRowMap;
 }
 
-double LinearMaskBuilder::unnormalized_weight(const RowSearchEntityGlobalID aSphereID, const ColumnNodeGlobalID aNodeID)
+auto LinearMaskBuilder::unnormalizedWeight(const RowSearchEntityGlobalID aSphereID, const ColumnNodeGlobalID aNodeID)
+    -> double
 {
     const auto tSphereCoordinate = mGlobalRowCenterCoordinates[aSphereID.mValue];
     const auto tNodalCoordinate = mGlobalColumnCenterCoordinates[aNodeID.mValue];
@@ -99,8 +114,8 @@ void LinearMaskBuilder::generateDistanceMap()
 
     assert(detail::reduce_search_result_size(tSearchResults, mCommunicator) >= mGlobalRowCenterCoordinates.size());
 
-    const auto tRowMap = create_normalized_row_map(tSearchResults);
-    create_linear_mask(tRowMap);
+    const auto tRowMap = createNormalizedRowMap(tSearchResults);
+    createLinearMask(tRowMap);
 }
 
 namespace detail
@@ -112,10 +127,7 @@ auto center_coordinates(const mesh::Mesh& aMesh, input_parser::KernelFilterCente
     {
         return mesh::EntityRetrieval{aMesh}.designDomainElementCentroids();
     }
-    else
-    {
-        return mesh::EntityRetrieval{aMesh}.designDomainNodalCoordinates();
-    }
+    return mesh::EntityRetrieval{aMesh}.designDomainNodalCoordinates();
 }
 }  // namespace detail
 

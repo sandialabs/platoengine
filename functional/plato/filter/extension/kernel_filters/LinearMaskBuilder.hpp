@@ -67,7 +67,7 @@ class LinearMaskBuilder
     LinearMaskBuilder(const SourceMesh& aSourceMesh,
                       const TargetMesh& aTargetMesh,
                       const KernelFilterFunctions& aFilterType,
-                      const boost::mpi::communicator& aCommunicator);
+                      boost::mpi::communicator aCommunicator);
 
     /// @brief Construction directly from vectors of points.
     ///
@@ -78,9 +78,9 @@ class LinearMaskBuilder
     /// should be a maximum expected to avoid any additional allocation time.
     LinearMaskBuilder(const SourceColumnVector& aNodalCoordinates,
                       TargetRowVector aCenters,
-                      const KernelFilterFunctions& aFilterType,
-                      const int aMaximumConnectivityEstimate,
-                      const boost::mpi::communicator& aCommunicator);
+                      KernelFilterFunctions aFilterType,
+                      int aMaximumConnectivityEstimate,
+                      boost::mpi::communicator aCommunicator);
 
     /// @brief Return a reference to the distance mask.
     [[nodiscard]] auto mask() const -> const third_party_integration::tpetra::TpetraCRSMatrix&;
@@ -91,15 +91,15 @@ class LinearMaskBuilder
 
     /// @brief Given a sphere ID @a aSphereID and a node entry @a aNodeID call the detail functions to determine the
     /// weight with the filter parameters
-    [[nodiscard]] double unnormalized_weight(const RowSearchEntityGlobalID aSphereID, const ColumnNodeGlobalID aNodeID);
+    [[nodiscard]] auto unnormalizedWeight(RowSearchEntityGlobalID aSphereID, ColumnNodeGlobalID aNodeID) -> double;
 
     /// @brief Take the RowMap data structure @a aRowMap and convert it to a CRS matrix
-    void create_linear_mask(const RowMap& aRowMap);
+    void createLinearMask(const RowMap& aRowMap);
 
     /// @brief Take the search results from STK @a aSearchResults and convert them to a RowMap, a map that takes Tpetra
     /// global ID and maps it to the details regarding that row (nonzero entries, their values, and their total)
-    [[nodiscard]] RowMap create_normalized_row_map(
-        const third_party_integration::stk_search::SearchResults& aSearchResults);
+    [[nodiscard]] auto createNormalizedRowMap(const third_party_integration::stk_search::SearchResults& aSearchResults)
+        -> RowMap;
 
     boost::mpi::communicator mCommunicator;
     std::vector<third_party_integration::common::Coordinate> mGlobalRowCenterCoordinates;

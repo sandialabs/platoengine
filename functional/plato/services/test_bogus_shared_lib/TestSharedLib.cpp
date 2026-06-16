@@ -2,5 +2,5 @@
 
 namespace plato::services::test_shared_lib
 {
-long int my_round(const double /*aValue*/) { return 0L; }
+auto my_round(const double /*aValue*/) -> long int { return 0L; }
 }  // namespace plato::services::test_shared_lib

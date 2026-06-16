@@ -1,9 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <utility>
+#include <vector>
+
 #include "plato/core/Function.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/SNOPTConstraints.hpp"
+#include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/IndexRange.hpp"
@@ -14,17 +22,19 @@ namespace plato::third_party_integration::snopt::unittest
 namespace
 {
 constexpr auto kScalarConstraintDimension = std::size_t{1U};
+constexpr auto kConstantTwo = 2.0;
+constexpr auto kConstantThree = 3.0;
 
-auto linear_function(const linear_algebra::DynamicVector<double>& aX) -> double { return 2.0 * aX[0] - aX[1]; }
+auto linear_function(const linear_algebra::DynamicVector<double>& aX) -> double { return kConstantTwo * aX[0] - aX[1]; }
 
 auto affine_linear_function(const linear_algebra::DynamicVector<double>& aX) -> double
 {
-    return 2.0 * aX[0] - aX[1] - 1.0;
+    return kConstantTwo * aX[0] - aX[1] - 1.0;
 }
 
 auto linear_function_gradient() -> linear_algebra::DynamicVector<double>
 {
-    return linear_algebra::DynamicVector<double>{2.0, -1.0};
+    return linear_algebra::DynamicVector<double>{kConstantTwo, -1.0};
 }
 
 const auto kLinearTestInterfaceFunction = plato::core::make_function_with_first_derivative(
@@ -58,28 +68,35 @@ const auto kInterfaceConstraints =
                 kNonlinearInterfaceConstraint, kLinearInterfaceConstraint};
 
 const auto kAffineLinearVectorTestFunction = plato::core::make_function_with_first_derivative(
-    [](const linear_algebra::DynamicVector<double>& aX) {
-        return linear_algebra::DynamicVector<double>{2.0 * aX[0] - aX[1], -2.0 * aX[0] + 3.0 * aX[1] + 2.0};
+    [](const linear_algebra::DynamicVector<double>& aX)
+    {
+        return linear_algebra::DynamicVector<double>{kConstantTwo * aX[0] - aX[1],
+                                                     -kConstantTwo * aX[0] + kConstantThree * aX[1] + kConstantTwo};
     },
     [](const linear_algebra::DynamicVector<double>&)
     {
         return linear_algebra::JacobianMultiplier{[](const linear_algebra::DynamicVector<double>& aVector)
                                                   {
                                                       return linear_algebra::DynamicVector<double>{
-                                                          2.0 * aVector[0] - 2.0 * aVector[1],
-                                                          -1.0 * aVector[0] + 3.0 * aVector[1]};
+                                                          kConstantTwo * aVector[0] - kConstantTwo * aVector[1],
+                                                          -1.0 * aVector[0] + kConstantThree * aVector[1]};
                                                   }};
     });
 
 const auto kArbitraryVectorTestFunction = plato::core::make_function_with_first_derivative(
-    [](const linear_algebra::DynamicVector<double>&) {
-        return linear_algebra::DynamicVector<double>{1.0, 2.0};
+    [](const linear_algebra::DynamicVector<double>&)
+    {
+        const auto tArbitraryVector = linear_algebra::DynamicVector<double>{1.0, 2.0};
+        return tArbitraryVector;
     },
     [](const linear_algebra::DynamicVector<double>&)
     {
-        return linear_algebra::JacobianMultiplier{[](const linear_algebra::DynamicVector<double>&) {
-            return linear_algebra::DynamicVector<double>{-1.0, -2.0};
-        }};
+        return linear_algebra::JacobianMultiplier{[](const linear_algebra::DynamicVector<double>&)
+                                                  {
+                                                      const auto tArbitraryVector =
+                                                          linear_algebra::DynamicVector<double>{-1.0, -2.0};
+                                                      return tArbitraryVector;
+                                                  }};
     });
 
 const auto kVectorConstraintDimension = std::size_t{2U};
@@ -158,27 +175,27 @@ TEST(Constraints, ConstructionPartitioning)
 
 TEST(Constraints, RemoveAffineOffset)
 {
-    const auto kLinearTestFunction = plato::core::make_function_with_first_derivative(
+    const auto tLinearTestFunction = plato::core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX) { return linear_function(aX); },
         [](const linear_algebra::DynamicVector<double>&) { return linear_function_gradient(); });
 
-    const auto kAffineLinearTestFunction = plato::core::make_function_with_first_derivative(
+    const auto tAffineLinearTestFunction = plato::core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>& aX) { return affine_linear_function(aX); },
         [](const linear_algebra::DynamicVector<double>&) { return linear_function_gradient(); });
 
-    const auto kArbitraryTestFunction = plato::core::make_function_with_first_derivative(
+    const auto tArbitraryTestFunction = plato::core::make_function_with_first_derivative(
         [](const linear_algebra::DynamicVector<double>&) { return 1.0; },
         [](const linear_algebra::DynamicVector<double>& aX) { return aX; });
 
-    const auto kLinearConstraint =
-        ConstraintData{kLinearTestFunction, kLinearConstraintTarget.front(), Linearity::kLinear};
-    const auto kAffineConstraint =
-        ConstraintData{kAffineLinearTestFunction, kLinearConstraintTarget.front(), Linearity::kLinear};
-    const auto kNonlinearConstraint =
-        ConstraintData{kArbitraryTestFunction, kNonlinearConstraintTarget.front(), Linearity::kNonlinear};
+    const auto tLinearConstraint =
+        ConstraintData{tLinearTestFunction, kLinearConstraintTarget.front(), Linearity::kLinear};
+    const auto tAffineConstraint =
+        ConstraintData{tAffineLinearTestFunction, kLinearConstraintTarget.front(), Linearity::kLinear};
+    const auto tNonlinearConstraint =
+        ConstraintData{tArbitraryTestFunction, kNonlinearConstraintTarget.front(), Linearity::kNonlinear};
 
-    const auto tConstraintsWithOffsets = std::vector{kLinearConstraint, kNonlinearConstraint, kAffineConstraint,
-                                                     kNonlinearConstraint, kLinearConstraint};
+    const auto tConstraintsWithOffsets = std::vector{tLinearConstraint, tNonlinearConstraint, tAffineConstraint,
+                                                     tNonlinearConstraint, tLinearConstraint};
 
     const auto tResultConstraints =
         constraints_with_affine_offset_removed(ConstraintVectorType{tConstraintsWithOffsets}, kNumberOfDesignVariables);
@@ -210,7 +227,7 @@ TEST(Constraints, LinearConstraintIterators)
               kNumberOfLinearConstraints);
     // Check that they're all linear
     std::for_each(tSNOPTConstraints.linearConstraintsBegin(), tSNOPTConstraints.linearConstraintsEnd(),
-                  [](const auto& tLinearConstraint) { EXPECT_EQ(tLinearConstraint.mLinearity, Linearity::kLinear); });
+                  [](const auto& aLinearConstraint) { EXPECT_EQ(aLinearConstraint.mLinearity, Linearity::kLinear); });
 }
 
 TEST(Constraints, NonlinearConstraintIterators)
@@ -222,8 +239,8 @@ TEST(Constraints, NonlinearConstraintIterators)
               kNumberOfNonlinearConstraints);
     // Check that they're all nonlinear
     std::for_each(tSNOPTConstraints.nonlinearConstraintsBegin(), tSNOPTConstraints.nonlinearConstraintsEnd(),
-                  [](const auto& tLinearConstraint)
-                  { EXPECT_EQ(tLinearConstraint.mLinearity, Linearity::kNonlinear); });
+                  [](const auto& aLinearConstraint)
+                  { EXPECT_EQ(aLinearConstraint.mLinearity, Linearity::kNonlinear); });
 }
 
 TEST(Constraints, ConstraintBoundsEquality)

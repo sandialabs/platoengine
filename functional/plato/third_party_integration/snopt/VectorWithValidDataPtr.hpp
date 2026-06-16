@@ -29,10 +29,10 @@ class VectorWithValidDataPtr
 
     /// @brief Appends an entry @a aU the vector as with `vector::push_back`.
     template <typename U>
-    void pushBack(U&& aU);
+    void pushBack(U&& aNewEntry);
 
     /// @brief The size of the vector.
-    auto size() const -> std::size_t;
+    [[nodiscard]] auto size() const -> std::size_t;
 
     /// @brief Const accessor for the vector's entries.
     /// @param aIndex must be less than the vector's size.
@@ -44,7 +44,7 @@ class VectorWithValidDataPtr
 
     /// @brief Pointer to the first element as with `vector::data`.
     /// Guaranteed to be valid even if size is 0.
-    auto data() const -> const T*;
+    [[nodiscard]] auto data() const -> const T*;
 
     /// @brief Pointer to the first element as with `vector::data`.
     /// Guaranteed to be valid even if size is 0.
@@ -67,16 +67,16 @@ VectorWithValidDataPtr<T>::VectorWithValidDataPtr(const std::size_t aInitialSize
 
 template <typename T>
 template <typename U>
-void VectorWithValidDataPtr<T>::pushBack(U&& aU)
+void VectorWithValidDataPtr<T>::pushBack(U&& aNewEntry)
 {
     if (!mIsInitialized)
     {
-        mVector.front() = std::forward<U>(aU);
+        mVector.front() = std::forward<U>(aNewEntry);
         mIsInitialized = true;
     }
     else
     {
-        mVector.push_back(std::forward<U>(aU));
+        mVector.push_back(std::forward<U>(aNewEntry));
     }
 }
 

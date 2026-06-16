@@ -1,25 +1,30 @@
 #include "plato/filter/extension/kernel_filters/RevolveFilter.hpp"
 
-#include <boost/mpi.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <boost/serialization/vector.hpp>
+#include <filesystem>
+#include <numbers>
 #include <optional>
+#include <string>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/filter/extension/CommonInputValidation.hpp"
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/CylindricalMaskUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterInputUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/FixedBlockUtilities.hpp"
 #include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::filter::extension::kernel_filters
@@ -31,10 +36,10 @@ const auto kMakeRevolveFilterInfo = [](const input_parser::y_axis_revolve_filter
                                        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> RevolveFilterType
 { return make_y_axis_revolve_filter_type(aInput, aAnalysisDomainMesh); };
 
-[[maybe_unused]] static auto kRevolveFilterParserRegistration =
+[[maybe_unused]] const auto kRevolveFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::y_axis_revolve_filter>{};
 
-[[maybe_unused]] static auto kRevolveFilterRegistration = library::FilterRegistration{
+[[maybe_unused]] const auto kRevolveFilterRegistration = library::FilterRegistration{
     input_parser::block_name<input_parser::y_axis_revolve_filter>(), [](const library::ValidatedFilterInput& aInput)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::y_axis_revolve_filter>(aInput);
@@ -46,13 +51,13 @@ const auto kMakeRevolveFilterInfo = [](const input_parser::y_axis_revolve_filter
             });
     }};
 
-[[maybe_unused]] static auto kRevolveFilterValidationRegistration =
+[[maybe_unused]] const auto kRevolveFilterValidationRegistration =
     validation_for_all_kernel_filters<input_parser::y_axis_revolve_filter>();
 
-[[maybe_unused]] static auto kRevolveFilterTargetMeshValidationRegistration =
+[[maybe_unused]] const auto kRevolveFilterTargetMeshValidationRegistration =
     target_mesh_validation_for_all_kernel_filters<input_parser::y_axis_revolve_filter>();
 
-[[maybe_unused]] static auto kRevolveFilterMeshBasedValidationRegistration =
+[[maybe_unused]] const auto kRevolveFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
         [](const input_parser::y_axis_revolve_filter& aInput, const std::filesystem::path& aMeshPath)
         { return extension::detail::validate_filter_radius_with_mesh(aInput, aMeshPath); },

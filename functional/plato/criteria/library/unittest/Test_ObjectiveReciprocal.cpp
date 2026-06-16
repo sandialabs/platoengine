@@ -37,7 +37,7 @@ TEST(ObjectiveReciprocal, MakeReciprocalCriterionFunction)
     const auto tX = pft::TwoDVector{tX1, tX2};
 
     const auto tUnmodifiedValue = tX1 * tX1 + tX2 * tX2 * tX2;
-    const auto tUnmodifiedDerivative = pft::makeTwoDVector(2.0 * tX1, 3.0 * tX2 * tX2);
+    const auto tUnmodifiedDerivative = pft::make_two_d_vector(2.0 * tX1, 3.0 * tX2 * tX2);
 
     // returns original function with kMinimize objective goal
     {

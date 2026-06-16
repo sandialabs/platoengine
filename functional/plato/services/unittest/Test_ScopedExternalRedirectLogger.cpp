@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <boost/shared_ptr.hpp>
-#include <filesystem>
-#include <fstream>
+#include <boost/smart_ptr/make_shared_object.hpp>
+#include <iostream>
+#include <ostream>
+#include <sstream>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/Strings.hpp"
@@ -80,7 +82,7 @@ TEST(ScopedExternalRedirectLogger, ExceptionBehavior)
             std::cout << kTestMessage;
             throw std::runtime_error{"Throwing before redirect closes"};
         }
-        catch (const std::runtime_error& aTestException)
+        catch (const std::runtime_error& tTestException)  // NOLINT(bugprone-empty-catch)
         {
         }
     }

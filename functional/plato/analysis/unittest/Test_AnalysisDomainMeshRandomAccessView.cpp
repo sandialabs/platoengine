@@ -1,9 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/Enumerate.hpp"
 #include "plato/utilities/IndexRange.hpp"
+#include "plato/utilities/Zip.hpp"
 
 namespace plato::analysis::unittest
 {
@@ -105,7 +110,7 @@ TEST(AnalysisDomainMeshRandomAccessView, OneBlockAccess)
     // Mutable view
     {
         const auto tRandomAccessMutableView = AnalysisDomainMeshMutableRandomAccessView{tAnalysisDomainMesh};
-        constexpr auto tNewValue = double{42.0};
+        constexpr auto tNewValue = 42.0;
         tRandomAccessMutableView[kIDs1.front()] = tNewValue;
 
         auto tExpectedFieldValues = kScalarField1;
@@ -134,7 +139,7 @@ TEST(AnalysisDomainMeshRandomAccessView, TwoBlockAccessNoOverlap)
     // Mutable view
     {
         const auto tRandomAccessMutableView = AnalysisDomainMeshMutableRandomAccessView{tAnalysisDomainMesh};
-        constexpr auto tNewValue = double{42.0};
+        constexpr auto tNewValue = 42.0;
         tRandomAccessMutableView[kIDs1.back()] = tNewValue;
         tRandomAccessMutableView[kIDs3.front()] = tNewValue;
 
@@ -170,7 +175,7 @@ TEST(AnalysisDomainMeshRandomAccessView, TwoBlockAccessHasOverlap)
         ASSERT_EQ(kIDs1.at(1), kIDs2.front());  // Make sure we're checking a shared ID
 
         const auto tRandomAccessMutableView = AnalysisDomainMeshMutableRandomAccessView{tAnalysisDomainMesh};
-        constexpr auto tNewValue = double{42.0};
+        constexpr auto tNewValue = 42.0;
         tRandomAccessMutableView[kIDs1.at(1)] = tNewValue;  // One assignment, should modify both values
 
         auto tExpectedFieldValues1 = kScalarField1;

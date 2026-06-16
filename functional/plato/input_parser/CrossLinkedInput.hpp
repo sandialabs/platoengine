@@ -12,19 +12,24 @@ class CrossLinkedInput;
 /// @brief Implementation of the pass-key idiom for limiting construction of CrossLinkedInput.
 struct CrossLinkKey
 {
-    friend auto make_cross_linked_input(input_parser::ParsedInput input)
+    friend auto make_cross_linked_input(input_parser::ParsedInput aInput)
         -> utilities::Expected<CrossLinkedInput, std::string>;
 
+    ~CrossLinkKey() = default;
+
    private:
-    CrossLinkKey() {}
-    CrossLinkKey(const CrossLinkKey&) {}
+    CrossLinkKey() = default;
+    CrossLinkKey(const CrossLinkKey&) = default;
+    CrossLinkKey(CrossLinkKey&&) = default;
+    auto operator=(const CrossLinkKey&) -> CrossLinkKey& = default;
+    auto operator=(CrossLinkKey&&) -> CrossLinkKey& = default;
 };
 
 /// @brief A class that takes @a ParsedInput and links cross references for use in validation.
 class CrossLinkedInput
 {
    public:
-    CrossLinkedInput(input_parser::ParsedInput aInput, const CrossLinkKey&);
+    CrossLinkedInput(input_parser::ParsedInput aInput, const CrossLinkKey& /*unused*/);
 
     [[nodiscard]] auto rawInput() const -> const input_parser::ParsedInput&;
 

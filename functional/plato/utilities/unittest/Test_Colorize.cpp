@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <iostream>
+#include <ostream>
 #include <sstream>
+#include <string>
 
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/Colorize.hpp"
 
 namespace plato::utilities::unittest
@@ -15,7 +19,7 @@ class ColorizeRedirectFixture : public test_utilities::CoutCerrPrintTestFixture
 
 struct AlwaysUseColorPolicy
 {
-    [[nodiscard]] auto operator()(const std::ostream&) const -> bool { return true; };
+    [[nodiscard]] auto operator()(const std::ostream& /*unused*/) const -> bool { return true; };
 };
 }  // namespace
 
@@ -23,7 +27,8 @@ TEST(Colorize, StreamInsertionNoColorSupport)
 {
     auto tStream = std::stringstream{};
     tStream << colorize("Hello green world!", TextColor::kGreen);
-    tStream << colorize(42, TextColor::kRed);
+    constexpr auto tArbitraryValue = 42;
+    tStream << colorize(tArbitraryValue, TextColor::kRed);
     // Result should not contain any escape characters
     EXPECT_EQ(tStream.str(), "Hello green world!42");
 }

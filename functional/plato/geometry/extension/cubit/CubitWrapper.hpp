@@ -1,9 +1,11 @@
-#ifndef PLATO_GEOMETRY_EXTENSION_CUBITNGS_CUBITWRAPPER
-#define PLATO_GEOMETRY_EXTENSION_CUBITNGS_CUBITWRAPPER
+#ifndef PLATO_GEOMETRY_EXTENSION_CUBIT_CUBITWRAPPER
+#define PLATO_GEOMETRY_EXTENSION_CUBIT_CUBITWRAPPER
 
 #include <filesystem>
+#include <memory>
 #include <unordered_map>
 
+#include "plato/services/SharedLibraryObject.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/cubit/PlatoCubitInterface.hpp"
 
@@ -17,7 +19,8 @@ namespace plato::geometry::extension::cubit
 
 using CubitSensitivityMap =
     std::unordered_map<third_party_integration::cubit::CubitGlobalId, third_party_integration::common::Vector3>;
-
+using CubitInterfaceFunction = std::unique_ptr<third_party_integration::cubit::PlatoCubitInterface>;
+using CubitSharedLibraryObject = services::SharedLibraryObject<CubitInterfaceFunction>;
 ///@brief A class that wraps the functionality of the cubit library interface and ensures the instance of cubit is
 /// controlled
 class CubitWrapper
@@ -54,7 +57,7 @@ class CubitWrapper
                        const double aPerturbationSize) -> CubitSensitivityMap;
 
    private:
-    std::unique_ptr<plato::third_party_integration::cubit::PlatoCubitInterface> mCubit;
+    CubitSharedLibraryObject mSharedLibraryObject;
 };
 
 }  // namespace plato::geometry::extension::cubit

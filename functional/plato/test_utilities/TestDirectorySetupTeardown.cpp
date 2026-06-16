@@ -1,10 +1,15 @@
 #include "plato/test_utilities/TestDirectorySetupTeardown.hpp"
 
+#include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <filesystem>
+#include <utility>
+
 namespace plato::test_utilities
 {
 TestDirectorySetupTeardown::TestDirectorySetupTeardown(std::filesystem::path aDirectory,
-                                                       const boost::mpi::communicator& aComm)
-    : mDirectory{std::move(aDirectory)}, mComm{aComm}
+                                                       const boost::mpi::communicator& aCommunicator)
+    : mDirectory{std::move(aDirectory)}, mComm{aCommunicator}
 {
     executeOnRootIfValid([this]() { std::filesystem::create_directories(mDirectory.value()); });
 }

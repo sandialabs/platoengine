@@ -1,23 +1,23 @@
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
 
-#include <ROL_Algorithm.hpp>
 #include <chrono>
+#include <cstdlib>
 #include <fstream>
 #include <optional>
 #include <string>
 
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
-#include "plato/output/OutputManager.hpp"
 #include "plato/process_manager/extension/CommonInputValidation.hpp"
+#include "plato/process_manager/extension/DirectionVectorTypes.hpp"
 #include "plato/process_manager/extension/ROLUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
-#include "plato/third_party_integration/rol/Utilities.hpp"
 #include "plato/utilities/LogSpaceGenerator.hpp"
 
 namespace plato::process_manager::extension
@@ -37,15 +37,15 @@ namespace
     return input_validation::get_input_block<input_parser::constraint_check>(aValidInput);
 }
 
-[[maybe_unused]] static auto kConstraintCheckParserRegistration =
+[[maybe_unused]] const auto kConstraintCheckParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::constraint_check>{};
 
-[[maybe_unused]] static auto kConstraintCheckProcessManagerRegistration =
+[[maybe_unused]] const auto kConstraintCheckProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::constraint_check>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_constraint_check_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kConstraintCheckValidationRegistration =
+[[maybe_unused]] const auto kConstraintCheckValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::constraint_check& aInput)
         { return detail::validate_linearity_check_output_file_name(aInput); },
@@ -85,7 +85,6 @@ void ConstraintCheck::run(const library::ProcessManagerData& aProcessManagerData
 {
     [[maybe_unused]] const auto tTaskLogger = library::run_task_log<input_parser::constraint_check>();
     std::srand(mSeed);
-    namespace tpir = third_party_integration::rol;
     constexpr bool tPrintOutput = true;
 
     auto [tROLProblem, tROLControls] =

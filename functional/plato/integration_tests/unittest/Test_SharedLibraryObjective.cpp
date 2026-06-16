@@ -1,9 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <iostream>
+#include <ostream>
+#include <string_view>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/criteria/extension/SharedLibCriterion.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/criteria/library/SharedLibCriterion.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
@@ -17,21 +22,21 @@ namespace
 // These tests use the mass objective library but through the shared library interface so they are testing the
 // shared library more generically
 const auto kMeshGenerator = third_party_integration::stk_io::CommandGenerator{
-    {1, 1, 1}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
+    {1, 1, 1}, {-1, -1, -1}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::kHex};
 
 void generate_bad_library_and_do_nothing()
 {
     // This function should throw an exception
     const auto tTestConfiguration = utilities::test_app_configuration("badRobot.so");
-    const auto tBad = criteria::extension::SharedLibCriterion{
+    const auto tBad = criteria::library::SharedLibCriterion{
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
     std::cout << tBad.f(analysis::AnalysisDomainMesh{"dne.exo", {}}) << std::endl;
 }
 
-criteria::extension::SharedLibCriterion test_shared_lib_criterion()
+auto test_shared_lib_criterion() -> criteria::library::SharedLibCriterion
 {
     const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
-    return criteria::extension::SharedLibCriterion{
+    return criteria::library::SharedLibCriterion{
         tTestConfiguration, tTestConfiguration.mConfiguration.mCriteria.front(), {}};
 }
 }  // namespace
@@ -66,7 +71,7 @@ TEST(SharedLibObjective, CallGradient)
 
 TEST(SharedLibObjective, ValueUsingFunction)
 {
-    const auto tFunction = criteria::extension::make_shared_lib_function(test_shared_lib_criterion());
+    const auto tFunction = criteria::library::make_shared_lib_function(test_shared_lib_criterion());
     constexpr std::string_view tMeshName = "massTest.exo";
     third_party_integration::stk_io::write_mesh(tMeshName, kMeshGenerator);
     const double tMass = tFunction.evaluate<core::evaluation::kFunction>(analysis::AnalysisDomainMesh{tMeshName, {}});

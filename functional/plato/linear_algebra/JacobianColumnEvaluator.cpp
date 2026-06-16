@@ -1,28 +1,33 @@
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
 
+#include <utility>
+#include <vector>
+
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 namespace plato::linear_algebra
 {
-DynamicVector<double> JacobianColumnEvaluator::column(const unsigned int aIndex) const
+auto JacobianColumnEvaluator::column(const unsigned int aIndex) const -> DynamicVector<double>
 {
     return mColumnFunction(aIndex, mX);
 }
 
-DynamicVector<double> operator*(const DynamicVector<double>& aX, const JacobianColumnEvaluator& aA)
+auto operator*(const DynamicVector<double>& aRowVector, const JacobianColumnEvaluator& aJacobian)
+    -> DynamicVector<double>
 {
-    auto tResult = std::vector<double>(aA.mColumns);
-    for (unsigned int i = 0; i < aA.mColumns; ++i)
+    auto tResult = std::vector<double>(aJacobian.mColumns);
+    for (unsigned int tColumnIndex = 0; tColumnIndex < aJacobian.mColumns; ++tColumnIndex)
     {
-        tResult[i] = aX.dot(aA.column(i));
+        tResult[tColumnIndex] = aRowVector.dot(aJacobian.column(tColumnIndex));
     }
     return DynamicVector<double>(std::move(tResult));
 }
 
-JacobianMultiplier to_jacobian_multiplier(JacobianColumnEvaluator aJacobianColumnEvaluator)
+auto to_jacobian_multiplier(JacobianColumnEvaluator aJacobianColumnEvaluator) -> JacobianMultiplier
 {
-    return JacobianMultiplier{/*.mJacobianTimesVector=*/
-                              [tColumnEvaluator = std::move(aJacobianColumnEvaluator)](const DynamicVector<double>& aX)
-                              { return aX * tColumnEvaluator; }};
+    return JacobianMultiplier{.mVectorTimesJacobianFunction = [tColumnEvaluator = std::move(aJacobianColumnEvaluator)](
+                                                                  const DynamicVector<double>& aRowVector)
+                              { return aRowVector * tColumnEvaluator; }};
 }
 }  // namespace plato::linear_algebra

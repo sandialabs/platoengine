@@ -1,5 +1,7 @@
 #include "plato/filter/extension/kernel_filters/Plane.hpp"
 
+#include <cassert>
+
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
 

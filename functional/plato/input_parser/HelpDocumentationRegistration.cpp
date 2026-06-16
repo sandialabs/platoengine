@@ -1,6 +1,13 @@
 #include "plato/input_parser/HelpDocumentationRegistration.hpp"
 
+#include <sys/types.h>
+
 #include <iomanip>
+#include <ios>
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
 
 #include "plato/utilities/FormatText.hpp"
 namespace plato::input_parser

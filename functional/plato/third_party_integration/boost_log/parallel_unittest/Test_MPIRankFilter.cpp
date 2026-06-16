@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <boost/log/attributes/constant.hpp>
 #include <boost/mpi/communicator.hpp>
 
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"

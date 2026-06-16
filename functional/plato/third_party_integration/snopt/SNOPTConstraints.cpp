@@ -1,7 +1,15 @@
 #include "plato/third_party_integration/snopt/SNOPTConstraints.hpp"
 
 #include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <numeric>
+#include <utility>
+#include <vector>
 
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/third_party_integration/snopt/SNOPTTypes.hpp"
 #include "plato/utilities/IndexRange.hpp"
 
 namespace plato::third_party_integration::snopt
@@ -10,8 +18,7 @@ namespace
 {
 [[nodiscard]] auto partition_constraints(ConstraintVectorType& aConstraints) -> ConstraintVectorType::iterator
 {
-    return std::stable_partition(aConstraints.begin(), aConstraints.end(),
-                                 [](const auto& aConstraint)
+    return std::stable_partition(aConstraints.begin(), aConstraints.end(), [](const auto& aConstraint)
                                  { return aConstraint.mLinearity == Linearity::kNonlinear; });
 }
 
@@ -46,9 +53,9 @@ template <typename BoundFunction>
 
 }  // namespace
 
-SNOPTConstraints::SNOPTConstraints(InterfaceConstraintVectorType&& aConstraints,
+SNOPTConstraints::SNOPTConstraints(const InterfaceConstraintVectorType& aConstraints,
                                    const std::size_t aNumberOfDesignVariables)
-    : mConstraints{constraints_with_affine_offset_removed(constraints_with_vectors_expanded(std::move(aConstraints)),
+    : mConstraints{constraints_with_affine_offset_removed(constraints_with_vectors_expanded(aConstraints),
                                                           aNumberOfDesignVariables)},
       mLinearConstraintsBeginIterator{partition_constraints(mConstraints)}
 {
@@ -121,7 +128,7 @@ auto constraints_with_affine_offset_removed(ConstraintVectorType&& aConstraints,
     return std::move(aConstraints);
 }
 
-auto constraints_with_vectors_expanded(InterfaceConstraintVectorType&& aVectorConstraints) -> ConstraintVectorType
+auto constraints_with_vectors_expanded(const InterfaceConstraintVectorType& aVectorConstraints) -> ConstraintVectorType
 {
     auto tAllScalarConstraints = ConstraintVectorType{};
     tAllScalarConstraints.reserve(detail::total_number_of_scalar_constraints(aVectorConstraints));

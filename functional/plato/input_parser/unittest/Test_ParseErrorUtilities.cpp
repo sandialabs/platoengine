@@ -1,10 +1,14 @@
 #include <gtest/gtest.h>
 
-#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/home/support/common_terminals.hpp>
+#include <boost/spirit/include/qi.hpp>  // NOLINT(misc-include-cleaner)
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "plato/input_parser/ParseErrorUtilities.hpp"
 #include "plato/test_utilities/Strings.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::input_parser::unittest
 {
@@ -50,7 +54,6 @@ TEST(ParseErrorUtilities, ErrorMessage)
     const auto tErrorMessage = error_message(tParsedToIterator, tInput.cend(), tTokenDelimeter);
     EXPECT_FALSE(tErrorMessage.empty());
 
-    const auto tFullString = std::string{tParsedToIterator, tInput.cend()};
     plato::test_utilities::expect_string_contains_substring(tErrorMessage, "bc", TEST_CONTEXT("Parser error message"));
 }
 

@@ -11,7 +11,9 @@ set(INTERFACE_FILES StateCache.hpp
                     NamedType.hpp
                     Zip.hpp
                     ZipIterator.hpp
-                    FixedWidthFloatingPointOutput.hpp)
+                    FixedWidthFloatingPointOutput.hpp
+                    GradientChecker.hpp
+                    GradientCheckerImpl.hpp)
 create_plato_interface(PlatoUtilitiesInterface "${INTERFACE_FILES}" "")
 
 if( UNIT_TESTING )

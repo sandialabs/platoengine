@@ -13,12 +13,13 @@ struct CopyCounter
     unsigned int mMoves = 0;
 
     CopyCounter() = default;
+    ~CopyCounter() = default;
 
     CopyCounter(const CopyCounter& aCopy);
-    CopyCounter& operator=(const CopyCounter& aCopy);
+    auto operator=(const CopyCounter& aCopy) -> CopyCounter&;
 
     CopyCounter(CopyCounter&& aCopy) noexcept;
-    CopyCounter& operator=(CopyCounter&& aCopy) noexcept;
+    auto operator=(CopyCounter&& aCopy) noexcept -> CopyCounter&;
 };
 }  // namespace plato::test_utilities
 

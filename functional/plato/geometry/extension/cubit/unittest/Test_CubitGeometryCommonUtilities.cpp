@@ -130,27 +130,37 @@ TEST(CubitGeometryCommonValidation, ApreproVariablesExist)
     EXPECT_TRUE(validate_aprepro_variables_exists(tCubit));
 }
 
+TEST(CubitGeometryCommonUtilities, ApreproVariablesPerturbationScaleAboveFloor)
+{
+    const auto tInvalidVariable = input_parser::BoundedApreproVariable{input_parser::ApreproString{"bad_var"}, 0,
+                                                                       plato::input_parser::Bounds{0, 0.1}};
+    {
+        const auto tMessages = validate_aprepro_variables_perturbation_scale(kCubit);
+        EXPECT_FALSE(tMessages.has_value()) << tMessages.value();
+    }
+    auto tCubit = kCubit;
+    tCubit.aprepro_variables = input_parser::BoundedApreproVariableList{{tInvalidVariable}};
+    {
+        const auto tMessages = validate_aprepro_variables_perturbation_scale(tCubit);
+        EXPECT_TRUE(tMessages.has_value());
+    }
+}
+
 TEST(CubitGeometryCommonUtilities, PerturbationScale)
 {
-    constexpr auto tScaleFactor = 1.0e-4;
-    constexpr auto tACISFloor = 1.0e-6;
+    const auto tScaleFactor = perturbation_scale_multiplier();
+
     {
         const auto tVariable = input_parser::BoundedApreproVariable{input_parser::ApreproString{"var"}, 0,
                                                                     plato::input_parser::Bounds{1, 2}};
         const auto tPerturbationScale = perturbation_scale(tVariable);
-        EXPECT_EQ(tPerturbationScale, tScaleFactor) << "Lower bounds times scale factor is scale.";
+        EXPECT_DOUBLE_EQ(tPerturbationScale, tScaleFactor) << "Range of bounds times scale factor is scale.";
     }
     {
         const auto tVariable = input_parser::BoundedApreproVariable{input_parser::ApreproString{"var"}, 0,
                                                                     plato::input_parser::Bounds{-1000, 2}};
         const auto tPerturbationScale = perturbation_scale(tVariable);
-        EXPECT_EQ(tPerturbationScale, 2 * tScaleFactor) << "Upper bounds times scale factor is scale.";
-    }
-    {
-        const auto tVariable = input_parser::BoundedApreproVariable{input_parser::ApreproString{"var"}, 0,
-                                                                    plato::input_parser::Bounds{1e-3, 2}};
-        const auto tPerturbationScale = perturbation_scale(tVariable);
-        EXPECT_EQ(tPerturbationScale, tACISFloor) << "Acis floor is scale.";
+        EXPECT_DOUBLE_EQ(tPerturbationScale, 1002 * tScaleFactor) << "Range of bounds times scale factor is scale.";
     }
 }
 

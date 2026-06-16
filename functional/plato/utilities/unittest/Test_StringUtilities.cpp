@@ -1,5 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::utilities::unittest
@@ -55,7 +60,7 @@ TEST(Utilities, ConcatenateStringRValues)
 
 TEST(Utilities, ConcatenateStringCharStar)
 {
-    const auto tString1 = "red";
+    const auto* const tString1 = "red";
     const auto tResult = concatenate(tString1, "fish");
     EXPECT_EQ(tResult, "redfish");
 }
@@ -69,18 +74,18 @@ TEST(Utilities, ConcatenateStringView)
 
 TEST(Utilities, ConcatenateStringsAndNumbers)
 {
-    const auto tOne = int{1};
-    const auto tFish = "fish";
-    const auto two = unsigned{2};
-    const auto tResult = concatenate(tOne, tFish, two, tFish);
+    const auto tOne = 1;
+    const auto* const tFish = "fish";
+    const auto tWo = unsigned{2};
+    const auto tResult = concatenate(tOne, tFish, tWo, tFish);
     EXPECT_EQ(tResult, "1fish2fish");
 }
 
 TEST(Utilities, ConcatenateStringsChar)
 {
-    const auto tF = char{'f'};
-    const auto tI = char{'i'};
-    const auto tResult = concatenate(tF, tI, 's', 'h');
+    const auto tFLetter = 'f';
+    const auto tILetter = 'i';
+    const auto tResult = concatenate(tFLetter, tILetter, 's', 'h');
     EXPECT_EQ(tResult, "fish");
 }
 

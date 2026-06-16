@@ -9,13 +9,13 @@ namespace plato::criteria::library::unittest
 {
 namespace
 {
-constexpr auto kNumRanks = int{3};
+constexpr auto kNumRanks = 3;
 }
 
 TEST(ParallelObjectiveValidation, MPISize)
 {
-    auto tComm = boost::mpi::communicator{};
-    EXPECT_EQ(tComm.size(), kNumRanks);
+    auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_EQ(tCommunicator.size(), kNumRanks);
 }
 
 TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectives)
@@ -61,12 +61,12 @@ TEST(ParallelObjectiveValidation, ValidateMPIRanksVsNumberOfObjectivesParallelOb
 
     // Number of processors matches the number of ranks for two objectives
     auto tObjectiveOneProcessor = tObjective;
-    tObjectiveOneProcessor.number_of_processors = 1u;
+    tObjectiveOneProcessor.number_of_processors = 1U;
     EXPECT_FALSE(
         detail::validate_number_of_ranks_vs_parallel_objectives({tObjective, tObjectiveOneProcessor}).has_value());
 
     // Mismatch with two objectives
-    tObjectiveOneProcessor.number_of_processors = 2u;
+    tObjectiveOneProcessor.number_of_processors = 2U;
     EXPECT_TRUE(
         detail::validate_number_of_ranks_vs_parallel_objectives({tObjective, tObjectiveOneProcessor}).has_value());
 }

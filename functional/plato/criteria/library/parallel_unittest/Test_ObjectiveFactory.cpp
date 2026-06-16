@@ -1,10 +1,17 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <boost/smart_ptr/make_shared_object.hpp>
+#include <format>
+#include <optional>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/test_utilities/Strings.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::criteria::library::parallel_unittest
 {

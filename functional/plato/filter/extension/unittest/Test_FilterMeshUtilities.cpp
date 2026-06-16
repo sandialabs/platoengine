@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <string_view>
 
 #include "plato/filter/extension/FilterMeshUtilities.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::filter::extension::unittest
@@ -20,7 +22,7 @@ TEST(FilterMeshUtilities, GetFilterRadius)
         {1, 1, 1},
         {-tElementLength / 2, -tElementLength / 2, -tElementLength / 2},
         {tElementLength / 2, tElementLength / 2, tElementLength / 2},
-        third_party_integration::stk_io::CommandElementType::Hex};
+        third_party_integration::stk_io::CommandElementType::kHex};
     third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator);
 
     auto tFilter = test_utilities::create_valid_helmholtz_filter_input();

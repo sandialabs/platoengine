@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/services/AppConfigurationUtilities.hpp"
 
 namespace plato::services::unittest

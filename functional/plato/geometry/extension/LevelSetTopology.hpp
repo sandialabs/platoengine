@@ -80,8 +80,8 @@ class LevelSetTopology
     ~LevelSetTopology();
     LevelSetTopology(const LevelSetTopology&) = delete;
     LevelSetTopology(LevelSetTopology&&) = delete;
-    LevelSetTopology& operator=(const LevelSetTopology&) = delete;
-    LevelSetTopology& operator=(LevelSetTopology&&) = delete;
+    auto operator=(const LevelSetTopology&) -> LevelSetTopology& = delete;
+    auto operator=(LevelSetTopology&&) -> LevelSetTopology& = delete;
 
     /// @brief Writes a cut mesh to disk based on the design variables @a aDesignParameter.
     /// @param aDesignParameter The vector size must be equal to the number of design variables.
@@ -192,8 +192,8 @@ namespace detail
 
 /// @brief Validates that exactly one specifier for the intitial level set is used, either the sphere pattern
 /// commands or `initial_field_name`
-[[nodiscard]] std::optional<std::string> validate_exactly_one_initial_level_set_specifier(
-    const input_parser::level_set_topology& aInput);
+[[nodiscard]] auto validate_exactly_one_initial_level_set_specifier(const input_parser::level_set_topology& aInput)
+    -> std::optional<std::string>;
 
 /// @brief Validates that the mesh in 'mesh_name' is a tet or tri mesh
 [[nodiscard]] auto validate_mesh_is_tet_or_tri(const input_parser::level_set_topology& aInput)

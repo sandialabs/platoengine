@@ -1,10 +1,15 @@
 #include "plato/mesh/MeshFieldWriter.hpp"
 
+#include <filesystem>
+#include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>
+#include <string_view>
+#include <utility>
 
-#include "plato/analysis/AnalysisDomainMeshRandomAccessView.hpp"
 #include "plato/mesh/EntityCounts.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshFieldOutputUtilities.hpp"
+#include "plato/mesh/MeshOutput.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 
 namespace plato::mesh
@@ -46,11 +51,11 @@ void MeshFieldWriter::addFieldFromAnalysisDomainMesh(const analysis::AnalysisDom
                                                      const std::string_view aFieldName,
                                                      const double aFixedValue)
 {
-    initialize_field(*mMeshIOBroker, EntityCounts{*this}, aAnalysisDomainMesh, aFieldName);
+    const auto tMeshEntityCounts = EntityCounts{copy_as_mesh(*this)};
+    initialize_field(*mMeshIOBroker, tMeshEntityCounts, aAnalysisDomainMesh, aFieldName);
 
-    MeshFieldType tFieldType = EntityCounts{*this}.areElementDesignVariables(aAnalysisDomainMesh)
-                                   ? MeshFieldType::kElement
-                                   : MeshFieldType::kNode;
+    const auto tFieldType = tMeshEntityCounts.areElementDesignVariables(aAnalysisDomainMesh) ? MeshFieldType::kElement
+                                                                                             : MeshFieldType::kNode;
 
     update_output_field(*mMeshIOBroker, mFileHandle, tFieldType, aFieldName, aAnalysisDomainMesh, aFixedValue);
 }

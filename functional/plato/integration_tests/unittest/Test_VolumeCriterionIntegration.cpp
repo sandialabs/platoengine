@@ -1,23 +1,29 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/RandomPerturbationVector.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/test_utilities/GradientChecker.hpp"
-#include "plato/test_utilities/RandomPerturbationVector.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 
 namespace plato::integration_tests::unittest
 {
 TEST(VolumeCriterionIntegration, BrickShapeGeometry)
 {
-    constexpr auto tX = double{2.0};
-    constexpr auto tY = double{4.0};
-    constexpr auto tZ = double{6.0};
-    constexpr auto tCenter = double{0.0};
+    constexpr auto tX = 2.0;
+    constexpr auto tY = 4.0;
+    constexpr auto tZ = 6.0;
+    constexpr auto tCenter = 0.0;
     const auto tControls = linear_algebra::DynamicVector<double>{tCenter, tCenter, tCenter, tX, tY, tZ};
 
     const auto tVolumeObjective = input_parser::objective{/*.name=*/std::string{"volume_criterion"},
@@ -47,7 +53,7 @@ TEST(VolumeCriterionIntegration, BrickShapeGeometry)
     EXPECT_DOUBLE_EQ(tResult, 48);
 
     // check volume gradient
-    const auto tChecker = plato::test_utilities::GradientChecker{
+    const auto tChecker = plato::utilities::GradientChecker{
         [&tComposedObjective](const linear_algebra::DynamicVector<double>& aControls)
         { return tComposedObjective.evaluate<core::evaluation::kFunction>(aControls); },
         [&tComposedObjective](const linear_algebra::DynamicVector<double>& aControls,
@@ -57,11 +63,12 @@ TEST(VolumeCriterionIntegration, BrickShapeGeometry)
             return tGradient.dot(aDirection);
         }};
 
-    auto tRandomEngine = std::default_random_engine{123};
-    const auto tDirection = test_utilities::random_perturbation_vector(tControls.size(), tRandomEngine);
+    constexpr auto tRandomSeed = 123;
+    auto tRandomEngine = std::default_random_engine{tRandomSeed};  // NOLINT(cert-msc32-c,cert-msc51-cpp)
+    const auto tDirection = linear_algebra::random_perturbation_vector(tControls.size(), tRandomEngine);
 
     const auto tGradientCheckParameters =
-        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
+        plato::utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
     constexpr auto tFirstOrderTruncationErrorTolerance = 5e-2;
 
     EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(tControls, tDirection, tGradientCheckParameters), 0.0,

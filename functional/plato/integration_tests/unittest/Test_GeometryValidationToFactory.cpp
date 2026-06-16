@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
@@ -32,7 +35,7 @@ TEST(GeometryFactory, ValidTopology)
 
     const auto tMeshFileName = std::filesystem::path{tGeometryInput.mesh_name.value().mToken};
     const auto tCommandGenerator = third_party_integration::stk_io::CommandGenerator{
-        {3, 3, 4}, {-1, -2, -1}, {2, 1, 2}, third_party_integration::stk_io::CommandElementType::Hex};
+        {3, 3, 4}, {-1, -2, -1}, {2, 1, 2}, third_party_integration::stk_io::CommandElementType::kHex};
     third_party_integration::stk_io::write_mesh(tMeshFileName, tCommandGenerator);
 
     const auto tData = input_validation::make_validated_input(tInput);

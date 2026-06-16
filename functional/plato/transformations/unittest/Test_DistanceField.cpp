@@ -1,15 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <numeric>
 #include <ranges>
+#include <vector>
 
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 #include "plato/transformations/DistanceField.hpp"
-#include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/NamedType.hpp"
 
 namespace plato::transformations::unittest
@@ -162,15 +164,7 @@ TEST_F(DistanceFieldHexMeshTest, RowVectorAdjointJacobianMultiplicationDistanceF
             analysis::AnalysisDomainMesh{.mFileName = mMeshFilePath, .mBlockScalarField = {}}, tBuildPlane);
 
         const auto tNodalCoordinates = mesh::EntityRetrieval{mesh::Mesh{mMeshFilePath}}.nodalCoordinates();
-
-        auto tFlattenedCoordinatesView =
-            tNodalCoordinates |
-            std::views::transform([](const auto& aCoordinate)
-                                  { return std::array{aCoordinate.x, aCoordinate.y, aCoordinate.z}; }) |
-            std::views::join | std::views::common;
-
-        const auto tFlattenedCoordinates =
-            std::vector(tFlattenedCoordinatesView.begin(), tFlattenedCoordinatesView.end());
+        const auto tFlattenedCoordinates = third_party_integration::common::flatten(tNodalCoordinates);
 
         const auto tVectorAdjointJacobianResult = row_vector_adjoint_jacobian_multiplication_distance_field(
             tFlattenedCoordinates, tMeshWithDistanceField, tBuildPlane);

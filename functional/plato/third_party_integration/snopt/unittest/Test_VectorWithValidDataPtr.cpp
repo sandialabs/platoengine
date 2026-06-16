@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/VectorWithValidDataPtr.hpp"
 
@@ -30,24 +32,25 @@ TEST(VectorWithValidDataPtr, ConstructionWithSize)
         EXPECT_NE(tVector.data(), nullptr) << aTestContext;
     };
     tCheckSizeAndDataPtr(0U, TEST_CONTEXT("Construction with zero size"));
-    tCheckSizeAndDataPtr(42U, TEST_CONTEXT("Construction with non-zero size"));
+    constexpr auto tArbitrarySize = 42U;
+    tCheckSizeAndDataPtr(tArbitrarySize, TEST_CONTEXT("Construction with non-zero size"));
 }
 
 TEST(VectorWithValidDataPtr, PushBack)
 {
     auto tVector = VectorWithValidDataPtr<int>{};
-    constexpr auto tEntry = int{42};
+    constexpr auto tEntry = 42;
     tVector.pushBack(tEntry);
 
     EXPECT_EQ(tVector.size(), 1U);
     ASSERT_NE(tVector.data(), nullptr);
-    EXPECT_EQ(tVector.data()[0], tEntry);
+    EXPECT_EQ(*tVector.data(), tEntry);
 }
 
 TEST(VectorWithValidDataPtr, EntryAccessor)
 {
     auto tVector = VectorWithValidDataPtr<int>{};
-    constexpr auto tEntry = int{42};
+    constexpr auto tEntry = 42;
     tVector.pushBack(tEntry);
     tVector.pushBack(2 * tEntry);
 

@@ -12,7 +12,7 @@ namespace plato::utilities
 /// and will be 16 hexadecimal digits.
 /// @note If @a aBasePath does not contain a filename (as specified by `std::filesystem::path::has_filename`)
 /// then the path is returned without change.
-std::filesystem::path make_filename_unique(std::filesystem::path aBasePath);
+auto make_filename_unique(std::filesystem::path aBasePath) -> std::filesystem::path;
 
 }  // namespace plato::utilities
 

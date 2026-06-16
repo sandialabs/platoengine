@@ -32,12 +32,14 @@ class DataSingleton
 
     void reset();
 
-   private:
-    DataSingleton() = default;
-    DataSingleton &operator=(const DataSingleton &) = delete;
-    DataSingleton &operator=(DataSingleton &&) = delete;
+    ~DataSingleton() = default;
+    auto operator=(const DataSingleton&) -> DataSingleton& = delete;
+    auto operator=(DataSingleton&&) -> DataSingleton& = delete;
     DataSingleton(const DataSingleton &) = delete;
     DataSingleton(DataSingleton &&) = delete;
+
+   private:
+    DataSingleton() = default;
 
     std::optional<T> mData;
 };
@@ -45,8 +47,8 @@ class DataSingleton
 template <typename T, typename Tag>
 auto DataSingleton<T, Tag>::instance() -> DataSingleton<T, Tag> &
 {
-    static DataSingleton sInstance;
-    return sInstance;
+    static DataSingleton tInstance;
+    return tInstance;
 }
 
 template <typename T, typename Tag>

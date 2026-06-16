@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/components/ComponentTypeColors.hpp"
 #include "plato/utilities/EnumIndexing.hpp"
 #include "plato/utilities/MultidimensionalRange.hpp"

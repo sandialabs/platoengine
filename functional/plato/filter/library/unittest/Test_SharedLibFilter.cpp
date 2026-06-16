@@ -1,10 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <filesystem>
+#include <memory>
+#include <string_view>
+#include <vector>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
-#include "plato/filter/library/FilterFactory.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::filter::extension::unittest

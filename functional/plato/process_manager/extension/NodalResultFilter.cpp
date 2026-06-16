@@ -1,20 +1,36 @@
 #include "plato/process_manager/extension/NodalResultFilter.hpp"
 
+#include <boost/mpi/communicator.hpp>
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <utility>
+
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/FixedBlockUtilities.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
+#include "plato/mesh/MeshOutput.hpp"
+#include "plato/process_manager/extension/CommonInputValidation.hpp"
 #include "plato/process_manager/library/ProcessManagerLogger.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
+#include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/services/SystemLogger.hpp"
-#include "plato/services/TaskLogSetupTeardown.hpp"
 #include "plato/utilities/FileUtilities.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -32,20 +48,18 @@ constexpr auto kRootRank = 0;
             [aValidInput](const library::ProcessManagerData&) { NodalResultFilter{aValidInput}.run(); }};
 }
 
-[[maybe_unused]] static const auto kElementToNodeParserRegistration =
+[[maybe_unused]] const auto kElementToNodeParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::nodal_result_filter>{};
 
-[[maybe_unused]] static const auto kElementToNodeProcessManagerRegistration =
+[[maybe_unused]] const auto kElementToNodeProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::nodal_result_filter>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_nodal_result_filter_process_manager(aValidInput); }};
 
-[[maybe_unused]] static const auto kElementToNodeValidationRegistration =
-    input_validation::InputBlockValidationRegistration<>{
-        [](const input_parser::nodal_result_filter& aInput)
-        { return detail::validate_filter_is_kernel_filter(aInput); },
-        [](const input_parser::nodal_result_filter& aInput)
-        { return detail::validate_geometry_is_density_topology(aInput); }};
+[[maybe_unused]] const auto kElementToNodeValidationRegistration = input_validation::InputBlockValidationRegistration<>{
+    [](const input_parser::nodal_result_filter& aInput) { return detail::validate_filter_is_kernel_filter(aInput); },
+    [](const input_parser::nodal_result_filter& aInput)
+    { return detail::validate_geometry_is_density_topology(aInput); }};
 
 [[nodiscard]] auto filter_input(const library::ValidatedProcessManagerInput& aInput)
     -> const input_parser::kernel_filter&
@@ -57,7 +71,8 @@ constexpr auto kRootRank = 0;
 [[nodiscard]] auto mesh_input_path(const library::ValidatedProcessManagerInput& aInput) -> std::filesystem::path
 {
     const auto tElementToNodeFilterInput = input_validation::get_input_block<input_parser::nodal_result_filter>(aInput);
-    return tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>().output_name->mToken;
+    return geometry::extension::restart_file_name(
+        tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>());
 }
 
 [[nodiscard]] auto mesh_output_path(const library::ValidatedProcessManagerInput& aInput) -> std::filesystem::path
@@ -67,7 +82,8 @@ constexpr auto kRootRank = 0;
     {
         return tElementToNodeFilterInput.output_file_name->mToken;
     }
-    return tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>().output_name->mToken;
+    return geometry::extension::restart_file_name(
+        tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>());
 }
 
 [[nodiscard]] auto fixed_blocks(const library::ValidatedProcessManagerInput& aInput) -> std::set<std::string>
@@ -76,17 +92,17 @@ constexpr auto kRootRank = 0;
     return mesh::fixed_blocks(tElementToNodeFilterInput.geometry->mInputBlock.get<input_parser::density_topology>());
 }
 
-/// @brief Splits @a aComm into one or two groups.
+/// @brief Splits @a aCommunicator into one or two groups.
 ///
 /// If @a aNumberOfProcessors is equal to the number of ranks on comm world, then all ranks are allocated to the same
 /// group. If it is smaller, then two groups are formed, one with @a aNumberOfProcessors and one with the remainder.
-[[nodiscard]] auto split_comm(const unsigned int aNumberOfProcessors, const boost::mpi::communicator& aComm)
+[[nodiscard]] auto split_comm(const unsigned int aNumberOfProcessors, const boost::mpi::communicator& aCommunicator)
     -> std::pair<boost::mpi::communicator, utilities::ColorType>
 {
-    const auto tCommunicatorSize = aComm.size();
+    const auto tCommunicatorSize = aCommunicator.size();
     const auto tGroupColor = utilities::rank_group_color({aNumberOfProcessors, tCommunicatorSize - aNumberOfProcessors},
-                                                         utilities::RankNamedType{aComm.rank()});
-    return {aComm.split(tGroupColor.mValue), tGroupColor.mValue};
+                                                         utilities::RankNamedType{aCommunicator.rank()});
+    return {aCommunicator.split(tGroupColor.mValue), tGroupColor.mValue};
 }
 
 auto make_mesh_writer(const mesh::OutputMode aOutputMode,
@@ -106,7 +122,7 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
                                   const filter::extension::kernel_filters::KernelFilter& aFilter,
                                   const std::filesystem::path& aOutputMeshPath,
                                   const std::set<std::string>& aFixedBlocks,
-                                  const boost::mpi::communicator& aComm)
+                                  const boost::mpi::communicator& aCommunicator)
 {
     const auto tTimeSteps = mesh::EntityCounts{aMesh}.timeSteps();
     const auto tTemporaryOutputPath = utilities::make_filename_unique(aOutputMeshPath);
@@ -117,7 +133,7 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
         const auto tFieldAnalysisMesh = mesh::DesignVariablesConversion{aMesh}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tNodalFieldToFilter});
         const auto tFilteredField = aFilter.filter(tFieldAnalysisMesh);
-        if (aComm.rank() == kRootRank)
+        if (aCommunicator.rank() == kRootRank)
         {
             constexpr auto tFixedValue = geometry::extension::density_fixed_value();
             const auto tMode =
@@ -125,14 +141,14 @@ void write_nodal_filtered_results(const mesh::Mesh& aMesh,
 
             const auto tWriter = make_mesh_writer(tMode, aMesh, tTemporaryOutputPath, aFixedBlocks, tTimeStep);
 
-            tWriter->addFieldFromAnalysisDomainMesh(tFilteredField, NodalResultFilter::field_name(), tFixedValue);
+            tWriter->addFieldFromAnalysisDomainMesh(tFilteredField, NodalResultFilter::fieldName(), tFixedValue);
 
             tWriter->addFieldFromAnalysisDomainMesh(tFieldAnalysisMesh, geometry::extension::density_mesh_field_name(),
                                                     tFixedValue);
         }
-        aComm.barrier();
+        aCommunicator.barrier();
     }
-    if (aComm.rank() == kRootRank)
+    if (aCommunicator.rank() == kRootRank)
     {
         std::filesystem::copy_file(tTemporaryOutputPath, aOutputMeshPath,
                                    std::filesystem::copy_options::overwrite_existing);
@@ -179,19 +195,21 @@ void NodalResultFilter::run() const
     }
 }
 
-auto NodalResultFilter::field_name() -> std::string_view { return "nodal_filtered_result"; }
+auto NodalResultFilter::fieldName() -> std::string_view { return "nodal_filtered_result"; }
 
 namespace detail
 {
 auto validate_filter_is_kernel_filter(const input_parser::nodal_result_filter& aInput) -> std::optional<std::string>
 {
-    return validate_expected_cross_reference_type<input_parser::kernel_filter>(aInput.filter);
+    return validate_expected_cross_reference_type<input_parser::kernel_filter>(
+        aInput.filter, input_parser::block_name<input_parser::nodal_result_filter>());
 }
 
 auto validate_geometry_is_density_topology(const input_parser::nodal_result_filter& aInput)
     -> std::optional<std::string>
 {
-    return validate_expected_cross_reference_type<input_parser::density_topology>(aInput.geometry);
+    return validate_expected_cross_reference_type<input_parser::density_topology>(
+        aInput.geometry, input_parser::block_name<input_parser::nodal_result_filter>());
 }
 
 }  // namespace detail

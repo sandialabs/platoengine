@@ -6,7 +6,7 @@
 
 namespace plato::third_party_integration::stk_io
 {
-std::string CommandGenerator::toString() const
+auto CommandGenerator::toString() const -> std::string
 {
     std::stringstream tStringStream;
     tStringStream << "generated:";
@@ -14,7 +14,7 @@ std::string CommandGenerator::toString() const
     tStringStream << mElements.mX << "x" << mElements.mY << "x" << mElements.mZ;
     tStringStream << "|bbox:" << mLowerBounds.x << "," << mLowerBounds.y << "," << mLowerBounds.z << ",";
     tStringStream << mUpperBounds.x << "," << mUpperBounds.y << "," << mUpperBounds.z;
-    if (mType == CommandElementType::Tet)
+    if (mType == CommandElementType::kTet)
     {
         tStringStream << "|tets";
     }
@@ -23,32 +23,30 @@ std::string CommandGenerator::toString() const
     return tStringStream.str();
 }
 
-double CommandGenerator::volume() const
+auto CommandGenerator::volume() const -> double
 {
     return (mUpperBounds.x - mLowerBounds.x) * (mUpperBounds.y - mLowerBounds.y) * (mUpperBounds.z - mLowerBounds.z);
 }
 
-unsigned int CommandGenerator::numberOfElements() const
+auto CommandGenerator::numberOfElements() const -> unsigned int
 {
     const unsigned int tHexTotalElements = mElements.mX * mElements.mY * mElements.mZ;
     constexpr unsigned int tTetsPerHex = 6;
 
-    if (mType == CommandElementType::Hex)
+    if (mType == CommandElementType::kHex)
     {
         return tHexTotalElements;
     }
-    else
-    {
-        return tHexTotalElements * tTetsPerHex;
-    }
+
+    return tHexTotalElements * tTetsPerHex;
 }
 
-unsigned int CommandGenerator::numberOfNodes() const
+auto CommandGenerator::numberOfNodes() const -> unsigned int
 {
     return (mElements.mX + 1) * (mElements.mY + 1) * (mElements.mZ + 1);
 }
 
-std::string CommandGenerator::nodesetString() const
+auto CommandGenerator::nodesetString() const -> std::string
 {
     const std::string tString = detail::xyz_boundary_string(mNodeset);
     if (!tString.empty())
@@ -58,7 +56,7 @@ std::string CommandGenerator::nodesetString() const
     return {};
 }
 
-std::string CommandGenerator::sidesetString() const
+auto CommandGenerator::sidesetString() const -> std::string
 {
     const std::string tString = detail::xyz_boundary_string(mSideset);
     if (!tString.empty())
@@ -70,7 +68,7 @@ std::string CommandGenerator::sidesetString() const
 
 namespace detail
 {
-std::string xyz_boundary_string(const NodeSetSideSetIdentifiers& aNodeSetSideSetIdentifiers)
+auto xyz_boundary_string(const NodeSetSideSetIdentifiers& aNodeSetSideSetIdentifiers) -> std::string
 {
     return std::string(aNodeSetSideSetIdentifiers.mLowerX.mValue ? "x" : "") +
            std::string(aNodeSetSideSetIdentifiers.mUpperX.mValue ? "X" : "") +

@@ -2,7 +2,10 @@
 
 #include <cstdint>
 #include <iterator>
+#include <map>
+#include <vector>
 
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/utilities/TransformIf.hpp"
 

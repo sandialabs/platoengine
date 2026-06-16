@@ -29,7 +29,7 @@ class InitialGeometryWriter
 
     /// @brief calls the output function for the geometry stored in @a aProcessManagerData using the geometry's initial
     /// guess.
-    void run(const library::ProcessManagerData& aProcessManagerData) const;
+    static void run(const library::ProcessManagerData& aProcessManagerData);
 };
 
 }  // namespace plato::process_manager::extension

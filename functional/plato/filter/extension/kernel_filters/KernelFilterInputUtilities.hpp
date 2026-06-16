@@ -65,8 +65,8 @@ namespace detail
     -> std::vector<int>;
 
 ///@brief Function that checks the search results @a aSearchResults to make sure it has all of the ids up to @a aSize
-[[nodiscard]] auto search_results_contain_all_row_ids(const std::vector<int>& aSearchResultIDs,
-                                                      const std::size_t aSize) -> bool;
+[[nodiscard]] auto search_results_contain_all_row_ids(const std::vector<int>& aSearchResults, std::size_t aSize)
+    -> bool;
 }  // namespace detail
 
 template <typename InputParserType>
@@ -111,10 +111,8 @@ auto validate_target_mesh_with_filter_radius(const InputParserType& aInput) -> s
         return extension::detail::validate_filter_radius_with_mesh<InputParserType>(
             aInput, aInput.target_mesh_name.value().mToken);
     }
-    else
-    {
-        return std::nullopt;  // not our error
-    }
+
+    return std::nullopt;  // not our error
 }
 
 template <typename InputParserType>

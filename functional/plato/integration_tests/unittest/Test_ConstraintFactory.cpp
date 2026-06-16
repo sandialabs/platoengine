@@ -1,8 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
@@ -76,14 +82,18 @@ TEST_F(ConstraintFactoryTestFixture, ValidVectorConstraint)
     auto tInputBase = parsedInput();
     tInputBase.template get<components::ComponentType::kConstraint>().clear();
 
+    constexpr auto tArbitraryCGXTarget = 42.0;
+    constexpr auto tArbitraryCGZTarget = 43.0;
     auto tConstraintInput = criteria::library::test_utilities::create_valid_example_constraint_input();
     tConstraintInput.app = tAppName;
     tConstraintInput.criterion = input_parser::CriterionName{"mass-properties"};
     tConstraintInput.constraint_type = input_parser::ConstraintTypes::kEqualTo;
     tConstraintInput.constraint_value = boost::none;
     tConstraintInput.constraint_value_list = criteria::library::ConstraintValueList{
-        {input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_x"}, /*.target=*/42.0},
-         input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_z"}, /*.target=*/43.0}}};
+        {input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_x"},
+                                          /*.target=*/tArbitraryCGXTarget},
+         input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_z"},
+                                          /*.target=*/tArbitraryCGZTarget}}};
 
     auto tRawInput = tInputBase | tConstraintInput;
     test_constraint_type_and_value(first_constraint(tRawInput), criteria::library::ConstraintType::kEqualTo,

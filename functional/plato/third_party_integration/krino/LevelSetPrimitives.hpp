@@ -23,15 +23,15 @@ struct Sphere
 
 struct SphereCounts
 {
-    unsigned int mX;
-    unsigned int mY;
-    unsigned int mZ;
+    unsigned int mX{};
+    unsigned int mY{};
+    unsigned int mZ{};
 };
 
 struct SphereLocatorData
 {
     common::Coordinate mSpherePatternStart;
-    SphereCounts mSphereCounts;
+    SphereCounts mSphereCounts{};
 };
 
 struct SpherePatternData

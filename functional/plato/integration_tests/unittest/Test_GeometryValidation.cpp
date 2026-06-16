@@ -1,11 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/filter/extension/HelmholtzFilter.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/CrossLinkedInput.hpp"
+#include "plato/input_parser/CrossReference.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
-#include "plato/integration_tests/utilities/InputGeneration.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 

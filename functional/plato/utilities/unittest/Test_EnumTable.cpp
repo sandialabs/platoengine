@@ -1,12 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
+
 #include "plato/utilities/EnumTable.hpp"
 
 namespace plato::utilities::unittest
 {
 namespace
 {
-enum class TestEnum
+enum class TestEnum : std::uint8_t
 {
     kInky,
     kPinky,

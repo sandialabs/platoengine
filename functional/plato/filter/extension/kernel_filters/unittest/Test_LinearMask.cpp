@@ -1,7 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "plato/filter/extension/kernel_filters/LinearMask.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/LinearMaskTestUtility.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::filter::extension::kernel_filters::unittest
 {
@@ -17,7 +20,7 @@ TEST(LinearMask, SerialApply)
 
     {
         const auto tResult = tLinearMask.matrixMultiply(tProjection);
-        ASSERT_EQ(tResult.size(), 4u);
+        ASSERT_EQ(tResult.size(), 4U);
         EXPECT_DOUBLE_EQ(tResult[0], 10.0 / 3.0);
         EXPECT_DOUBLE_EQ(tResult[1], 3.75);
         EXPECT_DOUBLE_EQ(tResult[2], 3.75);
@@ -25,7 +28,7 @@ TEST(LinearMask, SerialApply)
     }
     {
         const auto tResult = tLinearMask.transposeMatrixMultiply(tProjection);
-        ASSERT_EQ(tResult.size(), 4u);
+        ASSERT_EQ(tResult.size(), 4U);
         EXPECT_DOUBLE_EQ(tResult[0], 3);
         EXPECT_DOUBLE_EQ(tResult[1], 4);
         EXPECT_DOUBLE_EQ(tResult[2], 4);
@@ -49,7 +52,7 @@ TEST(LinearMask, SerialApplyGivenCentroid)
     {
         const std::vector<double> tProjection{1, 0, 0, 0};
         const auto tResult = tLinearMask.matrixMultiply(tProjection);
-        ASSERT_EQ(tResult.size(), 2u);
+        ASSERT_EQ(tResult.size(), 2U);
         EXPECT_DOUBLE_EQ(tResult[0], 0.25);
         EXPECT_DOUBLE_EQ(tResult[1], 0.);
     }
@@ -58,7 +61,7 @@ TEST(LinearMask, SerialApplyGivenCentroid)
         const std::vector<double> tDensities{.5, 1, .2, .1};
         const auto tResult = tLinearMask.matrixMultiply(tDensities);
 
-        ASSERT_EQ(tResult.size(), 2u);
+        ASSERT_EQ(tResult.size(), 2U);
 
         EXPECT_DOUBLE_EQ(tResult[0], 0.675);
         EXPECT_DOUBLE_EQ(tResult[1], 0.375);
@@ -67,7 +70,7 @@ TEST(LinearMask, SerialApplyGivenCentroid)
         const std::vector<double> tSensitivities{.5, .6};
         const auto tResult = tLinearMask.transposeMatrixMultiply(tSensitivities);
 
-        ASSERT_EQ(tResult.size(), 4u);
+        ASSERT_EQ(tResult.size(), 4U);
 
         EXPECT_DOUBLE_EQ(tResult[0], 1.0 / 8.0);
         EXPECT_DOUBLE_EQ(tResult[1], 2.0 / 5.0);

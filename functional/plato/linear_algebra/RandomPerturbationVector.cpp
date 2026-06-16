@@ -1,14 +1,18 @@
-#include "plato/test_utilities/RandomPerturbationVector.hpp"
+#include "plato/linear_algebra/RandomPerturbationVector.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstdlib>
+#include <iterator>
 #include <random>
+#include <utility>
+#include <vector>
 
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 
-namespace plato::test_utilities
+namespace plato::linear_algebra
 {
 auto random_perturbation_vector(const std::size_t aSize) -> linear_algebra::DynamicVector<double>
 {
@@ -33,4 +37,4 @@ auto random_perturbation_vector(const std::size_t aSize, std::default_random_eng
 
     return tRandomVector;
 }
-}  // namespace plato::test_utilities
+}  // namespace plato::linear_algebra

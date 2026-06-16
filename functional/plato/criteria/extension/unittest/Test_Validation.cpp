@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionValidation.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::criteria::extension::unittest
@@ -16,7 +19,7 @@ void check_validation_app(const test_utilities::TestContext& aTestContext)
 {
     Criteria tCriteria;
     tCriteria.app = input_parser::AppName{std::string{input_parser::kBuiltinAppName}};
-    tCriteria.criterion = input_parser::CriterionName{std::string{NodalSumObjective::kCriterionName}};
+    tCriteria.criterion = input_parser::CriterionName{std::string{NodalSumObjective::mCriterionName}};
     EXPECT_FALSE(library::detail::validate_criterion_is_registered(tCriteria).has_value()) << aTestContext;
 
     tCriteria.app = boost::none;

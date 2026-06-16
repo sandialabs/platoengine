@@ -1,12 +1,19 @@
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 
-#include <mpi.h>
+#include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <stk_mesh/base/Types.hpp>
+#include <vector>
 
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
+#include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 #include "plato/utilities/Zip.hpp"
 

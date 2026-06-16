@@ -1,10 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <filesystem>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/filter/extension/IdentityFilter.hpp"
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
-#include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/library/FilterJacobian.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
-#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
@@ -21,7 +27,7 @@ const auto kTestOutputPath = std::filesystem::path{"test-result.exo"};
 class OutputUtilitiesTest : public third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh
 {
    public:
-    [[nodiscard]] auto solution_vector() -> linear_algebra::DynamicVector<double>
+    [[nodiscard]] auto solutionVector()
     {
         constexpr auto tFieldValue = 0.25;
         return linear_algebra::DynamicVector<double>(mCommandGenerator.numberOfNodes(), tFieldValue);
@@ -60,7 +66,7 @@ constexpr auto kFilteredFieldName = std::string_view{"filtered"};
 
 TEST_F(OutputUtilitiesTest, OutputUnfilteredNodalField)
 {
-    const auto tSolution = solution_vector();
+    const auto tSolution = solutionVector();
     const auto tAnalysisDomainMesh =
         mesh::DesignVariablesConversion{mesh::Mesh{mMeshFilePath}}.nodalFieldToAnalysisDomainMesh(
             mesh::NodalFieldVectorReference{tSolution.stdVector()});
@@ -74,7 +80,7 @@ TEST_F(OutputUtilitiesTest, OutputUnfilteredNodalField)
 
 TEST_F(OutputUtilitiesTest, OutputFilteredField)
 {
-    const auto tSolution = solution_vector();
+    const auto tSolution = solutionVector();
     constexpr auto tFilteredFieldValue = 0.5;
     const auto tFilterFunction = constant_value_filter_function(tFilteredFieldValue);
     const auto tAnalysisDomainMesh =

@@ -29,11 +29,12 @@ option( UNIT_TESTING  "Flag to turn on unit testing"                       OFF )
 option( WARNINGS_AS_ERRORS "Builds platoengine with warnings as errors"    OFF )
 option( BUILD_WITH_CLANG_TIDY "Builds platoengine with clang-tidy"         OFF )
 option( BUILD_WITH_SANITIZER_FLAGS "Builds platoengine with sanitizers"    OFF )
+option( CLANG_TIDY_FIX_ERRORS "Adds the -fix flag to clang-tidy"           OFF )
 
 ###############################################################################
 ###############################################################################
 
-project(PlatoEngine LANGUAGES CXX C)
+project(PlatoEngine VERSION 2.1.0 LANGUAGES CXX C)
 
 find_package(MPI REQUIRED COMPONENTS CXX)
 

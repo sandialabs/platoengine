@@ -1,5 +1,13 @@
 #include "plato/analysis/AnalysisDomainMeshSequentialViewIterator.hpp"
 
+#include <algorithm>
+#include <iterator>
+#include <optional>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/utilities/Zip.hpp"
+
 namespace plato::analysis
 {
 template <typename InnerIteratorType, typename IteratorCategory>
@@ -8,29 +16,30 @@ auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategor
 {
     const auto tValues = detail::dereference_all(mCurrentIterators, mEndIterators);
     const auto tMinIDIterator = detail::min_id_iterator(tValues);
-    if (tMinIDIterator != tValues.cend() && tMinIDIterator->has_value())
+    if (tMinIDIterator == tValues.cend() || !tMinIDIterator->has_value())
     {
-        const auto tMinGlobalID = tMinIDIterator->value().mGlobalMeshEntityID;  // NOLINT
-        for (const auto& [tCurrentIterator, tEndIterator] : utilities::Zip{mCurrentIterators, mEndIterators})
+        return *this;
+    }
+    const auto tMinGlobalID = tMinIDIterator->value().mGlobalMeshEntityID;  // NOLINT
+    for (const auto& [tCurrentIterator, tEndIterator] : utilities::Zip{mCurrentIterators, mEndIterators})
+    {
+        if (tCurrentIterator != tEndIterator && tCurrentIterator->mGlobalMeshEntityID == tMinGlobalID)
         {
-            if (tCurrentIterator != tEndIterator && tCurrentIterator->mGlobalMeshEntityID == tMinGlobalID)
-            {
-                ++tCurrentIterator;
-            }
+            ++tCurrentIterator;
         }
     }
     return *this;
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
-auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator*() const -> const reference
+auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator*() const -> reference
 {
     return detail::dereferenced_proxy(mCurrentIterators, mEndIterators);
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
-bool AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator==(
-    const AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const
+auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator==(
+    const AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const -> bool
 {
     auto tAllEqual = true;
     for (const auto& [tLeftIterator, tRightIterator] :
@@ -42,8 +51,8 @@ bool AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategor
 }
 
 template <typename InnerIteratorType, typename IteratorCategory>
-bool AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator!=(
-    const AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const
+auto AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>::operator!=(
+    const AnalysisDomainMeshSequentialViewIterator<InnerIteratorType, IteratorCategory>& aRHSIterator) const -> bool
 {
     return !(*this == aRHSIterator);
 }
@@ -54,13 +63,13 @@ auto min_id_iterator(const std::vector<std::optional<ScalarFieldValue>>& aScalar
     typename std::vector<std::optional<ScalarFieldValue>>::const_iterator
 {
     return std::min_element(aScalarField.cbegin(), aScalarField.cend(),
-                            [](const auto& tLeftValue, const auto& tRightValue)
+                            [](const auto& aLeftValue, const auto& aRightValue)
                             {
-                                if (tLeftValue && tRightValue)
+                                if (aLeftValue && aRightValue)
                                 {
-                                    return tLeftValue->mGlobalMeshEntityID < tRightValue->mGlobalMeshEntityID;
+                                    return aLeftValue->mGlobalMeshEntityID < aRightValue->mGlobalMeshEntityID;
                                 }
-                                return tLeftValue.has_value();
+                                return aLeftValue.has_value();
                             });
 }
 

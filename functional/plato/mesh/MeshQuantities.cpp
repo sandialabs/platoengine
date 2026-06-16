@@ -1,18 +1,24 @@
 #include "plato/mesh/MeshQuantities.hpp"
 
+#include <algorithm>
+#include <iterator>
+#include <set>
+#include <string>
+#include <utility>
 #include <vector>
 
+#include "plato/mesh/Mesh.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
 #include "plato/third_party_integration/stk_io/VolumeUtilities.hpp"
-#include "plato/utilities/Exception.hpp"
 
 namespace plato::mesh
 {
 namespace
 {
-std::vector<double> element_volumes(const Mesh::PartReferenceVector& aPartVector, const stk::mesh::BulkData& aBulkData)
+auto element_volumes(const Mesh::PartReferenceVector& aPartVector, const stk::mesh::BulkData& aBulkData)
+    -> std::vector<double>
 {
     namespace tpi = third_party_integration;
 
@@ -31,7 +37,7 @@ std::vector<double> element_volumes(const Mesh::PartReferenceVector& aPartVector
 
 MeshQuantities::MeshQuantities(Mesh aMeshBase) : Mesh{std::move(aMeshBase)} {}
 
-double MeshQuantities::volume() const { return third_party_integration::stk_io::mesh_volume(bulkData()); }
+auto MeshQuantities::volume() const -> double { return third_party_integration::stk_io::mesh_volume(bulkData()); }
 
 auto MeshQuantities::volumeNodalSensitivities(const std::set<std::string>& aBlockNames) const
     -> std::vector<third_party_integration::common::Vector3>
@@ -39,23 +45,24 @@ auto MeshQuantities::volumeNodalSensitivities(const std::set<std::string>& aBloc
     return third_party_integration::stk_io::volume_nodal_sensitivities(bulkData(), specifiedDomainBlocks(aBlockNames));
 }
 
-double MeshQuantities::averageNodalDensity() const
+auto MeshQuantities::averageNodalDensity() const -> double
 {
     const auto tTotalNumberOfNodes = third_party_integration::stk_io::node_size(bulkData());
     return static_cast<double>(tTotalNumberOfNodes) / volume();
 }
 
-std::vector<double> MeshQuantities::fixedDomainElementVolumes() const
+auto MeshQuantities::fixedDomainElementVolumes() const -> std::vector<double>
 {
     return element_volumes(fixedDomainBlocks(), bulkData());
 }
 
-std::vector<double> MeshQuantities::designDomainElementVolumes() const
+auto MeshQuantities::designDomainElementVolumes() const -> std::vector<double>
 {
     return element_volumes(designDomainBlocks(), bulkData());
 }
 
-std::vector<double> MeshQuantities::specifiedDomainElementVolumes(const std::set<std::string>& aBlockNames) const
+auto MeshQuantities::specifiedDomainElementVolumes(const std::set<std::string>& aBlockNames) const
+    -> std::vector<double>
 {
     return element_volumes(specifiedDomainBlocks(aBlockNames), bulkData());
 }

@@ -1,25 +1,26 @@
 
 #include "plato/filter/extension/kernel_filters/CylindricalMaskUtilities.hpp"
 
-#include <boost/math/constants/constants.hpp>
+#include <algorithm>
+#include <boost/mpi/communicator.hpp>
 #include <cmath>
+#include <iterator>
 #include <ranges>
+#include <vector>
 
-#include "plato/mesh/EntityCounts.hpp"
-#include "plato/mesh/EntityRetrieval.hpp"
+#include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 
-namespace plato::filter::extension::kernel_filters
+namespace plato::filter::extension::kernel_filters::detail
 {
 
-namespace detail
-{
-
-double cylinder_ramp_weight(const CylinderCenter& aCylinderCenter,
-                            const CylinderAxis& aCylinderAxis,
-                            const CylinderRadius aCylinderRadius,
-                            const QueryLocation& aQueryLocation)
+auto cylinder_ramp_weight(const CylinderCenter& aCylinderCenter,
+                          const CylinderAxis& aCylinderAxis,
+                          const CylinderRadius aCylinderRadius,
+                          const QueryLocation& aQueryLocation) -> double
 {
     namespace tpic = third_party_integration::common;
     const auto tDistance =
@@ -97,5 +98,4 @@ auto cylindrical_polar_coordinates(const std::vector<third_party_integration::co
     return CylindricalPolarCoordinates{tPolarCoordinates};
 }
 
-}  // namespace detail
-}  // namespace plato::filter::extension::kernel_filters
+}  // namespace plato::filter::extension::kernel_filters::detail

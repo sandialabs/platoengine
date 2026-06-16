@@ -1,6 +1,7 @@
 #ifndef PLATO_THIRDPARTYINTEGRATION_STKIO_WRITEUTILITIES
 #define PLATO_THIRDPARTYINTEGRATION_STKIO_WRITEUTILITIES
 
+#include <boost/mpi/communicator.hpp>
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -33,7 +34,8 @@ void write_mesh(const std::filesystem::path& aMeshName, const CommandGenerator& 
 void write_mesh(const std::filesystem::path& aMeshName, std::string_view aMeshDescription);
 
 /// @brief Use a STK @a aGenerationCommand, e.g., "generated:1x1x1" to create and return a shared pointer to a STK Bulk
-[[nodiscard]] std::shared_ptr<stk::mesh::BulkData> generate_bulk_data(const CommandGenerator& aCommandGenerator);
+[[nodiscard]] auto generate_bulk_data(const CommandGenerator& aCommandGenerator)
+    -> std::shared_ptr<stk::mesh::BulkData>;
 
 /// @brief Given a pathname  @a aMeshName and the STK Bulk data @a aBulk, write to disk the data in exodus format
 void write_bulk_data(const std::filesystem::path& aMeshName, stk::mesh::BulkData& aBulk);
@@ -57,10 +59,10 @@ void write_bulk_data(const std::filesystem::path& aMeshName, stk::mesh::BulkData
 auto create_io_broker_from_bulk(stk::mesh::BulkData& aBulk) -> std::unique_ptr<stk::io::StkMeshIoBroker>;
 
 /// @brief Declares the field @a aFieldName and puts it on the mesh associated with @a aIOBroker
-void initialize_element_scalar_field(stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName);
+void initialize_element_scalar_field(stk::io::StkMeshIoBroker& aIOBroker, std::string_view aFieldName);
 
 /// @brief Declares the field @a aFieldName and puts it on the mesh associated with @a aIOBroker
-void initialize_nodal_scalar_field(stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName);
+void initialize_nodal_scalar_field(stk::io::StkMeshIoBroker& aIOBroker, std::string_view aFieldName);
 
 /// @brief A function for retrieving a scalar field value using an index into some data structure.
 using ScalarFieldFunction = std::function<double(std::size_t)>;
@@ -68,13 +70,13 @@ using ScalarFieldFunction = std::function<double(std::size_t)>;
 /// @brief Writes the data in @a aScalarField to the field with name @a aFieldName on the mesh associated with @a
 /// aIOBroker
 void populate_element_scalar_field_values(stk::io::StkMeshIoBroker& aIOBroker,
-                                          const std::string_view aFieldName,
+                                          std::string_view aFieldName,
                                           const ScalarFieldFunction& aScalarField);
 
 /// @brief Writes the data in @a aScalarField to the field with name @a aFieldName on the mesh associated with @a
 /// aIOBroker
 void populate_nodal_scalar_field_values(stk::io::StkMeshIoBroker& aIOBroker,
-                                        const std::string_view aFieldName,
+                                        std::string_view aFieldName,
                                         const ScalarFieldFunction& aScalarField);
 
 /// @brief Replaces the nodal coordinate values in the mesh represented by @a aBulkData with @a aCoordinates
@@ -85,17 +87,17 @@ void replace_nodal_coordinate_values(stk::mesh::BulkData& aBulkData,
 
 /// @brief Adds the field with name @a aFieldName to the mesh associated with @a aFileHandle using @a aIOBroker
 void add_nodal_field_to_output_file(stk::io::StkMeshIoBroker& aIOBroker,
-                                    const size_t aFileHandle,
-                                    const std::string_view aFieldName);
+                                    size_t aFileHandle,
+                                    std::string_view aFieldName);
 
 /// @brief Adds the field with name @a aFieldName to the mesh associated with @a aFileHandle using @a aIOBroker
 void add_element_field_to_output_file(stk::io::StkMeshIoBroker& aIOBroker,
-                                      const size_t aFileHandle,
-                                      const std::string_view aFieldName);
+                                      size_t aFileHandle,
+                                      std::string_view aFieldName);
 
 /// @brief Writes all fields on the mesh associated with @a aIOBroker to the mesh associated with @a aFileHandle for
 /// time step @a aOutputTime
-void write_fields_at_time(stk::io::StkMeshIoBroker& aIOBroker, const size_t aFileHandle, double aOutputTime);
+void write_fields_at_time(stk::io::StkMeshIoBroker& aIOBroker, size_t aFileHandle, double aOutputTime);
 
 }  // namespace plato::third_party_integration::stk_io
 

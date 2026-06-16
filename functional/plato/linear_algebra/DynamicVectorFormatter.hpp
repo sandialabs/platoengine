@@ -16,7 +16,7 @@ template <typename Iterator, typename CharType = std::decay_t<decltype(*std::dec
     requires requires {
         { *std::declval<Iterator>() } -> std::convertible_to<CharType>;
     }
-[[nodiscard]] constexpr auto to_int(Iterator aFirst, const Iterator aLast) -> std::optional<std::size_t>;
+[[nodiscard]] constexpr auto to_int(Iterator aFirst, Iterator aLast) -> std::optional<std::size_t>;
 }  // namespace plato::linear_algebra::detail
 
 /// @brief Specialization of `std::formatter` for DynamicVector
@@ -50,8 +50,9 @@ constexpr auto to_int(Iterator aFirst, const Iterator aLast) -> std::optional<st
         return std::nullopt;
     }
 
-    return std::accumulate(aFirst, aLast, std::size_t{0U},
-                           [](const std::size_t aValue, const auto aChar) { return aValue * 10 + (aChar - '0'); });
+    constexpr auto tDecimalBase = 10;
+    return std::accumulate(aFirst, aLast, std::size_t{0U}, [](const std::size_t aValue, const auto aChar)
+                           { return aValue * tDecimalBase + (aChar - '0'); });
 }
 }  // namespace plato::linear_algebra::detail
 
@@ -63,7 +64,7 @@ constexpr auto std::formatter<plato::linear_algebra::DynamicVector<T>, CharType>
     if (*aContext.begin() != ':' && *aContext.begin() != '}')
     {
         const auto tSpecIterator = aContext.begin();
-        const auto tSpecEndIterator = std::find_if(
+        const auto* const tSpecEndIterator = std::find_if(
             tSpecIterator, aContext.end(), [](const auto aSpecChar) { return aSpecChar == ':' || aSpecChar == '}'; });
         mMaximumEntries = plato::linear_algebra::detail::to_int(tSpecIterator, tSpecEndIterator);
         aContext.advance_to(tSpecEndIterator);

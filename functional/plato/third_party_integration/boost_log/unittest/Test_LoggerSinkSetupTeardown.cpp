@@ -1,13 +1,15 @@
 #include <gtest/gtest.h>
 
-#include <boost/log/expressions.hpp>
+#include <boost/log/expressions.hpp>  // NOLINT(misc-include-cleaner)
 #include <boost/log/expressions/formatters/stream.hpp>
+#include <boost/log/expressions/message.hpp>
 #include <boost/log/sources/logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
+#include <boost/smart_ptr/make_shared_object.hpp>
 #include <sstream>
+#include <string_view>
 
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
-#include "plato/third_party_integration/boost_log/Severity.hpp"
 
 namespace plato::third_party_integration::boost_log::unittest
 {

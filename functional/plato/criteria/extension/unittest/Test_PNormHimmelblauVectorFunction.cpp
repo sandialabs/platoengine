@@ -1,8 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/criteria/extension/PNorm.hpp"
 #include "plato/criteria/extension/unittest/HimmelblauVectorFunction.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/Himmelblau.hpp"
 
 namespace plato::criteria::extension::unittest
@@ -11,7 +16,7 @@ namespace plato::criteria::extension::unittest
 namespace
 {
 const auto kHimmelblauOne = test_utilities::Himmelblau{};
-const auto kHimmelblauTwo = test_utilities::Himmelblau{2, 20};
+const auto kHimmelblauTwo = test_utilities::Himmelblau{.mAParameter = 2, .mBParameter = 20};
 const auto kVectorHimmelblau = make_vector_himmelblau_dynamic_vector_objective_function(
     FirstHimmelblau{kHimmelblauOne}, SecondHimmelblau{kHimmelblauTwo});
 

@@ -1,7 +1,14 @@
 #include "plato/third_party_integration/stk_io/test_utilities/MeshWithFieldWriter.hpp"
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <map>
 #include <numeric>
+#include <string_view>
+#include <vector>
 
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshIOHelpers.hpp"
 
@@ -9,12 +16,13 @@ namespace plato::third_party_integration::stk_io::test_utilities
 {
 namespace
 {
-constexpr CommandGenerator kCommandGenerator{{3, 1, 1}, {0, 0, 0}, {1, 1, 1}, CommandElementType::Hex};
+constexpr CommandGenerator kCommandGenerator{{3, 1, 1}, {0, 0, 0}, {1, 1, 1}, CommandElementType::kHex};
 constexpr std::string_view kTestDirectoryName = "test";
 const auto kSourceMeshPath = std::filesystem::path{kTestDirectoryName} / std::filesystem::path{"source.exo"};
 constexpr std::string_view kFieldName = "Topology";
 constexpr std::string_view kNodalMeshName = "nodal_density.exo";
 constexpr std::string_view kElementMeshName = "element_density.exo";
+const auto kFieldToNodeMap = std::map<std::size_t, double>{{1U, 1.0}, {2U, 2.0}, {3U, 3.0}};
 
 [[nodiscard]] auto create_nodal_gold() -> std::map<std::size_t, double>
 {
@@ -61,8 +69,7 @@ MeshWithDensities::MeshWithDensities(const std::map<std::size_t, double>& aGoldN
 {
 }
 
-MeshWithElementDensities::MeshWithElementDensities()
-    : MeshWithDensities({{1U, 1.0}, {2U, 2.0}, {3U, 3.0}}, kElementMeshName, kFieldName)
+MeshWithElementDensities::MeshWithElementDensities() : MeshWithDensities(kFieldToNodeMap, kElementMeshName, kFieldName)
 {
     mDirectory.writeFile([this](const std::filesystem::path& aPath)
                          { create_element_density_field_mesh_for_reading(kCommandGenerator, aPath, mFieldName); },

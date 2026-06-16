@@ -8,63 +8,82 @@ namespace plato::test_utilities
 {
 struct TwoDVector
 {
-    [[nodiscard]] double operator()(const unsigned int index) const;
+    [[nodiscard]] auto operator()(unsigned int aIndex) const -> double;
     std::array<double, 2> mData = {0.0, 0.0};
+
+    [[nodiscard]] auto operator==(const TwoDVector& aOther) const -> bool = default;
 };
 
 struct TwoDMatrix
 {
-    [[nodiscard]] double operator()(const unsigned int i, const unsigned int j) const;
+    [[nodiscard]] auto operator()(unsigned int aRowIndex, unsigned int aColumnIndex) const -> double;
     std::array<std::array<double, 2>, 2> mData = {std::array<double, 2>{0.0, 0.0}, std::array<double, 2>{0.0, 0.0}};
+
+    [[nodiscard]] auto operator==(const TwoDMatrix& aOther) const -> bool = default;
 };
 
-[[nodiscard]] constexpr TwoDVector makeTwoDVector(const double x0, const double x1) { return TwoDVector{{x0, x1}}; }
-[[nodiscard]] TwoDMatrix makeTwoDMatrix(const double x00, const double x01, const double x10, const double x11);
+[[nodiscard]] constexpr auto make_two_d_vector(const double aX0, const double aX1) -> TwoDVector
+{
+    return TwoDVector{{aX0, aX1}};
+}
+[[nodiscard]] auto make_two_d_matrix(double aX00, double aX01, double aX10, double aX11) -> TwoDMatrix;
 [[nodiscard]] auto transpose(const TwoDMatrix& aTwoDMatrix) -> TwoDMatrix;
 
-[[nodiscard]] TwoDVector operator*(const TwoDVector& x, const TwoDMatrix& A);
-[[nodiscard]] TwoDVector operator*(double a, const TwoDVector& x);
-[[nodiscard]] TwoDMatrix operator*(const TwoDMatrix& A, const TwoDMatrix& B);
-[[nodiscard]] TwoDVector operator+(const TwoDVector& x, const TwoDVector& y);
-[[nodiscard]] bool operator==(const TwoDVector& x, const TwoDVector& y);
-[[nodiscard]] bool operator==(const TwoDMatrix& x, const TwoDMatrix& y);
-std::ostream& operator<<(std::ostream& stream, const TwoDVector& x);
-std::ostream& operator<<(std::ostream& stream, const TwoDMatrix& x);
+[[nodiscard]] auto operator*(const TwoDVector& aVector, const TwoDMatrix& aMatrix) -> TwoDVector;
+[[nodiscard]] auto operator*(double aScalar, const TwoDVector& aVector) -> TwoDVector;
+[[nodiscard]] auto operator*(const TwoDMatrix& aMatrix0, const TwoDMatrix& aMatrix1) -> TwoDMatrix;
+[[nodiscard]] auto operator+(const TwoDVector& aX0, const TwoDVector& aX1) -> TwoDVector;
+auto operator<<(std::ostream& aStream, const TwoDVector& aVector) -> std::ostream&;
+auto operator<<(std::ostream& aStream, const TwoDMatrix& aMatrix) -> std::ostream&;
 
 // [y1] = x1 * x2
 // [y2] = x1 + x2
 struct TwoDVectorFunction
 {
-    [[nodiscard]] TwoDVector operator()(const TwoDVector& x) const { return makeTwoDVector(x(0) * x(1), x(0) + x(1)); }
+    [[nodiscard]] auto operator()(const TwoDVector& aVector) const -> TwoDVector
+    {
+        return make_two_d_vector(aVector(0) * aVector(1), aVector(0) + aVector(1));
+    }
 };
 
 // [dy1/dx1, dy1/dx2]
 // [dy2/dx1, dy2/dx2]
 struct TwoDVectorFunctionJacobian
 {
-    [[nodiscard]] TwoDMatrix operator()(const TwoDVector& x) const { return makeTwoDMatrix(x(1), x(0), 1.0, 1.0); }
+    [[nodiscard]] auto operator()(const TwoDVector& aVector) const -> TwoDMatrix
+    {
+        return make_two_d_matrix(aVector(1), aVector(0), 1.0, 1.0);
+    }
 };
 
 // [dy1/dx1, dy2/dx1]
 // [dy1/dx2, dy2/dx2]
 struct TwoDVectorFunctionAdjointJacobian
 {
-    [[nodiscard]] TwoDMatrix operator()(const TwoDVector& x) const { return makeTwoDMatrix(x(1), 1.0, x(0), 1.0); }
+    [[nodiscard]] auto operator()(const TwoDVector& aVector) const -> TwoDMatrix
+    {
+        return make_two_d_matrix(aVector(1), 1.0, aVector(0), 1.0);
+    }
 };
 
 // y = x1^2 + x2^3
 struct TwoDScalarFunction
 {
-    [[nodiscard]] double operator()(const TwoDVector& x) const { return x(0) * x(0) + x(1) * x(1) * x(1); }
+    [[nodiscard]] auto operator()(const TwoDVector& aVector) const -> double
+    {
+        return aVector(0) * aVector(0) + aVector(1) * aVector(1) * aVector(1);
+    }
 };
 
 // [dy/dx1]
 // [dy/dx2]
 struct TwoDScalarFunctionGradient
 {
-    [[nodiscard]] TwoDVector operator()(const TwoDVector& x) const
+    [[nodiscard]] auto operator()(const TwoDVector& aVector) const -> TwoDVector
     {
-        return makeTwoDVector(2.0 * x(0), 3 * x(1) * x(1));
+        constexpr auto tSquarePower = 2.0;
+        constexpr auto tCubePower = 3.0;
+        return make_two_d_vector(tSquarePower * aVector(0), tCubePower * aVector(1) * aVector(1));
     }
 };
 

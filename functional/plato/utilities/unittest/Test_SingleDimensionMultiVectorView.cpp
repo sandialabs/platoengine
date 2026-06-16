@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
 #include <ranges>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
@@ -349,13 +353,13 @@ TEST(SingleDimensionMultiVectorView, Copy)
     auto tEntryGenerator = std::views::iota(0U, tLength * tDimension) | std::views::common;
     const auto tVector = std::vector(tEntryGenerator.begin(), tEntryGenerator.end());
 
-    const auto tTest = [&](const auto tIndex, const test_utilities::TestContext& aTestContext)
+    const auto tTest = [&](const auto aIndex, const test_utilities::TestContext& aTestContext)
     {
-        auto tCoordinateRange = SingleDimensionMultiVectorView{MultiVectorView{tVector, tDimension}, tIndex};
+        auto tCoordinateRange = SingleDimensionMultiVectorView{MultiVectorView{tVector, tDimension}, aIndex};
 
         const auto tExpectedEntries =
             std::views::iota(0U) |
-            std::views::transform([tDimension, tIndex](const auto tEntry) { return tDimension * tEntry + tIndex; }) |
+            std::views::transform([tDimension, aIndex](const auto aEntry) { return tDimension * aEntry + aIndex; }) |
             std::views::take(tLength) | std::views::common;
         const auto tExpected = std::vector(tExpectedEntries.begin(), tExpectedEntries.end());
 

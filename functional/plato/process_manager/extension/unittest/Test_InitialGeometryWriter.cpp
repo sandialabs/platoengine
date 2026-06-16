@@ -1,13 +1,23 @@
 #include <gtest/gtest.h>
 
+#include <boost/none.hpp>
+#include <filesystem>
+#include <vector>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/filter/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_parser/ParsedInput.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/process_manager/extension/InitialGeometryWriter.hpp"
-#include "plato/process_manager/extension/test_utilities/CrossReferenceUtilities.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/utilities/DataFilePath.hpp"
@@ -47,10 +57,9 @@ void validate_and_run(const plato::input_parser::ParsedInput& aInput)
     const auto tProblem = library::make_process_manager_data(tValidatedInput.value());
 
     const auto tAllProcessManagerInputs = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
-    ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1u);
+    ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1U);
 
-    const auto tInitialGeometryWriter = InitialGeometryWriter{};
-    tInitialGeometryWriter.run(tProblem);
+    plato::process_manager::extension::InitialGeometryWriter::run(tProblem);
 
     std::filesystem::remove(kDensityMeshName);
 }

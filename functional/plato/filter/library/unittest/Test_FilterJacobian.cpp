@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
 
-#include <numeric>
+#include <memory>
+#include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/filter/library/FilterInterface.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/unittest/TestFilter.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::filter::library::unittest
 {

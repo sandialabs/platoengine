@@ -1,5 +1,13 @@
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 
+#include <boost/none.hpp>
+
+#include "plato/geometry/extension/BrickShapeGeometry.hpp"
+#include "plato/geometry/extension/DensityTopology.hpp"
+#include "plato/geometry/extension/LevelSetTopology.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+
 namespace plato::geometry::extension::test_utilities
 {
 auto create_valid_brick_shape_geometry_input() -> input_parser::brick_shape_geometry
@@ -9,24 +17,29 @@ auto create_valid_brick_shape_geometry_input() -> input_parser::brick_shape_geom
 
 auto create_valid_density_topology_geometry_input() -> input_parser::density_topology
 {
+    constexpr auto tArbitraryInitialDensity = 0.5;
     return input_parser::density_topology{/*.mesh_name=*/input_parser::FileName{"test.exo"},
                                           /*.output_name=*/input_parser::FileName{"test_out.exo"},
                                           /*.fixed_blocks=*/{},
                                           /*.filter=*/boost::none,
-                                          /*.initial_density_value=*/0.5,
+                                          /*.initial_density_value=*/tArbitraryInitialDensity,
                                           /*.initial_density_field_name=*/boost::none,
                                           /*.cut_mesh_density_threshold=*/boost::none};
 }
 
 auto create_valid_level_set_topology_geometry_input() -> input_parser::level_set_topology
 {
+    constexpr auto tArbitrarySphereRadius = 0.25;
+    constexpr auto tArbitrarySphereSpacing = 100.0;
+
     return input_parser::level_set_topology{
         /*.mesh_name = */ input_parser::FileName{"bg.exo"},
         /*.output_mesh_name = */ input_parser::FileName{"out.exo"},
         /*.include_void_region = */ false,
         /*.max_edge_length_percentage_for_snapping = */ boost::none,
         /*.sphere_pattern = */
-        input_parser::SpherePattern{/*.radius=*/0.25, /*.spacing=*/100.0, /*.min=*/input_parser::Point{0, 0, 0},
+        input_parser::SpherePattern{/*.radius=*/tArbitrarySphereRadius, /*.spacing=*/tArbitrarySphereSpacing,
+                                    /*.min=*/input_parser::Point{0, 0, 0},
                                     /*.max=*/input_parser::Point{1, 1, 1}},
         /*.level_set_bounds = */ input_parser::Bounds{-1.0, 1.0},
         /*.filter=*/boost::none,

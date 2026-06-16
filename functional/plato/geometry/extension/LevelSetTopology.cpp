@@ -1,12 +1,24 @@
 #include "plato/geometry/extension/LevelSetTopology.hpp"
 
+#include <mpi.h>
+
 #include <algorithm>
 #include <boost/mpi/communicator.hpp>
+#include <boost/optional/optional.hpp>
+#include <cassert>
+#include <filesystem>
+#include <memory>
 #include <optional>
 #include <ranges>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/Utilities.hpp"
 #include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
+#include "plato/filter/library/FilterRegistration.hpp"
+#include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/geometry/extension/MeshValidationUtilities.hpp"
 #include "plato/geometry/extension/OutputUtilities.hpp"
 #include "plato/geometry/library/GeometryFilterUtilities.hpp"
@@ -14,7 +26,12 @@
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/FileList.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
+#include "plato/input_validation/ValidationUtilities.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/mesh/DesignVariableAdapter.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/FixedBlockUtilities.hpp"
@@ -22,8 +39,12 @@
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 #include "plato/output/OutputInfo.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/SphereFactory.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
+#include "plato/utilities/BoundClusivity.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 
@@ -47,7 +68,7 @@ constexpr auto kMeshNameAccessor =
         [aGeometryInput](const linear_algebra::DynamicVector<double>& aSolution, const output::OutputInfo& aOutputInfo)
     {
         const auto& tInput = input_validation::get_input_block<input_parser::level_set_topology>(aGeometryInput);
-        return LevelSetTopology::output(
+        LevelSetTopology::output(
             tInput, library::make_filter_from_geometry_input<input_parser::level_set_topology>(aGeometryInput),
             aSolution, aOutputInfo);
     };
@@ -62,11 +83,11 @@ constexpr auto kMeshNameAccessor =
 }
 
 /// Static registration for parser
-[[maybe_unused]] static auto kLevelSetTopologyParserRegistration =
+[[maybe_unused]] const auto kLevelSetTopologyParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::level_set_topology>{};
 
 /// Static registration for library
-[[maybe_unused]] static auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
+[[maybe_unused]] const auto kLevelSetTopologyRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::level_set_topology>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
     {
@@ -77,7 +98,7 @@ constexpr auto kMeshNameAccessor =
     }};
 
 /// Static registration for input validation functions
-[[maybe_unused]] static auto kLevelSetTopologyValidationRegistration =
+[[maybe_unused]] const auto kLevelSetTopologyValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{
         [](const input_parser::level_set_topology& aInput) { return library::detail::validate_mesh_name(aInput); },
         [](const input_parser::level_set_topology& aInput)
@@ -140,12 +161,12 @@ LevelSetTopology::LevelSetTopology(const input_parser::level_set_topology& aInpu
       mCutMesh(kKrinoCutMeshBaseName),
       mOutputMesh(aInput.output_name.value().mToken),
       mLevelSetBounds(std::make_pair(aInput.level_set_bounds.value().mLower, aInput.level_set_bounds.value().mUpper)),
-      mKrinoWrapperCache{[mFixedBlocks = mesh::fixed_blocks(aInput),
-                          mSnappingParameters = snapping_parameters_from_input(aInput),
-                          mVoidRegion = void_phase(aInput)](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+      mKrinoWrapperCache{[tFixedBlocks = mesh::fixed_blocks(aInput),
+                          tSnappingParameters = snapping_parameters_from_input(aInput),
+                          tVoidRegion = void_phase(aInput)](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
                          {
-                             return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, mFixedBlocks,
-                                                                                 mVoidRegion, mSnappingParameters);
+                             return make_krino_wrapper_from_analysis_domain_mesh(aAnalysisDomainMesh, tFixedBlocks,
+                                                                                 tVoidRegion, tSnappingParameters);
                          },
                          [](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
                          { return analysis::hash_value(aAnalysisDomainMesh); }}
@@ -179,18 +200,16 @@ auto initial_guess(const input_parser::level_set_topology& aInput) -> linear_alg
             detail::EndingLimits{std::pair<double, double>(aInput.level_set_bounds.value().mLower,
                                                            aInput.level_set_bounds.value().mUpper)}));
     }
-    else if (aInput.sphere_pattern.has_value())
+    if (aInput.sphere_pattern.has_value())
     {
         const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, tpik::generate_spheres(sphere_pattern(aInput))};
         return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
             mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput), tLevelSetBounds)};
     }
-    else
-    {
-        const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, detail::generate_spheres_from_list(aInput)};
-        return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
-            mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput), tLevelSetBounds)};
-    }
+
+    const auto tLevelSetPrimitives = tpik::LevelSetPrimitives{{}, detail::generate_spheres_from_list(aInput)};
+    return linear_algebra::DynamicVector<double>{make_initial_guess_from_level_set_primitives(
+        mesh_from_input(aInput).filePath(), tLevelSetPrimitives, mesh::fixed_blocks(aInput), tLevelSetBounds)};
 }
 
 auto LevelSetTopology::generateMesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
@@ -326,16 +345,19 @@ auto validate_max_snapping_edge_length(const input_parser::level_set_topology& a
 
 auto validate_sphere_pattern_spacing(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
+    constexpr auto tSpherePatternMinimumSpacing = 1e-5;
     return validate_bounded_subinput(
-        aInput.sphere_pattern, "sphere_pattern", utilities::lower_bounded(utilities::Exclusive{1e-5}),
-        [](const auto& aSpherePattern) { return aSpherePattern.spacing; },
-        " and spacing needs to be greater than 1e-5.");
+        aInput.sphere_pattern, "sphere_pattern",
+        utilities::lower_bounded(utilities::Exclusive{tSpherePatternMinimumSpacing}), [](const auto& aSpherePattern)
+        { return aSpherePattern.spacing; }, " and spacing needs to be greater than 1e-5.");
 }
 
 auto validate_sphere_pattern_radius(const input_parser::level_set_topology& aInput) -> std::optional<std::string>
 {
+    constexpr auto tSpherePatternMinimumRadius = 1e-5;
     return validate_bounded_subinput(
-        aInput.sphere_pattern, "sphere_pattern", utilities::lower_bounded(utilities::Exclusive{1e-5}),
+        aInput.sphere_pattern, "sphere_pattern",
+        utilities::lower_bounded(utilities::Exclusive{tSpherePatternMinimumRadius}),
         [](const auto& aSpherePattern) { return aSpherePattern.radius; }, " and radius needs to be greater than 1e-5.");
 }
 
@@ -352,8 +374,8 @@ auto validate_sphere_pattern_bbox(const input_parser::level_set_topology& aInput
     return std::nullopt;
 }
 
-std::optional<std::string> validate_exactly_one_initial_level_set_specifier(
-    const input_parser::level_set_topology& aInput)
+auto validate_exactly_one_initial_level_set_specifier(const input_parser::level_set_topology& aInput)
+    -> std::optional<std::string>
 {
     const int tSpherePattern = aInput.sphere_pattern.has_value() ? 1 : 0;
     const int tReadFieldSpecifier = aInput.initial_field_name.has_value() ? 1 : 0;
@@ -384,8 +406,9 @@ auto validate_mesh_is_tet_or_tri(const input_parser::level_set_topology& aInput)
 auto validate_sphere_pattern_spacing_greater_than_twice_radius(const input_parser::level_set_topology& aInput)
     -> std::optional<std::string>
 {
+    constexpr auto tRadiusToDiameter = 2.0;
     if (aInput.sphere_pattern.has_value() &&
-        aInput.sphere_pattern.value().spacing < aInput.sphere_pattern.value().radius * 2.0)
+        aInput.sphere_pattern.value().spacing < aInput.sphere_pattern.value().radius * tRadiusToDiameter)
     {
         return utilities::concatenate(input_parser::block_name<input_parser::level_set_topology>(),
                                       " 'sphere_pattern' contains a spacing that is less than twice the radius.");
@@ -423,7 +446,7 @@ auto generate_spheres_from_list(const input_parser::level_set_topology& aInput)
                                       aLevelSetSphere.center.mX, aLevelSetSphere.center.mY, aLevelSetSphere.center.mZ};
                                   return tpi::krino::Sphere{tCenter, aLevelSetSphere.radius};
                               });
-    return std::vector(tToKrinoSpheres.begin(), tToKrinoSpheres.end());
+    return {tToKrinoSpheres.begin(), tToKrinoSpheres.end()};
 }
 
 auto affine_transformation(std::vector<double> aVector,
@@ -438,8 +461,8 @@ auto affine_transformation(std::vector<double> aVector,
     const double tEndingMin = aEndingLimits.mValue.first;
 
     std::transform(aVector.begin(), aVector.end(), aVector.begin(),
-                   [tStartingMin, tStartingScale, tEndingScale, tEndingMin](const auto tEntry)
-                   { return (tEntry - tStartingMin) / tStartingScale * tEndingScale + tEndingMin; });
+                   [tStartingMin, tStartingScale, tEndingScale, tEndingMin](const auto aEntry)
+                   { return (aEntry - tStartingMin) / tStartingScale * tEndingScale + tEndingMin; });
 
     return aVector;
 }

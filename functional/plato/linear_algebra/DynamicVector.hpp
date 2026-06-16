@@ -24,20 +24,20 @@ class DynamicVector
     explicit DynamicVector(std::vector<T> aVector);
     explicit DynamicVector(std::initializer_list<T> aList);
 
-    [[nodiscard]] std::size_t size() const;
-    [[nodiscard]] const T& operator[](std::size_t aIndex) const;
+    [[nodiscard]] auto size() const -> std::size_t;
+    [[nodiscard]] auto operator[](std::size_t aIndex) const -> const T&;
 
-    [[nodiscard]] T dot(const DynamicVector<T>& aRightOperand) const;
-    [[nodiscard]] const std::vector<T>& stdVector() const&;
-    [[nodiscard]] std::vector<T> stdVector() &&;
+    [[nodiscard]] auto dot(const DynamicVector<T>& aRightOperand) const -> T;
+    [[nodiscard]] auto stdVector() const& -> const std::vector<T>&;
+    [[nodiscard]] auto stdVector() && -> std::vector<T>;
 
     /// @pre The size of @a aRightOperand must be equal to this object's size. Checked with an assertion.
-    DynamicVector<T>& operator+=(const DynamicVector<T>& aRightOperand);
-    DynamicVector<T>& operator*=(const T aScalar);
-    [[nodiscard]] bool operator==(const DynamicVector<T>& aRight) const;
+    auto operator+=(const DynamicVector<T>& aRightOperand) -> DynamicVector<T>&;
+    auto operator*=(T aScalar) -> DynamicVector<T>&;
+    [[nodiscard]] auto operator==(const DynamicVector<T>& aRight) const -> bool;
 
     template <typename Archive, typename U>
-    friend void serialize(Archive& aArchive, DynamicVector<U>& aVector, const unsigned int /*aVersion*/);
+    friend void serialize(Archive& aArchive, DynamicVector<U>& aVector, unsigned int /*aVersion*/);
 
    private:
     std::vector<T> mVector;
@@ -49,28 +49,31 @@ template <typename T>
 [[nodiscard]] auto norm(const DynamicVector<T>& aVector) -> double;
 
 template <typename T>
-[[nodiscard]] DynamicVector<T> operator+(DynamicVector<T>&& aLeft, const DynamicVector<T>& aRight)
+[[nodiscard]] auto operator+(DynamicVector<T>&& aLeft, const DynamicVector<T>& aRight) -> DynamicVector<T>
 {
     aLeft += aRight;
     return std::move(aLeft);
 }
 
 template <typename T>
-[[nodiscard]] DynamicVector<T> operator+(const DynamicVector<T>& aLeft, DynamicVector<T>&& aRight)
+[[nodiscard]] auto operator+(const DynamicVector<T>& aLeft, DynamicVector<T>&& aRight) -> DynamicVector<T>
 {
     aRight += aLeft;
     return std::move(aRight);
 }
 
+// NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved)
+// This overload only exists to prevent ambiguous overloads when two r-values are used to call this operator.
 template <typename T>
-[[nodiscard]] DynamicVector<T> operator+(DynamicVector<T>&& aLeft, DynamicVector<T>&& aRight)
+[[nodiscard]] auto operator+(DynamicVector<T>&& aLeft, DynamicVector<T>&& aRight) -> DynamicVector<T>
 {
     aLeft += aRight;
     return std::move(aLeft);
 }
+// NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved)
 
 template <typename T>
-[[nodiscard]] DynamicVector<T> operator+(const DynamicVector<T>& aLeft, const DynamicVector<T>& aRight)
+[[nodiscard]] auto operator+(const DynamicVector<T>& aLeft, const DynamicVector<T>& aRight) -> DynamicVector<T>
 {
     DynamicVector<T> tCopy = aLeft;
     tCopy += aRight;
@@ -78,14 +81,14 @@ template <typename T>
 }
 
 template <typename T>
-[[nodiscard]] DynamicVector<T> operator*(DynamicVector<T> aLeft, const T& aRight)
+[[nodiscard]] auto operator*(DynamicVector<T> aLeft, const T& aRight) -> DynamicVector<T>
 {
     aLeft *= aRight;
     return aLeft;
 }
 
 template <typename T>
-[[nodiscard]] DynamicVector<T> operator*(const T& aLeft, DynamicVector<T> aRight)
+[[nodiscard]] auto operator*(const T& aLeft, DynamicVector<T> aRight) -> DynamicVector<T>
 {
     aRight *= aLeft;
     return aRight;
@@ -107,38 +110,38 @@ DynamicVector<T>::DynamicVector(std::initializer_list<T> aList) : mVector(std::m
 }
 
 template <typename T>
-std::size_t DynamicVector<T>::size() const
+auto DynamicVector<T>::size() const -> std::size_t
 {
     return mVector.size();
 }
 
 template <typename T>
-const T& DynamicVector<T>::operator[](std::size_t aIndex) const
+auto DynamicVector<T>::operator[](std::size_t aIndex) const -> const T&
 {
     return mVector[aIndex];
 }
 
 template <typename T>
-const std::vector<T>& DynamicVector<T>::stdVector() const&
+auto DynamicVector<T>::stdVector() const& -> const std::vector<T>&
 {
     return mVector;
 }
 
 template <typename T>
-std::vector<T> DynamicVector<T>::stdVector() &&
+auto DynamicVector<T>::stdVector() && -> std::vector<T>
 {
     return std::move(mVector);
 }
 
 template <typename T>
-T DynamicVector<T>::dot(const DynamicVector<T>& aRightOperand) const
+auto DynamicVector<T>::dot(const DynamicVector<T>& aRightOperand) const -> T
 {
     assert(size() == aRightOperand.size());
     return std::inner_product(std::begin(mVector), std::end(mVector), std::begin(aRightOperand.mVector), T{});
 }
 
 template <typename T>
-DynamicVector<T>& DynamicVector<T>::operator+=(const DynamicVector<T>& aRightOperand)
+auto DynamicVector<T>::operator+=(const DynamicVector<T>& aRightOperand) -> DynamicVector<T>&
 {
     assert(size() == aRightOperand.size());
     std::transform(std::begin(mVector), std::end(mVector), std::begin(aRightOperand.mVector), std::begin(mVector),
@@ -147,7 +150,7 @@ DynamicVector<T>& DynamicVector<T>::operator+=(const DynamicVector<T>& aRightOpe
 }
 
 template <typename T>
-DynamicVector<T>& DynamicVector<T>::operator*=(const T aScalar)
+auto DynamicVector<T>::operator*=(const T aScalar) -> DynamicVector<T>&
 {
     std::transform(std::begin(mVector), std::end(mVector), std::begin(mVector),
                    [&aScalar](const T& aValue) { return aScalar * aValue; });
@@ -155,7 +158,7 @@ DynamicVector<T>& DynamicVector<T>::operator*=(const T aScalar)
 }
 
 template <typename T>
-[[nodiscard]] bool DynamicVector<T>::operator==(const DynamicVector<T>& aRight) const
+[[nodiscard]] auto DynamicVector<T>::operator==(const DynamicVector<T>& aRight) const -> bool
 {
     return mVector == aRight.mVector;
 }

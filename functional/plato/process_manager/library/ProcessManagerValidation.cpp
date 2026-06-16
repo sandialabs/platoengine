@@ -1,14 +1,16 @@
 #include "plato/process_manager/library/ProcessManagerValidation.hpp"
 
 #include <optional>
+#include <string>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
-#include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::library
 {
-[[maybe_unused]] static auto kProcessManagerValidationRegistration =
+[[maybe_unused]] static const auto kProcessManagerValidationRegistration =
     input_validation::ParsedInputValidationRegistration<>{
         [](const input_parser::ParsedInput& aInput) { return detail::validate_at_least_one_process_manager(aInput); }};
 

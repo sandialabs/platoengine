@@ -34,8 +34,8 @@ template <typename T, typename NameTag>
 struct NamedType
 {
     constexpr NamedType() = default;
-    constexpr explicit NamedType(const T& value) : mValue(value) {}
-    constexpr explicit NamedType(T&& value) : mValue(std::move(value)) {}
+    constexpr explicit NamedType(const T& aValue) : mValue(aValue) {}
+    constexpr explicit NamedType(T&& aValue) : mValue(std::move(aValue)) {}
 
     T mValue{};
 };

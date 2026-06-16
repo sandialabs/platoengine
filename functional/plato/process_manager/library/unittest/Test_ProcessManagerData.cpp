@@ -2,12 +2,19 @@
 
 #include <filesystem>
 #include <format>
+#include <optional>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/components/ComponentType.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
+#include "plato/criteria/library/ObjectiveFactory.hpp"
 #include "plato/geometry/library/GeometryFactory.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
+#include "plato/services/AppConfiguration.hpp"
 #include "plato/test_utilities/InputGeneration.hpp"
 
 namespace plato::process_manager::library::unittest
@@ -34,12 +41,12 @@ const auto kConfiguration = services::CriterionConfiguration{.mName = std::strin
                                                              .mFunctionName = "",
                                                              .mVectorComponents = std::nullopt};
 
-[[maybe_unused]] static auto kConstantFunctionRegistration = Registration{
+[[maybe_unused]] const auto kConstantFunctionRegistration = Registration{
     criteria::library::builtin_criterion_registration_name(kConstantFunctionName),
     [](const criteria::library::CriterionInput&)
     { return criteria::library::FunctionWithConfiguration{make_constant_test_function(), kConfiguration}; }};
 
-std::string test_objective_string(const std::string& aName, const bool aIsActive, const bool aIsNormalized)
+auto test_objective_string(const std::string& aName, const bool aIsActive, const bool aIsNormalized) -> std::string
 {
     return std::format(
         "begin objective {}\n"

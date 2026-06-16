@@ -1,9 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <memory>
+#include <vector>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshOperators.hpp"
-#include "plato/filter/library/FilterFactory.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/filter/library/unittest/TestFilter.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/Zip.hpp"
 
 namespace plato::filter::library::unittest

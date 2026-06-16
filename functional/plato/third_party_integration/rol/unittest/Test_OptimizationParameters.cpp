@@ -2,7 +2,12 @@
 
 #include <ROL_ParameterList.hpp>
 #include <Teuchos_VerbosityLevel.hpp>
+#include <cassert>
 #include <filesystem>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -17,7 +22,7 @@ namespace
 {
 
 template <typename Type>
-Type get_parameter(const ROL::ParameterList& aParlist, const ParameterAndValue<Type>& aParameterAndValue)
+auto get_parameter(const ROL::ParameterList& aParlist, const ParameterAndValue<Type>& aParameterAndValue) -> Type
 {
     auto tParlist = aParlist;
     auto tCurrentSublist = detail::retrieve_sublist_from_sequence(tParlist, aParameterAndValue.mSublistNames);
@@ -38,10 +43,10 @@ void compare_field_result_to_gold_list(const ROL::ParameterList& aResult,
     for (const auto& tGoldField : aGoldFields)
     {
         std::visit(
-            [&](const auto& tGoldParameter)
+            [&](const auto& aGoldParameter)
             {
-                const auto tResult = get_parameter(aResult, tGoldParameter);
-                EXPECT_EQ(tResult, tGoldParameter.mValue) << aContext;
+                const auto tResult = get_parameter(aResult, aGoldParameter);
+                EXPECT_EQ(tResult, aGoldParameter.mValue) << aContext;
             },
             tGoldField);
     }
@@ -71,7 +76,7 @@ template <typename MemberFunction, typename MakeFunction, typename T>
 void test_generic_set_and_member_function(const MemberFunction& aMemberFunction,
                                           const MakeFunction& aMakeFunction,
                                           const T aGoldSetValue,
-                                          const test_utilities::TestContext aTestContext)
+                                          const test_utilities::TestContext& aTestContext)
 {
     const auto tDefault = aMakeFunction(std::nullopt);
     const auto tSetValue = aMakeFunction(aGoldSetValue);
@@ -165,34 +170,37 @@ TEST(ROLOptimizationParameters, ApproximateHessian)
 
 TEST(ROLOptimizationParameters, GradientTolerance)
 {
+    constexpr auto tParameterValue = 1e-3;
     test_generic_set_and_member_function(
         [](OptimizationParameters& aParameter, const double aSetValue) { aParameter.gradientTolerance(aSetValue); },
-        [](const std::optional<double> aValue) { return make_status_test_gradient_tolerance(aValue); }, 1e-3,
+        [](const std::optional<double> aValue) { return make_status_test_gradient_tolerance(aValue); }, tParameterValue,
         TEST_CONTEXT("Gradient Tolerance"));
 }
 
 TEST(ROLOptimizationParameters, StepTolerance)
 {
+    constexpr auto tParameterValue = 1e-2;
     test_generic_set_and_member_function(
         [](OptimizationParameters& aParameter, const double aSetValue) { aParameter.stepTolerance(aSetValue); },
-        [](const std::optional<double> aValue) { return make_status_test_step_tolerance(aValue); }, 1e-2,
+        [](const std::optional<double> aValue) { return make_status_test_step_tolerance(aValue); }, tParameterValue,
         TEST_CONTEXT("Step Tolerance"));
 }
 
 TEST(ROLOptimizationParameters, InitialSearchRadius)
 {
+    constexpr auto tParameterValue = 13;
     test_generic_set_and_member_function(
         [](OptimizationParameters& aParameter, const double aSetValue) { aParameter.initialSearchRadius(aSetValue); },
-        [](const std::optional<double> aValue) { return make_trust_region_initial_radius(aValue); }, 13,
+        [](const std::optional<double> aValue) { return make_trust_region_initial_radius(aValue); }, tParameterValue,
         TEST_CONTEXT("Initial search radius"));
 }
 
 TEST(ROLOptimizationParameters, MaximumIterations)
 {
-    test_generic_set_and_member_function([](OptimizationParameters& aParameter, const int aSetValue)
-                                         { aParameter.maximumIterations(static_cast<unsigned>(aSetValue)); },
-                                         [](const std::optional<int> aValue)
-                                         { return make_status_test_iteration_limit(aValue); },
-                                         13, TEST_CONTEXT("Iteration limit"));
+    constexpr auto tParameterValue = 13;
+    test_generic_set_and_member_function(
+        [](OptimizationParameters& aParameter, const int aSetValue)
+        { aParameter.maximumIterations(static_cast<unsigned>(aSetValue)); }, [](const std::optional<int> aValue)
+        { return make_status_test_iteration_limit(aValue); }, tParameterValue, TEST_CONTEXT("Iteration limit"));
 }
 }  // namespace plato::third_party_integration::rol::unittest

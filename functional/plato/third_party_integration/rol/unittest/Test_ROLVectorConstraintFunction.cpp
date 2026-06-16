@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 
-#include <ROL_StdVector.hpp>
+#include <cmath>
+#include <utility>
 #include <vector>
 
-#include "plato/core/Compose.hpp"
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/test_utilities/Himmelblau.hpp"
 #include "plato/third_party_integration/rol/ROLVectorConstraintFunction.hpp"
 #include "plato/third_party_integration/rol/unittest/DynamicVectorConstraintFunctions.hpp"
@@ -54,11 +57,11 @@ TEST(ROLVectorConstraintFunction, Value)
     auto tROLVectorConstraintFunction = make_himmelblau_rol_vector_constraint();
 
     auto tConstraintsVector = std::vector<double>{.0};
-    double tTolerance;
+    double tTolerance = NAN;
     tROLVectorConstraintFunction.value(tConstraintsVector, tControlPoint.stdVector(), tTolerance);
 
     ASSERT_EQ(tConstraintsVector.size(), tGold.size());
-    EXPECT_EQ(tConstraintsVector.size(), 1u);
+    EXPECT_EQ(tConstraintsVector.size(), 1U);
     EXPECT_EQ(tConstraintsVector[0], tGold[0]);
 }
 
@@ -66,7 +69,7 @@ TEST(ROLVectorConstraintFunction, JacobianAndAdjointConsistency)
 {
     auto tROLVectorConstraintFunction = make_himmelblau_rol_vector_constraint();
     const auto tControlPoint = linear_algebra::DynamicVector{0.5, 0.2};
-    double tTolerance;
+    double tTolerance = NAN;
     const auto tHimmelblau = make_himmelblau_dynamic_vector_function(test_utilities::Himmelblau{});
     const auto tGradientOfHimmelblau = tHimmelblau.evaluate<core::evaluation::kFirstDerivative>(tControlPoint);
 
@@ -100,9 +103,10 @@ TEST(ROLVectorConstraintFunction, Hessian)
 
     constexpr auto tArbitraryControlValue = 10.0;
     const auto tControls = std::vector<double>{tArbitraryControlValue, tArbitraryControlValue};
-    auto tHessianUV = std::vector{10.0, 11.0};
+    const auto tArbitraryInitialHessian = std::vector{10.0, 11.0};
+    auto tHessianUV = tArbitraryInitialHessian;
     const auto tDirection = std::vector{1.0, 1.0};
-    double tTolerance;
+    double tTolerance = NAN;
     tROLVectorConstraintFunction.applyAdjointHessian(tHessianUV, tDirection, tDirection, tControls, tTolerance);
 
     EXPECT_EQ(tHessianUV[0], 0.0);

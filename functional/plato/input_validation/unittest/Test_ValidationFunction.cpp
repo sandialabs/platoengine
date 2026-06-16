@@ -1,5 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <optional>
+#include <string>
+
+#include "plato/input_parser/InputBlockData.hpp"
 #include "plato/input_validation/ValidationFunction.hpp"
 
 namespace plato::input_validation::unittest
@@ -8,7 +12,9 @@ namespace
 {
 struct ExcellentInput
 {
-    int field1 = 42;
+    static constexpr auto mDefaultField1Value = 42;
+
+    int mField1 = mDefaultField1Value;
 };
 
 struct BogusInput
@@ -19,7 +25,7 @@ constexpr auto kErrorMessage = std::string_view{"Wrong!"};
 
 constexpr auto kCheckForFortyTwo = [](const ExcellentInput& aInput) -> std::optional<std::string>
 {
-    if (aInput.field1 != 42)
+    if (aInput.mField1 != ExcellentInput::mDefaultField1Value)
     {
         return std::string{kErrorMessage};
     }
@@ -29,7 +35,8 @@ constexpr auto kCheckForFortyTwo = [](const ExcellentInput& aInput) -> std::opti
 constexpr auto kCheckForSumFortyOne = [](const ExcellentInput& aInput,
                                          const int aAnotherInt) -> std::optional<std::string>
 {
-    if (aInput.field1 + aAnotherInt != 41)
+    constexpr auto tExpectedSum = 41;
+    if (aInput.mField1 + aAnotherInt != tExpectedSum)
     {
         return std::optional{std::string{kErrorMessage}};
     }

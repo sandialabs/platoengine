@@ -1,12 +1,22 @@
 #include <gtest/gtest.h>
 
 #include <boost/log/attributes/constant.hpp>
-#include <boost/log/expressions.hpp>
+#include <boost/log/core/record_view.hpp>
+#include <boost/log/expressions.hpp>  // NOLINT(misc-include-cleaner)
+#include <boost/log/expressions/formatter.hpp>
+#include <boost/log/expressions/formatters/if.hpp>
+#include <boost/log/expressions/formatters/stream.hpp>
+#include <boost/log/expressions/keyword.hpp>
+#include <boost/log/expressions/predicates/has_attr.hpp>
 #include <boost/log/sources/logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
+#include <boost/smart_ptr/make_shared_object.hpp>
+#include <sstream>
+#include <string>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/AttributeFormatter.hpp"
+#include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
 
 namespace plato::third_party_integration::boost_log::unittest
@@ -55,7 +65,7 @@ struct SizeAttribute
 
     [[nodiscard]] constexpr static auto name() -> std::string_view { return kSizeAttribute; }
 
-    [[nodiscard]] static auto formatter(FormattingStyle) -> boost::log::formatter
+    [[nodiscard]] static auto formatter(FormattingStyle /*unused*/) -> boost::log::formatter
     {
         namespace ble = boost::log::expressions;
         return boost::log::formatter{

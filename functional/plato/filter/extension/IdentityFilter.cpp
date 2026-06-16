@@ -1,10 +1,17 @@
 #include "plato/filter/extension/IdentityFilter.hpp"
 
+#include <cstddef>
+#include <format>
+#include <memory>
+#include <optional>
+#include <string>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/library/FilterJacobian.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/utilities/Exception.hpp"
@@ -13,27 +20,29 @@ namespace plato::filter::extension
 {
 namespace
 {
-[[maybe_unused]] static auto kIdentityFilterParserRegistration =
+[[maybe_unused]] const auto kIdentityFilterParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::identity_filter>{};
 
-[[maybe_unused]] static auto kIdentityFilterRegistration =
+[[maybe_unused]] const auto kIdentityFilterRegistration =
     library::FilterRegistration{input_parser::block_name<input_parser::identity_filter>(),
                                 [](const library::ValidatedFilterInput&) { return make_identity_filter_function(); }};
 
-[[maybe_unused]] static auto kIdentityFilterValidationRegistration =
+[[maybe_unused]] const auto kIdentityFilterValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{[](const input_parser::identity_filter& aInput)
                                                          { return validate_identity_filter(aInput); }};
 }  // namespace
 
-analysis::AnalysisDomainMesh IdentityFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+auto IdentityFilter::filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+    -> analysis::AnalysisDomainMesh
 {
     return aAnalysisDomainMesh;
 }
 
-linear_algebra::DynamicVector<double> IdentityFilter::rowVectorTimesJacobian(
-    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, const linear_algebra::DynamicVector<double>& aV) const
+auto IdentityFilter::rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                            const linear_algebra::DynamicVector<double>& aRowVector) const
+    -> linear_algebra::DynamicVector<double>
 {
-    const auto tVectorDimension = static_cast<std::size_t>(aV.size());
+    const auto tVectorDimension = static_cast<std::size_t>(aRowVector.size());
     const std::size_t tDensityDimension = analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh}.size();
     if (tVectorDimension != tDensityDimension)
     {
@@ -42,14 +51,14 @@ linear_algebra::DynamicVector<double> IdentityFilter::rowVectorTimesJacobian(
             "dimension: " +
             std::to_string(tVectorDimension) + ", density dimension: " + std::to_string(tDensityDimension)};
     }
-    return aV;
+    return aRowVector;
 }
 
 auto IdentityFilter::rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                   const linear_algebra::DynamicVector<double>& aV) const
+                                                   const linear_algebra::DynamicVector<double>& aRowVector) const
     -> linear_algebra::DynamicVector<double>
 {
-    return rowVectorTimesJacobian(aAnalysisDomainMesh, aV);
+    return rowVectorTimesJacobian(aAnalysisDomainMesh, aRowVector);
 }
 
 auto make_identity_filter_function() -> library::FilterFunction
@@ -67,8 +76,8 @@ auto validate_identity_filter(const input_parser::identity_filter& aInput) -> st
 {
     if (aInput.filter_radius.has_value())
     {
-        return input_parser::block_name<input_parser::identity_filter>() +
-               R"( identity filter cannot have "filter_radius" defined.)";
+        return std::format(R"({} identity filter cannot have "filter_radius" defined.)",
+                           input_parser::block_name<input_parser::identity_filter>());
     }
     return std::nullopt;
 }

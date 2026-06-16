@@ -22,7 +22,7 @@ class MeshFromFileWithoutFields : public ::krino::MeshInterface
                               const std::string& aDecompositionMethod);
 
     void populate_mesh(
-        const stk::mesh::BulkData::AutomaticAuraOption aAutoAuraOption = stk::mesh::BulkData::AUTO_AURA) override;
+        stk::mesh::BulkData::AutomaticAuraOption aAutoAuraOption = stk::mesh::BulkData::AUTO_AURA) override;
 
     [[nodiscard]] auto meta_data() -> stk::mesh::MetaData& override;
     [[nodiscard]] auto meta_data() const -> const stk::mesh::MetaData& override;

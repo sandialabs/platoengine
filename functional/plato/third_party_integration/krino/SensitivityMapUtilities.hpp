@@ -50,8 +50,7 @@ using LevelSetFieldReference = utilities::NamedType<::krino::FieldRef, struct Le
 /// @brief Return a vector of derivatives of each nodal coordinate with respect to the nodal level set field. The
 /// coordinate sensitivities are stored in a Vector3, with z coordinates set to 0 if @a aSpatialDimension is 2.
 [[nodiscard]] auto coordinate_level_set_sensitivity(const ::krino::LevelSetShapeSensitivity& aLevelSetSensitivity,
-                                                    const unsigned int aSpatialDimension)
-    -> std::vector<common::Vector3>;
+                                                    unsigned int aSpatialDimension) -> std::vector<common::Vector3>;
 
 /// @brief Compute the repeated occurrence of cut mesh node ids in parallel using sensitivity map @a aSensitivityMap.
 /// @note Sensitivity maps are computing on their local rank and only contain data from that rank.

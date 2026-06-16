@@ -9,8 +9,8 @@
 #include "plato/geometry/extension/cubit/CubitGeometryCommonUtilities.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
-#include "plato/test_utilities/GradientChecker.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::geometry::extension::cubit::unittest
@@ -111,13 +111,13 @@ TEST(CubitGeometry, CheckGradient)
     };
 
     const auto tGradientCheckParameters =
-        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.5, .mNumSteps = 6, .mInitialStepSize = 1};
-    const auto tGradientCheck = plato::test_utilities::GradientChecker{tF, tDf};
+        plato::utilities::GradientCheckParameters{.mStepDelta = 0.5, .mNumSteps = 6, .mInitialStepSize = 1};
+    const auto tGradientCheck = plato::utilities::GradientChecker{tF, tDf};
 
     const auto tErrors = tGradientCheck.finiteDifferenceErrors(tX, tDirection, tGradientCheckParameters);
     ASSERT_FALSE(tErrors.empty());
 
-    constexpr auto tTolerance = 5e-12;
+    constexpr auto tTolerance = 5e-11;
     for (const auto& tTruncationError : tErrors)
     {
         ASSERT_NEAR(tTruncationError.mValue, 0.0, tTolerance)

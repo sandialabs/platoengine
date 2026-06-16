@@ -48,8 +48,8 @@ struct SensitivityTriangle
 {
     std::array<NodeIDCoordsPair, 3> mNodes;
 
-    [[nodiscard]] common::UnitVector3 normal() const;
-    [[nodiscard]] double area() const;
+    [[nodiscard]] auto normal() const -> common::UnitVector3;
+    [[nodiscard]] auto area() const -> double;
 };
 
 }  // namespace plato::third_party_integration::krino

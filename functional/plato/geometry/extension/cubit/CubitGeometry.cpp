@@ -54,10 +54,10 @@ const auto kComputeMesh = third_party_integration::cubit::ApreproVariable{"compu
 }
 
 /// Static registration for the input parser
-[[maybe_unused]] static auto kCubitGeometryParserRegistration =
+[[maybe_unused]] static const auto kCubitGeometryParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::cubit_parameterized_shape>{};
 
-[[maybe_unused]] static auto kCubitGeometryRegistration = geometry::library::GeometryRegistration{
+[[maybe_unused]] static const auto kCubitGeometryRegistration = geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::cubit_parameterized_shape>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
     {
@@ -66,7 +66,7 @@ const auto kComputeMesh = third_party_integration::cubit::ApreproVariable{"compu
                                      detail::make_cubit_output(tInput)};
     }};
 
-[[maybe_unused]] static auto kCubitGeometryValidationRegistration =
+[[maybe_unused]] static const auto kCubitGeometryValidationRegistration =
     input_validation::ValidationRegistration<input_parser::cubit_parameterized_shape>{
         [](const input_parser::cubit_parameterized_shape& aInput)
         { return detail::validate_mesh_journal_file(aInput); },
@@ -74,8 +74,9 @@ const auto kComputeMesh = third_party_integration::cubit::ApreproVariable{"compu
         [](const input_parser::cubit_parameterized_shape& aInput) { return validate_output_file_name(aInput); },
         [](const input_parser::cubit_parameterized_shape& aInput)
         { return validate_lower_bounds_less_than_upper(aInput); },
+        [](const input_parser::cubit_parameterized_shape& aInput) { return validate_aprepro_variables_exists(aInput); },
         [](const input_parser::cubit_parameterized_shape& aInput)
-        { return validate_aprepro_variables_exists(aInput); }};
+        { return validate_aprepro_variables_perturbation_scale(aInput); }};
 // LCOV_EXCL_STOP
 }  // namespace
 
@@ -126,8 +127,7 @@ template <AccessorFunction AccessorFunction>
                                                        const AccessorFunction aAccessorFunction)
     -> analysis::AnalysisDomainMesh
 {
-    auto tAnalysisDomainMesh = aAnalysisDomainMesh;
-    for (auto& tBlock : tAnalysisDomainMesh.mBlockScalarField)
+    for (auto& tBlock : aAnalysisDomainMesh.mBlockScalarField)
     {
         for (auto& tEntry : tBlock.second)
         {
@@ -139,7 +139,7 @@ template <AccessorFunction AccessorFunction>
             }
         }
     }
-    return tAnalysisDomainMesh;
+    return aAnalysisDomainMesh;
 }
 
 }  // namespace
@@ -248,7 +248,6 @@ template <JacobianOrAdjointJacobianFunction JacobianOrAdjointJacobianFunction>
                 tSensitivityMapAtMeshIdIterator != tSensitivityMap.end())
             {
                 const auto& tSensitivity = tSensitivityMapAtMeshIdIterator->second;
-
                 aApplyFunction(tRowVectorMatrixProductView, aRowVector, DesignIndex{tDesignIndex}, MeshIndex{tIndex},
                                tSensitivity, aSpatialDimension);
             }

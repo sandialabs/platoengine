@@ -10,11 +10,13 @@
 
 ///@brief Input struct for specifying blocks over which volume should be computed
 // clang-format off
+// NOLINTBEGIN(cppcoreguidelines-special-member-functions,readability-redundant-member-init)
 BOOST_FUSION_DEFINE_STRUCT(
 (plato)(input_parser),volume_criterion,
 (boost::optional<bool>, ignore_void_blocks)
 (boost::optional<double>, reference_volume)
 )
+// NOLINTEND(cppcoreguidelines-special-member-functions,readability-redundant-member-init)
 // clang-format on
 
 namespace plato::criteria::extension
@@ -24,31 +26,31 @@ namespace plato::criteria::extension
 /// centered controls and not nodal
 struct VolumeCriterion
 {
-    [[nodiscard]] double f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
-    [[nodiscard]] linear_algebra::DynamicVector<double> df(
-        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const;
+    [[nodiscard]] auto f(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double;
+    [[nodiscard]] auto df(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> linear_algebra::DynamicVector<double>;
 
-    static constexpr auto kVolumeCriterionName = std::string_view{"volume"};
-    static constexpr auto kVolumeFractionCriterionName = std::string_view{"volume_fraction"};
+    static constexpr auto mVolumeCriterionName = std::string_view{"volume"};
+    static constexpr auto mVolumeFractionCriterionName = std::string_view{"volume_fraction"};
 
     double mScaleFactor = 1;
-    bool mIgnoreVoidBlocks;
+    bool mIgnoreVoidBlocks = true;
 };
 
 /// @brief Creates a Function object from a VolumeCriterion
-[[nodiscard]] auto make_volume_constraint_function(const bool aIgnoreVoidBlocks) -> library::CriterionFunction;
+[[nodiscard]] auto make_volume_constraint_function(bool aIgnoreVoidBlocks) -> library::CriterionFunction;
 
 /// @brief Creates a Function object from a VolumeCriterion
-[[nodiscard]] auto make_volume_fraction_constraint_function(const bool aIgnoreVoidBlocks,
-                                                            const boost::optional<double> aReferenceVolume)
+[[nodiscard]] auto make_volume_fraction_constraint_function(bool aIgnoreVoidBlocks,
+                                                            boost::optional<double> aReferenceVolume)
     -> library::CriterionFunction;
 
 namespace detail
 {
-auto parse_input_block(const std::filesystem::path& aFilename) -> input_parser::volume_criterion;
+auto parse_input_block(const std::filesystem::path& aFilePath) -> input_parser::volume_criterion;
 
-[[nodiscard]] double reference_volume(const boost::optional<double> aReferenceVolume,
-                                      const analysis::AnalysisDomainMesh& aAnalysisDomainMesh);
+[[nodiscard]] auto reference_volume(boost::optional<double> aReferenceVolume,
+                                    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> double;
 }  // namespace detail
 
 }  // namespace plato::criteria::extension

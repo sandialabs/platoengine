@@ -8,12 +8,12 @@ namespace plato::test_utilities::parallel_unittest
 {
 TEST(ParallelTestFunctionWrapper, MatchesSerialQuadratic)
 {
-    const auto tQuadraticFunction = [](const double x) { return x * x; };
+    const auto tQuadraticFunction = [](const double aX) { return aX * aX; };
     const auto tParallelQuadratic = test_utilities::ParallelTestFunctionWrapper<double, double>{tQuadraticFunction};
 
-    const auto tComm = boost::mpi::communicator{};
-    EXPECT_GT(tComm.size(), 1);
+    const auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_GT(tCommunicator.size(), 1);
     constexpr auto tArg = 42.0;
-    EXPECT_EQ(tQuadraticFunction(tArg), tParallelQuadratic(tArg, tComm));
+    EXPECT_EQ(tQuadraticFunction(tArg), tParallelQuadratic(tArg, tCommunicator));
 }
 }  // namespace plato::test_utilities::parallel_unittest

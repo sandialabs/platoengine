@@ -51,11 +51,11 @@ class ConstraintCheck
     std::filesystem::path mLinearityCheckOutputFileName;
     std::filesystem::path mJacobianCheckOutputFileName;
     std::filesystem::path mJacobianAdjointConsistencyCheckOutputFileName;
-    unsigned int mNumberOfSteps = 12;
-    double mInitialDirectionMagnitude = 1;
-    double mStepSizeReductionFactor = 0.1;
+    unsigned int mNumberOfSteps = 1;
+    double mInitialDirectionMagnitude = 1.0;
+    double mStepSizeReductionFactor = 1.0;
     input_parser::DirectionVectorTypes mDirectionVectorType = input_parser::DirectionVectorTypes::kRandom;
-    unsigned int mSeed = 42;
+    unsigned int mSeed = 1;
 };
 
 namespace detail

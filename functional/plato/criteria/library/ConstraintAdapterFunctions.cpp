@@ -1,7 +1,15 @@
 #include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <iterator>
+#include <set>
+#include <utility>
+#include <vector>
 
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/Zip.hpp"
 
@@ -22,8 +30,8 @@ namespace
 
 [[nodiscard]] auto make_vector_subset_evaluation_function(std::set<std::size_t> aIndices)
 {
-    return [mIndices = std::move(aIndices)](const linear_algebra::DynamicVector<double>& aVector)
-    { return linear_algebra::DynamicVector<double>(vector_subset(aVector, mIndices)); };
+    return [tIndices = std::move(aIndices)](const linear_algebra::DynamicVector<double>& aVector)
+    { return linear_algebra::DynamicVector<double>(vector_subset(aVector, tIndices)); };
 }
 
 [[nodiscard]] auto make_vector_subset_jacobian_product(const std::set<std::size_t>& aIndices,
@@ -46,7 +54,7 @@ namespace
     -> linear_algebra::DynamicVector<double>
 {
     auto tValues = std::move(aVector).stdVector();
-    std::ranges::transform(tValues, tValues.begin(), [aOffset](const auto tValue) { return tValue + aOffset; });
+    std::ranges::transform(tValues, tValues.begin(), [aOffset](const auto aValue) { return aValue + aOffset; });
     return linear_algebra::DynamicVector<double>(std::move(tValues));
 }
 
@@ -70,8 +78,9 @@ auto make_vector_subset_function(const std::set<std::size_t>& aIndices) -> Const
 
 auto make_target_offset_function(std::vector<double> aTargets) -> ConstraintAdapterFunction
 {
-    return ConstraintAdapterFunction{[mOffset = -1.0 * linear_algebra::DynamicVector<double>(std::move(aTargets))](
-                                         const linear_algebra::DynamicVector<double>& aX) { return aX + mOffset; },
+    return ConstraintAdapterFunction{[tOffset = -1.0 * linear_algebra::DynamicVector<double>(std::move(aTargets))](
+                                         const linear_algebra::DynamicVector<double>& aVector)
+                                     { return aVector + tOffset; },
                                      [](const linear_algebra::DynamicVector<double>&) { return identity_operation(); },
                                      [](const linear_algebra::DynamicVector<double>&)
                                      { return linear_algebra::AdjointJacobianMultiplier{identity_operation()}; }};
@@ -79,8 +88,8 @@ auto make_target_offset_function(std::vector<double> aTargets) -> ConstraintAdap
 
 auto make_target_offset_function(const double aTarget) -> ConstraintAdapterFunction
 {
-    return ConstraintAdapterFunction{[mOffset = -aTarget](const linear_algebra::DynamicVector<double>& aX)
-                                     { return offset_vector(aX, mOffset); },
+    return ConstraintAdapterFunction{[tOffset = -aTarget](const linear_algebra::DynamicVector<double>& aVector)
+                                     { return offset_vector(aVector, tOffset); },
                                      [](const linear_algebra::DynamicVector<double>&) { return identity_operation(); },
                                      [](const linear_algebra::DynamicVector<double>&)
                                      { return linear_algebra::AdjointJacobianMultiplier{identity_operation()}; }};

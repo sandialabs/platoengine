@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <numbers>
 #include <sstream>
 
@@ -24,9 +25,9 @@ TEST(FixedWidthFloatingPointOutput, ToString)
 {
     constexpr auto tPrecision = std::size_t{4};
     constexpr auto tWidth = std::size_t{6};
-    const auto tE = FixedWidthFloatingPointOutput<double, tPrecision, tWidth>{std::numbers::e};
+    const auto tEulersNumber = FixedWidthFloatingPointOutput<double, tPrecision, tWidth>{std::numbers::e};
 
-    const auto tResult = to_string(tE);
+    const auto tResult = to_string(tEulersNumber);
     constexpr auto tExpected = std::string_view{" 2.718"};
     EXPECT_EQ(tResult, tExpected);
 }

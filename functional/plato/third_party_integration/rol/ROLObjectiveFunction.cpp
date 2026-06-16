@@ -1,5 +1,13 @@
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 
+#include <ROL_UpdateType.hpp>
+#include <utility>
+#include <vector>
+
+#include "plato/core/Function.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/output/OutputManager.hpp"
+
 namespace plato::third_party_integration::rol
 {
 ROLObjectiveFunction::ROLObjectiveFunction(ROLPlatoFunction aROLPlatoFunction, output::OutputManager aOutputManager)
@@ -17,12 +25,14 @@ void ROLObjectiveFunction::update(const std::vector<double>& aControls,
     }
 }
 
-double ROLObjectiveFunction::value(const std::vector<double>& aControls, double&)
+auto ROLObjectiveFunction::value(const std::vector<double>& aControls, double& /*tol*/) -> double
 {
     return mFunction.evaluate<core::evaluation::kFunction>(linear_algebra::DynamicVector<double>{aControls});
 }
 
-void ROLObjectiveFunction::gradient(std::vector<double>& aGradient, const std::vector<double>& aControls, double&)
+void ROLObjectiveFunction::gradient(std::vector<double>& aGradient,
+                                    const std::vector<double>& aControls,
+                                    double& /*tol*/)
 {
     aGradient = mFunction.evaluate<core::evaluation::kFirstDerivative>(linear_algebra::DynamicVector<double>{aControls})
                     .stdVector();

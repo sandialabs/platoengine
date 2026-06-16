@@ -33,7 +33,7 @@ class OutputManager
    private:
     OutputFunction mOutputFunction;
     OutputMode mOutputMode{OutputMode::kNever};
-    std::size_t mIteration{0u};
+    std::size_t mIteration{0U};
 };
 }  // namespace plato::output
 #endif

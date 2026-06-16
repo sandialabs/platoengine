@@ -1,42 +1,50 @@
 #include "plato/third_party_integration/stk_io/Triangle.hpp"
 
+#include <array>
 #include <cmath>
+
+#include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::third_party_integration::stk_io
 {
 
-double Triangle::volume() const
+auto Triangle::volume() const -> double
 {
     const auto tAreaVector = areaVector();
-    return std::sqrt(dot(tAreaVector, tAreaVector)) * 0.5;
+    constexpr auto tAreaFactor = 0.5;
+    return std::sqrt(dot(tAreaVector, tAreaVector)) * tAreaFactor;
 }
 
-common::Vector3 Triangle::normal() const
+auto Triangle::normal() const -> common::Vector3
 {
-    const common::Vector3 a = p1 - p0;
-    const common::Vector3 b = p2 - p0;
-    const common::Vector3 tACrossB = cross(a, b);
+    const common::Vector3 tEdgeVector1 = mP1 - mP0;
+    const common::Vector3 tEdgeVector2 = mP2 - mP0;
+    const common::Vector3 tACrossB = cross(tEdgeVector1, tEdgeVector2);
 
     return tACrossB * (1.0 / magnitude(tACrossB));
 }
 
-common::Coordinate Triangle::centroid() const { return (p0 + p1 + p2) / 3; }
+auto Triangle::centroid() const -> common::Coordinate
+{
+    constexpr auto tNumberOfPoints = 3.0;
+    return (mP0 + mP1 + mP2) / tNumberOfPoints;
+}
 
 auto Triangle::volumeVertexSensitivities() const -> VertexSensitivities
 {
     const auto tAreaVector = areaVector();
     const auto tCoefficient = 0.5 / std::sqrt(dot(tAreaVector, tAreaVector));
-    const auto tDvolDp0 = cross(p2 - p1, tAreaVector) * tCoefficient;
-    const auto tDvolDp1 = cross(p0 - p2, tAreaVector) * tCoefficient;
-    const auto tDvolDp2 = cross(p1 - p0, tAreaVector) * tCoefficient;
+    const auto tDvolDp0 = cross(mP2 - mP1, tAreaVector) * tCoefficient;
+    const auto tDvolDp1 = cross(mP0 - mP2, tAreaVector) * tCoefficient;
+    const auto tDvolDp2 = cross(mP1 - mP0, tAreaVector) * tCoefficient;
     return std::array{tDvolDp0, tDvolDp1, tDvolDp2};
 }
 
-common::Vector3 Triangle::areaVector() const
+auto Triangle::areaVector() const -> common::Vector3
 {
-    const auto a = p1 - p0;
-    const auto b = p2 - p0;
-    return cross(b, a);
+    const auto tEdgeVector1 = mP1 - mP0;
+    const auto tEdgeVector2 = mP2 - mP0;
+    return cross(tEdgeVector2, tEdgeVector1);
 }
 
 }  // namespace plato::third_party_integration::stk_io

@@ -40,8 +40,8 @@ class MeshOutput : public Mesh
 
     MeshOutput(const MeshOutput&) = delete;
     MeshOutput(MeshOutput&&) = delete;
-    MeshOutput& operator=(const MeshOutput&) = delete;
-    MeshOutput& operator=(MeshOutput&&) = delete;
+    auto operator=(const MeshOutput&) -> MeshOutput& = delete;
+    auto operator=(MeshOutput&&) -> MeshOutput& = delete;
 };
 
 /// @brief Given output mode @a aOutputMode, a source mesh @a aSourceAnalysisDomainMesh, the output file @a
@@ -49,18 +49,18 @@ class MeshOutput : public Mesh
 [[nodiscard]] auto mesh_output(OutputMode aOutputMode,
                                analysis::AnalysisDomainMesh aSourceAnalysisDomainMesh,
                                const std::filesystem::path& aOutputFilePath,
-                               const std::size_t aTimeStep) -> std::unique_ptr<MeshOutput>;
+                               std::size_t aTimeStep) -> std::unique_ptr<MeshOutput>;
 
 namespace detail
 {
 /// @brief return a MeshOutput ready for overwriting
 [[nodiscard]] auto overwrite_mesh_output(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
                                          const std::filesystem::path& aOutputFilePath,
-                                         const std::size_t aTimeStep) -> std::unique_ptr<MeshOutput>;
+                                         std::size_t aTimeStep) -> std::unique_ptr<MeshOutput>;
 
 /// @brief return a MeshOutput ready for appending
-[[nodiscard]] auto append_mesh_output(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                      const std::size_t aTimeStep) -> std::unique_ptr<MeshOutput>;
+[[nodiscard]] auto append_mesh_output(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, std::size_t aTimeStep)
+    -> std::unique_ptr<MeshOutput>;
 
 }  // namespace detail
 

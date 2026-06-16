@@ -10,7 +10,6 @@
 #include "plato/input_parser/InputBlockStruct.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
-#include "plato/linear_algebra/JacobianMultiplier.hpp"
 
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
@@ -24,12 +23,12 @@ namespace plato::geometry::extension
 /// @brief Design parameters for BrickShapeGeometry
 struct BrickDesign
 {
-    double center_x = 0.0;
-    double center_y = 0.0;
-    double center_z = 0.0;
-    double dimension_x = 1.0;
-    double dimension_y = 1.0;
-    double dimension_z = 1.0;
+    double mCenterX = 0.0;
+    double mCenterY = 0.0;
+    double mCenterZ = 0.0;
+    double mDimensionX = 1.0;
+    double mDimensionY = 1.0;
+    double mDimensionZ = 1.0;
 };
 
 /// @brief Prototype example of a geometry function that maps a center location and dimensions to a brick.
@@ -54,12 +53,21 @@ class BrickShapeGeometry
 
     ~BrickShapeGeometry();
 
+    BrickShapeGeometry(const BrickShapeGeometry& aBrickShapeGeometry);
+    BrickShapeGeometry(BrickShapeGeometry&& aBrickShapeGeometry) noexcept;
+    auto operator=(const BrickShapeGeometry& aBrickShapeGeometry) -> BrickShapeGeometry&;
+    auto operator=(BrickShapeGeometry&& aBrickShapeGeometry) noexcept -> BrickShapeGeometry&;
+
     [[nodiscard]] auto generateMesh(const BrickDesign& aDesignParameters) const -> analysis::AnalysisDomainMesh;
 
-    [[nodiscard]] auto jacobian(const BrickDesign& aDesignParameters) const -> linear_algebra::JacobianColumnEvaluator;
+    [[nodiscard]] static auto jacobian(const BrickDesign& aDesignParameters) -> linear_algebra::JacobianColumnEvaluator;
 
-    [[nodiscard]] auto adjointJacobian(const BrickDesign& aDesignParameters) const
+    [[nodiscard]] static auto adjointJacobian(const BrickDesign& aDesignParameters)
         -> linear_algebra::JacobianColumnEvaluator;
+
+    /// @brief Returns the file name at which that this object will write its mesh.
+    /// @note This is different than the file passed on construction, it will have a unique string appended.
+    [[nodiscard]] auto fileName() const -> const std::filesystem::path&;
 
     [[nodiscard]] static auto initialGuess() -> linear_algebra::DynamicVector<double>;
 
@@ -78,15 +86,15 @@ class BrickShapeGeometry
 
 namespace detail
 {
-[[nodiscard]] BrickDesign to_design_parameters(const linear_algebra::DynamicVector<double>& aDesignParameter);
+[[nodiscard]] auto to_design_parameters(const linear_algebra::DynamicVector<double>& aDesignParameter) -> BrickDesign;
 
 void create_mesh(const BrickDesign& aDesign,
                  const std::filesystem::path& aOutputFile,
                  std::optional<double> aDiscretizationSize = std::nullopt);
 
-[[nodiscard]] std::vector<double> sensitivities(unsigned int aParameterIndex);
+[[nodiscard]] auto sensitivities(unsigned int aParameterIndex) -> std::vector<double>;
 
-[[nodiscard]] linear_algebra::DynamicVector<double> to_dynamic_vector(const BrickDesign& aDesignParameters);
+[[nodiscard]] auto to_dynamic_vector(const BrickDesign& aDesignParameters) -> linear_algebra::DynamicVector<double>;
 }  // namespace detail
 
 }  // namespace plato::geometry::extension

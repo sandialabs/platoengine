@@ -2,12 +2,14 @@
 
 #include <boost/log/sources/logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
+#include <boost/smart_ptr/make_shared_object.hpp>
 #include <regex>
+#include <sstream>
 
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/boost_log/AttributeTypes.hpp"
 #include "plato/third_party_integration/boost_log/LoggerSinkSetupTeardown.hpp"
 #include "plato/third_party_integration/boost_log/TimeStampAttribute.hpp"
-#include "plato/utilities/Colorize.hpp"
 
 namespace plato::third_party_integration::boost_log::unittest
 {

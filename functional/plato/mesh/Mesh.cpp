@@ -1,12 +1,19 @@
 #include "plato/mesh/Mesh.hpp"
 
+#include <algorithm>
 #include <cassert>
-#include <format>
+#include <filesystem>
+#include <iterator>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/third_party_integration/common/BlockData.hpp"
 #include "plato/third_party_integration/stk_io/BlockUtilities.hpp"
 #include "plato/third_party_integration/stk_io/ReadUtilities.hpp"
-#include "plato/utilities/Exception.hpp"
 
 namespace plato::mesh
 {
@@ -42,8 +49,8 @@ template <typename T, typename FieldFunction>
     auto tBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
     tBlockIDs.reserve(aBlockNames.size());
     std::transform(aBlockNames.cbegin(), aBlockNames.cend(), std::back_inserter(tBlockIDs),
-                   [&tBlockData, &tNameField](const std::string& tBlockName)
-                   { return block_meta_data_ordinal(tBlockName, tNameField, tBlockData); });
+                   [&tBlockData, &tNameField](const std::string& aBlockName)
+                   { return block_meta_data_ordinal(aBlockName, tNameField, tBlockData); });
     return tBlockIDs;
 }
 
@@ -53,7 +60,7 @@ template <typename T, typename FieldFunction>
     auto tBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
     tBlockIDs.reserve(tBlockData.size());
     std::transform(tBlockData.cbegin(), tBlockData.cend(), std::back_inserter(tBlockIDs),
-                   [](const auto& tBlockDatum) { return tBlockDatum.mMetaDataOrdinal; });
+                   [](const auto& aBlockDatum) { return aBlockDatum.mMetaDataOrdinal; });
     return tBlockIDs;
 }
 
@@ -94,8 +101,8 @@ template <typename T, typename FieldFunction>
     auto tDesignBlockIDs = std::vector<Mesh::BlockOrdinalType>{};
     tDesignBlockIDs.reserve(aAnalysisDomainMesh.mBlockScalarField.size());
     std::transform(aAnalysisDomainMesh.mBlockScalarField.cbegin(), aAnalysisDomainMesh.mBlockScalarField.cend(),
-                   std::back_inserter(tDesignBlockIDs), [&tBlockData, &tIDField](const auto& tBlockScalarField)
-                   { return block_meta_data_ordinal(tBlockScalarField.first, tIDField, tBlockData); });
+                   std::back_inserter(tDesignBlockIDs), [&tBlockData, &tIDField](const auto& aBlockScalarField)
+                   { return block_meta_data_ordinal(aBlockScalarField.first, tIDField, tBlockData); });
 
     return set_difference_block_ordinals(aBulkData, std::move(tDesignBlockIDs));
 }
@@ -146,35 +153,35 @@ Mesh::Mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
 {
 }
 
-const std::filesystem::path& Mesh::filePath() const { return mFilePath; }
+auto Mesh::filePath() const -> const std::filesystem::path& { return mFilePath; }
 
-const std::vector<Mesh::BlockOrdinalType>& Mesh::fixedBlockOrdinals() const { return mFixedBlockOrdinals; }
+auto Mesh::fixedBlockOrdinals() const -> const std::vector<Mesh::BlockOrdinalType>& { return mFixedBlockOrdinals; }
 
-const std::vector<Mesh::BlockOrdinalType>& Mesh::designBlockOrdinals() const { return mDesignBlockOrdinals; }
+auto Mesh::designBlockOrdinals() const -> const std::vector<Mesh::BlockOrdinalType>& { return mDesignBlockOrdinals; }
 
-const stk::mesh::BulkData& Mesh::bulkData() const
+auto Mesh::bulkData() const -> const stk::mesh::BulkData&
 {
     assert(mBulk);
     return *mBulk;
 }
 
-stk::mesh::BulkData& Mesh::bulkData()
+auto Mesh::bulkData() -> stk::mesh::BulkData&
 {
     assert(mBulk);
     return *mBulk;
 }
 
-Mesh::PartReferenceVector Mesh::fixedDomainBlocks() const
+auto Mesh::fixedDomainBlocks() const -> Mesh::PartReferenceVector
 {
     return parts_from_block_ordinals(bulkData(), mFixedBlockOrdinals);
 }
 
-Mesh::PartReferenceVector Mesh::designDomainBlocks() const
+auto Mesh::designDomainBlocks() const -> Mesh::PartReferenceVector
 {
     return parts_from_block_ordinals(bulkData(), mDesignBlockOrdinals);
 }
 
-Mesh::PartReferenceVector Mesh::specifiedDomainBlocks(const std::set<std::string>& aBlockNames) const
+auto Mesh::specifiedDomainBlocks(const std::set<std::string>& aBlockNames) const -> Mesh::PartReferenceVector
 {
     return parts_from_block_ordinals(bulkData(), block_ordinals_from_names(mBulk, aBlockNames));
 }

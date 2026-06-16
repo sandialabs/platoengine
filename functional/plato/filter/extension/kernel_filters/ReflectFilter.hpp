@@ -41,8 +41,9 @@ namespace detail
 {
 ///@brief A helper constructor for creating the ReflectFilterType. It takes a radius @a aRadius and the centering type
 ///@a aFilterCentering. This assigns the compute functions with the proper utilities.
-[[nodiscard]] auto make_positive_octant_reflect_filter_type(
-    const double aRadius, const input_parser::KernelFilterCenteringTypes aFilterCentering) -> ReflectFilterType;
+[[nodiscard]] auto make_positive_octant_reflect_filter_type(double aRadius,
+                                                            input_parser::KernelFilterCenteringTypes aFilterCentering)
+    -> ReflectFilterType;
 
 ///@brief Validation function that checks the mesh @a aSourceMeshFileName to make sure it exists only in the positive
 /// quadrant

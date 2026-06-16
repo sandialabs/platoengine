@@ -4,25 +4,27 @@
 #include <cstddef>
 #include <functional>
 #include <numeric>
+#include <utility>
+#include <vector>
 
 namespace plato::utilities
 {
 CartesianProduct::CartesianProduct(const std::vector<std::size_t>& aSizes) : mMaxSizes(aSizes) {}
 
-auto CartesianProduct::begin() const -> CartesianProductIterator { return CartesianProductIterator(mMaxSizes); }
+auto CartesianProduct::begin() const -> CartesianProductIterator { return {mMaxSizes}; }
 
 auto CartesianProduct::end() const -> CartesianProductIterator { return CartesianProductIterator::end(mMaxSizes); }
 
 CartesianProductIterator::CartesianProductIterator(std::vector<std::size_t> aSizes)
-    : mMaxSizes(std::move(aSizes)), mCurrentState(mMaxSizes.size(), 0), mCurrentLinearIndex(0)
+    : mMaxSizes(std::move(aSizes)), mCurrentState(mMaxSizes.size(), 0)
 {
 }
 
-CartesianProductIterator CartesianProductIterator::end(const std::vector<std::size_t>& aSizes)
+auto CartesianProductIterator::end(const std::vector<std::size_t>& aSizes) -> CartesianProductIterator
 {
     CartesianProductIterator tIterator(aSizes);
-    std::size_t tProduct = std::accumulate(tIterator.mMaxSizes.begin(), tIterator.mMaxSizes.end(), std::size_t{1},
-                                           std::multiplies<std::size_t>());
+    const auto tProduct =
+        std::accumulate(tIterator.mMaxSizes.begin(), tIterator.mMaxSizes.end(), std::size_t{1}, std::multiplies<>());
     tIterator.mCurrentLinearIndex = tProduct;
     return tIterator;
 }

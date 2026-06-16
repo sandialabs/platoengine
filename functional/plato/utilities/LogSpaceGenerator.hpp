@@ -11,10 +11,10 @@ namespace plato::utilities
 struct LogSpaceGenerator
 {
     double mStartingMagnitude = 1;
-    double mStepRatio = 0.1;
-    unsigned int mNumberOfSteps = 10;
+    double mStepRatio = 1.0;
+    unsigned int mNumberOfSteps = 1;
 
-    [[nodiscard]] std::vector<double> steps() const;
+    [[nodiscard]] auto steps() const -> std::vector<double>;
 };
 }  // namespace plato::utilities
 

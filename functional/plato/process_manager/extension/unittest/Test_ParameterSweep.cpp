@@ -1,21 +1,22 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
-#include "plato/input_parser/InputDefinitions.hpp"
+#include "plato/input_parser/FileList.hpp"
 #include "plato/input_parser/Range.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/process_manager/extension/IndexAndRange.hpp"
 #include "plato/process_manager/extension/ParameterSweep.hpp"
-#include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerRegistration.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
-#include "plato/test_utilities/InputGeneration.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::process_manager::extension::unittest
@@ -61,7 +62,7 @@ void test_run_parameter_sweep(const input_parser::parameter_sweep& aParameterSwe
     const library::ProcessManagerData tProblem = library::make_process_manager_data(tValidatedInput.value());
 
     const auto tAllProcessManagerInputs = tValidatedInput.value().get<components::ComponentType::kProcessManager>();
-    ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1u);
+    ASSERT_EQ(tAllProcessManagerInputs.rawInput().size(), 1U);
     const auto tParameterSweep = ParameterSweep{tAllProcessManagerInputs.rawInput().back()};
 
     tParameterSweep.run(tProblem);
@@ -109,8 +110,9 @@ TEST(ParameterSweepDetail, ValidateIndicesAndRanges)
     input_parser::parameter_sweep tParameterSweep;
     EXPECT_TRUE(detail::validate_indices_and_ranges(tParameterSweep).has_value()) << "Required input.";
 
+    const auto tValidRange = input_parser::Range{0.0, 10.0, 100.0};
     tParameterSweep.indices_and_ranges =
-        input_parser::IndexAndRangeList{{input_parser::IndexAndRange{1U, input_parser::Range{0.0, 10.0, 100.0}}}};
+        input_parser::IndexAndRangeList{{input_parser::IndexAndRange{1U, tValidRange}}};
     EXPECT_FALSE(detail::validate_indices_and_ranges(tParameterSweep).has_value()) << "Valid range.";
 }
 
@@ -118,8 +120,8 @@ TEST(ParameterSweepDetail, ValidateControlIndices)
 {
     auto tParameterSweep = create_valid_example_parameter_sweep();
     EXPECT_FALSE(detail::validate_control_indices(tParameterSweep).has_value()) << "Valid control indices.";
-    tParameterSweep.indices_and_ranges.value().mList.push_back(
-        input_parser::IndexAndRange{-1, input_parser::Range{0.0, 10.0, 100.0}});
+    const auto tValidRange = input_parser::Range{0.0, 10.0, 100.0};
+    tParameterSweep.indices_and_ranges.value().mList.emplace_back(-1, tValidRange);
     EXPECT_TRUE(detail::validate_control_indices(tParameterSweep).has_value()) << "Invalid control index.";
 }
 
@@ -128,8 +130,8 @@ TEST(ParameterSweepDetail, ValidateControlIndicesNoDuplicates)
     auto tParameterSweep = create_valid_example_parameter_sweep();
     EXPECT_FALSE(detail::validate_control_indices_no_duplicates(tParameterSweep).has_value())
         << "Valid control indices.";
-    tParameterSweep.indices_and_ranges.value().mList.push_back(
-        input_parser::IndexAndRange{1U, input_parser::Range{0.0, 10.0, 100.0}});
+    const auto tValidRange = input_parser::Range{0.0, 10.0, 100.0};
+    tParameterSweep.indices_and_ranges.value().mList.emplace_back(1U, tValidRange);
     EXPECT_TRUE(detail::validate_control_indices_no_duplicates(tParameterSweep).has_value())
         << "Invalid control indices, duplicate found.";
 }
@@ -138,8 +140,8 @@ TEST(ParameterSweepDetail, ValidateRangeLimits)
 {
     auto tParameterSweep = create_valid_example_parameter_sweep();
     EXPECT_FALSE(detail::validate_range_limits(tParameterSweep).has_value()) << "Valid range limits.";
-    tParameterSweep.indices_and_ranges.value().mList = {
-        input_parser::IndexAndRange{1U, input_parser::Range{100.0, 10.0, 0.0}}};
+    const auto tInvalidRange = input_parser::Range{100.0, 10.0, 0.0};
+    tParameterSweep.indices_and_ranges.value().mList = {input_parser::IndexAndRange{1U, tInvalidRange}};
     EXPECT_TRUE(detail::validate_range_limits(tParameterSweep).has_value())
         << "Invalid range, start is larger than end.";
 }
@@ -149,8 +151,8 @@ TEST(ParameterSweepDetail, ValidateRangeSteps)
     auto tParameterSweep = create_valid_example_parameter_sweep();
     EXPECT_FALSE(detail::validate_range_steps(tParameterSweep).has_value()) << "Valid range limits.";
 
-    tParameterSweep.indices_and_ranges.value().mList.front() =
-        input_parser::IndexAndRange{1U, input_parser::Range{0.0, -10.0, 100.0}};
+    const auto tInvalidRange = input_parser::Range{0.0, -10.0, 100.0};
+    tParameterSweep.indices_and_ranges.value().mList.front() = input_parser::IndexAndRange{1U, tInvalidRange};
     EXPECT_TRUE(detail::validate_range_steps(tParameterSweep).has_value()) << "Invalid range, negative step size.";
 }
 

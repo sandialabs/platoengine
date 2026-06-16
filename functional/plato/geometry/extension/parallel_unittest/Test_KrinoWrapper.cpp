@@ -1,16 +1,24 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <cstddef>
 #include <numeric>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/geometry/extension/KrinoWrapper.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
-#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
+#include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
@@ -57,7 +65,8 @@ TEST_F(KrinoTestFixture, KrinoWrapperParallel)
     const auto tMesh = mesh::Mesh{kBoxFilePath.value()};
     const auto tNumberOfDesignNodes = mesh::EntityCounts{tMesh}.numberOfDesignDomainNodes();
     std::vector<double> tDesignVariable(tNumberOfDesignNodes);
-    std::iota(tDesignVariable.begin(), tDesignVariable.end(), -static_cast<double>(tNumberOfDesignNodes) / 2.0);
+    constexpr auto tMultiplier = -0.5;
+    std::iota(tDesignVariable.begin(), tDesignVariable.end(), static_cast<double>(tNumberOfDesignNodes) * tMultiplier);
     const auto tAnalysisDomainMesh = mesh::DesignVariablesConversion{tMesh}.nodalFieldToAnalysisDomainMesh(
         mesh::NodalFieldVectorReference{tDesignVariable});
     const auto tFixedBlocks = std::set<std::string>{};
@@ -127,8 +136,8 @@ TEST_F(KrinoTestFixture, RowVectorJacobianProduct)
     const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test(tpik::VoidPhase::kExcludeFromMesh);
 
     const auto tNumberOfCutMeshNodes = 9;
-    const auto tDimensions = 2;
-    std::vector<double> tRowVector(tNumberOfCutMeshNodes * tDimensions, 1.0);
+    const auto tDimensions = std::size_t{2};
+    const std::vector<double> tRowVector(tNumberOfCutMeshNodes * tDimensions, 1.0);
 
     [[maybe_unused]] const auto tResult = tKrinoWrapper.rowVectorJacobianProduct(tRowVector);
 
@@ -141,7 +150,7 @@ TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
     const auto tKrinoWrapper = create_example_krino_wrapper_for_regression_test(tpik::VoidPhase::kExcludeFromMesh);
     const auto tNumberOfBackgroundNodes = 6;
-    std::vector<double> tRowVector(tNumberOfBackgroundNodes, 1.0);
+    const std::vector<double> tRowVector(tNumberOfBackgroundNodes, 1.0);
 
     [[maybe_unused]] const auto tResult = tKrinoWrapper.rowVectorAdjointJacobianProduct(tRowVector);
 

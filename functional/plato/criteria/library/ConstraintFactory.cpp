@@ -1,17 +1,33 @@
 #include "plato/criteria/library/ConstraintFactory.hpp"
 
+#include <algorithm>
+#include <boost/mpi/communicator.hpp>
+#include <cassert>
+#include <cstddef>
+#include <iterator>
 #include <map>
+#include <optional>
 #include <ranges>
+#include <set>
+#include <string>
+#include <utility>
+#include <variant>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/core/Compose.hpp"
+#include "plato/core/SplitParallelFunction.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
 #include "plato/criteria/library/ConstraintAdapterFunctions.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/CriterionFactory.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/criteria/library/LoggingFunction.hpp"
-#include "plato/linear_algebra/DynamicVectorFormatter.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/linear_algebra/DynamicVectorFormatter.hpp"      // NOLINT(misc-include-cleaner)
+#include "plato/linear_algebra/ParallelJacobianMultiplier.hpp"  // NOLINT(misc-include-cleaner)
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
@@ -21,12 +37,43 @@ namespace
 {
 using ValidatedConstraint = input_validation::ValidatedInputDataBlock<components::ComponentType::kConstraint>;
 
-[[nodiscard]] auto make_vector_criterion(const ValidatedConstraint& aConstraintInput)
+constexpr auto kDefaultNumberOfProcessors = 1U;
+
+[[nodiscard]] auto is_parallel(const input_parser::constraint& aRawInput)
 {
-    auto [tFunction, tConfiguration] =
-        make_criterion_function<CriterionFunction, input_parser::constraint>(aConstraintInput);
+    constexpr auto tSerialNumberOfProcessors = 1U;
+    return aRawInput.number_of_processors.value_or(kDefaultNumberOfProcessors) > tSerialNumberOfProcessors;
+}
+
+template <typename... Args>
+[[nodiscard]] auto make_criterion_impl(const ValidatedConstraint& aConstraintInput, Args&&... aAdditionalArgs)
+{
+    const auto& tRawInput = input_validation::get_input_block<input_parser::constraint>(aConstraintInput);
+    const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
+
+    if (criterion_function_has_trait(tRegistrationName, FunctionDimension::kVector))
+    {
+        return make_criterion_function<VectorCriterionFunction, input_parser::constraint>(
+            aConstraintInput, std::forward<Args>(aAdditionalArgs)...);
+    }
+
+    auto [tFunction, tConfiguration] = make_criterion_function<CriterionFunction, input_parser::constraint>(
+        aConstraintInput, std::forward<Args>(aAdditionalArgs)...);
     return FunctionWithConfiguration{.mFunction = to_vector_function<const analysis::AnalysisDomainMesh&>(tFunction),
                                      .mConfiguration = std::move(tConfiguration)};
+}
+
+[[nodiscard]] auto make_criterion(const boost::mpi::communicator& aCommunicator,
+                                  const ValidatedConstraint& aConstraintInput)
+{
+    const auto& tRawInput = input_validation::get_input_block<input_parser::constraint>(aConstraintInput);
+    const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
+
+    if (is_parallel(tRawInput) && criterion_function_has_trait(tRegistrationName, Parallelization::kParallel))
+    {
+        return make_criterion_impl(aConstraintInput, aCommunicator);
+    }
+    return make_criterion_impl(aConstraintInput);
 }
 
 [[nodiscard]] auto to_vector_subset_function(const VectorCriterionFunction& aFunction,
@@ -65,7 +112,7 @@ auto make_constraints(const ValidatedConstraints& aInput)
     const auto tConstraints =
         aInput.rawInput() |
         std::views::transform([](const auto& aValidatedInput) { return detail::make_constraint(aValidatedInput); });
-    return std::vector(tConstraints.begin(), tConstraints.end());
+    return {tConstraints.begin(), tConstraints.end()};
 }
 
 namespace detail
@@ -75,15 +122,19 @@ auto make_constraint(const ValidatedConstraint& aConstraintInput)
 {
     const auto& tRawInput = input_validation::get_input_block<input_parser::constraint>(aConstraintInput);
     const auto tIsLinear = tRawInput.is_linear.value_or(false);
-    const auto tRegistrationName = criterion_registration_name(tRawInput.app, tRawInput.criterion.value());
     const auto tConstraintType = kConstraintMap.at(tRawInput.constraint_type.value());
     const auto tConstraintName = tRawInput.name.value_or("Unnamed Constraint");
 
-    constexpr auto tVectorTraits = CriterionTraits{Parallelization::kSerial, FunctionDimension::kVector};
-    auto [tCriterionFunction, tCriterionConfiguration] =
-        criterion_function_has_traits(tRegistrationName, tVectorTraits)
-            ? make_criterion_function<VectorCriterionFunction, input_parser::constraint>(aConstraintInput)
-            : make_vector_criterion(aConstraintInput);
+    const auto tBaseCommunicator = boost::mpi::communicator{};
+    auto tCriterionConfiguration = services::CriterionConfiguration{};
+    const auto tCriterionFunction = core::make_split_parallel_function(
+        tBaseCommunicator, tRawInput.number_of_processors.value_or(kDefaultNumberOfProcessors),
+        [&aConstraintInput, &tCriterionConfiguration](const boost::mpi::communicator& aCommunicator)
+        {
+            auto tCriterion = make_criterion(aCommunicator, aConstraintInput);
+            tCriterionConfiguration = tCriterion.mConfiguration;
+            return tCriterion.mFunction;
+        });
 
     const auto tConstraintWithSubset = to_vector_subset_function(
         make_logging_function(tCriterionFunction, components::ComponentType::kConstraint, tRawInput.name.value()),

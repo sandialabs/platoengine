@@ -18,13 +18,18 @@ class FileCreatingTestFixture : virtual public ::testing::Test
 {
    public:
     FileCreatingTestFixture(std::filesystem::path aFilePath);
-    ~FileCreatingTestFixture();
+    ~FileCreatingTestFixture() override;
 
-    const std::filesystem::path& filePath() const;
+    FileCreatingTestFixture(const FileCreatingTestFixture&) = delete;
+    FileCreatingTestFixture(FileCreatingTestFixture&&) = delete;
+    auto operator=(const FileCreatingTestFixture&) -> FileCreatingTestFixture& = delete;
+    auto operator=(FileCreatingTestFixture&&) -> FileCreatingTestFixture& = delete;
+
+    [[nodiscard]] auto filePath() const -> const std::filesystem::path&;
 
    private:
-    std::filesystem::path mFilePath{};
-    boost::mpi::communicator mComm{};
+    std::filesystem::path mFilePath;
+    boost::mpi::communicator mComm;
 };
 }  // namespace plato::test_utilities
 

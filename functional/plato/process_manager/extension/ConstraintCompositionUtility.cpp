@@ -1,6 +1,12 @@
 #include "plato/process_manager/extension/ConstraintCompositionUtility.hpp"
 
+#include <utility>
+
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/core/Compose.hpp"
+#include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/geometry/library/GeometryRegistration.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 
 namespace plato::process_manager::extension
 {

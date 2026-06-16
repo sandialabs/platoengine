@@ -1,5 +1,11 @@
 #include "plato/mesh/CoordinateUtilities.hpp"
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <ranges>
+#include <vector>
+
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"

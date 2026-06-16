@@ -38,7 +38,7 @@ class NodalResultFilter
     void run() const;
 
     /// @brief Returns the name of the filtered field that is inserted into the output mesh.
-    [[nodiscard]] static auto field_name() -> std::string_view;
+    [[nodiscard]] static auto fieldName() -> std::string_view;
 
    private:
     std::filesystem::path mInputMeshPath;
@@ -57,25 +57,6 @@ namespace detail
 /// @brief Checks that the cross-linked geometry in @a aInput is a density_topology.
 [[nodiscard]] auto validate_geometry_is_density_topology(const input_parser::nodal_result_filter& aInput)
     -> std::optional<std::string>;
-
-/// @brief Checks that the cross-reference @a aCrossReference is the expected type, given by @a ExpectedCrossReference.
-template <typename ExpectedCrossReference, components::ComponentType kComponentType>
-[[nodiscard]] auto validate_expected_cross_reference_type(
-    const input_parser::CrossReference<kComponentType>& aCrossReference) -> std::optional<std::string>;
-
-template <typename ExpectedCrossReference, components::ComponentType kComponentType>
-auto validate_expected_cross_reference_type(
-    const boost::optional<input_parser::CrossReference<kComponentType>>& aCrossReference) -> std::optional<std::string>
-{
-    if (aCrossReference && !aCrossReference->mInputBlock.template holdsExpectedType<ExpectedCrossReference>())
-    {
-        return std::optional<std::string>{
-            input_parser::block_name<input_parser::nodal_result_filter>() + " requires that a " +
-            input_parser::block_name<ExpectedCrossReference>() +
-            " component be used. The incorrect component type is: " + aCrossReference->mName};
-    }
-    return {};
-}
 
 }  // namespace detail
 

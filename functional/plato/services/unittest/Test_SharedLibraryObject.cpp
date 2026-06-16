@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <memory>
+#include <utility>
 
 #include "plato/services/SharedLibraryObject.hpp"
 #include "plato/services/test_shared_lib/TestSharedLib.hpp"
@@ -11,7 +13,7 @@ namespace
 {
 constexpr auto kSharedLibName = std::string_view{"libPlatoServicesTestSharedLib.so"};
 constexpr auto kCreateFunction = std::string_view{"create_test_interface"};
-constexpr auto kDoubleValue = double{42.2};
+constexpr auto kDoubleValue = 42.2;
 
 auto make_test_object() -> SharedLibraryObject<std::unique_ptr<test_shared_lib::TestInterface>>
 {

@@ -27,6 +27,10 @@ enum struct FunctionDimension : std::uint8_t
     kNumberOfEnumerates
 };
 
+/// @brief Concept that requires a type to be one of the criterion traits
+template <typename Trait>
+concept CriterionTrait = std::same_as<Trait, Parallelization> || std::same_as<Trait, FunctionDimension>;
+
 /// @brief Properties a criterion may have.
 struct CriterionTraits
 {
@@ -35,13 +39,13 @@ struct CriterionTraits
 };
 
 /// @brief Converts a bool to a Parallelization enum, with `true` corresponding to `kParallel`.
-[[nodiscard]] constexpr auto to_parallelization(const bool aIsParallel) -> Parallelization;
+[[nodiscard]] constexpr auto to_parallelization(bool aIsParallel) -> Parallelization;
 
 /// @brief Converts a bool to a FunctionDimension enum, with `true` corresponding to `kScalar`.
-[[nodiscard]] constexpr auto to_function_dimension(const bool aIsScalar) -> FunctionDimension;
+[[nodiscard]] constexpr auto to_function_dimension(bool aIsScalar) -> FunctionDimension;
 
 /// @brief Returns an index into FactoryRegistrars corresponding to the traits in @a aCriterionTraits.
-[[nodiscard]] constexpr auto trait_index(const CriterionTraits aCriterionTraits) -> std::size_t;
+[[nodiscard]] constexpr auto trait_index(CriterionTraits aCriterionTraits) -> std::size_t;
 
 /// @brief Returns an index into FactoryRegistrars corresponding to the traits @a aParallelization and @a aDimension.
 [[nodiscard]] constexpr auto trait_index(Parallelization aParallelization, FunctionDimension aDimension) -> std::size_t;
@@ -51,6 +55,10 @@ struct CriterionTraits
 
 /// @brief Returns the number of combinations of criterion factories (all combinations of criterion traits)
 [[nodiscard]] constexpr auto number_of_traits() -> std::size_t;
+
+/// @brief Returns true if @a aTraits has a trait that matches @a aTrait.
+template <CriterionTrait Trait>
+[[nodiscard]] constexpr auto has_trait(CriterionTraits aTraits, Trait aTrait) -> bool;
 
 constexpr auto to_parallelization(const bool aIsParallel) -> Parallelization
 {
@@ -81,6 +89,20 @@ constexpr auto traits_from_index(const std::size_t aFactoryIndex) -> CriterionTr
 constexpr auto number_of_traits() -> std::size_t
 {
     return utilities::number_of_enumerates<Parallelization, FunctionDimension>();
+}
+
+template <CriterionTrait Trait>
+constexpr auto has_trait(const CriterionTraits aTraits, const Trait aTrait) -> bool
+{
+    if constexpr (std::is_same_v<Trait, Parallelization>)
+    {
+        return aTraits.mParallelization == aTrait;
+    }
+    else if constexpr (std::is_same_v<Trait, FunctionDimension>)
+    {
+        return aTraits.mDimension == aTrait;
+    }
+    // return false;
 }
 
 }  // namespace plato::criteria::library

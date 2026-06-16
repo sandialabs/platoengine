@@ -22,7 +22,7 @@ namespace plato::criteria::library
 /// @endcode
 /// and for parallel criteria:
 /// @code{.cpp}
-/// extern "C" auto plato_create_parallel_criterion(const std::vector<std::string>& aFileNames, MPI_Comm aComm)
+/// extern "C" auto plato_create_parallel_criterion(const std::vector<std::string>& aFileNames, MPI_Comm aCommunicator)
 ///  -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 /// @endcode
 /// `extern "C"` ensures that the function name is not mangled in the shared library symbols.
@@ -34,13 +34,14 @@ class CriterionInterface
 
     /// @note When implementing a constraint, the target value will be subtracted in the optimizer interface.
     /// A criterion that is a constraint should then just evaluate without considering any target value.
-    virtual double value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const = 0;
-    virtual std::vector<double> gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const = 0;
+    [[nodiscard]] virtual auto value(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const -> double = 0;
+    [[nodiscard]] virtual auto gradient(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
+        -> std::vector<double> = 0;
 
     CriterionInterface(const CriterionInterface&) = delete;
-    CriterionInterface& operator=(const CriterionInterface&) = delete;
+    auto operator=(const CriterionInterface&) -> CriterionInterface& = delete;
     CriterionInterface(CriterionInterface&&) = delete;
-    CriterionInterface& operator=(CriterionInterface&&) = delete;
+    auto operator=(CriterionInterface&&) -> CriterionInterface& = delete;
 };
 
 }  // namespace plato::criteria::library

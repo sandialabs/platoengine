@@ -4,7 +4,6 @@
 
 #include "plato/core/Function.hpp"
 #include "plato/core/ParallelFunction.hpp"
-#include "plato/core/test_utilities/Utilities.hpp"
 #include "plato/test_utilities/ParallelFunction.hpp"
 #include "plato/test_utilities/ParallelTestWrapper.hpp"
 #include "plato/test_utilities/Rosenbrock.hpp"
@@ -17,9 +16,9 @@ TEST(ParallelFunction, AdaptRosenbrock)
 {
     namespace ptu = plato::test_utilities;
 
-    const auto tA = double{1.0};
-    const auto tB = double{10.0};
-    const auto tRosenbrock = ptu::Rosenbrock{tA, tB};
+    const auto tAParameter = 1.0;
+    const auto tBParameter = 10.0;
+    const auto tRosenbrock = ptu::Rosenbrock{tAParameter, tBParameter};
     // Serial
     const auto tF = [tRosenbrock](const ptu::TwoDVector& aVector)
     { return tRosenbrock.f(aVector.mData[0], aVector.mData[1]); };
@@ -28,17 +27,17 @@ TEST(ParallelFunction, AdaptRosenbrock)
     const auto tSerialFunction = make_function_with_first_derivative(tF, tDF);
 
     // Parallel
-    const auto tComm = boost::mpi::communicator{};
+    const auto tCommunicator = boost::mpi::communicator{};
     const auto tParallelFunction = ptu::make_parallel_function(
         ptu::ParallelTestFunctionWrapper<double, const ptu::TwoDVector&>{tF},
-        ptu::ParallelTestFunctionWrapper<ptu::TwoDVector, const ptu::TwoDVector&>{tDF}, tComm);
+        ptu::ParallelTestFunctionWrapper<ptu::TwoDVector, const ptu::TwoDVector&>{tDF}, tCommunicator);
 
-    const auto tAdaptedParallelFunction = core::adapt_parallel_function(tParallelFunction, tComm);
+    const auto tAdaptedParallelFunction = core::adapt_parallel_function(tParallelFunction, tCommunicator);
 
-    EXPECT_GT(tComm.size(), 1);
+    EXPECT_GT(tCommunicator.size(), 1);
 
     const auto tControl = ptu::TwoDVector{1.0, -2.0};
-    if (tComm.rank() == 0)
+    if (tCommunicator.rank() == 0)
     {
         EXPECT_EQ(tSerialFunction.evaluate<evaluation::kFunction>(tControl),
                   tAdaptedParallelFunction.evaluate<evaluation::kFunction>(tControl));
@@ -58,18 +57,19 @@ TEST(ParallelFunction, BroadCastFromRoot)
     namespace ptu = plato::test_utilities;
 
     const auto tF = [](const double aArg) { return aArg * aArg; };
-    const auto tDF = [](const double aArg) { return 2.0 * aArg; };
+    constexpr auto tQuadraticExponent = 2.0;
+    const auto tDF = [](const double aArg) { return tQuadraticExponent * aArg; };
 
-    const auto tComm = boost::mpi::communicator{};
-    EXPECT_GT(tComm.size(), 1);
+    const auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_GT(tCommunicator.size(), 1);
 
     const auto tAdaptedParallelFunction = core::adapt_parallel_function(
         ptu::make_parallel_function(ptu::ParallelTestFunctionWrapper<double, double>{tF},
-                                    ptu::ParallelTestFunctionWrapper<double, double>{tDF}, tComm),
-        tComm);
+                                    ptu::ParallelTestFunctionWrapper<double, double>{tDF}, tCommunicator),
+        tCommunicator);
 
     const auto tArg{5.6};
-    if (tComm.rank() == 0)
+    if (tCommunicator.rank() == 0)
     {
         EXPECT_EQ(tAdaptedParallelFunction.evaluate<evaluation::kFunction>(tArg), tArg * tArg);
     }
@@ -78,7 +78,8 @@ TEST(ParallelFunction, BroadCastFromRoot)
         EXPECT_EQ(tAdaptedParallelFunction.evaluate<evaluation::kFunction>(tArg), 0.0);
     }
 
-    EXPECT_EQ(broadcast_from_root(tComm, tAdaptedParallelFunction.evaluate<evaluation::kFunction>(tArg)), tArg * tArg);
+    EXPECT_EQ(broadcast_from_root(tCommunicator, tAdaptedParallelFunction.evaluate<evaluation::kFunction>(tArg)),
+              tArg * tArg);
 }
 
 }  // namespace plato::core::parallel_unittest

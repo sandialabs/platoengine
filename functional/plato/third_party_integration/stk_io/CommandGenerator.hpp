@@ -20,8 +20,8 @@ using UseUpperZ = utilities::NamedType<bool, struct UseUpperZTag>;
 /// this enum class.
 enum class CommandElementType : std::uint8_t
 {
-    Hex,
-    Tet
+    kHex,
+    kTet
 };
 
 using CommandBounds = common::Coordinate;
@@ -29,9 +29,9 @@ using CommandBounds = common::Coordinate;
 /// @brief Struct to bundle the number of elements in a STK generate command
 struct CommandNumberOfElements
 {
-    unsigned int mX = 1u;
-    unsigned int mY = 1u;
-    unsigned int mZ = 1u;
+    unsigned int mX = 1U;
+    unsigned int mY = 1U;
+    unsigned int mZ = 1U;
 };
 
 struct NodeSetSideSetIdentifiers
@@ -47,37 +47,39 @@ struct NodeSetSideSetIdentifiers
 /// @brief Struct to bundle the common operations needed to work with STK "generate" command
 struct CommandGenerator
 {
-    CommandNumberOfElements mElements = {1u, 1u, 1u};
+    constexpr static auto mDefaultPrecision = 8;
+
+    CommandNumberOfElements mElements = {1U, 1U, 1U};
     CommandBounds mLowerBounds = {0, 0, 0};
     CommandBounds mUpperBounds = {1, 1, 1};
-    CommandElementType mType = CommandElementType::Hex;
+    CommandElementType mType = CommandElementType::kHex;
     NodeSetSideSetIdentifiers mNodeset{};
     NodeSetSideSetIdentifiers mSideset{};
-    int mPrecision = 8;
+    int mPrecision = mDefaultPrecision;
 
     /// @brief Take the struct data and return a string with the STK "generate" command
-    [[nodiscard]] std::string toString() const;
+    [[nodiscard]] auto toString() const -> std::string;
 
     /// @brief Take the struct data and determine the volume of the brick
-    [[nodiscard]] double volume() const;
+    [[nodiscard]] auto volume() const -> double;
 
     /// @brief Take the struct data and determine the total number of elements
-    [[nodiscard]] unsigned int numberOfElements() const;
+    [[nodiscard]] auto numberOfElements() const -> unsigned int;
 
     /// @brief Take the struct data and determine the total number of nodes
-    [[nodiscard]] unsigned int numberOfNodes() const;
+    [[nodiscard]] auto numberOfNodes() const -> unsigned int;
 
     /// @brief Take the struct data and return a string with the STK "nodeset" command
-    [[nodiscard]] std::string nodesetString() const;
+    [[nodiscard]] auto nodesetString() const -> std::string;
 
     /// @brief Take the struct data and return a string with the STK "sideset" command
-    [[nodiscard]] std::string sidesetString() const;
+    [[nodiscard]] auto sidesetString() const -> std::string;
 };
 
 namespace detail
 {
 /// @brief Take the struct of nodeset sideset identifiers and return lower and upper case x,y,zs for STK
-[[nodiscard]] std::string xyz_boundary_string(const NodeSetSideSetIdentifiers& aNodeSetSideSetIdentifiers);
+[[nodiscard]] auto xyz_boundary_string(const NodeSetSideSetIdentifiers& aNodeSetSideSetIdentifiers) -> std::string;
 
 }  // namespace detail
 

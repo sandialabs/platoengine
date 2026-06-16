@@ -1,14 +1,25 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
-#include <boost/serialization/vector.hpp>
-#include <string>
+#include <boost/mpi/inplace.hpp>
+#include <cstddef>
+#include <functional>
+#include <string_view>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
+#include "plato/filter/extension/kernel_filters/LinearMask.hpp"
+#include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/DesignVariableConversion.hpp"
 #include "plato/mesh/EntityRetrieval.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -16,6 +27,7 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
+#include "plato/third_party_integration/tpetra/Utilities.hpp"
 #include "plato/utilities/MPIUtilities.hpp"
 #include "plato/utilities/RankSplitVector.hpp"
 #include "plato/utilities/Zip.hpp"
@@ -25,9 +37,9 @@ namespace plato::filter::extension::kernel_filters::parallel_unittest
 namespace
 {
 constexpr std::string_view kMeshFile = "mesh.exo";
-constexpr auto kNumRanks = int{4};
+constexpr auto kNumRanks = 4;
 
-boost::mpi::communicator split_comm_world()
+auto split_comm_world() -> boost::mpi::communicator
 {
     auto tWorldComm = boost::mpi::communicator{};
     const auto tRank = tWorldComm.rank();
@@ -35,7 +47,8 @@ boost::mpi::communicator split_comm_world()
     return tWorldComm.split(tColor.mValue);
 }
 
-mesh::Mesh write_generic_mesh_and_load(unsigned int aBaseSize, const boost::mpi::communicator& aWorldCommunicator)
+auto write_generic_mesh_and_load(unsigned int aBaseSize, const boost::mpi::communicator& aWorldCommunicator)
+    -> mesh::Mesh
 {
     namespace tpi = third_party_integration;
     const auto tCommandGenerator =
@@ -50,19 +63,18 @@ class ParallelConsistencyTest : public ::testing::Test
 {
    public:
     ParallelConsistencyTest()
-        : mWorldComm(boost::mpi::communicator{}),
-          mSplitComm(split_comm_world()),
-          mMesh(write_generic_mesh_and_load(kBaseSizeParallelTest, mWorldComm))
+        : mSplitComm(split_comm_world()), mMesh(write_generic_mesh_and_load(kBaseSizeParallelTest, mWorldComm))
     {
     }
-    ~ParallelConsistencyTest() {}
+
     void TearDown() override
     {
         utilities::execute_on_root(
             mWorldComm, []()
             { test_utilities::test_for_existence_and_remove({kMeshFile}, TEST_CONTEXT("Removing temporary files.")); });
     }
-    void check_parallel_consistency_of_sum(const unsigned int aSum, const test_utilities::TestContext& aTestContext)
+
+    void checkParallelConsistencyOfSum(const unsigned int aSum, const test_utilities::TestContext& aTestContext) const
     {
         auto tOtherRanksSumValue = aSum;
         unsigned int tRankZeroValue = 0;
@@ -72,19 +84,18 @@ class ParallelConsistencyTest : public ::testing::Test
         }
         else
         {
-            boost::mpi::all_reduce(mSplitComm, boost::mpi::inplace(tOtherRanksSumValue), std::plus<unsigned int>());
+            boost::mpi::all_reduce(mSplitComm, boost::mpi::inplace(tOtherRanksSumValue), std::plus<>());
         }
         boost::mpi::broadcast(mWorldComm, tRankZeroValue, 0);
         EXPECT_EQ(tRankZeroValue, tOtherRanksSumValue) << aTestContext;
     }
 
-   protected:
     boost::mpi::communicator mWorldComm;
     boost::mpi::communicator mSplitComm;
     mesh::Mesh mMesh;
 };
 
-std::vector<double> create_linear_space_vector(unsigned int aSize)
+auto create_linear_space_vector(unsigned int aSize) -> std::vector<double>
 {
     if (aSize == 0)
     {
@@ -93,8 +104,8 @@ std::vector<double> create_linear_space_vector(unsigned int aSize)
     const double tStepSize = 1.0 / aSize;
 
     std::vector<double> tVector(aSize, tStepSize);
-    std::generate_n(tVector.begin() + 1, tVector.size() - 1,
-                    [n = tStepSize, dn = tStepSize]() mutable { return n = n + dn; });
+    std::generate_n(tVector.begin() + 1, tVector.size() - 1, [tCurrentValue = tStepSize, tStepSize]() mutable
+                    { return tCurrentValue = tCurrentValue + tStepSize; });
     return tVector;
 }
 
@@ -141,8 +152,8 @@ TEST(ParallelConsistencyKernelFilter, LinearSpace)
 
 TEST(ParallelConsistencyKernelFilter, MPISize)
 {
-    const auto tComm = boost::mpi::communicator{};
-    EXPECT_EQ(tComm.size(), kNumRanks);
+    const auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_EQ(tCommunicator.size(), kNumRanks);
 }
 
 TEST(ParallelConsistencyKernelFilter, CommSplit)
@@ -213,7 +224,7 @@ TEST(KernelFilterDetail, CreateLinearMask)
 {
     const auto tWorldComm = boost::mpi::communicator{};
     const auto tCommandGenerator =
-        third_party_integration::stk_io::CommandGenerator{{4u, 4u, 4u}, {-2, -2, -2}, {2, 2, 2}};
+        third_party_integration::stk_io::CommandGenerator{{4U, 4U, 4U}, {-2, -2, -2}, {2, 2, 2}};
     utilities::execute_on_root(tWorldComm, [&tCommandGenerator]()
                                { third_party_integration::stk_io::write_mesh(kMeshFile, tCommandGenerator); });
     const auto tMesh = mesh::Mesh{kMeshFile};
@@ -253,7 +264,7 @@ TEST_F(ParallelConsistencyTest, ParallelConsistencySearchResults)
     const auto tSearchResults = distribute_search_vectors_and_stk_search_with_spheres(
         TargetRowVector{tRowCenters}, SourceColumnVector{tNodalCoordinates}, tSearchRadius, mSplitComm);
 
-    check_parallel_consistency_of_sum(tSearchResults.size(), TEST_CONTEXT("Stk search result size"));
+    checkParallelConsistencyOfSum(tSearchResults.size(), TEST_CONTEXT("Stk search result size"));
 }
 
 TEST_F(ParallelConsistencyTest, ParallelConsistencyCreateTpetraCoordinates)
@@ -261,9 +272,8 @@ TEST_F(ParallelConsistencyTest, ParallelConsistencyCreateTpetraCoordinates)
     const auto tNodalCoordinates = mesh::EntityRetrieval{mMesh}.designDomainNodalCoordinates();
     const auto tDistributedNodal = detail::create_tpetravector_coordinates(tNodalCoordinates, mSplitComm);
 
-    check_parallel_consistency_of_sum(
-        third_party_integration::tpetra::number_of_local_elements(tDistributedNodal.getMap()),
-        TEST_CONTEXT("Tpetra distributed nodal size"));
+    checkParallelConsistencyOfSum(third_party_integration::tpetra::number_of_local_elements(tDistributedNodal.getMap()),
+                                  TEST_CONTEXT("Tpetra distributed nodal size"));
 }
 
 TEST_F(ParallelConsistencyTest, ParallelConsistencySTKSearchPointsFromTpetraVector)
@@ -273,7 +283,7 @@ TEST_F(ParallelConsistencyTest, ParallelConsistencySTKSearchPointsFromTpetraVect
 
     const auto tLocalSearchPointWithIdentifiers = detail::stk_search_points(tDistributedNodal, mSplitComm.rank());
 
-    check_parallel_consistency_of_sum(tLocalSearchPointWithIdentifiers.size(), TEST_CONTEXT("Stk search points size"));
+    checkParallelConsistencyOfSum(tLocalSearchPointWithIdentifiers.size(), TEST_CONTEXT("Stk search points size"));
 }
 
 TEST_F(ParallelConsistencyTest, ParallelConsistencySTKSearchSpheresFromTpetraVector)
@@ -282,14 +292,13 @@ TEST_F(ParallelConsistencyTest, ParallelConsistencySTKSearchSpheresFromTpetraVec
     const auto tRowCentersCoordinates = mesh::EntityRetrieval{mMesh}.designDomainElementCentroids();
     const auto tDistributedRowCenters = detail::create_tpetravector_coordinates(tRowCentersCoordinates, mSplitComm);
 
-    check_parallel_consistency_of_sum(
+    checkParallelConsistencyOfSum(
         third_party_integration::tpetra::number_of_local_elements(tDistributedRowCenters.getMap()),
         TEST_CONTEXT("Tpetra distributed row size"));
     const auto tLocalSearchSpheresWithIdentifiers =
         detail::stk_search_spheres(tDistributedRowCenters, SearchRadius{tSearchRadius}, mSplitComm.rank());
 
-    check_parallel_consistency_of_sum(tLocalSearchSpheresWithIdentifiers.size(),
-                                      TEST_CONTEXT("Stk search spheres size"));
+    checkParallelConsistencyOfSum(tLocalSearchSpheresWithIdentifiers.size(), TEST_CONTEXT("Stk search spheres size"));
 }
 
 }  // namespace plato::filter::extension::kernel_filters::parallel_unittest

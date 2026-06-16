@@ -1,6 +1,14 @@
 #include "plato/input_parser/GenericBlockRule.hpp"
 
+#include <boost/spirit/home/qi/parse.hpp>
+#include <numeric>
+#include <string>
+#include <string_view>
+#include <vector>
+
 #include "plato/input_parser/ParseErrorUtilities.hpp"
+#include "plato/input_parser/Skipper.hpp"
+#include "plato/utilities/Expected.hpp"
 
 namespace plato::input_parser
 {
@@ -9,7 +17,7 @@ auto parse_generic_blocks(const std::string_view aInput)
 {
     using Iterator = std::string_view::const_iterator;
 
-    auto tInputIterator = aInput.begin();
+    const auto* tInputIterator = aInput.begin();
     auto tData = std::vector<GenericBlockData>{};
     const auto tParser = GenericBlockParser<Iterator>{};
     const auto tSkipper = SkipperRule<Iterator>{};

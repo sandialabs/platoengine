@@ -14,16 +14,16 @@ namespace plato::filter::extension::kernel_filters::test_utilities
 {
 
 template <typename T>
-concept HasBoostOptionalMembers = requires(T a) {
-    { a.filter_radius } -> std::same_as<boost::optional<double>&>;
-    { a.use_relative_radius } -> std::same_as<boost::optional<bool>&>;
-    { a.number_of_processors } -> std::same_as<boost::optional<unsigned int>&>;
-    { a.centering_type } -> std::same_as<decltype(a.centering_type)&>;
+concept HasBoostOptionalMembers = requires(T aInput) {
+    { aInput.filter_radius } -> std::same_as<boost::optional<double>&>;
+    { aInput.use_relative_radius } -> std::same_as<boost::optional<bool>&>;
+    { aInput.number_of_processors } -> std::same_as<boost::optional<unsigned int>&>;
+    { aInput.centering_type } -> std::same_as<decltype(aInput.centering_type)&>;
 };
 
 template <typename T>
-concept HasBoostOptionalTargetMeshNameMember = requires(T a) {
-    { a.target_mesh_name } -> std::same_as<decltype(a.target_mesh_name)&>;
+concept HasBoostOptionalTargetMeshNameMember = requires(T aInput) {
+    { aInput.target_mesh_name } -> std::same_as<decltype(aInput.target_mesh_name)&>;
 };
 
 template <typename InputParserType>
@@ -33,8 +33,8 @@ concept HasAllOptionalMembers =
 /// @brief Use a radius @a aRadius and a centering type @a aCenteringType to create a generic symmetry filter input.
 template <typename InputFilterType>
     requires HasAllOptionalMembers<InputFilterType>
-[[nodiscard]] auto make_filter_input(const double aRadius,
-                                     const input_parser::KernelFilterCenteringTypes& aCentering) -> InputFilterType;
+[[nodiscard]] auto make_filter_input(double aRadius, const input_parser::KernelFilterCenteringTypes& aCentering)
+    -> InputFilterType;
 
 /// @brief A test funtion that uses the input @a aInput to call a @a aModifiedMakeFunctionLabmda and verify radius and
 /// centering are correctly assigned.

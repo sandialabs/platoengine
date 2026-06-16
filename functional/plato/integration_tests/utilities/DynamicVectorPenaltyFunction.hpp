@@ -9,12 +9,12 @@ namespace plato::integration_tests::utilities
 {
 struct DynamicVectorJacobian
 {
-    linear_algebra::DynamicVector<double> column(const int aIndex) const;
+    [[nodiscard]] auto column(int aIndex) const -> linear_algebra::DynamicVector<double>;
     test_utilities::TwoDMatrix mJacobian;
 };
 
-[[nodiscard]] auto operator*(const linear_algebra::DynamicVector<double>& aX, const DynamicVectorJacobian& aJacobian)
-    -> linear_algebra::DynamicVector<double>;
+[[nodiscard]] auto operator*(const linear_algebra::DynamicVector<double>& aRowVector,
+                             const DynamicVectorJacobian& aJacobian) -> linear_algebra::DynamicVector<double>;
 
 [[nodiscard]] auto make_penalty_dynamic_vector_function(const test_utilities::Penalty& aPenalty)
     -> core::Function<const linear_algebra::DynamicVector<double>&,

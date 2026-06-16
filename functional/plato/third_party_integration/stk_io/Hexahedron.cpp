@@ -1,132 +1,148 @@
 #include "plato/third_party_integration/stk_io/Hexahedron.hpp"
 
 #include "plato/third_party_integration/common/QuadratureRules.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 
 namespace plato::third_party_integration::stk_io
 {
-double Hexahedron::volume() const
+namespace
 {
-    return ((p000.x * p110.y * p100.z) - (p000.x * p100.y * p110.z) + (p100.x * p000.y * p110.z) -
-            (p100.x * p110.y * p000.z) - (p110.x * p000.y * p100.z) + (p110.x * p100.y * p000.z) -
-            (p000.x * p100.y * p010.z) + (p000.x * p010.y * p100.z) + (p100.x * p000.y * p010.z) -
-            (p100.x * p010.y * p000.z) - (p010.x * p000.y * p100.z) + (p010.x * p100.y * p000.z) +
-            (p000.x * p100.y * p001.z) - (p000.x * p110.y * p010.z) + (p000.x * p010.y * p110.z) -
-            (p000.x * p001.y * p100.z) - (p100.x * p000.y * p001.z) + (p100.x * p001.y * p000.z) +
-            (p110.x * p000.y * p010.z) - (p110.x * p010.y * p000.z) - (p010.x * p000.y * p110.z) +
-            (p010.x * p110.y * p000.z) + (p001.x * p000.y * p100.z) - (p001.x * p100.y * p000.z) +
-            (p000.x * p100.y * p101.z) - (p000.x * p101.y * p100.z) - (p100.x * p000.y * p101.z) -
-            (p100.x * p110.y * p010.z) + (p100.x * p010.y * p110.z) + (p100.x * p101.y * p000.z) +
-            (p110.x * p100.y * p010.z) - (p110.x * p010.y * p100.z) - (p010.x * p100.y * p110.z) +
-            (p010.x * p110.y * p100.z) + (p101.x * p000.y * p100.z) - (p101.x * p100.y * p000.z) -
-            (p000.x * p010.y * p001.z) + (p000.x * p001.y * p010.z) + (p010.x * p000.y * p001.z) -
-            (p010.x * p001.y * p000.z) - (p001.x * p000.y * p010.z) + (p001.x * p010.y * p000.z) +
-            (p100.x * p110.y * p101.z) - (p100.x * p101.y * p110.z) - (p110.x * p100.y * p101.z) +
-            (p110.x * p101.y * p100.z) + (p101.x * p100.y * p110.z) - (p101.x * p110.y * p100.z) -
-            (p000.x * p001.y * p101.z) + (p000.x * p101.y * p001.z) + (p100.x * p110.y * p111.z) -
-            (p100.x * p111.y * p110.z) - (p110.x * p100.y * p111.z) + (p110.x * p111.y * p100.z) +
-            (p001.x * p000.y * p101.z) - (p001.x * p101.y * p000.z) - (p101.x * p000.y * p001.z) +
-            (p101.x * p001.y * p000.z) + (p111.x * p100.y * p110.z) - (p111.x * p110.y * p100.z) -
-            (p000.x * p010.y * p011.z) + (p000.x * p011.y * p010.z) - (p100.x * p001.y * p101.z) +
-            (p100.x * p101.y * p001.z) + (p010.x * p000.y * p011.z) - (p010.x * p011.y * p000.z) +
-            (p001.x * p100.y * p101.z) - (p001.x * p101.y * p100.z) - (p101.x * p100.y * p001.z) +
-            (p101.x * p001.y * p100.z) - (p011.x * p000.y * p010.z) + (p011.x * p010.y * p000.z) +
-            (p000.x * p001.y * p011.z) - (p000.x * p011.y * p001.z) + (p110.x * p010.y * p111.z) -
-            (p110.x * p111.y * p010.z) - (p010.x * p110.y * p111.z) + (p010.x * p111.y * p110.z) -
-            (p001.x * p000.y * p011.z) + (p001.x * p011.y * p000.z) + (p111.x * p110.y * p010.z) -
-            (p111.x * p010.y * p110.z) + (p011.x * p000.y * p001.z) - (p011.x * p001.y * p000.z) -
-            (p100.x * p101.y * p111.z) + (p100.x * p111.y * p101.z) + (p110.x * p010.y * p011.z) -
-            (p110.x * p011.y * p010.z) - (p010.x * p110.y * p011.z) + (p010.x * p011.y * p110.z) +
-            (p101.x * p100.y * p111.z) - (p101.x * p111.y * p100.z) - (p111.x * p100.y * p101.z) +
-            (p111.x * p101.y * p100.z) + (p011.x * p110.y * p010.z) - (p011.x * p010.y * p110.z) -
-            (p110.x * p101.y * p111.z) + (p110.x * p111.y * p101.z) + (p101.x * p110.y * p111.z) -
-            (p101.x * p111.y * p110.z) - (p111.x * p110.y * p101.z) + (p111.x * p101.y * p110.z) +
-            (p010.x * p001.y * p011.z) - (p010.x * p011.y * p001.z) - (p001.x * p010.y * p011.z) +
-            (p001.x * p011.y * p010.z) + (p011.x * p010.y * p001.z) - (p011.x * p001.y * p010.z) -
-            (p110.x * p111.y * p011.z) + (p110.x * p011.y * p111.z) + (p001.x * p101.y * p111.z) -
-            (p001.x * p111.y * p101.z) - (p101.x * p001.y * p111.z) + (p101.x * p111.y * p001.z) +
-            (p111.x * p110.y * p011.z) + (p111.x * p001.y * p101.z) - (p111.x * p101.y * p001.z) -
-            (p111.x * p011.y * p110.z) - (p011.x * p110.y * p111.z) + (p011.x * p111.y * p110.z) -
-            (p010.x * p111.y * p011.z) + (p010.x * p011.y * p111.z) + (p001.x * p101.y * p011.z) -
-            (p001.x * p011.y * p101.z) - (p101.x * p001.y * p011.z) + (p101.x * p011.y * p001.z) +
-            (p111.x * p010.y * p011.z) - (p111.x * p011.y * p010.z) - (p011.x * p010.y * p111.z) +
-            (p011.x * p001.y * p101.z) - (p011.x * p101.y * p001.z) + (p011.x * p111.y * p010.z) +
-            (p001.x * p111.y * p011.z) - (p001.x * p011.y * p111.z) - (p111.x * p001.y * p011.z) +
-            (p111.x * p011.y * p001.z) + (p011.x * p001.y * p111.z) - (p011.x * p111.y * p001.z) +
-            (p101.x * p111.y * p011.z) - (p101.x * p011.y * p111.z) - (p111.x * p101.y * p011.z) +
-            (p111.x * p011.y * p101.z) + (p011.x * p101.y * p111.z) - (p011.x * p111.y * p101.z)) /
-           12;
+constexpr auto kHexahedronVolumeFactor = 1.0 / 12.0;
 }
 
-common::Coordinate Hexahedron::centroid() const
+auto Hexahedron::volume() const -> double
 {
-    constexpr int kDimensions{3};
-    constexpr auto kQuadraturePoints = common::kDegree3OneDimensionalQuadraturePoints;
-    return common::tensor_product_unit_integral<kDimensions, kQuadraturePoints.size(), kQuadraturePoints>(
-               [*this](const auto tXi, const auto tEta, const auto tMu)
+    return ((mP000.x * mP110.y * mP100.z) - (mP000.x * mP100.y * mP110.z) + (mP100.x * mP000.y * mP110.z) -
+            (mP100.x * mP110.y * mP000.z) - (mP110.x * mP000.y * mP100.z) + (mP110.x * mP100.y * mP000.z) -
+            (mP000.x * mP100.y * mP010.z) + (mP000.x * mP010.y * mP100.z) + (mP100.x * mP000.y * mP010.z) -
+            (mP100.x * mP010.y * mP000.z) - (mP010.x * mP000.y * mP100.z) + (mP010.x * mP100.y * mP000.z) +
+            (mP000.x * mP100.y * mP001.z) - (mP000.x * mP110.y * mP010.z) + (mP000.x * mP010.y * mP110.z) -
+            (mP000.x * mP001.y * mP100.z) - (mP100.x * mP000.y * mP001.z) + (mP100.x * mP001.y * mP000.z) +
+            (mP110.x * mP000.y * mP010.z) - (mP110.x * mP010.y * mP000.z) - (mP010.x * mP000.y * mP110.z) +
+            (mP010.x * mP110.y * mP000.z) + (mP001.x * mP000.y * mP100.z) - (mP001.x * mP100.y * mP000.z) +
+            (mP000.x * mP100.y * mP101.z) - (mP000.x * mP101.y * mP100.z) - (mP100.x * mP000.y * mP101.z) -
+            (mP100.x * mP110.y * mP010.z) + (mP100.x * mP010.y * mP110.z) + (mP100.x * mP101.y * mP000.z) +
+            (mP110.x * mP100.y * mP010.z) - (mP110.x * mP010.y * mP100.z) - (mP010.x * mP100.y * mP110.z) +
+            (mP010.x * mP110.y * mP100.z) + (mP101.x * mP000.y * mP100.z) - (mP101.x * mP100.y * mP000.z) -
+            (mP000.x * mP010.y * mP001.z) + (mP000.x * mP001.y * mP010.z) + (mP010.x * mP000.y * mP001.z) -
+            (mP010.x * mP001.y * mP000.z) - (mP001.x * mP000.y * mP010.z) + (mP001.x * mP010.y * mP000.z) +
+            (mP100.x * mP110.y * mP101.z) - (mP100.x * mP101.y * mP110.z) - (mP110.x * mP100.y * mP101.z) +
+            (mP110.x * mP101.y * mP100.z) + (mP101.x * mP100.y * mP110.z) - (mP101.x * mP110.y * mP100.z) -
+            (mP000.x * mP001.y * mP101.z) + (mP000.x * mP101.y * mP001.z) + (mP100.x * mP110.y * mP111.z) -
+            (mP100.x * mP111.y * mP110.z) - (mP110.x * mP100.y * mP111.z) + (mP110.x * mP111.y * mP100.z) +
+            (mP001.x * mP000.y * mP101.z) - (mP001.x * mP101.y * mP000.z) - (mP101.x * mP000.y * mP001.z) +
+            (mP101.x * mP001.y * mP000.z) + (mP111.x * mP100.y * mP110.z) - (mP111.x * mP110.y * mP100.z) -
+            (mP000.x * mP010.y * mP011.z) + (mP000.x * mP011.y * mP010.z) - (mP100.x * mP001.y * mP101.z) +
+            (mP100.x * mP101.y * mP001.z) + (mP010.x * mP000.y * mP011.z) - (mP010.x * mP011.y * mP000.z) +
+            (mP001.x * mP100.y * mP101.z) - (mP001.x * mP101.y * mP100.z) - (mP101.x * mP100.y * mP001.z) +
+            (mP101.x * mP001.y * mP100.z) - (mP011.x * mP000.y * mP010.z) + (mP011.x * mP010.y * mP000.z) +
+            (mP000.x * mP001.y * mP011.z) - (mP000.x * mP011.y * mP001.z) + (mP110.x * mP010.y * mP111.z) -
+            (mP110.x * mP111.y * mP010.z) - (mP010.x * mP110.y * mP111.z) + (mP010.x * mP111.y * mP110.z) -
+            (mP001.x * mP000.y * mP011.z) + (mP001.x * mP011.y * mP000.z) + (mP111.x * mP110.y * mP010.z) -
+            (mP111.x * mP010.y * mP110.z) + (mP011.x * mP000.y * mP001.z) - (mP011.x * mP001.y * mP000.z) -
+            (mP100.x * mP101.y * mP111.z) + (mP100.x * mP111.y * mP101.z) + (mP110.x * mP010.y * mP011.z) -
+            (mP110.x * mP011.y * mP010.z) - (mP010.x * mP110.y * mP011.z) + (mP010.x * mP011.y * mP110.z) +
+            (mP101.x * mP100.y * mP111.z) - (mP101.x * mP111.y * mP100.z) - (mP111.x * mP100.y * mP101.z) +
+            (mP111.x * mP101.y * mP100.z) + (mP011.x * mP110.y * mP010.z) - (mP011.x * mP010.y * mP110.z) -
+            (mP110.x * mP101.y * mP111.z) + (mP110.x * mP111.y * mP101.z) + (mP101.x * mP110.y * mP111.z) -
+            (mP101.x * mP111.y * mP110.z) - (mP111.x * mP110.y * mP101.z) + (mP111.x * mP101.y * mP110.z) +
+            (mP010.x * mP001.y * mP011.z) - (mP010.x * mP011.y * mP001.z) - (mP001.x * mP010.y * mP011.z) +
+            (mP001.x * mP011.y * mP010.z) + (mP011.x * mP010.y * mP001.z) - (mP011.x * mP001.y * mP010.z) -
+            (mP110.x * mP111.y * mP011.z) + (mP110.x * mP011.y * mP111.z) + (mP001.x * mP101.y * mP111.z) -
+            (mP001.x * mP111.y * mP101.z) - (mP101.x * mP001.y * mP111.z) + (mP101.x * mP111.y * mP001.z) +
+            (mP111.x * mP110.y * mP011.z) + (mP111.x * mP001.y * mP101.z) - (mP111.x * mP101.y * mP001.z) -
+            (mP111.x * mP011.y * mP110.z) - (mP011.x * mP110.y * mP111.z) + (mP011.x * mP111.y * mP110.z) -
+            (mP010.x * mP111.y * mP011.z) + (mP010.x * mP011.y * mP111.z) + (mP001.x * mP101.y * mP011.z) -
+            (mP001.x * mP011.y * mP101.z) - (mP101.x * mP001.y * mP011.z) + (mP101.x * mP011.y * mP001.z) +
+            (mP111.x * mP010.y * mP011.z) - (mP111.x * mP011.y * mP010.z) - (mP011.x * mP010.y * mP111.z) +
+            (mP011.x * mP001.y * mP101.z) - (mP011.x * mP101.y * mP001.z) + (mP011.x * mP111.y * mP010.z) +
+            (mP001.x * mP111.y * mP011.z) - (mP001.x * mP011.y * mP111.z) - (mP111.x * mP001.y * mP011.z) +
+            (mP111.x * mP011.y * mP001.z) + (mP011.x * mP001.y * mP111.z) - (mP011.x * mP111.y * mP001.z) +
+            (mP101.x * mP111.y * mP011.z) - (mP101.x * mP011.y * mP111.z) - (mP111.x * mP101.y * mP011.z) +
+            (mP111.x * mP011.y * mP101.z) + (mP011.x * mP101.y * mP111.z) - (mP011.x * mP111.y * mP101.z)) *
+           kHexahedronVolumeFactor;
+}
+
+auto Hexahedron::centroid() const -> common::Coordinate
+{
+    constexpr int tDimensions{3};
+    constexpr auto tQuadraturePoints = common::kDegree3OneDimensionalQuadraturePoints;
+    constexpr auto tNumberOfPoints = 8.0;
+    return common::tensor_product_unit_integral<tDimensions, tQuadraturePoints.size(), tQuadraturePoints>(
+               [*this](const auto aXi, const auto aEta, const auto aMu)
                {
-                   const double tJ11 = ((p100.x * (tEta - 1) * (tMu - 1)) - (p000.x * (tEta - 1) * (tMu - 1)) -
-                                        (p110.x * (tEta + 1) * (tMu - 1)) + (p010.x * (tEta + 1) * (tMu - 1)) +
-                                        (p001.x * (tEta - 1) * (tMu + 1)) - (p101.x * (tEta - 1) * (tMu + 1)) +
-                                        (p111.x * (tEta + 1) * (tMu + 1)) - (p011.x * (tEta + 1) * (tMu + 1))) /
-                                       8;
-                   const double tJ12 = ((p100.y * (tEta - 1) * (tMu - 1)) - (p000.y * (tEta - 1) * (tMu - 1)) -
-                                        (p110.y * (tEta + 1) * (tMu - 1)) + (p010.y * (tEta + 1) * (tMu - 1)) +
-                                        (p001.y * (tEta - 1) * (tMu + 1)) - (p101.y * (tEta - 1) * (tMu + 1)) +
-                                        (p111.y * (tEta + 1) * (tMu + 1)) - (p011.y * (tEta + 1) * (tMu + 1))) /
-                                       8;
-                   const double tJ13 = ((p100.z * (tEta - 1) * (tMu - 1)) - (p000.z * (tEta - 1) * (tMu - 1)) -
-                                        (p110.z * (tEta + 1) * (tMu - 1)) + (p010.z * (tEta + 1) * (tMu - 1)) +
-                                        (p001.z * (tEta - 1) * (tMu + 1)) - (p101.z * (tEta - 1) * (tMu + 1)) +
-                                        (p111.z * (tEta + 1) * (tMu + 1)) - (p011.z * (tEta + 1) * (tMu + 1))) /
-                                       8;
-                   const double tJ21 = ((p100.x * (tMu - 1) * (tXi + 1)) - (p000.x * (tMu - 1) * (tXi - 1)) -
-                                        (p110.x * (tMu - 1) * (tXi + 1)) + (p010.x * (tMu - 1) * (tXi - 1)) +
-                                        (p001.x * (tMu + 1) * (tXi - 1)) - (p101.x * (tMu + 1) * (tXi + 1)) +
-                                        (p111.x * (tMu + 1) * (tXi + 1)) - (p011.x * (tMu + 1) * (tXi - 1))) /
-                                       8;
-                   const double tJ22 = ((p100.y * (tMu - 1) * (tXi + 1)) - (p000.y * (tMu - 1) * (tXi - 1)) -
-                                        (p110.y * (tMu - 1) * (tXi + 1)) + (p010.y * (tMu - 1) * (tXi - 1)) +
-                                        (p001.y * (tMu + 1) * (tXi - 1)) - (p101.y * (tMu + 1) * (tXi + 1)) +
-                                        (p111.y * (tMu + 1) * (tXi + 1)) - (p011.y * (tMu + 1) * (tXi - 1))) /
-                                       8;
-                   const double tJ23 = ((p100.z * (tMu - 1) * (tXi + 1)) - (p000.z * (tMu - 1) * (tXi - 1)) -
-                                        (p110.z * (tMu - 1) * (tXi + 1)) + (p010.z * (tMu - 1) * (tXi - 1)) +
-                                        (p001.z * (tMu + 1) * (tXi - 1)) - (p101.z * (tMu + 1) * (tXi + 1)) +
-                                        (p111.z * (tMu + 1) * (tXi + 1)) - (p011.z * (tMu + 1) * (tXi - 1))) /
-                                       8;
-                   const double tJ31 = ((p100.x * (tEta - 1) * (tXi + 1)) - (p000.x * (tEta - 1) * (tXi - 1)) -
-                                        (p110.x * (tEta + 1) * (tXi + 1)) + (p010.x * (tEta + 1) * (tXi - 1)) +
-                                        (p001.x * (tEta - 1) * (tXi - 1)) - (p101.x * (tEta - 1) * (tXi + 1)) +
-                                        (p111.x * (tEta + 1) * (tXi + 1)) - (p011.x * (tEta + 1) * (tXi - 1))) /
-                                       8;
-                   const double tJ32 = ((p100.y * (tEta - 1) * (tXi + 1)) - (p000.y * (tEta - 1) * (tXi - 1)) -
-                                        (p110.y * (tEta + 1) * (tXi + 1)) + (p010.y * (tEta + 1) * (tXi - 1)) +
-                                        (p001.y * (tEta - 1) * (tXi - 1)) - (p101.y * (tEta - 1) * (tXi + 1)) +
-                                        (p111.y * (tEta + 1) * (tXi + 1)) - (p011.y * (tEta + 1) * (tXi - 1))) /
-                                       8;
-                   const double tJ33 = ((p100.z * (tEta - 1) * (tXi + 1)) - (p000.z * (tEta - 1) * (tXi - 1)) -
-                                        (p110.z * (tEta + 1) * (tXi + 1)) + (p010.z * (tEta + 1) * (tXi - 1)) +
-                                        (p001.z * (tEta - 1) * (tXi - 1)) - (p101.z * (tEta - 1) * (tXi + 1)) +
-                                        (p111.z * (tEta + 1) * (tXi + 1)) - (p011.z * (tEta + 1) * (tXi - 1))) /
-                                       8;
-                   const double tM1 =
-                       ((p100.x * (tEta - 1) * (tMu - 1) * (tXi + 1)) - (p000.x * (tEta - 1) * (tMu - 1) * (tXi - 1)) -
-                        (p110.x * (tEta + 1) * (tMu - 1) * (tXi + 1)) + (p010.x * (tEta + 1) * (tMu - 1) * (tXi - 1)) +
-                        (p001.x * (tEta - 1) * (tMu + 1) * (tXi - 1)) - (p101.x * (tEta - 1) * (tMu + 1) * (tXi + 1)) +
-                        (p111.x * (tEta + 1) * (tMu + 1) * (tXi + 1)) - (p011.x * (tEta + 1) * (tMu + 1) * (tXi - 1))) /
-                       8;
-                   const double tM2 =
-                       ((p100.y * (tEta - 1) * (tMu - 1) * (tXi + 1)) - (p000.y * (tEta - 1) * (tMu - 1) * (tXi - 1)) -
-                        (p110.y * (tEta + 1) * (tMu - 1) * (tXi + 1)) + (p010.y * (tEta + 1) * (tMu - 1) * (tXi - 1)) +
-                        (p001.y * (tEta - 1) * (tMu + 1) * (tXi - 1)) - (p101.y * (tEta - 1) * (tMu + 1) * (tXi + 1)) +
-                        (p111.y * (tEta + 1) * (tMu + 1) * (tXi + 1)) - (p011.y * (tEta + 1) * (tMu + 1) * (tXi - 1))) /
-                       8;
-                   const double tM3 =
-                       ((p100.z * (tEta - 1) * (tMu - 1) * (tXi + 1)) - (p000.z * (tEta - 1) * (tMu - 1) * (tXi - 1)) -
-                        (p110.z * (tEta + 1) * (tMu - 1) * (tXi + 1)) + (p010.z * (tEta + 1) * (tMu - 1) * (tXi - 1)) +
-                        (p001.z * (tEta - 1) * (tMu + 1) * (tXi - 1)) - (p101.z * (tEta - 1) * (tMu + 1) * (tXi + 1)) +
-                        (p111.z * (tEta + 1) * (tMu + 1) * (tXi + 1)) - (p011.z * (tEta + 1) * (tMu + 1) * (tXi - 1))) /
-                       8;
+                   const double tJ11 = ((mP100.x * (aEta - 1) * (aMu - 1)) - (mP000.x * (aEta - 1) * (aMu - 1)) -
+                                        (mP110.x * (aEta + 1) * (aMu - 1)) + (mP010.x * (aEta + 1) * (aMu - 1)) +
+                                        (mP001.x * (aEta - 1) * (aMu + 1)) - (mP101.x * (aEta - 1) * (aMu + 1)) +
+                                        (mP111.x * (aEta + 1) * (aMu + 1)) - (mP011.x * (aEta + 1) * (aMu + 1))) /
+                                       tNumberOfPoints;
+                   const double tJ12 = ((mP100.y * (aEta - 1) * (aMu - 1)) - (mP000.y * (aEta - 1) * (aMu - 1)) -
+                                        (mP110.y * (aEta + 1) * (aMu - 1)) + (mP010.y * (aEta + 1) * (aMu - 1)) +
+                                        (mP001.y * (aEta - 1) * (aMu + 1)) - (mP101.y * (aEta - 1) * (aMu + 1)) +
+                                        (mP111.y * (aEta + 1) * (aMu + 1)) - (mP011.y * (aEta + 1) * (aMu + 1))) /
+                                       tNumberOfPoints;
+                   const double tJ13 = ((mP100.z * (aEta - 1) * (aMu - 1)) - (mP000.z * (aEta - 1) * (aMu - 1)) -
+                                        (mP110.z * (aEta + 1) * (aMu - 1)) + (mP010.z * (aEta + 1) * (aMu - 1)) +
+                                        (mP001.z * (aEta - 1) * (aMu + 1)) - (mP101.z * (aEta - 1) * (aMu + 1)) +
+                                        (mP111.z * (aEta + 1) * (aMu + 1)) - (mP011.z * (aEta + 1) * (aMu + 1))) /
+                                       tNumberOfPoints;
+                   const double tJ21 = ((mP100.x * (aMu - 1) * (aXi + 1)) - (mP000.x * (aMu - 1) * (aXi - 1)) -
+                                        (mP110.x * (aMu - 1) * (aXi + 1)) + (mP010.x * (aMu - 1) * (aXi - 1)) +
+                                        (mP001.x * (aMu + 1) * (aXi - 1)) - (mP101.x * (aMu + 1) * (aXi + 1)) +
+                                        (mP111.x * (aMu + 1) * (aXi + 1)) - (mP011.x * (aMu + 1) * (aXi - 1))) /
+                                       tNumberOfPoints;
+                   const double tJ22 = ((mP100.y * (aMu - 1) * (aXi + 1)) - (mP000.y * (aMu - 1) * (aXi - 1)) -
+                                        (mP110.y * (aMu - 1) * (aXi + 1)) + (mP010.y * (aMu - 1) * (aXi - 1)) +
+                                        (mP001.y * (aMu + 1) * (aXi - 1)) - (mP101.y * (aMu + 1) * (aXi + 1)) +
+                                        (mP111.y * (aMu + 1) * (aXi + 1)) - (mP011.y * (aMu + 1) * (aXi - 1))) /
+                                       tNumberOfPoints;
+                   const double tJ23 = ((mP100.z * (aMu - 1) * (aXi + 1)) - (mP000.z * (aMu - 1) * (aXi - 1)) -
+                                        (mP110.z * (aMu - 1) * (aXi + 1)) + (mP010.z * (aMu - 1) * (aXi - 1)) +
+                                        (mP001.z * (aMu + 1) * (aXi - 1)) - (mP101.z * (aMu + 1) * (aXi + 1)) +
+                                        (mP111.z * (aMu + 1) * (aXi + 1)) - (mP011.z * (aMu + 1) * (aXi - 1))) /
+                                       tNumberOfPoints;
+                   const double tJ31 = ((mP100.x * (aEta - 1) * (aXi + 1)) - (mP000.x * (aEta - 1) * (aXi - 1)) -
+                                        (mP110.x * (aEta + 1) * (aXi + 1)) + (mP010.x * (aEta + 1) * (aXi - 1)) +
+                                        (mP001.x * (aEta - 1) * (aXi - 1)) - (mP101.x * (aEta - 1) * (aXi + 1)) +
+                                        (mP111.x * (aEta + 1) * (aXi + 1)) - (mP011.x * (aEta + 1) * (aXi - 1))) /
+                                       tNumberOfPoints;
+                   const double tJ32 = ((mP100.y * (aEta - 1) * (aXi + 1)) - (mP000.y * (aEta - 1) * (aXi - 1)) -
+                                        (mP110.y * (aEta + 1) * (aXi + 1)) + (mP010.y * (aEta + 1) * (aXi - 1)) +
+                                        (mP001.y * (aEta - 1) * (aXi - 1)) - (mP101.y * (aEta - 1) * (aXi + 1)) +
+                                        (mP111.y * (aEta + 1) * (aXi + 1)) - (mP011.y * (aEta + 1) * (aXi - 1))) /
+                                       tNumberOfPoints;
+                   const double tJ33 = ((mP100.z * (aEta - 1) * (aXi + 1)) - (mP000.z * (aEta - 1) * (aXi - 1)) -
+                                        (mP110.z * (aEta + 1) * (aXi + 1)) + (mP010.z * (aEta + 1) * (aXi - 1)) +
+                                        (mP001.z * (aEta - 1) * (aXi - 1)) - (mP101.z * (aEta - 1) * (aXi + 1)) +
+                                        (mP111.z * (aEta + 1) * (aXi + 1)) - (mP011.z * (aEta + 1) * (aXi - 1))) /
+                                       tNumberOfPoints;
+                   const double tM1 = ((mP100.x * (aEta - 1) * (aMu - 1) * (aXi + 1)) -
+                                       (mP000.x * (aEta - 1) * (aMu - 1) * (aXi - 1)) -
+                                       (mP110.x * (aEta + 1) * (aMu - 1) * (aXi + 1)) +
+                                       (mP010.x * (aEta + 1) * (aMu - 1) * (aXi - 1)) +
+                                       (mP001.x * (aEta - 1) * (aMu + 1) * (aXi - 1)) -
+                                       (mP101.x * (aEta - 1) * (aMu + 1) * (aXi + 1)) +
+                                       (mP111.x * (aEta + 1) * (aMu + 1) * (aXi + 1)) -
+                                       (mP011.x * (aEta + 1) * (aMu + 1) * (aXi - 1))) /
+                                      tNumberOfPoints;
+                   const double tM2 = ((mP100.y * (aEta - 1) * (aMu - 1) * (aXi + 1)) -
+                                       (mP000.y * (aEta - 1) * (aMu - 1) * (aXi - 1)) -
+                                       (mP110.y * (aEta + 1) * (aMu - 1) * (aXi + 1)) +
+                                       (mP010.y * (aEta + 1) * (aMu - 1) * (aXi - 1)) +
+                                       (mP001.y * (aEta - 1) * (aMu + 1) * (aXi - 1)) -
+                                       (mP101.y * (aEta - 1) * (aMu + 1) * (aXi + 1)) +
+                                       (mP111.y * (aEta + 1) * (aMu + 1) * (aXi + 1)) -
+                                       (mP011.y * (aEta + 1) * (aMu + 1) * (aXi - 1))) /
+                                      tNumberOfPoints;
+                   const double tM3 = ((mP100.z * (aEta - 1) * (aMu - 1) * (aXi + 1)) -
+                                       (mP000.z * (aEta - 1) * (aMu - 1) * (aXi - 1)) -
+                                       (mP110.z * (aEta + 1) * (aMu - 1) * (aXi + 1)) +
+                                       (mP010.z * (aEta + 1) * (aMu - 1) * (aXi - 1)) +
+                                       (mP001.z * (aEta - 1) * (aMu + 1) * (aXi - 1)) -
+                                       (mP101.z * (aEta - 1) * (aMu + 1) * (aXi + 1)) +
+                                       (mP111.z * (aEta + 1) * (aMu + 1) * (aXi + 1)) -
+                                       (mP011.z * (aEta + 1) * (aMu + 1) * (aXi - 1))) /
+                                      tNumberOfPoints;
 
                    const double tDetJ = tJ11 * tJ22 * tJ33 - tJ11 * tJ23 * tJ32 - tJ12 * tJ21 * tJ33 +
                                         tJ12 * tJ23 * tJ31 + tJ13 * tJ21 * tJ32 - tJ13 * tJ22 * tJ31;
@@ -139,117 +155,133 @@ common::Coordinate Hexahedron::centroid() const
 auto Hexahedron::volumeVertexSensitivities() const -> VertexSensitivities
 {
     return VertexSensitivities{
-        common::Vector3{
-            (p110.y * p100.z) - (p100.y * p110.z) - (p100.y * p010.z) + (p010.y * p100.z) + (p100.y * p001.z) -
-                (p110.y * p010.z) + (p010.y * p110.z) - (p001.y * p100.z) + (p100.y * p101.z) - (p101.y * p100.z) -
-                (p010.y * p001.z) + (p001.y * p010.z) - (p001.y * p101.z) + (p101.y * p001.z) - (p010.y * p011.z) +
-                (p011.y * p010.z) + (p001.y * p011.z) - (p011.y * p001.z),
-            (p100.x * p110.z) - (p110.x * p100.z) + (p100.x * p010.z) - (p010.x * p100.z) - (p100.x * p001.z) +
-                (p110.x * p010.z) - (p010.x * p110.z) + (p001.x * p100.z) - (p100.x * p101.z) + (p101.x * p100.z) +
-                (p010.x * p001.z) - (p001.x * p010.z) + (p001.x * p101.z) - (p101.x * p001.z) + (p010.x * p011.z) -
-                (p011.x * p010.z) - (p001.x * p011.z) + (p011.x * p001.z),
-            (p110.x * p100.y) - (p100.x * p110.y) - (p100.x * p010.y) + (p010.x * p100.y) + (p100.x * p001.y) -
-                (p110.x * p010.y) + (p010.x * p110.y) - (p001.x * p100.y) + (p100.x * p101.y) - (p101.x * p100.y) -
-                (p010.x * p001.y) + (p001.x * p010.y) - (p001.x * p101.y) + (p101.x * p001.y) - (p010.x * p011.y) +
-                (p011.x * p010.y) + (p001.x * p011.y) - (p011.x * p001.y)} /
-            12,
-        common::Vector3{
-            (p000.y * p110.z) - (p110.y * p000.z) + (p000.y * p010.z) - (p010.y * p000.z) - (p000.y * p001.z) +
-                (p001.y * p000.z) - (p000.y * p101.z) - (p110.y * p010.z) + (p010.y * p110.z) + (p101.y * p000.z) +
-                (p110.y * p101.z) - (p101.y * p110.z) + (p110.y * p111.z) - (p111.y * p110.z) - (p001.y * p101.z) +
-                (p101.y * p001.z) - (p101.y * p111.z) + (p111.y * p101.z),
-            (p110.x * p000.z) - (p000.x * p110.z) - (p000.x * p010.z) + (p010.x * p000.z) + (p000.x * p001.z) -
-                (p001.x * p000.z) + (p000.x * p101.z) + (p110.x * p010.z) - (p010.x * p110.z) - (p101.x * p000.z) -
-                (p110.x * p101.z) + (p101.x * p110.z) - (p110.x * p111.z) + (p111.x * p110.z) + (p001.x * p101.z) -
-                (p101.x * p001.z) + (p101.x * p111.z) - (p111.x * p101.z),
-            (p000.x * p110.y) - (p110.x * p000.y) + (p000.x * p010.y) - (p010.x * p000.y) - (p000.x * p001.y) +
-                (p001.x * p000.y) - (p000.x * p101.y) - (p110.x * p010.y) + (p010.x * p110.y) + (p101.x * p000.y) +
-                (p110.x * p101.y) - (p101.x * p110.y) + (p110.x * p111.y) - (p111.x * p110.y) - (p001.x * p101.y) +
-                (p101.x * p001.y) - (p101.x * p111.y) + (p111.x * p101.y)} /
-            12,
-        common::Vector3{
-            (p100.y * p000.z) - (p000.y * p100.z) + (p000.y * p010.z) - (p010.y * p000.z) + (p100.y * p010.z) -
-                (p010.y * p100.z) - (p100.y * p101.z) + (p101.y * p100.z) - (p100.y * p111.z) + (p111.y * p100.z) +
-                (p010.y * p111.z) - (p111.y * p010.z) + (p010.y * p011.z) - (p011.y * p010.z) - (p101.y * p111.z) +
-                (p111.y * p101.z) - (p111.y * p011.z) + (p011.y * p111.z),
-            (p000.x * p100.z) - (p100.x * p000.z) - (p000.x * p010.z) + (p010.x * p000.z) - (p100.x * p010.z) +
-                (p010.x * p100.z) + (p100.x * p101.z) - (p101.x * p100.z) + (p100.x * p111.z) - (p111.x * p100.z) -
-                (p010.x * p111.z) + (p111.x * p010.z) - (p010.x * p011.z) + (p011.x * p010.z) + (p101.x * p111.z) -
-                (p111.x * p101.z) + (p111.x * p011.z) - (p011.x * p111.z),
-            (p100.x * p000.y) - (p000.x * p100.y) + (p000.x * p010.y) - (p010.x * p000.y) + (p100.x * p010.y) -
-                (p010.x * p100.y) - (p100.x * p101.y) + (p101.x * p100.y) - (p100.x * p111.y) + (p111.x * p100.y) +
-                (p010.x * p111.y) - (p111.x * p010.y) + (p010.x * p011.y) - (p011.x * p010.y) - (p101.x * p111.y) +
-                (p111.x * p101.y) - (p111.x * p011.y) + (p011.x * p111.y)} /
-            12,
-        common::Vector3{
-            (p100.y * p000.z) - (p000.y * p100.z) - (p000.y * p110.z) + (p110.y * p000.z) - (p100.y * p110.z) +
-                (p110.y * p100.z) + (p000.y * p001.z) - (p001.y * p000.z) + (p000.y * p011.z) - (p011.y * p000.z) -
-                (p110.y * p111.z) + (p111.y * p110.z) - (p110.y * p011.z) + (p011.y * p110.z) + (p001.y * p011.z) -
-                (p011.y * p001.z) - (p111.y * p011.z) + (p011.y * p111.z),
-            (p000.x * p100.z) - (p100.x * p000.z) + (p000.x * p110.z) - (p110.x * p000.z) + (p100.x * p110.z) -
-                (p110.x * p100.z) - (p000.x * p001.z) + (p001.x * p000.z) - (p000.x * p011.z) + (p011.x * p000.z) +
-                (p110.x * p111.z) - (p111.x * p110.z) + (p110.x * p011.z) - (p011.x * p110.z) - (p001.x * p011.z) +
-                (p011.x * p001.z) + (p111.x * p011.z) - (p011.x * p111.z),
-            (p100.x * p000.y) - (p000.x * p100.y) - (p000.x * p110.y) + (p110.x * p000.y) - (p100.x * p110.y) +
-                (p110.x * p100.y) + (p000.x * p001.y) - (p001.x * p000.y) + (p000.x * p011.y) - (p011.x * p000.y) -
-                (p110.x * p111.y) + (p111.x * p110.y) - (p110.x * p011.y) + (p011.x * p110.y) + (p001.x * p011.y) -
-                (p011.x * p001.y) - (p111.x * p011.y) + (p011.x * p111.y)} /
-            12,
-        common::Vector3{
-            (p000.y * p100.z) - (p100.y * p000.z) - (p000.y * p010.z) + (p010.y * p000.z) + (p000.y * p101.z) -
-                (p101.y * p000.z) + (p100.y * p101.z) - (p101.y * p100.z) - (p000.y * p011.z) + (p011.y * p000.z) -
-                (p010.y * p011.z) + (p011.y * p010.z) + (p101.y * p111.z) - (p111.y * p101.z) + (p101.y * p011.z) -
-                (p011.y * p101.z) + (p111.y * p011.z) - (p011.y * p111.z),
-            (p100.x * p000.z) - (p000.x * p100.z) + (p000.x * p010.z) - (p010.x * p000.z) - (p000.x * p101.z) +
-                (p101.x * p000.z) - (p100.x * p101.z) + (p101.x * p100.z) + (p000.x * p011.z) - (p011.x * p000.z) +
-                (p010.x * p011.z) - (p011.x * p010.z) - (p101.x * p111.z) + (p111.x * p101.z) - (p101.x * p011.z) +
-                (p011.x * p101.z) - (p111.x * p011.z) + (p011.x * p111.z),
-            (p000.x * p100.y) - (p100.x * p000.y) - (p000.x * p010.y) + (p010.x * p000.y) + (p000.x * p101.y) -
-                (p101.x * p000.y) + (p100.x * p101.y) - (p101.x * p100.y) - (p000.x * p011.y) + (p011.x * p000.y) -
-                (p010.x * p011.y) + (p011.x * p010.y) + (p101.x * p111.y) - (p111.x * p101.y) + (p101.x * p011.y) -
-                (p011.x * p101.y) + (p111.x * p011.y) - (p011.x * p111.y)} /
-            12,
-        common::Vector3{
-            (p000.y * p100.z) - (p100.y * p000.z) + (p100.y * p110.z) - (p110.y * p100.z) - (p000.y * p001.z) +
-                (p001.y * p000.z) - (p100.y * p001.z) + (p001.y * p100.z) + (p100.y * p111.z) - (p111.y * p100.z) +
-                (p110.y * p111.z) - (p111.y * p110.z) - (p001.y * p111.z) + (p111.y * p001.z) - (p001.y * p011.z) +
-                (p011.y * p001.z) + (p111.y * p011.z) - (p011.y * p111.z),
-            (p100.x * p000.z) - (p000.x * p100.z) - (p100.x * p110.z) + (p110.x * p100.z) + (p000.x * p001.z) -
-                (p001.x * p000.z) + (p100.x * p001.z) - (p001.x * p100.z) - (p100.x * p111.z) + (p111.x * p100.z) -
-                (p110.x * p111.z) + (p111.x * p110.z) + (p001.x * p111.z) - (p111.x * p001.z) + (p001.x * p011.z) -
-                (p011.x * p001.z) - (p111.x * p011.z) + (p011.x * p111.z),
-            (p000.x * p100.y) - (p100.x * p000.y) + (p100.x * p110.y) - (p110.x * p100.y) - (p000.x * p001.y) +
-                (p001.x * p000.y) - (p100.x * p001.y) + (p001.x * p100.y) + (p100.x * p111.y) - (p111.x * p100.y) +
-                (p110.x * p111.y) - (p111.x * p110.y) - (p001.x * p111.y) + (p111.x * p001.y) - (p001.x * p011.y) +
-                (p011.x * p001.y) + (p111.x * p011.y) - (p011.x * p111.y)} /
-            12,
-        common::Vector3{
-            (p100.y * p110.z) - (p110.y * p100.z) + (p110.y * p010.z) - (p010.y * p110.z) - (p100.y * p101.z) +
-                (p101.y * p100.z) - (p110.y * p101.z) + (p101.y * p110.z) + (p110.y * p011.z) + (p001.y * p101.z) -
-                (p101.y * p001.z) - (p011.y * p110.z) + (p010.y * p011.z) - (p011.y * p010.z) - (p001.y * p011.z) +
-                (p011.y * p001.z) - (p101.y * p011.z) + (p011.y * p101.z),
-            (p110.x * p100.z) - (p100.x * p110.z) - (p110.x * p010.z) + (p010.x * p110.z) + (p100.x * p101.z) -
-                (p101.x * p100.z) + (p110.x * p101.z) - (p101.x * p110.z) - (p110.x * p011.z) - (p001.x * p101.z) +
-                (p101.x * p001.z) + (p011.x * p110.z) - (p010.x * p011.z) + (p011.x * p010.z) + (p001.x * p011.z) -
-                (p011.x * p001.z) + (p101.x * p011.z) - (p011.x * p101.z),
-            (p100.x * p110.y) - (p110.x * p100.y) + (p110.x * p010.y) - (p010.x * p110.y) - (p100.x * p101.y) +
-                (p101.x * p100.y) - (p110.x * p101.y) + (p101.x * p110.y) + (p110.x * p011.y) + (p001.x * p101.y) -
-                (p101.x * p001.y) - (p011.x * p110.y) + (p010.x * p011.y) - (p011.x * p010.y) - (p001.x * p011.y) +
-                (p011.x * p001.y) - (p101.x * p011.y) + (p011.x * p101.y)} /
-            12,
-        common::Vector3{
-            (p010.y * p000.z) - (p000.y * p010.z) + (p000.y * p001.z) - (p001.y * p000.z) + (p110.y * p010.z) -
-                (p010.y * p110.z) + (p010.y * p001.z) - (p001.y * p010.z) - (p110.y * p111.z) + (p111.y * p110.z) -
-                (p010.y * p111.z) + (p001.y * p101.z) - (p101.y * p001.z) + (p111.y * p010.z) + (p001.y * p111.z) -
-                (p111.y * p001.z) + (p101.y * p111.z) - (p111.y * p101.z),
-            (p000.x * p010.z) - (p010.x * p000.z) - (p000.x * p001.z) + (p001.x * p000.z) - (p110.x * p010.z) +
-                (p010.x * p110.z) - (p010.x * p001.z) + (p001.x * p010.z) + (p110.x * p111.z) - (p111.x * p110.z) +
-                (p010.x * p111.z) - (p001.x * p101.z) + (p101.x * p001.z) - (p111.x * p010.z) - (p001.x * p111.z) +
-                (p111.x * p001.z) - (p101.x * p111.z) + (p111.x * p101.z),
-            (p010.x * p000.y) - (p000.x * p010.y) + (p000.x * p001.y) - (p001.x * p000.y) + (p110.x * p010.y) -
-                (p010.x * p110.y) + (p010.x * p001.y) - (p001.x * p010.y) - (p110.x * p111.y) + (p111.x * p110.y) -
-                (p010.x * p111.y) + (p001.x * p101.y) - (p101.x * p001.y) + (p111.x * p010.y) + (p001.x * p111.y) -
-                (p111.x * p001.y) + (p101.x * p111.y) - (p111.x * p101.y)} /
-            12};
+        common::Vector3{(mP110.y * mP100.z) - (mP100.y * mP110.z) - (mP100.y * mP010.z) + (mP010.y * mP100.z) +
+                            (mP100.y * mP001.z) - (mP110.y * mP010.z) + (mP010.y * mP110.z) - (mP001.y * mP100.z) +
+                            (mP100.y * mP101.z) - (mP101.y * mP100.z) - (mP010.y * mP001.z) + (mP001.y * mP010.z) -
+                            (mP001.y * mP101.z) + (mP101.y * mP001.z) - (mP010.y * mP011.z) + (mP011.y * mP010.z) +
+                            (mP001.y * mP011.z) - (mP011.y * mP001.z),
+                        (mP100.x * mP110.z) - (mP110.x * mP100.z) + (mP100.x * mP010.z) - (mP010.x * mP100.z) -
+                            (mP100.x * mP001.z) + (mP110.x * mP010.z) - (mP010.x * mP110.z) + (mP001.x * mP100.z) -
+                            (mP100.x * mP101.z) + (mP101.x * mP100.z) + (mP010.x * mP001.z) - (mP001.x * mP010.z) +
+                            (mP001.x * mP101.z) - (mP101.x * mP001.z) + (mP010.x * mP011.z) - (mP011.x * mP010.z) -
+                            (mP001.x * mP011.z) + (mP011.x * mP001.z),
+                        (mP110.x * mP100.y) - (mP100.x * mP110.y) - (mP100.x * mP010.y) + (mP010.x * mP100.y) +
+                            (mP100.x * mP001.y) - (mP110.x * mP010.y) + (mP010.x * mP110.y) - (mP001.x * mP100.y) +
+                            (mP100.x * mP101.y) - (mP101.x * mP100.y) - (mP010.x * mP001.y) + (mP001.x * mP010.y) -
+                            (mP001.x * mP101.y) + (mP101.x * mP001.y) - (mP010.x * mP011.y) + (mP011.x * mP010.y) +
+                            (mP001.x * mP011.y) - (mP011.x * mP001.y)} *
+            kHexahedronVolumeFactor,
+        common::Vector3{(mP000.y * mP110.z) - (mP110.y * mP000.z) + (mP000.y * mP010.z) - (mP010.y * mP000.z) -
+                            (mP000.y * mP001.z) + (mP001.y * mP000.z) - (mP000.y * mP101.z) - (mP110.y * mP010.z) +
+                            (mP010.y * mP110.z) + (mP101.y * mP000.z) + (mP110.y * mP101.z) - (mP101.y * mP110.z) +
+                            (mP110.y * mP111.z) - (mP111.y * mP110.z) - (mP001.y * mP101.z) + (mP101.y * mP001.z) -
+                            (mP101.y * mP111.z) + (mP111.y * mP101.z),
+                        (mP110.x * mP000.z) - (mP000.x * mP110.z) - (mP000.x * mP010.z) + (mP010.x * mP000.z) +
+                            (mP000.x * mP001.z) - (mP001.x * mP000.z) + (mP000.x * mP101.z) + (mP110.x * mP010.z) -
+                            (mP010.x * mP110.z) - (mP101.x * mP000.z) - (mP110.x * mP101.z) + (mP101.x * mP110.z) -
+                            (mP110.x * mP111.z) + (mP111.x * mP110.z) + (mP001.x * mP101.z) - (mP101.x * mP001.z) +
+                            (mP101.x * mP111.z) - (mP111.x * mP101.z),
+                        (mP000.x * mP110.y) - (mP110.x * mP000.y) + (mP000.x * mP010.y) - (mP010.x * mP000.y) -
+                            (mP000.x * mP001.y) + (mP001.x * mP000.y) - (mP000.x * mP101.y) - (mP110.x * mP010.y) +
+                            (mP010.x * mP110.y) + (mP101.x * mP000.y) + (mP110.x * mP101.y) - (mP101.x * mP110.y) +
+                            (mP110.x * mP111.y) - (mP111.x * mP110.y) - (mP001.x * mP101.y) + (mP101.x * mP001.y) -
+                            (mP101.x * mP111.y) + (mP111.x * mP101.y)} *
+            kHexahedronVolumeFactor,
+        common::Vector3{(mP100.y * mP000.z) - (mP000.y * mP100.z) + (mP000.y * mP010.z) - (mP010.y * mP000.z) +
+                            (mP100.y * mP010.z) - (mP010.y * mP100.z) - (mP100.y * mP101.z) + (mP101.y * mP100.z) -
+                            (mP100.y * mP111.z) + (mP111.y * mP100.z) + (mP010.y * mP111.z) - (mP111.y * mP010.z) +
+                            (mP010.y * mP011.z) - (mP011.y * mP010.z) - (mP101.y * mP111.z) + (mP111.y * mP101.z) -
+                            (mP111.y * mP011.z) + (mP011.y * mP111.z),
+                        (mP000.x * mP100.z) - (mP100.x * mP000.z) - (mP000.x * mP010.z) + (mP010.x * mP000.z) -
+                            (mP100.x * mP010.z) + (mP010.x * mP100.z) + (mP100.x * mP101.z) - (mP101.x * mP100.z) +
+                            (mP100.x * mP111.z) - (mP111.x * mP100.z) - (mP010.x * mP111.z) + (mP111.x * mP010.z) -
+                            (mP010.x * mP011.z) + (mP011.x * mP010.z) + (mP101.x * mP111.z) - (mP111.x * mP101.z) +
+                            (mP111.x * mP011.z) - (mP011.x * mP111.z),
+                        (mP100.x * mP000.y) - (mP000.x * mP100.y) + (mP000.x * mP010.y) - (mP010.x * mP000.y) +
+                            (mP100.x * mP010.y) - (mP010.x * mP100.y) - (mP100.x * mP101.y) + (mP101.x * mP100.y) -
+                            (mP100.x * mP111.y) + (mP111.x * mP100.y) + (mP010.x * mP111.y) - (mP111.x * mP010.y) +
+                            (mP010.x * mP011.y) - (mP011.x * mP010.y) - (mP101.x * mP111.y) + (mP111.x * mP101.y) -
+                            (mP111.x * mP011.y) + (mP011.x * mP111.y)} *
+            kHexahedronVolumeFactor,
+        common::Vector3{(mP100.y * mP000.z) - (mP000.y * mP100.z) - (mP000.y * mP110.z) + (mP110.y * mP000.z) -
+                            (mP100.y * mP110.z) + (mP110.y * mP100.z) + (mP000.y * mP001.z) - (mP001.y * mP000.z) +
+                            (mP000.y * mP011.z) - (mP011.y * mP000.z) - (mP110.y * mP111.z) + (mP111.y * mP110.z) -
+                            (mP110.y * mP011.z) + (mP011.y * mP110.z) + (mP001.y * mP011.z) - (mP011.y * mP001.z) -
+                            (mP111.y * mP011.z) + (mP011.y * mP111.z),
+                        (mP000.x * mP100.z) - (mP100.x * mP000.z) + (mP000.x * mP110.z) - (mP110.x * mP000.z) +
+                            (mP100.x * mP110.z) - (mP110.x * mP100.z) - (mP000.x * mP001.z) + (mP001.x * mP000.z) -
+                            (mP000.x * mP011.z) + (mP011.x * mP000.z) + (mP110.x * mP111.z) - (mP111.x * mP110.z) +
+                            (mP110.x * mP011.z) - (mP011.x * mP110.z) - (mP001.x * mP011.z) + (mP011.x * mP001.z) +
+                            (mP111.x * mP011.z) - (mP011.x * mP111.z),
+                        (mP100.x * mP000.y) - (mP000.x * mP100.y) - (mP000.x * mP110.y) + (mP110.x * mP000.y) -
+                            (mP100.x * mP110.y) + (mP110.x * mP100.y) + (mP000.x * mP001.y) - (mP001.x * mP000.y) +
+                            (mP000.x * mP011.y) - (mP011.x * mP000.y) - (mP110.x * mP111.y) + (mP111.x * mP110.y) -
+                            (mP110.x * mP011.y) + (mP011.x * mP110.y) + (mP001.x * mP011.y) - (mP011.x * mP001.y) -
+                            (mP111.x * mP011.y) + (mP011.x * mP111.y)} *
+            kHexahedronVolumeFactor,
+        common::Vector3{(mP000.y * mP100.z) - (mP100.y * mP000.z) - (mP000.y * mP010.z) + (mP010.y * mP000.z) +
+                            (mP000.y * mP101.z) - (mP101.y * mP000.z) + (mP100.y * mP101.z) - (mP101.y * mP100.z) -
+                            (mP000.y * mP011.z) + (mP011.y * mP000.z) - (mP010.y * mP011.z) + (mP011.y * mP010.z) +
+                            (mP101.y * mP111.z) - (mP111.y * mP101.z) + (mP101.y * mP011.z) - (mP011.y * mP101.z) +
+                            (mP111.y * mP011.z) - (mP011.y * mP111.z),
+                        (mP100.x * mP000.z) - (mP000.x * mP100.z) + (mP000.x * mP010.z) - (mP010.x * mP000.z) -
+                            (mP000.x * mP101.z) + (mP101.x * mP000.z) - (mP100.x * mP101.z) + (mP101.x * mP100.z) +
+                            (mP000.x * mP011.z) - (mP011.x * mP000.z) + (mP010.x * mP011.z) - (mP011.x * mP010.z) -
+                            (mP101.x * mP111.z) + (mP111.x * mP101.z) - (mP101.x * mP011.z) + (mP011.x * mP101.z) -
+                            (mP111.x * mP011.z) + (mP011.x * mP111.z),
+                        (mP000.x * mP100.y) - (mP100.x * mP000.y) - (mP000.x * mP010.y) + (mP010.x * mP000.y) +
+                            (mP000.x * mP101.y) - (mP101.x * mP000.y) + (mP100.x * mP101.y) - (mP101.x * mP100.y) -
+                            (mP000.x * mP011.y) + (mP011.x * mP000.y) - (mP010.x * mP011.y) + (mP011.x * mP010.y) +
+                            (mP101.x * mP111.y) - (mP111.x * mP101.y) + (mP101.x * mP011.y) - (mP011.x * mP101.y) +
+                            (mP111.x * mP011.y) - (mP011.x * mP111.y)} *
+            kHexahedronVolumeFactor,
+        common::Vector3{(mP000.y * mP100.z) - (mP100.y * mP000.z) + (mP100.y * mP110.z) - (mP110.y * mP100.z) -
+                            (mP000.y * mP001.z) + (mP001.y * mP000.z) - (mP100.y * mP001.z) + (mP001.y * mP100.z) +
+                            (mP100.y * mP111.z) - (mP111.y * mP100.z) + (mP110.y * mP111.z) - (mP111.y * mP110.z) -
+                            (mP001.y * mP111.z) + (mP111.y * mP001.z) - (mP001.y * mP011.z) + (mP011.y * mP001.z) +
+                            (mP111.y * mP011.z) - (mP011.y * mP111.z),
+                        (mP100.x * mP000.z) - (mP000.x * mP100.z) - (mP100.x * mP110.z) + (mP110.x * mP100.z) +
+                            (mP000.x * mP001.z) - (mP001.x * mP000.z) + (mP100.x * mP001.z) - (mP001.x * mP100.z) -
+                            (mP100.x * mP111.z) + (mP111.x * mP100.z) - (mP110.x * mP111.z) + (mP111.x * mP110.z) +
+                            (mP001.x * mP111.z) - (mP111.x * mP001.z) + (mP001.x * mP011.z) - (mP011.x * mP001.z) -
+                            (mP111.x * mP011.z) + (mP011.x * mP111.z),
+                        (mP000.x * mP100.y) - (mP100.x * mP000.y) + (mP100.x * mP110.y) - (mP110.x * mP100.y) -
+                            (mP000.x * mP001.y) + (mP001.x * mP000.y) - (mP100.x * mP001.y) + (mP001.x * mP100.y) +
+                            (mP100.x * mP111.y) - (mP111.x * mP100.y) + (mP110.x * mP111.y) - (mP111.x * mP110.y) -
+                            (mP001.x * mP111.y) + (mP111.x * mP001.y) - (mP001.x * mP011.y) + (mP011.x * mP001.y) +
+                            (mP111.x * mP011.y) - (mP011.x * mP111.y)} *
+            kHexahedronVolumeFactor,
+        common::Vector3{(mP100.y * mP110.z) - (mP110.y * mP100.z) + (mP110.y * mP010.z) - (mP010.y * mP110.z) -
+                            (mP100.y * mP101.z) + (mP101.y * mP100.z) - (mP110.y * mP101.z) + (mP101.y * mP110.z) +
+                            (mP110.y * mP011.z) + (mP001.y * mP101.z) - (mP101.y * mP001.z) - (mP011.y * mP110.z) +
+                            (mP010.y * mP011.z) - (mP011.y * mP010.z) - (mP001.y * mP011.z) + (mP011.y * mP001.z) -
+                            (mP101.y * mP011.z) + (mP011.y * mP101.z),
+                        (mP110.x * mP100.z) - (mP100.x * mP110.z) - (mP110.x * mP010.z) + (mP010.x * mP110.z) +
+                            (mP100.x * mP101.z) - (mP101.x * mP100.z) + (mP110.x * mP101.z) - (mP101.x * mP110.z) -
+                            (mP110.x * mP011.z) - (mP001.x * mP101.z) + (mP101.x * mP001.z) + (mP011.x * mP110.z) -
+                            (mP010.x * mP011.z) + (mP011.x * mP010.z) + (mP001.x * mP011.z) - (mP011.x * mP001.z) +
+                            (mP101.x * mP011.z) - (mP011.x * mP101.z),
+                        (mP100.x * mP110.y) - (mP110.x * mP100.y) + (mP110.x * mP010.y) - (mP010.x * mP110.y) -
+                            (mP100.x * mP101.y) + (mP101.x * mP100.y) - (mP110.x * mP101.y) + (mP101.x * mP110.y) +
+                            (mP110.x * mP011.y) + (mP001.x * mP101.y) - (mP101.x * mP001.y) - (mP011.x * mP110.y) +
+                            (mP010.x * mP011.y) - (mP011.x * mP010.y) - (mP001.x * mP011.y) + (mP011.x * mP001.y) -
+                            (mP101.x * mP011.y) + (mP011.x * mP101.y)} *
+            kHexahedronVolumeFactor,
+        common::Vector3{(mP010.y * mP000.z) - (mP000.y * mP010.z) + (mP000.y * mP001.z) - (mP001.y * mP000.z) +
+                            (mP110.y * mP010.z) - (mP010.y * mP110.z) + (mP010.y * mP001.z) - (mP001.y * mP010.z) -
+                            (mP110.y * mP111.z) + (mP111.y * mP110.z) - (mP010.y * mP111.z) + (mP001.y * mP101.z) -
+                            (mP101.y * mP001.z) + (mP111.y * mP010.z) + (mP001.y * mP111.z) - (mP111.y * mP001.z) +
+                            (mP101.y * mP111.z) - (mP111.y * mP101.z),
+                        (mP000.x * mP010.z) - (mP010.x * mP000.z) - (mP000.x * mP001.z) + (mP001.x * mP000.z) -
+                            (mP110.x * mP010.z) + (mP010.x * mP110.z) - (mP010.x * mP001.z) + (mP001.x * mP010.z) +
+                            (mP110.x * mP111.z) - (mP111.x * mP110.z) + (mP010.x * mP111.z) - (mP001.x * mP101.z) +
+                            (mP101.x * mP001.z) - (mP111.x * mP010.z) - (mP001.x * mP111.z) + (mP111.x * mP001.z) -
+                            (mP101.x * mP111.z) + (mP111.x * mP101.z),
+                        (mP010.x * mP000.y) - (mP000.x * mP010.y) + (mP000.x * mP001.y) - (mP001.x * mP000.y) +
+                            (mP110.x * mP010.y) - (mP010.x * mP110.y) + (mP010.x * mP001.y) - (mP001.x * mP010.y) -
+                            (mP110.x * mP111.y) + (mP111.x * mP110.y) - (mP010.x * mP111.y) + (mP001.x * mP101.y) -
+                            (mP101.x * mP001.y) + (mP111.x * mP010.y) + (mP001.x * mP111.y) - (mP111.x * mP001.y) +
+                            (mP101.x * mP111.y) - (mP111.x * mP101.y)} *
+            kHexahedronVolumeFactor};
 }
 }  // namespace plato::third_party_integration::stk_io

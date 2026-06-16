@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/core/test_utilities/Utilities.hpp"
 #include "plato/criteria/library/ConstraintAdapter.hpp"
-#include "plato/criteria/library/ConstraintFactory.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/test_utilities/Rosenbrock.hpp"
 #include "plato/test_utilities/TwoDTestTypes.hpp"
 #include "plato/test_utilities/TwoDTestTypesToDynamicVector.hpp"
 
@@ -51,7 +53,7 @@ TEST(ConstraintAdaptor, MakeVectorFunction)
     }
     // Gradient
     {
-        constexpr auto tScaleFactor = double{2.0};
+        constexpr auto tScaleFactor = 2.0;
         const auto tTestDirection = linear_algebra::DynamicVector{tScaleFactor};
         const auto tExpected = tScaleFactor * tRosenbrock.evaluate<core::evaluation::kFirstDerivative>(tTestPoint);
         const auto tVectorDFResult =

@@ -1,14 +1,25 @@
 #include <gtest/gtest.h>
 
-#include <Akri_Phase_Support.hpp>
+#include <Akri_MeshFromFile.hpp>
+#include <Akri_MeshInterface.hpp>
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <set>
+#include <stk_mesh/base/Types.hpp>
 #include <stk_util/environment/EnvData.hpp>
+#include <string>
 #include <string_view>
+#include <unordered_map>
+#include <vector>
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
@@ -30,6 +41,9 @@ constexpr auto kWriteMeshName = std::string_view{"levelset_mesh.exo"};
 const auto kOneTriMeshFilePath = utilities::data_file_path("one_tri.cdf");
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 
+constexpr double kOneQuarter{0.25};
+constexpr double kThreeQuarters{0.75};
+
 const auto kGoldCutMeshWithVoidNodes = std::map<std::size_t, double>{
     {1, -1.0}, {2, -1.0}, {3, -1.0}, {4, -1.0}, {5, 1.0},  {6, 1.0},  {7, 1.0},  {8, 1.0}, {9, 0.0},
     {10, 0.0}, {11, 0.0}, {12, 0.0}, {13, 0.0}, {14, 0.0}, {15, 0.0}, {16, 0.0}, {17, 0.0}};
@@ -41,7 +55,7 @@ void create_mesh()
     const stk_io::CommandNumberOfElements tElements{1, 1, 1};
 
     stk_io::write_mesh(std::filesystem::path{kMeshName}, stk_io::CommandGenerator{tElements, tLowerBounds, tUpperBounds,
-                                                                                  stk_io::CommandElementType::Tet});
+                                                                                  stk_io::CommandElementType::kTet});
 }
 
 void make_test_level_set_field(const BackgroundMesh& aBackgroundMesh)
@@ -49,7 +63,8 @@ void make_test_level_set_field(const BackgroundMesh& aBackgroundMesh)
     const auto tNodes = node_entities_in_mesh(aBackgroundMesh);
 
     std::vector<double> tVector(tNodes.size(), 1);
-    auto tGenerator = [N = tNodes.size(), i = 0UL]() mutable -> double { return (i++ < N / 2) ? -1.0 : 1.0; };
+    auto tGenerator = [tSize = tNodes.size(), tIndex = 0UL]() mutable -> double
+    { return (tIndex++ < tSize / 2) ? -1.0 : 1.0; };
     std::generate_n(tVector.begin(), tNodes.size(), tGenerator);
 
     for (const auto [tNode, tValue] : utilities::Zip(tNodes, tVector))
@@ -124,7 +139,7 @@ TEST_F(KrinoTestFixture, CutMeshExcludeVoid)
 TEST_F(KrinoTestFixture, BackgroundNodeIds)
 {
     const auto tBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
-    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25});
+    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {kThreeQuarters, -kOneQuarter, -kOneQuarter});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
 
     const auto tResult = background_node_ids(tBackgroundMesh);
@@ -156,7 +171,7 @@ TEST_F(KrinoTestFixture, BackgroundNodeIdsFourTri)
 TEST_F(KrinoTestFixture, CutMeshNodeIds)
 {
     const auto tBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
-    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25});
+    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {kThreeQuarters, -kOneQuarter, -kOneQuarter});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
     {
         const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
@@ -173,7 +188,8 @@ TEST_F(KrinoTestFixture, CutMeshNodeIds)
 TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTri)
 {
     const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
-    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {.75, -.25, -.25, 0.75, 0.75, 0.75});
+    test_utilities::populate_level_set_field_from_vector(
+        tBackgroundMesh, {kThreeQuarters, -kOneQuarter, -kOneQuarter, kThreeQuarters, kThreeQuarters, kThreeQuarters});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
     {
         const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
@@ -208,10 +224,10 @@ TEST_F(KrinoTestFixture, BlockParts)
 {
     constexpr auto tDecompositionMethod = std::string_view{"rib"};
 
-    const auto kFourBlockMeshFilePath = utilities::data_file_path("four_block_rect_with_circ.cdf");
-    ASSERT_TRUE(kFourBlockMeshFilePath.has_value());
+    const auto tFourBlockMeshFilePath = utilities::data_file_path("four_block_rect_with_circ.cdf");
+    ASSERT_TRUE(tFourBlockMeshFilePath.has_value());
     auto tMeshFromFile = std::make_unique<::krino::MeshFromFile>(
-        kFourBlockMeshFilePath.value().string(), stk::EnvData::parallel_comm(), std::string{tDecompositionMethod});
+        tFourBlockMeshFilePath.value().string(), stk::EnvData::parallel_comm(), std::string{tDecompositionMethod});
 
     const auto tToBlockNames = [](const stk::mesh::PartVector& aBlockParts)
     {
@@ -250,6 +266,21 @@ TEST_F(KrinoTestFixture, BlockParts)
         const auto tBlocks = all_blocks_except(*tMeshFromFile, {"right_rect", "left_circ", "right_circ", "left_rect"});
         EXPECT_TRUE(tBlocks.empty());
     }
+}
+
+TEST_F(KrinoTestFixture, PopulateLevelSetFieldFromPrimitives)
+{
+    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
+
+    const auto tDownwardPlanePrimitives =
+        LevelSetPrimitives{.mPlanes = {Plane{.mNormal = {0, -1, 0}, .mOffset = 0.5}}, .mSpheres = {}};
+    populate_level_set_field_from_primitives(tDownwardPlanePrimitives, tBackgroundMesh);
+
+    const auto tLevelSetValues = get_level_set_values(tBackgroundMesh);
+
+    const auto tGoldLevelSetValues = std::unordered_map<std::size_t, double>{
+        {1, 0.5}, {2, 0.5}, {4, -0.5}, {5, -0.5}, {6, -1.5}, {7, 1.5}};  // distances of nodes on the mesh from plane
+    EXPECT_EQ(tLevelSetValues, tGoldLevelSetValues);
 }
 
 }  // namespace plato::third_party_integration::krino::unittest

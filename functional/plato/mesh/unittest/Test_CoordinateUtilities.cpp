@@ -1,7 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
+#include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/mesh/CoordinateUtilities.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/utilities/IndexRange.hpp"
 #include "plato/utilities/Zip.hpp"

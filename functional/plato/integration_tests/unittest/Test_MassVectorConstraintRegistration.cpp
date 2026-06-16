@@ -1,9 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <filesystem>
+#include <vector>
+
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/process_manager/extension/ConstraintCheck.hpp"
 #include "plato/process_manager/extension/test_utilities/ExampleInputBlocks.hpp"
@@ -30,6 +36,8 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
     tObjective.criterion = input_parser::CriterionName{"mass"};
     tObjective.name = "test_1";
 
+    constexpr auto tArbitraryCGXTarget = 42.0;
+    constexpr auto tArbitraryCGZTarget = 43.0;
     auto tConstraint = input_parser::constraint{};
     tConstraint.number_of_processors = 1U;
     tConstraint.app = aMassAppName;
@@ -37,8 +45,10 @@ auto create_test_mass_vector_constraint_input(const input_parser::AppName& aMass
     tConstraint.name = "test_2";
     tConstraint.constraint_type = input_parser::ConstraintTypes::kGreaterThan;
     tConstraint.constraint_value_list = criteria::library::ConstraintValueList{
-        {input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_x"}, /*.target=*/42.0},
-         input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_z"}, /*.target=*/43.0}}};
+        {input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_x"},
+                                          /*.target=*/tArbitraryCGXTarget},
+         input_parser::ComponentAndTarget{/*.component=*/input_parser::IdentifierString{"cg_z"},
+                                          /*.target=*/tArbitraryCGZTarget}}};
 
     const auto tInput = tObjective | tConstraint |
                         geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
@@ -74,7 +84,7 @@ TEST_F(MassVectorConstraint, MassVectorConstraintRegisterAndRun)
 
     const auto tProcessManager = process_manager::library::make_process_managers(
         tValidatedInput.get<components::ComponentType::kProcessManager>());
-    ASSERT_EQ(tProcessManager.size(), 2u);
+    ASSERT_EQ(tProcessManager.size(), 2U);
     const auto tROLOptimize = tProcessManager[0];
     const auto tProcessManagerData = process_manager::library::make_process_manager_data(tValidatedInput);
     tROLOptimize(tProcessManagerData);

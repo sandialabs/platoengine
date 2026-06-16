@@ -12,8 +12,8 @@ struct BlockData
     using BlockOrdinalType = unsigned;
 
     BlockIDType mID = 0;
-    BlockOrdinalType mMetaDataOrdinal = 0u;  // An internally assigned stk ID
-    std::string mName{};
+    BlockOrdinalType mMetaDataOrdinal = 0U;  // An internally assigned stk ID
+    std::string mName;
 };
 
 }  // namespace plato::third_party_integration::common

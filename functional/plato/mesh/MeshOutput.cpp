@@ -3,8 +3,11 @@
 #include <cassert>
 #include <cstddef>
 #include <filesystem>
+#include <memory>
+#include <utility>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/mesh/Mesh.hpp"
 #include "plato/mesh/MeshFieldAppender.hpp"
 #include "plato/mesh/MeshFieldWriter.hpp"
 

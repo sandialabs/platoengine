@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <iterator>
 #include <string_view>
 
 #include "plato/input_parser/UserDefinedToken.hpp"
@@ -11,7 +13,7 @@ namespace
 {
 struct LowerCaseWithUnderscore
 {
-    constexpr const char* operator()() const { return "a-z_"; }
+    constexpr auto operator()() const -> const char* { return "a-z_"; }
 };
 
 using LowerCaseWithUnderscoreToken = UserDefinedToken<LowerCaseWithUnderscore>;
@@ -20,7 +22,7 @@ using LowerCaseWithUnderscoreToken = UserDefinedToken<LowerCaseWithUnderscore>;
 TEST(UserDefinedToken, ValidChars)
 {
     const auto tToken = UserDefinedToken<LowerCaseWithUnderscore>{};
-    EXPECT_EQ(tToken.kValidChars, LowerCaseWithUnderscore{}());
+    EXPECT_EQ(tToken.mValidChars, LowerCaseWithUnderscore{}());
 }
 
 TEST(UserDefinedToken, Insert)

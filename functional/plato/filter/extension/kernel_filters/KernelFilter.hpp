@@ -39,14 +39,14 @@ class KernelFilter : public library::FilterInterface
     [[nodiscard]] auto filter(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) const
         -> analysis::AnalysisDomainMesh override;
 
-    /// @brief Return the multiplication of row vector @a aV with the Jacobian of the filter.
+    /// @brief Return the multiplication of row vector @a aRowVector with the Jacobian of the filter.
     [[nodiscard]] auto rowVectorTimesJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                              const linear_algebra::DynamicVector<double>& aV) const
+                                              const linear_algebra::DynamicVector<double>& aRowVector) const
         -> linear_algebra::DynamicVector<double> override;
 
-    /// @brief Return the multiplication of row vector @a aV with the transpose Jacobian of the filter.
+    /// @brief Return the multiplication of row vector @a aRowVector with the transpose Jacobian of the filter.
     [[nodiscard]] auto rowVectorTimesAdjointJacobian(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
-                                                     const linear_algebra::DynamicVector<double>& aV) const
+                                                     const linear_algebra::DynamicVector<double>& aRowVector) const
         -> linear_algebra::DynamicVector<double> override;
 
    private:
@@ -63,10 +63,10 @@ namespace detail
 
 /// @brief Create a LinearMask object from mesh @a aMesh, with a filter sphere with radius @a aFilterRadius,
 /// centered on the elements or nodes determined by @a aFilterType, using a communicator @a aCommunicator
-[[nodiscard]] LinearMask create_linear_mask(const SourceMesh& aSourceMesh,
-                                            const TargetMesh& aTargetMesh,
-                                            const KernelFilterFunctions& aFilterType,
-                                            const boost::mpi::communicator& aCommunicator);
+[[nodiscard]] auto create_linear_mask(const SourceMesh& aSourceMesh,
+                                      const TargetMesh& aTargetMesh,
+                                      const KernelFilterFunctions& aFilterType,
+                                      const boost::mpi::communicator& aCommunicator) -> LinearMask;
 
 /// @brief Create a StateCache object for constructing a shared pointer to a KernelFilter if the mesh coordinates have
 /// changed (i.e. the mesh has changed)

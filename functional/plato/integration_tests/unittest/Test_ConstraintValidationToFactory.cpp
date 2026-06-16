@@ -1,8 +1,11 @@
 #include <gtest/gtest.h>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/ConstraintFactory.hpp"
+#include "plato/criteria/library/ConstraintInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
 
 namespace plato::integration_tests::unittest
@@ -19,26 +22,30 @@ TEST_F(ConstraintFactoryFileFixture, MultipleValidConstraints)
     auto tInput = parsedInput();
     tInput.get<components::ComponentType::kConstraint>().clear();
 
+    constexpr auto tArbitraryConstraintTargetEq = 13.0;
     auto tConstraint = criteria::library::test_utilities::create_valid_example_constraint_input();
     tConstraint.name = "eq";
-    tConstraint.constraint_value = 13;
+    tConstraint.constraint_value = tArbitraryConstraintTargetEq;
     tConstraint.constraint_type = input_parser::ConstraintTypes::kEqualTo;
     tInput = tInput | tConstraint;
 
+    constexpr auto tArbitraryConstraintTargetLe = 17.0;
     tConstraint.name = "le";
-    tConstraint.constraint_value = 17;
+    tConstraint.constraint_value = tArbitraryConstraintTargetLe;
     tConstraint.is_linear = false;
     tConstraint.constraint_type = input_parser::ConstraintTypes::kGreaterThan;
     tInput = tInput | tConstraint;
 
+    constexpr auto tArbitraryConstraintTargetGe = 10.0;
     tConstraint.name = "ge";
-    tConstraint.constraint_value = 10;
+    tConstraint.constraint_value = tArbitraryConstraintTargetGe;
     tConstraint.is_linear = false;
     tConstraint.constraint_type = input_parser::ConstraintTypes::kLessThan;
     tInput = tInput | tConstraint;
 
     const auto tData = input_validation::make_validated_input(tInput).value();
-    auto tConstraints = plato::criteria::library::make_constraints(tData.get<components::ComponentType::kConstraint>());
+    const auto tConstraints =
+        plato::criteria::library::make_constraints(tData.get<components::ComponentType::kConstraint>());
     ASSERT_EQ(tConstraints.size(), 3U);
 
     EXPECT_TRUE(tConstraints[0].mLinear);

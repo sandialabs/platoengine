@@ -1,9 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <boost/smart_ptr/make_shared_object.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
+#include <cmath>
+#include <format>
+#include <sstream>
+#include <string>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/components/ComponentTypeStream.hpp"
 #include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
 #include "plato/criteria/library/LoggingFunction.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/services/InternalLoggerConsoleSink.hpp"

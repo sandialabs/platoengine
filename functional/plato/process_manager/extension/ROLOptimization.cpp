@@ -2,9 +2,12 @@
 
 #include <ROL_Ptr.hpp>
 #include <fstream>
+#include <optional>
 #include <string_view>
+#include <utility>
 
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/input_validation/ValidationUtilities.hpp"
 #include "plato/output/OutputManager.hpp"
@@ -16,6 +19,8 @@
 #include "plato/process_manager/library/StageOrdering.hpp"
 #include "plato/third_party_integration/rol/ROLObjectiveFunction.hpp"
 #include "plato/third_party_integration/rol/Utilities.hpp"
+#include "plato/utilities/BoundClusivity.hpp"
+#include "plato/utilities/ParameterBounds.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::process_manager::extension
@@ -31,15 +36,15 @@ constexpr std::string_view kROLOptimizerFileName = "ROL_Optimizer.txt";
             { ROLOptimization{aValidInput}.run(aProcessManangerData); }};
 }
 
-[[maybe_unused]] static auto kROLOptimizerParserRegistration =
+[[maybe_unused]] const auto kROLOptimizerParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::rol_optimization>{};
 
-[[maybe_unused]] static auto kROLOptimizerProcessManagerRegistration =
+[[maybe_unused]] const auto kROLOptimizerProcessManagerRegistration =
     library::ProcessManagerRegistration{input_parser::block_name<input_parser::rol_optimization>(),
                                         [](const library::ValidatedProcessManagerInput& aValidInput)
                                         { return make_rol_optimization_process_manager(aValidInput); }};
 
-[[maybe_unused]] static auto kOptimizerValidationRegistration = input_validation::InputBlockValidationRegistration<>{
+[[maybe_unused]] const auto kOptimizerValidationRegistration = input_validation::InputBlockValidationRegistration<>{
     [](const input_parser::rol_optimization& aInput) { return detail::validate_rol_max_iterations(aInput); },
     [](const input_parser::rol_optimization& aInput) { return detail::validate_step_tolerance(aInput); },
     [](const input_parser::rol_optimization& aInput) { return detail::validate_gradient_tolerance(aInput); },

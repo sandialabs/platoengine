@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <cmath>
+#include <utility>
+#include <vector>
 
 #include "plato/filter/extension/kernel_filters/CylindricalMaskUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
@@ -9,6 +12,7 @@
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
+#include "plato/third_party_integration/stk_search/Utilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::filter::extension::kernel_filters::unittest
@@ -81,11 +85,11 @@ TEST(CylindricalMaskUtilitiesDetail, DistributeSearchVectorsAndStkSearch)
     const auto tTargetMeshNodes = mesh::EntityRetrieval{mesh::Mesh{kTargetMeshFile.value()}}.nodalCoordinates();
     constexpr auto tRadius = 3.0;
     constexpr auto tAxis = third_party_integration::common::Vector3{0, 0, 1};
-    const auto tComm = boost::mpi::communicator{};
+    const auto tCommunicator = boost::mpi::communicator{};
 
     const auto tSearchResults = detail::distribute_search_vectors_and_stk_search_with_cylinders(
         TargetRowVector{tTargetMeshNodes}, SourceColumnVector{tSourceMeshNodes}, CylinderAxis{tAxis},
-        CylinderRadius{tRadius}, tComm);
+        CylinderRadius{tRadius}, tCommunicator);
 
     constexpr auto tRankZero = 0;
     ASSERT_EQ(tSearchResults.size(), 3U);

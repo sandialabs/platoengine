@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <string_view>
+#include <vector>
 
 #include "plato/criteria/extension/NodalSumObjective.hpp"
 #include "plato/mesh/Mesh.hpp"
@@ -38,7 +40,7 @@ TEST(NodalSumObjective, Value211)
 TEST(NodalSumObjective, Value0)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
-        {1, 1, 1}, {-2, -1, -3}, {2, 1, 3}, third_party_integration::stk_io::CommandElementType::Hex};
+        {1, 1, 1}, {-2, -1, -3}, {2, 1, 3}, third_party_integration::stk_io::CommandElementType::kHex};
     third_party_integration::stk_io::write_mesh(kTestFile, tCommandGenerator);
 
     constexpr double tExpectedValue = 0.0;
@@ -49,14 +51,13 @@ TEST(NodalSumObjective, Value0)
 TEST(NodalSumObjective, Gradient111)
 {
     const third_party_integration::stk_io::CommandGenerator tCommandGenerator{
-        {1, 2, 3}, {0, 0, 0}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::Hex};
+        {1, 2, 3}, {0, 0, 0}, {1, 1, 1}, third_party_integration::stk_io::CommandElementType::kHex};
     third_party_integration::stk_io::write_mesh(kTestFile, tCommandGenerator);
 
-    const auto tNodalSum = NodalSumObjective{};
-
-    constexpr int tNumCoordsPerNode = 3;
+    constexpr auto tNumCoordsPerNode = std::size_t{3};
     const auto tExpected = std::vector<double>(tNumCoordsPerNode * tCommandGenerator.numberOfNodes(), 1.0);
-    const std::vector tComputed = tNodalSum.df(analysis::AnalysisDomainMesh{kTestFile, {}}).stdVector();
+    const std::vector tComputed =
+        plato::criteria::extension::NodalSumObjective::df(analysis::AnalysisDomainMesh{kTestFile, {}}).stdVector();
     EXPECT_EQ(tComputed, tExpected);
     test_utilities::test_for_existence_and_remove({kTestFile}, TEST_CONTEXT("Checking existence of file"));
 }
@@ -64,7 +65,7 @@ TEST(NodalSumObjective, Gradient111)
 TEST(NodalSumObjective, Value)
 {
     third_party_integration::stk_io::write_mesh(kBrickFile, third_party_integration::stk_io::CommandGenerator{});
-    analysis::AnalysisDomainMesh tAnalysisDomainMesh{kBrickFile, {}};
+    const analysis::AnalysisDomainMesh tAnalysisDomainMesh{kBrickFile, {}};
 
     const NodalSumObjective tPass;
     EXPECT_EQ(tPass.f(tAnalysisDomainMesh), 12);
@@ -74,7 +75,7 @@ TEST(NodalSumObjective, Value)
 TEST(NodalSumObjective, Gradient)
 {
     third_party_integration::stk_io::write_mesh(kBrickFile, third_party_integration::stk_io::CommandGenerator{});
-    analysis::AnalysisDomainMesh tAnalysisDomainMesh{kBrickFile, {}};
+    const analysis::AnalysisDomainMesh tAnalysisDomainMesh{kBrickFile, {}};
 
     const NodalSumObjective tPass;
     const std::vector<double> tGold(24, 1);

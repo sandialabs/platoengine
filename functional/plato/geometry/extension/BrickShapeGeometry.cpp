@@ -1,11 +1,21 @@
 #include "plato/geometry/extension/BrickShapeGeometry.hpp"
 
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <cmath>
+#include <cstddef>
 #include <filesystem>
+#include <optional>
+#include <utility>
+#include <vector>
 
 #include "plato/geometry/library/GeometryLogger.hpp"
 #include "plato/geometry/library/GeometryRegistration.hpp"
 #include "plato/geometry/library/GeometryValidation.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
+#include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/input_validation/ValidationRegistration.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/linear_algebra/JacobianColumnEvaluator.hpp"
@@ -19,6 +29,12 @@ namespace plato::geometry::extension
 {
 namespace
 {
+constexpr auto kXCenterIndex = 0U;
+constexpr auto kYCenterIndex = 1U;
+constexpr auto kZCenterIndex = 2U;
+constexpr auto kXLengthIndex = 3U;
+constexpr auto kYLengthIndex = 4U;
+constexpr auto kZLengthIndex = 5U;
 
 constexpr auto kPrecision = std::size_t{16};
 constexpr auto kPrintWidth = std::size_t{24};
@@ -34,16 +50,16 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
     return tInput.mesh_name.value().mToken;
 }
 
-[[nodiscard]] library::FactoryTypes::Output make_output()
+[[nodiscard]] auto make_output() -> library::FactoryTypes::Output
 {
     return [](const linear_algebra::DynamicVector<double>& aSolution, const output::OutputInfo& aOutputInfo)
-    { return BrickShapeGeometry::output(aSolution, aOutputInfo); };
+    { BrickShapeGeometry::output(aSolution, aOutputInfo); };
 }
 
-[[maybe_unused]] static auto kBrickShapeGeometryParserRegistration =
+[[maybe_unused]] const auto kBrickShapeGeometryParserRegistration =
     input_parser::ComponentParserRegistration<input_parser::brick_shape_geometry>{};
 
-[[maybe_unused]] static auto kBrickShapeGeometryRegistration = plato::geometry::library::GeometryRegistration{
+[[maybe_unused]] const auto kBrickShapeGeometryRegistration = plato::geometry::library::GeometryRegistration{
     input_parser::block_name<input_parser::brick_shape_geometry>(),
     [](const library::ValidatedGeometryInput& aGeometryInput)
     {
@@ -51,7 +67,7 @@ const std::vector<double> kUpperBounds = {10.0, 10.0, 10.0, 1e2, 1e2, 1e2};     
                                      BrickShapeGeometry::initialGuess(), BrickShapeGeometry::bounds(), make_output()};
     }};
 
-[[maybe_unused]] static auto kBrickShapeInputValidationRegistration =
+[[maybe_unused]] const auto kBrickShapeInputValidationRegistration =
     input_validation::InputBlockValidationRegistration<>{[](const input_parser::brick_shape_geometry& aInput)
                                                          { return library::detail::validate_mesh_name(aInput); }};
 
@@ -62,9 +78,54 @@ BrickShapeGeometry::BrickShapeGeometry(std::filesystem::path aFileName, const st
 {
 }
 
-BrickShapeGeometry::~BrickShapeGeometry() { std::filesystem::remove(mFileName); }
+BrickShapeGeometry::~BrickShapeGeometry()
+{
+    if (!mFileName.empty())
+    {
+        std::filesystem::remove(mFileName);
+    }
+}
 
-analysis::AnalysisDomainMesh BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const
+BrickShapeGeometry::BrickShapeGeometry(const BrickShapeGeometry& aBrickShapeGeometry)
+    : mFileName{utilities::make_filename_unique(aBrickShapeGeometry.mFileName)},
+      mDiscretizationSize{aBrickShapeGeometry.mDiscretizationSize}
+{
+}
+
+BrickShapeGeometry::BrickShapeGeometry(BrickShapeGeometry&& aBrickShapeGeometry) noexcept
+    : mFileName{std::move(aBrickShapeGeometry.mFileName)}, mDiscretizationSize{aBrickShapeGeometry.mDiscretizationSize}
+{
+    aBrickShapeGeometry.mFileName.clear();
+}
+
+auto BrickShapeGeometry::operator=(const BrickShapeGeometry& aBrickShapeGeometry) -> BrickShapeGeometry&
+{
+    if (&aBrickShapeGeometry == this)
+    {
+        return *this;
+    }
+
+    mFileName = utilities::make_filename_unique(aBrickShapeGeometry.mFileName);
+    mDiscretizationSize = aBrickShapeGeometry.mDiscretizationSize;
+
+    return *this;
+}
+
+auto BrickShapeGeometry::operator=(BrickShapeGeometry&& aBrickShapeGeometry) noexcept -> BrickShapeGeometry&
+{
+    if (&aBrickShapeGeometry == this)
+    {
+        return *this;
+    }
+
+    mFileName = std::move(aBrickShapeGeometry.mFileName);
+    mDiscretizationSize = aBrickShapeGeometry.mDiscretizationSize;
+    aBrickShapeGeometry.mFileName.clear();
+
+    return *this;
+}
+
+auto BrickShapeGeometry::generateMesh(const BrickDesign& aDesignParameters) const -> analysis::AnalysisDomainMesh
 {
     [[maybe_unused]] const auto tTaskLogger = library::mesh_generation_task_log<input_parser::brick_shape_geometry>();
 
@@ -72,7 +133,7 @@ analysis::AnalysisDomainMesh BrickShapeGeometry::generateMesh(const BrickDesign&
     return analysis::AnalysisDomainMesh{mFileName, {}};
 }
 
-linear_algebra::JacobianColumnEvaluator BrickShapeGeometry::jacobian(const BrickDesign& aDesignParameters) const
+auto BrickShapeGeometry::jacobian(const BrickDesign& aDesignParameters) -> linear_algebra::JacobianColumnEvaluator
 {
     return linear_algebra::JacobianColumnEvaluator{
         /*.mColumns=*/kNumDesignParameters,
@@ -85,7 +146,7 @@ linear_algebra::JacobianColumnEvaluator BrickShapeGeometry::jacobian(const Brick
         }};
 }
 
-auto BrickShapeGeometry::adjointJacobian(const BrickDesign& aDesignParameters) const
+auto BrickShapeGeometry::adjointJacobian(const BrickDesign& aDesignParameters)
     -> linear_algebra::JacobianColumnEvaluator
 {
     return linear_algebra::JacobianColumnEvaluator{
@@ -103,15 +164,17 @@ auto BrickShapeGeometry::adjointJacobian(const BrickDesign& aDesignParameters) c
         }};
 }
 
-linear_algebra::DynamicVector<double> BrickShapeGeometry::initialGuess()
+auto BrickShapeGeometry::initialGuess() -> linear_algebra::DynamicVector<double>
 {
     return detail::to_dynamic_vector(BrickDesign{});
 }
 
-std::pair<std::vector<double>, std::vector<double>> BrickShapeGeometry::bounds()
+auto BrickShapeGeometry::bounds() -> std::pair<std::vector<double>, std::vector<double>>
 {
     return {kLowerBounds, kUpperBounds};
 }
+
+auto BrickShapeGeometry::fileName() const -> const std::filesystem::path& { return mFileName; }
 
 void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSolution,
                                 const output::OutputInfo& aOutputInfo)
@@ -121,10 +184,10 @@ void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSo
     auto tBrickParameterTable = std::stringstream{};
     tBrickParameterTable << "\nBrick geometry parameters:\n";
     tBrickParameterTable << "iteration: " << aOutputInfo.mIteration << "\n";
-    tBrickParameterTable << "centers: " << TableOutput{aSolution[0]} << TableOutput{aSolution[1]}
-                         << TableOutput{aSolution[2]} << "\n";
-    tBrickParameterTable << "dimensions: " << TableOutput{aSolution[3]} << TableOutput{aSolution[4]}
-                         << TableOutput{aSolution[5]} << "\n";
+    tBrickParameterTable << "centers: " << TableOutput{aSolution[kXCenterIndex]}
+                         << TableOutput{aSolution[kYCenterIndex]} << TableOutput{aSolution[kZCenterIndex]} << "\n";
+    tBrickParameterTable << "dimensions: " << TableOutput{aSolution[kXLengthIndex]}
+                         << TableOutput{aSolution[kYLengthIndex]} << TableOutput{aSolution[kZLengthIndex]} << "\n";
 
     auto tLogger = geometry::library::geometry_logger<input_parser::brick_shape_geometry>();
     tLogger.logInfo(tBrickParameterTable.str());
@@ -133,14 +196,16 @@ void BrickShapeGeometry::output(const linear_algebra::DynamicVector<double>& aSo
 auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry) -> library::GeometryFunction
 {
     return library::GeometryFunction{
-        [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
-        { return tBrickShapeGeometry.generateMesh(detail::to_design_parameters(x)); },
-        [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
-        { return to_jacobian_multiplier(tBrickShapeGeometry.jacobian(detail::to_design_parameters(x))); },
-        [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& x)
+        [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& aDesignVariables)
+        { return tBrickShapeGeometry.generateMesh(detail::to_design_parameters(aDesignVariables)); },
+        [](const linear_algebra::DynamicVector<double>& aDesignVariables)
         {
-            return linear_algebra::AdjointJacobianMultiplier{
-                to_jacobian_multiplier(tBrickShapeGeometry.adjointJacobian(detail::to_design_parameters(x)))};
+            return to_jacobian_multiplier(BrickShapeGeometry::jacobian(detail::to_design_parameters(aDesignVariables)));
+        },
+        [](const linear_algebra::DynamicVector<double>& aDesignVariables)
+        {
+            return linear_algebra::AdjointJacobianMultiplier{to_jacobian_multiplier(
+                BrickShapeGeometry::adjointJacobian(detail::to_design_parameters(aDesignVariables)))};
         }};
 }
 
@@ -151,18 +216,18 @@ void create_mesh(const BrickDesign& aDesign,
                  const std::optional<double> aDiscretizationSize)
 {
     namespace tpistkio = third_party_integration::stk_io;
-    const auto tLowerBounds = tpistkio::CommandBounds{aDesign.center_x - aDesign.dimension_x / 2.0,
-                                                      aDesign.center_y - aDesign.dimension_y / 2.0,
-                                                      aDesign.center_z - aDesign.dimension_z / 2.0};
-    const auto tUpperBounds = tpistkio::CommandBounds{aDesign.center_x + aDesign.dimension_x / 2.0,
-                                                      aDesign.center_y + aDesign.dimension_y / 2.0,
-                                                      aDesign.center_z + aDesign.dimension_z / 2.0};
+    const auto tLowerBounds = tpistkio::CommandBounds{aDesign.mCenterX - aDesign.mDimensionX / 2.0,
+                                                      aDesign.mCenterY - aDesign.mDimensionY / 2.0,
+                                                      aDesign.mCenterZ - aDesign.mDimensionZ / 2.0};
+    const auto tUpperBounds = tpistkio::CommandBounds{aDesign.mCenterX + aDesign.mDimensionX / 2.0,
+                                                      aDesign.mCenterY + aDesign.mDimensionY / 2.0,
+                                                      aDesign.mCenterZ + aDesign.mDimensionZ / 2.0};
     auto tNumberOfElements = tpistkio::CommandNumberOfElements{1, 1, 1};
     if (aDiscretizationSize)
     {
-        const auto tNx = static_cast<unsigned int>(std::ceil(aDesign.dimension_x / aDiscretizationSize.value()));
-        const auto tNy = static_cast<unsigned int>(std::ceil(aDesign.dimension_y / aDiscretizationSize.value()));
-        const auto tNz = static_cast<unsigned int>(std::ceil(aDesign.dimension_z / aDiscretizationSize.value()));
+        const auto tNx = static_cast<unsigned int>(std::ceil(aDesign.mDimensionX / aDiscretizationSize.value()));
+        const auto tNy = static_cast<unsigned int>(std::ceil(aDesign.mDimensionY / aDiscretizationSize.value()));
+        const auto tNz = static_cast<unsigned int>(std::ceil(aDesign.mDimensionZ / aDiscretizationSize.value()));
         tNumberOfElements = {tNx, tNy, tNz};
     }
 
@@ -175,62 +240,62 @@ void create_mesh(const BrickDesign& aDesign,
     constexpr int tPrecision = 16;
 
     const tpistkio::CommandGenerator tGenerator{
-        tNumberOfElements, tLowerBounds, tUpperBounds, tpistkio::CommandElementType::Hex,
+        tNumberOfElements, tLowerBounds, tUpperBounds, tpistkio::CommandElementType::kHex,
         tNodesets,         tSidesets,    tPrecision};
     tpistkio::write_mesh(aOutputFile, tGenerator);
 }
 
-std::vector<double> sensitivities(const unsigned int aParameterIndex)
+auto sensitivities(const unsigned int aParameterIndex) -> std::vector<double>
 {
     assert(aParameterIndex < kNumDesignParameters);
     // design parameters are center (x,y,z), dimension (x,y,z)
     // All nodes or just corners? ESP is based on surface nodeset not all interior nodes, settle for corners right now
     // Assuming nodes are min(x),min(y),min(z) -> increasing x, increasing y, increasing z
-    auto base = std::array{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    constexpr auto xdim = std::array{-0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
-    constexpr auto ydim = std::array{-0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5};
-    constexpr auto zdim = std::array{-0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5};
+    auto tBase = std::array{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    constexpr auto tXdim = std::array{-0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
+    constexpr auto tYdim = std::array{-0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5};
+    constexpr auto tZdim = std::array{-0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5};
 
     switch (aParameterIndex)
     {
-        case 3:
-            base = xdim;
+        case kXLengthIndex:
+            tBase = tXdim;
             break;
-        case 4:
-            base = ydim;
+        case kYLengthIndex:
+            tBase = tYdim;
             break;
-        case 5:
-            base = zdim;
+        case kZLengthIndex:
+            tBase = tZdim;
             break;
         default:
             break;
     }
 
-    std::vector<double> sensitive(base.size() * kNumDims, 0);
-    const unsigned int shift = aParameterIndex % 3;
-    for (unsigned int b = 0; b < base.size(); ++b)
+    std::vector<double> tSensitive(tBase.size() * kNumDims, 0);
+    const unsigned int tShift = aParameterIndex % 3;
+    for (unsigned int tBaseIndex = 0; tBaseIndex < tBase.size(); ++tBaseIndex)
     {
-        sensitive[kNumDims * b + shift] = base[b];
+        tSensitive[kNumDims * tBaseIndex + tShift] = tBase.at(tBaseIndex);
     }
-    return sensitive;
+    return tSensitive;
 }
 
-linear_algebra::DynamicVector<double> to_dynamic_vector(const BrickDesign& aDesignParameters)
+auto to_dynamic_vector(const BrickDesign& aDesignParameters) -> linear_algebra::DynamicVector<double>
 {
-    return linear_algebra::DynamicVector<double>{aDesignParameters.center_x,    aDesignParameters.center_y,
-                                                 aDesignParameters.center_z,    aDesignParameters.dimension_x,
-                                                 aDesignParameters.dimension_y, aDesignParameters.dimension_z};
+    return linear_algebra::DynamicVector<double>{aDesignParameters.mCenterX,    aDesignParameters.mCenterY,
+                                                 aDesignParameters.mCenterZ,    aDesignParameters.mDimensionX,
+                                                 aDesignParameters.mDimensionY, aDesignParameters.mDimensionZ};
 }
 
-BrickDesign to_design_parameters(const linear_algebra::DynamicVector<double>& aDesignParameter)
+auto to_design_parameters(const linear_algebra::DynamicVector<double>& aDesignParameter) -> BrickDesign
 {
     assert(aDesignParameter.size() == kNumDesignParameters);
-    return BrickDesign{/*.center_x=*/aDesignParameter[0],
-                       /*.center_y=*/aDesignParameter[1],
-                       /*.center_z=*/aDesignParameter[2],
-                       /*.dimension_x=*/aDesignParameter[3],
-                       /*.dimension_y=*/aDesignParameter[4],
-                       /*.dimension_z=*/aDesignParameter[5]};
+    return BrickDesign{.mCenterX = aDesignParameter[kXCenterIndex],
+                       .mCenterY = aDesignParameter[kYCenterIndex],
+                       .mCenterZ = aDesignParameter[kZCenterIndex],
+                       .mDimensionX = aDesignParameter[kXLengthIndex],
+                       .mDimensionY = aDesignParameter[kYLengthIndex],
+                       .mDimensionZ = aDesignParameter[kZLengthIndex]};
 }
 }  // namespace detail
 

@@ -14,23 +14,23 @@ using Exponent = utilities::NamedType<double, struct ExponentTag>;
 class Penalty
 {
    public:
-    Penalty(const XMin aXMin, const Exponent aPower) : mXMin(aXMin.mValue), mPower(aPower.mValue) {}
+    constexpr Penalty(const XMin aXMin, const Exponent aPower) : mXMin(aXMin.mValue), mPower(aPower.mValue) {}
 
-    [[nodiscard]] TwoDVector f(const double aX, const double aY) const
+    [[nodiscard]] auto f(const double aXCoordinate, const double aYCoordinate) const -> TwoDVector
     {
-        return makeTwoDVector(mXMin + (1.0 - mXMin) * std::pow(aX, mPower),
-                              mXMin + (1.0 - mXMin) * std::pow(aY, mPower));
+        return make_two_d_vector(mXMin + (1.0 - mXMin) * std::pow(aXCoordinate, mPower),
+                                 mXMin + (1.0 - mXMin) * std::pow(aYCoordinate, mPower));
     }
 
-    [[nodiscard]] TwoDMatrix df(const double aX, const double aY) const
+    [[nodiscard]] auto df(const double aXCoordinate, const double aYCoordinate) const -> TwoDMatrix
     {
-        return makeTwoDMatrix(mPower * (1.0 - mXMin) * std::pow(aX, mPower - 1.0), 0.0, 0.0,
-                              mPower * (1.0 - mXMin) * std::pow(aY, mPower - 1.0));
+        return make_two_d_matrix(mPower * (1.0 - mXMin) * std::pow(aXCoordinate, mPower - 1.0), 0.0, 0.0,
+                                 mPower * (1.0 - mXMin) * std::pow(aYCoordinate, mPower - 1.0));
     }
 
    private:
-    double mXMin = 1e-3;
-    double mPower = 3.0;
+    double mXMin{};
+    double mPower{};
 };
 
 }  // namespace plato::test_utilities

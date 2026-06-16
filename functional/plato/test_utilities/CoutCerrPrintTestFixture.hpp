@@ -17,7 +17,12 @@ class CoutCerrPrintTestFixture : public ::testing::Test
 {
    public:
     CoutCerrPrintTestFixture();
-    ~CoutCerrPrintTestFixture();
+    ~CoutCerrPrintTestFixture() override;
+
+    CoutCerrPrintTestFixture(const CoutCerrPrintTestFixture&) = delete;
+    CoutCerrPrintTestFixture(CoutCerrPrintTestFixture&&) = delete;
+    auto operator=(const CoutCerrPrintTestFixture&) -> CoutCerrPrintTestFixture& = delete;
+    auto operator=(const CoutCerrPrintTestFixture&&) -> CoutCerrPrintTestFixture& = delete;
 
     void checkRankZeroCoutStringStream(const std::string& aGold, const TestContext& aTestContext) const;
     void checkRankZeroCerrStringStream(const std::string& aGold, const TestContext& aTestContext) const;

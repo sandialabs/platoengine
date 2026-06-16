@@ -1,5 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <tuple>
+#include <vector>
+
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/SparseMatrixBuilder.hpp"
 #include "plato/third_party_integration/snopt/test_utilities/TestUtilities.hpp"
@@ -23,7 +27,9 @@ TEST(SparseMatrixBuilder, AppendZero)
     tSparseMatrixBuilder.appendIfNotZero(SparseMatrix::Row{0}, SparseMatrix::Column{0}, 0.0);
     EXPECT_EQ(tSparseMatrixBuilder.size(), 0U);
 
-    tSparseMatrixBuilder.appendIfNotZero(SparseMatrix::Row{100}, SparseMatrix::Column{10}, 0.0);
+    constexpr auto tArbitraryRow = 100;
+    constexpr auto tArbitraryColumn = 10;
+    tSparseMatrixBuilder.appendIfNotZero(SparseMatrix::Row{tArbitraryRow}, SparseMatrix::Column{tArbitraryColumn}, 0.0);
     EXPECT_EQ(tSparseMatrixBuilder.size(), 0U);
 }
 

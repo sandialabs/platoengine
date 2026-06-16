@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
 
-#include <boost/phoenix/core.hpp>
-#include <boost/phoenix/operator.hpp>
-#include <boost/phoenix/stl/algorithm.hpp>
-#include <boost/phoenix/stl/container.hpp>
+#include <boost/phoenix/core/reference.hpp>
+#include <boost/phoenix/stl/container/container.hpp>
+#include <boost/spirit/home/qi/action/action.hpp>
+#include <boost/spirit/home/qi/string/symbols.hpp>
+#include <boost/spirit/home/support/common_terminals.hpp>
 #include <cstdint>
+#include <string>
+#include <vector>
 
 #include "plato/input_parser/EnumParser.hpp"
 #include "plato/utilities/EnumTable.hpp"
@@ -25,7 +28,7 @@ const utilities::EnumTable<Pizza> kPizzaTable({{Pizza::kCheese, "cheese"},
                                                {Pizza::kPepperoni, "pepperoni"}});
 
 template <typename Iterator>
-bool parse_pizza_list(Iterator aBegin, Iterator aEnd, std::vector<Pizza>& aPizzas)
+auto parse_pizza_list(Iterator aBegin, Iterator aEnd, std::vector<Pizza>& aPizzas) -> bool
 {
     namespace bsq = boost::spirit::qi;
     namespace bsa = boost::spirit::ascii;
@@ -46,10 +49,10 @@ bool parse_pizza_list(Iterator aBegin, Iterator aEnd, std::vector<Pizza>& aPizza
 
 TEST(BoostSpirit, ParseEnum)
 {
-    std::vector<Pizza> parsedPizzas;
+    std::vector<Pizza> tParsedPizzas;
 
-    const std::string validPizzas = "cheese, pepperoni,  supreme,    cheese";
-    EXPECT_TRUE(parse_pizza_list(validPizzas.begin(), validPizzas.end(), parsedPizzas));
-    EXPECT_EQ(parsedPizzas.size(), 4u);
+    const std::string tValidPizzas = "cheese, pepperoni,  supreme,    cheese";
+    EXPECT_TRUE(parse_pizza_list(tValidPizzas.begin(), tValidPizzas.end(), tParsedPizzas));
+    EXPECT_EQ(tParsedPizzas.size(), 4U);
 }
 }  // namespace plato::input_parser::unittest

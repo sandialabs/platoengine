@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <Akri_AnalyticSurf.hpp>
 #include <Akri_BoundingBox.hpp>
 #include <Akri_Composite_Surface.hpp>
+#include <array>
 #include <vector>
 
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"

@@ -31,11 +31,12 @@ using TpetraMultiVector = Tpetra::MultiVector<TpetraScalar, TpetraLocalOrdinal, 
 using TpetraCRSMatrix = Tpetra::CrsMatrix<TpetraScalar, TpetraLocalOrdinal, TpetraGlobalOrdinal, TpetraNode>;
 
 /// @brief Helper function to retrieve the number of local elements in the map @a aTeptraMap
-[[nodiscard]] TpetraLocalOrdinal number_of_local_elements(const Teuchos::RCP<const TpetraMap>& aTpetraMap);
+[[nodiscard]] auto number_of_local_elements(const Teuchos::RCP<const TpetraMap>& aTpetraMap) -> TpetraLocalOrdinal;
 
 /// @brief Helper function to create zeroed out pairs of tpetra vectors that are sized to a CRS matrix @a aCRSMatrix
-[[nodiscard]] std::pair<TpetraVector, TpetraVector> create_zeroed_row_and_column_vectors_from_crs_map(
-    const TpetraCRSMatrix& aCRSMatrix, const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator);
+[[nodiscard]] auto create_zeroed_row_and_column_vectors_from_crs_map(
+    const TpetraCRSMatrix& aCRSMatrix, const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+    -> std::pair<TpetraVector, TpetraVector>;
 
 /// @brief Helper function to take a vector of double @a aSerialVector and insert it onto the distributed
 /// vector @a aVector
@@ -43,8 +44,9 @@ void distribute_on_tpetra_vector(const std::vector<double>& aSerialVector, Tpetr
 
 /// @brief Helper function to take a distributed vector @a aVector and reduce it to a non-distributed std vector of
 /// double @a aSerialVector
-[[nodiscard]] std::vector<double> reduce_tpetra_vector(const TpetraVector& aVector,
-                                                       const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator);
+[[nodiscard]] auto reduce_tpetra_vector(const TpetraVector& aVector,
+                                        const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+    -> std::vector<double>;
 
 /// @brief Helper function to take a vector of Coordinates @a aSerialVector and insert  it onto the distributed
 /// multivector @a aMultiVector
@@ -52,8 +54,8 @@ void distribute_on_tpetra_multivector(const std::vector<common::Coordinate>& aSe
                                       TpetraMultiVector& aMultiVector);
 
 /// @brief Helper function to retrieve a Coordinate stored in @a aMultiVector at row @a aRow
-[[nodiscard]] common::Coordinate multivector_coordinate(const TpetraMultiVector& aMultiVector,
-                                                        const TpetraLocalOrdinal aRow);
+[[nodiscard]] auto multivector_coordinate(const TpetraMultiVector& aMultiVector, TpetraLocalOrdinal aRow)
+    -> common::Coordinate;
 
 }  // namespace plato::third_party_integration::tpetra
 

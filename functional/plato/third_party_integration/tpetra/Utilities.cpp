@@ -1,20 +1,34 @@
 #include "plato/third_party_integration/tpetra/Utilities.hpp"
 
+#include <Teuchos_Comm.hpp>
+#include <Teuchos_CommHelpers.hpp>
+#include <Teuchos_EReductionType.hpp>
+#include <Teuchos_PtrDecl.hpp>
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_RCPDecl.hpp>
+#include <cassert>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "plato/third_party_integration/common/Vector3.hpp"
+
 namespace plato::third_party_integration::tpetra
 {
 
-TpetraLocalOrdinal number_of_local_elements(const Teuchos::RCP<const TpetraMap>& aTpetraMap)
+auto number_of_local_elements(const Teuchos::RCP<const TpetraMap>& aTpetraMap) -> TpetraLocalOrdinal
 {
     return static_cast<TpetraLocalOrdinal>(aTpetraMap->getLocalNumElements());
 }
 
-std::pair<TpetraVector, TpetraVector> create_zeroed_row_and_column_vectors_from_crs_map(
-    const TpetraCRSMatrix& aCRSMatrix, const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+auto create_zeroed_row_and_column_vectors_from_crs_map(const TpetraCRSMatrix& aCRSMatrix,
+                                                       const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+    -> std::pair<TpetraVector, TpetraVector>
 {
     const auto tRowContiguousMap =
-        Teuchos::rcp(new TpetraMap(aCRSMatrix.getGlobalNumRows(), kIndexBase, aCommunicator));
+        Teuchos::rcp(std::make_unique<TpetraMap>(aCRSMatrix.getGlobalNumRows(), kIndexBase, aCommunicator).release());
     const auto tColumnContiguousMap =
-        Teuchos::rcp(new TpetraMap(aCRSMatrix.getGlobalNumCols(), kIndexBase, aCommunicator));
+        Teuchos::rcp(std::make_unique<TpetraMap>(aCRSMatrix.getGlobalNumCols(), kIndexBase, aCommunicator).release());
     constexpr bool tZeroOut = true;
     return {TpetraVector(tRowContiguousMap, tZeroOut), TpetraVector(tColumnContiguousMap, tZeroOut)};
 }
@@ -29,15 +43,15 @@ void distribute_on_tpetra_vector(const std::vector<double>& aSerialVector, Tpetr
     }
 }
 
-std::vector<double> reduce_tpetra_vector(const TpetraVector& aVector,
-                                         const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+auto reduce_tpetra_vector(const TpetraVector& aVector, const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
+    -> std::vector<double>
 {
     std::vector<double> tResult(aVector.getMap()->getGlobalNumElements(), 0);
     for (TpetraGlobalOrdinal tGlobalIndex = 0;
          tGlobalIndex < static_cast<TpetraGlobalOrdinal>(aVector.getMap()->getGlobalNumElements()); ++tGlobalIndex)
     {
         const auto tLocalIndex = aVector.getMap()->getLocalElement(tGlobalIndex);
-        double tLocalValue = tLocalIndex >= 0 ? aVector.getData()[tLocalIndex] : 0.0;
+        const double tLocalValue = tLocalIndex >= 0 ? aVector.getData()[tLocalIndex] : 0.0;
         Teuchos::reduceAll<TeuchosCommOrdinal, double>(*aCommunicator, Teuchos::REDUCE_SUM, tLocalValue,
                                                        Teuchos::outArg(tResult[tGlobalIndex]));
     }
@@ -45,7 +59,7 @@ std::vector<double> reduce_tpetra_vector(const TpetraVector& aVector,
     return tResult;
 }
 
-common::Coordinate multivector_coordinate(const TpetraMultiVector& aMultiVector, const TpetraLocalOrdinal aRow)
+auto multivector_coordinate(const TpetraMultiVector& aMultiVector, const TpetraLocalOrdinal aRow) -> common::Coordinate
 {
     assert(aMultiVector.getNumVectors() == kNumberOfCartesianDimensions);
     return {aMultiVector.getVector(0)->getData()[aRow], aMultiVector.getVector(1)->getData()[aRow],

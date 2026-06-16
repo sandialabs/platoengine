@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
-#include <optional>
+#include <vector>
 
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_search/Utilities.hpp"
-#include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::third_party_integration::stk_search::unittest
 {
@@ -73,7 +74,7 @@ TEST(STKSearchUtilities, FindPointsInSphere)
     const auto tSearchResults = stk_search<SearchSphereWithIdentifier>(
         {tSphereWithID}, tLocalSearchPointWithIdentifiers, boost::mpi::communicator{});
 
-    EXPECT_EQ(tSearchResults.size(), 3u);
+    EXPECT_EQ(tSearchResults.size(), 3U);
 }
 
 TEST(STKSearchUtilities, FindPointsInBox)
@@ -91,7 +92,7 @@ TEST(STKSearchUtilities, FindPointsInBox)
     const auto tSearchResults =
         stk_search<SearchBoxWithIdentifier>({tBoxWithID}, tLocalSearchPointWithIdentifiers, boost::mpi::communicator{});
 
-    EXPECT_EQ(tSearchResults.size(), 2u);
+    EXPECT_EQ(tSearchResults.size(), 2U);
 }
 
 TEST(STKSearchUtilities, FindPointsInMultipleSpheres)
@@ -113,7 +114,7 @@ TEST(STKSearchUtilities, FindPointsInMultipleSpheres)
     const auto tSearchResults = stk_search<SearchSphereWithIdentifier>({tSphereWithIDOne, tSphereWithIDTwo},
                                                                        tLocalSearchPointWithIdentifiers, tCommunicator);
 
-    EXPECT_EQ(tSearchResults.size(), 4u);
+    EXPECT_EQ(tSearchResults.size(), 4U);
 }
 
 }  // namespace plato::third_party_integration::stk_search::unittest

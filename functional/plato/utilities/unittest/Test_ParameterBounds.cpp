@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "plato/utilities/BoundClusivity.hpp"
 #include "plato/utilities/ParameterBounds.hpp"
 namespace plato::utilities::unittest
 {
@@ -81,7 +82,7 @@ TEST(ParameterBounds, DirectConstructionExclusiveLowerInclusiveUpperInt)
 
 TEST(ParameterBounds, DirectConstructionExclusiveLowerInclusiveUpperUnsignedInt)
 {
-    const auto tBounds = ParameterBounds{Exclusive{0u}, Inclusive{10u}};
+    const auto tBounds = ParameterBounds{Exclusive{0U}, Inclusive{10U}};
     EXPECT_FALSE(tBounds.contains(0));
     EXPECT_TRUE(tBounds.contains(5));
     EXPECT_TRUE(tBounds.contains(10));

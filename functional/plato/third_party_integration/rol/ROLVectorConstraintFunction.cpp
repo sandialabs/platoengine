@@ -1,5 +1,12 @@
 #include "plato/third_party_integration/rol/ROLVectorConstraintFunction.hpp"
 
+#include <utility>
+#include <vector>
+
+#include "plato/core/Function.hpp"
+#include "plato/core/FunctionHelpers.hpp"
+#include "plato/linear_algebra/DynamicVector.hpp"
+
 namespace plato::third_party_integration::rol
 {
 ROLVectorConstraintFunction::ROLVectorConstraintFunction(ROLPlatoFunction aConstraint)
@@ -7,7 +14,9 @@ ROLVectorConstraintFunction::ROLVectorConstraintFunction(ROLPlatoFunction aConst
 {
 }
 
-void ROLVectorConstraintFunction::value(std::vector<double>& aConstraints, const std::vector<double>& aControl, double&)
+void ROLVectorConstraintFunction::value(std::vector<double>& aConstraints,
+                                        const std::vector<double>& aControl,
+                                        double& /*tol*/)
 {
     auto tConstraintValue =
         mFunction.evaluate<core::evaluation::kFunction>(linear_algebra::DynamicVector<double>(aControl));

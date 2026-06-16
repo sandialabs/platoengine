@@ -1,37 +1,50 @@
 #include <gtest/gtest.h>
 
+#include <array>
+#include <cassert>
+#include <numeric>
 #include <valarray>
 
-#include "plato/test_utilities/GradientChecker.hpp"
-#include "plato/test_utilities/RandomPerturbationVector.hpp"
+#include "plato/linear_algebra/RandomPerturbationVector.hpp"
+#include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/stk_io/Quadrilateral.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/SensitivityTestUtilities.hpp"
+#include "plato/utilities/GradientChecker.hpp"
 
 namespace plato::third_party_integration::stk_io::unittest
 {
 namespace
 {
-Quadrilateral create_planar_quadrilateral_from_dimensions(const double aLength, const double aHeight)
+auto create_planar_quadrilateral_from_dimensions(const double aLength, const double aHeight) -> Quadrilateral
 {
-    return Quadrilateral{.p00 = common::Coordinate{.x = 0.0, .y = 0.0, .z = 0.0},
-                         .p10 = common::Coordinate{.x = aLength, .y = 0.0, .z = 0.0},
-                         .p11 = common::Coordinate{.x = aLength, .y = aHeight, .z = 0.0},
-                         .p01 = common::Coordinate{.x = 0.0, .y = aHeight, .z = 0.0}};
+    return Quadrilateral{.mP00 = common::Coordinate{.x = 0.0, .y = 0.0, .z = 0.0},
+                         .mP10 = common::Coordinate{.x = aLength, .y = 0.0, .z = 0.0},
+                         .mP11 = common::Coordinate{.x = aLength, .y = aHeight, .z = 0.0},
+                         .mP01 = common::Coordinate{.x = 0.0, .y = aHeight, .z = 0.0}};
 }
 
-Quadrilateral quadrilateral_from_coordinates(const std::valarray<double>& aCoordinates)
+auto quadrilateral_from_coordinates(const std::valarray<double>& aCoordinates) -> Quadrilateral
 {
     assert(aCoordinates.size() == 12);
+    constexpr auto tNumberOfDimensions = 3U;
+
     return Quadrilateral{
-        .p00 = common::Coordinate{.x = aCoordinates[0], .y = aCoordinates[1], .z = aCoordinates[2]},
-        .p10 = common::Coordinate{.x = aCoordinates[3], .y = aCoordinates[4], .z = aCoordinates[5]},
-        .p11 = common::Coordinate{.x = aCoordinates[6], .y = aCoordinates[7], .z = aCoordinates[8]},
-        .p01 = common::Coordinate{.x = aCoordinates[9], .y = aCoordinates[10], .z = aCoordinates[11]},
+        .mP00 = common::Coordinate{.x = aCoordinates[0], .y = aCoordinates[1], .z = aCoordinates[2]},
+        .mP10 = common::Coordinate{.x = aCoordinates[tNumberOfDimensions * 1U + 0U],
+                                   .y = aCoordinates[tNumberOfDimensions * 1U + 1U],
+                                   .z = aCoordinates[tNumberOfDimensions * 1U + 2U]},
+        .mP11 = common::Coordinate{.x = aCoordinates[tNumberOfDimensions * 2U + 0U],
+                                   .y = aCoordinates[tNumberOfDimensions * 2U + 1U],
+                                   .z = aCoordinates[tNumberOfDimensions * 2U + 2U]},
+        .mP01 = common::Coordinate{.x = aCoordinates[tNumberOfDimensions * 3U + 0U],
+                                   .y = aCoordinates[tNumberOfDimensions * 3U + 1U],
+                                   .z = aCoordinates[tNumberOfDimensions * 3U + 2U]},
     };
 }
 
-std::valarray<double> valarray_from_sensitivities(const std::array<common::Vector3, 4>& aSensitivities)
+auto valarray_from_sensitivities(const std::array<common::Vector3, 4>& aSensitivities) -> std::valarray<double>
 {
     return std::valarray<double>{aSensitivities[0].x, aSensitivities[0].y, aSensitivities[0].z, aSensitivities[1].x,
                                  aSensitivities[1].y, aSensitivities[1].z, aSensitivities[2].x, aSensitivities[2].y,
@@ -39,10 +52,10 @@ std::valarray<double> valarray_from_sensitivities(const std::array<common::Vecto
 }
 
 void check_gradient_of_volume(const std::valarray<double>& aInitialCoordinates,
-                              const plato::test_utilities::GradientCheckParameters& aGradientCheckParameters,
+                              const plato::utilities::GradientCheckParameters& aGradientCheckParameters,
                               const double aFirstOrderTruncationErrorTolerance)
 {
-    const auto tChecker = plato::test_utilities::GradientChecker{
+    const auto tChecker = plato::utilities::GradientChecker{
         [](const std::valarray<double>& aCoordinates) { return quadrilateral_from_coordinates(aCoordinates).volume(); },
         [](const std::valarray<double>& aCoordinates, const std::valarray<double>& aDirection)
         {
@@ -51,9 +64,11 @@ void check_gradient_of_volume(const std::valarray<double>& aInitialCoordinates,
             return std::inner_product(begin(tSensitivities), end(tSensitivities), begin(aDirection), 0.0);
         }};
 
-    auto tRandomEngine = std::default_random_engine{123};
-    const auto tRandomPerturbation = plato::test_utilities::random_perturbation_vector(12, tRandomEngine);
-    std::valarray<double> tDirection(tRandomPerturbation.stdVector().data(), tRandomPerturbation.stdVector().size());
+    constexpr auto tRandomSeed = 123;
+    auto tRandomEngine = std::default_random_engine{tRandomSeed};  // NOLINT(cert-msc51-cpp,cert-msc32-c)
+    const auto tRandomPerturbation = linear_algebra::random_perturbation_vector(12, tRandomEngine);
+    const std::valarray<double> tDirection(tRandomPerturbation.stdVector().data(),
+                                           tRandomPerturbation.stdVector().size());
 
     EXPECT_NEAR(tChecker.maxFirstOrderTruncationError(aInitialCoordinates, tDirection, aGradientCheckParameters), 0.0,
                 aFirstOrderTruncationErrorTolerance)
@@ -111,10 +126,10 @@ TEST(Quadrilateral, VolumeNotInXYPlane)
 {
     constexpr double tLength{86.0};
     constexpr double tHeight{51.0};
-    const Quadrilateral tQuad = Quadrilateral{.p00 = common::Coordinate{.x = 0.0, .y = 0.0, .z = 0.0},
-                                              .p10 = common::Coordinate{.x = 0.0, .y = tLength, .z = 0.0},
-                                              .p11 = common::Coordinate{.x = 0.0, .y = tLength, .z = tHeight},
-                                              .p01 = common::Coordinate{.x = 0.0, .y = 0.0, .z = tHeight}};
+    const Quadrilateral tQuad = Quadrilateral{.mP00 = common::Coordinate{.x = 0.0, .y = 0.0, .z = 0.0},
+                                              .mP10 = common::Coordinate{.x = 0.0, .y = tLength, .z = 0.0},
+                                              .mP11 = common::Coordinate{.x = 0.0, .y = tLength, .z = tHeight},
+                                              .mP01 = common::Coordinate{.x = 0.0, .y = 0.0, .z = tHeight}};
     const double tResult = tQuad.volume();
     constexpr double tGold = tLength * tHeight;
 
@@ -126,7 +141,8 @@ TEST(Quadrilateral, VolumeOfPerturbedUnitQuad)
     constexpr double tLength{1.0};
     constexpr double tHeight{1.0};
     Quadrilateral tQuad = create_planar_quadrilateral_from_dimensions(tLength, tHeight);
-    tQuad.p10.x += 0.1;
+    constexpr auto tPerturbation = 0.1;
+    tQuad.mP10.x += tPerturbation;
     const double tResult = tQuad.volume();
     constexpr double tGold = 21. / 20;  // computed via matlab
 
@@ -149,12 +165,12 @@ TEST(Quadrilateral, CentroidOfParallelogram)
     const common::Coordinate tCornerPoint{.x = 0.0, .y = 0.0, .z = 0.0};
     const common::Coordinate tVector1{.x = 21.0, .y = 12.0, .z = 0.0};
     const common::Coordinate tVector2{.x = 39.0, .y = 71.0, .z = 0.0};
-    const Quadrilateral tQuad{.p00 = tCornerPoint,
-                              .p10 = tCornerPoint + tVector1,
-                              .p11 = tCornerPoint + tVector1 + tVector2,
-                              .p01 = tCornerPoint + tVector2};
+    const Quadrilateral tQuad{.mP00 = tCornerPoint,
+                              .mP10 = tCornerPoint + tVector1,
+                              .mP11 = tCornerPoint + tVector1 + tVector2,
+                              .mP01 = tCornerPoint + tVector2};
     const auto tResult = tQuad.centroid();
-    const common::Coordinate tGold{(tQuad.p00 + tQuad.p10 + tQuad.p11 + tQuad.p01) / 4.};
+    const common::Coordinate tGold{(tQuad.mP00 + tQuad.mP10 + tQuad.mP11 + tQuad.mP01) / 4.};
 
     common::test_utilities::test_double_equality_of_components(tResult, tGold, TEST_CONTEXT("Parallelepiped Centroid"));
 }
@@ -178,7 +194,7 @@ TEST(Quadrilateral, VolumeVertexSensitivities_PlanarQuadGradientCheck)
     const auto tOriginalCoordinates = std::valarray<double>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0};
 
     const auto tGradientCheckParameters =
-        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 6, .mInitialStepSize = 0.1};
+        plato::utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 6, .mInitialStepSize = 0.1};
     constexpr auto tFirstOrderTruncationErrorTolerance = 8e-2;
     check_gradient_of_volume(tOriginalCoordinates, tGradientCheckParameters, tFirstOrderTruncationErrorTolerance);
 }
@@ -191,7 +207,7 @@ TEST(Quadrilateral, VolumeVertexSensitivities_NonPlanarQuadGradientCheck)
                               1.438380292815098,  0.325190539456198,  -0.754928319169703, 1.370298540095228};
 
     const auto tGradientCheckParameters =
-        plato::test_utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
+        plato::utilities::GradientCheckParameters{.mStepDelta = 0.1, .mNumSteps = 7, .mInitialStepSize = 1.0};
     constexpr auto tFirstOrderTruncationErrorTolerance = 1e-1;
     check_gradient_of_volume(tOriginalCoordinates, tGradientCheckParameters, tFirstOrderTruncationErrorTolerance);
 }

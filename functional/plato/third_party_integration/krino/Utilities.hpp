@@ -64,7 +64,7 @@ void populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSe
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
 /// 'initialize_background_mesh' to setup the level set fields in the krino mesh, followed by a call to set up
 /// the level set field values, followed by a call to 'cut_mesh'.
-[[nodiscard]] auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase aVoidPhase)
+[[nodiscard]] auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, VoidPhase aVoidPhase)
     -> std::vector<stk::mesh::EntityId>;
 
 /// @brief Take a background mesh @a aBackgroundMesh and perform the cutting of the mesh and creation of child nodes.
@@ -74,7 +74,7 @@ void populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSe
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
 /// 'initialize_background_mesh' to setup the level set fields in the krino mesh, followed by a call to set up the
 /// level set field values
-void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aSnappingParameters);
+void cut_mesh(const BackgroundMesh& aBackgroundMesh, SnappingParameters aSnappingParameters);
 
 /// @brief Take a level set field vector @a aLevelSetFields and a node @a aNode and return the data stored in the mesh
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
@@ -99,8 +99,7 @@ template <typename LevelSetFieldVector>
 
 /// @brief Given a modifiable bulk data @a aBulkData and specified void phase @a aVoidPhase, create a valid
 /// stk::mesh::Selector for the cut mesh. Also apply the Krino fixes for errors in parallel writing a cut mesh.
-[[nodiscard]] auto create_output_selector(stk::mesh::BulkData& aBulkData, const VoidPhase aVoidPhase)
-    -> stk::mesh::Selector;
+[[nodiscard]] auto create_output_selector(stk::mesh::BulkData& aBulkData, VoidPhase aVoidPhase) -> stk::mesh::Selector;
 
 /// @brief Returns the blocks contained in @a aKrinoMesh as a PartVector, excluding any irrelevant, Krino-added blocks.
 [[nodiscard]] auto all_block_parts(const ::krino::MeshInterface& aKrinoMesh) -> stk::mesh::PartVector;
@@ -127,7 +126,7 @@ template <typename LevelSetFieldVector>
     -> decltype(auto)
 {
     assert(!aLevelSetFields.empty());
-    return *::krino::field_data<double>(aLevelSetFields.front().isovar, aNode);
+    return *::krino::field_data<double>(std::forward<LevelSetFieldVector>(aLevelSetFields).front().isovar, aNode);
 }
 
 }  // namespace plato::third_party_integration::krino

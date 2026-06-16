@@ -3,10 +3,13 @@
 #include <boost/log/attributes/constant.hpp>
 #include <boost/log/sources/logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
+#include <boost/smart_ptr/make_shared_object.hpp>
+#include <sstream>
 
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 #include "plato/test_utilities/Strings.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/boost_log/LogSource.hpp"
 #include "plato/third_party_integration/boost_log/MPIAttributes.hpp"
 

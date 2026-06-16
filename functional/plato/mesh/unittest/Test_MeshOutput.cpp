@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -96,11 +97,11 @@ TEST_F(MeshOutputTest, ExampleUsage)
 
 TEST(MeshOutput, OutputMode)
 {
-    constexpr auto kOverwrite = true;
-    EXPECT_EQ(output_mode(kOverwrite), OutputMode::kOverwrite);
+    constexpr auto tOverwrite = true;
+    EXPECT_EQ(output_mode(tOverwrite), OutputMode::kOverwrite);
 
-    constexpr auto kDontOverwrite = false;
-    EXPECT_EQ(output_mode(kDontOverwrite), OutputMode::kAppend);
+    constexpr auto tDontOverwrite = false;
+    EXPECT_EQ(output_mode(tDontOverwrite), OutputMode::kAppend);
 }
 
 }  // namespace plato::mesh::unittest

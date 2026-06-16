@@ -53,7 +53,6 @@ class ObjectiveConstraintGradientArrayView
    private:
     [[nodiscard]] auto arrayIndex(ConstraintSizeType aConstraintIndex) const -> std::size_t;
 
-   private:
     ConstraintSizeType mNumberOfConstraints;
     DesignVariableSizeType mNumberOfDesignVariables;
 

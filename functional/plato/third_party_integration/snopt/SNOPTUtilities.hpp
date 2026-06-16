@@ -25,36 +25,36 @@ auto linear_constraint_jacobian_sparse_matrix(const SNOPTConstraints& aConstrain
 /// The function used for evaluation is assumed to have been assigned to DataSingleton<FunctionType, FunctionTag>.
 /// @note @a aObjectiveConstraintView is a view for the `F` array in the SNOPT interface.
 template <typename FunctionTag>
-void evaluateObjective(const linear_algebra::DynamicVector<double>& aDesignVariables,
-                       ObjectiveConstraintArrayView<double> aObjectiveConstraintView);
+void evaluate_objective(const linear_algebra::DynamicVector<double>& aDesignVariables,
+                        ObjectiveConstraintArrayView<double> aObjectiveConstraintView);
 
 /// @brief Evaluates the objective gradient into @a aObjectiveConstraintGradientView.
 ///
 /// The function used for evaluation is assumed to have been assigned to DataSingleton<FunctionType, FunctionTag>.
 /// @note @a aObjectiveConstraintGradientView is a view for the `G` array in the SNOPT interface.
 template <typename FunctionTag>
-void evaluateObjectiveGradient(const linear_algebra::DynamicVector<double>& aDesignVariables,
-                               ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView);
+void evaluate_objective_gradient(const linear_algebra::DynamicVector<double>& aDesignVariables,
+                                 ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView);
 
 /// @brief Evaluates the constraints into @a aObjectiveConstraintView.
 ///
 /// The functions used for evaluation are assumed to have been assigned to DataSingleton<FunctionType, FunctionTag>.
 /// @note @a aObjectiveConstraintView is a view for the `F` array in the SNOPT interface.
 template <typename FunctionTag>
-void evaluateConstraints(const linear_algebra::DynamicVector<double>& aDesignVariables,
-                         ObjectiveConstraintArrayView<double> aObjectiveConstraintView);
+void evaluate_constraints(const linear_algebra::DynamicVector<double>& aDesignVariables,
+                          ObjectiveConstraintArrayView<double> aObjectiveConstraintView);
 
 /// @brief Evaluates the constraint gradients into @a aObjectiveConstraintGradientView.
 ///
 /// The functions used for evaluation are assumed to have been assigned to DataSingleton<FunctionType, FunctionTag>.
 /// @note @a aObjectiveConstraintGradientView is a view for the `G` array in the SNOPT interface.
 template <typename FunctionTag>
-void evaluateConstraintGradients(const linear_algebra::DynamicVector<double>& aDesignVariables,
-                                 ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView);
+void evaluate_constraint_gradients(const linear_algebra::DynamicVector<double>& aDesignVariables,
+                                   ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView);
 
 template <typename FunctionTag>
-void evaluateObjective(const linear_algebra::DynamicVector<double>& aDesignVariables,
-                       ObjectiveConstraintArrayView<double> aObjectiveConstraintView)
+void evaluate_objective(const linear_algebra::DynamicVector<double>& aDesignVariables,
+                        ObjectiveConstraintArrayView<double> aObjectiveConstraintView)
 {
     const auto& tSingleton = DataSingleton<ObjectiveType, FunctionTag>::constInstance();
     assert(tSingleton.hasData());
@@ -63,21 +63,20 @@ void evaluateObjective(const linear_algebra::DynamicVector<double>& aDesignVaria
 }
 
 template <typename FunctionTag>
-void evaluateConstraints(const linear_algebra::DynamicVector<double>& aDesignVariables,
-                         ObjectiveConstraintArrayView<double> aObjectiveConstraintView)
+void evaluate_constraints(const linear_algebra::DynamicVector<double>& aDesignVariables,
+                          ObjectiveConstraintArrayView<double> aObjectiveConstraintView)
 {
     const auto& tSingleton = DataSingleton<ConstraintVectorType, FunctionTag>::constInstance();
     assert(tSingleton.hasData());
     const auto& tNonlinearConstraints = tSingleton.data();
     std::transform(tNonlinearConstraints.begin(), tNonlinearConstraints.end(),
-                   aObjectiveConstraintView.constraints().begin(),
-                   [&aDesignVariables](const auto& tContraint)
-                   { return tContraint.mFunction.template evaluate<core::evaluation::kFunction>(aDesignVariables); });
+                   aObjectiveConstraintView.constraints().begin(), [&aDesignVariables](const auto& aContraint)
+                   { return aContraint.mFunction.template evaluate<core::evaluation::kFunction>(aDesignVariables); });
 }
 
 template <typename FunctionTag>
-void evaluateObjectiveGradient(const linear_algebra::DynamicVector<double>& aDesignVariables,
-                               ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView)
+void evaluate_objective_gradient(const linear_algebra::DynamicVector<double>& aDesignVariables,
+                                 ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView)
 {
     const auto& tObjectiveSingleton = DataSingleton<ObjectiveType, FunctionTag>::constInstance();
     assert(tObjectiveSingleton.hasData());
@@ -93,8 +92,8 @@ void evaluateObjectiveGradient(const linear_algebra::DynamicVector<double>& aDes
 }
 
 template <typename FunctionTag>
-void evaluateConstraintGradient(const linear_algebra::DynamicVector<double>& aDesignVariables,
-                                ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView)
+void evaluate_constraint_gradient(const linear_algebra::DynamicVector<double>& aDesignVariables,
+                                  ObjectiveConstraintGradientArrayView<double> aObjectiveConstraintGradientView)
 {
     const auto& tSingleton = DataSingleton<ConstraintVectorType, FunctionTag>::constInstance();
     assert(tSingleton.hasData());

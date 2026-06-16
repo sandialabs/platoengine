@@ -13,20 +13,20 @@ class SkipperRule
    public:
     using Rule = boost::spirit::qi::rule<Iterator>;
 
-    const Rule& skipperRule() const { return mAllRules; }
+    auto skipperRule() const -> const Rule& { return mAllRules; }
 
    private:
-    constexpr static std::string_view kCommentCharacter = "#";
-    constexpr static std::string_view kBlockCommentStartCharacters = "/*";
-    constexpr static std::string_view kBlockCommentEndCharacters = "*/";
+    constexpr static std::string_view mCommentCharacter = "#";
+    constexpr static std::string_view mBlockCommentStartCharacters = "/*";
+    constexpr static std::string_view mBlockCommentEndCharacters = "*/";
 
     Rule mWhiteSpaceSkipper = boost::spirit::qi::ascii::space;
-    Rule mCommentSkipper = kCommentCharacter.data() >> *(boost::spirit::qi::char_ - boost::spirit::qi::eol) >>
+    Rule mCommentSkipper = mCommentCharacter.data() >> *(boost::spirit::qi::char_ - boost::spirit::qi::eol) >>
                            (boost::spirit::qi::eol | boost::spirit::qi::eoi);
     Rule mBlockCommentSkipper =
-        boost::spirit::qi::lexeme[kBlockCommentStartCharacters.data() >>
-                                  *(boost::spirit::qi::char_ - kBlockCommentEndCharacters.data()) >>
-                                  kBlockCommentEndCharacters.data()];
+        boost::spirit::qi::lexeme[mBlockCommentStartCharacters.data() >>
+                                  *(boost::spirit::qi::char_ - mBlockCommentEndCharacters.data()) >>
+                                  mBlockCommentEndCharacters.data()];
     Rule mAllRules = mWhiteSpaceSkipper | mCommentSkipper | mBlockCommentSkipper;
 };
 

@@ -32,7 +32,7 @@ class CrossLinker
     using CrossLinkedBlockOrError = utilities::Expected<InputDataBlock, std::string>;
 
     template <typename Input>
-    CrossLinker(InputTypeHelper<Input>);
+    CrossLinker(InputTypeHelper<Input> /*unused*/);
 
     /// @brief Fills the cross-reference field in @a aInputBlock with the input contained in @a aParsedInput.
     [[nodiscard]] auto crossLink(InputDataBlock aInputBlock, const ParsedInput& aParsedInput) const
@@ -59,7 +59,7 @@ struct ErrorCheckCrossLink
     std::string mInputBlockName;
     std::vector<std::string> mErrorMessages;
 
-    auto blockNames(const std::vector<InputDataBlock>& aAllComponentsOfMatchingType) -> std::string
+    static auto blockNames(const std::vector<InputDataBlock>& aAllComponentsOfMatchingType) -> std::string
     {
         auto tBlockNames = std::vector<std::string>{};
         std::transform(aAllComponentsOfMatchingType.begin(), aAllComponentsOfMatchingType.end(),
@@ -87,8 +87,8 @@ struct ErrorCheckCrossLink
                 tErrorPreamble, "No components are defined that match the cross-reference's required component type"));
         }
 
-        const auto tComponentsMatch = [&aComponentToLink](const auto& tComponent)
-        { return tComponent.mBlockName == aComponentToLink->mName; };
+        const auto tComponentsMatch = [&aComponentToLink](const auto& aComponent)
+        { return aComponent.mBlockName == aComponentToLink->mName; };
 
         if (aComponentToLink.has_value() &&
             std::find_if(aAllComponentsOfMatchingType.begin(), aAllComponentsOfMatchingType.end(), tComponentsMatch) ==
@@ -120,8 +120,8 @@ struct ApplyCrossLink
             // Component to link was specified, find the input with the matching name
             const auto tCrossReferenceBlock =
                 std::find_if(aAllComponentsOfMatchingType.begin(), aAllComponentsOfMatchingType.end(),
-                             [&aComponentToLink](const auto& tComponent)
-                             { return tComponent.mBlockName == aComponentToLink->mName; });
+                             [&aComponentToLink](const auto& aComponent)
+                             { return aComponent.mBlockName == aComponentToLink->mName; });
             assert(tCrossReferenceBlock != aAllComponentsOfMatchingType.end());
             aComponentToLink->mInputBlock = tCrossReferenceBlock->mInput;
         }
@@ -144,8 +144,8 @@ template <typename Input, typename ApplyFunction>
 void apply_cross_link(InputDataBlock& aInputBlock, const ParsedInput& aParsedInput, ApplyFunction& aApplyFunction)
 {
     assert(aInputBlock.mInput.holdsExpectedType<Input>());
-    auto& aCastInputBlock = aInputBlock.mInput.get<Input&>();
-    boost::fusion::for_each(aCastInputBlock,
+    auto& tCastInputBlock = aInputBlock.mInput.get<Input&>();
+    boost::fusion::for_each(tCastInputBlock,
                             [&aParsedInput, &aApplyFunction](auto& aField)
                             {
                                 using FieldType = typename TypeOrOptional<std::decay_t<decltype(aField)>>::type;
@@ -158,7 +158,7 @@ void apply_cross_link(InputDataBlock& aInputBlock, const ParsedInput& aParsedInp
 }  // namespace detail
 
 template <typename Input>
-CrossLinker::CrossLinker(InputTypeHelper<Input>)
+CrossLinker::CrossLinker(InputTypeHelper<Input> /*unused*/)
     : mCrossLinkFunction{[](InputDataBlock aInputBlock, const ParsedInput& aParsedInput) -> CrossLinkedBlockOrError
                          {
                              if (aInputBlock.mInput.holdsExpectedType<Input>())

@@ -1,12 +1,17 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
+#include <boost/none.hpp>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/core/Function.hpp"
 #include "plato/criteria/library/ObjectiveFactory.hpp"
+#include "plato/criteria/library/ObjectiveInputBlock.hpp"
 #include "plato/criteria/library/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/geometry/extension/test_utilities/ExampleInputBlocks.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
+#include "plato/integration_tests/utilities/BrickShapeHelpers.hpp"
 #include "plato/integration_tests/utilities/CheckProcessorsMatchObjectives.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/integration_tests/utilities/ValidInputTestFixture.hpp"
@@ -26,7 +31,7 @@ struct ObjectiveFactoryParallelTestFixture : public utilities::ValidInputTestFix
 
 constexpr auto kMassAppName = std::string_view{"test-mass-app"};
 
-constexpr auto kNumRanks = int{4};
+constexpr auto kNumRanks = 4;
 
 struct ObjectiveCopyTestData
 {
@@ -64,33 +69,10 @@ auto base_mass_objective() -> input_parser::objective
         .value();
 }
 
-linear_algebra::DynamicVector<double> test_brick_controls()
-{
-    constexpr auto tX = double{2.0};
-    constexpr auto tY = double{4.0};
-    constexpr auto tZ = double{6.0};
-    constexpr auto tCenterCoordinate = double{0.0};
-    return linear_algebra::DynamicVector<double>{tCenterCoordinate, tCenterCoordinate, tCenterCoordinate, tX, tY, tZ};
-}
-
-double brick_shape_volume_from_controls(const linear_algebra::DynamicVector<double>& aControls)
-{
-    const auto tDimensionX = aControls[3];
-    const auto tDimensionY = aControls[4];
-    const auto tDimensionZ = aControls[5];
-    return tDimensionX * tDimensionY * tDimensionZ;
-}
-
-auto brick_shape_geometry_from_input(const input_parser::ParsedInput& aInput) -> geometry::library::GeometryFunction
-{
-    const auto tMeshFileName = aInput.get<input_parser::brick_shape_geometry>().front().mesh_name.value().mToken;
-    return geometry::extension::make_brick_shape_geometry(geometry::extension::BrickShapeGeometry{tMeshFileName});
-}
-
 void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_utilities::TestContext& aTestContext)
 {
-    const auto tComm = boost::mpi::communicator{};
-    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tComm);
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tCommunicator);
 
     const auto tObjective = input_parser::objective{/*.name=*/std::string{"test_1"},
                                                     /*.active=*/true,
@@ -111,14 +93,14 @@ void test_parallel_mass_evaluation(const unsigned int aNumGroups, const test_uti
 
     const auto tValidInput = input_validation::make_validated_input(tInput).value();
 
-    const auto tGeometry = brick_shape_geometry_from_input(tInput);
+    const auto tGeometry = utilities::brick_shape_geometry_from_input(tInput);
     const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(
         tValidInput.get<components::ComponentType::kObjective>(),
-        tGeometry.evaluate<core::evaluation::kFunction>(test_brick_controls()));
+        tGeometry.evaluate<core::evaluation::kFunction>(utilities::test_brick_controls()));
 
-    const auto tControls = test_brick_controls();
-    ASSERT_EQ(tControls.size(), 6u) << aTestContext;
-    const auto tExpectedValue = brick_shape_volume_from_controls(tControls) * aNumGroups;
+    const auto tControls = utilities::test_brick_controls();
+    ASSERT_EQ(tControls.size(), 6U) << aTestContext;
+    const auto tExpectedValue = utilities::brick_shape_volume_from_controls(tControls) * aNumGroups;
     const auto tResult = tObjectiveFunction.evaluate<core::evaluation::kFunction>(
         tGeometry.evaluate<core::evaluation::kFunction>(tControls));
     EXPECT_EQ(tResult, tExpectedValue) << aTestContext;
@@ -129,7 +111,7 @@ void test_aggregate_normalized_objectives(const ObjectiveCopyTestData& aObjectiv
                                           input_parser::objective aObjective,
                                           const test_utilities::TestContext& aTestContext)
 {
-    const auto tGeometry = brick_shape_geometry_from_input(aInput);
+    const auto tGeometry = utilities::brick_shape_geometry_from_input(aInput);
 
     aObjective.number_of_processors = static_cast<unsigned int>(aObjectiveCopyTestData.mNumProcessorsPerObjective);
     for ([[maybe_unused]] const auto tIndex : plato::utilities::IndexRange{aObjectiveCopyTestData.mNumObjectiveCopies})
@@ -139,7 +121,7 @@ void test_aggregate_normalized_objectives(const ObjectiveCopyTestData& aObjectiv
     const auto tValidObjectivesInput =
         input_validation::make_validated_input(aInput).value().template get<components::ComponentType::kObjective>();
 
-    const auto tInitialDomainMesh = tGeometry.evaluate<core::evaluation::kFunction>(test_brick_controls());
+    const auto tInitialDomainMesh = tGeometry.evaluate<core::evaluation::kFunction>(utilities::test_brick_controls());
     const auto tAggregateObjectiveFunction =
         criteria::library::make_aggregate_objective_function(tValidObjectivesInput, tInitialDomainMesh);
 
@@ -151,8 +133,8 @@ void test_aggregate_normalized_objectives(const ObjectiveCopyTestData& aObjectiv
 
 TEST(ObjectiveFactory, MPISize)
 {
-    auto tComm = boost::mpi::communicator{};
-    EXPECT_EQ(tComm.size(), kNumRanks);
+    auto tCommunicator = boost::mpi::communicator{};
+    EXPECT_EQ(tCommunicator.size(), kNumRanks);
 }
 
 TEST(ObjectiveFactory, InvalidParallelAggregate)
@@ -163,11 +145,24 @@ TEST(ObjectiveFactory, InvalidParallelAggregate)
 TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
 {
     namespace pitu = plato::integration_tests::utilities;
+    constexpr auto tMassAppName = "phony-mass-app";
+    const auto tTestPluginDirectory = utilities::register_test_mass_app(tMassAppName, boost::mpi::communicator{});
+
     auto tInputBase = parsedInput();
     tInputBase.template get<components::ComponentType::kObjective>().clear();
+
+    const auto tObjectiveBase = input_parser::objective{/*.name=*/std::string{tMassAppName},
+                                                        /*.active=*/true,
+                                                        /*.app=*/input_parser::AppName{std::string{tMassAppName}},
+                                                        /*.criterion=*/input_parser::CriterionName{"mass"},
+                                                        /*.number_of_processors=*/1U,
+                                                        /*.input_files=*/boost::none,
+                                                        /*.aggregation_weight=*/1.0,
+                                                        /*.normalize_by_initial_value=*/boost::none,
+                                                        /*.objective_goal=*/boost::none};
     {
         // Set number_of_processors to 4
-        auto tObjective = criteria::library::test_utilities::create_valid_example_objective_input();
+        auto tObjective = tObjectiveBase;
         tObjective.number_of_processors = static_cast<unsigned int>(kNumRanks);
         const auto tInput = tInputBase | tObjective;
         const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
@@ -179,7 +174,7 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
     }
     {
         // Add another objective with 1 processor
-        auto tObjective = criteria::library::test_utilities::create_valid_example_objective_input();
+        auto tObjective = tObjectiveBase;
         tObjective.number_of_processors = static_cast<unsigned int>(kNumRanks) - 1U;
         const auto tInput =
             tInputBase | tObjective | criteria::library::test_utilities::create_valid_example_objective_input();
@@ -192,9 +187,9 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
     }
     {
         // Deactivate one objective
-        auto tObjective1 = criteria::library::test_utilities::create_valid_example_objective_input();
+        auto tObjective1 = tObjectiveBase;
         tObjective1.number_of_processors = static_cast<unsigned int>(kNumRanks);
-        auto tObjective2 = criteria::library::test_utilities::create_valid_example_objective_input();
+        auto tObjective2 = tObjectiveBase;
         tObjective2.active = false;
         const auto tInput = tInputBase | tObjective1 | tObjective2;
         const auto tValidObjectivesInput = input_validation::make_validated_input(tInput)
@@ -208,20 +203,20 @@ TEST_F(ObjectiveFactoryParallelTestFixture, NumberOfProcessors)
 
 TEST(ObjectiveFactory, EvaluateParallelMassAppTwoObjectives)
 {
-    constexpr auto tNumGroups = 2u;
+    constexpr auto tNumGroups = 2U;
     test_parallel_mass_evaluation(tNumGroups, TEST_CONTEXT("Two objectives"));
 }
 
 TEST(ObjectiveFactory, EvaluateParallelMassAppOneObjective)
 {
-    constexpr auto tNumGroups = 1u;
+    constexpr auto tNumGroups = 1U;
     test_parallel_mass_evaluation(tNumGroups, TEST_CONTEXT("One objective"));
 }
 
 TEST(ObjectiveFactory, EvaluateParallelMassAppWithNormalization)
 {
-    const auto tComm = boost::mpi::communicator{};
-    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tComm);
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tCommunicator);
 
     const auto tInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
@@ -230,17 +225,17 @@ TEST(ObjectiveFactory, EvaluateParallelMassAppWithNormalization)
     tObjectiveBase.aggregation_weight = 1.0;
     tObjectiveBase.normalize_by_initial_value = true;
     {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 1u, .mNumProcessorsPerObjective = 4u};
+        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 1U, .mNumProcessorsPerObjective = 4U};
         test_aggregate_normalized_objectives(tTestData, tInputBase, tObjectiveBase,
                                              TEST_CONTEXT("1 objective split over the 4 ranks"));
     }
     {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 2u, .mNumProcessorsPerObjective = 2u};
+        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 2U, .mNumProcessorsPerObjective = 2U};
         test_aggregate_normalized_objectives(tTestData, tInputBase, tObjectiveBase,
                                              TEST_CONTEXT("2 objectives using 2 ranks each"));
     }
     {
-        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 12u, .mNumProcessorsPerObjective = 1u};
+        const ObjectiveCopyTestData tTestData{.mNumObjectiveCopies = 12U, .mNumProcessorsPerObjective = 1U};
         tObjectiveBase.objective_goal = criteria::library::ObjectiveGoal::kMinimizeReciprocal;
         test_aggregate_normalized_objectives(tTestData, tInputBase, tObjectiveBase,
                                              TEST_CONTEXT("12 objectives split over the 4 ranks, minimize reciprocal"));
@@ -249,8 +244,8 @@ TEST(ObjectiveFactory, EvaluateParallelMassAppWithNormalization)
 
 TEST(ObjectiveFactory, ManyInactiveObjectives)
 {
-    const auto tComm = boost::mpi::communicator{};
-    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tComm);
+    const auto tCommunicator = boost::mpi::communicator{};
+    const auto tConfigurationTempDirectory = utilities::register_test_mass_app(kMassAppName, tCommunicator);
 
     const auto tInputBase = geometry::extension::test_utilities::create_valid_brick_shape_geometry_input() |
                             process_manager::extension::test_utilities::create_valid_example_rol_optimization_input();
@@ -288,8 +283,8 @@ TEST(ObjectiveFactory, ManyInactiveObjectives)
                         tOneRankActiveObjective | tInactiveObjective | tInactiveObjective | tOneRankActiveObjective;
 
     const auto tValidInput = input_validation::make_validated_input(tInput).value();
-    const auto tGeometry = brick_shape_geometry_from_input(tInput);
-    const auto tMesh = tGeometry.evaluate<core::evaluation::kFunction>(test_brick_controls());
+    const auto tGeometry = utilities::brick_shape_geometry_from_input(tInput);
+    const auto tMesh = tGeometry.evaluate<core::evaluation::kFunction>(utilities::test_brick_controls());
     constexpr auto tRegressionValue = 144.0;  // Computed by running the test with no inactive objectives
 
     const auto tObjectiveFunction = criteria::library::make_aggregate_objective_function(

@@ -1,12 +1,15 @@
 #include <gtest/gtest.h>
 
 #include <boost/mpi/communicator.hpp>
+#include <vector>
 
 #include "plato/filter/extension/kernel_filters/CylindricalMaskUtilities.hpp"
-#include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
+#include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/SweptFilter.hpp"
 #include "plato/filter/extension/kernel_filters/test_utilities/SymmetryFilterTestUtilities.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/common/BoundingBox.hpp"
+#include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::filter::extension::kernel_filters::unittest

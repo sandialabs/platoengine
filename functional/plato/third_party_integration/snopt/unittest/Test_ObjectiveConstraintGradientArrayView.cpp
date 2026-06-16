@@ -1,9 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <numeric>
+#include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/snopt/ObjectiveConstraintGradientArrayView.hpp"
+#include "plato/third_party_integration/snopt/SNOPTArray.hpp"
+#include "plato/third_party_integration/snopt/ViewSizeTypes.hpp"
 
 namespace plato::third_party_integration::snopt::unittest
 {

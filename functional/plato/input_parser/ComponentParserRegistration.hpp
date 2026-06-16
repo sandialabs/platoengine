@@ -43,7 +43,7 @@ ComponentParserRegistration<ComponentBlockType>::ComponentParserRegistration()
 {
     registered_component_parsers().emplace(
         block_name<ComponentBlockType>(),
-        make_component_block_parser<ComponentBlockType, ComponentTypeOfInputBlock<ComponentBlockType>::value>());
+        make_component_block_parser<ComponentBlockType, ComponentTypeOfInputBlock<ComponentBlockType>::mValue>());
     registered_cross_linkers().push_back(make_cross_linker<ComponentBlockType>());
     register_help_documentation<ComponentBlockType>();
 }

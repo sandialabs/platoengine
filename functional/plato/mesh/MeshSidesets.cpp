@@ -1,5 +1,11 @@
 #include "plato/mesh/MeshSidesets.hpp"
 
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "plato/mesh/Mesh.hpp"
+#include "plato/third_party_integration/krino/SensitivityTriangle.hpp"
 #include "plato/third_party_integration/krino/TriangleUtilities.hpp"
 
 namespace plato::mesh

@@ -39,7 +39,7 @@ template <input_parser::InputBlockOfComponent<components::ComponentType::kFilter
 }
 
 /// @brief Creates a logger for filter components, using @a aFilterName as the filter component's name in the log.
-[[nodiscard]] auto filter_logger(const std::string_view aFilterName) -> services::SystemLogger;
+[[nodiscard]] auto filter_logger(std::string_view aFilterName) -> services::SystemLogger;
 }  // namespace detail
 
 template <input_parser::InputBlockOfComponent<components::ComponentType::kFilter> Input>

@@ -41,40 +41,40 @@ template <typename Domain, typename... Info>
                                          const boost::mpi::communicator& aCommunicator)
 {
     return core::Function<Domain, Info...>{
-        [mLocalFunction = aFunction, aComponentType, mName = std::string{aName}, aCommunicator](Domain aArgument)
+        [tLocalFunction = aFunction, aComponentType, tName = std::string{aName}, aCommunicator](Domain aArgument)
         {
-            if constexpr (Info::order == core::evaluation::kFunction)
+            if constexpr (Info::mOrder == core::evaluation::kFunction)
             {
-                [[maybe_unused]] auto tLogger = services::component_logger(aComponentType, mName, aCommunicator);
+                [[maybe_unused]] auto tLogger = services::component_logger(aComponentType, tName, aCommunicator);
                 tLogger.logInfo("Criterion evaluation");
-                auto tResult = mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
+                auto tResult = tLocalFunction.template evaluate<Info::mOrder, Info::mOrdering>(aArgument);
                 const auto tLogMessage = std::string{"Criterion evaluation complete. Result: "} +
                                          std::string{detail::kFormatSpecification<typename Info::Codomain>};
                 tLogger.logInfo(std::vformat(tLogMessage, std::make_format_args(tResult)));
                 return tResult;
             }
-            else if constexpr (Info::order == core::evaluation::kFirstDerivative &&
+            else if constexpr (Info::mOrder == core::evaluation::kFirstDerivative &&
                                std::same_as<std::remove_cvref_t<typename Info::Codomain>,
                                             std::remove_cvref_t<linear_algebra::DynamicVector<double>>>)
             {
-                auto tLogger = services::component_logger(aComponentType, mName, aCommunicator);
+                auto tLogger = services::component_logger(aComponentType, tName, aCommunicator);
                 tLogger.logInfo("Gradient evaluation");
-                auto tGradient = mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
+                auto tGradient = tLocalFunction.template evaluate<Info::mOrder, Info::mOrdering>(aArgument);
                 const auto tLogMessage = std::string{"Gradient evaluation complete. Result norm: "} +
                                          std::string{detail::kFormatSpecification<double>};
                 const auto tGradientNorm = linear_algebra::norm(tGradient);
                 tLogger.logInfo(std::vformat(tLogMessage, std::make_format_args(tGradientNorm)));
                 return tGradient;
             }
-            else if constexpr (Info::order == core::evaluation::kFirstDerivative)
+            else if constexpr (Info::mOrder == core::evaluation::kFirstDerivative)
             {
                 [[maybe_unused]] const auto tTaskLogger = services::TaskLogSetupTeardown{
-                    "Gradient evaluation", services::component_logger(aComponentType, mName, aCommunicator)};
-                return mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
+                    "Gradient evaluation", services::component_logger(aComponentType, tName, aCommunicator)};
+                return tLocalFunction.template evaluate<Info::mOrder, Info::mOrdering>(aArgument);
             }
             else
             {
-                return mLocalFunction.template evaluate<Info::order, Info::ordering>(aArgument);
+                return tLocalFunction.template evaluate<Info::mOrder, Info::mOrdering>(aArgument);
             }
         }...};
 }
