@@ -1,7 +1,7 @@
 include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
-create_plato_library(PlatoFunctionalDocumentationGenerator "library" PlatoFunctionalUtilities)
+create_plato_library(PlatoFunctionalDocumentationGenerator "library" PlatoFunctionalDocumentation)
 
 if( UNIT_TESTING )
   create_plato_unittester(PlatoFunctionalDocumentationGenerator "library/unittest")

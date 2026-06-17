@@ -15,9 +15,10 @@ namespace plato::documentation::documentation_generator::library
 
 namespace
 {
+constexpr auto kCommandPrefix = std::string_view{"\\PlatoCommand"};
+
 [[nodiscard]] auto enclose_in_curly_braces(const std::string& aString) -> std::string { return "{" + aString + "}"; }
 
-constexpr auto kCommandPrefix = std::string_view{"\\PlatoCommand"};
 [[nodiscard]] auto format_command(const std::string& aBlockName,
                                   const InputKeywordDocumentation& aHelpDocumentation) -> std::string
 {
