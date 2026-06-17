@@ -23,7 +23,9 @@
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), level_set_topology,
-    "Help placeholder for level_set_topology",
+    "The geometry component, `level_set_topology`, specifies a level-set field defined at the nodes of the provided input mesh_name. "
+    "The zero-valued iso-surface of the level set field represents the material boundary, separating solid material (greater than zero) from "
+    "void (less than zero). The solid material region is used to produce a conforming finite element mesh for analysis.",
     (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
     (plato::input_parser::FileName, output_name, "Required field specifying the exodus output file name to use when writing results.")
     (bool, include_void_region, "Required field specifying whether to include the elements of the void region when writing the cut mesh.")

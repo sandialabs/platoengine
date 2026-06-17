@@ -15,7 +15,7 @@
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser),
     brick_shape_geometry,
-    "Help placeholder for brick_shape_geometry",
+    "A geometry used for testing.",
     (plato::input_parser::FileName, mesh_name, "Required field specifying the exodus mesh file name to which the the brick mesh output is written."))
 // clang-format on
 

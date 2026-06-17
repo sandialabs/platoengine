@@ -11,7 +11,8 @@
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser),
     helmholtz_filter,
-    "Placeholder description of helmholtz_filter",
+    "The filter, `helmholtz_filter`, smooths a design field implicitly by solving a Helmholtz-type elliptic partial differential equation. "
+    "This filter only works with a node-centered design field.",
     (double, filter_radius, "Required field specifying the size of the filter radius.")
     (bool, use_relative_radius, "Optional field that can convert the filter radius specified into a radius relative to the average element size.")
     (double, boundary_sticking_penalty, "Optional field specifying the penalization of material that sticks to boundaries of the design "

@@ -23,7 +23,10 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), objective_gradient_check,
-    "Placeholder description for objective_gradient_check",
+    "The process manager, `objective_gradient_check`, is a diagnostic tool to evaluate the consistency of the objective independently from the geometry and "
+    "filtering defined in the Plato problem. It facilitates bisection of any issue between the geometry and filtering from the objective itself. "
+    "It systematically checks smaller values of perturbations and computes finite differences which are compared against the computed gradient. "
+    "For most problems a log-log plot of the error between the finite difference approximation and the numerical gradient should be V-shaped.",
     (plato::input_parser::FileName, input_mesh_name, "Required filename of the mesh to use to compute the gradient check.")
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the gradient check.")
     (plato::input_parser::DesignVariableTypes, design_variable_type, "Required field specifying what type of design variable to use for the gradient check. "

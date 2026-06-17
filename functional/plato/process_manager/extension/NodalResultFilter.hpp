@@ -9,7 +9,8 @@
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), nodal_result_filter,
-    "Placeholder description for nodal_result_filter",
+    "The process manager, `nodal_result_filter`, converts element-based density fields to nodal fields. "
+    "This is primarily used with visualization software that cannot automatically render element-based results.",
     (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter to apply. "
                                                                                                "Only required if more than one filter is specified.")
     (plato::input_parser::CrossReference<plato::components::ComponentType::kGeometry>, geometry, "Name of the geometry whose output mesh will be used. "

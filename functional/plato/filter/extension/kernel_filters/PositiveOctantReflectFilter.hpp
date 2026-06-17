@@ -18,7 +18,8 @@ struct AnalysisDomainMesh;
 // clang-format off
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), positive_octant_reflect_filter,
-    "Placeholder description of positive_octant_reflect_filter",
+    "The filter, `positive_octant_reflect_filter`, in addition to performing a distance weighted smoothing of the nodal design parameters enforces a three-way "
+    "reflection symmetry through the coordinate planes.",
     (double, filter_radius, plato::filter::extension::kernel_filters::kKernelFilterRadiusHelpText)
     (plato::input_parser::KernelFilterCenteringTypes, centering_type, plato::filter::extension::kernel_filters::kKernelFilterCenteringTypeHelpText)
     (bool, use_relative_radius, plato::filter::extension::kernel_filters::kKernelFilterRelativeRadiusHelpText)

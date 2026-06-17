@@ -23,7 +23,10 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), gradient_check,
-    "Placeholder description for gradient_check",
+    "The process manager, `gradient_check`, is a diagnostic tool to evaluate the consistency of the objective defined in the Plato problem. "
+    "It systematically checks smaller values of perturbations and computes finite differences which are compared against the computed gradient. "
+    "For most problems a log-log plot of the error between the finite difference approximation and the numerical gradient should be V-shaped. "
+    "At first smaller perturbations improve accuracy until precision/truncation/roundoff error dominate and then error grows with increasingly small step sizes.",
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the gradient check.")
     (unsigned int, number_of_steps, "Required field specifying the number of approximations to evaluate using a finite difference.")
     (double, initial_direction_magnitude, "Required field specifying the magnitude of the perturbation of the design controls.")

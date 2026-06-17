@@ -23,7 +23,11 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), constraint_check,
-    "Placeholder description for constraint_check",
+    "The process manager, `constraint_check`, is a diagnostic tool to evaluate the consistency of the constraint defined in the Plato problem. "
+    "It systematically checks smaller values of perturbations and computes finite differences which are compared against the computed gradient. "
+    "For non-linear constraints, a log-log plot of the error between the finite difference approximation and the numerical gradient should be V-shaped. "
+    "At first smaller perturbations improve accuracy until precision/truncation/roundoff error dominate and then error grows with increasingly small step sizes. "
+    "For linear constraints, the expected behavior is that error grows with smaller step sizes.",
     (plato::input_parser::FileName, linearity_check_output_file_name, "Required filename to use to report the results of the linearity check.")
     (plato::input_parser::FileName, jacobian_check_output_file_name, "Required filename to use to report the results of the Jacobian check.")
     (plato::input_parser::FileName, jacobian_adjoint_consistency_output_file_name, "Required filename to use to report the results of the Jacobian and adjoint Jacobian consistency check.")

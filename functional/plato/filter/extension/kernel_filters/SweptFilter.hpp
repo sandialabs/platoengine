@@ -19,7 +19,7 @@ struct AnalysisDomainMesh;
 // clang-format off
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), z_swept_filter,
-    "Placeholder description of z_swept_filter",
+    "The filter, `z_swept_filter`, in addition to performing a distance weighted smoothing of the nodal design parameters enforces a solution that in uniform in the z-direction.",
     (double, filter_radius, plato::filter::extension::kernel_filters::kKernelFilterRadiusHelpText)
     (plato::input_parser::KernelFilterCenteringTypes, centering_type, plato::filter::extension::kernel_filters::kKernelFilterCenteringTypeHelpText)
     (bool, use_relative_radius, plato::filter::extension::kernel_filters::kKernelFilterRelativeRadiusHelpText)
