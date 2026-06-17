@@ -49,7 +49,7 @@ template <components::ComponentType kComponentType>
 auto component_type_subsection(const HelpDocumentationMap& aComponentDocumentation,
                                const std::uint8_t aSubsectionDepth) -> std::string
 {
-    auto tDocumentation = std::format("{}\n{:#>{}}{}\n\n{}\nCurrently supported:\n\n",
+    auto tDocumentation = std::format("{}\n{:#>{}} {}\n\n{}\nCurrently supported:\n\n",
                                       detail::section_reference_definition(components::to_string(kComponentType)), "",
                                       aSubsectionDepth, components::to_string(kComponentType),
                                       components::ComponentTypeDocumentation<kComponentType>::mDocumentation);

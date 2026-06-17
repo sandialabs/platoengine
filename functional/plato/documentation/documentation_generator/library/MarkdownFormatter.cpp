@@ -40,7 +40,7 @@ auto component_subsection(const std::string_view aComponentName,
                           const ComponentDocumentation& aComponentDocumentation,
                           const std::uint8_t aSubsectionDepth) -> std::string
 {
-    return std::format("{}\n{:#>{}}{}\n{}\n{}", detail::section_reference_definition(aComponentName), "",
+    return std::format("{}\n{:#>{}} {}\n{}\n{}", detail::section_reference_definition(aComponentName), "",
                        aSubsectionDepth, aComponentName, aComponentDocumentation.mDescription,
                        markdown_inputs_table(aComponentDocumentation));
 }

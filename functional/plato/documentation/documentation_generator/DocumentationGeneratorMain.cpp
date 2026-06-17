@@ -3,6 +3,7 @@
 
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/documentation/documentation_generator/library/LatexFormatter.hpp"
+#include "plato/documentation/documentation_generator/library/MarkdownWriter.hpp"
 
 namespace
 {
@@ -26,7 +27,9 @@ auto main() -> int
 {
     const auto tDocumentation = plato::documentation::generate_documentation();
     const auto tResult = plato::documentation::documentation_generator::library::format_command_latex(tDocumentation);
+
     print_commands(tResult);
+    plato::documentation::documentation_generator::library::write_markdown_documentation(tDocumentation);
 
     return 0;
 }
