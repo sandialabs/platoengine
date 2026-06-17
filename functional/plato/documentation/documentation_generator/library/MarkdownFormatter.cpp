@@ -5,6 +5,8 @@
 #include <fstream>
 #include <numeric>
 
+#include "plato/components/ComponentType.hpp"
+#include "plato/components/ComponentTypeStream.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::documentation::documentation_generator::library

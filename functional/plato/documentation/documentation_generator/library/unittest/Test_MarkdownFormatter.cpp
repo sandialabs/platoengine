@@ -37,7 +37,6 @@ TEST(MarkdownFormatter, MainSection)
 {
     const auto tMainSectionText = main_section();
     test_utilities::expect_string_contains_substring(tMainSectionText, "#Plato", TEST_CONTEXT("Main section"));
-
     [&tMainSectionText]<std::size_t... kIndices>(std::index_sequence<kIndices...>)
     {
         (test_utilities::expect_string_contains_substring(
@@ -61,10 +60,9 @@ TEST(MarkdownFormatter, ComponentTypeSubsection)
     const auto tComponentDocumentation =
         HelpDocumentationMap{{"pokemon", tMoreTestComponentDocumentation}, {"magic", kTestComponentDocumentation}};
 
-    const auto tCheckSubsectionText =
-        [tSubsectionDepth]<components::ComponentType kComponentType>(const HelpDocumentationMap& aHelpDocumentation,
-                                                                     const std::string_view aExpectedSectionName,
-                                                                     const test_utilities::TestContext& aTestContext)
+    const auto tCheckSubsectionText = [tSubsectionDepth]<components::ComponentType kComponentType>(
+                                          const HelpDocumentationMap& aHelpDocumentation, const auto& aHelpEntry,
+                                          const test_utilities::TestContext& aTestContext)
     {
         const auto tSubsection = component_type_subsection<kComponentType>(aHelpDocumentation, tSubsectionDepth);
         test_utilities::expect_string_contains_substring(
@@ -73,13 +71,14 @@ TEST(MarkdownFormatter, ComponentTypeSubsection)
                                                          aTestContext);
         test_utilities::expect_string_contains_substring(
             tSubsection, components::ComponentTypeDocumentation<kComponentType>::mDocumentation, aTestContext);
-        test_utilities::expect_string_contains_substring(tSubsection, detail::section_reference(aExpectedSectionName),
+        test_utilities::expect_string_contains_substring(tSubsection, detail::section_reference(aHelpEntry.first),
                                                          aTestContext);
+        test_utilities::expect_string_contains_substring(tSubsection, aHelpEntry.second.mDescription, aTestContext);
     };
 
-    tCheckSubsectionText.operator()<tPokemonType>(tComponentDocumentation, "pokemon",
+    tCheckSubsectionText.operator()<tPokemonType>(tComponentDocumentation, *tComponentDocumentation.find("pokemon"),
                                                   TEST_CONTEXT("Pokemon subsection"));
-    tCheckSubsectionText.operator()<kTestComponentType>(tComponentDocumentation, "magic",
+    tCheckSubsectionText.operator()<kTestComponentType>(tComponentDocumentation, *tComponentDocumentation.find("magic"),
                                                         TEST_CONTEXT("Magic subsection"));
 }
 
