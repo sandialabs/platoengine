@@ -28,10 +28,10 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     "For most problems a log-log plot of the error between the finite difference approximation and the numerical gradient should be V-shaped. "
     "At first smaller perturbations improve accuracy until precision/truncation/roundoff error dominate and then error grows with increasingly small step sizes.",
     (plato::input_parser::FileName, output_file_name, "Required filename to use to report the results of the gradient check.")
-    (unsigned int, number_of_steps, "Required field specifying the number of approximations to evaluate using a finite difference.")
+    (unsigned, number_of_steps, "Required field specifying the number of approximations to evaluate using a finite difference.")
     (double, initial_direction_magnitude, "Required field specifying the magnitude of the perturbation of the design controls.")
     (double, step_size_reduction_factor, "Required field specifying how much the perturbation will be reduced for each step, e.g., 0.1 for log10 step sizes.")
-    (unsigned int, random_direction_seed, "Optional field specifying the seed that is used to generate the random perturbation of the controls. "
+    (unsigned, random_direction_seed, "Optional field specifying the seed that is used to generate the random perturbation of the controls. "
                                                     "If no seed is provided, the clock will be used to generate a seed.")
     (plato::input_parser::DirectionVectorTypes, direction_vector_type, "Required field specifying how to generate the direction vector. "
                                                                        "Inputs can be: 'random', 'uniform_positive', or 'uniform_negative'")                                                    

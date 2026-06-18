@@ -15,6 +15,14 @@ BOOST_FUSION_DEFINE_STRUCT(
 // NOLINTEND(cppcoreguidelines-special-member-functions)
 // clang-format on
 
+namespace plato::input_parser
+{
+[[nodiscard]] inline auto data_type_documentation(const Bounds& /*unused*/) -> std::string
+{
+    return "[{Floating point}, {Floating point}]";
+}
+}  // namespace plato::input_parser
+
 namespace boost::spirit::traits
 {
 

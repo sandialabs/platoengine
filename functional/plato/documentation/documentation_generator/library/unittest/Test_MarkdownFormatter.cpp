@@ -36,7 +36,7 @@ void check_table(const std::string& aTable, const test_utilities::TestContext& a
 TEST(MarkdownFormatter, MainSection)
 {
     const auto tMainSectionText = main_section();
-    test_utilities::expect_string_contains_substring(tMainSectionText, "#Plato", TEST_CONTEXT("Main section"));
+    test_utilities::expect_string_contains_substring(tMainSectionText, "# Plato", TEST_CONTEXT("Main section"));
     [&tMainSectionText]<std::size_t... kIndices>(std::index_sequence<kIndices...>)
     {
         (test_utilities::expect_string_contains_substring(
@@ -67,7 +67,7 @@ TEST(MarkdownFormatter, ComponentTypeSubsection)
         const auto tSubsection = component_type_subsection<kComponentType>(aHelpDocumentation, tSubsectionDepth);
         test_utilities::expect_string_contains_substring(
             tSubsection, detail::section_reference(components::to_string(kComponentType)), aTestContext);
-        test_utilities::expect_string_contains_substring(tSubsection, "#" + components::to_string(kComponentType),
+        test_utilities::expect_string_contains_substring(tSubsection, "# " + components::to_string(kComponentType),
                                                          aTestContext);
         test_utilities::expect_string_contains_substring(
             tSubsection, components::ComponentTypeDocumentation<kComponentType>::mDocumentation, aTestContext);
@@ -88,7 +88,7 @@ TEST(MarkdownFormatter, ComponentsSubsection)
     const auto tSubsection = component_subsection(kComponentName, kTestComponentDocumentation, tSubsectionDepth);
     test_utilities::expect_string_contains_substring(tSubsection, detail::section_reference(kComponentName),
                                                      TEST_CONTEXT("Component subsection"));
-    test_utilities::expect_string_contains_substring(tSubsection, "##" + std::string{kComponentName},
+    test_utilities::expect_string_contains_substring(tSubsection, "## " + std::string{kComponentName},
                                                      TEST_CONTEXT("Component subsection"));
     test_utilities::expect_string_contains_substring(tSubsection, kTestComponentDocumentation.mDescription,
                                                      TEST_CONTEXT("Component subsection"));
@@ -101,7 +101,8 @@ TEST(MarkdownFormatter, ComponentsSubsectionDepth)
     {
         const auto tSubsection = component_subsection(kComponentName, kTestComponentDocumentation, tDepth);
         const auto tSubsectionMarkdown = std::string(tDepth, '#');
-        test_utilities::expect_string_contains_substring(tSubsection, tSubsectionMarkdown + std::string{kComponentName},
+        test_utilities::expect_string_contains_substring(tSubsection,
+                                                         tSubsectionMarkdown + " " + std::string{kComponentName},
                                                          TEST_CONTEXT("Components subsection depth"));
     }
 }

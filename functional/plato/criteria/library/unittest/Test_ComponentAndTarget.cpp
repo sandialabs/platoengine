@@ -36,4 +36,12 @@ TEST(ComponentAndTarget, Invalid)
     }
 }
 
+TEST(ComponentAndTarget, DataTypeNames)
+{
+    EXPECT_EQ(data_type_documentation(input_parser::ComponentAndTarget{}),
+              "Composite type: `component` {String} `target` {Floating point} ");
+    EXPECT_EQ(data_type_documentation(input_parser::AutoList<input_parser::ComponentAndTarget>{}),
+              "Comma separated list of: Composite type: `component` {String} `target` {Floating point} ");
+}
+
 }  // namespace plato::criteria::library::unittest

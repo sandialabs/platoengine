@@ -4,7 +4,10 @@
 #include <boost/fusion/adapted/struct/detail/extension.hpp>
 #include <boost/fusion/include/define_struct.hpp>
 #include <boost/spirit/include/qi.hpp>
+#include <format>
 #include <utility>
+
+#include "plato/documentation/DataTypeDocumentation.hpp"
 
 namespace plato::input_parser
 {
@@ -34,7 +37,23 @@ BOOST_FUSION_DEFINE_STRUCT(                                                     
 namespace plato::input_parser{                                                                          \
 template<>                                                                                              \
 constexpr inline bool kIsInputSequenceSubtype<STRUCT_NAME> = true;                                      \
-}
+                                                                                                        \
+[[nodiscard]] inline auto data_type_documentation(const STRUCT_NAME&) -> std::string                    \
+{                                                                                                       \
+    auto tDocumentation = std::string{"Composite type: "};                                              \
+    [&tDocumentation]<std::size_t... kIndices>(const std::index_sequence<kIndices...>)                  \
+    {                                                                                                   \
+        using plato::documentation::data_type_documentation;                                            \
+        (tDocumentation += ... +=                                                                       \
+            std::format("`{}` {{{}}} ",                                                                 \
+                boost::fusion::extension::struct_member_name<STRUCT_NAME, kIndices>::call(),            \
+                data_type_documentation(                                                                \
+                    typename boost::fusion::result_of::value_at_c<STRUCT_NAME, kIndices>::type{})       \
+             ));                                                                                        \
+    }(std::make_index_sequence<boost::fusion::result_of::size<STRUCT_NAME>::value>());                  \
+    return tDocumentation;                                                                              \
+}                                                                                                       \
+}                                                                                                       \
 
 // NOLINTEND(cppcoreguidelines-macro-usage)
 // clang-format on

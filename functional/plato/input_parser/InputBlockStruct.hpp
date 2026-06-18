@@ -11,6 +11,7 @@
 #include <boost/preprocessor/tuple/elem.hpp>
 
 #include "plato/components/ComponentType.hpp"
+#include "plato/documentation/DataTypeDocumentation.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
 
 namespace plato::input_parser
@@ -67,7 +68,7 @@ void register_help_documentation();
 #define UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR(r, data, elem)          \
     tCommands.mInputs.emplace_back(plato::documentation::InputKeywordDocumentation{ \
     .mName = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(1, elem)),                      \
-    .mType = BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(0, elem)),                      \
+    .mType = data_type_documentation(BOOST_PP_TUPLE_ELEM(0, elem){}),               \
     .mComment = BOOST_PP_TUPLE_ELEM(2, elem)}                                       \
     );
 
@@ -77,6 +78,7 @@ template<>                                                                      
 inline void register_help_documentation<STRUCT_NAME>() {                                                                         \
     [[maybe_unused]] const auto tRegistration = documentation::HelpDocumentationRegistration{ BOOST_PP_STRINGIZE(STRUCT_NAME),   \
     [](){                                                                                                                        \
+        using documentation::data_type_documentation;                                                                            \
         auto tCommands = documentation::ComponentDocumentation{                                                                  \
             .mComponentType = (COMPONENT_TYPE), .mDescription = (DESCRIPTION), .mInputs = {}};                                   \
         BOOST_PP_SEQ_FOR_EACH(UNPACK_ATTRIBUTE_AND_CALL_DOCUMENTATION_CONSTRUCTOR, _, BOOST_PP_VARIADIC_SEQ_TO_SEQ(ATTRIBUTES))  \

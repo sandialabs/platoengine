@@ -67,4 +67,9 @@ TEST(CrossLinkedInput, MakeCrossLinkedInputWithError)
     const auto tCrossLinkedInputOrError = make_cross_linked_input(tParsedInput);
     EXPECT_TRUE(tCrossLinkedInputOrError.hasError());
 }
+
+TEST(CrossReference, DataTypeDocumentation)
+{
+    EXPECT_EQ(data_type_documentation(GeometryCrossReference{}), "geometry component name");
+}
 }

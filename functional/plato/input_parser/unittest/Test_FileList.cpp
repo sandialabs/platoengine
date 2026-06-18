@@ -38,4 +38,11 @@ TEST(FileList, ConstIterators)
     const auto tFileList = FileList{{{"definitely", "meaningless", "strings"}}};
     test_utilities::copy_test(tFileList, TEST_CONTEXT("Const iterators"));
 }
+
+TEST(FileList, DataTypeNames)
+{
+    EXPECT_EQ(data_type_documentation(FileName{}), "File name");
+    EXPECT_EQ(data_type_documentation(FileList{}), "Comma separated list of file names");
+}
+
 }  // namespace plato::input_parser::unittest

@@ -28,7 +28,7 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          sea_creatures, plato::components::ComponentType::kFilter,
                          "Help description",
                          (double, octopus, "")
-                         (unsigned int, squid, ""))
+                         (unsigned, squid, ""))
 // clang-format on
 
 namespace plato::input_validation::unittest

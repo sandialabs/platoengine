@@ -127,4 +127,10 @@ TEST(AutoList, SuccessfulParseMultipleBounds)
     EXPECT_EQ(tResult.mList.back().mLower, tToken3.mLower);
 }
 
+TEST(AutoList, DataTypeDocumentation)
+{
+    const auto tDocumentation = data_type_documentation(AutoList<double>{});
+    EXPECT_EQ(tDocumentation, "Comma separated list of: Floating point");
+}
+
 }  // namespace plato::input_parser::unittest

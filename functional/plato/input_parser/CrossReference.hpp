@@ -5,6 +5,7 @@
 #include <string>
 
 #include "plato/components/ComponentType.hpp"
+#include "plato/components/ComponentTypeStream.hpp"
 #include "plato/input_parser/InputBlockData.hpp"
 
 namespace plato::input_parser
@@ -27,6 +28,12 @@ struct CrossReference
     InputBlockWrapper mInputBlock;
     constexpr static components::ComponentType mComponentType = kComponentType;
 };
+
+template <components::ComponentType kComponentType>
+[[nodiscard]] auto data_type_documentation(const CrossReference<kComponentType>& /*unused*/) -> std::string
+{
+    return components::to_string(kComponentType) + std::string{" component name"};
+}
 
 template <components::ComponentType kComponentType>
 auto CrossReference<kComponentType>::begin() const -> std::string::const_iterator

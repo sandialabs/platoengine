@@ -6,6 +6,8 @@
 #include <boost/preprocessor/seq/variadic_seq_to_seq.hpp>
 #include <boost/preprocessor/tuple/elem.hpp>
 #include <boost/spirit/include/qi.hpp>
+#include <format>
+#include <numeric>
 #include <ostream>
 
 #include "plato/input_parser/EnumParser.hpp"
@@ -40,6 +42,7 @@ namespace ENUM_NAMESPACE                                                        
 {                                                                                               \
     ENUM_TABLE_DEFINE(ENUM_NAME, SEQ)                                                           \
     auto operator<<(std::ostream& aStream, ENUM_NAME aOption) -> std::ostream&;                 \
+    [[nodiscard]] auto data_type_documentation(ENUM_NAME /*unused*/) -> std::string;            \
 }
 
 #define PLATO_ENUM_STRUCT(ENUM_NAME, ENUM_NAMESPACE, SEQ)                                       \
@@ -122,6 +125,21 @@ namespace ENUM_NAMESPACE                                                        
     {                                                                                                           \
         aStream << *TABLE_NAME_FROM_ENUM_NAME(ENUM_NAME).toString(aOption);                                     \
         return aStream;                                                                                         \
+    }                                                                                                           \
+    [[nodiscard]] auto data_type_documentation(const ENUM_NAME /*unused*/) -> std::string                       \
+    {                                                                                                           \
+        const auto& tTable = TABLE_NAME_FROM_ENUM_NAME(ENUM_NAME);                                              \
+        auto tDocumentation = std::format("`{}`", tTable.toString(tTable.begin()->first).value());              \
+        return std::accumulate(std::next(tTable.begin()), tTable.end(),                                         \
+                               std::move(tDocumentation),                                                       \
+                               [](std::string aCurrentString, const auto& tTableEntry)                          \
+                               {                                                                                \
+                                   return std::move(aCurrentString) +                                           \
+                                       std::format(                                                             \
+                                        "|`{}`",                                                                \
+                                        tTable.toString(tTableEntry.first).value()                              \
+                                       );                                                                       \
+                               });                                                                              \
     }                                                                                                           \
 }
 // NOLINTEND(cppcoreguidelines-macro-usage)

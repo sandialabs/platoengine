@@ -39,6 +39,14 @@ plato::input_parser::BoundedApreproVariable,
 )
 // clang-format on
 
+namespace plato::input_parser
+{
+[[nodiscard]] inline auto data_type_documentation(const BoundedApreproVariable& /*unused*/) -> std::string
+{
+    return "Composite type: {String} {Floating point} [{Floating point}, {Floating point}]";
+}
+}  // namespace plato::input_parser
+
 namespace boost::spirit::traits
 {
 

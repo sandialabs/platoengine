@@ -32,7 +32,7 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (bool, active, "Optional field to de/activate this constraint.")
     (plato::input_parser::AppName, app, "Required field specifying the app to use for this constraint.") 
     (plato::input_parser::CriterionName, criterion, "Required field specifying the name of the criterion to be evaluated.")
-    (unsigned int, number_of_processors, "Optional parameter that will specify the number of processors used to run the app that computes this objective. "
+    (unsigned, number_of_processors, "Optional parameter that will specify the number of processors used to run the app that computes this objective. "
                                          "Requires the 'plato' executable be called with mpirun.")
     (plato::input_parser::FileList, input_files, "Optional comma-separated list of files needed for the app to run.")
     (plato::criteria::library::ConstraintValueList, constraint_value_list, "Optional list of component names and target values, e.g., in the format: "

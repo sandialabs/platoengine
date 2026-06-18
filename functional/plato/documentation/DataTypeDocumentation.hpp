@@ -3,35 +3,17 @@
 
 namespace plato::documentation
 {
-/// @brief Base template that is specialized for providing documentation strings for data types, such as FileName.
-template <typename T>
-struct DataTypeDocumentation
-{
-};
+/// @brief Data type documentation for `double`
+[[nodiscard]] auto data_type_documentation(double /*unused*/) -> std::string;
 
-template <>
-struct DataTypeDocumentation<double>
-{
-    static constexpr auto mDocumentation = std::string_view{"Floating point"};
-};
+/// @brief Data type documentation for `int`
+[[nodiscard]] auto data_type_documentation(int /*unused*/) -> std::string;
 
-template <>
-struct DataTypeDocumentation<int>
-{
-    static constexpr auto mDocumentation = std::string_view{"Signed integer"};
-};
+/// @brief Data type documentation for `unsigned int`
+[[nodiscard]] auto data_type_documentation(unsigned int /*unused*/) -> std::string;
 
-template <>
-struct DataTypeDocumentation<unsigned int>
-{
-    static constexpr auto mDocumentation = std::string_view{"Unsigned integer"};
-};
-
-template <>
-struct DataTypeDocumentation<bool>
-{
-    static constexpr auto mDocumentation = std::string_view{"`true`|`false`"};
-};
+/// @brief Data type documentation for `bool`
+[[nodiscard]] auto data_type_documentation(bool /*unused*/) -> std::string;
 
 }  // namespace plato::documentation
 

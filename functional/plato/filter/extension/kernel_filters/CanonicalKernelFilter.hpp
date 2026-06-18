@@ -22,7 +22,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (double, filter_radius, plato::filter::extension::kernel_filters::kKernelFilterRadiusHelpText)
     (plato::input_parser::KernelFilterCenteringTypes, centering_type, plato::filter::extension::kernel_filters::kKernelFilterCenteringTypeHelpText)
     (bool, use_relative_radius, plato::filter::extension::kernel_filters::kKernelFilterRelativeRadiusHelpText)
-    (unsigned int, number_of_processors, plato::filter::extension::kernel_filters::kKernelFilterNumberOfProcessorsHelpText)
+    (unsigned, number_of_processors, plato::filter::extension::kernel_filters::kKernelFilterNumberOfProcessorsHelpText)
 )
 // clang-format on
 // CPD-ON

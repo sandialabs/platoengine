@@ -24,6 +24,11 @@ namespace plato::input_parser
     return aLHS.mX == aRHS.mX && aLHS.mY == aRHS.mY && aLHS.mZ == aRHS.mZ;
 }
 
+[[nodiscard]] inline auto data_type_documentation(const Point& /*unused*/) -> std::string
+{
+    return "({Floating point}, {Floating point}, {Floating point})";
+}
+
 }  // namespace plato::input_parser
 
 namespace boost::spirit::traits

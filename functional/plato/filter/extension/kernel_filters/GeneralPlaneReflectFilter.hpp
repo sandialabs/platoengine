@@ -25,7 +25,7 @@ PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato::input_parser::KernelFilterCenteringTypes, centering_type, plato::filter::extension::kernel_filters::kKernelFilterCenteringTypeHelpText)
     (bool, use_relative_radius, plato::filter::extension::kernel_filters::kKernelFilterRelativeRadiusHelpText)
     (plato::input_parser::FileName, target_mesh_name, "Required field specifying the file name of the 3D exodus mesh that the filtered and reflected controls will be mapped onto.")
-    (unsigned int, number_of_processors, plato::filter::extension::kernel_filters::kKernelFilterNumberOfProcessorsHelpText)
+    (unsigned, number_of_processors, plato::filter::extension::kernel_filters::kKernelFilterNumberOfProcessorsHelpText)
     (plato::input_parser::BlockList, fixed_blocks, plato::filter::extension::kernel_filters::kKernelFilterFixedBlockHelpText)
     (plato::input_parser::GeneralPlane, plane,"Required input defining the plane through which the controls will be reflected. The input format is 'plane center (x_c, y_c, z_c) normal (x_n, y_n, z_n)'. "
                                                         "The normal vector does not need to be a unit vector and will be normalized during parsing.")

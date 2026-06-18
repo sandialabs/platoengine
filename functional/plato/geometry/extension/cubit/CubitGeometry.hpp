@@ -26,7 +26,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato::input_parser::FileName, output_file_name, "Required field specifying the file to write the final values of the aprepro variables.")
     (plato::input_parser::FileName, mesh_file_name, "Required field specifying the mesh file name.")
     (plato::input_parser::FileName, output_mesh_sensitivities_name, "Optional field specifying the mesh file name to output the sensitivities to.")
-    (plato::input_parser::BoundedApreproVariableList,aprepro_variables,"Required fields specifying the aprepro variables in the mesh journal file. "
+    (plato::input_parser::BoundedApreproVariableList, aprepro_variables,"Required fields specifying the aprepro variables in the mesh journal file. "
                                                                                  "Define as many as you like, comma separated, in this manner: aprepro_variables name_in_journal_file initial_value [lower_bound, upper_bound], ... . "
                                                                                  "This is an example list: aprepro_variables width 1 [0.1, 4], height 2 [0.1, 4]")
 )

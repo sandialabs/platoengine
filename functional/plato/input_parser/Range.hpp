@@ -24,6 +24,11 @@ namespace plato::input_parser
     return aLHS.mLower == aRHS.mLower && aLHS.mStep == aRHS.mStep && aLHS.mUpper == aRHS.mUpper;
 }
 
+[[nodiscard]] inline auto data_type_documentation(const Range& /*unused*/) -> std::string
+{
+    return "[{Floating point}:{Floating point}:{Floating point}]";
+}
+
 }  // namespace plato::input_parser
 
 namespace boost::spirit::traits

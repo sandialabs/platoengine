@@ -33,4 +33,9 @@ TEST(Range, ParsingTests)
     }
 }
 
+TEST(Range, DataTypeDocumentation)
+{
+    EXPECT_EQ(data_type_documentation(Range{}), "[{Floating point}:{Floating point}:{Floating point}]");
+}
+
 }  // namespace plato::input_parser::unittest
