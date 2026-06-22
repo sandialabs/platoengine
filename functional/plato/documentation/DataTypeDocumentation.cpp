@@ -8,6 +8,6 @@ auto data_type_documentation(const int /*unused*/) -> std::string { return "Sign
 
 auto data_type_documentation(const unsigned int /*unused*/) -> std::string { return "Unsigned integer"; };
 
-auto data_type_documentation(const bool /*unused*/) -> std::string { return "`true`|`false`"; };
+auto data_type_documentation(const bool /*unused*/) -> std::string { return "`true` or `false`"; };
 
 }  // namespace plato::documentation

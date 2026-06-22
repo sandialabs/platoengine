@@ -65,7 +65,7 @@ TEST(DefinedEnums, SeparateEnumDeclaration)
 TEST(DefinedEnums, DataTypeDocumentation)
 {
     const auto tDocumentation = data_type_documentation(plato::enum_test::Shapes{});
-    EXPECT_EQ(tDocumentation, "`tetrahedron`|`cube`|`octahedron`|`dodecahedron`|`icosahedron`");
+    EXPECT_EQ(tDocumentation, "`tetrahedron`, `cube`, `octahedron`, `dodecahedron`, `icosahedron`");
 };
 
 }  // namespace plato::input_parser::unittest

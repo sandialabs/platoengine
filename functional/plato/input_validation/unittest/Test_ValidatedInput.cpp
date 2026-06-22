@@ -198,7 +198,7 @@ TEST_F(ValidatedInputRegistrationFixture, ConstructionTwoEntriesInvalidInput)
 
     ASSERT_TRUE(tValidatedInput.hasError());
     EXPECT_EQ(tValidatedInput.error(),
-              std::string{kDCValidationErrorMessage} + "\n" + std::string{kMarvelValidationErrorMessage});
+              std::string{kMarvelValidationErrorMessage} + "\n" + std::string{kDCValidationErrorMessage});
 }
 
 TEST_F(ValidatedInputRegistrationFixture, ConstructionInvalidParsedInput)

@@ -10,6 +10,6 @@ TEST(DataTypeDocumentation, Int) { EXPECT_EQ(data_type_documentation(int{}), "Si
 
 TEST(DataTypeDocumentation, UnsignedInt) { EXPECT_EQ(data_type_documentation(unsigned{}), "Unsigned integer"); }
 
-TEST(DataTypeDocumentation, Bool) { EXPECT_EQ(data_type_documentation(bool{}), "`true`|`false`"); }
+TEST(DataTypeDocumentation, Bool) { EXPECT_EQ(data_type_documentation(bool{}), "`true` or `false`"); }
 
 }  // namespace plato::documentation::unittest
