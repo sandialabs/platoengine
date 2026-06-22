@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "plato/components/ComponentType.hpp"
+#include "plato/components/ComponentTypeStream.hpp"
 
 namespace plato::documentation::documentation_generator::library
 {
@@ -21,21 +22,28 @@ void write_markdown_documentation(const HelpDocumentationMap& aDocumentation)
     const auto tMainFileName = std::filesystem::path{"plato.md"};
     write_to_file(tMainFileName, main_section());
 
-    [&aDocumentation]<std::size_t... kIndices>(std::index_sequence<kIndices...>)
+    for (const auto tComponentType : components::all_component_types())
     {
-        constexpr auto tComponentTypeSubsectionDepth = std::uint8_t{2};
-        (write_to_file(detail::component_file_name<kIndices>(),
-                       component_type_subsection<components::component_type_from_index<kIndices>()>(
-                           aDocumentation, tComponentTypeSubsectionDepth)),
-         ...);
-    }(std::make_index_sequence<utilities::number_of_enumerates<components::ComponentType>()>());
+        constexpr auto tComponentTypeSubsectionDepth = std::uint8_t{1};
+        write_to_file(detail::component_file_name(tComponentType),
+                      component_type_subsection(aDocumentation, tComponentType, tComponentTypeSubsectionDepth));
+    }
 
     for (const auto& [tComponentName, tComponentDocumentation] : aDocumentation)
     {
-        constexpr auto tComponentSubsectionDepth = std::uint8_t{3};
+        constexpr auto tComponentSubsectionDepth = std::uint8_t{1};
         const auto tComponentFileName = std::filesystem::path{tComponentName + ".md"};
         write_to_file(tComponentFileName,
                       component_subsection(tComponentName, tComponentDocumentation, tComponentSubsectionDepth));
     }
 }
+
+namespace detail
+{
+auto component_file_name(const components::ComponentType aComponentType) -> std::filesystem::path
+{
+    return {components::to_string(aComponentType) + ".md"};
+}
+}  // namespace detail
+
 }  // namespace plato::documentation::documentation_generator::library

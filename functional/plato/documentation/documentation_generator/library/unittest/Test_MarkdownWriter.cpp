@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <filesystem>
 
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
@@ -33,9 +34,8 @@ TEST(MarkdownWriter, WriteMarkdownDocumentation)
     auto tExpectedFiles = std::vector<std::filesystem::path>{};
     tExpectedFiles.emplace_back("plato.md");
 
-    [&tExpectedFiles]<std::size_t... kIndices>(std::index_sequence<kIndices...>) {
-        (tExpectedFiles.push_back(detail::component_file_name<kIndices>()), ...);
-    }(std::make_index_sequence<utilities::number_of_enumerates<components::ComponentType>()>());
+    std::ranges::transform(components::all_component_types(), std::back_inserter(tExpectedFiles),
+                           [](const auto aComponentType) { return detail::component_file_name(aComponentType); });
 
     tExpectedFiles.emplace_back("slay-the-spire.md");
     tExpectedFiles.emplace_back("deep-rock-galactic.md");

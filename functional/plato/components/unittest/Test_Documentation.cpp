@@ -1,25 +1,17 @@
 #include <gtest/gtest.h>
 
-#include <cstddef>
-#include <utility>
-
 #include "plato/components/ComponentType.hpp"
+#include "plato/components/ComponentTypeStream.hpp"
 #include "plato/components/Documentation.hpp"
-#include "plato/utilities/EnumIndexing.hpp"
 
 namespace plato::components::unittest
 {
 TEST(Documentation, AllExist)
 {
-    constexpr auto tNumberOfComponents = utilities::number_of_enumerates<components::ComponentType>();
-    const auto tDocumentation = []<std::size_t... kIndices>(std::index_sequence<kIndices...>)
+    for (const auto tComponentType : all_component_types())
     {
-        auto tAllDocumentation = std::string{};
-        (tAllDocumentation += ... +=
-         std::string{ComponentTypeDocumentation<component_type_from_index<kIndices>()>::mDocumentation});
-        return tAllDocumentation;
-    }(std::make_index_sequence<tNumberOfComponents>());
-
-    EXPECT_FALSE(tDocumentation.empty());
+        const auto tDocumentation = component_documentation_brief(tComponentType);
+        EXPECT_FALSE(tDocumentation.empty()) << to_string(tComponentType);
+    }
 }
 }  // namespace plato::components::unittest
