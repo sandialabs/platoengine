@@ -4,6 +4,11 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 create_plato_library(PlatoFunctionalDocumentationGenerator "library" PlatoFunctionalDocumentation)
 
 if( UNIT_TESTING )
+  set(DOCUMENTATION_MARKDOWN_DIR "")
+  file(GLOB COPY_FILES "${CMAKE_CURRENT_SOURCE_DIR}/library/unittest/data/*.md")
+  file(COPY ${COPY_FILES} DESTINATION ${FUNCTIONAL_DATA_BUILD_PATH})
+  file(COPY ${COPY_FILES} DESTINATION ${FUNCTIONAL_DATA_INSTALL_PATH})
+
   create_plato_unittester(PlatoFunctionalDocumentationGenerator "library/unittest")
 endif()
 

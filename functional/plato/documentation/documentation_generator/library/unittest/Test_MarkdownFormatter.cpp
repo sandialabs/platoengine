@@ -93,7 +93,8 @@ TEST(MarkdownFormatter, ComponentsSubsection)
                                                      TEST_CONTEXT("Component subsection"));
     test_utilities::expect_string_contains_substring(tSubsection, "# " + std::string{kComponentName},
                                                      TEST_CONTEXT("Component subsection"));
-    test_utilities::expect_string_contains_substring(tSubsection, kTestComponentDocumentation.mDescription,
+    constexpr auto tExpectedDetailDescription = std::string_view{"Magic is a fun game."};
+    test_utilities::expect_string_contains_substring(tSubsection, tExpectedDetailDescription,
                                                      TEST_CONTEXT("Component subsection"));
     check_table(tSubsection, TEST_CONTEXT("Component subsection"));
 }

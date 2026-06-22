@@ -20,12 +20,13 @@ constexpr auto kIntroMarkdownFileName = std::string_view{"intro.md"};
 [[nodiscard]] auto data_file_contents(const std::filesystem::path& aFilePath) -> std::string
 {
     const auto tDataFile = utilities::data_file_path(aFilePath.filename().string());
-    assert(tDataFile);
-
-    auto tFileStream = std::ifstream{tDataFile.value()};
-    assert(tFileStream);
-
-    return std::string{std::istreambuf_iterator<char>{tFileStream}, std::istreambuf_iterator<char>{}} + "\n";
+    if (tDataFile)
+    {
+        auto tFileStream = std::ifstream{tDataFile.value()};
+        assert(tFileStream);
+        return std::string{std::istreambuf_iterator<char>{tFileStream}, std::istreambuf_iterator<char>{}} + "\n";
+    }
+    return std::string{};
 }
 }  // namespace
 
@@ -87,7 +88,8 @@ auto component_subsection(const std::string_view aComponentName,
                           const std::uint8_t aSubsectionDepth) -> std::string
 {
     return std::format("{}\n{:#>{}} {}\n{}\n{}", detail::section_reference_definition(aComponentName), "",
-                       aSubsectionDepth, aComponentName, aComponentDocumentation.mDescription,
+                       aSubsectionDepth, aComponentName,
+                       data_file_contents(std::filesystem::path{aComponentName}.replace_extension(".md")),
                        markdown_inputs_table(aComponentDocumentation));
 }
 
