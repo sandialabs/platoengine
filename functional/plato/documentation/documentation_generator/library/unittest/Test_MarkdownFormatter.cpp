@@ -68,7 +68,7 @@ TEST(MarkdownFormatter, ComponentTypeSubsection)
     {
         const auto tSubsection = component_type_subsection(aHelpDocumentation, kComponentType, tSubsectionDepth);
         test_utilities::expect_string_contains_substring(
-            tSubsection, detail::section_reference(components::to_string(kComponentType)), aTestContext);
+            tSubsection, detail::section_reference(detail::component_type_name(kComponentType)), aTestContext);
         test_utilities::expect_string_contains_substring(tSubsection, "# " + components::to_string(kComponentType),
                                                          aTestContext);
         const auto tExpectedDetailText = std::format("A `{}` component", components::to_string(kComponentType));
@@ -157,6 +157,14 @@ TEST(MarkdownFormatter, TOCTree)
         "```"};
 
     EXPECT_EQ(detail::toc_tree(tEntries, tAdditionalOptions, tMaxDepth), tExpected);
+}
+
+TEST(MarkdownFormatter, ComponentTypeName)
+{
+    for (const auto tComponentType : components::all_component_types())
+    {
+        EXPECT_NE(detail::component_type_name(tComponentType), components::to_string(tComponentType));
+    }
 }
 
 }  // namespace plato::documentation::documentation_generator::library

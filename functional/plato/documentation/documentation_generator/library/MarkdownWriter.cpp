@@ -4,7 +4,6 @@
 #include <fstream>
 
 #include "plato/components/ComponentType.hpp"
-#include "plato/components/ComponentTypeStream.hpp"
 
 namespace plato::documentation::documentation_generator::library
 {
@@ -37,13 +36,5 @@ void write_markdown_documentation(const HelpDocumentationMap& aDocumentation)
                       component_subsection(tComponentName, tComponentDocumentation, tComponentSubsectionDepth));
     }
 }
-
-namespace detail
-{
-auto component_file_name(const components::ComponentType aComponentType) -> std::filesystem::path
-{
-    return {components::to_string(aComponentType) + ".md"};
-}
-}  // namespace detail
 
 }  // namespace plato::documentation::documentation_generator::library

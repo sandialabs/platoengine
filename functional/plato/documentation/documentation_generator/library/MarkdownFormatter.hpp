@@ -33,6 +33,12 @@ using HelpDocumentationMap = std::map<std::string, ComponentDocumentation>;
 
 namespace detail
 {
+/// @brief A name used to uniquely label component types.
+///
+/// This is mainly used over `components::to_string` because `objective` and `cosntraint` can both refer to a component
+/// type and an individual component.
+[[nodiscard]] auto component_type_name(components::ComponentType aComponentType) -> std::string;
+
 /// @brief Generates a string that defines a markdown section reference.
 [[nodiscard]] auto section_reference_definition(std::string_view aComponentName) -> std::string;
 
