@@ -1,4 +1,4 @@
-# Plato
+# Plato User Manual
 
 Plato is a shape and topology optimization engine that links gradient-based optimization algorithms, geometry representations, and physics codes.
 
