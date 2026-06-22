@@ -17,8 +17,7 @@ struct AnalysisDomainMesh;
 // clang-format off
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), kernel_filter,
-    "The filter, `kernel_filter`, takes node-centered design variables and performs a distance-weighted sum to smooth design parameters. "
-    "These can be mapped to either node-centered or element-centered design fields depending on the element_centering parameter.",
+    "Smooths design parameters using a distance-weighted sum within a given radius",
     (double, filter_radius, plato::filter::extension::kernel_filters::kKernelFilterRadiusHelpText)
     (plato::input_parser::KernelFilterCenteringTypes, centering_type, plato::filter::extension::kernel_filters::kKernelFilterCenteringTypeHelpText)
     (bool, use_relative_radius, plato::filter::extension::kernel_filters::kKernelFilterRelativeRadiusHelpText)

@@ -22,8 +22,7 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), rol_optimization,
-    "The process manager, `rol_optimization`, uses the rapid optimization library (ROL) in Trilinos to perform an optimization of the defined Plato problem. "
-    "A few of the more important optimization parameters can be specified within this input block. A more complete specification of parameters can be achieved through an auxiliary XML file.",
+    "Uses the rapid optimization library (ROL) in Trilinos to perform an optimization of the defined Plato problem",
     (plato::input_parser::FileName, input_file_name, "Optional filename of the XML file specifying the ROL input parameters.")
     (plato::input_parser::FileName, export_settings_file_name, "Optional filename to trigger an exporting of all the set parameters of ROL.")
     (unsigned, max_iterations, "Optional command to override the maximum number of outer iterations given in an input file.")

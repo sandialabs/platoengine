@@ -29,8 +29,7 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), parameter_sweep,
-    "The process manager, `parameter_sweep`, allows for the objective to be evaluated along a defined set of design variables on a Cartesian product grid. "
-    "Its primary use is with geometry inputs that have very few design parameters like cubit_parameterized_shape.",
+    "Allows for the objective to be evaluated along a defined set of design variables on a Cartesian product grid",
     (plato::input_parser::FileName, output_file_name, "Required filename specifying where to output the results.")
     (plato::input_parser::IndexAndRangeList, indices_and_ranges,"Required input specifying a comma separated list of indices and ranges."
                                                               " e.g. index 0 range [0:1:2], index 1 range [-1:1:1]  Runs variable at index 0 from 0 to 2 with a step of 1, cross the space with variable 1 going from -1 to 1 by 1.")

@@ -15,9 +15,7 @@ DECLARE_ENUM_AND_ENUM_SYMBOL_TABLE(ObjectiveGoal,
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), objective, plato::components::ComponentType::kObjective,
-    "An objective is the specific performance measure that the optimizer seeks to maximize or minimize. "
-    "Common objectives include minimizing structural compliance (maximizing stiffness), reducing weight, or minimizing stress concentrations. "
-    "The objective function drives the design process toward the most efficient or effective material distribution within the given constraints.",
+    "An instance of the specific performance measure that the optimizer seeks to maximize or minimize.",
     (bool, active, "Optional field to de/activate this objective.")
     (plato::input_parser::AppName, app, "Required field specifying the app to use for this objective.") 
     (plato::input_parser::CriterionName, criterion, "Required field specifying the name of the criterion to be evaluated.")

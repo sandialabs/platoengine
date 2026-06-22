@@ -18,8 +18,7 @@
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), cubit_parameterized_shape,
-    "The geometry component, `cubit_parameterized_shape`, uses a Cubit journal file to generate a mesh based on Aprepro design parameters. "
-    "These design parameters directly control the finite element mesh for the analysis.",
+    "Parameterizes a design using a Cubit journal file annotated with Aprepro variables.",
     (plato::input_parser::FileName, mesh_journal_file, "Required field specifying the cubit journal file to run. "
                                                                  "Do not define aprepro variables in the journal file that are listed in the Plato input as aprepro_variables. "
                                                                  "For fastest finite differencing, distinguish geometry operations from meshing. Use {IfDef(compute_mesh)} ... {EndIf} to enclose all meshing steps.")
