@@ -119,6 +119,16 @@ void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta,
     return tIds;
 }
 
+void update_nodal_gradient_for_normal_sensitivities(const BackgroundMesh& aBackgroundMesh,
+                                                    const ::krino::CDFEM_Support& aCdfemSupport)
+{
+    for (const auto& tLsField : aBackgroundMesh.mLevelSetFields)
+    {
+        ::krino::update_nodal_gradient(aBackgroundMesh.mKrinoMesh->bulk_data(), aCdfemSupport.get_coords_field(),
+                                       tLsField.isovar);
+    }
+}
+
 }  // namespace
 
 void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicator)
@@ -200,19 +210,14 @@ void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aS
     const auto& tMeta = aBackgroundMesh.mKrinoMesh->bulk_data().mesh_meta_data();
     auto& tAuxMeta = ::krino::AuxMetaData::get(tMeta);
     auto& tCdfemSupport = ::krino::CDFEM_Support::get(tMeta);
-    tCdfemSupport.set_cdfem_edge_degeneracy_handling(
-        ::krino::Edge_Degeneracy_Handling::SNAP_TO_INTERFACE_WHEN_QUALITY_ALLOWS_THEN_SNAP_TO_NODE);
-    tCdfemSupport.set_snapping_sharp_feature_angle_in_degrees(aSnappingParameters.mSharpFeatureAngle);
-    tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength);
     auto& tPhaseSupport = ::krino::Phase_Support::get(tMeta);
-
     std::unique_ptr<::krino::InterfaceGeometry> tInterfaceGeometry;
-    if (kDoNormalSensitivities)
+
+    if (aSnappingParameters.mMaxSnappingEdgeLength == 0.0)
     {
-        for (const auto& tLsField : aBackgroundMesh.mLevelSetFields)
+        if (kDoNormalSensitivities)
         {
-            ::krino::update_nodal_gradient(aBackgroundMesh.mKrinoMesh->bulk_data(), tCdfemSupport.get_coords_field(),
-                                           tLsField.isovar);
+            update_nodal_gradient_for_normal_sensitivities(aBackgroundMesh, tCdfemSupport);
         }
         tInterfaceGeometry =
             ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
@@ -220,11 +225,26 @@ void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aS
     }
     else
     {
-        const auto tSnapLevelSetFields =
-            ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.mLevelSetFields);
-        tInterfaceGeometry =
-            ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
-                                              tCdfemSupport, tPhaseSupport, tSnapLevelSetFields);
+        tCdfemSupport.set_cdfem_edge_degeneracy_handling(
+            ::krino::Edge_Degeneracy_Handling::SNAP_TO_INTERFACE_WHEN_QUALITY_ALLOWS_THEN_SNAP_TO_NODE);
+        tCdfemSupport.set_snapping_sharp_feature_angle_in_degrees(aSnappingParameters.mSharpFeatureAngle);
+        tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength);
+
+        if (kDoNormalSensitivities)
+        {
+            update_nodal_gradient_for_normal_sensitivities(aBackgroundMesh, tCdfemSupport);
+            tInterfaceGeometry =
+                ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
+                                                  tCdfemSupport, tPhaseSupport, aBackgroundMesh.mLevelSetFields);
+        }
+        else
+        {
+            const auto tSnapLevelSetFields =
+                ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.mLevelSetFields);
+            tInterfaceGeometry =
+                ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
+                                                  tCdfemSupport, tPhaseSupport, tSnapLevelSetFields);
+        }
     }
 
     tAuxMeta.clear_force_64bit_flag();

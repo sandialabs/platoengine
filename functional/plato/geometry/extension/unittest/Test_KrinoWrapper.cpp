@@ -452,13 +452,12 @@ TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
 
     {
         const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
-        const auto tExpectedParentNodes =
-            std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 7}}, {2, {2, 7}}};
+        const auto tExpectedParentNodes = std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1}}, {2, {2}}};
         test_sensitivity_parent_nodes_against_expected(
             makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tSnappingParameters),
             tExpectedParentNodes,
-            TEST_CONTEXT("Offset 1e-4, no snapping - The parent nodes also change but in a different way. Again, "
-                         "likely not the desired behavior."));
+            TEST_CONTEXT("Offset 1e-4, no snapping - Parent nodes are only the intersected background nodes. This is "
+                         "the desired behavior."));
     }
 }
 
