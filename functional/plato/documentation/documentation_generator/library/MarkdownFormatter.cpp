@@ -25,15 +25,24 @@ auto main_section() -> std::string
     auto tIntroFileStream = std::ifstream{tIntroFile.value()};
     assert(tIntroFileStream);
 
+    const auto tAllComponentTypes = components::all_component_types();
     auto tIntroText =
         std::string{std::istreambuf_iterator<char>{tIntroFileStream}, std::istreambuf_iterator<char>{}} + "\n";
-    [&tIntroText]<std::size_t... kIndices>(std::index_sequence<kIndices...>)
-    {
-        (tIntroText += ... += std::format("* {}\n", detail::section_cross_reference(components::to_string(
-                                                        components::component_type_from_index<kIndices>()))));
-    }(std::make_index_sequence<utilities::number_of_enumerates<components::ComponentType>()>());
+    tIntroText = std::accumulate(
+        tAllComponentTypes.begin(), tAllComponentTypes.end(), std::move(tIntroText),
+        [](std::string aCurrentText, const auto& aComponentType)
+        {
+            return std::move(aCurrentText) +
+                   std::format("* {}\n", detail::section_cross_reference(components::to_string(aComponentType)));
+        });
 
-    return tIntroText;
+    const auto tToGlobString =
+        tAllComponentTypes |
+        std::views::transform([](const auto aComponentType)
+                              { return std::string{"./"} + components::to_string(aComponentType); });
+    constexpr auto tAdditionalOptions = std::string_view{":caption: Input Blocks\n:glob:"};
+    constexpr auto tMaxDepth = 5;
+    return std::format("{}\n{}", tIntroText, detail::toc_tree(tToGlobString, tAdditionalOptions, tMaxDepth));
 }
 
 auto component_subsection(const std::string_view aComponentName,
@@ -71,5 +80,6 @@ auto section_reference(const std::string_view aComponentName) -> std::string
 {
     return std::string{aComponentName} + "-section-ref";
 }
+
 }  // namespace detail
 }  // namespace plato::documentation::documentation_generator::library

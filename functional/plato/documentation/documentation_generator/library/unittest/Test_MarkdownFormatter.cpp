@@ -44,6 +44,8 @@ TEST(MarkdownFormatter, MainSection)
              TEST_CONTEXT("Main section")),
          ...);
     }(std::make_index_sequence<utilities::number_of_enumerates<components::ComponentType>()>());
+
+    test_utilities::expect_string_contains_substring(tMainSectionText, "toctree", TEST_CONTEXT("Main section"));
 }
 
 TEST(MarkdownFormatter, ComponentTypeSubsection)
@@ -74,6 +76,7 @@ TEST(MarkdownFormatter, ComponentTypeSubsection)
         test_utilities::expect_string_contains_substring(tSubsection, detail::section_reference(aHelpEntry.first),
                                                          aTestContext);
         test_utilities::expect_string_contains_substring(tSubsection, aHelpEntry.second.mDescription, aTestContext);
+        test_utilities::expect_string_contains_substring(tSubsection, "toctree", aTestContext);
     };
 
     tCheckSubsectionText.operator()<tPokemonType>(tComponentDocumentation, *tComponentDocumentation.find("pokemon"),
@@ -132,6 +135,27 @@ TEST(MarkdownFormatter, SectionReferenceDefinition)
     constexpr auto tTestSection = std::string_view{"shakira"};
     const auto tSectionReference = detail::section_reference_definition(tTestSection);
     EXPECT_EQ(tSectionReference, "(shakira-section-ref)=");
+}
+
+TEST(MarkdownFormatter, TOCTree)
+{
+    const auto tEntries = std::vector<std::string>{"hey", "there", "blimpy", "boy"};
+    constexpr auto tAdditionalOptions = std::string_view{":glob:"};
+    constexpr auto tMaxDepth = 5;
+    constexpr auto tExpected = std::string_view{
+        "```{toctree}\n"
+        ":hidden:\n"
+        ":maxdepth: 5\n"
+        ":glob:\n"
+        ""
+        "\n"
+        "hey\n"
+        "there\n"
+        "blimpy\n"
+        "boy\n"
+        "```"};
+
+    EXPECT_EQ(detail::toc_tree(tEntries, tAdditionalOptions, tMaxDepth), tExpected);
 }
 
 }  // namespace plato::documentation::documentation_generator::library

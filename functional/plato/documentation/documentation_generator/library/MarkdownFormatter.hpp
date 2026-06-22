@@ -10,6 +10,7 @@
 #include "plato/components/ComponentTypeStream.hpp"
 #include "plato/components/Documentation.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
+#include "plato/utilities/StringUtilities.hpp"
 
 namespace plato::documentation::documentation_generator::library
 {
@@ -43,6 +44,20 @@ namespace detail
 /// @brief Generates a section reference that can be used for cross-referencing this section in other parts of the
 /// document.
 [[nodiscard]] auto section_reference(std::string_view aComponentName) -> std::string;
+
+/// @brief Generates a Sphinx toctree entry listing @a aEntries preceeded by the @a aAdditionalOptions.
+[[nodiscard]] auto toc_tree(const std::ranges::range auto& aEntries,
+                            std::string_view aAdditionalOptions,
+                            std::size_t aMaxDepth) -> std::string;
+
+auto toc_tree(const std::ranges::range auto& aEntries,
+              std::string_view aAdditionalOptions,
+              std::size_t aMaxDepth) -> std::string
+{
+    return std::format("```{{toctree}}\n:hidden:\n:maxdepth: {}\n{}\n\n{}\n```", aMaxDepth, aAdditionalOptions,
+                       utilities::concatenate_container(aEntries, "\n"));
+}
+
 }  // namespace detail
 
 template <components::ComponentType kComponentType>
@@ -57,13 +72,21 @@ auto component_type_subsection(const HelpDocumentationMap& aComponentDocumentati
     auto tComponentsOfType =
         aComponentDocumentation |
         std::views::filter([](const auto& aMapEntry) { return aMapEntry.second.mComponentType == kComponentType; });
-    return std::accumulate(tComponentsOfType.begin(), tComponentsOfType.end(), tDocumentation,
-                           [](std::string aCurrentDocumentation, const auto& aMapEntry)
-                           {
-                               return std::move(aCurrentDocumentation) +
-                                      std::format("* {{ref}}`{}`: {}\n", detail::section_reference(aMapEntry.first),
-                                                  aMapEntry.second.mDescription);
-                           });
+    const auto tComponentList =
+        std::accumulate(tComponentsOfType.begin(), tComponentsOfType.end(), tDocumentation,
+                        [](std::string aCurrentDocumentation, const auto& aMapEntry)
+                        {
+                            return std::move(aCurrentDocumentation) +
+                                   std::format("* {{ref}}`{}`: {}\n", detail::section_reference(aMapEntry.first),
+                                               aMapEntry.second.mDescription);
+                        });
+
+    auto tToComponentNames =
+        tComponentsOfType | std::views::transform([](const auto& aMapEntry) { return aMapEntry.first; });
+    const auto tComponentNames = std::vector<std::string>(tToComponentNames.begin(), tToComponentNames.end());
+    constexpr auto tMaxTOCDepth = 5;
+    constexpr auto tTOCOptions = std::string_view{};
+    return std::format("{}\n{}", tComponentList, detail::toc_tree(tComponentNames, tTOCOptions, tMaxTOCDepth));
 }
 
 }  // namespace plato::documentation::documentation_generator::library
