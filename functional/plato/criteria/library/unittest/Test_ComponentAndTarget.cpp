@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ComponentAndTarget.hpp"
+#include "plato/input_parser/AutoList.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_parser/test_utilities/TestHelpers.hpp"
 #include "plato/test_utilities/TestContext.hpp"

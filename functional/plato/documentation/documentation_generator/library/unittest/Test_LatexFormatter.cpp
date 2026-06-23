@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 
+#include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/documentation/documentation_generator/library/LatexFormatter.hpp"
 
 namespace plato::documentation::documentation_generator::library::unittest

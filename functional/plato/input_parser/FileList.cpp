@@ -1,5 +1,9 @@
 #include "plato/input_parser/FileList.hpp"
 
+#include <string>
+
+#include "plato/input_parser/UserDefinedTokenList.hpp"
+
 namespace plato::input_parser
 {
 auto data_type_documentation(const FileName& /*unused*/) -> std::string { return "File name"; }

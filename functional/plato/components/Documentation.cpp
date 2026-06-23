@@ -1,5 +1,10 @@
 #include "plato/components/Documentation.hpp"
 
+#include <string>
+#include <unordered_map>
+
+#include "plato/components/ComponentType.hpp"
+
 namespace plato::components
 {
 auto component_documentation_brief(ComponentType aComponentType) -> std::string

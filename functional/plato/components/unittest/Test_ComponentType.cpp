@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "plato/components/ComponentType.hpp"
 
 namespace plato::components::unittest

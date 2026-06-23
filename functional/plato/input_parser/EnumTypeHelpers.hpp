@@ -135,10 +135,7 @@ namespace ENUM_NAMESPACE                                                        
                                [](std::string aCurrentString, const auto& tTableEntry)                          \
                                {                                                                                \
                                    return std::move(aCurrentString) +                                           \
-                                       std::format(                                                             \
-                                        ", `{}`",                                                                \
-                                        tTable.toString(tTableEntry.first).value()                              \
-                                       );                                                                       \
+                                       std::format(", `{}`", tTableEntry.second);                               \
                                });                                                                              \
     }                                                                                                           \
 }

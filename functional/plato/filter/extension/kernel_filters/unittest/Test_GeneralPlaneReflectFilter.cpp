@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "plato/filter/extension/kernel_filters/GeneralPlaneParser.hpp"
 #include "plato/filter/extension/kernel_filters/GeneralPlaneReflectFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/Plane.hpp"

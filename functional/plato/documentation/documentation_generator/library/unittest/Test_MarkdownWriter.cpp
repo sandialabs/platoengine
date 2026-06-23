@@ -2,7 +2,10 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iterator>
+#include <vector>
 
+#include "plato/components/ComponentType.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/documentation/documentation_generator/library/MarkdownFormatter.hpp"
 #include "plato/documentation/documentation_generator/library/MarkdownWriter.hpp"

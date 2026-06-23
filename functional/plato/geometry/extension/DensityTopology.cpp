@@ -1,5 +1,6 @@
 #include "plato/geometry/extension/DensityTopology.hpp"
 
+#include <boost/fusion/sequence/intrinsic/at.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <cassert>
 #include <filesystem>

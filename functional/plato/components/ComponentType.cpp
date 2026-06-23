@@ -1,6 +1,10 @@
 #include "plato/components/ComponentType.hpp"
 
+#include <cstddef>
+#include <utility>
 #include <vector>
+
+#include "plato/utilities/EnumIndexing.hpp"
 
 namespace plato::components
 {

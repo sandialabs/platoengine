@@ -1,5 +1,11 @@
 #include <gtest/gtest.h>
 
+#include <cstdint>
+#include <format>
+#include <string>
+#include <vector>
+
+#include "plato/components/ComponentType.hpp"
 #include "plato/components/ComponentTypeStream.hpp"
 #include "plato/components/Documentation.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"

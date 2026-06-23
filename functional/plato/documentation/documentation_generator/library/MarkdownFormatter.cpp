@@ -1,13 +1,20 @@
 #include "plato/documentation/documentation_generator/library/MarkdownFormatter.hpp"
 
 #include <cassert>
+#include <cstdint>
 #include <format>
 #include <fstream>
+#include <iterator>
 #include <numeric>
+#include <ranges>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "plato/components/ComponentType.hpp"
 #include "plato/components/ComponentTypeStream.hpp"
 #include "plato/components/Documentation.hpp"
+#include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::documentation::documentation_generator::library
