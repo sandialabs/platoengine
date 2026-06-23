@@ -51,14 +51,15 @@ auto main_section() -> std::string
                                components::component_documentation_brief(aComponentType));
         });
 
-    tIntroText += data_file_contents(kPostBlocksMarkdownFileName);
     const auto tToGlobString =
         tAllComponentTypes |
         std::views::transform([](const auto aComponentType)
                               { return std::string{"./"} + detail::component_type_name(aComponentType); });
     constexpr auto tAdditionalOptions = std::string_view{":caption: Input Blocks\n:glob:"};
     constexpr auto tMaxDepth = 5;
-    return std::format("{}\n{}", tIntroText, detail::toc_tree(tToGlobString, tAdditionalOptions, tMaxDepth));
+    const auto tTableOfContentsTree =
+        std::format("{}\n{}", tIntroText, detail::toc_tree(tToGlobString, tAdditionalOptions, tMaxDepth));
+    return tTableOfContentsTree + data_file_contents(kPostBlocksMarkdownFileName);
 }
 
 auto component_type_subsection(const HelpDocumentationMap& aComponentDocumentation,
