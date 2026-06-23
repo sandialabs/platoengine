@@ -14,7 +14,9 @@ namespace plato::documentation::documentation_generator::library
 {
 namespace
 {
-constexpr auto kTableHeader = std::string_view{"|Keyword|Type|Description|\n|-------|----|-----------|"};
+// constexpr auto kTableHeader = std::string_view{"|Keyword|Type|Description|\n|-------|----|-----------|"};
+constexpr auto kTableHeader =
+    std::string_view{"```{list-table}\n:header-rows: 1\n:widths: 24 26 50\n\n* - Keyword\n  - Type\n  - Description\n"};
 constexpr auto kIntroMarkdownFileName = std::string_view{"intro.md"};
 constexpr auto kPostBlocksMarkdownFileName = std::string_view{"outro.md"};
 const auto kComponentsDocumentationDirectory = std::filesystem::path{"component_documentation"};
@@ -108,10 +110,12 @@ auto markdown_inputs_table(const ComponentDocumentation& aComponentDocumentation
 {
     return std::accumulate(aComponentDocumentation.mInputs.begin(), aComponentDocumentation.mInputs.end(),
                            std::string{kTableHeader},
-                           [](std::string aCurrentTable, const auto& aInput) {
-                               return std::move(aCurrentTable) +
-                                      std::format("\n|`{}`|{}|{}|", aInput.mName, aInput.mType, aInput.mComment);
-                           });
+                           [](std::string aCurrentTable, const auto& aInput)
+                           {
+                               return std::move(aCurrentTable) + std::format("\n* - `{}`\n  - {}\n  - {}", aInput.mName,
+                                                                             aInput.mType, aInput.mComment);
+                           }) +
+           std::string("\n```");
 }
 
 namespace detail
