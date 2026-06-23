@@ -29,9 +29,8 @@ PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (double, initial_direction_magnitude, "Required field specifying the magnitude of the perturbation of the design controls.")
     (double, step_size_reduction_factor, "Required field specifying how much the perturbation will be reduced for each step, e.g., 0.1 for log10 step sizes.")
     (unsigned, random_direction_seed, "Optional field specifying the seed that is used to generate the random perturbation of the controls. "
-                                                    "If no seed is provided, the clock will be used to generate a seed.")
-    (plato::input_parser::DirectionVectorTypes, direction_vector_type, "Required field specifying how to generate the direction vector. "
-                                                                       "Inputs can be: 'random', 'uniform_positive', or 'uniform_negative'")                                                    
+                                      "If no seed is provided, the clock will be used to generate a seed.")
+    (plato::input_parser::DirectionVectorTypes, direction_vector_type, "Required field specifying how to generate the direction vector.")
 )
 // clang-format on
 

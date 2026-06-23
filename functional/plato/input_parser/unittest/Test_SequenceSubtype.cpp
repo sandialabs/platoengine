@@ -39,9 +39,8 @@ TEST(SequenceSubtype, ParsingTests)
 
 TEST(SequenceSubType, DataTypeDocumentation)
 {
-    EXPECT_EQ(
-        data_type_documentation(SNLEmployee{}),
-        "Composite type: `age` {Signed integer} `meets_expectations` {`true` or `false`} `salary` {Floating point} ");
+    EXPECT_EQ(data_type_documentation(SNLEmployee{}),
+              "Composite type: `age` `<int>` `meets_expectations` `true`, `false` `salary` `<float>` ");
 }
 
 }  // namespace plato::input_parser::unittest

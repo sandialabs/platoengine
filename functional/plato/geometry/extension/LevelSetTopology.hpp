@@ -31,19 +31,19 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
         "Can range from 0 to 1. A value of 0 turns off snapping (only cutting), a value of 1 will collapse all edges near the level set interface (no cutting). Default is 0.15.")
     (plato::input_parser::SpherePattern, sphere_pattern,"Method of specifying the initial level set field with a 'swiss cheese' pattern. "
                                                         "Define a sphere pattern by specifying its radius, space between radius centers, a minimum point and a maximum point. "
-                                                        "Omit if a sphere_list or initial_field_name is specified."
+                                                        "Omit if a `sphere_list` or `initial_field_name` is specified."
                                                         "This is an example pattern: sphere_pattern radius 1.1 spacing 2.5 min (0,0,0) max (10,10,10) ")
     (plato::input_parser::Bounds, level_set_bounds, "Required field specifying the lower and upper bounds of the nodal design variables that define the level set field.")
     (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter block to apply to the controls. "
                                                                                                "Only required if more than one filter is specified.")
-    (plato::input_parser::BlockList, fixed_blocks, "Optional list of blocks in the mesh that will have level-set fields assigned to the level_set_upper_bound value.")
-    (plato::input_parser::IdentifierString, initial_field_name, "Method to read the controls from the specified field name within the 'mesh_name' exodus mesh. "
-                                                                "The read in field will automatically be centered and scaled using an affine transformation to match the 'level_set_bounds'. "
+    (plato::input_parser::BlockList, fixed_blocks, "Optional list of blocks in the mesh that will have level-set fields assigned to the `level_set_bounds` upper value.")
+    (plato::input_parser::IdentifierString, initial_field_name, "Method to read the controls from the specified field name within the `mesh_name` exodus mesh. "
+                                                                "The read in field will automatically be centered and scaled using an affine transformation to match the `level_set_bounds`. "
                                                                 "Omit if a sphere_pattern or sphere_list is specified.")
     (plato::input_parser::LevelSetSphereList, sphere_list, "Method of specifying the initial level set field using a list of sphere primitives. "
-                                                            "Define as many as you like, comma separated, in this manner: sphere_list radius_value (center_x,center_y,center_z), ... . "
-                                                            "Omit if a sphere_pattern or initial_field_name is specified. "
-                                                            "This is an example list: sphere_list radius 1.2 center (1,2,3), radius 0.5 center (-1,-2,-3)")
+                                                           "Define as many as you like, comma separated. "
+                                                           "Omit if a `sphere_pattern` or `initial_field_name` is specified. "
+                                                           "This is an example list: sphere_list radius 1.2 center (1,2,3), radius 0.5 center (-1,-2,-3)")
 )
 // clang-format on
 

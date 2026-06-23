@@ -41,8 +41,8 @@ TEST(FileList, ConstIterators)
 
 TEST(FileList, DataTypeNames)
 {
-    EXPECT_EQ(data_type_documentation(FileName{}), "File name");
-    EXPECT_EQ(data_type_documentation(FileList{}), "Comma separated list of file names");
+    EXPECT_EQ(data_type_documentation(FileName{}), "`<file name>`");
+    EXPECT_EQ(data_type_documentation(FileList{}), "Comma separated list of `<file name>`");
 }
 
 }  // namespace plato::input_parser::unittest

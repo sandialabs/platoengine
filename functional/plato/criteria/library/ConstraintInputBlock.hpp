@@ -37,7 +37,7 @@ PLATO_NAMED_INPUT_BLOCK_STRUCT(
         "\"component mass target 42.0\". Only usable by vector constraints to select a subset of vector components.")
     (double, constraint_value, "Required value that the constraint is evaluated against.")
     (bool, is_linear, "Required parameter specifying whether the constraint is linear with respect to the controls.")
-    (plato::input_parser::ConstraintTypes, constraint_type, "Required parameter specifying the type of constraint to enforce, 'equal_to', 'less_than', or 'greater_than'.")
+    (plato::input_parser::ConstraintTypes, constraint_type, "Required parameter specifying the type of constraint to enforce.")
 )
 // clang-format on
 

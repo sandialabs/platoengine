@@ -45,7 +45,7 @@ constexpr inline bool kIsInputSequenceSubtype<STRUCT_NAME> = true;              
     {                                                                                                   \
         using plato::documentation::data_type_documentation;                                            \
         (tDocumentation += ... +=                                                                       \
-            std::format("`{}` {{{}}} ",                                                                 \
+            std::format("`{}` {} ",                                                                     \
                 boost::fusion::extension::struct_member_name<STRUCT_NAME, kIndices>::call(),            \
                 data_type_documentation(                                                                \
                     typename boost::fusion::result_of::value_at_c<STRUCT_NAME, kIndices>::type{})       \

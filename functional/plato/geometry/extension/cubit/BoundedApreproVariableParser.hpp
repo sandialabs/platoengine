@@ -5,7 +5,9 @@
 #include <boost/fusion/include/define_struct.hpp>
 #include <boost/proto/deep_copy.hpp>
 #include <boost/spirit/include/qi.hpp>
+#include <format>
 
+#include "plato/documentation/DataTypeDocumentation.hpp"
 #include "plato/input_parser/AutoList.hpp"
 #include "plato/input_parser/Bounds.hpp"
 #include "plato/input_parser/UserDefinedToken.hpp"
@@ -43,7 +45,8 @@ namespace plato::input_parser
 {
 [[nodiscard]] inline auto data_type_documentation(const BoundedApreproVariable& /*unused*/) -> std::string
 {
-    return "Composite type: {String} {Floating point} [{Floating point}, {Floating point}]";
+    return std::format("Composite type: String {} {}", documentation::data_type_documentation(double{}),
+                       data_type_documentation(Bounds{}));
 }
 }  // namespace plato::input_parser
 

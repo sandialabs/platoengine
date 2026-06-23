@@ -33,9 +33,6 @@ TEST(Point, ParsingTests)
     }
 }
 
-TEST(Point, DataTypeDocumentation)
-{
-    EXPECT_EQ(data_type_documentation(Point{}), "({Floating point}, {Floating point}, {Floating point})");
-}
+TEST(Point, DataTypeDocumentation) { EXPECT_EQ(data_type_documentation(Point{}), "(`<float>`, `<float>`, `<float>`)"); }
 
 }  // namespace plato::input_parser::unittest

@@ -4,12 +4,12 @@
 
 namespace plato::documentation::unittest
 {
-TEST(DataTypeDocumentation, Double) { EXPECT_EQ(data_type_documentation(double{}), "Floating point"); }
+TEST(DataTypeDocumentation, Double) { EXPECT_EQ(data_type_documentation(double{}), "`<float>`"); }
 
-TEST(DataTypeDocumentation, Int) { EXPECT_EQ(data_type_documentation(int{}), "Signed integer"); }
+TEST(DataTypeDocumentation, Int) { EXPECT_EQ(data_type_documentation(int{}), "`<int>`"); }
 
-TEST(DataTypeDocumentation, UnsignedInt) { EXPECT_EQ(data_type_documentation(unsigned{}), "Unsigned integer"); }
+TEST(DataTypeDocumentation, UnsignedInt) { EXPECT_EQ(data_type_documentation(unsigned{}), "`<unsigned int>`"); }
 
-TEST(DataTypeDocumentation, Bool) { EXPECT_EQ(data_type_documentation(bool{}), "`true` or `false`"); }
+TEST(DataTypeDocumentation, Bool) { EXPECT_EQ(data_type_documentation(bool{}), "`true`, `false`"); }
 
 }  // namespace plato::documentation::unittest

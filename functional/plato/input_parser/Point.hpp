@@ -3,6 +3,9 @@
 
 #include <boost/fusion/include/define_struct.hpp>
 #include <boost/spirit/include/qi.hpp>
+#include <format>
+
+#include "plato/documentation/DataTypeDocumentation.hpp"
 
 ///@brief Input struct with parser to read in a cartesian point from the input deck
 // clang-format off
@@ -26,7 +29,8 @@ namespace plato::input_parser
 
 [[nodiscard]] inline auto data_type_documentation(const Point& /*unused*/) -> std::string
 {
-    return "({Floating point}, {Floating point}, {Floating point})";
+    const auto tFloatFormat = documentation::data_type_documentation(double{});
+    return std::format("({}, {}, {})", tFloatFormat, tFloatFormat, tFloatFormat);
 }
 
 }  // namespace plato::input_parser

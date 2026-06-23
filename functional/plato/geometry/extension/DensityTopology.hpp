@@ -24,9 +24,9 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato::input_parser::BlockList, fixed_blocks, "Optional comma separated list of block names that should be fixed in the mesh and not be part of the optimization.")
     (plato::input_parser::CrossReference<plato::components::ComponentType::kFilter>, filter, "Name of the filter block to apply to the controls. "
                                                                                                "Only required if more than one filter is specified.")
-    (double, initial_density_value, "Method to specify a uniform initial density value to give to the controls. Omit if 'initial_density_field_name' is specified.")
-    (plato::input_parser::IdentifierString, initial_field_name, "Method to read the controls from the specified field name within the 'mesh_name' exodus mesh. "
-                                                                "Omit if 'initial_density_value' is specified.")
+    (double, initial_density_value, "Method to specify a uniform initial density value to give to the controls. Omit if `initial_density_field_name` is specified.")
+    (plato::input_parser::IdentifierString, initial_field_name, "Method to read the controls from the specified field name within the `mesh_name` exodus mesh. "
+                                                                "Omit if `initial_density_value` is specified.")
     (plato::input_parser::FileName, cut_mesh_name, "Optional field specifying the name of the exodus file to create when creating a conforming cut mesh of the density field. "
                                                     "A value of 0.5 is used as the threshold for an iso-surface. This option only works with tet and tri meshes.") 
 )

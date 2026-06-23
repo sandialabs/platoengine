@@ -194,8 +194,7 @@ TEST_F(GeneralReflectWedgeFixture, ValidateSourceMeshOnPositiveSideOfNormal30Deg
 TEST(GeneralReflectWedge, DataTypeDocumentation)
 {
     EXPECT_EQ(input_parser::data_type_documentation(input_parser::GeneralPlane{}),
-              "Composite type: `center` {({Floating point}, {Floating point}, {Floating point})} `normal` {({Floating "
-              "point}, {Floating point}, {Floating point})} ");
+              "Composite type: `center` (`<float>`, `<float>`, `<float>`) `normal` (`<float>`, `<float>`, `<float>`) ");
 }
 
 }  // namespace plato::filter::extension::kernel_filters::unittest
