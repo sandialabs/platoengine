@@ -14,9 +14,8 @@ namespace plato::documentation::documentation_generator::library
 {
 namespace
 {
-// constexpr auto kTableHeader = std::string_view{"|Keyword|Type|Description|\n|-------|----|-----------|"};
 constexpr auto kTableHeader =
-    std::string_view{"```{list-table}\n:header-rows: 1\n:widths: 24 26 50\n\n* - Keyword\n  - Type\n  - Description\n"};
+    std::string_view{"```{list-table}\n:header-rows: 1\n:widths: 35 20 45\n\n* - Keyword\n  - Type\n  - Description\n"};
 constexpr auto kIntroMarkdownFileName = std::string_view{"intro.md"};
 constexpr auto kPostBlocksMarkdownFileName = std::string_view{"outro.md"};
 const auto kComponentsDocumentationDirectory = std::filesystem::path{"component_documentation"};
