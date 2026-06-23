@@ -16,6 +16,7 @@ namespace
 {
 constexpr auto kTableHeader = std::string_view{"|Keyword|Type|Description|\n|-------|----|-----------|"};
 constexpr auto kIntroMarkdownFileName = std::string_view{"intro.md"};
+constexpr auto kPostBlocksMarkdownFileName = std::string_view{"outro.md"};
 const auto kComponentsDocumentationDirectory = std::filesystem::path{"component_documentation"};
 
 [[nodiscard]] auto data_file_contents(const std::filesystem::path& aFilePath) -> std::string
@@ -50,6 +51,7 @@ auto main_section() -> std::string
                                components::component_documentation_brief(aComponentType));
         });
 
+    tIntroText += data_file_contents(kPostBlocksMarkdownFileName);
     const auto tToGlobString =
         tAllComponentTypes |
         std::views::transform([](const auto aComponentType)
