@@ -10,12 +10,15 @@
 A Plato input deck is organized into blocks using `begin` and `end`:
 
 ```text
-begin <command>
+begin <component>
     <keyword> <value>
 end
 ```
 
-The `<command>` names the type of block being defined, such as a geometry, filter, objective, constraint, or process manager. The commands documented in this user manual correspond to the valid block names. Within a block, each option is written as a `<keyword>` followed by a `<value>`. Some more complicated commands may use a list of values or values with additional keywords. Plato input decks do **not** use `=` signs or assignment syntax.
+The `<component>` names the type of block being defined, such as a geometry, filter, objective, constraint, or process manager.
+The components documented in this user manual correspond to the valid block names.
+Within a block, each option is written as a `<keyword>` followed by a `<value>`.
+Some more complicated components may use a list of values or values with additional keywords. Plato input decks do **not** use `=` signs or assignment syntax.
 
 Examples:
 
