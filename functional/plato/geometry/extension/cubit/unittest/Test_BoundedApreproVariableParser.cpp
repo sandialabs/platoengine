@@ -106,7 +106,7 @@ TEST(BoundedApreproVariableListParser, ValidInputParsingTestSingleEntry)
 TEST(BoundedApreproVariableListParser, DataTypeDocumentation)
 {
     EXPECT_EQ(data_type_documentation(input_parser::BoundedApreproVariable{}),
-              "Composite type: {String} {Floating point} [{Floating point}, {Floating point}]");
+              "Composite type: `<string>` `<real>` [`<real>`, `<real>`]");
 }
 
 }  // namespace plato::geometry::extension::cubit::unittest

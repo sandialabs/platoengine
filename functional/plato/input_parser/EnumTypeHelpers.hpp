@@ -129,14 +129,14 @@ namespace ENUM_NAMESPACE                                                        
     [[nodiscard]] auto data_type_documentation(const ENUM_NAME /*unused*/) -> std::string                       \
     {                                                                                                           \
         const auto& tTable = TABLE_NAME_FROM_ENUM_NAME(ENUM_NAME);                                              \
-        auto tDocumentation = std::format("`{}`", tTable.toString(tTable.begin()->first).value());              \
+        auto tDocumentation = std::format("`{}", tTable.toString(tTable.begin()->first).value());               \
         return std::accumulate(std::next(tTable.begin()), tTable.end(),                                         \
                                std::move(tDocumentation),                                                       \
                                [](std::string aCurrentString, const auto& tTableEntry)                          \
                                {                                                                                \
                                    return std::move(aCurrentString) +                                           \
-                                       std::format(", `{}`", tTableEntry.second);                               \
-                               });                                                                              \
+                                       std::format(" | {}", tTableEntry.second);                                \
+                               }) + std::string{"`"};                                                           \
     }                                                                                                           \
 }
 // NOLINTEND(cppcoreguidelines-macro-usage)

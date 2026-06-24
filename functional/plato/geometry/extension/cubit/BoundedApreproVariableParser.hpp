@@ -45,7 +45,7 @@ namespace plato::input_parser
 {
 [[nodiscard]] inline auto data_type_documentation(const BoundedApreproVariable& /*unused*/) -> std::string
 {
-    return std::format("Composite type: String {} {}", documentation::data_type_documentation(double{}),
+    return std::format("Composite type: `<string>` {} {}", documentation::data_type_documentation(double{}),
                        data_type_documentation(Bounds{}));
 }
 }  // namespace plato::input_parser
