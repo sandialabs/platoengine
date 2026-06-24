@@ -17,7 +17,7 @@ struct AnalysisDomainMesh;
 // clang-format off
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), kernel_filter,
-    "Smooths design parameters using a distance-weighted sum within a given radius",
+    "Smooths design parameters using a distance-weighted sum within a given `filter_radius`",
     (double, filter_radius, plato::filter::extension::kernel_filters::kKernelFilterRadiusHelpText)
     (plato::input_parser::KernelFilterCenteringTypes, centering_type, plato::filter::extension::kernel_filters::kKernelFilterCenteringTypeHelpText)
     (bool, use_relative_radius, plato::filter::extension::kernel_filters::kKernelFilterRelativeRadiusHelpText)

@@ -20,7 +20,7 @@ PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), cubit_parameterized_shape,
     "Parameterizes a design using a Cubit journal file annotated with Aprepro variables.",
     (plato::input_parser::FileName, mesh_journal_file, "Required field specifying the cubit journal file to run. "
-                                                                 "Do not define aprepro variables in the journal file that are listed in the Plato input as aprepro_variables. "
+                                                                 "Do not define aprepro variables in the journal file that are listed in the Plato input as `aprepro_variables`. "
                                                                  "For fastest finite differencing, distinguish geometry operations from meshing. Use {IfDef(compute_mesh)} ... {EndIf} to enclose all meshing steps.")
     (plato::input_parser::FileName, output_file_name, "Required field specifying the file to write the final values of the aprepro variables.")
     (plato::input_parser::FileName, mesh_file_name, "Required field specifying the mesh file name.")
