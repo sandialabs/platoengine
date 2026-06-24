@@ -32,11 +32,13 @@ The optimization algorithms are gradient-based. The default optimizer is **ROL**
 
 ## Architecture
 
-The design of `platoengine` emphasizes composability and extensibility.
+The design of `platoengine` emphasizes composability, extensibility, and runtime configurability.
 
-Objectives, constraints, filters, and geometries are handled as plug-ins and are statically registered. This enables new capabilities to be added without modifying existing core logic, following open-closed software design practices.
+Optimization workflows are configured through the `platoengine` input parser, allowing users to assemble objectives, constraints, filters, geometries, optimizers, and related components without modifying application code. This enables flexible problem definition while preserving a strongly typed implementation underneath.
 
-Function composition is governed by type compatibility. Functions can only be composed with one another when their types match, and this compatibility is enforced at compile time.
+Objectives, constraints, filters, and geometries are handled as plug-ins and are statically registered. This plug-in approach allows new capabilities to be added rapidly while avoiding changes to existing core logic, following open-closed software design practices.
+
+Function composition is governed by type compatibility. Functions can only be composed with one another when their types match, and this compatibility is enforced at compile time. Together, runtime configuration and compile-time validation provide flexibility for users and robustness for production workflows.
 
 ## Dependencies
 
