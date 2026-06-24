@@ -1,31 +1,96 @@
-# PLATO Engine
+# platoengine
 
-<p align="center"><img src="https://github.com/platoengine/platoengine/blob/develop/figures/plato_logo_simple.png" width="400"/></p>
+![Plato Logo](./figures/plato_logo_simple.png)
 
-# Description
-Plato is designed to enable collaborations with academia, national labs and industries by providing open-source tools for optimization-based design. Plato also provides interfaces to enable plug-n-play insertion of external modeling, analysis and optimization tools. Plato comes with a multi-physics finite element solver suited for optimization, algorithms for gradient-based and gradient-free optimization, and many other tools to enable a unique design experience. 
+`platoengine` is Sandia National Laboratories’ production software for topology optimization. It serves as the orchestrator for optimization problems by abstracting computational processes into functions, derivatives, and composition rules. These abstractions allow complex optimization workflows to be assembled in a type-safe manner, with composition validity checked at compile time.
 
-# Getting Started
+`platoengine` supports the definition and optimization of geometries using density-based topology optimization, level-set methods, and shape optimization. These geometry representations define design variables on which gradient-based optimizers operate.
 
-## Installation
-Plato uses [Spack](https://spack.io/) to facilitate and manage its installation. The Plato build instructions can be located in our [Wiki](https://github.com/platoengine/platoengine/wiki/Plato-App).
+## Overview
 
-### Branches
-There are two main branches of this repository: 
-* **release-v0.1.0** - Most recent stable release of Plato. It may not be up to date with the latest features but it will be more tested. 
-* **develop** - Constantly changing and may contain bugs. Checkout the develop branch if you are actively developing in Plato or want access to the latest and greatest features in Plato.
+`platoengine` provides a modern C++ framework for constructing and solving optimization problems. The software is designed around extensibility, strong compile-time checks, and open-closed design principles.
 
-# High Performance Computing
-Plato is intended to provide an interoperable platform for optimization-based design. Plato is designed to permit intercommunication of concurrent, parallel modeling, analysis and optimization tools via a Multiple Program, Multiple Data (MPMD) parallel programming model. The MPMD model enables multiple, parallel, independent programs to efficiently communicate in-memory. 
+Core concepts include:
 
-# Required Libraries
-Plato relies on [Spack](https://spack.io/) to manage its dependencies. 
+- **Functions and derivatives** as first-class abstractions
+- **Compile-time type checking** for valid function composition
+- **Gradient-based optimization**
+- **Geometry abstractions** for topology, level-set, and shape optimization
+- **Plug-in-style extensibility** for objectives, constraints, filters, and geometries
+- **Static registration** of components to support modular development
+- **CI-gated development** to maintain correctness and stability
 
-# Hardware Requirements
-Plato has been mostly installed and tested on Linux operating systems. It has been installed on macOS and Windows OS in the past using Docker. However, the code is not tested nightly on these two operating systems, macOS and Windows, yet. The team strongly advices users to install Plato on Linux systems. 
+## Optimization Capabilities
 
-# Contributing 
-Please open a GitHub issue to ask a question, report a bug, request features, etc.  If you'd like to contribute, please fork the repository and use a feature branch.  Make sure to follow the team's [coding style policies](https://github.com/platoengine/platoengine/wiki/Coding-Style).  Pull requests are welcomed.
+`platoengine` allows users to define geometries to be optimized and exposes corresponding design variables to an optimizer. Supported geometry and optimization approaches include:
 
-# User Support
-Users are welcomed to submit questions via email to plato3D-help@sandia.gov.
+- Density-based topology optimization
+- Level-set optimization
+- Shape optimization
+
+The optimization algorithms are gradient-based. The default optimizer is **ROL**, the Rapid Optimization Library from Trilinos, which is the primary external dependency of `platoengine`.
+
+## Architecture
+
+The design of `platoengine` emphasizes composability and extensibility.
+
+Objectives, constraints, filters, and geometries are handled as plug-ins and are statically registered. This enables new capabilities to be added without modifying existing core logic, following open-closed software design practices.
+
+Function composition is governed by type compatibility. Functions can only be composed with one another when their types match, and this compatibility is enforced at compile time.
+
+## Dependencies
+
+`platoengine` is written entirely in modern C++.
+
+Major dependencies include:
+
+- [Trilinos](https://trilinos.github.io/), including ROL
+- Boost
+- Spack-managed third-party libraries
+
+## Build and Installation
+
+`platoengine` uses [Spack](https://spack.io/) to manage build packages and dependencies.
+
+While `platoengine` can be installed directly using Spack, the recommended starting point is the Plato super-project, which provides utilities for setting up the full build environment.
+
+Recommended workflow:
+
+1. Start from the Plato super-project.
+2. Use the provided Plato utilities to configure the build environment.
+3. Build `platoengine` as part of the Plato software stack.
+
+Direct Spack-based installation is also supported for appropriate developer workflows.
+
+## Branches and Releases
+
+Development is managed through CI-gated branches.
+
+- `develop` contains the most recent features and passes the full test suite.
+- Tagged releases follow major, minor, and patch versioning.
+- Other branches may represent release, maintenance, or development workflows.
+
+All versions of `platoengine` are gated through CI pipelines.
+
+## Platform Support
+
+`platoengine` is supported on Linux-based systems.
+
+Supported compiler families include:
+
+- GCC
+- Clang
+
+Other platforms are not currently supported.
+
+## Contributing
+
+`platoengine` is Sandia production software. External contributions are not accepted.
+
+Development is managed internally, and all changes are subject to project review, testing, and CI requirements.
+
+## Copyright
+
+Sandia National Laboratories is a multimission laboratory managed and operated by National Technology and Engineering Solutions of Sandia, LLC., a wholly owned subsidiary of Honeywell International, Inc., for the U.S. Department of Energy’s National Nuclear Security Administration under contract DE-NA-0003525.
+
+Copyright 2026, National Technology and Engineering Solutions of Sandia, LLC.
