@@ -2,7 +2,7 @@
 
 ![Plato Logo](./figures/plato_logo_simple.png)
 
-`platoengine` is Sandia National Laboratories’ production software for topology optimization. It serves as the orchestrator for optimization problems by abstracting computational processes into functions, derivatives, and composition rules. These abstractions allow complex optimization workflows to be assembled in a type-safe manner, with composition validity checked at compile time.
+`platoengine` is Sandia National Laboratories’ production and research framework for topology optimization. It orchestrates optimization problems by abstracting computational processes into functions, derivatives, and composition rules. Its flexible plug-in architecture supports robust production workflows as well as rapid prototyping of research-oriented methods, while compile-time type checking and strict CI gating help ensure reliability, correctness, and production readiness.
 
 `platoengine` supports the definition and optimization of geometries using density-based topology optimization, level-set methods, and shape optimization. These geometry representations define design variables on which gradient-based optimizers operate.
 
