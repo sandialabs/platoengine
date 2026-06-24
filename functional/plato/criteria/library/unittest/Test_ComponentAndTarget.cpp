@@ -40,9 +40,9 @@ TEST(ComponentAndTarget, Invalid)
 TEST(ComponentAndTarget, DataTypeNames)
 {
     EXPECT_EQ(data_type_documentation(input_parser::ComponentAndTarget{}),
-              "Composite type: `component` `<string>` `target` `<float>` ");
+              "Composite type: `component` `<string>` `target` `<real>` ");
     EXPECT_EQ(data_type_documentation(input_parser::AutoList<input_parser::ComponentAndTarget>{}),
-              "Comma separated list of: Composite type: `component` `<string>` `target` `<float>` ");
+              "Comma separated list of: Composite type: `component` `<string>` `target` `<real>` ");
 }
 
 }  // namespace plato::criteria::library::unittest

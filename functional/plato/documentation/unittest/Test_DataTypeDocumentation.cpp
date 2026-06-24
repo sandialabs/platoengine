@@ -4,7 +4,7 @@
 
 namespace plato::documentation::unittest
 {
-TEST(DataTypeDocumentation, Double) { EXPECT_EQ(data_type_documentation(double{}), "`<float>`"); }
+TEST(DataTypeDocumentation, Double) { EXPECT_EQ(data_type_documentation(double{}), "`<real>`"); }
 
 TEST(DataTypeDocumentation, Int) { EXPECT_EQ(data_type_documentation(int{}), "`<int>`"); }
 

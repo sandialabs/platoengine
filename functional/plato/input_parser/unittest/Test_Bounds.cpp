@@ -35,7 +35,7 @@ TEST(Bounds, ParsingTests)
 
 TEST(Bounds, DataTypeDocumentation)
 {
-    EXPECT_EQ(data_type_documentation(input_parser::Bounds{}), "[`<float>`, `<float>`]");
+    EXPECT_EQ(data_type_documentation(input_parser::Bounds{}), "[`<real>`, `<real>`]");
 }
 
 }  // namespace plato::input_parser::unittest

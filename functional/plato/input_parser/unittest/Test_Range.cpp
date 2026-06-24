@@ -33,6 +33,6 @@ TEST(Range, ParsingTests)
     }
 }
 
-TEST(Range, DataTypeDocumentation) { EXPECT_EQ(data_type_documentation(Range{}), "[`<float>`:`<float>`:`<float>`]"); }
+TEST(Range, DataTypeDocumentation) { EXPECT_EQ(data_type_documentation(Range{}), "[`<real>`:`<real>`:`<real>`]"); }
 
 }  // namespace plato::input_parser::unittest

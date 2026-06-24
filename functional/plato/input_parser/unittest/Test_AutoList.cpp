@@ -130,7 +130,7 @@ TEST(AutoList, SuccessfulParseMultipleBounds)
 TEST(AutoList, DataTypeDocumentation)
 {
     const auto tDocumentation = data_type_documentation(AutoList<double>{});
-    EXPECT_EQ(tDocumentation, "Comma separated list of: `<float>`");
+    EXPECT_EQ(tDocumentation, "Comma separated list of: `<real>`");
 }
 
 }  // namespace plato::input_parser::unittest
