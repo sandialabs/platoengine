@@ -2,3 +2,7 @@ The filter, `kernel_filter`, takes node-centered design variables and performs a
 These can be mapped to either node-centered or element-centered design fields depending on the element_centering parameter. 
 
 Note that for highly unstructured meshes with a wide range of element sizes, this approach may result in unwanted artifacts and the filter radius must be chosen carefully.
+
+```{important}
+Match the `centering_type` to the objective being used.
+```

@@ -3,4 +3,8 @@ The symmetry is through mirrored planes for a given wedge_angle.
 
 This filter uses two meshes, a source and a target mesh.
 The source mesh is defined in the geometry input and the target mesh in the filter block.
-The source mesh must be a 3D mesh contained within the wedge defined by the wedge_angle. 
+The wedge must be defined in the domain starting on the XZ-plane and that formed by sweeping the XZ-plane about the Z-axis by the `wedge_angle`.
+
+```{important}
+Match the `centering_type` to the objective being used.
+```
