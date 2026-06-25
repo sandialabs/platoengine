@@ -131,6 +131,17 @@ auto criterion_function_has_trait(const std::string_view aFunctionName, const Cr
         { return has_trait(aTraits, aTrait) && criterion_function_has_traits(aFunctionName, aTraits); });
 }
 
+auto criterion_traits(const std::string_view aRegisteredCriterionName) -> std::vector<CriterionTraits>
+{
+    auto tToTraits = std::views::iota(0U, number_of_traits()) |
+                     std::views::transform([](const auto aTraitIndex) { return traits_from_index(aTraitIndex); }) |
+                     std::views::filter([=](const auto aTraits)
+                                        { return criterion_function_has_traits(aRegisteredCriterionName, aTraits); }) |
+                     std::views::common;
+
+    return std::vector<CriterionTraits>{tToTraits.begin(), tToTraits.end()};
+}
+
 template auto criterion_function_has_trait(const std::string_view aFunctionName,
                                            const FunctionDimension aTrait) -> bool;
 template auto criterion_function_has_trait(const std::string_view aFunctionName, const Parallelization aTrait) -> bool;
