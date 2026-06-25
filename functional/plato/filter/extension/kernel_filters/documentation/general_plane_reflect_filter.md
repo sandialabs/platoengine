@@ -2,5 +2,6 @@ The filter, `general_plane_filter`, in addition to performing a distance weighte
 
 This filter uses two meshes, a source and a target mesh.
 The source mesh is defined in the geometry input and the target mesh in the filter block.
-The source mesh must be on the positive normal side of the plane.
+The source mesh is defined in the geometry input as `mesh_name` and the target mesh as `target_mesh_name` in the filter block.
+The source `mesh_name` must be on the positive normal side of the plane.
 The target mesh must contain the full symmetric design domain.
