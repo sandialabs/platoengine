@@ -1,4 +1,4 @@
-#include "plato/documentation/documentation_generator/library/MarkdownWriter.hpp"
+#include "plato/main/documentation_generator/library/MarkdownWriter.hpp"
 
 #include <cstdint>
 #include <filesystem>
@@ -6,7 +6,7 @@
 #include <string_view>
 
 #include "plato/components/ComponentType.hpp"
-#include "plato/documentation/documentation_generator/library/MarkdownFormatter.hpp"
+#include "plato/main/documentation_generator/library/MarkdownFormatter.hpp"
 
 namespace plato::documentation::documentation_generator::library
 {

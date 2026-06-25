@@ -1,4 +1,5 @@
 add_subdirectory(./library)
+add_subdirectory(./documentation_generator)
 
 set(SRCS Main.cpp )
 set(EXE_NAME plato)

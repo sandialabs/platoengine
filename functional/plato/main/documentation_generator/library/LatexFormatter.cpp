@@ -1,4 +1,4 @@
-#include "plato/documentation/documentation_generator/library/LatexFormatter.hpp"
+#include "plato/main/documentation_generator/library/LatexFormatter.hpp"
 
 #include <algorithm>
 #include <iterator>

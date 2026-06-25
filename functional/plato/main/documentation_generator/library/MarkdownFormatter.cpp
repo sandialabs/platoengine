@@ -1,4 +1,4 @@
-#include "plato/documentation/documentation_generator/library/MarkdownFormatter.hpp"
+#include "plato/main/documentation_generator/library/MarkdownFormatter.hpp"
 
 #include <cassert>
 #include <cstdint>

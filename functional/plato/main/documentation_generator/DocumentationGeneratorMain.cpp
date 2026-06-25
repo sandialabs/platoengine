@@ -2,8 +2,8 @@
 #include <iostream>
 
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
-#include "plato/documentation/documentation_generator/library/LatexFormatter.hpp"
-#include "plato/documentation/documentation_generator/library/MarkdownWriter.hpp"
+#include "plato/main/documentation_generator/library/LatexFormatter.hpp"
+#include "plato/main/documentation_generator/library/MarkdownWriter.hpp"
 
 namespace
 {

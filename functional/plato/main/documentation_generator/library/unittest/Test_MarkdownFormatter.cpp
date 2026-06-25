@@ -9,7 +9,7 @@
 #include "plato/components/ComponentTypeStream.hpp"
 #include "plato/components/Documentation.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
-#include "plato/documentation/documentation_generator/library/MarkdownFormatter.hpp"
+#include "plato/main/documentation_generator/library/MarkdownFormatter.hpp"
 #include "plato/test_utilities/Strings.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 

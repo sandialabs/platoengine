@@ -1,7 +1,7 @@
 #ifndef PLATO_DOCUMENTATION_DOCUMENTATION_GENERATOR_LIBRARY_MARKDOWNWRITER
 #define PLATO_DOCUMENTATION_DOCUMENTATION_GENERATOR_LIBRARY_MARKDOWNWRITER
 
-#include "plato/documentation/documentation_generator/library/MarkdownFormatter.hpp"
+#include "plato/main/documentation_generator/library/MarkdownFormatter.hpp"
 
 namespace plato::documentation::documentation_generator::library
 {
