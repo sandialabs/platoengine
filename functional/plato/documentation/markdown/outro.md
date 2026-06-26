@@ -9,7 +9,7 @@
 
 A Plato input deck is organized into blocks using `begin` and `end`:
 
-```text
+```plato
 begin <component>
     <keyword> <value>
 end
@@ -22,20 +22,26 @@ Some more complicated components may use a list of values or values with additio
 
 Examples:
 
-```text
+```plato
 begin kernel_filter
     radius 1.0
     centering_type node
 end
 ```
 
-```text
+```plato
 begin rol_optimization
     max_iterations 1000
 end
 ```
 
-
+Comments can be used in an input deck with the `#` or `/* ... */`:
+```plato
+begin density_topology # comment for geometry input
+    mesh_name input_mesh.exo
+    initial_density_value /* the starting value for the field */ 0.5
+end
+```
 
 ## Running Plato
 
