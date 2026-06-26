@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "plato/criteria/extension/Startup.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/main/documentation_generator/library/LatexFormatter.hpp"
 #include "plato/main/documentation_generator/library/MarkdownWriter.hpp"
@@ -25,11 +26,13 @@ void print_commands(const plato::documentation::documentation_generator::library
 
 auto main() -> int
 {
+    plato::criteria::extension::startup();
+
     const auto tDocumentation = plato::documentation::generate_documentation();
     const auto tResult = plato::documentation::documentation_generator::library::format_command_latex(tDocumentation);
 
     print_commands(tResult);
-    plato::documentation::documentation_generator::library::write_markdown_documentation(tDocumentation);
+    plato::main::documentation_generator::library::write_markdown_documentation(tDocumentation);
 
     return 0;
 }

@@ -6,17 +6,24 @@
 #include <ranges>
 #include <string>
 #include <string_view>
+#include <vector>
 
+#include "plato/criteria/library/CriterionDocumentation.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/utilities/StringUtilities.hpp"
 
-namespace plato::documentation::documentation_generator::library
+namespace plato::main::documentation_generator::library
 {
 
-using HelpDocumentationMap = std::map<std::string, ComponentDocumentation>;
+using HelpDocumentationMap = std::map<std::string, documentation::ComponentDocumentation>;
 
 /// @brief Generates the main documentation section, including a description of Plato and links to its component types.
-[[nodiscard]] auto main_section() -> std::string;
+[[nodiscard]] auto main_section(const std::vector<criteria::library::CriterionDocumentation>& aCriteriaDocumentation)
+    -> std::string;
+
+/// @brief Generates a table of the information in @a aCriteriaDocumentation.
+[[nodiscard]] auto criteria_table(const std::vector<criteria::library::CriterionDocumentation>& aCriteriaDocumentation)
+    -> std::string;
 
 /// @brief Generates a component type subsection, including links to all examples of @a aComponentType.
 [[nodiscard]] auto component_type_subsection(const HelpDocumentationMap& aComponentDocumentation,
@@ -25,11 +32,12 @@ using HelpDocumentationMap = std::map<std::string, ComponentDocumentation>;
 
 /// @brief Generates a component's subsection, with a subsection depth given by @a aSubsectionDepth.
 [[nodiscard]] auto component_subsection(std::string_view aComponentName,
-                                        const ComponentDocumentation& aComponentDocumentation,
+                                        const documentation::ComponentDocumentation& aComponentDocumentation,
                                         std::uint8_t aSubsectionDepth) -> std::string;
 
 /// @brief Generates a Markdown-style table containing all inputs in @a aComponentDocumentation.
-[[nodiscard]] auto markdown_inputs_table(const ComponentDocumentation& aComponentDocumentation) -> std::string;
+[[nodiscard]] auto markdown_inputs_table(const documentation::ComponentDocumentation& aComponentDocumentation)
+    -> std::string;
 
 namespace detail
 {
@@ -67,6 +75,6 @@ auto toc_tree(const std::ranges::range auto& aEntries,
 
 }  // namespace detail
 
-}  // namespace plato::documentation::documentation_generator::library
+}  // namespace plato::main::documentation_generator::library
 
 #endif

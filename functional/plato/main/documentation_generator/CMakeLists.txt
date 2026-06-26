@@ -2,7 +2,10 @@ include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 include(${CMAKE_UTIL_DIR}/add_documentation.cmake)
 
-create_plato_library(PlatoFunctionalDocumentationGenerator "library" PlatoFunctionalDocumentation)
+set(LINK_LIBS PlatoFunctionalCriteria
+              PlatoFunctionalDocumentation)
+
+create_plato_library(PlatoFunctionalDocumentationGenerator "library" "${LINK_LIBS}")
 
 if( UNIT_TESTING )
   add_documentation("${CMAKE_CURRENT_SOURCE_DIR}/library/unittest/data/")

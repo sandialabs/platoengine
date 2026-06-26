@@ -13,19 +13,21 @@
 #include "plato/test_utilities/Strings.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
-namespace plato::documentation::documentation_generator::library
+namespace plato::main::documentation_generator::library
 {
 namespace
 {
 constexpr auto kComponentName = std::string_view{"Magic"};
 constexpr auto kTestComponentType = components::ComponentType::kGeometry;
-const auto kTestComponentDocumentation = ComponentDocumentation{
+const auto kTestComponentDocumentation = documentation::ComponentDocumentation{
     .mComponentType = kTestComponentType,
     .mDescription = "Magic cards!",
     .mInputs = {
-        InputKeywordDocumentation{.mName = "land", .mType = "permanent", .mComment = "Provides mana"},
-        InputKeywordDocumentation{.mName = "creature", .mType = "permanent", .mComment = "Attacks and blocks"},
-        InputKeywordDocumentation{.mName = "instant", .mType = "spell", .mComment = "Spell played at instant speed"}}};
+        documentation::InputKeywordDocumentation{.mName = "land", .mType = "permanent", .mComment = "Provides mana"},
+        documentation::InputKeywordDocumentation{
+            .mName = "creature", .mType = "permanent", .mComment = "Attacks and blocks"},
+        documentation::InputKeywordDocumentation{
+            .mName = "instant", .mType = "spell", .mComment = "Spell played at instant speed"}}};
 
 void check_table(const std::string& aTable, const test_utilities::TestContext& aTestContext)
 {
@@ -41,29 +43,88 @@ void check_table(const std::string& aTable, const test_utilities::TestContext& a
 
 TEST(MarkdownFormatter, MainSection)
 {
-    const auto tMainSectionText = main_section();
-    test_utilities::expect_string_contains_substring(tMainSectionText, "# Plato", TEST_CONTEXT("Main section"));
+    const auto tMainSectionText = main_section({});
+    test_utilities::expect_string_contains_substring(tMainSectionText, "# Plato", TEST_CONTEXT("Main section, intro"));
     for (const auto tComponentType : components::all_component_types())
     {
         test_utilities::expect_string_contains_substring(tMainSectionText, components::to_string(tComponentType),
-                                                         TEST_CONTEXT("Main section"));
-        test_utilities::expect_string_contains_substring(
-            tMainSectionText, components::component_documentation_brief(tComponentType), TEST_CONTEXT("Main section"));
+                                                         TEST_CONTEXT("Main section, generated contents"));
+        test_utilities::expect_string_contains_substring(tMainSectionText,
+                                                         components::component_documentation_brief(tComponentType),
+                                                         TEST_CONTEXT("Main section, generated contents"));
     }
 
-    test_utilities::expect_string_contains_substring(tMainSectionText, "toctree", TEST_CONTEXT("Main section"));
+    test_utilities::expect_string_contains_substring(tMainSectionText, "toctree",
+                                                     TEST_CONTEXT("Main section, toctree"));
+
+    test_utilities::expect_string_contains_substring(tMainSectionText, "criteria",
+                                                     TEST_CONTEXT("Main section, criteria table"));
+    test_utilities::expect_string_contains_substring(tMainSectionText, "Parallelization",
+                                                     TEST_CONTEXT("Main section, criteria table"));
+
+    test_utilities::expect_string_contains_substring(tMainSectionText, "plato-parallel",
+                                                     TEST_CONTEXT("Main section, outro"));
+}
+
+TEST(MarkdownFormatter, CriteriaTable)
+{
+    const auto tAppName1 = std::string{"slay-the-spire"};
+    const auto tAppName2 = std::string{"slay-the-spire-2"};
+    const auto tCriterionName1 = std::string{"ironclad"};
+    const auto tCriterionName2 = std::string{"necrobinder"};
+
+    const auto tConcurrencyLabel = std::string{"Parallelization"};
+    const auto tSerialLabel = std::string{"serial"};
+    const auto tParallelLabel = std::string{"parallel"};
+    const auto tDimensionalityLabel = std::string{"Dimensionality"};
+    const auto tScalarLabel = std::string{"scalar"};
+    const auto tVectorLabel = std::string{"vector"};
+
+    const auto tDocumentation1 = criteria::library::CriterionDocumentation{
+        .mAppName = tAppName1,
+        .mCriterionName = tCriterionName1,
+        .mDescription = {},
+        .mVectorComponents = {},
+        .mTraits = {{tConcurrencyLabel, tSerialLabel}, {tDimensionalityLabel, tScalarLabel}}};
+    const auto tDocumentation2 = criteria::library::CriterionDocumentation{
+        .mAppName = tAppName2,
+        .mCriterionName = tCriterionName2,
+        .mDescription = {},
+        .mVectorComponents = {},
+        .mTraits = {{tConcurrencyLabel, tParallelLabel}, {tDimensionalityLabel, tVectorLabel}}};
+
+    const auto tCriteriaDocumentation =
+        std::vector<criteria::library::CriterionDocumentation>{tDocumentation1, tDocumentation2};
+    const auto tTable = criteria_table(tCriteriaDocumentation);
+
+    // Header
+    test_utilities::expect_string_contains_substring(tTable, tConcurrencyLabel, TEST_CONTEXT("Table header"));
+    test_utilities::expect_string_contains_substring(tTable, tDimensionalityLabel, TEST_CONTEXT("Table header"));
+
+    // Criterion 1
+    test_utilities::expect_string_contains_substring(tTable, tSerialLabel, TEST_CONTEXT("Criterion 1"));
+    test_utilities::expect_string_contains_substring(tTable, tScalarLabel, TEST_CONTEXT("Criterion 1"));
+    test_utilities::expect_string_contains_substring(tTable, tAppName1, TEST_CONTEXT("Criterion 1"));
+    test_utilities::expect_string_contains_substring(tTable, tCriterionName1, TEST_CONTEXT("Criterion 1"));
+
+    // Criterion 2
+    test_utilities::expect_string_contains_substring(tTable, tParallelLabel, TEST_CONTEXT("Criterion 2"));
+    test_utilities::expect_string_contains_substring(tTable, tVectorLabel, TEST_CONTEXT("Criterion 2"));
+    test_utilities::expect_string_contains_substring(tTable, tAppName2, TEST_CONTEXT("Criterion 2"));
+    test_utilities::expect_string_contains_substring(tTable, tCriterionName2, TEST_CONTEXT("Criterion 2"));
 }
 
 TEST(MarkdownFormatter, ComponentTypeSubsection)
 {
     constexpr auto tSubsectionDepth = std::uint8_t{1};
     constexpr auto tPokemonType = components::ComponentType::kConstraint;
-    const auto tMoreTestComponentDocumentation = ComponentDocumentation{
+    const auto tMoreTestComponentDocumentation = documentation::ComponentDocumentation{
         .mComponentType = tPokemonType,
         .mDescription = "Pokemon cards!",
-        .mInputs = {InputKeywordDocumentation{.mName = "pikachu", .mType = "yellow", .mComment = "It's pikachu"},
-                    InputKeywordDocumentation{
-                        .mName = "squirtle", .mType = "blue", .mComment = "Another pokemon that I recall"}}};
+        .mInputs = {
+            documentation::InputKeywordDocumentation{.mName = "pikachu", .mType = "yellow", .mComment = "It's pikachu"},
+            documentation::InputKeywordDocumentation{
+                .mName = "squirtle", .mType = "blue", .mComment = "Another pokemon that I recall"}}};
 
     const auto tComponentDocumentation =
         HelpDocumentationMap{{"pokemon", tMoreTestComponentDocumentation}, {"magic", kTestComponentDocumentation}};
@@ -173,4 +234,4 @@ TEST(MarkdownFormatter, ComponentTypeName)
     }
 }
 
-}  // namespace plato::documentation::documentation_generator::library
+}  // namespace plato::main::documentation_generator::library

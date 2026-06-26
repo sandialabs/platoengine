@@ -8,7 +8,7 @@
 #include "plato/components/ComponentType.hpp"
 #include "plato/main/documentation_generator/library/MarkdownFormatter.hpp"
 
-namespace plato::documentation::documentation_generator::library
+namespace plato::main::documentation_generator::library
 {
 namespace
 {
@@ -22,7 +22,8 @@ void write_to_file(const std::filesystem::path& aFilePath, const std::string_vie
 void write_markdown_documentation(const HelpDocumentationMap& aDocumentation)
 {
     const auto tMainFileName = std::filesystem::path{"plato.md"};
-    write_to_file(tMainFileName, main_section());
+
+    write_to_file(tMainFileName, main_section(criteria::library::criterion_documentation()));
 
     for (const auto tComponentType : components::all_component_types())
     {
@@ -40,4 +41,4 @@ void write_markdown_documentation(const HelpDocumentationMap& aDocumentation)
     }
 }
 
-}  // namespace plato::documentation::documentation_generator::library
+}  // namespace plato::main::documentation_generator::library

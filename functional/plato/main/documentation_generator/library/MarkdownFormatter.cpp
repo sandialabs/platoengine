@@ -15,21 +15,26 @@
 #include "plato/components/ComponentTypeStream.hpp"
 #include "plato/components/Documentation.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
+#include "plato/main/documentation_generator/library/Utilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"
 
-namespace plato::documentation::documentation_generator::library
+namespace plato::main::documentation_generator::library
 {
 namespace
 {
-constexpr auto kTableHeader =
-    std::string_view{"```{list-table}\n:header-rows: 1\n:widths: 28 27 45\n\n* - Keyword\n  - Type\n  - Description\n"};
 constexpr auto kIntroMarkdownFileName = std::string_view{"intro.md"};
 constexpr auto kPostBlocksMarkdownFileName = std::string_view{"outro.md"};
-const auto kComponentsDocumentationDirectory = std::filesystem::path{"component_documentation"};
+constexpr auto kCriteriaMarkdownFileName = std::string_view{"criteria.md"};
 
-[[nodiscard]] auto data_file_contents(const std::filesystem::path& aFilePath) -> std::string
+[[nodiscard]] auto documentation_path(std::filesystem::path aComponentName) -> std::filesystem::path
 {
-    const auto tDataFile = utilities::data_file_path(aFilePath);
+    const auto tComponentsDocumentationDirectory = std::filesystem::path{"documentation"};
+    return tComponentsDocumentationDirectory / aComponentName.replace_extension(".md");
+}
+
+[[nodiscard]] auto documentation_file_contents(const std::filesystem::path& aFileName) -> std::string
+{
+    const auto tDataFile = utilities::data_file_path(documentation_path(aFileName));
     if (tDataFile)
     {
         auto tFileStream = std::ifstream{tDataFile.value()};
@@ -39,19 +44,15 @@ const auto kComponentsDocumentationDirectory = std::filesystem::path{"component_
     return std::string{};
 }
 
-[[nodiscard]] auto component_documentation_path(const std::string_view aComponentName) -> std::filesystem::path
-{
-    return kComponentsDocumentationDirectory / std::filesystem::path{aComponentName}.replace_extension(".md");
-}
 }  // namespace
 
-auto main_section() -> std::string
+auto main_section(const std::vector<criteria::library::CriterionDocumentation>& aCriteriaDocumentation) -> std::string
 {
-    auto tIntroText = data_file_contents(kIntroMarkdownFileName);
+    auto tIntroText = documentation_file_contents(kIntroMarkdownFileName);
     const auto tAllComponentTypes = components::all_component_types();
     tIntroText = std::accumulate(
         tAllComponentTypes.begin(), tAllComponentTypes.end(), std::move(tIntroText),
-        [](std::string aCurrentText, const auto& aComponentType)
+        [](std::string&& aCurrentText, const auto& aComponentType)
         {
             return std::move(aCurrentText) +
                    std::format("* {}: {}\n",
@@ -67,15 +68,41 @@ auto main_section() -> std::string
     constexpr auto tMaxDepth = 5;
     const auto tTableOfContentsTree =
         std::format("{}\n{}", tIntroText, detail::toc_tree(tToGlobString, tAdditionalOptions, tMaxDepth));
-    return tTableOfContentsTree + data_file_contents(kPostBlocksMarkdownFileName);
+
+    auto tCriteriaText =
+        documentation_file_contents(kCriteriaMarkdownFileName) + criteria_table(aCriteriaDocumentation);
+
+    return tTableOfContentsTree + documentation_file_contents(kPostBlocksMarkdownFileName) + std::move(tCriteriaText);
+}
+
+auto criteria_table(const std::vector<criteria::library::CriterionDocumentation>& aCriteriaDocumentation) -> std::string
+{
+    const auto tAppLabel = std::string{"App"};
+    const auto tCriterionLabel = std::string{"Criterion"};
+    const auto tConcurrencyLabel = std::string{"Parallelization"};
+    const auto tDimensionalityLabel = std::string{"Dimensionality"};
+
+    const auto tColumnWidths = {30, 30, 20, 20};
+    const auto tColumnLabels = {tAppLabel, tCriterionLabel, tConcurrencyLabel, tDimensionalityLabel};
+    const auto tHeader = myst_table_header(tColumnWidths, tColumnLabels);
+
+    return std::accumulate(aCriteriaDocumentation.begin(), aCriteriaDocumentation.end(), tHeader,
+                           [&](std::string&& aCurrent, const auto& aCriterionDocumentation)
+                           {
+                               const auto tTableRow = {aCriterionDocumentation.mAppName,
+                                                       aCriterionDocumentation.mCriterionName,
+                                                       aCriterionDocumentation.mTraits.at(tConcurrencyLabel),
+                                                       aCriterionDocumentation.mTraits.at(tDimensionalityLabel)};
+                               return std::move(aCurrent) + myst_table_row(tTableRow);
+                           }) +
+           myst_table_footer();
 }
 
 auto component_type_subsection(const HelpDocumentationMap& aComponentDocumentation,
                                const components::ComponentType aComponentType,
                                const std::uint8_t aSubsectionDepth) -> std::string
 {
-    auto tComponentDocumentationText =
-        data_file_contents(kComponentsDocumentationDirectory / detail::component_file_name(aComponentType));
+    auto tComponentDocumentationText = documentation_file_contents(detail::component_file_name(aComponentType));
 
     auto tDocumentation =
         std::format("{}\n{:#>{}} {}\n\n{}\nCurrently supported:\n\n",
@@ -87,7 +114,7 @@ auto component_type_subsection(const HelpDocumentationMap& aComponentDocumentati
                                                      { return aMapEntry.second.mComponentType == aComponentType; });
     const auto tComponentList =
         std::accumulate(tComponentsOfType.begin(), tComponentsOfType.end(), tDocumentation,
-                        [](std::string aCurrentDocumentation, const auto& aMapEntry)
+                        [](std::string&& aCurrentDocumentation, const auto& aMapEntry)
                         {
                             return std::move(aCurrentDocumentation) +
                                    std::format("* {{ref}}`{}`: {}\n", detail::section_reference(aMapEntry.first),
@@ -103,25 +130,28 @@ auto component_type_subsection(const HelpDocumentationMap& aComponentDocumentati
 }
 
 auto component_subsection(const std::string_view aComponentName,
-                          const ComponentDocumentation& aComponentDocumentation,
+                          const documentation::ComponentDocumentation& aComponentDocumentation,
                           const std::uint8_t aSubsectionDepth) -> std::string
 {
     return std::format("{}\n{:#>{}} {}\n{}\n{}", detail::section_reference_definition(aComponentName), "",
-                       aSubsectionDepth, aComponentName,
-                       data_file_contents(component_documentation_path(aComponentName)),
+                       aSubsectionDepth, aComponentName, documentation_file_contents(aComponentName),
                        markdown_inputs_table(aComponentDocumentation));
 }
 
-auto markdown_inputs_table(const ComponentDocumentation& aComponentDocumentation) -> std::string
+auto markdown_inputs_table(const documentation::ComponentDocumentation& aComponentDocumentation) -> std::string
 {
+    const auto tColumnWidths = {28, 27, 45};
+    const auto tColumnLabels = {"Keyword", "Type", "Description"};
+    auto tTableHeader = myst_table_header(tColumnWidths, tColumnLabels);
+
     return std::accumulate(aComponentDocumentation.mInputs.begin(), aComponentDocumentation.mInputs.end(),
-                           std::string{kTableHeader},
+                           std::move(tTableHeader),
                            [](std::string aCurrentTable, const auto& aInput)
                            {
-                               return std::move(aCurrentTable) + std::format("\n* - `{}`\n  - {}\n  - {}", aInput.mName,
-                                                                             aInput.mType, aInput.mComment);
+                               const auto tTableRow = {aInput.mName, aInput.mType, aInput.mComment};
+                               return std::move(aCurrentTable) + myst_table_row(tTableRow);
                            }) +
-           std::string("\n```");
+           myst_table_footer();
 }
 
 namespace detail
@@ -151,4 +181,4 @@ auto component_file_name(const components::ComponentType aComponentType) -> std:
     return {detail::component_type_name(aComponentType) + ".md"};
 }
 }  // namespace detail
-}  // namespace plato::documentation::documentation_generator::library
+}  // namespace plato::main::documentation_generator::library

@@ -7,27 +7,29 @@
 
 #include "plato/components/ComponentType.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
+#include "plato/main/documentation_generator/library/LatexFormatter.hpp"
 #include "plato/main/documentation_generator/library/MarkdownFormatter.hpp"
 #include "plato/main/documentation_generator/library/MarkdownWriter.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 
-namespace plato::documentation::documentation_generator::library::unittest
+namespace plato::main::documentation_generator::library::unittest
 {
 
 TEST(MarkdownWriter, WriteMarkdownDocumentation)
 {
-    const auto tGeometryTestComponentDocumentation = ComponentDocumentation{
+    const auto tGeometryTestComponentDocumentation = documentation::ComponentDocumentation{
         .mComponentType = components::ComponentType::kGeometry,
         .mDescription = "Slay the spire is a fun game!",
-        .mInputs = {InputKeywordDocumentation{.mName = "Strike", .mType = "attack", .mComment = "Basic attack"},
-                    InputKeywordDocumentation{.mName = "Defend", .mType = "block", .mComment = "Basic defend"}}};
-    const auto tFilterTestComponentDocumentation = ComponentDocumentation{
+        .mInputs = {
+            documentation::InputKeywordDocumentation{.mName = "Strike", .mType = "attack", .mComment = "Basic attack"},
+            documentation::InputKeywordDocumentation{.mName = "Defend", .mType = "block", .mComment = "Basic defend"}}};
+    const auto tFilterTestComponentDocumentation = documentation::ComponentDocumentation{
         .mComponentType = components::ComponentType::kFilter,
         .mDescription = "Deep rock galactic is a fun game!",
-        .mInputs = {InputKeywordDocumentation{
+        .mInputs = {documentation::InputKeywordDocumentation{
                         .mName = "Rock", .mType = "essential", .mComment = "First part of rock and stone"},
-                    InputKeywordDocumentation{
+                    documentation::InputKeywordDocumentation{
                         .mName = "Stone", .mType = "important", .mComment = "Second part of rock and stone"}}};
     const auto tDocumentation = HelpDocumentationMap{{"slay-the-spire", tGeometryTestComponentDocumentation},
                                                      {"deep-rock-galactic", tFilterTestComponentDocumentation}};
@@ -45,4 +47,4 @@ TEST(MarkdownWriter, WriteMarkdownDocumentation)
 
     test_utilities::test_for_existence_and_remove(tExpectedFiles, TEST_CONTEXT("Write markdown"));
 }  // namespace TEST(MarkdownWriter,WriteMarkdownDocumentation)
-}  // namespace plato::documentation::documentation_generator::library::unittest
+}  // namespace plato::main::documentation_generator::library::unittest
