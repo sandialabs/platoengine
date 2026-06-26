@@ -1,12 +1,19 @@
 #include <gtest/gtest.h>
 
-#include "plato/core/Function.hpp"
+#include <algorithm>
+#include <boost/mpi/communicator.hpp>
+#include <cstddef>
+#include <map>
+#include <optional>
+#include <string_view>
+#include <vector>
+
 #include "plato/criteria/library/CriterionDocumentation.hpp"
 #include "plato/criteria/library/CriterionRegistration.hpp"
 #include "plato/criteria/library/CriterionTraits.hpp"
-#include "plato/input_parser/InputDefinitions.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
+#include "plato/linear_algebra/JacobianMultiplier.hpp"
 #include "plato/services/AppConfiguration.hpp"
 
 namespace plato::criteria::library::unittest

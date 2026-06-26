@@ -7,7 +7,6 @@
 
 #include "plato/components/ComponentType.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
-#include "plato/main/documentation_generator/library/LatexFormatter.hpp"
 #include "plato/main/documentation_generator/library/MarkdownFormatter.hpp"
 #include "plato/main/documentation_generator/library/MarkdownWriter.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"

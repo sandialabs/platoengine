@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include "plato/components/ComponentType.hpp"
+#include "plato/criteria/library/CriterionDocumentation.hpp"
 #include "plato/main/documentation_generator/library/MarkdownFormatter.hpp"
 
 namespace plato::main::documentation_generator::library

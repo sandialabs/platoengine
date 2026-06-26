@@ -10,6 +10,7 @@
 #include <string_view>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/input_parser/InputDefinitions.hpp"

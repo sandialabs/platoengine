@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iterator>
@@ -14,6 +15,7 @@
 #include "plato/components/ComponentType.hpp"
 #include "plato/components/ComponentTypeStream.hpp"
 #include "plato/components/Documentation.hpp"
+#include "plato/criteria/library/CriterionDocumentation.hpp"
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/main/documentation_generator/library/Utilities.hpp"
 #include "plato/utilities/DataFilePath.hpp"

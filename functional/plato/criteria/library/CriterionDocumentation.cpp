@@ -1,9 +1,16 @@
 #include "plato/criteria/library/CriterionDocumentation.hpp"
 
+#include <cassert>
+#include <iterator>
+#include <map>
 #include <ranges>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "plato/criteria/library/CriterionRegistration.hpp"
+#include "plato/criteria/library/CriterionTraits.hpp"
 #include "plato/utilities/EnumTable.hpp"
 
 namespace plato::criteria::library
