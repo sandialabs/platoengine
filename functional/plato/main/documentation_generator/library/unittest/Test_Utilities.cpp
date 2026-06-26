@@ -11,7 +11,7 @@ TEST(Utilities, MystTableHeader)
     const auto tTableHeader = myst_table_header(tColumnWidths, tColumnLabels);
 
     constexpr auto tExpected =
-        std::string_view{"```{{list-table}}\n:header-rows: 1\n:widths: 13 42 45\n\n* - Han\n  - Chewie\n  - Leia\n\n"};
+        std::string_view{"```{list-table}\n:header-rows: 1\n:widths: 13 42 45\n\n* - Han\n  - Chewie\n  - Leia\n\n"};
 
     EXPECT_EQ(tExpected, tTableHeader);
 }

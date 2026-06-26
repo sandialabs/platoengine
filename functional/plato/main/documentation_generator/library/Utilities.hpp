@@ -32,7 +32,7 @@ auto myst_table_header(const ColumnWidths& aColumnWidths, const ColumnLabels& aC
     assert(std::ranges::begin(aColumnWidths) != std::ranges::end(aColumnWidths));
     assert(std::ranges::begin(aColumnLabels) != std::ranges::end(aColumnLabels));
 
-    constexpr auto tPreamble = std::string_view{"```{{list-table}}\n:header-rows: 1\n:widths:"};
+    constexpr auto tPreamble = std::string_view{"```{list-table}\n:header-rows: 1\n:widths:"};
     auto tWidths = std::accumulate(std::ranges::begin(aColumnWidths), std::ranges::end(aColumnWidths), std::string{},
                                    [](std::string&& aCurrent, const auto aWidth)
                                    { return std::move(aCurrent) + std::string{" "} + std::to_string(aWidth); });
