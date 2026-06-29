@@ -45,12 +45,6 @@ end
 
 ## Running Plato
 
-On CEE/HPC machines load the `plato` module:
-
-```bash
-module load plato
-```
-
 Run Plato in serial by passing an input file to the `plato` executable:
 
 ```bash
