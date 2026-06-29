@@ -20,7 +20,7 @@ struct AnalysisDomainMesh;
 // clang-format off
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), y_axis_revolve_filter,
-    "In addition to performing distance weighted smoothing, enforces rotational symmetry about the y-axis",
+    "In addition to performing distance weighted smoothing, enforces rotational symmetry about the y-axis.",
     (double, filter_radius, plato::filter::extension::kernel_filters::kKernelFilterRadiusHelpText)
     (plato::input_parser::KernelFilterCenteringTypes, centering_type, plato::filter::extension::kernel_filters::kKernelFilterCenteringTypeHelpText)
     (bool, use_relative_radius, plato::filter::extension::kernel_filters::kKernelFilterRelativeRadiusHelpText)

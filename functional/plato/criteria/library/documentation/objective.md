@@ -5,3 +5,6 @@ The objective function drives the design process toward the most efficient or ef
 ```{tip}
 Non-dimensionalize the various physics objectives so that their values are near unity. For example, in a compliance problem scale all moduli and loads by the largest modulus in a problem. Then use `normalize_by_initial_value` to bring the objective to unity to set meaningful weights for aggregators.
 ```
+```{attention}
+If multiple objectives are specified, they are summed with weights given by `aggregation_weight`.
+```

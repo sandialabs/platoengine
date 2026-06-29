@@ -13,3 +13,6 @@ Any `bounded_aprepro_variables` defined in `cubit_parameterized_shape` should no
 ```{tip}
 Plato re-runs the journal file for every perturbation, if there are fixed regions of the mesh that do not change, consider importing them instead of re-meshing.
 ```
+```{warning}
+Finite differences are used to estimate the sensitivities of mesh nodal coordinates with respect to CAD parameters. Consequently, the computational cost is proportional to the number of CAD parameters, and the accuracy depends on the step size used.
+```

@@ -18,7 +18,7 @@
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), density_topology,
-    "Uses mesh-based nodal design variables that modify material properties, giving an implicit representation of a topology",
+    "Uses mesh-based nodal design variables that modify material properties, giving an implicit representation of a topology.",
     (plato::input_parser::FileName, mesh_name, "Required field specifying the file name of the exodus mesh to read and generate controls from.")
     (plato::input_parser::FileName, output_name, "Required field specifying the exodus output file name to use when writing results.")
     (plato::input_parser::BlockList, fixed_blocks, "Optional comma separated list of block names that should be fixed in the mesh and not be part of the optimization.")

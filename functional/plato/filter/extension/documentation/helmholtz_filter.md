@@ -5,5 +5,8 @@ This approach smooths design fields defined over unstructured meshes and can als
 The ability to penalize attraction or "stickiness" of the boundary is experimental and requires care to use properly.
 ```
 ```{warning}
-The `helmholtz_filter` currently only works with node-centered design fields.
+Insufficiently refined meshes can cause the Helmholtz filter to produce negative densities.
+```
+```{warning}
+The `helmholtz_filter` currently only works with node-centered design fields and is not MPI parallel.
 ```
