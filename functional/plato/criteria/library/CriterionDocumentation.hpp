@@ -13,8 +13,6 @@ struct CriterionDocumentation
 {
     std::string mAppName;
     std::string mCriterionName;
-    std::string mDescription;
-    std::vector<std::string> mVectorComponents;
     std::map<std::string, std::string> mTraits;
 
     [[nodiscard]] auto operator==(const CriterionDocumentation& /*unused*/) const noexcept -> bool = default;

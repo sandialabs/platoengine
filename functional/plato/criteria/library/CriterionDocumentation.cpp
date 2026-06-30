@@ -58,8 +58,6 @@ const auto kDimensionalityTable = utilities::EnumTable<FunctionDimension>{{Funct
                          {
                              return CriterionDocumentation{.mAppName = std::string{tAppName},
                                                            .mCriterionName = std::string{tCriterionName},
-                                                           .mDescription = {},
-                                                           .mVectorComponents = {},
                                                            .mTraits = traits_description(aTraits)};
                          });
     return std::vector<CriterionDocumentation>{tToDocumentation.begin(), tToDocumentation.end()};

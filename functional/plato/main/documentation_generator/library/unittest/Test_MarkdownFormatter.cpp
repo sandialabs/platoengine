@@ -84,14 +84,10 @@ TEST(MarkdownFormatter, CriteriaTable)
     const auto tDocumentation1 = criteria::library::CriterionDocumentation{
         .mAppName = tAppName1,
         .mCriterionName = tCriterionName1,
-        .mDescription = {},
-        .mVectorComponents = {},
         .mTraits = {{tConcurrencyLabel, tSerialLabel}, {tDimensionalityLabel, tScalarLabel}}};
     const auto tDocumentation2 = criteria::library::CriterionDocumentation{
         .mAppName = tAppName2,
         .mCriterionName = tCriterionName2,
-        .mDescription = {},
-        .mVectorComponents = {},
         .mTraits = {{tConcurrencyLabel, tParallelLabel}, {tDimensionalityLabel, tVectorLabel}}};
 
     const auto tCriteriaDocumentation =

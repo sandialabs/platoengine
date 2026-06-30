@@ -113,26 +113,18 @@ TEST(CriterionDocumentation, CriterionDocumentation)
     const auto tExpectedSerialCarl =
         CriterionDocumentation{.mAppName = std::string{kApp1Name},
                                .mCriterionName = std::string{kCarlCriterionName},
-                               .mDescription = {},
-                               .mVectorComponents = {},
                                .mTraits = {{tConcurrencyLabel, tSerialLabel}, {tDimensionalityLabel, tScalarLabel}}};
     const auto tExpectedParallelCarl =
         CriterionDocumentation{.mAppName = std::string{kApp1Name},
                                .mCriterionName = std::string{kCarlCriterionName},
-                               .mDescription = {},
-                               .mVectorComponents = {},
                                .mTraits = {{tConcurrencyLabel, tParallelLabel}, {tDimensionalityLabel, tScalarLabel}}};
     const auto tExpectedDonut =
         CriterionDocumentation{.mAppName = std::string{kApp1Name},
                                .mCriterionName = std::string{kDonutCriterionName},
-                               .mDescription = {},
-                               .mVectorComponents = {},
                                .mTraits = {{tConcurrencyLabel, tParallelLabel}, {tDimensionalityLabel, tVectorLabel}}};
     const auto tExpectedMordecai =
         CriterionDocumentation{.mAppName = std::string{kApp2Name},
                                .mCriterionName = std::string{kMordecaiCriterionName},
-                               .mDescription = {},
-                               .mVectorComponents = {},
                                .mTraits = {{tConcurrencyLabel, tSerialLabel}, {tDimensionalityLabel, tVectorLabel}}};
     const auto tAllExpected =
         std::vector{tExpectedSerialCarl, tExpectedParallelCarl, tExpectedDonut, tExpectedMordecai};
