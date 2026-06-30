@@ -13,3 +13,9 @@ Without filtering, mesh refinement can produce increasingly fine features, and l
 
 For `level_set_topology`, filters are mainly used to improve optimization stability.
 Since sensitivities are defined at the material/void interface, filtering spreads this information over a larger region and can help prevent stalled or oscillatory convergence.
+
+```{tip}
+Generally, the filter radius should be between two and three times the average edge length of the mesh.
+To facilitate this, all filters have an option to set the filter radius relative to the average mesh edge length; however, for highly non-uniform meshes, this may not be the best option.
+For non-uniform meshes, it is recommended to use an absolute radius based on the coarser mesh edge lengths.
+```
