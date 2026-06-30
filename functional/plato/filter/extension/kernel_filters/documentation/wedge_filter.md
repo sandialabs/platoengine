@@ -7,6 +7,5 @@ The source mesh contains the wedge and must be defined in the domain starting on
 The wedge can be any angle that is commensurate with 360 degrees.
 The target mesh must contain the full symmetric design domain.
 
-```{important}
-Match the `centering_type` to the design field. For `density_topology` the design field can be defined nodally or piecewise over elements, depending on the physics app used to compute objectives and constraints. For `level_set_topology` the design field is defined nodally. 
+```{include} centering_type_tip.md
 ```

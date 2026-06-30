@@ -5,6 +5,5 @@ The source mesh is defined in the geometry block as `mesh_name` and the target i
 The source mesh must be on the positive normal side of the plane.
 The target mesh must contain the full symmetric design domain.
 
-```{important}
-Match the `centering_type` to the design field. For `density_topology` the design field can be defined nodally or piecewise over elements, depending on the physics app used to compute objectives and constraints. For `level_set_topology` the design field is defined nodally. 
+```{include} centering_type_tip.md
 ```
