@@ -5,8 +5,16 @@
 #include <ranges>
 #include <string>
 
+#include "plato/criteria/library/CriterionDocumentation.hpp"
+
 namespace plato::main::documentation_generator::library
 {
+/// @brief Consolidates the traits in @a aCriteriaDocumentation so that the criteria are not mentioned twice in any
+/// tables.
+[[nodiscard]] auto consolidated_criteria_documentation(
+    const std::vector<criteria::library::CriterionDocumentation>& aCriteriaDocumentation)
+    -> std::vector<criteria::library::CriterionDocumentation>;
+
 /// @brief Generates the header of a Myst-parser-style markdown table.
 /// @pre Neither @a aColumnWidths nor @a aColumnLabels may be empty.
 template <std::ranges::range ColumnWidths, std::ranges::range ColumnLabels>

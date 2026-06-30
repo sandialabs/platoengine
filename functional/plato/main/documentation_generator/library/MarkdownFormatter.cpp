@@ -87,8 +87,8 @@ auto criteria_table(const std::vector<criteria::library::CriterionDocumentation>
     const auto tColumnWidths = {30, 30, 20, 20};
     const auto tColumnLabels = {tAppLabel, tCriterionLabel, tConcurrencyLabel, tDimensionalityLabel};
     const auto tHeader = myst_table_header(tColumnWidths, tColumnLabels);
-
-    return std::accumulate(aCriteriaDocumentation.begin(), aCriteriaDocumentation.end(), tHeader,
+    const auto tConsolidatedDocumentation = consolidated_criteria_documentation(aCriteriaDocumentation);
+    return std::accumulate(tConsolidatedDocumentation.begin(), tConsolidatedDocumentation.end(), tHeader,
                            [&](std::string&& aCurrent, const auto& aCriterionDocumentation)
                            {
                                const auto tTableRow = {aCriterionDocumentation.mAppName,

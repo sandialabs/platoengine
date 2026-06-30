@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
+#include "plato/criteria/library/CriterionDocumentation.hpp"
 #include "plato/main/documentation_generator/library/Utilities.hpp"
 
 namespace plato::main::documentation_generator::library::unittest
@@ -31,6 +34,38 @@ TEST(Utilities, MystTableFooter)
     constexpr auto tExpected = std::string_view{"```"};
 
     EXPECT_EQ(tExpected, myst_table_footer());
+}
+
+TEST(Utilities, ConsolidatedCriteriaDocumentation)
+{
+    {
+        auto tOriginalDocumentation = std::vector<criteria::library::CriterionDocumentation>{
+            {.mAppName = "apple", .mCriterionName = "macbook", .mTraits = {{"type", "laptop"}}},
+            {.mAppName = "dell", .mCriterionName = "xps", .mTraits = {{"type", "laptop"}}},
+            {.mAppName = "ibm", .mCriterionName = "thinkpad", .mTraits = {{"type", "laptop"}}},
+            {.mAppName = "dell", .mCriterionName = "xps", .mTraits = {{"type", "desktop"}}}};
+
+        const auto tConsolidatedDocumentation = consolidated_criteria_documentation(tOriginalDocumentation);
+
+        const auto tExpected = std::vector<criteria::library::CriterionDocumentation>{
+            {.mAppName = "apple", .mCriterionName = "macbook", .mTraits = {{"type", "laptop"}}},
+            {.mAppName = "dell", .mCriterionName = "xps", .mTraits = {{"type", "laptop, desktop"}}},
+            {.mAppName = "ibm", .mCriterionName = "thinkpad", .mTraits = {{"type", "laptop"}}}};
+        EXPECT_EQ(tConsolidatedDocumentation, tExpected) << "Single trait";
+    }
+    {
+        auto tOriginalDocumentation = std::vector<criteria::library::CriterionDocumentation>{
+            {.mAppName = "apple", .mCriterionName = "macbook", .mTraits = {{"type", "laptop"}, {"cpu", "apple"}}},
+            {.mAppName = "dell", .mCriterionName = "xps", .mTraits = {{"type", "laptop"}, {"cpu", "intel"}}},
+            {.mAppName = "dell", .mCriterionName = "xps", .mTraits = {{"type", "desktop"}, {"cpu", "intel"}}}};
+
+        const auto tConsolidatedDocumentation = consolidated_criteria_documentation(tOriginalDocumentation);
+
+        const auto tExpected = std::vector<criteria::library::CriterionDocumentation>{
+            {.mAppName = "apple", .mCriterionName = "macbook", .mTraits = {{"type", "laptop"}, {"cpu", "apple"}}},
+            {.mAppName = "dell", .mCriterionName = "xps", .mTraits = {{"type", "laptop, desktop"}, {"cpu", "intel"}}}};
+        EXPECT_EQ(tConsolidatedDocumentation, tExpected) << "Multiple traits";
+    }
 }
 
 }  // namespace plato::main::documentation_generator::library::unittest
