@@ -45,5 +45,8 @@ TEST(MarkdownWriter, WriteMarkdownDocumentation)
     tExpectedFiles.emplace_back("deep-rock-galactic.md");
 
     test_utilities::test_for_existence_and_remove(tExpectedFiles, TEST_CONTEXT("Write markdown"));
-}  // namespace TEST(MarkdownWriter,WriteMarkdownDocumentation)
+
+    const auto tIncludeDirectory = std::filesystem::path{"include"};
+    EXPECT_GT(std::filesystem::remove_all(tIncludeDirectory), 0);
+}
 }  // namespace plato::main::documentation_generator::library::unittest

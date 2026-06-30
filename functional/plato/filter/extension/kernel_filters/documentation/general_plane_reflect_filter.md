@@ -5,5 +5,5 @@ The source mesh is defined in the geometry block as `mesh_name` and the target i
 The source mesh must be on the positive normal side of the plane.
 The target mesh must contain the full symmetric design domain.
 
-```{include} centering_type_tip.md
+```{include} include/centering-type-tip.md
 ```

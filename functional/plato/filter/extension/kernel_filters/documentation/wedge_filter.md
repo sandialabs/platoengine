@@ -7,5 +7,5 @@ The source mesh contains the wedge and must be defined in the domain starting on
 The wedge can be any angle that is commensurate with 360 degrees.
 The target mesh must contain the full symmetric design domain.
 
-```{include} centering_type_tip.md
+```{include} include/centering-type-tip.md
 ```

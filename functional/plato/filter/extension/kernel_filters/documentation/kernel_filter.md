@@ -3,5 +3,5 @@ These can be mapped to either node-centered or element-centered design fields de
 
 Note that for highly unstructured meshes with a wide range of element sizes, this approach may result in unwanted artifacts and the filter radius must be chosen carefully.
 
-```{include} centering_type_tip.md
+```{include} include/centering-type-tip.md
 ```

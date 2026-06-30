@@ -8,6 +8,7 @@
 #include "plato/components/ComponentType.hpp"
 #include "plato/criteria/library/CriterionDocumentation.hpp"
 #include "plato/main/documentation_generator/library/MarkdownFormatter.hpp"
+#include "plato/utilities/DataFilePath.hpp"
 
 namespace plato::main::documentation_generator::library
 {
@@ -39,6 +40,13 @@ void write_markdown_documentation(const HelpDocumentationMap& aDocumentation)
         const auto tComponentFileName = std::filesystem::path{tComponentName + ".md"};
         write_to_file(tComponentFileName,
                       component_subsection(tComponentName, tComponentDocumentation, tComponentSubsectionDepth));
+    }
+    if (const auto tIncludePath = utilities::data_file_path("documentation/include"))
+    {
+        const auto tDestination = std::filesystem::current_path() / tIncludePath.value().filename();
+        std::filesystem::copy(
+            tIncludePath.value(), tDestination,
+            std::filesystem::copy_options::overwrite_existing | std::filesystem::copy_options::recursive);
     }
 }
 
