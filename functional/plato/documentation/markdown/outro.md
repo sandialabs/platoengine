@@ -19,11 +19,12 @@ The `<component>` names the type of block being defined, such as a geometry, fil
 The components documented in this user manual correspond to the valid block names.
 Within a block, each option is written as a `<keyword>` followed by a `<value>`.
 Some more complicated components may use a list of values or values with additional keywords. Plato input decks do **not** use `=` signs or assignment syntax.
+The `objective`, `constraint`, and `filter` input block components should be named.
 
 Examples:
 
 ```plato
-begin kernel_filter
+begin kernel_filter kernel_filter_name
     radius 1.0
     centering_type node
 end
@@ -69,3 +70,11 @@ where:
 - `-t <number-of-threads>` specifies the number of OpenMP threads per rank.
 - `-s <shared,dedicated>` specifies whether hardware resources are shared or dedicated.
 - `<input-file>` is the Plato input file to run.
+
+## Validation
+
+At the start of a Plato run, the input deck is first parsed and then run through a series of validation checks.
+Typos in the keywords or incomplete/mismatched `begin` ... `end` will result in a parsing error.
+If the input deck is successfully parsed, the defined Plato problem will go through validation checks.
+If files are missing, parameters are out of bounds, or required entries are missing, a list of validation errors describing what needs to be fixed will appear and Plato will stop. 
+In general, Plato does not assume default values for inputs and if an input is marked as required, it must be defined.
