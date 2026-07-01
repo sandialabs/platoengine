@@ -103,4 +103,10 @@ TEST(BoundedApreproVariableListParser, ValidInputParsingTestSingleEntry)
     expect_equal(tResult.mList.front(), tGold, TEST_CONTEXT("Valid input single entry"));
 }
 
+TEST(BoundedApreproVariableListParser, DataTypeDocumentation)
+{
+    EXPECT_EQ(data_type_documentation(input_parser::BoundedApreproVariable{}),
+              "Composite type: `<string>` `<real>` [`<real>`, `<real>`]");
+}
+
 }  // namespace plato::geometry::extension::cubit::unittest

@@ -1,0 +1,18 @@
+#include "plato/input_parser/FileList.hpp"
+
+#include <string>
+
+#include "plato/input_parser/UserDefinedTokenList.hpp"
+
+namespace plato::input_parser
+{
+auto data_type_documentation(const FileName& /*unused*/) -> std::string { return "`<file name>`"; }
+
+using FileList = UserDefinedTokenList<ValidFilenameCharacters>;
+
+auto data_type_documentation(const FileList& /*unused*/) -> std::string
+{
+    return "Comma separated list of `<file name>`";
+}
+
+}  // namespace plato::input_parser

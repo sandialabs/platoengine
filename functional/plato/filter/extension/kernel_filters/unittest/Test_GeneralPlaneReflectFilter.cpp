@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "plato/filter/extension/kernel_filters/GeneralPlaneParser.hpp"
 #include "plato/filter/extension/kernel_filters/GeneralPlaneReflectFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
 #include "plato/filter/extension/kernel_filters/Plane.hpp"
@@ -188,6 +189,12 @@ TEST_F(GeneralReflectWedgeFixture, ValidateSourceMeshOnPositiveSideOfNormal30Deg
     { return detail::validate_source_mesh_on_outward_normal_side_of_plane(aInput, mMeshFilePath); };
     plato::test_utilities::expect_input_is_valid(TEST_CONTEXT("Wedge source and plane definition valid"),
                                                  tValidateSourceMesh, tInput);
+}
+
+TEST(GeneralReflectWedge, DataTypeDocumentation)
+{
+    EXPECT_EQ(input_parser::data_type_documentation(input_parser::GeneralPlane{}),
+              "Composite type: `center` (`<real>`, `<real>`, `<real>`) `normal` (`<real>`, `<real>`, `<real>`) ");
 }
 
 }  // namespace plato::filter::extension::kernel_filters::unittest

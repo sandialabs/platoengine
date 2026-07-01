@@ -27,6 +27,10 @@ using BlockName = UserDefinedToken<ValidNameCharacters>;
 using BlockList = UserDefinedTokenList<ValidIdentifierCharacters>;
 using IdentifierString = UserDefinedToken<ValidIdentifierCharacters>;
 
+[[nodiscard]] auto data_type_documentation(const AppName& /*unused*/) -> std::string;
+[[nodiscard]] auto data_type_documentation(const BlockList& /*unused*/) -> std::string;
+[[nodiscard]] auto data_type_documentation(const IdentifierString& /*unused*/) -> std::string;
+
 }  // namespace plato::input_parser
 
 #endif

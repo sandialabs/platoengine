@@ -11,24 +11,29 @@
 // clang-format off
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestGeometryBlock, 
+    "Description",
     (int, field1, "help")
 )
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestProcessManagerBlock, 
+    "Description",
     (int, field1, "help")
 )
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestFilterBlock, 
+    "Description",
     (int, field1, "help")
 )
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestObjectiveBlock,
     plato::components::ComponentType::kObjective,
+    "A test objective",
     (int, field1, "help")
 )
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), TestConstraintBlock,
     plato::components::ComponentType::kConstraint,
+    "A test constraint",
     (int, field1, "help")
 )
 // clang-format on

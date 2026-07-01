@@ -30,19 +30,22 @@ using GeometryCrossReference = plato::input_parser::CrossReference<plato::compon
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          marvel, components::ComponentType::kGeometry,
+                         "A test geometry",
                          (double, cyclops, "")
                          (int, wolverine, ""))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
                                dc, plato::components::ComponentType::kConstraint,
+                               "A test constraint",
                                (bool, superman, "")
-                               (unsigned int, batman, "")
+                               (unsigned, batman, "")
                                (GeometryCrossReference, multiverse, ""))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
                                dark_horse, plato::components::ComponentType::kObjective,
+                               "A test objective",
                                (bool, active, "")
-                               (unsigned int, predator, ""))
+                               (unsigned, predator, ""))
 // clang-format on
 
 namespace plato::input_validation::unittest
@@ -195,7 +198,7 @@ TEST_F(ValidatedInputRegistrationFixture, ConstructionTwoEntriesInvalidInput)
 
     ASSERT_TRUE(tValidatedInput.hasError());
     EXPECT_EQ(tValidatedInput.error(),
-              std::string{kDCValidationErrorMessage} + "\n" + std::string{kMarvelValidationErrorMessage});
+              std::string{kMarvelValidationErrorMessage} + "\n" + std::string{kDCValidationErrorMessage});
 }
 
 TEST_F(ValidatedInputRegistrationFixture, ConstructionInvalidParsedInput)

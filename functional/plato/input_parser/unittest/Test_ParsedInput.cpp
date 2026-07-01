@@ -18,16 +18,19 @@
 // clang-format off
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          fruits, plato::components::ComponentType::kGeometry,
+                         "A test geometry",
                          (int, banana, "It's a yellow oblong fruit.")
                          (double, apple, "It's a red or green thing."))
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          vegetables, plato::components::ComponentType::kObjective,
+                         "A test objective",
                          (bool, tomato, "Is it a fruit?")
-                         (unsigned int, potato, "Boil 'em, mash 'em, stick 'em in a stew."))
+                         (unsigned, potato, "Boil 'em, mash 'em, stick 'em in a stew."))
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          rocks, plato::components::ComponentType::kFilter,
+                         "A test filter",
                          (int, shininess, ""))
 // clang-format on
 

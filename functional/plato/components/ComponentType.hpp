@@ -2,6 +2,7 @@
 #define PLATO_COMPONENTS_COMPONENTTYPE
 
 #include <cstdint>
+#include <vector>
 
 #include "plato/utilities/EnumIndexing.hpp"
 
@@ -11,10 +12,10 @@ namespace plato::components
 /// create a workflow.
 enum struct ComponentType : std::uint8_t
 {
-    kObjective,
-    kConstraint,
     kGeometry,
     kFilter,
+    kObjective,
+    kConstraint,
     kProcessManager,
     kNumberOfEnumerates
 };
@@ -22,6 +23,9 @@ enum struct ComponentType : std::uint8_t
 /// @brief Returns the ComponentType associated with an index @a kIndex.
 template <std::size_t kIndex>
 [[nodiscard]] constexpr auto component_type_from_index() -> ComponentType;
+
+/// @brief Returns all enumerates of ComponentType.
+[[nodiscard]] auto all_component_types() -> std::vector<ComponentType>;
 
 template <std::size_t kIndex>
 constexpr auto component_type_from_index() -> ComponentType

@@ -1,6 +1,6 @@
 include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
-
+include(${CMAKE_UTIL_DIR}/add_documentation.cmake)
 
 set(FOLDERS library 
             extension)
@@ -16,9 +16,11 @@ set(LINK_LIBS PlatoFunctionalFilter
 if (CUBIT_ENABLED)
   list(APPEND FOLDERS extension/cubit)
   list(APPEND LINK_LIBS "PlatoCubitInterface")
+  add_documentation(${CMAKE_CURRENT_SOURCE_DIR}/extension/cubit/documentation)
 endif()
 
 create_plato_library(PlatoFunctionalGeometry "${FOLDERS}" "${LINK_LIBS}")
+add_documentation(${CMAKE_CURRENT_SOURCE_DIR}/extension/documentation)
 
 if( UNIT_TESTING )
 

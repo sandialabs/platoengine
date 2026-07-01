@@ -1,25 +1,33 @@
-#ifndef PLATO_INPUTPARSER_HELPDOCUMENTATIONREGISTRATION
-#define PLATO_INPUTPARSER_HELPDOCUMENTATIONREGISTRATION
+#ifndef PLATO_DOCUMENTATION_HELPDOCUMENTATIONREGISTRATION
+#define PLATO_DOCUMENTATION_HELPDOCUMENTATIONREGISTRATION
 
 #include <functional>
 #include <map>
 #include <string>
 #include <vector>
 
-namespace plato::input_parser
+#include "plato/components/ComponentType.hpp"
+
+namespace plato::documentation
 {
 
 /// @brief Helper struct used to hold the string forms of a plato input block
 /// @note Not indented for use besides documentation.
-struct HelpDocumentation
+struct InputKeywordDocumentation
 {
     std::string mName = "Default Name";
     std::string mType = "Default Type";
     std::string mComment = "Default Comment";
 };
 
-using Documentation = std::vector<HelpDocumentation>;
-using HelpDocumentationFunction = std::function<Documentation()>;
+struct ComponentDocumentation
+{
+    components::ComponentType mComponentType = components::ComponentType::kObjective;
+    std::string mDescription = "Component description";
+    std::vector<InputKeywordDocumentation> mInputs;
+};
+
+using HelpDocumentationFunction = std::function<ComponentDocumentation()>;
 
 /// @brief Object used for static registration of help documentation functions
 ///
@@ -28,7 +36,7 @@ using HelpDocumentationFunction = std::function<Documentation()>;
 /// @code
 /// namespace{
 /// [[maybe_unused]] static const auto kNewHelpDocumentationRegistration =
-///   plato::input_parser::HelpDocumentationRegistration{
+///   plato::documentation::HelpDocumentationRegistration{
 ///    [](){ return help_documentation_function(); }
 /// };
 /// }
@@ -40,7 +48,7 @@ struct HelpDocumentationRegistration
 };
 
 /// @brief Generates the list of all documentation available
-[[nodiscard]] auto generate_documentation() -> std::map<std::string, Documentation>;
+[[nodiscard]] auto generate_documentation() -> std::map<std::string, ComponentDocumentation>;
 
 /// @brief Generate the list of documentation and format the text and print it in the given output stream @a
 /// aOutputStream
@@ -54,6 +62,6 @@ namespace detail
 
 }  // namespace detail
 
-}  // namespace plato::input_parser
+}  // namespace plato::documentation
 
 #endif

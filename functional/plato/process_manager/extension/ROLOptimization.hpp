@@ -22,9 +22,10 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), rol_optimization,
+    "Uses the rapid optimization library (ROL) in Trilinos to perform an optimization of the defined Plato problem.",
     (plato::input_parser::FileName, input_file_name, "Optional filename of the XML file specifying the ROL input parameters.")
     (plato::input_parser::FileName, export_settings_file_name, "Optional filename to trigger an exporting of all the set parameters of ROL.")
-    (unsigned int, max_iterations, "Optional command to override the maximum number of outer iterations given in an input file.")
+    (unsigned, max_iterations, "Optional command to override the maximum number of outer iterations given in an input file.")
     (double, step_tolerance, "Optional command to override the step tolerance given in an input file. The step tolerance is the norm of the change in all of the controls from one step to the next. This number should scale with the problem size.")
     (double, gradient_tolerance, "Optional command to override the gradient tolerance given in an input file. The gradient tolerance is the norm of the gradient which at an optimal solution should be zero. This number should scale with the problem size.")
     (double, initial_search_radius, "Optional command to override the starting search radius for the controls. This number should increase with the problem size.")

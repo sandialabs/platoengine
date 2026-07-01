@@ -12,6 +12,7 @@
 PLATO_GEOMETRY_INPUT_BLOCK_STRUCT(
     (plato)(input_parser),
     test_geometry,
+    "Description",
     (plato::input_parser::FileName, mesh_name, "")
     (plato::input_parser::BlockList, fixed_blocks, "")
     )

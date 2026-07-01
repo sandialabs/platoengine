@@ -3,6 +3,9 @@
 
 #include <boost/fusion/include/define_struct.hpp>
 #include <boost/spirit/include/qi.hpp>
+#include <format>
+
+#include "plato/documentation/DataTypeDocumentation.hpp"
 
 ///@brief Input struct with parser to read in inclusive bounds from the input deck
 // clang-format off
@@ -22,6 +25,12 @@ namespace plato::input_parser
 [[nodiscard]] constexpr auto operator==(const Range& aLHS, const Range& aRHS) -> bool
 {
     return aLHS.mLower == aRHS.mLower && aLHS.mStep == aRHS.mStep && aLHS.mUpper == aRHS.mUpper;
+}
+
+[[nodiscard]] inline auto data_type_documentation(const Range& /*unused*/) -> std::string
+{
+    const auto tFloatFormat = documentation::data_type_documentation(double{});
+    return std::format("[{}:{}:{}]", tFloatFormat, tFloatFormat, tFloatFormat);
 }
 
 }  // namespace plato::input_parser

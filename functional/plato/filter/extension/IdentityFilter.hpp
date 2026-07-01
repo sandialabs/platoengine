@@ -8,6 +8,7 @@
 // clang-format off
 PLATO_FILTER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), identity_filter,
+    "Maps a node-centered design field to itself, providing no smoothing.",
     (double, filter_radius, "Do not use - Identity filter cannot have a filter radius.")
 )
 // clang-format on

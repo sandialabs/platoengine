@@ -20,6 +20,12 @@ enum struct Dragons : std::uint8_t
 DECLARE_ENUM_SYMBOL_TABLE(Dragons, plato::enum_test, (kRed, "red")(kBlue, "blue")(kGold, "gold"))
 DEFINE_ENUM_SYMBOL_TABLE(Dragons, plato::enum_test)
 
+DECLARE_ENUM_AND_ENUM_SYMBOL_TABLE(Shapes,
+                                   plato::enum_test,
+                                   (kTetrahedron, "tetrahedron")(kCube, "cube")(kOctahedron, "octahedron")(
+                                       kDodecahedron, "dodecahedron")(kIcosahedron, "icosahedron"))
+DEFINE_ENUM_SYMBOL_TABLE(Shapes, plato::enum_test)
+
 namespace plato::input_parser::unittest
 {
 namespace
@@ -55,5 +61,11 @@ TEST(DefinedEnums, SeparateEnumDeclaration)
     EXPECT_EQ(tParsedObjectiveTypes.at(1U), plato::enum_test::Dragons::kRed);
     EXPECT_EQ(tParsedObjectiveTypes.back(), plato::enum_test::Dragons::kBlue);
 }
+
+TEST(DefinedEnums, DataTypeDocumentation)
+{
+    const auto tDocumentation = data_type_documentation(plato::enum_test::Shapes{});
+    EXPECT_EQ(tDocumentation, "`tetrahedron | cube | octahedron | dodecahedron | icosahedron`");
+};
 
 }  // namespace plato::input_parser::unittest

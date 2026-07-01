@@ -36,6 +36,8 @@ struct CriterionTraits
 {
     Parallelization mParallelization;
     FunctionDimension mDimension;
+
+    [[nodiscard]] constexpr auto operator==(const CriterionTraits& /*unused*/) const noexcept -> bool = default;
 };
 
 /// @brief Converts a bool to a Parallelization enum, with `true` corresponding to `kParallel`.

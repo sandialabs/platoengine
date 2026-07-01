@@ -2,14 +2,16 @@
 #define PLATO_UTILITIES_STRINGUTILTIES
 
 #include <numeric>
+#include <ranges>
 #include <string>
 #include <string_view>
 
 namespace plato::utilities
 {
 /// @brief Concatenates all messages in @a aStrings with a delimeter @a aDelimiter in between each string.
-template <template <class...> typename Container>
-auto concatenate_container(const Container<std::string>& aStrings, std::string_view aDelimiter = " ") -> std::string;
+template <std::ranges::range Container>
+    requires std::is_same_v<std::ranges::range_value_t<Container>, std::string>
+auto concatenate_container(const Container& aStrings, std::string_view aDelimiter = " ") -> std::string;
 
 /// @brief Concatenates all of @a strings into a single string.
 /// @tparam StringConvertible Any type that std::string is constructable from or any arithmetic type that
@@ -42,14 +44,15 @@ template <typename T>
 }
 }  // namespace detail
 
-template <template <class...> typename Container>
-auto concatenate_container(const Container<std::string>& aStrings, const std::string_view aDelimiter) -> std::string
+template <std::ranges::range Container>
+    requires std::is_same_v<std::ranges::range_value_t<Container>, std::string>
+auto concatenate_container(const Container& aStrings, const std::string_view aDelimiter) -> std::string
 {
-    if (aStrings.empty())
+    if (std::ranges::empty(aStrings))
     {
         return {};
     }
-    return std::accumulate(std::next(aStrings.cbegin()), aStrings.cend(), *aStrings.cbegin(),
+    return std::accumulate(std::next(aStrings.begin()), aStrings.end(), *aStrings.begin(),
                            [aDelimiter](std::string aAllNames, std::string aCurrentName)
                            { return std::move(aAllNames) + std::string{aDelimiter} + std::move(aCurrentName); });
 }

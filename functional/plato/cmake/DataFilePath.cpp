@@ -1,9 +1,11 @@
 #include "plato/utilities/DataFilePath.hpp"
 
+#include <filesystem>
+
 namespace plato::utilities
 {
 
-std::optional<std::filesystem::path> data_file_path(const std::string_view aFileName)
+auto data_file_path(const std::filesystem::path& aFileName) -> std::optional<std::filesystem::path>
 {
     static const auto tBuildPath = std::filesystem::path{"@FUNCTIONAL_DATA_BUILD_PATH@"};
     static const auto tInstallPath = std::filesystem::path{"@FUNCTIONAL_DATA_INSTALL_PATH@"};

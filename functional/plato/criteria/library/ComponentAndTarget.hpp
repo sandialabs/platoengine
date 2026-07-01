@@ -12,5 +12,4 @@ PLATO_INPUT_SEQUENCE_SUBTYPE(
 (double, target)
 )
 // clang-format on
-
 #endif
