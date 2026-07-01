@@ -7,3 +7,5 @@ The target mesh must contain the full three dimensional design domain.
 
 ```{include} include/centering-type-tip.md
 ```
+```{include} include/filter-radius-warning.md
+```

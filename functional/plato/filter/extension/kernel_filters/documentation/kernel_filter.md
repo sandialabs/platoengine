@@ -5,3 +5,5 @@ Note that for highly unstructured meshes with a wide range of element sizes, thi
 
 ```{include} include/centering-type-tip.md
 ```
+```{include} include/filter-radius-warning.md
+```
