@@ -1,7 +1,7 @@
 The filter, `wedge_filter`, performs a distance weighted smoothing of the nodal design parameters while also enforcing a wedge symmetry about the z-axis.
 The wedge-shaped design domain is reflected through planes formed by sweeping the XZ-plane about the Z-axis for a given `wedge_angle`.
 
-This filter uses two meshes, a source mesh and a target mesh.
+This filter uses two distinct meshes, a source mesh and a target mesh.
 The source mesh is defined in the geometry block through the input `mesh_name` and the target mesh in the filter block as `target_mesh_name`.
 The source mesh defines the wedge and must begin on the XZ-plane and sweep the XZ-plane about the Z-axis by the `wedge_angle`.
 The wedge can be any angle that subdivides 360 degrees into an even number of sub-domains.
