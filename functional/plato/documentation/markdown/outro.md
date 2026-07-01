@@ -19,12 +19,12 @@ The `<component>` names the type of block being defined, such as a geometry, fil
 The components documented in this user manual correspond to the valid block names.
 Within a block, each option is written as a `<keyword>` followed by a `<value>`.
 Some more complicated components may use a list of values or values with additional keywords. Plato input decks do **not** use `=` signs or assignment syntax.
-The `objective`, `constraint`, and `filter` input block components should be named.
+The `objective` and `constraint` input block components should be named.
 
 Examples:
 
 ```plato
-begin kernel_filter kernel_filter_name
+begin kernel_filter
     radius 1.0
     centering_type node
 end
