@@ -4,5 +4,5 @@ They guide the optimization process by restricting feasible designs, helping to 
 
 ```{note}
 Keep track of whether a constraint is linear or nonlinear when composed with a geometry type to alert the optimizer of this change.
-For instance, a volume or volume fraction constraint is linear for density_topology but nonlinear for level_set_topology.
+For instance, a volume or volume fraction constraint is linear for `density_topology` but nonlinear for `level_set_topology`.
 ```
