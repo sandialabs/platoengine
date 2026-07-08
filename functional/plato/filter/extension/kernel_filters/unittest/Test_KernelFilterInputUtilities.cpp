@@ -25,7 +25,7 @@ namespace
 {
 
 constexpr auto kFilterRadius = 0.5;
-const auto kRevolveInput = test_utilities::make_filter_input<input_parser::y_axis_revolve_filter>(
+const auto kRevolveInput = test_utilities::make_filter_input<input_parser::rz_axisymmetric_revolve_filter>(
     kFilterRadius, input_parser::KernelFilterCenteringTypes::kNodeCentered);
 
 }  // namespace
@@ -33,12 +33,14 @@ const auto kRevolveInput = test_utilities::make_filter_input<input_parser::y_axi
 TEST(RevolveFilterDetail, ValidateTargetMeshExists)
 {
     {
-        const auto tErrorMessage = validate_target_mesh_exists<input_parser::y_axis_revolve_filter>(kRevolveInput);
+        const auto tErrorMessage =
+            validate_target_mesh_exists<input_parser::rz_axisymmetric_revolve_filter>(kRevolveInput);
         EXPECT_TRUE(tErrorMessage.has_value()) << " No mesh on disk.";
     }
     {
         [[maybe_unused]] const auto tOutputFile = std::ofstream(kRevolveInput.target_mesh_name.value().mToken);
-        const auto tErrorMessage = validate_target_mesh_exists<input_parser::y_axis_revolve_filter>(kRevolveInput);
+        const auto tErrorMessage =
+            validate_target_mesh_exists<input_parser::rz_axisymmetric_revolve_filter>(kRevolveInput);
         EXPECT_FALSE(tErrorMessage.has_value()) << " Mesh on disk.";
         std::filesystem::remove(kRevolveInput.target_mesh_name.value().mToken);
     }

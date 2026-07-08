@@ -20,7 +20,7 @@ namespace plato::filter::extension::kernel_filters::unittest
 {
 namespace
 {
-using third_party_integration::stk_io::test_utilities::XZPlaneMesh;
+using RevolveFilterXZPlaneMeshFixture = third_party_integration::stk_io::test_utilities::XZPlaneMesh;
 namespace tpi = third_party_integration;
 const auto kRadius = .25;
 const auto kNodeCentering = input_parser::KernelFilterCenteringTypes::kNodeCentered;
@@ -30,16 +30,17 @@ const auto kTargetZerothCoordinate = tpi::common::Coordinate{1, 0, 0};
 const auto kTargetFirstCoordinate = tpi::common::Coordinate{0, 1, 0};
 
 const auto kRevolveInputNodeCentered =
-    test_utilities::make_filter_input<input_parser::y_axis_revolve_filter>(kRadius, kNodeCentering);
+    test_utilities::make_filter_input<input_parser::rz_axisymmetric_revolve_filter>(kRadius, kNodeCentering);
 
-const auto kRevolveInputElementCentered = test_utilities::make_filter_input<input_parser::y_axis_revolve_filter>(
-    kRadius, input_parser::KernelFilterCenteringTypes::kElementCentered);
+const auto kRevolveInputElementCentered =
+    test_utilities::make_filter_input<input_parser::rz_axisymmetric_revolve_filter>(
+        kRadius, input_parser::KernelFilterCenteringTypes::kElementCentered);
 
 const auto kRevolveLambdaDetail = [](const double aRadius, const input_parser::KernelFilterCenteringTypes& aCentering)
-{ return detail::make_y_axis_revolve_filter_type(aRadius, aCentering); };
-const auto kRevolveLambda =
-    [](const input_parser::y_axis_revolve_filter& aInput, const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-{ return make_y_axis_revolve_filter_type(aInput, aAnalysisDomainMesh); };
+{ return detail::make_rz_axisymmetric_revolve_filter_type(aRadius, aCentering); };
+const auto kRevolveLambda = [](const input_parser::rz_axisymmetric_revolve_filter& aInput,
+                               const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+{ return make_rz_axisymmetric_revolve_filter_type(aInput, aAnalysisDomainMesh); };
 
 }  // namespace
 
@@ -54,7 +55,7 @@ TEST(RevolveFilter, MakeRevolveFilterTypeRadiusAndCentering)
 TEST(RevolveFilter, MakeRevolveFilterTypeSearchFunction)
 {
     namespace tpic = third_party_integration::common;
-    const auto tFilterType = detail::make_y_axis_revolve_filter_type(kRadius, kNodeCentering);
+    const auto tFilterType = detail::make_rz_axisymmetric_revolve_filter_type(kRadius, kNodeCentering);
 
     const std::vector<tpic::Coordinate> tSourceCoordinates{kTestPoint};
     const std::vector<tpic::Coordinate> tTargetCoordinates{kTargetZerothCoordinate, kTargetFirstCoordinate};
@@ -76,7 +77,7 @@ TEST(RevolveFilter, MakeRevolveFilterTypeSearchFunction)
 
 TEST(RevolveFilter, MakeRevolveFilterTypeUnnormalizedWeightFunction)
 {
-    const auto tFilterType = detail::make_y_axis_revolve_filter_type(kRadius, kNodeCentering);
+    const auto tFilterType = detail::make_rz_axisymmetric_revolve_filter_type(kRadius, kNodeCentering);
 
     const auto tUnnormalizedWeightGold = detail::cylinder_ramp_weight(
         detail::CylinderCenter{detail::cylindrical_polar_coordinates(kTargetFirstCoordinate).mValue},
@@ -106,8 +107,8 @@ TEST(RevolveFilterDetail, ValidateSourceMeshInXZPlane)
     const auto t2DxySourceFilePath = utilities::data_file_path("four_tri_two_block.cdf");
     ASSERT_TRUE(t2DxySourceFilePath.has_value());
     {
-        const auto tErrorMessage = detail::validate_source_mesh_in_xz_plane(input_parser::y_axis_revolve_filter{},
-                                                                            t2DxySourceFilePath.value());
+        const auto tErrorMessage = detail::validate_source_mesh_in_xz_plane(
+            input_parser::rz_axisymmetric_revolve_filter{}, t2DxySourceFilePath.value());
         EXPECT_TRUE(tErrorMessage.has_value()) << "Four tri is in XY plane but revolve needs XZ plane only";
     }
     {
@@ -117,17 +118,17 @@ TEST(RevolveFilterDetail, ValidateSourceMeshInXZPlane)
             tpis::CommandGenerator{{10, 10, 10}, {-5, -5, -5}, {5, 5, 5}, tpis::CommandElementType::kTet};
         tpis::write_mesh(tThreeDFilePath, tCommandGenerator.toString());
         const auto tErrorMessage =
-            detail::validate_source_mesh_in_xz_plane(input_parser::y_axis_revolve_filter{}, tThreeDFilePath);
+            detail::validate_source_mesh_in_xz_plane(input_parser::rz_axisymmetric_revolve_filter{}, tThreeDFilePath);
         EXPECT_TRUE(tErrorMessage.has_value()) << "3D Mesh but revolve needs XZ plane only";
         std::filesystem::remove(tThreeDFilePath);
     }
 }
 
-TEST_F(XZPlaneMesh, ValidateSourceMeshInXZPlane)
+TEST_F(RevolveFilterXZPlaneMeshFixture, ValidateSourceMeshInXZPlane)
 {
     const auto tErrorMessage =
-        detail::validate_source_mesh_in_xz_plane(input_parser::y_axis_revolve_filter{}, mMeshFilePath);
-    EXPECT_FALSE(tErrorMessage.has_value()) << "Valid source mesh";
+        detail::validate_source_mesh_in_xz_plane(input_parser::rz_axisymmetric_revolve_filter{}, mMeshFilePath);
+    EXPECT_FALSE(tErrorMessage.has_value()) << tErrorMessage.value();
 }
 
 }  // namespace plato::filter::extension::kernel_filters::unittest
