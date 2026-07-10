@@ -27,6 +27,12 @@ class TestInterface
 /// @brief Creates an instance of TestRound, a derived class of TestInterface.
 extern "C" auto create_test_interface(double aValue) -> std::unique_ptr<TestInterface>;
 
+/// @brief A fake library loading function
+extern "C" void load_library();
+
+/// @brief A fake library unloading function
+extern "C" void unload_library();
+
 }  // namespace plato::services::test_shared_lib
 
 #endif

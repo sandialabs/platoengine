@@ -38,24 +38,31 @@ void close_if_nonnull(void* const aSharedLibrary)
 }  // namespace
 
 SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(SharedLibraryData aSharedLibraryData)
-    : mSharedLibraryData{std::move(aSharedLibraryData)},
-      mSharedLibrary{load_shared_library(mSharedLibraryData.mSharedLibraryPath)}
+    : mSharedLibraryPath{std::move(aSharedLibraryData.mSharedLibraryPath)},
+      mSharedLibrary{load_shared_library(mSharedLibraryPath)},
+      mShutdownFunction{aSharedLibraryData.mLibraryShutdownFunctionName
+                            ? loadFunction<void()>(aSharedLibraryData.mLibraryShutdownFunctionName.value())
+                            : nullptr}
 {
+    if (aSharedLibraryData.mLibraryLoadFunctionName)
+    {
+        call<void()>(aSharedLibraryData.mLibraryLoadFunctionName.value());
+    }
 }
 
 SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(std::filesystem::path aSharedLibraryPath)
-    : mSharedLibraryData{.mSharedLibraryPath = std::move(aSharedLibraryPath)},
-      mSharedLibrary{load_shared_library(mSharedLibraryData.mSharedLibraryPath)}
+    : mSharedLibraryPath{std::move(aSharedLibraryPath)}, mSharedLibrary{load_shared_library(mSharedLibraryPath)}
 {
 }
 
 SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(SharedLibrarySetupTeardown&& aSharedLibrary) noexcept
-    : mSharedLibraryData{std::move(aSharedLibrary.mSharedLibraryData)}, mSharedLibrary{aSharedLibrary.mSharedLibrary}
+    : mSharedLibraryPath{std::move(aSharedLibrary.mSharedLibraryPath)},
+      mSharedLibrary{aSharedLibrary.mSharedLibrary},
+      mShutdownFunction{aSharedLibrary.mShutdownFunction}
 {
-    aSharedLibrary.mSharedLibraryData.mSharedLibraryPath.clear();
-    aSharedLibrary.mSharedLibraryData.mLibraryLoadFunctionName.reset();
-    aSharedLibrary.mSharedLibraryData.mLibraryShutdownFunctionName.reset();
+    aSharedLibrary.mSharedLibraryPath.clear();
     aSharedLibrary.mSharedLibrary = nullptr;
+    aSharedLibrary.mShutdownFunction = nullptr;
 }
 
 auto SharedLibrarySetupTeardown::operator=(SharedLibrarySetupTeardown&& aSharedLibrary) noexcept
@@ -64,11 +71,20 @@ auto SharedLibrarySetupTeardown::operator=(SharedLibrarySetupTeardown&& aSharedL
     if (this != &aSharedLibrary)
     {
         std::swap(mSharedLibrary, aSharedLibrary.mSharedLibrary);
-        std::swap(mSharedLibraryData, aSharedLibrary.mSharedLibraryData);
+        std::swap(mSharedLibraryPath, aSharedLibrary.mSharedLibraryPath);
+        std::swap(mShutdownFunction, aSharedLibrary.mShutdownFunction);
     }
     return *this;
 }
 
-SharedLibrarySetupTeardown::~SharedLibrarySetupTeardown() { close_if_nonnull(mSharedLibrary); }
+SharedLibrarySetupTeardown::~SharedLibrarySetupTeardown()
+{
+    if (mShutdownFunction != nullptr)
+    {
+        mShutdownFunction();
+    }
+
+    close_if_nonnull(mSharedLibrary);
+}
 
 }  // namespace plato::services

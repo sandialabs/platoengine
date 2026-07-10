@@ -1,6 +1,7 @@
 #include "plato/services/test_shared_lib/TestSharedLib.hpp"
 
 #include <cmath>
+#include <iostream>
 #include <memory>
 
 namespace plato::services::test_shared_lib
@@ -25,5 +26,9 @@ auto create_test_interface(const double aValue) -> std::unique_ptr<TestInterface
 {
     return std::make_unique<TestRound>(aValue);
 }
+
+void load_library() { std::cout << "Test library was loaded.\n"; }
+
+void unload_library() { std::cout << "Test library was unloaded.\n"; }
 
 }  // namespace plato::services::test_shared_lib

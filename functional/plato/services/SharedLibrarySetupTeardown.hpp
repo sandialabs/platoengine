@@ -4,6 +4,7 @@
 #include <dlfcn.h>
 
 #include <filesystem>
+#include <format>
 #include <optional>
 #include <string_view>
 
@@ -58,8 +59,9 @@ class [[nodiscard]] SharedLibrarySetupTeardown
     template <typename FunctionSignature>
     [[nodiscard]] auto loadFunction(std::string_view aFunctionName);
 
-    SharedLibraryData mSharedLibraryData;
+    std::filesystem::path mSharedLibraryPath;
     void* mSharedLibrary = nullptr;
+    std::add_pointer_t<void()> mShutdownFunction = nullptr;
 };
 
 template <typename FunctionSignature>
@@ -70,10 +72,8 @@ template <typename FunctionSignature>
         reinterpret_cast<FunctionPtr>(dlsym(mSharedLibrary, std::string{aFunctionName}.c_str()));  // NOLINT
     if (tFunction == nullptr)
     {
-        char* const tErrorMessage = dlerror();
-        throw utilities::Exception{"Couldn't load function " + std::string{aFunctionName} + " from shared lib at " +
-                                   mSharedLibraryData.mSharedLibraryPath.string() +
-                                   "\ndlsym error: " + std::string{tErrorMessage}};
+        throw utilities::Exception{std::format("Couldn't load function {} from shared lib at {}\ndlsym error: {}\n",
+                                               aFunctionName, mSharedLibraryPath.string(), dlerror())};
     }
     return tFunction;
 }
