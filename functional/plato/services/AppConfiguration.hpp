@@ -6,6 +6,7 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/optional.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
 #include <filesystem>
 #include <map>
 #include <optional>
@@ -38,6 +39,9 @@ struct AppConfiguration
     std::string mName;
     std::string mLibraryFileName;
     std::vector<CriterionConfiguration> mCriteria;
+    std::optional<std::string> mLibraryLoadFunctionName = std::nullopt;
+    std::optional<std::string> mLibraryShutdownFunctionName = std::nullopt;
+
     auto operator==(const AppConfiguration& aAppConfiguration) const -> bool = default;
 };
 
@@ -71,13 +75,26 @@ void serialize(Archive& aArchive, CriterionConfiguration& aAppConfiguration, con
 }
 
 template <class Archive>
-void serialize(Archive& aArchive, AppConfiguration& aAppConfiguration, const unsigned int /*version*/)
+void serialize(Archive& aArchive, AppConfiguration& aAppConfiguration, const unsigned int aVersion)
 {
     aArchive& boost::serialization::make_nvp("name", aAppConfiguration.mName);
     aArchive& boost::serialization::make_nvp("shared_library_file_name", aAppConfiguration.mLibraryFileName);
     aArchive& boost::serialization::make_nvp("criteria", aAppConfiguration.mCriteria);
+    if (aVersion > 0U)
+    {
+        aArchive& boost::serialization::make_nvp("library_load_function", aAppConfiguration.mLibraryLoadFunctionName);
+        aArchive& boost::serialization::make_nvp("library_shutdown_function",
+                                                 aAppConfiguration.mLibraryShutdownFunctionName);
+    }
 }
 
+/// @brief The current version of the AppConfiguration serialization format.
+/// @note This must be incremented whenever changing AppConfiguration.
+constexpr static inline auto kAppConfigurationVerion = 1;
+
 }  // namespace plato::services
+
+//
+BOOST_CLASS_VERSION(plato::services::AppConfiguration, plato::services::kAppConfigurationVerion)
 
 #endif
