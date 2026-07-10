@@ -28,7 +28,7 @@ auto load_criterion_interface(const services::AppConfigurationWithDirectory& aAp
                               Args&&... aArgs)
 {
     return std::make_unique<VectorCriterionSharedLibraryObject>(services::make_shared_library_object<FunctionSignature>(
-        services::shared_library_path(aAppConfiguration), aCreateCriterionFunctionName, std::forward<Args>(aArgs)...));
+        services::shared_library_data(aAppConfiguration), aCreateCriterionFunctionName, std::forward<Args>(aArgs)...));
 }
 
 using SerialFunctionSignature = std::unique_ptr<library::VectorCriterionInterface>(const std::vector<std::string>&);
