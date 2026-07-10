@@ -94,7 +94,7 @@ constexpr static inline auto kAppConfigurationVerion = 1;
 
 }  // namespace plato::services
 
-//
+/// Sets the version of the AppConfiguration serialization.
 BOOST_CLASS_VERSION(plato::services::AppConfiguration, plato::services::kAppConfigurationVerion)
 
 #endif
