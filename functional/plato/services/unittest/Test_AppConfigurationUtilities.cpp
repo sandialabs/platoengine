@@ -18,6 +18,44 @@ TEST(AppConfigurationUtilities, SharedLibraryPath)
     EXPECT_EQ(tTestPath / tTestLibName, shared_library_path(AppConfigurationWithDirectory{tConfiguration, tTestPath}));
 }
 
+TEST(AppConfigurationUtilities, SharedLibraryData)
+{
+    const auto tTestPath = std::filesystem::path{"/fake/path/to/"};
+    const auto tTestLibName = std::filesystem::path{"libpatterns.so"};
+    const auto tTestLoadFunctionName = std::filesystem::path{"load_patterns"};
+    const auto tTestUnloadFunctionName = std::filesystem::path{"unload_patterns"};
+
+    {
+        const auto tConfiguration =
+            AppConfiguration{.mName = "patterns", .mLibraryFileName = tTestLibName.string(), .mCriteria = {}};
+        const auto tData = shared_library_data(AppConfigurationWithDirectory{tConfiguration, tTestPath});
+        EXPECT_EQ(tTestPath / tTestLibName, tData.mSharedLibraryPath) << "Empty functions";
+        EXPECT_FALSE(tData.mLibraryLoadFunctionName.has_value()) << "Empty functions";
+        EXPECT_FALSE(tData.mLibraryShutdownFunctionName.has_value()) << "Empty functions";
+    }
+    {
+        const auto tConfiguration = AppConfiguration{.mName = "patterns",
+                                                     .mLibraryFileName = tTestLibName.string(),
+                                                     .mCriteria = {},
+                                                     .mLibraryLoadFunctionName = tTestLoadFunctionName};
+        const auto tData = shared_library_data(AppConfigurationWithDirectory{tConfiguration, tTestPath});
+        ASSERT_TRUE(tData.mLibraryLoadFunctionName.has_value()) << "Load function";
+        EXPECT_EQ(tData.mLibraryLoadFunctionName.value(), tTestLoadFunctionName) << "Load function";
+        EXPECT_FALSE(tData.mLibraryShutdownFunctionName.has_value()) << "Load function";
+    }
+    {
+        const auto tConfiguration = AppConfiguration{.mName = "patterns",
+                                                     .mLibraryFileName = tTestLibName.string(),
+                                                     .mCriteria = {},
+                                                     .mLibraryLoadFunctionName = std::nullopt,
+                                                     .mLibraryShutdownFunctionName = tTestUnloadFunctionName};
+        const auto tData = shared_library_data(AppConfigurationWithDirectory{tConfiguration, tTestPath});
+        ASSERT_TRUE(tData.mLibraryShutdownFunctionName.has_value()) << "Unload function";
+        EXPECT_EQ(tData.mLibraryShutdownFunctionName.value(), tTestUnloadFunctionName) << "Unload function";
+        EXPECT_FALSE(tData.mLibraryLoadFunctionName.has_value()) << "Unload function";
+    }
+}
+
 TEST(AppConfigurationUtilities, CriterionConfigurationWithName)
 {
     const auto tArgyleCriterion = CriterionConfiguration{

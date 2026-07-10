@@ -67,6 +67,13 @@ auto shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration)
     return aAppConfiguration.mLibraryDirectory / aAppConfiguration.mConfiguration.mLibraryFileName;
 }
 
+auto shared_library_data(const AppConfigurationWithDirectory& aAppConfiguration) -> SharedLibraryData
+{
+    return {.mSharedLibraryPath = shared_library_path(aAppConfiguration),
+            .mLibraryLoadFunctionName = aAppConfiguration.mConfiguration.mLibraryLoadFunctionName,
+            .mLibraryShutdownFunctionName = aAppConfiguration.mConfiguration.mLibraryShutdownFunctionName};
+}
+
 auto criterion_configuration_with_name(const CriterionName& aCriterionName,
                                        const std::vector<AppConfigurationWithDirectory>& aAppConfigurations)
     -> std::optional<CriterionConfiguration>
