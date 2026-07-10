@@ -37,15 +37,24 @@ void close_if_nonnull(void* const aSharedLibrary)
 }
 }  // namespace
 
+SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(SharedLibraryData aSharedLibraryData)
+    : mSharedLibraryData{std::move(aSharedLibraryData)},
+      mSharedLibrary{load_shared_library(mSharedLibraryData.mSharedLibraryPath)}
+{
+}
+
 SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(std::filesystem::path aSharedLibraryPath)
-    : mSharedLibraryPath{std::move(aSharedLibraryPath)}, mSharedLibrary{load_shared_library(mSharedLibraryPath)}
+    : mSharedLibraryData{.mSharedLibraryPath = std::move(aSharedLibraryPath)},
+      mSharedLibrary{load_shared_library(mSharedLibraryData.mSharedLibraryPath)}
 {
 }
 
 SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(SharedLibrarySetupTeardown&& aSharedLibrary) noexcept
-    : mSharedLibraryPath{std::move(aSharedLibrary.mSharedLibraryPath)}, mSharedLibrary{aSharedLibrary.mSharedLibrary}
+    : mSharedLibraryData{std::move(aSharedLibrary.mSharedLibraryData)}, mSharedLibrary{aSharedLibrary.mSharedLibrary}
 {
-    aSharedLibrary.mSharedLibraryPath.clear();
+    aSharedLibrary.mSharedLibraryData.mSharedLibraryPath.clear();
+    aSharedLibrary.mSharedLibraryData.mLibraryLoadFunctionName.reset();
+    aSharedLibrary.mSharedLibraryData.mLibraryShutdownFunctionName.reset();
     aSharedLibrary.mSharedLibrary = nullptr;
 }
 
@@ -55,7 +64,7 @@ auto SharedLibrarySetupTeardown::operator=(SharedLibrarySetupTeardown&& aSharedL
     if (this != &aSharedLibrary)
     {
         std::swap(mSharedLibrary, aSharedLibrary.mSharedLibrary);
-        std::swap(mSharedLibraryPath, aSharedLibrary.mSharedLibraryPath);
+        std::swap(mSharedLibraryData, aSharedLibrary.mSharedLibraryData);
     }
     return *this;
 }
