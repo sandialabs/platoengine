@@ -10,6 +10,7 @@
 #include "plato/criteria/library/SharedLibCriterion.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
+#include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"
@@ -21,32 +22,37 @@ namespace
 constexpr auto kMeshName = std::string_view{"massTest.exo"};
 const auto kMeshGenerator = third_party_integration::stk_io::CommandGenerator{
     /*.mElements=*/{1U, 1U, 1U}, /*.mLowerBounds=*/{-1.0, -1.0, -1.0}, /*.mUpperBounds=*/{1.0, 1.0, 1.0}};
+
+using ParallelMassObjectiveFixture = test_utilities::CoutCerrPrintTestFixture;
 }  // namespace
 
-TEST(ParallelMassObjective, CallValueAndGradient)
+TEST_F(ParallelMassObjectiveFixture, CallValueAndGradient)
 {
-    auto tCommunicator = boost::mpi::communicator{};
-    EXPECT_GT(tCommunicator.size(), 1U);
+    {
+        auto tCommunicator = boost::mpi::communicator{};
+        EXPECT_GT(tCommunicator.size(), 1U);
 
-    const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
-    // Get parallel criterion:
-    const auto tParallelCriterion = std::find_if(tTestConfiguration.mConfiguration.mCriteria.cbegin(),
-                                                 tTestConfiguration.mConfiguration.mCriteria.cend(),
-                                                 [](const auto& aCriterion) { return aCriterion.mIsParallelized; });
-    ASSERT_NE(tParallelCriterion, tTestConfiguration.mConfiguration.mCriteria.cend());
-    const auto tSharedLib =
-        criteria::library::SharedLibCriterion{tTestConfiguration, *tParallelCriterion, {}, tCommunicator};
+        const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
+        // Get parallel criterion:
+        const auto tParallelCriterion = std::find_if(tTestConfiguration.mConfiguration.mCriteria.cbegin(),
+                                                     tTestConfiguration.mConfiguration.mCriteria.cend(),
+                                                     [](const auto& aCriterion) { return aCriterion.mIsParallelized; });
+        ASSERT_NE(tParallelCriterion, tTestConfiguration.mConfiguration.mCriteria.cend());
+        const auto tSharedLib =
+            criteria::library::SharedLibCriterion{tTestConfiguration, *tParallelCriterion, {}, tCommunicator};
 
-    const auto tRankMeshName = plato::utilities::concatenate(kMeshName, '.', tCommunicator.rank());
-    third_party_integration::stk_io::write_mesh(tRankMeshName, kMeshGenerator);
+        const auto tRankMeshName = plato::utilities::concatenate(kMeshName, '.', tCommunicator.rank());
+        third_party_integration::stk_io::write_mesh(tRankMeshName, kMeshGenerator);
 
-    const double tMass = tSharedLib.f(analysis::AnalysisDomainMesh{tRankMeshName, {}});
-    EXPECT_DOUBLE_EQ(tMass, kMeshGenerator.volume());
+        const double tMass = tSharedLib.f(analysis::AnalysisDomainMesh{tRankMeshName, {}});
+        EXPECT_DOUBLE_EQ(tMass, kMeshGenerator.volume());
 
-    const auto tGrad = tSharedLib.df(analysis::AnalysisDomainMesh{tRankMeshName, {}});
-    const std::vector<double> tGold(24, 1.0);
-    EXPECT_EQ(tGrad.stdVector(), tGold);
-
-    std::filesystem::remove(tRankMeshName);
+        const auto tGrad = tSharedLib.df(analysis::AnalysisDomainMesh{tRankMeshName, {}});
+        const std::vector<double> tGold(24, 1.0);
+        EXPECT_EQ(tGrad.stdVector(), tGold);
+        std::filesystem::remove(tRankMeshName);
+    }
+    const auto tExpectedOutput = std::string{"Unloading mass shared library\nYes, startup was called\n"};
+    checkRankZeroCoutStringStream(tExpectedOutput, TEST_CONTEXT("Parallel mass app load/unload text"));
 }
 }  // namespace plato::integration_tests::parallel
