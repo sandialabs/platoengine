@@ -1,6 +1,5 @@
 #include "plato/integration_tests/test_mass_criteria/MassObjectiveInterface.hpp"
 
-#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>

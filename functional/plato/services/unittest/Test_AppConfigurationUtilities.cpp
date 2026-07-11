@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <optional>
 #include <vector>
 
 #include "plato/services/AppConfiguration.hpp"

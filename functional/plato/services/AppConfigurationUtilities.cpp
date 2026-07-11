@@ -10,6 +10,7 @@
 
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
+#include "plato/services/SharedLibrarySetupTeardown.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
 #include "plato/utilities/TransformIf.hpp"
 

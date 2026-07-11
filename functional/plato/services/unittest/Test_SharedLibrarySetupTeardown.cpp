@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <optional>
 #include <string_view>
 #include <utility>
 

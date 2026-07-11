@@ -11,6 +11,7 @@
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/utilities/StringUtilities.hpp"

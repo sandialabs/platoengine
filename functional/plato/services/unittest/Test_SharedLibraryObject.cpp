@@ -2,21 +2,22 @@
 
 #include <cmath>
 #include <memory>
+#include <string_view>
 #include <utility>
 
 #include "plato/services/SharedLibraryObject.hpp"
+#include "plato/services/SharedLibrarySetupTeardown.hpp"
 #include "plato/services/test_shared_lib/TestSharedLib.hpp"
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
+#include "plato/test_utilities/TestContext.hpp"
 
 namespace plato::services::unittest
 {
 namespace
 {
-using namespace std::literals;
-
 constexpr auto kSharedLibName = std::string_view{"libPlatoServicesTestSharedLib.so"};
-constexpr auto kLibraryLoadFunctionName = "load_library"sv;
-constexpr auto kLibraryUnloadFunctionName = "unload_library"sv;
+constexpr auto kLibraryLoadFunctionName = std::string_view{"load_library"};
+constexpr auto kLibraryUnloadFunctionName = std::string_view{"unload_library"};
 constexpr auto kCreateFunction = std::string_view{"create_test_interface"};
 constexpr auto kDoubleValue = 42.2;
 

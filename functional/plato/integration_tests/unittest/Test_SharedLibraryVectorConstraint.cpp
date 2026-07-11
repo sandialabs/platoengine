@@ -21,6 +21,7 @@
 #include "plato/test_utilities/Containers.hpp"
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
 #include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
