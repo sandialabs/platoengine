@@ -8,6 +8,7 @@
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), initial_geometry_writer,
+    "Writes the initial guess to disk for verification.",
     (plato::input_parser::FileName, file_name, "Optional: do not use.")
 )
 // clang-format on

@@ -29,9 +29,11 @@ struct ProcessManagerData;
 // clang-format off
 PLATO_PROCESS_MANAGER_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), parameter_sweep,
+    "Allows for the objective to be evaluated along a defined set of design variables on a Cartesian product grid.",
     (plato::input_parser::FileName, output_file_name, "Required filename specifying where to output the results.")
     (plato::input_parser::IndexAndRangeList, indices_and_ranges,"Required input specifying a comma separated list of indices and ranges."
-                                                              " e.g. index 0 range [0:1:2], index 1 range [-1:1:1]  Runs variable at index 0 from 0 to 2 with a step of 1, cross the space with variable 1 going from -1 to 1 by 1.")
+                                                                " e.g. `index 0 range [0:1:2], index 1 range [-1:1:1]` Runs variable at index "
+                                                                "0 from 0 to 2 with a step of 1, cross the space with variable 1 going from -1 to 1 by 1.")
 )
 // clang-format on
 

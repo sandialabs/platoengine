@@ -20,7 +20,7 @@
 #include "plato/filter/extension/kernel_filters/CanonicalKernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilter.hpp"
 #include "plato/filter/extension/kernel_filters/KernelFilterCenteringTypes.hpp"
-#include "plato/filter/extension/kernel_filters/ReflectFilter.hpp"
+#include "plato/filter/extension/kernel_filters/PositiveOctantReflectFilter.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/filter/test_utilities/FilterFunction.hpp"
 #include "plato/geometry/extension/LevelSetTopology.hpp"

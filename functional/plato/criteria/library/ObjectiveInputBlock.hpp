@@ -15,17 +15,18 @@ DECLARE_ENUM_AND_ENUM_SYMBOL_TABLE(ObjectiveGoal,
 
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), objective, plato::components::ComponentType::kObjective,
+    "An instance of the specific performance measure that the optimizer seeks to maximize or minimize.",
     (bool, active, "Optional field to de/activate this objective.")
     (plato::input_parser::AppName, app, "Required field specifying the app to use for this objective.") 
     (plato::input_parser::CriterionName, criterion, "Required field specifying the name of the criterion to be evaluated.")
-    (unsigned int, number_of_processors, "Optional parameter that will specify the number of processors used to run the app that computes this objective. "
+    (unsigned, number_of_processors, "Optional parameter that will specify the number of processors used to run the app that computes this objective. "
                                          "Requires the 'plato' executable be called with mpirun.")
     (plato::input_parser::FileList, input_files, "Optional comma-separated list of files needed for the app to run.")
     (double, aggregation_weight, "Required weight used to aggregate this objective with any other objectives specified.")
     (bool, normalize_by_initial_value, "Optional field to normalize this objective by its value at the initial guess. Normalized value is scaled by aggregation_weight.")
     (plato::criteria::library::ObjectiveGoal, objective_goal, "Optional field specifying whether to minimize an objective, minimize its negation, or minimize its reciprocal. "
-                                                              "Default is 'minimize'. Choosing 'minimize-negation' will maximize the objective by minimizing its negation. " 
-                                                              "Choosing 'minimize-reciprocal' will maximize the objective by minimizing its reciprocal.")
+                                                              "Default is `minimize`. Choosing `minimize-negation` will maximize the objective by minimizing its negation. "
+                                                              "Choosing `minimize-reciprocal` will maximize the objective by minimizing its reciprocal.")
 )
 // clang-format off
 

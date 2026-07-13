@@ -107,6 +107,9 @@ using FactoryRegistrationTypes = std::tuple<ParallelCriterionRegistrationTypes,
 /// @brief Checks if a criterion function is registered with name @a aFunctionName and has trait @a aTrait.
 [[nodiscard]] auto criterion_function_has_trait(std::string_view aFunctionName, CriterionTrait auto aTrait) -> bool;
 
+/// @brief Returns all traits associated with @a aRegisteredCriterionName.
+[[nodiscard]] auto criterion_traits(std::string_view aRegisteredCriterionName) -> std::vector<CriterionTraits>;
+
 namespace detail
 {
 template <typename FactoryArgTuple, typename U>

@@ -1,5 +1,6 @@
 #include "plato/geometry/extension/DensityTopology.hpp"
 
+#include <boost/fusion/sequence/intrinsic/at.hpp>
 #include <boost/mpi/communicator.hpp>
 #include <cassert>
 #include <filesystem>
@@ -170,6 +171,8 @@ auto DensityTopology::adjointJacobian(const linear_algebra::DynamicVector<double
 auto DensityTopology::initialGuess(const input_parser::density_topology& aInput)
     -> linear_algebra::DynamicVector<double>
 {
+    const auto tThing = boost::fusion::at_c<0>(aInput);
+
     if (aInput.initial_density_value.has_value())
     {
         const auto tMesh = mesh_from_input(aInput);

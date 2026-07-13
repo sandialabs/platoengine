@@ -15,6 +15,7 @@
 // clang-format off
 PLATO_NAMED_INPUT_BLOCK_STRUCT(
     (plato)(input_parser), test_objective, plato::components::ComponentType::kObjective,
+    "A test objective",
     (bool, active, "")
     (double, aggregation_weight, "")
     (plato::input_parser::FileName, output_file_name, "")

@@ -3,6 +3,7 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 
 set(LINK_LIBS Boost::headers
               PlatoFunctionalComponents
+              PlatoFunctionalDocumentation
               PlatoFunctionalUtilities)
 
 create_plato_library(PlatoFunctionalInputParser "." "${LINK_LIBS}")
@@ -15,5 +16,3 @@ if( UNIT_TESTING )
   create_plato_header_library(PlatoFunctionalInputParserTestUtilities "test_utilities" "PlatoFunctionalInputParser")
   create_plato_unittester(PlatoFunctionalInputParser unittest PlatoFunctionalInputParserTestUtilities)
 endif()
-
-add_subdirectory(./documentation_generator)

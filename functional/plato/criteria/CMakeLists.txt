@@ -1,6 +1,7 @@
 include(${CMAKE_UTIL_DIR}/create_plato_library.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 include(${CMAKE_UTIL_DIR}/create_plato_interface.cmake)
+include(${CMAKE_UTIL_DIR}/add_documentation.cmake)
 
 set(DIRECTORIES library
                 extension)
@@ -12,6 +13,7 @@ set(LINK_LIBS PlatoFunctionalCore
               PlatoFunctionalKrino
               PlatoFunctionalInputParser)
 create_plato_library(PlatoFunctionalCriteria "${DIRECTORIES}" "${LINK_LIBS}")
+add_documentation(${CMAKE_CURRENT_SOURCE_DIR}/library/documentation)
 
 set(HEADERS library/CriterionInterface.hpp
             library/VectorCriterionInterface.hpp)

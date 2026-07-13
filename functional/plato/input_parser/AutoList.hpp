@@ -5,6 +5,8 @@
 #include <concepts>
 #include <vector>
 
+#include "plato/documentation/DataTypeDocumentation.hpp"
+
 namespace plato::input_parser
 {
 
@@ -35,6 +37,14 @@ struct AutoList
 
     std::vector<ParsableType> mList;
 };
+
+template <ParsableType ParsableType>
+[[nodiscard]] auto data_type_documentation(const AutoList<ParsableType>& /*unused*/) -> std::string
+{
+    using plato::documentation::data_type_documentation;
+
+    return std::string{"Comma separated list of: "} + data_type_documentation(ParsableType{});
+}
 
 template <ParsableType ParsableType>
 AutoList<ParsableType>::AutoList(std::vector<ParsableType> aList) : mList(std::move(aList))

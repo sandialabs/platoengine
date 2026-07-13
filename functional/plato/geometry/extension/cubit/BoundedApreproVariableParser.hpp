@@ -5,7 +5,9 @@
 #include <boost/fusion/include/define_struct.hpp>
 #include <boost/proto/deep_copy.hpp>
 #include <boost/spirit/include/qi.hpp>
+#include <format>
 
+#include "plato/documentation/DataTypeDocumentation.hpp"
 #include "plato/input_parser/AutoList.hpp"
 #include "plato/input_parser/Bounds.hpp"
 #include "plato/input_parser/UserDefinedToken.hpp"
@@ -38,6 +40,15 @@ plato::input_parser::BoundedApreproVariable,
 (plato::input_parser::Bounds, mBounds)
 )
 // clang-format on
+
+namespace plato::input_parser
+{
+[[nodiscard]] inline auto data_type_documentation(const BoundedApreproVariable& /*unused*/) -> std::string
+{
+    return std::format("Composite type: `<string>` {} {}", documentation::data_type_documentation(double{}),
+                       data_type_documentation(Bounds{}));
+}
+}  // namespace plato::input_parser
 
 namespace boost::spirit::traits
 {

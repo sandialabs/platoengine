@@ -16,15 +16,14 @@ namespace plato::filter::extension::kernel_filters
 constexpr inline auto kKernelFilterRadiusHelpText = "Required field specifying the size of the filter radius.";
 
 constexpr inline auto kKernelFilterCenteringTypeHelpText =
-    "Required field specifying whether the results should be 'node' or 'element' centered. "
-    "Platoanalyze requires node-centered and SD requires element-centered.";
+    "Required field specifying whether the results should be node or element centered. ";
 
 constexpr inline auto kKernelFilterRelativeRadiusHelpText =
     "Optional field that can convert the filter radius specified into a radius relative to the average element size.";
 
 constexpr inline auto kKernelFilterNumberOfProcessorsHelpText =
     "Optional parameter that will specify the number of processors used to run the filter in parallel. "
-    "Requires the 'plato' executable be called with mpirun. Limited to the maximum processors specified in the mpirun "
+    "Requires the `plato` executable be called with mpirun. Limited to the maximum processors specified in the mpirun "
     "call. "
     "Over-parallelization can cause a significant degredation of the filter.";
 

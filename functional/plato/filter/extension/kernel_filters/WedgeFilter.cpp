@@ -17,6 +17,7 @@
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/ReflectionUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/ReliableMeshZeroValue.hpp"
 #include "plato/filter/extension/kernel_filters/SphericalMaskUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/Wedge.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
@@ -178,8 +179,7 @@ auto validate_source_mesh_matches_wedge_angle(const input_parser::wedge_filter& 
         cylindrical_polar_coordinates(mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.nodalCoordinates()).mValue;
     const auto tBoundingBox = third_party_integration::common::bounding_box(tPolarCoordinates);
     const auto tMaximumAngleInDegrees = tBoundingBox.second.y * kDegreesPerRadian;
-    if (constexpr auto tAngleTolerance = 1e-6;
-        std::fabs(tMaximumAngleInDegrees - aInput.wedge_angle.value()) >= tAngleTolerance)
+    if (std::fabs(tMaximumAngleInDegrees - aInput.wedge_angle.value()) >= reliable_mesh_zero_value())
     {
         return std::optional<std::string>{utilities::concatenate(
             input_parser::block_name<input_parser::wedge_filter>(),

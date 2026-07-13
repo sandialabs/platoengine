@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "plato/criteria/library/ComponentAndTarget.hpp"
+#include "plato/input_parser/AutoList.hpp"
 #include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/input_parser/test_utilities/TestHelpers.hpp"
 #include "plato/test_utilities/TestContext.hpp"
@@ -34,6 +35,14 @@ TEST(ComponentAndTarget, Invalid)
         input_parser::test_utilities::expect_invalid_input<input_parser::ComponentAndTarget>(
             tInput, TEST_CONTEXT("Invalid out of order"));
     }
+}
+
+TEST(ComponentAndTarget, DataTypeNames)
+{
+    EXPECT_EQ(data_type_documentation(input_parser::ComponentAndTarget{}),
+              "Composite type: `component` `<string>` `target` `<real>` ");
+    EXPECT_EQ(data_type_documentation(input_parser::AutoList<input_parser::ComponentAndTarget>{}),
+              "Comma separated list of: Composite type: `component` `<string>` `target` `<real>` ");
 }
 
 }  // namespace plato::criteria::library::unittest

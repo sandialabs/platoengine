@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <ranges>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -33,7 +34,7 @@ constexpr auto kSerialVector =
 constexpr auto kParallelVector =
     library::CriterionTraits{library::Parallelization::kParallel, library::FunctionDimension::kVector};
 
-using AppConfigVector = std::vector<std::pair<std::string_view, library::CriterionTraits>>;
+using AppConfigVector = std::vector<std::pair<std::string_view, std::vector<library::CriterionTraits>>>;
 
 /// @brief A file writer that outputs some text for mimicking a shared library on disk.
 struct FakeSharedLibWriter
@@ -62,15 +63,23 @@ template <typename SharedLibWriter>
     {
         const auto tLibName = utilities::concatenate("lib", tAppConfig.first, ".so");
         const auto tConfigName = utilities::concatenate(tAppConfig.first, ".config");
-        const auto tCriterionConfiguration = services::CriterionConfiguration{
-            /*.mName=*/kTestCriterionName,
-            /*.mIsParallelized=*/tAppConfig.second.mParallelization == library::Parallelization::kParallel,
-            /*.mIsScalar=*/tAppConfig.second.mDimension == library::FunctionDimension::kScalar,
-            /*.mFunctionName=*/"plato_create_criterion",
-        };
-        auto tAppConfiguration = services::AppConfiguration{/*.mName=*/std::string{tAppConfig.first},
-                                                            /*.mLibraryFileName=*/tLibName,
-                                                            /*.mCriteria=*/{tCriterionConfiguration}};
+        const auto tToCriterionConfiguration =
+            tAppConfig.second |
+            std::views::transform(
+                [](const auto& aCriterionConfiguration)
+                {
+                    return services::CriterionConfiguration{
+                        .mName = kTestCriterionName,
+                        .mIsParallelized =
+                            aCriterionConfiguration.mParallelization == library::Parallelization::kParallel,
+                        .mIsScalar = aCriterionConfiguration.mDimension == library::FunctionDimension::kScalar,
+                        .mFunctionName = "plato_create_criterion",
+                    };
+                });
+        auto tAppConfiguration = services::AppConfiguration{
+            .mName = std::string{tAppConfig.first},
+            .mLibraryFileName = tLibName,
+            .mCriteria = {tToCriterionConfiguration.begin(), tToCriterionConfiguration.end()}};
         tConfigurationTempDirectory
             .writeFile(services::AppConfigurationWriter{std::move(tAppConfiguration)}, tConfigName)
             .writeFile(aSharedLibWriter, tLibName);
@@ -104,7 +113,7 @@ TEST(PluginCriteria, NothingRegisteredForEmptyPaths)
 TEST(PluginCriteria, NonexistentSharedLibrary)
 {
     const auto tTheBlobAppName = std::string{"the-blob"};
-    const auto tConfigurationTempDirectory = create_test_app_configurations({{tTheBlobAppName, kParallelScalar}});
+    const auto tConfigurationTempDirectory = create_test_app_configurations({{tTheBlobAppName, {kParallelScalar}}});
     const auto tNumKnownConfigurations = services::app_configurations({tConfigurationTempDirectory.directory()}).size();
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
     EXPECT_NE(tNumRegistered, tNumKnownConfigurations);
@@ -132,10 +141,10 @@ TEST(PluginCriteria, RegisterApps)
     const auto tZombieAppName = std::string{"zombie"};
     const auto tDraculaAppName = std::string{"dracula"};
     const auto tConfigurationTempDirectory =
-        create_test_app_configurations_with_fake_shared_libs({{tVampireAppName, kParallelScalar},
-                                                              {tMummyAppName, kSerialScalar},
-                                                              {tZombieAppName, kSerialVector},
-                                                              {tDraculaAppName, kParallelVector}});
+        create_test_app_configurations_with_fake_shared_libs({{tVampireAppName, {kParallelScalar}},
+                                                              {tMummyAppName, {kSerialScalar}},
+                                                              {tZombieAppName, {kSerialVector}},
+                                                              {tDraculaAppName, {kParallelVector}}});
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
     EXPECT_EQ(tNumRegistered, 4U);
 
@@ -191,10 +200,10 @@ TEST(PluginCriteria, ValidateValidApps)
     const auto tItAppName = std::string{"it"};
     const auto tThingAppName = std::string{"thing"};
     const auto tConfigurationTempDirectory =
-        create_test_app_configurations_with_fake_shared_libs({{tFrankensteinAppName, kSerialScalar},
-                                                              {tMedusaAppName, kParallelScalar},
-                                                              {tItAppName, kSerialVector},
-                                                              {tThingAppName, kParallelVector}});
+        create_test_app_configurations_with_fake_shared_libs({{tFrankensteinAppName, {kSerialScalar}},
+                                                              {tMedusaAppName, {kParallelScalar}},
+                                                              {tItAppName, {kSerialVector}},
+                                                              {tThingAppName, {kParallelVector}}});
     const auto tNumRegistered = register_plugin_apps({tConfigurationTempDirectory.directory()});
     EXPECT_EQ(tNumRegistered, 4U);
 
@@ -213,7 +222,7 @@ TEST(PluginCriteria, ValidateValidApps)
 TEST(PluginCriteria, ValidateInvalidApp)
 {
     const auto tWolfmanAppName = std::string{"wolfman"};
-    const auto tConfigurationTempDirectory = create_test_app_configurations({{tWolfmanAppName, kParallelScalar}});
+    const auto tConfigurationTempDirectory = create_test_app_configurations({{tWolfmanAppName, {kParallelScalar}}});
     register_plugin_apps({tConfigurationTempDirectory.directory()});
 
     auto tCriteria = input_parser::objective{};
@@ -231,10 +240,10 @@ TEST(CriterionRegistration, RegisterAppsList)
     const auto tVanHelsingAppName = std::string{"van-helsing"};
     const auto tLurchAppName = std::string{"lurch"};
     const auto tConfigurationTempDirectory =
-        create_test_app_configurations_with_fake_shared_libs({{tMartianAppName, kSerialScalar},
-                                                              {tCerberusAppName, kParallelScalar},
-                                                              {tVanHelsingAppName, kParallelVector},
-                                                              {tLurchAppName, kSerialVector}});
+        create_test_app_configurations_with_fake_shared_libs({{tMartianAppName, {kSerialScalar}},
+                                                              {tCerberusAppName, {kParallelScalar}},
+                                                              {tVanHelsingAppName, {kParallelVector}},
+                                                              {tLurchAppName, {kSerialVector}}});
     register_plugin_apps({tConfigurationTempDirectory.directory()});
 
     const auto tRegisteredApps = library::registered_criteria_names();
@@ -248,6 +257,31 @@ TEST(CriterionRegistration, RegisterAppsList)
     EXPECT_TRUE(tCriterionIsInRegisteredNames(tCerberusAppName));
     EXPECT_TRUE(tCriterionIsInRegisteredNames(tVanHelsingAppName));
     EXPECT_TRUE(tCriterionIsInRegisteredNames(tLurchAppName));
+}
+
+TEST(CriterionRegistration, CriterionTraits)
+{
+    const auto tMartianAppName = std::string{"martian"};
+    const auto tLurchAppName = std::string{"lurch"};
+    const auto tConfigurationTempDirectory = create_test_app_configurations_with_fake_shared_libs(
+        {{tMartianAppName, {kSerialScalar, kParallelScalar}}, {tLurchAppName, {kSerialVector}}});
+    register_plugin_apps({tConfigurationTempDirectory.directory()});
+
+    {
+        const auto tName = library::criterion_registration_name(input_parser::AppName{tMartianAppName},
+                                                                input_parser::CriterionName{kTestCriterionName});
+        const auto tCriterionTraits = criterion_traits(tName);
+        ASSERT_EQ(tCriterionTraits.size(), 2U) << tMartianAppName;
+        EXPECT_EQ(tCriterionTraits.front(), kParallelScalar) << tMartianAppName;
+        EXPECT_EQ(tCriterionTraits.back(), kSerialScalar) << tMartianAppName;
+    }
+    {
+        const auto tName = library::criterion_registration_name(input_parser::AppName{tLurchAppName},
+                                                                input_parser::CriterionName{kTestCriterionName});
+        const auto tCriterionTraits = criterion_traits(tName);
+        ASSERT_EQ(tCriterionTraits.size(), 1U) << tLurchAppName;
+        EXPECT_EQ(tCriterionTraits.front(), kSerialVector) << tLurchAppName;
+    }
 }
 
 }  // namespace plato::criteria::library::unittest

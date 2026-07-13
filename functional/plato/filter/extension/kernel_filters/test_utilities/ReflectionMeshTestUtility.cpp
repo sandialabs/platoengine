@@ -17,4 +17,5 @@ void create_mesh_for_reflection_filter(const std::filesystem::path& aMeshFile,
                                                           .mType = tpis::CommandElementType::kHex};
     tpis::write_mesh(aMeshFile, tCommandGenerator.toString());
 }
+
 }  // namespace plato::filter::extension::kernel_filters::test_utilities

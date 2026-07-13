@@ -1,0 +1,9 @@
+The filter, `kernel_filter`, takes node-centered design variables and performs a distance-weighted sum to smooth design parameters.
+These can be mapped to either node-centered or element-centered design fields depending on the element_centering parameter. 
+
+Note that for highly unstructured meshes with a wide range of element sizes, this approach may result in unwanted artifacts and the filter radius must be chosen carefully.
+
+```{include} include/centering-type-tip.md
+```
+```{include} include/filter-radius-warning.md
+```

@@ -68,4 +68,16 @@ TEST(Plane, ReflectPlane)
                                                            TEST_CONTEXT("Plane center."));
 }
 
+TEST(Plane, SignedDistanceToPlane)
+{
+    namespace tpic = third_party_integration::common;
+    const auto tFortyFivePlane = Plane({1, 2, 3}, {-kSqrtTwoOverTwo, kSqrtTwoOverTwo, 0});
+    const auto tTestPoint = tpic::Coordinate{4, 5, 6};
+    const auto tSignedDistance =
+        tpic::dot(tTestPoint - tFortyFivePlane.mCenter, static_cast<tpic::Vector3>(tFortyFivePlane.mUnitNormal));
+    const auto tResult = signed_distance_to_plane(tTestPoint, tFortyFivePlane);
+    constexpr auto tTolerance = 2e-16;
+    EXPECT_NEAR(tSignedDistance, tResult, tTolerance);
+}
+
 }  // namespace plato::filter::extension::kernel_filters::unittest

@@ -11,6 +11,7 @@
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          registration_test_block,
                          plato::components::ComponentType::kGeometry,
+                         "A test geometry",
                          (int, dark_roast, "no comment")
                          (bool, medium_roast, "no comment")
                          (unsigned, light_roast, "no comment"))
@@ -18,11 +19,13 @@ PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          statically_registered_test_block,
                          plato::components::ComponentType::kFilter,
+                         "A test filter",
                          (int, dark_roast, "no comment"))
 
 PLATO_INPUT_BLOCK_STRUCT((plato)(input_parser),
                          another_filter,
                          plato::components::ComponentType::kFilter,
+                         "A test filter",
                          (int, dark_roast, "no comment"))
 
 // clang-format on

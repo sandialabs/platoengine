@@ -1,0 +1,27 @@
+#include <gtest/gtest.h>
+
+#include <map>
+#include <string>
+
+#include "plato/documentation/HelpDocumentationRegistration.hpp"
+#include "plato/main/documentation_generator/library/LatexFormatter.hpp"
+
+namespace plato::documentation::documentation_generator::library::unittest
+{
+namespace
+{
+const auto kDocOne = ComponentDocumentation{.mDescription = "", .mInputs = {{"a", "b", "c"}}};
+const auto kDocTwo = ComponentDocumentation{.mDescription = "", .mInputs = {{"d", "e", "f"}, {"g", "h", "i"}}};
+const std::map<std::string, ComponentDocumentation> kDocumentation = {{"one", kDocOne}, {"two", kDocTwo}};
+}  // namespace
+
+TEST(LatexFormatter, FormatLatex)
+{
+    const auto tDocumentation = kDocumentation;
+    const auto tResult = format_command_latex(tDocumentation);
+    ASSERT_EQ(tResult.size(), 2U);
+    EXPECT_EQ(tResult.at("one").front(), "\\PlatoCommand{one}{a}{b}{c}");
+    EXPECT_EQ(tResult.at("two").front(), "\\PlatoCommand{two}{d}{e}{f}");
+    EXPECT_EQ(tResult.at("two").back(), "\\PlatoCommand{two}{g}{h}{i}");
+}
+}  // namespace plato::documentation::documentation_generator::library::unittest

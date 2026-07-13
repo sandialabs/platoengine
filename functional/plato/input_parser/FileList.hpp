@@ -15,6 +15,10 @@ struct ValidFilenameCharacters
 
 using FileName = UserDefinedToken<ValidFilenameCharacters>;
 using FileList = UserDefinedTokenList<ValidFilenameCharacters>;
+
+[[nodiscard]] auto data_type_documentation(const FileName& /*unused*/) -> std::string;
+[[nodiscard]] auto data_type_documentation(const FileList& /*unused*/) -> std::string;
+
 }  // namespace plato::input_parser
 
 #endif

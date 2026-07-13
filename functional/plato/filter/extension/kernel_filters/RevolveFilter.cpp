@@ -15,6 +15,7 @@
 #include "plato/filter/extension/kernel_filters/KernelFilterInputUtilities.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilder.hpp"
 #include "plato/filter/extension/kernel_filters/LinearMaskBuilderUtilities.hpp"
+#include "plato/filter/extension/kernel_filters/ReliableMeshZeroValue.hpp"
 #include "plato/filter/library/FilterRegistration.hpp"
 #include "plato/input_parser/ComponentParserRegistration.hpp"
 #include "plato/input_parser/InputBlockUtilities.hpp"
@@ -32,56 +33,58 @@ namespace plato::filter::extension::kernel_filters
 
 namespace
 {
-const auto kMakeRevolveFilterInfo = [](const input_parser::y_axis_revolve_filter& aInput,
+const auto kMakeRevolveFilterInfo = [](const input_parser::rz_axisymmetric_revolve_filter& aInput,
                                        const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> RevolveFilterType
-{ return make_y_axis_revolve_filter_type(aInput, aAnalysisDomainMesh); };
+{ return make_rz_axisymmetric_revolve_filter_type(aInput, aAnalysisDomainMesh); };
 
 [[maybe_unused]] const auto kRevolveFilterParserRegistration =
-    input_parser::ComponentParserRegistration<input_parser::y_axis_revolve_filter>{};
+    input_parser::ComponentParserRegistration<input_parser::rz_axisymmetric_revolve_filter>{};
 
 [[maybe_unused]] const auto kRevolveFilterRegistration = library::FilterRegistration{
-    input_parser::block_name<input_parser::y_axis_revolve_filter>(), [](const library::ValidatedFilterInput& aInput)
+    input_parser::block_name<input_parser::rz_axisymmetric_revolve_filter>(),
+    [](const library::ValidatedFilterInput& aInput)
     {
-        const auto& tInput = input_validation::get_input_block<input_parser::y_axis_revolve_filter>(aInput);
+        const auto& tInput = input_validation::get_input_block<input_parser::rz_axisymmetric_revolve_filter>(aInput);
         return library::make_filter_function_from_cache(
             [&tInput]()
             {
-                return detail::create_kernel_filter_cache<input_parser::y_axis_revolve_filter>(tInput,
-                                                                                               kMakeRevolveFilterInfo);
+                return detail::create_kernel_filter_cache<input_parser::rz_axisymmetric_revolve_filter>(
+                    tInput, kMakeRevolveFilterInfo);
             });
     }};
 
 [[maybe_unused]] const auto kRevolveFilterValidationRegistration =
-    validation_for_all_kernel_filters<input_parser::y_axis_revolve_filter>();
+    validation_for_all_kernel_filters<input_parser::rz_axisymmetric_revolve_filter>();
 
 [[maybe_unused]] const auto kRevolveFilterTargetMeshValidationRegistration =
-    target_mesh_validation_for_all_kernel_filters<input_parser::y_axis_revolve_filter>();
+    target_mesh_validation_for_all_kernel_filters<input_parser::rz_axisymmetric_revolve_filter>();
 
 [[maybe_unused]] const auto kRevolveFilterMeshBasedValidationRegistration =
     input_validation::InputBlockValidationRegistration<std::filesystem::path>{
-        [](const input_parser::y_axis_revolve_filter& aInput, const std::filesystem::path& aMeshPath)
+        [](const input_parser::rz_axisymmetric_revolve_filter& aInput, const std::filesystem::path& aMeshPath)
         { return extension::detail::validate_filter_radius_with_mesh(aInput, aMeshPath); },
-        [](const input_parser::y_axis_revolve_filter& aInput, const std::filesystem::path& aMeshPath)
+        [](const input_parser::rz_axisymmetric_revolve_filter& aInput, const std::filesystem::path& aMeshPath)
         { return detail::validate_source_mesh_in_xz_plane(aInput, aMeshPath); },
-        [](const input_parser::y_axis_revolve_filter& aInput, const std::filesystem::path& aMeshPath)
+        [](const input_parser::rz_axisymmetric_revolve_filter& aInput, const std::filesystem::path& aMeshPath)
         {
-            return validate_all_target_domain_find_source_domain<input_parser::y_axis_revolve_filter>(
+            return validate_all_target_domain_find_source_domain<input_parser::rz_axisymmetric_revolve_filter>(
                 aInput, aMeshPath, kMakeRevolveFilterInfo, boost::mpi::communicator{});
         }};
 
 }  // namespace
 
-auto make_y_axis_revolve_filter_type(const input_parser::y_axis_revolve_filter& aInput,
-                                     const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) -> RevolveFilterType
+auto make_rz_axisymmetric_revolve_filter_type(const input_parser::rz_axisymmetric_revolve_filter& aInput,
+                                              const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+    -> RevolveFilterType
 {
     const auto tFilterRadius = extension::detail::get_filter_radius(aInput, aAnalysisDomainMesh.mFileName);
-    return detail::make_y_axis_revolve_filter_type(tFilterRadius, aInput.centering_type.value());
+    return detail::make_rz_axisymmetric_revolve_filter_type(tFilterRadius, aInput.centering_type.value());
 }
 
 namespace detail
 {
-auto make_y_axis_revolve_filter_type(const double aRadius,
-                                     const input_parser::KernelFilterCenteringTypes aFilterCentering)
+auto make_rz_axisymmetric_revolve_filter_type(const double aRadius,
+                                              const input_parser::KernelFilterCenteringTypes aFilterCentering)
     -> RevolveFilterType
 {
     const auto tThetaHat = third_party_integration::common::Vector3{0, 1, 0};
@@ -111,7 +114,7 @@ auto make_y_axis_revolve_filter_type(const double aRadius,
                                             detail::QueryLocation{tCylindricalPolarSourcePoint});
     };
 
-    const auto tTargetMeshFunction = [](const input_parser::y_axis_revolve_filter& aInput) -> mesh::Mesh
+    const auto tTargetMeshFunction = [](const input_parser::rz_axisymmetric_revolve_filter& aInput) -> mesh::Mesh
     {
         const auto tFixedBlocks = mesh::fixed_blocks(aInput);
         return mesh::Mesh{aInput.target_mesh_name.value().mToken, tFixedBlocks};
@@ -119,15 +122,16 @@ auto make_y_axis_revolve_filter_type(const double aRadius,
 
     return RevolveFilterType{
         .mKernelFilterFunctions =
-            KernelFilterFunctions{.mRadius = aRadius,
-                                  .mFilterCentering = aFilterCentering,
-                                  .mSearchFunction = tSearchFunction,
-                                  .mUnnormalizedWeightFunction = tUnnormalizedWeightFunction,
-                                  .mLoggingName = input_parser::block_name<input_parser::y_axis_revolve_filter>()},
+            KernelFilterFunctions{
+                .mRadius = aRadius,
+                .mFilterCentering = aFilterCentering,
+                .mSearchFunction = tSearchFunction,
+                .mUnnormalizedWeightFunction = tUnnormalizedWeightFunction,
+                .mLoggingName = input_parser::block_name<input_parser::rz_axisymmetric_revolve_filter>()},
         .mTargetMeshFunction = tTargetMeshFunction};
 }
 
-auto validate_source_mesh_in_xz_plane(const input_parser::y_axis_revolve_filter& /*aInput*/,
+auto validate_source_mesh_in_xz_plane(const input_parser::rz_axisymmetric_revolve_filter& /*aInput*/,
                                       const std::filesystem::path& aSourceMeshFileName) -> std::optional<std::string>
 {
     if (!std::filesystem::exists(aSourceMeshFileName))
@@ -136,12 +140,14 @@ auto validate_source_mesh_in_xz_plane(const input_parser::y_axis_revolve_filter&
     }
     const auto tBoundingBox = mesh::EntityRetrieval{mesh::Mesh{aSourceMeshFileName}}.designDomainBoundingBox();
     const auto tDimensions = tBoundingBox.second - tBoundingBox.first;
-    if (tDimensions.y != 0 || tDimensions.x == 0 || tDimensions.z == 0)
+    if (tDimensions.y > reliable_mesh_zero_value() || tDimensions.x < reliable_mesh_zero_value() ||
+        tBoundingBox.first.x < -reliable_mesh_zero_value() || tDimensions.z < reliable_mesh_zero_value())
     {
         return std::optional<std::string>{utilities::concatenate(
-            input_parser::block_name<input_parser::y_axis_revolve_filter>(),
+            input_parser::block_name<input_parser::rz_axisymmetric_revolve_filter>(),
             ": source mesh must exist only in the XZ plane. Your mesh has dimensions: ", std::to_string(tDimensions.x),
-            ", ", std::to_string(tDimensions.y), ", ", std::to_string(tDimensions.z))};
+            ", ", std::to_string(tDimensions.y), ", ", std::to_string(tDimensions.z), " and a minimum x-value of ",
+            std::to_string(tBoundingBox.first.x))};
     }
     return std::nullopt;
 }
