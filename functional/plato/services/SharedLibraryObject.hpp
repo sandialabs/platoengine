@@ -34,6 +34,20 @@ template <typename FunctionSignature, typename... Args>
 auto make_shared_library_object(const SharedLibraryData& aSharedLibraryData,
                                 std::string_view aFunctionName,
                                 Args&&... aArgs)
+    -> SharedLibraryObject<std::invoke_result_t<FunctionSignature, Args...>>;
+
+/// @brief Creates a SharedLibrarySetupTeardown object and wraps the object created by calling
+///  its call member in a SharedLibraryObject.
+template <typename FunctionSignature, typename... Args>
+auto make_shared_library_object(const std::filesystem::path& aSharedLibraryPath,
+                                std::string_view aFunctionName,
+                                Args&&... aArgs)
+    -> SharedLibraryObject<std::invoke_result_t<FunctionSignature, Args...>>;
+
+template <typename FunctionSignature, typename... Args>
+auto make_shared_library_object(const SharedLibraryData& aSharedLibraryData,
+                                std::string_view aFunctionName,
+                                Args&&... aArgs)
     -> SharedLibraryObject<std::invoke_result_t<FunctionSignature, Args...>>
 {
     using Object = std::invoke_result_t<FunctionSignature, Args...>;
@@ -42,8 +56,6 @@ auto make_shared_library_object(const SharedLibraryData& aSharedLibraryData,
     return SharedLibraryObject<Object>{std::move(tSharedLibrary), std::move(tObject)};
 }
 
-/// @brief Creates a SharedLibrarySetupTeardown object and wraps the object created by calling
-///  its call member in a SharedLibraryObject.
 template <typename FunctionSignature, typename... Args>
 auto make_shared_library_object(const std::filesystem::path& aSharedLibraryPath,
                                 std::string_view aFunctionName,

@@ -89,12 +89,14 @@ void serialize(Archive& aArchive, AppConfiguration& aAppConfiguration, const uns
 }
 
 /// @brief The current version of the AppConfiguration serialization format.
-/// @note This must be incremented whenever changing AppConfiguration.
-constexpr static inline auto kAppConfigurationVerion = 1;
+/// @note This must be incremented whenever changing the serialization of AppConfiguration. The serialization function
+/// typically must change when adding or removing members from AppConfiguration, and may also change if a change is made
+/// to the name of a serialized member.
+constexpr static inline auto kAppConfigurationVersion = 1;
 
 }  // namespace plato::services
 
 /// Sets the version of the AppConfiguration serialization.
-BOOST_CLASS_VERSION(plato::services::AppConfiguration, plato::services::kAppConfigurationVerion)
+BOOST_CLASS_VERSION(plato::services::AppConfiguration, plato::services::kAppConfigurationVersion)
 
 #endif
