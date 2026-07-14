@@ -6,6 +6,7 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/optional.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
 #include <filesystem>
 #include <map>
 #include <optional>
@@ -38,6 +39,9 @@ struct AppConfiguration
     std::string mName;
     std::string mLibraryFileName;
     std::vector<CriterionConfiguration> mCriteria;
+    std::optional<std::string> mLibraryLoadFunctionName = std::nullopt;
+    std::optional<std::string> mLibraryShutdownFunctionName = std::nullopt;
+
     auto operator==(const AppConfiguration& aAppConfiguration) const -> bool = default;
 };
 
@@ -71,13 +75,28 @@ void serialize(Archive& aArchive, CriterionConfiguration& aAppConfiguration, con
 }
 
 template <class Archive>
-void serialize(Archive& aArchive, AppConfiguration& aAppConfiguration, const unsigned int /*version*/)
+void serialize(Archive& aArchive, AppConfiguration& aAppConfiguration, const unsigned int aVersion)
 {
     aArchive& boost::serialization::make_nvp("name", aAppConfiguration.mName);
     aArchive& boost::serialization::make_nvp("shared_library_file_name", aAppConfiguration.mLibraryFileName);
     aArchive& boost::serialization::make_nvp("criteria", aAppConfiguration.mCriteria);
+    if (aVersion > 0U)
+    {
+        aArchive& boost::serialization::make_nvp("library_load_function", aAppConfiguration.mLibraryLoadFunctionName);
+        aArchive& boost::serialization::make_nvp("library_shutdown_function",
+                                                 aAppConfiguration.mLibraryShutdownFunctionName);
+    }
 }
 
+/// @brief The current version of the AppConfiguration serialization format.
+/// @note This must be incremented whenever changing the serialization of AppConfiguration. The serialization function
+/// typically must change when adding or removing members from AppConfiguration, and may also change if a change is made
+/// to the name of a serialized member.
+constexpr static inline auto kAppConfigurationVersion = 1;
+
 }  // namespace plato::services
+
+/// Sets the version of the AppConfiguration serialization.
+BOOST_CLASS_VERSION(plato::services::AppConfiguration, plato::services::kAppConfigurationVersion)
 
 #endif

@@ -19,14 +19,20 @@
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/linear_algebra/DynamicVector.hpp"
 #include "plato/test_utilities/Containers.hpp"
+#include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/stk_io/CommandGenerator.hpp"
+#include "plato/third_party_integration/stk_io/WriteUtilities.hpp"
 #include "plato/third_party_integration/stk_io/test_utilities/MeshFixtures.hpp"
 
 namespace plato::integration_tests::serial
 {
-using third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
 namespace
 {
+
+using SharedLibraryVectorConstraintMeshFixture = third_party_integration::stk_io::test_utilities::OneBlock3x1x1HexMesh;
+using SharedLibraryVectorConstraintCoutFixture = test_utilities::CoutCerrPrintTestFixture;
+
 [[nodiscard]] auto test_shared_library_criterion() -> criteria::library::SharedLibraryVectorCriterion
 {
     const auto tTestConfiguration = utilities::test_app_configuration(utilities::mass_app_library_file_name());
@@ -54,18 +60,27 @@ namespace
 
 }  // namespace
 
-TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallValue)
+TEST_F(SharedLibraryVectorConstraintCoutFixture, SharedLibraryCallValue)
 {
-    const auto tSharedLibrary = test_shared_library_criterion();
-    const auto tMasses = tSharedLibrary.value(analysis::AnalysisDomainMesh{mMeshFilePath, {}}).stdVector();
+    {
+        const auto tMeshFilePath = std::filesystem::path{"mesh.exo"};
+        constexpr auto tMeshCommand =
+            third_party_integration::stk_io::CommandGenerator{{3, 1, 1}, {0, 0, 0}, {3, 1, 1}};
+        third_party_integration::stk_io::write_mesh(tMeshFilePath, tMeshCommand);
 
-    const auto tExpected = std::vector<double>(mExpectedNumberOfElements, test_mass_criteria::kDensity);
-    constexpr auto tTolerance = 1e-15;
-    test_utilities::expect_container_entries_near(tExpected, tMasses, tTolerance,
-                                                  TEST_CONTEXT("Vector mass density value"));
+        const auto tSharedLibrary = test_shared_library_criterion();
+        const auto tMasses = tSharedLibrary.value(analysis::AnalysisDomainMesh{tMeshFilePath, {}}).stdVector();
+        const auto tExpectedNumberOfElements = tMeshCommand.numberOfElements();
+        const auto tExpected = std::vector<double>(tExpectedNumberOfElements, test_mass_criteria::kDensity);
+        constexpr auto tTolerance = 1e-15;
+        test_utilities::expect_container_entries_near(tExpected, tMasses, tTolerance,
+                                                      TEST_CONTEXT("Vector mass density value"));
+    }
+    const auto tExpectedOutput = std::string{"Unloading mass shared library\nYes, startup was called\n"};
+    checkRankZeroCoutStringStream(tExpectedOutput, TEST_CONTEXT("Parallel mass app load/unload text"));
 }
 
-TEST_F(OneBlock3x1x1HexMesh, MakeCriterionAndCallValue)
+TEST_F(SharedLibraryVectorConstraintMeshFixture, MakeCriterionAndCallValue)
 {
     const auto [tTempDirectory, tValidatedInput] = integration_tests::utilities::setup_mass_app_for_test(mMeshFilePath);
 
@@ -100,7 +115,7 @@ TEST_F(OneBlock3x1x1HexMesh, MakeCriterionAndCallValue)
     }
 }
 
-TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallJacobianTimesVector)
+TEST_F(SharedLibraryVectorConstraintMeshFixture, SharedLibraryCallJacobianTimesVector)
 {
     const auto tSharedLibrary = test_shared_library_criterion();
     const auto tDirection = create_n_step_vector(mExpectedNumberOfElements);
@@ -111,7 +126,7 @@ TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallJacobianTimesVector)
     EXPECT_EQ(tJacobianTimesVector, tExpected);
 }
 
-TEST_F(OneBlock3x1x1HexMesh, SharedLibraryCallAdjointJacobianTimesVector)
+TEST_F(SharedLibraryVectorConstraintMeshFixture, SharedLibraryCallAdjointJacobianTimesVector)
 {
     const auto tSharedLibrary = test_shared_library_criterion();
     const auto tDual = create_n_step_vector(mExpectedNumberOfElements);

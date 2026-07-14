@@ -4,6 +4,7 @@
 #include <filesystem>
 
 #include "plato/services/AppConfiguration.hpp"
+#include "plato/services/SharedLibrarySetupTeardown.hpp"
 
 namespace plato::services
 {
@@ -27,6 +28,11 @@ struct CriterionName
 
 /// @brief Returns the path to the shared library contained in @a aAppConfiguration.
 [[nodiscard]] auto shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration) -> std::filesystem::path;
+
+/// @brief Returns the shared library data contained in @a aAppConfiguration.
+///
+/// This includes the shared library path and load/shutdown function names.
+[[nodiscard]] auto shared_library_data(const AppConfigurationWithDirectory& aAppConfiguration) -> SharedLibraryData;
 
 /// @brief Returns the CriterionRegistration with name @a aCriterionName.
 [[nodiscard]] auto criterion_configuration_with_name(

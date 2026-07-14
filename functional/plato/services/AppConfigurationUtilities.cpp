@@ -10,6 +10,7 @@
 
 #include "plato/services/AppConfiguration.hpp"
 #include "plato/services/PluginDirectoryPath.hpp"
+#include "plato/services/SharedLibrarySetupTeardown.hpp"
 #include "plato/utilities/OptionalToVector.hpp"
 #include "plato/utilities/TransformIf.hpp"
 
@@ -65,6 +66,13 @@ auto plugin_configurations() -> std::vector<AppConfigurationWithDirectory>
 auto shared_library_path(const AppConfigurationWithDirectory& aAppConfiguration) -> std::filesystem::path
 {
     return aAppConfiguration.mLibraryDirectory / aAppConfiguration.mConfiguration.mLibraryFileName;
+}
+
+auto shared_library_data(const AppConfigurationWithDirectory& aAppConfiguration) -> SharedLibraryData
+{
+    return {.mSharedLibraryPath = shared_library_path(aAppConfiguration),
+            .mLibraryLoadFunctionName = aAppConfiguration.mConfiguration.mLibraryLoadFunctionName,
+            .mLibraryShutdownFunctionName = aAppConfiguration.mConfiguration.mLibraryShutdownFunctionName};
 }
 
 auto criterion_configuration_with_name(const CriterionName& aCriterionName,

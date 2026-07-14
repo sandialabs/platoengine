@@ -37,16 +37,32 @@ void close_if_nonnull(void* const aSharedLibrary)
 }
 }  // namespace
 
+SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(SharedLibraryData aSharedLibraryData)
+    : mSharedLibraryPath{std::move(aSharedLibraryData.mSharedLibraryPath)},
+      mSharedLibrary{load_shared_library(mSharedLibraryPath)},
+      mShutdownFunction{aSharedLibraryData.mLibraryShutdownFunctionName
+                            ? loadFunction<void()>(aSharedLibraryData.mLibraryShutdownFunctionName.value())
+                            : nullptr}
+{
+    if (aSharedLibraryData.mLibraryLoadFunctionName)
+    {
+        call<void()>(aSharedLibraryData.mLibraryLoadFunctionName.value());
+    }
+}
+
 SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(std::filesystem::path aSharedLibraryPath)
     : mSharedLibraryPath{std::move(aSharedLibraryPath)}, mSharedLibrary{load_shared_library(mSharedLibraryPath)}
 {
 }
 
 SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(SharedLibrarySetupTeardown&& aSharedLibrary) noexcept
-    : mSharedLibraryPath{std::move(aSharedLibrary.mSharedLibraryPath)}, mSharedLibrary{aSharedLibrary.mSharedLibrary}
+    : mSharedLibraryPath{std::move(aSharedLibrary.mSharedLibraryPath)},
+      mSharedLibrary{aSharedLibrary.mSharedLibrary},
+      mShutdownFunction{aSharedLibrary.mShutdownFunction}
 {
     aSharedLibrary.mSharedLibraryPath.clear();
     aSharedLibrary.mSharedLibrary = nullptr;
+    aSharedLibrary.mShutdownFunction = nullptr;
 }
 
 auto SharedLibrarySetupTeardown::operator=(SharedLibrarySetupTeardown&& aSharedLibrary) noexcept
@@ -56,10 +72,19 @@ auto SharedLibrarySetupTeardown::operator=(SharedLibrarySetupTeardown&& aSharedL
     {
         std::swap(mSharedLibrary, aSharedLibrary.mSharedLibrary);
         std::swap(mSharedLibraryPath, aSharedLibrary.mSharedLibraryPath);
+        std::swap(mShutdownFunction, aSharedLibrary.mShutdownFunction);
     }
     return *this;
 }
 
-SharedLibrarySetupTeardown::~SharedLibrarySetupTeardown() { close_if_nonnull(mSharedLibrary); }
+SharedLibrarySetupTeardown::~SharedLibrarySetupTeardown()
+{
+    if (mShutdownFunction != nullptr)
+    {
+        mShutdownFunction();
+    }
+
+    close_if_nonnull(mSharedLibrary);
+}
 
 }  // namespace plato::services

@@ -31,15 +31,39 @@ class [[nodiscard]] SharedLibraryObject
 /// @brief Creates a SharedLibrarySetupTeardown object and wraps the object created by calling
 ///  its call member in a SharedLibraryObject.
 template <typename FunctionSignature, typename... Args>
+auto make_shared_library_object(const SharedLibraryData& aSharedLibraryData,
+                                std::string_view aFunctionName,
+                                Args&&... aArgs)
+    -> SharedLibraryObject<std::invoke_result_t<FunctionSignature, Args...>>;
+
+/// @brief Creates a SharedLibrarySetupTeardown object and wraps the object created by calling
+///  its call member in a SharedLibraryObject.
+template <typename FunctionSignature, typename... Args>
 auto make_shared_library_object(const std::filesystem::path& aSharedLibraryPath,
+                                std::string_view aFunctionName,
+                                Args&&... aArgs)
+    -> SharedLibraryObject<std::invoke_result_t<FunctionSignature, Args...>>;
+
+template <typename FunctionSignature, typename... Args>
+auto make_shared_library_object(const SharedLibraryData& aSharedLibraryData,
                                 std::string_view aFunctionName,
                                 Args&&... aArgs)
     -> SharedLibraryObject<std::invoke_result_t<FunctionSignature, Args...>>
 {
     using Object = std::invoke_result_t<FunctionSignature, Args...>;
-    auto tSharedLibrary = services::SharedLibrarySetupTeardown{aSharedLibraryPath};
-    return SharedLibraryObject<Object>{
-        std::move(tSharedLibrary), tSharedLibrary.call<FunctionSignature>(aFunctionName, std::forward<Args>(aArgs)...)};
+    auto tSharedLibrary = services::SharedLibrarySetupTeardown{aSharedLibraryData};
+    auto tObject = tSharedLibrary.call<FunctionSignature>(aFunctionName, std::forward<Args>(aArgs)...);
+    return SharedLibraryObject<Object>{std::move(tSharedLibrary), std::move(tObject)};
+}
+
+template <typename FunctionSignature, typename... Args>
+auto make_shared_library_object(const std::filesystem::path& aSharedLibraryPath,
+                                std::string_view aFunctionName,
+                                Args&&... aArgs)
+    -> SharedLibraryObject<std::invoke_result_t<FunctionSignature, Args...>>
+{
+    return make_shared_library_object<FunctionSignature>(SharedLibraryData{.mSharedLibraryPath = aSharedLibraryPath},
+                                                         aFunctionName, std::forward<Args>(aArgs)...);
 }
 
 template <typename Object>
