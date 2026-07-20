@@ -216,41 +216,28 @@ void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aS
     auto& tAuxMeta = ::krino::AuxMetaData::get(tMeta);
     auto& tCdfemSupport = ::krino::CDFEM_Support::get(tMeta);
     auto& tPhaseSupport = ::krino::Phase_Support::get(tMeta);
-    std::unique_ptr<::krino::InterfaceGeometry> tInterfaceGeometry;
 
-    if (!use_snapping(aSnappingParameters))
-    {
-        if (kDoNormalSensitivities)
-        {
-            update_nodal_gradient_for_normal_sensitivities(aBackgroundMesh, tCdfemSupport);
-        }
-        tInterfaceGeometry =
-            ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
-                                              tCdfemSupport, tPhaseSupport, aBackgroundMesh.mLevelSetFields);
-    }
-    else
+    if (use_snapping(aSnappingParameters))
     {
         tCdfemSupport.set_cdfem_edge_degeneracy_handling(
             ::krino::Edge_Degeneracy_Handling::SNAP_TO_INTERFACE_WHEN_QUALITY_ALLOWS_THEN_SNAP_TO_NODE);
         tCdfemSupport.set_snapping_sharp_feature_angle_in_degrees(aSnappingParameters.mSharpFeatureAngle);
         tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength);
-
-        if (kDoNormalSensitivities)
-        {
-            update_nodal_gradient_for_normal_sensitivities(aBackgroundMesh, tCdfemSupport);
-            tInterfaceGeometry =
-                ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
-                                                  tCdfemSupport, tPhaseSupport, aBackgroundMesh.mLevelSetFields);
-        }
-        else
-        {
-            const auto tSnapLevelSetFields =
-                ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.mLevelSetFields);
-            tInterfaceGeometry =
-                ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
-                                                  tCdfemSupport, tPhaseSupport, tSnapLevelSetFields);
-        }
     }
+
+    if (kDoNormalSensitivities)
+    {
+        update_nodal_gradient_for_normal_sensitivities(aBackgroundMesh, tCdfemSupport);
+    }
+
+    const auto& tLevelSetFields =
+        (use_snapping(aSnappingParameters) && !kDoNormalSensitivities)
+            ? ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.mLevelSetFields)
+            : aBackgroundMesh.mLevelSetFields;
+
+    const auto tInterfaceGeometry =
+        ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
+                                          tCdfemSupport, tPhaseSupport, tLevelSetFields);
 
     tAuxMeta.clear_force_64bit_flag();
     ::krino::CDMesh::decompose_mesh(aBackgroundMesh.mKrinoMesh->bulk_data(), *tInterfaceGeometry);
