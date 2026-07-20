@@ -129,6 +129,10 @@ void update_nodal_gradient_for_normal_sensitivities(const BackgroundMesh& aBackg
     }
 }
 
+auto use_snapping(const SnappingParameters& aSnappingParameters) -> bool
+{
+    return aSnappingParameters.mMaxSnappingEdgeLength != 0.0;
+}
 }  // namespace
 
 void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicator)
@@ -213,7 +217,7 @@ void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aS
     auto& tPhaseSupport = ::krino::Phase_Support::get(tMeta);
     std::unique_ptr<::krino::InterfaceGeometry> tInterfaceGeometry;
 
-    if (aSnappingParameters.mMaxSnappingEdgeLength == 0.0)
+    if (!use_snapping(aSnappingParameters))
     {
         if (kDoNormalSensitivities)
         {
