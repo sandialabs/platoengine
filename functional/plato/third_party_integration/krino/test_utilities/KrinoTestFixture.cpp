@@ -61,8 +61,6 @@ void four_tri_test_on_background_node_ids(const plato::test_utilities::TestConte
 void populate_level_set_field_from_vector(const BackgroundMesh& aBackgroundMesh, const std::vector<double>& aVector)
 {
     assert(boost::mpi::communicator{}.size() == 1);
-    // std::vector<::krino::LS_Field> tField = ::krino::Phase_Support::get_levelset_fields(aKrinoMesh.meta_data()); //
-    // using this is BAD!
     const auto tNodes = node_entities_in_mesh(aBackgroundMesh);
     assert(tNodes.size() == aVector.size());
     for (const auto [tNode, tValue] : utilities::Zip(tNodes, aVector))
