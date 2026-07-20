@@ -81,9 +81,8 @@ auto make_positive_octant_reflect_filter_type(const input_parser::positive_octan
 
 namespace detail
 {
-auto make_positive_octant_reflect_filter_type(const double aRadius,
-                                              const input_parser::KernelFilterCenteringTypes aFilterCentering)
-    -> ReflectFilterType
+auto make_positive_octant_reflect_filter_type(
+    const double aRadius, const input_parser::KernelFilterCenteringTypes aFilterCentering) -> ReflectFilterType
 {
     const auto tPositiveXPlane = Plane({0, 0, 0}, {1, 0, 0});
     const auto tPositiveYPlane = Plane({0, 0, 0}, {0, 1, 0});

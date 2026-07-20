@@ -67,8 +67,8 @@ auto calculate_num_spheres_in_each_direction(const SpherePatternData& aData) -> 
         tCenterSphere};
 }
 
-auto calculate_sphere_pattern_start(const common::Coordinate& aNumSpheres, const SpherePatternData& aData)
-    -> common::Coordinate
+auto calculate_sphere_pattern_start(const common::Coordinate& aNumSpheres,
+                                    const SpherePatternData& aData) -> common::Coordinate
 {
     constexpr double tNumDirectionsFromCenterSphere = 2.0;
     constexpr double tCenterSphere = 1.0;
@@ -77,8 +77,9 @@ auto calculate_sphere_pattern_start(const common::Coordinate& aNumSpheres, const
                                                 aData.mSphereSpacing * (-1.0)};
 }
 
-auto create_sphere_spacing_vector(const unsigned int aNumValues, const SphereStart aStart, const SphereStep aStep)
-    -> std::vector<double>
+auto create_sphere_spacing_vector(const unsigned int aNumValues,
+                                  const SphereStart aStart,
+                                  const SphereStep aStep) -> std::vector<double>
 {
     auto tStart = aStart.mValue;
     std::vector<double> tValues(aNumValues);

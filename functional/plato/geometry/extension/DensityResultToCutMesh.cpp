@@ -70,8 +70,8 @@ void write_density_result_as_cut_mesh(analysis::AnalysisDomainMesh aAnalysisDoma
 namespace detail
 {
 
-auto convert_to_nodal(const analysis::AnalysisDomainMesh& aElementAnalysisDomainMesh, const mesh::Mesh& aMesh)
-    -> analysis::AnalysisDomainMesh
+auto convert_to_nodal(const analysis::AnalysisDomainMesh& aElementAnalysisDomainMesh,
+                      const mesh::Mesh& aMesh) -> analysis::AnalysisDomainMesh
 {
     const auto tElementDesignVariables =
         mesh::DesignVariablesConversion::analysisDomainMeshToElementFieldVector(aElementAnalysisDomainMesh).mValue;
@@ -81,8 +81,8 @@ auto convert_to_nodal(const analysis::AnalysisDomainMesh& aElementAnalysisDomain
         mesh::NodalFieldVectorReference{tNodalAverageElementProjectedVariables});
 }
 
-auto transform_to_level_set_field(analysis::AnalysisDomainMesh aAnalysisDomainMesh, const double aDensityThreshold)
-    -> analysis::AnalysisDomainMesh
+auto transform_to_level_set_field(analysis::AnalysisDomainMesh aAnalysisDomainMesh,
+                                  const double aDensityThreshold) -> analysis::AnalysisDomainMesh
 {
     const auto tMutableView = analysis::AnalysisDomainMeshMutableSequentialView{aAnalysisDomainMesh};
     std::transform(tMutableView.begin(), tMutableView.end(), tMutableView.begin(),

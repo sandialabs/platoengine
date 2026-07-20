@@ -45,8 +45,8 @@ struct FactoryRegistration
 /// @return If the function is not registered, returns `std::nullopt`.
 // template <typename FactoryReturn, typename FactoryInput, typename... Input>
 template <typename FactoryReturn, typename... FactoryInput>
-[[nodiscard]] auto create_object_from_factory(std::string_view aFunctionName, const FactoryInput&... aInput)
-    -> std::optional<FactoryReturn>;
+[[nodiscard]] auto create_object_from_factory(std::string_view aFunctionName,
+                                              const FactoryInput&... aInput) -> std::optional<FactoryReturn>;
 
 /// @brief Checks if the function labeled with name @a aFunctionName is registered with the
 ///  factory associated with template types @a FactoryReturn and @a FactoryInput.
@@ -79,8 +79,8 @@ FactoryRegistration<FactoryReturn, FactoryInput...>::FactoryRegistration(
 }
 
 template <typename FactoryReturn, typename... FactoryInput>
-[[nodiscard]] auto create_object_from_factory(const std::string_view aFunctionName, const FactoryInput&... aInput)
-    -> std::optional<FactoryReturn>
+[[nodiscard]] auto create_object_from_factory(const std::string_view aFunctionName,
+                                              const FactoryInput&... aInput) -> std::optional<FactoryReturn>
 {
     const auto tFunctions = detail::registered_factory_functions<FactoryReturn, FactoryInput...>();
     if (const auto tIter = tFunctions.find(std::string{aFunctionName}); tIter != tFunctions.end())

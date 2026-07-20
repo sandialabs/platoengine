@@ -149,8 +149,8 @@ void evaluation_callback(int* /*Status*/,
         boost::numeric_cast<IndexType>(aNonlinearConstraintSparsityPattern.size())};
 }
 
-[[nodiscard]] auto make_snopt_solver_detail(const SNOPTSizes& aSNOPTSizes, const SNOPTBounds& aBoundConstraints)
-    -> SNOPTSolverDetail
+[[nodiscard]] auto make_snopt_solver_detail(const SNOPTSizes& aSNOPTSizes,
+                                            const SNOPTBounds& aBoundConstraints) -> SNOPTSolverDetail
 {
     return {
         /*.mLowerDesignVariableBounds=*/aBoundConstraints.first,

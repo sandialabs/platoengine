@@ -17,8 +17,9 @@ using SphereStep = utilities::NamedType<double, struct SphereStepTag>;
 
 /// @brief Given num values, @a aNumValues, start, @a aStart, and step, @a aStep, calculate a sequence of
 /// coordinates and store them in a vector.
-[[nodiscard]] auto create_sphere_spacing_vector(unsigned int aNumValues, SphereStart aStart, SphereStep aStep)
-    -> std::vector<double>;
+[[nodiscard]] auto create_sphere_spacing_vector(unsigned int aNumValues,
+                                                SphereStart aStart,
+                                                SphereStep aStep) -> std::vector<double>;
 
 /// @brief Given the sphere pattern from the user generate sphere center coordinates for all spheres in the pattern.
 [[nodiscard]] auto calculate_sphere_locator_data(const SpherePatternData &aData) -> SphereLocatorData;

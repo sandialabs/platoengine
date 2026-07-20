@@ -50,8 +50,8 @@ auto app_configurations(const std::vector<std::filesystem::path>& aSearchDirecto
     return tAppConfigurations;
 }
 
-auto app_configuration_with_directory(AppConfiguration aAppConfiguration, std::filesystem::path aDirectory)
-    -> AppConfigurationWithDirectory
+auto app_configuration_with_directory(AppConfiguration aAppConfiguration,
+                                      std::filesystem::path aDirectory) -> AppConfigurationWithDirectory
 {
     return AppConfigurationWithDirectory{.mConfiguration = std::move(aAppConfiguration),
                                          .mLibraryDirectory = std::move(aDirectory)};

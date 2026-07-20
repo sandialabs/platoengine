@@ -141,8 +141,8 @@ auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
     return {stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate};
 }
 
-auto initialize_background_mesh(const std::filesystem::path& aFilename, const std::set<std::string>& aExcludedBlocks)
-    -> BackgroundMesh
+auto initialize_background_mesh(const std::filesystem::path& aFilename,
+                                const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
 {
     assert(std::filesystem::exists(aFilename));
 
@@ -305,8 +305,8 @@ auto all_block_parts(const ::krino::MeshInterface& aKrinoMesh) -> stk::mesh::Par
     return tBlockParts;
 }
 
-auto all_blocks_except(const ::krino::MeshInterface& aKrinoMesh, const std::set<std::string>& aExcludedBlocks)
-    -> stk::mesh::PartVector
+auto all_blocks_except(const ::krino::MeshInterface& aKrinoMesh,
+                       const std::set<std::string>& aExcludedBlocks) -> stk::mesh::PartVector
 {
     auto tElementBlockParts = all_block_parts(aKrinoMesh);
     std::erase_if(tElementBlockParts,

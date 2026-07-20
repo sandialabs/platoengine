@@ -43,8 +43,8 @@ void distribute_on_tpetra_vector(const std::vector<double>& aSerialVector, Tpetr
     }
 }
 
-auto reduce_tpetra_vector(const TpetraVector& aVector, const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator)
-    -> std::vector<double>
+auto reduce_tpetra_vector(const TpetraVector& aVector,
+                          const Teuchos::RCP<const Teuchos::Comm<int>>& aCommunicator) -> std::vector<double>
 {
     std::vector<double> tResult(aVector.getMap()->getGlobalNumElements(), 0);
     for (TpetraGlobalOrdinal tGlobalIndex = 0;

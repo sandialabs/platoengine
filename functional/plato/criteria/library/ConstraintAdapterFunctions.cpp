@@ -50,8 +50,8 @@ namespace
         }};
 }
 
-[[nodiscard]] auto offset_vector(linear_algebra::DynamicVector<double> aVector, const double aOffset)
-    -> linear_algebra::DynamicVector<double>
+[[nodiscard]] auto offset_vector(linear_algebra::DynamicVector<double> aVector,
+                                 const double aOffset) -> linear_algebra::DynamicVector<double>
 {
     auto tValues = std::move(aVector).stdVector();
     std::ranges::transform(tValues, tValues.begin(), [aOffset](const auto aValue) { return aValue + aOffset; });

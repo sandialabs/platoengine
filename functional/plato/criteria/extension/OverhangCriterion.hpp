@@ -65,9 +65,8 @@ namespace detail
 [[nodiscard]] auto smoothing_function(double aInput) -> double;
 /// @brief Calculate the overhang value given the angle of the triangle normal dotted with the build direction @
 /// aAngleDotBuildDirection.
-[[nodiscard]] auto overhang_value_from_normal_and_build_direction(double aAngleDotBuildDirection,
-                                                                  const OverhangCriterion& aOverhangCriterion)
-    -> double;
+[[nodiscard]] auto overhang_value_from_normal_and_build_direction(
+    double aAngleDotBuildDirection, const OverhangCriterion& aOverhangCriterion) -> double;
 /// @brief Derivattive of exponential function used as a building block for generating a smooth overhang step function
 /// going from 0 to 1.
 [[nodiscard]] auto d_exponential_step_function(double aInput) -> double;
@@ -75,9 +74,8 @@ namespace detail
 [[nodiscard]] auto d_smoothing_function(double aInput) -> double;
 /// @brief Calculate the derivative of the overhang value given the angle of the triangle normal dotted with the build
 /// direction @ aAngleDotBuildDirection.
-[[nodiscard]] auto d_overhang_value_from_normal_and_build_direction(double aAngleDotBuildDirection,
-                                                                    const OverhangCriterion& aOverhangCriterion)
-    -> double;
+[[nodiscard]] auto d_overhang_value_from_normal_and_build_direction(
+    double aAngleDotBuildDirection, const OverhangCriterion& aOverhangCriterion) -> double;
 /// @brief Calculate the amount of overhang for a single triangle.
 [[nodiscard]] auto overhang_from_triangle(const third_party_integration::krino::SensitivityTriangle& aTriangle,
                                           const OverhangCriterion& aOverhangCriterion) -> double;
@@ -86,8 +84,8 @@ namespace detail
                                             const OverhangCriterion& aOverhangCriterion) -> double;
 /// @brief Calculate the area-weighted amount of overhang for a single triangle.
 [[nodiscard]] auto area_weighted_overhang_from_triangle(
-    const third_party_integration::krino::SensitivityTriangle& aTriangle, const OverhangCriterion& aOverhangCriterion)
-    -> double;
+    const third_party_integration::krino::SensitivityTriangle& aTriangle,
+    const OverhangCriterion& aOverhangCriterion) -> double;
 /// @brief Calculate the full overhang gradient vector contribution for the nodes in a single triangle.
 [[nodiscard]] auto get_gradient_contribution_for_triangle(
     const third_party_integration::krino::SensitivityTriangle& aTriangle, const OverhangCriterion& aOverhangCriterion)

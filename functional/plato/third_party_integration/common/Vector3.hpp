@@ -158,8 +158,8 @@ template <Container3Type Container3>
 
 /// @brief Return the componentwise minimum values in the two Container3s @a aContainerOne and @a aContainerTwo
 template <Container3Type Container3>
-[[nodiscard]] constexpr auto minimum_entries(const Container3& aContainerOne, const Container3& aContainerTwo)
-    -> Container3
+[[nodiscard]] constexpr auto minimum_entries(const Container3& aContainerOne,
+                                             const Container3& aContainerTwo) -> Container3
 {
     return Container3{std::min(aContainerOne.x, aContainerTwo.x), std::min(aContainerOne.y, aContainerTwo.y),
                       std::min(aContainerOne.z, aContainerTwo.z)};
@@ -167,8 +167,8 @@ template <Container3Type Container3>
 
 /// @brief Return the componentwise maximum values in the two Container3s @a aContainerOne and @a aContainerTwo
 template <Container3Type Container3>
-[[nodiscard]] constexpr auto maximum_entries(const Container3& aContainerOne, const Container3& aContainerTwo)
-    -> Container3
+[[nodiscard]] constexpr auto maximum_entries(const Container3& aContainerOne,
+                                             const Container3& aContainerTwo) -> Container3
 {
     return Container3{std::max(aContainerOne.x, aContainerTwo.x), std::max(aContainerOne.y, aContainerTwo.y),
                       std::max(aContainerOne.z, aContainerTwo.z)};

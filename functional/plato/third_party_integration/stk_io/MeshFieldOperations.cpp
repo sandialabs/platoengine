@@ -27,8 +27,8 @@ auto global_to_local_index(const std::vector<std::size_t>& aSortedGlobalIDs, con
 
     return std::distance(aSortedGlobalIDs.begin(), tLowerBoundIterator);
 }
-auto element_entities(const stk::mesh::BulkData& aBulkData, const PartReferenceVector& aParts)
-    -> stk::mesh::EntityVector
+auto element_entities(const stk::mesh::BulkData& aBulkData,
+                      const PartReferenceVector& aParts) -> stk::mesh::EntityVector
 {
     auto tEntities = stk::mesh::EntityVector{};
     constexpr auto tSortedByGlobalID = true;

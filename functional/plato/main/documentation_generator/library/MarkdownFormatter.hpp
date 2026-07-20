@@ -65,8 +65,9 @@ namespace detail
                             std::string_view aAdditionalOptions,
                             std::size_t aMaxDepth) -> std::string;
 
-auto toc_tree(const std::ranges::range auto& aEntries, std::string_view aAdditionalOptions, std::size_t aMaxDepth)
-    -> std::string
+auto toc_tree(const std::ranges::range auto& aEntries,
+              std::string_view aAdditionalOptions,
+              std::size_t aMaxDepth) -> std::string
 {
     return std::format("```{{toctree}}\n:hidden:\n:maxdepth: {}\n{}\n\n{}\n```", aMaxDepth, aAdditionalOptions,
                        utilities::concatenate_container(aEntries, "\n"));

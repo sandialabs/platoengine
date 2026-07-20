@@ -59,8 +59,8 @@ namespace detail
                                          std::size_t aTimeStep) -> std::unique_ptr<MeshOutput>;
 
 /// @brief return a MeshOutput ready for appending
-[[nodiscard]] auto append_mesh_output(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh, std::size_t aTimeStep)
-    -> std::unique_ptr<MeshOutput>;
+[[nodiscard]] auto append_mesh_output(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                      std::size_t aTimeStep) -> std::unique_ptr<MeshOutput>;
 
 }  // namespace detail
 

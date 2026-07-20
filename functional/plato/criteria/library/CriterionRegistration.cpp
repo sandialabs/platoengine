@@ -60,9 +60,8 @@ template <std::size_t... kIndices>
 }
 
 template <std::size_t... kIndices>
-[[nodiscard]] auto is_criterion_function_registered_in_any_factory(const std::string_view aFunctionName,
-                                                                   const std::index_sequence<kIndices...> /*unused*/)
-    -> bool
+[[nodiscard]] auto is_criterion_function_registered_in_any_factory(
+    const std::string_view aFunctionName, const std::index_sequence<kIndices...> /*unused*/) -> bool
 {
     return (is_criterion_function_registered_in_specific_factory<kIndices>(aFunctionName) || ...);
 }
@@ -144,8 +143,8 @@ auto criterion_traits(const std::string_view aRegisteredCriterionName) -> std::v
     return std::vector<CriterionTraits>{tToTraits.begin(), tToTraits.end()};
 }
 
-template auto criterion_function_has_trait(const std::string_view aFunctionName, const FunctionDimension aTrait)
-    -> bool;
+template auto criterion_function_has_trait(const std::string_view aFunctionName,
+                                           const FunctionDimension aTrait) -> bool;
 template auto criterion_function_has_trait(const std::string_view aFunctionName, const Parallelization aTrait) -> bool;
 
 }  // namespace plato::criteria::library

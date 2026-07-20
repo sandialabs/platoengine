@@ -51,8 +51,8 @@ namespace detail
 /// returns the index at which @a aGlobalID appears in the @a aSortedGlobalIDs.
 /// @pre @a aSortedGlobalIDs is sorted.
 /// @pre @a aGlobalID is an entry in @a aSortedGlobalIDs.
-[[nodiscard]] auto global_to_local_index(const std::vector<std::size_t>& aSortedGlobalIDs, std::size_t aGlobalID)
-    -> std::size_t;
+[[nodiscard]] auto global_to_local_index(const std::vector<std::size_t>& aSortedGlobalIDs,
+                                         std::size_t aGlobalID) -> std::size_t;
 
 [[nodiscard]] auto single_element_nodal_average(const stk::mesh::Entity& aElement,
                                                 const std::ranges::random_access_range auto& aNodalScalarField,
@@ -72,8 +72,8 @@ namespace detail
 }
 
 /// @brief Return the element entities associated with the parts in @a aParts and the bulk data @a aBulkData
-[[nodiscard]] auto element_entities(const stk::mesh::BulkData& aBulkData, const PartReferenceVector& aParts)
-    -> stk::mesh::EntityVector;
+[[nodiscard]] auto element_entities(const stk::mesh::BulkData& aBulkData,
+                                    const PartReferenceVector& aParts) -> stk::mesh::EntityVector;
 }  // namespace detail
 
 auto element_averaged_nodal_values(const std::ranges::random_access_range auto& aNodalScalarField,

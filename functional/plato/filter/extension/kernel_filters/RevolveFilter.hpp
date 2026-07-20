@@ -46,9 +46,8 @@ namespace detail
 ///@brief A helper constructor for creating the RevolveFilterType needed to construct a RevolveFilter. It takes a
 /// radius @a aRadius and the centering type @a aFilterCentering. This assigns the
 /// compute functions with the proper utilities.
-[[nodiscard]] auto make_rz_axisymmetric_revolve_filter_type(double aRadius,
-                                                            input_parser::KernelFilterCenteringTypes aFilterCentering)
-    -> RevolveFilterType;
+[[nodiscard]] auto make_rz_axisymmetric_revolve_filter_type(
+    double aRadius, input_parser::KernelFilterCenteringTypes aFilterCentering) -> RevolveFilterType;
 
 ///@brief Validation function that checks the source mesh @a aSourceMeshFileName to make sure it exists only in the xz
 /// plane

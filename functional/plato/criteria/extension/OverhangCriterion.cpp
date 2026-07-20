@@ -226,8 +226,8 @@ using namespace plato::third_party_integration::krino;
 }
 
 [[nodiscard]] auto get_full_gradient_vector_from_gradient_map(
-    const std::unordered_map<GlobalNodeID, Sensitivity>& aGradientMap, const std::vector<size_t>& aAllNodeIds)
-    -> std::vector<double>
+    const std::unordered_map<GlobalNodeID, Sensitivity>& aGradientMap,
+    const std::vector<size_t>& aAllNodeIds) -> std::vector<double>
 {
     // Build the gradient vector (3 entries for each node in the cut mesh) sorted by global node id
     constexpr size_t tNumDimensions{3};
@@ -285,9 +285,8 @@ using namespace plato::third_party_integration::krino;
     return 0.0;
 }
 
-[[nodiscard]] auto d_overhang_value_from_normal_and_build_direction(const double aAngleDotBuildDirection,
-                                                                    const OverhangCriterion& aOverhangCriterion)
-    -> double
+[[nodiscard]] auto d_overhang_value_from_normal_and_build_direction(
+    const double aAngleDotBuildDirection, const OverhangCriterion& aOverhangCriterion) -> double
 {
     // The calculation of the return value will be determined by whether the input value, aAngleDotBuildDirection,
     // is in one of three ranges: 1) less than the step function transition region (return 1.0), 2) inside the step

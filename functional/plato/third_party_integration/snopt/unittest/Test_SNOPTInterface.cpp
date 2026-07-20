@@ -119,8 +119,7 @@ const auto kLogFilePath = std::filesystem::path{"snopt.log"};
     constexpr auto tOffset = 2.0;
     constexpr auto tSquarePower = 2.0;
     return typename InterfaceConstraintData::ConstraintFunction{
-        [](const linear_algebra::DynamicVector<double>& aX)
-        {
+        [](const linear_algebra::DynamicVector<double>& aX) {
             return linear_algebra::DynamicVector<double>{aX[0] * aX[0] - aX[1],
                                                          (aX[0] - tOffset) * (aX[0] - tOffset) - aX[1]};
         },

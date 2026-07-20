@@ -26,8 +26,8 @@ struct JacobianColumnEvaluator
 };
 
 /// Implements multiplication of a row vector @a aX with the Jacobian matrix represented by @a aA
-[[nodiscard]] auto operator*(const DynamicVector<double>& aRowVector, const JacobianColumnEvaluator& aJacobian)
-    -> DynamicVector<double>;
+[[nodiscard]] auto operator*(const DynamicVector<double>& aRowVector,
+                             const JacobianColumnEvaluator& aJacobian) -> DynamicVector<double>;
 
 /// @brief Creates a JacobianMultiplier from @a aJacobianColumnEvaluator
 auto to_jacobian_multiplier(JacobianColumnEvaluator aJacobianColumnEvaluator) -> JacobianMultiplier;

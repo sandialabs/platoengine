@@ -50,8 +50,8 @@ void write_bulk_data(const std::filesystem::path& aMeshName, stk::mesh::BulkData
 /// @brief Creates an output mesh at file at the file path @a aOutputMeshPath.
 /// @warning If a file exists at @a aOutputMeshPath, it will be overwritten.
 /// @return A file handle that must be used to reference the file in subsequent calls to write data.
-[[nodiscard]] auto create_output_mesh(const std::filesystem::path& aOutputMeshPath, stk::io::StkMeshIoBroker& aIOBroker)
-    -> std::size_t;
+[[nodiscard]] auto create_output_mesh(const std::filesystem::path& aOutputMeshPath,
+                                      stk::io::StkMeshIoBroker& aIOBroker) -> std::size_t;
 
 /// @brief Creates a StkMeshIoBroker by reading the bulk data @a aBulk.
 ///

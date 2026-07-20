@@ -83,9 +83,8 @@ auto make_rz_axisymmetric_revolve_filter_type(const input_parser::rz_axisymmetri
 
 namespace detail
 {
-auto make_rz_axisymmetric_revolve_filter_type(const double aRadius,
-                                              const input_parser::KernelFilterCenteringTypes aFilterCentering)
-    -> RevolveFilterType
+auto make_rz_axisymmetric_revolve_filter_type(
+    const double aRadius, const input_parser::KernelFilterCenteringTypes aFilterCentering) -> RevolveFilterType
 {
     const auto tThetaHat = third_party_integration::common::Vector3{0, 1, 0};
     const auto tSearchFunction =

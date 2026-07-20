@@ -13,8 +13,8 @@ auto random_perturbation_vector(std::size_t aSize) -> linear_algebra::DynamicVec
 
 /// @brief Create a DynamicVector of size @a aSize whose components are random values between [-1,1] generated with @a
 /// aRandomEngine. The vector is then normalized.
-auto random_perturbation_vector(std::size_t aSize, std::default_random_engine& aRandomEngine)
-    -> linear_algebra::DynamicVector<double>;
+auto random_perturbation_vector(std::size_t aSize,
+                                std::default_random_engine& aRandomEngine) -> linear_algebra::DynamicVector<double>;
 }  // namespace plato::linear_algebra
 
 #endif

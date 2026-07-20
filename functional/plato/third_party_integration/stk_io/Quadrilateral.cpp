@@ -50,8 +50,8 @@ auto operator+(const Quadrilateral::VertexSensitivities& aLeftHandSide,
         aLeftHandSide.mValue[2] + aRightHandSide.mValue[2], aLeftHandSide.mValue[3] + aRightHandSide.mValue[3]}};
 }
 
-auto operator*(const Quadrilateral::VertexSensitivities& aSensitivities, const double aScalar)
-    -> Quadrilateral::VertexSensitivities
+auto operator*(const Quadrilateral::VertexSensitivities& aSensitivities,
+               const double aScalar) -> Quadrilateral::VertexSensitivities
 {
     return Quadrilateral::VertexSensitivities{
         std::array{aSensitivities.mValue[0] * aScalar, aSensitivities.mValue[1] * aScalar,
@@ -153,23 +153,25 @@ auto Quadrilateral::volumeVertexSensitivities() const -> std::array<common::Vect
 
                    const double tScale = 1.0 / change_of_area_factor(tEtaTangentVector, tXiTangentVector);
 
-                   return VertexSensitivities{std::array{
-                       common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP00, tDa2dmP00),
-                                       tGetSensitivityComponent.template operator()<1>(tDa1dmP00, tDa2dmP00),
-                                       tGetSensitivityComponent.template operator()<2>(tDa1dmP00, tDa2dmP00)} *
-                           tScale,
-                       common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP10, tDa2dmP10),
-                                       tGetSensitivityComponent.template operator()<1>(tDa1dmP10, tDa2dmP10),
-                                       tGetSensitivityComponent.template operator()<2>(tDa1dmP10, tDa2dmP10)} *
-                           tScale,
-                       common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP11, tDa2dmP11),
-                                       tGetSensitivityComponent.template operator()<1>(tDa1dmP11, tDa2dmP11),
-                                       tGetSensitivityComponent.template operator()<2>(tDa1dmP11, tDa2dmP11)} *
-                           tScale,
-                       common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP01, tDa2dmP01),
-                                       tGetSensitivityComponent.template operator()<1>(tDa1dmP01, tDa2dmP01),
-                                       tGetSensitivityComponent.template operator()<2>(tDa1dmP01, tDa2dmP01)} *
-                           tScale}};
+                   return VertexSensitivities {
+                       std::array{
+                           common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP00, tDa2dmP00),
+                                           tGetSensitivityComponent.template operator()<1>(tDa1dmP00, tDa2dmP00),
+                                           tGetSensitivityComponent.template operator()<2>(tDa1dmP00, tDa2dmP00)} *
+                               tScale,
+                           common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP10, tDa2dmP10),
+                                           tGetSensitivityComponent.template operator()<1>(tDa1dmP10, tDa2dmP10),
+                                           tGetSensitivityComponent.template operator()<2>(tDa1dmP10, tDa2dmP10)} *
+                               tScale,
+                           common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP11, tDa2dmP11),
+                                           tGetSensitivityComponent.template operator()<1>(tDa1dmP11, tDa2dmP11),
+                                           tGetSensitivityComponent.template operator()<2>(tDa1dmP11, tDa2dmP11)} *
+                               tScale,
+                           common::Vector3{tGetSensitivityComponent.template operator()<0>(tDa1dmP01, tDa2dmP01),
+                                           tGetSensitivityComponent.template operator()<1>(tDa1dmP01, tDa2dmP01),
+                                           tGetSensitivityComponent.template operator()<2>(tDa1dmP01, tDa2dmP01)} *
+                               tScale}
+                   };
                })
         .mValue;
 }

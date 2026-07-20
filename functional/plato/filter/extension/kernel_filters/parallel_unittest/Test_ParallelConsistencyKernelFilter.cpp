@@ -47,8 +47,8 @@ auto split_comm_world() -> boost::mpi::communicator
     return tWorldComm.split(tColor.mValue);
 }
 
-auto write_generic_mesh_and_load(unsigned int aBaseSize, const boost::mpi::communicator& aWorldCommunicator)
-    -> mesh::Mesh
+auto write_generic_mesh_and_load(unsigned int aBaseSize,
+                                 const boost::mpi::communicator& aWorldCommunicator) -> mesh::Mesh
 {
     namespace tpi = third_party_integration;
     const auto tCommandGenerator =

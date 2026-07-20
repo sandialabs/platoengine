@@ -79,8 +79,8 @@ auto element_vector(const stk::mesh::BulkData& aBulk, const stk::mesh::Part& aPa
 auto element_vector(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts) -> stk::mesh::EntityVector;
 
 /// @brief Given a pathname @a aInputMeshName, check if the field @a aFieldName exists on the elements
-[[nodiscard]] auto element_field_exists(const std::filesystem::path& aInputMeshName, std::string_view aFieldName)
-    -> bool;
+[[nodiscard]] auto element_field_exists(const std::filesystem::path& aInputMeshName,
+                                        std::string_view aFieldName) -> bool;
 
 /// @brief Given a pathname @a aInputMeshName, check if the field @a aFieldName exists on the nodes
 [[nodiscard]] auto nodal_field_exists(const std::filesystem::path& aInputMeshName, std::string_view aFieldName) -> bool;

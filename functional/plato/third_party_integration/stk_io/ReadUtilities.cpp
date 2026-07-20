@@ -109,8 +109,8 @@ template <stk::topology::rank_t kRank>
 }
 
 template <stk::topology::rank_t kRank>
-[[nodiscard]] auto read_field(const stk::io::StkMeshIoBroker& aIOBroker, const std::string_view aFieldName)
-    -> std::map<std::size_t, double>
+[[nodiscard]] auto read_field(const stk::io::StkMeshIoBroker& aIOBroker,
+                              const std::string_view aFieldName) -> std::map<std::size_t, double>
 {
     auto* tField = aIOBroker.meta_data().get_field(kRank, std::string{aFieldName});
 

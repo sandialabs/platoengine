@@ -33,8 +33,8 @@ concept HasAllOptionalMembers =
 /// @brief Use a radius @a aRadius and a centering type @a aCenteringType to create a generic symmetry filter input.
 template <typename InputFilterType>
     requires HasAllOptionalMembers<InputFilterType>
-[[nodiscard]] auto make_filter_input(double aRadius, const input_parser::KernelFilterCenteringTypes& aCentering)
-    -> InputFilterType;
+[[nodiscard]] auto make_filter_input(double aRadius,
+                                     const input_parser::KernelFilterCenteringTypes& aCentering) -> InputFilterType;
 
 /// @brief A test funtion that uses the input @a aInput to call a @a aModifiedMakeFunctionLabmda and verify radius and
 /// centering are correctly assigned.

@@ -41,8 +41,8 @@ struct EntityRetrieval : public Mesh
     /// @brief Return a nodal field on the design domain only for a field @a aFieldName.
     /// @pre The field @a aFieldName exists on the nodes.
     /// @pre The time step @a aTimeStep exists on the mesh.
-    [[nodiscard]] auto designDomainNodalField(std::string_view aFieldName, TimeStep aTimeStep = LastTimeStep{}) const
-        -> std::vector<double>;
+    [[nodiscard]] auto designDomainNodalField(std::string_view aFieldName,
+                                              TimeStep aTimeStep = LastTimeStep{}) const -> std::vector<double>;
 
     /// @brief Return a vector of nodal fields defined
     [[nodiscard]] auto nodalFields() const -> std::vector<std::string>;

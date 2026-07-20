@@ -23,7 +23,7 @@ void check_shared_lib_function(SharedLibrarySetupTeardown& aSharedLibrary,
     const auto tExpected = std::lround(kDoubleValue);
     EXPECT_EQ(aSharedLibrary.call<long(double)>(tRoundFunction, kDoubleValue), tExpected) << aTestContext;
 }
-}
+}  // namespace
 
 TEST(SharedLibrarySetupTeardown, ExceptionOnNoLibrary)
 {

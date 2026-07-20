@@ -21,8 +21,8 @@ auto random_perturbation_vector(const std::size_t aSize) -> linear_algebra::Dyna
     return random_perturbation_vector(aSize, tEngine);
 }
 
-auto random_perturbation_vector(const std::size_t aSize, std::default_random_engine& aRandomEngine)
-    -> linear_algebra::DynamicVector<double>
+auto random_perturbation_vector(const std::size_t aSize,
+                                std::default_random_engine& aRandomEngine) -> linear_algebra::DynamicVector<double>
 {
     assert(aSize != 0);
     std::uniform_real_distribution<double> tDistribution{-1, 1};

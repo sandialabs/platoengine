@@ -41,8 +41,8 @@ struct Quadrilateral
                              const Quadrilateral::VertexSensitivities& aRightHandSide)
     -> Quadrilateral::VertexSensitivities;
 
-[[nodiscard]] auto operator*(const Quadrilateral::VertexSensitivities& aSensitivities, double aScalar)
-    -> Quadrilateral::VertexSensitivities;
+[[nodiscard]] auto operator*(const Quadrilateral::VertexSensitivities& aSensitivities,
+                             double aScalar) -> Quadrilateral::VertexSensitivities;
 }  // namespace plato::third_party_integration::stk_io
 
 #endif

@@ -33,8 +33,8 @@ class DataSingleton
     void reset();
 
     ~DataSingleton() = default;
-    auto operator=(const DataSingleton&) -> DataSingleton& = delete;
-    auto operator=(DataSingleton&&) -> DataSingleton& = delete;
+    auto operator=(const DataSingleton &) -> DataSingleton & = delete;
+    auto operator=(DataSingleton &&) -> DataSingleton & = delete;
     DataSingleton(const DataSingleton &) = delete;
     DataSingleton(DataSingleton &&) = delete;
 

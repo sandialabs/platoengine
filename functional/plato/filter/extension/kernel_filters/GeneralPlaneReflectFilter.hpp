@@ -54,8 +54,8 @@ namespace detail
 ///@brief Validation function that checks the mesh @a aSourceMeshFileName to make sure it exists only on the outward
 /// normal side of the plane
 [[nodiscard]] auto validate_source_mesh_on_outward_normal_side_of_plane(
-    const input_parser::general_plane_reflect_filter& aInput, const std::filesystem::path& aSourceMeshFileName)
-    -> std::optional<std::string>;
+    const input_parser::general_plane_reflect_filter& aInput,
+    const std::filesystem::path& aSourceMeshFileName) -> std::optional<std::string>;
 
 ///@brief Validation function that checks the input @a aInput.plane normal is defined and has nonzero magnitude.
 [[nodiscard]] auto validate_required_plane_normal_is_non_zero_magnitude(

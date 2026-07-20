@@ -16,8 +16,8 @@ namespace plato::process_manager::extension::detail
 /// Error message will use the input block name given in @a aInputBlockName.
 template <typename ExpectedCrossReference, components::ComponentType kComponentType>
 [[nodiscard]] auto validate_expected_cross_reference_type(
-    const input_parser::CrossReference<kComponentType>& aCrossReference, const std::string& aInputBlockName)
-    -> std::optional<std::string>;
+    const input_parser::CrossReference<kComponentType>& aCrossReference,
+    const std::string& aInputBlockName) -> std::optional<std::string>;
 
 template <typename InputBlock>
 [[nodiscard]] auto validate_max_iterations(const InputBlock& aInput) -> std::optional<std::string>

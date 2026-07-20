@@ -49,8 +49,7 @@ auto compose_impl(Tuple&& aTuple, FunctionTypeOuter aFunctionOuter, FunctionType
     }
     else if constexpr (InfoAtIndex::mOrder == 1 && InfoAtIndex::mOrdering == MatrixOrdering::kOriginal)
     {
-        auto tDfOfG = [tOuter = std::move(aFunctionOuter), tInner = std::move(aFunctionInner)](Domain aDomain)
-        {
+        auto tDfOfG = [tOuter = std::move(aFunctionOuter), tInner = std::move(aFunctionInner)](Domain aDomain) {
             return tOuter.template evaluate<1>(tInner.template evaluate<0>(aDomain)) *
                    tInner.template evaluate<1>(aDomain);
         };

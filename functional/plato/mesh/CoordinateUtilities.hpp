@@ -10,8 +10,8 @@ namespace plato::mesh
 {
 /// @brief Converts a nodal vector field stored in a std::vector of Container3 objects @a aNodalField to a DynamicVector
 template <third_party_integration::common::Container3Type Container3>
-auto nodal_vector_field_to_dynamic_vector(const std::vector<Container3>& aNodalField, std::size_t aDimensions)
-    -> linear_algebra::DynamicVector<double>;
+auto nodal_vector_field_to_dynamic_vector(const std::vector<Container3>& aNodalField,
+                                          std::size_t aDimensions) -> linear_algebra::DynamicVector<double>;
 
 /// @brief Converts a DynamicVector @a aCoordinateVector containing nodal coordinates to a std::vector of Coordinate
 /// objects.

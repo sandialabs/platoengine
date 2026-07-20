@@ -97,8 +97,8 @@ auto LinearMaskBuilder::createNormalizedRowMap(const third_party_integration::st
     return tRowMap;
 }
 
-auto LinearMaskBuilder::unnormalizedWeight(const RowSearchEntityGlobalID aSphereID, const ColumnNodeGlobalID aNodeID)
-    -> double
+auto LinearMaskBuilder::unnormalizedWeight(const RowSearchEntityGlobalID aSphereID,
+                                           const ColumnNodeGlobalID aNodeID) -> double
 {
     const auto tSphereCoordinate = mGlobalRowCenterCoordinates[aSphereID.mValue];
     const auto tNodalCoordinate = mGlobalColumnCenterCoordinates[aNodeID.mValue];

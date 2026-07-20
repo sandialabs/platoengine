@@ -75,9 +75,10 @@ TEST(ParallelAggregateDynamicVector, ParallelAggregateParallelRosenbrock)
     const auto tRosenbrock = ptu::Rosenbrock{};
     const auto tParallelRosenbrock = ptu::ParallelTestFunctionWrapper<double, const ArgType&>{
         [tRosenbrock = tRosenbrock](const ArgType& aX) { return tRosenbrock.f(aX[0], aX[1]); }};
-    const auto tDerivativeParallelRosenbrock = ptu::ParallelTestFunctionWrapper<GradientType, const ArgType&>{
-        [tRosenbrock = tRosenbrock](const ArgType& aX)
-        { return ptu::to_dynamic_vector(tRosenbrock.df(aX[0], aX[1])); }};
+    const auto tDerivativeParallelRosenbrock =
+        ptu::ParallelTestFunctionWrapper<GradientType, const ArgType&>{[tRosenbrock = tRosenbrock](const ArgType& aX) {
+            return ptu::to_dynamic_vector(tRosenbrock.df(aX[0], aX[1]));
+        }};
 
     const auto tParallelFunction =
         ptu::make_parallel_function(tParallelRosenbrock, tDerivativeParallelRosenbrock, tCommunicator);

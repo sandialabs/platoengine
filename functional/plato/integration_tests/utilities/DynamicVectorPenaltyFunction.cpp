@@ -15,8 +15,8 @@ auto DynamicVectorJacobian::column(const int aIndex) const -> linear_algebra::Dy
     return linear_algebra::DynamicVector<double>{mJacobian(0, aIndex), mJacobian(1, aIndex)};
 }
 
-auto operator*(const linear_algebra::DynamicVector<double>& aRowVector, const DynamicVectorJacobian& aJacobian)
-    -> linear_algebra::DynamicVector<double>
+auto operator*(const linear_algebra::DynamicVector<double>& aRowVector,
+               const DynamicVectorJacobian& aJacobian) -> linear_algebra::DynamicVector<double>
 {
     assert(aRowVector.size() == 2U);
     return linear_algebra::DynamicVector<double>{aRowVector.dot(aJacobian.column(0)),

@@ -41,9 +41,8 @@ struct VolumeCriterion
 [[nodiscard]] auto make_volume_constraint_function(bool aIgnoreVoidBlocks) -> library::CriterionFunction;
 
 /// @brief Creates a Function object from a VolumeCriterion
-[[nodiscard]] auto make_volume_fraction_constraint_function(bool aIgnoreVoidBlocks,
-                                                            boost::optional<double> aReferenceVolume)
-    -> library::CriterionFunction;
+[[nodiscard]] auto make_volume_fraction_constraint_function(
+    bool aIgnoreVoidBlocks, boost::optional<double> aReferenceVolume) -> library::CriterionFunction;
 
 namespace detail
 {

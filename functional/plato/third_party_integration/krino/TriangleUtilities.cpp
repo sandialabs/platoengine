@@ -169,8 +169,8 @@ auto d_normal_d_nodal_coords_from_tri_coords(const std::vector<double>& aNodalCo
     return tDNormalDNodalCoordinates;
 }
 
-auto get_owned_interface_sides(const stk::mesh::BulkData& aBulkData, const stk::mesh::Selector& aInterfaceSelector)
-    -> std::vector<stk::mesh::Entity>
+auto get_owned_interface_sides(const stk::mesh::BulkData& aBulkData,
+                               const stk::mesh::Selector& aInterfaceSelector) -> std::vector<stk::mesh::Entity>
 {
     std::vector<stk::mesh::Entity> tInterfaceSides;
 

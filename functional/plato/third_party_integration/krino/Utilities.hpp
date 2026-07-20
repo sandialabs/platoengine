@@ -64,8 +64,8 @@ void populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSe
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
 /// 'initialize_background_mesh' to setup the level set fields in the krino mesh, followed by a call to set up
 /// the level set field values, followed by a call to 'cut_mesh'.
-[[nodiscard]] auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, VoidPhase aVoidPhase)
-    -> std::vector<stk::mesh::EntityId>;
+[[nodiscard]] auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh,
+                                     VoidPhase aVoidPhase) -> std::vector<stk::mesh::EntityId>;
 
 /// @brief Take a background mesh @a aBackgroundMesh and perform the cutting of the mesh and creation of child nodes.
 /// Each child node generated in the cut operation have only two parents and those parents are background nodes. The
@@ -122,8 +122,8 @@ void write_mesh(const stk::mesh::BulkData& aBulkData,
                 const stk::mesh::Selector& aSelector);
 
 template <typename LevelSetFieldVector>
-[[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields, const stk::mesh::Entity& aNode)
-    -> decltype(auto)
+[[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields,
+                                   const stk::mesh::Entity& aNode) -> decltype(auto)
 {
     assert(!aLevelSetFields.empty());
     return *::krino::field_data<double>(std::forward<LevelSetFieldVector>(aLevelSetFields).front().isovar, aNode);

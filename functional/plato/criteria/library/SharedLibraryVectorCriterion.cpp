@@ -94,9 +94,9 @@ auto make_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCrit
                               const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
     -> linear_algebra::JacobianMultiplier
 {
-    return linear_algebra::JacobianMultiplier{
-        [aSharedLibCriterion, aAnalysisDomainMesh](const auto aDirectionVector)
-        { return aSharedLibCriterion.rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector); }};
+    return linear_algebra::JacobianMultiplier{[aSharedLibCriterion, aAnalysisDomainMesh](const auto aDirectionVector) {
+        return aSharedLibCriterion.rowVectorTimesJacobian(aAnalysisDomainMesh, aDirectionVector);
+    }};
 }
 
 auto make_adjoint_jacobian_multiplier(const SharedLibraryVectorCriterion& aSharedLibCriterion,
@@ -118,8 +118,7 @@ auto make_shared_library_vector_function(const SharedLibraryVectorCriterion& aSh
         { return aSharedLibCriterion.value(aAnalysisDomainMesh); },
         [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
         { return make_jacobian_multiplier(aSharedLibCriterion, aAnalysisDomainMesh); },
-        [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-        {
+        [aSharedLibCriterion](const analysis::AnalysisDomainMesh& aAnalysisDomainMesh) {
             return make_adjoint_jacobian_multiplier(aSharedLibCriterion, aAnalysisDomainMesh);
         }};  // namespace plato::criteria::extension
 }

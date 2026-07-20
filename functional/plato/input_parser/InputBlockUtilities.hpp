@@ -12,8 +12,8 @@ template <typename BlockStruct>
 
 /// @brief Overloaded pipe operator for composing input blocks into a full ParsedInput struct.
 template <typename Input>
-[[nodiscard]] auto operator|(ParsedInput aParsedInput, const Input& aInput)
-    -> std::enable_if_t<IsInputBlock<Input>::mValue, ParsedInput>;
+[[nodiscard]] auto operator|(ParsedInput aParsedInput,
+                             const Input& aInput) -> std::enable_if_t<IsInputBlock<Input>::mValue, ParsedInput>;
 
 /// @brief Overload to construct initial empty ParsedInput struct.
 template <typename InputOne, typename InputTwo>
@@ -27,8 +27,8 @@ auto block_name() -> std::string
 }
 
 template <typename Input>
-[[nodiscard]] auto operator|(ParsedInput aParsedInput, const Input& aInput)
-    -> std::enable_if_t<IsInputBlock<Input>::mValue, ParsedInput>
+[[nodiscard]] auto operator|(ParsedInput aParsedInput,
+                             const Input& aInput) -> std::enable_if_t<IsInputBlock<Input>::mValue, ParsedInput>
 {
     constexpr auto tComponentType = ComponentTypeOfInputBlock<Input>::mValue;
     aParsedInput.get<tComponentType>().push_back(

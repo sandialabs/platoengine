@@ -189,8 +189,7 @@ auto GradientChecker<ArgType>::maxFirstOrderTruncationError(const ArgType& aArgu
     auto tAdjacentQuotients = std::vector<StepAndValue>{};
     tAdjacentQuotients.reserve(tErrors.size());
     std::adjacent_difference(tErrors.cbegin(), tErrors.cend(), std::back_inserter(tAdjacentQuotients),
-                             [](const StepAndValue& aStepAndError1, const StepAndValue& aStepAndError2)
-                             {
+                             [](const StepAndValue& aStepAndError1, const StepAndValue& aStepAndError2) {
                                  return StepAndValue{aStepAndError1.mStep / aStepAndError2.mStep,
                                                      aStepAndError1.mValue / aStepAndError2.mValue};
                              });
@@ -198,8 +197,7 @@ auto GradientChecker<ArgType>::maxFirstOrderTruncationError(const ArgType& aArgu
     auto tExpectedTruncationDifference = std::vector<double>{};
     std::transform(std::next(tAdjacentQuotients.cbegin()), tAdjacentQuotients.cend(),
                    std::back_inserter(tExpectedTruncationDifference),
-                   [](const StepAndValue& aStemAndErrorQuotient)
-                   {
+                   [](const StepAndValue& aStemAndErrorQuotient) {
                        return std::fabs(aStemAndErrorQuotient.mValue - aStemAndErrorQuotient.mStep) /
                               aStemAndErrorQuotient.mStep;
                    });

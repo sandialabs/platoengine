@@ -20,8 +20,8 @@ namespace plato::main::documentation_generator::library
 template <std::ranges::range ColumnWidths, std::ranges::range ColumnLabels>
     requires(std::is_convertible_v<std::ranges::range_value_t<ColumnWidths>, int> &&
              std::is_convertible_v<std::ranges::range_value_t<ColumnLabels>, std::string>)
-[[nodiscard]] auto myst_table_header(const ColumnWidths& aColumnWidths, const ColumnLabels& aColumnLabels)
-    -> std::string;
+[[nodiscard]] auto myst_table_header(const ColumnWidths& aColumnWidths,
+                                     const ColumnLabels& aColumnLabels) -> std::string;
 
 /// @brief Generates a row of a Myst-parser-style markdown table.
 /// @pre @a aColumnEntries may not be empty.

@@ -29,8 +29,8 @@ template <typename Arg>
     -> std::enable_if_t<!std::is_same_v<std::decay_t<Arg>, JacobianMultiplier>, DynamicVector<double>>;
 
 /// @brief Implementation of multiplication of two JacobianMultipliers
-[[nodiscard]] inline auto operator*(JacobianMultiplier aJacobianLeft, JacobianMultiplier aJacobianRight)
-    -> JacobianMultiplier;
+[[nodiscard]] inline auto operator*(JacobianMultiplier aJacobianLeft,
+                                    JacobianMultiplier aJacobianRight) -> JacobianMultiplier;
 
 /// @brief Implementation of multiplication with an AdjointJacobianMultiplier
 template <typename Arg>
@@ -38,8 +38,8 @@ auto operator*(const Arg& aRowVector, const AdjointJacobianMultiplier& aJacobian
     -> std::enable_if_t<!std::is_same_v<std::decay_t<Arg>, AdjointJacobianMultiplier>, DynamicVector<double>>;
 
 /// @brief Implementation of multiplication of two AdjointJacobianMultipliers
-inline auto operator*(AdjointJacobianMultiplier aAdjointLeft, AdjointJacobianMultiplier aAdjointRight)
-    -> AdjointJacobianMultiplier;
+inline auto operator*(AdjointJacobianMultiplier aAdjointLeft,
+                      AdjointJacobianMultiplier aAdjointRight) -> AdjointJacobianMultiplier;
 
 template <typename Arg>
 auto operator*(const Arg& aRowVector, const JacobianMultiplier& aJacobian)
@@ -62,8 +62,8 @@ auto operator*(const Arg& aRowVector, const AdjointJacobianMultiplier& aJacobian
     return aRowVector * aJacobian.mValue;
 }
 
-inline auto operator*(AdjointJacobianMultiplier aAdjointLeft, AdjointJacobianMultiplier aAdjointRight)
-    -> AdjointJacobianMultiplier
+inline auto operator*(AdjointJacobianMultiplier aAdjointLeft,
+                      AdjointJacobianMultiplier aAdjointRight) -> AdjointJacobianMultiplier
 {
     return AdjointJacobianMultiplier{std::move(aAdjointLeft).mValue * std::move(aAdjointRight).mValue};
 }

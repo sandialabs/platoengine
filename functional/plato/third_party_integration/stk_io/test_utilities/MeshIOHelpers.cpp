@@ -52,8 +52,9 @@ void write_mesh_scalar_field_impl(const std::filesystem::path& aInputMeshName,
 
 }  // namespace
 
-auto read_nodal_field_as_vector(const std::filesystem::path& aMeshPath, std::string_view aFieldName, const double aTime)
-    -> std::vector<double>
+auto read_nodal_field_as_vector(const std::filesystem::path& aMeshPath,
+                                std::string_view aFieldName,
+                                const double aTime) -> std::vector<double>
 {
     const auto tField = stk_io::read_nodal_field(aMeshPath, aFieldName, aTime);
     return convert_map_sorted_vector(tField);

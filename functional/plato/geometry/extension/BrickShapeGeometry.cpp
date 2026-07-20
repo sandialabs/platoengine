@@ -198,8 +198,7 @@ auto make_brick_shape_geometry(const BrickShapeGeometry& aBrickShapeGeometry) ->
     return library::GeometryFunction{
         [tBrickShapeGeometry = aBrickShapeGeometry](const linear_algebra::DynamicVector<double>& aDesignVariables)
         { return tBrickShapeGeometry.generateMesh(detail::to_design_parameters(aDesignVariables)); },
-        [](const linear_algebra::DynamicVector<double>& aDesignVariables)
-        {
+        [](const linear_algebra::DynamicVector<double>& aDesignVariables) {
             return to_jacobian_multiplier(BrickShapeGeometry::jacobian(detail::to_design_parameters(aDesignVariables)));
         },
         [](const linear_algebra::DynamicVector<double>& aDesignVariables)

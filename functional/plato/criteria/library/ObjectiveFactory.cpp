@@ -108,8 +108,8 @@ using ValidatedObjective = input_validation::ValidatedInputDataBlock<components:
     return utilities::group_split_vector(aInput.rawInput(), tGroupColor, utilities::SizeNamedType{tSplitSize});
 }
 
-[[nodiscard]] auto mpi_group(const ValidatedObjectives& aInput, const boost::mpi::communicator& aCommunicator)
-    -> boost::mpi::communicator
+[[nodiscard]] auto mpi_group(const ValidatedObjectives& aInput,
+                             const boost::mpi::communicator& aCommunicator) -> boost::mpi::communicator
 {
     const auto tNumberOfProcessors = number_of_processors_per_objective(aInput);
     const auto tGroupColor =

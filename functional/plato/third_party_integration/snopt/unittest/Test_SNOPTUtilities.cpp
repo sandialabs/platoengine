@@ -56,8 +56,8 @@ const auto kXCubedConstraint =
                    /*.mTarget=*/0.0, /*.mLinearity=*/Linearity::kNonlinear};
 
 template <typename EvaluationFunction, typename GradientFunction>
-auto test_linear_interface_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
-    -> InterfaceConstraintType
+auto test_linear_interface_constraint(EvaluationFunction aEvaluationFunction,
+                                      GradientFunction aGradientFunction) -> InterfaceConstraintType
 {
     return InterfaceConstraintType{
         /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
@@ -67,8 +67,8 @@ auto test_linear_interface_constraint(EvaluationFunction aEvaluationFunction, Gr
 }
 
 template <typename EvaluationFunction, typename GradientFunction>
-auto test_nonlinear_interface_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
-    -> InterfaceConstraintType
+auto test_nonlinear_interface_constraint(EvaluationFunction aEvaluationFunction,
+                                         GradientFunction aGradientFunction) -> InterfaceConstraintType
 {
     return InterfaceConstraintType{
         /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
@@ -78,8 +78,8 @@ auto test_nonlinear_interface_constraint(EvaluationFunction aEvaluationFunction,
 }
 
 template <typename EvaluationFunction, typename GradientFunction>
-auto test_linear_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
-    -> ConstraintData
+auto test_linear_constraint(EvaluationFunction aEvaluationFunction,
+                            GradientFunction aGradientFunction) -> ConstraintData
 {
     return ConstraintData{
         /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),
@@ -88,8 +88,8 @@ auto test_linear_constraint(EvaluationFunction aEvaluationFunction, GradientFunc
 }
 
 template <typename EvaluationFunction, typename GradientFunction>
-auto test_nonlinear_constraint(EvaluationFunction aEvaluationFunction, GradientFunction aGradientFunction)
-    -> ConstraintData
+auto test_nonlinear_constraint(EvaluationFunction aEvaluationFunction,
+                               GradientFunction aGradientFunction) -> ConstraintData
 {
     return ConstraintData{
         /*.mFunction=*/core::make_function_with_first_derivative(aEvaluationFunction, aGradientFunction),

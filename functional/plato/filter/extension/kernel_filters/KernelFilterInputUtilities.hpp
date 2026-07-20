@@ -64,8 +64,8 @@ namespace detail
     -> std::vector<int>;
 
 ///@brief Function that checks the search results @a aSearchResults to make sure it has all of the ids up to @a aSize
-[[nodiscard]] auto search_results_contain_all_row_ids(const std::vector<int>& aSearchResults, std::size_t aSize)
-    -> bool;
+[[nodiscard]] auto search_results_contain_all_row_ids(const std::vector<int>& aSearchResults,
+                                                      std::size_t aSize) -> bool;
 }  // namespace detail
 
 template <typename InputParserType>

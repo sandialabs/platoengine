@@ -41,8 +41,8 @@ auto Plane::reflect(const Plane& aPlane) const -> Plane
     return Plane(tReflectedCenter, tpic::UnitVector3{tReflectedNormal.x, tReflectedNormal.y, tReflectedNormal.z});
 }
 
-auto signed_distance_to_plane(const third_party_integration::common::Coordinate& aCoordinate, const Plane& aPlane)
-    -> double
+auto signed_distance_to_plane(const third_party_integration::common::Coordinate& aCoordinate,
+                              const Plane& aPlane) -> double
 {
     namespace tpic = third_party_integration::common;
     return tpic::dot(aCoordinate - aPlane.mCenter, static_cast<tpic::Vector3>(aPlane.mUnitNormal));

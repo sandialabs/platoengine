@@ -13,8 +13,8 @@ auto JacobianColumnEvaluator::column(const unsigned int aIndex) const -> Dynamic
     return mColumnFunction(aIndex, mX);
 }
 
-auto operator*(const DynamicVector<double>& aRowVector, const JacobianColumnEvaluator& aJacobian)
-    -> DynamicVector<double>
+auto operator*(const DynamicVector<double>& aRowVector,
+               const JacobianColumnEvaluator& aJacobian) -> DynamicVector<double>
 {
     auto tResult = std::vector<double>(aJacobian.mColumns);
     for (unsigned int tColumnIndex = 0; tColumnIndex < aJacobian.mColumns; ++tColumnIndex)

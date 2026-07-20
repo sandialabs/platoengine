@@ -17,8 +17,8 @@ namespace plato::mesh
 {
 namespace
 {
-auto element_volumes(const Mesh::PartReferenceVector& aPartVector, const stk::mesh::BulkData& aBulkData)
-    -> std::vector<double>
+auto element_volumes(const Mesh::PartReferenceVector& aPartVector,
+                     const stk::mesh::BulkData& aBulkData) -> std::vector<double>
 {
     namespace tpi = third_party_integration;
 

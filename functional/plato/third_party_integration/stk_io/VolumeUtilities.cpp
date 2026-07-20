@@ -179,8 +179,8 @@ auto element_centroid(const stk::mesh::Entity& aElement, const stk::mesh::BulkDa
     return element_apply<CentroidFunction>(aElement, aBulk);
 }
 
-auto element_volume_nodal_sensitivities(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
-    -> ElementNodalSensitivities
+auto element_volume_nodal_sensitivities(const stk::mesh::Entity& aElement,
+                                        const stk::mesh::BulkData& aBulk) -> ElementNodalSensitivities
 {
     return element_apply<VolumeNodalSensitivitiesFunction>(aElement, aBulk);
 }
@@ -208,8 +208,8 @@ auto element_centroids(const stk::mesh::BulkData& aBulk) -> std::vector<common::
     return element_centroids(aBulk, PartReferenceVector{std::cref(aBulk.mesh_meta_data().universal_part())});
 }
 
-auto element_centroids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
-    -> std::vector<common::Coordinate>
+auto element_centroids(const stk::mesh::BulkData& aBulk,
+                       const PartReferenceVector& aParts) -> std::vector<common::Coordinate>
 {
     const stk::mesh::EntityVector tElements = element_vector(aBulk, aParts);
     std::vector<common::Coordinate> tCentroids;
@@ -246,8 +246,8 @@ auto volume_nodal_sensitivities(const stk::mesh::BulkData& aBulk, const PartRefe
     return tNodalSensitivities;
 }
 
-auto element_coordinates(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
-    -> std::vector<common::Coordinate>
+auto element_coordinates(const stk::mesh::Entity& aElement,
+                         const stk::mesh::BulkData& aBulk) -> std::vector<common::Coordinate>
 {
     std::vector<common::Coordinate> tCoordinates;
     const unsigned int tNumDimensions = spatial_dimensions(aBulk);

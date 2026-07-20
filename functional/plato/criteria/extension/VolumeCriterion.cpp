@@ -231,9 +231,8 @@ auto make_volume_constraint_function(const bool aIgnoreVoidBlocks) -> library::C
         { return VolumeCriterion{.mScaleFactor = 1.0, .mIgnoreVoidBlocks = aIgnoreVoidBlocks}.df(aMesh); });
 }
 
-auto make_volume_fraction_constraint_function(const bool aIgnoreVoidBlocks,
-                                              const boost::optional<double> aReferenceVolume)
-    -> library::CriterionFunction
+auto make_volume_fraction_constraint_function(
+    const bool aIgnoreVoidBlocks, const boost::optional<double> aReferenceVolume) -> library::CriterionFunction
 {
     return core::make_function_with_first_derivative(
         [aIgnoreVoidBlocks, aReferenceVolume](const analysis::AnalysisDomainMesh& aMesh)

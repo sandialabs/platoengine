@@ -64,8 +64,8 @@ void output_xml(const RankExitCode aMyExitCode, const GroupExitCode aGroupExitCo
     }
 }
 
-auto program_name_and_arguments_for_mpi(const int aArgc, char* const* const aArgv)
-    -> std::pair<std::string_view, std::vector<char*>>
+auto program_name_and_arguments_for_mpi(const int aArgc,
+                                        char* const* const aArgv) -> std::pair<std::string_view, std::vector<char*>>
 {
     const auto tArgvSpan = std::span(aArgv, static_cast<std::size_t>(aArgc));
     const auto tProgramName = std::string_view{tArgvSpan[0]};

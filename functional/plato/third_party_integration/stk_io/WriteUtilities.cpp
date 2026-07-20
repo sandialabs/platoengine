@@ -98,8 +98,8 @@ auto create_io_broker_from_input_file(const std::filesystem::path& aInputMeshPat
     return tIOBroker;
 }
 
-auto create_output_mesh(const std::filesystem::path& aOutputMeshPath, stk::io::StkMeshIoBroker& aIOBroker)
-    -> std::size_t
+auto create_output_mesh(const std::filesystem::path& aOutputMeshPath,
+                        stk::io::StkMeshIoBroker& aIOBroker) -> std::size_t
 {
     return aIOBroker.create_output_mesh(aOutputMeshPath.string(), stk::io::WRITE_RESULTS);
 }

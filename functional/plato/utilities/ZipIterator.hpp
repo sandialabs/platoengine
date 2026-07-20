@@ -46,15 +46,15 @@ constexpr auto any_of_comparison_impl(const Tuple& aT1,
 }
 
 template <typename ReferenceTuple, typename IteratorTuple, std::size_t... kIs>
-constexpr auto dereference(const IteratorTuple& aIteratorTuple, std::index_sequence<kIs...> /*unused*/)
-    -> decltype(auto)
+constexpr auto dereference(const IteratorTuple& aIteratorTuple,
+                           std::index_sequence<kIs...> /*unused*/) -> decltype(auto)
 {
     return ReferenceTuple(*std::get<kIs>(aIteratorTuple)...);
 }
 
 template <typename ReferenceTuple, typename IteratorTuple, std::size_t... kIs>
-constexpr auto const_dereference(const IteratorTuple& aIteratorTuple, std::index_sequence<kIs...> /*unused*/)
-    -> decltype(auto)
+constexpr auto const_dereference(const IteratorTuple& aIteratorTuple,
+                                 std::index_sequence<kIs...> /*unused*/) -> decltype(auto)
 {
     return ReferenceTuple(std::as_const(*std::get<kIs>(aIteratorTuple))...);
 }

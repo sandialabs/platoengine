@@ -52,8 +52,8 @@ auto validate_filter_radius_bounds(const FilterInput& aInput) -> std::optional<s
 
 template <typename FilterInput>
     requires input_parser::InputBlockOfComponent<FilterInput, components::ComponentType::kFilter>
-auto validate_filter_radius_with_mesh(const FilterInput& aInput, const std::filesystem::path& aMeshFileName)
-    -> std::optional<std::string>
+auto validate_filter_radius_with_mesh(const FilterInput& aInput,
+                                      const std::filesystem::path& aMeshFileName) -> std::optional<std::string>
 {
     if (!std::filesystem::exists(aMeshFileName))
     {

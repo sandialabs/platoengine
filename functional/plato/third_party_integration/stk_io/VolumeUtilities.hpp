@@ -16,8 +16,8 @@ using ElementNodalSensitivities =
 [[nodiscard]] auto element_volume(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk) -> double;
 
 /// @brief Returns the centroid of an element @a Element found in bulk data @a aBulk
-[[nodiscard]] auto element_centroid(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
-    -> common::Coordinate;
+[[nodiscard]] auto element_centroid(const stk::mesh::Entity& aElement,
+                                    const stk::mesh::BulkData& aBulk) -> common::Coordinate;
 
 /// @brief Returns a vector containing the sensitivities of the volume of an element @a aElement in bulk data @a aBulk
 /// w.r.t. each nodal coordinate
@@ -25,15 +25,15 @@ using ElementNodalSensitivities =
                                                       const stk::mesh::BulkData& aBulk) -> ElementNodalSensitivities;
 
 /// @brief Returns the maximum edge length of an element @a Element found in bulk data @a aBulk
-[[nodiscard]] auto element_max_edge_length(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
-    -> double;
+[[nodiscard]] auto element_max_edge_length(const stk::mesh::Entity& aElement,
+                                           const stk::mesh::BulkData& aBulk) -> double;
 
 /// @brief Return a vector of all the element centroids found in bulk data @a aBulk
 [[nodiscard]] auto element_centroids(const stk::mesh::BulkData& aBulk) -> std::vector<common::Coordinate>;
 
 /// @brief Returns a vector of the element centroids associated with the parts given in @a aParts.
-[[nodiscard]] auto element_centroids(const stk::mesh::BulkData& aBulk, const PartReferenceVector& aParts)
-    -> std::vector<common::Coordinate>;
+[[nodiscard]] auto element_centroids(const stk::mesh::BulkData& aBulk,
+                                     const PartReferenceVector& aParts) -> std::vector<common::Coordinate>;
 
 /// @brief Returns the total volume of a mesh found in bulk data @a aBulk
 [[nodiscard]] auto mesh_volume(const stk::mesh::BulkData& aBulk) -> double;
@@ -45,8 +45,8 @@ using ElementNodalSensitivities =
     -> std::vector<third_party_integration::common::Vector3>;
 
 /// @brief Returns a vector containing the coordinates of an element @a aElement in bulk data @a aBulk
-[[nodiscard]] auto element_coordinates(const stk::mesh::Entity& aElement, const stk::mesh::BulkData& aBulk)
-    -> std::vector<common::Coordinate>;
+[[nodiscard]] auto element_coordinates(const stk::mesh::Entity& aElement,
+                                       const stk::mesh::BulkData& aBulk) -> std::vector<common::Coordinate>;
 
 /// @brief Returns the average element maximum edge length over all the elements found in bulk data @a aBulk
 [[nodiscard]] auto average_element_max_edge_length(const stk::mesh::BulkData& aBulk) -> double;

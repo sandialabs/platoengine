@@ -93,8 +93,8 @@ auto make_positive_octant_reflect_filter_test_function(const filter::extension::
     return filter::test_utilities::make_filter_function(tReflectFilter);
 }
 
-auto ones_vector_times_jacobian(const std::size_t aNumberOfNodes, const linear_algebra::JacobianMultiplier& aJacobian)
-    -> double
+auto ones_vector_times_jacobian(const std::size_t aNumberOfNodes,
+                                const linear_algebra::JacobianMultiplier& aJacobian) -> double
 {
     const auto tOnesVector = linear_algebra::DynamicVector(aNumberOfNodes, 1.0);
     const auto tResult = tOnesVector * aJacobian;

@@ -105,9 +105,8 @@ class LevelSetTopologyTwoBlockFixture : public LevelSetTopologyFixture,
         return LevelSetTopology{levelSetTopologyInputWithFixedBlocks(std::move(aFixedBlocks))};
     }
 
-    [[nodiscard]] auto levelSetTopologyWithRadiusAndFixedBlocks(const double aRadius,
-                                                                std::vector<std::string> aFixedBlocks) const
-        -> LevelSetTopology
+    [[nodiscard]] auto levelSetTopologyWithRadiusAndFixedBlocks(
+        const double aRadius, std::vector<std::string> aFixedBlocks) const -> LevelSetTopology
     {
         auto tInput = levelSetTopologyInputWithFixedBlocks(std::move(aFixedBlocks));
         tInput.sphere_pattern.value().radius = aRadius;

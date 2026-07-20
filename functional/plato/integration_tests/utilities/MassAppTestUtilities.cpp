@@ -102,8 +102,8 @@ void write_mass_app_config(const std::string_view& aAppName,
 
 }  // namespace
 
-auto register_test_mass_app(const std::string_view aAppName, const boost::mpi::communicator& aCommunicator)
-    -> test_utilities::TestDirectorySetupTeardown
+auto register_test_mass_app(const std::string_view aAppName,
+                            const boost::mpi::communicator& aCommunicator) -> test_utilities::TestDirectorySetupTeardown
 {
     const auto tTestPluginDirectory = std::filesystem::path{"test-plugin-directory"};
     auto tConfigurationTempDirectory = test_utilities::TestDirectorySetupTeardown{tTestPluginDirectory, aCommunicator};

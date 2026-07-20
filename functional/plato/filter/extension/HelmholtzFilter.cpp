@@ -25,8 +25,8 @@ namespace
 {
 const auto kHelmholtzFilterLibName = std::filesystem::path{"libAnalyzeFunctionalInterface.so"};
 
-auto to_filter_parameters(const input_parser::helmholtz_filter& aInput, const std::filesystem::path& aMeshFileName)
-    -> library::FilterParameters
+auto to_filter_parameters(const input_parser::helmholtz_filter& aInput,
+                          const std::filesystem::path& aMeshFileName) -> library::FilterParameters
 {
     return library::FilterParameters{
         /*.mFilterRadius=*/detail::get_filter_radius(aInput, aMeshFileName),
