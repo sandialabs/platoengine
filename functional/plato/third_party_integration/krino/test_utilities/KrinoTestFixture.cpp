@@ -5,6 +5,7 @@
 #include <boost/mpi/communicator.hpp>
 #include <cassert>
 #include <stk_mesh/base/Types.hpp>
+#include <utility>
 #include <vector>
 
 #include "plato/test_utilities/TestContext.hpp"
@@ -49,8 +50,9 @@ void test_sensitivity_map(const SensitivityMap& aResult,
 void four_tri_test_on_background_node_ids(const plato::test_utilities::TestContext& aTestContext)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
-    populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tBackgroundMesh);
+    const auto tBackgroundMesh =
+        populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
+                                                 initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value()));
     cut_mesh(tBackgroundMesh, SnappingParameters{});
 
     const auto tResult = background_node_ids(tBackgroundMesh);
@@ -58,7 +60,8 @@ void four_tri_test_on_background_node_ids(const plato::test_utilities::TestConte
     EXPECT_EQ(tGold, tResult) << aTestContext;
 }
 
-void populate_level_set_field_from_vector(const BackgroundMesh& aBackgroundMesh, const std::vector<double>& aVector)
+auto populate_level_set_field_from_vector(BackgroundMesh&& aBackgroundMesh,
+                                          const std::vector<double>& aVector) -> BackgroundMesh
 {
     assert(boost::mpi::communicator{}.size() == 1);
     const auto tNodes = node_entities_in_mesh(aBackgroundMesh);
@@ -67,6 +70,7 @@ void populate_level_set_field_from_vector(const BackgroundMesh& aBackgroundMesh,
     {
         level_set_value(aBackgroundMesh.mLevelSetFields, tNode) = tValue;
     }
+    return std::move(aBackgroundMesh);
 }
 
 }  // namespace plato::third_party_integration::krino::test_utilities

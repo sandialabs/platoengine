@@ -57,9 +57,8 @@ class OneTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrino
     void SetUp() override
     {
         KrinoTestFixture::SetUp();
-        mBackgroundMesh = tpik::initialize_background_mesh(mFileName);
-        tpik::populate_level_set_field_from_primitives(tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-                                                       mBackgroundMesh);
+        mBackgroundMesh = tpik::populate_level_set_field_from_primitives(
+            tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tpik::initialize_background_mesh(mFileName));
         mDesignDomainBackgroundNodes = tpik::background_node_ids(mBackgroundMesh);
         tpik::cut_mesh(mBackgroundMesh, tpik::SnappingParameters{});
     }
@@ -78,9 +77,8 @@ class FourTriMeshKrinoFixture : public tpik::test_utilities::SensitivityTestKrin
     void SetUp() override
     {
         KrinoTestFixture::SetUp();
-        mBackgroundMesh = tpik::initialize_background_mesh(mFileName);
-        tpik::populate_level_set_field_from_primitives(tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-                                                       mBackgroundMesh);
+        mBackgroundMesh = tpik::populate_level_set_field_from_primitives(
+            tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tpik::initialize_background_mesh(mFileName));
         tpik::cut_mesh(mBackgroundMesh, tpik::SnappingParameters{});
     }
 

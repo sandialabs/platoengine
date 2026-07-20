@@ -76,8 +76,8 @@ TEST(Krino, MPISize)
 TEST_F(ParallelKrinoFixture, InitializeKrino)
 {
     ASSERT_TRUE(kTetBoxFilePath.has_value());
-    const auto tBackgroundMesh = initialize_background_mesh(kTetBoxFilePath.value());
-    populate_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tBackgroundMesh);
+    const auto tBackgroundMesh = populate_level_set_field_from_primitives(
+        LevelSetPrimitives{{}, {kUnitSphere}}, initialize_background_mesh(kTetBoxFilePath.value()));
     cut_mesh(tBackgroundMesh, SnappingParameters{});
     const auto tSelector = create_output_selector(tBackgroundMesh.mKrinoMesh->bulk_data(), VoidPhase::kIncludeInMesh);
     write_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
@@ -87,8 +87,8 @@ TEST_F(ParallelKrinoFixture, InitializeKrino)
 TEST_F(ParallelKrinoFixture, CutMeshNodeIds)
 {
     ASSERT_TRUE(kTetBoxFilePath.has_value());
-    const auto tBackgroundMesh = initialize_background_mesh(kTetBoxFilePath.value());
-    populate_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tBackgroundMesh);
+    const auto tBackgroundMesh = populate_level_set_field_from_primitives(
+        LevelSetPrimitives{{}, {kUnitSphere}}, initialize_background_mesh(kTetBoxFilePath.value()));
     cut_mesh(tBackgroundMesh, SnappingParameters{});
 
     const auto tCutMeshNodeIds = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kExcludeFromMesh);
@@ -126,8 +126,9 @@ void test_cut_mesh_node_ids_parallel_consistent(::krino::MeshInterface& aKrinoMe
 TEST_F(ParallelKrinoFixture, CutMeshNodeIdsFourTriParallelConsistent)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
-    populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tBackgroundMesh);
+    const auto tBackgroundMesh =
+        populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
+                                                 initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value()));
     cut_mesh(tBackgroundMesh, SnappingParameters{});
 
     test_cut_mesh_node_ids_parallel_consistent(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh,
@@ -140,8 +141,8 @@ TEST_F(ParallelKrinoFixture, CutMeshNodeIdsFourTriParallelConsistent)
 TEST_F(ParallelKrinoFixture, BackgroundMeshNodeIds)
 {
     ASSERT_TRUE(kTetBoxFilePath.has_value());
-    const auto tBackgroundMesh = initialize_background_mesh(kTetBoxFilePath.value());
-    populate_level_set_field_from_primitives(LevelSetPrimitives{{}, {kUnitSphere}}, tBackgroundMesh);
+    const auto tBackgroundMesh = populate_level_set_field_from_primitives(
+        LevelSetPrimitives{{}, {kUnitSphere}}, initialize_background_mesh(kTetBoxFilePath.value()));
     cut_mesh(tBackgroundMesh, SnappingParameters{});
 
     const auto tBackgroundNodeIds = background_node_ids(tBackgroundMesh);
@@ -164,8 +165,9 @@ TEST_F(ParallelKrinoFixture, BackgroundNodeIdsFourTri)
 TEST_F(ParallelKrinoFixture, GetLevelSetValues)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
-    populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tBackgroundMesh);
+    const auto tBackgroundMesh =
+        populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
+                                                 initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value()));
 
     const auto tLevelSetValues = get_level_set_values(tBackgroundMesh);
 
@@ -177,8 +179,9 @@ TEST_F(ParallelKrinoFixture, GetLevelSetValues)
 TEST_F(ParallelKrinoFixture, FixedBlock)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value(), {"block_2"});
-    populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}}, tBackgroundMesh);
+    const auto tBackgroundMesh = populate_level_set_field_from_primitives(
+        LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
+        initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value(), {"block_2"}));
 
     // Level-set values
     {

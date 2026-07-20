@@ -20,11 +20,13 @@ void test_sensitivity_map(const SensitivityMap& aResult,
 void four_tri_test_on_background_node_ids(const plato::test_utilities::TestContext& aTestContext);
 
 /// @brief Takes a vector of doubles value @a aVector along with a BackgroundMesh @a aBackgroundMesh and sets the level
-/// set field for all background nodes (fixed or design) to the values in the vector in order of GID.
+/// set field for all background nodes (fixed or design) to the values in the vector in order of GID. Returns the
+/// modified background mesh.
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
 /// 'initialize_background_mesh' to setup the level set fields in the krino mesh.
 /// @pre Size of `MPI_COMM_WORLD` must be 1.
-void populate_level_set_field_from_vector(const BackgroundMesh& aBackgroundMesh, const std::vector<double>& aVector);
+[[nodiscard]] auto populate_level_set_field_from_vector(BackgroundMesh&& aBackgroundMesh,
+                                                        const std::vector<double>& aVector) -> BackgroundMesh;
 
 class KrinoTestFixture : virtual public ::testing::Test
 {

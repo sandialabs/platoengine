@@ -218,8 +218,8 @@ auto make_initial_guess_from_level_set_primitives(const std::filesystem::path& a
                                                   const std::set<std::string>& aFixedBlocks,
                                                   const LevelSetBounds& aBounds) -> std::vector<double>
 {
-    auto tBackgroundMesh = tpik::initialize_background_mesh(aFileName, aFixedBlocks);
-    tpik::populate_level_set_field_from_primitives(aLevelSetPrimitives, tBackgroundMesh);
+    const auto tBackgroundMesh = tpik::populate_level_set_field_from_primitives(
+        aLevelSetPrimitives, tpik::initialize_background_mesh(aFileName, aFixedBlocks));
     const auto tLevelSetValuesMap = tpik::get_level_set_values(tBackgroundMesh);
     const auto tBackgroundNodeIds = tpik::background_node_ids(tBackgroundMesh);
 

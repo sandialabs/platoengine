@@ -138,8 +138,8 @@ TEST_F(KrinoTestFixture, CutMeshExcludeVoid)
 
 TEST_F(KrinoTestFixture, BackgroundNodeIds)
 {
-    const auto tBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
-    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {kThreeQuarters, -kOneQuarter, -kOneQuarter});
+    const auto tBackgroundMesh = test_utilities::populate_level_set_field_from_vector(
+        initialize_background_mesh(kOneTriMeshFilePath.value()), {kThreeQuarters, -kOneQuarter, -kOneQuarter});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
 
     const auto tResult = background_node_ids(tBackgroundMesh);
@@ -155,9 +155,9 @@ TEST_F(KrinoTestFixture, BackgroundNodeIdsWithExistingLevelSetField)
     ASSERT_TRUE(std::filesystem::exists(tMeshFilePath.value()));
 
     const auto tFixedBlocks = std::set<std::string>{"fixed"};
-    const auto tBackgroundMesh = initialize_background_mesh(tMeshFilePath.value(), tFixedBlocks);
     constexpr auto tDesignDomainSize = 44U;
-    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, std::vector(tDesignDomainSize, 1.0));
+    const auto tBackgroundMesh = test_utilities::populate_level_set_field_from_vector(
+        initialize_background_mesh(tMeshFilePath.value(), tFixedBlocks), std::vector(tDesignDomainSize, 1.0));
 
     const auto tResult = background_node_ids(tBackgroundMesh);
     EXPECT_EQ(tResult.size(), tDesignDomainSize);
@@ -170,8 +170,8 @@ TEST_F(KrinoTestFixture, BackgroundNodeIdsFourTri)
 
 TEST_F(KrinoTestFixture, CutMeshNodeIds)
 {
-    const auto tBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
-    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, {kThreeQuarters, -kOneQuarter, -kOneQuarter});
+    const auto tBackgroundMesh = test_utilities::populate_level_set_field_from_vector(
+        initialize_background_mesh(kOneTriMeshFilePath.value()), {kThreeQuarters, -kOneQuarter, -kOneQuarter});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
     {
         const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
@@ -187,9 +187,9 @@ TEST_F(KrinoTestFixture, CutMeshNodeIds)
 
 TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTri)
 {
-    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
-    test_utilities::populate_level_set_field_from_vector(
-        tBackgroundMesh, {kThreeQuarters, -kOneQuarter, -kOneQuarter, kThreeQuarters, kThreeQuarters, kThreeQuarters});
+    const auto tBackgroundMesh = test_utilities::populate_level_set_field_from_vector(
+        initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value()),
+        {kThreeQuarters, -kOneQuarter, -kOneQuarter, kThreeQuarters, kThreeQuarters, kThreeQuarters});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
     {
         const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
@@ -206,10 +206,10 @@ TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTri)
 TEST_F(KrinoTestFixture, GetLevelSetValuesMakeFromVector)
 {
     create_mesh();
-    const auto tBackgroundMesh = initialize_background_mesh(kMeshName);
 
     const auto tVector = std::vector<double>{1., 2, 3, 4, 5, 6, 7, 8};
-    test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, tVector);
+    const auto tBackgroundMesh =
+        test_utilities::populate_level_set_field_from_vector(initialize_background_mesh(kMeshName), tVector);
 
     const auto tLevelSetValues = get_level_set_values(tBackgroundMesh);
     for (const auto& [tId, tValue] : tLevelSetValues)
@@ -270,11 +270,10 @@ TEST_F(KrinoTestFixture, BlockParts)
 
 TEST_F(KrinoTestFixture, PopulateLevelSetFieldFromPrimitives)
 {
-    const auto tBackgroundMesh = initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
-
     const auto tDownwardPlanePrimitives =
         LevelSetPrimitives{.mPlanes = {Plane{.mNormal = {0, -1, 0}, .mOffset = 0.5}}, .mSpheres = {}};
-    populate_level_set_field_from_primitives(tDownwardPlanePrimitives, tBackgroundMesh);
+    const auto tBackgroundMesh = populate_level_set_field_from_primitives(
+        tDownwardPlanePrimitives, initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value()));
 
     const auto tLevelSetValues = get_level_set_values(tBackgroundMesh);
 

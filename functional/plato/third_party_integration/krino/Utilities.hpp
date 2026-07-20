@@ -46,11 +46,12 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
                                               const std::set<std::string>& aExcludedBlocks = {}) -> BackgroundMesh;
 
 /// @brief Takes a LevelSetPrimitives specification @a aLevelSetPrimitives along with a background mesh @a
-/// aBackgroundMesh and sets the level set field based on the primitives.
+/// aBackgroundMesh and sets the level set field based on the primitives. Returns a BackgroundMesh with the resulting
+/// fields.
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
 /// 'initialize_background_mesh' to setup the level set fields in the background mesh.
-void populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPrimitives,
-                                              const BackgroundMesh& aBackgroundMesh);
+[[nodiscard]] auto populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPrimitives,
+                                                            BackgroundMesh&& aBackgroundMesh) -> BackgroundMesh;
 
 /// @brief Takes a BackgroundMesh @a aBackgroundMesh and determines the background node ids in the cut mesh.
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by

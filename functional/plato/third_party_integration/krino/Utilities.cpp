@@ -165,8 +165,8 @@ auto initialize_background_mesh(const std::filesystem::path& aFilename,
     return BackgroundMesh{.mKrinoMesh = std::move(tMeshFromFile), .mLevelSetFields = std::move(tLevelSetFields)};
 }
 
-void populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPrimitives,
-                                              const BackgroundMesh& aBackgroundMesh)
+auto populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPrimitives,
+                                              BackgroundMesh&& aBackgroundMesh) -> BackgroundMesh
 {
     auto tInitializationSurfaces = make_krino_composite_surface();
     append_spheres(tInitializationSurfaces, aLevelSetPrimitives.mSpheres);
@@ -175,6 +175,7 @@ void populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSe
     ::krino::compute_nodal_surface_distance(aBackgroundMesh.mKrinoMesh->bulk_data(),
                                             aBackgroundMesh.mKrinoMesh->bulk_data().mesh_meta_data().coordinate_field(),
                                             aBackgroundMesh.mLevelSetFields.front().isovar, tInitializationSurfaces);
+    return std::move(aBackgroundMesh);
 }
 
 auto background_node_ids(const BackgroundMesh& aBackgroundMesh) -> std::vector<stk::mesh::EntityId>

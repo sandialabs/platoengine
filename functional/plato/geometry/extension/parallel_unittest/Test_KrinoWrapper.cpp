@@ -160,9 +160,9 @@ TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
 
 TEST_F(KrinoTestFixture, CutMeshNodeIdMultiplicity)
 {
-    const auto tBackgroundMesh = tpik::initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
-    tpik::populate_level_set_field_from_primitives(tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-                                                   tBackgroundMesh);
+    const auto tBackgroundMesh = tpik::populate_level_set_field_from_primitives(
+        tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
+        tpik::initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value()));
 
     tpik::cut_mesh(tBackgroundMesh, tpik::SnappingParameters{});
     const auto tDesignDomain = tpik::background_node_ids(tBackgroundMesh);

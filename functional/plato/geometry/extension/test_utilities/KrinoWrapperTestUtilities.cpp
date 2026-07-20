@@ -3,10 +3,8 @@
 #include <filesystem>
 #include <set>
 #include <string>
-#include <utility>
 
 #include "plato/geometry/extension/KrinoWrapper.hpp"
-#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
@@ -23,9 +21,9 @@ auto make_krino_wrapper_from_vector_values(const std::filesystem::path& aFileNam
                                            const InitialLevelSetValues& aInitialLevelSetValues,
                                            const third_party_integration::krino::VoidPhase& aVoidPhase) -> KrinoWrapper
 {
-    auto tBackgroundMesh = tpik::initialize_background_mesh(aFileName);
-    tpik::test_utilities::populate_level_set_field_from_vector(tBackgroundMesh, aInitialLevelSetValues.mValue);
-    return KrinoWrapper{std::move(tBackgroundMesh), aVoidPhase, tpik::SnappingParameters{}};
+    return KrinoWrapper{tpik::test_utilities::populate_level_set_field_from_vector(
+                            tpik::initialize_background_mesh(aFileName), aInitialLevelSetValues.mValue),
+                        aVoidPhase, tpik::SnappingParameters{}};
 }
 
 auto make_krino_wrapper_from_level_set_primitives(const std::filesystem::path& aFileName,
@@ -34,9 +32,9 @@ auto make_krino_wrapper_from_level_set_primitives(const std::filesystem::path& a
                                                   const std::set<std::string>& aFixedBlockNames,
                                                   const tpik::SnappingParameters& aSnappingParameters) -> KrinoWrapper
 {
-    auto tBackgroundMesh = tpik::initialize_background_mesh(aFileName, aFixedBlockNames);
-    tpik::populate_level_set_field_from_primitives(aLevelSetPrimitives, tBackgroundMesh);
-    return KrinoWrapper{std::move(tBackgroundMesh), aVoidPhase, aSnappingParameters};
+    return KrinoWrapper{tpik::populate_level_set_field_from_primitives(
+                            aLevelSetPrimitives, tpik::initialize_background_mesh(aFileName, aFixedBlockNames)),
+                        aVoidPhase, aSnappingParameters};
 }
 
 }  // namespace plato::geometry::extension::test_utilities

@@ -29,8 +29,8 @@ class SensitivityMapUtilitiesFixture : public KrinoTestFixture
    public:
     void initialize()
     {
-        mBackgroundMesh = initialize_background_mesh(kOneTriMeshFilePath.value());
-        test_utilities::populate_level_set_field_from_vector(mBackgroundMesh, {1, -1, -1});
+        mBackgroundMesh = test_utilities::populate_level_set_field_from_vector(
+            initialize_background_mesh(kOneTriMeshFilePath.value()), {1, -1, -1});
         cut_mesh(mBackgroundMesh, SnappingParameters{});
     }
 
