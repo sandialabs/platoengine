@@ -4,9 +4,10 @@
 #include <dlfcn.h>
 
 #include <filesystem>
+#include <format>
+#include <optional>
 #include <string_view>
 
-#include "plato/services/AppConfiguration.hpp"
 #include "plato/utilities/Exception.hpp"
 
 namespace plato::services
@@ -16,10 +17,22 @@ struct AppConfigurationWithDirectory;
 
 namespace plato::services
 {
+/// @brief Contains a path to a shared library, as well as optional function names for function that will be called when
+/// loading and unloading the library.
+struct SharedLibraryData
+{
+    std::filesystem::path mSharedLibraryPath;
+    std::optional<std::string> mLibraryLoadFunctionName = std::nullopt;
+    std::optional<std::string> mLibraryShutdownFunctionName = std::nullopt;
+};
+
 /// @brief An RAII-style object for loading functions from a shared library.
 class [[nodiscard]] SharedLibrarySetupTeardown
 {
    public:
+    /// @throw plato::utilities::Exception On error loading the shared library.
+    explicit SharedLibrarySetupTeardown(SharedLibraryData aSharedLibraryData);
+
     /// @throw plato::utilities::Exception On error loading the shared library.
     explicit SharedLibrarySetupTeardown(std::filesystem::path aSharedLibraryPath);
 
@@ -48,6 +61,7 @@ class [[nodiscard]] SharedLibrarySetupTeardown
 
     std::filesystem::path mSharedLibraryPath;
     void* mSharedLibrary = nullptr;
+    std::add_pointer_t<void()> mShutdownFunction = nullptr;
 };
 
 template <typename FunctionSignature>
@@ -58,9 +72,8 @@ template <typename FunctionSignature>
         reinterpret_cast<FunctionPtr>(dlsym(mSharedLibrary, std::string{aFunctionName}.c_str()));  // NOLINT
     if (tFunction == nullptr)
     {
-        char* const tErrorMessage = dlerror();
-        throw utilities::Exception{"Couldn't load function " + std::string{aFunctionName} + " from shared lib at " +
-                                   mSharedLibraryPath.string() + "\ndlsym error: " + std::string{tErrorMessage}};
+        throw utilities::Exception{std::format("Couldn't load function {} from shared lib at {}\ndlsym error: {}\n",
+                                               aFunctionName, mSharedLibraryPath.string(), dlerror())};
     }
     return tFunction;
 }

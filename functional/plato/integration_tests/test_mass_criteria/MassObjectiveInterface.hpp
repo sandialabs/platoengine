@@ -33,4 +33,7 @@ extern "C" auto plato_create_criterion(const std::vector<std::string>& /*unused*
 extern "C" auto plato_create_test_mass_criterion(const std::vector<std::string>& /*unused*/)
     -> std::unique_ptr<::plato::criteria::library::CriterionInterface>;
 
+extern "C" void mass_startup();
+extern "C" void mass_shutdown();
+
 #endif

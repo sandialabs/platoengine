@@ -51,14 +51,25 @@ void test_serialize_round_trip(const AppConfiguration& aSerializable, const test
 
 }  // namespace
 
-TEST(AppConfiguration, Serialization)
+TEST(AppConfiguration, SerializationVersion0)
 {
     const auto tAppConfiguration =
         services::AppConfiguration{.mName = "test-app",
                                    .mLibraryFileName = "libtest.so",
                                    .mCriteria = {kTestCriterionConfiguration, kAnotherTestCriterionConfiguration,
                                                  kVectorTestCriterionConfiguration}};
-    test_serialize_round_trip(tAppConfiguration, TEST_CONTEXT("App configuration"));
+    test_serialize_round_trip(tAppConfiguration, TEST_CONTEXT("App configuration at version 0"));
+}
+
+TEST(AppConfiguration, SerializationVersion1)
+{
+    const auto tAppConfiguration =
+        services::AppConfiguration{.mName = "another-test-app",
+                                   .mLibraryFileName = "libanothertest.so",
+                                   .mCriteria = {kTestCriterionConfiguration, kVectorTestCriterionConfiguration},
+                                   .mLibraryLoadFunctionName = "initialize",
+                                   .mLibraryShutdownFunctionName = "finalize"};
+    test_serialize_round_trip(tAppConfiguration, TEST_CONTEXT("App configuration at version 1"));
 }
 
 TEST(AppConfiguration, AppConfigurationWithDirectory)
