@@ -15,7 +15,7 @@ namespace plato::main::library
 ///      "plato" tells the user to provide input and exits
 ///      "plato --help" displays all the known commands and exits
 ///      "plato input.i" will try to run plato on the given input
-/// Returns an enum representing an error code.
+/// @return an enum representing an error code.
 auto handle_input(const std::vector<std::string>& aArguments) -> ExitStatus;
 
 namespace detail
@@ -23,7 +23,7 @@ namespace detail
 
 ///@brief Run plato on the given input deck @a aInputFile
 ///@pre @a aInputFile exists on disk, Kokkos has been initialized
-/// Returns an enum representing an error code.
+/// @return an enum representing an error code.
 auto run_plato(const std::filesystem::path& aInputFile) -> ExitStatus;
 
 ///@brief Helper function to print an error message telling the user to provide an input file or request --help
