@@ -5,6 +5,7 @@
 #include "plato/main/library/Startup.hpp"
 #include "plato/utilities/ArgcArgvToVector.hpp"
 
+// GCOVR_EXCL_START
 auto main(int argc, char** argv) -> int
 {
     auto tEnvironment = boost::mpi::environment{argc, argv, boost::mpi::threading::level::funneled};
@@ -17,3 +18,4 @@ auto main(int argc, char** argv) -> int
     Kokkos::finalize();
     return tExitStatus;
 }
+// GCOVR_EXCL_STOP
