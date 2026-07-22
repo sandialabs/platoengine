@@ -3,6 +3,7 @@
 
 namespace plato::main::library
 {
+/// @brief enum representing the different exit conditions for plato.
 enum struct ExitStatus : std::uint8_t
 {
     kExecutionSuccessful = 0,
@@ -10,6 +11,6 @@ enum struct ExitStatus : std::uint8_t
     kInvalidInput = 2,
     kRuntimeError = 3
 };
-}
+}  // namespace plato::main::library
 
 #endif
