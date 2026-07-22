@@ -12,7 +12,7 @@ auto main(int argc, char** argv) -> int
 
     std::vector<std::string> tArguments = plato::utilities::argc_argv_to_std_vector(argc, argv);
     plato::main::library::startup();
-    const int tExitStatus = static_cast<int>(plato::main::library::handle_input(tArguments));
+    const auto tExitStatus = static_cast<int>(plato::main::library::handle_input(tArguments));
 
     Kokkos::finalize();
     return tExitStatus;
