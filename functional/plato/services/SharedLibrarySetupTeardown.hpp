@@ -52,12 +52,17 @@ class [[nodiscard]] SharedLibrarySetupTeardown
     auto call(std::string_view aFunctionName, Args&&... aArgs);
 
    private:
-    /// @brief Loads a function from the shared library pointed to by @a aSharedLibrary.
+    /// @brief Loads a function from the shared library pointed to by @a aSharedLibrary. Returns `nullptr` if @a
+    /// aFunctionName is not found in the shared library.
     /// @tparam FunctionSignature The signature of the function that will be loaded from the shared library. This must
     /// match the signature of the actual function.
-    /// @throw plato::utilities::Exception On error loading the shared library function.
     template <typename FunctionSignature>
     [[nodiscard]] auto loadFunction(std::string_view aFunctionName);
+
+    /// @brief Calls `dlerror` and constructs an error message assuming the erroneous call was to `dlsym`.
+    /// @pre `dlerror` does not return `nullptr`. This should only be called if an error occurred in `dlsym` (i.e. it
+    /// returned a `nullptr`).
+    [[nodiscard]] auto dlSymErrorMessage(std::string_view aFunctionName) -> std::string;
 
     std::filesystem::path mSharedLibraryPath;
     void* mSharedLibrary = nullptr;
@@ -68,20 +73,17 @@ template <typename FunctionSignature>
 [[nodiscard]] auto SharedLibrarySetupTeardown::loadFunction(const std::string_view aFunctionName)
 {
     using FunctionPtr = std::add_pointer_t<FunctionSignature>;
-    auto tFunction =
-        reinterpret_cast<FunctionPtr>(dlsym(mSharedLibrary, std::string{aFunctionName}.c_str()));  // NOLINT
-    if (tFunction == nullptr)
-    {
-        throw utilities::Exception{std::format("Couldn't load function {} from shared lib at {}\ndlsym error: {}\n",
-                                               aFunctionName, mSharedLibraryPath.string(), dlerror())};
-    }
-    return tFunction;
+    return reinterpret_cast<FunctionPtr>(dlsym(mSharedLibrary, std::string{aFunctionName}.c_str()));  // NOLINT
 }
 
 template <typename FunctionSignature, typename... Args>
 auto SharedLibrarySetupTeardown::call(const std::string_view aFunctionName, Args&&... aArgs)
 {
     const auto tFunction = loadFunction<FunctionSignature>(aFunctionName);
+    if (tFunction == nullptr)
+    {
+        throw utilities::Exception{dlSymErrorMessage(aFunctionName)};
+    }
     return tFunction(std::forward<Args>(aArgs)...);
 }
 }  // namespace plato::services

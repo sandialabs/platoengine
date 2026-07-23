@@ -3,9 +3,14 @@ include(${CMAKE_UTIL_DIR}/create_plato_unittester.cmake)
 include(${CMAKE_UTIL_DIR}/add_documentation.cmake)
 
 set(LINK_LIBS PlatoFunctionalCriteria
+              PlatoFunctionalFilter
+              PlatoFunctionalGeometry
+              PlatoFunctionalProcessManager
               PlatoFunctionalDocumentation)
 
 create_plato_library(PlatoFunctionalDocumentationGenerator "library" "${LINK_LIBS}")
+# Force linking with libraries that aren't directly used, but register objects in factories
+target_link_options(PlatoFunctionalDocumentationGenerator PRIVATE "LINKER:--no-as-needed")
 
 if( UNIT_TESTING )
   add_documentation("${CMAKE_CURRENT_SOURCE_DIR}/library/unittest/data/")
