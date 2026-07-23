@@ -11,8 +11,10 @@ trigger-super:
         PARENT_BRANCH: ${CI_COMMIT_BRANCH}
   variables:
     PARENT_SOURCE: ${CI_PIPELINE_SOURCE}
+    PARENT_MR_IID: ${CI_MERGE_REQUEST_IID}
+    PARENT_PROJECT_ID: ${CI_PROJECT_ID}
+    PARENT_API_ACCESS_TOKEN: ${PLATOENGINE_API_TOKEN}
   trigger:
     project: 1540-compsim/plato/plato
     strategy: depend
-    
   needs: []
