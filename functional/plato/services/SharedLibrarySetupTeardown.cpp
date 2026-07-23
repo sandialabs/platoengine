@@ -4,6 +4,8 @@
 #include <dlfcn.h>
 
 #include <filesystem>
+#include <format>
+#include <string_view>
 #include <utility>
 
 namespace plato::services
@@ -44,9 +46,24 @@ SharedLibrarySetupTeardown::SharedLibrarySetupTeardown(SharedLibraryData aShared
                             ? loadFunction<void()>(aSharedLibraryData.mLibraryShutdownFunctionName.value())
                             : nullptr}
 {
+    if (aSharedLibraryData.mLibraryShutdownFunctionName && mShutdownFunction == nullptr)
+    {
+        const auto tErrorMessage = dlSymErrorMessage(aSharedLibraryData.mLibraryShutdownFunctionName.value());
+        close_if_nonnull(mSharedLibrary);
+        throw utilities::Exception{tErrorMessage};
+    }
+
     if (aSharedLibraryData.mLibraryLoadFunctionName)
     {
-        call<void()>(aSharedLibraryData.mLibraryLoadFunctionName.value());
+        try
+        {
+            call<void()>(aSharedLibraryData.mLibraryLoadFunctionName.value());
+        }
+        catch (const utilities::Exception&)
+        {
+            close_if_nonnull(mSharedLibrary);
+            throw;
+        }
     }
 }
 
@@ -85,6 +102,12 @@ SharedLibrarySetupTeardown::~SharedLibrarySetupTeardown()
     }
 
     close_if_nonnull(mSharedLibrary);
+}
+
+auto SharedLibrarySetupTeardown::dlSymErrorMessage(const std::string_view aFunctionName) -> std::string
+{
+    return std::format("Couldn't load function {} from shared lib at {}\ndlsym error: {}\n", aFunctionName,
+                       mSharedLibraryPath.string(), dlerror());
 }
 
 }  // namespace plato::services
