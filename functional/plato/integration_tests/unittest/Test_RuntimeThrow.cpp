@@ -10,6 +10,7 @@
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/criteria/library/SharedLibCriterion.hpp"
+#include "plato/input_parser/InputFieldTypes.hpp"
 #include "plato/integration_tests/utilities/AppConfigurationTestUtilities.hpp"
 #include "plato/integration_tests/utilities/MassAppTestUtilities.hpp"
 #include "plato/main/library/CommandLineInputHandler.hpp"
