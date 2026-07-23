@@ -73,25 +73,14 @@ constexpr auto kNumberOfLevelSets = 1U;
     return aActivePart & stk::mesh::selectUnion(tOutputParts);
 }
 
-// TODO: make this a krino API call?
 void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta,
-                                               const std::vector<::krino::LS_Field>& aLevelSetFields,
-                                               const bool aSetupSnapping,
-                                               const bool aSetupNodalLevelsetGradient)
+                                               const std::vector<::krino::LS_Field>& aLevelSetFields)
 {
     ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aMeta);
     const ::krino::FieldRef tCoordsField = aMeta.coordinate_field();
 
-    if (aSetupSnapping)
-    {
-        tCdfemSupport.register_cdfem_snap_displacements_field();
-        if (!aSetupNodalLevelsetGradient)
-        {
-            ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta, aLevelSetFields);
-        }
-    }
-
-    if (aSetupNodalLevelsetGradient)
+    tCdfemSupport.register_cdfem_snap_displacements_field();
+    if (kDoNormalSensitivities)
     {
         for (const auto& tLevelSetField : aLevelSetFields)
         {
@@ -99,6 +88,10 @@ void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta,
                 ::krino::register_nodal_gradient_for_scalar_field(aMeta, tLevelSetField.isovar);
             tCdfemSupport.add_interpolation_field(tNodalLevelSetGradient);
         }
+    }
+    else
+    {
+        ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta, aLevelSetFields);
     }
 
     tCdfemSupport.set_coords_field(tCoordsField);
@@ -157,8 +150,7 @@ auto initialize_background_mesh(const std::filesystem::path& aFilename,
         ::krino::LSPerInterfacePolicy::setup_levelsets_on_blocks_with_void_phase_for_any_negative_levelset(
             tMeshFromFile->meta_data(), kNumberOfLevelSets, all_blocks_except(*tMeshFromFile, aExcludedBlocks));
 
-    setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data(), tLevelSetFields, /*aSetupSnapping=*/true,
-                                              kDoNormalSensitivities);
+    setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data(), tLevelSetFields);
     tMeshFromFile->populate_mesh();
     ::krino::activate_all_entities(tMeshFromFile->bulk_data(),
                                    ::krino::AuxMetaData::get(tMeshFromFile->meta_data()).active_part());
