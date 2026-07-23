@@ -24,7 +24,7 @@ namespace
 constexpr auto kRuntimeThrowCriterionName = std::string_view{"runtime_throw"};
 constexpr auto kInputFileName = std::string_view{"input.i"};
 
-auto input_with_runtime_throw_objective() -> std::string
+auto input_with_runtime_throw_objective(const std::string& aProcessManager) -> std::string
 {
     return std::format(
         "begin brick_shape_geometry\n"
@@ -37,19 +37,22 @@ auto input_with_runtime_throw_objective() -> std::string
         "   aggregation_weight 1.0\n"
         "end \n"
 
-        "begin rol_optimization\n"
+        "begin {}\n"
         "end",
-        kRuntimeThrowCriterionName);
+        kRuntimeThrowCriterionName, aProcessManager);
 }
 
-struct RuntimeErrorInputFileFixture : public test_utilities::FileCreatingTestFixture
+struct ExitStatusInputFileFixture : public test_utilities::FileCreatingTestFixture
 {
-    RuntimeErrorInputFileFixture() : FileCreatingTestFixture{std::filesystem::path{kInputFileName}}
+    ExitStatusInputFileFixture() : FileCreatingTestFixture{std::filesystem::path{kInputFileName}} {}
+
+    auto writeInputForProcessManager(const std::string& aProcessManager) const -> void
     {
         auto tStream = std::ofstream(filePath());
-        tStream << input_with_runtime_throw_objective();
+        tStream << input_with_runtime_throw_objective(aProcessManager);
     }
 };
+
 }  // namespace
 
 TEST(RuntimeThrowCriterion, ValueAndGradientEvaluationsThrow)
@@ -66,12 +69,25 @@ TEST(RuntimeThrowCriterion, ValueAndGradientEvaluationsThrow)
     EXPECT_THROW([[maybe_unused]] const auto tVal = tSharedLib.df(analysis::AnalysisDomainMesh{}), std::runtime_error);
 }
 
-TEST_F(RuntimeErrorInputFileFixture, RuntimeErrorExitStatus)
+TEST_F(ExitStatusInputFileFixture, RuntimeErrorExitStatus)
 {
     const auto tAppName = input_parser::AppName{"test-mass-app"};
-    auto tConfigurationTempDirectory = utilities::register_test_mass_app(tAppName.mToken, boost::mpi::communicator{});
+    [[maybe_unused]] const auto tConfigurationTempDirectory =
+        utilities::register_test_mass_app(tAppName.mToken, boost::mpi::communicator{});
 
+    writeInputForProcessManager("rol_optimization");
     const auto tExitStatus = main::library::detail::run_plato(filePath());
     EXPECT_EQ(tExitStatus, main::library::ExitStatus::kRuntimeError);
+}
+
+TEST_F(ExitStatusInputFileFixture, ExecutionSuccessfulExitStatus)
+{
+    const auto tAppName = input_parser::AppName{"test-mass-app"};
+    [[maybe_unused]] const auto tConfigurationTempDirectory =
+        utilities::register_test_mass_app(tAppName.mToken, boost::mpi::communicator{});
+
+    writeInputForProcessManager("initial_geometry_writer");
+    const auto tExitStatus = main::library::detail::run_plato(filePath());
+    EXPECT_EQ(tExitStatus, main::library::ExitStatus::kExecutionSuccessful);
 }
 }  // namespace plato::integration_tests::unittest
