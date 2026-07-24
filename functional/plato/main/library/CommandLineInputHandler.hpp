@@ -1,27 +1,30 @@
-#ifndef PLATO_MAIN_COMMANDLINEINPUTHANDLER
-#define PLATO_MAIN_COMMANDLINEINPUTHANDLER
+#ifndef PLATO_MAIN_LIBRARY_COMMANDLINEINPUTHANDLER
+#define PLATO_MAIN_LIBRARY_COMMANDLINEINPUTHANDLER
 
 #include <filesystem>
 #include <string>
 #include <vector>
 
+#include "plato/main/library/ExitStatus.hpp"
+
 namespace plato::main::library
 {
-
 ///@brief Take the command line input arguments @a aArguments (not including the executable name "plato"), and determine
 /// the course of action.
 /// Currently:
 ///      "plato" tells the user to provide input and exits
 ///      "plato --help" displays all the known commands and exits
 ///      "plato input.i" will try to run plato on the given input
-void handle_input(const std::vector<std::string>& aArguments);
+/// @return an enum representing an error code.
+auto handle_input(const std::vector<std::string>& aArguments) -> ExitStatus;
 
 namespace detail
 {
 
 ///@brief Run plato on the given input deck @a aInputFile
 ///@pre @a aInputFile exists on disk, Kokkos has been initialized
-void run_plato(const std::filesystem::path& aInputFile);
+/// @return an enum representing an error code.
+auto run_plato(const std::filesystem::path& aInputFile) -> ExitStatus;
 
 ///@brief Helper function to print an error message telling the user to provide an input file or request --help
 void print_command_line_error_message();

@@ -12,6 +12,7 @@
 #include "plato/documentation/HelpDocumentationRegistration.hpp"
 #include "plato/input_validation/ValidatedInput.hpp"
 #include "plato/main/library/Executor.hpp"
+#include "plato/main/library/ExitStatus.hpp"
 #include "plato/main/library/Splash.hpp"
 #include "plato/process_manager/library/ProcessManagerData.hpp"
 #include "plato/process_manager/library/ProcessManagerFactory.hpp"
@@ -27,7 +28,7 @@ namespace
 constexpr auto kHelpKey = std::string_view{"--help"};
 }  // namespace
 
-void handle_input(const std::vector<std::string>& aArguments)
+auto handle_input(const std::vector<std::string>& aArguments) -> ExitStatus
 {
     [[maybe_unused]] const auto tInternalLogSink = services::internal_logger_console_sink();
 
@@ -38,23 +39,25 @@ void handle_input(const std::vector<std::string>& aArguments)
     else if (aArguments.empty() || !std::filesystem::exists(aArguments.front()))
     {
         detail::print_command_line_error_message();
+        return ExitStatus::kCommandLineInputError;
     }
     else
     {
-        detail::run_plato(aArguments.front());
+        return detail::run_plato(aArguments.front());
     }
+    return ExitStatus::kExecutionSuccessful;
 }
 
 namespace detail
 {
 
-void run_plato(const std::filesystem::path& aInputFile)
+auto run_plato(const std::filesystem::path& aInputFile) -> ExitStatus
 {
     const auto tValidatedInput = input_validation::parse_and_validate_file(aInputFile);
     if (tValidatedInput.hasError())
     {
         services::system_logger().logError(tValidatedInput.error());
-        return;
+        return ExitStatus::kInvalidInput;
     }
 
     plato::utilities::execute_on_root(boost::mpi::communicator{}, []() { print_splash_screen(std::cout); });
@@ -76,7 +79,9 @@ void run_plato(const std::filesystem::path& aInputFile)
     {
         services::system_logger().logError("Plato encountered an exception, exiting.");
         services::system_logger().logError(tError.what());
+        return ExitStatus::kRuntimeError;
     }
+    return ExitStatus::kExecutionSuccessful;
 }
 
 void print_command_line_error_message()

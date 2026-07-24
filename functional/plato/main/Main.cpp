@@ -5,15 +5,17 @@
 #include "plato/main/library/Startup.hpp"
 #include "plato/utilities/ArgcArgvToVector.hpp"
 
-int main(int argc, char** argv)
+// GCOVR_EXCL_START
+auto main(int argc, char** argv) -> int
 {
     auto tEnvironment = boost::mpi::environment{argc, argv, boost::mpi::threading::level::funneled};
     Kokkos::initialize(argc, argv);
 
     std::vector<std::string> tArguments = plato::utilities::argc_argv_to_std_vector(argc, argv);
     plato::main::library::startup();
-    plato::main::library::handle_input(tArguments);
+    const auto tExitStatus = static_cast<int>(plato::main::library::handle_input(tArguments));
 
     Kokkos::finalize();
-    return 0;
+    return tExitStatus;
 }
+// GCOVR_EXCL_STOP
