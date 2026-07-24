@@ -34,6 +34,9 @@ namespace plato::integration_tests::utilities
 {
 namespace
 {
+constexpr auto kRuntimeThrowCriterionName = std::string_view{"runtime_throw"};
+constexpr auto kDefaultRuntimeThrowFunctionName = std::string_view{"plato_create_runtime_throw_criterion"};
+
 /// The test mass app gets installed to the lib directory, not the plugin directory since
 /// we don't want it to be used as an actual app. This gets the lib directory so we can find it.
 [[nodiscard]] auto lib_directory_from_plugin_directory() -> std::optional<std::filesystem::path>
@@ -89,12 +92,17 @@ void write_mass_app_config(const std::string_view& aAppName,
                                          .mFunctionName = "plato_create_mass_properties_vector_criterion",
                                          .mVectorComponents = std::map<std::size_t, std::string>{
                                              {0U, "mass"}, {1U, "cg_x"}, {2U, "cg_y"}, {3U, "cg_z"}}};
+    const auto tRuntimeThrowCriterion =
+        services::CriterionConfiguration{.mName = std::string{kRuntimeThrowCriterionName},
+                                         .mIsParallelized = false,
+                                         .mIsScalar = true,
+                                         .mFunctionName = std::string{kDefaultRuntimeThrowFunctionName}};
 
     auto tAppConfiguration = services::AppConfiguration{
         .mName = std::string{aAppName},
         .mLibraryFileName = tMassLibPath.string(),
         .mCriteria = {tCriterionSerialConfiguration, tCriterionParallelConfiguration, tCriterionVectorConfiguration,
-                      tCriterionVectorWithComponentsConfiguration}};
+                      tCriterionVectorWithComponentsConfiguration, tRuntimeThrowCriterion}};
     aConfigurationTempDirectory.writeFile(services::AppConfigurationWriter{std::move(tAppConfiguration)},
                                           "test-mass-app.config");
     aCommunicator.barrier();

@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "plato/main/library/CommandLineInputHandler.hpp"
+#include "plato/main/library/ExitStatus.hpp"
 #include "plato/services/ExternalLoggerFileSink.hpp"
 #include "plato/services/InternalLoggerConsoleSink.hpp"
 #include "plato/test_utilities/CoutCerrPrintTestFixture.hpp"
@@ -39,19 +40,22 @@ class CommandLineInputHandlerCoutFixture : public plato::test_utilities::CoutCer
 
 TEST_F(CommandLineInputHandlerCoutFixture, HandleInputEmpty)
 {
-    handle_input(kPlatoArgumentsEmpty);
+    const auto tExitStatus = handle_input(kPlatoArgumentsEmpty);
+    EXPECT_EQ(tExitStatus, ExitStatus::kCommandLineInputError);
     checkRankZeroCoutStringStreamStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message nothing sent to plato."));
 }
 
 TEST_F(CommandLineInputHandlerCoutFixture, HandleInputJunk)
 {
-    handle_input(kPlatoArgumentsJunk);
+    const auto tExitStatus = handle_input(kPlatoArgumentsJunk);
+    EXPECT_EQ(tExitStatus, ExitStatus::kCommandLineInputError);
     checkRankZeroCoutStringStreamStreamForPattern(kAbortingKeys, TEST_CONTEXT("Error message junk was sent to plato."));
 }
 
 TEST_F(CommandLineInputHandlerCoutFixture, HandleInputHelp)
 {
-    handle_input(kPlatoArgumentsHelp);
+    const auto tExitStatus = handle_input(kPlatoArgumentsHelp);
+    EXPECT_EQ(tExitStatus, ExitStatus::kExecutionSuccessful);
     checkRankZeroCoutStringStreamStreamForPattern(kKnownInputKeys, TEST_CONTEXT("Help message requested from plato."));
 }
 
@@ -62,7 +66,8 @@ TEST(CommandLineInputHandler, RunPlatoEmptyFile)
     const auto tLogSinkStream = boost::make_shared<std::stringstream>();
     [[maybe_unused]] const auto tLoggerSink = services::internal_logger_console_sink(tLogSinkStream);
 
-    detail::run_plato(tInput);
+    const auto tExitStatus = detail::run_plato(tInput);
+    EXPECT_EQ(tExitStatus, ExitStatus::kInvalidInput);
 
     for (const auto& tCheckKey : kCouldNotValidateKeys)
     {
@@ -79,8 +84,9 @@ TEST_F(CommandLineInputHandlerCoutFixture, HandleInputEmptyFile)
     auto tOutfile = std::ofstream{tInput};
     const auto tArguments = std::vector<std::string>{tInput};
 
-    handle_input(tArguments);
+    const auto tExitStatus = handle_input(tArguments);
 
+    EXPECT_EQ(tExitStatus, ExitStatus::kInvalidInput);
     checkRankZeroCoutStringStreamStreamForPattern(kCouldNotValidateKeys,
                                                   TEST_CONTEXT("Plato couldn't validate empty deck via handle_input."));
 
@@ -109,7 +115,8 @@ TEST_F(CommandLineInputHandlerCoutFixture, DetailPrintKnownInputs)
 
 TEST_F(CommandLineInputHandlerCoutFixture, HelpDoesNotGenerateLogDirectory)
 {
-    handle_input(kPlatoArgumentsHelp);
+    const auto tExitStatus = handle_input(kPlatoArgumentsHelp);
+    EXPECT_EQ(tExitStatus, ExitStatus::kExecutionSuccessful);
     EXPECT_FALSE(std::filesystem::exists(services::logging_directory_path()));
 }
 
