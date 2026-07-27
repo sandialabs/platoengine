@@ -18,8 +18,9 @@ namespace plato::third_party_integration::krino
 {
 auto get_krino_sensitivities(const BackgroundMesh& aBackgroundMesh) -> std::vector<::krino::LevelSetShapeSensitivity>
 {
-    return ::krino::get_levelset_shape_sensitivities(aBackgroundMesh.mKrinoMesh->bulk_data(),
-                                                     aBackgroundMesh.mLevelSetFields, kDoNormalSensitivities);
+    constexpr auto tComputeClosestPointSensitivities = false;
+    return ::krino::get_levelset_shape_sensitivities(
+        aBackgroundMesh.mKrinoMesh->bulk_data(), aBackgroundMesh.mLevelSetFields, tComputeClosestPointSensitivities);
 }
 
 auto coordinate_level_set_sensitivity(const ::krino::LevelSetShapeSensitivity& aLevelSetSensitivity,

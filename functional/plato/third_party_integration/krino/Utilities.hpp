@@ -18,8 +18,6 @@
 
 namespace plato::third_party_integration::krino
 {
-static constexpr bool kDoNormalSensitivities = false;  // TODO: remove this and come up with a better solution
-
 struct BackgroundMesh;
 
 /// @brief Describes whether or not to include a void phase block in the generated cut mesh.

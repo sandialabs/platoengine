@@ -80,19 +80,7 @@ void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta,
     const ::krino::FieldRef tCoordsField = aMeta.coordinate_field();
 
     tCdfemSupport.register_cdfem_snap_displacements_field();
-    if (kDoNormalSensitivities)
-    {
-        for (const auto& tLevelSetField : aLevelSetFields)
-        {
-            const ::krino::FieldRef tNodalLevelSetGradient =
-                ::krino::register_nodal_gradient_for_scalar_field(aMeta, tLevelSetField.isovar);
-            tCdfemSupport.add_interpolation_field(tNodalLevelSetGradient);
-        }
-    }
-    else
-    {
-        ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta, aLevelSetFields);
-    }
+    ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta, aLevelSetFields);
 
     tCdfemSupport.set_coords_field(tCoordsField);
     tCdfemSupport.add_edge_interpolation_field(tCoordsField);
@@ -110,16 +98,6 @@ void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta,
     std::ranges::sort(tIds);
 
     return tIds;
-}
-
-void update_nodal_gradient_for_normal_sensitivities(const BackgroundMesh& aBackgroundMesh,
-                                                    const ::krino::CDFEM_Support& aCdfemSupport)
-{
-    for (const auto& tLsField : aBackgroundMesh.mLevelSetFields)
-    {
-        ::krino::update_nodal_gradient(aBackgroundMesh.mKrinoMesh->bulk_data(), aCdfemSupport.get_coords_field(),
-                                       tLsField.isovar);
-    }
 }
 
 auto use_snapping(const SnappingParameters& aSnappingParameters) -> bool
@@ -217,13 +195,8 @@ void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aS
         tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength);
     }
 
-    if (kDoNormalSensitivities)
-    {
-        update_nodal_gradient_for_normal_sensitivities(aBackgroundMesh, tCdfemSupport);
-    }
-
     const auto& tLevelSetFields =
-        (use_snapping(aSnappingParameters) && !kDoNormalSensitivities)
+        use_snapping(aSnappingParameters)
             ? ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.mLevelSetFields)
             : aBackgroundMesh.mLevelSetFields;
 
