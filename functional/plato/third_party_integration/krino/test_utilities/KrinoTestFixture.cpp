@@ -4,7 +4,9 @@
 
 #include <boost/mpi/communicator.hpp>
 #include <cassert>
+#include <set>
 #include <stk_mesh/base/Types.hpp>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -50,9 +52,8 @@ void test_sensitivity_map(const SensitivityMap& aResult,
 void four_tri_test_on_background_node_ids(const plato::test_utilities::TestContext& aTestContext)
 {
     ASSERT_TRUE(kFourTriTwoBlockMeshFilePath.has_value());
-    const auto tBackgroundMesh =
-        populate_level_set_field_from_primitives(LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-                                                 initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value()));
+    const auto tBackgroundMesh = background_mesh_from_primitives(
+        kFourTriTwoBlockMeshFilePath.value(), LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
 
     const auto tResult = background_node_ids(tBackgroundMesh);
@@ -60,17 +61,19 @@ void four_tri_test_on_background_node_ids(const plato::test_utilities::TestConte
     EXPECT_EQ(tGold, tResult) << aTestContext;
 }
 
-auto populate_level_set_field_from_vector(BackgroundMesh&& aBackgroundMesh,
-                                          const std::vector<double>& aVector) -> BackgroundMesh
+auto background_mesh_from_vector(const std::filesystem::path& aFileName,
+                                 const std::vector<double>& aVector,
+                                 const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
 {
+    auto tBackgroundMesh = background_mesh_with_zero_level_set_field(aFileName, aExcludedBlocks);
     assert(boost::mpi::communicator{}.size() == 1);
-    const auto tNodes = node_entities_in_mesh(aBackgroundMesh);
+    const auto tNodes = node_entities_in_mesh(tBackgroundMesh);
     assert(tNodes.size() == aVector.size());
     for (const auto [tNode, tValue] : utilities::Zip(tNodes, aVector))
     {
-        level_set_value(aBackgroundMesh.mLevelSetFields, tNode) = tValue;
+        level_set_value(tBackgroundMesh.mLevelSetFields, tNode) = tValue;
     }
-    return std::move(aBackgroundMesh);
+    return tBackgroundMesh;
 }
 
 }  // namespace plato::third_party_integration::krino::test_utilities

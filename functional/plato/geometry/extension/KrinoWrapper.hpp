@@ -89,14 +89,13 @@ using LevelSetBounds = utilities::NamedType<std::pair<double, double>, struct Le
 
 namespace detail
 {
-/// @brief Take a krino mesh's bulk data @a aBulkData, its level set fields in @a aLevelSetFields, along with the design
+/// @brief Take a krino mesh's bulk data and level set fields stored in @a aBackgroundMesh, along with the design
 /// domain ids @a aDesignDomainBackgroundNodes and compute the SensitivityMap. The map takes cut mesh surface node ids
 /// and maps them to LevelSetJacobianColumn which is a list of Parent Ids along with their sensitivities. If a parent is
 /// a fixed node and not part of the @a aDesignDomainBackgroundNodes it is not included in the sensitivty map.
 /// @pre The environment for krino must be initialized and set up as follows:
 /// @code{.cpp}
 /// set_stk_communicator_for_krino(...);
-/// initialize_background_mesh(...);
 /// cut_mesh(...);
 /// @endcode
 [[nodiscard]] auto compute_sensitivities(

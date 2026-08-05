@@ -43,18 +43,18 @@ namespace
 {
 namespace tpik = third_party_integration::krino;
 
-void set_level_set_fields(const tpik::BackgroundMesh& aBackgroundMesh,
-                          const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
+void set_level_set_fields_from_analysis_domain_mesh(stk::mesh::BulkData& aBulkData,
+                                                    std::vector<::krino::LS_Field>& aLevelSetFields,
+                                                    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
 {
     for (const analysis::ScalarFieldValue tScalarFieldValue :
          analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
     {
-        const auto tStkEntity = aBackgroundMesh.mKrinoMesh->bulk_data().get_entity(
-            stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
+        const auto tStkEntity = aBulkData.get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
 
         if (tStkEntity != stk::mesh::Entity::InvalidEntity)
         {
-            tpik::level_set_value(aBackgroundMesh.mLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
+            tpik::level_set_value(aLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
         }
     }
 }
@@ -218,8 +218,7 @@ auto make_initial_guess_from_level_set_primitives(const std::filesystem::path& a
                                                   const std::set<std::string>& aFixedBlocks,
                                                   const LevelSetBounds& aBounds) -> std::vector<double>
 {
-    const auto tBackgroundMesh = tpik::populate_level_set_field_from_primitives(
-        aLevelSetPrimitives, tpik::initialize_background_mesh(aFileName, aFixedBlocks));
+    const auto tBackgroundMesh = tpik::background_mesh_from_primitives(aFileName, aLevelSetPrimitives, aFixedBlocks);
     const auto tLevelSetValuesMap = tpik::get_level_set_values(tBackgroundMesh);
     const auto tBackgroundNodeIds = tpik::background_node_ids(tBackgroundMesh);
 
@@ -231,8 +230,9 @@ auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomain
                                                   const tpik::VoidPhase& aVoidPhase,
                                                   const tpik::SnappingParameters aSnappingParameters) -> KrinoWrapper
 {
-    auto tBackgroundMesh = tpik::initialize_background_mesh(aAnalysisDomainMesh.mFileName, aFixedBlocks);
-    set_level_set_fields(tBackgroundMesh, aAnalysisDomainMesh);
+    auto tBackgroundMesh = tpik::background_mesh_with_zero_level_set_field(aAnalysisDomainMesh.mFileName, aFixedBlocks);
+    set_level_set_fields_from_analysis_domain_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(),
+                                                   tBackgroundMesh.mLevelSetFields, aAnalysisDomainMesh);
     return KrinoWrapper{std::move(tBackgroundMesh), aVoidPhase, aSnappingParameters};
 }
 

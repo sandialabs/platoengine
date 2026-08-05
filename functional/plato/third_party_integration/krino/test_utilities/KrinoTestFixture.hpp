@@ -19,14 +19,19 @@ void test_sensitivity_map(const SensitivityMap& aResult,
 /// @brief A test that can be run in serial and in parallel and produces the same result.
 void four_tri_test_on_background_node_ids(const plato::test_utilities::TestContext& aTestContext);
 
-/// @brief Takes a vector of doubles value @a aVector along with a BackgroundMesh @a aBackgroundMesh and sets the level
-/// set field for all background nodes (fixed or design) to the values in the vector in order of GID. Returns the
-/// modified background mesh.
-/// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', followed by
-/// 'initialize_background_mesh' to setup the level set fields in the krino mesh.
+/// @brief sets up the appropriate level set fields and activates the krino mesh from a mesh on disk at @a aFileName.
+/// Returns a BackgroundMesh containing the mesh meta data and level-set fields with values set from values in
+/// @a aVector.
+///
+/// Excludes blocks with names given in @a aExcludedBlocks. Typically, @a aExcludedBlocks will be the fixed (non-design)
+/// blocks.
+///
+/// @pre The environment for krino was initialized.
+/// @pre @a aFileName is a valid exodus mesh file on disk.
 /// @pre Size of `MPI_COMM_WORLD` must be 1.
-[[nodiscard]] auto populate_level_set_field_from_vector(BackgroundMesh&& aBackgroundMesh,
-                                                        const std::vector<double>& aVector) -> BackgroundMesh;
+[[nodiscard]] auto background_mesh_from_vector(const std::filesystem::path& aFileName,
+                                               const std::vector<double>& aVector,
+                                               const std::set<std::string>& aExcludedBlocks = {}) -> BackgroundMesh;
 
 class KrinoTestFixture : virtual public ::testing::Test
 {

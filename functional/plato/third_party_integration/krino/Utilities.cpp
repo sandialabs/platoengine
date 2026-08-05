@@ -4,11 +4,10 @@
 #include <Akri_CDFEM_Support.hpp>  //CDFEM_Support
 #include <Akri_CDMesh.hpp>         //sierraTimer
 #include <Akri_CreateInterfaceGeometry.hpp>
-#include <Akri_LevelSet.hpp>        //LevelSet
-#include <Akri_LevelSetPolicy.hpp>  //LSPerInterfacePolicy, setup_levelsets_on_blocks_with_void_phase_for_any_negative_levelset
+#include <Akri_LevelSet.hpp>  //LevelSet
 #include <Akri_LevelSetShapeSensitivities.hpp>
-#include <Akri_MeshHelpers.hpp>           //activate_all_entities
-#include <Akri_NodalGradient.hpp>         // get_nodal_gradient_field_name
+#include <Akri_MeshHelpers.hpp>  //activate_all_entities
+#include <Akri_MeshInterface.hpp>
 #include <Akri_NodalSurfaceDistance.hpp>  //compute_nodal_surface_distance
 #include <Akri_OutputUtils.hpp>
 #include <Akri_Phase_Support.hpp>
@@ -18,7 +17,6 @@
 #include <filesystem>
 #include <iterator>
 #include <memory>
-#include <set>
 #include <stk_io/DatabasePurpose.hpp>
 #include <stk_io/StkMeshIoBroker.hpp>  //get_selected_entities
 #include <stk_mesh/base/Entity.hpp>
@@ -35,8 +33,6 @@
 #include <vector>
 
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
-#include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
-#include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/utilities/ContainerHelpers.hpp"
 #include "plato/utilities/ReduceUtilities.hpp"
@@ -47,11 +43,9 @@ namespace plato::third_party_integration::krino
 namespace
 {
 constexpr auto kSortByGlobalId = true;
-constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kLevelSetName = std::string_view{"LS"};
 constexpr auto kVoidPhaseName = std::string_view{"void"};
 const auto kLevelSetFields = std::vector<std::string>{"LS", "LS_COPYFORSNAPPING"};
-constexpr auto kNumberOfLevelSets = 1U;
 
 [[nodiscard]] auto include_void_region_part(const VoidPhase aVoidPhase, const stk::mesh::Part* aPart) -> bool
 {
@@ -71,21 +65,6 @@ constexpr auto kNumberOfLevelSets = 1U;
         tOutputCondition);
 
     return aActivePart & stk::mesh::selectUnion(tOutputParts);
-}
-
-void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta,
-                                               const std::vector<::krino::LS_Field>& aLevelSetFields)
-{
-    ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aMeta);
-    const ::krino::FieldRef tCoordsField = aMeta.coordinate_field();
-
-    tCdfemSupport.register_cdfem_snap_displacements_field();
-    ::krino::create_levelset_copies_and_set_to_use_as_snap_fields(aMeta, aLevelSetFields);
-
-    tCdfemSupport.set_coords_field(tCoordsField);
-    tCdfemSupport.add_edge_interpolation_field(tCoordsField);
-    tCdfemSupport.register_parent_node_ids_field();
-    tCdfemSupport.finalize_fields();
 }
 
 [[nodiscard]] auto get_ids_from_entities(const std::vector<stk::mesh::Entity>& aEntities,
@@ -114,38 +93,6 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
 {
     return {stk::EnvData::instance().m_parallelComm, boost::mpi::comm_duplicate};
-}
-
-auto initialize_background_mesh(const std::filesystem::path& aFilename,
-                                const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
-{
-    assert(std::filesystem::exists(aFilename));
-
-    auto tMeshFromFile = std::make_unique<MeshFromFileWithoutFields>(aFilename.string(), stk::EnvData::parallel_comm(),
-                                                                     std::string{kDecompositionMethod});
-
-    auto tLevelSetFields =
-        ::krino::LSPerInterfacePolicy::setup_levelsets_on_blocks_with_void_phase_for_any_negative_levelset(
-            tMeshFromFile->meta_data(), kNumberOfLevelSets, all_blocks_except(*tMeshFromFile, aExcludedBlocks));
-
-    setup_fields_for_conforming_decomposition(tMeshFromFile->meta_data(), tLevelSetFields);
-    tMeshFromFile->populate_mesh();
-    ::krino::activate_all_entities(tMeshFromFile->bulk_data(),
-                                   ::krino::AuxMetaData::get(tMeshFromFile->meta_data()).active_part());
-    return BackgroundMesh{.mKrinoMesh = std::move(tMeshFromFile), .mLevelSetFields = std::move(tLevelSetFields)};
-}
-
-auto populate_level_set_field_from_primitives(const LevelSetPrimitives& aLevelSetPrimitives,
-                                              BackgroundMesh&& aBackgroundMesh) -> BackgroundMesh
-{
-    auto tInitializationSurfaces = make_krino_composite_surface();
-    append_spheres(tInitializationSurfaces, aLevelSetPrimitives.mSpheres);
-    append_planes(tInitializationSurfaces, aLevelSetPrimitives.mPlanes);
-
-    ::krino::compute_nodal_surface_distance(aBackgroundMesh.mKrinoMesh->bulk_data(),
-                                            aBackgroundMesh.mKrinoMesh->bulk_data().mesh_meta_data().coordinate_field(),
-                                            aBackgroundMesh.mLevelSetFields.front().isovar, tInitializationSurfaces);
-    return std::move(aBackgroundMesh);
 }
 
 auto background_node_ids(const BackgroundMesh& aBackgroundMesh) -> std::vector<stk::mesh::EntityId>
@@ -247,28 +194,6 @@ auto create_output_selector(stk::mesh::BulkData& aBulkData, const VoidPhase aVoi
     ::krino::fix_node_ownership_to_assure_selected_owned_element(aBulkData, tOutputSelector);
 
     return tOutputSelector;
-}
-
-auto all_block_parts(const ::krino::MeshInterface& aKrinoMesh) -> stk::mesh::PartVector
-{
-    auto tBlockParts = stk::mesh::PartVector{};
-    std::ranges::copy_if(aKrinoMesh.meta_data().get_parts(), std::back_inserter(tBlockParts),
-                         [](const auto* aPart)
-                         {
-                             return aPart->primary_entity_rank() == stk::topology::ELEMENT_RANK &&
-                                    aPart->subsets().empty() && aPart->topology() != stk::topology::INVALID_TOPOLOGY &&
-                                    !stk::mesh::is_auto_declared_part(*aPart);
-                         });
-    return tBlockParts;
-}
-
-auto all_blocks_except(const ::krino::MeshInterface& aKrinoMesh,
-                       const std::set<std::string>& aExcludedBlocks) -> stk::mesh::PartVector
-{
-    auto tElementBlockParts = all_block_parts(aKrinoMesh);
-    std::erase_if(tElementBlockParts,
-                  [&aExcludedBlocks](const auto& aPart) { return aExcludedBlocks.contains(aPart->name()); });
-    return tElementBlockParts;
 }
 
 auto void_phase_name() -> std::string_view { return kVoidPhaseName; }

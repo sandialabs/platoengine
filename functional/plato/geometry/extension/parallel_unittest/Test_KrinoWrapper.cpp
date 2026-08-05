@@ -15,6 +15,7 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/test_utilities/TestContext.hpp"
+#include "plato/third_party_integration/krino/BackgroundMesh.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
@@ -160,9 +161,8 @@ TEST_F(KrinoTestFixture, RowVectorAdjointJacobianProduct)
 
 TEST_F(KrinoTestFixture, CutMeshNodeIdMultiplicity)
 {
-    const auto tBackgroundMesh = tpik::populate_level_set_field_from_primitives(
-        tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}},
-        tpik::initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value()));
+    const auto tBackgroundMesh = tpik::background_mesh_from_primitives(
+        kFourTriTwoBlockMeshFilePath.value(), tpik::LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}});
 
     tpik::cut_mesh(tBackgroundMesh, tpik::SnappingParameters{});
     const auto tDesignDomain = tpik::background_node_ids(tBackgroundMesh);
