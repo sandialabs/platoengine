@@ -20,6 +20,8 @@
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/BackgroundMeshUtilities.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
@@ -68,7 +70,7 @@ KrinoWrapper::KrinoWrapper(third_party_integration::krino::BackgroundMesh aBackg
 
 void KrinoWrapper::writeCutMesh(const std::filesystem::path& aFileName) const
 {
-    tpik::write_mesh(mBackgroundMesh.bulkData(), aFileName, mSelector);
+    tpik::write_cut_mesh(mBackgroundMesh.bulkData(), aFileName, mSelector);
 }
 
 auto KrinoWrapper::sensitivities() const -> const tpik::SensitivityMap& { return mSensitivityMap; }

@@ -9,51 +9,17 @@
 #include <Akri_MeshFromFile.hpp>             //MeshInterface
 #include <Akri_MeshHelpers.hpp>              //field_data
 #include <boost/mpi/communicator.hpp>
-#include <cstdint>
-#include <filesystem>
 #include <stk_mesh/base/Types.hpp>
-
-#include "plato/third_party_integration/krino/SnappingParameters.hpp"
 
 namespace plato::third_party_integration::krino
 {
 struct BackgroundMesh;
-
-/// @brief Describes whether or not to include a void phase block in the generated cut mesh.
-enum struct VoidPhase : std::uint8_t
-{
-    kIncludeInMesh,
-    kExcludeFromMesh
-};
 
 /// @brief Initialization needed for krino to run correctly. This should only be called once in an executable.
 void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicator);
 
 /// @brief Create a comm duplicate of the communicator that Krino has
 [[nodiscard]] auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator;
-
-/// @brief Takes a BackgroundMesh @a aBackgroundMesh and determines the background node ids in the cut mesh.
-/// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', the level set fields in
-/// the krino mesh were set up by constructing a background mesh, the level-set field values were set appropriately, and
-/// 'cut_mesh' was called.
-[[nodiscard]] auto background_node_ids(const BackgroundMesh& aBackgroundMesh) -> std::vector<stk::mesh::EntityId>;
-
-/// @brief Takes a KrinoMesh @a aKrinoMesh and a VoidPhase specification @a aVoidPhase and determines the nodes in the
-/// cut mesh. This includes the new nodes on the cut mesh surface as well as the background nodes. Background nodes that
-/// would be eliminated from a cut_mesh operation are NOT included.
-/// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', the level set fields in
-/// the krino mesh were set up by constructing a background mesh, the level-set field values were set appropriately, and
-/// 'cut_mesh' was called.
-[[nodiscard]] auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh,
-                                     VoidPhase aVoidPhase) -> std::vector<stk::mesh::EntityId>;
-
-/// @brief Take a background mesh @a aBackgroundMesh and perform the cutting of the mesh and creation of child nodes.
-/// Each child node generated in the cut operation have only two parents and those parents are background nodes. The
-/// reverse procedure for cut_mesh is:
-///    ::krino::CDMesh::reset_mesh_to_original_undecomposed_state(aBackgroundMesh.bulkData());
-/// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', the level set fields in
-/// the krino mesh were set up by constructing a background mesh, and the level-set field values were set appropriately
-void cut_mesh(const BackgroundMesh& aBackgroundMesh, SnappingParameters aSnappingParameters);
 
 /// @brief Take a level set field vector @a aLevelSetFields and a node @a aNode and return the data stored in the mesh
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', and the level set fields
@@ -65,31 +31,15 @@ template <typename LevelSetFieldVector>
 /// @brief Simple accessor to grab the name of the level set field specified in a mesh.
 [[nodiscard]] auto get_level_set_field_name() -> std::string;
 
-/// @brief Given a background mesh @a aBackgroundMesh transform the values of its level set field into an unordered
-/// map of global id to double.
-[[nodiscard]] auto get_level_set_values(const BackgroundMesh& aBackgroundMesh)
-    -> std::unordered_map<stk::mesh::EntityId, double>;
-
-/// @brief Take a background mesh @a aBackgroundMesh and return the background nodes after a cut operation.
-/// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', the level set fields in
-/// the krino mesh were set up by constructing a background mesh, and the level-set field values were set appropriately
-[[nodiscard]] auto node_entities_in_mesh(const BackgroundMesh& aBackgroundMesh) -> stk::mesh::EntityVector;
-
-/// @brief Given a modifiable bulk data @a aBulkData and specified void phase @a aVoidPhase, create a valid
-/// stk::mesh::Selector for the cut mesh. Also apply the Krino fixes for errors in parallel writing a cut mesh.
-[[nodiscard]] auto create_output_selector(stk::mesh::BulkData& aBulkData, VoidPhase aVoidPhase) -> stk::mesh::Selector;
-
 /// @brief Returns the string used to represent the void phase in krino.
 [[nodiscard]] auto void_phase_name() -> std::string_view;
 
-/// @brief Take a krino mesh's bulk data @a aBulkData and write it to the file specified in @a aOutputFileName. The void
-/// phase @a aVoidPhase specifies whether to include the void region or not when writing to disk.
-/// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', the level set fields in
-/// the krino mesh were set up by constructing a background mesh, the level-set field values were set appropriately, and
-/// 'cut_mesh' was called.
-void write_mesh(const stk::mesh::BulkData& aBulkData,
-                const std::filesystem::path& aOutputFileName,
-                const stk::mesh::Selector& aSelector);
+namespace detail
+{
+/// @brief Gets IDs for the entities @a aEntities from entity keys in @a aBulkData.
+[[nodiscard]] auto get_ids_from_entities(const std::vector<stk::mesh::Entity>& aEntities,
+                                         const stk::mesh::BulkData& aBulkData) -> std::vector<stk::mesh::EntityId>;
+}  // namespace detail
 
 template <typename LevelSetFieldVector>
 [[nodiscard]] auto level_set_value(LevelSetFieldVector&& aLevelSetFields,
@@ -98,7 +48,6 @@ template <typename LevelSetFieldVector>
     assert(!aLevelSetFields.empty());
     return *::krino::field_data<double>(std::forward<LevelSetFieldVector>(aLevelSetFields).front().isovar, aNode);
 }
-
 }  // namespace plato::third_party_integration::krino
 
 #endif

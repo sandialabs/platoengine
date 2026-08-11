@@ -13,7 +13,9 @@
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/BackgroundMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/BlockUtilities.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
@@ -82,7 +84,7 @@ TEST_F(ParallelKrinoFixture, InitializeKrino)
         background_mesh_from_primitives(kTetBoxFilePath.value(), LevelSetPrimitives{{}, {kUnitSphere}});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
     const auto tSelector = create_output_selector(tBackgroundMesh.bulkData(), VoidPhase::kIncludeInMesh);
-    write_mesh(tBackgroundMesh.bulkData(), kWriteMeshName, tSelector);
+    write_cut_mesh(tBackgroundMesh.bulkData(), kWriteMeshName, tSelector);
     remove_file_on_rank_zero();
 }
 
@@ -118,7 +120,7 @@ void test_cut_mesh_node_ids_parallel_consistent(::krino::MeshInterface& aKrinoMe
     const auto tCutMeshNodeIds = cut_mesh_node_ids(aKrinoMesh, aVoidPhase);
     check_vector_same_on_all_ranks(tCutMeshNodeIds, aTestContext);
     const auto tSelector = create_output_selector(aKrinoMesh.bulk_data(), aVoidPhase);
-    write_mesh(aKrinoMesh.bulk_data(), kWriteMeshName, tSelector);
+    write_cut_mesh(aKrinoMesh.bulk_data(), kWriteMeshName, tSelector);
     read_mesh_check_ids(tCutMeshNodeIds);
     remove_file_on_rank_zero();
 }

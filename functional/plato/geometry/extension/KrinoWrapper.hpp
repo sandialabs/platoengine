@@ -8,10 +8,10 @@
 #include <vector>
 
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
-#include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/utilities/MultiVectorView.hpp"
 #include "plato/utilities/NamedType.hpp"
 

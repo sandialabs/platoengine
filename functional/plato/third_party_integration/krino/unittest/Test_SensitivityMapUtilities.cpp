@@ -8,6 +8,7 @@
 #include "plato/third_party_integration/common/Vector3.hpp"
 #include "plato/third_party_integration/common/test_utilities/CoordinateTestUtilities.hpp"
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/SensitivityMapUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"

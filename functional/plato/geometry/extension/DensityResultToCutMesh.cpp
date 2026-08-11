@@ -14,6 +14,7 @@
 #include "plato/mesh/EntityCounts.hpp"
 #include "plato/mesh/FixedBlockUtilities.hpp"
 #include "plato/mesh/MeshQuantities.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 

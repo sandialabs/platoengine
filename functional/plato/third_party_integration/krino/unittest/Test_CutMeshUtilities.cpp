@@ -5,15 +5,15 @@
 #include <filesystem>
 #include <iterator>
 #include <map>
-#include <set>
 #include <stk_mesh/base/Types.hpp>
-#include <string>
 #include <string_view>
 #include <vector>
 
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/BackgroundMeshUtilities.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/SnappingParameters.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
@@ -25,21 +25,22 @@
 
 namespace plato::third_party_integration::krino::unittest
 {
-
 namespace
 {
 using krino::test_utilities::KrinoTestFixture;
-constexpr auto kMeshName = std::string_view{"simple_mesh.exo"};
+
 constexpr auto kWriteMeshName = std::string_view{"levelset_mesh.exo"};
+constexpr auto kMeshName = std::string_view{"simple_mesh.exo"};
+
+const auto kGoldCutMeshWithVoidNodes = std::map<std::size_t, double>{
+    {1, -1.0}, {2, -1.0}, {3, -1.0}, {4, -1.0}, {5, 1.0},  {6, 1.0},  {7, 1.0},  {8, 1.0}, {9, 0.0},
+    {10, 0.0}, {11, 0.0}, {12, 0.0}, {13, 0.0}, {14, 0.0}, {15, 0.0}, {16, 0.0}, {17, 0.0}};
+
 const auto kOneTriMeshFilePath = utilities::data_file_path("one_tri.cdf");
 const auto kFourTriTwoBlockMeshFilePath = utilities::data_file_path("four_tri_two_block.cdf");
 
 constexpr double kOneQuarter{0.25};
 constexpr double kThreeQuarters{0.75};
-
-const auto kGoldCutMeshWithVoidNodes = std::map<std::size_t, double>{
-    {1, -1.0}, {2, -1.0}, {3, -1.0}, {4, -1.0}, {5, 1.0},  {6, 1.0},  {7, 1.0},  {8, 1.0}, {9, 0.0},
-    {10, 0.0}, {11, 0.0}, {12, 0.0}, {13, 0.0}, {14, 0.0}, {15, 0.0}, {16, 0.0}, {17, 0.0}};
 
 void create_mesh()
 {
@@ -80,7 +81,7 @@ void run_cut_and_write_test(const VoidPhase aVoidPhase,
     make_test_level_set_field(tBackgroundMesh);
     cut_mesh(tBackgroundMesh, SnappingParameters{});
     const auto tSelector = create_output_selector(tBackgroundMesh.bulkData(), aVoidPhase);
-    write_mesh(tBackgroundMesh.bulkData(), kWriteMeshName, tSelector);
+    write_cut_mesh(tBackgroundMesh.bulkData(), kWriteMeshName, tSelector);
 
     const auto tCutLevelSetField = read_coordinates_and_level_sets(kWriteMeshName);
     EXPECT_EQ(tCutLevelSetField, aGold) << aTestContext;
@@ -100,38 +101,6 @@ TEST_F(KrinoTestFixture, CutMeshExcludeVoid)
     tGold.erase(tGold.find(1), std::next(tGold.find(4)));
 
     run_cut_and_write_test(VoidPhase::kExcludeFromMesh, tGold, TEST_CONTEXT("Void not Included"));
-}
-
-TEST_F(KrinoTestFixture, BackgroundNodeIds)
-{
-    const auto tBackgroundMesh = test_utilities::background_mesh_from_vector(
-        kOneTriMeshFilePath.value(), {kThreeQuarters, -kOneQuarter, -kOneQuarter});
-    cut_mesh(tBackgroundMesh, SnappingParameters{});
-
-    const auto tResult = background_node_ids(tBackgroundMesh);
-    const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4};
-    EXPECT_EQ(tGold, tResult);
-}
-
-TEST_F(KrinoTestFixture, BackgroundNodeIdsWithExistingLevelSetField)
-{
-    // This test checks that a mesh with a field named `level_set` defined on it is read correctly.
-    const auto tMeshFilePath = utilities::data_file_path("mesh_with_field.cdf");
-    ASSERT_TRUE(tMeshFilePath);
-    ASSERT_TRUE(std::filesystem::exists(tMeshFilePath.value()));
-
-    const auto tFixedBlocks = std::set<std::string>{"fixed"};
-    constexpr auto tDesignDomainSize = 44U;
-    const auto tBackgroundMesh = test_utilities::background_mesh_from_vector(
-        tMeshFilePath.value(), std::vector(tDesignDomainSize, 1.0), tFixedBlocks);
-
-    const auto tResult = background_node_ids(tBackgroundMesh);
-    EXPECT_EQ(tResult.size(), tDesignDomainSize);
-}
-
-TEST_F(KrinoTestFixture, BackgroundNodeIdsFourTri)
-{
-    test_utilities::four_tri_test_on_background_node_ids(TEST_CONTEXT("Four tri background nodes in serial."));
 }
 
 TEST_F(KrinoTestFixture, CutMeshNodeIds)
@@ -169,19 +138,4 @@ TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTri)
     }
 }
 
-TEST_F(KrinoTestFixture, GetLevelSetValuesMakeFromVector)
-{
-    create_mesh();
-
-    const auto tVector = std::vector<double>{1., 2, 3, 4, 5, 6, 7, 8};
-    const auto tBackgroundMesh = test_utilities::background_mesh_from_vector(kMeshName, tVector);
-
-    const auto tLevelSetValues = get_level_set_values(tBackgroundMesh);
-    for (const auto& [tId, tValue] : tLevelSetValues)
-    {
-        EXPECT_EQ(tValue, tId);
-    }
-
-    std::filesystem::remove(kMeshName);
-}
 }  // namespace plato::third_party_integration::krino::unittest

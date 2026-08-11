@@ -10,6 +10,8 @@
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
+#include "plato/third_party_integration/krino/BackgroundMeshUtilities.hpp"
+#include "plato/third_party_integration/krino/CutMeshUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/Utilities.hpp"
 #include "plato/third_party_integration/krino/test_utilities/KrinoTestFixture.hpp"
@@ -30,7 +32,7 @@ TEST_F(KrinoTestFixture, BackgroundMesh_FieldNames)
     const auto tBackgroundMesh = detail::initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
 
     const auto tSelector = create_output_selector(tBackgroundMesh.bulkData(), VoidPhase::kIncludeInMesh);
-    write_mesh(tBackgroundMesh.bulkData(), kWriteMeshName, tSelector);
+    write_cut_mesh(tBackgroundMesh.bulkData(), kWriteMeshName, tSelector);
 
     const auto tFieldNames = stk_io::nodal_field_names(kWriteMeshName);
 
