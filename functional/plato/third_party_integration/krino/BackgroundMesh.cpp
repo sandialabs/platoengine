@@ -65,6 +65,20 @@ auto activate_krino_fields(const std::unique_ptr<::krino::MeshInterface>& aMeshF
 }
 }  // namespace
 
+BackgroundMesh::BackgroundMesh(std::unique_ptr<::krino::MeshInterface> aKrinoMesh,
+                               std::vector<::krino::LS_Field> aLevelSetFields)
+    : mKrinoMesh(std::move(aKrinoMesh)), mLevelSetFields(std::move(aLevelSetFields))
+{
+}
+
+auto BackgroundMesh::krinoMesh() const -> ::krino::MeshInterface& { return *mKrinoMesh; }
+
+auto BackgroundMesh::bulkData() const -> stk::mesh::BulkData& { return mKrinoMesh->bulk_data(); }
+
+auto BackgroundMesh::metaData() const -> stk::mesh::MetaData& { return mKrinoMesh->meta_data(); }
+
+auto BackgroundMesh::levelSetFields() const -> const std::vector<::krino::LS_Field>& { return mLevelSetFields; }
+
 auto background_mesh_from_primitives(const std::filesystem::path& aFileName,
                                      const LevelSetPrimitives& aLevelSetPrimitives,
                                      const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
@@ -74,9 +88,9 @@ auto background_mesh_from_primitives(const std::filesystem::path& aFileName,
     auto tInitializationSurfaces = make_krino_composite_surface();
     append_spheres(tInitializationSurfaces, aLevelSetPrimitives.mSpheres);
     append_planes(tInitializationSurfaces, aLevelSetPrimitives.mPlanes);
-    ::krino::compute_nodal_surface_distance(tBackgroundMesh.mKrinoMesh->bulk_data(),
-                                            tBackgroundMesh.mKrinoMesh->bulk_data().mesh_meta_data().coordinate_field(),
-                                            tBackgroundMesh.mLevelSetFields.front().isovar, tInitializationSurfaces);
+    ::krino::compute_nodal_surface_distance(tBackgroundMesh.bulkData(),
+                                            tBackgroundMesh.bulkData().mesh_meta_data().coordinate_field(),
+                                            tBackgroundMesh.levelSetFields().front().isovar, tInitializationSurfaces);
     return tBackgroundMesh;
 }
 
@@ -88,12 +102,12 @@ auto background_mesh_from_analysis_domain_mesh(const analysis::AnalysisDomainMes
     for (const analysis::ScalarFieldValue tScalarFieldValue :
          analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
     {
-        const auto tStkEntity = tBackgroundMesh.mKrinoMesh->bulk_data().get_entity(
-            stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
+        const auto tStkEntity =
+            tBackgroundMesh.bulkData().get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
 
         if (tStkEntity != stk::mesh::Entity::InvalidEntity)
         {
-            level_set_value(tBackgroundMesh.mLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
+            level_set_value(tBackgroundMesh.levelSetFields(), tStkEntity) = tScalarFieldValue.mValue;
         }
     }
     return tBackgroundMesh;

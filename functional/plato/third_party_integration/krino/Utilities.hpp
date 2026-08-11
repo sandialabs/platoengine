@@ -50,7 +50,7 @@ void set_stk_communicator_for_krino(const boost::mpi::communicator& aCommunicato
 /// @brief Take a background mesh @a aBackgroundMesh and perform the cutting of the mesh and creation of child nodes.
 /// Each child node generated in the cut operation have only two parents and those parents are background nodes. The
 /// reverse procedure for cut_mesh is:
-///    ::krino::CDMesh::reset_mesh_to_original_undecomposed_state(mKrinoMesh->bulk_data());
+///    ::krino::CDMesh::reset_mesh_to_original_undecomposed_state(aBackgroundMesh.bulkData());
 /// @pre the environment for krino was initialized by calling 'set_stk_communicator_for_krino', the level set fields in
 /// the krino mesh were set up by constructing a background mesh, and the level-set field values were set appropriately
 void cut_mesh(const BackgroundMesh& aBackgroundMesh, SnappingParameters aSnappingParameters);

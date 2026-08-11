@@ -7,7 +7,6 @@
 #include <cstddef>
 #include <filesystem>
 #include <iterator>
-#include <memory>
 #include <optional>
 #include <set>
 #include <stk_mesh/base/Types.hpp>
@@ -61,7 +60,7 @@ KrinoWrapper::KrinoWrapper(third_party_integration::krino::BackgroundMesh aBackg
       mNumberOfDesignDomainBackgroundNodes(tpik::background_node_ids(mBackgroundMesh).size()),
       mSensitivityMap(cut_mesh_compute_sensitivities(
           mBackgroundMesh, tpik::background_node_ids(mBackgroundMesh), aSnappingParameters)),
-      mSelector(tpik::create_output_selector(mBackgroundMesh.mKrinoMesh->bulk_data(), aVoidPhase)),
+      mSelector(tpik::create_output_selector(mBackgroundMesh.bulkData(), aVoidPhase)),
       mVoidPhase(aVoidPhase)
 
 {
@@ -69,7 +68,7 @@ KrinoWrapper::KrinoWrapper(third_party_integration::krino::BackgroundMesh aBackg
 
 void KrinoWrapper::writeCutMesh(const std::filesystem::path& aFileName) const
 {
-    tpik::write_mesh(mBackgroundMesh.mKrinoMesh->bulk_data(), aFileName, mSelector);
+    tpik::write_mesh(mBackgroundMesh.bulkData(), aFileName, mSelector);
 }
 
 auto KrinoWrapper::sensitivities() const -> const tpik::SensitivityMap& { return mSensitivityMap; }
@@ -159,17 +158,16 @@ auto KrinoWrapper::rowVectorJacobianProduct(const std::vector<double>& aCutMeshR
 {
     const auto tViewDimension = 1U;
     const auto tResultSize = mNumberOfDesignDomainBackgroundNodes;
-    return transform_sensitivity_map(aCutMeshRowVector, mSensitivityMap, *mBackgroundMesh.mKrinoMesh, mVoidPhase,
+    return transform_sensitivity_map(aCutMeshRowVector, mSensitivityMap, mBackgroundMesh.krinoMesh(), mVoidPhase,
                                      ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension}, kJacobianImpl);
 }
 
 auto KrinoWrapper::rowVectorAdjointJacobianProduct(const std::vector<double>& aBackgroundMeshRowVector) const
     -> std::vector<double>
 {
-    const auto tViewDimension =
-        third_party_integration::stk_io::spatial_dimensions(mBackgroundMesh.mKrinoMesh->bulk_data());
-    const auto tResultSize = tpik::cut_mesh_node_ids(*mBackgroundMesh.mKrinoMesh, mVoidPhase).size() * tViewDimension;
-    return transform_sensitivity_map(aBackgroundMeshRowVector, mSensitivityMap, *mBackgroundMesh.mKrinoMesh, mVoidPhase,
+    const auto tViewDimension = third_party_integration::stk_io::spatial_dimensions(mBackgroundMesh.bulkData());
+    const auto tResultSize = tpik::cut_mesh_node_ids(mBackgroundMesh.krinoMesh(), mVoidPhase).size() * tViewDimension;
+    return transform_sensitivity_map(aBackgroundMeshRowVector, mSensitivityMap, mBackgroundMesh.krinoMesh(), mVoidPhase,
                                      ResultSize{tResultSize}, ResultViewDimensionality{tViewDimension},
                                      kAdjointJacobianImpl);
 }
@@ -264,7 +262,7 @@ auto compute_sensitivities(const tpik::BackgroundMesh& aBackgroundMesh,
     -> tpik::SensitivityMap
 {
     const auto tSensitivitiesFromKrino = tpik::get_krino_sensitivities(aBackgroundMesh);
-    const auto tSpatialDimension = aBackgroundMesh.mKrinoMesh->bulk_data().mesh_meta_data().spatial_dimension();
+    const auto tSpatialDimension = aBackgroundMesh.bulkData().mesh_meta_data().spatial_dimension();
     auto tSensitivityMap = utilities::reserved_container<tpik::SensitivityMap>(tSensitivitiesFromKrino.size());
     for (const auto& tCurrentSensitivity : tSensitivitiesFromKrino)
     {

@@ -29,8 +29,8 @@ TEST_F(KrinoTestFixture, BackgroundMesh_FieldNames)
 {
     const auto tBackgroundMesh = detail::initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
 
-    const auto tSelector = create_output_selector(tBackgroundMesh.mKrinoMesh->bulk_data(), VoidPhase::kIncludeInMesh);
-    write_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
+    const auto tSelector = create_output_selector(tBackgroundMesh.bulkData(), VoidPhase::kIncludeInMesh);
+    write_mesh(tBackgroundMesh.bulkData(), kWriteMeshName, tSelector);
 
     const auto tFieldNames = stk_io::nodal_field_names(kWriteMeshName);
 
@@ -44,8 +44,8 @@ TEST_F(KrinoTestFixture, InitializeBackgroundMesh)
 {
     const auto tBackgroundMesh = detail::initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
 
-    ASSERT_EQ(tBackgroundMesh.mLevelSetFields.size(), 1U);
-    EXPECT_EQ(tBackgroundMesh.mLevelSetFields.front().name, get_level_set_field_name());
+    ASSERT_EQ(tBackgroundMesh.levelSetFields().size(), 1U);
+    EXPECT_EQ(tBackgroundMesh.levelSetFields().front().name, get_level_set_field_name());
 
     const auto tLevelSetValues = get_level_set_values(tBackgroundMesh);
     for (const auto& [tNode, tLevelSetValue] : tLevelSetValues)

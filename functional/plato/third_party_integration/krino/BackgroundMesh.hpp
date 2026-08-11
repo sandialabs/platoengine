@@ -22,6 +22,23 @@ namespace plato::third_party_integration::krino
 /// mesh.
 struct BackgroundMesh
 {
+    BackgroundMesh() = default;
+
+    BackgroundMesh(std::unique_ptr<::krino::MeshInterface> aKrinoMesh, std::vector<::krino::LS_Field> aLevelSetFields);
+
+    /// @brief returns a reference to mKrinoMesh.
+    [[nodiscard]] auto krinoMesh() const -> ::krino::MeshInterface&;
+
+    /// @brief returns a reference to the bulk data stored in mKrinoMesh.
+    [[nodiscard]] auto bulkData() const -> stk::mesh::BulkData&;
+
+    /// @brief returns a reference to the metadata stored in mKrinoMesh.
+    [[nodiscard]] auto metaData() const -> stk::mesh::MetaData&;
+
+    /// @brief returns a const reference to mLevelSetFields.
+    [[nodiscard]] auto levelSetFields() const -> const std::vector<::krino::LS_Field>&;
+
+   private:
     std::unique_ptr<::krino::MeshInterface> mKrinoMesh;
     std::vector<::krino::LS_Field> mLevelSetFields;
 };

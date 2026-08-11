@@ -1,12 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <Akri_MeshInterface.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
 #include <iterator>
 #include <map>
-#include <memory>
 #include <set>
 #include <stk_mesh/base/Types.hpp>
 #include <string>
@@ -64,7 +62,7 @@ void make_test_level_set_field(const BackgroundMesh& aBackgroundMesh)
 
     for (const auto [tNode, tValue] : utilities::Zip(tNodes, tVector))
     {
-        level_set_value(aBackgroundMesh.mLevelSetFields, tNode) = tValue;
+        level_set_value(aBackgroundMesh.levelSetFields(), tNode) = tValue;
     }
 }
 
@@ -81,8 +79,8 @@ void run_cut_and_write_test(const VoidPhase aVoidPhase,
     const auto tBackgroundMesh = detail::initialize_background_mesh(kMeshName);
     make_test_level_set_field(tBackgroundMesh);
     cut_mesh(tBackgroundMesh, SnappingParameters{});
-    const auto tSelector = create_output_selector(tBackgroundMesh.mKrinoMesh->bulk_data(), aVoidPhase);
-    write_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
+    const auto tSelector = create_output_selector(tBackgroundMesh.bulkData(), aVoidPhase);
+    write_mesh(tBackgroundMesh.bulkData(), kWriteMeshName, tSelector);
 
     const auto tCutLevelSetField = read_coordinates_and_level_sets(kWriteMeshName);
     EXPECT_EQ(tCutLevelSetField, aGold) << aTestContext;
@@ -142,12 +140,12 @@ TEST_F(KrinoTestFixture, CutMeshNodeIds)
         kOneTriMeshFilePath.value(), {kThreeQuarters, -kOneQuarter, -kOneQuarter});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
     {
-        const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
+        const auto tResult = cut_mesh_node_ids(tBackgroundMesh.krinoMesh(), VoidPhase::kIncludeInMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6};
         EXPECT_EQ(tGold, tResult) << "Include void.";
     }
     {
-        const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kExcludeFromMesh);
+        const auto tResult = cut_mesh_node_ids(tBackgroundMesh.krinoMesh(), VoidPhase::kExcludeFromMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 5, 6};
         EXPECT_EQ(tGold, tResult) << "Exclude void.";
     }
@@ -160,12 +158,12 @@ TEST_F(KrinoTestFixture, CutMeshNodeIdsFourTri)
         {kThreeQuarters, -kOneQuarter, -kOneQuarter, kThreeQuarters, kThreeQuarters, kThreeQuarters});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
     {
-        const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
+        const auto tResult = cut_mesh_node_ids(tBackgroundMesh.krinoMesh(), VoidPhase::kIncludeInMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12};
         EXPECT_EQ(tGold, tResult) << "Include void.";
     }
     {
-        const auto tResult = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kExcludeFromMesh);
+        const auto tResult = cut_mesh_node_ids(tBackgroundMesh.krinoMesh(), VoidPhase::kExcludeFromMesh);
         const auto tGold = std::vector<stk::mesh::EntityId>{1, 5, 6, 7, 8, 9, 10, 11, 12};
         EXPECT_EQ(tGold, tResult) << "Exclude void.";
     }

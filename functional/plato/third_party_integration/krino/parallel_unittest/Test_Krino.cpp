@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <Akri_MeshInterface.hpp>
 #include <algorithm>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
@@ -80,8 +81,8 @@ TEST_F(ParallelKrinoFixture, InitializeKrino)
     const auto tBackgroundMesh =
         background_mesh_from_primitives(kTetBoxFilePath.value(), LevelSetPrimitives{{}, {kUnitSphere}});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
-    const auto tSelector = create_output_selector(tBackgroundMesh.mKrinoMesh->bulk_data(), VoidPhase::kIncludeInMesh);
-    write_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
+    const auto tSelector = create_output_selector(tBackgroundMesh.bulkData(), VoidPhase::kIncludeInMesh);
+    write_mesh(tBackgroundMesh.bulkData(), kWriteMeshName, tSelector);
     remove_file_on_rank_zero();
 }
 
@@ -92,7 +93,7 @@ TEST_F(ParallelKrinoFixture, CutMeshNodeIds)
         background_mesh_from_primitives(kTetBoxFilePath.value(), LevelSetPrimitives{{}, {kUnitSphere}});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
 
-    const auto tCutMeshNodeIds = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kExcludeFromMesh);
+    const auto tCutMeshNodeIds = cut_mesh_node_ids(tBackgroundMesh.krinoMesh(), VoidPhase::kExcludeFromMesh);
 
     check_vector_same_on_all_ranks(tCutMeshNodeIds, TEST_CONTEXT("Cut mesh node ids same on all ranks 3d sphere"));
 }
@@ -131,10 +132,10 @@ TEST_F(ParallelKrinoFixture, CutMeshNodeIdsFourTriParallelConsistent)
         kFourTriTwoBlockMeshFilePath.value(), LevelSetPrimitives{{kThreeQuarterOffsetXHatPlane}, {}});
     cut_mesh(tBackgroundMesh, SnappingParameters{});
 
-    test_cut_mesh_node_ids_parallel_consistent(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh,
+    test_cut_mesh_node_ids_parallel_consistent(tBackgroundMesh.krinoMesh(), VoidPhase::kIncludeInMesh,
                                                TEST_CONTEXT("Cut nodes consistency using Include void region"));
 
-    test_cut_mesh_node_ids_parallel_consistent(*tBackgroundMesh.mKrinoMesh, VoidPhase::kExcludeFromMesh,
+    test_cut_mesh_node_ids_parallel_consistent(tBackgroundMesh.krinoMesh(), VoidPhase::kExcludeFromMesh,
                                                TEST_CONTEXT("Cut nodes consistency using Exclude void region"));
 }
 
@@ -191,13 +192,13 @@ TEST_F(ParallelKrinoFixture, FixedBlock)
     // Cut mesh node ids
     {
         cut_mesh(tBackgroundMesh, SnappingParameters{});
-        const auto tCutMeshNodeIds = cut_mesh_node_ids(*tBackgroundMesh.mKrinoMesh, VoidPhase::kIncludeInMesh);
+        const auto tCutMeshNodeIds = cut_mesh_node_ids(tBackgroundMesh.krinoMesh(), VoidPhase::kIncludeInMesh);
         constexpr auto tExpectedNumberOfCutMeshNodes = 9U;  // For both blocks, this would be 11
         EXPECT_EQ(tCutMeshNodeIds.size(), tExpectedNumberOfCutMeshNodes);
     }
     // Blocks
     {
-        const auto tAllBlocks = all_block_parts(*tBackgroundMesh.mKrinoMesh);
+        const auto tAllBlocks = all_block_parts(tBackgroundMesh.krinoMesh());
         auto tBlockNames = utilities::reserved_container<std::vector<std::string>>(tAllBlocks.size());
         std::ranges::transform(tAllBlocks, std::back_inserter(tBlockNames),
                                [](const auto& aBlockPart) { return aBlockPart->name(); });

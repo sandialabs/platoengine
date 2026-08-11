@@ -98,9 +98,8 @@ auto retrieve_mpi_communicator_from_krino() -> boost::mpi::communicator
 auto background_node_ids(const BackgroundMesh& aBackgroundMesh) -> std::vector<stk::mesh::EntityId>
 {
     const auto tBackgroundNodes = node_entities_in_mesh(aBackgroundMesh);
-    return utilities::unique_vector_gather(
-        get_ids_from_entities(tBackgroundNodes, aBackgroundMesh.mKrinoMesh->bulk_data()),
-        retrieve_mpi_communicator_from_krino());
+    return utilities::unique_vector_gather(get_ids_from_entities(tBackgroundNodes, aBackgroundMesh.bulkData()),
+                                           retrieve_mpi_communicator_from_krino());
 }
 
 namespace
@@ -129,7 +128,7 @@ auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh, const VoidPhase
 
 void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aSnappingParameters)
 {
-    const auto& tMeta = aBackgroundMesh.mKrinoMesh->bulk_data().mesh_meta_data();
+    const auto& tMeta = aBackgroundMesh.bulkData().mesh_meta_data();
     auto& tAuxMeta = ::krino::AuxMetaData::get(tMeta);
     auto& tCdfemSupport = ::krino::CDFEM_Support::get(tMeta);
     auto& tPhaseSupport = ::krino::Phase_Support::get(tMeta);
@@ -144,15 +143,15 @@ void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aS
 
     const auto& tLevelSetFields =
         use_snapping(aSnappingParameters)
-            ? ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.mLevelSetFields)
-            : aBackgroundMesh.mLevelSetFields;
+            ? ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.levelSetFields())
+            : aBackgroundMesh.levelSetFields();
 
     const auto tInterfaceGeometry =
         ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
                                           tCdfemSupport, tPhaseSupport, tLevelSetFields);
 
     tAuxMeta.clear_force_64bit_flag();
-    ::krino::CDMesh::decompose_mesh(aBackgroundMesh.mKrinoMesh->bulk_data(), *tInterfaceGeometry);
+    ::krino::CDMesh::decompose_mesh(aBackgroundMesh.bulkData(), *tInterfaceGeometry);
 }
 
 auto get_level_set_field_name() -> std::string { return std::string{kLevelSetName}; }
@@ -167,8 +166,8 @@ auto get_level_set_values(const BackgroundMesh& aBackgroundMesh) -> std::unorder
     std::ranges::transform(tNodes, std::inserter(tLevelSetValues, tLevelSetValues.begin()),
                            [&aBackgroundMesh](const auto& aNode)
                            {
-                               const auto tId = aBackgroundMesh.mKrinoMesh->bulk_data().entity_key(aNode).id();
-                               return std::make_pair(tId, level_set_value(aBackgroundMesh.mLevelSetFields, aNode));
+                               const auto tId = aBackgroundMesh.bulkData().entity_key(aNode).id();
+                               return std::make_pair(tId, level_set_value(aBackgroundMesh.levelSetFields(), aNode));
                            });
 
     return utilities::reduce_map(tLevelSetValues, retrieve_mpi_communicator_from_krino());
@@ -176,12 +175,12 @@ auto get_level_set_values(const BackgroundMesh& aBackgroundMesh) -> std::unorder
 
 auto node_entities_in_mesh(const BackgroundMesh& aBackgroundMesh) -> stk::mesh::EntityVector
 {
-    const ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aBackgroundMesh.mKrinoMesh->meta_data());
+    const ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aBackgroundMesh.metaData());
     const stk::mesh::Selector tSelector =
-        stk::mesh::selectField(aBackgroundMesh.mLevelSetFields.front().isovar) & !tCdfemSupport.get_child_node_part();
+        stk::mesh::selectField(aBackgroundMesh.levelSetFields().front().isovar) & !tCdfemSupport.get_child_node_part();
     stk::mesh::EntityVector tNodes;
-    stk::mesh::get_selected_entities(
-        tSelector, aBackgroundMesh.mKrinoMesh->bulk_data().buckets(stk::topology::NODE_RANK), tNodes, kSortByGlobalId);
+    stk::mesh::get_selected_entities(tSelector, aBackgroundMesh.bulkData().buckets(stk::topology::NODE_RANK), tNodes,
+                                     kSortByGlobalId);
     return tNodes;
 }
 

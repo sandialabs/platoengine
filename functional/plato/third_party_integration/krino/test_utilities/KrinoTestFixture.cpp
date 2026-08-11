@@ -71,7 +71,7 @@ auto background_mesh_from_vector(const std::filesystem::path& aFileName,
     assert(tNodes.size() == aVector.size());
     for (const auto [tNode, tValue] : utilities::Zip(tNodes, aVector))
     {
-        level_set_value(tBackgroundMesh.mLevelSetFields, tNode) = tValue;
+        level_set_value(tBackgroundMesh.levelSetFields(), tNode) = tValue;
     }
     return tBackgroundMesh;
 }
