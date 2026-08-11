@@ -14,14 +14,18 @@
 #include <set>
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/Types.hpp>
+#include <stk_topology/topology_decl.hpp>
 #include <stk_util/environment/EnvData.hpp>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
+#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/third_party_integration/krino/BlockUtilities.hpp"
 #include "plato/third_party_integration/krino/LevelSetPrimitives.hpp"
 #include "plato/third_party_integration/krino/MeshFromFileWithoutFields.hpp"
+#include "plato/third_party_integration/krino/Utilities.hpp"
 
 namespace plato::third_party_integration::krino
 {
@@ -30,8 +34,8 @@ namespace
 constexpr auto kDecompositionMethod = std::string_view{"rib"};
 constexpr auto kNumberOfLevelSets = 1U;
 
-void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta,
-                                               const std::vector<::krino::LS_Field>& aLevelSetFields)
+auto setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta,
+                                               const std::vector<::krino::LS_Field>& aLevelSetFields) -> void
 {
     ::krino::CDFEM_Support& tCdfemSupport = ::krino::CDFEM_Support::get(aMeta);
     const ::krino::FieldRef tCoordsField = aMeta.coordinate_field();
@@ -45,7 +49,8 @@ void setup_fields_for_conforming_decomposition(stk::mesh::MetaData& aMeta,
     tCdfemSupport.finalize_fields();
 }
 
-auto krino_mesh_from_file(const std::filesystem::path& aFilename) -> std::unique_ptr<::krino::MeshInterface>
+[[nodiscard]] auto krino_mesh_from_file(const std::filesystem::path& aFilename)
+    -> std::unique_ptr<::krino::MeshInterface>
 {
     assert(std::filesystem::exists(aFilename));
     return std::make_unique<MeshFromFileWithoutFields>(aFilename.string(), stk::EnvData::parallel_comm(),
@@ -58,7 +63,44 @@ auto activate_krino_fields(const std::unique_ptr<::krino::MeshInterface>& aMeshF
     ::krino::activate_all_entities(aMeshFromFile->bulk_data(),
                                    ::krino::AuxMetaData::get(aMeshFromFile->meta_data()).active_part());
 }
+}  // namespace
 
+auto background_mesh_from_primitives(const std::filesystem::path& aFileName,
+                                     const LevelSetPrimitives& aLevelSetPrimitives,
+                                     const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
+{
+    auto tBackgroundMesh = detail::initialize_background_mesh(aFileName, aExcludedBlocks);
+
+    auto tInitializationSurfaces = make_krino_composite_surface();
+    append_spheres(tInitializationSurfaces, aLevelSetPrimitives.mSpheres);
+    append_planes(tInitializationSurfaces, aLevelSetPrimitives.mPlanes);
+    ::krino::compute_nodal_surface_distance(tBackgroundMesh.mKrinoMesh->bulk_data(),
+                                            tBackgroundMesh.mKrinoMesh->bulk_data().mesh_meta_data().coordinate_field(),
+                                            tBackgroundMesh.mLevelSetFields.front().isovar, tInitializationSurfaces);
+    return tBackgroundMesh;
+}
+
+auto background_mesh_from_analysis_domain_mesh(const analysis::AnalysisDomainMesh& aAnalysisDomainMesh,
+                                               const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
+{
+    auto tBackgroundMesh = detail::initialize_background_mesh(aAnalysisDomainMesh.mFileName, aExcludedBlocks);
+
+    for (const analysis::ScalarFieldValue tScalarFieldValue :
+         analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
+    {
+        const auto tStkEntity = tBackgroundMesh.mKrinoMesh->bulk_data().get_entity(
+            stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
+
+        if (tStkEntity != stk::mesh::Entity::InvalidEntity)
+        {
+            level_set_value(tBackgroundMesh.mLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
+        }
+    }
+    return tBackgroundMesh;
+}
+
+namespace detail
+{
 auto initialize_background_mesh(const std::filesystem::path& aFileName,
                                 const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
 {
@@ -73,26 +115,5 @@ auto initialize_background_mesh(const std::filesystem::path& aFileName,
 
     return BackgroundMesh{std::move(tMeshFromFile), std::move(tLevelSetFields)};
 }
-}  // namespace
-
-auto background_mesh_with_zero_level_set_field(const std::filesystem::path& aFileName,
-                                               const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
-{
-    return initialize_background_mesh(aFileName, aExcludedBlocks);
-}
-
-auto background_mesh_from_primitives(const std::filesystem::path& aFileName,
-                                     const LevelSetPrimitives& aLevelSetPrimitives,
-                                     const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
-{
-    auto tBackgroundMesh = initialize_background_mesh(aFileName, aExcludedBlocks);
-
-    auto tInitializationSurfaces = make_krino_composite_surface();
-    append_spheres(tInitializationSurfaces, aLevelSetPrimitives.mSpheres);
-    append_planes(tInitializationSurfaces, aLevelSetPrimitives.mPlanes);
-    ::krino::compute_nodal_surface_distance(tBackgroundMesh.mKrinoMesh->bulk_data(),
-                                            tBackgroundMesh.mKrinoMesh->bulk_data().mesh_meta_data().coordinate_field(),
-                                            tBackgroundMesh.mLevelSetFields.front().isovar, tInitializationSurfaces);
-    return tBackgroundMesh;
-}
+}  // namespace detail
 }  // namespace plato::third_party_integration::krino

@@ -65,7 +65,7 @@ auto background_mesh_from_vector(const std::filesystem::path& aFileName,
                                  const std::vector<double>& aVector,
                                  const std::set<std::string>& aExcludedBlocks) -> BackgroundMesh
 {
-    auto tBackgroundMesh = background_mesh_with_zero_level_set_field(aFileName, aExcludedBlocks);
+    auto tBackgroundMesh = detail::initialize_background_mesh(aFileName, aExcludedBlocks);
     assert(boost::mpi::communicator{}.size() == 1);
     const auto tNodes = node_entities_in_mesh(tBackgroundMesh);
     assert(tNodes.size() == aVector.size());

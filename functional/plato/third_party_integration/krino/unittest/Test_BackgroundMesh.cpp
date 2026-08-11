@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "plato/analysis/AnalysisDomainMesh.hpp"
 #include "plato/test_utilities/FilesystemTestUtility.hpp"
 #include "plato/test_utilities/TestContext.hpp"
 #include "plato/third_party_integration/krino/BackgroundMesh.hpp"
@@ -25,7 +27,7 @@ constexpr auto kWriteMeshName = std::string_view{"levelset_mesh.exo"};
 
 TEST_F(KrinoTestFixture, BackgroundMesh_FieldNames)
 {
-    const auto tBackgroundMesh = background_mesh_with_zero_level_set_field(kFourTriTwoBlockMeshFilePath.value());
+    const auto tBackgroundMesh = detail::initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
 
     const auto tSelector = create_output_selector(tBackgroundMesh.mKrinoMesh->bulk_data(), VoidPhase::kIncludeInMesh);
     write_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(), kWriteMeshName, tSelector);
@@ -38,9 +40,9 @@ TEST_F(KrinoTestFixture, BackgroundMesh_FieldNames)
                                                          TEST_CONTEXT("Write mesh with krino fields"));
 }
 
-TEST_F(KrinoTestFixture, BackgroundMeshWithZeroLevelSetField)
+TEST_F(KrinoTestFixture, InitializeBackgroundMesh)
 {
-    const auto tBackgroundMesh = background_mesh_with_zero_level_set_field(kFourTriTwoBlockMeshFilePath.value());
+    const auto tBackgroundMesh = detail::initialize_background_mesh(kFourTriTwoBlockMeshFilePath.value());
 
     ASSERT_EQ(tBackgroundMesh.mLevelSetFields.size(), 1U);
     EXPECT_EQ(tBackgroundMesh.mLevelSetFields.front().name, get_level_set_field_name());
@@ -63,6 +65,23 @@ TEST_F(KrinoTestFixture, BackgroundMeshFromPrimitives)
 
     const auto tGoldLevelSetValues = std::unordered_map<std::size_t, double>{
         {1, 0.5}, {2, 0.5}, {4, -0.5}, {5, -0.5}, {6, -1.5}, {7, 1.5}};  // distances of nodes on the mesh from plane
+    EXPECT_EQ(tLevelSetValues, tGoldLevelSetValues);
+}
+
+TEST_F(KrinoTestFixture, BackgroundMeshFromAnalysisDomainMesh)
+{
+    const auto tAnalysisDomainMesh =
+        analysis::AnalysisDomainMesh{kFourTriTwoBlockMeshFilePath.value(),
+                                     analysis::AnalysisDomainMesh::BlockScalarField{
+                                         {1U, {{1U, 0U, .75}, {2U, 1U, -.25}, {4U, 2U, -.25}, {7U, 3U, .75}}}}};
+    const auto tFixedBlocks = std::set<std::string>{"block_2"};
+
+    const auto tBackgroundMesh = background_mesh_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks);
+
+    const auto tLevelSetValues = get_level_set_values(tBackgroundMesh);
+
+    const auto tGoldLevelSetValues = std::unordered_map<std::size_t, double>{
+        {1, 0.75}, {2, -0.25}, {4, -0.25}, {7, 0.75}};  // distances of nodes on the mesh from plane
     EXPECT_EQ(tLevelSetValues, tGoldLevelSetValues);
 }
 }  // namespace plato::third_party_integration::krino::unittest

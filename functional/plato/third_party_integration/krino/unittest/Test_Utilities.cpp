@@ -78,7 +78,7 @@ void run_cut_and_write_test(const VoidPhase aVoidPhase,
                             const plato::test_utilities::TestContext& aTestContext)
 {
     create_mesh();
-    const auto tBackgroundMesh = background_mesh_with_zero_level_set_field(kMeshName);
+    const auto tBackgroundMesh = detail::initialize_background_mesh(kMeshName);
     make_test_level_set_field(tBackgroundMesh);
     cut_mesh(tBackgroundMesh, SnappingParameters{});
     const auto tSelector = create_output_selector(tBackgroundMesh.mKrinoMesh->bulk_data(), aVoidPhase);

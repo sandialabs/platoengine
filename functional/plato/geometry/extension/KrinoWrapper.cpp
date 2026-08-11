@@ -10,15 +10,12 @@
 #include <memory>
 #include <optional>
 #include <set>
-#include <stk_mesh/base/Entity.hpp>
 #include <stk_mesh/base/Types.hpp>
-#include <stk_topology/topology_decl.hpp>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "plato/analysis/AnalysisDomainMesh.hpp"
-#include "plato/analysis/AnalysisDomainMeshSequentialView.hpp"
 #include "plato/components/ComponentType.hpp"
 #include "plato/mesh/Mesh.hpp"
 #include "plato/services/ScopedExternalRedirectLogger.hpp"
@@ -42,22 +39,6 @@ namespace plato::geometry::extension
 namespace
 {
 namespace tpik = third_party_integration::krino;
-
-void set_level_set_fields_from_analysis_domain_mesh(stk::mesh::BulkData& aBulkData,
-                                                    std::vector<::krino::LS_Field>& aLevelSetFields,
-                                                    const analysis::AnalysisDomainMesh& aAnalysisDomainMesh)
-{
-    for (const analysis::ScalarFieldValue tScalarFieldValue :
-         analysis::AnalysisDomainMeshSequentialView{aAnalysisDomainMesh})
-    {
-        const auto tStkEntity = aBulkData.get_entity(stk::topology::NODE_RANK, tScalarFieldValue.mGlobalMeshEntityID);
-
-        if (tStkEntity != stk::mesh::Entity::InvalidEntity)
-        {
-            tpik::level_set_value(aLevelSetFields, tStkEntity) = tScalarFieldValue.mValue;
-        }
-    }
-}
 
 [[nodiscard]] auto cut_mesh_compute_sensitivities(
     const tpik::BackgroundMesh& aBackgroundMesh,
@@ -230,9 +211,7 @@ auto make_krino_wrapper_from_analysis_domain_mesh(const analysis::AnalysisDomain
                                                   const tpik::VoidPhase& aVoidPhase,
                                                   const tpik::SnappingParameters aSnappingParameters) -> KrinoWrapper
 {
-    auto tBackgroundMesh = tpik::background_mesh_with_zero_level_set_field(aAnalysisDomainMesh.mFileName, aFixedBlocks);
-    set_level_set_fields_from_analysis_domain_mesh(tBackgroundMesh.mKrinoMesh->bulk_data(),
-                                                   tBackgroundMesh.mLevelSetFields, aAnalysisDomainMesh);
+    auto tBackgroundMesh = tpik::background_mesh_from_analysis_domain_mesh(aAnalysisDomainMesh, aFixedBlocks);
     return KrinoWrapper{std::move(tBackgroundMesh), aVoidPhase, aSnappingParameters};
 }
 

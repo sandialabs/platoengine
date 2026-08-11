@@ -4,7 +4,6 @@
 #include <Akri_LevelSet.hpp>
 #include <Akri_LevelSetPolicy.hpp>
 #include <filesystem>
-#include <memory>
 #include <utility>
 #include <vector>
 
