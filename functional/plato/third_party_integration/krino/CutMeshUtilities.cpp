@@ -84,19 +84,26 @@ void cut_mesh(const BackgroundMesh& aBackgroundMesh, const SnappingParameters aS
             ::krino::Edge_Degeneracy_Handling::SNAP_TO_INTERFACE_WHEN_QUALITY_ALLOWS_THEN_SNAP_TO_NODE);
         tCdfemSupport.set_snapping_sharp_feature_angle_in_degrees(aSnappingParameters.mSharpFeatureAngle);
         tCdfemSupport.set_max_edge_snap(aSnappingParameters.mMaxSnappingEdgeLength);
+
+        const auto tLevelSetFields =
+            ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.levelSetFields());
+
+        const auto tInterfaceGeometry =
+            ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
+                                              tCdfemSupport, tPhaseSupport, tLevelSetFields);
+
+        tAuxMeta.clear_force_64bit_flag();
+        ::krino::CDMesh::decompose_mesh(aBackgroundMesh.bulkData(), *tInterfaceGeometry);
     }
+    else
+    {
+        const auto tInterfaceGeometry =
+            ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
+                                              tCdfemSupport, tPhaseSupport, aBackgroundMesh.levelSetFields());
 
-    const auto& tLevelSetFields =
-        use_snapping(aSnappingParameters)
-            ? ::krino::update_levelset_copies_to_prepare_for_snapping(tMeta, aBackgroundMesh.levelSetFields())
-            : aBackgroundMesh.levelSetFields();
-
-    const auto tInterfaceGeometry =
-        ::krino::create_levelset_geometry(static_cast<int>(tMeta.spatial_dimension()), tAuxMeta.active_part(),
-                                          tCdfemSupport, tPhaseSupport, tLevelSetFields);
-
-    tAuxMeta.clear_force_64bit_flag();
-    ::krino::CDMesh::decompose_mesh(aBackgroundMesh.bulkData(), *tInterfaceGeometry);
+        tAuxMeta.clear_force_64bit_flag();
+        ::krino::CDMesh::decompose_mesh(aBackgroundMesh.bulkData(), *tInterfaceGeometry);
+    }
 }
 
 auto cut_mesh_node_ids(const ::krino::MeshInterface& aKrinoMesh,
