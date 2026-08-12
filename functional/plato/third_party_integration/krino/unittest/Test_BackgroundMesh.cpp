@@ -75,7 +75,7 @@ TEST_F(KrinoTestFixture, BackgroundMeshFromAnalysisDomainMesh)
     const auto tAnalysisDomainMesh =
         analysis::AnalysisDomainMesh{kFourTriTwoBlockMeshFilePath.value(),
                                      analysis::AnalysisDomainMesh::BlockScalarField{
-                                         {1U, {{1U, 0U, .75}, {2U, 1U, -.25}, {4U, 2U, -.25}, {7U, 3U, .75}}}}};
+                                         {1U, {{1U, 0U, 1.0}, {2U, 1U, -1.0}, {4U, 2U, -1.0}, {7U, 3U, 1.0}}}}};
     const auto tFixedBlocks = std::set<std::string>{"block_2"};
 
     const auto tBackgroundMesh = background_mesh_from_analysis_domain_mesh(tAnalysisDomainMesh, tFixedBlocks);
@@ -83,7 +83,7 @@ TEST_F(KrinoTestFixture, BackgroundMeshFromAnalysisDomainMesh)
     const auto tLevelSetValues = get_level_set_values(tBackgroundMesh);
 
     const auto tGoldLevelSetValues = std::unordered_map<std::size_t, double>{
-        {1, 0.75}, {2, -0.25}, {4, -0.25}, {7, 0.75}};  // distances of nodes on the mesh from plane
+        {1, 1.0}, {2, -1.0}, {4, -1.0}, {7, 1.0}};  // distances of nodes on the mesh from plane
     EXPECT_EQ(tLevelSetValues, tGoldLevelSetValues);
 }
 }  // namespace plato::third_party_integration::krino::unittest
