@@ -23,7 +23,8 @@ auto get_krino_sensitivities(const stk::mesh::BulkData& aBulkData,
     -> std::vector<::krino::LevelSetShapeSensitivity>
 {
     constexpr auto tComputeClosestPointSensitivities = false;
-    return ::krino::get_levelset_shape_sensitivities(aBulkData, aLevelSetFields, tComputeClosestPointSensitivities);
+    return ::krino::get_levelset_shape_sensitivities(aBulkData, aLevelSetFields, tComputeClosestPointSensitivities)
+        .front();
 }
 
 auto coordinate_level_set_sensitivity(const ::krino::LevelSetShapeSensitivity& aLevelSetSensitivity,
