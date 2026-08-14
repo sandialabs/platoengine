@@ -145,7 +145,7 @@ void add_nonlinear_constraint_rol_problem(ROL::Problem<double>& aROLProblem,
 {
     namespace tpir = third_party_integration::rol;
 
-    auto tInequalityBoundConstraint =
+    ROL::Ptr<ROL::BoundConstraint<double>> tInequalityBoundConstraint =
         third_party_integration::rol::detail::create_less_than_inequality_bounds(aDualSize);
     auto tMultipliers = ROL::makePtr<std::vector<double>>(aDualSize, 0);
     auto tMultipliersPtr = ROL::makePtr<ROL::StdVector<double>>(tMultipliers);
