@@ -90,7 +90,7 @@ template <typename T, typename FieldFunction>
 {
     namespace tpi = third_party_integration;
 
-    if (!aBulkData)
+    if (!aBulkData || aAnalysisDomainMesh.mBlockScalarField.empty())
     {
         return {};
     }
