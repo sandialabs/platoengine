@@ -17,4 +17,5 @@ trigger-super:
   trigger:
     project: 1540-compsim/plato/plato
     strategy: depend
+    branch: ralberd/update_spack_packages
   needs: []
