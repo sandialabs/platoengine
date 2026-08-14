@@ -247,14 +247,14 @@ const auto kFourTriInterfaceNearNodeInputs =
                                   .mBackgroundRowVector = {1.0, 2.0, 3.0, 4.0},
                                   .mVoidPhase = tpik::VoidPhase::kExcludeFromMesh};
 
-const auto kFourTriInterfaceNearNodeGoldValues = KrinoWrapperGoldValues{
-    .mSpatialDimensions = 2U,
-    .mNumberBackgroundNodes = 4U,
-    .mNumberCutNodes = 3U,
-    .mSensitivityMapSize = 2U,
-    .mJacobianGold = {2.1211703435596427, 3.8896372965260113, 0.0001500000000000, 3.8885372965260117},
-    .mAdjointJacobianGold =
-        std::vector<double>{0.7072067811865476, 0.7072067811865476, 0, 0, 2.1212203435596426, 2.1212203435596426}};
+const auto kFourTriInterfaceNearNodeGoldValues =
+    KrinoWrapperGoldValues{.mSpatialDimensions = 2U,
+                           .mNumberBackgroundNodes = 4U,
+                           .mNumberCutNodes = 3U,
+                           .mSensitivityMapSize = 2U,
+                           .mJacobianGold = {2.1213203435596428, 3.8896372965260113, 0.0, 3.8885372965260117},
+                           .mAdjointJacobianGold = std::vector<double>{0.7072067811865476, 0.7072067811865476, 0, 0,
+                                                                       2.1212203435596426, 2.1212203435596426}};
 
 }  // namespace
 
@@ -479,7 +479,9 @@ TEST_F(KrinoWrapperTestFixtureFourTriMeshFixedBlockTwo, Jacobian)
 
 TEST_F(KrinoWrapperTestFixtureFourTriInterfaceNearNode, JacobianRegression)
 {
-    runJacobianRegressionTest(TEST_CONTEXT("KrinoWrapperTestFixtureFourTriInterfaceNearNode JacobianRegression"));
+    runJacobianRegressionTest(TEST_CONTEXT(
+        "Jacobian regression for case when interface is within cdfem edge tolerance so cutting will not occur. Test "
+        "captures the current state of what we believe to be the correct sensitivity values in such a case."));
 }
 
 TEST_F(KrinoWrapperTestFixtureUnitCube, AdjointJacobian)
