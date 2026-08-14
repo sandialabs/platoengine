@@ -469,7 +469,7 @@ TEST_F(KrinoWrapperTestFixtureUnitCube, Jacobian)
 
 TEST_F(KrinoWrapperTestFixtureOneTriMesh, Jacobian)
 {
-    runJacobianTest(TEST_CONTEXT("KrinoWrapperTestFixtureOneTriMesh Jacobian"));
+    runJacobianRegressionTest(TEST_CONTEXT("KrinoWrapperTestFixtureOneTriMesh Jacobian"));
 }
 
 TEST_F(KrinoWrapperTestFixtureFourTriMeshFixedBlockTwo, Jacobian)
