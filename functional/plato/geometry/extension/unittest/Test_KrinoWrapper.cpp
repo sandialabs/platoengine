@@ -119,20 +119,43 @@ class FourTriTwoBlockKrinoFixture : public tpik::test_utilities::KrinoTestFixtur
 void test_sensitivity_parent_nodes_against_expected(
     const KrinoWrapper& aWrapper,
     const std::unordered_map<std::size_t, std::vector<std::size_t>>& aExpectedParentNodes,
+    const std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>&
+        aExpectedSensitivityValues,
     const plato::test_utilities::TestContext& aTestContext)
 {
     const auto tCutFilename = std::filesystem::path{"cut_mesh.exo"};
     aWrapper.writeCutMesh(tCutFilename);
     const auto& tSensitivities = aWrapper.sensitivities();
 
-    const auto tToMap =
+    const auto tParentNodesToMap =
         tSensitivities |
         std::views::transform(
             [](const auto& aInterfaceNode)
             { return std::make_pair(aInterfaceNode.first, aInterfaceNode.second.mBackgroundMeshNodeIDs); });
-    const auto tParentNodes = std::unordered_map<std::size_t, std::vector<std::size_t>>{tToMap.begin(), tToMap.end()};
-
+    const auto tParentNodes =
+        std::unordered_map<std::size_t, std::vector<std::size_t>>{tParentNodesToMap.begin(), tParentNodesToMap.end()};
     EXPECT_EQ(tParentNodes, aExpectedParentNodes) << aTestContext;
+
+    const auto tSensitivityValuesToMap =
+        tSensitivities | std::views::transform(
+                             [](const auto& aInterfaceNode) {
+                                 return std::make_pair(aInterfaceNode.first, aInterfaceNode.second.mNodalSensitivities);
+                             });
+    const auto tComputedSensitivityValues =
+        std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
+            tSensitivityValuesToMap.begin(), tSensitivityValuesToMap.end()};
+    for (const auto& [tCutMeshNode, tExpectedSensitivityVector] : aExpectedSensitivityValues)
+    {
+        const auto tComputedSensitivityValuesIterator = tComputedSensitivityValues.find(tCutMeshNode);
+        ASSERT_NE(tComputedSensitivityValuesIterator, tComputedSensitivityValues.end());
+        for (const auto& [tValue, tGold] :
+             utilities::Zip{tComputedSensitivityValuesIterator->second, tExpectedSensitivityVector})
+        {
+            third_party_integration::common::test_utilities::test_double_equality_of_components(
+                tValue, tGold, EXTEND_CONTEXT("sensitivity values", aTestContext));
+        }
+    }
+
     std::filesystem::remove(tCutFilename);
 }
 
@@ -428,37 +451,93 @@ TEST_F(FourTriTwoBlockKrinoFixture, PlaneInterfaceSensitivityParentNodes)
 
     {
         constexpr double tOffset = 1.0e-1;
+        constexpr double tOneMinusOffset = 1.0 - tOffset;
+        const auto tExpectedSensitivityValues =
+            std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
+                {8, {{tOffset, tOffset, 0.0}, {tOneMinusOffset, tOneMinusOffset, 0.0}}},
+                {9, {{0.0, tOffset, 0.0}, {0.0, tOneMinusOffset, 0.0}}},
+                {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, tOffset, 0.0}}}};
         test_sensitivity_parent_nodes_against_expected(
             makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
-            tExpectedParentNodesWhenInterfaceMoves, TEST_CONTEXT("Offset 1E-1"));
+            tExpectedParentNodesWhenInterfaceMoves, tExpectedSensitivityValues, TEST_CONTEXT("Offset 1E-1"));
     }
 
     {
         constexpr double tOffset = 1.0e-3;
+        constexpr double tOneMinusOffset = 1.0 - tOffset;
+        const auto tExpectedSensitivityValues =
+            std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
+                {8, {{tOffset, tOffset, 0.0}, {tOneMinusOffset, tOneMinusOffset, 0.0}}},
+                {9, {{0.0, tOffset, 0.0}, {0.0, tOneMinusOffset, 0.0}}},
+                {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, tOffset, 0.0}}}};
         test_sensitivity_parent_nodes_against_expected(
             makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
-            tExpectedParentNodesWhenInterfaceMoves, TEST_CONTEXT("Offset 1E-3"));
+            tExpectedParentNodesWhenInterfaceMoves, tExpectedSensitivityValues, TEST_CONTEXT("Offset 1E-3"));
     }
 
-    constexpr double tOffset = 1.0e-4;
     {
+        constexpr double tOffset = 1.0e-4;
+        constexpr double tOneMinusOffset = 1.0 - tOffset;
         const auto tExpectedParentNodes =
-            std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 7}}, {2, {2, 4}}};
+            std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 5}}, {2, {2, 4}}};
+        const auto tExpectedSensitivityValues =
+            std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
+                {1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, tOffset, 0.0}}}};
         test_sensitivity_parent_nodes_against_expected(
             makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
-            tExpectedParentNodes,
-            TEST_CONTEXT("Offset 1e-4 - Here the parent nodes change. This is probably not the desired behavior."));
+            tExpectedParentNodes, tExpectedSensitivityValues,
+            TEST_CONTEXT("Offset 1e-4 - Here the level-set value is below the cdfem edge tolerance, meaning that "
+                         "cutting is disabled and nodes that cannot snap are treated as if they are exactly on the "
+                         "interface. Since background mesh node 1 is on a fixed block, it cannot be snapped "
+                         "and is treated as if it lies on the interface. Background mesh node 2 can be snapped, so it "
+                         "has the expected sensitivity values."));
     }
 
     {
+        constexpr double tOffset = 1.0e-4;
         const auto tSnappingParameters = tpik::SnappingParameters{.mMaxSnappingEdgeLength = 0.0};
         const auto tExpectedParentNodes =
-            std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 7}}, {2, {2, 7}}};
+            std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 5}}, {2, {2, 4}}};
+        const auto tExpectedSensitivityValues =
+            std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
+                {1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}};
         test_sensitivity_parent_nodes_against_expected(
             makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tSnappingParameters),
-            tExpectedParentNodes,
-            TEST_CONTEXT("Offset 1e-4, no snapping - The parent nodes also change but in a different way. Again, "
-                         "likely not the desired behavior."));
+            tExpectedParentNodes, tExpectedSensitivityValues,
+            TEST_CONTEXT("Offset 1e-4 with snapping disabled - Here the level-set value is below the cdfem edge "
+                         "tolerance, meaning that cutting is disabled and both background nodes are treated as if they "
+                         "are exactly on the interface."));
+    }
+
+    {
+        constexpr double tOffset = 1.0e-9;
+        constexpr double tOneMinusOffset = 1.0 - tOffset;
+        const auto tExpectedParentNodes =
+            std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 5}}, {2, {2, 4}}};
+        const auto tExpectedSensitivityValues =
+            std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
+                {1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, tOffset, 0.0}}}};
+        test_sensitivity_parent_nodes_against_expected(
+            makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
+            tExpectedParentNodes, tExpectedSensitivityValues,
+            TEST_CONTEXT("Offset 1e-8 - This is the same case as with offset 1e-4, except it checks that there is no "
+                         "invisible 1e-8 snapping tolerance like there used to be."));
+    }
+
+    {
+        constexpr double tOffset = 1.0e-15;
+        constexpr double tOneMinusOffset = 1.0 - tOffset;
+        const auto tExpectedParentNodes =
+            std::unordered_map<std::size_t, std::vector<std::size_t>>{{1, {1, 5}}, {2, {2, 4}}};
+        const auto tExpectedSensitivityValues =
+            std::unordered_map<std::size_t, std::vector<third_party_integration::common::Vector3>>{
+                {1, {{0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}}}, {2, {{0.0, tOneMinusOffset, 0.0}, {0.0, tOffset, 0.0}}}};
+        test_sensitivity_parent_nodes_against_expected(
+            makeKrinoWrapperFromDownwardPlane(tOffset, tVoidPhase, tFixedBlocks, tDefaultSnappingParameters),
+            tExpectedParentNodes, tExpectedSensitivityValues,
+            TEST_CONTEXT(
+                "Offset 1e-15 - This is the same case as with offset 1e-4, except the offset is right about the 4 ULPs "
+                "tolerance value for EXPECT_DOUBLE_EQUALITY which is being used to test for equality."));
     }
 }
 
